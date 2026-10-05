@@ -37,7 +37,7 @@ test('itemToSpec reads the leg, the spec and the capture off each shape the suit
     capture: 'columns-filter-2',
     index: 2,
   });
-  assert.equal(itemToSpec('cross-browser/firefox/alignment-custom-style-demo-1.png', CROSS_BROWSER).spec,
+  assert.equal(itemToSpec('cross-browser/firefox/alignment-merged-cells-demo-1.png', CROSS_BROWSER).spec,
     'visual-tests/tests/cross-browser/alignment.spec.ts');
 });
 
@@ -80,9 +80,9 @@ test('a sample of real golden paths maps to specs that exist', () => {
     'js/chromium-theme-horizon/js-only/dialog/dialog-focus-5.png',
     'js/chromium-theme-horizon-dark/multi-frameworks/mouse-wheel-2.png',
     'js/chromium-theme-main/js-only/pagination/navigation-4.png',
-    'cross-browser/chromium/copy-paste-large-dataset-demo-1.png',
-    'cross-browser/firefox/selection-arabic-rtl-demo-3.png',
-    'cross-browser/webkit/undo-redo-nested-rows-demo-2.png',
+    'cross-browser/chromium/columns-add-remove-two-tables-demo-1.png',
+    'cross-browser/firefox/selection-arabic-rtl-demo-1.png',
+    'cross-browser/webkit/selection-nested-rows-demo-2.png',
     'cross-browser/webkit/borders-1.png',
   ];
 

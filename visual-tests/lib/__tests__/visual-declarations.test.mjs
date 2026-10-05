@@ -49,12 +49,12 @@ const PARKED_SPEC = 'cross-browser/merging.spec.ts';
 
 // How many live specs the sweep expects to read a declaration out of: 112 files on 2026-09-18, one of
 // them parked. The filters consolidation (#13647) deleted nine multi-framework specs and added three
-// js-only ones, the submenu-placement trim deleted four scrolled-viewport menu specs, and the editors
-// trim deleted five editor specs, which leaves 97 files, one of them parked, so 96 live. Adding or
-// deleting a spec
-// moves this number, and moves a number in LIVE_GOLDENS too — the pair is the review a description
-// cannot give, so update both in the pull request that adds the spec.
-const LIVE_SPEC_COUNT = 95;
+// js-only ones, the submenu-placement trim deleted four scrolled-viewport menu specs, the editors
+// trim deleted five editor specs, and the cross-browser trim (DEV-3257) deleted six whose states
+// moved to tests/e2e, which leaves 90 files, one of them parked, so 89 live. Adding or deleting a
+// spec moves this number, and moves a number in LIVE_GOLDENS too — the pair is the review a
+// description cannot give, so update both in the pull request that adds the spec.
+const LIVE_SPEC_COUNT = 89;
 
 // How many of the specs under `tests/multi-frameworks/` (23 on 2026-09-18, 14 since the filters
 // consolidation retired that family's nine) still carry the shared unaudited reason.
@@ -718,7 +718,7 @@ test('a leg violation names the spec it came from', () => {
     [{ crossBrowser: false, where: 'js-only/pagination/paging.spec.ts' }, { browsers: CROSS_BROWSERS }],
     [{ crossBrowser: true, where: 'cross-browser/selection.spec.ts' }, { themes: JS_VARIANTS }],
     [
-      { crossBrowser: true, where: 'cross-browser/undo-redo.spec.ts' },
+      { crossBrowser: true, where: 'cross-browser/scroll.spec.ts' },
       { themes: [CLASSIC], wrappers: WRAPPERS, wrappersReason: 'w' },
     ],
   ].forEach(([leg, declared]) => {

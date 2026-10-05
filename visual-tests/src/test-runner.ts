@@ -246,8 +246,10 @@ async function settleScrollbarClearanceForCapture(page: Page) {
  *
  * For a spec that is about to CLICK where the band is, "pinned" is not good enough — the strip belongs
  * to the scrollbar while it is up, so the click is swallowed and the spec goes on with a selection it
- * never made (`copy-paste.spec.ts` copies one cell instead of the range, and its assertions still
- * pass, so it surfaces only as a changed screenshot). That is why this is a separate export from the
+ * never made (`copy-paste.spec.ts` copied one cell instead of the range, and its assertions still
+ * passed, so it surfaced only as a changed screenshot; that range is asserted by
+ * `tests/e2e/clipboard-scrolled-range.spec.ts` since DEV-3257, and no visual spec clicks into the band
+ * today). That is why this is a separate export from the
  * capture policy: the capture may proceed on a pinned band, a click may not, and one function cannot
  * promise both.
  *
@@ -680,7 +682,8 @@ type VisualTestBody = Parameters<typeof test>[2];
  * can be empty, so a variant either declaration asked for on its own can stop rendering entirely
  * (measured: `main`-only and `horizon`-only declarations in one file render nothing under `HOT_THEME=main`).
  * The static sweep in `lib/__tests__/visual-declarations.test.mjs` enforces the one-declaration rule;
- * `tests/cross-browser/copy-paste.spec.ts` is the only file with several tests today and all five agree.
+ * `tests/cross-browser/selection.spec.ts` is the only file with two call sites today, a looped one and a
+ * plain one, and both declare the same variants.
  *
  * The framework and theme axis uses the boolean form, which Playwright resolves at collection and never
  * dispatches to a worker: measured, the 69 js-only skips added nothing to the 3.5 s collection, while the

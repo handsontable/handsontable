@@ -106,8 +106,8 @@ visualTest(__filename, {
 - **One declaration per file.** Both skips are file-scope modifiers, so they apply to every test in the
   file and the skips of two `visualTest()` calls combine: the file renders only the variants both
   declarations name — the intersection, which can be empty, so a variant either one asked for on its own
-  can stop rendering entirely. `tests/cross-browser/copy-paste.spec.ts` is the only file with several
-  tests and all five agree.
+  can stop rendering entirely. `tests/cross-browser/selection.spec.ts` is the only file with two call
+  sites, a looped one and a plain one, and both declare the same variants.
 - **Over-declaration is silent, so it is a static error.** The main Playwright config has one chromium
   project and ignores `tests/cross-browser/**`; the cross-browser leg sets neither `HOT_THEME` nor
   `HOT_FRAMEWORK`. A js-only spec naming `firefox`, or a cross-browser spec naming a theme or a wrapper,
@@ -116,8 +116,9 @@ visualTest(__filename, {
 - **The declaration codemod wrote today's behavior out, so no golden moved.** js-only declares the five js
   variants; multi-frameworks declares those five plus all three wrappers, the only value that keeps the
   seed's wholesale copy equal to the declarations; cross-browser specs declare `classic`, and the
-  cross-browser projects they actually need — `copy-paste.spec.ts` names chromium alone, which is what
-  it rendered before the declaration existed. The multi-framework specs (23 when the codemod landed, 14 since
+  cross-browser projects they actually need — `copy-paste.spec.ts` named chromium alone, which is what
+  it rendered before the declaration existed (its checks moved to `tests/e2e` in DEV-3257, so no spec takes
+  that shape today). The multi-framework specs (23 when the codemod landed, 14 since
   the filters consolidation retired that family's nine) share `WRAPPERS_REASON_UNAUDITED` — none of those
   wrapper declarations has been argued for yet, and the constant's name is the grep the audit runs.
 - **The golden set is now the sum of the declarations intersected with the tier.**
@@ -359,8 +360,11 @@ These things about this pipeline are worth knowing before changing it.
   `settleScrollbarClearanceForCapture` is the wrapper's, and accepts a pinned band. A spec that is about
   to click where the band is imports `waitForScrollbarClearanceToClose`, which throws on a pinned one:
   while the band is up that strip belongs to the scrollbar, so the click is swallowed and the spec
-  carries on with a selection it never made. `copy-paste.spec.ts` is the spec that shape bit — one cell
-  copied instead of the range, its assertions still passing, visible only as a changed screenshot.
+  carries on with a selection it never made. `copy-paste.spec.ts` was the spec that shape bit — one cell
+  copied instead of the range, its assertions still passing, visible only as a changed screenshot. Its
+  range copy is asserted by `tests/e2e/clipboard-scrolled-range.spec.ts` since DEV-3257, which parks the
+  pointer off the grid and waits for the band to close for the same reason, so no visual spec imports
+  `waitForScrollbarClearanceToClose` today.
 - **The `visual-diff-report` artifact holds the differences, not `.reg/`.** The Compare job's
   `Stage the visual diff report` step (`scripts/stage-diff-report.mjs`; `lib/visual-diff-report.mjs`
   picks the files) copies `index.html`, `out.json`, and the expected, actual, and diff image of
@@ -474,7 +478,8 @@ does for you):
   directly above the capture, so the debt is counted. The filters consolidation (#13647) retired those
   six specs with their 15 lines, and its replacements assert every state they capture; the
   submenu-placement trim (#13656) retired the menu family's 24 the same way, the editors trim that
-  family's 15, and the resize-guide trim the complex demo's 2. So 44 remain, in 26 specs
+  family's 15, the resize-guide trim the complex demo's 2, and the cross-browser trim (DEV-3257) that
+  family's 8. So 36 remain, in 19 specs
   (`git grep -c 'DEV-2981: capture after' -- visual-tests/tests` counts them);
   `js-only/filters/apply-active-class-name-nested-header` still carries one. `test/__tests__/determinism-lint.test.mjs` fails
   when one of those lines sits anywhere but on a capture, or no longer excuses anything. What a capture is
@@ -485,13 +490,14 @@ does for you):
   the capture, or a capture that opens a block — neither of the last two is in the tree today, and the
   self-test pins all four as unseen, so a rule that starts seeing one fails loudly until this bullet is
   updated. A tracked
-  `waitForTimeout()` in between hides the action too: 18 captures in 12 specs sit behind a sleep today.
+  `waitForTimeout()` in between hides the action too: 12 captures in 8 specs sit behind a sleep today.
   Replacing such a sleep with the assertion it stands for clears both lines; deleting it with nothing in
   its place makes the capture fire, so the disable line moves to the capture. A page helper in between
   silences the rule whether or not the helper asserts: 25 of the 48 exported helpers in
   `src/page-helpers.ts` acted with no `expect()` or wait at all on 2026-09-23 (one of them the
-  `tryToEscapeFromTheComponentsFocus` #13647 deleted with its callers), and three more (`collapseNestedRow`,
-  `resizeColumn`, `resizeRow`) wait only with a fixed sleep. Making each one end on the state it produced
+  `tryToEscapeFromTheComponentsFocus` #13647 deleted with its callers), and one more (`collapseNestedRow`)
+  waits only with a fixed sleep (`resizeColumn` and `resizeRow`, two more, went with the cross-browser
+  resize specs in DEV-3257). Making each one end on the state it produced
   is its own follow-up, proven by `Visual stability`, since a corrected selector can move pixels. Helper
   names are deliberately not in the selector — a renamed helper would drop out of it silently.
 - **The selector has three esquery traps, all measured** (ESLint 8.57.1, esquery 1.7.0), which is why the
@@ -499,7 +505,8 @@ does for you):
   parses and matches nothing, with no error. `~` matches any earlier sibling, so it cannot express
   "nothing asserted in between". And the capture half must be the statement's own call: a descendant
   `:has()` there matched a whole `visualTest()` statement whose body captures, right after a test that
-  acted, and reported the test call itself (two false sites in `cross-browser/copy-paste.spec.ts`). Also,
+  acted, and reported the test call itself (two false sites in `cross-browser/copy-paste.spec.ts`, a spec
+  retired since). Also,
   `no-restricted-syntax` is one rule id, so this selector cannot be `warn` while the sleep bans are
   `error`, and a disable line on a capture silences every selector on that line.
 - **Every test call carries a docblock that says what its capture proves and names its owner.**
@@ -615,7 +622,8 @@ does for you):
   it, while CI flipped items a local loop never did. The ticket's acceptance criterion (ten renders, no
   changed filters item) is one dispatch of that workflow. Since the filters consolidation a dispatch
   renders the consolidated family, 20 captures a runner where the retired one took 124; the retired
-  captures were removed, not stabilized, so a green dispatch no longer re-tests them.
+  captures were removed, not stabilized, so a green dispatch no longer re-tests them. The same holds for
+  the cross-browser `selection.spec.ts`, which went from 15 captures a browser to 9 in DEV-3257.
 - **A keystroke count is a claim about the menu's item order, so a spec that opens a submenu asserts
   `toBeVisible()` on it before it captures.** Two retired specs (`tab-navigation-from-submenu` and
   `shift-tab-navigation-from-submenu`, multi-frameworks/filters) never opened the Alignment submenu they
@@ -673,6 +681,32 @@ does for you):
   in the look-check shape. That shape's second condition, the spec that photographs the same component
   on every variant, is prose the sweep does not check: the zoom capture names the resize capture, and a
   later trim of that declaration re-opens this one.
+- **The cross-browser leg photographs what the engines draw differently, one capture per difference, and
+  every capture asserts the state it shows first.** Firefox and WebKit run nowhere else in the repository
+  (the functional tier is Chromium only), so until DEV-3257 a state a cross-browser capture showed —
+  which range a header click selected, what an undo restored, where Tab moved the focus, what a paste,
+  a filter or a hidden column left behind, which page the grid was on — was checked by the screenshot
+  alone, and a gesture that silently failed in one engine became that engine's golden. Those states are
+  Playwright assertions on all six theme and bundle legs now, on fixtures that rebuild the demo routes'
+  shapes: `tests/e2e/header-range-selection.spec.ts`, `undo-redo-keyboard.spec.ts`,
+  `tab-navigation-two-grids.spec.ts`, `clipboard-between-grids.spec.ts`,
+  `clipboard-scrolled-range.spec.ts`, `filters-search-then-condition.spec.ts`,
+  `hidden-columns-context-menu.spec.ts`, `pagination-filter-sort.spec.ts` and
+  `manual-resize-drag-distance.spec.ts` (a column and a row grow by exactly the distance dragged, which
+  the older manual-resize specs check loosely for columns). The `undo-redo`, `focus`, `columns-move`,
+  `columns-resize`, `rows-resize` and `copy-paste` specs went with them (a column move by drag was
+  already asserted, by `tests/e2e/column-move-sorting.spec.ts`), and what stayed is one capture per
+  rendering difference: a column and a row
+  range on four overlay layouts and one selected cell on the right-to-left demo, the scroll spec's six
+  layouts, and one capture each of the native pagination controls, the active-filter and hidden-column
+  indicators, the sort indicators, a custom border, a comment textarea, a frozen column, collapsed
+  nested headers, inserted columns, a right-aligned cell and a filled range — 26 a browser, 78 in all,
+  where there were 200. The family's two WebKit flakes, `columns-filter-2` and
+  `selection-arabic-rtl-demo-{2,3}`, photographed states, and are assertions now. What the trim gives up
+  is Firefox and WebKit EXECUTION of the retired flows: an engine-specific defect in the real Tab order,
+  a header drag or the clipboard is no longer exercised outside Chromium. A new cross-browser capture
+  names the engine difference it is for in its docblock, and a state it shows belongs in `tests/e2e`
+  first.
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 
@@ -770,8 +804,9 @@ which of these run locally and which only in CI.
   `tests/**/*.spec.ts` override, with `jsdoc/require-description`). The 28 sites in three filters specs
   were repaired (assert the state, then capture); the other 100 wore
   `// eslint-disable-next-line no-restricted-syntax -- DEV-2981: …` above the capture, so the debt is
-  counted and greppable (44 since #13647, #13656, the editors trim, and the resize-guide trim retired the
-  filters family's 15, the menu family's 24, the editors family's 15, and the complex demo's 2). The
+  counted and greppable (36 since #13647, #13656, the editors trim, the resize-guide trim, and the
+  cross-browser trim retired the filters family's 15, the menu family's 24, the editors family's 15, the
+  complex demo's 2, and the cross-browser family's 8). The
   rules, what they cannot see, and their three
   esquery traps are the first four bullets of [Determinism](#determinism).
   `test/__tests__/determinism-lint.test.mjs` proves them on fixtures — it imports ESLint, so it runs from

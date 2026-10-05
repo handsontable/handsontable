@@ -1,20 +1,47 @@
-import { visualTest, CLASSIC, CROSS_BROWSERS } from '../../src/test-runner';
+import { visualTest, expect, CLASSIC, CROSS_BROWSERS } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
 import { selectCell, selectColumnHeaderByIndex, selectRowHeaderByIndex } from '../../src/page-helpers';
 
+// The routes whose overlays a selection crosses differently: frozen and hidden columns, merged cells,
+// a nested header over rows frozen to the bottom, and nested rows with hidden rows and a hidden column.
 const urls = [
   '/cell-types-demo',
-  '/arabic-rtl-demo',
   '/merged-cells-demo',
   '/nested-headers-demo',
   '/nested-rows-demo',
 ];
 
+// The headers each range highlights: the third to the sixth RENDERED column (hidden columns are
+// skipped) and row. A nested-rows row header repeats its label once per level, so it is matched by
+// its start.
+const highlightedHeaders: Record<string, { columns: string[], rows: Array<string | RegExp> }> = {
+  '/cell-types-demo': {
+    columns: ['Cost', 'In Stock', 'Category', 'Item Quality'],
+    rows: ['3', '4', '5', '6'],
+  },
+  '/merged-cells-demo': {
+    columns: ['Name', 'Sell date', 'Order ID', 'In stock'],
+    rows: ['3', '4', '5', '6'],
+  },
+  '/nested-headers-demo': {
+    columns: ['Pricing', 'Rating', 'Data Type', 'Industry'],
+    rows: ['3', '4', '5', '6'],
+  },
+  '/nested-rows-demo': {
+    columns: ['Business Scale', 'User Type', 'No of Users', 'Deployment'],
+    rows: [/^Row 3 /, /^Row 7 /, /^Row 8 /, /^Row 9 /],
+  },
+};
+
 urls.forEach((url) => {
   /**
-   * Checks that a cell selection, a column-range selection, and a row-range selection (a header click, then
-   * a Shift+click) render their highlights on this demo route. Three captures per route in `urls`, in each
-   * browser: the cell, the column range, and the row range. Owned by DEV-2981.
+   * Checks that a column range and a row range, each selected with a header click and a Shift+click,
+   * render their borders, fill and header highlights in Chromium, Firefox and WebKit on this demo
+   * route. Two captures per route in `urls`, in each browser: the column range and the row range,
+   * each after asserting which headers it highlights. Which range a click selects, and where the
+   * focus lands, is asserted on all six theme and bundle legs by
+   * `tests/e2e/header-range-selection.spec.ts`; these captures keep the pixels the three engines can
+   * disagree on, at overlay edges, merged cells, nested headers and nested rows. Owned by DEV-3257.
    */
   visualTest(`Test selection for: ${url}`, {
     themes: [CLASSIC],
@@ -26,20 +53,43 @@ urls.forEach((url) => {
     const table = tablePage.locator(helpers.selectors.mainTable);
 
     await table.waitFor();
-    const cell = await selectCell(2, 2, table);
-
-    await cell.click();
-    // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted click(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
-    await tablePage.screenshot({ path: helpers.screenshotPath() });
 
     await selectColumnHeaderByIndex(2);
     await selectColumnHeaderByIndex(5, ['Shift']);
-
+    await expect(table.locator('.ht_clone_top thead tr:last-child th.ht__active_highlight'))
+      .toHaveText(highlightedHeaders[url].columns);
     await tablePage.screenshot({ path: helpers.screenshotPath() });
 
     await selectRowHeaderByIndex(2);
     await selectRowHeaderByIndex(5, ['Shift']);
-
+    await expect(table.locator('.ht_clone_inline_start tbody th.ht__active_highlight'))
+      .toHaveText(highlightedHeaders[url].rows);
     await tablePage.screenshot({ path: helpers.screenshotPath() });
   });
+});
+
+/**
+ * Checks that a selected cell renders its border and its header highlights in Chromium, Firefox and
+ * WebKit on the right-to-left demo, under its two-row nested header. One capture in each browser,
+ * after asserting the cell took the focus. This route's column-range and row-range captures were the
+ * WebKit flakes of this spec; the ranges they showed are asserted by
+ * `tests/e2e/header-range-selection.spec.ts` on the same right-to-left, nested-header shape. Owned by
+ * DEV-3257.
+ */
+visualTest('Test selection for: /arabic-rtl-demo', {
+  themes: [CLASSIC],
+  browsers: CROSS_BROWSERS,
+  wrappers: [],
+}, async({ goto, tablePage }) => {
+  await goto('/arabic-rtl-demo');
+
+  const table = tablePage.locator(helpers.selectors.mainTable);
+
+  await table.waitFor();
+
+  const cell = await selectCell(2, 2, table);
+
+  await cell.click();
+  await expect(cell).toHaveClass(/(^|\s)current(\s|$)/);
+  await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

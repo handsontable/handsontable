@@ -179,8 +179,9 @@ test('a capture with nothing before it, or after a non-action, is not reported',
 test('a test that acts followed by a test that captures is not a capture after an action', async() => {
   // The regression this rule shipped with and caught on the tree: with a descendant `:has()` on the
   // capture half, a whole `visualTest(…)` statement whose body captures matched as "a capture", right
-  // after the previous test's statement matched as "an action". cross-browser/copy-paste.spec.ts has that
-  // shape twice, and the rule reported the second test CALL. The capture half is the statement's own call.
+  // after the previous test's statement matched as "an action". cross-browser/copy-paste.spec.ts had that
+  // shape twice (the spec is retired since), and the rule reported the second test CALL. The capture half
+  // is the statement's own call.
   const source = [
     'import { visualTest } from \'../../src/test-runner\';',
     'import { helpers } from \'../../src/helpers\';',

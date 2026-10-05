@@ -110,7 +110,8 @@ const DETERMINISM_RESTRICTIONS = [
 // of them in the other six filters specs, got a tracked disable line. The filters consolidation (#13647)
 // retired those six with their 15 lines, and its replacements assert every state they capture; the
 // submenu-placement trim (#13656) retired the menu family's 24 the same way, the editors trim that
-// family's 15, and the resize-guide trim the complex demo's 2, so 44 remain.
+// family's 15, the resize-guide trim the complex demo's 2, and the cross-browser trim that family's 8, so
+// 36 remain.
 //
 // esquery 1.7.0 (ESLint 8.57.1): `A + B` reports B when A is the statement right before it, so the message
 // lands on the capture line, which is where the disable line goes. Three traps, all measured. The relative
@@ -119,9 +120,10 @@ const DETERMINISM_RESTRICTIONS = [
 // and is not a broader `+`. And the capture half must be the statement's OWN call, read through attribute
 // paths: a descendant `:has()` there also matches a whole `visualTest(…)` statement whose body captures, so
 // a test that acts followed by a test that captures reported the second test call itself (2 false sites in
-// cross-browser/copy-paste.spec.ts). The action half keeps the descendant form on purpose — an action
-// nested inside the previous statement (`await Promise.all([… click() …])`) still acted — and it takes a
-// declaration as well as an expression statement, because `const clicked = await cell.click();` acted too.
+// cross-browser/copy-paste.spec.ts, a spec retired since). The action half keeps the descendant form on
+// purpose — an action nested inside the previous statement (`await Promise.all([… click() …])`) still
+// acted — and it takes a declaration as well as an expression statement, because
+// `const clicked = await cell.click();` acted too.
 //
 // Adjacency sees the previous statement only, and only when that statement is an expression or a
 // declaration. A comment between the action and the capture does not break it (comments are not AST
