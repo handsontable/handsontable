@@ -167,7 +167,32 @@ test.describe('NestedRows selection when a section is collapsed', () => {
       // The whole column, all 9 rows - not the 4 it covered while Root A was collapsed.
       expect(await nestedRows.countRows()).toBe(9);
       expect(await nestedRows.selectedRange()).toEqual([-1, 0, 8, 0]);
+      // Painted on the rows that came back, not only reported by `getSelected()`.
+      await expect(nestedRows.cell(8, 0)).toHaveClass(/\b(area|current)\b/);
     });
+
+  test('adding a child under a whole-column selection keeps the viewport where it was', async({ page, theme }) => {
+    const nestedRows = new NestedRowsPage(page, theme);
+
+    await nestedRows.goto();
+    await nestedRows.collapseButton(6).click();
+    await nestedRows.updateSettings({ height: 160 });
+    await nestedRows.cell(0, 0).click();
+    await page.keyboard.press('Control+Space');
+    await nestedRows.scrollToRow(3);
+    await expect.poll(() => nestedRows.firstVisibleRow()).toBeGreaterThan(0);
+
+    const firstVisibleRow = await nestedRows.firstVisibleRow();
+
+    // The insert expands every parent and collapses them again. The selection grows onto the
+    // expand and is clamped on the collapse, and neither step may scroll the grid.
+    await nestedRows.addChildTo(0);
+
+    await expect.poll(() => nestedRows.countRows()).toBe(8);
+    expect(await nestedRows.selectedRange()).toEqual([-1, 0, 7, 0]);
+    expect(await nestedRows.firstVisibleRow()).toBe(firstVisibleRow);
+    expect(nestedRows.pageErrors).toEqual([]);
+  });
 
   test('a row removal under a whole-column selection does not grow it onto the stash expand', async({ page, theme }) => {
     const nestedRows = new NestedRowsPage(page, theme);

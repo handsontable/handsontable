@@ -73,6 +73,7 @@ interface HandsontableFixture {
   getSourceData(): unknown[][];
   countSourceRows(): number;
   countRows(): number;
+  render(): void;
   listen(): void;
   getPlugin(name: string): FiltersPlugin & TrimRowsPlugin & ColumnSortingPlugin & ManualRowMovePlugin
     & ManualColumnMovePlugin & CopyPastePlugin & HiddenRowsPlugin & DialogPlugin;
@@ -896,6 +897,16 @@ export class EditorTrimmedRowPage {
       (window as Window & { hot: HandsontableFixture }).hot
         .scrollViewportTo({ row: target, verticalSnap: 'top' });
     }, row);
+  }
+
+  /**
+   * Renders the grid synchronously. The draw reads the scroll position as it is now, so what it
+   * renders afterwards answers "did anything scroll the viewport" without waiting on a scroll event.
+   */
+  async render(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as Window & { hot: HandsontableFixture }).hot.render();
+    });
   }
 
   /**

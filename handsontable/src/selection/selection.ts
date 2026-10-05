@@ -2087,7 +2087,25 @@ class Selection {
         return true;
       }
 
-      this.refresh();
+      // Clamped under `shift`, the source `alter()`'s removals re-lay the selection with, unless a
+      // caller already named one: `refresh()` otherwise marks `refresh`, which scrolls the viewport
+      // to the clamped selection - a trim or a collapse under a full-column selection jumped a
+      // scrolled grid to the top. It also matters for DEV-152: NestedRows expands every parent around
+      // an "Insert child row" and collapses them again, so the grow on the expand is followed by this
+      // clamp on the collapse, and the clamp must not move the viewport the user never asked to move.
+      const isSourceUnset = this.getSelectionSource() === 'unknown';
+
+      if (isSourceUnset) {
+        this.markSource('shift');
+      }
+
+      try {
+        this.refresh();
+      } finally {
+        if (isSourceUnset) {
+          this.markEndSource();
+        }
+      }
 
       return false;
     }
@@ -2616,12 +2634,33 @@ class Selection {
     this.selectedByColumnHeader = this.#remapLayerSet(snapshot.selectedByColumnHeader, restoredRanges);
     this.#rowExtentSpansGrid = this.#remapLayerSet(snapshot.rowExtentSpansGrid, restoredRanges);
     this.#columnExtentSpansGrid = this.#remapLayerSet(snapshot.columnExtentSpansGrid, restoredRanges);
+    this.#remapGridTrackingLayerSnapshot(axis, restoredRanges);
     this.#disableHeadersHighlight = snapshot.disableHeadersHighlight;
     this.#selectionSource = snapshot.selectionSource;
     this.#extenderTransformation.setActiveLayerIndex(this.#activeSelectionLayer);
     this.#focusTransformation.setActiveLayerIndex(this.#activeSelectionLayer);
 
     this.#commitHighlightsDirectly();
+  }
+
+  /**
+   * Re-indexes the current update's grid-tracking snapshot after a restore re-indexed the layers,
+   * like every other layer-keyed set. Left on the pre-restore indexes, a dropped layer would hand its
+   * slot to the next one, and `fitGridTrackingExtents()` could grow a full-column layer the user had
+   * shrunk, because it still carries the sticky "spans the grid" flag.
+   *
+   * @param {'row'|'column'} axis The mapper axis whose snapshot is re-indexed.
+   * @param {Array} restoredRanges The kept layers with their pre-restore indexes.
+   */
+  #remapGridTrackingLayerSnapshot(
+    axis: IndexAxis,
+    restoredRanges: Array<{ range: CellRange; originalLayerIndex: number }>,
+  ): void {
+    const stack = this.#gridTrackingLayerSnapshots[axis];
+
+    if (stack.length > 0) {
+      stack[stack.length - 1] = this.#remapLayerSet(stack[stack.length - 1], restoredRanges);
+    }
   }
 
   /**

@@ -207,6 +207,9 @@ test.describe('selection stranded by a trimming index map', () => {
 
     expect(await grid.selected()).toEqual([[-1, 0, 4, 0]]);
     expect(await grid.isEntireColumnSelected()).toBe(true);
+    // The committed highlight, not only the range: a grow that skipped re-committing would leave the
+    // returned rows unpainted while `getSelected()` already reported them.
+    expect(await grid.highlightedAreaCorners()).toEqual([[-1, 0, 4, 0]]);
   });
 
   test('grows a full-column selection when the untrimmed rows sit above it', async() => {
@@ -283,6 +286,31 @@ test.describe('selection stranded by a trimming index map', () => {
     expect(await grid.selected()).toEqual([[3, -1, 3, 1]]);
   });
 
+  test('does not scroll the viewport when a trim clamps a full-column selection', async({ page, theme, bundle }) => {
+    const tall = new EditorTrimmedRowPage(page, theme, bundle, { scenario: 'tall' });
+    const trimmed = Array.from({ length: 50 }, (unused, index) => index + 50);
+
+    await tall.goto();
+    await tall.selectWholeColumn(0);
+    await tall.scrollToRow(30);
+
+    await expect.poll(() => tall.isRowRendered(30)).toBe(true);
+    expect(await tall.isRowRendered(0)).toBe(false);
+
+    // The far corner (99) is past the 50 rows left, so the selection is clamped. That clamp used to
+    // run under the `refresh` source, which scrolled the viewport onto the selection - row 0.
+    await tall.trimRows(trimmed);
+
+    expect(await tall.selected()).toEqual([[-1, 0, 49, 0]]);
+
+    // A synchronous draw renders whatever the scroll position is NOW, so a clamp that scrolled shows
+    // up here without waiting on the scroll event - and the clamp above is the positive control.
+    await tall.render();
+
+    expect(await tall.isRowRendered(30)).toBe(true);
+    expect(await tall.isRowRendered(0)).toBe(false);
+  });
+
   test('does not scroll the viewport when it grows a full-column selection', async({ page, theme, bundle }) => {
     const tall = new EditorTrimmedRowPage(page, theme, bundle, { scenario: 'tall' });
     const trimmed = Array.from({ length: 50 }, (unused, index) => index + 50);
@@ -297,8 +325,10 @@ test.describe('selection stranded by a trimming index map', () => {
     await tall.untrimRows(trimmed);
 
     expect(await tall.selected()).toEqual([[-1, 0, 99, 0]]);
-    // The grow re-lays the selection; without a non-scrolling source that would jump the viewport
-    // to the new far corner, 99 rows away from where the user is looking.
+    // The grow re-lays the selection; a scrolling source would jump the viewport to the new far
+    // corner, 99 rows away from where the user is looking.
+    await tall.render();
+
     expect(await tall.isRowRendered(0)).toBe(true);
   });
 

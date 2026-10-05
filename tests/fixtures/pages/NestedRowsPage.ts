@@ -166,6 +166,29 @@ export class NestedRowsPage {
   }
 
   /**
+   * Add a child to the parent at the given visual row through the plugin's data manager - the path
+   * the "Insert child row" context-menu item takes. It expands every parent for its own length
+   * (`collapsedRowsStash`) and re-collapses afterwards.
+   */
+  async addChildTo(parentRow: number): Promise<void> {
+    await this.page.evaluate((row) => {
+      const plugin = window.hot.getPlugin('nestedRows');
+
+      plugin.dataManager.addChild(plugin.dataManager.getDataObject(window.hot.toPhysicalRow(row)));
+    }, parentRow);
+  }
+
+  /** Scroll the grid so the given visual row is at the top. */
+  async scrollToRow(row: number): Promise<void> {
+    await this.page.evaluate(r => window.hot.scrollViewportTo({ row: r, verticalSnap: 'top' }), row);
+  }
+
+  /** The first visual row the viewport renders fully, which moves only when the grid scrolls. */
+  firstVisibleRow(): Promise<number> {
+    return this.page.evaluate(() => window.hot.getFirstFullyVisibleRow());
+  }
+
+  /**
    * Remove rows through `alter()`, by visual row. With a parent collapsed, the plugin expands every
    * parent for the length of the removal (`collapsedRowsStash`) and re-collapses afterwards.
    */
@@ -173,7 +196,7 @@ export class NestedRowsPage {
     await this.page.evaluate(([r, n]) => window.hot.alter('remove_row', r, n), [row, amount]);
   }
 
-    /** Push settings through `updateSettings()`, which rebuilds the plugin and replays its state. */
+  /** Push settings through `updateSettings()`, which rebuilds the plugin and replays its state. */
   async updateSettings(settings: Record<string, unknown>): Promise<void> {
     await this.page.evaluate(config => window.hot.updateSettings(config), settings);
   }
