@@ -71,6 +71,19 @@ import ExcelJS from 'exceljs';
         // Both engines hand the plugin a Uint8Array (ExcelJS's browser Buffer is a subclass of it).
         expect(buffer instanceof Uint8Array).toBe(true);
       });
+
+      it('should write the file with the engine this leg configures', async() => {
+        // Every other spec in this loop checks values both engines produce, so a broken engine
+        // selection let the ExcelJS leg run on the built-in engine and still pass. The built-in
+        // writer never touches ExcelJS, so a spy on `addWorksheet` tells the two legs apart.
+        handsontable({ data: [['a']], exportFile });
+
+        const addWorksheet = spyOn(ExcelJS.Workbook.prototype, 'addWorksheet').and.callThrough();
+
+        await getPlugin('exportFile')._createTypeFormatter('xlsx').export();
+
+        expect(addWorksheet.calls.any()).toBe(engineName === 'ExcelJS');
+      });
     });
   });
 });
@@ -96,10 +109,12 @@ describe('exportFile XLSX type — API engine selection', () => {
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
+      const addWorksheet = spyOn(ExcelJS.Workbook.prototype, 'addWorksheet').and.callThrough();
       // No per-call engine option — reads from plugin settings.
       const buffer = await getPlugin('exportFile')._createTypeFormatter('xlsx').export();
 
       expect(buffer instanceof Uint8Array).toBe(true);
+      expect(addWorksheet).toHaveBeenCalled();
     });
 
     it('should allow a per-call engine option to override the plugin-level setting', async() => {
@@ -109,11 +124,14 @@ describe('exportFile XLSX type — API engine selection', () => {
         // ExcelJS override has to beat.
       });
 
+      const addWorksheet = spyOn(ExcelJS.Workbook.prototype, 'addWorksheet').and.callThrough();
       const buffer = await getPlugin('exportFile')
         ._createTypeFormatter('xlsx', { engine: ExcelJS })
         .export();
 
       expect(buffer instanceof Uint8Array).toBe(true);
+      // Both engines return a Uint8Array, so only the spy proves the override won.
+      expect(addWorksheet).toHaveBeenCalled();
     });
 
     it('should export through the built-in engine when no engine is configured', async() => {

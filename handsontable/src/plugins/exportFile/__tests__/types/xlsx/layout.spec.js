@@ -407,6 +407,24 @@ import ExcelJS from 'exceljs';
     });
 
     describe('merged cells', () => {
+      it('should export every merged range, whatever its shape', async() => {
+        // Every other merge case exports one range and checks it with `toContain`, so a writer that
+        // kept only the first merge passed them all.
+        handsontable({
+          data: createSpreadsheetData(9, 6),
+          mergeCells: [
+            { row: 0, col: 0, rowspan: 2, colspan: 2 },
+            { row: 2, col: 2, rowspan: 1, colspan: 3 },
+            { row: 5, col: 0, rowspan: 3, colspan: 1 },
+          ],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+
+        expect([...ws.model.merges].sort()).toEqual(['A1:B2', 'A6:A8', 'C3:E3']);
+      });
+
       it('should export merged cells as an XLSX merge range', async() => {
         handsontable({
           data: createSpreadsheetData(3, 3),

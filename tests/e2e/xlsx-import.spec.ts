@@ -1,3 +1,4 @@
+import { deflateRawSync } from 'node:zlib';
 import { test, expect } from '../fixtures/test';
 import { XlsxImportPage } from '../fixtures/pages/XlsxImportPage';
 
@@ -8,6 +9,63 @@ import { XlsxImportPage } from '../fixtures/pages/XlsxImportPage';
  * the reader-visible outcome (headers, values, hidden column, merge) and the cell types the
  * import inferred.
  */
+
+/**
+ * A one-entry ZIP archive written by hand, so its central record can declare a size the data does
+ * not have. The CRC is left at 0: every refusal asserted here lands before the CRC check.
+ */
+function zipWithEntry(name: string, data: Buffer, method: 0 | 8, declaredSize: number): Buffer {
+  const nameBytes = Buffer.from(name, 'utf8');
+  const local = Buffer.alloc(30);
+
+  local.writeUInt32LE(0x04034b50, 0);
+  local.writeUInt16LE(20, 4);
+  local.writeUInt16LE(method, 8);
+  local.writeUInt32LE(data.length, 18);
+  local.writeUInt32LE(declaredSize, 22);
+  local.writeUInt16LE(nameBytes.length, 26);
+
+  const central = Buffer.alloc(46);
+
+  central.writeUInt32LE(0x02014b50, 0);
+  central.writeUInt16LE(20, 4);
+  central.writeUInt16LE(20, 6);
+  central.writeUInt16LE(method, 10);
+  central.writeUInt32LE(data.length, 20);
+  central.writeUInt32LE(declaredSize, 24);
+  central.writeUInt16LE(nameBytes.length, 28);
+  central.writeUInt32LE(0, 42);
+
+  const centralOffset = local.length + nameBytes.length + data.length;
+  const end = Buffer.alloc(22);
+
+  end.writeUInt32LE(0x06054b50, 0);
+  end.writeUInt16LE(1, 8);
+  end.writeUInt16LE(1, 10);
+  end.writeUInt32LE(central.length + nameBytes.length, 12);
+  end.writeUInt32LE(centralOffset, 16);
+
+  return Buffer.concat([local, nameBytes, data, central, nameBytes, end]);
+}
+
+/**
+ * The archive with the CRC-32 of its first central-directory record flipped.
+ */
+function withFlippedCentralCrc(zip: Buffer): Buffer {
+  const copy = Buffer.from(zip);
+  let eocd = copy.length - 22;
+
+  while (copy.readUInt32LE(eocd) !== 0x06054b50) {
+    eocd -= 1;
+  }
+
+  const central = copy.readUInt32LE(eocd + 16);
+
+  copy.writeUInt32LE((copy.readUInt32LE(central + 16) ^ 0xffffffff) >>> 0, central + 16);
+
+  return copy;
+}
+
 for (const engine of ['exceljs', 'native'] as const) {
   test.describe(`xlsx import (${engine})`, () => {
     let grids: XlsxImportPage;
@@ -62,10 +120,24 @@ for (const engine of ['exceljs', 'native'] as const) {
       expect(await grids.targetCellMeta(0, 4)).toEqual(expect.objectContaining({ type: 'checkbox' }));
     });
 
-    test('carries layout across: hidden column, merge, frozen row, and reports dropped styling', async () => {
+    test('carries layout across: hidden column, merge, frozen row, and reports dropped styling', async ({ page }) => {
+      const warnings: string[] = [];
+
+      page.on('console', (message) => {
+        if (message.type() === 'warning' && message.text().includes('dropped features')) {
+          warnings.push(message.text());
+        }
+      });
+
       await grids.roundTrip();
 
       const result = await grids.lastImport();
+
+      // The header promises every case runs on both engines; this proves the leg's engine did it.
+      expect((result.engine as { kind: string }).kind).toBe(engine);
+      // One warning per import call, naming what was dropped - the plugin's documented contract.
+      expect(warnings).toHaveLength(1);
+      expect(warnings[0]).toContain('cellStyles');
 
       expect(result.hiddenColumns).toEqual([4]);
       expect(result.mergeCells).toEqual([{ row: 1, col: 0, rowspan: 2, colspan: 1 }]);
@@ -158,6 +230,95 @@ for (const engine of ['exceljs', 'native'] as const) {
       // flip a grid's direction between tests.
       expect(result.layoutDirection).toBe('ltr');
       expect(result.dropped).not.toContain('layoutDirection');
+    });
+
+    test('imports a cell comment into a grid with the Comments plugin', async () => {
+      await grids.roundTrip();
+
+      expect(await grids.targetComment(0, 0)).toBe('Team lead');
+      await expect(grids.targetCell(0, 0)).toHaveClass(/htCommentCell/);
+    });
+
+    test('imports a workbook picked in a file input, the way the guide documents', async () => {
+      const buffer = await grids.exportSource();
+
+      await grids.importFile({ name: 'report.xlsx', buffer });
+
+      await expect(grids.targetCell(0, 0)).toHaveText('Ana García');
+      await expect(grids.targetCell(0, 1)).toHaveText('4,200.50');
+    });
+
+    test('round-trips a text cell that starts with an apostrophe and "=" the documented way', async ({ page }) => {
+      // The import stores `'=quoted` as `''=quoted` (the Formulas plugin's escape does not nest), so a
+      // re-export writes the doubled apostrophe. The import guide states this; the test pins it.
+      const reexported = await page.evaluate(async() => {
+        const w = window as unknown as Record<string, any>;
+        // A file whose A1 is the text `'=quoted`, written directly: the source grid runs the
+        // Formulas plugin, which would read the apostrophe as its own escape.
+        const source = new w.ExcelJS.Workbook();
+
+        source.addWorksheet('S').getCell('A1').value = "'=quoted";
+
+        const bytes = new Uint8Array(await source.xlsx.writeBuffer());
+
+        await w.__target.getPlugin('importFile').importFromArrayBuffer('xlsx', bytes.slice().buffer);
+
+        const again = await w.__target.getPlugin('exportFile').exportAsBlobAsync('xlsx', {});
+        const workbook = new w.ExcelJS.Workbook();
+
+        await workbook.xlsx.load(await again.arrayBuffer());
+
+        return { grid: w.__target.getSourceDataAtCell(0, 0), file: workbook.worksheets[0].getCell('A1').value };
+      });
+
+      expect(reexported.grid).toBe("''=quoted");
+      expect(reexported.file).toBe("''=quoted");
+    });
+
+    test.describe('a workbook the reader refuses', () => {
+      /**
+       * Imports `bytes` and checks the outcome every refusal shares: the promise rejects, the grid keeps
+       * the data it had, and `afterImport` never runs.
+       */
+      async function expectRefused(bytes: Buffer) {
+        await grids.roundTrip();
+
+        const outcome = await grids.importBytes(bytes);
+
+        expect(outcome.rejection).not.toBeNull();
+        expect(outcome.data[0][0]).toBe('Ana García');
+        expect(outcome.afterImportRan).toBe(false);
+
+        return outcome.rejection!;
+      }
+
+      test('refuses an archive cut in half, and one missing its last byte', async () => {
+        const zip = await grids.exportSource();
+
+        await expectRefused(zip.subarray(0, Math.floor(zip.length / 2)));
+        await expectRefused(zip.subarray(0, zip.length - 1));
+      });
+
+      // ExcelJS reads the archive through JSZip without checking the CRC, and reads such a file, so
+      // this case exists on the built-in engine's leg only.
+      if (engine === 'native') {
+        test('refuses an archive whose central directory carries a wrong CRC-32', async () => {
+          const rejection = await expectRefused(withFlippedCentralCrc(await grids.exportSource()));
+
+          expect(rejection.message).toMatch(/CRC-32/);
+        });
+      }
+
+      test('refuses a part that inflates past the size it declares, as a limit', async () => {
+        // 64 MiB of zeros deflate to about 64 KiB; the record declares 1 MiB.
+        const bomb = zipWithEntry('_rels/.rels', deflateRawSync(Buffer.alloc(64 * 1024 * 1024)), 8, 1024 * 1024);
+        const rejection = await expectRefused(bomb);
+
+        if (engine === 'native') {
+          expect(rejection.message).toMatch(/inflates above the 1048576-byte limit/);
+          expect(rejection.limit).toBe(true);
+        }
+      });
     });
   });
 }

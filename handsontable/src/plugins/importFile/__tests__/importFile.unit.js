@@ -12,6 +12,7 @@ import { DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
 import { SheetBuilder } from '../../../utils/xlsxEngine/builder';
 import { createWorkbookSnapshot } from '../../../utils/xlsxEngine/model';
 import { loadFixture as fixture, toArrayBuffer } from '../../../utils/xlsxEngine/__tests__/helpers/fixtures';
+import * as consoleHelpers from '../../../helpers/console';
 
 function fakeCtx(importFileSettings) {
   return { hot: { getSettings: () => ({ importFile: importFileSettings }) } };
@@ -318,6 +319,35 @@ describe('ImportFile#importFromBlob', () => {
     const result = await plugin.importFromBlob('xlsx', blob, { apply: false });
 
     expect(result.sheetNames).toEqual(['Values']);
+  });
+});
+
+describe('ImportFile dropped-features warning', () => {
+  let warnSpy;
+
+  beforeEach(() => {
+    warnSpy = jest.spyOn(consoleHelpers, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    warnSpy.mockRestore();
+  });
+
+  it('should warn once per import that drops something, naming the features', async() => {
+    const { plugin } = pluginWithFakeHot(true);
+    const result = await plugin.importFromArrayBuffer('xlsx', fixture('lossy'), { apply: false });
+
+    expect(result.dropped.length).toBeGreaterThan(0);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    result.dropped.forEach(feature => expect(warnSpy.mock.calls[0][0]).toContain(feature));
+  });
+
+  it('should not warn for an import that drops nothing', async() => {
+    const { plugin } = pluginWithFakeHot(true);
+    const result = await plugin.importFromArrayBuffer('xlsx', fixture('values'), { apply: false });
+
+    expect(result.dropped).toEqual([]);
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 });
 

@@ -1244,6 +1244,19 @@ describe('native reader compatibility: list validations stored in <extLst>', () 
     expect(dropped.list()).toEqual([]);
   });
 
+  it('should read an x14 list without allowBlank as allowBlank: false, over every range of its sqref', () => {
+    // "Ignore blank" unchecked leaves `allowBlank` out, which the schema reads as false, and an
+    // `<xm:sqref>` lists its ranges space-separated, so every one of them carries the dropdown.
+    const { sheet } = readSheet(withExtValidation(
+      '<x14:dataValidation type="list"><x14:formula1><xm:f>Lists!$A$1:$A$3</xm:f></x14:formula1>'
+      + '<xm:sqref>A1 A3</xm:sqref></x14:dataValidation>'
+    ));
+
+    expect(sheet.rows[0][0].validation).toEqual({ type: 'list', formulae: ['Lists!$A$1:$A$3'], allowBlank: false });
+    expect(sheet.rows[1][0].validation).toBeNull();
+    expect(sheet.rows[2][0].validation).toBe(sheet.rows[0][0].validation);
+  });
+
   it('should record an x14 validation of another kind the way a main one is recorded', () => {
     const { sheet, dropped } = readSheet(withExtValidation(
       '<x14:dataValidation type="whole" operator="between"><x14:formula1><xm:f>Lists!$B$1</xm:f></x14:formula1>'
@@ -1252,6 +1265,66 @@ describe('native reader compatibility: list validations stored in <extLst>', () 
 
     expect(sheet.rows[0][0].validation).toBeNull();
     expect(dropped.list()).toEqual(['dataValidation:whole']);
+  });
+});
+
+describe('native reader compatibility: the "true"/"false" boolean spelling', () => {
+  // LibreOffice writes every boolean attribute as `"true"`/`"false"`, where both writers here (and
+  // Excel) write `"1"` or leave the attribute out. Every fixture beside these tests is ExcelJS-written,
+  // so only these cases read the other spelling.
+  it.each([['0', false], ['false', false], ['1', true], ['true', true]])(
+    'should read rightToLeft="%s" as rtl %s', (attr, rtl) => {
+      const { sheet } = readSheet(`<worksheet ${NS}><sheetViews><sheetView rightToLeft="${attr}" workbookViewId="0"/>`
+        + '</sheetViews><sheetData><row r="1"><c><v>1</v></c></row></sheetData></worksheet>');
+
+      expect(sheet.rtl).toBe(rtl);
+    },
+  );
+
+  it('should read the "true"/"false" spelling LibreOffice writes on every boolean attribute', () => {
+    const { sheet } = readSheet(`<worksheet ${NS}><sheetViews><sheetView rightToLeft="true"/></sheetViews>`
+      + '<cols><col min="2" max="2" width="9" hidden="true"/></cols><sheetData>'
+      + '<row r="1" hidden="true"><c r="A1" t="b"><v>true</v></c><c r="B1"><v>1</v></c></row></sheetData>'
+      + '<dataValidations count="1"><dataValidation type="list" allowBlank="true" sqref="A1">'
+      + '<formula1>"a,b"</formula1></dataValidation></dataValidations></worksheet>');
+
+    expect(sheet.rtl).toBe(true);
+    expect(sheet.hiddenRows).toEqual([0]);
+    expect(sheet.hiddenCols).toEqual([1]);
+    expect(sheet.rows[0][0].value).toBe(true);
+    expect(sheet.rows[0][0].validation.allowBlank).toBe(true);
+
+    const styles = parseStyles(`<styleSheet ${NS}><fonts count="2"><font/><font><b val="true"/></font></fonts>`
+      + '<fills count="1"><fill/></fills><borders count="1"><border/></borders><cellXfs count="3">'
+      + '<xf fontId="0"><protection locked="true"/></xf><xf fontId="1"/>'
+      + '<xf fontId="0"><protection locked="false"/></xf></cellXfs></styleSheet>');
+
+    expect(styles.cellXfs[0].locked).toBeNull();
+    expect(styles.cellXfs[1].style.font.bold).toBe(true);
+    expect(styles.cellXfs[2].locked).toBe(false);
+  });
+});
+
+describe('native reader compatibility: a frozenSplit pane', () => {
+  it('should read a frozenSplit pane as frozen', () => {
+    // ECMA-376 `ST_PaneState` gives `frozenSplit` to a pane that was split before it was frozen.
+    const { sheet } = readSheet(`<worksheet ${NS}><sheetViews><sheetView>`
+      + '<pane xSplit="1" ySplit="2" topLeftCell="B3" state="frozenSplit"/></sheetView></sheetViews>'
+      + '<sheetData/></worksheet>');
+
+    expect(sheet.freeze).toEqual({ rows: 2, cols: 1 });
+  });
+});
+
+describe('native reader compatibility: a cached string result', () => {
+  it('should decode the _xHHHH_ escapes of a cached string result', () => {
+    // The writer escapes a carriage return in a `t="str"` result as `_x000D_`, and SheetJS writes
+    // every string cell as `t="str"`, so only the reader's decode turns the escape back.
+    const { sheet } = readSheet(worksheetXml(
+      '<row r="1"><c r="A1" t="str"><f>"a"&amp;CHAR(13)&amp;"b"</f><v>a_x000D_b</v></c></row>'
+    ));
+
+    expect(sheet.rows[0][0].formula).toEqual({ text: '"a"&CHAR(13)&"b"', result: 'a\rb' });
   });
 });
 

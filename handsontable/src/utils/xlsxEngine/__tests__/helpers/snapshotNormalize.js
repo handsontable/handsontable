@@ -51,7 +51,9 @@
  * - four sheet-name rows (a control character, over 31 characters, `history`, `HISTORY`);
  * - the `lossy.xlsx` dropped ORDER;
  * - an empty-string cached formula result, which the ExcelJS reader loses;
- * - the LibreOffice attribute dialect (`"true"`/`"false"`), which the ExcelJS reader misses.
+ * - the LibreOffice attribute dialect (`"true"`/`"false"`), which the ExcelJS reader misses;
+ * - a hidden column with no width of its own, which ExcelJS writes and reads as its default width 9
+ *   while the native writer and reader leave it without one (the export always passes a width).
  *
  * If a parity test fails, the OOXML is the arbiter: read the fixture's raw XML before changing a
  * reader, and never widen a normalization to make it pass.

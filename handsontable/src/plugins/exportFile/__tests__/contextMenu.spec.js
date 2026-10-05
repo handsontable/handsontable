@@ -1,3 +1,5 @@
+import ExcelJS from 'exceljs';
+
 describe('ExportFile', () => {
   const id = 'testContainer';
 
@@ -64,11 +66,13 @@ describe('ExportFile', () => {
         expect(submenuItems).toContain('To CSV');
       });
 
-      it('should contain "To Excel" in the Export submenu', async() => {
+      it('should contain "To Excel" in the Export submenu when an engine is configured', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           contextMenu: true,
-          exportFile: true,
+          // The setup every 18.1 XLSX user has. With `exportFile: true` this case was a copy of the
+          // next one, and no test checked the item with ExcelJS configured.
+          exportFile: { engines: { xlsx: ExcelJS } },
         });
 
         await contextMenu(getCell(1, 1));

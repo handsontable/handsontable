@@ -77,9 +77,11 @@ describe('MergeCells after a shrinking loadData', () => {
     describe(`a merge past ${name}`, () => {
       it('should not throw when the mergeCells setting is emptied', () => {
         // The plugin registers no `afterLoadData` hook, so the collection still holds the previous
-        // grid's coordinates. `updatePlugin()` runs `clearCollections()`, which walks every covered
-        // cell into `removeCellMeta`, and the meta manager's index assertion took the whole call
-        // down with "Expecting an unsigned number".
+        // grid's coordinates, and `updatePlugin()` runs `clearCollections()`, which walks every
+        // covered cell into `removeCellMeta` with them. MergeCells did not throw here on 18.1.1;
+        // its defect was orphaned merge meta after a shrinking `updateData` or
+        // `updateSettings({ data })`, pinned by the meta-and-copy cases below. These cases guard the
+        // out-of-range walk, which `Core#removeCellMeta` now answers instead of the plugin.
         shrink(area, size);
 
         expect(() => hot.updateSettings({ mergeCells: [] })).not.toThrow();
@@ -112,6 +114,29 @@ describe('MergeCells after a shrinking loadData', () => {
         expect(() => hot.updateSettings({ mergeCells: [] })).not.toThrow();
         expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells).toEqual([]);
       });
+
+      it('should clear the merge meta after a shrinking updateData', () => {
+        // `updateData` keeps the cell meta, so a merge meta the clear skipped is back on live cells
+        // once the grid grows again, and `copyable: false` blanks those cells in the copy text.
+        hot = new Handsontable(container, {
+          data: square(8),
+          mergeCells: [area],
+          licenseKey: 'non-commercial-and-evaluation',
+        });
+
+        hot.updateData(square(size));
+        hot.updateSettings({ mergeCells: [] });
+        hot.updateData(square(8));
+
+        const { row, col } = area;
+
+        expect(hot.getCellMeta(row, col).rowspan).toBeUndefined();
+        expect(hot.getCellMeta(row, col + 1).hidden).toBeUndefined();
+        expect(hot.getCellMeta(row + 1, col).hidden).toBeUndefined();
+        expect(hot.getCellMeta(row + 1, col + 1).hidden).toBeUndefined();
+        expect(hot.getCopyableText(row, col, row + 1, col + 1))
+          .toBe(`${row}-${col}\t${row}-${col + 1}\n${row + 1}-${col}\t${row + 1}-${col + 1}`);
+      });
     });
   });
 
@@ -138,7 +163,7 @@ describe('MergeCells after a shrinking loadData', () => {
     // The measured defect. `updateData` keeps the cell meta (only `loadData` calls
     // `metaManager.clearCellsCache()`), so after shrink -> reset -> regrow the old merge's `hidden`,
     // `copyable`, `spanned` and `rowspan` and the old border's `borders` were back on live cells
-    // with no model behind them, and `getCopyableText(6, 6, 7, 7)` returned "G7\t\n\t" - the copy of
+    // with no model behind them, and `getCopyableText(6, 6, 7, 7)` returned "6-6\t\n\t" - the copy of
     // the old merge area blanked by `copyable: false`.
     hot = new Handsontable(container, {
       data: square(8),

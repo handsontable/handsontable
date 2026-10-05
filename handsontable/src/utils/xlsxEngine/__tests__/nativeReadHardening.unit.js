@@ -4,7 +4,7 @@
 import { nativeAdapter } from '../adapters/native';
 import { DroppedFeatures } from '../capabilities';
 import {
-  MAX_INFLATED_ENTRY_BYTES, MAX_INFLATED_TOTAL_BYTES, MAX_WORKBOOK_SHEETS,
+  MAX_INFLATED_ENTRY_BYTES, MAX_INFLATED_TOTAL_BYTES, MAX_INPUT_BYTES, MAX_WORKBOOK_SHEETS,
 } from '../limits';
 import { SheetBuilder } from '../builder';
 import { createWorkbookSnapshot } from '../model';
@@ -166,6 +166,15 @@ describe('native reader hardening: the workbook sheet count', () => {
     } finally {
       inflates.restore();
     }
+  });
+
+  it('should read a workbook of exactly MAX_WORKBOOK_SHEETS sheets', async() => {
+    // The cap is inclusive: a workbook at the limit is legal, and only limit + 1 is refused.
+    const bytes = await repack('values', (part, text) => (
+      part === 'xl/workbook.xml' ? withSheetCount(text, MAX_WORKBOOK_SHEETS) : text
+    ));
+
+    expect((await read(bytes)).sheets.length).toBe(MAX_WORKBOOK_SHEETS);
   });
 
   it('should read a workbook whose sheets all resolve to one part, inflating that part once', async() => {
@@ -371,6 +380,15 @@ describe('native reader hardening: the inflated-bytes budget', () => {
     );
   });
 
+  it('should read an entry declaring exactly MAX_INFLATED_ENTRY_BYTES', async() => {
+    // The per-entry cap is inclusive: only a declaration above it is refused.
+    const bytes = declareInflatedSize(
+      await repack('values', (part, text) => text), 'xl/styles.xml', MAX_INFLATED_ENTRY_BYTES
+    );
+
+    expect((await read(bytes)).sheets.length).toBe(1);
+  });
+
   it('should still refuse a single entry at the per-entry cap, with the per-entry message', async() => {
     let bytes = await repack('values', (part, text) => text);
 
@@ -380,6 +398,16 @@ describe('native reader hardening: the inflated-bytes budget', () => {
       new RegExp(`declares ${MAX_INFLATED_ENTRY_BYTES + 1} bytes, `
         + `above the ${MAX_INFLATED_ENTRY_BYTES}-byte limit this reader accepts`)
     );
+  });
+});
+
+describe('native reader hardening: the input size', () => {
+  it('should hand a file of exactly MAX_INPUT_BYTES to the archive reader', async() => {
+    // The input cap is inclusive: a file at the limit passes the size check and reaches the ZIP
+    // reader, which refuses an all-zero buffer for its own reason. The buffer goes in as is, with no
+    // `toArrayBuffer` copy, so the case allocates the 128 MiB once.
+    await expect(nativeAdapter.read(new ArrayBuffer(MAX_INPUT_BYTES), undefined, new DroppedFeatures()))
+      .rejects.toThrow(/end-of-central-directory/);
   });
 });
 

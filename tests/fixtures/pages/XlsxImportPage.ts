@@ -62,10 +62,98 @@ export class XlsxImportPage {
     return this.page.locator('[data-testid="target"] .ht_clone_top thead tr');
   }
 
+  /**
+   * Waits until the fixture reports `expected` or an error, and throws with the error's message.
+   * A thrown import used to leave the status on `working`, so a red run waited out the full expect
+   * timeout and named no cause.
+   */
+  private async waitForStatus(expected: string): Promise<void> {
+    await expect(this.status).toHaveText(new RegExp(`^(${expected}|error: .*)$`));
+
+    const text = await this.status.textContent();
+
+    if (text !== expected) {
+      throw new Error(`The fixture reported ${text}`);
+    }
+  }
+
   /** Click the round-trip button and wait for the fixture to report completion. */
   async roundTrip(): Promise<void> {
     await this.page.getByTestId('round-trip').click();
-    await expect(this.status).toHaveText('done');
+    await this.waitForStatus('done');
+  }
+
+  /** Export the source grid and return the workbook bytes, without importing them. */
+  async exportSource(): Promise<Buffer> {
+    const bytes = await this.page.evaluate(async() => {
+      const source = (window as unknown as {
+        __source: { getPlugin(name: string): { exportAsBlobAsync(f: string, o: object): Promise<Blob> } };
+      }).__source;
+      const blob = await source.getPlugin('exportFile').exportAsBlobAsync('xlsx', {
+        colHeaders: true, rowHeaders: true, exportHiddenColumns: 'hide', exportFormulas: true,
+      });
+
+      return Array.from(new Uint8Array(await blob.arrayBuffer()));
+    });
+
+    return Buffer.from(bytes);
+  }
+
+  /** Pick a workbook in the fixture's file input, the way a user does, and wait for the import. */
+  async importFile(file: { name: string; buffer: Buffer }): Promise<void> {
+    await this.page.getByTestId('import-input').setInputFiles({
+      name: file.name,
+      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      buffer: file.buffer,
+    });
+    await this.waitForStatus('done-file');
+  }
+
+  /**
+   * Imports raw bytes into the target and answers how the call ended, what the grid holds after it
+   * and whether `afterImport` ran - the shape a refused upload is asserted on.
+   */
+  async importBytes(bytes: Buffer): Promise<{
+    rejection: { message: string; limit: boolean } | null;
+    data: unknown[][];
+    afterImportRan: boolean;
+  }> {
+    return this.page.evaluate(async(input) => {
+      const target = (window as unknown as {
+        __target: {
+          getData(): unknown[][];
+          addHook(name: string, fn: () => void): void;
+          getPlugin(name: string): { importFromArrayBuffer(f: string, b: ArrayBuffer): Promise<unknown> };
+        };
+      }).__target;
+      let afterImportRan = false;
+      let rejection = null;
+
+      target.addHook('afterImport', () => {
+        afterImportRan = true;
+      });
+
+      try {
+        await target.getPlugin('importFile').importFromArrayBuffer('xlsx', new Uint8Array(input).buffer);
+      } catch (error) {
+        const { message, cause } = error as Error & { cause?: { limit?: unknown } };
+
+        rejection = { message, limit: cause?.limit !== undefined };
+      }
+
+      return { rejection, data: target.getData(), afterImportRan };
+    }, Array.from(bytes));
+  }
+
+  /** The comment the target grid holds on one cell, or `null`. */
+  async targetComment(row: number, col: number): Promise<unknown> {
+    return this.page.evaluate(([r, c]) => {
+      const target = (window as unknown as {
+        __target: { getPlugin(name: string): { getCommentAtCell(r: number, c: number): unknown } };
+      }).__target;
+
+      return target.getPlugin('comments').getCommentAtCell(r, c) ?? null;
+    }, [row, col]);
   }
 
   /**
@@ -74,7 +162,7 @@ export class XlsxImportPage {
    */
   async roundTripWithStyles(): Promise<void> {
     await this.page.getByTestId('round-trip-styles').click();
-    await expect(this.status).toHaveText('done-styles');
+    await this.waitForStatus('done-styles');
   }
 
   /** The `afterImport` result the fixture stored. */
@@ -206,7 +294,7 @@ export class XlsxImportPage {
   /** Click the nested-header round-trip button and wait for the fixture to report completion. */
   async roundTripNested(): Promise<void> {
     await this.page.getByTestId('round-trip-nested').click();
-    await expect(this.status).toHaveText('done-nested');
+    await this.waitForStatus('done-nested');
   }
 
   /**

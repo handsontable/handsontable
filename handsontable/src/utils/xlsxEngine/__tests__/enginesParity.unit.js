@@ -15,8 +15,8 @@ import { SheetBuilder } from '../builder';
 import { loadFixture as load, rewriteArchive, toArrayBuffer } from './helpers/fixtures';
 import { normalizeFont, normalizeStyle, strip } from './helpers/snapshotNormalize';
 
-// `strip()` applies the three — and only three — cross-engine normalizations. Their reasons, and
-// the rule that no fourth may be added, live at the top of `helpers/snapshotNormalize.js`.
+// `strip()` applies the four — and only four — cross-engine normalizations. Their reasons, and
+// the rule that no fifth may be added, live at the top of `helpers/snapshotNormalize.js`.
 
 describe('read parity: the styled fixtures the six-fixture loop in nativeRead.unit.js does not reach', () => {
   it('reads styles.xlsx and validation.xlsx to the same snapshot and the same dropped list on both engines', async() => {
@@ -302,46 +302,83 @@ describe('write parity: a native-written and an ExcelJS-written file agree, read
   });
 
   it('writes column widths, row heights, and hidden rows and columns the same way', async() => {
+    // Asymmetric on purpose: a hidden column index that differs from the hidden row index, and the
+    // fractional widths the export really writes (50 px, 128 px and 100 px), so a writer or reader
+    // that swaps the two axes or rounds a width cannot pass. The export gives every column a width,
+    // hidden ones included; a hidden column WITHOUT one is the divergence pinned in the next case.
     await expectFourWayParity((snapshot) => {
       const sheet = new SheetBuilder('Sheet1');
 
       sheet.cell(1, 1).value = 'a';
       sheet.cell(1, 2).value = 'b';
+      sheet.cell(1, 3).value = 'hidden column';
       sheet.cell(2, 1).value = 'hidden row';
-      sheet.setColWidth(1, 8);
-      sheet.setColWidth(2, 20);
-      sheet.hideCol(2);
+      sheet.setColWidth(1, 7.142857142857143);
+      sheet.setColWidth(2, 18.285714285714285);
+      sheet.setColWidth(3, 14.285714285714286);
+      sheet.hideCol(3);
       sheet.setRowHeight(1, 25);
       sheet.hideRow(2);
       snapshot.sheets.push(sheet.toSnapshot());
     }, (native) => {
       const [sheet] = native.sheets;
 
-      expect(sheet.colWidths.slice(0, 2)).toEqual([8, 20]);
-      expect(sheet.hiddenCols).toEqual([1]);
+      expect(sheet.colWidths).toEqual([7.142857142857143, 18.285714285714285, 14.285714285714286]);
+      expect(sheet.hiddenCols).toEqual([2]);
       expect(sheet.rowHeights[0]).toBe(25);
       expect(sheet.hiddenRows).toEqual([1]);
     });
   });
 
-  it('writes frozen panes, right-to-left, and a veryHidden sheet the same way', async() => {
+  it('pins the width a hidden column with no width of its own reads back as on each leg', async() => {
+    const { nn, ne, en, ee } = await fourWayRead((snapshot) => {
+      const sheet = new SheetBuilder('Sheet1');
+
+      sheet.cell(1, 1).value = 'a';
+      sheet.cell(1, 3).value = 'hidden column';
+      sheet.setColWidth(1, 7.142857142857143);
+      sheet.hideCol(3);
+      snapshot.sheets.push(sheet.toSnapshot());
+    });
+    const widthsOf = snapshot => snapshot.sheets[0].colWidths;
+
+    // Finding, asserted with every leg's value rather than normalized: the native writer writes
+    // `<col min="3" max="3" hidden="1"/>` with no width, and the native reader keeps that as no
+    // width. ExcelJS fills in its own default column width of 9 on both sides: its writer writes
+    // `width="9" customWidth="1"` for the hidden column, and its reader reports 9 for the native
+    // writer's width-less `<col>`. The export always sets a width, so no export reaches this.
+    expect(widthsOf(nn)).toEqual([7.142857142857143, null, null]);
+    expect(widthsOf(ne)).toEqual([7.142857142857143, null, 9]);
+    expect(widthsOf(en)).toEqual([7.142857142857143, null, 9]);
+    expect(widthsOf(ee)).toEqual([7.142857142857143, null, 9]);
+    [nn, ne, en, ee].forEach(snapshot => expect(snapshot.sheets[0].hiddenCols).toEqual([2]));
+  });
+
+  it('writes frozen panes, right-to-left, a hidden and a veryHidden sheet the same way', async() => {
     await expectFourWayParity((snapshot) => {
       const sheet = new SheetBuilder('Sheet1');
 
       sheet.cell(1, 1).value = 'a';
-      sheet.freeze(1, 1);
+      // Two columns and one row, so `xSplit` and `ySplit` cannot be swapped unnoticed.
+      sheet.freeze(2, 1);
       sheet.setRtl(true);
       snapshot.sheets.push(sheet.toSnapshot());
 
+      const veryHidden = new SheetBuilder('VeryHidden');
+
+      veryHidden.cell(1, 1).value = 'x';
+      veryHidden.setState('veryHidden');
+      snapshot.sheets.push(veryHidden.toSnapshot());
+
       const hidden = new SheetBuilder('Hidden');
 
-      hidden.cell(1, 1).value = 'x';
-      hidden.setState('veryHidden');
+      hidden.cell(1, 1).value = 'y';
+      hidden.setState('hidden');
       snapshot.sheets.push(hidden.toSnapshot());
     }, (native) => {
-      expect(native.sheets[0].freeze).toEqual({ rows: 1, cols: 1 });
+      expect(native.sheets[0].freeze).toEqual({ rows: 1, cols: 2 });
       expect(native.sheets[0].rtl).toBe(true);
-      expect(native.sheets[1].state).toBe('veryHidden');
+      expect(native.sheets.map(sheet => sheet.state)).toEqual(['visible', 'veryHidden', 'hidden']);
     });
   });
 
@@ -404,7 +441,9 @@ describe('write parity: a native-written and an ExcelJS-written file agree, read
       sheet.cell(1, 1).value = 'x';
       sheet.cell(1, 1).locked = false;
       sheet.cell(1, 2).value = 'y';
-      sheet.protect('', { formatColumns: true, sort: true, autoFilter: true });
+      sheet.protect('', {
+        formatColumns: true, sort: true, autoFilter: true, selectLockedCells: false, selectUnlockedCells: false,
+      });
       snapshot.sheets.push(sheet.toSnapshot());
     });
 
@@ -415,8 +454,10 @@ describe('write parity: a native-written and an ExcelJS-written file agree, read
       expect(row[1].locked).toBeNull();
       expect(snapshot.sheets[0].protection.enabled).toBe(true);
       expect(snapshot.sheets[0].protection.password).toBeNull();
+      // The two select permissions are inverted in OOXML like `objects`/`scenarios`, and the export
+      // always passes `true` for both, so only this case writes and reads back a denied one.
       expect(snapshot.sheets[0].protection.options).toEqual(expect.objectContaining({
-        formatColumns: true, sort: true, autoFilter: true,
+        formatColumns: true, sort: true, autoFilter: true, selectLockedCells: false, selectUnlockedCells: false,
       }));
 
       // `objects` and `scenarios` are permissions like any other: the attribute is written only
@@ -467,6 +508,30 @@ describe('write parity: a native-written and an ExcelJS-written file agree, read
     });
   });
 
+  it('writes several merges of different shapes, all of them, on all four legs', async() => {
+    const { nn, ne, en, ee } = await fourWayRead((snapshot) => {
+      const sheet = new SheetBuilder('Sheet1');
+
+      sheet.cell(1, 1).value = 'square';
+      sheet.cell(3, 3).value = 'wide';
+      sheet.cell(6, 1).value = 'tall';
+      sheet.merge(1, 1, 2, 2);
+      sheet.merge(3, 3, 3, 5);
+      sheet.merge(6, 1, 8, 1);
+      snapshot.sheets.push(sheet.toSnapshot());
+    });
+
+    // `toEqual` on the whole list: a writer that keeps only the first merge, or a reader that stops
+    // after one, passes every single-merge case above.
+    [nn, ne, en, ee].forEach((snapshot) => {
+      expect(snapshot.sheets[0].merges).toEqual([
+        { row: 0, col: 0, rowspan: 2, colspan: 2 },
+        { row: 2, col: 2, rowspan: 1, colspan: 3 },
+        { row: 5, col: 0, rowspan: 3, colspan: 1 },
+      ]);
+    });
+  });
+
   it('writes a row of NaN, Infinity and -Infinity as text on the native engine, and pins ExcelJS still writing them raw', async() => {
     const { nn, ne, en, ee } = await fourWayRead((snapshot) => {
       const sheet = new SheetBuilder('Sheet1');
@@ -495,6 +560,24 @@ describe('write parity: a native-written and an ExcelJS-written file agree, read
     // handed straight to the ExcelJS adapter.
     expect(valuesOf(en)).toEqual([null, null, null]);
     expect(valuesOf(ee)).toEqual([NaN, Infinity, -Infinity]);
+  });
+
+  it('keeps every digit of a number on all four legs, compared raw rather than through strip()', async() => {
+    // `strip()` rounds a value to nine decimals, which makes `1.5e-10` equal `0`, so these legs are
+    // read raw: a writer or reader that rounds, or keeps fewer than 17 significant digits, fails here.
+    const values = [12345678901.23, 0.1 + 0.2, 1.5e-10, Number.MAX_SAFE_INTEGER, -0.000001, 1e21, 5e-324];
+    const { nn, ne, en, ee } = await fourWayRead((snapshot) => {
+      const sheet = new SheetBuilder('Sheet1');
+
+      values.forEach((value, index) => {
+        sheet.cell(1, index + 1).value = value;
+      });
+      snapshot.sheets.push(sheet.toSnapshot());
+    });
+
+    [nn, ne, en, ee].forEach((snapshot) => {
+      expect(snapshot.sheets[0].rows[0].map(cell => cell.value)).toEqual(values);
+    });
   });
 
   it('reads built-in numFmt id 22 as the ECMA-376 code on both readers', async() => {

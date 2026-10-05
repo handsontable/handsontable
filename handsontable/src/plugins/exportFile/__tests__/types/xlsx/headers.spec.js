@@ -360,6 +360,21 @@ import ExcelJS from 'exceljs';
         expect(ws.getRow(2).getCell(1).fill).toEqual(DEFAULT_FILL);
         expect(ws.getRow(2).getCell(1).border).toEqual(DEFAULT_BORDER);
       });
+
+      it('should give the covered cell of a header group the default style too', async() => {
+        // A colspan group is a merge, and LibreOffice draws its right edge from the covered cell.
+        // The built-in writer used to leave that cell out of the sheet altogether.
+        handsontable({
+          data: [['A', 'B']],
+          nestedHeaders: [[{ label: 'Group', colspan: 2 }], ['X', 'Y']],
+          exportFile,
+        });
+
+        const ws = await parseXlsx({ colHeaders: true });
+
+        expect(ws.getRow(1).getCell(2).fill).toEqual(DEFAULT_FILL);
+        expect(ws.getRow(1).getCell(2).border).toEqual(DEFAULT_BORDER);
+      });
     });
 
     describe('column header className styling', () => {

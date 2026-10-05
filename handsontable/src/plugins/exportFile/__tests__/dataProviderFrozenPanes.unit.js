@@ -139,6 +139,15 @@ describe('DataProvider#getFrozenRows', () => {
     expect(dataProvider.getFrozenRows()).toBe(3);
   });
 
+  it('should count a hidden row when `exportHiddenRows` is `\'hide\'`', () => {
+    const dataProvider = createProvider(
+      { rows: 5, cols: 3, fixedRowsTop: 3, hiddenRows: [1] },
+      { exportHiddenRows: 'hide' },
+    );
+
+    expect(dataProvider.getFrozenRows()).toBe(3);
+  });
+
   it('should not count frozen rows before the start of the export range', () => {
     const dataProvider = createProvider(
       { rows: 6, cols: 3, fixedRowsTop: 2 },
@@ -155,5 +164,16 @@ describe('DataProvider#getFrozenRows', () => {
     );
 
     expect(dataProvider.getFrozenRows()).toBe(0);
+  });
+
+  it('should not count frozen rows after the end of the export range', () => {
+    // Export > To Excel with rows 0-1 selected passes this range: the sheet holds two data rows, so
+    // a pane frozen below row 4 would sit past the end of it.
+    const dataProvider = createProvider(
+      { rows: 6, cols: 3, fixedRowsTop: 4 },
+      { range: [0, 0, 1, 2] },
+    );
+
+    expect(dataProvider.getFrozenRows()).toBe(2);
   });
 });

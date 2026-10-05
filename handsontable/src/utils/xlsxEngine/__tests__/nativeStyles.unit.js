@@ -6,6 +6,29 @@ import {
 } from '../adapters/native/parts/styles';
 import { DroppedFeatures } from '../capabilities';
 
+/**
+ * Lists the names of the root element's direct children, in document order.
+ * @param xml
+ */
+function topLevelChildren(xml) {
+  const names = [];
+  let depth = 0;
+
+  for (const [, close, name, , selfClose] of xml.matchAll(/<(\/?)([A-Za-z][\w:.-]*)([^>]*?)(\/?)>/g)) {
+    if (close) {
+      depth -= 1;
+    } else {
+      if (depth === 1) {
+        names.push(name);
+      }
+
+      depth += selfClose ? 0 : 1;
+    }
+  }
+
+  return names;
+}
+
 describe('BUILT_IN_NUM_FMTS', () => {
   it('should map the ids Excel reserves and look them up by code', () => {
     expect(BUILT_IN_NUM_FMTS[14]).toBe('mm-dd-yy');
@@ -46,6 +69,27 @@ describe('StyleTable', () => {
     expect(xml.indexOf('<fonts')).toBeLessThan(xml.indexOf('<fills'));
     expect(xml.indexOf('<cellXfs')).toBeLessThan(xml.indexOf('<cellStyles'));
     expect(xml.indexOf('<cellStyles')).toBeLessThan(xml.indexOf('<dxfs'));
+  });
+
+  it('should write the styleSheet children in CT_Stylesheet order', () => {
+    // A wrong order opens with Excel's repair dialog, while ExcelJS still reads every format back.
+    const table = new StyleTable();
+
+    table.xfIndex({
+      numFmt: '0.000',
+      style: {
+        alignment: null,
+        font: { bold: true },
+        fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF0000' } },
+        border: { top: { style: 'thin' } },
+      },
+      locked: null,
+    });
+    table.dxfIndex({ font: { italic: true } });
+
+    expect(topLevelChildren(table.toXml())).toEqual([
+      'numFmts', 'fonts', 'fills', 'borders', 'cellStyleXfs', 'cellXfs', 'cellStyles', 'dxfs',
+    ]);
   });
 
   it('should dedupe fonts, fills, borders, number formats and xfs', () => {

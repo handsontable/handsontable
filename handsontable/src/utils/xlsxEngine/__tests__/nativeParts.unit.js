@@ -43,14 +43,23 @@ describe('package parts', () => {
       '<Override PartName="/xl/workbook.xml" '
       + 'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>',
     );
-    expect(xml).toContain('<Override PartName="/xl/worksheets/sheet2.xml"');
+    expect(xml).toContain(
+      '<Override PartName="/xl/worksheets/sheet2.xml" '
+      + 'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>',
+    );
     expect(xml).toContain(
       '<Override PartName="/xl/comments1.xml" '
       + 'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.comments+xml"/>',
     );
     expect(xml).not.toContain('/xl/comments2.xml');
-    expect(xml).toContain('<Override PartName="/xl/sharedStrings.xml"');
-    expect(xml).toContain('<Override PartName="/xl/styles.xml"');
+    expect(xml).toContain(
+      '<Override PartName="/xl/sharedStrings.xml" '
+      + 'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/>',
+    );
+    expect(xml).toContain(
+      '<Override PartName="/xl/styles.xml" '
+      + 'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>',
+    );
     expect(xml).toContain('/docProps/core.xml');
     expect(xml).toContain('/docProps/app.xml');
 
@@ -90,6 +99,10 @@ describe('package parts', () => {
     expect(xml.indexOf('<bookViews>')).toBeLessThan(xml.indexOf('<sheets>'));
     expect(xml.indexOf('<sheets>')).toBeLessThan(xml.indexOf('<calcPr'));
     expect(workbookXml(sheets, ['rId3', 'rId4'], false)).toContain('<calcPr calcId="171027"/>');
+    expect(workbookXml([
+      { index: 1, name: 'Data', state: 'visible', hasComments: false },
+      { index: 2, name: 'Lists', state: 'hidden', hasComments: false },
+    ], ['rId3', 'rId4'], false)).toContain('<sheet name="Lists" sheetId="2" state="hidden" r:id="rId4"/>');
 
     expect(parseWorkbook(xml)).toEqual({
       sheets: [
@@ -221,6 +234,11 @@ describe('comments', () => {
     expect(vml).toContain('<v:shapetype id="_x0000_t202"');
     expect(vml).toContain('<v:shape id="_x0000_s1025" type="#_x0000_t202"');
     expect(vml).toContain('<v:shape id="_x0000_s1026"');
+    // `visible` would make LibreOffice show every note permanently.
+    expect(vml).toContain(
+      'style="position:absolute;margin-left:105.3pt;margin-top:10.5pt;'
+      + 'width:97.8pt;height:59.1pt;z-index:1;visibility:hidden"',
+    );
     expect(vml).toContain('<x:ClientData ObjectType="Note">');
     expect(vml).toContain('<x:Row>1</x:Row><x:Column>1</x:Column>');
     expect(vml).toContain('<x:Row>4</x:Row><x:Column>3</x:Column>');
@@ -447,6 +465,22 @@ describe('hashSheetPassword', () => {
     expect(Buffer.from(a.saltValue, 'base64').byteLength).toBe(16);
   });
 
+  it('should spin SHEET_PASSWORD_SPIN_COUNT times when no count is passed', async() => {
+    // The digest is stubbed, so the default count is exercised without 100000 real SHA-512 rounds.
+    const digest = jest.spyOn(globalThis.crypto.subtle, 'digest')
+      .mockImplementation(async() => new ArrayBuffer(64));
+
+    try {
+      const hash = await hashSheetPassword('x', new Uint8Array(16));
+
+      expect(hash.spinCount).toBe(100000);
+      // One digest of salt + password, then one per spin.
+      expect(digest).toHaveBeenCalledTimes(100001);
+    } finally {
+      digest.mockRestore();
+    }
+  });
+
   it('should name the secure-context requirement when crypto.subtle is missing', async() => {
     // A page served over plain http (not localhost) has `crypto` but no `crypto.subtle`; the
     // instance property shadows the prototype getter for the duration of the test.
@@ -542,6 +576,29 @@ function writeSheet(build, passwordHash = null) {
   return { ...result, styles, strings, dropped };
 }
 
+/**
+ * Lists the names of the root element's direct children, in document order.
+ * @param xml
+ */
+function topLevelChildren(xml) {
+  const names = [];
+  let depth = 0;
+
+  for (const [, close, name, , selfClose] of xml.matchAll(/<(\/?)([A-Za-z][\w:.-]*)([^>]*?)(\/?)>/g)) {
+    if (close) {
+      depth -= 1;
+    } else {
+      if (depth === 1) {
+        names.push(name);
+      }
+
+      depth += selfClose ? 0 : 1;
+    }
+  }
+
+  return names;
+}
+
 describe('worksheetXml', () => {
   it('should write values by type, formulas with and without results, and an empty sheet', () => {
     const { xml, strings, wroteFormula } = writeSheet((b) => {
@@ -571,6 +628,24 @@ describe('worksheetXml', () => {
     expect(empty.xml).toContain('<dimension ref="A1"/>');
     expect(empty.xml).toContain('<sheetData/>');
     expect(empty.wroteFormula).toBe(false);
+  });
+
+  it('should write a number with every digit it has', () => {
+    const { xml } = writeSheet((b) => {
+      b.cell(6, 1).value = 0.1 + 0.2;
+      b.cell(6, 2).value = 123456789012345680;
+      b.cell(6, 3).value = 1e21;
+      b.cell(6, 4).value = 5e-324;
+      b.cell(6, 5).value = 12345678901.23;
+      b.cell(6, 6).value = 1.5e-10;
+    });
+
+    expect(xml).toContain('<c r="A6"><v>0.30000000000000004</v></c>');
+    expect(xml).toContain('<c r="B6"><v>123456789012345680</v></c>');
+    expect(xml).toContain('<c r="C6"><v>1e+21</v></c>');
+    expect(xml).toContain('<c r="D6"><v>5e-324</v></c>');
+    expect(xml).toContain('<c r="E6"><v>12345678901.23</v></c>');
+    expect(xml).toContain('<c r="F6"><v>1.5e-10</v></c>');
   });
 
   it('should write the style index, number format and a styled empty cell', () => {
@@ -612,6 +687,23 @@ describe('worksheetXml', () => {
     expect(xml).toContain('<row r="3" hidden="1"/>');
     expect(xml).toContain('<mergeCells count="1"><mergeCell ref="A1:B1"/></mergeCells>');
     expect(xml.indexOf('<sheetData')).toBeLessThan(xml.indexOf('<mergeCells'));
+
+    // A single-axis split has only the pane on its own side of the split.
+    const rowsOnly = writeSheet((b) => {
+      b.cell(1, 1).value = 'h';
+      b.freeze(0, 1);
+    });
+    const colsOnly = writeSheet((b) => {
+      b.cell(1, 1).value = 'h';
+      b.freeze(2, 0);
+    });
+
+    expect(rowsOnly.xml).toContain(
+      '<pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft"/>',
+    );
+    expect(colsOnly.xml).toContain(
+      '<pane xSplit="2" topLeftCell="C1" activePane="topRight" state="frozen"/><selection pane="topRight"/>',
+    );
   });
 
   it('should keep the master value and drop a covered cell value inside a merge', () => {
@@ -736,6 +828,24 @@ describe('worksheetXml', () => {
     expect(xml.indexOf('<dataValidations')).toBeLessThan(xml.indexOf('<pageMargins'));
     expect(xml.indexOf('<pageMargins')).toBeLessThan(xml.indexOf('<legacyDrawing'));
     expect(comments).toEqual([{ ref: 'A2', row: 1, col: 0, text: 'note here' }]);
+  });
+
+  it('should write the worksheet children in CT_Worksheet order', () => {
+    // A wrong order opens with Excel's repair dialog, while ExcelJS still reads such a sheet back.
+    const { xml } = writeSheet((b) => {
+      b.cell(1, 1).value = 'x';
+      b.cell(1, 1).validation = { type: 'list', formulae: ['"a,b"'], allowBlank: true };
+      b.cell(1, 1).comment = 'note';
+      b.setColWidth(1, 20);
+      b.merge(2, 1, 2, 2);
+      b.addConditionalFormatting('A1:A2', [{ type: 'cellIs', operator: 'equal', formulae: ['1'] }]);
+      b.protect('', { sort: true });
+    });
+
+    expect(topLevelChildren(xml)).toEqual([
+      'dimension', 'sheetViews', 'sheetFormatPr', 'cols', 'sheetData', 'sheetProtection',
+      'mergeCells', 'conditionalFormatting', 'dataValidations', 'pageMargins', 'legacyDrawing',
+    ]);
   });
 
   it('should not write a legacyDrawing when no cell has a comment', () => {
@@ -1071,6 +1181,27 @@ describe('parseWorksheet', () => {
       + '<c r="A1048577"><v>1</v></c></row></sheetData></worksheet>';
 
     expect(() => readSheet(xml)).toThrow(/declares 1048577 rows/);
+  });
+
+  it('should refuse a <row> past the cap at the row, before walking on', () => {
+    // Without the guard at the row, the walk reaches the second row and refuses its `A0` instead;
+    // a `<row r="20000000"/>` then allocated every row up to it (+780 MB heap) before the
+    // end-of-sheet check refused it.
+    expect(() => readSheet(`<worksheet ${NS}><sheetData><row r="1048577"/>`
+      + '<row r="1048578"><c r="A0"/></row></sheetData></worksheet>'))
+      .toThrow(/declares 1048577 rows/);
+  });
+
+  it('should refuse at the first column past the cap', () => {
+    expect(() => readSheet(`<worksheet ${NS}><sheetData><row r="1">${'<c/>'.repeat(16386)}</row>`
+      + '</sheetData></worksheet>'))
+      .toThrow(/declares 16385 columns/);
+  });
+
+  it('should refuse at the row that crosses the cell cap', () => {
+    expect(() => readSheet(`<worksheet ${NS}><sheetData><row r="1">${'<c/>'.repeat(16384)}</row>`
+      + '<row r="306"><c/></row><row r="400"><c/></row></sheetData></worksheet>'))
+      .toThrow(/declares 306 × 16384 cells/);
   });
 
   it('should count the column layout against the workbook budget without inflating the cell product', () => {

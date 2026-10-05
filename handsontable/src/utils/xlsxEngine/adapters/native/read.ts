@@ -52,6 +52,25 @@ function relsById(rels: Relationship[]): Map<string, Relationship> {
 }
 
 /**
+ * Resolves each `<sheet>` entry's relationship through ONE `relsById` index, so the lookup costs
+ * O(sheets + rels) rather than O(sheets x rels). Exported for the test that counts the element reads
+ * (`nativeRelationshipLookup.unit.js`): a linear `find()` per sheet returns the same answer, so no
+ * functional test could see the quadratic cost come back.
+ *
+ * @param {Array} entries The workbook's `<sheet>` entries, each with its `relId`.
+ * @param {Array} rels The workbook part's relationships.
+ * @returns {Array} The relationship of each entry, `undefined` where none carries its id.
+ */
+export function sheetRelationships(
+  entries: ReadonlyArray<{ relId: string }>,
+  rels: Relationship[],
+): Array<Relationship | undefined> {
+  const byId = relsById(rels);
+
+  return entries.map(entry => byId.get(entry.relId));
+}
+
+/**
  * Finds the target of the first relationship of a type, resolved against the source part.
  */
 function targetOf(rels: Relationship[], type: string, sourcePart: string): string | null {
@@ -373,9 +392,9 @@ async function readSheets(
   budget: WorkbookBudget,
   dropped: DroppedFeatures
 ): Promise<void> {
-  const workbookRelsById = relsById(opened.workbookRels);
-  const sheets = opened.sheets.map((entry) => {
-    const sheetRel = workbookRelsById.get(entry.relId);
+  const sheetRels = sheetRelationships(opened.sheets, opened.workbookRels);
+  const sheets = opened.sheets.map((entry, index) => {
+    const sheetRel = sheetRels[index];
     const skippedAs = sheetRel === undefined ? undefined : NON_WORKSHEET_SHEET_TYPES.get(sheetRel.type);
 
     return { entry, sheetRel, skippedAs };

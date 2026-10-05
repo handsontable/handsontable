@@ -610,6 +610,9 @@ describe('installImportedStyles - declaration allow-list', () => {
     'color:#ff0000;font-weight:900',
     'font-weight:bold;position:fixed',
     'font-style:oblique',
+    // Text after an allowed keyword breaks out of the rule.
+    'font-weight:bold}td{background:url(x.png)',
+    'font-style:italic}td{background:url(x.png)',
     'text-decoration:underline overline',
     'font-weight:bold;',
     'font-weight:bold;;color:#000000',

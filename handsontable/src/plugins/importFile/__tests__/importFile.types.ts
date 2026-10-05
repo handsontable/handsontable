@@ -50,6 +50,9 @@ async function run(buffer: ArrayBuffer, blob: Blob) {
   const headers: string[] | undefined = fromBlob.colHeaders;
   const dropped: string[] = fromBuffer.dropped;
   const kind: 'exceljs' | 'native' = fromBuffer.engine.kind;
+  // Fails on a dropped member (TS2353) and on an added one (TS2741), which the assignment above misses.
+  const everyKind: Record<ImportResult['engine']['kind'], true> = { exceljs: true, native: true };
+  const dateTimeFormat: Intl.DateTimeFormatOptions | undefined = fromBuffer.columns?.[0]?.dateTimeFormat;
   const styles: Record<string, string> | undefined = fromBuffer.styles;
   const borders: ImportedBorder[] | undefined = fromBuffer.customBorders;
   const direction: 'rtl' | 'ltr' | undefined = fromBuffer.layoutDirection;

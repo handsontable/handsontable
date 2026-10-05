@@ -510,6 +510,27 @@ describe('mapWorkbook', () => {
     expect(isLimitError(refusal)).toBe(true);
   });
 
+  it('should refuse a workbook whose prefixed formulas would cost more strip work than the budget', () => {
+    // With no shift, the `_xlfn.` strip still walks each formula's whole text, so it is charged
+    // against the same budget as the shift.
+    const formula = `_xlfn.ABS(${'1+'.repeat(16378)}1)`;
+    const formulas = Math.floor(MAX_TRANSLATED_FORMULA_CHARS / formula.length) + 1;
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = Array.from({ length: formulas }, () => [cell({ value: null, formula: { text: formula, result: 1 } })]);
+
+    let refusal = null;
+
+    try {
+      map(workbook(sheet), {}, { formulasEnabled: true, commentsEnabled: false });
+    } catch (error) {
+      refusal = error;
+    }
+
+    expect(refusal?.message).toMatch(/above the limit this reader accepts/);
+    expect(isLimitError(refusal)).toBe(true);
+  });
+
   it('should not charge the shift budget for formulas that need no shift', () => {
     const formula = '1+'.repeat(16384);
     const formulas = Math.floor(MAX_TRANSLATED_FORMULA_CHARS / formula.length) + 1;
@@ -1290,13 +1311,14 @@ describe('mapLayout - file-controlled layout values', () => {
 
     // A 255-character column, Excel's UI maximum, is stored with its 5 px of cell padding added
     // (255.7109375 at a 7 px digit width); the cap is 260 width units.
-    sheet.colWidths = [-50, 7e300, Infinity, 255.7109375, 260.5, NaN, 0, 10];
-    sheet.rows.forEach(row => row.push(text('x'), text('y'), text('z'), text('w')));
+    // `0.05` passes the size check but rounds to 0 px, which the grid must not be handed either.
+    sheet.colWidths = [-50, 7e300, Infinity, 255.7109375, 260.5, NaN, 0, 10, 0.05];
+    sheet.rows.forEach(row => row.push(text('x'), text('y'), text('z'), text('w'), text('v')));
 
     const { result } = map(workbook(sheet));
 
     expect(result.colWidths).toEqual([
-      undefined, undefined, undefined, Math.round(255.7109375 * 7), undefined, undefined, undefined, 70,
+      undefined, undefined, undefined, Math.round(255.7109375 * 7), undefined, undefined, undefined, 70, undefined,
     ]);
   });
 
@@ -1349,5 +1371,16 @@ describe('mapLayout - file-controlled layout values', () => {
 
     expect(result.hiddenRows).toEqual([1, 3]);
     expect(result.hiddenColumns).toEqual([2, 0]);
+  });
+
+  it('should drop a hidden index just past the window end, keeping the ones inside', () => {
+    const sheet = createSheetSnapshot('Data');
+
+    // Row 3 sits one past the end of a 3-row window. `HiddenRows` rejects the whole list over that
+    // one index, which would make row 1, hidden by the file, visible again.
+    sheet.rows = Array.from({ length: 5 }, (_, r) => [text(`r${r}`), text('x')]);
+    sheet.hiddenRows = [1, 3];
+
+    expect(map(workbook(sheet), { range: [0, 0, 2, 1] }).result.hiddenRows).toEqual([1]);
   });
 });
