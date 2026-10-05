@@ -155,7 +155,7 @@ import type { ViewportColumnsCalculator } from './calculator/viewportColumns';
 | `GridSettings`, `Events`, `HookKey` | `src/core/settings.ts` |
 | `HotInstance` | `src/core/types.ts` |
 
-Import them with `import type`.
+Import them with `import type`; never paste a partial copy of `GridSettings`/`HotInstance` into the file you are editing (a local copy drifts from the real signature).
 
 ### 5. Private fields use `#`; callbacks are arrow-function class fields
 

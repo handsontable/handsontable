@@ -48,6 +48,6 @@ Eliminate config that naming, location, or type conventions already express. Use
 ## Tests after refactoring
 
 - **Unit** (`*.unit.js`): extracted helpers, strategies, pure logic.
-- **E2E** (`*.spec.js`): feature still works in the browser; `it()` callbacks are `async`.
+- **E2E** (Playwright `tests/e2e/*.spec.ts`): feature still works in the browser. Edit an existing Jasmine `*.spec.js` only to keep it passing; never add a new one. A pure refactor with no behavior change can use a `Refactor-only: <reason>` commit trailer instead of a new test.
 - **Backward compatibility:** legacy API names, CSS classes, and option names still work.
 - **Performance:** for data-heavy paths, unit tests with 50k+ rows.

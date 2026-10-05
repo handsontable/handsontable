@@ -153,7 +153,7 @@ Reference organization: `src/plugins/pagination/__tests__/` (separate dirs for o
 - Importing helpers manually (they are globals).
 - Skipping the `updateSettings()` cycle.
 - Missing edge cases: large datasets, coordinate boundaries, enable/disable cycles.
-- Skipping both keyboard navigation modes (spreadsheet + data grid).
+- Testing only one keyboard navigation mode: cover both spreadsheet and data grid.
 - Trusting the spec count. Before the bridge reporter sanitized failed expectations (`test/helpers/jasmine-bridge-reporter.js`, shared with the Walkontable runner), a failing spec with a cyclic `expected` or `actual` (`toBe(window)`, `toEqual([overlay, ...])`) was dropped: `Running N specs.` in `--verbose` mode, `N-1 specs, 0 failures` at the end, exit 0. The bridge now reports it as a failure (`[unserializable Window]`); if a count comes up short, compare the `Running N specs.` line against the summary with `npm run test:e2e -- --testPathPattern=<file> --verbose`.
 - Throwing inside a `describe` body. Jasmine turns it into a suite-level failure the runner does not report, and every later spec in that block never registers. `it.skip()` does exactly this (Jasmine has no `it.skip`) and hid five specs of `nestedHeaders/__tests__/rowspan.spec.js`. After editing a spec file, the spec count of a `--testPathPattern` run must equal the file's `it(` calls **plus 5**, because every run carries the 5 `MemoryLeakTest` specs; a count equal to the `it(` calls is 5 short.
 

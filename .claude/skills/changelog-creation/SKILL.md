@@ -7,7 +7,7 @@ description: Use when a source code change needs a changelog entry, or before co
 
 Any PR that changes source code: bug fixes, features, behavior changes, deprecations, security fixes.
 
-Not required for test-only, documentation-only, and CI/tooling changes, or for a bug introduced but not yet released. Write `[skip changelog]` in the PR description to skip explicitly.
+Not required for test-only, documentation-only, and CI/tooling changes (the gate passes them automatically; leave the marker out), or for a bug introduced but not yet released. To deliberately skip the entry on a change under `handsontable/src/**` or `wrappers/**`, write `[skip changelog]` in the PR description outside HTML comments.
 
 ## Workflow: PR first, then the changelog
 
