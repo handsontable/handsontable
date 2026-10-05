@@ -17,7 +17,7 @@ const CHECKSUM = /^[0-9a-f]+$/;
  * The whitespace removed from the prose before it is checksummed: TAB, LF, VT,
  * FF, CR, SPACE, NO-BREAK SPACE, OGHAM SPACE MARK, the U+2000-U+200A spaces,
  * LINE SEPARATOR, PARAGRAPH SEPARATOR, NARROW NO-BREAK SPACE, MEDIUM
- * MATHEMATICAL SPACE, IDEOGRAPHIC SPACE and the BOM.
+ * MATHEMATICAL SPACE, IDEOGRAPHIC SPACE, and the BOM.
  *
  * Listed explicitly instead of `\s`, whose set has changed between JavaScript
  * engines (U+180E) and differs in other languages (U+0085), so it matches the
@@ -29,7 +29,7 @@ const PROSE_WHITESPACE = /[\t\n\v\f\r \u00a0\u1680\u2000-\u200a\u2028\u2029\u202
 
 /**
  * A line break or tab that was saved as text - a backslash followed by "n",
- * "r" or "t" - also removed before the prose is checksummed.
+ * "r", or "t" - also removed before the prose is checksummed.
  *
  * Several places a key is stored keep a line break that way rather than as a
  * real one: a single-quoted or unquoted `.env` value, Docker's `--env-file`,
@@ -47,12 +47,12 @@ const ESCAPED_WHITESPACE = /\\[nrt]/g;
  * Unicode NFC, with every escaped line break or tab (`\n`, `\r`, `\t` saved as
  * text) and every whitespace character removed.
  *
- * Only the whitespace, its escaped forms and the Unicode composition are
- * ignored. A mail client that rewraps the text - also between two CJK
- * characters or inside a word - collapses a blank line, a `.env` file that
- * saves a line break as `\n`, or a system that stores "u" + U+0308 for "u"
- * leaves the key valid. A changed, added or removed letter, digit or symbol
- * does not.
+ * Only the whitespace, its escaped forms, and the Unicode composition are
+ * ignored. A mail client that rewraps the text (also between two CJK
+ * characters or inside a word) or collapses a blank line, a `.env` file that
+ * saves a line break as `\n`, or a system that stores "u" + U+0308 instead of
+ * U+00FC leaves the key valid. A changed, added, or removed letter, digit, or
+ * symbol does not.
  * Exported for the test key builder; the library calls `extractEntitlementKeyData`.
  *
  * @param {string} prose The text in front of the machine-readable block.
@@ -174,7 +174,7 @@ function normalizeProductEntry(entry: unknown): ProductEntitlement | null {
   if (presentDateFields.length !== 1) {
     return null;
   }
-  if (parseIsoDateToTimestamp(`${entry[presentDateFields[0]]}`) === null) {
+  if (parseIsoDateToTimestamp(entry[presentDateFields[0]]) === null) {
     return null;
   }
   if (!isNonNegativeInteger(entry.notice) || !isNonNegativeInteger(entry.grace)) {
@@ -329,11 +329,17 @@ let memoizedData: EntitlementKeyData | null = null;
  * @returns {EntitlementKeyData|null}
  */
 export function extractEntitlementKeyData(licenseKey: string): EntitlementKeyData | null {
-  const key = `${licenseKey}`;
+  if (typeof licenseKey !== 'string') {
+    return null;
+  }
+  if (licenseKey !== memoizedKey) {
+    // Read first, remember second. Were the key remembered before the read,
+    // a read that throws would leave the new key paired with the previous
+    // key's data, and the next read of the new key would return it.
+    const data = readEntitlementKeyData(licenseKey);
 
-  if (key !== memoizedKey) {
-    memoizedKey = key;
-    memoizedData = readEntitlementKeyData(key);
+    memoizedKey = licenseKey;
+    memoizedData = data;
   }
 
   return memoizedData;

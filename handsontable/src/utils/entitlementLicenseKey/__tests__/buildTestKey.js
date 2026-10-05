@@ -7,7 +7,28 @@ import { stringToBase64Url } from '../encoding';
  *
  * @type {string}
  */
-export const TEST_KEY_PROSE = 'This is a test license key.';
+const TEST_KEY_PROSE = 'This is a test license key.';
+
+/**
+ * Returns the machine-readable `[...]` block of a key, without the prose in front of it. The block
+ * starts at the LAST "[", as in the reader, so a bracket inside the prose cannot hide it.
+ *
+ * @param {string} key The whole key.
+ * @returns {string}
+ */
+export function blockOf(key) {
+  return key.slice(key.lastIndexOf('['));
+}
+
+/**
+ * Returns the prose of a key - everything in front of its block.
+ *
+ * @param {string} key The whole key.
+ * @returns {string}
+ */
+export function proseOf(key) {
+  return key.slice(0, key.lastIndexOf('['));
+}
 
 /**
  * A minimal, TEST-ONLY entitlement license key builder. It assembles the key - the prose, then the

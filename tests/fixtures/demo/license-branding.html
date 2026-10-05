@@ -70,8 +70,8 @@
       'trial-external': 'This is a Handsontable license key for Test Fixture, issued on 2026-08-12 for the "Fixture Project" project. It includes 1 license: > 1. Trial license under Handsontable Evaluation License Agreement 4.0 of 2026-03-02, for Handsontable on the Enterprise package, for internal use, valid until 2026-09-26 (UTC). Not licensed for production use. To purchase a license, contact sales@handsontable.com. [eyJwcm9kdWN0cyI6eyJoYW5kc29udGFibGUiOnsiY2FwYWJpbGl0aWVzIjpbImNvcmUiXSwidXNhZ2VfdW50aWwiOiIyMDI2LTA5LTI2Iiwibm90aWNlIjo0NSwiZ3JhY2UiOjE1LCJmbGFncyI6WyJ0cmlhbCIsIm5vLXVpLXdhcm5zIl19fX0061fb508cce2411f2221e4218b2e05e791db52682a6997d885f9769f997027c52cdd87c75aab81e9dd670309874b466a87a74f7df268009d4f39acbad1fb3051]',
       subscription: 'This is a Handsontable license key for Test Fixture, issued on 2026-08-12 for the "Fixture Project" project. It includes 1 license: > 1. Subscription license under Handsontable Subscription License Agreement 2.0 of 2022-05-21, for Handsontable on the Enterprise package, for internal use, valid until 2027-08-12 (UTC). Use after that date is not permitted. To renew, contact sales@handsontable.com. [eyJwcm9kdWN0cyI6eyJoYW5kc29udGFibGUiOnsiY2FwYWJpbGl0aWVzIjpbImNvcmUiXSwidXNhZ2VfdW50aWwiOiIyMDI3LTA4LTEyIiwibm90aWNlIjo2MCwiZ3JhY2UiOjkwLCJmbGFncyI6W119fX0c4401c19afaf11f9c2f8df05b6aa3dc4bad6cdbbf7a535e77d4e3d95c137cf9d59a05bbc73ec35f6bdce3e3a1cfc18170c9662c877ee0477e2615fe32ab1b044]',
       'subscription-external': 'This is a Handsontable license key for Test Fixture, issued on 2026-08-12 for the "Fixture Project" project. It includes 1 license: > 1. Subscription license under Handsontable Subscription License Agreement 2.0 of 2022-05-21, for Handsontable on the Enterprise package, for external use, valid until 2027-08-12 (UTC). Use after that date is not permitted. To renew, contact sales@handsontable.com. [eyJwcm9kdWN0cyI6eyJoYW5kc29udGFibGUiOnsiY2FwYWJpbGl0aWVzIjpbImNvcmUiXSwidXNhZ2VfdW50aWwiOiIyMDI3LTA4LTEyIiwibm90aWNlIjo2MCwiZ3JhY2UiOjkwLCJmbGFncyI6WyJuby1jb25zb2xlLXdhcm5zIiwibm8tdWktd2FybnMiXX19fQ54053e73eda38c08afbd0554d564ecf1d7b03bb93ea2ca739e4cd441049667a256a3b28f595e2e265373356f2a065aa70721a6594ff1441c13e400cc3a093c37]',
-      // The two install faults, which block from 18.1 on: the subscription key with its checksum
-      // broken at the payload boundary, and no key at all. `missing` is the empty string - the
+      // The two install faults, which block from 18.1 on: the subscription key with the last two
+      // characters of its checksum changed, and no key at all. `missing` is the empty string - the
       // fixture only sets `licenseKey` when the value is non-empty.
       tampered: 'This is a Handsontable license key for Test Fixture, issued on 2026-08-12 for the "Fixture Project" project. It includes 1 license: > 1. Subscription license under Handsontable Subscription License Agreement 2.0 of 2022-05-21, for Handsontable on the Enterprise package, for internal use, valid until 2027-08-12 (UTC). Use after that date is not permitted. To renew, contact sales@handsontable.com. [eyJwcm9kdWN0cyI6eyJoYW5kc29udGFibGUiOnsiY2FwYWJpbGl0aWVzIjpbImNvcmUiXSwidXNhZ2VfdW50aWwiOiIyMDI3LTA4LTEyIiwibm90aWNlIjo2MCwiZ3JhY2UiOjkwLCJmbGFncyI6W119fX0c4401c19afaf11f9c2f8df05b6aa3dc4bad6cdbbf7a535e77d4e3d95c137cf9d59a05bbc73ec35f6bdce3e3a1cfc18170c9662c877ee0477e2615fe32ab1b000]',
       // A real legacy key that expired on 23/05/2011: valid once, merely lapsed - it must KEEP its
@@ -84,6 +84,16 @@
       'non-commercial-padded': 'non-commercial-and-evaluation\n',
       missing: '',
     };
+
+    // Three forms of the subscription key that test the checksum over the prose:
+    //   bare-block          - the machine-readable block alone, without the prose (invalid)
+    //   edited-prose        - one date in the prose changed, the block untouched (invalid)
+    //   subscription-pasted - every space turned into a CRLF line break, and a line break saved
+    //                         as the two characters "\n" at the end, as some .env files and CI
+    //                         secrets store one (valid)
+    LICENSE_KEYS['bare-block'] = LICENSE_KEYS.subscription.slice(LICENSE_KEYS.subscription.lastIndexOf('['));
+    LICENSE_KEYS['edited-prose'] = LICENSE_KEYS.subscription.replace('valid until 2027-08-12', 'valid until 2099-08-12');
+    LICENSE_KEYS['subscription-pasted'] = `${LICENSE_KEYS.subscription.replace(/ /g, '\r\n')}\\n`;
 
     // The grid shapes the branding has to survive. Each one exists because it
     // moves the corner: no corner cell at all, a corner narrower than the

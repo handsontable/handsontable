@@ -236,13 +236,16 @@ project. It includes 1 license:
 ```
 
 Pass the whole key string, exactly as you received it, in the same
-[`licenseKey`](@/api/options.md#licensekey) option:
+[`licenseKey`](@/api/options.md#licensekey) option. The key text contains double quotes (around the
+project name) and can contain apostrophes (in a company name), so keep the key in a variable, written
+as a template literal (in backticks), or read it from your configuration. Do not paste it into a
+quoted string or a quoted HTML attribute - the first quote inside the key ends the value there.
 
 ::: only-for javascript
 
 ```js
 const settings = {
-  licenseKey: 'This is a Handsontable license key for Acme Corp, ... [eyJwcm9kdWN0cyI6...3a4f8361]',
+  licenseKey: `This is a Handsontable license key for Acme Corp, issued on 2026-08-12 for the "Acme Portal" project. ... [eyJwcm9kdWN0cyI6...3a4f8361]`,
   //... other options
 }
 ```
@@ -252,7 +255,9 @@ const settings = {
 ::: only-for react
 
 ```jsx
-<HotTable licenseKey="This is a Handsontable license key for Acme Corp, ... [eyJwcm9kdWN0cyI6...3a4f8361]" />
+const licenseKey = `This is a Handsontable license key for Acme Corp, issued on 2026-08-12 for the "Acme Portal" project. ... [eyJwcm9kdWN0cyI6...3a4f8361]`;
+
+<HotTable licenseKey={licenseKey} />
 ```
 
 :::
@@ -263,7 +268,7 @@ const settings = {
 import { GridSettings } from "@handsontable/angular-wrapper";
 
 readonly gridSettings: GridSettings = {
-  licenseKey: 'This is a Handsontable license key for Acme Corp, ... [eyJwcm9kdWN0cyI6...3a4f8361]',
+  licenseKey: `This is a Handsontable license key for Acme Corp, issued on 2026-08-12 for the "Acme Portal" project. ... [eyJwcm9kdWN0cyI6...3a4f8361]`,
 };
 ```
 
@@ -272,7 +277,13 @@ readonly gridSettings: GridSettings = {
 ::: only-for vue
 
 ```html
-<HotTable licenseKey="This is a Handsontable license key for Acme Corp, ... [eyJwcm9kdWN0cyI6...3a4f8361]" />
+<script setup>
+const licenseKey = `This is a Handsontable license key for Acme Corp, issued on 2026-08-12 for the "Acme Portal" project. ... [eyJwcm9kdWN0cyI6...3a4f8361]`;
+</script>
+
+<template>
+  <HotTable :licenseKey="licenseKey" />
+</template>
 ```
 
 :::
@@ -284,8 +295,8 @@ it, or paste the bracketed block alone, the key is invalid. The checksum ignores
 breaks in the text, so you can rewrap it, paste it through an email client, or put the whole key on
 one line, and the key still works. Line breaks saved as the characters `\n`, as some `.env` files
 and CI secret fields store them, work too. Keep the block itself on one line, and end the key
-there - only spaces and line breaks may follow the block. Space and line breaks around the whole
-key are trimmed for you, so a key pasted with a trailing newline still works.
+there - only whitespace, or line breaks saved as `\n`, may follow the block. Space and line
+breaks around the whole key are trimmed for you, so a key pasted with a trailing newline still works.
 
 When you store the key in an environment variable, a `.env` file, or a CI secret, put it on one
 line. A key with line breaks in an unquoted `.env` value keeps only its first line, and a quote

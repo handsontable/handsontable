@@ -2,7 +2,7 @@ import { extractEntitlementKeyData, getProductEntitlement, canonicalizeProse } f
 import { detectLicenseKeyFormat, isEntitlementKey } from '../detectFormat';
 import { sha512 } from '../sha512';
 import { stringToUtf8Bytes } from '../encoding';
-import { buildTestKey } from './buildTestKey';
+import { buildTestKey, blockOf, proseOf } from './buildTestKey';
 import {
   SUBSCRIPTION_KEY,
   ACCENTED_HOLDER_KEY,
@@ -31,26 +31,6 @@ function handsontableEntry(overrides = {}) {
     flags: [],
     ...overrides,
   };
-}
-
-/**
- * Returns the machine-readable `[...]` block of a key, without the prose in front of it.
- *
- * @param {string} key The whole key.
- * @returns {string}
- */
-function blockOf(key) {
-  return key.slice(key.lastIndexOf('['));
-}
-
-/**
- * Returns the prose of a key - everything in front of its block.
- *
- * @param {string} key The whole key.
- * @returns {string}
- */
-function proseOf(key) {
-  return key.slice(0, key.lastIndexOf('['));
 }
 
 describe('entitlementLicenseKey/sha512', () => {
@@ -162,7 +142,7 @@ describe('entitlementLicenseKey/extractKeyData', () => {
   describe('the prose layer', () => {
     const expected = () => extractEntitlementKeyData(SUBSCRIPTION_KEY);
 
-    it('should reject the bare block - the checksum covers the prose', () => {
+    it('should reject the bare block of a real key, whose checksum was computed over its prose', () => {
       expect(extractEntitlementKeyData(blockOf(SUBSCRIPTION_KEY))).toBeNull();
       expect(extractEntitlementKeyData(` \n${blockOf(SUBSCRIPTION_KEY)}\n`)).toBeNull();
     });
@@ -195,8 +175,26 @@ describe('entitlementLicenseKey/extractKeyData', () => {
     });
 
     it('should reject a key with text other than whitespace after the block', () => {
-      ['x', ' x', '\n.', '"', ']', '[]', '\\', '\\x', '\\n x'].forEach((suffix) => {
+      // None of these has a "[", so the block the reader finds is still the real one and only the
+      // trailing-text rule can reject the key.
+      ['x', ' x', '\n.', '"', ']', '\\', '\\x', '\\n x'].forEach((suffix) => {
         expect(extractEntitlementKeyData(SUBSCRIPTION_KEY + suffix)).toBeNull();
+      });
+    });
+
+    it('should find the block behind brackets in the prose', () => {
+      const payload = { products: { handsontable: handsontableEntry() } };
+
+      [
+        'This is a license key for Acme [EU] Ltd.',
+        'Acme [EU] Ltd. [1] [',
+        'Acme ] Ltd. [[x]]',
+      ].forEach((prose) => {
+        const key = buildTestKey(payload, { prose });
+
+        expect(isEntitlementKey(key)).toBe(true);
+        expect(getProductEntitlement(extractEntitlementKeyData(key), 'handsontable'))
+          .toEqual(handsontableEntry());
       });
     });
 
@@ -370,7 +368,8 @@ describe('entitlementLicenseKey/extractKeyData', () => {
     });
 
     it('should reject every date spelling that is not a real bare YYYY-MM-DD (J6)', () => {
-      ['2027-8-12', '12-08-2027', '2027-08-12T00:00:00Z', 1786455012, '2027-02-30', '', null]
+      // `['2027-08-12']` stringifies to a valid date, so only a type check rejects it.
+      ['2027-8-12', '12-08-2027', '2027-08-12T00:00:00Z', 1786455012, '2027-02-30', '', null, ['2027-08-12'], {}]
         .forEach((date) => {
           expect(extractEntitlementKeyData(buildTestKey({
             products: { handsontable: handsontableEntry({ usage_until: date }) },
@@ -495,6 +494,57 @@ describe('entitlementLicenseKey/extractKeyData', () => {
 
     it('should return the same object for a repeated read of the same key', () => {
       expect(extractEntitlementKeyData(SUBSCRIPTION_KEY)).toBe(extractEntitlementKeyData(SUBSCRIPTION_KEY));
+    });
+
+    it('should read a date that cannot be turned into text as invalid, without throwing', () => {
+      // An object whose `toString` is not a function throws when it is turned into a string. The
+      // checksum recipe ships in the bundle, so such a key can carry a valid checksum.
+      const crafted = buildTestKey({
+        products: { handsontable: handsontableEntry({ usage_until: { toString: 1, valueOf: 1 } }) },
+      });
+
+      expect(extractEntitlementKeyData(crafted)).toBeNull();
+    });
+
+    it('should never hand the previous key\'s data to a key whose read threw', () => {
+      jest.isolateModules(() => {
+        let throwOnce = false;
+
+        jest.doMock('../sha512', () => {
+          const { sha512: realSha512 } = jest.requireActual('../sha512');
+
+          return {
+            sha512: (bytes) => {
+              if (throwOnce) {
+                throwOnce = false;
+                throw new Error('read failed');
+              }
+
+              return realSha512(bytes);
+            },
+          };
+        });
+
+        // eslint-disable-next-line global-require
+        const { extractEntitlementKeyData: read } = require('../extractKeyData');
+        const subscription = read(SUBSCRIPTION_KEY);
+
+        throwOnce = true;
+        expect(() => read(TRIAL_KEY)).toThrow('read failed');
+
+        // The failed read must not have paired TRIAL_KEY with the subscription's data.
+        const trial = read(TRIAL_KEY);
+
+        expect(trial).not.toBe(subscription);
+        expect(getProductEntitlement(trial, 'handsontable').flags).toEqual(['trial']);
+      });
+      jest.dontMock('../sha512');
+    });
+
+    it('should read a non-string key as invalid', () => {
+      [undefined, null, 42, {}, ['[x]']].forEach((key) => {
+        expect(extractEntitlementKeyData(key)).toBeNull();
+      });
     });
 
     it('should re-read when the key changes', () => {

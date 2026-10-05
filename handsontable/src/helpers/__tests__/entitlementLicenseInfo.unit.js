@@ -11,6 +11,7 @@ import {
   PERPETUAL_NO_UI_WARNS_KEY,
   HF_ONLY_KEY,
 } from '../../utils/entitlementLicenseKey/__tests__/fixtures';
+import { blockOf } from '../../utils/entitlementLicenseKey/__tests__/buildTestKey';
 
 const LICENSE_INFO_CLASS = 'hot-display-license-info';
 // Reference instants inside each window of the fixtures, so no test ever touches the real clock.
@@ -291,7 +292,7 @@ describe('entitlement license notification (via _injectProductInfo)', () => {
     });
 
     [
-      ['the bare block, without the prose', SUBSCRIPTION_KEY.slice(SUBSCRIPTION_KEY.lastIndexOf('['))],
+      ['the bare block, without the prose', blockOf(SUBSCRIPTION_KEY)],
       ['a key whose prose was edited', SUBSCRIPTION_KEY.replace('valid until 2027-08-12', 'valid until 2099-08-12')],
       ['a key with text after the block', `${SUBSCRIPTION_KEY} extra`],
     ].forEach(([form, key]) => {
