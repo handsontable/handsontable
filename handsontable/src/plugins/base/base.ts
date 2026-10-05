@@ -27,6 +27,25 @@ const DEPS_TYPE_CHECKERS = new Map<string, (name: string) => boolean>([
 
 export const defaultMainSettingSymbol = Symbol('mainSetting');
 export const PLUGIN_KEY = 'base';
+
+/**
+ * What UndoRedo tells a plugin's `restoreState()` about the step it restores.
+ */
+export interface PluginRestoreContext {
+  /**
+   * The plugin's state on the other side of the step: after it for an undo, before it for a redo.
+   */
+  other?: unknown;
+  /**
+   * `'undo'` or `'redo'`.
+   */
+  direction?: 'undo' | 'redo';
+  /**
+   * `true` when the restore replayed row or column insertions or removals first. The grid's live state
+   * is then numbered like the restored side, not like `other`, so the two cannot be compared.
+   */
+  reordered?: boolean;
+}
 const missingDepsMsgs: string[] = [];
 let initializedPlugins: string[] | null = null;
 
@@ -596,6 +615,96 @@ export class BasePlugin {
   updatePlugin(newSettings?: Record<string, unknown>): void {
     // Intentionally empty
   }
+
+  /**
+   * Runs one of the plugin's mutations as an operation, so everything it changes is recorded as a
+   * single user action (one undo step). Nested inside another operation, it joins it.
+   *
+   * @private
+   * @param {string} name The operation name. It becomes the undo step's `actionType` when the
+   * operation is the outermost one.
+   * @param {Function} callback The mutation.
+   * @param {object} [details] Public details of the action, handed to the undo hooks as fields of the undo step.
+   * @param {string} [source] The operation source. Defaults to `<PluginName>.<name>`.
+   * @returns {*} The value the callback returns.
+   */
+  runOperation<T>(name: string, callback: () => T, details?: Record<string, unknown>, source?: string): T {
+    const scope = this.hot._getOperationScope();
+
+    return scope.run(name, source ?? `${this.pluginName}.${name}`, () => {
+      if (details !== undefined) {
+        scope.describe(details);
+      }
+
+      return callback();
+    });
+  }
+
+  /**
+   * Returns the part of the plugin's state that lives outside its index maps and must be put back
+   * when an action is undone or redone (the index maps are captured by UndoRedo itself). A plugin
+   * without such state does not implement the method.
+   *
+   * The capture runs after every user action, so it must be cheap when nothing changed: return
+   * `previous` itself – the value this method returned last time – when the state did not change
+   * since then. Snapshots are shared between undo steps and must never be mutated afterwards.
+   *
+   * @private
+   * @param {*} previous The value the previous capture returned, or `undefined`.
+   * @returns {*} The captured state.
+   */
+  captureState?(previous: unknown): unknown;
+
+  /**
+   * Puts back a state returned by `captureState()`. It runs while UndoRedo restores a snapshot, with
+   * rendering and index recalculation suspended and after the index maps were restored, so the
+   * visual index space already is the restored one. It must not fire the hooks the original action
+   * fired: `afterUndo`/`afterRedo` tell listeners about the restore.
+   *
+   * `context` names the step being restored: the plugin's state on its other side and the direction.
+   * It lets a plugin apply only what the step changed, so a change made outside any step since
+   * survives. It is absent when the restore puts back a state no step changed.
+   *
+   * @private
+   * @param {*} state The state to restore.
+   * @param {object} [context] The step being restored.
+   */
+  restoreState?(state: unknown, context?: PluginRestoreContext): void;
+
+  /**
+   * Returns the physical columns a step addresses through this plugin's state: the columns whose
+   * state differs between `state` and `other`, the plugin's states on the two sides of the step.
+   * UndoRedo asks when a `columns` settings update changes which field a column shows, and keeps
+   * the step only when none of these columns changed. Return `null`, or leave the method out, when
+   * the state cannot be read per column – the step is then dropped.
+   *
+   * @private
+   * @param {*} state The state on one side of the step.
+   * @param {*} other The state on the other side.
+   * @returns {number[]|null}
+   */
+  getStateColumns?(state: unknown, other: unknown): readonly number[] | null;
+
+  /**
+   * Returns the shape of the source data, for a plugin that reshapes the source array itself (the
+   * NestedRows plugin moves rows inside its tree). UndoRedo then restores the source shape from this
+   * snapshot instead of replaying the recorded row insertions and removals. Same copy-on-change
+   * contract as `captureState()`.
+   *
+   * @private
+   * @param {*} previous The value the previous capture returned, or `undefined`.
+   * @returns {*} The captured source shape.
+   */
+  captureSourceStructure?(previous: unknown): unknown;
+
+  /**
+   * Puts back a source shape returned by `captureSourceStructure()`. Runs first in a restore, before
+   * any recorded data change is replayed.
+   *
+   * @private
+   * @param {*} state The source shape to restore.
+   */
+  restoreSourceStructure?(state: unknown): void;
 
   /**
    * Destroy plugin.

@@ -22,6 +22,7 @@ import type { MinimumSizes } from './minimumSizes';
 import type { default as EditorManagerInstance } from '../editorManager';
 import type { default as DataSourceInstance } from '../dataMap/dataSource';
 import type { default as MetaManagerInstance } from '../dataMap/metaManager';
+import type { OperationScope } from './operationScope';
 import type { BaseEditor as BaseEditorInstance } from '../editors/baseEditor/baseEditor';
 import type { StylesHandler } from '../utils/stylesHandler';
 import type { ThemeManager } from '../themes/engine/manager';
@@ -226,6 +227,7 @@ export interface HotInstance {
   batchRender(wrappedOperations: () => unknown): unknown;
   batchExecution(wrappedOperations: () => unknown, forceFlushChanges?: boolean): unknown;
   batch(wrappedOperations: () => unknown): unknown;
+  runOperation<T>(name: string, callback: () => T, source?: string): T;
   refreshDimensions(): void;
   isRenderSuspended(): boolean;
   suspendRender(): void;
@@ -279,6 +281,7 @@ export interface HotInstance {
   _getEditorManager(): EditorManagerInstance;
   _getDataSource(): DataSourceInstance;
   _getMetaManager(): MetaManagerInstance;
+  _getOperationScope(): OperationScope;
 
   // DOM references
   rootElement: HTMLElement;

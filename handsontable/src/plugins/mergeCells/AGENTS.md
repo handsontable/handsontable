@@ -37,10 +37,43 @@ trimming and reordering. The merge's own `row`/`col`/`rowspan` are re-derived fr
 `rowIndexMapper` `cacheUpdated`, so treat them as a snapshot of how the merge currently *draws*, not as
 what it owns.
 
-`restorePhysicalRowSpansAfterRemoval` must match a snapshot to a merge by **that merge's own
-anchor** (`merge.row === snapshot.row && merge.col === snapshot.col`). `mergedCellsCollection.get()`
-answers for every covered cell, so after a removal has slid another merge onto those coords the
-lookup hands back the wrong object and the snapshot's `physicalRows` are written onto it.
+**`mergeSelection()` is one operation, and so one undo step.** It unmerges the merges inside the range
+(`unmergeRange(…, true)`) before it merges the range, and each of those opens its own operation. Left
+unwrapped, the two became two steps: one `Ctrl`+`M` over existing merges took two undos (DEV-160,
+DEV-514). A nested operation's `describe()` is ignored, so the outer operation describes the step
+itself through `#describeMerge()` - the same `cellRange` and `data` fields `mergeRange()` attaches.
+Any new method that calls two mutators must wrap them the same way.
+
+Undo and redo carry the anchors too: `captureState()` returns every merge with its anchor, and
+`restoreState(state, context)` applies only what the step changed: it removes the live merges listed on
+the other side of the step but not in `state`, adds the ones `state` lists that the other side did not,
+and sorts the list back into the order `state` gives it. A merge made outside any step - for example by
+`updateSettings({ mergeCells })` after the step - therefore survives the undo. It falls back to
+rebuilding the whole collection from `state` when there is no `context.other`, when the replay reset the
+row order (`context.reordered`), when a merge to remove is not the one the lookup finds at its
+coordinates, or when a merge to put back overlaps a live merge the step did not make - `add(…, true)`
+skips the overlap check, so the diff path would stack a recorded merge on top of one a settings update
+made on the same cells. Either way it re-attaches the anchors, re-anchors onto the visible rows and marks every
+cell changed. Each captured merge also carries `physicalColumns`, the physical column of every column
+it spans at capture time, for `getStateColumns()`: the UndoRedo check of a `columns` settings update
+drops a merge step only when a column one of its changed merges covers shows another field. Without
+it the step (and every older one) dropped on any field change. The anchor cannot answer that: it
+holds the first column only, and the column order may have changed since. Match a merge to its own anchor by the merge object, never
+through `mergedCellsCollection.get()` - that answers for every covered cell, so after a removal has slid
+another merge onto those coords the lookup hands back the wrong object.
+
+A merge whose rows are all trimmed is restored with `addOutsideMatrix()`, not `add()`: its coordinates
+are stale, a visible merge can be drawn there now, and `add()` turns away a merge whose top-left is
+taken - so a purged merge that came first in the list dropped the visible one for good. For the same
+reason the matrix footprint removal (`#removeMergedCellFromMatrix`) deletes only entries that point to
+the merge being removed: purging a merge at its stale coordinates used to erase the entries of the
+merge drawn over them. Both halves are pinned by one spec in `../undoRedo/__tests__/undoRedo.unit.js`
+(`merges restored while rows are trimmed`), and dropping either turns it red.
+
+`captureState()` runs on every operation, the internal `batchExecution()` calls of the render path
+included, so it first compares the live merges with the list it returned last time, in place, and
+allocates a new list only when one differs. Do not replace that with a version counter: the merge objects
+are shifted in place from many sites, and one missed bump records a stale list with no error.
 
 The rows are an explicit list, not a `{ start, length }` range: merging on a sorted grid, or over a row a
 filter has hidden, gives a merge whose physical rows are not consecutive.

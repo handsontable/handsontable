@@ -33,6 +33,7 @@ export interface FixtureHotInstance {
   getDataAtCell(row: number, col: number): CellValue;
   getData(): CellValue[][];
   getDataAtCol(col: number): CellValue[];
+  getDataAtRow(row: number): CellValue[];
   getSourceDataAtCell(row: number, col: number): CellValue;
   getSourceData(): unknown[];
   setDataAtCell(row: number, col: number, value: CellValue): void;
@@ -40,7 +41,6 @@ export interface FixtureHotInstance {
   getCellMeta(row: number, col: number): { className?: string, readOnly?: boolean };
   getPlugin(name: 'formulas'): {
     getCellType(row: number, col: number): string,
-    indexSyncer: { isPerformingUndoRedo(): boolean },
     sheetId: number | null,
     sheetName: string | null,
     /** DEV-207: `showFormulas()`/`hideFormulas()`/`isShowingFormulas()` toggle. */
@@ -74,9 +74,47 @@ export interface FixtureHotInstance {
   getPlugin(name: 'manualColumnMove'): {
     moveColumns(columns: number[], finalIndex: number): boolean,
   };
+  getPlugin(name: 'hiddenRows'): {
+    hideRows(rows: number[]): void,
+    showRows(rows: number[]): void,
+    isHidden(row: number): boolean,
+  };
+  getPlugin(name: 'trimRows'): {
+    trimRows(rows: number[]): void,
+    untrimRows(rows: number[]): void,
+  };
   getPlugin(name: 'manualColumnFreeze'): {
     freezeColumn(column: number): void,
     unfreezeColumn(column: number): void,
+  };
+  getPlugin(name: 'manualColumnResize'): {
+    setManualSize(column: number, width: number): void,
+  };
+  getPlugin(name: 'manualRowResize'): {
+    setManualSize(row: number, height: number): void,
+  };
+  getPlugin(name: 'collapsibleColumns'): {
+    collapseSection(coords: { row: number, col: number }): void,
+    expandSection(coords: { row: number, col: number }): void,
+  };
+  getPlugin(name: 'customBorders'): {
+    setBorders(ranges: number[][], border: Record<string, unknown>): void,
+    getBorders(ranges?: number[][]): unknown[],
+  };
+  getPlugin(name: 'comments'): {
+    setCommentAtCell(row: number, column: number, value: string): void,
+    getCommentAtCell(row: number, column: number): string | undefined,
+    showAtCell(row: number, column: number): boolean,
+    focusEditor(): void,
+  };
+  getPlugin(name: 'pagination'): {
+    setPage(page: number): void,
+    getCurrentPage(): number,
+  };
+  getPlugin(name: 'mergeCells'): {
+    mergedCellsCollection: {
+      mergedCells: { row: number, col: number, rowspan: number, colspan: number }[],
+    },
   };
   getPlugin(name: 'filters'): {
     addCondition(column: number, name: string, args: unknown[]): void,
@@ -208,6 +246,10 @@ export interface FixtureHotInstance {
   getSelectedRange(): FixtureCellRange[];
   getSelectedRangeActive(): FixtureCellRange | undefined;
   getSelected(): number[][] | undefined;
+  addHook(
+    name: 'beforeSetCellMeta',
+    callback: (row: number, column: number, key: string, value: unknown) => boolean | undefined,
+  ): void;
   addHook(name: string, callback: () => void): void;
   removeHook(name: string, callback: () => void): void;
   addHookOnce(name: string, callback: () => unknown): void;
@@ -225,6 +267,7 @@ export interface FixtureHotInstance {
   getSettings(): { fixedColumnsStart?: number, [key: string]: unknown };
   alter(action: string, index?: number | number[][], amount?: number, source?: string): void;
   countCols(): number;
+  getSettings(): { fixedColumnsStart?: number };
   rowIndexMapper: { getIndexesSequence(): number[] };
   columnIndexMapper: { getIndexesSequence(): number[] };
   _createCellCoords(row: number, col: number): unknown;
@@ -265,6 +308,8 @@ declare global {
   interface Window {
     /** The fixture's live Handsontable instance. */
     hot: FixtureHotInstance;
+    /** Undo fixture: how many vetoed meta writes the listener `UndoGridPage#vetoMetaWrites()` adds saw. */
+    metaWriteAttempts: number;
     /** `dropdown-editor-clip` fixture: rebuilds the grid, optionally inside a named parent layout. */
     initDropdownClipGrid(settings?: Record<string, unknown>, containerClass?: string): boolean;
     /** `dropdown-editor-clip` fixture: the option set fed to the editor under test. */
@@ -332,6 +377,8 @@ declare global {
     initSlotGrid(variant?: string, plugin?: string, overrides?: Record<string, unknown>): boolean;
     /** Rebuilds the selection-features fixture grid with the given setting overrides. */
     initSelectionGrid(overrides?: Record<string, unknown>): boolean;
+    /** Rebuilds the undo and redo fixture grid (`undo-grid.html`) with the given setting overrides. */
+    initUndoGrid(overrides?: Record<string, unknown>): boolean;
     /** Rebuilds the mobile drag-to-scroll fixture grid with the given setting overrides. */
     initMobileGrid(overrides?: Record<string, unknown>): boolean;
     /** Rebuilds the fragmentSelection fixture grid with the given setting overrides. */
@@ -344,6 +391,10 @@ declare global {
     resolveValidation(): boolean;
     /** How many validator callbacks are waiting to be released (#7553 fixture). */
     pendingValidationCount(): number;
+    /** Rebuilds the `maxLength` fixture grid (`max-length.html`) with the given setting overrides. */
+    initMaxLengthGrid(overrides?: Record<string, unknown>): boolean;
+    /** The constructor failure the `maxLength` fixture captured, or `null` when the grid was built. */
+    fixtureError: string | null;
     /** Rebuilds the GH #5983 sorting-a-filtered-grid-with-`minSpareRows` fixture grid. */
     initSortingSpareRowsGrid(overrides?: Record<string, unknown>): boolean;
     /**

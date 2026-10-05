@@ -289,6 +289,25 @@ class MergedCellsCollection {
   }
 
   /**
+   * Adds a merged cell to the list without placing it in the lookup matrix. It is for a merge whose
+   * rows are all trimmed: its coordinates are stale, another merge can be drawn there now, and the
+   * matrix must not hold it (see `removeFromMatrix()`).
+   *
+   * @param {object} mergedCellInfo The merged cell information object. Has to contain `row`, `col`, `colspan` and `rowspan` properties.
+   * @returns {MergedCellCoords} The new merged cell.
+   */
+  addOutsideMatrix(mergedCellInfo: { row: number, col: number, rowspan: number, colspan: number }) {
+    const newMergedCell = new MergedCellCoords(mergedCellInfo.row, mergedCellInfo.col, mergedCellInfo.rowspan,
+      mergedCellInfo.colspan, this.hot._createCellCoords, this.hot._createCellRange);
+
+    newMergedCell.normalize(this.hot);
+    this.mergedCells.push(newMergedCell);
+    this.hot.markAllCellsChanged();
+
+    return newMergedCell;
+  }
+
+  /**
    * Remove a merged cell from the container. You can provide either the "starting coordinates"
    * of a merged cell, or any coordinates from the body of the merged cell.
    *
@@ -928,8 +947,14 @@ class MergedCellsCollection {
    */
   #removeMergedCellFromMatrix(mergedCell: MergedCellCoords) {
     for (let row = mergedCell.row; row < mergedCell.row + mergedCell.rowspan; row++) {
+      const matrixRow = this.mergedCellsMatrix.get(row);
+
       for (let col = mergedCell.col; col < mergedCell.col + mergedCell.colspan; col++) {
-        this.mergedCellsMatrix.get(row)?.delete(col);
+        // Only the merge's own entries: a purged merge keeps stale coordinates, and another merge can
+        // be drawn over them now.
+        if (matrixRow?.get(col) === mergedCell) {
+          matrixRow.delete(col);
+        }
       }
     }
   }

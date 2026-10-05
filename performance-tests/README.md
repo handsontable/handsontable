@@ -55,8 +55,9 @@ was than the baseline's, which every scenario shares; callouts still fire on the
 raw delta. A golden (develop-push) run is compared against the trailing median
 too, and annotates its own run with a `::warning` per regressed scenario. Expect
 noise there: replaying 42 develop goldens, 8% of no-change rows crossed the 15%
-threshold, and with nine rows per push roughly two develop pushes in five carry
-a warning that measured the runner rather than the code. Read a warning against
+threshold, and with nine rows per push roughly two develop pushes in five carried
+a warning that measured the runner rather than the code. There are twelve rows since the three undo
+scenarios landed, so expect such warnings more often. Read a warning against
 the `Run shift` in the job summary, and re-derive the threshold with
 `scripts/replay-goldens.mjs` before trusting a single one.
 
@@ -83,8 +84,11 @@ Each scenario measures a specific user interaction pattern:
 | **initial-load** | 100000 x 100 | `new Handsontable(...)` | Grid construction only |
 | **source-data-validator-load** | 100000 x 100 | `new Handsontable(...)` with `sourceDataValidator` | Same fixture as initial-load plus the one option |
 | **column-autosize-refill** | 2000 x 200 | `manualColumnResize.setManualSize(2, 320)` + `render()` | 25px columns (~72 rendered), 40 wrapped rows shrink and the row band is refilled in several passes within the draw |
+| **undo-edit** | 100000 x 100 | `undo()` of one `setDataAtCell()` | Hook timing: beforeUndo -> afterUndo. Must not scale with the grid: one journaled cell, every index map shared |
+| **undo-sort** | 100000 x 100 | `undo()` of a `columnSorting.sort()` | Hook timing: beforeUndo -> afterUndo. The index-map restore path (the 100000-row order) |
+| **undo-remove-rows** | 100000 x 100 | `undo()` of `alter('remove_row', 1000, 100)` | Hook timing: beforeUndo -> afterUndo. The structural path: physical-order replay, rows re-created, maps restored |
 
-Each scenario runs **1 warmup iteration** (discarded) followed by **3 measured iterations** with CDP tracing. Four scenarios (filtering, sorting, initial-load, source-data-validator-load) run **5**; each states its own reason in its `scenario.config.mjs` (short windows on a 300 to 350 MB heap where one GC pause moves a mean of three by 10 to 20%; for `source-data-validator-load`, a 20% run-to-run spread after removing the runner factor), and their iterations cost seconds next to the fixture load. The runner forces a full GC before every measured iteration, so garbage from the previous reset is never collected inside the next window, and reads the live heap after every end mark (`jsHeapAfterGcBytes`, recorded beside the windowed extrema).
+Each scenario runs **1 warmup iteration** (discarded) followed by **3 measured iterations** with CDP tracing. Seven scenarios (filtering, sorting, initial-load, source-data-validator-load, undo-edit, undo-sort, undo-remove-rows) run **5**; each states its own reason in its `scenario.config.mjs` (short windows on a 300 to 350 MB heap where one GC pause moves a mean of three by 10 to 20%; for `source-data-validator-load`, a 20% run-to-run spread after removing the runner factor), and their iterations cost seconds next to the fixture load. The runner forces a full GC before every measured iteration, so garbage from the previous reset is never collected inside the next window, and reads the live heap after every end mark (`jsHeapAfterGcBytes`, recorded beside the windowed extrema).
 
 ## Project structure
 

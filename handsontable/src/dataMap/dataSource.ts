@@ -2,9 +2,11 @@ import type { HotInstance } from '../core/types';
 import {
   createObjectPropListener,
   getProperty,
+  hasOwnProperty,
   isObject,
   objectEach,
-  setProperty
+  setProperty,
+  writeOwnProperty,
 } from '../helpers/object';
 import { cloneRow, countFirstRowKeys } from '../helpers/data';
 import { arrayEach } from '../helpers/array';
@@ -251,8 +253,10 @@ class DataSource {
    * @param {number|string|Function} column Property name / physical column index / a `columns[].data`
    *   accessor function (called as `column(dataRow, value)`).
    * @param {*} value The value to be set at the provided coordinates.
+   * @param {boolean} [byProp=false] `true` to write a numeric `column` as the property it names even past
+   *   the keys of the first row – the way `DataMap` wrote it and the undo journal recorded it.
    */
-  setAtCell(row: number | string, column: string | number | DataAccessorFn, value: unknown) {
+  setAtCell(row: number | string, column: string | number | DataAccessorFn, value: unknown, byProp = false) {
     // Normalize row: accept string numeric indices (e.g. '0', '1') passed by setSourceDataAtCell,
     // but reject prototype-pollution keys like '__proto__', 'constructor', 'prototype'.
     let normalizedRow: number;
@@ -270,7 +274,10 @@ class DataSource {
       normalizedRow = row;
     }
 
-    if (normalizedRow >= this.countRows() || (typeof column === 'number' && column >= this.countFirstRowKeys())) {
+    if (
+      normalizedRow >= this.countRows() ||
+      (!byProp && typeof column === 'number' && column >= this.countFirstRowKeys())
+    ) {
       // Not enough rows and/or columns.
       return;
     }
@@ -308,12 +315,34 @@ class DataSource {
           dataRow[numericIndex] = value;
         }
       } else if (isObject(dataRow)) {
-        setProperty(dataRow as Record<string, unknown>, String(column), value);
+        this.#writeProperty(dataRow as Record<string, unknown>, String(column), value, byProp);
       }
     } else if (Array.isArray(dataRow)) {
       dataRow[column as number] = value;
     } else if (isObject(dataRow)) {
       setProperty(dataRow as Record<string, unknown>, String(column), value);
+    }
+  }
+
+  /**
+   * Writes a property name into an object row. A replay (`byProp`) writes the key the way `DataMap#set`
+   * wrote it, since that is the key the journal recorded: a key the row owns is a literal key, a dotted
+   * name is walked only with `dataDotNotation`, and any other name is a literal key. Any other write
+   * walks a dotted name, as `setSourceDataAtCell()` always has.
+   *
+   * @param {object} dataRow The object row.
+   * @param {string} prop The property name.
+   * @param {*} value The value to write.
+   * @param {boolean} byProp `true` for an undo or redo replay.
+   */
+  #writeProperty(dataRow: Record<string, unknown>, prop: string, value: unknown, byProp: boolean) {
+    const walksDots = !byProp ||
+      (!hasOwnProperty(dataRow, prop) && this.hot!.getSettings().dataDotNotation === true && prop.includes('.'));
+
+    if (walksDots) {
+      setProperty(dataRow, prop, value);
+    } else {
+      writeOwnProperty(dataRow, prop, value);
     }
   }
 
@@ -327,23 +356,7 @@ class DataSource {
    * @returns {*} Value at the provided coordinates.
    */
   getAtPhysicalCell(row: number, column: number | string | DataAccessorFn, dataRow: unknown): unknown {
-    let result = null;
-
-    if (dataRow) {
-      if (typeof column === 'string') {
-        const { dataDotNotation } = this.hot!.getSettings();
-
-        result = dataDotNotation
-          ? getProperty(dataRow as Record<string, unknown>, column)
-          : (dataRow as Record<string, unknown>)[column];
-
-      } else if (typeof column === 'function') {
-        result = column(dataRow);
-
-      } else {
-        result = (dataRow as unknown[])[column];
-      }
-    }
+    let result = this.#readFromRow(column, dataRow);
 
     if (this.hot!.hasHook('modifySourceData')) {
       const valueHolder = createObjectPropListener(result);
@@ -393,6 +406,60 @@ class DataSource {
    */
   getAtCellByProp(row: number, prop: number | string | DataAccessorFn, dataRow?: unknown): unknown {
     return this.getAtPhysicalCell(row, prop, dataRow === undefined ? this.modifyRowData(row) : dataRow);
+  }
+
+  /**
+   * Returns the value a cell stores, addressed by its property, without running the
+   * `modifySourceData` hook. The hook may project another value onto a read – the Formulas plugin
+   * reports the engine's formula there, and the engine already holds the NEW value while a change is
+   * being applied – so a caller that must know what the source really held (the change journal)
+   * reads through this method. The `modifyRowData` hook still runs: it decides which row object the
+   * physical index names.
+   *
+   * A property name resolves the way `DataMap#get` resolves it, so the journal records the key the
+   * grid wrote: a key the row owns is read as a literal key, even with a dot in its name.
+   *
+   * @param {number} row Physical row index.
+   * @param {number|string|Function} prop Property, physical column index, or a `columns[].data`
+   *   accessor function.
+   * @returns {*}
+   */
+  getRawAtCellByProp(row: number, prop: number | string | DataAccessorFn): unknown {
+    const dataRow = this.modifyRowData(row);
+
+    if (typeof prop === 'string' && isObject(dataRow) && hasOwnProperty(dataRow as object, prop)) {
+      return (dataRow as Record<string, unknown>)[prop];
+    }
+
+    return this.#readFromRow(prop, dataRow);
+  }
+
+  /**
+   * Reads one value from a data row, honoring `dataDotNotation` for a prop name and calling an
+   * accessor function for a `columns[].data` accessor.
+   *
+   * @param {number|string|Function} column Physical column index, property, or accessor function.
+   * @param {Array|object} dataRow A representation of a data row.
+   * @returns {*}
+   */
+  #readFromRow(column: number | string | DataAccessorFn, dataRow: unknown): unknown {
+    if (!dataRow) {
+      return null;
+    }
+
+    if (typeof column === 'string') {
+      const { dataDotNotation } = this.hot!.getSettings();
+
+      return dataDotNotation
+        ? getProperty(dataRow as Record<string, unknown>, column)
+        : (dataRow as Record<string, unknown>)[column];
+    }
+
+    if (typeof column === 'function') {
+      return column(dataRow);
+    }
+
+    return (dataRow as unknown[])[column];
   }
 
   /**

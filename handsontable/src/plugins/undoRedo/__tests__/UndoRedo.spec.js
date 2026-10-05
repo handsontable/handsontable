@@ -112,9 +112,12 @@ describe('UndoRedo', () => {
 
       await setDataAtCell(1, 1, 'X2');
 
+      // A disabled plugin records nothing, so there is nothing to undo.
+      expect(getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+
       getPlugin('undoRedo').undo();
 
-      expect(getDataAtCell(1, 1)).toBe('B2');
+      expect(getDataAtCell(1, 1)).toBe('X2');
     });
   });
 

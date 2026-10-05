@@ -1,7 +1,11 @@
 import GlobalMeta from './metaLayers/globalMeta';
 import TableMeta from './metaLayers/tableMeta';
 import ColumnMeta from './metaLayers/columnMeta';
-import CellMeta, { type CellMetaAtRowEntry } from './metaLayers/cellMeta';
+import CellMeta, {
+  type CellMetaAtRowEntry,
+  type CellMetaKeyState,
+  type CellMetaKeyStateEntry,
+} from './metaLayers/cellMeta';
 import localHooks from '../../mixins/localHooks';
 import { mixin } from '../../helpers/object';
 import { throwWithCause } from '../../helpers/errors';
@@ -371,6 +375,61 @@ export default class MetaManager {
    */
   removeCellMeta(physicalRow: number, physicalColumn: number, key: string) {
     this.cellMeta.removeMeta(physicalRow, physicalColumn, key);
+  }
+
+  /**
+   * Returns what one key of a cell's meta holds – whether it is stored, its value and its origin
+   * bucket – without creating the meta object. See `CellMeta#getMetaKeyState`.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @param {string} key The key.
+   * @returns {CellMetaKeyState}
+   */
+  getCellMetaKeyState(physicalRow: number, physicalColumn: number, key: string): CellMetaKeyState {
+    return this.cellMeta.getMetaKeyState(physicalRow, physicalColumn, key);
+  }
+
+  /**
+   * Puts one key of a cell's meta into a state captured by `getCellMetaKeyState()`, filing it in the
+   * origin bucket it came from. See `CellMeta#applyMetaKeyState`.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @param {string} key The key.
+   * @param {CellMetaKeyState} state The state to apply.
+   */
+  applyCellMetaKeyState(physicalRow: number, physicalColumn: number, key: string, state: CellMetaKeyState) {
+    this.cellMeta.applyMetaKeyState(physicalRow, physicalColumn, key, state);
+  }
+
+  /**
+   * Tells whether a cell meta write made now would be filed as a user-defined one.
+   *
+   * @returns {boolean}
+   */
+  isUserDefinedMetaRecording(): boolean {
+    return this.cellMeta.isUserDefinedMetaRecording();
+  }
+
+  /**
+   * Appends the state of every user-defined and `cell`-option key stored in one row to `target`.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {CellMetaKeyStateEntry[]} target The list to append to.
+   */
+  captureRowMetaKeyStates(physicalRow: number, target: CellMetaKeyStateEntry[]) {
+    this.cellMeta.captureRowMetaKeyStates(physicalRow, target);
+  }
+
+  /**
+   * Appends the state of every user-defined and `cell`-option key stored in one column to `target`.
+   *
+   * @param {number} physicalColumn The physical column index.
+   * @param {CellMetaKeyStateEntry[]} target The list to append to.
+   */
+  captureColumnMetaKeyStates(physicalColumn: number, target: CellMetaKeyStateEntry[]) {
+    this.cellMeta.captureColumnMetaKeyStates(physicalColumn, target);
   }
 
   /**
