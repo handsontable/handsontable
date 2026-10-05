@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Side layout slots e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    window.htLicenseKey = ({
+      'non-commercial': 'non-commercial-and-evaluation',
+      trial: '[eyJwcm9kdWN0cyI6eyJoYW5kc29udGFibGUiOnsiY2FwYWJpbGl0aWVzIjpbImNvcmUiXSwidXNhZ2VfdW50aWwiOiIyMDI2LTA5LTI2Iiwibm90aWNlIjo0NSwiZ3JhY2UiOjE1LCJmbGFncyI6WyJ0cmlhbCJdfX19a687a9f4d0d496c1ec86d97d58e971b458995f1a68ca117a6b406fa2f179923dcd42a789e3c56426690cf12c89e70abfbb6f45b96ba55fe49386d9e1b0080f2c]',
+    })[htParams.get('license') ?? 'non-commercial'];
+    if (!window.htLicenseKey) {
+      throw new Error('Unknown ?license= value: ' + JSON.stringify(htParams.get('license')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 20px; }
+    #grid { width: 720px; height: 360px; }
+    .side-panel { box-sizing: border-box; padding: 8px; }
+    .side-panel-wide { width: 280px; }
+  </style>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const testIdRenderer = function(instance, td, row, col) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    /**
+     * Builds the grid data set.
+     *
+     * @param {number} rows The row count.
+     * @param {number} cols The column count.
+     * @returns {string[][]}
+     */
+    const buildData = (rows, cols) => Array.from({ length: rows }, (_, r) =>
+      Array.from({ length: cols }, (_, c) => `R${r + 1}C${c + 1}`));
+
+    /**
+     * Builds (or rebuilds) the grid. `cols` sets the column count, `overrides` are grid options
+     * applied last. `containerHeight: 'auto'` drops the container's fixed CSS height, so an explicit
+     * `height` option alone sizes the wrapper. `sizeOptions: 'unset'` passes no `width`/`height`
+     * option, so the page owns the scroll axes. `documentDir` sets the `dir` of the whole document.
+     *
+     * @param {object} [options] The build options.
+     * @returns {boolean}
+     */
+    window.initSideSlotGrid = function({
+      cols = 4,
+      overrides = {},
+      containerHeight = 'fixed',
+      sizeOptions = 'fill',
+      documentDir = 'ltr',
+    } = {}) {
+      if (window.hot) {
+        window.hot.destroy();
+      }
+
+      document.documentElement.dir = documentDir;
+      window.scrollTo(0, 0);
+
+      const oldGrid = document.getElementById('grid');
+      const grid = document.createElement('div');
+
+      grid.id = 'grid';
+      grid.setAttribute('data-testid', 'grid');
+      grid.className = `ht-theme-${window.htTheme}`;
+
+      if (containerHeight === 'auto') {
+        grid.style.height = 'auto';
+      }
+
+      oldGrid.replaceWith(grid);
+
+      const sizeSettings = sizeOptions === 'unset' ? {} : { width: '100%', height: '100%' };
+
+      window.hot = new Handsontable(grid, {
+        data: buildData(100, cols),
+        colHeaders: true,
+        rowHeaders: true,
+        colWidths: 80,
+        ...sizeSettings,
+        renderer: testIdRenderer,
+        licenseKey: window.htLicenseKey,
+        ...overrides,
+      });
+
+      return true;
+    };
+
+    /**
+     * Registers a fixed-width side panel into the `start` or `end` layout slot. With a
+     * `contentHeight`, the panel holds content of that height and scrolls it.
+     *
+     * @param {string} side The slot name.
+     * @param {string} key The registration key, also the panel's test id suffix.
+     * @param {number} width The panel width in pixels.
+     * @param {number} [contentHeight] The height of the panel content in pixels.
+     * @param {number} [weight] The layout weight (lower comes first).
+     * @returns {boolean}
+     */
+    window.addSidePanel = function(side, key, width, contentHeight, weight = 0) {
+      const panel = document.createElement('div');
+
+      panel.className = 'side-panel';
+      panel.setAttribute('data-testid', `panel-${key}`);
+      panel.style.width = `${width}px`;
+      panel.textContent = key;
+
+      if (contentHeight !== undefined) {
+        const content = document.createElement('div');
+
+        content.style.height = `${contentHeight}px`;
+        panel.style.overflow = 'auto';
+        panel.appendChild(content);
+      }
+
+      window.hot.getLayoutManager().register(key, panel, { side, weight });
+
+      return true;
+    };
+
+    /**
+     * Registers a side panel whose width comes from a CSS class only (no inline width).
+     *
+     * @param {string} side The slot name.
+     * @param {string} key The registration key, also the panel's test id suffix.
+     * @param {string} className The class that sizes the panel.
+     * @returns {boolean}
+     */
+    window.addClassPanel = function(side, key, className) {
+      const panel = document.createElement('div');
+
+      panel.className = `side-panel ${className}`;
+      panel.setAttribute('data-testid', `panel-${key}`);
+      panel.textContent = key;
+      window.hot.getLayoutManager().register(key, panel, { side });
+
+      return true;
+    };
+
+    /**
+     * Sets the inline width of the grid container.
+     *
+     * @param {number} width The container width in pixels.
+     * @returns {boolean}
+     */
+    window.resizeSideSlotContainer = function(width) {
+      document.getElementById('grid').style.width = `${width}px`;
+
+      return true;
+    };
+
+    window.slotButtonClicks = {};
+
+    /**
+     * Creates a plain, non-positioned button that counts its clicks in `window.slotButtonClicks`.
+     *
+     * @param {string} key The button key, also its test id suffix.
+     * @returns {HTMLButtonElement}
+     */
+    const createSlotButton = (key) => {
+      const button = document.createElement('button');
+
+      button.type = 'button';
+      button.textContent = key;
+      button.setAttribute('data-testid', `button-${key}`);
+      window.slotButtonClicks[key] = 0;
+      button.addEventListener('click', () => {
+        window.slotButtonClicks[key] += 1;
+      });
+
+      return button;
+    };
+
+    /**
+     * Registers a counting button directly into the `top` layout slot.
+     *
+     * @param {string} key The button key.
+     * @returns {boolean}
+     */
+    window.addTopButton = function(key) {
+      window.hot.getLayoutManager().register(key, createSlotButton(key), { side: 'top' });
+
+      return true;
+    };
+
+    /**
+     * Appends a counting button into an already registered side panel.
+     *
+     * @param {string} panelKey The panel's registration key.
+     * @param {string} key The button key.
+     * @returns {boolean}
+     */
+    window.addPanelButton = function(panelKey, key) {
+      document.querySelector(`[data-testid="panel-${panelKey}"]`).appendChild(createSlotButton(key));
+
+      return true;
+    };
+
+    /**
+     * Unregisters a side panel from its layout slot.
+     *
+     * @param {string} side The slot name.
+     * @param {string} key The registration key.
+     * @returns {boolean}
+     */
+    window.removeSidePanel = function(side, key) {
+      window.hot.getLayoutManager().unregister(key, side);
+
+      return true;
+    };
+
+    try {
+      window.initSideSlotGrid();
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+  </script>
+</body>
+</html>

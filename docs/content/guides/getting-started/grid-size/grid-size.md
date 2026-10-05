@@ -224,6 +224,12 @@ If container is a block element, then its parent has to have defined `height`. B
 
 Changes called in [`updateSettings()`](@/api/core.md#updatesettings) will re-render the grid with the new properties.
 
+### Bars and side panels count toward the size
+
+The [`height`](@/api/options.md#height) and [`width`](@/api/options.md#width) options size the whole component, not only the grid. Bars docked above and below the grid (the sheets bar, the pagination bar) take their height out of a pixel `height`, and panels docked at the grid's sides take their width out of `width`, in any unit. The grid gets the rest.
+
+For example, with `height: 500` and a 40px pagination bar, the grid gets 460px. With `width: '100%'`, a 300px panel at the `end` side, and a 100px panel at the `start` side, the grid gets `100% - 300px - 100px`. See [Layout slots](@/guides/accessories-and-menus/layout-slots/layout-slots.md).
+
 ### Compare size units
 
 Use the dropdown in the demo below to switch the grid's `width` and `height` between `px`, `%`, `em`, `rem`, `vh`, and `vw`, and see how the same grid responds to each unit.

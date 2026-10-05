@@ -62,14 +62,23 @@ export class LayoutManager {
 
   /**
    * @param {Record<LayoutSlotName, HTMLElement>} elements The slot container elements, keyed by slot name.
+   * @param {object} [options] Manager options.
+   * @param {Function} [options.onSlotContentChange] Called with the slot name after an element is
+   * registered into or unregistered from that slot, or after the slot is cleared (on destroy).
    */
-  constructor(elements: Record<LayoutSlotName, HTMLElement>) {
+  constructor(
+    elements: Record<LayoutSlotName, HTMLElement>,
+    { onSlotContentChange = () => {} }: { onSlotContentChange?: (name: LayoutSlotName) => void } = {},
+  ) {
     this.#slots = new Map(
       (Object.keys(elements) as LayoutSlotName[]).map(name => [
         name,
         new DomSlot(elements[name], {
           itemClass: SLOT_ITEM_CLASS,
-          onContentChange: () => refreshSlotFilledState(name, elements[name]),
+          onContentChange: () => {
+            refreshSlotFilledState(name, elements[name]);
+            onSlotContentChange(name);
+          },
         }),
       ])
     );

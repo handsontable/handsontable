@@ -2,6 +2,7 @@ import { isFunction } from '../helpers/function';
 import { warnOnce } from '../helpers/console';
 import { describeValue } from '../utils/describeValue';
 import { isRootInstance } from '../utils/rootInstance';
+import { addClass, removeClass } from '../helpers/dom/element';
 import {
   classifyInlineSize,
   createCssValueOracle,
@@ -196,6 +197,94 @@ function reserveEdgeSlotsHeight(instance: HotInstance, pixelHeight: string): str
 }
 
 /**
+ * Returns the combined width of the `start` and `end` side slots, `0` when both are empty or the
+ * instance owns no slots.
+ *
+ * @param {HotInstance} instance The grid instance.
+ * @returns {number}
+ */
+export function getSideSlotsWidth(instance: HotInstance): number {
+  if (!isRootInstance(instance)) {
+    return 0;
+  }
+
+  return [instance.rootSlotStartElement, instance.rootSlotEndElement]
+    .reduce((sum, slot) => sum + (slot?.childElementCount ? slot.offsetWidth : 0), 0);
+}
+
+/**
+ * Writes a `width` so that it sizes the whole component, side panels included, the way a pixel
+ * `height` already includes the top and bottom slots. With no side slot filled the value goes on the
+ * root element unchanged. A fixed length is reduced by the side slot widths on the root element
+ * (`calc(<width> - <slots>px)`), so the grid plus its panels fill exactly that width. A
+ * container-driven value (`%`, viewport units, `var()`) cannot be reduced there, because the root's
+ * percentage resolves against the space beside the panels, not the container; it goes on the root
+ * wrapper instead, and the root element fills the space the panels leave.
+ *
+ * @param {HotInstance} instance The grid instance.
+ * @param {string} cssValue The resolved width, such as `'900px'` or `'50%'`.
+ */
+function writeRootWidth(instance: HotInstance, cssValue: string): void {
+  const { rootElement, rootWrapperElement } = instance;
+  const reservedWidth = getSideSlotsWidth(instance);
+  const state = classifyInlineSize(cssValue);
+
+  if (reservedWidth === 0 || state === 'auto' || state === 'unset') {
+    rootElement.style.width = cssValue;
+    clearWrapperWidth(instance);
+
+    return;
+  }
+
+  if (state === 'container-driven') {
+    rootWrapperElement.style.width = cssValue;
+    rootWrapperElement.dataset.htSideSlotsWidth = 'true';
+    rootElement.style.width = '100%';
+
+    return;
+  }
+
+  rootElement.style.width = `calc(${cssValue} - ${reservedWidth}px)`;
+  clearWrapperWidth(instance);
+  warnSideSlotsWiderThanWidth(rootElement, cssValue, reservedWidth);
+}
+
+/**
+ * Warns once when the side panels take up a pixel `width` entirely, which leaves the grid no width.
+ *
+ * @param {HTMLElement} rootElement The grid's root element, the scope of the warning.
+ * @param {string} cssValue The resolved width, such as `'900px'`.
+ * @param {number} reservedWidth The combined width of the side slots.
+ */
+function warnSideSlotsWiderThanWidth(rootElement: HTMLElement, cssValue: string, reservedWidth: number): void {
+  const pixelMatch = /^(\d+(?:\.\d+)?)px$/.exec(cssValue);
+
+  if (pixelMatch && reservedWidth >= Number(pixelMatch[1])) {
+    warnOnce(
+      rootElement,
+      `side-slots-wider-than-width-${cssValue}`,
+      `Handsontable: the side panels (${reservedWidth}px) take up the whole \`width\` (${cssValue}), ` +
+      'so the grid has no width left. Increase `width` or narrow the panels.'
+    );
+  }
+}
+
+/**
+ * Removes a width `writeRootWidth` put on the root wrapper, and only that one: an inline width the
+ * application set on the root wrapper is left alone.
+ *
+ * @param {HotInstance} instance The grid instance.
+ */
+function clearWrapperWidth(instance: HotInstance): void {
+  const { rootWrapperElement } = instance;
+
+  if (isRootInstance(instance) && rootWrapperElement?.dataset.htSideSlotsWidth) {
+    rootWrapperElement.style.width = '';
+    delete rootWrapperElement.dataset.htSideSlotsWidth;
+  }
+}
+
+/**
  * Applies one axis of the payload: calls a function value, runs the `before*Change` hook, then
  * resets on `null`, ignores an unreadable value with a warning, and writes anything else.
  *
@@ -217,6 +306,10 @@ function applyAxis(instance: HotInstance, axis: RootSizeAxis, rawValue: unknown,
   if (value === null) {
     resetAxis(instance.rootElement, axis);
 
+    if (axis === 'width') {
+      clearWrapperWidth(instance);
+    }
+
     return 'reset';
   }
 
@@ -234,6 +327,8 @@ function applyAxis(instance: HotInstance, axis: RootSizeAxis, rawValue: unknown,
 
   if (resolution.kind === 'px' && axis === 'height') {
     instance.rootElement.style.height = reserveEdgeSlotsHeight(instance, resolution.cssValue ?? '');
+  } else if (axis === 'width') {
+    writeRootWidth(instance, resolution.cssValue ?? '');
   } else {
     instance.rootElement.style[axis] = resolution.cssValue ?? '';
   }
@@ -318,6 +413,32 @@ function hasScrollOwnerChanged(before: RootSizeSnapshot, after: RootSizeSnapshot
 }
 
 /**
+ * Class mirrored onto the root wrapper while the grid has a fixed width (a length that does not
+ * depend on its container). The stylesheet then sizes the grid track to the grid itself, so a side
+ * slot docked at `end` sits next to the grid instead of at the far edge of the container.
+ */
+export const FIXED_WIDTH_CLASS_NAME = 'ht-grid-fixed-width';
+
+/**
+ * Toggles `FIXED_WIDTH_CLASS_NAME` on the root wrapper from the root element's inline width.
+ *
+ * @param {HotInstance} instance The grid instance.
+ */
+function syncFixedWidthClass(instance: HotInstance): void {
+  const { rootWrapperElement, rootElement } = instance;
+
+  if (!isRootInstance(instance) || !rootWrapperElement) {
+    return;
+  }
+
+  if (classifyInlineSize(rootElement.style.width) === 'definite') {
+    addClass(rootWrapperElement, FIXED_WIDTH_CLASS_NAME);
+  } else {
+    removeClass(rootWrapperElement, FIXED_WIDTH_CLASS_NAME);
+  }
+}
+
+/**
  * Applies the `height` and `width` options to the grid's root element. This is the only writer of
  * the root's inline `height`, `width`, and `overflow*`.
  *
@@ -346,6 +467,8 @@ export function applyRootSize(instance: HotInstance, settings: Partial<GridSetti
   if (settings.height !== undefined || settings.width !== undefined) {
     applyOverflow(rootElement, heightOutcome === 'reset', widthOutcome === 'written');
   }
+
+  syncFixedWidthClass(instance);
 
   if (heightOutcome === 'ignored') {
     ignoredAxes.push('height');
@@ -376,4 +499,20 @@ export function reapplyPixelRootHeight(instance: HotInstance, height: unknown): 
   if (resolveRootSize(value).kind === 'px') {
     applyRootSize(instance, { height: value as GridSettings['height'] }, false);
   }
+}
+
+/**
+ * Re-applies the `width` option after a side slot gained, lost, or resized an element, so the grid
+ * keeps sizing the whole component, panels included. An unset `width` reserves nothing and is not
+ * re-applied. The pass goes through `applyRootSize()`, so `beforeWidthChange` runs again.
+ *
+ * @param {HotInstance} instance The grid instance.
+ * @param {*} width The current `width` setting.
+ */
+export function reapplyRootWidth(instance: HotInstance, width: unknown): void {
+  if (width === undefined || width === null) {
+    return;
+  }
+
+  applyRootSize(instance, { width: width as GridSettings['width'] }, false);
 }

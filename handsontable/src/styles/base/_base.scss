@@ -37,8 +37,13 @@
     @include mixins.font-family;
 
     position: relative;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-areas:
+      "start top end"
+      "start grid end"
+      "start bottom end";
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr) auto;
     height: 100%;
 
     // The `ht-shadow-dom` class is stamped by the core when the grid renders inside a Shadow DOM
@@ -51,21 +56,34 @@
 
     // Kept in sync by `TableView` (`#updateScrollbarClassNames`). When the grid's height is driven by
     // its content – the WINDOW owns the vertical axis (no `height` option, no ancestor trapping
-    // `overflow-y`), or `height: 'auto'` – the grid box must not shrink to the wrapper: `min-height: 0`
+    // `overflow-y`), or `height: 'auto'` – the grid row must not shrink to the wrapper: `min-height: 0`
     // let a CSS-sized container squeeze it while the table overflowed, which pinned the bottom slot
-    // over a data row (DEV-2848). Only the GRID item gives up shrinking. The wrapper keeps its
+    // over a data row (DEV-2848). Only the GRID row gives up shrinking. The wrapper keeps its
     // `height: 100%`, so the overlays layer (dialog, notification) still sizes to the container and a
     // content change never resizes the wrapper.
-    &.ht-grid-follows-content > .ht-grid {
-      flex-shrink: 0;
-      min-height: auto;
+    &.ht-grid-follows-content {
+      grid-template-rows: auto 1fr auto;
+
+      > .ht-grid {
+        min-height: auto;
+      }
     }
 
     // The `ht-slot-*-filled` classes are kept in sync by the `LayoutManager` (they mean "the slot
     // has at least one `.ht-slot-element` child"). Selecting on `:has()` here instead makes every
     // grid DOM mutation trigger a style invalidation scaled to the whole host page.
+    &.ht-grid-fixed-width.ht-slot-start-filled,
+    &.ht-grid-fixed-width.ht-slot-end-filled,
+    &.ht-grid-width-follows-content.ht-slot-start-filled,
+    &.ht-grid-width-follows-content.ht-slot-end-filled {
+      grid-template-columns: auto max-content auto;
+      justify-content: start;
+    }
+
     &.ht-slot-bottom-filled,
-    &.ht-slot-top-filled {
+    &.ht-slot-top-filled,
+    &.ht-slot-start-filled,
+    &.ht-slot-end-filled {
       .ht-wrapper {
         &:not(.htHorizontallyScrollableByWindow),
         &:not(.htVerticallyScrollableByWindow) {
@@ -95,16 +113,31 @@
 
   .ht-grid {
     position: relative;
-    flex: 1 1 auto;
+    grid-area: grid;
+    min-width: 0;
     min-height: 0;
+  }
+
+  .ht-overlay {
+    grid-area: 1 / 1 / -1 / -1;
+    align-self: start;
+    height: 0;
   }
 
   .ht-grid-content {
     height: 100%;
   }
 
+  .ht-slot-top {
+    grid-area: top;
+  }
+
+  .ht-slot-bottom {
+    grid-area: bottom;
+  }
+
   .ht-slot-top, .ht-slot-bottom {
-    flex: 0 0 auto;
+    min-width: 0;
     // A slot element may enforce its own minimum width (for example the license
     // notification bar); on grids narrower than that the slot scrolls the excess
     // instead of letting the element overflow the grid.
@@ -112,9 +145,39 @@
   }
 
   .ht-slot-element {
-    width: 100%;
     box-sizing: border-box;
     border: 1px solid var(--ht-border-color);
+  }
+
+  :where(.ht-slot-top, .ht-slot-bottom) > .ht-slot-element {
+    width: 100%;
+  }
+
+  .ht-slot-start {
+    grid-area: start;
+  }
+
+  .ht-slot-end {
+    grid-area: end;
+  }
+
+  .ht-slot-start, .ht-slot-end {
+    display: flex;
+    height: 0;
+    min-height: 100%;
+  }
+
+  :where(.ht-slot-start, .ht-slot-end) > :where(.ht-slot-element) {
+    flex: 0 0 auto;
+    min-height: 0;
+  }
+
+  .ht-slot-start > .ht-slot-element {
+    border-inline-end-width: 0;
+  }
+
+  .ht-slot-end > .ht-slot-element {
+    border-inline-start-width: 0;
   }
 
   .ht-slot-top > .ht-slot-element {

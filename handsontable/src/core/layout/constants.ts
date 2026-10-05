@@ -1,6 +1,10 @@
 /**
  * Names of the user-orderable wrapper layout slots. Every slot listed here is orderable through the
- * `layout` setting; add new edge slots (for example `start`/`end`) here to introduce them.
+ * `layout` setting.
+ *
+ * `top` and `bottom` sit above and below the grid. `start` and `end` sit at the grid's inline-start
+ * and inline-end edges and span the full height of the root wrapper, including the `top` and
+ * `bottom` slots. Under `layoutDirection: 'rtl'`, `start` is on the right and `end` on the left.
  *
  * The overlays layer (`ht-overlay`) is intentionally not a slot — it renders like the grid: a fixed
  * internal element, always present and not orderable.
@@ -8,6 +12,8 @@
 export const LAYOUT_SLOTS = {
   TOP: 'top',
   BOTTOM: 'bottom',
+  START: 'start',
+  END: 'end',
 } as const;
 
 /**
@@ -22,7 +28,7 @@ export type LayoutSlotName = typeof LAYOUT_SLOTS[keyof typeof LAYOUT_SLOTS];
 export type LayoutSide = LayoutSlotName;
 
 /**
- * Class added to every element registered in a slot (top/bottom). It carries the shared slot-item
+ * Class added to every element registered in a slot. It carries the shared slot-item
  * border styling.
  */
 export const SLOT_ITEM_CLASS = 'ht-slot-element';

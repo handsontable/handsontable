@@ -50,11 +50,11 @@ const PARKED_SPEC = 'cross-browser/merging.spec.ts';
 // How many live specs the sweep expects to read a declaration out of: 112 files on 2026-09-18, one of
 // them parked. The filters consolidation (#13647) deleted nine multi-framework specs and added three
 // js-only ones, the submenu-placement trim deleted four scrolled-viewport menu specs, and the editors
-// trim deleted five editor specs, which leaves 97 files, one of them parked, so 96 live. Adding or
-// deleting a spec
-// moves this number, and moves a number in LIVE_GOLDENS too — the pair is the review a description
-// cannot give, so update both in the pull request that adds the spec.
-const LIVE_SPEC_COUNT = 95;
+// trim deleted six editor specs, which leaves 96 files, one of them parked, so 95 live. The side layout
+// slots added two js-only specs, which leaves 98 files, so 97 live. Adding or deleting a spec moves this
+// number, and moves a number in LIVE_GOLDENS too — the pair is the review a description cannot give, so
+// update both in the pull request that adds the spec.
+const LIVE_SPEC_COUNT = 97;
 
 // How many of the specs under `tests/multi-frameworks/` (23 on 2026-09-18, 14 since the filters
 // consolidation retired that family's nine) still carry the shared unaudited reason.

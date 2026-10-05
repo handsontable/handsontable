@@ -1,4 +1,11 @@
-import { addClass, empty, isShadowRoot, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
+import {
+  addClass,
+  empty,
+  hasClass,
+  isShadowRoot,
+  observeVisibilityChangeOnce,
+  removeClass,
+} from './helpers/dom/element';
 import { RenderChangeTracker, markCellMetaChanged } from './core/incrementalRender/renderChangeTracker';
 import { isFunction } from './helpers/function';
 import { isDefined, isUndefined, isRegExp, isEmpty, stringify } from './helpers/mixed';
@@ -81,7 +88,7 @@ import { initLicenseBranding } from './utils/licenseBranding';
 import { getValueSetterValue } from './utils/valueAccessors';
 import { clipRemovalRange } from './utils/removalRange';
 import { createThemeManager, isThemeOverrideEmpty } from './themes/engine';
-import { LayoutManager, type LayoutConfig } from './core/layout';
+import { LayoutManager, LAYOUT_SLOTS, type LayoutConfig } from './core/layout';
 import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
 import type { ThemeBuilder } from './themes/engine/builder';
 import type { ThemeOverridesInput } from './themes/engine/manager';
@@ -89,7 +96,7 @@ import type { default as CellCoords } from './3rdparty/walkontable/src/cell/coor
 import type { default as CellRange } from './3rdparty/walkontable/src/cell/range';
 import type { CellChange, CellProperties, ColumnDataGetterSetterFunction } from './settings';
 import type { GridHelperInstance, HotInstance, ViewportScrollerInstance } from './core/types';
-import { applyRootSize, reapplyPixelRootHeight } from './core/rootSize';
+import { applyRootSize, getSideSlotsWidth, reapplyPixelRootHeight, reapplyRootWidth } from './core/rootSize';
 import type { FocusScopeManager } from './focusManager/scopeManager';
 import type { SelectionTableProps } from './selection/types';
 import type { default as DataMapInstance } from './dataMap/dataMap';
@@ -428,6 +435,21 @@ export default function Core(
    */
   let slotsResizeObserver: ResizeObserver | null = null;
 
+  /**
+   * Watches the elements registered in the `start`/`end` side slots (never the slots themselves:
+   * they span the full wrapper height at the same DOM depth as the top/bottom slots, so a render in
+   * `slotsResizeObserver`'s callback would resize them in the same frame and the browser would report
+   * a ResizeObserver loop). A panel that changes its width re-applies the `width` option, which
+   * includes the side panels.
+   */
+  let sideSlotsResizeObserver: ResizeObserver | null = null;
+
+  /**
+   * Set at the start of `destroy()`. Clearing the layout slots there fires the slot content
+   * callbacks, which must not re-create the side slot observer or schedule a sync after teardown.
+   */
+  let isTearingDown = false;
+
   const mergedUserSettings: GridSettings = {
     ...userSettings.initialState,
     ...userSettings,
@@ -489,6 +511,25 @@ export default function Core(
   this.rootSlotBottomElement = null!;
 
   /**
+   * Reference to the start slot element. A wrapper slot rendered at the inline-start edge of the
+   * grid, spanning the full wrapper height (for example a side panel). Ordered through the layout
+   * manager.
+   *
+   * @private
+   * @type {HTMLElement}
+   */
+  this.rootSlotStartElement = null!;
+
+  /**
+   * Reference to the end slot element. A wrapper slot rendered at the inline-end edge of the grid,
+   * spanning the full wrapper height. Ordered through the layout manager.
+   *
+   * @private
+   * @type {HTMLElement}
+   */
+  this.rootSlotEndElement = null!;
+
+  /**
    * Reference to the overlays element (dialog). Note: the empty-data-state lives inside the grid
    * element (`ht-grid`), not here.
    *
@@ -538,6 +579,8 @@ export default function Core(
     this.rootGridContentElement = this.rootDocument.createElement('div');
     this.rootOverlaysElement = this.rootDocument.createElement('div');
     this.rootSlotBottomElement = this.rootDocument.createElement('div');
+    this.rootSlotStartElement = this.rootDocument.createElement('div');
+    this.rootSlotEndElement = this.rootDocument.createElement('div');
     this.rootPortalElement = this.rootDocument.createElement('div');
 
     addClass(this.rootElement, ['ht-wrapper', 'handsontable']);
@@ -551,12 +594,16 @@ export default function Core(
     addClass(this.rootGridContentElement, 'ht-grid-content');
     addClass(this.rootOverlaysElement, 'ht-overlay');
     addClass(this.rootSlotBottomElement, 'ht-slot-bottom');
+    addClass(this.rootSlotStartElement, 'ht-slot-start');
+    addClass(this.rootSlotEndElement, 'ht-slot-end');
 
     this.rootGridContentElement.appendChild(this.rootElement);
     this.rootGridElement.appendChild(this.rootGridContentElement);
+    this.rootWrapperElement.appendChild(this.rootSlotStartElement);
     this.rootWrapperElement.appendChild(this.rootSlotTopElement);
     this.rootWrapperElement.appendChild(this.rootGridElement);
     this.rootWrapperElement.appendChild(this.rootSlotBottomElement);
+    this.rootWrapperElement.appendChild(this.rootSlotEndElement);
     this.rootWrapperElement.appendChild(this.rootOverlaysElement);
     this.rootContainer.appendChild(this.rootWrapperElement);
     (this.rootWrapperElement as HTMLElement & { __hotInstance: HotInstance }).__hotInstance = this;
@@ -2461,9 +2508,14 @@ export default function Core(
         // item) the wrapper sizes to its widest child, but the table is one of those children and
         // the slot was written no wider than the table, so `min(table, wrapper)` still tracks the
         // table downwards – pinned by the `inline-block-host` case of `bottom-slot-sizing.spec.ts`.
-        const wrapperWidth = instance.rootWrapperElement?.clientWidth ?? 0;
+        const wrapper = instance.rootWrapperElement;
+        const wrapperWidth = wrapper ? wrapper.clientWidth - getSideSlotsWidth(instance) : 0;
 
-        if (view.isHorizontallyScrollableByWindow() && wrapperWidth > 0) {
+        if (
+          view.isHorizontallyScrollableByWindow() &&
+          wrapperWidth > 0 &&
+          !hasClass(wrapper, 'ht-grid-width-follows-content')
+        ) {
           width = Math.min(width, wrapperWidth);
         }
 
@@ -7851,6 +7903,7 @@ export default function Core(
    * @fires Hooks#afterDestroy
    */
   this.destroy = function() {
+    isTearingDown = true;
     instance._clearTimeouts();
     instance._clearMicrotasks();
     // A transaction held by a pending validator must not settle on a destroyed instance.
@@ -7862,6 +7915,8 @@ export default function Core(
     visibilityObserver = null;
     slotsResizeObserver?.disconnect();
     slotsResizeObserver = null;
+    sideSlotsResizeObserver?.disconnect();
+    sideSlotsResizeObserver = null;
 
     if (instance.view) { // in case HT is destroyed before initialization has finished
       instance.view.destroy();
@@ -8533,10 +8588,56 @@ export default function Core(
 
   const focusScopeManager = isRootInstance(this) ? createFocusScopeManager(instance) : null;
 
+  let sideSlotsSyncScheduled = false;
+  let lastSideSlotsWidth = 0;
+
+  const scheduleSideSlotsSync = () => {
+    if (sideSlotsSyncScheduled) {
+      return;
+    }
+
+    sideSlotsSyncScheduled = true;
+    instance._registerTimeout(() => {
+      sideSlotsSyncScheduled = false;
+
+      if (!instance || instance.isDestroyed || !instance.view) {
+        return;
+      }
+
+      lastSideSlotsWidth = getSideSlotsWidth(instance);
+      reapplyRootWidth(instance, tableMeta.width);
+      instance.render();
+    });
+  };
+
+  const observeSideSlotElements = () => {
+    if (!sideSlotsResizeObserver && instance.rootWindow.ResizeObserver) {
+      sideSlotsResizeObserver = new instance.rootWindow.ResizeObserver(() => {
+        if (instance && !instance.isDestroyed && getSideSlotsWidth(instance) !== lastSideSlotsWidth) {
+          scheduleSideSlotsSync();
+        }
+      });
+    }
+
+    sideSlotsResizeObserver?.disconnect();
+    [instance.rootSlotStartElement, instance.rootSlotEndElement].forEach((slot) => {
+      Array.from(slot.children).forEach(child => sideSlotsResizeObserver?.observe(child));
+    });
+  };
+
   const layoutManager = isRootInstance(this)
     ? new LayoutManager({
       top: instance.rootSlotTopElement,
       bottom: instance.rootSlotBottomElement,
+      start: instance.rootSlotStartElement,
+      end: instance.rootSlotEndElement,
+    }, {
+      onSlotContentChange: (name) => {
+        if (!isTearingDown && (name === LAYOUT_SLOTS.START || name === LAYOUT_SLOTS.END)) {
+          observeSideSlotElements();
+          scheduleSideSlotsSync();
+        }
+      },
     })
     : null;
 
@@ -8582,7 +8683,7 @@ export default function Core(
 
   /**
    * Returns the Layout Manager. The module manages the order of plugin UI elements within the
-   * user-orderable wrapper slots (`top`, `bottom`). Use it to add or remove custom UI and
+   * user-orderable wrapper slots (`top`, `bottom`, `start`, `end`). Use it to add or remove custom UI and
    * order it via weights or the `layout` setting. Only available for the main instance.
    *
    * @memberof Core#
@@ -8593,6 +8694,8 @@ export default function Core(
    * @example
    * ```js
    * hot.getLayoutManager().register('myToolbar', toolbarElement, { side: 'top', weight: 100 });
+   * // Dock a side panel at the grid's inline-start edge (the right edge under RTL).
+   * hot.getLayoutManager().register('myPanel', panelElement, { side: 'start' });
    * ```
    */
   this.getLayoutManager = function() {

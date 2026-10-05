@@ -1,4 +1,5 @@
 import Handsontable from '../../index';
+import { applyRootSize, getSideSlotsWidth } from '../rootSize';
 
 /**
  * The root's inline `height`, `width` and `overflow*` are written by `core/rootSize.ts` only.
@@ -208,6 +209,207 @@ describe('root size options', () => {
       expect(inlineSize(grid).width).toBe('200px');
       expect(sizeWarnings()).toHaveLength(1);
       expect(sizeWarnings()[0]).toContain('`width` option');
+    });
+  });
+
+  describe('`width` with filled side slots', () => {
+    /**
+     * Gives a side slot element a layout width, which jsdom does not compute on its own. A
+     * non-zero width also puts one child into the slot, an empty slot counts as no slot.
+     *
+     * @param {HTMLElement} slot The side slot element.
+     * @param {number} width The slot width.
+     * @param {boolean} filled Whether the slot holds a child.
+     */
+    function stubSlot(slot: HTMLElement, width: number, filled: boolean): void {
+      Object.defineProperty(slot, 'offsetWidth', { value: width, configurable: true });
+      slot.replaceChildren(...(filled ? [document.createElement('div')] : []));
+    }
+
+    /**
+     * Fills the side slots with one child each and stubs their widths (`0` empties the slot).
+     *
+     * @param {Handsontable} instance The grid.
+     * @param {number} start The `start` slot width.
+     * @param {number} end The `end` slot width.
+     */
+    function stubSideSlotWidths(instance: Handsontable, start: number, end: number): void {
+      stubSlot(instance.rootSlotStartElement, start, start > 0);
+      stubSlot(instance.rootSlotEndElement, end, end > 0);
+    }
+
+    /**
+     * The side-panel width warnings printed so far.
+     *
+     * @returns {string[]}
+     */
+    function sidePanelWarnings(): string[] {
+      return warnSpy.mock.calls
+        .map(([message]) => message)
+        .filter((message): message is string => typeof message === 'string')
+        .filter(message => message.includes('take up the whole `width`'));
+    }
+
+    /**
+     * Reads the inline widths of the root element and the root wrapper.
+     *
+     * @param {Handsontable} instance The grid.
+     * @returns {object}
+     */
+    function inlineWidths(instance: Handsontable) {
+      return {
+        root: instance.rootElement.style.width,
+        wrapper: instance.rootWrapperElement.style.width,
+      };
+    }
+
+    it('should sum both side slot widths in getSideSlotsWidth', () => {
+      const grid = buildGrid({});
+
+      expect(getSideSlotsWidth(grid)).toBe(0);
+
+      stubSideSlotWidths(grid, 100, 300);
+
+      expect(getSideSlotsWidth(grid)).toBe(400);
+    });
+
+    it('should skip an empty side slot in getSideSlotsWidth', () => {
+      const grid = buildGrid({});
+
+      stubSlot(grid.rootSlotStartElement, 100, true);
+      stubSlot(grid.rootSlotEndElement, 300, false);
+
+      expect(getSideSlotsWidth(grid)).toBe(100);
+    });
+
+    it('should warn once when the side panels take up a whole pixel width', () => {
+      const grid = buildGrid({});
+
+      stubSideSlotWidths(grid, 300, 200);
+      applyRootSize(grid, { width: 400 }, false);
+      applyRootSize(grid, { width: 400 }, false);
+
+      expect(sidePanelWarnings()).toHaveLength(1);
+      expect(sidePanelWarnings()[0]).toContain('500px');
+    });
+
+    it('should not warn while the side panels leave room for the grid', () => {
+      const grid = buildGrid({});
+
+      stubSideSlotWidths(grid, 100, 100);
+      applyRootSize(grid, { width: 400 }, false);
+
+      expect(sidePanelWarnings()).toEqual([]);
+    });
+
+    it('should keep a root wrapper width the application set', () => {
+      const grid = buildGrid({});
+
+      grid.rootWrapperElement.style.width = '800px';
+      applyRootSize(grid, { width: 900 }, false);
+
+      expect(inlineWidths(grid)).toEqual({ root: '900px', wrapper: '800px' });
+
+      applyRootSize(grid, { width: null }, false);
+
+      expect(inlineWidths(grid).wrapper).toBe('800px');
+    });
+
+    it('should reduce a pixel width by the side slots on the root element', () => {
+      const grid = buildGrid({});
+
+      stubSideSlotWidths(grid, 100, 300);
+      applyRootSize(grid, { width: 900 }, false);
+
+      expect(inlineWidths(grid).root.replace(/\s+/g, '')).toBe('calc(900px-400px)');
+      expect(inlineWidths(grid).wrapper).toBe('');
+      expect(grid.rootWrapperElement.classList.contains('ht-grid-fixed-width')).toBe(true);
+    });
+
+    it('should move a container-driven width to the root wrapper and fill it with the root', () => {
+      const grid = buildGrid({});
+
+      stubSideSlotWidths(grid, 100, 0);
+      applyRootSize(grid, { width: '50%' }, false);
+
+      expect(inlineWidths(grid)).toEqual({ root: '100%', wrapper: '50%' });
+      expect(grid.rootWrapperElement.classList.contains('ht-grid-fixed-width')).toBe(false);
+    });
+
+    it('should write the plain value and clear the wrapper width once the side slots are empty', () => {
+      const grid = buildGrid({});
+
+      stubSideSlotWidths(grid, 100, 0);
+      applyRootSize(grid, { width: '50%' }, false);
+      stubSideSlotWidths(grid, 0, 0);
+      applyRootSize(grid, { width: 900 }, false);
+
+      expect(inlineWidths(grid)).toEqual({ root: '900px', wrapper: '' });
+    });
+
+    it('should clear both inline widths for `null`', () => {
+      const grid = buildGrid({});
+
+      stubSideSlotWidths(grid, 100, 0);
+      applyRootSize(grid, { width: '50%' }, false);
+      applyRootSize(grid, { width: null }, false);
+
+      expect(inlineWidths(grid)).toEqual({ root: '', wrapper: '' });
+    });
+  });
+
+  describe('the `ht-grid-fixed-width` wrapper class', () => {
+    /**
+     * Reads whether the root wrapper carries the fixed-width class.
+     *
+     * @param {Handsontable} instance The grid.
+     * @returns {boolean}
+     */
+    function hasFixedWidthClass(instance: Handsontable): boolean {
+      return instance.rootWrapperElement.classList.contains('ht-grid-fixed-width');
+    }
+
+    it('should be set for a pixel number and for fixed CSS lengths', () => {
+      expect(hasFixedWidthClass(buildGrid({ width: 400 }))).toBe(true);
+      hot?.destroy();
+      expect(hasFixedWidthClass(buildGrid({ width: '600px' }))).toBe(true);
+      hot?.destroy();
+      expect(hasFixedWidthClass(buildGrid({ width: '40em' }))).toBe(true);
+    });
+
+    it('should not be set for an unset, `auto`, or container-driven width', () => {
+      expect(hasFixedWidthClass(buildGrid({}))).toBe(false);
+      hot?.destroy();
+      expect(hasFixedWidthClass(buildGrid({ width: 'auto' }))).toBe(false);
+
+      ['100%', '50vw', 'var(--w)', '50cqw'].forEach((width) => {
+        hot?.destroy();
+        expect(hasFixedWidthClass(buildGrid({ width }))).toBe(false);
+      });
+    });
+
+    it('should follow the `width` option through updateSettings', () => {
+      const grid = buildGrid({ width: 400 });
+
+      grid.updateSettings({ width: '100%' });
+
+      expect(hasFixedWidthClass(grid)).toBe(false);
+
+      grid.updateSettings({ width: 300 });
+
+      expect(hasFixedWidthClass(grid)).toBe(true);
+
+      grid.updateSettings({ width: 'auto' });
+
+      expect(hasFixedWidthClass(grid)).toBe(false);
+    });
+
+    it('should keep the class when an unreadable width update is ignored', () => {
+      const grid = buildGrid({ width: 400 });
+
+      grid.updateSettings({ width: 'inherit' });
+
+      expect(hasFixedWidthClass(grid)).toBe(true);
     });
   });
 

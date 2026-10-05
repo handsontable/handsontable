@@ -4065,6 +4065,11 @@ export default (): Record<string, unknown> => {
      * scrolls its rows inside that box. An `overflow-x` or `overflow-y` you set yourself on the
      * root element is left alone, on that axis, and clips the grid in its place.
      *
+     * A pixel height includes the bars Handsontable docks above and below the grid (the
+     * [`top` and `bottom` layout slots](@/guides/accessories-and-menus/layout-slots/layout-slots.md),
+     * such as the sheets bar and the pagination bar). With `height: 500` and a 40px pagination bar,
+     * the grid gets 460px, so the grid and its bars fill exactly 500px.
+     *
      * #### How `'auto'` differs from leaving `height` unset
      *
      * When you set `height: 'auto'`, Handsontable writes `height: auto` as an inline style on the
@@ -4557,9 +4562,12 @@ export default (): Record<string, unknown> => {
 
     /**
      * The `layout` option configures the order of plugin UI elements within the user-orderable
-     * wrapper slots rendered around the grid: `top` and `bottom`. Each slot takes an ordered array
-     * of element keys (for example `'pagination'`). Keys you list are placed first in that order;
-     * any remaining elements follow by their default weight. The grid and the overlays layer (the
+     * wrapper slots rendered around the grid: `top`, `bottom`, `start`, and `end`. The `top` and
+     * `bottom` slots sit above and below the grid. The `start` and `end` slots sit at the grid's
+     * inline-start and inline-end edges (with [`layoutDirection: 'rtl'`](#layoutdirection), `start`
+     * is on the right). Each slot takes an ordered array of element keys (for example
+     * `'pagination'`). Keys you list are placed first in that order; any remaining elements follow
+     * by their default weight. The grid and the overlays layer (the
      * modal layer, such as the dialog) are not orderable through this option. The license
      * notification is not orderable either; it always renders last in the `bottom` slot.
      *
@@ -4578,6 +4586,11 @@ export default (): Record<string, unknown> => {
      * // render pagination above a custom 'summary' element registered in the bottom slot
      * layout: {
      *   bottom: ['pagination', 'summary'],
+     * },
+     *
+     * // in the start side slot, render a custom 'filters' panel at the outer edge, before a custom 'notes' panel
+     * layout: {
+     *   start: ['filters', 'notes'],
      * },
      * ```
      */
@@ -8647,7 +8660,7 @@ export default (): Record<string, unknown> => {
     visibleRows: 10,
 
     /**
-     * The `width` option configures the width of your grid.
+     * The `width` option configures the width of the component: the grid plus any side panels.
      *
      * You can set the `width` option to one of the following:
      *
@@ -8668,6 +8681,13 @@ export default (): Record<string, unknown> => {
      * `'-webkit-fill-available'`, and `'-moz-available'`, which fill the container but read as a
      * fixed size. An ignored value leaves the grid's width as it was, and a warning is printed once
      * per grid and value.
+     *
+     * The width includes the panels docked at the grid's sides (the
+     * [`start` and `end` layout slots](@/guides/accessories-and-menus/layout-slots/layout-slots.md)),
+     * the same way [`height`](#height) includes the top and bottom bars. With `width: '100%'`, a
+     * 300px panel at `end`, and a 100px panel at `start`, the grid gets `100% - 300px - 100px`. With
+     * `width: 900` and the same panels, the grid gets 500px, and the grid and its panels fill exactly
+     * 900px. The grid follows when a panel is added, removed, or changes its width.
      *
      * With `width: 'auto'`, Handsontable writes `width: auto` as an inline style on the root
      * element. The grid then follows the width of its parent container, like a plain block
@@ -8696,16 +8716,16 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
-     * // set the grid's width to 500px
+     * // set the component's width to 500px
      * width: 500,
      *
-     * // set the grid's width to 75vw
+     * // set the component's width to 75vw
      * width: '75vw',
      *
-     * // let the grid follow its parent container's width
+     * // let the component follow its parent container's width
      * width: 'auto',
      *
-     * // set the grid's width to 500px, using a function
+     * // set the component's width to 500px, using a function
      * width() {
      *   return 500;
      * },

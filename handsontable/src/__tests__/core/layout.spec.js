@@ -17,13 +17,16 @@ describe('Layout slots', () => {
     }
   });
 
-  it('renders the ht-slot-top slot as the first wrapper child', async() => {
+  it('renders the ht-slot-start slot as the first wrapper child and ht-slot-top right after it', async() => {
     const hot = handsontable({ data: createSpreadsheetData(3, 3) });
     const children = Array.from(hot.rootWrapperElement.children).map(c => c.className);
 
     expect(hot.rootSlotTopElement).toBeTruthy();
     expect(hot.rootSlotTopElement.classList.contains('ht-slot-top')).toBe(true);
-    expect(children[0]).toContain('ht-slot-top');
+    expect(hot.rootSlotStartElement.classList.contains('ht-slot-start')).toBe(true);
+    expect(hot.rootSlotEndElement.classList.contains('ht-slot-end')).toBe(true);
+    expect(children[0]).toContain('ht-slot-start');
+    expect(children[1]).toContain('ht-slot-top');
   });
 
   it('places ht-overlay as the last wrapper child', async() => {
@@ -33,12 +36,14 @@ describe('Layout slots', () => {
     expect(children.at(-1)).toContain('ht-overlay');
   });
 
-  it('orders the wrapper slots top, grid, bottom, overlays', async() => {
+  it('orders the wrapper slots start, top, grid, bottom, end, overlays', async() => {
     const hot = handsontable({ data: createSpreadsheetData(3, 3) });
     const classes = Array.from(hot.rootWrapperElement.children)
       .map(c => c.className.split(' ').find(n => n.startsWith('ht-')));
 
-    expect(classes).toEqual(['ht-slot-top', 'ht-grid', 'ht-slot-bottom', 'ht-overlay']);
+    expect(classes).toEqual([
+      'ht-slot-start', 'ht-slot-top', 'ht-grid', 'ht-slot-bottom', 'ht-slot-end', 'ht-overlay',
+    ]);
   });
 
   const slotItemIds = slot => Array.from(slot.getElement().children).map(c => c.dataset.id);
@@ -65,12 +70,14 @@ describe('Layout slots', () => {
     expect(b.parentNode).toBe(hot.rootSlotBottomElement);
   });
 
-  it('exposes getLayoutManager with the orderable top/bottom slots only', async() => {
+  it('exposes getLayoutManager with the orderable top/bottom/start/end slots only', async() => {
     const hot = handsontable({ data: createSpreadsheetData(3, 3) });
     const manager = hot.getLayoutManager();
 
     expect(manager.getSlot('top').getElement()).toBe(hot.rootSlotTopElement);
     expect(manager.getSlot('bottom').getElement()).toBe(hot.rootSlotBottomElement);
+    expect(manager.getSlot('start').getElement()).toBe(hot.rootSlotStartElement);
+    expect(manager.getSlot('end').getElement()).toBe(hot.rootSlotEndElement);
     // Overlays is a fixed internal element (like the grid), not a slot.
     expect(() => manager.getSlot('overlays')).toThrow();
   });
@@ -86,12 +93,18 @@ describe('Layout slots', () => {
     };
     const top = make('top');
     const bottom = make('bottom');
+    const start = make('start');
+    const end = make('end');
 
     hot.getLayoutManager().register('a', top, { side: 'top' });
     hot.getLayoutManager().register('b', bottom, { side: 'bottom', weight: 100 });
+    hot.getLayoutManager().register('c', start, { side: 'start' });
+    hot.getLayoutManager().register('d', end, { side: 'end' });
 
     expect(top.parentNode).toBe(hot.rootSlotTopElement);
     expect(bottom.parentNode).toBe(hot.rootSlotBottomElement);
+    expect(start.parentNode).toBe(hot.rootSlotStartElement);
+    expect(end.parentNode).toBe(hot.rootSlotEndElement);
   });
 
   it('keeps focus on a slot element across updateSettings (no reorder churn)', async() => {
@@ -322,21 +335,28 @@ describe('Layout slots', () => {
     expect(() => hot.destroy()).not.toThrow();
   });
 
-  it('keeps tab order top -> grid -> bottom', async() => {
+  it('keeps tab order start -> top -> grid -> bottom -> end', async() => {
     const hot = handsontable({ data: createSpreadsheetData(3, 3) });
     const topBtn = document.createElement('button');
     const bottomBtn = document.createElement('button');
+    const startBtn = document.createElement('button');
+    const endBtn = document.createElement('button');
 
     topBtn.id = 'topBtn';
     bottomBtn.id = 'bottomBtn';
+    startBtn.id = 'startBtn';
+    endBtn.id = 'endBtn';
 
-    hot.getLayoutManager().getSlot('top').add('t', topBtn, 100);
+    hot.getLayoutManager().getSlot('end').add('e', endBtn, 100);
     hot.getLayoutManager().getSlot('bottom').add('b', bottomBtn, 100);
+    hot.getLayoutManager().getSlot('top').add('t', topBtn, 100);
+    hot.getLayoutManager().getSlot('start').add('s', startBtn, 100);
 
-    const inDocOrder = Array.from(hot.rootWrapperElement.querySelectorAll('#topBtn, #bottomBtn'))
-      .map(el => el.id);
+    const inDocOrder = Array.from(
+      hot.rootWrapperElement.querySelectorAll('#topBtn, #bottomBtn, #startBtn, #endBtn')
+    ).map(el => el.id);
 
-    expect(inDocOrder).toEqual(['topBtn', 'bottomBtn']);
+    expect(inDocOrder).toEqual(['startBtn', 'topBtn', 'bottomBtn', 'endBtn']);
   });
 
   it('ignores an overlays key in the layout setting (overlays is not a slot)', async() => {
@@ -389,6 +409,21 @@ describe('Layout slots', () => {
     hot.getLayoutManager().unregister('a', 'top');
 
     expect(hot.rootWrapperElement.classList.contains('ht-slot-top-filled')).toBe(false);
+
+    hot.getLayoutManager().register('s', document.createElement('div'), { side: 'start' });
+    hot.getLayoutManager().register('e', document.createElement('div'), { side: 'end' });
+
+    expect(hot.rootWrapperElement.classList.contains('ht-slot-start-filled')).toBe(true);
+    expect(hot.rootWrapperElement.classList.contains('ht-slot-end-filled')).toBe(true);
+
+    hot.getLayoutManager().unregister('s', 'start');
+
+    expect(hot.rootWrapperElement.classList.contains('ht-slot-start-filled')).toBe(false);
+    expect(hot.rootWrapperElement.classList.contains('ht-slot-end-filled')).toBe(true);
+
+    hot.getLayoutManager().unregister('e', 'end');
+
+    expect(hot.rootWrapperElement.classList.contains('ht-slot-end-filled')).toBe(false);
   });
 
   it('marks the wrapper as bottom-filled while pagination is enabled', async() => {

@@ -351,8 +351,72 @@
       }
     }
 
+    &.ht-slot-start-filled {
+      .ht-wrapper,
+      .ht_master .wtHolder,
+      .ht-slot-top > .ht-slot-element,
+      .ht-slot-bottom > .ht-slot-element {
+        border-start-start-radius: 0;
+        border-end-start-radius: 0;
+      }
+
+      .htCore {
+        border-start-start-radius: 0 !important;
+        border-end-start-radius: 0 !important;
+
+        > thead > tr > th:first-child,
+        > tbody > tr > td:first-child,
+        > tbody > tr > th:first-child {
+          border-start-start-radius: 0 !important;
+          border-end-start-radius: 0 !important;
+        }
+      }
+    }
+
+    &.ht-slot-end-filled {
+      .ht-wrapper,
+      .ht_master .wtHolder,
+      .ht-slot-top > .ht-slot-element,
+      .ht-slot-bottom > .ht-slot-element {
+        border-start-end-radius: 0;
+        border-end-end-radius: 0;
+      }
+
+      .htCore {
+        border-start-end-radius: 0 !important;
+        border-end-end-radius: 0 !important;
+
+        > thead > tr > th:not(.hiddenHeader).htLastVisibleHeader,
+        > tbody > tr > td:last-child,
+        > tbody > tr > th:last-child {
+          border-start-end-radius: 0 !important;
+          border-end-end-radius: 0 !important;
+        }
+      }
+    }
+
     .ht-slot-element {
       border-radius: var(--ht-border-radius);
+    }
+
+    .ht-slot-start > .ht-slot-element {
+      border-start-end-radius: 0;
+      border-end-end-radius: 0;
+    }
+
+    .ht-slot-end > .ht-slot-element {
+      border-start-start-radius: 0;
+      border-end-start-radius: 0;
+    }
+
+    .ht-slot-start > .ht-slot-element:not(:first-child) {
+      border-start-start-radius: 0;
+      border-end-start-radius: 0;
+    }
+
+    .ht-slot-end > .ht-slot-element:not(:last-child) {
+      border-start-end-radius: 0;
+      border-end-end-radius: 0;
     }
 
     .ht-slot-bottom > .ht-slot-element {
