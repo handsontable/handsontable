@@ -29,8 +29,9 @@ const REPO_ROOT = join(PACKAGE_ROOT, '..');
 const INSTALL_JS = 'npm run examples:install next/visual-tests/js';
 const GUARD = 'node ../../../../../visual-tests/scripts/check-linked-packages.mjs';
 const BUILD_TOOL = /\b(vite build|ng build)\b/;
-// The core's own ignore rules for what its build writes under `src/`, as `handsontable/.gitignore` has them,
-// with the two unanchored rules that also match real sources there.
+// The core's own ignore rules for what its build writes under `src/`, as `handsontable/.gitignore` has them, plus
+// `languages/` and `dev*.ts` without the leading slash they carry there now: git applies an unanchored rule under
+// `src/` too, and the age check must still count the sources it matches.
 const CORE_GITIGNORE = 'src/3rdparty/walkontable/test/dist/\nsrc/3rdparty/walkontable/dist/\ndev*.ts\nlanguages/\n'
   + 'src/styles/handsontableStyles.js\nsrc/styles/handsontableStyles.ts\n';
 
@@ -760,8 +761,9 @@ test('the age check skips what the build writes under src, and the tests, Markdo
 test('a new source that an unanchored ignore rule matches still counts, since git is not asked', (t) => {
   const { root } = makeRepo(t);
 
-  // `languages/` and `dev*.ts` target the package root's build output and dev pages, and git applies both under
-  // src/ too: `git check-ignore` reports these two paths ignored in the real checkout.
+  // `languages/` and `dev*.ts` target the package root's build output and dev pages. Unanchored, as the fixture
+  // keeps them, git applies both under src/ too: `git check-ignore` reported these two paths ignored in the real
+  // checkout until the rules gained a leading slash.
   ['i18n/languages/xx-XX.ts', 'plugins/dev-panel.ts'].forEach((file) => {
     write(join(root, 'handsontable/src', file), 'export {};');
     setTime(join(root, 'handsontable/src', file), '2026-03-01T00:00:00Z');
