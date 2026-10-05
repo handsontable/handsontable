@@ -171,9 +171,10 @@ log lines (for example `Initial test run timed out!`, with the name of a test
 that failed in the initial run). When Stryker logged none, it quotes stderr:
 Node's report of an uncaught error, the shell's `env-cmd: command not found`
 when Stryker never started, or Stryker's recovery line after a `SIGTERM`.
-The exit code comes with it. A run that finished also gets a `reason` when a
-`--mutate` pattern matched no file or the report holds no valid mutant, so a
-mistyped path does not read as a silent `score: null`.
+The exit code comes with it, and a run stopped because its output passed
+64 MB says so. A run that finished also gets a `reason` when a `--mutate`
+glob matched no file (from Stryker's own warning) or the report holds no valid
+mutant, so a mistyped pattern does not read as a silent `score: null`.
 
 ### What a run executes
 
@@ -186,9 +187,22 @@ is off, so the scored test runs even when Jest's static import graph does not
 link it to the mutated file.
 
 The test path is relative to where you run the scorer; `--mutate` paths are
-relative to `handsontable/`. Anything but a core unit test (an evals fixture,
-a Playwright spec, a legacy `*.spec.js`) gets a `mutation.reason` instead, and
-Stryker does not start.
+relative to `handsontable/`. Both are checked before Stryker starts, because
+Stryker rewrites the mutated sources in place. The test file must exist, sit
+under `src/` or `test/`, and be a `*.unit.js` or `*.unit.ts` file: anything
+else (an evals fixture, a Playwright spec, a legacy `*.spec.js`, a typo) gets
+a `mutation.reason` saying which. `handsontable/jest.stryker.testFiles.js` makes
+that check for the scorer and for the Stryker Jest config alike, so the two
+cannot drift apart. A plain `--mutate` path (no glob characters) must exist on
+disk too.
+
+One mutation run per checkout: the mutated sources, `.stryker-tmp/`, and the
+report are shared, so two runs at once would load each other's mutants and
+read each other's report. The scorer holds `handsontable/.stryker-tmp/mutation.lock`
+(it contains the run's process id) while Stryker runs, and a second scorer run
+in the same checkout gets a `reason` instead of starting. A lock left by a run
+that died is taken over. A raw Stryker run does not take the lock, so do not
+start one beside a scorer run.
 
 Measured on 2026-10-01 with `src/helpers/errors.ts`:
 
@@ -216,18 +230,18 @@ every file in the report.
 
 ### What a run leaves behind
 
-- `handsontable/reports/mutation/mutation.json`, the JSON report. The next run
-  overwrites it. `git status` lists it as untracked unless
-  `handsontable/.gitignore` ignores `/reports/mutation/`.
-- Nothing else after a run that finished. In place, Stryker backs up each file
-  it rewrites to `handsontable/.stryker-tmp/backup-*/` and moves the backups
-  back on exit. With `disableTypeChecks` off it rewrites only the mutated
-  files. Stryker's default prepended `// @ts-nocheck` to every JS and TS file
-  under `handsontable/` (2668 of them) for the length of the run. The jest
+- `handsontable/reports/mutation/mutation.json`, the JSON report, which
+  `handsontable/.gitignore` ignores. The next run overwrites it.
+- Nothing else after a scorer run, finished or failed. In place, Stryker backs
+  up each file it rewrites to `handsontable/.stryker-tmp/backup-*/` and moves
+  the backups back on exit, and the scorer then removes its lock and the
+  emptied `.stryker-tmp/`. With `disableTypeChecks` off Stryker rewrites only
+  the mutated files. Its default prepended `// @ts-nocheck` to every JS and TS
+  file under `handsontable/` (2668 of them) for the length of the run. The jest
   runner strips types with Babel without checking them, so that comment never
   changed a result.
-- An empty `handsontable/.stryker-tmp/` after a run that failed once Stryker
-  had started: Stryker keeps its temp directory for debugging.
+- An empty `handsontable/.stryker-tmp/` after a raw Stryker run that failed:
+  Stryker keeps its temp directory for debugging.
 - After a run that was killed outright (`SIGKILL`, a crash), the mutated files
   still hold Stryker's instrumented code, and their originals sit in
   `handsontable/.stryker-tmp/backup-*/`. Run `git restore` on the sources, or

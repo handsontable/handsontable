@@ -1,12 +1,6 @@
-const fs = require('fs');
 const path = require('path');
 const base = require('./jest.config');
-
-/**
- * The environment variable that names the unit tests a mutation run executes: comma-separated
- * paths relative to this package. `evals/score.mjs --mutate` sets it to the test file it scores.
- */
-const TEST_FILES_ENV = 'HOT_MUTATION_TEST_FILES';
+const { TEST_FILES_ENV, resolveTestFile } = require('./jest.stryker.testFiles');
 
 /**
  * Resolves the unit tests a mutation run is scoped to, and refuses to run without them.
@@ -31,20 +25,14 @@ function resolveTestFiles() {
       `relative to handsontable/, for example ${TEST_FILES_ENV}=src/helpers/__tests__/errors.unit.js`);
   }
 
-  const unitTest = [base.testRegex].flat().map(pattern => new RegExp(pattern));
-  const packageDir = `${fs.realpathSync.native(__dirname)}${path.sep}`;
-
   return files.map((file) => {
-    const absolute = path.resolve(__dirname, file);
-    // The native call also returns the name in the case the file system stores, which is the
-    // case Jest's own paths use, so `src/Helpers/…` typed on macOS still matches.
-    const real = fs.existsSync(absolute) ? fs.realpathSync.native(absolute) : '';
+    const resolved = resolveTestFile(file);
 
-    if (!real.startsWith(packageDir) || !unitTest.some(pattern => pattern.test(real))) {
-      throw new Error(`${TEST_FILES_ENV}: "${file}" is not a unit test file (*.unit.js or *.unit.ts) in handsontable/`);
+    if (resolved.problem) {
+      throw new Error(`${TEST_FILES_ENV}: ${resolved.problem}`);
     }
 
-    return real;
+    return resolved.path;
   });
 }
 

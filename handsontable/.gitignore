@@ -25,6 +25,9 @@ tmp_styles/
 /styles/
 src/styles/handsontableStyles.js
 src/styles/handsontableStyles.ts
+# The reports of a mutation run: `evals/score.mjs --mutate` runs Stryker from this directory, and the
+# root's `reports/mutation/` matches the repository root only.
+/reports/mutation/
 
 # Figma "Design Tokens" plugin export consumed by scripts/themes/figma (user-provided)
 scripts/themes/figma/tokens.json
