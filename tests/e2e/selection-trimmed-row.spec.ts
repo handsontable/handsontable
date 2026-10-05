@@ -194,6 +194,114 @@ test.describe('selection stranded by a trimming index map', () => {
     expect(await grid.sourceRowCount()).toBe(5);
   });
 
+  test('grows a full-column selection when an untrim brings rows back below it (DEV-152)', async() => {
+    await grid.trimRows([3, 4]);
+    await grid.selectWholeColumn(0);
+
+    expect(await grid.selected()).toEqual([[-1, 0, 2, 0]]);
+
+    // The far corner of a header-anchored selection tracks the grid in BOTH directions. A trim
+    // clamps it, so an untrim must grow it back - left at row 2, the selection silently stops
+    // being a whole column, and the next paste or fill skips the rows that came back.
+    await grid.untrimRows([3, 4]);
+
+    expect(await grid.selected()).toEqual([[-1, 0, 4, 0]]);
+    expect(await grid.isEntireColumnSelected()).toBe(true);
+  });
+
+  test('grows a full-column selection when the untrimmed rows sit above it', async() => {
+    await grid.trimRows([0]);
+    await grid.selectWholeColumn(0);
+
+    expect(await grid.selected()).toEqual([[-1, 0, 3, 0]]);
+
+    await grid.untrimRows([0]);
+
+    expect(await grid.selected()).toEqual([[-1, 0, 4, 0]]);
+  });
+
+  test('grows a full-column selection on a grid with no headers', async({ page, theme, bundle }) => {
+    // Without headers `selectColumns()` anchors the range at row 0, so the grid-tracking state, not
+    // a negative corner, has to be what marks the extent.
+    const headerless = new EditorTrimmedRowPage(page, theme, bundle, { headers: false });
+
+    await headerless.goto();
+    await headerless.trimRows([3, 4]);
+    await headerless.selectWholeColumn(0);
+
+    expect(await headerless.selected()).toEqual([[0, 0, 2, 0]]);
+
+    await headerless.untrimRows([3, 4]);
+
+    expect(await headerless.selected()).toEqual([[0, 0, 4, 0]]);
+  });
+
+  test('grows a select-all when an untrim brings rows back', async() => {
+    await grid.trimRows([3, 4]);
+    await grid.selectEverything();
+
+    expect(await grid.selected()).toEqual([[-1, -1, 2, 1]]);
+
+    await grid.untrimRows([3, 4]);
+
+    expect(await grid.selected()).toEqual([[-1, -1, 4, 1]]);
+  });
+
+  test('does not grow a full-column selection the user shrank before the untrim', async() => {
+    await grid.trimRows([4]);
+    await grid.selectWholeColumn(0);
+    // Shift+Up: the layer is still flagged as grid-tracking, but it no longer covers the column, so
+    // it names rows 0-2 and must not grow onto rows the user excluded.
+    await grid.shrinkSelectionUpwards();
+
+    expect(await grid.selected()).toEqual([[-1, 0, 2, 0]]);
+
+    await grid.untrimRows([4]);
+
+    expect(await grid.selected()).toEqual([[-1, 0, 2, 0]]);
+  });
+
+  test('does not grow a cell range that merely reached the last row before the untrim', async() => {
+    await grid.trimRows([4]);
+    // Rows 0-3 are the whole grid here, but a drag-style range names records, not the grid.
+    await grid.selectRanges([[0, 0, 3, 0]]);
+
+    await grid.untrimRows([4]);
+
+    expect(await grid.selected()).toEqual([[0, 0, 3, 0]]);
+  });
+
+  test('does not grow a full-row selection along the rows', async() => {
+    await grid.trimRows([4]);
+    await grid.selectWholeRow(3);
+
+    expect(await grid.selected()).toEqual([[3, -1, 3, 1]]);
+
+    // A full-row selection tracks the grid along its COLUMNS only; its row still names a record.
+    await grid.untrimRows([4]);
+
+    expect(await grid.selected()).toEqual([[3, -1, 3, 1]]);
+  });
+
+  test('does not scroll the viewport when it grows a full-column selection', async({ page, theme, bundle }) => {
+    const tall = new EditorTrimmedRowPage(page, theme, bundle, { scenario: 'tall' });
+    const trimmed = Array.from({ length: 50 }, (unused, index) => index + 50);
+
+    await tall.goto();
+    await tall.trimRows(trimmed);
+    await tall.selectWholeColumn(0);
+
+    expect(await tall.selected()).toEqual([[-1, 0, 49, 0]]);
+    expect(await tall.isRowRendered(0)).toBe(true);
+
+    await tall.untrimRows(trimmed);
+
+    expect(await tall.selected()).toEqual([[-1, 0, 99, 0]]);
+    // The grow re-lays the selection; without a non-scrolling source that would jump the viewport
+    // to the new far corner, 99 rows away from where the user is looking.
+    expect(await tall.isRowRendered(0)).toBe(true);
+  });
+
   test('drops a full-row selection whose row a trim stranded, rather than sliding it', async() => {
     await grid.selectWholeRow(3);
 

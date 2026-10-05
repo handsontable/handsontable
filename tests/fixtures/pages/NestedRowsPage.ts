@@ -23,12 +23,14 @@ export class NestedRowsPage {
   readonly theme: string;
   readonly grid: Locator;
   readonly rowHeaderOverlay: Locator;
+  readonly pageErrors: string[] = [];
 
   constructor(page: Page, theme = 'main') {
     this.page = page;
     this.theme = theme;
     this.grid = page.getByTestId('grid');
     this.rowHeaderOverlay = page.locator('.ht_clone_inline_start');
+    page.on('pageerror', (error) => { this.pageErrors.push(error.message); });
   }
 
   /**
@@ -163,7 +165,15 @@ export class NestedRowsPage {
     return this.page.evaluate(() => window.hot.getSelectedLast() ?? null);
   }
 
-  /** Push settings through `updateSettings()`, which rebuilds the plugin and replays its state. */
+  /**
+   * Remove rows through `alter()`, by visual row. With a parent collapsed, the plugin expands every
+   * parent for the length of the removal (`collapsedRowsStash`) and re-collapses afterwards.
+   */
+  async removeRow(row: number, amount = 1): Promise<void> {
+    await this.page.evaluate(([r, n]) => window.hot.alter('remove_row', r, n), [row, amount]);
+  }
+
+    /** Push settings through `updateSettings()`, which rebuilds the plugin and replays its state. */
   async updateSettings(settings: Record<string, unknown>): Promise<void> {
     await this.page.evaluate(config => window.hot.updateSettings(config), settings);
   }

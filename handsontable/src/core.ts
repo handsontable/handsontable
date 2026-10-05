@@ -1062,11 +1062,14 @@ export default function Core(
    * @param {object} indexesChangesState The state object of the index mapper's cache update.
    * @param {boolean} indexesChangesState.trimmedIndexesChanged Whether the trimmed indexes changed.
    * @param {boolean} indexesChangesState.indexesSequenceChanged Whether the indexes sequence changed.
+   * @param {boolean} hadOpenEditor Whether an editor was open when the update landed.
+   * @param {'row'|'column'} axis The mapper axis that was updated.
    */
   const repairSelection = (
     isStructuralChange: boolean,
     { trimmedIndexesChanged, indexesSequenceChanged }: IndexesChangesState,
-    hadOpenEditor: boolean
+    hadOpenEditor: boolean,
+    axis: IndexAxis,
   ) => {
     if (!this.selection.isSelected()) {
       return;
@@ -1104,6 +1107,10 @@ export default function Core(
 
     if (!this.selection.deselectIfHighlightStranded({ unresolvableOnly: hadOpenEditor })) {
       this.selection.recaptureHighlightRecord();
+      // The test above repairs a SHRINK only - it fires on a corner left past the last index. An
+      // untrim leaves every corner in range, so a full-column selection or a select-all is grown
+      // back to the whole axis here instead (DEV-152).
+      this.selection.fitGridTrackingExtents(axis);
     }
   };
 
@@ -1159,7 +1166,7 @@ export default function Core(
       this.selection.notifyDeferredDeselect('column');
     }
 
-    repairSelection(isStructuralChange, indexesChangesState, hadOpenEditor);
+    repairSelection(isStructuralChange, indexesChangesState, hadOpenEditor, 'column');
   });
 
   this.rowIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: IndexesChangesState) => {
@@ -1185,7 +1192,7 @@ export default function Core(
       this.selection.notifyDeferredDeselect('row');
     }
 
-    repairSelection(isStructuralChange, indexesChangesState, hadOpenEditor);
+    repairSelection(isStructuralChange, indexesChangesState, hadOpenEditor, 'row');
   });
 
   /**

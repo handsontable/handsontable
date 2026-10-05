@@ -53,6 +53,8 @@ export interface SelectionSettings {
   fixedRowsBottom?: number;
   minSpareRows?: number;
   minSpareCols?: number;
+  maxRows?: number;
+  maxCols?: number;
   autoWrapRow?: boolean;
   autoWrapCol?: boolean;
   selectionMode?: 'single' | 'range' | 'multiple';

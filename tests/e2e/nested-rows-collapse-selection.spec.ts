@@ -148,6 +148,47 @@ test.describe('NestedRows selection when a section is collapsed', () => {
     expect(await nestedRows.selectedRange()).toEqual([-1, 0, 6, 0]);
   });
 
+  test('expanding a section grows a whole-column selection made while it was collapsed (DEV-152)',
+    async({ page, theme }) => {
+      const nestedRows = new NestedRowsPage(page, theme);
+
+      await nestedRows.goto();
+      await nestedRows.collapseButton(0).click();
+
+      expect(await nestedRows.visibleNames()).toEqual(['Root A', 'Root B', 'B-1', 'B-2']);
+
+      await nestedRows.cell(0, 0).click();
+      await page.keyboard.press('Control+Space');
+
+      expect(await nestedRows.selectedRange()).toEqual([-1, 0, 3, 0]);
+
+      await nestedRows.collapseButton(0).click();
+
+      // The whole column, all 9 rows - not the 4 it covered while Root A was collapsed.
+      expect(await nestedRows.countRows()).toBe(9);
+      expect(await nestedRows.selectedRange()).toEqual([-1, 0, 8, 0]);
+    });
+
+  test('a row removal under a whole-column selection does not grow it onto the stash expand', async({ page, theme }) => {
+    const nestedRows = new NestedRowsPage(page, theme);
+
+    await nestedRows.goto();
+    await nestedRows.collapseButton(0).click();
+    await nestedRows.cell(0, 0).click();
+    await page.keyboard.press('Control+Space');
+
+    expect(await nestedRows.selectedRange()).toEqual([-1, 0, 3, 0]);
+
+    // The removal expands every parent for its own length and re-collapses afterwards. That expand
+    // is an untrim too, and growing the selection onto it left highlights past the rows the removal
+    // then took away - the next draw threw.
+    await nestedRows.removeRow(3);
+
+    await expect.poll(() => nestedRows.visibleNames()).toEqual(['Root A', 'Root B', 'B-1']);
+    expect(await nestedRows.selectedRange()).toEqual([-1, 0, 2, 0]);
+    expect(nestedRows.pageErrors).toEqual([]);
+  });
+
   test('a collapsed-state stash restore does not move the selection', async({ page, theme }) => {
     const nestedRows = new NestedRowsPage(page, theme);
 
