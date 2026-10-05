@@ -128,6 +128,22 @@ test.describe('merged cell across the fixedRowsBottom line', () => {
         }
       });
 
+      test('finds the span cell of the clone when the master renders none of the block', async () => {
+        // 100 rows: the master renders the first screenful, far above the block and the frozen rows.
+        const data = Array.from({ length: 100 }, (_, r) => Array.from({ length: 10 }, (__, c) => `R${r + 1}C${c + 1}`));
+        const longBlock = { row: 90, col: 1, rowspan: 10, colspan: 1 };
+
+        await grid.initGrid({ data, fixedRowsBottom: 2, mergeCells: mergeCellsFor(mode, longBlock) });
+
+        for (const col of [0, 2, 3]) {
+          await expect.poll(() => grid.cellOffsetFromColumnHeader('bottom', 98, col)).toBe(0);
+        }
+
+        await expect.poll(() => grid.overlayCellState('bottom', 98, 1))
+          .toEqual({ displayed: true, rowspan: '2', text: '', className: expect.any(String) });
+        expect(await grid.topmostCellResolves(98, 1)).toBe(true);
+      });
+
       test('carries the span in the corner overlay when the block starts in the frozen column', async () => {
         await grid.initGrid({
           fixedRowsBottom: 2,

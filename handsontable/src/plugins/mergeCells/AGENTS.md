@@ -363,6 +363,12 @@ span. Three sites agree on that rule, and a fourth lives in Walkontable:
   (`hot.getCell(8, 1, true)`, `Event#parentCell` for a press on the clone's `.wtBorder.current`), which a rule
   keyed on `getActiveOverlayName()` cannot do: that name is `'master'` again once `Overlay#refresh` ends.
 
+- **With `virtualized`, a clone lookup must still get the block's REAL last row.** The `'render'` answer clips
+  the extent to the master's rendered range, which on a long grid ends far above the bottom clone, so
+  `Table#getCell`'s rule (extent reaches the clone) never fired and `hot.getCell(98, 1, true)` found nothing.
+  The `topmost` lookup (only `getCell` asks it, and it reads the first row and column of the answer) returns
+  `bottomEndRow`; the border and master lookups stay clipped. A short fixture hides this, because the master
+  there reaches the frozen rows: the spec uses 100 rows for it.
 - **Never clamp the block's extent.** `Border#resolveMergedBlockEdges` asks the hook for the real extent to tell
   which edges lie on a freeze line. Clamping it makes the clone draw a closed box with a selection edge on the
   freeze line, through the block. Only the cell lookup (`getCell`) moves to the clone's first row.
