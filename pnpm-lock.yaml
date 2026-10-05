@@ -40,6 +40,7 @@ overrides:
   typed-rest-client: ^3.1.0
   undici: ^6.28.1
   '@astrojs/mdx': ^6.0.1
+  '@tootallnate/once@1': ^2.0.1
   body-parser: ^1.20.6
   brace-expansion@1: ^1.1.21
   brace-expansion@2: ^2.1.7
@@ -66,6 +67,7 @@ overrides:
   smol-toml: ^1.7.1
   svgo@4: ^4.0.2
   external-editor>tmp: ^0.2.6
+  uuid@<11.1.1: ^11.1.1
   vite@6: ^6.4.3
   webpack-dev-middleware@7: ^7.4.6
   webpack-dev-server: ^5.2.6
@@ -638,6 +640,9 @@ importers:
       jest-environment-jsdom:
         specifier: ^27.5.1
         version: 27.5.1(form-data@4.0.6)
+      jest-environment-node:
+        specifier: ^27.5.1
+        version: 27.5.1
       jest-matcher-utils:
         specifier: ^27.5.1
         version: 27.5.1
@@ -6010,10 +6015,6 @@ packages:
     peerDependencies:
       react: ^18.0.0
       react-dom: ^18.0.0
-
-  '@tootallnate/once@1.1.2':
-    resolution: {integrity: sha512-RbzJvlNzmRq5c3O09UipeuXno4tA1FE6ikOjxZK0tuxVv3412l64l5t1W5pj4+rJq9vpkm/kwiR07aZXnsKPxw==}
-    engines: {node: '>= 6'}
 
   '@tootallnate/once@2.0.1':
     resolution: {integrity: sha512-HqmEUIGRJ5fSXchkVgR5F7qn48bDBzv0kWj/Kfu5e6uci4UlEeng4331LnBkWffb++Ei3FOVLxo8JJWMFBDMeQ==}
@@ -13412,14 +13413,8 @@ packages:
   utrie@1.0.2:
     resolution: {integrity: sha512-1MLa5ouZiOmQzUbjbu9VmjLzn1QLXBhwpUa7kdLUQK+KQ5KA9I1vk5U4YHe/X2Ch7PYnJfWuWT+VbuxbGwljhw==}
 
-  uuid@8.3.2:
-    resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
-    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
-    hasBin: true
-
-  uuid@9.0.1:
-    resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
-    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+  uuid@11.1.1:
+    resolution: {integrity: sha512-vIYxrBCC/N/K+Js3qSN88go7kIfNPssr/hHCesKCQNAjmgvYS2oqr69kIufEG+O4+PfezOH4EbIeHCfFov8ZgQ==}
     hasBin: true
 
   v8-to-istanbul@8.1.1:
@@ -17190,7 +17185,7 @@ snapshots:
     dependencies:
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 22.19.20
+      '@types/node': 20.19.42
       '@types/yargs': 16.0.11
       chalk: 4.1.2
 
@@ -19508,8 +19503,6 @@ snapshots:
       react-dom: 18.3.1(react@18.3.1)
     transitivePeerDependencies:
       - '@types/react'
-
-  '@tootallnate/once@1.1.2': {}
 
   '@tootallnate/once@2.0.1': {}
 
@@ -22707,7 +22700,7 @@ snapshots:
       saxes: 5.0.1
       tmp: 0.2.7
       unzipper: 0.10.14
-      uuid: 8.3.2
+      uuid: 11.1.1
 
   execa@5.1.1:
     dependencies:
@@ -23589,7 +23582,7 @@ snapshots:
 
   http-proxy-agent@4.0.1:
     dependencies:
-      '@tootallnate/once': 1.1.2
+      '@tootallnate/once': 2.0.1
       agent-base: 6.0.2
       debug: 4.4.3
     transitivePeerDependencies:
@@ -24475,7 +24468,7 @@ snapshots:
       '@jest/environment': 27.5.1
       '@jest/fake-timers': 27.5.1
       '@jest/types': 27.5.1
-      '@types/node': 22.19.20
+      '@types/node': 20.19.42
       jest-mock: 27.5.1
       jest-util: 27.5.1
 
@@ -24598,7 +24591,7 @@ snapshots:
   jest-mock@27.5.1:
     dependencies:
       '@jest/types': 27.5.1
-      '@types/node': 22.19.20
+      '@types/node': 20.19.42
 
   jest-mock@29.7.0:
     dependencies:
@@ -24885,7 +24878,7 @@ snapshots:
   jest-util@27.5.1:
     dependencies:
       '@jest/types': 27.5.1
-      '@types/node': 22.19.20
+      '@types/node': 20.19.42
       chalk: 4.1.2
       ci-info: 3.9.0
       graceful-fs: 4.2.11
@@ -27463,7 +27456,7 @@ snapshots:
       '@aws-sdk/client-s3': 3.1121.0
       mkdirp: 1.0.4
       reg-suit-util: 0.14.3
-      uuid: 9.0.1
+      uuid: 11.1.1
 
   reg-simple-keygen-plugin@0.14.2: {}
 
@@ -28347,7 +28340,7 @@ snapshots:
   sockjs@0.3.24:
     dependencies:
       faye-websocket: 0.11.4
-      uuid: 8.3.2
+      uuid: 11.1.1
       websocket-driver: 0.7.5
 
   socks-proxy-agent@8.0.5:
@@ -29318,9 +29311,7 @@ snapshots:
       base64-arraybuffer: 1.0.2
     optional: true
 
-  uuid@8.3.2: {}
-
-  uuid@9.0.1: {}
+  uuid@11.1.1: {}
 
   v8-to-istanbul@8.1.1:
     dependencies:

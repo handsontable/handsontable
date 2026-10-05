@@ -53,6 +53,7 @@ describe('Overlays scroll hook deduplication', () => {
     const onAfterScrollVertically = jasmine.createSpy('onAfterScrollVertically');
 
     core = new Core(container, {
+      theme: 'ht-theme-main',
       data: spreadsheetData(100, 100),
       width: 300,
       height: 200,
@@ -82,6 +83,7 @@ describe('Overlays scroll hook deduplication', () => {
     const onAfterScrollHorizontally = jasmine.createSpy('onAfterScrollHorizontally');
 
     core = new Core(container, {
+      theme: 'ht-theme-main',
       data: spreadsheetData(100, 100),
       width: 300,
       height: 200,
@@ -112,6 +114,7 @@ describe('Overlays scroll hook deduplication', () => {
     const onAfterScrollHorizontally = jasmine.createSpy('onAfterScrollHorizontally');
 
     core = new Core(container, {
+      theme: 'ht-theme-main',
       data: spreadsheetData(100, 100),
       width: 300,
       height: 200,
@@ -168,6 +171,7 @@ describe('Theme measurements cached against unresolved styles', () => {
    */
   const createGridWithStaleThemeMeasurements = () => {
     core = new Core(container, {
+      theme: 'ht-theme-main',
       data: spreadsheetData(20, 5),
       width: 300,
       height: 200,

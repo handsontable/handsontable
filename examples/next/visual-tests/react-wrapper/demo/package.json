@@ -33,7 +33,7 @@
     "jasmine": "3.7.0",
     "jasmine-console-reporter": "3.1.0",
     "puppeteer": "^25.12.0",
-    "react-router-dom": "^6.22.3",
+    "react-router-dom": "^7.18.0",
     "typescript": "^5.0.2",
     "vite": "^6.4.3"
   },
