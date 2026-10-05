@@ -43,10 +43,14 @@ describe('manualColumnResize (RTL)', () => {
     await waitForNextAnimationFrames(2);
 
     const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
+    // The floor is the icon size plus the cell padding on both sides, so it follows the theme.
+    const style = getComputedStyle(handsontable().rootElement);
+    const minWidth = parseFloat(style.getPropertyValue('--ht-icon-size')) +
+      (2 * parseFloat(style.getPropertyValue('--ht-cell-horizontal-padding')));
 
-    expect($columnHeaders.eq(1).outerWidth()).toBe(20);
-    expect($columnHeaders.eq(2).outerWidth()).toBe(20);
-    expect($columnHeaders.eq(3).outerWidth()).toBe(20);
+    expect($columnHeaders.eq(1).outerWidth()).toBe(minWidth);
+    expect($columnHeaders.eq(2).outerWidth()).toBe(minWidth);
+    expect($columnHeaders.eq(3).outerWidth()).toBe(minWidth);
   });
 
   it('should resize (expanding) selected columns', async() => {

@@ -59,6 +59,17 @@
       --ht-sort-indicator-reserve-end: var(--ht-sort-indicator-reserve);
       // Room held open before a trailing button for the indicator to sit in.
       --ht-header-button-slot: calc(var(--ht-icon-size, 16px) + 2px);
+      // The narrowest a header with a menu button and a sort indicator can be before the indicator
+      // has to give way: the indicator's reserve, the gap, the button's slot and the cell padding
+      // at the other edge, with the label already gone. A step, not a ramp - see the narrow-header
+      // block below.
+      --ht-header-indicator-min-width: calc(2 * var(--ht-cell-horizontal-padding) + 2 * var(--ht-icon-size, 16px) + 6px);
+      // The same, measured on the content box, which is what a percentage `column-gap` resolves
+      // against.
+      --ht-header-indicator-min-content-width: calc(2 * var(--ht-icon-size, 16px) + 6px);
+      // The gap between the label and the menu button as the header currently lays it out; the label's
+      // narrow-header `min-width` leaves room for it. 2px is the base gap (`_base.scss`).
+      --ht-header-gap: 2px;
     }
 
     // Step the indicator over a trailing icon button. What has to be cleared is the button's border
@@ -80,8 +91,16 @@
     // margin on the button: the button carries a uniform negative margin that a one-sided override
     // would cancel, widening the header.
     .relative.has-sort-indicator.has-header-button {
-      // 2px is the base gap between header items (`_base.scss`).
-      column-gap: calc(2px + var(--ht-header-button-slot));
+      // 2px is the base gap between header items (`_base.scss`). Below the minimum content width the
+      // slot closes: `(100% - minimum) * 1000` is a large negative length there and a large positive
+      // one above, so `clamp()` turns it into a step between the base gap and the full slot.
+      --ht-header-gap: clamp(
+        2px,
+        calc((100% - var(--ht-header-indicator-min-content-width)) * 1000 + 2px),
+        calc(2px + var(--ht-header-button-slot))
+      );
+
+      column-gap: var(--ht-header-gap);
     }
 
     // Room for the indicator, held on the container rather than as padding on the label - padding
@@ -103,6 +122,48 @@
 
       // The indicator is opposite the button here, so nothing needs holding open.
       --ht-header-button-slot: 0px;
+    }
+
+    // With a button, the reserve at the start edge closes in a narrow header together with the
+    // indicator it holds the room for. The RTL block below carries a rule of the same specificity for
+    // `htRight` that has to win over this one, and does so only by coming later in the file.
+    .relative.htRight.has-sort-indicator.has-header-button,
+    .htRight .relative.has-sort-indicator.has-header-button {
+      padding-inline-start: clamp(
+        var(--ht-cell-horizontal-padding),
+        calc((100% - var(--ht-header-indicator-min-width)) * 1000 + var(--ht-cell-horizontal-padding)),
+        var(--ht-sort-indicator-reserve)
+      );
+    }
+
+    // Narrow header with a menu button (DEV-158). As the column narrows, the header gives things up
+    // in this order: the label text, then the sort indicator, and the menu button last - it is the
+    // only way into the menu, and the narrowest column (`manualColumnResize`'s floor) is sized to hold
+    // it. The label may only collapse next to a button: with no button, `min-width` above keeps the
+    // sortable label open in a narrow column.
+    .relative.has-header-button .colHeader.columnSorting.sortAction {
+      min-width: min(
+        calc(var(--ht-icon-size, 16px) + 8px),
+        max(0px, calc(100% - var(--ht-icon-size, 16px) - 2px - var(--ht-header-gap)))
+      );
+    }
+
+    // The indicator (`::before`) and the multi-column sort order (`::after`) are pinned to
+    // `.relative`, so a percentage resolves against its padding box. Capped to zero below the
+    // minimum width the header needs to show them next to the button; a step, like the gap above.
+    .relative.has-header-button.has-sort-indicator .colHeader.columnSorting.sortAction {
+      &::before {
+        max-width: clamp(
+          0px,
+          calc((100% - var(--ht-header-indicator-min-width)) * 1000),
+          var(--ht-icon-size, 16px)
+        );
+      }
+
+      &::after {
+        max-width: clamp(0px, calc((100% - var(--ht-header-indicator-min-width)) * 1000), 8px);
+        overflow: hidden;
+      }
     }
 
     .columnSorting:not(.indicatorDisabled) {
@@ -164,6 +225,16 @@
         --ht-header-button-slot: 0px;
       }
 
+      // Same closing reserve as in LTR, on the side opposite the button.
+      .relative.htLeft.has-sort-indicator.has-header-button,
+      .htLeft .relative.has-sort-indicator.has-header-button {
+        padding-inline-start: clamp(
+          var(--ht-cell-horizontal-padding),
+          calc((100% - var(--ht-header-indicator-min-width)) * 1000 + var(--ht-cell-horizontal-padding)),
+          var(--ht-sort-indicator-reserve)
+        );
+      }
+
       .columnSorting {
         &.sortAction {
           &::before {
@@ -203,6 +274,24 @@
   .htGhostTable .htCore .relative.has-header-button {
     --ht-sort-indicator-reserve: var(--ht-cell-horizontal-padding);
     --ht-sort-indicator-reserve-end: var(--ht-cell-horizontal-padding);
+  }
+
+  // The narrow-header rules above resolve percentages against the header's width, which the ghost
+  // table does not have yet - it is measuring that width. Keep its sizing exactly as it was, so
+  // `autoColumnSize` does not change.
+  .htGhostTable .htCore .relative.has-header-button .colHeader.columnSorting.sortAction {
+    min-width: min(calc(var(--ht-icon-size, 16px) + 8px), 100%);
+
+    &::before,
+    &::after {
+      max-width: none;
+    }
+  }
+
+  .htGhostTable .htCore .relative.has-sort-indicator.has-header-button {
+    --ht-header-gap: calc(2px + var(--ht-header-button-slot));
+
+    column-gap: var(--ht-header-gap);
   }
 
   .htGhostTable

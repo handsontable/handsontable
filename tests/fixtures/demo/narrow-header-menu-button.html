@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Narrow header with a menu button e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+</head>
+<body>
+  <!--
+    DEV-158. A column dragged to its narrowest left the header's menu button hanging over the
+    neighbouring header: the label and the sort indicator kept their room and pushed the button out of
+    its own cell. The narrowest width is now the icon size plus the cell padding on both sides, and the
+    header gives up the label text, then the sort indicator, and keeps the menu button.
+
+    The overflow is a layout fact (percentages against the header's width, flex shrinking), so none of
+    it can be checked in jsdom.
+  -->
+  <h2>Menu button only</h2>
+  <div id="menu" data-testid="menu"></div>
+
+  <h2>Menu button and sorting</h2>
+  <div id="menu-sort" data-testid="menu-sort"></div>
+
+  <!-- The alignment class moves the sort indicator to the edge opposite the button. -->
+  <h2>Menu button and sorting, aligned right</h2>
+  <div id="menu-sort-right" data-testid="menu-sort-right"></div>
+
+  <h2>Menu button and sorting, right to left</h2>
+  <div id="menu-sort-rtl" data-testid="menu-sort-rtl"></div>
+
+  <!-- Against the direction, `htLeft` moves the indicator to the edge opposite the button. -->
+  <h2>Menu button and sorting, right to left, aligned left</h2>
+  <div id="menu-sort-rtl-left" data-testid="menu-sort-rtl-left"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    /**
+     * Builds one grid.
+     *
+     * @param {string} testId The container's test id.
+     * @param {object} settings The settings under test.
+     * @returns {Handsontable} The grid instance.
+     */
+    function buildGrid(testId, settings) {
+      const container = document.querySelector(`[data-testid="${testId}"]`);
+
+      container.className = `ht-theme-${window.htTheme}`;
+
+      if (settings.layoutDirection === 'rtl') {
+        container.dir = 'rtl';
+      }
+
+      return new Handsontable(container, Object.assign({
+        data: Handsontable.helper.createSpreadsheetData(5, 4),
+        colHeaders: ['Name', 'Longer header text', 'City', 'Country'],
+        rowHeaders: true,
+        manualColumnResize: true,
+        dropdownMenu: true,
+        width: 600,
+        height: 200,
+        licenseKey: 'non-commercial-and-evaluation',
+      }, settings));
+    }
+
+    window.grids = {
+      menu: buildGrid('menu', {}),
+      menuSort: buildGrid('menu-sort', { columnSorting: true }),
+      menuSortRight: buildGrid('menu-sort-right', { columnSorting: true, className: 'htRight' }),
+      menuSortRtl: buildGrid('menu-sort-rtl', { columnSorting: true, layoutDirection: 'rtl' }),
+      menuSortRtlLeft: buildGrid('menu-sort-rtl-left', {
+        columnSorting: true,
+        layoutDirection: 'rtl',
+        className: 'htLeft',
+      }),
+    };
+
+    /**
+     * Sorts one column of one grid, ascending.
+     *
+     * @param {string} name The grid's key in `window.grids`.
+     * @param {number} column The visual column index.
+     */
+    window.sortColumn = function(name, column) {
+      window.grids[name].getPlugin('columnSorting').sort({ column, sortOrder: 'asc' });
+    };
+  </script>
+</body>
+</html>

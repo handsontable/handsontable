@@ -343,6 +343,32 @@ declared there, not in the core-package file).
 it, and with `headerAction: false` the label shows an indicator but keeps its full width, so reserving would
 just push it inwards.
 
+## A narrow header gives things up in a fixed order, with no JavaScript (DEV-158)
+
+When a column is as narrow as `manualColumnResize` allows (`--ht-icon-size + 2 * --ht-cell-horizontal-padding`,
+32px in Main), the header gives things up in this order: the label text, then the sort indicator, then the menu
+button, which is the only way into the menu. The rules are in `_column-sorting.scss`, under "Narrow header with a
+menu button", and they run on percentages instead of a class or a measurement. Four traps:
+
+- **The cut-offs are steps, not ramps.** `clamp(0px, calc((100% - min) * 1000), icon)` is `0` below `min` and the
+  full value above it, so the indicator is either drawn or gone and never squeezed (a squeezed mask icon is
+  distorted, not clipped). The same trick closes the indicator slot in `column-gap` and in the start padding of
+  the opposite-side alignment (`htRight` in LTR, `htLeft` in RTL).
+- **Each percentage has its own basis.** `column-gap` resolves against the `.relative` content box, so it uses
+  `--ht-header-indicator-min-content-width`; `max-width` on `::before`/`::after` and `padding-inline-start`
+  resolve against the padding box and the containing block, so they use `--ht-header-indicator-min-width`. The
+  label's `min-width` reads the current gap through `--ht-header-gap`, because with the slot open (20px in Main)
+  the label has to leave room for it, not only for the button.
+- **`max-width`, not `width`, on the indicator.** The theme icon sheets set `width` on `.columnSorting.sortAction
+  .ascending::before` with more specificity than anything here; `max-width` wins regardless.
+- **The ghost table opts out.** It has no width yet - it is measuring one - so a percentage there resolves
+  against nothing. `.htGhostTable` restores the pre-DEV-158 `min-width`, `column-gap` and `max-width`, which keeps
+  `autoColumnSize` results identical. Without that, RTL + `htRight` + a sorted column + a menu button measured
+  18px narrower.
+
+The threshold uses the same tokens the floor is built from. Change one of them and re-measure all three themes,
+both directions, `htRight`/`htLeft`, sorted and unsorted; the menu icon has to stay inside its own `th`.
+
 ## `destroy()` has to clear the private field by hand
 
 `BasePlugin.destroy` nulls enumerable *own* properties, which cannot reach a `#private` field. So

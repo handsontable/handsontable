@@ -48,8 +48,33 @@ plugin re-enable), before the local hook could attach. Same replay as `../hidden
 
 The gesture writes every width through the private `#setManualSize()` and tracks a drag with `#clampSize()`,
 never through the public `setManualSize()` (that one opens an undo step of its own). Both use `#clampSize()`,
-so the 20px floor has one home. A drag stores the width only on release - see "One press, one undo step" in
+so the width floor has one home. A drag stores the width only on release - see "One press, one undo step" in
 `../../utils/manualResize/AGENTS.md`.
+
+## The width floor is derived from the theme, not a constant (DEV-158)
+
+`#getMinWidth()` returns `--ht-icon-size + 2 * --ht-cell-horizontal-padding` (32px in Main, 40px in Horizon, 24px
+in Classic): the room a header needs for its menu button. It reads both tokens through
+`hot.stylesHandler.getCSSVariableValue()`, which caches them until the theme changes, so a drag reads it on
+every pointer move for free. Four rules ride along:
+
+- **The floor is applied when a width is written, not when it is read.** `setManualSize()`, `setManualSizes()` and
+  the drag go through `#clampSize()`. A width stored under another theme, or declared in the `manualColumnResize`
+  array (replayed by `#onMapInit` without a clamp), is kept as it is, so a theme switch never rewrites stored
+  widths and `getManualSize()` returns what was stored.
+- **A missing or non-numeric token falls back to 20px, and the floor is never below 20px.** A grid without a theme
+  has no tokens, jsdom loads no theme, and a custom theme may declare a token as `calc()`, which
+  `getCSSVariableValue()` returns as a string. `Number()` turns any of those into `NaN`, and the guard in
+  `#getMinWidth()` keeps `NaN` out of the clamp. A token in `rem` or `em` is the opposite trap: `StylesHandler`
+  runs `parseFloat()` and `Math.ceil()` on the raw text, so `1.25rem` reads as `2`. The result is therefore floored
+  at 20px, or a rem-based custom theme would let a column get narrower than the old floor.
+- **The floor is the same with and without a column header.** A grid that renders no headers still gets 32px in
+  Main: the width map does not know what the grid renders, and a floor that changed with `colHeaders` would
+  change stored widths when a user toggles them.
+- **The floor only means something because the header CSS can collapse to it.** At 32px the content box is 15px,
+  so the label and the sort indicator must give way to the menu button. That is `_column-sorting.scss`
+  ("Narrow header with a menu button"); see `../columnSorting/AGENTS.md`. Raising or lowering the floor without
+  re-measuring the icon against the header, in all three themes and both directions, brings the bug back.
 
 ## Where the column axis differs from the row axis
 
