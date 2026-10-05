@@ -359,11 +359,13 @@ export class ManualColumnResize extends BasePlugin {
     }
 
     const columnCount = this.hot.columnIndexMapper.getNumberOfIndexes();
+    // Read once: the floor cannot change inside the loop, and a restore can carry thousands of widths.
+    const minWidth = this.#getMinWidth();
 
     this.hot.batchExecution(() => {
       sizes.forEach(([physicalColumn, width]) => {
         if (physicalColumn >= 0 && physicalColumn < columnCount) {
-          this.#columnWidthsMap.setValueAtIndex(physicalColumn, this.#clampSize(width));
+          this.#columnWidthsMap.setValueAtIndex(physicalColumn, Math.max(width, minWidth));
         }
       });
     }, true);

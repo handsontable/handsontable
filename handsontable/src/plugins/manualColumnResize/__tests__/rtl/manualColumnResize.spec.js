@@ -43,10 +43,11 @@ describe('manualColumnResize (RTL)', () => {
     await waitForNextAnimationFrames(2);
 
     const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
-    // The floor is the icon size plus the cell padding on both sides, so it follows the theme.
-    const style = getComputedStyle(handsontable().rootElement);
-    const minWidth = parseFloat(style.getPropertyValue('--ht-icon-size')) +
-      (2 * parseFloat(style.getPropertyValue('--ht-cell-horizontal-padding')));
+    // The narrowest width follows the theme. It is pinned per theme on purpose, so a wrong formula in the
+    // plugin cannot pass by repeating itself here.
+    const minWidth = { 'ht-theme-main': 32, 'ht-theme-horizon': 40, 'ht-theme-classic': 24 }[
+      handsontable().getCurrentThemeName()
+    ];
 
     expect($columnHeaders.eq(1).outerWidth()).toBe(minWidth);
     expect($columnHeaders.eq(2).outerWidth()).toBe(minWidth);

@@ -1397,13 +1397,13 @@ The new minimum applies when you resize a column by dragging, when you double-cl
 
 The minimum is the same for every grid with [`manualColumnResize`](@/api/options.md#manualcolumnresize), including a grid without column headers or without a menu.
 
-As a column gets narrow, its header now gives things up in a fixed order: the label text, then the sort indicator, and the menu button last. The menu button stays inside its own header at every width the user can reach. At the minimum width the label is gone, so a click on the header text can't sort the column. Sorting with the keyboard (<kbd>**Enter**</kbd> on the header) and with the [`sort()`](@/api/columnSorting.md#sort) method still works.
+As a column gets narrow, its header now gives things up in a fixed order: the label text, then the sort indicator, and the menu button last. The sort indicator of a column that has a menu button is hidden below `2 × --ht-cell-horizontal-padding + 2 × --ht-icon-size + 6px`, which is 54px in Main, 62px in Horizon, and 42px in Classic. That is above the minimum width, so a sorted column of that width shows no arrow (and no sort order number with [`multiColumnSorting`](@/api/multiColumnSorting.md)) where it used to. The label gives up room to the menu button earlier still, as soon as the column can't hold both. The menu button stays inside its own header at every width the user can reach. At the minimum width the label is gone, so a click on the header text can't sort the column. You can still sort with the [`sort()`](@/api/columnSorting.md#sort) method, or with <kbd>**Enter**</kbd> on the header when [`navigableHeaders`](@/api/options.md#navigableheaders) is enabled.
 
 These widths don't change:
 
 - A width you declare in the [`manualColumnResize`](@/api/options.md#manualcolumnresize) array, in [`colWidths`](@/api/options.md#colwidths), or in a column's `width`. Handsontable doesn't clamp them.
 - A width that [`autoColumnSize`](@/api/autoColumnSize.md) or column stretching calculates. The exception is the double-click on the resize handle, which stores the fitted width as a manual width, so it can't go below the minimum.
-- A width that is already stored. Handsontable applies the minimum when it writes a width, not when it reads one, so a theme change never rewrites stored widths.
+- A width that is already stored. Handsontable applies the minimum when it writes a width, not when it reads one, so a theme change never rewrites stored widths. Writing a stored width back through `setManualSizes()` applies the minimum again. The [`sheetsBar`](@/api/sheetsBar.md) plugin does that when you switch sheets, so a width below the minimum that came from the `manualColumnResize` array comes back as the minimum after you leave a sheet and return.
 
 ### Who is affected
 

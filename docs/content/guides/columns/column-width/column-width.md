@@ -263,7 +263,7 @@ A column can't get narrower than its header's menu button needs. The minimum wid
 
 The minimum is never less than `20px`. If the theme doesn't declare these values, for example when you use a custom theme that sets them with `calc()`, the minimum is `20px`.
 
-When a column is narrow, the header hides things in this order: the label text, then the sort indicator, and then the menu button. The menu button stays visible at the minimum width. At that width you can't sort by clicking the header text, but sorting with the keyboard (<kbd>**Enter**</kbd> on the header) and with the [`sort()`](@/api/columnSorting.md#sort) method still works.
+When a column is narrow, the header hides things in this order: the label text, then the sort indicator, and then the menu button. The menu button stays visible at the minimum width. At that width you can't sort by clicking the header text. You can still sort with the [`sort()`](@/api/columnSorting.md#sort) method, or with <kbd>**Enter**</kbd> on the header when [`navigableHeaders`](@/api/options.md#navigableheaders) is enabled.
 
 ::: tip
 

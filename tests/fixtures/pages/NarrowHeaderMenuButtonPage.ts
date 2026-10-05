@@ -71,18 +71,16 @@ export class NarrowHeaderMenuButtonPage {
   }
 
   /**
-   * The narrowest width the active theme allows: the icon size plus the cell padding on both sides.
+   * The narrowest width the active theme allows, pinned per theme: the icon size plus the cell padding
+   * on both sides is 16 + 2 * 8 in Main, 16 + 2 * 12 in Horizon and 12 + 2 * 6 in Classic. Pinned rather
+   * than computed from the tokens, so a wrong formula in the plugin cannot pass by being repeated here.
    *
-   * @param {string} testId The grid's test id.
-   * @returns {Promise<number>}
+   * @returns {number}
    */
-  async minimumWidth(testId: string): Promise<number> {
-    return this.grid(testId).evaluate((root) => {
-      const style = getComputedStyle(root.querySelector('.ht-root-wrapper') ?? root);
+  minimumWidth(): number {
+    const widths: Record<string, number> = { main: 32, horizon: 40, classic: 24 };
 
-      return parseFloat(style.getPropertyValue('--ht-icon-size')) +
-        (2 * parseFloat(style.getPropertyValue('--ht-cell-horizontal-padding')));
-    });
+    return widths[this.theme];
   }
 
   /**

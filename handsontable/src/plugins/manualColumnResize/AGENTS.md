@@ -61,7 +61,9 @@ every pointer move for free. Four rules ride along:
 - **The floor is applied when a width is written, not when it is read.** `setManualSize()`, `setManualSizes()` and
   the drag go through `#clampSize()`. A width stored under another theme, or declared in the `manualColumnResize`
   array (replayed by `#onMapInit` without a clamp), is kept as it is, so a theme switch never rewrites stored
-  widths and `getManualSize()` returns what was stored.
+  widths and `getManualSize()` returns what was stored. A write-back is a write: `sheetsBar`'s `restoreSizes()`
+  sends every captured width through `setManualSizes()`, so a below-floor width from the array comes back clamped
+  after a sheet switch.
 - **A missing or non-numeric token falls back to 20px, and the floor is never below 20px.** A grid without a theme
   has no tokens, jsdom loads no theme, and a custom theme may declare a token as `calc()`, which
   `getCSSVariableValue()` returns as a string. `Number()` turns any of those into `NaN`, and the guard in

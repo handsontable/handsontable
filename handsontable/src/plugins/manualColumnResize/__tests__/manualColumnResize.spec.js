@@ -279,11 +279,12 @@ describe('manualColumnResize', () => {
     await waitForNextAnimationFrames(63);
 
     const $columnHeaders = spec().$container.find('.ht_clone_top thead tr:eq(0) th');
-    // The drag lands on 35px, which is below the narrowest width of some themes (40px in Horizon). That
-    // width is the icon size plus the cell padding on both sides, and the header's border takes 1px of it.
-    const style = getComputedStyle(handsontable().rootElement);
-    const minWidth = parseFloat(style.getPropertyValue('--ht-icon-size')) +
-      (2 * parseFloat(style.getPropertyValue('--ht-cell-horizontal-padding')));
+    // The drag lands on 35px, which is below the narrowest width of some themes. The narrowest width is
+    // pinned per theme on purpose, so a wrong formula in the plugin cannot pass by repeating itself here.
+    // The header's border takes 1px of it, which `width()` does not count.
+    const minWidth = { 'ht-theme-main': 32, 'ht-theme-horizon': 40, 'ht-theme-classic': 24 }[
+      handsontable().getCurrentThemeName()
+    ];
     const expectedWidth = Math.max(34, minWidth - 1);
 
     expect($columnHeaders.eq(1).width()).toBe(expectedWidth);

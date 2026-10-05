@@ -65,7 +65,7 @@ test.describe('Narrow header with a menu button', () => {
     }
 
     test(`stops ${label} column at the width that fits its menu button`, async () => {
-      const minimum = await grid.minimumWidth(testId);
+      const minimum = grid.minimumWidth();
 
       await grid.dragColumnHandle(testId, COLUMN, toNarrowest);
 
@@ -107,7 +107,7 @@ test.describe('Narrow header with a menu button', () => {
 
         const { width, icon, indicator } = await grid.geometry(testId, COLUMN);
 
-        expect(width).toBeGreaterThan(await grid.minimumWidth(testId));
+        expect(width).toBeGreaterThan(grid.minimumWidth());
         expect(indicator).toBeGreaterThan(0);
         expect(icon[1]).toBeLessThanOrEqual(width + 1);
       });
