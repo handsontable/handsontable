@@ -48,8 +48,38 @@ plugin re-enable), before the local hook could attach. Same replay as `../hidden
 
 The gesture writes every width through the private `#setManualSize()` and tracks a drag with `#clampSize()`,
 never through the public `setManualSize()` (that one opens an undo step of its own). Both use `#clampSize()`,
-so the 20px floor has one home. A drag stores the width only on release - see "One press, one undo step" in
+so the width floor has one home. A drag stores the width only on release - see "One press, one undo step" in
 `../../utils/manualResize/AGENTS.md`.
+
+## The width floor is derived from the theme, and only for grids with a menu button (DEV-158)
+
+`#getMinWidth()` returns the room a header needs for its menu button, `--ht-icon-size + 2 *
+--ht-cell-horizontal-padding` (32px in Main, 40px in Horizon, 24px in Classic). Five rules ride along:
+
+- **It applies only when the headers render the button.** `#rendersMenuButton()` is "the grid renders at least one
+  column header row" (`hot.countColHeaders() > 0`, not the `colHeaders` option: `nestedHeaders` draws header rows with
+  `colHeaders` off, and the menu puts its button on the bottom one) and the `dropdownMenu` plugin enabled (asked
+  through `hot.getPlugin()`, never imported). Any other grid keeps 20px: there
+  is no button to protect, and a header-less grid or a spacer column used to be able to go below 32px. It is read when
+  a width is written, so enabling the menu later applies from then on.
+- **The tokens are resolved in the browser**, through `hot.stylesHandler.getResolvedLength()`, which sets the
+  expression as the width of a hidden element inside the root element and reads `offsetWidth`. That is what makes
+  a token in `rem`, `em` or `calc()` count: `getCSSVariableValue()` runs `parseFloat()` and `Math.ceil()` on the raw
+  text, so `1.25rem` reads as `2`. The answer is cached until the theme changes, so a drag pays for it once.
+- **The floor is never below 20px, and an unusable measurement is 20px.** No theme, a theme that does not declare
+  the tokens, a grid inside a hidden tab, and jsdom all measure `0`; `getResolvedLength()` answers `null` for that
+  and does not cache it (a cached zero would stick after the grid is revealed), and the plugin falls back to 20px.
+- **The floor is applied when a width is written, not when it is read.** `setManualSize()`, `setManualSizes()` and
+  the drag go through `#clampSize()`, and `setManualSizes()` reads the floor once per call because a restore can
+  carry thousands of widths. A width declared in the `manualColumnResize` array (replayed by `#onMapInit` without a
+  clamp), or stored under another theme, is kept as it is, so a theme switch never rewrites stored widths and
+  `getManualSize()` returns what was stored. A write-back is a write: `sheetsBar`'s `restoreSizes()` sends every
+  captured width through `setManualSizes()`, so a below-floor width from the array comes back clamped after a
+  sheet switch.
+- **The floor only means something because the header CSS can collapse to it.** At 32px the content box is 15px,
+  so the label and the sort indicator must give way to the menu button. That is `_column-sorting.scss`
+  ("Narrow header with a menu button"); see `../columnSorting/AGENTS.md`. Raising or lowering the floor without
+  re-measuring the icon against the header, in all three themes and both directions, brings the bug back.
 
 ## Where the column axis differs from the row axis
 
