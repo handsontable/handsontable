@@ -697,4 +697,28 @@ describe('mapWorkbook on number formats a spreadsheet app writes, whichever engi
       expect(knownDropped.list()).not.toContain('formula:definedName');
     }
   });
+
+  it('should report cellStyles on values.xlsx through ExcelJS only, which pins the engines\' difference', async() => {
+    // ExcelJS resolves a cell's default font and fill into a style object whenever the cell carries a
+    // format index, so it reports styling the file never applied; the built-in reader does not. The
+    // snapshot-level parity hides this (normalization #3), so the mapped result pins both values.
+    const dropped = {};
+
+    const legs = [['native', nativeAdapter, undefined], ['exceljs', excelJsAdapter, ExcelJS]];
+
+    for (const [kind, adapter, engine] of legs) {
+      const recorder = new DroppedFeatures();
+      // eslint-disable-next-line no-await-in-loop -- one engine at a time.
+      const read = await adapter.read(fixture('values'), engine, recorder);
+
+      mapWorkbook(read, resolveImportOptions({}), {
+        formulasEnabled: false, commentsEnabled: false, customBordersEnabled: false,
+      }, recorder);
+      dropped[kind] = recorder.list();
+    }
+
+    expect(dropped.native).not.toContain('cellStyles');
+    expect(dropped.exceljs).toContain('cellStyles');
+  });
 });
+
