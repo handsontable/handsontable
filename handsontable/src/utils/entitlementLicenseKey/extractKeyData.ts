@@ -44,8 +44,8 @@ const ESCAPED_WHITESPACE = /\\[nrt]/g;
 
 /**
  * Brings the human-readable text of a key to the form the checksum covers:
- * Unicode NFC, with every escaped line break or tab (`\n`, `\r`, `\t` saved as
- * text) and every whitespace character removed.
+ * every escaped line break or tab (`\n`, `\r`, `\t` saved as text) and every
+ * whitespace character removed, then Unicode NFC.
  *
  * Only the whitespace, its escaped forms, and the Unicode composition are
  * ignored. A mail client that rewraps the text (also between two CJK
@@ -59,7 +59,9 @@ const ESCAPED_WHITESPACE = /\\[nrt]/g;
  * @returns {string}
  */
 export function canonicalizeProse(prose: string): string {
-  return prose.normalize('NFC').replace(ESCAPED_WHITESPACE, '').replace(PROSE_WHITESPACE, '');
+  // NFC runs last: a line break between a letter and its combining mark (an
+  // NFD copy rewrapped there) has to be gone before the two can compose.
+  return prose.replace(ESCAPED_WHITESPACE, '').replace(PROSE_WHITESPACE, '').normalize('NFC');
 }
 
 /**

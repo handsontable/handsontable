@@ -226,7 +226,7 @@ describe('entitlementLicenseKey/extractKeyData', () => {
       });
     });
 
-    // The expected verdicts below come from the license-key validator at 75154d2, run on the same
+    // The expected verdicts below come from the license-key validator at bc03d89, run on the same
     // variants of this generated key. They pin the reader to the generator: `buildTestKey` checksums
     // with this reader's own `canonicalizeProse`, so it would agree with any change to it.
     it('should ignore exactly the whitespace characters the generator ignores', () => {
@@ -310,6 +310,22 @@ describe('entitlementLicenseKey/extractKeyData', () => {
       expect(extractEntitlementKeyData(ACCENTED_HOLDER_KEY)).toEqual(expected());
       expect(extractEntitlementKeyData(decomposed)).toEqual(expected());
       expect(extractEntitlementKeyData(ACCENTED_HOLDER_KEY.replace('\u00fc', 'u'))).toBeNull();
+    });
+
+    it('should read a decomposed (NFD) key rewrapped between a letter and its combining mark', () => {
+      // NFC has to run after the whitespace is removed, or the letter and the mark never compose.
+      const decomposed = [...ACCENTED_HOLDER_KEY.normalize('NFD')];
+      const markPositions = decomposed
+        .map((char, index) => (/\p{M}/u.test(char) ? index : -1))
+        .filter(index => index > 0);
+
+      expect(markPositions.length).toBeGreaterThan(0);
+
+      markPositions.forEach((index) => {
+        const wrapped = `${decomposed.slice(0, index).join('')}\n${decomposed.slice(index).join('')}`;
+
+        expect(extractEntitlementKeyData(wrapped)).toEqual(expected());
+      });
     });
 
     it('should read a key whose CJK prose was wrapped between two CJK characters', () => {
