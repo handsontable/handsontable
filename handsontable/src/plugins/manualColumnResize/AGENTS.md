@@ -121,3 +121,8 @@ so this plugin's double-click autofit keeps working. Do not "clean that up" ther
 `../nestedHeaders/__tests__/resizingColumns.spec.js` resizes a column in a grid that has spanning headers, but
 it does not assert that a spanning header itself refuses the handle - that rule is pinned by
 `../../utils/manualResize/__tests__/axis.unit.js`.
+
+## Frozen end columns
+
+The headers of the `fixedColumnsEnd` columns resize from their inline-start edge: see "The frozen end columns
+anchor to the inline-end edge" in `../../utils/manualResize/AGENTS.md`. The plugin itself changes nothing.

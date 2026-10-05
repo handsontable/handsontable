@@ -368,6 +368,82 @@ describe('ResizeGesture', () => {
       expect(horizontal.owner.setManualSize).toHaveBeenLastCalledWith(3, 30);
     });
 
+    describe('a header anchored to the inline end (the frozen end columns)', () => {
+      // The header is 80px wide and starts 50px from the inline start. Its inline-end edge cannot move.
+      function createAnchored({ rtl }) {
+        const grid = createGesture({
+          orientation: 'horizontal',
+          rtl,
+          axis: { isAnchoredAtInlineEnd: () => true },
+        });
+
+        Object.defineProperty(grid.th, 'offsetWidth', { value: 80 });
+
+        return grid;
+      }
+
+      it('should put the handle on the inline-start edge of the header', () => {
+        const { th, handle } = createAnchored({ rtl: false });
+
+        mouse('mouseover', th);
+
+        // The header starts at 50, the handle is centered on that edge (6px before it).
+        expect(handle().style.left).toBe('44px');
+      });
+
+      it('should widen the column when the pointer moves towards the inline start, and move the handle with it', () => {
+        const { th, handle, owner } = createAnchored({ rtl: false });
+
+        mouse('mouseover', th);
+        mouse('mousedown', handle(), { pageX: 100 });
+        mouse('mousemove', window, { pageX: 70 });
+
+        expect(owner.clampSize).toHaveBeenLastCalledWith(110);
+        expect(handle().style.left).toBe('14px');
+
+        mouse('mouseup', window);
+
+        expect(owner.setManualSize).toHaveBeenLastCalledWith(3, 110);
+      });
+
+      it('should narrow the column when the pointer moves towards the inline end', () => {
+        const { th, handle, owner } = createAnchored({ rtl: false });
+
+        mouse('mouseover', th);
+        mouse('mousedown', handle(), { pageX: 100 });
+        mouse('mousemove', window, { pageX: 130 });
+        mouse('mouseup', window);
+
+        expect(owner.setManualSize).toHaveBeenLastCalledWith(3, 50);
+      });
+
+      it('should widen the column when the pointer moves towards the inline start under RTL (to the right)', () => {
+        const { th, handle, owner } = createAnchored({ rtl: true });
+
+        mouse('mouseover', th);
+
+        expect(handle().style.right).toBe('44px');
+
+        mouse('mousedown', handle(), { pageX: 100 });
+        mouse('mousemove', window, { pageX: 130 });
+
+        expect(handle().style.right).toBe('14px');
+
+        mouse('mouseup', window);
+
+        expect(owner.setManualSize).toHaveBeenLastCalledWith(3, 110);
+      });
+
+      it('should leave a header that is not anchored on its inline-end edge', () => {
+        const { th, handle } = createGesture({ orientation: 'horizontal' });
+
+        Object.defineProperty(th, 'offsetWidth', { value: 80 });
+        mouse('mouseover', th);
+
+        expect(handle().style.left).toBe('124px');
+      });
+    });
+
     it('should not flip the pointer delta under RTL for a vertical axis', () => {
       const vertical = createGesture({ orientation: 'vertical', rtl: true });
 

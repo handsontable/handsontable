@@ -420,3 +420,10 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 Tests: `__tests__/*.unit.js` (Jest), `tests/e2e/sheets-bar*.spec.ts` (Playwright),
 `visual-tests/tests/js-only/sheetsBar/`. The unit suite drives the strip through DOM events and
 a captured `TabStrip` instance — the plugin exposes no test-only methods.
+
+## `fixedColumnsEnd` follows the same rules as `fixedColumnsStart`
+
+The per-sheet view state captures and restores `fixedColumnsEnd`, `#neutralFixedColumnsEnd` is the value a sheet
+with no captured state opens with, `resetViewState(hot, start, end)` takes both, and `#restoreBaselineToGrid()`
+puts a runtime end freeze back on teardown. A freeze set at runtime on one sheet therefore does not follow the
+user onto a sheet they never visited. Pinned in `__tests__/sheetsBar.unit.js`.

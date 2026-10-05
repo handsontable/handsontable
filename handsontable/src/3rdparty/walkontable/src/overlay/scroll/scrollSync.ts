@@ -29,6 +29,7 @@ export function createScrollSyncDeps(ctx: EngineContext, overlays: Overlays, sti
     // `this.topOverlay` access.
     getTopOverlay: () => overlays.topOverlay,
     getInlineStartOverlay: () => overlays.inlineStartOverlay,
+    getInlineEndOverlay: () => overlays.inlineEndOverlay,
     getBottomOverlay: () => overlays.bottomOverlay,
     eventManager: overlays.eventManager,
     getDestroyed: () => overlays.destroyed,
@@ -319,6 +320,9 @@ export class ScrollSync {
     const wtViewport = this.#deps.getWtViewport();
     const topHolder = topOverlay.clone?.wtTable.holder; // todo rethink
     const leftHolder = inlineStartOverlay.clone?.wtTable.holder; // todo rethink
+    const inlineEndOverlay = this.#deps.getInlineEndOverlay();
+    // The end clone holds the same rows as the inline-start one, so it takes the same vertical offset.
+    const endHolder = inlineEndOverlay.needFullRender ? inlineEndOverlay.clone?.wtTable.holder : null;
 
     // Each axis is read off the element that scrolls it, which the overlay pinned against that axis
     // holds: the window when it owns the axis, the master holder otherwise. Reading both off one
@@ -353,12 +357,14 @@ export class ScrollSync {
       // Setting scrollTop to window.scrollY would be capped to the tiny
       // hider/holder size difference caused by fractional zoom rounding,
       // shifting the visible rows and misaligning them with the master table.
+      const cloneScrollTop = wtViewport.isVerticallyScrollableByWindow() ? 0 : scrollY;
+
       if (isHTMLElement(leftHolder)) {
-        if (wtViewport.isVerticallyScrollableByWindow()) {
-          this.#writeCloneScrollTop(leftHolder, 0);
-        } else {
-          this.#writeCloneScrollTop(leftHolder, scrollY);
-        }
+        this.#writeCloneScrollTop(leftHolder, cloneScrollTop);
+      }
+
+      if (isHTMLElement(endHolder)) {
+        this.#writeCloneScrollTop(endHolder, cloneScrollTop);
       }
     }
 
@@ -417,6 +423,12 @@ export class ScrollSync {
 
     if (isHTMLElement(verticalOwner) && inlineStartOverlay.needFullRender && inlineStartOverlay.clone) {
       this.#writeCloneScrollTop(inlineStartOverlay.clone.wtTable.holder, verticalOwner.scrollTop);
+    }
+
+    const inlineEndOverlay = this.#deps.getInlineEndOverlay();
+
+    if (isHTMLElement(verticalOwner) && inlineEndOverlay.needFullRender && inlineEndOverlay.clone) {
+      this.#writeCloneScrollTop(inlineEndOverlay.clone.wtTable.holder, verticalOwner.scrollTop);
     }
 
     this.#hasRenderingStateChanged = false;
@@ -622,6 +634,10 @@ export class ScrollSync {
 
     if (this.#deps.getBottomOverlay().needFullRender) {
       this.#deps.getBottomOverlay().updateMainScrollableElement();
+    }
+
+    if (this.#deps.getInlineEndOverlay().needFullRender) {
+      this.#deps.getInlineEndOverlay().updateMainScrollableElement();
     }
 
     this.#scrollableElement = this.#takeScrollableElement();

@@ -529,6 +529,13 @@ export class SheetsBar extends BasePlugin {
    * @type {number|undefined}
    */
   #neutralFixedColumnsStart: number | undefined;
+  /**
+   * The grid-level `fixedColumnsEnd` as it stood before any sheet was applied. It plays the same part
+   * as `#neutralFixedColumnsStart` for the frozen end columns.
+   *
+   * @type {number|undefined}
+   */
+  #neutralFixedColumnsEnd: number | undefined;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings.
@@ -555,6 +562,7 @@ export class SheetsBar extends BasePlugin {
     // the neutral value and leak it onto never-visited sheets.
     if (this.#preservedState === null) {
       this.#neutralFixedColumnsStart = this.hot.getSettings().fixedColumnsStart as number | undefined;
+      this.#neutralFixedColumnsEnd = this.hot.getSettings().fixedColumnsEnd as number | undefined;
     }
 
     this.#getDataProvider()?._setContextOwner(this.#contextOwner);
@@ -842,6 +850,11 @@ export class SheetsBar extends BasePlugin {
     if (!('fixedColumnsStart' in restored)
       && (this.hot.getSettings().fixedColumnsStart ?? 0) !== (this.#neutralFixedColumnsStart ?? 0)) {
       restored.fixedColumnsStart = this.#neutralFixedColumnsStart ?? 0;
+    }
+
+    if (!('fixedColumnsEnd' in restored)
+      && (this.hot.getSettings().fixedColumnsEnd ?? 0) !== (this.#neutralFixedColumnsEnd ?? 0)) {
+      restored.fixedColumnsEnd = this.#neutralFixedColumnsEnd ?? 0;
     }
 
     if (Object.keys(restored).length === 0) {
@@ -1443,7 +1456,7 @@ export class SheetsBar extends BasePlugin {
       // those declarations were wiped on the sheet's first activation and then captured as
       // its own empty state.
       if (!viewState) {
-        resetViewState(this.hot, this.#neutralFixedColumnsStart);
+        resetViewState(this.hot, this.#neutralFixedColumnsStart, this.#neutralFixedColumnsEnd);
       } else {
         clearMergedCells(this.hot);
       }
@@ -1524,7 +1537,9 @@ export class SheetsBar extends BasePlugin {
       // and be captured as its own state on the first switch away. The reset runs before the
       // sheet is applied, so the opening sheet's own declared `settings` stay in force.
       if (this.hot.view) {
-        this.#withoutUndoEntry(() => resetViewState(this.hot, this.#neutralFixedColumnsStart));
+        this.#withoutUndoEntry(() => resetViewState(
+          this.hot, this.#neutralFixedColumnsStart, this.#neutralFixedColumnsEnd
+        ));
       }
 
       this.#applySheet(targetSheet, SOURCE_API);

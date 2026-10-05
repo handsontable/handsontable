@@ -382,3 +382,11 @@ stack hook pair, and with no `afterUndo`/`afterRedo`.
   it - never in a file or a test named after the report. **A ColumnSummary case must run in a browser:**
   the summary is calculated on the first visible render, jsdom grids are never visible, and a jsdom
   summary test passes with nothing calculated.
+
+## `fixedColumnsEnd` is a snapshot setting
+
+`GridSettingsSnapshot` holds `fixedColumnsEnd` next to the other frozen counts. `alter('remove_col')` lowers it
+(`tableMeta.fixedColumnsEnd -= ...`, a plain property, no `_` alias like `fixedColumnsStart`), so an undo has to
+give it back, and the merge-per-field rule applies: a count set by `updateSettings()` outside any step survives.
+`stepColumns.ts` also treats a changed count as a step that addresses columns. Pinned by
+`__tests__/gridState.unit.js`, `__tests__/removeRowsAndColumns.unit.js` and `tests/e2e/fixed-columns-end-plugins.spec.ts`.
