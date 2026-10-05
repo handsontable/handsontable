@@ -1,7 +1,9 @@
 import Core from 'handsontable/core';
 import { registerCellType, TextCellType } from 'handsontable/cellTypes';
 import { registerRenderer, baseRenderer, textRenderer } from 'handsontable/renderers';
+import { registerPlugin, AutoColumnSize } from 'handsontable/plugins';
 
+registerPlugin(AutoColumnSize);
 registerCellType(TextCellType);
 registerRenderer(baseRenderer);
 registerRenderer(textRenderer);
@@ -64,6 +66,25 @@ describe('Column width equal to the grid width (DEV-270)', () => {
     hot.setCellMeta(0, 0, 'width', 300);
 
     expect(hot.getColWidth(0)).toBe(300);
+    expect(hot.getColWidth(1)).toBe(120);
+  });
+
+  it('should keep a `columns[].width` that equals the grid `width` when AutoColumnSize is enabled', () => {
+    createGrid({
+      width: 300,
+      autoColumnSize: true,
+      data: [['a much longer cell value than the default column width', 'b']],
+      columns: [{ width: 300 }, {}],
+    });
+
+    expect(hot.getColWidth(0)).toBe(300);
+    expect(hot.getColWidth(1)).not.toBe(300);
+  });
+
+  it('should fall back to `colWidths` when both the grid `width` and the column `width` are `null`', () => {
+    createGrid({ width: null, colWidths: 120, columns: [{ width: null }, {}] });
+
+    expect(hot.getColWidth(0)).toBe(120);
     expect(hot.getColWidth(1)).toBe(120);
   });
 
