@@ -18,9 +18,12 @@ export function toMergeAreaKey({ row, col, rowspan, colspan }: MergeAreaGeometry
   return `${row},${col},${rowspan},${colspan}`;
 }
 
+const BOTTOM_ROW_OVERLAYS = ['bottom', 'bottom_inline_start_corner', 'bottom_inline_end_corner'];
+
 /**
  * Returns the visual index of the first row rendered by the bottom overlay (`fixedRowsBottom`) that is being
- * drawn right now, or `null` when another overlay is being drawn or the bottom overlay renders no row.
+ * drawn right now, or `null` when another overlay is being drawn or the bottom overlay renders no row. The
+ * bottom overlays are the bottom clone and its two corners.
  *
  * The bottom overlay renders only the frozen bottom rows, so a merged block that starts above them never has
  * its origin there. The overlay draws the part of the block it holds, starting from this row.
@@ -31,7 +34,7 @@ export function toMergeAreaKey({ row, col, rowspan, colspan }: MergeAreaGeometry
 export function getFirstRowOfActiveBottomOverlay(hotInstance: HotInstance): number | null {
   const overlayName = hotInstance.view.getActiveOverlayName();
 
-  if (overlayName !== 'bottom' && overlayName !== 'bottom_inline_start_corner') {
+  if (!BOTTOM_ROW_OVERLAYS.includes(overlayName)) {
     return null;
   }
 

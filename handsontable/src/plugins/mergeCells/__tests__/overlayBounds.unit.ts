@@ -1,6 +1,7 @@
 import type { HotInstance } from '../../../core/types';
 import {
   getFirstRenderedColumnOfOverlay,
+  getFirstRowOfActiveBottomOverlay,
   getFirstRenderedRowOfOverlay,
   getLastRenderedColumnOfOverlay,
   isEndColumnOverlay,
@@ -41,7 +42,53 @@ function createHot({ endClone = 9, endCloneLast = 11, hiddenColumns = [] as numb
   } as unknown as HotInstance;
 }
 
+/**
+ * Builds a minimal instance that is drawing the given overlay: every bottom overlay renders from the given
+ * renderable row, and the visual order is the renderable order shifted by the hidden rows.
+ */
+function createHotDrawing(activeOverlay: string, { firstRenderedRow = 8, hiddenRows = [] as number[] } = {}) {
+  const visibleRows = Array.from({ length: 10 }, (_, row) => row).filter(r => !hiddenRows.includes(r));
+  const overlay = { clone: { wtTable: { getFirstRenderedRow: () => firstRenderedRow } } };
+
+  return {
+    rowIndexMapper: {
+      getVisualFromRenderableIndex: (renderable: number) => visibleRows[renderable] ?? null,
+    },
+    view: {
+      getActiveOverlayName: () => activeOverlay,
+      getOverlayByName: () => overlay,
+    },
+  } as unknown as HotInstance;
+}
+
 describe('MergeCells overlay bounds', () => {
+  describe('getFirstRowOfActiveBottomOverlay', () => {
+    it('should answer for the bottom overlay and for both of its corners', () => {
+      ['bottom', 'bottom_inline_start_corner', 'bottom_inline_end_corner'].forEach((name) => {
+        expect(getFirstRowOfActiveBottomOverlay(createHotDrawing(name))).toBe(8);
+      });
+    });
+
+    it('should translate the first rendered row of the overlay from the renderable to the visual index', () => {
+      // Rows 1 and 3 are hidden, so renderable row 6 is visual row 8.
+      const hot = createHotDrawing('bottom_inline_end_corner', { firstRenderedRow: 6, hiddenRows: [1, 3] });
+
+      expect(getFirstRowOfActiveBottomOverlay(hot)).toBe(8);
+    });
+
+    it('should answer null while any other overlay is drawn', () => {
+      ['master', 'top', 'inline_start', 'inline_end', 'top_inline_start_corner', 'top_inline_end_corner']
+        .forEach((name) => {
+          expect(getFirstRowOfActiveBottomOverlay(createHotDrawing(name))).toBeNull();
+        });
+    });
+
+    it('should answer null when the bottom overlay renders no row', () => {
+      expect(getFirstRowOfActiveBottomOverlay(createHotDrawing('bottom_inline_end_corner', { firstRenderedRow: -1 })))
+        .toBeNull();
+    });
+  });
+
   describe('isEndColumnOverlay', () => {
     it('should recognize the inline-end clone and its corners only', () => {
       expect(isEndColumnOverlay('inline_end')).toBe(true);
