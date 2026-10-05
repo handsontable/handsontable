@@ -1385,7 +1385,7 @@ Apps that set `maxLength` on the grid, in [`columns`](@/api/options.md#columns),
 
 ### What changed
 
-When the column headers render the menu button, which means [`colHeaders`](@/api/options.md#colheaders) is on and [`dropdownMenu`](@/api/options.md#dropdownmenu) is enabled, the narrowest width is now the room the header needs for that button: the icon size plus the horizontal cell padding on both sides (`--ht-icon-size + 2 × --ht-cell-horizontal-padding`). Any other grid has no button to protect and keeps the `20px` minimum.
+When the column headers render the menu button, which means the grid shows column headers (with [`colHeaders`](@/api/options.md#colheaders) or [`nestedHeaders`](@/api/options.md#nestedheaders)) and [`dropdownMenu`](@/api/options.md#dropdownmenu) is enabled, the narrowest width is now the room the header needs for that button: the icon size plus the horizontal cell padding on both sides (`--ht-icon-size + 2 × --ht-cell-horizontal-padding`). Any other grid has no button to protect and keeps the `20px` minimum.
 
 | Theme   | Narrowest width before | Narrowest width now, with the menu button |
 | ------- | ---------------------- | ----------------------------------------- |

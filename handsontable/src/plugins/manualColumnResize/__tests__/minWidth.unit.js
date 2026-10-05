@@ -98,6 +98,15 @@ describe('ManualColumnResize minimum column width', () => {
     expect(hot.stylesHandler.getResolvedLength).not.toHaveBeenCalled();
   });
 
+  it('should apply to nested headers when `colHeaders` is off, because the menu draws its button on them', () => {
+    const plugin = createPlugin(32, {
+      colHeaders: false,
+      nestedHeaders: [['A', { label: 'B', colspan: 2 }, 'D']],
+    });
+
+    expect(plugin.setManualSize(0, 5)).toBe(32);
+  });
+
   it('should apply from the moment the menu is enabled', () => {
     const plugin = createPlugin(32, { dropdownMenu: false });
 

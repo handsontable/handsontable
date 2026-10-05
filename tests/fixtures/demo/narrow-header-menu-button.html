@@ -54,6 +54,10 @@
   <h2>Menu button and sorting, right to left, aligned left</h2>
   <div id="menu-sort-rtl-left" data-testid="menu-sort-rtl-left"></div>
 
+  <!-- `nestedHeaders` draws header rows with `colHeaders` off, and the menu puts its button on the bottom one. -->
+  <h2>Nested headers, no colHeaders</h2>
+  <div id="menu-nested" data-testid="menu-nested"></div>
+
   <!-- No menu button, so no floor beyond the old 20px. -->
   <h2>No menu</h2>
   <div id="no-menu" data-testid="no-menu"></div>
@@ -128,6 +132,10 @@
         headerClassName: 'htRight',
       }),
       noMenu: buildGrid('no-menu', { dropdownMenu: false, columnSorting: true }),
+      menuNested: buildGrid('menu-nested', {
+        colHeaders: false,
+        nestedHeaders: [['A', { label: 'B', colspan: 2 }, 'D'], ['a', 'b', 'c', 'd']],
+      }),
       menuSortRem: buildGrid('menu-sort-rem', { columnSorting: true }),
       menuSort: buildGrid('menu-sort', { columnSorting: true }),
       menuSortRight: buildGrid('menu-sort-right', { columnSorting: true, headerClassName: 'htRight' }),
@@ -137,6 +145,18 @@
         layoutDirection: 'rtl',
         headerClassName: 'htLeft',
       }),
+    };
+
+    /**
+     * Stores a width through `ManualColumnResize#setManualSize()` and returns what was stored.
+     *
+     * @param {string} name The grid's key in `window.grids`.
+     * @param {number} column The visual column index.
+     * @param {number} width The width to store.
+     * @returns {number}
+     */
+    window.setManualSize = function(name, column, width) {
+      return window.grids[name].getPlugin('manualColumnResize').setManualSize(column, width);
     };
 
     /**

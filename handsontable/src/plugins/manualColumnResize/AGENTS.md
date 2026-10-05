@@ -56,8 +56,10 @@ so the width floor has one home. A drag stores the width only on release - see "
 `#getMinWidth()` returns the room a header needs for its menu button, `--ht-icon-size + 2 *
 --ht-cell-horizontal-padding` (32px in Main, 40px in Horizon, 24px in Classic). Five rules ride along:
 
-- **It applies only when the headers render the button.** `#rendersMenuButton()` is `colHeaders` on and the
-  `dropdownMenu` plugin enabled (asked through `hot.getPlugin()`, never imported). Any other grid keeps 20px: there
+- **It applies only when the headers render the button.** `#rendersMenuButton()` is "the grid renders at least one
+  column header row" (`hot.countColHeaders() > 0`, not the `colHeaders` option: `nestedHeaders` draws header rows with
+  `colHeaders` off, and the menu puts its button on the bottom one) and the `dropdownMenu` plugin enabled (asked
+  through `hot.getPlugin()`, never imported). Any other grid keeps 20px: there
   is no button to protect, and a header-less grid or a spacer column used to be able to go below 32px. It is read when
   a width is written, so enabling the menu later applies from then on.
 - **The tokens are resolved in the browser**, through `hot.stylesHandler.getResolvedLength()`, which sets the

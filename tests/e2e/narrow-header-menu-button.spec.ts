@@ -157,6 +157,13 @@ test.describe('Narrow header with a menu button', () => {
     expect(await grid.autoWidth('autosizeRtlRight', COLUMN)).toBe(unsortedRtl + grid.indicatorSlotWidth());
   });
 
+  test('gives nested headers the floor when colHeaders is off, because the menu draws its button on them', async () => {
+    // The header rows come from `nestedHeaders`, not from `colHeaders`, and the menu button is on the bottom one.
+    await expect(grid.grid('menu-nested').locator('.ht_clone_top .changeType').first()).toBeVisible();
+
+    expect(await grid.setManualSize('menuNested', 1, 5)).toBe(grid.minimumWidth());
+  });
+
   test('keeps the old 20px floor for a grid whose headers render no menu button', async () => {
     // There is no button to protect, so nothing changes for this grid.
     await grid.dragColumnHandle('no-menu', COLUMN, -400);

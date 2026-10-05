@@ -253,7 +253,7 @@ You can adjust the size of one or multiple columns simultaneously, even if the s
 
 ### Minimum column width
 
-When the column headers render the menu button ([`colHeaders`](@/api/options.md#colheaders) is on and [`dropdownMenu`](@/api/options.md#dropdownmenu) is enabled), a column can't get narrower than the button needs. The minimum width is the icon size plus the horizontal cell padding on both sides (`--ht-icon-size + 2 × --ht-cell-horizontal-padding`), so it depends on your [theme](@/guides/styling/themes/themes.md):
+When the column headers render the menu button (the grid shows column headers, with [`colHeaders`](@/api/options.md#colheaders) or [`nestedHeaders`](@/api/options.md#nestedheaders), and [`dropdownMenu`](@/api/options.md#dropdownmenu) is enabled), a column can't get narrower than the button needs. The minimum width is the icon size plus the horizontal cell padding on both sides (`--ht-icon-size + 2 × --ht-cell-horizontal-padding`), so it depends on your [theme](@/guides/styling/themes/themes.md):
 
 | Theme   | Minimum column width |
 | ------- | -------------------- |

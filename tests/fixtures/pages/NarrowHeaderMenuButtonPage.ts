@@ -46,7 +46,7 @@ export class NarrowHeaderMenuButtonPage {
 
     for (const testId of [
       'menu', 'menu-sort', 'menu-sort-right', 'menu-sort-rtl', 'menu-sort-rtl-left', 'no-menu', 'menu-sort-rem',
-      'autosize-ltr', 'autosize-rtl-right',
+      'autosize-ltr', 'autosize-rtl-right', 'menu-nested',
     ]) {
       // The clones exist before their rows are laid out, and every test drags or measures a header.
       await expect(this.header(testId, 3)).toBeVisible();
@@ -156,6 +156,23 @@ export class NarrowHeaderMenuButtonPage {
     const delta = (width - current) * (rtl ? -1 : 1);
 
     await this.dragColumnHandle(testId, column, delta);
+  }
+
+  /**
+   * Stores a width through `setManualSize()` and returns the width that was stored.
+   *
+   * @param {string} name The grid's key in the fixture's `grids` object.
+   * @param {number} column The visual column index.
+   * @param {number} width The width to store.
+   * @returns {Promise<number>}
+   */
+  async setManualSize(name: string, column: number, width: number): Promise<number> {
+    return this.page.evaluate(
+      ([gridName, col, size]) => (window as unknown as {
+        setManualSize: (name: string, column: number, width: number) => number
+      }).setManualSize(gridName as string, col as number, size as number),
+      [name, column, width] as [string, number, number]
+    );
   }
 
   /**

@@ -304,10 +304,13 @@ export class ManualColumnResize extends BasePlugin {
    * Checks whether the column headers render the dropdown menu button, which is what the minimum width
    * is derived from. Read when a width is written, so enabling the menu later applies from then on.
    *
+   * The rendered header count, not the `colHeaders` option: `nestedHeaders` draws header rows with
+   * `colHeaders` off, and the menu puts its button on the bottom one.
+   *
    * @returns {boolean}
    */
   #rendersMenuButton(): boolean {
-    return !!this.hot.getSettings().colHeaders && !!this.hot.getPlugin('dropdownMenu')?.enabled;
+    return this.hot.countColHeaders() > 0 && !!this.hot.getPlugin('dropdownMenu')?.enabled;
   }
 
   /**
