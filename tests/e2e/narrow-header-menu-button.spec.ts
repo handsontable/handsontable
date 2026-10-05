@@ -13,8 +13,8 @@ import { NarrowHeaderMenuButtonPage } from '../fixtures/pages/NarrowHeaderMenuBu
  * width), so none of this is checkable in jsdom, where every size is zero.
  *
  * The widths come from a real drag on the resize handle, so the stored width is produced the way a
- * user produces it. The floor is read from the theme's own tokens, so the same assertions hold on all
- * three themes, which are 24, 32 and 40px wide at the floor.
+ * user produces it. The floor is pinned per theme (24, 32 and 40px), and so are the widths at which the
+ * sort indicator is hidden, so a wrong formula in the product cannot pass by being repeated here.
  *
  * The alignment grids use `headerClassName`, which is the option that puts the class on the header's
  * inner element. `className` styles body cells only, so a grid built with it would run the default
@@ -113,6 +113,49 @@ test.describe('Narrow header with a menu button', () => {
       });
     }
   }
+
+  test('collapses the label before it hides the sort indicator', async () => {
+    // The middle of the narrowing: just above the width where the indicator is hidden, the label has
+    // already given up its room and the indicator is still drawn. If the two thresholds were swapped,
+    // the narrowest and the widest case would both still pass.
+    await grid.sortColumn('menuSort', COLUMN);
+    await grid.dragColumnTo('menu-sort', COLUMN, grid.indicatorMinimumWidth() + 2);
+
+    const { width, icon, indicator, label } = await grid.geometry('menu-sort', COLUMN);
+
+    expect(width).toBe(grid.indicatorMinimumWidth() + 2);
+    expect(indicator).toBeGreaterThan(0);
+    // A pixel or two of the label can remain: it is what is left of the column after the slot.
+    expect(label).toBeLessThanOrEqual(2);
+    expect(icon[1]).toBeLessThanOrEqual(width + 1);
+  });
+
+  test('hides the sort indicator just below that width, and keeps the menu button inside', async () => {
+    await grid.sortColumn('menuSort', COLUMN);
+    await grid.dragColumnTo('menu-sort', COLUMN, grid.indicatorMinimumWidth() - 2);
+
+    const { width, icon, indicator } = await grid.geometry('menu-sort', COLUMN);
+
+    expect(width).toBe(grid.indicatorMinimumWidth() - 2);
+    expect(indicator).toBe(0);
+    expect(icon[0]).toBeGreaterThanOrEqual(-1);
+    expect(icon[1]).toBeLessThanOrEqual(width + 1);
+  });
+
+  test('leaves what autoColumnSize measures unchanged for a sorted column', async () => {
+    // The ghost table that `autoColumnSize` measures in has no width yet, so the narrow-header rules must
+    // not reach it. Sorting changes nothing in a left-to-right grid. In a right-to-left grid with
+    // right-aligned headers the ghost table counts the indicator's slot as well, 18px (14px in Classic) as
+    // it always has; this pins it, so a rule that reached the ghost table would show up as a different width.
+    const unsortedLtr = await grid.autoWidth('autosizeLtr', COLUMN);
+    const unsortedRtl = await grid.autoWidth('autosizeRtlRight', COLUMN);
+
+    await grid.sortColumn('autosizeLtr', COLUMN);
+    await grid.sortColumn('autosizeRtlRight', COLUMN);
+
+    expect(await grid.autoWidth('autosizeLtr', COLUMN)).toBe(unsortedLtr);
+    expect(await grid.autoWidth('autosizeRtlRight', COLUMN)).toBe(unsortedRtl + grid.indicatorSlotWidth());
+  });
 
   test('keeps the old 20px floor for a grid whose headers render no menu button', async () => {
     // There is no button to protect, so nothing changes for this grid.

@@ -13,6 +13,8 @@ export interface HeaderGeometry {
   icon: [number, number];
   /** The rendered width of the sort indicator, `0` when it is hidden. */
   indicator: number;
+  /** The rendered width of the header label, `0` when it has collapsed. */
+  label: number;
 }
 
 /**
@@ -44,6 +46,7 @@ export class NarrowHeaderMenuButtonPage {
 
     for (const testId of [
       'menu', 'menu-sort', 'menu-sort-right', 'menu-sort-rtl', 'menu-sort-rtl-left', 'no-menu', 'menu-sort-rem',
+      'autosize-ltr', 'autosize-rtl-right',
     ]) {
       // The clones exist before their rows are laid out, and every test drags or measures a header.
       await expect(this.header(testId, 3)).toBeVisible();
@@ -86,6 +89,31 @@ export class NarrowHeaderMenuButtonPage {
   }
 
   /**
+   * The width at which the sort indicator of a column with a menu button is hidden, pinned per theme:
+   * 2 * padding + 2 * icon size + 6px, which is 2 * 8 + 2 * 16 + 6 in Main, 2 * 12 + 2 * 16 + 6 in Horizon and
+   * 2 * 6 + 2 * 12 + 6 in Classic.
+   *
+   * @returns {number}
+   */
+  indicatorMinimumWidth(): number {
+    const widths: Record<string, number> = { main: 54, horizon: 62, classic: 42 };
+
+    return widths[this.theme];
+  }
+
+  /**
+   * The room the header holds open for the sort indicator next to the menu button, pinned per theme: the icon
+   * size plus 2px, which is 18px in Main and Horizon and 14px in Classic.
+   *
+   * @returns {number}
+   */
+  indicatorSlotWidth(): number {
+    const widths: Record<string, number> = { main: 18, horizon: 18, classic: 14 };
+
+    return widths[this.theme];
+  }
+
+  /**
    * Drags a column's resize handle far past the narrowest width, so the stored width is the floor.
    *
    * @param {string} testId The grid's test id.
@@ -113,6 +141,37 @@ export class NarrowHeaderMenuButtonPage {
   async headerClasses(testId: string, column: number): Promise<string[]> {
     return this.header(testId, column).locator('.relative')
       .evaluate(relative => Array.from(relative.classList));
+  }
+
+  /**
+   * Drags a column's resize handle to a given width, reading the current width first.
+   *
+   * @param {string} testId The grid's test id.
+   * @param {number} column The visual column index.
+   * @param {number} width The width to drag to, in CSS pixels.
+   * @param {boolean} [rtl=false] Whether the grid is right to left, where widening moves the handle the other way.
+   */
+  async dragColumnTo(testId: string, column: number, width: number, rtl = false): Promise<void> {
+    const current = await this.columnWidth(testId, column);
+    const delta = (width - current) * (rtl ? -1 : 1);
+
+    await this.dragColumnHandle(testId, column, delta);
+  }
+
+  /**
+   * Measures a column again from its content and header, as `autoColumnSize` does, and returns its width.
+   *
+   * @param {string} name The grid's key in the fixture's `grids` object.
+   * @param {number} column The visual column index.
+   * @returns {Promise<number>}
+   */
+  async autoWidth(name: string, column: number): Promise<number> {
+    return this.page.evaluate(
+      ([gridName, col]) => (window as unknown as {
+        autoWidth: (name: string, column: number) => number
+      }).autoWidth(gridName as string, col as number),
+      [name, column] as [string, number]
+    );
   }
 
   /**
@@ -159,6 +218,7 @@ export class NarrowHeaderMenuButtonPage {
       const iconStart = button.left + ((button.width - iconSize) / 2);
       const toInline = (x: number) => Math.round((rtl ? cell.right - x : x - cell.left) * 10) / 10;
       const indicator = parseFloat(getComputedStyle(label, '::before').width);
+      const labelWidth = label.getBoundingClientRect().width;
 
       return {
         width: Math.round(cell.width * 10) / 10,
@@ -166,6 +226,7 @@ export class NarrowHeaderMenuButtonPage {
           [toInline(iconStart + iconSize), toInline(iconStart)] as [number, number] :
           [toInline(iconStart), toInline(iconStart + iconSize)] as [number, number],
         indicator: Number.isNaN(indicator) ? 0 : indicator,
+        label: Math.round(labelWidth * 10) / 10,
       };
     });
   }

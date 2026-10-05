@@ -363,8 +363,12 @@ menu button", and they run on percentages instead of a class or a measurement. F
   .ascending::before` with more specificity than anything here; `max-width` wins regardless.
 - **The ghost table opts out.** It has no width yet - it is measuring one - so a percentage there resolves
   against nothing. `.htGhostTable` restores the pre-DEV-158 `min-width`, `column-gap` and `max-width`, which keeps
-  `autoColumnSize` results identical. Without that, RTL + `htRight` + a sorted column + a menu button measured
-  18px narrower.
+  `autoColumnSize` results identical. The one setup that shows it is RTL + right-aligned headers (`className` or
+  `headerClassName: 'htRight'`) + a sorted column + a menu button: the ghost table counts the indicator's slot
+  there, so such a column auto-sizes 18px wider than when unsorted (14px in Classic), and without the override it
+  measured 18px narrower. `tests/e2e/narrow-header-menu-button.spec.ts` pins both numbers. **Check this against the
+  bundle, not the stylesheet:** the bundle injects its own copy of the base CSS after the linked one, so deleting
+  the rules from `styles/handsontable.css` alone changes nothing.
 
 The threshold uses the same tokens the floor is built from. Change one of them and re-measure all three themes,
 both directions, `htRight`/`htLeft`, sorted and unsorted; the menu icon has to stay inside its own `th`.

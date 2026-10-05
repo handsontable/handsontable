@@ -64,6 +64,17 @@
     16px root font size. The theme declares its tokens on the grid's `.ht-root-wrapper`, so the override
     targets that element, the way a custom theme's own selector would.
   -->
+  <!--
+    `autoColumnSize` measures the headers in a ghost table that has no width yet, so the narrow-header rules
+    must not change what it measures. In an RTL grid with right-aligned headers the slot for the sort indicator
+    is counted in the ghost table too, which is the measurement these two grids pin.
+  -->
+  <h2>Auto-sized, left to right</h2>
+  <div id="autosize-ltr" data-testid="autosize-ltr"></div>
+
+  <h2>Auto-sized, right to left, aligned right</h2>
+  <div id="autosize-rtl-right" data-testid="autosize-rtl-right"></div>
+
   <style>
     #menu-sort-rem .ht-root-wrapper {
       --ht-icon-size: 1.25rem;
@@ -109,6 +120,13 @@
 
     window.grids = {
       menu: buildGrid('menu', {}),
+      autosizeLtr: buildGrid('autosize-ltr', { columnSorting: true, autoColumnSize: true }),
+      autosizeRtlRight: buildGrid('autosize-rtl-right', {
+        columnSorting: true,
+        autoColumnSize: true,
+        layoutDirection: 'rtl',
+        headerClassName: 'htRight',
+      }),
       noMenu: buildGrid('no-menu', { dropdownMenu: false, columnSorting: true }),
       menuSortRem: buildGrid('menu-sort-rem', { columnSorting: true }),
       menuSort: buildGrid('menu-sort', { columnSorting: true }),
@@ -119,6 +137,22 @@
         layoutDirection: 'rtl',
         headerClassName: 'htLeft',
       }),
+    };
+
+    /**
+     * Measures a column again from its content and header, and returns its width.
+     *
+     * @param {string} name The grid's key in `window.grids`.
+     * @param {number} column The visual column index.
+     * @returns {number}
+     */
+    window.autoWidth = function(name, column) {
+      const hot = window.grids[name];
+
+      hot.getPlugin('autoColumnSize').recalculateAllColumnsWidth();
+      hot.render();
+
+      return hot.getColWidth(column);
     };
 
     /**
