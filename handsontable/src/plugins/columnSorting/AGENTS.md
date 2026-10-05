@@ -340,8 +340,38 @@ because `:has()` is banned in this package (see the **monorepo-root** `../../../
 declared there, not in the core-package file).
 
 `sortAction` is required before reserving: the CSS that pulls the indicator out of the flex row is keyed on
-it, and with `headerAction: false` the label shows an indicator but keeps its full width, so reserving would
-just push it inwards.
+it, and with `headerAction: false` no indicator is rendered at all (18.1 painted the arrow only through
+`.columnSorting.sortAction.ascending::before`), so there is nothing to reserve.
+
+## The indicator is a real element, and it still needs the ghost-table `*` stand-in
+
+`#onAfterGetColHeader` keys `syncIcon(this.hot, container, 'ht-sort-indicator', iconName)` on the sort
+order, the `indicator` setting, and the `headerAction` setting: ascending → `arrowNarrowUp`, descending →
+`arrowNarrowDown`, anything else (no sort, `indicator: false`, `headerAction: false` — 18.1 parity, the
+column keeps its `aria-sort` but shows no arrow — or the whole plugin disabled via `disablePlugin()`'s
+`clearColHeader`) →
+`null`, which removes the slot. `syncIcon` guarantees exactly one `<i class="ht-icon
+ht-sort-indicator">` in the container regardless of how many times a render calls this hook.
+
+Two traps if this ever moves again:
+
+- **The icon is `position: absolute`, in the ghost table too — and that means it reserves NOTHING by
+  itself, there or in the real table.** `GhostTable#addColumn` clones a header through
+  `TableView#appendColHeader`, which fires `afterGetColHeader` unconditionally — so the ghost clone gets
+  the same real `.ht-sort-indicator` element the real table does. It does not follow that `AutoColumnSize`
+  can drop the old `.htGhostTable … ::before { content: "*"; padding-inline-end: … }` stand-in in
+  `_column-sorting.scss` (~line 208) and trust the `<i>` to reserve space by flowing into the row: an
+  absolutely positioned element never contributes to a flow-based measurement, in the ghost table or
+  anywhere else. Measured empirically while migrating: dropping that rule undersized a `has-header-button`
+  auto-sized column by 34px, and the arrow overlapped both the label and the dropdown-menu button. The `*`
+  rule stays — it is what stands in, in the ghost table, for the width the real table gets from
+  `column-gap` (`--ht-header-button-slot`, zeroed inside `.htGhostTable`).
+- **The indicator's own inset needs the same literal `+ 2px` the old pseudo-element carried.** The old
+  `::before` used `right: 2px` (physical) *plus* `margin-inline-end: var(--ht-sort-indicator-offset-end)`
+  — both stacked. `--ht-sort-indicator-reserve` (the padding the container holds open) is calibrated
+  against that same total (`padding + icon-size + 2px`), so the real element's `inset-inline-end` has to
+  add the `+ 2px` too, or the icon sits 2px closer to a trailing dropdown-menu button than the reserved
+  space accounts for — invisible on a roomy column, a real 1px overlap on a tight auto-sized one.
 
 ## A narrow header gives things up in a fixed order, with no JavaScript (DEV-158)
 
@@ -355,12 +385,13 @@ menu button", and they run on percentages instead of a class or a measurement. F
   distorted, not clipped). The same trick closes the indicator slot in `column-gap` and in the start padding of
   the opposite-side alignment (`htRight` in LTR, `htLeft` in RTL).
 - **Each percentage has its own basis.** `column-gap` resolves against the `.relative` content box, so it uses
-  `--ht-header-indicator-min-content-width`; `max-width` on `::before`/`::after` and `padding-inline-start`
+  `--ht-header-indicator-min-content-width`; `max-width` on `.ht-sort-indicator`/the label's `::after` and `padding-inline-start`
   resolve against the padding box and the containing block, so they use `--ht-header-indicator-min-width`. The
   label's `min-width` reads the current gap through `--ht-header-gap`, because with the slot open (20px in Main)
   the label has to leave room for it, not only for the button.
-- **`max-width`, not `width`, on the indicator.** The theme icon sheets set `width` on `.columnSorting.sortAction
-  .ascending::before` with more specificity than anything here; `max-width` wins regardless.
+- **`max-width`, not `width`, on the indicator.** `.ht-icon` sets `width: var(--ht-icon-size)` on the
+  `.ht-sort-indicator` element, and `max-width` wins over it whatever the specificity. `overflow: hidden` rides
+  along so an external icon renderer's inline content is clipped with the box.
 - **The ghost table opts out.** It has no width yet - it is measuring one - so a percentage there resolves
   against nothing. `.htGhostTable` restores the pre-DEV-158 `min-width`, `column-gap` and `max-width`, which keeps
   `autoColumnSize` results identical. The one setup that shows it is RTL + right-aligned headers (`className` or
@@ -420,3 +451,29 @@ special-case it.
 
 `__tests__/` has `a11y/`, `rtl/`, `sortFunction/` and a dedicated `keyboardShortcuts.spec.js` — a sorting
 change usually touches more than the main spec.
+
+## The ghost-table `*` reserve must restate the icon-size width
+
+AutoColumnSize measures headers in `.htGhostTable`, where the arrow is stood in for by
+`span.colHeader.columnSorting::before { content: "*" }` plus `padding-inline-end: icon-size + 2px`
+(`_column-sorting.scss`). Before icons became elements the real table's `.sortAction::before` glyph rule also matched
+that pseudo-element and gave it `width: var(--ht-icon-size, 16px)`, so the measured reserve was
+`icon-size + (icon-size + 2px)` — 34px on main. The glyph rule went away with the pseudo-element icon, and
+without the width restated on the ghost rule every sortable header with a menu button measured ~10px
+narrower than 18.1: the visual suite flagged all 30 nested-headers goldens (complex-demo, nested-headers
+collapse, filters active-class). The ghost rule now carries `width: var(--ht-icon-size, 16px)` itself.
+Pinned by "the ghost-table sort reserve keeps its 18.1 geometry" in `tests/e2e/icon-elements.spec.ts`.
+A local repro page for the complex demo (gitignored, not in the repository) is the quickest way to
+compare its column widths against 18.1.
+
+## The indicator must stay a click target
+
+Before icons became elements the arrow was `::before` of the `.colHeader` label, so a press on it targeted
+the label and `wasClickableHeaderClicked()` accepted it. The arrow is a sibling `<i class="ht-icon
+ht-sort-indicator">` now, and the base `.ht-icon` rule is `pointer-events: none` — which would make
+the arrow the one part of a sortable header that does not sort (hits fall through to `.relative`,
+which the gate rejects). Two things keep it working, and both must survive any refactor: the slot
+rule in `_column-sorting.scss` sets `pointer-events: auto` (plus `cursor: pointer` via a `.sortAction ~`
+sibling selector), and `wasClickableHeaderClicked()` accepts `SORT_INDICATOR_SLOT_CLASS` as a target
+alongside `HEADER_SPAN_CLASS`. Pinned by "a click precisely on the indicator icon toggles the sort
+order" in `tests/e2e/icon-elements.spec.ts`.
