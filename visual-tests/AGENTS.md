@@ -345,8 +345,8 @@ These things about this pipeline are worth knowing before changing it.
   band fails the capture.** The scrollbar-clearance band (#10370) is created inside the holder's
   `scroll` handler, which the browser dispatches on the frame *after* the action that scrolled resolves.
   A settle poll that runs the moment `click()` returns sees no band, passes, and the capture lands with
-  the band up: measured 16 of 20 times on `selection-arabic-rtl-demo-2`, 0 of 20 once two frames had
-  elapsed. The band then closes 1000 ms later (`OVERLAY_SCROLLBAR_FADE_DELAY`). `test-runner.ts` waits
+  the band up: measured 16 of 20 times on `selection-arabic-rtl-demo-2` (a capture retired since), 0 of
+  20 once two frames had elapsed. The band then closes 1000 ms later (`OVERLAY_SCROLLBAR_FADE_DELAY`). `test-runner.ts` waits
   those two frames before the first poll, and when a band is still open after 5 s it decides instead of
   giving up silently: a pointer resting within 26 px of that scrollbar's edge (`OVERLAY_SCROLLBAR_PROXIMITY`,
   mirrored in the fixture) pins the band open by design, so the capture proceeds with a `scrollbar-band`
@@ -543,7 +543,8 @@ does for you):
   narrower changes how many cells precede the leaf row and every index after them moves with it. That is
   a flake nothing waits out, because the wrong element is chosen before any capture happens — it
   surfaced as `selection-arabic-rtl-demo-2.png` and `selection-nested-headers-demo-{2,3}.png` flipping
-  by exactly one column on two unrelated pull requests, and only ever on the two demos in
+  by exactly one column on two unrelated pull requests (#13568, #13587; DEV-3257 retired the first and
+  renumbered the others), and only ever on the two demos in
   `selection.spec.ts` that HAVE a nested header. `selectColumnHeaderByIndex()` and
   `selectRowHeaderByIndex()` in `src/page-helpers.ts` scope to the last header row, which is 1:1 with
   columns whatever the nesting above it, and assert the header is highlighted before returning. They
@@ -579,8 +580,8 @@ does for you):
   clear ran unconditionally — so on Chromium and Firefox a focused text control is left alone. Do not
   fold the two branches into one; either half regresses the other engine.
 - **No fixed delays.** `waitForTimeout()`, `sleep()`, the global `setTimeout()` (inside `page.evaluate`
-  too) and `'networkidle'` are lint errors in `src/` and `tests/`. The 2024 import carries about forty
-  such sleeps; each wears `// eslint-disable-next-line no-restricted-syntax -- DEV-2797: <why>` so the
+  too) and `'networkidle'` are lint errors in `src/` and `tests/`. The 2024 import carried about forty
+  such sleeps (25 on 2026-10-05); each wears `// eslint-disable-next-line no-restricted-syntax -- DEV-2797: <why>` so the
   debt is counted and greppable while the consolidation replaces them with asserted states. A new sleep
   needs the same line naming its own task, or it does not land.
 - **`.only`, a bare or titled `.skip`, `test.fixme`, and `locator.screenshot()` are errors** too, and an
@@ -691,7 +692,8 @@ does for you):
   shapes: `tests/e2e/header-range-selection.spec.ts`, `undo-redo-keyboard.spec.ts`,
   `tab-navigation-two-grids.spec.ts`, `clipboard-between-grids.spec.ts`,
   `clipboard-scrolled-range.spec.ts`, `filters-search-then-condition.spec.ts`,
-  `hidden-columns-context-menu.spec.ts`, `pagination-filter-sort.spec.ts` and
+  `hidden-columns-context-menu.spec.ts`, `pagination-filter-sort.spec.ts`,
+  `fill-handle-merged-cells.spec.ts` (the merged-cells route's refused fill-down) and
   `manual-resize-drag-distance.spec.ts` (a column and a row grow by exactly the distance dragged, which
   the older manual-resize specs check loosely for columns). The `undo-redo`, `focus`, `columns-move`,
   `columns-resize`, `rows-resize` and `copy-paste` specs went with them (a column move by drag was
@@ -704,7 +706,8 @@ does for you):
   where there were 200. The family's two WebKit flakes, `columns-filter-2` and
   `selection-arabic-rtl-demo-{2,3}`, photographed states, and are assertions now. What the trim gives up
   is Firefox and WebKit EXECUTION of the retired flows: an engine-specific defect in the real Tab order,
-  a header drag or the clipboard is no longer exercised outside Chromium. A new cross-browser capture
+  a header drag or the undo and redo shortcuts is no longer exercised outside Chromium (the clipboard
+  checks never ran there: `copy-paste.spec.ts` declared Chromium alone). A new cross-browser capture
   names the engine difference it is for in its docblock, and a state it shows belongs in `tests/e2e`
   first.
 

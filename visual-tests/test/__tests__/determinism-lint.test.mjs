@@ -287,7 +287,7 @@ test('--fix never writes an empty docblock stub above an undocumented test call'
 });
 
 test('a looped test gets a docblock per inner call', async() => {
-  // Five cross-browser specs register one test per demo URL from inside `urls.forEach()`; the jsdoc plugin
+  // Two cross-browser specs register one test per demo URL from inside `urls.forEach()`; the jsdoc plugin
   // attaches the block to the call's own statement, inside the loop.
   const looped = '[\'/a\'].forEach((url) => {\n  visualTest(url, { themes: [\'classic\'], browsers: [\'chromium\'], '
     + 'wrappers: [] }, async() => {});\n});\n';

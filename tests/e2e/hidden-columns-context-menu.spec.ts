@@ -5,12 +5,13 @@ import { OrdersGridPage } from '../fixtures/pages/OrdersGridPage';
  * Two columns hidden one at a time from their headers' context menu come back together from the
  * context menu of a header range that spans both, in their original places.
  *
- * The Jasmine context-menu suites check when "Hide column" and "Show column" are offered, not what
- * choosing them does; `show-hidden-middle-column.spec.ts` restores one column from a neighboring
- * header. The two-at-a-time round trip through a range ran only in the cross-browser visual suite
- * (`columns-hide.spec.ts` on the demo's shared grid), which counted the header cells and
- * photographed the rest until DEV-3257. The same steps are asserted here by which columns are
- * hidden and which headers the grid draws.
+ * The Jasmine HiddenColumns context-menu suite runs both commands through `executeCommand()`, showing
+ * two hidden columns from a range that spans them included, and `show-hidden-middle-column.spec.ts`
+ * restores one column from a neighboring header. The real right-click and menu click, one column at a
+ * time and then both back from a range, ran only in the cross-browser visual suite
+ * (`columns-hide.spec.ts` on the demo's shared grid), which counted the header cells and photographed
+ * the rest until DEV-3257. The same steps are asserted here by which columns are hidden and which
+ * headers the grid draws.
  */
 test.describe('hiding and showing columns from the header context menu', () => {
   let grid: OrdersGridPage;

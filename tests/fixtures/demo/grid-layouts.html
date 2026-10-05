@@ -58,12 +58,12 @@
     cells under an initial sort, a nested header over rows frozen to the bottom, nested rows with
     hidden rows and a hidden column, and a grid large enough to scroll both ways.
 
-      frozen-hidden        /cell-types-demo      columns 0 and 2 hidden, three frozen at the start
+      frozen-hidden        /cell-types-demo      columns 0 and 2 hidden, three frozen at the start, column 4 numeric
       rtl-nested-headers   /arabic-rtl-demo      layoutDirection rtl, a two-row nested header
       merged-sorted        /merged-cells-demo    four merged areas, an initial two-column sort
       custom-borders       /custom-style-demo    the same merged areas, two bordered cells
       nested-headers       /nested-headers-demo  a two-row nested header, two rows frozen at the bottom
-      nested-rows          /nested-rows-demo     nested rows, rows and a column hidden
+      nested-rows          /nested-rows-demo     nested rows, rows and a column hidden, navigable headers
       large                /large-dataset-demo   150 x 150 in a 500 x 500 viewport
 
     Every rendered cell carries `data-testid="cell-<visualRow>-<visualColumn>"`, every column header
@@ -116,7 +116,13 @@
 
     const LAYOUTS = {
       'frozen-hidden': () => ({
-        data: spreadsheet(30, 16),
+        // Column 4 is numeric, as the demo's "Cost" is: text typed into it is kept and marked invalid.
+        data: spreadsheet(30, 16).map((row, index) => row.map((value, column) => (
+          column === 4 ? (index + 1) * 100 : value
+        ))),
+        cells(row, column) {
+          return column === 4 ? { type: 'numeric' } : {};
+        },
         colWidths: 90,
         width: 1000,
         height: 400,
@@ -200,6 +206,8 @@
           columns: Array.from({ length: 11 }, (_, column) => ({ data: `c${column}` })),
           height: 400,
           rowHeaderWidth: 150,
+          // As on the demo: a header click puts the focus on the header, not on the first cell.
+          navigableHeaders: true,
           nestedRows: true,
           bindRowsWithHeaders: true,
           hiddenColumns: { columns: [1], indicators: true },

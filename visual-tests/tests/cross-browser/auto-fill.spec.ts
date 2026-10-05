@@ -6,10 +6,12 @@ import { helpers } from '../../src/helpers';
  * Checks that double-clicking the fill handle of an edited cell fills its value down the column, and
  * renders the filled range with its selection, in Chromium, Firefox and WebKit, on the cell-types
  * demo. One capture in each browser, after asserting the column's last row holds the filled value and
- * lies in the selected range. The fill itself is asserted by `tests/e2e/fill-handle-double-click.spec.ts` and the
- * Jasmine autofill suites; what is engine-specific is the double click the browser synthesizes on the
- * handle, which one route proves. The merged-cells and nested-headers routes this spec also
- * photographed until DEV-3257 take the same handle path. Owned by DEV-3257.
+ * lies in the selected range. The fill itself is asserted by `tests/e2e/fill-handle-double-click.spec.ts`
+ * and the Jasmine autofill suites; what is engine-specific is the double click the browser synthesizes
+ * on the handle, which one route proves. The merged-cells and nested-headers routes this spec also
+ * photographed until DEV-3257 take the same handle path; on the merged-cells route the fill was
+ * refused, because it would cut a merged area, and that refusal is asserted by
+ * `tests/e2e/fill-handle-merged-cells.spec.ts`. Owned by DEV-3257.
  */
 visualTest('Test autofill for: /cell-types-demo', {
   themes: [CLASSIC],
@@ -49,8 +51,8 @@ visualTest('Test autofill for: /cell-types-demo', {
   const cornerDiv = table.locator('div.wtBorder.current.corner').first();
 
   await cornerDiv.dblclick();
-  // Filled down to the last row, and the filled range selected.
-  await expect(await selectCell(11, 2, table)).toHaveText('$1,100.00');
-  await expect(await selectCell(11, 2, table)).toHaveClass(/(^|\s)area(\s|$)/);
+  // Filled down to the last of the demo's 20 rows, and the filled range selected.
+  await expect(await selectCell(19, 2, table)).toHaveText('$1,100.00');
+  await expect(await selectCell(19, 2, table)).toHaveClass(/(^|\s)area(\s|$)/);
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

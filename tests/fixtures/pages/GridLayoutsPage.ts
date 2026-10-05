@@ -337,6 +337,64 @@ export class GridLayoutsPage {
   }
 
   /**
+   * Prepares a fill: empties one column through the API (setup, not the behavior under test), then
+   * selects one cell of it through the API too, so no real click lands twice on the cell and opens
+   * its editor as a double click.
+   *
+   * @param {number} column The visual column to empty.
+   * @param {number} row The visual row of the cell to fill from.
+   * @param {string} value The value to put in that cell.
+   */
+  async prepareFillFrom(column: number, row: number, value: string): Promise<void> {
+    await this.page.evaluate(([c, r, v]) => {
+      const { hot } = window as unknown as { hot: {
+        countRows(): number,
+        setDataAtCell(changes: Array<[number, number, unknown]>): void,
+        selectCell(row: number, column: number): void,
+      } };
+      const changes: Array<[number, number, unknown]> = Array.from({ length: hot.countRows() },
+        (_, index) => [index, c, index === r ? v : null]);
+
+      hot.setDataAtCell(changes);
+      hot.selectCell(r, c);
+    }, [column, row, value] as [number, number, string]);
+    await expect(this.grid.locator('.ht_master .wtBorder.current.corner').first()).toBeVisible();
+  }
+
+  /**
+   * Double-clicks the fill handle (the selection's corner), which fills the selection down as far as
+   * the neighboring columns hold data.
+   */
+  async doubleClickFillHandle(): Promise<void> {
+    await this.grid.locator('.ht_master .wtBorder.current.corner').first().dblclick();
+  }
+
+  /**
+   * Changes the grid's settings.
+   *
+   * @param {object} settings The settings to apply with `updateSettings()`.
+   */
+  async updateSettings(settings: Record<string, unknown>): Promise<void> {
+    await this.page.evaluate(s => (window as unknown as {
+      hot: { updateSettings(settings: Record<string, unknown>): void },
+    }).hot.updateSettings(s), settings);
+  }
+
+  /**
+   * Whether the grid's validator accepted a cell's value: `getCellMeta().valid`, which a cell that
+   * failed validation keeps as `false` (and draws with `htInvalid`).
+   *
+   * @param {number} row The visual row index.
+   * @param {number} column The visual column index.
+   * @returns {Promise<boolean | undefined>}
+   */
+  async cellValid(row: number, column: number): Promise<boolean | undefined> {
+    return this.page.evaluate(([r, c]) => (window as unknown as {
+      hot: { getCellMeta(row: number, column: number): { valid?: boolean } },
+    }).hot.getCellMeta(r, c).valid, [row, column] as [number, number]);
+  }
+
+  /**
    * Edits a cell the way a user does: click it, open the editor with Enter, replace the text, and
    * commit with Enter. Waits for the editor to close, so the edit is in the grid when this returns.
    *

@@ -10,8 +10,9 @@ import {
  * Checks that a bottom border set through the context menu renders on the cell once the selection has
  * moved away from it, in Chromium, Firefox and WebKit: a 1px border whose position the engines round
  * differently. One capture in each browser, after asserting the selection moved to the first cell and
- * exactly one custom border segment is drawn. The same border on every theme is photographed by
- * `js-only/custom-borders` on Chromium. Owned by DEV-3257.
+ * exactly one custom border segment is drawn. Custom borders on every theme are photographed by
+ * `js-only/custom-borders` on Chromium, on the custom-borders demo's own ranges; a border set through
+ * the menu is captured only here. Owned by DEV-3257.
  */
 visualTest('Test borders', {
   themes: [CLASSIC],

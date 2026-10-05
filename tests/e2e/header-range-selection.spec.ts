@@ -7,9 +7,11 @@ import { GridLayoutsPage, type GridLayout } from '../fixtures/pages/GridLayoutsP
  *
  * The cross-browser visual suite photographed these ranges on five demo routes
  * (`visual-tests/tests/cross-browser/selection.spec.ts`). The Jasmine selection suites assert header
- * ranges with simulated events on plain grids; on these shapes, with real clicks, the screenshots were
- * the only record until DEV-3257 of which range a click selected, and a range one column off was the
- * golden for as long as the helper that aimed the clicks miscounted nested header cells. Each case here rebuilds one route's
+ * ranges with simulated events, Shift+click ranges over nested headers included, but not with real
+ * pointer events, not with `navigableHeaders`, and not on the hidden-column, frozen, right-to-left and
+ * nested-rows shapes; on those the screenshots were the only record until DEV-3257 of which range a
+ * click selected, and a range one column off was the golden for as long as the helper that aimed the
+ * clicks miscounted nested header cells. Each case here rebuilds one route's
  * shape in `fixtures/demo/grid-layouts.html` and clicks the same headers the visual spec does — the
  * third and the sixth RENDERED column, so the visual indexes skip a hidden column — and asserts the
  * selection the grid reports and the headers it draws as selected.
@@ -17,8 +19,9 @@ import { GridLayoutsPage, type GridLayout } from '../fixtures/pages/GridLayoutsP
  * The shapes each change the answer in a different way: hidden columns move the visual indexes the
  * range is reported in and the column focus lands on; a right-to-left grid reverses where the second
  * header sits; a nested header highlights a group cell only when the range covers its whole span;
- * hidden rows inside a row range stay part of it without being drawn; and `navigableHeaders` puts
- * the focus on the header rather than on the first cell under it.
+ * hidden rows inside a row range stay part of it without being drawn; and `navigableHeaders` (on the
+ * nested-headers and nested-rows shapes, as on their demos) puts the focus on the header rather than
+ * on the first cell under it.
  */
 
 type HeaderRangeCase = {
@@ -90,11 +93,13 @@ const CASES: HeaderRangeCase[] = [
     // Column 1 is hidden, so the third and sixth rendered columns are 3 and 6.
     columns: [3, 6],
     groups: null,
-    columnFocus: { row: 0, col: 3 },
+    // navigableHeaders: true over a single header row, so the focus stays on the header the range
+    // started from: the flat-header counterpart of the parked nested-headers test below.
+    columnFocus: { row: -1, col: 3 },
     // Rows 3, 4 and 5 are hidden, so the third and sixth rendered rows are 2 and 8.
     rows: [2, 8],
     drawnRows: [2, 6, 7, 8],
-    rowFocus: { row: 2, col: 0 },
+    rowFocus: { row: 2, col: -1 },
   },
 ];
 
@@ -159,8 +164,8 @@ test.describe('a header click and a Shift+click select the range between them', 
 
   // On a grid with nested headers and navigableHeaders, the Shift+click is handled by the plugin,
   // which starts a new column selection instead of extending the current one, so the focus moves to
-  // the Shift-clicked header; every other shape here, and the row headers of this one, keep it on
-  // the header the range started from.
+  // the Shift-clicked header. The nested-rows shape has navigableHeaders over a single header row and
+  // keeps the focus on the header the range started from, and so do this shape's row headers.
   // eslint-disable-next-line no-restricted-syntax -- DEV-3261: a Shift+click on a nested column header moves the focus to the clicked header
   test.fixme('keeps the focus on the first column header of a range on the /nested-headers-demo shape', async() => {
     await grid.goto('nested-headers');

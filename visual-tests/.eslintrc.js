@@ -29,8 +29,8 @@ const WAIT_FOR_FUNCTION_POLLING_RESTRICTIONS = [
 // too. A visual spec has no assertion of its own — the screenshot is the assertion — so a fixed delay
 // before a capture photographs whichever half of a transition the runner reached; the two flake shapes
 // DEV-2797 measured in CI (a scrollbar-clearance band created on the frame after a click, a filters
-// input focused on a 10 ms timer) are exactly that. The 2024 import carries fixed sleeps at 40-odd
-// sites; each one now wears an eslint-disable line naming the task, the convention `tests/AGENTS.md`
+// input focused on a 10 ms timer) are exactly that. The 2024 import carried fixed sleeps at 40-odd
+// sites (25 on 2026-10-05); each one now wears an eslint-disable line naming the task, the convention `tests/AGENTS.md`
 // uses for `test.fixme`, so the debt is counted and greppable while it is paid down. `.skip` is banned
 // in its bare and titled forms only: the two-argument conditional form (`test.skip(condition, why)`) is
 // what `visualTest()` in `src/test-runner.ts` emits from a spec's variant declaration, so it stays legal
@@ -133,11 +133,11 @@ const DETERMINISM_RESTRICTIONS = [
 // four as unseen. A capture is the statement's own `screenshot()` call: awaited or not, kept in a `const`,
 // returned, or handed straight to `expect()` (the last three are in no spec today; the self-test pins them
 // too). A tracked `waitForTimeout()`
-// in between shields 18 captures in 12 specs: replacing such a sleep with the assertion it stands for clears
+// in between shields 12 captures in 8 specs: replacing such a sleep with the assertion it stands for clears
 // both lines, while deleting it with nothing in its place makes the capture fire, so the disable line moves
 // to the capture. Page helpers are deliberately not enumerated: a renamed helper would silently leave the
 // list, and the helpers that act with no `expect()` or wait (25 of the 48 exported from `src/page-helpers.ts`
-// on 2026-09-23, one of them the `tryToEscapeFromTheComponentsFocus` #13647 deleted with its callers, plus three that wait only with a fixed sleep: collapseNestedRow, resizeColumn, resizeRow)
+// on 2026-09-23, one of them the `tryToEscapeFromTheComponentsFocus` #13647 deleted with its callers, plus one that waits only with a fixed sleep, collapseNestedRow; resizeColumn and resizeRow went with the cross-browser resize specs in DEV-3257)
 // are their own follow-up, each ending on the state it produced.
 //
 // Primitives only: the pointer, keyboard, and focus methods a spec calls on a locator or a page, plus any

@@ -316,10 +316,13 @@ not need a real press.
   (`OVERLAY_SCROLLBAR_PROXIMITY`), so the next scroll's wait for the band to close times out. Park the
   pointer off the grid before scrolling (`GridLayoutsPage.scrollViewportTo()`), and wait for the band to
   close before a click near an edge, or the scrollbar takes the click.
-- A click on a sortable column header sorts as well as selects. On a paginated grid the column it
-  selects is the current page's rows only (Pagination clamps the range in `beforeSelectColumns` and
-  `beforeSetRangeEnd`), so a Delete after it empties that page and no other. `pagination-filter-sort.spec.ts`
-  asserts both.
+- A press on a sortable column header's label (`.colHeader`), or on its sort indicator, sorts as well
+  as selects; a press elsewhere on the header only selects. A click on the middle of a header usually
+  lands on the label, which is how a test that meant only to select a column also sorts it — aim at the
+  label, or away from it, on purpose. On a paginated grid the column a header click selects is the
+  current page's rows only (Pagination clamps the range in `beforeSelectColumns` and
+  `beforeSetRangeEnd`), so a Delete after it empties that page and no other.
+  `pagination-filter-sort.spec.ts` asserts both.
 
 ## Reading grid UI state
 

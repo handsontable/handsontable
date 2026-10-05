@@ -7,9 +7,9 @@ import {
 
 /**
  * Checks that a column frozen through the context menu stays pinned while the grid scrolls horizontally
- * with the mouse wheel, in Chromium, Firefox and WebKit, which map a wheel delta and draw the
- * scrollbars each their own way. One capture in each browser, after asserting the frozen column's header
- * is drawn by the corner overlay and the grid scrolled. That the menu entry freezes the column is
+ * with the mouse wheel, in Chromium, Firefox and WebKit, which each derive their own offset from the
+ * same wheel delta. One capture in each browser, after asserting the frozen column's header is drawn
+ * by the corner overlay and the grid scrolled. That the menu entry freezes the column is
  * asserted by the Jasmine column-freeze suite. Owned by DEV-3257.
  */
 visualTest('Test freezing', {

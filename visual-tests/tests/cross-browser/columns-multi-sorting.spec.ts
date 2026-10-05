@@ -9,7 +9,7 @@ import {
 
 /**
  * Checks that a two-column sort (Country descending, then Qty ascending) renders both sort indicators
- * and their order numbers, CSS pseudo-elements, in Chromium, Firefox and WebKit. One capture in each
+ * and their order numbers in Chromium, Firefox and WebKit. One capture in each
  * browser, after asserting both headers' sort order and the first Qty of the United States rows. The
  * sort itself is asserted by the Jasmine multi-column sorting suite. Owned by DEV-3257.
  */

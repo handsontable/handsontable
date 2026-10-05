@@ -9,9 +9,11 @@ import { OrdersGridPage } from '../fixtures/pages/OrdersGridPage';
  * The cross-browser visual suite photographed these steps on the demo's pagination route
  * (`pagination.spec.ts`: filter, sort, next page, select a column and press Delete, next page,
  * previous page) and asserted nothing; since DEV-3257 the first screenshot is the only one left,
- * and the pages are asserted here. Its column step clicks the header of the Name column, and a
- * header click on a sortable grid sorts as well as selects, so from there the pages are in Name
- * order — the screenshots show it ("Name ↑"), and this spec asserts it rather than hide it.
+ * and the pages are asserted here. Its column step clicks the middle of the Name column's header,
+ * which lands on the header's label, and a press on a sortable header's label sorts as well as
+ * selects, so from there the pages are in Name order — the screenshots show it ("Name ↑"), and this
+ * spec asserts it rather than hide it. The click here aims at the label itself, so it does not depend
+ * on where the middle of the header falls.
  *
  * The expected rows are worked out from the source data in the test, independently of the grid:
  * the countries that contain "in", sorted by the clicked column.
@@ -53,8 +55,8 @@ test.describe('pagination over a filtered and sorted grid', () => {
     expect(await grid.pageState()).toMatchObject({ currentPage: 2, counter: '11 - 20 of 30', navigation: 'Page 2 of 3' });
     expect((await grid.columnData(0)).slice(10, 20)).toEqual(slice(byColumn(0), 0, 10));
 
-    // The Name header: a click sorts by Name and selects the column, on this page's rows only.
-    await grid.header(1).click();
+    // The Name header's label: a click sorts by Name and selects the column, on this page's rows only.
+    await grid.header(1).locator('.colHeader').click();
 
     expect(await grid.sortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
     expect(await grid.selected()).toEqual([[10, 1, 19, 1]]);
