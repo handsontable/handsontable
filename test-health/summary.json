@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-05T07:39:30.409Z",
+  "generatedAt": "2026-10-05T09:09:19.190Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -9,9 +9,9 @@
   "retentionDays": 90,
   "totals": {
     "tests": 318,
-    "needsTicket": 11,
+    "needsTicket": 12,
     "quarantined": 0,
-    "entries": 1778
+    "entries": 1779
   },
   "rows": [
     {
@@ -372,6 +372,41 @@
         "leg": "e2e-classic",
         "status": "flaky",
         "error": "Error: expect(received).toEqual(expected) // deep equality",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "jasmine|handsontable/src/editors/textEditor/__tests__/textEditor.spec.js|TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
+      "tier": "jasmine",
+      "file": "handsontable/src/editors/textEditor/__tests__/textEditor.spec.js",
+      "line": null,
+      "title": "TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
+      "count7": 2,
+      "count30": 2,
+      "countAll": 2,
+      "runs30": 2,
+      "flakyRuns30": 0,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "UMD (theme: classic)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-05T09:08:38Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37285045435",
+        "branch": "feature/HOT-14987_fixedColumnsEnd",
+        "leg": "UMD (theme: classic)",
+        "status": "failed",
+        "error": "Error: Timeout - Async function did not complete within 15000ms (set by jasmine.DEFAULT_TIMEOUT_INTERVAL)",
         "source": "ci"
       },
       "needsTicket": true
@@ -11754,41 +11789,6 @@
         "leg": "UMD (theme: main)",
         "status": "failed",
         "error": "Expected <td class=\"current\" role=\"gridcell\" tabindex=\"-1\" aria-colindex=\"1\" aria-selected=\"true\">...</td> to be <input data-hot-input tabindex=\"-1\" class=\"handsontableInput\" type=\"date\" style=\"width: 96px; height: 30px; overflow-y: visible; font-size: 14px; font-family: sans-serif;\">. Tip: To ch...",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "jasmine|handsontable/src/editors/textEditor/__tests__/textEditor.spec.js|TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
-      "tier": "jasmine",
-      "file": "handsontable/src/editors/textEditor/__tests__/textEditor.spec.js",
-      "line": null,
-      "title": "TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
-      "count7": 1,
-      "count30": 1,
-      "countAll": 1,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "UMD (theme: classic)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "passes alone"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-01T12:18:13Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36856883095",
-        "branch": "feature/DEV-3216_Scope-mutation-runs-to-scored-test",
-        "leg": "UMD (theme: classic)",
-        "status": "failed",
-        "error": "Error: Timeout - Async function did not complete within 15000ms (set by jasmine.DEFAULT_TIMEOUT_INTERVAL)",
         "source": "ci"
       },
       "needsTicket": false
