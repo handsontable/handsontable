@@ -7027,7 +7027,7 @@ export default function Core(
       width = cellProperties.width;
     }
 
-    if (width === undefined || width === tableMeta.width) {
+    if (width === undefined) {
       width = tableMeta.colWidths;
     }
 
