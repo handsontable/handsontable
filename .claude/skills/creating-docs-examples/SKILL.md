@@ -149,7 +149,7 @@ const hotSettings = ref<GridSettings>({
 - Prefer a single `:settings` object; use individual props only when the guide text highlights one.
 - Put hooks (`afterChange`, `beforeDataProviderFetch`, etc.) inside the settings object, not as Vue event listeners on `<HotTable>`.
 - `ref()` holds reactive state the template or handlers update. Use a plain `const` for `hotSettings` when deep reactivity would trigger unwanted `updateSettings()` calls (e.g. only a status label changes beside the grid).
-- Template refs bound via `ref="..."` use `useTemplateRef('refName')`, with the string matching the template `ref` attribute exactly:
+- Template refs bound via `ref="..."` use `useTemplateRef('refName')`, never `ref()`, with the string matching the template `ref` attribute exactly:
 
 ```vue
 const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');   // <HotTable ref="hotRef" :settings="hotSettings" />

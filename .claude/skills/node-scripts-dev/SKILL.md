@@ -61,19 +61,21 @@ Wrapper packages and `performance-tests/`, `visual-tests/` take scripts directly
 
 ## Native modules over dependencies
 
-| Task | Use |
-|------|-----|
-| Read/write files | `node:fs/promises` |
-| Delete recursively | `rm({ recursive: true, force: true })` |
-| Move/rename | `rename()` |
-| Run child process | `node:child_process` + `promisify(exec)` |
-| Parse CLI args | `node:util` `parseArgs()` or `process.argv` |
-| Path manipulation | `node:path` |
-| Glob matching | `node:fs` `readdir` + filter (`glob`/`fast-glob` only for complex patterns) |
+Do not add third-party dependencies for what Node.js does natively.
+
+| Task | Use | Not |
+|------|-----|-----|
+| Read/write files | `node:fs/promises` | `fs-extra` |
+| Delete recursively | `rm({ recursive: true, force: true })` | `rimraf` |
+| Move/rename | `rename()` | `mv` |
+| Run child process | `node:child_process` + `promisify(exec)` | `execa` |
+| Parse CLI args | `node:util` `parseArgs()` or `process.argv` | `yargs`, `commander` |
+| Path manipulation | `node:path` | `slash`, `normalize-path` |
+| Glob matching | `node:fs` `readdir` + filter (`glob`/`fast-glob` only for complex patterns) | `glob`, `fast-glob` otherwise |
 
 ## Cross-platform (Linux, macOS, Windows)
 
-- `package.json` scripts: use Node helpers in place of bash constructs (`if [ ]`, `mv`, `rm -rf`, `&&`/`||` chaining).
+- `package.json` scripts: use Node helpers in place of bash constructs (`if [ ]`, `mv`, `rm -rf`, `a && b || c` conditionals). Plain `&&` sequencing is fine.
 - Build paths with `node:path` `join()`.
 - Use async `node:fs/promises` (`readdir`, `rename`, `rm`, `access`).
 - `__dirname` equivalent: `import.meta.dirname` (Node 21+) or `dirname(fileURLToPath(import.meta.url))`.

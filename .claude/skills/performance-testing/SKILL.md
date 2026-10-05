@@ -163,7 +163,7 @@ A category measured as exactly `0`, or a CV of `sqrt(n) × 100%` (one nonzero it
 
 ## Shared utilities
 
-Import from `lib/` (`fs-utils.mjs` `exists`, `scroll-utils.mjs`, `hook-timing.mjs`, `environment.mjs`, `thresholds.mjs`) in specs and scripts. `thresholds.mjs` is the single source of the callout thresholds and colour bands: reference them from there and derive any retune from `scripts/replay-goldens.mjs`. Heap has per-scenario overrides in `HEAP_THRESHOLDS_BY_SCENARIO` (the horizontal-scroll scenarios' peak heap is GC timing, CV 4.4-6.3%); read them through `heapThresholdFor(name)`.
+Import from `lib/` (`fs-utils.mjs` `exists`, `scroll-utils.mjs`, `hook-timing.mjs`, `environment.mjs`, `thresholds.mjs`) in specs and scripts. `thresholds.mjs` is the single source of the callout thresholds and colour bands: reference them from there, never restate either number elsewhere, and derive any retune from `scripts/replay-goldens.mjs`, never by eye. Heap has per-scenario overrides in `HEAP_THRESHOLDS_BY_SCENARIO` (the horizontal-scroll scenarios' peak heap is GC timing, CV 4.4-6.3%); read them through `heapThresholdFor(name)`. Never read `REGRESSION_CALLOUT_THRESHOLD_HEAP` directly at a render site: a bypass disagrees with the callouts.
 
 ## .mjs convention
 

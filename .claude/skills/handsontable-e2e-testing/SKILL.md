@@ -51,7 +51,7 @@ Write the bare global (`countCols()`, `await alter('remove_col', 2, 1)`) instead
 
 ## Theme-agnostic assertions
 
-Every test passes under every theme. Build expectations from `const layout = getThemeLayout()` (token-backed, from `test/helpers/themeLayoutFromTokens.js`: token primitives, `overlayHeight` / `verticalScrollForRow` helpers, and scenario helpers such as `e2eGcrEditedCellOuterHeight`, `e2eManualRowResizerPositionFixedTopMasterFourthRow`) or from live DOM measurements. `themeLayoutFromTokens(themeName)` reads `density` and `tokens` from `handsontable/src/themes/theme/<name>.ts`, so a density change propagates to all tests. Density triplets (`{ compact: N, default: N, comfortable: N }`) are not used anywhere.
+Every test passes under every theme. Never branch on `getLoadedTheme()`, `layout.densityLevel`, or a theme name in a spec, and never hardcode per-theme pixel values. Build expectations from `const layout = getThemeLayout()` (token-backed, from `test/helpers/themeLayoutFromTokens.js`: token primitives, `overlayHeight` / `verticalScrollForRow` helpers, and scenario helpers such as `e2eGcrEditedCellOuterHeight`, `e2eManualRowResizerPositionFixedTopMasterFourthRow`) or from live DOM measurements. `themeLayoutFromTokens(themeName)` reads `density` and `tokens` from `handsontable/src/themes/theme/<name>.ts`, so a density change propagates to all tests. Density triplets (`{ compact: N, default: N, comfortable: N }`) are not used anywhere.
 
 For a value that is not token-derivable (text shaping, autosize widths, pixel rounding):
 
@@ -143,7 +143,7 @@ Specs live under `src/` next to the code they test. **The spec filename matches 
 | i18n | `src/i18n/__tests__/<name>.spec.js` |
 | Mobile-specific | `src/__tests__/mobile/<name>.spec.js` |
 
-`test/e2e/` is no longer the home for spec files.
+Do not add spec files to `test/e2e/`; it is no longer their home.
 
 Reference organization: `src/plugins/pagination/__tests__/` (separate dirs for options, methods, hooks, strategies).
 

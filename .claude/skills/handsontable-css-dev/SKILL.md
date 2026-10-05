@@ -51,7 +51,7 @@ Pattern: the component root (`.ht-pagination`, `td`, `.ht-sheets-bar`) carries t
 - A bare `.ht-pagination { font-size }` never beat the bar's own `.handsontable.ht-pagination` rule.
 - Offsets computed from the `--ht-line-height` token (multiselect and autocomplete arrow `top`, chip end padding) do not follow a user's `td` `line-height` override.
 
-Scope the declarations to the guarded classes: a blanket `.handsontable span { ... }` (0,1,1) overrides a user's `.my-class` on spans inside custom renderers.
+Scope the declarations to the guarded classes. Do not add a blanket `.handsontable span { ... }` rule: its specificity (0,1,1) overrides a user's `.my-class` on spans inside custom renderers.
 
 `tests/e2e/host-span-styles.spec.ts` (fixture `tests/fixtures/demo/host-span-styles.html`) hosts a hostile `span {}` rule and asserts the guarded spans against their cascade parent. Its user-override tests prepend their rule to `<head>` (`HostSpanStylesPage.prependUserStyles`). Add every new text-bearing span to that spec. The fixture loads the compiled `handsontable/styles/*.min.css` and a `dist/` bundle that injects the core stylesheet again at init, so after an SCSS edit run the full `npm --prefix handsontable run build` before trusting a spec run; `build:styles` and `build:styles.min` alone leave the bundle's copy stale and a reverted guard still passes.
 
@@ -60,7 +60,7 @@ Scope the declarations to the guarded classes: a blanket `.handsontable span { .
 Every built-in icon is a real element: `<i class="ht-icon ht-icon-<kebab-name>" aria-hidden="true"></i>`, built by two functions in `handsontable/src/themes/engine/icons.ts`:
 
 - `createIcon(hot, name, options)` builds a fresh icon (`options`: `{ flipInRtl?, className? }`).
-- `syncIcon(hot, container, slotClass, name, options)` keeps exactly one icon in a slot a hook re-renders: creates it when missing, keeps it when the name is unchanged, replaces it when the name changed, and **removes it when `name` is `null`**. Use it wherever a header/draw hook decides per render whether an icon shows.
+- `syncIcon(hot, container, slotClass, name, options)` keeps exactly one icon in a slot a hook re-renders: creates it when missing, keeps it when the name is unchanged, replaces it when the name changed, and **removes it when `name` is `null`**. Use it wherever a header/draw hook decides per render whether an icon shows; do not hand-roll `createIcon` plus manual remove/replace bookkeeping there.
 
 The glyph comes from the per-theme `--ht-icon-<name>` variable plus a generated `.ht-icon-<name>` rule (`mask-image: var(--ht-icon-<name>); background-color: currentColor`). `.ht-icon` (`handsontable/src/styles/components/core/_icon.scss`) carries **no paint**, no `background-color` and no `mask-image`: a `-no-icons` bundle ships neither the variable nor the `.ht-icon-<name>` rule, so `mask-image` resolves to `none` and the icon renders as nothing. Paint on the base class would render every icon in a `-no-icons` bundle as a solid square. Add paint only to a generated `.ht-icon-<name>` rule.
 

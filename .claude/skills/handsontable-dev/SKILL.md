@@ -15,7 +15,7 @@ description: >
 
 ## Dispatch table
 
-Invoke `handsontable-code-review` (architecture dimension) alongside the task-specific specialist for every change. It is the design lens (SOLID, Law of Demeter, plugin decoupling, breaking changes); the task skill is the implementation guide.
+Load `handsontable-code-review` (architecture dimension) first for every change, then the task-specific specialist. It is the design lens (SOLID, Law of Demeter, plugin decoupling, breaking changes); the task skill is the implementation guide.
 
 | Task | Skill |
 |---|---|
@@ -46,7 +46,7 @@ Full checklist: its `references/architecture.md`.
 - **Conflict ownership.** The plugin that introduces an incompatibility owns the blocking logic. For hard conflicts, call `registerConflict()` from `src/plugins/base/conflictRegistry.ts` at module load time.
 - **Law of Demeter.** Go through `TableView` or `Core` for Walkontable data, not `this.hot.view.wt.wtTable` chains.
 - **Liskov.** Honor the full `BasePlugin` contract (lifecycle methods + static properties).
-- **Cascading config.** New options fit `cell → column → global`; document table-level-only options (like `data`) in JSDoc.
+- **Cascading config.** New options fit `cell → column → global` where applicable; document table-level-only options (like `data`) in JSDoc.
 - **Breaking changes.** Keep the legacy CSS class in the DOM when renaming. Keep old API names working (no warning for legacy, one-time warning for deprecated). Keep every default setting value. Put removed hooks/options on the removed list so misuse throws.
 - **Convention over configuration.** Red flags: new options with the same value at every call site (make it the default), new directories outside the existing taxonomy, explicit wiring where auto-discovery works.
 - **Gold standard:** `src/plugins/pagination/pagination.ts` (plugin structure, settings validation, conflict registration, focus management).

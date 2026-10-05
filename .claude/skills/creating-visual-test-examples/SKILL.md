@@ -39,7 +39,7 @@ examples/next/visual-tests/js/demo/
 
 **2. Register the route.** In `src/index.js`, import the module and add `'/<feature>-demo'` next to the existing entries: `removeCSS()`, load the route's stylesheet (if any) and the theme through `loadThemeCSS()`, then call `init()`.
 
-**3. Import from `handsontable/base`** and register what the module needs:
+**3. Import from `handsontable/base` and register what the module needs.** Do not import the full bundle into a new route:
 
 ```js
 import Handsontable from 'handsontable/base';

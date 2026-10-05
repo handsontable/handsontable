@@ -56,12 +56,12 @@ The file is named after the GitHub PR number, so the PR must exist first (a gues
 
 - Write from the user's perspective, in the past tense, specific, ending with a period: "Fixed cell editor closing unexpectedly on scroll."
 - Describe user-visible behavior; leave internal names ("Refactored DataMap", "Updated metaSchema.js") out.
-- A docs link uses an absolute `https://handsontable.com/docs/...` URL. The `@/api/...` syntax resolves only on the docs site, and `bin/changelog` renders the title verbatim into `CHANGELOG.md` and the GitHub release body, where it 404s. Reference links for new options, hooks, methods, and plugins are added later on the docs changelog page (see [`.changelogs/README.md`](../../../.changelogs/README.md)).
+- Never put an `@/api/...` link in a title; use an absolute `https://handsontable.com/docs/...` URL. The `@/api/...` syntax resolves only on the docs site, and `bin/changelog` renders the title verbatim into `CHANGELOG.md` and the GitHub release body, where it 404s. Reference links for new options, hooks, methods, and plugins are added later on the docs changelog page (see [`.changelogs/README.md`](../../../.changelogs/README.md)).
 - For `"breaking": true` (listed first in the generated changelog), state what breaks and what to do instead.
 
 ## CLI
 
-Create the entry with `npm run changelog entry`; it is the only thing that guarantees the filename (hand-written files are how every filename violation below happened). An existing target file is not overwritten in a non-interactive run: edit or remove it directly, or run in a terminal to confirm.
+Create the entry with `npm run changelog entry`, never by writing the JSON by hand; it is the only thing that guarantees the filename (hand-written files are how every filename violation below happened). An existing target file is not overwritten in a non-interactive run: edit or remove it directly, or run in a terminal to confirm.
 
 Without a terminal (agent session, CI) pass every field as a flag using the entry's own field names. `--issue`, the flag `--help` lists, never reaches `issueOrPR`, and `issuesOrigin` has no listed flag, so a run with only the listed flags dies with `input.issuesOrigin must be one of: private,public (got: undefined)`:
 
