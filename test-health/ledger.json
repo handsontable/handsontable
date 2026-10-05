@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-05T10:10:14.527Z",
+  "updatedAt": "2026-10-05T10:50:43.797Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-horizon-min",
+      "file": "e2e/max-length.spec.ts",
+      "line": 348,
+      "title": "maxLength › list editors that share the text editor input › caps typing in a dropdown cell and marks a long option picked from it as invalid",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: expect(received).toBe(expected) // Object.is equality",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "37295989611",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37295989611",
+      "workflow": "Tests",
+      "branch": "feature/HOT-14987_fixedColumnsEnd",
+      "headSha": "e31a49c5b7a575369207cf2da73caea1052c879d",
+      "event": "pull_request",
+      "seenAt": "2026-10-05T10:50:00Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-horizon-min",
