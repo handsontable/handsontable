@@ -232,6 +232,21 @@ test.describe('Clear column with collapsed nested rows', () => {
       ...row,
       value: ['P1', 'C1.2', 'P2', 'L3'].includes(row.name) ? row.value : null,
     })));
+
+    // The visible clear changed nothing, yet the hidden write is still one undo step.
+    await grid.undoWithKeyboard();
+
+    await expect.poll(() => grid.sourceRows()).toEqual(INITIAL_ROWS);
+    expect(await grid.collapsedParents()).toEqual([0, 6]);
+
+    await grid.redoWithKeyboard();
+
+    await expect.poll(() => grid.sourceRows()).toEqual(INITIAL_ROWS.map(row => ({
+      ...row,
+      value: ['P1', 'C1.2', 'P2', 'L3'].includes(row.name) ? row.value : null,
+    })));
+    expect(await grid.collapsedParents()).toEqual([0, 6]);
+    expect(grid.pageErrors).toEqual([]);
   });
 
   test('is disabled when no cell it would reach is editable', async() => {
@@ -288,6 +303,50 @@ test.describe('Clear column with collapsed nested rows', () => {
 
     await expect.poll(() => grid.formulaResults()).toEqual([10, 110, 120, 130, 1310, 1320, 20, 210, 220, 30]);
     await expect(grid.cell(0, 2)).toHaveText('10');
+    expect(grid.pageErrors).toEqual([]);
+  });
+
+  test('undoes a listener\'s row removal with the clear, and no earlier edit', async() => {
+    await grid.goto('formulas');
+    // An earlier edit the undo of the clear must leave alone: L3's value 3 becomes 5.
+    await grid.setValueAt(9, 5);
+    await grid.collapseParents([0, 1]);
+
+    const beforeClear = await grid.sourceRows();
+    const resultsBeforeClear = [10, 110, 120, 130, 1310, 1320, 20, 210, 220, 50];
+
+    expect(await grid.formulaResults()).toEqual(resultsBeforeClear);
+
+    // The listener removes P1 and its subtree while the clear runs, so the formula engine sees a
+    // structural change between the visible clear and the hidden writes.
+    await grid.removeRowOnFirstClear(0);
+    await grid.clearColumnViaDropdown('Value');
+
+    expect(await grid.countRows()).toBe(2);
+
+    await grid.undoWithKeyboard();
+
+    // One undo puts back the clear and the removal together, and stops there.
+    await expect.poll(() => grid.sourceRows()).toEqual(beforeClear);
+    await expect.poll(() => grid.formulaResults()).toEqual(resultsBeforeClear);
+    expect(await grid.collapsedParents()).toEqual([0, 6]);
+    await expect(grid.cell(2, 2)).toHaveText('50');
+    expect(grid.pageErrors).toEqual([]);
+  });
+
+  test('writes the hidden rows even when beforeChange cancels the visible clear', async() => {
+    await grid.goto();
+    await grid.collapseParents([0, 1]);
+    await grid.cancelClearInBeforeChange();
+
+    await grid.clearColumnViaDropdown('Value');
+
+    // Deliberate: the hidden rows are source writes, which `beforeChange` never gates
+    // (`nestedRows/AGENTS.md`). The visible rows keep their values; the hidden ones are cleared.
+    expect(await grid.sourceRows()).toEqual(INITIAL_ROWS.map(row => ({
+      ...row,
+      value: ['P1', 'C1.2', 'P2', 'L3'].includes(row.name) ? row.value : null,
+    })));
     expect(grid.pageErrors).toEqual([]);
   });
 

@@ -248,6 +248,24 @@ export class NestedRowsClearColumnPage {
   }
 
   /**
+   * Write a Value cell through the grid, by visual row, as a user edit would.
+   */
+  async setValueAt(visualRow: number, value: unknown): Promise<void> {
+    await this.page.evaluate(([row, newValue]) => {
+      window.hot.setDataAtRowProp(row as number, 'value', newValue);
+    }, [visualRow, value]);
+  }
+
+  /**
+   * Register a `beforeChange` listener that cancels every "Clear column" change.
+   */
+  async cancelClearInBeforeChange(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.hot.addHook('beforeChange', (changes, source) => (source === 'ContextMenu.clearColumn' ? false : undefined));
+    });
+  }
+
+  /**
    * Register an `afterChange` listener that removes a row, by visual index, the first time a
    * "Clear column" change reaches it.
    */

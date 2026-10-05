@@ -493,8 +493,9 @@ They are written in different places and can drift. Keep this in mind:
   write, so an ordinary clear records exactly what it records without this plugin. (6) The hidden rows report through `afterSetSourceDataAtCell` (physical rows) and are not
   validated, as every `setSourceDataAtCell()` write. (7) `disabled()` asks `hasEditableCollapsedRowCell()`
   only when every visible cell is read-only, so the item stays enabled when the hidden rows are the only
-  editable ones. One gap is deliberately open: a user `beforeChange` that cancels the visible clear does not
-  cancel the hidden write. The call is made FROM the predefined item (`hot.getPlugin('nestedRows')`, the pattern
+  editable ones. One gap is deliberately open (WONTFIX in review): a user `beforeChange` that cancels the
+  visible clear does not cancel the hidden write, because `beforeChange` never gates a source write;
+  `nested-rows-clear-column.spec.ts` pins it. The call is made FROM the predefined item (`hot.getPlugin('nestedRows')`, the pattern
   `readOnly.ts` uses for ColumnSummary), not by wrapping the item in a `before*MenuSetItems` hook: the
   plugins are already ready when DropdownMenu (priority 230) enables, so its `callOnPluginsReady()`
   builds the first item list right away, before this plugin (300) is enabled, and `executeCommand()`
@@ -646,7 +647,7 @@ They are written in different places and can drift. Keep this in mind:
 | `tests/e2e/nested-rows-remove-parent.spec.ts` | Playwright: removing a parent takes its whole subtree, on a **four-level** tree |
 | `tests/e2e/nested-rows-undo.spec.ts` | Playwright: undo restores a removed parent and its descendants |
 | `tests/e2e/nested-rows-collapse-selection.spec.ts` | Playwright: where the selection lands when a collapse trims the row holding it |
-| `tests/e2e/nested-rows-clear-column.spec.ts` | Playwright: "Clear column" reaches the rows of collapsed parents, keeps the collapse and the selection, undoes in one step (Formulas included), survives a validator and a listener that removes rows, keeps the caller's range, enables the item when only hidden cells are editable, works through `executeCommand()` before any open, and leaves a user callback and TrimRows alone |
+| `tests/e2e/nested-rows-clear-column.spec.ts` | Playwright: "Clear column" reaches the rows of collapsed parents, keeps the collapse and the selection, undoes in one step (Formulas included, with a listener removing rows mid-clear, and when every visible cell is read-only), survives a validator and a listener that removes rows, keeps the caller's range, enables the item when only hidden cells are editable, works through `executeCommand()` before any open, and leaves a user callback and TrimRows alone |
 
 Physical layouts of the shared fixtures, which the specs depend on:
 
