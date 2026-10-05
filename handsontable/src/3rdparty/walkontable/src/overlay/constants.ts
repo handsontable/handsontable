@@ -132,6 +132,13 @@ export const RESIZE_LOOP_GUARD_RECONNECT_MAX_DELAY = 30000;
  */
 export const OVERLAY_RAIL_CLASS_NAME = 'htOverlayRail';
 
+/**
+ * The state class the three inline-end clone roots carry while the freeze line at their inline-start edge
+ * is drawn by the master (the clone rests against the last scrolling column, or against the row header).
+ * Without it the clone's own first cell draws the line. See `Overlays#syncInlineEndFreezeLine`.
+ */
+export const INLINE_END_FREEZE_LINE_SHARED_CLASS = 'htFreezeLineShared';
+
 export const CLONE_CLASS_NAMES = new Map([
   [CLONE_TOP, `ht_clone_${CLONE_TOP}`],
   [CLONE_BOTTOM, `ht_clone_${CLONE_BOTTOM}`],

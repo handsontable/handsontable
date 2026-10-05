@@ -19,6 +19,7 @@ import {
   BottomInlineEndCornerOverlay,
 } from './index';
 import { createOverlayDeps } from './regions/_base';
+import { INLINE_END_FREEZE_LINE_SHARED_CLASS } from './constants';
 import { StickyScrollStrategy, createStickyScrollStrategyDeps } from './strategies/stickyScrollStrategy';
 import { ResizeMonitor, createResizeMonitorDeps } from './resizeMonitor';
 import { ScrollbarVisibility, createScrollbarVisibilityDeps } from './scrollbarVisibility';
@@ -554,6 +555,8 @@ class Overlays {
       this.#scrollSync.confirmSizesRemeasured();
     }
 
+    this.syncInlineEndFreezeLine();
+
     // Runs after the overlays refreshed their trimming containers and the holder got its final
     // overflow, so a table born outside the layout can settle on the scrollable element and the sizes
     // it would have had if it had been rendered from the start. It cannot run in `beforeDraw`: both
@@ -797,6 +800,41 @@ class Overlays {
    */
   syncScrollPositions() {
     this.#scrollSync.syncScrollPositions();
+    this.syncInlineEndFreezeLine();
+  }
+
+  /**
+   * Whether each end clone root last got the freeze-line state class, so the DOM is written only when the
+   * state changes (this runs on every scroll event).
+   */
+  #freezeLineShared = new Map<Overlay, boolean>();
+
+  /**
+   * Toggles `INLINE_END_FREEZE_LINE_SHARED_CLASS` on the three inline-end clone roots: set while the master
+   * draws the freeze line, cleared while the clones' own first-cell border does. Runs after every draw and
+   * on every scroll event; reads go through the geometry reader and a root is written only on a change.
+   */
+  syncInlineEndFreezeLine() {
+    const { inlineEndOverlay } = this;
+
+    if (!inlineEndOverlay.needFullRender || !inlineEndOverlay.clone) {
+      return;
+    }
+
+    const shared = inlineEndOverlay.isFreezeLineShared();
+
+    [inlineEndOverlay, this.topInlineEndCornerOverlay, this.bottomInlineEndCornerOverlay].forEach((overlay) => {
+      if (!overlay.needFullRender || !overlay.clone || this.#freezeLineShared.get(overlay) === shared) {
+        return;
+      }
+
+      const root = overlay.clone.wtTable.holder.parentNode;
+
+      if (isHTMLElement(root)) {
+        root.classList.toggle(INLINE_END_FREEZE_LINE_SHARED_CLASS, shared);
+        this.#freezeLineShared.set(overlay, shared);
+      }
+    });
   }
 
   /**

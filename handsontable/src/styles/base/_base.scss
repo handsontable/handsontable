@@ -628,15 +628,21 @@
         border-inline-start-width: 1px;
       }
 
-      // The first cell of an end clone is no column of the grid's inline-start edge: the scrolling column
-      // before it already draws the freeze line with its inline-end border. Drawing the clone's own
-      // inline-start border as well made that line 2px, against the 1px of the start freeze line.
-      &.ht_clone_inline_end,
-      &.ht_clone_top_inline_end_corner,
-      &.ht_clone_bottom_inline_end_corner {
-        :where(#{$grid-head-row}, #{$grid-body-row}) > th:first-child,
-        :where(#{$grid-body-row}) > td:first-child {
-          border-inline-start-width: 0;
+      // The freeze line at an end clone's inline-start edge is one pixel in every scroll state, and which
+      // element draws it depends on the state. Mid-scroll the clone's edge cuts through a master column,
+      // so the clone's own first-cell inline-start border (inherited from the rules above) is the line.
+      // At the junction (scrolled to the end, or no horizontal scroll) the clone's first column stands on
+      // the boundary of the column before it, whose inline-end border is already the line, and a second
+      // border would make it 2px against the 1px of the start side. The engine sets `htFreezeLineShared`
+      // on the three end clone roots in exactly that state (`Overlays#syncInlineEndFreezeLine`).
+      &.htFreezeLineShared {
+        &.ht_clone_inline_end,
+        &.ht_clone_top_inline_end_corner,
+        &.ht_clone_bottom_inline_end_corner {
+          :where(#{$grid-head-row}, #{$grid-body-row}) > th:first-child,
+          :where(#{$grid-body-row}) > td:first-child {
+            border-inline-start-width: 0;
+          }
         }
       }
     }

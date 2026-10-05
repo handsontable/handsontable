@@ -290,6 +290,39 @@ export class InlineEndOverlay extends Overlay {
   }
 
   /**
+   * Whether the master already draws the freeze line at the clone's inline-start edge, so the clone must
+   * not add its own border (a 2px line against the 1px of the start side). That holds when the clone's
+   * first column stands exactly on the boundary of the column (or the row header) before it: the grid
+   * has no horizontal scroll, or it is scrolled to the end. Anywhere in between the clone's edge cuts
+   * through a master column, no master border sits there, and the clone's own first-cell border is the
+   * line. Without a column or a row header before the end band there is nothing to share the line with.
+   *
+   * @returns {boolean}
+   */
+  isFreezeLineShared(): boolean {
+    const fixedColumnsEnd = this.wtSettings.getSetting<number>('fixedColumnsEnd');
+    const totalColumns = this.wtSettings.getSetting<number>('totalColumns');
+    const hasRowHeaders = this.wtSettings.getSetting<unknown[]>('rowHeaders').length > 0;
+
+    if (totalColumns - fixedColumnsEnd <= 0 && !hasRowHeaders) {
+      return false;
+    }
+
+    if (!this.deps.getWtViewport().hasHorizontalScroll()) {
+      return true;
+    }
+
+    if (this.isScrolledByWindow()) {
+      return this.getOverlayOffset() === 0;
+    }
+
+    const scroller = this.mainTableScrollableElement as HTMLElement;
+
+    // Under a pixel from the end: a fractional scroll position (browser zoom) still reads as arrived.
+    return this.deps.geometryReader.getMaximumScrollLeft(scroller) - this.getScrollPosition() < 1;
+  }
+
+  /**
    * Adjust overlay root element size (width and height).
    */
   adjustRootElementSize() {

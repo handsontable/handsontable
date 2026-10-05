@@ -1712,6 +1712,22 @@ the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsE
   freeze line). It is one border wide and has been so since before `fixedColumnsEnd`. The same goes for an
   area that crosses the `fixedRowsTop` or `fixedRowsBottom` line inside the end columns, where the end clone
   and the end corner each draw their own clamped slice and the corner's slice sits above the clone's.
+- **The end freeze line is drawn by the clone mid-scroll and by the master at the junction; a state class
+  chooses.** The line at an end clone's inline-start edge must be exactly 1px in every scroll state, as the start
+  side is. Mid-scroll the clone's edge cuts through a master column (the master's last scrolling column is
+  virtualized away or sits under the clone), so no master border stands there and the clone's own first-cell
+  inline-start border (the generic `td:first-child` / `th:first-child` rule in `_base.scss`) is the line. At the
+  junction, where the clone's first column stands on the boundary of the column before it (scrolled to the end, or
+  no horizontal scroll so the clone rests against the last column), that column's inline-end border is already
+  the line and a second border made it 2px. `Overlays#syncInlineEndFreezeLine` toggles `htFreezeLineShared`
+  (`INLINE_END_FREEZE_LINE_SHARED_CLASS`) on the three end clone roots from `InlineEndOverlay#isFreezeLineShared`,
+  and only the SCSS rule under that class zeroes the first cell's `border-inline-start-width`. It runs from
+  `afterDraw` and from `syncScrollPositions` (a sub-band scroll draws nothing), reads through the geometry reader,
+  and writes a root only when its state changes. Do not make the reset unconditional again: the end band then has
+  no line in the usual mid-scroll case. The class is off when nothing precedes the band (no column before it and
+  no row headers), so the clone's border stays the grid's outer frame line. Alignment is judged at the two
+  junction states only; a mid-scroll offset that happens to put the clone's edge on a master column boundary still
+  draws 2px. `tests/e2e/fixed-columns-end-line.spec.ts` measures all four states in LTR and RTL.
 - **RTL window scroll: read the inline-end edge from the table, not from the scroll position.**
   `InlineEndOverlay#getOverlayOffset` compares the scroll position with the table's offset from the page start,
   which is the inline-start margin. In RTL that margin is on the right and `getTableParentOffset()` reports the
