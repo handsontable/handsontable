@@ -543,6 +543,47 @@ Still open: a move applied while the engine's sheet is empty reaches the engine 
 not reflected in the stored order, and a sequence change that cannot be expressed leaves the engine behind
 the grid with no warning.
 
+### A reload reads a jagged array, and the first row sets the column count (DEV-1143)
+
+`getSheetSerialized()` trims the trailing empty cells of **each row on its own**, so a sheet whose first row
+ends in an emptied cell comes back jagged while `getSheetDimensions()` still reports the full width. The core
+takes an array-of-arrays dataset's column count from its **first row**, so loading that array drops the last
+column although the engine holds its data. `switchSheet()` is the one place the grid is loaded FROM the sheet,
+and a grid built without `data` takes it on every `updateSettings()` (`#onAfterCellMetaReset`, the
+`#hotWasInitializedWithEmptyData` branch), which is what a React or Vue re-render triggers. So
+`switchSheet()` pads the serialized rows to the widest one (`padRowsToWidestRow()`, `null` for
+the gaps) before `loadData()`. Pad **after** the unescape step, not before: the gaps are not engine values and
+need no unescaping.
+
+The padding applies to every `switchSheet()`, so a switch to a sheet with uneven rows now loads as wide as
+its widest row (it used to load as wide as its first).
+
+Three limits are deliberate.
+
+- **The width is the widest row, not `getSheetDimensions()` and not the grid's current width.**
+  `getSheetDimensions()` never shrinks (a sheet replaced by a 2x3 one still reports the old 15x5), so it cannot
+  say how wide the content is. Taking the widest row keeps a sheet that an application replaces with a smaller
+  one shrinking the grid on the next reload.
+- **A column or row emptied in every cell still drops on a reload.** `getSheetDimensions()` keeps reporting the
+  old size, but `getSheetSerialized()` omits a trailing column or row that is empty throughout, and the grid
+  has no record that it was ever there. Padding to the dimensions would fix that and is not an option for the
+  reason above.
+- **A grid whose settings cap the column count is not padded (`#isColumnCountCappedBySettings()`).** That is
+  a finite `maxCols` below the padded width, an array `columns`, a `dataSchema`, or a `columns` function that
+  returns a falsy value for any of the first
+  `width` columns (the core counts an array-of-arrays dataset under a function by keeping the columns it
+  returns a truthy value for, so a function that accepts all of them leaves the count to the data). Under a
+  cap the settings decide `countCols()`, so padding only raises `countSourceCols()` past it. That flips
+  `#areSourceColumnsSkipped()`, and the next resync writes just the visible columns back into the sheet,
+  deleting engine data (a sheet of `[['a', 'b'], ['c', 'd', 'e', 'f', 'g']]` came back as three columns under
+  a three-entry `columns` array). The same hazard already exists for a rectangular sheet wider than the cap;
+  it is untouched here. Decide by the predicate, not by the option's type: skipping the padding for every
+  function brought the original bug back for a function that accepts all columns, and padding for every
+  function deleted data for one that hides some. The check calls the user's `columns` function once per
+  column of the widest row on each `switchSheet()`.
+
+Pinned by `__tests__/sheetReloadDimensions.unit.js` and `tests/e2e/formulas-sheet-reload.spec.ts`.
+
 ## `HYPERLINK` cells: an allowlist, not a sanitizer
 
 `resolveLinkUrl()` (in `../../utils/cellLinks/`) allows exactly `http:`, `https:`, `mailto:`, `tel:`. Everything else returns `null`

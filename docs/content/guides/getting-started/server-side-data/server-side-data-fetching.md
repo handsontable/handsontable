@@ -80,7 +80,7 @@ Runnable projects under the Handsontable examples monorepo (Devbox):
 Each folder includes the same Express servers (`server-rest.mjs`, `server-graphql.mjs`, `start-servers.mjs`). Run `npm run server`, then `npm run start` for the framework dev server.
 
 - [JavaScript (Vite)](https://codesandbox.io/p/devbox/github/handsontable/handsontable/tree/develop/examples/next/docs/js/data-provider) — override URLs with `VITE_API_BASE` and `VITE_GRAPHQL_URL`.
-- [React (CRA)](https://codesandbox.io/p/devbox/github/handsontable/handsontable/tree/develop/examples/next/docs/react-wrapper/data-provider) — override with `REACT_APP_API_BASE` and `REACT_APP_GRAPHQL_URL`.
+- [React (Vite)](https://codesandbox.io/p/devbox/github/handsontable/handsontable/tree/develop/examples/next/docs/react-wrapper/data-provider) — override with `VITE_API_BASE` and `VITE_GRAPHQL_URL`.
 - [Vue 3 (Vite)](https://codesandbox.io/p/devbox/github/handsontable/handsontable/tree/develop/examples/next/docs/vue3/data-provider) — override with `VITE_API_BASE` and `VITE_GRAPHQL_URL`.
 - [Angular](https://codesandbox.io/p/devbox/github/handsontable/handsontable/tree/develop/examples/next/docs/angular-wrapper/data-provider) — set `restApiBase` and `graphqlUrl` in `src/environments/environment.ts`.
 

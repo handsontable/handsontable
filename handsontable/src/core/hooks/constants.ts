@@ -2648,6 +2648,124 @@ export const REGISTERED_HOOKS = [
   'afterCopy',
 
   /**
+   * Fired by the {@link CopyPaste} plugin on every paste the grid is about to handle, before the
+   * clipboard content is sanitized and parsed. This hook is fired when the {@link Options#copyPaste}
+   * option is enabled.
+   *
+   * Use it to clean the clipboard content that arrives from another application, for example the
+   * `text/html` that a spreadsheet puts on the clipboard. After the hook, the plugin goes on as usual:
+   * it sanitizes and parses the content, and runs [`beforePaste`](#beforepaste), writes the values,
+   * and runs [`afterPaste`](#afterpaste).
+   *
+   * The hook doesn't fire when the plugin is disabled, when the grid isn't listening (on a page with
+   * more than one grid, only the active grid's callbacks run), when nothing is selected, when a cell
+   * editor is open, or when the paste targets an element outside the grid.
+   *
+   * The hook is synchronous. A callback can read the clipboard only while the browser dispatches the
+   * event, so a returned `Promise` isn't awaited. When more than one callback is registered, they all
+   * receive the same `clipboardData` object, so each one sees the edits of the previous one.
+   *
+   * The hook gets a writable copy of the clipboard, because the `clipboardData` of a native paste
+   * event is read-only. Editing the copy doesn't change the system clipboard.
+   *
+   * Keep these rules in mind:
+   * - If `text/html` contains a `<table>`, it wins over `text/plain`. A spreadsheet paste always
+   *   carries such HTML. To make your changes to `text/plain` count, also call
+   *   `clipboardData.clearData('text/html')`.
+   * - If you change `text/plain` or `text/html` and leave the `application/ht-source-data-json-html`
+   *   flavor (the one Handsontable writes on copy) untouched, the plugin drops that flavor. Otherwise,
+   *   a cell with the [`parsePastedValue`](@/api/options.md#parsepastedvalue) option would bring back
+   *   the values you've just cleaned.
+   * - The `text/html` and `application/ht-source-data-json-html` flavors still go through the
+   *   [`sanitizer`](@/api/options.md#sanitizer) after your callback.
+   * - Don't call [`paste()`](@/api/copyPaste.md#paste) from the callback. Edit `clipboardData`
+   *   instead. A call to `paste()` runs the hook again, with `event` set to `null`.
+   * - Return `false` to cancel the paste, or return nothing. `Hooks#run` passes a returned value (`false`
+   *   included) to the next callback as its `clipboardData`. Return `false` only from the last callback,
+   *   or the only one, and never return any other value.
+   *
+   * @event Hooks#beforePasteParse
+   * @since 19.0.0
+   * @param {object} clipboardData A writable copy of the clipboard. It holds every string flavor of the
+   * paste event: `text/plain`, `text/html`, the private `application/ht-source-data-json-html`, and any
+   * other listed type. Its `types` property lists the flavors. The `getData(type)` method returns `''`
+   * for an absent flavor, like `DataTransfer` does. The `setData(type, value)` method sets a flavor.
+   * The `clearData(type)` method removes a flavor, or every flavor when you skip the argument. Files
+   * aren't copied: read them from `event.clipboardData.files`.
+   * @param {ClipboardEvent | null} event The native `ClipboardEvent` of a user paste. It's `null` when
+   * the paste comes from the `paste()` method of the plugin.
+   * @returns {*} If returns `false` then pasting is canceled. Nothing is written, and the `beforePaste`
+   * and `afterPaste` hooks don't fire.
+   * @example
+   * ::: only-for javascript
+   * ```js
+   * // Clean the regional number format of the plain text, and let it win over the HTML.
+   * new Handsontable(example, {
+   *   beforePasteParse: (clipboardData, event) => {
+   *     const text = clipboardData.getData('text/plain');
+   *
+   *     clipboardData.setData('text/plain', text.replace(/[\u00a0\u202f]/g, '').replace(/(\d),(\d)/g, '$1.$2'));
+   *     clipboardData.clearData('text/html');
+   *   }
+   * });
+   * // To cancel pasting, return false from the callback.
+   * new Handsontable(example, {
+   *   beforePasteParse: (clipboardData, event) => {
+   *     return false;
+   *   }
+   * });
+   * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * // Clean the regional number format of the plain text, and let it win over the HTML.
+   * <HotTable
+   *   beforePasteParse={(clipboardData, event) => {
+   *     const text = clipboardData.getData('text/plain');
+   *
+   *     clipboardData.setData('text/plain', text.replace(/[\u00a0\u202f]/g, '').replace(/(\d),(\d)/g, '$1.$2'));
+   *     clipboardData.clearData('text/html');
+   *   }}
+   * />
+   * // To cancel pasting, return false from the callback.
+   * <HotTable
+   *   beforePasteParse={(clipboardData, event) => {
+   *     return false;
+   *   }}
+   * />
+   * ```
+   * :::
+   *
+   * ::: only-for angular
+   * ```ts
+   * // Clean the regional number format of the plain text, and let it win over the HTML.
+   * settings1 = {
+   *   beforePasteParse: (clipboardData, event) => {
+   *     const text = clipboardData.getData('text/plain');
+   *
+   *     clipboardData.setData('text/plain', text.replace(/[\u00a0\u202f]/g, '').replace(/(\d),(\d)/g, '$1.$2'));
+   *     clipboardData.clearData('text/html');
+   *   },
+   * };
+   *
+   * // To cancel pasting, return false from the callback.
+   * settings2 = {
+   *   beforePasteParse: (clipboardData, event) => {
+   *     return false;
+   *   },
+   * };
+   * ```
+   *
+   * ```html
+   * <hot-table [settings]="settings1"></hot-table>
+   * <hot-table [settings]="settings2"></hot-table>
+   * ```
+   * :::
+   */
+  'beforePasteParse',
+
+  /**
    * Fired by {@link CopyPaste} plugin before values are pasted into table. This hook is fired when
    * {@link Options#copyPaste} option is enabled.
    *

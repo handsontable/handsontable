@@ -1,6 +1,24 @@
-import { holdsNoNumber, roundFloat } from '../utils';
+import { holdsNoNumber, isBlank, roundFloat } from '../utils';
 
 describe('ColumnSummary utils', () => {
+  describe('isBlank', () => {
+    it('should report nullish values, empty strings and whitespace as blank', () => {
+      expect(isBlank(null)).toBe(true);
+      expect(isBlank(undefined)).toBe(true);
+      expect(isBlank('')).toBe(true);
+      expect(isBlank('   ')).toBe(true);
+      expect(isBlank('\t')).toBe(true);
+    });
+
+    it('should not report a value that is present as blank, even when it is not a number', () => {
+      expect(isBlank('abc')).toBe(false);
+      expect(isBlank('0')).toBe(false);
+      expect(isBlank(0)).toBe(false);
+      expect(isBlank(false)).toBe(false);
+      expect(isBlank(NaN)).toBe(false);
+    });
+  });
+
   describe('holdsNoNumber', () => {
     it('should report nullish values as empty', () => {
       expect(holdsNoNumber(null)).toBe(true);

@@ -234,3 +234,46 @@ export function unescapeEngineBoundValue(
 
   return value;
 }
+
+/**
+ * Pads every row of a sheet array with `null` up to the length of its longest row.
+ *
+ * The engine's `getSheetSerialized()` trims the trailing empty cells of each row on its own, so
+ * a sheet whose first row ends in an empty cell comes back jagged. The core takes the column count
+ * of an array-of-arrays dataset from its FIRST row, which makes a jagged array load as a grid
+ * narrower than the sheet it was read from. Returns the same array when it is already rectangular.
+ *
+ * @param {Array<Array<*>>} rows Sheet content read out of the engine.
+ * @returns {Array<Array<*>>} The rectangular content.
+ */
+export function padRowsToWidestRow(rows: unknown[][]): unknown[][] {
+  let width = 0;
+  let isJagged = false;
+
+  for (let i = 0; i < rows.length; i++) {
+    if (i > 0 && rows[i].length !== rows[i - 1].length) {
+      isJagged = true;
+    }
+
+    width = Math.max(width, rows[i].length);
+  }
+
+  if (!isJagged) {
+    return rows;
+  }
+
+  // Rows that already have the full width are passed through, not copied.
+  return rows.map((row) => {
+    if (row.length === width) {
+      return row;
+    }
+
+    const padded = row.slice();
+
+    while (padded.length < width) {
+      padded.push(null);
+    }
+
+    return padded;
+  });
+}

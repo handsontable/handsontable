@@ -12,9 +12,8 @@
   },
   "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
-    "start": "cross-env NODE_OPTIONS=--openssl-legacy-provider SKIP_PREFLIGHT_CHECK=true BROWSER=none PORT=8080 react-app-rewired start",
-    "build": "cross-env NODE_OPTIONS=--openssl-legacy-provider BUILD_PATH=dist SKIP_PREFLIGHT_CHECK=true PUBLIC_URL=. react-app-rewired build",
-    "eject": "react-app-rewired eject",
+    "start": "vite --port 8080 --strictPort",
+    "build": "vite build",
     "server": "node start-servers.mjs",
     "server:rest": "node server-rest.mjs",
     "server:graphql": "node server-graphql.mjs",
@@ -26,34 +25,15 @@
     "graphql": "^16.9.0",
     "handsontable": "latest",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "cross-env": "7.0.3",
+    "@vitejs/plugin-react": "^4.0.3",
     "http-server": "^14.1.1",
     "jasmine": "3.7.0",
     "jasmine-console-reporter": "3.1.0",
     "puppeteer": "^25.12.0",
-    "react-app-rewired": "2.1.8"
+    "vite": "^6.4.3"
   },
-  "license": "SEE LICENSE IN LICENSE.txt",
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  }
+  "license": "SEE LICENSE IN LICENSE.txt"
 }

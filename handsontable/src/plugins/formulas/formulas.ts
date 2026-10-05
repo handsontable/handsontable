@@ -19,6 +19,7 @@ import {
   isFormula,
   isPreservedText,
   normalizeValueForFormulaEngine,
+  padRowsToWidestRow,
   unescapeEngineBoundValue,
   unescapeFormulaExpression,
 } from './utils';
@@ -1350,9 +1351,16 @@ export class Formulas extends BasePlugin {
 
     this.#updateSheetNameAndSheetId(sheetName);
 
-    const serialized = this.#unescapeEngineSheetArray(
+    const unescaped = this.#unescapeEngineSheetArray(
       this.engine.getSheetSerialized(this.sheetId), isSameSheetReload
     );
+    // The engine trims each row's trailing empty cells, and the core reads the column count off the
+    // first row, so a first row that ends in an emptied cell would load a grid one column short.
+    const padded = padRowsToWidestRow(unescaped);
+    // A grid whose settings cap the column count below the padded width is left as it was: padding the
+    // source rows past that count would make `#areSourceColumnsSkipped()` true, and the next resync would
+    // write only the visible columns back into the sheet.
+    const serialized = this.#isColumnCountCappedBySettings(padded[0]?.length ?? 0) ? unescaped : padded;
 
     if (serialized.length > 0) {
       this.hot.loadData(serialized, `${toUpperCaseFirst(PLUGIN_KEY)}.switchSheet`);
@@ -2304,6 +2312,37 @@ export class Formulas extends BasePlugin {
    */
   #isSourceDataArrayOfArrays(): boolean {
     return Array.isArray(this.hot.getSourceDataAtRow(0));
+  }
+
+  /**
+   * Tells whether the settings, rather than the width of the loaded rows, decide how many columns the
+   * grid has. That is the case for a finite `maxCols` below `width`, for an array `columns`, for a
+   * `dataSchema`, and for a `columns` function that returns a falsy value for any of the first `width`
+   * columns. The core counts the columns of an
+   * array-of-arrays dataset under a function by keeping those it returns a truthy value for, so a
+   * function that accepts every one of them leaves the count to the data.
+   *
+   * @param {number} width The number of columns the loaded rows would have.
+   * @returns {boolean}
+   */
+  #isColumnCountCappedBySettings(width: number): boolean {
+    const { columns, dataSchema, maxCols } = this.hot.getSettings();
+
+    if (typeof maxCols === 'number' && maxCols < width) {
+      return true;
+    }
+
+    if (typeof columns === 'function') {
+      for (let columnIndex = 0; columnIndex < width; columnIndex++) {
+        if (!columns(columnIndex)) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    return Array.isArray(columns) || isDefined(dataSchema);
   }
 
   /**

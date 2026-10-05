@@ -4,6 +4,9 @@ import {
   validateDensityType,
   VALID_ICON_KEYS,
 } from '../utils/validation';
+import mainIcons from '../../static/variables/icons/main';
+import horizonIcons from '../../static/variables/icons/horizon';
+import { iconsMap } from '../../static/variables/helpers/iconsMap';
 
 describe('Theme validation utilities', () => {
   describe('validateColorScheme', () => {
@@ -168,6 +171,44 @@ describe('Theme validation utilities', () => {
         expect(VALID_ICON_KEYS.has('check')).toBe(true);
         expect(VALID_ICON_KEYS.has('checkbox')).toBe(true);
         expect(VALID_ICON_KEYS.has('radio')).toBe(true);
+      });
+
+      it('should accept every icon key the built-in themes ship', () => {
+        // `plus` and `menuList` came with the sheets bar and were missing here, so every grid on a
+        // built-in theme logged "Unknown icon key" twice.
+        const unknown = [...Object.keys(mainIcons), ...Object.keys(horizonIcons)]
+          .filter(key => !VALID_ICON_KEYS.has(key));
+
+        expect(unknown).toEqual([]);
+      });
+
+      it('should accept every icon key `iconsMap` writes a rule for', () => {
+        const usedKeys = new Set();
+        const recordingIcons = new Proxy({}, {
+          get(target, key) {
+            usedKeys.add(key);
+
+            return '';
+          },
+        });
+
+        iconsMap(recordingIcons);
+
+        expect(usedKeys.size).toBeGreaterThan(0);
+        expect([...usedKeys].filter(key => !VALID_ICON_KEYS.has(key))).toEqual([]);
+      });
+
+      it('should not warn when validating a built-in theme\'s icons', () => {
+        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+        validateParams({ icons: mainIcons }, 'test');
+        validateParams({ icons: horizonIcons }, 'test');
+
+        const iconWarnings = warnSpy.mock.calls.filter(([message]) => String(message).includes('Unknown icon key'));
+
+        warnSpy.mockRestore();
+
+        expect(iconWarnings).toEqual([]);
       });
     });
 
