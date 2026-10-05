@@ -11,6 +11,7 @@ tags:
   - pagination
 searchCategory: Guides
 category: Accessories and menus
+menuTag: updated
 addedIn: "18.0.0"
 ---
 
@@ -82,7 +83,7 @@ The `start` and `end` slots follow the [layout direction](@/guides/international
 
 When a side slot holds more than one element, the elements sit next to each other, each one full height. They follow the same order rules: by weight, or by the `layout` setting, in reading order. In the `start` slot the first element is at the outer edge and the last one touches the grid; in the `end` slot the first element touches the grid. Each element adds its width to the side panels, so the grid gets less.
 
-The [`width`](@/api/options.md#width) option sizes the whole component, side panels included, the same way [`height`](@/api/options.md#height) includes the `top` and `bottom` slots. The panels take their width out of `width`, and the grid gets the rest: with `width: '100%'`, a 300px panel at `end`, and a 100px panel at `start`, the grid gets `100% - 300px - 100px`, and with `width: 900` it gets 500px. The grid follows when a panel is added, removed, or changes its width. When the page scrolls the grid's columns (no `height` and no fixed `width`), an `end` panel follows the table's last column only when the table is wider than the space between the panels, and you scroll the page sideways to reach it. A narrower table fills that space, and the `end` panel stays at the edge of the component. A `start` panel scrolls out of view as you scroll right, unless it is `position: sticky` itself.
+With side panels docked, the [`width`](@/api/options.md#width) option includes them, and the grid fills the rest. When the page scrolls the grid's columns (no `height` and no fixed `width`), an `end` panel follows the table's last column only when the table is wider than the space between the panels, and you scroll the page sideways to reach it. A narrower table fills that space, and the `end` panel stays at the edge of the component. A `start` panel scrolls out of view as you scroll right, unless it is `position: sticky` itself.
 
 When the side panels take up a pixel `width` entirely, the grid has no room left, and Handsontable prints a warning to the console once.
 

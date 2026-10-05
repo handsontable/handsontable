@@ -4065,11 +4065,6 @@ export default (): Record<string, unknown> => {
      * scrolls its rows inside that box. An `overflow-x` or `overflow-y` you set yourself on the
      * root element is left alone, on that axis, and clips the grid in its place.
      *
-     * A pixel height includes the bars Handsontable docks above and below the grid (the
-     * [`top` and `bottom` layout slots](@/guides/accessories-and-menus/layout-slots/layout-slots.md),
-     * such as the sheets bar and the pagination bar). With `height: 500` and a 40px pagination bar,
-     * the grid gets 460px, so the grid and its bars fill exactly 500px.
-     *
      * #### How `'auto'` differs from leaving `height` unset
      *
      * When you set `height: 'auto'`, Handsontable writes `height: auto` as an inline style on the
@@ -8660,7 +8655,7 @@ export default (): Record<string, unknown> => {
     visibleRows: 10,
 
     /**
-     * The `width` option configures the width of the component: the grid plus any side panels.
+     * The `width` option configures the width of your grid.
      *
      * You can set the `width` option to one of the following:
      *
@@ -8682,12 +8677,9 @@ export default (): Record<string, unknown> => {
      * fixed size. An ignored value leaves the grid's width as it was, and a warning is printed once
      * per grid and value.
      *
-     * The width includes the panels docked at the grid's sides (the
-     * [`start` and `end` layout slots](@/guides/accessories-and-menus/layout-slots/layout-slots.md)),
-     * the same way [`height`](#height) includes the top and bottom bars. With `width: '100%'`, a
-     * 300px panel at `end`, and a 100px panel at `start`, the grid gets `100% - 300px - 100px`. With
-     * `width: 900` and the same panels, the grid gets 500px, and the grid and its panels fill exactly
-     * 900px. The grid follows when a panel is added, removed, or changes its width.
+     * With side panels docked in the
+     * [`start` and `end` layout slots](@/guides/accessories-and-menus/layout-slots/layout-slots.md),
+     * the width includes them, and the grid fills the rest.
      *
      * With `width: 'auto'`, Handsontable writes `width: auto` as an inline style on the root
      * element. The grid then follows the width of its parent container, like a plain block
@@ -8716,16 +8708,16 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
-     * // set the component's width to 500px
+     * // set the grid's width to 500px
      * width: 500,
      *
-     * // set the component's width to 75vw
+     * // set the grid's width to 75vw
      * width: '75vw',
      *
-     * // let the component follow its parent container's width
+     * // let the grid follow its parent container's width
      * width: 'auto',
      *
-     * // set the component's width to 500px, using a function
+     * // set the grid's width to 500px, using a function
      * width() {
      *   return 500;
      * },
