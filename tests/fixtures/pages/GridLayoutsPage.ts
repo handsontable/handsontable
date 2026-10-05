@@ -1,5 +1,6 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import { awaitBundle } from '../bundle';
+import { dragResizeHandle } from '../gestures';
 
 /**
  * The layouts `fixtures/demo/grid-layouts.html` builds, one per cross-browser visual demo route.
@@ -265,6 +266,65 @@ export class GridLayoutsPage {
         : hot.view.getFirstRenderedVisibleRow() === 0 && hot.view.getFirstRenderedVisibleColumn() === 0;
     }, edge === 'end')).toBe(true);
     await expect(this.page.locator('.htScrollbarClearanceFiller')).toHaveCount(0);
+  }
+
+  /**
+   * Drags a column header's resize handle by a distance: hover the header (which is what attaches the
+   * handle), then press it, move and release with the real mouse.
+   *
+   * @param {number} column The visual column index.
+   * @param {number} deltaX How far to drag, in CSS pixels.
+   */
+  async dragColumnHandle(column: number, deltaX: number): Promise<void> {
+    const handle = this.grid.locator('.manualColumnResizer');
+
+    await this.page.mouse.move(0, 0);
+    await (await this.columnHeader(column)).hover();
+    await expect(handle).toBeAttached();
+    await dragResizeHandle(this.page, handle, { x: deltaX });
+  }
+
+  /**
+   * Drags a row header's resize handle by a distance.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} deltaY How far to drag, in CSS pixels.
+   */
+  async dragRowHandle(row: number, deltaY: number): Promise<void> {
+    const handle = this.grid.locator('.manualRowResizer');
+
+    await this.page.mouse.move(0, 0);
+    await this.rowHeader(row).hover();
+    await expect(handle).toBeAttached();
+    await dragResizeHandle(this.page, handle, { y: deltaY });
+  }
+
+  /**
+   * The rendered width of a column and the rendered height of a row, read from the box of the cell at
+   * their crossing, in one evaluate: the grid recycles its cells, so two separate reads could measure
+   * two different rows. `getRowHeight()` cannot stand in for the height, because it reports nothing for
+   * a row whose height was never set.
+   *
+   * @param {number} column The visual column index.
+   * @param {number} row The visual row index.
+   * @returns {Promise<{ width: number, height: number }>}
+   */
+  async sizes(column: number, row: number): Promise<{ width: number, height: number }> {
+    return this.page.evaluate(([c, r]) => {
+      const { hot } = window as unknown as {
+        hot: { getCell(row: number, column: number, topmost: boolean): HTMLTableCellElement | null },
+      };
+      const cell = hot.getCell(r, c, true);
+
+      if (cell === null) {
+        throw new Error(`Cell (${r}, ${c}) is not rendered.`);
+      }
+
+      return {
+        width: cell.getBoundingClientRect().width,
+        height: (cell.parentElement as HTMLElement).getBoundingClientRect().height,
+      };
+    }, [column, row] as [number, number]);
   }
 
   /**

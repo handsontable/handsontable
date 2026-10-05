@@ -311,6 +311,24 @@ not need a real press.
   shrinks with every Playwright/CDP speedup. Size the poll budgets so goto + gestures + every
   poll fit the 20s test timeout, or an exhausted wait surfaces as a locationless "Test timeout"
   instead of its message.
+- A click on the grid's far corner pins the scrollbar clearance band (#10370) open. The pointer then
+  rests within 26 px of both scrollbars, which keeps their bands up by design
+  (`OVERLAY_SCROLLBAR_PROXIMITY`), so the next scroll's wait for the band to close times out. Park the
+  pointer off the grid before scrolling (`GridLayoutsPage.scrollViewportTo()`), and wait for the band to
+  close before a click near an edge, or the scrollbar takes the click.
+- A click on a sortable column header sorts as well as selects. On a paginated grid the column it
+  selects is the current page's rows only (Pagination clamps the range in `beforeSelectColumns` and
+  `beforeSetRangeEnd`), so a Delete after it empties that page and no other. `pagination-filter-sort.spec.ts`
+  asserts both.
+
+## Reading grid UI state
+
+- A closed editor stays in the DOM (`ht_editor_hidden`), and Playwright reports its textarea as
+  visible, so `toBeHidden()` after an Enter that committed the edit fails. Read the editor's own state,
+  `getActiveEditor().isOpened()` (`GridLayoutsPage.editorOpened()`).
+- Each grid on a page keeps its own context menu container, so a locator for "the" menu matches one per
+  grid; and a toggle entry such as "Read only" has the role `menuitemcheckbox`, not `menuitem`
+  (`TwoGridsPage.makeColumnReadOnly()`).
 
 ## Rendering away from 100% (zoom / display scaling)
 
