@@ -344,6 +344,30 @@ mirroring the old comparison against `undefined`.
 - **The `TR` `background` property is modified so it can be changed asynchronously later.** Only the alpha
   changes, so it is invisible — the TDs' own background covers it. Do not remove it as dead styling.
 
+## A bottom overlay never holds the origin of a block that crosses `fixedRowsBottom` (DEV-176)
+
+The bottom clone (and `bottom_inline_start_corner`) renders only the frozen bottom rows. For a block that
+starts above them, `renderer.ts` `after()` found `notHiddenRow !== row` for every covered cell and hid them
+all with `display: none`, so no TD in the clone carried the span and each row slid one column to the inline
+start, under the wrong header (the `TypeError` in `Border#appear` that the ticket reported was already gone:
+`isHTMLElement(fromTD)` guards it since the TS conversion). Two sites now agree on the same rule: the clone's
+first rendered row (`getFirstRowOfActiveBottomOverlay`, `utils.ts`) is the row that carries the span, taken
+as `max(origin, thatRow)` in `after()` and as the start of the `'render'` coordinates in
+`#onModifyGetCellCoords`.
+
+- **Clamp only the cell lookup, never the extent.** `wtTable.getCell` asks the hook with `topmost: true`;
+  `Border#resolveMergedBlockEdges` asks with `topmost: false` to learn the block's real extent. The clamp is
+  gated on `topmost`. Clamping the extent too makes the clone draw a closed box with a selection edge on the
+  freeze line, through the block.
+- The clone's first row shows the origin's value again, because the origin's meta resolves for every covered
+  cell. That is intended: it reads as the block continuing under the line.
+- `#onModifyRowHeightByOverlayName` still skips the bottom overlays on purpose (no height inflation there).
+- Covered by `tests/e2e/merge-cells-frozen-bottom.spec.ts` (both modes, with and without a frozen column).
+  Use a block in column 1 there: a block in column 0 has its left edge under the row-header clone's holder, and
+  `mergedBlockSelection()` then reports a missing edge that has nothing to do with this rule.
+- Not changed: a merge that crosses the line is still accepted, and `fixedRowsBottom` moving later (a settings
+  update, a row insert) is handled by the render path, not by validation.
+
 ## The init draw is batched, and four things about it are load-bearing
 
 `#onAfterInit` applies the declared merges between a `suspendRender()` / `resumeRender()` pair (#5687).

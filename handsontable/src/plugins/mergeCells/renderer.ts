@@ -1,5 +1,5 @@
 import { isSafari } from '../../helpers/browser';
-import { sumCellsHeights } from './utils';
+import { getFirstRowOfActiveBottomOverlay, sumCellsHeights } from './utils';
 import type { HotInstance } from '../../core/types';
 
 /**
@@ -126,6 +126,14 @@ export function createMergeCellRenderer(plugin: MergeCellsPluginInstance) {
       [notHiddenRow, notHiddenColumn] = clampToVirtualViewport(
         hot, notHiddenRow, notHiddenColumn
       );
+    }
+
+    // A bottom overlay never holds the origin of a block that starts above the frozen bottom rows. Its first
+    // row carries the span instead, or the covered cells are all hidden and the row slides out of its columns.
+    const firstRowOfBottomOverlay = getFirstRowOfActiveBottomOverlay(hot);
+
+    if (notHiddenRow !== null && firstRowOfBottomOverlay !== null) {
+      notHiddenRow = Math.max(notHiddenRow, firstRowOfBottomOverlay);
     }
 
     const notHiddenRowspan = Math.min(origRowspan, maxRowSpan);

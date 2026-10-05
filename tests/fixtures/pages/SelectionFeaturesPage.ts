@@ -980,6 +980,24 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * How far (in px) the cell a clone renders for `row`/`col` sits from the left edge of its column
+   * header, or `null` while that cell is not rendered. Both reads share one evaluation, because the
+   * grid recycles its nodes between draws. `0` means the cell is under its own header.
+   */
+  async cellOffsetFromColumnHeader(overlay: OverlayName, row: number, col: number): Promise<number | null> {
+    return this.page.evaluate(([name, targetRow, targetCol]) => {
+      const cell = document.querySelector(`.${name} [data-testid="cell-${targetRow}-${targetCol}"]`);
+      const header = window.hot.getCell(-1, targetCol as number, true);
+
+      if (!cell || !header || getComputedStyle(cell).display === 'none') {
+        return null;
+      }
+
+      return Math.round(cell.getBoundingClientRect().left - header.getBoundingClientRect().left);
+    }, [overlayClass(overlay), row, col] as const);
+  }
+
+  /**
    * Scroll the viewport so that the given column is at the inline start, right after the frozen
    * columns.
    */
