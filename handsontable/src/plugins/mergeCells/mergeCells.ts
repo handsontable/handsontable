@@ -2832,7 +2832,10 @@ export class MergeCells extends BasePlugin {
       return [
         clamp(firstRenderedRow, topStartRow, bottomEndRow),
         clamp(firstRenderedColumn, topStartColumn, bottomEndColumn),
-        clamp(this.hot.getLastRenderedVisibleRow(), topStartRow, bottomEndRow),
+        // A clone's cell lookup (`topmost`) needs the block's real last row: the bottom overlay renders rows
+        // below the master's rendered range, and `Table#getCell` resolves the block to a clone's first row
+        // only when the extent reaches it. The lookup reads the first row and column of the answer only.
+        topmost ? bottomEndRow : clamp(this.hot.getLastRenderedVisibleRow(), topStartRow, bottomEndRow),
         clamp(this.hot.getLastRenderedVisibleColumn(), topStartColumn, bottomEndColumn),
       ];
     }

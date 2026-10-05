@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import type { Overlay } from '../../3rdparty/walkontable/src/overlay/regions/_base';
 import type { MergeAreaGeometry } from '../../utils/mergeAreas';
 
 /**
@@ -15,6 +16,33 @@ import type { MergeAreaGeometry } from '../../utils/mergeAreas';
  */
 export function toMergeAreaKey({ row, col, rowspan, colspan }: MergeAreaGeometry): string {
   return `${row},${col},${rowspan},${colspan}`;
+}
+
+/**
+ * Returns the visual index of the first row rendered by the bottom overlay (`fixedRowsBottom`) that is being
+ * drawn right now, or `null` when another overlay is being drawn or the bottom overlay renders no row.
+ *
+ * The bottom overlay renders only the frozen bottom rows, so a merged block that starts above them never has
+ * its origin there. The overlay draws the part of the block it holds, starting from this row.
+ *
+ * @param {Core} hotInstance The Handsontable instance.
+ * @returns {number|null}
+ */
+export function getFirstRowOfActiveBottomOverlay(hotInstance: HotInstance): number | null {
+  const overlayName = hotInstance.view.getActiveOverlayName();
+
+  if (overlayName !== 'bottom' && overlayName !== 'bottom_inline_start_corner') {
+    return null;
+  }
+
+  const overlay = hotInstance.view.getOverlayByName(overlayName) as unknown as Overlay | null;
+  const firstRenderableRow = overlay?.clone?.wtTable.getFirstRenderedRow();
+
+  if (firstRenderableRow === undefined || firstRenderableRow < 0) {
+    return null;
+  }
+
+  return hotInstance.rowIndexMapper.getVisualFromRenderableIndex(firstRenderableRow);
 }
 
 /**

@@ -107,7 +107,7 @@ export function prepareSettings(props: HotTableProps, currentSettings?: Handsont
   for (const key in hotSettingsInProps) {
     if (
       hasOwnProperty(hotSettingsInProps, key) &&
-      hotSettingsInProps[key] !== void 0 &&
+      hotSettingsInProps[key] !== undefined &&
       !initOnlySettingKeys.includes(key) &&
       ((currentSettings && key !== 'data') ? !simpleEqual(currentSettings[key], hotSettingsInProps[key]) : true)
     ) {
@@ -121,7 +121,7 @@ export function prepareSettings(props: HotTableProps, currentSettings?: Handsont
       hasOwnProperty(additionalHotSettingsInProps, key) &&
       key !== 'id' &&
       key !== 'settings' &&
-      additionalHotSettingsInProps[key] !== void 0 &&
+      additionalHotSettingsInProps[key] !== undefined &&
       !initOnlySettingKeys.includes(key) &&
       ((currentSettings && key !== 'data')
         ? !simpleEqual(currentSettings[key], additionalHotSettingsInProps[key]) : true)

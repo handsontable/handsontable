@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed merged cells that cross the `fixedRowsBottom` line shifting the frozen bottom rows by one column and losing their selection outline.",
+  "type": "fixed",
+  "issueOrPR": 13740,
+  "breaking": false,
+  "framework": "none"
+}

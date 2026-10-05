@@ -184,7 +184,7 @@ export function simulateKeyboardEvent(type: string, keyCode: number): void {
     }
   });
 
-  if (newEvent.initKeyboardEvent !== void 0) {
+  if (newEvent.initKeyboardEvent !== undefined) {
     newEvent.initKeyboardEvent(type, true, true, window, keyCode, keyCode, '', '', false, '');
   } else {
     newEvent.initKeyEvent(type, true, true, window, false, false, false, false, keyCode, 0);
