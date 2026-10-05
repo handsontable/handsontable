@@ -3793,8 +3793,8 @@ export class MergeCells extends BasePlugin {
    * Gives the cell that carries a merged block's span in a row the height of the rows it spans. Walkontable
    * writes a row's height on the row's first cell, and without row headers that cell can be a block's cell
    * that spans several rows; only the whole span's height holds those rows up when they have no height of
-   * their own. Rows with a known height are also pinned on the row element by Walkontable, so the browser
-   * cannot split the span's height between them differently in each pane.
+   * their own. Walkontable also pins each such row on the row element, at its own height or the default one,
+   * so the browser cannot split the span's height between the rows differently in each pane.
    *
    * Only the span of the cell the row starts with counts. Taking the tallest span of every block in the
    * viewport's part of the row (as before) gave a one-row cell the height of a two-row block next to it, and

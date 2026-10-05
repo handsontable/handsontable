@@ -92,11 +92,12 @@ export default class RowUtils {
   }
 
   /**
-   * Returns the height of a row that has no height of its own.
+   * Returns the height of a row that has no height of its own. The host's answer can be `null` before the
+   * theme's styles resolve.
    *
-   * @returns {number}
+   * @returns {number|null}
    */
-  getDefaultHeight(): number {
+  getDefaultHeight(): number | null {
     return this.#rowSizeSource.getDefaultSize();
   }
 

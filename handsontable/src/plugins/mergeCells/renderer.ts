@@ -246,21 +246,19 @@ export function createMergeCellRenderer(plugin: MergeCellsPluginInstance) {
    */
   function releaseContentWindow(TD: HTMLTableCellElement) {
     const contentRoot = getCellContentRoot(TD);
-    const { children } = contentRoot;
+    // The wrapper is the content root's only child when it is there (`layOutContentAtBlockWidth` moves
+    // everything into it), so the first element answers without walking a renderer's output.
+    const contentWindow = contentRoot.firstElementChild;
 
-    for (let index = 0; index < children.length; index++) {
-      const contentWindow = children[index];
-
-      if (contentWindow.classList.contains(CONTENT_WINDOW_CLASS)) {
-        while (contentWindow.firstChild) {
-          contentRoot.insertBefore(contentWindow.firstChild, contentWindow);
-        }
-
-        contentWindow.remove();
-
-        return;
-      }
+    if (contentWindow === null || !contentWindow.classList.contains(CONTENT_WINDOW_CLASS)) {
+      return;
     }
+
+    while (contentWindow.firstChild) {
+      contentRoot.insertBefore(contentWindow.firstChild, contentWindow);
+    }
+
+    contentWindow.remove();
   }
 
   /**

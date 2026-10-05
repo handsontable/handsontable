@@ -446,8 +446,12 @@ Known limits of the content rule:
 - Under `renderMode: 'onChange'` the wrapper's width is not part of the paint identity: a column resize
   (ManualColumnResize), a stretch change (StretchColumns on a container resize) or an AutoColumnSize update
   repaints no cell, so the wrapper keeps its old width until the block's cells repaint.
-- A wrapped cell's content moves into and out of the wrapper on every paint, so a control focused inside such
-  a cell in a frozen pane may lose the focus on a repaint (inferred from the DOM moves, not measured).
+- A wrapped cell's content moves into and out of the wrapper on every paint. For a renderer that keeps its
+  DOM, a control focused inside such a cell in a frozen pane may lose the focus on a repaint, a custom element
+  gets `disconnectedCallback`/`connectedCallback`, and an `iframe` reloads (inferred from the DOM moves, not
+  measured).
+- Disabling the plugin unhooks `before()`, so a renderer that keeps its DOM keeps a wrapper it already had until
+  it rebuilds its content (the React wrapper does on the next paint).
 
 Pinned by `tests/e2e/merge-cells-frozen-columns-content.spec.ts`, `tests/e2e/walkontable/merged-rows-frozen-columns.spec.ts`
 and `__tests__/blockWidthsOutsideBand.unit.ts`.

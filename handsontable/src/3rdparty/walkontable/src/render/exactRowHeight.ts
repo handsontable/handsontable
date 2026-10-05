@@ -274,13 +274,15 @@ export function applyRowHeight(
 
   // A first cell that spans several rows, or that a merge covers, cannot hold the row's own height: the
   // browser would split the span's height between the rows as it likes, and each pane would draw them
-  // differently. A row with a height of its own is pinned on the row element instead (the span keeps the
-  // height the host gave it). The pin comes off as soon as the first cell can carry the height again,
-  // because a row height left behind is a minimum that would stop the row shrinking.
+  // differently. Such a row is pinned on the row element instead, at its own height or the default one (the
+  // span keeps the height the host gave it). The pin comes off as soon as the first cell can carry the
+  // height again, because a row height left behind is a minimum that would stop the row shrinking.
   let rowElementHeight = '';
 
   if (!canCarryHeight(firstChild) && ownHeights !== undefined && sourceIndex !== undefined) {
-    const ownHeight = ownHeights.getHeight(sourceIndex) ?? getDefaultRowElementHeight(TR, ownHeights);
+    const providedHeight = ownHeights.getHeight(sourceIndex);
+    const ownHeight = providedHeight !== undefined && providedHeight > 0 ?
+      providedHeight : getDefaultRowElementHeight(TR, ownHeights);
 
     rowElementHeight = toRowElementHeight(ownHeight, isBorderBox);
   }
@@ -296,7 +298,7 @@ export function applyRowHeight(
  */
 interface OwnRowHeights {
   getHeight(sourceIndex: number): number | undefined;
-  getDefaultHeight(): number;
+  getDefaultHeight(): number | null;
 }
 
 /**
@@ -313,7 +315,7 @@ function getDefaultRowElementHeight(TR: HTMLElement, ownHeights: OwnRowHeights):
   const drawsTopBorder = TR.previousElementSibling === null &&
     !TR.parentElement?.previousElementSibling?.hasChildNodes();
 
-  return ownHeights.getDefaultHeight() + (drawsTopBorder ? 1 : 0);
+  return (ownHeights.getDefaultHeight() ?? 0) + (drawsTopBorder ? 1 : 0);
 }
 
 /**
