@@ -52,7 +52,7 @@ const PARKED_SPEC = 'cross-browser/merging.spec.ts';
 // js-only ones, the submenu-placement trim deleted four scrolled-viewport menu specs, the editors
 // trim deleted six editor specs, and the cross-browser trim (DEV-3257) deleted six whose states
 // moved to tests/e2e, which leaves 90 files, one of them parked, so 89 live. Adding or deleting a
-// spec moves this number, and moves a number in LIVE_GOLDENS too — the pair is the review a
+// spec moves this number, and moves a number in LIVE_GOLDENS too – the pair is the review a
 // description cannot give, so update both in the pull request that adds the spec.
 const LIVE_SPEC_COUNT = 89;
 

@@ -146,9 +146,12 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
 - The six projects above are Chromium. Tests tagged `@cross-browser` run on Firefox and WebKit as
   well: `{ tag: CROSS_BROWSER_TAG }` on the `test.describe` (`fixtures/test.ts`), picked up by the two
   projects of `playwright-engines.config.ts`, `e2e-firefox` and `e2e-webkit`, on the main theme and
-  the plain UMD bundle. CI runs that config in one job, `E2E / Playwright engines (Firefox, WebKit)`;
-  it is the only pre-merge Firefox and WebKit run of the grid. The visual suite's cross-browser leg
-  photographs on the seed and the nightly only.
+  the plain UMD bundle. CI runs that config in one job, `E2E / Playwright engines (Firefox, WebKit)`.
+  The visual suite's cross-browser leg photographs on the develop seed, master and release candidate
+  pushes, the nightly, and pull requests that change the visual tier, so on any other pull request
+  the job is the only Firefox and WebKit run of the grid. `e2e.yml` is shared, so the job also runs
+  on every develop push and in the release candidate test runs: a red engine leg holds back that
+  develop push's experimental publish, and blocks a release candidate.
 - Tag a test whose behavior an engine could get wrong on its own: real key presses (the Tab order,
   undo and redo shortcuts), pointer gestures (header clicks, drags, the fill handle's double click),
   focus, and layout read back from the DOM. The specs that replaced the cross-browser visual
@@ -160,17 +163,30 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   Playwright and name the config:
 
   ```bash
-  cd tests && npx playwright install firefox webkit
-  cd tests && HOT_TEST_PORT=8131 npx playwright test --config playwright-engines.config.ts e2e/<spec>.spec.ts
+  cd tests
+  npx playwright install firefox webkit
+  HOT_TEST_PORT=8131 npx playwright test --config playwright-engines.config.ts e2e/<spec>.spec.ts
   ```
 
   The local gates (pre-push, the Stop hook) run `e2e-main` only, so an engine failure first shows in
-  CI unless you run it.
-- Playwright grants `clipboard-read` and `clipboard-write` on Chromium only (Firefox rejects the
-  first, WebKit the second, and a context that asks for either fails to open). A tagged clipboard spec
-  therefore asks for them on Chromium alone (`test.use({ permissions: async({ browserName }, use) => … })`)
-  and reads the clipboard back there only; the copy and paste are real key presses, which work on all
-  three engines (`clipboard-between-grids.spec.ts`, `clipboard-scrolled-range.spec.ts`).
+  CI unless you run it. Before calling a tagged test deterministic, repeat it on the engines as well
+  as on the six legs (`--config playwright-engines.config.ts --repeat-each 20`). A pass on macOS
+  does not prove a keyboard shortcut on the Linux runner: `ControlOrMeta` is Meta on macOS and
+  Control in CI, and WebKit handles the two differently (the clipboard bullet below).
+- **Firefox cannot start in the job's container without `HOME=/root`.** The container runs as root,
+  and GitHub points `HOME` at `/github/home`, which belongs to the image's `pwuser`; Firefox refuses
+  to run as root under a home it does not own, so every Firefox test fails at launch (36 of 36 on the
+  job's first run). The run step sets `HOME: /root`, and the engines test pins it.
+- **Linux WebKit copies, cuts and pastes nothing on a real shortcut.** Playwright's WebKit takes a
+  shortcut's editing command from the macOS key map alone, so on the Linux runner a real Ctrl+C, X or
+  V reaches the page as a key press and nothing more (all three clipboard tests failed there, on both
+  attempts, while they pass on macOS WebKit). A test that uses one carries `CLIPBOARD_SHORTCUT_TAG`
+  beside `CROSS_BROWSER_TAG`, and `e2e-webkit` leaves it out on every platform, so a local run and CI
+  run the same tests. Reading the clipboard back needs `clipboard-read`: Playwright grants it on
+  Chromium and WebKit and rejects it on Firefox (`Unknown permission`), and it rejects
+  `clipboard-write` on Firefox and WebKit. So `clipboard-between-grids.spec.ts` asks for
+  `clipboard-read` on Chromium alone (`test.use({ permissions: async({ browserName }, use) => … })`)
+  and reads the clipboard back there; elsewhere the paste landing the copied value shows the copy.
 
 ## Fixture contract (never get these wrong)
 
@@ -349,7 +365,7 @@ not need a real press.
   close before a click near an edge, or the scrollbar takes the click.
 - A press on a sortable column header's label (`.colHeader`), or on its sort indicator, sorts as well
   as selects; a press elsewhere on the header only selects. A click on the middle of a header usually
-  lands on the label, which is how a test that meant only to select a column also sorts it — aim at the
+  lands on the label, which is how a test that meant only to select a column also sorts it – aim at the
   label, or away from it, on purpose. On a paginated grid the column a header click selects is the
   current page's rows only (Pagination clamps the range in `beforeSelectColumns` and
   `beforeSetRangeEnd`), so a Delete after it empties that page and no other.

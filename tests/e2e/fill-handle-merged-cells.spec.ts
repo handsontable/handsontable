@@ -27,8 +27,9 @@ test.describe('fill-handle double click over merged cells', { tag: CROSS_BROWSER
     await grid.prepareFillFrom(2, 0, '1100');
     await grid.doubleClickFillHandle();
 
-    // The handle's double click ran: the same gesture fills the column in the control below. Here it
-    // is refused, so the column keeps the one value and the selection stays on its cell.
+    // The page object waited for the grid to handle the double click, so the gesture reached the
+    // handle; the same gesture fills the column in the control below. Here the fill is refused, so
+    // the column keeps the one value and the selection stays on its cell.
     await expect.poll(async() => grid.selected()).toEqual([[0, 2, 0, 2]]);
 
     const column = (await grid.data()).map(row => row[2]);

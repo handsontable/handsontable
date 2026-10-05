@@ -1,18 +1,9 @@
-import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG, CLIPBOARD_SHORTCUT_TAG } from '../fixtures/test';
 import { GridLayoutsPage } from '../fixtures/pages/GridLayoutsPage';
 
-// The permissions let a test read the clipboard back. Only Chromium grants them (Firefox rejects
-// `clipboard-read`, WebKit `clipboard-write`), and the copy and paste themselves are real key presses
-// that need neither, so the engine legs run these specs without them.
-test.use({
-  permissions: async({ browserName }, use) => {
-    await use(browserName === 'chromium' ? ['clipboard-read', 'clipboard-write'] : []);
-  },
-});
-
 /**
- * A range selected across a scroll — a click on one cell, a scroll to the grid's far corner, and a
- * Shift+click there — is copied, or cut, whole through the system clipboard, and pasted whole at
+ * A range selected across a scroll – a click on one cell, a scroll to the grid's far corner, and a
+ * Shift+click there – is copied, or cut, whole through the system clipboard, and pasted whole at
  * the top-left of the grid.
  *
  * The gesture has a trap the cell values at the paste anchor cannot see: after the scroll the
@@ -25,7 +16,7 @@ test.use({
  *
  * The grid is the demo's: 150 x 150 in a 500 x 500 viewport (`grid-layouts.html?layout=large`).
  */
-test.describe('copy and cut of a range selected across a scroll', { tag: CROSS_BROWSER_TAG }, () => {
+test.describe('copy and cut of a range selected across a scroll', { tag: [CROSS_BROWSER_TAG, CLIPBOARD_SHORTCUT_TAG] }, () => {
   let grid: GridLayoutsPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

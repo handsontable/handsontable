@@ -34,7 +34,7 @@ name: Visual stability
 # multi-framework specs did; #13647 replaced them with the js-only specs under
 # `tests/js-only/filters/`; DEV-3257 retired the selection spec's flaking RTL
 # range captures for assertions, and its range captures on four other layouts
-# are what the matrix measures there now) — so a night renders on three
+# are what the matrix measures there now) – so a night renders on three
 # runners (the matrix still starts ten jobs, and seven stop at their first
 # step), not three full suites. A dispatch can widen the spec lists to every
 # spec (`scope: full`) for one investigation; the schedule never does. `full`

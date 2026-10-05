@@ -8,7 +8,7 @@ import {
 } from '../../src/page-helpers';
 
 /**
- * Checks that the pagination bar — the native page-size select, the counter and the page buttons —
+ * Checks that the pagination bar – the native page-size select, the counter and the page buttons –
  * renders in Chromium, Firefox and WebKit over a filtered and sorted grid. One capture in each browser,
  * after asserting the sort and the counter. Paging through that grid, and a column cleared on one page
  * (this spec's three retired captures), are asserted on all six theme and bundle legs and on Firefox

@@ -9,7 +9,7 @@ import { GridLayoutsPage, type GridLayout } from '../fixtures/pages/GridLayoutsP
  * (`visual-tests/tests/cross-browser/undo-redo.spec.ts`, 54 goldens until DEV-3257), with nothing
  * asserting that Enter committed the edit or that the undo restored it: an editor left open, or an
  * undo that restored a different cell, would have become the golden. Each case here rebuilds one
- * route's shape in `fixtures/demo/grid-layouts.html` and edits the cell the visual spec edited —
+ * route's shape in `fixtures/demo/grid-layouts.html` and edits the cell the visual spec edited –
  * the third rendered row and the third rendered column, so the visual indexes skip a hidden column.
  *
  * The data is compared whole, not only at the edited cell: an undo that wrote the old value back

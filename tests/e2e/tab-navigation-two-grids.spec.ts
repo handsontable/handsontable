@@ -13,8 +13,10 @@ import { TwoGridsPage } from '../fixtures/pages/TwoGridsPage';
  * from one grid through the next input into a second grid, and the exit at the end of a row, were
  * until DEV-3257 checked only by three screenshots of `/basic-two-tables-demo` in the cross-browser
  * visual suite (`focus.spec.ts`), each taken after a run of key presses and a 50 ms sleep per press,
- * asserting nothing. The presses here are the same three runs, and each run ends on the state the
- * matching screenshot showed.
+ * asserting nothing. The presses here are the same three runs, in the same order on one page, so the
+ * second run re-enters a grid the first run left (the grid restores the cell it last held, through
+ * the focus scope's recent coordinates), and each run ends on the state the matching screenshot
+ * showed.
  */
 test.describe('Tab order through two grids', { tag: CROSS_BROWSER_TAG }, () => {
   let page: TwoGridsPage;
@@ -24,7 +26,8 @@ test.describe('Tab order through two grids', { tag: CROSS_BROWSER_TAG }, () => {
     await page.goto();
   });
 
-  test('enters a grid at its first cell and leaves it for the input above with Shift+Tab', async() => {
+  test('walks into, through and out of both grids, re-entering the grid it left', async() => {
+    // The first run: Tab, Tab, Shift+Tab.
     await page.press('Tab');
 
     expect(await page.focusOwner()).toBe('input-top');
@@ -40,18 +43,20 @@ test.describe('Tab order through two grids', { tag: CROSS_BROWSER_TAG }, () => {
     expect(await page.focusOwner()).toBe('input-top');
     expect(await page.gridState('top')).toEqual({ selected: undefined, listening: false });
     expect(await page.gridState('bottom')).toEqual({ selected: undefined, listening: false });
-  });
 
-  test('leaves a grid at the end of a row and enters the next one through its input', async() => {
+    // The second run, seven Tabs. The first re-enters the grid the first run left, at its first
+    // cell, where the focus last was.
     await page.press('Tab');
-    await page.press('Tab');
+
+    expect(await page.focusOwner()).toBe('grid-top');
+    expect(await page.gridState('top')).toEqual({ selected: [[0, 0, 0, 0]], listening: true });
 
     // Four presses walk the first row to its last cell.
     await page.press('Tab', 4);
 
     expect(await page.gridState('top')).toEqual({ selected: [[0, 4, 0, 4]], listening: true });
 
-    // The fifth press leaves the grid at the end of the row, for the next input on the page.
+    // The sixth press leaves the grid at the end of the row, for the next input on the page.
     await page.press('Tab');
 
     expect(await page.focusOwner()).toBe('input-bottom');
@@ -64,7 +69,8 @@ test.describe('Tab order through two grids', { tag: CROSS_BROWSER_TAG }, () => {
     expect(await page.gridState('bottom')).toEqual({ selected: [[0, 0, 0, 0]], listening: true });
     expect(await page.gridState('top')).toEqual({ selected: undefined, listening: false });
 
-    // The third screenshot: Shift+Tab from the first cell returns to the input above the grid.
+    // The third run, and screenshot: Shift+Tab from the first cell returns to the input above the
+    // grid.
     await page.press('Shift+Tab');
 
     expect(await page.focusOwner()).toBe('input-bottom');

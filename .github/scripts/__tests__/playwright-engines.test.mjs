@@ -49,10 +49,15 @@ test('the engines config runs only tagged tests on Firefox and WebKit, inheritin
   assert.match(config, /import base from '\.\/playwright\.config';/,
     `${ENGINES_CONFIG} must build on tests/playwright.config.ts. ${DOC}`);
   assert.match(config, /\.\.\.base,/, `${ENGINES_CONFIG} must spread the base config. ${DOC}`);
-  assert.match(config, /name: 'e2e-firefox', device: 'Desktop Firefox'/, `e2e-firefox must run Desktop Firefox. ${DOC}`);
-  assert.match(config, /name: 'e2e-webkit', device: 'Desktop Safari'/, `e2e-webkit must run Desktop Safari. ${DOC}`);
+  assert.match(config, /engine\('e2e-firefox', 'Desktop Firefox'\)/, `e2e-firefox must run Desktop Firefox. ${DOC}`);
+  assert.match(config, /engine\('e2e-webkit', 'Desktop Safari'\)/, `e2e-webkit must run Desktop Safari. ${DOC}`);
   assert.match(config, /grep: new RegExp\(CROSS_BROWSER_TAG\)/,
     `the engine projects must run only the tagged tests. ${DOC}`);
+  // On the Linux runner Playwright's WebKit copies, cuts and pastes nothing on a real shortcut, so
+  // a clipboard test there fails every run; dropping the exclusion turns the job red, not silent,
+  // but the reason belongs next to the line that would be dropped.
+  assert.match(config, /\{ \.\.\.engine\('e2e-webkit', 'Desktop Safari'\), grepInvert: new RegExp\(CLIPBOARD_SHORTCUT_TAG\) \}/,
+    `e2e-webkit must leave out the tests tagged @clipboard-shortcut. ${DOC}`);
   assert.match(config, /theme: 'main', bundle: 'umd'/, `the engine projects run one theme and one bundle. ${DOC}`);
 
   // The CI flake settings and the reporters (the quarantine reporter decides the exit status) come
@@ -63,9 +68,13 @@ test('the engines config runs only tagged tests on Firefox and WebKit, inheritin
   });
 });
 
-test('the tag the config filters by is the one the fixtures export', () => {
-  assert.match(read('tests/fixtures/test.ts'), /export const CROSS_BROWSER_TAG = '@cross-browser';/,
+test('the tags the config filters by are the ones the fixtures export', () => {
+  const fixtures = read('tests/fixtures/test.ts');
+
+  assert.match(fixtures, /export const CROSS_BROWSER_TAG = '@cross-browser';/,
     `tests/fixtures/test.ts must export CROSS_BROWSER_TAG. ${DOC}`);
+  assert.match(fixtures, /export const CLIPBOARD_SHORTCUT_TAG = '@clipboard-shortcut';/,
+    `tests/fixtures/test.ts must export CLIPBOARD_SHORTCUT_TAG. ${DOC}`);
 });
 
 test('e2e.yml runs the engines config in the same container, on the Playwright scope, and uploads its report', () => {
@@ -84,6 +93,10 @@ test('e2e.yml runs the engines config in the same container, on the Playwright s
     `the engines job must run whenever the Playwright legs do. ${DOC}`);
   assert.match(job, /npx playwright test --config playwright-engines\.config\.ts/,
     `the engines job must run tests/playwright-engines.config.ts. ${DOC}`);
+  // The container runs as root under a HOME owned by another user, where Firefox refuses to start:
+  // without this every Firefox test fails at launch (the job's first CI run, 36 of 36).
+  assert.match(job, /env:\s*\n\s*HOME: \/root\s*\n\s*run: cd tests && npx playwright test --config playwright-engines\.config\.ts/,
+    `the engines job must run Playwright with HOME=/root, or Firefox cannot launch in the container. ${DOC}`);
   assert.match(job, /name: playwright-report-engines/,
     `the engines report keeps the playwright-report- prefix the flake ledger collects. ${DOC}`);
   assert.match(job, /if: failure\(\) \|\| steps\.playwright\.outputs\.quarantined-flaky == 'true'/,
@@ -96,7 +109,7 @@ test('the specs that cover what the cross-browser captures showed stay tagged', 
 
   TAGGED_SPECS.forEach((spec) => {
     assert.ok(present.has(spec), `tests/e2e/${spec} is gone; update TAGGED_SPECS in this file. ${DOC}`);
-    assert.match(stripTsComments(read(`tests/e2e/${spec}`)), /\{ tag: CROSS_BROWSER_TAG \}/,
+    assert.match(stripTsComments(read(`tests/e2e/${spec}`)), /\{ tag: (CROSS_BROWSER_TAG|\[[^\]]*\bCROSS_BROWSER_TAG\b[^\]]*\]) \}/,
       `tests/e2e/${spec} must keep { tag: CROSS_BROWSER_TAG }, or Firefox and WebKit stop running it. ${DOC}`);
   });
 });

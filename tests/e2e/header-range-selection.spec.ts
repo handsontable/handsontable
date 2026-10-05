@@ -12,8 +12,8 @@ import { GridLayoutsPage, type GridLayout } from '../fixtures/pages/GridLayoutsP
  * nested-rows shapes; on those the screenshots were the only record until DEV-3257 of which range a
  * click selected, and a range one column off was the golden for as long as the helper that aimed the
  * clicks miscounted nested header cells. Each case here rebuilds one route's
- * shape in `fixtures/demo/grid-layouts.html` and clicks the same headers the visual spec does — the
- * third and the sixth RENDERED column, so the visual indexes skip a hidden column — and asserts the
+ * shape in `fixtures/demo/grid-layouts.html` and clicks the same headers the visual spec does – the
+ * third and the sixth RENDERED column, so the visual indexes skip a hidden column – and asserts the
  * selection the grid reports and the headers it draws as selected.
  *
  * The shapes each change the answer in a different way: hidden columns move the visual indexes the
@@ -162,10 +162,12 @@ test.describe('a header click and a Shift+click select the range between them', 
     });
   }
 
-  // On a grid with nested headers and navigableHeaders, the Shift+click is handled by the plugin,
-  // which starts a new column selection instead of extending the current one, so the focus moves to
-  // the Shift-clicked header. The nested-rows shape has navigableHeaders over a single header row and
-  // keeps the focus on the header the range started from, and so do this shape's row headers.
+  // On a grid with nested headers and navigableHeaders, NestedHeaders records the pressed header as
+  // the focus to restore on every mousedown, a Shift+click included (`#focusInitialCoords`, set in
+  // `#onAfterOnCellMouseDown`), and `#onBeforeSelectionHighlightSet` moves the focus there, so a
+  // Shift+click moves it to the clicked header. A drag across the headers and Shift+ArrowRight keep it
+  // on the first one. The nested-rows shape has navigableHeaders over a single header row and keeps
+  // the focus on the header the range started from, and so do this shape's row headers.
   // eslint-disable-next-line no-restricted-syntax -- DEV-3261: a Shift+click on a nested column header moves the focus to the clicked header
   test.fixme('keeps the focus on the first column header of a range on the /nested-headers-demo shape', async() => {
     await grid.goto('nested-headers');

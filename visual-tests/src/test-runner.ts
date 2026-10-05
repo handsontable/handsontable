@@ -316,7 +316,7 @@ async function clearNativeTextSelection(page: Page) {
   // browser that is actually running, never from the project's name or its `use`: a renamed project or
   // a second WebKit project for another theme would silently stop resetting under a focused text control
   // (the cross-browser `comment-1` captures in that state), and `use.browserName` is undefined here
-  // anyway — the cross-browser config builds its projects from `devices['Desktop Safari']`, which
+  // anyway – the cross-browser config builds its projects from `devices['Desktop Safari']`, which
   // carries `defaultBrowserType`.
   const resetUnderTextControl = page.context().browser()?.browserType().name() === 'webkit';
 

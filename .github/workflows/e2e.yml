@@ -132,15 +132,19 @@ jobs:
           overwrite: true
 
   # The engine legs: the specs tagged @cross-browser (`CROSS_BROWSER_TAG` in tests/fixtures/test.ts)
-  # on Firefox and WebKit, on the main theme and the plain UMD bundle — the projects e2e-firefox
-  # and e2e-webkit of tests/playwright-engines.config.ts, which inherits everything else from
-  # tests/playwright.config.ts (so a run there never needs the engines). The six legs above are Chromium, so
-  # these are the only pre-merge Firefox and WebKit run of anything the grid does (the visual suite's
-  # cross-browser leg photographs on the seed and the nightly). The theme and bundle axes are
-  # Chromium's: what a tagged spec asserts is the same under every theme and either bundle, and an
-  # engine difference shows on one of each. One job for both engines rather than one each keeps the
-  # run one job further from the organization's concurrent-job cap; the report names the project
-  # (the engine) of every failure, and the upload's name keeps the ledger's prefix.
+  # on Firefox and WebKit, on the main theme and the plain UMD bundle. They are the projects
+  # e2e-firefox and e2e-webkit of tests/playwright-engines.config.ts, which inherits everything else
+  # from tests/playwright.config.ts (so a run there never needs the engines). The six legs above are
+  # Chromium. The visual suite's cross-browser leg photographs on the develop seed, master and
+  # release candidate pushes, the nightly, and pull requests that change the visual tier, so on any
+  # other pull request this job is the only Firefox and WebKit run of anything the grid does. The
+  # theme and bundle axes are Chromium's: what a tagged spec asserts is the same under every theme
+  # and either bundle, and an engine difference shows on one of each. One job for both engines
+  # rather than one each keeps the run one job further from the organization's concurrent-job cap;
+  # the report names the project (the engine) of every failure, and the upload's name keeps the
+  # ledger's prefix. This workflow is shared, so the job also runs on every develop push (a red
+  # engine leg holds back that push's experimental publish) and in the release candidate test runs
+  # (a red engine leg blocks the release candidate publish).
   playwright-engines:
     name: "Playwright engines (Firefox, WebKit)"
     runs-on: ubuntu-latest
@@ -160,6 +164,11 @@ jobs:
         run: pnpm install --filter handsontable-tests
       - name: Run the cross-browser specs on Firefox and WebKit
         id: playwright
+        # The container runs as root, and GitHub points HOME at /github/home, which belongs to the
+        # image's pwuser. Firefox refuses to start under a HOME its user does not own, so every
+        # Firefox test fails at launch; HOME=/root is the workaround Playwright's own error prints.
+        env:
+          HOME: /root
         run: cd tests && npx playwright test --config playwright-engines.config.ts
       - name: Upload the Playwright report on failure
         if: failure() || steps.playwright.outputs.quarantined-flaky == 'true'

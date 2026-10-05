@@ -121,8 +121,8 @@ const DETERMINISM_RESTRICTIONS = [
 // paths: a descendant `:has()` there also matches a whole `visualTest(…)` statement whose body captures, so
 // a test that acts followed by a test that captures reported the second test call itself (2 false sites in
 // cross-browser/copy-paste.spec.ts, a spec retired since). The action half keeps the descendant form on
-// purpose — an action nested inside the previous statement (`await Promise.all([… click() …])`) still
-// acted — and it takes a declaration as well as an expression statement, because
+// purpose – an action nested inside the previous statement (`await Promise.all([… click() …])`) still
+// acted – and it takes a declaration as well as an expression statement, because
 // `const clicked = await cell.click();` acted too.
 //
 // Adjacency sees the previous statement only, and only when that statement is an expression or a

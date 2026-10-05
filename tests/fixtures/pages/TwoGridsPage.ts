@@ -10,8 +10,18 @@ type TwoGridsWindow = Record<'hotTop' | 'hotBottom', {
   getSelected(): number[][] | undefined,
   getDataAtCell(row: number, column: number): unknown,
   isListening(): boolean,
+  updateSettings(settings: Record<string, unknown>): void,
+  addHook(name: string, callback: () => void): void,
   rootElement: HTMLElement,
 }>;
+
+/**
+ * The window key of a grid's instance.
+ *
+ * @param {GridName} name Which grid.
+ * @returns {'hotTop' | 'hotBottom'}
+ */
+const instanceKey = (name: GridName): 'hotTop' | 'hotBottom' => (name === 'top' ? 'hotTop' : 'hotBottom');
 
 /**
  * Page Object for `fixtures/demo/two-grids.html`: two grids, each below a text input.
@@ -59,16 +69,6 @@ export class TwoGridsPage {
    */
   grid(name: GridName): Locator {
     return this.page.getByTestId(`grid-${name}`);
-  }
-
-  /**
-   * The input above a grid.
-   *
-   * @param {GridName} name Which grid the input sits above.
-   * @returns {Locator}
-   */
-  input(name: GridName): Locator {
-    return this.page.getByTestId(`input-${name}`);
   }
 
   /**
@@ -144,7 +144,7 @@ export class TwoGridsPage {
       const hot = (window as unknown as TwoGridsWindow)[key];
 
       return { selected: hot.getSelected(), listening: hot.isListening() };
-    }, name === 'top' ? 'hotTop' : 'hotBottom' as 'hotTop' | 'hotBottom');
+    }, instanceKey(name));
   }
 
   /**
@@ -157,7 +157,7 @@ export class TwoGridsPage {
    */
   async dataAt(name: GridName, row: number, column: number): Promise<unknown> {
     return this.page.evaluate(([key, r, c]) => (window as unknown as TwoGridsWindow)[key].getDataAtCell(r, c),
-      [name === 'top' ? 'hotTop' : 'hotBottom', row, column] as ['hotTop' | 'hotBottom', number, number]);
+      [instanceKey(name), row, column] as ['hotTop' | 'hotBottom', number, number]);
   }
 
   /**
@@ -177,6 +177,46 @@ export class TwoGridsPage {
     await expect(item).toBeVisible();
     await item.click();
     await expect(this.page.locator('.htContextMenu:visible')).toHaveCount(0);
+  }
+
+  /**
+   * Makes a grid keep its selection when the user clicks outside it (`outsideClickDeselects: false`),
+   * so a later key press the grid wrongly handled would have a cell to act on.
+   *
+   * @param {GridName} name Which grid.
+   */
+  async keepSelectionOnOutsideClick(name: GridName): Promise<void> {
+    await this.page.evaluate((key) => {
+      (window as unknown as TwoGridsWindow)[key].updateSettings({ outsideClickDeselects: false });
+    }, instanceKey(name));
+  }
+
+  /**
+   * Starts counting the pastes a grid handles: its `beforePaste` hook runs for every paste it takes,
+   * a paste into a read-only cell included. Read the count with `pastesHandled()`.
+   *
+   * @param {GridName} name Which grid.
+   */
+  async countPastes(name: GridName): Promise<void> {
+    await this.page.evaluate((key) => {
+      const hot = (window as unknown as TwoGridsWindow)[key];
+
+      hot.rootElement.dataset.pastesHandled = '0';
+      hot.addHook('beforePaste', () => {
+        hot.rootElement.dataset.pastesHandled = String(Number(hot.rootElement.dataset.pastesHandled) + 1);
+      });
+    }, instanceKey(name));
+  }
+
+  /**
+   * How many pastes a grid handled since `countPastes()`.
+   *
+   * @param {GridName} name Which grid.
+   * @returns {Promise<number>}
+   */
+  async pastesHandled(name: GridName): Promise<number> {
+    return this.page.evaluate(key => Number((window as unknown as TwoGridsWindow)[key].rootElement.dataset.pastesHandled),
+      instanceKey(name));
   }
 
   /**

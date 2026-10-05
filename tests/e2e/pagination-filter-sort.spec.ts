@@ -11,7 +11,7 @@ import { OrdersGridPage } from '../fixtures/pages/OrdersGridPage';
  * previous page) and asserted nothing; since DEV-3257 the first screenshot is the only one left,
  * and the pages are asserted here. Its column step clicks the middle of the Name column's header,
  * which lands on the header's label, and a press on a sortable header's label sorts as well as
- * selects, so from there the pages are in Name order — the screenshots show it ("Name ↑"), and this
+ * selects, so from there the pages are in Name order – the screenshots show it ("Name ↑"), and this
  * spec asserts it rather than hide it. The click here aims at the label itself, so it does not depend
  * on where the middle of the header falls.
  *

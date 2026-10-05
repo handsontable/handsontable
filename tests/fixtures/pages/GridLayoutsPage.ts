@@ -234,7 +234,7 @@ export class GridLayoutsPage {
    * The redraw is the render-state probe, not the scroll offset: the band is opened by the same
    * `scroll` handler that redraws, so once the redraw is seen the band is up if it is going to be.
    * The pointer is parked off the grid first, because a pointer resting within 26 px of a scrollbar
-   * keeps that scrollbar's band open by design (`OVERLAY_SCROLLBAR_PROXIMITY`) — which is where it
+   * keeps that scrollbar's band open by design (`OVERLAY_SCROLLBAR_PROXIMITY`) – which is where it
    * rests after a click on the far corner.
    *
    * @param {'start' | 'end'} edge Which end to scroll to.
@@ -363,10 +363,25 @@ export class GridLayoutsPage {
 
   /**
    * Double-clicks the fill handle (the selection's corner), which fills the selection down as far as
-   * the neighboring columns hold data.
+   * the neighboring columns hold data, and waits until the grid has handled the double click
+   * (`afterOnCellCornerDblClick`). That hook runs whether or not a fill follows, so a test that
+   * expects no fill still knows the gesture reached the handle.
    */
   async doubleClickFillHandle(): Promise<void> {
+    await this.page.evaluate(() => {
+      const { hot } = window as unknown as { hot: {
+        rootElement: HTMLElement,
+        addHookOnce(name: string, callback: () => void): void,
+      } };
+
+      hot.rootElement.dataset.fillHandleDoubleClicked = 'false';
+      hot.addHookOnce('afterOnCellCornerDblClick', () => {
+        hot.rootElement.dataset.fillHandleDoubleClicked = 'true';
+      });
+    });
     await this.grid.locator('.ht_master .wtBorder.current.corner').first().dblclick();
+    await expect.poll(async() => this.page.evaluate(() => (window as unknown as { hot: { rootElement: HTMLElement } })
+      .hot.rootElement.dataset.fillHandleDoubleClicked)).toBe('true');
   }
 
   /**

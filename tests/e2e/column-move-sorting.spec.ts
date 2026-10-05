@@ -13,8 +13,8 @@ import { ColumnMoveSortingPage } from '../fixtures/pages/ColumnMoveSortingPage';
 test.describe('column move with sorting enabled', { tag: CROSS_BROWSER_TAG }, () => {
   let grid: ColumnMoveSortingPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new ColumnMoveSortingPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new ColumnMoveSortingPage(page, theme, bundle);
   });
 
   test('moves a sorted column when the drag starts at the header centre', async () => {

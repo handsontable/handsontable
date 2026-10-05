@@ -116,7 +116,7 @@ visualTest(__filename, {
 - **The declaration codemod wrote today's behavior out, so no golden moved.** js-only declares the five js
   variants; multi-frameworks declares those five plus all three wrappers, the only value that keeps the
   seed's wholesale copy equal to the declarations; cross-browser specs declare `classic`, and the
-  cross-browser projects they actually need — `copy-paste.spec.ts` named chromium alone, which is what
+  cross-browser projects they actually need – `copy-paste.spec.ts` named chromium alone, which is what
   it rendered before the declaration existed (its checks moved to `tests/e2e` in DEV-3257, so no spec takes
   that shape today). The multi-framework specs (23 when the codemod landed, 14 since
   the filters consolidation retired that family's nine) share `WRAPPERS_REASON_UNAUDITED` — none of those
@@ -360,7 +360,7 @@ These things about this pipeline are worth knowing before changing it.
   `settleScrollbarClearanceForCapture` is the wrapper's, and accepts a pinned band. A spec that is about
   to click where the band is imports `waitForScrollbarClearanceToClose`, which throws on a pinned one:
   while the band is up that strip belongs to the scrollbar, so the click is swallowed and the spec
-  carries on with a selection it never made. `copy-paste.spec.ts` was the spec that shape bit — one cell
+  carries on with a selection it never made. `copy-paste.spec.ts` was the spec that shape bit – one cell
   copied instead of the range, its assertions still passing, visible only as a changed screenshot. Its
   range copy is asserted by `tests/e2e/clipboard-scrolled-range.spec.ts` since DEV-3257, which parks the
   pointer off the grid and waits for the band to close for the same reason, so no visual spec imports
@@ -683,10 +683,10 @@ does for you):
   on every variant, is prose the sweep does not check: the zoom capture names the resize capture, and a
   later trim of that declaration re-opens this one.
 - **The cross-browser leg photographs what the engines draw differently, one capture per difference, and
-  every capture asserts the state it shows first.** Firefox and WebKit run nowhere else in the repository
-  (the functional tier is Chromium only), so until DEV-3257 a state a cross-browser capture showed —
+  every capture asserts the state it shows first.** Until DEV-3257 Firefox and WebKit ran nowhere else
+  in the repository (the functional tier was Chromium only), so a state a cross-browser capture showed –
   which range a header click selected, what an undo restored, where Tab moved the focus, what a paste,
-  a filter or a hidden column left behind, which page the grid was on — was checked by the screenshot
+  a filter or a hidden column left behind, which page the grid was on – was checked by the screenshot
   alone, and a gesture that silently failed in one engine became that engine's golden. Those states are
   Playwright assertions on all six theme and bundle legs now, on fixtures that rebuild the demo routes'
   shapes: `tests/e2e/header-range-selection.spec.ts`, `undo-redo-keyboard.spec.ts`,
@@ -702,16 +702,18 @@ does for you):
   range on four overlay layouts and one selected cell on the right-to-left demo, the scroll spec's six
   layouts, and one capture each of the native pagination controls, the active-filter and hidden-column
   indicators, the sort indicators, a custom border, a comment textarea, a frozen column, collapsed
-  nested headers, inserted columns, a right-aligned cell and a filled range — 26 a browser, 78 in all,
+  nested headers, inserted columns, a right-aligned cell and a filled range: 26 a browser, 78 in all,
   where there were 200. The family's two WebKit flakes, `columns-filter-2` and
   `selection-arabic-rtl-demo-{2,3}`, photographed states, and are assertions now. The retired flows
   still run on Firefox and WebKit: those specs carry `@cross-browser`, so the engine legs of
   `tests/` (`tests/playwright-engines.config.ts`, one CI job) run them on both engines on every pull
-  request that runs the Playwright legs, where the captures ran on the seed and the nightly only
-  (`tests/AGENTS.md`, "The engine legs"). That includes the clipboard checks, which
-  `copy-paste.spec.ts` had run on Chromium alone. A new cross-browser capture names the engine difference it is
-  for in its docblock, and a state it shows belongs in `tests/e2e` first, tagged `@cross-browser` when
-  an engine could get it wrong.
+  request that runs the Playwright legs, where the captures ran on the seed, master and release
+  candidate pushes, the nightly, and pull requests that changed the visual tier
+  (`tests/AGENTS.md`, "The engine legs"). The clipboard checks, which `copy-paste.spec.ts` ran on
+  Chromium alone, run on Firefox as well; WebKit leaves them out, because on the Linux runner
+  Playwright's WebKit copies, cuts and pastes nothing on a real shortcut. A new cross-browser capture
+  names the engine difference it is for in its docblock, and a state it shows belongs in `tests/e2e`
+  first, tagged `@cross-browser` when an engine could get it wrong.
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 

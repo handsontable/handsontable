@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Handsontable e2e fixture — an orders grid with filters, sorting, hidden columns and pagination</title>
+  <title>Handsontable e2e fixture – an orders grid with filters, sorting, hidden columns and pagination</title>
   <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
   <script>
     // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright
     // projects, mapped through fixed allowlists to LITERALS so a crafted param can never be
     // reflected into the document. An ABSENT param keeps the default (main / plain UMD) so the
-    // fixture stays browsable by hand; an unknown value THROWS rather than falling back — a typo
+    // fixture stays browsable by hand; an unknown value THROWS rather than falling back – a typo
     // in the project config must be one red leg, never a silently mislabeled green one.
     const htParams = new URLSearchParams(location.search);
 
@@ -52,7 +52,7 @@
     The 60 rows are generated, not random. Their countries repeat every ten rows, and five of the
     ten contain "in" (India, China, United Kingdom, Argentina, Philippines), so a search for "In"
     in the Country value list lists 30 rows; India alone is six rows, three of them sold in the
-    first half of 2020 — the 6 and 3 the visual spec counted on the demo's data.
+    first half of 2020 – the 6 and 3 the visual spec counted on the demo's data.
   -->
   <div data-testid="grid"></div>
 
