@@ -28,8 +28,8 @@ row plugin also keeps `getLastDesiredRowHeight()`, and the column plugin keeps i
 plugin passes in: `isActive()`, `clampSize()` and `setManualSize()`. The last two are the plugin's
 **private** bodies (`#clampSize`, `#setManualSize`), not the public `setManualSize()`: the public method opens
 an undo step of its own, and the gesture records its own step. The gesture still never writes a size map
-itself, and `setManualSize()` clamps through `clampSize()`, so the clamping rules (the 20px column floor, the
-theme's default row height) stay in one place.
+itself, and `setManualSize()` clamps through `clampSize()`, so the clamping rules (the theme-derived column floor,
+the theme's default row height) stay in one place.
 
 ## One press, one undo step - and nothing stored before the release
 
