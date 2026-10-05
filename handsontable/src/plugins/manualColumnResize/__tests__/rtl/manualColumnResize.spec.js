@@ -43,15 +43,10 @@ describe('manualColumnResize (RTL)', () => {
     await waitForNextAnimationFrames(2);
 
     const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
-    // The narrowest width follows the theme. It is pinned per theme on purpose, so a wrong formula in the
-    // plugin cannot pass by repeating itself here.
-    const minWidth = { 'ht-theme-main': 32, 'ht-theme-horizon': 40, 'ht-theme-classic': 24 }[
-      handsontable().getCurrentThemeName()
-    ];
 
-    expect($columnHeaders.eq(1).outerWidth()).toBe(minWidth);
-    expect($columnHeaders.eq(2).outerWidth()).toBe(minWidth);
-    expect($columnHeaders.eq(3).outerWidth()).toBe(minWidth);
+    expect($columnHeaders.eq(1).outerWidth()).toBe(20);
+    expect($columnHeaders.eq(2).outerWidth()).toBe(20);
+    expect($columnHeaders.eq(3).outerWidth()).toBe(20);
   });
 
   it('should resize (expanding) selected columns', async() => {

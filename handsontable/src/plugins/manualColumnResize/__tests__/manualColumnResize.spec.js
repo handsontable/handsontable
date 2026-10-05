@@ -279,17 +279,10 @@ describe('manualColumnResize', () => {
     await waitForNextAnimationFrames(63);
 
     const $columnHeaders = spec().$container.find('.ht_clone_top thead tr:eq(0) th');
-    // The drag lands on 35px, which is below the narrowest width of some themes. The narrowest width is
-    // pinned per theme on purpose, so a wrong formula in the plugin cannot pass by repeating itself here.
-    // The header's border takes 1px of it, which `width()` does not count.
-    const minWidth = { 'ht-theme-main': 32, 'ht-theme-horizon': 40, 'ht-theme-classic': 24 }[
-      handsontable().getCurrentThemeName()
-    ];
-    const expectedWidth = Math.max(34, minWidth - 1);
 
-    expect($columnHeaders.eq(1).width()).toBe(expectedWidth);
-    expect($columnHeaders.eq(2).width()).toBe(expectedWidth);
-    expect($columnHeaders.eq(3).width()).toBe(expectedWidth);
+    expect($columnHeaders.eq(1).width()).toBe(34);
+    expect($columnHeaders.eq(2).width()).toBe(34);
+    expect($columnHeaders.eq(3).width()).toBe(34);
   });
 
   it('should show resizer for fixed columns', async() => {

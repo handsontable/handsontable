@@ -253,7 +253,7 @@ You can adjust the size of one or multiple columns simultaneously, even if the s
 
 ### Minimum column width
 
-A column can't get narrower than its header's menu button needs. The minimum width is the icon size plus the horizontal cell padding on both sides (`--ht-icon-size + 2 × --ht-cell-horizontal-padding`), so it depends on your [theme](@/guides/styling/themes/themes.md):
+When the column headers render the menu button ([`colHeaders`](@/api/options.md#colheaders) is on and [`dropdownMenu`](@/api/options.md#dropdownmenu) is enabled), a column can't get narrower than the button needs. The minimum width is the icon size plus the horizontal cell padding on both sides (`--ht-icon-size + 2 × --ht-cell-horizontal-padding`), so it depends on your [theme](@/guides/styling/themes/themes.md):
 
 | Theme   | Minimum column width |
 | ------- | -------------------- |
@@ -261,7 +261,7 @@ A column can't get narrower than its header's menu button needs. The minimum wid
 | Horizon | 40px                 |
 | Classic | 24px                 |
 
-The minimum is never less than `20px`. If the theme doesn't declare these values, for example when you use a custom theme that sets them with `calc()`, the minimum is `20px`.
+A custom theme can declare these values in any unit, such as `rem` or `calc()`. Any other grid has no button to protect, so its minimum is `20px`, which is also the lowest the minimum can be.
 
 When a column is narrow, the header hides things in this order: the label text, then the sort indicator, and then the menu button. The menu button stays visible at the minimum width. At that width you can't sort by clicking the header text. You can still sort with the [`sort()`](@/api/columnSorting.md#sort) method, or with <kbd>**Enter**</kbd> on the header when [`navigableHeaders`](@/api/options.md#navigableheaders) is enabled.
 

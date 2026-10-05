@@ -54,6 +54,25 @@
   <h2>Menu button and sorting, right to left, aligned left</h2>
   <div id="menu-sort-rtl-left" data-testid="menu-sort-rtl-left"></div>
 
+  <!-- No menu button, so no floor beyond the old 20px. -->
+  <h2>No menu</h2>
+  <div id="no-menu" data-testid="no-menu"></div>
+
+  <!--
+    A custom theme that declares the tokens in `rem`. `getCSSVariableValue()` reads those as bare numbers (2 and 1
+    here), so only a measurement in the browser gets the real width: 1.25rem + 2 * 0.75rem = 44px at the default
+    16px root font size. The theme declares its tokens on the grid's `.ht-root-wrapper`, so the override
+    targets that element, the way a custom theme's own selector would.
+  -->
+  <style>
+    #menu-sort-rem .ht-root-wrapper {
+      --ht-icon-size: 1.25rem;
+      --ht-cell-horizontal-padding: 0.75rem;
+    }
+  </style>
+  <h2>Menu button and sorting, tokens in rem</h2>
+  <div id="menu-sort-rem" data-testid="menu-sort-rem"></div>
+
   <script>
     // The bundle under test, selected above from the sanitized allowlist. The
     // closing tag is split so the HTML parser does not end THIS script block.
@@ -90,6 +109,8 @@
 
     window.grids = {
       menu: buildGrid('menu', {}),
+      noMenu: buildGrid('no-menu', { dropdownMenu: false, columnSorting: true }),
+      menuSortRem: buildGrid('menu-sort-rem', { columnSorting: true }),
       menuSort: buildGrid('menu-sort', { columnSorting: true }),
       menuSortRight: buildGrid('menu-sort-right', { columnSorting: true, headerClassName: 'htRight' }),
       menuSortRtl: buildGrid('menu-sort-rtl', { columnSorting: true, layoutDirection: 'rtl' }),

@@ -51,28 +51,29 @@ never through the public `setManualSize()` (that one opens an undo step of its o
 so the width floor has one home. A drag stores the width only on release - see "One press, one undo step" in
 `../../utils/manualResize/AGENTS.md`.
 
-## The width floor is derived from the theme, not a constant (DEV-158)
+## The width floor is derived from the theme, and only for grids with a menu button (DEV-158)
 
-`#getMinWidth()` returns `--ht-icon-size + 2 * --ht-cell-horizontal-padding` (32px in Main, 40px in Horizon, 24px
-in Classic): the room a header needs for its menu button. It reads both tokens through
-`hot.stylesHandler.getCSSVariableValue()`, which caches them until the theme changes, so a drag reads it on
-every pointer move for free. Four rules ride along:
+`#getMinWidth()` returns the room a header needs for its menu button, `--ht-icon-size + 2 *
+--ht-cell-horizontal-padding` (32px in Main, 40px in Horizon, 24px in Classic). Five rules ride along:
 
+- **It applies only when the headers render the button.** `#rendersMenuButton()` is `colHeaders` on and the
+  `dropdownMenu` plugin enabled (asked through `hot.getPlugin()`, never imported). Any other grid keeps 20px: there
+  is no button to protect, and a header-less grid or a spacer column used to be able to go below 32px. It is read when
+  a width is written, so enabling the menu later applies from then on.
+- **The tokens are resolved in the browser**, through `hot.stylesHandler.getResolvedLength()`, which sets the
+  expression as the width of a hidden element inside the root element and reads `offsetWidth`. That is what makes
+  a token in `rem`, `em` or `calc()` count: `getCSSVariableValue()` runs `parseFloat()` and `Math.ceil()` on the raw
+  text, so `1.25rem` reads as `2`. The answer is cached until the theme changes, so a drag pays for it once.
+- **The floor is never below 20px, and an unusable measurement is 20px.** No theme, a theme that does not declare
+  the tokens, a grid inside a hidden tab, and jsdom all measure `0`; `getResolvedLength()` answers `null` for that
+  and does not cache it (a cached zero would stick after the grid is revealed), and the plugin falls back to 20px.
 - **The floor is applied when a width is written, not when it is read.** `setManualSize()`, `setManualSizes()` and
-  the drag go through `#clampSize()`. A width stored under another theme, or declared in the `manualColumnResize`
-  array (replayed by `#onMapInit` without a clamp), is kept as it is, so a theme switch never rewrites stored
-  widths and `getManualSize()` returns what was stored. A write-back is a write: `sheetsBar`'s `restoreSizes()`
-  sends every captured width through `setManualSizes()`, so a below-floor width from the array comes back clamped
-  after a sheet switch.
-- **A missing or non-numeric token falls back to 20px, and the floor is never below 20px.** A grid without a theme
-  has no tokens, jsdom loads no theme, and a custom theme may declare a token as `calc()`, which
-  `getCSSVariableValue()` returns as a string. `Number()` turns any of those into `NaN`, and the guard in
-  `#getMinWidth()` keeps `NaN` out of the clamp. A token in `rem` or `em` is the opposite trap: `StylesHandler`
-  runs `parseFloat()` and `Math.ceil()` on the raw text, so `1.25rem` reads as `2`. The result is therefore floored
-  at 20px, or a rem-based custom theme would let a column get narrower than the old floor.
-- **The floor is the same with and without a column header.** A grid that renders no headers still gets 32px in
-  Main: the width map does not know what the grid renders, and a floor that changed with `colHeaders` would
-  change stored widths when a user toggles them.
+  the drag go through `#clampSize()`, and `setManualSizes()` reads the floor once per call because a restore can
+  carry thousands of widths. A width declared in the `manualColumnResize` array (replayed by `#onMapInit` without a
+  clamp), or stored under another theme, is kept as it is, so a theme switch never rewrites stored widths and
+  `getManualSize()` returns what was stored. A write-back is a write: `sheetsBar`'s `restoreSizes()` sends every
+  captured width through `setManualSizes()`, so a below-floor width from the array comes back clamped after a
+  sheet switch.
 - **The floor only means something because the header CSS can collapse to it.** At 32px the content box is 15px,
   so the label and the sort indicator must give way to the menu button. That is `_column-sorting.scss`
   ("Narrow header with a menu button"); see `../columnSorting/AGENTS.md`. Raising or lowering the floor without

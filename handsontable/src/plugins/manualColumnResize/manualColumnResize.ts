@@ -13,10 +13,17 @@ export const PLUGIN_KEY = 'manualColumnResize';
 export const PLUGIN_PRIORITY = 130;
 
 /**
- * The narrowest width a column can have when the active theme does not declare the tokens the
- * floor is derived from (no theme, or a token that is not a plain length).
+ * The narrowest width a column can have when its header renders no menu button, or when the theme tokens
+ * the floor is derived from can't be measured (no theme, or a grid that is not rendered yet). It is also
+ * the lowest the floor can ever be.
  */
 const FALLBACK_MIN_WIDTH = 20;
+
+/**
+ * The room the header's menu button needs, as a CSS expression the browser resolves: the icon size plus
+ * the horizontal cell padding on both sides.
+ */
+const MIN_WIDTH_EXPRESSION = 'calc(var(--ht-icon-size) + 2 * var(--ht-cell-horizontal-padding))';
 
 /**
  * @plugin ManualColumnResize
@@ -223,10 +230,11 @@ export class ManualColumnResize extends BasePlugin {
    * Sets the new width for the specified visual column index.
    *
    * This method updates the plugin's internal width map. Call `render()` after `setManualSize()` to repaint the grid.
-   * Values lower than the minimum column width are saved as that minimum. The minimum is the icon size plus
+   * Values lower than the minimum column width are saved as that minimum. When the column headers render the
+   * menu button ([`dropdownMenu`](@/api/options.md#dropdownmenu) is enabled), the minimum is the icon size plus
    * the cell's horizontal padding on both sides (`--ht-icon-size + 2 * --ht-cell-horizontal-padding`), so the
-   * header's menu button always fits. It is `32px` in the Main theme, and never less than `20px`, which is also the minimum when the
-   * theme declares no such tokens.
+   * button always fits: `32px` in the Main theme, `40px` in Horizon, and `24px` in Classic. In any other grid, and
+   * when the theme doesn't declare those tokens, the minimum is `20px`, which is also the lowest it can be.
    *
    * @example
    * ```js
@@ -271,26 +279,35 @@ export class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Returns the narrowest width a column can have: the icon size plus the horizontal cell padding on
-   * both sides, which is the room the header needs for its menu button. Falls back to 20px when the
-   * theme tokens are missing or are not plain lengths (a custom theme can declare them as `calc()`), and never
-   * returns less than that.
-   * `StylesHandler` caches the tokens until the theme changes, so this is cheap on every pointer move.
+   * Returns the narrowest width a column can have. A grid whose headers render the menu button gets the
+   * room that button needs: the icon size plus the horizontal cell padding on both sides. Any other grid
+   * keeps the old floor, because there is no button to protect.
+   *
+   * The theme tokens are resolved in the browser (`StylesHandler#getResolvedLength()`), so a custom theme
+   * can declare them in `rem`, `em` or `calc()`, and the answer is cached until the theme changes. It falls
+   * back to 20px when the tokens can't be measured (no theme, or a grid that is not rendered yet), and is
+   * never less than that.
    *
    * @returns {number}
    */
   #getMinWidth(): number {
-    const { stylesHandler } = this.hot;
-    const iconSize = Number(stylesHandler?.getCSSVariableValue('icon-size'));
-    const horizontalPadding = Number(stylesHandler?.getCSSVariableValue('cell-horizontal-padding'));
-
-    if (!Number.isFinite(iconSize) || !Number.isFinite(horizontalPadding) || iconSize <= 0) {
+    if (!this.#rendersMenuButton()) {
       return FALLBACK_MIN_WIDTH;
     }
 
-    // Never below the old floor: a token in `rem` or `em` reaches this as a bare number (`1.25rem` reads as
-    // 2), which would let a column get narrower than it ever could.
-    return Math.max(FALLBACK_MIN_WIDTH, iconSize + (2 * horizontalPadding));
+    const width = this.hot.stylesHandler?.getResolvedLength(MIN_WIDTH_EXPRESSION);
+
+    return typeof width === 'number' ? Math.max(FALLBACK_MIN_WIDTH, width) : FALLBACK_MIN_WIDTH;
+  }
+
+  /**
+   * Checks whether the column headers render the dropdown menu button, which is what the minimum width
+   * is derived from. Read when a width is written, so enabling the menu later applies from then on.
+   *
+   * @returns {boolean}
+   */
+  #rendersMenuButton(): boolean {
+    return !!this.hot.getSettings().colHeaders && !!this.hot.getPlugin('dropdownMenu')?.enabled;
   }
 
   /**
@@ -339,8 +356,8 @@ export class ManualColumnResize extends BasePlugin {
    * Writes a set of manual widths at once, addressed by physical column index — the
    * counterpart of {@link ManualColumnResize#getManualSizes}, so a stored set round-trips onto
    * the same records regardless of trimming or column order. Values lower than the minimum
-   * column width are saved as that minimum, and an index outside the current column count is skipped.
-   * Call `render()` afterwards to repaint the grid.
+   * column width (see {@link ManualColumnResize#setManualSize}) are saved as that minimum, and an index outside
+   * the current column count is skipped. Call `render()` afterwards to repaint the grid.
    *
    * @param {Array<Array<number>>} sizes The `[physicalColumn, width]` pairs to write.
    */

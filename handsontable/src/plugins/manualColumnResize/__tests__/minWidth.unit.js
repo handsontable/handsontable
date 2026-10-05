@@ -2,7 +2,12 @@ import Handsontable from 'handsontable';
 
 /**
  * The narrowest width a column can be resized to is the room its header needs for the menu button:
- * the icon size plus the cell's horizontal padding on both sides (DEV-158).
+ * the icon size plus the cell's horizontal padding on both sides (DEV-158). A grid whose headers render
+ * no menu button has no button to protect and keeps the old 20px floor.
+ *
+ * jsdom has no layout, so the browser measurement behind the floor is stubbed here
+ * (`StylesHandler#getResolvedLength()`, which has its own tests). What these tests pin is what the
+ * plugin does with the answer: when it asks, what it falls back to, and where the clamp applies.
  */
 describe('ManualColumnResize minimum column width', () => {
   let container;
@@ -20,87 +25,108 @@ describe('ManualColumnResize minimum column width', () => {
   });
 
   /**
-   * Creates a grid and makes the theme tokens read as the given values.
+   * Creates a grid whose theme tokens resolve to the given width.
    *
-   * @param {object} tokens The `--ht-*` values by name, without the prefix.
+   * @param {number|null} resolvedWidth What the browser measurement answers, in pixels.
+   * @param {object} settings Settings that replace the defaults.
    * @returns {ManualColumnResize}
    */
-  function createPlugin(tokens = {}) {
+  function createPlugin(resolvedWidth, settings = {}) {
     hot = new Handsontable(container, {
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       colHeaders: true,
+      dropdownMenu: true,
       manualColumnResize: true,
       licenseKey: 'non-commercial-and-evaluation',
+      ...settings,
     });
 
-    jest.spyOn(hot.stylesHandler, 'getCSSVariableValue').mockImplementation(name => tokens[name]);
+    jest.spyOn(hot.stylesHandler, 'getResolvedLength').mockReturnValue(resolvedWidth);
 
     return hot.getPlugin('manualColumnResize');
   }
 
-  it('should be the icon size plus the horizontal padding on both sides', () => {
-    const plugin = createPlugin({ 'icon-size': 16, 'cell-horizontal-padding': 8 });
+  it('should be the icon size plus the horizontal padding on both sides, as measured by the browser', () => {
+    const plugin = createPlugin(32);
 
     expect(plugin.setManualSize(0, 5)).toBe(32);
     expect(plugin.getManualSize(0)).toBe(32);
+
+    // The expression names both tokens, so a `rem`, `em` or `calc()` token resolves the same way.
+    expect(hot.stylesHandler.getResolvedLength).toHaveBeenCalledWith(
+      'calc(var(--ht-icon-size) + 2 * var(--ht-cell-horizontal-padding))'
+    );
   });
 
-  it('should follow the theme tokens', () => {
-    const plugin = createPlugin({ 'icon-size': 16, 'cell-horizontal-padding': 12 });
+  it('should follow the theme', () => {
+    const plugin = createPlugin(40);
 
     expect(plugin.setManualSize(0, 5)).toBe(40);
   });
 
   it('should not be applied to a width that is already wide enough', () => {
-    const plugin = createPlugin({ 'icon-size': 16, 'cell-horizontal-padding': 8 });
+    const plugin = createPlugin(32);
 
     expect(plugin.setManualSize(0, 32)).toBe(32);
     expect(plugin.setManualSize(1, 120)).toBe(120);
   });
 
-  it('should also apply to the widths written with `setManualSizes()`', () => {
-    const plugin = createPlugin({ 'icon-size': 16, 'cell-horizontal-padding': 8 });
+  it('should also apply to the widths written with `setManualSizes()`, measuring only once', () => {
+    const plugin = createPlugin(32);
 
-    plugin.setManualSizes([[0, 10], [1, 100]]);
+    plugin.setManualSizes([[0, 10], [1, 100], [2, 5]]);
 
     expect(plugin.getManualSize(0)).toBe(32);
     expect(plugin.getManualSize(1)).toBe(100);
+    expect(plugin.getManualSize(2)).toBe(32);
+    // A restore can carry thousands of widths, and the floor cannot change inside the loop.
+    expect(hot.stylesHandler.getResolvedLength).toHaveBeenCalledTimes(1);
   });
 
-  it('should fall back to 20px when the theme declares no tokens', () => {
-    const plugin = createPlugin({});
+  it('should be 20px, and not ask the browser, when the grid has no menu button', () => {
+    const plugin = createPlugin(32, { dropdownMenu: false });
 
     expect(plugin.setManualSize(0, 5)).toBe(20);
+    expect(plugin.setManualSize(1, 24)).toBe(24);
+    expect(hot.stylesHandler.getResolvedLength).not.toHaveBeenCalled();
   });
 
-  it('should fall back to 20px when a token is not a plain length', () => {
-    // A custom theme may declare a token as `calc()`, which `StylesHandler` hands back as a string.
-    const plugin = createPlugin({ 'icon-size': 'calc(1rem + 2px)', 'cell-horizontal-padding': 8 });
+  it('should be 20px when the grid has no column headers', () => {
+    const plugin = createPlugin(32, { colHeaders: false });
+
+    expect(plugin.setManualSize(0, 5)).toBe(20);
+    expect(hot.stylesHandler.getResolvedLength).not.toHaveBeenCalled();
+  });
+
+  it('should apply from the moment the menu is enabled', () => {
+    const plugin = createPlugin(32, { dropdownMenu: false });
+
+    expect(plugin.setManualSize(0, 5)).toBe(20);
+
+    hot.updateSettings({ dropdownMenu: true });
+
+    expect(plugin.setManualSize(0, 5)).toBe(32);
+  });
+
+  it('should fall back to 20px when the browser can not measure the tokens', () => {
+    // No theme, a theme that does not declare them, or a grid that is not rendered yet.
+    const plugin = createPlugin(null);
 
     expect(plugin.setManualSize(0, 5)).toBe(20);
   });
 
   it('should never be less than 20px', () => {
-    // `getCSSVariableValue()` reads a token in `rem` as a bare number: `1.25rem` and `0.5rem` come back as 2 and 1.
-    const plugin = createPlugin({ 'icon-size': 2, 'cell-horizontal-padding': 1 });
-
-    expect(plugin.setManualSize(0, 5)).toBe(20);
-  });
-
-  it('should fall back to 20px when the icon size is not positive', () => {
-    const plugin = createPlugin({ 'icon-size': 0, 'cell-horizontal-padding': 8 });
+    const plugin = createPlugin(12);
 
     expect(plugin.setManualSize(0, 5)).toBe(20);
   });
 
   it('should be read again after a theme change', () => {
-    const plugin = createPlugin({ 'icon-size': 16, 'cell-horizontal-padding': 8 });
+    const plugin = createPlugin(32);
 
     expect(plugin.setManualSize(0, 5)).toBe(32);
 
-    hot.stylesHandler.getCSSVariableValue.mockImplementation(name => (
-      { 'icon-size': 12, 'cell-horizontal-padding': 6 }[name]
-    ));
+    hot.stylesHandler.getResolvedLength.mockReturnValue(24);
 
     expect(plugin.setManualSize(0, 5)).toBe(24);
   });

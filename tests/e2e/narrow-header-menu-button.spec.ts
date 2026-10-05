@@ -113,4 +113,27 @@ test.describe('Narrow header with a menu button', () => {
       });
     }
   }
+
+  test('keeps the old 20px floor for a grid whose headers render no menu button', async () => {
+    // There is no button to protect, so nothing changes for this grid.
+    await grid.dragColumnHandle('no-menu', COLUMN, -400);
+
+    expect(await grid.columnWidth('no-menu', COLUMN)).toBe(20);
+  });
+
+  test('resolves a theme token declared in rem, so the menu button still fits', async () => {
+    // 1.25rem + 2 * 0.75rem at the default 16px root font size. The tokens read as the bare numbers 2
+    // and 1, which would give a 20px floor and bring the overflow back for exactly these themes.
+    const REM_MINIMUM = 44;
+
+    await grid.sortColumn('menuSortRem', COLUMN);
+    await grid.dragColumnHandle('menu-sort-rem', COLUMN, -400);
+
+    const { width, icon, indicator } = await grid.geometry('menu-sort-rem', COLUMN);
+
+    expect(width).toBe(REM_MINIMUM);
+    expect(icon[0]).toBeGreaterThanOrEqual(-1);
+    expect(icon[1]).toBeLessThanOrEqual(width + 1);
+    expect(indicator).toBe(0);
+  });
 });

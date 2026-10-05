@@ -42,7 +42,9 @@ export class NarrowHeaderMenuButtonPage {
     );
     await awaitBundle(this.page);
 
-    for (const testId of ['menu', 'menu-sort', 'menu-sort-right', 'menu-sort-rtl', 'menu-sort-rtl-left']) {
+    for (const testId of [
+      'menu', 'menu-sort', 'menu-sort-right', 'menu-sort-rtl', 'menu-sort-rtl-left', 'no-menu', 'menu-sort-rem',
+    ]) {
       // The clones exist before their rows are laid out, and every test drags or measures a header.
       await expect(this.header(testId, 3)).toBeVisible();
     }
@@ -126,6 +128,17 @@ export class NarrowHeaderMenuButtonPage {
       }).sortColumn(gridName as string, col as number),
       [name, column] as [string, number]
     );
+  }
+
+  /**
+   * The rendered width of one header cell, for a grid that has no menu button to measure.
+   *
+   * @param {string} testId The grid's test id.
+   * @param {number} column The visual column index.
+   * @returns {Promise<number>}
+   */
+  async columnWidth(testId: string, column: number): Promise<number> {
+    return this.header(testId, column).evaluate(th => Math.round(th.getBoundingClientRect().width * 10) / 10);
   }
 
   /**
