@@ -379,4 +379,27 @@ describe('TableView#countNotHiddenFixedColumnsEnd', () => {
     expect(view.countNotHiddenFixedColumnsEnd()).toBe(2);
     expect(view.countNotHiddenColumnIndexes).toHaveBeenCalledWith(8, 1);
   });
+
+  it('should floor a fractional option the way countFixedColumnsEnd does', () => {
+    const view = Object.create(TableView.prototype);
+
+    view.hot = { countCols: jest.fn(() => 10) };
+    view.settings = { fixedColumnsEnd: 2.5 };
+    view.countNotHiddenColumnIndexes = jest.fn(() => 2);
+
+    expect(view.countNotHiddenFixedColumnsEnd()).toBe(2);
+    // A whole visual index, not 7.5.
+    expect(view.countNotHiddenColumnIndexes).toHaveBeenCalledWith(8, 1);
+  });
+
+  it.each([-1, Number.NaN, 'abc', 0.4, -0.5])('should return 0 for the unusable value %p', (fixedColumnsEnd) => {
+    const view = Object.create(TableView.prototype);
+
+    view.hot = { countCols: jest.fn(() => 10) };
+    view.settings = { fixedColumnsEnd };
+    view.countNotHiddenColumnIndexes = jest.fn(() => 99);
+
+    expect(view.countNotHiddenFixedColumnsEnd()).toBe(0);
+    expect(view.countNotHiddenColumnIndexes).not.toHaveBeenCalled();
+  });
 });

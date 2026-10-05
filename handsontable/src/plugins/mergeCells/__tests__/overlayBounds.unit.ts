@@ -2,6 +2,7 @@ import type { HotInstance } from '../../../core/types';
 import {
   getFirstRenderedColumnOfOverlay,
   getFirstRenderedRowOfOverlay,
+  getLastRenderedColumnOfOverlay,
   isEndColumnOverlay,
 } from '../utils';
 
@@ -9,12 +10,13 @@ import {
  * Builds a minimal instance: the main table renders from row 4 and column 3, the inline-end clone renders
  * from the given renderable column, and the visual order is the renderable order shifted by the hidden columns.
  */
-function createHot({ endClone = 9, hiddenColumns = [] as number[] } = {}) {
+function createHot({ endClone = 9, endCloneLast = 11, hiddenColumns = [] as number[] } = {}) {
   const visibleColumns = Array.from({ length: 12 }, (_, column) => column).filter(c => !hiddenColumns.includes(c));
 
   return {
     getFirstRenderedVisibleRow: () => 4,
     getFirstRenderedVisibleColumn: () => 3,
+    getLastRenderedVisibleColumn: () => 8,
     columnIndexMapper: {
       getVisualFromRenderableIndex: (renderable: number) => visibleColumns[renderable] ?? null,
       getNearestNotHiddenIndex: (visual: number, direction: number) => {
@@ -30,7 +32,9 @@ function createHot({ endClone = 9, hiddenColumns = [] as number[] } = {}) {
     view: {
       _wt: {
         wtOverlays: {
-          inlineEndOverlay: { clone: { wtTable: { getFirstRenderedColumn: () => endClone } } },
+          inlineEndOverlay: {
+            clone: { wtTable: { getFirstRenderedColumn: () => endClone, getLastRenderedColumn: () => endCloneLast } },
+          },
         },
       },
     },
@@ -96,6 +100,36 @@ describe('MergeCells overlay bounds', () => {
 
     it('should fall back to the main table when the end clone renders nothing', () => {
       expect(getFirstRenderedColumnOfOverlay(createHot({ endClone: -1 }), 'inline_end')).toBe(3);
+    });
+  });
+
+  describe('getLastRenderedColumnOfOverlay', () => {
+    it('should end the inline-end overlays at the last column of the end band, not at the main table\'s last', () => {
+      // The main table is scrolled to the start: it renders up to column 8, the band is 9..11.
+      const hot = createHot();
+
+      ['inline_end', 'top_inline_end_corner', 'bottom_inline_end_corner'].forEach((name) => {
+        expect(getLastRenderedColumnOfOverlay(hot, name)).toBe(11);
+      });
+    });
+
+    it('should translate the last column of the end band from the renderable to the visual index', () => {
+      // Columns 2 and 5 are hidden, so renderable column 9 is visual column 11.
+      const hot = createHot({ endClone: 7, endCloneLast: 9, hiddenColumns: [2, 5] });
+
+      expect(getLastRenderedColumnOfOverlay(hot, 'inline_end')).toBe(11);
+    });
+
+    it('should end the other overlays where the main table ends', () => {
+      const hot = createHot();
+
+      ['master', 'top', 'bottom', 'inline_start', 'top_inline_start_corner'].forEach((name) => {
+        expect(getLastRenderedColumnOfOverlay(hot, name)).toBe(8);
+      });
+    });
+
+    it('should fall back to the main table when the end clone renders nothing', () => {
+      expect(getLastRenderedColumnOfOverlay(createHot({ endCloneLast: -1 }), 'inline_end')).toBe(8);
     });
   });
 });

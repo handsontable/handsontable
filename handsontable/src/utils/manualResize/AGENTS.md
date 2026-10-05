@@ -293,7 +293,10 @@ matrix).
 A column header rendered by the top inline-end corner overlay (`fixedColumnsEnd`) keeps its inline-end edge
 when it is resized: the band stands at the grid's edge, so a wider column grows towards the inline start.
 `ResizeAxis#isAnchoredAtInlineEnd` (optional; only `COLUMN_RESIZE_AXIS` implements it, by checking whether the
-header sits in `topInlineEndCornerOverlay`) tells the gesture, and then:
+header sits in `topInlineEndCornerOverlay` AND `wtViewport.hasHorizontalScroll()`) tells the gesture. Without a
+horizontal scroll the columns do not fill the holder, the end clone rests against the last column instead of the
+edge, so the header is not anchored (anchoring it put its handle on the previous column's handle and inverted the
+drag). When it is anchored:
 
 - the handle sits on the header's inline-START edge, not the inline-end one;
 - the pointer delta is inverted (dragging towards the inline start widens, in RTL too, because the direction

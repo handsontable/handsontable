@@ -146,22 +146,27 @@ describe('TableRenderer aria column header ownership (end columns)', () => {
       expect(renderer.getAriaColumnHeaderIndex(0, 7)).toBe(8);
     });
 
-    it('should keep counting rendered cells on the other tables', () => {
-      const renderer = createRenderer();
+    it('should name a column by its place in the grid in every table, scrolled or not', () => {
+      const renderer = createRenderer({ rowHeaders: 1 });
 
-      OVERLAYS.filter(name => !END_CLONES.includes(name)).forEach((name) => {
+      OVERLAYS.forEach((name) => {
         renderer.activeOverlayName = name;
 
-        expect(renderer.getAriaColumnHeaderIndex(4, 7)).toBe(5);
+        // A scrolled master or top clone starts at column 7: its 5th header cell (visible index 4) is column 11,
+        // the very number the body cell of that column carries (11 + 1 row header + 1).
+        expect(renderer.getAriaColumnHeaderIndex(4, 11)).toBe(13);
+        expect(renderer.getAriaColumnHeaderIndex(0, 0)).toBe(2);
       });
     });
 
-    it('should count a row header cell of an end clone by its rendered position', () => {
+    it('should count a row header cell by its rendered position', () => {
       const renderer = createRenderer();
 
-      renderer.activeOverlayName = CLONE_INLINE_END;
+      OVERLAYS.forEach((name) => {
+        renderer.activeOverlayName = name;
 
-      expect(renderer.getAriaColumnHeaderIndex(0, -1)).toBe(1);
+        expect(renderer.getAriaColumnHeaderIndex(0, -1)).toBe(1);
+      });
     });
   });
 });

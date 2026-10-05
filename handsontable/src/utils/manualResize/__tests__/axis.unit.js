@@ -35,7 +35,7 @@ describe('manual resize axes', () => {
   });
 
   describe('the frozen end columns (the top inline-end corner overlay)', () => {
-    function hotWithEndCorner(cornerHeader, { clone = true } = {}) {
+    function hotWithEndCorner(cornerHeader, { clone = true, horizontalScroll = true } = {}) {
       const position = { top: 1, start: 2 };
       const topInlineEndCornerOverlay = {
         clone: clone ?
@@ -64,6 +64,7 @@ describe('manual resize axes', () => {
           view: {
             _wt: {
               getSetting: () => 0,
+              wtViewport: { hasHorizontalScroll: () => horizontalScroll },
               wtOverlays: { topOverlay, topInlineStartCornerOverlay: startCorner, topInlineEndCornerOverlay },
             },
           },
@@ -99,6 +100,14 @@ describe('manual resize axes', () => {
 
       expect(COLUMN_RESIZE_AXIS.isAnchoredAtInlineEnd(hot, endHeader)).toBe(true);
       expect(COLUMN_RESIZE_AXIS.isAnchoredAtInlineEnd(hot, header())).toBe(false);
+    });
+
+    it('should not anchor the end headers while the columns do not fill the holder', () => {
+      // The end columns rest against the last column then: there is no inline-end edge to keep.
+      const endHeader = header();
+      const { hot } = hotWithEndCorner(endHeader, { horizontalScroll: false });
+
+      expect(COLUMN_RESIZE_AXIS.isAnchoredAtInlineEnd(hot, endHeader)).toBe(false);
     });
 
     it('should not anchor any header when the grid has no end columns', () => {

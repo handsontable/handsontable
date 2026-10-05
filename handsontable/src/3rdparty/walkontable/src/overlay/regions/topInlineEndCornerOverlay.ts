@@ -135,7 +135,7 @@ export class TopInlineEndCornerOverlay extends Overlay {
     const { rootWindow, geometryReader } = this.deps;
     const wtTable = this.deps.getWtTable();
     const rail = this.getRail();
-    const inlineOnWindow = this.inlineEndOverlay.trimmingContainer === rootWindow;
+    const inlineOnWindow = this.inlineEndOverlay.isScrolledByWindow();
     const blockOnWindow = this.topOverlay.trimmingContainer === rootWindow;
     const tableWidth = geometryReader.outerWidth(this.clone.wtTable.TABLE);
     let tableHeight = geometryReader.outerHeight(this.clone.wtTable.TABLE);

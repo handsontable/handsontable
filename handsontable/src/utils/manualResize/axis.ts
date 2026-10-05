@@ -222,7 +222,10 @@ export const COLUMN_RESIZE_AXIS: ResizeAxis = {
   },
 
   isAnchoredAtInlineEnd(hot, header) {
-    return isInTopInlineEndCorner(hot, header);
+    // The clone sits at the inline-end edge only while the columns overflow the holder. When they
+    // do not fill it, the end columns rest against the last column, the grid has no edge to anchor
+    // to, and the header keeps its inline-start edge as every other header does.
+    return isInTopInlineEndCorner(hot, header) && hot.view._wt.wtViewport.hasHorizontalScroll();
   },
 
   canResizeHeader(header) {

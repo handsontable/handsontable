@@ -217,8 +217,10 @@ describe('InlineEndOverlay#getOverlayOffset', () => {
    */
   function createStub({ isRtl, scroll, tableLeft, parentOffset }:
     { isRtl: boolean, scroll: number, tableLeft: number, parentOffset: number }) {
-    return {
+    const self: Record<string, unknown> = {
       trimmingContainer: window,
+      mainTableScrollableElement: window,
+      isScrolledByWindow: () => run(InlineEndOverlay, 'isScrolledByWindow', self),
       clone: { wtTable: { getTotalWidth: () => 120 } },
       isRtl: () => isRtl,
       getTableParentOffset: () => parentOffset,
@@ -233,6 +235,8 @@ describe('InlineEndOverlay#getOverlayOffset', () => {
         getWtTable: () => ({ getTotalWidth: () => 1800, hider: document.createElement('div') }),
       },
     };
+
+    return self;
   }
 
   it('should measure from the scroll position in LTR, counting the page offset of the table', () => {
@@ -263,10 +267,49 @@ describe('InlineEndOverlay#getOverlayOffset', () => {
   });
 
   it('should be 0 when an element scrolls the columns', () => {
-    const stub = { ...createStub({ isRtl: true, scroll: 100, tableLeft: -500, parentOffset: 80 }),
-      trimmingContainer: document.createElement('div') };
+    const stub = createStub({ isRtl: true, scroll: 100, tableLeft: -500, parentOffset: 80 });
+
+    stub.trimmingContainer = document.createElement('div');
+    stub.mainTableScrollableElement = document.createElement('div');
 
     expect(run(InlineEndOverlay, 'getOverlayOffset', stub)).toBe(0);
+  });
+
+  it('should be 0 when the window owns the axis but the holder scrolls the columns', () => {
+    // The reverse split (`preventOverflow: 'vertical'`): the owner is the window, the scroller is the holder.
+    const stub = createStub({ isRtl: false, scroll: 300, tableLeft: 0, parentOffset: 80 });
+
+    stub.mainTableScrollableElement = document.createElement('div');
+
+    expect(run(InlineEndOverlay, 'getOverlayOffset', stub)).toBe(0);
+  });
+});
+
+describe('InlineEndOverlay#isScrolledByWindow', () => {
+  it('should be true when the window is the element that scrolls the columns', () => {
+    expect(run(InlineEndOverlay, 'isScrolledByWindow', {
+      trimmingContainer: window,
+      mainTableScrollableElement: window,
+      deps: { rootWindow: window },
+    })).toBe(true);
+  });
+
+  it('should be false when the holder scrolls the columns, even though the window owns the horizontal axis', () => {
+    expect(run(InlineEndOverlay, 'isScrolledByWindow', {
+      trimmingContainer: window,
+      mainTableScrollableElement: document.createElement('div'),
+      deps: { rootWindow: window },
+    })).toBe(false);
+  });
+
+  it('should be false when an element owns the axis and scrolls the columns', () => {
+    const holder = document.createElement('div');
+
+    expect(run(InlineEndOverlay, 'isScrolledByWindow', {
+      trimmingContainer: holder,
+      mainTableScrollableElement: holder,
+      deps: { rootWindow: window },
+    })).toBe(false);
   });
 });
 

@@ -22,6 +22,7 @@ import {
   toMergeAreaKey,
   getFirstRenderedRowOfOverlay,
   getFirstRenderedColumnOfOverlay,
+  getLastRenderedColumnOfOverlay,
 } from './utils';
 import { toMergeAreaRange, type MergeAreaGeometry } from '../../utils/mergeAreas';
 import type { CellChange } from '../../settings';
@@ -2836,7 +2837,7 @@ export class MergeCells extends BasePlugin {
         clamp(firstRenderedRow, topStartRow, bottomEndRow),
         clamp(firstRenderedColumn, topStartColumn, bottomEndColumn),
         clamp(this.hot.getLastRenderedVisibleRow(), topStartRow, bottomEndRow),
-        clamp(this.hot.getLastRenderedVisibleColumn(), topStartColumn, bottomEndColumn),
+        clamp(getLastRenderedColumnOfOverlay(this.hot, overlayName), topStartColumn, bottomEndColumn),
       ];
     }
 

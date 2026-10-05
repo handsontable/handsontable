@@ -1574,6 +1574,11 @@ export default function Core(
           case 'insert_col_end':
             // "start" is a default behavior for creating new columns
 
+            // Unlike `remove_col`, an insert does not touch `fixedColumnsEnd`. A column inserted inside the end band
+            // or after it takes a band slot (the band is always the LAST `fixedColumnsEnd` columns), the same as a
+            // row inserted with `fixedRowsBottom`, which `insert_row_*` does not move either. A caller that wants the
+            // same columns to stay frozen raises `fixedColumnsEnd` in `afterCreateCol`. Only the spare and the minimum
+            // columns are guarded (see `adjustRowsAndCols`).
             const insertColumnMode = action === 'insert_col_end' ? 'end' : 'start';
 
             // Calling the `insert_col_start` action adds a new column to the left of the data set.

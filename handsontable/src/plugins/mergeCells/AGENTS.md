@@ -454,6 +454,12 @@ starting on its first column, is anchored in the clone and needs nothing.
   starts where the main table starts. `getFirstRenderedRowOfOverlay` is the row counterpart (the top overlays start at
   0). `renderer.ts`, `mergeCells.ts` (`modifyGetCellCoords` virtualized clamp) and `cellsCollection.ts`
   (`isFirstRenderableMergedCell`) all go through them. **Do not add another inline list of overlay names.**
+- **The `to` column of the `virtualized` clamp is per overlay too.** `getLastRenderedColumnOfOverlay` answers the
+  last column of the end band (visual) for the end overlays and the main table's last rendered column for the rest.
+  Reading `hot.getLastRenderedVisibleColumn()` for an end overlay returned a column BEFORE the band whenever the master
+  was scrolled to the start (a merge over 8..10 with a band of 9..11 came back as `[9..8]`: the selection border drew
+  a start edge on the freeze line and the fill handle went to column 8). Pinned by
+  `__tests__/overlayBounds.unit.ts` and `tests/e2e/fixed-columns-end-review3.spec.ts`.
 - `renderer.ts` clamps the merge's anchor column to the first end column on the end overlays EVEN WHEN `virtualized` is
   off. The rows are clamped only when `virtualized` is on, as before. With `fixedColumnsEnd: 0` nothing changes.
 - The continuation cell is the covered cell of the FIRST end column of the merge's first row, with the `colspan` the

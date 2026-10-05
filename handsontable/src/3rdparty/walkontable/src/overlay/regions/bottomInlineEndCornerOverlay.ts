@@ -85,7 +85,7 @@ export class BottomInlineEndCornerOverlay extends Overlay {
     const overlayRoot = clone.wtTable.holder.parentNode as HTMLElement;
     const { rootWindow, geometryReader } = this.deps;
     const rail = this.getRail();
-    const inlineOnWindow = this.inlineEndOverlay.trimmingContainer === rootWindow;
+    const inlineOnWindow = this.inlineEndOverlay.isScrolledByWindow();
     const blockOnWindow = this.bottomOverlay.trimmingContainer === rootWindow;
 
     overlayRoot.style.top = '';
@@ -104,6 +104,9 @@ export class BottomInlineEndCornerOverlay extends Overlay {
 
     } else {
       rail?.release();
+      // Releasing hands the clone's own `top` inset back, and a box with both a `top` and a `bottom` inset
+      // stays at the top: this corner rests on the bottom edge.
+      overlayRoot.style.top = '';
       resetCssTransform(overlayRoot);
       this.repositionOverlay();
     }

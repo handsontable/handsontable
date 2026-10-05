@@ -1718,6 +1718,33 @@ the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsE
   left one, so the sum was off by the right margin (a page with a margin on the inline-start side reported
   "resting" up to that many pixels too early). The RTL branch measures where the hider's left edge really is
   against the viewport's left edge (`documentElement.clientLeft` carries a left-hand scrollbar).
+- **Ask the scroller, not the axis owner, whether the window holds the end clone.**
+  `InlineEndOverlay#isScrolledByWindow` reads `mainTableScrollableElement`, and the end corners call it too.
+  The horizontal axis owner (`trimmingContainer`) is the window in the reverse split (`preventOverflow:
+  'vertical'`, or an ancestor that clips the vertical axis only) while the holder scrolls the columns. A
+  clone pinned to the viewport there stands outside a grid narrower than the page. Do not test
+  `trimmingContainer === rootWindow` anywhere in the end overlays.
+- **A column header names its column by its grid position in every table.** `aria-colindex` of a header is
+  `renderedColumn + rowHeadersCount + 1`, the number the body cells of that column carry
+  (`TableRenderer#getAriaColumnHeaderIndex`). Counting rendered cells gave a scrolled master or top clone
+  headers that disagreed with the end clone's header and with the cells under them.
+- **The inline clones take the master's `fastDraw` on purpose; there is no horizontal twin of `bottomFastDraw`.**
+  A pure horizontal scroll that moves the master's column band fully redraws every clone, the end ones and
+  the start ones alike (measured: one full redraw per clone per ten 20px steps, identical for `inline_start`
+  and `inline_end`; the end side costs more only because it adds three clones). Skipping it looks safe, since
+  the cells of a fixed-column clone cannot change on a horizontal scroll, but it is not: a full master draw
+  wipes the frozen-derived row heights and relies on the clones re-rendering at their natural content height
+  right after (`resetFrozenOversizedRows`, then `syncOversizedRowsWithFrozenOverlays`), so a clone that kept
+  its DOM would be measured at the height it was last given and a wrapped row could no longer shrink. The
+  master can also grow a row on that same scroll when a new column holds a taller cell. If you add the twin,
+  gate it on "no frozen-derived rows are being synced and no row height changed in this draw", and keep a
+  test that a vertical scroll, a data change and `updateSettings` still redraw the clone.
+- **Header heights only grow, with or without the end corners.** The render-size probe measures the master's
+  THEAD, which already carries the height it was given, so a column header row never shrinks until the grid
+  is rebuilt (same with `fixedColumnsStart` alone). The two-sided sync in
+  `syncOversizedColumnHeadersWithFrozenOverlays` writes the taller corner's height onto both corners and
+  their clones; a full draw re-renders those cells and clears the written style, so the write cannot ratchet.
+
 - **Tests.** Do not add Walkontable Jasmine specs (the suite is frozen). New coverage is Jest
   (`test/unit/**`, for example `test/unit/settings/`, `test/unit/table/stickyColumnsEnd.unit.ts`,
   `test/unit/viewport/columnsCalculatorEnd.unit.ts`, `test/unit/overlay/inlineEndOverlay.unit.ts`,

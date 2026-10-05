@@ -106,7 +106,7 @@ export class InlineEndOverlay extends Overlay {
     const wtTable = this.deps.getWtTable();
     const rail = this.getRail();
 
-    if (this.trimmingContainer === this.deps.rootWindow) {
+    if (this.isScrolledByWindow()) {
       // Held at the viewport's inline-end edge by the browser, never by this listener. The block axis is
       // the page's: this clone mirrors the master's rows and scrolls with them.
       rail?.pin({
@@ -127,6 +127,20 @@ export class InlineEndOverlay extends Overlay {
     this.adjustElementsSize();
 
     return false;
+  }
+
+  /**
+   * Whether the window scrolls the columns, so the clone has to be held at the viewport's inline-end
+   * edge. It reads the element that really scrolls them (`mainTableScrollableElement`), never the
+   * horizontal axis owner (`trimmingContainer`): with `preventOverflow: 'vertical'` (or an ancestor that
+   * clips the vertical axis only) the window owns the horizontal axis while the holder scrolls the
+   * columns, and a clone pinned to the viewport there would stand outside a grid narrower than the page.
+   * The end corners ask this same question.
+   *
+   * @returns {boolean}
+   */
+  isScrolledByWindow(): boolean {
+    return this.mainTableScrollableElement === this.deps.rootWindow;
   }
 
   /**
@@ -268,7 +282,7 @@ export class InlineEndOverlay extends Overlay {
    * @returns {boolean}
    */
   #restsOnHolderInlineEndEdge(): boolean {
-    if (this.trimmingContainer === this.deps.rootWindow) {
+    if (this.isScrolledByWindow()) {
       return this.getOverlayOffset() === 0;
     }
 
@@ -433,10 +447,9 @@ export class InlineEndOverlay extends Overlay {
    * @returns {number}
    */
   getOverlayOffset() {
-    const { rootWindow } = this.deps;
     let overlayOffset = 0;
 
-    if (this.trimmingContainer === rootWindow && this.clone) {
+    if (this.isScrolledByWindow() && this.clone) {
       const wtTable = this.deps.getWtTable();
       const rootWidth = wtTable.getTotalWidth();
       const overlayRootWidth = this.clone.wtTable.getTotalWidth();

@@ -96,3 +96,34 @@ export function getFirstRenderedColumnOfOverlay(hotInstance: HotInstance, overla
 
   return hotInstance.getFirstRenderedVisibleColumn() as number;
 }
+
+/**
+ * Returns the last (visual) column the active overlay renders. The inline-end overlays render the columns
+ * up to the last `fixedColumnsEnd` column, whatever the main table renders. Every other overlay ends where
+ * the main table ends.
+ *
+ * Reading the main table for the end overlays is wrong when the main table is scrolled to the start (and
+ * virtualized): its last rendered column then sits before the end band, so a merge that reaches into the band
+ * would get an extent that ends before it starts.
+ *
+ * @param {Core} hotInstance The Handsontable instance.
+ * @param {string} overlayName The Walkontable overlay name.
+ * @returns {number}
+ */
+export function getLastRenderedColumnOfOverlay(hotInstance: HotInstance, overlayName: string): number {
+  if (END_COLUMN_OVERLAYS.includes(overlayName)) {
+    const renderableColumn = hotInstance.view?._wt?.wtOverlays?.inlineEndOverlay?.clone?.wtTable
+      ?.getLastRenderedColumn();
+
+    if (typeof renderableColumn === 'number' && renderableColumn >= 0) {
+      const { columnIndexMapper } = hotInstance;
+      const visualColumn = columnIndexMapper.getVisualFromRenderableIndex(renderableColumn);
+
+      if (visualColumn !== null) {
+        return visualColumn;
+      }
+    }
+  }
+
+  return hotInstance.getLastRenderedVisibleColumn() as number;
+}

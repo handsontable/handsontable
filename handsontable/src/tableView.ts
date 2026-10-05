@@ -933,8 +933,17 @@ class TableView {
       return 0;
     }
 
+    // Floor the requested count the way `countFixedColumnsEnd()` does (through `clampFixedColumnsEnd`).
+    // A fractional count would give a fractional visual index below and no band would be drawn, while
+    // the rest of the grid (End, Ctrl+End, editors) would still treat the floored count as frozen.
+    const requestedColumnsEnd = Math.floor(Number(this.settings.fixedColumnsEnd));
+
+    if (!(requestedColumnsEnd > 0)) {
+      return 0;
+    }
+
     const countCols = this.hot.countCols();
-    const visualFixedColumnsEnd = Math.max(countCols - (Number(this.settings.fixedColumnsEnd) || 0), 0);
+    const visualFixedColumnsEnd = Math.max(countCols - requestedColumnsEnd, 0);
 
     return this.countNotHiddenColumnIndexes(visualFixedColumnsEnd, 1);
   }

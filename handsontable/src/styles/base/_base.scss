@@ -627,6 +627,18 @@
       :where(#{$grid-body-row}) > td:first-child {
         border-inline-start-width: 1px;
       }
+
+      // The first cell of an end clone is no column of the grid's inline-start edge: the scrolling column
+      // before it already draws the freeze line with its inline-end border. Drawing the clone's own
+      // inline-start border as well made that line 2px, against the 1px of the start freeze line.
+      &.ht_clone_inline_end,
+      &.ht_clone_top_inline_end_corner,
+      &.ht_clone_bottom_inline_end_corner {
+        :where(#{$grid-head-row}, #{$grid-body-row}) > th:first-child,
+        :where(#{$grid-body-row}) > td:first-child {
+          border-inline-start-width: 0;
+        }
+      }
     }
 
     :where(table.htCore, #{$ghost-table}) > thead > tr:not(:last-child) > th {

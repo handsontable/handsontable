@@ -92,6 +92,11 @@ export function adjustColumnHeaderHeights(table: Table): void {
  * corner's natural (content-driven) height and only adjusting the master/top side keeps the
  * synchronization stable and lets the header shrink again when the content allows.
  *
+ * With frozen columns on both sides the shorter corner (and the clone beside it) is raised to the
+ * taller one, which does write onto corner cells. That cannot ratchet: a full draw re-renders those
+ * cells and clears the written height, and a fast draw measures a value this function wrote itself,
+ * which is the maximum already. Nothing here feeds the render-size probe, which reads the master's THEAD.
+ *
  * @param {Table} table The master table.
  */
 export function syncOversizedColumnHeadersWithFrozenOverlays(table: Table): void {

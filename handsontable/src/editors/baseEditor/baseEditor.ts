@@ -775,8 +775,9 @@ export class BaseEditor {
       hasVerticalScrollbar(scrollableContainerTop) ? scrollbarWidth : 0;
     const actualHorizontalScrollbarWidth = scrollableContainerLeft &&
       hasHorizontalScrollbar(scrollableContainerLeft) ? scrollbarWidth : 0;
-    const maxWidth = this.hot.view.maximumVisibleElementWidth(cellStartOffset) -
-      actualVerticalScrollbarWidth + inlineStartBorderCompensation;
+    // The end clones paint over the master editor (z-index), so the room it may grow into ends where the band starts.
+    const maxWidth = Math.max(this.hot.view.maximumVisibleElementWidth(cellStartOffset) -
+      actualVerticalScrollbarWidth + inlineStartBorderCompensation - this.#calcEndBandWidth(overlayName), 0);
     const maxHeight = Math.max(this.hot.view.maximumVisibleElementHeight(cellTopOffset ?? 0) -
       actualHorizontalScrollbarWidth + topBorderCompensation, this.hot.stylesHandler.getDefaultRowHeight() ?? 0);
 
@@ -788,6 +789,34 @@ export class BaseEditor {
       width,
       maxWidth,
     };
+  }
+
+  /**
+   * Calculates the width the editor of a cell may not grow into because the frozen end columns (`fixedColumnsEnd`)
+   * are painted over it. It is `0` for a cell of an end clone, which stands at the band itself, and for a grid
+   * without end columns.
+   *
+   * @param {string} overlayName The name of the overlay containing the edited cell.
+   * @returns {number}
+   */
+  #calcEndBandWidth(overlayName: string): number {
+    if (['inline_end', 'top_inline_end_corner', 'bottom_inline_end_corner'].includes(overlayName)) {
+      return 0;
+    }
+
+    const { wtOverlays, wtViewport, wtTable } = this.hot.view._wt;
+    const bandWidth = wtOverlays.inlineEndOverlay?.getBandWidth() ?? 0;
+
+    if (bandWidth === 0) {
+      return 0;
+    }
+
+    // Without a horizontal scroll the columns do not fill the holder and the band rests against the last column,
+    // so the free room between the two counts as taken as well.
+    const restingGap = wtViewport.hasHorizontalScroll() ?
+      0 : Math.max(wtViewport.getWorkspaceWidth() - wtTable.getTotalWidth(), 0);
+
+    return bandWidth + restingGap;
   }
 
   /**

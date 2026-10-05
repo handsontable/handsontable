@@ -10,7 +10,7 @@ import type RowUtils from '../axisSizing/rowUtils';
 import type ColumnUtils from '../axisSizing/columnUtils';
 import type { StylesHandler } from '../types';
 import { applyRowHeight } from './exactRowHeight';
-import { CLONE_INLINE_END, CLONE_INLINE_START, INLINE_END_CLONE_TYPES } from '../overlay/constants';
+import { CLONE_INLINE_END, CLONE_INLINE_START } from '../overlay/constants';
 
 /**
  * Asked for every cell in the rendered band before the cell element is reset and painted.
@@ -541,9 +541,12 @@ export class TableRenderer {
   }
 
   /**
-   * Returns the 1-based `aria-colindex` of a column header cell. The header cells of the end clones
-   * name their column by its place in the grid: counted from the clone's own first cell they would all
-   * claim the first columns. The other tables keep counting rendered cells, as they always did.
+   * Returns the 1-based `aria-colindex` of a column header cell. A column header names its column by
+   * its place in the grid (row headers counted in), exactly as the body cells of that column do, in
+   * every table: counted from the table's own first rendered cell, the headers of a scrolled master or
+   * top clone, or of an end clone, would all claim the first columns, and a screen reader would meet
+   * two headers with different indexes for one column. A row header cell of the header row keeps the
+   * position it has in the row.
    *
    * @param {number} visibleColumnIndex The cell's index in the rendered header row (row headers included).
    * @param {number} sourceColumnIndex The rendered (renderable) column index, or a negative number for
@@ -551,7 +554,7 @@ export class TableRenderer {
    * @returns {number}
    */
   getAriaColumnHeaderIndex(visibleColumnIndex: number, sourceColumnIndex: number): number {
-    if (INLINE_END_CLONE_TYPES.includes(this.activeOverlayName) && sourceColumnIndex >= 0) {
+    if (sourceColumnIndex >= 0) {
       const rowHeadersCount = (this.rowUtils?.deps?.getRowHeaders() as Function[])?.length ?? 0;
 
       return sourceColumnIndex + rowHeadersCount + 1;

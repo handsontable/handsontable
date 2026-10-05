@@ -95,7 +95,7 @@ export default class RowUtils {
    * Returns row height based on passed source index for the specified overlay type.
    *
    * @param {number} sourceIndex Row source index.
-   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|'master'} overlayName The overlay name.
+   * @param {'inline_start'|'inline_end'|'top'|'top_inline_start_corner'|'top_inline_end_corner'|'bottom'|'bottom_inline_start_corner'|'bottom_inline_end_corner'|'master'} overlayName The overlay name.
    * @param {boolean} [isExact] Whether the row is exact (see `isExact`). A caller that already
    *   resolved it for the row passes it in, so the row-height funnel is not run a second time.
    * @returns {number}
