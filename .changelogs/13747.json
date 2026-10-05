@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed an issue where `updateSettings()` ignored a new value for `fixedRowsTop`, `fixedRowsBottom`, `fixedColumnsStart`, or `fixedColumnsEnd` after `alter()` removed a row or column and lowered the frozen count.",
+  "title": "Fixed an issue where `updateSettings()` ignored a new value for `fixedRowsTop`, `fixedRowsBottom`, `fixedColumnsStart`, or `fixedColumnsEnd` after `alter()` removed a row or column, or after the ManualColumnFreeze plugin froze or unfroze a column.",
   "type": "fixed",
   "issueOrPR": 13747,
   "breaking": false,
