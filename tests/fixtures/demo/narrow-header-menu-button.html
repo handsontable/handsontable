@@ -42,7 +42,8 @@
   <h2>Menu button and sorting</h2>
   <div id="menu-sort" data-testid="menu-sort"></div>
 
-  <!-- The alignment class moves the sort indicator to the edge opposite the button. -->
+  <!-- The alignment class moves the sort indicator to the edge opposite the button. It is set with
+       `headerClassName`, which puts it on the header's inner element; `className` styles body cells only. -->
   <h2>Menu button and sorting, aligned right</h2>
   <div id="menu-sort-right" data-testid="menu-sort-right"></div>
 
@@ -90,12 +91,12 @@
     window.grids = {
       menu: buildGrid('menu', {}),
       menuSort: buildGrid('menu-sort', { columnSorting: true }),
-      menuSortRight: buildGrid('menu-sort-right', { columnSorting: true, className: 'htRight' }),
+      menuSortRight: buildGrid('menu-sort-right', { columnSorting: true, headerClassName: 'htRight' }),
       menuSortRtl: buildGrid('menu-sort-rtl', { columnSorting: true, layoutDirection: 'rtl' }),
       menuSortRtlLeft: buildGrid('menu-sort-rtl-left', {
         columnSorting: true,
         layoutDirection: 'rtl',
-        className: 'htLeft',
+        headerClassName: 'htLeft',
       }),
     };
 

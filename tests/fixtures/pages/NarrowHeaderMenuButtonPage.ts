@@ -103,6 +103,19 @@ export class NarrowHeaderMenuButtonPage {
   }
 
   /**
+   * The class list of a header's inner element, which is where the alignment class and the
+   * `has-header-button` / `has-sort-indicator` markers the narrow-header rules key on live.
+   *
+   * @param {string} testId The grid's test id.
+   * @param {number} column The visual column index.
+   * @returns {Promise<string[]>}
+   */
+  async headerClasses(testId: string, column: number): Promise<string[]> {
+    return this.header(testId, column).locator('.relative')
+      .evaluate(relative => Array.from(relative.classList));
+  }
+
+  /**
    * Sorts a column ascending, which adds the sort indicator to its header.
    *
    * @param {string} name The grid's key in the fixture's `grids` object.

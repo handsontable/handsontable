@@ -279,10 +279,16 @@ describe('manualColumnResize', () => {
     await waitForNextAnimationFrames(63);
 
     const $columnHeaders = spec().$container.find('.ht_clone_top thead tr:eq(0) th');
+    // The drag lands on 35px, which is below the narrowest width of some themes (40px in Horizon). That
+    // width is the icon size plus the cell padding on both sides, and the header's border takes 1px of it.
+    const style = getComputedStyle(handsontable().rootElement);
+    const minWidth = parseFloat(style.getPropertyValue('--ht-icon-size')) +
+      (2 * parseFloat(style.getPropertyValue('--ht-cell-horizontal-padding')));
+    const expectedWidth = Math.max(34, minWidth - 1);
 
-    expect($columnHeaders.eq(1).width()).toBe(34);
-    expect($columnHeaders.eq(2).width()).toBe(34);
-    expect($columnHeaders.eq(3).width()).toBe(34);
+    expect($columnHeaders.eq(1).width()).toBe(expectedWidth);
+    expect($columnHeaders.eq(2).width()).toBe(expectedWidth);
+    expect($columnHeaders.eq(3).width()).toBe(expectedWidth);
   });
 
   it('should show resizer for fixed columns', async() => {
