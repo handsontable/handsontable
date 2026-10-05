@@ -5,50 +5,32 @@ description: Use when testing a local or public URL on a real device via Browser
 
 # BrowserStack Live Session
 
-Open a live browser session on a real device (phone, tablet, or desktop) using BrowserStack. Because BrowserStack devices cannot reach `localhost`, this skill tunnels the local dev server through Cloudflare to produce a temporary public URL.
+BrowserStack devices cannot reach `localhost`, so tunnel the local dev server through Cloudflare to a temporary public URL: local server -> Cloudflare tunnel (`trycloudflare.com`) -> BrowserStack Live.
 
-```
-Local server  -->  Cloudflare tunnel  -->  BrowserStack Live
-(any port)        (public trycloudflare.com URL)   (real device)
-```
-
-## Step 1 — Prepare something to test
+## Step 1: Prepare something to test
 
 ### Option A: Handsontable demo page
 
-If the user wants to test Handsontable behavior (bug fix, feature, plugin, editor, etc.), use the **demo-page** skill to generate `handsontable/dev-pr.html` and `handsontable/dev-latest.html`. That skill writes two standalone pages with the same test-specific config and reproduction steps: `dev-pr.html` loads the local build, `dev-latest.html` loads the released version from the CDN, and each links to the other.
-
-After the demo pages are generated, serve them:
+Use the `handsontable-demo-page` skill to generate `handsontable/dev-pr.html` (local build) and `handsontable/dev-latest.html` (released version from the CDN); each links to the other. Serve and verify:
 
 ```bash
 python3 -m http.server 8767 --directory handsontable &
-```
-
-Verify both work:
-
-```bash
 curl -s -o /dev/null -w "dev-pr: %{http_code}\n" http://localhost:8767/dev-pr.html && \
 curl -s -o /dev/null -w "dev-latest: %{http_code}\n" http://localhost:8767/dev-latest.html
 ```
 
-The tunnel URL path will be `/dev-pr.html`. Its nav bar links to `/dev-latest.html`, so the tester can switch to the released version on the device.
+The tunnel path is `/dev-pr.html`; its nav bar switches to `/dev-latest.html`.
 
 ### Option B: Existing local server
 
-If the user wants to test the docs site, a recipe page, or any other already-running server, just confirm reachability:
-
-```bash
-curl -s -o /dev/null -w "%{http_code}" <URL>
-```
-
-Common servers in this repo:
+Confirm reachability: `curl -s -o /dev/null -w "%{http_code}" <URL>`
 
 | Server | Start command | Default port |
 |--------|--------------|-------------|
 | Docs (Astro) | `npm run dev --prefix docs` | 4321 |
 | Handsontable static files | `python3 -m http.server 8767 --directory handsontable` | 8767 |
 
-For Vite-based dev servers (like Astro docs), tunnel hostnames get blocked by default. If the tunnel URL returns a "Blocked request" error, add this to the Vite config (inside `astro.config.mjs`):
+If a Vite-based server (Astro docs) returns "Blocked request" on the tunnel URL, check whether `astro.config.mjs` already has this, add it if missing, and restart:
 
 ```js
 vite: {
@@ -58,43 +40,28 @@ vite: {
 }
 ```
 
-Then restart the dev server. Check whether it is already configured before modifying the file.
-
 ### Option C: Public URL
 
-If the user provides a public URL (e.g., a staging deployment), skip straight to Step 2. No tunnel is needed — pass the URL directly to BrowserStack in Step 3.
+Skip to Step 3 and pass the URL directly.
 
-## Step 2 — Start the Cloudflare tunnel
+## Step 2: Start the Cloudflare tunnel
 
-BrowserStack cannot access `localhost`. A Cloudflare quick tunnel creates an ephemeral public URL that proxies to the local server. No Cloudflare account is needed — the tunnel is ephemeral and disappears when the process exits.
-
-Capture output to a log file (the tunnel URL is printed to stderr):
+The tunnel needs no Cloudflare account. The URL is printed to stderr, so capture it:
 
 ```bash
 npx cloudflared tunnel --url http://localhost:<PORT> > /tmp/cloudflare-tunnel.log 2>&1 &
 echo "Tunnel PID: $!"
-```
-
-Wait for the tunnel to initialize (~10 seconds), then extract the URL:
-
-```bash
 sleep 10
 grep -o 'https://[a-z0-9-]*\.trycloudflare\.com' /tmp/cloudflare-tunnel.log | head -1
 ```
 
-The URL looks like `https://some-random-words.trycloudflare.com`.
+If no URL appears, wait and re-check `cat /tmp/cloudflare-tunnel.log`; on failure check port conflicts and kill stale tunnel processes. The URL changes on every restart.
 
-### Troubleshooting
+## Step 3: Launch the BrowserStack session
 
-- If no URL appears after 10 seconds, wait a few more and re-check: `cat /tmp/cloudflare-tunnel.log`.
-- If the tunnel fails to start, check for port conflicts or kill stale tunnel processes.
-- The URL changes every time the tunnel restarts.
+Call `mcp__browserstack__runBrowserLiveSession` and share the dashboard URL it returns.
 
-## Step 3 — Launch the BrowserStack session
-
-Use the `mcp__browserstack__runBrowserLiveSession` MCP tool. The tool returns a clickable BrowserStack dashboard URL — share it with the user.
-
-### Mobile devices
+Mobile:
 
 ```
 mcp__browserstack__runBrowserLiveSession({
@@ -107,7 +74,7 @@ mcp__browserstack__runBrowserLiveSession({
 })
 ```
 
-### Desktop browsers
+Desktop:
 
 ```
 mcp__browserstack__runBrowserLiveSession({
@@ -119,31 +86,15 @@ mcp__browserstack__runBrowserLiveSession({
 })
 ```
 
-### Device defaults
-
-If the user does not specify a device, use these defaults:
+Defaults when the user names no device:
 
 | User says | Device | OS | Browser |
 |-----------|--------|-----|---------|
 | "test on Android" | Samsung Galaxy S25 | android latest | chrome |
+| "Android mid-range" | Google Pixel 9 | android latest | chrome |
 | "test on iPhone" | iPhone 16 | ios latest | safari |
 | "test on iPad" | iPad Air 6th | ios latest | safari |
 
-### All popular presets
+## Step 4: Cleanup
 
-| Use case | Device | OS | Browser |
-|----------|--------|-----|---------|
-| Android flagship | Samsung Galaxy S25 | android latest | chrome |
-| Android mid-range | Google Pixel 9 | android latest | chrome |
-| iPhone current | iPhone 16 | ios latest | safari |
-| iPad | iPad Air 6th | ios latest | safari |
-
-## Step 4 — Cleanup
-
-When the user is done testing, kill the tunnel process:
-
-```bash
-kill <tunnel-pid> 2>/dev/null
-```
-
-If a local HTTP server was started for this session, kill that too.
+When testing ends, `kill <tunnel-pid> 2>/dev/null` and stop any local HTTP server started for the session.

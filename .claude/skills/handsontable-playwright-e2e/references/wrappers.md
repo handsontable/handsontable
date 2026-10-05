@@ -1,32 +1,32 @@
-# Wrapper E2E (React / Angular / Vue) — reference
+# Wrapper E2E (React / Angular / Vue) (reference)
 
-Wrapper functional tests drive the wrapper **example apps** (not a static demo) in a real browser, because the bugs that matter are framework-integration bugs jsdom cannot see. Same rules as core E2E — page objects, `data-testid`, web-first waits — plus the framework-specific gotchas below. No Playwright wrapper spec exists yet: `tests/e2e/` has no `wrappers/` directory, and the suite's one web server (`tests/support/static-server.mjs`) serves static files from the repo root, not a running example app. Treat this page as the rules for the first one, and put it under `tests/e2e/wrappers/<framework>/`.
+Wrapper functional tests drive the wrapper example apps (not a static demo) in a real browser. Same rules as core E2E, plus the gotchas below. No Playwright wrapper spec exists yet: `tests/e2e/` has no `wrappers/` directory, and the suite's one web server (`tests/support/static-server.mjs`) serves static files from the repo root, not a running example app. Put the first one under `tests/e2e/wrappers/<framework>/`.
 
 ## Driving the app
 
-- Serve the wrapper's example app (the `examples/next/visual-tests/<framework>/demo` apps, or a purpose-built one) and point the page object at it. Add `data-testid` to the wrapper component and its controls.
-- One mounted instance per test; reset via navigation, not shared state.
+- Serve the wrapper's example app (`examples/next/visual-tests/<framework>/demo`, or a purpose-built one) and point the page object at it. Add `data-testid` to the wrapper component and its controls.
+- One mounted instance per test; reset via navigation.
 
 ## React
 
-- **StrictMode double-invoke:** React 18+ StrictMode mounts, unmounts, and remounts. Assert **exactly one** live Handsontable instance survives (no duplicate grid). This is the #1 wrapper regression — mount the app under `<React.StrictMode>` in the fixture and assert a single `.handsontable` root / one instance.
-- **Selection preserved on `updateSettings`:** change a prop that triggers `updateSettings`, then assert the previously-selected cell is still selected.
+- **StrictMode double-invoke:** mount the app under `<React.StrictMode>` in the fixture and assert exactly one live Handsontable instance survives (a single `.handsontable` root). This is the #1 wrapper regression.
+- **Selection preserved on `updateSettings`:** change a prop that triggers `updateSettings`, then assert the selected cell is still selected.
 - **HotColumn reorder / keyed children:** reorder columns via keys and assert the rendered order.
 
 ## Angular
 
-- **NgZone:** hooks fired from outside Angular must run inside the zone (change detection updates the view). Trigger a HOT hook and assert the bound Angular view actually updated.
-- Test against the supported version floor as well as latest (version matrix is a later nightly task).
+- **NgZone:** trigger a HOT hook from outside Angular and assert the bound Angular view updated.
+- Test against the supported version floor as well as latest.
 
 ## Vue 3
 
-- **Deep-watch / reactivity:** mutate a reactive `settings` prop and assert the grid reflects it (and that `updateSettings` fired the expected number of times, not on every tick).
+- **Deep-watch / reactivity:** mutate a reactive `settings` prop and assert the grid reflects it, with `updateSettings` firing the expected number of times, not on every tick.
 - **HotColumn comment-anchor ordering:** reorder and assert DOM order.
 
 ## SSR frameworks (Next / Nuxt / Gatsby / Remix / Astro)
 
-- If the app renders server-side and hydrates, assert **no hydration-mismatch console error** on load — that is the class of bug an SSR wrapper test exists to catch. (Many demos disable SSR today; a real SSR+hydrate variant is the valuable one.)
+- For a server-rendered, hydrating app, assert no hydration-mismatch console error on load. (Many demos disable SSR today; an SSR+hydrate variant is the valuable one.)
 
-## What jsdom already covers
+## Jest vs Playwright
 
-Props mapping, lifecycle wiring, and pure logic are fine as **Jest** wrapper unit tests — keep those there. Reserve Playwright for what needs a real browser: rendering, real focus, scroll, StrictMode remount, NgZone, hydration.
+Props mapping, lifecycle wiring, and pure logic belong in Jest wrapper unit tests. Playwright covers rendering, real focus, scroll, StrictMode remount, NgZone, hydration.

@@ -3,24 +3,24 @@
 
 ### Test evidence (required for source changes)
 <!---
-A PR is verified by things a machine can re-run or a reviewer can diff — a
+A PR is verified by things a machine can re-run or a reviewer can diff – a
 committed test, a coverage number, a visual diff. "Tested manually with Claude"
 is not evidence. New E2E is Playwright (tests/e2e/); the Jasmine suite is frozen.
 Fill in the paths below, or apply a `Refactor-only: <reason>` commit trailer.
 -->
-- Unit tests added/modified (`*.unit.js`): <!-- paths, or "none — covered by <path>" -->
+- Unit tests added/modified (`*.unit.js` or `*.unit.ts`): <!-- paths, or "none – covered by <path>" -->
 - E2E tests added/modified (Playwright `tests/e2e/*.spec.ts`): <!-- paths -->
 - Type tests (`*.types.ts`) updated if public API changed: <!-- paths -->
-- For a bug fix — the spec that fails without this fix: <!-- name -->
+- For a bug fix – the spec that fails without this fix: <!-- name -->
 - Demo page / recorded trace (for UI changes): <!-- link -->
-- Visual spec added/modified (`visual-tests/tests/**/*.spec.ts`, only for pixels no DOM probe can express — in addition to, never instead of the E2E above): <!-- paths, or "none"; rule: visual-tests/AGENTS.md → Decision rule -->
+- Visual spec added/modified (`visual-tests/tests/**/*.spec.ts`, only for pixels no DOM probe can express – in addition to, never instead of the E2E above): <!-- paths, or "none"; rule: visual-tests/AGENTS.md → Decision rule -->
 
 <!--
 Visual budget: a change that grows the golden set (a new visual spec, a new
 capture) declares it with [visual budget: N – reason] in this description
-OUTSIDE any HTML comment — here, inside a comment, it is inert. N is the
+OUTSIDE any HTML comment – here, inside a comment, it is inert. N is the
 full-tier golden total after the change, and it has to match what
-visual-tests/visual-budget.json sums to — update both. The `Visual budget` step
+visual-tests/visual-budget.json sums to – update both. The `Visual budget` step
 of Visual / Compare reads the live description and refuses a pull request that
 raises that file without saying so; a render OVER the file fails whether or not
 the marker is there. A render under it asks you to lower the file in the same
@@ -28,17 +28,17 @@ PR, which the tooling suite then requires anyway. What earns a capture at all is
 visual-tests/AGENTS.md → Decision rule; the budget is under Guardrails there.
 
 Changelog: a change under handsontable/src/** or wrappers/** (tests and .md
-excluded) requires a new .changelogs/*.json entry — run `npm run changelog
+excluded) requires a new .changelogs/*.json entry – run `npm run changelog
 entry` AFTER opening the PR (the file is named after the PR number). Docs-,
 test-, and CI/tooling-only PRs pass the check automatically. To deliberately
 skip it on a source change, write [skip changelog] in this description OUTSIDE
-any HTML comment — here, inside a comment, it is inert.
+any HTML comment – here, inside a comment, it is inert.
 
 One PR gets ONE entry. A second is only for a separate GitHub issue this PR
-closes; a different type or framework is not a reason for a second file — fold
+closes; a different type or framework is not a reason for a second file – fold
 the titles instead. Use `npm run changelog entry` rather than writing the JSON
 by hand: the filename must be <number>.json with no suffix, and that is checked.
-Back-filling entries for OTHER PRs is the only case needing more than two —
+Back-filling entries for OTHER PRs is the only case needing more than two –
 write [multiple changelogs] outside a comment for that. [skip changelog] does
 not lift the limit.
 -->
@@ -68,6 +68,6 @@ not lift the limit.
 <!--- Go over all the following points, and put an `x` in all the boxes that apply. -->
 <!--- If you're unsure about any of these, don't hesitate to ask. We're here to help! -->
 - [ ] I have reviewed the guidelines about [Contributing to Handsontable](https://github.com/handsontable/handsontable/blob/master/CONTRIBUTING.md) and I confirm that my code follows the code style of this project.
-- [ ] I have signed the [Contributor License Agreement](https://cla.handsontable.com/sign) — one signature covers both Handsontable and HyperFormula; the `cla/signed` check on this PR confirms it.
+- [ ] I have signed the [Contributor License Agreement](https://cla.handsontable.com/sign) – one signature covers both Handsontable and HyperFormula; the `cla/signed` check on this PR confirms it.
 - [ ] My change requires a change to the documentation.
-- [ ] MANUAL QA NEEDED — <!-- one line: WHAT to check and why automation can't judge it. Also add the red `Requires Manual QA` label (that exact name — it already exists; `QA needed` and `Verified by QA` are different labels). Ticking holds the Tests run for a manual-qa environment approval by a designated reviewer (the author counts — GitHub records who clicked). The box is read once per run, so if you change it after the pipeline ran, press "Re-run all jobs". This line is machine-read — keep its wording. -->
+- [ ] MANUAL QA NEEDED – <!-- one line: WHAT to check and why automation can't judge it. Also add the red `Requires Manual QA` label (that exact name – it already exists; `QA needed` and `Verified by QA` are different labels). Ticking holds the Tests run for a manual-qa environment approval by a designated reviewer (the author counts – GitHub records who clicked). The box is read once per run, so if you change it after the pipeline ran, press "Re-run all jobs". This line is machine-read – keep its wording. -->
