@@ -42,6 +42,23 @@ makes up the bulk of the column menu.
 
 Both are vetoes in the hook, not UI-level guards, so the public `manualColumnMove` API is covered too.
 
+## `fixedColumnsEnd`: the end band is not ours to move
+
+Freezing moves a column with `columnIndexMapper.moveIndexes()` directly, so it never reaches the end-band guard of
+`manualColumnMove` (`#keepsEndBandIntact`). The plugin therefore guards itself, through `endBand.ts` (it cannot import
+`manualColumnMove`; both use `clampFixedColumnsEnd`, so the clamp is the one the overlay renders):
+
+- `freezeColumn()` refuses a column of the end band. Freezing it would move it to the freeze line and slide the column
+  before the band into the band. It takes the "not performed" path that a column which is already frozen takes: the
+  `before`/`after` hooks fire with `freezePerformed === false`, nothing moves, and `fixedColumnsStart` stays.
+- `unfreezeColumn()` refuses when `fixedColumnsStart + fixedColumnsEnd` exceeds the column count. The clamp is cutting
+  the band down then, lowering `fixedColumnsStart` hands a column back to it, and the unfrozen column would slide in.
+  Same "not performed" path.
+- The two menu items hide for the same cases (`hidden()` uses the same helpers).
+- Freezing a scrolling column is untouched, and the end band keeps its columns: the moved column always lands before
+  the band. With `fixedColumnsEnd: 0` every guard is a no-op.
+- Pinned by `__tests__/fixedColumnsEnd.unit.js` and `tests/e2e/fixed-columns-end-review-plugins.spec.ts`.
+
 ## Open issue: freezing beyond the viewport (#4259)
 
 Freezing more columns than fit the viewport still reproduces on 18.0.0 and on `develop`: the frozen overlay

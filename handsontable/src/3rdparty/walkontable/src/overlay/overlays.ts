@@ -10,12 +10,16 @@ import { arrayEach } from '../../../../helpers/array';
 import { isHTMLElement } from '../../../../helpers/dom/element';
 import {
   InlineStartOverlay,
+  InlineEndOverlay,
   TopOverlay,
   TopInlineStartCornerOverlay,
+  TopInlineEndCornerOverlay,
   BottomOverlay,
   BottomInlineStartCornerOverlay,
+  BottomInlineEndCornerOverlay,
 } from './index';
 import { createOverlayDeps } from './regions/_base';
+import { INLINE_END_FREEZE_LINE_SHARED_CLASS } from './constants';
 import { StickyScrollStrategy, createStickyScrollStrategyDeps } from './strategies/stickyScrollStrategy';
 import { ResizeMonitor, createResizeMonitorDeps } from './resizeMonitor';
 import { ScrollbarVisibility, createScrollbarVisibilityDeps } from './scrollbarVisibility';
@@ -70,6 +74,24 @@ export function createOverlaysDeps(ctx: EngineContext) {
  * The Overlays module dependencies, inferred from `createOverlaysDeps`.
  */
 export type OverlaysDeps = ReturnType<typeof createOverlaysDeps>;
+
+/**
+ * Whether the table of a clone holds the element.
+ *
+ * @param {Table} wtTable The table of a clone.
+ * @param {HTMLElement} element The element to look for.
+ * @returns {boolean}
+ */
+const tableHolds = (wtTable: Table, element: HTMLElement): boolean => wtTable.TABLE.contains(element);
+
+/**
+ * Whether the spreader of a clone holds the element (the selection borders live there too).
+ *
+ * @param {Table} wtTable The table of a clone.
+ * @param {HTMLElement} element The element to look for.
+ * @returns {boolean}
+ */
+const spreaderHolds = (wtTable: Table, element: HTMLElement): boolean => wtTable.spreader.contains(element);
 
 /**
  * @class Overlays
@@ -267,12 +289,36 @@ class Overlays {
   declare inlineStartOverlay: Overlay;
 
   /**
+   * Refer to the InlineEndOverlay instance.
+   *
+   * @protected
+   * @type {InlineEndOverlay}
+   */
+  declare inlineEndOverlay: InlineEndOverlay;
+
+  /**
    * Refer to the TopInlineStartCornerOverlay instance.
    *
    * @protected
    * @type {TopInlineStartCornerOverlay}
    */
   declare topInlineStartCornerOverlay: Overlay;
+
+  /**
+   * Refer to the TopInlineEndCornerOverlay instance.
+   *
+   * @protected
+   * @type {TopInlineEndCornerOverlay}
+   */
+  declare topInlineEndCornerOverlay: TopInlineEndCornerOverlay;
+
+  /**
+   * Refer to the BottomInlineEndCornerOverlay instance.
+   *
+   * @protected
+   * @type {BottomInlineEndCornerOverlay}
+   */
+  declare bottomInlineEndCornerOverlay: BottomInlineEndCornerOverlay;
 
   /**
    * Refer to the BottomInlineStartCornerOverlay instance.
@@ -388,7 +434,8 @@ class Overlays {
    *
    * @param {boolean} [includeMaster = false] If set to `true`, the list will contain the master table as the last
    * element.
-   * @returns {(TopOverlay|BottomOverlay|InlineStartOverlay|TopInlineStartCornerOverlay|BottomInlineStartCornerOverlay)[]}
+   * @returns {(TopOverlay|BottomOverlay|InlineStartOverlay|InlineEndOverlay|TopInlineStartCornerOverlay|
+   * BottomInlineStartCornerOverlay|TopInlineEndCornerOverlay|BottomInlineEndCornerOverlay)[]}
    */
   getOverlays(includeMaster = false) {
     const overlays: Array<Overlay | Table> = [...this.#overlays];
@@ -421,13 +468,26 @@ class Overlays {
       this.topOverlay, this.inlineStartOverlay);
     this.bottomInlineStartCornerOverlay = new BottomInlineStartCornerOverlay(makeDeps(),
       this.bottomOverlay, this.inlineStartOverlay);
+    // Each constructor appends its clone to the wrapper, so the end overlays are built after the start
+    // ones: the DOM order of the five clones that existed before `fixedColumnsEnd` stays where it was.
+    this.inlineEndOverlay = new InlineEndOverlay(makeDeps());
+    this.topInlineEndCornerOverlay = new TopInlineEndCornerOverlay(makeDeps(),
+      this.topOverlay, this.inlineEndOverlay);
+    this.bottomInlineEndCornerOverlay = new BottomInlineEndCornerOverlay(makeDeps(),
+      this.bottomOverlay, this.inlineEndOverlay);
 
+    // The list follows the construction order, which is the DOM order of the clones in the wrapper. The
+    // overlays that existed before the end ones keep their places, so a caller that reads the list by
+    // position still finds them where it always did.
     this.#overlays = [
       this.topOverlay,
       this.bottomOverlay,
       this.inlineStartOverlay,
       this.topInlineStartCornerOverlay,
       this.bottomInlineStartCornerOverlay,
+      this.inlineEndOverlay,
+      this.topInlineEndCornerOverlay,
+      this.bottomInlineEndCornerOverlay,
     ];
   }
 
@@ -469,11 +529,18 @@ class Overlays {
   }
 
   /**
-   * Re-resolves the axis owners held by the three region overlays (the corners read those).
+   * Re-resolves the axis owners held by the region overlays (the corners read those).
    */
   #refreshAxisOwners() {
     this.topOverlay.updateTrimmingContainer();
     this.inlineStartOverlay.updateTrimmingContainer();
+
+    // Idle until `fixedColumnsEnd` is set: the owner is re-resolved before the first draw that renders it
+    // (`InlineEndOverlay#adjustElementsSize`), so a grid without end columns pays no style read for it.
+    if (this.inlineEndOverlay.shouldBeRendered()) {
+      this.inlineEndOverlay.updateTrimmingContainer();
+    }
+
     this.bottomOverlay.updateTrimmingContainer();
   }
 
@@ -508,6 +575,8 @@ class Overlays {
     if (cellsRendered) {
       this.#scrollSync.confirmSizesRemeasured();
     }
+
+    this.syncInlineEndFreezeLine();
 
     // Runs after the overlays refreshed their trimming containers and the holder got its final
     // overflow, so a table born outside the layout can settle on the scrollable element and the sizes
@@ -752,6 +821,41 @@ class Overlays {
    */
   syncScrollPositions() {
     this.#scrollSync.syncScrollPositions();
+    this.syncInlineEndFreezeLine();
+  }
+
+  /**
+   * Whether each end clone root last got the freeze-line state class, so the DOM is written only when the
+   * state changes (this runs on every scroll event).
+   */
+  #freezeLineShared = new Map<Overlay, boolean>();
+
+  /**
+   * Toggles `INLINE_END_FREEZE_LINE_SHARED_CLASS` on the three inline-end clone roots: set while the master
+   * draws the freeze line, cleared while the clones' own first-cell border does. Runs after every draw and
+   * on every scroll event; reads go through the geometry reader and a root is written only on a change.
+   */
+  syncInlineEndFreezeLine() {
+    const { inlineEndOverlay } = this;
+
+    if (!inlineEndOverlay.needFullRender || !inlineEndOverlay.clone) {
+      return;
+    }
+
+    const shared = inlineEndOverlay.isFreezeLineShared();
+
+    [inlineEndOverlay, this.topInlineEndCornerOverlay, this.bottomInlineEndCornerOverlay].forEach((overlay) => {
+      if (!overlay.needFullRender || !overlay.clone || this.#freezeLineShared.get(overlay) === shared) {
+        return;
+      }
+
+      const root = overlay.clone.wtTable.holder.parentNode;
+
+      if (isHTMLElement(root)) {
+        root.classList.toggle(INLINE_END_FREEZE_LINE_SHARED_CLASS, shared);
+        this.#freezeLineShared.set(overlay, shared);
+      }
+    });
   }
 
   /**
@@ -805,6 +909,7 @@ class Overlays {
       this.bottomOverlay.destroy();
     }
     this.inlineStartOverlay.destroy();
+    this.inlineEndOverlay.destroy();
 
     if (this.topInlineStartCornerOverlay) {
       this.topInlineStartCornerOverlay.destroy();
@@ -813,6 +918,9 @@ class Overlays {
     if (this.bottomInlineStartCornerOverlay && this.bottomInlineStartCornerOverlay.clone) {
       this.bottomInlineStartCornerOverlay.destroy();
     }
+
+    this.topInlineEndCornerOverlay.destroy();
+    this.bottomInlineEndCornerOverlay.destroy();
 
     this.destroyed = true;
   }
@@ -848,6 +956,7 @@ class Overlays {
     }
 
     this.inlineStartOverlay.refresh(fastDraw);
+    this.inlineEndOverlay.refresh(fastDraw);
     this.topOverlay.refresh(fastDraw);
 
     if (this.topInlineStartCornerOverlay) {
@@ -857,6 +966,10 @@ class Overlays {
     if (this.bottomInlineStartCornerOverlay && this.bottomInlineStartCornerOverlay.clone) {
       this.bottomInlineStartCornerOverlay.refresh(bottomFastDraw);
     }
+
+    // The end corners render the same fixed rows over the same fixed end columns, like their start twins.
+    this.topInlineEndCornerOverlay.refresh(fastDraw);
+    this.bottomInlineEndCornerOverlay.refresh(bottomFastDraw);
   }
 
   /**
@@ -873,6 +986,8 @@ class Overlays {
       this.topOverlay.clone?.wtTable,
       this.inlineStartOverlay.clone?.wtTable,
       this.topInlineStartCornerOverlay?.clone?.wtTable,
+      this.inlineEndOverlay.clone?.wtTable,
+      this.topInlineEndCornerOverlay.clone?.wtTable,
     ];
 
     headerBearingTables.forEach((table) => {
@@ -1006,6 +1121,7 @@ class Overlays {
     }
 
     this.inlineStartOverlay.applyToDOM();
+    this.inlineEndOverlay.applyToDOM();
     this.#stickyScroll.syncOffsets();
   }
 
@@ -1014,6 +1130,11 @@ class Overlays {
    *
    * Shared by the two public lookups below so the overlay list stays in one place: adding an overlay
    * type to one list and forgetting the other would silently leave the two answering differently.
+   *
+   * It runs once per header cell of every draw, so it walks the list the overlays were stored in (no list
+   * and no closure are built per call) and skips the overlays that are not rendered: an idle clone (for
+   * example the three end clones of a grid without `fixedColumnsEnd`) holds none of the cells being drawn.
+   * The clones never overlap, so the first one that holds the element is the answer.
    *
    * @param {HTMLElement} element An element to process.
    * @param {Function} isHeldBy Decides whether a clone's table holds the element.
@@ -1026,26 +1147,17 @@ class Overlays {
       return null;
     }
 
-    const overlays = [
-      this.topOverlay,
-      this.inlineStartOverlay,
-      this.bottomOverlay,
-      this.topInlineStartCornerOverlay,
-      this.bottomInlineStartCornerOverlay
-    ];
-    let result = null;
+    const overlays = this.#overlays;
 
-    arrayEach(overlays, (overlay) => {
-      if (!overlay) {
-        return;
+    for (let index = 0; index < overlays.length; index++) {
+      const overlay = overlays[index];
+
+      if (overlay.needFullRender && overlay.clone && isHeldBy(overlay.clone.wtTable, element)) { // todo demeter
+        return overlay.clone;
       }
+    }
 
-      if (overlay.clone && isHeldBy(overlay.clone.wtTable, element)) { // todo demeter
-        result = overlay.clone;
-      }
-    });
-
-    return result;
+    return null;
   }
 
   /**
@@ -1079,7 +1191,7 @@ class Overlays {
    * @returns {WalkontableInstance|null}
    */
   getParentOverlayByRenderedArea(element: HTMLElement): WalkontableInstance | null {
-    return this.#findParentOverlay(element, (wtTable, el) => wtTable.spreader.contains(el));
+    return this.#findParentOverlay(element, spreaderHolds);
   }
 
   /**
@@ -1089,7 +1201,7 @@ class Overlays {
    * @returns {WalkontableInstance|null}
    */
   getParentOverlay(element: HTMLElement): WalkontableInstance | null {
-    return this.#findParentOverlay(element, (wtTable, el) => wtTable.TABLE.contains(el));
+    return this.#findParentOverlay(element, tableHolds);
   }
 
   /**
@@ -1101,9 +1213,12 @@ class Overlays {
     const overlays = [
       this.topOverlay,
       this.inlineStartOverlay,
+      this.inlineEndOverlay,
       this.bottomOverlay,
       this.topInlineStartCornerOverlay,
-      this.bottomInlineStartCornerOverlay
+      this.bottomInlineStartCornerOverlay,
+      this.topInlineEndCornerOverlay,
+      this.bottomInlineEndCornerOverlay,
     ];
 
     arrayEach(overlays, (elem) => {
@@ -1153,7 +1268,9 @@ class Overlays {
     const fixedRowsTop = wtSettings.getSetting<number>('fixedRowsTop');
     const fixedRowsBottom = wtSettings.getSetting<number>('fixedRowsBottom');
     const fixedColumnsStart = wtSettings.getSetting<number>('fixedColumnsStart');
+    const fixedColumnsEnd = wtSettings.getSetting<number>('fixedColumnsEnd');
     const totalRows = wtSettings.getSetting<number>('totalRows');
+    const totalColumns = wtSettings.getSetting<number>('totalColumns');
 
     return [
       // What the write would produce.
@@ -1175,14 +1292,17 @@ class Overlays {
       wtSettings.getSetting('shouldRenderTopOverlay'),
       wtSettings.getSetting('shouldRenderInlineStartOverlay'),
       wtSettings.getSetting('shouldRenderBottomOverlay'),
+      wtSettings.getSetting('shouldRenderInlineEndOverlay'),
       // How deep the frozen regions reach. A move can change these while both totals stay equal,
       // because a sum does not care about order.
       fixedRowsTop,
       fixedRowsBottom,
       fixedColumnsStart,
+      fixedColumnsEnd,
       this.topOverlay.sumCellSizes(0, fixedRowsTop),
       this.bottomOverlay.sumCellSizes(totalRows - fixedRowsBottom, totalRows),
       this.inlineStartOverlay.sumCellSizes(0, fixedColumnsStart),
+      this.inlineEndOverlay.sumCellSizes(totalColumns - fixedColumnsEnd, totalColumns),
     ].join('|');
   }
 

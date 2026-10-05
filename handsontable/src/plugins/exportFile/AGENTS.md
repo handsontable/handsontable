@@ -260,3 +260,9 @@ Other rules:
 
 Unit coverage is deliberately fine-grained — `cell-style`, `date-utils`, `datetimeExport`, `formula-utils`,
 `numeric-utils`, plus `types/`. A format change belongs in one of those, not only in the E2E spec.
+
+## `fixedColumnsEnd` is not exported
+
+`getFrozenColumns()` reads `fixedColumnsStart` only. A worksheet has one freeze pane, anchored at the top left, so
+the end columns have no representation in XLSX and are left out on purpose. Nothing else in the export depends on
+the frozen counts.

@@ -1,6 +1,7 @@
 import type { HotInstance } from '../../../core/types';
 import * as C from '../../../i18n/constants';
 import { isPluginOff } from './isPluginOff';
+import { isInEndBand } from '../endBand';
 
 /**
  * @param {ManualColumnFreeze} manualColumnFreezePlugin The plugin instance.
@@ -42,6 +43,10 @@ export default function freezeColumnItem(manualColumnFreezePlugin: unknown) {
 
       } else if ((selection[0]!.from.col !== selection[0]!.to.col) ||
                  (selection[0]!.from.col! <= (this.getSettings().fixedColumnsStart ?? 0) - 1)) {
+        hide = true;
+
+      } else if (isInEndBand(this, selection[0]!.from.col!)) {
+        // A column of the `fixedColumnsEnd` band is already pinned, to the other edge.
         hide = true;
       }
 

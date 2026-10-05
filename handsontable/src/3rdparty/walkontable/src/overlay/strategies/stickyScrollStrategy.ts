@@ -25,6 +25,7 @@ export function createStickyScrollStrategyDeps(ctx: EngineContext, overlays: Ove
     getTopOverlay: ctx.getTopOverlay,
     getBottomOverlay: ctx.getBottomOverlay,
     getInlineStartOverlay: ctx.getInlineStartOverlay,
+    getInlineEndOverlay: ctx.getInlineEndOverlay,
     getScrollableElement: () => overlays.scrollableElement,
     refreshAll: () => overlays.refreshAll(),
     applyToDOM: () => overlays.applyToDOM(),
@@ -344,6 +345,8 @@ export class StickyScrollStrategy {
     }
 
     this.#applyCloneSpreaderStyles(this.#deps.getInlineStartOverlay(), position, isSticky, stickyTop, null, isRtl);
+    // The end clone holds the same rows as the inline-start one, so it follows the same vertical offset.
+    this.#applyCloneSpreaderStyles(this.#deps.getInlineEndOverlay(), position, isSticky, stickyTop, null, isRtl);
     this.#applyCloneSpreaderStyles(this.#deps.getTopOverlay(), position, isSticky, null, stickyLeft, isRtl);
     this.#applyCloneSpreaderStyles(this.#deps.getBottomOverlay(), position, isSticky, null, stickyLeft, isRtl);
   }
