@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-05T11:49:00.348Z",
+  "generatedAt": "2026-10-05T12:07:55.082Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 319,
     "needsTicket": 12,
     "quarantined": 0,
-    "entries": 1782
+    "entries": 1783
   },
   "rows": [
     {
@@ -11252,6 +11252,39 @@
       "needsTicket": false
     },
     {
+      "key": "playwright|e2e/collapsible-indicator-dropdown-menu.spec.ts|collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
+      "tier": "playwright",
+      "file": "e2e/collapsible-indicator-dropdown-menu.spec.ts",
+      "line": 87,
+      "title": "collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
+      "count7": 2,
+      "count30": 2,
+      "countAll": 2,
+      "runs30": 1,
+      "flakyRuns30": 1,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-05T12:07:02Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37302858506/attempts/2",
+        "branch": "feature/DEV-3254_License-key-checksum-covers-prose",
+        "leg": "e2e-main-min",
+        "status": "flaky",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
       "key": "jasmine|handsontable/src/__tests__/core/view.spec.js|Core_view should correctly calculate the width of the top overlay after the vertical scrollbar disappears (#dev-954)",
       "tier": "jasmine",
       "file": "handsontable/src/__tests__/core/view.spec.js",
@@ -11687,39 +11720,6 @@
         "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34597788339/attempts/2",
         "branch": "feature/DEV-2901_Astro-AVIF-RCE-bump",
         "leg": "e2e-main",
-        "status": "flaky",
-        "error": "Error: expect(received).toBe(expected) // Object.is equality",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "playwright|e2e/collapsible-indicator-dropdown-menu.spec.ts|collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
-      "tier": "playwright",
-      "file": "e2e/collapsible-indicator-dropdown-menu.spec.ts",
-      "line": 87,
-      "title": "collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
-      "count7": 1,
-      "count30": 1,
-      "countAll": 1,
-      "runs30": 1,
-      "flakyRuns30": 1,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "e2e-main-min"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-05T11:48:05Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37302858506",
-        "branch": "feature/DEV-3254_License-key-checksum-covers-prose",
-        "leg": "e2e-main-min",
         "status": "flaky",
         "error": "Error: expect(received).toBe(expected) // Object.is equality",
         "source": "ci"
