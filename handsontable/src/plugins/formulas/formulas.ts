@@ -124,6 +124,26 @@ interface ChangeSetAwaitingApply {
   writeCount: number;
   sheetId: number | null;
   writtenBack: boolean;
+  /**
+   * The cells the first write really reached, with the value each held before it. A sheet switch
+   * before the Core applies the set restores exactly these (`#restoreSwitchedAwaySheet`): by then the
+   * grid maps its indexes onto the switched-to sheet's data, so mapping the changes again names
+   * other cells.
+   */
+  writtenCells: WrittenCell[];
+}
+
+/**
+ * One cell a change set's first engine write reached: its engine address (sheet included) and the
+ * grid coordinates and value it had then.
+ */
+interface WrittenCell {
+  address: { row: number; col: number; sheet: number | null };
+  physicalRow: number;
+  physicalColumn: number;
+  visualRow: number;
+  visualColumn: number;
+  oldValue: unknown;
 }
 
 /**
@@ -3660,11 +3680,12 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const { dependentCells, changedCells, outOfBoundsChanges } = this.#writeChangesToEngine(changes);
+    const { dependentCells, changedCells, outOfBoundsChanges, writtenCells } = this.#writeChangesToEngine(changes);
     const awaitingApply: ChangeSetAwaitingApply = {
       writeCount: this.#sheetWriteCount,
       sheetId: this.sheetId,
       writtenBack: false,
+      writtenCells,
     };
 
     this.#changesAwaitingApply.set(changes, awaitingApply);
@@ -3706,11 +3727,12 @@ export class Formulas extends BasePlugin {
   #writeChangesToEngine(changes: CellChange[]) {
     const outOfBoundsChanges: [number, number, unknown][] = [];
     const changedCells: unknown[] = [];
+    const writtenCells: WrittenCell[] = [];
 
     this.#markDataChanged();
 
     const dependentCells = this.engine!.batch(() => {
-      changes.forEach(([visualRow, prop, , newValue]) => {
+      changes.forEach(([visualRow, prop, oldValue, newValue]) => {
         if (typeof prop !== 'string' && typeof prop !== 'number') {
           return;
         }
@@ -3736,6 +3758,7 @@ export class Formulas extends BasePlugin {
 
         if (physicalRow !== null && physicalColumn !== null) {
           this.syncChangeWithEngine(visualRow, visualColumn, newValue);
+          writtenCells.push({ address, physicalRow, physicalColumn, visualRow, visualColumn, oldValue });
 
         } else {
           outOfBoundsChanges.push([visualRow, visualColumn, newValue]);
@@ -3745,7 +3768,7 @@ export class Formulas extends BasePlugin {
       });
     });
 
-    return { dependentCells, changedCells, outOfBoundsChanges };
+    return { dependentCells, changedCells, outOfBoundsChanges, writtenCells };
   }
 
   /**
@@ -3788,65 +3811,57 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    if (awaitingApply.sheetId !== null && awaitingApply.sheetId !== this.sheetId) {
-      this.#restoreSwitchedAwaySheet(changes, awaitingApply.sheetId);
-    }
-
+    const restoredDependents = awaitingApply.sheetId !== null && awaitingApply.sheetId !== this.sheetId
+      ? this.#restoreSwitchedAwaySheet(awaitingApply.writtenCells, awaitingApply.sheetId)
+      : [];
     const { dependentCells, changedCells } = this.#writeChangesToEngine(changes);
 
     awaitingApply.writtenBack = true;
 
-    this.renderDependentSheets(dependentCells);
+    // A grid on another sheet that reads a restored cell has to repaint it too.
+    this.renderDependentSheets(restoredDependents.concat(dependentCells as unknown[]));
     this.validateDependentCells(dependentCells, changedCells);
   };
 
   /**
-   * Puts a sheet the grid switched away from back to the values a change set replaced in it.
+   * Puts a sheet the grid switched away from back to the values a change set replaced in it, and
+   * answers the cells that recalculated.
    *
    * `afterSetDataAtCell` writes a change into the sheet the grid shows at that moment. When the grid
    * switches to another sheet before the Core applies the (validated) change, the Core applies it to
    * the data the grid shows NOW, and `#onBeforeChangeRender` writes it into that sheet. Without this,
    * one `setDataAtCell()` ended up in both sheets: the switched-away sheet kept a value its grid data
-   * never received, and showed it on a switch back. The change set's old values are what that sheet
-   * held, because the grid's data was that sheet's when the change was made. A sheet removed from
-   * the engine in the meantime is left alone.
+   * never received, and showed it on a switch back.
    *
-   * @param {Array[]} changes The change set, `[visualRow, prop, oldValue, newValue]` per change.
+   * The cells come from the record the FIRST write kept (`ChangeSetAwaitingApply#writtenCells`), not
+   * from mapping the changes again: by now the grid's indexes describe the switched-to sheet's data -
+   * rows the Core just created included - so a fresh mapping named cells that write never touched
+   * and skipped ones it did. An out-of-bounds change was never written there (its write is the
+   * deferred `afterChange` one), so it has no record. The old values are what that sheet held,
+   * because the grid's data was that sheet's when the change was made. A sheet removed from the
+   * engine in the meantime is left alone.
+   *
+   * @param {Array} writtenCells The cells the first write reached.
    * @param {number} sheetId The engine id of the sheet the set was first written into.
+   * @returns {Array} The dependent cells the restore recalculated.
    */
-  #restoreSwitchedAwaySheet(changes: CellChange[], sheetId: number) {
+  #restoreSwitchedAwaySheet(writtenCells: WrittenCell[], sheetId: number): unknown[] {
     const engine = this.engine!;
 
-    if (engine.getSheetName(sheetId) === undefined) {
-      return;
+    if (engine.getSheetName(sheetId) === undefined || writtenCells.length === 0) {
+      return [];
     }
 
-    engine.batch(() => {
-      changes.forEach(([visualRow, prop, oldValue]) => {
-        const visualColumn = typeof prop === 'string' || typeof prop === 'number' ? this.hot.propToCol(prop) : null;
-
-        if (visualColumn === null || visualColumn === undefined) {
-          return;
-        }
-
-        const physicalRow = this.hot.toPhysicalRow(visualRow);
-        const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
-
-        // An out-of-bounds change was never written into the switched-away sheet: its write is the
-        // deferred `afterChange` one, which the write-back below supersedes.
-        if (physicalRow === null || physicalColumn === null) {
-          return;
-        }
-
-        const address = {
-          row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
-          col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
-          sheet: sheetId,
-        };
+    const metaManager = this.hot._getMetaManager();
+    const dependents = engine.batch(() => {
+      writtenCells.forEach(({ address, physicalRow, physicalColumn, visualRow, visualColumn, oldValue }) => {
         let previous = this.#getValueGetterValue(physicalRow, physicalColumn, oldValue);
 
         if (typeof previous === 'string') {
-          previous = this.#escapeEngineBoundValue(previous, this.hot.getCellMetaTransient(visualRow, visualColumn));
+          previous = this.#escapeEngineBoundValue(
+            previous,
+            metaManager.getCellMetaTransient(physicalRow, physicalColumn, { visualRow, visualColumn }),
+          );
         }
 
         if (engine.isItPossibleToSetCellContents(address)) {
@@ -3854,6 +3869,8 @@ export class Formulas extends BasePlugin {
         }
       });
     });
+
+    return Array.isArray(dependents) ? dependents : [];
   }
 
   /**

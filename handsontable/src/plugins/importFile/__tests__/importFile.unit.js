@@ -698,6 +698,32 @@ describe('mapWorkbook on number formats a spreadsheet app writes, whichever engi
     }
   });
 
+  it('should not read a word of a quoted sheet name as a defined name', () => {
+    // `'Sales Data'!A1` names a sheet. Its `Sales` used to match the workbook's defined name, so a
+    // formula over a sheet the engine holds was imported as its cached value.
+    const sheet = new SheetBuilder('Data');
+
+    sheet.cell(1, 1).formula = { text: '\'Sales Data\'!A1+1', result: 2 };
+    sheet.cell(1, 2).formula = { text: 'Sales+\'Sales Data\'!A1', result: 3 };
+
+    const snapshot = createWorkbookSnapshot();
+
+    snapshot.sheets.push(sheet.toSnapshot());
+    snapshot.definedNames = ['Sales'];
+
+    const dropped = new DroppedFeatures();
+    const mapped = mapWorkbook(snapshot, resolveImportOptions({}), {
+      formulasEnabled: true,
+      commentsEnabled: false,
+      customBordersEnabled: false,
+      formulaSheetNames: new Set(['sales data']),
+      formulaNamedExpressions: new Set(),
+    }, dropped);
+
+    expect(mapped.data[0]).toEqual(['=\'Sales Data\'!A1+1', 3]);
+    expect(dropped.list()).toContain('formula:definedName');
+  });
+
   it('should report cellStyles on values.xlsx through ExcelJS only, which pins the engines\' difference', async() => {
     // ExcelJS resolves a cell's default font and fill into a style object whenever the cell carries a
     // format index, so it reports styling the file never applied; the built-in reader does not. The

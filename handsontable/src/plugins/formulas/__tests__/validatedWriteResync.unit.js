@@ -210,6 +210,61 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     expect(engine.getCellValue({ sheet: first, row: 2, col: 0 })).toBe(7);
   });
 
+  it('restores the cell the first write reached, even when the switched-to sheet has fewer rows', async() => {
+    // The restore reads the cells the first write recorded rather than mapping the change through
+    // the grid again after the Core applied it, when the grid's indexes describe the switched-to
+    // sheet (here: two rows, so row 3 is one the Core has just created).
+    const engine = buildGrid([[1, 'a'], [2, 'b'], [7, 'c']]);
+    const first = hot.getPlugin('formulas').sheetId;
+    const other = engine.getSheetId(engine.addSheet('Other'));
+
+    engine.setSheetContent(other, [[10, 'x'], [20, 'y']]);
+    hot.setDataAtCell(2, 0, '=SUM(A1:A2)');
+    hot.updateSettings({ formulas: { engine, sheetName: 'Other' } });
+
+    await waitForValidation();
+
+    expect(engine.getCellFormula({ sheet: first, row: 2, col: 0 })).toBeUndefined();
+    expect(engine.getCellValue({ sheet: first, row: 2, col: 0 })).toBe(7);
+    expect(engine.getCellFormula({ sheet: other, row: 2, col: 0 })).toBe('=SUM(A1:A2)');
+  });
+
+  it('repaints another sheet\'s grid that reads a cell the restore put back', async() => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const container2 = document.createElement('div');
+
+    document.body.appendChild(container2);
+
+    hot = new Handsontable(container, {
+      data: [[1], [2], [7]],
+      columns: [{ validator: (value, callback) => callback(true) }],
+      formulas: { engine, sheetName: 'A' },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const reader = new Handsontable(container2, {
+      data: [['=A!A3*2']],
+      formulas: { engine, sheetName: 'B' },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const other = engine.getSheetId(engine.addSheet('Other'));
+
+    try {
+      engine.setSheetContent(other, [[10], [20], [null]]);
+      hot.setDataAtCell(2, 0, 100);
+      hot.updateSettings({ formulas: { engine, sheetName: 'Other' } });
+
+      await waitForValidation();
+
+      // `A!A3` is back to 7, and the reading grid shows it: the restore's dependents are rendered.
+      expect(reader.getDataAtCell(0, 0)).toBe(14);
+      expect(reader.getCell(0, 0).textContent).toBe('14');
+    } finally {
+      reader.destroy();
+      container2.remove();
+    }
+  });
+
   it('does not write a change back into a sheet the engine refused to hold', async() => {
     const warnings = jest.spyOn(console, 'warn').mockImplementation(() => {});
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable', maxRows: 2 });

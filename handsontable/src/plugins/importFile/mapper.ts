@@ -467,10 +467,11 @@ function namesUnknownSheet(formula: string, scope: CollectContext): boolean {
 }
 
 /**
- * An identifier in a formula: a name, a function name or a cell reference. Linear: one greedy run
- * per match, no backtracking.
+ * An identifier in a formula: a name, a function name or a cell reference. A string literal and a
+ * quoted sheet name (`'Sales Data'!A1`) are matched whole so their words are never read as names.
+ * Linear: one greedy run per match, no backtracking.
  */
-const FORMULA_IDENTIFIER_REGEX = /"(?:[^"]|"")*"|[\p{L}_\\][\p{L}\p{N}_.]*/gu;
+const FORMULA_IDENTIFIER_REGEX = /"(?:[^"]|"")*"|'(?:[^']|'')*'|[\p{L}_\\][\p{L}\p{N}_.]*/gu;
 
 /**
  * Whether a formula uses a name the workbook defines and the Formulas engine does not. HyperFormula
@@ -491,7 +492,9 @@ function usesUnresolvedName(formula: string, scope: CollectContext): boolean {
     const [token] = match;
     const next = formula[(match.index ?? 0) + token.length];
 
-    if (token[0] !== '"' && next !== '(' && next !== '!' && unresolvedNames.has(token.toLowerCase())) {
+    const isQuoted = token[0] === '"' || token[0] === '\'';
+
+    if (!isQuoted && next !== '(' && next !== '!' && unresolvedNames.has(token.toLowerCase())) {
       return true;
     }
   }
