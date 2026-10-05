@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-05T09:09:19.190Z",
+  "generatedAt": "2026-10-05T10:10:14.527Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 318,
     "needsTicket": 12,
     "quarantined": 0,
-    "entries": 1779
+    "entries": 1780
   },
   "rows": [
     {
@@ -240,6 +240,40 @@
       "needsTicket": true
     },
     {
+      "key": "playwright|e2e/max-length.spec.ts|maxLength › list editors that share the text editor input › caps typing in a dropdown cell and marks a long option picked from it as invalid",
+      "tier": "playwright",
+      "file": "e2e/max-length.spec.ts",
+      "line": 348,
+      "title": "maxLength › list editors that share the text editor input › caps typing in a dropdown cell and marks a long option picked from it as invalid",
+      "count7": 3,
+      "count30": 3,
+      "countAll": 3,
+      "runs30": 3,
+      "flakyRuns30": 3,
+      "branches30": 3,
+      "nightlyRuns30": 0,
+      "openBranches30": 3,
+      "legs": [
+        "e2e-horizon-min",
+        "e2e-main"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-05T10:09:27Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37289775875",
+        "branch": "feature/HOT-14987_fixedColumnsEnd",
+        "leg": "e2e-horizon-min",
+        "status": "flaky",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
       "key": "playwright|e2e/walkontable/inline-end-overlay.spec.ts|walkontable inline-end overlay (ltr) › follows the vertical scroll of the grid row by row",
       "tier": "playwright",
       "file": "e2e/walkontable/inline-end-overlay.spec.ts",
@@ -407,39 +441,6 @@
         "leg": "UMD (theme: classic)",
         "status": "failed",
         "error": "Error: Timeout - Async function did not complete within 15000ms (set by jasmine.DEFAULT_TIMEOUT_INTERVAL)",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "playwright|e2e/max-length.spec.ts|maxLength › list editors that share the text editor input › caps typing in a dropdown cell and marks a long option picked from it as invalid",
-      "tier": "playwright",
-      "file": "e2e/max-length.spec.ts",
-      "line": 348,
-      "title": "maxLength › list editors that share the text editor input › caps typing in a dropdown cell and marks a long option picked from it as invalid",
-      "count7": 2,
-      "count30": 2,
-      "countAll": 2,
-      "runs30": 2,
-      "flakyRuns30": 2,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "e2e-main"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-05T07:38:43Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37277005651",
-        "branch": "develop",
-        "leg": "e2e-main",
-        "status": "flaky",
-        "error": "Error: expect(received).toBe(expected) // Object.is equality",
         "source": "ci"
       },
       "needsTicket": true
