@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-05T07:10:17.737Z",
+  "generatedAt": "2026-10-05T07:11:56.457Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 318,
     "needsTicket": 10,
     "quarantined": 0,
-    "entries": 1776
+    "entries": 1777
   },
   "rows": [
     {
@@ -136,14 +136,14 @@
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
-      "count7": 1,
-      "count30": 10,
-      "countAll": 10,
-      "runs30": 8,
-      "flakyRuns30": 8,
-      "branches30": 8,
+      "count7": 2,
+      "count30": 11,
+      "countAll": 11,
+      "runs30": 9,
+      "flakyRuns30": 9,
+      "branches30": 9,
       "nightlyRuns30": 0,
-      "openBranches30": 8,
+      "openBranches30": 9,
       "legs": [
         "e2e-classic-min",
         "e2e-horizon",
@@ -156,10 +156,10 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-09-29T16:33:23Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36594300315",
-        "branch": "feature/DEV-3041_Per-sheet-DataProvider-with-SheetsBar",
-        "leg": "e2e-classic-min",
+        "seenAt": "2026-10-05T07:11:16Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37274312041",
+        "branch": "feature/HOT-14987_fixedColumnsEnd",
+        "leg": "e2e-horizon-min",
         "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
