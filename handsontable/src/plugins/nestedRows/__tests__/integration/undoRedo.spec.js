@@ -210,14 +210,16 @@ describe('NestedRows', () => {
       await alter('remove_row', 0);
       getPlugin('undoRedo').undo();
 
+      // The veto is answered while the undo runs, so the undo started (`beforeUndo`) but never
+      // finished (`afterUndo`), and the step stays where it was.
       expect(countRows()).toBe(0);
       expect(getPlugin('undoRedo').doneActions.length).toBe(1);
       expect(getPlugin('undoRedo').undoneActions.length).toBe(0);
-      expect(beforeUndo).not.toHaveBeenCalled();
+      expect(beforeUndo).toHaveBeenCalledTimes(1);
       expect(afterUndo).not.toHaveBeenCalled();
     });
 
-    it('should keep the nested removal action when the plugin is disabled before undo', async() => {
+    it('should drop the nested removal when the plugin is disabled before undo', async() => {
       const beforeUndo = jasmine.createSpy('beforeUndo');
       const afterUndo = jasmine.createSpy('afterUndo');
 
@@ -239,7 +241,8 @@ describe('NestedRows', () => {
       getPlugin('nestedRows').disablePlugin();
       getPlugin('undoRedo').undo();
 
-      expect(getPlugin('undoRedo').doneActions.length).toBe(1);
+      // Disabling the plugin unregistered its row map, which drops the whole history.
+      expect(getPlugin('undoRedo').doneActions.length).toBe(0);
       expect(getPlugin('undoRedo').undoneActions.length).toBe(0);
       expect(countRows()).toBe(0);
       expect(getSettings().fixedRowsTop).toBe(fixedRowsTopAfterRemove);
@@ -267,25 +270,28 @@ describe('NestedRows', () => {
       ]);
     });
 
-    it('should ask every removed root before refusing a later create-row veto', async() => {
-      const beforeCreateRow = jasmine.createSpy('beforeCreateRow').and.callFake(index => index !== 1);
+    it('should ask about every restored run of rows before refusing a later create-row veto', async() => {
+      const beforeCreateRow = jasmine.createSpy('beforeCreateRow').and.callFake(index => index !== 0);
 
       handsontable({
         data: [
           { col1: 'A' },
           { col1: 'B' },
           { col1: 'C' },
+          { col1: 'D' },
         ],
         beforeCreateRow,
         nestedRows: true,
       });
 
-      await alter('remove_row', 0, 2);
+      // A and C, removed one after the other: A at 0, then C at 1, where it moved to. The undo puts C
+      // back first and A second, so the veto on A comes last.
+      await alter('remove_row', [[0, 1], [2, 1]]);
       beforeCreateRow.calls.reset();
       getPlugin('undoRedo').undo();
 
-      expect(beforeCreateRow.calls.allArgs().map(args => args[0])).toEqual([0, 1]);
-      expect(countRows()).toBe(1);
+      expect(beforeCreateRow.calls.allArgs().map(args => args[0])).toEqual([1, 0]);
+      expect(getDataAtCol(0)).toEqual(['B', 'D']);
       expect(getPlugin('undoRedo').doneActions.length).toBe(1);
     });
 
@@ -464,12 +470,18 @@ describe('NestedRows', () => {
       nestedRows.collapsingUI.collapseChildren(2);
       await waitUntil(() => countRows() === 3);
 
-      expect(undoRedo.doneActions.length).toBe(1);
-      expect(undoRedo.doneActions[0].actionType).toBe('nested_rows_detach');
+      expect(undoRedo.doneActions.map(action => action.actionType)).toEqual([
+        'collapse_rows',
+        'collapse_rows',
+        'nested_rows_detach',
+        'collapse_rows',
+      ]);
 
+      // Each collapse is its own step, so the one made after the detach is undone first.
       undoRedo.undo();
-      await waitUntil(() => undoRedo.undoneActions.length === 1);
+      undoRedo.undo();
 
+      expect(undoRedo.undoneActions.length).toBe(2);
       expect(nestedRows.dataManager.getRawSourceData()).toEqual(originalData);
     });
 
@@ -510,7 +522,7 @@ describe('NestedRows', () => {
       expect(nestedRows.dataManager.getRawSourceData()).toEqual(originalData);
     });
 
-    it('should undo a detached child after external trimming hides it', async() => {
+    it('should undo a detached child and the trim that hid it afterwards, one step each', async() => {
       const originalData = [
         { col1: 'Trimmed' },
         {
@@ -533,12 +545,16 @@ describe('NestedRows', () => {
       getPlugin('trimRows').trimRows([3]);
       await waitUntil(() => countRows() === 2);
 
-      expect(undoRedo.doneActions.length).toBe(1);
-      expect(undoRedo.doneActions[0].actionType).toBe('nested_rows_detach');
+      expect(undoRedo.doneActions.map(action => action.actionType)).toEqual(['nested_rows_detach', 'trim_rows']);
 
       undoRedo.undo();
-      await waitUntil(() => undoRedo.undoneActions.length === 1);
 
+      expect(countRows()).toBe(3);
+      expect(getPlugin('trimRows').isTrimmed(3)).toBe(false);
+
+      undoRedo.undo();
+
+      expect(undoRedo.undoneActions.length).toBe(2);
       expect(nestedRows.dataManager.getRawSourceData()).toEqual(originalData);
     });
 
@@ -575,7 +591,7 @@ describe('NestedRows', () => {
       expect(undoRedo.doneActions.length).toBe(2);
     });
 
-    it('should not undo a detach when its destination holds another subtree', async() => {
+    it('should drop a detach from the undo history when `updateData` replaces the tree', async() => {
       handsontable({
         data: [
           {
@@ -592,8 +608,8 @@ describe('NestedRows', () => {
 
       nestedRows.dataManager.detachFromParent(nestedRows.dataManager.getDataObject(1));
 
-      // `updateData` keeps the undo history, and the detached child's path now resolves to a row with a
-      // subtree of its own.
+      // The recorded tree shapes describe rows `updateData` replaces, so the history is dropped rather than
+      // restored over the new tree.
       const replacedData = [
         { col1: 'Parent', __children: [] },
         { col1: 'After' },
@@ -605,16 +621,15 @@ describe('NestedRows', () => {
 
       await updateData(JSON.parse(JSON.stringify(replacedData)));
 
-      expect(undoRedo.doneActions.length).toBe(1);
+      expect(undoRedo.isUndoAvailable()).toBe(false);
 
       undoRedo.undo();
 
-      expect(undoRedo.doneActions.length).toBe(1);
       expect(undoRedo.undoneActions.length).toBe(0);
       expect(nestedRows.dataManager.getRawSourceData()).toEqual(replacedData);
     });
 
-    it('should not redo a detach when its original slot holds another subtree', async() => {
+    it('should drop an undone detach from the redo history when `updateData` replaces the tree', async() => {
       handsontable({
         data: [
           {
@@ -646,12 +661,11 @@ describe('NestedRows', () => {
 
       await updateData(JSON.parse(JSON.stringify(replacedData)));
 
-      expect(undoRedo.undoneActions.length).toBe(1);
+      expect(undoRedo.isRedoAvailable()).toBe(false);
 
       undoRedo.redo();
 
       expect(undoRedo.doneActions.length).toBe(0);
-      expect(undoRedo.undoneActions.length).toBe(1);
       expect(nestedRows.dataManager.getRawSourceData()).toEqual(replacedData);
     });
 

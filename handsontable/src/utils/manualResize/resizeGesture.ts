@@ -19,6 +19,7 @@ import {
   shouldSkipResizeHandlePositioning,
 } from './utils';
 import type { ResizeAxis } from './axis';
+import type { OperationHold } from '../../core/operationScope';
 
 /**
  * A resize hook either axis fires.
@@ -38,7 +39,13 @@ export interface ResizeGestureOwner {
    */
   isActive(): boolean;
   /**
-   * Stores a size for a visual index and returns the size actually stored.
+   * Returns the size the owner would store for the given size, without storing it. The drag tracks
+   * the pointer with it and writes nothing until the release.
+   */
+  clampSize(size: number): number;
+  /**
+   * Stores a size for a visual index and returns the size actually stored. The gesture records its
+   * own undo step, so this must not open one.
    */
   setManualSize(index: number, size: number): number;
 }
@@ -103,7 +110,8 @@ export class ResizeGesture {
    */
   #currentSize: number | null = null;
   /**
-   * The size stored by the last write.
+   * The size the release stores: the clamped pointer size during a drag, or the size a resize hook
+   * answered with.
    */
   #newSize: number | null = null;
   /**
@@ -134,6 +142,11 @@ export class ResizeGesture {
    * Whether a drag is in progress.
    */
   #pressed = false;
+  /**
+   * The undo step a press opened and holds until the press ends, so the autosize a held second press
+   * runs and the size its release stores are one step. A drag writes no size before the release.
+   */
+  #pendingStep: OperationHold | null = null;
   /**
    * Whether a context menu has just opened over the handle.
    */
@@ -208,10 +221,15 @@ export class ResizeGesture {
    * confirmed. That path is common, so it wins. The context menu handler resets the flag at its own
    * call site, where aborting the drag is the point.
    *
+   * The undo step the press holds is closed here, though. A drag writes no size before its
+   * "mouseup", so that "mouseup" records the drag in a step of its own (`#runInStep()`), and a
+   * real disable, whose "mouseup" never arrives, leaves no step held.
+   *
    * Two consequences to know, neither introduced here. On a real disable – the plugin option set to
    * `false` rather than a re-init – `super.disablePlugin()` clears the events, so the "mouseup" never
    * arrives and the flag stays latched true; after a later re-enable `#onMouseMove` then reads
-   * plain pointer movement as a drag and writes sizes from a stale start offset. And a drag in
+   * plain pointer movement as a drag, and the next "mouseup" stores a size from a stale start
+   * offset. And a drag in
    * flight when the re-init fires loses both elements until its "mouseup" positions the handle
    * again, because `enablePlugin()` does not re-attach them and `#onMouseOver` early-returns while
    * the flag is set – the resize itself still lands, so that one is visual only. An
@@ -223,6 +241,7 @@ export class ResizeGesture {
     this.#hideHandleAndGuide();
     this.#handle.remove();
     this.#guide.remove();
+    this.#closeStep();
   }
 
   /**
@@ -280,7 +299,7 @@ export class ResizeGesture {
       // guide `active` until the button came up. Hide it now. Do not detach – that is the
       // DEV-2719 flicker, and `#hideHandleAndGuide()` only strips `active`.
       //
-      // `#newSize` is reset to `#startSize` on every press and written on mousemove, so they
+      // `#newSize` is reset to `#startSize` on every press and updated on mousemove, so they
       // still matching means a still hold: end the press so a later mousemove cannot
       // overwrite the autosize, and so the matching mouseup takes the idle branch instead of
       // firing the drag-end hooks a second time. A press that already moved is a drag – keep
@@ -288,16 +307,24 @@ export class ResizeGesture {
       // resets `#startSize` the way a completed autosize always did.
       this.#hideHandleAndGuide();
 
-      if (this.#newSize === this.#startSize) {
+      const endsPress = this.#newSize === this.#startSize;
+
+      if (endsPress) {
         this.#pressed = false;
       }
 
-      if (this.#selectedIndexes.length > 1) {
-        arrayEach(this.#selectedIndexes, index => resize(index));
-        render();
+      this.#runInStep(() => {
+        if (this.#selectedIndexes.length > 1) {
+          arrayEach(this.#selectedIndexes, index => resize(index));
+          render();
 
-      } else {
-        arrayEach(this.#selectedIndexes, index => resize(index, true));
+        } else {
+          arrayEach(this.#selectedIndexes, index => resize(index, true));
+        }
+      });
+
+      if (endsPress) {
+        this.#closeStep();
       }
     }
 
@@ -578,6 +605,10 @@ export class ResizeGesture {
       this.#setupHandlePosition(this.#currentTH);
       this.#setupGuidePosition();
       this.#pressed = true;
+      // A step still held here was left by a drag whose "mouseup" never arrived. Close it, so this
+      // press starts a fresh one.
+      this.#closeStep();
+      this.#openStep();
 
       if (this.#autoresizeTimeout === null) {
         this.#autoresizeTimeout = this.#hot._registerTimeout(() => this.afterMouseDownTimeout(), 500);
@@ -590,7 +621,9 @@ export class ResizeGesture {
   };
 
   /**
-   * "mousemove" listener – stores the size the pointer describes and moves the handle and guide.
+   * "mousemove" listener – tracks the size the pointer describes and moves the handle and guide.
+   * Nothing is stored until the release: a step that settles during the drag (an edit made while
+   * the button is down) must not record a half-dragged size.
    *
    * @param {MouseEvent} event The mouse event.
    */
@@ -605,17 +638,16 @@ export class ResizeGesture {
     const change = normalizeVisualDelta(visualChange, this.#scaleFactor);
 
     this.#currentSize = (this.#startSize ?? 0) + change;
-
-    arrayEach(this.#selectedIndexes, (index) => {
-      this.#newSize = this.#owner.setManualSize(index, this.#currentSize ?? 0);
-    });
+    this.#newSize = this.#owner.clampSize(this.#currentSize);
 
     this.#refreshHandlePosition();
     this.#refreshGuidePosition();
   };
 
   /**
-   * "mouseup" listener – ends a drag and confirms the size through the resize hooks.
+   * "mouseup" listener – ends a drag, stores the dragged size and confirms it through the resize
+   * hooks. The size is stored before the hooks run, because the row axis reports the height it reads
+   * back (see `ResizeAxis#getHookSize`).
    *
    * @fires Hooks#beforeRowResize
    * @fires Hooks#afterRowResize
@@ -654,15 +686,24 @@ export class ResizeGesture {
     this.#hideHandleAndGuide();
     this.#pressed = false;
 
-    if (this.#newSize !== this.#startSize) {
-      if (this.#selectedIndexes.length > 1) {
-        arrayEach(this.#selectedIndexes, index => resize(index));
-        render();
+    this.#runInStep(() => {
+      if (this.#newSize !== this.#startSize) {
+        const draggedSize = this.#newSize ?? 0;
 
-      } else {
-        arrayEach(this.#selectedIndexes, index => resize(index, true));
+        arrayEach(this.#selectedIndexes, (index) => {
+          this.#owner.setManualSize(index, draggedSize);
+        });
+
+        if (this.#selectedIndexes.length > 1) {
+          arrayEach(this.#selectedIndexes, index => resize(index));
+          render();
+
+        } else {
+          arrayEach(this.#selectedIndexes, index => resize(index, true));
+        }
       }
-    }
+    });
+    this.#closeStep();
 
     if (this.#currentTH) {
       this.#setupHandlePosition(this.#currentTH);
@@ -670,9 +711,45 @@ export class ResizeGesture {
   };
 
   /**
+   * Opens the undo step of a press and holds it until the press ends.
+   */
+  #openStep() {
+    const scope = this.#hot._getOperationScope();
+
+    scope.run(this.#axis.operationName, this.#axis.operationSource, () => {
+      this.#pendingStep = scope.hold();
+    });
+  }
+
+  /**
+   * Runs a resize in the undo step of the press, or in a step of its own when no press holds one.
+   *
+   * @param {Function} callback The resize.
+   */
+  #runInStep(callback: () => void) {
+    if (this.#pendingStep !== null) {
+      this.#pendingStep.resume(callback);
+    } else {
+      this.#hot.runOperation(this.#axis.operationName, callback, this.#axis.operationSource);
+    }
+  }
+
+  /**
+   * Releases the undo step of a press, which records it.
+   */
+  #closeStep() {
+    const step = this.#pendingStep;
+
+    this.#pendingStep = null;
+    step?.release();
+  }
+
+  /**
    * "contextmenu" listener on the handle – detaches the handle and guide and aborts any drag.
    */
   #onContextMenu = () => {
+    // Also closes the step of the drag, which stored no size yet: an aborted drag keeps the size
+    // it started from.
     this.detach();
 
     this.#pressed = false;

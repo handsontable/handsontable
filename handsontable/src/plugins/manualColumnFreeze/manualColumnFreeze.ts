@@ -122,6 +122,15 @@ export class ManualColumnFreeze extends BasePlugin {
    * @param {number} column Visual column index.
    */
   freezeColumn(column: number): void {
+    this.runOperation('freeze_column', () => this.#freezeColumn(column));
+  }
+
+  /**
+   * The body of `freezeColumn()`, run inside its operation.
+   *
+   * @param {number} column Visual column index.
+   */
+  #freezeColumn(column: number): void {
     const settings = this.hot.getSettings();
     // columns are already fixed (frozen)
     const freezePerformed = (settings.fixedColumnsStart ?? 0) < this.hot.countCols()
@@ -156,6 +165,15 @@ export class ManualColumnFreeze extends BasePlugin {
    * @param {number} column Visual column index.
    */
   unfreezeColumn(column: number): void {
+    this.runOperation('unfreeze_column', () => this.#unfreezeColumn(column));
+  }
+
+  /**
+   * The body of `unfreezeColumn()`, run inside its operation.
+   *
+   * @param {number} column Visual column index.
+   */
+  #unfreezeColumn(column: number): void {
     const settings = this.hot.getSettings();
     // columns are not fixed (not frozen)
     const fixedStart = settings.fixedColumnsStart ?? 0;

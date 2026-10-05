@@ -668,10 +668,9 @@ describe('MergeCells -> Undo/Redo', () => {
   });
 
   describe('paste over a merged cell', () => {
-    // A validator moves `applyChanges` into a microtask, so a paste, undo or redo is not finished
-    // when the call returns. Wait for the change to be applied AND for the merge geometry to have
-    // been restored or dropped: `DataChangeAction` does that inside its own `addHookOnce`
-    // ('afterChange') at the default index, so this listener sits behind it at a higher one.
+    // A validator moves `applyChanges` into a microtask, so a paste is not finished when the call
+    // returns. Wait for its `afterChange`. An undo or a redo fires its own `afterChange` once the
+    // data and the merge geometry are both restored, so the same wait covers them.
     function settled() {
       return new Promise((resolve) => {
         hot().addHookOnce('afterChange', resolve, 2000);
@@ -682,10 +681,9 @@ describe('MergeCells -> Undo/Redo', () => {
     // ("It works well, except `undo` event"): the merge geometry has to ride inside the paste's own
     // undo action, or one Ctrl+V needs two Ctrl+Z and the intermediate state is the original bug.
     //
-    // This is also the guard for the hook ordering the capture depends on: the MergeCells plugin
-    // records the geometry from `beforeChange` at the default priority, and the UndoRedo plugin
-    // reads it from its own `beforeChange` listener registered at priority 1000 so it runs last.
-    // Swap that order and the snapshot is empty here, so the undo below restores no merge.
+    // The MergeCells plugin drops the merge inside the paste's own operation, so the paste's step
+    // holds the merge in its snapshot from before and not in the one from after. If the drop ever
+    // ran as a separate operation, the undo below would restore the data but no merge.
     it('should restore both the pasted data and the merged cell in a single undo step', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
@@ -801,13 +799,11 @@ describe('MergeCells -> Undo/Redo', () => {
 
     // A validator that corrects a value writes through `setDataAtCell` with a `*Validator` source
     // (the documented convention - see validators/__tests__/validatorCorrection.spec.js), once per
-    // corrected cell, and each of those raises a `beforeChange` of its own INSIDE the paste's
-    // validation window. Those changes must not inherit the paste's merge geometry: undoing a
-    // single correction would then re-form the merge on top of the values the paste had already
-    // written, which is the same "shown value is not the stored value" defect this fix exists to
-    // remove. Before the source check there were ten actions on the stack for this paste, every
-    // one of them carrying the geometry.
-    it('should not attach the merge geometry to a correcting validator\'s own changes', async() => {
+    // corrected cell, INSIDE the paste's validation. The validation keeps the recording context of
+    // the paste, so the corrections are part of the paste's step: one undo reverts the pasted values,
+    // the corrections, and the merge the paste removed together. No single correction can be undone
+    // on its own, so none can re-form the merge over the values the paste wrote.
+    it('should undo a paste together with its validator\'s corrections, and the merge with them', async() => {
       const uppercaseValidator = function(value, callback) {
         if (typeof value === 'string' && value !== value.toUpperCase()) {
           this.instance.setDataAtCell(this.visualRow, this.visualCol, value.toUpperCase(), 'uppercaseValidator');
@@ -849,22 +845,33 @@ describe('MergeCells -> Undo/Redo', () => {
 
       await allCorrected;
 
+      const corrected = [
+        ['A', 'B', 'C'],
+        ['D', 'E', 'F'],
+        ['G', 'H', 'I'],
+      ];
+
       expect(plugin.mergedCellsCollection.mergedCells.length).toBe(0);
+      expect(getData(5, 6, 7, 8)).toEqual(corrected);
+      expect(undoRedo.doneActions.length).toBe(1);
+      expect(undoRedo.doneActions[0].source).toBe('CopyPaste.paste');
 
-      const carryingGeometry = undoRedo.doneActions.filter(action => action.mergedCells.length > 0);
-
-      // Exactly one action owns the geometry: the paste's own.
-      expect(carryingGeometry.length).toBe(1);
-      expect(carryingGeometry[0].changes.length).toBe(9);
-
-      // Undoing a correction reverts its value and leaves the merge alone, so no pasted value ends
-      // up hidden behind a re-formed merge.
       const undone = settled();
 
       undoRedo.undo();
       await undone;
 
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(1);
+      expect(getDataAtCell(5, 6)).toBe('G6');
+      expect(getCellMeta(5, 7).hidden).toBe(true);
+
+      const redone = settled();
+
+      undoRedo.redo();
+      await redone;
+
       expect(plugin.mergedCellsCollection.mergedCells.length).toBe(0);
+      expect(getData(5, 6, 7, 8)).toEqual(corrected);
       expect(getCellMeta(5, 7).hidden).toBeFalsy();
     });
 

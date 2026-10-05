@@ -9,9 +9,9 @@ import { Formulas } from '../../formulas';
  * `Hooks.run` threads any non-`undefined` listener return value into the next listener's first
  * argument, and the global bucket runs before the local one. A global `beforeMoveCells` listener
  * returning a truthy non-CellRange therefore replaces `sourceRange` for the internal listeners
- * (UndoRedo's snapshotter, Formulas' engine prep) — which used to crash with
- * `TypeError: getTopStartCorner is not a function`. The internal listeners now shape-guard the
- * argument and veto the operation instead.
+ * (Formulas' engine prep) — which used to crash with `TypeError: getTopStartCorner is not a
+ * function`. The listeners shape-guard the argument, and the MoveCells plugin vetoes the move when
+ * the hook hands back anything but a range.
  */
 describe('MoveCells hook argument safety', () => {
   let container;
@@ -112,6 +112,46 @@ describe('MoveCells hook argument safety', () => {
     expect(move([1, 1, 2, 2], [5, 5])).toBe(true);
     expect(hot.getDataAtCell(5, 5)).toBe('1-1');
     expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(true);
+  });
+
+  describe('with the UndoRedo plugin off', () => {
+    /**
+     * Builds a 10x10 grid with the moveCells plugin on, undo off, and a `beforeMoveCells` listener.
+     *
+     * @param {Function} beforeMoveCells The listener.
+     */
+    function buildWithoutUndo(beforeMoveCells) {
+      hot = new Handsontable(container, {
+        data: Array.from({ length: 10 }, (_, row) => Array.from({ length: 10 }, (__, col) => `${row}-${col}`)),
+        moveCells: true,
+        undo: false,
+        beforeMoveCells,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    }
+
+    it('cancels the move when the listener returns `true`', () => {
+      buildWithoutUndo(() => true);
+
+      expect(hot.getPlugin('undoRedo').enabled).toBe(false);
+      expect(move([1, 1, 2, 2], [5, 5])).toBe(false);
+      expect(hot.getDataAtCell(1, 1)).toBe('1-1');
+      expect(hot.getDataAtCell(5, 5)).toBe('5-5');
+    });
+
+    it('lets the move through when the listener returns nothing', () => {
+      buildWithoutUndo(() => undefined);
+
+      expect(move([1, 1, 2, 2], [5, 5])).toBe(true);
+      expect(hot.getDataAtCell(5, 5)).toBe('1-1');
+    });
+
+    it('lets the move through when the listener returns the range it received', () => {
+      buildWithoutUndo(sourceRange => sourceRange);
+
+      expect(move([1, 1, 2, 2], [5, 5])).toBe(true);
+      expect(hot.getDataAtCell(5, 5)).toBe('1-1');
+    });
   });
 });
 

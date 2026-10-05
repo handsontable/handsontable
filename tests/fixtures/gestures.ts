@@ -18,9 +18,10 @@ import { type Page, type Locator } from '@playwright/test';
  * @param {object} delta How far to drag, in CSS pixels. Omitted axes do not move.
  * @param {number} [delta.x] The horizontal distance, for a column resize.
  * @param {number} [delta.y] The vertical distance, for a row resize.
+ * @param {Function} [whileHeld] Runs halfway through the drag, with the button still down.
  */
 export async function dragResizeHandle(
-  page: Page, handle: Locator, delta: { x?: number, y?: number }
+  page: Page, handle: Locator, delta: { x?: number, y?: number }, whileHeld?: () => Promise<void>
 ): Promise<void> {
   const box = await handle.boundingBox();
 
@@ -38,6 +39,7 @@ export async function dragResizeHandle(
   // Several moves, because the plugins track the drag through `mousemove` and a single jump can be
   // swallowed as a click.
   await page.mouse.move(startX + (deltaX / 2), startY + (deltaY / 2));
+  await whileHeld?.();
   await page.mouse.move(startX + deltaX, startY + deltaY);
   await page.mouse.up();
 }

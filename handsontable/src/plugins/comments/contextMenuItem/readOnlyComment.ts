@@ -65,13 +65,14 @@ export default function readOnlyCommentItem(plugin: Comments) {
         (row: number, col: number) => getCommentReadOnlyState(this, row, col) === true
       );
 
-      range.forAll((row: number, column: number) => {
+      // Every cell's change is one undo step together.
+      plugin.runOperation('comment', () => range.forAll((row: number, column: number) => {
         if (row >= 0 && column >= 0 && getCommentReadOnlyState(this, row, column) !== null) {
           plugin.updateCommentMeta(row, column, {
             [META_READONLY]: !atLeastOneReadOnly
           });
         }
-      });
+      }));
     },
     disabled(this: HotInstance) {
       const range = this.getSelectedRangeActive();

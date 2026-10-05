@@ -18,6 +18,15 @@ export class TimeEditor extends TextEditor {
   }
 
   /**
+   * Turns off the `maxLength` cap of the text editor. This editor has its own input rules.
+   *
+   * @returns {boolean}
+   */
+  protected override get capsLength(): boolean {
+    return false;
+  }
+
+  /**
    * Initializes the editor and registers an afterSetTheme hook to close on theme changes.
    */
   init(): void {

@@ -79,6 +79,8 @@
     window.hot.setCellMeta(13, 0, 'className', 'parent-meta');
     window.hot.setCellMeta(14, 0, 'className', 'child-meta');
     window.hot.setCellMeta(15, 0, 'className', 'grandchild-meta');
+    // `setCellMeta()` is an undo step. The seeded meta is setup, not something the specs undo.
+    window.hot.getPlugin('undoRedo').clear();
 
     const recordRemove = (hook) => (index, amount, physicalRows, source) => {
       window.removeLog.push({

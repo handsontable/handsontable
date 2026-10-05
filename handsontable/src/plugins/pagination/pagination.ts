@@ -27,6 +27,25 @@ const AUTO_PAGE_SIZE_WARNING = toSingleLine`The \`auto\` page size setting requi
   plugin to be enabled. Set the \`autoRowSize: true\` in the configuration to ensure correct behavior.`;
 
 /**
+ * The page state `Pagination#captureState()` records.
+ */
+interface PageState {
+  readonly currentPage: number;
+  readonly pageSize: number | 'auto';
+}
+
+/**
+ * Tells whether a value is a state `Pagination#captureState()` recorded.
+ *
+ * @param {*} value The value to test.
+ * @returns {boolean}
+ */
+function isPageState(value: unknown): value is PageState {
+  return isPlainObject(value) && typeof value.currentPage === 'number' &&
+    (typeof value.pageSize === 'number' || value.pageSize === 'auto');
+}
+
+/**
  * Reads a declared `initialPage` from the raw `pagination` setting.
  *
  * `pagination: true`, objects that omit the key, and non-number values return
@@ -627,6 +646,15 @@ export class Pagination extends BasePlugin {
       return;
     }
 
+    this.runOperation('set_page', () => this.#setPage(pageNumber));
+  }
+
+  /**
+   * The body of `setPage()`, run inside its operation.
+   *
+   * @param {number} pageNumber The page number to set.
+   */
+  #setPage(pageNumber: number): void {
     const oldPage = this.#currentPage;
     const shouldProceed = this.hot.runHooks('beforePageChange', oldPage, pageNumber);
 
@@ -662,6 +690,15 @@ export class Pagination extends BasePlugin {
       return;
     }
 
+    this.runOperation('set_page_size', () => this.#setPageSize(pageSize));
+  }
+
+  /**
+   * The body of `setPageSize()`, run inside its operation.
+   *
+   * @param {number | 'auto'} pageSize The page size to set.
+   */
+  #setPageSize(pageSize: number | 'auto'): void {
     const oldPageSize = this.#pageSize;
     const shouldProceed = this.hot.runHooks('beforePageSizeChange', oldPageSize, pageSize);
 
@@ -689,9 +726,64 @@ export class Pagination extends BasePlugin {
    * Resets the pagination state to the initial values defined in the settings.
    */
   resetPagination(): void {
-    this.resetPage();
-    this.resetPageSize();
+    this.runOperation('reset_pagination', () => {
+      this.resetPage();
+      this.resetPageSize();
+    });
     this.#updateSectionsVisibilityState();
+  }
+
+  /**
+   * Returns the current page and page size, for UndoRedo. The rows a page hides are not recorded:
+   * the plugin rebuilds them from the restored page. A grid paged by a data provider records
+   * nothing – its pages come from the server.
+   *
+   * @private
+   * @param {*} previous The value the previous capture returned.
+   * @returns {object|undefined}
+   */
+  captureState(previous: unknown): unknown {
+    if (this.#isDataProviderActive()) {
+      return undefined;
+    }
+
+    if (isPageState(previous) && previous.currentPage === this.#currentPage &&
+        previous.pageSize === this.#pageSize) {
+      return previous;
+    }
+
+    return { currentPage: this.#currentPage, pageSize: this.#pageSize };
+  }
+
+  /**
+   * Puts back the page and the page size a `captureState()` call recorded, and rebuilds the rows
+   * the page hides. Hook-silent: the page hooks fired when the user acted.
+   *
+   * @private
+   * @param {*} state The recorded state.
+   */
+  restoreState(state: unknown): void {
+    if (this.#isDataProviderActive() || !isPageState(state)) {
+      return;
+    }
+
+    if (state.pageSize !== this.#pageSize) {
+      this.#setPageSizeValue(state.pageSize);
+    }
+
+    this.#setCurrentPage(state.currentPage);
+    this.#computeAndApplyState();
+  }
+
+  /**
+   * The page and the page size name no column, so a `columns` settings update never makes a page
+   * change unsafe to undo.
+   *
+   * @private
+   * @returns {number[]}
+   */
+  getStateColumns(): readonly number[] {
+    return [];
   }
 
   /**
@@ -1046,12 +1138,14 @@ export class Pagination extends BasePlugin {
    * cannot overflow past the last visible row of the current page. The leading rows of the
    * clipboard are kept; the overflow tail is dropped.
    *
+   * The paste start row is the top row of the active selection, the same cell the CopyPaste plugin
+   * writes at. The copy-source ranges (`copyableRanges`) are not used: with `fragmentSelection: true`
+   * the plugin does not refresh them when the selection moves, so they can point at the copy source.
+   *
    * @param {Array} pastedData The data that was pasted.
-   * @param {Array<{startRow: number, endRow: number}>} ranges Copy-source ranges (`copyableRanges`);
-   * used as the paste start row when selection and clipboard ranges coincide.
    * @returns {boolean} Returns `false` to prevent the paste operation.
    */
-  #onBeforePaste = (pastedData: unknown[][], ranges: { startRow: number; endRow: number }[]) => {
+  #onBeforePaste = (pastedData: unknown[][]) => {
     const {
       firstVisibleRowIndex,
       lastVisibleRowIndex,
@@ -1061,17 +1155,17 @@ export class Pagination extends BasePlugin {
       return false;
     }
 
-    ranges.forEach(({ startRow }: { startRow: number }) => {
-      if (pastedData.length === 0) {
-        return;
-      }
+    const startRow = this.hot.getSelectedRangeActive()?.getTopStartCorner().row;
 
-      const remainingRowCount = Math.max(0, lastVisibleRowIndex - startRow + 1);
+    if (pastedData.length === 0 || startRow === null || startRow === undefined) {
+      return;
+    }
 
-      if (pastedData.length > remainingRowCount) {
-        pastedData.length = remainingRowCount;
-      }
-    });
+    const remainingRowCount = Math.max(0, lastVisibleRowIndex - startRow + 1);
+
+    if (pastedData.length > remainingRowCount) {
+      pastedData.length = remainingRowCount;
+    }
   };
 
   /**

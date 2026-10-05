@@ -7,9 +7,9 @@ import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import {
-  ageCheckEnabled, checkLinkedPackages, confirmationLines, danglingLinks, findBuildProblems, formatProblems,
-  generatedSourcePatterns, isCompiledSource, newestFile, packageCopies, preflightOptions, readConfirmations,
-  sourceFiles, workspacePackages,
+  ageCheckEnabled, checkExamplesToBuild, checkLinkedPackages, confirmationLines, danglingLinks, findBuildProblems,
+  formatProblems, generatedSourcePatterns, isCompiledSource, newestFile, packageCopies, preflightOptions,
+  readConfirmations, sourceFiles, workspacePackages,
 } from '../local-builds.mjs';
 
 // The two checks that keep the visual-test examples off the registry's builds (DEV-16): the guard each example's
@@ -18,12 +18,17 @@ import {
 // `examples/node_modules`, the linker's links under each framework directory) and puts it in one of the states
 // that used to pass silently. The last tests pin the wiring: every example's `build` runs the guard,
 // `build.mjs` refuses before its first install, and nothing builds an example any other way.
+//
+// The documentation examples under `examples/next/docs/` are kept off them by a third check,
+// `checkExamplesToBuild()`, which `examples:build` runs over every example before it builds the first one. Their
+// own `build` scripts must keep working in a copy outside the monorepo, so they cannot run the guard. Its cases
+// follow the guard's, and its wiring pins sit with the others.
 
 const PACKAGE_ROOT = join(import.meta.dirname, '..', '..');
 const REPO_ROOT = join(PACKAGE_ROOT, '..');
 const INSTALL_JS = 'npm run examples:install next/visual-tests/js';
 const GUARD = 'node ../../../../../visual-tests/scripts/check-linked-packages.mjs';
-const BUILD_TOOL = /\b(vite build|ng build|react-app-rewired build)\b/;
+const BUILD_TOOL = /\b(vite build|ng build)\b/;
 // The core's own ignore rules for what its build writes under `src/`, as `handsontable/.gitignore` has them,
 // with the two unanchored rules that also match real sources there.
 const CORE_GITIGNORE = 'src/3rdparty/walkontable/test/dist/\nsrc/3rdparty/walkontable/dist/\ndev*.ts\nlanguages/\n'
@@ -513,6 +518,158 @@ test('the guard refuses an example whose core build is older than its sources, u
   assert.deepEqual(checkLinkedPackages({ repoRoot: root, demoDir: demo('js'), checkAge: false }).problems, []);
 });
 
+/**
+ * Adds documentation examples to a repository from `makeRepo()`, linked the way `examples:install` leaves them:
+ * two js examples and a React one under `examples/next/docs/`, with the linker's links at each framework level.
+ *
+ * @param {string} root The throwaway repository.
+ * @returns {{example: (framework: string, name: string) => string, modules: (framework: string) => string}} Two
+ *   path helpers: an example's directory, and a framework's `node_modules`.
+ */
+function addDocsExamples(root) {
+  const examples = join(root, 'examples');
+  const example = (framework, name) => join(examples, 'next/docs', framework, name);
+  const modules = framework => join(examples, 'next/docs', framework, 'node_modules');
+
+  ['demo', 'basic-example'].forEach((name) => {
+    write(join(example('js', name), 'package.json'), { dependencies: { handsontable: 'latest' } });
+  });
+  write(join(example('react-wrapper', 'demo'), 'package.json'),
+    { dependencies: { handsontable: 'latest', '@handsontable/react-wrapper': 'latest' } });
+  link(join(examples, 'node_modules/handsontable'), join(modules('js'), 'handsontable'));
+  link(join(examples, 'node_modules/handsontable'), join(modules('react-wrapper'), 'handsontable'));
+  link(join(examples, 'node_modules/@handsontable/react-wrapper'),
+    join(modules('react-wrapper'), '@handsontable/react-wrapper'));
+
+  return { example, modules };
+}
+
+test('examples:build passes linked documentation examples and says what each one resolves to', (t) => {
+  const { root, demo } = makeRepo(t);
+  const { example } = addDocsExamples(root);
+  const { lines, problems } = checkExamplesToBuild({
+    repoRoot: root,
+    exampleDirs: [example('js', 'demo'), example('react-wrapper', 'demo'), demo('js')],
+  });
+
+  assert.deepEqual(problems, []);
+  assert.deepEqual(lines, [
+    'examples/next/docs/js/demo: handsontable resolves to the local build handsontable/tmp.',
+    'examples/next/docs/react-wrapper/demo: handsontable resolves to the local build handsontable/tmp.',
+    'examples/next/docs/react-wrapper/demo: @handsontable/react-wrapper resolves to the local build '
+      + 'wrappers/react-wrapper.',
+    'examples/next/visual-tests/js/demo: handsontable resolves to the local build handsontable/tmp.',
+  ]);
+
+  const alias = `${root}-alias`;
+
+  symlinkSync(root, alias, 'junction');
+  t.after(() => rmSync(alias, { force: true }));
+
+  assert.deepEqual(
+    checkExamplesToBuild({ repoRoot: root, exampleDirs: [join(alias, 'examples/next/docs/js/demo')] }).lines,
+    ['examples/next/docs/js/demo: handsontable resolves to the local build handsontable/tmp.'],
+    'an example reached through a symlinked checkout still sits under examples/next/',
+  );
+});
+
+test('examples:build refuses a registry copy in a documentation example, naming the example and the relink', (t) => {
+  const { root } = makeRepo(t);
+  const { example, modules } = addDocsExamples(root);
+
+  // What a plain `npm install` in the framework directory leaves: the locked registry copy, not the link.
+  installRegistryCopy(modules('js'), 'handsontable');
+
+  const { lines, problems } = checkExamplesToBuild({
+    repoRoot: root,
+    exampleDirs: [example('js', 'demo'), example('js', 'basic-example'), example('react-wrapper', 'demo')],
+  });
+
+  assert.deepEqual(problems.map(({ summary }) => summary), [
+    'examples/next/docs/js/demo: handsontable: resolves to a copy that is not the local build handsontable/tmp.',
+    'examples/next/docs/js/basic-example: handsontable: resolves to a copy that is not the local build '
+      + 'handsontable/tmp.',
+  ], 'the React example keeps its links, so only the two js ones are refused');
+  assert.deepEqual(problems[0].detail, [
+    'examples/next/docs/js/node_modules/handsontable is a plain copy of version 18.1.0, not a link.',
+    'The linker replaces these with links to the local build when examples:install runs it.',
+  ]);
+  assert.deepEqual([...new Set(problems.map(({ remedy }) => remedy))],
+    ['Install and link the example: npm run examples:install next/docs/js']);
+  assert.deepEqual(lines, [
+    'examples/next/docs/react-wrapper/demo: handsontable resolves to the local build handsontable/tmp.',
+    'examples/next/docs/react-wrapper/demo: @handsontable/react-wrapper resolves to the local build '
+      + 'wrappers/react-wrapper.',
+  ], 'a refused example confirms nothing, although the check looked at its packages');
+});
+
+test('examples:build names a missing core build in each example that declares it, and compares no age', (t) => {
+  const { root } = makeRepo(t);
+  const { example, modules } = addDocsExamples(root);
+
+  // The linker's pass over an unbuilt core: its source dangles, so it leaves the registry copy.
+  rmSync(join(root, 'handsontable/tmp'), { recursive: true });
+  installRegistryCopy(modules('js'), 'handsontable');
+
+  const { problems } = checkExamplesToBuild({
+    repoRoot: root,
+    exampleDirs: [example('js', 'demo'), example('react-wrapper', 'demo')],
+  });
+
+  assert.deepEqual(problems.map(({ summary }) => summary), [
+    'examples/next/docs/js/demo: handsontable: the local build is missing (handsontable/tmp/package.json).',
+    'examples/next/docs/react-wrapper/demo: handsontable: the local build is missing '
+      + '(handsontable/tmp/package.json).',
+  ]);
+  assert.equal(problems[0].remedy, 'Build it, then relink the example: npm --prefix handsontable run build '
+    + '&& npm run examples:install next/docs/js');
+});
+
+test('examples:build compares the core build with its sources once, not once for each example', (t) => {
+  const { root, demo } = makeRepo(t);
+  const { example, modules } = addDocsExamples(root);
+  const exampleDirs = [example('js', 'demo'), example('react-wrapper', 'demo'), demo('js')];
+
+  setTime(join(root, 'handsontable/src/core.ts'), '2026-03-01T00:00:00Z');
+  installRegistryCopy(modules('js'), 'handsontable');
+
+  assert.deepEqual(checkExamplesToBuild({ repoRoot: root, exampleDirs }).problems.map(({ summary }) => summary), [
+    'The core build is older than its sources: handsontable/tmp predates handsontable/src/core.ts.',
+    'examples/next/docs/js/demo: handsontable: resolves to a copy that is not the local build handsontable/tmp.',
+  ], 'the core first, since it is rebuilt before any example is relinked');
+  assert.deepEqual(
+    checkExamplesToBuild({ repoRoot: root, exampleDirs, checkAge: false }).problems.map(({ summary }) => summary),
+    ['examples/next/docs/js/demo: handsontable: resolves to a copy that is not the local build handsontable/tmp.'],
+  );
+});
+
+test('examples:build leaves an example the linker never links, or one with nothing to check, unchecked', (t) => {
+  const { root } = makeRepo(t);
+  const versioned = join(root, 'examples/18.1.0/docs/js/demo');
+  const serverOnly = join(root, 'examples/next/docs/js/server-only');
+  const exampleDirs = [versioned, serverOnly];
+
+  write(join(versioned, 'package.json'), { dependencies: { handsontable: '18.1.0' } });
+  installRegistryCopy(join(root, 'examples/18.1.0/docs/js/node_modules'), 'handsontable');
+  write(join(serverOnly, 'package.json'), { dependencies: { express: '^5.0.0' } });
+  // Neither one renders the local build, so a stale core is no reason to refuse them.
+  setTime(join(root, 'handsontable/src/core.ts'), '2026-03-01T00:00:00Z');
+
+  assert.deepEqual(checkExamplesToBuild({ repoRoot: root, exampleDirs }), {
+    lines: [
+      'examples/18.1.0/docs/js/demo: not checked, since the linker links the examples under examples/next/ only.',
+      'examples/next/docs/js/server-only: not checked, since it declares no handsontable or @handsontable/* '
+        + 'package.',
+    ],
+    problems: [],
+  });
+
+  rmSync(join(root, 'handsontable/tmp'), { recursive: true });
+
+  assert.deepEqual(checkExamplesToBuild({ repoRoot: root, exampleDirs }).problems, [],
+    'a versioned build needs no local build at all');
+});
+
 test('the preflight passes a built, linked, current core and refuses a missing one with the build command', (t) => {
   const { root } = makeRepo(t);
 
@@ -706,7 +863,7 @@ test('preflightOptions turns the age check off on CI only, and passes the tier\'
     'only the value GitHub Actions sets turns it off');
 });
 
-test('formatProblems lays out every problem the same way for both scripts', () => {
+test('formatProblems lays out every problem the same way for all three scripts', () => {
   const problems = [
     { summary: 'one', detail: ['a', 'b'], remedy: 'fix one' },
     { summary: 'two', detail: [], remedy: 'fix two' },
@@ -807,12 +964,14 @@ test('the guard script exits 0 on a versioned copy and 1 outside any example', (
 });
 
 /**
- * Every example in the visual-tests tree and its manifest: each framework's `demo/` and `basic-example/`.
+ * Every example in one tree of `examples/next/` and its manifest: in `visual-tests`, each framework's `demo/` and
+ * `basic-example/`; in `docs`, each documentation example.
  *
+ * @param {string} tree The tree, `visual-tests` or `docs`.
  * @returns {Array<{exampleDir: string, manifest: object}>} One entry per example.
  */
-function realExamples() {
-  const frameworksDir = join(REPO_ROOT, 'examples/next/visual-tests');
+function realExamples(tree) {
+  const frameworksDir = join(REPO_ROOT, 'examples/next', tree);
 
   return readdirSync(frameworksDir, { withFileTypes: true })
     .filter(entry => entry.isDirectory())
@@ -824,7 +983,7 @@ function realExamples() {
 }
 
 test('every example in the visual-tests tree runs the guard first in its build, and no other script builds it', () => {
-  const examples = realExamples();
+  const examples = realExamples('visual-tests');
 
   // Four frameworks, a demo and a basic example each. Fewer means the tree moved and this test checks nothing.
   assert.equal(examples.length, 8, `found ${examples.length} examples`);
@@ -846,6 +1005,66 @@ test('every example in the visual-tests tree runs the guard first in its build, 
       assert.doesNotMatch(command, BUILD_TOOL, `${exampleDir}: script "${name}" builds the example without the guard`);
     });
   });
+});
+
+test('every documentation example builds on its own, and declares the core that examples:build checks', () => {
+  const examples = realExamples('docs');
+
+  // Fifteen when this was written, in five frameworks. Fewer means the tree moved and this test checks nothing,
+  // or examples were removed and the floor comes down with them; a new example needs no change here.
+  assert.ok(examples.length >= 15, `found ${examples.length} examples`);
+
+  examples.forEach(({ exampleDir, manifest: { scripts, dependencies, devDependencies } }) => {
+    // The public samples: the documentation links them, CodeSandbox opens them, and examples/README.md has readers
+    // copy one out of the monorepo. A script that climbs out of the example, as the guard's path would, fails in
+    // that copy, so the check is examples:build's, never the example's own.
+    Object.entries(scripts).forEach(([name, command]) => {
+      assert.doesNotMatch(command, /\.\.[\\/]/, `${exampleDir}: script "${name}" reaches outside the example`);
+    });
+    assert.match(scripts.build, BUILD_TOOL, `${exampleDir}: the build script must build the example`);
+    // examples:build checks the packages an example declares, and leaves one that declares none unchecked.
+    assert.ok(Object.keys({ ...dependencies, ...devDependencies }).includes('handsontable'),
+      `${exampleDir}: declares no handsontable, so examples:build would not check it`);
+  });
+});
+
+test('examples:build checks every example it builds before the first build, and refuses through the formatter', () => {
+  const script = readFileSync(join(REPO_ROOT, 'examples/scripts/code-examples.mjs'), 'utf8');
+  const buildCase = script.slice(script.indexOf('case \'build\': {'), script.indexOf('case \'test\': {'));
+  const checkAt = buildCase.indexOf('checkExamplesToBuild({');
+  const refusalAt = buildCase.indexOf('if (problems.length > 0) {', checkAt);
+  const exitAt = buildCase.indexOf('process.exit(1);', refusalAt);
+  const buildAt = buildCase.indexOf('runNpmCommandInExample(exampleDir, \'npm run build\')');
+  const imported = script.match(/import \{([^}]*)\} from '\.\.\/\.\.\/visual-tests\/lib\/local-builds\.mjs';/)?.[1];
+  const call = new RegExp(['checkExamplesToBuild\\(\\{', 'repoRoot: REPO_ROOT_DIR,', 'exampleDirs: examplesFolders,',
+    'checkAge: ageCheckEnabled\\(process\\.env\\)', '\\}\\)'].join('\\s*'));
+
+  assert.deepEqual(imported?.split(',').map(name => name.trim()).filter(Boolean).sort(),
+    ['ageCheckEnabled', 'checkExamplesToBuild', 'formatProblems'], 'code-examples.mjs must take the check from here');
+  assert.ok(checkAt !== -1 && refusalAt !== -1 && exitAt !== -1 && buildAt !== -1,
+    'the build case lost its check, its refusal, its exit, or its build');
+  assert.ok(checkAt < refusalAt && refusalAt < exitAt && exitAt < buildAt,
+    'the refusal must exit before the first example builds');
+  assert.equal(buildCase.split('npm run build').length, 2, 'the build case must build its examples in one place');
+  assert.match(buildCase, call, 'every example the case builds must be checked, with the age check off on CI only');
+  assert.match(buildCase, /examplesFolders\.forEach\(\(exampleDir\) => \{/, 'the case must build the list it checked');
+  assert.match(buildCase, /formatProblems\(problems, \{ highlight: chalk\.red \}\)/,
+    'the refusal must print through the shared formatter');
+  assert.doesNotMatch(script, /Run the commands from the repository root/,
+    'the pointer line belongs to formatProblems(), so the scripts cannot drift apart');
+});
+
+test('both automated builds of the documentation examples run examples:build', () => {
+  const read = file => readFileSync(join(REPO_ROOT, file), 'utf8');
+  const scripts = file => JSON.parse(read(file)).scripts;
+
+  // `npm run all build` (every build-all.yml leg) and the release cut's `npm run in examples build` both run the
+  // examples workspace's `build` script, and the bypass scan below finds any step that builds one another way.
+  assert.equal(read('.github/workflows/build-all.yml').match(/^\s+run: npm run all build$/gm)?.length, 2,
+    'the Unix and Windows jobs of build-all.yml build every workspace, the examples among them');
+  assert.match(read('.github/workflows/publish.yml'), /^\s+run: npm run in examples build$/m);
+  assert.equal(scripts('examples/package.json').build, 'cd .. && npm run examples:build next');
+  assert.equal(scripts('package.json')['examples:build'], 'node examples/scripts/code-examples.mjs build');
 });
 
 test('build.mjs refuses before its first install, and builds each demo through its build script', () => {
@@ -880,7 +1099,7 @@ test('the guard script prints through the shared formatter and checks the age of
   assert.match(guard, /checkAge: ageCheckEnabled\(process\.env\)/);
   assert.match(guard, /formatProblems\(problems\)/);
   assert.doesNotMatch(guard, /Run the commands from the repository root/,
-    'the pointer line belongs to formatProblems(), so the two scripts cannot drift apart');
+    'the pointer line belongs to formatProblems(), so the scripts cannot drift apart');
 });
 
 /**
@@ -904,8 +1123,12 @@ function yamlItems(text) {
 }
 
 /**
- * Finds the steps and scripts that build a visual-test example without its guard: a demo's build tool called in
- * a step or script that works on the visual-tests tree, or a demo script other than `build`.
+ * Finds the steps and scripts that build an example without its check. For a visual-test example, that is a
+ * demo's build tool called in a step or script that works on the visual-tests tree, or a demo script other than
+ * `build`. For the documentation examples it is any build of them outside `examples:build`, from an example's
+ * directory or from its framework's: each framework directory is an npm workspaces root, so `--workspaces`, `-ws`,
+ * or `-w <example>` there builds its examples too. Their own `build` scripts run no guard, so only
+ * `examples:build` checks them.
  *
  * @param {Array<{file: string, text: string}>} sources The workflow and action files, as YAML text.
  * @param {Array<{file: string, scripts: object}>} manifests The package manifests whose scripts to read.
@@ -914,18 +1137,21 @@ function yamlItems(text) {
 function bypasses(sources, manifests) {
   const touchesVisualTests = text => /visual-tests/.test(text);
   const otherDemoScript = /examples\/next\/visual-tests\/[\w-]+\/(demo|basic-example) run (?!build(\s|$))/;
+  const buildsDocsExample = text => /examples\/next\/docs\/[\w-]+/.test(text)
+    && (BUILD_TOOL.test(text) || /\brun(-script)? build\b/.test(text));
 
   return [
     ...sources.flatMap(({ file, text }) => yamlItems(text)
-      .filter(item => touchesVisualTests(item) && (BUILD_TOOL.test(item) || otherDemoScript.test(item)))
+      .filter(item => (touchesVisualTests(item) && (BUILD_TOOL.test(item) || otherDemoScript.test(item)))
+        || buildsDocsExample(item))
       .map(item => `${file}: ${item.trim().split('\n')[0]}`)),
     ...manifests.flatMap(({ file, scripts }) => Object.entries(scripts ?? {})
-      .filter(([, command]) => touchesVisualTests(command) && BUILD_TOOL.test(command))
+      .filter(([, command]) => (touchesVisualTests(command) && BUILD_TOOL.test(command)) || buildsDocsExample(command))
       .map(([name]) => `${file}: scripts.${name}`)),
   ];
 }
 
-test('the bypass scan flags a visual-tests step that builds around the guard, and nothing else', () => {
+test('the bypass scan flags a step that builds an example around its check, and nothing else', () => {
   const yaml = [
     '    steps:',
     '      - name: Build the docs',
@@ -939,21 +1165,47 @@ test('the bypass scan flags a visual-tests step that builds around the guard, an
     '        run: npm --prefix examples/next/visual-tests/js/demo run build',
     '      - name: A second script',
     '        run: npm --prefix examples/next/visual-tests/js/demo run build:ci',
+    '      - name: Build a documentation example by its own script',
+    '        run: npm --prefix examples/next/docs/js/demo run build',
+    '      - name: Build one in its directory',
+    '        run: npm run build',
+    '        working-directory: examples/next/docs/react-wrapper/demo',
+    '      - name: Serve a documentation example',
+    '        run: npm --prefix examples/next/docs/js/demo run start',
+    '      - name: Build the documentation examples',
+    '        run: npm run examples:build next/docs/js',
+    // Each framework directory is an npm workspaces root, so one command there builds all its examples.
+    '      - name: Build the js documentation examples as workspaces',
+    '        run: npm --prefix examples/next/docs/js run build --workspaces',
+    '      - name: Build them in the framework directory',
+    '        run: npm run build -ws',
+    '        working-directory: examples/next/docs/vue3',
+    '      - name: Install the js documentation examples',
+    '        run: npm --prefix examples/next/docs/js install',
   ].join('\n');
   const scripts = {
     'serve-example': 'npm --prefix ../examples/next/visual-tests/js/demo run serve -- --port=8082',
     'build-demo': 'cd ../examples/next/visual-tests/js/demo && vite build',
     'docs:build': 'cd ../docs && ng build',
+    'docs-demo': 'cd examples/next/docs/js/demo && vite build',
+    'docs-examples': 'npm run examples:build next/docs',
+    'docs-workspace': 'npm --prefix examples/next/docs/react-wrapper run-script build -w demo',
   };
 
   assert.deepEqual(bypasses([{ file: 'x.yml', text: yaml }], [{ file: 'package.json', scripts }]), [
     'x.yml: - name: Build the js demo',
     'x.yml: - name: A second script',
+    'x.yml: - name: Build a documentation example by its own script',
+    'x.yml: - name: Build one in its directory',
+    'x.yml: - name: Build the js documentation examples as workspaces',
+    'x.yml: - name: Build them in the framework directory',
     'package.json: scripts.build-demo',
+    'package.json: scripts.docs-demo',
+    'package.json: scripts.docs-workspace',
   ]);
 });
 
-test('no workflow, action, or package script builds a visual-test example around its guard', () => {
+test('no workflow, action, or package script builds an example around its check', () => {
   const workflowsDir = join(REPO_ROOT, '.github/workflows');
   const actionsDir = join(REPO_ROOT, '.github/actions');
   const files = [
@@ -962,13 +1214,14 @@ test('no workflow, action, or package script builds a visual-test example around
       .map(entry => join(actionsDir, entry.name, 'action.yml')).filter(file => existsSync(file)),
   ];
   const sources = files.map(file => ({ file: file.slice(REPO_ROOT.length + 1), text: readFileSync(file, 'utf8') }));
-  const manifests = ['package.json', 'visual-tests/package.json', 'examples/package.json']
+  const manifests = ['package.json', 'visual-tests/package.json', 'examples/package.json', 'docs/package.json']
     .map(file => ({ file, scripts: JSON.parse(readFileSync(join(REPO_ROOT, file), 'utf8')).scripts }));
   const demoBuilds = sources.filter(({ text }) => /examples\/next\/visual-tests\/[\w-]+\/demo run build$/m.test(text));
 
   assert.ok(files.length > 10, `only ${files.length} workflow and action files found — did .github move?`);
   assert.deepEqual(bypasses(sources, manifests), [],
-    'build an example through `npm --prefix <example> run build` so its guard runs');
+    'build a visual-test example through `npm --prefix <example> run build` so its guard runs, and a documentation '
+    + 'example through `npm run examples:build`, which checks it');
   // The two direct builds today: the cross-browser leg of visual.yml and the stability matrix.
   assert.deepEqual(demoBuilds.map(({ file }) => file.split('/').pop()).sort(), ['visual-stability.yml', 'visual.yml']);
 });

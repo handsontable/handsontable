@@ -2,7 +2,7 @@ import { BasePlugin } from '../base';
 import { objectEach } from '../../helpers/object';
 import Endpoints, { type EndpointConfig } from './endpoints';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
-import { holdsNoNumber } from './utils';
+import { holdsNoNumber, isBlank } from './utils';
 import { throwWithCause } from '../../helpers/errors';
 import { normalizeClassNames } from '../../helpers/dom/element';
 
@@ -536,6 +536,8 @@ export class ColumnSummary extends BasePlugin {
       return null;
     }
 
+    const isBlankCell = isBlank(cellValue);
+
     if (this.endpoints!.currentEndpoint!.forceNumeric) {
       if (typeof cellValue === 'string') {
         cellValue = cellValue.replace(/,/, '.');
@@ -545,7 +547,12 @@ export class ColumnSummary extends BasePlugin {
     }
 
     if (isNaN(Number(cellValue))) {
-      if (!this.endpoints!.currentEndpoint!.suppressDataTypeErrors) {
+      // A blank cell inside the default range is not bad data: the user never named that range, and it covers
+      // the empty rows the grid adds (an appended row, or a row an undo restores). An explicit range keeps
+      // throwing on a blank cell (DEV-2995).
+      const isUnnamedBlankCell = isBlankCell && Boolean(this.endpoints!.currentEndpoint!.rangesFromDefault);
+
+      if (!this.endpoints!.currentEndpoint!.suppressDataTypeErrors && !isUnnamedBlankCell) {
         throwWithCause(toSingleLine`ColumnSummary plugin: cell at (${row}, ${col}) is not in a\x20
           numeric format. Cannot do the calculation.`);
       }

@@ -48,6 +48,20 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   real, say so in the test instead of pinning one bundle's answer. A real one is
   still a defect: that editor split is tracked as DEV-2862, since the fixture
   enables no Formulas and only the bundle differs.
+- **A stylesheet edit needs BOTH bundles rebuilt, not only the stylesheet.** The
+  bundles inline the base stylesheet (`src/styles/handsontableStyles.js`, which
+  `build:styles` rewrites) and inject it as a `<style>` after the fixture's
+  `<link>`s, so for a declaration both copies carry, the bundle's copy wins the
+  cascade. After `build:styles.min` alone, `handsontable.min.css` on disk shows
+  the new value while every leg still renders the old one — measured on the row
+  resize guide's `margin-top`: 4px in the stylesheet, 5px computed, and the spec
+  that guards it stayed green on the planted bug. `build:umd` refreshes the three
+  `umd` legs only; the three `-min` legs load `handsontable.full.min.js`, which
+  only `build:umd.min` rewrites, so a planted CSS bug rebuilt with `build:umd`
+  alone goes red on `umd` and stays green on `-min` — the same misread, split by
+  bundle. Rebuild `build:umd` and `build:umd.min`, or run the full `build`
+  (`handsontable/AGENTS.md`, Build). An additive rule takes effect from the
+  stylesheet alone, which is what makes the trap look intermittent.
 - **Never hardcode a row or column index that sits near the edge of the
   rendered band.** Each theme's padding feeds `autoColumnSize`, so the same
   content measures differently: in `width-window-scroll.html` (500px wide, 30
@@ -90,8 +104,14 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   cell. Set `<html dir="rtl">` too, as a real RTL page does; the window then
   scrolls toward the inline end with a NEGATIVE `scrollX`, which is the
   arithmetic a window-scroll branch has to get right
-  (`e2e/handsontable-editor-list-position.spec.ts`, whose RTL window case is
-  parked on exactly such a bug).
+  (`e2e/handsontable-editor-list-position.spec.ts`, whose RTL window case
+  caught exactly such a bug: the list's flip added the viewport position of the
+  grid's LEFT edge to a distance measured from its right edge, so every list
+  flipped once the page was scrolled toward its inline end). Such a case must
+  SCROLL the window, not only render the RTL page: at `scrollX` 0 that bug made
+  no difference. And give it a layout where the grid root is not exactly as
+  wide as the viewport (that spec's `?inset=start`), or `scrollX` and the
+  root's width can stand in for the right terms and pass.
 - **A SHORT fixed-height fixture has no room to spare on the row axis, and
   `hover()` turns that into a delayed failure somewhere else.** Playwright
   scrolls a target into view before pressing it, so a `cell(row, col)` locator
@@ -292,14 +312,22 @@ not need a real press.
   poll fit the 20s test timeout, or an exhausted wait surfaces as a locationless "Test timeout"
   instead of its message.
 
-## Rendering below 100% (zoom / display scaling)
+## Rendering away from 100% (zoom / display scaling)
 
 Reach for **CSS `zoom` on the root element**, applied by the fixture before the grid is
 constructed (`fixtures/demo/row-height-device-scale.html`). Chrome routes it through the same
 effective-zoom machinery as browser page zoom, so a cell's 1px border is inflated exactly as it
 is under Ctrl+minus or Windows display scaling — `getComputedStyle` reads `1.111px` at 0.9
 either way. Assert that inflation as the test's own precondition; without it every geometry
-assertion passes on unfixed code.
+assertion passes on unfixed code. Above 100% the snapping goes the other way: at 1.25 the same
+1px border is computed as 0.8px (1.25 device pixels snapped down to one, measured on every
+theme in `overlay-alignment-css-zoom.spec.ts`), so the precondition there is a value away from
+1, not above it. `getBoundingClientRect()` is scaled by CSS zoom and `offsetWidth` is not, so
+their ratio is the zoom the grid really got — a stronger precondition than reading the style
+attribute back. A grid does not redraw when the page zoom changes after construction
+(`afterViewRender` count unchanged), so a zoom applied late is the browser re-laying out the
+sizes the grid wrote at 100%, and a fixture that wants the grid to MEASURE zoomed cells applies
+the zoom before constructing it.
 
 The two things that do **not** work: Playwright's context-level `deviceScaleFactor` reports the
 ratio faithfully but never inflates the border, so a test built on it is vacuous; and
