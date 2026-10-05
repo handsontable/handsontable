@@ -169,7 +169,7 @@ jobs:
         # Firefox test fails at launch; HOME=/root is the workaround Playwright's own error prints.
         env:
           HOME: /root
-        run: cd tests && npx playwright test --config playwright-engines.config.ts --repeat-each=3
+        run: cd tests && npx playwright test --config playwright-engines.config.ts
       - name: Upload the Playwright report on failure
         if: failure() || steps.playwright.outputs.quarantined-flaky == 'true'
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
