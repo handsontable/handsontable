@@ -11,7 +11,7 @@ import {
  * indicator on the header in Chromium, Firefox and WebKit. One capture in each browser, after
  * asserting the row count, that the menu closed, and that Country alone carries the indicator. Which
  * rows a value search keeps, and a second column's date range on top of it (this spec's retired second
- * capture, a WebKit flake), are asserted on all six theme and bundle legs by
+ * capture, a WebKit flake), are asserted on all six theme and bundle legs and on Firefox and WebKit by
  * `tests/e2e/filters-search-then-condition.spec.ts`. Owned by DEV-3257.
  */
 visualTest('Test filtering', {

@@ -11,8 +11,8 @@ import {
  * Checks that the pagination bar — the native page-size select, the counter and the page buttons —
  * renders in Chromium, Firefox and WebKit over a filtered and sorted grid. One capture in each browser,
  * after asserting the sort and the counter. Paging through that grid, and a column cleared on one page
- * (this spec's three retired captures), are asserted on all six theme and bundle legs by
- * `tests/e2e/pagination-filter-sort.spec.ts`; the pages themselves are photographed on every theme by
+ * (this spec's three retired captures), are asserted on all six theme and bundle legs and on Firefox
+ * and WebKit by `tests/e2e/pagination-filter-sort.spec.ts`; the pages themselves are photographed on every theme by
  * `js-only/pagination`. Owned by DEV-3257.
  */
 visualTest('Test pagination', {

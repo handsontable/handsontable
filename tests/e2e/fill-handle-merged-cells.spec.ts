@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { GridLayoutsPage } from '../fixtures/pages/GridLayoutsPage';
 
 /**
@@ -13,7 +13,7 @@ import { GridLayoutsPage } from '../fixtures/pages/GridLayoutsPage';
  * shape (`grid-layouts.html?layout=merged-sorted`): its merged areas cross column 2 at visual rows
  * 19-21 and 24-25.
  */
-test.describe('fill-handle double click over merged cells', () => {
+test.describe('fill-handle double click over merged cells', { tag: CROSS_BROWSER_TAG }, () => {
   let grid: GridLayoutsPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { OrdersGridPage } from '../fixtures/pages/OrdersGridPage';
 
 /**
@@ -14,7 +14,7 @@ import { OrdersGridPage } from '../fixtures/pages/OrdersGridPage';
  * rows themselves were a screenshot. The orders fixture's data gives the demo's counts, 60 to 6 to
  * 3, so the same three steps are asserted here by the rows they leave.
  */
-test.describe('a searched value list and a date condition', () => {
+test.describe('a searched value list and a date condition', { tag: CROSS_BROWSER_TAG }, () => {
   let grid: OrdersGridPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

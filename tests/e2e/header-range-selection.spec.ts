@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { GridLayoutsPage, type GridLayout } from '../fixtures/pages/GridLayoutsPage';
 
 /**
@@ -114,7 +114,7 @@ function span(from: number, to: number): number[] {
   return Array.from({ length: to - from + 1 }, (_, index) => from + index);
 }
 
-test.describe('a header click and a Shift+click select the range between them', () => {
+test.describe('a header click and a Shift+click select the range between them', { tag: CROSS_BROWSER_TAG }, () => {
   let grid: GridLayoutsPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

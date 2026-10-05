@@ -1,7 +1,14 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { TwoGridsPage } from '../fixtures/pages/TwoGridsPage';
 
-test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
+// The permissions let a test read the clipboard back. Only Chromium grants them (Firefox rejects
+// `clipboard-read`, WebKit `clipboard-write`), and the copy and paste themselves are real key presses
+// that need neither, so the engine legs run these specs without them.
+test.use({
+  permissions: async({ browserName }, use) => {
+    await use(browserName === 'chromium' ? ['clipboard-read', 'clipboard-write'] : []);
+  },
+});
 
 /**
  * A value copied in one grid pastes into another grid on the same page through the system
@@ -15,7 +22,7 @@ test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
  * develop seed and the nightly, and on a pull request only when the pull request changed the
  * visual suite.
  */
-test.describe('clipboard between two grids', () => {
+test.describe('clipboard between two grids', { tag: CROSS_BROWSER_TAG }, () => {
   let page: TwoGridsPage;
 
   test.beforeEach(async({ page: browserPage, theme, bundle }) => {
@@ -25,13 +32,18 @@ test.describe('clipboard between two grids', () => {
 
   test('pastes a value copied in one grid into the other grid, but not into a read-only column', async({
     page: browserPage,
+    browserName,
   }) => {
     await page.makeColumnReadOnly('top', 4);
 
     await page.cell('bottom', 2, 3).click();
     await browserPage.keyboard.press('ControlOrMeta+c');
 
-    await expect.poll(async() => page.clipboardText()).toBe('bD3');
+    // Reading the clipboard back needs `clipboard-read`, which only Chromium grants; on Firefox and
+    // WebKit the paste below, landing the copied value, is what shows the copy happened.
+    if (browserName === 'chromium') {
+      await expect.poll(async() => page.clipboardText()).toBe('bD3');
+    }
 
     // Leave the source grid on a different cell, so a paste that reached it as well would show.
     await page.cell('bottom', 4, 4).click();

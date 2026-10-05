@@ -28,6 +28,15 @@ export type TestOptions = {
   bundle: string;
 };
 
+/**
+ * The tag that puts a test on the engine legs as well: `e2e-firefox` and `e2e-webkit`, the projects of
+ * `tests/playwright-engines.config.ts`, which run only tagged tests, on the main theme and the plain
+ * UMD bundle. Tag a test whose behavior an engine could get wrong on its own (real key presses,
+ * pointer gestures, focus, layout read back from the DOM), the way the cross-browser visual specs
+ * used to cover it: `test.describe('…', { tag: CROSS_BROWSER_TAG }, () => { … })`.
+ */
+export const CROSS_BROWSER_TAG = '@cross-browser';
+
 export const test = base.extend<TestOptions>({
   theme: ['main', { option: true }],
   bundle: ['umd', { option: true }],

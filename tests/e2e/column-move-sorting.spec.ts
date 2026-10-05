@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { ColumnMoveSortingPage } from '../fixtures/pages/ColumnMoveSortingPage';
 
 /**
@@ -10,7 +10,7 @@ import { ColumnMoveSortingPage } from '../fixtures/pages/ColumnMoveSortingPage';
  *
  * These tests drive the flow from the bug report: sort a column, then move it.
  */
-test.describe('column move with sorting enabled', () => {
+test.describe('column move with sorting enabled', { tag: CROSS_BROWSER_TAG }, () => {
   let grid: ColumnMoveSortingPage;
 
   test.beforeEach(async ({ page, theme }) => {

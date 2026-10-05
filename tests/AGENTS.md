@@ -141,6 +141,37 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   the grid's `overflow: clip` when the list stays left-aligned with the
   last cell.
 
+## The engine legs (Firefox, WebKit)
+
+- The six projects above are Chromium. Tests tagged `@cross-browser` run on Firefox and WebKit as
+  well: `{ tag: CROSS_BROWSER_TAG }` on the `test.describe` (`fixtures/test.ts`), picked up by the two
+  projects of `playwright-engines.config.ts`, `e2e-firefox` and `e2e-webkit`, on the main theme and
+  the plain UMD bundle. CI runs that config in one job, `E2E / Playwright engines (Firefox, WebKit)`;
+  it is the only pre-merge Firefox and WebKit run of the grid. The visual suite's cross-browser leg
+  photographs on the seed and the nightly only.
+- Tag a test whose behavior an engine could get wrong on its own: real key presses (the Tab order,
+  undo and redo shortcuts), pointer gestures (header clicks, drags, the fill handle's double click),
+  focus, and layout read back from the DOM. The specs that replaced the cross-browser visual
+  captures' photographed states (DEV-3257) are tagged, and
+  `.github/scripts/__tests__/playwright-engines.test.mjs` keeps them tagged and keeps the config
+  filtering by the tag and inheriting the base config's CI flake settings and reporters.
+- A separate config, so that `npx playwright test` without `--project` (all six legs) never needs the
+  engines installed. To run a tagged spec on them locally, install them once for this package's
+  Playwright and name the config:
+
+  ```bash
+  cd tests && npx playwright install firefox webkit
+  cd tests && HOT_TEST_PORT=8131 npx playwright test --config playwright-engines.config.ts e2e/<spec>.spec.ts
+  ```
+
+  The local gates (pre-push, the Stop hook) run `e2e-main` only, so an engine failure first shows in
+  CI unless you run it.
+- Playwright grants `clipboard-read` and `clipboard-write` on Chromium only (Firefox rejects the
+  first, WebKit the second, and a context that asks for either fails to open). A tagged clipboard spec
+  therefore asks for them on Chromium alone (`test.use({ permissions: async({ browserName }, use) => … })`)
+  and reads the clipboard back there only; the copy and paste are real key presses, which work on all
+  three engines (`clipboard-between-grids.spec.ts`, `clipboard-scrolled-range.spec.ts`).
+
 ## Fixture contract (never get these wrong)
 
 - Fixtures are standalone HTML under `fixtures/demo/`, served statically. Every

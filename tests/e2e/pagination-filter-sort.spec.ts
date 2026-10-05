@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { OrdersGridPage } from '../fixtures/pages/OrdersGridPage';
 
 /**
@@ -18,7 +18,7 @@ import { OrdersGridPage } from '../fixtures/pages/OrdersGridPage';
  * The expected rows are worked out from the source data in the test, independently of the grid:
  * the countries that contain "in", sorted by the clicked column.
  */
-test.describe('pagination over a filtered and sorted grid', () => {
+test.describe('pagination over a filtered and sorted grid', { tag: CROSS_BROWSER_TAG }, () => {
   let grid: OrdersGridPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

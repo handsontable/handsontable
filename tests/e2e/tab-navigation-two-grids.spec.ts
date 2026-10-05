@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { TwoGridsPage } from '../fixtures/pages/TwoGridsPage';
 
 /**
@@ -16,7 +16,7 @@ import { TwoGridsPage } from '../fixtures/pages/TwoGridsPage';
  * asserting nothing. The presses here are the same three runs, and each run ends on the state the
  * matching screenshot showed.
  */
-test.describe('Tab order through two grids', () => {
+test.describe('Tab order through two grids', { tag: CROSS_BROWSER_TAG }, () => {
   let page: TwoGridsPage;
 
   test.beforeEach(async({ page: browserPage, theme, bundle }) => {

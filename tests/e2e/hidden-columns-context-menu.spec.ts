@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { OrdersGridPage } from '../fixtures/pages/OrdersGridPage';
 
 /**
@@ -13,7 +13,7 @@ import { OrdersGridPage } from '../fixtures/pages/OrdersGridPage';
  * the rest until DEV-3257. The same steps are asserted here by which columns are hidden and which
  * headers the grid draws.
  */
-test.describe('hiding and showing columns from the header context menu', () => {
+test.describe('hiding and showing columns from the header context menu', { tag: CROSS_BROWSER_TAG }, () => {
   let grid: OrdersGridPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

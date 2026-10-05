@@ -51,7 +51,8 @@ urls.forEach((url) => {
    * route. Two captures per route in `urls`, in each browser: the column range and the row range,
    * each after asserting which headers it highlights and, on the three routes that sort, which column
    * the header clicks sorted by. Which range a click selects, and where the focus lands, is asserted
-   * on all six theme and bundle legs by `tests/e2e/header-range-selection.spec.ts`; that a click on a
+   * on all six theme and bundle legs and on Firefox and WebKit by
+   * `tests/e2e/header-range-selection.spec.ts`; that a click on a
    * header's label sorts is asserted by the Jasmine column-sorting suites and by
    * `tests/e2e/column-move-sorting.spec.ts`. These captures keep the pixels the three engines can
    * disagree on, at overlay edges, merged cells, nested headers and nested rows. Owned by DEV-3257.

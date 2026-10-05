@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { GridLayoutsPage, type GridLayout } from '../fixtures/pages/GridLayoutsPage';
 
 /**
@@ -40,7 +40,7 @@ const CASES: UndoCase[] = [
   { layout: 'nested-rows', route: '/nested-rows-demo', cell: [2, 3], afterEnter: [6, 3] },
 ];
 
-test.describe('undo and redo of a cell edit with the keyboard', () => {
+test.describe('undo and redo of a cell edit with the keyboard', { tag: CROSS_BROWSER_TAG }, () => {
   let grid: GridLayoutsPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

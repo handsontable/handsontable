@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { GridLayoutsPage } from '../fixtures/pages/GridLayoutsPage';
 
 /**
@@ -13,7 +13,7 @@ import { GridLayoutsPage } from '../fixtures/pages/GridLayoutsPage';
  * pointer's travel, a whole number of CSS pixels, so both are compared exactly here. The column is the
  * fifth one, past a hidden column and outside the frozen three, as the demo's "Cost" was.
  */
-test.describe('resizing by dragging a header handle', () => {
+test.describe('resizing by dragging a header handle', { tag: CROSS_BROWSER_TAG }, () => {
   let grid: GridLayoutsPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

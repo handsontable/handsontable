@@ -704,12 +704,14 @@ does for you):
   indicators, the sort indicators, a custom border, a comment textarea, a frozen column, collapsed
   nested headers, inserted columns, a right-aligned cell and a filled range — 26 a browser, 78 in all,
   where there were 200. The family's two WebKit flakes, `columns-filter-2` and
-  `selection-arabic-rtl-demo-{2,3}`, photographed states, and are assertions now. What the trim gives up
-  is Firefox and WebKit EXECUTION of the retired flows: an engine-specific defect in the real Tab order,
-  a header drag or the undo and redo shortcuts is no longer exercised outside Chromium (the clipboard
-  checks never ran there: `copy-paste.spec.ts` declared Chromium alone). A new cross-browser capture
-  names the engine difference it is for in its docblock, and a state it shows belongs in `tests/e2e`
-  first.
+  `selection-arabic-rtl-demo-{2,3}`, photographed states, and are assertions now. The retired flows
+  still run on Firefox and WebKit: those specs carry `@cross-browser`, so the engine legs of
+  `tests/` (`tests/playwright-engines.config.ts`, one CI job) run them on both engines on every pull
+  request that runs the Playwright legs, where the captures ran on the seed and the nightly only
+  (`tests/AGENTS.md`, "The engine legs"). That includes the clipboard checks, which
+  `copy-paste.spec.ts` had run on Chromium alone. A new cross-browser capture names the engine difference it is
+  for in its docblock, and a state it shows belongs in `tests/e2e` first, tagged `@cross-browser` when
+  an engine could get it wrong.
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 
