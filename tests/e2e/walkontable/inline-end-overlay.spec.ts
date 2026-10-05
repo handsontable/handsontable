@@ -77,18 +77,28 @@ for (const direction of ['ltr', 'rtl'] as const) {
 
       await expect.poll(() => wt.holder().evaluate(h => h.scrollTop)).toBeGreaterThan(0);
 
-      const row = await wt.page.evaluate(() => (window as unknown as {
+      const firstVisibleRow = () => wt.page.evaluate(() => (window as unknown as {
         hot: { view: { _wt: { wtScroll: { getFirstVisibleRow(): number } } } }
-      }).hot.view._wt.wtScroll.getFirstVisibleRow() + 2);
+      }).hot.view._wt.wtScroll.getFirstVisibleRow());
 
-      await expect(wt.cellIn(wt.endOverlay, row, 29)).toBeVisible();
-      await expect(wt.cellIn(wt.master, row, 5)).toBeVisible();
+      // The scroll position changes before the engine draws the rows it brings into view, so wait until the
+      // engine reports the scrolled rows. A comparison of the unscrolled ones would prove nothing.
+      await expect.poll(firstVisibleRow).toBeGreaterThan(0);
 
-      const end = await wt.box(wt.cellIn(wt.endOverlay, row, 29));
-      const scrollable = await wt.box(wt.cellIn(wt.master, row, 5));
+      // The row is read again on every attempt, so the cells that are compared always belong to the rows the
+      // engine has drawn by then.
+      await expect(async () => {
+        const row = (await firstVisibleRow()) + 2;
 
-      expect(Math.abs(end.top - scrollable.top)).toBeLessThanOrEqual(TOLERANCE);
-      expect(Math.abs(end.bottom - scrollable.bottom)).toBeLessThanOrEqual(TOLERANCE);
+        await expect(wt.cellIn(wt.endOverlay, row, 29)).toBeVisible({ timeout: 1000 });
+        await expect(wt.cellIn(wt.master, row, 5)).toBeVisible({ timeout: 1000 });
+
+        const end = await wt.box(wt.cellIn(wt.endOverlay, row, 29));
+        const scrollable = await wt.box(wt.cellIn(wt.master, row, 5));
+
+        expect(Math.abs(end.top - scrollable.top)).toBeLessThanOrEqual(TOLERANCE);
+        expect(Math.abs(end.bottom - scrollable.bottom)).toBeLessThanOrEqual(TOLERANCE);
+      }).toPass({ timeout: 10000 });
     });
 
     test('stands the corners at the corners of the end overlay, on the edges of the top and bottom overlays', async () => {
