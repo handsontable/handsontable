@@ -237,3 +237,5 @@ After creating example files, embed them in the guide's `.md` file using the `@[
 - [ ] Example stays within 25-60 lines.
 - [ ] One concept per example with realistic data.
 - [ ] Vue examples use `.vue` SFC with `<script setup lang="ts">` and Composition API (no split `.js`/`.html`, no Options API).
+- [ ] **Every framework variant rendered and looked at** before you call the example done: open the page in the docs dev server (`npm --prefix docs run dev`, not a full docs build) and check each variant for load errors in the console, grid width, and styling. Reading the code is not verification; a variant you did not open counts as untested.
+- [ ] Angular variants type-check: `npm run typecheck --prefix docs/angular-type-check` (needs `handsontable` and `wrappers/angular-wrapper` built first). This is the `Docs Angular Type Check` CI job, which fails most often after an example edit.

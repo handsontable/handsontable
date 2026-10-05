@@ -58,7 +58,7 @@ The repository has a PR template at `.github/PULL_REQUEST_TEMPLATE.md`. Fill in 
 - **Context** -- Explain *why* the change is needed, not just what changed. Link the ClickUp task or GitHub issue.
 - **How has this been tested?** -- List the specific tests you added or ran (unit, E2E, manual). Include commands someone can copy-paste to reproduce.
 - **Types of changes** -- Check the box that applies: bug fix, new feature, breaking change, or translation.
-- **Related issue(s)** -- Link GitHub issues with `#xxx`. Include ClickUp task IDs (e.g. `DEV-627`) so they auto-link.
+- **Related issue(s)** -- Link GitHub issues with `#xxx`. The only ClickUp ID allowed is the one task this PR closes (the ID in the branch name) – see **One task ID only** below.
 - **Affected project(s)** -- Check every package your change touches: `handsontable`, `@handsontable/react-wrapper`, `@handsontable/angular-wrapper`, `@handsontable/vue3`.
 - **Checklist** -- Confirm code style, CLA signature, and whether documentation needs updating. The CLA is checked automatically by the required `cla/signed` status check; one signature covers Handsontable and HyperFormula. See [`CONTRIBUTING.md`](../../../CONTRIBUTING.md#contributor-license-agreement).
 
@@ -160,6 +160,7 @@ ClickUp task: https://app.clickup.com/t/9015210959/DEV-xxx
 
 - **Commit messages:** Descriptive, max 80 characters. Include task ID (e.g. `DEV-627: Fix filter column index`).
 - Include the ClickUp task ID in the PR title when applicable.
+- **One task ID only.** The ClickUp GitHub integration attaches every task ID it finds in a PR title, body, commit message, or comment, and drags each attached task through the PR's lifecycle (to "code review" on open, onward on merge). The attachment is permanent: editing the ID out later does not detach the task. So the PR title, body, commits, and every PR or review comment may name exactly one ID – the task in the branch name. Never name a parent task, a follow-up, a related task, or the source of a cherry-pick. Every prefix counts (`DEV-`, `PRO-`, `RELEASE-`, `IT-`, `SU-`), so check drafted text with `grep -oE '\b[A-Z]{2,}-[0-9]+\b' <file> | sort -u` before the write; link a follow-up by its PR number or describe it in words instead.
 - Start the **Context** section with "The PR fixes/adds/changes/..." -- be direct, no filler.
 - If the PR introduces a breaking change, require the `Breaking change` label and include a migration section with before/after examples. Update migration guides in `docs/content/guides/upgrade-and-migration/`.
 - **If you tick "MANUAL QA NEEDED" in the checklist, also apply the red `Requires Manual QA` label** so the request is visible in the PR list. Nothing applies it automatically — labels in this repo are applied by hand:
@@ -203,7 +204,7 @@ The changelog gate is path-aware: a PR confined to docs, tests, `.github/`, `.ai
 
 ## 7. After PR Creation
 
-When working from a ClickUp task, use the ClickUp MCP tools to update the task status to **"code review"**.
+Do not set the ClickUp task status by hand. The ClickUp GitHub integration moves the task named in the branch, title, or body to **"code review"** when the PR opens, and onward when it merges. A manual status write only races it.
 
 ## 8. Merge Strategy
 

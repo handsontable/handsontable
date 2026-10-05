@@ -27,7 +27,7 @@ Always invoke `handsontable-code-review` (architecture dimension) alongside the 
 | Create / modify a **cell type** | `handsontable-celltype-dev` |
 | Write a **new E2E test** | `handsontable-playwright-e2e` (Playwright, `tests/e2e/`) |
 | Maintain a **legacy E2E test** (`*.spec.js`, frozen) | `handsontable-e2e-testing` |
-| Write / modify **unit tests** (`*.unit.js`) | `handsontable-unit-testing` |
+| Write / modify **unit tests** (`*.unit.js` or `*.unit.ts`) | `handsontable-unit-testing` |
 | Make a test actually prove behavior | `test-writing-discipline` |
 | Build a **demo / test page** | `handsontable-demo-page` |
 | Work on **CSS / themes** | `handsontable-css-dev` |
@@ -67,7 +67,7 @@ src/validators/{validatorName}/  index.ts, {validatorName}.ts
 src/cellTypes/{typeName}/        index.ts, {typeName}.ts
 ```
 
-Test files stay as `.js`: `*.spec.js` (E2E) and `*.unit.js` (unit).
+Unit tests are `*.unit.js` or `*.unit.ts`. New E2E is Playwright (`tests/e2e/*.spec.ts`); the Jasmine `*.spec.js` suite is frozen (edit existing specs, migrate broken ones to Playwright).
 
 `handsontable/src/` is fully TypeScript. `.d.ts` files are **auto-generated** by `npm run build:types` directly into `handsontable/tmp/`.
 
@@ -390,7 +390,7 @@ The CI `verify-emitted-types` job reports the exact leaked identifier with `TS23
 - [ ] Source file is `.ts`
 - [ ] No `as` / `any` casts introduced — used generics or `unknown` + guards instead
 - [ ] No `.d.ts` files hand-edited
-- [ ] Unit tests written (`*.unit.js`) — pure logic, no mocks
+- [ ] Unit tests written (`*.unit.js` or `*.unit.ts`) — pure logic, no mocks
 - [ ] E2E tests written — Playwright in `tests/e2e/` (new); the legacy `*.spec.js` suite is frozen
 - [ ] `npm run build` (or `build:types` + `downlevel:types`) run if public types changed
 - [ ] Wired into all relevant index / factory files

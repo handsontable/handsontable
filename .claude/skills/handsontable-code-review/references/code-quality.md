@@ -7,7 +7,7 @@ Review staged or changed code for compliance with Handsontable coding convention
 1. **ESLint rules (custom):**
    - Errors must use `throwWithCause('...', cause)` from `src/helpers/errors.ts` - never `throw new Error()`.
    - No imports from barrel index files (`plugins/index`, `editors/index`, `renderers/index`, `validators/index`, `cellTypes/index`, `i18n/index`). Import from the specific submodule path.
-   - Every `it()` callback in `*.spec.js` files must be `async`. HOT API calls inside tests must be `await`-ed.
+   - New E2E is Playwright (`tests/e2e/*.spec.ts`); a new Jasmine `*.spec.js` file is a finding (that suite is frozen: edits to existing specs only, broken ones migrate to Playwright). In edited `*.spec.js` specs every `it()` callback is `async` HOT API calls inside tests must be `await`-ed.
    - No bare `window`, `document`, or `console` globals. Use `this.hot.rootWindow`, `this.hot.rootDocument`, and helpers from `src/helpers/console.ts`.
 
 2. **JSDoc:**
