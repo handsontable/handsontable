@@ -193,15 +193,15 @@ seam) and its own fill handle and mobile bottom handle.
   only after that check passes.
 
 A block crossing the `fixedRowsBottom` line is covered since DEV-176, by the same rules. The bottom
-clone never holds the block's origin, so MergeCells gives the span to the clone's FIRST rendered row
-(`getFirstRowOfActiveBottomOverlay`, `plugins/mergeCells/utils.ts`) instead of hiding every covered
-cell, which slid the rest of the row one column to the inline start. The clone's `getCell` lookup
-(`topmost: true`) is clamped to that row, so the clone finds a TD and draws its slice of the outline;
-the block's extent that `resolveMergedBlockEdges` reads (`topmost: false`) stays the real one, so the
-clone's top edge on the freeze line is hidden and the clone owns the fill handle at the corner. Do not
-clamp the extent too: that drew a closed box in the clone with an edge through the block. The clone's
-first row repeats the origin's value, as the origin's meta resolves for every covered cell. Pinned by
-`tests/e2e/merge-cells-frozen-bottom.spec.ts`.
+clone never holds the block's origin, so MergeCells gives the span to the clone's FIRST rendered row instead
+of hiding every covered cell, which slid the rest of the row one column to the inline start. The lookup half
+lives here: `Table#getCell` (`table/cellAccess.ts`) resolves a block extent that starts before a clone's
+first rendered row but reaches into it to that first row, for clones only and without asking which overlay is
+being drawn, so `hot.getCell(8, 1, true)` and `Event#parentCell` (a press on the clone's outline) work outside
+a draw. The block extent that `resolveMergedBlockEdges` reads stays the real one, so the clone's top edge on
+the freeze line is hidden and the clone owns the fill handle at the corner. Do not clamp the extent too: that
+drew a closed box in the clone with an edge through the block. The clone's span cell is emptied by the plugin.
+Pinned by `tests/e2e/merge-cells-frozen-bottom.spec.ts`.
 
 Pinned by `tests/e2e/merge-cells-frozen-selection.spec.ts` (both MergeCells modes, hit-tested: one
 reachable handle on the block's corner, no visible edge inside the block, the outline on every track

@@ -71,7 +71,24 @@ const cellAccess = {
 
     if (hookResult && Array.isArray(hookResult)) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const [, , lastRow] = hookResult as (number | null | undefined)[];
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       [row, column] = hookResult;
+
+      // The hook may answer with the extent of a block (a merged cell) that starts before this overlay's
+      // first rendered row but reaches into it: the overlay renders only the part of the block it holds, so
+      // the cell that stands for the block here is its first rendered row. Only a clone can render a block
+      // from the middle (the bottom overlay holds the last rows and never the block's origin).
+      if (
+        !this.isMaster &&
+        typeof lastRow === 'number' &&
+        row >= 0 &&
+        this.isRowBeforeRenderedRows(row) &&
+        !this.isRowBeforeRenderedRows(lastRow)
+      ) {
+        row = this.getFirstRenderedRow();
+      }
     }
 
     if (this.isRowBeforeRenderedRows(row)) {

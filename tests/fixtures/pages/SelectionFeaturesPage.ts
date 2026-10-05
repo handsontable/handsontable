@@ -998,6 +998,77 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * What an overlay renders for `row`/`col`: whether the cell is displayed, its `rowspan`, its text and its
+   * classes. `null` when the overlay holds no such cell. All read in one evaluation, because the grid
+   * recycles its nodes between draws.
+   */
+  async overlayCellState(overlay: OverlayName, row: number, col: number): Promise<{
+    displayed: boolean, rowspan: string | null, text: string, className: string,
+  } | null> {
+    return this.page.evaluate(([name, targetRow, targetCol]) => {
+      const cell = document.querySelector(`.${name} [data-testid="cell-${targetRow}-${targetCol}"]`);
+
+      if (!cell) {
+        return null;
+      }
+
+      return {
+        displayed: getComputedStyle(cell).display !== 'none',
+        rowspan: cell.getAttribute('rowspan'),
+        text: cell.textContent ?? '',
+        className: cell.className,
+      };
+    }, [overlayClass(overlay), row, col] as const);
+  }
+
+  /**
+   * The height (in px) of the `<tr>` that holds `cell-<row>-<col>` in the given overlay, or `null` while
+   * that overlay renders no such row.
+   */
+  async rowHeightInOverlay(overlay: OverlayName, row: number, col: number): Promise<number | null> {
+    return this.page.evaluate(([name, targetRow, targetCol]) => {
+      const cell = document.querySelector(`.${name} [data-testid="cell-${targetRow}-${targetCol}"]`);
+
+      return cell ? cell.closest('tr')!.getBoundingClientRect().height : null;
+    }, [overlayClass(overlay), row, col] as const);
+  }
+
+  /**
+   * Presses the mouse on the current-selection outline that the given overlay draws (its left edge, the
+   * middle of it) and reports what `beforeOnCellMouseDown` received as the cell element: `'element'` for a
+   * real cell, otherwise what it was. `null` when the overlay draws no such outline.
+   */
+  async pressOutlineOf(overlay: OverlayName): Promise<string | null> {
+    await this.page.evaluate(() => {
+      window.hot.addHook('beforeOnCellMouseDown', (_event, _coords, TD) => {
+        (window as unknown as { lastMouseDownCell: string }).lastMouseDownCell =
+          TD instanceof HTMLElement ? 'element' : String(TD);
+      });
+    });
+
+    const outline = this.page.locator(`.${overlayClass(overlay)} .wtBorder.current:visible`).first();
+    const box = await outline.boundingBox();
+
+    if (!box) {
+      return null;
+    }
+
+    // The outline's left edge is a thin vertical box: aim at its middle.
+    await this.page.mouse.move(box.x + 1, box.y + box.height / 2);
+    await this.page.mouse.down();
+    await this.page.mouse.up();
+
+    return this.page.evaluate(() => (window as unknown as { lastMouseDownCell: string }).lastMouseDownCell ?? null);
+  }
+
+  /**
+   * Whether `hot.getCell(row, col, true)`, asked outside any draw, resolves to a cell.
+   */
+  async topmostCellResolves(row: number, col: number): Promise<boolean> {
+    return this.page.evaluate(([targetRow, targetCol]) => !!window.hot.getCell(targetRow, targetCol, true), [row, col] as const);
+  }
+
+  /**
    * Scroll the viewport so that the given column is at the inline start, right after the frozen
    * columns.
    */

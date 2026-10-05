@@ -17,7 +17,7 @@ import { getStyle } from '../../helpers/dom/element';
 import { isChrome } from '../../helpers/browser';
 import { FocusOrder, type FocusNodeData } from './focusOrder';
 import { createMergeCellRenderer } from './renderer';
-import { getFirstRowOfActiveBottomOverlay, sumCellsHeights, toMergeAreaKey } from './utils';
+import { sumCellsHeights, toMergeAreaKey } from './utils';
 import { toMergeAreaRange, type MergeAreaGeometry } from '../../utils/mergeAreas';
 import type { CellChange } from '../../settings';
 import { canAccessCellContent } from '../../shortcuts/guards';
@@ -2822,16 +2822,10 @@ export class MergeCells extends BasePlugin {
     const bottomEndRow = mergeRow + rowspan - 1;
     const bottomEndColumn = mergeColumn + colspan - 1;
 
-    // The bottom overlay renders only the frozen bottom rows, so the TD that carries the part of a block it
-    // holds is its first row, not the block's origin. Only the cell lookup of a clone (`topmost`) asks for that
-    // TD. The selection border asks for the block's extent (`topmost` is `false`) and needs the real one to
-    // tell which of its edges lie on a freeze line.
-    const firstRowOfBottomOverlay = source === 'render' && topmost ? getFirstRowOfActiveBottomOverlay(this.hot) : null;
-
     if (source === 'render' && this.getSetting('virtualized')) {
       const overlayName = this.hot.view.getActiveOverlayName();
-      const firstRenderedRow = firstRowOfBottomOverlay ??
-        (['top', 'top_inline_start_corner'].includes(overlayName) ? 0 : this.hot.getFirstRenderedVisibleRow());
+      const firstRenderedRow = ['top', 'top_inline_start_corner']
+        .includes(overlayName) ? 0 : this.hot.getFirstRenderedVisibleRow();
       const firstRenderedColumn = ['inline_start', 'top_inline_start_corner', 'bottom_inline_start_corner']
         .includes(overlayName) ? 0 : this.hot.getFirstRenderedVisibleColumn();
 
@@ -2844,7 +2838,7 @@ export class MergeCells extends BasePlugin {
     }
 
     return [
-      firstRowOfBottomOverlay === null ? topStartRow : clamp(firstRowOfBottomOverlay, topStartRow, bottomEndRow),
+      topStartRow,
       topStartColumn,
       bottomEndRow,
       bottomEndColumn,
