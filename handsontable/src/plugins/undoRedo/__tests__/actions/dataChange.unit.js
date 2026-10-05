@@ -129,7 +129,7 @@ describe('UndoRedo -> DataChange action', () => {
     setDataSpy.mockRestore();
   });
 
-  it('should not register header coordinates when clearing a ctrl/cmd+A-like selection', () => {
+  it('should not register header coordinates when clearing a ctrl/cmd+A-like selection', async() => {
     hot = new Handsontable(container, {
       licenseKey: 'non-commercial-and-evaluation',
       data: [
@@ -152,6 +152,10 @@ describe('UndoRedo -> DataChange action', () => {
     });
     hot.emptySelectedCells();
 
+    // The numeric column has a validator, and validation always runs in a microtask: the step is
+    // recorded once the change it describes has been applied.
+    await new Promise(resolve => setTimeout(resolve, 0));
+
     const action = hot.getPlugin('undoRedo').doneActions[0];
     const hasHeaderCoordinates = action.changes.some(([row, column]) => row < 0 || column < 0);
 
@@ -160,6 +164,18 @@ describe('UndoRedo -> DataChange action', () => {
   });
 
   describe('rows trimmed since the change was recorded (DEV-2665)', () => {
+    /**
+     * Trims exactly the given physical rows through the `trimRows` setting. A settings update is not
+     * a recorded step, so the undo that follows reverts the data change rather than the trim - which
+     * is the case these specs are about. (A `trimRows()` call is a step of its own.)
+     *
+     * @param {Handsontable} hotInstance The instance.
+     * @param {number[]} rows The physical rows to trim.
+     */
+    function setTrimmedRows(hotInstance, rows) {
+      hotInstance.updateSettings({ trimRows: rows });
+    }
+
     /**
      * Builds a five-row, one-column grid with `trimRows` and undo on.
      *
@@ -178,7 +194,7 @@ describe('UndoRedo -> DataChange action', () => {
       hot = buildTrimmableGrid();
 
       hot.setDataAtCell(1, 0, 'changed');
-      hot.getPlugin('trimRows').trimRows([1]);
+      setTrimmedRows(hot, [1]);
 
       expect(hot.countRows()).toBe(4);
 
@@ -198,7 +214,7 @@ describe('UndoRedo -> DataChange action', () => {
       const undoRedo = hot.getPlugin('undoRedo');
 
       hot.setDataAtCell(0, 0, 'changed');
-      hot.getPlugin('trimRows').trimRows([0, 1, 2, 3, 4]);
+      setTrimmedRows(hot, [0, 1, 2, 3, 4]);
 
       expect(hot.countRows()).toBe(0);
 
@@ -222,9 +238,9 @@ describe('UndoRedo -> DataChange action', () => {
       const undoRedo = hot.getPlugin('undoRedo');
 
       hot.setDataAtCell(0, 0, 'changed');
-      hot.getPlugin('trimRows').trimRows([0, 1, 2, 3, 4]);
+      setTrimmedRows(hot, [0, 1, 2, 3, 4]);
       undoRedo.undo();
-      hot.getPlugin('trimRows').untrimAll();
+      setTrimmedRows(hot, []);
 
       hot.setDataAtCell(3, 0, 'later');
 
@@ -238,9 +254,9 @@ describe('UndoRedo -> DataChange action', () => {
     it('should not delete rows off the end when rows were untrimmed after the change', () => {
       hot = buildTrimmableGrid();
 
-      hot.getPlugin('trimRows').trimRows([2, 3, 4]);
+      setTrimmedRows(hot, [2, 3, 4]);
       hot.setDataAtCell(1, 0, 'changed');
-      hot.getPlugin('trimRows').untrimAll();
+      setTrimmedRows(hot, []);
 
       hot.getPlugin('undoRedo').undo();
 
@@ -258,14 +274,14 @@ describe('UndoRedo -> DataChange action', () => {
         undo: true,
       });
 
-      hot.getPlugin('trimRows').trimRows([0, 1]);
+      setTrimmedRows(hot, [0, 1]);
 
       // Three rows are visible, so this lands past the last one and appends a sixth source row.
       hot.setDataAtCell(3, 0, 'x');
 
       expect(hot.countSourceRows()).toBe(6);
 
-      hot.getPlugin('trimRows').untrimAll();
+      setTrimmedRows(hot, []);
 
       hot.getPlugin('undoRedo').undo();
 
@@ -274,7 +290,7 @@ describe('UndoRedo -> DataChange action', () => {
       expect(hot.getSourceDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
     });
 
-    it('should not remove a populated row in place of a created row that is trimmed', () => {
+    it('should remove the row the change created even when it is trimmed, and leave the others alone', () => {
       hot = new Handsontable(container, {
         licenseKey: 'non-commercial-and-evaluation',
         data: [['A1'], ['A2'], ['A3']],
@@ -286,14 +302,13 @@ describe('UndoRedo -> DataChange action', () => {
 
       expect(hot.countSourceRows()).toBe(4);
 
-      hot.getPlugin('trimRows').trimRows([3]);
+      setTrimmedRows(hot, [3]);
 
       hot.getPlugin('undoRedo').undo();
 
-      // The created row has no visual index left, so it cannot be removed. Removing "the last
-      // visible row" instead takes A3, which this change never touched.
-      expect(hot.getSourceDataAtCell(2, 0)).toBe('A3');
-      expect(hot.countSourceRows()).toBe(4);
+      // The created row has no visual index, but the undo addresses it physically, so it is the row
+      // removed - never "the last visible row" A3, which this change did not touch.
+      expect(hot.getSourceDataAtCol(0)).toEqual(['A1', 'A2', 'A3']);
     });
 
     it('should not blank a pre-existing record the stale visual index slid onto', () => {
@@ -304,7 +319,7 @@ describe('UndoRedo -> DataChange action', () => {
         undo: true,
       });
 
-      hot.getPlugin('trimRows').trimRows([0, 1, 2, 3]);
+      setTrimmedRows(hot, [0, 1, 2, 3]);
 
       // One row is visible, so this lands past it and appends a sixth source row. The row did not
       // exist when the change was recorded, so it carries no physical index - only visual row 1.
@@ -314,7 +329,7 @@ describe('UndoRedo -> DataChange action', () => {
 
       // Lifting the trim pushes four rows back into the visual space, so visual row 1 now names
       // A2 - a record that existed all along.
-      hot.getPlugin('trimRows').untrimAll();
+      setTrimmedRows(hot, []);
 
       expect(hot.toPhysicalRow(1)).toBe(1);
 
@@ -323,7 +338,7 @@ describe('UndoRedo -> DataChange action', () => {
       expect(hot.getSourceDataAtCell(1, 0)).toBe('A2');
     });
 
-    it('should not run a row removal when no created row is reachable', () => {
+    it('should remove the created row by its physical index when every row is trimmed', () => {
       hot = new Handsontable(container, {
         licenseKey: 'non-commercial-and-evaluation',
         data: [['A1'], ['A2'], ['A3']],
@@ -332,7 +347,7 @@ describe('UndoRedo -> DataChange action', () => {
       });
 
       hot.setDataAtCell(3, 0, 'x');
-      hot.getPlugin('trimRows').trimRows([0, 1, 2, 3]);
+      setTrimmedRows(hot, [0, 1, 2, 3]);
 
       expect(hot.countRows()).toBe(0);
 
@@ -342,10 +357,11 @@ describe('UndoRedo -> DataChange action', () => {
 
       hot.getPlugin('undoRedo').undo();
 
-      // With no visible row to address, `alter('remove_row')` resolves an empty index list and a
-      // `NaN` row index. Listeners must not be handed that round at all.
-      expect(beforeRemoveRow).not.toHaveBeenCalled();
-      expect(hot.countSourceRows()).toBe(4);
+      // The replay runs in physical order, so the removal names the created row itself - never an
+      // empty index list or a `NaN` index, which is what a visual address resolved to here.
+      expect(beforeRemoveRow).toHaveBeenCalledTimes(1);
+      expect(beforeRemoveRow.mock.calls[0].slice(0, 3)).toEqual([3, 1, [3]]);
+      expect(hot.getSourceDataAtCol(0)).toEqual(['A1', 'A2', 'A3']);
     });
 
     it('should remove the created rows measured in source rows, not visible ones', () => {
@@ -362,13 +378,17 @@ describe('UndoRedo -> DataChange action', () => {
 
       expect(hot.countSourceRows()).toBe(5);
 
-      // What a filter excluding empty values does to the two trailing rows.
+      // What a filter excluding empty values does to the two trailing rows. The trim is a step of its
+      // own (a trim through the settings would make `minSpareRows` grow the data outside any step,
+      // which drops the history), so the first undo lifts it and the second reverts the change.
       hot.getPlugin('trimRows').trimRows([3, 4]);
 
+      hot.getPlugin('undoRedo').undo();
       hot.getPlugin('undoRedo').undo();
 
       expect(hot.getSourceDataAtCell(2, 0)).toBe('A3');
       expect(hot.getSourceDataAtCell(3, 0)).toBe(null);
+      expect(hot.countSourceRows()).toBe(4);
     });
 
   });
@@ -433,13 +453,19 @@ describe('UndoRedo -> DataChange action', () => {
         data,
         undo: true,
       });
+      const undoRedo = hot.getPlugin('undoRedo');
 
       hot.setDataAtCell(0, 2, 'Oak St');
       hot.updateSettings({ columns: [{ data: 'id' }, { data: 'name' }] });
-      hot.getPlugin('undoRedo').undo();
+      undoRedo.undo();
 
-      // `colToPropOrIndex(2)` now answers `2`, so replaying by column would have written a `2` key.
+      // The write is recorded by field. `colToProp(2)` now answers `2`, so replaying by column would
+      // have written a `2` key.
       expect(data[0]).toEqual({ id: 1, name: 'Ted Right', address: 'Main St' });
+
+      undoRedo.redo();
+
+      expect(data[0]).toEqual({ id: 1, name: 'Ted Right', address: 'Oak St' });
     });
 
     it('should undo a write to a declared field that has no column', () => {
@@ -530,9 +556,8 @@ describe('UndoRedo -> DataChange action', () => {
       hot.addHook('afterChange', afterChange);
       undoRedo.redo();
 
-      // The by-prop write runs inside the settle callback, which the grid write's `afterChange`
-      // fires. Its own `afterChange` must not run the settle callback a second time.
-      expect(afterChange).toHaveBeenCalledTimes(2);
+      // A redo writes the recorded values once and reports them in one `afterChange`.
+      expect(afterChange).toHaveBeenCalledTimes(1);
       expect(data[0].name).toBe('Frank Honest');
       expect(data[2][5]).toBe('x');
     });
@@ -553,12 +578,15 @@ describe('UndoRedo -> DataChange action', () => {
       hot.setDataAtCell(1, 2, 'Oak St');
       hot.updateSettings({ columns: [{ data: 'id' }, { data: 'name' }] });
       hot.getPlugin('trimRows').trimRows([1]);
+      // The trim is a step of its own, so the first undo lifts it and the second reverts the edit.
+      hot.getPlugin('undoRedo').undo();
       hot.getPlugin('undoRedo').undo();
 
       // A trimmed row is written to the source data. `colToPropOrIndex(2)` answers `2` there too.
       expect(data[1]).toEqual({ id: 2, name: 'Frank Honest', address: 'Elm St' });
     });
   });
+
   describe('the rows of collapsed NestedRows parents', () => {
     const SOURCE = 'ContextMenu.clearColumn';
     const nestedData = () => [
@@ -586,19 +614,23 @@ describe('UndoRedo -> DataChange action', () => {
       });
       hot.getPlugin('nestedRows').collapseParent(0);
 
+      const undoRedo = hot.getPlugin('undoRedo');
+      const stepsBefore = undoRedo.doneActions.length;
+
       clearValueColumn();
 
       expect(values(data)).toEqual([null, null, null, null]);
+      expect(undoRedo.doneActions.length).toBe(stepsBefore + 1);
 
-      const undoRedo = hot.getPlugin('undoRedo');
+      const step = undoRedo.doneActions[undoRedo.doneActions.length - 1];
 
-      expect(undoRedo.doneActions.length).toBe(1);
-      // One HyperFormula entry for the grid write, plus one per hidden cell.
-      expect(undoRedo.doneActions[0].formulasUndoRedoSteps).toBe(3);
-      expect(undoRedo.doneActions[0].collapsedRowChanges).toEqual([
-        [1, 'value', 'c1', null],
-        [2, 'value', 'c2', null],
-      ]);
+      expect(step.actionType).toBe('change');
+      expect(step.source).toBe(SOURCE);
+      // The hidden rows have no visual index, so the step reports them with a `null` row.
+      expect(step.changes).toEqual(expect.arrayContaining([
+        [null, 1, 'c1', null],
+        [null, 1, 'c2', null],
+      ]));
 
       undoRedo.undo();
 
@@ -608,25 +640,6 @@ describe('UndoRedo -> DataChange action', () => {
       undoRedo.redo();
 
       expect(values(data)).toEqual([null, null, null, null]);
-    });
-
-    it('should keep the action shape of an ordinary change', () => {
-      hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
-        data: nestedData(),
-        columns: [{ data: 'name' }, { data: 'value' }],
-        nestedRows: true,
-        undo: true,
-      });
-      hot.getPlugin('nestedRows').collapseParent(0);
-
-      // The same source, but not through `clearCollapsedRows()`: nothing is pending for it.
-      hot.setDataAtCell(0, 1, 'x', SOURCE);
-
-      const [action] = hot.getPlugin('undoRedo').doneActions;
-
-      expect('collapsedRowChanges' in action).toBe(false);
-      expect('formulasUndoRedoSteps' in action).toBe(false);
     });
   });
 });

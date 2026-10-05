@@ -188,25 +188,27 @@ export class ManualRowMove extends BasePlugin {
    * @returns {boolean}
    */
   moveRows(rows: number[], finalIndex: number): boolean {
-    const dropIndex = this.#cachedDropIndex;
-    const movePossible = this.isMovePossible(rows, finalIndex);
-    const beforeMoveHook = this.hot.runHooks('beforeRowMove', rows, finalIndex, dropIndex, movePossible);
+    return this.runOperation('row_move', () => {
+      const dropIndex = this.#cachedDropIndex;
+      const movePossible = this.isMovePossible(rows, finalIndex);
+      const beforeMoveHook = this.hot.runHooks('beforeRowMove', rows, finalIndex, dropIndex, movePossible);
 
-    this.#cachedDropIndex = undefined;
+      this.#cachedDropIndex = undefined;
 
-    if (beforeMoveHook === false) {
-      return false;
-    }
+      if (beforeMoveHook === false) {
+        return false;
+      }
 
-    if (movePossible) {
-      this.hot.rowIndexMapper.moveIndexes(rows, finalIndex);
-    }
+      if (movePossible) {
+        this.hot.rowIndexMapper.moveIndexes(rows, finalIndex);
+      }
 
-    const movePerformed = movePossible && this.isRowOrderChanged(rows, finalIndex);
+      const movePerformed = movePossible && this.isRowOrderChanged(rows, finalIndex);
 
-    this.hot.runHooks('afterRowMove', rows, finalIndex, dropIndex, movePossible, movePerformed);
+      this.hot.runHooks('afterRowMove', rows, finalIndex, dropIndex, movePossible, movePerformed);
 
-    return movePerformed;
+      return movePerformed;
+    }, { rows: Array.isArray(rows) ? rows.slice() : rows, finalRowIndex: finalIndex });
   }
 
   /**

@@ -42,11 +42,11 @@ export function valueSetter(
     return newValue;
   }
 
-  // Undo and redo restore what the cell held before, verbatim - the invariant
-  // `utils/valueAccessors.ts` states, and honors for `emptyValue`. This setter did not: whenever
-  // the cell happened to hold an entry, it wrapped the restored label as `{ key: <label>, value:
-  // <label> }`, so undoing back to a plain label produced a fabricated pair that a `strict` column
-  // then rejected. Neither branch below may run on that path.
+  // A write with an `UndoRedo.*` source restores what the cell held before, verbatim – the rule
+  // `utils/valueAccessors.ts` states, and honors for `emptyValue`. Resolving it here wrapped a restored
+  // plain label as `{ key: <label>, value: <label> }`, a fabricated pair that a `strict` column then
+  // rejected, so neither branch below may run on that path. The UndoRedo plugin's own undo and redo
+  // no longer call the setter at all; this covers a caller that writes with that source itself.
   if (typeof source === 'string' && source.startsWith('UndoRedo.')) {
     return newValue;
   }

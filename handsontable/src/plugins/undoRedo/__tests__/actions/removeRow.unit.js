@@ -202,7 +202,7 @@ describe('UndoRedo -> RemoveRow action with a function dataSchema', () => {
     expect(hot.getData()).toEqual([[1, 'Ted Right', 'A'], [2, 'Frank Honest', 'B']]);
   });
 
-  it('should run the column-level `valueSetter` when restoring an accessor column on undo', () => {
+  it('should restore an accessor column on undo without running its `valueSetter` again', () => {
     const valueSetter = jest.fn(value => value);
 
     hot = new Handsontable(container, {
@@ -221,11 +221,10 @@ describe('UndoRedo -> RemoveRow action with a function dataSchema', () => {
     valueSetter.mockClear();
     plugin.undo();
 
-    // The fifth argument is the change source, and on this path it is the undo itself - which is
-    // how a cell type whose stored shape differs from the written value can leave an undo
-    // verbatim (the autocomplete setter does, DEV-57).
-    expect(valueSetter).toHaveBeenCalledWith(
-      'Frank Honest', expect.anything(), expect.anything(), expect.anything(), 'UndoRedo.undo');
+    // The restore writes the stored value back as it is: the setter translated it when it was first
+    // written, and a cell type whose stored shape differs from the written value (the autocomplete
+    // key/value entry, DEV-57) would otherwise translate it a second time.
+    expect(valueSetter).not.toHaveBeenCalled();
     expect(hot.getDataAtCell(1, 1)).toBe('Frank Honest');
   });
 

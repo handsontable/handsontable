@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a dropdown menu or context menu staying open after pressing a `CollapsibleColumns` expand/collapse indicator.",
+  "type": "fixed",
+  "issueOrPR": 13727,
+  "breaking": false,
+  "framework": "none"
+}

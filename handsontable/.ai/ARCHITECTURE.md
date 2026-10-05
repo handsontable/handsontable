@@ -257,6 +257,8 @@
 
 **Event Management:** `handsontable/src/eventManager.ts` provides centralized DOM event listener management with automatic cleanup.
 
+**Operations and undo:** Every mutating Core entry point and plugin mutator runs inside an operation (`handsontable/src/core/operationScope.ts`); the outermost one is one user action, and the UndoRedo plugin records it as one step from a journal of data and cell meta writes (`handsontable/src/dataMap/dataJournal.ts`) plus a snapshot of the index maps and plugin states. A new mutator must run in an operation, and a write that must not be recorded runs under `suppress()`. Full rules: `handsontable/src/plugins/undoRedo/AGENTS.md`.
+
 ## Architecture diagrams
 
 These diagrams summarize the relationships described above. They are a visual companion to the prose — the prose remains authoritative on any detail.

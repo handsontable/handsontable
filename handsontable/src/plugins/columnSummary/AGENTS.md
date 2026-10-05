@@ -75,7 +75,8 @@ Three things not to "fix" on top of it:
 - **`forceNumeric` is not the same rule, so do not "align" the two.** It runs `parseFloat`, which
   agrees on empty strings (`parseFloat('')` is `NaN`) but *disagrees* on booleans —
   `parseFloat(true)` is `NaN`, so a checkbox column summed with `forceNumeric: true` yields `0`.
-  It also throws on an empty cell when `suppressDataTypeErrors` is `false`. It is the opt-in
+  It also throws on an empty cell when `suppressDataTypeErrors` is `false`, except inside a default range
+  (see DEV-2995 below). It is the opt-in
   "parse a number out of text" path, not the reference implementation.
 
 ## Translate at every call: the endpoints are physical, the API is visual (DEV-145)
@@ -181,10 +182,10 @@ it just the same. `isLockedSummaryCell(visualRow, visualColumn)` is the predicat
 Why a veto, and not just a smarter menu item: the menu click is only one of four write paths that
 unlocked the cell. The other three:
 
-- **Undo of a column toggle.** `ReadOnlyToggleAction.undo` writes `Boolean(stateBefore[row]?.[col])` over
-  the whole range. A "make read-only" click records an **empty** snapshot by design (every toggled cell
-  was writable), so undo wrote `false` onto the summary.
-- **Redo** writes the toggle's value over the whole range.
+- **Undo of a column toggle.** The old `ReadOnlyToggleAction.undo` wrote `Boolean(stateBefore[row]?.[col])`
+  over the whole range. A "make read-only" click records an **empty** snapshot by design (every toggled
+  cell was writable), so undo wrote `false` onto the summary.
+- **Redo** wrote the toggle's value over the whole range.
 - **A direct `setCellMeta` or `removeCellMeta` call.** It held until that endpoint was next
   recalculated (a change in its source column), which re-applied `readOnly`. That is the "comes back
   after a reload" symptom in the ticket, and it can last indefinitely.
@@ -270,9 +271,45 @@ Three rules the re-derive follows, each with a reason:
   every sibling. For the same reason the lower bound is handled here, not added to
   `isEndpointOutOfBounds()` (which that shared gate calls).
 
-One related bug is tracked separately: the default `ranges: [[0, countAddressableRows() - 1]]` is also
-resolved once and does not grow on append. `reversedRowCoordsAlter.unit.js` pins the add, remove,
-data-safety, multi-endpoint, and out-of-bounds cases.
+`reversedRowCoordsAlter.unit.js` pins the add, remove, data-safety, multi-endpoint, and out-of-bounds cases.
+
+## A default `ranges` follows the table; an explicit one never does (DEV-2995)
+
+An endpoint with no `ranges` gets the whole table, `getDefaultRanges()`: `[[0, countAddressableRows() - 1]]`,
+or no range at all for an empty table (`[0, -1]` would read row `-1`). It was resolved once, at parse time.
+The generic alteration shift moves a bound only when the alteration sits at or before it, so a row appended
+past the end stayed outside the range, the same parse-time root as DEV-144. `loadData()`, `updateData()`
+and the `afterChange` refresh never re-parse either. `assignSetting()` therefore marks such an endpoint with
+the internal `rangesFromDefault` flag (not on `EndpointConfig`, never copied by `parseSettings()`), and
+`refreshAllEndpoints()` and `refreshChangedEndpoints()` re-derive its range first, through
+`#rederiveDefaultRanges()`.
+
+- **Only the flag decides.** An explicit range names records and must not auto-grow, so it is never re-derived.
+  `ranges: []` leaves `ranges` unset and carries no flag.
+- **The default means the whole table**, so a row inserted above row 0 is included, and a removal under
+  `maxRows` pulls in the row the cap used to hide. The shift alone would have moved the start to 1 and
+  shortened the end.
+- **The re-derive lives in the refresh path, not in the alteration handler.** Every path that can change the
+  row count ends in one of the two refreshes: a row alteration (`forceRefresh` is always `true`), a data
+  reload, and the `afterChange` that follows a write into a `minSpareRows` row. That is why the `auto`
+  insertion skip in `resetSetupAfterStructureAlteration()` needs no special case. The generic shift's result
+  is overwritten, so the re-derive must not read it.
+- **A `reversedRowCoords` summary keeps its destination on an `auto` insertion (DEV-2206) while its default
+  range follows the table**, so a spare row created below the summary would join the range. That is the
+  whole-table rule applied to a summary that is not on the last row. Reaching it takes a write into the
+  read-only summary row, so no test pins it; the test beside it is a smoke test of the combination.
+- **A blank cell inside a default range never throws, whatever `suppressDataTypeErrors` says.** With
+  `forceNumeric: true` and `suppressDataTypeErrors: false`, `getCellValue()` throws on any cell that parses to
+  `NaN`, and a row the grid adds is empty. A default range that follows the table therefore threw from
+  `afterCreateRow` on every append, and on the undo of a row removal, which stopped halfway and left the grid
+  one row short. `getCellValue()` now skips the throw for a blank cell (`isBlank()`, `utils.ts`) when
+  `rangesFromDefault` is set. An EXPLICIT range keeps throwing on a blank cell, which the legacy Jasmine spec
+  "should throw for an empty cell when `forceNumeric` is on and errors are not suppressed" pins, and a
+  non-numeric value such as `'abc'` still throws in a default range. The physical row count is not the cause:
+  a cap at `countSourceRows()` was tried and the throw stayed, so do not add one.
+- `defaultRangesAlter.unit.js` pins append, repeated append, insert (inside and above row 0), removal,
+  `maxRows`, `minSpareRows`, column alterations, trimmed rows, `loadData()`/`updateData()`, the empty table,
+  multiple endpoints and the explicit-range controls.
 
 ## The refresh pass caches every endpoint, not just the matched ones
 
@@ -287,9 +324,9 @@ inline — it defers them to `addHookOnce('beforeViewRender', …)`, because a t
 `afterCreateRow` has to run first for the endpoint value to come out right. **Do not collapse that back
 into the original handler.**
 
-The comment above it (`endpoints.ts:393`) blames TrimRows, and that attribution is stale: `trimRows.ts`
-registers **no hooks at all**. `nestedRows.ts` is the trimmer that does register `afterCreateRow`
-(`nestedRows.ts:167`). So check what still depends on the ordering before you touch the deferral — the
+The comment above the `beforeViewRender` callback in `resetSetupAfterStructureAlteration()` blames TrimRows,
+and that attribution is stale: `trimRows.ts` registers **no hooks at all**. `nestedRows.ts` is the trimmer
+that does register `afterCreateRow`. So check what still depends on the ordering before you touch the deferral — the
 comment names the wrong plugin, which is not the same as naming a problem that no longer exists.
 
 ## An automatic insertion is skipped, an automatic removal is not (DEV-2206)

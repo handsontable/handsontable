@@ -13,6 +13,12 @@ export default class ClipboardData {
     this.data = {};
   }
   /**
+   * The MIME types that hold a value, like `DataTransfer#types`.
+   */
+  get types(): string[] {
+    return Object.keys(this.data);
+  }
+  /**
    * Stores a value in the clipboard data under the given MIME type key.
    */
   setData(type: string, value: string) {

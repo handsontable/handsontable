@@ -4,4 +4,4 @@ export {
   UndoRedo,
 } from './undoRedo';
 
-export type { UndoRedoAction } from './undoRedo';
+export type { UndoRedoAction, UndoRedoSettings } from './undoRedo';

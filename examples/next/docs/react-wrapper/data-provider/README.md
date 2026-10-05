@@ -18,7 +18,7 @@ Install all necessary dependencies from npm with `npm install`.
 1. Start both APIs: `npm run server` (or `npm run server:rest` and `npm run server:graphql` in separate terminals).
 2. Start the app: `npm run start`, then open http://localhost:8080.
 
-Override URLs with `REACT_APP_API_BASE` and `REACT_APP_GRAPHQL_URL` if you change ports.
+Override URLs with `VITE_API_BASE` and `VITE_GRAPHQL_URL` if you change ports.
 
 ## Testing
 

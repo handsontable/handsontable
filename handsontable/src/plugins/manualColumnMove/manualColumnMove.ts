@@ -215,25 +215,27 @@ export class ManualColumnMove extends BasePlugin {
    * @returns {boolean}
    */
   moveColumns(columns: number[], finalIndex: number): boolean {
-    const dropIndex = this.#cachedDropIndex;
-    const movePossible = this.isMovePossible(columns, finalIndex);
-    const beforeMoveHook = this.hot.runHooks('beforeColumnMove', columns, finalIndex, dropIndex, movePossible);
+    return this.runOperation('col_move', () => {
+      const dropIndex = this.#cachedDropIndex;
+      const movePossible = this.isMovePossible(columns, finalIndex);
+      const beforeMoveHook = this.hot.runHooks('beforeColumnMove', columns, finalIndex, dropIndex, movePossible);
 
-    this.#cachedDropIndex = undefined;
+      this.#cachedDropIndex = undefined;
 
-    if (beforeMoveHook === false) {
-      return false;
-    }
+      if (beforeMoveHook === false) {
+        return false;
+      }
 
-    if (movePossible) {
-      this.hot.columnIndexMapper.moveIndexes(columns, finalIndex);
-    }
+      if (movePossible) {
+        this.hot.columnIndexMapper.moveIndexes(columns, finalIndex);
+      }
 
-    const movePerformed = movePossible && this.isColumnOrderChanged(columns, finalIndex);
+      const movePerformed = movePossible && this.isColumnOrderChanged(columns, finalIndex);
 
-    this.hot.runHooks('afterColumnMove', columns, finalIndex, dropIndex, movePossible, movePerformed);
+      this.hot.runHooks('afterColumnMove', columns, finalIndex, dropIndex, movePossible, movePerformed);
 
-    return movePerformed;
+      return movePerformed;
+    }, { columns: Array.isArray(columns) ? columns.slice() : columns, finalColumnIndex: finalIndex });
   }
 
   /**

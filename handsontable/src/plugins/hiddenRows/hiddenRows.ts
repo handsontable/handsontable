@@ -286,6 +286,15 @@ export class HiddenRows extends BasePlugin {
    * @param {number[]} rows Array of visual row indexes.
    */
   showRows(rows: number[]): void {
+    this.runOperation('unhide_rows', () => this.#showRows(rows));
+  }
+
+  /**
+   * The body of `showRows()`, run inside its operation.
+   *
+   * @param {number[]} rows Array of visual row indexes.
+   */
+  #showRows(rows: number[]): void {
     const currentHideConfig = this.getHiddenRows();
     const isValidConfig = this.isValidConfig(rows);
     let destinationHideConfig = currentHideConfig;
@@ -340,6 +349,15 @@ export class HiddenRows extends BasePlugin {
    * @param {number[]} rows Array of visual row indexes.
    */
   hideRows(rows: number[]): void {
+    this.runOperation('hide_rows', () => this.#hideRows(rows));
+  }
+
+  /**
+   * The body of `hideRows()`, run inside its operation.
+   *
+   * @param {number[]} rows Array of visual row indexes.
+   */
+  #hideRows(rows: number[]): void {
     const currentHideConfig = this.getHiddenRows();
     const isConfigValid = this.isValidConfig(rows);
     let destinationHideConfig = currentHideConfig;

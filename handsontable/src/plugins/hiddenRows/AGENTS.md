@@ -81,11 +81,9 @@ stack-overflow risk. The `hidden()` path now copies with loops (DEV-1040). Do no
 This plugin registers no `beforeRemoveRow`/`afterRemoveRow` hook of its own — row removal and its undo are
 handled entirely from the `undoRedo` plugin's side, because `IndexMapper#removeIndexes()`/`insertIndexes()`
 splice and re-insert every registered `HidingMap` unconditionally, with no memory of the prior flags.
-`RemoveRowAction` captures which visual rows were hidden before a removal and re-hides them on undo via the
-plugin's own public `hideRows()`, the same pattern it already uses for `MergeCells`. Redo needs no
-matching capture: `UndoRedo#redo()` pushes the same action object back onto the done stack rather than
-re-running the capture, so the originally-recorded hidden rows carry forward unchanged. Full mechanics:
-`../undoRedo/AGENTS.md`.
+UndoRedo records every index map, this plugin's `HidingMap` included, before and after each step, and an
+undo writes the recorded flags back once the removed rows are in place again. Nothing here has to be
+re-hidden by hand. Full mechanics: `../undoRedo/AGENTS.md`.
 
 ## Where to look next
 

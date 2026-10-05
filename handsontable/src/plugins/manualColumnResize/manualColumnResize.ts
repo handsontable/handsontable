@@ -81,7 +81,8 @@ export class ManualColumnResize extends BasePlugin {
 
     this.#gesture = new ResizeGesture(this.hot, COLUMN_RESIZE_AXIS, {
       isActive: () => this.enabled,
-      setManualSize: (column, width) => this.setManualSize(column, width),
+      clampSize: width => this.#clampSize(width),
+      setManualSize: (column, width) => this.#setManualSize(column, width),
     });
   }
 
@@ -231,12 +232,33 @@ export class ManualColumnResize extends BasePlugin {
    * @returns {number} Returns new width.
    */
   setManualSize(column: number, width: number): number {
-    const newWidth = Math.max(width, 20);
+    return this.runOperation('resize_column', () => this.#setManualSize(column, width));
+  }
+
+  /**
+   * The body of `setManualSize()`, run inside its operation.
+   *
+   * @param {number} column Visual column index.
+   * @param {number} width Column width (no less than 20px).
+   * @returns {number} Returns new width.
+   */
+  #setManualSize(column: number, width: number): number {
+    const newWidth = this.#clampSize(width);
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
     this.#columnWidthsMap.setValueAtIndex(physicalColumn, newWidth);
 
     return newWidth;
+  }
+
+  /**
+   * Returns the width `setManualSize()` stores for the given width.
+   *
+   * @param {number} width Column width.
+   * @returns {number}
+   */
+  #clampSize(width: number): number {
+    return Math.max(width, 20);
   }
 
   /**
@@ -291,6 +313,15 @@ export class ManualColumnResize extends BasePlugin {
    * @param {Array<Array<number>>} sizes The `[physicalColumn, width]` pairs to write.
    */
   setManualSizes(sizes: Array<[number, number]>): void {
+    this.runOperation('resize_column', () => this.#setManualSizes(sizes));
+  }
+
+  /**
+   * The body of `setManualSizes()`, run inside its operation.
+   *
+   * @param {Array<Array<number>>} sizes The `[physicalColumn, width]` pairs to write.
+   */
+  #setManualSizes(sizes: Array<[number, number]>): void {
     if (!this.enabled) {
       return;
     }
@@ -322,6 +353,15 @@ export class ManualColumnResize extends BasePlugin {
    * @param {number} column Visual column index.
    */
   clearManualSize(column: number): void {
+    this.runOperation('resize_column', () => this.#clearManualSize(column));
+  }
+
+  /**
+   * The body of `clearManualSize()`, run inside its operation.
+   *
+   * @param {number} column Visual column index.
+   */
+  #clearManualSize(column: number): void {
     // The map only exists while the plugin is enabled, and a disabled plugin stores no widths.
     if (!this.enabled) {
       return;
@@ -350,6 +390,13 @@ export class ManualColumnResize extends BasePlugin {
    * ```
    */
   clearManualSizes(): void {
+    this.runOperation('resize_column', () => this.#clearManualSizes());
+  }
+
+  /**
+   * The body of `clearManualSizes()`, run inside its operation.
+   */
+  #clearManualSizes(): void {
     this.#config = [];
 
     // The map only exists while the plugin is enabled, and a disabled plugin stores no widths.

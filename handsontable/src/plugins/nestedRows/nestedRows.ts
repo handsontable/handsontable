@@ -1,6 +1,6 @@
 import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 import { BasePlugin } from '../base';
-import DataManager, { type NestedRowsRemovalSnapshot, type RowObject } from './data/dataManager';
+import DataManager, { isNestedRowsShape, type RowObject } from './data/dataManager';
 import CollapsingUI from './ui/collapsing';
 import HeadersUI from './ui/headers';
 import ContextMenuUI from './ui/contextMenu';
@@ -24,16 +24,27 @@ const WRONG_DATA_TYPE_ERROR = 'The Nested Rows plugin requires an Array of Objec
  * A cell in a row that a collapsed parent hides, as `NestedRows#clearCollapsedRows()` reads it.
  */
 interface CollapsedRowCell {
-  physicalRow: number;
   rowObject: RowObject | null | undefined;
   prop: string | number;
-  value: unknown;
 }
 
 /**
- * A change to a hidden cell, as `[physicalRow, prop, oldValue, newValue]`.
+ * The parents the user collapsed, as `NestedRows#captureState()` records them.
  */
-export type CollapsedRowChange = [number, string | number, unknown, unknown];
+interface CollapsedParentsState {
+  readonly collapsedRows: readonly number[];
+}
+
+/**
+ * Tells whether a value is a state `NestedRows#captureState()` recorded.
+ *
+ * @param {*} value The value to test.
+ * @returns {boolean}
+ */
+function isCollapsedParentsState(value: unknown): value is CollapsedParentsState {
+  return typeof value === 'object' && value !== null &&
+    'collapsedRows' in value && Array.isArray(value.collapsedRows);
+}
 
 /**
  * @plugin NestedRows
@@ -126,14 +137,6 @@ export class NestedRows extends BasePlugin {
    * @type {number[][]|null}
    */
   #stashedParentPaths: number[][] | null = null;
-
-  /**
-   * The hidden cells a running `NestedRows#clearCollapsedRows()` call writes, kept only while its
-   * visible clear runs, so UndoRedo can record them with it. `null` outside such a call.
-   *
-   * @type {object|null}
-   */
-  #pendingCollapsedRowsChanges: { source: string, changes: CollapsedRowChange[] } | null = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -310,10 +313,9 @@ export class NestedRows extends BasePlugin {
       this.hot.selection.markEndSource();
     }
 
-    // Every recorded undo action measured itself against the previous numbering: `DataChangeAction`
-    // stores `countSourceRows` and, on undo, removes every physical row past that baseline as one
-    // the change created. Measured without this: edit a cell, enable the plugin, press Ctrl+Z once,
-    // and two records are deleted outright. `loadData` drops the history for the same reason.
+    // Every recorded undo step addresses rows by their physical index in the previous numbering, and
+    // flattening the tree renumbers them – even when the row count stays the same, which the undo
+    // stack cannot detect on its own. `loadData` drops the history for the same reason.
     this.hot.getPlugin('undoRedo')?.clear();
 
     // The grid needs two draw passes to settle on the new row count - the second one, the Core's own,
@@ -635,6 +637,16 @@ export class NestedRows extends BasePlugin {
       return;
     }
 
+    this.runOperation('expand_to_level', () => this.#expandToLevel(level));
+  }
+
+  /**
+   * The body of `expandToLevel()`, run inside its operation.
+   *
+   * @param {number} level The deepest level whose parents stay expanded.
+   */
+  #expandToLevel(level: number): void {
+
     const toCollapse: number[] = [];
     const toExpand: number[] = [];
 
@@ -682,9 +694,7 @@ export class NestedRows extends BasePlugin {
    * and are not validated, as every `setSourceDataAtCell()` write. Read-only cells and rows trimmed
    * by another plugin (TrimRows) are skipped, as the visible clear skips them.
    *
-   * UndoRedo records the hidden cells in the same undo step as the visible clear: its
-   * `beforeChange` listener reads them through `NestedRows#getPendingCollapsedRowsChanges()`
-   * while `clearVisibleRows` runs.
+   * Both writes run in one `change` operation, so UndoRedo records them as one undo step.
    *
    * @private
    * @param {number} endRow The last visual row the clear reaches.
@@ -710,48 +720,23 @@ export class NestedRows extends BasePlugin {
       return;
     }
 
-    this.#pendingCollapsedRowsChanges = {
-      source,
-      changes: cells.map(({ physicalRow, prop, value }) => [physicalRow, prop, value, null]),
-    };
-
-    try {
+    this.runOperation('change', () => {
       clearVisibleRows();
 
-    } finally {
-      this.#pendingCollapsedRowsChanges = null;
-    }
+      const writes: [number, string | number, null][] = [];
 
-    const writes: [number, string | number, null][] = [];
+      cells.forEach(({ rowObject, prop }) => {
+        const physicalRow = this.dataManager!.getRowIndex(rowObject);
 
-    cells.forEach(({ rowObject, prop }) => {
-      const physicalRow = this.dataManager!.getRowIndex(rowObject);
+        if (physicalRow !== null) {
+          writes.push([physicalRow, prop, null]);
+        }
+      });
 
-      if (physicalRow !== null) {
-        writes.push([physicalRow, prop, null]);
+      if (writes.length > 0) {
+        this.hot.setSourceDataAtCell(writes, undefined, undefined, source);
       }
-    });
-
-    if (writes.length > 0) {
-      this.hot.setSourceDataAtCell(writes, undefined, undefined, source);
-    }
-  }
-
-  /**
-   * Returns the hidden cells the running `NestedRows#clearCollapsedRows()` call writes, as
-   * `[physicalRow, prop, oldValue, newValue]` entries. UndoRedo reads them from the `beforeChange`
-   * hook of the visible clear, so one undo step restores both. The source check keeps them on that
-   * clear: a validator that corrects a value writes through `setDataAtCell()` with a source of its
-   * own inside the same window.
-   *
-   * @private
-   * @param {string} source The source of the change being recorded.
-   * @returns {Array} The pending changes, or an empty array when none belong to `source`.
-   */
-  getPendingCollapsedRowsChanges(source: string): CollapsedRowChange[] {
-    const pending = this.#pendingCollapsedRowsChanges;
-
-    return pending !== null && pending.source === source ? pending.changes : [];
+    }, undefined, source);
   }
 
   /**
@@ -835,12 +820,8 @@ export class NestedRows extends BasePlugin {
 
       const prop = this.hot.colToProp(visualColumn);
 
-      if (!readOnly && prop !== null) {
-        const value = this.hot.getSourceDataAtCell(physicalRow, prop);
-
-        if (callback({ physicalRow, rowObject, prop, value }) === false) {
-          return false;
-        }
+      if (!readOnly && prop !== null && callback({ rowObject, prop }) === false) {
+        return false;
       }
     }
 
@@ -1020,83 +1001,81 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
-   * Captures the nested roots represented by a row removal for UndoRedo.
+   * Returns the shape of the nested source, for UndoRedo. When it did not change since the previous
+   * capture, the previous shape itself is returned.
    *
    * @private
-   * @param {number[]} physicalRows Physical rows expanded by the removal hook.
-   * @returns {unknown} An internal nested-row snapshot.
+   * @param {*} previous The value the previous capture returned.
+   * @returns {object|undefined}
    */
-  captureRemovedRows(physicalRows: number[]): unknown {
+  captureSourceStructure(previous: unknown): unknown {
     if (!this.#isOperational()) {
-      return null;
+      return undefined;
     }
 
-    return this.dataManager!.captureRemovedRows(physicalRows);
+    return this.dataManager!.captureShape(previous);
   }
 
   /**
-   * Returns the physical rows represented by an internal nested-row snapshot.
+   * Puts the nested source back into a shape `captureSourceStructure()` returned.
    *
    * @private
-   * @param {unknown} snapshot An internal nested-row snapshot.
-   * @returns {number[]} Physical rows in the removed subtrees.
+   * @param {*} state The recorded shape.
    */
-  getRemovedPhysicalRows(snapshot: unknown): number[] {
-    if (!this.#isOperational() || !this.#isNestedRowsRemovalSnapshot(snapshot)) {
-      return [];
+  restoreSourceStructure(state: unknown): void {
+    if (this.#isOperational() && isNestedRowsShape(state)) {
+      this.dataManager!.restoreShape(state);
     }
-
-    return this.dataManager!.getRemovedPhysicalRows(snapshot);
   }
 
   /**
-   * Reports whether a nested-row snapshot can be restored without mutating the tree.
+   * Returns the parents the user collapsed, for UndoRedo. The rows they trim are restored with the
+   * rest of the index maps. When the list did not change since the previous capture, the previous
+   * state itself is returned.
    *
    * @private
-   * @param {unknown} snapshot An internal nested-row snapshot.
-   * @returns {boolean} `true` when the plugin is active and the restore hooks allow the operation.
+   * @param {*} previous The value the previous capture returned.
+   * @returns {object|undefined}
    */
-  canRestoreRemovedRows(snapshot: unknown): boolean {
-    if (!this.#isOperational() || !this.#isNestedRowsRemovalSnapshot(snapshot)) {
-      return false;
+  captureState(previous: unknown): unknown {
+    if (!this.#isOperational()) {
+      return undefined;
     }
 
-    return this.dataManager!.canRestoreRemovedRows(snapshot);
+    const collapsedRows = this.collapsingUI!.collapsedRows;
+
+    if (
+      isCollapsedParentsState(previous) &&
+      previous.collapsedRows.length === collapsedRows.length &&
+      previous.collapsedRows.every((row, index) => row === collapsedRows[index])
+    ) {
+      return previous;
+    }
+
+    return { collapsedRows: collapsedRows.slice() };
   }
 
   /**
-   * Restores an internal nested-row snapshot and the physical row sequence it belonged to.
+   * Puts back the collapsed parents a `captureState()` call recorded.
    *
    * @private
-   * @param {unknown} snapshot An internal nested-row snapshot.
-   * @param {number[]} rowIndexesSequence Physical row sequence from before removal.
-   * @param {boolean} [shiftSelection=true] When `false`, skip shifting the highlight. Context-menu
-   *   removal never called `shiftRows`, so undoing that path must not push the selection down.
+   * @param {*} state The recorded state.
    */
-  restoreRemovedRows(snapshot: unknown, rowIndexesSequence: number[], shiftSelection = true): boolean {
-    if (!this.#isOperational() || !this.#isNestedRowsRemovalSnapshot(snapshot)) {
-      return false;
+  restoreState(state: unknown): void {
+    if (this.#isOperational() && isCollapsedParentsState(state)) {
+      this.collapsingUI!.collapsedRows = state.collapsedRows.slice();
     }
-
-    const wasRestored = this.dataManager!.restoreRemovedRows(snapshot, rowIndexesSequence, shiftSelection);
-
-    this.hot.selection.refresh();
-
-    return wasRestored;
   }
 
   /**
-   * Checks whether a value has the shape produced by `captureRemovedRows`.
+   * The collapsed parents are rows, so a `columns` settings update never makes a collapse unsafe to
+   * undo.
    *
-   * @param {unknown} snapshot The value to check.
-   * @returns {boolean}
+   * @private
+   * @returns {number[]}
    */
-  #isNestedRowsRemovalSnapshot(snapshot: unknown): snapshot is NestedRowsRemovalSnapshot {
-    return typeof snapshot === 'object' && snapshot !== null &&
-      'rows' in snapshot && Array.isArray(snapshot.rows) &&
-      'rowIndexMaps' in snapshot && typeof snapshot.rowIndexMaps === 'object' &&
-      snapshot.rowIndexMaps !== null &&
-      'collapsedRows' in snapshot && Array.isArray(snapshot.collapsedRows);
+  getStateColumns(): readonly number[] {
+    return [];
   }
 
   /**
@@ -1196,10 +1175,28 @@ export class NestedRows extends BasePlugin {
       return;
     }
 
-    this.hot._registerTimeout(() => {
+    // Collapsing the stashed parents again is part of the removal, and it runs a tick later. The
+    // removal's undo step is held open until then; otherwise the collapse records a step of its own,
+    // and the first undo expands the parents. During an undo replay the hold keeps it unrecorded.
+    const scope = this.hot._getOperationScope();
+    const hasStash = (this.collapsingUI!.lastCollapsedRows?.length ?? 0) > 0;
+    const hold = hasStash || scope.isSuppressed() ? scope.hold() : null;
+    const reapplyStash = () => {
       this.#skipRender = false;
       this.headersUI!.updateRowHeaderWidth();
       this.collapsingUI!.collapsedRowsStash.applyStash();
+    };
+
+    this.hot._registerTimeout(() => {
+      try {
+        if (hold === null) {
+          reapplyStash();
+        } else {
+          hold.resume(reapplyStash);
+        }
+      } finally {
+        hold?.release();
+      }
     });
   };
 
