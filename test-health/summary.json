@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-05T06:40:49.472Z",
+  "generatedAt": "2026-10-05T07:10:17.737Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 318,
     "needsTicket": 10,
     "quarantined": 0,
-    "entries": 1775
+    "entries": 1776
   },
   "rows": [
     {
@@ -20,9 +20,9 @@
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
-      "count7": 10,
-      "count30": 26,
-      "countAll": 26,
+      "count7": 11,
+      "count30": 27,
+      "countAll": 27,
       "runs30": 15,
       "flakyRuns30": 15,
       "branches30": 13,
@@ -42,8 +42,8 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-10-05T06:40:01Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37271790029",
+        "seenAt": "2026-10-05T07:09:25Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37271790029/attempts/2",
         "branch": "feature/DEV-150_Clear-column-collapsed-nested-rows",
         "leg": "e2e-main",
         "status": "flaky",
