@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-05T10:50:43.797Z",
+  "updatedAt": "2026-10-05T11:49:00.348Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-main-min",
+      "file": "e2e/collapsible-indicator-dropdown-menu.spec.ts",
+      "line": 87,
+      "title": "collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: expect(received).toBe(expected) // Object.is equality",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "37302858506",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37302858506",
+      "workflow": "Tests",
+      "branch": "feature/DEV-3254_License-key-checksum-covers-prose",
+      "headSha": "69afbcff07e1950864eb014e516fcf6b1c500178",
+      "event": "pull_request",
+      "seenAt": "2026-10-05T11:48:05Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-horizon-min",
