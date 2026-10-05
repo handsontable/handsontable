@@ -24,8 +24,9 @@
 </head>
 <body>
   <!--
-    DEV-270. The grid `width` and the width of both columns are the same value. The columns used to
+    DEV-270. The grid `width` and the width of the only column are the same value. The column used to
     collapse to the 50px default, because a column width equal to the grid width was discarded.
+    One column keeps the test about column widths, not about the columns rendered past the edge.
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -44,11 +45,11 @@
 
     try {
       window.hot = new Handsontable(container, {
-        data: [['a', 'b'], ['c', 'd']],
+        data: [['a'], ['c']],
         renderer: testIdRenderer,
         width: 300,
         height: 120,
-        columns: [{ width: 300 }, { width: 300 }],
+        columns: [{ width: 300 }],
         licenseKey: 'non-commercial-and-evaluation',
       });
     } catch (error) {

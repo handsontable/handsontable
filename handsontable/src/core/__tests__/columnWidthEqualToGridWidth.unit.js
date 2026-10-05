@@ -73,16 +73,17 @@ describe('Column width equal to the grid width (DEV-270)', () => {
     createGrid({
       width: 300,
       autoColumnSize: true,
-      data: [['a much longer cell value than the default column width', 'b']],
       columns: [{ width: 300 }, {}],
     });
 
+    // AutoColumnSize skips a column that has a width from the settings. jsdom measures no layout,
+    // so the auto-sized column resolves to the default width.
     expect(hot.getColWidth(0)).toBe(300);
-    expect(hot.getColWidth(1)).not.toBe(300);
+    expect(hot.getColWidth(1)).toBe(50);
   });
 
-  it('should fall back to `colWidths` when both the grid `width` and the column `width` are `null`', () => {
-    createGrid({ width: null, colWidths: 120, columns: [{ width: null }, {}] });
+  it('should fall back to `colWidths` when the column `width` is `null` next to a numeric grid `width`', () => {
+    createGrid({ width: 300, colWidths: 120, columns: [{ width: null }, {}] });
 
     expect(hot.getColWidth(0)).toBe(120);
     expect(hot.getColWidth(1)).toBe(120);

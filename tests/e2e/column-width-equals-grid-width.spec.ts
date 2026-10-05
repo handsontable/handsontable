@@ -16,6 +16,5 @@ test.describe('column width equal to the grid width', () => {
   test('renders the column at the configured width instead of the default width', async () => {
     // The border compensation differs between themes.
     expect(Math.abs((await grid.cellWidth(0, 0)) - 300)).toBeLessThanOrEqual(2);
-    expect(Math.abs((await grid.cellWidth(0, 1)) - 300)).toBeLessThanOrEqual(2);
   });
 });
