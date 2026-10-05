@@ -1062,7 +1062,10 @@ export class MergeCells extends BasePlugin {
     const clearedData: unknown[][] = [];
     let populationInfo = null;
 
-    if (!this.canMergeRange(mergeParent, auto)) {
+    // The collection's check runs here, before any cell meta is written: once `add()` refused a merge,
+    // the `hidden` and `spanned` flags written for it would stay on unmerged cells and make the refused
+    // merge an undo step of its own (DEV-159).
+    if (!this.canMergeRange(mergeParent, auto) || !this.mergedCellsCollection.canAdd(mergeParent, auto)) {
       return false;
     }
 
@@ -1113,7 +1116,7 @@ export class MergeCells extends BasePlugin {
       return populationInfo;
     }
 
-    return true;
+    return false;
   }
 
   /**

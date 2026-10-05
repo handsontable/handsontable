@@ -116,6 +116,50 @@ describe('MergeCells', () => {
       });
     });
 
+    describe('`canAdd` method', () => {
+      it('should accept a merged cell that neither overlaps another one nor starts at its anchor', () => {
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+
+        mergedCellsCollection.add({ row: 0, col: 1, rowspan: 3, colspan: 4 });
+
+        expect(mergedCellsCollection.canAdd({ row: 10, col: 1, rowspan: 2, colspan: 2 })).toBe(true);
+        expect(mergedCellsCollection.mergedCells.length).toBe(1);
+      });
+
+      it('should refuse a merged cell that overlaps another one and warn the way `add` does', () => {
+        const warnSpy = spyOn(console, 'warn');
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+        const overlapping = { row: 1, col: 0, rowspan: 2, colspan: 7 };
+
+        mergedCellsCollection.add({ row: 0, col: 1, rowspan: 5, colspan: 3 });
+
+        expect(mergedCellsCollection.canAdd(overlapping)).toBe(false);
+        expect(warnSpy).toHaveBeenCalledTimes(1);
+        expect(warnSpy).toHaveBeenCalledWith(MergedCellsCollection.IS_OVERLAPPING_WARNING(overlapping));
+        expect(mergedCellsCollection.mergedCells.length).toBe(1);
+      });
+
+      it('should refuse a merged cell whose anchor another merged cell already takes, also with `auto`', () => {
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+
+        mergedCellsCollection.add({ row: 0, col: 1, rowspan: 3, colspan: 4 });
+
+        expect(mergedCellsCollection.canAdd({ row: 0, col: 1, rowspan: 2, colspan: 2 }, true)).toBe(false);
+      });
+
+      it('should skip the overlap check with `auto`, as `add` does', () => {
+        const warnSpy = spyOn(console, 'warn');
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+        const overlapping = { row: 1, col: 0, rowspan: 2, colspan: 7 };
+
+        mergedCellsCollection.add({ row: 0, col: 1, rowspan: 5, colspan: 3 });
+
+        expect(mergedCellsCollection.canAdd(overlapping, true)).toBe(true);
+        expect(warnSpy).not.toHaveBeenCalled();
+        expect(mergedCellsCollection.add(overlapping, true)).toBeTruthy();
+      });
+    });
+
     describe('`remove` method', () => {
       it('should remove a merged cell object from the array of merged cells by passing the starting coordinates', () => {
         const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });

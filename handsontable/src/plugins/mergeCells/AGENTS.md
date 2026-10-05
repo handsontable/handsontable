@@ -44,6 +44,18 @@ DEV-514). A nested operation's `describe()` is ignored, so the outer operation d
 itself through `#describeMerge()` - the same `cellRange` and `data` fields `mergeRange()` attaches.
 Any new method that calls two mutators must wrap them the same way.
 
+**A refused merge must be refused before `#mergeRange` writes anything.** The method writes `hidden` on
+every covered cell and `spanned` on the top-left through `setCellMeta`, and each write is an operation
+UndoRedo records. `MergedCellsCollection#add()` refuses a merge that overlaps another one or whose anchor
+is taken, but it runs after those writes: a refused merge left the flags on unmerged cells, fired
+`beforeMergeCells` with no `afterMergeCells`, and became an undo step that changed no merge (DEV-159 — a
+row-header selection across an existing merge, or `merge()` through the API). So `#mergeRange` asks
+`MergedCellsCollection#canAdd()` — the same two rules, and the same overlap warning — right after
+`canMergeRange()`. A new precondition belongs there too, never after the first write. A cell-range
+selection never reaches this: it grows to cover the merges it touches, so its merge is not refused.
+Pinned by `tests/e2e/merge-cells-rejected-merge-undo.spec.ts` and the `canAdd` block of
+`__tests__/cellsCollection.unit.ts`.
+
 Undo and redo carry the anchors too: `captureState()` returns every merge with its anchor, and
 `restoreState(state, context)` applies only what the step changed: it removes the live merges listed on
 the other side of the step but not in `state`, adds the ones `state` lists that the other side did not,

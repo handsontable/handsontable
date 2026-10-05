@@ -261,14 +261,9 @@ class MergedCellsCollection {
    * @returns {MergedCellCoords|boolean} Returns the new merged cell on success and `false` on failure.
    */
   add(mergedCellInfo: { row: number, col: number, rowspan: number, colspan: number }, auto = false) {
-    const row = mergedCellInfo.row;
-    const column = mergedCellInfo.col;
-    const rowspan = mergedCellInfo.rowspan;
-    const colspan = mergedCellInfo.colspan;
-    const newMergedCell = new MergedCellCoords(row, column, rowspan, colspan,
-      this.hot._createCellCoords, this.hot._createCellRange);
-    const alreadyExists = this.get(row, column);
-    const isOverlapping = auto ? false : this.isOverlapping(newMergedCell);
+    const newMergedCell = new MergedCellCoords(mergedCellInfo.row, mergedCellInfo.col, mergedCellInfo.rowspan,
+      mergedCellInfo.colspan, this.hot._createCellCoords, this.hot._createCellRange);
+    const { alreadyExists, isOverlapping } = this.#checkAddition(newMergedCell, auto);
 
     if (!alreadyExists && !isOverlapping) {
       if (this.hot) {
@@ -287,6 +282,42 @@ class MergedCellsCollection {
     }
 
     return false;
+  }
+
+  /**
+   * Checks whether `add()` would accept a merged cell, and warns as `add()` does when it overlaps
+   * another one. A merge runs it before it touches the cells, so a merge `add()` would refuse
+   * writes no cell meta and leaves no undo step (DEV-159).
+   *
+   * @param {object} mergedCellInfo The merged cell information object. Has to contain `row`, `col`, `colspan` and `rowspan` properties.
+   * @param {boolean} [auto=false] `true` if called internally by the plugin (usually in batch).
+   * @returns {boolean} `true` if `add()` would add the merged cell.
+   */
+  canAdd(mergedCellInfo: { row: number, col: number, rowspan: number, colspan: number }, auto = false) {
+    const newMergedCell = new MergedCellCoords(mergedCellInfo.row, mergedCellInfo.col, mergedCellInfo.rowspan,
+      mergedCellInfo.colspan, this.hot._createCellCoords, this.hot._createCellRange);
+    const { alreadyExists, isOverlapping } = this.#checkAddition(newMergedCell, auto);
+
+    if (isOverlapping) {
+      warn(MergedCellsCollection.IS_OVERLAPPING_WARNING(newMergedCell));
+    }
+
+    return !alreadyExists && !isOverlapping;
+  }
+
+  /**
+   * The two reasons `add()` refuses a merged cell: another merged cell starts at its anchor, or,
+   * unless `auto` is `true`, another merged cell overlaps it.
+   *
+   * @param {MergedCellCoords} newMergedCell The merged cell to check.
+   * @param {boolean} auto `true` if called internally by the plugin.
+   * @returns {{ alreadyExists: boolean, isOverlapping: boolean }}
+   */
+  #checkAddition(newMergedCell: MergedCellCoords, auto: boolean) {
+    return {
+      alreadyExists: !!this.get(newMergedCell.row, newMergedCell.col),
+      isOverlapping: auto ? false : this.isOverlapping(newMergedCell),
+    };
   }
 
   /**
