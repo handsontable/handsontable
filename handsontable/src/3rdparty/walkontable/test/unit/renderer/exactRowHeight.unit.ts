@@ -79,6 +79,59 @@ describe('applyRowHeight', () => {
       expect(TR.querySelector(`.${CELL_CLIP_CLASS}`)).toBe(null);
       expect(TR.classList.contains(EXACT_ROW_CLASS)).toBe(false);
     });
+
+    it('should pin the row at its own height when the first cell spans several rows', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+      const [TD1] = cellsOf(TR);
+
+      TD1.setAttribute('rowspan', '2');
+      applyRowHeight(TR, 99, false, true, () => 70);
+
+      // The spanning cell keeps the height it was given (the span's rows), the row gets its own.
+      expect(TD1.style.height).toBe('99px');
+      expect(TR.style.height).toBe('70px');
+    });
+
+    it('should pin the row at its own height when a merge hides the first cell', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+
+      cellsOf(TR)[0].style.display = 'none';
+      applyRowHeight(TR, 29, false, true, () => 29);
+
+      expect(TR.style.height).toBe('29px');
+    });
+
+    it('should not pin a row that has no height of its own', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+
+      cellsOf(TR)[0].setAttribute('rowspan', '3');
+      applyRowHeight(TR, 87, false, true, () => undefined);
+
+      expect(TR.style.height).toBe('');
+    });
+
+    it('should drop the pin once the first cell can carry the height again', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+      const [TD1] = cellsOf(TR);
+
+      TD1.setAttribute('rowspan', '2');
+      applyRowHeight(TR, 99, false, true, () => 70);
+      TD1.removeAttribute('rowspan');
+      applyRowHeight(TR, 29, false, true, () => 29);
+
+      expect(TR.style.height).toBe('');
+      expect(TD1.style.height).toBe('29px');
+    });
+
+    it('should not ask for the row\'s own height when the first cell can carry it', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+      const getOwnRowHeight = jest.fn(() => 70);
+
+      applyRowHeight(TR, 29, false, true, getOwnRowHeight);
+
+      expect(getOwnRowHeight).not.toHaveBeenCalled();
+      expect(TR.style.height).toBe('');
+    });
   });
 
   describe('exact shape', () => {

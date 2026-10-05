@@ -235,12 +235,16 @@ function releaseExactShape(TR: HTMLElement): void {
  *   `undefined`/`0` when no height applies and the row sizes to its content.
  * @param {boolean} isExact Whether the row renders at exactly `rowHeight` (see `RowUtils#isExact`).
  * @param {boolean} isBorderBox Whether the cells use `box-sizing: border-box`.
+ * @param {Function} [getOwnRowHeight] Returns the row's own height, without what an overlay listener adds
+ *   for a cell spanning several rows, or `undefined` when the row has none. Asked only for a row whose first
+ *   cell cannot carry the height.
  */
 export function applyRowHeight(
   TR: HTMLElement,
   rowHeight: number | undefined,
   isExact: boolean,
   isBorderBox: boolean,
+  getOwnRowHeight?: () => number | undefined,
 ): void {
   const firstChild = TR.firstChild;
 
@@ -265,4 +269,26 @@ export function applyRowHeight(
   }
 
   firstChild.style.height = pixelHeight;
+
+  // A first cell that spans several rows, or that a merge covers, cannot hold the row's own height: the
+  // browser would split the span's height between the rows as it likes, and each pane would draw them
+  // differently. A row with a height of its own is pinned on the row element instead (the span keeps the
+  // height the host gave it). The pin comes off as soon as the first cell can carry the height again,
+  // because a row height left behind is a minimum that would stop the row shrinking.
+  const rowElementHeight = canCarryHeight(firstChild) ? '' : toRowElementHeight(getOwnRowHeight?.(), isBorderBox);
+
+  if (TR.style.height !== rowElementHeight) {
+    TR.style.height = rowElementHeight;
+  }
+}
+
+/**
+ * Converts a row's own height to the height written on the row element, or `''` when the row has none.
+ *
+ * @param {number|undefined} rowHeight The row's own logical height.
+ * @param {boolean} isBorderBox Whether the cells use `box-sizing: border-box`.
+ * @returns {string}
+ */
+function toRowElementHeight(rowHeight: number | undefined, isBorderBox: boolean): string {
+  return rowHeight ? `${getBoxAdjustedRowHeight(rowHeight, isBorderBox)}px` : '';
 }

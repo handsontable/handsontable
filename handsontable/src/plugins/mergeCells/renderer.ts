@@ -6,8 +6,16 @@ import {
   isEndColumnOverlay,
   getFirstRenderedRowOfOverlay,
   getFirstRenderedColumnOfOverlay,
+  getFrozenColumnBandOfOverlay,
+  sumBlockWidthsOutsideBand,
 } from './utils';
 import type { HotInstance } from '../../core/types';
+
+/**
+ * The class of the element that lays out a merged cell's content at the width of the whole block, in a
+ * frozen column overlay that renders only part of the block's columns.
+ */
+export const CONTENT_WINDOW_CLASS = 'htMergedCellContentWindow';
 
 /**
  * Represents a merged cell entry.
@@ -156,6 +164,8 @@ export function createMergeCellRenderer(plugin: MergeCellsPluginInstance) {
         // cell's own coordinates, so the renderer's output (a checkbox, a long wrapped text) would act on, or
         // size the rows of the clone from, a cell the block does not own.
         empty(getCellContentRoot(TD));
+      } else {
+        layOutContentAtBlockWidth(TD, origColumn, lastMergedColumnIndex);
       }
 
     } else {
@@ -163,6 +173,60 @@ export function createMergeCellRenderer(plugin: MergeCellsPluginInstance) {
       TD.removeAttribute('colspan');
       TD.style.display = 'none';
     }
+  }
+
+  /**
+   * Lays the content of a merged block's cell out at the width of the whole block when the overlay being drawn
+   * renders a frozen column band that holds only part of the block's columns. The browser cuts such a cell at
+   * the edge of the overlay's table, so the content would be aligned and wrapped against the cut width: a
+   * right-aligned or centered value showed in the frozen pane and again in the master, and a long value
+   * wrapped in the narrow frozen part and made the pane's row taller than the master's. Wrapped in an element
+   * as wide as the block (and pulled back by the width of the columns before the band, for the inline-end
+   * band), the content lands exactly where the master draws it, and the cell clips it to the pane's part.
+   *
+   * @param {HTMLTableCellElement} TD The cell that carries the block's span in the overlay.
+   * @param {number} origColumn Visual column index of the block's top-left cell.
+   * @param {number} lastMergedColumnIndex Renderable index of the block's last column.
+   */
+  function layOutContentAtBlockWidth(TD: HTMLTableCellElement, origColumn: number, lastMergedColumnIndex: number) {
+    const band = getFrozenColumnBandOfOverlay(hot, hot.view.getActiveOverlayName());
+
+    if (band === null) {
+      return;
+    }
+
+    const firstColumn = columnMapper.getNearestNotHiddenIndex(origColumn, 1);
+    const blockStart = firstColumn === null ? null : columnMapper.getRenderableFromVisualIndex(firstColumn);
+
+    if (blockStart === null) {
+      return;
+    }
+
+    const getRenderableColumnWidth = (renderableColumn: number) => hot
+      .getColWidth(columnMapper.getVisualFromRenderableIndex(renderableColumn) ?? renderableColumn);
+    const { before, after } = sumBlockWidthsOutsideBand(
+      blockStart, lastMergedColumnIndex, band, getRenderableColumnWidth
+    );
+
+    if (before === 0 && after === 0) {
+      return;
+    }
+
+    const contentRoot = getCellContentRoot(TD);
+    const contentWindow = hot.rootDocument.createElement('div');
+
+    contentWindow.className = CONTENT_WINDOW_CLASS;
+    contentWindow.style.width = `calc(100% + ${before + after}px)`;
+
+    if (before > 0) {
+      contentWindow.style.marginInlineStart = `-${before}px`;
+    }
+
+    while (contentRoot.firstChild) {
+      contentWindow.appendChild(contentRoot.firstChild);
+    }
+
+    contentRoot.appendChild(contentWindow);
   }
 
   /**

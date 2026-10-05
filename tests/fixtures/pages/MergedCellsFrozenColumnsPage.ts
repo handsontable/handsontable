@@ -1,0 +1,200 @@
+import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
+
+/**
+ * The panes a row can be rendered in, keyed by the CSS class of the pane's root element.
+ */
+export const PANES = [
+  'ht_master',
+  'ht_clone_inline_start',
+  'ht_clone_top',
+  'ht_clone_top_inline_start_corner',
+  'ht_clone_inline_end',
+] as const;
+
+export type PaneName = typeof PANES[number];
+
+/**
+ * Where one row sits in one pane: its offset from the top of the pane's table body and its height.
+ */
+export interface RowGeometry {
+  offset: number;
+  height: number;
+}
+
+/**
+ * The slice of the fixture's window this page drives. Declared locally rather than augmenting `Window`,
+ * which `windowTypes.ts` already does with another `hot` type (TS2717).
+ */
+interface FixtureWindow {
+  initGrid(settings: Record<string, unknown>): void;
+  hot: {
+    scrollViewportTo(options: object): boolean;
+    getFirstFullyVisibleColumn(): number | null;
+    getFirstRenderedVisibleColumn(): number | null;
+    getFirstFullyVisibleRow(): number | null;
+  };
+}
+
+/**
+ * Page Object for the "merged cells in the frozen columns" fixture
+ * (tests/fixtures/demo/merged-cells-frozen-columns.html).
+ *
+ * A merged block that sits in, or crosses, the frozen columns is rendered by every pane that holds a
+ * part of it. These helpers read what each pane shows in ONE evaluation, so no draw can land between
+ * the values a comparison needs (`tests/AGENTS.md`, Determinism).
+ */
+export class MergedCellsFrozenColumnsPage {
+  readonly page: Page;
+  readonly theme: string;
+  readonly bundle: string;
+  readonly grid: Locator;
+
+  constructor(page: Page, theme = 'main', bundle = 'umd') {
+    this.page = page;
+    this.theme = theme;
+    this.bundle = bundle;
+    this.grid = page.getByTestId('grid');
+  }
+
+  /**
+   * Navigates to the fixture and waits for the bundle.
+   */
+  async goto(): Promise<void> {
+    const params = new URLSearchParams({ theme: this.theme, bundle: this.bundle });
+
+    await this.page.goto(`/tests/fixtures/demo/merged-cells-frozen-columns.html?${params}`);
+    await awaitBundle(this.page);
+  }
+
+  /**
+   * Builds a fresh grid. `values` places a `markers:<n>` or `tall:<px>` value in a cell (see the fixture).
+   *
+   * @param {object} settings Handsontable settings plus the fixture's `rows`, `cols` and `values`.
+   */
+  async initGrid(settings: Record<string, unknown>): Promise<void> {
+    await this.page.evaluate(s => (window as unknown as FixtureWindow).initGrid(s), settings);
+    await expect(this.grid.locator('.ht_master tbody tr').first()).toBeVisible();
+  }
+
+  /**
+   * How many of the rendered markers the user can actually see: a marker counts when the browser hit-tests
+   * its own center to it, so a copy that is clipped away, or covered by another pane, does not count.
+   */
+  async visibleMarkers(): Promise<{ count: number, panes: string[] }> {
+    return this.grid.evaluate((root) => {
+      const panes: string[] = [];
+
+      root.querySelectorAll('[data-testid="marker"]').forEach((marker) => {
+        const rect = marker.getBoundingClientRect();
+        const hit = document.elementFromPoint(rect.left + (rect.width / 2), rect.top + (rect.height / 2));
+
+        if (rect.width > 0 && hit === marker) {
+          panes.push(/ht_(master|clone_\w+)/.exec(marker.closest('.handsontable')?.className ?? '')?.[0] ?? '?');
+        }
+      });
+
+      return { count: panes.length, panes };
+    });
+  }
+
+  /**
+   * The geometry of the given rows in every pane that renders them, read in one evaluation.
+   *
+   * @param {number[]} rows The row indexes (`data-testid="row-<n>"` on the TR).
+   */
+  async rowGeometry(rows: number[]): Promise<Partial<Record<PaneName, Record<number, RowGeometry>>>> {
+    return this.grid.evaluate((root, { rowIndexes, paneNames }) => {
+      const result: Record<string, Record<number, { offset: number, height: number }>> = {};
+
+      paneNames.forEach((pane) => {
+        const body = root.querySelector(`.${pane} .htCore tbody`);
+
+        if (!body || (body.closest(`.${pane}`) as HTMLElement).style.display === 'none') {
+          return;
+        }
+
+        const bodyTop = body.getBoundingClientRect().top;
+
+        rowIndexes.forEach((row) => {
+          const tr = body.querySelector(`[data-testid="row-${row}"]`);
+
+          if (tr) {
+            const rect = tr.getBoundingClientRect();
+
+            result[pane] ??= {};
+            result[pane][row] = { offset: Math.round(rect.top - bodyTop), height: Math.round(rect.height) };
+          }
+        });
+      });
+
+      return result;
+    }, { rowIndexes: rows, paneNames: [...PANES] });
+  }
+
+  /**
+   * For every pane that renders a row, how far its offset and height differ from the master's.
+   * An empty list means every pane agrees with the master.
+   *
+   * @param {number[]} rows The row indexes to compare.
+   */
+  async rowsDisagreeingWithMaster(rows: number[]): Promise<string[]> {
+    const geometry = await this.rowGeometry(rows);
+    const master = geometry.ht_master ?? {};
+    const mismatches: string[] = [];
+
+    Object.entries(geometry).forEach(([pane, paneRows]) => {
+      Object.entries(paneRows ?? {}).forEach(([row, { offset, height }]) => {
+        const reference = master[Number(row)];
+
+        if (reference && (reference.offset !== offset || reference.height !== height)) {
+          mismatches.push(`${pane} row ${row}: ${offset}/${height}px, master ${reference.offset}/${reference.height}px`);
+        }
+      });
+    });
+
+    return mismatches;
+  }
+
+  /**
+   * The height of a row in the master pane, `NaN` when the master does not render it.
+   *
+   * @param {number} row The row index.
+   */
+  async masterRowHeight(row: number): Promise<number> {
+    return (await this.rowGeometry([row])).ht_master?.[row]?.height ?? NaN;
+  }
+
+  /**
+   * The first column the master renders, read from the grid.
+   */
+  async masterFirstRenderedColumn(): Promise<number | null> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).hot.getFirstRenderedVisibleColumn());
+  }
+
+  /**
+   * Scrolls the viewport so `column` is the first one at the inline start, and waits for the master to
+   * show it there, give or take the one column a scroll to the end cannot snap (a render-state probe,
+   * not the scroll offset). The first RENDERED column is no probe
+   * here: the master renders a merged block from its origin, so it can stay at 0 after the scroll.
+   *
+   * @param {number} column The visual column index.
+   */
+  async scrollToColumn(column: number): Promise<void> {
+    await this.page.evaluate(col => (window as unknown as FixtureWindow).hot.scrollViewportTo({ col, horizontalSnap: 'start' }), column);
+    await expect.poll(() => this.page.evaluate(() => (window as unknown as FixtureWindow).hot.getFirstFullyVisibleColumn() ?? -1))
+      .toBeGreaterThanOrEqual(column - 1);
+  }
+
+  /**
+   * Scrolls the viewport so `row` is the first one at the top, and waits for the master to show it there,
+   * give or take one partly visible row.
+   *
+   * @param {number} row The visual row index.
+   */
+  async scrollToRow(row: number): Promise<void> {
+    await this.page.evaluate(r => (window as unknown as FixtureWindow).hot.scrollViewportTo({ row: r, verticalSnap: 'top' }), row);
+    await expect.poll(() => this.page.evaluate(() => (window as unknown as FixtureWindow).hot.getFirstFullyVisibleRow() ?? -1))
+      .toBeGreaterThanOrEqual(row - 1);
+  }
+}

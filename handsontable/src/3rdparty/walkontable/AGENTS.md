@@ -590,7 +590,7 @@ Everything else follows from that table, and each row of it was a separate bug b
 Two neighbours worth knowing about:
 
 - **`RenderSizeProbe` must measure every table that can hold a recorded row.** It is the intended replacement for the engine's measurement, and its characterization spec pins equality with `oversizedRows` — so a height sourced from a table it does not measure leaves it mirroring a subset while the spec stays green. The master's band plus the top and bottom clones cover every recordable row; the inline-start clone mirrors the master's band and adds none.
-- **MergeCells inflates row heights per overlay** (`modifyRowHeightByOverlayName`), so a frozen clone can render a row at the whole merged block's height while the overlay-agnostic `getRowHeight` that `markOversizedRows` compares against reports one row. That does not currently produce a bogus record — the inflated height is written on a TD whose `rowspan` covers exactly the rows it accounts for, so no single TR measures tall — but the two sides of that comparison do disagree, and a spec pins the outcome.
+- **MergeCells inflates the height of a row that starts with a block's spanning cell** (`modifyRowHeightByOverlayName`), to the block's rows, so a frozen clone can write that cell at the whole block's height while the overlay-agnostic `getRowHeight` that `markOversizedRows` compares against reports one row. That does not produce a bogus record: the height is written on a TD whose `rowspan` covers the rows it accounts for, and the row itself is pinned at its own height (next section), so no single TR measures tall. The listener counts that one cell's own span only (DEV-299); see `src/plugins/mergeCells/AGENTS.md`.
 
 Three more things that pass every functional test and only show up in a profile or a screenshot:
 
@@ -600,6 +600,33 @@ Three more things that pass every functional test and only show up in a profile 
 - **Steady state must cost zero row-height cache invalidations.** Each one drops the per-draw layout snapshot as well, and with a non-uniform row-size source (`rowHeights`/`minRowHeights` as an array or function, or any non-AutoRowSize `modifyRowHeight` hook) `PositionCache` has no sparse path, so a rebuild is a full prefix-sum walk over every row. Verified by counting: 0 invalidations/draw and an unchanged `createVisibleCalculators` count in every configuration. Two specs in `tests/e2e/walkontable/frozen-column-row-heights.spec.ts` pin the invalidation count at 0 through the fixture's `countRowCacheInvalidations` — the only way to see this class of bug, since the rows stay aligned and every visual assertion passes while it happens.
 
 When you add a new content-driven measurement, ask which tables actually render the content — measuring the master alone is the trap both of these exist to work around.
+
+## A row whose first cell cannot carry its height is pinned on the `tr`
+
+`applyRowHeight` (`render/exactRowHeight.ts`) writes a row's floor height on `TR.firstChild`. With row headers
+that is a 1x1 `th` and always works. Without them it can be a cell spanning several rows (a merged block,
+`rowspan > 1`) or a cell a merge covers (`display: none`). A spanning cell takes the height the host hands it
+(MergeCells inflates it to the block's rows), but nothing pins the rows inside the span, so the browser split
+the span between them as it liked: each pane drew the block's rows at different heights, and so did the master
+as its column band moved (DEV-299). Such a row is now pinned on the `tr` with its OWN height, which both call
+sites pass lazily as `() => rowUtils.getHeight(source)` (the un-hooked height: the inflated one would make the
+first row as tall as the block). The getter runs only for a row whose first cell cannot carry the height, so a
+grid without merges pays nothing for it, and the spanning cell keeps the hooked height as before.
+
+Three rules ride along:
+- **Pin only a row that has a height of its own** (`autoRowSize`, an oversized-row record, `rowHeights`). A
+  default-height row gets no pin: its height comes from the stylesheet, and the spanning cell's inflated height
+  holds it up. Writing the default size instead was tried and broke seven legacy MergeCells specs: rows a block
+  covers entirely collapsed, and the default size does not know the first rendered row's extra pixel.
+- **Clear the pin as soon as the first cell can carry the height again.** A row height is a minimum in CSS table
+  layout, and the row elements are recycled across rows, so one left behind would stop an ordinary row
+  shrinking. The write is skipped when the value is unchanged.
+- **The exact shape is untouched.** It picks its own carrier among all the cells and already falls back to the
+  `tr`. A `tr` height is the row's full height; the same box adjustment as the exact shape applies.
+
+Pinned by `tests/e2e/walkontable/merged-rows-frozen-columns.spec.ts` (all panes agree at rest and scrolled,
+rows inside a block keep their own heights, a reused row element sheds the pin, `renderMode: 'onChange'`), in
+the `main`, `horizon` and `classic` themes.
 
 ## Rendered row band is refilled, bounded, when the measured rows shrink
 

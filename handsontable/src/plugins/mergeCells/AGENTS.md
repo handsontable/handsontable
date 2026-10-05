@@ -387,6 +387,55 @@ span. Three sites agree on that rule, and a fourth lives in Walkontable:
 - Not changed: a merge that crosses the line is still accepted, and `fixedRowsBottom` moving later (a settings
   update, a row insert) is handled by the render path, not by validation.
 
+## A block in the frozen columns is one block in every pane
+
+The master and every frozen-column clone render their own copy of a merged block, and each copy has to agree
+with the others. Three things are derived per pane, and each has its own owner:
+
+- **The outline and the fill handle**: Walkontable `Border` (`3rdparty/walkontable/AGENTS.md`, DEV-143).
+- **The row heights.** Walkontable writes a row's height on the row's first cell, and without row headers that
+  cell can span several rows (`rowspan`) or be covered (`display: none`). Two halves keep the rows of a block
+  the same in every pane:
+  - `#onModifyRowHeightByOverlayName` gives the cell a row STARTS with, when that cell carries a block's span
+    on the row (`#getSpanCarrierRow`: the block's first not-hidden row, moved down to the overlay's first
+    rendered row under `virtualized`), the height of the block's rows, clamped to the frozen top rows on the
+    top overlays. It counts that cell's own span only. It used to take the tallest span of every block in the
+    overlay's part of the row, so a one-row cell next to a two-row block got two rows' height and the top
+    clone drew the frozen rows taller than the master (DEV-299). The count is the block's whole `rowspan`
+    from the carrier down, not the rows left in it: under `virtualized` a carrier moved down to the band's
+    first row still shows the block at its full height, and the legacy virtualized specs pin that. This half
+    is what holds up rows with default heights, whose cells a block covers entirely: such a row has nothing of
+    its own (`rowHeight` is `undefined`), so without the span's height it collapses.
+  - Walkontable pins a row whose first cell cannot carry the height on the `tr`, with the row's OWN height
+    (`applyRowHeight`, `3rdparty/walkontable/AGENTS.md`), only when the row has one (`autoRowSize`, an
+    oversized row, `rowHeights`). Without the pin the browser split the span's height between the rows as it
+    liked, differently in each pane and in the master as its band moved.
+
+  The hook still skips the bottom overlays and the row-header grids, as before. `getHeightNextToMergedBlock`
+  (`rowHeights` and Safari) stays; it writes the same height the engine does.
+- **The content.** A frozen-column clone holds only part of a block that crosses the freeze line, and the
+  browser cuts the clone's cell at the edge of the clone's table. The content was then aligned and wrapped
+  against the cut width: a right-aligned or centered value showed in the pane and again in the master, and a
+  long value wrapped in the narrow part and made the pane's row taller than the master's.
+  `layOutContentAtBlockWidth` (`renderer.ts`) wraps the content in `div.htMergedCellContentWindow`, as wide as
+  the whole block (`calc(100% + <columns outside the band>)`) and, in the inline-end band, pulled back by the
+  columns before the band (`margin-inline-start`). The content lands where the master draws it and the cell's
+  `overflow: hidden` clips it to the pane's part. The band comes from `getFrozenColumnBandOfOverlay` and the
+  widths from `sumBlockWidthsOutsideBand` (`utils.ts`), read through `hot.getColWidth`, so a stretched column
+  counts at its stretched width. The wrapper is rebuilt on every paint of the carrier: the renderers replace the
+  cell's content, which drops it.
+
+Known limits of the content rule:
+- Rows are not windowed. A block that crosses `fixedRowsTop` with `htMiddle` or `htBottom` still centers in each
+  pane's part: a cell cannot be shorter than its content, so a wrapper as tall as the block would grow the row.
+- With `virtualized: true` the master clamps the block's anchor to its rendered band, so the master moves its
+  copy of the content as the grid scrolls while the pane keeps it where the block starts.
+- Under `renderMode: 'onChange'`, a column width change that repaints no cell leaves the wrapper's width stale
+  until the block's cells repaint.
+
+Pinned by `tests/e2e/merge-cells-frozen-columns-content.spec.ts`, `tests/e2e/walkontable/merged-rows-frozen-columns.spec.ts`
+and `__tests__/blockWidthsOutsideBand.unit.ts`.
+
 ## The init draw is batched, and four things about it are load-bearing
 
 `#onAfterInit` applies the declared merges between a `suspendRender()` / `resumeRender()` pair (#5687).

@@ -3789,7 +3789,15 @@ export class MergeCells extends BasePlugin {
   #onModifySinglePassLayout = () => false;
 
   /**
-   * Hook used to modify the row height depends on the merged cells in the row.
+   * Gives the cell that carries a merged block's span in a row the height of the rows it spans. Walkontable
+   * writes a row's height on the row's first cell, and without row headers that cell can be a block's cell
+   * that spans several rows; only the whole span's height holds those rows up when they have no height of
+   * their own. Rows with a known height are also pinned on the row element by Walkontable, so the browser
+   * cannot split the span's height between them differently in each pane.
+   *
+   * Only the span of the cell the row starts with counts. Taking the tallest span of every block in the
+   * viewport's part of the row (as before) gave a one-row cell the height of a two-row block next to it, and
+   * the top overlay then drew the frozen rows taller than the master.
    *
    * @param {number} height The row height value provided by the Core.
    * @param {number} row The visual row index.
@@ -3807,65 +3815,73 @@ export class MergeCells extends BasePlugin {
       return height;
     }
 
-    let firstColumn;
-    let lastColumn;
+    const firstColumn = this.#getFirstRenderedColumnOfTable(overlayType);
 
-    if (overlayType === 'master') {
-      firstColumn = this.hot.getFirstRenderedVisibleColumn();
-      lastColumn = this.hot.getLastRenderedVisibleColumn();
-
-    } else {
-      const activeOverlay = this.hot.view.getOverlayByName(overlayType) as unknown as Overlay | null;
-      const overlayWtTable = activeOverlay?.clone?.wtTable;
-
-      if (!overlayWtTable) {
-        return height;
-      }
-
-      firstColumn = this.hot.columnIndexMapper
-        .getVisualFromRenderableIndex(overlayWtTable.getFirstRenderedColumn());
-      lastColumn = this.hot.columnIndexMapper
-        .getVisualFromRenderableIndex(overlayWtTable.getLastRenderedColumn());
-    }
-
-    if (firstColumn === null || firstColumn === undefined) {
+    if (firstColumn === null) {
       return height;
     }
 
-    const firstMergedCellInRow = this.mergedCellsCollection.get(row, firstColumn);
+    const mergedCell = this.mergedCellsCollection.get(row, firstColumn);
 
-    if (!firstMergedCellInRow) {
+    if (!mergedCell || this.#getSpanCarrierRow(mergedCell.row, overlayType) !== row) {
       return height;
     }
 
-    const from = this.hot._createCellCoords(row, firstColumn);
-    const to = this.hot._createCellCoords(row, lastColumn ?? firstColumn);
-    const viewportRange = this.hot._createCellRange(from, from, to);
-    const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(viewportRange, true);
-    const maxRowspan = mergedCellsWithinRange.reduce(
-      (acc: number, { rowspan }: { rowspan: number }) => Math.max(acc, rowspan), 1);
-    let rowspanCorrection = 0;
+    // The whole block's row count, from the carrier down: under the `virtualized` rendering the carrier is moved
+    // down to the overlay's first rendered row, and it still shows the block at its full height.
+    let rowsToSum = mergedCell.rowspan;
 
-    if (mergedCellsWithinRange.length > 1 && mergedCellsWithinRange[0].rowspan < maxRowspan) {
-      rowspanCorrection = maxRowspan - mergedCellsWithinRange[0].rowspan;
+    if (
+      overlayType === 'top' ||
+      overlayType === 'top_inline_start_corner' ||
+      overlayType === 'top_inline_end_corner'
+    ) {
+      rowsToSum = Math.min(rowsToSum, this.hot.view.countNotHiddenFixedRowsTop() - row);
     }
 
-    mergedCellsWithinRange.forEach(({ rowspan }: { rowspan: number }) => {
-      let rowspanAfterCorrection = 0;
+    if (rowsToSum <= 1) {
+      return height;
+    }
 
-      if (
-        overlayType === 'top' ||
-        overlayType === 'top_inline_start_corner' ||
-        overlayType === 'top_inline_end_corner'
-      ) {
-        rowspanAfterCorrection = Math.min(maxRowspan, this.hot.view.countNotHiddenFixedRowsTop() - row);
-      } else {
-        rowspanAfterCorrection = rowspan - rowspanCorrection;
-      }
-
-      height = Math.max(height ?? 0, sumCellsHeights(this.hot, row, rowspanAfterCorrection));
-    });
-
-    return height;
+    return Math.max(height ?? 0, sumCellsHeights(this.hot, row, rowsToSum));
   };
+
+  /**
+   * Returns the first (visual) column the table of the given overlay renders, or `null` when it renders none.
+   *
+   * @param {string} overlayType The overlay type that is currently rendered.
+   * @returns {number|null}
+   */
+  #getFirstRenderedColumnOfTable(overlayType: string): number | null {
+    if (overlayType === 'master') {
+      return this.hot.getFirstRenderedVisibleColumn();
+    }
+
+    const activeOverlay = this.hot.view.getOverlayByName(overlayType) as unknown as Overlay | null;
+    const overlayWtTable = activeOverlay?.clone?.wtTable;
+
+    if (!overlayWtTable) {
+      return null;
+    }
+
+    return this.hot.columnIndexMapper.getVisualFromRenderableIndex(overlayWtTable.getFirstRenderedColumn());
+  }
+
+  /**
+   * Returns the (visual) row on which the renderer puts a block's span in the given overlay: the block's first
+   * row that is not hidden, moved down to the overlay's first rendered row under the `virtualized` rendering.
+   *
+   * @param {number} blockRow Visual row index of the block's top-left cell.
+   * @param {string} overlayType The overlay type that is currently rendered.
+   * @returns {number|null}
+   */
+  #getSpanCarrierRow(blockRow: number, overlayType: string): number | null {
+    const carrierRow = this.hot.rowIndexMapper.getNearestNotHiddenIndex(blockRow, 1);
+
+    if (carrierRow === null || !this.getSetting('virtualized')) {
+      return carrierRow;
+    }
+
+    return Math.max(carrierRow, getFirstRenderedRowOfOverlay(this.hot, overlayType));
+  }
 }
