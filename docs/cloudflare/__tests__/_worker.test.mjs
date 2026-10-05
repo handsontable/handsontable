@@ -271,6 +271,22 @@ test('Content-Security-Policy frame-src allows the demos.handsontable.com embed 
   assert.ok(hasSource('https://demos.handsontable.com'));
 });
 
+test('Content-Security-Policy font-src allows the jsDelivr webfont loaded by the Tabler icons recipe', async() => {
+  const worker = loadWorker();
+  const response = await worker.fetch(request('/docs/recipes/themes/tabler-icons/'), env);
+  const csp = response.headers.get('Content-Security-Policy');
+  const fontSrc = csp.split(';').find((directive) => directive.trim().startsWith('font-src'));
+
+  assert.ok(fontSrc, 'expected a font-src directive in the Content-Security-Policy header');
+
+  const fontSrcSources = fontSrc.trim().split(/\s+/).slice(1); // drop the "font-src" keyword
+  const hasSource = (source) => fontSrcSources.some((entry) => entry === source);
+
+  // The recipe's stylesheet comes from jsDelivr (style-src), and its @font-face .woff2 does too.
+  assert.ok(hasSource('https://cdn.jsdelivr.net'));
+  assert.ok(hasSource('https://fonts.gstatic.com'));
+});
+
 test('keeps versioned demo redirects on historical disabled cells slugs', async() => {
   const worker = loadWorker();
 

@@ -198,9 +198,9 @@ describe('settings', () => {
             }
           });
 
-          expect($(getRenderedValue(0, 0)).is(':checkbox')).toBe(true);
-          expect($(getRenderedValue(1, 0)).is(':checkbox')).toBe(true);
-          expect($(getRenderedValue(2, 0)).is(':checkbox')).toBe(true);
+          expect($(getRenderedValue(0, 0)).find(':checkbox').length).toBe(1);
+          expect($(getRenderedValue(1, 0)).find(':checkbox').length).toBe(1);
+          expect($(getRenderedValue(2, 0)).find(':checkbox').length).toBe(1);
         });
       });
 

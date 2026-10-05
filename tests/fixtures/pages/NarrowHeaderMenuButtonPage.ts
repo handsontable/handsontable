@@ -234,7 +234,9 @@ export class NarrowHeaderMenuButtonPage {
       // The icon is centered in the button's larger hit area.
       const iconStart = button.left + ((button.width - iconSize) / 2);
       const toInline = (x: number) => Math.round((rtl ? cell.right - x : x - cell.left) * 10) / 10;
-      const indicator = parseFloat(getComputedStyle(label, '::before').width);
+      // The sort indicator is an `<i class="ht-sort-indicator">` next to the label, not its `::before`.
+      const indicatorElement = th.querySelector('.ht-sort-indicator');
+      const indicator = indicatorElement ? indicatorElement.getBoundingClientRect().width : 0;
       const labelWidth = label.getBoundingClientRect().width;
 
       return {

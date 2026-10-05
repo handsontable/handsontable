@@ -75,7 +75,8 @@ describe('jsdom theme stylesheet parse error filter', () => {
     container.remove();
     spy.mockRestore();
 
-    expect(parseErrors.length).toBeGreaterThan(0);
-    expect(parseErrors.every(isThemeStylesheetParseError)).toBe(true);
+    // The icon rules are no longer nested in the theme block, so a default grid build reports no
+    // parse error at all. Any one that does appear must still be the theme block's.
+    expect(parseErrors.filter(call => !isThemeStylesheetParseError(call))).toEqual([]);
   });
 });

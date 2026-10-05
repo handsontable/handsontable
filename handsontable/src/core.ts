@@ -68,7 +68,7 @@ import { createShortcutManager } from './shortcuts';
 import type { ShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcuts/contexts';
 import { getThemeClassName } from './helpers/themes';
-import { StylesHandler } from './utils/stylesHandler';
+import { StylesHandler, isValidThemeName } from './utils/stylesHandler';
 import { warn, warnOnce, removedWarnOnce, deprecatedWarnOnce } from './helpers/console';
 import { throwWithCause } from './helpers/errors';
 import { isSkippedPastLastColumn } from './utils/pastLastColumn';
@@ -303,6 +303,18 @@ interface CoreInternals {
   _validateCells(callback?: (valid: boolean) => void, rows?: number[], columns?: number[]): void;
   selectAll(includeRowHeaders?: boolean, includeColumnHeaders?: boolean, options?: Record<string, unknown>): void;
 }
+
+/**
+ * Options holding a frozen row or column count. `alter()` and some plugins lower them directly on the
+ * table meta, which `updateSettings()` has to be able to override afterwards.
+ */
+const FROZEN_COUNT_OPTIONS = new Set([
+  'fixedRowsTop',
+  'fixedRowsBottom',
+  'fixedColumnsStart',
+  'fixedColumnsLeft',
+  'fixedColumnsEnd',
+]);
 
 /**
  * Handsontable constructor.
@@ -5043,7 +5055,24 @@ export default function Core(
         const isUnusableCell = i === 'cell' && !Array.isArray(settings[i]);
 
         if (!isUnpassedEditor && !isUnusableCell) {
+          const previousValue = globalMeta[i];
+
           globalMeta[i] = settings[i];
+
+          // `alter()`, ManualColumnFreeze and UndoRedo change a frozen count directly on the table meta.
+          // That creates an own property which shadows the global value written above, so a later
+          // `updateSettings()` would be ignored. Drop the shadow when the value really changes. A wrapper
+          // re-sends every prop on each commit, and an unchanged value must not undo the state kept there.
+          // Only the frozen counts are handled: other own table-meta values (the Loading plugin's `dialog`,
+          // the theme options) are shadows kept on purpose.
+          if (FROZEN_COUNT_OPTIONS.has(i) && settings[i] !== previousValue) {
+            Reflect.deleteProperty(tableMeta, i);
+
+            // The two column names share the `_fixedColumnsStart` backing field.
+            if (i === 'fixedColumnsStart' || i === 'fixedColumnsLeft') {
+              Reflect.deleteProperty(tableMeta, '_fixedColumnsStart');
+            }
+          }
         }
       }
     }
@@ -8417,6 +8446,12 @@ export default function Core(
   /**
    * Use the theme specified by the provided name.
    *
+   * When the grid runs a theme object (the `theme` option set to a theme config or a `ThemeBuilder`
+   * instance) and you pass a different valid theme name, the grid stops using the theme object: its
+   * injected styles and icon mapping are removed, and later changes to the theme object no longer
+   * affect the grid. A value that is not a valid theme name (`ht-theme-<theme-name>`) is rejected
+   * with a warning, and the grid keeps its current theme, theme object included.
+   *
    * @memberof Core#
    * @function useTheme
    * @since 15.0.0
@@ -8424,6 +8459,22 @@ export default function Core(
    */
   this.useTheme = (themeName: string | null) => {
     const isFirstRun = !!firstRun;
+
+    // Switching away from a theme object tears its manager down, the same way
+    // `updateSettings({ theme: '<class name>' })` does. Left alive, the manager keeps its `<style>`
+    // node and its subscription to the shared theme object, so a later `theme.params()` re-injects
+    // the old styles and fires `afterSetTheme` with the old class name. `destroy()` also clears
+    // `instance.themeManager`, so the icon helpers rebuild the manager's external icons as plain
+    // glyphs on the `afterSetTheme` below. The internal callers pass the manager's own class name,
+    // which keeps it. A name `stylesHandler.useTheme()` rejects keeps it too: the grid stays on its
+    // current theme, so its theme object must stay as well.
+    if (
+      instance.themeManager &&
+      isValidThemeName(themeName) &&
+      instance.themeManager.getClassName() !== themeName
+    ) {
+      instance.themeManager.destroy();
+    }
 
     this.stylesHandler.useTheme(themeName ?? undefined);
 

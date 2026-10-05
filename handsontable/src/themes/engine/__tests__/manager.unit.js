@@ -802,5 +802,281 @@ describe('ThemeManager', () => {
           .toContain(`.ht-theme-other-theme.${manager.scopeClassName} {\ncolor-scheme: dark;\n`);
       });
     });
+
+    describe('icons', () => {
+      const hot = () => createMockHot();
+
+      it('emits a CSS variable per glyph icon and a glyph rule', () => {
+        const mockHot = hot();
+        const manager = createThemeManager({
+          hot: mockHot,
+          themeObject: createTheme(createValidThemeConfig({
+            icons: { arrowRight: 'data:image/svg+xml,%3Csvg%3E' },
+          })),
+        });
+
+        const css = manager.themeStyles.textContent;
+
+        expect(css).toContain('--ht-icon-arrow-right: url("data:image/svg+xml,%3Csvg%3E");');
+        expect(css).toContain('.ht-icon-arrow-right {');
+      });
+
+      it('declares the icon variables at :where() specificity, like every other token, so a ' +
+        'page stylesheet can override them', () => {
+        const mockHot = hot();
+        const manager = createThemeManager({
+          hot: mockHot,
+          themeObject: createTheme(createValidThemeConfig({
+            icons: { arrowRight: 'data:image/svg+xml,%3Csvg%3E', check: '/icons/check.svg' },
+          })),
+        });
+
+        const css = manager.themeStyles.textContent;
+
+        expect(css).toMatch(/:where\(\.ht-theme-test-theme\) \{\n(?: {2}--ht-icon-[a-z-]+: url\("[^"]*"\);\n)+\}/);
+        expect(css).not.toMatch(/(^|\n)\.ht-theme-test-theme \{\n {2}--ht-icon-/);
+      });
+
+      it('encodes raw SVG markup as a data URI', () => {
+        const mockHot = hot();
+        const manager = createThemeManager({
+          hot: mockHot,
+          themeObject: createTheme(createValidThemeConfig({ icons: { check: '<svg viewBox="0 0 1 1"/>' } })),
+        });
+        const expectedUri = encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"/>');
+
+        expect(manager.themeStyles.textContent)
+          .toContain(`--ht-icon-check: url("data:image/svg+xml;charset=utf-8,${expectedUri}");`);
+      });
+
+      it('does not emit variables for class-list or renderer icons', () => {
+        const mockHot = hot();
+        const manager = createThemeManager({
+          hot: mockHot,
+          themeObject: createTheme(createValidThemeConfig({
+            icons: { arrowRight: 'ti ti-chevron-right', check: () => {} },
+          })),
+        });
+
+        expect(manager.themeStyles.textContent).not.toContain('--ht-icon-arrow-right');
+        expect(manager.themeStyles.textContent).not.toContain('--ht-icon-check');
+      });
+
+      it('does not corrupt the injected stylesheet when an icon is mapped to a renderer ' +
+        'callback', () => {
+        // `#resolveIcons()` splits the theme's icon config into a glyph-only map before ANY of
+        // it reaches CSS text (`iconStyles(glyphs, ...)`, the only serializer the manager uses;
+        // the old `iconsMap()` pseudo-element generator, now a deprecated shim, used
+        // to receive the RAW, unsplit config and broke the whole `:where()` rule's parsing when
+        // a callback's own source text was stringified into it). This proves the split, not a
+        // since-deleted call site: a renderer-callback icon contributes no glyph variable or
+        // rule of its own, while the rest of the stylesheet - sizing and every OTHER icon's
+        // glyph variable - stays intact.
+        const mockHot = hot();
+        const manager = createThemeManager({
+          hot: mockHot,
+          themeObject: createTheme(createValidThemeConfig({
+            icons: {
+              ...mainIcons,
+              check: (element) => {
+                element.textContent = 'check_circle';
+              },
+            },
+          })),
+        });
+
+        const css = manager.themeStyles.textContent;
+
+        // A glyph left unmapped by the callback still gets its own variable and rule - proof the
+        // rest of the stylesheet is intact, not merely that this one call did not throw.
+        expect(css).toContain('--ht-icon-arrow-right:');
+        expect(css).toContain('.ht-icon-arrow-right {');
+        expect(css).toContain('--ht-sizing-size-1:');
+        expect(css).not.toContain('--ht-icon-check:');
+        expect(css).not.toContain('.ht-icon-check {');
+        expect(css).not.toContain('element.textContent');
+      });
+
+      it('creates a plain glyph element', () => {
+        const manager = createThemeManager({ hot: hot(), themeObject: createTheme(createValidThemeConfig()) });
+        const el = manager.createIcon('arrowRight', { flipInRtl: true, className: 'slot' });
+
+        expect(el.tagName).toBe('I');
+        expect(el.getAttribute('aria-hidden')).toBe('true');
+        expect(el.className).toBe('ht-icon ht-icon-arrow-right ht-icon--flip-rtl slot');
+        expect(el.textContent).toBe('');
+      });
+
+      it('applies a class list for an external icon', () => {
+        const manager = createThemeManager({
+          hot: hot(),
+          themeObject: createTheme(createValidThemeConfig({ icons: { arrowRight: 'ti ti-chevron-right' } })),
+        });
+        const el = manager.createIcon('arrowRight');
+
+        expect(el.className).toBe('ht-icon ht-icon-arrow-right ht-icon--external ti ti-chevron-right');
+      });
+
+      it('calls a renderer for a callback icon', () => {
+        const renderer = jest.fn((el, name) => { el.textContent = name; });
+        const manager = createThemeManager({
+          hot: hot(),
+          themeObject: createTheme(createValidThemeConfig({ icons: { check: renderer } })),
+        });
+        const el = manager.createIcon('check');
+
+        expect(renderer).toHaveBeenCalledWith(el, 'check');
+        expect(el.className).toBe('ht-icon ht-icon-check ht-icon--external');
+        expect(el.textContent).toBe('check');
+      });
+
+      it('re-resolves icons when the theme config changes', () => {
+        const theme = createTheme(createValidThemeConfig());
+        const manager = createThemeManager({ hot: hot(), themeObject: theme });
+
+        expect(manager.createIcon('arrowRight').className).toBe('ht-icon ht-icon-arrow-right');
+
+        theme.params({ icons: { arrowRight: 'ti ti-x' } });
+
+        expect(manager.createIcon('arrowRight').className)
+          .toBe('ht-icon ht-icon-arrow-right ht-icon--external ti ti-x');
+      });
+
+      it('re-asserts aria-hidden after a renderer callback that removed it', () => {
+        const mockHot = hot();
+        const theme = createTheme(createValidThemeConfig({
+          name: 'aria-theme',
+          icons: {
+            arrowRight: (element) => {
+              element.removeAttribute('aria-hidden');
+              element.textContent = 'east';
+            },
+          },
+        }));
+        const manager = createThemeManager({ hot: mockHot, themeObject: theme });
+        const icon = manager.createIcon('arrowRight');
+
+        expect(icon.textContent).toBe('east');
+        expect(icon.getAttribute('aria-hidden')).toBe('true');
+      });
+
+      it('drops the external marker and warns once when a renderer callback throws', () => {
+        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        const renderer = jest.fn((element) => {
+          element.textContent = 'partial';
+          throw new Error('broken renderer');
+        });
+        const manager = createThemeManager({
+          hot: hot(),
+          themeObject: createTheme(createValidThemeConfig({ name: 'throwing-renderer', icons: { menu: renderer } })),
+        });
+
+        let first;
+
+        expect(() => { first = manager.createIcon('menu', { className: 'slot' }); }).not.toThrow();
+        expect(() => manager.applyIcon(first, 'menu', { className: 'slot' })).not.toThrow();
+
+        expect(renderer).toHaveBeenCalledTimes(2);
+        expect(first.className).toBe('ht-icon ht-icon-menu slot');
+        expect(first.textContent).toBe('');
+        expect(first.getAttribute('aria-hidden')).toBe('true');
+
+        const rendererWarnings = warnSpy.mock.calls.filter(([message]) => /"menu" icon renderer threw/.test(message));
+
+        expect(rendererWarnings.length).toBe(1);
+        // The slot is external, so no `--ht-icon-menu` variable is emitted: the warning must not
+        // promise a built-in glyph that a Theme-API-only setup never paints.
+        expect(rendererWarnings[0][0]).not.toContain('built-in glyph is shown');
+        expect(rendererWarnings[0][0])
+          .toContain('so the slot is left empty unless a stylesheet declares `--ht-icon-menu`');
+        warnSpy.mockRestore();
+      });
+
+      describe('getIconsRevision', () => {
+        it('bumps the revision on every path that re-resolves icons, so `syncIcon()`\'s ' +
+          'keep-path guard can never be bypassed by a re-resolve it does not know about', () => {
+          // This is deliberately NOT a comment enumerating call sites - it drives every KNOWN
+          // path that reaches `#resolveIcons()` and asserts the one thing `syncIcon()` actually
+          // reads (`getIconsRevision()`) moves every time, through the public API only.
+          const mockHot = hot();
+          const theme = createTheme(createValidThemeConfig({ name: 'revision-theme' }));
+          const manager = createThemeManager({ hot: mockHot, themeObject: theme });
+
+          const afterConstruction = manager.getIconsRevision();
+
+          expect(afterConstruction).toEqual(expect.any(Number));
+
+          // Path 1: `update()` with a brand new theme object (e.g. `useTheme()` at runtime) whose
+          // icons DIFFER. A theme that maps the same icons leaves every kept element correct, so it
+          // must not bump (asserted further down).
+          manager.update(createTheme(createValidThemeConfig({
+            name: 'revision-theme-2',
+            icons: { arrowRight: 'url(other.svg)' },
+          })));
+          const afterUpdate = manager.getIconsRevision();
+
+          expect(afterUpdate).toBeGreaterThan(afterConstruction);
+
+          // Path 2: the SUBSCRIBED theme notifying a config change (`theme.params()`), the path
+          // this whole guard exists for.
+          const subscribedTheme = createTheme(createValidThemeConfig({ name: 'revision-theme-3' }));
+
+          manager.update(subscribedTheme);
+          const afterSubscribedUpdate = manager.getIconsRevision();
+
+          subscribedTheme.params({ icons: { arrowRight: 'ti ti-x' } });
+          const afterThemeParamsChange = manager.getIconsRevision();
+
+          expect(afterThemeParamsChange).toBeGreaterThan(afterSubscribedUpdate);
+
+          // Path 3: `setOverrides()` (color scheme / density) re-injects the theme styles, which
+          // re-resolves the icons - but nothing about them changed, so the revision must hold, or
+          // every kept icon on the grid is re-applied for a density switch.
+          manager.setOverrides({ colorScheme: 'dark' });
+          manager.setOverrides({ density: 'compact' });
+
+          expect(manager.getIconsRevision()).toBe(afterThemeParamsChange);
+
+          // A `params()` call that re-states the SAME mapping is not a change either.
+          subscribedTheme.params({ icons: { arrowRight: 'ti ti-x' } });
+
+          expect(manager.getIconsRevision()).toBe(afterThemeParamsChange);
+
+          // Changing a value bumps; a renderer callback counts by identity, so a new function is a
+          // change and the same function is not.
+          const renderer = () => {};
+
+          subscribedTheme.params({ icons: { arrowRight: renderer } });
+          const afterRenderer = manager.getIconsRevision();
+
+          expect(afterRenderer).toBeGreaterThan(afterThemeParamsChange);
+
+          subscribedTheme.params({ icons: { arrowRight: renderer } });
+
+          expect(manager.getIconsRevision()).toBe(afterRenderer);
+        });
+
+        it('never hands two managers the same revision, so an icon stamped by a torn-down ' +
+          'manager is re-applied by the next one', () => {
+          // A grid that moves from theme object A to theme object B destroys A's manager and
+          // builds a new one for B. `syncIcon()` keeps an icon whose stamp equals the current
+          // revision, so B must never start at a value A already stamped.
+          const managerA = createThemeManager({
+            hot: hot(),
+            themeObject: createTheme(createValidThemeConfig({ name: 'revision-a', icons: { menu: 'a-menu' } })),
+          });
+          const revisionA = managerA.getIconsRevision();
+
+          managerA.destroy();
+
+          const managerB = createThemeManager({
+            hot: hot(),
+            themeObject: createTheme(createValidThemeConfig({ name: 'revision-b', icons: { menu: 'b-menu' } })),
+          });
+
+          expect(managerB.getIconsRevision()).not.toBe(revisionA);
+        });
+      });
+    });
   });
 });

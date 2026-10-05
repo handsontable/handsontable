@@ -1,12 +1,16 @@
 /**
  * Drops jsdom's `Could not parse CSS stylesheet` error for the theme `<style>`, for Jest only.
  *
- * `ThemeManager#injectThemeStyles` writes the theme variables into one `:where(.ht-theme-*) { ... }`
- * block and appends the icon rules inside it, which is native CSS nesting. Every browser in
- * `browser-targets.js` supports it, but jsdom 16 parses CSS with cssom 0.4.4, which does not: it
- * throws, jsdom drops the whole sheet and reports the failure through `console.error` once per grid
- * (about 1,000 times per run). That is noise, not a defect, and the sheet being dropped is the
- * state every unit test already runs in (see `test/jsdomThemeVars.js`).
+ * `ThemeManager#injectThemeStyles` used to append the icon rules inside the theme's
+ * `:where(.ht-theme-*) { ... }` variables block, which is native CSS nesting. jsdom 16 parses CSS
+ * with cssom 0.4.4, which does not support nesting: it threw, dropped the whole sheet, and reported
+ * the failure through `console.error` once per grid (about 1,000 times per run).
+ *
+ * Since icons became `<i class="ht-icon">` elements, the icon rules (`iconStyles()`) are written as
+ * flat top-level rules after the block, so a default grid build no longer triggers the error. The
+ * filter stays as a safeguard: if a nested rule lands in the theme block again, the noise stays out
+ * of the test output, while the sheet being dropped is the state every unit test already runs in
+ * (see `test/jsdomThemeVars.js`).
  *
  * Only that one error is dropped: the message must be jsdom's parse error AND the sheet text, which
  * jsdom passes as the second argument, must start with the theme block's own prefix. Any other

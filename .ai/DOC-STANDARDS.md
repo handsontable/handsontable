@@ -53,9 +53,16 @@ concerns ..."). Two pull requests open at the same time both add the next number
 reliable merge conflict on a busy release, and the conflict has two regions: the intro paragraph and
 the heading. Resolve both — renumber the later section and add its sentence to the intro. Nothing
 checks the intro against the headings, so a half-resolved merge ships an intro that describes the
-wrong section and no gate complains. Check for links to the anchor you are renumbering
-(`migrating-from-X-to-Y.md#<n>-...`) before you renumber; there are usually none, and a renumber that
-breaks one is silent too.
+wrong section and no gate complains.
+
+**The section number is not part of the anchor.** `docs/src/plugins/rehype-migration-steps.mjs`
+strips the `<N>. ` and `Step <N>:`/`Step <N>.` prefixes from every step heading (h2–h4) before the
+heading IDs are generated, so `## 24. Icons are rendered as <i> elements` gets the ID
+`icons-are-rendered-as-i-elements`, not `24-icons-...`. Link to a section as
+`migrating-from-X-to-Y.md#<title-slug>`; a `#<n>-...` or `#step-<n>-...` link never resolves, and no
+checker reports it. Renumbering therefore does not break links. The slug comes from github-slugger on
+the rendered text: smartypants turns ` -- ` into an en dash, which the slugger drops while keeping both
+spaces, so `Step 4: Renderer -- Build the UI` becomes `renderer--build-the-ui`.
 
 ## Trademark rules
 

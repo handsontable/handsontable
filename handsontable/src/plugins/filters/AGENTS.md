@@ -286,3 +286,23 @@ captured when the plugin is enabled.
 
 - Coordinate translation rules and `IndexMapper` usage: `coordinate-systems` skill and `handsontable/.ai/ARCHITECTURE.md`.
 - Plugin contract, hooks, settings validation, IndexMapper integration: `handsontable-plugin-dev` skill.
+
+## The condition-select arrow and the radio dot refresh their icon on every menu show
+
+`ui/select.ts` and `ui/radioInput.ts` build their `<i class="ht-icon">` once (`build()`), and the UI
+objects live as long as the plugin - so a runtime `theme.params({ icons })` or theme switch never
+reached them. `BaseUI#refreshIcons()` (a no-op in the base class) is overridden in
+both to run `syncIcon()` against the existing element, and `#onAfterDropdownMenuShow` calls it on every
+element of every component after `restoreComponents()`. `syncIcon()` re-applies only when the theme's
+icons revision moved, so an ordinary menu open costs one class check per icon. The radio dot must stay
+the input's NEXT SIBLING (`input + .ht-icon` in `_radio.scss`): `build()` inserts it with
+`insertAdjacentElement('afterend', ...)` carrying the slot class, and the refresh finds it by that class
+instead of appending a second one at the end of the wrapper.
+
+**The "Filter by value" list is a nested Handsontable instance, and only a root instance gets a
+ThemeManager** (`core.ts`). Its checkbox ticks would therefore always take the plain-glyph fallback and
+ignore a class-list or renderer mapping. `ui/multipleSelect.ts` calls `linkIconSource(itemsBox, hot)`
+(`themes/engine/icons.ts`) right after constructing the list and **before** `init()` renders its first
+checkbox; `createIcon()`/`syncIcon()` then draw its icons with the root's manager, read on every call so a
+later theme switch is followed. Do not assign the root's `themeManager` to the nested instance instead: the
+nested grid's own `updateSettings()`/`useTheme()` paths destroy the manager they find.

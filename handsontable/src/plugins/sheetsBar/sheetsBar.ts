@@ -21,6 +21,7 @@ import { isRootInstance } from '../../utils/rootInstance';
 import { isPlainObject } from '../../helpers/object';
 import { error as logError, warn, warnOnce } from '../../helpers/console';
 import { isHTMLElement } from '../../helpers/dom/element';
+import { syncIcon } from '../../themes/engine/icons';
 import type {
   DataProvider,
   DataProviderConfig,
@@ -587,6 +588,15 @@ export class SheetsBar extends BasePlugin {
 
     this.#lastBuiltSheets = this.getSetting('sheets');
 
+    // Injected into the bar and the tab strip so both stay decoupled from the theme engine —
+    // shared here rather than declared per call site.
+    const syncIconForHot = (
+      container: HTMLElement,
+      slotClass: string,
+      name: Parameters<typeof syncIcon>[3],
+      options?: Parameters<typeof syncIcon>[4],
+    ) => syncIcon(this.hot, container, slotClass, name, options);
+
     if (!this.#ui) {
       this.#ui = new SheetsBarUI({
         rootDocument: this.hot.rootDocument,
@@ -596,6 +606,7 @@ export class SheetsBar extends BasePlugin {
         phraseTranslator: (key: string, args?: unknown) => this.hot.getTranslatedPhrase(key, args),
         a11yAnnouncer: (message: unknown) => announce(String(message ?? '')),
         ariaTags: this.hot.getSettings().ariaTags,
+        syncIcon: syncIconForHot,
       });
       this.#ui.setControlsVisible(this.getSetting<boolean>('controls') !== false);
       this.#ui
@@ -618,6 +629,7 @@ export class SheetsBar extends BasePlugin {
         translate: (key: string, args?: unknown) => this.#ui!.translate(key, args),
         ariaTags: this.hot.getSettings().ariaTags !== false,
         isRtl: this.hot.isRtl(),
+        syncIcon: syncIconForHot,
       });
       this.#tabStrip
         .addLocalHook('tabClick', (id: number) => this.setActiveSheet(id, SOURCE_UI))
@@ -2431,6 +2443,13 @@ export class SheetsBar extends BasePlugin {
    */
   #onAfterSetTheme = (themeName: unknown) => {
     this.#ui?.updateTheme(themeName as string | undefined);
+    // The icons are refreshed in place, never through `#refreshUI()`: `TabStrip#render()` aborts
+    // a tab drag and cancels an open rename, and this hook also fires for a color-scheme or
+    // density switch (a ThemeBuilder `params()` or `setColorScheme()` included), so a user typing
+    // a sheet name would lose it when the app toggled dark mode. `syncIcon()` re-applies a
+    // class-list or renderer mapping only when the theme's icons revision moved.
+    this.#ui?.refreshIcons();
+    this.#tabStrip?.refreshIcons();
   };
 
   /**
