@@ -373,3 +373,40 @@ describe('InlineStartOverlay#scrollTo with an end band', () => {
     expect(self.setScrollPosition).toHaveBeenCalledWith(600 - 500);
   });
 });
+
+describe('InlineEndOverlay#isFreezeLineShared in a window-scrolled grid', () => {
+  /**
+   * Builds a stub for a window-scrolled grid whose columns scroll, with five scrolling columns before the band.
+   *
+   * @param {number} offset What `getOverlayOffset()` reports.
+   * @returns {object}
+   */
+  function createStub(offset: number) {
+    return {
+      isScrolledByWindow: () => true,
+      getOverlayOffset: () => offset,
+      wtSettings: {
+        getSetting: (key: string) => {
+          const settings: Record<string, unknown> = { fixedColumnsEnd: 2, totalColumns: 7, rowHeaders: [] };
+
+          return settings[key];
+        },
+      },
+      deps: { getWtViewport: () => ({ hasHorizontalScroll: () => true }) },
+    };
+  }
+
+  it('should be true at the junction', () => {
+    expect(run(InlineEndOverlay, 'isFreezeLineShared', createStub(0))).toBe(true);
+  });
+
+  it('should still be true when a fraction of a pixel is left at the junction (browser zoom)', () => {
+    expect(run(InlineEndOverlay, 'isFreezeLineShared', createStub(0.4))).toBe(true);
+    expect(run(InlineEndOverlay, 'isFreezeLineShared', createStub(-0.4))).toBe(true);
+  });
+
+  it('should be false once a whole pixel or more is left', () => {
+    expect(run(InlineEndOverlay, 'isFreezeLineShared', createStub(1))).toBe(false);
+    expect(run(InlineEndOverlay, 'isFreezeLineShared', createStub(250))).toBe(false);
+  });
+});

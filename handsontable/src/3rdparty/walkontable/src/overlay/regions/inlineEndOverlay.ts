@@ -313,7 +313,9 @@ export class InlineEndOverlay extends Overlay {
     }
 
     if (this.isScrolledByWindow()) {
-      return this.getOverlayOffset() === 0;
+      // The offset comes from bounding rects, so at browser zoom it lands a fraction away from 0 at the junction.
+      // Under a pixel reads as arrived, the same tolerance the element branch below uses.
+      return Math.abs(this.getOverlayOffset()) < 1;
     }
 
     const scroller = this.mainTableScrollableElement as HTMLElement;
