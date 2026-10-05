@@ -164,6 +164,8 @@ describe('Formulas write validated in flight across a sheet resync', () => {
 
     engine.setSheetContent(other, [[10, 'x'], [20, 'y'], [null, 'z']]);
 
+    const first = hot.getPlugin('formulas').sheetId;
+
     hot.setDataAtCell(2, 0, '=SUM(A1:A2)');
     // The switch loads the other sheet into the grid without writing any sheet, so the sheet write
     // count stays where it was. The sheet id is what tells the change set landed in another sheet.
@@ -175,6 +177,37 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     expect(hot.getSourceDataAtCell(2, 0)).toBe('=SUM(A1:A2)');
     expect(engine.getCellFormula({ sheet: other, row: 2, col: 0 })).toBe('=SUM(A1:A2)');
     expect(hot.getDataAtCell(2, 0)).toBe(30);
+    // The Core applied the change to the switched-to sheet's data, so the first sheet must not keep
+    // the copy `afterSetDataAtCell` wrote into it: one `setDataAtCell()` used to land in both.
+    expect(engine.getCellFormula({ sheet: first, row: 2, col: 0 })).toBeUndefined();
+    expect(engine.getCellValue({ sheet: first, row: 2, col: 0 })).toBeNull();
+  });
+
+  it('puts the switched-away sheet back when a slower validator answers after the switch', async() => {
+    // The validator answers only when the test says so, after the switch: the window is not one
+    // task wide, it lasts as long as an async validator takes.
+    let answer;
+
+    hot = new Handsontable(container, {
+      data: [[1, 'a'], [2, 'b'], [7, 'c']],
+      columns: [{ validator: (value, callback) => { answer = () => callback(true); } }, {}],
+      formulas: { engine: HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' }) },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const { engine } = hot.getPlugin('formulas');
+    const first = hot.getPlugin('formulas').sheetId;
+    const other = engine.getSheetId(engine.addSheet('Other'));
+
+    engine.setSheetContent(other, [[10, 'x'], [20, 'y'], [null, 'z']]);
+    hot.setDataAtCell(2, 0, '=SUM(A1:A2)');
+    await waitForValidation();
+    hot.updateSettings({ formulas: { engine, sheetName: 'Other' } });
+    answer();
+    await waitForValidation();
+
+    expect(engine.getCellFormula({ sheet: other, row: 2, col: 0 })).toBe('=SUM(A1:A2)');
+    expect(engine.getCellValue({ sheet: first, row: 2, col: 0 })).toBe(7);
   });
 
   it('does not write a change back into a sheet the engine refused to hold', async() => {
@@ -236,8 +269,8 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     expect(hot.getDataAtCol(0)).toEqual([1, 2, 5, 6, 7]);
     expect(hot.getDataAtCell(0, 1)).toBe(21);
 
-    // A second write of rows 3 and 4 after the write-back would add a second engine undo entry for
-    // the one grid action, and this undo would revert only that one.
+    // A grid undo restores the engine from its own recorded state and never calls `engine.undo()`,
+    // so a second write could not split this undo; it is pinned by the write count below.
     hot.getPlugin('undoRedo').undo();
 
     await waitForValidation();
@@ -246,6 +279,55 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     expect(engine.getSheetSerialized(sheet)).toEqual(initialSheet);
     expect(engine.getCellValue({ sheet, row: 0, col: 1 })).toBe(3);
     expect(hot.getDataAtCell(0, 1)).toBe(3);
+  });
+
+  it('writes the out-of-bounds rows of a paste into the engine once, not again from afterChange', async() => {
+    // The `writtenBack` guard skips the deferred `afterChange` write of rows the write-back already
+    // wrote. Without it the same rows reach the engine twice: a redundant write and an extra entry
+    // on the engine's own undo stack, which only an app calling `engine.undo()` directly would see.
+    const engine = buildGrid([[1, '=SUM(A1:A10)'], [2, null], [null, null]]);
+    const writes = jest.spyOn(engine, 'setCellContents');
+
+    hot.populateFromArray(2, 0, [[5], [6], [7]]);
+    hot.updateSettings({});
+
+    await waitForValidation();
+
+    expect(writes.mock.calls.filter(([{ row }]) => row === 3 || row === 4)).toHaveLength(2);
+  });
+
+  it('repaints another sheet\'s grid that reads the written-back cell', async() => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const container2 = document.createElement('div');
+
+    document.body.appendChild(container2);
+
+    hot = new Handsontable(container, {
+      data: [[1], [2], [null]],
+      columns: [{ validator: (value, callback) => callback(true) }],
+      formulas: { engine, sheetName: 'A' },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const reader = new Handsontable(container2, {
+      data: [['=A!A3*2']],
+      formulas: { engine, sheetName: 'B' },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    try {
+      hot.setDataAtCell(2, 0, 5);
+      hot.updateSettings({});
+
+      await waitForValidation();
+
+      expect(reader.getDataAtCell(0, 0)).toBe(10);
+      // `renderDependentSheets` repaints the reading grid; without it the cell kept painting 0.
+      expect(reader.getCell(0, 0).textContent).toBe('10');
+    } finally {
+      reader.destroy();
+      container2.remove();
+    }
   });
 
   it('validates the formulas that a write-back recalculated', async() => {

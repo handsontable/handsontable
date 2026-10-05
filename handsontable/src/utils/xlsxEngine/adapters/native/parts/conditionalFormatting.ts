@@ -163,8 +163,12 @@ const writeContainsTextRule: CfRuleWriter = (w, { rule, base, formulae, ref }) =
     : 'containsText';
   const text = readString(rule, 'text') ?? '';
   const textAttr = operator === 'containsText' && text !== '' ? text : undefined;
+  // `operator` is `ST_ConditionalFormattingOperator`, and of this family only `containsText` is one
+  // of its values: `operator="containsBlanks"` fails schema validation. The kind is the `type`, which
+  // is what both readers take it from.
+  const operatorAttr = operator === 'containsText' ? operator : undefined;
 
-  w.open('cfRule', { ...base, type: operator, operator, text: textAttr });
+  w.open('cfRule', { ...base, type: operator, operator: operatorAttr, text: textAttr });
   w.formulaLeaf('formula', formulae[0] ?? containsTextFormula(operator, text, topLeftOf(ref)));
   w.close();
 

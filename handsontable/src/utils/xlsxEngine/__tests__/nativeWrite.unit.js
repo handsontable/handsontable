@@ -157,6 +157,28 @@ describe('nativeAdapter.write', () => {
     expect(workbook.worksheets[1].state).toBe('veryHidden');
   });
 
+  it('should keep a covered cell\'s own lock and give covered cells the master border and fill, as ExcelJS does', async() => {
+    // The native twin of `exceljsWrite.unit.js`: the writer used to leave every unstyled covered
+    // cell out of the sheet, so `getCell('B2').border` read back `undefined` from the native file.
+    const thin = { style: 'thin' };
+    const border = { top: thin, left: thin, bottom: thin, right: thin };
+    const { workbook } = await writeAndLoad(snapshotWith((b) => {
+      b.cell(1, 1).value = 'own lock';
+      b.cell(1, 2).locked = false;
+      b.merge(1, 1, 1, 2);
+      b.cell(2, 1).value = 'header';
+      b.cell(2, 1).style = { alignment: null, font: null, fill: null, border };
+      b.cell(2, 2).numFmt = '0.00';
+      b.merge(2, 1, 2, 3);
+    }));
+    const ws = workbook.worksheets[0];
+
+    expect(ws.getCell('B1').protection).toEqual(expect.objectContaining({ locked: false }));
+    expect(ws.getCell('B2').border).toEqual(border);
+    expect(ws.getCell('B2').numFmt).toBe('0.00');
+    expect(ws.getCell('C2').border).toEqual(border);
+  });
+
   it('should keep the merge master value and skip an overlapping merge with a report', async() => {
     const { workbook, dropped } = await writeAndLoad(snapshotWith((b) => {
       b.cell(1, 1).value = 'A1 label';
@@ -258,6 +280,11 @@ describe('nativeAdapter.write', () => {
     expect(cf.ref).toBe('A1:A1');
     expect(cf.rules[0]).toEqual(expect.objectContaining({ type: 'cellIs', operator: 'greaterThan', formulae: ['2'] }));
     expect(cf.rules[0].style.font.bold).toBe(true);
+  });
+
+  it('should refuse a workbook with no sheets, which `<sheets>` cannot express', async() => {
+    await expect(nativeAdapter.write(createWorkbookSnapshot(), undefined, new DroppedFeatures()))
+      .rejects.toThrow('The native engine cannot write a workbook with no sheets.');
   });
 
   it('should reject an illegal, reserved, empty, overlong or duplicate sheet name', async() => {

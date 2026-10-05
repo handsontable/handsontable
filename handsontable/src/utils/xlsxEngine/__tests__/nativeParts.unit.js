@@ -97,8 +97,23 @@ describe('package parts', () => {
         { name: '_HotValidation', relId: 'rId4', state: 'veryHidden' },
       ],
       date1904: false,
+      definedNames: [],
     });
     expect(parseWorkbook('<workbook><workbookPr date1904="1"/><sheets/></workbook>').date1904).toBe(true);
+    // LibreOffice and SheetJS spell the flag `true`.
+    expect(parseWorkbook('<workbook><workbookPr date1904="true"/><sheets/></workbook>').date1904).toBe(true);
+    expect(parseWorkbook('<workbook><workbookPr date1904="false"/><sheets/></workbook>').date1904).toBe(false);
+  });
+
+  it('should read the names a workbook defines, leaving out Excel\'s own `_xlnm.` names', () => {
+    const { definedNames } = parseWorkbook('<workbook><sheets/><definedNames>'
+      + '<definedName name="Sales">Data!$B$2:$B$4</definedName>'
+      + '<definedName name="Rate" localSheetId="0">Data!$F$1</definedName>'
+      + '<definedName name="_xlnm.Print_Area" localSheetId="0">Data!$A$1:$D$4</definedName>'
+      + '<definedName name="Sales">Other!$A$1</definedName>'
+      + '</definedNames></workbook>');
+
+    expect(definedNames).toEqual(['Sales', 'Rate']);
   });
 
   it('should escape a sheet name with markup characters', () => {
@@ -264,6 +279,9 @@ describe('conditional formatting', () => {
       { type: 'expression', formulae: ['MOD(ROW(),2)=0'], priority: 7 },
       { type: 'containsText', operator: 'containsText', text: 'urgent' },
       { type: 'containsText', operator: 'containsBlanks' },
+      { type: 'containsText', operator: 'notContainsBlanks' },
+      { type: 'containsText', operator: 'containsErrors' },
+      { type: 'containsText', operator: 'notContainsErrors' },
     ];
     const xml = conditionalFormattingXml('B2:D9', rules, styles, { next: 1 }, dropped);
 
@@ -277,10 +295,12 @@ describe('conditional formatting', () => {
       '<cfRule type="containsText" priority="2" operator="containsText" text="urgent">'
       + '<formula>NOT(ISERROR(SEARCH(&quot;urgent&quot;,B2)))</formula></cfRule>',
     );
+    // `operator` is `ST_ConditionalFormattingOperator`, which has no `containsBlanks` value.
     expect(xml).toContain(
-      '<cfRule type="containsBlanks" priority="3" operator="containsBlanks">'
+      '<cfRule type="containsBlanks" priority="3">'
       + '<formula>LEN(TRIM(B2))=0</formula></cfRule>',
     );
+    expect(xml).not.toMatch(/type="(not)?contains(Blanks|Errors)"[^>]*operator=/);
     expect(dropped.list()).toEqual([]);
   });
 
@@ -603,6 +623,58 @@ describe('worksheetXml', () => {
 
     expect(xml).toContain('<c r="A1" t="s"><v>0</v></c>');
     expect(xml).not.toContain('<c r="B1" t="s">');
+    expect(xml).toContain('<c r="B1"/>');
+  });
+
+  it('should write the covered cell of a vertical merge over an empty slot, so the next cell keeps its column', () => {
+    // Apple's parser (Quick Look, Numbers) places `e` in C2 when the `<c r="A2"/>` is missing.
+    const { xml } = writeSheet((b) => {
+      b.cell(1, 1).value = 'a';
+      b.cell(1, 2).value = 'b';
+      b.cell(2, 2).value = 'e';
+      b.merge(1, 1, 2, 1);
+    });
+
+    expect(xml).toContain('<row r="2"><c r="A2"/><c r="B2" t="s">');
+  });
+
+  it('should write a covered row that holds no cell of its own', () => {
+    const { xml } = writeSheet((b) => {
+      b.cell(1, 1).value = 'a';
+      b.merge(1, 1, 3, 2);
+    });
+
+    expect(xml).toContain('<row r="1"><c r="A1" t="s"><v>0</v></c><c r="B1"/></row>');
+    expect(xml).toContain('<row r="2"><c r="A2"/><c r="B2"/></row>');
+    expect(xml).toContain('<row r="3"><c r="A3"/><c r="B3"/></row>');
+  });
+
+  it('should give an unstyled covered cell the master formatting, and a formatted one the master border and fill', () => {
+    const border = { top: { style: 'thin' }, bottom: { style: 'thin' } };
+    const fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+    const { xml, styles } = writeSheet((b) => {
+      b.cell(1, 1).value = 'm';
+      b.cell(1, 1).style = { alignment: null, font: { bold: true }, fill, border };
+      // An unlocked covered cell keeps its lock, or it imports read-only once unmerged.
+      b.cell(1, 3).locked = false;
+      // A covered cell of a numeric column carries a number format and an alignment of its own.
+      b.cell(1, 4).numFmt = '0.00';
+      b.cell(1, 4).style = { alignment: { horizontal: 'right' }, font: null, fill: null, border: null };
+      b.merge(1, 1, 1, 4);
+    });
+    const master = styles.xfIndex({
+      numFmt: null, style: { alignment: null, font: { bold: true }, fill, border }, locked: null,
+    });
+    const unlocked = styles.xfIndex({
+      numFmt: null, style: { alignment: null, font: null, fill, border }, locked: false,
+    });
+    const numeric = styles.xfIndex({
+      numFmt: '0.00', style: { alignment: { horizontal: 'right' }, font: null, fill, border }, locked: null,
+    });
+
+    expect(xml).toContain(`<c r="B1" s="${master}"/>`);
+    expect(xml).toContain(`<c r="C1" s="${unlocked}"/>`);
+    expect(xml).toContain(`<c r="D1" s="${numeric}"/>`);
   });
 
   it('should skip an overlapping merge and report it', () => {
@@ -721,9 +793,9 @@ describe('worksheetXml', () => {
     );
   });
 
-  it('should write every cell of a merge-free sheet and keep dropping covered cells with merges', () => {
-    // The covered-cell lookup is skipped entirely when the sheet has no merge (no `${row}:${col}`
-    // key is allocated per cell); the merge path must still hide the covered members.
+  it('should write every cell of a merge-free sheet and keep only the master value of a merge', () => {
+    // The covered-cell lookup is skipped entirely on a row no merge covers (no `${row}:${col}`
+    // key is allocated per cell); the merge path writes the covered members empty.
     const plain = writeSheet((b) => {
       b.cell(1, 1).value = 1;
       b.cell(1, 2).value = 2;
@@ -744,9 +816,10 @@ describe('worksheetXml', () => {
       b.merge(1, 1, 2, 2);
     });
 
-    expect(merged.xml).toContain('<row r="1"><c r="A1"><v>1</v></c></row>');
-    expect(merged.xml).not.toContain('<c r="B1"');
-    expect(merged.xml).not.toContain('<row r="2">');
+    expect(merged.xml).toContain(
+      '<row r="1"><c r="A1"><v>1</v></c><c r="B1"/></row>'
+      + '<row r="2"><c r="A2"/><c r="B2"/></row>',
+    );
   });
 });
 

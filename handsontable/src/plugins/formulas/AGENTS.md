@@ -453,11 +453,26 @@ again. Five rules:
   engine in step with the grid when the sheet switched while the change was validated` (switch plus a
   full write) and `writes a change into the switched-to sheet when the switch alone ran while the change
   was validated` (switch only).
+- **After a switch, the switched-AWAY sheet is put back.** `afterSetDataAtCell` already wrote the change
+  into the sheet the grid showed then, and the Core never applies it there, so one `setDataAtCell()` used
+  to land in both sheets: switching back showed a value the grid data never held. `#restoreSwitchedAwaySheet`
+  writes the change set's OLD values back into the sheet recorded on the set (they are what that sheet
+  held, since the grid's data was that sheet's when the change was made), skipping out-of-bounds changes
+  (never written there) and a sheet removed from the engine. The grid's index mapping does not move on a
+  switch, so the address the axis syncers answer is the same one the first write used. Pinned by the
+  `first` sheet assertions in the switch-only test, and by `puts the switched-away sheet back when a
+  slower validator answers after the switch`.
 - **The write-back writes the whole set once, and the out-of-bounds write stands aside.** A change past
   the last row or column is not written from `afterSetDataAtCell` but from a one-off `afterChange`
   listener, after the Core created the row. By `beforeChangeRender` that row exists, so the write-back
   covers it and sets `writtenBack` on the record, which the `afterChange` listener checks. Writing it
-  twice pushed a second engine undo entry for the one grid action, and a grid undo reverted only that one.
+  twice is a redundant engine write and an extra entry on the ENGINE's own undo stack. A grid undo never
+  calls `engine.undo()` (it restores the engine from the state the plugin recorded), so only an app that
+  calls `engine.undo()` itself would see that entry. Pinned by the `setCellContents` count in `writes the
+  out-of-bounds rows of a paste into the engine once, not again from afterChange`.
+- **The write-back repaints the other sheets' grids that read the cell** (`renderDependentSheets`), like
+  the `afterSetDataAtCell` path: a grid on another sheet kept painting the old value while its data was
+  already right. Pinned by `repaints another sheet's grid that reads the written-back cell`.
 - **The write-back validates the dependents it recalculated**, like the `afterSetDataAtCell` path. The
   first validation ran against the settings the update replaced (a swapped validator, for one).
 
@@ -471,9 +486,10 @@ listener costs a `WeakMap` get and delete per change set and writes nothing (mea
 `setDataAtCell()` makes 10,000 `setCellContents` calls either way; with a resync, 20,000 – the first write
 plus one write-back).
 
-Still open, and older than this repair: WITHOUT a resync, a paste that reaches past the last row writes the
-in-bounds changes and the out-of-bounds ones in two engine batches – two engine undo entries for one grid
-action – so one grid undo leaves the in-bounds values in the engine.
+Older than this repair, and harmless to the grid: WITHOUT a resync, a paste that reaches past the last row
+writes the in-bounds changes and the out-of-bounds ones in two engine batches – two entries on the engine's
+own undo stack for one grid action. A grid undo does not use that stack, so it restores the engine
+correctly; an app that calls `engine.undo()` directly reverts only the out-of-bounds half.
 
 Tests: `__tests__/validatedWriteResync.unit.js`.
 

@@ -5,6 +5,7 @@ import {
   MAX_NUMBER_FORMAT_LENGTH,
   captureCurrency,
   classifyTemporalFormat,
+  positiveFormatSection,
   stripFormatDecorations,
 } from '../../utils/xlsxEngine/numFmtCode';
 import type {
@@ -54,9 +55,10 @@ function tokenCode(token: string): string {
 
 /**
  * Writes the option an elapsed-time section stands for. `[m]` and `[s]` are always a minute and a
- * second, whatever surrounds them. `[h]` writes an `hour`: `Intl.DateTimeFormat` has no elapsed
- * hours, so a duration past 24 hours shows the hours modulo 24, but leaving the hour out showed
- * `13:30` as `30` and every whole hour as `0`, which is worse for every duration.
+ * second, whatever surrounds them. `[h]` writes an `hour`: leaving the hour out showed `13:30` as
+ * `30` and every whole hour as `0`. `Intl.DateTimeFormat` has no elapsed components, so these
+ * options fit only a duration under the leading section's capacity (a day for `[h]`, an hour for
+ * `[m]`, a minute for `[s]`); `inferCellType` keeps a longer one a number (`exceedsElapsedFormat`).
  */
 function applyElapsedToken(options: Intl.DateTimeFormatOptions, token: string): void {
   const length = token.length - 2;
@@ -211,7 +213,9 @@ function countFractionDigits(pattern: string): number {
  * can report it as dropped.
  */
 export function excelNumFmtToIntlOptions(numFmt: string): Intl.NumberFormatOptions | null {
-  const { currency, rest } = captureCurrency(numFmt);
+  // `Intl` renders a negative number with its own minus sign, so the positive section is the whole
+  // format as far as it can be expressed.
+  const { currency, rest } = captureCurrency(positiveFormatSection(numFmt).trim());
   const stripped = stripFormatDecorations(rest).trim();
   const isPercent = stripped.endsWith('%');
   const bare = (isPercent ? stripped.slice(0, -1) : stripped).trim();
@@ -290,22 +294,71 @@ function inferFromNumberFormat(numFmt: string): InferredType | null {
 }
 
 /**
+ * The first elapsed-time section of a format (`[h]`, `[mm]`, `[ss]`), read on the format's own
+ * letters. Bounded by `MAX_NUMBER_FORMAT_LENGTH`, which every caller checks first.
+ */
+const LEADING_ELAPSED_SECTION_REGEX = /\[(h+|m+|s+)\]/i;
+
+/**
+ * The serial (in days) at which an elapsed section stops fitting the clock component it renders
+ * through: `Intl.DateTimeFormat` has no elapsed hours, minutes or seconds, so `[h]` shows the hour
+ * of the day, `[m]` the minute of the hour and `[s]` the second of the minute.
+ */
+const ELAPSED_SECTION_CAPACITY: Record<string, number> = {
+  h: 1,
+  m: 1 / 24,
+  s: 1 / 1440,
+};
+
+/**
+ * Whether a value under an elapsed-time format is a duration the grid cannot show as a time: one
+ * past the capacity of the format's leading section (`[h]:mm` at 25:30, `[mm]:ss` at 90 minutes),
+ * or a negative one. Such a cell would lose its whole days or hours from the data, not only from
+ * the display, because the grid value is a `HH:mm:ss` string - so it stays a number instead.
+ * Rounded to a second, the precision `serialToTimeString` keeps.
+ */
+export function exceedsElapsedFormat(numFmt: string | null, value: CellValue): boolean {
+  if (typeof value !== 'number' || !numFmt || numFmt.length > MAX_NUMBER_FORMAT_LENGTH) {
+    return false;
+  }
+
+  const section = LEADING_ELAPSED_SECTION_REGEX.exec(stripFormatDecorations(numFmt, { keepElapsed: true }));
+
+  if (!section) {
+    return false;
+  }
+
+  const seconds = Math.round(value * 86400);
+  const capacity = Math.round(ELAPSED_SECTION_CAPACITY[section[1][0].toLowerCase()] * 86400);
+
+  return seconds < 0 || seconds >= capacity;
+}
+
+/**
  * Derives a cell type from a cell's number format and value. Returns `null` when the cell is empty
  * and carries no format, so the caller can leave the column untyped.
  */
 export function inferCellType(cell: CellSnapshot): InferredType | null {
   const { numFmt } = cell;
+
+  // A boolean is a checkbox whatever its format says. LibreOffice writes its BOOLEAN format
+  // `"TRUE";"TRUE";"FALSE"` on every `t="b"` cell; read first, that format made the column
+  // `numeric` and reported a number format the import never needed.
+  if (typeof cellDisplayValue(cell) === 'boolean') {
+    return { type: 'checkbox' };
+  }
+
   const fromFormat = numFmt ? inferFromNumberFormat(numFmt) : null;
+
+  if (fromFormat?.type === 'time' && exceedsElapsedFormat(numFmt, cellDisplayValue(cell))) {
+    return { type: 'numeric', unsupportedNumFmt: numFmt as string };
+  }
 
   if (fromFormat) {
     return fromFormat;
   }
 
   const value = cellDisplayValue(cell);
-
-  if (typeof value === 'boolean') {
-    return { type: 'checkbox' };
-  }
 
   if (typeof value === 'number') {
     return { type: 'numeric' };

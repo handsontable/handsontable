@@ -285,7 +285,7 @@ Other rules:
   `undefined`, `''`) that matches neither — the renderer's `noValue` state — and `false` for anything
   else. Checking `uncheckedTemplate` first is what keeps `uncheckedTemplate: ''` exporting `false`.
   Before this, an empty checkbox wrote `<c t="b"><v>0</v></c>` and re-imported as unchecked.
-  Pinned by `xlsxCheckboxValue.unit.js`; the user-facing note is in section 24 of the 18.1 → 19.0
+  Pinned by `xlsxCheckboxValue.unit.js`; the user-facing note is in section 26 of the 18.1 → 19.0
   migration guide, together with the frozen-pane change above.
 - **`types/xlsx.ts` builds a `WorkbookSnapshot` (`src/utils/xlsxEngine/model.ts`) through a 1-based
   `SheetBuilder` and hands it to the detected engine's `write`.** No ExcelJS call is allowed in this

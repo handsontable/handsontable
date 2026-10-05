@@ -3674,8 +3674,9 @@ export class Formulas extends BasePlugin {
       // (unfortunately, this requires an extra re-render)
       this.hot.addHookOnce('afterChange', () => {
         // A write-back in `beforeChangeRender` already wrote the whole set, these changes included,
-        // once the Core had created their rows and columns. A second write would add a second
-        // engine undo entry for one grid action, and a grid undo would revert only one of them.
+        // once the Core had created their rows and columns. A second write would be redundant and
+        // would add an entry to the engine's own undo stack (a grid undo never uses that stack,
+        // but an app calling `engine.undo()` directly would revert only that entry).
         if (awaitingApply.writtenBack) {
           return;
         }
@@ -3787,6 +3788,10 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    if (awaitingApply.sheetId !== null && awaitingApply.sheetId !== this.sheetId) {
+      this.#restoreSwitchedAwaySheet(changes, awaitingApply.sheetId);
+    }
+
     const { dependentCells, changedCells } = this.#writeChangesToEngine(changes);
 
     awaitingApply.writtenBack = true;
@@ -3794,6 +3799,62 @@ export class Formulas extends BasePlugin {
     this.renderDependentSheets(dependentCells);
     this.validateDependentCells(dependentCells, changedCells);
   };
+
+  /**
+   * Puts a sheet the grid switched away from back to the values a change set replaced in it.
+   *
+   * `afterSetDataAtCell` writes a change into the sheet the grid shows at that moment. When the grid
+   * switches to another sheet before the Core applies the (validated) change, the Core applies it to
+   * the data the grid shows NOW, and `#onBeforeChangeRender` writes it into that sheet. Without this,
+   * one `setDataAtCell()` ended up in both sheets: the switched-away sheet kept a value its grid data
+   * never received, and showed it on a switch back. The change set's old values are what that sheet
+   * held, because the grid's data was that sheet's when the change was made. A sheet removed from
+   * the engine in the meantime is left alone.
+   *
+   * @param {Array[]} changes The change set, `[visualRow, prop, oldValue, newValue]` per change.
+   * @param {number} sheetId The engine id of the sheet the set was first written into.
+   */
+  #restoreSwitchedAwaySheet(changes: CellChange[], sheetId: number) {
+    const engine = this.engine!;
+
+    if (engine.getSheetName(sheetId) === undefined) {
+      return;
+    }
+
+    engine.batch(() => {
+      changes.forEach(([visualRow, prop, oldValue]) => {
+        const visualColumn = typeof prop === 'string' || typeof prop === 'number' ? this.hot.propToCol(prop) : null;
+
+        if (visualColumn === null || visualColumn === undefined) {
+          return;
+        }
+
+        const physicalRow = this.hot.toPhysicalRow(visualRow);
+        const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
+
+        // An out-of-bounds change was never written into the switched-away sheet: its write is the
+        // deferred `afterChange` one, which the write-back below supersedes.
+        if (physicalRow === null || physicalColumn === null) {
+          return;
+        }
+
+        const address = {
+          row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
+          col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
+          sheet: sheetId,
+        };
+        let previous = this.#getValueGetterValue(physicalRow, physicalColumn, oldValue);
+
+        if (typeof previous === 'string') {
+          previous = this.#escapeEngineBoundValue(previous, this.hot.getCellMetaTransient(visualRow, visualColumn));
+        }
+
+        if (engine.isItPossibleToSetCellContents(address)) {
+          engine.setCellContents(address, previous ?? null);
+        }
+      });
+    });
+  }
 
   /**
    * `onAfterSetSourceDataAtCell` hook callback.

@@ -46,6 +46,14 @@ export type { BorderSettings, BorderObject };
 type BorderSide = 'top' | 'bottom' | 'start' | 'end';
 
 /**
+ * `HotInstance` with the internal `_removeCellMetaByPhysicalIndex` method, which exists on the Core
+ * runtime object but is deliberately not part of the public `HotInstance` type.
+ */
+type HotInstanceInternal = HotInstance & {
+  _removeCellMetaByPhysicalIndex(physicalRow: number, physicalColumn: number, key: string): void;
+};
+
+/**
  * Type guard returning true when the given value is a non-null object.
  *
  * @param {unknown} value The value to test.
@@ -1080,33 +1088,52 @@ export class CustomBorders extends BasePlugin {
 
   /**
    * Clears the entire border model and its rendered working set: cancels any in-flight progressive
-   * load, removes the `borders` meta from every previously bordered cell, empties `savedBorders` and
-   * its indexes, and destroys the rendered selections. Shared by `clearBorders()` (clear all) and
-   * `changeBorderSettings()` (a fresh array config / `updateSettings` replace). Does not render.
+   * load, removes the `borders` meta from every cell that carries it, rebuilds `savedBorders` and its
+   * indexes from what is left, and destroys the rendered selections. Shared by `clearBorders()`
+   * (clear all) and `changeBorderSettings()` (a fresh array config / `updateSettings` replace). Does
+   * not render.
+   *
+   * The meta is removed by the PHYSICAL coordinates it is stored under, not by the model's. The model
+   * keeps the VISUAL coordinates a border was set at, and they stop naming that record once rows are
+   * sorted, moved or trimmed: a filter that hid the bordered row left `removeCellMeta` reading the
+   * stale index as a raw physical one, so the meta stayed on the record - the grid stopped painting
+   * the border while the XLSX export still wrote it and an unrelated undo painted it again. A record
+   * a trimming map hides has no visual index at all, so it is cleared through
+   * `_removeCellMetaByPhysicalIndex`, which is journaled like `removeCellMeta` but fires no meta hook.
    */
   #resetBorderModel() {
     this.#cancelProgressiveApply();
 
-    // A `beforeRemoveCellMeta` listener can veto the removal. Those cells keep their `borders` meta,
-    // so they keep their model entry too - clearing the model around them would leave `getBorders()`
-    // and `getCellMeta().borders` disagreeing.
-    const kept: BorderObject[] = [];
+    const hot = this.hot as HotInstanceInternal;
+    const bordered = hot._getMetaManager().getUserDefinedCellMetas()
+      .filter(({ key }) => key === 'borders');
+    const rowCount = hot.countRows();
+    const columnCount = hot.countCols();
 
-    arrayEach(this.savedBorders, (border) => {
-      // A shrinking `loadData` or `updateData` leaves the model holding the previous grid's
-      // coordinates. `Core#removeCellMeta` reads an out-of-range index as the physical one (the way
-      // `setCellMeta` writes one), so such an entry is cleared by the same coordinates it was
-      // recorded with - which matters on the `updateData` path, where the meta is still there.
-      if (!this.#writeBordersMeta(border.row, border.col, null)) {
-        kept.push(border);
+    bordered.forEach(({ physicalRow, physicalColumn }) => {
+      const row: number | null = hot.toVisualRow(physicalRow);
+      const column: number | null = hot.toVisualColumn(physicalColumn);
+
+      if (row !== null && column !== null && row < rowCount && column < columnCount) {
+        // A `beforeRemoveCellMeta` listener can veto this removal; such a cell keeps its meta, and
+        // the rebuild below gives it its model entry back at its current visual coordinates.
+        this.#writeBordersMeta(row, column, null);
+
+        return;
+      }
+
+      this.#isInternalMetaWrite = true;
+
+      try {
+        hot._removeCellMetaByPhysicalIndex(physicalRow, physicalColumn, 'borders');
+      } finally {
+        this.#isInternalMetaWrite = false;
       }
     });
 
-    this.savedBorders = kept;
-    this.#rebuildSavedBordersIndex();
-    this.#bordersByRow.clear();
-    this.#bordersByRowDirty = true;
-    this.#destroyAllSelections();
+    // Rebuilt from the meta that survived (the vetoed removals), so `getBorders()` and
+    // `getCellMeta().borders` cannot disagree. It also destroys the rendered selections.
+    this.#rebuildModelFromMeta();
   }
 
   /**

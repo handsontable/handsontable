@@ -3,7 +3,7 @@ import { escapeHtml } from '../../helpers/string';
 import { DROPPED_FEATURES, type DroppedFeatures } from '../../utils/xlsxEngine/capabilities';
 import type { CellSnapshot, MergeSnapshot, SheetSnapshot, WorkbookSnapshot } from '../../utils/xlsxEngine/model';
 import { parseMultiRangeRef, parseRangeRef } from '../../utils/xlsxEngine/cellRef';
-import { shiftFormulaReferences } from '../../utils/xlsxEngine/formulaRefs';
+import { formulaSheetQualifiers, shiftFormulaReferences } from '../../utils/xlsxEngine/formulaRefs';
 import { stripFunctionPrefixes } from '../../utils/xlsxEngine/functionPrefixes';
 import { MAX_TRANSLATED_FORMULA_CHARS, throwLimitExceeded } from '../../utils/xlsxEngine/limits';
 import {
@@ -13,6 +13,7 @@ import {
 import {
   excelWidthToPx,
   cellDisplayValue,
+  exceedsElapsedFormat,
   inferCellType,
   pointsToPx,
   resolveListSource,
@@ -41,6 +42,18 @@ export interface MapperContext {
    * Whether the `customBorders` plugin is enabled, so border styles can be collected into the result.
    */
   customBordersEnabled: boolean;
+  /**
+   * The sheets the Formulas plugin's engine holds, lower-cased. A live formula that names any other
+   * sheet cannot resolve in the grid (HyperFormula shows `#REF!`), so its cached value is imported
+   * instead. Absent means the engine holds none.
+   */
+  formulaSheetNames?: ReadonlySet<string>;
+  /**
+   * The names the Formulas plugin's engine defines (named expressions), lower-cased. A live formula
+   * that uses a name the WORKBOOK defines and the engine does not shows `#NAME?` in the grid, so its
+   * cached value is imported instead. Absent means the engine defines none.
+   */
+  formulaNamedExpressions?: ReadonlySet<string>;
 }
 
 /**
@@ -436,6 +449,75 @@ function readFormulaText(text: string, scope: CollectContext): string {
 }
 
 /**
+ * Whether a formula names a sheet the Formulas plugin's engine does not hold. Such a formula shows
+ * `#REF!` in the grid, and so does every formula that depends on it, while the file carries the
+ * value it evaluated to. The walk is charged like a shift, because it runs the same regex over the
+ * formula's whole text; a formula with no `!` is answered without one.
+ */
+function namesUnknownSheet(formula: string, scope: CollectContext): boolean {
+  if (!formula.includes('!')) {
+    return false;
+  }
+
+  chargeFormulaWalk(formula.length, scope);
+
+  const known = scope.context.formulaSheetNames;
+
+  return formulaSheetQualifiers(formula).some(name => !known?.has(name.toLowerCase()));
+}
+
+/**
+ * An identifier in a formula: a name, a function name or a cell reference. Linear: one greedy run
+ * per match, no backtracking.
+ */
+const FORMULA_IDENTIFIER_REGEX = /"(?:[^"]|"")*"|[\p{L}_\\][\p{L}\p{N}_.]*/gu;
+
+/**
+ * Whether a formula uses a name the workbook defines and the Formulas engine does not. HyperFormula
+ * shows `#NAME?` for it, while the file carries the value it evaluated to. A string literal names
+ * nothing; a name followed by `(` is a function. Charged like a shift, because it walks the whole
+ * formula; a workbook that defines no name unknown to the engine costs nothing.
+ */
+function usesUnresolvedName(formula: string, scope: CollectContext): boolean {
+  const { unresolvedNames } = scope;
+
+  if (unresolvedNames.size === 0) {
+    return false;
+  }
+
+  chargeFormulaWalk(formula.length, scope);
+
+  for (const match of formula.matchAll(FORMULA_IDENTIFIER_REGEX)) {
+    const [token] = match;
+    const next = formula[(match.index ?? 0) + token.length];
+
+    if (token[0] !== '"' && next !== '(' && next !== '!' && unresolvedNames.has(token.toLowerCase())) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * The names a workbook defines that the Formulas engine does not, lower-cased.
+ */
+function unresolvedDefinedNames(workbook: WorkbookSnapshot, context: MapperContext): Set<string> {
+  const known = context.formulaNamedExpressions;
+  const names = new Set<string>();
+
+  (workbook.definedNames ?? []).forEach((name) => {
+    const lowered = name.toLowerCase();
+
+    if (!known?.has(lowered)) {
+      names.add(lowered);
+    }
+  });
+
+  return names;
+}
+
+/**
  * Pushes one cell's value onto the data row, writing a live formula string when the formulas
  * plugin is enabled and recording the cached formula otherwise.
  *
@@ -451,7 +533,9 @@ function pushCellValue(
 ): void {
   const { shift, dropped } = scope;
   const formula = cell.formula ? readFormulaText(cell.formula.text, scope) : null;
-  const live = formula !== null && shift
+  const otherSheet = formula !== null && shift !== null && namesUnknownSheet(formula, scope);
+  const unknownName = formula !== null && shift !== null && !otherSheet && usesUnresolvedName(formula, scope);
+  const live = formula !== null && shift && !otherSheet && !unknownName
     ? shiftFormulaReferences(formula, shift.rowDelta, shift.colDelta)
     : null;
 
@@ -468,7 +552,11 @@ function pushCellValue(
   if (formula !== null) {
     pass.formulas.push({ row, col, formula });
 
-    if (shift) {
+    if (otherSheet) {
+      dropped.record(DROPPED_FEATURES.formulaOtherSheet);
+    } else if (unknownName) {
+      dropped.record(DROPPED_FEATURES.formulaDefinedName);
+    } else if (shift) {
       dropped.record(DROPPED_FEATURES.formulaOutOfRange);
     }
   }
@@ -576,6 +664,10 @@ interface CollectContext {
    */
   listMetaByFormula: Map<string, ImportColumn | null>;
   /**
+   * The names the workbook defines and the Formulas engine does not, lower-cased.
+   */
+  unresolvedNames: Set<string>;
+  /**
    * The inferred type and its meta object per distinct number format and value kind, so a sheet
    * with a handful of formats parses each once rather than once per cell, and every cell of a
    * homogeneous column shares one meta object that `columnMetaAgrees` settles by reference.
@@ -602,7 +694,10 @@ interface InferredMeta {
  * distinct key, rather than once per cell.
  */
 function inferForCell(cell: CellSnapshot, scope: CollectContext): InferredMeta {
-  const key = `${cell.numFmt ?? ''}\u0000${typeof cellDisplayValue(cell)}`;
+  const value = cellDisplayValue(cell);
+  // An elapsed-time format infers differently past the duration it can show, so that is part of
+  // the key too.
+  const key = `${cell.numFmt ?? ''}\u0000${typeof value}\u0000${exceedsElapsedFormat(cell.numFmt, value)}`;
   const cached = scope.inferredByFormat.get(key);
 
   if (cached) {
@@ -689,6 +784,9 @@ function collectCells(
       : null,
     dropped,
     listMetaByFormula: new Map(),
+    unresolvedNames: options.importFormulas && context.formulasEnabled
+      ? unresolvedDefinedNames(workbook, context)
+      : new Set(),
     inferredByFormat: new Map(),
     walkedFormulaChars: 0,
   };

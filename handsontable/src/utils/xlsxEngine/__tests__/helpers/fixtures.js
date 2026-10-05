@@ -9,6 +9,8 @@
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { readZip } from '../../adapters/native/zip/reader';
+import { writeZip } from '../../adapters/native/zip/writer';
 
 /**
  * Reads a fixture file into the `ArrayBuffer` an adapter's `read()` expects.
@@ -31,4 +33,28 @@ export function loadFixture(name) {
  */
 export function toArrayBuffer(bytes) {
   return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+}
+
+/**
+ * Rewrites the XML parts of an archive and packs it again with the native ZIP writer - how a test
+ * gives the readers a dialect no writer here produces (LibreOffice's `"true"`/`"false"` attribute
+ * spelling, for one). `transform(partName, text)` returns the part's new text.
+ *
+ * @param {ArrayBuffer|Uint8Array} archive The archive to rewrite.
+ * @param {Function} transform Rewrites one part.
+ * @returns {Promise<ArrayBuffer>}
+ */
+export async function rewriteArchive(archive, transform) {
+  const encoder = new TextEncoder();
+  const zip = await readZip(archive instanceof Uint8Array ? toArrayBuffer(archive) : archive);
+  const entries = [];
+
+  for (const partName of zip.names()) {
+    // eslint-disable-next-line no-await-in-loop -- one entry at a time, as the reader reads them.
+    const text = await zip.text(partName);
+
+    entries.push({ name: partName, data: encoder.encode(transform(partName, text)) });
+  }
+
+  return toArrayBuffer(await writeZip(entries, true));
 }

@@ -251,6 +251,33 @@ export function mapFormulaReferences(
 }
 
 /**
+ * The sheet names a formula's qualified references point at (`Rates` for `Rates!A1`, `My Rates` for
+ * `'My Rates'!$A$1:$B$2`), unquoted, once each, in the order they first appear. A string literal is
+ * skipped, so `"Rates!A1"` names no sheet.
+ *
+ * The formula is expected without its leading `=`.
+ */
+export function formulaSheetQualifiers(formula: string): string[] {
+  if (!formula.includes('!')) {
+    return [];
+  }
+
+  const names = new Set<string>();
+
+  for (const match of formula.matchAll(REFERENCE_REGEX)) {
+    const qualifier = match.groups?.qualifier;
+
+    if (qualifier !== undefined) {
+      const name = qualifier.slice(0, -1);
+
+      names.add(name.startsWith('\'') ? name.slice(1, -1).replaceAll('\'\'', '\'') : name);
+    }
+  }
+
+  return [...names];
+}
+
+/**
  * Shifts every unqualified A1-style reference in a formula by `rowDelta` rows and `colDelta`
  * columns, keeping each `$` marker where it was written. Ranges are shifted at both ends, because
  * each end is a reference of its own; a whole-column span (`A:A`) moves on the column axis only and

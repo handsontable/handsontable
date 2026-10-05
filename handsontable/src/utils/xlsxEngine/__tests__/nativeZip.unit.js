@@ -109,6 +109,43 @@ describe('writeZip', () => {
     expect(deflated.byteLength).toBeLessThan(stored.byteLength);
   });
 
+  it('should write every local header to agree with its central record', async() => {
+    // The reader takes the CRC-32 and both sizes from the central directory, so a wrong local field
+    // reached no test, while a streaming reader (`bsdtar -xOf -`) and `unzip -t` reject the file.
+    // Deflated, so the two sizes differ and a swapped size is visible too.
+    const zip = await writeZip(entries, true);
+    const view = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);
+    const eocd = endRecordOffset(view, zip);
+    const entryCount = view.getUint16(eocd + 10, true);
+    let off = view.getUint32(eocd + 16, true);
+
+    for (let i = 0; i < entryCount; i++) {
+      const local = view.getUint32(off + 42, true);
+
+      expect(view.getUint32(local, true)).toBe(0x04034b50);
+      expect(view.getUint16(local + 6, true)).toBe(view.getUint16(off + 8, true)); // flags
+      expect(view.getUint16(local + 8, true)).toBe(view.getUint16(off + 10, true)); // method
+      expect(view.getUint32(local + 14, true)).toBe(view.getUint32(off + 16, true)); // CRC-32
+      expect(view.getUint32(local + 18, true)).toBe(view.getUint32(off + 20, true)); // compressed size
+      expect(view.getUint32(local + 22, true)).toBe(view.getUint32(off + 24, true)); // uncompressed size
+      off += 46 + view.getUint16(off + 28, true) + view.getUint16(off + 30, true) + view.getUint16(off + 32, true);
+    }
+  });
+
+  it('should name the entry, and give a reason, when a part\'s deflate stream is corrupt', async() => {
+    const zip = await writeZip([entries[1]], true);
+    const view = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);
+    const start = 30 + view.getUint16(26, true) + view.getUint16(28, true);
+
+    // BFINAL set and BTYPE 11: a block type DEFLATE reserves, which every inflater rejects.
+    zip[start] = 0x07;
+
+    const archive = await readZip(zip.slice().buffer);
+
+    await expect(archive.text('xl/wörkbook.xml'))
+      .rejects.toThrow(/^The archive entry "xl\/wörkbook\.xml" could not be processed: \S/);
+  });
+
   it('should write a local header whose data zlib can inflate', async() => {
     const zip = await writeZip([entries[1]], true);
     const view = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);

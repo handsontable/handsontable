@@ -11,10 +11,11 @@ const here = dirname(fileURLToPath(import.meta.url));
  * Writes a workbook to `<name>.xlsx` beside this script.
  *
  * The timestamps are pinned to the epoch first. ExcelJS stamps `docProps/core.xml` with `new Date()`
- * at `Workbook` construction, so without this every regeneration rewrote all nine binaries with
- * timestamp-only churn — invisible in review, and it made "did the fixture actually change?"
- * unanswerable from the diff. Nothing else in this file reads a clock or a random number, and every
- * cell is a literal, so with the stamp pinned a regeneration that changes a byte changed a case.
+ * at `Workbook` construction, and without this every regeneration changed that part for no reason.
+ * The pin does NOT make a regeneration byte-identical: JSZip stamps every ZIP entry with the current
+ * DOS time, and `lossy`'s `ws.protect('secret')` draws a random salt. To tell whether a case
+ * changed, unzip the old and the new file and diff the parts, ignoring `docProps/core.xml` and
+ * `lossy`'s `<sheetProtection>` hash and salt.
  *
  * The pin takes effect on the NEXT deliberate regeneration: the nine committed fixtures were not
  * rewritten for it, because churning nine binaries for their timestamps is the exact cost it exists

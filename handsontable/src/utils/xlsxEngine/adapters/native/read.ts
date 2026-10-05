@@ -98,6 +98,7 @@ interface OpenedPackage {
   workbookRels: Relationship[];
   sheets: ReturnType<typeof parseWorkbook>['sheets'];
   date1904: boolean;
+  definedNames: string[];
   styles: ParsedStyles;
   sharedStrings: ParsedSharedStrings;
   contentTypes: ContentTypes;
@@ -204,7 +205,7 @@ async function openPackage(buffer: ArrayBuffer, dropped: DroppedFeatures): Promi
     throwWithCause(`The archive has no workbook part at "${workbookPath}".`);
   }
 
-  const { sheets, date1904 } = parseWorkbook(await archive.text(workbookPath));
+  const { sheets, date1904, definedNames } = parseWorkbook(await archive.text(workbookPath));
   const workbookRels = await relsOf(archive, workbookPath);
   const stylesPath = targetOf(workbookRels, REL_TYPES.styles, workbookPath);
   const stringsPath = targetOf(workbookRels, REL_TYPES.sharedStrings, workbookPath);
@@ -222,6 +223,7 @@ async function openPackage(buffer: ArrayBuffer, dropped: DroppedFeatures): Promi
     workbookRels,
     sheets,
     date1904,
+    definedNames,
     packageParts,
     contentTypes,
     // Detected from the package's own index only: the project is binary and is never inflated.
@@ -426,6 +428,8 @@ export async function readWorkbook(buffer: ArrayBuffer, dropped: DroppedFeatures
 
   const snapshot = createWorkbookSnapshot();
   const budget: WorkbookBudget = { declaredCells: 0 };
+
+  snapshot.definedNames = opened.definedNames;
 
   if (opened.hasVbaProject) {
     dropped.record(DROPPED_FEATURES.vbaProject);

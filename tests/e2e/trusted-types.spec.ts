@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { test, expect } from '../fixtures/test';
 import { TrustedTypesPage } from '../fixtures/pages/TrustedTypesPage';
 
@@ -133,8 +134,11 @@ test.describe('Trusted Types enforcement', () => {
     await grid.expectNoViolations();
   });
 
-  test('renders the export progress dialog', async () => {
+  test('renders the export progress dialog', async ({ page }) => {
     await grid.goto();
+
+    const downloading = page.waitForEvent('download');
+
     await grid.exportButton.click();
 
     // The spinner count is the load-bearing part: it is an `<svg>`, and one built through
@@ -142,6 +146,14 @@ test.describe('Trusted Types enforcement', () => {
     // with no error to notice. Reading it here proves the namespace survived the DOM rewrite on a
     // real browser, not only in the unit test's jsdom.
     await expect(grid.status).toHaveText('EXPORT-DIALOG: 1 spinner');
+
+    // The built-in writer completes under enforcement: the download is a ZIP archive.
+    const download = await downloading;
+
+    expect(download.suggestedFilename()).toBe('tt.xlsx');
+    await expect(grid.status).toHaveAttribute('data-export', 'DONE');
+
+    expect(readFileSync(await download.path()).subarray(0, 2).toString('latin1')).toBe('PK');
     await grid.expectNoViolations();
   });
 

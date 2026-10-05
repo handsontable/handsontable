@@ -100,13 +100,20 @@ rendered range - but `#resetBorderModel` walks the whole model into
 entry] })` and `clearBorders()` all threw `Assertion failed: Expecting an unsigned number` - a
 pre-existing defect, reproducible on released 18.1.1.
 
-**The cause was a core asymmetry, and it is fixed in `Core#removeCellMeta`, not here.**
-`Core#setCellMeta` passes an index outside the current range through as the physical one;
-`removeCellMeta` used to translate unconditionally, so such an index became `null` and the meta
-manager's `assertUnsignedKey` threw. `removeCellMeta` now reads an out-of-range index the same way
-its sibling writes one, so `#resetBorderModel` carries **no bounds guard**: every entry takes the
-normal `#writeBordersMeta(row, col, null)` path by the raw coordinates it was recorded with, and the
-vetoed-removal behavior is unchanged for all of them.
+**`#resetBorderModel` therefore walks the META, by the physical coordinates it is stored under, and
+never the model.** The model keeps the VISUAL coordinates a border was set at, and they stop naming
+that record as soon as rows are sorted, moved or trimmed. Replaying them into `removeCellMeta` (the
+first fix for the throw above, after `Core#removeCellMeta` learned to read an out-of-range index as a
+raw physical one) cleared the wrong record or none: sort, set a border, filter its row out, and
+`clearBorders()` emptied the model while the `borders` meta stayed on the record - the grid stopped
+painting the border, the XLSX export still wrote it, and an unrelated undo (which rebuilds the model
+from the meta) painted it again. Each `borders` entry from `getUserDefinedCellMetas()` is now
+resolved to its CURRENT visual coordinates and removed through `#writeBordersMeta` (so a
+`beforeRemoveCellMeta` veto still works); a record with no visual index (trimmed, or past a shrunk
+dataset) is removed through the internal `Core#_removeCellMetaByPhysicalIndex`, which is journaled
+for undo like `removeCellMeta` but fires no meta hook, because those hooks carry visual coordinates.
+The model is then rebuilt from whatever meta survived (`#rebuildModelFromMeta`), so a vetoed border
+keeps its entry at its current coordinates. Pinned by `__tests__/clearBordersTrimmedRows.unit.js`.
 
 The removal is not cosmetic on the `updateData` path. Core drops the cell meta only in `loadData`
 (`metaManager.clearCellsCache()`); `updateData` - and therefore `updateSettings({ data })` - keeps it
@@ -117,8 +124,8 @@ meta is still on a live cell unless the reset actually clears it, which is the s
 **The `afterLoadData` hook was deliberately NOT added.** The core clears cell meta on `loadData` and
 keeps it on `updateData`, so a hook that cleared the model would remove borders the user still sees
 after a same-size `loadData` - a visible behavior change with no ticket behind it. A hook that only
-pruned out-of-range entries would be redundant: `#resetBorderModel` is the single place that walks
-the model into `removeCellMeta`, and it covers every caller (`clearBorders()`,
+pruned out-of-range entries would be redundant: `#resetBorderModel` is the single place that clears
+the `borders` meta wholesale, and it covers every caller (`clearBorders()`,
 `changeBorderSettings()`, `updateSettings`). Pinned by `__tests__/shrinkingLoadData.unit.js`, which
 covers the bottom-only, right-only, corner and exact-boundary (`row === countRows()`) shapes, a
 same-size control proving an in-range entry still has its meta removed, and the `updateData`

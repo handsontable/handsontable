@@ -316,6 +316,26 @@ describe('parseStyles', () => {
     expect(cellXfs[4]).toEqual({ numFmt: null, style: null, locked: null });
   });
 
+  it('should read the default alignment LibreOffice writes on every xf as no style, and keep a bare bottom', () => {
+    // LibreOffice writes `horizontal="general" vertical="bottom"` (plus zeroed rotation, indent and
+    // wrap) on every `xf`. Read as an alignment, every cell of a plain LibreOffice file carried a
+    // style, so the import reported `cellStyles` and `importStyles` put `htBottom` everywhere.
+    const { cellXfs } = parseStyles('<styleSheet><cellXfs count="4">'
+      + '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="false">'
+      + '<alignment horizontal="general" vertical="bottom" textRotation="0" wrapText="false" indent="0"'
+      + ' shrinkToFit="false"/></xf>'
+      + '<xf><alignment horizontal="general" vertical="top"/></xf>'
+      + '<xf><alignment vertical="bottom"/></xf>'
+      + '<xf><alignment horizontal="left" vertical="bottom"/></xf>'
+      + '</cellXfs></styleSheet>');
+
+    expect(cellXfs[0]).toEqual({ numFmt: null, style: null, locked: null });
+    expect(cellXfs[1].style.alignment).toEqual({ vertical: 'top' });
+    // The export writes exactly this for an `htBottom` cell, so it must survive a round trip.
+    expect(cellXfs[2].style.alignment).toEqual({ vertical: 'bottom' });
+    expect(cellXfs[3].style.alignment).toEqual({ horizontal: 'left', vertical: 'bottom' });
+  });
+
   it('should keep the backslashes of a custom format code, which are Excel literal escapes', () => {
     const { cellXfs } = parseStyles(
       '<styleSheet><numFmts>'
@@ -364,6 +384,22 @@ describe('parseStyles', () => {
     // A bare serial with `numFmt: null` was the previous answer, so neither the import's type
     // inference nor the reader's `date1904` shift treated the cell as a date.
     expect(Object.fromEntries(ids.map((id, index) => [id, cellXfs[index].numFmt]))).toEqual(expected);
+  });
+
+  it('should resolve the currency (5-8) and accounting (41-44) ids to their en-US codes, read-only', () => {
+    // A cell pointing at one of them with no `<numFmts>` entry used to read back with `numFmt: null`,
+    // so a currency or accounting column imported as bare numbers with nothing in `dropped`.
+    const ids = [5, 6, 7, 8, 41, 42, 43, 44];
+    const { cellXfs } = parseStyles(
+      `<styleSheet><cellXfs>${ids.map(id => `<xf numFmtId="${id}"/>`).join('')}</cellXfs></styleSheet>`,
+    );
+    const numFmts = Object.fromEntries(ids.map((id, index) => [id, cellXfs[index].numFmt]));
+
+    expect(numFmts[7]).toBe('"$"#,##0.00_);\\("$"#,##0.00\\)');
+    expect(numFmts[44]).toBe('_("$"* #,##0.00_);_("$"* \\(#,##0.00\\);_("$"* "-"??_);_(@_)');
+    ids.forEach(id => expect(numFmts[id]).toEqual(expect.any(String)));
+    // Never handed to the writer: Excel renders these in the install's currency.
+    ids.forEach(id => expect(builtInNumFmtId(numFmts[id])).toBeUndefined());
   });
 
   it('should never hand a locale id out to the writer for the stand-in code', () => {

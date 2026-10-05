@@ -9,8 +9,9 @@ import { MAIN_NS } from './package';
 /**
  * Number formats Excel keeps in its built-in table, in BOTH directions: a code that matches one
  * reuses the id and is not written to `<numFmts>`, and a cell pointing at the id reads back as
- * the code. Ids 5–8 (currency) are Excel-internal and absent on purpose; a currency code is
- * always custom. The locale ids live in `LOCALE_NUM_FMTS`, which is read-only.
+ * the code. Ids 5–8 (currency) and 41–44 (accounting) render in the install's currency, so the
+ * writer never reuses them and a currency code is always custom. Those ids and the locale date ids
+ * live in `LOCALE_NUM_FMTS`, which is read-only.
  */
 export const BUILT_IN_NUM_FMTS: Record<number, string> = {
   0: 'General',
@@ -76,6 +77,17 @@ export const LOCALE_NUM_FMTS: Record<number, string> = {
   56: 'yyyy/m/d',
   57: 'yyyy/m/d',
   58: 'yyyy/m/d',
+  // The currency (5–8) and accounting (41–44) ids are locale-dependent too: Excel renders them in
+  // the install's currency. The en-US codes stand in, so a cell pointing at one reads back as a
+  // formatted number rather than with `numFmt: null`.
+  5: '"$"#,##0_);\\("$"#,##0\\)',
+  6: '"$"#,##0_);[Red]\\("$"#,##0\\)',
+  7: '"$"#,##0.00_);\\("$"#,##0.00\\)',
+  8: '"$"#,##0.00_);[Red]\\("$"#,##0.00\\)',
+  41: '_(* #,##0_);_(* \\(#,##0\\);_(* "-"_);_(@_)',
+  42: '_("$"* #,##0_);_("$"* \\(#,##0\\);_("$"* "-"_);_(@_)',
+  43: '_(* #,##0.00_);_(* \\(#,##0.00\\);_(* "-"??_);_(@_)',
+  44: '_("$"* #,##0.00_);_("$"* \\(#,##0.00\\);_("$"* "-"??_);_(@_)',
 };
 
 const BUILT_IN_BY_CODE = new Map<string, number>(
@@ -686,16 +698,25 @@ function applyFontColor(font: Font, attrs: XmlAttributes): void {
 }
 
 /**
- * Reads an `<alignment>`, or `null` when it declares neither axis.
+ * Reads an `<alignment>`, or `null` when it declares neither axis, or only the spreadsheet defaults.
+ *
+ * `horizontal="general"` is what a cell with no `<alignment>` already means. LibreOffice writes it,
+ * together with `vertical="bottom"`, on every `xf`, cell style 0 included. Read as an alignment,
+ * every cell of a plain LibreOffice-saved file carried a style: the import reported `cellStyles`
+ * where ExcelJS reported nothing, and `importStyles: true` put `htBottom` on every cell. So
+ * `general` is no alignment, and a `bottom` written NEXT TO it is the same default spelled out.
+ * A `bottom` on its own is kept: the export writes exactly that for an `htBottom` cell (it never
+ * writes `general`), and dropping it lost the class on a round trip.
  */
 function readAlignment(attrs: XmlAttributes): Alignment | null {
   const alignment: Alignment = {};
+  const isGeneral = attrs.horizontal === 'general';
 
-  if (attrs.horizontal !== undefined) {
+  if (attrs.horizontal !== undefined && !isGeneral) {
     alignment.horizontal = attrs.horizontal;
   }
 
-  if (attrs.vertical !== undefined) {
+  if (attrs.vertical !== undefined && !(isGeneral && attrs.vertical === 'bottom')) {
     alignment.vertical = attrs.vertical === 'center' ? 'middle' : attrs.vertical;
   }
 

@@ -2,6 +2,7 @@ import {
   captureCurrency,
   classifyTemporalFormat,
   isTemporalFormatCode,
+  positiveFormatSection,
   stripFormatDecorations,
 } from '../numFmtCode';
 
@@ -24,6 +25,25 @@ describe('stripFormatDecorations', () => {
     stripFormatDecorations(hostile);
 
     expect(performance.now() - startedAt).toBeLessThan(200);
+  });
+});
+
+describe('positiveFormatSection', () => {
+  it('should cut at the first unquoted `;` and drop `_x` padding and `*x` fill', () => {
+    expect(positiveFormatSection('#,##0;[Red]-#,##0')).toBe('#,##0');
+    expect(positiveFormatSection('_("$"* #,##0.00_);_("$"* \\(#,##0.00\\)')).toBe('"$"#,##0.00');
+    expect(positiveFormatSection('0" a;b";0')).toBe('0" a;b"');
+    expect(positiveFormatSection('0\\;0;-0')).toBe('0\\;0');
+    expect(positiveFormatSection('0.00')).toBe('0.00');
+    expect(positiveFormatSection('"unterminated')).toBe('"unterminated');
+  });
+
+  it('should stay linear on a long hostile code', () => {
+    const start = Date.now();
+
+    positiveFormatSection(`${'"'.repeat(100000)}${'_'.repeat(100000)}`);
+
+    expect(Date.now() - start).toBeLessThan(1000);
   });
 });
 

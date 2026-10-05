@@ -110,31 +110,28 @@ function declareInflatedSize(bytes, entryName, size) {
  * @returns {{ count: Function, restore: Function }}
  */
 function countInflates() {
+  // The whole descriptor is kept and put back, so the global leaves this helper exactly as
+  // `test/cryptoSetup.js` installed it (writable, so a test can stub it by assignment).
+  const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'DecompressionStream');
   const original = globalThis.DecompressionStream;
   let constructed = 0;
 
-  /**
-   * Installs a value under the global name, which `test/cryptoSetup.js` defines as non-writable.
-   *
-   * @param {Function} value The constructor to install.
-   */
-  const install = (value) => {
-    Object.defineProperty(globalThis, 'DecompressionStream', { value, writable: false, configurable: true });
-  };
-
-  install(class CountingDecompressionStream extends original {
-    /**
-     * @param {string} format The compression format.
-     */
-    constructor(format) {
-      super(format);
-      constructed += 1;
-    }
+  Object.defineProperty(globalThis, 'DecompressionStream', {
+    ...descriptor,
+    value: class CountingDecompressionStream extends original {
+      /**
+       * @param {string} format The compression format.
+       */
+      constructor(format) {
+        super(format);
+        constructed += 1;
+      }
+    },
   });
 
   return {
     count: () => constructed,
-    restore: () => install(original),
+    restore: () => Object.defineProperty(globalThis, 'DecompressionStream', descriptor),
   };
 }
 
@@ -366,8 +363,10 @@ describe('native reader hardening: the inflated-bytes budget', () => {
 
     bytes = declareInflatedSize(bytes, 'xl/sharedStrings.xml', 400 * 1024 * 1024);
 
+    // The decoded string is bounded as it grows, so the part is usually stopped by the charge its
+    // text would make (which states the total it reached) before its bytes reach the ceiling.
     await expect(read(bytes)).rejects.toThrow(
-      new RegExp('The archive entry "xl/sharedStrings.xml" brings the inflated total above the '
+      new RegExp('The archive entry "xl/sharedStrings.xml" brings the inflated total (to \\d+ bytes, )?above the '
         + `${MAX_INFLATED_TOTAL_BYTES}-byte limit`)
     );
   });

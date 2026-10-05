@@ -160,6 +160,9 @@ describe('escaping', () => {
 
   it('should decode _xHHHH_ escapes back to code points', () => {
     expect(decodeOoxmlEscapes('a_x000D_b_x0001_')).toBe('a\rb\u0001');
+    // SheetJS writes the hex in lower case.
+    expect(decodeOoxmlEscapes('a_x000d_\nb')).toBe('a\r\nb');
+    expect(decodeOoxmlEscapes('_xd83d__xde00_')).toBe('\u{1F600}');
     expect(decodeOoxmlEscapes('_xZZZZ_')).toBe('_xZZZZ_');
   });
 

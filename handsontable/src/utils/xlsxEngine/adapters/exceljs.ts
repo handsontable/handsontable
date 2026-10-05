@@ -17,6 +17,8 @@ import {
 } from '../model';
 import { parseRangeRef } from '../cellRef';
 import { EXCEL_EPOCH_OFFSET, MS_PER_DAY } from '../dates';
+import { isWritableConditionalRule } from '../conditionalRules';
+import { coveredCellFormatting, type CellFormatting } from '../coveredCellFormatting';
 import { addFunctionPrefixes } from '../functionPrefixes';
 import {
   MAX_INPUT_BYTES, MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_SHEET_ROWS, MAX_WORKBOOK_CELLS, MAX_WORKBOOK_SHEETS,
@@ -49,6 +51,10 @@ export interface ExcelJsCell {
   value: ExcelCellValue;
   type: number;
   formula: string | undefined;
+  /**
+   * The cached result of a formula cell, `undefined` for any other cell.
+   */
+  result?: unknown;
   numFmt: string | undefined;
   alignment: object | undefined;
   border: object | undefined;
@@ -168,6 +174,10 @@ export interface ExcelJsWorkbook {
    * recalculate every formula when the file is opened.
    */
   calcProperties?: { fullCalcOnLoad?: boolean };
+  /**
+   * The names the workbook defines, as `{ name, ranges }` entries.
+   */
+  definedNames?: { model?: Array<{ name?: string }> };
   xlsx: {
     writeBuffer(options?: object): Promise<Uint8Array>;
     load(buffer: ArrayBuffer): Promise<unknown>;
@@ -228,25 +238,7 @@ function writeCell(target: ExcelJsCell, cell: CellSnapshot, dropped: DroppedFeat
     target.value = typeof cell.value === 'string' ? clampCellText(cell.value, dropped) : cell.value;
   }
 
-  if (cell.numFmt) {
-    target.numFmt = cell.numFmt;
-  }
-
-  if (cell.style?.alignment) {
-    target.alignment = cell.style.alignment;
-  }
-
-  if (cell.style?.border) {
-    target.border = cell.style.border;
-  }
-
-  if (cell.style?.font) {
-    target.font = cell.style.font;
-  }
-
-  if (cell.style?.fill) {
-    target.fill = cell.style.fill;
-  }
+  writeCellFormatting(target, cell);
 
   if (cell.validation) {
     target.dataValidation = cell.validation;
@@ -255,9 +247,35 @@ function writeCell(target: ExcelJsCell, cell: CellSnapshot, dropped: DroppedFeat
   if (cell.comment !== null) {
     target.note = cell.comment;
   }
+}
 
-  if (cell.locked !== null) {
-    target.protection = { locked: cell.locked };
+/**
+ * Copies a cell's number format, style and lock onto an ExcelJS cell. Only set fields are
+ * assigned, so ExcelJS never initializes its style sentinels for an unformatted cell.
+ */
+function writeCellFormatting(target: ExcelJsCell, formatting: CellFormatting): void {
+  if (formatting.numFmt) {
+    target.numFmt = formatting.numFmt;
+  }
+
+  if (formatting.style?.alignment) {
+    target.alignment = formatting.style.alignment;
+  }
+
+  if (formatting.style?.border) {
+    target.border = formatting.style.border;
+  }
+
+  if (formatting.style?.font) {
+    target.font = formatting.style.font;
+  }
+
+  if (formatting.style?.fill) {
+    target.fill = formatting.style.fill;
+  }
+
+  if (formatting.locked !== null) {
+    target.protection = { locked: formatting.locked };
   }
 }
 
@@ -322,21 +340,47 @@ function writeColumnLayout(worksheet: ExcelJsWorksheet, sheet: SheetSnapshot, dr
 }
 
 /**
- * Whether any cell a merge covers (every member but the master) carries a style or a lock of its
- * own in the snapshot.
+ * Whether any cell a merge covers (every member but the master) carries formatting of its own in
+ * the snapshot: a style, a lock or a number format.
  */
 function coversOwnFormatting(sheet: SheetSnapshot, merge: MergeSnapshot): boolean {
   for (let row = merge.row; row < merge.row + merge.rowspan; row++) {
     for (let col = merge.col; col < merge.col + merge.colspan; col++) {
       const cell = sheet.rows[row]?.[col] ?? null;
+      const isFormatted = cell !== null && (cell.style !== null || cell.locked !== null || cell.numFmt !== null);
 
-      if ((row !== merge.row || col !== merge.col) && cell !== null && (cell.style !== null || cell.locked !== null)) {
+      if ((row !== merge.row || col !== merge.col) && isFormatted) {
         return true;
       }
     }
   }
 
   return false;
+}
+
+/**
+ * Merges a range whose covered cells carry formatting of their own. `mergeCellsWithoutStyle` leaves
+ * every covered cell as it is, and each one is then given the formatting `coveredCellFormatting`
+ * resolves - the rule the native writer applies - so its own lock survives and the master's border
+ * and fill still reach the block's edges.
+ */
+function mergeKeepingOwnFormatting(
+  worksheet: ExcelJsWorksheet, sheet: SheetSnapshot, merge: MergeSnapshot,
+): void {
+  const { row, col, rowspan, colspan } = merge;
+  const master = sheet.rows[row]?.[col] ?? null;
+
+  (worksheet.mergeCellsWithoutStyle as NonNullable<ExcelJsWorksheet['mergeCellsWithoutStyle']>)(
+    row + 1, col + 1, row + rowspan, col + colspan,
+  );
+
+  for (let r = row; r < row + rowspan; r++) {
+    for (let c = col; c < col + colspan; c++) {
+      if (r !== row || c !== col) {
+        writeCellFormatting(worksheet.getCell(r + 1, c + 1), coveredCellFormatting(master, sheet.rows[r]?.[c]));
+      }
+    }
+  }
 }
 
 /**
@@ -353,10 +397,10 @@ function coversOwnFormatting(sheet: SheetSnapshot, merge: MergeSnapshot): boolea
  *
  * `mergeCells` copies the master's style over every covered cell, protection included, so an
  * unlocked covered cell was written locked and imported read-only once unmerged. A merge whose
- * covered cells carry a style or a lock of their own is therefore merged with
- * `mergeCellsWithoutStyle`, which leaves each covered cell its own style, as the native writer
- * does (a covered cell with none is then unstyled there too). Every other merge keeps the copy, so
- * a merged header's border still reaches the covered edge cells it always reached.
+ * covered cells carry formatting of their own is therefore merged through
+ * `mergeKeepingOwnFormatting`, which applies `coveredCellFormatting` - the native writer's rule - to
+ * each covered cell. Every other merge keeps the copy, which is what that rule gives an unformatted
+ * covered cell anyway.
  */
 async function writeSheetFeatures(
   worksheet: ExcelJsWorksheet, sheet: SheetSnapshot, dropped: DroppedFeatures
@@ -378,7 +422,7 @@ async function writeSheetFeatures(
 
     try {
       if (worksheet.mergeCellsWithoutStyle && coversOwnFormatting(sheet, { row, col, rowspan, colspan })) {
-        worksheet.mergeCellsWithoutStyle(row + 1, col + 1, row + rowspan, col + colspan);
+        mergeKeepingOwnFormatting(worksheet, sheet, { row, col, rowspan, colspan });
       } else {
         worksheet.mergeCells(row + 1, col + 1, row + rowspan, col + colspan);
       }
@@ -389,7 +433,15 @@ async function writeSheetFeatures(
     }
   });
 
-  sheet.conditionalFormatting.forEach(descriptor => worksheet.addConditionalFormatting(descriptor));
+  sheet.conditionalFormatting.forEach((descriptor) => {
+    const rules = Array.isArray(descriptor.rules)
+      ? descriptor.rules.filter(rule => isWritableConditionalRule(rule, dropped))
+      : [];
+
+    if (rules.length > 0) {
+      worksheet.addConditionalFormatting({ ...descriptor, rules });
+    }
+  });
   worksheet.state = sheet.state;
 }
 
@@ -423,8 +475,15 @@ function hyperlinkText(text: unknown): CellValue {
  * *master cell's address* (e.g. `"C1"`), not an expression, while `cell.formula` is the expression
  * already translated for that slave's position (e.g. `"A2*2"`). `raw.formula` is kept only as a
  * fallback for a formula-shaped raw value with no translated getter available.
+ *
+ * `cellResult` is `source.result`, the cached result ExcelJS keeps on the cell. The value object
+ * carries `result` only when it is truthy (`FormulaValue#value` in ExcelJS 4.4), so a formula that
+ * evaluates to `0`, `FALSE` or `""` read back with no result at all, and imported empty without the
+ * Formulas plugin; `cell.result` still answers for it.
  */
-function readValue(raw: ExcelCellValue, cellFormula?: string): { value: CellValue; formula: CellFormula | null } {
+function readValue(
+  raw: ExcelCellValue, cellFormula?: string, cellResult?: unknown,
+): { value: CellValue; formula: CellFormula | null } {
   if (raw === null || raw === undefined) {
     return { value: null, formula: null };
   }
@@ -449,7 +508,10 @@ function readValue(raw: ExcelCellValue, cellFormula?: string): { value: CellValu
       text = raw.formula;
     }
 
-    const formula: CellFormula = raw.result === undefined ? { text } : { text, result: readValue(raw.result).value };
+    const result = raw.result === undefined ? cellResult : raw.result;
+    const formula: CellFormula = result === undefined
+      ? { text }
+      : { text, result: readValue(result as ExcelCellValue).value };
 
     return { value: null, formula };
   }
@@ -528,17 +590,51 @@ function readLocked(source: ExcelJsCell): boolean | null {
 }
 
 /**
+ * The code ExcelJS answers for built-in number format 22. ECMA-376 defines id 22 as `m/d/yy h:mm`;
+ * ExcelJS's table quotes the `h`, which turns it into a literal letter, so the inference read the
+ * rest as a date and the time of day was lost from the data (a re-export lost it too).
+ */
+const EXCELJS_BUILT_IN_22 = 'm/d/yy "h":mm';
+
+/**
+ * Reads a cell's number format, with ExcelJS's spelling of built-in id 22 mapped back to the one
+ * ECMA-376 defines and the native reader reads.
+ */
+function readNumFmt(source: ExcelJsCell): string | null {
+  const numFmt = source.numFmt ?? null;
+
+  return numFmt === EXCELJS_BUILT_IN_22 ? 'm/d/yy h:mm' : numFmt;
+}
+
+/**
+ * The names an ExcelJS workbook defines, Excel's own `_xlnm.` names left out. ExcelJS keeps only
+ * the names whose value is a range, which is what a formula over a named range uses.
+ */
+function readDefinedNames(workbook: ExcelJsWorkbook): string[] {
+  const model = workbook.definedNames?.model;
+  const names = new Set<string>();
+
+  (Array.isArray(model) ? model : []).forEach(({ name }) => {
+    if (typeof name === 'string' && name !== '' && !name.startsWith('_xlnm.')) {
+      names.add(name);
+    }
+  });
+
+  return [...names];
+}
+
+/**
  * Reads one ExcelJS cell into a snapshot, recording validations the model cannot hold.
  */
 function readCell(source: ExcelJsCell, dropped: DroppedFeatures): CellSnapshot {
   const cell = createCellSnapshot();
-  const { value, formula } = readValue(source.value, source.formula);
+  const { value, formula } = readValue(source.value, source.formula, source.result);
 
   recordLossyValue(source.value, dropped);
 
   cell.value = value;
   cell.formula = formula;
-  cell.numFmt = source.numFmt ?? null;
+  cell.numFmt = readNumFmt(source);
   cell.style = readStyle(source);
 
   if (source.dataValidation?.type === 'list') {
@@ -921,6 +1017,8 @@ export const excelJsAdapter: XlsxEngineAdapter = {
     workbook.worksheets.forEach((worksheet) => {
       snapshot.sheets.push(readSheet(worksheet, dropped, mergeType, budget));
     });
+
+    snapshot.definedNames = readDefinedNames(workbook);
 
     return snapshot;
   },

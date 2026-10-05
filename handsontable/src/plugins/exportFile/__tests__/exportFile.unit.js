@@ -172,6 +172,30 @@ describe('ExportFile#_createBlob', () => {
       global.Blob = savedBlob;
     }
   });
+
+  it('should wait for the formatter promise when the global Promise is replaced, as Zone.js does', async() => {
+    // Zone.js replaces the global `Promise`, so `instanceof Promise` was false for the native promise
+    // the xlsx formatter returns, and the promise itself went into the blob: `[object Promise]`.
+    const NativePromise = global.Promise;
+
+    class ZoneAwarePromise extends NativePromise {}
+
+    const formatter = {
+      export: () => NativePromise.resolve(new Uint8Array([0x50, 0x4b, 0x03, 0x04])),
+      options: { mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' },
+    };
+    let result;
+
+    global.Promise = ZoneAwarePromise;
+
+    try {
+      result = ExportFile.prototype._createBlob.call({}, formatter);
+    } finally {
+      global.Promise = NativePromise;
+    }
+
+    expect((await result).size).toBe(4);
+  });
 });
 
 describe('DataProvider#setOptions', () => {

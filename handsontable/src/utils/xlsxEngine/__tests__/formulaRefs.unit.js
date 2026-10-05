@@ -1,4 +1,9 @@
-import { mapFormulaReferences, shiftFormulaReferences, translateSharedFormula } from '../formulaRefs';
+import {
+  formulaSheetQualifiers,
+  mapFormulaReferences,
+  shiftFormulaReferences,
+  translateSharedFormula,
+} from '../formulaRefs';
 import { normalizeFormula } from '../../../plugins/exportFile/types/xlsx/formula-utils';
 
 describe('shiftFormulaReferences', () => {
@@ -247,5 +252,15 @@ describe('translateSharedFormula', () => {
 
   it('should return the formula unchanged for a zero offset', () => {
     expect(translateSharedFormula('A1', 0, 0)).toBe('A1');
+  });
+});
+
+describe('formulaSheetQualifiers', () => {
+  it('should list the sheets a formula names, unquoted, once each, skipping string literals', () => {
+    expect(formulaSheetQualifiers('B1*Rates!A1+Rates!B2')).toEqual(['Rates']);
+    expect(formulaSheetQualifiers('SUM(\'My Rates\'!$A$1:$B$2)+\'O\'\'Brien\'!A1')).toEqual(['My Rates', 'O\'Brien']);
+    expect(formulaSheetQualifiers('LEN("Rates!A1")')).toEqual([]);
+    expect(formulaSheetQualifiers('SUM(A1:B2)')).toEqual([]);
+    expect(formulaSheetQualifiers('\u041b\u0438\u0441\u04421!A1')).toEqual(['\u041b\u0438\u0441\u04421']);
   });
 });

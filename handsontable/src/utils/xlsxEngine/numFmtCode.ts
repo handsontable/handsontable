@@ -144,6 +144,50 @@ function captureQuotedCurrency(trimmed: string): CurrencyCapture | null {
 }
 
 /**
+ * The first (positive) section of a number format, with its layout-only codes removed: the `_x`
+ * padding (a space the width of `x`) and the `*x` fill (`x` repeated to the cell's width) are not
+ * format codes, and `Intl.NumberFormat` has no equivalent of either. A multi-section code
+ * (`#,##0;[Red]-#,##0`, Excel's built-in currency and accounting formats) used to reach the
+ * plain-number check whole, so every such column imported unformatted. Quoted literals and
+ * backslash escapes are kept as they are - a `;` or a `_` inside one is text - so the result still
+ * goes through `captureCurrency` and `stripFormatDecorations` like any other code. A section's own
+ * color or condition (`[Red]`, `[>=100]`) is a bracket section those already remove.
+ *
+ * Linear in the length of the code: one pass, no backtracking.
+ *
+ * @param {string} numFmt The number format code.
+ * @returns {string}
+ */
+export function positiveFormatSection(numFmt: string): string {
+  let section = '';
+
+  for (let i = 0; i < numFmt.length; i++) {
+    const char = numFmt[i];
+
+    if (char === ';') {
+      break;
+    }
+
+    if (char === '"') {
+      const close = numFmt.indexOf('"', i + 1);
+      const end = close === -1 ? numFmt.length : close + 1;
+
+      section += numFmt.slice(i, end);
+      i = end - 1;
+    } else if (char === '\\') {
+      section += numFmt.slice(i, i + 2);
+      i += 1;
+    } else if (char === '_' || char === '*') {
+      i += 1;
+    } else {
+      section += char;
+    }
+  }
+
+  return section;
+}
+
+/**
  * Captures the currency a number format carries: Excel's `[$<symbol>-<LCID>]` / `[$<symbol>]` token
  * first, then a quoted symbol at either end, then a leading or trailing symbol the way
  * `intlNumFormatToExcelNumFmt` writes it, then a bare ISO code or dollar composite (`CHF#,##0`,
@@ -173,6 +217,20 @@ export function captureCurrency(numFmt: string): CurrencyCapture {
   }
 
   for (const symbol of CURRENCY_SYMBOLS) {
+    // `\$#,##0.00` is LibreOffice's spelling of `"$"#,##0.00`: the escape makes the symbol a
+    // literal, which it already is, so it means the same as the bare or quoted symbol. Only the
+    // currency symbol is unescaped here - `0.0\%` stays escaped, because there the escape does
+    // change the meaning (a literal percent sign, not a percentage).
+    const escaped = `\\${symbol}`;
+
+    if (trimmed.startsWith(escaped)) {
+      return { currency: currencyForSymbol(symbol), rest: trimmed.slice(escaped.length) };
+    }
+
+    if (trimmed.endsWith(escaped)) {
+      return { currency: currencyForSymbol(symbol), rest: trimmed.slice(0, -escaped.length) };
+    }
+
     if (trimmed.startsWith(symbol)) {
       return { currency: currencyForSymbol(symbol), rest: trimmed.slice(symbol.length) };
     }

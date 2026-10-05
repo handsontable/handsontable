@@ -164,8 +164,24 @@ describe('native zip streams: the input is written in bounded slices', () => {
   it('should still reject corrupt input with the archive-entry message', async() => {
     const corrupt = incompressible((STREAM_WRITE_CHUNK_BYTES * 2) + 17);
 
-    await expect(inflateRaw(corrupt, 1024 * 1024)).rejects.toThrow(/^The archive entry could not be processed: /);
+    // Node rejects with an EMPTY message (the reason is only in `code`), so the sentence used to end
+    // at the colon: a reason must follow it.
+    await expect(inflateRaw(corrupt, 1024 * 1024)).rejects.toThrow(/^The archive entry could not be processed: \S/);
     await expect(inflateRaw(corrupt, 1024 * 1024)).rejects.toMatchObject({ cause: { handsontable: true } });
+  });
+
+  it('should stop a text inflate once the decoded string outweighs its text limit', async() => {
+    const deflated = await deflateRaw(new TextEncoder().encode('a'.repeat(STREAM_WRITE_CHUNK_BYTES * 8)));
+    const refusal = (stringBytes) => { throw new Error(`text limit at ${stringBytes}`); };
+
+    // The bytes fit their own ceiling; the string, two bytes per unit, passes the text limit.
+    await expect(inflateRawText(deflated, Number.MAX_SAFE_INTEGER, undefined, undefined, {
+      maxBytes: STREAM_WRITE_CHUNK_BYTES * 4, refuse: refusal,
+    })).rejects.toThrow(/text limit at \d+$/);
+    // Under the limit it reads to the end.
+    await expect(inflateRawText(deflated, Number.MAX_SAFE_INTEGER, undefined, undefined, {
+      maxBytes: STREAM_WRITE_CHUNK_BYTES * 16, refuse: refusal,
+    })).resolves.toMatchObject({ byteLength: STREAM_WRITE_CHUNK_BYTES * 8 });
   });
 
   it('should still raise the caller\'s refusal when the output passes the cap mid-stream', async() => {

@@ -269,6 +269,13 @@ function getPluginSettings(settings: unknown): ExportFileSettings | undefined {
 }
 
 /**
+ * Whether a value is a thenable, whatever realm or `Promise` implementation built it.
+ */
+function isThenable(value: unknown): value is PromiseLike<unknown> {
+  return typeof (value as { then?: unknown } | null)?.then === 'function';
+}
+
+/**
  * @plugin ExportFile
  * @class ExportFile
  *
@@ -545,7 +552,7 @@ export class ExportFile extends BasePlugin {
    * @param {number[]} [options.range=[]] Cell range: `[startRow, startColumn, endRow, endColumn]`.
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
    * @param {boolean} [options.exportFormulas=false] Export cell formulas instead of their computed values (XLSX only).
-   * @param {boolean|number} [options.compression] Enable DEFLATE compression: `true` uses level 6; a number 1–9 sets a specific level. Omit or pass a falsy value to use no compression (XLSX only).
+   * @param {boolean|number} [options.compression] DEFLATE compression (XLSX only). Omitted, `null`, `true` or any value other than `false` and a number 1–9 compresses at level 6. A number 1–9 sets the level on the ExcelJS engine; the built-in engine always uses the platform's default level. `false` stores the entries uncompressed.
    * @param {ConditionalFormattingDescriptor[]} [options.conditionalFormatting=[]] Conditional formatting rules to apply to the exported file (XLSX only).
    * @param {SheetOptions[]} [options.sheets=[]] Configuration for multi-sheet export. Each entry defines one worksheet (XLSX only).
    * @returns {Promise<Blob>}
@@ -617,7 +624,7 @@ export class ExportFile extends BasePlugin {
    * @param {number[]} [options.range=[]] Cell range: `[startRow, startColumn, endRow, endColumn]`.
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
    * @param {boolean} [options.exportFormulas=false] Export cell formulas instead of their computed values (XLSX only).
-   * @param {boolean|number} [options.compression] Enable DEFLATE compression: `true` uses level 6; a number 1–9 sets a specific level. Omit or pass a falsy value to use no compression (XLSX only).
+   * @param {boolean|number} [options.compression] DEFLATE compression (XLSX only). Omitted, `null`, `true` or any value other than `false` and a number 1–9 compresses at level 6. A number 1–9 sets the level on the ExcelJS engine; the built-in engine always uses the platform's default level. `false` stores the entries uncompressed.
    * @param {ConditionalFormattingDescriptor[]} [options.conditionalFormatting=[]] Conditional formatting rules to apply to the exported file (XLSX only).
    * @param {SheetOptions[]} [options.sheets=[]] Configuration for multi-sheet export. Each entry defines one worksheet (XLSX only).
    * @returns {Promise<void>}
@@ -765,8 +772,12 @@ export class ExportFile extends BasePlugin {
     const exported = typeFormatter.export();
     const { mimeType, encoding } = typeFormatter.options as { mimeType?: string; encoding?: string };
 
-    if (exported instanceof Promise) {
-      return exported.then(buffer => new Blob([buffer as BlobPart], { type: mimeType }));
+    // A thenable, not `instanceof Promise`: Zone.js (loaded by every Angular app) replaces the
+    // global `Promise`, while the xlsx formatter's `async export()` still returns a native one, so
+    // the check failed and the promise itself went into the blob - a 16-byte `[object Promise]`
+    // file.
+    if (isThenable(exported)) {
+      return Promise.resolve(exported).then(buffer => new Blob([buffer as BlobPart], { type: mimeType }));
     }
 
     return new Blob([exported], { type: `${mimeType};charset=${encoding}` });

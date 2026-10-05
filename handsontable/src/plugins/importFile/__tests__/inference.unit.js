@@ -63,19 +63,49 @@ describe('inferCellType', () => {
   it('should classify an elapsed-time format as a time, not as a date', () => {
     // `[h]:mm` and `[hh]:mm` are Excel's standard duration formats. Stripping the bracket first left
     // `:mm`, a bare month, so a timesheet column imported as 1899 dates.
-    const duration = cell({ value: 1.5, numFmt: '[h]:mm' });
+    const duration = cell({ value: 0.5625, numFmt: '[h]:mm' });
     const inferred = inferCellType(duration);
 
     expect(inferred).toEqual({ type: 'time', timeFormat: { hour: 'numeric', minute: '2-digit', hour12: false } });
-    expect(toGridValue(duration, inferred)).toBe('12:00:00');
-    expect(inferCellType(cell({ value: 1.5, numFmt: '[hh]:mm' })))
+    expect(toGridValue(duration, inferred)).toBe('13:30:00');
+    expect(inferCellType(cell({ value: 0.5, numFmt: '[hh]:mm' })))
       .toEqual({ type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', hour12: false } });
     expect(inferCellType(cell({ value: 0.01, numFmt: '[m]' })))
       .toEqual({ type: 'time', timeFormat: { minute: 'numeric' } });
     expect(inferCellType(cell({ value: 0.01, numFmt: '[mm]:ss' })))
       .toEqual({ type: 'time', timeFormat: { minute: '2-digit', second: '2-digit' } });
-    expect(inferCellType(cell({ value: 0.01, numFmt: '[s]' })))
+    expect(inferCellType(cell({ value: 30 / 86400, numFmt: '[s]' })))
       .toEqual({ type: 'time', timeFormat: { second: 'numeric' } });
+    expect(inferCellType(cell({ value: 30 / 86400, numFmt: '[ss]' })).timeFormat)
+      .toEqual(expect.objectContaining({ second: '2-digit' }));
+  });
+
+  it('should keep a duration past what its elapsed format can show as a time a number, and report the format', () => {
+    // The grid value of a time cell is `HH:mm:ss`, so a 25:30 duration imported as `01:30:00`, and the
+    // whole day was lost from the data (a re-export wrote 0.0625). `[mm]:ss` and `[ss]` render the
+    // minute of the hour and the second of the minute, so 90 minutes showed `30:00` and `0`.
+    [
+      [25.5 / 24, '[h]:mm'],
+      [2, '[hh]:mm:ss'],
+      [1.5, '[h]:mm'],
+      [-0.25, '[h]:mm'],
+      [90 / 1440, '[mm]:ss'],
+      [90 / 1440, '[m]'],
+      [90 / 1440, '[ss]'],
+      [61 / 86400, '[s]'],
+    ].forEach(([value, numFmt]) => {
+      const duration = cell({ value, numFmt });
+      const inferred = inferCellType(duration);
+
+      expect(inferred).toEqual({ type: 'numeric', unsupportedNumFmt: numFmt });
+      expect(toGridValue(duration, inferred)).toBe(value);
+    });
+
+    // A duration just under the capacity is still a time.
+    expect(inferCellType(cell({ value: 86399 / 86400, numFmt: '[h]:mm:ss' })).type).toBe('time');
+    expect(inferCellType(cell({ value: 59 / 1440, numFmt: '[mm]:ss' })).type).toBe('time');
+    // A clock format is not elapsed and keeps reading the time of day.
+    expect(inferCellType(cell({ value: 1.5, numFmt: 'h:mm' })).type).toBe('time');
   });
 
   it('should classify a bare month format as a date, and a month next to hour/second as time', () => {
@@ -164,6 +194,20 @@ describe('inferCellType', () => {
     });
   });
 
+  it('should read a backslash-escaped currency symbol as a currency, the way LibreOffice saves one', () => {
+    // LibreOffice writes `"$"#,##0.00` back as `\$#,##0.00`. The escape strip removed the symbol, so
+    // the column rendered `1,234.50` on the built-in engine (ExcelJS unescapes the code first).
+    expect(inferCellType(cell({ value: 1234.5, numFmt: '\\$#,##0.00' })).numericFormat)
+      .toEqual(expect.objectContaining({ style: 'currency', currency: 'USD' }));
+    expect(inferCellType(cell({ value: 1234.5, numFmt: '\\\u00A3#,##0.00' })).numericFormat)
+      .toEqual(expect.objectContaining({ style: 'currency', currency: 'GBP' }));
+    expect(inferCellType(cell({ value: 1234.5, numFmt: '#,##0.00\\\u20AC' })).numericFormat)
+      .toEqual(expect.objectContaining({ style: 'currency', currency: 'EUR' }));
+    // An escaped percent sign is a literal, not a percentage, and stays a plain number.
+    expect(inferCellType(cell({ value: 12.5, numFmt: '0.0\\%' })).numericFormat)
+      .not.toEqual(expect.objectContaining({ style: 'percent' }));
+  });
+
   it('should read a currency token naming an Object.prototype member as no currency', () => {
     // A plain-object symbol table resolved `[$constructor-409]` to the `Object` function, which then
     // reached `Intl.NumberFormat` as the currency code and made every later render throw.
@@ -213,6 +257,17 @@ describe('inferCellType', () => {
     expect(inferCellType(cell({ value: 3 }))).toEqual({ type: 'numeric' });
     expect(inferCellType(cell({ value: 3, numFmt: 'General' }))).toEqual({ type: 'numeric' });
     expect(inferCellType(cell({ value: true }))).toEqual({ type: 'checkbox' });
+  });
+
+  it('should read a boolean as a checkbox whatever its number format says', () => {
+    // LibreOffice writes `"TRUE";"TRUE";"FALSE"` on every boolean cell. Asked first, that format
+    // typed the column `numeric` and put a `numFmt:` entry in `dropped`.
+    expect(inferCellType(cell({ value: true, numFmt: '"TRUE";"TRUE";"FALSE"' }))).toEqual({ type: 'checkbox' });
+    expect(inferCellType(cell({ value: false, numFmt: '0.00' }))).toEqual({ type: 'checkbox' });
+    const boolFormula = { text: 'FALSE()', result: false };
+
+    expect(inferCellType(cell({ value: null, formula: boolFormula, numFmt: '"TRUE";"TRUE";"FALSE"' })))
+      .toEqual({ type: 'checkbox' });
   });
 
   it('should return text for strings and null for empty cells', () => {
@@ -266,6 +321,31 @@ describe('excelNumFmtToIntlOptions', () => {
     ['grouping turned off', { useGrouping: false }, undefined],
   ])('should invert the export\'s own number format for %s', (_, options, locale) => {
     expect(excelNumFmtToIntlOptions(intlNumFormatToExcelNumFmt(options, locale))).toEqual(normalize(options));
+  });
+
+  it('should read the positive section of a multi-section format, without its padding and fill', () => {
+    // Every format with a `;` section used to reach the plain-number check whole and imported
+    // unformatted: Excel's built-in currency (5–8), number (37–40) and accounting (41–44) formats.
+    const usd2 = {
+      style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: true,
+    };
+
+    expect(excelNumFmtToIntlOptions('"$"#,##0.00_);[Red]\\("$"#,##0.00\\)')).toEqual(usd2);
+    expect(excelNumFmtToIntlOptions('_("$"* #,##0.00_);_("$"* \\(#,##0.00\\);_("$"* "-"??_);_(@_)')).toEqual(usd2);
+    expect(excelNumFmtToIntlOptions('#,##0;[Red]-#,##0')).toEqual({
+      minimumFractionDigits: 0, maximumFractionDigits: 0, useGrouping: true,
+    });
+    expect(excelNumFmtToIntlOptions('#,##0.00 ;(#,##0.00)')).toEqual({
+      minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: true,
+    });
+    expect(excelNumFmtToIntlOptions('_(* #,##0.00_);_(* \\(#,##0.00\\);_(* "-"??_);_(@_)')).toEqual({
+      minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: true,
+    });
+    // A `;` inside a quoted literal is text, not a section break: cut there, the code would end in
+    // an unterminated quote and read as no number format at all.
+    expect(excelNumFmtToIntlOptions('0" a;b"')).toEqual({
+      minimumFractionDigits: 0, maximumFractionDigits: 0, useGrouping: false,
+    });
   });
 
   it('should return null for a pattern with no Intl.NumberFormat equivalent', () => {

@@ -147,8 +147,13 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   first.** Stripping the bracket first left `[h]:mm` as `:mm`, a bare month, so a timesheet imported as
   1899 dates. `excelDateFmtToIntlOptions` tokenizes the sections
   (`stripFormatDecorations(code, { keepElapsed: true })`): `[m]`/`[s]` are always minute/second, and `[h]`
-  writes a 24-hour `hour` (`hour12: false`). `Intl` has no elapsed hours, so a duration past a day shows
-  its hours modulo 24; leaving the hour out (the first version) rendered `13:30` as `30`.
+  writes a 24-hour `hour` (`hour12: false`); leaving the hour out (the first version) rendered `13:30` as
+  `30`. `Intl` has no elapsed components, so those options fit only a duration under the LEADING
+  section's capacity – a day for `[h]`, an hour for `[m]`, a minute for `[s]`. A longer (or negative)
+  one stays a NUMBER with `numFmt:<pattern>` in `dropped` (`exceedsElapsedFormat`): the grid value of
+  a time cell is `HH:mm:ss`, so 25:30 used to import as `01:30:00` and lose its day from the data, and
+  a re-export wrote `0.0625`. The verdict depends on the value, so it is part of the `inferForCell`
+  cache key.
 - **The mapper strips `_xlfn.`/`_xlws.`/`_xlpm.` from every formula, live and recorded** (`readFormulaText`,
   through `utils/xlsxEngine/functionPrefixes.ts`), because both engines hand the stored text over verbatim
   and HyperFormula shows `#NAME?` for a prefixed name. `result.formulas` is prefix-free too.
@@ -291,6 +296,17 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   without `comments: true` gets no comments and no `result.comments` key; the mapper reports the loss as
   `comments` in `dropped` so the console warning names it. The first demo target grid shipped without the
   option and the comment vanished silently before the `dropped` entry existed.
+- **A live formula that cannot RESOLVE in the grid imports its cached value.** A reference to a sheet
+  the Formulas engine does not hold (`Rates!A1`) shows `#REF!`, and a name the workbook defines but
+  the engine does not (`=SUM(Sales)`) shows `#NAME?` - and so does every formula depending on it -
+  while the file carries the value it evaluated to. `pushCellValue` therefore imports the cached
+  value, lists the formula in `result.formulas` and records `formula:otherSheet` /
+  `formula:definedName`, the way `formula:outOfRange` already worked. The plugin hands the mapper
+  what the engine holds (`MapperContext.formulaSheetNames`, `formulaNamedExpressions`, both
+  lower-cased) and both readers carry the workbook's names (`WorkbookSnapshot.definedNames`, Excel's
+  `_xlnm.` names left out). Both checks walk the formula, so both are charged against the formula
+  budget. Registering the file's names in HyperFormula would make them round-trip; it is a feature
+  of its own, not done here.
 - **A live formula is shifted back into grid coordinates, and one that cannot be is dropped.** The export
   prepends a header row and a row-header column and shifts every relative reference forward by them
   (`normalizeFormula` in `../exportFile/types/xlsx/formula-utils.ts`), so the grid's `=B1*0.2` is written
@@ -385,9 +401,9 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   per `importFromArrayBuffer`/`importFromBlob` call. Keep it that way, or a multi-sheet read would warn per
   sheet.
 - **This plugin records under the same declared names the adapters use.** `importFile.ts` and `mapper.ts`
-  raise seven names of their own (`cellStyles`, `cellStyles:borders`, `comments`,
+  raise nine names of their own (`cellStyles`, `cellStyles:borders`, `comments`,
   `conditionalFormatting:unparsedRef`, `dataValidation:unresolvedList`, `formula:outOfRange`,
-  `layoutDirection`), and every one of them is passed as a `DROPPED_FEATURES.<member>`
+  `formula:otherSheet`, `formula:definedName`, `layoutDirection`), and every one of them is passed as a `DROPPED_FEATURES.<member>`
   (`utils/xlsxEngine/capabilities.ts`), never as a string literal - the names are public output and each
   is a row in the import guide's dropped-features table. The one name built from the file's own value,
   `numFmt:<pattern>`, goes through `dropped.recordUnsupported('numFmt', pattern)`, which BOUNDS what the

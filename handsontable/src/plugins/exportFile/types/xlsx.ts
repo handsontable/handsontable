@@ -113,8 +113,8 @@ function truncateSheetName(name: string, maxLength: number): string {
 function toPrimitiveResult(value: unknown): CellValue {
   // A non-finite number is not a legal `<v>` content. HyperFormula reports its own errors as
   // objects (which fall through to `null` below), but a ColumnSummary destination takes its cached
-  // result straight from the displayed value, so an average over an empty range reaches this as
-  // `NaN` and a division by zero as `Infinity`. Both are cached as text instead.
+  // result straight from the displayed value, so a `sum` over a source holding `Infinity` reaches
+  // this as `Infinity`, and a `custom` function can answer `NaN`. Both are cached as text instead.
   if (typeof value === 'number') {
     return Number.isFinite(value) ? value : stringify(value);
   }
@@ -791,6 +791,13 @@ class Xlsx extends BaseType {
       // text the not-a-number branch below produces, so the cell is written as a string cell.
       if (typeof value === 'number') {
         return Number.isFinite(value) ? value : stringify(value);
+      }
+
+      // The editor stores `''` for a numeric cell the user cleared, and `Number('')` is `0`, so the
+      // grid showed an empty cell while the spreadsheet showed 0 (and `AVERAGE` and `COUNT` counted
+      // it). A cleared cell exports as an empty one, the way a `null` one does.
+      if (typeof value === 'string' && value.trim() === '') {
+        return null;
       }
 
       const numericValue = Number(value);

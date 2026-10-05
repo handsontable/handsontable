@@ -2,6 +2,7 @@ import { DROPPED_FEATURES, type DroppedFeatures } from '../../../capabilities';
 import { colIndexToLetter } from '../../../cellRef';
 import { addFunctionPrefixes } from '../../../functionPrefixes';
 import type { CellFormula, CellSnapshot, CellValue, MergeSnapshot, SheetSnapshot } from '../../../model';
+import { coveredCellFormatting } from '../../../coveredCellFormatting';
 import { clampCellText, clampColumnWidth, clampRowHeight } from '../../../writeLimits';
 import { escapeXmlMarkup, escapeXmlText } from '../xml/escapes';
 import { type XmlAttributeMap, XmlWriter } from '../xml/writer';
@@ -43,17 +44,30 @@ function mergeRef(merge: MergeSnapshot): string {
 }
 
 /**
+ * The merges a sheet keeps, and where their covered (non-master) cells are.
+ */
+interface ResolvedMerges {
+  kept: MergeSnapshot[];
+  /**
+   * The merge covering each covered cell, keyed `${row}:${col}`.
+   */
+  covered: Map<string, MergeSnapshot>;
+  /**
+   * The last covered column of each row a merge covers part of.
+   */
+  lastCoveredColByRow: Map<number, number>;
+}
+
+/**
  * Resolves overlapping merges: the first one wins, a later one that overlaps is recorded and
  * skipped. A single-cell "merge" is skipped silently: it merges nothing, and a `<mergeCell>` of
- * one cell is not something Excel itself writes. Returns the kept merges and the set of covered
- * (non-master) cell keys.
+ * one cell is not something Excel itself writes. Returns the kept merges and the covered
+ * (non-master) cells.
  */
-function resolveMerges(
-  merges: MergeSnapshot[],
-  dropped: DroppedFeatures,
-): { kept: MergeSnapshot[]; covered: Set<string> } {
+function resolveMerges(merges: MergeSnapshot[], dropped: DroppedFeatures): ResolvedMerges {
   const occupied = new Set<string>();
-  const covered = new Set<string>();
+  const covered = new Map<string, MergeSnapshot>();
+  const lastCoveredColByRow = new Map<number, number>();
   const kept: MergeSnapshot[] = [];
 
   merges.forEach((merge) => {
@@ -76,11 +90,17 @@ function resolveMerges(
     }
 
     keys.forEach(key => occupied.add(key));
-    keys.slice(1).forEach(key => covered.add(key));
+    keys.slice(1).forEach(key => covered.set(key, merge));
     kept.push(merge);
+
+    const lastCol = merge.col + merge.colspan - 1;
+
+    for (let r = merge.row; r < merge.row + merge.rowspan; r++) {
+      lastCoveredColByRow.set(r, Math.max(lastCoveredColByRow.get(r) ?? -1, lastCol));
+    }
   });
 
-  return { kept, covered };
+  return { kept, covered, lastCoveredColByRow };
 }
 
 /**
@@ -185,22 +205,50 @@ function valueCellXml(
 }
 
 /**
+ * The `s` index of a cell, `0` for a cell the snapshot holds no slot for.
+ */
+function cellStyleIndex(cell: CellSnapshot | null | undefined, styles: StyleTable): number {
+  if (!cell) {
+    return 0;
+  }
+
+  return styles.xfIndex({ numFmt: cell.numFmt, style: cell.style, locked: cell.locked });
+}
+
+/**
+ * Writes the empty `<c>` of a merge-covered cell. Every covered member is written, styled or not:
+ * Apple's parser (Quick Look, Numbers) places the cells after a missing member one column early,
+ * and LibreOffice takes a merged block's right and bottom edges from the covered cells. The style
+ * follows `coveredCellFormatting`, the rule the ExcelJS adapter applies too.
+ */
+function writeCoveredCell(
+  w: XmlWriter,
+  ref: string,
+  cell: CellSnapshot | null | undefined,
+  master: CellSnapshot | null | undefined,
+  styles: StyleTable,
+): void {
+  const s = styles.xfIndex(coveredCellFormatting(master, cell));
+
+  w.raw(`${cellStartTag(ref, s === 0 ? undefined : s, undefined)}/>`);
+}
+
+/**
  * Writes one `<c>` element as ONE string — the writer's array held three per cell before, which
- * was most of an export's peak memory. A covered merge cell keeps its style and loses its content.
+ * was most of an export's peak memory.
  */
 function writeCell(
   w: XmlWriter,
   ref: string,
   cell: CellSnapshot,
-  isCovered: boolean,
   styles: StyleTable,
   strings: SharedStringTable,
   dropped: DroppedFeatures,
 ): boolean {
-  const s = styles.xfIndex({ numFmt: cell.numFmt, style: cell.style, locked: cell.locked });
+  const s = cellStyleIndex(cell, styles);
   const styleAttr = s === 0 ? undefined : s;
 
-  if (isCovered || (cell.value === null && cell.formula === null)) {
+  if (cell.value === null && cell.formula === null) {
     if (styleAttr !== undefined) {
       w.raw(`${cellStartTag(ref, styleAttr, undefined)}/>`);
     }
@@ -235,7 +283,8 @@ interface SheetDataContext {
   rowCount: number;
   colCount: number;
   hiddenRows: Set<number>;
-  covered: Set<string>;
+  covered: Map<string, MergeSnapshot>;
+  lastCoveredColByRow: Map<number, number>;
   styles: StyleTable;
   strings: SharedStringTable;
   dropped: DroppedFeatures;
@@ -370,23 +419,30 @@ function writeRowCells(
   row: Array<CellSnapshot | null>,
   collected: SheetDataResult,
 ): void {
-  const { covered, styles, strings, dropped } = context;
-  // A `${row}:${col}` key per cell is only worth allocating when a merge can match it.
-  const hasMerges = covered.size > 0;
+  const { sheet, covered, lastCoveredColByRow, styles, strings, dropped } = context;
+  // A `${row}:${col}` key per cell is only worth allocating on a row a merge covers part of.
+  const lastCoveredCol = lastCoveredColByRow.get(rowIndex) ?? -1;
+  const end = Math.max(row.length, lastCoveredCol + 1);
   const rowNumber = rowIndex + 1;
 
-  for (let c = 0; c < row.length; c++) {
+  for (let c = 0; c < end; c++) {
     const cell = row[c];
+    const merge = c <= lastCoveredCol ? covered.get(`${rowIndex}:${c}`) : undefined;
 
-    if (cell === null) {
+    if (merge === undefined && (cell === null || cell === undefined)) {
       continue;
     }
 
     const ref = `${columnLetters[c] ?? colIndexToLetter(c + 1)}${rowNumber}`;
-    const isCovered = hasMerges && covered.has(`${rowIndex}:${c}`);
 
-    if (writeCell(w, ref, cell, isCovered, styles, strings, dropped)) {
+    if (merge !== undefined) {
+      writeCoveredCell(w, ref, cell, sheet.rows[merge.row]?.[merge.col], styles);
+    } else if (cell && writeCell(w, ref, cell, styles, strings, dropped)) {
       collected.wroteFormula = true;
+    }
+
+    if (!cell) {
+      continue;
     }
 
     if (cell.comment !== null) {
@@ -404,7 +460,7 @@ function writeRowCells(
  * height past what Excel stores is written at Excel's maximum.
  */
 function writeSheetData(w: XmlWriter, context: SheetDataContext): SheetDataResult {
-  const { sheet, rowCount, colCount, hiddenRows, dropped } = context;
+  const { sheet, rowCount, colCount, hiddenRows, lastCoveredColByRow, dropped } = context;
   const collected: SheetDataResult = { comments: [], validations: [], wroteFormula: false };
   // The column letters once per sheet rather than once per cell: `colIndexToLetter` is a loop
   // and a string build, and every row repeats the same first `colCount` answers.
@@ -417,7 +473,7 @@ function writeSheetData(w: XmlWriter, context: SheetDataContext): SheetDataResul
     const declaredHeight = sheet.rowHeights[r] ?? null;
     const height = declaredHeight === null ? null : clampRowHeight(declaredHeight, dropped);
     const hidden = hiddenRows.has(r);
-    const hasCells = row.some(cell => cell !== null);
+    const hasCells = lastCoveredColByRow.has(r) || row.some(cell => cell !== null);
 
     if (!hasCells && height === null && !hidden) {
       continue;
@@ -503,7 +559,7 @@ export function worksheetXml(
   dropped: DroppedFeatures,
   passwordHash: ProtectionHash | null,
 ): WorksheetWriteResult {
-  const { kept: merges, covered } = resolveMerges(sheet.merges, dropped);
+  const { kept: merges, covered, lastCoveredColByRow } = resolveMerges(sheet.merges, dropped);
   const { rowCount, colCount } = measureExtent(sheet, merges);
   const hiddenRows = new Set(sheet.hiddenRows);
   const hiddenCols = new Set(sheet.hiddenCols);
@@ -517,7 +573,7 @@ export function worksheetXml(
   writeCols(w, sheet, hiddenCols, colCount, dropped);
 
   const { comments, validations, wroteFormula } = writeSheetData(w, {
-    sheet, rowCount, colCount, hiddenRows, covered, styles, strings, dropped,
+    sheet, rowCount, colCount, hiddenRows, covered, lastCoveredColByRow, styles, strings, dropped,
   });
 
   writeSheetProtection(w, sheet, passwordHash);

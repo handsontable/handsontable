@@ -2,7 +2,7 @@ import { throwWithCause } from '../../../../../helpers/errors';
 import { MAX_INFLATED_ENTRY_BYTES, MAX_INFLATED_TOTAL_BYTES, throwLimitExceeded } from '../../../limits';
 import { crc32 } from './crc32';
 import { CENTRAL_HEADER_SIZE, END_RECORD_SIZE, LOCAL_HEADER_SIZE } from './layout';
-import { inflateRawText } from './streams';
+import { STREAM_FAILURE_PREFIX, inflateRawText } from './streams';
 
 /**
  * A read-only view of an opened archive. Entries are inflated on demand, one at a time, and each
@@ -267,6 +267,14 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
   }
 
   /**
+   * Refuses an entry that brings the archive's inflated total past its budget, naming the entry.
+   */
+  function refuseTotal(name: string): never {
+    return throwLimitExceeded(`The archive entry "${name}" brings the inflated total above the `
+      + `${MAX_INFLATED_TOTAL_BYTES}-byte limit this reader accepts.`);
+  }
+
+  /**
    * The ceiling one DEFLATE entry's output may not pass, with the refusal that belongs to it.
    *
    * Three limits bound the work before a byte exists - the entry's own declared size, the per-entry
@@ -281,11 +289,7 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
     const remaining = MAX_INFLATED_TOTAL_BYTES - inflatedTotal;
 
     if (remaining < declared) {
-      return {
-        maxBytes: remaining,
-        refuse: () => throwLimitExceeded(`The archive entry "${name}" brings the inflated total above the `
-          + `${MAX_INFLATED_TOTAL_BYTES}-byte limit this reader accepts.`),
-      };
+      return { maxBytes: remaining, refuse: () => refuseTotal(name) };
     }
 
     return {
@@ -375,9 +379,33 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
 
     const { maxBytes, refuse } = inflateCeiling(name, entry);
     let checksum = 0;
-    const inflated = await inflateRawText(data, maxBytes, refuse, (chunk) => {
-      checksum = crc32(chunk, checksum);
-    });
+    let inflated: Awaited<ReturnType<typeof inflateRawText>>;
+
+    try {
+      // The string is bounded by what the total budget still allows, the quantity `text()` charges
+      // it against, so the stream stops where that charge would refuse it.
+      inflated = await inflateRawText(data, maxBytes, refuse, (chunk) => {
+        checksum = crc32(chunk, checksum);
+      }, {
+        maxBytes: MAX_INFLATED_TOTAL_BYTES - inflatedTotal,
+        // The charge `text()` would make, made now: it refuses in the same words.
+        refuse: (stringBytes) => {
+          chargeInflated(name, stringBytes);
+
+          return refuseTotal(name);
+        },
+      });
+    } catch (error) {
+      const { message } = error as Error;
+
+      // A stream failure names the entry here: only the reader knows which part was being read.
+      if (typeof message === 'string' && message.startsWith(STREAM_FAILURE_PREFIX)) {
+        throwWithCause(`The archive entry "${name}" could not be processed: `
+          + `${message.slice(STREAM_FAILURE_PREFIX.length)}`);
+      }
+
+      throw error;
+    }
 
     chargeInflated(name, inflated.byteLength);
     assertChecksum(entry, checksum);

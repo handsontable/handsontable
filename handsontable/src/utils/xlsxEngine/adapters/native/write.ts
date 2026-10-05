@@ -80,6 +80,13 @@ function assertSheetNames(names: string[]): void {
  * Serializes a workbook snapshot into `.xlsx` bytes.
  */
 export async function writeWorkbook(snapshot: WorkbookSnapshot, dropped: DroppedFeatures): Promise<Uint8Array> {
+  // `<sheets>` must hold at least one `<sheet>` (CT_Sheets); an empty one fails schema validation and
+  // LibreOffice opens it by inventing a sheet. `exportFile` always passes one, so only a snapshot
+  // built by other code reaches this - the case `assertSheetNames` is the backstop for too.
+  if (snapshot.sheets.length === 0) {
+    throwWithCause('The native engine cannot write a workbook with no sheets.');
+  }
+
   assertSheetNames(snapshot.sheets.map(sheet => sheet.name));
 
   // `CAPABILITIES.native.compressionLevel` is `false` because the Web `CompressionStream` has no

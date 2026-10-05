@@ -401,12 +401,54 @@ describe('mapWorkbook', () => {
     const { result, dropped } = map(
       workbook(sheet, rates),
       { colHeaders: 'firstRow' },
-      { formulasEnabled: true, commentsEnabled: false }
+      { formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['rates']) }
     );
 
     expect(result.data[0][2]).toBe('=B1*Rates!A1');
     expect(result.formulas).toBeUndefined();
     expect(dropped.list()).not.toContain('formula:outOfRange');
+  });
+
+  it('should import the cached value of a formula naming a sheet the Formulas engine does not hold', () => {
+    // HyperFormula has no `Rates` sheet, so the live formula showed `#REF!` - and so did every
+    // formula depending on it - while the file carried the value it evaluated to.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [
+      [cell({ value: null, formula: { text: 'Rates!A1*2', result: 10 } }),
+        cell({ value: null, formula: { text: 'A1+1', result: 11 } }),
+        cell({ value: null, formula: { text: '\'My Rates\'!$A$1+1', result: 6 } }),
+        cell({ value: null, formula: { text: 'LEN("Rates!A1")', result: 8 } })],
+    ];
+
+    const { result, dropped } = map(
+      workbook(sheet),
+      {},
+      { formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['sheet1']) }
+    );
+
+    expect(result.data[0]).toEqual([10, '=A1+1', 6, '=LEN("Rates!A1")']);
+    expect(result.formulas).toEqual([
+      { row: 0, col: 0, formula: 'Rates!A1*2' },
+      { row: 0, col: 2, formula: '\'My Rates\'!$A$1+1' },
+    ]);
+    expect(dropped.list()).toContain('formula:otherSheet');
+    expect(dropped.list()).not.toContain('formula:outOfRange');
+  });
+
+  it('should keep a formula live when the Formulas engine holds the sheet it names, in any case', () => {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[cell({ value: null, formula: { text: '\'My Rates\'!A1*2', result: 10 } })]];
+
+    const { result, dropped } = map(
+      workbook(sheet),
+      {},
+      { formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['my rates']) }
+    );
+
+    expect(result.data[0][0]).toBe('=\'My Rates\'!A1*2');
+    expect(dropped.list()).toEqual([]);
   });
 
   it('should strip the _xlfn., _xlws. and _xlpm. prefixes Excel stores, from live and recorded formulas', () => {

@@ -209,13 +209,23 @@ describe('Xlsx non-finite numbers', () => {
     expect(cells.get('1:1').value).toBe(42.5);
   });
 
-  it('should cache a non-finite column-summary result as text instead of a number', async() => {
+  it.each([NaN, Infinity, -Infinity])('should cache a column-summary result of %p as text instead of a number', async(value) => {
+    // A `sum` over a source holding `Infinity` is the shape a user reaches: an `average` over an
+    // empty range answers 'Not enough data' since #13299, so it no longer hands the writer `NaN`.
+    // ExcelJS 4.4 writes a non-finite `result` as `<v>Infinity</v>` verbatim, which Excel refuses.
     mockProviderState.summaries = [{
-      destRow: 0, destCol: 0, type: 'average', sourceCol: 0, sourceRanges: [[0, 0]],
+      destRow: 0, destCol: 0, type: 'sum', sourceCol: 0, sourceRanges: [[0, 0]],
     }];
 
-    const cells = await exportRow([[NaN]], [[null]], [[{ type: 'numeric' }]], { exportFormulas: true });
+    const cells = await exportRow([[value]], [[null]], [[{ type: 'numeric' }]], { exportFormulas: true });
 
-    expect(cells.get('1:1').value.result).toBe('NaN');
+    expect(cells.get('1:1').value.result).toBe(String(value));
+  });
+
+  it.each(['', '  '])('should export a numeric cell cleared to %p as an empty cell, not 0', async(value) => {
+    // The editor stores `''` for a cleared numeric cell; `Number('')` is `0`.
+    const cells = await exportRow([[value]], [[value]], [[{ type: 'numeric' }]]);
+
+    expect(cells.get('1:1')?.value ?? null).toBeNull();
   });
 });

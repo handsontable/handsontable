@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 
@@ -14,6 +14,7 @@ const hotData = [
 
 const ExampleComponent = () => {
   const hotRef = useRef<HotTableRef>(null);
+  const [status, setStatus] = useState('');
 
   const importFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -24,13 +25,22 @@ const ExampleComponent = () => {
 
     const hot = hotRef.current?.hotInstance;
     const importPlugin = hot?.getPlugin('importFile');
-    const result = await importPlugin?.importFromBlob('xlsx', file, {
-      colHeaders: 'firstRow',
-    });
 
-    console.log('Dropped features:', result?.dropped);
+    try {
+      const result = await importPlugin?.importFromBlob('xlsx', file, {
+        colHeaders: 'firstRow',
+      });
 
-    event.target.value = '';
+      setStatus(`Imported ${file.name}`);
+      console.log('Dropped features:', result?.dropped);
+    } catch (error) {
+      // A file the engine refuses (an .xls, a password-protected or damaged workbook) rejects with a
+      // message that says what to do; the grid keeps its data.
+      setStatus((error as Error).message);
+    } finally {
+      // Cleared either way, so picking the same file again fires `change` again.
+      event.target.value = '';
+    }
   };
 
   return (
@@ -39,6 +49,7 @@ const ExampleComponent = () => {
         <div className="controls">
           <label htmlFor="import-file">Import XLSX</label>
           <input type="file" id="import-file" accept=".xlsx" onChange={importFile} />
+          <output role="status">{status}</output>
         </div>
       </div>
       <HotTable

@@ -85,7 +85,7 @@ const hotSettings = ref({
 
 ### Requirements
 
-The built-in engine packs the archive with the Compression Streams API, which every browser Handsontable supports provides. A test environment without it - jsdom, Vitest with the jsdom environment, or Jest's default environment - needs either `CompressionStream` and `DecompressionStream` polyfilled, or ExcelJS injected through the `engines` option.
+The built-in engine packs the archive with the Compression Streams API, which every browser Handsontable supports provides. A test environment without it - a jsdom environment (in Jest or Vitest), or Jest 27's `node` environment - needs either `CompressionStream` and `DecompressionStream` polyfilled, or ExcelJS injected through the `engines` option. Jest's `node` environment provides both streams from Jest 28 on.
 
 ## Engines
 
@@ -115,9 +115,9 @@ These are the keys the export can report:
 | `rowHeight:clamped` | A row is taller than 409.5 points (546 pixels), the tallest row Excel stores. Both engines write it at that height. |
 | `conditionalFormatting:<type>` | A conditional formatting rule kind the built-in engine does not write, such as `colorScale`, `dataBar` or `iconSet`. The rest of the block is written. |
 | `conditionalFormatting:other` | The bucket the rule kinds above count into once one export has already reported 32 distinct ones. See the note under this table. |
-| `conditionalFormatting:invalid` | A `conditionalFormatting` entry that is not a rule object with a string `type`. |
-| `conditionalFormatting:expression` | An `expression` rule with no `formulae` entry. The rule means nothing without one. |
-| `conditionalFormatting:timePeriod` | A `timePeriod` rule with no `formulae` entry, or no `timePeriod` string. |
+| `conditionalFormatting:invalid` | A `conditionalFormatting` entry that is not a rule object with a string `type`. Both engines skip it and write the rest of the block. |
+| `conditionalFormatting:expression` | An `expression` rule with no `formulae` entry. The rule means nothing without one. Both engines skip it. |
+| `conditionalFormatting:timePeriod` | A `timePeriod` rule with no `formulae` entry, or no `timePeriod` string. Both engines skip it. |
 
 The one key that ends in a value you wrote -- `conditionalFormatting:<type>` -- is bounded, the same way the [import](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md) direction bounds its own value-tailed keys. The rule kind is cut to 64 characters and its control characters are replaced, and after 32 distinct kinds in one export the rest are reported as `conditionalFormatting:other`. The counts stay complete either way.
 
@@ -330,9 +330,9 @@ With `exportFormulas`, a formula reference that names another sheet, such as `=R
 
 ## Context menu
 
-When the context menu is enabled, **Export to CSV** and **Export to Excel** items are automatically added to the grid's context menu. No extra configuration in `exportFile` is needed.
+When the context menu is enabled, an **Export** item with the **To CSV** and **To Excel** sub-items is automatically added to the grid's context menu. No extra configuration in `exportFile` is needed.
 
-Both items are always available: **Export to Excel** uses the built-in engine unless you configure `engines: { xlsx: ExcelJS }`.
+**To CSV** is always available. **To Excel** uses the built-in engine unless you configure `engines: { xlsx: ExcelJS }`, and it is hidden only when `engines.xlsx` holds a value that is not a recognized engine.
 
 When you select a cell range before opening the context menu, the export covers only the selected range. When no selection is active, the entire grid is exported.
 
@@ -383,8 +383,8 @@ The following Handsontable cell types are recognized and written to the `.xlsx` 
 | `numeric`                    | Number cell. The `numericFormat` option is translated to an Excel `numFmt` string using `Intl.NumberFormat`. |
 | `date`                       | Date cell with an Excel date serial number. Reads ISO 8601 strings (`YYYY-MM-DD`). The `dateFormat` option is translated to an Excel `numFmt` string, ordered and separated the way the cell's [`locale`](@/api/options.md#locale) renders it: `{ year: 'numeric', month: '2-digit', day: '2-digit' }` is written as `mm/dd/yyyy` under `en-US` and `dd.mm.yyyy` under `de-DE`, and `{ weekday: 'long' }` is written as `dddd`. |
 | `time`                       | Time cell with an Excel time serial number. Reads `HH:mm`, `HH:mm:ss`, and 12-hour (`h:mm AM/PM`) formats. The `timeFormat` option is translated the same way, so `{ hour: '2-digit', minute: '2-digit', hour12: false }` is written as `hh:mm`. A `timeFormat` that sets no `hour12` takes its clock from the cell's [`locale`](@/api/options.md#locale), just as the grid does, so the same options under `en-US` are written as `hh:mm AM/PM`. |
-| `checkbox`                   | Boolean cell (`TRUE` / `FALSE`). |
-| `dropdown` / `autocomplete`  | Text cell. The validation list is not exported. |
+| `checkbox`                   | Boolean cell (`TRUE` / `FALSE`). A cell with no value exports as an empty cell. |
+| `dropdown` / `autocomplete`  | Text cell. An array `source` is exported as a list validation, on both engines. A function `source` is not exported. |
 | All others                   | Text cell. |
 
 Cell styling is read from the rendered DOM at export time. The following properties are transferred to the workbook:

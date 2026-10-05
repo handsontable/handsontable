@@ -83,6 +83,31 @@ async function writeSliced(
 }
 
 /**
+ * The sentence every stream failure starts with. The archive reader replaces it with one that
+ * names the entry (`entryText` in `reader.ts`).
+ */
+export const STREAM_FAILURE_PREFIX = 'The archive entry could not be processed: ';
+
+/**
+ * The reason a stream failure gives. Node rejects corrupt input with a `TypeError` whose `message`
+ * is empty and whose `code` is `Z_DATA_ERROR`, so a refusal there ended at the colon; the browsers
+ * fill the message in.
+ */
+function describeStreamError(error: unknown): string {
+  const { message, code, name } = (error ?? {}) as { message?: unknown; code?: unknown; name?: unknown };
+
+  if (typeof message === 'string' && message !== '') {
+    return message;
+  }
+
+  if (typeof code === 'string' && code !== '') {
+    return code;
+  }
+
+  return typeof name === 'string' && name !== '' ? name : 'unknown stream error';
+}
+
+/**
  * Pushes `bytes` through a transform stream and hands each output chunk to `onChunk`, refusing to
  * produce more than `maxBytes`. The write side is started and left running while the read loop
  * drains the readable, which is what keeps a transform with backpressure from deadlocking.
@@ -148,13 +173,13 @@ async function drain(
       throw error;
     }
 
-    throwWithCause(`The archive entry could not be processed: ${(error as Error).message}`);
+    throwWithCause(`${STREAM_FAILURE_PREFIX}${describeStreamError(error)}`);
   }
 
   await writing;
 
   if (writeError !== null) {
-    throwWithCause(`The archive entry could not be processed: ${(writeError as Error).message}`);
+    throwWithCause(`${STREAM_FAILURE_PREFIX}${describeStreamError(writeError)}`);
   }
 
   return total;
@@ -230,12 +255,19 @@ export function inflateRaw(bytes: Uint8Array, maxBytes: number): Promise<Uint8Ar
  * sentence of the limit it chose, so the refusal never quotes a number that is nobody's cap.
  * `observe` sees every inflated chunk before it is decoded, which is how the ZIP reader checks an
  * entry's CRC-32 without ever holding its bytes.
+ *
+ * `textLimit` bounds the decoded STRING as it grows, charged at two bytes per UTF-16 unit - the
+ * weight the archive reader charges the finished string at. Without it a hostile part grew the
+ * text to the whole remaining budget before the read refused it, and Firefox peaked at about
+ * +1 GB on a part declaring 500 MiB (the bytes alone stay near +280 MB). With it the stream stops at
+ * the moment the final charge would refuse the part, so the same files are refused, only sooner.
  */
 export async function inflateRawText(
   bytes: Uint8Array,
   maxBytes: number,
   refuse: () => never = refuseAboveCeiling(maxBytes),
-  observe: (chunk: Uint8Array) => void = () => {}
+  observe: (chunk: Uint8Array) => void = () => {},
+  textLimit?: { maxBytes: number; refuse: (stringBytes: number) => never },
 ): Promise<InflatedText> {
   assertStreamAvailable('DecompressionStream');
 
@@ -244,6 +276,10 @@ export async function inflateRawText(
   const byteLength = await drain(bytes, new DecompressionStream('deflate-raw'), maxBytes, (chunk) => {
     observe(chunk);
     text += decoder.decode(chunk, { stream: true });
+
+    if (textLimit !== undefined && text.length * 2 > textLimit.maxBytes) {
+      textLimit.refuse(text.length * 2);
+    }
   }, refuse);
 
   return { text: text + decoder.decode(), byteLength };

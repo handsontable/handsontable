@@ -132,6 +132,12 @@ export interface SheetSnapshot {
 export interface WorkbookSnapshot {
   sheets: SheetSnapshot[];
   compression: false | number;
+  /**
+   * The names the workbook defines (`<definedNames>`), read on import only and never written. A
+   * formula that uses one cannot resolve unless the Formulas engine defines it too. Excel's own
+   * `_xlnm.` names (print areas, the filter database) are left out.
+   */
+  definedNames?: string[];
 }
 
 /**

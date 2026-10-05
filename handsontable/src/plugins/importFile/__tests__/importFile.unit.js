@@ -515,3 +515,156 @@ describe('mapWorkbook on a formula Excel stored with a function prefix', () => {
     expect(viaExcelJs.data[0][1]).toBe('=STDEV.S(A1:A2)');
   });
 });
+
+/**
+ * Writes a one-sheet workbook with ExcelJS, reads it back with both engines and maps each read the
+ * way the plugin does. ExcelJS writes the number format codes it is given verbatim, so a code a
+ * spreadsheet app writes (LibreOffice's `\$#,##0.00`) reaches both readers as that app wrote it.
+ *
+ * @param {Function} build Fills the 1-based `SheetBuilder`.
+ * @param {object} [options] The import options.
+ * @param {object} [context] Overrides of the mapper context.
+ * @param {'exceljs'|'native'} [writer='exceljs'] The engine that writes the file.
+ * @returns {Promise<{native: object, exceljs: object}>}
+ */
+async function mapWithBothEngines(build, options = {}, context = {}, writer = 'exceljs') {
+  const snapshot = createWorkbookSnapshot();
+  const sheet = new SheetBuilder('Sheet1');
+
+  build(sheet);
+  snapshot.sheets.push(sheet.toSnapshot());
+
+  const bytes = writer === 'native'
+    ? await nativeAdapter.write(snapshot, undefined, new DroppedFeatures())
+    : await excelJsAdapter.write(snapshot, ExcelJS, new DroppedFeatures());
+  const mapped = {};
+
+  for (const [kind, adapter, engine] of [['native', nativeAdapter, undefined], ['exceljs', excelJsAdapter, ExcelJS]]) {
+    const dropped = new DroppedFeatures();
+    // eslint-disable-next-line no-await-in-loop -- one engine at a time.
+    const read = await adapter.read(toArrayBuffer(bytes), engine, dropped);
+    const result = mapWorkbook(
+      read,
+      resolveImportOptions(options),
+      { formulasEnabled: false, commentsEnabled: false, customBordersEnabled: false, ...context },
+      dropped,
+    );
+
+    mapped[kind] = { result, dropped: dropped.list() };
+  }
+
+  return mapped;
+}
+
+describe('mapWorkbook on number formats a spreadsheet app writes, whichever engine read the file', () => {
+  it('should type a backslash-escaped currency column as a currency', async() => {
+    // LibreOffice saves `"$"#,##0.00` as `\$#,##0.00`. The built-in engine read it as a plain
+    // number and the column lost its symbol; ExcelJS unescapes the code before the inference sees it.
+    const mapped = await mapWithBothEngines((sheet) => {
+      sheet.cell(1, 1).value = 1234.5;
+      sheet.cell(1, 1).numFmt = '\\$#,##0.00';
+      sheet.cell(1, 2).value = 1234.5;
+      sheet.cell(1, 2).numFmt = '\\£#,##0.00';
+    });
+
+    ['native', 'exceljs'].forEach((kind) => {
+      const { result } = mapped[kind];
+
+      expect(result.columns[0].numericFormat).toEqual(expect.objectContaining({ style: 'currency', currency: 'USD' }));
+      expect(result.columns[1].numericFormat).toEqual(expect.objectContaining({ style: 'currency', currency: 'GBP' }));
+    });
+  });
+
+  it('should keep the whole days of a duration past 24 hours, and report the format', async() => {
+    // `[h]:mm` at 25:30 imported as `01:30:00` and 48:00 as `00:00:00`, so a re-export wrote
+    // 0.0625 and 0 where the file had 1.0625 and 2, with nothing in `dropped`.
+    const mapped = await mapWithBothEngines((sheet) => {
+      [25.5 / 24, 0.5, 2].forEach((value, index) => {
+        sheet.cell(index + 1, 1).value = value;
+        sheet.cell(index + 1, 1).numFmt = '[h]:mm';
+      });
+    });
+
+    ['native', 'exceljs'].forEach((kind) => {
+      const { result, dropped } = mapped[kind];
+
+      expect(result.data.map(row => row[0])).toEqual([25.5 / 24, '12:00:00', 2]);
+      expect(dropped).toContain('numFmt:[h]:mm');
+    });
+  });
+
+  it('should keep the time of a built-in id 22 date-time on both engines', async() => {
+    // The native writer stores `m/d/yy h:mm` as built-in id 22 with no `<numFmt>` entry, the way
+    // Excel stores a typed date-time. ExcelJS answers id 22 as `m/d/yy "h":mm`, which read as a date,
+    // so the ExcelJS engine imported `2024-01-01` and the time was gone from the data.
+    const mapped = await mapWithBothEngines((sheet) => {
+      sheet.cell(1, 1).value = 45292.5625;
+      sheet.cell(1, 1).numFmt = 'm/d/yy h:mm';
+    }, {}, {}, 'native');
+
+    ['native', 'exceljs'].forEach((kind) => {
+      const { result } = mapped[kind];
+
+      expect(result.data[0][0]).toBe('2024-01-01 13:30:00');
+      expect(result.columns[0].type).toBe('intl-datetime');
+    });
+  });
+
+  it('should import a falsy cached formula result on both engines, with the Formulas plugin off', async() => {
+    const mapped = await mapWithBothEngines((sheet) => {
+      sheet.cell(1, 1).value = 1;
+      sheet.cell(1, 2).value = 2;
+      sheet.cell(2, 1).formula = { text: 'A1>B1', result: false };
+      sheet.cell(2, 2).formula = { text: 'A1-A1', result: 0 };
+    });
+
+    ['native', 'exceljs'].forEach((kind) => {
+      expect(mapped[kind].result.data[1]).toEqual([false, 0]);
+    });
+  });
+
+  it('should import the cached value of a formula over a defined name the Formulas engine lacks', async() => {
+    // Neither reader carried `<definedNames>` and the mapper handed `=SUM(Sales)` to HyperFormula,
+    // which showed `#NAME?` with nothing in `dropped`, while the file held 60 as the cached value.
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Data');
+
+    ws.getCell('B2').value = 10;
+    ws.getCell('B3').value = 20;
+    ws.getCell('B4').value = 30;
+    ws.getCell('F1').value = 0.07;
+    wb.definedNames.add('Data!$B$2:$B$4', 'Sales');
+    wb.definedNames.add('Data!$F$1', 'Rate');
+    ws.getCell('D2').value = { formula: 'SUM(Sales)', result: 60 };
+    ws.getCell('D3').value = { formula: 'Rate*100', result: 7 };
+    ws.getCell('D4').value = { formula: 'SUM(B2:B4)', result: 60 };
+
+    const bytes = toArrayBuffer(new Uint8Array(await wb.xlsx.writeBuffer()));
+
+    for (const [adapter, engine] of [[nativeAdapter, undefined], [excelJsAdapter, ExcelJS]]) {
+      const dropped = new DroppedFeatures();
+      // eslint-disable-next-line no-await-in-loop -- one engine at a time.
+      const read = await adapter.read(bytes, engine, dropped);
+
+      expect(read.definedNames).toEqual(expect.arrayContaining(['Sales', 'Rate']));
+
+      const unknown = mapWorkbook(read, resolveImportOptions({}), {
+        formulasEnabled: true, commentsEnabled: false, customBordersEnabled: false, formulaNamedExpressions: new Set(),
+      }, dropped);
+
+      expect(unknown.data.map(row => row[3])).toEqual([null, 60, 7, '=SUM(B2:B4)']);
+      expect(dropped.list()).toContain('formula:definedName');
+
+      const knownDropped = new DroppedFeatures();
+      const known = mapWorkbook(read, resolveImportOptions({}), {
+        formulasEnabled: true,
+        commentsEnabled: false,
+        customBordersEnabled: false,
+        formulaNamedExpressions: new Set(['sales', 'rate']),
+      }, knownDropped);
+
+      expect(known.data.map(row => row[3])).toEqual([null, '=SUM(Sales)', '=Rate*100', '=SUM(B2:B4)']);
+      expect(knownDropped.list()).not.toContain('formula:definedName');
+    }
+  });
+});

@@ -451,10 +451,20 @@ function createRelationshipIdReader(): RelationshipIdReader {
 }
 
 /**
- * Parses `xl/workbook.xml`: the sheet list in order, and the `date1904` flag.
+ * How many defined names `parseWorkbook` keeps. A name costs a few bytes of the workbook part, so
+ * the part's own inflate budget bounds the list; this bounds the set the mapper builds from it.
  */
-export function parseWorkbook(xml: string): { sheets: WorkbookSheetEntry[]; date1904: boolean } {
+const MAX_DEFINED_NAMES = 65536;
+
+/**
+ * Parses `xl/workbook.xml`: the sheet list in order, the `date1904` flag, and the names the
+ * workbook defines (Excel's own `_xlnm.` names left out).
+ */
+export function parseWorkbook(
+  xml: string,
+): { sheets: WorkbookSheetEntry[]; date1904: boolean; definedNames: string[] } {
   const sheets: WorkbookSheetEntry[] = [];
+  const definedNames = new Set<string>();
   let date1904 = false;
   const localName = createLocalName();
   const relationshipIds = createRelationshipIdReader();
@@ -482,9 +492,12 @@ export function parseWorkbook(xml: string): { sheets: WorkbookSheetEntry[]; date
         sheets.push({ name: attrs.name ?? '', relId: relationshipIds.idOf(attrs), state });
       } else if (name === 'workbookPr') {
         date1904 = attrs.date1904 === '1' || attrs.date1904 === 'true';
+      } else if (name === 'definedName' && attrs.name && !attrs.name.startsWith('_xlnm.')
+        && definedNames.size < MAX_DEFINED_NAMES) {
+        definedNames.add(attrs.name);
       }
     },
   });
 
-  return { sheets, date1904 };
+  return { sheets, date1904, definedNames: [...definedNames] };
 }

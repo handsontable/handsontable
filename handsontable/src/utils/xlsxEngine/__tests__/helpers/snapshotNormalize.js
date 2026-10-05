@@ -1,14 +1,15 @@
 /**
  * The cross-engine snapshot normalizers, in ONE place.
  *
- * `xlsxEngine/AGENTS.md` makes "exactly three normalizations, each with its reason, and never
+ * `xlsxEngine/AGENTS.md` makes "exactly four normalizations, each with its reason, and never
  * widen one" a reviewable invariant. It can only be reviewed in one place while the code lives in
  * one place, so every file that diffs a native snapshot against an ExcelJS one imports from here
  * (`nativeRead.unit.js`, `enginesParity.unit.js`) instead of hand-copying it.
  *
- * THE THREE NORMALIZATIONS, AND WHY EACH ONE IS LEGITIMATE:
+ * THE FOUR NORMALIZATIONS, AND WHY EACH ONE IS LEGITIMATE:
  *
- * 1. Numbers are rounded to nine decimals (`roundNumber`). The ExcelJS adapter reads a
+ * 1. Cell values are rounded to nine decimals (`roundNumber`, on `value` and `result` keys only:
+ *    a width, a height or any other number is compared exactly). The ExcelJS adapter reads a
  *    time-formatted cell as a `Date` and converts it back into a serial on the way out, which loses
  *    a few ulps in the last place (`0.5208333333333334` round-trips as `0.52083333333212`). The
  *    native adapter never routes a value through `Date`, so without this the two would disagree on
@@ -18,8 +19,8 @@
  *    objects carry its bookkeeping keys, which have no equivalent in the native reader's output, so
  *    comparing full rule content would fail on that bookkeeping rather than on anything the two
  *    engines disagree about. This does NOT blind the suite to rule content: `cfShape()` in
- *    `enginesParity.unit.js` compares `ref` + rule count + each rule's `type`/`operator` across all
- *    four legs, for all 14 written kinds.
+ *    `enginesParity.unit.js` compares `ref` + rule count + each rule's `type`, `operator`,
+ *    `formulae`, `text`, `rank` and differential `style` across all four legs.
  *
  * 3. A default font/fill collapses to `null` (`normalizeFont` / `normalizeFill`). A cell whose only
  *    xf difference from the base is its number format (e.g. `values.xlsx`'s "Amount"/"Hired"/
@@ -32,12 +33,28 @@
  *    model, not a difference in what the file means, and the native reader's `style: null` for
  *    exactly this shape is already pinned by `nativeStyles.unit.js`.
  *
- * THERE IS NO FOURTH. A real divergence between the engines is asserted explicitly, with both
- * engines' actual values, instead of being normalized into agreement — numFmt id 22, the theme
- * fill, the conditional-formatting rule-kind subset, the two lenient sheet-name rows and the
- * `lossy.xlsx` dropped ORDER are all pinned that way in `enginesParity.unit.js`. If a parity test
- * fails, the OOXML is the arbiter: read the fixture's raw XML before changing a reader, and never
- * widen a normalization to make it pass.
+ * 4. The snapshot is JSON round-tripped (`strip`), which turns `NaN`, `Infinity` and `-Infinity`
+ *    into `null` and drops a key whose value is `undefined`. It is what makes two snapshots of
+ *    independently built objects comparable with `toEqual`; the price is that a non-finite number
+ *    and an empty cell compare equal, so a test about non-finite values reads the raw snapshots
+ *    (`enginesParity.unit.js` does), never `strip()`.
+ *
+ * THERE IS NO FIFTH. A real divergence between the engines is asserted explicitly, with both
+ * engines' actual values, instead of being normalized into agreement. The divergences pinned that
+ * way in `enginesParity.unit.js`, the ONE list of them:
+ *
+ * - the theme fill (the native reader has no theme palette);
+ * - the conditional-formatting rule-kind subset the native writer supports;
+ * - the `containsText` `text` attribute, which ExcelJS neither writes nor reads;
+ * - non-finite numbers, which ExcelJS writes as `<v>NaN</v>` and the readers then disagree on;
+ * - ExcelJS stripping the backslash escapes of a number format (`0.0\%` reads as `0.0%`);
+ * - four sheet-name rows (a control character, over 31 characters, `history`, `HISTORY`);
+ * - the `lossy.xlsx` dropped ORDER;
+ * - an empty-string cached formula result, which the ExcelJS reader loses;
+ * - the LibreOffice attribute dialect (`"true"`/`"false"`), which the ExcelJS reader misses.
+ *
+ * If a parity test fails, the OOXML is the arbiter: read the fixture's raw XML before changing a
+ * reader, and never widen a normalization to make it pass.
  */
 
 /**
@@ -101,20 +118,25 @@ export function normalizeStyle(style) {
 }
 
 /**
- * `JSON.stringify`'s replacer for one snapshot: every number is rounded, every cell style is
- * normalized, everything else is passed through as-is.
+ * `JSON.stringify`'s replacer for one snapshot: every cell value and cached result is rounded,
+ * every cell style is normalized, everything else is passed through as-is.
  *
  * @param {string} key The property name.
  * @param {*} value The property value.
  * @returns {*}
  */
 export function normalizeValue(key, value) {
-  return key === 'style' ? normalizeStyle(value) : roundNumber(value);
+  if (key === 'style') {
+    return normalizeStyle(value);
+  }
+
+  return key === 'value' || key === 'result' ? roundNumber(value) : value;
 }
 
 /**
  * Normalizes a whole workbook snapshot for cross-engine comparison: normalization #2 reduces every
- * conditional-formatting block to its `ref`, and #1/#3 run through `normalizeValue`.
+ * conditional-formatting block to its `ref`, #1/#3 run through `normalizeValue`, and the JSON round
+ * trip is #4.
  *
  * @param {object} snapshot The workbook snapshot.
  * @returns {Array} The snapshot's sheets, normalized and JSON round-tripped.

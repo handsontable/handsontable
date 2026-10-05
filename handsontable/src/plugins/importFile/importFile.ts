@@ -313,6 +313,27 @@ function requireEngine(hot: HotInstance, format: string, override: object | null
 }
 
 /**
+ * The sheet names a Formulas engine holds, lower-cased. A formula naming any other sheet cannot
+ * resolve in the grid, so the mapper imports its cached value.
+ */
+function engineSheetNames(engine: { getSheetNames?: () => string[] } | null | undefined): Set<string> {
+  const names = typeof engine?.getSheetNames === 'function' ? engine.getSheetNames() : [];
+
+  return new Set(names.map(name => name.toLowerCase()));
+}
+
+/**
+ * The workbook-scoped named expressions a Formulas engine defines, lower-cased. A formula using a
+ * name the file defines and the engine does not shows `#NAME?`, so the mapper imports its cached
+ * value.
+ */
+function engineNamedExpressions(engine: { listNamedExpressions?: () => string[] } | null | undefined): Set<string> {
+  const names = typeof engine?.listNamedExpressions === 'function' ? engine.listNamedExpressions() : [];
+
+  return new Set(names.map(name => name.toLowerCase()));
+}
+
+/**
  * Records `layoutDirection` as dropped when the workbook's sheet direction disagrees with the grid
  * the result is about to be applied to.
  *
@@ -440,10 +461,13 @@ export class ImportFile extends BasePlugin {
     const formulasPlugin = this.hot.getPlugin('formulas');
     const commentsPlugin = this.hot.getPlugin('comments');
     const customBordersPlugin = this.hot.getPlugin('customBorders');
+    const formulasEnabled = formulasPlugin?.isEnabled() === true;
     const mapped = mapWorkbook(workbook, resolved, {
-      formulasEnabled: formulasPlugin?.isEnabled() === true,
+      formulasEnabled,
       commentsEnabled: commentsPlugin?.isEnabled() === true,
       customBordersEnabled: customBordersPlugin?.isEnabled() === true,
+      formulaSheetNames: formulasEnabled ? engineSheetNames(formulasPlugin?.engine) : undefined,
+      formulaNamedExpressions: formulasEnabled ? engineNamedExpressions(formulasPlugin?.engine) : undefined,
     }, dropped);
 
     recordLayoutDirectionMismatch(this.hot, mapped, resolved.apply, dropped);

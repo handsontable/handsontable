@@ -106,6 +106,8 @@ export const DROPPED_FEATURES = {
   conditionalFormattingUnparsedRef: 'conditionalFormatting:unparsedRef',
   dataValidationUnresolvedList: 'dataValidation:unresolvedList',
   formulaOutOfRange: 'formula:outOfRange',
+  formulaOtherSheet: 'formula:otherSheet',
+  formulaDefinedName: 'formula:definedName',
   layoutDirection: 'layoutDirection',
 } as const;
 

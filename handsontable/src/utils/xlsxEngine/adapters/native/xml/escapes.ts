@@ -43,8 +43,8 @@ const NEEDS_ATTR_ESCAPE = /[&<>"'\u0000-\u001F\u007F\uFFFE\uFFFF]/;
 // `decodeOoxmlEscapes` would otherwise mistake for one of ITS OWN escapes on the next read. The rest
 // of the run is a LOOKAHEAD, so it is not consumed: in `_x0041_x0042_` the trailing underscore of
 // the first run is the leading one of the second, and a pattern that consumed it escaped the first
-// run only, which then read back as `_x0041B`. Both cases of hex are escaped although both
-// decoders here accept only upper case, because Excel's own reader is not documented to agree.
+// run only, which then read back as `_x0041B`. Both cases of hex are escaped, because the decoder
+// reads both: SheetJS writes its escapes in lower case.
 const OOXML_ESCAPE_LOOKALIKE = /_(?=x[0-9A-Fa-f]{4}_)/g;
 
 /**
@@ -127,8 +127,9 @@ const LAST_HIGH_SURROGATE = 0xDBFF;
 const LAST_SURROGATE = 0xDFFF;
 
 // One `_xHHHH_` escape, optionally followed by a second one in the low-surrogate range, so a
-// high + low pair is matched (and decoded) as one unit.
-const OOXML_ESCAPE = /_x([0-9A-F]{4})_(?:_x(D[C-F][0-9A-F]{2})_)?/g;
+// high + low pair is matched (and decoded) as one unit. The hex is matched in either case: SheetJS
+// writes `a_x000d_\nb` for a carriage return, which LibreOffice reads as a line break.
+const OOXML_ESCAPE = /_x([0-9A-Fa-f]{4})_(?:_x([Dd][C-Fc-f][0-9A-Fa-f]{2})_)?/g;
 
 /**
  * Decodes one matched escape and the low-surrogate escape that may follow it.

@@ -183,11 +183,15 @@ directions.
   engines section. If a yield is ever added, it belongs between sheets in `write.ts`, not inside
   `worksheetXml`, where the part's own child order is the constraint.
 - **The built-in numFmt table follows ECMA-376, not ExcelJS**, and exactly ONE id disagrees: id 22
-  is `m/d/yy h:mm` where ExcelJS's `lib/xlsx/defaultnumformats.js` has `m/d/yy "h":mm`. Ids 39 and
-  40 carry the identical string in both tables — an earlier version of this file claimed they
-  differ "by a space" and that was wrong. All three are now pinned by `enginesParity.unit.js`: id
-  22 asserts the divergence on the one leg that shows it (native bytes read by ExcelJS), 39 and 40
-  assert four-way equality. **The locale ids 27–36 and 50–58 resolve on READ ONLY**, from
+  is `m/d/yy h:mm` where ExcelJS's `lib/xlsx/defaultnumformats.js` has `m/d/yy "h":mm`. The quoted
+  `h` is a literal letter, so a date-time read through ExcelJS imported as a date and lost its time of
+  day; the ExcelJS adapter maps that one spelling back (`readNumFmt`, `EXCELJS_BUILT_IN_22`), and
+  `enginesParity.unit.js` asserts all four legs agree. Ids 39 and 40 carry the identical string in
+  both tables — an earlier version of this file claimed they differ "by a space" and that was wrong;
+  they assert four-way equality. **The currency ids 5–8 and accounting ids 41–44 resolve on READ
+  ONLY** too, to their en-US codes in `LOCALE_NUM_FMTS`: Excel renders them in the install's
+  currency, so the writer never reuses them, but `numFmt: null` imported such a column as bare
+  numbers. ExcelJS's table lacks them, so those cells read with no format through the ExcelJS engine. **The locale ids 27–36 and 50–58 resolve on READ ONLY**, from
   `LOCALE_NUM_FMTS` in `parts/styles.ts`, to ASCII stand-ins (`yyyy/m/d`, `m/d/yy` for 30, `h:mm`
   and `h:mm:ss` for 32/33) chosen from the ja-JP column — Excel renders them from the install's
   locale, so no single code is right, but `numFmt: null` left such cells as bare serials that
@@ -430,10 +434,16 @@ directions.
   put `constructor`, `toString` and `hasOwnProperty` on the snapshot as own properties, so a consumer
   calling `options.hasOwnProperty(…)` threw; `__proto__` was always inert. `SheetProtectionOptions` is
   the typed shape both adapters and `SheetBuilder#protect` now take. **`<sheetProtection>` without
-  `sheet="1"`/`"true"` reads as `protection: null` and records nothing**, on both adapters
-  (`#openProtection`; the ExcelJS adapter reads it only when `sheetProtection.sheet === true`).
-  Apache POI writes `<sheetProtection formatCells="0"/>` on an open sheet, and reading it as
-  protected imported every cell read-only.
+  `sheet="1"`/`"true"` reads as `protection: null` and records nothing** (`#openProtection`; the
+  ExcelJS adapter reads it only when `sheetProtection.sheet === true`). Apache POI writes
+  `<sheetProtection formatCells="0"/>` on an open sheet, and reading it as protected imported every
+  cell read-only. **The two adapters disagree on `sheet="true"`, LibreOffice's spelling:** the native
+  reader reads it as protected, while ExcelJS 4.4 maps only `"1"` to `true`, so its model holds
+  `undefined` there - the same as a bare `<sheetProtection/>` - and the adapter cannot tell them apart.
+  The ExcelJS engine therefore imports a LibreOffice-protected sheet unprotected; it also misses
+  LibreOffice's `rightToLeft="true"`, `locked="false"` and `date1904="true"`. Pinned with both values
+  in `enginesParity.unit.js` ("the LibreOffice attribute dialect"), and named in the import guide's
+  engine notes.
 - **A duplicate ZIP entry name is refused.** The central directory is read into a `Map`, so the LAST
   record won while several other ZIP readers resolve the FIRST — a crafted archive holding two
   `sheet1.xml` entries then read differently here than in whatever inspected the file upstream. Excel
@@ -640,21 +650,23 @@ directions.
   objects), written by both engines, and each engine's bytes are then read by BOTH readers —
   `nn`/`ne`/`en`/`ee`. `nn` and `ee` alone would only prove each engine agrees with itself; the
   cross legs are what catch a writer emitting something only its own reader understands. Exactly
-  three normalizations exist and no fourth may be added: a real divergence is asserted explicitly
-  with both actual values instead (id 22, the theme fill, the CF rule-kind subset, the two
-  sheet-name rows, the `lossy.xlsx` dropped ORDER). **The three live in ONE place —
-  `__tests__/helpers/snapshotNormalize.js`** — with each one's reason and the no-fourth rule in that
+  four normalizations exist and no fifth may be added: a real divergence is asserted explicitly
+  with both actual values instead. **That list lives in ONE place, the header of
+  `snapshotNormalize.js`**, which names every pinned divergence and the test that pins it; keep it
+  and the suite in step rather than repeating it here. **The three live in ONE place —
+  `__tests__/helpers/snapshotNormalize.js`** — with each one's reason and the no-fifth rule in that
   file's header comment; `enginesParity.unit.js` and `nativeRead.unit.js` both import from it, so
   the invariant is reviewable by reading one file. They were hand-copied into the two suites before
   that helper existed and had already drifted textually. `expectFourWayParity(buildFn,
   expectNative)` requires a callback asserting the feature on the native leg before the legs are
   compared, and also asserts that leg is non-empty. Agreement is not survival: with
   `SheetBuilder#freeze` writing `null` and `setRtl` writing `false` the old suite still passed.
-  `cfShape` compares `formulae`, `text` and `rank` too.
+  `cfShape` compares `formulae`, `text`, `rank` and the rule's differential style too.
 - **`nativeRead.unit.js` ends with a parity test against the ExcelJS adapter on six fixtures**, and
-  it normalizes exactly three known differences, through the same shared helper: conditional-formatting
-  rules compared by `ref` only, numbers rounded to nine decimals (ExcelJS loses ulps round-tripping a
-  time serial through a `Date`), and the default-font/fill case above. Border and alignment are
+  it applies the same four normalizations, through the same shared helper: conditional-formatting
+  rules compared by `ref` only, cell values rounded to nine decimals (ExcelJS loses ulps
+  round-tripping a time serial through a `Date`), the default-font/fill case above, and the JSON
+  round trip. Border and alignment are
   compared unnormalized. If that test fails, the OOXML is the arbiter — read the fixture's raw XML
   before changing a reader, and never widen a normalization to make it pass.
 - **`<dimension>` bounds the caps, the budget and the merge column clamp** (not the validation
@@ -729,10 +741,29 @@ directions.
 - **A covered merge cell keeps its own style and lock, never its value.** Both readers build it with
   `createCoveredCellSnapshot()` (`model.ts`); reading it as `null` lost a covered cell's `locked="0"`,
   and `importFile/mapper.ts` imports a blank on a protected sheet as read-only, which showed once
-  the user unmerged. The ExcelJS writer merges with `mergeCellsWithoutStyle` when a covered cell
-  carries a style or lock of its own (`coversOwnFormatting`), since `mergeCells` copies the
-  master's style, protection included, over them; other merges keep the copy so a merged header's
-  border still reaches its covered edge cells.
+  the user unmerged.
+- **Both writers write EVERY covered member of a kept merge, with the formatting one rule gives it**
+  (`coveredCellFormatting.ts`). The native writer used to leave out the `<c>` of every covered cell
+  with no style of its own, a `null` slot included. Apple's parser (Quick Look, Numbers) then placed
+  the next cell of that row one column early - a vertical merge in the header corner shifted the
+  whole second header row - and LibreOffice drew a block without the edges it takes from covered
+  cells. LibreOffice, SheetJS and both readers here fill the gap in, so no round trip could see it;
+  the XML-level tests in `nativeParts.unit.js` pin it. The rule: an UNFORMATTED covered cell takes the
+  master's whole formatting (what ExcelJS's `mergeCells` copies); a FORMATTED one (a style, a lock
+  or a number format - every covered cell of a `numeric` column is one) keeps its own and takes only
+  the master's border and fill. The ExcelJS adapter applies it through `mergeKeepingOwnFormatting`
+  after `mergeCellsWithoutStyle`, because `mergeCells` would overwrite the covered cell's lock.
+- **`horizontal="general"` reads as no alignment, and so does a `vertical="bottom"` beside it**
+  (`readAlignment`, `parts/styles.ts`). LibreOffice writes that pair on every `xf`, so a plain
+  LibreOffice file carried a style on every cell. A `bottom` on its own is kept: the export writes
+  exactly that for an `htBottom` cell, and dropping it lost the class on a round trip.
+- **A text inflate stops at the string's charge, not only at the bytes'.** `inflateRawText` takes a
+  `textLimit` (two bytes per UTF-16 unit against what the archive budget still allows) and the reader
+  refuses through `chargeInflated`, the charge `text()` would make at the end. Charged only at the
+  end, a hostile part grew its text to the whole budget first; Firefox peaked near +1 GB. The same
+  files are refused, only sooner. A stream failure names its entry (`STREAM_FAILURE_PREFIX`) and
+  never ends at the colon: Node's `DecompressionStream` rejects with an empty message and the
+  reason in `code`.
 - **Repeated sheet targets are charged with the FIRST read, before tokenizing.** `readSheets` counts
   the `<sheet>`s resolving to each folded part name up front (`TokenizeLedger.planned`), and
   `partToTokenize` charges all planned repeats when the part is first read. Charged one at a time,
@@ -743,9 +774,9 @@ directions.
 
 `npm run test:unit -- --testPathPattern='xlsxEngine'`
 
-Shared test helpers live in `__tests__/helpers/`: `snapshotNormalize.js` (the three cross-engine
-normalizations, their reasons, and the rule that no fourth may be added) and `fixtures.js`
-(`loadFixture` and `toArrayBuffer`). Import from them rather than hand-copying either — both were
+Shared test helpers live in `__tests__/helpers/`: `snapshotNormalize.js` (the four cross-engine
+normalizations, their reasons, the rule that no fifth may be added, and the one list of pinned
+divergences) and `fixtures.js` (`loadFixture`, `toArrayBuffer` and `rewriteArchive`). Import from them rather than hand-copying either — both were
 duplicated across `nativeRead`, `nativeWrite`, `enginesParity` and `importFile.unit.js`, and the
 normalizers had already drifted textually before the helper existed.
 
@@ -760,7 +791,12 @@ whose `packWorkbook()` builds a whole package from scratch (any sheet kind, any 
 namespace) and whose `readSheet()` drives `parseWorksheet` on one hand-written part — the valid
 shapes ExcelJS never writes (a chart sheet, a strict package, a `<c>` with no `r`, an empty `<v/>`,
 a `<si/>`, a zone-less `t="d"`, an `<is>` with an `<rPh>`) live there. A reader change that could
-depend on the writer's dialect needs one of those, not another ExcelJS fixture. `generate.mjs` pins
-`workbook.created`/`workbook.modified` to the epoch and reads no clock or random number otherwise,
-so a regeneration that changes a byte changed a case; the committed fixtures predate that pin and
-are deliberately not rewritten for it.
+depend on the writer's dialect needs one of those, not another ExcelJS fixture.
+`__tests__/helpers/fixtures.js#rewriteArchive` rewrites the parts of any archive and packs it again,
+which is how `enginesParity.unit.js` builds a LibreOffice-dialect file.
+
+**A regeneration is NOT byte-identical**, so never diff the `.xlsx` files themselves. `generate.mjs`
+pins `workbook.created`/`workbook.modified` to the epoch, but JSZip stamps every entry with the
+current DOS time and `lossy.xlsx`'s `ws.protect('secret')` draws a random salt. Compare a
+regeneration by unzipping both and diffing the parts, ignoring `docProps/core.xml` and `lossy`'s
+`<sheetProtection>` hash and salt.

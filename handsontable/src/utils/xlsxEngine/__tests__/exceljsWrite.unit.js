@@ -3,6 +3,7 @@
  */
 import ExcelJS from 'exceljs';
 import { excelJsAdapter } from '../adapters/exceljs';
+import { nativeAdapter } from '../adapters/native';
 import { DroppedFeatures } from '../capabilities';
 import { createWorkbookSnapshot } from '../model';
 import { SheetBuilder } from '../builder';
@@ -219,6 +220,54 @@ describe('excelJsAdapter.write', () => {
 
     expect(ws.getCell('B1').protection).toEqual(expect.objectContaining({ locked: false }));
     expect(ws.getCell('B2').border).toEqual(border);
+  });
+
+  it('should give a formatted covered cell the master border and fill, and keep its own number format', async() => {
+    // A covered cell of a `numeric` column carries a number format and an alignment, so the merge
+    // went through `mergeCellsWithoutStyle` and the master's box border stopped at that cell:
+    // LibreOffice drew the block without its right edge.
+    const thin = { style: 'thin' };
+    const border = { top: thin, left: thin, bottom: thin, right: thin };
+    const fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+    const { workbook } = await writeAndLoad(snapshotWith((b) => {
+      b.cell(1, 1).value = 'master';
+      b.cell(1, 1).style = { alignment: null, font: null, fill, border };
+      b.cell(1, 2).numFmt = '0.00';
+      b.cell(1, 2).style = { alignment: { horizontal: 'right' }, font: null, fill: null, border: null };
+      b.merge(1, 1, 1, 3);
+    }));
+    const ws = workbook.worksheets[0];
+
+    expect(ws.getCell('B1').border).toEqual(border);
+    expect(ws.getCell('B1').fill).toEqual(fill);
+    expect(ws.getCell('B1').numFmt).toBe('0.00');
+    expect(ws.getCell('B1').alignment).toEqual({ horizontal: 'right' });
+    expect(ws.getCell('C1').border).toEqual(border);
+  });
+
+  it('should drop the malformed conditional formatting rules the native writer drops, under the same names', async() => {
+    // Unscreened, ExcelJS threw a TypeError for the first two blocks and wrote a formula of its own
+    // for the `timePeriod` rule; the native writer reports all three and writes the rest.
+    const build = () => snapshotWith((b) => {
+      b.cell(1, 1).value = 5;
+      b.addConditionalFormatting('A1:A2', [{ type: 42 }, 'x']);
+      b.addConditionalFormatting('A1:A2', [{ type: 'expression', style: { font: { bold: true } } }]);
+      b.addConditionalFormatting('A1:A2', [{ type: 'timePeriod', timePeriod: 'today' }]);
+      b.addConditionalFormatting('A1:A2', [{ type: 'cellIs', operator: 'greaterThan', formulae: [1], style: {} }]);
+    });
+    const { workbook, dropped } = await writeAndLoad(build());
+    const nativeDropped = new DroppedFeatures();
+
+    await nativeAdapter.write(build(), undefined, nativeDropped);
+
+    expect(dropped.list()).toEqual(expect.arrayContaining([
+      'conditionalFormatting:invalid', 'conditionalFormatting:expression', 'conditionalFormatting:timePeriod',
+    ]));
+    expect(nativeDropped.list()).toEqual(expect.arrayContaining([
+      'conditionalFormatting:invalid', 'conditionalFormatting:expression', 'conditionalFormatting:timePeriod',
+    ]));
+    expect(workbook.worksheets[0].conditionalFormattings.map(cf => cf.rules.map(rule => rule.type)))
+      .toEqual([['cellIs']]);
   });
 
   it('should write conditional formatting and honor the compression level', async() => {

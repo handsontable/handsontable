@@ -12,7 +12,7 @@ import { excelJsAdapter } from '../adapters/exceljs';
 import { DroppedFeatures } from '../capabilities';
 import { createWorkbookSnapshot } from '../model';
 import { SheetBuilder } from '../builder';
-import { loadFixture as load, toArrayBuffer } from './helpers/fixtures';
+import { loadFixture as load, rewriteArchive, toArrayBuffer } from './helpers/fixtures';
 import { normalizeFont, normalizeStyle, strip } from './helpers/snapshotNormalize';
 
 // `strip()` applies the three — and only three — cross-engine normalizations. Their reasons, and
@@ -148,6 +148,44 @@ describe('write parity: a native-written and an ExcelJS-written file agree, read
       expect(second[0].formula).toEqual({ text: 'SUM(B1:B1)' });
       expect(second[1].formula).toEqual({ text: 'B1*2', result: 84 });
     });
+  });
+
+  it('reads a falsy cached formula result (0, FALSE) on every leg', async() => {
+    // ExcelJS 4.4 copies `result` into the cell value only when it is truthy, so `ne` and `ee` came
+    // back with no result for these, and the cells imported empty without the Formulas plugin.
+    // LibreOffice writes every boolean literal as `<f>FALSE()</f><v>0</v>`, so its unchecked
+    // checkboxes were hit the same way. The adapter reads `cell.result`, which keeps the value.
+    await expectFourWayParity((snapshot) => {
+      const sheet = new SheetBuilder('Sheet1');
+
+      sheet.cell(1, 1).value = 1;
+      sheet.cell(1, 2).value = 2;
+      sheet.cell(2, 1).formula = { text: 'A1>B1', result: false };
+      sheet.cell(2, 2).formula = { text: 'A1-A1', result: 0 };
+      snapshot.sheets.push(sheet.toSnapshot());
+    }, (native) => {
+      const second = native.sheets[0].rows[1];
+
+      expect(second[0].formula).toEqual({ text: 'A1>B1', result: false });
+      expect(second[1].formula).toEqual({ text: 'A1-A1', result: 0 });
+    });
+  });
+
+  it('documents that the ExcelJS reader loses an empty-string cached result', async() => {
+    const { nn, ne, en, ee } = await fourWayRead((snapshot) => {
+      const sheet = new SheetBuilder('Sheet1');
+
+      sheet.cell(1, 1).formula = { text: 'LEFT("",1)', result: '' };
+      snapshot.sheets.push(sheet.toSnapshot());
+    });
+    const formulaOf = snapshot => snapshot.sheets[0].rows[0][0].formula;
+
+    // Both writers write `<c t="str"><f>…</f><v></v></c>`. ExcelJS's parser skips the empty `<v>`,
+    // so neither the value object nor `cell.result` carries anything the adapter could read back.
+    expect(formulaOf(nn)).toEqual({ text: 'LEFT("",1)', result: '' });
+    expect(formulaOf(en)).toEqual({ text: 'LEFT("",1)', result: '' });
+    expect(formulaOf(ne)).toEqual({ text: 'LEFT("",1)' });
+    expect(formulaOf(ee)).toEqual({ text: 'LEFT("",1)' });
   });
 
   it('writes font attributes (bold, italic, underline, an argb color) the same way', async() => {
@@ -321,7 +359,18 @@ describe('write parity: a native-written and an ExcelJS-written file agree, read
       expect(cfShape(native)).toEqual([{
         ref: 'A1:A2',
         count: 1,
-        rules: [{ type: 'cellIs', operator: 'greaterThan', formulae: ['2'], text: null, rank: null }],
+        rules: [{
+          type: 'cellIs',
+          operator: 'greaterThan',
+          formulae: ['2'],
+          text: null,
+          rank: null,
+          style: {
+            font: { bold: true, italic: undefined, underline: undefined, color: undefined },
+            fill: null,
+            border: null,
+          },
+        }],
       }]);
     });
   });
@@ -448,7 +497,7 @@ describe('write parity: a native-written and an ExcelJS-written file agree, read
     expect(valuesOf(ee)).toEqual([NaN, Infinity, -Infinity]);
   });
 
-  it('documents that native\'s built-in numFmt id 22 differs from ExcelJs\'s canonical string for the same id', async() => {
+  it('reads built-in numFmt id 22 as the ECMA-376 code on both readers', async() => {
     const { nn, ne, en, ee } = await fourWayRead((snapshot) => {
       const sheet = new SheetBuilder('Sheet1');
 
@@ -458,17 +507,14 @@ describe('write parity: a native-written and an ExcelJS-written file agree, read
     });
     const numFmtOf = snapshot => snapshot.sheets[0].rows[0][0].numFmt;
 
-    // Finding, and one the parity-matrix audit already named as a known gap: a numFmtId of 22 with
-    // no explicit `<numFmts>` override means "whatever this engine's own built-in table says id 22
-    // is." Native's table (`BUILT_IN_NUM_FMTS`, ECMA-376) says `m/d/yy h:mm`; ExcelJS's own reader
-    // disagrees by a literal quoted `"h"`. Both engines preserve the exact string whenever THEY
-    // wrote the file (`nn`, `en`, `ee` all agree with what was asked for); only reading a
-    // NATIVE-written file with the ExcelJS reader (`ne`) surfaces ExcelJS's own canonical string
-    // instead. Asserted explicitly, per this file's rule against normalizing a real divergence away.
+    // A numFmtId of 22 with no `<numFmts>` override means "whatever the reader's built-in table
+    // says id 22 is". ExcelJS's table says `m/d/yy "h":mm`, whose quoted `h` is a literal letter, so
+    // a native-written date-time read through ExcelJS (`ne`) imported as a date and lost its time
+    // of day. The adapter maps that spelling back, so all four legs agree.
     expect(numFmtOf(nn)).toBe('m/d/yy h:mm');
+    expect(numFmtOf(ne)).toBe('m/d/yy h:mm');
     expect(numFmtOf(en)).toBe('m/d/yy h:mm');
     expect(numFmtOf(ee)).toBe('m/d/yy h:mm');
-    expect(numFmtOf(ne)).toBe('m/d/yy "h":mm');
   });
 });
 
@@ -573,10 +619,32 @@ describe('parity on the capabilities the matrix listed without a direct two-engi
 });
 
 /**
- * Reduces a snapshot's conditional-formatting blocks to what the two engines can be held to: the
- * `ref`, the resolved rule COUNT, and each rule's `type`/`operator`. Going further would compare
- * ExcelJS's own bookkeeping keys, which is the reason the suite's `strip()` keeps CF at `ref` only.
- * @param snapshot
+ * Reduces a rule's differential style to what a user sees of it. A dxf `<patternFill>` with no
+ * `patternType` is solid (ECMA-376 §18.8.32), and one reader reports that default while the other
+ * leaves it unset, so an unset pattern compares as `solid`.
+ *
+ * @param {object} style The rule's `style`.
+ * @returns {object|null}
+ */
+function normalizeDxf(style) {
+  const font = normalizeFont(style.font);
+  const fill = style.fill
+    ? {
+      pattern: style.fill.pattern ?? 'solid',
+      bgColor: style.fill.bgColor ?? null,
+      fgColor: style.fill.fgColor ?? null,
+    }
+    : null;
+  const border = style.border && Object.keys(style.border).length > 0 ? style.border : null;
+
+  return font || fill || border ? { font, fill, border } : null;
+}
+
+/**
+ * Reduces each leg's conditional formatting to what a user sees of it.
+ *
+ * @param {object} snapshot The workbook snapshot.
+ * @returns {Array}
  */
 function cfShape(snapshot) {
   return snapshot.sheets[0].conditionalFormatting.map(block => ({
@@ -589,6 +657,9 @@ function cfShape(snapshot) {
       formulae: Array.isArray(rule.formulae) ? rule.formulae.map(String) : [],
       text: rule.text ?? null,
       rank: rule.rank ?? null,
+      // The differential style, the part of a rule a user sees; dropping the `dxfId` on write, or
+      // `rule.style` on read, passed every case here before.
+      style: rule.style ? normalizeDxf(rule.style) : null,
     })),
   }));
 }
@@ -987,5 +1058,54 @@ describe('parity on the writer and reader fixes of the #13634 review round', () 
     expect(numFmtOf(en)).toBe('0.0\\%');
     expect(numFmtOf(ne)).toBe('0.0%');
     expect(numFmtOf(ee)).toBe('0.0%');
+  });
+});
+
+describe('the LibreOffice attribute dialect: what each reader makes of `"true"`/`"false"`', () => {
+  it('documents that the ExcelJS reader misses LibreOffice\'s protection, RTL, unlock and 1904 flags', async() => {
+    // LibreOffice spells every boolean attribute `"true"`/`"false"`. ExcelJS 4.4 maps only `"1"` to
+    // true for these, and its model keeps nothing the adapter could recover the flag from: a
+    // `sheet="true"` sheet looks exactly like a bare `<sheetProtection/>` (which protects nothing).
+    // The native reader reads both spellings. Pinned with both values, the way the number-format
+    // divergences are, so a team that injects ExcelJS knows not to read LibreOffice files with it.
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('P');
+
+    worksheet.getCell('A1').value = 'a';
+    worksheet.getCell('B2').value = 'e';
+    worksheet.getCell('B2').protection = { locked: false };
+    worksheet.getCell('C2').value = 45306; // 2024-01-15
+    worksheet.getCell('C2').numFmt = 'yyyy-mm-dd';
+    await worksheet.protect('', {});
+
+    const bytes = await rewriteArchive(new Uint8Array(await workbook.xlsx.writeBuffer()), (part, text) => {
+      if (part === 'xl/worksheets/sheet1.xml') {
+        return text
+          .replace(/<sheetProtection[^>]*\/>/, '<sheetProtection sheet="true" objects="true" scenarios="true"/>')
+          .replace(/<sheetViews>.*?<\/sheetViews>/s, '')
+          .replace('<sheetFormatPr',
+            '<sheetViews><sheetView rightToLeft="true" workbookViewId="0"/></sheetViews><sheetFormatPr')
+          // The same date in the 1904 system, 1462 days lower.
+          .replace('<v>45306</v>', '<v>43844</v>');
+      }
+
+      if (part === 'xl/workbook.xml') {
+        return text.replace(/<workbookPr([^>]*)\/>/, '<workbookPr$1 date1904="true"/>');
+      }
+
+      return part === 'xl/styles.xml' ? text.replace('locked="0"', 'locked="false"') : text;
+    });
+    const native = (await nativeAdapter.read(bytes, undefined, new DroppedFeatures())).sheets[0];
+    const exceljs = (await excelJsAdapter.read(bytes, ExcelJS, new DroppedFeatures())).sheets[0];
+
+    expect(native.protection?.enabled).toBe(true);
+    expect(native.rtl).toBe(true);
+    expect(native.rows[1][1].locked).toBe(false);
+    expect(native.rows[1][2].value).toBe(45306);
+
+    expect(exceljs.protection).toBeNull();
+    expect(exceljs.rtl).toBe(false);
+    expect(exceljs.rows[1][1].locked).toBeNull();
+    expect(exceljs.rows[1][2].value).toBe(43844);
   });
 });
