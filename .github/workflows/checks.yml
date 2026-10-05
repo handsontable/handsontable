@@ -101,6 +101,11 @@ jobs:
               # Lives at the repo ROOT (tasks.json loads it via `env-cmd -f ../hot.config.js`).
               - './hot.config.js'
               - './handsontable/babel.config.js'
+              # Also at the repo ROOT: the Babel config the core's one extends (babel-jest
+              # reads the pair), and the browser floor that every build config in
+              # `.config/` requires, so a floor change rebuilds and retests what it compiles.
+              - './babel.config.js'
+              - './browser-targets.js'
               # The bundler entry (rspack runs from the handsontable/ cwd).
               - './handsontable/rspack.config.js'
               # NOTE: `.github/workflows/**` is deliberately NOT here. A pipeline
@@ -138,15 +143,36 @@ jobs:
               - *hot-shared
               - 'wrappers/**'
               - './examples/next/visual-tests/**'
+            # Everything the core Jest run loads beyond `*hot-shared`, which covers
+            # `src/`, `scripts/`, and the build configuration, the root Babel config
+            # and browser floor included. `jest.config.js` has two roots, `src` and
+            # `test`, so a test-tree test, a setup file, or a mock or helper a test
+            # imports must route Unit on its own: otherwise a pull request that
+            # changes only that file skips the job, and the change first runs on the
+            # develop push after the merge. That happened while this filter named
+            # only `./handsontable/test/unit/**`, which stopped being a Jest root in
+            # 2023. .github/scripts/__tests__/unit-scope.test.mjs walks what the Jest
+            # run loads, and fails on a file no entry routes or on an entry that
+            # matches no tracked file.
             test-handsontable-unit:
               - *hot-shared
-              - './handsontable/test/unit/**'
+              - './handsontable/jest.config.js'
+              - './handsontable/test/**/*.unit.{js,ts}'
+              # The setup files (every `.js` at the top of test/ is one), the manual
+              # mocks, and the helpers. Part of test/helpers/ is E2E-only; listing
+              # the rest file by file would save Unit only on a change to those E2E
+              # helpers alone.
+              - './handsontable/test/*.js'
+              - './handsontable/test/__mocks__/**'
+              - './handsontable/test/helpers/**'
             test-handsontable-types:
               - *hot-shared
               - *hot-definition-files
               - './handsontable/test/types/**'
             test-handsontable-walkontable:
               - './handsontable/.config/**'
+              # Walkontable's own build and test configs require the browser floor too.
+              - './browser-targets.js'
               - './handsontable/test/scripts/**'
               - './handsontable/src/3rdparty/walkontable/**'
             test-handsontable-e2e:
