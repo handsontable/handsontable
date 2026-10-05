@@ -3,6 +3,8 @@ import { mapWorkbook, registerStyleRule, resolveImportOptions, selectSheet } fro
 import { DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
 import { isLimitError, MAX_TRANSLATED_FORMULA_CHARS } from '../../../utils/xlsxEngine/limits';
 import { createCellSnapshot, createSheetSnapshot, createWorkbookSnapshot } from '../../../utils/xlsxEngine/model';
+import { EMPTY_STYLES } from '../../../utils/xlsxEngine/adapters/native/parts/styles';
+import { parseWorksheet } from '../../../utils/xlsxEngine/adapters/native/parts/worksheetReader';
 
 function cell(overrides) {
   return { ...createCellSnapshot(), ...overrides };
@@ -573,6 +575,34 @@ describe('mapWorkbook', () => {
     expect(result.columns[1]).toEqual({ type: 'text' });
     expect(dropped.list()).toEqual(['dataValidation:unresolvedList']);
     expect(result.sheetNames).toEqual(['Data', '_HotValidation']);
+  });
+
+  it('should keep a validation over a sparse sheet to the columns the sheet uses', () => {
+    // A ~1 kB part: values in A1 and A1000 under a five-column dimension, and one list validation
+    // over the whole rectangle. Clamped to the dimension, the reader filled every slot of it and
+    // the mapper kept one meta entry per slot, which at A1:E1000000 is a GB-class heap.
+    const ns = 'xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"';
+    const sheet = parseWorksheet(`<worksheet ${ns}><dimension ref="A1:E1000"/><sheetData>`
+      + '<row r="1"><c r="A1"><v>1</v></c></row><row r="1000"><c r="A1000"><v>2</v></c></row></sheetData>'
+      + '<dataValidations count="1"><dataValidation type="list" sqref="A1:E1000">'
+      + '<formula1>"a,b"</formula1></dataValidation></dataValidations></worksheet>', {
+      name: 'Data',
+      state: 'visible',
+      styles: EMPTY_STYLES,
+      sharedStrings: { strings: [], rich: [] },
+      comments: new Map(),
+      date1904: false,
+      dropped: new DroppedFeatures(),
+      budget: { declaredCells: 0 },
+    });
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.data.length).toBe(1000);
+    expect(result.data.every(row => row.length === 1)).toBe(true);
+    expect(result.columns.length).toBe(1);
+    expect(result.columns[0]).toEqual(expect.objectContaining({ type: 'dropdown', source: ['a', 'b'] }));
+    expect(result.cellsMeta ?? []).toEqual([]);
   });
 
   it('should resolve one list formula once per pass and share the dropdown meta across its cells', () => {

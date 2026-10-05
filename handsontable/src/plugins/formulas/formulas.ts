@@ -116,12 +116,13 @@ interface MoveCellsRect {
 
 /**
  * A `setDataAtCell()` / `setDataAtRowProp()` change set written into the engine and not yet applied
- * to the source data by the Core (see `Formulas#changesAwaitingApply`). `writeCount` is taken when
- * the set is written; `writtenBack` is set once `beforeChangeRender` has written the whole set
- * again, so the deferred write of its out-of-bounds changes is skipped.
+ * to the source data by the Core (see `Formulas#changesAwaitingApply`). `writeCount` and `sheetId`
+ * are taken when the set is written; `writtenBack` is set once `beforeChangeRender` has written the
+ * whole set again, so the deferred write of its out-of-bounds changes is skipped.
  */
 interface ChangeSetAwaitingApply {
   writeCount: number;
+  sheetId: number | null;
   writtenBack: boolean;
 }
 
@@ -447,13 +448,14 @@ export class Formulas extends BasePlugin {
    * The `setDataAtCell()` / `setDataAtRowProp()` change sets written into the engine that the Core
    * has not applied to the source data yet, keyed by the change array itself (the Core hands the
    * same array to `afterSetDataAtCell` and to `beforeChangeRender`). Each one records the sheet write
-   * count at the moment it was written.
+   * count and the sheet id at the moment it was written.
    *
    * The plugin writes a change into the engine from `afterSetDataAtCell`, before validation, while
    * the Core applies a validated change to the source data only after its validators resolve, in a
    * microtask. A full sheet write in between - an `updateSettings()` in the same task - scans source
-   * data that does not hold the change yet and drops it from the engine; `#onBeforeChangeRender`
-   * writes it back. A `WeakMap`, so a change set that never reaches `beforeChangeRender` holds
+   * data that does not hold the change yet and drops it from the engine, and a sheet switch in
+   * between hands the grid another sheet's data, which the change then lands in;
+   * `#onBeforeChangeRender` writes it back into the current sheet. A `WeakMap`, so a change set that never reaches `beforeChangeRender` holds
    * nothing alive.
    *
    * @type {WeakMap<CellChange[], ChangeSetAwaitingApply>}
@@ -3661,6 +3663,7 @@ export class Formulas extends BasePlugin {
     const { dependentCells, changedCells, outOfBoundsChanges } = this.#writeChangesToEngine(changes);
     const awaitingApply: ChangeSetAwaitingApply = {
       writeCount: this.#sheetWriteCount,
+      sheetId: this.sheetId,
       writtenBack: false,
     };
 
@@ -3748,15 +3751,17 @@ export class Formulas extends BasePlugin {
    * `beforeChangeRender` hook callback.
    *
    * Writes a change set back into the engine when a full sheet write from the source data replaced
-   * the sheet between `afterSetDataAtCell` (where the change first reached the engine) and now,
-   * when the Core applied it. `beforeChangeRender` is the first hook `applyChanges` runs on its own
+   * the sheet, or a sheet switch replaced the grid's data, between `afterSetDataAtCell` (where the
+   * change first reached the engine) and now, when the Core applied it. `beforeChangeRender` is the first hook `applyChanges` runs on its own
    * after it writes the set to the data (the row and column hooks of `alter()`, such as
    * `beforeCreateRow`/`afterCreateRow`, can fire before it, from `writeChangesToData` and
    * `adjustRowsAndCols`, when a change lies out of bounds). It runs before the render that follows, so
    * the cell never paints its raw formula text. That window
    * is open while the Core validates a change, which it does in a microtask, so an `updateSettings()`
-   * in the same task rebuilds the sheet from source data that does not hold the change yet. A change
-   * set written into another sheet in the meantime is left alone: the grid's data is that sheet's now.
+   * in the same task rebuilds the sheet from source data that does not hold the change yet. After a
+   * sheet switch, the Core applies the change to the data of the sheet the grid shows now, so the
+   * set is written into that sheet - the current `sheetId` - for the engine to hold what the grid
+   * holds. A switch alone writes no sheet, so the sheet id, not the write count, detects it.
    *
    * By now the Core has created the rows and columns an out-of-bounds change needed, so the whole set
    * is written in one batch - one engine undo entry for one grid action - and the deferred
@@ -3776,7 +3781,7 @@ export class Formulas extends BasePlugin {
 
     if (
       !this.engine ||
-      awaitingApply.writeCount === this.#sheetWriteCount ||
+      (awaitingApply.writeCount === this.#sheetWriteCount && awaitingApply.sheetId === this.sheetId) ||
       changes.length === 0
     ) {
       return;

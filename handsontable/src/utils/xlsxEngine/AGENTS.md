@@ -101,8 +101,11 @@ directions.
   reaching past what the file declares stays clamped rather than widening the sheet on a hostile
   file's say-so. With NO `<dimension>` (openpyxl write-only, ExcelJS streaming), the merge may widen
   the sheet up to `MAX_SHEET_COLUMNS`, because clamping to the widest row cropped a merge whose
-  covered cells carry no `<c>`; the validation pass has no such exception and still clamps to the
-  width there. Rows always clamp to the rows that exist. Every `<mergeCell>` is charged one span
+  covered cells carry no `<c>`. The validation pass clamps BOTH axes to what the sheet uses (its rows
+  and its widest row), never to `<dimension>`: a sparse sheet under a wide dimension had every slot
+  of a validation's rectangle walked and then kept by the mapper (a GB-class heap from a 2 kB file),
+  and the ExcelJS adapter reads a validation only on the cells it walks, so an empty dropdown column
+  with no cell is lost on both engines alike. Rows always clamp to the rows that exist. Every `<mergeCell>` is charged one span
   unit when it is collected (`#openMergeCell`). A merge that clamps to nothing is DROPPED from
   `sheet.merges`. The area charge (`#chargeSpan`) stays **before** the walk (see the span-budget
   trap below), and the padding costs nothing new because that span was already charged. `#finalize`
@@ -654,7 +657,8 @@ directions.
   time serial through a `Date`), and the default-font/fill case above. Border and alignment are
   compared unnormalized. If that test fails, the OOXML is the arbiter — read the fixture's raw XML
   before changing a reader, and never widen a normalization to make it pass.
-- **`<dimension>` bounds the caps, the budget and the merge and validation column clamps**;
+- **`<dimension>` bounds the caps, the budget and the merge column clamp** (not the validation
+  clamp, which follows the used width);
   without it the caps run incrementally per row and cell. `<col max="16384">` widens `colWidths`
   but never the cell product.
 - **List validations are also read from `<extLst>`** (`<x14:dataValidation>`, `<xm:f>`,

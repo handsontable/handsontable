@@ -89,7 +89,8 @@ const UNQUALIFIED_PATTERN =
   String.raw`(?<![\p{L}\p{N}_.$])(?<colAbs>\$?)(?<colLetters>[A-Z]{1,3})(?<rowAbs>\$?)(?<rowDigits>\d{1,7})(?![\d(])` +
   String.raw`|(?<![\p{L}\p{N}_.$])(?<c1Abs>\$?)(?<c1>[A-Z]{1,3}):(?<c2Abs>\$?)(?<c2>[A-Z]{1,3})(?![\p{L}\p{N}_(])` +
   String.raw`|(?<![\p{L}\p{N}_.$:])(?<r1Abs>\$?)(?<r1>\d{1,7}):(?<r2Abs>\$?)(?<r2>\d{1,7})(?![\d\p{L}])`;
-const REFERENCE_REGEX = new RegExp(
+
+export const REFERENCE_REGEX = new RegExp(
   String.raw`(?<literal>"(?:[^"]|"")*")` +
   String.raw`|(?<qualifier>(?:${QUOTED_QUALIFIER_PATTERN}|${BARE_QUALIFIER_PATTERN})!)` +
   String.raw`(?<qualified>${CELL_PATTERN}(?::${CELL_PATTERN})?|${COLUMN_SPAN_PATTERN}|${ROW_SPAN_PATTERN})` +

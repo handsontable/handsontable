@@ -1495,7 +1495,11 @@ class WorksheetParser {
   }
 
   /**
-   * Applies one list validation to every cell of one clamped range.
+   * Applies one list validation to every cell of one clamped range. Both axes clamp to what the
+   * sheet USES - its rows and its widest row - never to `<dimension>`: a sparse sheet under a wide
+   * dimension otherwise had every slot of the rectangle walked and kept by the mapper, and the
+   * ExcelJS adapter reads a validation only on the cells it walks, so neither engine widens a sheet
+   * for one.
    */
   #applyValidationRange(
     range: { startRow: number; startCol: number; endRow: number; endCol: number },
@@ -1503,7 +1507,7 @@ class WorksheetParser {
     shared: { cell: CellSnapshot | null },
   ): void {
     const lastRow = Math.min(range.endRow, this.#rows.length);
-    const lastCol = Math.min(range.endCol, Math.max(this.#width, this.#declaredColumns, 1));
+    const lastCol = Math.min(range.endCol, Math.max(this.#width, 1));
 
     if (lastRow < range.startRow || lastCol < range.startCol) {
       return;

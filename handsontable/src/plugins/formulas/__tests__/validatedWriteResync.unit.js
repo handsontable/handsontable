@@ -3,6 +3,7 @@ import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { Formulas } from '../formulas';
 import { UndoRedo } from '../../undoRedo';
+import { injectRealCoreStyles, removeRealCoreStyles } from '../../../../test/helpers/realCoreStyles';
 
 /**
  * A `setDataAtCell()` on a column with a validator applies its changes in a microtask (the Core
@@ -29,6 +30,7 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     hot?.destroy();
     hot = null;
     container.remove();
+    removeRealCoreStyles();
   });
 
   /**
@@ -62,6 +64,9 @@ describe('Formulas write validated in flight across a sheet resync', () => {
   }
 
   it('keeps a formula written right before a settings update in the engine', async() => {
+    // Without the real stylesheet jsdom renders two rows only, so row 3 has no cell to read.
+    injectRealCoreStyles();
+
     const engine = buildGrid([[1, 'a'], [2, 'b'], [null, 'c']]);
     const sheet = hot.getPlugin('formulas').sheetId;
 
@@ -147,6 +152,25 @@ describe('Formulas write validated in flight across a sheet resync', () => {
 
     // The Core applies the change to the data the grid holds when validation ends - the switched-to
     // sheet's. The engine has to hold what the grid holds, or the cell shows the raw formula text.
+    expect(hot.getPlugin('formulas').sheetId).toBe(other);
+    expect(hot.getSourceDataAtCell(2, 0)).toBe('=SUM(A1:A2)');
+    expect(engine.getCellFormula({ sheet: other, row: 2, col: 0 })).toBe('=SUM(A1:A2)');
+    expect(hot.getDataAtCell(2, 0)).toBe(30);
+  });
+
+  it('writes a change into the switched-to sheet when the switch alone ran while the change was validated', async() => {
+    const engine = buildGrid([[1, 'a'], [2, 'b'], [null, 'c']]);
+    const other = engine.getSheetId(engine.addSheet('Other'));
+
+    engine.setSheetContent(other, [[10, 'x'], [20, 'y'], [null, 'z']]);
+
+    hot.setDataAtCell(2, 0, '=SUM(A1:A2)');
+    // The switch loads the other sheet into the grid without writing any sheet, so the sheet write
+    // count stays where it was. The sheet id is what tells the change set landed in another sheet.
+    hot.updateSettings({ formulas: { engine, sheetName: 'Other' } });
+
+    await waitForValidation();
+
     expect(hot.getPlugin('formulas').sheetId).toBe(other);
     expect(hot.getSourceDataAtCell(2, 0)).toBe('=SUM(A1:A2)');
     expect(engine.getCellFormula({ sheet: other, row: 2, col: 0 })).toBe('=SUM(A1:A2)');

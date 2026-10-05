@@ -434,8 +434,9 @@ error. Pre-existing — reproduced identically on 18.1.1. Repro: a grid with `co
 
 The repair is `#onBeforeChangeRender`. `#onAfterSetDataAtCell` records each change set in
 `#changesAwaitingApply` (a `WeakMap` keyed by the change array — the Core hands the same array to
-`beforeChangeRender`), together with `#sheetWriteCount`. When the count has moved by the
-time the Core applies the set, the set is written into the engine again. Five rules:
+`beforeChangeRender`), together with `#sheetWriteCount` and `sheetId`. When the count has moved, or
+the sheet id has changed, by the time the Core applies the set, the set is written into the engine
+again. Five rules:
 
 - **`beforeChangeRender`, not `afterChange`.** The Core renders between the two, so writing back from
   `afterChange` painted the raw formula text until the next render (negative control in the test below).
@@ -446,9 +447,12 @@ time the Core applies the set, the set is written into the engine again. Five ru
   that is the switched-to sheet's. A guard on the sheet id used to skip the write-back there, which left
   the grid holding the change while the engine did not, so the cell showed its raw formula text. The
   plugin's invariant is that the engine mirrors the grid, so the set is written into the CURRENT sheet.
-  The switch alone does not move the count (its `loadData()` writes no sheet); this path is reached only
-  when a full write follows the switch in the same task. Pinned by `keeps the engine in step with the
-  grid when the sheet switched while the change was validated`.
+  The switch alone does not move the count (its `loadData()` writes no sheet), so the record also keeps
+  the sheet id it was written under, and a changed id triggers the write-back too. Comparing the count
+  alone skipped a bare switch, and the switched-to sheet never got the change. Pinned by `keeps the
+  engine in step with the grid when the sheet switched while the change was validated` (switch plus a
+  full write) and `writes a change into the switched-to sheet when the switch alone ran while the change
+  was validated` (switch only).
 - **The write-back writes the whole set once, and the out-of-bounds write stands aside.** A change past
   the last row or column is not written from `afterSetDataAtCell` but from a one-off `afterChange`
   listener, after the Core created the row. By `beforeChangeRender` that row exists, so the write-back

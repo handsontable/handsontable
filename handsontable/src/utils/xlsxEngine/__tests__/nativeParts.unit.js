@@ -860,8 +860,8 @@ describe('parseWorksheet', () => {
 
   it('should read list validations onto their cells, drop other kinds, and clamp a whole-column sqref', () => {
     const xml = `<worksheet ${NS}><dimension ref="A1:B3"/><sheetData>`
-      + '<row r="1"><c r="A1" t="str"><v>x</v></c></row><row r="2"/><row r="3"/></sheetData>'
-      + '<dataValidations count="2">'
+      + '<row r="1"><c r="A1" t="str"><v>x</v></c><c r="B1" t="str"><v>y</v></c></row><row r="2"/><row r="3"/>'
+      + '</sheetData><dataValidations count="2">'
       + '<dataValidation type="list" allowBlank="1" sqref="A1:A1048576 B2">'
       + '<formula1>"a,b,c"</formula1></dataValidation>'
       + '<dataValidation type="whole" operator="between" sqref="B1">'

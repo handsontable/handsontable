@@ -27,6 +27,14 @@ describe('functionPrefixes', () => {
     expect(addFunctionPrefixes('SUM(XLOOKUP(1,A:A,B:B))')).toBe('SUM(_xlfn.XLOOKUP(1,A:A,B:B))');
   });
 
+  it('should prefix the Excel 2010 functions whose names carry a dot, which HyperFormula implements', () => {
+    // Exported bare, these show `#NAME?` in Excel until the cell is entered again.
+    expect(addFunctionPrefixes('NETWORKDAYS.INTL(A1,B1,1)')).toBe('_xlfn.NETWORKDAYS.INTL(A1,B1,1)');
+    expect(addFunctionPrefixes('WORKDAY.INTL(A1,5)')).toBe('_xlfn.WORKDAY.INTL(A1,5)');
+    expect(addFunctionPrefixes('ISO.CEILING(A1,2)')).toBe('_xlfn.ISO.CEILING(A1,2)');
+    expect(stripFunctionPrefixes('_xlfn.NETWORKDAYS.INTL(A1,B1)')).toBe('NETWORKDAYS.INTL(A1,B1)');
+  });
+
   it('should not prefix a pre-2007 function, a name without a call, or text in a string', () => {
     expect(addFunctionPrefixes('SUM(A1)+CONCATENATE(A1,B1)')).toBe('SUM(A1)+CONCATENATE(A1,B1)');
     expect(addFunctionPrefixes('IFS+1')).toBe('IFS+1');

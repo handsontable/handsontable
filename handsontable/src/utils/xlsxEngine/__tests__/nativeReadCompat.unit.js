@@ -7,6 +7,7 @@ import {
   MAX_FORMULA_LENGTH, MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_TRANSLATED_FORMULA_CHARS, MAX_WORKBOOK_CELLS,
   isLimitError,
 } from '../limits';
+import { mapFormulaReferences, REFERENCE_REGEX } from '../formulaRefs';
 import { createWorkbookSnapshot } from '../model';
 import { SheetBuilder } from '../builder';
 import { parseSharedStrings } from '../adapters/native/parts/sharedStrings';
@@ -1053,7 +1054,8 @@ describe('native reader compatibility: list validations over cells that hold not
 
   it('should share one cell object between the empty slots one validation covers', () => {
     const { sheet } = readSheet(`<worksheet ${NS}><dimension ref="A1:B3"/><sheetData>`
-      + '<row r="1"><c r="A1"><v>1</v></c></row><row r="2"/><row r="3"/></sheetData><dataValidations count="2">'
+      + '<row r="1"><c r="A1"><v>1</v></c></row><row r="2"/><row r="3"><c r="B3"><v>2</v></c></row>'
+      + '</sheetData><dataValidations count="2">'
       + '<dataValidation type="list" sqref="A1:B3"><formula1>"a,b"</formula1></dataValidation>'
       + '<dataValidation type="list" sqref="B3"><formula1>"c"</formula1></dataValidation>'
       + '</dataValidations></worksheet>');
@@ -1068,9 +1070,27 @@ describe('native reader compatibility: list validations over cells that hold not
     expect(a2).toBe(b1);
     expect(b2).toBe(b1);
     expect(a3).toBe(b1);
-    // The later validation wins its slot without rewriting the object the earlier one shares.
+    // A cell the sheet holds takes the validation itself; the later one wins its slot without
+    // rewriting the object the earlier one shares.
+    expect(b3.value).toBe(2);
     expect(b3.validation).toEqual({ type: 'list', formulae: ['"c"'], allowBlank: false });
     expect(b1.validation).toBe(a1.validation);
+  });
+
+  it('should clamp a validation to the columns the sheet uses, not to the declared dimension', () => {
+    // A sparse sheet (A1 and A1000) under a matching five-column dimension: clamping to the
+    // dimension's width walked and materialized every slot of the rectangle, and the mapper then
+    // kept one meta entry per slot. The ExcelJS adapter reads a validation only on the cells it
+    // walks, so neither engine widens a sheet for a validation.
+    const { sheet } = readSheet(`<worksheet ${NS}><dimension ref="A1:E1000"/><sheetData>`
+      + '<row r="1"><c r="A1"><v>1</v></c></row><row r="1000"><c r="A1000"><v>2</v></c></row></sheetData>'
+      + '<dataValidations count="1"><dataValidation type="list" sqref="A1:E1000">'
+      + '<formula1>"a,b"</formula1></dataValidation></dataValidations></worksheet>');
+
+    expect(sheet.rows.length).toBe(1000);
+    expect(sheet.rows.every(row => row.length <= 1)).toBe(true);
+    expect(sheet.rows[0][0].validation).toEqual({ type: 'list', formulae: ['"a,b"'], allowBlank: false });
+    expect(sheet.rows[499][0].validation).toEqual({ type: 'list', formulae: ['"a,b"'], allowBlank: false });
   });
 });
 
@@ -1110,13 +1130,40 @@ describe('native reader compatibility: the workbook cell budget is charged befor
 });
 
 describe('native reader compatibility: the shared-formula translation budget, measured', () => {
-  it('should keep the budget at 32 Mi characters', () => {
-    // The per-character cost that sizes this budget is a measurement, not a unit-test assertion:
-    // a wall-clock bound flakes under parallel Jest workers. The figures (0.28-0.32 us per
-    // character on a developer machine, 0.58-0.84 us on a reviewer's, so about 10-28 s at 32 Mi)
-    // live in the `MAX_TRANSLATED_FORMULA_CHARS` comment in `limits.ts`; re-measure them there
-    // before changing the value or `REFERENCE_REGEX`.
+  it('should keep the budget at 32 Mi characters, measured against this exact reference regex', () => {
+    // The per-character cost that sizes this budget (0.28-0.32 us on a developer machine, 0.58-0.84 us
+    // on a reviewer's, so about 10-28 s at 32 Mi) is a measurement of `REFERENCE_REGEX` and lives in
+    // the `MAX_TRANSLATED_FORMULA_CHARS` comment in `limits.ts`. A wall-clock bound here flaked under
+    // parallel Jest workers, so the guard is deterministic instead: the regex the figures were taken
+    // with is pinned, and changing it (or the budget) fails here until the figures are re-measured
+    // and this pin is updated with them.
     expect(MAX_TRANSLATED_FORMULA_CHARS).toBe(32 * 1024 * 1024);
+    expect(REFERENCE_REGEX.flags).toBe('giu');
+    expect(REFERENCE_REGEX.source).toBe(
+      String.raw`(?<literal>"(?:[^"]|"")*")`
+      + String.raw`|(?<qualifier>(?:(?<!')'(?:[^']|''){0,255}'|(?<![\p{L}\p{N}_.])[\p{L}\p{N}_.]+)!)`
+      + String.raw`(?<qualified>\$?[A-Z]{1,3}\$?\d{1,7}(?![\d(])(?::\$?[A-Z]{1,3}\$?\d{1,7}(?![\d(]))?`
+      + String.raw`|\$?[A-Z]{1,3}:\$?[A-Z]{1,3}(?![\p{L}\p{N}_(])|\$?\d{1,7}:\$?\d{1,7}(?![\d\p{L}]))`
+      + String.raw`|(?<![\p{L}\p{N}_.$])(?<colAbs>\$?)(?<colLetters>[A-Z]{1,3})(?<rowAbs>\$?)`
+      + String.raw`(?<rowDigits>\d{1,7})(?![\d(])`
+      + String.raw`|(?<![\p{L}\p{N}_.$])(?<c1Abs>\$?)(?<c1>[A-Z]{1,3}):(?<c2Abs>\$?)(?<c2>[A-Z]{1,3})(?![\p{L}\p{N}_(])`
+      + String.raw`|(?<![\p{L}\p{N}_.$:])(?<r1Abs>\$?)(?<r1>\d{1,7}):(?<r2Abs>\$?)(?<r2>\d{1,7})(?![\d\p{L}])`
+    );
+  });
+
+  it('should map each reference of the worst-case master once, in a single pass', () => {
+    // A dense run of references is the worst case the budget is sized for. The translation walks it
+    // once: one map call per reference, never a re-scan per rewrite.
+    const master = 'A1+'.repeat(10922);
+    let calls = 0;
+
+    mapFormulaReferences(master, (reference) => {
+      calls += 1;
+
+      return { row: reference.row, col: reference.col };
+    }, { qualified: true });
+
+    expect(calls).toBe(10922);
   });
 });
 
