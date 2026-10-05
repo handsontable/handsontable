@@ -85,7 +85,7 @@ The PR fixes/adds/changes <what>. <Why the change is needed; link the task and e
 
 ### Test evidence (required for source changes)
 
-- Unit tests added/modified (`*.unit.js`): <paths, or "none – covered by <path>">
+- Unit tests added/modified (`*.unit.js` or `*.unit.ts`): <paths, or "none – covered by <path>">
 - E2E tests added/modified (Playwright `tests/e2e/*.spec.ts`): <paths>
 - Type tests (`*.types.ts`) updated if public API changed: <paths, or "none">
 - For a bug fix – the spec that fails without this fix: <name>
@@ -127,9 +127,9 @@ The PR fixes/adds/changes <what>. <Why the change is needed; link the task and e
 ClickUp task: https://app.clickup.com/t/9015210959/DEV-xxx
 ````
 
-- **Commit messages:** descriptive, max 80 characters, with the task ID (e.g. `DEV-627: Fix filter column index`).
-- Include the ClickUp task ID in the PR title.
-- **One task ID only.** The ClickUp GitHub integration attaches every task ID it finds in a PR title, body, commit message, or comment, and moves each through the PR lifecycle ("code review" on open, onward on merge). The attachment is permanent: editing the ID out later does not detach the task. The PR title, body, commits, and every PR or review comment may name exactly one ID, the task in the branch name. Describe a parent, follow-up, related task, or cherry-pick source in words or by PR number. Every prefix counts (`DEV-`, `PRO-`, `RELEASE-`, `IT-`, `SU-`); check drafted text with `grep -oE '\b[A-Z]{2,}-[0-9]+\b' <file> | sort -u` before the write.
+- **Commit messages:** descriptive, max 80 characters, with the task ID when the branch has one (e.g. `DEV-627: Fix filter column index`).
+- Include the ClickUp task ID in the PR title when the branch has one (`feature/issue-xxxx` and `docs/issue-xxxx` branches have none).
+- **One task ID only.** The ClickUp GitHub integration attaches every task ID it finds in a PR title, body, commit message, or comment, and moves each through the PR lifecycle ("code review" on open, onward on merge). The attachment is permanent: editing the ID out later does not detach the task. The PR title, body, commits, and every PR or review comment may name at most one ID: the task in the branch name, or none when the branch has no task. Describe a parent, follow-up, related task, or cherry-pick source in words or by PR number. Every prefix counts (`DEV-`, `PRO-`, `RELEASE-`, `IT-`, `SU-`); check drafted text with `grep -oE '\b[A-Z]{2,}-[0-9]+\b' <file> | sort -u` before the write.
 - Start **Context** with "The PR fixes/adds/changes/..." and be direct.
 - A breaking change needs the `Breaking change` label and a migration section with before/after examples. Update migration guides in `docs/content/guides/upgrade-and-migration/`.
 - **If you tick "MANUAL QA NEEDED", also apply the red `Requires Manual QA` label** (nothing applies it automatically):
@@ -166,7 +166,7 @@ The command prints the destination path and the compiled markdown line before wr
 
 For a `private` entry, commit the file on the same branch (`DEV-xxx: Add changelog entry for PR #<number>`) and push.
 
-The changelog gate is path-aware: a PR confined to docs, tests, `.github/`, `.ai/`, `.claude/`, `visual-tests/`, or `tests/` passes with no entry or `[skip changelog]`, and needs no PR-first round-trip. Write `[skip changelog]` in the PR body only to deliberately skip the entry on a genuine change under `handsontable/src/**` or `wrappers/**`, and say why in the Context. A PR that grows the visual golden set declares it with `[visual budget: N – reason]` (the template's comment block explains N, which must match what `visual-tests/visual-budget.json` sums to; the `Visual budget` step of Visual / Compare reads the live description and blocks a PR that raises that file without saying so); that marker is unrelated to the changelog.
+The changelog gate is path-aware: a PR confined to docs, tests, `.github/`, `.ai/`, `.claude/`, `visual-tests/`, or `tests/` passes with no entry and needs no PR-first round-trip; leave the `[skip changelog]` marker out there. Write `[skip changelog]` in the PR body only to deliberately skip the entry on a genuine change under `handsontable/src/**` or `wrappers/**`, and say why in the Context. A PR that grows the visual golden set declares it with `[visual budget: N – reason]` (the template's comment block explains N, which must match what `visual-tests/visual-budget.json` sums to; the `Visual budget` step of Visual / Compare reads the live description and blocks a PR that raises that file without saying so); that marker is unrelated to the changelog.
 
 ## 7. After PR creation
 

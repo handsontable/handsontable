@@ -1,6 +1,6 @@
 ---
 name: handsontable-e2e-testing
-description: Use ONLY when maintaining the FROZEN legacy Jasmine/Puppeteer E2E suite (*.spec.js) – editing an existing spec, or migrating a broken one to Playwright. For new E2E use the `handsontable-playwright-e2e` skill. Covers the legacy boilerplate, async/await rules, global helpers, event simulation, and theme-agnostic assertions.
+description: Use ONLY when maintaining the FROZEN legacy Jasmine/Puppeteer E2E suite (*.spec.js) – editing an existing spec, or migrating a broken one to Playwright. NOT for new E2E: new E2E is Playwright, use the `handsontable-playwright-e2e` skill. Covers the legacy boilerplate, async/await rules, global helpers, event simulation, and theme-agnostic assertions.
 ---
 
 # Handsontable E2E testing (legacy Jasmine/Puppeteer, frozen)

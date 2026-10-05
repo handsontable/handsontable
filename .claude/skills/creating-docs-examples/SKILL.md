@@ -184,4 +184,4 @@ Embed the files with `@[code]` inside an `::: example` container; syntax in the 
 - [ ] `licenseKey: 'non-commercial-and-evaluation'`, `handsontable/base` import plus registration.
 - [ ] 25-60 lines, one concept, realistic data.
 - [ ] Every framework variant rendered and looked at: open the page in the docs dev server (`npm --prefix docs run dev`, not a full docs build) and check each variant for console load errors, grid width, and styling. A variant you did not open counts as untested.
-- [ ] Angular variants type-check: `npm run typecheck --prefix docs/angular-type-check` (needs `handsontable` and `wrappers/angular-wrapper` built first). This is the `Docs Angular Type Check` CI job, which fails most often after an example edit.
+- [ ] Angular variants type-check: `SKIP_LATEST=1 npm run typecheck --prefix docs/angular-type-check` (as CI runs it; without `SKIP_LATEST` it also checks against `handsontable@latest`, so an API added on the branch fails locally) (needs `handsontable` and `wrappers/angular-wrapper` built first). This is the `Docs Angular Type Check` CI job, which fails most often after an example edit.

@@ -8,7 +8,7 @@ committed test, a coverage number, a visual diff. "Tested manually with Claude"
 is not evidence. New E2E is Playwright (tests/e2e/); the Jasmine suite is frozen.
 Fill in the paths below, or apply a `Refactor-only: <reason>` commit trailer.
 -->
-- Unit tests added/modified (`*.unit.js`): <!-- paths, or "none – covered by <path>" -->
+- Unit tests added/modified (`*.unit.js` or `*.unit.ts`): <!-- paths, or "none – covered by <path>" -->
 - E2E tests added/modified (Playwright `tests/e2e/*.spec.ts`): <!-- paths -->
 - Type tests (`*.types.ts`) updated if public API changed: <!-- paths -->
 - For a bug fix – the spec that fails without this fix: <!-- name -->

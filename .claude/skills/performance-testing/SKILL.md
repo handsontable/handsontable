@@ -37,8 +37,15 @@ Bump `measurementVersion` when the spec changes what the marked window contains 
 Standalone page that exposes the instance as `window.__hot`:
 
 ```html
-<link rel="stylesheet" href="../../fixtures/handsontable.css">
-<script src="../../fixtures/handsontable.full.js"></script>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>My Scenario</title>
+  <link rel="stylesheet" href="../../fixtures/handsontable.css">
+  <script src="../../fixtures/handsontable.full.js"></script>
+</head>
+<body>
 <div id="hot"></div>
 <script>
   window.__hot = new Handsontable(document.getElementById('hot'), {
@@ -48,6 +55,8 @@ Standalone page that exposes the instance as `window.__hot`:
     licenseKey: 'non-commercial-and-evaluation',
   });
 </script>
+</body>
+</html>
 ```
 
 Set `autoRowSize: false` and `autoColumnSize: false` (async sizing interferes with measurements). CSS is `handsontable.css` (no `full` CSS variant); JS is `handsontable.full.js`.

@@ -1,6 +1,6 @@
 ---
 name: handsontable-playwright-e2e
-description: Use when writing or modifying real-browser Playwright E2E / functional tests for Handsontable (specs in tests/e2e/, core, wrappers, or walkontable). Covers the Page Object Model, hooking in by data-testid, deterministic web-first waits, wrapper-specific gotchas, recording via the CLI, and the new-vs-modify / E2E-vs-unit decision. For screenshot/visual tests use visual-testing; for the legacy Jasmine suite use handsontable-e2e-testing.
+description: Use when writing or modifying real-browser Playwright E2E / functional tests for Handsontable (specs in tests/e2e/, core, wrappers, or walkontable). Covers the Page Object Model, hooking in by data-testid, deterministic web-first waits, wrapper-specific gotchas, recording via the CLI, and the new-vs-modify / E2E-vs-unit decision. NOT for screenshot/visual tests (use visual-testing) or the legacy Jasmine suite (use handsontable-e2e-testing).
 ---
 
 # Handsontable Playwright E2E authoring
@@ -75,7 +75,7 @@ Perform the action, then assert the exact cell / overlay / selection state. Judg
 
 ## Recording
 
-Record with the Playwright CLI (`npx playwright codegen`), the version-pinned tool installed here. Refactor the output into a page object with `data-testid` selectors before committing.
+Record with the Playwright CLI (`npx playwright codegen`), the version-pinned tool installed here, not a Playwright MCP (an unpinned second automation surface, even when one is loaded in the session). Refactor the output into a page object with `data-testid` selectors before committing.
 
 ## References
 

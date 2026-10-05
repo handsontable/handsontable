@@ -96,7 +96,7 @@ Use `isHTMLElement` from `src/helpers/dom/element.ts` (for a `Node | Element | n
 
 ### 2. `.d.ts` files
 
-Edit nothing under `handsontable/tmp/`. If a type is missing from the public API, fix the JSDoc/export in the `.ts` source and rerun `npm run build:types`.
+Declarations are generated from source into `handsontable/tmp/` only: hand-write no `.d.ts` anywhere (there is no separate `types/` mirror) and edit nothing under `tmp/`. If a type is missing from the public API, fix the JSDoc/export in the `.ts` source and rerun `npm run build:types`.
 
 ### 3. `import type` for types
 
@@ -112,7 +112,7 @@ import type { HotInstance } from '../../core/types';
 | `HotInstance` | `src/core/types.ts` |
 | Plugin-local types | the plugin's own `types.ts` |
 
-When the existing type is too wide, narrow it with a generic parameter or type guard at the boundary. Consumers import the same types from the package (`import type { GridSettings } from 'handsontable'`); see `docs/content/guides/tools-and-building/typescript-types/typescript-types.md`.
+Import these types; never paste a partial copy of `GridSettings`/`HotInstance` into the file you are editing (a local copy drifts from the real signature). When the existing type is too wide, narrow it with a generic parameter or type guard at the boundary. Consumers import the same types from the package (`import type { GridSettings } from 'handsontable'`); see `docs/content/guides/tools-and-building/typescript-types/typescript-types.md`.
 
 Adding a new hook:
 

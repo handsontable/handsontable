@@ -8,7 +8,7 @@ description: Use when creating or modifying a Handsontable cell editor - covers 
 
 ## Editor state machine
 
-Four states: **VIRGIN** (never opened), **EDITING** (visible, accepting input), **WAITING** (editing finished, awaiting async validation), **FINISHED** (validation complete, editor closed). Transition backwards only through a full reset.
+Four states: **VIRGIN** (never opened), **EDITING** (visible, accepting input), **WAITING** (editing finished, awaiting async validation), **FINISHED** (validation complete, editor closed). Move through the states in order: never skip one (VIRGIN straight to FINISHED, or past WAITING on async validation), and go backwards only through a full reset.
 
 ## File structure
 

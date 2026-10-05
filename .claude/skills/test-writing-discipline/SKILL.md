@@ -55,16 +55,17 @@ An assertion weakened or deleted with a race as the reason ("held 15/15 locally"
 ## Before saying "done"
 
 - Run the exact test command fresh, read the full output and exit code, state the result with that evidence. Say so when you did not run it.
+- Banned phrasings: "should work", "this fixes it" without a run, "tested manually, looks fine".
 - After editing source, run the impacted test and confirm green.
 
-## Assertions
+## No hollow assertions
 
-- Assert the behavior: `expect(getDataAtCell(0, 0)).toBe('x')`.
-- Coverage-on-new-code is satisfied by a line executed without a checked result; judge quality by the assertion.
+- Assert the behavior: `expect(getDataAtCell(0, 0)).toBe('x')`, not `expect(true).toBe(true)` and not an `it()` with no `expect` at all.
+- Coverage-on-new-code can be satisfied by a line executed without a checked result, so judge quality by the assertion.
 
 ## Mocking
 
-- Mock at the real boundary (network, timers, ResizeObserver; see `test/__mocks__/`) and mock the complete real data shape.
+- Mock at the real boundary (network, timers, ResizeObserver; see `test/__mocks__/`), never the unit under test, and mock the complete real data shape.
 - Where a unit test would need to mock a module, write an E2E test.
 
 ## Broken legacy tests
