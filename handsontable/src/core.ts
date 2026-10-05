@@ -709,6 +709,7 @@ export default function Core(
     fixedRowsTop: number;
     fixedRowsBottom: number;
     fixedColumnsStart: number;
+    fixedColumnsEnd: number;
     maxRows: number;
     maxCols: number;
     minRows: number;
@@ -1573,6 +1574,11 @@ export default function Core(
           case 'insert_col_end':
             // "start" is a default behavior for creating new columns
 
+            // Unlike `remove_col`, an insert does not touch `fixedColumnsEnd`. A column inserted inside the end band
+            // or after it takes a band slot (the band is always the LAST `fixedColumnsEnd` columns), the same as a
+            // row inserted with `fixedRowsBottom`, which `insert_row_*` does not move either. A caller that wants the
+            // same columns to stay frozen raises `fixedColumnsEnd` in `afterCreateCol`. Only the spare and the minimum
+            // columns are guarded (see `adjustRowsAndCols`).
             const insertColumnMode = action === 'insert_col_end' ? 'end' : 'start';
 
             // Calling the `insert_col_start` action adds a new column to the left of the data set.
@@ -1746,6 +1752,8 @@ export default function Core(
                   groupIndex = Math.max(groupIndex - offset, 0);
                 }
 
+                const totalColumnsBefore = instance.countCols();
+
                 // TODO: for datamap.removeCol index should be passed as it is (with undefined and null values). If not, the logic
                 // inside the datamap.removeCol breaks the removing functionality.
                 const wasRemoved = datamap.removeCol(groupIndex, groupAmount, source);
@@ -1796,6 +1804,31 @@ export default function Core(
                   // to bypass the validation.
                   (tableMeta as unknown as { _fixedColumnsStart: number })._fixedColumnsStart -=
                     Math.min(groupAmount, fixedColumnsStart - calcIndex);
+                }
+
+                const fixedColumnsEnd = tableMeta.fixedColumnsEnd;
+
+                if (fixedColumnsEnd) {
+                  // Count how many of the removed columns belonged to the end fixed columns. Those columns
+                  // occupied the `[totalColumnsBefore - fixedColumnsEnd, totalColumnsBefore - 1]` range, so the
+                  // boundary has to be compared with the column count from *before* the removal. Columns
+                  // removed before that range keep the setting untouched.
+                  const removedColumnsCount = totalColumnsBefore - totalColumns;
+                  // With no index passed, `datamap.removeCol` takes the columns from the end, so the removal
+                  // starts that many columns before the last one. `calcIndex` points at the last column then,
+                  // not at the first removed one.
+                  const firstRemovedColumnIndex = Number.isInteger(groupIndex)
+                    ? calcIndex
+                    : Math.max(totalColumnsBefore - removedColumnsCount, 0);
+                  const firstFixedColumnIndex = totalColumnsBefore - fixedColumnsEnd;
+                  const lastRemovedColumnIndex =
+                    Math.min(firstRemovedColumnIndex + removedColumnsCount - 1, totalColumnsBefore - 1);
+                  const removedFixedColumnsCount =
+                    lastRemovedColumnIndex - Math.max(firstRemovedColumnIndex, firstFixedColumnIndex) + 1;
+
+                  if (removedFixedColumnsCount > 0) {
+                    tableMeta.fixedColumnsEnd -= Math.min(removedFixedColumnsCount, fixedColumnsEnd);
+                  }
                 }
 
                 if (Array.isArray(tableMeta.colHeaders)) {
@@ -1877,7 +1910,16 @@ export default function Core(
         }
         {
           let emptyCols = 0;
-          const canCreateSpareCols = minSpareCols > 0 && !tableMeta.columns && instance.dataType === 'array';
+          // Appending a column after the last end column would move the frozen band onto the new column
+          // and silently unfreeze the column that held the data, so no spare column is created while
+          // `fixedColumnsEnd` is set. The same holds for the `minCols` filler columns below. Creating them before
+          // the band instead is not safe: the filler bookkeeping (`DataMap#isTrailingFillerColumn`) tracks a
+          // trailing run only, and an `auto` insert skips the cell meta shift, so the meta of the end columns
+          // would stay behind. The keyboard navigation guard (`transformation/_base.ts`) follows the same rule.
+          // Floored like the band the renderer draws: a fraction below 1 or a negative number freezes no column.
+          const hasEndColumns = Math.floor(Number(tableMeta.fixedColumnsEnd)) > 0;
+          const canCreateSpareCols = minSpareCols > 0 && !tableMeta.columns && instance.dataType === 'array' &&
+            !hasEndColumns;
 
           // Count trailing empty columns, but only when the `minSpareCols` branch below can consume
           // the result, and never beyond `minSpareCols` itself. Verifying that a column is empty
@@ -1901,7 +1943,7 @@ export default function Core(
           let nrOfColumns = instance.countCols();
 
           // should I add empty cols to meet minCols?
-          if (minCols && !tableMeta.columns && nrOfColumns < minCols) {
+          if (minCols && !tableMeta.columns && !hasEndColumns && nrOfColumns < minCols) {
             // The synchronization with cell meta is not desired here. For `minCols` option,
             // we don't want to touch/shift cell meta objects.
             const colsToCreate = minCols - nrOfColumns;
@@ -7071,9 +7113,7 @@ export default function Core(
       width = cellProperties.width;
     }
 
-    if (width === undefined || width === tableMeta.width) {
-      width = tableMeta.colWidths;
-    }
+    width ??= tableMeta.colWidths;
 
     if (width !== undefined && width !== null) {
       switch (typeof width) {

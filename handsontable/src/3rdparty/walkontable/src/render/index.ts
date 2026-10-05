@@ -63,7 +63,7 @@ class Renderer {
   /**
    * Sets the overlay that is currently rendered. If `null` is provided, the master overlay is set.
    *
-   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|'master'} overlayName The overlay name.
+   * @param {'inline_start'|'inline_end'|'top'|'top_inline_start_corner'|'top_inline_end_corner'|'bottom'|'bottom_inline_start_corner'|'bottom_inline_end_corner'|'master'} overlayName The overlay name.
    * @returns {Renderer}
    */
   setActiveOverlayName(overlayName: string) {

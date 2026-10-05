@@ -28,8 +28,8 @@ row plugin also keeps `getLastDesiredRowHeight()`, and the column plugin keeps i
 plugin passes in: `isActive()`, `clampSize()` and `setManualSize()`. The last two are the plugin's
 **private** bodies (`#clampSize`, `#setManualSize`), not the public `setManualSize()`: the public method opens
 an undo step of its own, and the gesture records its own step. The gesture still never writes a size map
-itself, and `setManualSize()` clamps through `clampSize()`, so the clamping rules (the 20px column floor, the
-theme's default row height) stay in one place.
+itself, and `setManualSize()` clamps through `clampSize()`, so the clamping rules (the theme-derived column floor,
+the theme's default row height) stay in one place.
 
 ## One press, one undo step - and nothing stored before the release
 
@@ -287,3 +287,23 @@ stylesheet needs both bundles rebuilt (`build:umd` and `build:umd.min`, or the f
 Playwright legs see it: the bundles inline the base stylesheet and their copy wins the cascade over the
 linked one, and each pair of legs loads one of them (`../../../AGENTS.md`, Build; `tests/AGENTS.md`, The
 matrix).
+
+## The frozen end columns anchor to the inline-end edge
+
+A column header rendered by the top inline-end corner overlay (`fixedColumnsEnd`) keeps its inline-end edge
+when it is resized: the band stands at the grid's edge, so a wider column grows towards the inline start.
+`ResizeAxis#isAnchoredAtInlineEnd` (optional; only `COLUMN_RESIZE_AXIS` implements it, by checking whether the
+header sits in `topInlineEndCornerOverlay` AND `wtViewport.hasHorizontalScroll()`) tells the gesture. Without a
+horizontal scroll the columns do not fill the holder, the end clone rests against the last column instead of the
+edge, so the header is not anchored (anchoring it put its handle on the previous column's handle and inverted the
+drag). When it is anchored:
+
+- the handle sits on the header's inline-START edge, not the inline-end one;
+- the pointer delta is inverted (dragging towards the inline start widens, in RTL too, because the direction
+  factor is applied first);
+- the handle moves with the growing edge (`2 * startSize - currentSize`).
+
+`isHeaderElement` includes the end corner's `THEAD`, and `getHeaderPosition` resolves against that corner (the
+overlay's `getRelativeCellPosition` already adds the clone's own inline start). The row axis has no end headers
+and leaves the hook out. Pinned by `__tests__/axis.unit.js`, `__tests__/resizeGesture.unit.js` and
+`tests/e2e/fixed-columns-end-plugins.spec.ts`.

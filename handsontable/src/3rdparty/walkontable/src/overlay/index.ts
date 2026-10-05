@@ -1,7 +1,10 @@
 export { BottomInlineStartCornerOverlay } from './regions/bottomInlineStartCornerOverlay';
+export { BottomInlineEndCornerOverlay } from './regions/bottomInlineEndCornerOverlay';
 export { BottomOverlay } from './regions/bottomOverlay';
+export { InlineEndOverlay } from './regions/inlineEndOverlay';
 export { InlineStartOverlay } from './regions/inlineStartOverlay';
 export { Overlay } from './regions/_base';
 export { TopInlineStartCornerOverlay } from './regions/topInlineStartCornerOverlay';
+export { TopInlineEndCornerOverlay } from './regions/topInlineEndCornerOverlay';
 export { TopOverlay } from './regions/topOverlay';
 export * from './constants';

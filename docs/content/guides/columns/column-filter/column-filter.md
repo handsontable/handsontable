@@ -1821,18 +1821,39 @@ To use filtering, you need only the following modules:
 - The [base module](@/guides/tools-and-building/modules/modules.md#import-the-base-module)
 - The [`Filters`](@/api/filters.md) module
 - The [`DropdownMenu`](@/api/dropdownMenu.md) module
+- The [`HiddenRows`](@/api/hiddenRows.md) module
+- The [`AutoColumnSize`](@/api/autoColumnSize.md) module
+- The [`CheckboxCellType`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) module
 
 ```js
 // import the base module
 import Handsontable from 'handsontable/base';
 
 // import the filtering plugins
-import { registerPlugin, Filters, DropdownMenu } from 'handsontable/plugins';
+import {
+  registerPlugin,
+  Filters,
+  DropdownMenu,
+  HiddenRows,
+  AutoColumnSize,
+} from 'handsontable/plugins';
+
+// import the checkbox cell type
+import { registerCellType, CheckboxCellType } from 'handsontable/cellTypes';
 
 // register the filtering plugins
 registerPlugin(Filters);
 registerPlugin(DropdownMenu);
+registerPlugin(HiddenRows);
+registerPlugin(AutoColumnSize);
+
+// register the checkbox cell type
+registerCellType(CheckboxCellType);
 ```
+
+The order of the `registerPlugin()` calls doesn't matter. Handsontable checks the required modules
+when you create a Handsontable instance. If a required module isn't registered by then, Handsontable
+throws an error that lists the missing modules.
 
 ## Known limitations
 

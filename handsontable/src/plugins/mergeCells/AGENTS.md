@@ -401,6 +401,49 @@ mirroring the old comparison against `undefined`.
 - **The `TR` `background` property is modified so it can be changed asynchronously later.** Only the alpha
   changes, so it is invisible — the TDs' own background covers it. Do not remove it as dead styling.
 
+## A bottom overlay never holds the origin of a block that crosses `fixedRowsBottom` (DEV-176)
+
+The bottom clone (and `bottom_inline_start_corner` and `bottom_inline_end_corner`) renders only the frozen bottom
+rows. For a block that starts above them, `renderer.ts` `after()` found `notHiddenRow !== row` for every covered cell and hid them
+all with `display: none`, so no TD in the clone carried the span and each row slid one column to the inline
+start, under the wrong header (the `TypeError` in `Border#appear` that the ticket reported was already gone:
+`isHTMLElement(fromTD)` guards it since the TS conversion). The clone's first rendered row now carries the
+span. Three sites agree on that rule, and a fourth lives in Walkontable:
+
+- `renderer.ts` `after()`: the carrier is `max(origin, firstRowOfBottomOverlay)` (`getFirstRowOfActiveBottomOverlay`,
+  `utils.ts`, valid while the overlay draws). **It answers for all three bottom overlays** (`BOTTOM_ROW_OVERLAYS`:
+  `bottom`, `bottom_inline_start_corner`, `bottom_inline_end_corner`). Leaving the end corner out made it fall back to
+  the master's first rendered row, so a block in the `fixedColumnsEnd` columns that crosses `fixedRowsBottom` had
+  every covered cell hidden there and the row slid out of its columns. A new bottom overlay name goes into that list.
+- `cellsCollection.ts` `isFirstRenderableMergedCell()` reads the same row, or the fully-selected-block class
+  (`fullySelectedMergedCell-N`) never reaches the clone's carrier and its fill is dropped.
+- Walkontable `Table#getCell` (`table/cellAccess.ts`): when the hook answers with a block extent that starts
+  before this CLONE's first rendered row but reaches into it, the lookup resolves to that first rendered row.
+  This is why the plugin's `modifyGetCellCoords` needs no bottom-overlay logic, and why it works outside a draw
+  (`hot.getCell(8, 1, true)`, `Event#parentCell` for a press on the clone's `.wtBorder.current`), which a rule
+  keyed on `getActiveOverlayName()` cannot do: that name is `'master'` again once `Overlay#refresh` ends.
+
+- **With `virtualized`, a clone lookup must still get the block's REAL last row.** The `'render'` answer clips
+  the extent to the master's rendered range, which on a long grid ends far above the bottom clone, so
+  `Table#getCell`'s rule (extent reaches the clone) never fired and `hot.getCell(98, 1, true)` found nothing.
+  The `topmost` lookup (only `getCell` asks it, and it reads the first row and column of the answer) returns
+  `bottomEndRow`; the border and master lookups stay clipped. A short fixture hides this, because the master
+  there reaches the frozen rows: the spec uses 100 rows for it.
+- **Never clamp the block's extent.** `Border#resolveMergedBlockEdges` asks the hook for the real extent to tell
+  which edges lie on a freeze line. Clamping it makes the clone draw a closed box with a selection edge on the
+  freeze line, through the block. Only the cell lookup (`getCell`) moves to the clone's first row.
+- **The carrier is emptied** (`empty(getCellContentRoot(TD))` in `after()`). It is painted with the covered
+  cell's own coordinates, so a renderer's output would act on the wrong cell (a checkbox calls
+  `setDataAtCell(8, ...)`, not the origin) and a long wrapped text would size the clone's rows, which are only
+  as tall as a plain row. The master draws the block's content.
+- `#onModifyRowHeightByOverlayName` still skips the bottom overlays on purpose (no height inflation there).
+- Covered by `tests/e2e/merge-cells-frozen-bottom.spec.ts` (both modes; corner overlay; hidden rows; area
+  selection; long text; press on the clone's outline). Its page object reads the outline through
+  `mergedBlockSelection()`, so keep that block in column 1: a block in column 0 has its left edge under the
+  row-header clone's holder and that helper then reports an edge missing for a reason unrelated to this rule.
+- Not changed: a merge that crosses the line is still accepted, and `fixedRowsBottom` moving later (a settings
+  update, a row insert) is handled by the render path, not by validation.
+
 ## The init draw is batched, and four things about it are load-bearing
 
 `#onAfterInit` applies the declared merges between a `suspendRender()` / `resumeRender()` pair (#5687).
@@ -497,6 +540,57 @@ if you drop it:
 Pinned by `__tests__/keyboardShortcuts/arrowLeft.spec.js` / `arrowRight.spec.js` (top-row landing,
 including hidden columns and the multi-merge chain), the unchanged `arrowUp`/`arrowDown` and
 `tab`/`shiftTab` specs (the three exclusions), and `tests/e2e/merge-cells-horizontal-exit.spec.ts`.
+
+## `fixedColumnsEnd`: the end clone draws the part of a merge that crosses the line
+
+The inline-end clone renders only the LAST `fixedColumnsEnd` columns, and the top/bottom end corners render the same
+columns. A merge is anchored at its top-left (lowest visual column, in LTR and RTL alike), so a merge that starts
+in the master and reaches into the band has its anchor OUTSIDE the clone. Every cell of the merge in the clone is a
+covered cell, and without help the renderer hides all of them: the band shows a hole. A merge inside the band, or
+starting on its first column, is anchored in the clone and needs nothing.
+
+- `utils.ts` owns the overlay-name lists. `getFirstRenderedColumnOfOverlay` answers 0 for the start overlays and the
+  first column of the end band (visual, not hidden) for `inline_end` and the two end corners; every other overlay
+  starts where the main table starts. `getFirstRenderedRowOfOverlay` is the row counterpart (the top overlays start at
+  0). `renderer.ts`, `mergeCells.ts` (`modifyGetCellCoords` virtualized clamp) and `cellsCollection.ts`
+  (`isFirstRenderableMergedCell`) all go through them. **Do not add another inline list of overlay names.**
+- **The `to` column of the `virtualized` clamp is per overlay too.** `getLastRenderedColumnOfOverlay` answers the
+  last column of the end band (visual) for the end overlays and the main table's last rendered column for the rest.
+  Reading `hot.getLastRenderedVisibleColumn()` for an end overlay returned a column BEFORE the band whenever the master
+  was scrolled to the start (a merge over 8..10 with a band of 9..11 came back as `[9..8]`: the selection border drew
+  a start edge on the freeze line and the fill handle went to column 8). Pinned by
+  `__tests__/overlayBounds.unit.ts` and `tests/e2e/fixed-columns-end-review3.spec.ts`.
+- `renderer.ts` clamps the merge's anchor column to the first end column on the end overlays EVEN WHEN `virtualized` is
+  off. The rows are clamped only when `virtualized` is on, as before. With `fixedColumnsEnd: 0` nothing changes.
+- The continuation cell is the covered cell of the FIRST end column of the merge's first row, with the `colspan` the
+  renderer already computes from that column (`min(origColspan, columns left)`), so it never reaches past the band.
+  Its text is the merge anchor's, because covered cells resolve to the anchor through `modifyGetCellCoords`.
+- **That same hook is why `Core#getCell(row, endColumn, true)` does not return the continuation.** It resolves the
+  covered coordinates to the anchor, which is a master cell (and is not rendered at all while the master is scrolled
+  away from it). Tests that need the end clone's cell read the clone's DOM. Editors and selection of such a merge go
+  through the anchor, as they do for every merge.
+- `#onModifyRowHeightByOverlayName` treats `top_inline_end_corner` like the top corners and
+  `bottom_inline_end_corner` like the bottom ones (no height inflation there).
+- **A block that crosses `fixedRowsBottom` inside the end columns works the same as on the start side.** The bottom end
+  corner's first row carries the span (`getFirstRowOfActiveBottomOverlay`), with the `colspan` clamped to the band, and
+  the continuation of the inline-end clone, the bottom clone and the master are unchanged. Supported, in LTR and RTL
+  and with `virtualized` on and off: a block anchored in the band that crosses the bottom line (outline and fill
+  handle included), and a block anchored in the master that reaches into the band and into the bottom rows (its cells
+  render correctly in every clone). Pinned by `tests/e2e/merge-cells-frozen-bottom-end.spec.ts`.
+- **Still NOT supported (measured without `fixedRowsBottom` too, in the default mode, so the bottom rows do not cause them):**
+  - A block that covers EVERY column of an end clone (for example `fixedColumnsEnd: 2` and a block over both columns).
+    The rows below its first have no displayed cell in that clone, a table row with none has no height, and the
+    block's cell is one row tall (`rowspan="4"`, 29 px) in the inline-end clone and in the bottom end corner. The row
+    headers keep the rows tall in the master and in the start clones; the end clones have none. Keep one band column
+    that no block covers.
+  - The selection outline of a block anchored in the master that reaches into the band. In the default mode
+    `Table#getCell` resolves the block to a clone's first rendered ROW but not to its first rendered COLUMN
+    (the hook answers the real anchor column), so the end clones draw no outline and no fill handle, and the
+    master's end edge and handle lie under the clone. With `virtualized` the hook clamps the column, the clones draw,
+    but the box has a start edge on the freeze line, through the block. The row-side rule in `Table#getCell` is the
+    model for a column-side one.
+- Pinned by `tests/e2e/fixed-columns-end-headers.spec.ts` (LTR and RTL, `virtualized` on and off) and
+  `__tests__/overlayBounds.unit.ts`.
 
 ## `getSourceDataAtCell` takes a visual column
 

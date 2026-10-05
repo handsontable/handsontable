@@ -3146,6 +3146,28 @@ describe('SheetsBar plugin', () => {
     expect(hot.getSettings().fixedColumnsStart).toBe(2);
   });
 
+  it('does not carry a runtime end freeze onto a sheet that was never visited, and brings it back to its own sheet', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'A', data: [['a', 'b', 'c']] },
+          { name: 'B', data: [['x', 'y', 'z']] },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    hot.updateSettings({ fixedColumnsEnd: 2 });
+    sheetsBar.setActiveSheet('B');
+
+    expect(hot.getSettings().fixedColumnsEnd).toBe(0);
+
+    sheetsBar.setActiveSheet('A');
+
+    expect(hot.getSettings().fixedColumnsEnd).toBe(2);
+  });
+
   it('keeps the freeze a never-visited sheet declares in its own settings', () => {
     hot = new Handsontable(container, {
       sheetsBar: {
@@ -3160,6 +3182,32 @@ describe('SheetsBar plugin', () => {
     hot.getPlugin('sheetsBar').setActiveSheet('B');
 
     expect(hot.getSettings().fixedColumnsStart).toBe(1);
+  });
+
+  it('keeps the end freeze a never-visited sheet declares in its own settings', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'A', data: [['a', 'b', 'c']] },
+          { name: 'B', data: [['x', 'y', 'z']], settings: { fixedColumnsEnd: 1 } },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    sheetsBar.setActiveSheet('B');
+
+    expect(hot.getSettings().fixedColumnsEnd).toBe(1);
+
+    // Back and forth: the visited sheet restores its own captured state, the other one stays unfrozen.
+    sheetsBar.setActiveSheet('A');
+
+    expect(hot.getSettings().fixedColumnsEnd).toBe(0);
+
+    sheetsBar.setActiveSheet('B');
+
+    expect(hot.getSettings().fixedColumnsEnd).toBe(1);
   });
 
   it('keeps the view collections a never-visited sheet declares in its own settings', () => {

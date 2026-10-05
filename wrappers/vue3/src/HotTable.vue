@@ -38,9 +38,9 @@ const HotTable = defineComponent({
   watch: {
     $props: {
       handler(props) {
-        const settings = prepareSettings(props, this.hotInstance ? this.hotInstance.getSettings() : void 0);
+        const settings = prepareSettings(props, this.hotInstance ? this.hotInstance.getSettings() : undefined);
 
-        if (!this.hotInstance || settings === void 0) {
+        if (!this.hotInstance || settings === undefined) {
           return;
         }
 
@@ -207,7 +207,7 @@ const HotTable = defineComponent({
         })
         .map(([, columnSettings]) => columnSettings);
 
-      return orderedColumns.length ? orderedColumns : void 0;
+      return orderedColumns.length ? orderedColumns : undefined;
     },
 
     /**
@@ -248,7 +248,7 @@ const HotTable = defineComponent({
         }
 
         this.columnSettings = newColumnSettings || null;
-        this.hotInstance.updateSettings({ columns: newColumnSettings || void 0 });
+        this.hotInstance.updateSettings({ columns: newColumnSettings || undefined });
       });
     },
   },

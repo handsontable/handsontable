@@ -56,6 +56,30 @@ This plugin is **UI + hiding maps**; the structural logic is in NestedHeaders' `
   dropped on any `columns` update that changed a field.
 - **The indicator press is stopped by setting the grid's `isImmediatePropagationEnabled = false` flag only, never with the `stopImmediatePropagation()` helper from `helpers/dom/event`.** The helper also sets `cancelBubble`, so the press never reaches `document`, where a dropdown menu or context menu listens for the `mousedown` that closes it, and the menu stays open over a group that just collapsed or expanded (DEV-214). The flag alone is enough: `tableView` checks it right after `beforeOnCellMouseDown` and skips selection handling. The helper stays right for callers that really must stop bubbling.
 
+## `fixedColumnsEnd`: no toggle for a group that touches the end band
+
+A group that starts in the `fixedColumnsStart` band gets no toggle (`column >= fixedColumnsStart` in
+`#onAfterGetColHeader`), because collapsing it would change which columns the band covers. The end band follows the
+same rule from the other side: `#reachesFixedColumnsEnd(column, origColspan)` is true when the LAST column of the
+group's AUTHORED range (`column + origColspan - 1`) is in the band, which is the last `hot.view.countFixedColumnsEnd()`
+visual columns. That covers a group inside the band and one that crosses the master/end line.
+
+- **Judge the authored range, never the visible end.** A collapsed group hides its last columns, and a hidden column
+  keeps its slot in the band (the renderer counts the band as the last N VISUAL columns, so the drawn band shrinks).
+  Judging by the nearest not-hidden column made the answer depend on the collapse state: with 12 columns,
+  `fixedColumnsEnd: 2` and a group over 8 to 10 collapsed through the API, the group had a toggle, expanding it put
+  column 10 in the band and the toggle vanished, so it could not be collapsed again from the UI. The count comes from
+  `countFixedColumnsEnd()` (visual, hidden columns included, clamped against `fixedColumnsStart`), not from the
+  Walkontable `fixedColumnsEnd` and `totalColumns` settings, which count renderable columns.
+- `clearButtons()` walks the end clones' header rows on their own (their cells are not index-aligned with the master).
+- **A group that is already collapsed is stranded when `fixedColumnsEnd` is raised so it touches the band.** The
+  check runs on render, so the group loses its toggle and cannot be expanded from the header; its columns stay
+  hidden until the option is lowered again (or the group is expanded through the API). This is the same as for the
+  start band with `fixedColumnsStart`. Not worth a guard: raising the freeze over a collapsed group is a
+  configuration change the application owns.
+- Pinned by `tests/e2e/fixed-columns-end-headers.spec.ts` and `tests/e2e/fixed-columns-end-review4.spec.ts` (LTR and
+  RTL), and by `__tests__/fixedColumnsEnd.unit.ts`.
+
 ## Testing
 
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='collapsibleColumns'`

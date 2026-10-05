@@ -17,7 +17,13 @@ import { getStyle } from '../../helpers/dom/element';
 import { isChrome } from '../../helpers/browser';
 import { FocusOrder, type FocusNodeData } from './focusOrder';
 import { createMergeCellRenderer } from './renderer';
-import { sumCellsHeights, toMergeAreaKey } from './utils';
+import {
+  sumCellsHeights,
+  toMergeAreaKey,
+  getFirstRenderedRowOfOverlay,
+  getFirstRenderedColumnOfOverlay,
+  getLastRenderedColumnOfOverlay,
+} from './utils';
 import { toMergeAreaRange, type MergeAreaGeometry } from '../../utils/mergeAreas';
 import type { CellChange } from '../../settings';
 import { canAccessCellContent } from '../../shortcuts/guards';
@@ -2829,16 +2835,17 @@ export class MergeCells extends BasePlugin {
 
     if (source === 'render' && this.getSetting('virtualized')) {
       const overlayName = this.hot.view.getActiveOverlayName();
-      const firstRenderedRow = ['top', 'top_inline_start_corner']
-        .includes(overlayName) ? 0 : this.hot.getFirstRenderedVisibleRow();
-      const firstRenderedColumn = ['inline_start', 'top_inline_start_corner', 'bottom_inline_start_corner']
-        .includes(overlayName) ? 0 : this.hot.getFirstRenderedVisibleColumn();
+      const firstRenderedRow = getFirstRenderedRowOfOverlay(this.hot, overlayName);
+      const firstRenderedColumn = getFirstRenderedColumnOfOverlay(this.hot, overlayName);
 
       return [
         clamp(firstRenderedRow, topStartRow, bottomEndRow),
         clamp(firstRenderedColumn, topStartColumn, bottomEndColumn),
-        clamp(this.hot.getLastRenderedVisibleRow(), topStartRow, bottomEndRow),
-        clamp(this.hot.getLastRenderedVisibleColumn(), topStartColumn, bottomEndColumn),
+        // A clone's cell lookup (`topmost`) needs the block's real last row: the bottom overlay renders rows
+        // below the master's rendered range, and `Table#getCell` resolves the block to a clone's first row
+        // only when the extent reaches it. The lookup reads the first row and column of the answer only.
+        topmost ? bottomEndRow : clamp(this.hot.getLastRenderedVisibleRow(), topStartRow, bottomEndRow),
+        clamp(getLastRenderedColumnOfOverlay(this.hot, overlayName), topStartColumn, bottomEndColumn),
       ];
     }
 
@@ -3798,7 +3805,9 @@ export class MergeCells extends BasePlugin {
     if (
       this.hot.getSettings().rowHeaders ||
       // merged cells do not work with the bottom overlays
-      overlayType === 'bottom' || overlayType === 'bottom_inline_start_corner'
+      overlayType === 'bottom' ||
+      overlayType === 'bottom_inline_start_corner' ||
+      overlayType === 'bottom_inline_end_corner'
     ) {
       return height;
     }
@@ -3849,7 +3858,11 @@ export class MergeCells extends BasePlugin {
     mergedCellsWithinRange.forEach(({ rowspan }: { rowspan: number }) => {
       let rowspanAfterCorrection = 0;
 
-      if (overlayType === 'top' || overlayType === 'top_inline_start_corner') {
+      if (
+        overlayType === 'top' ||
+        overlayType === 'top_inline_start_corner' ||
+        overlayType === 'top_inline_end_corner'
+      ) {
         rowspanAfterCorrection = Math.min(maxRowspan, this.hot.view.countNotHiddenFixedRowsTop() - row);
       } else {
         rowspanAfterCorrection = rowspan - rowspanCorrection;

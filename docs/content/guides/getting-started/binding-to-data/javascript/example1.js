@@ -6,12 +6,11 @@ registerAllModules();
 
 const container = document.querySelector('#example1');
 const data = [
-  ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
-  ['2017', 110, 11, 12, 13, 15, 16],
-  ['2018', 10, 11, 12, 13, 15, 16],
-  ['2019', 10, 11, 12, 13, 15, 16],
-  ['2020', 10, 11, 12, 13, 15, 16],
-  ['2021', 10, 11, 12, 13, 15, 16],
+  ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods', 'Drinkware', 'Seattle'],
+  ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.', 'Electronics', 'Denver'],
+  ['SKU-1170', 'Ergonomic Office Chair', 'Cascade Distributors', 'Furniture', 'Portland'],
+  ['SKU-2208', 'USB-C Charging Cable', 'Summit Trading', 'Electronics', 'Austin'],
+  ['SKU-3341', 'Aluminum Water Filter', 'Northgate Wholesale', 'Drinkware', 'Minneapolis'],
 ];
 
 new Handsontable(container, {
@@ -20,7 +19,7 @@ new Handsontable(container, {
   startCols: 5,
   height: 'auto',
   width: 'auto',
-  colHeaders: true,
+  colHeaders: ['SKU', 'Product', 'Supplier', 'Category', 'Warehouse'],
   autoWrapRow: true,
   autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',

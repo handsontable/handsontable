@@ -102,6 +102,7 @@ describe('ScrollSync#getCloneScrollTarget', () => {
     const topOverlay = createOverlay();
     const bottomOverlay = createOverlay();
     const inlineStartOverlay = createOverlay();
+    const inlineEndOverlay = createOverlay();
     const deps = {
       rootWindow,
       wtTable: {
@@ -119,6 +120,7 @@ describe('ScrollSync#getCloneScrollTarget', () => {
       getDestroyed: () => false,
       getTopOverlay: () => topOverlay,
       getInlineStartOverlay: () => inlineStartOverlay,
+      getInlineEndOverlay: () => inlineEndOverlay,
       getBottomOverlay: () => bottomOverlay,
       getWtViewport: () => ({
         resetAllOversizedRows: () => {},
@@ -131,6 +133,7 @@ describe('ScrollSync#getCloneScrollTarget', () => {
       topHolder: topOverlay.clone.wtTable.holder,
       bottomHolder: bottomOverlay.clone.wtTable.holder,
       inlineStartHolder: inlineStartOverlay.clone.wtTable.holder,
+      inlineEndHolder: inlineEndOverlay.clone.wtTable.holder,
     };
   };
 
@@ -141,7 +144,7 @@ describe('ScrollSync#getCloneScrollTarget', () => {
   });
 
   it('should record the offset written to each clone holder after a render-state change', () => {
-    const { scrollSync, topHolder, bottomHolder, inlineStartHolder } =
+    const { scrollSync, topHolder, bottomHolder, inlineStartHolder, inlineEndHolder } =
       createScrollSync({ scrollTop: 300, scrollLeft: 120 });
 
     scrollSync.setRenderingStateChanged(true);
@@ -150,6 +153,8 @@ describe('ScrollSync#getCloneScrollTarget', () => {
     expect(scrollSync.getCloneScrollTarget(topHolder)).toEqual({ top: 0, left: 120 });
     expect(scrollSync.getCloneScrollTarget(bottomHolder)).toEqual({ top: 0, left: 120 });
     expect(scrollSync.getCloneScrollTarget(inlineStartHolder)).toEqual({ top: 300, left: 0 });
+    // The end columns hold the same rows as the start ones: the vertical offset only.
+    expect(scrollSync.getCloneScrollTarget(inlineEndHolder)).toEqual({ top: 300, left: 0 });
   });
 
   it('should write nothing, and record nothing, while the render state is unchanged', () => {

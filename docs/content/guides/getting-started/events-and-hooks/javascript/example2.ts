@@ -8,12 +8,13 @@ let lastChange: (Handsontable.CellChange | null)[] | null = null;
 const container = document.querySelector('#example2')!;
 const hot = new Handsontable(container, {
   data: [
-    ['Tesla', 2017, 'black', 'black'],
-    ['Nissan', 2018, 'blue', 'blue'],
-    ['Chrysler', 2019, 'yellow', 'black'],
-    ['Volvo', 2020, 'yellow', 'gray'],
+    ['SKU-4821', 'Stainless Steel Water Bottle', 'Drinkware', 'Seattle'],
+    ['SKU-0093', 'Wireless Mouse', 'Electronics', 'Denver'],
+    ['SKU-1170', 'Ergonomic Office Chair', 'Furniture', 'Portland'],
+    ['SKU-2208', 'USB-C Charging Cable', 'Electronics', 'Austin'],
+    ['SKU-3341', 'Aluminum Water Filter', 'Drinkware', 'Minneapolis'],
   ],
-  colHeaders: true,
+  colHeaders: ['SKU', 'Product', 'Category', 'Warehouse'],
   rowHeaders: true,
   height: 'auto',
   minSpareRows: 1,

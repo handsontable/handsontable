@@ -1260,6 +1260,8 @@ export class CustomBorders extends BasePlugin {
     const fixedColumnsStart = Number(settings.fixedColumnsStart) || 0;
     const totalRows = this.hot.countRows();
     const totalColumns = this.hot.countCols();
+    // The start columns have priority over the end ones when the two bands would overlap.
+    const fixedColumnsEnd = this.hot.view.countFixedColumnsEnd();
     const rowRanges = getViewportUnionRanges(firstRow, lastRow, fixedRowsTop, fixedRowsBottom, totalRows);
     const shouldBeVisible = new Set<string>();
 
@@ -1272,7 +1274,9 @@ export class CustomBorders extends BasePlugin {
         }
 
         arrayEach(rowBorders, (border) => {
-          if (isIndexInViewportUnion(border.col, firstColumn, lastColumn, fixedColumnsStart, 0, totalColumns)) {
+          if (isIndexInViewportUnion(
+            border.col, firstColumn, lastColumn, fixedColumnsStart, fixedColumnsEnd, totalColumns
+          )) {
             shouldBeVisible.add(border.id);
 
             if (!this.#customSelectionsCache.has(border.id)) {

@@ -10,7 +10,7 @@ import type RowUtils from '../axisSizing/rowUtils';
 import type ColumnUtils from '../axisSizing/columnUtils';
 import type { StylesHandler } from '../types';
 import { applyRowHeight } from './exactRowHeight';
-import { CLONE_INLINE_START } from '../overlay/constants';
+import { CLONE_INLINE_END, CLONE_INLINE_START } from '../overlay/constants';
 
 /**
  * Asked for every cell in the rendered band before the cell element is reset and painted.
@@ -202,7 +202,7 @@ export class TableRenderer {
   /**
    * Holds the name of the currently active overlay.
    *
-   * @type {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|'master'}
+   * @type {'inline_start'|'inline_end'|'top'|'top_inline_start_corner'|'top_inline_end_corner'|'bottom'|'bottom_inline_start_corner'|'bottom_inline_end_corner'|'master'}
    */
   declare activeOverlayName: string;
   /**
@@ -289,7 +289,7 @@ export class TableRenderer {
   /**
    * Sets the overlay that is currently rendered. If `null` is provided, the master overlay is set.
    *
-   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|'master'} overlayName The overlay name.
+   * @param {'inline_start'|'inline_end'|'top'|'top_inline_start_corner'|'top_inline_end_corner'|'bottom'|'bottom_inline_start_corner'|'bottom_inline_end_corner'|'master'} overlayName The overlay name.
    */
   setActiveOverlayName(overlayName: string) {
     this.activeOverlayName = overlayName;
@@ -528,31 +528,76 @@ export class TableRenderer {
   }
 
   /**
+   * Returns the renderable index of the first of the frozen end columns, or `Infinity` when none is
+   * frozen. Draw-constant, for the same reason as {@link TableRenderer#getFixedColumnsStart}.
+   *
+   * @returns {number}
+   */
+  getFirstFixedEndColumn(): number {
+    const { wtSettings } = this.rowUtils!;
+    const fixedColumnsEnd = wtSettings.getSetting<number>('fixedColumnsEnd');
+
+    return fixedColumnsEnd > 0 ? wtSettings.getSetting<number>('totalColumns') - fixedColumnsEnd : Infinity;
+  }
+
+  /**
+   * Returns the 1-based `aria-colindex` of a column header cell. A column header names its column by
+   * its place in the grid (row headers counted in), exactly as the body cells of that column do, in
+   * every table: counted from the table's own first rendered cell, the headers of a scrolled master or
+   * top clone, or of an end clone, would all claim the first columns, and a screen reader would meet
+   * two headers with different indexes for one column. A row header cell of the header row keeps the
+   * position it has in the row.
+   *
+   * @param {number} visibleColumnIndex The cell's index in the rendered header row (row headers included).
+   * @param {number} sourceColumnIndex The rendered (renderable) column index, or a negative number for
+   *                                   a row header cell.
+   * @returns {number}
+   */
+  getAriaColumnHeaderIndex(visibleColumnIndex: number, sourceColumnIndex: number): number {
+    if (sourceColumnIndex >= 0) {
+      const rowHeadersCount = (this.rowUtils?.deps?.getRowHeaders() as Function[])?.length ?? 0;
+
+      return sourceColumnIndex + rowHeadersCount + 1;
+    }
+
+    return visibleColumnIndex + 1;
+  }
+
+  /**
    * Returns `true` when the currently rendered overlay is the single owner of the `aria-describedby`
    * id for the given column, so exactly one header in the whole grid carries it. A frozen
-   * (inline-start) column is owned by the inline-start overlay, which always renders it; every other
-   * column is owned by the master. The master also renders the frozen columns at horizontal offset 0,
-   * so it must decline them there to avoid a duplicate id; the sticky clones (top, bottom, corners)
-   * never own an id - they are duplicate copies of a header the master or the inline-start overlay
-   * already carries.
+   * (inline-start) column is owned by the inline-start overlay, which always renders it, and a frozen
+   * end column by the inline-end overlay; every other column is owned by the master. The master also
+   * renders the frozen columns when the band reaches them, so it must decline them there to avoid a
+   * duplicate id; the sticky clones (top, bottom, corners) never own an id - they are duplicate copies
+   * of a header the master or an inline overlay already carries.
    *
    * @param {number} sourceColumnIndex The rendered (renderable) column index.
    * @param {number} fixedColumnsStart The number of frozen start columns, read once per draw by the
    *                                   caller - in core it is a function that walks the index mapper, so
    *                                   it must not be read per header cell.
+   * @param {number} [firstFixedEndColumn=Infinity] The index of the first frozen end column, read once
+   *                                   per draw by the caller (see {@link TableRenderer#getFirstFixedEndColumn}).
    * @returns {boolean}
    */
-  ownsAriaColumnHeaderId(sourceColumnIndex: number, fixedColumnsStart: number): boolean {
-    const isFrozenColumn = sourceColumnIndex < fixedColumnsStart;
+  ownsAriaColumnHeaderId(
+    sourceColumnIndex: number, fixedColumnsStart: number, firstFixedEndColumn = Infinity
+  ): boolean {
+    const isFrozenStartColumn = sourceColumnIndex < fixedColumnsStart;
+    const isFrozenEndColumn = sourceColumnIndex >= firstFixedEndColumn;
 
     if (this.activeOverlayName === CLONE_INLINE_START) {
-      return isFrozenColumn;
+      return isFrozenStartColumn;
+    }
+
+    if (this.activeOverlayName === CLONE_INLINE_END) {
+      return isFrozenEndColumn;
     }
 
     // 'master' is the master table's own name (`baseTable.ts`); it is not a clone type, so there is no
     // `CLONE_*` constant for it.
     if (this.activeOverlayName === 'master') {
-      return !isFrozenColumn;
+      return !isFrozenStartColumn && !isFrozenEndColumn;
     }
 
     return false;

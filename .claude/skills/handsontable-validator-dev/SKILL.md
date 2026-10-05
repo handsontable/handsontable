@@ -13,7 +13,7 @@ Validators use the **callback pattern** and must always invoke the callback:
 ```js
 function myValidator(value, callback) {
   // `this` is bound to the cell's cellProperties object
-  if (this.allowEmpty && (value === null || value === void 0 || value === '')) {
+  if (this.allowEmpty && (value === null || value === undefined || value === '')) {
     return callback(true);
   }
   callback(isValid(value)); // true = valid, false = invalid
