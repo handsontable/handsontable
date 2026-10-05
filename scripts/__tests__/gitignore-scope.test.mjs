@@ -1,11 +1,13 @@
 /**
  * Pins what the ignore rules that apply to the core package match: no tracked file of the package, none of the
- * probes for new sources below, and no dev page or `quality/` directory in another package, but every output below.
+ * probes for new sources below, and none of the paths outside the package that the anchoring uncovered, but every
+ * output listed below. The outputs cover each rule of `handsontable/.gitignore` except `node_modules/` and
+ * `npm-debug.log`, which the root `.gitignore` shadows with rules of its own.
  *
  * `handsontable/.gitignore` has rules for what exists only at the package root: the output directories of the builds
  * and the tests, such as `dist/`, `tmp/`, `languages/`, and `coverage/`, and the local dev pages, `dev*.html`,
  * `dev*.js`, and `dev*.ts`. The monorepo root's `.gitignore` has `dev*.html` and `dev*.js` of its own, left over from
- * when the repository root was the package root, and `quality/`, a local planning scaffold at the repository root.
+ * when the repository root was the package root, and a `quality/` rule meant for the repository root.
  * Git applies a rule with no slash, or only a trailing one, at every depth. So until these rules gained a leading
  * slash, `languages/` matched all 21 dictionaries and the barrel in `handsontable/src/i18n/languages/`, and `dev*.js`
  * matched `handsontable/.config/development.js`. A tracked file stays tracked whatever the rules say, but a new one
@@ -75,19 +77,16 @@ const NEW_SOURCES = [
   'handsontable/src/quality/index.ts',
   'handsontable/src/plugins/quality/index.ts',
 ];
-// What lands at a root and must stay ignored. The UMD bundles land in `dist/`, with the languages and the themes in
-// directories of their own; the ES and CJS modules, the type declarations, and the composed package in `tmp/`; the stub
-// scripts of the stylesheet builds in `tmp_styles/`; the stylesheets in `styles/`; and Jest's coverage, with its HTML
-// report, in `coverage/`. A path inside a subdirectory makes a rule narrowed to the top of its directory fail too: the
-// release jobs commit the tree with a bare `git add .` after they build. `build:languages` writes the UMD files and
-// copies `all.js` to `index.js`, and `build:languages.es` writes the `.mjs` files. No build has ever written `es/` or
-// `commonjs/` in the package: the ES and CJS builds moved to `tmp/` in January 2021, while the repository root was the
-// package root, but `clean` still removes both. `evals/score.mjs --mutate` runs Stryker from the package root, so its
-// temporary directory and its reports land there, and the root's own rule covers a report from a run started at the
-// repository root. The `handsontable-demo-page` skill writes `dev-pr.html` and `dev-latest.html` (`dev-generated.html`
-// is a name it used before). The rest are manual scratch files, at the package root and at the repository root, which
-// also holds the `quality/` planning scaffold.
+// What lands at a root and must stay ignored. A file in a subdirectory of `dist/`, `tmp/`, or `coverage/` fails a rule
+// narrowed to the files at the top of its directory, such as `/dist/*.js` or `/dist/*.*`, and the second report in
+// `reports/mutation/` fails one narrowed to a single report. (`/dist/*` still ignores the subdirectories, so it
+// rightly passes.) `build:languages` writes the UMD files and copies `all.js` to `index.js`, and `build:languages.es`
+// writes the `.mjs` files. The `handsontable-demo-page` skill writes
+// `dev-pr.html` and `dev-latest.html` (`dev-generated.html` is a name it used before). The rest are manual scratch
+// files, at the package root and at the repository root.
 const ROOT_OUTPUTS = [
+  'handsontable/.eslintcache',
+  'handsontable/.stylelintcache',
   'handsontable/dist/handsontable.full.min.js',
   'handsontable/dist/languages/de-DE.js',
   'handsontable/dist/themes/main.js',
@@ -117,20 +116,36 @@ const ROOT_OUTPUTS = [
   'dev.js',
   'quality/notes.md',
 ];
-// Outputs below the package root. `dist/` matched them too while it had no leading slash, so each now stays ignored
-// only through the rule that names its own path: the E2E bundles, and the bundles Walkontable builds and tests with.
-const NESTED_OUTPUTS = [
-  'handsontable/test/dist/main.entry.6ae95f90.js',
-  'handsontable/src/3rdparty/walkontable/dist/walkontable.js',
-  'handsontable/src/3rdparty/walkontable/test/dist/main.entry.js',
-];
-// The root rules cover the repository root only, so a dev page at another package's root, or a `quality/` directory in
-// another package, shows in `git status`. Those are the only things the anchoring changed outside the core, and
-// nothing writes either today.
+// Outputs below the package root, each with the rule of `handsontable/.gitignore` that names its path. `dist/` also
+// matched the E2E and Walkontable bundles while it had no leading slash, so the test checks that each output is
+// ignored by its own rule, not just by some rule. The E2E files carry the run id of a run with no pattern.
+const NESTED_OUTPUTS = {
+  'handsontable/test/dist/main.entry.6ae95f90.js': 'test/dist/',
+  'handsontable/test/E2ERunner.html': 'test/E2ERunner.html',
+  'handsontable/test/E2ERunner-6ae95f90.html': 'test/E2ERunner-*.html',
+  'handsontable/test/e2e-results/failed-specs-6ae95f90.json': 'test/e2e-results/',
+  'handsontable/test/UnitRunner.html': 'test/UnitRunner.html',
+  'handsontable/test/MobileRunner.html': 'test/MobileRunner.html',
+  'handsontable/src/3rdparty/walkontable/dist/walkontable.js': 'src/3rdparty/walkontable/dist/',
+  'handsontable/src/3rdparty/walkontable/test/dist/main.entry.js': 'src/3rdparty/walkontable/test/dist/',
+  'handsontable/src/3rdparty/walkontable/test/SpecRunner.html': 'src/3rdparty/walkontable/test/SpecRunner.html',
+  'handsontable/src/styles/handsontableStyles.js': 'src/styles/handsontableStyles.js',
+  'handsontable/src/styles/handsontableStyles.ts': 'src/styles/handsontableStyles.ts',
+  'handsontable/scripts/themes/figma/tokens.json': 'scripts/themes/figma/tokens.json',
+};
+// The root rules cover the repository root only. Before they gained a leading slash they matched at every depth, so
+// outside the core package a `dev*.html` or `dev*.js` file and a `quality/` directory now show in `git status` wherever
+// they are: at another package's root and deeper, in `docs/`, `examples/`, and `visual-tests/` too. Those are the
+// only things the anchoring changed outside the core, and nothing writes them today.
 const OTHER_PACKAGE_PATHS = [
   'wrappers/react-wrapper/dev.html',
   'wrappers/react-wrapper/dev.js',
+  'visual-tests/lib/dev-server.js',
+  'docs/content/guides/dev-notes.html',
+  'examples/next/docs/js/demo/src/dev.js',
   'wrappers/react-wrapper/quality/notes.md',
+  'wrappers/react-wrapper/src/quality/index.ts',
+  'docs/quality/notes.md',
 ];
 
 /**
@@ -220,7 +235,7 @@ before(() => {
   coreFiles = listFiles(['--', 'handsontable']);
   rules = ignoringRules(
     ignoreFiles,
-    [...coreFiles, ...NEW_SOURCES, ...ROOT_OUTPUTS, ...NESTED_OUTPUTS, ...OTHER_PACKAGE_PATHS],
+    [...coreFiles, ...NEW_SOURCES, ...ROOT_OUTPUTS, ...Object.keys(NESTED_OUTPUTS), ...OTHER_PACKAGE_PATHS],
   );
 });
 
@@ -238,9 +253,15 @@ NEW_SOURCES.forEach((file) => {
   });
 });
 
-[...ROOT_OUTPUTS, ...NESTED_OUTPUTS].forEach((file) => {
+ROOT_OUTPUTS.forEach((file) => {
   test(`${file} stays ignored`, () => {
     assert.match(rules.get(file) ?? '', /\S/);
+  });
+});
+
+Object.entries(NESTED_OUTPUTS).forEach(([file, pattern]) => {
+  test(`${file} stays ignored by its own rule, ${pattern}`, () => {
+    assert.equal(rules.get(file), `handsontable/.gitignore:${pattern}`);
   });
 });
 
