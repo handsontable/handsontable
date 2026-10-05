@@ -237,9 +237,11 @@ project. It includes 1 license:
 
 Pass the whole key string, exactly as you received it, in the same
 [`licenseKey`](@/api/options.md#licensekey) option. The key text contains double quotes (around the
-project name) and can contain apostrophes (in a company name), so keep the key in a variable, written
-as a template literal (in backticks), or read it from your configuration. Do not paste it into a
-quoted string or a quoted HTML attribute - the first quote inside the key ends the value there.
+project name) and can contain apostrophes (in a company name), so do not paste it into a quoted
+string or a quoted HTML attribute - the first quote inside the key ends the value there. Read the key
+from your configuration, or write it as a template literal (in backticks), as in the examples below.
+A template literal works as long as the key text contains no backtick and no `${`; if it does, read
+the key from your configuration.
 
 ::: only-for javascript
 
@@ -299,9 +301,11 @@ there - only whitespace, or line breaks saved as `\n`, may follow the block. Spa
 breaks around the whole key are trimmed for you, so a key pasted with a trailing newline still works.
 
 When you store the key in an environment variable, a `.env` file, or a CI secret, put it on one
-line. A key with line breaks in an unquoted `.env` value keeps only its first line, and a quote
-character inside the key can end a quoted value early. Never change any other character of the key,
-for example by replacing straight quotes with curly ones.
+line. In a `.env` file, also wrap the key in single quotes (`'...'`), or in backticks if the key text
+contains an apostrophe. Without quotes, a line break or a ` #` in the key cuts the value short, and
+double quotes end at the first double quote inside the key. Do not escape the quotes inside the key
+(`\"`) - the backslashes stay in the value, and the key becomes invalid. Never change any other
+character of the key, for example by replacing straight quotes with curly ones.
 
 Each license behaves differently around its date:
 

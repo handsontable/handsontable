@@ -226,6 +226,36 @@ describe('entitlementLicenseKey/extractKeyData', () => {
       });
     });
 
+    // The expected verdicts below come from the license-key validator at 75154d2, run on the same
+    // variants of this generated key. They pin the reader to the generator: `buildTestKey` checksums
+    // with this reader's own `canonicalizeProse`, so it would agree with any change to it.
+    it('should ignore exactly the whitespace characters the generator ignores', () => {
+      const prose = proseOf(SUBSCRIPTION_KEY);
+      const block = blockOf(SUBSCRIPTION_KEY);
+      const ignored = [0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x20, 0xa0, 0x1680, 0x2000, 0x2001, 0x2002, 0x2003,
+        0x2004, 0x2005, 0x2006, 0x2007, 0x2008, 0x2009, 0x200a, 0x2028, 0x2029, 0x202f, 0x205f, 0x3000, 0xfeff];
+      // NEXT LINE, MONGOLIAN VOWEL SEPARATOR, ZERO WIDTH SPACE, and WORD JOINER are not in the set.
+      const kept = [0x85, 0x180e, 0x200b, 0x2060];
+      const variant = code => prose.replace(/ /g, String.fromCharCode(code)) + block;
+
+      ignored.forEach((code) => {
+        expect(extractEntitlementKeyData(variant(code))).toEqual(expected());
+      });
+      kept.forEach((code) => {
+        expect(extractEntitlementKeyData(variant(code))).toBeNull();
+      });
+    });
+
+    it('should remove a line break saved as text before the whitespace, not after it', () => {
+      const prose = proseOf(SUBSCRIPTION_KEY);
+      const block = blockOf(SUBSCRIPTION_KEY);
+
+      // "\n" is removed; "\ n" is not, because the space is only removed after the escapes are.
+      expect(extractEntitlementKeyData(prose.replace('Test Fixture', 'Test \\nFixture') + block))
+        .toEqual(expected());
+      expect(extractEntitlementKeyData(prose.replace('Test Fixture', 'Test \\ nFixture') + block)).toBeNull();
+    });
+
     it('should read a key whose line breaks were saved as text, as some .env files and CI secrets do', () => {
       const prose = proseOf(SUBSCRIPTION_KEY);
       const block = blockOf(SUBSCRIPTION_KEY);
