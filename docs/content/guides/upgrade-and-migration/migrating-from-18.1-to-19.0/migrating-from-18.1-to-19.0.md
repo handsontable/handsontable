@@ -1508,7 +1508,8 @@ by name.
 What changed: the cells a merge covers are written with formatting, so a merged block's border and
 fill reach every edge in every spreadsheet application. A covered cell with no formatting of its
 own takes the master cell's formatting. A covered cell with formatting of its own, such as one in a
-`numeric` column, keeps its lock and number format and takes the master's border and fill. In 18.1,
+`numeric` column, keeps its lock, number format and its own border sides, and takes the master's
+fill and the master's border sides on top. In 18.1,
 ExcelJS skipped the master's style for every covered cell of a merge over a `numeric` column, so
 LibreOffice drew the block without its right edge.
 

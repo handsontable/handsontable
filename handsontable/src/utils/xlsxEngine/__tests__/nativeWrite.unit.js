@@ -4,6 +4,7 @@
 import ExcelJS from 'exceljs';
 import Encryptor from 'exceljs/lib/utils/encryptor';
 import { nativeAdapter } from '../adapters/native';
+import { excelJsAdapter } from '../adapters/exceljs';
 import { readZip } from '../adapters/native/zip/reader';
 import * as protection from '../adapters/native/parts/protection';
 import { DroppedFeatures } from '../capabilities';
@@ -177,6 +178,31 @@ describe('nativeAdapter.write', () => {
     expect(ws.getCell('B2').border).toEqual(border);
     expect(ws.getCell('B2').numFmt).toBe('0.00');
     expect(ws.getCell('C2').border).toEqual(border);
+  });
+
+  it('should keep the sides of a covered cell\'s own border the master does not carry, on both writers', async() => {
+    // A border drawn around a whole merged range gives the master its top, bottom and left, and the
+    // last covered cell its own right. Taking the master's border wholesale lost that right edge.
+    const thin = { style: 'thin' };
+    const build = () => snapshotWith((b) => {
+      b.cell(1, 1).value = 'm';
+      b.cell(1, 1).style = {
+        alignment: null, font: null, fill: null, border: { top: thin, bottom: thin, left: thin },
+      };
+      b.cell(1, 2).numFmt = '0.00';
+      b.cell(1, 2).style = {
+        alignment: null, font: null, fill: null, border: { top: thin, bottom: thin, right: thin },
+      };
+      b.merge(1, 1, 1, 2);
+    });
+    const native = (await writeAndLoad(build())).workbook.worksheets[0];
+    const viaExcelJs = new ExcelJS.Workbook();
+
+    await viaExcelJs.xlsx.load(await excelJsAdapter.write(build(), ExcelJS, new DroppedFeatures()));
+
+    [native, viaExcelJs.worksheets[0]].forEach((ws) => {
+      expect(ws.getCell('B1').border).toEqual({ top: thin, bottom: thin, left: thin, right: thin });
+    });
   });
 
   it('should keep the merge master value and skip an overlapping merge with a report', async() => {

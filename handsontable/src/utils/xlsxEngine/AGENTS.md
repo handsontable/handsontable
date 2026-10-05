@@ -750,8 +750,10 @@ directions.
   cells. LibreOffice, SheetJS and both readers here fill the gap in, so no round trip could see it;
   the XML-level tests in `nativeParts.unit.js` pin it. The rule: an UNFORMATTED covered cell takes the
   master's whole formatting (what ExcelJS's `mergeCells` copies); a FORMATTED one (a style, a lock
-  or a number format - every covered cell of a `numeric` column is one) keeps its own and takes only
-  the master's border and fill. The ExcelJS adapter applies it through `mergeKeepingOwnFormatting`
+  or a number format - every covered cell of a `numeric` column is one) keeps its own and takes the
+  master's fill and border on top of it, the border merged SIDE BY SIDE with the master's side
+  winning: a box drawn around the whole range puts its right edge on the last covered cell itself,
+  and taking the master's border wholesale lost it. The ExcelJS adapter applies it through `mergeKeepingOwnFormatting`
   after `mergeCellsWithoutStyle`, because `mergeCells` would overwrite the covered cell's lock.
 - **`horizontal="general"` reads as no alignment, and so does a `vertical="bottom"` beside it**
   (`readAlignment`, `parts/styles.ts`). LibreOffice writes that pair on every `xf`, so a plain
