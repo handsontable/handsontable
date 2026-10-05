@@ -344,6 +344,46 @@ mirroring the old comparison against `undefined`.
 - **The `TR` `background` property is modified so it can be changed asynchronously later.** Only the alpha
   changes, so it is invisible — the TDs' own background covers it. Do not remove it as dead styling.
 
+## A bottom overlay never holds the origin of a block that crosses `fixedRowsBottom` (DEV-176)
+
+The bottom clone (and `bottom_inline_start_corner`) renders only the frozen bottom rows. For a block that
+starts above them, `renderer.ts` `after()` found `notHiddenRow !== row` for every covered cell and hid them
+all with `display: none`, so no TD in the clone carried the span and each row slid one column to the inline
+start, under the wrong header (the `TypeError` in `Border#appear` that the ticket reported was already gone:
+`isHTMLElement(fromTD)` guards it since the TS conversion). The clone's first rendered row now carries the
+span. Three sites agree on that rule, and a fourth lives in Walkontable:
+
+- `renderer.ts` `after()`: the carrier is `max(origin, firstRowOfBottomOverlay)` (`getFirstRowOfActiveBottomOverlay`,
+  `utils.ts`, valid while the overlay draws).
+- `cellsCollection.ts` `isFirstRenderableMergedCell()` reads the same row, or the fully-selected-block class
+  (`fullySelectedMergedCell-N`) never reaches the clone's carrier and its fill is dropped.
+- Walkontable `Table#getCell` (`table/cellAccess.ts`): when the hook answers with a block extent that starts
+  before this CLONE's first rendered row but reaches into it, the lookup resolves to that first rendered row.
+  This is why the plugin's `modifyGetCellCoords` needs no bottom-overlay logic, and why it works outside a draw
+  (`hot.getCell(8, 1, true)`, `Event#parentCell` for a press on the clone's `.wtBorder.current`), which a rule
+  keyed on `getActiveOverlayName()` cannot do: that name is `'master'` again once `Overlay#refresh` ends.
+
+- **With `virtualized`, a clone lookup must still get the block's REAL last row.** The `'render'` answer clips
+  the extent to the master's rendered range, which on a long grid ends far above the bottom clone, so
+  `Table#getCell`'s rule (extent reaches the clone) never fired and `hot.getCell(98, 1, true)` found nothing.
+  The `topmost` lookup (only `getCell` asks it, and it reads the first row and column of the answer) returns
+  `bottomEndRow`; the border and master lookups stay clipped. A short fixture hides this, because the master
+  there reaches the frozen rows: the spec uses 100 rows for it.
+- **Never clamp the block's extent.** `Border#resolveMergedBlockEdges` asks the hook for the real extent to tell
+  which edges lie on a freeze line. Clamping it makes the clone draw a closed box with a selection edge on the
+  freeze line, through the block. Only the cell lookup (`getCell`) moves to the clone's first row.
+- **The carrier is emptied** (`empty(getCellContentRoot(TD))` in `after()`). It is painted with the covered
+  cell's own coordinates, so a renderer's output would act on the wrong cell (a checkbox calls
+  `setDataAtCell(8, ...)`, not the origin) and a long wrapped text would size the clone's rows, which are only
+  as tall as a plain row. The master draws the block's content.
+- `#onModifyRowHeightByOverlayName` still skips the bottom overlays on purpose (no height inflation there).
+- Covered by `tests/e2e/merge-cells-frozen-bottom.spec.ts` (both modes; corner overlay; hidden rows; area
+  selection; long text; press on the clone's outline). Its page object reads the outline through
+  `mergedBlockSelection()`, so keep that block in column 1: a block in column 0 has its left edge under the
+  row-header clone's holder and that helper then reports an edge missing for a reason unrelated to this rule.
+- Not changed: a merge that crosses the line is still accepted, and `fixedRowsBottom` moving later (a settings
+  update, a row insert) is handled by the render path, not by validation.
+
 ## The init draw is batched, and four things about it are load-bearing
 
 `#onAfterInit` applies the declared merges between a `suspendRender()` / `resumeRender()` pair (#5687).

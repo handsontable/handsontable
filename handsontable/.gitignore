@@ -9,13 +9,17 @@ test/dist/
 src/3rdparty/walkontable/test/SpecRunner.html
 src/3rdparty/walkontable/test/dist/
 src/3rdparty/walkontable/dist/
-dev*.html
-dev*.js
-dev*.ts
+# The dev pages here and the build's `languages/` output below exist at the package root only, so
+# their rules start with a slash. Git applies a rule with no slash, or only a trailing one, at every
+# depth, where these would also match sources such as `src/i18n/languages/xx-XX.ts` and keep new
+# ones out of `git status`. Pinned by the repository's scripts/__tests__/gitignore-scope.test.mjs.
+/dev*.html
+/dev*.js
+/dev*.ts
 npm-debug.log
 
 dist/
-languages/
+/languages/
 node_modules/
 commonjs/
 es/
@@ -25,6 +29,9 @@ tmp_styles/
 /styles/
 src/styles/handsontableStyles.js
 src/styles/handsontableStyles.ts
+# The reports of a mutation run: `evals/score.mjs --mutate` runs Stryker from this directory, and the
+# root's `reports/mutation/` matches the repository root only.
+/reports/mutation/
 
 # Figma "Design Tokens" plugin export consumed by scripts/themes/figma (user-provided)
 scripts/themes/figma/tokens.json

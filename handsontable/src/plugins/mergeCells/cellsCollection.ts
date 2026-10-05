@@ -6,7 +6,11 @@ import { warn } from '../../helpers/console';
 import { arrayEach } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import type { MergeCells } from './mergeCells';
-import { getFirstRenderedRowOfOverlay, getFirstRenderedColumnOfOverlay } from './utils';
+import {
+  getFirstRowOfActiveBottomOverlay,
+  getFirstRenderedRowOfOverlay,
+  getFirstRenderedColumnOfOverlay,
+} from './utils';
 
 /**
  * Defines a container object for the merged cells.
@@ -402,7 +406,9 @@ class MergedCellsCollection {
       colspan,
     } = mergeParent;
     const overlayName = this.hot.view.getActiveOverlayName() as string;
-    const firstRenderedRow = getFirstRenderedRowOfOverlay(this.hot, overlayName);
+    // A bottom overlay renders from its own first row, the same row that carries the span in `renderer.ts`.
+    const firstRenderedRow = getFirstRowOfActiveBottomOverlay(this.hot) ??
+      getFirstRenderedRowOfOverlay(this.hot, overlayName);
     const firstRenderedColumn = getFirstRenderedColumnOfOverlay(this.hot, overlayName);
 
     const mergeCellsTopRow = clamp(firstRenderedRow, mergeRow, mergeRow + rowspan - 1);

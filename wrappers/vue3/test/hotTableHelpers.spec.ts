@@ -52,8 +52,8 @@ describe('prepareSettings', () => {
     expect(preparedSettings.data).toEqual([[1, 2], [3, 4]]);
     expect(preparedSettings.beforeChange([], 'auto')).toBe(true);
     expect(preparedSettings.beforeRemoveCellClassNames()).toEqual(['beforeRemoveCellClassNamesResult']);
-    expect(preparedSettings.id).toBe(void 0);
-    expect(preparedSettings.settings).toBe(void 0);
+    expect(preparedSettings.id).toBe(undefined);
+    expect(preparedSettings.settings).toBe(undefined);
   });
 
   it('should handle settings with circular structure', () => {
@@ -103,10 +103,10 @@ describe('prepareSettings', () => {
 
     const preparedSettings = prepareSettings(propsMock, currentSettings);
 
-    expect(preparedSettings.renderAllRows).toBe(void 0);
-    expect(preparedSettings.renderAllColumns).toBe(void 0);
-    expect(preparedSettings.layoutDirection).toBe(void 0);
-    expect(preparedSettings.ariaTags).toBe(void 0);
+    expect(preparedSettings.renderAllRows).toBe(undefined);
+    expect(preparedSettings.renderAllColumns).toBe(undefined);
+    expect(preparedSettings.layoutDirection).toBe(undefined);
+    expect(preparedSettings.ariaTags).toBe(undefined);
     expect(preparedSettings.width).toBe(500);
   });
 

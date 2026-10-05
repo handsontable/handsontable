@@ -877,23 +877,26 @@ extends them to the documentation examples.
   and skips the tests, the Markdown, the dotfiles, and what the build writes there: the core's `.gitignore`
   entries that start with `src/`, such as `src/styles/handsontableStyles.{js,ts}` (which `build:styles`
   rewrites on every run, and `lint`, `test:unit`, and `test:e2e` all run it first) and
-  `src/3rdparty/walkontable/dist/`. It does not ask git which files are ignored. The same `.gitignore` carries
-  unanchored rules for the package root, `languages/` and `dev*.ts`, and git applies them under `src/` too, so
-  a new `src/i18n/languages/xx-XX.ts` would never count. And a checkout without its own `.git` inside another
-  repository would get that repository's answer. No source may be newer than `handsontable/tmp/package.json`,
-  which `postbuild` and `postbuild:partial` write when they compose the package. A rebuild of one task through
-  `scripts/run.mjs` runs neither, so it still counts as stale. The check reads modification times, so a
-  checkout, rebase, or stash that rewrites a source counts too, whatever it wrote. It reads no build input
-  outside `src/`: not `handsontable/package.json` (a version bump leaves the old version in the stamp and passes),
-  the core's `.config/`, `scripts/`, `rspack.config.js`, `babel.config.js`, and `tsconfig*.json` files, nor the
-  root `browser-targets.js`, `babel.config.js`, and `hot.config.js`. Rebuild after changing any of them. It does
-  not check the wrappers' age either. The age check is off on CI, where it could find nothing: the render job
-  composes `handsontable/tmp` for the commit it checked out (its `postbuild:partial` rewrites the stamp after
-  the Build artifact is extracted), and `build-all.yml` builds the core in the same job. Kept off, a later
-  change to a job's step order cannot turn it into a false red. The script's paths derive from its own
-  location, so it builds the same tree from any working directory, and it prints the guard's confirmations
-  from each demo build whose other output it hides. It lays out its problems through the guard's
-  `formatProblems()`, and so does the third check below, so their messages cannot drift apart.
+  `src/3rdparty/walkontable/dist/`. It does not ask git which files are ignored. Git's answer takes in every
+  ignore rule, a machine's global excludes file included, so a rule written for another path can hide a real
+  source: until each gained a leading slash, the core's `languages/` and `dev*.ts` kept a new
+  `src/i18n/languages/xx-XX.ts` and a new `src/plugins/dev-panel.ts` out of it (the repository's
+  `scripts/__tests__/gitignore-scope.test.mjs` now pins the anchoring). And a checkout without its own `.git`
+  inside another repository would get that repository's answer. No source may be newer than
+  `handsontable/tmp/package.json`, which `postbuild` and `postbuild:partial` write when they compose the
+  package. A rebuild of one task through `scripts/run.mjs` runs neither, so it still counts as stale. The check
+  reads modification times, so a checkout, rebase, or stash that rewrites a source counts too, whatever it
+  wrote. It reads no build input outside `src/`: not `handsontable/package.json` (a version bump leaves the old
+  version in the stamp and passes), the core's `.config/`, `scripts/`, `rspack.config.js`, `babel.config.js`,
+  and `tsconfig*.json` files, nor the root `browser-targets.js`, `babel.config.js`, and `hot.config.js`. Rebuild
+  after changing any of them. It does not check the wrappers' age either. The age check is off on CI, where it
+  could find nothing: the render job composes `handsontable/tmp` for the commit it checked out (its
+  `postbuild:partial` rewrites the stamp after the Build artifact is extracted), and `build-all.yml` builds the
+  core in the same job. Kept off, a later change to a job's step order cannot turn it into a false red. The
+  script's paths derive from its own location, so it builds the same tree from any working directory, and it
+  prints the guard's confirmations from each demo build whose other output it hides. It lays out its problems
+  through the guard's `formatProblems()`, and so does the third check below, so their messages cannot drift
+  apart.
 - **`examples:build` checks every example under `examples/next/` before it builds the first one, and that is
   the only check the documentation examples get.** The examples under `examples/next/docs/` declare `latest`
   the same way and go through the same linker, so they have the same two silent paths, and the visual suite
