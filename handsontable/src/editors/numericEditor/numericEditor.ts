@@ -13,4 +13,13 @@ export class NumericEditor extends TextEditor {
   static get EDITOR_TYPE() {
     return EDITOR_TYPE;
   }
+
+  /**
+   * Turns off the `maxLength` cap of the text editor. This editor has its own input rules.
+   *
+   * @returns {boolean}
+   */
+  protected override get capsLength(): boolean {
+    return false;
+  }
 }

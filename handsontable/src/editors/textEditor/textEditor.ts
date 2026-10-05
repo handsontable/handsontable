@@ -15,6 +15,8 @@ import {
 import { rangeEach } from '../../helpers/number';
 import { createInputElementResizer } from '../../utils/autoResize';
 import { isDefined } from '../../helpers/mixed';
+import { getCharacterLength, removeCharactersBefore } from '../../helpers/string';
+import { isMaxLengthActive } from '../../validators/maxLengthValidator';
 import { updateCaretPosition } from './caretPositioner';
 import { selectionFillsOtherCells } from '../../selection/fillSelection';
 import {
@@ -99,6 +101,120 @@ export class TextEditor extends BaseEditor {
   #hiddenByScroll = false;
 
   /**
+   * The length of the editor's content in characters, and the length of the part of it that is
+   * selected, taken just before the user changes the content. It tells the `maxLength` cap how much
+   * of the content is new. It is `null` when no change is pending.
+   *
+   * @type {{length: number, selectedLength: number} | null}
+   */
+  #contentBeforeChange: { length: number, selectedLength: number } | null = null;
+
+  /**
+   * Returns the `maxLength` of the edited cell when this editor caps its input and the cell has a
+   * finite limit.
+   *
+   * @returns {number|null} The limit, or `null` when the editor does not cap the input.
+   */
+  #getLengthLimit = (): number | null => {
+    const { maxLength } = this.cellProperties;
+
+    return this.capsLength && isMaxLengthActive(maxLength) ? maxLength : null;
+  };
+
+  /**
+   * Counts the characters of the editor's content the way the validator counts the cell's value: after
+   * `trimWhitespace`, when the cell has it on, so a pasted text with a leading space is not cut for
+   * a character that the commit would trim anyway.
+   *
+   * @param {string} value The content of the editor.
+   * @returns {number} The number of characters.
+   */
+  #measureContent = (value: string): number => {
+    return getCharacterLength(this.cellProperties.trimWhitespace ? value.trim() : value);
+  };
+
+  /**
+   * Remembers the content of the editor before a change, for the `maxLength` cap. A change made
+   * during an IME composition is remembered at `compositionstart` instead, because the value belongs
+   * to the IME until `compositionend`. Also called right before the editor inserts text itself.
+   *
+   * @param {Event} [event] The `beforeinput` or `compositionstart` event of the editor's element.
+   */
+  #rememberContent = (event?: Event): void => {
+    const { isComposing = false }: Partial<InputEvent> = event ?? {};
+
+    if (isComposing || this.#getLengthLimit() === null) {
+      return;
+    }
+
+    const { value, selectionStart, selectionEnd } = this.TEXTAREA;
+    const start = selectionStart ?? value.length;
+
+    this.#contentBeforeChange = {
+      length: this.#measureContent(value),
+      selectedLength: getCharacterLength(value.slice(start, selectionEnd ?? start)),
+    };
+  };
+
+  /**
+   * Keeps the editor's content within the cell's `maxLength` after the user inserts text.
+   *
+   * The limit is counted in the characters a reader sees (grapheme clusters), so a flag counts as
+   * one. The excess is removed from just before the end of the selection, which is where the
+   * inserted text ends, so typing at the end of a full cell does nothing, and a paste that does not
+   * fit is cut at the limit. Only the inserted text is removed, so typing into a value that was
+   * already too long never eats the text that was there.
+   *
+   * The cap leaves four cases alone. Deleting and stepping through the undo history only remove or
+   * restore text the user already had, so a value that was too long can be shortened by hand. A drop
+   * can move text that is already in the value, which looks like an insert of that text, so it is
+   * left alone too. While an IME composition is in progress the value belongs to the IME, so the cap
+   * waits for `compositionend`. An insert that no `beforeinput` announced leaves the value as it is,
+   * because there is no way to tell which part of it is new. The validator still marks such a value.
+   *
+   * The editor counts the characters the way the validator does, after `trimWhitespace`.
+   *
+   * @param {Event} event The `input` or `compositionend` event of the editor's element.
+   */
+  #capLength = (event: Event): void => {
+    const { isComposing = false, inputType = '' }: Partial<InputEvent> = event;
+    const maxLength = this.#getLengthLimit();
+
+    if (maxLength === null || isComposing) {
+      return;
+    }
+
+    const before = this.#contentBeforeChange;
+
+    this.#contentBeforeChange = null;
+
+    if (before === null || /^(delete|history|insertFromDrop)/.test(inputType)) {
+      return;
+    }
+
+    const { value, selectionEnd } = this.TEXTAREA;
+    const length = this.#measureContent(value);
+    const excess = length - maxLength;
+
+    if (excess <= 0) {
+      return;
+    }
+
+    const inserted = length - (before.length - before.selectedLength);
+    // The excess is the trailing part of the inserted text that the commit would keep. Spaces that sit
+    // at the very end of the value are trimmed at commit, so the cut starts before them, or a pasted
+    // text with trailing spaces would lose the spaces and keep the extra letters.
+    const caret = selectionEnd ?? value.length;
+    const cutEnd = this.cellProperties.trimWhitespace ? Math.min(caret, value.trimEnd().length) : caret;
+    const capped = removeCharactersBefore(value, cutEnd, Math.min(excess, inserted));
+
+    if (capped.value !== value) {
+      this.TEXTAREA.value = capped.value;
+      setCaretPosition(this.TEXTAREA, capped.index, capped.index);
+    }
+  };
+
+  /**
    * @param {Core} hotInstance The Handsontable instance.
    */
   constructor(hotInstance: HotInstance) {
@@ -130,11 +246,24 @@ export class TextEditor extends BaseEditor {
   }
 
   /**
+   * Tells whether the editor stops the user from typing or pasting more characters than the
+   * [`maxLength`](@/api/options.md#maxlength) of the cell allows. An editor that extends this one
+   * inherits the cap. The built-in editors that have their own input rules turn it off by
+   * overriding this getter to return `false`.
+   *
+   * @returns {boolean}
+   */
+  protected get capsLength(): boolean {
+    return true;
+  }
+
+  /**
    * Opens the editor and adjust its size.
    */
   open(): void {
     this._opened = true;
     this.#hiddenByScroll = false;
+    this.#contentBeforeChange = null;
     this.refreshDimensions(); // need it instantly, to prevent https://github.com/handsontable/handsontable/issues/348
     this.showEditableElement();
     this.hot.getShortcutManager().setActiveContextName('editor');
@@ -147,6 +276,7 @@ export class TextEditor extends BaseEditor {
   close(): void {
     this._opened = false;
     this.#hiddenByScroll = false;
+    this.#contentBeforeChange = null;
     this.autoResize.unObserve();
 
     if (isInternalElement(getDeepActiveElement(this.hot.rootDocument) as HTMLElement, this.hot.rootElement)) {
@@ -438,6 +568,12 @@ export class TextEditor extends BaseEditor {
       this.eventManager.addEventListener(this.TEXTAREA, 'focusout', () => this.finishEditing(false));
     }
 
+    // Every listener ends at once for an editor that does not cap, or a cell without a limit.
+    this.eventManager.addEventListener(this.TEXTAREA, 'beforeinput', this.#rememberContent);
+    this.eventManager.addEventListener(this.TEXTAREA, 'compositionstart', this.#rememberContent);
+    this.eventManager.addEventListener(this.TEXTAREA, 'input', this.#capLength);
+    this.eventManager.addEventListener(this.TEXTAREA, 'compositionend', this.#capLength);
+
     this.addHook('afterScrollHorizontally', () => this.refreshDimensions());
     this.addHook('afterScrollVertically', () => this.refreshDimensions());
 
@@ -482,6 +618,8 @@ export class TextEditor extends BaseEditor {
     };
 
     const insertNewLine = () => {
+      // `execCommand()` fires `input` without a `beforeinput`, so the cap needs its snapshot first.
+      this.#rememberContent();
       this.hot.rootDocument.execCommand('insertText', false, '\n');
     };
 

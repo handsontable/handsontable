@@ -5,6 +5,8 @@ import {
   VALID_ICON_KEYS,
 } from '../utils/validation';
 import { ICON_NAMES } from '../utils/icons';
+import mainIcons from '../../static/variables/icons/main';
+import horizonIcons from '../../static/variables/icons/horizon';
 
 describe('Theme validation utilities', () => {
   describe('validateColorScheme', () => {
@@ -188,6 +190,28 @@ describe('Theme validation utilities', () => {
         expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Unknown icon key: "notAnIcon"'));
 
         warnSpy.mockRestore();
+      });
+
+      it('should accept every icon key the built-in themes ship', () => {
+        // `plus` and `menuList` came with the sheets bar and were missing here, so every grid on a
+        // built-in theme logged "Unknown icon key" twice.
+        const unknown = [...Object.keys(mainIcons), ...Object.keys(horizonIcons)]
+          .filter(key => !VALID_ICON_KEYS.has(key));
+
+        expect(unknown).toEqual([]);
+      });
+
+      it('should not warn when validating a built-in theme\'s icons', () => {
+        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+        validateParams({ icons: mainIcons }, 'test');
+        validateParams({ icons: horizonIcons }, 'test');
+
+        const iconWarnings = warnSpy.mock.calls.filter(([message]) => String(message).includes('Unknown icon key'));
+
+        warnSpy.mockRestore();
+
+        expect(iconWarnings).toEqual([]);
       });
     });
 

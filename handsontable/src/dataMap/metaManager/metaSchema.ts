@@ -4975,6 +4975,83 @@ export default (): Record<string, unknown> => {
     maxCols: Infinity,
 
     /**
+     * The `maxLength` option sets the maximum number of characters that a cell can hold.
+     *
+     * The limit counts the characters a reader sees, in the same way as the length limit of a sheet name
+     * in the [`SheetsBar`](@/api/sheetsBar.md) plugin. A flag, an emoji with a skin tone, and a letter
+     * with a combining accent each count as one character.
+     *
+     * Handsontable enforces the limit in two places:
+     * - In the cell editor. The [`text`](@/guides/cell-types/text-cell-type/text-cell-type.md) editor, and any custom
+     * editor that extends it, stops the user from typing or pasting more characters than the limit allows.
+     * The `autocomplete`, `dropdown`, and `handsontable` editors cap what the user types in the same way, but
+     * the user can still pick an option that is longer than the limit, and the validator then marks it
+     * as invalid. The built-in editors of the other cell types, such as `numeric`, `date`, and `password`,
+     * don't limit input.
+     * - In the [cell validator](@/guides/cell-functions/cell-validator/cell-validator.md), which marks a
+     * value that is too long as invalid. Use [`allowInvalid`](#allowinvalid) to decide whether the grid keeps
+     * such a value. The validator checks the values that you type, paste into the grid, or write with
+     * [`setDataAtCell()`](@/api/core.md#setdataatcell), and the values that
+     * [`validateCells()`](@/api/core.md#validatecells) checks. It doesn't check the values that you load with
+     * [`loadData()`](@/api/core.md#loaddata), [`updateData()`](@/api/core.md#updatedata), or
+     * [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell), or that a data provider fetches. Such a value
+     * stays unmarked until you call `validateCells()`.
+     *
+     * If a cell also has a [`validator`](#validator), a value must pass both checks. The length check
+     * runs first. Setting `validator` to `false` turns off the validator, but not the length check.
+     *
+     * Keep these points in mind:
+     * - Handsontable checks string values only. It doesn't check a value that is stored as a number, such as
+     * the digits typed into a `numeric` cell, or as any other non-string type.
+     * - The validator checks every string value in a cell that has a limit, whatever the cell type is. If you
+     * set `maxLength` at the grid level, it also applies to the text of `date`, `time`, `dropdown`, and
+     * `autocomplete` cells, so a date such as `'2026-10-02'` is invalid with `maxLength: 8`. Set the option on
+     * the columns that hold free text instead.
+     * - A cell that has a limit validates every write, as any cell with a validator does. Validation is
+     * asynchronous, so [`setDataAtCell()`](@/api/core.md#setdataatcell) applies a value after the validation
+     * finishes, and [`getDataAtCell()`](@/api/core.md#getdataatcell) returns the previous value until then. Use the
+     * [`afterChange`](@/api/hooks.md#afterchange) hook to react to the new value.
+     * - The editor and the validator both count the value after [`trimWhitespace`](#trimwhitespace) is
+     * applied, so the leading and trailing spaces of a pasted text don't count.
+     * - With the [`Formulas`](@/api/formulas.md) plugin, the editor counts the formula that the user types,
+     * but the validator counts the calculated result. With `maxLength: 5`, the editor cuts `=SUM(A1:A10)`
+     * to `=SUM(`, although the result `55` fits.
+     * - If your app already uses `maxLength` as a custom cell meta key, for example to feed your own validator
+     * or editor, the built-in check and the editor limit now apply to those cells too.
+     *
+     * By default, the number of characters is not limited.
+     *
+     * Read more:
+     * - [Text cell type](@/guides/cell-types/text-cell-type/text-cell-type.md)
+     * - [Cell validator](@/guides/cell-functions/cell-validator/cell-validator.md)
+     * - [`allowInvalid`](#allowinvalid)
+     * - [`validator`](#validator)
+     *
+     * @memberof Options#
+     * @since 19.0.0
+     * @type {number}
+     * @default Infinity
+     * @category Core
+     * @configScope grid columns cells cell
+     *
+     * @example
+     * ```js
+     * // limit the free-text columns, and leave the others unlimited
+     * columns: [
+     *   { data: 'code', maxLength: 10 },
+     *   { data: 'comment', maxLength: 140, allowInvalid: false },
+     *   { data: 'quantity', type: 'numeric' },
+     * ],
+     *
+     * // let a single cell hold more than its column allows
+     * cell: [
+     *   { row: 0, col: 0, maxLength: 20 },
+     * ],
+     * ```
+     */
+    maxLength: Infinity,
+
+    /**
      * The `maxRows` option sets a maximum number of rows.
      *
      * The `maxRows` option is used:
@@ -5540,6 +5617,13 @@ export default (): Record<string, unknown> => {
     /**
      * The `noWordWrapClassName` option lets you add a CSS class name
      * to each cell that has the [`wordWrap`](#wordWrap) option set to `false`.
+     *
+     * Handsontable always adds the built-in `htNoWrap` class, which keeps the content on one line,
+     * and then adds your class too. You can use your class for styling without a `white-space` rule.
+     * To set a different `white-space` value, use a selector stronger than `.handsontable .htNoWrap`,
+     * for example `.handsontable td.yourClass`.
+     *
+     * If you set `noWordWrapClassName` to an empty string, Handsontable adds no class at all.
      *
      * Read more:
      * - [`wordWrap`](#wordWrap)
@@ -7408,25 +7492,46 @@ export default (): Record<string, unknown> => {
     tableClassName: undefined,
 
     /**
-     * The `textEllipsis` option configures whether the text content in the cells should be truncated with an ellipsis (three dots).
+     * The `textEllipsis` option configures whether the text content in the cells should be truncated with an ellipsis (three dots), either on one line or after a number of lines. Support for a number was added in 19.0.0.
      *
      * You can set the `textEllipsis` option to one of the following:
      *
-     * | Setting           | Description                                   |
-     * | ----------------- | --------------------------------------------- |
-     * | `false` (default) | Don't truncate text content with an ellipsis  |
-     * | `true`            | Truncate text content with an ellipsis        |
+     * | Setting                    | Description                                                                |
+     * | -------------------------- | -------------------------------------------------------------------------- |
+     * | `false` (default)          | Don't truncate text content with an ellipsis                               |
+     * | `true`                     | Keep text content on one line and truncate it with an ellipsis             |
+     * | A number, `2` or greater   | Wrap text content and truncate it with an ellipsis after that many lines  |
+     *
+     * A number of `1` works like `true`. A number that is not a positive integer (such as `0`, `-1`, or `2.5`)
+     * works like `false`.
+     *
+     * A number works in cells whose renderer writes plain text through the built-in `textRenderer`.
+     * That covers the `text`, `numeric`, `date`, `time`, `intl-date`, `intl-datetime`, `intl-time`, `select`,
+     * `autocomplete`, `dropdown`, and `handsontable` cell types, and any custom renderer that calls
+     * `textRenderer`. Renderers that draw their own markup, such as the `html` and `password` renderers (and
+     * the `autocomplete` renderer with `allowHtml: true`), can't clamp: for them a number works like `true`,
+     * and the text stays on one line with an ellipsis.
+     *
+     * Truncation only changes how the text looks. The full text stays in the cell's DOM, in
+     * [`getData()`](@/api/core.md#getdata), and in copied data. The grid shows no tooltip with the full text.
+     *
+     * The [`wordWrap`](#wordwrap) option set to `false` takes precedence over a number: the text stays on
+     * one line and ends with an ellipsis.
+     *
+     * A row grows up to the given number of lines, so the clamped text stays readable.
      *
      * ::: tip
      * The `autocomplete`, `dropdown`, and `handsontable` cell types default this option to `true`, so a
      * long value stays on one line and truncates with an ellipsis, clear of the dropdown arrow. To
      * restore wrapping, set `textEllipsis: false` on the column that declares the type (or in `cells` /
-     * `setCellMeta`). This changed in 19.0.0.
+     * `setCellMeta`). To show a number of lines in them, set the number there too. A grid-level `textEllipsis`
+     * does not reach these columns, because the cell type's own value wins over the grid level. This changed in
+     * 19.0.0.
      * :::
      *
      * @since 16.0.0
      * @memberof Options#
-     * @type {boolean}
+     * @type {boolean|number}
      * @default false
      * @category Core
      * @configScope grid columns cells cell
@@ -7437,6 +7542,10 @@ export default (): Record<string, unknown> => {
      *   {
      *     // truncate text content with an ellipsis
      *     textEllipsis: true,
+     *   },
+     *   {
+     *     // wrap text content and truncate it with an ellipsis after 3 lines
+     *     textEllipsis: 3,
      *   },
      *   {
      *     // don't truncate text content with an ellipsis

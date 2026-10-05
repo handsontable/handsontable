@@ -11,7 +11,6 @@ import {
   removeAttribute,
   setAttribute
 } from '../../helpers/dom/element';
-import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { throwWithCause } from '../../helpers/errors';
 import { syncIcon } from '../../themes/engine/icons';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
@@ -1050,7 +1049,10 @@ export class CollapsibleColumns extends BasePlugin {
         this.toggleCollapsibleSection([coords], 'expand');
       }
 
-      stopImmediatePropagation(event);
+      // Only the grid's own flag, which makes the table skip selection handling. The shared
+      // `stopImmediatePropagation()` helper also sets `cancelBubble`, so the press would never reach
+      // `document` and a dropdown menu or context menu open at that moment would not close (DEV-214).
+      (event as MouseEvent & { isImmediatePropagationEnabled: boolean }).isImmediatePropagationEnabled = false;
     }
   };
 
