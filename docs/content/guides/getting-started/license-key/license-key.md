@@ -279,10 +279,18 @@ readonly gridSettings: GridSettings = {
 
 Keys issued in the 25-character format keep working without any change.
 
-Only the bracketed block is protected by a checksum. You can rewrap the text above it, or paste the
-key through an email client, and the key still works. Keep the block itself on one line, and end the
-key there - the block must be the last thing in the string. Space and newlines around the whole key
-are trimmed for you, so a key pasted with a trailing newline still works.
+The checksum protects the whole key: the text and the bracketed block. If you edit the text, remove
+it, or paste the bracketed block alone, the key is invalid. The checksum ignores spaces and line
+breaks in the text, so you can rewrap it, paste it through an email client, or put the whole key on
+one line, and the key still works. Line breaks saved as the characters `\n`, as some `.env` files
+and CI secret fields store them, work too. Keep the block itself on one line, and end the key
+there - only spaces and line breaks may follow the block. Space and line breaks around the whole
+key are trimmed for you, so a key pasted with a trailing newline still works.
+
+When you store the key in an environment variable, a `.env` file, or a CI secret, put it on one
+line. A key with line breaks in an unquoted `.env` value keeps only its first line, and a quote
+character inside the key can end a quoted value early. Never change any other character of the key,
+for example by replacing straight quotes with curly ones.
 
 Each license behaves differently around its date:
 

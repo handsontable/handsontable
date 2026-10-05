@@ -4612,7 +4612,8 @@ export default (): Record<string, unknown> => {
      * licenseKey: 'xxxxx-xxxxx-xxxxx-xxxxx-xxxxx', // your commercial license key
      *
      * // for an entitlement license key (trial, subscription, or perpetual),
-     * // pass the whole key string exactly as you received it
+     * // pass the whole key string exactly as you received it - the checksum
+     * // covers the text too, so the `[...]` block on its own is not a valid key
      * licenseKey: 'This is a Handsontable license key for Acme Corp, ... [eyJwcm9kdWN0cyI6...3a4f8361]',
      *
      * // for non-commercial use

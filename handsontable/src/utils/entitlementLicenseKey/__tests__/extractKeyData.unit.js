@@ -1,11 +1,12 @@
-import { extractEntitlementKeyData, getProductEntitlement } from '../extractKeyData';
+import { extractEntitlementKeyData, getProductEntitlement, canonicalizeProse } from '../extractKeyData';
 import { detectLicenseKeyFormat, isEntitlementKey } from '../detectFormat';
 import { sha512 } from '../sha512';
 import { stringToUtf8Bytes } from '../encoding';
 import { buildTestKey } from './buildTestKey';
 import {
   SUBSCRIPTION_KEY,
-  SUBSCRIPTION_KEY_WITH_PROSE,
+  ACCENTED_HOLDER_KEY,
+  CJK_HOLDER_KEY,
   SUBSCRIPTION_EXTERNAL_KEY,
   TRIAL_KEY,
   PERPETUAL_KEY,
@@ -32,6 +33,26 @@ function handsontableEntry(overrides = {}) {
   };
 }
 
+/**
+ * Returns the machine-readable `[...]` block of a key, without the prose in front of it.
+ *
+ * @param {string} key The whole key.
+ * @returns {string}
+ */
+function blockOf(key) {
+  return key.slice(key.lastIndexOf('['));
+}
+
+/**
+ * Returns the prose of a key - everything in front of its block.
+ *
+ * @param {string} key The whole key.
+ * @returns {string}
+ */
+function proseOf(key) {
+  return key.slice(0, key.lastIndexOf('['));
+}
+
 describe('entitlementLicenseKey/sha512', () => {
   // Known-answer vectors from the SHA-512 specification (FIPS 180-4).
   it('should hash the empty input', () => {
@@ -52,8 +73,10 @@ describe('entitlementLicenseKey/sha512', () => {
 describe('entitlementLicenseKey/detectFormat', () => {
   it('should recognize an entitlement key by its trailing block', () => {
     expect(detectLicenseKeyFormat(SUBSCRIPTION_KEY)).toBe('entitlement');
-    expect(detectLicenseKeyFormat(SUBSCRIPTION_KEY_WITH_PROSE)).toBe('entitlement');
-    expect(isEntitlementKey(SUBSCRIPTION_KEY_WITH_PROSE)).toBe(true);
+    expect(isEntitlementKey(SUBSCRIPTION_KEY)).toBe(true);
+    // The shape test does not validate: the bare block still routes to the entitlement reader,
+    // which then rejects it.
+    expect(isEntitlementKey(blockOf(SUBSCRIPTION_KEY))).toBe(true);
   });
 
   it('should tell the other key formats apart without validating them', () => {
@@ -137,24 +160,152 @@ describe('entitlementLicenseKey/extractKeyData', () => {
   });
 
   describe('the prose layer', () => {
-    it('should read the complete artifact exactly as the block on its own', () => {
-      expect(extractEntitlementKeyData(SUBSCRIPTION_KEY_WITH_PROSE))
-        .toEqual(extractEntitlementKeyData(SUBSCRIPTION_KEY));
+    const expected = () => extractEntitlementKeyData(SUBSCRIPTION_KEY);
+
+    it('should reject the bare block - the checksum covers the prose', () => {
+      expect(extractEntitlementKeyData(blockOf(SUBSCRIPTION_KEY))).toBeNull();
+      expect(extractEntitlementKeyData(` \n${blockOf(SUBSCRIPTION_KEY)}\n`)).toBeNull();
     });
 
-    it('should survive prose that was rewritten, rewrapped, or replaced entirely', () => {
-      const block = SUBSCRIPTION_KEY;
+    it('should reject a bare block whose checksum was computed over empty prose', () => {
+      const key = buildTestKey({ products: { handsontable: handsontableEntry() } }, { prose: '' });
 
-      ['Anything at all.\n\n', 'Line one\nline two\n\n', '   ', '[not a block] '].forEach((prose) => {
-        expect(extractEntitlementKeyData(prose + block)).not.toBeNull();
+      expect(key.startsWith('[')).toBe(true);
+      expect(extractEntitlementKeyData(key)).toBeNull();
+      // Whitespace alone is empty prose, too.
+      expect(extractEntitlementKeyData(` \n\t${key}`)).toBeNull();
+    });
+
+    it('should reject a key whose prose was edited, added to, or replaced', () => {
+      const prose = proseOf(SUBSCRIPTION_KEY);
+      const block = blockOf(SUBSCRIPTION_KEY);
+
+      [
+        prose.replace('2027-08-12 (UTC)', '2099-08-12 (UTC)'), // one sentence changed
+        prose.replace('internal use', 'external use'),
+        prose.replace('Test Fixture', 'Test Fixturf'), // one letter changed
+        `${prose.split('\n\n')[0]}\n\n`, // the license sentence removed
+        `Anything at all.\n\n${prose}`, // text added in front
+        'Anything at all.\n\n', // replaced entirely
+        `${prose.replace(/\.$/m, '')}`, // a period dropped
+      ].forEach((edited) => {
+        expect(edited).not.toBe(prose);
+        expect(extractEntitlementKeyData(edited + block)).toBeNull();
+      });
+    });
+
+    it('should reject a key with text other than whitespace after the block', () => {
+      ['x', ' x', '\n.', '"', ']', '[]', '\\', '\\x', '\\n x'].forEach((suffix) => {
+        expect(extractEntitlementKeyData(SUBSCRIPTION_KEY + suffix)).toBeNull();
+      });
+    });
+
+    it('should accept whitespace after the block', () => {
+      [' ', '\n', '\r\n', '\t', '\n\n  \n'].forEach((suffix) => {
+        expect(extractEntitlementKeyData(SUBSCRIPTION_KEY + suffix)).toEqual(expected());
+      });
+    });
+
+    it('should read a key that was rewrapped, put on one line, or had its whitespace changed', () => {
+      const prose = proseOf(SUBSCRIPTION_KEY);
+      const block = blockOf(SUBSCRIPTION_KEY);
+
+      [
+        SUBSCRIPTION_KEY.replace(/\s+/g, ' '), // the one-line form the generator prints
+        prose.replace(/\s+/g, '') + block, // every whitespace character removed
+        prose.replace(/ /g, '\n') + block, // every space turned into a line break
+        prose.replace(/\n/g, '\r\n') + block, // Windows line endings
+        prose.replace(/\n/g, '\r') + block, // old Mac line endings
+        prose.replace(/\n\n/g, '\n') + block, // the blank lines collapsed
+        prose.replace(/^/gm, '\t') + block, // every line indented with a tab
+        prose.replace(/ /g, '\u00a0') + block, // non-breaking spaces from a word processor
+        prose.replace(/ /g, '\u3000') + block, // ideographic spaces
+        prose.replace('Handsontable', 'Hands\nontable') + block, // a line break inside a word
+        `\ufeff${SUBSCRIPTION_KEY}`, // a byte order mark from a file
+      ].forEach((variant) => {
+        expect(variant).not.toBe(SUBSCRIPTION_KEY);
+        expect(extractEntitlementKeyData(variant)).toEqual(expected());
+      });
+    });
+
+    it('should read a key whose line breaks were saved as text, as some .env files and CI secrets do', () => {
+      const prose = proseOf(SUBSCRIPTION_KEY);
+      const block = blockOf(SUBSCRIPTION_KEY);
+
+      [
+        prose.replace(/\n/g, '\\n') + block, // "\n" as two characters
+        prose.replace(/\n/g, '\\r\\n') + block, // "\r\n" as four characters
+        prose.replace(/\n/g, '\\n').replace(/ /g, '\\t') + block, // "\t" as two characters
+        `${prose.replace(/\n/g, '\\n') + block}\n`, // and a real trailing newline
+        `${prose.replace(/\n/g, '\\n') + block}\\n`, // and a trailing newline saved as text, too
+        `${prose.replace(/\n/g, '\\r\\n') + block}\\r\\n`,
+      ].forEach((variant) => {
+        expect(variant).not.toContain('\n\n');
+        expect(extractEntitlementKeyData(variant)).toEqual(expected());
+      });
+    });
+
+    it('should reject a key that a store changed instead of only rewrapping it', () => {
+      const prose = proseOf(SUBSCRIPTION_KEY);
+      const block = blockOf(SUBSCRIPTION_KEY);
+
+      [
+        prose.replace(/\n/g, '\\\\n') + block, // line breaks escaped twice ("\\n") - a backslash is left
+        prose.replace(/\n/g, '/n') + block, // a wrong escape
+        prose.replace(/"/g, '') + block, // the quotes around the project name removed
+        prose.replace(/"/g, '\'') + block, // ... or swapped for apostrophes
+        prose.replace('"Fixture Project"', '\u201cFixture Project\u201d') + block, // curly quotes
+        `"${SUBSCRIPTION_KEY}"`, // the key kept inside its JSON quotes
+        `'${SUBSCRIPTION_KEY}'`,
+        prose.split('\n')[0] + block, // a store that kept the first line only
+      ].forEach((variant) => {
+        expect(extractEntitlementKeyData(variant)).toBeNull();
       });
     });
 
     it('should reject a key whose block was broken by a line wrap', () => {
-      const block = SUBSCRIPTION_KEY;
-      const wrapped = `${block.slice(0, 60)}\n${block.slice(60)}`;
+      const block = blockOf(SUBSCRIPTION_KEY);
+      const prose = proseOf(SUBSCRIPTION_KEY);
 
-      expect(extractEntitlementKeyData(wrapped)).toBeNull();
+      ['\n', '\r\n', ' ', '\\n'].forEach((separator) => {
+        const wrapped = `${prose}${block.slice(0, 60)}${separator}${block.slice(60)}`;
+
+        expect(extractEntitlementKeyData(wrapped)).toBeNull();
+      });
+    });
+
+    it('should read a key whose prose has composed characters, also when it is stored decomposed (NFD)', () => {
+      const decomposed = ACCENTED_HOLDER_KEY.normalize('NFD');
+
+      expect(ACCENTED_HOLDER_KEY).toBe(ACCENTED_HOLDER_KEY.normalize('NFC'));
+      expect(decomposed).not.toBe(ACCENTED_HOLDER_KEY);
+      expect(extractEntitlementKeyData(ACCENTED_HOLDER_KEY)).toEqual(expected());
+      expect(extractEntitlementKeyData(decomposed)).toEqual(expected());
+      expect(extractEntitlementKeyData(ACCENTED_HOLDER_KEY.replace('\u00fc', 'u'))).toBeNull();
+    });
+
+    it('should read a key whose CJK prose was wrapped between two CJK characters', () => {
+      const prose = proseOf(CJK_HOLDER_KEY);
+      const block = blockOf(CJK_HOLDER_KEY);
+      const holder = '\u682a\u5f0f\u4f1a\u793e\u30c6\u30b9\u30c8\u30d5\u30a3\u30af\u30b9\u30c1\u30e3';
+
+      expect(prose).toContain(holder);
+      expect(extractEntitlementKeyData(CJK_HOLDER_KEY)).toEqual(expected());
+
+      for (let i = 1; i < holder.length; i++) {
+        const wrapped = prose.replace(holder, `${holder.slice(0, i)}\n${holder.slice(i)}`);
+
+        expect(extractEntitlementKeyData(wrapped + block)).toEqual(expected());
+      }
+
+      expect(extractEntitlementKeyData(prose.replace(holder, holder.slice(1)) + block)).toBeNull();
+    });
+
+    it('should never let the prose and the payload trade characters across the boundary', () => {
+      // The canonical prose has no whitespace and no "\n", so the "\n" the checksum puts between the
+      // two parts cannot be forged from either side.
+      expect(canonicalizeProse(proseOf(SUBSCRIPTION_KEY))).not.toMatch(/\s/);
+      expect(canonicalizeProse('a \\n b\n\tc\u3000d')).toBe('abcd');
     });
   });
 
@@ -187,7 +338,9 @@ describe('entitlementLicenseKey/extractKeyData', () => {
       const key = buildTestKey({ products: { handsontable: handsontableEntry() } });
 
       // A character outside the base64url alphabet, injected at the head of the block.
-      expect(extractEntitlementKeyData(`[!${key.slice(1)}`)).toBeNull();
+      const blockStart = key.lastIndexOf('[') + 1;
+
+      expect(extractEntitlementKeyData(`${key.slice(0, blockStart)}!${key.slice(blockStart)}`)).toBeNull();
       expect(extractEntitlementKeyData(buildTestKey(
         { products: { handsontable: handsontableEntry() } },
         { checksum: 'Z'.repeat(128) },
