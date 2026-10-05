@@ -1676,8 +1676,17 @@ the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsE
   check in `getEditedCellRect` is therefore always true. Use `mainTableScrollableElement` to decide
   which element scrolls.
 - **Local test traps.** A CSS-only rebuild (`build:styles`) makes a negative control pass falsely:
-  `handsontableStyles.ts` is bundled and injected, so rebuild `build:umd` after any SCSS change. This
-  Mac's Puppeteer Chrome directory may be empty: set `PUPPETEER_EXECUTABLE_PATH`.
+  `handsontableStyles.ts` is bundled and injected, so rebuild `build:umd` after any SCSS change.
+- **The end clones are constructed AFTER the start ones, and `getOverlays()` follows that order.** Each overlay
+  constructor appends its clone to the wrapper, so `initOverlays()` builds top, bottom, inline-start, the two
+  start corners, and only then inline-end and the two end corners. The DOM position of the five clones every grid
+  had before `fixedColumnsEnd` stays where it was, and so do selectors and clone counts that depend on it. Do not
+  build an end overlay earlier, and keep `#overlays` in the construction order.
+- **`Overlays#getParentOverlay` skips clones that are not rendered.** It runs once per header cell of every draw,
+  so it walks the stored overlay list (no list or closure per call) and tests only the overlays whose
+  `needFullRender` is true. An idle clone (the three end clones with the option at 0) holds none of the cells being
+  drawn. `needFullRender` turns true in `beforeDraw` and false only after the draw that stopped rendering the clone,
+  so a clone that renders is always tested.
 - **The three end clones are always constructed, even when the option is 0.** That is a decision, the same
   one the bottom corners follow: an idle clone costs one empty `ht_clone_inline_end*` root and nothing per
   draw (`shouldBeRendered()` gates every read, `resetFixedPosition()` returns first), so the DOM of every

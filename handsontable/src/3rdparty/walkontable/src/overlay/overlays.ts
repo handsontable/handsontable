@@ -76,6 +76,24 @@ export function createOverlaysDeps(ctx: EngineContext) {
 export type OverlaysDeps = ReturnType<typeof createOverlaysDeps>;
 
 /**
+ * Whether the table of a clone holds the element.
+ *
+ * @param {Table} wtTable The table of a clone.
+ * @param {HTMLElement} element The element to look for.
+ * @returns {boolean}
+ */
+const tableHolds = (wtTable: Table, element: HTMLElement): boolean => wtTable.TABLE.contains(element);
+
+/**
+ * Whether the spreader of a clone holds the element (the selection borders live there too).
+ *
+ * @param {Table} wtTable The table of a clone.
+ * @param {HTMLElement} element The element to look for.
+ * @returns {boolean}
+ */
+const spreaderHolds = (wtTable: Table, element: HTMLElement): boolean => wtTable.spreader.contains(element);
+
+/**
  * @class Overlays
  */
 class Overlays {
@@ -443,7 +461,6 @@ class Overlays {
     this.topOverlay = new TopOverlay(makeDeps());
     this.bottomOverlay = new BottomOverlay(makeDeps());
     this.inlineStartOverlay = new InlineStartOverlay(makeDeps());
-    this.inlineEndOverlay = new InlineEndOverlay(makeDeps());
 
     // TODO discuss, the controversial here would be removing the lazy creation mechanism for corners.
     // TODO cond. Has no any visual impact. They're initially hidden in same way like left, top, and bottom overlays.
@@ -451,13 +468,17 @@ class Overlays {
       this.topOverlay, this.inlineStartOverlay);
     this.bottomInlineStartCornerOverlay = new BottomInlineStartCornerOverlay(makeDeps(),
       this.bottomOverlay, this.inlineStartOverlay);
+    // Each constructor appends its clone to the wrapper, so the end overlays are built after the start
+    // ones: the DOM order of the five clones that existed before `fixedColumnsEnd` stays where it was.
+    this.inlineEndOverlay = new InlineEndOverlay(makeDeps());
     this.topInlineEndCornerOverlay = new TopInlineEndCornerOverlay(makeDeps(),
       this.topOverlay, this.inlineEndOverlay);
     this.bottomInlineEndCornerOverlay = new BottomInlineEndCornerOverlay(makeDeps(),
       this.bottomOverlay, this.inlineEndOverlay);
 
-    // The overlays that existed before the end ones keep their places, so a caller that reads the list
-    // by position still finds them where it always did.
+    // The list follows the construction order, which is the DOM order of the clones in the wrapper. The
+    // overlays that existed before the end ones keep their places, so a caller that reads the list by
+    // position still finds them where it always did.
     this.#overlays = [
       this.topOverlay,
       this.bottomOverlay,
@@ -1110,6 +1131,11 @@ class Overlays {
    * Shared by the two public lookups below so the overlay list stays in one place: adding an overlay
    * type to one list and forgetting the other would silently leave the two answering differently.
    *
+   * It runs once per header cell of every draw, so it walks the list the overlays were stored in (no list
+   * and no closure are built per call) and skips the overlays that are not rendered: an idle clone (for
+   * example the three end clones of a grid without `fixedColumnsEnd`) holds none of the cells being drawn.
+   * The clones never overlap, so the first one that holds the element is the answer.
+   *
    * @param {HTMLElement} element An element to process.
    * @param {Function} isHeldBy Decides whether a clone's table holds the element.
    * @returns {WalkontableInstance|null}
@@ -1121,29 +1147,17 @@ class Overlays {
       return null;
     }
 
-    const overlays = [
-      this.topOverlay,
-      this.inlineStartOverlay,
-      this.inlineEndOverlay,
-      this.bottomOverlay,
-      this.topInlineStartCornerOverlay,
-      this.bottomInlineStartCornerOverlay,
-      this.topInlineEndCornerOverlay,
-      this.bottomInlineEndCornerOverlay,
-    ];
-    let result = null;
+    const overlays = this.#overlays;
 
-    arrayEach(overlays, (overlay) => {
-      if (!overlay) {
-        return;
+    for (let index = 0; index < overlays.length; index++) {
+      const overlay = overlays[index];
+
+      if (overlay.needFullRender && overlay.clone && isHeldBy(overlay.clone.wtTable, element)) { // todo demeter
+        return overlay.clone;
       }
+    }
 
-      if (overlay.clone && isHeldBy(overlay.clone.wtTable, element)) { // todo demeter
-        result = overlay.clone;
-      }
-    });
-
-    return result;
+    return null;
   }
 
   /**
@@ -1177,7 +1191,7 @@ class Overlays {
    * @returns {WalkontableInstance|null}
    */
   getParentOverlayByRenderedArea(element: HTMLElement): WalkontableInstance | null {
-    return this.#findParentOverlay(element, (wtTable, el) => wtTable.spreader.contains(el));
+    return this.#findParentOverlay(element, spreaderHolds);
   }
 
   /**
@@ -1187,7 +1201,7 @@ class Overlays {
    * @returns {WalkontableInstance|null}
    */
   getParentOverlay(element: HTMLElement): WalkontableInstance | null {
-    return this.#findParentOverlay(element, (wtTable, el) => wtTable.TABLE.contains(el));
+    return this.#findParentOverlay(element, tableHolds);
   }
 
   /**

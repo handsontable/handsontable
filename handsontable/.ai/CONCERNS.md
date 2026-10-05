@@ -117,7 +117,7 @@
 
 **Overlay System (Walkontable):**
 - Files: `handsontable/src/3rdparty/walkontable/src/overlay/overlays.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/regions/topOverlay.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/regions/inlineStartOverlay.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/regions/bottomOverlay.ts`
-- Why fragile: The overlay system manages 8 overlay types (top, bottom, inline-start, inline-end, and 4 corners) with complex positioning logic. TODO comments indicate a workaround for `innerBorderTop` that is documented to be clearable only after SVG borders are merged. Lazy creation of corner overlays adds initialization complexity.
+- Why fragile: The overlay system manages 8 overlay types (top, bottom, inline-start, inline-end, and 4 corners) with complex positioning logic. TODO comments indicate a workaround for `innerBorderTop` that is documented to be clearable only after SVG borders are merged. The corners and the three end clones are all built eagerly and only hidden while they have nothing to draw, so an idle clone still takes part in the initialization and in the layout signature.
 - Safe modification: Test with combinations of `fixedRowsTop`, `fixedRowsBottom`, `fixedColumnsStart`, `fixedColumnsEnd`, including all four together and a start plus end count that exceeds the column count (start wins). Test RTL layout, window scroll, and a visible vertical scrollbar at the end edge. Verify no visual artifacts at overlay boundaries.
 - Test coverage: Walkontable has its own test pipeline (`npm run test:walkontable`), separate from the main E2E tests.
 

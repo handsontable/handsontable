@@ -946,23 +946,22 @@ export class CollapsibleColumns extends BasePlugin {
    * `fixedColumnsEnd` band. Such a group gets no toggle: collapsing it would move the band over other columns
    * (the same reason a group that starts in the `fixedColumnsStart` band gets none).
    *
+   * The group is judged by its authored range, never by its visible end. A collapsed group hides its last
+   * columns, and a hidden column keeps its slot in the band, so judging by the visible end would give the
+   * group a toggle while it is collapsed and take it away once it expands over the band.
+   *
    * @param {number} column The visual column the group starts at.
    * @param {number} colspan The authored number of columns of the group.
    * @returns {boolean}
    */
   #reachesFixedColumnsEnd(column: number, colspan: number): boolean {
-    const wt = this.hot.view?._wt;
-    const fixedColumnsEnd = (wt?.getSetting('fixedColumnsEnd') as number | undefined) ?? 0;
+    const fixedColumnsEnd = this.hot.view?.countFixedColumnsEnd() ?? 0;
 
     if (!fixedColumnsEnd) {
       return false;
     }
 
-    const { columnIndexMapper } = this.hot;
-    const lastVisual = columnIndexMapper.getNearestNotHiddenIndex(column + colspan - 1, -1);
-    const lastRenderable = lastVisual === null ? null : columnIndexMapper.getRenderableFromVisualIndex(lastVisual);
-
-    return lastRenderable !== null && lastRenderable >= (wt.getSetting('totalColumns') as number) - fixedColumnsEnd;
+    return column + colspan - 1 >= this.hot.countCols() - fixedColumnsEnd;
   }
 
   /**
