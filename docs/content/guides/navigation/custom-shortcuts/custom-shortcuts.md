@@ -203,9 +203,7 @@ gridContext.addShortcut({
   group: 'customNumericEditor',
   position: 'before',
   relativeToGroup: 'editorManager.handlingEditor',
-  runOnlyIf: () => {
-    hot.getSelected() !== undefined;
-  },
+  runOnlyIf: () => hot.getSelected() !== undefined,
   keys: [['F2']],
   callback: () => {
     if (hot.getActiveEditor().cellProperties.type === 'numeric') {
