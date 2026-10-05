@@ -2927,6 +2927,55 @@ test.describe('Icon elements', () => {
       await expect(indicator).toHaveClass(/collapsed/);
     });
 
+    test('renderer markup inside the nested rows button gets no row-header label padding', async({
+      page, theme, bundle,
+    }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto({ icons: 'tabler', nestedRows: true });
+
+      await page.evaluate(() => {
+        (window as unknown as { Handsontable: any }).Handsontable.themes.getTheme('icons-tabler').params({
+          icons: {
+            collapseOff: (element: HTMLElement) => {
+              const glyph = document.createElement('span');
+
+              glyph.className = 'renderer-glyph';
+              glyph.style.cssText = 'display:inline-block;width:8px;height:8px;background:red;';
+              element.replaceChildren(glyph);
+            },
+          },
+        });
+      });
+
+      const rowHeaders = page.locator('.ht_clone_inline_start tbody th');
+      const button = rowHeaders.nth(0).locator('.ht_nestingButton');
+      const glyph = button.locator('.renderer-glyph');
+
+      await expect(glyph).toHaveCount(1);
+
+      // `_nested-rows.scss` pads the last span of a row header so a leaf row's label lines up with
+      // the labels of rows that have a button. A span a renderer puts in the button's icon is the
+      // last child of the icon, and the rule must not reach it: 21px of padding pushed it out of the
+      // button and over the row number.
+      const glyphPadding = await glyph.evaluate(el => getComputedStyle(el).paddingLeft);
+      const glyphBox = await glyph.boundingBox();
+      const buttonBox = await button.boundingBox();
+
+      expect(glyphPadding).toBe('0px');
+      expect(glyphBox!.x).toBeGreaterThanOrEqual(buttonBox!.x - 0.5);
+      expect(glyphBox!.x + glyphBox!.width).toBeLessThanOrEqual(buttonBox!.x + buttonBox!.width + 0.5);
+
+      // The rule's own target still gets it: "Child A1" is a leaf, so its label is the last child.
+      const leafLabel = rowHeaders.nth(1).locator('span.rowHeader');
+      const [leafPadding, iconSize] = await leafLabel.evaluate(el => [
+        Number.parseFloat(getComputedStyle(el).paddingLeft),
+        Number.parseFloat(getComputedStyle(el).getPropertyValue('--ht-icon-size')),
+      ]);
+
+      expect(leafPadding).toBe(iconSize + 5);
+    });
+
     for (const dir of ['ltr', 'rtl'] as const) {
       // The label is `width: 100%`, so flex shrank the input and the tick overlay, pulled back by
       // its own width, landed off the checkbox box.
