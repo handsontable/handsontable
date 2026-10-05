@@ -78,7 +78,7 @@ function log_events(event, data) {
         str = data[d].toString();
       }
 
-      if (str === void 0) {
+      if (str === undefined) {
         continue;
       }
 
