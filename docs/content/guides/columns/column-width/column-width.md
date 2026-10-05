@@ -251,9 +251,23 @@ Set the option [`manualColumnResize`](@/api/options.md#manualcolumnresize) to `t
 
 You can adjust the size of one or multiple columns simultaneously, even if the selected columns are not placed next to each other.
 
+### Minimum column width
+
+When the column headers render the menu button (the grid shows column headers, with [`colHeaders`](@/api/options.md#colheaders) or [`nestedHeaders`](@/api/options.md#nestedheaders), and [`dropdownMenu`](@/api/options.md#dropdownmenu) is enabled), a column can't get narrower than the button needs. The minimum width is the icon size plus the horizontal cell padding on both sides (`--ht-icon-size + 2 × --ht-cell-horizontal-padding`), so it depends on your [theme](@/guides/styling/themes/themes.md):
+
+| Theme   | Minimum column width |
+| ------- | -------------------- |
+| Main    | 32px                 |
+| Horizon | 40px                 |
+| Classic | 24px                 |
+
+A custom theme can declare these values in any unit, such as `rem` or `calc()`. Any other grid has no button to protect, so its minimum is `20px`, which is also the lowest the minimum can be.
+
+When a column is narrow, the header hides things in this order: the label text, then the sort indicator, and then the menu button. The menu button stays visible at the minimum width. At that width you can't sort by clicking the header text. You can still sort with the [`sort()`](@/api/columnSorting.md#sort) method, or with <kbd>**Enter**</kbd> on the header when [`navigableHeaders`](@/api/options.md#navigableheaders) is enabled.
+
 ::: tip
 
-When you set a column width programmatically with [`ManualColumnResize#setManualSize()`](@/api/manualColumnResize.md#setmanualsize), call `hot.render()` after the method call to repaint the grid. Values below `20px` are stored as `20px`.
+When you set a column width programmatically with [`ManualColumnResize#setManualSize()`](@/api/manualColumnResize.md#setmanualsize), call `hot.render()` after the method call to repaint the grid. Values below the minimum column width are stored as the minimum.
 
 :::
 

@@ -131,10 +131,11 @@ When a checkbox cell's value is empty (`null`, `undefined`, or an empty string) 
 
 By default, the `noValue` class reduces the checkbox's opacity, so cells with no value look faded and stay visually distinct from cells set to the unchecked value.
 
-To change how these cells look, target the `noValue` class in your CSS:
+To change how these cells look, target the `noValue` class in your CSS. The checkbox's tick is a separate `<i class="ht-icon">` element placed right after the input, so style it through the `+` combinator:
 
 ```css
-.handsontable .htCheckboxRendererInput.noValue {
+.handsontable .htCheckboxRendererInput.noValue,
+.handsontable .htCheckboxRendererInput.noValue + .ht-icon {
   opacity: 1;
 }
 ```

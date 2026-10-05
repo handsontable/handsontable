@@ -53,6 +53,12 @@ export class TouchScroll extends BasePlugin {
    */
   lockedCollection: boolean = false;
   /**
+   * Whether the collected overlays include the ones of the frozen end columns (`inlineEndOverlay.needFullRender`
+   * at the time of the collection). `updatePlugin()` clears `lockedCollection` after the render an
+   * `updateSettings()` call triggers, so without this flag the collection would stay stale until the next render.
+   */
+  #collectedEndOverlays = false;
+  /**
    * Flag which determines if walkontable should freeze overlays while scrolling.
    *
    * @type {boolean}
@@ -113,19 +119,26 @@ export class TouchScroll extends BasePlugin {
    * After view render listener.
    */
   #onAfterViewRender = () => {
-    if (this.lockedCollection) {
-      return;
-    }
-
     const {
       topOverlay,
       bottomOverlay,
       inlineStartOverlay,
+      inlineEndOverlay,
       topInlineStartCornerOverlay,
-      bottomInlineStartCornerOverlay
+      bottomInlineStartCornerOverlay,
+      topInlineEndCornerOverlay,
+      bottomInlineEndCornerOverlay
     } = this.hot.view._wt.wtOverlays;
+    // Every overlay builds its clone in its constructor, so a `clone` check cannot tell whether the end columns
+    // are frozen. `needFullRender` can, the same way the `clones` list below gates the start and bottom overlays.
+    const hasEndOverlays = !!inlineEndOverlay?.needFullRender;
+
+    if (this.lockedCollection && hasEndOverlays === this.#collectedEndOverlays) {
+      return;
+    }
 
     this.lockedCollection = true;
+    this.#collectedEndOverlays = hasEndOverlays;
     this.scrollbars.length = 0;
     this.scrollbars.push(topOverlay);
 
@@ -140,6 +153,17 @@ export class TouchScroll extends BasePlugin {
     }
     if (bottomInlineStartCornerOverlay && bottomInlineStartCornerOverlay.clone) {
       this.scrollbars.push(bottomInlineStartCornerOverlay);
+    }
+
+    if (hasEndOverlays) {
+      this.scrollbars.push(inlineEndOverlay);
+
+      if (topInlineEndCornerOverlay?.clone) {
+        this.scrollbars.push(topInlineEndCornerOverlay);
+      }
+      if (bottomInlineEndCornerOverlay?.clone) {
+        this.scrollbars.push(bottomInlineEndCornerOverlay);
+      }
     }
 
     this.clones = [];
@@ -158,6 +182,17 @@ export class TouchScroll extends BasePlugin {
     }
     if (bottomInlineStartCornerOverlay && bottomInlineStartCornerOverlay.clone) {
       this.clones.push(bottomInlineStartCornerOverlay.clone.wtTable.holder.parentNode);
+    }
+
+    if (hasEndOverlays) {
+      this.clones.push(inlineEndOverlay.clone?.wtTable.holder.parentNode);
+
+      if (topInlineEndCornerOverlay?.clone) {
+        this.clones.push(topInlineEndCornerOverlay.clone.wtTable.holder.parentNode);
+      }
+      if (bottomInlineEndCornerOverlay?.clone) {
+        this.clones.push(bottomInlineEndCornerOverlay.clone.wtTable.holder.parentNode);
+      }
     }
   };
 

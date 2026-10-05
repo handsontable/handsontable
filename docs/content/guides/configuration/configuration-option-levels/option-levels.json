@@ -6,9 +6,9 @@
     "cells",
     "cell"
   ],
-  "total": 176,
+  "total": 177,
   "counts": {
-    "grid": 107,
+    "grid": 108,
     "grid columns cells cell": 62,
     "grid columns": 6,
     "columns": 1
@@ -638,6 +638,15 @@
       ],
       "since": "19.0.0",
       "note": "Orders a column's \"Filter by value\" list, which is built once per column. The comparator is read from the first listed row's cell meta, so a `cells` or `cell` value is not a reliable way to set it. Set it at the grid level or inside `columns`."
+    },
+    {
+      "name": "fixedColumnsEnd",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.0.0",
+      "note": null
     },
     {
       "name": "fixedColumnsLeft",

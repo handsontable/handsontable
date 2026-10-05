@@ -21,6 +21,7 @@ import { isRootInstance } from '../../utils/rootInstance';
 import { isPlainObject } from '../../helpers/object';
 import { error as logError, warn, warnOnce } from '../../helpers/console';
 import { isHTMLElement } from '../../helpers/dom/element';
+import { syncIcon } from '../../themes/engine/icons';
 import type {
   DataProvider,
   DataProviderConfig,
@@ -528,6 +529,13 @@ export class SheetsBar extends BasePlugin {
    * @type {number|undefined}
    */
   #neutralFixedColumnsStart: number | undefined;
+  /**
+   * The grid-level `fixedColumnsEnd` as it stood before any sheet was applied. It plays the same part
+   * as `#neutralFixedColumnsStart` for the frozen end columns.
+   *
+   * @type {number|undefined}
+   */
+  #neutralFixedColumnsEnd: number | undefined;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings.
@@ -554,6 +562,7 @@ export class SheetsBar extends BasePlugin {
     // the neutral value and leak it onto never-visited sheets.
     if (this.#preservedState === null) {
       this.#neutralFixedColumnsStart = this.hot.getSettings().fixedColumnsStart as number | undefined;
+      this.#neutralFixedColumnsEnd = this.hot.getSettings().fixedColumnsEnd as number | undefined;
     }
 
     this.#getDataProvider()?._setContextOwner(this.#contextOwner);
@@ -579,6 +588,15 @@ export class SheetsBar extends BasePlugin {
 
     this.#lastBuiltSheets = this.getSetting('sheets');
 
+    // Injected into the bar and the tab strip so both stay decoupled from the theme engine —
+    // shared here rather than declared per call site.
+    const syncIconForHot = (
+      container: HTMLElement,
+      slotClass: string,
+      name: Parameters<typeof syncIcon>[3],
+      options?: Parameters<typeof syncIcon>[4],
+    ) => syncIcon(this.hot, container, slotClass, name, options);
+
     if (!this.#ui) {
       this.#ui = new SheetsBarUI({
         rootDocument: this.hot.rootDocument,
@@ -588,6 +606,7 @@ export class SheetsBar extends BasePlugin {
         phraseTranslator: (key: string, args?: unknown) => this.hot.getTranslatedPhrase(key, args),
         a11yAnnouncer: (message: unknown) => announce(String(message ?? '')),
         ariaTags: this.hot.getSettings().ariaTags,
+        syncIcon: syncIconForHot,
       });
       this.#ui.setControlsVisible(this.getSetting<boolean>('controls') !== false);
       this.#ui
@@ -610,6 +629,7 @@ export class SheetsBar extends BasePlugin {
         translate: (key: string, args?: unknown) => this.#ui!.translate(key, args),
         ariaTags: this.hot.getSettings().ariaTags !== false,
         isRtl: this.hot.isRtl(),
+        syncIcon: syncIconForHot,
       });
       this.#tabStrip
         .addLocalHook('tabClick', (id: number) => this.setActiveSheet(id, SOURCE_UI))
@@ -830,6 +850,11 @@ export class SheetsBar extends BasePlugin {
     if (!('fixedColumnsStart' in restored)
       && (this.hot.getSettings().fixedColumnsStart ?? 0) !== (this.#neutralFixedColumnsStart ?? 0)) {
       restored.fixedColumnsStart = this.#neutralFixedColumnsStart ?? 0;
+    }
+
+    if (!('fixedColumnsEnd' in restored)
+      && (this.hot.getSettings().fixedColumnsEnd ?? 0) !== (this.#neutralFixedColumnsEnd ?? 0)) {
+      restored.fixedColumnsEnd = this.#neutralFixedColumnsEnd ?? 0;
     }
 
     if (Object.keys(restored).length === 0) {
@@ -1431,7 +1456,7 @@ export class SheetsBar extends BasePlugin {
       // those declarations were wiped on the sheet's first activation and then captured as
       // its own empty state.
       if (!viewState) {
-        resetViewState(this.hot, this.#neutralFixedColumnsStart);
+        resetViewState(this.hot, this.#neutralFixedColumnsStart, this.#neutralFixedColumnsEnd);
       } else {
         clearMergedCells(this.hot);
       }
@@ -1512,7 +1537,9 @@ export class SheetsBar extends BasePlugin {
       // and be captured as its own state on the first switch away. The reset runs before the
       // sheet is applied, so the opening sheet's own declared `settings` stay in force.
       if (this.hot.view) {
-        this.#withoutUndoEntry(() => resetViewState(this.hot, this.#neutralFixedColumnsStart));
+        this.#withoutUndoEntry(() => resetViewState(
+          this.hot, this.#neutralFixedColumnsStart, this.#neutralFixedColumnsEnd
+        ));
       }
 
       this.#applySheet(targetSheet, SOURCE_API);
@@ -2416,6 +2443,13 @@ export class SheetsBar extends BasePlugin {
    */
   #onAfterSetTheme = (themeName: unknown) => {
     this.#ui?.updateTheme(themeName as string | undefined);
+    // The icons are refreshed in place, never through `#refreshUI()`: `TabStrip#render()` aborts
+    // a tab drag and cancels an open rename, and this hook also fires for a color-scheme or
+    // density switch (a ThemeBuilder `params()` or `setColorScheme()` included), so a user typing
+    // a sheet name would lose it when the app toggled dark mode. `syncIcon()` re-applies a
+    // class-list or renderer mapping only when the theme's icons revision moved.
+    this.#ui?.refreshIcons();
+    this.#tabStrip?.refreshIcons();
   };
 
   /**

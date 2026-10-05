@@ -3,6 +3,7 @@ import { Hooks } from '../../core/hooks';
 import freezeColumnItem from './contextMenuItem/freezeColumn';
 import unfreezeColumnItem from './contextMenuItem/unfreezeColumn';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
+import { isInEndBand, unfreezeWouldShiftEndBand } from './endBand';
 
 Hooks.getSingleton().register('beforeColumnFreeze');
 Hooks.getSingleton().register('afterColumnFreeze');
@@ -132,9 +133,11 @@ export class ManualColumnFreeze extends BasePlugin {
    */
   #freezeColumn(column: number): void {
     const settings = this.hot.getSettings();
-    // columns are already fixed (frozen)
+    // columns are already fixed (frozen), or the column belongs to the `fixedColumnsEnd` band: moving it to
+    // the freeze line would pull the column in front of the band into it
     const freezePerformed = (settings.fixedColumnsStart ?? 0) < this.hot.countCols()
-      && column > (settings.fixedColumnsStart ?? 0) - 1;
+      && column > (settings.fixedColumnsStart ?? 0) - 1
+      && !isInEndBand(this.hot, column);
 
     if (!this.#afterFirstUse) {
       this.#afterFirstUse = true;
@@ -177,7 +180,9 @@ export class ManualColumnFreeze extends BasePlugin {
     const settings = this.hot.getSettings();
     // columns are not fixed (not frozen)
     const fixedStart = settings.fixedColumnsStart ?? 0;
-    const unfreezePerformed = fixedStart > 0 && (column <= fixedStart - 1);
+    // Unfreezing is also refused when it would hand a column back to the `fixedColumnsEnd` band (the
+    // start/end clamp was cutting the band down), as the unfrozen column would slide into it.
+    const unfreezePerformed = fixedStart > 0 && (column <= fixedStart - 1) && !unfreezeWouldShiftEndBand(this.hot);
 
     if (!this.#afterFirstUse) {
       this.#afterFirstUse = true;

@@ -21,7 +21,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths). Section 16 concerns the new single-line default for those same three cell types, and applies only if you use one of them. Section 17 concerns the [`width`](@/api/options.md#width) and [`height`](@/api/options.md#height) options, and applies if you set `height: 'auto'`, or pass a CSS keyword, a `var()`, or a container-query unit to either option. Section 18 concerns what [`getCopyableData()`](@/api/core.md#getcopyabledata) returns, and applies only if you call it or [`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) yourself. Section 19 concerns where the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), and [`multiselect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) editors open their lists, and applies if you use one of those cell types. Section 20 concerns two deprecated [`Core`](@/api/core.md) methods, [`spliceCol()`](@/api/core.md#splicecol) and [`spliceRow()`](@/api/core.md#splicerow), and applies only if you call either of them. Section 21 concerns the right-alignment and `htNumeric` class name of a [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md) cell, and applies only if such a cell can hold a non-numeric value. Section 22 concerns what [`colToProp()`](@/api/core.md#coltoprop) and [`propToCol()`](@/api/core.md#proptocol) return for a column that does not exist, and applies if you call either of them, call [`getDataAtProp()`](@/api/core.md#getdataatprop) with an index, or add a [`modifyData`](@/api/hooks.md#modifydata) hook. Section 23 concerns the TypeScript types of the [`filters`](@/api/options.md#filters) option, and applies only if you use TypeScript and set `filters` to an object. Section 24 concerns how undo and redo work, and applies if you keep the default [`undo`](@/api/options.md#undo) setting. Section 25 concerns the new [`maxLength`](@/api/options.md#maxlength) option, and applies only if you already keep a `maxLength` key in your cell settings.
+Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths). Section 16 concerns the new single-line default for those same three cell types, and applies only if you use one of them. Section 17 concerns the [`width`](@/api/options.md#width) and [`height`](@/api/options.md#height) options, and applies if you set `height: 'auto'`, or pass a CSS keyword, a `var()`, or a container-query unit to either option. Section 18 concerns what [`getCopyableData()`](@/api/core.md#getcopyabledata) returns, and applies only if you call it or [`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) yourself. Section 19 concerns where the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), and [`multiselect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) editors open their lists, and applies if you use one of those cell types. Section 20 concerns two deprecated [`Core`](@/api/core.md) methods, [`spliceCol()`](@/api/core.md#splicecol) and [`spliceRow()`](@/api/core.md#splicerow), and applies only if you call either of them. Section 21 concerns the right-alignment and `htNumeric` class name of a [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md) cell, and applies only if such a cell can hold a non-numeric value. Section 22 concerns what [`colToProp()`](@/api/core.md#coltoprop) and [`propToCol()`](@/api/core.md#proptocol) return for a column that does not exist, and applies if you call either of them, call [`getDataAtProp()`](@/api/core.md#getdataatprop) with an index, or add a [`modifyData`](@/api/hooks.md#modifydata) hook. Section 23 concerns the TypeScript types of the [`filters`](@/api/options.md#filters) option, and applies only if you use TypeScript and set `filters` to an object. Section 24 concerns how undo and redo work, and applies if you keep the default [`undo`](@/api/options.md#undo) setting. Section 25 concerns the new [`maxLength`](@/api/options.md#maxlength) option, and applies only if you already keep a `maxLength` key in your cell settings. Section 26 concerns the narrowest width a column can be resized to, and applies if you enable [`dropdownMenu`](@/api/options.md#dropdownmenu) and let users resize columns with [`manualColumnResize`](@/api/options.md#manualcolumnresize), or call [`setManualSize()`](@/api/manualColumnResize.md#setmanualsize) or [`setManualSizes()`](@/api/manualColumnResize.md#setmanualsizes). Section 27 concerns icons rendering as `<i>` elements instead of CSS pseudo-elements, and applies if you style a built-in icon, query for one in a test, or use the [`icons`](@/guides/styling/themes/themes.md#icons) theme parameter.
 
 ## 1. `date` cells reach the formula engine the same way on every data path
 
@@ -295,9 +295,31 @@ A property named `checked` holding anything else, such as any other string or a 
 The built-in "Read only" and "Read-only comment" items use `'mixed'` when only some of the selected
 cells are read-only. They show a dash there, where they used to show a check mark.
 
-If you use a theme without icons, such as `ht-theme-main-no-icons.css`, and draw the check mark
-yourself with a rule for `span.selected::after`, add a matching rule for `span.htMixed::after`.
-Otherwise the dash is not visible.
+If you use a theme without icons, such as `ht-theme-main-no-icons.css`, draw both marks on their icon
+elements. The check mark is an `<i class="ht-icon ht-icon-check">` inside `span.selected`, and the
+dash is an `<i class="ht-icon ht-icon-collapse-off">` inside `span.htMixed`. Give each one a mask:
+
+```css
+.htItemWrapper .ht-icon-check {
+  mask-image: url('/icons/check.svg');
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  background-color: currentColor;
+}
+
+.htItemWrapper .ht-icon-collapse-off {
+  mask-image: url('/icons/dash.svg');
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  background-color: currentColor;
+}
+```
+
+A rule for `span.selected::after` from 18.1 paints nothing in 19.0. The span keeps `font-size: 0`,
+so a pseudo-element added to it inherits that size and renders no box. See
+[Icons are rendered as `<i>` elements](#icons-are-rendered-as-i-elements).
 
 If the property was your own bookkeeping and you want neither effect, rename it:
 
@@ -1378,3 +1400,151 @@ Apps that set `maxLength` on the grid, in [`columns`](@/api/options.md#columns),
 - **Rename your key.** Use a name that Handsontable doesn't read, such as `maxChars`, in your settings and in the code that reads it, for example `this.maxChars` in a validator or `cellProperties.maxChars` in an editor or renderer.
 - **Or use the built-in option.** Remove your own length validator and keep `maxLength`. Set [`allowInvalid`](@/api/options.md#allowinvalid) to `false` if the grid must reject a value that is too long.
 - **Turn the built-in limit off for a cell.** Set `maxLength: Infinity` on that column or cell and keep your own limit under another key.
+
+## 26. The narrowest column width depends on the theme
+
+**This section can change the width a column ends up with.** A column resized by dragging or by [`setManualSize()`](@/api/manualColumnResize.md#setmanualsize) could be as narrow as `20px`. At that width the header's menu button didn't fit, so it hung over the neighboring header, and the label and the sort indicator pushed it out of its own cell.
+
+### What changed
+
+When the column headers render the menu button, which means the grid shows column headers (with [`colHeaders`](@/api/options.md#colheaders) or [`nestedHeaders`](@/api/options.md#nestedheaders)) and [`dropdownMenu`](@/api/options.md#dropdownmenu) is enabled, the narrowest width is now the room the header needs for that button: the icon size plus the horizontal cell padding on both sides (`--ht-icon-size + 2 × --ht-cell-horizontal-padding`). Any other grid has no button to protect and keeps the `20px` minimum.
+
+| Theme   | Narrowest width before | Narrowest width now, with the menu button |
+| ------- | ---------------------- | ----------------------------------------- |
+| Main    | 20px                   | 32px                                      |
+| Horizon | 20px                   | 40px                                      |
+| Classic | 20px                   | 24px                                      |
+
+The new minimum applies when you resize a column by dragging, when you double-click the resize handle to fit the column to its content, and when you call [`setManualSize()`](@/api/manualColumnResize.md#setmanualsize) or [`setManualSizes()`](@/api/manualColumnResize.md#setmanualsizes). The methods store the minimum for any smaller width, and `setManualSize()` returns it. A theme can declare the two values in any unit: Handsontable resolves them in the browser, so `rem`, `em`, and `calc()` count the same as `px`. The minimum is never less than `20px`, which is also what you get when the theme doesn't declare the values or the grid isn't rendered yet.
+
+As a column gets narrow, its header now gives things up in a fixed order: the label text, then the sort indicator, and the menu button last. The sort indicator of a column that has a menu button is hidden below `2 × --ht-cell-horizontal-padding + 2 × --ht-icon-size + 6px`, which is 54px in Main, 62px in Horizon, and 42px in Classic. That is above the minimum width, so a sorted column of that width shows no arrow (and no sort order number with [`multiColumnSorting`](@/api/multiColumnSorting.md)) where it used to. The label gives up room to the menu button earlier still, as soon as the column can't hold both. The menu button stays inside its own header at every width the user can reach. At the minimum width the label is gone, so a click on the header text can't sort the column. You can still sort with the [`sort()`](@/api/columnSorting.md#sort) method, or with <kbd>**Enter**</kbd> on the header when [`navigableHeaders`](@/api/options.md#navigableheaders) is enabled.
+
+These widths don't change:
+
+- A width you declare in the [`manualColumnResize`](@/api/options.md#manualcolumnresize) array, in [`colWidths`](@/api/options.md#colwidths), or in a column's `width`. Handsontable doesn't clamp them.
+- A width that [`autoColumnSize`](@/api/autoColumnSize.md) or column stretching calculates. The exception is the double-click on the resize handle, which stores the fitted width as a manual width, so it can't go below the minimum.
+- A width that is already stored. Handsontable applies the minimum when it writes a width, not when it reads one, so a theme change never rewrites stored widths. Writing a stored width back through `setManualSizes()` applies the minimum again. The [`sheetsBar`](@/api/sheetsBar.md) plugin does that when you switch sheets, so a width below the minimum that came from the `manualColumnResize` array comes back as the minimum after you leave a sheet and return.
+
+### Who is affected
+
+- Apps with the dropdown menu enabled where users resize columns and rely on a column getting as narrow as `20px`. A grid without column headers or without the menu isn't affected, so a narrow spacer or icon column in such a grid keeps working.
+- Apps with the dropdown menu enabled that call `setManualSize()` or `setManualSizes()` with a width below the new minimum, and apps that restore saved widths through `setManualSizes()`. They now store the minimum.
+- Apps and tests that read `getManualSize()` or the rendered header width after such a call and expect `20`.
+- Apps with their own CSS for the header layout, which targets `.colHeader.columnSorting.sortAction` or the `column-gap` of `.relative.has-header-button`. The built-in rules now shrink those in a narrow header.
+
+### How to migrate
+
+- **Update the expected width.** Read the minimum from the theme instead of hard-coding it: `parseFloat(style.getPropertyValue('--ht-icon-size')) + 2 * parseFloat(style.getPropertyValue('--ht-cell-horizontal-padding'))`, where `style` is the computed style of the grid's root element.
+- **Keep saved widths.** You don't need to migrate them. A saved width that you restore through `setManualSizes()` is stored as the minimum when it's below it, and unchanged when it's at or above it.
+- **Need a narrower column anyway?** Turn the dropdown menu off, or declare the width in the `manualColumnResize` array or in `colWidths`. These widths aren't clamped, but the header can't fit the menu button in a column narrower than the minimum.
+
+## 27. Icons are rendered as `<i>` elements
+
+Every built-in icon used to be a CSS `::before`/`::after` pseudo-element, generated from an `iconsMap` stylesheet. It's now a real DOM element: `<i class="ht-icon ht-icon-<name>" aria-hidden="true"></i>`, inserted into the cell, header, or menu item it belongs to. The glyph still comes from a `--ht-icon-<name>` CSS variable, applied by an unscoped `.ht-icon-<name>` rule.
+
+### Who is affected
+
+- You style a built-in icon with a `::before` or `::after` selector, such as `.changeType::before` or `.ht-page-next::before`.
+- Your tests assert on the DOM structure of a cell, header, or menu item that contains an icon -- for example, counting child elements, or using `:first-child`.
+- Your own CSS has a bare `i` rule, or a selector such as `td.querySelector('i')`, that could now match a Handsontable icon it wasn't written for.
+- You use `.ht-multi-select-editor-search-icon` to style the multi-select editor's search icon. In 18.1 the icon was a `<div>` with that class, already painted from a mask. It's now an `<i class="ht-icon ht-icon-search">` element that keeps the class as a legacy hook. A selector that names the `div` no longer matches. To change the glyph, override `--ht-icon-search`.
+- You build your own markup that reuses one of Handsontable's own input classes for its styling -- `htUIRadio` or `htCheckboxRendererInput` are the two that carried a glyph. Both used to get that glyph from CSS alone (a pseudo-element on the input); now the glyph is a separate `<i class="ht-icon ht-icon-<name>">` element, inserted as the input's next sibling only by Handsontable's own components. Markup you build by hand -- for example, a custom cell renderer that copies these classes for their look -- renders the input with no glyph and nothing tells you why: no error, no console warning, only a missing dot or check mark. Add the icon element yourself, as a sibling immediately after the input, to get it back.
+- You select or style the elements inside a `checkbox` cell. The input and its tick now share a wrapper: `span.htCheckboxRendererBox > input.htCheckboxRendererInput + i.ht-icon.ht-icon-checkbox`. The wrapper sits where the bare input used to be, before or after the label, so the cell has the same number of children as in 18.1. `td.querySelector('input')` and `input + .ht-icon` selectors still match. Code that treats the cell's first child as the input gets the wrapper instead -- use `querySelector('input')`. If a custom renderer hides the input, hide the wrapper too (or the icon, through `.htCheckboxRendererInput + .ht-icon`), or the tick stays visible on its own.
+- You compare screenshots of the multi-select editor's option list. The gap between a checkbox and its label is now one `--ht-gap-size`, on the label's inline-start side, in both LTR and RTL. In 18.1 the list set a physical left padding, so an RTL list had no gap at all.
+- You read or select the Filters condition dropdown's caption by its own text content. The caption's text now lives in a `<span class="htUISelectCaptionLabel">` child; see [The Filters caption text moved into a child element](#the-filters-caption-text-moved-into-a-child-element) below.
+- You pass a string icon value through the Theme API's `icons` parameter. In 18.1, every string was a glyph, wrapped in `url(...)`. In 19.0, a string can also be a class list for an icon font. Markup, `data:`/`http(s):`/`blob:` URLs, absolute and `./`/`../` paths, `url(...)`, and a file name with an image extension (a query string or fragment included, such as `icons/check.svg?v=2`) are still glyphs. A relative path with no file extension, such as `icons/check`, is now a class list and paints nothing -- start it with `./` or wrap it in `url(...)`. See [How a string value is read](@/guides/styling/themes/themes.md#how-a-string-value-is-read).
+- You import `iconsMap` from `handsontable/themes/static/variables/helpers/iconsMap` to generate icon CSS for a custom theme. The pseudo-element selectors it generated no longer exist, so it's deprecated and will be removed in 20.0.0. Until then, it logs a one-time warning and returns the `iconStyles()` output: the `--ht-icon-*` variables and the `.ht-icon-<name>` rules that paint the icon elements. Switch to `iconStyles(icons, scopeSelector)` from `handsontable/themes/static/variables/helpers/iconStyles`, which takes a full scope selector (such as `.ht-theme-main`) instead of a theme class prefix.
+- You render a grid whose `layoutDirection` disagrees with the page's `dir` attribute. Mirrored icons (pagination and sheets bar arrows, the submenu arrow) now follow the grid's own direction. Before, the pagination arrows followed any `dir="rtl"` ancestor of the icon, through the `[dir="rtl"]` prefix in the icon stylesheet, so an LTR grid on an RTL page mirrored them. That was a defect, and it no longer happens.
+- You mirror icons for RTL yourself, or compare RTL screenshots pixel by pixel. The RTL submenu arrow used to be flipped with `rotate(180deg)`, which also flipped it vertically. It now mirrors with `scaleX(-1)`, which flips only horizontally, so it sits about 0.5px higher than in 18.1. The RTL pagination arrows used to swap to the opposite glyph. They now mirror the same glyph with `scaleX(-1)`, which can move them by a fraction of a pixel. No Filters arrow is mirrored. The hidden-column carets still turn with `rotate(180deg)`.
+- You add an `afterGetColHeader` or `afterGetRowHeader` hook that rewrites the header cell through `TH.innerHTML`. The hidden-column and hidden-row carets are now children of the header cell, and your hook runs after the plugin's, so rewriting the whole cell removes them. The `beforeHiddenColumn`/`afterHiddenColumn` (and `beforeHiddenRow`/`afterHiddenRow`) classes stay on the cell. Write into the header's `.colHeader` label instead of the whole cell to keep the carets.
+- You load a `-no-icons` theme bundle and render `checkbox` cells. The checkbox used to fall back to a native checkbox there. It now renders the theme's styled box with no tick, because its `appearance: none` moved into the base stylesheet. The Filters "Filter by value" list changes the same way. Load the matching icon file to get the tick back: `ht-icons-main.css` for the main and classic themes, `ht-icons-horizon.css` for horizon.
+- You load a `-no-icons` theme bundle and use pagination or the sheets bar. Their buttons now hold an empty `.ht-icon` element, and the base `.ht-icon` rule in `handsontable.css` sizes it to `--ht-icon-size` (16px by default). So an icon-less button keeps the size it has with icons, instead of collapsing to its padding, as the pagination buttons did in 18.1.
+- **Your TypeScript code reads the theme's `icons` config. This is a type-level breaking change.** A value in `getThemeConfig().icons` is now typed `string | IconRenderer` (a renderer callback is a valid value), so code that passes it where a `string` is expected stops compiling -- narrow it with `typeof value === 'string'` first. `IconKey` also gained `chipClose`, `search`, `plus`, and `menuList`, so an exhaustive `switch` over `IconKey` needs four more cases.
+
+### The Filters caption text moved into a child element
+
+The Filters condition dropdown's caption (`.htUISelectCaption`) used to hold its text directly. It now holds a `<span class="htUISelectCaptionLabel">` with the text, followed by the caret icon element. This is a DOM-structure change that ships with the icon change because the caret became a child of the caption: writing the caption's text through `textContent` would have removed the icon on every condition change.
+
+Code that reads the caption through `textContent` still gets only the text when the caret is a built-in mask glyph, because the icon element holds no text. An icon mapped to a ligature font or a renderer callback that writes text adds its characters to the caption's `textContent`. To read the label alone, read `.htUISelectCaptionLabel`. Code that assumes the caption has no child elements, or that reads its first text node, needs to target `.htUISelectCaptionLabel` instead.
+
+### The new element can collide with your own selectors
+
+Icons are inserted into cells and headers, and in some renderers they are inserted **before** the existing content. A selector written before this change, when a cell or header held no extra child element, can now resolve to a Handsontable icon instead of what you meant:
+
+- `td.querySelector('i')` can return the icon instead of your own `<i>` element.
+- A bare `i { ... }` rule in your stylesheet now also styles every icon.
+- `:first-child`, or an index-based child selector, can point at the icon instead of your content.
+
+Exclude icons from such a selector, or scope it to the element you actually mean:
+
+```css
+/* Before: also matches Handsontable's own icons. */
+td i {
+  color: red;
+}
+
+/* After: excludes them. */
+td i:not(.ht-icon) {
+  color: red;
+}
+```
+
+### How to migrate
+
+Replace a pseudo-element selector with the matching `.ht-icon-<name>` class, or override the icon's `--ht-icon-<name>` CSS variable to change only its glyph. Both are documented in [Icons](@/guides/styling/themes/themes.md#icons) in the Themes guide.
+
+The table below lists every selector the old `iconsMap` stylesheet generated and its replacement. A `[dir="rtl"]`-prefixed selector used to point at a different, mirrored icon; that pairing no longer exists; the single new class mirrors itself when the grid's `layoutDirection` is RTL.
+
+| Old selector | New selector |
+| --- | --- |
+| `.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper::after`, `.htContextMenu table tbody tr td.htSubmenu .htItemWrapper::after`, `.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper::after` | `.ht-icon-arrow-right` |
+| `.ht-page-size-section__select-wrapper::after` | `.ht-icon-arrow-down` |
+| `.changeType::before` | `.ht-icon-menu` |
+| `.htUISelectCaption::after`, `.htAutocompleteArrow::after` | `.ht-icon-select-arrow` |
+| `.columnSorting.sortAction.ascending::before` | `.ht-icon-arrow-narrow-up` |
+| `.columnSorting.sortAction.descending::before` | `.ht-icon-arrow-narrow-down` |
+| `.ht-page-navigation-section .ht-page-first::before` (and its `[dir="rtl"]` pair) | `.ht-icon-arrow-left-with-bar` |
+| `.ht-page-navigation-section .ht-page-prev::before` (and its `[dir="rtl"]` pair) | `.ht-icon-arrow-left` |
+| `.ht-page-navigation-section .ht-page-next::before` (and its `[dir="rtl"]` pair) | `.ht-icon-arrow-right` |
+| `.ht-page-navigation-section .ht-page-last::before` (and its `[dir="rtl"]` pair) | `.ht-icon-arrow-right-with-bar` |
+| `.htDropdownMenu table tbody tr td .htItemWrapper span.selected::after`, `.htContextMenu table tbody tr td .htItemWrapper span.selected::after`, `.htFiltersConditionsMenu table tbody tr td .htItemWrapper span.selected::after` | `.ht-icon-check` |
+| `.htCheckboxRendererInput::after` | `.ht-icon-checkbox` |
+| `th.beforeHiddenColumn::after` | `.ht-icon-caret-hidden-left` |
+| `th.afterHiddenColumn::before` | `.ht-icon-caret-hidden-right` |
+| `th.beforeHiddenRow::after` | `.ht-icon-caret-hidden-up` |
+| `th.afterHiddenRow::before` | `.ht-icon-caret-hidden-down` |
+| `.collapsibleIndicator::before`, `.ht_nestingButton::before` | `.ht-icon-collapse-off` |
+| `.collapsibleIndicator.collapsed::before`, `.ht_nestingButton.ht_nestingExpand::before` | `.ht-icon-collapse-on` |
+| `.htUIRadio > input[type="radio"]::after` | `.ht-icon-radio` |
+| `.ht-multi-select-chip-remove::before` | `.ht-icon-chip-close` |
+| `.ht-notification__close::before` | `.ht-icon-chip-close` |
+| `.ht-multi-select-editor-item-selected input::after` | `.ht-icon-checkbox` |
+| `.ht-multi-select-editor-search-icon` (a class on the search icon's own element, not a pseudo-element; kept on the new element as a legacy class) | `.ht-icon-search` |
+
+The sheets bar and the mixed-state menu mark are new in 19.0, so no 18.1 selector exists for them. Their icons use the same classes: `.ht-icon-plus` (add sheet), `.ht-icon-menu-list` (all sheets), `.ht-icon-select-arrow` (tab chevron), `.ht-icon-arrow-left` and `.ht-icon-arrow-right` (tab paging), `.ht-icon-check` (the selected sheet), and `.ht-icon-collapse-off` (a mixed-state menu item).
+
+For example, a rule that used to read:
+
+```css
+.changeType::before {
+  background-color: blue;
+}
+```
+
+now targets the icon element directly:
+
+```css
+.changeType .ht-icon-menu {
+  background-color: blue;
+}
+```
+
+The descendant form works here because the menu icon is a child of the `.changeType` button. Not every icon is a descendant of the element its old pseudo-element hung on. The sort arrow is a following sibling of the `.colHeader` label, so target it with `~`, as in `.columnSorting.sortAction ~ .ht-icon`. The checkbox, radio, and multi-select editor ticks are the next sibling of their input, so target them with `+`, as in `.htCheckboxRendererInput + .ht-icon`. An input can't hold children, so a descendant selector such as `.htCheckboxRendererInput .ht-icon` never matches.
+
+To change only the glyph and keep the built-in color and mask behavior, override the CSS variable instead, scoped to the theme class:
+
+```css
+.ht-theme-main .changeType .ht-icon-menu {
+  --ht-icon-menu: url("/icons/menu.svg");
+}
+```

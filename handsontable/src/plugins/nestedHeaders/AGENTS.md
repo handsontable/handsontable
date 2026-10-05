@@ -159,6 +159,13 @@ outside, do not assume each call rebuilds the matrix.
   is consumed** in the cacheUpdated handler, not unconditionally — a CollapsibleColumns auto-expand fires
   a synchronous hidden-only `cacheUpdated` *before* `moveIndexes`, and clearing eagerly dropped the
   pending move.
+- The header renderer strips `beforeHiddenColumn` / `afterHiddenColumn` from every header that does not
+  reach the cells (`reachesCells`). It runs *after* HiddenColumns' `afterGetColHeader` hook, which — since
+  icons became elements — also appends a real `<i class="ht-icon …">` caret into `.relative`. Stripping the class does
+  not remove that element, so HiddenColumns now withholds it with the same `isBottomMostColumnHeader(TH)`
+  test, and its SCSS hides any stray caret under `th:not(.beforeHiddenColumn)`. If you change what
+  `reachesCells` means, change `../hiddenColumns/hiddenColumns.ts` to match, or the two disagree about
+  which level shows the caret (`../hiddenColumns/AGENTS.md`, "With NestedHeaders…").
 
 ## Header-highlight redirect must list every selection type that can reach a group level
 
@@ -170,6 +177,37 @@ whose header extent later grows to span more than the leaf level (see `Selection
 in `handsontable/src/selection/selection.ts`) will silently paint its class onto a hidden `<th>` instead
 of the group cell until this hook is taught about it too (DEV-3012 added `COLUMN_TYPE` for
 `currentColClassName`).
+
+## `fixedColumnsEnd`: a group that crosses the end line is drawn by the end clone
+
+The inline-end clone and the top inline-end corner render only the LAST `fixedColumnsEnd` columns, so their
+header cells do not line up by position with the master's, and a group that starts before the band has no
+header cell of its own there: its covered columns are placeholders. This is the mirror of a group that starts in
+the `fixedColumnsStart` band and reaches past it, and it follows the same rule: **the fixed band shows the label**.
+
+- `headerRendererFactory` turns the placeholder at the FIRST end column (`renderedColumnIndex ===
+  totalColumns - fixedColumnsEnd`, read from the Walkontable settings, so they are the clamped values) into a
+  continuation: `#renderEndGroupContinuation` finds the group's origin with `findLeftMostColumnIndex`, sets a
+  `colspan` of the columns left in the band and renders the origin's label. The cell is a continuation only when
+  `#isEndOverlayHeader(TH)` says it sits in an end clone, so the master and the top clone are untouched.
+- The label comes from the ORIGIN column, but the cell is rendered FOR the column it sits on: the renderer calls
+  `appendColHeader` with that column and a label callback that reads the origin's value. Passing the origin column
+  itself looks natural and works on the first draw, but `TableView#updateCellHeader` maps the column to a rendered
+  index of the CLONE, and the origin is not in the end clone, so every later draw of the same `<th>` (a scroll
+  that does not rebuild it) wrote an empty label. Pinned by the scrolled case in `fixed-columns-end-headers.spec.ts`.
+  `afterGetColHeader` listeners therefore see the placeholder column, not the origin.
+- The top clone's `<th>` of a group that reaches into the band gets `hiddenHeaderText`, like a group that starts in the
+  start band. Without it the label would be painted twice, half of it under the end corner.
+- The cells of the end clones are NOT index-aligned with the master's `<th>` list. `clearColspans()` therefore walks
+  `getEndOverlayHeaders(this.hot)` (shared with collapsibleColumns, in `src/utils/endOverlayHeaders.ts`; plugins must not
+  import each other) on their own instead of reusing the loop index `j`.
+- A continuation cell is still a placeholder in the state, so the renderer draws it from the ORIGIN group's settings:
+  `headerClassName` of the group is applied to it, and `reachesCells` (hidden-column indicators) and the rowspan read
+  the group's `rowspan`, not the placeholder's. Reading the placeholder's own settings drops the class and the
+  indicators of a group with `rowspan > 1`.
+- With `fixedColumnsEnd: 0` none of this runs (`firstEndColumn` is `Infinity`).
+- Pinned by `tests/e2e/fixed-columns-end-headers.spec.ts` (LTR and RTL). Toggle `#renderEndGroupContinuation` off to
+  see the end band header lose the label of a crossing group.
 
 ## TypeScript notes
 

@@ -91,6 +91,22 @@ They are written in different places and can drift. Keep this in mind:
   disabled plugin returns `true`, mutates `collapsedRows`, and fires `afterRowCollapse` with
   `successfullyCollapsed: true` while the grid hides nothing. `#isOperational()` is that gate; every
   public entry point goes through it. `CollapsibleColumns` checks `this.enabled` for the same reason.
+- **The collapse/expand icon needs no `syncIcon` clearing, unlike the hiding plugins' carets.**
+  `HeadersUI#appendLevelIndicators()` (`ui/headers.ts`) creates a brand-new `buttonsContainer` `div`
+  every draw and calls `removeLevelIndicators()` first to tear down the previous one, so
+  `buttonsContainer.appendChild(createIcon(this.hot, collapsed ? 'collapseOn' : 'collapseOff'))` can
+  never stack a second icon — each render starts from an empty container, unlike
+  `columnSorting`/`hiddenColumns`/`hiddenRows`, which reuse one persistent slot via `syncIcon` and
+  must explicitly clear it on a no-icon path.
+- **A row-header rule in `_nested-rows.scss` must not reach inside the button's `.ht-icon`.** An
+  `icons` renderer callback for `collapseOn`/`collapseOff` can put its own markup (a `span`, an SVG)
+  inside the icon. The leaf-label padding rule used to be `th.ht_nestingLevels span:last-child`, which
+  also matched such a `span` (the last child of the icon), padded it by `--ht-icon-size` + 5px, and
+  pushed it out of the button over the row number. It is now `> .relative > span:last-child`, a
+  direct child of the header's inner `div`, which is only ever the leaf row's `span.rowHeader` (the
+  `ht_nestingLevel_empty` spacers come before it). Scope any new rule there the same way. Pinned by
+  `tests/e2e/icon-elements.spec.ts` ("renderer markup inside the nested rows button gets no row-header
+  label padding").
 - **`disablePlugin()` has to strip the header decoration itself, because nothing else ever will.**
   The only code that removes the `+`/`-` button and the `ht_nestingLevel_empty` spacers from a row
   header's inner `div` is `HeadersUI#appendLevelIndicators()`, which runs from `afterGetRowHeader` —

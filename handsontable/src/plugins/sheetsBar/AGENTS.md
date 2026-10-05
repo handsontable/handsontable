@@ -397,7 +397,33 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   switch cannot be made proportional to the viewport without an opt-in that drops that guarantee. The
   Formulas `afterCellMetaReset` bookkeeping for the *outgoing* sheet that the `updateSettings()`
   triggers is the remaining per-switch cost outside this plugin.
+- **The bar's icons (paging arrows, add/all-sheets buttons, tab chevrons) are kept through an
+  injected `syncIcon()`** — `bar.ts` and `tabStrip.ts` receive `syncIcon` (bound to the
+  grid in `sheetsBar.ts`), not `createIcon`, and each owns one slot class
+  (`ht-sheets-bar__button-icon`, `ht-sheets-bar__tab-chevron-icon`). `#onAfterSetTheme` calls
+  `this.#ui?.refreshIcons()` and `this.#tabStrip?.refreshIcons()`, which update the icons **in
+  place** and only when the theme's icons revision moved. **Never answer `afterSetTheme` with
+  `#refreshUI()`**: `TabStrip#render()` aborts a tab drag and cancels an open rename, and the hook
+  also fires for a color-scheme or density switch (a ThemeBuilder `params()` or `setColorScheme()`
+  included), so the user loses the sheet name they were typing (pinned by "a
+  color-scheme switch keeps an open tab rename" in `tests/e2e/icon-elements.spec.ts`). The active-sheet check mark in `menus.ts` is different:
+  it is built fresh every time a menu row is rendered (`#renderSheetName`, per `open()`), so it
+  always reflects the current theme with no `refreshIcons()` involvement.
+- **Only the sheet name follows its own script direction, never the menu row.** `#renderSheetName`
+  writes the name into a `<span class="ht-sheets-bar__menu-item-name" dir="auto">` inside the
+  `.htItemWrapper`; the wrapper itself keeps the menu's direction. With `dir="auto"` on the wrapper a
+  Hebrew name in an LTR grid turned the whole wrapper RTL, so the check mark (positioned with
+  `inset-inline-end`) and the wrapper's reserved end padding moved to the left, under the text. The
+  span is an `inline-block` with its own ellipsis (`_dropdown-menu.scss`), so a long name still
+  truncates at its own logical end. Pinned by `tests/e2e/icon-elements-misc.spec.ts`.
 
 Tests: `__tests__/*.unit.js` (Jest), `tests/e2e/sheets-bar*.spec.ts` (Playwright),
 `visual-tests/tests/js-only/sheetsBar/`. The unit suite drives the strip through DOM events and
 a captured `TabStrip` instance — the plugin exposes no test-only methods.
+
+## `fixedColumnsEnd` follows the same rules as `fixedColumnsStart`
+
+The per-sheet view state captures and restores `fixedColumnsEnd`, `#neutralFixedColumnsEnd` is the value a sheet
+with no captured state opens with, `resetViewState(hot, start, end)` takes both, and `#restoreBaselineToGrid()`
+puts a runtime end freeze back on teardown. A freeze set at runtime on one sheet therefore does not follow the
+user onto a sheet they never visited. Pinned in `__tests__/sheetsBar.unit.js`.

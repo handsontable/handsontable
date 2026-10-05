@@ -358,6 +358,8 @@ class Selection {
       ...this.tableProps,
       navigableHeaders: () => !!settings.navigableHeaders,
       fixedRowsBottom: () => Number(settings.fixedRowsBottom),
+      // Floored like the band the renderer draws: a fraction below 1 or a negative number freezes no column.
+      fixedColumnsEnd: () => Math.max(Math.floor(Number(settings.fixedColumnsEnd)) || 0, 0),
       minSpareRows: () => Number(settings.minSpareRows),
       minSpareCols: () => Number(settings.minSpareCols),
       autoWrapRow: () => !!settings.autoWrapRow,
@@ -367,6 +369,7 @@ class Selection {
       ...this.tableProps,
       navigableHeaders: () => !!settings.navigableHeaders,
       fixedRowsBottom: () => 0,
+      fixedColumnsEnd: () => 0,
       minSpareRows: () => 0,
       minSpareCols: () => 0,
       autoWrapRow: () => true,
