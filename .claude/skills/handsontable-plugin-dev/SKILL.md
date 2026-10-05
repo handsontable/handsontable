@@ -4,236 +4,95 @@ path: handsontable/src/plugins/**
 description: Use when creating a new Handsontable plugin, modifying an existing plugin's behavior, adding hooks or options to a plugin, or working with the plugin lifecycle (enablePlugin, disablePlugin, updatePlugin). Covers the full plugin contract, conflict registration, settings validation, and IndexMapper integration.
 ---
 
-## Plugin File Structure
+## Plugin file structure
 
 ```
 src/plugins/{pluginName}/
 ├── index.ts              # Re-exports PLUGIN_KEY, PLUGIN_PRIORITY, ClassName
 ├── {pluginName}.ts       # Main class extending BasePlugin
-├── AGENTS.md             # Plugin knowledge file — REQUIRED (see below)
+├── AGENTS.md             # Plugin knowledge file, REQUIRED (see below)
 ├── CLAUDE.md             # symlink -> AGENTS.md, never a copy
 ├── types.ts              # (optional) exported plugin-local types
 ├── __tests__/            # *.unit.js unit tests (new E2E is Playwright, in tests/e2e/)
-└── {submodules}/         # Additional files (UI classes, strategies, etc.)
+└── {submodules}/         # UI classes, strategies, etc.
 ```
 
-Every plugin directory has all of these. `AGENTS.md` is not optional — see
-[Knowledge file (required)](#knowledge-file-required).
+## Contract
 
-## Required Static Properties
+Statics (`PLUGIN_KEY`, `PLUGIN_PRIORITY`, `SETTING_KEYS`, `PLUGIN_DEPS`, `DEFAULT_SETTINGS`, `SETTINGS_VALIDATORS`), lifecycle order, `onUpdateSettings`, hard conflicts, and the `PLUGIN_PRIORITY` table: `src/plugins/base/AGENTS.md`. Pick a free priority number from that table and add your row to it.
 
-| Property | Purpose | Example |
-|----------|---------|---------|
-| `PLUGIN_KEY` | Unique camelCase identifier | `'pagination'` |
-| `PLUGIN_PRIORITY` | **Enable** order, ascending — a duplicate **throws** at registration | `900` |
-| `SETTING_KEYS` | Options triggering `updatePlugin` | `[PLUGIN_KEY]` (the default), `true` (always), `false` (never) |
-| `PLUGIN_DEPS` | Required plugins/types | `['plugin:AutoRowSize']` |
-| `DEFAULT_SETTINGS` | Defaults for `this.getSetting()` | `{ pageSize: 10 }` |
-| `SETTINGS_VALIDATORS` | Validate settings (object map or single fn) | `{ pageSize: v => v > 0 }` |
+## Key patterns (gold standard: `src/plugins/pagination/pagination.ts`)
 
-`PLUGIN_PRIORITY` orders `enablePlugin()` and nothing else — it orders hook callbacks only transitively.
-**Pick a free number from the priority table in `src/plugins/base/AGENTS.md`** and add your row to it; that
-table also records which orderings are load-bearing.
+- **Private fields:** `#` prefix for all internal state, no `@private` JSDoc.
+- **Hook callbacks (required for new code):** pass `#on*` handlers to `addHook` as arrow function class fields, directly: `this.addHook('afterLoadData', this.#onAfterLoadData)` (priority stays the 3rd arg). `.bind(this)` builds a new function per call, so the registered reference can never be removed. Existing inline-wrapper sites work; leave them as they are.
+- **Hook registration:** `this.addHook()` auto-cleans on `disablePlugin()`; `this.hot.addHook()` does not. Register new hook names at module level: `Hooks.getSingleton().register('beforeMyAction');` (import `Hooks` from `'../../core/hooks'`).
+- **Settings:** read via `this.getSetting('key')` (dot notation supported); defaults come from `DEFAULT_SETTINGS`.
+- **Conflict registration** (module level, before the class), then check `this.isHardConflictBlocked()` in `enablePlugin()`:
+  ```js
+  import { registerConflict } from '../base/conflictRegistry';
+  registerConflict(PLUGIN_KEY, ['nestedRows', 'mergeCells']);
+  ```
+- **IndexMapper:** create maps in `enablePlugin()`, unregister in `disablePlugin()`:
+  ```js
+  this.#map = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName, 'hiding', false);
+  // 'hiding' = HidingMap (not rendered, stays in DataMap); 'trimming' = TrimmingMap (removed from DataMap)
+  ```
+- **UI:** extract it into its own class with dependency injection (no direct `hot` reference). Swappable logic uses a strategy (e.g. `autoPageSize` vs `fixedPageSize`).
+- **Batch rendering:** wrap multiple data/render changes in `this.hot.batch(() => { ... })` for one render. `Core#batch`/`batchRender` do not resume in a `finally`, so a listener that throws mid-batch leaves the grid render-suspended for good. When the batched work runs host code (`updateSettings`, `loadData`, another plugin's hooks), call `this.hot.suspendRender()` and put `this.hot.resumeRender()` in a `finally`.
+- **Sliced per-unit settings** (one plugin managing several units, e.g. sheets): treat each unit's settings as a partial slice, applying only the declared keys. Apply the slice and its data together in one guarded batch (`suspendRender()` + try/finally `resumeRender()`), and run the swap directly when `this.hot.view` does not exist yet (initial setup). Reference: `src/plugins/sheetsBar/sheetsBar.ts` (`#applySheet`). A plugin that also owns a layout slot (`handsontable/AGENTS.md` "Wrapper UI placement") registers its UI once in `enablePlugin()`; this method owns only the settings/data swap.
 
-`SETTING_KEYS` defaults to `[this.PLUGIN_KEY]`, so declare it only when you need something else. Listing an
-option the plugin does *not* own has three consequences that have all shipped as bugs — see
-`src/utils/manualResize/AGENTS.md`.
+## Decoupling rules
 
-## Lifecycle Methods (in order)
+- Cross-plugin access goes through hooks or `hot.getPlugin('{Name}')`, never imports; no circular dependencies between plugins.
+- The plugin introducing the incompatibility owns the blocking logic.
+- For custom error UI when Notification is off, use the hooks `afterDataProviderFetchError` and `afterRowsMutationError`. Built-in DataProvider toasts: `src/plugins/dataProvider/AGENTS.md`.
 
-```js
-isEnabled()      // return !!this.hot.getSettings()[PLUGIN_KEY]
-enablePlugin()   // init state, create IndexMaps, register hooks. Call super.enablePlugin() AT THE END.
-updatePlugin()   // this.disablePlugin(); this.enablePlugin(); super.updatePlugin();
-disablePlugin()  // Call super.disablePlugin() FIRST (clears hooks/EventManager). Then clean up.
-destroy()        // Null out all fields. Call super.destroy() AT THE END.
-```
+## Registration checklist
 
-## Key Patterns (from Pagination gold standard)
-
-**Private fields** - Use `#` prefix for all internal state. No `@private` JSDoc.
-
-**Hook callbacks** (**required for new code**) - Pass `#on*` handlers to `addHook` as arrow function class fields, not as inline wrappers or `.bind(this)`:
-
-```ts
-// ✅ Correct — arrow field, passed directly
-#onAfterLoadData = (sourceData: unknown[], initialLoad: boolean, source = '') => {
-  // ...
-};
-
-enablePlugin() {
-  this.addHook('afterLoadData', this.#onAfterLoadData);  // direct reference
-  super.enablePlugin();
-}
-
-// ⚠️ Avoid in new code — inline wrapper around a regular method
-enablePlugin() {
-  this.addHook('afterLoadData',
-    (data, init, src) => this.#onAfterLoadData(data, init, src));
-  super.enablePlugin();
-}
-
-// ❌ Wrong — .bind(this) builds a new function per call
-this.addHook('afterLoadData', this.#onAfterLoadData.bind(this));  // never do this
-```
-
-Why: an arrow field is a named, greppable reference you can remove individually with `removeHooks(name)`, and `.bind(this)` returns a **new** function each call, so the reference you registered is not one you can ever remove.
-
-**Two things this rule is often given a wrong reason for.** The plugin's own `addHook` stores whatever reference it was handed in `#hooks` and `removeHooks` removes that same reference — so an inline wrapper registered through `this.addHook` **is** cleaned up by `disablePlugin()`. Identity only bites on `this.hot.addHook` + a separately built `this.hot.removeHook` argument. And about **27 inline-wrapper sites already exist** across 11 plugins; they work, and two of them hold listeners deliberately left bound past `disablePlugin()`. Use the arrow field for new code; **do not bulk-rewrite the existing sites.**
-
-If the hook with a priority argument:
-```ts
-this.addHook('init', this.#onInit, -1);  // priority as 3rd arg — still use direct ref
-```
-
-**Hook registration** - `this.addHook()` auto-cleans on `disablePlugin()`. `this.hot.addHook()` does NOT.
-Register new hook names at module level:
-```js
-import Hooks from '../../core/hooks';
-Hooks.getSingleton().register('beforeMyAction');
-```
-
-**Settings** - Read via `this.getSetting('key')` (supports dot notation). Defaults come from `DEFAULT_SETTINGS`.
-
-**Conflict registration** - At module level, before the class:
-```js
-import { registerConflict } from '../base/conflictRegistry';
-registerConflict(PLUGIN_KEY, ['nestedRows', 'mergeCells']);
-```
-Check in `enablePlugin()` with `this.isHardConflictBlocked()`.
-
-**IndexMapper** - Create maps in `enablePlugin()`, unregister in `disablePlugin()`:
-```js
-this.#map = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName, 'hiding', false);
-// 'hiding' = HidingMap (not rendered, stays in DataMap)
-// 'trimming' = TrimmingMap (removed from DataMap entirely)
-```
-
-**UI separation** - Extract UI into its own class with dependency injection (no direct `hot` reference).
-
-**Strategy pattern** - Use for swappable logic (e.g., `autoPageSize` vs `fixedPageSize`).
-
-**Batch rendering** - When making multiple data/render changes, wrap them to avoid redundant render cycles:
-```js
-this.hot.batch(() => {
-  // multiple operations here - only one render at the end
-});
-```
-`Core#batch`/`batchRender` do not resume in a `finally`, so never wrap host-reachable code in them - a
-listener that throws mid-batch leaves the grid render-suspended for the rest of its life. When the batched
-work runs host code (`updateSettings`, `loadData`, another plugin's hooks), suspend and resume yourself:
-```js
-this.hot.suspendRender();
-
-try {
-  // operations that can run host code
-} finally {
-  this.hot.resumeRender();
-}
-```
-
-**Sliced per-unit settings** - When a plugin manages several logical units that each need their own partial configuration layered over the grid's base settings (for example, one sheet in a multi-sheet workbook), treat each unit's settings object as a partial slice: apply only the declared keys and leave every undeclared key at its current grid-level value. Apply the slice and its data together, batched into a single render - guarded with a `finally`, since both calls run host code:
-```ts
-#applySheet(sheet: Sheet, source: string) {
-  const apply = () => {
-    if (sheet.settings) {
-      this.hot.updateSettings(sheet.settings);  // only declared keys change
-    }
-    this.hot.loadData(sheet.data, `${source}.switch`);
-  };
-
-  if (this.hot.view) {
-    this.#batchRender(apply);  // suspendRender() + try/finally resumeRender()
-  } else {
-    apply();  // view doesn't exist yet during initial plugin setup
-  }
-}
-```
-Reference implementation: `src/plugins/sheetsBar/sheetsBar.ts` (`#applySheet`). If the plugin also owns a layout slot for its UI (see `handsontable/AGENTS.md` "Wrapper UI placement"), register that UI once in `enablePlugin()` and let this method own only the settings/data swap, not the UI placement.
-
-## Decoupling Rules
-
-- No direct cross-plugin imports. Use hooks or `hot.getPlugin('{Name}')`.
-- No circular dependencies between plugins.
-- Conflict ownership: the plugin introducing the incompatibility owns the blocking logic.
-- **DataProvider built-in errors** - The DataProvider plugin surfaces request failures through `getPlugin('notification')` when `notification` is enabled (error toasts). **Fetch** failures include a primary **Refetch** action and `duration: 0` so the user can retry `fetchData()` from the toast. It does not use Dialog for that path. Dialog is still used elsewhere (for example Loading plugin, ExportFile overlay). Prefer hooks (`afterDataProviderFetchError`, `afterRowsMutationError`) for fully custom error UI when Notification is off.
-
-## Registration Checklist
-
-1. Plugin's `index.ts`: `export { PLUGIN_KEY, PLUGIN_PRIORITY, ClassName } from './pluginName';`
+1. `index.ts`: `export { PLUGIN_KEY, PLUGIN_PRIORITY, ClassName } from './pluginName';`
 2. Wire into `src/plugins/index.ts`.
-3. Add default option (disabled) in `src/dataMap/metaManager/metaSchema.ts`.
-4. If the plugin introduces new hook signatures or settings, add them to `src/core/settings.ts` (`GridSettings`) — `npm run build:types` then regenerates the public `.d.ts` files directly into `tmp/`.
-5. **Write `AGENTS.md` and symlink `CLAUDE.md` to it** (see the next section):
+3. Add the default option (disabled) in `src/dataMap/metaManager/metaSchema.ts`.
+4. For new hook signatures or settings, add them to `src/core/settings.ts` (`GridSettings`); `npm run build:types` regenerates the public `.d.ts` files into `tmp/`.
+5. **Write `AGENTS.md` and symlink `CLAUDE.md` to it** with the relative target, so the link resolves in a git worktree:
    ```bash
    cd handsontable/src/plugins/myPlugin && ln -s AGENTS.md CLAUDE.md
    ```
-   The target must be the **relative** `AGENTS.md`, so the link resolves in a git worktree too. Git stores
-   it as mode `120000`; if `git status` shows a regular file, you copied instead of linking.
-6. **Add your `PLUGIN_PRIORITY` row to the table in `src/plugins/base/AGENTS.md`.** That table is the only
-   record of which numbers are taken and which orderings are load-bearing, and nothing enforces it — so it
-   drifts silently unless you update it in the same change.
+   Git stores it as mode `120000`; a regular file in `git status` means you copied.
+6. **Add your `PLUGIN_PRIORITY` row to the table in `src/plugins/base/AGENTS.md`**, in the same change: nothing enforces it, so it drifts silently.
 
-## Focus Management
+## Focus management
 
-If your plugin provides UI elements (buttons, inputs, navigation bars), you must integrate with the focus manager (`src/focusManager/`).
+A plugin with UI (buttons, inputs, navigation bars) integrates with `src/focusManager/`. Reference: Pagination (`#registerFocusScope` / `#unregisterFocusScope`).
 
-- **Register a focus scope** with a unique name for your plugin's UI region.
-- **Implement focus entry logic** - when the scope is activated, focus the first or last focusable element depending on the navigation direction (Tab = first, Shift+Tab = last).
-- The focus manager listens to Tab/Shift+Tab keyboard events and blocks or allows them to ensure the correct UI module is focused during normal focus navigation.
-- **Scopes switch automatically** based on which element the user clicks or focuses. The Core switches the active scope and sets the listen mode so the user can interact with either the grid or another module (e.g., pagination bar).
-- **Decide whether your scope COVERS the grid or REPLACES it, and say so.** Activating a scope switches the shortcut manager to the scope's `shortcutsContextName`, and only that context runs - so an empty one kills every grid shortcut while your UI is up (`emptyDataState` shipped that way; DEV-53). An overlay the user still thinks of as "the grid underneath" adds `fallbackShortcutsContextName: 'grid'` to `registerScope()` and inherits the lot, including shortcuts added to the grid after you wrote the plugin. A **modal** scope leaves it unset - letting grid shortcuts through a modal is the bug. Register a shortcut in your own context only to OVERRIDE one, and record in your `AGENTS.md` why the grid's version does not fit.
-- **If your UI is painted OVER the grid body, add `coversGridBody: true` as well.** Inheriting and covering are separate questions, and both options exist because a pagination bar may inherit without covering. Without the flag, a shortcut that writes cell content asks only "does the grid draw a cell" - and an overlay shown over rows that are still on screen answers yes, so `Delete` reaches data the user cannot touch. Measured on DEV-2917: `emptyDataState` covers a fully rendered grid during a DataProvider fetch, and the whole dataset was wiped under it. The flag is read from every ENABLED scope, not only the active one, so it keeps working while the keyboard is somewhere else.
-- See the Pagination plugin for a reference implementation (`#registerFocusScope` / `#unregisterFocusScope`). `emptyDataState` is the reference for an inheriting overlay.
+- Register a focus scope with a unique name for the plugin's UI region.
+- On scope activation, focus the first element for Tab and the last for Shift+Tab.
+- **Decide whether your scope COVERS the grid or REPLACES it.** Activating a scope switches the shortcut manager to the scope's `shortcutsContextName`, and only that context runs, so an empty one kills every grid shortcut while your UI is up (`emptyDataState` shipped that way; DEV-53). An overlay the user still thinks of as "the grid underneath" adds `fallbackShortcutsContextName: 'grid'` to `registerScope()` and inherits every grid shortcut, including ones added later (reference: `emptyDataState`). A **modal** scope leaves it unset, so grid shortcuts stay blocked. Register a shortcut in your own context only to OVERRIDE one, and record in your `AGENTS.md` why the grid's version does not fit.
+- **UI painted OVER the grid body also adds `coversGridBody: true`.** Inheriting and covering are separate questions. Without the flag, a content-writing shortcut sees that the grid still draws cells and lets `Delete` reach data the user cannot touch (DEV-2917: `emptyDataState` covered a rendered grid during a DataProvider fetch and the dataset was wiped). The flag is read from every ENABLED scope, not only the active one.
 
-## Important Gotchas
+## Gotchas
 
-- **Merged cells - read from meta, not DOM**: When working with merged cells, read `colspan`/`rowspan` from `hot.getCellMeta(row, col)` (set by MergeCells via `afterGetCellMeta`), not from DOM element attributes. The meta is authoritative and always available regardless of viewport state.
+- **Merged cells:** read `colspan`/`rowspan` from `hot.getCellMeta(row, col)` (set by MergeCells via `afterGetCellMeta`), not from DOM attributes; the meta is available regardless of viewport state.
 
 ## Knowledge file (required)
 
-**Every plugin directory carries an `AGENTS.md`, with `CLAUDE.md` symlinked to it.** All of them do — a new
-plugin without one is incomplete, the same way a plugin without a barrel export is incomplete. `AGENTS.md`
-is the single source; the symlink is what makes Claude Code and Cursor read the same file. Edit `AGENTS.md`,
-never `CLAUDE.md`.
+Every plugin directory carries an `AGENTS.md` with `CLAUDE.md` symlinked to it; a new plugin without one is incomplete. Edit `AGENTS.md`, never `CLAUDE.md`.
 
-It answers **"what must I never get wrong here, and where do I look next"** — not "how does this work",
-which the source and its JSDoc already say. So write down what a reader cannot recover by reading the code:
-the reason a guard exists, the ordering that is load-bearing, the shortcut that looks right and is wrong.
+It answers "what must I never get wrong here, and where do I look next": the reason a guard exists, the load-bearing ordering, the shortcut that looks right and is wrong. Required sections:
 
-Sections a new file must carry (10 of the pre-existing files predate this and are missing `## Where to look
-next` or `## Testing` — that is a known gap, not a licence to skip them, and not an invitation to go fix
-those 10 in an unrelated change):
+1. `# {PluginName} plugin – {one-line focus}`, then one or two sentences naming the files covered and saying "Read this before touching X." (10 pre-existing files lack `## Where to look next` or `## Testing`; new files carry both, and fixing those 10 belongs in its own change.)
+2. **What it owns and what it does not.** Most plugin bugs are ownership confusion.
+3. **The traps, each with the reason it exists** (and the issue or DEV id where you have one). "Do not reorder these calls, because Formulas syncs the data source in that hook and selecting first made `afterSelection` read the stale value" survives; the bare rule gets undone.
+4. `## Where to look next`: sibling plugins, the `.ai/` reference, `../base/AGENTS.md` for the contract, and this skill for the workflow.
+5. `## Testing`: targeted commands and anything non-obvious about the suite (a `__tests__/` split, a spec failing for an unrelated reason, a case needing a real device).
 
-1. `# {PluginName} plugin — {one-line focus}`, then one or two sentences naming the files this covers and
-   saying **"Read this before touching X."**
-2. **What it owns and what it does not.** Most plugin bugs are ownership confusion, so name the boundary.
-3. **The traps — each with the reason it exists.** "Do not reorder these two calls" is a rule someone will
-   undo; "do not reorder them, because Formulas syncs the data source in that hook and selecting first made
-   `afterSelection` read the stale value" is one they will keep. Cite the issue or DEV id where you have it.
-4. `## Where to look next` — sibling plugins, the `.ai/` reference, and **`../base/AGENTS.md`** for the
-   plugin contract plus this skill for the workflow.
-5. `## Testing` — the targeted commands, and anything non-obvious about the suite (a `__tests__/` split, a
-   spec that fails for an unrelated reason, a case that needs a real device).
+Length follows the plugin: `stretchColumns/AGENTS.md` (three bullets) and `base/AGENTS.md` (the contract for every plugin) are the two ends; read one of each before writing yours.
 
-**Length follows the plugin, not a template.** `stretchColumns/AGENTS.md` is three bullets and says
-everything that plugin needs (it predates the section rules above, so it has no `## Testing`);
-`base/AGENTS.md` is long because it holds the contract for all 42 plugins. Short and true beats long and
-padded — read one of each before writing yours.
+**Where a fact belongs.** A trap found while changing an existing plugin goes in **that plugin's** `AGENTS.md`. `handsontable/AGENTS.md` holds rules that span plugins; for a core-wide rule with one worked example, state the rule there and put the example in the plugin file with a pointer back.
 
-**Where a fact belongs.** A trap you hit while changing an existing plugin goes in **that plugin's**
-`AGENTS.md`, not in `handsontable/AGENTS.md`. Keep the monorepo file for rules that genuinely span plugins;
-when a rule is core-wide but has one worked example, state the rule there and put the example in the plugin
-file with a pointer back. Two copies of the same fact drift.
+## Testing requirements
 
-## Testing Requirements
+- **New E2E tests are Playwright** in `tests/e2e/` (skill `handsontable-playwright-e2e`) for a plugin's UI, interaction, and rendering. The presence gate blocks new legacy `*.spec.js`; editing an existing one (async `it()` callbacks) is fine.
+- Unit tests (`__tests__/*.unit.js`): strategies and helpers in isolation.
+- Cover `updateSettings()`, `enablePlugin()`/`disablePlugin()` toggling, and interactions with other plugins (sorting, filters, hidden rows).
 
-- **New E2E tests are Playwright** in `tests/e2e/` (skill `handsontable-playwright-e2e`) — for a plugin's UI, interaction, rendering. Do not add new legacy `*.spec.js`; the presence gate blocks them. Editing an existing `*.spec.js` (async `it()` callbacks) is fine.
-- Unit tests (`__tests__/*.unit.js`): test strategies and helpers in isolation.
-- Test `updateSettings()`, `enablePlugin()`/`disablePlugin()` toggling.
-- Test interactions with other plugins (sorting, filters, hidden rows).
-
-**Gold standard:** `src/plugins/pagination/pagination.ts`. **Base class:** `src/plugins/base/base.ts`.
-**Plugin contract, lifecycle detail, hard conflicts and the `PLUGIN_PRIORITY` table:**
-`src/plugins/base/AGENTS.md`. Per-plugin knowledge: that plugin's own `AGENTS.md`.
-See `handsontable/.ai/ARCHITECTURE.md` and `handsontable/.ai/CONVENTIONS.md` for deeper context.
+Base class: `src/plugins/base/base.ts`. Deeper context: `handsontable/.ai/ARCHITECTURE.md`, `handsontable/.ai/CONVENTIONS.md`.

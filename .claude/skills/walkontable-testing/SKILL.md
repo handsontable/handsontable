@@ -6,39 +6,31 @@ description: Use when writing tests for the Walkontable rendering engine - has i
 
 # Testing the Walkontable Rendering Engine
 
-> **Paradigm note:** Walkontable follows the **same freeze** as the main suite. It now has a **Playwright home** at `tests/e2e/walkontable/` (which drives overlay / frozen-pane / scroll-sync behavior through a real grid — see the page objects in `tests/fixtures/pages/walkontable/`). So: **maintenance edits to existing `*.spec.js` here are allowed; new or flaky walkontable tests move to Playwright** (the presence gate blocks a new walkontable `*.spec.js`). In CI the legacy Jasmine/Puppeteer walkontable job and the Playwright e2e job run **in parallel**; walkontable migrates by attrition, worst/flakiest first. The guide below is for *maintaining* the frozen Jasmine specs.
+> Walkontable follows the same freeze as the main suite. Its Playwright home is `tests/e2e/walkontable/` (page objects in `tests/fixtures/pages/walkontable/`). Maintenance edits to existing `*.spec.js` are allowed; new or flaky walkontable tests go to Playwright (the presence gate blocks a new walkontable `*.spec.js`). In CI the legacy Jasmine/Puppeteer walkontable job and the Playwright e2e job run in parallel. This guide is for maintaining the frozen Jasmine specs.
 
-## Separate Test Pipeline
+## Separate test pipeline
 
-Walkontable's specs have their own dedicated test runner. Do NOT run them through the main `test:e2e` command -- they will not be picked up.
+- **Run:** `npm run test:walkontable --prefix handsontable` (the `test/spec/` specs). `test:e2e` does not pick them up.
+- **Location:** `src/3rdparty/walkontable/test/`
+  - `test/spec/`: Jasmine + Puppeteer with a separate Rspack config and bootstrap. Only `test:walkontable` runs them.
+  - `test/unit/`: Jest tests for calculators, filters, renderers, utilities (48 `*.unit.ts`/`*.unit.js` files). The core `jest.config.js` picks them up, so `npm run test:unit` and the core `Unit / test` CI job run them, and `test:walkontable` does not.
 
-- **Run command:** `npm run test:walkontable --prefix handsontable` (the `test/spec/` specs)
-- **Test location:** `src/3rdparty/walkontable/test/`
+## Writing tests
 
-The directory holds two kinds of test, and each runs in a different pipeline:
+- `it()` callbacks that call rendering APIs are `async` and `await` those calls.
+- Tests are organized by subsystem (`overlay/`, `scroll/`, `selection/`, `renderer/`, `table/`, `viewport.spec.js`); place new ones in the matching directory.
 
-- `test/spec/` -- E2E-style specs (Jasmine + Puppeteer, same as main E2E but with a separate Rspack config and bootstrap). Only `test:walkontable` runs them.
-- `test/unit/` -- Unit-style tests for calculators, filters, renderers, and utilities (48 `*.unit.ts`/`*.unit.js` files). These are Jest tests: the core `jest.config.js` picks them up, so the main `npm run test:unit` and the core `Unit / test` CI job run them, and `test:walkontable` does not.
+## What to cover
 
-## Writing Tests
+- **Frozen rows and columns:** the 6 overlay types are the most fragile part; include frozen scenarios for overlay positioning and sync.
+- **Viewport calculations:** small containers that clip, containers larger than the data, dynamic resize.
+- **Scroll synchronization:** horizontal and vertical scroll keep frozen overlays aligned.
+- **Large datasets:** 10k+ rows. Populate arrays with `forEach`; `arr.push(...largeArray)` overflows the stack.
 
-The same async/await rules that apply to main E2E tests apply here. All `it()` callbacks that call rendering APIs must be `async`, and those API calls must be `await`-ed.
+## Common mistakes
 
-Tests are organized by subsystem: `overlay/`, `scroll/`, `selection/`, `renderer/`, `table/`, `viewport.spec.js`, etc. Place new tests in the directory that matches the subsystem you are modifying.
-
-## What to Cover
-
-- **Frozen rows and columns:** The overlay system (6 overlay types) is the most fragile part of Walkontable. Always include tests with frozen rows/columns to catch overlay positioning and synchronization regressions.
-- **Viewport calculations:** Test with various container sizes (small containers that clip content, containers larger than the data, and containers that resize dynamically).
-- **Scroll synchronization:** Verify that scrolling the main table keeps frozen overlays aligned. Test both horizontal and vertical scroll.
-- **Large datasets:** Include performance-oriented tests with 10k+ rows. Use `forEach` loops to populate data arrays -- never `arr.push(...largeArray)`.
-
-## Common Mistakes
-
-- Running Walkontable tests via `test:e2e` -- they have their own command and will not execute.
-- Skipping frozen row/column scenarios -- this misses the overlay edge cases where most regressions occur.
-- Testing only small datasets -- Walkontable bugs often surface at scale.
-- Modifying the Walkontable test bootstrap or Rspack config without verifying that `test/spec/` still passes under `test:walkontable` and `test/unit/` under the core `test:unit`.
-- Clearing an inline overflow longhand with jQuery: `$el.css('overflow-x', '')` does not clear an inline `overflow-x` in this harness, so the "clip removed" branch of a spec keeps the clip and asserts against the wrong layout. Write `el.style.overflowX = ''` on the element and assert the intermediate fact (`getComputedStyle(el).overflowX === 'visible'`) before the behavior.
-- Trusting the spec count. Until the bridge reporter sanitized failed expectations (`test/helpers/jasmine-bridge-reporter.js`), a failing spec whose `expected` or `actual` was a cyclic object (`toBe(window)`, `toEqual([overlay, …])`) could not cross the Puppeteer bridge and was dropped from the run: `Running 16 specs.` in `--verbose` mode, `15 specs, 0 failures` at the end, exit code 0. The `getOverlays` spec sat in that state from #12951 on. The bridge now reports such a spec as a normal failure with the value described (`[unserializable Window]`); if a count ever comes up short again, compare the `Running N specs.` line against the summary line with `npm run test:walkontable -- --testPathPattern=<file> --verbose`.
-- Turning on the uniform-size flags (`rowHeightsUniform`/`columnWidthsUniform`) in a bare Walkontable spec and then asserting scrollbar-dependent row/column counts: the bare harness overflows content without rendering a real scrollbar, while the single-pass layout snapshot predicts one — so predicted and measured diverge there. Assert the snapshot booleans directly, or use a fixture that renders a real scrollbar; don't compare snapshot-predicted scrollbars/counts against the bare DOM.
+- Running Walkontable tests via `test:e2e`.
+- Changing the test bootstrap or Rspack config without confirming `test/spec/` passes under `test:walkontable` and `test/unit/` under the core `test:unit`.
+- Clearing an inline overflow longhand with jQuery: `$el.css('overflow-x', '')` leaves an inline `overflow-x` in this harness, so the "clip removed" branch asserts against the wrong layout. Write `el.style.overflowX = ''` and assert the intermediate fact (`getComputedStyle(el).overflowX === 'visible'`) before the behavior.
+- Trusting the spec count. A failing spec whose `expected`/`actual` was a cyclic object (`toBe(window)`, `toEqual([overlay, ...])`) used to be dropped at the Puppeteer bridge (`Running 16 specs.`, then `15 specs, 0 failures`, exit 0; the `getOverlays` spec sat like that from #12951). `test/helpers/jasmine-bridge-reporter.js` now reports it as a failure (`[unserializable Window]`). If a count comes up short, compare the `Running N specs.` line with the summary via `npm run test:walkontable -- --testPathPattern=<file> --verbose`.
+- Turning on `rowHeightsUniform`/`columnWidthsUniform` in a bare Walkontable spec and asserting scrollbar-dependent row/column counts: the bare harness overflows content without a real scrollbar while the single-pass layout snapshot predicts one, so they diverge. Assert the snapshot booleans directly, or use a fixture that renders a real scrollbar.

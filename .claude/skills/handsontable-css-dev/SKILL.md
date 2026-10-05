@@ -8,207 +8,95 @@ description: Use when working with Handsontable themes, CSS custom properties, S
 
 ## Themes
 
-Handsontable ships three themes, each with a standard and a `-no-icons` variant (6 bundles total):
+Three themes, each with a `-no-icons` variant (6 bundles): `ht-theme-main` (default), `ht-theme-classic`, `ht-theme-horizon`, and `ht-theme-main-no-icons`, `ht-theme-classic-no-icons`, `ht-theme-horizon-no-icons`. Test all 3 themes after any styling change.
 
-| Theme class | Description |
-|---|---|
-| `ht-theme-main` | Default modern theme |
-| `ht-theme-classic` | Legacy/classic look |
-| `ht-theme-horizon` | Horizon design |
+## Rules
 
-No-icons variants: `ht-theme-main-no-icons`, `ht-theme-classic-no-icons`, `ht-theme-horizon-no-icons`.
+- CSS custom properties are the public API for theming. Renaming or removing one is a breaking change: keep the old variable working.
+- Renaming or removing a CSS class is a breaking change: keep the old class in the DOM.
+- CSS and JS live in separate files.
+- Every CSS feature must work in the `browser-targets.js` browsers (`eslint-plugin-compat` enforces it).
 
-## CSS Custom Properties Are Public API
+## Cell padding comes from the variables
 
-Theme customization is done entirely through CSS variables. These variables are the **public API** for theming. Renaming or removing a CSS custom property is a **breaking change** and requires a legacy compatibility path (keep the old variable working).
+`StylesHandler#getDefaultRowHeight()` computes `--ht-line-height + 2 * --ht-cell-vertical-padding + border-bottom-width`, and Walkontable sizes a table's scroll range from the summed row heights. A `padding` written onto a `td` leaves the variable at the theme value, so the scroll range comes out wrong. Override `--ht-cell-vertical-padding` / `--ht-cell-horizontal-padding` and derive the `td` padding from them.
 
-## Cell padding must come from the variables, not from the cell
+A nested grid built inside a hidden container masks this: its styles cache is empty, the derived row height reads `null`, and the engine measures the DOM.
 
-`StylesHandler#getDefaultRowHeight()` computes
-`--ht-line-height + 2 * --ht-cell-vertical-padding + border-bottom-width`, and Walkontable sizes a
-table's scroll range from the summed row heights. Writing `padding` onto a `td` leaves the variable at
-the theme's value, so the engine computes a row height the cells do not have and the scroll range comes
-out wrong. Override `--ht-cell-vertical-padding` / `--ht-cell-horizontal-padding` and derive the `td`
-padding from them.
-
-A nested grid built inside a hidden container masks this: its styles cache is empty, the derived row
-height reads `null`, and the engine measures the DOM instead.
-
-## Strict CSS/JS Separation
-
-Never mix CSS into JavaScript files. CSS and JS are always in separate files. This is enforced by convention and code review.
-
-## File Structure
+## File structure and commands
 
 | Path | Contents |
 |---|---|
-| `src/styles/` | SCSS source files (base styles) |
-| `src/themes/` | Theme-specific SCSS files |
-| `handsontable/styles/` | Compiled CSS output (committed to repo) |
-| `browser-targets.js` | Supported browser list |
+| `src/styles/` | Base SCSS |
+| `src/themes/` | Theme SCSS |
+| `handsontable/styles/` | Compiled CSS (committed) |
 
-## Build Commands
+`build:styles` compiles SCSS, `build:themes-*` builds theme assets, `npm run stylelint --prefix handsontable` lints CSS/SCSS.
 
-- `build:styles` - Compile SCSS to CSS.
-- `build:themes-*` - Build theme-specific assets.
-- Stylelint validates all CSS/SCSS (`npm run stylelint --prefix handsontable`).
+## No `:has()` in stylesheets
 
-## No `:has()` in stylesheets (lint-enforced)
+The stylelint rule `handsontable/no-has-selector` (error) bans `:has()` in `src/**/*.{css,scss}`: in Chrome it re-runs style invalidation across the host page on every grid DOM mutation, and the grid mutates on every scroll render. Drive the style from a class that JS toggles on the target element (reference pattern: `SelectionManager` `#markActiveHeaderNeighbors` and the `-seam` taggers).
 
-The custom rule `handsontable/no-has-selector` (error) bans the `:has()` relational pseudo-class in all
-`src/**/*.{css,scss}`. In Chrome, a `:has()` rule anywhere in the document makes every matching DOM
-mutation re-run style invalidation at a cost that scales with the whole host page — and the grid mutates
-the DOM on every scroll re-render, so `:has()` turns scrolling janky on large/complex host pages. Drive
-the style from a **class that JS toggles on the target element** instead (the `SelectionManager`
-header-accent stamping — `#markActiveHeaderNeighbors` / the `-seam` taggers — is the reference pattern).
-The rule lives in `.config/plugin/stylelint/` (a pnpm `file:` dependency, the SCSS analog of
-`eslint-plugin-handsontable`; **copied, not symlinked — run `pnpm install` after editing it**). A
-genuinely necessary exception (a `:has()` on state that is NOT re-evaluated during a scroll — dialog
-focus, dropdown selection, the offscreen `.htGhostTable`) uses
-`// stylelint-disable-next-line handsontable/no-has-selector -- <reason>` with a reason that says why it
-is off the scroll path.
+The rule lives in `.config/plugin/stylelint/`, a pnpm `file:` dependency that is copied, not symlinked: run `pnpm install` after editing it.
 
-## Text-bearing UI spans declare their own text metrics
+An exception for state not re-evaluated during a scroll (dialog focus, dropdown selection, offscreen `.htGhostTable`) uses `// stylelint-disable-next-line handsontable/no-has-selector -- <reason>` with the reason why it is off the scroll path.
 
-Any `<span>` (or other inline element) the grid renders with visible text must declare `font-size`,
-`line-height`, `font-weight`, `letter-spacing`, and `font-family` itself. Inheritance from
-`.handsontable` is not enough: a host page rule on the bare element (`span { font-size: 20px }`) has
-specificity (0,0,1) and beats any inherited value. This bit headers first (`span.colHeader`, #11306),
-then the pagination labels and the multiselect chips (DEV-75). The five-property `inherit` form is the
-target for new spans. The older guards cover two properties only: `span.colHeader`/`span.rowHeader`
-declare `font-size` and `line-height` as tokens in `_base.scss`, and `.htCheckboxRendererLabel` and
-`.ht-sheets-bar__tab-label` declare the same two as `inherit`. Their `font-weight`, `letter-spacing`,
-and `font-family` still leak.
+## Text-bearing spans declare their own text metrics
 
-Pattern: the component root (`.ht-pagination`, `td`, `.ht-sheets-bar`) carries the token
-(`font-size: var(--ht-font-size)`); every text-bearing span below it declares the five properties as
-`inherit`. `inherit` wins over the host's element selector and still follows a user's override on the
-root, as long as that override beats the root's own rule on specificity. Do not count on source order:
-the grid injects its core stylesheet into `<head>` at init, so it often loads after the user's CSS. Core's
-cell rule `.handsontable :where(...) > td` is (0,1,1), so a user's `.handsontable td` ties it and loses
-on order; `.handsontable tbody td` (0,1,2) wins. The bar's `.handsontable.ht-pagination` is (0,2,0), so
-`div.handsontable.ht-pagination` (0,2,1) wins. Three limits to state in a PR:
+Every `<span>` (or other inline element) the grid renders with visible text declares `font-size`, `line-height`, `font-weight`, `letter-spacing`, and `font-family` itself. A host rule on the bare element (`span { font-size: 20px }`, specificity (0,0,1)) beats an inherited value (#11306, DEV-75). The older guards cover two properties only: `span.colHeader`/`span.rowHeader` (tokens in `_base.scss`), `.htCheckboxRendererLabel`, `.ht-sheets-bar__tab-label`; their `font-weight`, `letter-spacing`, and `font-family` still leak.
 
-- A user rule on the guarded class itself at lower specificity than the guard now loses where it used to
-  win: `.ht-multi-select-chip { font-size: 16px }` (guard (0,2,0)), and
-  `.ht-page-navigation-section__label { font-weight: 600 }` or even
-  `.handsontable .ht-page-navigation-section__label` (guard `.handsontable.ht-pagination ...` (0,3,0)).
-- A bare `.ht-pagination { font-size }` never beat the bar's own `.handsontable.ht-pagination` rule, so
-  it neither worked before nor works now.
-- Offsets computed from the `--ht-line-height` token (the multiselect and autocomplete arrow `top`, the
-  chip's end padding) do not follow a user's `td` `line-height` override. The chip grows with the
-  override, the arrow stays at the token offset. Autocomplete cells already behaved this way.
+Pattern: the component root (`.ht-pagination`, `td`, `.ht-sheets-bar`) carries the token (`font-size: var(--ht-font-size)`), and every text-bearing span below it declares the five properties as `inherit`. That wins over the host's element selector and follows a user's override on the root, provided the override beats the root's rule on specificity. Source order does not decide it, because the core stylesheet is injected into `<head>` at init and often loads after the user's CSS. Core's cell rule `.handsontable :where(...) > td` is (0,1,1): a user's `.handsontable td` ties and loses on order, `.handsontable tbody td` (0,1,2) wins. The bar's `.handsontable.ht-pagination` is (0,2,0): `div.handsontable.ht-pagination` (0,2,1) wins. State three limits in the PR:
 
-Do **not** add a blanket `.handsontable span { ... }` rule – its specificity (0,1,1) would override a
-user's own `.my-class` on spans inside custom cell renderers.
+- A user rule on the guarded class at lower specificity than the guard now loses: `.ht-multi-select-chip { font-size: 16px }` (guard (0,2,0)), `.ht-page-navigation-section__label { font-weight: 600 }`, and `.handsontable .ht-page-navigation-section__label` (guard `.handsontable.ht-pagination ...` (0,3,0)).
+- A bare `.ht-pagination { font-size }` never beat the bar's own `.handsontable.ht-pagination` rule.
+- Offsets computed from the `--ht-line-height` token (multiselect and autocomplete arrow `top`, chip end padding) do not follow a user's `td` `line-height` override.
 
-`tests/e2e/host-span-styles.spec.ts` (fixture `tests/fixtures/demo/host-span-styles.html`) hosts a
-hostile `span {}` rule and asserts the guarded spans against their cascade parent. The user-override
-tests prepend their rule to `<head>` (`HostSpanStylesPage.prependUserStyles`), so an override that only
-wins on source order fails. Add any new text-bearing span to that spec. The fixture loads the compiled
-`handsontable/styles/*.min.css` files, and the `dist/` bundle it loads injects the core stylesheet again at
-init. After an SCSS edit, run the full `npm --prefix handsontable run build` before trusting a spec run.
-`build:styles` and `build:styles.min` alone leave the bundle's copy stale, so a reverted guard still passes.
+Scope the declarations to the guarded classes: a blanket `.handsontable span { ... }` (0,1,1) overrides a user's `.my-class` on spans inside custom renderers.
 
-## Browser Compatibility
+`tests/e2e/host-span-styles.spec.ts` (fixture `tests/fixtures/demo/host-span-styles.html`) hosts a hostile `span {}` rule and asserts the guarded spans against their cascade parent. Its user-override tests prepend their rule to `<head>` (`HostSpanStylesPage.prependUserStyles`). Add every new text-bearing span to that spec. The fixture loads the compiled `handsontable/styles/*.min.css` and a `dist/` bundle that injects the core stylesheet again at init, so after an SCSS edit run the full `npm --prefix handsontable run build` before trusting a spec run; `build:styles` and `build:styles.min` alone leave the bundle's copy stale and a reverted guard still passes.
 
-All CSS features must work in browsers listed in `browser-targets.js` (latest 2 major versions of Chrome, Firefox, Safari, Edge). The `eslint-plugin-compat` rule enforces this.
+## Adding a new theme token: four layers
 
-## Breaking Change Rules
+For a `--ht-<component>-<property>` variable and its JS token. A rename or removal follows the same playbook plus a legacy-alias path. Group the new entry next to related ones in each file.
 
-- **Renaming/removing a CSS custom property** = breaking change. Keep the old variable working.
-- **Renaming/removing a CSS class** = breaking change. Keep the old class in the DOM.
-- **Always test all 3 themes** after any visual or styling change.
+### Layer 1: static CSS defaults (6 files)
 
-## Adding a New Theme Token - The Four-Layer Process
+`handsontable/src/themes/static/css/theme/ht-theme-{main,classic,horizon}{,-no-icons}.css`
 
-Handsontable's theme system maintains defense-in-depth across CSS and JS consumers, plus TypeScript support. A new token needs to land in **four layers** - updating fewer looks complete but breaks either the runtime DX or the type contract.
+Define `--ht-<kebab-case-name>` and its resolved default per theme, usually via `var(...)` of lower-level tokens so overrides keep cascading. All themes declare the same key set. Symptom when missing: the variable is undefined in DevTools while ThemeBuilder tests that skip rendered styles pass.
 
-Use this flow whenever you add a `--ht-<component>-<property>` CSS variable or its matching JS token. Renaming or removing a token follows the same playbook plus a legacy-alias path (see Breaking Change Rules above).
+### Layer 2: token JS runtime defaults (3 files)
 
-### Layer 1 - Static CSS defaults (6 files)
+`handsontable/src/themes/static/variables/tokens/{main,classic,horizon}.ts`
 
-```
-handsontable/src/themes/static/css/theme/ht-theme-main.css
-handsontable/src/themes/static/css/theme/ht-theme-main-no-icons.css
-handsontable/src/themes/static/css/theme/ht-theme-classic.css
-handsontable/src/themes/static/css/theme/ht-theme-classic-no-icons.css
-handsontable/src/themes/static/css/theme/ht-theme-horizon.css
-handsontable/src/themes/static/css/theme/ht-theme-horizon-no-icons.css
-```
+These drive `ThemeBuilder`. camelCase keys mirror the CSS variable (`paginationButtonBorderColor` for `--ht-pagination-button-border-color`); values use `'tokens.otherTokenName'` strings or primitive arrays like `['colors.palette.100', 'colors.palette.700']`. Symptom when missing: `createTheme()` ignores the token.
 
-Each file defines the CSS custom property (`--ht-<kebab-case-name>`) and its resolved default for that theme. Values commonly reference existing lower-level tokens via `var(...)` rather than hardcoded colors, so downstream theme overrides keep cascading.
+### Layer 3: validation allow-list
 
-Group the new variable next to related ones (e.g. `pagination-button-*` next to `pagination-bar-*`) so the file stays scannable. All three themes should declare the same key set; only the resolved values differ.
+`handsontable/src/themes/engine/utils/validation.ts`: add the key to the `VALID_TOKEN_KEYS` Set, in the matching semantic section (e.g. `// Pagination`). Symptom when missing: ThemeBuilder logs `[ThemeBuilder] Unknown token key: "xxx"`, and `src/themes/engine/__tests__/builder.unit.js` fails "should not warn for unknown token keys when using built-in tokens in createTheme" (it iterates every `mainTokens` key to catch layer 2/3 drift).
 
-**Symptom when missing**: the CSS variable is undefined in DevTools but the JS ThemeBuilder "works" in tests that don't assert rendered styles.
+### Layer 4: TypeScript types
 
-### Layer 2 - Token JS runtime defaults (3 files)
+`handsontable/src/themes/types.ts`: add the key to the `TokenKey` union. Edit the source; `tmp/themes/types.d.ts` is generated by `build:types`. Symptom when missing: `npm run test:types --prefix handsontable` (`tsc -p ./test/types`) fails with a `TokenKey` assignability error.
 
-```
-handsontable/src/themes/static/variables/tokens/main.ts
-handsontable/src/themes/static/variables/tokens/classic.ts
-handsontable/src/themes/static/variables/tokens/horizon.ts
-```
+### Layer 5 (soft): docs
 
-These objects drive the `ThemeBuilder` class at runtime (the JS API for programmatic theming). Use camelCase keys that mirror the CSS variable - `paginationButtonBorderColor` maps to `--ht-pagination-button-border-color`. Values reference other tokens with the `'tokens.otherTokenName'` string syntax or primitive arrays like `['colors.palette.100', 'colors.palette.700']`.
+`docs/content/guides/styling/theme-customization/theme-customization.md`: add the token to the variables reference table (CSS name + JS name, then description).
 
-**Symptom when missing**: `ThemeBuilder` doesn't recognize the token at runtime; users passing it to `createTheme()` get no-op behavior.
+### Naming
 
-### Layer 3 - Validation allow-list (1 file)
+JS camelCase maps to CSS kebab-case with the `--ht-` prefix by convention (no generator): `dialogContentPaddingHorizontal` is `--ht-dialog-content-padding-horizontal`.
 
-```
-handsontable/src/themes/engine/utils/validation.ts
-```
+### SCSS consumption
 
-The `VALID_TOKEN_KEYS` Set (around lines 319-363) is the **runtime DX guardrail**. If a user passes a token key not in this set, the ThemeBuilder logs `[ThemeBuilder] Unknown token key: "xxx"` to help them catch typos. Legitimate new tokens must be registered here or users get spurious warnings when they use your new API.
+Reference the variable from the component SCSS under `src/styles/components/` (e.g. `_pagination.scss`) as `var(--ht-<name>)`. Use the `var(--ht-<name>, <fallback>)` form only for a legacy compatibility fallback, because a fallback masks missing-variable bugs.
 
-Add the key in the same semantic section as your CSS and tokens changes (e.g., under the `// Pagination` comment).
+### Pre-flight
 
-**Symptom when missing**: unit test `src/themes/engine/__tests__/builder.unit.js` fails the "should not warn for unknown token keys when using built-in tokens in createTheme" case. The test iterates every real token in `mainTokens` and asserts none trigger the warning - it exists specifically to catch drift between layer 2 and layer 3.
-
-### Layer 4 - TypeScript type definitions (1 file)
-
-```
-handsontable/src/themes/types.ts
-```
-
-The `TokenKey` union (around line 79) is the **compile-time DX for TypeScript users**. Missing entry → TS consumers calling the API with your new token get a type error. The declaration is auto-generated into `tmp/themes/types.d.ts` by `build:types` — edit the source `src/themes/types.ts`, not the generated output.
-
-Add the key in the same semantic section as the other layers. The `test:types` script (`npm run test:types --prefix handsontable`, which runs `tsc -p ./test/types`) enforces this.
-
-**Symptom when missing**: `npm run test:types` fails with a `TokenKey` assignability error.
-
-### Layer 5 (soft) - Public docs
-
-```
-docs/content/guides/styling/theme-customization/theme-customization.md
-```
-
-Not load-bearing for the runtime, but anything registered in the allow-list and type union is part of the public API contract - it belongs in the variables reference table on this page. Match the existing two-column pattern (CSS name + JS name, then description).
-
-### Naming Convention
-
-JS camelCase ↔ CSS kebab-case, prefixed with `--ht-`. The mapping is by convention - there is no generator, so consistency is on the author:
-
-| JS token name | CSS variable |
-|---|---|
-| `paginationButtonBorderColor` | `--ht-pagination-button-border-color` |
-| `secondaryButtonHoverBackgroundColor` | `--ht-secondary-button-hover-background-color` |
-| `dialogContentPaddingHorizontal` | `--ht-dialog-content-padding-horizontal` |
-
-### Consumption in SCSS
-
-Reference the new variable from the component's SCSS file under `src/styles/components/` (for example, `_pagination.scss`). Default to `var(--ht-<name>)` - only use the `var(--ht-<name>, <fallback>)` form when a legacy compatibility fallback is genuinely needed, since a fallback can mask missing-variable bugs.
-
-### Pre-Flight Checklist
-
-Before committing token work, mentally walk the four layers plus tests:
-
-1. CSS in all 6 theme files?
-2. JS token in all 3 runtime files?
-3. Registered in `validation.ts` allow-list?
-4. Added to `TokenKey` in `src/themes/types.ts`?
-5. `npm run test:unit --prefix handsontable --testPathPattern=themes` passes?
-6. `npm run test:types --prefix handsontable` passes?
-7. Docs table updated?
+1. CSS in all 6 theme files.
+2. JS token in all 3 runtime files.
+3. Key in the `validation.ts` allow-list.
+4. Key in `TokenKey`.
+5. `npm run test:unit --prefix handsontable --testPathPattern=themes` passes.
+6. `npm run test:types --prefix handsontable` passes.
+7. Docs table updated.
