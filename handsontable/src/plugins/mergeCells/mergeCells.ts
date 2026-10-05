@@ -464,6 +464,7 @@ export class MergeCells extends BasePlugin {
     this.addHook('modifyGetCellCoords', this.#onModifyGetCellCoords);
     this.addHook('modifyGetCoordsElement', this.#onModifyGetCellCoords);
     this.addHook('afterIsMultipleSelection', this.#onAfterIsMultipleSelection);
+    this.addHook('beforeRenderer', (TD: HTMLTableCellElement) => this.#cellRenderer.before(TD));
     this.addHook('afterRenderer',
       (TD: HTMLTableCellElement, row: number, col: number) => this.#cellRenderer.after(TD, row, col));
     this.addHook('afterContextMenuDefaultOptions',
@@ -3827,9 +3828,11 @@ export class MergeCells extends BasePlugin {
       return height;
     }
 
-    // The whole block's row count, from the carrier down: under the `virtualized` rendering the carrier is moved
-    // down to the overlay's first rendered row, and it still shows the block at its full height.
-    let rowsToSum = mergedCell.rowspan;
+    // The rows from the carrier to the block's end (hidden ones add nothing). A carrier the `virtualized`
+    // rendering moved down to the overlay's first rendered row is the exception: it still shows the block at
+    // its full height, so it counts the block's whole row count from itself.
+    const isMovedByVirtualization = row !== this.hot.rowIndexMapper.getNearestNotHiddenIndex(mergedCell.row, 1);
+    let rowsToSum = isMovedByVirtualization ? mergedCell.rowspan : mergedCell.row + mergedCell.rowspan - row;
 
     if (
       overlayType === 'top' ||

@@ -700,7 +700,8 @@ export class TableRenderer {
             rowUtils.getHeightByOverlayName(sourceRowIndex, this.activeOverlayName, isExact),
             isExact,
             this.stylesHandler.areCellsBorderBox(),
-            () => rowUtils.getHeight(sourceRowIndex),
+            rowUtils,
+            sourceRowIndex,
           );
         }
       }

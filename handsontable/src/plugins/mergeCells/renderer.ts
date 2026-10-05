@@ -15,7 +15,7 @@ import type { HotInstance } from '../../core/types';
  * The class of the element that lays out a merged cell's content at the width of the whole block, in a
  * frozen column overlay that renders only part of the block's columns.
  */
-export const CONTENT_WINDOW_CLASS = 'htMergedCellContentWindow';
+const CONTENT_WINDOW_CLASS = 'htMergedCellContentWindow';
 
 /**
  * Represents a merged cell entry.
@@ -79,11 +79,15 @@ export function createMergeCellRenderer(plugin: MergeCellsPluginInstance) {
   } = hot;
 
   /**
-   * Runs before the cell is rendered.
+   * Runs before the cell is rendered. Puts back the content an earlier paint wrapped, so the cell renderer
+   * finds the cell the way it left it: a framework renderer that keeps its DOM checks that its container is
+   * still the cell's child, and would otherwise rebuild it on every paint.
    *
    * @private
+   * @param {HTMLElement} TD The cell to be rendered.
    */
-  function before() { // intentionally empty
+  function before(TD: HTMLTableCellElement) {
+    releaseContentWindow(TD);
   }
 
   /**
@@ -202,8 +206,11 @@ export function createMergeCellRenderer(plugin: MergeCellsPluginInstance) {
       return;
     }
 
-    const getRenderableColumnWidth = (renderableColumn: number) => hot
-      .getColWidth(columnMapper.getVisualFromRenderableIndex(renderableColumn) ?? renderableColumn);
+    const getRenderableColumnWidth = (renderableColumn: number) => {
+      const visualColumn = columnMapper.getVisualFromRenderableIndex(renderableColumn);
+
+      return visualColumn === null ? 0 : hot.getColWidth(visualColumn);
+    };
     const { before, after } = sumBlockWidthsOutsideBand(
       blockStart, lastMergedColumnIndex, band, getRenderableColumnWidth
     );
@@ -227,6 +234,33 @@ export function createMergeCellRenderer(plugin: MergeCellsPluginInstance) {
     }
 
     contentRoot.appendChild(contentWindow);
+  }
+
+  /**
+   * Puts back the content `layOutContentAtBlockWidth` wrapped on an earlier paint of the cell. Most renderers
+   * replace the cell's content and drop the wrapper with it, but one that keeps its DOM (a framework
+   * component renderer) leaves it in place, and the cell element may now hold another cell or a block that no
+   * longer crosses the freeze line. Unwrapping first keeps a single wrapper, and none where none belongs.
+   *
+   * @param {HTMLTableCellElement} TD The cell being painted.
+   */
+  function releaseContentWindow(TD: HTMLTableCellElement) {
+    const contentRoot = getCellContentRoot(TD);
+    const { children } = contentRoot;
+
+    for (let index = 0; index < children.length; index++) {
+      const contentWindow = children[index];
+
+      if (contentWindow.classList.contains(CONTENT_WINDOW_CLASS)) {
+        while (contentWindow.firstChild) {
+          contentRoot.insertBefore(contentWindow.firstChild, contentWindow);
+        }
+
+        contentWindow.remove();
+
+        return;
+      }
+    }
   }
 
   /**

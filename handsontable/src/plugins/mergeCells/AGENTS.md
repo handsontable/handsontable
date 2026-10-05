@@ -398,21 +398,22 @@ with the others. Three things are derived per pane, and each has its own owner:
   the same in every pane:
   - `#onModifyRowHeightByOverlayName` gives the cell a row STARTS with, when that cell carries a block's span
     on the row (`#getSpanCarrierRow`: the block's first not-hidden row, moved down to the overlay's first
-    rendered row under `virtualized`), the height of the block's rows, clamped to the frozen top rows on the
+    rendered row under `virtualized`), the height of the rows it spans, clamped to the frozen top rows on the
     top overlays. It counts that cell's own span only. It used to take the tallest span of every block in the
     overlay's part of the row, so a one-row cell next to a two-row block got two rows' height and the top
-    clone drew the frozen rows taller than the master (DEV-299). The count is the block's whole `rowspan`
-    from the carrier down, not the rows left in it: under `virtualized` a carrier moved down to the band's
-    first row still shows the block at its full height, and the legacy virtualized specs pin that. This half
-    is what holds up rows with default heights, whose cells a block covers entirely: such a row has nothing of
-    its own (`rowHeight` is `undefined`), so without the span's height it collapses.
-  - Walkontable pins a row whose first cell cannot carry the height on the `tr`, with the row's OWN height
-    (`applyRowHeight`, `3rdparty/walkontable/AGENTS.md`), only when the row has one (`autoRowSize`, an
-    oversized row, `rowHeights`). Without the pin the browser split the span's height between the rows as it
-    liked, differently in each pane and in the master as its band moved.
+    clone drew the frozen rows taller than the master (DEV-299). The count runs from the carrier to the
+    block's end (a hidden leading row moves the carrier down and must not stretch the sum past the block),
+    except for a carrier the `virtualized` rendering moved down: that one counts the block's whole `rowspan`
+    from itself, because it still shows the block at its full height and the legacy virtualized specs pin it.
+  - Walkontable pins a row whose first cell cannot carry the height on the `tr`, at the row's own height or
+    the default one (`applyRowHeight`, `3rdparty/walkontable/AGENTS.md`). Without the pin the browser split
+    the span's height between the rows as it liked, differently in each pane and in the master as its band
+    moved, and a row a block covers entirely could collapse.
 
-  The hook still skips the bottom overlays and the row-header grids, as before. `getHeightNextToMergedBlock`
-  (`rowHeights` and Safari) stays; it writes the same height the engine does.
+  Both halves are needed. Pinning without the inflation collapsed rows that a block covers entirely and broke
+  seven legacy specs; the inflation without the pin is the pre-fix state. The hook still skips the bottom
+  overlays and the row-header grids. `getHeightNextToMergedBlock` (`rowHeights` and Safari) stays; it writes
+  the same height the engine does.
 - **The content.** A frozen-column clone holds only part of a block that crosses the freeze line, and the
   browser cuts the clone's cell at the edge of the clone's table. The content was then aligned and wrapped
   against the cut width: a right-aligned or centered value showed in the pane and again in the master, and a
@@ -422,16 +423,31 @@ with the others. Three things are derived per pane, and each has its own owner:
   columns before the band (`margin-inline-start`). The content lands where the master draws it and the cell's
   `overflow: hidden` clips it to the pane's part. The band comes from `getFrozenColumnBandOfOverlay` and the
   widths from `sumBlockWidthsOutsideBand` (`utils.ts`), read through `hot.getColWidth`, so a stretched column
-  counts at its stretched width. The wrapper is rebuilt on every paint of the carrier: the renderers replace the
-  cell's content, which drops it.
+  counts at its stretched width. The wrapper resets its own box in `_base.scss` (it matches
+  `$user-cell-content`, so a host `td div` rule would reach it).
+  - **The renderer's `before()` (`beforeRenderer`) puts the content back before every paint**
+    (`releaseContentWindow`), and `after()` wraps it again. Do not drop that step on the grounds that the
+    renderers replace the cell's content: a renderer that keeps its DOM (the Angular component renderer,
+    AutoLink's "a renderer may keep its previous DOM") would nest one more wrapper per paint, and a cell
+    element reused for a block that no longer crosses the line would keep a stale one. It runs in the
+    before-phase on purpose: the React wrapper checks that its portal container is still the cell's direct
+    child, and a wrapper in between made it rebuild the container on every paint.
 
 Known limits of the content rule:
 - Rows are not windowed. A block that crosses `fixedRowsTop` with `htMiddle` or `htBottom` still centers in each
   pane's part: a cell cannot be shorter than its content, so a wrapper as tall as the block would grow the row.
 - With `virtualized: true` the master clamps the block's anchor to its rendered band, so the master moves its
   copy of the content as the grid scrolls while the pane keeps it where the block starts.
-- Under `renderMode: 'onChange'`, a column width change that repaints no cell leaves the wrapper's width stale
-  until the block's cells repaint.
+- Content positioned against the cell (the autocomplete and dropdown arrow, `position: absolute` on a
+  `position: relative` cell) still anchors to the cut cell, so the arrow shows at the freeze line and again at
+  the block's end.
+- A plugin that rewrites the cell after this one (Formulas in `showFormulas` mode, priority 260) drops the
+  wrapper, and that pane falls back to the cut width until the next paint without it.
+- Under `renderMode: 'onChange'` the wrapper's width is not part of the paint identity: a column resize
+  (ManualColumnResize), a stretch change (StretchColumns on a container resize) or an AutoColumnSize update
+  repaints no cell, so the wrapper keeps its old width until the block's cells repaint.
+- A wrapped cell's content moves into and out of the wrapper on every paint, so a control focused inside such
+  a cell in a frozen pane may lose the focus on a repaint (inferred from the DOM moves, not measured).
 
 Pinned by `tests/e2e/merge-cells-frozen-columns-content.spec.ts`, `tests/e2e/walkontable/merged-rows-frozen-columns.spec.ts`
 and `__tests__/blockWidthsOutsideBand.unit.ts`.

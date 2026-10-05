@@ -69,6 +69,41 @@ test.describe('row heights of merged rows next to frozen columns', { tag: '@walk
     await expect.poll(() => grid.masterRowHeight(1)).toBe(normal);
   });
 
+  test('draws every row at the same offset and height when the heights come from rowHeights', async () => {
+    await grid.initGrid({ ...SETTINGS, autoRowSize: false, rowHeights: [70], values: [] });
+    await grid.scrollToColumn(ONE_ROW_BLOCK.col);
+
+    await expect.poll(() => grid.rowsDisagreeingWithMaster(ROWS)).toEqual([]);
+    await expect.poll(() => grid.masterRowHeight(0)).toBe(70);
+  });
+
+  test('draws every row at the same offset and height when the heights are measured, not sampled', async () => {
+    // Without AutoRowSize, row 0's height is only what the engine measured from the rendered cells.
+    await grid.initGrid({ ...SETTINGS, autoRowSize: false });
+    await grid.scrollToColumn(ONE_ROW_BLOCK.col);
+
+    await expect.poll(() => grid.rowsDisagreeingWithMaster(ROWS)).toEqual([]);
+    expect(await grid.masterRowHeight(1)).toBe(await grid.masterRowHeight(3));
+  });
+
+  test('keeps a block whose first row is hidden to its own rows', async () => {
+    // The block's first cell carries the span from row 1 down to row 2 only; counting the block's row count
+    // from there reached row 3 and made rows 1 and 2 taller in the frozen pane than in the master.
+    await grid.initGrid({
+      viewportColumnRenderingOffset: 0,
+      rowHeaders: false,
+      colHeaders: false,
+      fixedColumnsStart: 1,
+      hiddenRows: { rows: [0] },
+      mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 1 }],
+    });
+    await grid.scrollToColumn(6);
+
+    await expect.poll(() => grid.rowsDisagreeingWithMaster([1, 2, 3, 4])).toEqual([]);
+    // Stretched rows are recorded and the master follows them, so the panes can agree on the wrong heights.
+    expect(await grid.masterRowHeight(2)).toBe(await grid.masterRowHeight(4));
+  });
+
   test('gives back a normal height to a plain row drawn in a reused row element', async () => {
     // A guard for the fix: the rows of the first blocks carry their height on the row element, and
     // once scrolled down the engine reuses those elements for plain rows, which must not keep it.

@@ -92,6 +92,15 @@ export default class RowUtils {
   }
 
   /**
+   * Returns the height of a row that has no height of its own.
+   *
+   * @returns {number}
+   */
+  getDefaultHeight(): number {
+    return this.#rowSizeSource.getDefaultSize();
+  }
+
+  /**
    * Returns row height based on passed source index for the specified overlay type.
    *
    * @param {number} sourceIndex Row source index.

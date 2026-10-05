@@ -34,7 +34,8 @@
 
     A cell whose value is `markers:<n>` renders <n> fixed-size inline blocks instead of text, so
     positions, wrapping and row heights do not depend on the runner's font metrics. A cell whose
-    value is `tall:<px>` renders one block of that height.
+    value is `tall:<px>` renders one block of that height, and `kept:<n>` renders the markers once and keeps them
+    across paints.
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -50,7 +51,21 @@
     const MARKER_WIDTH = 40;
     const MARKER_HEIGHT = 12;
 
-    function renderer(instance, td, row, col, prop, value) {
+    function renderer(instance, td, row, col, prop, value, cellProperties) {
+      // `kept:<n>` stands for a renderer that keeps its DOM across paints, the way a framework component
+      // renderer updates a mounted component in place: it builds the markers once and leaves them after that.
+      if (typeof value === 'string' && value.startsWith('kept:')) {
+        if (td.parentElement) {
+          td.parentElement.setAttribute('data-testid', `row-${row}`);
+        }
+
+        if (!td.querySelector('[data-testid="marker"]')) {
+          renderer.call(this, instance, td, row, col, prop, value.replace('kept:', 'markers:'), cellProperties);
+        }
+
+        return;
+      }
+
       Handsontable.renderers.TextRenderer.apply(this, arguments);
 
       // Stamp the row id on the TR from whichever cell renders first: every pane renders a

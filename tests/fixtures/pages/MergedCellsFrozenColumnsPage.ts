@@ -29,6 +29,8 @@ export interface RowGeometry {
 interface FixtureWindow {
   initGrid(settings: Record<string, unknown>): void;
   hot: {
+    render(): void;
+    updateSettings(settings: Record<string, unknown>): void;
     scrollViewportTo(options: object): boolean;
     getFirstFullyVisibleColumn(): number | null;
     getFirstRenderedVisibleColumn(): number | null;
@@ -163,6 +165,38 @@ export class MergedCellsFrozenColumnsPage {
    */
   async masterRowHeight(row: number): Promise<number> {
     return (await this.rowGeometry([row])).ht_master?.[row]?.height ?? NaN;
+  }
+
+  /**
+   * Repaints the grid the given number of times.
+   *
+   * @param {number} times How many renders to run.
+   */
+  async render(times: number): Promise<void> {
+    await this.page.evaluate((count) => {
+      for (let i = 0; i < count; i++) {
+        (window as unknown as FixtureWindow).hot.render();
+      }
+    }, times);
+  }
+
+  /**
+   * Updates the grid's settings.
+   *
+   * @param {object} settings The settings to apply.
+   */
+  async updateSettings(settings: Record<string, unknown>): Promise<void> {
+    await this.page.evaluate(s => (window as unknown as FixtureWindow).hot.updateSettings(s), settings);
+  }
+
+  /**
+   * How many content-window wrappers the panes hold, and how deeply the deepest one is nested in another.
+   */
+  async contentWindows(): Promise<{ count: number, nested: number }> {
+    return this.grid.evaluate(root => ({
+      count: root.querySelectorAll('.htMergedCellContentWindow').length,
+      nested: root.querySelectorAll('.htMergedCellContentWindow .htMergedCellContentWindow').length,
+    }));
   }
 
   /**

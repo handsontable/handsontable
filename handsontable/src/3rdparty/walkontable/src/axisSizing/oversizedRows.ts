@@ -207,7 +207,8 @@ function applyRowHeightsToRenderedRows(table: Table): void {
       table.rowUtils.getHeightByOverlayName(sourceRowIndex, table.name, isExact),
       isExact,
       borderBoxSizing,
-      () => table.rowUtils.getHeight(sourceRowIndex),
+      table.rowUtils,
+      sourceRowIndex,
     );
   }
 }

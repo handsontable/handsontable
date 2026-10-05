@@ -87,6 +87,72 @@ test.describe('content of a merged cell across a frozen-column line', () => {
     await expect.poll(async () => (await grid.visibleMarkers()).count).toBe(1);
   });
 
+  test('shows a value once when the block reaches into the fixedColumnsEnd band of a right-to-left grid', async () => {
+    await grid.initGrid({
+      layoutDirection: 'rtl',
+      fixedColumnsEnd: 2,
+      mergeCells: [{ row: 1, col: 22, rowspan: 1, colspan: 8 }],
+      values: [{ row: 1, col: 22, value: 'markers:1' }],
+    });
+    await grid.scrollToColumn(22);
+
+    await expect.poll(async () => (await grid.visibleMarkers()).count).toBe(1);
+  });
+
+  test('shows a value once with virtualized merged cells', async () => {
+    await grid.initGrid({
+      fixedColumnsStart: 2,
+      mergeCells: { virtualized: true, cells: [BLOCK] },
+      values: ONE_MARKER,
+      cell: [{ row: 1, col: 0, className: 'htRight' }],
+    });
+
+    await expect.poll(async () => (await grid.visibleMarkers()).count).toBe(1);
+  });
+
+  test('shows a value once in the frozen top-start corner', async () => {
+    // Row 1 is frozen at the top too, so the frozen part of the block is drawn by the corner overlay.
+    await grid.initGrid({
+      fixedColumnsStart: 2,
+      fixedRowsTop: 2,
+      mergeCells: [BLOCK],
+      values: ONE_MARKER,
+      cell: [{ row: 1, col: 0, className: 'htRight' }],
+    });
+
+    await expect.poll(() => grid.visibleMarkers()).toEqual({ count: 1, panes: ['ht_clone_top'] });
+  });
+
+  test('shows a value once when a column inside the block is hidden', async () => {
+    await grid.initGrid({
+      fixedColumnsStart: 2,
+      hiddenColumns: { columns: [3] },
+      mergeCells: [{ ...BLOCK, colspan: 7 }],
+      values: ONE_MARKER,
+      cell: [{ row: 1, col: 0, className: 'htRight' }],
+    });
+
+    await expect.poll(async () => (await grid.visibleMarkers()).count).toBe(1);
+  });
+
+  test('keeps one layout wrapper when a renderer keeps its DOM across paints', async () => {
+    await grid.initGrid({
+      fixedColumnsStart: 2,
+      mergeCells: [BLOCK],
+      values: [{ row: 1, col: 0, value: 'kept:1' }],
+      cell: [{ row: 1, col: 0, className: 'htRight' }],
+    });
+    await grid.render(3);
+
+    expect(await grid.contentWindows()).toEqual({ count: 1, nested: 0 });
+    await expect.poll(async () => (await grid.visibleMarkers()).count).toBe(1);
+
+    // Once the block no longer crosses a freeze line, the wrapper goes away with it.
+    await grid.updateSettings({ fixedColumnsStart: 0 });
+
+    await expect.poll(() => grid.contentWindows()).toEqual({ count: 0, nested: 0 });
+  });
+
   test('wraps a long value at the block width, so the frozen row is as tall as the master row', async () => {
     // Six markers (44px each) fit on one line across the block (360px) but wrap into three lines
     // across the two frozen columns (120px).

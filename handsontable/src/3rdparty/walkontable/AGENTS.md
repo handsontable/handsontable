@@ -606,27 +606,33 @@ When you add a new content-driven measurement, ask which tables actually render 
 `applyRowHeight` (`render/exactRowHeight.ts`) writes a row's floor height on `TR.firstChild`. With row headers
 that is a 1x1 `th` and always works. Without them it can be a cell spanning several rows (a merged block,
 `rowspan > 1`) or a cell a merge covers (`display: none`). A spanning cell takes the height the host hands it
-(MergeCells inflates it to the block's rows), but nothing pins the rows inside the span, so the browser split
+(MergeCells inflates it to the rows it spans), but nothing pinned the rows inside the span, so the browser split
 the span between them as it liked: each pane drew the block's rows at different heights, and so did the master
-as its column band moved (DEV-299). Such a row is now pinned on the `tr` with its OWN height, which both call
-sites pass lazily as `() => rowUtils.getHeight(source)` (the un-hooked height: the inflated one would make the
-first row as tall as the block). The getter runs only for a row whose first cell cannot carry the height, so a
-grid without merges pays nothing for it, and the spanning cell keeps the hooked height as before.
+as its column band moved (DEV-299). Such a row is now pinned on the `tr`, and the spanning cell keeps the
+hooked height as before. Both call sites pass the row-size source and the source index (`rowUtils`,
+`sourceRowIndex`) rather than a closure, and the source is asked only for a row whose first cell cannot carry
+the height, so a grid without merges pays one style read per row.
 
-Three rules ride along:
-- **Pin only a row that has a height of its own** (`autoRowSize`, an oversized-row record, `rowHeights`). A
-  default-height row gets no pin: its height comes from the stylesheet, and the spanning cell's inflated height
-  holds it up. Writing the default size instead was tried and broke seven legacy MergeCells specs: rows a block
-  covers entirely collapsed, and the default size does not know the first rendered row's extra pixel.
+Four rules ride along:
+- **The pin is the row's OWN height, not the hooked one** (`RowUtils#getHeight`): the inflated height would make
+  the row as tall as the block.
+- **A row without a height of its own is pinned at the default height, plus the first row's border pixel.** A
+  row the block covers entirely has no cell to size it, and the browser hands the whole span to whichever row it
+  likes (measured: 29.5/29.5 for a 30/29 pair). The first row of a table whose head row is empty draws its own
+  1px top border (`thead:not(:empty) + tbody > tr:first-child`), so it is the default plus one, decided from the
+  table's DOM exactly as the stylesheet decides it (`getDefaultRowElementHeight`). A recorded or provided height
+  already includes that pixel. The host's inflation has to stay: pinning alone, with no inflated span, collapsed
+  rows a block covers entirely and broke seven legacy MergeCells specs.
 - **Clear the pin as soon as the first cell can carry the height again.** A row height is a minimum in CSS table
   layout, and the row elements are recycled across rows, so one left behind would stop an ordinary row
   shrinking. The write is skipped when the value is unchanged.
 - **The exact shape is untouched.** It picks its own carrier among all the cells and already falls back to the
-  `tr`. A `tr` height is the row's full height; the same box adjustment as the exact shape applies.
+  `tr`. The same box adjustment as the exact shape applies to the pin.
 
-Pinned by `tests/e2e/walkontable/merged-rows-frozen-columns.spec.ts` (all panes agree at rest and scrolled,
-rows inside a block keep their own heights, a reused row element sheds the pin, `renderMode: 'onChange'`), in
-the `main`, `horizon` and `classic` themes.
+Pinned by `tests/e2e/walkontable/merged-rows-frozen-columns.spec.ts` (all panes agree at rest and scrolled, with
+AutoRowSize, `rowHeights`, and measured heights; rows inside a block keep their own heights; a hidden first row;
+a reused row element sheds the pin; `renderMode: 'onChange'`), in the `main`, `horizon` and `classic` themes, and
+by the floor-shape cases in `test/unit/renderer/exactRowHeight.unit.ts`.
 
 ## Rendered row band is refilled, bounded, when the measured rows shrink
 
