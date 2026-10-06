@@ -387,6 +387,102 @@ span. Three sites agree on that rule, and a fourth lives in Walkontable:
 - Not changed: a merge that crosses the line is still accepted, and `fixedRowsBottom` moving later (a settings
   update, a row insert) is handled by the render path, not by validation.
 
+## A block in the frozen columns is one block in every pane
+
+The master and every frozen-column clone render their own copy of a merged block, and each copy has to agree
+with the others. Three things are derived per pane, and each has its own owner:
+
+- **The outline and the fill handle**: Walkontable `Border` (`3rdparty/walkontable/AGENTS.md`, DEV-143).
+- **The row heights.** Walkontable writes a row's height on the row's first cell, and without row headers that
+  cell can span several rows (`rowspan`) or be covered (`display: none`). Two halves keep the rows of a block
+  the same in every pane:
+  - `#onModifyRowHeightByOverlayName` gives the cell a row STARTS with, when that cell carries a block's span
+    on the row (`#getSpanCarrierRow`: the block's first not-hidden row, moved down to the overlay's first
+    rendered row under `virtualized`), the height of the rows it spans, clamped to the frozen top rows on the
+    top overlays. It counts that cell's own span only. It used to take the tallest span of every block in the
+    overlay's part of the row, so a one-row cell next to a two-row block got two rows' height and the top
+    clone drew the frozen rows taller than the master (DEV-299). The count runs from the carrier to the
+    block's end (a hidden leading row moves the carrier down and must not stretch the sum past the block),
+    except for a carrier the `virtualized` rendering moved down: that one counts the block's whole `rowspan`
+    from itself, because it still shows the block at its full height and the legacy virtualized specs pin it.
+  - Walkontable pins a row whose first cell cannot carry the height on the `tr`, at the row's own height or
+    the default one (`applyRowHeight`, `3rdparty/walkontable/AGENTS.md`). Without the pin the browser split
+    the span's height between the rows as it liked, differently in each pane and in the master as its band
+    moved, and a row a block covers entirely could collapse.
+
+  Both halves are needed. Pinning without the inflation collapsed rows that a block covers entirely and broke
+  seven legacy specs; the inflation without the pin is the pre-fix state. The hook still skips the bottom
+  overlays and the row-header grids. `getHeightNextToMergedBlock` (`rowHeights` and Safari) stays; it writes
+  the same height the engine does.
+- **The content.** A frozen-column clone holds only part of a block that crosses the freeze line, and the
+  browser cuts the clone's cell at the edge of the clone's table. The content was then aligned and wrapped
+  against the cut width: a right-aligned or centered value showed in the pane and again in the master, and a
+  long value wrapped in the narrow part and made the pane's row taller than the master's.
+  `layOutContentAtBlockWidth` (`renderer.ts`) wraps the content in `div.htMergedCellContentWindow`, as wide as
+  the whole block (`calc(100% + <columns outside the band>)`) and, in the inline-end band, pulled back by the
+  columns before the band (`margin-inline-start`). The content lands where the master draws it and the cell's
+  `overflow: hidden` clips it to the pane's part. The band comes from `getFrozenColumnBandOfOverlay` and the
+  widths from `sumBlockWidthsOutsideBand` (`utils.ts`), read through `hot.getColWidth`, so a stretched column
+  counts at its stretched width. The wrapper resets its own box in `_base.scss` (it matches
+  `$user-cell-content`, so a host `td div` rule would reach it).
+  - **The overhang is set with PHYSICAL margins, never `margin-inline-start`.** A renderer may give the cell its
+    own direction: the numeric and time renderers set `dir="ltr"` in a right-to-left grid, and an inline margin
+    then grows the wrapper toward the wrong side, so a right-aligned number shows in neither pane. The block's
+    remaining columns lie on the same side of the pane whatever the cell's direction is (`leftOutside` and
+    `rightOutside` come from `hot.isRtl()`), and the width is `100%` plus both.
+  - **No compensation for the end clone's freeze-line border.** Mid-scroll the clone's first cell draws the
+    freeze line as a 1px border of its own and the master's cell of the block has none, so the wrapper starts 1px
+    later than a master copy would. Mid-scroll the clone is pinned elsewhere and the two copies line up with
+    nothing; at the junction, where they overlap, `htFreezeLineShared` zeroes that border and the drift is 0
+    (pinned to the pixel by the end-of-scroll spec). Do not add the border to the wrapper's overhang: the class
+    is toggled after the draw, so a paint-time read is one draw stale in exactly the state that matters.
+  - **The renderer's `before()` (`beforeRenderer`) puts the content back before every paint**
+    (`releaseContentWindow`), and `after()` wraps it again. The wrapper of each cell is kept in a `WeakMap` keyed
+    by the cell, so it is found wherever it sits (a hook that wrapped the cell's whole content in a link after
+    the plugin ran put it under the link; looking only at the first child would have missed it and wrapped
+    again on every paint) and the element is reused by the next paint. Do not drop that step on the grounds that the
+    renderers replace the cell's content: a renderer that keeps its DOM (the Angular component renderer,
+    AutoLink's "a renderer may keep its previous DOM") would nest one more wrapper per paint, and a cell
+    element reused for a block that no longer crosses the line would keep a stale one. It runs in the
+    before-phase on purpose: the React wrapper checks that its portal container is still the cell's direct
+    child, and a wrapper in between made it rebuild the container on every paint.
+
+Known limits of the content rule:
+- Rows are not windowed. A block that crosses `fixedRowsTop` with `htMiddle` or `htBottom` still centers in each
+  pane's part: a cell cannot be shorter than its content, so a wrapper as tall as the block would grow the row.
+- With `virtualized: true` the master clamps the block's anchor to its rendered band, so the master moves its
+  copy of the content as the grid scrolls while the pane keeps it where the block starts.
+- With `virtualized: true` a carrier the band moved down is given the height of the block's WHOLE `rowspan`
+  from itself (`#onModifyRowHeightByOverlayName`), which runs past the block's last row: a block over rows 0-9 with
+  the band starting at row 8 draws rows 8-9 at 291px (measured, the same on 18.1.1). Three legacy virtualized
+  specs pin the viewport that results from it, and the row pins are minimums that cannot hold those rows back.
+  Pre-existing, left as it is.
+- Content positioned against the cell (the autocomplete and dropdown arrow, `position: absolute` on a
+  `position: relative` cell) still anchors to the cut cell, so the arrow shows at the freeze line and again at
+  the block's end.
+- A plugin that rewrites the cell after this one (Formulas in `showFormulas` mode, priority 260) drops the
+  wrapper, and that pane falls back to the cut width until the next paint without it.
+- Under `renderMode: 'onChange'` the wrapper's width is not part of the paint identity, so the plugin marks
+  the cells of the blocks that cross a freeze line as changed (`#onBeforeViewRender`) when the column widths
+  epoch (`TableView#getColumnWidthEpoch`, advanced by every `invalidateColumnWidthCache()` call: ManualColumnResize,
+  AutoColumnSize, StretchColumns, an index mapper change) moved since the last draw. A width that changes without
+  dropping that cache (NestedHeaders, a per-column cell-meta `width`) is not seen, and the wrapper keeps its old
+  width until the block repaints.
+- A hook that runs AFTER the plugin and appends to the cell (a `hot.addHook('afterRenderer', …)` registered after
+  the grid was built, or the Formulas and AutoLink hooks) finds the content inside the block-level wrapper, so
+  `TD.appendChild(icon)` lands on a line of its own under it, and `TD.firstChild` is the wrapper (not in the
+  master). A settings-level `afterRenderer` is registered first and runs BEFORE the plugin, so what it adds is
+  moved into the wrapper with the rest.
+- A wrapped cell's content moves into and out of the wrapper on every paint. For a renderer that keeps its
+  DOM, a control focused inside such a cell in a frozen pane may lose the focus on a repaint, a custom element
+  gets `disconnectedCallback`/`connectedCallback`, and an `iframe` reloads (inferred from the DOM moves, not
+  measured).
+- Disabling the plugin unhooks `before()`, so a renderer that keeps its DOM keeps a wrapper it already had until
+  it rebuilds its content (the React wrapper does on the next paint).
+
+Pinned by `tests/e2e/merge-cells-frozen-columns-content.spec.ts`, `tests/e2e/walkontable/merged-rows-frozen-columns.spec.ts`
+and `__tests__/blockWidthsOutsideBand.unit.ts`.
+
 ## The init draw is batched, and four things about it are load-bearing
 
 `#onAfterInit` applies the declared merges between a `suspendRender()` / `resumeRender()` pair (#5687).

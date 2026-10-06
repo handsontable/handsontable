@@ -590,7 +590,7 @@ Everything else follows from that table, and each row of it was a separate bug b
 Two neighbours worth knowing about:
 
 - **`RenderSizeProbe` must measure every table that can hold a recorded row.** It is the intended replacement for the engine's measurement, and its characterization spec pins equality with `oversizedRows` — so a height sourced from a table it does not measure leaves it mirroring a subset while the spec stays green. The master's band plus the top and bottom clones cover every recordable row; the inline-start clone mirrors the master's band and adds none.
-- **MergeCells inflates row heights per overlay** (`modifyRowHeightByOverlayName`), so a frozen clone can render a row at the whole merged block's height while the overlay-agnostic `getRowHeight` that `markOversizedRows` compares against reports one row. That does not currently produce a bogus record — the inflated height is written on a TD whose `rowspan` covers exactly the rows it accounts for, so no single TR measures tall — but the two sides of that comparison do disagree, and a spec pins the outcome.
+- **MergeCells inflates the height of a row that starts with a block's spanning cell** (`modifyRowHeightByOverlayName`), to the block's rows, so a frozen clone can write that cell at the whole block's height while the overlay-agnostic `getRowHeight` that `markOversizedRows` compares against reports one row. That does not produce a bogus record: the height is written on a TD whose `rowspan` covers the rows it accounts for, and the row itself is pinned at its own height (next section), so no single TR measures tall. The listener counts that one cell's own span only (DEV-299); see `src/plugins/mergeCells/AGENTS.md`.
 
 Three more things that pass every functional test and only show up in a profile or a screenshot:
 
@@ -600,6 +600,44 @@ Three more things that pass every functional test and only show up in a profile 
 - **Steady state must cost zero row-height cache invalidations.** Each one drops the per-draw layout snapshot as well, and with a non-uniform row-size source (`rowHeights`/`minRowHeights` as an array or function, or any non-AutoRowSize `modifyRowHeight` hook) `PositionCache` has no sparse path, so a rebuild is a full prefix-sum walk over every row. Verified by counting: 0 invalidations/draw and an unchanged `createVisibleCalculators` count in every configuration. Two specs in `tests/e2e/walkontable/frozen-column-row-heights.spec.ts` pin the invalidation count at 0 through the fixture's `countRowCacheInvalidations` — the only way to see this class of bug, since the rows stay aligned and every visual assertion passes while it happens.
 
 When you add a new content-driven measurement, ask which tables actually render the content — measuring the master alone is the trap both of these exist to work around.
+
+## A row whose first cell cannot carry its height is pinned on the `tr`
+
+`applyRowHeight` (`render/exactRowHeight.ts`) writes a row's floor height on `TR.firstChild`. With row headers
+that is a 1x1 `th` and always works. Without them it can be a cell spanning several rows (a merged block,
+`rowspan > 1`) or a cell a merge covers (`display: none`). A spanning cell takes the height the host hands it
+(MergeCells inflates it to the rows it spans), but nothing pinned the rows inside the span, so the browser split
+the span between them as it liked: each pane drew the block's rows at different heights, and so did the master
+as its column band moved (DEV-299). Such a row is now pinned on the `tr`, and the spanning cell keeps the
+hooked height as before. Both call sites pass the row-size source and the source index (`rowUtils`,
+`sourceRowIndex`) rather than a closure, and the source is asked only for a row whose first cell cannot carry
+the height, so a grid without merges pays one style read per row.
+
+Five rules ride along:
+- **Only a pin this module wrote is ever taken off** (`pinnedRows`, a `WeakSet` like `exactRows`). The floor path
+  used to leave the row element alone, so a renderer or an `afterRenderer` hook that sizes `TD.parentElement`
+  still works; clearing `tr.style.height` for every row whose first cell can carry the height would have wiped it
+  on every draw.
+- **The pin is the row's OWN height, not the hooked one** (`RowUtils#getHeight`): the inflated height would make
+  the row as tall as the block.
+- **A row without a height of its own is pinned at the default height, plus the first row's border pixel.** A
+  row the block covers entirely has no cell to size it, and the browser hands the whole span to whichever row it
+  likes (measured: 29.5/29.5 for a 30/29 pair). The first row of a table whose head row is empty draws its own
+  1px top border (`thead:not(:empty) + tbody > tr:first-child`), so it is the default plus one. The question is
+  asked in ONE place, `firstRowDrawsTopBorder(thead)` (`axisSizing/boxModel.ts`), which `markOversizedRows`
+  shares; the callers hand `applyRowHeight` the answer for the row (`isFirstRow && drawsTopBorder`) rather than
+  letting it sniff the DOM. A recorded or provided height already includes that pixel. The host's inflation has to stay: pinning alone, with no inflated span, collapsed
+  rows a block covers entirely and broke seven legacy MergeCells specs.
+- **Clear the pin as soon as the first cell can carry the height again.** A row height is a minimum in CSS table
+  layout, and the row elements are recycled across rows, so one left behind would stop an ordinary row
+  shrinking. The write is skipped when the value is unchanged.
+- **The exact shape is untouched.** It picks its own carrier among all the cells and already falls back to the
+  `tr`. The same box adjustment as the exact shape applies to the pin.
+
+Pinned by `tests/e2e/walkontable/merged-rows-frozen-columns.spec.ts` (all panes agree at rest and scrolled, with
+AutoRowSize, `rowHeights`, and measured heights; rows inside a block keep their own heights; a hidden first row;
+a reused row element sheds the pin; `renderMode: 'onChange'`), in the `main`, `horizon` and `classic` themes, and
+by the floor-shape cases in `test/unit/renderer/exactRowHeight.unit.ts`.
 
 ## Rendered row band is refilled, bounded, when the measured rows shrink
 

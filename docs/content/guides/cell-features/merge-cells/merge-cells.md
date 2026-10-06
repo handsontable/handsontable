@@ -486,6 +486,22 @@ Some features remove rows from the grid entirely: [`filters`](@/api/options.md#f
 
 One limitation applies to [`undo`](@/api/options.md#undo). Unmerging a merged cell whose rows are all hidden but one records only the single cell you can see, which is not a merged cell, so undoing that unmerge restores nothing. Expand or unfilter the rows first if you want the unmerge to be reversible.
 
+## Merged cells and frozen columns
+
+A merged cell can sit in, or cross, the frozen columns ([`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart) and [`fixedColumnsEnd`](@/api/options.md#fixedcolumnsend)). The frozen columns are drawn in their own part of the grid, so Handsontable draws the part of the merged cell that lies in them separately from the rest.
+
+When a merged cell crosses the line between the frozen and the scrollable columns:
+
+- Its content is laid out as wide as the whole merged cell, and each part shows its own slice of it. A right-aligned or centered value appears once, and a long value wraps the same way in both parts.
+- The content of the cell in the frozen part sits inside an extra `div` with the `htMergedCellContentWindow` class. If your CSS selects the direct children of the cell (`td > .my-class`), or your [`afterRenderer`](@/api/hooks.md#afterrenderer) code reads `TD.firstChild`, you get that `div` in the frozen part and not in the scrollable part. A hook that runs after the grid is built and appends to the cell (`TD.appendChild(icon)`) puts the icon on a line of its own under the content.
+- When the grid has no row headers, the rows of a merged cell keep the same height in every part.
+
+Some cases behave differently:
+
+- Content positioned against the cell, such as the arrow of an [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) or [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell, stays at the edge of the frozen part and shows again at the end of the merged cell.
+- A merged cell that crosses [`fixedRowsTop`](@/api/options.md#fixedrowstop) centers or bottom-aligns its content ([`htMiddle`, `htBottom`](@/guides/cell-features/text-alignment/text-alignment.md)) within each part separately.
+- With [`virtualized`](@/api/options.md#mergecells) set to `true`, the scrollable part moves its copy of the content as you scroll, while the frozen part keeps it where the merged cell starts.
+
 ## Keyboard navigation over a merged cell
 
 A merged cell behaves as a single cell at its top-left corner. When you move the selection onto a merged cell -- with the arrow keys or a mouse click -- the whole merged cell is highlighted. When you then leave it to the left or right with a non-Tab horizontal move -- an arrow key, the editor's arrow-key exit, or <kbd>**Enter**</kbd> when [`enterMoves`](@/api/options.md#entermoves) is configured to step horizontally -- the selection lands on the top row of the merged cell, whichever row you entered it from. Entering a merged cell from below and leaving it sideways lands on the same row as entering it from above, so horizontal navigation stays consistent. When the top row is hidden, the selection lands on the merged cell's topmost visible row.
