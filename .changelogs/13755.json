@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed moving columns across the freeze line after freezing a column with `manualColumnFreeze`, which now works like `fixedColumnsStart`. Added the `restoreColumnPosition` option of `manualColumnFreeze`, which moves an unfrozen column back to its data source position, and a `finalIndex` argument to the `beforeColumnUnfreeze` and `afterColumnUnfreeze` hooks.",
+  "type": "fixed",
+  "issueOrPR": 13755,
+  "breaking": false,
+  "framework": "none"
+}
