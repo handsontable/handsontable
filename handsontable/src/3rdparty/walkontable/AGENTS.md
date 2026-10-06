@@ -209,6 +209,39 @@ of every side, and a plain cell keeping its handle against a naive `modifyGetCel
 merged-cell and plain-cell cases in `tests/e2e/ipad-selection-handles.spec.ts`, and
 `test/unit/selection/border/utils.unit.ts`.
 
+## The `top` overlay draws a fill handle only for a column the viewport shows (DEV-800)
+
+`TopOverlay#adjustRootChildrenSize` makes the `top` clone's `.wtHolder` half a fill handle taller than
+its table whenever the selection's bottom-end corner is in the frozen top rows, so the handle can hang
+past the frozen rows (#6937). That strip belongs to `.ht_clone_top` (z-index 160) and paints above both
+inline panes (`inline_start`, `inline_end`, 120); the top corners (180) cover only down to the frozen
+rows' bottom edge, not the strip. The `top` clone also renders the master's whole column band, frozen
+and off-screen columns included. So a handle it drew for a column the viewport did not show landed in
+the strip over the row headers or a frozen column: with a column scrolled behind the row headers, with
+its inline-end edge under the `fixedColumnsEnd` pane, and as a stale copy, one scroll offset off, of a
+frozen column's handle that the corner clone draws in the right place.
+
+`Border#canOverlayDrawFillCorner` gates it, folded into `appear()`'s `rendersFillCorner` (so the
+mobile bottom handle follows): in the `top` overlay the corner column must be in the scrollable segment
+(`getAxisSegment`) and its inline-end edge visible (`isTrackEdgeVisible` on the per-draw
+`selectionVisibleRange` snapshot, the same inputs the adjust handles use). Every other overlay is
+unchanged. A column whose inline-end edge lies past the holder's edge (the last, partially visible
+column with no end pane) also loses the `top` overlay's handle, which the holder clipped anyway. Two
+rules:
+
+- **Do not fix it by clipping the `top` holder.** That holder is a composited scroll container (see "The
+  clone holders are composited scroll containers"), and the overhang is what #6937 needs.
+- **The test is by column, not by pixel.** A column whose inline-end edge is on screen but closer than
+  half a handle to a pane still lets the handle overlap that pane by up to that much. Accepted, as for
+  the adjust handles; making it exact means re-deriving the pane geometry inside `Border`.
+
+The bottom overlay needs no gate: nothing reserves a strip outside it, and the bottom corners cover the
+pane part of it. Pinned by the "fill handle of a frozen top row" block of
+`tests/e2e/fill-handle-frozen-panes.spec.ts`, which hit-tests the strip below the frozen rows
+(`SelectionFeaturesPage#fillHandlesBelowFrozenRows`) in LTR, RTL and with `fixedColumnsEnd`, and checks
+that the corner overlays still draw the overhang for a frozen column; the iPad bottom handle is pinned in
+`tests/e2e/ipad-selection-handles.spec.ts`.
+
 ## Custom border `width: 0` is a real value (DEV-1137)
 
 `getBorderSettingsProperty` in `src/selection/border/utils.ts` reads per-side settings with `??`, not a truthy check. `width: 0` must stay 0 so the edge paints at 0px. A truthy `posSettings[property] ? … : settings.border[property]` falls back to the default 1px and the zero-width border reappears. The same helper keeps an explicit empty `style: ''` rather than inheriting `settings.border.style`; `Border#createBorders` then takes the solid-fill `else` path (`if (borderStyle)` is false). Omitting the key, or setting `null`/`undefined`, still falls through. Do not special-case `style`; keep `??` for every property on this helper, because a truthy check would resurrect the width-0 bug.
@@ -590,7 +623,7 @@ Everything else follows from that table, and each row of it was a separate bug b
 Two neighbours worth knowing about:
 
 - **`RenderSizeProbe` must measure every table that can hold a recorded row.** It is the intended replacement for the engine's measurement, and its characterization spec pins equality with `oversizedRows` — so a height sourced from a table it does not measure leaves it mirroring a subset while the spec stays green. The master's band plus the top and bottom clones cover every recordable row; the inline-start clone mirrors the master's band and adds none.
-- **MergeCells inflates row heights per overlay** (`modifyRowHeightByOverlayName`), so a frozen clone can render a row at the whole merged block's height while the overlay-agnostic `getRowHeight` that `markOversizedRows` compares against reports one row. That does not currently produce a bogus record — the inflated height is written on a TD whose `rowspan` covers exactly the rows it accounts for, so no single TR measures tall — but the two sides of that comparison do disagree, and a spec pins the outcome.
+- **MergeCells inflates the height of a row that starts with a block's spanning cell** (`modifyRowHeightByOverlayName`), to the block's rows, so a frozen clone can write that cell at the whole block's height while the overlay-agnostic `getRowHeight` that `markOversizedRows` compares against reports one row. That does not produce a bogus record: the height is written on a TD whose `rowspan` covers the rows it accounts for, and the row itself is pinned at its own height (next section), so no single TR measures tall. The listener counts that one cell's own span only (DEV-299); see `src/plugins/mergeCells/AGENTS.md`.
 
 Three more things that pass every functional test and only show up in a profile or a screenshot:
 
@@ -600,6 +633,44 @@ Three more things that pass every functional test and only show up in a profile 
 - **Steady state must cost zero row-height cache invalidations.** Each one drops the per-draw layout snapshot as well, and with a non-uniform row-size source (`rowHeights`/`minRowHeights` as an array or function, or any non-AutoRowSize `modifyRowHeight` hook) `PositionCache` has no sparse path, so a rebuild is a full prefix-sum walk over every row. Verified by counting: 0 invalidations/draw and an unchanged `createVisibleCalculators` count in every configuration. Two specs in `tests/e2e/walkontable/frozen-column-row-heights.spec.ts` pin the invalidation count at 0 through the fixture's `countRowCacheInvalidations` — the only way to see this class of bug, since the rows stay aligned and every visual assertion passes while it happens.
 
 When you add a new content-driven measurement, ask which tables actually render the content — measuring the master alone is the trap both of these exist to work around.
+
+## A row whose first cell cannot carry its height is pinned on the `tr`
+
+`applyRowHeight` (`render/exactRowHeight.ts`) writes a row's floor height on `TR.firstChild`. With row headers
+that is a 1x1 `th` and always works. Without them it can be a cell spanning several rows (a merged block,
+`rowspan > 1`) or a cell a merge covers (`display: none`). A spanning cell takes the height the host hands it
+(MergeCells inflates it to the rows it spans), but nothing pinned the rows inside the span, so the browser split
+the span between them as it liked: each pane drew the block's rows at different heights, and so did the master
+as its column band moved (DEV-299). Such a row is now pinned on the `tr`, and the spanning cell keeps the
+hooked height as before. Both call sites pass the row-size source and the source index (`rowUtils`,
+`sourceRowIndex`) rather than a closure, and the source is asked only for a row whose first cell cannot carry
+the height, so a grid without merges pays one style read per row.
+
+Five rules ride along:
+- **Only a pin this module wrote is ever taken off** (`pinnedRows`, a `WeakSet` like `exactRows`). The floor path
+  used to leave the row element alone, so a renderer or an `afterRenderer` hook that sizes `TD.parentElement`
+  still works; clearing `tr.style.height` for every row whose first cell can carry the height would have wiped it
+  on every draw.
+- **The pin is the row's OWN height, not the hooked one** (`RowUtils#getHeight`): the inflated height would make
+  the row as tall as the block.
+- **A row without a height of its own is pinned at the default height, plus the first row's border pixel.** A
+  row the block covers entirely has no cell to size it, and the browser hands the whole span to whichever row it
+  likes (measured: 29.5/29.5 for a 30/29 pair). The first row of a table whose head row is empty draws its own
+  1px top border (`thead:not(:empty) + tbody > tr:first-child`), so it is the default plus one. The question is
+  asked in ONE place, `firstRowDrawsTopBorder(thead)` (`axisSizing/boxModel.ts`), which `markOversizedRows`
+  shares; the callers hand `applyRowHeight` the answer for the row (`isFirstRow && drawsTopBorder`) rather than
+  letting it sniff the DOM. A recorded or provided height already includes that pixel. The host's inflation has to stay: pinning alone, with no inflated span, collapsed
+  rows a block covers entirely and broke seven legacy MergeCells specs.
+- **Clear the pin as soon as the first cell can carry the height again.** A row height is a minimum in CSS table
+  layout, and the row elements are recycled across rows, so one left behind would stop an ordinary row
+  shrinking. The write is skipped when the value is unchanged.
+- **The exact shape is untouched.** It picks its own carrier among all the cells and already falls back to the
+  `tr`. The same box adjustment as the exact shape applies to the pin.
+
+Pinned by `tests/e2e/walkontable/merged-rows-frozen-columns.spec.ts` (all panes agree at rest and scrolled, with
+AutoRowSize, `rowHeights`, and measured heights; rows inside a block keep their own heights; a hidden first row;
+a reused row element sheds the pin; `renderMode: 'onChange'`), in the `main`, `horizon` and `classic` themes, and
+by the floor-shape cases in `test/unit/renderer/exactRowHeight.unit.ts`.
 
 ## Rendered row band is refilled, bounded, when the measured rows shrink
 

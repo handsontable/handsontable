@@ -79,6 +79,128 @@ describe('applyRowHeight', () => {
       expect(TR.querySelector(`.${CELL_CLIP_CLASS}`)).toBe(null);
       expect(TR.classList.contains(EXACT_ROW_CLASS)).toBe(false);
     });
+
+    it('should pin the row at its own height when the first cell spans several rows', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+      const [TD1] = cellsOf(TR);
+
+      TD1.setAttribute('rowspan', '2');
+      applyRowHeight(TR, 99, false, true, { getHeight: () => 70, getDefaultHeight: () => 29 }, 0, false);
+
+      // The spanning cell keeps the height it was given (the span's rows), the row gets its own.
+      expect(TD1.style.height).toBe('99px');
+      expect(TR.style.height).toBe('70px');
+    });
+
+    it('should pin the row at its own height when a merge hides the first cell', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+
+      cellsOf(TR)[0].style.display = 'none';
+      applyRowHeight(TR, 29, false, true, { getHeight: () => 29, getDefaultHeight: () => 29 }, 0);
+
+      expect(TR.style.height).toBe('29px');
+    });
+
+    it('should pin a row without a height of its own at the default height', () => {
+      const TR = createRow(['c', 'd'], { rowHeader: false });
+
+      cellsOf(TR)[0].style.display = 'none';
+      applyRowHeight(TR, 87, false, true, { getHeight: () => undefined, getDefaultHeight: () => 29 }, 1);
+
+      expect(TR.style.height).toBe('29px');
+    });
+
+    it('should add the top border pixel to the default height of a first row that draws its own border', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+      const ownHeights = { getHeight: () => undefined, getDefaultHeight: () => 29 };
+
+      cellsOf(TR)[0].setAttribute('rowspan', '2');
+      applyRowHeight(TR, 59, false, true, ownHeights, 0, true);
+
+      expect(TR.style.height).toBe('30px');
+
+      // A head row takes that gridline, so the first row is a plain default row.
+      applyRowHeight(TR, 58, false, true, ownHeights, 0, false);
+
+      expect(TR.style.height).toBe('29px');
+    });
+
+    it('should not touch a row element height set from outside while the first cell can carry the height', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+      const ownHeights = { getHeight: () => 29, getDefaultHeight: () => 29 };
+
+      // A renderer or an `afterRenderer` hook sized the row element itself.
+      TR.style.height = '48px';
+      applyRowHeight(TR, 29, false, true, ownHeights, 0);
+      applyRowHeight(TR, 29, false, true, ownHeights, 0);
+
+      expect(TR.style.height).toBe('48px');
+    });
+
+    it('should not rewrite a pin on every draw when the browser normalizes a fractional height on read', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+      const ownHeights = { getHeight: () => 29.333333333333332, getDefaultHeight: () => 29 };
+      let writes = 0;
+      let written = '';
+
+      // Chrome answers `29.3333px` for a `29.333333333333332px` it was given.
+      Object.defineProperty(TR.style, 'height', {
+        configurable: true,
+        get: () => (written === '' ? '' : `${parseFloat(written).toFixed(4)}px`),
+        set: (value: string) => {
+          writes += 1;
+          written = value;
+        },
+      });
+      cellsOf(TR)[0].setAttribute('rowspan', '2');
+      applyRowHeight(TR, 99, false, true, ownHeights, 0);
+      applyRowHeight(TR, 99, false, true, ownHeights, 0);
+      applyRowHeight(TR, 99, false, true, ownHeights, 0);
+
+      expect(writes).toBe(1);
+    });
+
+    it('should take off only the pin it wrote', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+      const ownHeights = { getHeight: () => 70, getDefaultHeight: () => 29 };
+      const [TD1] = cellsOf(TR);
+
+      TD1.setAttribute('rowspan', '2');
+      applyRowHeight(TR, 99, false, true, ownHeights, 0);
+      TD1.removeAttribute('rowspan');
+      applyRowHeight(TR, 29, false, true, ownHeights, 0);
+
+      expect(TR.style.height).toBe('');
+
+      TR.style.height = '48px';
+      applyRowHeight(TR, 29, false, true, ownHeights, 0);
+
+      expect(TR.style.height).toBe('48px');
+    });
+
+    it('should drop the pin once the first cell can carry the height again', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+      const [TD1] = cellsOf(TR);
+
+      TD1.setAttribute('rowspan', '2');
+      applyRowHeight(TR, 99, false, true, { getHeight: () => 70, getDefaultHeight: () => 29 }, 0, false);
+      TD1.removeAttribute('rowspan');
+      applyRowHeight(TR, 29, false, true, { getHeight: () => 29, getDefaultHeight: () => 29 }, 0);
+
+      expect(TR.style.height).toBe('');
+      expect(TD1.style.height).toBe('29px');
+    });
+
+    it('should not ask for the row\'s own height when the first cell can carry it', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+      const ownHeights = { getHeight: jest.fn(() => 70), getDefaultHeight: jest.fn(() => 29) };
+
+      applyRowHeight(TR, 29, false, true, ownHeights, 0);
+
+      expect(ownHeights.getHeight).not.toHaveBeenCalled();
+      expect(ownHeights.getDefaultHeight).not.toHaveBeenCalled();
+      expect(TR.style.height).toBe('');
+    });
   });
 
   describe('exact shape', () => {

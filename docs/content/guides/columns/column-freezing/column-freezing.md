@@ -210,7 +210,7 @@ In the following example, the first row (Target) and the last row (Total) stay a
 
 To enable manual column freezing, set [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) to `true`. This lets you freeze and unfreeze columns by using the grid's [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) or [column menu](@/guides/accessories-and-menus/column-menu/column-menu.md).
 
-Mind that when you unfreeze a frozen column, it doesn't go back to the original position.
+When you unfreeze a column, it moves to the first position after the remaining frozen columns. To move it back to its place in the data source order instead, see [Restore the column position on unfreeze](#restore-the-column-position-on-unfreeze).
 
 ::: only-for javascript
 
@@ -250,6 +250,86 @@ Mind that when you unfreeze a frozen column, it doesn't go back to the original 
 ::: example #example2 :vue3
 
 @[code](@/content/guides/columns/column-freezing/vue/example2.vue)
+
+:::
+
+:::
+
+### Move columns across the freeze line
+
+With [`manualColumnMove`](@/api/options.md#manualcolumnmove) enabled, you can drag columns across the freeze line, in either direction, and reorder the frozen columns. Freezing works by position: the first [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart) columns are frozen, whichever columns they are. When you drop a column in front of a frozen column, the column you dropped becomes frozen, and the last frozen column becomes scrollable. When you drag a frozen column out of the frozen area, the next column becomes frozen. The number of frozen columns stays the same.
+
+This works the same way whether you freeze columns with `fixedColumnsStart` or with [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze).
+
+To keep the frozen columns in place, reject those moves in the [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) hook. Use a regular function, not an arrow function, so that `this` is the Handsontable instance in every framework:
+
+```js
+beforeColumnMove: function(movedColumns, finalIndex) {
+  const frozenCount = this.getSettings().fixedColumnsStart ?? 0;
+
+  // reject a drop in front of a frozen column, and any move of a frozen column
+  if (finalIndex < frozenCount || movedColumns.some((column) => column < frozenCount)) {
+    return false;
+  }
+
+  // return nothing otherwise: any other value is passed on to the next `beforeColumnMove` handler
+},
+```
+
+### Restore the column position on unfreeze
+
+To move an unfrozen column back to its place in the data source order, set [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) to an object with `restoreColumnPosition` set to `true`:
+
+```js
+manualColumnFreeze: {
+  restoreColumnPosition: true,
+},
+```
+
+The unfrozen column goes back among the scrollable columns, right after the last scrollable column that comes before it in the data source. For example, if you freeze the sixth column and then unfreeze it, it goes back between the fifth and the seventh column. If no scrollable column comes before it in the data source, it becomes the first scrollable column. It never enters the columns frozen with [`fixedColumnsEnd`](@/api/options.md#fixedcolumnsend).
+
+Handsontable doesn't remember where the column was when you froze it: the position comes from the data source order, which is the physical column order. A column order that the grid starts with, for example from a [`manualColumnMove`](@/api/options.md#manualcolumnmove) array or a saved state, counts as a move, and so does the order of your [`columns`](@/api/options.md#columns) array: the unfrozen column goes back by the physical order, not by that order. So if you moved the column before you froze it, or reordered columns while it was frozen, the unfrozen column goes back next to the column that comes before it in the data source, not to the place you moved it to.
+
+In the following example, freeze and unfreeze a column by using the context menu:
+
+::: only-for javascript
+
+::: example #example5 --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-freezing/javascript/example5.js)
+@[code](@/content/guides/columns/column-freezing/javascript/example5.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example5 :react --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-freezing/react/example5.jsx)
+@[code](@/content/guides/columns/column-freezing/react/example5.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example5 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-freezing/angular/example5.ts)
+@[code](@/content/guides/columns/column-freezing/angular/example5.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example5 :vue3
+
+@[code](@/content/guides/columns/column-freezing/vue/example5.vue)
 
 :::
 

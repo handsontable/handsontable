@@ -106,7 +106,7 @@ describe('ManualColumnFreeze – fixedColumnsEnd', () => {
 
       expect(order()).toBe('ABCDEFGHIJ');
       expect(hot.getSettings().fixedColumnsStart).toBe(9);
-      expect(afterColumnUnfreeze).toHaveBeenCalledWith(0, false);
+      expect(afterColumnUnfreeze).toHaveBeenCalledWith(0, false, 0);
     });
   });
 

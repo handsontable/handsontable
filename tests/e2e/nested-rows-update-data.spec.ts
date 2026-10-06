@@ -229,4 +229,26 @@ test.describe('NestedRows collapsed parents across a data replacement', () => {
     expect(await nestedRows.collapsedParents()).toEqual([0]);
     expect(await nestedRows.visibleNames()).toEqual(['Root A', 'Root B', 'B-1', 'B-2']);
   });
+
+  test('updateData() under a collapsed parent keeps a whole-column selection, without throwing (DEV-152)',
+    async({ page, theme }) => {
+      const nestedRows = new NestedRowsPage(page, theme);
+
+      await nestedRows.goto();
+      await nestedRows.collapseButton(0).click();
+      await nestedRows.cell(0, 0).click();
+      await page.keyboard.press('Control+Space');
+
+      expect(await nestedRows.selectedRange()).toEqual([-1, 0, 3, 0]);
+
+      // `replaceData()` destroys the DataMap before `beforeUpdateData`, where the plugin untrims the
+      // collapsed rows. Growing the selection there committed its highlights through the destroyed
+      // DataMap and threw `Cannot read properties of null (reading 'rowIndexMapper')`, leaving the
+      // grid broken. The React and Angular wrappers call `updateData()` on every `data` change.
+      await nestedRows.updateData(baseTree());
+
+      expect(nestedRows.pageErrors).toEqual([]);
+      expect(await nestedRows.visibleNames()).toEqual(['Root A', 'Root B', 'B-1', 'B-2']);
+      expect(await nestedRows.selectedRange()).toEqual([-1, 0, 3, 0]);
+    });
 });
