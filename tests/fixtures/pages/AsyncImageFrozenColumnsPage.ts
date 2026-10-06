@@ -23,16 +23,26 @@ export class AsyncImageFrozenColumnsPage {
   }
 
   /**
-   * Opens the fixture with the image responses held back and waits for the first draw.
+   * Opens the fixture with the image responses held back and waits for the first draw. A `variant` is
+   * extra query parameters such as `&auto=1` (see the fixture).
    */
-  async goto(): Promise<void> {
+  async goto(variant = ''): Promise<void> {
     const released = new Promise<void>((resolve) => {
       this.#release = resolve;
     });
 
     await this.page.route('**/fixture-image/*.svg', async(route) => {
-      const row = Number(/(\d+)\.svg$/.exec(route.request().url())?.[1]);
-      const height = 60 + row * 10;
+      const url = route.request().url();
+
+      if (url.includes('missing-')) {
+        await released;
+        await route.fulfill({ status: 404, body: '' });
+
+        return;
+      }
+
+      const row = Number(/(\d+)\.svg/.exec(url)?.[1]);
+      const height = url.includes('small=1') ? 4 : 60 + row * 10;
 
       await released;
       await route.fulfill({
@@ -42,7 +52,7 @@ export class AsyncImageFrozenColumnsPage {
     });
 
     await this.page.goto(
-      `/tests/fixtures/demo/async-image-frozen-columns.html?theme=${this.theme}&bundle=${this.bundle}`,
+      `/tests/fixtures/demo/async-image-frozen-columns.html?theme=${this.theme}&bundle=${this.bundle}${variant}`,
       // The default `load` would wait for the held images, which only `releaseImages()` lets through.
       { waitUntil: 'domcontentloaded' }
     );
@@ -58,10 +68,10 @@ export class AsyncImageFrozenColumnsPage {
   }
 
   /**
-   * Returns the rendered height of every body row of the master and of the frozen inline-start overlay,
-   * read in one evaluation so both come from the same layout.
+   * Returns the rendered height of every body row of the master and of the frozen overlays, read in one
+   * evaluation so all of them come from the same layout.
    */
-  async rowHeights(): Promise<{ master: number[], frozen: number[] }> {
+  async rowHeights(): Promise<{ master: number[], frozen: number[], frozenEnd: number[] }> {
     return this.page.evaluate(() => {
       const heights = (selector: string) => [...document.querySelectorAll(selector)]
         .map(row => Math.round(row.getBoundingClientRect().height));
@@ -69,8 +79,18 @@ export class AsyncImageFrozenColumnsPage {
       return {
         master: heights('.ht_master tbody tr'),
         frozen: heights('.ht_clone_inline_start tbody tr'),
+        frozenEnd: heights('.ht_clone_inline_end tbody tr'),
       };
     });
+  }
+
+  /**
+   * Tells whether every frozen overlay that renders rows is as tall as the master, row by row.
+   */
+  async overlaysMatchMaster(): Promise<boolean> {
+    const { master, frozen, frozenEnd } = await this.rowHeights();
+
+    return [frozen, frozenEnd].every(rows => rows.length === 0 || rows.join() === master.join());
   }
 
   /**

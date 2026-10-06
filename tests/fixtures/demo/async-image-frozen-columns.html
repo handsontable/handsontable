@@ -40,22 +40,31 @@
   </script>
   <script>
     const container = document.querySelector('[data-testid="grid"]');
+    const variant = new URLSearchParams(location.search);
 
     container.className = `ht-theme-${window.htTheme}`;
     window.renderCount = 0;
 
+    // ?variant flags: headers=0 (no column headers), auto=1 (autoRowSize), end=1 (the image column
+    // is frozen at the end), small=1 (images that barely grow a row), broken=1 (images that fail).
+    const imageSrc = row => (variant.get('broken') === '1'
+      ? '/fixture-image/missing-' + row + '.svg'
+      : '/fixture-image/' + row + '.svg' + (variant.get('small') === '1' ? '?small=1' : ''));
+
     function imageRenderer(instance, td, row, col, prop, value) {
-      td.innerHTML = '<img src="/fixture-image/' + row + '.svg" alt="">';
+      td.innerHTML = '<img src="' + imageSrc(row) + '" alt="' + (variant.get('broken') === '1' ? 'a long alternative text that wraps' : '') + '">';
     }
 
     window.hot = new Handsontable(container, {
       data: Array.from({ length: 6 }, (_, row) => ['r' + row, 'x', 'y', '']),
       width: 500,
       height: 400,
-      colHeaders: true,
+      colHeaders: variant.get('headers') !== '0',
       rowHeaders: true,
+      autoRowSize: variant.get('auto') === '1',
       fixedColumnsStart: 2,
-      columns: [{}, {}, {}, { renderer: imageRenderer }],
+      fixedColumnsEnd: variant.get('end') === '1' ? 1 : 0,
+      columns: [{}, {}, {}, { renderer: imageRenderer, width: variant.get('broken') === '1' ? 60 : undefined }],
       afterRender() {
         window.renderCount += 1;
       },
