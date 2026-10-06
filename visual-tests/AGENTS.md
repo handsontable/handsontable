@@ -94,9 +94,9 @@ visualTest(__filename, {
   spec photographs the same component on every variant. The docblock names both, and
   `lib/__tests__/visual-declarations.test.mjs` fails a single-theme spec that names no functional test
   in backticks, or names one that does not exist. The menu-position family is the first user
-  (`tests/e2e/submenu-position.spec.ts` asserts the placement). In the UI-state families, which render
-  on `main` and `main-dark` only, the second spec is the LTR twin on those two themes (the UI-state
-  bullet under [Determinism](#determinism)).
+  (`tests/e2e/submenu-position.spec.ts` asserts the placement). In the UI-state families the second spec
+  is the LTR twin, on every variant where `horizon` paints a token of its own and on `main` and
+  `main-dark` where it does not (the UI-state bullet under [Determinism](#determinism)).
 - **`classic` is a token inside `themes`,** not a separate flag. The bare run is a variant like any other
   and only differs in having no name to pass through `HOT_THEME`, which is what makes
   `helpers.screenshotPath()` drop the `-theme-` suffix. The token lives in declarations only — passing it
@@ -677,42 +677,64 @@ does for you):
   in the look-check shape. That shape's second condition, the spec that photographs the same component
   on every variant, is prose the sweep does not check: the zoom capture names the resize capture, and a
   later trim of that declaration re-opens this one.
-- **A UI state the DOM can name is an assertion too, and the UI-state families keep one light and one
-  dark capture of each look.** The js-only feature demos photographed their states on every js variant:
-  a dialog open, a page turned, a toast in each corner, the loading overlay, the empty-data-state panel at
-  each height, the sheets bar's tabs, and the complex demo's menus, editors, sort and collapse. Each of
-  those states is now asserted from the DOM and the API on all six theme and bundle legs:
-  `tests/e2e/dialog-states.spec.ts` (the solid and the semi-transparent backdrop, the content box's fill,
-  the confirm template's slots and its OK button, the focus moves around a dialog that holds inputs, and
-  RTL), `tests/e2e/loading-states.spec.ts`, `tests/e2e/notification-placement.spec.ts` (each corner 20 px
-  in from both edges, in both directions), `tests/e2e/empty-data-state-layout.spec.ts` (the panel against
-  the headers and the root for a fixed height, `auto`, no height, no columns and RTL, and the keyboard
-  path to the no-results state), `tests/e2e/pagination-pager-states.spec.ts` (the buttons, the counter,
-  the focus hand-off, the RTL mirror, a page size changed on a filtered, sorted grid, and the auto page
-  size filling each page of a sized grid and of a grid the window scrolls),
-  `tests/e2e/complex-demo-states.spec.ts`, `tests/e2e/row-size-alignment.spec.ts`,
-  `tests/e2e/wrapper-size.spec.ts` and `tests/e2e/nested-headers-long-label.spec.ts`; the sheets bar's
-  states were already `tests/e2e/sheets-bar.spec.ts`'s, the single-line ellipsis and the
-  `preventOverflow` alias's wheel joined `tests/e2e/text-ellipsis-line-clamp.spec.ts` and
-  `tests/e2e/width-window-scroll.spec.ts`, and the selection handles and the move preview were already
-  `tests/e2e/selection-handles.spec.ts`'s and `tests/e2e/move-zone.spec.ts`'s. What stays under those
-  directories is one capture per distinct look on `main` and `main-dark`: the pager on its last page, the
+- **A UI state the DOM can name is an assertion too, and the UI-state families keep one capture of each
+  look, on every js variant only where `horizon` paints something of its own.** The js-only feature demos
+  photographed their states on every js variant: a dialog open, a page turned, a toast in each corner, the
+  loading overlay, the empty-data-state panel at each height, the sheets bar's tabs, and the complex demo's
+  menus, editors, sort and collapse. Each of those states is now asserted from the DOM and the API on all
+  six theme and bundle legs: `tests/e2e/dialog-states.spec.ts` (the solid and the semi-transparent
+  backdrop at the theme's opacity token, the content box's fill, the confirm template's slots and its OK
+  button handing the keyboard back to the selected cell, the accent border a focused dialog draws, the
+  focus moves around a dialog that holds inputs, and RTL), `tests/e2e/loading-states.spec.ts` (the
+  backdrop for a grid with and without rows, the focused overlay's accent border, the description's
+  secondary type, the spinner's gap), `tests/e2e/notification-placement.spec.ts` (each corner's variant,
+  accent bar, action order and close button in both directions, and its place 20 px in from both edges;
+  the end corners' place against the grid is parked, see below), `tests/e2e/empty-data-state-layout.spec.ts`
+  (the panel against the headers and the root for a fixed height, `auto`, no height, no columns and RTL,
+  its title, description and button each centered, and the keyboard path to the no-results state),
+  `tests/e2e/pagination-pager-states.spec.ts` (the buttons, the counter, the focus hand-off, the RTL
+  mirror, a page size changed on a filtered, sorted grid and the rows it repaints, and the auto page size
+  filling each page of a sized grid and of a grid the window scrolls), `tests/e2e/complex-demo-states.spec.ts`,
+  `tests/e2e/row-size-alignment.spec.ts`, `tests/e2e/wrapper-size.spec.ts` and
+  `tests/e2e/nested-headers-long-label.spec.ts`; the sheets bar's states were already
+  `tests/e2e/sheets-bar.spec.ts`'s, the single-line ellipsis and the `preventOverflow` alias's wheel joined
+  `tests/e2e/text-ellipsis-line-clamp.spec.ts` and `tests/e2e/width-window-scroll.spec.ts`, and the
+  selection handles and the move preview were already `tests/e2e/selection-handles.spec.ts`'s and
+  `tests/e2e/move-zone.spec.ts`'s (which now also asserts the source's border hiding during the drag).
+  What stays under those directories is one capture per distinct look: the pager on its last page, the
   semi-transparent dialog's compositing, the confirm template, the loading overlay, one toast per
   variant, the empty-data-state panel and its no-results state, the sheets bar with a tab menu open and
   overflowing with its paging arrows, the multi-column sort indicators, the dropdown's bolded match, the
   select editor, the native date picker, the custom borders' corners under a selection, the move preview,
-  the selection handles, and the collapsed long nested header. The bare run was byte-identical to `main`
-  on all 89 of the family's captures (measured on `base/develop` on 2026-10-06), so it is dropped
-  everywhere here, and no capture in these families renders `horizon`. The RTL mirrors of the pager, the
-  dialog, the loading overlay, a toast and the empty-data-state panel, and the RTL filters dropdown, are
-  look checks on `main` alone; each names the e2e spec that asserts its mirror, and its LTR twin on the
-  two-theme default stands in for the every-variant spec the [variant declaration](#variant-declaration)
-  asks for, since this family photographs no component on every variant. Two defects these assertions
-  found are parked, not photographed as correct: a toast in an end corner lands at the far edge of a
-  root wrapper wider than the grid (the end-corner cases in `notification-placement.spec.ts` are
-  `test.fixme`, and the end-corner captures show the toast there until the fix), and under the legacy
-  `preventOverflow: 'horizontal'` the scroll spacer widens the page (the last case in
-  `width-window-scroll.spec.ts`).
+  the selection handles, and the collapsed long nested header. The rule for the variants is the one the
+  complex demo's resize capture follows above: a capture renders on every js variant when it paints a
+  component token `horizon` defines its own way and no other every-variant capture paints. Six do: the
+  semi-transparent dialog (the content box's radius and fill), the confirm template (the suite's only
+  every-variant `.ht-button`, the dialog's, the toast's and the panel's buttons alike), the sheets bar
+  (the tab's padding and active surface), the selection handles (their length), the collapsed nested
+  header (the collapse button) and the multi-column sort (the descending arrow icon), and each docblock
+  names its tokens. The rest render on `main` and `main-dark`: the toast, the loading overlay and the
+  empty-data-state panel have no token of their own that `horizon` defines differently, and the pager's
+  one, its hover surface, is not painted on its last page. The bare run comes with every-variant
+  declarations and is dropped from the others: it matched `main` under the gate's knobs on all 89 of the
+  family's captures, 88 of them byte for byte (the RTL dropdown's differed by one color level in 48
+  pixels; measured on `base/develop` on 2026-10-06). The RTL mirrors of the pager, the dialog, the loading
+  overlay, a toast and the empty-data-state panel are look checks on `main` alone; each names the e2e
+  spec that asserts its mirror, and its LTR twin stands in for the every-variant spec the
+  [variant declaration](#variant-declaration) asks for (on every variant for the dialog, on `main` and
+  `main-dark` for the others). The RTL filters dropdown has no LTR twin here; it leans on the
+  `js-only/filters` specs, which photograph the same menu on every variant. Two defects these assertions
+  found are parked under `test.fixme`. A toast in an end corner lands at the far edge of a root wrapper
+  wider than the grid, and a bottom-corner toast covers a pager under the grid: the placement cases in
+  `notification-placement.spec.ts` are parked, and the end-corner captures keep showing the toast where
+  it is drawn today, so they change when the fix lands. Under the legacy `preventOverflow: 'horizontal'`
+  the scroll spacer widens the page (the last case in `width-window-scroll.spec.ts`). The trim deleted the
+  `/text-ellipsis-demo`, `/wrapper-demo` and `/row-size-demo` routes, whose every spec it retired, and the
+  page helpers only those specs called. The routes it kept still read the params the retired specs
+  passed (the dialog's `focus` and `pagination`, the loading overlay's `icon`, `title`, `description` and
+  `nodata`, the empty-data-state panel's `height` and `noColumns`, the pager's `pageSize`,
+  `ignoreTableSize` and `hideInputs`); no spec passes them now, and the e2e fixtures under
+  `tests/fixtures/demo/` reproduce those shapes, so a demo cleanup can drop them without losing a state.
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 

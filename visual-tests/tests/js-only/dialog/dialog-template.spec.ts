@@ -1,15 +1,17 @@
-import { visualTest, expect } from '../../../src/test-runner';
+import { visualTest, expect, JS_VARIANTS } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 
 /**
  * Checks how the dialog's confirm template looks as it opens on its solid backdrop: the title, the
  * description, and the secondary and primary buttons. The template's slots, its Tab order, and Enter on
  * OK running the callback that hides it are asserted from the DOM in `tests/e2e/dialog-states.spec.ts`
- * on every theme and bundle, so the closed dialog this spec used to photograph second is gone. Added in
- * #11902; owned by DEV-3285.
+ * on every theme and bundle, so the closed dialog this spec used to photograph second is gone. It renders
+ * on every js variant because it is the suite's one every-variant capture of `.ht-button`, whose
+ * `--ht-button-border-radius` and `--ht-primary-button-foreground-color` `horizon` defines its own way;
+ * the bare run comes with the declaration. Added in #11902; owned by DEV-3285.
  */
 visualTest(__filename, {
-  themes: ['main', 'main-dark'],
+  themes: JS_VARIANTS,
   browsers: ['chromium'],
   wrappers: [],
 }, async({ goto, tablePage }) => {

@@ -10,7 +10,11 @@ import { forPaginationClickLastPageButton } from '../../../src/page-helpers';
  * `tests/e2e/pagination-pager-states.spec.ts` on every theme and bundle, together with a page size
  * changed on a filtered, sorted grid and the auto page size filling every page of a sized grid and of a
  * grid the window scrolls; those states differ here only in the rows and the counter, so this is the
- * family's one capture of the pager. Owned by DEV-3285.
+ * family's one capture of the pager. It stays on `main` and `main-dark`: of the pager's tokens, `horizon`
+ * defines only the hover surface its own way (`--ht-pagination-button-hover-*`), which this capture does
+ * not paint (the pointer rests on the disabled Last button), and the page-size select's arrow icon is
+ * painted on every js variant by the filters' condition select and the dropdown editor. Owned by
+ * DEV-3285.
  */
 visualTest(__filename, {
   themes: ['main', 'main-dark'],

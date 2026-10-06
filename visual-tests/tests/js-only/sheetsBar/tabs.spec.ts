@@ -1,4 +1,4 @@
-import { visualTest, expect } from '../../../src/test-runner';
+import { visualTest, expect, JS_VARIANTS } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 
 /**
@@ -6,13 +6,18 @@ import { helpers } from '../../../src/helpers';
  * overflowing with its paging arrows shown, the previous arrow enabled and the next one disabled at the
  * far end. Switching tabs, the hover surface of an inactive tab, the menu and its commands, and the
  * paging arrows appearing, scrolling the strip and disabling at each end are asserted from the DOM in
- * `tests/e2e/sheets-bar.spec.ts` on every theme and bundle. The strip at rest, the hovered tab (32 px
- * from the strip at rest, under the gate's `thresholdPixel`), the switched tab and the strip paged back
- * repeat the tokens these two captures show, so they are gone. Added in #13409 (PRO-370); owned by
+ * `tests/e2e/sheets-bar.spec.ts` on every theme and bundle, the hovered tab's surface by its dragged-tab
+ * case. The strip at rest, the switched tab and the strip paged back repeat the tokens these two captures
+ * show, and so does the hovered tab: every theme defines its hover tokens as its active-tab tokens, which
+ * both captures paint (the hovered tab was 32 px from the strip at rest on `main`, 152 px on `main-dark`,
+ * 0 px on `horizon`), so they are gone. It renders on every js variant because `horizon` defines the
+ * tab's padding and active surface its own way (`--ht-sheets-bar-tab-horizontal-padding`,
+ * `--ht-sheets-bar-tab-active-foreground-color`, `--ht-sheets-bar-tab-active-background-color`) and
+ * nothing else paints them; the bare run comes with the declaration. Added in #13409 (PRO-370); owned by
  * DEV-3285.
  */
 visualTest(__filename, {
-  themes: ['main', 'main-dark'],
+  themes: JS_VARIANTS,
   browsers: ['chromium'],
   wrappers: [],
 }, async({ goto, tablePage }) => {

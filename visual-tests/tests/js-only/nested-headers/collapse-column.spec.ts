@@ -1,4 +1,4 @@
-import { visualTest, test, expect } from '../../../src/test-runner';
+import { visualTest, test, expect, JS_VARIANTS } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 import { selectCell } from '../../../src/page-helpers';
 
@@ -13,10 +13,13 @@ test.beforeEach(async({ page }) => {
  * states are asserted from DOM rects in `tests/e2e/nested-headers-long-label.spec.ts` on every theme and
  * bundle; the collapsed header's look (the icon, the ellipsis, the focus ring) is what only pixels show,
  * and the suite's other collapsed-group capture, `cross-browser/columns-collapse-nested`, renders the
- * bare theme only. Owned by DEV-3285.
+ * bare theme only. It renders on every js variant because `horizon` defines the collapse button its own
+ * way (`--ht-collapse-button-border-radius` and the borderless, transparent `--ht-collapse-button-open-*`
+ * and `--ht-collapse-button-close-*` surfaces) and no other every-variant capture draws one; the bare run
+ * comes with the declaration. Owned by DEV-3285.
  */
 visualTest(__filename, {
-  themes: ['main', 'main-dark'],
+  themes: JS_VARIANTS,
   browsers: ['chromium'],
   wrappers: [],
 }, async({ goto, tablePage }) => {

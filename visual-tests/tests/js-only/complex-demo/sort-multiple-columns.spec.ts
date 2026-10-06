@@ -1,4 +1,4 @@
-import { visualTest, test, expect } from '../../../src/test-runner';
+import { visualTest, test, expect, JS_VARIANTS } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 import {
   setColumnSorting,
@@ -14,10 +14,12 @@ test.beforeEach(async({ page }) => {
  * Checks how a two-column sort looks on the complex demo: Age descending, then Interest ascending, each
  * header with its sort indicator and its order number. The sort keys, the headers' `aria-sort` and the
  * indicators' classes and order numbers are asserted in `tests/e2e/complex-demo-states.spec.ts` on every
- * theme and bundle; the indicator icons are theme tokens, so this capture stays. Owned by DEV-3285.
+ * theme and bundle; the indicator icons are theme tokens, so this capture stays. It renders on every js
+ * variant because `horizon` ships its own `arrowNarrowDown` icon, the descending indicator, and no other
+ * every-variant capture sorts a column; the bare run comes with the declaration. Owned by DEV-3285.
  */
 visualTest(__filename, {
-  themes: ['main', 'main-dark'],
+  themes: JS_VARIANTS,
   browsers: ['chromium'],
   wrappers: [],
 }, async({ goto, tablePage }) => {
