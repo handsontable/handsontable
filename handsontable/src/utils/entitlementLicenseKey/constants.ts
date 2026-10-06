@@ -1,5 +1,5 @@
 /**
- * The length of the checksum (SHA-512 as hex) that closes the machine-readable
+ * The length of the checksum that closes the machine-readable
  * block of every entitlement license key.
  *
  * @type {number}
@@ -7,8 +7,7 @@
 export const CHECKSUM_LENGTH = 128;
 
 /**
- * The length of the prose digest (the first 64 hex characters of a SHA-512,
- * 256 bits) that a version 2 payload carries as `prose`.
+ * The length of the value a current key stores for its text.
  *
  * @type {number}
  */

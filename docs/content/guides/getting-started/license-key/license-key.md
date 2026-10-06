@@ -292,9 +292,8 @@ const licenseKey = `This is a Handsontable license key for Acme Corp, issued on 
 
 Keys issued in the 25-character format keep working without any change.
 
-Pass the key unchanged. The bracketed block carries a checksum and, in current keys, a fingerprint
-of the text, so editing the text, removing it, or pasting the bracketed block alone makes the key
-invalid.
+Pass the key unchanged. The key protects its text as well as the bracketed block, so editing the
+text, removing it, or pasting the bracketed block alone makes the key invalid.
 Spaces and line breaks are ignored, in the text and inside the block, so you can rewrap the key,
 paste it out of an email that broke the block across lines, or put the whole key on one line, and the
 key still works. Line breaks saved as the characters `\n`, as some `.env` files and CI secret fields

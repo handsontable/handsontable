@@ -228,10 +228,9 @@ describe('entitlementLicenseKey/extractKeyData', () => {
       });
     });
 
-    // The expected verdicts below come from the license-key validator at bc03d89, run on the same
-    // variants of this generated key; the canonicalization is unchanged at 4c166fd. They pin the
-    // reader to the generator: `buildTestKey` digests the prose with this reader's own
-    // `canonicalizeProse`, so it would agree with any change to it.
+    // The expected verdicts below come from the canonical license-key reader, run on the same
+    // variants of this generated key. They pin the reader to the generator: `buildTestKey` uses
+    // this reader's own helpers, so it would agree with any change to them.
     it('should ignore exactly the whitespace characters the generator ignores', () => {
       const prose = proseOf(SUBSCRIPTION_KEY);
       const block = blockOf(SUBSCRIPTION_KEY);
@@ -299,7 +298,7 @@ describe('entitlementLicenseKey/extractKeyData', () => {
       const prose = proseOf(SUBSCRIPTION_KEY);
 
       ['\n', '\r\n', ' ', '\t', ' ', '\\n', '\\r\\n'].forEach((separator) => {
-        // Inside the payload, and inside the checksum.
+        // Near the start of the block, and near its end.
         [60, block.length - 40].forEach((at) => {
           const wrapped = `${prose}${block.slice(0, at)}${separator}${block.slice(at)}`;
 
@@ -314,8 +313,8 @@ describe('entitlementLicenseKey/extractKeyData', () => {
     });
 
     it('should ignore inside the block exactly the whitespace characters it ignores in the prose', () => {
-      // The same 25 characters and the same 4 exceptions as the prose test below - license-key
-      // 993d123 runs one function over both.
+      // The same 25 characters and the same 4 exceptions as the text test below, as in the
+      // canonical reader.
       const block = blockOf(SUBSCRIPTION_KEY);
       const prose = proseOf(SUBSCRIPTION_KEY);
       const ignored = [0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x20, 0xa0, 0x1680, 0x2000, 0x2001, 0x2002, 0x2003,
@@ -422,13 +421,13 @@ describe('entitlementLicenseKey/extractKeyData', () => {
 
     it('should read a version 1 key with text after the block, as Handsontable 18.1 does', () => {
       // A trial key pasted out of an email often keeps the sentence's period or a closing quote.
-      // A version 1 key covers no text, so rejecting it would only lock grids 18.1 runs.
+      // 18.1 reads such a key, so rejecting it would only lock grids 18.1 runs.
       const expected = extractEntitlementKeyData(V1_TRIAL_KEY);
 
       ['.', '"', '\'', ' x', '\n-- \nSent from my phone'].forEach((suffix) => {
         expect(extractEntitlementKeyData(V1_TRIAL_KEY + suffix)).toEqual(expected);
       });
-      // A version 2 key covers its text, so the same suffix still makes it invalid.
+      // A current key protects its text, so the same suffix still makes it invalid.
       expect(extractEntitlementKeyData(`${TRIAL_KEY}.`)).toBeNull();
     });
 
@@ -450,7 +449,7 @@ describe('entitlementLicenseKey/extractKeyData', () => {
         }
       });
 
-      // An inherited digest cannot stand in for a missing one, nor replace the key's own.
+      // An inherited value cannot stand in for a missing one, nor replace the key's own.
       const withoutDigest = buildTestKey({ ...payload, prose: undefined });
 
       Object.prototype.prose = payloadOf(buildTestKey(payload)).prose; // eslint-disable-line no-extend-native
@@ -474,8 +473,7 @@ describe('entitlementLicenseKey/extractKeyData', () => {
     });
 
     it('should close every block with the checksum a version 1 reader verifies (Handsontable 18.1)', () => {
-      // 18.1 checks SHA-512(encoded payload) and ignores the payload fields it does not know, so this
-      // is what lets it read a version 2 key.
+      // This is what lets Handsontable 18.1 read a key in the current format.
       [SUBSCRIPTION_KEY, TRIAL_KEY, MIXED_KEY, CJK_HOLDER_KEY, V1_SUBSCRIPTION_KEY, V1_TRIAL_KEY].forEach((key) => {
         const content = blockOf(key).slice(1, -1);
 
@@ -529,7 +527,7 @@ describe('entitlementLicenseKey/extractKeyData', () => {
     });
 
     it('should reject a key whose payload was edited under an intact-looking block', () => {
-      // The last character of the encoded payload, one position before the 128-character checksum.
+      // The last character of the encoded payload, one position before the checksum.
       const payloadEnd = SUBSCRIPTION_KEY.length - 1 - 128;
       const tampered = `${SUBSCRIPTION_KEY.slice(0, payloadEnd - 1)}X${SUBSCRIPTION_KEY.slice(payloadEnd)}`;
 
@@ -711,7 +709,7 @@ describe('entitlementLicenseKey/extractKeyData', () => {
 
     it('should read a date that cannot be turned into text as invalid, without throwing', () => {
       // An object whose `toString` is not a function throws when it is turned into a string. The
-      // checksum recipe ships in the bundle, so such a key can carry a valid checksum.
+      // reader must still return `null` for it, never throw.
       const crafted = buildTestKey({
         products: { handsontable: handsontableEntry({ usage_until: { toString: 1, valueOf: 1 } }) },
       });

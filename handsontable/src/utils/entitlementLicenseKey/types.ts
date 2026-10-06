@@ -36,8 +36,8 @@ export interface ProductEntitlement {
  */
 export interface EntitlementKeyData {
   /**
-   * The format version of the key: 1 for a key without `v` in its payload
-   * (the keys `license-key` 4.x issued), the value of `v` otherwise.
+   * The format version of the key; 1 for the keys issued before versions
+   * existed.
    */
   version: number;
   products: { [productName: string]: ProductEntitlement };

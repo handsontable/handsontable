@@ -32,8 +32,8 @@ test.describe('entitlement license key branding', () => {
     });
 
     test('reads a trial key license-key 4.x issued exactly like a current one', async () => {
-      // The trial keys already in the field have no format version and no prose digest. They must
-      // keep reading as a running trial, not as an unreadable key that blocks the grid.
+      // The trial keys already in the field are in the earlier format. They must keep reading as a
+      // running trial, not as an unreadable key that blocks the grid.
       await license.goto(INSTANT.duringTrial, { key: 'trial-v1' });
 
       await expect(license.badge).toBeAttached();
@@ -271,8 +271,8 @@ test.describe('entitlement license key branding', () => {
     // sentences moved out of the bottom bar and into the modal, so the bar must be gone.
     const FAULTS = [
       { key: 'tampered', title: 'The license key for Handsontable is invalid.' },
-      // A version 2 key carries a digest of its prose, so the block alone, or a key whose prose
-      // was edited, is an unreadable key as well.
+      // A current key protects its text, so the block alone, or a key whose text was edited, is an
+      // unreadable key as well.
       { key: 'bare-block', title: 'The license key for Handsontable is invalid.' },
       { key: 'edited-prose', title: 'The license key for Handsontable is invalid.' },
       { key: 'missing', title: 'The license key for Handsontable is missing.' },
