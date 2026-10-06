@@ -12,8 +12,10 @@ const hotData = [
   ['Tom Bakker', 'Support', 'Support Specialist', 58900, true, '2019-05-30'],
 ];
 
-const ExampleComponent = () => {
-  const hotRef = useRef(null);
+// The file input and its status live in their own component. The status is React state, and a
+// re-render of the component that renders `HotTable` makes the wrapper send `data` and `colHeaders`
+// to `updateSettings` again, which would replace the imported sheet with the sample rows.
+const ImportControls = ({ hotRef }) => {
   const [status, setStatus] = useState('');
 
   const importFile = async (event) => {
@@ -23,8 +25,7 @@ const ExampleComponent = () => {
       return;
     }
 
-    const hot = hotRef.current?.hotInstance;
-    const importPlugin = hot?.getPlugin('importFile');
+    const importPlugin = hotRef.current?.hotInstance?.getPlugin('importFile');
 
     try {
       const result = await importPlugin?.importFromBlob('xlsx', file, {
@@ -44,14 +45,22 @@ const ExampleComponent = () => {
   };
 
   return (
-    <>
-      <div className="example-controls-container">
-        <div className="controls">
-          <label htmlFor="import-file">Import XLSX</label>
-          <input type="file" id="import-file" accept=".xlsx" onChange={importFile} />
-          <output role="status">{status}</output>
-        </div>
+    <div className="example-controls-container">
+      <div className="controls">
+        <label htmlFor="import-file">Import XLSX</label>
+        <input type="file" id="import-file" accept=".xlsx" onChange={importFile} />
+        <output role="status">{status}</output>
       </div>
+    </div>
+  );
+};
+
+const ExampleComponent = () => {
+  const hotRef = useRef(null);
+
+  return (
+    <>
+      <ImportControls hotRef={hotRef} />
       <HotTable
         ref={hotRef}
         data={hotData}
