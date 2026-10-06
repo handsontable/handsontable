@@ -163,6 +163,10 @@ Either way, `afterEmptyDataStateHide` fires last.
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='emptyDataState'`
 - `npm run test:unit --prefix handsontable -- --testPathPattern='emptyDataState'`
 - `npm --prefix tests run test:e2e -- e2e/empty-data-state-shortcuts.spec.ts`
+- `npm --prefix tests run test:e2e -- e2e/empty-data-state-layout.spec.ts`: where the panel sits against
+  the headers and the root for a fixed height, `height: 'auto'`, no height, no columns and RTL, and the
+  keyboard path to the no-results state. The buttons row is a sibling of `__content`, so "centred" is
+  measured on the union of the two.
 
 `__tests__/` splits into `hooks/`, `methods/`, `options/`, `keyboardShortcuts/`, `plugins/` plus
 `ui.unit.js`.
