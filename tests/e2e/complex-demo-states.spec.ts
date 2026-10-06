@@ -26,8 +26,7 @@ test.describe('complex demo states', () => {
     await expect(demo.dropdownMenu.locator('.htFiltersMenuValue')).toBeVisible();
 
     // It opens at the header's lower edge and under it; where exactly is `submenu-position.spec.ts`'s.
-    const ageBox = await demo.boxOf(age);
-    const menuBox = await demo.boxOf(demo.dropdownMenu);
+    const { header: ageBox, menu: menuBox } = await demo.headerAndDropdownMenuBoxes('Age');
 
     expect(menuBox.top).toBeGreaterThan(ageBox.top);
     expect(menuBox.top).toBeLessThanOrEqual(ageBox.bottom + EDGE_TOLERANCE_PX);
@@ -58,8 +57,7 @@ test.describe('complex demo states', () => {
     await expect(demo.dropdownMenu.locator('.htFiltersMenuValue')).toBeVisible();
     expect(await demo.dropdownMenu.evaluate(element => getComputedStyle(element).direction)).toBe('rtl');
 
-    const ageBox = await demo.boxOf(age);
-    const menuBox = await demo.boxOf(demo.dropdownMenu);
+    const { header: ageBox, menu: menuBox } = await demo.headerAndDropdownMenuBoxes('Age');
 
     expect(menuBox.top).toBeGreaterThan(ageBox.top);
     expect(menuBox.top).toBeLessThanOrEqual(ageBox.bottom + EDGE_TOLERANCE_PX);
@@ -97,8 +95,7 @@ test.describe('complex demo states', () => {
     ]);
     expect(await select.evaluate(element => getComputedStyle(element).direction)).toBe('rtl');
 
-    const cellBox = await demo.boxOf(demo.cell(5, 4));
-    const editorBox = await demo.boxOf(wrapper);
+    const { cell: cellBox, editor: editorBox } = await demo.cellAndSelectEditorBoxes(5, 4);
 
     (['left', 'top', 'right', 'bottom'] as const).forEach((edge) => {
       expect(Math.abs(editorBox[edge] - cellBox[edge]), `editor ${edge} vs the cell`).toBeLessThanOrEqual(EDGE_TOLERANCE_PX);
@@ -111,7 +108,7 @@ test.describe('complex demo states', () => {
     await demo.goto('rtl');
 
     // Column 0 is frozen at the inline start, so the drag starts in the overlay and ends in the master.
-    await demo.dragSelect(demo.cell(3, 0), demo.cell(5, 2));
+    await demo.dragSelect([3, 0], [5, 2]);
 
     await expect.poll(() => demo.selected()).toEqual([[3, 0, 5, 2]]);
     await expect(page.locator('.ht_master td.area')).toHaveCount(9);

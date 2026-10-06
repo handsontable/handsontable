@@ -3,8 +3,9 @@ import { LoadingStatesPage, type LoadingGeometry } from '../fixtures/pages/Loadi
 
 /**
  * The loading overlay states the visual suite's `/loading-demo` route photographed, asserted from the
- * DOM on every theme and bundle: the default spinner and title, a custom icon, title and description,
- * the focus Tab gives it, a grid with no rows under it, and the RTL mirror. The captures that stay
+ * DOM on every theme and bundle: the default spinner and title over a semi-transparent backdrop, a custom
+ * icon, title and description, the focus Tab gives it and the accent border it draws then, the solid
+ * backdrop over a grid with no rows, and the RTL mirror. The captures that stay
  * under `visual-tests/tests/js-only/loading/` are of how the overlay looks; whether those states are
  * reached is this spec's.
  */
@@ -45,8 +46,13 @@ test.describe('loading overlay states', () => {
 
     expectCoveringTheRoot(geometry);
     expect(geometry.dir).toBe('ltr');
-    // The spinner sits at the inline start of the text, on the same line.
-    expect(geometry.icon.right).toBeLessThanOrEqual(geometry.titleText.left);
+    // Over a grid with rows the backdrop is the semi-transparent one, at the theme's own opacity.
+    await expect(loadingPage.overlay).toHaveClass(/\bht-dialog--background-semi-transparent\b/);
+    expect(geometry.semiTransparentOpacity).toBeLessThan(1);
+    expect(geometry.backdropAlpha).toBeCloseTo(geometry.semiTransparentOpacity, 2);
+    // The spinner sits at the inline start of the text, the content row's gap away, on the same line.
+    expect(Math.abs((geometry.titleText.left - geometry.icon.right) - geometry.contentGap))
+      .toBeLessThanOrEqual(EDGE_TOLERANCE_PX);
     expect(geometry.icon.bottom).toBeGreaterThan(geometry.titleText.top);
     expect(geometry.icon.top).toBeLessThan(geometry.titleText.bottom);
   });
@@ -66,12 +72,14 @@ test.describe('loading overlay states', () => {
     expect(descriptionId).not.toBeNull();
     await expect(page.locator(`[id="${descriptionId}"]`)).toHaveText('Loading Description...');
 
-    // The description sits under the title.
-    const titleBox = await loadingPage.title.boundingBox();
-    const descriptionBox = await loadingPage.description.boundingBox();
+    const geometry = await loadingPage.geometry();
+    const description = geometry.description!;
 
-    expect(descriptionBox!.y).toBeGreaterThanOrEqual(titleBox!.y + titleBox!.height - EDGE_TOLERANCE_PX);
-    expectCoveringTheRoot(await loadingPage.geometry());
+    // The description sits under the title, in the theme's secondary color and small type.
+    expect(description.box.top).toBeGreaterThanOrEqual(geometry.title.bottom - EDGE_TOLERANCE_PX);
+    expect(description.color).toBe(geometry.secondaryColor);
+    expect(description.fontSize).toBe(geometry.smallFontSize);
+    expectCoveringTheRoot(geometry);
   });
 
   test('Tab from the page puts the focus on the overlay itself, not on the grid behind it', async({
@@ -81,14 +89,23 @@ test.describe('loading overlay states', () => {
 
     await loadingPage.goto();
 
+    const resting = await loadingPage.geometry();
+
+    expect(resting.borderColor).not.toBe(resting.accentColor);
+
     await page.keyboard.press('Tab');
     await expect(loadingPage.inputBefore).toBeFocused();
 
     // Nothing inside the overlay can hold the focus, so the loading plugin's `afterDialogFocus`
-    // listener puts it on the overlay's container, which is what a screen reader announces.
+    // listener puts it on the overlay's container, which is what a screen reader announces, and the
+    // focused container draws its border in the accent color.
     await page.keyboard.press('Tab');
     await expect(loadingPage.overlay).toBeFocused();
     expect(await loadingPage.activeShortcutContext()).toBe('plugin:dialog');
+
+    const focused = await loadingPage.geometry();
+
+    expect(focused.borderColor).toBe(focused.accentColor);
   });
 
   test('over a grid with no rows the overlay still covers the whole root', async({ page, theme, bundle }) => {
@@ -104,6 +121,9 @@ test.describe('loading overlay states', () => {
     expectCoveringTheRoot(geometry);
     // The root keeps the 400 px the grid was given, rows or none.
     expect(geometry.root.bottom - geometry.root.top).toBeCloseTo(400, 0);
+    // With no rows to show through, the plugin picks the solid backdrop.
+    await expect(loadingPage.overlay).toHaveClass(/\bht-dialog--background-solid\b/);
+    expect(geometry.backdropAlpha).toBe(1);
   });
 
   test('in an RTL grid the overlay mirrors: the spinner moves to the right of the Arabic title', async({
@@ -119,7 +139,8 @@ test.describe('loading overlay states', () => {
 
     expectCoveringTheRoot(geometry);
     expect(geometry.dir).toBe('rtl');
-    expect(geometry.icon.left).toBeGreaterThanOrEqual(geometry.titleText.right);
+    expect(Math.abs((geometry.icon.left - geometry.titleText.right) - geometry.contentGap))
+      .toBeLessThanOrEqual(EDGE_TOLERANCE_PX);
     expect(geometry.icon.bottom).toBeGreaterThan(geometry.titleText.top);
     expect(geometry.icon.top).toBeLessThan(geometry.titleText.bottom);
   });

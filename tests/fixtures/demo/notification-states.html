@@ -33,6 +33,7 @@
       'bottom-start': 'bottom-start',
       'bottom-end': 'bottom-end',
     }, 'bottom-end');
+    window.htPager = htPick('pager', { 0: false, 1: true }, '0');
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
 </head>
@@ -42,7 +43,9 @@
     lays it out: a 400 x 400 grid and one toast shown on load in the corner `?position=` names, in the
     variant the demo gives that corner (top-start info, top-end success, bottom-start warning,
     bottom-end error), closable, with a primary and a secondary action, kept until closed. `dir=rtl`
-    builds an RTL grid in Arabic, which loads the ar-AR language pack, as the demo does.
+    builds an RTL grid with the ar-AR language pack loaded, as the demo does; the toast's own texts stay
+    English, as the demo's do. `pager=1` adds the pagination bar under the grid, which the demo does not
+    have, to place a bottom-corner toast against a bottom slot.
   -->
   <div data-testid="grid"></div>
 
@@ -80,6 +83,7 @@
         width: 400,
         height: 400,
         notification: { animation: false },
+        pagination: window.htPager,
         licenseKey: 'non-commercial-and-evaluation',
       });
 

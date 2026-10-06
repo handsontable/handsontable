@@ -42,7 +42,7 @@ function expectPageToBeFull(fit: PageFit, nextRowHeight: number) {
 }
 
 test.describe('pagination pager states', () => {
-  test('the buttons move the page, disable at each end and hand the focus to the enabled neighbour', async({
+  test('the buttons move the page, disable at each end and hand the focus to the enabled neighbor', async({
     page, theme, bundle,
   }) => {
     const pagerPage = new PaginationPagerPage(page, theme, bundle);
@@ -137,6 +137,8 @@ test.describe('pagination pager states', () => {
     await expect(pagerPage.counter).toHaveText('1 - 44 of 44');
     await expect(pagerPage.navigationLabel).toHaveText('Page 1 of 1');
     await pagerPage.expectDisabled(['first', 'prev', 'next', 'last']);
+    // The grid repaints from the first row, not only the pager: the page it left held rows 41 to 44.
+    await expect.poll(async() => (await pagerPage.renderedRowHeaders()).slice(0, 5)).toEqual(['1', '2', '3', '4', '5']);
 
     const countries = await pagerPage.pageColumnValues(8);
 
@@ -162,6 +164,8 @@ test.describe('pagination pager states', () => {
     await expect(pagerPage.counter).toHaveText('21 - 40 of 44');
     await expect(pagerPage.navigationLabel).toHaveText('Page 2 of 3');
     await pagerPage.expectDisabled([]);
+    await expect.poll(async() => (await pagerPage.renderedRowHeaders()).slice(0, 5))
+      .toEqual(['21', '22', '23', '24', '25']);
   });
 
   test('the auto page size fills every page of a 450 px grid, and re-pages when the grid shrinks to 300 px', async({

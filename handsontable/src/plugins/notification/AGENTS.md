@@ -84,14 +84,20 @@ teardown, or a hidden toast keeps its listeners.
 
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='notification'`
 - `npm run test:unit --prefix handsontable -- --testPathPattern='notification'`
-- `npm --prefix tests run test:e2e -- e2e/notification-placement.spec.ts`: each corner's placement from
-  DOM rects, in both directions, on every theme and bundle. A toast sits 20 px in from its corner's edges:
-  the stack's 10 px offset plus its 10 px padding.
+- `npm --prefix tests run test:e2e -- e2e/notification-placement.spec.ts`: each corner's toast from DOM
+  rects, in both directions, on every theme and bundle: its variant, its accent bar at the inline start
+  (none on `info`), the primary action before the secondary one in reading order, the close button at
+  the inline end, no focus taken, and its placement. A toast sits 20 px in from its corner's edges: the
+  stack's 10 px offset plus its 10 px padding.
 
 **The layer spans the root wrapper, not the grid.** The host is `inset: 0` inside
 `hot.rootOverlaysElement`, which is as wide as `.ht-root-wrapper`, so a grid narrower than its container
 (`width: 400` in a full-width page) shows its end-corner toasts at the container's far edge, hundreds of
 pixels from the grid. The start corners only look right because the grid starts where the container
-does. The dialog solved the same thing by pinning its width to the workspace on `afterViewRender`. The
-end-corner cases in the Playwright spec are `test.fixme` until the layer follows the grid, and the
+does. The block axis has the same mismatch: the wrapper also holds the bottom slots, so with a pager (or
+any bottom slot) under the grid a bottom-corner toast sits 20 px above the wrapper's bottom, on top of
+the pager, and covers its controls. The dialog solved the inline axis by pinning its width to the
+workspace on `afterViewRender`; a fix here has to size the layer to the grid on both axes. The
+root-relative placement of the end corners, and of a bottom corner over a pager, are `test.fixme` in the
+Playwright spec until the layer follows the grid (the content of every corner is asserted live), and the
 visual suite's end-corner captures show the toast at the far edge until then.

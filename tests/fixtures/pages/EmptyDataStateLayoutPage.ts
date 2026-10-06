@@ -32,12 +32,24 @@ export interface PanelGeometry {
    * The texts and, when there are any, the buttons below them.
    */
   content: Box;
+  /**
+   * The title's and the description's text as the browser laid them out (`Range` boxes, so they move
+   * with `text-align`), and the first button, or `null` without one.
+   */
+  titleText: Box;
+  descriptionText: Box;
+  button: Box | null;
   root: Box;
   /**
-   * The master column header row (`thead` of the top overlay), or `null` with no columns, where only
-   * the corner is drawn.
+   * The master column header row (`thead` of the top overlay), or `null` with no columns.
    */
   headers: Box | null;
+  /**
+   * The cells of the top overlay's header row, and how many of them carry a column label (the corner's
+   * `span.colHeader` is empty).
+   */
+  headerCellCount: number;
+  columnLabelCount: number;
   disablesTopBorder: boolean;
 }
 
@@ -152,12 +164,20 @@ export class EmptyDataStateLayoutPage {
    */
   async geometry(): Promise<PanelGeometry> {
     return this.page.evaluate(() => {
-      const box = (element: Element) => {
+      const box = (element: Element | Range) => {
         const rect = element.getBoundingClientRect();
 
         return { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom };
       };
+      const textBox = (element: Element) => {
+        const range = document.createRange();
+
+        range.selectNodeContents(element);
+
+        return box(range);
+      };
       const panel = document.querySelector('.ht-empty-data-state') as HTMLElement;
+      const button = panel.querySelector('.ht-empty-data-state__buttons button');
       const hot = (window as unknown as { hot: { rootElement: HTMLElement; countCols(): number } }).hot;
       const headers = hot.countCols() > 0 ? document.querySelector('.ht_clone_top thead') : null;
       // The texts and the buttons row are siblings, so the visible content is the union of the two.
@@ -174,8 +194,14 @@ export class EmptyDataStateLayoutPage {
       return {
         panel: box(panel),
         content,
+        titleText: textBox(panel.querySelector('.ht-empty-data-state__title') as Element),
+        descriptionText: textBox(panel.querySelector('.ht-empty-data-state__description') as Element),
+        button: button ? box(button) : null,
         root: box(hot.rootElement),
         headers: headers ? box(headers) : null,
+        headerCellCount: document.querySelectorAll('.ht_clone_top thead th').length,
+        columnLabelCount: [...document.querySelectorAll('.ht_clone_top thead th span.colHeader')]
+          .filter(label => label.textContent!.trim() !== '').length,
         disablesTopBorder: panel.classList.contains('ht-empty-data-state--disable-top-border'),
       };
     });

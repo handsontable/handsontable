@@ -4,8 +4,9 @@ import { DialogStatesPage, type Box } from '../fixtures/pages/DialogStatesPage';
 /**
  * The dialog states the visual suite's `/dialog-demo` route photographed, asserted from the DOM on every
  * theme and bundle: the solid and the semi-transparent backdrop, the content box with and without its own
- * background, the confirm template's slots and its OK button, the focus moves around a dialog whose content
- * holds inputs, and the RTL layout. The captures that stay under `visual-tests/tests/js-only/dialog/` are
+ * background, the confirm template's slots and its OK button handing the keyboard back to the selected cell,
+ * the accent border a focused dialog draws, the focus moves around a dialog whose content holds inputs, and
+ * the RTL layout. The captures that stay under `visual-tests/tests/js-only/dialog/` are
  * of how those states look; whether the states are reached is this spec's.
  */
 
@@ -13,7 +14,7 @@ const EDGE_TOLERANCE_PX = 0.5;
 const CENTER_TOLERANCE_PX = 1;
 
 /**
- * The box's horizontal and vertical centre.
+ * The box's horizontal and vertical center.
  *
  * @param {Box} box A box in viewport coordinates.
  * @returns {{x: number, y: number}}
@@ -23,7 +24,7 @@ function centerOf(box: Box) {
 }
 
 /**
- * Asserts that the dialog lies exactly over the grid's root and centres its content box on it.
+ * Asserts that the dialog lies exactly over the grid's root and centers its content box on it.
  *
  * @param {DialogStatesPage} dialogPage The page object.
  */
@@ -40,7 +41,7 @@ async function expectCoveringTheRoot(dialogPage: DialogStatesPage) {
 }
 
 test.describe('dialog states', () => {
-  test('a solid backdrop covers the grid opaquely, with the content box centred and unfilled', async({
+  test('a solid backdrop covers the grid opaquely, with the content box centered and unfilled', async({
     page, theme, bundle,
   }) => {
     const dialogPage = new DialogStatesPage(page, theme, bundle);
@@ -69,10 +70,14 @@ test.describe('dialog states', () => {
     await expect(dialogPage.dialog).toHaveClass(/\bht-dialog--background-semi-transparent\b/);
     await expectCoveringTheRoot(dialogPage);
 
-    const { backdropAlpha, contentAlpha, contentHasBackgroundClass } = await dialogPage.geometry();
+    const {
+      backdropAlpha, semiTransparentOpacity, contentAlpha, contentHasBackgroundClass,
+    } = await dialogPage.geometry();
 
-    expect(backdropAlpha).toBeGreaterThan(0);
-    expect(backdropAlpha).toBeLessThan(1);
+    // The backdrop's alpha is the theme's own opacity token, and that token leaves the grid showing.
+    expect(semiTransparentOpacity).toBeGreaterThan(0);
+    expect(semiTransparentOpacity).toBeLessThan(1);
+    expect(backdropAlpha).toBeCloseTo(semiTransparentOpacity, 2);
     expect(contentHasBackgroundClass).toBe(true);
     expect(contentAlpha).toBe(1);
   });
@@ -122,12 +127,55 @@ test.describe('dialog states', () => {
     await page.keyboard.press('Shift+Tab');
     await expect(ok).toBeFocused();
 
-    // OK's callback hides the dialog and hands the keyboard back to the grid.
+    // OK's callback hides the dialog and switches the shortcut context back to the grid.
     await page.keyboard.press('Enter');
     await expect(dialogPage.dialog).not.toHaveClass(/\bht-dialog--show\b/);
     await expect(dialogPage.dialog).toBeHidden();
     expect(await dialogPage.isVisible()).toBe(false);
     expect(await dialogPage.activeShortcutContext()).toBe('grid');
+
+    // The same dialog opened over a selected cell: OK hands the keyboard back to that cell, and the
+    // arrow keys move the selection again.
+    const cell = dialogPage.cell(2, 1);
+
+    await cell.click({ position: { x: 5, y: 5 } });
+    await expect.poll(() => dialogPage.selected()).toEqual([[2, 1, 2, 1]]);
+    await dialogPage.show();
+    await expect(cancel).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(ok).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(dialogPage.dialog).toBeHidden();
+    await expect(cell).toBeFocused();
+    expect(await dialogPage.selected()).toEqual([[2, 1, 2, 1]]);
+    await page.keyboard.press('ArrowDown');
+    await expect.poll(() => dialogPage.selected()).toEqual([[3, 1, 3, 1]]);
+  });
+
+  test('Tab onto a dialog draws its border in the accent color while its focus catcher holds the focus', async({
+    page, theme, bundle,
+  }) => {
+    const dialogPage = new DialogStatesPage(page, theme, bundle);
+
+    await dialogPage.goto();
+
+    const resting = await dialogPage.geometry();
+
+    expect(resting.borderColor).not.toBe(resting.accentColor);
+
+    await page.keyboard.press('Tab');
+    await expect(dialogPage.inputBefore).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect.poll(async() => (await dialogPage.geometry()).focusOnCatcher).toBe(true);
+
+    const focused = await dialogPage.geometry();
+
+    expect(focused.borderColor).toBe(focused.accentColor);
+
+    // Once the focus moves on to the content's own button, the border is back at rest.
+    await page.keyboard.press('Tab');
+    await expect(dialogPage.button('Close modal')).toBeFocused();
+    expect((await dialogPage.geometry()).borderColor).toBe(resting.borderColor);
   });
 
   test('Tab and Shift+Tab move around a dialog that holds inputs, and its afterDialogFocus listener takes the '

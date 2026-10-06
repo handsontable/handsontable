@@ -16,13 +16,23 @@ const EDGE_TOLERANCE_PX = 0.5;
 const CENTER_TOLERANCE_PX = 1;
 
 /**
- * Asserts that the content is centred in the panel on both axes.
+ * Asserts that the content is centered in the panel: the title's text, the description's text and the
+ * button (when there is one) each on the panel's vertical axis, and the texts and the buttons row
+ * together on its horizontal one.
  *
  * @param {PanelGeometry} geometry The panel's geometry.
  */
-function expectContentCentred({ panel, content }: PanelGeometry) {
-  expect(Math.abs(((content.left + content.right) / 2) - ((panel.left + panel.right) / 2)))
-    .toBeLessThanOrEqual(CENTER_TOLERANCE_PX);
+function expectContentCentered({ panel, content, titleText, descriptionText, button }: PanelGeometry) {
+  const panelCenter = (panel.left + panel.right) / 2;
+  const parts: [string, Box][] = [['title', titleText], ['description', descriptionText]];
+
+  if (button) {
+    parts.push(['button', button]);
+  }
+  parts.forEach(([name, part]) => {
+    expect(Math.abs(((part.left + part.right) / 2) - panelCenter), `${name} centered horizontally`)
+      .toBeLessThanOrEqual(CENTER_TOLERANCE_PX);
+  });
   expect(Math.abs(((content.top + content.bottom) / 2) - ((panel.top + panel.bottom) / 2)))
     .toBeLessThanOrEqual(CENTER_TOLERANCE_PX);
   expect(content.top).toBeGreaterThan(panel.top);
@@ -60,7 +70,7 @@ test.describe('empty data state layout', () => {
     expect(geometry.disablesTopBorder).toBe(true);
     expect(Math.abs(geometry.panel.bottom - geometry.root.bottom)).toBeLessThanOrEqual(EDGE_TOLERANCE_PX);
     expect(geometry.root.bottom - geometry.root.top).toBeCloseTo(400, 0);
-    expectContentCentred(geometry);
+    expectContentCentered(geometry);
   });
 
   test('with `height: auto`, and with no height, the grid shrinks to the headers plus the message', async({
@@ -77,7 +87,7 @@ test.describe('empty data state layout', () => {
     const auto = await edsPage.geometry();
 
     expectUnderTheHeaders(auto);
-    expectContentCentred(auto);
+    expectContentCentered(auto);
     // The root ends where the panel ends: nothing below the message, and nothing cut off.
     expect(Math.abs(auto.panel.bottom - auto.root.bottom)).toBeLessThanOrEqual(EDGE_TOLERANCE_PX);
     // Shorter than the 400 px grid, and still taller than its own content.
@@ -95,7 +105,7 @@ test.describe('empty data state layout', () => {
     });
 
     // The no-results state at that height: the Reset filters button joins the message, and the grid
-    // still ends where the panel ends, with the content centred.
+    // still ends where the panel ends, with the content centered.
     await edsPage.filterOutEveryValue();
     await expect(edsPage.title).toHaveText('No results found');
     await expect(edsPage.button('Reset filters')).toBeVisible();
@@ -103,7 +113,7 @@ test.describe('empty data state layout', () => {
     const filtered = await edsPage.geometry();
 
     expectUnderTheHeaders(filtered);
-    expectContentCentred(filtered);
+    expectContentCentered(filtered);
     expect(Math.abs(filtered.panel.bottom - filtered.root.bottom)).toBeLessThanOrEqual(EDGE_TOLERANCE_PX);
   });
 
@@ -118,13 +128,15 @@ test.describe('empty data state layout', () => {
 
     const geometry = await edsPage.geometry();
 
-    expect(geometry.headers).toBeNull();
+    // Only the row header corner is drawn above the panel, and the panel covers it.
+    expect(geometry.headerCellCount).toBe(1);
+    expect(geometry.columnLabelCount).toBe(0);
     (['left', 'top', 'right', 'bottom'] as const).forEach((edge) => {
       expect(Math.abs(geometry.panel[edge] - geometry.root[edge]), `panel ${edge} vs the root`)
         .toBeLessThanOrEqual(EDGE_TOLERANCE_PX);
     });
     expect(geometry.disablesTopBorder).toBe(false);
-    expectContentCentred(geometry);
+    expectContentCentered(geometry);
   });
 
   test('filtering every value out from the keyboard shows the no-results message, and Reset filters clears it', async({
@@ -175,7 +187,7 @@ test.describe('empty data state layout', () => {
     const filtered = await edsPage.geometry();
 
     expectUnderTheHeaders(filtered);
-    expectContentCentred(filtered);
+    expectContentCentered(filtered);
 
     await reset.click();
     await expect(edsPage.title).toHaveText('No data available');
@@ -195,11 +207,11 @@ test.describe('empty data state layout', () => {
     const geometry = await edsPage.geometry();
 
     expectUnderTheHeaders(geometry);
-    // The columns start at the root's right edge, so the panel does too.
+    // The header row, its corner included, starts at the root's right edge, so the panel does too.
     expect(Math.abs(geometry.panel.right - geometry.root.right)).toBeLessThanOrEqual(EDGE_TOLERANCE_PX);
     expect(geometry.panel.left).toBeGreaterThan(geometry.root.left);
     expect(Math.abs(geometry.panel.bottom - geometry.root.bottom)).toBeLessThanOrEqual(EDGE_TOLERANCE_PX);
-    expectContentCentred(geometry);
+    expectContentCentered(geometry);
 
     // The no-results state, in Arabic, keeps the mirrored placement.
     await edsPage.filterOutEveryValue();
@@ -210,6 +222,6 @@ test.describe('empty data state layout', () => {
 
     expectUnderTheHeaders(filtered);
     expect(Math.abs(filtered.panel.right - filtered.root.right)).toBeLessThanOrEqual(EDGE_TOLERANCE_PX);
-    expectContentCentred(filtered);
+    expectContentCentered(filtered);
   });
 });

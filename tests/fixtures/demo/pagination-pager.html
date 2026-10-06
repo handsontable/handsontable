@@ -32,7 +32,12 @@
     // `ignoreTableSize` + `hideInputs` shape: no height, so the page scrolls, and no inputs.
     window.htSize = htPick('size', { fixed: 'fixed', window: 'window' }, 'fixed');
   </script>
-  <style> input { margin: 10px; } </style>
+  <style>
+    input { margin: 10px; }
+    /* The demo's two cell styles (`styles/styles.css`), so the Progress and Rating columns draw. */
+    .handsontable .progressBar { background: #37bc6c !important; height: 10px; }
+    .handsontable .star, .handsontable .htDimmed.star { color: #fcb515 !important; }
+  </style>
 </head>
 <body>
   <!--
@@ -41,9 +46,10 @@
     others, so rows differ in height), `autoRowSize`, a pager with the page sizes auto, 10, 20, 30, 40
     and 50, filters, multi-column sorting, the dropdown and context menus, hidden-row indicators, and a
     comment. `pagesize=auto` starts on the auto page size; `size=window` drops the height and the page
-    inputs; `dir=rtl` builds an RTL grid in Arabic, which loads the ar-AR language pack, as the demo
-    does. The body keeps the browser's default margin, which the auto page size reads when the window
-    scrolls.
+    inputs; `dir=rtl` builds an RTL grid with the ar-AR language pack loaded, as the demo does, but keeps
+    the LTR rows and the `en-US` date locale where the demo switches to its Arabic rows and `ar-AR` dates:
+    no assertion here reads the cells' text in RTL. The body keeps the browser's default margin, which the
+    auto page size reads when the window scrolls.
   -->
   <div id="root"></div>
 

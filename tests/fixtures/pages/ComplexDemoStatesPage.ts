@@ -146,32 +146,73 @@ export class ComplexDemoStatesPage {
   }
 
   /**
-   * The box of an element on the page.
+   * The box of a column header in the top overlay, by its label, and the box of the dropdown menu, read
+   * in one evaluation: the header cell is a node Walkontable recycles, so a second round trip could
+   * measure another column.
    *
-   * @param {Locator} locator The element.
-   * @returns {Promise<Box>}
+   * @param {string} label The header's label.
+   * @returns {Promise<{header: Box, menu: Box}>}
    */
-  async boxOf(locator: Locator): Promise<Box> {
-    return locator.evaluate((element) => {
-      const rect = element.getBoundingClientRect();
+  async headerAndDropdownMenuBoxes(label: string): Promise<{ header: Box; menu: Box }> {
+    return this.page.evaluate((text) => {
+      const box = (element: Element) => {
+        const rect = element.getBoundingClientRect();
 
-      return { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom };
-    });
+        return { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom };
+      };
+      const header = [...document.querySelectorAll('.ht_clone_top thead th')]
+        .find(th => th.querySelector('span.colHeader')?.textContent === text) as Element;
+      const menu = document.querySelector('.htDropdownMenu:not([class*="htDropdownMenuSub_"])') as Element;
+
+      return { header: box(header), menu: box(menu) };
+    }, label);
   }
 
   /**
-   * Presses a cell's top-start corner and drags to another cell's, the demo spec's gesture.
+   * The box of a cell, by visual coordinates, and the box of the select editor, read in one evaluation.
    *
-   * @param {Locator} from The cell the drag starts on.
-   * @param {Locator} to The cell it ends on.
+   * @param {number} row The visual row.
+   * @param {number} column The visual column.
+   * @returns {Promise<{cell: Box, editor: Box}>}
    */
-  async dragSelect(from: Locator, to: Locator): Promise<void> {
-    const fromBox = await from.boundingBox();
-    const toBox = await to.boundingBox();
+  async cellAndSelectEditorBoxes(row: number, column: number): Promise<{ cell: Box; editor: Box }> {
+    return this.page.evaluate(([r, c]) => {
+      const box = (element: Element) => {
+        const rect = element.getBoundingClientRect();
 
-    await this.page.mouse.move(fromBox!.x + 10, fromBox!.y + 10);
+        return { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom };
+      };
+      const hot = (window as unknown as {
+        hot: { getCell(row: number, column: number, topmost: boolean): HTMLElement };
+      }).hot;
+
+      return {
+        cell: box(hot.getCell(r, c, true)),
+        editor: box(document.querySelector('.htSelectEditor') as Element),
+      };
+    }, [row, column]);
+  }
+
+  /**
+   * Presses a cell's top-start corner and drags to another cell's, the demo spec's gesture. Both cells
+   * are measured in one evaluation, on the topmost overlay that draws them.
+   *
+   * @param {[number, number]} from The visual row and column the drag starts on.
+   * @param {[number, number]} to The visual row and column it ends on.
+   */
+  async dragSelect(from: [number, number], to: [number, number]): Promise<void> {
+    const [fromBox, toBox] = await this.page.evaluate(cells => cells.map(([row, column]) => {
+      const hot = (window as unknown as {
+        hot: { getCell(row: number, column: number, topmost: boolean): HTMLElement };
+      }).hot;
+      const rect = hot.getCell(row, column, true).getBoundingClientRect();
+
+      return { x: rect.left, y: rect.top };
+    }), [from, to]);
+
+    await this.page.mouse.move(fromBox.x + 10, fromBox.y + 10);
     await this.page.mouse.down();
-    await this.page.mouse.move(toBox!.x + 10, toBox!.y + 10);
+    await this.page.mouse.move(toBox.x + 10, toBox.y + 10);
     await this.page.mouse.up();
   }
 }

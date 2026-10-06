@@ -1170,6 +1170,16 @@ export class SelectionFeaturesPage {
     }, [overlayClass(overlay), row, col] as const);
   }
 
+  /**
+   * The visible border lines of the master's current and area selections (all edges and the corner).
+   * Walkontable hides the edges it does not need, so a drawn selection shows only some of them.
+   *
+   * @returns {Locator}
+   */
+  visibleSelectionBorders(): Locator {
+    return this.page.locator('.ht_master .wtBorder.area:visible, .ht_master .wtBorder.current:visible');
+  }
+
   /** The currently visible move-zone bands in the master overlay. */
   visibleMoveZones(): Locator {
     return this.page.locator('.ht_master .wtMoveZone:visible');

@@ -31,7 +31,21 @@ export interface DialogGeometry {
   root: Box;
   content: Box;
   backdropAlpha: number;
+  /**
+   * The theme's `--ht-dialog-semi-transparent-background-opacity`, as a fraction (`80%` is `0.8`).
+   */
+  semiTransparentOpacity: number;
   contentAlpha: number;
+  /**
+   * The dialog's top border color, and the theme's `--ht-accent-color` read through a probe element in
+   * the same evaluation, as the browser resolves both.
+   */
+  borderColor: string;
+  accentColor: string;
+  /**
+   * Whether the focus is on one of the dialog's focus catchers.
+   */
+  focusOnCatcher: boolean;
   contentHasBackgroundClass: boolean;
   dir: string | null;
   direction: string;
@@ -42,7 +56,7 @@ export interface DialogGeometry {
   headingText: Box | null;
   headingBlock: Box | null;
   /**
-   * The element at the centre of the grid's root, which the open dialog must be.
+   * The element at the center of the grid's root, which the open dialog must be.
    */
   hitInsideDialog: boolean;
 }
@@ -119,6 +133,36 @@ export class DialogStatesPage {
   }
 
   /**
+   * A body cell of the grid's master table, by its visual row and column.
+   *
+   * @param {number} row The row index.
+   * @param {number} column The column index.
+   * @returns {Locator}
+   */
+  cell(row: number, column: number): Locator {
+    return this.page.locator('.ht_master .htCore tbody tr').nth(row).locator('td').nth(column);
+  }
+
+  /**
+   * Shows the dialog again through the plugin's API.
+   */
+  async show(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as { hot: { getPlugin(name: string): { show(): void } } })
+      .hot.getPlugin('dialog').show());
+    await expect(this.dialog).toHaveClass(/\bht-dialog--show\b/);
+  }
+
+  /**
+   * The grid's selection, as `getSelected()` returns it.
+   *
+   * @returns {Promise<number[][] | undefined>}
+   */
+  async selected(): Promise<number[][] | undefined> {
+    return this.page.evaluate(() => (window as unknown as { hot: { getSelected(): number[][] | undefined } })
+      .hot.getSelected());
+  }
+
+  /**
    * Whether the plugin reports the dialog as shown.
    *
    * @returns {Promise<boolean>}
@@ -181,7 +225,17 @@ export class DialogStatesPage {
         headingText = box(range.getBoundingClientRect());
       }
 
+      const probe = document.createElement('span');
+
+      probe.style.color = 'var(--ht-accent-color)';
+      dialog.appendChild(probe);
+
+      const accentColor = getComputedStyle(probe).color;
+
+      probe.remove();
+
       const root = hot.rootElement.getBoundingClientRect();
+      const opacity = getComputedStyle(dialog).getPropertyValue('--ht-dialog-semi-transparent-background-opacity').trim();
       const hit = document.elementFromPoint((root.left + root.right) / 2, (root.top + root.bottom) / 2);
 
       return {
@@ -189,7 +243,12 @@ export class DialogStatesPage {
         root: box(root),
         content: box(content.getBoundingClientRect()),
         backdropAlpha: alphaOf(getComputedStyle(dialog).backgroundColor),
+        semiTransparentOpacity: opacity.endsWith('%') ? Number.parseFloat(opacity) / 100 : Number.parseFloat(opacity),
         contentAlpha: alphaOf(getComputedStyle(content).backgroundColor),
+        borderColor: getComputedStyle(dialog).borderTopColor,
+        accentColor,
+        focusOnCatcher: document.activeElement instanceof HTMLElement
+          && dialog.contains(document.activeElement) && document.activeElement.classList.contains('htFocusCatcher'),
         contentHasBackgroundClass: content.classList.contains('ht-dialog__content--background'),
         dir: dialog.getAttribute('dir'),
         direction: getComputedStyle(content).direction,
