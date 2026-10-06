@@ -67,7 +67,7 @@ Double click on a cell to open the editor and preview the formula.
 
 ::: example #example1 :angular --ts 1 --html 2
 
-@[code collapse={37-64}](@/content/guides/formulas/formula-calculation/angular/example1.ts)
+@[code collapse={38-65}](@/content/guides/formulas/formula-calculation/angular/example1.ts)
 @[code](@/content/guides/formulas/formula-calculation/angular/example1.html)
 
 :::
