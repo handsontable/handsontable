@@ -93,6 +93,18 @@ test.describe('empty data state layout', () => {
       expect(undefinedHeight.panel[edge], `panel ${edge}`).toBeCloseTo(auto.panel[edge], 1);
       expect(undefinedHeight.root[edge], `root ${edge}`).toBeCloseTo(auto.root[edge], 1);
     });
+
+    // The no-results state at that height: the Reset filters button joins the message, and the grid
+    // still ends where the panel ends, with the content centred.
+    await edsPage.filterOutEveryValue();
+    await expect(edsPage.title).toHaveText('No results found');
+    await expect(edsPage.button('Reset filters')).toBeVisible();
+
+    const filtered = await edsPage.geometry();
+
+    expectUnderTheHeaders(filtered);
+    expectContentCentred(filtered);
+    expect(Math.abs(filtered.panel.bottom - filtered.root.bottom)).toBeLessThanOrEqual(EDGE_TOLERANCE_PX);
   });
 
   test('with no columns the message covers the whole root, the header corner included', async({
@@ -171,7 +183,9 @@ test.describe('empty data state layout', () => {
     expect(await edsPage.filterConditions()).toEqual([]);
   });
 
-  test('in an RTL grid the message is mirrored under the headers', async({ page, theme, bundle }) => {
+  test('in an RTL grid the message and its no-results state are mirrored under the headers', async({
+    page, theme, bundle,
+  }) => {
     const edsPage = new EmptyDataStateLayoutPage(page, theme, bundle);
 
     await edsPage.goto({ dir: 'rtl' });
@@ -186,5 +200,16 @@ test.describe('empty data state layout', () => {
     expect(geometry.panel.left).toBeGreaterThan(geometry.root.left);
     expect(Math.abs(geometry.panel.bottom - geometry.root.bottom)).toBeLessThanOrEqual(EDGE_TOLERANCE_PX);
     expectContentCentred(geometry);
+
+    // The no-results state, in Arabic, keeps the mirrored placement.
+    await edsPage.filterOutEveryValue();
+    await expect(edsPage.title).toHaveText('لم يتم العثور على نتائج');
+    await expect(edsPage.button('إعادة تعيين المرشحات')).toBeVisible();
+
+    const filtered = await edsPage.geometry();
+
+    expectUnderTheHeaders(filtered);
+    expect(Math.abs(filtered.panel.right - filtered.root.right)).toBeLessThanOrEqual(EDGE_TOLERANCE_PX);
+    expectContentCentred(filtered);
   });
 });

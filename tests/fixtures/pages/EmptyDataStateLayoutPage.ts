@@ -131,6 +131,21 @@ export class EmptyDataStateLayoutPage {
   }
 
   /**
+   * Filters every value of the first column out through the Filters API, which reaches the no-results
+   * state without the dropdown menu (the keyboard path to it has its own test).
+   */
+  async filterOutEveryValue(): Promise<void> {
+    await this.page.evaluate(() => {
+      const filters = (window as unknown as {
+        hot: { getPlugin(name: string): { addCondition(column: number, name: string, args: unknown[]): void; filter(): void } };
+      }).hot.getPlugin('filters');
+
+      filters.addCondition(0, 'by_value', [[]]);
+      filters.filter();
+    });
+  }
+
+  /**
    * Reads the panel, its content, the root and the column header row in one evaluation.
    *
    * @returns {Promise<PanelGeometry>}
