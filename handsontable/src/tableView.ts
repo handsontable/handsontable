@@ -63,11 +63,6 @@ const CONTENT_SETTLED_MAX_REDRAWS = 5;
 const CONTENT_SETTLED_WINDOW_MS = 5000;
 
 /**
- * How many failed sources `TableView#onCellContentSettled` remembers before it starts over.
- */
-const CONTENT_SETTLED_MAX_FAILED_SOURCES = 200;
-
-/**
  * Checks whether a size setting (`rowHeights`, `minRowHeights`, or `colWidths`) guarantees a uniform
  * size for every item. Only a plain number (or unset) is uniform; an array or function defines
  * per-item sizes, and a string is treated conservatively as non-uniform.
@@ -317,13 +312,9 @@ class TableView {
    */
   #contentSettledFrame: number | null = null;
   /**
-   * The redraws `#onCellContentSettled` requested per visual row inside the current time window.
+   * The redraws `#onCellContentSettled` requested per physical row inside the current time window.
    */
   #contentSettledRedraws = new Map<number, { since: number, count: number }>();
-  /**
-   * The sources that already fired `error` and caused a redraw request, so a repeat does not ask again.
-   */
-  #failedSources = new Set<string>();
 
   /**
    * The layout-slot height reserved inside the vertical axis owner, memoized for one render (see
@@ -809,13 +800,6 @@ class TableView {
       return;
     }
 
-    // A source that already caused a redraw fails the same way after it, so another redraw gains nothing.
-    const failedSource = event.type === 'error' ? this.#getImageSource(target) : '';
-
-    if (failedSource !== '' && this.#failedSources.has(failedSource)) {
-      return;
-    }
-
     const found = this.#findGridCell(target);
 
     if (found === null) {
@@ -841,38 +825,11 @@ class TableView {
       return;
     }
 
-    if (failedSource !== '') {
-      this.#rememberFailedSource(failedSource);
-    }
-
     this.#contentSettledFrame = this.hot.rootWindow.requestAnimationFrame(() => {
       this.#contentSettledFrame = null;
       this.hot.render();
     });
   };
-
-  /**
-   * Reads the source of an image.
-   *
-   * @param {HTMLElement} element The element that fired `error`.
-   * @returns {string} The source, or an empty string for an element that is not an image.
-   */
-  #getImageSource(element: HTMLElement): string {
-    return element instanceof this.hot.rootWindow.HTMLImageElement ? element.currentSrc || element.src : '';
-  }
-
-  /**
-   * Remembers a source whose failure already caused a redraw request.
-   *
-   * @param {string} source The failed source.
-   */
-  #rememberFailedSource(source: string): void {
-    if (this.#failedSources.size >= CONTENT_SETTLED_MAX_FAILED_SOURCES) {
-      this.#failedSources.clear();
-    }
-
-    this.#failedSources.add(source);
-  }
 
   /**
    * Resolves the cell of this grid that holds a loaded element, in the master or in any overlay. Walks up
@@ -901,17 +858,26 @@ class TableView {
   }
 
   /**
-   * Spends one redraw of the per-row budget that bounds `#onCellContentSettled`.
+   * Spends one redraw of the per-row budget that bounds `#onCellContentSettled`. The budget belongs to the
+   * physical row, so a sort or a row move does not charge it to another record.
    *
    * @param {number} visualRow The visual row that asks for a redraw.
    * @returns {boolean} `false` when the row used up its budget for the current window.
    */
   #takeContentSettledRedraw(visualRow: number): boolean {
     const now = this.hot.rootWindow.performance.now();
-    const entry = this.#contentSettledRedraws.get(visualRow);
+    const row = this.hot.toPhysicalRow(visualRow) ?? visualRow;
+    const entry = this.#contentSettledRedraws.get(row);
 
     if (entry === undefined || now - entry.since > CONTENT_SETTLED_WINDOW_MS) {
-      this.#contentSettledRedraws.set(visualRow, { since: now, count: 1 });
+      // A new window starts: this is the moment to drop the windows that have expired, so the map only
+      // holds the rows that redrew recently.
+      this.#contentSettledRedraws.forEach((other, key) => {
+        if (now - other.since > CONTENT_SETTLED_WINDOW_MS) {
+          this.#contentSettledRedraws.delete(key);
+        }
+      });
+      this.#contentSettledRedraws.set(row, { since: now, count: 1 });
 
       return true;
     }

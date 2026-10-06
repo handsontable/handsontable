@@ -46,17 +46,29 @@
     window.renderCount = 0;
 
     // ?variant flags: headers=0 (no column headers), auto=1 (autoRowSize), end=1 (the image column
-    // is frozen at the end), col=N (the image column, default 3), small=1 (images that barely grow a row), broken=1 (images that fail).
-    const imageSrc = row => (variant.get('broken') === '1'
-      ? '/fixture-image/missing-' + row + '.svg'
-      : '/fixture-image/' + row + '.svg' + (variant.get('small') === '1' ? '?small=1' : ''));
+    // is frozen at the end), col=N (the image column, default 3), small=1 (images that barely grow a
+    // row), broken=1 (images that fail), shared=1 (one failing URL for every row), reuse=1 (the renderer
+    // keeps an image that already has the right source instead of recreating it), rows=N (default 6).
+    const failing = variant.get('broken') === '1' || variant.get('shared') === '1';
+    const imageSrc = row => (variant.get('shared') === '1'
+      ? '/fixture-image/missing-shared.svg'
+      : variant.get('broken') === '1'
+        ? '/fixture-image/missing-' + row + '.svg'
+        : '/fixture-image/' + row + '.svg' + (variant.get('small') === '1' ? '?small=1' : ''));
 
     function imageRenderer(instance, td, row, col, prop, value) {
-      td.innerHTML = '<img src="' + imageSrc(row) + '" alt="' + (variant.get('broken') === '1' ? 'a long alternative text that wraps' : '') + '">';
+      const src = imageSrc(row);
+      const existing = td.querySelector('img');
+
+      if (variant.get('reuse') === '1' && existing && existing.getAttribute('src') === src) {
+        return;
+      }
+
+      td.innerHTML = '<img src="' + src + '" alt="' + (failing ? 'a long alternative text that wraps' : '') + '">';
     }
 
     window.hot = new Handsontable(container, {
-      data: Array.from({ length: 6 }, (_, row) => ['r' + row, 'x', 'y', '']),
+      data: Array.from({ length: Number(variant.get('rows') ?? 6) }, (_, row) => ['r' + row, 'x', 'y', '']),
       width: 500,
       height: 400,
       colHeaders: variant.get('headers') !== '0',
@@ -65,7 +77,7 @@
       fixedColumnsStart: 2,
       fixedColumnsEnd: variant.get('end') === '1' ? 1 : 0,
       columns: [0, 1, 2, 3].map(index => (index === Number(variant.get('col') ?? 3) ?
-        { renderer: imageRenderer, width: variant.get('broken') === '1' ? 60 : undefined } : {})),
+        { renderer: imageRenderer, width: failing ? 60 : undefined } : {})),
       afterRender() {
         window.renderCount += 1;
       },

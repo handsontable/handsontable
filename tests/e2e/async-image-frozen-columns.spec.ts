@@ -114,15 +114,17 @@ test.describe('Async image in a scrolling column beside frozen columns', () => {
       && await grid.overlaysMatchMaster()).toBe(true);
   });
 
-  test('stops redrawing for images that fail on every render', async({ page, theme, bundle }) => {
+  test('bounds the redraws of a renderer that recreates a failing image on every render', async({
+    page, theme, bundle,
+  }) => {
     const grid = new AsyncImageFrozenColumnsPage(page, theme, bundle);
 
     await grid.goto('&broken=1');
     grid.releaseImages();
 
-    // Each redraw recreates the failing image, which fires `error` again. A source that failed once is
-    // not asked about again, so each of the 6 failing URLs costs one redraw: 7 draws with the first one.
-    // The per-row budget alone would let this reach 31.
+    // Each redraw recreates the failing image, which draws pending (short) and then fires `error` and grows
+    // the row again, so this renderer never settles. The per-row budget is what ends it: 6 rows at 5
+    // redraws each, plus the first draw. Alignment is not asserted: the renderer undoes it on every draw.
     await grid.waitForFrames(120);
 
     const settled = await grid.renderCount();
@@ -130,6 +132,41 @@ test.describe('Async image in a scrolling column beside frozen columns', () => {
     await grid.waitForFrames(60);
 
     expect(await grid.renderCount()).toBe(settled);
-    expect(settled).toBeLessThanOrEqual(7);
+    expect(settled).toBeLessThanOrEqual(31);
+  });
+
+  test('aligns the overlays when the renderer keeps a failing image', async({ page, theme, bundle }) => {
+    const grid = new AsyncImageFrozenColumnsPage(page, theme, bundle);
+
+    await grid.goto('&broken=1&reuse=1');
+    grid.releaseImages();
+
+    // The failed image keeps its grown size across the redraw, so the overlays can end aligned.
+    await expect.poll(async() => (await grid.rowHeights()).master.every(height => height > 60)
+      && await grid.overlaysMatchMaster()).toBe(true);
+
+    const settled = await grid.renderCount();
+
+    await grid.waitForFrames(60);
+
+    expect(await grid.renderCount()).toBe(settled);
+    expect(settled).toBeLessThanOrEqual(3);
+  });
+
+  test('aligns rows scrolled in later when every row shares one failing URL', async({ page, theme, bundle }) => {
+    const grid = new AsyncImageFrozenColumnsPage(page, theme, bundle);
+
+    await grid.goto('&shared=1&reuse=1&rows=60');
+    grid.releaseImages();
+
+    await expect.poll(async() => (await grid.rowHeights()).master.every(height => height > 60)
+      && await grid.overlaysMatchMaster()).toBe(true);
+
+    await grid.scrollToRow(40);
+
+    // The rows rendered now all load the URL that already failed above.
+    await expect.poll(async() => Number(await grid.firstRowHeader()) > 10).toBe(true);
+    await expect.poll(async() => (await grid.rowHeights()).master.every(height => height > 60)
+      && await grid.overlaysMatchMaster()).toBe(true);
   });
 });

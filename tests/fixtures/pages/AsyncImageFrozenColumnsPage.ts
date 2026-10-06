@@ -111,4 +111,23 @@ export class AsyncImageFrozenColumnsPage {
       }
     }, frames);
   }
+
+  /**
+   * Scrolls the grid so the given row is rendered. The caller waits for the row header to change.
+   */
+  async scrollToRow(row: number): Promise<void> {
+    await this.page.evaluate((target) => {
+      (window as unknown as { hot: { scrollViewportTo(options: { row: number }): void } }).hot
+        .scrollViewportTo({ row: target });
+    }, row);
+  }
+
+  /**
+   * Returns the text of the first rendered row header of the master.
+   */
+  async firstRowHeader(): Promise<string> {
+    return this.page.evaluate(
+      () => document.querySelector('.ht_master tbody tr th')?.textContent ?? ''
+    );
+  }
 }
