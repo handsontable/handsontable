@@ -153,6 +153,38 @@ test.describe('textEllipsis line clamp', () => {
     }
   });
 
+  // The visual suite's `/text-ellipsis-demo` shape: `textEllipsis: true` on the whole grid. Its capture
+  // was the only check that the text is really cut off with an ellipsis, not just given the class.
+  test('`textEllipsis: true` cuts a long cell off at its edge with an ellipsis, on one line', async({ page, theme, bundle }) => {
+    const grid = new TextEllipsisLineClampPage(page, theme, bundle);
+
+    // The control first: without the option the same cell wraps and nothing is cut off.
+    await grid.goto();
+
+    const wrapped = await grid.measure(0, 0);
+
+    expect(wrapped.classes).not.toContain('htTextEllipsis');
+    expect(wrapped.textOverflow).not.toBe('ellipsis');
+    expect(wrapped.scrollWidth).toBeLessThanOrEqual(wrapped.clientWidth);
+
+    await grid.goto({ textEllipsis: true });
+    await expect.poll(async() => (await grid.measure(0, 0)).classes).toContain('htTextEllipsis');
+
+    const cut = await grid.measure(0, 0);
+    const short = await grid.measure(4, 0);
+
+    expect(cut.textOverflow).toBe('ellipsis');
+    expect(cut.whiteSpace).toBe('nowrap');
+    expect(cut.overflowX).toBe('hidden');
+    // The text runs past the cell's box, so the ellipsis has something to stand for.
+    expect(cut.scrollWidth).toBeGreaterThan(cut.clientWidth);
+    // The whole text stays in the DOM; only its drawing is cut.
+    expect(cut.text).toBe(wrapped.text);
+    // One line: the long row is as tall as a row of one short word.
+    expectNear(cut.rowHeight, short.rowHeight);
+    expect(cut.rowHeight).toBeLessThan(wrapped.rowHeight);
+  });
+
   test('`wordWrap: false` wins over a number and renders one line with an ellipsis', async({ page, theme, bundle }) => {
     const grid = new TextEllipsisLineClampPage(page, theme, bundle);
 

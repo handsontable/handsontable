@@ -409,6 +409,19 @@ test.describe('width-only grid: holder scrolls columns, window scrolls rows', ()
     expect(extents.holderScrollWidth).toBeGreaterThan(extents.holderClientWidth);
     expect(extents.holderClientWidth).toBeLessThanOrEqual(500);
 
+    // A horizontal wheel moves the columns inside the root by exactly its delta, and the page stays
+    // where it was (the visual suite's `wrapper-preventOverflow` capture, as an assertion).
+    await grid.watchWheelEvents();
+    await grid.wheelOverGrid(0, 160);
+
+    const [gesture] = await grid.wheelLog();
+    const afterWheel = await grid.scrollExtents();
+
+    expect(gesture.defaultPrevented).toBe(true);
+    expect(afterWheel.holderScrollLeft - extents.holderScrollLeft).toBe(160);
+    expect(afterWheel.windowScrollX).toBe(0);
+    expect(afterWheel.windowScrollY).toBe(0);
+
     const countBefore = await grid.verticalScrollCount();
 
     await grid.scrollWindowBy(0, 600);
@@ -417,5 +430,15 @@ test.describe('width-only grid: holder scrolls columns, window scrolls rows', ()
 
     expect(Math.abs(topBox.y)).toBeLessThanOrEqual(1);
     expect(await grid.verticalScrollCount()).toBeGreaterThan(countBefore);
+  });
+
+  // eslint-disable-next-line no-restricted-syntax -- DEV-3290: the scroll spacer and overlay rails are not clipped under preventOverflow, so they widen the page
+  test.fixme('the legacy `preventOverflow: "horizontal"` alias leaves the page without a horizontal scroll range', async () => {
+    await grid.rebuild({ width: undefined, preventOverflow: 'horizontal' }, '500px');
+
+    const extents = await grid.scrollExtents();
+
+    // As with `width: 500` above: the columns overflow the root, never the page.
+    expect(extents.documentScrollWidth).toBeLessThanOrEqual(extents.documentClientWidth);
   });
 });
