@@ -183,6 +183,24 @@ test.describe('content of a merged cell across a frozen-column line', () => {
     await expect.poll(async () => (await grid.visibleMarkers()).count).toBe(1);
   });
 
+  test('repaints a crossing block under renderMode onChange when a column of the frozen band is hidden', async () => {
+    // The freeze line is a visual column index; a hidden column in the band must not move it.
+    await grid.initGrid({
+      renderMode: 'onChange',
+      manualColumnResize: true,
+      fixedColumnsStart: 2,
+      hiddenColumns: { columns: [0] },
+      mergeCells: [{ row: 1, col: 1, rowspan: 1, colspan: 6 }],
+      values: [{ row: 1, col: 1, value: 'markers:1' }],
+      cell: [{ row: 1, col: 1, className: 'htRight' }],
+    });
+    await expect.poll(async () => Math.abs((await grid.startWrapperWidthDrift()) ?? NaN)).toBeLessThan(0.5);
+
+    await grid.resizeColumn(4, 160);
+
+    await expect.poll(async () => Math.abs((await grid.startWrapperWidthDrift()) ?? NaN)).toBeLessThan(0.5);
+  });
+
   test('keeps one layout wrapper when a hook wraps the cell content in a link after the plugin', async () => {
     await grid.initGrid({
       fixedColumnsStart: 2,

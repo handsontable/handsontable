@@ -3821,7 +3821,9 @@ export class MergeCells extends BasePlugin {
    */
   #markBlocksCrossingFrozenColumnsChanged() {
     const countCols = this.hot.countCols();
-    const startEdge = Math.min(this.hot.view.countNotHiddenFixedColumnsStart(), countCols);
+    // Both edges are visual column indexes, like the blocks' columns: the not-hidden count of the start band
+    // would move the edge left of the freeze line for every hidden column in the band.
+    const startEdge = Math.min(Number(this.hot.getSettings().fixedColumnsStart) || 0, countCols);
     const endEdge = countCols - this.hot.view.countFixedColumnsEnd();
 
     this.mergedCellsCollection.mergedCells.forEach(({ row, col, colspan }: MergedCellCoords) => {
