@@ -27,7 +27,7 @@ export class AppComponent {
 
   constructor() {
     const hfInstance = HyperFormula.buildEmpty({
-      licenseKey: 'internal-use-in-handsontable',
+      licenseKey: 'gpl-v3',
     });
 
     hfInstance.addSheet('Sheet1');

@@ -8,7 +8,7 @@ registerAllModules();
 // Named expressions that reference cell ranges must be registered after the sheet
 // exists. Pre-build the engine, add the sheet, then add the named expressions.
 const hfInstance = HyperFormula.buildEmpty({
-  licenseKey: 'internal-use-in-handsontable',
+  licenseKey: 'gpl-v3',
 });
 
 hfInstance.addSheet('Sheet1');

@@ -25,11 +25,11 @@ const data2 = [
 ];
 
 // create an external HyperFormula instance, initialized with the
-// `'internal-use-in-handsontable'` license key, and shared by both grids.
+// `'gpl-v3'` license key (use your own key in your app), and shared by both grids.
 // `markRaw` prevents Vue from wrapping the instance in a reactive proxy.
 const hyperformulaInstance = markRaw(
   HyperFormula.buildEmpty({
-    licenseKey: 'internal-use-in-handsontable',
+    licenseKey: 'gpl-v3',
   })
 );
 
