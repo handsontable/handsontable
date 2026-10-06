@@ -32,7 +32,9 @@
   </style>
 </head>
 <body>
-  <div id="grid" data-testid="grid"></div>
+  <div id="host" data-testid="host">
+    <div id="grid" data-testid="grid"></div>
+  </div>
 
   <script>
     document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
@@ -58,6 +60,9 @@
      * applied last. `containerHeight: 'auto'` drops the container's fixed CSS height, so an explicit
      * `height` option alone sizes the wrapper. `sizeOptions: 'unset'` passes no `width`/`height`
      * option, so the page owns the scroll axes. `documentDir` sets the `dir` of the whole document.
+     * `hostLayout` puts the container in a shrink-to-fit host (`inline-block`, or `flex` for a
+     * `flex: 1` item of a flex row). `widthFunction` passes `width` as a function returning that
+     * number, counting its calls in `window.htWidthCalls`. Every draw counts in `window.htRenderCount`.
      *
      * @param {object} [options] The build options.
      * @returns {boolean}
@@ -68,6 +73,8 @@
       containerHeight = 'fixed',
       sizeOptions = 'fill',
       documentDir = 'ltr',
+      hostLayout = 'fixed',
+      widthFunction,
     } = {}) {
       if (window.hot) {
         window.hot.destroy();
@@ -87,9 +94,32 @@
         grid.style.height = 'auto';
       }
 
+      const host = document.getElementById('host');
+      const hostLayouts = {
+        fixed: { host: '', grid: null },
+        'inline-block': { host: '', grid: 'display: inline-block; width: auto; height: auto;' },
+        flex: { host: 'display: flex; width: 720px;', grid: 'flex: 1; width: auto; height: auto;' },
+      };
+
+      host.setAttribute('style', hostLayouts[hostLayout].host);
+
+      if (hostLayouts[hostLayout].grid !== null) {
+        grid.setAttribute('style', hostLayouts[hostLayout].grid);
+      }
+
       oldGrid.replaceWith(grid);
 
       const sizeSettings = sizeOptions === 'unset' ? {} : { width: '100%', height: '100%' };
+      const widthSettings = widthFunction === undefined ? {} : {
+        width: () => {
+          window.htWidthCalls += 1;
+
+          return widthFunction;
+        },
+      };
+
+      window.htRenderCount = 0;
+      window.htWidthCalls = 0;
 
       window.hot = new Handsontable(grid, {
         data: buildData(100, cols),
@@ -99,7 +129,11 @@
         ...sizeSettings,
         renderer: testIdRenderer,
         licenseKey: window.htLicenseKey,
+        afterRender: () => {
+          window.htRenderCount += 1;
+        },
         ...overrides,
+        ...widthSettings,
       });
 
       return true;
@@ -164,6 +198,32 @@
      */
     window.resizeSideSlotContainer = function(width) {
       document.getElementById('grid').style.width = `${width}px`;
+
+      return true;
+    };
+
+    /**
+     * Registers a fixed-width side panel and returns the root element's inline width read in the
+     * same task, before any timer or frame could run.
+     *
+     * @param {string} side The slot name.
+     * @param {string} key The registration key, also the panel's test id suffix.
+     * @param {number} width The panel width in pixels.
+     * @returns {string}
+     */
+    window.addSidePanelAndReadRootWidth = function(side, key, width) {
+      window.addSidePanel(side, key, width);
+
+      return window.hot.rootElement.style.width;
+    };
+
+    /**
+     * Shows a notification toast that stays until it is closed.
+     *
+     * @returns {boolean}
+     */
+    window.showToast = function() {
+      window.hot.getPlugin('notification').showMessage({ message: 'Saved', duration: 0 });
 
       return true;
     };

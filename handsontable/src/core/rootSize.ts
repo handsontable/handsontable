@@ -229,7 +229,7 @@ function writeRootWidth(instance: HotInstance, cssValue: string): void {
   const reservedWidth = getSideSlotsWidth(instance);
   const state = classifyInlineSize(cssValue);
 
-  if (reservedWidth === 0 || state === 'auto' || state === 'unset') {
+  if (reservedWidth === 0 || state === 'auto') {
     rootElement.style.width = cssValue;
     clearWrapperWidth(instance);
 
@@ -237,8 +237,11 @@ function writeRootWidth(instance: HotInstance, cssValue: string): void {
   }
 
   if (state === 'container-driven') {
+    if (rootWrapperElement.dataset.htWidthBeforeSideSlots === undefined) {
+      rootWrapperElement.dataset.htWidthBeforeSideSlots = rootWrapperElement.style.width;
+    }
+
     rootWrapperElement.style.width = cssValue;
-    rootWrapperElement.dataset.htSideSlotsWidth = 'true';
     rootElement.style.width = '100%';
 
     return;
@@ -270,17 +273,19 @@ function warnSideSlotsWiderThanWidth(rootElement: HTMLElement, cssValue: string,
 }
 
 /**
- * Removes a width `writeRootWidth` put on the root wrapper, and only that one: an inline width the
- * application set on the root wrapper is left alone.
+ * Undoes a width `writeRootWidth` put on the root wrapper: the inline width the wrapper had before
+ * (an application's own value, or none) comes back. A wrapper `writeRootWidth` never wrote is left
+ * alone.
  *
  * @param {HotInstance} instance The grid instance.
  */
 function clearWrapperWidth(instance: HotInstance): void {
   const { rootWrapperElement } = instance;
+  const previousWidth = rootWrapperElement?.dataset.htWidthBeforeSideSlots;
 
-  if (isRootInstance(instance) && rootWrapperElement?.dataset.htSideSlotsWidth) {
-    rootWrapperElement.style.width = '';
-    delete rootWrapperElement.dataset.htSideSlotsWidth;
+  if (isRootInstance(instance) && previousWidth !== undefined) {
+    rootWrapperElement.style.width = previousWidth;
+    delete rootWrapperElement.dataset.htWidthBeforeSideSlots;
   }
 }
 

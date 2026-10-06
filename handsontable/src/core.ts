@@ -88,7 +88,7 @@ import { initLicenseBranding } from './utils/licenseBranding';
 import { getValueSetterValue } from './utils/valueAccessors';
 import { clipRemovalRange } from './utils/removalRange';
 import { createThemeManager, isThemeOverrideEmpty } from './themes/engine';
-import { LayoutManager, LAYOUT_SLOTS, type LayoutConfig } from './core/layout';
+import { LayoutManager, LAYOUT_SLOTS, refreshSlotFilledState, type LayoutConfig } from './core/layout';
 import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
 import type { ThemeBuilder } from './themes/engine/builder';
 import type { ThemeOverridesInput } from './themes/engine/manager';
@@ -513,7 +513,8 @@ export default function Core(
   /**
    * Reference to the start slot element. A wrapper slot rendered at the inline-start edge of the
    * grid, spanning the full wrapper height (for example a side panel). Ordered through the layout
-   * manager.
+   * manager. It is inserted into the root wrapper only while it holds an element, so a grid without
+   * side panels keeps the wrapper's original children.
    *
    * @private
    * @type {HTMLElement}
@@ -522,7 +523,8 @@ export default function Core(
 
   /**
    * Reference to the end slot element. A wrapper slot rendered at the inline-end edge of the grid,
-   * spanning the full wrapper height. Ordered through the layout manager.
+   * spanning the full wrapper height. Ordered through the layout manager. Like the start slot, it is
+   * inserted into the root wrapper only while it holds an element.
    *
    * @private
    * @type {HTMLElement}
@@ -599,11 +601,9 @@ export default function Core(
 
     this.rootGridContentElement.appendChild(this.rootElement);
     this.rootGridElement.appendChild(this.rootGridContentElement);
-    this.rootWrapperElement.appendChild(this.rootSlotStartElement);
     this.rootWrapperElement.appendChild(this.rootSlotTopElement);
     this.rootWrapperElement.appendChild(this.rootGridElement);
     this.rootWrapperElement.appendChild(this.rootSlotBottomElement);
-    this.rootWrapperElement.appendChild(this.rootSlotEndElement);
     this.rootWrapperElement.appendChild(this.rootOverlaysElement);
     this.rootContainer.appendChild(this.rootWrapperElement);
     (this.rootWrapperElement as HTMLElement & { __hotInstance: HotInstance }).__hotInstance = this;
@@ -2533,6 +2533,29 @@ export default function Core(
       };
 
       instance.addHook('afterRender', syncEdgeSlotsWidth);
+
+      const gridInsets = { start: '', end: '' };
+
+      const syncGridInsets = () => {
+        const { rootWrapperElement: wrapper, rootGridElement: grid } = instance;
+        const hasSideSlots = getSideSlotsWidth(instance) > 0;
+        const before = hasSideSlots ? grid.offsetLeft : 0;
+        const after = hasSideSlots ? wrapper.clientWidth - grid.offsetLeft - grid.offsetWidth : 0;
+        const start = hasSideSlots ? `${Math.max(0, instance.isRtl() ? after : before)}px` : '';
+        const end = hasSideSlots ? `${Math.max(0, instance.isRtl() ? before : after)}px` : '';
+
+        if (start !== gridInsets.start) {
+          gridInsets.start = start;
+          wrapper.style.setProperty('--ht-grid-inset-inline-start', start);
+        }
+
+        if (end !== gridInsets.end) {
+          gridInsets.end = end;
+          wrapper.style.setProperty('--ht-grid-inset-inline-end', end);
+        }
+      };
+
+      instance.addHook('afterRender', syncGridInsets);
 
       const slots = [instance.rootSlotTopElement, instance.rootSlotBottomElement];
       const measureSlotsHeight = () => slots.reduce((sum, slot) => sum + slot.offsetHeight, 0);
@@ -8604,10 +8627,28 @@ export default function Core(
         return;
       }
 
-      lastSideSlotsWidth = getSideSlotsWidth(instance);
-      reapplyRootWidth(instance, tableMeta.width);
+      syncSideSlotsWidth();
       instance.render();
     });
+  };
+
+  const syncSideSlotsWidth = () => {
+    lastSideSlotsWidth = getSideSlotsWidth(instance);
+    reapplyRootWidth(instance, tableMeta.width);
+  };
+
+  const mountSideSlot = (name: typeof LAYOUT_SLOTS.START | typeof LAYOUT_SLOTS.END) => {
+    const slot = name === LAYOUT_SLOTS.START ? instance.rootSlotStartElement : instance.rootSlotEndElement;
+    const { rootWrapperElement } = instance;
+
+    if (slot.childElementCount > 0 && !slot.parentElement) {
+      const anchor = name === LAYOUT_SLOTS.START ? rootWrapperElement.firstChild : instance.rootOverlaysElement;
+
+      rootWrapperElement.insertBefore(slot, anchor);
+      refreshSlotFilledState(name, slot);
+    } else if (slot.childElementCount === 0 && slot.parentElement) {
+      slot.remove();
+    }
   };
 
   const observeSideSlotElements = () => {
@@ -8634,7 +8675,13 @@ export default function Core(
     }, {
       onSlotContentChange: (name) => {
         if (!isTearingDown && (name === LAYOUT_SLOTS.START || name === LAYOUT_SLOTS.END)) {
+          mountSideSlot(name);
           observeSideSlotElements();
+
+          if (instance.view) {
+            syncSideSlotsWidth();
+          }
+
           scheduleSideSlotsSync();
         }
       },

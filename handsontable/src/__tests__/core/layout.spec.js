@@ -17,7 +17,7 @@ describe('Layout slots', () => {
     }
   });
 
-  it('renders the ht-slot-start slot as the first wrapper child and ht-slot-top right after it', async() => {
+  it('renders the ht-slot-top slot as the first wrapper child while no side slot is filled', async() => {
     const hot = handsontable({ data: createSpreadsheetData(3, 3) });
     const children = Array.from(hot.rootWrapperElement.children).map(c => c.className);
 
@@ -25,8 +25,9 @@ describe('Layout slots', () => {
     expect(hot.rootSlotTopElement.classList.contains('ht-slot-top')).toBe(true);
     expect(hot.rootSlotStartElement.classList.contains('ht-slot-start')).toBe(true);
     expect(hot.rootSlotEndElement.classList.contains('ht-slot-end')).toBe(true);
-    expect(children[0]).toContain('ht-slot-start');
-    expect(children[1]).toContain('ht-slot-top');
+    expect(children[0]).toContain('ht-slot-top');
+    expect(hot.rootSlotStartElement.parentNode).toBe(null);
+    expect(hot.rootSlotEndElement.parentNode).toBe(null);
   });
 
   it('places ht-overlay as the last wrapper child', async() => {
@@ -36,14 +37,33 @@ describe('Layout slots', () => {
     expect(children.at(-1)).toContain('ht-overlay');
   });
 
-  it('orders the wrapper slots start, top, grid, bottom, end, overlays', async() => {
-    const hot = handsontable({ data: createSpreadsheetData(3, 3) });
-    const classes = Array.from(hot.rootWrapperElement.children)
-      .map(c => c.className.split(' ').find(n => n.startsWith('ht-')));
+  const wrapperChildClasses = hot => Array.from(hot.rootWrapperElement.children)
+    .map(c => c.className.split(' ').find(n => n.startsWith('ht-')));
 
-    expect(classes).toEqual([
+  it('orders the wrapper slots top, grid, bottom, overlays while no side slot is filled', async() => {
+    const hot = handsontable({ data: createSpreadsheetData(3, 3) });
+
+    expect(wrapperChildClasses(hot)).toEqual(['ht-slot-top', 'ht-grid', 'ht-slot-bottom', 'ht-overlay']);
+  });
+
+  it('mounts the side slots in the order start, top, grid, bottom, end, overlays and removes them when emptied', async() => {
+    const hot = handsontable({ data: createSpreadsheetData(3, 3) });
+
+    hot.getLayoutManager().register('details', document.createElement('div'), { side: 'end' });
+
+    expect(wrapperChildClasses(hot)).toEqual(['ht-slot-top', 'ht-grid', 'ht-slot-bottom', 'ht-slot-end', 'ht-overlay']);
+
+    hot.getLayoutManager().register('nav', document.createElement('div'), { side: 'start' });
+
+    expect(wrapperChildClasses(hot)).toEqual([
       'ht-slot-start', 'ht-slot-top', 'ht-grid', 'ht-slot-bottom', 'ht-slot-end', 'ht-overlay',
     ]);
+
+    hot.getLayoutManager().unregister('nav', 'start');
+    hot.getLayoutManager().unregister('details', 'end');
+
+    expect(wrapperChildClasses(hot)).toEqual(['ht-slot-top', 'ht-grid', 'ht-slot-bottom', 'ht-overlay']);
+    expect(hot.getLayoutManager().getSlot('start').getElement()).toBe(hot.rootSlotStartElement);
   });
 
   const slotItemIds = slot => Array.from(slot.getElement().children).map(c => c.dataset.id);

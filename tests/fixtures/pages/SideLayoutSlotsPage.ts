@@ -6,6 +6,18 @@ import './windowTypes';
 export type SideSlot = 'start' | 'end';
 
 /**
+ * One side panel's physical border widths and corner radii, in pixels.
+ */
+export interface PanelSeam {
+  borderLeftWidth: number;
+  borderRightWidth: number;
+  topLeftRadius: number;
+  topRightRadius: number;
+  bottomLeftRadius: number;
+  bottomRightRadius: number;
+}
+
+/**
  * One rectangle in viewport coordinates.
  */
 export interface Box {
@@ -39,6 +51,8 @@ export interface SideSlotGeometry {
   paginationBar: Box | null;
   bottomSlot: Box;
   lock: Box | null;
+  badge: Box | null;
+  notification: Box | null;
   overlayLayer: Box;
   dialog: Box | null;
   startPanelScrollHeight: number;
@@ -106,6 +120,8 @@ export class SideLayoutSlotsPage {
     containerHeight?: 'fixed' | 'auto',
     sizeOptions?: 'fill' | 'unset',
     documentDir?: 'ltr' | 'rtl',
+    hostLayout?: 'fixed' | 'inline-block' | 'flex',
+    widthFunction?: number,
   }): Promise<void> {
     await this.page.evaluate(o => window.initSideSlotGrid(o), options);
     await this.waitForRender();
@@ -257,6 +273,152 @@ export class SideLayoutSlotsPage {
   }
 
   /**
+   * Pins the clock inside the fixture trial key's validity, then reloads the fixture with that key,
+   * so the grid shows the trial license badge without locking.
+   */
+  async gotoDuringTrial(): Promise<void> {
+    await this.page.clock.setFixedTime(new Date(INSTANT.duringTrial));
+    await this.goto({ license: 'trial' });
+  }
+
+  /**
+   * Registers a fixed-width panel and returns the root element's inline width read in the same
+   * task, before any scheduled pass or frame could run.
+   */
+  async addPanelAndReadRootWidth(side: SideSlot, key: string, width: number): Promise<string> {
+    return this.page.evaluate(([s, k, w]) => window.addSidePanelAndReadRootWidth(s, k, w), [side, key, width] as const);
+  }
+
+  /**
+   * How many times the `width` function has been called since the last rebuild.
+   */
+  async widthFunctionCalls(): Promise<number> {
+    return this.page.evaluate(() => window.htWidthCalls);
+  }
+
+  /**
+   * Shows a notification toast that stays until it is closed.
+   */
+  async showToast(): Promise<void> {
+    await this.page.evaluate(() => window.showToast());
+    await expect(this.grid.locator('.ht-notification__toast')).toBeVisible();
+  }
+
+  /**
+   * How many draws happen while the page paints `frames` animation frames. Frames are counted
+   * inside the page, so the window is a frame count, not a wall-clock wait.
+   */
+  async rendersOverFrames(frames: number): Promise<number> {
+    return this.page.evaluate(async (count) => {
+      const before = window.htRenderCount;
+
+      for (let frame = 0; frame < count; frame += 1) {
+        await new Promise(resolve => requestAnimationFrame(resolve));
+      }
+
+      return window.htRenderCount - before;
+    }, frames);
+  }
+
+  /**
+   * How many draws the grid has made since the last rebuild.
+   */
+  async renderCount(): Promise<number> {
+    return this.page.evaluate(() => window.htRenderCount);
+  }
+
+  /**
+   * The root wrapper's direct children (by their first `ht-` class) and its computed `display`.
+   */
+  async wrapperStructure(): Promise<{ children: string[], display: string }> {
+    return this.page.evaluate(() => {
+      const wrapper = document.querySelector('.ht-root-wrapper') as HTMLElement;
+
+      return {
+        children: Array.from(wrapper.children)
+          .map(child => Array.from(child.classList).find(name => name.startsWith('ht-')) ?? ''),
+        display: getComputedStyle(wrapper).display,
+      };
+    });
+  }
+
+  /**
+   * The physical border widths and corner radii of every panel in a side slot, in DOM order, plus
+   * the theme's `--ht-border-radius` as the panels resolve it.
+   */
+  async panelSeams(side: SideSlot): Promise<{ themeRadius: number, panels: PanelSeam[] }> {
+    return this.page.evaluate((slotSide) => {
+      const panels = Array.from(document.querySelectorAll(`.ht-root-wrapper > .ht-slot-${slotSide} > .ht-slot-element`));
+      const px = (value: string) => parseFloat(value) || 0;
+      const first = panels[0];
+
+      return {
+        themeRadius: first ? px(getComputedStyle(first).getPropertyValue('--ht-border-radius')) : 0,
+        panels: panels.map((panel) => {
+          const style = getComputedStyle(panel);
+
+          return {
+            borderLeftWidth: px(style.borderLeftWidth),
+            borderRightWidth: px(style.borderRightWidth),
+            topLeftRadius: px(style.borderTopLeftRadius),
+            topRightRadius: px(style.borderTopRightRadius),
+            bottomLeftRadius: px(style.borderBottomLeftRadius),
+            bottomRightRadius: px(style.borderBottomRightRadius),
+          };
+        }),
+      };
+    }, side);
+  }
+
+  /**
+   * Moves the browser focus onto a counting button.
+   */
+  async focusButton(key: string): Promise<void> {
+    await this.button(key).focus();
+    await expect(this.button(key)).toBeFocused();
+  }
+
+  /**
+   * Where the keyboard is: the test id of the focused counting button (`null` for anything else,
+   * a grid cell included) and
+   * whether the grid listens to the keyboard with a selection.
+   */
+  async focusState(): Promise<{ focused: string | null, gridActive: boolean }> {
+    return this.page.evaluate(() => {
+      const hot = window.hot as unknown as { isListening(): boolean, getSelected(): unknown };
+
+      const testId = document.activeElement?.getAttribute('data-testid') ?? '';
+
+      return {
+        focused: testId.startsWith('button-') ? testId : null,
+        gridActive: hot.isListening() && hot.getSelected() !== undefined,
+      };
+    });
+  }
+
+  /**
+   * Presses `key` until the counting button `target` holds the focus, at most `maxPresses` times,
+   * and returns every focus stop on the way (`'grid'` while the grid holds the keyboard).
+   */
+  async pressUntilFocused(key: 'Tab' | 'Shift+Tab', target: string, maxPresses: number): Promise<string[]> {
+    const stops: string[] = [];
+
+    for (let press = 0; press < maxPresses; press += 1) {
+      await this.page.keyboard.press(key);
+
+      const { focused, gridActive } = await this.focusState();
+
+      stops.push(focused ?? (gridActive ? 'grid' : 'other'));
+
+      if (focused === `button-${target}`) {
+        break;
+      }
+    }
+
+    return stops;
+  }
+
+  /**
    * The license lock screen.
    */
   lock(): Locator {
@@ -350,6 +512,10 @@ export class SideLayoutSlotsPage {
         paginationBar: bar ? toBox(bar) : null,
         bottomSlot: toBox(wrapper.querySelector(':scope > .ht-slot-bottom')),
         lock: wrapper.querySelector('.ht-license-lock') ? toBox(wrapper.querySelector('.ht-license-lock')) : null,
+        badge: wrapper.querySelector('.ht-license-badge-wrapper')
+          ? toBox(wrapper.querySelector('.ht-license-badge-wrapper')) : null,
+        notification: wrapper.querySelector('.ht-notification')
+          ? toBox(wrapper.querySelector('.ht-notification')) : null,
         overlayLayer: toBox(wrapper.querySelector(':scope > .ht-overlay')),
         dialog: dialog ? toBox(dialog) : null,
         startPanelScrollHeight: startPanel?.scrollHeight ?? 0,

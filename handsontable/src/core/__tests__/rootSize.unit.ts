@@ -1,5 +1,6 @@
 import Handsontable from '../../index';
-import { applyRootSize, getSideSlotsWidth } from '../rootSize';
+import Core from '../../core';
+import { applyRootSize, getSideSlotsWidth, reapplyRootWidth } from '../rootSize';
 
 /**
  * The root's inline `height`, `width` and `overflow*` are written by `core/rootSize.ts` only.
@@ -302,6 +303,27 @@ describe('root size options', () => {
       expect(sidePanelWarnings()).toEqual([]);
     });
 
+    it('should restore the application\'s root wrapper width after a container-driven width with side panels', () => {
+      const grid = buildGrid({});
+
+      grid.rootWrapperElement.style.width = '800px';
+      stubSideSlotWidths(grid, 100, 0);
+      applyRootSize(grid, { width: '50%' }, false);
+
+      expect(inlineWidths(grid)).toEqual({ root: '100%', wrapper: '50%' });
+
+      stubSideSlotWidths(grid, 0, 0);
+      applyRootSize(grid, { width: '50%' }, false);
+
+      expect(inlineWidths(grid)).toEqual({ root: '50%', wrapper: '800px' });
+
+      stubSideSlotWidths(grid, 100, 0);
+      applyRootSize(grid, { width: '50%' }, false);
+      applyRootSize(grid, { width: null }, false);
+
+      expect(inlineWidths(grid)).toEqual({ root: '', wrapper: '800px' });
+    });
+
     it('should keep a root wrapper width the application set', () => {
       const grid = buildGrid({});
 
@@ -355,6 +377,233 @@ describe('root size options', () => {
       applyRootSize(grid, { width: null }, false);
 
       expect(inlineWidths(grid)).toEqual({ root: '', wrapper: '' });
+    });
+  });
+
+  describe('side slot width edge cases', () => {
+    /**
+     * Gives a side slot element a layout width and, when `filled`, one child.
+     *
+     * @param {HTMLElement} slot The side slot element.
+     * @param {number} width The slot width.
+     * @param {boolean} filled Whether the slot holds a child.
+     */
+    function stubSlot(slot: HTMLElement, width: number, filled: boolean): void {
+      Object.defineProperty(slot, 'offsetWidth', { value: width, configurable: true });
+      slot.replaceChildren(...(filled ? [document.createElement('div')] : []));
+    }
+
+    /**
+     * Fills the side slots with one child each and stubs their widths (`0` empties the slot).
+     *
+     * @param {Handsontable} instance The grid.
+     * @param {number} start The `start` slot width.
+     * @param {number} end The `end` slot width.
+     */
+    function stubSideSlots(instance: Handsontable, start: number, end: number): void {
+      stubSlot(instance.rootSlotStartElement, start, start > 0);
+      stubSlot(instance.rootSlotEndElement, end, end > 0);
+    }
+
+    /**
+     * The side-panel width warnings printed so far.
+     *
+     * @returns {string[]}
+     */
+    function sidePanelWarnings(): string[] {
+      return warnSpy.mock.calls
+        .map(([message]) => message)
+        .filter((message): message is string => typeof message === 'string')
+        .filter(message => message.includes('take up the whole `width`'));
+    }
+
+    /**
+     * Builds a NESTED (non-root) instance: a bare `Core` built without the root-instance symbol.
+     * It owns no layout slots, so a wrapper element is handed to it to prove the root-only guards
+     * hold, not that the element is missing.
+     *
+     * @returns {object}
+     */
+    function buildNestedInstance() {
+      const container = document.createElement('div');
+      const nested = new Core(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [[1, 2], [3, 4]],
+      });
+
+      nested.init();
+      nested.rootWrapperElement = document.createElement('div');
+
+      return nested;
+    }
+
+    describe('reapplyRootWidth', () => {
+      it('should do nothing for an `undefined` or `null` width', () => {
+        const grid = buildGrid({ width: 900 });
+        const hook = jest.fn(value => value);
+
+        grid.addHook('beforeWidthChange', hook);
+        stubSideSlots(grid, 100, 0);
+
+        reapplyRootWidth(grid, undefined);
+        reapplyRootWidth(grid, null);
+
+        expect(hook).not.toHaveBeenCalled();
+        expect(grid.rootElement.style.width).toBe('900px');
+      });
+
+      it('should re-run the width pass once with the current side slot width', () => {
+        const grid = buildGrid({ width: 900 });
+        const hook = jest.fn(value => value);
+
+        grid.addHook('beforeWidthChange', hook);
+        stubSideSlots(grid, 100, 200);
+
+        reapplyRootWidth(grid, 900);
+
+        expect(hook).toHaveBeenCalledTimes(1);
+        expect(hook).toHaveBeenCalledWith(900);
+        expect(grid.rootElement.style.width.replace(/\s+/g, '')).toBe('calc(900px-300px)');
+      });
+    });
+
+    it('should keep the application wrapper width saved across two container-driven widths in a row', () => {
+      const grid = buildGrid({});
+
+      grid.rootWrapperElement.style.width = '800px';
+      stubSideSlots(grid, 100, 0);
+      applyRootSize(grid, { width: '50%' }, false);
+      applyRootSize(grid, { width: '60%' }, false);
+
+      expect(grid.rootWrapperElement.style.width).toBe('60%');
+      expect(grid.rootElement.style.width).toBe('100%');
+
+      stubSideSlots(grid, 0, 0);
+      applyRootSize(grid, { width: '60%' }, false);
+
+      expect(grid.rootWrapperElement.style.width).toBe('800px');
+      expect(grid.rootElement.style.width).toBe('60%');
+    });
+
+    it('should restore the application wrapper width on `null` after two container-driven widths', () => {
+      const grid = buildGrid({});
+
+      grid.rootWrapperElement.style.width = '800px';
+      stubSideSlots(grid, 100, 0);
+      applyRootSize(grid, { width: '50%' }, false);
+      applyRootSize(grid, { width: '60%' }, false);
+      applyRootSize(grid, { width: null }, false);
+
+      expect(grid.rootWrapperElement.style.width).toBe('800px');
+      expect(grid.rootElement.style.width).toBe('');
+    });
+
+    it('should write `auto` on the root unchanged and leave the wrapper alone with filled side slots', () => {
+      const grid = buildGrid({});
+
+      grid.rootWrapperElement.style.width = '800px';
+      stubSideSlots(grid, 100, 200);
+      applyRootSize(grid, { width: 'auto' }, false);
+
+      expect(grid.rootElement.style.width).toBe('auto');
+      expect(grid.rootWrapperElement.style.width).toBe('800px');
+      expect(grid.rootWrapperElement.classList.contains('ht-grid-fixed-width')).toBe(false);
+    });
+
+    it('should warn when the side panels exactly match a pixel width', () => {
+      const grid = buildGrid({});
+
+      stubSideSlots(grid, 300, 100);
+      applyRootSize(grid, { width: 400 }, false);
+
+      expect(sidePanelWarnings()).toHaveLength(1);
+      expect(sidePanelWarnings()[0]).toContain('(400px)');
+      expect(sidePanelWarnings()[0]).toContain('side panels (400px)');
+    });
+
+    it('should not warn when the side panels leave one pixel of a pixel width', () => {
+      const grid = buildGrid({});
+
+      stubSideSlots(grid, 300, 99);
+      applyRootSize(grid, { width: 400 }, false);
+
+      expect(sidePanelWarnings()).toEqual([]);
+    });
+
+    it('should warn for a fractional pixel width the side panels cover', () => {
+      const grid = buildGrid({});
+
+      stubSideSlots(grid, 900.5, 0);
+      applyRootSize(grid, { width: '900.5px' }, false);
+
+      expect(sidePanelWarnings()).toHaveLength(1);
+      expect(sidePanelWarnings()[0]).toContain('side panels (900.5px)');
+      expect(sidePanelWarnings()[0]).toContain('(900.5px)');
+    });
+
+    it('should not warn for a fractional pixel width the side panels do not cover', () => {
+      const grid = buildGrid({});
+
+      stubSideSlots(grid, 900, 0);
+      applyRootSize(grid, { width: '900.5px' }, false);
+
+      expect(sidePanelWarnings()).toEqual([]);
+    });
+
+    it('should not warn for a fixed width that is not in pixels, however wide the side panels', () => {
+      const grid = buildGrid({});
+
+      stubSideSlots(grid, 5000, 5000);
+      applyRootSize(grid, { width: '40em' }, false);
+
+      expect(grid.rootElement.style.width.replace(/\s+/g, '')).toBe('calc(40em-10000px)');
+      expect(sidePanelWarnings()).toEqual([]);
+    });
+
+    it('should report no side slot width for an instance that is not the root one', () => {
+      const filledSlot = document.createElement('div');
+
+      filledSlot.appendChild(document.createElement('div'));
+      Object.defineProperty(filledSlot, 'offsetWidth', { value: 300, configurable: true });
+
+      const notRoot = {
+        rootSlotStartElement: filledSlot,
+        rootSlotEndElement: filledSlot,
+      } as unknown as Handsontable;
+
+      expect(getSideSlotsWidth(notRoot)).toBe(0);
+    });
+
+    it('should count a missing side slot element as zero', () => {
+      const grid = buildGrid({});
+
+      stubSideSlots(grid, 100, 0);
+      (grid as unknown as { rootSlotEndElement: HTMLElement | null }).rootSlotEndElement = null;
+
+      expect(getSideSlotsWidth(grid)).toBe(100);
+    });
+
+    it('should leave a nested instance\'s wrapper width alone on `null`', () => {
+      const nested = buildNestedInstance();
+
+      nested.rootWrapperElement.style.width = '700px';
+      nested.rootWrapperElement.dataset.htWidthBeforeSideSlots = '800px';
+
+      expect(() => applyRootSize(nested, { width: null }, false)).not.toThrow();
+      expect(nested.rootWrapperElement.style.width).toBe('700px');
+      expect(nested.rootWrapperElement.dataset.htWidthBeforeSideSlots).toBe('800px');
+
+      nested.destroy();
+    });
+
+    it('should not mark a nested instance\'s wrapper with the fixed-width class', () => {
+      const nested = buildNestedInstance();
+
+      expect(() => applyRootSize(nested, { width: 400 }, false)).not.toThrow();
+      expect(nested.rootElement.style.width).toBe('400px');
+      expect(nested.rootWrapperElement.classList.contains('ht-grid-fixed-width')).toBe(false);
+
+      nested.destroy();
     });
   });
 

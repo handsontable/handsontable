@@ -8679,7 +8679,8 @@ export default (): Record<string, unknown> => {
      *
      * With side panels docked in the
      * [`start` and `end` layout slots](@/guides/accessories-and-menus/layout-slots/layout-slots.md),
-     * the width includes them, and the grid fills the rest.
+     * the width includes them, and the grid fills the rest. A function `width` then runs again
+     * whenever a side panel mounts, unmounts, or changes its width.
      *
      * With `width: 'auto'`, Handsontable writes `width: auto` as an inline style on the root
      * element. The grid then follows the width of its parent container, like a plain block

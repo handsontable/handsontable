@@ -203,6 +203,7 @@ describe('Side slot teardown', () => {
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.restoreAllMocks();
     container.remove();
   });
@@ -252,7 +253,6 @@ describe('Side slot teardown', () => {
     expect(registerTimeoutSpy).toHaveBeenCalledTimes(1);
 
     jest.runOnlyPendingTimers();
-    jest.useRealTimers();
     registerTimeoutSpy.mockClear();
 
     const resizeObserverSpy = jest.spyOn(hot.rootWindow, 'ResizeObserver');

@@ -28,9 +28,9 @@ Handsontable wraps the grid in a root element that contains six areas:
 | `bottom` | `ht-slot-bottom` | Below the grid | Yes |
 | `start` | `ht-slot-start` | At the grid's inline-start edge (left in LTR, right in RTL), full height | Yes |
 | `end` | `ht-slot-end` | At the grid's inline-end edge (right in LTR, left in RTL), full height | Yes |
-| (overlays) | `ht-overlay` | On top of the grid and all slots, side panels included (modal layer) | No |
+| (overlays) | `ht-overlay` | On top of the grid and all slots (the dialog and the license lock also cover the side panels) | No |
 
-The grid and overlays areas are internal and cannot be reordered. The `top`, `bottom`, `start`, and `end` slots are user-orderable through the `layout` setting; you reach them with [`getLayoutManager()`](@/api/core.md#getlayoutmanager). The overlays layer holds floating UI (such as the dialog) and renders like the grid -- a fixed internal element, not a slot. Built-in UI uses these areas: pagination renders in the `bottom` slot, and the dialog renders in the overlays layer. The license notification also renders at the bottom, but it is not a slot contributor -- it always stays last in the `bottom` slot and is not orderable through the `layout` setting.
+The grid and overlays areas are internal and cannot be reordered. The `top`, `bottom`, `start`, and `end` slots are user-orderable through the `layout` setting; you reach them with [`getLayoutManager()`](@/api/core.md#getlayoutmanager). The overlays layer holds floating UI (such as the dialog) and renders like the grid -- a fixed internal element, not a slot. Built-in UI uses these areas: pagination renders in the `bottom` slot, and the dialog renders in the overlays layer. With side panels docked, the dialog and the license lock cover the side panels too, while notification toasts stay over the grid area. The license notification also renders at the bottom, but it is not a slot contributor -- it always stays last in the `bottom` slot and is not orderable through the `layout` setting.
 
 ## Prerequisites
 
@@ -162,9 +162,11 @@ Style your own slot UI through the `ht-slot-element` class so it matches this fr
 
 ## DOM order
 
-The root element renders its slot and layer elements in this order: `ht-slot-start`, `ht-slot-top`, `ht-grid`, `ht-slot-bottom`, `ht-slot-end`, `ht-overlay`. The DOM order sets the Tab order, so keyboard focus reaches a `start` panel before the grid, and an `end` panel after the `bottom` slot.
+The `.ht-root-wrapper` element renders its slot and layer elements in this order: `ht-slot-start`, `ht-slot-top`, `ht-grid`, `ht-slot-bottom`, `ht-slot-end`, `ht-overlay`. The DOM order sets the Tab order, so keyboard focus reaches a `start` panel before the grid, and an `end` panel after the `bottom` slot.
 
-The root element uses a CSS grid layout to place these areas. Each slot is a separate grid area. While a side slot holds at least one element, the root element carries the `ht-slot-start-filled` or `ht-slot-end-filled` class. Use class-based selectors to target the slots. Do not rely on the position of a child element.
+The `ht-slot-start` and `ht-slot-end` elements are in the DOM only while a side panel is docked in them. Without side panels, the DOM and the layout of `.ht-root-wrapper` are the same as without layout slots: a flex column of `ht-slot-top`, `ht-grid`, `ht-slot-bottom`, and `ht-overlay`.
+
+While a side slot holds at least one element, `.ht-root-wrapper` carries the `ht-slot-start-filled` or `ht-slot-end-filled` class and switches to a CSS grid layout, in which each slot is a separate grid area. Use class-based selectors to target the slots. Do not rely on the position of a child element.
 
 ## Built-in keys
 

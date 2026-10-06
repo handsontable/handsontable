@@ -26,6 +26,7 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='14.8626' he
     // comments: the box stops being a scroll container, which the settings/width specs measure.
     // The cost of keeping it is a scroll container that nothing ever scrolls.
     inset: 0;
+    inset-inline: var(--ht-grid-inset-inline-start, 0) var(--ht-grid-inset-inline-end, 0);
     overflow: hidden;
     z-index: 1050; // above the grid, below the hard-stop dialog (1060)
     // Click-through: the corner header cell underneath keeps its native behavior (select-all click,

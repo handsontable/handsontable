@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures/test';
 import {
-  SideLayoutSlotsPage, type Box, type SideSlotGeometry,
+  SideLayoutSlotsPage, type Box, type PanelSeam, type SideSlotGeometry,
 } from '../fixtures/pages/SideLayoutSlotsPage';
 
 /**
@@ -34,6 +34,24 @@ function sameEdges(a: Box, b: Box): boolean {
 function overlaps(a: Box, b: Box): boolean {
   return Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1
     && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1;
+}
+
+/**
+ * Reads the geometry once an overlays-layer element's box has caught up with the target box.
+ */
+async function geometryWhenOverlayMatches(
+  page: SideLayoutSlotsPage,
+  overlay: (geometry: SideSlotGeometry) => Box | null,
+  target: (geometry: SideSlotGeometry) => Box,
+): Promise<SideSlotGeometry> {
+  await expect.poll(async () => {
+    const geometry = await page.geometry();
+    const box = overlay(geometry);
+
+    return box !== null && sameEdges(box, target(geometry));
+  }).toBe(true);
+
+  return page.geometry();
 }
 
 /**
@@ -454,6 +472,8 @@ test.describe('side layout slots', () => {
       await grid.rebuild(windowScroll);
       await grid.addPanel('end', 'details', END_WIDTH);
 
+      await expect.poll(async () => (await grid.geometry()).wrapperClasses).toContain('ht-grid-width-follows-content');
+
       const geometry = await grid.geometry();
       const panel = onlyPanel(geometry.endPanels);
 
@@ -477,6 +497,8 @@ test.describe('side layout slots', () => {
     test('docks the end panel after the table\'s last column under RTL', async () => {
       await grid.rebuild({ ...windowScroll, documentDir: 'rtl', overrides: { layoutDirection: 'rtl' } });
       await grid.addPanel('end', 'details', END_WIDTH);
+
+      await expect.poll(async () => (await grid.geometry()).wrapperClasses).toContain('ht-grid-width-follows-content');
 
       const geometry = await grid.geometry();
       const panel = onlyPanel(geometry.endPanels);
@@ -692,6 +714,311 @@ test.describe('side layout slots', () => {
       expectNear(lock.right, onlyPanel(geometry.endPanels).right);
       expectNear(lock.top, geometry.wrapper.top);
       expectNear(lock.bottom, geometry.wrapper.bottom);
+    });
+  });
+
+  test.describe('shrink-to-fit hosts', () => {
+    for (const hostLayout of ['inline-block', 'flex'] as const) {
+      test(`settles a wide window-scrolled table with a start panel in a ${hostLayout} host`, async () => {
+        const lastColumn = 29;
+
+        await grid.rebuild({
+          cols: lastColumn + 1, containerHeight: 'auto', sizeOptions: 'unset', hostLayout,
+        });
+        await grid.addPanel('start', 'nav', START_WIDTH);
+
+        await expect.poll(async () => (await grid.geometry()).wrapperClasses)
+          .toContain('ht-grid-width-follows-content');
+        await expect.poll(() => grid.rendersOverFrames(10)).toBe(0);
+
+        expect(await grid.renderCount()).toBeGreaterThan(0);
+        expect(await grid.rendersOverFrames(60)).toBe(0);
+
+        const geometry = await grid.geometry();
+
+        expect(geometry.wrapperClasses).toContain('ht-grid-width-follows-content');
+        expectNear(geometry.root.left, onlyPanel(geometry.startPanels).right);
+        expectNear(geometry.root.right, geometry.table.right);
+      });
+    }
+  });
+
+  test.describe('without side panels', () => {
+    test('keeps the original wrapper children and the flex layout', async () => {
+      const structure = await grid.wrapperStructure();
+
+      expect(structure.children).toEqual(['ht-slot-top', 'ht-grid', 'ht-slot-bottom', 'ht-overlay']);
+      expect(structure.display).toBe('flex');
+    });
+
+    test('drops the side slot elements again once their panels unregister', async () => {
+      await grid.addPanel('start', 'nav', START_WIDTH);
+      await grid.addPanel('end', 'details', END_WIDTH);
+
+      const docked = await grid.wrapperStructure();
+
+      expect(docked.children).toEqual([
+        'ht-slot-start', 'ht-slot-top', 'ht-grid', 'ht-slot-bottom', 'ht-slot-end', 'ht-overlay',
+      ]);
+      expect(docked.display).toBe('grid');
+
+      await grid.removePanel('start', 'nav');
+      await grid.removePanel('end', 'details');
+
+      const structure = await grid.wrapperStructure();
+
+      expect(structure.children).toEqual(['ht-slot-top', 'ht-grid', 'ht-slot-bottom', 'ht-overlay']);
+      expect(structure.display).toBe('flex');
+    });
+
+    test('keeps the bottom bar as wide as a wide table in an inline-block host', async () => {
+      await grid.rebuild({
+        cols: 30,
+        containerHeight: 'auto',
+        sizeOptions: 'unset',
+        hostLayout: 'inline-block',
+        overrides: { pagination: { pageSize: 20 } },
+      });
+
+      await expect.poll(async () => {
+        const { bottomSlot, root } = await grid.geometry();
+
+        return near(bottomSlot.width, root.width);
+      }).toBe(true);
+
+      const geometry = await grid.geometry();
+
+      expect(geometry.paginationBar).not.toBeNull();
+      expect(geometry.root.width).toBeGreaterThanOrEqual(30 * 80);
+      expect(geometry.root.width).toBeGreaterThan(geometry.documentClientWidth);
+      expectNear(geometry.bottomSlot.left, geometry.root.left);
+      expectNear(geometry.bottomSlot.right, geometry.root.right);
+      expectNear(geometry.paginationBar!.right, geometry.root.right);
+    });
+  });
+
+  test.describe('overlays over a narrow window-scrolled table', () => {
+    const narrowWindowScroll = { cols: 4, containerHeight: 'auto', sizeOptions: 'unset' } as const;
+
+    test('lets the dialog cover the end panel', async () => {
+      await grid.rebuild({ ...narrowWindowScroll, overrides: { dialog: { animation: false } } });
+      await grid.addPanel('start', 'nav', START_WIDTH);
+      await grid.addPanel('end', 'details', END_WIDTH);
+      await grid.showDialog();
+
+      const geometry = await geometryWhenOverlayMatches(grid, g => g.dialog, g => g.wrapper);
+      const end = onlyPanel(geometry.endPanels);
+
+      expect(geometry.wrapperClasses).not.toContain('ht-grid-width-follows-content');
+      expectNear(end.right, geometry.wrapper.right);
+      expectNear(geometry.dialog!.right, end.right);
+      expectNear(geometry.dialog!.left, geometry.wrapper.left);
+    });
+
+    test('lets the license lock cover the end panel', async () => {
+      await grid.gotoWithExpiredTrial();
+      await grid.rebuild(narrowWindowScroll);
+      await expect(grid.lock()).toBeVisible();
+      await grid.addPanel('start', 'nav', START_WIDTH);
+      await grid.addPanel('end', 'details', END_WIDTH);
+
+      const geometry = await geometryWhenOverlayMatches(grid, g => g.lock, g => g.wrapper);
+      const end = onlyPanel(geometry.endPanels);
+
+      expectNear(end.right, geometry.wrapper.right);
+      expectNear(geometry.lock!.right, end.right);
+      expectNear(geometry.lock!.left, geometry.wrapper.left);
+    });
+  });
+
+  test.describe('seams between the panels and the grid', () => {
+    /**
+     * The physical `left`/`right` of a panel, as seen from the grid: under RTL the start side is
+     * on the right.
+     */
+    function facing(seam: PanelSeam, side: 'left' | 'right') {
+      return side === 'left'
+        ? { border: seam.borderLeftWidth, top: seam.topLeftRadius, bottom: seam.bottomLeftRadius }
+        : { border: seam.borderRightWidth, top: seam.topRightRadius, bottom: seam.bottomRightRadius };
+    }
+
+    for (const layoutDirection of ['ltr', 'rtl'] as const) {
+      test(`draws no border and square corners toward the grid (${layoutDirection})`, async ({ theme }) => {
+        const startGridSide = layoutDirection === 'ltr' ? 'right' : 'left';
+        const endGridSide = layoutDirection === 'ltr' ? 'left' : 'right';
+
+        await grid.rebuild({ overrides: { layoutDirection } });
+        await grid.addPanel('start', 'nav', START_WIDTH);
+        await grid.addPanel('end', 'details', END_WIDTH);
+
+        const start = await grid.panelSeams('start');
+        const end = await grid.panelSeams('end');
+        const startPanel = start.panels[0];
+        const endPanel = end.panels[0];
+
+        expect(facing(startPanel, startGridSide)).toEqual({ border: 0, top: 0, bottom: 0 });
+        expect(facing(endPanel, endGridSide)).toEqual({ border: 0, top: 0, bottom: 0 });
+        expect(facing(startPanel, endGridSide).border).toBeGreaterThan(0);
+        expect(facing(endPanel, startGridSide).border).toBeGreaterThan(0);
+
+        if (theme !== 'classic') {
+          expect(start.themeRadius).toBeGreaterThan(0);
+        }
+
+        if (start.themeRadius > 0) {
+          expect(facing(startPanel, endGridSide).top).toBeGreaterThan(0);
+          expect(facing(startPanel, endGridSide).bottom).toBeGreaterThan(0);
+          expect(facing(endPanel, startGridSide).top).toBeGreaterThan(0);
+          expect(facing(endPanel, startGridSide).bottom).toBeGreaterThan(0);
+        }
+      });
+    }
+
+    test('squares both inline sides of an inner start panel', async ({ theme }) => {
+      await grid.addWeightedPanel('start', 'outer', 100, 100);
+      await grid.addWeightedPanel('start', 'inner', 140, 200);
+
+      const { themeRadius, panels } = await grid.panelSeams('start');
+      const [outer, inner] = panels;
+
+      expect(panels).toHaveLength(2);
+      expect([inner.topLeftRadius, inner.bottomLeftRadius, inner.topRightRadius, inner.bottomRightRadius])
+        .toEqual([0, 0, 0, 0]);
+      expect([outer.topRightRadius, outer.bottomRightRadius]).toEqual([0, 0]);
+
+      if (theme !== 'classic') {
+        expect(themeRadius).toBeGreaterThan(0);
+      }
+
+      if (themeRadius > 0) {
+        expect(outer.topLeftRadius).toBeGreaterThan(0);
+        expect(outer.bottomLeftRadius).toBeGreaterThan(0);
+      }
+    });
+  });
+
+  test.describe('keyboard focus order through the side panels', () => {
+    const modes = [
+      { name: 'spreadsheet mode', overrides: { tabNavigation: true } },
+      { name: 'data-grid mode', overrides: { navigableHeaders: true, tabNavigation: false } },
+    ];
+
+    for (const mode of modes) {
+      test(`moves from the start panel into the grid and on to the end panel (${mode.name})`, async () => {
+        await grid.rebuild({ overrides: { ...mode.overrides, pagination: { pageSize: 5 } } });
+        await grid.addPanel('start', 'nav', START_WIDTH);
+        await grid.addPanelButton('nav', 'navAction');
+        await grid.addPanel('end', 'details', END_WIDTH);
+        await grid.addPanelButton('details', 'endAction');
+        await grid.focusButton('navAction');
+
+        await grid.page.keyboard.press('Tab');
+
+        await expect.poll(() => grid.focusState()).toEqual({ focused: null, gridActive: true });
+
+        await grid.page.keyboard.press('Shift+Tab');
+
+        await expect.poll(async () => (await grid.focusState()).focused).toBe('button-navAction');
+
+        await grid.page.keyboard.press('Tab');
+
+        await expect.poll(() => grid.focusState()).toEqual({ focused: null, gridActive: true });
+
+        const stops = await grid.pressUntilFocused('Tab', 'endAction', 20);
+
+        expect(stops.at(-1)).toBe('button-endAction');
+        expect(stops).not.toContain('button-navAction');
+      });
+    }
+  });
+
+  test.describe('grid-area chrome next to side panels', () => {
+    for (const layoutDirection of ['ltr', 'rtl'] as const) {
+      test(`keeps the trial license badge over the grid area (${layoutDirection})`, async () => {
+        await grid.gotoDuringTrial();
+        await grid.rebuild({ overrides: { layoutDirection } });
+        await grid.addPanel('start', 'nav', START_WIDTH);
+        await grid.addPanel('end', 'details', END_WIDTH);
+
+        await expect.poll(async () => {
+          const { badge, grid: gridBox } = await grid.geometry();
+
+          return badge !== null && near(badge.left, gridBox.left) && near(badge.right, gridBox.right);
+        }).toBe(true);
+
+        const geometry = await grid.geometry();
+        const start = onlyPanel(geometry.startPanels);
+
+        if (layoutDirection === 'ltr') {
+          expectNear(geometry.badge!.left, start.right);
+        } else {
+          expectNear(geometry.badge!.right, start.left);
+        }
+      });
+    }
+
+    test('keeps the notification toast container over the grid area', async () => {
+      await grid.rebuild({ overrides: { notification: true } });
+      await grid.addPanel('start', 'nav', START_WIDTH);
+      await grid.addPanel('end', 'details', END_WIDTH);
+      await grid.showToast();
+
+      await expect.poll(async () => {
+        const { notification, grid: gridBox } = await grid.geometry();
+
+        return notification !== null
+          && near(notification.left, gridBox.left) && near(notification.right, gridBox.right);
+      }).toBe(true);
+
+      const geometry = await grid.geometry();
+
+      expectNear(geometry.notification!.left, onlyPanel(geometry.startPanels).right);
+      expectNear(geometry.notification!.right, onlyPanel(geometry.endPanels).left);
+    });
+  });
+
+  test.describe('the `width` option and side panel changes', () => {
+    test('re-applies a pixel width in the same task the panel registers in', async () => {
+      await grid.rebuild({ overrides: { width: 600 } });
+
+      const rootWidth = await grid.addPanelAndReadRootWidth('start', 'nav', START_WIDTH);
+
+      expect(rootWidth.replace(/\s+/g, '')).toMatch(/^calc\((440px|600px-160px)\)$/);
+    });
+
+    test('lets an `auto` width fill the track between the panels', async () => {
+      await grid.rebuild({ overrides: { width: 'auto' } });
+      await grid.addPanel('start', 'nav', START_WIDTH);
+      await grid.addPanel('end', 'details', END_WIDTH);
+      await grid.waitForRootWidth(720 - START_WIDTH - END_WIDTH);
+
+      const geometry = await grid.geometry();
+
+      expect(geometry.rootInlineWidth).toBe('auto');
+      expect(geometry.wrapperClasses).not.toContain('ht-grid-fixed-width');
+      expectNear(geometry.root.left, onlyPanel(geometry.startPanels).right);
+      expectNear(geometry.root.right, onlyPanel(geometry.endPanels).left);
+    });
+
+    test('calls a function width again and fits the panels into its result', async () => {
+      const width = 600;
+
+      await grid.rebuild({ widthFunction: width });
+
+      const callsBefore = await grid.widthFunctionCalls();
+
+      await grid.addPanel('start', 'nav', START_WIDTH);
+      await grid.addPanel('end', 'details', END_WIDTH);
+      await grid.waitForRootWidth(width - START_WIDTH - END_WIDTH);
+
+      const geometry = await grid.geometry();
+      const start = onlyPanel(geometry.startPanels);
+      const end = onlyPanel(geometry.endPanels);
+
+      expect(await grid.widthFunctionCalls()).toBeGreaterThan(callsBefore);
+      expect(geometry.wrapperClasses).toContain('ht-grid-fixed-width');
+      expectNear(end.right, start.left + width);
+      expectNear(end.left, geometry.root.right);
     });
   });
 });

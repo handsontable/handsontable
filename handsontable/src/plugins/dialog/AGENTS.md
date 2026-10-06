@@ -100,7 +100,10 @@ shares this plugin's width sizing — both pin `style.width` on `afterViewRender
 (`core/layout/overlayWidth.ts`: the table workspace width, or the total width when the window scrolls the
 columns, plus the `start`/`end` side slot widths), or the `.ht-dialog` box spans the whole root wrapper
 instead of the grid block. The box is anchored at the wrapper's inline-start edge, which is where the `start`
-slot begins, so a modal covers the side panels too.
+slot begins, so a modal covers the side panels too. One exception: when the window scrolls the columns, side
+panels are docked, and the table fits between them (no `ht-grid-width-follows-content` on the wrapper), the
+grid track fills the wrapper and the `end` panel sits at its far edge, so the box takes the wrapper's width.
+Notification toasts deliberately do the opposite and stay over the grid area (`../notification/AGENTS.md`).
 
 Keep the stylesheet shipping in full so that inheritance keeps working without importing the plugin.
 

@@ -2888,9 +2888,11 @@ class TableView {
    * @param {boolean} isHorizontallyScrollableByWindow Whether the window scrolls the grid's columns.
    */
   #updateGridWidthFollowsContent(rootWrapperElement: HTMLElement, isHorizontallyScrollableByWindow: boolean) {
-    const followsContent = isHorizontallyScrollableByWindow && this.#isTableWiderThanSideSlotTrack(rootWrapperElement);
+    const isFollowingContent = hasClass(rootWrapperElement, GRID_WIDTH_FOLLOWS_CONTENT_CLASS_NAME);
+    const followsContent = isHorizontallyScrollableByWindow &&
+      this.#isTableWiderThanSideSlotTrack(rootWrapperElement, isFollowingContent);
 
-    if (hasClass(rootWrapperElement, GRID_WIDTH_FOLLOWS_CONTENT_CLASS_NAME) === followsContent) {
+    if (isFollowingContent === followsContent) {
       return;
     }
 
@@ -2909,17 +2911,24 @@ class TableView {
 
   /**
    * Checks whether a side slot is filled and the table is wider than the space the side panels
-   * leave in the root wrapper.
+   * leave in the root wrapper. The class itself changes that space in a shrink-to-fit host (an
+   * `inline-block` or `flex: 1` container sizes to the table while the class is on), so a grid that
+   * already follows its content keeps doing so while the table still fills the space exactly.
+   * Without that hysteresis the class would flip on every render.
    *
    * @param {HTMLElement} rootWrapperElement The root wrapper element.
+   * @param {boolean} isFollowingContent Whether the class is currently on.
    * @returns {boolean}
    */
-  #isTableWiderThanSideSlotTrack(rootWrapperElement: HTMLElement): boolean {
+  #isTableWiderThanSideSlotTrack(rootWrapperElement: HTMLElement, isFollowingContent: boolean): boolean {
     if (!hasClass(rootWrapperElement, 'ht-slot-start-filled') && !hasClass(rootWrapperElement, 'ht-slot-end-filled')) {
       return false;
     }
 
-    return this.getTotalTableWidth() > rootWrapperElement.clientWidth - getSideSlotsWidth(this.hot);
+    const tableWidth = this.getTotalTableWidth();
+    const trackWidth = rootWrapperElement.clientWidth - getSideSlotsWidth(this.hot);
+
+    return isFollowingContent ? tableWidth >= trackWidth - 1 : tableWidth > trackWidth;
   }
 
   /**

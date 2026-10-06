@@ -385,7 +385,25 @@ declare global {
       containerHeight?: 'fixed' | 'auto',
       sizeOptions?: 'fill' | 'unset',
       documentDir?: 'ltr' | 'rtl',
+      hostLayout?: 'fixed' | 'inline-block' | 'flex',
+      widthFunction?: number,
     }): boolean;
+    /**
+     * Side layout slots fixture: registers a panel and returns the root's inline width read in the same task.
+     */
+    addSidePanelAndReadRootWidth(side: 'start' | 'end', key: string, width: number): string;
+    /**
+     * Side layout slots fixture: shows a notification toast that stays until closed.
+     */
+    showToast(): boolean;
+    /**
+     * Side layout slots fixture: draws since the last rebuild.
+     */
+    htRenderCount: number;
+    /**
+     * Side layout slots fixture: calls of the `width` function since the last rebuild.
+     */
+    htWidthCalls: number;
     /**
      * Side layout slots fixture: registers a fixed-width panel into the `start` or `end` slot.
      */
