@@ -969,15 +969,45 @@ export class MergeCells extends BasePlugin {
     const { from, to } = cellRange;
 
     // The unmerge of the merges inside the range is part of this merge: one user action, one undo step.
-    this.runOperation('merge_cells', () => {
-      this.#describeMerge(cellRange);
-      this.unmergeRange(cellRange, true);
-      this.mergeRange(cellRange);
-    });
+    // It is asked first, against the merges the unmerge leaves: a merge refused after the unmerge has
+    // already dissolved the merges inside the range, and that alone was an undo step (DEV-159).
+    if (this.#canMergeSelection(cellRange)) {
+      this.runOperation('merge_cells', () => {
+        this.#describeMerge(cellRange);
+        this.unmergeRange(cellRange, true);
+        this.mergeRange(cellRange);
+      });
+    }
 
     if (from.row !== null && from.col !== null && to.row !== null && to.col !== null) {
       this.hot.selectCell(from.row, from.col, to.row, to.col, false);
     }
+  }
+
+  /**
+   * Checks whether `mergeSelection()` can merge the range once it has unmerged the merges inside it,
+   * so a refused merge changes nothing. The merges it ignores are the ones `unmergeRange()` removes.
+   *
+   * @param {CellRange} cellRange Selection cell range.
+   * @returns {boolean}
+   */
+  #canMergeSelection(cellRange: CellRange) {
+    const topStart = cellRange.getTopStartCorner();
+    const bottomEnd = cellRange.getBottomEndCorner();
+
+    if (topStart.row === null || topStart.col === null || bottomEnd.row === null || bottomEnd.col === null) {
+      return false;
+    }
+
+    const mergeParent = {
+      row: topStart.row,
+      col: topStart.col,
+      rowspan: bottomEnd.row - topStart.row + 1,
+      colspan: bottomEnd.col - topStart.col + 1
+    };
+
+    return this.canMergeRange(mergeParent) &&
+      this.mergedCellsCollection.canAdd(mergeParent, false, this.mergedCellsCollection.getWithinRange(cellRange));
   }
 
   /**
@@ -1007,8 +1037,8 @@ export class MergeCells extends BasePlugin {
    * @param {boolean} [auto=false] `true` if is called automatically, e.g. At initialization.
    * @param {boolean} [preventPopulation=false] `true`, if the method should not run `populateFromArray` at the end,
    *   but rather return its arguments.
-   * @returns {Array|boolean} Returns an array of [row, column, dataUnderCollection] if preventPopulation is set to
-   *   true. If the the merging process went successful, it returns `true`, otherwise - `false`.
+   * @returns {Array|boolean|null} Returns an array of [row, column, dataUnderCollection] if preventPopulation is set to
+   *   true. Otherwise, it returns `null` when the range was merged and `false` when the merge was refused.
    * @fires Hooks#beforeMergeCells
    * @fires Hooks#afterMergeCells
    */
@@ -1070,7 +1100,10 @@ export class MergeCells extends BasePlugin {
     const clearedData: unknown[][] = [];
     let populationInfo = null;
 
-    if (!this.canMergeRange(mergeParent, auto)) {
+    // The collection's check runs here, before any cell meta is written: once `add()` refused a merge,
+    // the `hidden` and `spanned` flags written for it would stay on unmerged cells and make the refused
+    // merge an undo step of its own (DEV-159).
+    if (!this.canMergeRange(mergeParent, auto) || !this.mergedCellsCollection.canAdd(mergeParent, auto)) {
       return false;
     }
 
@@ -1121,7 +1154,36 @@ export class MergeCells extends BasePlugin {
       return populationInfo;
     }
 
-    return true;
+    // Reached only when a `beforeMergeCells` or `setCellMeta` listener added a merge over this range
+    // after the check above. The flags written for this merge must not stay on the cells.
+    this.#removeRefusedMergeMeta(mergeParent);
+
+    return false;
+  }
+
+  /**
+   * Removes the `hidden` and `spanned` flags `#mergeRange()` wrote for a merge that `add()` then refused.
+   * A cell that a merge in the collection covers keeps the flag that merge gives it: `hidden` on its
+   * covered cells, `spanned` on its top-left.
+   *
+   * @param {object} mergeParent The refused merge: `row`, `col`, `rowspan` and `colspan`.
+   */
+  #removeRefusedMergeMeta(mergeParent: { row: number, col: number, rowspan: number, colspan: number }) {
+    rangeEach(mergeParent.row, mergeParent.row + mergeParent.rowspan - 1, (row) => {
+      rangeEach(mergeParent.col, mergeParent.col + mergeParent.colspan - 1, (column) => {
+        const isTopLeft = row === mergeParent.row && column === mergeParent.col;
+        const owner = this.mergedCellsCollection.get(row, column);
+        const isOwnerTopLeft = !!owner && owner.row === row && owner.col === column;
+
+        if (isTopLeft && !isOwnerTopLeft) {
+          this.hot.removeCellMeta(row, column, 'spanned');
+        }
+
+        if (!isTopLeft && (!owner || isOwnerTopLeft)) {
+          this.hot.removeCellMeta(row, column, 'hidden');
+        }
+      });
+    });
   }
 
   /**

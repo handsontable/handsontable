@@ -4259,6 +4259,10 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link MergeCells} plugin before cell merging. This hook is fired when {@link Options#mergeCells}
    * option is enabled.
    *
+   * The hook is fired only for a merge that the plugin applies. A merge that the plugin refuses – for example,
+   * one that overlaps an existing merged cell – doesn't fire it. The plugin checks for the overlap before it
+   * fires the hook, so a listener can't make room for a merge by unmerging the merged cell it overlaps.
+   *
    * @event Hooks#beforeMergeCells
    * @param {CellRange} cellRange Selection cell range.
    * @param {boolean} [auto=false] `true` if called automatically by the plugin.

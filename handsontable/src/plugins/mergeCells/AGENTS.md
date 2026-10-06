@@ -44,6 +44,34 @@ DEV-514). A nested operation's `describe()` is ignored, so the outer operation d
 itself through `#describeMerge()` - the same `cellRange` and `data` fields `mergeRange()` attaches.
 Any new method that calls two mutators must wrap them the same way.
 
+**A refused merge must be refused before `#mergeRange` writes anything.** The method writes `hidden` on
+every covered cell and `spanned` on the top-left through `setCellMeta`, and each write is an operation
+UndoRedo records. `MergedCellsCollection#add()` refuses a merge that overlaps another one or whose anchor
+is taken, but it runs after those writes: a refused merge left the flags on unmerged cells, fired
+`beforeMergeCells` with no `afterMergeCells`, and became an undo step that changed no merge (DEV-159 — a
+row-header selection across an existing merge, or `merge()` through the API). So `#mergeRange` asks
+`MergedCellsCollection#canAdd()` right after `canMergeRange()`. A new precondition belongs there too,
+never after the first write. `canAdd()` and `add()` decide through one private method (`#accepts`), so a
+rule added there reaches both. A cell-range selection never reaches this: it grows to cover the merges it
+touches, so its merge is not refused.
+
+`mergeSelection()` must ask **before its own unmerge**, not only in `#mergeRange`: the unmerge dissolves
+every merge anchored inside the range, and a merge refused after it left those merges dissolved and the
+unmerge as an undo step (merge A2:A3 and C1:C5, then `Ctrl`+`M` on row headers 2-3). `#canMergeSelection`
+passes the merges `unmergeRange()` will remove (`getWithinRange(range)`) as `canAdd()`'s ignored list.
+
+The check runs before `beforeMergeCells`, so a listener of that hook cannot make room for an overlapping
+merge any more (it could before DEV-159; the changelog names it). A listener can still ADD a merge over the
+range from that hook or from `afterSetCellMeta`: `add()` re-checks for that, and on refusal
+`#removeRefusedMergeMeta` takes back the `hidden`/`spanned` flags the merge wrote, except on the cells the
+new merge owns. That second check is deliberate, not duplication.
+
+`isOverlapping()` reads the lookup matrix like `getWithinRange()` does: a merge purged because all of its
+rows are trimmed covers no cell on screen, so it does not refuse a merge over its stale coordinates.
+
+Pinned by `tests/e2e/merge-cells-rejected-merge-undo.spec.ts` and the `canAdd` block of
+`__tests__/cellsCollection.unit.ts`.
+
 Undo and redo carry the anchors too: `captureState()` returns every merge with its anchor, and
 `restoreState(state, context)` applies only what the step changed: it removes the live merges listed on
 the other side of the step but not in `state`, adds the ones `state` lists that the other side did not,
