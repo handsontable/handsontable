@@ -11,6 +11,7 @@ type TwoGridsWindow = Record<'hotTop' | 'hotBottom', {
   getDataAtCell(row: number, column: number): unknown,
   isListening(): boolean,
   updateSettings(settings: Record<string, unknown>): void,
+  setDataAtCell(row: number, column: number, value: unknown): void,
   addHook(name: string, callback: () => void): void,
   rootElement: HTMLElement,
 }>;
@@ -158,6 +159,19 @@ export class TwoGridsPage {
   async dataAt(name: GridName, row: number, column: number): Promise<unknown> {
     return this.page.evaluate(([key, r, c]) => (window as unknown as TwoGridsWindow)[key].getDataAtCell(r, c),
       [instanceKey(name), row, column] as ['hotTop' | 'hotBottom', number, number]);
+  }
+
+  /**
+   * Writes a cell's value through the API (setup, not the behavior under test).
+   *
+   * @param {GridName} name Which grid.
+   * @param {number} row The visual row index.
+   * @param {number} column The visual column index.
+   * @param {string} value The value to write.
+   */
+  async setValue(name: GridName, row: number, column: number, value: string): Promise<void> {
+    await this.page.evaluate(([key, r, c, v]) => (window as unknown as TwoGridsWindow)[key].setDataAtCell(r, c, v),
+      [instanceKey(name), row, column, value] as ['hotTop' | 'hotBottom', number, number, string]);
   }
 
   /**

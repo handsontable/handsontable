@@ -337,6 +337,17 @@ export class GridLayoutsPage {
   }
 
   /**
+   * Writes cell values through the API (setup, not the behavior under test).
+   *
+   * @param {Array<[number, number, unknown]>} changes `[row, column, value]` triples, by visual index.
+   */
+  async setValues(changes: Array<[number, number, unknown]>): Promise<void> {
+    await this.page.evaluate(c => (window as unknown as {
+      hot: { setDataAtCell(changes: Array<[number, number, unknown]>): void },
+    }).hot.setDataAtCell(c), changes);
+  }
+
+  /**
    * Prepares a fill: empties one column through the API (setup, not the behavior under test), then
    * selects one cell of it through the API too, so no real click lands twice on the cell and opens
    * its editor as a double click.

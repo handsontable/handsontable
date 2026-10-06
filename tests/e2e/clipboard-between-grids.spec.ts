@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { test, expect, CROSS_BROWSER_TAG, CLIPBOARD_SHORTCUT_TAG } from '../fixtures/test';
 import { TwoGridsPage } from '../fixtures/pages/TwoGridsPage';
 
@@ -43,12 +44,18 @@ test.describe('clipboard between two grids', { tag: [CROSS_BROWSER_TAG, CLIPBOAR
     // grid a cell that a paste reaching it as well would write to.
     await page.keepSelectionOnOutsideClick('bottom');
 
+    // A value no earlier run copied. The browser keeps its clipboard across tests (each test gets
+    // a fresh context, not a fresh clipboard), so with the fixture's own `bD3` a copy that wrote
+    // nothing would paste what an earlier run, or repeat, left there and pass.
+    const copied = `bD3-${randomUUID().slice(0, 8)}`;
+
+    await page.setValue('bottom', 2, 3, copied);
     await page.cell('bottom', 2, 3).click();
     await browserPage.keyboard.press('ControlOrMeta+c');
 
     // On Firefox the paste below, landing the copied value, is what shows the copy happened.
     if (browserName === 'chromium') {
-      await expect.poll(async() => page.clipboardText()).toBe('bD3');
+      await expect.poll(async() => page.clipboardText()).toBe(copied);
     }
 
     // Leave the source grid on a different cell, so a paste that reached it as well would show.
@@ -60,8 +67,8 @@ test.describe('clipboard between two grids', { tag: [CROSS_BROWSER_TAG, CLIPBOAR
     await expect.poll(async() => page.gridState('bottom')).toEqual({ selected: [[4, 4, 4, 4]], listening: false });
     await browserPage.keyboard.press('ControlOrMeta+v');
 
-    await expect(page.cell('top', 2, 3)).toHaveText('bD3');
-    expect(await page.dataAt('top', 2, 3)).toBe('bD3');
+    await expect(page.cell('top', 2, 3)).toHaveText(copied);
+    expect(await page.dataAt('top', 2, 3)).toBe(copied);
     expect(await page.pastesHandled('top')).toBe(1);
 
     // A cell of the read-only column keeps its own. The count shows the grid handled this paste
@@ -76,6 +83,6 @@ test.describe('clipboard between two grids', { tag: [CROSS_BROWSER_TAG, CLIPBOAR
 
     // The grid the value came from took neither paste, and the copy left its source cell as it was.
     expect(await page.dataAt('bottom', 4, 4)).toBe('bE5');
-    expect(await page.dataAt('bottom', 2, 3)).toBe('bD3');
+    expect(await page.dataAt('bottom', 2, 3)).toBe(copied);
   });
 });

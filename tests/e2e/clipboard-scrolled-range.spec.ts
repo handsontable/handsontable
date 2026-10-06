@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { test, expect, CROSS_BROWSER_TAG, CLIPBOARD_SHORTCUT_TAG } from '../fixtures/test';
 import { GridLayoutsPage } from '../fixtures/pages/GridLayoutsPage';
 
@@ -25,6 +26,19 @@ test.describe('copy and cut of a range selected across a scroll', { tag: [CROSS_
   });
 
   /**
+   * Writes values unique to this run into the range's first cell and far corner. The browser keeps
+   * its clipboard across tests (each test gets a fresh context, not a fresh clipboard), and both
+   * tests here, and every repeat of either, move the same block, so a copy or cut that wrote nothing
+   * would paste the block an earlier run left behind and pass. Values no earlier run copied make the
+   * paste prove this run's copy, on every engine, with no clipboard permission.
+   */
+  async function markTheRange(): Promise<void> {
+    const run = randomUUID().slice(0, 8);
+
+    await grid.setValues([[1, 1, `first-${run}`], [149, 149, `corner-${run}`]]);
+  }
+
+  /**
    * Selects from cell (1, 1) to the grid's far corner (149, 149) with a click, a scroll and a
    * Shift+click, and checks the selection reached the corner.
    */
@@ -37,6 +51,8 @@ test.describe('copy and cut of a range selected across a scroll', { tag: [CROSS_
   }
 
   test('copies the whole range and pastes it at the top-left cell', async({ page }) => {
+    await markTheRange();
+
     const before = await grid.data();
 
     await selectAcrossTheScroll();
@@ -56,6 +72,8 @@ test.describe('copy and cut of a range selected across a scroll', { tag: [CROSS_
   });
 
   test('cuts the whole range and pastes it at the top-left cell', async({ page }) => {
+    await markTheRange();
+
     const before = await grid.data();
 
     await selectAcrossTheScroll();

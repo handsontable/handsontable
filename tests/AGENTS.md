@@ -149,9 +149,10 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   the plain UMD bundle. CI runs that config in one job, `E2E / Playwright engines (Firefox, WebKit)`.
   The visual suite's cross-browser leg photographs on the develop seed, master and release candidate
   pushes, the nightly, and pull requests that change the visual tier, so on any other pull request
-  the job is the only Firefox and WebKit run of the grid. `e2e.yml` is shared, so the job also runs
-  on every develop push and in the release candidate test runs: a red engine leg holds back that
-  develop push's experimental publish, and blocks a release candidate.
+  the job is the only Firefox and WebKit run of the grid. On a pull request a red engine leg also
+  holds back the whole Visual stage, which needs `e2e` and runs only when nothing failed. `e2e.yml` is
+  shared, so the job also runs on every develop push and in the release candidate test runs: a red
+  engine leg holds back that develop push's experimental publish, and blocks a release candidate.
 - Tag a test whose behavior an engine could get wrong on its own: real key presses (the Tab order,
   undo and redo shortcuts), pointer gestures (header clicks, drags, the fill handle's double click),
   focus, and layout read back from the DOM. The specs that replaced the cross-browser visual
@@ -187,6 +188,10 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   `clipboard-write` on Firefox and WebKit. So `clipboard-between-grids.spec.ts` asks for
   `clipboard-read` on Chromium alone (`test.use({ permissions: async({ browserName }, use) => … })`)
   and reads the clipboard back there; elsewhere the paste landing the copied value shows the copy.
+- **The clipboard outlives a test.** Each test gets a fresh context, not a fresh clipboard, so a copy
+  that writes nothing still pastes whatever an earlier test, or an earlier repeat of the same test,
+  left there. Copy a value no earlier run copied: both clipboard specs write a run-unique value into
+  the source cells first (`randomUUID()`), which proves the copy on every engine, read-back or not.
 
 ## Fixture contract (never get these wrong)
 

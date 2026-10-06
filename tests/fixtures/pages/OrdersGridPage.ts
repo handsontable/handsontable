@@ -56,6 +56,8 @@ export class OrdersGridPage extends FiltersValueListPage {
    * Opens the fixture and waits for the grid to render its first cell.
    */
   async goto(): Promise<void> {
+    this.assertKnownBundle('(page, theme, bundle, pagination)');
+
     await this.page.goto(`/tests/fixtures/demo/orders-grid.html?theme=${this.theme}&bundle=${this.bundle}`
       + `&pagination=${this.pagination}`);
     await awaitBundle(this.page);
@@ -154,18 +156,22 @@ export class OrdersGridPage extends FiltersValueListPage {
 
   /**
    * Clicks a column header's label, which sorts by that column (and selects it), until the header
-   * reports the wanted order.
+   * reports the wanted order. A click steps the sort through none, ascending, descending and back
+   * to none, so two clicks at most reach either order from any other, and none from that order.
    *
    * @param {number} column The visual column index.
    * @param {'ascending' | 'descending'} order The wanted order.
    */
   async sortBy(column: number, order: 'ascending' | 'descending'): Promise<void> {
     const header = this.header(column);
-
-    await header.locator('.columnSorting').click();
+    const label = header.locator('.columnSorting');
 
     if (await header.getAttribute('aria-sort') !== order) {
-      await header.locator('.columnSorting').click();
+      await label.click();
+    }
+
+    if (await header.getAttribute('aria-sort') !== order) {
+      await label.click();
     }
 
     await expect(header).toHaveAttribute('aria-sort', order);
@@ -230,11 +236,19 @@ export class OrdersGridPage extends FiltersValueListPage {
   }
 
   /**
-   * Clicks the pagination bar's next or previous page button.
+   * Clicks the pagination bar's next or previous page button, then waits for the plugin to report
+   * the new page and the bar to name it, so a read straight after does not depend on the page
+   * turning in the same task as the click.
    *
    * @param {'next' | 'prev'} direction Which button.
    */
   async turnPage(direction: 'next' | 'prev'): Promise<void> {
+    const currentPage = async() => this.page.evaluate(() => (window as unknown as OrdersWindow).hot
+      .getPlugin('pagination').getPaginationData().currentPage);
+    const to = (await currentPage()) + (direction === 'next' ? 1 : -1);
+
     await this.page.locator(`.ht-page-navigation-section .ht-page-${direction}`).click();
+    await expect.poll(currentPage).toBe(to);
+    await expect(this.page.locator('.ht-page-navigation-section__label')).toHaveText(new RegExp(`^Page ${to} of `));
   }
 }

@@ -694,8 +694,8 @@ does for you):
   `clipboard-scrolled-range.spec.ts`, `filters-search-then-condition.spec.ts`,
   `hidden-columns-context-menu.spec.ts`, `pagination-filter-sort.spec.ts`,
   `fill-handle-merged-cells.spec.ts` (the merged-cells route's refused fill-down) and
-  `manual-resize-drag-distance.spec.ts` (a column and a row grow by exactly the distance dragged, which
-  the older manual-resize specs check loosely for columns). The `undo-redo`, `focus`, `columns-move`,
+  `manual-resize-drag-distance.spec.ts` (a column and a row grow by exactly the distance dragged, as
+  `manual-resize-drag-interruption.spec.ts` also checks now). The `undo-redo`, `focus`, `columns-move`,
   `columns-resize`, `rows-resize` and `copy-paste` specs went with them (a column move by drag was
   already asserted, by `tests/e2e/column-move-sorting.spec.ts`), and what stayed is one capture per
   rendering difference: a column and a row
@@ -711,7 +711,10 @@ does for you):
   candidate pushes, the nightly, and pull requests that changed the visual tier
   (`tests/AGENTS.md`, "The engine legs"). The clipboard checks, which `copy-paste.spec.ts` ran on
   Chromium alone, run on Firefox as well; WebKit leaves them out, because on the Linux runner
-  Playwright's WebKit copies, cuts and pastes nothing on a real shortcut. A new cross-browser capture
+  Playwright's WebKit copies, cuts and pastes nothing on a real shortcut. Its web component check
+  is the one exception: the clipboard test that covers a grid in a shadow root,
+  `tests/e2e/shadow-dom.spec.ts`, carries no `@cross-browser` tag, so it runs on Chromium only, as
+  the retired check did. A new cross-browser capture
   names the engine difference it is for in its docblock, and a state it shows belongs in `tests/e2e`
   first, tagged `@cross-browser` when an engine could get it wrong.
 

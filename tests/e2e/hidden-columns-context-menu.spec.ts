@@ -37,11 +37,11 @@ test.describe('hiding and showing columns from the header context menu', { tag: 
     expect(await grid.drawnHeaders()).toEqual(['Company name', 'Sell date', 'Qty', 'Progress', 'Country']);
 
     // "Company name" to "Progress" spans both hidden columns; the grid's headers are navigable, so
-    // the range starts on the header row. The clicks land on the header labels, as they did on the
-    // demo's grid, so they also sort by the column clicked last; the order of the rows does not
-    // change which columns a command hides or shows.
-    await grid.header(0).click();
-    await grid.header(5).click({ modifiers: ['Shift'] });
+    // the range starts on the header row. The clicks aim at the header labels, as the demo's
+    // centered clicks landed, so they also sort by the column clicked last; the order of the rows
+    // does not change which columns a command hides or shows.
+    await grid.header(0).locator('.colHeader').click();
+    await grid.header(5).locator('.colHeader').click({ modifiers: ['Shift'] });
 
     expect(await grid.selected()).toEqual([[-1, 0, 59, 5]]);
     expect(await grid.sortConfig()).toEqual([{ column: 5, sortOrder: 'asc' }]);

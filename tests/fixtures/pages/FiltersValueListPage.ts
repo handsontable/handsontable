@@ -64,21 +64,30 @@ export class FiltersValueListPage {
   }
 
   /**
+   * Throws when `bundle` is not one the fixtures know. `theme`, `bundle` and the next argument are
+   * same-typed positional arguments, so passing that argument in the bundle's slot is a one-token
+   * slip. The fixture's head script does throw on an unknown `?bundle=`, but it throws before
+   * `window.htBundle` is set, so the body still injects `/handsontable/dist/undefined` and the spec
+   * dies 10s later on a missing cell with nothing naming the cause. A subclass with its own `goto()`
+   * calls this too.
+   *
+   * @param {string} argumentOrder The constructor's argument order, for the message.
+   */
+  protected assertKnownBundle(argumentOrder: string): void {
+    if (this.bundle !== 'umd' && this.bundle !== 'full-min') {
+      throw new Error(
+        `Unknown bundle ${JSON.stringify(this.bundle)} - expected 'umd' or 'full-min'. ` +
+        `Check the argument order: ${argumentOrder}.`);
+    }
+  }
+
+  /**
    * Navigate to the fixture and wait for the grid to render. The active theme and
    * bundle are passed as query params so the fixture loads the matching stylesheet
    * and Handsontable build.
    */
   async goto(): Promise<void> {
-    // `theme`, `bundle` and `fixture` are three same-typed positional arguments, so passing the
-    // fixture in the bundle's slot is a one-token slip. The fixture's head script does throw on an
-    // unknown `?bundle=`, but it throws before `window.htBundle` is set, so the body still injects
-    // `/handsontable/dist/undefined` and the spec dies 10s later on a missing cell with nothing
-    // naming the cause. Fail here instead, where the message says what happened.
-    if (this.bundle !== 'umd' && this.bundle !== 'full-min') {
-      throw new Error(
-        `Unknown bundle ${JSON.stringify(this.bundle)} - expected 'umd' or 'full-min'. ` +
-        'Check the argument order: (page, theme, bundle, fixture).');
-    }
+    this.assertKnownBundle('(page, theme, bundle, fixture)');
 
     await this.page.goto(
       `/tests/fixtures/demo/${this.fixture}?theme=${this.theme}&bundle=${this.bundle}`);

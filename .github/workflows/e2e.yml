@@ -142,9 +142,12 @@ jobs:
   # and either bundle, and an engine difference shows on one of each. One job for both engines
   # rather than one each keeps the run one job further from the organization's concurrent-job cap;
   # the report names the project (the engine) of every failure, and the upload's name keeps the
-  # ledger's prefix. This workflow is shared, so the job also runs on every develop push (a red
-  # engine leg holds back that push's experimental publish) and in the release candidate test runs
-  # (a red engine leg blocks the release candidate publish).
+  # ledger's prefix. On a pull request a red engine leg also holds back the whole Visual stage:
+  # test.yml's `visual` job needs `e2e` and runs only when nothing failed, so a Firefox- or
+  # WebKit-only failure withholds every visual result until a re-run passes. This workflow is
+  # shared, so the job also runs on every develop push (a red engine leg holds back that push's
+  # experimental publish) and in the release candidate test runs (a red engine leg blocks the
+  # release candidate publish).
   playwright-engines:
     name: "Playwright engines (Firefox, WebKit)"
     runs-on: ubuntu-latest
