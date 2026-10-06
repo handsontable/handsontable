@@ -49,10 +49,12 @@ export const EXACT_ROW_CLASS = 'htExactRow';
 const exactRows = new WeakSet<HTMLElement>();
 
 /**
- * The rows whose first cell could not carry the height, so the height was pinned on the row element. Tracking
- * them keeps the release to the pins this module wrote.
+ * The rows whose first cell could not carry the height, so the height was pinned on the row element, with the
+ * string written. Tracking them keeps the release to the pins this module wrote, and compares the next write with
+ * what was written rather than with what the browser reads back (it normalizes a fractional height, so the
+ * read-back never matches the string written and every draw would rewrite the pin).
  */
-const pinnedRows = new WeakSet<HTMLElement>();
+const pinnedRows = new WeakMap<HTMLElement, string>();
 
 /**
  * Whether the node is the engine's clipping wrapper.
@@ -296,10 +298,9 @@ export function applyRowHeight(
       providedHeight : (ownHeights.getDefaultHeight() ?? 0) + (drawsTopBorder ? 1 : 0);
     const rowElementHeight = toRowElementHeight(ownHeight, isBorderBox);
 
-    pinnedRows.add(TR);
-
-    if (TR.style.height !== rowElementHeight) {
+    if (pinnedRows.get(TR) !== rowElementHeight) {
       TR.style.height = rowElementHeight;
+      pinnedRows.set(TR, rowElementHeight);
     }
 
   } else if (pinnedRows.delete(TR)) {

@@ -826,6 +826,15 @@ class TableView {
   }
 
   /**
+   * Returns the number of times the column widths were invalidated (see `#columnWidthEpoch`).
+   *
+   * @returns {number}
+   */
+  getColumnWidthEpoch() {
+    return this.#columnWidthEpoch;
+  }
+
+  /**
    * Invalidates Walkontable viewport caches for row heights and column widths (per-index axis sizes).
    */
   invalidateIndexSizesCache() {

@@ -110,7 +110,7 @@ test.describe('content of a merged cell across a frozen-column line', () => {
     await expect.poll(async () => (await grid.visibleMarkers()).count).toBe(1);
   });
 
-  test('shows a value once in the frozen top-start corner', async () => {
+  test('shows a value once when the block\'s frozen part sits in the top-start corner', async () => {
     // Row 1 is frozen at the top too, so the frozen part of the block is drawn by the corner overlay.
     await grid.initGrid({
       fixedColumnsStart: 2,
@@ -181,6 +181,39 @@ test.describe('content of a merged cell across a frozen-column line', () => {
     // wider, and a pane that was not repainted would still be 100px short of it.
     await expect.poll(async () => Math.abs((await grid.startWrapperWidthDrift()) ?? NaN)).toBeLessThan(0.5);
     await expect.poll(async () => (await grid.visibleMarkers()).count).toBe(1);
+  });
+
+  test('repaints a crossing block under renderMode onChange when a column of the frozen band is hidden', async () => {
+    // The freeze line is a visual column index; a hidden column in the band must not move it.
+    await grid.initGrid({
+      renderMode: 'onChange',
+      manualColumnResize: true,
+      fixedColumnsStart: 2,
+      hiddenColumns: { columns: [0] },
+      mergeCells: [{ row: 1, col: 1, rowspan: 1, colspan: 6 }],
+      values: [{ row: 1, col: 1, value: 'markers:1' }],
+      cell: [{ row: 1, col: 1, className: 'htRight' }],
+    });
+    await expect.poll(async () => Math.abs((await grid.startWrapperWidthDrift()) ?? NaN)).toBeLessThan(0.5);
+
+    await grid.resizeColumn(4, 160);
+
+    await expect.poll(async () => Math.abs((await grid.startWrapperWidthDrift()) ?? NaN)).toBeLessThan(0.5);
+  });
+
+  test('sizes the layout wrapper with the default width for a column whose width is 0', async () => {
+    // The engine draws a column whose width resolves to 0 at the default width.
+    const colWidths = Array.from({ length: 30 }, (_, column) => (column === 3 ? 0 : 60));
+
+    await grid.initGrid({
+      colWidths,
+      fixedColumnsStart: 2,
+      mergeCells: [BLOCK],
+      values: ONE_MARKER,
+      cell: [{ row: 1, col: 0, className: 'htRight' }],
+    });
+
+    await expect.poll(async () => Math.abs((await grid.startWrapperWidthDrift()) ?? NaN)).toBeLessThan(0.5);
   });
 
   test('keeps one layout wrapper when a hook wraps the cell content in a link after the plugin', async () => {
