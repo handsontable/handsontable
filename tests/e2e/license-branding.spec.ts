@@ -260,6 +260,10 @@ test.describe('entitlement license key branding', () => {
     // sentences moved out of the bottom bar and into the modal, so the bar must be gone.
     const FAULTS = [
       { key: 'tampered', title: 'The license key for Handsontable is invalid.' },
+      // DEV-3254: the checksum covers the prose, so the block alone, or a key whose prose was
+      // edited, is an unreadable key as well.
+      { key: 'bare-block', title: 'The license key for Handsontable is invalid.' },
+      { key: 'edited-prose', title: 'The license key for Handsontable is invalid.' },
       { key: 'missing', title: 'The license key for Handsontable is missing.' },
     ] as const;
 
@@ -344,7 +348,9 @@ test.describe('entitlement license key branding', () => {
   test.describe('a subscription past its grace period', () => {
     // A hard-stopped subscription is developer-facing only, however the key was issued: a console
     // error and no front-end surface at all. 18.1 never blocks a paying customer.
-    for (const key of ['subscription', 'subscription-external'] as const) {
+    // `subscription-pasted` is the same key with its whitespace turned into CRLF line breaks and a
+    // trailing "\n" saved as text - it must read exactly like the original, or it would block.
+    for (const key of ['subscription', 'subscription-external', 'subscription-pasted'] as const) {
       test(`stays console-only for a "${key}" key: no lock, no bar, no badge`, async () => {
         await license.goto(INSTANT.subscriptionHardStop, { key });
 

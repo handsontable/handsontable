@@ -1,63 +1,51 @@
 # Code quality dimension
 
-Review staged or changed code for compliance with Handsontable coding conventions. Run `git diff` (or `git diff --staged`) to collect the changes, then check each item below.
+Check each item against the diff.
 
 ## Checklist
 
 1. **ESLint rules (custom):**
-   - Errors must use `throwWithCause('...', cause)` from `src/helpers/errors.ts` - never `throw new Error()`.
-   - No imports from barrel index files (`plugins/index`, `editors/index`, `renderers/index`, `validators/index`, `cellTypes/index`, `i18n/index`). Import from the specific submodule path.
-   - Every `it()` callback in `*.spec.js` files must be `async`. HOT API calls inside tests must be `await`-ed.
-   - No bare `window`, `document`, or `console` globals. Use `this.hot.rootWindow`, `this.hot.rootDocument`, and helpers from `src/helpers/console.ts`.
+   - Errors use `throwWithCause('...', cause)` from `src/helpers/errors.ts`.
+   - Imports go to the specific submodule path, not barrel index files (`plugins/index`, `editors/index`, `renderers/index`, `validators/index`, `cellTypes/index`, `i18n/index`).
+   - New E2E is Playwright (`tests/e2e/*.spec.ts`); a new Jasmine `*.spec.js` file is a finding (that suite is frozen: edits to existing specs only, broken ones migrate to Playwright). In edited `*.spec.js` specs every `it()` callback is `async`, and HOT API calls inside tests are `await`-ed.
+   - Use `this.hot.rootWindow`, `this.hot.rootDocument`, and helpers from `src/helpers/console.ts` in place of bare `window`, `document`, `console`.
 
 2. **JSDoc:**
-   - All public and private APIs must have JSDoc comments.
-   - New hooks and configuration options must include a `@since` tag.
-   - Use Markdown formatting, not HTML tags. Line breaks use empty lines, never `<br>`.
+   - All public and private APIs have JSDoc comments.
+   - New hooks and configuration options carry a `@since` tag.
+   - Use Markdown formatting; line breaks are empty lines.
    - Cross-reference with the inline `link` tag in qualified `Class#member` form (`{@link Core#getCellMeta}`), never TypeDoc's `[[Target]]`, which the docs pipeline publishes as literal text. Use inline code for targets the API reference does not document. End every sentence with a full stop.
 
-3. **Private fields:**
-   - Use the `#` prefix for private class fields and methods. Do not use `@private` JSDoc tag unless `#` is avoided for documented performance reasons.
+3. **Private fields:** `#` prefix for private class fields and methods; `@private` JSDoc only where `#` is avoided for documented performance reasons.
 
 4. **Naming:**
-   - Full names required: `row` and `columns`, not `cols`. Use `Handsontable` in text, never `HOT`.
-   - Functions: `camelCase`. Classes: `PascalCase`. Constants: `UPPER_SNAKE_CASE`.
-   - Public API names must be generic, self-explanatory, and collision-free.
+   - Full names: `row` and `columns`, not `cols`. Write `Handsontable` in text, not `HOT`.
+   - Functions `camelCase`, classes `PascalCase`, constants `UPPER_SNAKE_CASE`.
 
-5. **Cognitive complexity:**
-   - Each function must stay at 15 or below on the Sonar cognitive-complexity metric. Extract helpers or add early-return guards when exceeded.
+5. **Cognitive complexity:** each function stays at 15 or below on the Sonar metric; extract helpers or add early-return guards when exceeded.
 
-6. **Optional chaining (`?.`):**
-   - Use only when a value is genuinely optional by design. Do not use as a blanket safety net for values guaranteed by the data contract.
+6. **Optional chaining (`?.`):** only for values genuinely optional by design, not as a safety net for values the data contract guarantees.
 
-7. **Silent catch blocks:**
-   - Every empty or swallowed `catch` must include a comment explaining why the error is ignored.
+7. **Silent catch blocks:** every empty or swallowed `catch` has a comment explaining why the error is ignored.
 
-8. **Browser compatibility:**
-   - Verify that all JS and CSS APIs are supported across browsers listed in `browser-targets.js` at the repo root.
+8. **Browser compatibility:** JS and CSS APIs are supported across the browsers in `browser-targets.js` at the repo root.
 
-9. **Bundle size:**
-   - Prefer grammar that produces smaller compressed output (e.g., `===` over verbose helpers, short-circuit evaluation over full `if` blocks).
+9. **Bundle size:** prefer grammar that compresses smaller (e.g., `===` over verbose helpers, short-circuit evaluation over full `if` blocks).
 
-10. **DRY:**
-    - No duplicated logic. Reuse existing helpers and mixins from `src/helpers/`. Extract shared code into utility functions.
+10. **DRY:** reuse helpers and mixins from `src/helpers/`; extract shared code into utilities.
 
 11. **Core language boundary:**
-    - `handsontable/src/` is **TypeScript** — all source files are `.ts`, including Walkontable (`src/3rdparty/walkontable/src/`). Walkontable is excluded from the main `tsconfig.json` and has its own separate build/test pipeline.
-    - Type declarations are **auto-generated** into `handsontable/tmp/*.d.ts` by `build:types` (`tsc -p tsconfig.build-types.json`).
-    - Do not hand-edit files in `tmp/`. Regenerate with `npm run build:types` after changing source.
+    - `handsontable/src/` is **TypeScript**, including Walkontable (`src/3rdparty/walkontable/src/`), which is excluded from the main `tsconfig.json` and has its own build/test pipeline.
+    - `handsontable/tmp/*.d.ts` is auto-generated by `build:types` (`tsc -p tsconfig.build-types.json`); after changing source, regenerate with `npm run build:types` and leave `tmp/` unedited.
 
 12. **Documentation and AGENTS.md updates:**
-    - If the change introduces new conventions, constraints, or gotchas, require an `AGENTS.md` update.
+    - New conventions, constraints, or gotchas require an `AGENTS.md` update.
     - User-facing behavior or UX changes require matching docs updates in `docs/content/`.
 
-13. **Public API naming:**
-    - New option, hook, and method names must be generic, self-explanatory, and free of internal jargon.
-    - Check for collisions with existing API names (options, hooks, methods, plugin keys, CSS classes) before approving.
-    - Public API names carry long-term maintenance weight - once released, they must be maintained indefinitely.
+13. **Public API naming:** new option, hook, and method names are generic, self-explanatory, free of internal jargon, and checked for collisions with existing options, hooks, methods, plugin keys, and CSS classes. Released names are maintained indefinitely.
 
 ## References
 
 - `handsontable/.ai/CONVENTIONS.md` for the complete coding conventions.
 - `.eslintrc.js` (root) and `handsontable/.eslintrc.js` for ESLint configuration.
-- `browser-targets.js` for supported browser list.
+- `browser-targets.js` for the supported browser list.

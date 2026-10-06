@@ -137,6 +137,7 @@
     "jest": "^27.5.1",
     "jest-cli": "^27.5.1",
     "jest-environment-jsdom": "^27.5.1",
+    "jest-environment-node": "^27.5.1",
     "jest-matcher-utils": "^27.5.1",
     "jsdom": "^24.0.0",
     "loader-utils": "^1.4.2",

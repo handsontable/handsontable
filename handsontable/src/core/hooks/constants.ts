@@ -2247,7 +2247,7 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#modifyRowHeightByOverlayName
    * @param {number} height Row height.
    * @param {number} row Visual row index.
-   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|'master'} overlayName Overlay name.
+   * @param {'inline_start'|'inline_end'|'top'|'top_inline_start_corner'|'top_inline_end_corner'|'bottom'|'bottom_inline_start_corner'|'bottom_inline_end_corner'|'master'} overlayName Overlay name.
    */
   'modifyRowHeightByOverlayName',
 

@@ -226,7 +226,7 @@ export function stripHtmlComments(text) {
 
 /**
  * Red-spec field: the PR body ticks "Bug fix" but the template's "For a bug
- * fix — the spec that fails without this fix:" line carries nothing after the
+ * fix – the spec that fails without this fix:" line carries nothing after the
  * colon once HTML comments (the `<!-- name -->` placeholder) are stripped. A
  * body without that line at all is not judged — the author removed the
  * Test-evidence section, or the template predates it — so it stays silent.

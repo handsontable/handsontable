@@ -359,11 +359,15 @@ export class InlineStartOverlay extends Overlay {
     let newX = this.getTableParentOffset();
     let scrollbarCompensation = 0;
 
+    // The end columns cover the inline-end edge of the viewport (as the bottom rows cover the bottom one).
+    const inlineEndBandWidth = this.deps.getWtOverlays().inlineEndOverlay.getBandWidth();
+    const viewportWidth = this.deps.getWtViewport().getViewportWidth();
+
     if (beyondRendered) {
       const columnWidth = this.deps.getWtTable().getColumnWidth(sourceCol);
-      const viewportWidth = this.deps.getWtViewport().getViewportWidth();
 
-      if (columnWidth > viewportWidth) {
+      // A column wider than the room the end band leaves cannot be aligned to the inline-end edge.
+      if (columnWidth > viewportWidth - inlineEndBandWidth) {
         beyondRendered = false;
       }
     }
@@ -373,7 +377,7 @@ export class InlineStartOverlay extends Overlay {
     }
     if (beyondRendered) {
       newX += this.sumCellSizes(0, sourceCol + 1);
-      newX -= this.deps.getWtViewport().getViewportWidth();
+      newX -= viewportWidth - inlineEndBandWidth;
 
     } else {
       newX += this.sumCellSizes(this.wtSettings.getSetting<number>('fixedColumnsStart'), sourceCol);

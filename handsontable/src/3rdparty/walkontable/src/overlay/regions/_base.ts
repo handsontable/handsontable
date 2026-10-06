@@ -15,6 +15,8 @@ import {
   CLONE_TOP,
   CLONE_BOTTOM,
   CLONE_INLINE_START,
+  CLONE_INLINE_END,
+  INLINE_END_CLONE_TYPES,
 } from '../constants';
 import { resolveAxisOwner, type OverflowAxis } from '../axisOwner';
 import Clone from '../../core/clone';
@@ -265,7 +267,7 @@ export abstract class Overlay {
       return 'y';
     }
 
-    if (type === CLONE_INLINE_START) {
+    if (type === CLONE_INLINE_START || type === CLONE_INLINE_END) {
       return 'x';
     }
 
@@ -604,7 +606,27 @@ export abstract class Overlay {
       );
     }
 
+    if (INLINE_END_CLONE_TYPES.includes(this.type)) {
+      // The cell lives in a clone that stands at the inline-end edge: its place is the clone's own
+      // inline start (read from the rendered boxes, so the window-pinned and the element-positioned
+      // clone answer alike) plus the cell's offset inside the clone.
+      offsetObject = { ...offsetObject, start: this.#getCloneInlineStart() + elementOffset.start };
+    }
+
     return offsetObject;
+  }
+
+  /**
+   * The distance from the Walkontable root's inline-start edge to this overlay's clone, in pixels.
+   *
+   * @returns {number}
+   */
+  #getCloneInlineStart(): number {
+    const { geometryReader } = this.#deps;
+    const rootRect = geometryReader.getBoundingClientRect(this.#deps.getWtTable().wtRootElement);
+    const cloneRect = geometryReader.getBoundingClientRect(this.clone!.wtTable.holder.parentNode as HTMLElement);
+
+    return this.isRtl() ? rootRect.right - cloneRect.right : cloneRect.left - rootRect.left;
   }
 
   /**
@@ -761,7 +783,11 @@ export abstract class Overlay {
     clone.style.top = '0';
     clone.style.overflow = 'visible';
 
-    if (this.isRtl()) {
+    // The clones of the end columns stand at the inline-end edge, every other clone at the inline-start one.
+    // Physical sides: the inline start is the left edge in LTR and the right edge in RTL.
+    const atInlineEnd = INLINE_END_CLONE_TYPES.includes(this.type);
+
+    if (this.isRtl() !== atInlineEnd) {
       clone.style.right = '0';
     } else {
       clone.style.left = '0';

@@ -67,7 +67,7 @@ export default class Walkontable extends CoreAbstract {
   /**
    * Gets the overlay instance by its name.
    *
-   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'} overlayName The overlay name.
+   * @param {'inline_start'|'inline_end'|'top'|'top_inline_start_corner'|'top_inline_end_corner'|'bottom'|'bottom_inline_start_corner'|'bottom_inline_end_corner'} overlayName The overlay name.
    * @returns {Overlay | null}
    */
   override getOverlayByName(overlayName: string): Overlay | null {
@@ -78,8 +78,9 @@ export default class Walkontable extends CoreAbstract {
     const camelCaseOverlay = overlayName.replace(/_([a-z])/g, (_match: string, letter: string) => letter.toUpperCase());
 
     type OverlayRecord = Pick<Overlays,
-      'topOverlay' | 'bottomOverlay' | 'inlineStartOverlay' |
-      'topInlineStartCornerOverlay' | 'bottomInlineStartCornerOverlay'
+      'topOverlay' | 'bottomOverlay' | 'inlineStartOverlay' | 'inlineEndOverlay' |
+      'topInlineStartCornerOverlay' | 'bottomInlineStartCornerOverlay' |
+      'topInlineEndCornerOverlay' | 'bottomInlineEndCornerOverlay'
     >;
 
     return (this.wtOverlays as OverlayRecord as Record<string, Overlay>)[`${camelCaseOverlay}Overlay`] ?? null;

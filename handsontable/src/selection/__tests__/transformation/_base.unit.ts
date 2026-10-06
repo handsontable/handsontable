@@ -76,6 +76,7 @@ function createTransformationModule(options) {
     countRenderableRows() { return options.countRenderableRows ?? 10; },
     countRenderableColumns() { return options.countRenderableColumns ?? 10; },
     fixedRowsBottom() { return options.fixedRowsBottom ?? 0; },
+    fixedColumnsEnd() { return options.fixedColumnsEnd ?? 0; },
     minSpareRows() { return options.minSpareRows ?? 0; },
     minSpareCols() { return options.minSpareCols ?? 0; },
     autoWrapRow() { return options.autoWrapRow ?? false; },
@@ -1030,6 +1031,25 @@ describe('BaseTransformation class', () => {
             createCellRange(0, 0, 0, 0, 0, 0),
           ]),
           minSpareCols: 0,
+        });
+
+        transform.addLocalHook('insertColRequire', hookListener.insertColRequire);
+        transform.transformStart(2, 10, true);
+
+        expect(hookListener.insertColRequire).not.toHaveBeenCalled();
+      });
+
+      it('should not be fired when the `fixedColumnsEnd` options is greater than to 0', () => {
+        const hookListener = { insertColRequire() {} };
+
+        spyOn(hookListener, 'insertColRequire');
+
+        const transform = createTransformationModule({
+          range: createSelectionRangeModule([
+            createCellRange(0, 0, 0, 0, 0, 0),
+          ]),
+          fixedColumnsEnd: 1,
+          minSpareCols: 1,
         });
 
         transform.addLocalHook('insertColRequire', hookListener.insertColRequire);

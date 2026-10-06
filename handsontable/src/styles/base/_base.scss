@@ -703,6 +703,24 @@
       :where(#{$grid-body-row}) > td:first-child {
         border-inline-start-width: 1px;
       }
+
+      // The freeze line at an end clone's inline-start edge is one pixel in every scroll state, and which
+      // element draws it depends on the state. Mid-scroll the clone's edge cuts through a master column,
+      // so the clone's own first-cell inline-start border (inherited from the rules above) is the line.
+      // At the junction (scrolled to the end, or no horizontal scroll) the clone's first column stands on
+      // the boundary of the column before it, whose inline-end border is already the line, and a second
+      // border would make it 2px against the 1px of the start side. The engine sets `htFreezeLineShared`
+      // on the three end clone roots in exactly that state (`Overlays#syncInlineEndFreezeLine`).
+      &.htFreezeLineShared {
+        &.ht_clone_inline_end,
+        &.ht_clone_top_inline_end_corner,
+        &.ht_clone_bottom_inline_end_corner {
+          :where(#{$grid-head-row}, #{$grid-body-row}) > th:first-child,
+          :where(#{$grid-body-row}) > td:first-child {
+            border-inline-start-width: 0;
+          }
+        }
+      }
     }
 
     :where(table.htCore, #{$ghost-table}) > thead > tr:not(:last-child) > th {
@@ -941,13 +959,15 @@
 
     .ht_master table.htCore > thead,
     .ht_master table.htCore > tbody > tr > th,
-    .ht_clone_inline_start table.htCore > thead {
+    .ht_clone_inline_start table.htCore > thead,
+    .ht_clone_inline_end table.htCore > thead {
       visibility: hidden;
     }
   }
 
   .ht_master,
   .ht_clone_inline_start,
+  .ht_clone_inline_end,
   .ht_clone_top,
   .ht_clone_bottom {
     overflow: hidden;
@@ -957,8 +977,8 @@
     }
   }
 
-  // The three clones the master's scroll offset is mirrored onto - `ScrollSync#syncScrollPositions`
-  // writes `scrollTop` on the inline-start holder and `scrollLeft` on the top and bottom ones, once
+  // The clones the master's scroll offset is mirrored onto - `ScrollSync#syncScrollPositions`
+  // writes `scrollTop` on the inline-start and inline-end holders and `scrollLeft` on the top and bottom ones, once
   // per scroll frame - are composited scroll containers on purpose. A browser gives composited
   // scrolling only to a box the user can scroll, and an `overflow: hidden` box is not one: every one
   // of those writes then re-recorded the clone's contents on the main thread and dirtied the
@@ -977,6 +997,7 @@
   // moment rounding gave it a pixel. `src/3rdparty/walkontable/css/walkontable.scss` carries the
   // same rule for the engine's own test runner - keep the two in sync.
   .handsontable .ht_clone_inline_start .wtHolder,
+  .handsontable .ht_clone_inline_end .wtHolder,
   .handsontable .ht_clone_top .wtHolder,
   .handsontable .ht_clone_bottom .wtHolder {
     // A scroll container gets scroll anchoring, and a full draw rewrites the rows inside this box;
@@ -1000,7 +1021,8 @@
     }
   }
 
-  .ht_clone_inline_start .wtHolder {
+  .ht_clone_inline_start .wtHolder,
+  .ht_clone_inline_end .wtHolder {
     overflow-x: hidden;
     overflow-y: auto;
   }

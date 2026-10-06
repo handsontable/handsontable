@@ -1,5 +1,12 @@
 import { isSafari } from '../../helpers/browser';
-import { sumCellsHeights } from './utils';
+import { empty, getCellContentRoot } from '../../helpers/dom/element';
+import {
+  getFirstRowOfActiveBottomOverlay,
+  sumCellsHeights,
+  isEndColumnOverlay,
+  getFirstRenderedRowOfOverlay,
+  getFirstRenderedColumnOfOverlay,
+} from './utils';
 import type { HotInstance } from '../../core/types';
 
 /**
@@ -33,23 +40,19 @@ interface MergeCellsPluginInstance {
 function clampToVirtualViewport(
   hot: HotInstance,
   notHiddenRow: number | null,
-  notHiddenColumn: number | null
+  notHiddenColumn: number | null,
+  clampRow: boolean
 ): [number | null, number | null] {
   const overlayName = hot.view.getActiveOverlayName();
+  const firstRenderedVisibleRow = getFirstRenderedRowOfOverlay(hot, overlayName);
+  const firstRenderedVisibleColumn = getFirstRenderedColumnOfOverlay(hot, overlayName);
 
-  if (!['top', 'top_inline_start_corner'].includes(overlayName)) {
-    const firstRenderedVisibleRow = hot.getFirstRenderedVisibleRow();
-
-    if (notHiddenRow !== null && firstRenderedVisibleRow !== null) {
-      notHiddenRow = Math.max(notHiddenRow, firstRenderedVisibleRow);
-    }
+  if (clampRow && notHiddenRow !== null && firstRenderedVisibleRow !== null) {
+    notHiddenRow = Math.max(notHiddenRow, firstRenderedVisibleRow);
   }
-  if (!['inline_start', 'top_inline_start_corner', 'bottom_inline_start_corner'].includes(overlayName)) {
-    const firstRenderedVisibleColumn = hot.getFirstRenderedVisibleColumn();
 
-    if (notHiddenColumn !== null && firstRenderedVisibleColumn !== null) {
-      notHiddenColumn = Math.max(notHiddenColumn, firstRenderedVisibleColumn);
-    }
+  if (notHiddenColumn !== null && firstRenderedVisibleColumn !== null) {
+    notHiddenColumn = Math.max(notHiddenColumn, firstRenderedVisibleColumn);
   }
 
   return [notHiddenRow, notHiddenColumn];
@@ -122,10 +125,23 @@ export function createMergeCellRenderer(plugin: MergeCellsPluginInstance) {
     let notHiddenRow = rowMapper.getNearestNotHiddenIndex(origRow, 1);
     let notHiddenColumn = columnMapper.getNearestNotHiddenIndex(origColumn, 1);
 
-    if (isVirtualRenderingEnabled) {
+    // The inline-end clone renders only the last columns, so a merge anchored before them has to be
+    // drawn from the first end column whether or not the virtualized rendering is on.
+    if (isVirtualRenderingEnabled || isEndColumnOverlay(hot.view.getActiveOverlayName())) {
       [notHiddenRow, notHiddenColumn] = clampToVirtualViewport(
-        hot, notHiddenRow, notHiddenColumn
+        hot, notHiddenRow, notHiddenColumn, !!isVirtualRenderingEnabled
       );
+    }
+
+    // A bottom overlay never holds the origin of a block that starts above the frozen bottom rows. Its first
+    // row carries the span instead, or the covered cells are all hidden and the row slides out of its columns.
+    const firstRowOfBottomOverlay = getFirstRowOfActiveBottomOverlay(hot);
+
+    const continuesAboveBottomOverlay = notHiddenRow !== null && firstRowOfBottomOverlay !== null &&
+      firstRowOfBottomOverlay > notHiddenRow;
+
+    if (continuesAboveBottomOverlay) {
+      notHiddenRow = firstRowOfBottomOverlay;
     }
 
     const notHiddenRowspan = Math.min(origRowspan, maxRowSpan);
@@ -134,6 +150,13 @@ export function createMergeCellRenderer(plugin: MergeCellsPluginInstance) {
     if (notHiddenRow === row && notHiddenColumn === col) {
       TD.setAttribute('rowspan', String(notHiddenRowspan));
       TD.setAttribute('colspan', String(notHiddenColspan));
+
+      if (continuesAboveBottomOverlay) {
+        // The cell only continues a block whose content the master draws. It is painted with the covered
+        // cell's own coordinates, so the renderer's output (a checkbox, a long wrapped text) would act on, or
+        // size the rows of the clone from, a cell the block does not own.
+        empty(getCellContentRoot(TD));
+      }
 
     } else {
       TD.removeAttribute('rowspan');

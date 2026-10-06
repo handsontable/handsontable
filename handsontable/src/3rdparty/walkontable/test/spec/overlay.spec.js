@@ -1139,7 +1139,8 @@ describe('WalkontableOverlay', () => {
     const overlays = wtOverlaysRef.getOverlays();
     const overlaysWithMaster = wtOverlaysRef.getOverlays(true);
 
-    // Construction order (the corners come last because they are built from the region overlays).
+    // Construction order (the corners come last because they are built from the region overlays). The end
+    // overlays (`fixedColumnsEnd`) follow the ones that always existed.
     // The list used to be asserted in the pre-#12951 order, and the failure went unreported: a failed
     // `toEqual` on overlay objects could not cross the reporter bridge, so the spec was dropped.
     expect(overlays).toEqual([
@@ -1147,7 +1148,10 @@ describe('WalkontableOverlay', () => {
       wtOverlaysRef.bottomOverlay,
       wtOverlaysRef.inlineStartOverlay,
       wtOverlaysRef.topInlineStartCornerOverlay,
-      wtOverlaysRef.bottomInlineStartCornerOverlay
+      wtOverlaysRef.bottomInlineStartCornerOverlay,
+      wtOverlaysRef.inlineEndOverlay,
+      wtOverlaysRef.topInlineEndCornerOverlay,
+      wtOverlaysRef.bottomInlineEndCornerOverlay
     ]);
 
     expect(overlaysWithMaster).toEqual([
@@ -1156,6 +1160,9 @@ describe('WalkontableOverlay', () => {
       wtOverlaysRef.inlineStartOverlay,
       wtOverlaysRef.topInlineStartCornerOverlay,
       wtOverlaysRef.bottomInlineStartCornerOverlay,
+      wtOverlaysRef.inlineEndOverlay,
+      wtOverlaysRef.topInlineEndCornerOverlay,
+      wtOverlaysRef.bottomInlineEndCornerOverlay,
       wtOverlaysRef.wtTable
     ]);
   });

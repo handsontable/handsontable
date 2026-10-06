@@ -5,66 +5,42 @@ description: Use when writing or modifying Jest unit tests (*.unit.js or *.unit.
 
 # Writing Jest Unit Tests for Handsontable
 
-## When to Use Unit Tests vs E2E
+## Unit vs E2E
 
-> "E2E" below means a **new Playwright** test in `tests/e2e/` (skill `handsontable-playwright-e2e`). The `handsontable()` / `selectCell()` globals mentioned later are the **legacy Jasmine** helpers — do not add new `*.spec.js`.
+"E2E" means a new Playwright test in `tests/e2e/` (skill `handsontable-playwright-e2e`). The `handsontable()` / `selectCell()` globals are legacy Jasmine helpers, unavailable in unit tests; add no new `*.spec.js`.
 
-**Favor E2E tests over unit tests.** The key rule: if a unit test requires mocking a module, write an E2E test instead. Mocking couples tests tightly to internal module shape, making code resistant to refactoring and extension - every internal restructure forces test updates even when behavior hasn't changed.
+Favor E2E: a unit test that needs a mocked module becomes an E2E test, because module mocks couple tests to internal shape and block refactoring.
 
-- **Good unit test candidates:** Pure logic, utility functions, data transformations, calculations - anything that needs **no mocking**.
-- **Use E2E instead for:** DOM interaction, rendering, browser events, visual behavior, and anything that would require mocking modules to test in isolation.
-- **Anti-pattern:** Unit tests that mock internal modules just to achieve isolation. This creates brittle tests that resist refactoring.
+- Unit candidates: pure logic, utilities, data transformations, calculations (no mocking).
+- E2E: DOM interaction, rendering, browser events, visual behavior.
 
 ## Conventions
 
-- **File naming:** `*.unit.js` or `*.unit.ts` — Jest runs both (`testRegex` in `handsontable/jest.config.js`).
-- **Location:** Co-located with source in `src/**/__tests__/` directories (e.g., `src/plugins/filters/__tests__/dataFilter.unit.ts`).
-- **Framework:** Jest with `jsdom` environment and `jest-jasmine2` test runner.
-- **Imports:** Explicit imports are required. Unlike E2E tests, there are no auto-injected globals like `handsontable()` or `selectCell()`.
+- File naming: `*.unit.js` or `*.unit.ts` (`testRegex` in `handsontable/jest.config.js`).
+- Location: `src/**/__tests__/` beside the source (e.g. `src/plugins/filters/__tests__/dataFilter.unit.ts`).
+- Framework: Jest, `jsdom`, `jest-jasmine2` runner. Import everything explicitly.
+- Aliases: `'handsontable'` and `'handsontable/...'` resolve to `src/`; `'walkontable'` and `'walkontable/...'` to `src/3rdparty/walkontable/src/`; CSS/SCSS to `test/__mocks__/styleMock.js`.
+- `test/bootstrap.js` provides `ResizeObserver` (`test/__mocks__/resizeObserverMock.js`) and `IntersectionObserver` (`test/__mocks__/intersectionObserverMock.js`) mocks. Other mocking: `jest.fn()`, `jest.spyOn(object, 'method')`.
 
-## Module Name Mapping (jest.config.js)
+## Run commands
 
-Jest resolves these aliases automatically:
-
-- `'handsontable'` and `'handsontable/...'` resolve to `src/` and `src/...`
-- `'walkontable'` and `'walkontable/...'` resolve to `src/3rdparty/walkontable/src/` and `src/3rdparty/walkontable/src/...`
-- CSS/SCSS imports resolve to `test/__mocks__/styleMock.js` (returns an empty object).
-
-## Pre-configured Mocks
-
-The bootstrap file (`test/bootstrap.js`) provides these automatically:
-
-- `ResizeObserver` mock (`test/__mocks__/resizeObserverMock.js`).
-- `IntersectionObserver` mock (`test/__mocks__/intersectionObserverMock.js`).
-
-For custom mocking, use `jest.fn()` for stubs and `jest.spyOn(object, 'method')` for spying on existing methods.
-
-## Run Commands
-
-- **All unit tests:** `npm run test:unit --prefix handsontable`
-- **Targeted:** `npm run test:unit --prefix handsontable --testPathPattern=<regex>` - the pattern is matched against test file paths (e.g. `filters`, `ghostTable.unit`, `metaManager`)
-- **Example:** `npm run test:unit --prefix handsontable --testPathPattern=filters`
+- All: `npm run test:unit --prefix handsontable`
+- Targeted: `npm run test:unit --prefix handsontable --testPathPattern=<regex>` (matched against test file paths, e.g. `filters`, `ghostTable.unit`, `metaManager`)
 
 ### Two ways a unit run reports green while testing nothing
 
-- **Never put `|` in a `--testPathPattern` for `test:unit`.** The `test:unit.jest` task runs through
-  `cross-env-shell`, which hands the whole line to a shell, so `--testPathPattern=a|b` becomes a pipe: Jest
-  runs `a` alone and prints its own green summary, then the step fails with
-  `/bin/sh: b: command not found` and exit 127. A `grep` on the `Tests:` line shows only passes, so the
-  missing suites go unnoticed. Run one pattern per call, or pass file paths directly (below). The Puppeteer
-  `test:e2e` runner is not affected - it carries the pattern in an environment variable.
-- **A bare `npx jest` from `handsontable/` does not run anything.** Without `BABEL_ENV=commonjs` every file
-  fails to parse ("Jest encountered an unexpected token"), and the summary reads `Tests: 0 total`. That is
-  easy to misread as "no failures" - which makes a mutation check that greps for `✕` useless. To run specific
-  files without the styles build, use the task's own command:
+- **One pattern per `--testPathPattern` call.** `test:unit.jest` runs through `cross-env-shell`, so `--testPathPattern=a|b` becomes a shell pipe: Jest runs `a`, prints a green summary, then fails with `/bin/sh: b: command not found` (exit 127), and a `grep` on `Tests:` shows only passes. Run one pattern per call, or pass file paths directly. (The Puppeteer `test:e2e` runner carries its pattern in an environment variable and is unaffected.)
+- **Run files with the task's own command.** A bare `npx jest` from `handsontable/` fails to parse every file ("Jest encountered an unexpected token") without `BABEL_ENV=commonjs` and prints `Tests: 0 total`, which a mutation check grepping for `✕` reads as no failures. Without the styles build use:
   `BABEL_ENV=commonjs npx env-cmd -f ../hot.config.js jest src/plugins/a src/plugins/b`
-  and read the `Test Suites:` count against the number of files you expected.
+  and compare the `Test Suites:` count with the number of files you expected.
 
-## Large Dataset Testing
+## Large datasets
 
-When the code under test handles data arrays, include tests with 50k+ rows. Use `forEach` loops to populate arrays - never `arr.push(...largeArray)` (causes stack overflow at scale).
+For code that handles data arrays, include 50k+ row tests. Populate with `forEach`; `arr.push(...largeArray)` overflows the stack.
 
-## Test Structure Example
+## Edge cases
+
+Cover edge cases, error states, and boundaries beyond the happy path. For plugin logic, test `updateSettings()` and `enablePlugin()`/`disablePlugin()` cycles.
 
 ```js
 import { calculateSomething } from '../utils';
@@ -73,36 +49,18 @@ describe('calculateSomething', () => {
   it('should return the sum for positive inputs', () => {
     expect(calculateSomething(2, 3)).toBe(5);
   });
-
-  it('should handle zero values', () => {
-    expect(calculateSomething(0, 0)).toBe(0);
-  });
-
-  it('should throw for invalid input', () => {
-    expect(() => calculateSomething(null)).toThrow();
-  });
 });
 ```
 
-## Common Mistakes
+## TypeScript type tests
 
-- Writing unit tests for DOM or rendering behavior (use E2E instead).
-- Covering only the happy path - always test edge cases, error states, and boundary conditions.
-- Skipping large dataset tests when the code processes arrays.
-- Forgetting to test `updateSettings()` and `enablePlugin()`/`disablePlugin()` cycles for plugin logic.
-- Using globals from E2E helpers (`handsontable()`, `selectCell()`) - these are not available in unit tests.
+`*.types.ts` files verify the generated declarations in `tmp/` after `npm run build:types`. They live in `src/**/__tests__/` (e.g. `src/__tests__/core/core.types.ts`, `src/__tests__/core/namespace.types.ts`); `test/types/` holds only the `tsconfig.json` that drives compilation.
 
-## TypeScript Type Tests
+Run: `node_modules/.bin/tsc --noEmit -p test/types/tsconfig.json`
 
-Type tests (`*.types.ts`) verify that the generated declarations in `tmp/` are correct after running `npm run build:types`. They live **in `src/**/__tests__/`** alongside unit and E2E tests — never under `test/types/` (that directory holds only the `tsconfig.json` that drives compilation).
+Write every line as a real `const x: Type = actualValue` assignment so the compiler checks assignability against `tmp/`; `declare let x: SomeType` bypasses the check.
 
-**File pattern:** `*.types.ts` — e.g., `src/__tests__/core/core.types.ts`, `src/__tests__/core/namespace.types.ts`
-
-**Run:** `node_modules/.bin/tsc --noEmit -p test/types/tsconfig.json`
-
-**Key rule — no `declare`, only real assignments.** Every line must be a real `const x: Type = actualValue` assignment so the compiler verifies assignability against the generated `tmp/` types. A `declare let x: SomeType` bypasses the check entirely.
-
-**Cover both access patterns:**
+Cover both access patterns:
 
 ```ts
 // ESM/modular: import from subpath, assign to namespace type
@@ -114,16 +72,13 @@ const EditorCtor = Handsontable.editors.DateEditor;
 const _umdEditor: Handsontable.editors.DateEditor = new EditorCtor(hot);
 ```
 
-**Negative assertions** use `@ts-expect-error` to prove internal symbols are NOT exported:
+Negative assertions use `@ts-expect-error` to prove internal symbols are not exported:
 
 ```ts
 // @ts-expect-error SelectionManager is not part of the public API
 import type { SelectionManager } from 'handsontable';
 ```
 
-## Further Reading
+## Further reading
 
-- `handsontable/.ai/TESTING.md` for the full testing strategy.
-- `handsontable/jest.config.js` for Jest configuration.
-- `handsontable/test/__mocks__/` for available mock implementations.
-- `handsontable/test/bootstrap.js` for the test setup.
+`handsontable/.ai/TESTING.md`, `handsontable/jest.config.js`, `handsontable/test/__mocks__/`, `handsontable/test/bootstrap.js`.

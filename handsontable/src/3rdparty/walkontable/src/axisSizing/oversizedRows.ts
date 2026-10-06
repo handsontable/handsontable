@@ -92,15 +92,22 @@ export function adjustColumnHeaderHeights(table: Table): void {
  * corner's natural (content-driven) height and only adjusting the master/top side keeps the
  * synchronization stable and lets the header shrink again when the content allows.
  *
+ * With frozen columns on both sides the shorter corner (and the clone beside it) is raised to the
+ * taller one, which does write onto corner cells. That cannot ratchet: a full draw re-renders those
+ * cells and clears the written height, and a fast draw measures a value this function wrote itself,
+ * which is the maximum already. Nothing here feeds the render-size probe, which reads the master's THEAD.
+ *
  * @param {Table} table The master table.
  */
 export function syncOversizedColumnHeadersWithFrozenOverlays(table: Table): void {
   const wtOverlays = table.deps.getWtOverlays();
-  // Cheapest possible bail-out first: with no frozen columns the corner overlay is not cloned,
+  // Cheapest possible bail-out first: with no frozen columns the corner overlays are not cloned,
   // so the overwhelmingly common (non-frozen) grids pay only a couple of property reads per draw.
-  const cornerClone = wtOverlays.topInlineStartCornerOverlay?.clone;
+  const startCornerThead = wtOverlays.topInlineStartCornerOverlay?.clone?.wtTable?.THEAD;
+  const endCornerThead = wtOverlays.topInlineEndCornerOverlay?.needFullRender ?
+    wtOverlays.topInlineEndCornerOverlay.clone?.wtTable?.THEAD : undefined;
 
-  if (!cornerClone?.wtTable?.THEAD) {
+  if (!startCornerThead && !endCornerThead) {
     return;
   }
 
@@ -110,21 +117,37 @@ export function syncOversizedColumnHeadersWithFrozenOverlays(table: Table): void
     return;
   }
 
-  const cornerChildren = cornerClone.wtTable.THEAD.childNodes;
-  const topClone = wtOverlays.topOverlay?.clone;
-  const targetTheads = [table.THEAD, topClone?.wtTable?.THEAD];
+  const cornerTheads = [startCornerThead, endCornerThead];
+  // The master and the top overlay never render the frozen columns' headers.
+  const targetTheads = [table.THEAD, wtOverlays.topOverlay?.clone?.wtTable?.THEAD];
+
+  if (endCornerThead && startCornerThead && wtOverlays.topInlineStartCornerOverlay.needFullRender) {
+    // Two frozen sides: the shorter side is brought up to the taller one as well - both its corner and
+    // the clone beside it, which render the same headers and so have the same natural height.
+    targetTheads.push(
+      startCornerThead,
+      wtOverlays.inlineStartOverlay?.clone?.wtTable?.THEAD,
+      endCornerThead,
+      wtOverlays.inlineEndOverlay?.clone?.wtTable?.THEAD
+    );
+  }
+
+  const { geometryReader } = table.deps;
   // Sub-pixel tolerance to avoid rewriting heights on floating-point jitter while still
   // catching the fractional gaps (e.g. ~0.33px at 75% zoom) that read as a 1px shift.
   const epsilon = 0.1;
 
   for (let i = 0, len = columnHeaders.length; i < len; i++) {
-    const cornerChild = cornerChildren[i];
+    const cornerRowHeight = cornerTheads.reduce((tallest, thead) => {
+      const cornerChild = thead?.childNodes[i];
 
-    if (!isHTMLElement(cornerChild)) {
+      return isHTMLElement(cornerChild) ?
+        Math.max(tallest, geometryReader.getBoundingClientRect(cornerChild).height) : tallest;
+    }, 0);
+
+    if (cornerRowHeight === 0) {
       continue;
     }
-
-    const cornerRowHeight = table.deps.geometryReader.getBoundingClientRect(cornerChild).height;
 
     targetTheads.forEach((thead) => {
       const targetRow = thead?.childNodes[i];
@@ -139,7 +162,7 @@ export function syncOversizedColumnHeadersWithFrozenOverlays(table: Table): void
         return;
       }
 
-      const targetRowHeight = table.deps.geometryReader.getBoundingClientRect(targetRow).height;
+      const targetRowHeight = geometryReader.getBoundingClientRect(targetRow).height;
 
       if (Math.abs(targetRowHeight - cornerRowHeight) > epsilon) {
         firstChild.style.height = `${cornerRowHeight}px`;
@@ -209,8 +232,33 @@ export function shouldSyncOversizedRowsWithFrozenOverlays(table: Table): boolean
   const { wtSettings } = table;
 
   return !wtSettings.getSetting('externalRowCalculator') &&
-    !!wtSettings.getSetting<number>('fixedColumnsStart') &&
-    table.getFirstRenderedColumn() > 0;
+    isFrozenColumnBandOutsideMasterBand(
+      wtSettings, table.getFirstRenderedColumn(), table.getLastRenderedColumn()
+    );
+}
+
+/**
+ * Whether a frozen column (an inline-start one, or one of the last `fixedColumnsEnd` columns) lies
+ * outside the master's rendered column band, so only a frozen overlay renders it. The start band is
+ * out of the master's band as soon as that band starts past column 0, the end band as soon as it
+ * stops short of the last column.
+ *
+ * @param {Settings} wtSettings The Walkontable settings.
+ * @param {number} firstRenderedColumn The master's first rendered column.
+ * @param {number} lastRenderedColumn The master's last rendered column.
+ * @returns {boolean}
+ */
+export function isFrozenColumnBandOutsideMasterBand(
+  wtSettings: Table['wtSettings'],
+  firstRenderedColumn: number,
+  lastRenderedColumn: number
+): boolean {
+  if (wtSettings.getSetting<number>('fixedColumnsStart') && firstRenderedColumn > 0) {
+    return true;
+  }
+
+  return !!wtSettings.getSetting<number>('fixedColumnsEnd') &&
+    lastRenderedColumn < wtSettings.getSetting<number>('totalColumns') - 1;
 }
 
 /**
@@ -259,6 +307,9 @@ export function syncOversizedRowsWithFrozenOverlays(
     wtOverlays.inlineStartOverlay,
     wtOverlays.topInlineStartCornerOverlay,
     wtOverlays.bottomInlineStartCornerOverlay,
+    wtOverlays.inlineEndOverlay,
+    wtOverlays.topInlineEndCornerOverlay,
+    wtOverlays.bottomInlineEndCornerOverlay,
   ]
     .filter(overlay => overlay?.needFullRender)
     .map(overlay => overlay?.clone?.wtTable)
