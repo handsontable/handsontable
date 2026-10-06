@@ -7,9 +7,7 @@ registerAllModules();
 
 // Named expressions that reference cell ranges must be registered after the sheet
 // exists. Pre-build the engine at module level so it is created only once.
-const hfInstance = HyperFormula.buildEmpty({
-  licenseKey: 'gpl-v3',
-});
+const hfInstance = HyperFormula.buildEmpty();
 
 hfInstance.addSheet('Sheet1');
 hfInstance.addNamedExpression('Q1_TOTAL', '=SUM(Sheet1!$B$1:$B$3)');

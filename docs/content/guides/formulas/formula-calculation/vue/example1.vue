@@ -24,14 +24,9 @@ const data2 = [
   ['Number of sheets in this workbook', '=SHEETS()'],
 ];
 
-// create an external HyperFormula instance, initialized with the
-// `'gpl-v3'` license key (use your own key in your app), and shared by both grids.
+// create an external HyperFormula instance shared by both grids.
 // `markRaw` prevents Vue from wrapping the instance in a reactive proxy.
-const hyperformulaInstance = markRaw(
-  HyperFormula.buildEmpty({
-    licenseKey: 'gpl-v3',
-  })
-);
+const hyperformulaInstance = markRaw(HyperFormula.buildEmpty());
 
 const sheet1Settings = ref<GridSettings>({
   data: data1,

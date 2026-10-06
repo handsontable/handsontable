@@ -4,9 +4,7 @@ import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 import { HyperFormula } from 'hyperformula';
 
 // One engine, shared by every sheet of the workbook.
-const engine = HyperFormula.buildEmpty({
-  licenseKey: 'gpl-v3',
-});
+const engine = HyperFormula.buildEmpty();
 
 const ratesData = [
   ['VAT rate', 0.23],

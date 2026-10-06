@@ -6,9 +6,7 @@ import { HyperFormula } from 'hyperformula';
 registerAllModules();
 
 // One engine, shared by every sheet of the workbook.
-const engine = HyperFormula.buildEmpty({
-  licenseKey: 'gpl-v3',
-});
+const engine = HyperFormula.buildEmpty();
 
 const budgetData = [
   ['Laptops', 4200, '=B1*Rates!B1', '=B1*Rates!B2', '=B1+C1+D1'],

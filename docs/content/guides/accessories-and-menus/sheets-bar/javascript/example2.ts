@@ -6,9 +6,7 @@ import { HyperFormula } from 'hyperformula';
 registerAllModules();
 
 // One engine, shared by every sheet of the workbook.
-const engine = HyperFormula.buildEmpty({
-  licenseKey: 'gpl-v3',
-});
+const engine = HyperFormula.buildEmpty();
 
 const ratesData = [
   ['VAT rate', 0.23],

@@ -23,11 +23,7 @@ const ExampleComponent = () => {
   ];
 
   //  create an external HyperFormula instance
-  const hyperformulaInstance = HyperFormula.buildEmpty({
-    // to use an external HyperFormula instance,
-    // pass your HyperFormula license key (this demo uses `'gpl-v3'`)
-    licenseKey: 'gpl-v3',
-  });
+  const hyperformulaInstance = HyperFormula.buildEmpty();
 
   return (
     <>

@@ -10,11 +10,7 @@ registerAllModules();
 
 // Named expressions that reference cell ranges must be registered after the sheet
 // exists. Pre-build the engine once. `markRaw` keeps Vue from proxying the instance.
-const hfInstance = markRaw(
-  HyperFormula.buildEmpty({
-    licenseKey: 'gpl-v3',
-  })
-);
+const hfInstance = markRaw(HyperFormula.buildEmpty());
 
 hfInstance.addSheet('Sheet1');
 hfInstance.addNamedExpression('Q1_TOTAL', '=SUM(Sheet1!$B$1:$B$3)');

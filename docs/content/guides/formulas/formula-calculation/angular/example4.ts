@@ -26,9 +26,7 @@ export class AppComponent {
   readonly hotSettings: GridSettings;
 
   constructor() {
-    const hfInstance = HyperFormula.buildEmpty({
-      licenseKey: 'gpl-v3',
-    });
+    const hfInstance = HyperFormula.buildEmpty();
 
     hfInstance.addSheet('Sheet1');
     hfInstance.addNamedExpression('Q1_TOTAL', '=SUM(Sheet1!$B$1:$B$3)');

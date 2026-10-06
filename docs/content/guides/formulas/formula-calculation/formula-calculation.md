@@ -67,7 +67,7 @@ Double click on a cell to open the editor and preview the formula.
 
 ::: example #example1 :angular --ts 1 --html 2
 
-@[code collapse={37-64}](@/content/guides/formulas/formula-calculation/angular/example1.ts)
+@[code collapse={33-60}](@/content/guides/formulas/formula-calculation/angular/example1.ts)
 @[code](@/content/guides/formulas/formula-calculation/angular/example1.html)
 
 :::
@@ -144,11 +144,12 @@ This example is more typical of data grids than spreadsheets. Calculations are p
 The `formulas` option accepts either the `HyperFormula` class or an already-created HyperFormula
 instance. Choose the pattern that matches your use case.
 
-HyperFormula is licensed separately from Handsontable. Every pattern below needs a valid
-[HyperFormula license key](https://hyperformula.handsontable.com/guide/license-key.html). Set it in
-the `licenseKey` option of the HyperFormula configuration: in the engine configuration object, or in
-the configuration you pass to `HyperFormula.buildEmpty()`. For details,
-[contact our Sales Team](https://handsontable.com/get-a-quote).
+HyperFormula is licensed separately from Handsontable. For details, see the
+[HyperFormula license key](https://hyperformula.handsontable.com/guide/license-key.html) guide or
+[contact our Sales Team](https://handsontable.com/get-a-quote). Handsontable passes a license key to
+the HyperFormula engines it creates. To use your own key, set the `licenseKey` option in the
+HyperFormula configuration: in the engine configuration object, or in the configuration you pass to
+`HyperFormula.buildEmpty()`.
 
 All patterns require importing HyperFormula:
 
@@ -162,7 +163,7 @@ for alternative installation methods (CDN, UMD, etc.).
 ```js
 // create an external HyperFormula instance
 const hyperformulaInstance = HyperFormula.buildEmpty({
-  // use your HyperFormula license key
+  // optional: your HyperFormula license key
   licenseKey: 'your-hyperformula-license-key',
 });
 ```
@@ -221,7 +222,7 @@ const hotSettings = ref({
 
 :::
 
-Pass a configuration object to set your HyperFormula license key and customize the engine. For all available options, see the [HyperFormula `ConfigParams` reference](https://hyperformula.handsontable.com/api/interfaces/configparams.html).
+Pass a configuration object to customize the engine or to set your own HyperFormula license key. For all available options, see the [HyperFormula `ConfigParams` reference](https://hyperformula.handsontable.com/api/interfaces/configparams.html).
 
 ::: only-for javascript
 
@@ -301,7 +302,7 @@ const hotSettings = ref({
 
 ```js
 const hyperformulaInstance = HyperFormula.buildEmpty({
-  // use your HyperFormula license key
+  // optional: your HyperFormula license key
   licenseKey: 'your-hyperformula-license-key',
 });
 
@@ -319,7 +320,7 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 ```jsx
 const ExampleComponent = () => {
   const hyperformulaInstance = HyperFormula.buildEmpty({
-    // use your HyperFormula license key
+    // optional: your HyperFormula license key
     licenseKey: 'your-hyperformula-license-key',
   });
 
@@ -342,7 +343,7 @@ import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 import {HyperFormula} from 'hyperformula';
 
 const hyperformulaInstance = HyperFormula.buildEmpty({
-  // use your HyperFormula license key
+  // optional: your HyperFormula license key
   licenseKey: 'your-hyperformula-license-key',
 });
 
@@ -364,7 +365,7 @@ const configurationOptions: GridSettings = {
 ```js
 const hyperformulaInstance = markRaw(
   HyperFormula.buildEmpty({
-    // use your HyperFormula license key
+    // optional: your HyperFormula license key
     licenseKey: 'your-hyperformula-license-key',
   })
 );
@@ -512,7 +513,7 @@ const hotSettings2 = ref({
 
 ```js
 const hyperformulaInstance = HyperFormula.buildEmpty({
-  // use your HyperFormula license key
+  // optional: your HyperFormula license key
   licenseKey: 'your-hyperformula-license-key',
 });
 
@@ -542,7 +543,7 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 ```jsx
 const ExampleComponent = () => {
   const hyperformulaInstance = HyperFormula.buildEmpty({
-    // use your HyperFormula license key
+    // optional: your HyperFormula license key
     licenseKey: 'your-hyperformula-license-key',
   });
 
@@ -573,7 +574,7 @@ const ExampleComponent = () => {
 
 ```ts
 const hyperformulaInstance = HyperFormula.buildEmpty({
-  // use your HyperFormula license key
+  // optional: your HyperFormula license key
   licenseKey: 'your-hyperformula-license-key',
 });
 
@@ -603,7 +604,7 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 ```js
 const hyperformulaInstance = markRaw(
   HyperFormula.buildEmpty({
-    // use your HyperFormula license key
+    // optional: your HyperFormula license key
     licenseKey: 'your-hyperformula-license-key',
   })
 );
