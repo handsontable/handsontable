@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed moving columns across the freeze line after freezing a column with `manualColumnFreeze`, which now works like `fixedColumnsStart`, including the drop guideline being hidden under the frozen columns and the selection staying on the old column after a freeze or unfreeze from the menu. Added the `restoreColumnPosition` option of `manualColumnFreeze`, which moves an unfrozen column back to its data source position, and a `finalIndex` argument to the `beforeColumnUnfreeze` and `afterColumnUnfreeze` hooks.",
-  "type": "fixed",
+  "title": "Changed `manualColumnFreeze` so that frozen columns can be dragged and columns can be dropped in front of them, as with `fixedColumnsStart`; to keep the old lock, return `false` from `beforeColumnMove`, as shown in the migration guide. Added the `restoreColumnPosition` option of `manualColumnFreeze`, a `finalIndex` argument to the `beforeColumnUnfreeze` and `afterColumnUnfreeze` hooks, and fixed the drop guideline being hidden under frozen columns and the selection staying on the old column after a freeze or unfreeze from the menu.",
+  "type": "changed",
   "issueOrPR": 13755,
-  "breaking": false,
+  "breaking": true,
   "framework": "none"
 }

@@ -40,7 +40,11 @@
       restore      manualColumnFreeze: { restoreColumnPosition: true }
       restore-end  the same, with fixedColumnsEnd: 1, and col1 moved into that end band at init, so the band
                    holds a column that comes before every other column in data order
+      window       manualColumnFreeze: true in a grid the PAGE scrolls sideways (no width, columns wider than the
+                   viewport) and that sits 60px from the page edge, the case where the scroll arithmetic and the
+                   grid's offset in the page meet
   -->
+  <div class="grid" data-testid="window" style="margin-left: 60px"></div>
   <div class="grid" data-testid="default"></div>
   <div class="grid" data-testid="restore"></div>
   <div class="grid" data-testid="restore-end"></div>
@@ -53,6 +57,7 @@
     const configs = {
       default: { manualColumnFreeze: true },
       restore: { manualColumnFreeze: { restoreColumnPosition: true } },
+      window: { manualColumnFreeze: true, width: undefined, colWidths: 260 },
       'restore-end': {
         manualColumnFreeze: { restoreColumnPosition: true },
         fixedColumnsEnd: 1,

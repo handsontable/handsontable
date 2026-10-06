@@ -16,7 +16,7 @@ import { ManualColumnFreezeBoundaryPage } from '../fixtures/pages/ManualColumnFr
 test.describe('ManualColumnFreeze: the freeze line', () => {
   let grid: ManualColumnFreezeBoundaryPage;
 
-  const { DEFAULT, RESTORE, RESTORE_END, IDENTITY, FREEZE_LABEL, UNFREEZE_LABEL } = ManualColumnFreezeBoundaryPage;
+  const { DEFAULT, RESTORE, RESTORE_END, WINDOW, IDENTITY, FREEZE_LABEL, UNFREEZE_LABEL } = ManualColumnFreezeBoundaryPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
     grid = new ManualColumnFreezeBoundaryPage(page, theme, bundle);
@@ -73,30 +73,51 @@ test.describe('ManualColumnFreeze: the freeze line', () => {
       const guideline = await grid.holdDragAndProbeGuideline(DEFAULT, 'col5', 'col2', 'before');
 
       expect(guideline.visible).toBe(true);
+      expect(Math.abs(guideline.left - guideline.edge)).toBeLessThanOrEqual(2);
     });
 
     test('is drawn above the frozen columns when the drop is in front of the first one', async () => {
       const guideline = await grid.holdDragAndProbeGuideline(DEFAULT, 'col5', 'col1', 'before');
 
       expect(guideline.visible).toBe(true);
+      expect(Math.abs(guideline.left - guideline.edge)).toBeLessThanOrEqual(2);
     });
 
     test('is drawn when the drop is at the freeze line', async () => {
       const guideline = await grid.holdDragAndProbeGuideline(DEFAULT, 'col5', 'col2', 'after');
 
       expect(guideline.visible).toBe(true);
+      expect(Math.abs(guideline.left - guideline.edge)).toBeLessThanOrEqual(2);
+    });
+
+    test('is drawn at the drop spot in a grid the page scrolls, away from the page edge', async () => {
+      await grid.freezeColumnByApi(WINDOW, 0);
+      await grid.freezeColumnByApi(WINDOW, 1);
+      await grid.scrollPageSideways(300);
+
+      const between = await grid.holdDragAndProbeGuideline(WINDOW, 'col4', 'col2', 'before');
+
+      expect(between.visible).toBe(true);
+      expect(Math.abs(between.left - between.edge)).toBeLessThanOrEqual(2);
+
+      const front = await grid.holdDragAndProbeGuideline(WINDOW, 'col5', 'col1', 'before');
+
+      expect(front.visible).toBe(true);
+      expect(Math.abs(front.left - front.edge)).toBeLessThanOrEqual(2);
     });
 
     test('is drawn on the next drag too, after one that ended over the frozen columns', async () => {
       const first = await grid.holdDragAndProbeGuideline(DEFAULT, 'col5', 'col2', 'before');
 
       expect(first.visible).toBe(true);
+      expect(Math.abs(first.left - first.edge)).toBeLessThanOrEqual(2);
 
       // The first drag moved col5 to the freeze line. A second one, over the scrollable columns, has to find
       // the guideline and the backlight back in the master table.
       const second = await grid.holdDragAndProbeGuideline(DEFAULT, 'col7', 'col6', 'before');
 
       expect(second.visible).toBe(true);
+      expect(Math.abs(second.left - second.edge)).toBeLessThanOrEqual(2);
       expect(second.backlightCount).toBe(1);
     });
 
@@ -104,6 +125,7 @@ test.describe('ManualColumnFreeze: the freeze line', () => {
       const guideline = await grid.holdDragAndProbeGuideline(DEFAULT, 'col5', 'col4', 'before');
 
       expect(guideline.visible).toBe(true);
+      expect(Math.abs(guideline.left - guideline.edge)).toBeLessThanOrEqual(2);
     });
   });
 

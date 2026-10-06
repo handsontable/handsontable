@@ -71,4 +71,31 @@ describe('ManualColumnFreeze – selection after a menu action', () => {
     expect(hot.getSelected()).toEqual([[0, 0, 2, 0]]);
     expect(hot.selection.isSelectedByColumnHeader()).toBe(true);
   });
+
+  it('should keep the focus on the row it was on inside a multi-row range', () => {
+    hot.selectCells([[0, 4, 2, 4]]);
+
+    const focus = hot.getSelectedRangeLast().highlight.clone();
+
+    focus.row = 2;
+    hot.selection.setRangeFocus(focus);
+
+    runCommand('freeze_column');
+
+    expect(hot.getSelected()).toEqual([[0, 0, 2, 0]]);
+    expect(hot.getSelectedRangeLast().highlight.row).toBe(2);
+    expect(hot.getSelectedRangeLast().highlight.col).toBe(0);
+  });
+
+  it('should keep the focus on the column header when the grid navigates headers', () => {
+    hot.updateSettings({ colHeaders: true, navigableHeaders: true });
+    hot.selectColumns(4, 4, -1);
+
+    expect(hot.getSelectedRangeLast().highlight.row).toBe(-1);
+
+    runCommand('freeze_column');
+
+    expect(hot.getSelectedRangeLast().highlight.row).toBe(-1);
+    expect(hot.getSelectedRangeLast().highlight.col).toBe(0);
+  });
 });

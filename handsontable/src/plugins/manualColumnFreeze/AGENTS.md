@@ -41,8 +41,7 @@ makes up the bulk of the column menu.
 The plugin does not listen to `beforeColumnMove`. A move across or inside the frozen area behaves exactly as
 with a plain `fixedColumnsStart`: the first `fixedColumnsStart` columns are frozen, whichever columns they are.
 A column dropped before the freeze line becomes frozen and pushes the last frozen column out; a frozen column
-dragged out lets the next column slide in. The count never changes on a move. This matches Excel and Google
-Sheets.
+dragged out lets the next column slide in. The count never changes on a move.
 
 The plugin used to veto both moves (before the freeze line, and of a frozen column), but only after its first
 `freezeColumn()`/`unfreezeColumn()` call, so the same drag worked on a grid configured with `fixedColumnsStart`
@@ -85,7 +84,8 @@ stay at the old index and select whichever column landed there. With `restoreCol
 never lands at the old index, so this showed on nearly every unfreeze. The two menu callbacks run their action
 through `followColumn()` (`contextMenuItem/followColumn.ts`): it remembers the column by its PHYSICAL index, and
 after the action selects the column at its new visual index. A column selected through its header stays a whole
-column selection, and a cell selection keeps its rows. The plugin API (`freezeColumn()`, `unfreezeColumn()`) does
+column selection, a cell selection keeps its rows, and both keep the focus where it was (the header with
+`navigableHeaders`, the row inside a range): `selectColumns()` and `selectCells()` reset it to the first cell. The plugin API (`freezeColumn()`, `unfreezeColumn()`) does
 not touch the selection: the caller owns it there.
 
 ## `fixedColumnsEnd`: the end band is not ours to move

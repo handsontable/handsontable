@@ -37,10 +37,16 @@ export class ManualColumnFreezeBoundaryPage {
    */
   static readonly RESTORE_END = 'restore-end';
 
+  /**
+   * `manualColumnFreeze: true` in a grid that the page scrolls sideways, 60px from the page edge.
+   */
+  static readonly WINDOW = 'window';
+
   static readonly ALL_GRIDS = [
     ManualColumnFreezeBoundaryPage.DEFAULT,
     ManualColumnFreezeBoundaryPage.RESTORE,
     ManualColumnFreezeBoundaryPage.RESTORE_END,
+    ManualColumnFreezeBoundaryPage.WINDOW,
   ];
 
   /**
@@ -229,6 +235,14 @@ export class ManualColumnFreezeBoundaryPage {
   }
 
   /**
+   * Scrolls the page sideways and waits until it has got there.
+   */
+  async scrollPageSideways(x: number): Promise<void> {
+    await this.page.evaluate(left => window.scrollTo(left, 0), x);
+    await expect.poll(() => this.page.evaluate(() => Math.round(window.scrollX))).toBe(x);
+  }
+
+  /**
    * Holds a drag of one column over a header, without releasing, and reports whether the drop guideline is
    * the topmost element at a body row. A position check alone cannot tell: the guideline sat at the right
    * place under the frozen overlay and was painted over by it.
@@ -238,7 +252,7 @@ export class ManualColumnFreezeBoundaryPage {
     name: string,
     targetName: string,
     side: 'before' | 'after'
-  ): Promise<{ visible: boolean, left: number, backlightCount: number }> {
+  ): Promise<{ visible: boolean, left: number, edge: number, backlightCount: number }> {
     const source = await this.header(gridId, name);
 
     await source.click();
@@ -260,7 +274,7 @@ export class ManualColumnFreezeBoundaryPage {
 
     const result = await guideline.evaluate((element) => {
       const rect = element.getBoundingClientRect();
-      const row = element.closest('.handsontable')?.ownerDocument.querySelector('.ht_master tbody tr td');
+      const row = element.closest('[data-testid]')?.querySelector('.ht_master tbody tr td');
       const rowRect = (row as HTMLElement).getBoundingClientRect();
       const hit = element.ownerDocument.elementFromPoint(rect.left + (rect.width / 2), rowRect.top + (rowRect.height / 2));
 
@@ -271,7 +285,8 @@ export class ManualColumnFreezeBoundaryPage {
 
     await this.page.mouse.up();
 
-    return { ...result, backlightCount };
+    // The edge the column is dropped at: the start of the target header, or its end for a drop after it.
+    return { ...result, edge: Math.round(side === 'before' ? to.x : to.x + to.width), backlightCount };
   }
 
   /**
