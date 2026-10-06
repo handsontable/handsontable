@@ -192,11 +192,17 @@ test.describe('complex demo states', () => {
     await expect(options.filter({ has: page.locator('strong') })).toHaveText(['Toronto', 'Tokyo']);
     await expect(options.filter({ hasText: /^Toronto$/ })).toHaveClass(/\bcurrent\b/);
     await expect(demo.editorList.locator('.ht_master tbody td.current')).toHaveCount(1);
+    expect(await demo.editorListCurrentOption()).toBe('Toronto');
 
     // The list draws only the rows in its view. Houston, the source's last city, holds the match too,
-    // in lower case, and scrolling to it leaves Toronto the current option.
+    // in lower case, and scrolling to it leaves Toronto the current option: the list's selection still
+    // names it, and no other rendered option is drawn as current.
     await demo.scrollEditorListToEnd();
     await expect(options.filter({ hasText: /^Houston$/ }).locator('strong')).toHaveText('to');
-    expect(await demo.editorList.locator('.ht_master tbody td.current').allInnerTexts()).not.toContain('Houston');
+    expect(await demo.editorListCurrentOption()).toBe('Toronto');
+    for (const current of await demo.editorList.locator('.ht_master tbody td.current').allInnerTexts()) {
+      expect(current).toBe('Toronto');
+    }
+    await expect(demo.cellEditor).toHaveValue('to');
   });
 });

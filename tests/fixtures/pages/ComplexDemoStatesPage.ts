@@ -160,6 +160,26 @@ export class ComplexDemoStatesPage {
   }
 
   /**
+   * The open dropdown editor's current option, read from the list's own selection, so it is known even
+   * when that row is scrolled out of the rendered band. `null` when the list has no selection.
+   *
+   * @returns {Promise<string | null>}
+   */
+  async editorListCurrentOption(): Promise<string | null> {
+    return this.page.evaluate(() => {
+      const list = (window as unknown as {
+        hot: { getActiveEditor(): { htEditor: {
+          getSelectedLast(): number[] | undefined;
+          getDataAtCell(row: number, column: number): string;
+        } } };
+      }).hot.getActiveEditor().htEditor;
+      const selection = list.getSelectedLast();
+
+      return selection ? list.getDataAtCell(selection[0], 0) : null;
+    });
+  }
+
+  /**
    * The box of a column header in the top overlay, by its label, and the box of the dropdown menu, read
    * in one evaluation: the header cell is a node Walkontable recycles, so a second round trip could
    * measure another column.
