@@ -261,6 +261,8 @@ With [`manualColumnMove`](@/api/options.md#manualcolumnmove) enabled, you can dr
 
 This works the same way whether you freeze columns with `fixedColumnsStart` or with [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze).
 
+::: only-for javascript
+
 To keep the frozen columns in place, reject those moves in the [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) hook:
 
 ```js
@@ -272,6 +274,8 @@ beforeColumnMove(movedColumns, finalIndex) {
 },
 ```
 
+:::
+
 ### Restore the column position on unfreeze
 
 To move an unfrozen column back to its place in the data source order, set [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) to an object with `restoreColumnPosition` set to `true`:
@@ -282,7 +286,7 @@ manualColumnFreeze: {
 },
 ```
 
-The unfrozen column goes back among the scrollable columns, right after the last column that comes before it in the data source. For example, if you freeze the sixth column and then unfreeze it, it goes back between the fifth and the seventh column. If no scrollable column comes before it in the data source, it becomes the first scrollable column. It never enters the columns frozen with [`fixedColumnsEnd`](@/api/options.md#fixedcolumnsend).
+The unfrozen column goes back among the scrollable columns, right after the rightmost scrollable column that comes before it in the data source. For example, if you freeze the sixth column and then unfreeze it, it goes back between the fifth and the seventh column. If no scrollable column comes before it in the data source, it becomes the first scrollable column. It never enters the columns frozen with [`fixedColumnsEnd`](@/api/options.md#fixedcolumnsend).
 
 Handsontable doesn't remember where the column was when you froze it: the position comes from the data source order. So if you moved the column before you froze it, or reordered columns while it was frozen, the unfrozen column goes back next to the column that comes before it in the data source, not to the place you moved it to.
 

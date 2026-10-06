@@ -32,7 +32,7 @@ export class ManualColumnFreezeBoundaryPage {
    */
   static readonly RESTORE = 'restore';
   /**
-   * The same as `RESTORE`, with `fixedColumnsEnd: 1`.
+   * The same as `RESTORE`, with `fixedColumnsEnd: 1` and `col1` moved into the end band.
    */
   static readonly RESTORE_END = 'restore-end';
 
@@ -43,9 +43,7 @@ export class ManualColumnFreezeBoundaryPage {
   ];
 
   /**
-
    * The fixture's column headers, in their starting order.
-
    */
   static readonly IDENTITY = ['col1', 'col2', 'col3', 'col4', 'col5', 'col6', 'col7', 'col8'];
 
@@ -63,9 +61,7 @@ export class ManualColumnFreezeBoundaryPage {
   }
 
   /**
-
    * Navigate and wait for every grid to have rendered.
-
    */
   async goto(): Promise<void> {
     await this.page.goto(
@@ -87,18 +83,14 @@ export class ManualColumnFreezeBoundaryPage {
   }
 
   /**
-
    * One of the grid containers.
-
    */
   grid(gridId: string): Locator {
     return this.page.getByTestId(gridId);
   }
 
   /**
-
    * The column headers, in their current visual order.
-
    */
   async columnOrder(gridId: string): Promise<string[]> {
     return this.page.evaluate(
@@ -108,9 +100,7 @@ export class ManualColumnFreezeBoundaryPage {
   }
 
   /**
-
    * How many columns the grid holds in its frozen (inline start) area.
-
    */
   async fixedColumnsStart(gridId: string): Promise<number> {
     return this.page.evaluate(
@@ -120,9 +110,7 @@ export class ManualColumnFreezeBoundaryPage {
   }
 
   /**
-
    * The headers the frozen corner clone draws, which is what the user sees pinned.
-
    */
   async renderedFrozenHeaders(gridId: string): Promise<string[]> {
     return this.grid(gridId)
@@ -131,9 +119,7 @@ export class ManualColumnFreezeBoundaryPage {
   }
 
   /**
-
    * Freeze a column through the plugin API, by its current visual index.
-
    */
   async freezeColumnByApi(gridId: string, visualColumn: number): Promise<void> {
     await this.page.evaluate(([id, column]) => {
@@ -145,9 +131,7 @@ export class ManualColumnFreezeBoundaryPage {
   }
 
   /**
-
    * Unfreeze a column through the plugin API, by its current visual index.
-
    */
   async unfreezeColumnByApi(gridId: string, visualColumn: number): Promise<void> {
     await this.page.evaluate(([id, column]) => {
@@ -169,9 +153,7 @@ export class ManualColumnFreezeBoundaryPage {
   }
 
   /**
-
    * Undo the last action.
-
    */
   async undo(gridId: string): Promise<void> {
     await this.page.evaluate(
@@ -193,9 +175,7 @@ export class ManualColumnFreezeBoundaryPage {
   }
 
   /**
-
    * Freeze or unfreeze a column the way a user does: right-click its header and pick the entry.
-
    */
   async pickFromHeaderContextMenu(gridId: string, name: string, label: string): Promise<void> {
     await (await this.header(gridId, name)).click({ button: 'right' });
@@ -234,9 +214,7 @@ export class ManualColumnFreezeBoundaryPage {
   }
 
   /**
-
    * Bounding box of a laid-out header.
-
    */
   private async boxOf(locator: Locator): Promise<{ x: number, y: number, width: number, height: number }> {
     await expect(locator).toBeVisible();

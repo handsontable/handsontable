@@ -445,7 +445,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterColumnSort: (currentSortConfig, destinationSortConfigs, sortPossible) => {
     const _sortPossible: boolean = sortPossible;
   },
-  afterColumnUnfreeze: (columnIndex, isFreezingPerformed) => {},
+  afterColumnUnfreeze: (columnIndex, isFreezingPerformed, finalIndex) => {
+    const _finalIndex: number = finalIndex;
+  },
   beforeCompositionStart: (event) => {
     const _event: CompositionEvent = event;
   },
@@ -662,7 +664,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
     isActionInterrupted.value = false;
     newCoords.clone();
   },
-  beforeColumnUnfreeze: (columnIndex, isFreezingPerformed) => false,
+  beforeColumnUnfreeze: (columnIndex, isFreezingPerformed, finalIndex) => {
+    const _finalIndex: number = finalIndex;
+
+    return false;
+  },
   beforeContextMenuSetItems: (menuItems) => {},
   beforeContextMenuShow: (context) => {},
   beforeCopy: (data, coords) => {

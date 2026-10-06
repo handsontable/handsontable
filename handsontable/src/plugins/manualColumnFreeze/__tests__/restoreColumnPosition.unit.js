@@ -83,7 +83,7 @@ describe('ManualColumnFreeze – restoreColumnPosition', () => {
     plugin.unfreezeColumn(0);
 
     expect(order()).toBe('GFABCDEHIJ');
-    expect(warnSpy).toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('"restoreColumnPosition" option is not valid'));
 
     warnSpy.mockRestore();
   });
@@ -130,6 +130,18 @@ describe('ManualColumnFreeze – restoreColumnPosition', () => {
 
     expect(beforeColumnUnfreeze).toHaveBeenCalledWith(0, true, 5);
     expect(afterColumnUnfreeze).toHaveBeenCalledWith(0, true, 5);
+  });
+
+  it('should pass the column itself as the target to the unfreeze hooks when nothing is unfrozen', () => {
+    const beforeColumnUnfreeze = jest.fn();
+    const afterColumnUnfreeze = jest.fn();
+    const plugin = createGrid({ beforeColumnUnfreeze, afterColumnUnfreeze });
+
+    plugin.unfreezeColumn(3);
+
+    expect(beforeColumnUnfreeze).toHaveBeenCalledWith(3, false, 3);
+    expect(afterColumnUnfreeze).toHaveBeenCalledWith(3, false, 3);
+    expect(order()).toBe('ABCDEFGHIJ');
   });
 
   it('should make the column the last one when it is the last in data order', () => {
