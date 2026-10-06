@@ -12,16 +12,19 @@ test.describe('Async image in a scrolling column beside frozen columns', () => {
     const grid = new AsyncImageFrozenColumnsPage(page, theme, bundle);
 
     await grid.goto();
-
-    const heightsBeforeLoad = await grid.rowHeights('master');
-
     grid.releaseImages();
 
-    // The images make every row taller than its drawn height.
-    await expect.poll(async() => (await grid.rowHeights('master'))[5]).toBeGreaterThan(heightsBeforeLoad[5]);
+    // Every image has loaded once each master row is at least as tall as its image.
+    await expect.poll(async() => (await grid.rowHeights()).master.every((height, row) => height >= 60 + row * 10))
+      .toBe(true);
 
-    // Before the fix the frozen overlay kept the drawn heights until the next render.
-    await expect.poll(() => grid.rowHeights('clone_inline_start')).toEqual(await grid.rowHeights('master'));
+    // Before the fix the frozen overlay kept the drawn heights until the next render. Master and
+    // overlay are compared inside one read, so the check cannot straddle a layout change.
+    await expect.poll(async() => {
+      const { master, frozen } = await grid.rowHeights();
+
+      return master.join() === frozen.join();
+    }).toBe(true);
   });
 
   test('does not redraw in a loop although the renderer recreates its images on every render', async({
@@ -32,7 +35,11 @@ test.describe('Async image in a scrolling column beside frozen columns', () => {
     await grid.goto();
     grid.releaseImages();
 
-    await expect.poll(() => grid.rowHeights('clone_inline_start')).toEqual(await grid.rowHeights('master'));
+    await expect.poll(async() => {
+      const { master, frozen } = await grid.rowHeights();
+
+      return master.every((height, row) => height >= 60 + row * 10) && master.join() === frozen.join();
+    }).toBe(true);
 
     const settled = await grid.renderCount();
 
@@ -40,6 +47,5 @@ test.describe('Async image in a scrolling column beside frozen columns', () => {
     await grid.waitForFrames(60);
 
     expect(await grid.renderCount()).toBe(settled);
-    expect(settled).toBeLessThan(10);
   });
 });

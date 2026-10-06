@@ -58,12 +58,19 @@ export class AsyncImageFrozenColumnsPage {
   }
 
   /**
-   * Returns the rendered height of every body row of an overlay, in pixels.
+   * Returns the rendered height of every body row of the master and of the frozen inline-start overlay,
+   * read in one evaluation so both come from the same layout.
    */
-  async rowHeights(overlay: 'master' | 'clone_inline_start'): Promise<number[]> {
-    return this.page.locator(`.ht_${overlay} tbody tr`).evaluateAll(
-      rows => rows.map(row => Math.round(row.getBoundingClientRect().height))
-    );
+  async rowHeights(): Promise<{ master: number[], frozen: number[] }> {
+    return this.page.evaluate(() => {
+      const heights = (selector: string) => [...document.querySelectorAll(selector)]
+        .map(row => Math.round(row.getBoundingClientRect().height));
+
+      return {
+        master: heights('.ht_master tbody tr'),
+        frozen: heights('.ht_clone_inline_start tbody tr'),
+      };
+    });
   }
 
   /**

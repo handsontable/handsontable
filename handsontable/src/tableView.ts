@@ -288,9 +288,9 @@ class TableView {
    */
   #lastHeight = 0;
   /**
-   * Whether a redraw requested by `#onCellContentSettled` is queued but has not run yet.
+   * The animation frame of the redraw requested by `#onCellContentSettled`, or `null` when none is queued.
    */
-  #contentSettledRenderPending = false;
+  #contentSettledFrame: number | null = null;
 
   /**
    * The layout-slot height reserved inside the vertical axis owner, memoized for one render (see
@@ -758,18 +758,19 @@ class TableView {
   }
 
   /**
-   * Redraws once when asynchronously loading cell content (such as an `<img>` written by a renderer)
-   * changes the height of its row after the draw measured it. Without the redraw, the frozen overlays keep
-   * the row height from the draw while the master has already grown, and they stay misaligned until the
-   * next render. A row whose live height matches the height of the last draw is left alone, which stops a
-   * renderer that recreates its content on every render from redrawing in a loop.
+   * Redraws when asynchronously loading cell content (such as an `<img>` written by a renderer) changes
+   * the height of its row after the draw measured it. Without the redraw, the frozen overlays keep the row
+   * height from the draw while the master has already grown, and they stay misaligned until the next
+   * render. A row whose live height matches the height of the last draw is left alone, which stops a
+   * renderer that recreates its content on every render from redrawing in a loop. Loads that settle within
+   * one frame share a single redraw.
    *
    * @param {Event} event The `load` or `error` event of a descendant element.
    */
   #onCellContentSettled = (event: Event): void => {
     const { target } = event;
 
-    if (!isHTMLElement(target) || this.#contentSettledRenderPending) {
+    if (!isHTMLElement(target) || this.#contentSettledFrame !== null) {
       return;
     }
 
@@ -781,26 +782,26 @@ class TableView {
     }
 
     const coords = this.hot.getCoords(cell);
+    const visualRow = coords?.row ?? -1;
+    const visualColumn = coords?.col ?? -1;
 
-    if (coords === null || coords.row === null || coords.row < 0) {
+    // A `<td>` of a table nested in a cell resolves to no cell of this grid, or to another one.
+    if (!(visualRow >= 0) || !(visualColumn >= 0) || this.hot.getCell(visualRow, visualColumn) !== cell) {
       return;
     }
 
     // A row with no provided or recorded height was drawn at the default height.
-    const drawnHeight = getRenderedRowHeight(this.hot, coords.row) ??
+    const drawnHeight = getRenderedRowHeight(this.hot, visualRow) ??
       this.hot.stylesHandler.getDefaultRowHeight();
 
-    if (drawnHeight === undefined || drawnHeight === null) {
+    // `offsetHeight` is a layout height, so a CSS transform or zoom on an ancestor does not skew it
+    // against the layout heights Walkontable recorded.
+    if (drawnHeight === undefined || drawnHeight === null || Math.abs(row.offsetHeight - drawnHeight) < 1) {
       return;
     }
 
-    if (Math.abs(row.getBoundingClientRect().height - drawnHeight) < 1) {
-      return;
-    }
-
-    this.#contentSettledRenderPending = true;
-    this.hot._registerTimeout(() => {
-      this.#contentSettledRenderPending = false;
+    this.#contentSettledFrame = this.hot.rootWindow.requestAnimationFrame(() => {
+      this.#contentSettledFrame = null;
       this.hot.render();
     });
   };
@@ -3004,6 +3005,11 @@ class TableView {
    * @private
    */
   destroy() {
+    if (this.#contentSettledFrame !== null) {
+      this.hot.rootWindow.cancelAnimationFrame(this.#contentSettledFrame);
+      this.#contentSettledFrame = null;
+    }
+
     this._wt.destroy();
     this.eventManager.destroy();
   }
