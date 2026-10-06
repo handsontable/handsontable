@@ -4830,6 +4830,13 @@ export default (): Record<string, unknown> => {
      * | -------- | ---------------------------------------------------------------------- |
      * | `true`   | Enable the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin  |
      * | `false`  | Disable the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin |
+     * | An object | Enable the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin and configure it |
+     *
+     * The object form accepts the following property:
+     *
+     * | Property                | Type      | Default | Description                                                                                                                                                                  |
+     * | ----------------------- | --------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `restoreColumnPosition` | `boolean` | `false` | When `true`, an unfrozen column goes back among the scrollable columns in data order. When `false`, it stays right after the frozen columns. |
      *
      * Read more:
      * - [Column freezing](@/guides/columns/column-freezing/column-freezing.md#user-triggered-freeze)
@@ -4838,7 +4845,7 @@ export default (): Record<string, unknown> => {
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
-     * @type {boolean}
+     * @type {boolean|object}
      * @default undefined
      * @category ManualColumnFreeze
      * @configScope grid
@@ -4847,6 +4854,11 @@ export default (): Record<string, unknown> => {
      * ```js
      * // enable the `ManualColumnFreeze` plugin
      * manualColumnFreeze: true,
+     *
+     * // enable the `ManualColumnFreeze` plugin, and move an unfrozen column back to its position in data order
+     * manualColumnFreeze: {
+     *   restoreColumnPosition: true,
+     * },
      * ```
      */
     manualColumnFreeze: undefined,

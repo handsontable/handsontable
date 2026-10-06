@@ -210,7 +210,7 @@ In the following example, the first row (Target) and the last row (Total) stay a
 
 To enable manual column freezing, set [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) to `true`. This lets you freeze and unfreeze columns by using the grid's [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) or [column menu](@/guides/accessories-and-menus/column-menu/column-menu.md).
 
-Mind that when you unfreeze a frozen column, it doesn't go back to the original position.
+When you unfreeze a column, it moves to the first position after the remaining frozen columns. To move it back to its original position instead, see [Restore the column position on unfreeze](#restore-the-column-position-on-unfreeze).
 
 ::: only-for javascript
 
@@ -250,6 +250,71 @@ Mind that when you unfreeze a frozen column, it doesn't go back to the original 
 ::: example #example2 :vue3
 
 @[code](@/content/guides/columns/column-freezing/vue/example2.vue)
+
+:::
+
+:::
+
+### Move columns across the freeze line
+
+With [`manualColumnMove`](@/api/options.md#manualcolumnmove) enabled, you can drag columns across the freeze line, in either direction, and reorder the frozen columns. Freezing works by position: the first [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart) columns are frozen, whichever columns they are. When you drop a column in front of a frozen column, the column you dropped becomes frozen, and the last frozen column becomes scrollable. When you drag a frozen column out of the frozen area, the next column becomes frozen. The number of frozen columns stays the same.
+
+This works the same way whether you freeze columns with `fixedColumnsStart` or with [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze).
+
+### Restore the column position on unfreeze
+
+To move an unfrozen column back to its original position, set [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) to an object with `restoreColumnPosition` set to `true`:
+
+```js
+manualColumnFreeze: {
+  restoreColumnPosition: true,
+},
+```
+
+The unfrozen column goes back among the scrollable columns, before the first column that comes after it in the data source. For example, if you freeze the sixth column and then unfreeze it, it goes back between the fifth and the seventh column. If no scrollable column comes after it in the data source, it becomes the last scrollable column. It never enters the columns frozen with [`fixedColumnsEnd`](@/api/options.md#fixedcolumnsend).
+
+The original position is taken from the data source, so Handsontable doesn't remember where the column was when you froze it. If you reorder columns while a column is frozen, the unfrozen column goes back next to the columns that follow it in the data source.
+
+In the following example, freeze and unfreeze a column by using the context menu:
+
+::: only-for javascript
+
+::: example #example5 --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-freezing/javascript/example5.js)
+@[code](@/content/guides/columns/column-freezing/javascript/example5.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example5 :react --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-freezing/react/example5.jsx)
+@[code](@/content/guides/columns/column-freezing/react/example5.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example5 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-freezing/angular/example5.ts)
+@[code](@/content/guides/columns/column-freezing/angular/example5.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example5 :vue3
+
+@[code](@/content/guides/columns/column-freezing/vue/example5.vue)
 
 :::
 

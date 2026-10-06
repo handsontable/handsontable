@@ -62,10 +62,12 @@ float above or below the pointer on multi-level headers.
 The UI code also carries three deliberate clamps — no backlight past the right edge, none past the left
 edge, no guideline outside the table — plus the guideline's default `margin-left: -1px`.
 
-## ManualColumnFreeze vetoes some moves
+## The start freeze line is positional
 
-A column may not move before the freeze line, and a frozen column may not move at all. Those vetoes live in
-`../manualColumnFreeze/`, in `beforeColumnMove` — not here.
+No plugin vetoes a move across the start freeze line or of a frozen start column, whether the line comes from
+`fixedColumnsStart` or from `ManualColumnFreeze`: the first `fixedColumnsStart` columns are frozen, whichever
+columns they are, and a move never changes the count. `ManualColumnFreeze` used to veto both after its first use,
+and the reasons it no longer does are in `../manualColumnFreeze/AGENTS.md`.
 
 ## DataProvider blocks this plugin
 
@@ -102,9 +104,9 @@ the result puts the same columns back in the band (a full saved column order tha
 passes, which is also what the initial `manualColumnMove` array relies on). The band is the last `fixedColumnsEnd`
 columns the grid DRAWS, so the columns `maxCols` hides lie past it and are not frozen. The plugin is enabled before
 the table view exists, so `getFixedColumnsEndCount()` falls back to the same clamp over `countCols()` there. Nothing is restricted while `fixedColumnsEnd` is `0`.
-Unlike the start side (where the veto lives in `ManualColumnFreeze`, and only after a freeze), the end side is
+Unlike the start side (which no plugin guards, see "The start freeze line is positional"), the end side is
 guarded here, because no other plugin owns the end band. `ManualColumnFreeze` additionally refuses to freeze or
-move columns that sit in the end band, so a move across the end line is vetoed on both paths. The count is
+unfreeze in a way that would move a column across the end line, so the end band is protected on both paths. The count is
 `hot.view.countFixedColumnsEnd()` (`TableView`), which clamps over `hot.countCols()`: the same total the renderer
 uses, capped by `maxCols`. Do not count over the uncapped source columns, or the guard protects columns the grid
 never draws. `fixedColumnsStart` keeps the priority when the bands would overlap.

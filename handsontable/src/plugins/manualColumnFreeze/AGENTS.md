@@ -5,7 +5,8 @@ touching `manualColumnFreeze.ts` or `contextMenuItem/`.
 
 It owns **no state of its own**. Freezing is: move the column to the freeze line with
 `columnIndexMapper.moveIndexes()`, then change `fixedColumnsStart` by one. `unfreezeColumn` does the
-reverse, in the reverse order.
+reverse, in the reverse order. Keep it stateless: undo restores a freeze from the column order and
+`fixedColumnsStart` alone, which only works because nothing else describes a freeze.
 
 ## `_fixedColumnsStart` — writing the private key on purpose
 
@@ -35,12 +36,39 @@ The dropdown registration uses `AFTER_FILTERS_ORDER_INDEX`, which runs it **afte
 default index — keeping the entries below the Filters interface, which registers at the default index and
 makes up the bulk of the column menu.
 
-## Two move restrictions, enforced in `beforeColumnMove`
+## Freezing is positional: no move vetoes
 
-- A column may not be moved **before the freeze line**.
-- A **frozen** column may not be moved.
+The plugin does not listen to `beforeColumnMove`. A move across or inside the frozen area behaves exactly as
+with a plain `fixedColumnsStart`: the first `fixedColumnsStart` columns are frozen, whichever columns they are.
+A column dropped before the freeze line becomes frozen and pushes the last frozen column out; a frozen column
+dragged out lets the next column slide in. The count never changes on a move. This matches Excel and Google
+Sheets.
 
-Both are vetoes in the hook, not UI-level guards, so the public `manualColumnMove` API is covered too.
+The plugin used to veto both moves (before the freeze line, and of a frozen column), but only after its first
+`freezeColumn()`/`unfreezeColumn()` call, so the same drag worked on a grid configured with `fixedColumnsStart`
+and failed once a user had frozen a column from the menu. Do not bring a veto back: it would have to apply to
+plain `fixedColumnsStart` too, which has always allowed these moves. The end band is a different matter, and
+`ManualColumnMove` guards it itself (`#keepsEndBandIntact`).
+
+## `restoreColumnPosition`: unfreeze back to data order, without state
+
+`manualColumnFreeze: { restoreColumnPosition: true }` (default `false`, read through `getSetting()`, so `true`
+keeps the old placement) changes only where `unfreezeColumn()` moves the column. `#getRestoredIndex()` places it
+before the first **scrollable** column whose physical index is higher than its own, or last among the scrollable
+columns when there is none. Three rules:
+
+- **The scan starts at the OLD freeze line.** `_fixedColumnsStart` is lowered before the move, but the other
+  frozen columns still sit up to the old line until the column leaves. Starting at the lowered value picked a
+  still-frozen column as the neighbor, and the unfrozen column stayed in the frozen area (pinned by
+  `__tests__/restoreColumnPosition.unit.js`, "should never pick a column that stays frozen").
+- **It never enters the `fixedColumnsEnd` band**: the scan and the fallback stop at the band's first column.
+- **It remembers nothing.** "Default position" is the data order, not the index the column had when it was
+  frozen. A remembered index would need undo state (`captureState`/`restoreState`) and remapping on every insert,
+  remove, move, and sort. The cost is that after a manual reorder the column goes back by data order, not to the
+  exact spot it left.
+
+The default (`true` or no object) still puts the column right after the frozen columns, as the column-freezing
+guide documents. Changing that default would be a breaking change.
 
 ## `fixedColumnsEnd`: the end band is not ours to move
 
@@ -72,7 +100,7 @@ auto-unfreeze.
 
 ## Where to look next
 
-- The plugin whose moves this one vetoes: `../manualColumnMove/AGENTS.md`.
+- The plugin that moves columns across the freeze line: `../manualColumnMove/AGENTS.md`.
 - The two menus it registers into: `../contextMenu/AGENTS.md`, `../dropdownMenu/AGENTS.md`.
 - The overlay that renders the frozen area: `../../3rdparty/walkontable/AGENTS.md`.
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.
@@ -80,3 +108,5 @@ auto-unfreeze.
 ## Testing
 
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='manualColumnFreeze'`
+- `npm run test:unit --prefix handsontable -- --testPathPattern=manualColumnFreeze`
+- Moves across the freeze line and `restoreColumnPosition` from the UI: `tests/e2e/manual-column-freeze-boundary.spec.ts`.

@@ -3,7 +3,7 @@ import { Hooks } from '../../core/hooks';
 import freezeColumnItem from './contextMenuItem/freezeColumn';
 import unfreezeColumnItem from './contextMenuItem/unfreezeColumn';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
-import { isInEndBand, unfreezeWouldShiftEndBand } from './endBand';
+import { getEndBandCount, isInEndBand, unfreezeWouldShiftEndBand } from './endBand';
 
 Hooks.getSingleton().register('beforeColumnFreeze');
 Hooks.getSingleton().register('afterColumnFreeze');
@@ -24,6 +24,17 @@ export const PLUGIN_PRIORITY = 110;
 const AFTER_FILTERS_ORDER_INDEX = 1;
 
 /**
+ * The object form of the {@link Options#manualColumnFreeze} option.
+ */
+export interface ManualColumnFreezeSettings {
+  /**
+   * When `true`, an unfrozen column goes back among the scrollable columns in data order, before the first
+   * column whose source data index is higher than its own. When `false` (default), it stays at the freeze line.
+   */
+  restoreColumnPosition?: boolean;
+}
+
+/**
  * @plugin ManualColumnFreeze
  * @class ManualColumnFreeze
  *
@@ -32,10 +43,19 @@ const AFTER_FILTERS_ORDER_INDEX = 1;
  * an entry in the Dropdown Menu, or using API.
  * You can turn it on by setting a {@link Options#manualColumnFreeze} property to `true`.
  *
+ * Freezing is positional, as with the {@link Options#fixedColumnsStart} option: the first `fixedColumnsStart`
+ * columns are frozen, whichever columns they are. Moving a column in front of a frozen column freezes it, and
+ * moving a frozen column out of the frozen area unfreezes it, while the number of frozen columns stays the same.
+ *
  * @example
  * ```js
  * // Enables the plugin
  * manualColumnFreeze: true,
+ *
+ * // Enables the plugin, and moves an unfrozen column back to its position in data order
+ * manualColumnFreeze: {
+ *   restoreColumnPosition: true,
+ * },
  * ```
  */
 export class ManualColumnFreeze extends BasePlugin {
@@ -54,11 +74,13 @@ export class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Determines when the moving operation is allowed.
-   *
-   * @type {boolean}
+   * Returns the default settings of the plugin, used when `manualColumnFreeze` is set to `true`.
    */
-  #afterFirstUse = false;
+  static get DEFAULT_SETTINGS() {
+    return {
+      restoreColumnPosition: false,
+    };
+  }
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -87,18 +109,8 @@ export class ManualColumnFreeze extends BasePlugin {
     // which keeps the entries below the Filters interface (`filters.ts` registers this hook at the
     // default index and makes up the bulk of the column menu).
     this.addHook('afterDropdownMenuDefaultOptions', this.#onAfterMenuDefaultOptions, AFTER_FILTERS_ORDER_INDEX);
-    this.addHook('beforeColumnMove', this.#onBeforeColumnMove);
 
     super.enablePlugin();
-  }
-
-  /**
-   * Disables the plugin functionality for this Handsontable instance.
-   */
-  disablePlugin() {
-    this.#afterFirstUse = false;
-
-    super.disablePlugin();
   }
 
   /**
@@ -139,10 +151,6 @@ export class ManualColumnFreeze extends BasePlugin {
       && column > (settings.fixedColumnsStart ?? 0) - 1
       && !isInEndBand(this.hot, column);
 
-    if (!this.#afterFirstUse) {
-      this.#afterFirstUse = true;
-    }
-
     const beforeColumnFreezeHook = this.hot.runHooks('beforeColumnFreeze', column, freezePerformed);
 
     if (beforeColumnFreezeHook === false) {
@@ -163,7 +171,8 @@ export class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Unfreezes the given column (remove it from fixed columns and bring to it's previous position).
+   * Unfreezes the given column (removes it from fixed columns). The column is placed right after the frozen
+   * columns, or, with the `restoreColumnPosition` setting, back among the scrollable columns in data order.
    *
    * @param {number} column Visual column index.
    */
@@ -184,10 +193,6 @@ export class ManualColumnFreeze extends BasePlugin {
     // start/end clamp was cutting the band down), as the unfrozen column would slide into it.
     const unfreezePerformed = fixedStart > 0 && (column <= fixedStart - 1) && !unfreezeWouldShiftEndBand(this.hot);
 
-    if (!this.#afterFirstUse) {
-      this.#afterFirstUse = true;
-    }
-
     const beforeColumnUnfreezeHook = this.hot.runHooks('beforeColumnUnfreeze', column, unfreezePerformed);
 
     if (beforeColumnUnfreezeHook === false) {
@@ -201,10 +206,46 @@ export class ManualColumnFreeze extends BasePlugin {
       // to bypass the validation.
       (settings as { _fixedColumnsStart: number })._fixedColumnsStart -= 1;
 
-      this.hot.columnIndexMapper.moveIndexes(column, settings.fixedColumnsStart ?? 0);
+      const finalIndex = this.getSetting('restoreColumnPosition') === true ?
+        this.#getRestoredIndex(column) : settings.fixedColumnsStart ?? 0;
+
+      this.hot.columnIndexMapper.moveIndexes(column, finalIndex);
     }
 
     this.hot.runHooks('afterColumnUnfreeze', column, unfreezePerformed);
+  }
+
+  /**
+   * Finds where an unfrozen column goes back to with the `restoreColumnPosition` setting. It is the visual index
+   * of the first scrollable column whose physical index is higher than the column's own, so the column lands
+   * before it. When there is none, the column becomes the last scrollable column. The frozen end band
+   * (`fixedColumnsEnd`) is never entered.
+   *
+   * Nothing is remembered between freezing and unfreezing: the data order is the default position, so the
+   * result does not depend on what happened to the grid while the column was frozen.
+   *
+   * @param {number} column Visual index of the column being unfrozen. `fixedColumnsStart` is already lowered.
+   * @returns {number} The final visual index for `moveIndexes()`.
+   */
+  #getRestoredIndex(column: number): number {
+    const columnIndexMapper = this.hot.columnIndexMapper;
+    const fixedColumnsStart = this.hot.getSettings().fixedColumnsStart ?? 0;
+    const endBandStart = this.hot.countCols() - getEndBandCount(this.hot, fixedColumnsStart);
+    const physicalColumn = columnIndexMapper.getPhysicalFromVisualIndex(column) ?? -1;
+    // The setting is already lowered, but the column has not moved yet, so the other frozen columns still
+    // reach up to the old freeze line. The scrollable columns start right after it.
+    const firstScrollableColumn = fixedColumnsStart + 1;
+
+    for (let visualColumn = firstScrollableColumn; visualColumn < endBandStart; visualColumn++) {
+      const physicalNeighbor = columnIndexMapper.getPhysicalFromVisualIndex(visualColumn) ?? -1;
+
+      if (physicalNeighbor > physicalColumn) {
+        // The column is taken out from before the neighbor, which then shifts back by one.
+        return visualColumn - 1;
+      }
+    }
+
+    return endBandStart - 1;
   }
 
   /**
@@ -231,28 +272,4 @@ export class ManualColumnFreeze extends BasePlugin {
       unfreezeColumnItem(this)
     );
   }
-
-  /**
-   * Prevents moving the columns from/to fixed area.
-   *
-   * @private
-   * @param {Array} columns Array of visual column indexes to be moved.
-   * @param {number} finalIndex Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action.
-   * @returns {boolean|undefined}
-   */
-  #onBeforeColumnMove = (columns: unknown[], finalIndex: number) => {
-    if (this.#afterFirstUse) {
-      const freezeLine = this.hot.getSettings().fixedColumnsStart ?? 0;
-
-      // Moving any column before the "freeze line" isn't possible.
-      if (finalIndex < freezeLine) {
-        return false;
-      }
-
-      // Moving frozen column isn't possible.
-      if (columns.some((column: unknown) => (column as number) < freezeLine)) {
-        return false;
-      }
-    }
-  };
 }
