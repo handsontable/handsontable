@@ -206,12 +206,16 @@ export class NestedRows extends BasePlugin {
    * headers while `afterGetRowHeader` is still registered.
    */
   disablePlugin() {
-    // A stash still open here is never applied: a fresh CollapsingUI replaces this one.
-    this.collapsingUI?.releaseGridTrackingFits(false);
     this.hot.rowIndexMapper.unregisterMap('nestedRows');
 
     this.unregisterShortcuts();
     super.disablePlugin();
+
+    // A stash still open here is never applied: a fresh CollapsingUI replaces this one, and the expand
+    // it made stays in place. The grow it held is applied now, so a whole-column selection covers the
+    // rows that expand brought back. Only AFTER the hooks are gone: a removal's stash window also
+    // skips renders (`#skipRender`), and the grow renders.
+    this.collapsingUI?.releaseGridTrackingFits(true);
 
     this.headersUI!.removeRenderedLevelIndicators();
   }

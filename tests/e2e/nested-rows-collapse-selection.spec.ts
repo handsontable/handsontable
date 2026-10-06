@@ -214,6 +214,27 @@ test.describe('NestedRows selection when a section is collapsed', () => {
     expect(nestedRows.pageErrors).toEqual([]);
   });
 
+  test('updateSettings() during a removal grows a whole-column selection onto the rows left expanded',
+    async({ page, theme }) => {
+      const nestedRows = new NestedRowsPage(page, theme);
+
+      await nestedRows.goto();
+      await nestedRows.collapseButton(0).click();
+      await nestedRows.cell(0, 0).click();
+      await page.keyboard.press('Control+Space');
+
+      expect(await nestedRows.selectedRange()).toEqual([-1, 0, 3, 0]);
+
+      // The removal expands every parent and would re-collapse them a tick later, but the plugin is
+      // rebuilt first, so that stash is never applied and all eight remaining rows stay expanded.
+      // Dropping the grow the stash held left the selection short of them.
+      await nestedRows.removeRowThenUpdateSettings(3, { nestedRows: true });
+
+      await expect.poll(() => nestedRows.countRows()).toBe(8);
+      expect(await nestedRows.selectedRange()).toEqual([-1, 0, 7, 0]);
+      expect(nestedRows.pageErrors).toEqual([]);
+    });
+
   test('a collapsed-state stash restore does not move the selection', async({ page, theme }) => {
     const nestedRows = new NestedRowsPage(page, theme);
 

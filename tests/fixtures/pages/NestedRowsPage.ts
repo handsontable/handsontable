@@ -198,6 +198,18 @@ export class NestedRowsPage {
     await this.page.evaluate(([r, n]) => window.hot.alter('remove_row', r, n), [row, amount]);
   }
 
+  /**
+   * Remove a row and push settings in the SAME task, so `updateSettings()` lands while the removal's
+   * collapse stash is still open - the plugin re-collapses the stashed parents a tick later. A React
+   * parent re-rendering right after a removal produces exactly this.
+   */
+  async removeRowThenUpdateSettings(row: number, settings: Record<string, unknown>): Promise<void> {
+    await this.page.evaluate(([r, config]) => {
+      window.hot.alter('remove_row', r as number, 1);
+      window.hot.updateSettings(config as Record<string, unknown>);
+    }, [row, settings] as [number, Record<string, unknown>]);
+  }
+
   /** Push settings through `updateSettings()`, which rebuilds the plugin and replays its state. */
   async updateSettings(settings: Record<string, unknown>): Promise<void> {
     await this.page.evaluate(config => window.hot.updateSettings(config), settings);

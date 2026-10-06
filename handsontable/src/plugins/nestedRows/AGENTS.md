@@ -469,9 +469,11 @@ They are written in different places and can drift. Keep this in mind:
   LATER from a `_registerTimeout`: the removal's `alter()` scope has already closed by then, and a grow
   applied there painted highlights over rows the re-collapse then took away (`TR was expected to be
   rendered but is not`). The hold is one flag per `CollapsingUI` (a second `stash()` before
-  `applyStash()` does not stack), and `disablePlugin()` drops it with
-  `releaseGridTrackingFits(false)`, because a stash a disable or a destroy cancels is never applied
-  and would otherwise hold the grow back for the rest of the instance's life.
+  `applyStash()` does not stack), and `disablePlugin()` releases it with
+  `releaseGridTrackingFits(true)`: a stash a disable or an `updatePlugin()` overtakes is never
+  applied, so the hold would otherwise outlive it, and its expand stays in place, so the held grow
+  must be applied rather than dropped (dropping it left a whole column short of the expanded grid).
+  During a destroy `Core` has already suspended the grow for good, so nothing runs there.
 - **A menu command that walks a column's visual rows never reaches a collapsed parent's
   descendants**, because they are trimmed and have no visual index. "Clear column" left every
   collapsed child with its value (DEV-150). The predefined `clear_column` callback now hands its

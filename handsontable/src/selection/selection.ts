@@ -1128,7 +1128,16 @@ class Selection {
     }
 
     if (applyHeld) {
-      this.#flushShifts();
+      try {
+        this.#flushShifts();
+      } catch (error) {
+        // The flush runs the selection hooks. A consumer that throws there must not leave a postponed
+        // grow behind for the next, unrelated scope to apply to whatever is selected by then.
+        this.#discardPendingGridTrackingFits();
+
+        throw error;
+      }
+
       // AFTER the shifts: a grid-tracking grow postponed inside the scope re-pins the far corner to
       // the axis as the whole action left it, so the shifts must not move it again afterwards.
       this.#flushPendingGridTrackingFits();

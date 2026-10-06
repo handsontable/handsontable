@@ -129,9 +129,11 @@ class CollapsingUI extends BaseUI {
 
   /**
    * Releases the selection's grid-tracking grow this stash holds, if it holds it. `applyStash()` calls
-   * it with `true`, so the held grow is applied to the re-collapsed grid. The plugin's teardown calls
-   * it with `false`, so a stash that is never applied - a removal's deferred re-collapse cancelled by
-   * a disable or a destroy - cannot hold the grow back for the rest of the instance's life.
+   * it once the parents are collapsed again, so the held grow is applied to the re-collapsed grid.
+   * `disablePlugin()` calls it for a stash that is never applied - a removal's deferred re-collapse
+   * overtaken by a disable or an `updateSettings()` - so the hold cannot outlive the stash. Its expand
+   * stays in place then, so the held grow is applied to the expanded grid. During a destroy `Core` has
+   * already suspended the grow for good, so nothing is applied there.
    *
    * @param {boolean} applyPending Whether to apply the grows recorded while the hold lasted.
    */
