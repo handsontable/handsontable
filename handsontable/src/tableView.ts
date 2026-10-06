@@ -809,8 +809,10 @@ class TableView {
       return;
     }
 
-    // A source that already failed fails the same way after a redraw, so the redraw gains nothing.
-    if (event.type === 'error' && !this.#isNewFailedSource(target)) {
+    // A source that already caused a redraw fails the same way after it, so another redraw gains nothing.
+    const failedSource = event.type === 'error' ? this.#getImageSource(target) : '';
+
+    if (failedSource !== '' && this.#failedSources.has(failedSource)) {
       return;
     }
 
@@ -839,6 +841,10 @@ class TableView {
       return;
     }
 
+    if (failedSource !== '') {
+      this.#rememberFailedSource(failedSource);
+    }
+
     this.#contentSettledFrame = this.hot.rootWindow.requestAnimationFrame(() => {
       this.#contentSettledFrame = null;
       this.hot.render();
@@ -846,30 +852,26 @@ class TableView {
   };
 
   /**
-   * Records the source of an element that failed to load.
+   * Reads the source of an image.
    *
    * @param {HTMLElement} element The element that fired `error`.
-   * @returns {boolean} `true` the first time this source fails, `false` for a repeat.
+   * @returns {string} The source, or an empty string for an element that is not an image.
    */
-  #isNewFailedSource(element: HTMLElement): boolean {
-    const source = element instanceof this.hot.rootWindow.HTMLImageElement ?
-      element.currentSrc || element.src : '';
+  #getImageSource(element: HTMLElement): string {
+    return element instanceof this.hot.rootWindow.HTMLImageElement ? element.currentSrc || element.src : '';
+  }
 
-    if (source === '') {
-      return true;
-    }
-
-    if (this.#failedSources.has(source)) {
-      return false;
-    }
-
+  /**
+   * Remembers a source whose failure already caused a redraw request.
+   *
+   * @param {string} source The failed source.
+   */
+  #rememberFailedSource(source: string): void {
     if (this.#failedSources.size >= CONTENT_SETTLED_MAX_FAILED_SOURCES) {
       this.#failedSources.clear();
     }
 
     this.#failedSources.add(source);
-
-    return true;
   }
 
   /**

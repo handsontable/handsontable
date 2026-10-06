@@ -65,6 +65,26 @@ test.describe('Async image in a scrolling column beside frozen columns', () => {
     expect(await grid.overlaysMatchMaster()).toBe(true);
   });
 
+  test('settles when a short image sits in a frozen column of a grid without column headers', async({
+    page, theme, bundle,
+  }) => {
+    const grid = new AsyncImageFrozenColumnsPage(page, theme, bundle);
+
+    // The frozen clone has no header row, and its first body row must still measure like the master's.
+    await grid.goto('&headers=0&small=1&col=0');
+    grid.releaseImages();
+
+    await grid.waitForFrames(30);
+
+    const settled = await grid.renderCount();
+
+    await grid.waitForFrames(60);
+
+    expect(await grid.renderCount()).toBe(settled);
+    expect(settled).toBeLessThanOrEqual(2);
+    expect(await grid.overlaysMatchMaster()).toBe(true);
+  });
+
   test('aligns and settles with autoRowSize enabled', async({ page, theme, bundle }) => {
     const grid = new AsyncImageFrozenColumnsPage(page, theme, bundle);
 

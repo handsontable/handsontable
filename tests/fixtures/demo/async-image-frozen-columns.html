@@ -46,7 +46,7 @@
     window.renderCount = 0;
 
     // ?variant flags: headers=0 (no column headers), auto=1 (autoRowSize), end=1 (the image column
-    // is frozen at the end), small=1 (images that barely grow a row), broken=1 (images that fail).
+    // is frozen at the end), col=N (the image column, default 3), small=1 (images that barely grow a row), broken=1 (images that fail).
     const imageSrc = row => (variant.get('broken') === '1'
       ? '/fixture-image/missing-' + row + '.svg'
       : '/fixture-image/' + row + '.svg' + (variant.get('small') === '1' ? '?small=1' : ''));
@@ -64,7 +64,8 @@
       autoRowSize: variant.get('auto') === '1',
       fixedColumnsStart: 2,
       fixedColumnsEnd: variant.get('end') === '1' ? 1 : 0,
-      columns: [{}, {}, {}, { renderer: imageRenderer, width: variant.get('broken') === '1' ? 60 : undefined }],
+      columns: [0, 1, 2, 3].map(index => (index === Number(variant.get('col') ?? 3) ?
+        { renderer: imageRenderer, width: variant.get('broken') === '1' ? 60 : undefined } : {})),
       afterRender() {
         window.renderCount += 1;
       },
