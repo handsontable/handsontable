@@ -265,6 +265,19 @@ function toMeta(inferred: InferredType): ImportColumn {
 }
 
 /**
+ * Consecutive rows of one column (`start` to `end`, inclusive) whose cells derived the SAME meta
+ * object. Every cell of one number format shares one cached meta, and so does every slot one list
+ * validation covers, so a column is a handful of runs however many rows it has. Keying the meta
+ * per cell instead cost one `Map` entry per covered slot: one list validation over `A1:E1000000`
+ * in a 2 kB file put five million entries in the map (+1.2 GB, 11 s in `mapWorkbook`).
+ */
+interface MetaRun {
+  start: number;
+  end: number;
+  meta: ImportColumn;
+}
+
+/**
  * Per-cell mapping state collected in one pass over the window.
  */
 interface CellPass {
@@ -273,9 +286,10 @@ interface CellPass {
    */
   data: unknown[][];
   /**
-   * Per-cell meta keyed by `"row:col"`, before it is lifted to `columns` or `cellsMeta`.
+   * Per-cell meta, before it is lifted to `columns` or `cellsMeta`, kept per column as runs of
+   * consecutive rows that share one meta object. See `MetaRun`.
    */
-  metaByCell: Map<string, ImportColumn>;
+  metaRuns: Map<number, MetaRun[]>;
   /**
    * Cell formulas read from the workbook.
    */
@@ -285,9 +299,12 @@ interface CellPass {
    */
   comments: NonNullable<ImportResult['comments']>;
   /**
-   * Coordinates of every cell that must be marked `readOnly`.
+   * The cells that must be marked `readOnly`, per column as runs of consecutive rows (`[start, end]`,
+   * inclusive). Under sheet protection every blank is locked, so one entry per cell cost one object
+   * per slot of the window: a protected sheet with cells in `A1:E1` and `A1000000:E1000000` grew the
+   * heap by 1.3 GB.
    */
-  readOnly: Array<{ row: number; col: number }>;
+  readOnly: Map<number, Array<[number, number]>>;
   /**
    * Whether any visited cell carried a style, so `cellStyles` can be reported once as dropped.
    */
@@ -722,6 +739,40 @@ function inferForCell(cell: CellSnapshot, scope: CollectContext): InferredMeta {
 }
 
 /**
+ * Adds one cell's meta to its column's runs. The window is walked row by row, so a column's rows
+ * arrive in ascending order and a cell either extends the column's last run or starts a new one.
+ */
+function recordMeta(metaRuns: Map<number, MetaRun[]>, row: number, col: number, meta: ImportColumn): void {
+  const runs = metaRuns.get(col);
+  const last = runs?.[runs.length - 1];
+
+  if (last && last.meta === meta && last.end === row - 1) {
+    last.end = row;
+  } else if (runs) {
+    runs.push({ start: row, end: row, meta });
+  } else {
+    metaRuns.set(col, [{ start: row, end: row, meta }]);
+  }
+}
+
+/**
+ * Marks one cell read-only, extending its column's last run when the row follows it. The window is
+ * walked row by row, so a column's rows arrive in ascending order.
+ */
+function recordReadOnly(readOnly: Map<number, Array<[number, number]>>, row: number, col: number): void {
+  const runs = readOnly.get(col);
+  const last = runs?.[runs.length - 1];
+
+  if (last && last[1] === row - 1) {
+    last[1] = row;
+  } else if (runs) {
+    runs.push([row, row]);
+  } else {
+    readOnly.set(col, [[row, row]]);
+  }
+}
+
+/**
  * Collects one cell into the pass, in the window's own 0-based coordinates.
  */
 function collectCell(pass: CellPass, cell: CellSnapshot, row: number, col: number, scope: CollectContext): void {
@@ -731,7 +782,7 @@ function collectCell(pass: CellPass, cell: CellSnapshot, row: number, col: numbe
   const meta = inferredMeta ? resolveCellMeta(cell, inferredMeta, scope) : null;
 
   if (meta) {
-    pass.metaByCell.set(`${row}:${col}`, meta);
+    recordMeta(pass.metaRuns, row, col, meta);
   }
 
   pushCellValue(pass, cell, inferred, row, col, scope);
@@ -747,7 +798,7 @@ function collectCell(pass: CellPass, cell: CellSnapshot, row: number, col: numbe
   const readOnly = sheet.protection?.enabled === true && cell.locked !== false;
 
   if (readOnly) {
-    pass.readOnly.push({ row, col });
+    recordReadOnly(pass.readOnly, row, col);
   }
 
   pass.sawStyle = pass.sawStyle || cell.style !== null;
@@ -766,10 +817,10 @@ function collectCells(
 ): CellPass {
   const pass: CellPass = {
     data: [],
-    metaByCell: new Map(),
+    metaRuns: new Map(),
     formulas: [],
     comments: [],
-    readOnly: [],
+    readOnly: new Map(),
     sawStyle: false,
     classNames: new Map(),
     styles: new Map(),
@@ -806,7 +857,7 @@ function collectCells(
         // OOXML treats a cell with no explicit `<protection>` as locked, and an empty cell has
         // none, so under sheet protection a blank imports read-only like its filled neighbours.
         if (sheet.protection?.enabled === true) {
-          pass.readOnly.push({ row: row - window.firstRow, col: col - window.firstCol });
+          recordReadOnly(pass.readOnly, row - window.firstRow, col - window.firstCol);
         }
       } else {
         collectCell(pass, cell, row - window.firstRow, col - window.firstCol, scope);
@@ -815,28 +866,6 @@ function collectCells(
   }
 
   return pass;
-}
-
-/**
- * Buckets the per-cell meta by column in one pass, so placing it costs one walk over the map
- * instead of one walk per column. Each bucket keeps the map's insertion order, which is row-major,
- * so a column's entries come out with ascending row indexes.
- */
-function groupMetaByColumn(metaByCell: Map<string, ImportColumn>): Map<number, Array<[number, ImportColumn]>> {
-  const byColumn = new Map<number, Array<[number, ImportColumn]>>();
-
-  metaByCell.forEach((meta, key) => {
-    const { row, col } = parseCellKey(key);
-    const entries = byColumn.get(col);
-
-    if (entries) {
-      entries.push([row, meta]);
-    } else {
-      byColumn.set(col, [[row, meta]]);
-    }
-  });
-
-  return byColumn;
 }
 
 /**
@@ -869,14 +898,12 @@ function cellMetaEntryAt(
 }
 
 /**
- * The meta most cells of a column derived, with the entries that disagree with it. Reference-equal
- * entries (every cell of one number format shares one meta object, every cell of one list formula
+ * The meta most cells of a column derived, with the runs that disagree with it. Reference-equal
+ * runs (every cell of one number format shares one meta object, every cell of one list formula
  * one dropdown meta) are counted without serializing; a structurally equal object that is not the
- * same reference still counts as the same meta.
+ * same reference still counts as the same meta. A run counts as many cells as it spans.
  */
-function dominantMeta(
-  entries: Array<[number, ImportColumn]>
-): { meta: ImportColumn; outliers: Array<[number, ImportColumn]> } {
+function dominantMeta(runs: MetaRun[]): { meta: ImportColumn; outliers: MetaRun[] } {
   const counts = new Map<ImportColumn, number>();
   const canonical = new Map<string, ImportColumn>();
   const resolve = (meta: ImportColumn): ImportColumn => {
@@ -895,14 +922,14 @@ function dominantMeta(
 
     return meta;
   };
-  const resolved = entries.map(([row, meta]): [number, ImportColumn] => {
-    const same = resolve(meta);
+  const resolved = runs.map((run): MetaRun => {
+    const same = resolve(run.meta);
 
-    counts.set(same, (counts.get(same) ?? 0) + 1);
+    counts.set(same, (counts.get(same) ?? 0) + (run.end - run.start + 1));
 
-    return [row, same];
+    return { ...run, meta: same };
   });
-  let dominant = resolved[0][1];
+  let dominant = resolved[0].meta;
 
   counts.forEach((count, meta) => {
     if (count > (counts.get(dominant) ?? 0)) {
@@ -910,7 +937,7 @@ function dominantMeta(
     }
   });
 
-  return { meta: dominant, outliers: resolved.filter(([, meta]) => meta !== dominant) };
+  return { meta: dominant, outliers: resolved.filter(run => run.meta !== dominant) };
 }
 
 /**
@@ -929,36 +956,33 @@ function placeMeta(
   const columns: ImportColumn[] = Array.from({ length: colCount }, () => ({}));
   const cellsMeta: NonNullable<ImportResult['cellsMeta']> = [];
   const byCoords = new Map<string, CellMetaEntry>();
-  const metaByColumn = groupMetaByColumn(pass.metaByCell);
 
   if (includeTypes) {
     for (let c = 0; c < colCount; c++) {
-      const entries = metaByColumn.get(c) ?? [];
+      const runs = pass.metaRuns.get(c) ?? [];
 
-      if (entries.length === 0) {
+      if (runs.length === 0) {
         continue;
       }
 
-      const { meta, outliers } = dominantMeta(entries);
+      const { meta, outliers } = dominantMeta(runs);
 
       // The dominant meta object itself, not a copy: every column of one number format or one list
       // formula then shares it, which is what keeps a wide sheet from allocating one per column.
       columns[c] = meta;
-      outliers.forEach(([row, outlier]) => {
-        cellMetaEntryAt(cellsMeta, byCoords, row, c).meta = withResetKeys(outlier, meta);
+      outliers.forEach(({ start, end, meta: outlier }) => {
+        for (let row = start; row <= end; row++) {
+          cellMetaEntryAt(cellsMeta, byCoords, row, c).meta = withResetKeys(outlier, meta);
+        }
       });
     }
   }
 
-  placeColumnWide(
-    pass.readOnly.map(({ row, col }): [number, number, true] => [row, col, true]), rowCount, colCount,
-    (col, value) => {
-      columns[col] = { ...columns[col], readOnly: value };
-    },
-    (row, col, value) => {
-      cellMetaEntryAt(cellsMeta, byCoords, row, col).meta.readOnly = value;
-    },
-  );
+  placeReadOnly(pass.readOnly, rowCount, colCount, (col) => {
+    columns[col] = { ...columns[col], readOnly: true };
+  }, (row, col, value) => {
+    cellMetaEntryAt(cellsMeta, byCoords, row, col).meta.readOnly = value;
+  });
 
   const classEntries: Array<[number, number, string]> = [];
 
@@ -1003,8 +1027,53 @@ function withResetKeys(outlier: ImportColumn, columnMeta: ImportColumn): Record<
 }
 
 /**
- * Places one per-cell fact (`readOnly`, `className`) at the column level when every row of the
- * column carries the same value, and per cell otherwise.
+ * Places the read-only runs. A column that is locked on more than half of its rows becomes
+ * `readOnly` as a whole, and only its unlocked rows get a `readOnly: false` cell entry; any other
+ * column gets a `readOnly: true` entry per locked row. Before, one unlocked cell on a protected
+ * sheet sent every OTHER cell of its column through `cellsMeta`.
+ */
+function placeReadOnly(
+  readOnly: Map<number, Array<[number, number]>>, rowCount: number, colCount: number,
+  onColumn: (col: number) => void, onCell: (row: number, col: number, value: boolean) => void
+): void {
+  readOnly.forEach((runs, col) => {
+    if (col >= colCount || rowCount === 0) {
+      return;
+    }
+
+    const locked = runs.reduce((sum, [start, end]) => sum + (end - start + 1), 0);
+
+    if (locked * 2 <= rowCount) {
+      runs.forEach(([start, end]) => {
+        for (let row = start; row <= end; row++) {
+          onCell(row, col, true);
+        }
+      });
+
+      return;
+    }
+
+    onColumn(col);
+
+    let next = 0;
+
+    runs.forEach(([start, end]) => {
+      for (let row = next; row < start; row++) {
+        onCell(row, col, false);
+      }
+
+      next = end + 1;
+    });
+
+    for (let row = next; row < rowCount; row++) {
+      onCell(row, col, false);
+    }
+  });
+}
+
+/**
+ * Places one per-cell fact (`className`) at the column level when every row of the column carries
+ * the same value, and per cell otherwise.
  */
 function placeColumnWide<T>(
   entries: Array<[number, number, T]>, rowCount: number, colCount: number,

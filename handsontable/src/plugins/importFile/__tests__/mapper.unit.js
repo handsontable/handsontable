@@ -1384,3 +1384,99 @@ describe('mapLayout - file-controlled layout values', () => {
     expect(map(workbook(sheet), { range: [0, 0, 2, 1] }).result.hiddenRows).toEqual([1]);
   });
 });
+
+describe('mapWorkbook on the slots one list validation covers', () => {
+  /**
+   * A sheet of `rowCount` rows by `colCount` columns where every slot is ONE shared cell carrying
+   * the same list validation, the shape the native reader hands over for a validation over empty
+   * rows, with real text cells in the first and last rows.
+   *
+   * @param {number} rowCount The number of rows.
+   * @param {number} colCount The number of columns.
+   * @returns {object} The workbook snapshot.
+   */
+  function validatedSheet(rowCount, colCount) {
+    const validation = { type: 'list', formulae: ['"a,b"'], allowBlank: true };
+    const shared = cell({ value: null, validation });
+    const sheet = createSheetSnapshot('S');
+
+    sheet.rows = Array.from({ length: rowCount }, (_, row) => Array.from({ length: colCount }, () => (
+      row === 0 || row === rowCount - 1 ? cell({ value: 'x', validation }) : shared
+    )));
+
+    return workbook(sheet);
+  }
+
+  it('should keep the meta of a covered column as runs, not one entry per cell', () => {
+    // Every slot between the first and last real row shares one dropdown meta. Keyed per cell it cost
+    // one `Map` entry per covered slot: a validation over `A1:E1000000` in a 2 kB file allocated five
+    // million entries, +1.2 GB and 11 s in `mapWorkbook`. Counting the writes keeps this
+    // deterministic where a wall-clock or a heap bound would flake.
+    const wb = validatedSheet(200000, 5);
+    const sets = jest.spyOn(Map.prototype, 'set');
+
+    try {
+      const { result } = map(wb);
+
+      expect(result.columns.map(column => column.type)).toEqual(Array(5).fill('dropdown'));
+      expect(result.cellsMeta).toBeUndefined();
+      expect(sets.mock.calls.length).toBeLessThan(1000);
+    } finally {
+      sets.mockRestore();
+    }
+  });
+
+  it('should still give every outlier row of a run its own cellsMeta entry', () => {
+    const sheet = createSheetSnapshot('S');
+
+    sheet.rows = [
+      [cell({ value: 1 })], [cell({ value: 2 })], [text('a')], [text('b')], [cell({ value: 3 })],
+    ];
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.columns[0].type).toBe('numeric');
+    expect(result.cellsMeta.map(({ row, meta }) => [row, meta.type])).toEqual([[2, 'text'], [3, 'text']]);
+  });
+
+  it('should mark a protected sheet\'s blank column read-only as a whole', () => {
+    // Under sheet protection every blank is locked. The mapper keeps those cells as runs per column
+    // (one `{ row, col }` per slot cost +1.3 GB on a protected sheet with cells in `A1:E1` and
+    // `A1000000:E1000000`); this pins the result that shape must still produce.
+    const sheet = createSheetSnapshot('S');
+
+    sheet.protection = { enabled: true, password: null, options: {} };
+    sheet.rows = Array.from({ length: 200000 }, (_, row) => (row === 0 || row === 199999 ? [text('x')] : []));
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.columns[0].readOnly).toBe(true);
+    expect(result.cellsMeta).toBeUndefined();
+  });
+
+  it('should mark only the unlocked rows of a mostly locked column, as readOnly: false', () => {
+    // One unlocked cell used to send every OTHER cell of its column through `cellsMeta`.
+    const sheet = createSheetSnapshot('S');
+
+    sheet.protection = { enabled: true, password: null, options: {} };
+    sheet.rows = [[text('a')], [cell({ value: 'b', locked: false })], [text('c')], [text('d')]];
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.columns[0].readOnly).toBe(true);
+    expect(result.cellsMeta).toEqual([{ row: 1, col: 0, meta: { readOnly: false } }]);
+  });
+
+  it('should mark only the locked rows of a mostly unlocked column, as readOnly: true', () => {
+    const sheet = createSheetSnapshot('S');
+
+    sheet.protection = { enabled: true, password: null, options: {} };
+    sheet.rows = [[cell({ value: 'a', locked: false })], [text('b')], [cell({ value: 'c', locked: false })]];
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.columns[0].readOnly).toBeUndefined();
+    expect(result.cellsMeta).toEqual([{ row: 1, col: 0, meta: { readOnly: true } }]);
+  });
+});
+

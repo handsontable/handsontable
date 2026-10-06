@@ -174,10 +174,21 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   worksheet (every row, every cell) on each access. Merges are collected inside the row pass
   (`trackMerge`, keyed by the master cell) and sheet protection is `worksheet.sheetProtection`, which the
   reader sets straight from the XML.
+- **Per-cell meta is collected as RUNS per column, never as one entry per cell** (`CellPass.metaRuns`,
+  `recordMeta`). Consecutive rows of a column that derived the same meta object - every cell of one
+  number format, every slot one list validation covers - extend one `{ start, end, meta }` run, and
+  `dominantMeta` counts a run as the cells it spans. A `"row:col"`-keyed map cost one entry per
+  covered slot: one validation over `A1:E1000000` in a 2 kB file put five million entries in it
+  (+1.2 GB, 11 s in `mapWorkbook`). Only outlier runs are expanded, into the `cellsMeta` the result
+  has to carry anyway. Pinned by `mapper.unit.js` › "should keep the meta of a covered column as
+  runs, not one entry per cell", which counts `Map#set` calls.
 - **Meta follows the `cell → column` cascade, dominant type first.** `placeMeta` lifts the meta MOST cells
   of a column share to `columns[c]` (the cached object itself, by reference) and emits `cellsMeta` only for
-  the cells that differ; `readOnly` and `className` are lifted the same way when every row of the column
-  agrees (`placeColumnWide`). One footer row or one stray `n/a` used to send a whole column through
+  the cells that differ; `className` is lifted when every row of the column agrees (`placeColumnWide`).
+  `readOnly` is collected as runs per column too, and `placeReadOnly` lifts it by MAJORITY: a column
+  locked on more than half its rows is `readOnly` as a whole and its unlocked rows get
+  `readOnly: false`, so one unlocked cell on a protected sheet no longer sends the rest of its
+  column through `cellsMeta` (and a protected blank sheet no longer allocates one entry per slot). One footer row or one stray `n/a` used to send a whole column through
   `setCellMetaObject` — a million retained meta objects on a million-cell sheet. `columns` is omitted
   when every entry is `{}`, because an array `columns` pins the grid's column count. A one-row sheet
   therefore lifts everything to the column level; that is the intended reading, not a bug.
