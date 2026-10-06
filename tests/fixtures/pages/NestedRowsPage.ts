@@ -166,9 +166,11 @@ export class NestedRowsPage {
   }
 
   /**
-   * Add a child to the parent at the given visual row through the plugin's data manager - the path
-   * the "Insert child row" context-menu item takes. It expands every parent for its own length
-   * (`collapsedRowsStash`) and re-collapses afterwards.
+   * Add a child to the parent at the given visual row by calling the plugin's private
+   * `dataManager.addChild()` directly. It is the method the "Insert child row" context-menu item ends
+   * in, but this skips the menu and resolves the parent with `toPhysicalRow()` rather than the menu's
+   * `translateTrimmedRow()`. It expands every parent for its own length (`collapsedRowsStash`) and
+   * re-collapses afterwards.
    */
   async addChildTo(parentRow: number): Promise<void> {
     await this.page.evaluate((row) => {

@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed a whole-column selection or a select-all not growing to cover the rows that come back when nested rows are expanded, trimmed rows are restored, or a filter is cleared.",
+  "title": "Fixed a whole-column selection or a select-all not growing to cover the rows that come back when nested rows are expanded or trimmed rows are restored.",
   "type": "fixed",
   "issueOrPR": 13744,
   "breaking": false,

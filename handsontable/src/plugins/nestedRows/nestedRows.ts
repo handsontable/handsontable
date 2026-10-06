@@ -206,6 +206,8 @@ export class NestedRows extends BasePlugin {
    * headers while `afterGetRowHeader` is still registered.
    */
   disablePlugin() {
+    // A stash still open here is never applied: a fresh CollapsingUI replaces this one.
+    this.collapsingUI?.releaseGridTrackingFits(false);
     this.hot.rowIndexMapper.unregisterMap('nestedRows');
 
     this.unregisterShortcuts();

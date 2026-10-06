@@ -59,6 +59,10 @@ class CollapsingUI extends BaseUI {
    * @type {Array|undefined}
    */
   declare lastCollapsedRows: number[] | undefined;
+  /**
+   * Whether this stash holds the selection's grid-tracking grow (see `collapsedRowsStash.stash()`).
+   */
+  #holdsGridTrackingFits = false;
 
   /**
    * Initializes the collapsing UI component and sets up the stash mechanism for preserving collapsed row state across operations.
@@ -75,6 +79,18 @@ class CollapsingUI extends BaseUI {
       stash: (forceRender = false) => {
         this.lastCollapsedRows = this.collapsedRows.slice(0);
 
+        // The expand below is transient: `applyStash()` collapses the same parents again, after the
+        // insert, removal or move it brackets - for a removal a tick later. A whole-column selection
+        // must not grow onto that height, or its highlights reach past the rows the re-collapse takes
+        // away (`TR was expected to be rendered but is not`). The grow is held until `applyStash()`,
+        // which then fits the selection to the grid the operation actually left (DEV-152).
+        // Held only when there is something to expand, so a stash with nothing collapsed - every row
+        // removal stashes - cannot leave a hold behind on a path that never applies it.
+        if (!this.#holdsGridTrackingFits && this.lastCollapsedRows.length > 0) {
+          this.#holdsGridTrackingFits = true;
+          this.hot.selection.suspendGridTrackingFits();
+        }
+
         // Workaround for wrong indexes being set in the trimRows plugin
         this.#expandMultipleChildren(this.lastCollapsedRows ?? [], forceRender, true);
       },
@@ -88,8 +104,16 @@ class CollapsingUI extends BaseUI {
         });
       },
       applyStash: (forceRender = true) => {
-        this.#collapseMultipleChildren(this.lastCollapsedRows ?? [], forceRender, true);
-        this.lastCollapsedRows = undefined;
+        let isCollapsed = false;
+
+        try {
+          this.#collapseMultipleChildren(this.lastCollapsedRows ?? [], forceRender, true);
+          this.lastCollapsedRows = undefined;
+          isCollapsed = true;
+        } finally {
+          // A re-collapse that threw drops the held grows: applying them runs the selection hooks.
+          this.releaseGridTrackingFits(isCollapsed);
+        }
       },
       trimStash: (realElementIndex: number, amount: number) => {
         rangeEach(realElementIndex, realElementIndex + amount - 1, (i: number) => {
@@ -101,6 +125,23 @@ class CollapsingUI extends BaseUI {
         });
       }
     };
+  }
+
+  /**
+   * Releases the selection's grid-tracking grow this stash holds, if it holds it. `applyStash()` calls
+   * it with `true`, so the held grow is applied to the re-collapsed grid. The plugin's teardown calls
+   * it with `false`, so a stash that is never applied - a removal's deferred re-collapse cancelled by
+   * a disable or a destroy - cannot hold the grow back for the rest of the instance's life.
+   *
+   * @param {boolean} applyPending Whether to apply the grows recorded while the hold lasted.
+   */
+  releaseGridTrackingFits(applyPending: boolean): void {
+    if (!this.#holdsGridTrackingFits) {
+      return;
+    }
+
+    this.#holdsGridTrackingFits = false;
+    this.hot.selection?.resumeGridTrackingFits(applyPending);
   }
 
   /**

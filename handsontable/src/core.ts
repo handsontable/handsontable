@@ -913,8 +913,10 @@ export default function Core(
    *
    * It has to happen here: `IndexMapper#updateCache()` rebuilds every cache before it fires
    * `cacheUpdated`, so by then the pre-update visual space is gone and the records the selection
-   * was laid on cannot be recovered. `Selection` takes the snapshot only while an editor is open -
-   * a selection with no editor is repaired by `repairSelection()` below, on a different rule.
+   * was laid on cannot be recovered. `Selection` takes the physical snapshot only while an editor is
+   * open - a selection with no editor is repaired by `repairSelection()` below, on a different rule.
+   * The grid-tracking coverage the DEV-152 grow reads is recorded on every trimming update, editor or
+   * not, because that grow belongs to the no-editor repair.
    *
    * @param {object} indexesChangesState The state object of the index mapper's cache update.
    * @param {'row'|'column'} axis The mapper axis that is about to be updated.
@@ -927,7 +929,8 @@ export default function Core(
     // that `afterCacheUpdate` pops. `updateCache()` can nest - a `hidingChangesObservable` consumer
     // that writes a trimming map runs a whole inner update inside this one's window - and only a
     // balanced push/pop keeps the inner update from discarding the entry this one will read.
-    this.selection.capturePhysicalSelection(axis, shouldRestoreSelection(indexesChangesState));
+    this.selection.capturePhysicalSelection(
+      axis, shouldRestoreSelection(indexesChangesState), indexesChangesState.trimmedIndexesChanged);
   };
 
   /**
@@ -1102,6 +1105,14 @@ export default function Core(
     if (editorManager?.isEditorOpened()) {
       this.selection.recaptureHighlightRecord();
 
+      // The editor-open restore re-pins a grid-tracking layer itself, but it accepts a pure trim
+      // only. An untrim batched with a sort skips it, and a whole column is still a whole column
+      // after a sort, so the grow runs here for that shape (it commits without the selection hooks
+      // while the editor is open).
+      if (indexesSequenceChanged) {
+        this.selection.fitGridTrackingExtents(axis);
+      }
+
       return;
     }
 
@@ -1272,7 +1283,11 @@ export default function Core(
       editorManager.closeEditor();
     }
 
-    if (!['refresh', 'loadData', 'updateData', 'deselect'].includes(selectionSource)) {
+    // A `shift` re-lay (`alter()`'s shifts, the trim clamp and the DEV-152 grow) replays every layer
+    // through `setRangeEnd()`, so it renders once, on the last layer, instead of once per layer.
+    const isIntermediateShiftLayer = selectionSource === 'shift' && !isLastSelectionLayer;
+
+    if (!['refresh', 'loadData', 'updateData', 'deselect'].includes(selectionSource) && !isIntermediateShiftLayer) {
       instance.view.render();
       editorManager.prepareEditor();
     }
@@ -4561,7 +4576,7 @@ export default function Core(
    * @param {string} source The source of the call.
    */
   function applyUpdateData(data: unknown[][][] | object[], source: string) {
-    replaceData(
+    runWithGridTrackingFitsSuspended(() => replaceData(
       data,
       (newDataMap: DataMapInstance) => {
         datamap = newDataMap;
@@ -4610,7 +4625,30 @@ export default function Core(
         source,
         metaManager,
         firstRun
-      });
+      }));
+  }
+
+  /**
+   * Runs a data replacement with the selection's grid-tracking grow postponed until it ends.
+   * `replaceData()` destroys the `DataMap` before `beforeLoadData`/`beforeUpdateData`, and a trimming
+   * map changed from those hooks (a NestedRows parent expanded) would otherwise grow the selection
+   * and commit its highlights through the destroyed `DataMap` (DEV-152 review). A replacement that
+   * throws drops the postponed grows, because applying them runs the selection hooks.
+   *
+   * @private
+   * @param {Function} action The data replacement to run.
+   */
+  function runWithGridTrackingFitsSuspended(action: () => void) {
+    let isCompleted = false;
+
+    selection.suspendGridTrackingFits();
+
+    try {
+      action();
+      isCompleted = true;
+    } finally {
+      selection.resumeGridTrackingFits(isCompleted);
+    }
   }
 
   /**
@@ -4649,7 +4687,7 @@ export default function Core(
    * @param {string} source The source of the call.
    */
   function applyLoadData(data: unknown[][][] | object[], source: string) {
-    replaceData(
+    runWithGridTrackingFitsSuspended(() => replaceData(
       data,
       (newDataMap: DataMapInstance) => {
         datamap = newDataMap;
@@ -4679,7 +4717,7 @@ export default function Core(
         source,
         metaManager,
         firstRun
-      });
+      }));
   }
 
   /**
@@ -7862,6 +7900,10 @@ export default function Core(
     instance._clearMicrotasks();
     // A transaction held by a pending validator must not settle on a destroyed instance.
     operationScope.destroy();
+    // Never resumed: the teardown below unregisters every trimming map, and each untrim would grow a
+    // whole-column selection through `refresh()`, whose hooks reach an already destroyed
+    // `EditorManager` and `DataSource` (DEV-152 review).
+    selection?.suspendGridTrackingFits();
 
     // Drop the hidden-init visibility observer before the teardown below nulls the instance. Otherwise a
     // delivery queued while the table was becoming visible runs its callback on a destroyed instance.

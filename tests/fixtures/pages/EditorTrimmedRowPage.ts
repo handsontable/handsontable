@@ -9,6 +9,7 @@ interface FiltersPlugin {
 interface TrimRowsPlugin {
   trimRows(rows: number[]): void;
   untrimRows(rows: number[]): void;
+  untrimAll(): void;
 }
 
 interface CopyPastePlugin {
@@ -38,7 +39,11 @@ interface ManualColumnMovePlugin {
 
 interface HandsontableFixture {
   addHook(name: string, callback: (...args: unknown[]) => unknown): void;
-  getSelectedRangeActive(): { from: { row: number | null } } | undefined;
+  getSelectedRangeActive(): { from: { row: number | null }; highlight: { row: number | null } } | undefined;
+  columnIndexMapper: {
+    createAndRegisterIndexMap(name: string, type: string): { setValueAtIndex(index: number, value: boolean): void };
+    getIndexesSequence(): number[];
+  };
   getSelected(): number[][] | undefined;
   selectCells(ranges: number[][]): void;
   selectColumns(
@@ -74,6 +79,7 @@ interface HandsontableFixture {
   countSourceRows(): number;
   countRows(): number;
   render(): void;
+  destroy(): void;
   listen(): void;
   getPlugin(name: string): FiltersPlugin & TrimRowsPlugin & ColumnSortingPlugin & ManualRowMovePlugin
     & ManualColumnMovePlugin & CopyPastePlugin & HiddenRowsPlugin & DialogPlugin;
@@ -1352,5 +1358,145 @@ export class EditorTrimmedRowPage {
     await this.page.evaluate((rowSteps) => {
       (window as Window & { hot: HandsontableFixture }).hot.selection.transformEnd(-rowSteps, 0);
     }, steps);
+  }
+
+  /**
+   * Adds a whole column as a NEW selection layer, the `Ctrl`/`Cmd`+click on its header. Unlike
+   * `selectWholeColumn()`, which replaces the selection, this is the only way to build several
+   * grid-tracking layers at once.
+   */
+  async addWholeColumnLayer(header: string): Promise<void> {
+    await this.page.locator('.ht_clone_top thead th')
+      .filter({ hasText: new RegExp(`^${header}$`) })
+      .click({ modifiers: ['ControlOrMeta'] });
+  }
+
+  /**
+   * Adds a cell range as a NEW selection layer, `Ctrl`/`Cmd`+click on its first cell and `Shift`+click
+   * on its last. The range becomes the active layer.
+   */
+  async addCellRangeLayer(range: [number, number, number, number]): Promise<void> {
+    const [fromRow, fromCol, toRow, toCol] = range;
+
+    await this.cell(fromRow, fromCol).click({ modifiers: ['ControlOrMeta'] });
+    await this.cell(toRow, toCol).click({ modifiers: ['Shift'] });
+  }
+
+  /**
+   * Untrims and trims rows inside one `batch()`, so a single trimming cache update both brings rows
+   * back and takes rows away.
+   */
+  async batchUntrimAndTrim(untrimmedRows: number[], trimmedRows: number[]): Promise<void> {
+    await this.page.evaluate(([untrimmed, trimmed]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+
+      hot.batch(() => {
+        hot.getPlugin('trimRows').untrimRows(untrimmed);
+        hot.getPlugin('trimRows').trimRows(trimmed);
+      });
+    }, [untrimmedRows, trimmedRows] as [number[], number[]]);
+  }
+
+  /**
+   * Sorts and untrims inside one `batch()`, the untrim counterpart of `batchSortAndTrim()`: one cache
+   * update carrying `indexesSequenceChanged` and `trimmedIndexesChanged` together, which is the shape
+   * the editor-open restore refuses.
+   */
+  async batchSortAndUntrim(rows: number[]): Promise<void> {
+    await this.page.evaluate((targetRows) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+
+      hot.batch(() => {
+        hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+        hot.getPlugin('trimRows').untrimRows(targetRows);
+      });
+    }, rows);
+  }
+
+  /**
+   * Trims or untrims columns through a trimming map registered on the column index mapper - the
+   * public route to a column trim, since no built-in plugin trims columns.
+   */
+  async setColumnsTrimmed(columns: number[], trimmed: boolean): Promise<void> {
+    await this.page.evaluate(([targetColumns, isTrimmed]) => {
+      const target = window as Window & {
+        hot: HandsontableFixture;
+        htColumnTrimMap?: { setValueAtIndex(index: number, value: boolean): void };
+      };
+
+      target.htColumnTrimMap = target.htColumnTrimMap ??
+        target.hot.columnIndexMapper.createAndRegisterIndexMap('e2e-column-trim', 'trimming');
+
+      const map = target.htColumnTrimMap;
+
+      target.hot.batch(() => {
+        (targetColumns as number[]).forEach(column => map.setValueAtIndex(column, isTrimmed as boolean));
+      });
+      target.hot.render();
+    }, [columns, trimmed] as [number[], boolean]);
+  }
+
+  /**
+   * Removes a row while an `afterRemoveRow` hook untrims every row, so the untrim lands INSIDE the
+   * removal's `alter()` scope - the shape a consumer clearing its trims after a removal produces.
+   * `untrimAll()` rather than named rows, because the removal has already renumbered them.
+   */
+  async removeRowUntrimmingAllFromAfterRemoveRow(row: number): Promise<void> {
+    await this.page.evaluate((targetRow) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      let isDone = false;
+
+      hot.addHook('afterRemoveRow', () => {
+        if (!isDone) {
+          isDone = true;
+          hot.getPlugin('trimRows').untrimAll();
+        }
+      });
+      hot.alter('remove_row', targetRow, 1);
+    }, row);
+  }
+
+  /**
+   * Presses `Enter` the given number of times on a listening grid and returns the row the focus sat
+   * on before each press. Inside a multi-cell selection `Enter` walks the focus down through it and
+   * wraps at its end, so the sequence shows how far the selection reaches.
+   */
+  async focusRowsWalkedByEnter(presses: number): Promise<Array<number | null>> {
+    const rows: Array<number | null> = [];
+
+    await this.page.evaluate(() => (window as Window & { hot: HandsontableFixture }).hot.listen());
+
+    for (let press = 0; press < presses; press++) {
+      rows.push(await this.page.evaluate(() => (
+        (window as Window & { hot: HandsontableFixture }).hot.getSelectedRangeActive()?.highlight.row ?? null
+      )));
+      await this.page.keyboard.press('Enter');
+    }
+
+    return rows;
+  }
+
+  /**
+   * Destroys the grid and returns the message of whatever the teardown threw, or `null`.
+   */
+  async destroyGrid(): Promise<string | null> {
+    return this.page.evaluate(() => {
+      try {
+        (window as Window & { hot: HandsontableFixture }).hot.destroy();
+
+        return null;
+      } catch (error) {
+        return (error as Error).message;
+      }
+    });
+  }
+
+  /**
+   * Pushes settings through `updateSettings()`.
+   */
+  async updateSettings(settings: Record<string, unknown>): Promise<void> {
+    await this.page.evaluate((config) => {
+      (window as Window & { hot: HandsontableFixture }).hot.updateSettings(config);
+    }, settings);
   }
 }

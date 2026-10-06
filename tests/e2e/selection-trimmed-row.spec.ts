@@ -332,6 +332,109 @@ test.describe('selection stranded by a trimming index map', () => {
     expect(await tall.isRowRendered(0)).toBe(true);
   });
 
+  test('grows a full-column selection no further than maxRows lets the grid show', async() => {
+    await grid.updateSettings({ maxRows: 4 });
+    await grid.trimRows([0, 1, 2]);
+    await grid.selectWholeColumn(0);
+
+    expect(await grid.selected()).toEqual([[-1, 0, 1, 0]]);
+
+    // Five rows come back, but `maxRows` caps the grid at four. A grow sized from the untrimmed
+    // length alone would reach row 4, which the grid does not show.
+    await grid.untrimRows([0, 1, 2]);
+
+    expect(await grid.selected()).toEqual([[-1, 0, 3, 0]]);
+    expect(await grid.isEntireColumnSelected()).toBe(true);
+  });
+
+  test('grows a select-all along the columns when a column untrim brings a column back', async() => {
+    await grid.setColumnsTrimmed([1], true);
+    await grid.selectEverything();
+
+    expect(await grid.selected()).toEqual([[-1, -1, 4, 0]]);
+
+    await grid.setColumnsTrimmed([1], false);
+
+    expect(await grid.selected()).toEqual([[-1, -1, 4, 1]]);
+  });
+
+  test('grows a full-row selection along the columns when a column untrim brings a column back', async() => {
+    await grid.setColumnsTrimmed([1], true);
+    await grid.selectWholeRow(2);
+
+    expect(await grid.selected()).toEqual([[2, -1, 2, 0]]);
+
+    // A full-row selection tracks the grid along its COLUMNS, so it grows on that axis.
+    await grid.setColumnsTrimmed([1], false);
+
+    expect(await grid.selected()).toEqual([[2, -1, 2, 1]]);
+  });
+
+  test('grows a full-column selection when a hook untrims rows inside a row removal', async() => {
+    await grid.trimRows([3, 4]);
+    await grid.selectWholeColumn(0);
+
+    expect(await grid.selected()).toEqual([[-1, 0, 2, 0]]);
+
+    // The untrim lands inside the removal's `alter()` scope, which only SHIFTS the selection by the
+    // removed row. The grow waits for the scope to close, so the selection still covers the column:
+    // five rows less the removed one.
+    await grid.removeRowUntrimmingAllFromAfterRemoveRow(0);
+
+    expect(await grid.visibleRowCount()).toBe(4);
+    expect(await grid.selected()).toEqual([[-1, 0, 3, 0]]);
+    expect(await grid.isEntireColumnSelected()).toBe(true);
+  });
+
+  test('Enter walks the rows a grow brought back, with MergeCells on', async() => {
+    await grid.updateSettings({ mergeCells: true });
+    await grid.trimRows([3, 4]);
+    await grid.selectWholeColumn(0);
+    await grid.untrimRows([3, 4]);
+
+    expect(await grid.selected()).toEqual([[-1, 0, 4, 0]]);
+
+    // MergeCells rebuilds the focus order Enter follows from `afterSelectionEnd`. A grow that fires
+    // no selection hook left that order on the three pre-grow rows, so Enter wrapped back to row 0
+    // after row 2.
+    expect(await grid.focusRowsWalkedByEnter(6)).toEqual([0, 1, 2, 3, 4, 0]);
+  });
+
+  test('renders a clamp over several whole-column layers once, as it does for one layer', async() => {
+    await grid.watchHook('afterRender');
+    await grid.selectWholeColumn(0);
+
+    let rendersBefore = await grid.hookCalls('afterRender') ?? 0;
+
+    await grid.trimRows([4]);
+
+    const singleLayerRenders = (await grid.hookCalls('afterRender') ?? 0) - rendersBefore;
+
+    await grid.untrimRows([4]);
+    await grid.selectWholeColumn(0);
+    await grid.addWholeColumnLayer('B');
+
+    expect(await grid.selected()).toEqual([[-1, 0, 4, 0], [-1, 1, 4, 1]]);
+
+    rendersBefore = await grid.hookCalls('afterRender') ?? 0;
+
+    await grid.trimRows([4]);
+
+    expect(await grid.selected()).toEqual([[-1, 0, 3, 0], [-1, 1, 3, 1]]);
+    // The clamp re-lays every layer under the `shift` source. Rendering on each of them, rather than
+    // on the last, drew the grid once per layer inside the trim.
+    expect((await grid.hookCalls('afterRender') ?? 0) - rendersBefore).toBe(singleLayerRenders);
+  });
+
+  test('destroying the grid under a trimmed whole-column selection does not throw', async() => {
+    await grid.trimRows([3, 4]);
+    await grid.selectWholeColumn(0);
+
+    // The teardown unregisters the trimming map, which untrims the rows. A grow on that untrim ran
+    // the selection hooks against an editor manager the teardown had already destroyed.
+    expect(await grid.destroyGrid()).toBeNull();
+  });
+
   test('drops a full-row selection whose row a trim stranded, rather than sliding it', async() => {
     await grid.selectWholeRow(3);
 
