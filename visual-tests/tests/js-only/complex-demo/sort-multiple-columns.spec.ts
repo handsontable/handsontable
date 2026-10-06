@@ -35,8 +35,11 @@ visualTest(__filename, {
     has: tablePage.locator('span.colHeader').getByText(label, { exact: true }),
   });
 
-  await expect(header('Age').locator('.columnSorting')).toHaveClass(/\bdescending\b.*\bsort-1\b/);
-  await expect(header('Interest').locator('.columnSorting')).toHaveClass(/\bascending\b.*\bsort-2\b/);
+  // Two plugins add these classes, so each is checked on its own, in no particular order.
+  await expect(header('Age').locator('.columnSorting')).toHaveClass(/\bdescending\b/);
+  await expect(header('Age').locator('.columnSorting')).toHaveClass(/\bsort-1\b/);
+  await expect(header('Interest').locator('.columnSorting')).toHaveClass(/\bascending\b/);
+  await expect(header('Interest').locator('.columnSorting')).toHaveClass(/\bsort-2\b/);
 
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

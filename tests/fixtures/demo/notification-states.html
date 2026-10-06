@@ -34,18 +34,23 @@
       'bottom-end': 'bottom-end',
     }, 'bottom-end');
     window.htPager = htPick('pager', { 0: false, 1: true }, '0');
+    window.htAnimation = htPick('animation', { 0: false, 1: true }, '0');
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
 </head>
 <body>
   <!--
     E2E fixture for the notification plugin, laid out as the visual suite's `/notification-demo` route
-    lays it out: a 400 x 400 grid and one toast shown on load in the corner `?position=` names, in the
-    variant the demo gives that corner (top-start info, top-end success, bottom-start warning,
-    bottom-end error), closable, with a primary and a secondary action, kept until closed. `dir=rtl`
-    builds an RTL grid with the ar-AR language pack loaded, as the demo does; the toast's own texts stay
-    English, as the demo's do. `pager=1` adds the pagination bar under the grid, which the demo does not
-    have, to place a bottom-corner toast against a bottom slot.
+    lays it out: a 400 x 400 grid and one toast shown on load in the corner `?position=` names, with the
+    route's toast options, so the toast is the size the captures show: the variant the demo gives that
+    corner (top-start info, top-end success, bottom-start warning, bottom-end error), closable, a
+    primary and a secondary action both labeled "Action", kept until closed. The grid's rows are
+    synthetic (four columns rather than the route's seven): a toast is placed against the grid's box,
+    not its cells. `dir=rtl` builds an RTL grid with the ar-AR language pack loaded, as the demo does;
+    the toast's own texts stay English, as the demo's do. `pager=1` adds the pagination bar under the
+    grid, which the demo does not have, to place a bottom-corner toast against a bottom slot, and
+    `animation=1` turns the toasts' enter animation on (it is off by default, so every state is reached
+    without waiting on a transition).
   -->
   <div data-testid="grid"></div>
 
@@ -82,7 +87,7 @@
         language: window.htDirection === 'rtl' ? 'ar-AR' : 'en-US',
         width: 400,
         height: 400,
-        notification: { animation: false },
+        notification: { animation: window.htAnimation },
         pagination: window.htPager,
         licenseKey: 'non-commercial-and-evaluation',
       });
@@ -95,8 +100,8 @@
         variant: variants[window.htPosition],
         closable: true,
         actions: [
-          { label: 'Primary action', type: 'primary', callback: () => {} },
-          { label: 'Secondary action', type: 'secondary', callback: () => {} },
+          { label: 'Action', type: 'primary', callback: () => {} },
+          { label: 'Action', type: 'secondary', callback: () => {} },
         ],
       });
     } catch (error) {

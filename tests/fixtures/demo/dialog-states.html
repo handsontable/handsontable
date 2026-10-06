@@ -42,7 +42,8 @@
     dialog whose Cancel and OK both hide it), and `focus=1` (two inputs in the dialog's content, and an
     `afterDialogFocus` listener that sends the focus to the first one unless the dialog was clicked).
     `animation: false` so every state is reached synchronously; the visual demo animates, which the
-    visual fixture switches off with the transitions anyway.
+    visual fixture switches off with the transitions anyway. The grid's rows are synthetic (four columns
+    rather than the route's seven): the dialog covers the grid's box whatever its cells hold.
   -->
   <input data-testid="input-before" placeholder="Input">
   <div data-testid="grid"></div>

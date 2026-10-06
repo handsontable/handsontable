@@ -94,27 +94,36 @@ test.describe('empty data state layout', () => {
     expect(auto.root.bottom - auto.root.top).toBeLessThan(fixed.root.bottom - fixed.root.top);
     expect(auto.panel.bottom - auto.panel.top).toBeGreaterThan(auto.content.bottom - auto.content.top);
 
-    // Leaving `height` out lays the grid out exactly as `auto` does.
-    await edsPage.goto({ height: 'undefined' });
-
-    const undefinedHeight = await edsPage.geometry();
-
-    (['left', 'top', 'right', 'bottom'] as const).forEach((edge) => {
-      expect(undefinedHeight.panel[edge], `panel ${edge}`).toBeCloseTo(auto.panel[edge], 1);
-      expect(undefinedHeight.root[edge], `root ${edge}`).toBeCloseTo(auto.root[edge], 1);
-    });
-
-    // The no-results state at that height: the Reset filters button joins the message, and the grid
-    // still ends where the panel ends, with the content centered.
+    // The no-results state at that height: the Reset filters button joins the message inside the same
+    // body, which keeps its 150 px minimum, and the grid still ends where the panel ends, with the content
+    // centered and inside the panel (`expectContentCentered`), so a buttons row that outgrew the body fails.
     await edsPage.filterOutEveryValue();
     await expect(edsPage.title).toHaveText('No results found');
     await expect(edsPage.button('Reset filters')).toBeVisible();
 
-    const filtered = await edsPage.geometry();
+    const autoFiltered = await edsPage.geometry();
 
-    expectUnderTheHeaders(filtered);
-    expectContentCentered(filtered);
-    expect(Math.abs(filtered.panel.bottom - filtered.root.bottom)).toBeLessThanOrEqual(EDGE_TOLERANCE_PX);
+    expectUnderTheHeaders(autoFiltered);
+    expectContentCentered(autoFiltered);
+    expect(Math.abs(autoFiltered.panel.bottom - autoFiltered.root.bottom)).toBeLessThanOrEqual(EDGE_TOLERANCE_PX);
+    expect(autoFiltered.root.bottom - autoFiltered.root.top).toBeCloseTo(auto.root.bottom - auto.root.top, 1);
+
+    // Leaving `height` out lays the grid out exactly as `auto` does, in both states.
+    await edsPage.goto({ height: 'undefined' });
+
+    const undefinedHeight = await edsPage.geometry();
+
+    await edsPage.filterOutEveryValue();
+    await expect(edsPage.title).toHaveText('No results found');
+
+    const undefinedFiltered = await edsPage.geometry();
+
+    (['left', 'top', 'right', 'bottom'] as const).forEach((edge) => {
+      expect(undefinedHeight.panel[edge], `panel ${edge}`).toBeCloseTo(auto.panel[edge], 1);
+      expect(undefinedHeight.root[edge], `root ${edge}`).toBeCloseTo(auto.root[edge], 1);
+      expect(undefinedFiltered.panel[edge], `no-results panel ${edge}`).toBeCloseTo(autoFiltered.panel[edge], 1);
+      expect(undefinedFiltered.root[edge], `no-results root ${edge}`).toBeCloseTo(autoFiltered.root[edge], 1);
+    });
   });
 
   test('with no columns the message covers the whole root, the header corner included', async({

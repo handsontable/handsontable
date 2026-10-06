@@ -71,13 +71,17 @@ export class NotificationStatesPage {
    *
    * @param {Corner} position The corner.
    * @param {'ltr'|'rtl'} dir The grid's layout direction.
-   * @param {{pager?: boolean}} [options] `pager` adds the pagination bar under the grid.
+   * @param {{pager?: boolean, animation?: boolean}} [options] `pager` adds the pagination bar under the
+   * grid; `animation` turns the toasts' enter animation on.
    */
-  async goto(position: Corner, dir: 'ltr' | 'rtl', options: { pager?: boolean } = {}): Promise<void> {
+  async goto(position: Corner, dir: 'ltr' | 'rtl', options: { pager?: boolean; animation?: boolean } = {}): Promise<void> {
     const params = new URLSearchParams({ theme: this.theme, bundle: this.bundle, position, dir });
 
     if (options.pager) {
       params.set('pager', '1');
+    }
+    if (options.animation) {
+      params.set('animation', '1');
     }
 
     await this.page.goto(`/tests/fixtures/demo/notification-states.html?${params}`);
@@ -94,6 +98,94 @@ export class NotificationStatesPage {
    */
   stack(position: Corner): Locator {
     return this.page.locator(`.ht-notification__stack[data-ht-notification-position="${position}"]`);
+  }
+
+  /**
+   * Selects a cell, which gives the grid the focus, and remembers the element that holds it.
+   *
+   * @param {number} row The visual row.
+   * @param {number} column The visual column.
+   * @returns {Promise<boolean>} Whether the focus is now inside the grid's root.
+   */
+  async focusCell(row: number, column: number): Promise<boolean> {
+    return this.page.evaluate(([r, c]) => {
+      const win = window as unknown as {
+        hot: { rootElement: HTMLElement; selectCell(row: number, column: number): void };
+        htFocusBefore: Element | null;
+      };
+
+      win.hot.selectCell(r, c);
+      win.htFocusBefore = document.activeElement;
+
+      return win.hot.rootElement.contains(document.activeElement);
+    }, [row, column]);
+  }
+
+  /**
+   * Shows one more toast through the plugin's API, in the variant the demo gives its corner.
+   *
+   * @param {Corner} position The corner.
+   * @param {string} variant The variant.
+   */
+  async showToast(position: Corner, variant: string): Promise<void> {
+    await this.page.evaluate(([corner, kind]) => {
+      (window as unknown as { hot: { getPlugin(name: string): { showMessage(options: object): void } } })
+        .hot.getPlugin('notification').showMessage({
+          title: corner.replace(/-/g, ' '),
+          message: 'Notification visual test.',
+          position: corner,
+          duration: 0,
+          variant: kind,
+          closable: true,
+          actions: [{ label: 'Action', type: 'primary', callback: () => {} }],
+        });
+    }, [position, variant]);
+  }
+
+  /**
+   * The computed opacity of the toast in a corner, which reaches `1` when its enter animation ends.
+   *
+   * @param {Corner} position The corner.
+   * @returns {Promise<string>}
+   */
+  async toastOpacity(position: Corner): Promise<string> {
+    return this.stack(position).locator('.ht-notification__toast').evaluate(toast => getComputedStyle(toast).opacity);
+  }
+
+  /**
+   * Lets `frames` animation frames pass, then reports whether the element that held the focus before
+   * (`focusCell()`) still holds it, and whether the grid still listens to the keyboard.
+   *
+   * @param {number} frames How many frames to wait.
+   * @returns {Promise<{unchanged: boolean, listening: boolean}>}
+   */
+  async focusAfterFrames(frames: number): Promise<{ unchanged: boolean; listening: boolean }> {
+    return this.page.evaluate(count => new Promise((resolve) => {
+      const win = window as unknown as { hot: { isListening(): boolean }; htFocusBefore: Element | null };
+      let left = count;
+      const tick = () => {
+        left -= 1;
+
+        if (left > 0) {
+          requestAnimationFrame(tick);
+
+          return;
+        }
+        resolve({ unchanged: document.activeElement === win.htFocusBefore, listening: win.hot.isListening() });
+      };
+
+      requestAnimationFrame(tick);
+    }), frames);
+  }
+
+  /**
+   * The grid's selection, as `getSelected()` returns it.
+   *
+   * @returns {Promise<number[][] | undefined>}
+   */
+  async selected(): Promise<number[][] | undefined> {
+    return this.page.evaluate(() => (window as unknown as { hot: { getSelected(): number[][] | undefined } })
+      .hot.getSelected());
   }
 
   /**

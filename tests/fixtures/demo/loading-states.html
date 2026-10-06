@@ -43,8 +43,9 @@
     E2E fixture for the loading plugin, laid out as the visual suite's `/loading-demo` route lays it
     out: a page input before a 400 x 400 grid, and the loading overlay shown over the grid on load. The
     params are that route's: `content=custom` (its own icon, title and description), `nodata=1` (a grid
-    with no rows) and `dir=rtl` (an RTL grid in Arabic, which loads the ar-AR language pack, as the demo
-    does).
+    with no rows) and `dir=rtl` (an RTL grid with the ar-AR language pack loaded, as the demo does). The
+    grid's rows are synthetic (four columns rather than the route's seven): the overlay covers the grid's
+    box whatever its cells hold.
   -->
   <input data-testid="input-before" placeholder="Input">
   <div data-testid="grid"></div>

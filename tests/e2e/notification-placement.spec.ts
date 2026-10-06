@@ -79,9 +79,9 @@ test.describe('notification placement', () => {
         await expect(notificationPage.toast.locator('.ht-notification__title')).toHaveText(corner.replace(/-/g, ' '));
         await expect(notificationPage.toast.locator('.ht-notification__message')).toHaveText('Notification visual test.');
         await expect(notificationPage.toast.locator('.ht-notification__actions .ht-button--primary'))
-          .toHaveText('Primary action');
+          .toHaveText('Action');
         await expect(notificationPage.toast.locator('.ht-notification__actions .ht-button--secondary'))
-          .toHaveText('Secondary action');
+          .toHaveText('Action');
 
         const geometry = await notificationPage.geometry(variant);
         const { toast, close, title, primary, secondary, accent } = geometry;
@@ -138,6 +138,25 @@ test.describe('notification placement', () => {
       }
     }
   }
+
+  test('a toast takes no focus: a selected cell keeps it while a second, animated toast shows', async({
+    page, theme, bundle,
+  }) => {
+    const notificationPage = new NotificationStatesPage(page, theme, bundle);
+
+    await notificationPage.goto('top-start', 'ltr', { animation: true });
+    expect(await notificationPage.focusCell(1, 1)).toBe(true);
+
+    // The positive controls: the second toast shows, and its enter animation runs to the end.
+    await notificationPage.showToast('bottom-start', 'warning');
+    await expect(notificationPage.stack('bottom-start').locator('.ht-notification__toast')).toHaveCount(1);
+    await expect.poll(() => notificationPage.toastOpacity('bottom-start')).toBe('1');
+
+    // Some frames later the cell still holds the focus, and the arrow keys still move the selection.
+    expect(await notificationPage.focusAfterFrames(10)).toEqual({ unchanged: true, listening: true });
+    await page.keyboard.press('ArrowDown');
+    await expect.poll(() => notificationPage.selected()).toEqual([[2, 1, 2, 1]]);
+  });
 
   // eslint-disable-next-line no-restricted-syntax -- DEV-3287: the notification layer spans the root wrapper on the block axis too, so a bottom-corner toast covers the pager instead of sitting above it
   test.fixme('a bottom-start toast in a grid with a pager sits in the grid\'s corner, above the pager', async({

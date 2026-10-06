@@ -68,6 +68,7 @@ test.describe('pagination pager states', () => {
     await pagerPage.expectDisabled(['first', 'prev']);
     await expect(pagerPage.button('next')).toBeFocused();
 
+    // In the middle nothing disables, so there is no hand-off: the focus stays on the button pressed.
     await pagerPage.go('next', 2);
     await pagerPage.go('next', 3);
     await expect(pagerPage.counter).toHaveText('21 - 30 of 100');
@@ -203,13 +204,20 @@ test.describe('pagination pager states', () => {
     expect(short.available).toBeLessThan(fit.available);
 
     const { currentPage } = await pagerPage.paginationData();
+    let after = short;
 
-    await pagerPage.go('prev', currentPage - 1);
+    // Back to the first page, one page at a time: each fits, and each is full, since the first row of
+    // the page after it would not have fitted.
+    for (let pageNumber = currentPage - 1; pageNumber >= 1; pageNumber--) {
+      await pagerPage.go('prev', pageNumber);
 
-    const previous = await pagerPage.pageFit();
+      const previous = await pagerPage.pageFit();
 
-    expectPageToFit(previous);
-    expectPageToBeFull(previous, short.rowHeights[0]);
+      expectPageToFit(previous);
+      expectPageToBeFull(previous, after.rowHeights[0]);
+      after = previous;
+    }
+    await pagerPage.expectDisabled(['first', 'prev']);
 
     const { totalPages } = await pagerPage.paginationData();
 
@@ -252,13 +260,20 @@ test.describe('pagination pager states', () => {
     expectPageToFit(short);
 
     const { currentPage } = await pagerPage.paginationData();
+    let after = short;
 
-    await pagerPage.go('prev', currentPage - 1);
+    // Back to the first page, one page at a time: each fits, and each is full, since the first row of
+    // the page after it would not have fitted.
+    for (let pageNumber = currentPage - 1; pageNumber >= 1; pageNumber--) {
+      await pagerPage.go('prev', pageNumber);
 
-    const previous = await pagerPage.pageFit();
+      const previous = await pagerPage.pageFit();
 
-    expectPageToFit(previous);
-    expectPageToBeFull(previous, short.rowHeights[0]);
+      expectPageToFit(previous);
+      expectPageToBeFull(previous, after.rowHeights[0]);
+      after = previous;
+    }
+    await pagerPage.expectDisabled(['first', 'prev']);
 
     const { totalPages } = await pagerPage.paginationData();
 

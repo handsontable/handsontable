@@ -82,13 +82,14 @@ test.describe('complex demo states', () => {
 
     await demo.goto('rtl');
 
-    const value = await demo.dataAt(5, 4);
+    // The fixture's sixth row is interested in tech gadgets; the editor must open on that value.
+    expect(await demo.dataAt(5, 4)).toBe('Tech Gadgets');
 
     await demo.cell(5, 4).click();
     await page.keyboard.press('Enter');
     await expect(wrapper).toBeVisible();
     await expect(select).toBeFocused();
-    await expect(select).toHaveValue(String(value));
+    await expect(select).toHaveValue('Tech Gadgets');
     expect(await select.locator('option').allInnerTexts()).toEqual([
       'Electronics', 'Fashion', 'Tech Gadgets', 'Home Decor', 'Sports & Fitness', 'Books & Literature',
       'Beauty & Personal Care', 'Food & Cooking', 'Travel & Adventure', 'Art & Collectibles',
@@ -136,8 +137,11 @@ test.describe('complex demo states', () => {
       { column: 3, sortOrder: 'desc' },
       { column: 4, sortOrder: 'asc' },
     ]);
-    await expect(age.locator('.columnSorting')).toHaveClass(/\bdescending\b.*\bsort-1\b/);
-    await expect(interest.locator('.columnSorting')).toHaveClass(/\bascending\b.*\bsort-2\b/);
+    // Two plugins add these classes, so each is checked on its own, in no particular order.
+    await expect(age.locator('.columnSorting')).toHaveClass(/\bdescending\b/);
+    await expect(age.locator('.columnSorting')).toHaveClass(/\bsort-1\b/);
+    await expect(interest.locator('.columnSorting')).toHaveClass(/\bascending\b/);
+    await expect(interest.locator('.columnSorting')).toHaveClass(/\bsort-2\b/);
     expect(await demo.sortOrderBadge('Age')).toBe('"1"');
     expect(await demo.sortOrderBadge('Interest')).toBe('"2"');
   });
@@ -188,5 +192,11 @@ test.describe('complex demo states', () => {
     await expect(options.filter({ has: page.locator('strong') })).toHaveText(['Toronto', 'Tokyo']);
     await expect(options.filter({ hasText: /^Toronto$/ })).toHaveClass(/\bcurrent\b/);
     await expect(demo.editorList.locator('.ht_master tbody td.current')).toHaveCount(1);
+
+    // The list draws only the rows in its view. Houston, the source's last city, holds the match too,
+    // in lower case, and scrolling to it leaves Toronto the current option.
+    await demo.scrollEditorListToEnd();
+    await expect(options.filter({ hasText: /^Houston$/ }).locator('strong')).toHaveText('to');
+    expect(await demo.editorList.locator('.ht_master tbody td.current').allInnerTexts()).not.toContain('Houston');
   });
 });

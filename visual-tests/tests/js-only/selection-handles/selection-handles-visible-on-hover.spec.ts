@@ -4,7 +4,7 @@ import { selectCell } from '../../../src/page-helpers';
 
 /**
  * Checks how the four edge-adjustment handles look when the pointer hovers a cell inside the pre-selected
- * range with `selectionHandles: true`. One handle per edge, their centring on the selection's span and
+ * range with `selectionHandles: true`. One handle per edge, their centering on the selection's span and
  * their orientation classes with no inline styling are asserted in `tests/e2e/selection-handles.spec.ts`.
  * It renders on every js variant because `horizon` draws the handles longer
  * (`--ht-cell-selection-handle-length`) and no other every-variant capture turns `selectionHandles` on;

@@ -55,18 +55,44 @@ export class RowSizeAlignmentPage {
   }
 
   /**
+   * The master's first rendered row and the vertical scroll offsets of the master's and the row header
+   * clone's holders, read in one evaluation.
+   *
+   * @returns {Promise<{firstRow: number, masterScrollTop: number, cloneScrollTop: number}>}
+   */
+  async scrollState(): Promise<{ firstRow: number; masterScrollTop: number; cloneScrollTop: number }> {
+    return this.page.evaluate(() => ({
+      firstRow: (window as unknown as {
+        hot: { view: { getFirstRenderedVisibleRow(): number } };
+      }).hot.view.getFirstRenderedVisibleRow(),
+      masterScrollTop: (document.querySelector('.ht_master .wtHolder') as HTMLElement).scrollTop,
+      cloneScrollTop: (document.querySelector('.ht_clone_inline_start .wtHolder') as HTMLElement).scrollTop,
+    }));
+  }
+
+  /**
    * Wheels over the middle of the grid body, the way the demo's specs scroll it, and waits until the
-   * grid has drawn a later first row.
+   * scroll has settled: a later first row drawn, the row header clone scrolled to the master's offset,
+   * and that offset the same on two reads in a row, so a wheel the browser plays over several frames
+   * has finished before anything is measured.
    *
    * @param {number} deltaY The wheel distance.
    */
   async wheelDown(deltaY: number): Promise<void> {
     const before = await this.firstRenderedRow();
     const box = await this.holder.boundingBox();
+    let previousScrollTop = Number.NaN;
 
     await this.page.mouse.move(box!.x + (box!.width / 2), box!.y + (box!.height / 2));
     await this.page.mouse.wheel(0, deltaY);
-    await expect.poll(() => this.firstRenderedRow()).toBeGreaterThan(before);
+    await expect.poll(async() => {
+      const { firstRow, masterScrollTop, cloneScrollTop } = await this.scrollState();
+      const settled = firstRow > before && masterScrollTop === cloneScrollTop && masterScrollTop === previousScrollTop;
+
+      previousScrollTop = masterScrollTop;
+
+      return settled;
+    }).toBe(true);
   }
 
   /**

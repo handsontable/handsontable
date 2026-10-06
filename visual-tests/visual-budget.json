@@ -17,7 +17,7 @@
   ],
   "prefixes": {
     "js/chromium/": 51,
-    "js/chromium-theme-main/": 78,
+    "js/chromium-theme-main/": 79,
     "js/chromium-theme-main-dark/": 64,
     "js/chromium-theme-horizon/": 51,
     "js/chromium-theme-horizon-dark/": 51,

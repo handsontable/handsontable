@@ -146,6 +146,20 @@ export class ComplexDemoStatesPage {
   }
 
   /**
+   * Scrolls the open dropdown editor's list to its last option, which the list renders only once it is
+   * scrolled into view.
+   */
+  async scrollEditorListToEnd(): Promise<void> {
+    await this.page.evaluate(() => {
+      const list = (window as unknown as {
+        hot: { getActiveEditor(): { htEditor: { countRows(): number; scrollViewportTo(options: { row: number }): boolean } } };
+      }).hot.getActiveEditor().htEditor;
+
+      list.scrollViewportTo({ row: list.countRows() - 1 });
+    });
+  }
+
+  /**
    * The box of a column header in the top overlay, by its label, and the box of the dropdown menu, read
    * in one evaluation: the header cell is a node Walkontable recycles, so a second round trip could
    * measure another column.
