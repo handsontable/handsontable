@@ -26,10 +26,12 @@ import { CUSTOM_SELECTION_TYPE } from '../constants';
 import { getSpreaderOffset } from '../../overlay/spreaderOffset';
 import {
   ADJUST_HANDLE_EDGES,
+  getAxisSegment,
   getHandleOwnership,
   getHandlesSpan,
   getMoveZoneOwnership,
   getOverlaySegment,
+  isTrackEdgeVisible,
 } from './adjustHandlesOwnership';
 import type {
   AdjustHandleEdge,
@@ -1513,6 +1515,68 @@ class Border {
   }
 
   /**
+   * Tells whether this overlay may draw the fill handle (and the mobile bottom handle) of a selection
+   * whose bottom-end corner is on the given cell. Only the `top` overlay is restricted. Its holder
+   * reaches a few pixels below the frozen rows so the handle can hang past them (#6937), and that
+   * strip paints above both inline frozen panes, which the corner overlays cover down to the frozen
+   * rows' bottom edge only. The `top` overlay renders the same column band as the master, frozen and
+   * off-screen columns included, so a handle it drew for a column the viewport does not show landed
+   * in that strip over the row headers or a frozen column.
+   *
+   * So the `top` overlay draws the handle only for a scrollable column whose inline-end edge, where
+   * the handle is centered, is on screen. A frozen column's handle is drawn by its corner overlay, and
+   * a column whose inline-end edge is past the holder's edge gets no handle (it was clipped there
+   * anyway). The test is by column, like the adjust handles': when the edge is on screen but closer
+   * than half a handle to a pane, the handle can still overlap the pane by that much. The grid's last
+   * column is the exception to "fully visible": the visible range reports it only when it is whole,
+   * and a column wider than the viewport never is, so there the edge is read off the cell itself.
+   *
+   * @private
+   * @param {number} row The renderable row of the selection's bottom-end corner.
+   * @param {number} column The renderable column of the selection's bottom-end corner.
+   * @returns {boolean}
+   */
+  canOverlayDrawFillCorner(row: number, column: number): boolean {
+    if (this.wot.wtTable.name !== 'top') {
+      return true;
+    }
+
+    const layout = this.getAdjustHandlesAxisLayout('column');
+
+    if (getAxisSegment(layout, column) !== 'main') {
+      return false;
+    }
+
+    return isTrackEdgeVisible(layout.visible, column, 'end') ||
+      column === layout.total - 1 && this.isCellEndWithinHolder(row, column);
+  }
+
+  /**
+   * Tells whether the inline-end edge of a cell lies within a pixel of this overlay's holder edge or
+   * inside it. A fractional position (browser zoom) at the end of the scroll range reads as arrived.
+   *
+   * @private
+   * @param {number} row The renderable row of the cell.
+   * @param {number} column The renderable column of the cell.
+   * @returns {boolean}
+   */
+  isCellEndWithinHolder(row: number, column: number): boolean {
+    const { wtTable, wtSettings } = this.wot;
+    const cell = wtTable.getCell(this.wot.createCellCoords(row, column));
+
+    if (!isHTMLElement(cell)) {
+      return false;
+    }
+
+    const { geometryReader } = this.wot.domBindings;
+    const cellRect = geometryReader.getBoundingClientRect(cell);
+    const holderRect = geometryReader.getBoundingClientRect(wtTable.holder);
+
+    return wtSettings.getSetting('rtlMode') ?
+      cellRect.left >= holderRect.left - 1 : cellRect.right <= holderRect.right + 1;
+  }
+
+  /**
    * Resolves which corner the fill handle is drawn for and which edges of the box lie inside a
    * merged block (DEV-143).
    *
@@ -1866,7 +1930,10 @@ class Border {
     // The hook can move the corner onto a merged block's bottom-end, which an overlay rendering only
     // part of the block does not render. Only the overlay that does draws the handle; the others
     // would put one on the freeze line inside the block (DEV-143).
-    const rendersFillCorner = checkRow <= lastRenderedRow && checkCol <= lastRenderedColumn;
+    // The `top` overlay also skips a corner on a column the viewport does not show. That check is
+    // asked last, and only when this border draws a corner handle at all.
+    const rendersFillCorner = checkRow <= lastRenderedRow && checkCol <= lastRenderedColumn &&
+      Boolean(cornerVisibleSetting || this.selectionHandles) && this.canOverlayDrawFillCorner(checkRow, checkCol);
 
     if (
       isMobileOrIpadOS() ||

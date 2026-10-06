@@ -775,6 +775,18 @@
       box-sizing: border-box;
     }
 
+    // MergeCells lays out the content of a merged cell that crosses a frozen-column line in this wrapper, as
+    // wide as the whole block (`plugins/mergeCells/renderer.ts`). It matches `$user-cell-content` too, so a
+    // host rule such as `.handsontable td div { padding: 4px }` would widen it past the block and move the
+    // content off the master's copy. It resets its own box; its width and inline-start margin are inline.
+    .htMergedCellContentWindow {
+      display: block;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-sizing: border-box;
+    }
+
     // `text-overflow` does not inherit, so a `textEllipsis` cell in an exact-height row shows no
     // ellipsis on its own: the value is moved into the absolutely positioned `.htCellClip`, which
     // clips and inherits `nowrap` from the `htTextEllipsis` TD but not its `text-overflow`. Set it

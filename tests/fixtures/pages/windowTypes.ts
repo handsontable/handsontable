@@ -38,7 +38,7 @@ export interface FixtureHotInstance {
   getSourceData(): unknown[];
   setDataAtCell(row: number, col: number, value: CellValue): void;
   setCellMeta(row: number, col: number, key: string, value: unknown): void;
-  getCellMeta(row: number, col: number): { className?: string, readOnly?: boolean };
+  getCellMeta(row: number, col: number): { className?: string, readOnly?: boolean, hidden?: boolean, spanned?: boolean };
   getPlugin(name: 'formulas'): {
     getCellType(row: number, col: number): string,
     sheetId: number | null,
@@ -78,6 +78,7 @@ export interface FixtureHotInstance {
     hideRows(rows: number[]): void,
     showRows(rows: number[]): void,
     isHidden(row: number): boolean,
+    getHiddenRows(): number[],
   };
   getPlugin(name: 'trimRows'): {
     trimRows(rows: number[]): void,
@@ -115,6 +116,7 @@ export interface FixtureHotInstance {
     mergedCellsCollection: {
       mergedCells: { row: number, col: number, rowspan: number, colspan: number }[],
     },
+    merge(startRow: number, startColumn: number, endRow: number, endColumn: number): void,
   };
   getPlugin(name: 'filters'): {
     addCondition(column: number, name: string, args: unknown[]): void,
@@ -254,6 +256,8 @@ export interface FixtureHotInstance {
   removeHook(name: string, callback: () => void): void;
   addHookOnce(name: string, callback: () => unknown): void;
   getSelectedLast(): number[];
+  /** The visual coordinates of a rendered cell element, or `null` when the element is not a cell of this grid. */
+  getCoords(element: Element | null): { row: number, col: number } | null;
   countRows(): number;
   countEmptyRows(ending?: boolean): number;
   isEmptyRow(row: number): boolean;
@@ -310,6 +314,10 @@ declare global {
     hot: FixtureHotInstance;
     /** Undo fixture: how many vetoed meta writes the listener `UndoGridPage#vetoMetaWrites()` adds saw. */
     metaWriteAttempts: number;
+    /**
+     * Undo fixture: the `beforeMergeCells`/`afterMergeCells` calls `UndoGridPage#trackMergeHooks()` counts.
+     */
+    mergeHookCalls?: { before: number, after: number };
     /** `dropdown-editor-clip` fixture: rebuilds the grid, optionally inside a named parent layout. */
     initDropdownClipGrid(settings?: Record<string, unknown>, containerClass?: string): boolean;
     /** `dropdown-editor-clip` fixture: the option set fed to the editor under test. */
