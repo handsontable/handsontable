@@ -1,10 +1,17 @@
 /**
- * The length of the checksum (SHA-512 as hex) that closes the machine-readable
+ * The length of the checksum that closes the machine-readable
  * block of every entitlement license key.
  *
  * @type {number}
  */
 export const CHECKSUM_LENGTH = 128;
+
+/**
+ * The length of the value a current key stores for its text.
+ *
+ * @type {number}
+ */
+export const PROSE_DIGEST_LENGTH = 64;
 
 /**
  * The two mutually exclusive date fields of a product entry. Exactly one of
