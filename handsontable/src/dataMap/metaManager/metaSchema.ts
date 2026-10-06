@@ -4612,9 +4612,12 @@ export default (): Record<string, unknown> => {
 
     /**
      * The `layout` option configures the order of plugin UI elements within the user-orderable
-     * wrapper slots rendered around the grid: `top` and `bottom`. Each slot takes an ordered array
-     * of element keys (for example `'pagination'`). Keys you list are placed first in that order;
-     * any remaining elements follow by their default weight. The grid and the overlays layer (the
+     * wrapper slots rendered around the grid: `top`, `bottom`, `start`, and `end`. The `top` and
+     * `bottom` slots sit above and below the grid. The `start` and `end` slots sit at the grid's
+     * inline-start and inline-end edges (with [`layoutDirection: 'rtl'`](#layoutdirection), `start`
+     * is on the right). Each slot takes an ordered array of element keys (for example
+     * `'pagination'`). Keys you list are placed first in that order; any remaining elements follow
+     * by their default weight. The grid and the overlays layer (the
      * modal layer, such as the dialog) are not orderable through this option. The license
      * notification is not orderable either; it always renders last in the `bottom` slot.
      *
@@ -4633,6 +4636,11 @@ export default (): Record<string, unknown> => {
      * // render pagination above a custom 'summary' element registered in the bottom slot
      * layout: {
      *   bottom: ['pagination', 'summary'],
+     * },
+     *
+     * // in the start side slot, render a custom 'filters' panel at the outer edge, before a custom 'notes' panel
+     * layout: {
+     *   start: ['filters', 'notes'],
      * },
      * ```
      */
@@ -8732,6 +8740,11 @@ export default (): Record<string, unknown> => {
      * `'-webkit-fill-available'`, and `'-moz-available'`, which fill the container but read as a
      * fixed size. An ignored value leaves the grid's width as it was, and a warning is printed once
      * per grid and value.
+     *
+     * With side panels docked in the
+     * [`start` and `end` layout slots](@/guides/accessories-and-menus/layout-slots/layout-slots.md),
+     * the width includes them, and the grid fills the rest. A function `width` then runs again
+     * whenever a side panel mounts, unmounts, or changes its width.
      *
      * With `width: 'auto'`, Handsontable writes `width: auto` as an inline style on the root
      * element. The grid then follows the width of its parent container, like a plain block

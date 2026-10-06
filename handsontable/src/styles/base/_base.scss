@@ -61,11 +61,57 @@
       min-height: auto;
     }
 
+    &.ht-slot-start-filled,
+    &.ht-slot-end-filled {
+      display: grid;
+      grid-template-areas:
+        "start top end"
+        "start grid end"
+        "start bottom end";
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+
+      > .ht-grid {
+        grid-area: grid;
+        min-width: 0;
+      }
+
+      > .ht-slot-top {
+        grid-area: top;
+        min-width: 0;
+      }
+
+      > .ht-slot-bottom {
+        grid-area: bottom;
+        min-width: 0;
+      }
+
+      > .ht-overlay {
+        grid-area: 1 / 1 / -1 / -1;
+        align-self: start;
+        height: 0;
+      }
+
+      &.ht-grid-follows-content {
+        grid-template-rows: auto 1fr auto;
+      }
+    }
+
     // The `ht-slot-*-filled` classes are kept in sync by the `LayoutManager` (they mean "the slot
     // has at least one `.ht-slot-element` child"). Selecting on `:has()` here instead makes every
     // grid DOM mutation trigger a style invalidation scaled to the whole host page.
+    &.ht-grid-fixed-width.ht-slot-start-filled,
+    &.ht-grid-fixed-width.ht-slot-end-filled,
+    &.ht-grid-width-follows-content.ht-slot-start-filled,
+    &.ht-grid-width-follows-content.ht-slot-end-filled {
+      grid-template-columns: auto max-content auto;
+      justify-content: start;
+    }
+
     &.ht-slot-bottom-filled,
-    &.ht-slot-top-filled {
+    &.ht-slot-top-filled,
+    &.ht-slot-start-filled,
+    &.ht-slot-end-filled {
       .ht-wrapper {
         &:not(.htHorizontallyScrollableByWindow),
         &:not(.htVerticallyScrollableByWindow) {
@@ -112,9 +158,39 @@
   }
 
   .ht-slot-element {
-    width: 100%;
     box-sizing: border-box;
     border: 1px solid var(--ht-border-color);
+  }
+
+  :where(.ht-slot-top, .ht-slot-bottom) > .ht-slot-element {
+    width: 100%;
+  }
+
+  .ht-slot-start {
+    grid-area: start;
+  }
+
+  .ht-slot-end {
+    grid-area: end;
+  }
+
+  .ht-slot-start, .ht-slot-end {
+    display: flex;
+    height: 0;
+    min-height: 100%;
+  }
+
+  :where(.ht-slot-start, .ht-slot-end) > :where(.ht-slot-element) {
+    flex: 0 0 auto;
+    min-height: 0;
+  }
+
+  .ht-slot-start > .ht-slot-element {
+    border-inline-end-width: 0;
+  }
+
+  .ht-slot-end > .ht-slot-element {
+    border-inline-start-width: 0;
   }
 
   .ht-slot-top > .ht-slot-element {

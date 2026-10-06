@@ -96,8 +96,14 @@ Core's `utils/licenseBranding/lockScreen.ts` **reuses this plugin's CSS by weari
 (`ht-dialog ht-dialog--confirm handsontable …`) rather than calling the plugin. The reasons matter if you
 ever consider unifying them: the dialog is a surface an app uses, so any `show` would replace the lock, any
 hide would look like a dismissal, and a `dialog: true` setup would never tear the lock down. The lock also
-copies this plugin's width sizing — pin `style.width` to the table workspace width on `afterViewRender`, or
-the `.ht-dialog` box spans the whole root wrapper instead of the grid.
+shares this plugin's width sizing — both pin `style.width` on `afterViewRender` to `getOverlayLayerWidth()`
+(`core/layout/overlayWidth.ts`: the table workspace width, or the total width when the window scrolls the
+columns, plus the `start`/`end` side slot widths), or the `.ht-dialog` box spans the whole root wrapper
+instead of the grid block. The box is anchored at the wrapper's inline-start edge, which is where the `start`
+slot begins, so a modal covers the side panels too. One exception: when the window scrolls the columns, side
+panels are docked, and the table fits between them (no `ht-grid-width-follows-content` on the wrapper), the
+grid track fills the wrapper and the `end` panel sits at its far edge, so the box takes the wrapper's width.
+Notification toasts deliberately do the opposite and stay over the grid area (`../notification/AGENTS.md`).
 
 Keep the stylesheet shipping in full so that inheritance keeps working without importing the plugin.
 

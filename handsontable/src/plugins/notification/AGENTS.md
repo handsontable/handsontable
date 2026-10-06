@@ -9,6 +9,12 @@ The `notification` plugin shows toast messages anchored to the grid root. Read t
 `../emptyDataState/` and `../loading/`. The host element is `hot.rootOverlaysElement` — the fixed overlays
 layer, **not** a layout slot.
 
+The overlays layer spans the side layout slots too, so `.ht-notification` is inset to the grid area: its
+`inset-inline` reads `--ht-grid-inset-inline-start` / `--ht-grid-inset-inline-end`, which core writes on the
+root wrapper after each render while a `start` or `end` slot is filled (and clears otherwise). That keeps
+toasts off the side panels. Keep `inset-inline` on those variables; do not size the toast against the
+wrapper or the overlays layer.
+
 ## Accessibility is the design, not a feature
 
 - Toasts carry `aria-live` and **do not take keyboard focus when they appear**. That is the point of a

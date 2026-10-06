@@ -49,7 +49,17 @@ import {
 } from './helpers/a11y';
 import { parsePixelSize } from './utils/pixelSize';
 import { describeValue } from './utils/describeValue';
+import { getSideSlotsWidth } from './core/rootSize';
 import { warnOnce } from './helpers/console';
+
+/**
+ * Class mirrored onto the root wrapper while the window scrolls the grid's columns, a side slot is
+ * filled, and the table is wider than the space the side panels leave. The stylesheet then sizes the
+ * grid track to the table, so the table never paints over an `end` panel and the panel follows the
+ * table's last column instead. A table that fits keeps the flexible track, so `stretchH` still fills
+ * the space between the panels and follows the container when it resizes.
+ */
+const GRID_WIDTH_FOLLOWS_CONTENT_CLASS_NAME = 'ht-grid-width-follows-content';
 
 /**
  * Checks whether a size setting (`rowHeights`, `minRowHeights`, or `colWidths`) guarantees a uniform
@@ -2948,10 +2958,16 @@ class TableView {
       removeClass(rootElement, 'htHasScrollX');
     }
 
-    if (this.isHorizontallyScrollableByWindow()) {
+    const isHorizontallyScrollableByWindow = this.isHorizontallyScrollableByWindow();
+
+    if (isHorizontallyScrollableByWindow) {
       addClass(rootElement, 'htHorizontallyScrollableByWindow');
     } else {
       removeClass(rootElement, 'htHorizontallyScrollableByWindow');
+    }
+
+    if (rootWrapperElement) {
+      this.#updateGridWidthFollowsContent(rootWrapperElement, isHorizontallyScrollableByWindow);
     }
 
     if (getScrollbarWidth() === 0) {
@@ -2959,6 +2975,57 @@ class TableView {
     } else {
       removeClass(rootElement, 'htScrollbarHidden');
     }
+  }
+
+  /**
+   * Toggles `GRID_WIDTH_FOLLOWS_CONTENT_CLASS_NAME` on the root wrapper. The class changes the grid
+   * track's width after the engine has measured it, so a change schedules one follow-up render.
+   *
+   * @param {HTMLElement} rootWrapperElement The root wrapper element.
+   * @param {boolean} isHorizontallyScrollableByWindow Whether the window scrolls the grid's columns.
+   */
+  #updateGridWidthFollowsContent(rootWrapperElement: HTMLElement, isHorizontallyScrollableByWindow: boolean) {
+    const isFollowingContent = hasClass(rootWrapperElement, GRID_WIDTH_FOLLOWS_CONTENT_CLASS_NAME);
+    const followsContent = isHorizontallyScrollableByWindow &&
+      this.#isTableWiderThanSideSlotTrack(rootWrapperElement, isFollowingContent);
+
+    if (isFollowingContent === followsContent) {
+      return;
+    }
+
+    if (followsContent) {
+      addClass(rootWrapperElement, GRID_WIDTH_FOLLOWS_CONTENT_CLASS_NAME);
+    } else {
+      removeClass(rootWrapperElement, GRID_WIDTH_FOLLOWS_CONTENT_CLASS_NAME);
+    }
+
+    this.hot._registerTimeout(() => {
+      if (!this.hot.isDestroyed) {
+        this.hot.render();
+      }
+    });
+  }
+
+  /**
+   * Checks whether a side slot is filled and the table is wider than the space the side panels
+   * leave in the root wrapper. The class itself changes that space in a shrink-to-fit host (an
+   * `inline-block` or `flex: 1` container sizes to the table while the class is on), so a grid that
+   * already follows its content keeps doing so while the table still fills the space exactly.
+   * Without that hysteresis the class would flip on every render.
+   *
+   * @param {HTMLElement} rootWrapperElement The root wrapper element.
+   * @param {boolean} isFollowingContent Whether the class is currently on.
+   * @returns {boolean}
+   */
+  #isTableWiderThanSideSlotTrack(rootWrapperElement: HTMLElement, isFollowingContent: boolean): boolean {
+    if (!hasClass(rootWrapperElement, 'ht-slot-start-filled') && !hasClass(rootWrapperElement, 'ht-slot-end-filled')) {
+      return false;
+    }
+
+    const tableWidth = this.getTotalTableWidth();
+    const trackWidth = rootWrapperElement.clientWidth - getSideSlotsWidth(this.hot);
+
+    return isFollowingContent ? tableWidth >= trackWidth - 1 : tableWidth > trackWidth;
   }
 
   /**

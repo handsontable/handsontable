@@ -176,6 +176,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   layout: {
     top: ['toolbar'],
     bottom: ['pagination', 'summary'],
+    start: ['navigation', 'outline'],
+    end: ['details'],
   },
   layoutDirection: oneOf('rtl', 'ltr', 'inherit'),
   licenseKey: '',

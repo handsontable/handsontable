@@ -193,3 +193,73 @@ describe('Layout slot height reservation', () => {
     });
   });
 });
+
+describe('Side slot teardown', () => {
+  let container;
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.restoreAllMocks();
+    container.remove();
+  });
+
+  /**
+   * Builds a ROOT grid with one panel registered in each side slot.
+   *
+   * @returns {Handsontable}
+   */
+  function createGridWithPanels() {
+    const hot = new Handsontable(container, {
+      data: [['a']],
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.getLayoutManager().register('nav', document.createElement('div'), { side: 'start' });
+    hot.getLayoutManager().register('details', document.createElement('div'), { side: 'end' });
+
+    return hot;
+  }
+
+  it('should schedule a side slot pass when a panel registers on a live grid (control)', () => {
+    const hot = new Handsontable(container, {
+      data: [['a']],
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const registerTimeoutSpy = jest.spyOn(hot, '_registerTimeout');
+
+    hot.getLayoutManager().register('nav', document.createElement('div'), { side: 'start' });
+
+    expect(registerTimeoutSpy).toHaveBeenCalledTimes(1);
+
+    hot.destroy();
+  });
+
+  it('should schedule no side slot pass and construct no ResizeObserver while destroying', () => {
+    jest.useFakeTimers();
+
+    const hot = createGridWithPanels();
+
+    jest.runOnlyPendingTimers();
+
+    const registerTimeoutSpy = jest.spyOn(hot, '_registerTimeout');
+
+    hot.getLayoutManager().unregister('details', 'end');
+
+    expect(registerTimeoutSpy).toHaveBeenCalledTimes(1);
+
+    jest.runOnlyPendingTimers();
+    registerTimeoutSpy.mockClear();
+
+    const resizeObserverSpy = jest.spyOn(hot.rootWindow, 'ResizeObserver');
+
+    hot.destroy();
+
+    expect(registerTimeoutSpy).not.toHaveBeenCalled();
+    expect(resizeObserverSpy).not.toHaveBeenCalled();
+  });
+});
