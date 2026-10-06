@@ -10,6 +10,7 @@ import type RowUtils from '../axisSizing/rowUtils';
 import type ColumnUtils from '../axisSizing/columnUtils';
 import type { StylesHandler } from '../types';
 import { applyRowHeight } from './exactRowHeight';
+import { firstRowDrawsTopBorder } from '../axisSizing/boxModel';
 import { CLONE_INLINE_END, CLONE_INLINE_START } from '../overlay/constants';
 
 /**
@@ -687,6 +688,7 @@ export class TableRenderer {
       // constant settings read for the whole band instead of one per rendered row. Kept behind the
       // row count so a table with nothing to render still touches nothing.
       const mayHaveExactRows = rowsToRender > 0 && rowUtils.mayHaveExactRows();
+      const firstRowTopBorder = firstRowDrawsTopBorder(this.rootNode.tHead);
 
       for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
         const TR = rows!.getRenderedNode(visibleRowIndex);
@@ -702,6 +704,7 @@ export class TableRenderer {
             this.stylesHandler.areCellsBorderBox(),
             rowUtils,
             sourceRowIndex,
+            visibleRowIndex === 0 && firstRowTopBorder,
           );
         }
       }
