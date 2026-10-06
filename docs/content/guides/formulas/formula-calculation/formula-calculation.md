@@ -153,13 +153,6 @@ import { HyperFormula } from 'hyperformula';
 See [HyperFormula's installation docs](https://handsontable.github.io/hyperformula/guide/client-side-installation.html)
 for alternative installation methods (CDN, UMD, etc.).
 
-::: tip HyperFormula instance
-
-To use the [`Formulas`](@/api/formulas.md) plugin with an external HyperFormula instance, initialize
-HyperFormula with the `'internal-use-in-handsontable'` license key:
-
-:::
-
 ```js
 // create an external HyperFormula instance
 const hyperformulaInstance = HyperFormula.buildEmpty({
