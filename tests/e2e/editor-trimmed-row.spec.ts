@@ -1923,6 +1923,71 @@ test.describe('a grid-tracking extent through a restore', () => {
       ]);
     });
 
+  test('keeps a shrunk column layer shrunk when the same update drops an earlier layer and untrims rows',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.trimRows([4]);
+      // Layer 0, a single cell the update below trims away.
+      await grid.cell(3, 1).click();
+      // Layer 1, the whole of column A: it spans the grid.
+      await grid.addWholeColumnLayer('A');
+      // Layer 2, column B shrunk by one row. Its grid-tracking flag is sticky and still set.
+      await grid.addWholeColumnLayer('B');
+      await grid.shrinkSelectionUpwards();
+      // Layer 3, the active one, with the editor open on its first cell.
+      await grid.addCellRangeLayer([1, 0, 2, 0]);
+
+      expect(await grid.selected()).toEqual([[3, 1, 3, 1], [-1, 0, 3, 0], [-1, 1, 2, 1], [1, 0, 2, 0]]);
+
+      await grid.listenAndType('EDITED');
+      // One update takes layer 0's record and the editor's, and brings row 4 back. The restore drops
+      // layer 0, so every later layer moves up one slot. The grow's coverage snapshot has to move
+      // with them: left on the old slots, "layer 1 spans the grid" lands on the shrunk column B,
+      // which then grows back over the row the user excluded.
+      await grid.batchUntrimAndTrim([4], [1, 3]);
+
+      await expect.poll(() => grid.isEditorOpen()).toBe(false);
+      expect(await grid.selected()).toEqual([[-1, 0, 2, 0], [-1, 1, 1, 1], [1, 0, 1, 0]]);
+    });
+
+  test('grows a whole-column selection with an open editor when an untrim is batched with a sort',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle, { sorting: true });
+
+      await grid.goto();
+      await grid.trimRows([3, 4]);
+      await grid.selectWholeColumn(0);
+      await grid.listenAndType('EDITED');
+
+      // The restore accepts a pure trim only, so a sort in the same update skips it. A whole column
+      // is still a whole column after a sort, so it has to grow onto the two rows that came back.
+      await grid.batchSortAndUntrim([3, 4]);
+
+      await expect.poll(() => grid.selected()).toEqual([[-1, 0, 4, 0]]);
+      expect(await grid.isEditorOpen()).toBe(true);
+    });
+
+  test('grows it no further than maxRows lets the grid show, with an open editor',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle, { sorting: true });
+
+      await grid.goto();
+      await grid.updateSettings({ maxRows: 4 });
+      await grid.trimRows([0, 1, 2]);
+      await grid.selectWholeColumn(0);
+      await grid.listenAndType('EDITED');
+
+      // With the editor open the grow commits its highlights directly, without the `refresh()` that
+      // clamps a no-editor grow to the row count. Five rows come back, but `maxRows` caps the grid
+      // at four, so the far corner must stop at row 3.
+      await grid.batchSortAndUntrim([0, 1, 2]);
+
+      await expect.poll(() => grid.selected()).toEqual([[-1, 0, 3, 0]]);
+      expect(await grid.isEditorOpen()).toBe(true);
+    });
+
   test('does not re-pin a drag-selected range that merely reached both ends of the grid',
     async({ page, theme, bundle }) => {
       const grid = new EditorTrimmedRowPage(page, theme, bundle);
