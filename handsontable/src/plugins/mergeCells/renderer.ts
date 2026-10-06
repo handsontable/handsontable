@@ -1,4 +1,5 @@
 import { isSafari } from '../../helpers/browser';
+import { DEFAULT_COLUMN_WIDTH } from '../../3rdparty/walkontable/src/constants';
 import { empty, getCellContentRoot } from '../../helpers/dom/element';
 import {
   getFirstRowOfActiveBottomOverlay,
@@ -216,7 +217,8 @@ export function createMergeCellRenderer(plugin: MergeCellsPluginInstance) {
     const getRenderableColumnWidth = (renderableColumn: number) => {
       const visualColumn = columnMapper.getVisualFromRenderableIndex(renderableColumn);
 
-      return visualColumn === null ? 0 : hot.getColWidth(visualColumn);
+      // A width that resolves to 0 is drawn at the default width (`ColumnUtils#getWidth` falls back with `||`).
+      return visualColumn === null ? 0 : (hot.getColWidth(visualColumn) || DEFAULT_COLUMN_WIDTH);
     };
     const { before, after } = sumBlockWidthsOutsideBand(
       blockStart, lastMergedColumnIndex, band, getRenderableColumnWidth

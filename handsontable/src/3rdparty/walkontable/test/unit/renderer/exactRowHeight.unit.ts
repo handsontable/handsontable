@@ -137,6 +137,29 @@ describe('applyRowHeight', () => {
       expect(TR.style.height).toBe('48px');
     });
 
+    it('should not rewrite a pin on every draw when the browser normalizes a fractional height on read', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+      const ownHeights = { getHeight: () => 29.333333333333332, getDefaultHeight: () => 29 };
+      let writes = 0;
+      let written = '';
+
+      // Chrome answers `29.3333px` for a `29.333333333333332px` it was given.
+      Object.defineProperty(TR.style, 'height', {
+        configurable: true,
+        get: () => (written === '' ? '' : `${parseFloat(written).toFixed(4)}px`),
+        set: (value: string) => {
+          writes += 1;
+          written = value;
+        },
+      });
+      cellsOf(TR)[0].setAttribute('rowspan', '2');
+      applyRowHeight(TR, 99, false, true, ownHeights, 0);
+      applyRowHeight(TR, 99, false, true, ownHeights, 0);
+      applyRowHeight(TR, 99, false, true, ownHeights, 0);
+
+      expect(writes).toBe(1);
+    });
+
     it('should take off only the pin it wrote', () => {
       const TR = createRow(['a', 'b'], { rowHeader: false });
       const ownHeights = { getHeight: () => 70, getDefaultHeight: () => 29 };

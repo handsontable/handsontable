@@ -110,7 +110,7 @@ test.describe('content of a merged cell across a frozen-column line', () => {
     await expect.poll(async () => (await grid.visibleMarkers()).count).toBe(1);
   });
 
-  test('shows a value once in the frozen top-start corner', async () => {
+  test('shows a value once when the block\'s frozen part sits in the top-start corner', async () => {
     // Row 1 is frozen at the top too, so the frozen part of the block is drawn by the corner overlay.
     await grid.initGrid({
       fixedColumnsStart: 2,
@@ -197,6 +197,21 @@ test.describe('content of a merged cell across a frozen-column line', () => {
     await expect.poll(async () => Math.abs((await grid.startWrapperWidthDrift()) ?? NaN)).toBeLessThan(0.5);
 
     await grid.resizeColumn(4, 160);
+
+    await expect.poll(async () => Math.abs((await grid.startWrapperWidthDrift()) ?? NaN)).toBeLessThan(0.5);
+  });
+
+  test('sizes the layout wrapper with the default width for a column whose width is 0', async () => {
+    // The engine draws a column whose width resolves to 0 at the default width.
+    const colWidths = Array.from({ length: 30 }, (_, column) => (column === 3 ? 0 : 60));
+
+    await grid.initGrid({
+      colWidths,
+      fixedColumnsStart: 2,
+      mergeCells: [BLOCK],
+      values: ONE_MARKER,
+      cell: [{ row: 1, col: 0, className: 'htRight' }],
+    });
 
     await expect.poll(async () => Math.abs((await grid.startWrapperWidthDrift()) ?? NaN)).toBeLessThan(0.5);
   });

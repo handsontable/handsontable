@@ -86,6 +86,46 @@ test.describe('row heights of merged rows next to frozen columns', { tag: '@walk
     expect(await grid.masterRowHeight(1)).toBe(await grid.masterRowHeight(3));
   });
 
+  test('draws every row at the same offset and height under a column header row', async () => {
+    // The first row only draws its own top border when there is no head row, and the pin has to know.
+    await grid.initGrid({ ...SETTINGS, colHeaders: true, autoRowSize: false, values: [] });
+    await grid.scrollToColumn(ONE_ROW_BLOCK.col);
+
+    await expect.poll(() => grid.rowsDisagreeingWithMaster(ROWS)).toEqual([]);
+  });
+
+  test('draws every row at the same offset and height in the fixedColumnsEnd band', async () => {
+    await grid.initGrid({
+      viewportColumnRenderingOffset: 0,
+      rowHeaders: false,
+      colHeaders: false,
+      fixedColumnsEnd: 2,
+      autoRowSize: true,
+      mergeCells: [{ row: 0, col: 28, rowspan: 2, colspan: 2 }, { row: 0, col: 20, rowspan: 1, colspan: 3 }],
+      values: [{ row: 0, col: 28, value: 'tall:60' }],
+    });
+    await grid.scrollToColumn(20);
+
+    await expect.poll(() => grid.rowsDisagreeingWithMaster(ROWS)).toEqual([]);
+  });
+
+  test('keeps the top panes aligned when a frozen top row is hidden', async () => {
+    // The clamp counts visual rows: a hidden row above the block must not cut a row off its span.
+    await grid.initGrid({
+      viewportColumnRenderingOffset: 0,
+      rowHeaders: false,
+      colHeaders: false,
+      fixedRowsTop: 3,
+      fixedColumnsStart: 1,
+      hiddenRows: { rows: [0] },
+      mergeCells: [{ row: 1, col: 6, rowspan: 2, colspan: 1 }, { row: 1, col: 0, rowspan: 2, colspan: 1 }],
+      values: [{ row: 1, col: 6, value: 'tall:60' }],
+    });
+    await grid.scrollToColumn(6);
+
+    await expect.poll(() => grid.rowsDisagreeingWithMaster([1, 2, 3, 4])).toEqual([]);
+  });
+
   test('keeps a block whose first row is hidden to its own rows', async () => {
     // The block's first cell carries the span from row 1 down to row 2 only; counting the block's row count
     // from there reached row 3 and made rows 1 and 2 taller in the frozen pane than in the master.
