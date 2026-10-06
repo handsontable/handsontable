@@ -884,27 +884,45 @@ function collectCells(
 type CellMetaEntry = NonNullable<ImportResult['cellsMeta']>[number];
 
 /**
- * Returns the `cellsMeta` entry for one cell, appending a fresh one the first time that cell is
- * seen. The `"row:col"` index is what keeps this constant-time: the `readOnly` and `className`
- * merges both fold into entries the column pass already produced, and scanning the growing array
- * for each of them made placing the meta quadratic in the number of styled or locked cells.
+ * Answers the function that returns the `cellsMeta` entry for one cell, appending a fresh one the
+ * first time that cell is seen. The `"row:col"` index is what keeps this constant-time: the
+ * `readOnly` and `className` merges both fold into entries the column pass already produced, and
+ * scanning the growing array for each of them made placing the meta quadratic in the number of
+ * styled or locked cells.
+ *
+ * Every new entry is charged against the sheet's budget BEFORE it is allocated: the sheet is refused
+ * once `cellsMeta` would hold more entries than the larger of `MIN_CELL_META_BUDGET` and the cells
+ * that hold a value or a formula. The type outliers, the `readOnly` cells and the `className` cells
+ * all go through here, and a cell that carries several of them is one entry, charged once. Those
+ * cells need not hold any data: two list validations with different formulas that split
+ * `A1:E1000000` in half expanded 2.5 million empty cells from a 2 kB file.
  */
-function cellMetaEntryAt(
-  cellsMeta: CellMetaEntry[], index: Map<string, CellMetaEntry>, row: number, col: number
-): CellMetaEntry {
-  const key = `${row}:${col}`;
-  const existing = index.get(key);
+function cellMetaEntries(
+  cellsMeta: CellMetaEntry[], dataCells: number
+): (row: number, col: number) => CellMetaEntry {
+  const index = new Map<string, CellMetaEntry>();
+  const budget = Math.max(MIN_CELL_META_BUDGET, dataCells);
 
-  if (existing) {
-    return existing;
-  }
+  return (row: number, col: number): CellMetaEntry => {
+    const key = `${row}:${col}`;
+    const existing = index.get(key);
 
-  const entry: CellMetaEntry = { row, col, meta: {} };
+    if (existing) {
+      return existing;
+    }
 
-  cellsMeta.push(entry);
-  index.set(key, entry);
+    if (cellsMeta.length >= budget) {
+      throwLimitExceeded(`The sheet's cell settings expand to more than ${budget} cells, above the limit `
+        + `this reader accepts for a sheet with ${dataCells} cells of data.`);
+    }
 
-  return entry;
+    const entry: CellMetaEntry = { row, col, meta: {} };
+
+    cellsMeta.push(entry);
+    index.set(key, entry);
+
+    return entry;
+  };
 }
 
 /**
@@ -965,8 +983,7 @@ function placeMeta(
 ): Pick<ImportResult, 'columns' | 'cellsMeta'> {
   const columns: ImportColumn[] = Array.from({ length: colCount }, () => ({}));
   const cellsMeta: NonNullable<ImportResult['cellsMeta']> = [];
-  const byCoords = new Map<string, CellMetaEntry>();
-  const reserve = cellMetaBudget(pass.dataCells, cellsMeta);
+  const entryAt = cellMetaEntries(cellsMeta, pass.dataCells);
 
   if (includeTypes) {
     for (let c = 0; c < colCount; c++) {
@@ -982,19 +999,17 @@ function placeMeta(
       // formula then shares it, which is what keeps a wide sheet from allocating one per column.
       columns[c] = meta;
       outliers.forEach(({ start, end, meta: outlier }) => {
-        reserve(end - start + 1);
-
         for (let row = start; row <= end; row++) {
-          cellMetaEntryAt(cellsMeta, byCoords, row, c).meta = withResetKeys(outlier, meta);
+          entryAt(row, c).meta = withResetKeys(outlier, meta);
         }
       });
     }
   }
 
-  placeReadOnly(pass.readOnly, rowCount, colCount, reserve, (col) => {
+  placeReadOnly(pass.readOnly, rowCount, colCount, (col) => {
     columns[col] = { ...columns[col], readOnly: true };
   }, (row, col, value) => {
-    cellMetaEntryAt(cellsMeta, byCoords, row, col).meta.readOnly = value;
+    entryAt(row, col).meta.readOnly = value;
   });
 
   const classEntries: Array<[number, number, string]> = [];
@@ -1010,7 +1025,7 @@ function placeMeta(
       columns[col] = { ...columns[col], className: value };
     },
     (row, col, value) => {
-      cellMetaEntryAt(cellsMeta, byCoords, row, col).meta.className = value;
+      entryAt(row, col).meta.className = value;
     },
   );
 
@@ -1040,26 +1055,6 @@ function withResetKeys(outlier: ImportColumn, columnMeta: ImportColumn): Record<
 }
 
 /**
- * Answers a function that charges per-cell meta entries against the sheet's budget before they are
- * allocated, refusing the sheet once the `cellsMeta` the result carries would pass the larger of
- * `MIN_CELL_META_BUDGET` and the cells that hold data. Charged per run, so a refused sheet never
- * allocates the entries it is refused for.
- */
-function cellMetaBudget(dataCells: number, cellsMeta: unknown[]): (count: number) => void {
-  const budget = Math.max(MIN_CELL_META_BUDGET, dataCells);
-  let charged = 0;
-
-  return (count: number) => {
-    charged += count;
-
-    if (Math.max(charged, cellsMeta.length) > budget) {
-      throwLimitExceeded(`The sheet's cell settings expand to more than ${budget} cells, above the limit `
-        + `this reader accepts for a sheet with ${dataCells} cells of data.`);
-    }
-  };
-}
-
-/**
  * Places the read-only runs. A column that is locked on more than half of its rows becomes
  * `readOnly` as a whole, and only its unlocked rows get a `readOnly: false` cell entry; any other
  * column gets a `readOnly: true` entry per locked row. Before, one unlocked cell on a protected
@@ -1067,7 +1062,6 @@ function cellMetaBudget(dataCells: number, cellsMeta: unknown[]): (count: number
  */
 function placeReadOnly(
   readOnly: Map<number, Array<[number, number]>>, rowCount: number, colCount: number,
-  reserve: (count: number) => void,
   onColumn: (col: number) => void, onCell: (row: number, col: number, value: boolean) => void
 ): void {
   readOnly.forEach((runs, col) => {
@@ -1078,7 +1072,6 @@ function placeReadOnly(
     const locked = runs.reduce((sum, [start, end]) => sum + (end - start + 1), 0);
 
     if (locked * 2 <= rowCount) {
-      reserve(locked);
       runs.forEach(([start, end]) => {
         for (let row = start; row <= end; row++) {
           onCell(row, col, true);
@@ -1089,7 +1082,6 @@ function placeReadOnly(
     }
 
     onColumn(col);
-    reserve(rowCount - locked);
 
     let next = 0;
 

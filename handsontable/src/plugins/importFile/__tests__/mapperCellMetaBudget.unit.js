@@ -15,15 +15,16 @@ jest.mock('../../../utils/xlsxEngine/limits', () => ({
  *
  * @param {Array[]} rows The sheet's rows.
  * @param {object} [sheetOverrides] Extra sheet snapshot fields.
+ * @param {object} [options] The import options.
  * @returns {object} The mapped result.
  */
-function mapRows(rows, sheetOverrides = {}) {
+function mapRows(rows, sheetOverrides = {}, options = {}) {
   const sheet = Object.assign(createSheetSnapshot('S'), sheetOverrides, { rows });
   const workbook = createWorkbookSnapshot();
 
   workbook.sheets.push(sheet);
 
-  return mapWorkbook(workbook, resolveImportOptions({}), {
+  return mapWorkbook(workbook, resolveImportOptions(options), {
     formulasEnabled: false, commentsEnabled: false, customBordersEnabled: false,
   }, new DroppedFeatures());
 }
@@ -77,5 +78,23 @@ describe('mapWorkbook per-cell meta budget', () => {
 
     expect(result.columns.map(column => column.type)).toEqual(['dropdown', 'dropdown']);
     expect(result.cellsMeta).toBeUndefined();
+  });
+
+  it('should charge the per-cell class names against the same budget', () => {
+    // With `importStyles`, a column whose cells carry different classes keeps them per cell. Those go
+    // into `cellsMeta` too, and used to bypass the budget the type and `readOnly` entries are charged to.
+    const style = horizontal => ({ alignment: { horizontal }, font: null, fill: null, border: null });
+    const center = Object.assign(createCellSnapshot(), { style: style('center') });
+    const right = Object.assign(createCellSnapshot(), { style: style('right') });
+    const rows = Array.from({ length: 2400 }, (_, row) => [row % 2 === 0 ? center : right]);
+    let refusal = null;
+
+    try {
+      mapRows(rows, {}, { importStyles: true });
+    } catch (error) {
+      refusal = error;
+    }
+
+    expect(isLimitError(refusal)).toBe(true);
   });
 });

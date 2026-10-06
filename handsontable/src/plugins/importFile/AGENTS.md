@@ -181,8 +181,9 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   covered slot: one validation over `A1:E1000000` in a 2 kB file put five million entries in it
   (+1.2 GB, 11 s in `mapWorkbook`). Only outlier runs are expanded, into the `cellsMeta` the result
   has to carry anyway. Pinned by `mapper.unit.js` › "should keep the meta of a covered column as
-  runs, not one entry per cell", which counts `Map#set` calls. **The outliers are budgeted**
-  (`cellMetaBudget`, charged per run BEFORE it is expanded): two list validations with different
+  runs, not one entry per cell", which counts `Map#set` calls. **Every `cellsMeta` entry is budgeted**
+  (`cellMetaEntries`, charged when an entry is created, before it is allocated; type outliers,
+  `readOnly` and `className` alike, a cell carrying several of them charged once): two list validations with different
   formulas that split `A1:E1000000` leave half of every column as an outlier run, 2.5 M `cellsMeta`
   entries from a 2 kB file. The sheet is refused once the expansion passes the larger of
   `MIN_CELL_META_BUDGET` (1 M, `limits.ts`) and the cells that hold a value or a formula
