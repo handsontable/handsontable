@@ -209,6 +209,39 @@ of every side, and a plain cell keeping its handle against a naive `modifyGetCel
 merged-cell and plain-cell cases in `tests/e2e/ipad-selection-handles.spec.ts`, and
 `test/unit/selection/border/utils.unit.ts`.
 
+## The `top` overlay draws a fill handle only for a column the viewport shows (DEV-800)
+
+`TopOverlay#adjustRootChildrenSize` makes the `top` clone's `.wtHolder` half a fill handle taller than
+its table whenever the selection's bottom-end corner is in the frozen top rows, so the handle can hang
+past the frozen rows (#6937). That strip belongs to `.ht_clone_top` (z-index 160) and paints above both
+inline panes (`inline_start`, `inline_end`, 120); the top corners (180) cover only down to the frozen
+rows' bottom edge, not the strip. The `top` clone also renders the master's whole column band, frozen
+and off-screen columns included. So a handle it drew for a column the viewport did not show landed in
+the strip over the row headers or a frozen column: with a column scrolled behind the row headers, with
+its inline-end edge under the `fixedColumnsEnd` pane, and as a stale copy, one scroll offset off, of a
+frozen column's handle that the corner clone draws in the right place.
+
+`Border#canOverlayDrawFillCorner` gates it, folded into `appear()`'s `rendersFillCorner` (so the
+mobile bottom handle follows): in the `top` overlay the corner column must be in the scrollable segment
+(`getAxisSegment`) and its inline-end edge visible (`isTrackEdgeVisible` on the per-draw
+`selectionVisibleRange` snapshot, the same inputs the adjust handles use). Every other overlay is
+unchanged. A column whose inline-end edge lies past the holder's edge (the last, partially visible
+column with no end pane) also loses the `top` overlay's handle, which the holder clipped anyway. Two
+rules:
+
+- **Do not fix it by clipping the `top` holder.** That holder is a composited scroll container (see "The
+  clone holders are composited scroll containers"), and the overhang is what #6937 needs.
+- **The test is by column, not by pixel.** A column whose inline-end edge is on screen but closer than
+  half a handle to a pane still lets the handle overlap that pane by up to that much. Accepted, as for
+  the adjust handles; making it exact means re-deriving the pane geometry inside `Border`.
+
+The bottom overlay needs no gate: nothing reserves a strip outside it, and the bottom corners cover the
+pane part of it. Pinned by the "fill handle of a frozen top row" block of
+`tests/e2e/fill-handle-frozen-panes.spec.ts`, which hit-tests the strip below the frozen rows
+(`SelectionFeaturesPage#fillHandlesBelowFrozenRows`) in LTR, RTL and with `fixedColumnsEnd`, and checks
+that the corner overlays still draw the overhang for a frozen column; the iPad bottom handle is pinned in
+`tests/e2e/ipad-selection-handles.spec.ts`.
+
 ## Custom border `width: 0` is a real value (DEV-1137)
 
 `getBorderSettingsProperty` in `src/selection/border/utils.ts` reads per-side settings with `??`, not a truthy check. `width: 0` must stay 0 so the edge paints at 0px. A truthy `posSettings[property] ? … : settings.border[property]` falls back to the default 1px and the zero-width border reappears. The same helper keeps an explicit empty `style: ''` rather than inheriting `settings.border.style`; `Border#createBorders` then takes the solid-fill `else` path (`if (borderStyle)` is false). Omitting the key, or setting `null`/`undefined`, still falls through. Do not special-case `style`; keep `??` for every property on this helper, because a truthy check would resurrect the width-0 bug.
