@@ -3,6 +3,7 @@ import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { Formulas } from '../formulas';
 import { UndoRedo } from '../../undoRedo';
+import { TrimRows } from '../../trimRows';
 import { injectRealCoreStyles, removeRealCoreStyles } from '../../../../test/helpers/realCoreStyles';
 
 /**
@@ -19,6 +20,7 @@ describe('Formulas write validated in flight across a sheet resync', () => {
   beforeAll(() => {
     registerPlugin(Formulas);
     registerPlugin(UndoRedo);
+    registerPlugin(TrimRows);
   });
 
   beforeEach(() => {
@@ -227,6 +229,24 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     expect(engine.getCellFormula({ sheet: first, row: 2, col: 0 })).toBeUndefined();
     expect(engine.getCellValue({ sheet: first, row: 2, col: 0 })).toBe(7);
     expect(engine.getCellFormula({ sheet: other, row: 2, col: 0 })).toBe('=SUM(A1:A2)');
+  });
+
+  it('restores the recorded cell when a trim the switch cleared moved the rows', async() => {
+    // With row 0 trimmed, visual row 0 is sheet row 1 when the change is written. The switch's
+    // `loadData` clears the trim, so mapping the change again after it named sheet row 0 and wrote the
+    // old value there: sheet A ended as `[[2, 'a'], ['NEW', 'b'], ...]`.
+    const engine = buildGrid([[1, 'a'], [2, 'b'], [7, 'c'], [8, 'd']], { trimRows: true });
+    const first = hot.getPlugin('formulas').sheetId;
+    const other = engine.getSheetId(engine.addSheet('Other'));
+
+    hot.getPlugin('trimRows').trimRow(0);
+    engine.setSheetContent(other, [[10, 'x'], [20, 'y'], [30, 'z'], [40, 'w']]);
+    hot.setDataAtCell(0, 0, 'NEW');
+    hot.updateSettings({ formulas: { engine, sheetName: 'Other' } });
+
+    await waitForValidation();
+
+    expect(engine.getSheetSerialized(first)).toEqual([[1, 'a'], [2, 'b'], [7, 'c'], [8, 'd']]);
   });
 
   it('repaints another sheet\'s grid that reads a cell the restore put back', async() => {

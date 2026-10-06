@@ -458,10 +458,14 @@ again. Five rules:
   to land in both sheets: switching back showed a value the grid data never held. `#restoreSwitchedAwaySheet`
   writes the change set's OLD values back into the sheet recorded on the set (they are what that sheet
   held, since the grid's data was that sheet's when the change was made), skipping out-of-bounds changes
-  (never written there) and a sheet removed from the engine. The grid's index mapping does not move on a
-  switch, so the address the axis syncers answer is the same one the first write used. Pinned by the
-  `first` sheet assertions in the switch-only test, and by `puts the switched-away sheet back when a
-  slower validator answers after the switch`.
+  (never written there) and a sheet removed from the engine. **It restores the cells the first write
+  RECORDED (`ChangeSetAwaitingApply#writtenCells`: engine address, grid coordinates, old value), never
+  a fresh mapping.** The index mapping DOES move on a switch: the switch's `loadData` clears runtime
+  trims, so with row 0 trimmed a change to visual row 0 was written to sheet row 1, while a mapping
+  after the switch named sheet row 0 and overwrote it with the old value. Pinned by the `first` sheet
+  assertions in the switch-only test, `puts the switched-away sheet back when a slower validator
+  answers after the switch`, and `restores the recorded cell when a trim the switch cleared moved
+  the rows`.
 - **The write-back writes the whole set once, and the out-of-bounds write stands aside.** A change past
   the last row or column is not written from `afterSetDataAtCell` but from a one-off `afterChange`
   listener, after the Core created the row. By `beforeChangeRender` that row exists, so the write-back

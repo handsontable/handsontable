@@ -104,6 +104,17 @@ export const MAX_TRANSLATED_FORMULA_CHARS = 32 * 1024 * 1024;
 export const MAX_NUM_FMT_CODE_LENGTH = 255;
 
 /**
+ * The floor of the import's per-cell meta budget. The mapper lifts each column's most common meta to
+ * the column and expands only the rest into one `cellsMeta` entry per cell, and the grid then keeps
+ * one meta object per such cell. Those cells need not hold any data: two list validations with
+ * different formulas that split `A1:E1000000` in half expanded 2.5 million cells from a 2 kB file.
+ * The mapper refuses a sheet whose expansion would pass the larger of this floor and the number of
+ * cells that really hold a value or a formula, so a sheet of real data is never refused for the
+ * settings its own cells carry.
+ */
+export const MIN_CELL_META_BUDGET = 1000000;
+
+/**
  * Throws the refusal every cap in this module reports, tagging the error so a caller can tell a
  * declared limit apart from a parse failure without matching on the message text.
  *
