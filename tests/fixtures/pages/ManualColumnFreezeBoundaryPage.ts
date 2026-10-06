@@ -11,6 +11,7 @@ type HotLike = {
     redo: () => void;
   };
   render: () => void;
+  getSelected: () => number[][] | undefined;
 };
 
 /**
@@ -175,6 +176,20 @@ export class ManualColumnFreezeBoundaryPage {
   }
 
   /**
+   * The headers of the columns the current selection spans, by name, so a check reads as "which column is
+   * selected" and not as an index that a move has just changed.
+   */
+  async selectedColumnNames(gridId: string): Promise<string[]> {
+    return this.page.evaluate((id) => {
+      const hot = (window as unknown as { hots: Record<string, HotLike> }).hots[id];
+      const [, fromColumn, , toColumn] = (hot.getSelected() ?? [[-1, -1, -1, -1]])[0];
+      const headers = hot.getColHeader();
+
+      return headers.slice(Math.min(fromColumn, toColumn), Math.max(fromColumn, toColumn) + 1);
+    }, gridId);
+  }
+
+  /**
    * Freeze or unfreeze a column the way a user does: right-click its header and pick the entry.
    */
   async pickFromHeaderContextMenu(gridId: string, name: string, label: string): Promise<void> {
@@ -211,6 +226,52 @@ export class ManualColumnFreezeBoundaryPage {
     await this.page.mouse.move(startX + (dropX > startX ? 10 : -10), y, { steps: 5 });
     await this.page.mouse.move(dropX, y, { steps: 10 });
     await this.page.mouse.up();
+  }
+
+  /**
+   * Holds a drag of one column over a header, without releasing, and reports whether the drop guideline is
+   * the topmost element at a body row. A position check alone cannot tell: the guideline sat at the right
+   * place under the frozen overlay and was painted over by it.
+   */
+  async holdDragAndProbeGuideline(
+    gridId: string,
+    name: string,
+    targetName: string,
+    side: 'before' | 'after'
+  ): Promise<{ visible: boolean, left: number, backlightCount: number }> {
+    const source = await this.header(gridId, name);
+
+    await source.click();
+
+    const from = await this.boxOf(source);
+    const to = await this.boxOf(await this.header(gridId, targetName));
+    const y = from.y + (from.height / 2);
+    const startX = from.x + (from.width / 2);
+    const dropX = side === 'before' ? to.x + (to.width / 4) : to.x + (to.width * 3 / 4);
+
+    await this.page.mouse.move(startX, y);
+    await this.page.mouse.down();
+    await this.page.mouse.move(startX + (dropX > startX ? 10 : -10), y, { steps: 5 });
+    await this.page.mouse.move(dropX, y, { steps: 10 });
+
+    const guideline = this.grid(gridId).locator('.ht__manualColumnMove--guideline');
+
+    await expect(guideline).toHaveCount(1);
+
+    const result = await guideline.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      const row = element.closest('.handsontable')?.ownerDocument.querySelector('.ht_master tbody tr td');
+      const rowRect = (row as HTMLElement).getBoundingClientRect();
+      const hit = element.ownerDocument.elementFromPoint(rect.left + (rect.width / 2), rowRect.top + (rowRect.height / 2));
+
+      return { visible: hit === element, left: Math.round(rect.left) };
+    });
+
+    const backlightCount = await this.grid(gridId).locator('.ht__manualColumnMove--backlight').count();
+
+    await this.page.mouse.up();
+
+    return { ...result, backlightCount };
   }
 
   /**

@@ -63,6 +63,74 @@ test.describe('ManualColumnFreeze: the freeze line', () => {
     });
   });
 
+  test.describe('the drop guideline', () => {
+    test.beforeEach(async () => {
+      await grid.freezeColumnByApi(DEFAULT, 0);
+      await grid.freezeColumnByApi(DEFAULT, 1);
+    });
+
+    test('is drawn above the frozen columns when the drop is between two of them', async () => {
+      const guideline = await grid.holdDragAndProbeGuideline(DEFAULT, 'col5', 'col2', 'before');
+
+      expect(guideline.visible).toBe(true);
+    });
+
+    test('is drawn above the frozen columns when the drop is in front of the first one', async () => {
+      const guideline = await grid.holdDragAndProbeGuideline(DEFAULT, 'col5', 'col1', 'before');
+
+      expect(guideline.visible).toBe(true);
+    });
+
+    test('is drawn when the drop is at the freeze line', async () => {
+      const guideline = await grid.holdDragAndProbeGuideline(DEFAULT, 'col5', 'col2', 'after');
+
+      expect(guideline.visible).toBe(true);
+    });
+
+    test('is drawn on the next drag too, after one that ended over the frozen columns', async () => {
+      const first = await grid.holdDragAndProbeGuideline(DEFAULT, 'col5', 'col2', 'before');
+
+      expect(first.visible).toBe(true);
+
+      // The first drag moved col5 to the freeze line. A second one, over the scrollable columns, has to find
+      // the guideline and the backlight back in the master table.
+      const second = await grid.holdDragAndProbeGuideline(DEFAULT, 'col7', 'col6', 'before');
+
+      expect(second.visible).toBe(true);
+      expect(second.backlightCount).toBe(1);
+    });
+
+    test('is drawn between scrollable columns, the control', async () => {
+      const guideline = await grid.holdDragAndProbeGuideline(DEFAULT, 'col5', 'col4', 'before');
+
+      expect(guideline.visible).toBe(true);
+    });
+  });
+
+  test.describe('the selection after a menu action', () => {
+    test('stays on the column that was frozen', async () => {
+      await grid.pickFromHeaderContextMenu(DEFAULT, 'col6', FREEZE_LABEL);
+
+      expect(await grid.selectedColumnNames(DEFAULT)).toEqual(['col6']);
+    });
+
+    test('stays on the column that was unfrozen, at the freeze line', async () => {
+      await grid.pickFromHeaderContextMenu(DEFAULT, 'col6', FREEZE_LABEL);
+      await grid.freezeColumnByApi(DEFAULT, 3);
+      await grid.pickFromHeaderContextMenu(DEFAULT, 'col6', UNFREEZE_LABEL);
+
+      expect(await grid.selectedColumnNames(DEFAULT)).toEqual(['col6']);
+    });
+
+    test('follows the unfrozen column to its restored position', async () => {
+      await grid.pickFromHeaderContextMenu(RESTORE, 'col6', FREEZE_LABEL);
+      await grid.pickFromHeaderContextMenu(RESTORE, 'col6', UNFREEZE_LABEL);
+
+      expect(await grid.columnOrder(RESTORE)).toEqual(IDENTITY);
+      expect(await grid.selectedColumnNames(RESTORE)).toEqual(['col6']);
+    });
+  });
+
   test.describe('unfreezing', () => {
     test('leaves the column at the freeze line by default', async () => {
       await grid.pickFromHeaderContextMenu(DEFAULT, 'col6', FREEZE_LABEL);

@@ -78,6 +78,16 @@ with the restore on, the engine then read and wrote the wrong columns
 The default (`true` or no object) still puts the column right after the frozen columns, as the column-freezing
 guide documents. Changing that default would be a breaking change.
 
+## The menu items select the column they moved
+
+A freeze or an unfreeze changes the column's visual index, and the selection holds visual coordinates, so it used to
+stay at the old index and select whichever column landed there. With `restoreColumnPosition` the column almost
+never lands at the old index, so this showed on nearly every unfreeze. The two menu callbacks run their action
+through `followColumn()` (`contextMenuItem/followColumn.ts`): it remembers the column by its PHYSICAL index, and
+after the action selects the column at its new visual index. A column selected through its header stays a whole
+column selection, and a cell selection keeps its rows. The plugin API (`freezeColumn()`, `unfreezeColumn()`) does
+not touch the selection: the caller owns it there.
+
 ## `fixedColumnsEnd`: the end band is not ours to move
 
 Freezing moves a column with `columnIndexMapper.moveIndexes()` directly, so it never reaches the end-band guard of

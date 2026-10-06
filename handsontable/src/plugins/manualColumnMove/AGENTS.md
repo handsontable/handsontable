@@ -69,6 +69,30 @@ No plugin vetoes a move across the start freeze line or of a frozen start column
 columns they are, and a move never changes the count. `ManualColumnFreeze` used to veto both after its first use,
 and the reasons it no longer does are in `../manualColumnFreeze/AGENTS.md`.
 
+## The guideline over frozen columns lives in the frozen overlay
+
+The guideline and the backlight start in the master table's hider, and the frozen start overlay paints over the
+master as a whole: `.ht_master` is a stacking context (`z-index: 0`), so the guideline's `z-index: 205` only ranks
+inside it and never outranks the overlay clones (120 to 180). Left in the master, the line of a drop between or in
+front of frozen columns is drawn and covered. `refreshPositions()` therefore moves it into the overlay's hider
+while the hovered column is frozen (`#placeGuideline()`), and `#onMouseUp()` moves it back. Do not raise a
+`z-index` to fix this, and do not move the line to the root: the walkontable notes say why the master's zero is
+load-bearing, and the root has no clipping or scroll tracking of its own.
+
+- The overlay's table starts at the grid's start edge, so its position is the master one minus the scroll offset
+  that the master arithmetic adds for a frozen column. The overlay's hider has no width (measure its table), and a
+  drop at the freeze line is clamped to the table's last pixel, because the overlay holder clips anything past it.
+- **Only re-parent a guideline that was already appended.** `onMouseDown` appends the guideline and the backlight
+  together, guarded by "the guideline is built and not appended". Appending the guideline from `#onMouseUp()` first
+  made that guard skip the backlight, and the next drag had none (62 legacy specs failed on it).
+- The backlight is not moved: it is a plain box that the overlay would clip, and it spans columns that can cross the
+  freeze line. A plain `fixedColumnsStart` grid had the same hidden guideline before `ManualColumnFreeze` could be
+  used to reach it.
+- **A position check cannot see this bug.** The guideline was at the right coordinates under the overlay. Pin it
+  with `document.elementFromPoint()` at a body row and assert that the guideline is the element hit
+  (`tests/e2e/manual-column-freeze-boundary.spec.ts`, "the drop guideline"); the pointer-events-none backlight
+  cannot be probed that way.
+
 ## DataProvider blocks this plugin
 
 `registerConflict('dataProvider', ['manualColumnMove', …])`: with a complete server-backed `dataProvider`
