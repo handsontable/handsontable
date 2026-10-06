@@ -7,6 +7,14 @@
 export const CHECKSUM_LENGTH = 128;
 
 /**
+ * The length of the prose digest (the first 64 hex characters of a SHA-512,
+ * 256 bits) that a version 2 payload carries as `prose`.
+ *
+ * @type {number}
+ */
+export const PROSE_DIGEST_LENGTH = 64;
+
+/**
  * The two mutually exclusive date fields of a product entry. Exactly one of
  * them is present:
  *
