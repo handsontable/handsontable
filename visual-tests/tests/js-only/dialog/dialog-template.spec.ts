@@ -1,13 +1,15 @@
-import { visualTest, JS_VARIANTS } from '../../../src/test-runner';
+import { visualTest, expect } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 
 /**
- * Checks the dialog's confirm template: the first capture shows it as it opens. The second follows four Tabs
- * and a Shift+Tab that leave the focus on "OK", then Enter, which runs OK's callback and hides the dialog, so
- * it shows the grid with the dialog closed. Added in #11902; owned by DEV-2981.
+ * Checks how the dialog's confirm template looks as it opens on its solid backdrop: the title, the
+ * description, and the secondary and primary buttons. The template's slots, its Tab order, and Enter on
+ * OK running the callback that hides it are asserted from the DOM in `tests/e2e/dialog-states.spec.ts`
+ * on every theme and bundle, so the closed dialog this spec used to photograph second is gone. Added in
+ * #11902; owned by DEV-3285.
  */
 visualTest(__filename, {
-  themes: JS_VARIANTS,
+  themes: ['main', 'main-dark'],
   browsers: ['chromium'],
   wrappers: [],
 }, async({ goto, tablePage }) => {
@@ -18,18 +20,12 @@ visualTest(__filename, {
       .getFullUrl()
   );
 
-  await tablePage.screenshot({ path: helpers.screenshotPath() });
+  const dialog = tablePage.locator('.ht-dialog');
 
-  // move focus throughout the component and back to the "OK" button
-  await tablePage.keyboard.press('Tab');
-  await tablePage.keyboard.press('Tab');
-  await tablePage.keyboard.press('Tab');
-  await tablePage.keyboard.press('Tab');
-  await tablePage.keyboard.press('Shift+Tab');
+  await expect(dialog).toHaveClass(/\bht-dialog--show\b/);
+  await expect(dialog.locator('.ht-dialog__title')).toHaveText('Confirm');
+  await expect(dialog.locator('.ht-dialog__description')).toHaveText('This is a confirm');
+  await expect(dialog.getByRole('button', { name: 'OK', exact: true })).toBeVisible();
 
-  // check if the Enter (event) is triggered
-  await tablePage.keyboard.press('Enter');
-
-  // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted keyboard.press(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

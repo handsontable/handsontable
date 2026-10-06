@@ -54,7 +54,7 @@ const PARKED_SPEC = 'cross-browser/merging.spec.ts';
 // deleting a spec
 // moves this number, and moves a number in LIVE_GOLDENS too — the pair is the review a description
 // cannot give, so update both in the pull request that adds the spec.
-const LIVE_SPEC_COUNT = 95;
+const LIVE_SPEC_COUNT = 71;
 
 // How many of the specs under `tests/multi-frameworks/` (23 on 2026-09-18, 14 since the filters
 // consolidation retired that family's nine) still carry the shared unaudited reason.

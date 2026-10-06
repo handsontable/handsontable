@@ -1,13 +1,15 @@
-import { visualTest, expect, JS_VARIANTS } from '../../../src/test-runner';
+import { visualTest, expect } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 import { selectCell } from '../../../src/page-helpers';
 
 /**
- * Verifies that four edge-adjustment handles are visible when hovering over a cell inside the pre-selected
- * range with `selectionHandles: true`. Owned by DEV-2981.
+ * Checks how the four edge-adjustment handles look when the pointer hovers a cell inside the pre-selected
+ * range with `selectionHandles: true`. One handle per edge, their centring on the selection's span and
+ * their orientation classes with no inline styling are asserted in `tests/e2e/selection-handles.spec.ts`;
+ * the handles' fill is a light-and-dark token, which `main` and `main-dark` cover. Owned by DEV-3285.
  */
 visualTest(__filename, {
-  themes: JS_VARIANTS,
+  themes: ['main', 'main-dark'],
   browsers: ['chromium'],
   wrappers: [],
 }, async({ goto, tablePage }) => {

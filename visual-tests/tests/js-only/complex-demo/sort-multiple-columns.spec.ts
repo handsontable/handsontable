@@ -1,4 +1,4 @@
-import { visualTest, test, JS_VARIANTS } from '../../../src/test-runner';
+import { visualTest, test, expect } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 import {
   setColumnSorting,
@@ -11,11 +11,13 @@ test.beforeEach(async({ page }) => {
 });
 
 /**
- * Checks that a two-column sort (Age descending, then Interest ascending) renders both sort indicators and
- * their order numbers on the complex demo. Owned by DEV-2981.
+ * Checks how a two-column sort looks on the complex demo: Age descending, then Interest ascending, each
+ * header with its sort indicator and its order number. The sort keys, the headers' `aria-sort` and the
+ * indicators' classes and order numbers are asserted in `tests/e2e/complex-demo-states.spec.ts` on every
+ * theme and bundle; the indicator icons are theme tokens, so this capture stays. Owned by DEV-3285.
  */
 visualTest(__filename, {
-  themes: JS_VARIANTS,
+  themes: ['main', 'main-dark'],
   browsers: ['chromium'],
   wrappers: [],
 }, async({ goto, tablePage }) => {
@@ -26,6 +28,13 @@ visualTest(__filename, {
   );
   await setColumnSorting('Age', SortDirection.Descending);
   await setAdditionalColumnSorting('Interest', SortDirection.Ascending);
+
+  const header = (label: string) => tablePage.locator('.ht_clone_top thead th').filter({
+    has: tablePage.locator('span.colHeader').getByText(label, { exact: true }),
+  });
+
+  await expect(header('Age').locator('.columnSorting')).toHaveClass(/\bdescending\b.*\bsort-1\b/);
+  await expect(header('Interest').locator('.columnSorting')).toHaveClass(/\bascending\b.*\bsort-2\b/);
 
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

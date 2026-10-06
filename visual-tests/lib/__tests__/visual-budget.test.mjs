@@ -84,11 +84,13 @@ test('the checked-in budget describes the eleven prefixes develop renders', () =
 });
 
 test('every cap exception carries a ticket that will bring it down', () => {
-  // An exception list without tickets is just a higher cap with extra steps. The specs over the cap
-  // today are the consolidation backlog, and each names the task that owns it.
-  const exceptions = Object.entries(BUDGET.capExceptions ?? {});
+  // An exception list without tickets is just a higher cap with extra steps. The UI-state
+  // consolidation trimmed the last spec over the cap, so the key is absent; an exception added later
+  // names the task that owns it, and an emptied list drops the key rather than staying as `{}`.
+  assert.notDeepEqual(BUDGET.capExceptions, {},
+    'the exception list is empty — the specs were trimmed, so drop the key');
 
-  assert.ok(exceptions.length > 0, 'the exception list is empty — if the specs were trimmed, drop the key');
+  const exceptions = Object.entries(BUDGET.capExceptions ?? {});
 
   exceptions.forEach(([stem, exception]) => {
     assert.match(exception.ticket ?? '', /^(DEV|PRO|SU)-\d+$/,

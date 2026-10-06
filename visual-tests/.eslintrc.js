@@ -110,7 +110,8 @@ const DETERMINISM_RESTRICTIONS = [
 // of them in the other six filters specs, got a tracked disable line. The filters consolidation (#13647)
 // retired those six with their 15 lines, and its replacements assert every state they capture; the
 // submenu-placement trim (#13656) retired the menu family's 24 the same way, the editors trim that
-// family's 15, and the resize-guide trim the complex demo's 2, so 44 remain.
+// family's 15, the resize-guide trim the complex demo's 2, and the UI-state trim the dialog, empty-data-state,
+// loading and sheets-bar specs' 17, so 27 remain.
 //
 // esquery 1.7.0 (ESLint 8.57.1): `A + B` reports B when A is the statement right before it, so the message
 // lands on the capture line, which is where the disable line goes. Three traps, all measured. The relative
@@ -131,7 +132,7 @@ const DETERMINISM_RESTRICTIONS = [
 // four as unseen. A capture is the statement's own `screenshot()` call: awaited or not, kept in a `const`,
 // returned, or handed straight to `expect()` (the last three are in no spec today; the self-test pins them
 // too). A tracked `waitForTimeout()`
-// in between shields 18 captures in 12 specs: replacing such a sleep with the assertion it stands for clears
+// in between shields 13 captures in 7 specs: replacing such a sleep with the assertion it stands for clears
 // both lines, while deleting it with nothing in its place makes the capture fire, so the disable line moves
 // to the capture. Page helpers are deliberately not enumerated: a renamed helper would silently leave the
 // list, and the helpers that act with no `expect()` or wait (25 of the 48 exported from `src/page-helpers.ts`

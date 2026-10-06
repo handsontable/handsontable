@@ -94,7 +94,9 @@ visualTest(__filename, {
   spec photographs the same component on every variant. The docblock names both, and
   `lib/__tests__/visual-declarations.test.mjs` fails a single-theme spec that names no functional test
   in backticks, or names one that does not exist. The menu-position family is the first user
-  (`tests/e2e/submenu-position.spec.ts` asserts the placement).
+  (`tests/e2e/submenu-position.spec.ts` asserts the placement). In the UI-state families, which render
+  on `main` and `main-dark` only, the second spec is the LTR twin on those two themes (the UI-state
+  bullet under [Determinism](#determinism)).
 - **`classic` is a token inside `themes`,** not a separate flag. The bare run is a variant like any other
   and only differs in having no name to pass through `HOT_THEME`, which is what makes
   `helpers.screenshotPath()` drop the `-theme-` suffix. The token lives in declarations only — passing it
@@ -474,7 +476,8 @@ does for you):
   directly above the capture, so the debt is counted. The filters consolidation (#13647) retired those
   six specs with their 15 lines, and its replacements assert every state they capture; the
   submenu-placement trim (#13656) retired the menu family's 24 the same way, the editors trim that
-  family's 15, and the resize-guide trim the complex demo's 2. So 44 remain, in 26 specs
+  family's 15, the resize-guide trim the complex demo's 2, and the UI-state trim the dialog,
+  empty-data-state, loading and sheets-bar specs' 17. So 27 remain, in 17 specs
   (`git grep -c 'DEV-2981: capture after' -- visual-tests/tests` counts them);
   `js-only/filters/apply-active-class-name-nested-header` still carries one. `test/__tests__/determinism-lint.test.mjs` fails
   when one of those lines sits anywhere but on a capture, or no longer excuses anything. What a capture is
@@ -485,7 +488,7 @@ does for you):
   the capture, or a capture that opens a block — neither of the last two is in the tree today, and the
   self-test pins all four as unseen, so a rule that starts seeing one fails loudly until this bullet is
   updated. A tracked
-  `waitForTimeout()` in between hides the action too: 18 captures in 12 specs sit behind a sleep today.
+  `waitForTimeout()` in between hides the action too: 13 captures in 7 specs sit behind a sleep today.
   Replacing such a sleep with the assertion it stands for clears both lines; deleting it with nothing in
   its place makes the capture fire, so the disable line moves to the capture. A page helper in between
   silences the rule whether or not the helper asserts: 25 of the 48 exported helpers in
@@ -652,8 +655,9 @@ does for you):
   `tests/e2e/handsontable-editor-list-position.spec.ts`. What stays under `tests/js-only/editors/` is one
   capture of each list on every js variant (the handsontable list's columns and header row, and the
   dropdown's focus and hover tokens) and the RTL mirror of each on `main`. The native date picker is the
-  browser's, so its one capture is `tests/js-only/complex-demo/rtl/open-date-editor.spec.ts`, on every js
-  variant, which waits on the input's `:open` state before it photographs. The complex demo's two
+  browser's, so its one capture is `tests/js-only/complex-demo/rtl/open-date-editor.spec.ts`, on `main`
+  and `main-dark` (the picker's look is a color-scheme question, and those two answer it), which waits
+  on the input's `:open` state before it photographs. The complex demo's two
   geometry captures follow the same rule. Where the row resize handle and its guide are drawn — the
   handle centered on the row boundary, the guide's line level with it (the pixel #11500 fixed),
   spanning to the table's end and following a drag — is asserted in
@@ -673,6 +677,42 @@ does for you):
   in the look-check shape. That shape's second condition, the spec that photographs the same component
   on every variant, is prose the sweep does not check: the zoom capture names the resize capture, and a
   later trim of that declaration re-opens this one.
+- **A UI state the DOM can name is an assertion too, and the UI-state families keep one light and one
+  dark capture of each look.** The js-only feature demos photographed their states on every js variant:
+  a dialog open, a page turned, a toast in each corner, the loading overlay, the empty-data-state panel at
+  each height, the sheets bar's tabs, and the complex demo's menus, editors, sort and collapse. Each of
+  those states is now asserted from the DOM and the API on all six theme and bundle legs:
+  `tests/e2e/dialog-states.spec.ts` (the solid and the semi-transparent backdrop, the content box's fill,
+  the confirm template's slots and its OK button, the focus moves around a dialog that holds inputs, and
+  RTL), `tests/e2e/loading-states.spec.ts`, `tests/e2e/notification-placement.spec.ts` (each corner 20 px
+  in from both edges, in both directions), `tests/e2e/empty-data-state-layout.spec.ts` (the panel against
+  the headers and the root for a fixed height, `auto`, no height, no columns and RTL, and the keyboard
+  path to the no-results state), `tests/e2e/pagination-pager-states.spec.ts` (the buttons, the counter,
+  the focus hand-off, the RTL mirror, a page size changed on a filtered, sorted grid, and the auto page
+  size filling each page of a sized grid and of a grid the window scrolls),
+  `tests/e2e/complex-demo-states.spec.ts`, `tests/e2e/row-size-alignment.spec.ts`,
+  `tests/e2e/wrapper-size.spec.ts` and `tests/e2e/nested-headers-long-label.spec.ts`; the sheets bar's
+  states were already `tests/e2e/sheets-bar.spec.ts`'s, the single-line ellipsis and the
+  `preventOverflow` alias's wheel joined `tests/e2e/text-ellipsis-line-clamp.spec.ts` and
+  `tests/e2e/width-window-scroll.spec.ts`, and the selection handles and the move preview were already
+  `tests/e2e/selection-handles.spec.ts`'s and `tests/e2e/move-zone.spec.ts`'s. What stays under those
+  directories is one capture per distinct look on `main` and `main-dark`: the pager on its last page, the
+  semi-transparent dialog's compositing, the confirm template, the loading overlay, one toast per
+  variant, the empty-data-state panel and its no-results state, the sheets bar with a tab menu open and
+  overflowing with its paging arrows, the multi-column sort indicators, the dropdown's bolded match, the
+  select editor, the native date picker, the custom borders' corners under a selection, the move preview,
+  the selection handles, and the collapsed long nested header. The bare run was byte-identical to `main`
+  on all 89 of the family's captures (measured on `base/develop` on 2026-10-06), so it is dropped
+  everywhere here, and no capture in these families renders `horizon`. The RTL mirrors of the pager, the
+  dialog, the loading overlay, a toast and the empty-data-state panel, and the RTL filters dropdown, are
+  look checks on `main` alone; each names the e2e spec that asserts its mirror, and its LTR twin on the
+  two-theme default stands in for the every-variant spec the [variant declaration](#variant-declaration)
+  asks for, since this family photographs no component on every variant. Two defects these assertions
+  found are parked, not photographed as correct: a toast in an end corner lands at the far edge of a
+  root wrapper wider than the grid (the end-corner cases in `notification-placement.spec.ts` are
+  `test.fixme`, and the end-corner captures show the toast there until the fix), and under the legacy
+  `preventOverflow: 'horizontal'` the scroll spacer widens the page (the last case in
+  `width-window-scroll.spec.ts`).
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 
@@ -715,10 +755,11 @@ which of these run locally and which only in CI.
   until the consolidation audit gives each one a reason of its own.
 - **G3 · The golden budget** — landed. `visual-tests/visual-budget.json` holds one count per golden
   prefix (the eleven keys the prune uses) and a per-spec capture cap of 4 keyed by reg-suit stem, each
-  exception carrying the ticket that will bring it down (four today, all owned by the consolidation
-  task; the filters consolidation wrote the eight Tab-order states it kept as two files of four rather
-  than one of eight,
-  because a cap exception needs a ticket that will bring it down and a spec at its floor has none). The
+  exception carrying the ticket that will bring it down (none today: the UI-state trim retired the
+  last four, which were all owned by the consolidation task, so the file has no `capExceptions` key; the
+  filters consolidation wrote the eight Tab-order states it kept as two files of four rather than one of
+  eight, because a cap exception needs a ticket that will bring it down and a spec at its floor has
+  none). The
   `Visual budget`
   step of the Compare job reads `.reg/out.json` and, **on pull requests only**, blocks a render over the
   file and requires `[visual budget: N – reason]` in the description when the pull request RAISES that
@@ -770,8 +811,9 @@ which of these run locally and which only in CI.
   `tests/**/*.spec.ts` override, with `jsdoc/require-description`). The 28 sites in three filters specs
   were repaired (assert the state, then capture); the other 100 wore
   `// eslint-disable-next-line no-restricted-syntax -- DEV-2981: …` above the capture, so the debt is
-  counted and greppable (44 since #13647, #13656, the editors trim, and the resize-guide trim retired the
-  filters family's 15, the menu family's 24, the editors family's 15, and the complex demo's 2). The
+  counted and greppable (27 since #13647, #13656, the editors trim, the resize-guide trim, and the
+  UI-state trim retired the filters family's 15, the menu family's 24, the editors family's 15, the
+  complex demo's 2, and the UI-state family's 17). The
   rules, what they cannot see, and their three
   esquery traps are the first four bullets of [Determinism](#determinism).
   `test/__tests__/determinism-lint.test.mjs` proves them on fixtures — it imports ESLint, so it runs from

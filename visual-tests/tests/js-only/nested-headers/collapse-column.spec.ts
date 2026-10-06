@@ -1,4 +1,4 @@
-import { visualTest, test, JS_VARIANTS } from '../../../src/test-runner';
+import { visualTest, test, expect } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 import { selectCell } from '../../../src/page-helpers';
 
@@ -7,11 +7,16 @@ test.beforeEach(async({ page }) => {
 });
 
 /**
- * Checks that the nested-header group with a long label ("Product with long text test") collapses when
- * Shift+Tab reaches its header and Enter is pressed. Owned by DEV-2981.
+ * Checks how a collapsed nested-header group with a long label looks: "Product with long text test"
+ * collapsed to one column from the keyboard, its label cut with an ellipsis before the collapse icon,
+ * the header focused. The keyboard path, the collapse, and the label stopping short of the icon in both
+ * states are asserted from DOM rects in `tests/e2e/nested-headers-long-label.spec.ts` on every theme and
+ * bundle; the collapsed header's look (the icon, the ellipsis, the focus ring) is what only pixels show,
+ * and the suite's other collapsed-group capture, `cross-browser/columns-collapse-nested`, renders the
+ * bare theme only. Owned by DEV-3285.
  */
 visualTest(__filename, {
-  themes: JS_VARIANTS,
+  themes: ['main', 'main-dark'],
   browsers: ['chromium'],
   wrappers: [],
 }, async({ goto, tablePage }) => {
@@ -22,31 +27,24 @@ visualTest(__filename, {
       .getFullUrl()
   );
 
+  const longGroup = tablePage.locator('.ht_clone_top thead tr:first-child th').filter({
+    has: tablePage.locator('span.colHeader').getByText('Product with long text test', { exact: true }),
+  });
   const cell = await selectCell(0, 0);
 
   await cell.click();
-  await tablePage.keyboard.press('Shift+Tab');
-  await tablePage.keyboard.press('Shift+Tab');
-  await tablePage.keyboard.press('Shift+Tab');
-  await tablePage.keyboard.press('Shift+Tab');
-  await tablePage.keyboard.press('Shift+Tab');
-  await tablePage.keyboard.press('Shift+Tab');
-  await tablePage.keyboard.press('Shift+Tab');
-  await tablePage.keyboard.press('Shift+Tab');
-  await tablePage.keyboard.press('Shift+Tab');
-  await tablePage.keyboard.press('Shift+Tab');
-  await tablePage.keyboard.press('Shift+Tab');
-  await tablePage.keyboard.press('Shift+Tab');
-  await tablePage.keyboard.press('Shift+Tab');
-  await tablePage.keyboard.press('Shift+Tab');
-  await tablePage.keyboard.press('Shift+Tab');
-  await tablePage.keyboard.press('Shift+Tab');
-  await tablePage.keyboard.press('Shift+Tab');
+  await expect(cell).toHaveClass(/\bcurrent\b/);
+
+  // Back through the row header, the column headers right to left, the corner, and the group level
+  // right to left: the long group is the seventeenth stop.
+  for (let press = 0; press < 17; press++) {
+    // eslint-disable-next-line no-await-in-loop
+    await tablePage.keyboard.press('Shift+Tab');
+  }
+
+  await expect(longGroup).toHaveClass(/\bcurrent\b/);
   await tablePage.keyboard.press('Enter');
+  await expect(longGroup.locator('.collapsibleIndicator')).toHaveClass(/\bcollapsed\b/);
 
-  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
-  await tablePage.waitForTimeout(100);
-
-  // take a screenshot of the collapsed group
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });
