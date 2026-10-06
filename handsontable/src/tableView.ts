@@ -27,6 +27,7 @@ import {
 import EventManager from './eventManager';
 import { CellPainter } from './core/incrementalRender/cellPainter';
 import { RenderSizeProbe } from './renderSizeProbe';
+import { getRenderedRowHeight } from './core/viewportScroll/scrollStrategies/singleScroll';
 import {
   isImmediatePropagationStopped,
   isRightClick,
@@ -286,6 +287,11 @@ class TableView {
    * @type {number}
    */
   #lastHeight = 0;
+  /**
+   * Whether a redraw requested by `#onCellContentSettled` is queued but has not run yet.
+   */
+  #contentSettledRenderPending = false;
+
   /**
    * The layout-slot height reserved inside the vertical axis owner, memoized for one render (see
    * `#getReservedSlotHeight`).
@@ -745,7 +751,59 @@ class TableView {
       // Prevent text from being selected when performing drag down.
       event.preventDefault();
     });
+
+    // `load` and `error` do not bubble, so they are caught on the capture phase.
+    this.eventManager.addEventListener(rootElement, 'load', this.#onCellContentSettled, true);
+    this.eventManager.addEventListener(rootElement, 'error', this.#onCellContentSettled, true);
   }
+
+  /**
+   * Redraws once when asynchronously loading cell content (such as an `<img>` written by a renderer)
+   * changes the height of its row after the draw measured it. Without the redraw, the frozen overlays keep
+   * the row height from the draw while the master has already grown, and they stay misaligned until the
+   * next render. A row whose live height matches the height of the last draw is left alone, which stops a
+   * renderer that recreates its content on every render from redrawing in a loop.
+   *
+   * @param {Event} event The `load` or `error` event of a descendant element.
+   */
+  #onCellContentSettled = (event: Event): void => {
+    const { target } = event;
+
+    if (!isHTMLElement(target) || this.#contentSettledRenderPending) {
+      return;
+    }
+
+    const cell = target.closest('td');
+    const row = cell?.parentElement;
+
+    if (!cell || !row || !cell.closest('.ht_master')) {
+      return;
+    }
+
+    const coords = this.hot.getCoords(cell);
+
+    if (coords === null || coords.row === null || coords.row < 0) {
+      return;
+    }
+
+    // A row with no provided or recorded height was drawn at the default height.
+    const drawnHeight = getRenderedRowHeight(this.hot, coords.row) ??
+      this.hot.stylesHandler.getDefaultRowHeight();
+
+    if (drawnHeight === undefined || drawnHeight === null) {
+      return;
+    }
+
+    if (Math.abs(row.getBoundingClientRect().height - drawnHeight) < 1) {
+      return;
+    }
+
+    this.#contentSettledRenderPending = true;
+    this.hot._registerTimeout(() => {
+      this.#contentSettledRenderPending = false;
+      this.hot.render();
+    });
+  };
 
   /**
    * Invalidates Walkontable viewport caches for row heights and column widths (per-index axis sizes).
