@@ -78,6 +78,7 @@ export interface FixtureHotInstance {
     hideRows(rows: number[]): void,
     showRows(rows: number[]): void,
     isHidden(row: number): boolean,
+    getHiddenRows(): number[],
   };
   getPlugin(name: 'trimRows'): {
     trimRows(rows: number[]): void,
@@ -254,6 +255,8 @@ export interface FixtureHotInstance {
   removeHook(name: string, callback: () => void): void;
   addHookOnce(name: string, callback: () => unknown): void;
   getSelectedLast(): number[];
+  /** The visual coordinates of a rendered cell element, or `null` when the element is not a cell of this grid. */
+  getCoords(element: Element | null): { row: number, col: number } | null;
   countRows(): number;
   countEmptyRows(ending?: boolean): number;
   isEmptyRow(row: number): boolean;
