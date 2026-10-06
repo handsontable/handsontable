@@ -54,13 +54,13 @@
     function renderer(instance, td, row, col, prop, value, cellProperties) {
       // `kept:<n>` stands for a renderer that keeps its DOM across paints, the way a framework component
       // renderer updates a mounted component in place: it builds the markers once and leaves them after that.
-      if (typeof value === 'string' && value.startsWith('kept:')) {
+      if (typeof value === 'string' && (value.startsWith('kept:') || value.startsWith('linked:'))) {
         if (td.parentElement) {
           td.parentElement.setAttribute('data-testid', `row-${row}`);
         }
 
         if (!td.querySelector('[data-testid="marker"]')) {
-          renderer.call(this, instance, td, row, col, prop, value.replace('kept:', 'markers:'), cellProperties);
+          renderer.call(this, instance, td, row, col, prop, value.replace(/^(kept|linked):/, 'markers:'), cellProperties);
         }
 
         return;
@@ -76,6 +76,12 @@
 
       if (typeof value !== 'string') {
         return;
+      }
+
+      if (value.startsWith('ltr:')) {
+        // The numeric and time renderers set a left-to-right direction on the cell in a right-to-left grid.
+        td.dir = 'ltr';
+        value = value.replace('ltr:', 'markers:');
       }
 
       const root = td;
@@ -130,6 +136,26 @@
         renderer,
         licenseKey: 'non-commercial-and-evaluation',
         ...rest,
+      });
+
+      // Registered after the grid is built, so it runs after the MergeCells renderer, the way the hooks of the
+      // AutoLink and Formulas plugins do. A settings-level `afterRenderer` is registered first and runs before.
+      window.hot.addHook('afterRenderer', (td, row, col, prop, value) => {
+        if (typeof value !== 'string' || !value.startsWith('linked:')) {
+          return;
+        }
+
+        // A link around the whole cell content.
+        if (!td.querySelector('a')) {
+          const anchor = document.createElement('a');
+
+          anchor.href = '#';
+          while (td.firstChild) {
+            anchor.appendChild(td.firstChild);
+          }
+
+          td.appendChild(anchor);
+        }
       });
     };
   </script>

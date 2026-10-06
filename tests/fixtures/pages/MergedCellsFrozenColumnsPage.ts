@@ -29,11 +29,13 @@ export interface RowGeometry {
 interface FixtureWindow {
   initGrid(settings: Record<string, unknown>): void;
   hot: {
+    getPlugin(name: 'manualColumnResize'): { setManualSize(column: number, width: number): void };
     render(): void;
     updateSettings(settings: Record<string, unknown>): void;
     scrollViewportTo(options: object): boolean;
     getFirstFullyVisibleColumn(): number | null;
     getFirstRenderedVisibleColumn(): number | null;
+    getLastRenderedVisibleColumn(): number | null;
     getFirstFullyVisibleRow(): number | null;
   };
 }
@@ -135,8 +137,9 @@ export class MergedCellsFrozenColumnsPage {
   }
 
   /**
-   * For every pane that renders a row, how far its offset and height differ from the master's.
-   * An empty list means every pane agrees with the master.
+   * For every pane that renders a row, how far its offset and height differ from the master's. An empty list
+   * means every pane agrees with the master. A row that the master or every other pane leaves unrendered is
+   * reported too: an empty answer must mean that panes were compared, not that nothing was there to compare.
    *
    * @param {number[]} rows The row indexes to compare.
    */
@@ -144,6 +147,16 @@ export class MergedCellsFrozenColumnsPage {
     const geometry = await this.rowGeometry(rows);
     const master = geometry.ht_master ?? {};
     const mismatches: string[] = [];
+
+    rows.forEach((row) => {
+      if (master[row] === undefined) {
+        mismatches.push(`row ${row}: not rendered by the master`);
+      }
+
+      if (!Object.entries(geometry).some(([pane, paneRows]) => pane !== 'ht_master' && paneRows?.[row] !== undefined)) {
+        mismatches.push(`row ${row}: not rendered by any pane besides the master`);
+      }
+    });
 
     Object.entries(geometry).forEach(([pane, paneRows]) => {
       Object.entries(paneRows ?? {}).forEach(([row, { offset, height }]) => {
@@ -190,6 +203,71 @@ export class MergedCellsFrozenColumnsPage {
   }
 
   /**
+   * Resizes a column the way a drag on its header does, and redraws.
+   *
+   * @param {number} column The visual column index.
+   * @param {number} width The new width in pixels.
+   */
+  async resizeColumn(column: number, width: number): Promise<void> {
+    await this.page.evaluate(({ col, size }) => {
+      const { hot } = window as unknown as FixtureWindow;
+
+      hot.getPlugin('manualColumnResize').setManualSize(col, size);
+      hot.render();
+    }, { col: column, size: width });
+  }
+
+  /**
+   * How far the layout wrapper of the inline-end band starts from where the master's cell of the same block
+   * starts its content, in pixels: positive when the wrapper starts later. `null` when either is not rendered.
+   * Both are the block's content start, so a left-to-right grid aligns them to the pixel.
+   */
+  async inlineEndWrapperDrift(): Promise<number | null> {
+    return this.grid.evaluate((root) => {
+      const contentStart = (cell: HTMLElement) => {
+        const { left } = cell.getBoundingClientRect();
+
+        return left + cell.clientLeft + parseFloat(getComputedStyle(cell).paddingLeft);
+      };
+      const blockCell = Array
+        .from(root.querySelectorAll<HTMLTableCellElement>('.ht_master [data-testid="row-1"] td'))
+        .find(cell => cell.colSpan > 1 && cell.style.display !== 'none');
+      const wrapper = root.querySelector<HTMLElement>('.ht_clone_inline_end .htMergedCellContentWindow');
+
+      if (!blockCell || !wrapper) {
+        return null;
+      }
+
+      return wrapper.getBoundingClientRect().left - contentStart(blockCell);
+    });
+  }
+
+  /**
+   * How much wider the layout wrapper of the inline-start pane is than the content box of the master's cell of
+   * the same block, in pixels. Both lay the block's content out, so they are the same width when the wrapper
+   * follows the block's columns. `null` when either is not rendered.
+   */
+  async startWrapperWidthDrift(): Promise<number | null> {
+    return this.grid.evaluate((root) => {
+      const contentWidth = (cell: HTMLElement) => {
+        const style = getComputedStyle(cell);
+
+        return cell.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+      };
+      const blockCell = Array
+        .from(root.querySelectorAll<HTMLTableCellElement>('.ht_master [data-testid="row-1"] td'))
+        .find(cell => cell.colSpan > 1 && cell.style.display !== 'none');
+      const wrapper = root.querySelector<HTMLElement>('.ht_clone_inline_start .htMergedCellContentWindow');
+
+      if (!blockCell || !wrapper) {
+        return null;
+      }
+
+      return wrapper.getBoundingClientRect().width - contentWidth(blockCell);
+    });
+  }
+
+  /**
    * How many content-window wrappers the panes hold, and how deeply the deepest one is nested in another.
    */
   async contentWindows(): Promise<{ count: number, nested: number }> {
@@ -218,6 +296,18 @@ export class MergedCellsFrozenColumnsPage {
     await this.page.evaluate(col => (window as unknown as FixtureWindow).hot.scrollViewportTo({ col, horizontalSnap: 'start' }), column);
     await expect.poll(() => this.page.evaluate(() => (window as unknown as FixtureWindow).hot.getFirstFullyVisibleColumn() ?? -1))
       .toBeGreaterThanOrEqual(column - 1);
+  }
+
+  /**
+   * Scrolls the viewport to its inline end and waits for the master to render the last column.
+   *
+   * @param {number} lastColumn The visual index of the grid's last column.
+   */
+  async scrollToEnd(lastColumn: number): Promise<void> {
+    await this.page.evaluate(col => (window as unknown as FixtureWindow).hot
+      .scrollViewportTo({ col, horizontalSnap: 'end' }), lastColumn);
+    await expect.poll(() => this.page.evaluate(() => (window as unknown as FixtureWindow).hot
+      .getLastRenderedVisibleColumn())).toBe(lastColumn);
   }
 
   /**

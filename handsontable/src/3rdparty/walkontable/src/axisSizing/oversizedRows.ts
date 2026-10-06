@@ -15,6 +15,7 @@
 import { isHTMLElement } from '../../../../helpers/dom/element';
 import { CLONE_BOTTOM } from '../overlay';
 import { applyRowHeight } from '../render/exactRowHeight';
+import { firstRowDrawsTopBorder } from './boxModel';
 import type { default as Table } from '../table/baseTable';
 
 /**
@@ -188,6 +189,7 @@ function applyRowHeightsToRenderedRows(table: Table): void {
   }
 
   const borderBoxSizing = table.wtSettings.getSetting('stylesHandler').areCellsBorderBox();
+  const firstRowTopBorder = firstRowDrawsTopBorder(table.THEAD);
   const renderedRows = TBODY.childNodes;
   // Once per call rather than once per row (see `RowUtils#mayHaveExactRows`).
   const mayHaveExactRows = table.rowUtils.mayHaveExactRows();
@@ -209,6 +211,7 @@ function applyRowHeightsToRenderedRows(table: Table): void {
       borderBoxSizing,
       table.rowUtils,
       sourceRowIndex,
+      renderedRowIndex === 0 && firstRowTopBorder,
     );
   }
 }
@@ -655,15 +658,8 @@ export function markOversizedRows(
   const isExactBand = mayHaveExactRows && rowCount > 0 &&
     table.deps.rowSizeSource.isUniform() && table.deps.rowSizeSource.isModeUniform() &&
     rowUtils.isExact(table.rowFilter!.renderedToSource(0));
-  // Whether THIS table's first rendered `<tr>` draws its own 1px `border-top`, which makes it render
-  // one pixel taller than the rest of the band. It does only when the table renders no head row: the
-  // `thead:not(:empty) + tbody > tr:first-child` rule in `styles/base/_base.scss` hands the seam
-  // under a column header to the header's own `border-bottom` (DEV-2786), so a body row abutting one
-  // has no top border to account for. Per TABLE, not per grid, and it has to be: the bottom clone
-  // renders no head row, so its first row keeps the border — there it is the bottom-freeze seam.
-  // `StylesHandler#firstRenderedRowDrawsTopBorder` is the grid-level form of the same question, for
-  // the master's own row heights.
-  const drawsFirstRowTopBorder = !table.THEAD?.hasChildNodes();
+  // Whether THIS table's first rendered `<tr>` draws its own 1px `border-top` (see `firstRowDrawsTopBorder`).
+  const drawsFirstRowTopBorder = firstRowDrawsTopBorder(table.THEAD);
   const expectedTableHeight = rowCount * stylesHandler.getDefaultRowHeight();
   const borderBoxSizing = stylesHandler.areCellsBorderBox();
   const rowHeightFn = borderBoxSizing
