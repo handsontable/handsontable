@@ -109,6 +109,11 @@ test.describe('fill handle and frozen panes', () => {
       await grid.scrollCellEndUnderInlinePane(0, 0, 'start');
 
       await expect.poll(() => grid.fillHandlesBelowFrozenRows()).toEqual([]);
+
+      // Back on screen, so a stale visible-range snapshot would keep the handle hidden.
+      await grid.scrollToColumn(0);
+
+      await expect.poll(() => grid.fillHandlesBelowFrozenRows()).toEqual(['top@main']);
     });
 
     test('stays off the row headers in RTL', async () => {
@@ -120,6 +125,10 @@ test.describe('fill handle and frozen panes', () => {
       await grid.scrollCellEndUnderInlinePane(0, 0, 'start');
 
       await expect.poll(() => grid.fillHandlesBelowFrozenRows()).toEqual([]);
+
+      await grid.scrollToColumn(0);
+
+      await expect.poll(() => grid.fillHandlesBelowFrozenRows()).toEqual(['top@main']);
     });
 
     test('leaves a frozen column\'s handle to the frozen corner when the grid scrolls', async () => {
@@ -145,6 +154,9 @@ test.describe('fill handle and frozen panes', () => {
         .toContain('top_inline_start_corner@inline_start');
     });
 
+    // An ownership guard, not a repro: it also passes with the gate disabled, because the corner
+    // overlay's handle covers the `top` overlay's copy. It pins that the corner overlay keeps drawing
+    // the overhang once the `top` overlay stops.
     test('leaves an inline-end frozen column\'s handle to the frozen corner', async () => {
       await grid.initGrid({ data: WIDE_DATA, fixedRowsTop: 1, fixedColumnsEnd: 2 });
       await grid.selectCells(0, 39, 0, 39);
@@ -169,6 +181,40 @@ test.describe('fill handle and frozen panes', () => {
       await grid.scrollCellEndUnderInlinePane(0, col, 'end');
 
       await expect.poll(() => grid.fillHandlesBelowFrozenRows()).toEqual([]);
+
+      await grid.scrollToColumn(col);
+
+      await expect.poll(() => grid.fillHandlesBelowFrozenRows()).toEqual(['top@main']);
+    });
+
+    test('stays off the inline-end frozen columns in RTL', async () => {
+      await grid.initGrid({ data: WIDE_DATA, fixedRowsTop: 1, fixedColumnsEnd: 2, layoutDirection: 'rtl' });
+      await grid.scrollToColumn(20);
+
+      const col = await grid.lastColumnClearOfInlineEndPane(0);
+
+      await grid.selectCells(0, col, 0, col);
+      await expect.poll(() => grid.fillHandlesBelowFrozenRows()).toEqual(['top@main']);
+
+      await grid.scrollCellEndUnderInlinePane(0, col, 'end');
+
+      await expect.poll(() => grid.fillHandlesBelowFrozenRows()).toEqual([]);
+
+      await grid.scrollToColumn(col);
+
+      await expect.poll(() => grid.fillHandlesBelowFrozenRows()).toEqual(['top@main']);
+    });
+
+    test('keeps the handle of the last column when it is wider than the viewport and scrolled to the end', async () => {
+      // The visible range counts a column as fully visible only when it is whole, and a column wider
+      // than the viewport never is, so the last column's edge is read off the cell at the scroll end.
+      const colWidths = Array.from({ length: 40 }, (_, col) => (col === 39 ? 700 : 60));
+
+      await grid.initGrid({ data: WIDE_DATA, fixedRowsTop: 1, colWidths });
+      await grid.selectCells(0, 39, 0, 39);
+      await grid.scrollHolderToInlineEnd();
+
+      await expect.poll(() => grid.fillHandlesBelowFrozenRows()).toEqual(['top@main']);
     });
   });
 

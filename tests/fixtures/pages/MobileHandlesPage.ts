@@ -296,6 +296,16 @@ export class MobileHandlesPage {
   }
 
   /**
+   * Scroll back to the start of the grid so the given column is on screen again, and wait until the
+   * viewport calculators count it.
+   */
+  async scrollColumnIntoView(col: number): Promise<void> {
+    await this.page.evaluate(column => window.hot.scrollViewportTo({ col: column, horizontalSnap: 'start' }), col);
+    await expect.poll(() => this.page.evaluate(column => window.hot.getFirstFullyVisibleColumn() <= column
+      && column <= window.hot.getLastFullyVisibleColumn(), col)).toBe(true);
+  }
+
+  /**
    * Turns the fill handle off so a frozen-row overlay-size assertion can pin the
    * `isMobileOrIpadOS()` corner-reserve branch without `cornerVisible` also being true.
    */

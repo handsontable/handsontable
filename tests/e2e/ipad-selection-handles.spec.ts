@@ -181,6 +181,11 @@ test.describe('iPadOS frozen-top corner reserve', () => {
     await grid.scrollColumnEndUnderFrozenPane(1);
 
     await expect.poll(() => grid.reachableBottomHandles()).toEqual([]);
+
+    // Back on screen, so a stale visible-range snapshot would keep the handle hidden.
+    await grid.scrollColumnIntoView(1);
+
+    await expect.poll(() => grid.reachableBottomHandles()).toEqual(['ht_clone_top', 'ht_master']);
   });
 });
 

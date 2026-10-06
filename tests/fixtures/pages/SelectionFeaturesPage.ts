@@ -1439,8 +1439,8 @@ export class SelectionFeaturesPage {
   /**
    * The last column whose cell in the given row ends at least `margin` pixels before the inline-end
    * frozen pane (`fixedColumnsEnd`), read from the master's rendered cells. Picked from the DOM, not
-   * hardcoded, because each theme sizes the columns differently. LTR only: it measures against the
-   * pane's physical left edge.
+   * hardcoded, because each theme sizes the columns differently. Works in both layout directions: the
+   * pane is on the physical right in LTR and on the physical left in RTL.
    */
   async lastColumnClearOfInlineEndPane(row: number, margin = 16): Promise<number> {
     return this.page.evaluate(({ targetRow, gap }) => {
@@ -1450,13 +1450,16 @@ export class SelectionFeaturesPage {
         throw new Error('The inline-end pane is not rendered.');
       }
 
-      const paneLeft = pane.getBoundingClientRect().left;
+      const isRtl = window.hot.isRtl();
+      const paneRect = pane.getBoundingClientRect();
       let found = -1;
 
       document.querySelectorAll(`.ht_master [data-testid^="cell-${targetRow}-"]`).forEach((cell) => {
         const col = Number(cell.getAttribute('data-testid')!.split('-')[2]);
+        const rect = cell.getBoundingClientRect();
+        const isClear = isRtl ? rect.left >= paneRect.right + gap : rect.right <= paneRect.left - gap;
 
-        if (cell.getBoundingClientRect().right <= paneLeft - gap && col > found) {
+        if (isClear && col > found) {
           found = col;
         }
       });
@@ -1467,6 +1470,25 @@ export class SelectionFeaturesPage {
 
       return found;
     }, { targetRow: row, gap: margin });
+  }
+
+  /**
+   * Scroll the master viewport to the end of its horizontal range, in either layout direction. Ends
+   * once the offset has arrived; the redraw it triggers is rAF-batched, so a caller asserts on what
+   * the redraw draws through `expect.poll`.
+   */
+  async scrollHolderToInlineEnd(): Promise<void> {
+    await this.page.evaluate(() => {
+      const holder = document.querySelector('.ht_master .wtHolder') as HTMLElement;
+      const max = holder.scrollWidth - holder.clientWidth;
+
+      holder.scrollLeft = window.hot.isRtl() ? -max : max;
+    });
+    await expect.poll(() => this.page.evaluate(() => {
+      const holder = document.querySelector('.ht_master .wtHolder') as HTMLElement;
+
+      return holder.scrollWidth - holder.clientWidth - Math.abs(holder.scrollLeft) < 1;
+    })).toBe(true);
   }
 
   /**
