@@ -382,6 +382,22 @@ export class RowHeaderBorderOwnershipPage {
   }
 
   /**
+   * Applies settings to one grid through `updateSettings()`, the path a framework wrapper takes when
+   * an option changes after the grid was built. The call renders synchronously.
+   *
+   * @param {string} name The grid's key in `window.grids`.
+   * @param {object} settings The settings to apply.
+   */
+  async updateSettings(name: string, settings: Record<string, unknown>): Promise<void> {
+    await this.page.evaluate(
+      ([gridName, newSettings]) => (window as unknown as {
+        grids: Record<string, { updateSettings: (settings: Record<string, unknown>) => void }>
+      }).grids[gridName as string].updateSettings(newSettings as Record<string, unknown>),
+      [name, settings] as const
+    );
+  }
+
+  /**
    * Selects one cell through the grid's own API, so no click can land on a renderer's indicator.
    *
    * @param {string} name The grid's key in `window.grids`.

@@ -86,6 +86,20 @@ test.describe('Row header border ownership', () => {
     expect(await grid.borders(frozenCell)).toEqual({ start: 0, end: 1 });
   });
 
+  test('keeps one seam when row headers are enabled after the frozen columns', async () => {
+    // The order matters: frozen columns first, then row headers, through `updateSettings()`. That
+    // order leaves the legacy `innerBorderInlineStart` class on `.ht_master`. Until #13371 the row
+    // header dropped its inline-end border only while that class was absent, so with it left behind
+    // the header kept its border next to the first cell's inline-start one and the seam was doubled;
+    // the reverse order never showed it.
+    await grid.updateSettings('control', { fixedColumnsStart: 2 });
+    await grid.updateSettings('control', { rowHeaders: true });
+
+    expect(await grid.borders(grid.rowHeaderCell('control'))).toEqual({ start: 1, end: 1 });
+    expect(await grid.borders(grid.firstBodyCell('control', '.ht_clone_inline_start')))
+      .toEqual({ start: 0, end: 1 });
+  });
+
   test('mirrors the ownership onto the physical right in RTL', async () => {
     const declared = await grid.declaredColumnWidth();
 
