@@ -146,6 +146,44 @@ function isStringArray(value: unknown): value is string[] {
 }
 
 /**
+ * Freezes the value and everything nested in it. The read result is shared
+ * between callers (see the memo below), so a caller that sorted or pushed into
+ * it would silently rewrite what the next caller reads.
+ *
+ * It walks with an explicit stack, not by recursion. An unknown extra field is
+ * kept as it is, and a key can nest one thousands of levels deep - recursion
+ * would then overflow the call stack and throw out of the reader, where a key
+ * is only ever allowed to read as data or as `null`.
+ *
+ * @param {*} value The value to freeze.
+ * @returns {*}
+ */
+function deepFreeze<T>(value: T): T {
+  const pending: unknown[] = [value];
+
+  while (pending.length > 0) {
+    const current = pending.pop();
+
+    if (isFreezable(current)) {
+      Object.freeze(current);
+      Object.keys(current).forEach(key => pending.push(current[key]));
+    }
+  }
+
+  return value;
+}
+
+/**
+ * Narrows an unknown value to an object (or array) that is not frozen yet.
+ *
+ * @param {*} value The value to check.
+ * @returns {boolean}
+ */
+function isFreezable(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Object.isFrozen(value);
+}
+
+/**
  * Adds an own, ordinary property.
  *
  * Both the product names and the field names of a product entry come from
@@ -357,13 +395,13 @@ function readEntitlementKeyData(licenseKey: string): EntitlementKeyData | null {
     return null;
   }
 
-  return { version, products };
+  return deepFreeze({ version, products });
 }
 
 // The license key is read twice per grid init - the bottom bar
 // (`initLicenseNotification`) and the branding UI (`initLicenseBranding`) each resolve the license
 // state - and reading runs the full verification and decoding. A one-entry memo on the key makes
-// the second read free. The returned data is treated as read-only by every caller, so sharing one
+// the second read free. The returned data is frozen, as in the canonical reader, so sharing one
 // object is safe.
 let memoizedKey: string | null = null;
 let memoizedData: EntitlementKeyData | null = null;
@@ -388,6 +426,8 @@ let memoizedData: EntitlementKeyData | null = null;
  *
  * Unknown products, capability tokens and flags are all tolerated, so nothing
  * about reading a key depends on the commercial vocabulary.
+ *
+ * The result is frozen. Copy an array before sorting or changing it.
  *
  * @param {string} licenseKey The license key to extract the data from.
  * @returns {EntitlementKeyData|null}

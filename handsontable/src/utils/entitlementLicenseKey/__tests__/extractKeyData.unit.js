@@ -302,7 +302,7 @@ describe('entitlementLicenseKey/extractKeyData', () => {
       const block = blockOf(SUBSCRIPTION_KEY);
       const prose = proseOf(SUBSCRIPTION_KEY);
 
-      ['\n', '\r\n', ' ', '\t', ' ', '\\n', '\\r\\n'].forEach((separator) => {
+      ['\n', '\r\n', ' ', '\t', '\u00a0', '\\n', '\\r\\n'].forEach((separator) => {
         // Near the start of the block, and near its end.
         [60, block.length - 40].forEach((at) => {
           const wrapped = `${prose}${block.slice(0, at)}${separator}${block.slice(at)}`;
@@ -339,7 +339,7 @@ describe('entitlementLicenseKey/extractKeyData', () => {
       const block = blockOf(SUBSCRIPTION_KEY);
       const prose = proseOf(SUBSCRIPTION_KEY);
 
-      ['-', '=', '\\', '\\x', '​', '>'].forEach((separator) => {
+      ['-', '=', '\\', '\\x', '\u200b', '>'].forEach((separator) => {
         const broken = `${prose}${block.slice(0, 60)}${separator}${block.slice(60)}`;
 
         expect(extractEntitlementKeyData(broken)).toBeNull();
@@ -764,6 +764,39 @@ describe('entitlementLicenseKey/extractKeyData', () => {
 
     it('should return the same object for a repeated read of the same key', () => {
       expect(extractEntitlementKeyData(SUBSCRIPTION_KEY)).toBe(extractEntitlementKeyData(SUBSCRIPTION_KEY));
+    });
+
+    it('should freeze the shared result, so one caller cannot change what the next one reads', () => {
+      const data = extractEntitlementKeyData(MIXED_KEY);
+      const entry = getProductEntitlement(data, 'handsontable');
+
+      [data, data.products, entry, entry.capabilities, entry.flags].forEach((part) => {
+        expect(Object.isFrozen(part)).toBe(true);
+      });
+      expect(() => entry.capabilities.push('solver')).toThrow(TypeError);
+      expect(() => { entry.usage_until = '2099-01-01'; }).toThrow(TypeError);
+      expect(getProductEntitlement(extractEntitlementKeyData(MIXED_KEY), 'handsontable').capabilities)
+        .toEqual(['core']);
+    });
+
+    it('should freeze a deeply nested extra field without throwing', () => {
+      // The freeze walks with its own stack, so a key nesting an unknown field thousands of levels
+      // deep still reads as data instead of overflowing the call stack.
+      const depth = 20000;
+      const nested = `${'{"a":'.repeat(depth)}1${'}'.repeat(depth)}`;
+      const products = JSON.stringify({ handsontable: handsontableEntry() }).slice(0, -2);
+      const rawPayloadJson = `{"products":${products},"extra":${nested}}}}`;
+      const data = extractEntitlementKeyData(buildTestKey(null, { rawPayloadJson, version: 1 }));
+
+      expect(data).not.toBeNull();
+
+      let inner = getProductEntitlement(data, 'handsontable').extra;
+
+      while (inner.a !== 1) {
+        inner = inner.a;
+      }
+
+      expect(Object.isFrozen(inner)).toBe(true);
     });
 
     it('should read a date that cannot be turned into text as invalid, without throwing', () => {
