@@ -11,7 +11,7 @@ import { ManualColumnFreezeBoundaryPage } from '../fixtures/pages/ManualColumnFr
  * drag worked on a `fixedColumnsStart` grid and was silently refused after a freeze.
  *
  * `manualColumnFreeze: { restoreColumnPosition: true }` sends an unfrozen column back among the
- * scrollable columns in data order, instead of leaving it at the freeze line.
+ * scrollable columns by its data source order, instead of leaving it at the freeze line.
  */
 test.describe('ManualColumnFreeze: the freeze line', () => {
   let grid: ManualColumnFreezeBoundaryPage;
@@ -73,7 +73,7 @@ test.describe('ManualColumnFreeze: the freeze line', () => {
       expect(await grid.fixedColumnsStart(DEFAULT)).toBe(0);
     });
 
-    test('puts the column back before its data-order neighbor with restoreColumnPosition', async () => {
+    test('puts the column back at its place in data order with restoreColumnPosition', async () => {
       await grid.pickFromHeaderContextMenu(RESTORE, 'col6', FREEZE_LABEL);
 
       await expect.poll(() => grid.renderedFrozenHeaders(RESTORE)).toEqual(['col6']);
@@ -113,15 +113,22 @@ test.describe('ManualColumnFreeze: the freeze line', () => {
       expect(await grid.columnOrder(RESTORE)).toEqual(IDENTITY);
     });
 
-    test('keeps the restored column out of the fixedColumnsEnd band', async () => {
-      await grid.freezeColumnByApi(RESTORE_END, 6);
-      await grid.unfreezeColumnByApi(RESTORE_END, 0);
+    test('never lands the restored column in the fixedColumnsEnd band', async () => {
+      // The band holds col1, which comes before col8 in data order. The restored column must still stop
+      // before the band.
+      expect(await grid.columnOrder(RESTORE_END))
+        .toEqual(['col2', 'col3', 'col4', 'col5', 'col6', 'col7', 'col8', 'col1']);
 
-      expect(await grid.columnOrder(RESTORE_END)).toEqual(IDENTITY);
-      await expect(grid.grid(RESTORE_END).locator('.ht_clone_top_inline_end_corner [data-testid="header-col8"]')).toBeVisible();
+      await grid.pickFromHeaderContextMenu(RESTORE_END, 'col8', FREEZE_LABEL);
+      await grid.pickFromHeaderContextMenu(RESTORE_END, 'col8', UNFREEZE_LABEL);
+
+      await expect.poll(() => grid.columnOrder(RESTORE_END))
+        .toEqual(['col2', 'col3', 'col4', 'col5', 'col6', 'col7', 'col8', 'col1']);
+      await expect(grid.grid(RESTORE_END).locator('.ht_clone_top_inline_end_corner [data-testid="header-col1"]'))
+        .toBeVisible();
     });
 
-    test('undoes a restore in one step', async () => {
+    test('undoes and redoes a restore in one step', async () => {
       await grid.pickFromHeaderContextMenu(RESTORE, 'col6', FREEZE_LABEL);
       await grid.pickFromHeaderContextMenu(RESTORE, 'col6', UNFREEZE_LABEL);
 
@@ -133,7 +140,7 @@ test.describe('ManualColumnFreeze: the freeze line', () => {
         .toEqual(['col6', 'col1', 'col2', 'col3', 'col4', 'col5', 'col7', 'col8']);
       expect(await grid.fixedColumnsStart(RESTORE)).toBe(1);
 
-      await grid.undo(RESTORE);
+      await grid.redo(RESTORE);
 
       expect(await grid.columnOrder(RESTORE)).toEqual(IDENTITY);
       expect(await grid.fixedColumnsStart(RESTORE)).toBe(0);

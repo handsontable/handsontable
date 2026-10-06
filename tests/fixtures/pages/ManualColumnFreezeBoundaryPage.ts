@@ -8,6 +8,7 @@ type HotLike = {
     freezeColumn: (column: number) => void;
     unfreezeColumn: (column: number) => void;
     undo: () => void;
+    redo: () => void;
   };
   render: () => void;
 };
@@ -22,11 +23,17 @@ type HotLike = {
  * on top of the copy `.ht_clone_top` still renders for it.
  */
 export class ManualColumnFreezeBoundaryPage {
-  /** `manualColumnFreeze: true`, the shipped default. */
+  /**
+   * `manualColumnFreeze: true`, the shipped default.
+   */
   static readonly DEFAULT = 'default';
-  /** `manualColumnFreeze: { restoreColumnPosition: true }`. */
+  /**
+   * `manualColumnFreeze: { restoreColumnPosition: true }`.
+   */
   static readonly RESTORE = 'restore';
-  /** The same as `RESTORE`, with `fixedColumnsEnd: 1`. */
+  /**
+   * The same as `RESTORE`, with `fixedColumnsEnd: 1`.
+   */
   static readonly RESTORE_END = 'restore-end';
 
   static readonly ALL_GRIDS = [
@@ -35,7 +42,11 @@ export class ManualColumnFreezeBoundaryPage {
     ManualColumnFreezeBoundaryPage.RESTORE_END,
   ];
 
-  /** The fixture's column headers, in their starting order. */
+  /**
+
+   * The fixture's column headers, in their starting order.
+
+   */
   static readonly IDENTITY = ['col1', 'col2', 'col3', 'col4', 'col5', 'col6', 'col7', 'col8'];
 
   static readonly FREEZE_LABEL = 'Freeze column';
@@ -51,7 +62,11 @@ export class ManualColumnFreezeBoundaryPage {
     this.bundle = bundle;
   }
 
-  /** Navigate and wait for every grid to have rendered. */
+  /**
+
+   * Navigate and wait for every grid to have rendered.
+
+   */
   async goto(): Promise<void> {
     await this.page.goto(
       `/tests/fixtures/demo/manual-column-freeze-boundary.html?theme=${this.theme}&bundle=${this.bundle}`
@@ -71,12 +86,20 @@ export class ManualColumnFreezeBoundaryPage {
     }
   }
 
-  /** One of the grid containers. */
+  /**
+
+   * One of the grid containers.
+
+   */
   grid(gridId: string): Locator {
     return this.page.getByTestId(gridId);
   }
 
-  /** The column headers, in their current visual order. */
+  /**
+
+   * The column headers, in their current visual order.
+
+   */
   async columnOrder(gridId: string): Promise<string[]> {
     return this.page.evaluate(
       id => (window as unknown as { hots: Record<string, HotLike> }).hots[id].getColHeader(),
@@ -84,7 +107,11 @@ export class ManualColumnFreezeBoundaryPage {
     );
   }
 
-  /** How many columns the grid holds in its frozen (inline start) area. */
+  /**
+
+   * How many columns the grid holds in its frozen (inline start) area.
+
+   */
   async fixedColumnsStart(gridId: string): Promise<number> {
     return this.page.evaluate(
       id => (window as unknown as { hots: Record<string, HotLike> }).hots[id].getSettings().fixedColumnsStart ?? 0,
@@ -92,14 +119,22 @@ export class ManualColumnFreezeBoundaryPage {
     );
   }
 
-  /** The headers the frozen corner clone draws, which is what the user sees pinned. */
+  /**
+
+   * The headers the frozen corner clone draws, which is what the user sees pinned.
+
+   */
   async renderedFrozenHeaders(gridId: string): Promise<string[]> {
     return this.grid(gridId)
       .locator('.ht_clone_top_inline_start_corner thead th[data-testid^="header-"]')
       .evaluateAll(cells => cells.map(cell => (cell.getAttribute('data-testid') ?? '').replace('header-', '')));
   }
 
-  /** Freeze a column through the plugin API, by its current visual index. */
+  /**
+
+   * Freeze a column through the plugin API, by its current visual index.
+
+   */
   async freezeColumnByApi(gridId: string, visualColumn: number): Promise<void> {
     await this.page.evaluate(([id, column]) => {
       const hot = (window as unknown as { hots: Record<string, HotLike> }).hots[id as string];
@@ -109,7 +144,11 @@ export class ManualColumnFreezeBoundaryPage {
     }, [gridId, visualColumn] as [string, number]);
   }
 
-  /** Unfreeze a column through the plugin API, by its current visual index. */
+  /**
+
+   * Unfreeze a column through the plugin API, by its current visual index.
+
+   */
   async unfreezeColumnByApi(gridId: string, visualColumn: number): Promise<void> {
     await this.page.evaluate(([id, column]) => {
       const hot = (window as unknown as { hots: Record<string, HotLike> }).hots[id as string];
@@ -119,7 +158,21 @@ export class ManualColumnFreezeBoundaryPage {
     }, [gridId, visualColumn] as [string, number]);
   }
 
-  /** Undo the last action. */
+  /**
+   * Redo the last undone action.
+   */
+  async redo(gridId: string): Promise<void> {
+    await this.page.evaluate(
+      id => (window as unknown as { hots: Record<string, HotLike> }).hots[id].getPlugin('undoRedo').redo(),
+      gridId
+    );
+  }
+
+  /**
+
+   * Undo the last action.
+
+   */
   async undo(gridId: string): Promise<void> {
     await this.page.evaluate(
       id => (window as unknown as { hots: Record<string, HotLike> }).hots[id].getPlugin('undoRedo').undo(),
@@ -139,7 +192,11 @@ export class ManualColumnFreezeBoundaryPage {
     return this.grid(gridId).locator(`${clone} [data-testid="header-${name}"]`);
   }
 
-  /** Freeze or unfreeze a column the way a user does: right-click its header and pick the entry. */
+  /**
+
+   * Freeze or unfreeze a column the way a user does: right-click its header and pick the entry.
+
+   */
   async pickFromHeaderContextMenu(gridId: string, name: string, label: string): Promise<void> {
     await (await this.header(gridId, name)).click({ button: 'right' });
 
@@ -176,7 +233,11 @@ export class ManualColumnFreezeBoundaryPage {
     await this.page.mouse.up();
   }
 
-  /** Bounding box of a laid-out header. */
+  /**
+
+   * Bounding box of a laid-out header.
+
+   */
   private async boxOf(locator: Locator): Promise<{ x: number, y: number, width: number, height: number }> {
     await expect(locator).toBeVisible();
 

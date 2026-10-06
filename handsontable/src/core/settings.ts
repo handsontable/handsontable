@@ -410,7 +410,7 @@ export interface GridSettings {
   }) => void;
   afterColumnSort?: (currentSortConfig: ColumnSortingConfig[], destinationSortConfigs: ColumnSortingConfig[],
     sortPossible: boolean) => void;
-  afterColumnUnfreeze?: (columnIndex: number, isFreezingPerformed: boolean) => void;
+  afterColumnUnfreeze?: (columnIndex: number, isFreezingPerformed: boolean, finalIndex: number) => void;
   afterContextMenuDefaultOptions?: (predefinedItems: Array<PredefinedMenuItemKey | MenuItemConfig>)
     => void;
   afterContextMenuHide?: (context: ContextMenu) => void;
@@ -611,7 +611,7 @@ export interface GridSettings {
   beforeColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void | number | false;
   beforeColumnSort?: (currentSortConfig: ColumnSortingConfig[],
     destinationSortConfigs: ColumnSortingConfig[], sortPossible: boolean) => void | boolean;
-  beforeColumnUnfreeze?: (columnIndex: number, isUnfreezingPerformed: boolean) => void | boolean;
+  beforeColumnUnfreeze?: (columnIndex: number, isUnfreezingPerformed: boolean, finalIndex: number) => void | boolean;
   beforeColumnWrap?: (isActionInterrupted: { value: boolean }, newCoords: WalkontableCellCoords,
     isColumnFlipped: boolean) => void;
   beforeCompositionStart?: (event: CompositionEvent) => void;

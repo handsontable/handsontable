@@ -52,20 +52,28 @@ plain `fixedColumnsStart` too, which has always allowed these moves. The end ban
 
 ## `restoreColumnPosition`: unfreeze back to data order, without state
 
-`manualColumnFreeze: { restoreColumnPosition: true }` (default `false`, read through `getSetting()`, so `true`
-keeps the old placement) changes only where `unfreezeColumn()` moves the column. `#getRestoredIndex()` places it
-before the first **scrollable** column whose physical index is higher than its own, or last among the scrollable
-columns when there is none. Three rules:
+`manualColumnFreeze: { restoreColumnPosition: true }` (default `false`, supplied by `DEFAULT_SETTINGS`, so a plain
+`manualColumnFreeze: true` keeps the old placement) changes only where `unfreezeColumn()` moves the column.
+`#getUnfrozenColumnIndex()` places it right after the last **scrollable** column whose physical index is lower than
+its own, or first among the scrollable columns when there is none. Four rules:
 
-- **The scan starts at the OLD freeze line.** `_fixedColumnsStart` is lowered before the move, but the other
-  frozen columns still sit up to the old line until the column leaves. Starting at the lowered value picked a
-  still-frozen column as the neighbor, and the unfrozen column stayed in the frozen area (pinned by
-  `__tests__/restoreColumnPosition.unit.js`, "should never pick a column that stays frozen").
-- **It never enters the `fixedColumnsEnd` band**: the scan and the fallback stop at the band's first column.
-- **It remembers nothing.** "Default position" is the data order, not the index the column had when it was
-  frozen. A remembered index would need undo state (`captureState`/`restoreState`) and remapping on every insert,
-  remove, move, and sort. The cost is that after a manual reorder the column goes back by data order, not to the
-  exact spot it left.
+- **Scan from the end, for the last LOWER index, not from the start for the first higher one.** Both give the same
+  answer while the scrollable columns are in data order. Once they were reordered, "before the first higher" left the
+  column at the front whenever a high-index column had been moved there (`FHABCDE...` unfroze to `FHABCDE...`, so
+  nothing visibly moved); "after the last lower" puts `F` after `E`.
+- **The scan stops at the current freeze line.** The other frozen columns sit before it until the column leaves.
+  Reaching into them picked a still-frozen column as the neighbor, and the unfrozen column stayed in the frozen area
+  (pinned by `__tests__/restoreColumnPosition.unit.js`, "should never pick a column that stays frozen").
+- **The scan starts before the `fixedColumnsEnd` band.** A band column earlier in data order would otherwise pull the
+  column into the band (pinned by the "even when the band holds columns before it" unit test).
+- **It remembers nothing.** "Default position" is the data order, not the index the column had when it was frozen. A
+  remembered index would need undo state (`captureState`/`restoreState`) and remapping on every insert, remove, move,
+  and sort. The cost is that a column the user moved before freezing it goes back by data order.
+
+The target is resolved BEFORE `beforeColumnUnfreeze` runs and passed to both unfreeze hooks as a third argument
+(`finalIndex`). Formulas mirrors the move into the engine from that argument: it used to assume the freeze line, and
+with the restore on, the engine then read and wrote the wrong columns
+(`../formulas/__tests__/manualColumnFreezeRestore.unit.js`). A listener that mirrors the move must read the argument.
 
 The default (`true` or no object) still puts the column right after the frozen columns, as the column-freezing
 guide documents. Changing that default would be a breaking change.

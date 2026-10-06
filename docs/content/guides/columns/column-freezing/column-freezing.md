@@ -210,7 +210,7 @@ In the following example, the first row (Target) and the last row (Total) stay a
 
 To enable manual column freezing, set [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) to `true`. This lets you freeze and unfreeze columns by using the grid's [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) or [column menu](@/guides/accessories-and-menus/column-menu/column-menu.md).
 
-When you unfreeze a column, it moves to the first position after the remaining frozen columns. To move it back to its original position instead, see [Restore the column position on unfreeze](#restore-the-column-position-on-unfreeze).
+When you unfreeze a column, it moves to the first position after the remaining frozen columns. To move it back to its place in the data source order instead, see [Restore the column position on unfreeze](#restore-the-column-position-on-unfreeze).
 
 ::: only-for javascript
 
@@ -261,9 +261,20 @@ With [`manualColumnMove`](@/api/options.md#manualcolumnmove) enabled, you can dr
 
 This works the same way whether you freeze columns with `fixedColumnsStart` or with [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze).
 
+To keep the frozen columns in place, reject those moves in the [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) hook:
+
+```js
+beforeColumnMove(movedColumns, finalIndex) {
+  const frozenCount = this.getSettings().fixedColumnsStart ?? 0;
+
+  // reject a drop in front of a frozen column, and any move of a frozen column
+  return !(finalIndex < frozenCount || movedColumns.some((column) => column < frozenCount));
+},
+```
+
 ### Restore the column position on unfreeze
 
-To move an unfrozen column back to its original position, set [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) to an object with `restoreColumnPosition` set to `true`:
+To move an unfrozen column back to its place in the data source order, set [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) to an object with `restoreColumnPosition` set to `true`:
 
 ```js
 manualColumnFreeze: {
@@ -271,9 +282,9 @@ manualColumnFreeze: {
 },
 ```
 
-The unfrozen column goes back among the scrollable columns, before the first column that comes after it in the data source. For example, if you freeze the sixth column and then unfreeze it, it goes back between the fifth and the seventh column. If no scrollable column comes after it in the data source, it becomes the last scrollable column. It never enters the columns frozen with [`fixedColumnsEnd`](@/api/options.md#fixedcolumnsend).
+The unfrozen column goes back among the scrollable columns, right after the last column that comes before it in the data source. For example, if you freeze the sixth column and then unfreeze it, it goes back between the fifth and the seventh column. If no scrollable column comes before it in the data source, it becomes the first scrollable column. It never enters the columns frozen with [`fixedColumnsEnd`](@/api/options.md#fixedcolumnsend).
 
-The original position is taken from the data source, so Handsontable doesn't remember where the column was when you froze it. If you reorder columns while a column is frozen, the unfrozen column goes back next to the columns that follow it in the data source.
+Handsontable doesn't remember where the column was when you froze it: the position comes from the data source order. So if you moved the column before you froze it, or reordered columns while it was frozen, the unfrozen column goes back next to the column that comes before it in the data source, not to the place you moved it to.
 
 In the following example, freeze and unfreeze a column by using the context menu:
 

@@ -4836,7 +4836,7 @@ export default (): Record<string, unknown> => {
      *
      * | Property                | Type      | Default | Description                                                                                                                                                                  |
      * | ----------------------- | --------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `restoreColumnPosition` | `boolean` | `false` | When `true`, an unfrozen column goes back among the scrollable columns in data order. When `false`, it stays right after the frozen columns. |
+     * | `restoreColumnPosition` | `boolean` | `false` | When `true`, an unfrozen column goes back among the scrollable columns by its data source order: right after the last scrollable column that comes before it in the data source. When `false`, it stays right after the frozen columns. Available since 19.0.0. |
      *
      * Read more:
      * - [Column freezing](@/guides/columns/column-freezing/column-freezing.md#user-triggered-freeze)
@@ -4855,7 +4855,7 @@ export default (): Record<string, unknown> => {
      * // enable the `ManualColumnFreeze` plugin
      * manualColumnFreeze: true,
      *
-     * // enable the `ManualColumnFreeze` plugin, and move an unfrozen column back to its position in data order
+     * // enable the `ManualColumnFreeze` plugin, and move an unfrozen column back by its data source order
      * manualColumnFreeze: {
      *   restoreColumnPosition: true,
      * },

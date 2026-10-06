@@ -83,7 +83,7 @@ hand. If you move that to `BasePlugin`, do both at once.
 
 - The row mirror: `../manualRowMove/AGENTS.md`.
 - The plugin competing for the same header gesture: `../columnSorting/AGENTS.md`.
-- Move restrictions: `../manualColumnFreeze/AGENTS.md`.
+- The start freeze line and `restoreColumnPosition`: `../manualColumnFreeze/AGENTS.md`.
 - Moving *cells* rather than columns: `../moveCells/AGENTS.md`.
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.
 

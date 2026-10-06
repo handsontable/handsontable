@@ -38,7 +38,8 @@
 
       default      manualColumnFreeze: true (the shipped default behavior)
       restore      manualColumnFreeze: { restoreColumnPosition: true }
-      restore-end  the same, with fixedColumnsEnd: 1
+      restore-end  the same, with fixedColumnsEnd: 1, and col1 moved into that end band at init, so the band
+                   holds a column that comes before every other column in data order
   -->
   <div class="grid" data-testid="default"></div>
   <div class="grid" data-testid="restore"></div>
@@ -52,7 +53,10 @@
     const configs = {
       default: { manualColumnFreeze: true },
       restore: { manualColumnFreeze: { restoreColumnPosition: true } },
-      'restore-end': { manualColumnFreeze: { restoreColumnPosition: true }, fixedColumnsEnd: 1 },
+      'restore-end': {
+        manualColumnFreeze: { restoreColumnPosition: true },
+        fixedColumnsEnd: 1,
+      },
     };
 
     window.hots = {};
@@ -85,6 +89,12 @@
         container.setAttribute('data-init-error', String(error));
       }
     });
+
+    // Put col1 into the end band of `restore-end`.
+    if (window.hots['restore-end']) {
+      window.hots['restore-end'].columnIndexMapper.setIndexesSequence([1, 2, 3, 4, 5, 6, 7, 0]);
+      window.hots['restore-end'].render();
+    }
   </script>
 </body>
 </html>

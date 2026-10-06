@@ -28,8 +28,9 @@ const AFTER_FILTERS_ORDER_INDEX = 1;
  */
 export interface ManualColumnFreezeSettings {
   /**
-   * When `true`, an unfrozen column goes back among the scrollable columns in data order, before the first
-   * column whose source data index is higher than its own. When `false` (default), it stays at the freeze line.
+   * When `true`, an unfrozen column goes back among the scrollable columns by its data source order: right
+   * after the last scrollable column that comes before it in the data source. When `false` (default), it
+   * stays right after the frozen columns.
    */
   restoreColumnPosition?: boolean;
 }
@@ -52,7 +53,7 @@ export interface ManualColumnFreezeSettings {
  * // Enables the plugin
  * manualColumnFreeze: true,
  *
- * // Enables the plugin, and moves an unfrozen column back to its position in data order
+ * // Enables the plugin, and moves an unfrozen column back by its data source order
  * manualColumnFreeze: {
  *   restoreColumnPosition: true,
  * },
@@ -79,6 +80,15 @@ export class ManualColumnFreeze extends BasePlugin {
   static get DEFAULT_SETTINGS() {
     return {
       restoreColumnPosition: false,
+    };
+  }
+
+  /**
+   * Returns the validators of the object form of the plugin's settings.
+   */
+  static get SETTINGS_VALIDATORS() {
+    return {
+      restoreColumnPosition: (value: unknown) => typeof value === 'boolean',
     };
   }
 
@@ -192,8 +202,10 @@ export class ManualColumnFreeze extends BasePlugin {
     // Unfreezing is also refused when it would hand a column back to the `fixedColumnsEnd` band (the
     // start/end clamp was cutting the band down), as the unfrozen column would slide into it.
     const unfreezePerformed = fixedStart > 0 && (column <= fixedStart - 1) && !unfreezeWouldShiftEndBand(this.hot);
+    // Resolved before the hooks run, so listeners that mirror the move (Formulas) know where the column goes.
+    const finalIndex = unfreezePerformed ? this.#getUnfrozenColumnIndex(column, fixedStart) : column;
 
-    const beforeColumnUnfreezeHook = this.hot.runHooks('beforeColumnUnfreeze', column, unfreezePerformed);
+    const beforeColumnUnfreezeHook = this.hot.runHooks('beforeColumnUnfreeze', column, unfreezePerformed, finalIndex);
 
     if (beforeColumnUnfreezeHook === false) {
       return;
@@ -206,46 +218,49 @@ export class ManualColumnFreeze extends BasePlugin {
       // to bypass the validation.
       (settings as { _fixedColumnsStart: number })._fixedColumnsStart -= 1;
 
-      const finalIndex = this.getSetting('restoreColumnPosition') === true ?
-        this.#getRestoredIndex(column) : settings.fixedColumnsStart ?? 0;
-
       this.hot.columnIndexMapper.moveIndexes(column, finalIndex);
     }
 
-    this.hot.runHooks('afterColumnUnfreeze', column, unfreezePerformed);
+    this.hot.runHooks('afterColumnUnfreeze', column, unfreezePerformed, finalIndex);
   }
 
   /**
-   * Finds where an unfrozen column goes back to with the `restoreColumnPosition` setting. It is the visual index
-   * of the first scrollable column whose physical index is higher than the column's own, so the column lands
-   * before it. When there is none, the column becomes the last scrollable column. The frozen end band
-   * (`fixedColumnsEnd`) is never entered.
+   * Finds the visual index an unfreezing column is moved to. By default it is the first position after the
+   * remaining frozen columns. With the `restoreColumnPosition` setting, it is right after the last scrollable
+   * column whose physical index is lower than the column's own, so the column goes back by its data source
+   * order, or the first scrollable position when there is none. The frozen end band (`fixedColumnsEnd`) is
+   * never scanned, so the column never lands in it.
    *
    * Nothing is remembered between freezing and unfreezing: the data order is the default position, so the
    * result does not depend on what happened to the grid while the column was frozen.
    *
-   * @param {number} column Visual index of the column being unfrozen. `fixedColumnsStart` is already lowered.
+   * @param {number} column Visual index of the column being unfrozen.
+   * @param {number} fixedColumnsStart The number of frozen start columns before unfreezing.
    * @returns {number} The final visual index for `moveIndexes()`.
    */
-  #getRestoredIndex(column: number): number {
-    const columnIndexMapper = this.hot.columnIndexMapper;
-    const fixedColumnsStart = this.hot.getSettings().fixedColumnsStart ?? 0;
-    const endBandStart = this.hot.countCols() - getEndBandCount(this.hot, fixedColumnsStart);
-    const physicalColumn = columnIndexMapper.getPhysicalFromVisualIndex(column) ?? -1;
-    // The setting is already lowered, but the column has not moved yet, so the other frozen columns still
-    // reach up to the old freeze line. The scrollable columns start right after it.
-    const firstScrollableColumn = fixedColumnsStart + 1;
+  #getUnfrozenColumnIndex(column: number, fixedColumnsStart: number): number {
+    const freezeLineAfterUnfreeze = fixedColumnsStart - 1;
 
-    for (let visualColumn = firstScrollableColumn; visualColumn < endBandStart; visualColumn++) {
+    if (this.getSetting('restoreColumnPosition') !== true) {
+      return freezeLineAfterUnfreeze;
+    }
+
+    const columnIndexMapper = this.hot.columnIndexMapper;
+    const endBandStart = this.hot.countCols() - getEndBandCount(this.hot, freezeLineAfterUnfreeze);
+    const physicalColumn = columnIndexMapper.getPhysicalFromVisualIndex(column) ?? -1;
+
+    // The scrollable columns start at the current freeze line: the other frozen columns sit before it until
+    // the column leaves. Scanning from the end, the first column found is the last one before it in data order.
+    for (let visualColumn = endBandStart - 1; visualColumn >= fixedColumnsStart; visualColumn--) {
       const physicalNeighbor = columnIndexMapper.getPhysicalFromVisualIndex(visualColumn) ?? -1;
 
-      if (physicalNeighbor > physicalColumn) {
-        // The column is taken out from before the neighbor, which then shifts back by one.
-        return visualColumn - 1;
+      if (physicalNeighbor < physicalColumn) {
+        // The column is taken out from before the neighbor, which shifts back by one, and lands right after it.
+        return visualColumn;
       }
     }
 
-    return endBandStart - 1;
+    return freezeLineAfterUnfreeze;
   }
 
   /**

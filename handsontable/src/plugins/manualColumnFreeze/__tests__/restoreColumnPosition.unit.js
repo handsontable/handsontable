@@ -1,9 +1,11 @@
 import Handsontable from 'handsontable/base';
-import { ManualColumnFreeze, registerPlugin } from 'handsontable/plugins';
+import { HiddenColumns, ManualColumnFreeze, UndoRedo, registerPlugin } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
 
 registerAllCellTypes();
 registerPlugin(ManualColumnFreeze);
+registerPlugin(HiddenColumns);
+registerPlugin(UndoRedo);
 
 describe('ManualColumnFreeze – restoreColumnPosition', () => {
   let container;
@@ -43,21 +45,69 @@ describe('ManualColumnFreeze – restoreColumnPosition', () => {
     const plugin = createGrid({ manualColumnFreeze: true });
 
     plugin.freezeColumn(5);
+    plugin.freezeColumn(6);
     plugin.unfreezeColumn(0);
 
-    expect(order()).toBe('FABCDEGHIJ');
+    // `F` moves to the first position after the remaining frozen column.
+    expect(order()).toBe('GFABCDEHIJ');
+    expect(hot.getSettings().fixedColumnsStart).toBe(1);
   });
 
   it('should keep the column at the freeze line with `restoreColumnPosition: false`', () => {
     const plugin = createGrid({ manualColumnFreeze: { restoreColumnPosition: false } });
 
     plugin.freezeColumn(5);
+    plugin.freezeColumn(6);
     plugin.unfreezeColumn(0);
 
-    expect(order()).toBe('FABCDEGHIJ');
+    expect(order()).toBe('GFABCDEHIJ');
+    expect(hot.getSettings().fixedColumnsStart).toBe(1);
   });
 
-  it('should put the unfrozen column back before the next column in data order', () => {
+  it('should keep the column at the freeze line with an empty settings object', () => {
+    const plugin = createGrid({ manualColumnFreeze: {} });
+
+    plugin.freezeColumn(5);
+    plugin.freezeColumn(6);
+    plugin.unfreezeColumn(0);
+
+    expect(order()).toBe('GFABCDEHIJ');
+  });
+
+  it('should ignore an invalid `restoreColumnPosition` value', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const plugin = createGrid({ manualColumnFreeze: { restoreColumnPosition: 'yes' } });
+
+    plugin.freezeColumn(5);
+    plugin.freezeColumn(6);
+    plugin.unfreezeColumn(0);
+
+    expect(order()).toBe('GFABCDEHIJ');
+    expect(warnSpy).toHaveBeenCalled();
+
+    warnSpy.mockRestore();
+  });
+
+  it('should follow `restoreColumnPosition` switched on and off with `updateSettings()`', () => {
+    const plugin = createGrid({ manualColumnFreeze: true });
+
+    hot.updateSettings({ manualColumnFreeze: { restoreColumnPosition: true } });
+
+    plugin.freezeColumn(5);
+    plugin.unfreezeColumn(0);
+
+    expect(order()).toBe('ABCDEFGHIJ');
+
+    hot.updateSettings({ manualColumnFreeze: true });
+
+    plugin.freezeColumn(5);
+    plugin.freezeColumn(6);
+    plugin.unfreezeColumn(0);
+
+    expect(order()).toBe('GFABCDEHIJ');
+  });
+
+  it('should put the unfrozen column back at its place in data order', () => {
     const plugin = createGrid();
 
     plugin.freezeColumn(5);
@@ -70,7 +120,19 @@ describe('ManualColumnFreeze – restoreColumnPosition', () => {
     expect(hot.getSettings().fixedColumnsStart).toBe(0);
   });
 
-  it('should make the column the last one when no column comes after it in data order', () => {
+  it('should pass the restored index to the unfreeze hooks', () => {
+    const beforeColumnUnfreeze = jest.fn();
+    const afterColumnUnfreeze = jest.fn();
+    const plugin = createGrid({ beforeColumnUnfreeze, afterColumnUnfreeze });
+
+    plugin.freezeColumn(5);
+    plugin.unfreezeColumn(0);
+
+    expect(beforeColumnUnfreeze).toHaveBeenCalledWith(0, true, 5);
+    expect(afterColumnUnfreeze).toHaveBeenCalledWith(0, true, 5);
+  });
+
+  it('should make the column the last one when it is the last in data order', () => {
     const plugin = createGrid();
 
     plugin.freezeColumn(9);
@@ -107,7 +169,7 @@ describe('ManualColumnFreeze – restoreColumnPosition', () => {
     expect(order()).toBe('ABCDEFGHIJ');
   });
 
-  it('should place the column by the scrollable columns\' order when they were reordered', () => {
+  it('should place the column right after the last column before it in data order when columns were reordered', () => {
     const plugin = createGrid();
 
     plugin.freezeColumn(5);
@@ -118,12 +180,42 @@ describe('ManualColumnFreeze – restoreColumnPosition', () => {
 
     plugin.unfreezeColumn(0);
 
-    // `H` is the first scrollable column after `F` in data order, so `F` lands before it.
-    expect(order()).toBe('FHABCDEGIJ');
+    // `E` is the last scrollable column that comes before `F` in data order, so `F` lands right after it.
+    expect(order()).toBe('HABCDEFGIJ');
     expect(hot.getSettings().fixedColumnsStart).toBe(0);
   });
 
-  it('should keep the restored column out of the `fixedColumnsEnd` band', () => {
+  it('should count hidden columns as neighbors', () => {
+    const plugin = createGrid({ hiddenColumns: { columns: [4] } });
+
+    plugin.freezeColumn(5);
+    plugin.unfreezeColumn(0);
+
+    // `E` is hidden, but it still holds its place in the column order, so `F` lands right after it.
+    expect(order()).toBe('ABCDEFGHIJ');
+    expect(hot.getPlugin('hiddenColumns').getHiddenColumns()).toEqual([4]);
+  });
+
+  it('should undo and redo a restore as one step', () => {
+    const plugin = createGrid({ undo: true });
+
+    plugin.freezeColumn(5);
+    plugin.unfreezeColumn(0);
+
+    expect(order()).toBe('ABCDEFGHIJ');
+
+    hot.getPlugin('undoRedo').undo();
+
+    expect(order()).toBe('FABCDEGHIJ');
+    expect(hot.getSettings().fixedColumnsStart).toBe(1);
+
+    hot.getPlugin('undoRedo').redo();
+
+    expect(order()).toBe('ABCDEFGHIJ');
+    expect(hot.getSettings().fixedColumnsStart).toBe(0);
+  });
+
+  it('should restore a column right before the `fixedColumnsEnd` band', () => {
     const plugin = createGrid({ fixedColumnsEnd: 2 });
 
     plugin.freezeColumn(7);
@@ -135,7 +227,7 @@ describe('ManualColumnFreeze – restoreColumnPosition', () => {
     expect(order()).toBe('ABCDEFGHIJ');
   });
 
-  it('should stop before the `fixedColumnsEnd` band when no scrollable column comes after it in data order', () => {
+  it('should never land the column in the `fixedColumnsEnd` band, even when the band holds columns before it in data order', () => {
     const plugin = createGrid({ fixedColumnsEnd: 2 });
 
     // Put `A` and `B` into the end band, so the band holds columns from the start of the data order.
@@ -149,8 +241,8 @@ describe('ManualColumnFreeze – restoreColumnPosition', () => {
 
     plugin.unfreezeColumn(0);
 
-    // No scrollable column comes after `J` in data order. It becomes the last scrollable column, and the band
-    // keeps `A` and `B`.
+    // `A` and `B` come before `J` in data order, but they belong to the band: `J` lands after `I`, the last
+    // scrollable column before it, and the band keeps `A` and `B`.
     expect(order()).toBe('CDEFGHIJAB');
   });
 
