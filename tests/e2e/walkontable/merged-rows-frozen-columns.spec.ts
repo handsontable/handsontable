@@ -110,7 +110,8 @@ test.describe('row heights of merged rows next to frozen columns', { tag: '@walk
   });
 
   test('keeps the top panes aligned when a frozen top row is hidden', async () => {
-    // The clamp counts visual rows: a hidden row above the block must not cut a row off its span.
+    // A guard for the hook's clamp, which counts visual rows. The row pins keep the panes together here whichever
+    // way the clamp counts, so this does not tell the two expressions apart; it fails if the top pane stops agreeing.
     await grid.initGrid({
       viewportColumnRenderingOffset: 0,
       rowHeaders: false,

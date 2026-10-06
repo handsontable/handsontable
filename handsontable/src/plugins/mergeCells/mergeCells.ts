@@ -3897,7 +3897,10 @@ export class MergeCells extends BasePlugin {
       overlayType === 'top_inline_start_corner' ||
       overlayType === 'top_inline_end_corner'
     ) {
-      rowsToSum = Math.min(rowsToSum, this.hot.view.countNotHiddenFixedRowsTop() - row);
+      // The top overlay renders the first `fixedRowsTop` rows by visual index (hidden ones add no height in the
+      // sum), so the clamp counts visual rows: the not-hidden count would cut a row off the span for every
+      // hidden row above the block.
+      rowsToSum = Math.min(rowsToSum, (Number(this.hot.getSettings().fixedRowsTop) || 0) - row);
     }
 
     if (rowsToSum <= 1) {
