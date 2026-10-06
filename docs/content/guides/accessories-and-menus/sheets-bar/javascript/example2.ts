@@ -6,7 +6,11 @@ import { HyperFormula } from 'hyperformula';
 registerAllModules();
 
 // One engine, shared by every sheet of the workbook.
-const engine = HyperFormula.buildEmpty();
+const engine = HyperFormula.buildEmpty({
+  // to use an external HyperFormula instance,
+  // initialize it with your HyperFormula license key
+  // licenseKey: 'your-hyperformula-license-key',
+});
 
 const ratesData = [
   ['VAT rate', 0.23],

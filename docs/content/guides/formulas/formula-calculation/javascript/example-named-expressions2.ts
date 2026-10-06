@@ -7,7 +7,11 @@ registerAllModules();
 
 // Named expressions that reference cell ranges must be registered after the sheet
 // exists. Pre-build the engine, add the sheet, then add the named expressions.
-const hfInstance = HyperFormula.buildEmpty();
+const hfInstance = HyperFormula.buildEmpty({
+  // to use an external HyperFormula instance,
+  // initialize it with your HyperFormula license key
+  // licenseKey: 'your-hyperformula-license-key',
+});
 
 hfInstance.addSheet('Sheet1');
 hfInstance.addNamedExpression('Q1_TOTAL', '=SUM(Sheet1!$B$1:$B$3)');

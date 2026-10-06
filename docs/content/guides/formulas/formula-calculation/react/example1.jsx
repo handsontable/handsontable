@@ -23,7 +23,11 @@ const ExampleComponent = () => {
   ];
 
   //  create an external HyperFormula instance
-  const hyperformulaInstance = HyperFormula.buildEmpty();
+  const hyperformulaInstance = HyperFormula.buildEmpty({
+    // to use an external HyperFormula instance,
+    // initialize it with your HyperFormula license key
+    // licenseKey: 'your-hyperformula-license-key',
+  });
 
   return (
     <>

@@ -29,7 +29,11 @@ import {HyperFormula} from 'hyperformula';
 export class AppComponent {
 
   // create an external HyperFormula instance
-  readonly hyperformulaInstance = HyperFormula.buildEmpty();
+  readonly hyperformulaInstance = HyperFormula.buildEmpty({
+    // to use an external HyperFormula instance,
+    // initialize it with your HyperFormula license key
+    // licenseKey: 'your-hyperformula-license-key',
+  });
 
   readonly hotData1 = [
     ['10.26', null, 'Sum', '=SUM(A:A)'],

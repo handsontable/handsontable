@@ -26,7 +26,11 @@ export class AppComponent {
   readonly hotSettings: GridSettings;
 
   constructor() {
-    const hfInstance = HyperFormula.buildEmpty();
+    const hfInstance = HyperFormula.buildEmpty({
+      // to use an external HyperFormula instance,
+      // initialize it with your HyperFormula license key
+      // licenseKey: 'your-hyperformula-license-key',
+    });
 
     hfInstance.addSheet('Sheet1');
     hfInstance.addNamedExpression('Q1_TOTAL', '=SUM(Sheet1!$B$1:$B$3)');

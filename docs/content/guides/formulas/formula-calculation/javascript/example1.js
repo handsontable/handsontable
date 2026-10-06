@@ -22,7 +22,11 @@ const data2 = [
 ];
 
 // create an external HyperFormula instance
-const hyperformulaInstance = HyperFormula.buildEmpty();
+const hyperformulaInstance = HyperFormula.buildEmpty({
+  // to use an external HyperFormula instance,
+  // initialize it with your HyperFormula license key
+  // licenseKey: 'your-hyperformula-license-key',
+});
 
 const container1 = document.querySelector('#example-basic-multi-sheet-1');
 

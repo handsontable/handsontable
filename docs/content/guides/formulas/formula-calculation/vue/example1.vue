@@ -26,7 +26,13 @@ const data2 = [
 
 // create an external HyperFormula instance shared by both grids.
 // `markRaw` prevents Vue from wrapping the instance in a reactive proxy.
-const hyperformulaInstance = markRaw(HyperFormula.buildEmpty());
+const hyperformulaInstance = markRaw(
+  HyperFormula.buildEmpty({
+    // to use an external HyperFormula instance,
+    // initialize it with your HyperFormula license key
+    // licenseKey: 'your-hyperformula-license-key',
+  })
+);
 
 const sheet1Settings = ref<GridSettings>({
   data: data1,

@@ -6,7 +6,11 @@ import { HyperFormula } from 'hyperformula';
 registerAllModules();
 
 // One engine, shared by every sheet of the workbook.
-const engine = HyperFormula.buildEmpty();
+const engine = HyperFormula.buildEmpty({
+  // to use an external HyperFormula instance,
+  // initialize it with your HyperFormula license key
+  // licenseKey: 'your-hyperformula-license-key',
+});
 
 const budgetData = [
   ['Laptops', 4200, '=B1*Rates!B1', '=B1*Rates!B2', '=B1+C1+D1'],
