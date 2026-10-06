@@ -158,6 +158,36 @@ describe('MergeCells', () => {
         expect(warnSpy).not.toHaveBeenCalled();
         expect(mergedCellsCollection.add(overlapping, true)).toBeTruthy();
       });
+
+      it('should accept a merged cell that only the merges it is told to ignore overlap or start at its anchor', () => {
+        const warnSpy = spyOn(console, 'warn');
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+        const inner = mergedCellsCollection.add({ row: 1, col: 0, rowspan: 2, colspan: 1 });
+        const outer = mergedCellsCollection.add({ row: 0, col: 5, rowspan: 5, colspan: 2 });
+
+        expect(mergedCellsCollection.canAdd({ row: 1, col: 0, rowspan: 2, colspan: 3 }, false, [inner])).toBe(true);
+        expect(mergedCellsCollection.canAdd({ row: 1, col: 0, rowspan: 2, colspan: 7 }, false, [inner])).toBe(false);
+        expect(mergedCellsCollection.canAdd({ row: 1, col: 0, rowspan: 2, colspan: 7 }, false, [inner, outer]))
+          .toBe(true);
+        expect(warnSpy).toHaveBeenCalledTimes(1);
+        expect(mergedCellsCollection.mergedCells).toEqual([inner, outer]);
+      });
+
+      it('should accept a merged cell over the stale coordinates of a merge purged from the lookup matrix', () => {
+        const warnSpy = spyOn(console, 'warn');
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+        const purged = mergedCellsCollection.add({ row: 1, col: 1, rowspan: 2, colspan: 2 });
+        const overlapping = { row: 1, col: 0, rowspan: 2, colspan: 3 };
+
+        expect(mergedCellsCollection.canAdd(overlapping)).toBe(false);
+
+        warnSpy.calls.reset();
+        mergedCellsCollection.removeFromMatrix([purged]);
+
+        expect(mergedCellsCollection.canAdd(overlapping)).toBe(true);
+        expect(mergedCellsCollection.add(overlapping)).toBeTruthy();
+        expect(warnSpy).not.toHaveBeenCalled();
+      });
     });
 
     describe('`remove` method', () => {

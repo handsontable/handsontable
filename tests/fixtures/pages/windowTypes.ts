@@ -311,7 +311,9 @@ declare global {
     hot: FixtureHotInstance;
     /** Undo fixture: how many vetoed meta writes the listener `UndoGridPage#vetoMetaWrites()` adds saw. */
     metaWriteAttempts: number;
-    /** Undo fixture: the `beforeMergeCells`/`afterMergeCells` calls `UndoGridPage#trackMergeHooks()` counts. */
+    /**
+     * Undo fixture: the `beforeMergeCells`/`afterMergeCells` calls `UndoGridPage#trackMergeHooks()` counts.
+     */
     mergeHookCalls?: { before: number, after: number };
     /** `dropdown-editor-clip` fixture: rebuilds the grid, optionally inside a named parent layout. */
     initDropdownClipGrid(settings?: Record<string, unknown>, containerClass?: string): boolean;

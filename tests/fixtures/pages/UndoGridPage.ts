@@ -517,6 +517,39 @@ export class UndoGridPage {
   }
 
   /**
+   * Start collecting console warnings. The returned array fills up as the page logs.
+   */
+  collectWarnings(): string[] {
+    const warnings: string[] = [];
+
+    this.page.on('console', (message) => {
+      if (message.type() === 'warning') {
+        warnings.push(message.text());
+      }
+    });
+
+    return warnings;
+  }
+
+  /**
+   * From now on, the next `beforeMergeCells` listener call merges another range through the API, the
+   * way a listener can add a merge while one is being made.
+   */
+  async mergeOnceFromBeforeMergeCells(range: [number, number, number, number]): Promise<void> {
+    await this.page.evaluate(([startRow, startColumn, endRow, endColumn]) => {
+      let merged = false;
+
+      // A flag rather than `addHookOnce()`: the merge the listener makes fires `beforeMergeCells` too.
+      window.hot.addHook('beforeMergeCells', () => {
+        if (!merged) {
+          merged = true;
+          window.hot.getPlugin('mergeCells').merge(startRow, startColumn, endRow, endColumn);
+        }
+      });
+    }, range);
+  }
+
+  /**
    * Undo with the keyboard shortcut: `Cmd`+`Z` on macOS, `Ctrl`+`Z` elsewhere.
    */
   async undoWithKeyboard(): Promise<void> {
@@ -535,6 +568,13 @@ export class UndoGridPage {
    */
   async isUndoAvailable(): Promise<boolean> {
     return this.page.evaluate(() => window.hot.getPlugin('undoRedo').isUndoAvailable());
+  }
+
+  /**
+   * Whether the redo stack holds a step.
+   */
+  async isRedoAvailable(): Promise<boolean> {
+    return this.page.evaluate(() => window.hot.getPlugin('undoRedo').isRedoAvailable());
   }
 
   /**
