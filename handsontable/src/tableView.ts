@@ -244,6 +244,16 @@ class TableView {
    * @type {boolean}
    */
   #sizesMeasuredWithoutStylesPending = false;
+
+  /**
+   * Counts how many times the column widths were invalidated. Every producer of column widths (the
+   * `manualColumnResize`, `autoColumnSize` and `stretchColumns` plugins, an index mapper change) drops the
+   * widths cache when a width changes, so a plugin that keeps something derived from the widths can compare
+   * this number between renders to know when to refresh it.
+   *
+   * @type {number}
+   */
+  #columnWidthEpoch = 0;
   /**
    * Defines if the text should be selected during mousemove.
    *
@@ -807,11 +817,21 @@ class TableView {
   };
 
   /**
+   * Returns the number of times the column widths were invalidated (see `#columnWidthEpoch`).
+   *
+   * @returns {number}
+   */
+  getColumnWidthEpoch() {
+    return this.#columnWidthEpoch;
+  }
+
+  /**
    * Invalidates Walkontable viewport caches for row heights and column widths (per-index axis sizes).
    */
   invalidateIndexSizesCache() {
     this._wt.wtViewport.invalidateRowHeightCache();
     this._wt.wtViewport.invalidateColumnWidthCache();
+    this.#columnWidthEpoch += 1;
   }
 
   /**
@@ -819,6 +839,7 @@ class TableView {
    */
   invalidateColumnWidthCache() {
     this._wt.wtViewport.invalidateColumnWidthCache();
+    this.#columnWidthEpoch += 1;
   }
 
   /**

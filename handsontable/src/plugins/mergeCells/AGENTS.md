@@ -425,8 +425,22 @@ with the others. Three things are derived per pane, and each has its own owner:
   widths from `sumBlockWidthsOutsideBand` (`utils.ts`), read through `hot.getColWidth`, so a stretched column
   counts at its stretched width. The wrapper resets its own box in `_base.scss` (it matches
   `$user-cell-content`, so a host `td div` rule would reach it).
+  - **The overhang is set with PHYSICAL margins, never `margin-inline-start`.** A renderer may give the cell its
+    own direction: the numeric and time renderers set `dir="ltr"` in a right-to-left grid, and an inline margin
+    then grows the wrapper toward the wrong side, so a right-aligned number shows in neither pane. The block's
+    remaining columns lie on the same side of the pane whatever the cell's direction is (`leftOutside` and
+    `rightOutside` come from `hot.isRtl()`), and the width is `100%` plus both.
+  - **No compensation for the end clone's freeze-line border.** Mid-scroll the clone's first cell draws the
+    freeze line as a 1px border of its own and the master's cell of the block has none, so the wrapper starts 1px
+    later than a master copy would. Mid-scroll the clone is pinned elsewhere and the two copies line up with
+    nothing; at the junction, where they overlap, `htFreezeLineShared` zeroes that border and the drift is 0
+    (pinned to the pixel by the end-of-scroll spec). Do not add the border to the wrapper's overhang: the class
+    is toggled after the draw, so a paint-time read is one draw stale in exactly the state that matters.
   - **The renderer's `before()` (`beforeRenderer`) puts the content back before every paint**
-    (`releaseContentWindow`), and `after()` wraps it again. Do not drop that step on the grounds that the
+    (`releaseContentWindow`), and `after()` wraps it again. The wrapper of each cell is kept in a `WeakMap` keyed
+    by the cell, so it is found wherever it sits (a hook that wrapped the cell's whole content in a link after
+    the plugin ran put it under the link; looking only at the first child would have missed it and wrapped
+    again on every paint) and the element is reused by the next paint. Do not drop that step on the grounds that the
     renderers replace the cell's content: a renderer that keeps its DOM (the Angular component renderer,
     AutoLink's "a renderer may keep its previous DOM") would nest one more wrapper per paint, and a cell
     element reused for a block that no longer crosses the line would keep a stale one. It runs in the
@@ -438,14 +452,27 @@ Known limits of the content rule:
   pane's part: a cell cannot be shorter than its content, so a wrapper as tall as the block would grow the row.
 - With `virtualized: true` the master clamps the block's anchor to its rendered band, so the master moves its
   copy of the content as the grid scrolls while the pane keeps it where the block starts.
+- With `virtualized: true` a carrier the band moved down is given the height of the block's WHOLE `rowspan`
+  from itself (`#onModifyRowHeightByOverlayName`), which runs past the block's last row: a block over rows 0-9 with
+  the band starting at row 8 draws rows 8-9 at 291px (measured, the same on 18.1.1). Three legacy virtualized
+  specs pin the viewport that results from it, and the row pins are minimums that cannot hold those rows back.
+  Pre-existing, left as it is.
 - Content positioned against the cell (the autocomplete and dropdown arrow, `position: absolute` on a
   `position: relative` cell) still anchors to the cut cell, so the arrow shows at the freeze line and again at
   the block's end.
 - A plugin that rewrites the cell after this one (Formulas in `showFormulas` mode, priority 260) drops the
   wrapper, and that pane falls back to the cut width until the next paint without it.
-- Under `renderMode: 'onChange'` the wrapper's width is not part of the paint identity: a column resize
-  (ManualColumnResize), a stretch change (StretchColumns on a container resize) or an AutoColumnSize update
-  repaints no cell, so the wrapper keeps its old width until the block's cells repaint.
+- Under `renderMode: 'onChange'` the wrapper's width is not part of the paint identity, so the plugin marks
+  the cells of the blocks that cross a freeze line as changed (`#onBeforeViewRender`) when the column widths
+  epoch (`TableView#getColumnWidthEpoch`, advanced by every `invalidateColumnWidthCache()` call: ManualColumnResize,
+  AutoColumnSize, StretchColumns, an index mapper change) moved since the last draw. A width that changes without
+  dropping that cache (NestedHeaders, a per-column cell-meta `width`) is not seen, and the wrapper keeps its old
+  width until the block repaints.
+- A hook that runs AFTER the plugin and appends to the cell (a `hot.addHook('afterRenderer', …)` registered after
+  the grid was built, or the Formulas and AutoLink hooks) finds the content inside the block-level wrapper, so
+  `TD.appendChild(icon)` lands on a line of its own under it, and `TD.firstChild` is the wrapper (not in the
+  master). A settings-level `afterRenderer` is registered first and runs BEFORE the plugin, so what it adds is
+  moved into the wrapper with the rest.
 - A wrapped cell's content moves into and out of the wrapper on every paint. For a renderer that keeps its
   DOM, a control focused inside such a cell in a frozen pane may lose the focus on a repaint, a custom element
   gets `disconnectedCallback`/`connectedCallback`, and an `iframe` reloads (inferred from the DOM moves, not

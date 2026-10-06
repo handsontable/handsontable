@@ -135,6 +135,67 @@ test.describe('content of a merged cell across a frozen-column line', () => {
     await expect.poll(async () => (await grid.visibleMarkers()).count).toBe(1);
   });
 
+  test('shows a value once in a right-to-left grid when the renderer sets the cell direction to ltr', async () => {
+    // The numeric and time renderers do this: the wrapper must grow toward the rest of the block whatever
+    // direction the cell itself has.
+    await grid.initGrid({
+      layoutDirection: 'rtl',
+      fixedColumnsStart: 2,
+      mergeCells: [BLOCK],
+      values: [{ row: 1, col: 0, value: 'ltr:1' }],
+      cell: [{ row: 1, col: 0, className: 'htRight' }],
+    });
+
+    await expect.poll(async () => (await grid.visibleMarkers()).count).toBe(1);
+  });
+
+  test('starts the inline-end layout wrapper where the master\'s block cell starts once scrolled to the end', async () => {
+    // At the end of the scroll the end clone stands over the master's own last columns, so the two copies of the
+    // block's content have to line up. (Mid-scroll the clone is pinned elsewhere and nothing lines up with it.)
+    // The first cell of the clone draws the freeze line as a border only mid-scroll, which is why this is the
+    // state that pins the wrapper's start.
+    await grid.initGrid({
+      fixedColumnsEnd: 2,
+      mergeCells: [{ row: 1, col: 16, rowspan: 1, colspan: 14 }],
+      values: [{ row: 1, col: 16, value: 'markers:1' }],
+    });
+    await grid.scrollToEnd(29);
+
+    await expect.poll(async () => Math.abs((await grid.inlineEndWrapperDrift()) ?? NaN)).toBeLessThan(0.5);
+  });
+
+  test('repaints a crossing block when a column inside it is resized under renderMode onChange', async () => {
+    await grid.initGrid({
+      renderMode: 'onChange',
+      manualColumnResize: true,
+      fixedColumnsStart: 2,
+      mergeCells: [BLOCK],
+      values: ONE_MARKER,
+      cell: [{ row: 1, col: 0, className: 'htRight' }],
+    });
+    await expect.poll(async () => Math.abs((await grid.startWrapperWidthDrift()) ?? NaN)).toBeLessThan(0.5);
+
+    await grid.resizeColumn(4, 160);
+
+    // The wrapper is a pixel width taken from the block's columns when it was painted: the block got 100px
+    // wider, and a pane that was not repainted would still be 100px short of it.
+    await expect.poll(async () => Math.abs((await grid.startWrapperWidthDrift()) ?? NaN)).toBeLessThan(0.5);
+    await expect.poll(async () => (await grid.visibleMarkers()).count).toBe(1);
+  });
+
+  test('keeps one layout wrapper when a hook wraps the cell content in a link after the plugin', async () => {
+    await grid.initGrid({
+      fixedColumnsStart: 2,
+      mergeCells: [BLOCK],
+      values: [{ row: 1, col: 0, value: 'linked:1' }],
+      cell: [{ row: 1, col: 0, className: 'htRight' }],
+    });
+    await grid.render(3);
+
+    expect(await grid.contentWindows()).toEqual({ count: 1, nested: 0 });
+    await expect.poll(async () => (await grid.visibleMarkers()).count).toBe(1);
+  });
+
   test('keeps one layout wrapper when a renderer keeps its DOM across paints', async () => {
     await grid.initGrid({
       fixedColumnsStart: 2,
