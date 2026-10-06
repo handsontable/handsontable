@@ -3,7 +3,7 @@ import { WrapperSizePage } from '../fixtures/pages/WrapperSizePage';
 
 /**
  * A grid given `width: '100%'` and `height: '100%'` takes exactly its container's 500 x 400 px and
- * scrolls its 20 x 20 cells inside that box, on the visual suite's `/wrapper-demo` shape and on every
+ * scrolls its 20 x 20 cells inside that box, on the visual suite's retired `/wrapper-demo` shape and on every
  * theme and bundle. The `wrapper-size` capture was the only check of it; nothing measured the root.
  */
 

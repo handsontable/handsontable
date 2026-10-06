@@ -3,7 +3,7 @@ import { RowSizeAlignmentPage } from '../fixtures/pages/RowSizeAlignmentPage';
 
 /**
  * The row header stays level with its row after the grid is scrolled with the wheel, on the visual
- * suite's `/row-size-demo` grid (`autoRowSize`, 320 px high), with one-line rows and with rows whose
+ * suite's retired `/row-size-demo` grid (`autoRowSize`, 320 px high), with one-line rows and with rows whose
  * labels wrap onto two lines. #11872 fixed the misalignment these were the only check of; the two row
  * size captures under `visual-tests/tests/js-only/row-size/` photographed it and nothing asserted it.
  * Every row inside the holder's visible area is compared, top and bottom, on every theme and bundle.

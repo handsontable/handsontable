@@ -16,7 +16,7 @@ export interface RowPair {
 }
 
 /**
- * Page object for `fixtures/demo/row-size-alignment.html`, the visual suite's `/row-size-demo` grid.
+ * Page object for `fixtures/demo/row-size-alignment.html`, the visual suite's retired `/row-size-demo` grid.
  */
 export class RowSizeAlignmentPage {
   readonly page: Page;

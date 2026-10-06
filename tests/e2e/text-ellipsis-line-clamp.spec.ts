@@ -153,7 +153,7 @@ test.describe('textEllipsis line clamp', () => {
     }
   });
 
-  // The visual suite's `/text-ellipsis-demo` shape: `textEllipsis: true` on the whole grid. Its capture
+  // The visual suite's retired `/text-ellipsis-demo` shape: `textEllipsis: true` on the whole grid. Its capture
   // was the only check that the text is really cut off with an ellipsis, not just given the class.
   test('`textEllipsis: true` cuts a long cell off at its edge with an ellipsis, on one line', async({ page, theme, bundle }) => {
     const grid = new TextEllipsisLineClampPage(page, theme, bundle);
