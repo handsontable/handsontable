@@ -155,6 +155,8 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nije moguće ukloniti redove',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Zahtev nije uspeo',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ponovo učitaj',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Proširen red [label], prikazani redovi: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Skupljen red [label]',
 };
 
 export default dictionary;

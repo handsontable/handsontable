@@ -154,6 +154,8 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Impossibile rimuovere le righe',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Richiesta non riuscita',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ricarica',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Riga [label] espansa, righe visualizzate: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Riga [label] compressa',
 };
 
 export default dictionary;

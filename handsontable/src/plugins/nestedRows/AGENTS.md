@@ -53,7 +53,8 @@ change, then fires `after*` with whether the state really changed, and renders o
 reach it, and they must all keep reaching it or the UI and the API will drift apart:
 
 1. the row header button — `CollapsingUI#toggleState` (a `beforeOnCellMouseDown` listener)
-2. the <kbd>Enter</kbd> shortcut — `registerShortcuts()` in `nestedRows.ts`
+2. the <kbd>Enter</kbd> and <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow shortcuts — `registerShortcuts()` in `nestedRows.ts`
+   (1 and 2 go through `NestedRows#toggleParentByUser()`, which adds the announcement)
 3. `collapsingUI.collapseAll()` / `expandAll()`
 4. every public method on `NestedRows`
 
@@ -596,6 +597,73 @@ They are written in different places and can drift. Keep this in mind:
   focus-related behavior with a **key press** (`page.keyboard.press`) and assert `activeElement`
   only afterwards. `tests/e2e/nested-rows-collapse-selection.spec.ts` is the reference.
 
+## Treegrid accessibility
+
+The grid root is `role="treegrid"` on every grid (`tableView.ts`), so this plugin only fills in the
+row semantics. Six things look simpler than they are.
+
+- **`aria-level`, `aria-posinset` and `aria-setsize` live on the `TR`; `aria-expanded` stays on the
+  row header alone.** None of the three is allowed on a `rowheader`, so they go on the row
+  (`HeadersUI#updateRowAttributes`, reaching the `TR` through `TH.parentElement`, written from
+  `afterGetRowHeader`). The APG puts `aria-expanded` on the row OR on a cell of it; the header is the
+  cell that takes the focus, and a copy on the row too would be read twice, so do not add one.
+  Walkontable strips every `aria-*` from a `TH` on each paint but **never from a `TR`**, and it
+  recycles `TR` elements across rows, so every write covers all three and a row the cache does not
+  know clears them. Two cleanups exist because the writer is a header hook. `disablePlugin()` walks
+  `tbody tr` (`removeRenderedRowAttributes()`), not the headers. And `afterUpdateSettings` clears the
+  rows once `rowHeaders` is off, because `afterGetRowHeader` stops firing then while the recycled
+  `TR` elements keep what they carried (both pinned in `tests/e2e/nested-rows-treegrid-a11y.spec.ts`).
+  A grid without `rowHeaders` therefore gets no row attributes at all - it has no button and no
+  focusable header either - and every overlay copy of a row gets identical attributes.
+- **The sibling position comes from the flatten cache, never from `indexOf`, and it counts the
+  data.** `#cacheSiblings()` records `position` and `setSize` in `nodeInfo`, counting only object
+  entries (a `null` among the children is not a row), so the per-row read during a render is O(1).
+  An `indexOf` over a 10k-row top level, per rendered row, per overlay copy, is millions of
+  comparisons per scroll. The cost of the cache: siblings that `HiddenRows` or `TrimRows` takes out
+  of view are still counted. That limit is documented in the guide; lifting it means recounting on
+  every hiding or trimming change.
+- **Only user gestures announce.** `toggleParentByUser()` (the button, <kbd>Enter</kbd>, the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow chords)
+  wraps the choke point and announces through the shared announcer's POLITE region
+  (`announce(message, 'polite')`, created lazily next to the assertive one, so a grid that never
+  announces politely still carries one element). The public methods stay silent on purpose: an app
+  driving them knows what it changed, and `collapseAll()` would queue one message per parent. The
+  `ariaTags: false` grid announces nothing. The row is named by the TEXT its rendered header shows
+  (`getCell(row, -1)` and its `.rowHeader` span), never by `getRowHeader()`: a header configured as
+  HTML came back with its markup, and the screen reader read the tags aloud. "rows shown" is a delta of
+  `rowIndexMapper.getRenderableIndexesLength()`, not of `countRows()`: a row `HiddenRows` hides keeps
+  its visual index, so `countRows()` announced it as shown. The phrase avoids a plural
+  ("rows shown: [count]") because the phrase formatters cannot pluralize and substitute in one call -
+  `pluralize` needs an integer argument, `substitute` an object, and `getTranslatedPhrase()` passes
+  the same one to both.
+- **The tree keys are <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrows on a row header, never the plain arrows.**
+  The plain arrows navigate the selection everywhere in the grid, and taking them over on the header
+  changed what <kbd>→</kbd> did on a collapsed parent. The WAI-ARIA treegrid pattern's cell-focus mode
+  leaves the arrows to navigation and makes <kbd>Enter</kbd> the toggle, which is what the plain keys
+  do here. <kbd>Alt</kbd>+arrows, the other common choice among data grids, was rejected because
+  <kbd>Alt</kbd>+<kbd>←</kbd> is the browser's Back on Windows and Linux. The chord is the same one the
+  grid uses to jump to the row's edge (`Control/Meta`, so <kbd>Cmd</kbd> on macOS), so no further
+  native shortcut is claimed, and it is the reason the tree keys cannot work from a cell: there the
+  jump has to win.
+- **On a row header the chord never falls through to the jump.** `runOnlyIf` asks only whether a row
+  header holds the focus, so the group claims the chord there even when `#getTreeArrowCommand()`
+  returns `null` (an expanded parent's or a leaf's inline-end chord, a top-level row's inline-start
+  chord), and the key then does nothing. A fall-through made the same chord expand one row and jump
+  to the last cell on the next, which is the ambiguity the product wanted gone: on a tree row's
+  header, Ctrl/Cmd+arrows are tree keys only. Inline end is `ArrowRight` in LTR and `ArrowLeft` in
+  RTL (`hot.isRtl()`). The
+  walk to a parent declines when the parent is not RENDERED: `toVisualRow()` catches a trimmed
+  parent, but a parent `HiddenRows` hides keeps its visual index, and `selectCell()` there parked the
+  focus on an invisible header, after which every treegrid key stopped answering. The keys act only on
+  a focused row header (`navigableHeaders`), like <kbd>Enter</kbd>, and none of them acts while an
+  overlay covers the grid body (`isGridBodyCovered()` in `#getFocusedRowHeader()`). Not
+  `canAccessCellContent()`: that also asks for rendered cells, and with every column hidden it took
+  <kbd>Enter</kbd> on a still-visible row header away, which worked before.
+- **They sit before `GRID_GROUP`, and that works only because the grid's entry is the only one on
+  those keys.** `Context#addShortcut()` computes `'before'` as the group's index minus one, so for a
+  group at index 0 it is `splice(-1, ...)`: with a single entry that still lands in front, but a host
+  shortcut appended after the grid's would put the chord behind the jump. Fixing the helper was tried
+  and reverted, because it reorders every existing `'before'` registrant: on a collapsible and sortable
+  bottom column header <kbd>Enter</kbd> stopped collapsing and started sorting.
 ## How it interacts with the rest of the grid
 
 - **Pagination** declares a hard conflict against `nestedRows`
@@ -675,6 +743,7 @@ They are written in different places and can drift. Keep this in mind:
 | `tests/e2e/nested-rows-remove-parent.spec.ts` | Playwright: removing a parent takes its whole subtree, on a **four-level** tree |
 | `tests/e2e/nested-rows-undo.spec.ts` | Playwright: undo restores a removed parent and its descendants |
 | `tests/e2e/nested-rows-collapse-selection.spec.ts` | Playwright: where the selection lands when a collapse trims the row holding it |
+| `tests/e2e/nested-rows-treegrid-a11y.spec.ts` | Playwright: the treegrid row attributes on a three-level tree (also across `TR` recycling, a data replacement, and the plugin switched off), the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow chords and <kbd>Enter</kbd> on a row header (LTR and RTL, never the grid's jump there, Enter with every column hidden), plain arrows left to navigation, the cleanup when `rowHeaders` is switched off, the HiddenRows cases (a hidden parent, rendered-row counting), and the polite announcements (gestures only, never the API or an `ariaTags: false` grid; named by the header's rendered text, HTML included) |
 | `tests/e2e/nested-rows-clear-column.spec.ts` | Playwright: "Clear column" reaches the rows of collapsed parents, keeps the collapse and the selection, undoes in one step (Formulas included, with a listener removing rows mid-clear, and when every visible cell is read-only), survives a validator and a listener that removes rows, keeps the caller's range, enables the item when only hidden cells are editable, works through `executeCommand()` before any open, and leaves a user callback and TrimRows alone |
 
 Physical layouts of the shared fixtures, which the specs depend on:

@@ -158,6 +158,8 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Could not remove rows',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Request failed',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Refetch',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Expanded row [label], rows shown: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Collapsed row [label]',
 };
 
 export default dictionary;

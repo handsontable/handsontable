@@ -245,11 +245,15 @@ The <kbd>**Enter**</kbd> shortcut works only when a collapsible column group hea
 
 These keyboard shortcuts work in [row groups](@/guides/rows/row-parent-child/row-parent-child.md), also known as "nested rows". To activate them, enable the [`NestedRows`](@/api/nestedRows.md) plugin.
 
-The <kbd>**Enter**</kbd> shortcut works only when a row header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+These shortcuts work only when a row header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
 
-| Windows              | macOS                | Action                           |  Excel  | Sheets  |
-| -------------------- | -------------------- | -------------------------------- | :-----: | :-----: |
-| <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Collapse or expand the row group | &cross; | &cross; |
+| Windows              | macOS                | Action                                                                                                 |
+| -------------------- | -------------------- | ------------------------------------------------------------------------------------------------------ |
+| <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Collapse or expand the row group                                                                       |
+| <kbd>**Ctrl**</kbd>+<kbd>**→**</kbd> | <kbd>⌘</kbd>+<kbd>**→**</kbd> | Expand a collapsed parent row                                                                 |
+| <kbd>**Ctrl**</kbd>+<kbd>**←**</kbd> | <kbd>⌘</kbd>+<kbd>**←**</kbd> | Collapse an expanded parent row. Otherwise, move the focus to the header of the parent row, if any |
+
+In a right-to-left layout ([`layoutDirection: 'rtl'`](@/api/options.md#layoutdirection)), the <kbd>**←**</kbd> and <kbd>**→**</kbd> keys swap their actions. The arrow keys without a modifier move the selection, as they do in every grid. On a row header, <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**←**</kbd> and <kbd>**→**</kbd> don't jump to the first or last cell of the row. To move along the row from a row header, use <kbd>**→**</kbd> or <kbd>**End**</kbd>.
 
 ### Rows sorting keyboard shortcuts
 

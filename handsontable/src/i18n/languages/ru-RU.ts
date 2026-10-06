@@ -151,6 +151,8 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Не удалось удалить строки',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Запрос не выполнен',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Повторить загрузку',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Развёрнута строка [label], показано строк: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Свёрнута строка [label]',
 };
 
 export default dictionary;

@@ -2,10 +2,23 @@ import type { HotInstance } from '../../../core/types';
 import type { NestedRows } from '../nestedRows';
 import { arrayEach } from '../../../helpers/array';
 import { rangeEach } from '../../../helpers/number';
-import { addClass, setAttribute, empty } from '../../../helpers/dom/element';
+import { addClass, setAttribute, removeAttribute, empty } from '../../../helpers/dom/element';
 import BaseUI from './_base';
-import { A11Y_EXPANDED, A11Y_HIDDEN } from '../../../helpers/a11y';
+import {
+  A11Y_EXPANDED,
+  A11Y_HIDDEN,
+  A11Y_LEVEL,
+  A11Y_POSINSET,
+  A11Y_SETSIZE,
+} from '../../../helpers/a11y';
 import { createIcon } from '../../../themes/engine/icons';
+import type { RowSetPosition } from '../data/dataManager';
+
+/**
+ * The treegrid attributes this plugin writes on a row's `TR`. Walkontable recycles `TR` elements
+ * across rows and never strips these, so every write has to cover all of them.
+ */
+const ROW_ARIA_ATTRIBUTES = ['aria-level', 'aria-posinset', 'aria-setsize'];
 
 /**
  * Minimal interface for DataManager methods used by HeadersUI.
@@ -13,6 +26,7 @@ import { createIcon } from '../../../themes/engine/icons';
 interface NestedRowsDataManager {
   getDataObject(rowIndex: number): Record<string, unknown> | null;
   getRowLevel(rowIndex: number): number;
+  getRowSetPosition(rowIndex: number): RowSetPosition | null;
   hasChildren(rowObject: Record<string, unknown>): boolean;
   cache: { levelCount: number };
 }
@@ -110,6 +124,8 @@ class HeadersUI extends BaseUI {
     const rowIndex = this.hot.toPhysicalRow(row);
     const rowObject = this.dataManager!.getDataObject(rowIndex);
 
+    this.updateRowAttributes(TH, rowObject ? rowIndex : null);
+
     if (!rowObject) {
       return;
     }
@@ -175,6 +191,76 @@ class HeadersUI extends BaseUI {
   }
 
   /**
+   * Writes the treegrid row attributes (`aria-level`, `aria-posinset` and `aria-setsize`) on the
+   * `TR` that holds the row header.
+   *
+   * They go on the row because none of them is supported on a `rowheader`. `aria-expanded` stays on
+   * the header alone: the WAI-ARIA treegrid pattern puts it on the row or on a cell of the row, and
+   * the header is the cell that takes the keyboard focus, so a second copy on the row would only be
+   * read twice. A row is painted in the master table and in every overlay that covers it, and each
+   * copy gets the same attributes.
+   *
+   * @private
+   * @param {HTMLTableCellElement} TH Row header element.
+   * @param {number|null} physicalRow Physical row index, or `null` to only clear the attributes.
+   */
+  updateRowAttributes(TH: HTMLTableCellElement, physicalRow: number | null) {
+    const TR = TH.parentElement;
+
+    if (!TR || TR.tagName !== 'TR') {
+      return;
+    }
+
+    const setPosition = physicalRow === null ? null : this.dataManager!.getRowSetPosition(physicalRow);
+
+    if (!setPosition || !this.hot.getSettings().ariaTags) {
+      removeAttribute(TR, ROW_ARIA_ATTRIBUTES);
+
+      return;
+    }
+
+    setAttribute(TR, [
+      A11Y_LEVEL(this.dataManager!.getRowLevel(physicalRow!) + 1),
+      A11Y_POSINSET(setPosition.position),
+      A11Y_SETSIZE(setPosition.setSize),
+    ]);
+  }
+
+  /**
+   * Removes the treegrid row attributes from every row this instance has rendered.
+   *
+   * Walks the `TR` elements, not the row headers: the attributes are written from
+   * `afterGetRowHeader`, which stops firing once `rowHeaders` is switched off, and Walkontable keeps
+   * recycling the `TR` elements that still carry them.
+   *
+   * @private
+   */
+  removeRenderedRowAttributes() {
+    const rows = this.hot.rootElement.querySelectorAll<HTMLTableRowElement>('tbody tr');
+
+    rows.forEach((TR) => {
+      if (this.#isOwnRenderedElement(TR)) {
+        removeAttribute(TR, ROW_ARIA_ATTRIBUTES);
+      }
+    });
+  }
+
+  /**
+   * Tells whether a rendered table element belongs to this instance: the nearest `handsontable`
+   * ancestor above its table is this instance's root. `ht_master` and every `ht_clone_*` carry that
+   * class, as does the root, while on a window-scrolled grid an overlay sits inside a rail element
+   * that carries neither. That is what keeps a grid rendered inside a cell out of the walks.
+   *
+   * @param {HTMLElement} element An element inside a rendered table.
+   * @returns {boolean}
+   */
+  #isOwnRenderedElement(element: HTMLElement): boolean {
+    const table = element.closest('.handsontable');
+
+    return table?.parentElement?.closest('.handsontable') === this.hot.rootElement;
+  }
+
+  /**
    * Removes the nesting-level indicator nodes (the collapse/expand button and the indent spacers)
    * appended to a row header's inner container. Only direct children of that container are taken,
    * which is where `appendLevelIndicators()` puts them; a deeper node with a matching class belongs
@@ -200,7 +286,8 @@ class HeadersUI extends BaseUI {
   }
 
   /**
-   * Removes the nesting-level indicators from every row header this instance has rendered.
+   * Removes the nesting-level indicators from every row header this instance has rendered, and the
+   * treegrid attributes from every row.
    *
    * Walks the DOM rather than resolving coordinates. A row header is painted in the master table and
    * in every overlay that covers its row - up to four copies for a frozen row - and `getCell()` can
@@ -210,24 +297,20 @@ class HeadersUI extends BaseUI {
    * anything that reaches `countRows()` - `getCell()` does, through the `fixedRowsTop` setting -
    * throws there.
    *
-   * A header is taken when the nearest `handsontable` ancestor above its table is this instance's
-   * root: `ht_master` and every `ht_clone_*` carry that class, as does the root, while on a
-   * window-scrolled grid an overlay sits inside a rail element that carries neither. That is what
-   * keeps a grid rendered inside a cell out of the walk.
+   * Only the headers of this instance are taken, never those of a grid rendered inside a cell.
    *
    * @private
    */
   removeRenderedLevelIndicators() {
-    const { rootElement } = this.hot;
-    const rowHeaders = rootElement.querySelectorAll<HTMLTableCellElement>('tbody th');
+    const rowHeaders = this.hot.rootElement.querySelectorAll<HTMLTableCellElement>('tbody th');
 
     rowHeaders.forEach((TH) => {
-      const table = TH.closest('.handsontable');
-
-      if (table?.parentElement?.closest('.handsontable') === rootElement) {
+      if (this.#isOwnRenderedElement(TH)) {
         this.removeLevelIndicators(TH);
       }
     });
+
+    this.removeRenderedRowAttributes();
   }
 
   /**

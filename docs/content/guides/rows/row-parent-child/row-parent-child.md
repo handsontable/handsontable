@@ -439,13 +439,38 @@ You have two ways to give the labels room:
   are rendered, so the indentation and the button are counted, and it sizes the column to the longest
   label.
 
+## Accessibility
+
+The `NestedRows` plugin follows the [WAI-ARIA treegrid pattern](https://www.w3.org/WAI/ARIA/apg/patterns/treegrid/): rows tell assistive technologies where they sit in the tree, and keyboard users can collapse or expand parent rows from a focused row header. To let keyboard users reach the row headers, enable [`navigableHeaders`](@/api/options.md#navigableheaders). As in the pattern's cell-only focus mode, the arrow keys keep moving the selection, and <kbd>**Enter**</kbd> toggles the row.
+
+### Screen readers
+
+With [`ariaTags`](@/api/options.md#ariatags) (the default) and [`rowHeaders`](@/api/options.md#rowheaders) enabled, each row element (`role="row"`) gets:
+
+- `aria-level`: the row's depth in the tree. A top-level row has level 1.
+- `aria-posinset` and `aria-setsize`: the row's position among its siblings, and the number of siblings.
+
+The row header of a parent row gets `aria-expanded`, set to `true` or `false`. Rows without children don't get this attribute.
+
+The attributes update when you collapse or expand a row and when you load new data. They are removed when you disable the plugin or switch off `rowHeaders`. Not every screen reader reads them: VoiceOver on macOS announces the expanded state but not the level or the position.
+
+The position and the number of siblings come from your data. Rows that the [`HiddenRows`](@/api/hiddenRows.md) or [`TrimRows`](@/api/trimRows.md) plugin removes from view are still counted.
+
+When you collapse or expand a row with the keyboard or with the row header button, Handsontable announces the change through a polite live region: for example, "Expanded row 1, rows shown: 5" or "Collapsed row 1". The row is named after the text its row header shows, the same label sighted users see next to the row, or after its row number when the header is empty. Changes made through the API methods are not announced, so your application can describe them in its own words. With `ariaTags` set to `false`, nothing is announced.
+
+The announcement text is translated. To change it, override the `NestedRows:announcement.expanded` and `NestedRows:announcement.collapsed` keys in your [language dictionary](@/guides/internationalization/language/language.md).
+
 ### Keyboard shortcuts
 
-This header-focused shortcut works only when a row header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+These header-focused shortcuts work only when a row header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
 
-| Windows              | macOS                | Action                           |  Excel  | Sheets  |
-| -------------------- | -------------------- | -------------------------------- | :-----: | :-----: |
-| <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Collapse or expand the row group | &cross; | &cross; |
+| Windows              | macOS                | Action                                                                                                 |
+| -------------------- | -------------------- | ------------------------------------------------------------------------------------------------------ |
+| <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Collapse or expand the row group                                                                       |
+| <kbd>**Ctrl**</kbd>+<kbd>**→**</kbd> | <kbd>⌘</kbd>+<kbd>**→**</kbd> | Expand a collapsed parent row                                                                 |
+| <kbd>**Ctrl**</kbd>+<kbd>**←**</kbd> | <kbd>⌘</kbd>+<kbd>**←**</kbd> | Collapse an expanded parent row. Otherwise, move the focus to the header of the parent row, if any |
+
+In a right-to-left layout ([`layoutDirection: 'rtl'`](@/api/options.md#layoutdirection)), the <kbd>**←**</kbd> and <kbd>**→**</kbd> keys swap their actions. The arrow keys without a modifier move the selection, as they do in every grid. On a row header, <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**←**</kbd> and <kbd>**→**</kbd> don't jump to the first or last cell of the row. To move along the row from a row header, use <kbd>**→**</kbd> or <kbd>**End**</kbd>.
 
 ## Related articles
 
