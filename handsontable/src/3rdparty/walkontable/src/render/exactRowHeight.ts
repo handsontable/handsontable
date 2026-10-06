@@ -49,6 +49,14 @@ export const EXACT_ROW_CLASS = 'htExactRow';
 const exactRows = new WeakSet<HTMLElement>();
 
 /**
+ * The rows whose first cell could not carry the height, so the height was pinned on the row element, with the
+ * string written. Tracking them keeps the release to the pins this module wrote, and compares the next write with
+ * what was written rather than with what the browser reads back (it normalizes a fractional height, so the
+ * read-back never matches the string written and every draw would rewrite the pin).
+ */
+const pinnedRows = new WeakMap<HTMLElement, string>();
+
+/**
  * Whether the node is the engine's clipping wrapper.
  *
  * @param {Node|null} node The node to test.
@@ -153,6 +161,8 @@ function canCarryHeight(cell: HTMLElement): boolean {
 function applyExactShape(TR: HTMLElement, pixelHeight: string): void {
   addClass(TR, EXACT_ROW_CLASS);
   exactRows.add(TR);
+  // The exact shape owns the row element's height from here on.
+  pinnedRows.delete(TR);
 
   const cells = TR.children;
   const carried: HTMLElement[] = [];
@@ -239,6 +249,8 @@ function releaseExactShape(TR: HTMLElement): void {
  *   adds for a cell spanning several rows, and the default height (`getDefaultHeight`) for a row without one.
  *   Asked only for a row whose first cell cannot carry the height.
  * @param {number} [sourceIndex] The row's source index, for `ownHeights`.
+ * @param {boolean} [drawsTopBorder] Whether this row is the first row of a table that draws its own 1px top
+ *   border (see `firstRowDrawsTopBorder`). The caller knows the row's position and the table's head row.
  */
 export function applyRowHeight(
   TR: HTMLElement,
@@ -247,6 +259,7 @@ export function applyRowHeight(
   isBorderBox: boolean,
   ownHeights?: OwnRowHeights,
   sourceIndex?: number,
+  drawsTopBorder = false,
 ): void {
   const firstChild = TR.firstChild;
 
@@ -276,19 +289,22 @@ export function applyRowHeight(
   // browser would split the span's height between the rows as it likes, and each pane would draw them
   // differently. Such a row is pinned on the row element instead, at its own height or the default one (the
   // span keeps the height the host gave it). The pin comes off as soon as the first cell can carry the
-  // height again, because a row height left behind is a minimum that would stop the row shrinking.
-  let rowElementHeight = '';
-
+  // height again, because a row height left behind is a minimum that would stop the row shrinking. Only
+  // the pins written here are taken off: a row element a renderer or a hook gave a height of its own is
+  // never touched.
   if (!canCarryHeight(firstChild) && ownHeights !== undefined && sourceIndex !== undefined) {
     const providedHeight = ownHeights.getHeight(sourceIndex);
     const ownHeight = providedHeight !== undefined && providedHeight > 0 ?
-      providedHeight : getDefaultRowElementHeight(TR, ownHeights);
+      providedHeight : (ownHeights.getDefaultHeight() ?? 0) + (drawsTopBorder ? 1 : 0);
+    const rowElementHeight = toRowElementHeight(ownHeight, isBorderBox);
 
-    rowElementHeight = toRowElementHeight(ownHeight, isBorderBox);
-  }
+    if (pinnedRows.get(TR) !== rowElementHeight) {
+      TR.style.height = rowElementHeight;
+      pinnedRows.set(TR, rowElementHeight);
+    }
 
-  if (TR.style.height !== rowElementHeight) {
-    TR.style.height = rowElementHeight;
+  } else if (pinnedRows.delete(TR)) {
+    TR.style.height = '';
   }
 }
 
@@ -299,23 +315,6 @@ export function applyRowHeight(
 interface OwnRowHeights {
   getHeight(sourceIndex: number): number | undefined;
   getDefaultHeight(): number | null;
-}
-
-/**
- * Returns the height of a row without a height of its own. The first row of a table whose head row is empty
- * draws its own 1px top border (`thead:not(:empty) + tbody > tr:first-child` in the stylesheet takes it away
- * otherwise), so it is one pixel taller than the default, the same way `StylesHandler#getDefaultRowHeight`
- * counts it for the first rendered row. A recorded or provided height already includes that pixel.
- *
- * @param {HTMLElement} TR The row element.
- * @param {object} ownHeights Answers the default row height.
- * @returns {number}
- */
-function getDefaultRowElementHeight(TR: HTMLElement, ownHeights: OwnRowHeights): number {
-  const drawsTopBorder = TR.previousElementSibling === null &&
-    !TR.parentElement?.previousElementSibling?.hasChildNodes();
-
-  return (ownHeights.getDefaultHeight() ?? 0) + (drawsTopBorder ? 1 : 0);
 }
 
 /**

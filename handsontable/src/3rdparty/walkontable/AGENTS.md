@@ -646,15 +646,20 @@ hooked height as before. Both call sites pass the row-size source and the source
 `sourceRowIndex`) rather than a closure, and the source is asked only for a row whose first cell cannot carry
 the height, so a grid without merges pays one style read per row.
 
-Four rules ride along:
+Five rules ride along:
+- **Only a pin this module wrote is ever taken off** (`pinnedRows`, a `WeakSet` like `exactRows`). The floor path
+  used to leave the row element alone, so a renderer or an `afterRenderer` hook that sizes `TD.parentElement`
+  still works; clearing `tr.style.height` for every row whose first cell can carry the height would have wiped it
+  on every draw.
 - **The pin is the row's OWN height, not the hooked one** (`RowUtils#getHeight`): the inflated height would make
   the row as tall as the block.
 - **A row without a height of its own is pinned at the default height, plus the first row's border pixel.** A
   row the block covers entirely has no cell to size it, and the browser hands the whole span to whichever row it
   likes (measured: 29.5/29.5 for a 30/29 pair). The first row of a table whose head row is empty draws its own
-  1px top border (`thead:not(:empty) + tbody > tr:first-child`), so it is the default plus one, decided from the
-  table's DOM exactly as the stylesheet decides it (`getDefaultRowElementHeight`). A recorded or provided height
-  already includes that pixel. The host's inflation has to stay: pinning alone, with no inflated span, collapsed
+  1px top border (`thead:not(:empty) + tbody > tr:first-child`), so it is the default plus one. The question is
+  asked in ONE place, `firstRowDrawsTopBorder(thead)` (`axisSizing/boxModel.ts`), which `markOversizedRows`
+  shares; the callers hand `applyRowHeight` the answer for the row (`isFirstRow && drawsTopBorder`) rather than
+  letting it sniff the DOM. A recorded or provided height already includes that pixel. The host's inflation has to stay: pinning alone, with no inflated span, collapsed
   rows a block covers entirely and broke seven legacy MergeCells specs.
 - **Clear the pin as soon as the first cell can carry the height again.** A row height is a minimum in CSS table
   layout, and the row elements are recycled across rows, so one left behind would stop an ordinary row

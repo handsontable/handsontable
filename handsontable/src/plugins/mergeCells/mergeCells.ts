@@ -464,9 +464,10 @@ export class MergeCells extends BasePlugin {
     this.addHook('modifyGetCellCoords', this.#onModifyGetCellCoords);
     this.addHook('modifyGetCoordsElement', this.#onModifyGetCellCoords);
     this.addHook('afterIsMultipleSelection', this.#onAfterIsMultipleSelection);
-    this.addHook('beforeRenderer', (TD: HTMLTableCellElement) => this.#cellRenderer.before(TD));
+    this.addHook('beforeRenderer', this.#onBeforeRenderer);
     this.addHook('afterRenderer',
       (TD: HTMLTableCellElement, row: number, col: number) => this.#cellRenderer.after(TD, row, col));
+    this.addHook('beforeViewRender', this.#onBeforeViewRender);
     this.addHook('afterContextMenuDefaultOptions',
       (defaultOptions: { items: unknown[] }) => this.#addMergeActionsToContextMenu(defaultOptions));
     this.addHook('afterGetCellMeta', this.#onAfterGetCellMeta);
@@ -3778,6 +3779,63 @@ export class MergeCells extends BasePlugin {
   };
 
   /**
+   * Runs before a cell is rendered and takes the content window off a cell that has one, so the cell renderer
+   * finds the cell the way it left it. The renderer keeps the registry of the cells that have a window, so a
+   * cell that never had one costs a single lookup.
+   *
+   * @param {HTMLTableCellElement} TD The cell about to be rendered.
+   */
+  #onBeforeRenderer = (TD: HTMLTableCellElement) => {
+    this.#cellRenderer.before(TD);
+  };
+
+  /**
+   * The column widths epoch (`TableView#getColumnWidthEpoch`) the content windows were last refreshed for.
+   */
+  #columnWidthEpoch = 0;
+
+  /**
+   * Runs before the grid is drawn. Under `renderMode: 'onChange'` a cell whose value, meta and band did not
+   * change is not painted, and the width of the content window of a merged block that crosses a freeze line
+   * is part of none of those: a resized or re-stretched column inside the block would leave the frozen pane
+   * with the old width. When the column widths changed since the last draw, the cells of such blocks are
+   * marked as changed, so this draw repaints them.
+   */
+  #onBeforeViewRender = () => {
+    const epoch = this.hot.view.getColumnWidthEpoch();
+
+    if (epoch === this.#columnWidthEpoch) {
+      return;
+    }
+
+    this.#columnWidthEpoch = epoch;
+
+    if (this.hot.getSettings().renderMode === 'onChange') {
+      this.#markBlocksCrossingFrozenColumnsChanged();
+    }
+  };
+
+  /**
+   * Marks the cells of the merged blocks that cross the `fixedColumnsStart` or `fixedColumnsEnd` freeze line as
+   * changed.
+   */
+  #markBlocksCrossingFrozenColumnsChanged() {
+    const countCols = this.hot.countCols();
+    // Both edges are visual column indexes, like the blocks' columns: the not-hidden count of the start band
+    // would move the edge left of the freeze line for every hidden column in the band.
+    const startEdge = Math.min(Number(this.hot.getSettings().fixedColumnsStart) || 0, countCols);
+    const endEdge = countCols - this.hot.view.countFixedColumnsEnd();
+
+    this.mergedCellsCollection.mergedCells.forEach(({ row, col, colspan }: MergedCellCoords) => {
+      const lastColumn = col + colspan - 1;
+
+      if ((col < startEdge && lastColumn >= startEdge) || (col < endEdge && lastColumn >= endEdge)) {
+        this.hot.markCellChanged(row, col);
+      }
+    });
+  }
+
+  /**
    * Opts the table out of single-pass rendering while merged cells are present. A virtualized merged
    * cell's height depends on which rows are in the viewport — the very thing the predicted layout is
    * trying to compute — so merge tables keep the legacy measure-then-render path. The opt-out is about
@@ -3839,7 +3897,10 @@ export class MergeCells extends BasePlugin {
       overlayType === 'top_inline_start_corner' ||
       overlayType === 'top_inline_end_corner'
     ) {
-      rowsToSum = Math.min(rowsToSum, this.hot.view.countNotHiddenFixedRowsTop() - row);
+      // The top overlay renders the first `fixedRowsTop` rows by visual index (hidden ones add no height in the
+      // sum), so the clamp counts visual rows: the not-hidden count would cut a row off the span for every
+      // hidden row above the block.
+      rowsToSum = Math.min(rowsToSum, (Number(this.hot.getSettings().fixedRowsTop) || 0) - row);
     }
 
     if (rowsToSum <= 1) {
