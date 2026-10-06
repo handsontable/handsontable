@@ -302,7 +302,9 @@ may follow it. Space and line breaks around the whole key are trimmed for you, s
 trailing newline still works.
 
 Handsontable 18.1 does not ignore line breaks inside the block. If you use 18.1, make sure the block
-is on one line, with no spaces in it.
+is on one line, with no spaces in it. Later versions check the whole key more strictly than 18.1, so
+before you upgrade from 18.1, make sure you pass the whole key, exactly as you received it - not
+only the bracketed block, and with nothing after it.
 
 When you store the key in an environment variable, a `.env` file, or a CI secret, put it on one
 line. In a `.env` file, also wrap the key in single quotes (`'...'`), or in backticks if the key text

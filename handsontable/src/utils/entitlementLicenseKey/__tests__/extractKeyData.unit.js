@@ -1,4 +1,9 @@
-import { extractEntitlementKeyData, getProductEntitlement, canonicalizeProse } from '../extractKeyData';
+import {
+  extractEntitlementKeyData,
+  getProductEntitlement,
+  canonicalizeProse,
+  computeProseDigest,
+} from '../extractKeyData';
 import { detectLicenseKeyFormat, isEntitlementKey } from '../detectFormat';
 import { sha512 } from '../sha512';
 import { stringToUtf8Bytes } from '../encoding';
@@ -487,6 +492,8 @@ describe('entitlementLicenseKey/extractKeyData', () => {
         payloadOf(TRIAL_KEY).prose, // another key's digest
         payloadOf(SUBSCRIPTION_KEY).prose.toUpperCase(),
         payloadOf(SUBSCRIPTION_KEY).prose.slice(0, 63),
+        payloadOf(SUBSCRIPTION_KEY).prose.slice(0, 32),
+        '',
         undefined, // dropped by JSON.stringify
         null,
         64,
@@ -507,6 +514,58 @@ describe('entitlementLicenseKey/extractKeyData', () => {
     it('should reject a format version that no generator writes', () => {
       [0, 1, -2, 1.5, 2.5, '2', null, true, [2], {}].forEach((v) => {
         expect(extractEntitlementKeyData(buildTestKey({ ...payload, v }))).toBeNull();
+      });
+    });
+
+    it('should reject a format version that decodes to Infinity', () => {
+      // `1e999` parses to Infinity; it must not pass as a whole number. The same raw payload with
+      // `"v":2` reads, so only the version can reject it.
+      const prose = 'This is a test license key.';
+      const digest = computeProseDigest(canonicalizeProse(prose));
+      const products = JSON.stringify(payload).slice(0, -1);
+      const withVersion = v => `${products},"v":${v},"prose":"${digest}"}`;
+
+      expect(extractEntitlementKeyData(buildTestKey(null, { prose, rawPayloadJson: withVersion('2') }))).not.toBeNull();
+      expect(extractEntitlementKeyData(buildTestKey(null, { prose, rawPayloadJson: withVersion('1e999') }))).toBeNull();
+    });
+
+    it('should not fold a compatibility character into another one (NFC, not NFKC)', () => {
+      // A fullwidth "F" is a different character; only NFKC would turn it into an ASCII "F".
+      const fullwidthF = String.fromCharCode(0xff26);
+
+      expect(extractEntitlementKeyData(SUBSCRIPTION_KEY.replace('Fixture', `${fullwidthF}ixture`))).toBeNull();
+    });
+
+    it('should read the last block when two keys were pasted together', () => {
+      const read = key => extractEntitlementKeyData(key);
+      const v1Trial = read(V1_TRIAL_KEY);
+
+      // A current key followed by an earlier-format one reads as the earlier-format key, the way
+      // Handsontable 18.1 reads it.
+      expect(read(`${TRIAL_KEY}\n\n${V1_TRIAL_KEY}`)).toEqual(v1Trial);
+      expect(read(`${V1_SUBSCRIPTION_KEY}\n\n${V1_TRIAL_KEY}`)).toEqual(v1Trial);
+      expect(read(`${TRIAL_KEY}\n\n${blockOf(V1_TRIAL_KEY)}`)).toEqual(v1Trial);
+      // A current key at the end protects its text, which now includes the first key.
+      expect(read(`${V1_TRIAL_KEY}\n\n${TRIAL_KEY}`)).toBeNull();
+      expect(read(`${SUBSCRIPTION_KEY}\n\n${TRIAL_KEY}`)).toBeNull();
+    });
+
+    it('should reject a malformed product entry in either format', () => {
+      const malformed = [
+        handsontableEntry({ release_until: SUBSCRIPTION_UNTIL }), // both dates
+        handsontableEntry({ usage_until: '2027-02-30' }),
+        handsontableEntry({ notice: -1 }),
+        handsontableEntry({ grace: 1.5 }),
+        handsontableEntry({ flags: 'trial' }),
+      ];
+
+      [1, 2].forEach((version) => {
+        malformed.forEach((malformedEntry) => {
+          expect(extractEntitlementKeyData(buildTestKey({ products: { handsontable: malformedEntry } }, { version })))
+            .toBeNull();
+        });
+        // The well-formed entry reads in the same format, so only the entry can reject it.
+        expect(extractEntitlementKeyData(buildTestKey(payload, { version }))).not.toBeNull();
       });
     });
 
