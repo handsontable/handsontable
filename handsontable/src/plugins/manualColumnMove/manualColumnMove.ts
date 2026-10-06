@@ -595,7 +595,50 @@ export class ManualColumnMove extends BasePlugin {
     }
 
     this.#backlight.setPosition(undefined, backlightStart);
-    this.#guideline.setPosition(undefined, guidelineStart);
+    this.#placeGuideline(guidelineStart, tdOffsetStart - (this.isFixedColumnsStart(hoveredColumn) ? scrollStart : 0));
+  }
+
+  /**
+   * Places the guideline. Over a frozen start column it goes into the frozen overlay and not into the master
+   * table: the overlay paints over the master as a whole (the master is a stacking context), so a guideline
+   * living in the master is covered there however high its `z-index` is. The line stays in the master
+   * everywhere else, where it scrolls with the columns.
+   *
+   * @param {number} masterStart The guideline start offset in the master table's coordinates.
+   * @param {number} overlayStart The same position in the frozen overlay's coordinates: the target column's
+   * offset without the scroll that the master coordinates add for a frozen column, and without the clamps
+   * `masterStart` goes through. Taken before them on purpose, so a window-scrolled grid is not shifted twice.
+   */
+  #placeGuideline(masterStart: number, overlayStart: number) {
+    const masterHider = this.hot.view._wt.wtTable.hider;
+    const overFrozen = this.isFixedColumnsStart(this.#hoveredColumn ?? 0);
+    const cloneTable = overFrozen ? this.hot.view._wt.wtOverlays.inlineStartOverlay.clone?.wtTable : undefined;
+    const cloneHider = cloneTable?.hider;
+
+    if (!cloneTable || !cloneHider) {
+      this.#attachGuideline(masterHider);
+      this.#guideline.setPosition(undefined, masterStart);
+
+      return;
+    }
+
+    this.#attachGuideline(cloneHider);
+    // The overlay's table starts at the grid's start edge. A drop at the freeze line is the table's last pixel: the
+    // overlay holder clips anything past it. The overlay's hider has no width of its own, so the table is measured.
+    this.#guideline.setPosition(undefined, Math.min(Math.max(overlayStart, 1), cloneTable.TABLE.offsetWidth - 1));
+  }
+
+  /**
+   * Moves the guideline into the given hider, unless it is already there. A guideline that was never appended is
+   * left alone: `onMouseDown` appends it together with the backlight, and appending it here first would make that
+   * check skip the backlight.
+   *
+   * @param {HTMLElement} hider The hider of the table to draw the guideline in.
+   */
+  #attachGuideline(hider: HTMLElement) {
+    if (this.#guideline.isAppended() && this.#guideline._element!.parentElement !== hider) {
+      this.#guideline.appendTo(hider);
+    }
   }
 
   /**
@@ -898,6 +941,9 @@ export class ManualColumnMove extends BasePlugin {
     this.#hoveredColumn = undefined;
     this.#pressed = false;
     this.#dragged = false;
+
+    // The next drag starts with the guideline in the master table, where `onMouseDown` expects it.
+    this.#attachGuideline(this.hot.view._wt.wtTable.hider);
 
     removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI, CSS_AFTER_SELECTION]);
 
