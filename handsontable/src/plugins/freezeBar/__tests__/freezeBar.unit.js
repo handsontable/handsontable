@@ -395,6 +395,88 @@ describe('FreezeBar', () => {
     expect(event.defaultPrevented).toBe(false);
   });
 
+  it('should not lower a count above the number of tracks with a step up', () => {
+    const plugin = createGrid({ fixedColumnsStart: 5, data: [['a', 'b', 'c']] });
+
+    hot.render();
+
+    const bar = container.querySelector('.ht-freeze-bar--start:not(.ht-freeze-bar--segment)');
+    const after = jest.fn();
+
+    hot.addHook('afterFreezeChange', after);
+    bar.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }));
+    bar.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true, cancelable: true }));
+
+    expect(plugin.getFreezeCount('start')).toBe(5);
+    expect(after).not.toHaveBeenCalled();
+  });
+
+  it('should let undo and redo through while a bar holds the focus, and keep every other chord from the grid', () => {
+    createGrid({ fixedColumnsStart: 2 });
+    hot.render();
+
+    const bar = container.querySelector('.ht-freeze-bar--start:not(.ht-freeze-bar--segment)');
+    const reached = [];
+    const listener = event => reached.push(`${event.ctrlKey ? 'ctrl+' : ''}${event.key}`);
+
+    document.addEventListener('keydown', listener);
+
+    try {
+      ['z', 'y', 'a', 'x', 'Delete'].forEach((key) => {
+        const init = { key, ctrlKey: key !== 'Delete', bubbles: true, cancelable: true };
+
+        bar.dispatchEvent(new KeyboardEvent('keydown', init));
+      });
+    } finally {
+      document.removeEventListener('keydown', listener);
+    }
+
+    expect(reached).toEqual(['ctrl+z', 'ctrl+y']);
+  });
+
+  it('should recover when the browser refuses to capture the pointer', () => {
+    createGrid({ fixedColumnsStart: 2 });
+    hot.render();
+
+    const bar = container.querySelector('.ht-freeze-bar--start:not(.ht-freeze-bar--segment)');
+    const press = (type) => {
+      const event = new MouseEvent(type, { button: 0, bubbles: true, cancelable: true });
+
+      Object.defineProperty(event, 'isPrimary', { value: true });
+      Object.defineProperty(event, 'pointerId', { value: 3 });
+      (type === 'pointerdown' ? bar : document).dispatchEvent(event);
+    };
+
+    bar.setPointerCapture = () => {
+      throw new Error('NotFoundError');
+    };
+
+    expect(() => press('pointerdown')).not.toThrow();
+    expect(bar.classList.contains('ht-freeze-bar--active')).toBe(true);
+
+    press('pointerup');
+
+    expect(bar.classList.contains('ht-freeze-bar--active')).toBe(false);
+
+    press('pointerdown');
+
+    expect(bar.classList.contains('ht-freeze-bar--active')).toBe(true);
+    press('pointerup');
+  });
+
+  it('should write a style of a bar only when its value changed', () => {
+    createGrid({ fixedColumnsStart: 2, fixedRowsTop: 1 });
+    hot.render();
+
+    const bars = [...container.querySelectorAll('.ht-freeze-bar')];
+    const writes = bars.map(bar => jest.spyOn(bar.style, 'setProperty'));
+
+    hot.render();
+    hot.render();
+
+    expect(writes.reduce((sum, spy) => sum + spy.mock.calls.length, 0)).toBe(0);
+  });
+
   it('should render nothing when the option is not set', () => {
     hot = new Handsontable(container, {
       licenseKey: 'non-commercial-and-evaluation',

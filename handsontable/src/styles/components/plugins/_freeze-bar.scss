@@ -105,6 +105,20 @@
             inset-inline-start: 0;
             width: var(--ht-freeze-bar-corner);
           }
+
+          // A finger gets the larger target on the drawn piece only. A strip along the whole edge would lie over
+          // the headers and the first row or column, and take their taps and swipes.
+          @media (pointer: coarse) {
+            &.ht-freeze-bar--start::before {
+              inset: 0 -20px auto -20px;
+              height: var(--ht-freeze-bar-corner);
+            }
+
+            &.ht-freeze-bar--top::before {
+              inset: -20px auto -20px 0;
+              width: var(--ht-freeze-bar-corner);
+            }
+          }
         }
       }
     }
