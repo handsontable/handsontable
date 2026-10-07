@@ -221,6 +221,10 @@ the `fixedColumnsStart` band and reaches past it, and it follows the same rule: 
 
 - E2E: `npm run test:e2e --prefix handsontable -- --testPathPattern='nestedHeaders'`
 - Unit: `npm run test:unit --prefix handsontable -- --testPathPattern='nestedHeaders'`
+- A collapsible group whose label is longer than the group:
+  `npm --prefix tests run test:e2e -- e2e/nested-headers-long-label.spec.ts` (Shift+Tab reaching the group,
+  Enter collapsing it, and the label cut with an ellipsis before the collapse icon, measured against the
+  icon element `.collapsibleIndicator__icon`, not the indicator's wider hit area, on every theme).
 - Move/reparent behavior: `__tests__/plugins/manualColumnMove/` — `general.spec.js` (cooperation:
   follow-data, collapse coordination, insert/remove, freeze) plus one file per `columnDropMode`
   strategy (`adopt.spec.js`, `split.spec.js`). **Add a new drop strategy's tests in its own

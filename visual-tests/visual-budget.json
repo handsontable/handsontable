@@ -6,20 +6,21 @@
     "judged per prefix rather than on the total, because a pr-tier build renders two of the eleven and",
     "comparing its two prefixes against the full total would pass anything.",
     "",
-    "`captureCap` is the per-spec ceiling. `capExceptions` lists the specs already over it with the",
-    "ticket that will bring them down; an exception without a ticket is refused, so the list cannot",
-    "quietly become the policy.",
+    "`captureCap` is the per-spec ceiling. A spec over it needs an entry in a `capExceptions` object,",
+    "keyed by its reg-suit stem, giving its `captures` and the `ticket` that will bring it down; an",
+    "exception without a ticket is refused, so the list cannot quietly become the policy. No spec is",
+    "over the cap, so the key is absent.",
     "",
     "Growing any number needs `[visual budget: N - reason]` in the pull-request description, where N is",
     "the new total. Shrinking one is free, and expected: a trimming pull request lowers the file in the",
     "same change that deletes the records."
   ],
   "prefixes": {
-    "js/chromium/": 133,
-    "js/chromium-theme-main/": 141,
-    "js/chromium-theme-main-dark/": 133,
-    "js/chromium-theme-horizon/": 133,
-    "js/chromium-theme-horizon-dark/": 133,
+    "js/chromium/": 51,
+    "js/chromium-theme-main/": 79,
+    "js/chromium-theme-main-dark/": 64,
+    "js/chromium-theme-horizon/": 51,
+    "js/chromium-theme-horizon-dark/": 51,
     "angular-wrapper/chromium/": 30,
     "react-wrapper/chromium/": 30,
     "vue3/chromium/": 30,
@@ -27,11 +28,5 @@
     "cross-browser/firefox/": 26,
     "cross-browser/webkit/": 26
   },
-  "captureCap": 4,
-  "capExceptions": {
-    "js-only/pagination/auto-page-size-table-with-defined-size": { "captures": 9, "ticket": "DEV-2981" },
-    "js-only/pagination/auto-page-size-table-without-defined-size": { "captures": 7, "ticket": "DEV-2981" },
-    "js-only/sheetsBar/tabs": { "captures": 6, "ticket": "DEV-2981" },
-    "js-only/dialog/dialog-focus": { "captures": 5, "ticket": "DEV-2981" }
-  }
+  "captureCap": 4
 }

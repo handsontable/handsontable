@@ -3,8 +3,12 @@ import { helpers } from '../../../src/helpers';
 import { selectCell } from '../../../src/page-helpers';
 
 /**
- * Verifies that four edge-adjustment handles are visible when hovering over a cell inside the pre-selected
- * range with `selectionHandles: true`. Owned by DEV-2981.
+ * Checks how the four edge-adjustment handles look when the pointer hovers a cell inside the pre-selected
+ * range with `selectionHandles: true`. One handle per edge, their centering on the selection's span and
+ * their orientation classes with no inline styling are asserted in `tests/e2e/selection-handles.spec.ts`.
+ * It renders on every js variant because `horizon` draws the handles longer
+ * (`--ht-cell-selection-handle-length`) and no other every-variant capture turns `selectionHandles` on;
+ * the bare run comes with the declaration. Owned by DEV-3285.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,
