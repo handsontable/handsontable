@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where selecting a cell pulled the grid back to that cell after the grid was scrolled elsewhere right after the selection, and where selecting a column wider than the viewport hid its start under the row headers.",
+  "type": "fixed",
+  "issueOrPR": 13768,
+  "breaking": false,
+  "framework": "none"
+}
