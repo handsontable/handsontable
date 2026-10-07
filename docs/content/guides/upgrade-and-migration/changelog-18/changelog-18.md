@@ -32,6 +32,24 @@ link is not parsed and the @/ path is not resolved per framework. -->
 
 </div>
 
+## 18.1.2
+
+Released on October 7th, 2026
+
+For more information about this release, see:
+
+<div class="boxes-list gray">
+
+- [Documentation (18.1)](https://handsontable.com/docs/18.1)
+
+</div>
+
+#### Changed
+- Changed entitlement license keys to protect their human-readable text as well as their bracketed block, so the block alone, edited text, or text after the block makes a current key invalid, while a rewrapped, one-line, or `\n`-escaped key still works. [#13743](https://github.com/handsontable/handsontable/pull/13743)
+
+#### Fixed
+- Fixed entitlement license keys whose bracketed block was broken across lines, for example by an email client, reading as invalid and locking the grid. [#13760](https://github.com/handsontable/handsontable/pull/13760)
+
 ## 18.1.1
 
 Released on September 15th, 2026

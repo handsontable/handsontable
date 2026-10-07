@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed entitlement license keys whose bracketed block was broken across lines, for example by an email client, reading as invalid and locking the grid.",
-  "type": "fixed",
-  "issueOrPR": 13760,
-  "breaking": false,
-  "framework": "none"
-}
