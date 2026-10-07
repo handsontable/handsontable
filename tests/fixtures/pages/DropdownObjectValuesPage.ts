@@ -148,10 +148,12 @@ export class DropdownObjectValuesPage {
   }
 
   /**
-   * The header cell of a column in the top overlay, found by its caption.
+   * The header cell of a column in the top overlay, found by its exact caption. The caption is
+   * matched as text, never compiled into a RegExp: captions carry `(`, `)` and `.`, which a pattern
+   * built from them would read as syntax.
    */
   header(caption: string): Locator {
-    return this.page.locator('.ht_clone_top th').filter({ hasText: new RegExp(`^${caption.replace(/[()]/g, '\\$&')}$`) });
+    return this.page.locator('.ht_clone_top th').filter({ has: this.page.getByText(caption, { exact: true }) });
   }
 
   /**
@@ -200,7 +202,7 @@ export class DropdownObjectValuesPage {
     await this.menu.locator('.htUIMultipleSelect a', { hasText: /^Clear$/ }).click();
 
     const checkbox = this.valueList
-      .filter({ has: this.page.locator('label', { hasText: new RegExp(`^${label}$`) }) })
+      .filter({ has: this.page.locator('label').getByText(label, { exact: true }) })
       .locator('input[type="checkbox"]');
 
     await checkbox.click();
