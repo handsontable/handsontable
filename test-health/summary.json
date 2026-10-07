@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-07T08:54:27.474Z",
+  "generatedAt": "2026-10-07T09:52:43.532Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 366,
     "needsTicket": 15,
     "quarantined": 0,
-    "entries": 1888
+    "entries": 1898
   },
   "rows": [
     {
@@ -585,6 +585,80 @@
         "leg": "e2e-classic",
         "status": "failed",
         "error": "Test timeout of 20000ms exceeded.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "visual|visual-tests/tests/js-only/sheetsBar/tabs.spec.ts|js-only/sheetsBar/tabs-1",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
+      "line": null,
+      "title": "js-only/sheetsBar/tabs-1",
+      "count7": 10,
+      "count30": 10,
+      "countAll": 10,
+      "runs30": 2,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "js/chromium",
+        "js/chromium-theme-horizon",
+        "js/chromium-theme-horizon-dark",
+        "js/chromium-theme-main",
+        "js/chromium-theme-main-dark"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-07T09:51:51Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37598169638",
+        "branch": "feature/DEV-3285_UI-state-visual-consolidation",
+        "leg": "js/chromium-theme-horizon-dark",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 9881152dc860",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "visual|visual-tests/tests/js-only/sheetsBar/tabs.spec.ts|js-only/sheetsBar/tabs-2",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
+      "line": null,
+      "title": "js-only/sheetsBar/tabs-2",
+      "count7": 10,
+      "count30": 10,
+      "countAll": 10,
+      "runs30": 2,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "js/chromium",
+        "js/chromium-theme-horizon",
+        "js/chromium-theme-horizon-dark",
+        "js/chromium-theme-main",
+        "js/chromium-theme-main-dark"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-07T09:51:51Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37598169638",
+        "branch": "feature/DEV-3285_UI-state-visual-consolidation",
+        "leg": "js/chromium-theme-horizon-dark",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 07733ee2f542",
         "source": "ci"
       },
       "needsTicket": false
@@ -10413,80 +10487,6 @@
         "leg": "UMD (theme: classic)",
         "status": "failed",
         "error": "Expected 0 to be greater than 0.",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "visual|visual-tests/tests/js-only/sheetsBar/tabs.spec.ts|js-only/sheetsBar/tabs-1",
-      "tier": "visual",
-      "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
-      "line": null,
-      "title": "js-only/sheetsBar/tabs-1",
-      "count7": 5,
-      "count30": 5,
-      "countAll": 5,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "js/chromium",
-        "js/chromium-theme-horizon",
-        "js/chromium-theme-horizon-dark",
-        "js/chromium-theme-main",
-        "js/chromium-theme-main-dark"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-07T07:37:20Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37474512660",
-        "branch": "feature/DEV-3285_UI-state-visual-consolidation",
-        "leg": "js/chromium-theme-horizon-dark",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 9881152dc860",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "visual|visual-tests/tests/js-only/sheetsBar/tabs.spec.ts|js-only/sheetsBar/tabs-2",
-      "tier": "visual",
-      "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
-      "line": null,
-      "title": "js-only/sheetsBar/tabs-2",
-      "count7": 5,
-      "count30": 5,
-      "countAll": 5,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "js/chromium",
-        "js/chromium-theme-horizon",
-        "js/chromium-theme-horizon-dark",
-        "js/chromium-theme-main",
-        "js/chromium-theme-main-dark"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-07T07:37:20Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37474512660",
-        "branch": "feature/DEV-3285_UI-state-visual-consolidation",
-        "leg": "js/chromium-theme-horizon-dark",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 07733ee2f542",
         "source": "ci"
       },
       "needsTicket": false
