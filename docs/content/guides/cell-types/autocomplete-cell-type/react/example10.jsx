@@ -14,15 +14,31 @@ const airports = [
   { key: 'SIN', value: { name: 'Singapore Changi Airport', city: 'Singapore', country: 'Singapore' } },
 ];
 
-const ExampleComponent = () => {
-  const shipments = [
-    ['Electronics and Gadgets', airports[0]],
-    ['Medical Supplies', airports[1]],
-    ['Fresh Produce', airports[2]],
-    ['Textiles', airports[3]],
-    ['Pharmaceuticals', airports[4]],
-  ];
+// Declared outside the component, so a re-render passes the same arrays and the grid keeps
+// its edits instead of reloading the data and the column settings.
+const shipments = [
+  ['Electronics and Gadgets', airports[0]],
+  ['Medical Supplies', airports[1]],
+  ['Fresh Produce', airports[2]],
+  ['Textiles', airports[3]],
+  ['Pharmaceuticals', airports[4]],
+];
 
+const columns = [
+  {
+    title: 'Shipment',
+  },
+  {
+    type: 'autocomplete',
+    source: airports,
+    // display the city and the name of each airport
+    sourceLabel: (airport) => `${airport.city} - ${airport.name}`,
+    title: 'Destination airport',
+    width: 400,
+  },
+];
+
+const ExampleComponent = () => {
   return (
     <HotTable
       height="auto"
@@ -30,19 +46,7 @@ const ExampleComponent = () => {
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={shipments}
-      columns={[
-        {
-          title: 'Shipment',
-        },
-        {
-          type: 'autocomplete',
-          source: airports,
-          // display the city and the name of each airport
-          sourceLabel: (airport) => `${airport.city} - ${airport.name}`,
-          title: 'Destination airport',
-          width: 400,
-        },
-      ]}
+      columns={columns}
     />
   );
 };

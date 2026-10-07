@@ -101,4 +101,14 @@ test.describe('key/value source with object values (sourceLabel)', () => {
 
     await expect(grid.options()).toHaveText(['United States', 'Poland', 'Japan']);
   });
+
+  test('lists an entry whose label resolves to nothing as empty, never as `undefined`', async() => {
+    // `location.city` on `{ location: null }` resolves to nothing. The list showed the word
+    // `undefined` for it, and picking that option stored the bare string `'undefined'`, because
+    // the lookup compares against the empty text the cell displays.
+    await grid.openEditor(0, 4);
+
+    await expect(grid.options()).toHaveText(['Paris', '']);
+  });
 });
+

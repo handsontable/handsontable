@@ -935,12 +935,17 @@ export class AutocompleteEditor extends HandsontableEditor {
     if (values.every(value => isKeyValueEntry(value))) {
       return values.map((value) => {
         const obj = value as Record<string, unknown>;
+        // Labeled before stringifying: an object `value` would otherwise reach the list as
+        // `[object Object]`, every option alike, and a pick would resolve to the first one.
+        const label = getChoiceLabel(obj.value, sourceLabel);
 
         return {
           key: processValue(obj.key),
-          // Labeled before stringifying: an object `value` would otherwise reach the list as
-          // `[object Object]`, every option alike, and a pick would resolve to the first one.
-          value: processValue(getChoiceLabel(obj.value, sourceLabel)),
+          // A label `sourceLabel` derived is stringified first, so a path that resolves to nothing
+          // lists as empty - the text the cell shows and the label lookup compares against - rather
+          // than as the word `undefined`, which a pick would then store as a bare string. A value
+          // that was not relabeled keeps the processing it always had.
+          value: processValue(label === obj.value ? label : stringify(label)),
         };
       });
     }

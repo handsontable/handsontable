@@ -59,18 +59,25 @@
       { key: 'JP', value: 'Japan' },
     ];
 
+    // A path that reaches a `null` midway for one entry: its label resolves to nothing, which the
+    // list must show as empty - the text the cell shows - and never as the word `undefined`.
+    const AIRPORTS = [
+      { key: 'CDG', value: { name: 'Charles de Gaulle Airport', location: { city: 'Paris' } } },
+      { key: 'XXX', value: { name: 'Unknown Field', location: null } },
+    ];
+
     let hot;
 
     try {
       hot = new Handsontable(container, {
         data: [
           // Row 0: both cells hold the FIRST entry - the one a broken lookup would fall back to.
-          [COUNTRIES[0], COUNTRIES[0], COUNTRIES[0], COUNTRIES_TEXT[0]],
+          [COUNTRIES[0], COUNTRIES[0], COUNTRIES[0], COUNTRIES_TEXT[0], AIRPORTS[0]],
           // Row 1: empty cells, the state a paste into a fresh cell starts from.
-          [null, null, null, null],
+          [null, null, null, null, null],
           // Rows 2-3: the remaining entries, so sorting and filtering have distinct labels to order.
-          [COUNTRIES[1], COUNTRIES[1], COUNTRIES[1], COUNTRIES_TEXT[1]],
-          [COUNTRIES[2], COUNTRIES[2], COUNTRIES[2], COUNTRIES_TEXT[2]],
+          [COUNTRIES[1], COUNTRIES[1], COUNTRIES[1], COUNTRIES_TEXT[1], AIRPORTS[0]],
+          [COUNTRIES[2], COUNTRIES[2], COUNTRIES[2], COUNTRIES_TEXT[2], AIRPORTS[0]],
         ],
         columns: [
           // Dropdown (strict by default) labeled by a property path.
@@ -95,12 +102,15 @@
           },
           // The control: same labels, no `sourceLabel`.
           { type: 'dropdown', source: COUNTRIES_TEXT, sortByRelevance: false, width: 200, renderer: testIdRenderer },
+          // A path label that resolves to nothing for one entry.
+          { type: 'dropdown', source: AIRPORTS, sourceLabel: 'location.city', width: 200, renderer: testIdRenderer },
         ],
         colHeaders: [
           'Country (dropdown, path)',
           'Country (autocomplete, function)',
           'Country (alphabetical)',
           'Country (text, control)',
+          'Airport (null path)',
         ],
         rowHeaders: true,
         columnSorting: true,
