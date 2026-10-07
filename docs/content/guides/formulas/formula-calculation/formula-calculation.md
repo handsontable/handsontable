@@ -501,12 +501,7 @@ To find out which HyperFormula version to use, see the table below:
 
 ::: tip
 
-You can use the `'internal-use-in-handsontable'` license key only in those HyperFormula instances
-that are connected to a Handsontable instance.
-
-To use HyperFormula outside of a Handsontable instance (e.g., on a server), you need a dedicated
-[HyperFormula license key](https://hyperformula.handsontable.com/guide/license-key.html). For
-details, [contact our Sales Team](https://handsontable.com/get-a-quote).
+The `'internal-use-in-handsontable'` license key applies to licenses purchased before 5 October 2026. Under the new pricing, HyperFormula is licensed separately from Handsontable. If you have questions about licensing HyperFormula, [contact our Sales Team](https://handsontable.com/get-a-quote).
 
 :::
 
