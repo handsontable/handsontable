@@ -636,13 +636,13 @@ export class FreezeBar extends BasePlugin {
     if (columns) {
       style[fromLeft ? 'left' : 'right'] = `${offset + shift[fromLeft ? 'left' : 'right']}px`;
       style.top = '0';
-      style.width = '2px';
+      style.width = 'var(--ht-sizing-size-0-5)';
       style.height = `${rootRect.height}px`;
     } else {
       style[growsFromStart(edge) ? 'top' : 'bottom'] =
         `${offset + shift[growsFromStart(edge) ? 'top' : 'bottom']}px`;
       style.left = '0';
-      style.height = '2px';
+      style.height = 'var(--ht-sizing-size-0-5)';
       style.width = `${rootRect.width}px`;
     }
   }

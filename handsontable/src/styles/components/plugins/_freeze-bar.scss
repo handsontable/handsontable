@@ -6,6 +6,7 @@
       position: absolute;
       z-index: 215;
       background: var(--ht-accent-color);
+      border-radius: var(--ht-border-radius);
       opacity: 0.55;
       touch-action: none;
 
@@ -27,14 +28,14 @@
         top: 0;
         bottom: 0;
         inset-inline-end: 0;
-        width: 4px;
+        width: var(--ht-sizing-size-1);
         cursor: col-resize;
       }
 
       &--top {
         inset-inline: 0;
         bottom: 0;
-        height: 4px;
+        height: var(--ht-sizing-size-1);
         cursor: row-resize;
       }
 
@@ -42,14 +43,14 @@
         top: 0;
         bottom: 0;
         inset-inline-start: 0;
-        width: 4px;
+        width: var(--ht-sizing-size-1);
         cursor: col-resize;
       }
 
       &--bottom {
         inset-inline: 0;
         top: 0;
-        height: 4px;
+        height: var(--ht-sizing-size-1);
         cursor: row-resize;
       }
 

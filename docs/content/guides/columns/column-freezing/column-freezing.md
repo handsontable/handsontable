@@ -13,6 +13,8 @@ tags:
   - fixedColumnsEnd
   - freezing columns at the end
   - right frozen columns
+  - freeze bar
+  - draggable freeze
 react:
   metaTitle: Column freezing - React Data Grid | Handsontable
 angular:
@@ -83,6 +85,70 @@ If your [layout direction](@/guides/internationalization/layout-direction/layout
 :::
 
 :::
+
+## Freeze columns by dragging
+
+To let users change the number of frozen columns and rows by dragging, enable the [`freezeBar`](@/api/options.md#freezebar) option. The [`FreezeBar`](@/api/freezeBar.md) plugin draws a bar on each edge of the frozen area. Drag the bar to the column or row boundary where you want the freeze line.
+
+- The grid snaps the bar to whole columns and rows. A count that is too large for the grid is reduced to the number of columns and rows that leave room to scroll.
+- The bar never moves a column. It changes how many of the first (or last) columns are frozen.
+- When an edge has nothing frozen, a handle waits on that edge of the grid, so users can start freezing.
+- Press <kbd>**Escape**</kbd> during a drag to cancel it.
+- To use the keyboard, focus a bar and press the <kbd>**Arrow**</kbd> keys to change the count by one, or <kbd>**Home**</kbd> to unfreeze. Each bar is a `separator` with the `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes.
+- When the [`Pagination`](@/api/pagination.md) plugin is on, the bars for rows are hidden, because Pagination doesn't support frozen rows.
+
+The bars cover all four edges: [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart), [`fixedColumnsEnd`](@/api/options.md#fixedcolumnsend), [`fixedRowsTop`](@/api/options.md#fixedrowstop), and [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom). To show the bars for columns only, pass `{ rows: false }` to the option.
+
+::: only-for javascript
+
+::: example #example6 --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-freezing/javascript/example6.js)
+@[code](@/content/guides/columns/column-freezing/javascript/example6.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example6 :react --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-freezing/react/example6.jsx)
+@[code](@/content/guides/columns/column-freezing/react/example6.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example6 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-freezing/angular/example6.ts)
+@[code](@/content/guides/columns/column-freezing/angular/example6.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example6 :vue3
+
+@[code](@/content/guides/columns/column-freezing/vue/example6.vue)
+
+:::
+
+:::
+
+### Keep your own state in sync
+
+The plugin changes the frozen counts on the grid. It doesn't write them back to the settings you passed in. If your application keeps the counts in its own state, copy the new count in the [`afterFreezeChange`](@/api/hooks.md#afterfreezechange) hook. A framework that sends the same value again on the next render doesn't undo the change the user made.
+
+To veto a request, use the [`beforeFreezeChange`](@/api/hooks.md#beforefreezechange) hook. It receives the edge (`top`, `bottom`, `start`, or `end`), the new and the current count, and the source of the change (`drag`, `keyboard`, or `api`). Return `false` to cancel the change.
+
+You can also read and set the counts with the [`getFreezeCount()`](@/api/freezeBar.md#getfreezecount) and [`setFreezeCount()`](@/api/freezeBar.md#setfreezecount) methods.
 
 ## Freeze columns at the end
 
@@ -355,6 +421,7 @@ To avoid this, keep the combined width of your frozen columns smaller than the w
 - [fixedColumnsEnd](@/api/options.md#fixedcolumnsend)
 - [fixedRowsTop](@/api/options.md#fixedrowstop)
 - [fixedRowsBottom](@/api/options.md#fixedrowsbottom)
+- [freezeBar](@/api/options.md#freezebar)
 - [manualColumnFreeze](@/api/options.md#manualcolumnfreeze)
 
 </div>
@@ -363,6 +430,16 @@ To avoid this, keep the combined width of your frozen columns smaller than the w
 
 <div class="boxes-list">
 
+- [FreezeBar](@/api/freezeBar.md)
 - [ManualColumnFreeze](@/api/manualColumnFreeze.md)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [beforeFreezeChange](@/api/hooks.md#beforefreezechange)
+- [afterFreezeChange](@/api/hooks.md#afterfreezechange)
 
 </div>
