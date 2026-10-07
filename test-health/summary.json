@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-07T10:31:31.723Z",
+  "generatedAt": "2026-10-07T10:47:44.159Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -533,7 +533,7 @@
       "file": "visual-tests/tests/js-only/editors/handsontable/rtl/position-scrolled-viewport.spec.ts",
       "line": null,
       "title": "js-only/editors/handsontable/rtl/position-scrolled-viewport-2",
-      "count7": 2,
+      "count7": 1,
       "count30": 3,
       "countAll": 3,
       "runs30": 3,
