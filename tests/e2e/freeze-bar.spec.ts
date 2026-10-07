@@ -163,6 +163,68 @@ test.describe('freezeBar', () => {
     });
   });
 
+  test.describe('keyboard reach and focus', () => {
+    test('F6 moves the focus from the grid to a bar', async() => {
+      await grid.goto();
+      await grid.page.evaluate(() => {
+        window.hot.selectCell(5, 5);
+      });
+      await grid.page.keyboard.press('F6');
+
+      await expect(grid.bar('start')).toBeFocused();
+    });
+
+    test('the focus stays on the bar when the first column gets frozen', async() => {
+      await grid.goto({ cols: 0 });
+      await grid.bar('start').focus();
+      await grid.page.keyboard.press('ArrowRight');
+      await grid.page.keyboard.press('ArrowRight');
+
+      expect(await grid.count('start')).toBe(2);
+      await expect(grid.bar('start')).toBeFocused();
+    });
+
+    test('the focus stays on the bar when the application updates the settings', async() => {
+      await grid.goto();
+      await grid.bar('start').focus();
+      await grid.page.keyboard.press('ArrowRight');
+      await grid.page.evaluate(() => {
+        window.hot.updateSettings({ freezeBar: true, fixedColumnsStart: 2 });
+      });
+      await grid.page.keyboard.press('ArrowRight');
+
+      expect(await grid.count('start')).toBe(4);
+      await expect(grid.bar('start')).toBeFocused();
+    });
+
+    test('End freezes as many columns as fit', async() => {
+      await grid.goto();
+      await grid.bar('start').focus();
+      await grid.page.keyboard.press('End');
+
+      const count = await grid.count('start');
+
+      expect(count).toBeGreaterThan(2);
+      expect(count).toBeLessThan(14);
+      await expect(grid.bar('start')).toHaveAttribute('aria-valuemax', String(count));
+    });
+
+    test('Ctrl+ArrowRight is left to the browser and screen readers', async() => {
+      await grid.goto();
+      await grid.bar('start').focus();
+      await grid.page.keyboard.press('Control+ArrowRight');
+
+      expect(await grid.count('start')).toBe(2);
+    });
+
+    test('ariaTags: false leaves the bars without ARIA attributes', async() => {
+      await grid.goto({ aria: 0 });
+
+      await expect(grid.bar('start')).not.toHaveAttribute('role', 'separator');
+      await expect(grid.bar('start')).not.toHaveAttribute('aria-valuenow', /.*/);
+    });
+  });
+
   test.describe('layout direction', () => {
     test('the column bar follows the right to left layout', async() => {
       await grid.goto({ rtl: 1 });

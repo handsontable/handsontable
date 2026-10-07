@@ -94,7 +94,7 @@ To let users change the number of frozen columns and rows by dragging, enable th
 - The bar never moves a column. It changes how many of the first (or last) columns are frozen.
 - When an edge has nothing frozen, a handle waits on that edge of the grid, so users can start freezing.
 - Press <kbd>**Escape**</kbd> during a drag to cancel it.
-- To use the keyboard, focus a bar and press the <kbd>**Arrow**</kbd> keys to change the count by one, or <kbd>**Home**</kbd> to unfreeze. Each bar is a `separator` with the `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes.
+- To use the keyboard, press <kbd>**F6**</kbd> in the grid to focus the first bar. Then press the <kbd>**Arrow**</kbd> keys to change the count by one, <kbd>**Home**</kbd> to unfreeze, or <kbd>**End**</kbd> to freeze as many as fit. Each bar is a `separator` with the `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes.
 - When the [`Pagination`](@/api/pagination.md) plugin is on, the bars for rows are hidden, because Pagination doesn't support frozen rows.
 
 The bars cover all four edges: [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart), [`fixedColumnsEnd`](@/api/options.md#fixedcolumnsend), [`fixedRowsTop`](@/api/options.md#fixedrowstop), and [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom). To show the bars for columns only, pass `{ rows: false }` to the option.
@@ -147,6 +147,8 @@ The bars cover all four edges: [`fixedColumnsStart`](@/api/options.md#fixedcolum
 The plugin changes the frozen counts on the grid. It doesn't write them back to the settings you passed in. If your application keeps the counts in its own state, copy the new count in the [`afterFreezeChange`](@/api/hooks.md#afterfreezechange) hook. A framework that sends the same value again on the next render doesn't undo the change the user made.
 
 To veto a request, use the [`beforeFreezeChange`](@/api/hooks.md#beforefreezechange) hook. It receives the edge (`top`, `bottom`, `start`, or `end`), the new and the current count, and the source of the change (`drag`, `keyboard`, or `api`). Return `false` to cancel the change.
+
+When you turn the option off, the bars disappear and the frozen area stays as the user left it.
 
 You can also read and set the counts with the [`getFreezeCount()`](@/api/freezeBar.md#getfreezecount) and [`setFreezeCount()`](@/api/freezeBar.md#setfreezecount) methods.
 

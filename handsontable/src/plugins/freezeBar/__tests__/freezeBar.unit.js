@@ -133,7 +133,7 @@ describe('FreezeBar', () => {
 
     plugin.setFreezeCount('end', 100);
 
-    expect(plugin.getFreezeCount('end')).toBeLessThanOrEqual(6);
+    expect(plugin.getFreezeCount('end')).toBe(6);
   });
 
   it('should not fire the hooks for an unchanged count', () => {

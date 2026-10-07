@@ -34,7 +34,7 @@
     The freezeBar plugin on a grid small enough to scroll. Query params switch the variants a spec needs:
     ?rtl=1 lays the grid out right to left, ?legacy=1 configures the frozen columns with the legacy
     `fixedColumnsLeft` option, ?bar=0 leaves the plugin off, ?cols=0 and ?rows=0 start with nothing frozen,
-    ?bottom=N and ?end=N freeze the last N rows and columns, ?win=1 lets the window scroll the rows (a taller grid with an automatic height), ?pagination=1 pages the rows (it conflicts with frozen rows, so pass ?rows=0), ?undo=1 turns UndoRedo on, ?hidden=1 hides column 2 and row 2. Every change of the frozen area is
+    ?bottom=N and ?end=N freeze the last N rows and columns, ?win=1 lets the window scroll the rows (a taller grid with an automatic height), ?pagination=1 pages the rows (it conflicts with frozen rows, so pass ?rows=0), ?aria=0 turns ariaTags off, ?undo=1 turns UndoRedo on, ?hidden=1 hides column 2 and row 2. Every change of the frozen area is
     appended to `window.freezeLog` by the `afterFreezeChange` hook.
   -->
   <div id="grid" data-testid="grid"></div>
@@ -62,6 +62,7 @@
       fixedColumnsEnd: count('end', 0),
       layoutDirection: flag('rtl', false) ? 'rtl' : 'ltr',
       undoRedo: flag('undo', false),
+      ariaTags: flag('aria', true),
       freezeBar: flag('bar', true),
       afterGetColHeader: (col, TH) => TH.setAttribute('data-testid', `colheader-${col}`),
       afterGetRowHeader: (row, TH) => TH.setAttribute('data-testid', `rowheader-${row}`),

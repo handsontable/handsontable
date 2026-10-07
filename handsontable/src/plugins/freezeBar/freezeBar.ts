@@ -11,6 +11,8 @@ import type { FreezeBarSettings, FreezeEdge, FreezeSource } from './types';
 export const PLUGIN_KEY = 'freezeBar';
 export const PLUGIN_PRIORITY = 380;
 
+const SHORTCUTS_GROUP = PLUGIN_KEY;
+
 /**
  * The size that always stays scrollable, in pixels. The frozen area never grows into it.
  */
@@ -106,6 +108,7 @@ export class FreezeBar extends BasePlugin {
     }
 
     this.addHook('afterRender', this.#onAfterRender);
+    this.#registerShortcuts();
 
     super.enablePlugin();
   }
@@ -114,10 +117,10 @@ export class FreezeBar extends BasePlugin {
    * Updates the plugin's state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
-    this.disablePlugin();
-    this.enablePlugin();
-
+    // The bars stay, so a wrapper that re-sends its props on every commit neither drops the focus from a bar
+    // nor cancels a drag. A bar of an axis that was switched off is removed by the sync.
     super.updatePlugin();
+    this.#onAfterRender();
   }
 
   /**
@@ -125,6 +128,7 @@ export class FreezeBar extends BasePlugin {
    */
   disablePlugin() {
     super.disablePlugin();
+    this.#unregisterShortcuts();
     this.#teardown();
   }
 
@@ -136,11 +140,16 @@ export class FreezeBar extends BasePlugin {
    */
   getFreezeCount(edge: FreezeEdge): number {
     const settings = this.hot.getSettings();
+
+    // the start band has priority, so the end band is the part of it that remains
+    if (edge === 'end') {
+      return this.hot.view.countFixedColumnsEnd();
+    }
+
     const count = {
       top: settings.fixedRowsTop,
       bottom: settings.fixedRowsBottom,
       start: settings.fixedColumnsStart,
-      end: settings.fixedColumnsEnd,
     }[edge];
 
     return Math.max(0, Math.floor(Number(count) || 0));
@@ -342,13 +351,39 @@ export class FreezeBar extends BasePlugin {
     }
 
     if (bar.parentNode !== host) {
+      // moving a node blurs it, so a bar that holds the focus gets it back
+      const hadFocus = this.hot.rootDocument.activeElement === bar;
+
       host.appendChild(bar);
+
+      if (hadFocus) {
+        bar.focus();
+      }
     }
 
-    bar.classList.toggle('ht-freeze-bar--empty', count === 0);
-    this.#positionEmptyHandle(bar, edge, count === 0);
-    bar.setAttribute('aria-valuenow', String(count));
-    bar.setAttribute('aria-valuemax', String(this.#getMaxCount(edge)));
+    const empty = count === 0;
+
+    if (bar.classList.contains('ht-freeze-bar--empty') !== empty || empty) {
+      bar.classList.toggle('ht-freeze-bar--empty', empty);
+      this.#positionEmptyHandle(bar, edge, empty);
+    }
+
+    if (this.hot.getSettings().ariaTags) {
+      bar.setAttribute('aria-valuenow', String(count));
+    }
+  }
+
+  /**
+   * Sets the largest value on the bar. The maximum walks the sizes of every track on the axis, so it is
+   * resolved when the bar gets the focus or a drag starts, not on every render.
+   *
+   * @param {HTMLElement} bar The bar element.
+   * @param {string} edge The edge.
+   */
+  #updateValueMax(bar: HTMLElement, edge: FreezeEdge) {
+    if (this.hot.getSettings().ariaTags) {
+      bar.setAttribute('aria-valuemax', String(this.#getMaxCount(edge)));
+    }
   }
 
   /**
@@ -436,13 +471,17 @@ export class FreezeBar extends BasePlugin {
 
     bar.className = `ht-freeze-bar ht-freeze-bar--${edge}`;
     bar.tabIndex = 0;
-    setAttribute(bar, [
-      ['role', 'separator'],
-      ['aria-orientation', columns ? 'vertical' : 'horizontal'],
-      ['aria-valuemin', 0],
-      A11Y_LABEL(this.hot.getTranslatedPhrase(columns ? C.FREEZE_BAR_COLUMNS : C.FREEZE_BAR_ROWS)),
-    ]);
 
+    if (this.hot.getSettings().ariaTags) {
+      setAttribute(bar, [
+        ['role', 'separator'],
+        ['aria-orientation', columns ? 'vertical' : 'horizontal'],
+        ['aria-valuemin', 0],
+        A11Y_LABEL(this.hot.getTranslatedPhrase(columns ? C.FREEZE_BAR_COLUMNS : C.FREEZE_BAR_ROWS)),
+      ]);
+    }
+
+    bar.addEventListener('focus', () => this.#updateValueMax(bar, edge));
     bar.addEventListener('pointerdown', event => this.#onPointerDown(edge, event));
     bar.addEventListener('keydown', event => this.#onKeyDown(edge, event));
 
@@ -475,6 +514,7 @@ export class FreezeBar extends BasePlugin {
     const fromLeft = columns && growsFromStart(edge) !== this.hot.isRtl();
 
     this.#drag = { edge, count: this.getFreezeCount(edge) };
+    this.#updateValueMax(event.currentTarget as HTMLElement, edge);
 
     const { pointerId } = event;
 
@@ -662,6 +702,10 @@ export class FreezeBar extends BasePlugin {
    * @param {KeyboardEvent} event The event.
    */
   #onKeyDown(edge: FreezeEdge, event: KeyboardEvent) {
+    if (event.ctrlKey || event.altKey || event.metaKey) {
+      return;
+    }
+
     const columns = isColumnEdge(edge);
     // The bar of a start or top band grows towards the end of the grid. The bar of an end or bottom band
     // grows towards the start, so its arrows point the other way. In RTL the horizontal arrows swap again.
@@ -680,6 +724,8 @@ export class FreezeBar extends BasePlugin {
       target = current - flip;
     } else if (event.key === 'Home') {
       target = 0;
+    } else if (event.key === 'End') {
+      target = this.#getMaxCount(edge);
     }
 
     if (target === null) {
@@ -712,6 +758,33 @@ export class FreezeBar extends BasePlugin {
     }
 
     return Math.min(next, sizes.length);
+  }
+
+  /**
+   * Registers the shortcut that moves the focus to the first bar. While the grid listens, Tab moves the cell
+   * selection, so without it the bars could not be reached with the keyboard. F6 is the usual key for moving
+   * between the panes of a page.
+   */
+  #registerShortcuts() {
+    this.hot.getShortcutManager().getContext('grid')?.addShortcut({
+      keys: [['F6']],
+      callback: () => {
+        const bar = EDGES.map(edge => this.#bars[edge]).find(Boolean);
+
+        bar?.focus();
+
+        return !!bar;
+      },
+      runOnlyIf: () => this.enabled,
+      group: SHORTCUTS_GROUP,
+    });
+  }
+
+  /**
+   * Unregisters the plugin's shortcut group.
+   */
+  #unregisterShortcuts() {
+    this.hot.getShortcutManager().getContext('grid')?.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
