@@ -115,7 +115,8 @@
             }
 
             &.ht-freeze-bar--top::before {
-              inset: -20px auto -20px 0;
+              inset-block: -20px;
+              inset-inline: 0 auto;
               width: var(--ht-freeze-bar-corner);
             }
           }
