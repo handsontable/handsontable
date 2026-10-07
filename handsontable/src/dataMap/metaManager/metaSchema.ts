@@ -2937,6 +2937,9 @@ export default (): Record<string, unknown> => {
      * A named editor behaves differently: a [`type`](#type) set at a lower configuration level
      * does override it, because both name an editor and the more specific level wins.
      *
+     * Only `false` is kept this way. An `editor` of `null` set at a higher configuration level is
+     * replaced by the editor of a lower-level [`type`](#type), like a named editor.
+     *
      * One limitation applies when you switch editing off at runtime. A column's [`type`](#type)
      * writes its editor onto that column when the column is built, so an
      * [`updateSettings()`](@/api/core.md#updatesettings) call that passes `editor: false` without
