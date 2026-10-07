@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-07T09:52:43.532Z",
+  "generatedAt": "2026-10-07T09:57:25.452Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 366,
-    "needsTicket": 15,
+    "tests": 367,
+    "needsTicket": 16,
     "quarantined": 0,
-    "entries": 1898
+    "entries": 1910
   },
   "rows": [
     {
@@ -48,6 +48,46 @@
         "leg": "e2e-main",
         "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "jasmine|handsontable/src/plugins/mergeCells/__tests__/scrolling.spec.js|MergeCells scrolling should scroll viewport vertically to the beginning of the merged cell when it's clicked (virtualized is on)",
+      "tier": "jasmine",
+      "file": "handsontable/src/plugins/mergeCells/__tests__/scrolling.spec.js",
+      "line": null,
+      "title": "MergeCells scrolling should scroll viewport vertically to the beginning of the merged cell when it's clicked (virtualized is on)",
+      "count7": 6,
+      "count30": 12,
+      "countAll": 12,
+      "runs30": 2,
+      "flakyRuns30": 0,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD (theme: horizon)",
+        "UMD (theme: main)",
+        "UMD.min (theme: classic)",
+        "UMD.min (theme: horizon)",
+        "UMD.min (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (1 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-07T09:56:34Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37599946682",
+        "branch": "feature/DEV-3305_Keep-grid-scroll-after-selection",
+        "leg": "UMD (theme: classic)",
+        "status": "failed",
+        "error": "Expected 130 to be 131.",
         "source": "ci"
       },
       "needsTicket": true
@@ -659,6 +699,44 @@
         "leg": "js/chromium-theme-horizon-dark",
         "status": "failed",
         "error": "differs from base/develop (full tier); render sha256 07733ee2f542",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/filters-menu-focus-order.spec.ts|filters menu — keyboard focus order › a value the list shows only in part scrolls fully into view when the focus reaches it",
+      "tier": "playwright",
+      "file": "e2e/filters-menu-focus-order.spec.ts",
+      "line": 279,
+      "title": "filters menu — keyboard focus order › a value the list shows only in part scrolls fully into view when the focus reaches it",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-07T09:56:34Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37599946682",
+        "branch": "feature/DEV-3305_Keep-grid-scroll-after-selection",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
         "source": "ci"
       },
       "needsTicket": false
@@ -9301,44 +9379,6 @@
         "leg": "UMD (theme: classic)",
         "status": "failed",
         "error": "Expected $.top = 54 to equal 52.",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "jasmine|handsontable/src/plugins/mergeCells/__tests__/scrolling.spec.js|MergeCells scrolling should scroll viewport vertically to the beginning of the merged cell when it's clicked (virtualized is on)",
-      "tier": "jasmine",
-      "file": "handsontable/src/plugins/mergeCells/__tests__/scrolling.spec.js",
-      "line": null,
-      "title": "MergeCells scrolling should scroll viewport vertically to the beginning of the merged cell when it's clicked (virtualized is on)",
-      "count7": 0,
-      "count30": 6,
-      "countAll": 6,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "UMD (theme: classic)",
-        "UMD (theme: horizon)",
-        "UMD (theme: main)",
-        "UMD.min (theme: classic)",
-        "UMD.min (theme: horizon)",
-        "UMD.min (theme: main)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-09-18T13:55:05Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35350768101",
-        "branch": "feature/DEV-2579_Filter-value-list-order",
-        "leg": "UMD (theme: classic)",
-        "status": "failed",
-        "error": "Expected 136 to be 131.",
         "source": "ci"
       },
       "needsTicket": false
