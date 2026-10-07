@@ -12,8 +12,8 @@ registerAllModules();
 // exists. Pre-build the engine once. `markRaw` keeps Vue from proxying the instance.
 const hfInstance = markRaw(
   HyperFormula.buildEmpty({
-    // to use an external HyperFormula instance,
-    // initialize it with your HyperFormula license key
+    // this demo uses the GPLv3 key,
+    // use your own HyperFormula license key in your app
     licenseKey: 'gpl-v3',
   })
 );

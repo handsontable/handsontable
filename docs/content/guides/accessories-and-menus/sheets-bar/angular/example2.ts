@@ -5,8 +5,8 @@ import { HyperFormula } from 'hyperformula';
 
 // One engine, shared by every sheet of the workbook.
 const engine = HyperFormula.buildEmpty({
-  // to use an external HyperFormula instance,
-  // initialize it with your HyperFormula license key
+  // this demo uses the GPLv3 key,
+  // use your own HyperFormula license key in your app
   licenseKey: 'gpl-v3',
 });
 
