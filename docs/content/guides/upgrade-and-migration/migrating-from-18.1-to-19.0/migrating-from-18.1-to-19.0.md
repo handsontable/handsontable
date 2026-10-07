@@ -1629,10 +1629,22 @@ columns: [
 
 A [`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) has no separate editing gesture: clicking the box is the edit. In 18.1, `editor: false` didn't stop a click or the <kbd>**Space**</kbd> key from toggling the box. In 19.0, a checkbox cell with `editor: false` or `editor: null` renders a disabled checkbox, and neither a click nor <kbd>**Space**</kbd> changes its value. You can still select the cell.
 
+The two changes combine. A grid-level `editor: false` now also reaches a `checkbox` column, because the column's `type` no longer supplies the checkbox editor. A common setup affected by this is a non-editable grid with a checkbox column for selecting rows:
+
+```js
+editor: false,
+columns: [
+  { data: 'name' },
+  // 18.1: toggleable. 19.0: a disabled checkbox.
+  { data: 'selected', type: 'checkbox' }
+]
+```
+
 ### Who is affected
 
 - You set `editor: false` on the grid, on a column, or through [`cells`](@/api/options.md#cells), and a lower configuration level sets a `type` on the same cells.
 - You set `editor: false` or `editor: null` on a `checkbox` column and expect users to toggle it.
+- You set `editor: false` on the grid and have a `checkbox` column that users toggle, for example to select rows.
 
 ### How to migrate
 
@@ -1646,4 +1658,4 @@ columns: [
 ]
 ```
 
-To keep a checkbox column toggleable, remove `editor: false` from it, or set `editor: 'checkbox'` on the column. To make it non-toggleable, prefer [`readOnly`](@/api/options.md#readonly), which also announces the cell as read-only to screen readers.
+To keep a checkbox column toggleable, remove `editor: false` from it, or set `editor: 'checkbox'` on the column. Under a grid-level `editor: false`, setting `editor: 'checkbox'` on the column is the only option. To make it non-toggleable, prefer [`readOnly`](@/api/options.md#readonly), which also announces the cell as read-only to screen readers.

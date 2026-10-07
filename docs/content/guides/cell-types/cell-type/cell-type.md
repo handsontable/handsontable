@@ -740,6 +740,22 @@ const hotSettings = ref({
 
 :::
 
+### Exception: `editor: false`
+
+The [`editor`](@/api/options.md#editor) option set to `false` is the one exception to this rule. `editor: false` doesn't name an editor. It switches editing off, so a [`type`](@/api/options.md#type) set on a more specific level doesn't re-enable editing. The type still applies its other functions, such as the [`renderer`](@/api/options.md#renderer) and the [`validator`](@/api/options.md#validator):
+
+```js
+editor: false,
+columns: [
+  // non-editable, but still rendered and validated as numeric
+  { type: 'numeric' },
+  // editable: an `editor` set on the same level as the `type` opts the column back in
+  { type: 'numeric', editor: 'numeric' }
+]
+```
+
+A named editor isn't an exception. For example, a grid-level `editor: 'password'` is still replaced by the editor of a column's `type`.
+
 ## Built-in cell types example
 
 The example below shows some of the built-in cell types, i.e. combinations of cell renderers and editors available in Handsontable. The example also shows the declaration of custom cell renderers, namely `yellowRenderer` and `greenRenderer`.
