@@ -141,6 +141,7 @@ describe('Formulas write validated in flight across a sheet resync', () => {
 
   it('keeps the engine in step with the grid when the sheet switched while the change was validated', async() => {
     const engine = buildGrid([[1, 'a'], [2, 'b'], [null, 'c']]);
+    const first = hot.getPlugin('formulas').sheetId;
     const other = engine.getSheetId(engine.addSheet('Other'));
 
     engine.setSheetContent(other, [[10, 'x'], [20, 'y'], [null, 'z']]);
@@ -158,6 +159,8 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     expect(hot.getSourceDataAtCell(2, 0)).toBe('=SUM(A1:A2)');
     expect(engine.getCellFormula({ sheet: other, row: 2, col: 0 })).toBe('=SUM(A1:A2)');
     expect(hot.getDataAtCell(2, 0)).toBe(30);
+    // The switched-to sheet owns the change, so the first sheet is put back to what it held.
+    expect(engine.getCellValue({ sheet: first, row: 2, col: 0 })).toBeNull();
   });
 
   it('writes a change into the switched-to sheet when the switch alone ran while the change was validated', async() => {
@@ -210,6 +213,41 @@ describe('Formulas write validated in flight across a sheet resync', () => {
 
     expect(engine.getCellFormula({ sheet: other, row: 2, col: 0 })).toBe('=SUM(A1:A2)');
     expect(engine.getCellValue({ sheet: first, row: 2, col: 0 })).toBe(7);
+  });
+
+  it('puts a preserved text value back as text in the switched-away sheet', async() => {
+    const engine = buildGrid([[1, 'a'], [2, 'b'], ['007', 'c']], {
+      columns: [{ type: 'text', preserveTextValue: true, validator: (value, callback) => callback(true) }, {}],
+    });
+    const first = hot.getPlugin('formulas').sheetId;
+    const other = engine.getSheetId(engine.addSheet('Other'));
+
+    engine.setSheetContent(other, [[10, 'x'], [20, 'y'], [30, 'z']]);
+    hot.setDataAtCell(2, 0, 'changed');
+    hot.updateSettings({ formulas: { engine, sheetName: 'Other' } });
+
+    await waitForValidation();
+
+    // Written back raw, the engine would parse the old text into the number 7.
+    expect(engine.getCellValue({ sheet: first, row: 2, col: 0 })).toBe('007');
+  });
+
+  it('leaves a switched-away sheet alone when it was removed from the engine before the change was applied', async() => {
+    const engine = buildGrid([[1, 'a'], [2, 'b'], [7, 'c']]);
+    const first = hot.getPlugin('formulas').sheetId;
+    const firstName = engine.getSheetName(first);
+    const other = engine.getSheetId(engine.addSheet('Other'));
+
+    engine.setSheetContent(other, [[10, 'x'], [20, 'y'], [null, 'z']]);
+    hot.setDataAtCell(2, 0, '=SUM(A1:A2)');
+    hot.updateSettings({ formulas: { engine, sheetName: 'Other' } });
+    engine.removeSheet(first);
+
+    await waitForValidation();
+
+    expect(engine.getSheetId(firstName)).toBeUndefined();
+    expect(engine.getCellFormula({ sheet: other, row: 2, col: 0 })).toBe('=SUM(A1:A2)');
+    expect(hot.getDataAtCell(2, 0)).toBe(30);
   });
 
   it('restores the cell the first write reached, even when the switched-to sheet has fewer rows', async() => {
@@ -329,7 +367,7 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     expect(hot.getDataAtCell(2, 0)).toBe(3);
   });
 
-  it('writes a paste past the last row into the engine once, so one undo reverts it', async() => {
+  it('undoes a paste past the last row in the grid and the engine', async() => {
     const engine = buildGrid([[1, '=SUM(A1:A10)'], [2, null], [null, null]], { undo: true });
     const sheet = hot.getPlugin('formulas').sheetId;
     const initialSheet = engine.getSheetSerialized(sheet);

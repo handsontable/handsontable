@@ -336,6 +336,9 @@ export class CustomBorders extends BasePlugin {
     this.addHook('beforeViewRender', this.#onBeforeViewRender);
     this.addHook('afterSetCellMeta', this.#onAfterSetCellMeta);
     this.addHook('afterRemoveCellMeta', this.#onAfterRemoveCellMeta);
+    this.addHook('afterFilter', this.#onAfterFilter);
+    this.addHook('afterTrimRow', this.#onAfterTrimmingChange);
+    this.addHook('afterUntrimRow', this.#onAfterTrimmingChange);
 
     super.enablePlugin();
   }
@@ -543,9 +546,24 @@ export class CustomBorders extends BasePlugin {
   }
 
   /**
-   * Rebuilds the border model and its rendered selections from the stored `borders` cell meta.
+   * Returns every `borders` entry of the user-defined cell meta, keyed by physical coordinates.
+   *
+   * @returns {{physicalRow: number, physicalColumn: number, value: *}[]}
    */
-  #rebuildModelFromMeta() {
+  #collectBorderedMetas(): { physicalRow: number, physicalColumn: number, value: unknown }[] {
+    return this.hot._getMetaManager().getUserDefinedCellMetas()
+      .filter(({ key }) => key === 'borders');
+  }
+
+  /**
+   * Rebuilds the border model and its rendered selections from the stored `borders` cell meta.
+   *
+   * @param {Array} [bordered] The `borders` meta entries to rebuild from. When omitted, they are
+   * collected from the meta manager; a caller that already knows them passes them to skip that walk.
+   */
+  #rebuildModelFromMeta(
+    bordered: { physicalRow: number, physicalColumn: number, value: unknown }[] = this.#collectBorderedMetas(),
+  ) {
     this.#cancelProgressiveApply();
     this.#destroyAllSelections();
     this.savedBorders = [];
@@ -553,11 +571,7 @@ export class CustomBorders extends BasePlugin {
     this.#bordersByRow.clear();
     this.#bordersByRowDirty = true;
 
-    this.hot._getMetaManager().getUserDefinedCellMetas().forEach(({ physicalRow, physicalColumn, key, value }) => {
-      if (key !== 'borders') {
-        return;
-      }
-
+    bordered.forEach(({ physicalRow, physicalColumn, value }) => {
       const row: number | null = this.hot.toVisualRow(physicalRow);
       const column: number | null = this.hot.toVisualColumn(physicalColumn);
       // A copy: the model edits its border objects in place, and the meta value belongs to the
@@ -1105,8 +1119,9 @@ export class CustomBorders extends BasePlugin {
     this.#cancelProgressiveApply();
 
     const hot = this.hot as HotInstanceInternal;
-    const bordered = hot._getMetaManager().getUserDefinedCellMetas()
-      .filter(({ key }) => key === 'borders');
+    const metaManager = hot._getMetaManager();
+    const bordered = this.#collectBorderedMetas();
+    const survivors: typeof bordered = [];
     const rowCount = hot.countRows();
     const columnCount = hot.countCols();
 
@@ -1116,8 +1131,15 @@ export class CustomBorders extends BasePlugin {
 
       if (row !== null && column !== null && row < rowCount && column < columnCount) {
         // A `beforeRemoveCellMeta` listener can veto this removal; such a cell keeps its meta, and
-        // the rebuild below gives it its model entry back at its current visual coordinates.
-        this.#writeBordersMeta(row, column, null);
+        // the rebuild below gives it its model entry back at its current visual coordinates. The
+        // value is read again, as the listener that vetoed may also have changed it.
+        if (!this.#writeBordersMeta(row, column, null)) {
+          const meta = metaManager.getCellMetaIfExists(physicalRow, physicalColumn);
+
+          if (meta !== undefined && hasOwnProperty(meta, 'borders')) {
+            survivors.push({ physicalRow, physicalColumn, value: meta.borders });
+          }
+        }
 
         return;
       }
@@ -1132,8 +1154,9 @@ export class CustomBorders extends BasePlugin {
     });
 
     // Rebuilt from the meta that survived (the vetoed removals), so `getBorders()` and
-    // `getCellMeta().borders` cannot disagree. It also destroys the rendered selections.
-    this.#rebuildModelFromMeta();
+    // `getCellMeta().borders` cannot disagree. It also destroys the rendered selections. The
+    // survivors are passed in, so the clear walks the cell meta once, not twice.
+    this.#rebuildModelFromMeta(survivors);
   }
 
   /**
@@ -1806,6 +1829,51 @@ The border style will be ignored.`);
   #onBeforeViewRender = () => {
     this.#syncViewportSelections();
   };
+
+  /**
+   * `afterFilter` hook callback. A filter changes which record sits at each visual row, while the
+   * model keeps the visual coordinates a border was set at. Rebuilding from the `borders` meta
+   * (stored by physical coordinates) moves every border back onto its record, and gives a border
+   * that an undo restored onto a filtered-out record its model entry once the record is visible. The
+   * filter renders right after this hook.
+   */
+  #onAfterFilter = () => {
+    this.#rebuildAfterIndexChange();
+  };
+
+  /**
+   * `afterTrimRow` and `afterUntrimRow` hook callback. Same reason as {@link CustomBorders#onAfterFilter}:
+   * a trim changes the visual index of every record below it, and an untrim brings back a record
+   * whose border an undo restored while it was trimmed. The trim does not render, so a render is
+   * scheduled.
+   *
+   * @param {number[]} currentTrimConfig The physical rows trimmed before the change.
+   * @param {number[]} destinationTrimConfig The physical rows trimmed after the change.
+   * @param {boolean} actionPossible `true` when the configuration was valid.
+   * @param {boolean} stateChanged `true` when the set of trimmed rows changed.
+   */
+  #onAfterTrimmingChange = (
+    currentTrimConfig: number[],
+    destinationTrimConfig: number[],
+    actionPossible: boolean,
+    stateChanged: boolean,
+  ) => {
+    if (!stateChanged) {
+      return;
+    }
+
+    this.#rebuildAfterIndexChange();
+    this.#scheduleMetaSyncRender();
+  };
+
+  /**
+   * Rebuilds the border model from the meta after the visible rows changed. A progressive load
+   * still in flight is completed first, so the rebuild cannot drop its pending batches.
+   */
+  #rebuildAfterIndexChange() {
+    this.#flushProgressiveApply();
+    this.#rebuildModelFromMeta();
+  }
 
   /**
    * `afterSetCellMeta` hook callback. Follows an external write of the `borders` cell meta (e.g.
