@@ -17,6 +17,7 @@ import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from '../plug
 import type { DropdownMenu } from '../plugins/dropdownMenu';
 import type { SheetsBarSettings, SheetsBarViewState } from '../plugins/sheetsBar';
 import type { ImportFileSettings, ImportResult } from '../plugins/importFile';
+import type { ExportFileSettings } from '../plugins/exportFile';
 import type { UndoRedoSettings } from '../plugins/undoRedo';
 import type { PasteClipboardData } from '../plugins/copyPaste';
 import type { ColumnSortingConfig } from '../plugins/columnSorting';
@@ -312,6 +313,7 @@ export interface GridSettings {
   pagination?: boolean | object;
   search?: boolean | object;
   importFile?: boolean | ImportFileSettings;
+  exportFile?: boolean | ExportFileSettings;
   sheetsBar?: boolean | SheetsBarSettings;
   trimRows?: boolean | number[];
 

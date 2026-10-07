@@ -793,12 +793,14 @@ class DataProvider {
   }
 
   /**
-   * Gets the layout direction of the Handsontable instance.
+   * Gets the layout direction the Handsontable instance renders in. `isRtl()` resolves
+   * `layoutDirection: 'inherit'` against the page, so a grid on a right-to-left page exports a
+   * right-to-left sheet, and the import compares against the same answer.
    *
    * @returns {'ltr'|'rtl'}
    */
   getLayoutDirection() {
-    return this.hot.getSettings().layoutDirection === 'rtl' ? 'rtl' : 'ltr';
+    return this.hot.isRtl() ? 'rtl' : 'ltr';
   }
 
   /**

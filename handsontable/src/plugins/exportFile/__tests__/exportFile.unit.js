@@ -294,3 +294,102 @@ describe('BaseType#_mergeOptions', () => {
     expect(merged.colHeaders).toBe(false);
   });
 });
+
+describe('ExportFile downloads and the grid lifecycle', () => {
+  let container;
+  let hot;
+  let createSpy;
+  let revokeSpy;
+  let clickSpy;
+  let created;
+
+  beforeAll(() => {
+    registerPlugin(ExportFile);
+  });
+
+  beforeEach(() => {
+    created = 0;
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    // jsdom implements neither, and a real click on the anchor would try to navigate.
+    window.URL.createObjectURL = () => {};
+    window.URL.revokeObjectURL = () => {};
+    createSpy = jest.spyOn(window.URL, 'createObjectURL').mockImplementation(() => {
+      created += 1;
+
+      return `blob:test-${created}`;
+    });
+    revokeSpy = jest.spyOn(window.URL, 'revokeObjectURL').mockImplementation(() => {});
+    clickSpy = jest.spyOn(window.HTMLAnchorElement.prototype, 'dispatchEvent').mockImplementation(() => true);
+    hot = new Handsontable(container, {
+      data: [['a', 1], ['b', 2]],
+      exportFile: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  });
+
+  afterEach(() => {
+    if (hot && !hot.isDestroyed) {
+      hot.destroy();
+    }
+
+    hot = null;
+    container.remove();
+    createSpy.mockRestore();
+    revokeSpy.mockRestore();
+    clickSpy.mockRestore();
+    delete window.URL.createObjectURL;
+    delete window.URL.revokeObjectURL;
+  });
+
+  it('should revoke the object URL of a download when the grid is destroyed before the revoke timeout', () => {
+    // `destroy()` clears every `_registerTimeout`, so a grid torn down inside the 100 ms window used
+    // to keep one blob alive per export until the tab closed.
+    hot.getPlugin('exportFile').downloadFile('csv');
+
+    expect(createSpy).toHaveBeenCalledTimes(1);
+    expect(revokeSpy).not.toHaveBeenCalled();
+
+    hot.destroy();
+
+    expect(revokeSpy).toHaveBeenCalledTimes(1);
+    expect(revokeSpy).toHaveBeenCalledWith('blob:test-1');
+  });
+
+  it('should revoke the object URL once, on the timeout, when the grid outlives it', () => {
+    jest.useFakeTimers();
+
+    try {
+      hot.getPlugin('exportFile').downloadFile('csv');
+      jest.advanceTimersByTime(100);
+    } finally {
+      jest.useRealTimers();
+    }
+
+    expect(revokeSpy).toHaveBeenCalledTimes(1);
+
+    hot.destroy();
+
+    expect(revokeSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should reject with a Handsontable error, not a TypeError, when the grid is destroyed mid-export', async() => {
+    const pending = hot.getPlugin('exportFile').downloadFileAsync('xlsx');
+
+    hot.destroy();
+
+    await expect(pending).rejects.toThrow(/ExportFile: the Handsontable instance was destroyed/);
+    expect(createSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('DataProvider#getLayoutDirection', () => {
+  it('should follow the direction the grid renders in, not the raw setting', () => {
+    // `layoutDirection: 'inherit'` on a right-to-left page renders the grid right to left, and the
+    // import already compares against `isRtl()`. Reading the setting exported an LTR sheet there.
+    const provider = rtl => new DataProvider({ getSettings: () => ({ layoutDirection: 'inherit' }), isRtl: () => rtl });
+
+    expect(provider(true).getLayoutDirection()).toBe('rtl');
+    expect(provider(false).getLayoutDirection()).toBe('ltr');
+  });
+});

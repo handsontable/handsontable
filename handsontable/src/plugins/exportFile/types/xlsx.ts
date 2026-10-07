@@ -1154,7 +1154,7 @@ class Xlsx extends BaseType {
   }
 
   /**
-   * Creates a `veryHidden` sheet containing all unique dropdown/autocomplete source arrays found
+   * Creates a `hidden` sheet containing all unique dropdown/autocomplete source arrays found
    * in `cellsMeta`, the 2D cell-meta array of the sheet being exported, one array per column.
    * Returns a map from `JSON.stringify(source)` to an Excel range-reference string pointing at
    * that column, together with the sheet snapshot the caller pushes into the workbook after the
@@ -1198,7 +1198,10 @@ class Xlsx extends BaseType {
     const sheetName = this.#uniqueSheetName(VALIDATION_SHEET_NAME, usedSheetNames);
     const builder = new SheetBuilder(sheetName);
 
-    builder.setState('veryHidden');
+    // `hidden`, not `veryHidden`: Numbers discards a very hidden sheet when it opens the file and
+    // keeps no validation pointing at it, so every dropdown lost its list there. Excel lists a hidden
+    // sheet under Unhide, which is the price; the import still skips it by index.
+    builder.setState('hidden');
 
     const validationMap = new Map<string, string>();
     let colNumber = 1;

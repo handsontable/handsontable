@@ -15,6 +15,16 @@ const settings: ImportFileSettings = { engines: { xlsx: {} } };
 const nullEngineSettings: ImportFileSettings = { engines: { xlsx: null } };
 
 new Handsontable(document.createElement('div'), { importFile: nullEngineSettings });
+
+// `undefined` is read like `null` at runtime, so an optional engine (`xlsx: props.engine`) compiles.
+const optionalEngine: object | undefined = Math.random() > 0.5 ? {} : undefined;
+const undefinedEngineSettings: ImportFileSettings = { engines: { xlsx: optionalEngine } };
+
+new Handsontable(document.createElement('div'), { importFile: { engines: { xlsx: undefined } } });
+new Handsontable(document.createElement('div'), { importFile: undefinedEngineSettings });
+// @ts-expect-error a typo of `engines` is still refused
+new Handsontable(document.createElement('div'), { importFile: { engine: {} } });
+
 const hot = new Handsontable(document.createElement('div'), {});
 const plugin = hot.getPlugin('importFile');
 
@@ -45,6 +55,9 @@ async function run(buffer: ArrayBuffer, blob: Blob) {
   const fromBuffer: ImportResult = await plugin.importFromArrayBuffer('xlsx', buffer, options);
   const fromBlob: ImportResult = await plugin.importFromBlob('xlsx', blob);
   const fromNullEngine: ImportResult = await plugin.importFromArrayBuffer('xlsx', buffer, { engine: null });
+  // A view onto a buffer (a `Uint8Array`, a subarray, a `DataView`) is accepted as well.
+  const fromView: ImportResult = await plugin.importFromArrayBuffer('xlsx', new Uint8Array(buffer).subarray(1));
+  const fromDataView: ImportResult = await plugin.importFromArrayBuffer('xlsx', new DataView(buffer));
 
   const data: unknown[][] = fromBuffer.data;
   const headers: string[] | undefined = fromBlob.colHeaders;
@@ -58,6 +71,9 @@ async function run(buffer: ArrayBuffer, blob: Blob) {
   const direction: 'rtl' | 'ltr' | undefined = fromBuffer.layoutDirection;
   const nested: ImportedNestedHeader[][] | undefined = fromBuffer.nestedHeaders;
   const conditional: ImportedConditionalFormatting[] | undefined = fromBuffer.conditionalFormatting;
+
+  void fromView;
+  void fromDataView;
 
   return { data, headers, dropped, kind, supported, settings, styles, borders, direction, nested, conditional };
 }

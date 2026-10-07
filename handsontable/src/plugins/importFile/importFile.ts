@@ -7,6 +7,7 @@ import {
 import { DROPPED_FEATURES, DroppedFeatures, type XlsxEngineKind } from '../../utils/xlsxEngine/capabilities';
 import { mapWorkbook, resolveImportOptions, type MappedResult } from './mapper';
 import { applyImportResult, removeImportedStyles } from './applier';
+import { hasCellType } from '../../cellTypes/registry';
 import type { ImportedBorder } from './styles';
 import type { HotInstance } from '../../core/types';
 
@@ -22,7 +23,7 @@ export interface ImportFileSettings {
    * with a map whose entry for the format is absent or `null`, the built-in engine reads `.xlsx`.
    * An entry that holds any other value must be a supported engine module.
    */
-  engines?: Record<string, object | null>;
+  engines?: Record<string, object | null | undefined>;
 }
 
 /**
@@ -355,6 +356,122 @@ function recordLayoutDirectionMismatch(
 }
 
 /**
+ * The cell meta keys only a specific cell type reads. A cell that falls back to `text` drops them,
+ * so the grid holds no setting the type it ended up with cannot use.
+ */
+const TYPE_SPECIFIC_META_KEYS = [
+  'source', 'numericFormat', 'dateFormat', 'timeFormat', 'dateTimeFormat', 'checkedTemplate', 'uncheckedTemplate',
+] as const;
+
+/**
+ * Returns `meta`, or a `text` copy of it when its `type` is not registered in the cell type
+ * registry. The mapper shares one meta object between every cell of a format, so the copy is made
+ * once per object (`fallbacks`) and the shared object itself is never mutated.
+ */
+function withRegisteredType<T extends { type?: unknown }>(
+  meta: T, fallbacks: Map<object, object>, dropped: DroppedFeatures,
+): T {
+  const { type } = meta;
+
+  if (typeof type !== 'string' || hasCellType(type)) {
+    return meta;
+  }
+
+  let fallback = fallbacks.get(meta);
+
+  if (fallback === undefined) {
+    const copy: Record<string, unknown> = { ...meta, type: 'text' };
+
+    TYPE_SPECIFIC_META_KEYS.forEach((key) => {
+      delete copy[key];
+    });
+    fallback = copy;
+    fallbacks.set(meta, fallback);
+    dropped.recordUnsupported('cellType', type);
+  }
+
+  return fallback as T;
+}
+
+/**
+ * Replaces every inferred cell type the cell type registry does not know with `text`, and records
+ * `cellType:<name>` for each. A bundle that registers modules one by one may lack a type the
+ * inference derives (`dropdown`, `date`, ...); applying it used to throw from `getCellType` after
+ * `loadData` had already replaced the data, which left the grid half imported and made every later
+ * `updateSettings` call throw the same error. Runs only for a result about to be applied.
+ */
+function fallBackUnregisteredCellTypes(mapped: MappedResult, dropped: DroppedFeatures): void {
+  const fallbacks = new Map<object, object>();
+  const { columns, cellsMeta } = mapped;
+
+  if (columns) {
+    for (let index = 0; index < columns.length; index++) {
+      columns[index] = withRegisteredType(columns[index], fallbacks, dropped);
+    }
+  }
+
+  if (cellsMeta) {
+    for (let index = 0; index < cellsMeta.length; index++) {
+      const entry = cellsMeta[index];
+      const meta = withRegisteredType(entry.meta, fallbacks, dropped);
+
+      if (meta !== entry.meta) {
+        cellsMeta[index] = { ...entry, meta };
+      }
+    }
+  }
+}
+
+/**
+ * The layout keys a result may carry whose plugin has to be registered for the setting to do
+ * anything, keyed by the plugin name `getPlugin` takes.
+ */
+const LAYOUT_PLUGIN_FEATURES = [
+  ['mergeCells', DROPPED_FEATURES.mergeCells],
+  ['hiddenRows', DROPPED_FEATURES.hiddenRows],
+  ['hiddenColumns', DROPPED_FEATURES.hiddenColumns],
+] as const;
+
+/**
+ * Records `mergeCells`, `hiddenRows` or `hiddenColumns` as dropped when the result carries a
+ * non-empty list for it and the plugin that applies it is not registered. The applier still writes
+ * the setting, but nothing reads it, so the merge or the hidden row was lost without a word, while
+ * a missing `Comments` or `CustomBorders` plugin was reported. Nothing is recorded for a result
+ * that is not applied.
+ */
+function recordMissingLayoutPlugins(
+  hot: HotInstance, mapped: MappedResult, apply: boolean, dropped: DroppedFeatures
+): void {
+  if (!apply) {
+    return;
+  }
+
+  LAYOUT_PLUGIN_FEATURES.forEach(([key, feature]) => {
+    const list = mapped[key];
+
+    if (list !== undefined && list.length > 0 && hot.getPlugin(key) === undefined) {
+      dropped.record(feature);
+    }
+  });
+}
+
+/**
+ * Hands the engine a plain `ArrayBuffer`. A typed array or a `DataView` is copied out of its
+ * backing buffer by `byteOffset` and `byteLength`, so a view onto part of a larger buffer reads
+ * only its own bytes. The built-in reader takes an `ArrayBuffer` alone and used to report a view
+ * as a damaged file; ExcelJS accepted both.
+ */
+function toArrayBuffer(buffer: ArrayBuffer | ArrayBufferView): ArrayBuffer {
+  if (!ArrayBuffer.isView(buffer)) {
+    return buffer;
+  }
+
+  const { byteOffset, byteLength } = buffer;
+
+  return buffer.buffer.slice(byteOffset, byteOffset + byteLength) as ArrayBuffer;
+}
+
+/**
  * @plugin ImportFile
  * @class ImportFile
  *
@@ -441,22 +558,23 @@ export class ImportFile extends BasePlugin {
   }
 
   /**
-   * Reads a workbook from an `ArrayBuffer` and maps it into an {@link ImportResult}. Applies the
-   * result to the grid unless `options.apply` is `false` or a `beforeImport` hook returns `false`.
+   * Reads a workbook from an `ArrayBuffer` (or a view onto one, such as a `Uint8Array`) and maps it
+   * into an {@link ImportResult}. Applies the result to the grid unless `options.apply` is `false`
+   * or a `beforeImport` hook returns `false`.
    */
-  async importFromArrayBuffer(format: string, buffer: ArrayBuffer, options: ImportOptions = {}): Promise<ImportResult> {
+  async importFromArrayBuffer(
+    format: string, buffer: ArrayBuffer | ArrayBufferView, options: ImportOptions = {}
+  ): Promise<ImportResult> {
     this.#assertEnabled();
 
     const detected = requireEngine(this.hot, format, options.engine);
     const resolved = resolveImportOptions(options);
     const dropped = new DroppedFeatures();
-    const workbook = await detected.adapter.read(buffer, detected.module, dropped);
+    const workbook = await detected.adapter.read(toArrayBuffer(buffer), detected.module, dropped);
 
     // The read is the one async boundary: `BasePlugin#destroy` deletes `hot`, so a grid torn down
     // while the file was being parsed has nothing left to apply the result to.
-    if (!this.hot) {
-      throwWithCause('ImportFile: the Handsontable instance was destroyed while the workbook was being read.');
-    }
+    this.#assertAlive();
 
     const formulasPlugin = this.hot.getPlugin('formulas');
     const commentsPlugin = this.hot.getPlugin('comments');
@@ -471,6 +589,11 @@ export class ImportFile extends BasePlugin {
     }, dropped);
 
     recordLayoutDirectionMismatch(this.hot, mapped, resolved.apply, dropped);
+    recordMissingLayoutPlugins(this.hot, mapped, resolved.apply, dropped);
+
+    if (resolved.apply) {
+      fallBackUnregisteredCellTypes(mapped, dropped);
+    }
 
     const result: ImportResult = {
       ...mapped,
@@ -484,9 +607,17 @@ export class ImportFile extends BasePlugin {
       return result;
     }
 
+    // `updateSettings({ importFile: false })` during the read disables the plugin without deleting
+    // `hot`, and a late apply would put the imported stylesheet back on a disabled plugin.
+    this.#assertEnabled();
+    this.#assertAlive();
+
     if (this.hot.runHooks<boolean | void>('beforeImport', result, format) === false) {
       return result;
     }
+
+    // A `beforeImport` handler may destroy the grid.
+    this.#assertAlive();
 
     applyImportResult(this.hot, result, { importLayout: resolved.importLayout });
     this.hot.runHooks('afterImport', result, format);
@@ -519,6 +650,16 @@ export class ImportFile extends BasePlugin {
   #assertEnabled(): void {
     if (!this.enabled) {
       throwWithCause('ImportFile: the plugin is disabled (`importFile: false`), so nothing can be imported.');
+    }
+  }
+
+  /**
+   * Rejects a call whose grid was destroyed across an `await` or by a hook: `BasePlugin#destroy`
+   * deletes `hot`, so continuing would surface as a raw `TypeError`.
+   */
+  #assertAlive(): void {
+    if (!this.hot) {
+      throwWithCause('ImportFile: the Handsontable instance was destroyed while the workbook was being read.');
     }
   }
 

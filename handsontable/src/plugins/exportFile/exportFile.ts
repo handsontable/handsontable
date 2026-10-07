@@ -237,7 +237,7 @@ export interface ExportFileSettings {
    * built-in engine writes `.xlsx`. An entry that is absent or `null` selects the built-in engine
    * too; an entry that holds any other value must be a supported engine module.
    */
-  engines?: Record<string, object | null>;
+  engines?: Record<string, object | null | undefined>;
 }
 
 /**
@@ -391,6 +391,11 @@ function isThenable(value: unknown): value is PromiseLike<unknown> {
  */
 export class ExportFile extends BasePlugin {
   /**
+   * Object URLs of downloads whose revoke timeout has not run yet, revoked by `destroy()`.
+   */
+  #pendingObjectUrls = new Set<string>();
+
+  /**
    * Returns the plugin key used to identify this plugin in Handsontable settings.
    */
   static get PLUGIN_KEY() {
@@ -442,6 +447,25 @@ export class ExportFile extends BasePlugin {
   }
 
   /**
+   * Revokes the object URL of every download whose revoke timeout has not run yet, then runs the
+   * base plugin teardown. `Core#destroy` clears every `_registerTimeout` before the plugins are
+   * destroyed, so a grid torn down within the timeout would otherwise keep each blob alive until the
+   * page unloads.
+   */
+  destroy() {
+    // `BasePlugin#destroy` deletes `hot`; a second direct call must not throw.
+    if (this.hot) {
+      const { rootWindow } = this.hot;
+      const URL = rootWindow.URL || rootWindow.webkitURL;
+
+      this.#pendingObjectUrls.forEach(url => URL.revokeObjectURL(url));
+    }
+
+    this.#pendingObjectUrls.clear();
+    super.destroy();
+  }
+
+  /**
    * Add export options to the Context Menu.
    *
    * @param {object} options Contains default added options of the Context Menu.
@@ -482,7 +506,7 @@ export class ExportFile extends BasePlugin {
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Controls the sanitization of cell values (CSV only).
    * @returns {string}
    */
-  exportAsString(format: string, options: Record<string, unknown> = {}): string {
+  exportAsString(format: string, options: ExportOptions | Record<string, unknown> = {}): string {
     const formatter = this._createTypeFormatter(format, options);
 
     if (formatter.binary) {
@@ -516,7 +540,7 @@ export class ExportFile extends BasePlugin {
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
    * @returns {Blob}
    */
-  exportAsBlob(format: string, options: Record<string, unknown> = {}): Blob {
+  exportAsBlob(format: string, options: ExportOptions | Record<string, unknown> = {}): Blob {
     const formatter = this._createTypeFormatter(format, options);
 
     if (formatter.binary) {
@@ -558,7 +582,7 @@ export class ExportFile extends BasePlugin {
    * @returns {Promise<Blob>}
    * @since 17.1.0
    */
-  async exportAsBlobAsync(format: string, options: Record<string, unknown> = {}): Promise<Blob> {
+  async exportAsBlobAsync(format: string, options: ExportOptions | Record<string, unknown> = {}): Promise<Blob> {
     return this._createBlob(this._createTypeFormatter(format, options));
   }
 
@@ -585,7 +609,7 @@ export class ExportFile extends BasePlugin {
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
    * @returns {void}
    */
-  downloadFile(format: string, options: Record<string, unknown> = {}): void {
+  downloadFile(format: string, options: ExportOptions | Record<string, unknown> = {}): void {
     const formatter = this._createTypeFormatter(format, options);
 
     if (formatter.binary) {
@@ -630,7 +654,7 @@ export class ExportFile extends BasePlugin {
    * @returns {Promise<void>}
    * @since 17.1.0
    */
-  async downloadFileAsync(format: string, options: Record<string, unknown> = {}) {
+  async downloadFileAsync(format: string, options: ExportOptions | Record<string, unknown> = {}) {
     const formatter = this._createTypeFormatter(format, options);
     const dialogPlugin = this.hot.getPlugin('dialog');
     const hasDialog = dialogPlugin?.isEnabled();
@@ -640,6 +664,7 @@ export class ExportFile extends BasePlugin {
     const runExport = async() => {
       const blob = await Promise.resolve(this._createBlob(formatter));
 
+      this.#assertAlive();
       this.#triggerDownload(blob, name);
     };
 
@@ -664,9 +689,13 @@ export class ExportFile extends BasePlugin {
       });
 
       try {
+        this.#assertAlive();
         await runExport();
       } finally {
-        dialogPlugin.hide();
+        // A destroyed grid has already torn the dialog down with it.
+        if (this.hot) {
+          dialogPlugin.hide();
+        }
       }
 
       return;
@@ -694,9 +723,21 @@ export class ExportFile extends BasePlugin {
     a.dispatchEvent(new MouseEvent('click'));
     rootDocument.body.removeChild(a);
 
+    this.#pendingObjectUrls.add(url);
     this.hot._registerTimeout(() => {
+      this.#pendingObjectUrls.delete(url);
       URL.revokeObjectURL(url);
     }, 100);
+  }
+
+  /**
+   * Rejects a download whose grid was destroyed while the file was being built. `BasePlugin#destroy`
+   * deletes `hot`, so continuing would surface as a raw `TypeError`.
+   */
+  #assertAlive() {
+    if (!this.hot) {
+      throwWithCause('ExportFile: the Handsontable instance was destroyed while the file was being exported.');
+    }
   }
 
   /**
@@ -736,7 +777,7 @@ export class ExportFile extends BasePlugin {
    * @param {object} options Export options.
    * @returns {BaseType}
    */
-  _createTypeFormatter(format: string, options: Record<string, unknown> = {}): BaseType {
+  _createTypeFormatter(format: string, options: ExportOptions | Record<string, unknown> = {}): BaseType {
     if (!EXPORT_TYPES[format]) {
       throwWithCause(`Export format type "${format}" is not supported.`);
     }
@@ -744,7 +785,11 @@ export class ExportFile extends BasePlugin {
     const pluginSettings = getPluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
     const engines = pluginSettings && isObject(pluginSettings.engines) ? pluginSettings.engines : undefined;
     const engine = resolveEngineOverride(options.engine, engines?.[format]);
-    const mergedOptions = engine !== undefined ? { ...options, engine } : options;
+    // `ExportOptions` declares no index signature, so it is widened here for the formatter, which
+    // reads the options by key.
+    const mergedOptions: Record<string, unknown> = engine !== undefined
+      ? { ...options, engine }
+      : options as Record<string, unknown>;
     const formatter = typeFactory(format, new DataProvider(this.hot), mergedOptions);
 
     if (formatter === null) {

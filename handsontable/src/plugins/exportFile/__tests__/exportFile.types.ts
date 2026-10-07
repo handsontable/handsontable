@@ -21,6 +21,21 @@ const settings: ExportFileSettings = { engines: { xlsx: {} } };
 const nullEngineSettings: ExportFileSettings = { engines: { xlsx: null } };
 
 new Handsontable(document.createElement('div'), { exportFile: nullEngineSettings });
+new Handsontable(document.createElement('div'), { exportFile: true });
+new Handsontable(document.createElement('div'), { exportFile: false });
+
+// `undefined` is read like `null` at runtime, so an optional engine (`xlsx: props.engine`) compiles.
+const optionalEngine: object | undefined = Math.random() > 0.5 ? {} : undefined;
+const undefinedEngineSettings: ExportFileSettings = { engines: { xlsx: optionalEngine } };
+
+new Handsontable(document.createElement('div'), { exportFile: { engines: { xlsx: undefined } } });
+new Handsontable(document.createElement('div'), { exportFile: undefinedEngineSettings });
+
+// `GridSettings` declares `exportFile`, so a wrong shape no longer falls into the index signature.
+// @ts-expect-error a number is neither a boolean nor the settings object
+new Handsontable(document.createElement('div'), { exportFile: 42 });
+// @ts-expect-error an engine is a module object, not a string
+new Handsontable(document.createElement('div'), { exportFile: { engines: { xlsx: 'a string, not an engine' } } });
 
 const hot = new Handsontable(document.createElement('div'), {});
 const hot2 = new Handsontable(document.createElement('div'), {});
@@ -131,6 +146,18 @@ exportPlugin.downloadFileAsync('xlsx', { engine: null });
 exportPlugin.exportAsBlobAsync('xlsx', { engine: null });
 const nullEngineExportOptions: ExportOptions = { engine: null };
 const objectEngineExportOptions: ExportOptions = { engine: {} };
+
+// A variable typed `ExportOptions` is accepted by every export method, and an inline literal with a
+// key the interface does not declare still is too.
+const typedExportOptions: ExportOptions = { filename: 'report', colHeaders: true };
+
+exportPlugin.exportAsBlobAsync('xlsx', nullEngineExportOptions);
+exportPlugin.exportAsBlobAsync('xlsx', objectEngineExportOptions);
+exportPlugin.downloadFileAsync('xlsx', typedExportOptions);
+exportPlugin.exportAsString('csv', typedExportOptions);
+exportPlugin.exportAsBlob('csv', typedExportOptions);
+exportPlugin.downloadFile('csv', typedExportOptions);
+exportPlugin.exportAsBlobAsync('xlsx', { sheetName: 1, nonsense: true });
 
 // ─── sanitizeValues variants ───────────────────────────────────────────────
 

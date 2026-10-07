@@ -5,7 +5,7 @@ import { Blob } from 'node:buffer';
 import ExcelJS from 'exceljs';
 import { ImportFile, PLUGIN_KEY, PLUGIN_PRIORITY } from '../importFile';
 import { installImportedStyles } from '../applier';
-import { mapWorkbook, resolveImportOptions } from '../mapper';
+import { mapWorkbook, resolveImportOptions, selectSheet } from '../mapper';
 import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
 import { excelJsAdapter } from '../../../utils/xlsxEngine/adapters/exceljs';
 import { DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
@@ -13,6 +13,7 @@ import { SheetBuilder } from '../../../utils/xlsxEngine/builder';
 import { createWorkbookSnapshot } from '../../../utils/xlsxEngine/model';
 import { loadFixture as fixture, toArrayBuffer } from '../../../utils/xlsxEngine/__tests__/helpers/fixtures';
 import * as consoleHelpers from '../../../helpers/console';
+import { registerCellType } from '../../../cellTypes/registry';
 
 function fakeCtx(importFileSettings) {
   return { hot: { getSettings: () => ({ importFile: importFileSettings }) } };
@@ -748,3 +749,243 @@ describe('mapWorkbook on number formats a spreadsheet app writes, whichever engi
   });
 });
 
+describe('ImportFile on a modular bundle that registers only some modules', () => {
+  beforeAll(() => {
+    // Nothing in this file registers a cell type, so the registry is empty except for this one:
+    // the setup the reviewer measured (`registerCellType` for a few types, not all).
+    registerCellType('numeric', {});
+  });
+
+  it('should fall back to text for an inferred cell type that is not registered, and report it', async() => {
+    // `values.xlsx` infers numeric, checkbox, date and time columns. Applying an unregistered type
+    // used to throw from `getCellType` after `loadData`, leaving the grid half imported.
+    const { plugin, calls } = pluginWithFakeHot(true);
+    const result = await plugin.importFromArrayBuffer('xlsx', fixture('values'), { colHeaders: 'firstRow' });
+    const types = result.columns.map(column => column.type);
+
+    expect(types).toContain('numeric');
+    expect(types).not.toContain('checkbox');
+    expect(types).not.toContain('date');
+    expect(types).not.toContain('time');
+    expect(result.columns.some(column => column.dateFormat || column.timeFormat)).toBe(false);
+    expect(result.columns.find(column => column.type === 'numeric').numericFormat).toBeDefined();
+    expect(result.dropped).toEqual(expect.arrayContaining(['cellType:checkbox', 'cellType:date', 'cellType:time']));
+    expect(result.dropped).not.toContain('cellType:numeric');
+
+    const applied = calls.find(call => call[0] === 'updateSettings')[1];
+
+    expect(applied.columns.every(column => column.type === undefined || column.type === 'text'
+      || column.type === 'numeric')).toBe(true);
+  });
+
+  it('should fall back per cell, keeping the shared meta object of a registered type untouched', async() => {
+    const { plugin } = pluginWithFakeHot(true);
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Sheet1');
+
+    // A dropdown column with one numeric outlier, and the reverse, so both `columns` and `cellsMeta`
+    // carry types.
+    for (let row = 1; row <= 4; row++) {
+      ws.getCell(row, 1).value = 'Red';
+      ws.getCell(row, 1).dataValidation = { type: 'list', allowBlank: true, formulae: ['"Red,Green"'] };
+    }
+
+    ws.getCell(4, 1).dataValidation = undefined;
+    ws.getCell(4, 1).value = 5;
+    ws.getCell(4, 1).numFmt = '0.00';
+
+    const bytes = toArrayBuffer(new Uint8Array(await wb.xlsx.writeBuffer()));
+    const result = await plugin.importFromArrayBuffer('xlsx', bytes);
+    const metas = [...(result.columns ?? []), ...(result.cellsMeta ?? []).map(entry => entry.meta)];
+
+    expect(metas.some(meta => meta.type === 'dropdown')).toBe(false);
+    expect(metas.some(meta => meta.source !== undefined)).toBe(false);
+    expect(result.dropped).toContain('cellType:dropdown');
+  });
+
+  it('should leave the inferred types alone when the result is not applied', async() => {
+    const { plugin } = pluginWithFakeHot(true);
+    const result = await plugin.importFromArrayBuffer('xlsx', fixture('values'), { apply: false });
+
+    expect(result.columns.map(column => column.type)).toContain('checkbox');
+    expect(result.dropped.some(name => name.startsWith('cellType:'))).toBe(false);
+  });
+
+  it('should report merges and hidden rows and columns when their plugins are not registered', async() => {
+    const { plugin, hot } = pluginWithFakeHot(true);
+    const withoutPlugins = await plugin.importFromArrayBuffer('xlsx', fixture('layout'));
+
+    expect(withoutPlugins.mergeCells?.length).toBeGreaterThan(0);
+    expect(withoutPlugins.dropped).toContain('mergeCells');
+
+    ['hiddenRows', 'hiddenColumns'].forEach((key) => {
+      if (withoutPlugins[key]?.length > 0) {
+        expect(withoutPlugins.dropped).toContain(key);
+      } else {
+        expect(withoutPlugins.dropped).not.toContain(key);
+      }
+    });
+
+    const registered = { mergeCells: {}, hiddenRows: {}, hiddenColumns: {} };
+    const original = hot.getPlugin;
+
+    hot.getPlugin = name => registered[name] ?? original(name);
+
+    const withPlugins = await plugin.importFromArrayBuffer('xlsx', fixture('layout'));
+
+    expect(withPlugins.dropped).not.toContain('mergeCells');
+    expect(withPlugins.dropped).not.toContain('hiddenRows');
+    expect(withPlugins.dropped).not.toContain('hiddenColumns');
+  });
+
+  it('should not report a missing layout plugin when the result is not applied', async() => {
+    const { plugin } = pluginWithFakeHot(true);
+    const result = await plugin.importFromArrayBuffer('xlsx', fixture('layout'), { apply: false });
+
+    expect(result.dropped).not.toContain('mergeCells');
+  });
+});
+
+describe('ImportFile lifecycle guards around beforeImport', () => {
+  it('should reject, and not apply, when the plugin was disabled while the file was being read', async() => {
+    let plugin;
+    const engine = {
+      Workbook: class extends ExcelJS.Workbook {
+        constructor() {
+          super();
+
+          const load = this.xlsx.load.bind(this.xlsx);
+
+          this.xlsx.load = async(buffer) => {
+            const loaded = await load(buffer);
+
+            // What `updateSettings({ importFile: false })` does to the plugin mid-read.
+            plugin.disablePlugin();
+
+            return loaded;
+          };
+        }
+      },
+    };
+
+    const fake = pluginWithFakeHot({ engines: { xlsx: engine } });
+
+    ({ plugin } = fake);
+
+    await expect(plugin.importFromArrayBuffer('xlsx', fixture('values'))).rejects.toThrow(/plugin is disabled/);
+    expect(fake.calls.map(call => call[0])).toEqual([]);
+  });
+
+  it('should reject with a Handsontable error, not a TypeError, when beforeImport destroys the grid', async() => {
+    const { plugin, hooks, calls } = pluginWithFakeHot(true);
+
+    hooks.beforeImport = () => {
+      plugin.destroy();
+    };
+
+    const rejection = plugin.importFromArrayBuffer('xlsx', fixture('values'));
+
+    await expect(rejection).rejects.toThrow(/ImportFile: the Handsontable instance was destroyed/);
+    await expect(rejection).rejects.not.toThrow(TypeError);
+    expect(calls.map(call => call[0])).toEqual(['beforeImport']);
+  });
+});
+
+describe('ImportFile#importFromArrayBuffer on an ArrayBuffer view', () => {
+  it('should read a Uint8Array subarray of a larger buffer through the built-in engine', async() => {
+    const { plugin } = pluginWithFakeHot(true);
+    const bytes = new Uint8Array(fixture('values'));
+    const padded = new Uint8Array(bytes.byteLength + 16);
+
+    padded.set(bytes, 8);
+
+    const view = padded.subarray(8, 8 + bytes.byteLength);
+    const result = await plugin.importFromArrayBuffer('xlsx', view, { apply: false });
+
+    expect(result.sheetNames).toEqual(['Values']);
+
+    const fromDataView = await plugin.importFromArrayBuffer(
+      'xlsx', new DataView(padded.buffer, 8, bytes.byteLength), { apply: false }
+    );
+
+    expect(fromDataView.sheetNames).toEqual(['Values']);
+  });
+});
+
+describe('DroppedFeatures on a file-driven name', () => {
+  it('should replace the bidi formatting controls, as it does the C0 and C1 controls', () => {
+    const dropped = new DroppedFeatures();
+    const controls = ['\u202A', '\u202B', '\u202C', '\u202D', '\u202E', '\u2066', '\u2067', '\u2068', '\u2069'];
+
+    dropped.recordUnsupported('numFmt', `0.00E+00"${controls.join('')}evil"`);
+
+    const [name] = dropped.list();
+
+    controls.forEach(control => expect(name).not.toContain(control));
+    expect(name).toBe(`numFmt:0.00E+00"${'\uFFFD'.repeat(controls.length)}evil"`);
+    // The neighbors of both ranges are not controls and stay.
+    dropped.recordUnsupported('numFmt', '\u2029\u202F\u2065\u206A');
+    expect(dropped.list()[1]).toBe('numFmt:\u2029\u202F\u2065\u206A');
+  });
+});
+
+describe('ImportFile and the Formulas engine\'s named expressions', () => {
+  it('should keep a formula live over a name the engine defines and import the cached value otherwise', async() => {
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Data');
+
+    ws.getCell('B2').value = 10;
+    ws.getCell('B3').value = 20;
+    ws.getCell('B4').value = 30;
+    ws.getCell('F1').value = 0.07;
+    wb.definedNames.add('Data!$B$2:$B$4', 'Sales');
+    wb.definedNames.add('Data!$F$1', 'Rate');
+    ws.getCell('D2').value = { formula: 'SUM(Sales)', result: 60 };
+    ws.getCell('D3').value = { formula: 'Rate*100', result: 7 };
+
+    const bytes = toArrayBuffer(new Uint8Array(await wb.xlsx.writeBuffer()));
+    const { plugin, hot } = pluginWithFakeHot(true);
+    const listNamedExpressions = jest.fn(() => ['SALES']);
+
+    hot.getPlugin = name => ({
+      formulas: {
+        isEnabled: () => true,
+        engine: { getSheetNames: () => ['Data'], listNamedExpressions },
+      },
+    })[name];
+
+    const result = await plugin.importFromArrayBuffer('xlsx', bytes, { apply: false });
+
+    expect(listNamedExpressions).toHaveBeenCalled();
+    // `SALES` is matched case-insensitively and stays live; `Rate` is missing from the engine.
+    expect(result.data[1][3]).toBe('=SUM(Sales)');
+    expect(result.data[2][3]).toBe(7);
+    expect(result.dropped).toContain('formula:definedName');
+  });
+});
+
+describe('selectSheet by index on an export with dropdowns', () => {
+  it('should skip the export\'s hidden _HotValidation helper the way it skips a very hidden sheet', () => {
+    // The export writes the dropdown helper as `hidden` (Numbers drops a `veryHidden` sheet and every
+    // validation pointing at it), and in a multi-sheet export it sits between the data sheets.
+    const workbook = createWorkbookSnapshot();
+    const sheet = (name, state) => {
+      const builder = new SheetBuilder(name);
+
+      builder.setState(state);
+
+      return builder.toSnapshot();
+    };
+
+    workbook.sheets.push(
+      sheet('First', 'visible'), sheet('_HotValidation', 'hidden'), sheet('Second', 'visible'),
+      sheet('_HotValidation1', 'hidden'), sheet('Archive', 'hidden'),
+    );
+
+    expect(selectSheet(workbook, 1).name).toBe('Second');
+    // A hidden sheet of the user's own is still reachable by index, as before.
+    expect(selectSheet(workbook, 2).name).toBe('Archive');
+    // By name the helper is still reachable.
+    expect(selectSheet(workbook, '_HotValidation').name).toBe('_HotValidation');
+  });
+});

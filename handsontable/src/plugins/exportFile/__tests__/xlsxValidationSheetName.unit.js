@@ -104,6 +104,7 @@ jest.mock('../dataProvider', () => ({
  */
 function createRecordingEngine() {
   const sheetNames = [];
+  const worksheets = [];
   const cells = [];
   const recorded = { writeOptions: undefined };
 
@@ -151,12 +152,13 @@ function createRecordingEngine() {
       };
 
       this.worksheets.push(worksheet);
+      worksheets.push(worksheet);
 
       return worksheet;
     }
   }
 
-  return { engine: { Workbook: FakeWorkbook }, sheetNames, cells, recorded };
+  return { engine: { Workbook: FakeWorkbook }, sheetNames, worksheets, cells, recorded };
 }
 
 /**
@@ -220,6 +222,23 @@ describe('Xlsx validation helper sheet name', () => {
     expect(await exportSheetsNamed('Data', 'More')).toEqual(
       ['Data', '_HotValidation', 'More', '_HotValidation1'],
     );
+  });
+});
+
+describe('Xlsx validation helper sheet state', () => {
+  it('should write the helper sheet hidden, not very hidden, so Numbers keeps the dropdowns', async() => {
+    // Numbers discards a `veryHidden` sheet when it opens the file and keeps no validation that
+    // points at it, so every dropdown exported from an array `source` lost its list there.
+    const instance = { rootDocument: document, rootWindow: window };
+    const { engine, worksheets } = createRecordingEngine();
+    const xlsx = new Xlsx(new DataProvider(instance), { engine, sheets: [{ instance, name: 'Data' }] });
+
+    await xlsx.export();
+
+    expect(worksheets.map(sheet => [sheet.name, sheet.state])).toEqual([
+      ['Data', 'visible'],
+      ['_HotValidation', 'hidden'],
+    ]);
   });
 });
 
