@@ -68,7 +68,13 @@ export function intlNumFormatToExcelNumFmt(
   }
 
   if (style === 'currency' && currency) {
-    const { symbol, isPrefix } = getCurrencyInfo(currency, locale);
+    const { symbol: rawSymbol, isPrefix } = getCurrencyInfo(currency, locale);
+    // A lone symbol (the dollar, euro, pound or yen sign) is written bare. Anything longer is
+    // quoted: Excel for the web repairs a workbook holding an unquoted letter code (`#,##0.00USD`,
+    // `CHF#,##0.00`) and drops the format, and Numbers and LibreOffice misread unquoted multi-letter
+    // symbols such as the zloty's or `kr`.
+    // The import reads the quoted form back (`captureCurrency` in `utils/xlsxEngine/numFmtCode.ts`).
+    const symbol = rawSymbol.length > 1 ? `"${rawSymbol.replaceAll('"', '')}"` : rawSymbol;
 
     // @TODO: handle locale-specific spacing between symbol and number
     // (e.g. non-breaking space in fr-FR). Excel numFmt requires "\ " for a

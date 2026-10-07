@@ -98,6 +98,23 @@ function bareMarkerToCode(marker: string): string | null {
 }
 
 /**
+ * A whole bare currency marker: a three-letter ISO code or a dollar composite, nothing else.
+ */
+const BARE_MARKER_REGEX = /^(?:[A-Z]{1,3}\$|[A-Z]{3})$/;
+
+/**
+ * Maps a currency symbol that sits next to the number part (quoted, or escaped one character at a
+ * time) to its ISO code: a symbol the table owns, or a bare ISO code or dollar composite - the form
+ * `intlNumFormatToExcelNumFmt` quotes for a currency with no single-character symbol.
+ *
+ * @param {string} symbol The symbol, unquoted or unescaped and trimmed.
+ * @returns {string|null}
+ */
+function adjacentSymbolToCode(symbol: string): string | null {
+  return currencyForSymbol(symbol) ?? (BARE_MARKER_REGEX.test(symbol) ? bareMarkerToCode(symbol) : null);
+}
+
+/**
  * What a number format's currency capture produced: the ISO 4217 code when a known symbol was
  * found, and the pattern with that symbol removed.
  */
@@ -113,10 +130,37 @@ export interface CurrencyCapture {
 }
 
 /**
+ * Reads the text of a quoted literal or an escaped run as a currency. A symbol the table owns
+ * counts wherever it sits; a bare ISO code or dollar composite counts only next to the number part
+ * (`next` is the first character on the number's side, past one optional space), so a quoted
+ * label such as `"USD" @` stays a label.
+ *
+ * @param {string} text The unquoted or unescaped text.
+ * @param {string} next The pattern on the number's side of the text.
+ * @param {boolean} leading Whether the text opens the pattern.
+ * @returns {string|null}
+ */
+function symbolTextToCode(text: string, next: string, leading: boolean): string | null {
+  const symbol = text.trim();
+  const owned = currencyForSymbol(symbol);
+
+  if (owned !== null) {
+    return owned;
+  }
+
+  const neighbor = leading ? next.trimStart().charAt(0) : next.trimEnd().slice(-1);
+  const isNextToNumber = leading ? /[#0?]/.test(neighbor) : /[#0?%]/.test(neighbor);
+
+  return isNextToNumber && neighbor !== '' ? adjacentSymbolToCode(symbol) : null;
+}
+
+/**
  * Captures a currency symbol written as a quoted literal at either end of a trimmed pattern
- * (`"$"#,##0.00`, which is what Excel's en-US Currency style writes, or `#,##0.00" kr"`). Only a
- * symbol the table owns counts: any other quoted text is a label, and stays in the pattern.
- * Located with `indexOf`/`lastIndexOf`, so no regex walks the file's text here.
+ * (`"$"#,##0.00`, which is what Excel's en-US Currency style writes, `#,##0.00" kr"`, or the
+ * export's own `#,##0.00"USD"` and `"HK$"#,##0`). A symbol the table owns counts, and so does a
+ * three-letter ISO code or a dollar composite next to the number part: any other quoted text is a
+ * label, and stays in the pattern. Located with `indexOf`/`lastIndexOf`, so no regex walks the
+ * file's text here.
  *
  * @param {string} trimmed The trimmed number format.
  * @returns {CurrencyCapture|null}
@@ -124,19 +168,21 @@ export interface CurrencyCapture {
 function captureQuotedCurrency(trimmed: string): CurrencyCapture | null {
   if (trimmed.startsWith('"')) {
     const close = trimmed.indexOf('"', 1);
-    const currency = close === -1 ? null : currencyForSymbol(trimmed.slice(1, close).trim());
+    const rest = close === -1 ? '' : trimmed.slice(close + 1);
+    const currency = close === -1 ? null : symbolTextToCode(trimmed.slice(1, close), rest, true);
 
     if (currency !== null) {
-      return { currency, rest: trimmed.slice(close + 1) };
+      return { currency, rest };
     }
   }
 
   if (trimmed.length > 1 && trimmed.endsWith('"')) {
     const open = trimmed.lastIndexOf('"', trimmed.length - 2);
-    const currency = open === -1 ? null : currencyForSymbol(trimmed.slice(open + 1, -1).trim());
+    const rest = open === -1 ? '' : trimmed.slice(0, open);
+    const currency = open === -1 ? null : symbolTextToCode(trimmed.slice(open + 1, -1), rest, false);
 
     if (currency !== null) {
-      return { currency, rest: trimmed.slice(0, open) };
+      return { currency, rest };
     }
   }
 
@@ -144,31 +190,76 @@ function captureQuotedCurrency(trimmed: string): CurrencyCapture | null {
 }
 
 /**
- * The first (positive) section of a number format, with its layout-only codes removed: the `_x`
- * padding (a space the width of `x`) and the `*x` fill (`x` repeated to the cell's width) are not
- * format codes, and `Intl.NumberFormat` has no equivalent of either. A multi-section code
- * (`#,##0;[Red]-#,##0`, Excel's built-in currency and accounting formats) used to reach the
- * plain-number check whole, so every such column imported unformatted. Quoted literals and
- * backslash escapes are kept as they are - a `;` or a `_` inside one is text - so the result still
- * goes through `captureCurrency` and `stripFormatDecorations` like any other code. A section's own
- * color or condition (`[Red]`, `[>=100]`) is a bracket section those already remove.
+ * Captures a currency symbol escaped one character at a time at either end of a trimmed pattern.
+ * Excel saves an unquoted multi-letter symbol that way (`#,##0.00zl` with a stroked l comes back as
+ * `#,##0.00\z\l`, `CHF#,##0.00` as `\C\H\F#,##0.00`), and only a whole-symbol escape (`\$`) was
+ * read. The run is unescaped and read like a quoted symbol; a run that is not a currency stays in
+ * the pattern, so `0.0\%` keeps its literal percent sign. Walked by index, two characters at a
+ * time, so the scan is linear.
+ *
+ * @param {string} trimmed The trimmed number format.
+ * @returns {CurrencyCapture|null}
+ */
+function captureEscapedCurrency(trimmed: string): CurrencyCapture | null {
+  let end = 0;
+
+  while (trimmed[end] === '\\' && end + 1 < trimmed.length) {
+    end += 2;
+  }
+
+  if (end > 0) {
+    const currency = symbolTextToCode(trimmed.slice(0, end).replace(/\\(.)/gs, '$1'), trimmed.slice(end), true);
+
+    if (currency !== null) {
+      return { currency, rest: trimmed.slice(end) };
+    }
+  }
+
+  let start = trimmed.length;
+
+  while (start >= 2 && trimmed[start - 2] === '\\') {
+    start -= 2;
+  }
+
+  if (start < trimmed.length) {
+    const currency = symbolTextToCode(trimmed.slice(start).replace(/\\(.)/gs, '$1'), trimmed.slice(0, start), false);
+
+    if (currency !== null) {
+      return { currency, rest: trimmed.slice(0, start) };
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Splits a number format into its `;`-separated sections, at most `limit` of them, with the
+ * layout-only codes removed: the `_x` padding (a space the width of `x`) and the `*x` fill (`x`
+ * repeated to the cell's width) are not format codes, and `Intl.NumberFormat` has no equivalent of
+ * either. Quoted literals and backslash escapes are kept as they are - a `;` or a `_` inside one is
+ * text.
  *
  * Linear in the length of the code: one pass, no backtracking.
  *
  * @param {string} numFmt The number format code.
- * @returns {string}
+ * @param {number} limit The most sections to read.
+ * @returns {string[]}
  */
-export function positiveFormatSection(numFmt: string): string {
+function splitFormatSections(numFmt: string, limit: number): string[] {
+  const sections: string[] = [];
   let section = '';
 
   for (let i = 0; i < numFmt.length; i++) {
     const char = numFmt[i];
 
     if (char === ';') {
-      break;
-    }
+      sections.push(section);
+      section = '';
 
-    if (char === '"') {
+      if (sections.length === limit) {
+        return sections;
+      }
+    } else if (char === '"') {
       const close = numFmt.indexOf('"', i + 1);
       const end = close === -1 ? numFmt.length : close + 1;
 
@@ -184,7 +275,73 @@ export function positiveFormatSection(numFmt: string): string {
     }
   }
 
-  return section;
+  sections.push(section);
+
+  return sections;
+}
+
+/**
+ * The first (positive) section of a number format, with its layout-only codes removed (see
+ * `splitFormatSections`). A multi-section code (`#,##0;[Red]-#,##0`, Excel's built-in currency and
+ * accounting formats) used to reach the plain-number check whole, so every such column imported
+ * unformatted. The result still goes through `captureCurrency` and `stripFormatDecorations` like
+ * any other code. A section's own color (`[Red]`) is a bracket section those already remove; a
+ * code whose sections carry a condition is answered by `hasConditionalSection` first.
+ *
+ * @param {string} numFmt The number format code.
+ * @returns {string}
+ */
+export function positiveFormatSection(numFmt: string): string {
+  return splitFormatSections(numFmt, 1)[0];
+}
+
+/**
+ * A section that opens with a condition (`[>=100]`, `[<1]`, `[=0]`), possibly after a color.
+ * The color body excludes `<`, `>` and `=` as well as the brackets, so each attempt reads one way
+ * and stops: no rescan.
+ */
+const CONDITIONAL_SECTION_REGEX = /^\s*(?:\[[^[\]<>=]*\])*\[[<>=]/;
+
+/**
+ * Whether a multi-section number format splits its values by a condition
+ * (`[>=1000000]0.0,,"M";[>=1000]0.0,"K";0`). Its first section then applies only to the values its
+ * condition holds for, so it cannot stand for the whole code. A single-section code with a
+ * condition (`[Red][<100]0.0`) applies to every value either way and does not count.
+ *
+ * @param {string} numFmt The number format code.
+ * @returns {boolean}
+ */
+export function hasConditionalSection(numFmt: string): boolean {
+  const sections = splitFormatSections(numFmt, 4);
+
+  return sections.length > 1 && sections.some(section => CONDITIONAL_SECTION_REGEX.test(section));
+}
+
+/**
+ * Every bracket section except a currency token (`[Red]`, `[>=100]`, but not `[$\u20AC-407]`).
+ */
+const NON_CURRENCY_BRACKET_SECTION_REGEX = /\[(?!\$)[^[\]]*\]/g;
+
+/**
+ * Whether the grid shows a code's negative values the way its second section asks. `Intl` writes a
+ * negative number as its positive form behind a minus sign, so only a second section that is the
+ * first one with a leading `-` (or LibreOffice's `\-`), give or take a color, reads the same. A
+ * parenthesized `(#,##0)`, or a section without the minus, shows differently, and the caller
+ * reports the code. A code with one section has nothing to differ.
+ *
+ * @param {string} numFmt The number format code.
+ * @returns {boolean}
+ */
+export function isNegativeSectionShowable(numFmt: string): boolean {
+  const sections = splitFormatSections(numFmt, 2);
+
+  if (sections.length < 2) {
+    return true;
+  }
+
+  const [positive, negative] = sections.map(section => section.replace(NON_CURRENCY_BRACKET_SECTION_REGEX, '').trim());
+
+  return negative === `-${positive}` || negative === `\\-${positive}`;
 }
 
 /**
@@ -210,7 +367,7 @@ export function captureCurrency(numFmt: string): CurrencyCapture {
   }
 
   const trimmed = numFmt.trim();
-  const quoted = captureQuotedCurrency(trimmed);
+  const quoted = captureQuotedCurrency(trimmed) ?? captureEscapedCurrency(trimmed);
 
   if (quoted) {
     return quoted;
@@ -360,9 +517,9 @@ export function classifyTemporalFormat(numFmt: string): TemporalFormatKind | nul
 }
 
 /**
- * Whether a cell's number format formats a date or a time - the test the native reader's
- * `date1904` shift asks, answered exactly as the import's type inference answers it, so a serial is
- * shifted only when the import will show it as a date or a time.
+ * Whether a cell's number format formats a date or a time, answered exactly as the import's type
+ * inference answers it. The readers' `date1904` shift asks `classifyTemporalFormat` directly,
+ * because it shifts a date or a date-time but never a time.
  *
  * @param {string|null} numFmt The number format code, or `null` for a cell without one.
  * @returns {boolean}

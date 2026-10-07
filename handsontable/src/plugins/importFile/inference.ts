@@ -5,6 +5,8 @@ import {
   MAX_NUMBER_FORMAT_LENGTH,
   captureCurrency,
   classifyTemporalFormat,
+  hasConditionalSection,
+  isNegativeSectionShowable,
   positiveFormatSection,
   stripFormatDecorations,
 } from '../../utils/xlsxEngine/numFmtCode';
@@ -19,7 +21,8 @@ import type {
 /**
  * A cell type derived from a cell's number format and value. A `numeric` cell carries
  * `numericFormat` only when its Excel number format could be inverted into `Intl.NumberFormat`
- * options, and `unsupportedNumFmt` (the raw pattern) only when it could not.
+ * options, and `unsupportedNumFmt` (the raw pattern) when it could not, or when its negative section
+ * shows differently from what the grid draws.
  */
 export type InferredType =
   | { type: 'numeric'; numericFormat?: Intl.NumberFormatOptions; unsupportedNumFmt?: string }
@@ -209,10 +212,16 @@ function countFractionDigits(pattern: string): number {
  * Inverts `intlNumFormatToExcelNumFmt`: turns an Excel number format back into the
  * `Intl.NumberFormat` options Handsontable's numeric cell type takes. Returns `null` when the
  * pattern carries codes with no `Intl` equivalent (scientific notation, fractions, text literals
- * that change the reading), or pins more than the 100 fraction digits `Intl` accepts, so the caller
- * can report it as dropped.
+ * that change the reading, a trailing comma that scales the number by a thousand, sections split
+ * by a condition such as `[>=1000]`), or pins more than the 100 fraction digits `Intl` accepts, so
+ * the caller can report it as dropped.
  */
 export function excelNumFmtToIntlOptions(numFmt: string): Intl.NumberFormatOptions | null {
+  // A first section that applies only where its condition holds cannot stand for every value.
+  if (hasConditionalSection(numFmt)) {
+    return null;
+  }
+
   // `Intl` renders a negative number with its own minus sign, so the positive section is the whole
   // format as far as it can be expressed.
   const { currency, rest } = captureCurrency(positiveFormatSection(numFmt).trim());
@@ -220,7 +229,9 @@ export function excelNumFmtToIntlOptions(numFmt: string): Intl.NumberFormatOptio
   const isPercent = stripped.endsWith('%');
   const bare = (isPercent ? stripped.slice(0, -1) : stripped).trim();
 
-  if (!PLAIN_NUMBER_PATTERN_REGEX.test(bare) || !/[#0]/.test(bare)) {
+  // A comma after the last digit placeholder divides the shown number by 1000 (`#,##0,` is "in
+  // thousands"), which `Intl` cannot express; read as a grouping flag, the scale was lost.
+  if (!PLAIN_NUMBER_PATTERN_REGEX.test(bare) || !/[#0]/.test(bare) || bare.endsWith(',')) {
     return null;
   }
 
@@ -248,12 +259,20 @@ export function excelNumFmtToIntlOptions(numFmt: string): Intl.NumberFormatOptio
 
 /**
  * Turns a non-temporal number format into a numeric inferred type: with `numericFormat` when the
- * format inverts, and with the raw pattern under `unsupportedNumFmt` when it does not.
+ * format inverts, and with the raw pattern under `unsupportedNumFmt` when it does not. A format
+ * whose positive section inverts but whose negative section the grid cannot show (`(#,##0)`)
+ * carries both: the column keeps the positive section, and the code is still reported.
  */
 function toNumericType(numFmt: string): InferredType {
   const numericFormat = excelNumFmtToIntlOptions(numFmt);
 
-  return numericFormat ? { type: 'numeric', numericFormat } : { type: 'numeric', unsupportedNumFmt: numFmt };
+  if (!numericFormat) {
+    return { type: 'numeric', unsupportedNumFmt: numFmt };
+  }
+
+  return isNegativeSectionShowable(numFmt)
+    ? { type: 'numeric', numericFormat }
+    : { type: 'numeric', numericFormat, unsupportedNumFmt: numFmt };
 }
 
 /**
@@ -271,9 +290,9 @@ function inferFromNumberFormat(numFmt: string): InferredType | null {
     return { type: 'numeric', unsupportedNumFmt: numFmt };
   }
 
-  // The same classification the native reader's `date1904` shift asks (`isTemporalFormatCode`), so
-  // a serial the reader shifted is always one this types as a date or a time. It takes the currency
-  // off first and reads an elapsed-time section (`[h]:mm`) as a time.
+  // The same classification both readers' `date1904` handling asks, so a serial shifted into the
+  // 1900 system is always one this types as a date or a date-time (a time is never shifted). It
+  // takes the currency off first and reads an elapsed-time section (`[h]:mm`) as a time.
   const temporal = classifyTemporalFormat(numFmt);
 
   if (temporal === 'time') {
@@ -384,7 +403,8 @@ function pad(value: number): string {
 export function serialToIsoDate(serial: number): string {
   const date = new Date(EXCEL_EPOCH_UTC + (Math.floor(serial) * MS_PER_DAY));
 
-  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
+  // Padded to four digits: `1-01-01` is no ISO date, and the date cell rendered `#bad-value#`.
+  return `${String(date.getUTCFullYear()).padStart(4, '0')}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
 }
 
 /**

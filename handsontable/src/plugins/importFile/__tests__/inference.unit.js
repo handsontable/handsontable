@@ -78,6 +78,10 @@ describe('inferCellType', () => {
       .toEqual({ type: 'time', timeFormat: { second: 'numeric' } });
     expect(inferCellType(cell({ value: 30 / 86400, numFmt: '[ss]' })).timeFormat)
       .toEqual(expect.objectContaining({ second: '2-digit' }));
+    // Excel accepts the elapsed section in uppercase too. Read case-sensitively, `[HH]:MM` stripped
+    // to `:mm`, a bare month, and the duration column typed as dates again.
+    expect(inferCellType(cell({ value: 0.5, numFmt: '[HH]:MM' })).type).toBe('time');
+    expect(inferCellType(cell({ value: 0.5, numFmt: '[HH]:MM:SS' })).type).toBe('time');
   });
 
   it('should keep a duration past what its elapsed format can show as a time a number, and report the format', () => {
@@ -106,6 +110,21 @@ describe('inferCellType', () => {
     expect(inferCellType(cell({ value: 59 / 1440, numFmt: '[mm]:ss' })).type).toBe('time');
     // A clock format is not elapsed and keeps reading the time of day.
     expect(inferCellType(cell({ value: 1.5, numFmt: 'h:mm' })).type).toBe('time');
+  });
+
+  it('should keep a duration of exactly the format\'s capacity a number', () => {
+    // A 24:00 total is an ordinary timesheet value. Typed as a time it would import as `00:00:00`.
+    expect(inferCellType(cell({ value: 1, numFmt: '[h]:mm' })))
+      .toEqual({ type: 'numeric', unsupportedNumFmt: '[h]:mm' });
+    expect(inferCellType(cell({ value: 60 / 1440, numFmt: '[mm]:ss' })))
+      .toEqual({ type: 'numeric', unsupportedNumFmt: '[mm]:ss' });
+    expect(inferCellType(cell({ value: 1 / 24, numFmt: '[m]' })))
+      .toEqual({ type: 'numeric', unsupportedNumFmt: '[m]' });
+    expect(inferCellType(cell({ value: 60 / 86400, numFmt: '[s]' })))
+      .toEqual({ type: 'numeric', unsupportedNumFmt: '[s]' });
+    // Rounded to the second first: 23:59:59.6 is a full day, 23:59:59.4 is not.
+    expect(inferCellType(cell({ value: 1 - (0.4 / 86400), numFmt: '[h]:mm' })).type).toBe('numeric');
+    expect(inferCellType(cell({ value: 1 - (0.6 / 86400), numFmt: '[h]:mm' })).type).toBe('time');
   });
 
   it('should classify a bare month format as a date, and a month next to hour/second as time', () => {
@@ -208,6 +227,43 @@ describe('inferCellType', () => {
       .not.toEqual(expect.objectContaining({ style: 'percent' }));
   });
 
+  it('should read a quoted ISO code or dollar composite as a currency, the way the export writes one', () => {
+    // The export quotes every symbol longer than one character, so the import has to read the
+    // quoted ISO code back or a quoted `"USD"` column re-imports as a plain number.
+    expect(inferCellType(cell({ value: 1234.5, numFmt: '#,##0.00"USD"' }))).toEqual({
+      type: 'numeric',
+      numericFormat: {
+        style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: true,
+      },
+    });
+    expect(inferCellType(cell({ value: 1234.5, numFmt: '"EUR"#,##0.00' })).numericFormat.currency).toBe('EUR');
+    expect(inferCellType(cell({ value: 1234.5, numFmt: '#,##0.00" RON"' })).numericFormat.currency).toBe('RON');
+    expect(inferCellType(cell({ value: 1234.5, numFmt: '"HK$"#,##0' })).numericFormat.currency).toBe('HKD');
+    expect(inferCellType(cell({ value: 1234.5, numFmt: '"US$"#,##0.00' })).numericFormat.currency).toBe('USD');
+    // A quoted label that is not a code stays a label.
+    expect(inferCellType(cell({ value: 12, numFmt: '0" pcs"' })).numericFormat.style).toBeUndefined();
+    expect(inferCellType(cell({ value: 12, numFmt: '"Abc"0' })).numericFormat.style).toBeUndefined();
+  });
+
+  it('should read a currency symbol escaped one character at a time, the way Excel saves one', () => {
+    // Excel saves the unquoted `#,##0.00zł` as `#,##0.00\z\ł`. Only a whole-symbol escape was
+    // unescaped, so the column lost its currency on the built-in engine.
+    const zloty = `z${String.fromCharCode(0x142)}`;
+
+    expect(inferCellType(cell({ value: 1234.5, numFmt: '#,##0.00\\z\\\u0142' })).numericFormat)
+      .toEqual(expect.objectContaining({ style: 'currency', currency: 'PLN' }));
+    expect(inferCellType(cell({ value: 1234.5, numFmt: '\\C\\H\\F#,##0.00' })).numericFormat)
+      .toEqual(expect.objectContaining({ style: 'currency', currency: 'CHF' }));
+    expect(inferCellType(cell({ value: 1234.5, numFmt: '#,##0.00\\k\\r' })).numericFormat)
+      .toEqual(expect.objectContaining({ style: 'currency', currency: 'SEK' }));
+    expect(inferCellType(cell({ value: 1234.5, numFmt: '#,##0.00\\ \\U\\S\\D' })).numericFormat)
+      .toEqual(expect.objectContaining({ style: 'currency', currency: 'USD' }));
+    expect(excelNumFmtToIntlOptions(`#,##0.00\\${zloty[0]}\\${zloty[1]}`).currency).toBe('PLN');
+    // An escaped run that is not a currency stays a literal.
+    expect(inferCellType(cell({ value: 12.5, numFmt: '0.0\\%' })).numericFormat.style).toBeUndefined();
+    expect(inferCellType(cell({ value: 7, numFmt: '0\\p\\c' })).numericFormat.style).toBeUndefined();
+  });
+
   it('should read a currency token naming an Object.prototype member as no currency', () => {
     // A plain-object symbol table resolved `[$constructor-409]` to the `Object` function, which then
     // reached `Intl.NumberFormat` as the currency code and made every later render throw.
@@ -251,6 +307,28 @@ describe('inferCellType', () => {
       .toEqual({ type: 'numeric', unsupportedNumFmt: '0.00E+00' });
     expect(inferCellType(cell({ value: 42, numFmt: '# ?/?' })))
       .toEqual({ type: 'numeric', unsupportedNumFmt: '# ?/?' });
+  });
+
+  it('should keep the positive section but report a negative section the grid cannot show', () => {
+    // `Intl` writes a negative number with its own minus sign, so `(#,##0)` shows `-1,234`
+    // instead of `(1,234)`. The positive section still applies, and the code is reported.
+    const integer = { minimumFractionDigits: 0, maximumFractionDigits: 0, useGrouping: true };
+
+    expect(inferCellType(cell({ value: -1234, numFmt: '[Red]#,##0;(#,##0)' }))).toEqual({
+      type: 'numeric', numericFormat: integer, unsupportedNumFmt: '[Red]#,##0;(#,##0)',
+    });
+    expect(inferCellType(cell({ value: -1234, numFmt: '#,##0;#,##0' })).unsupportedNumFmt).toBe('#,##0;#,##0');
+    expect(inferCellType(cell({ value: -1, numFmt: '"$"#,##0.00_);[Red]\\("$"#,##0.00\\)' })).unsupportedNumFmt)
+      .toBe('"$"#,##0.00_);[Red]\\("$"#,##0.00\\)');
+    // A negative section that is the positive one with a minus sign is what the grid shows anyway.
+    expect(inferCellType(cell({ value: -1234, numFmt: '#,##0;[Red]-#,##0' }))).toEqual({
+      type: 'numeric', numericFormat: integer,
+    });
+    expect(inferCellType(cell({ value: -1234, numFmt: '#,##0;\\-#,##0' }))).toEqual({
+      type: 'numeric', numericFormat: integer,
+    });
+    expect(inferCellType(cell({ value: -1234, numFmt: '[$\u20AC-407]#,##0;[RED]-[$\u20AC-407]#,##0' })))
+      .toEqual({ type: 'numeric', numericFormat: { ...integer, style: 'currency', currency: 'EUR' } });
   });
 
   it('should treat a bare number with no format as numeric with no format, and a bare boolean as checkbox', () => {
@@ -319,6 +397,10 @@ describe('excelNumFmtToIntlOptions', () => {
     ['a prefixed currency', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }, 'en-US'],
     ['a suffixed currency', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }, 'de-DE'],
     ['grouping turned off', { useGrouping: false }, undefined],
+    ['a quoted ISO code (it-IT / USD)', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }, 'it-IT'],
+    ['a quoted symbol (pl-PL / PLN)', { style: 'currency', currency: 'PLN', minimumFractionDigits: 2 }, 'pl-PL'],
+    ['a quoted ISO code (de-CH / CHF)', { style: 'currency', currency: 'CHF', minimumFractionDigits: 2 }, 'de-CH'],
+    ['a quoted dollar composite (en-US / HKD)', { style: 'currency', currency: 'HKD' }, 'en-US'],
   ])('should invert the export\'s own number format for %s', (_, options, locale) => {
     expect(excelNumFmtToIntlOptions(intlNumFormatToExcelNumFmt(options, locale))).toEqual(normalize(options));
   });
@@ -351,6 +433,32 @@ describe('excelNumFmtToIntlOptions', () => {
   it('should return null for a pattern with no Intl.NumberFormat equivalent', () => {
     expect(excelNumFmtToIntlOptions('0.00E+00')).toBeNull();
     expect(excelNumFmtToIntlOptions('# ?/?')).toBeNull();
+  });
+
+  it('should return null for a multi-section code whose sections apply to a range of values', () => {
+    // The first section applies only where its condition holds. Applied to every cell, the grid
+    // showed `1234567.0` where Excel shows `1.2M`.
+    expect(excelNumFmtToIntlOptions('[>=1000000]0.0,,"M";[>=1000]0.0,"K";0')).toBeNull();
+    expect(excelNumFmtToIntlOptions('[>=100]#,##0;0.00')).toBeNull();
+    expect(excelNumFmtToIntlOptions('[<1]0.00%;0%')).toBeNull();
+    expect(excelNumFmtToIntlOptions('[<=9999999]###\\-####;\\(###\\) ###\\-####')).toBeNull();
+    expect(excelNumFmtToIntlOptions('#,##0;[Red][<0]-#,##0')).toBeNull();
+    expect(excelNumFmtToIntlOptions('0;[=0]"-"')).toBeNull();
+    expect(inferCellType(cell({ value: 5500, numFmt: '[>=100]#,##0;0.00' })))
+      .toEqual({ type: 'numeric', unsupportedNumFmt: '[>=100]#,##0;0.00' });
+  });
+
+  it('should return null for a trailing comma, which scales the number by a thousand', () => {
+    // `#,##0,` is "in thousands": read as a grouping flag, a column Excel shows as `1,235` showed
+    // `1,234,568`.
+    expect(excelNumFmtToIntlOptions('#,##0,')).toBeNull();
+    expect(excelNumFmtToIntlOptions('#,##0.0,,')).toBeNull();
+    expect(excelNumFmtToIntlOptions('0.0,,"M"')).toBeNull();
+    expect(excelNumFmtToIntlOptions('0.0,"K"')).toBeNull();
+    expect(inferCellType(cell({ value: 1234567.891, numFmt: '#,##0,' })))
+      .toEqual({ type: 'numeric', unsupportedNumFmt: '#,##0,' });
+    // A grouping comma inside the number is not a scale.
+    expect(excelNumFmtToIntlOptions('#,##0')).toEqual(expect.objectContaining({ useGrouping: true }));
   });
 
   it('should return null for a pattern pinning more fraction digits than Intl accepts', () => {
@@ -537,6 +645,20 @@ describe('serial conversions', () => {
     expect(serialToIsoDate(parseIsoStringToSerial('2024-01-01'))).toBe('2024-01-01');
     expect(serialToIsoDate(parseIsoStringToSerial('1999-12-31'))).toBe('1999-12-31');
     expect(serialToIsoDate(45292.999)).toBe('2024-01-01');
+  });
+
+  it('should pad a year below 1000 to four digits, so the date cell accepts the value', () => {
+    const serialOf = (year, month, day) => {
+      const date = new Date(0);
+
+      date.setUTCFullYear(year, month - 1, day);
+
+      return (date.getTime() - Date.UTC(1899, 11, 30)) / 86400000;
+    };
+
+    expect(serialToIsoDate(serialOf(1, 1, 1))).toBe('0001-01-01');
+    expect(serialToIsoDate(serialOf(999, 12, 31))).toBe('0999-12-31');
+    expect(serialToIsoDate(serialOf(1000, 1, 1))).toBe('1000-01-01');
   });
 
   it('should invert the export\'s time parser', () => {

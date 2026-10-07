@@ -58,6 +58,30 @@ describe('captureCurrency', () => {
   it('should not read a quoted literal that is not a known symbol as a currency', () => {
     expect(captureCurrency('0" units"')).toEqual({ currency: null, rest: '0" units"' });
     expect(captureCurrency('"Total "0')).toEqual({ currency: null, rest: '"Total "0' });
+    expect(captureCurrency('"ABCD"0')).toEqual({ currency: null, rest: '"ABCD"0' });
+  });
+
+  it('should read a quoted ISO code or dollar composite next to the number, the way the export writes it', () => {
+    expect(captureCurrency('#,##0.00"USD"')).toEqual({ currency: 'USD', rest: '#,##0.00' });
+    expect(captureCurrency('"EUR"#,##0.00')).toEqual({ currency: 'EUR', rest: '#,##0.00' });
+    expect(captureCurrency('"HK$"#,##0')).toEqual({ currency: 'HKD', rest: '#,##0' });
+    expect(captureCurrency('#,##0" US$"')).toEqual({ currency: 'USD', rest: '#,##0' });
+    // Not next to a digit placeholder: a label, not a currency.
+    expect(captureCurrency('"USD" @')).toEqual({ currency: null, rest: '"USD" @' });
+    // An unknown dollar composite is no currency.
+    expect(captureCurrency('"ZZ$"#,##0').currency).toBeNull();
+  });
+
+  it('should read a currency escaped one character at a time at either end of the pattern', () => {
+    // Excel saves an unquoted multi-letter symbol with a backslash before every character.
+    expect(captureCurrency('#,##0.00\\z\\\u0142')).toEqual({ currency: 'PLN', rest: '#,##0.00' });
+    expect(captureCurrency('\\C\\H\\F#,##0.00')).toEqual({ currency: 'CHF', rest: '#,##0.00' });
+    expect(captureCurrency('\\C\\H\\F\\ #,##0.00')).toEqual({ currency: 'CHF', rest: '#,##0.00' });
+    expect(captureCurrency('#,##0.00\\ \\U\\S\\D')).toEqual({ currency: 'USD', rest: '#,##0.00' });
+    expect(captureCurrency('\\H\\K\\$#,##0')).toEqual({ currency: 'HKD', rest: '#,##0' });
+    // An escaped literal that is not a currency stays in the pattern.
+    expect(captureCurrency('0.0\\%')).toEqual({ currency: null, rest: '0.0\\%' });
+    expect(captureCurrency('0\\p\\c')).toEqual({ currency: null, rest: '0\\p\\c' });
   });
 });
 
@@ -85,6 +109,8 @@ describe('classifyTemporalFormat', () => {
     expect(classifyTemporalFormat('HK$#,##0')).toBeNull();
     expect(classifyTemporalFormat('0.0\\h')).toBeNull();
     expect(classifyTemporalFormat('0 "days"')).toBeNull();
+    expect(classifyTemporalFormat('\\C\\H\\F#,##0.00')).toBeNull();
+    expect(classifyTemporalFormat('#,##0.00\\S\\E\\K')).toBeNull();
   });
 
   it('should not classify a format code longer than Excel accepts', () => {

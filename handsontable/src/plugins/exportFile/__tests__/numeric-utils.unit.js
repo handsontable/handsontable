@@ -58,7 +58,30 @@ describe('intlNumFormatToExcelNumFmt', () => {
     it('should fall back to the currency code when the currency is unrecognised', () => {
       const fmt = intlNumFormatToExcelNumFmt({ style: 'currency', currency: 'XYZ', minimumFractionDigits: 0 }, 'en-US');
 
-      expect(fmt).toBe('XYZ#,##0');
+      expect(fmt).toBe('"XYZ"#,##0');
+    });
+
+    it('should quote a currency symbol longer than one character, so Excel does not repair the file', () => {
+      // Excel for the web repairs a workbook holding an unquoted letter code (`#,##0.00USD`,
+      // `CHF#,##0.00`) and drops the format; Numbers and LibreOffice misread the unquoted symbols too.
+      const usd = { style: 'currency', currency: 'USD', minimumFractionDigits: 2 };
+
+      expect(intlNumFormatToExcelNumFmt(usd, 'it-IT')).toBe('#,##0.00"USD"');
+      expect(intlNumFormatToExcelNumFmt(usd, 'en-AU')).toBe('"USD"#,##0.00');
+      expect(intlNumFormatToExcelNumFmt({ ...usd, currency: 'EUR' }, 'en-AU')).toBe('"EUR"#,##0.00');
+      expect(intlNumFormatToExcelNumFmt({ ...usd, currency: 'CHF' }, 'de-CH')).toBe('"CHF"#,##0.00');
+      expect(intlNumFormatToExcelNumFmt({ ...usd, currency: 'PLN' }, 'pl-PL')).toBe('#,##0.00"z\u0142"');
+      expect(intlNumFormatToExcelNumFmt({ ...usd, currency: 'SEK' }, 'sv-SE')).toBe('#,##0.00"kr"');
+      expect(intlNumFormatToExcelNumFmt({ style: 'currency', currency: 'HKD' }, 'en-US')).toBe('"HK$"#,##0');
+    });
+
+    it('should keep a lone single-character currency symbol bare', () => {
+      const options = { style: 'currency', minimumFractionDigits: 2 };
+
+      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'USD' }, 'en-US')).toBe('$#,##0.00');
+      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'EUR' }, 'de-DE')).toBe('#,##0.00\u20AC');
+      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'GBP' }, 'en-GB')).toBe('\u00A3#,##0.00');
+      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'JPY' }, 'en-US')).toBe('\u00A5#,##0.00');
     });
 
     it('should ignore style: currency when no currency code is provided', () => {

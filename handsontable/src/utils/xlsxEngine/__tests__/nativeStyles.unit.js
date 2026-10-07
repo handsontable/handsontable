@@ -439,9 +439,20 @@ describe('parseStyles', () => {
     );
     const numFmts = Object.fromEntries(ids.map((id, index) => [id, cellXfs[index].numFmt]));
 
-    expect(numFmts[7]).toBe('"$"#,##0.00_);\\("$"#,##0.00\\)');
-    expect(numFmts[44]).toBe('_("$"* #,##0.00_);_("$"* \\(#,##0.00\\);_("$"* "-"??_);_(@_)');
-    ids.forEach(id => expect(numFmts[id]).toEqual(expect.any(String)));
+    // Every code compared in full: a typo in one would change how a currency or accounting column
+    // imports.
+    const expected = {
+      5: '"$"#,##0_);\\("$"#,##0\\)',
+      6: '"$"#,##0_);[Red]\\("$"#,##0\\)',
+      7: '"$"#,##0.00_);\\("$"#,##0.00\\)',
+      8: '"$"#,##0.00_);[Red]\\("$"#,##0.00\\)',
+      41: '_(* #,##0_);_(* \\(#,##0\\);_(* "-"_);_(@_)',
+      42: '_("$"* #,##0_);_("$"* \\(#,##0\\);_("$"* "-"_);_(@_)',
+      43: '_(* #,##0.00_);_(* \\(#,##0.00\\);_(* "-"??_);_(@_)',
+      44: '_("$"* #,##0.00_);_("$"* \\(#,##0.00\\);_("$"* "-"??_);_(@_)',
+    };
+
+    ids.forEach(id => expect(numFmts[id]).toBe(expected[id]));
     // Never handed to the writer: Excel renders these in the install's currency.
     ids.forEach(id => expect(builtInNumFmtId(numFmts[id])).toBeUndefined());
   });
