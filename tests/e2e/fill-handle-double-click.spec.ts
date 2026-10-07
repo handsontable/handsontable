@@ -20,8 +20,8 @@ test.describe('fill handle double-click', () => {
     null,
   ]);
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new SelectionFeaturesPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new SelectionFeaturesPage(page, theme, bundle);
     await grid.goto();
     await grid.initGrid({ data: DATA });
   });

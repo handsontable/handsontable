@@ -11,8 +11,8 @@ test.describe('fill handle and frozen panes', () => {
   const WIDE_DATA = Array.from({ length: 10 }, (_, row) =>
     Array.from({ length: 40 }, (_, col) => `R${row + 1}C${col + 1}`));
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new SelectionFeaturesPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new SelectionFeaturesPage(page, theme, bundle);
     await grid.goto();
   });
 

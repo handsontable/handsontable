@@ -1,6 +1,7 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import type { CellValue, MoveCellsHookRecord } from './windowTypes';
 import { dragFillHandle } from '../gestures';
+import { awaitBundle } from '../bundle';
 
 type Box = { x: number, y: number, width: number, height: number };
 
@@ -35,11 +36,13 @@ function overlayClass(overlay: OverlayName): string {
 export class SelectionFeaturesPage {
   readonly page: Page;
   readonly theme: string;
+  readonly bundle: string;
   readonly grid: Locator;
 
-  constructor(page: Page, theme = 'main') {
+  constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
+    this.bundle = bundle;
     this.grid = page.getByTestId('grid');
   }
 
@@ -48,7 +51,8 @@ export class SelectionFeaturesPage {
    * a real DOM condition).
    */
   async goto(): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/selection-features.html?theme=${this.theme}`);
+    await this.page.goto(`/tests/fixtures/demo/selection-features.html?theme=${this.theme}&bundle=${this.bundle}`);
+    await awaitBundle(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 

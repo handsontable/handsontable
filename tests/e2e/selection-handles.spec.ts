@@ -17,8 +17,8 @@ test.describe('selectionHandles adjust handles', () => {
    */
   const ROOMY_VIEWPORT = { width: 900, height: 520 };
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new SelectionFeaturesPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new SelectionFeaturesPage(page, theme, bundle);
     await grid.goto();
   });
 
@@ -935,8 +935,8 @@ test.describe('selectionHandles adjust handles', () => {
 test.describe('selectionHandles hover', () => {
   let grid: SelectionFeaturesPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new SelectionFeaturesPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new SelectionFeaturesPage(page, theme, bundle);
     await grid.goto();
     await grid.initScrollableGrid();
     await grid.movePointerOffGrid();
