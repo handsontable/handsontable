@@ -3,9 +3,10 @@
  * (`nativeRead`, `nativeWrite`, `enginesParity` and `importFile.unit.js`) before this helper
  * existed.
  *
- * Coverage limit worth remembering while using it: every fixture beside this directory is written
- * by ExcelJS through `fixtures/generate.mjs`, so a fixture-based test proves the native reader
- * against ONE writer's OOXML dialect. `xlsxEngine/AGENTS.md` says so in its testing section.
+ * Most fixtures beside this directory are written by ExcelJS through `fixtures/generate.mjs`. Three
+ * were saved by real applications (`libreoffice-saved.xlsx`, `libreoffice-saved-1904.xlsx`,
+ * `excel-saved.xlsx`, see `fixtures/README.md`) and are read by `appSavedFixtures.unit.js`. The
+ * testing section of `xlsxEngine/AGENTS.md` has the details.
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';

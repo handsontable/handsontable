@@ -248,6 +248,49 @@ for (const engine of ['exceljs', 'native'] as const) {
       await expect(grids.targetCell(0, 1)).toHaveText('4,200.50');
     });
 
+    test('imports a workbook LibreOffice saved, picked in a file input', async () => {
+      // Every other case here reads a workbook this engine's own writer produced. This one is the
+      // LibreOffice 26.8 dialect as the app wrote it: `\$#,##0.00` for the dollar format, BOOLEAN
+      // `t="b"` cells, an `[h]:mm` column, and a `"true"`/`"false"` attribute spelling. The fixture
+      // promotes the header row and drops the label column, so the grid's column 0 is the file's B.
+      await grids.importFile({ name: 'libreoffice-saved.xlsx', buffer: grids.xlsxFixture('libreoffice-saved') });
+
+      await expect(grids.targetHeaders().first()).toHaveText('USD');
+      await expect(grids.targetCell(0, 0)).toHaveText('$1,234.50');
+      // `Intl` separates the code from the amount with a no-break space, hence `\s`.
+      await expect(grids.targetCell(0, 1)).toHaveText(/^PLN\s99\.99$/);
+      await expect(grids.targetCheckbox(0, 9)).toBeChecked();
+      await expect(grids.targetCheckbox(1, 9)).not.toBeChecked();
+      // 12:00 is a time; 25:30 does not fit a clock, so it stays the number of days it is.
+      await expect(grids.targetCell(0, 4)).toHaveText('12:00');
+      await expect(grids.targetCell(1, 4)).toHaveText('1.0625');
+      // The target's Formulas engine does not define `Sales`, so `=SUM(Sales)` shows its cached value.
+      await expect(grids.targetCell(0, 6)).toHaveText('60');
+
+      const result = await grids.lastImport();
+
+      expect((result.engine as { kind: string }).kind).toBe(engine);
+      expect(result.dropped).toEqual(expect.arrayContaining(['numFmt:[h]:mm', 'formula:definedName']));
+    });
+
+    test('keeps a formula over defined names live when the Formulas engine defines them', async () => {
+      const outcome = await grids.importDefinedNamesWorkbook(true);
+
+      await expect(grids.targetCell(1, 3)).toHaveText('60');
+      await expect(grids.targetCell(2, 3)).toHaveText('7');
+      expect(outcome.sources).toEqual(['=SUM(Sales)', '=Rate*100']);
+      expect(outcome.dropped).not.toContain('formula:definedName');
+    });
+
+    test('imports the cached value of a formula over defined names the Formulas engine lacks', async () => {
+      const outcome = await grids.importDefinedNamesWorkbook(false);
+
+      await expect(grids.targetCell(1, 3)).toHaveText('60');
+      await expect(grids.targetCell(2, 3)).toHaveText('7');
+      expect(outcome.sources).toEqual([60, 7]);
+      expect(outcome.dropped).toContain('formula:definedName');
+    });
+
     test('round-trips a text cell that starts with an apostrophe and "=" the documented way', async ({ page }) => {
       // The import stores `'=quoted` as `''=quoted` (the Formulas plugin's escape does not nest), so a
       // re-export writes the doubled apostrophe. The import guide states this; the test pins it.

@@ -1,5 +1,14 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { type Page, type Locator, expect } from '@playwright/test';
 import { awaitBundle } from '../bundle';
+
+/**
+ * The xlsx fixtures the core package's unit tests read. The app-saved ones (`libreoffice-saved`,
+ * `excel-saved`) were written by LibreOffice and Excel, not by a writer in this repository; how is in
+ * the README beside them.
+ */
+const XLSX_FIXTURES = new URL('../../../handsontable/src/utils/xlsxEngine/__tests__/fixtures/', import.meta.url);
 
 /**
  * Page object for the xlsx round-trip fixture: a configured source grid, an empty target grid, and
@@ -107,6 +116,57 @@ export class XlsxImportPage {
       buffer: file.buffer,
     });
     await this.waitForStatus('done-file');
+  }
+
+  /** The bytes of one committed xlsx fixture, as a user would pick the file from disk. */
+  xlsxFixture(name: string): Buffer {
+    return readFileSync(fileURLToPath(new URL(`${name}.xlsx`, XLSX_FIXTURES)));
+  }
+
+  /** The checkbox a `checkbox` cell of the target grid renders. */
+  targetCheckbox(row: number, col: number): Locator {
+    return this.targetCell(row, col).locator('input[type="checkbox"]');
+  }
+
+  /**
+   * Imports a workbook with the defined names `Sales` (`Data!$B$2:$B$4`: 10, 20, 30) and `Rate`
+   * (`Data!$F$1`: 0.07), and the formulas `D2 =SUM(Sales)` (cached 60) and `D3 =Rate*100` (cached 7),
+   * into the target with no header promotion, so the cells keep their sheet coordinates. With
+   * `defineNames`, the same two names are first added to the target's own HyperFormula engine,
+   * over the cells the import fills. Answers the source data of D2 and D3 and the `dropped` list.
+   */
+  async importDefinedNamesWorkbook(defineNames: boolean): Promise<{ sources: unknown[]; dropped: string[] }> {
+    return this.page.evaluate(async(withNames) => {
+      const w = window as unknown as Record<string, any>;
+      const target = w.__target;
+
+      if (withNames) {
+        const engine = target.getPlugin('formulas').engine;
+
+        engine.addNamedExpression('Sales', '=Target!$B$2:$B$4');
+        engine.addNamedExpression('Rate', '=Target!$F$1');
+      }
+
+      const workbook = new w.ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet('Data');
+
+      sheet.getCell('B2').value = 10;
+      sheet.getCell('B3').value = 20;
+      sheet.getCell('B4').value = 30;
+      sheet.getCell('F1').value = 0.07;
+      workbook.definedNames.add('Data!$B$2:$B$4', 'Sales');
+      workbook.definedNames.add('Data!$F$1', 'Rate');
+      sheet.getCell('D2').value = { formula: 'SUM(Sales)', result: 60 };
+      sheet.getCell('D3').value = { formula: 'Rate*100', result: 7 };
+
+      const bytes = new Uint8Array(await workbook.xlsx.writeBuffer());
+      const result = await target.getPlugin('importFile').importFromArrayBuffer('xlsx', bytes.slice().buffer);
+
+      return {
+        sources: [target.getSourceDataAtCell(1, 3), target.getSourceDataAtCell(2, 3)],
+        dropped: result.dropped,
+      };
+    }, defineNames);
   }
 
   /**
