@@ -19,6 +19,7 @@ import { ExportFile } from './exportFile';
 import { ImportFile } from './importFile';
 import { Filters } from './filters';
 import { Formulas } from './formulas';
+import { FreezeBar } from './freezeBar';
 import { HiddenColumns } from './hiddenColumns';
 import { HiddenRows } from './hiddenRows';
 import { ManualColumnFreeze } from './manualColumnFreeze';
@@ -75,6 +76,7 @@ declare module './registry' {
     importFile: typeof ImportFile;
     filters: typeof Filters;
     formulas: typeof Formulas;
+    freezeBar: typeof FreezeBar;
     hiddenColumns: typeof HiddenColumns;
     hiddenRows: typeof HiddenRows;
     manualColumnFreeze: typeof ManualColumnFreeze;
@@ -127,6 +129,7 @@ export function registerAllPlugins() {
   registerPlugin(ImportFile);
   registerPlugin(Filters);
   registerPlugin(Formulas);
+  registerPlugin(FreezeBar);
   registerPlugin(HiddenColumns);
   registerPlugin(HiddenRows);
   registerPlugin(ManualColumnFreeze);
@@ -175,6 +178,7 @@ export {
   ImportFile,
   Filters,
   Formulas,
+  FreezeBar,
   HiddenColumns,
   HiddenRows,
   ManualColumnFreeze,

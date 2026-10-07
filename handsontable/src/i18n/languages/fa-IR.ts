@@ -159,6 +159,8 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'حذف ردیف‌ها ناموفق بود',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'درخواست ناموفق بود',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'بارگذاری مجدد',
+  [C.FREEZE_BAR_ROWS]: 'ردیف‌های ثابت',
+  [C.FREEZE_BAR_COLUMNS]: 'ستون‌های ثابت',
 };
 
 export default dictionary;

@@ -155,6 +155,8 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nije moguće ukloniti redove',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Zahtev nije uspeo',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ponovo učitaj',
+  [C.FREEZE_BAR_ROWS]: 'Zamrznuti redovi',
+  [C.FREEZE_BAR_COLUMNS]: 'Zamrznute kolone',
 };
 
 export default dictionary;

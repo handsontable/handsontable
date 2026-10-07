@@ -180,6 +180,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   layoutDirection: oneOf('rtl', 'ltr', 'inherit'),
   licenseKey: '',
   locale: 'pl-PL',
+  freezeBar: { rows: true, columns: false },
   manualColumnFreeze: true,
   manualColumnMove: true,
   manualColumnResize: true,
@@ -436,6 +437,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterColumnFreeze: (columnIndex, isFreezingPerformed) => {},
   afterColumnMove: (columns, target) => {},
   afterColumnResize: (newSize, column, isDoubleClick) => {},
+  afterFreezeChange: (edge, newCount, oldCount, source) => {
+    const pinnedEdge: 'top' | 'bottom' | 'start' | 'end' = edge;
+    const pinnedSource: 'drag' | 'keyboard' | 'api' = source;
+  },
   afterColumnSequenceChange: (source) => {},
   afterCustomBordersUpdate: () => {},
   afterColumnSequenceCacheUpdate: (indexesChangesState) => {
@@ -654,6 +659,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeColumnFreeze: (columnIndex, isFreezingPerformed) => false,
   beforeColumnMove: (columns, target) => {},
   beforeColumnResize: (newSize, column, isDoubleClick) => false,
+  beforeFreezeChange: (edge, newCount, oldCount, source) => false,
   beforeColumnSort: (currentSortConfig, destinationSortConfigs, sortPossible) => {
     const _sortPossible: boolean = sortPossible;
   },

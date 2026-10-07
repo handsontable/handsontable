@@ -157,6 +157,8 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Rijen konden niet worden verwijderd',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Verzoek mislukt',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Opnieuw laden',
+  [C.FREEZE_BAR_ROWS]: 'Vastgezette rijen',
+  [C.FREEZE_BAR_COLUMNS]: 'Vastgezette kolommen',
 };
 
 export default dictionary;

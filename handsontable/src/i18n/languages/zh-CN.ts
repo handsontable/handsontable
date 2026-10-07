@@ -154,6 +154,8 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: '无法删除行',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: '请求失败',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: '重新加载',
+  [C.FREEZE_BAR_ROWS]: '冻结的行',
+  [C.FREEZE_BAR_COLUMNS]: '冻结的列',
 };
 
 export default dictionary;

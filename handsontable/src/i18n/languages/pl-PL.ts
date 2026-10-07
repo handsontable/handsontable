@@ -161,6 +161,8 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nie udało się usunąć wierszy',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Żądanie nie powiodło się',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ponów pobieranie',
+  [C.FREEZE_BAR_ROWS]: 'Zablokowane wiersze',
+  [C.FREEZE_BAR_COLUMNS]: 'Zablokowane kolumny',
 };
 
 export default dictionary;

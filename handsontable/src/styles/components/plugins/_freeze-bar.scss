@@ -1,0 +1,52 @@
+// Handsontable Freeze Bar
+
+@mixin output {
+  .handsontable {
+    .ht-freeze-bar {
+      position: absolute;
+      z-index: 215;
+      background: var(--ht-accent-color);
+      opacity: 0.55;
+      touch-action: none;
+
+      &:hover,
+      &:focus-visible {
+        opacity: 1;
+      }
+
+      &--start {
+        top: 0;
+        bottom: 0;
+        inset-inline-end: 0;
+        width: 4px;
+        cursor: col-resize;
+      }
+
+      &--top {
+        inset-inline: 0;
+        bottom: 0;
+        height: 4px;
+        cursor: row-resize;
+      }
+
+      // the handle of an edge with nothing frozen, mounted in the root element
+      &--empty {
+        opacity: 0.25;
+
+        &.ht-freeze-bar--start {
+          inset-inline-end: auto;
+        }
+
+        &.ht-freeze-bar--top {
+          bottom: auto;
+          inset-inline: 0;
+        }
+      }
+    }
+
+    .ht-freeze-bar-guide {
+      z-index: 216;
+      background: var(--ht-accent-color);
+    }
+  }
+}

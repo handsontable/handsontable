@@ -151,6 +151,8 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: '無法刪除列',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: '要求失敗',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: '重新載入',
+  [C.FREEZE_BAR_ROWS]: '凍結的列',
+  [C.FREEZE_BAR_COLUMNS]: '凍結的欄',
 };
 
 export default dictionary;

@@ -155,6 +155,8 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nevarēja noņemt rindas',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Pieprasījums neizdevās',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Pārlādēt',
+  [C.FREEZE_BAR_ROWS]: 'Nofiksētās rindas',
+  [C.FREEZE_BAR_COLUMNS]: 'Nofiksētās kolonnas',
 };
 
 export default dictionary;

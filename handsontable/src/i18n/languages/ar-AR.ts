@@ -153,6 +153,8 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'تعذر إزالة الصفوف',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'فشل الطلب',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'إعادة التحميل',
+  [C.FREEZE_BAR_ROWS]: 'الصفوف المجمّدة',
+  [C.FREEZE_BAR_COLUMNS]: 'الأعمدة المجمّدة',
 };
 
 export default dictionary;

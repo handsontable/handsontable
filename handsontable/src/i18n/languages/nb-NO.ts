@@ -151,6 +151,8 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Kunne ikke fjerne rader',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Forespørselen mislyktes',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Hent på nytt',
+  [C.FREEZE_BAR_ROWS]: 'Frosne rader',
+  [C.FREEZE_BAR_COLUMNS]: 'Frosne kolonner',
 };
 
 export default dictionary;

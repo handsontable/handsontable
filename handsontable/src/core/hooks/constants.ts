@@ -3047,6 +3047,32 @@ export const REGISTERED_HOOKS = [
   'afterRowMove',
 
   /**
+   * Fired by {@link FreezeBar} plugin before the number of frozen rows or columns changes. Return `false` to cancel
+   * the change. This hook is fired when the {@link Options#freezeBar} option is enabled.
+   *
+   * @event Hooks#beforeFreezeChange
+   * @param {'top'|'bottom'|'start'|'end'} edge The edge of the frozen area. `start` and `end` follow the layout direction.
+   * @param {number} newCount The new number of frozen rows or columns on that edge.
+   * @param {number} oldCount The current number of frozen rows or columns on that edge.
+   * @param {'drag'|'keyboard'|'api'} source What requested the change.
+   * @returns {boolean|undefined} If `false` is returned, the change is canceled.
+   */
+  'beforeFreezeChange',
+
+  /**
+   * Fired by {@link FreezeBar} plugin after the number of frozen rows or columns changed. The plugin changes the
+   * count on the grid only, and does not write it back to the settings you passed in. Copy the new count into your
+   * own state here. This hook is fired when the {@link Options#freezeBar} option is enabled.
+   *
+   * @event Hooks#afterFreezeChange
+   * @param {'top'|'bottom'|'start'|'end'} edge The edge of the frozen area. `start` and `end` follow the layout direction.
+   * @param {number} newCount The new number of frozen rows or columns on that edge.
+   * @param {number} oldCount The previous number of frozen rows or columns on that edge.
+   * @param {'drag'|'keyboard'|'api'} source What requested the change.
+   */
+  'afterFreezeChange',
+
+  /**
    * Fired by {@link ManualColumnResize} plugin before rendering the table with modified column sizes. This hook is
    * fired when {@link Options#manualColumnResize} option is enabled.
    *

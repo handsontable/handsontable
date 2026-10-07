@@ -151,6 +151,8 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Impossible de supprimer les lignes',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'La requête a échoué',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Recharger',
+  [C.FREEZE_BAR_ROWS]: 'Lignes figées',
+  [C.FREEZE_BAR_COLUMNS]: 'Colonnes figées',
 };
 
 export default dictionary;

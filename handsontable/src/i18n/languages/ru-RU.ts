@@ -151,6 +151,8 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Не удалось удалить строки',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Запрос не выполнен',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Повторить загрузку',
+  [C.FREEZE_BAR_ROWS]: 'Закреплённые строки',
+  [C.FREEZE_BAR_COLUMNS]: 'Закреплённые столбцы',
 };
 
 export default dictionary;

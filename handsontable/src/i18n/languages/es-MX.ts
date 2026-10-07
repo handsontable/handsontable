@@ -157,6 +157,8 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'No se pudieron eliminar las filas',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'La solicitud falló',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Volver a cargar',
+  [C.FREEZE_BAR_ROWS]: 'Filas inmovilizadas',
+  [C.FREEZE_BAR_COLUMNS]: 'Columnas inmovilizadas',
 };
 
 export default dictionary;

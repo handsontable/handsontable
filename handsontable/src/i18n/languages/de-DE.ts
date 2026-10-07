@@ -151,6 +151,8 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Zeilen konnten nicht entfernt werden',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Anfrage fehlgeschlagen',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Neu laden',
+  [C.FREEZE_BAR_ROWS]: 'Fixierte Zeilen',
+  [C.FREEZE_BAR_COLUMNS]: 'Fixierte Spalten',
 };
 
 export default dictionary;
