@@ -43,7 +43,7 @@ test.describe('freezeBar', () => {
     });
 
     test('the handle of an empty edge starts the freezing', async() => {
-      await grid.goto({ cols: 0, rows: 0 });
+      await grid.goto({ cols: 0, rows: 0, empty: 1 });
       await expect(grid.bar('start')).toBeVisible();
       await grid.drag('start', 3);
 
@@ -66,7 +66,7 @@ test.describe('freezeBar', () => {
     });
 
     test('the handle of an empty end edge starts the freezing once the last column is in view', async() => {
-      await grid.goto();
+      await grid.goto({ empty: 1 });
       await expect(grid.bar('end')).toBeHidden();
 
       await grid.scrollTo({ col: 14 });
@@ -77,7 +77,7 @@ test.describe('freezeBar', () => {
     });
 
     test('an empty bottom handle is hidden while the last row is out of view, and shown at the end', async() => {
-      await grid.goto();
+      await grid.goto({ empty: 1 });
       await grid.scrollTo({ row: 25 });
 
       await expect(grid.bar('bottom')).toBeHidden();
@@ -90,7 +90,7 @@ test.describe('freezeBar', () => {
     });
 
     test('an empty top handle is hidden while the first row is scrolled away', async() => {
-      await grid.goto({ rows: 0 });
+      await grid.goto({ rows: 0, empty: 1 });
       await expect(grid.bar('top')).toBeVisible();
 
       await grid.scrollTo({ row: 25 });
@@ -188,6 +188,56 @@ test.describe('freezeBar', () => {
     });
   });
 
+  test.describe('edges with nothing frozen', () => {
+    test('have no bar by default, so the grid looks as it does without the plugin', async() => {
+      await grid.goto({ cols: 0, rows: 0 });
+
+      await expect(grid.allBars).toHaveCount(0);
+    });
+
+    test('only the edges with frozen tracks have a bar', async() => {
+      await grid.goto();
+
+      await expect(grid.bar('start')).toBeVisible();
+      await expect(grid.bar('top')).toBeVisible();
+      await expect(grid.bar('end')).toHaveCount(0);
+      await expect(grid.bar('bottom')).toHaveCount(0);
+    });
+
+    test('Home leaves the bar in place while it holds the focus, so the area can grow again', async() => {
+      await grid.goto();
+      await grid.bar('start').focus();
+      await grid.page.keyboard.press('Home');
+
+      expect(await grid.count('start')).toBe(0);
+      await expect(grid.bar('start')).toBeFocused();
+
+      await grid.page.keyboard.press('ArrowRight');
+
+      expect(await grid.count('start')).toBe(1);
+    });
+
+    test('the bar goes away once the focus leaves an edge that has nothing frozen', async() => {
+      await grid.goto();
+      await grid.bar('start').focus();
+      await grid.page.keyboard.press('Home');
+      await grid.page.evaluate(() => {
+        (document.activeElement as HTMLElement).blur();
+        window.hot.render();
+      });
+
+      await expect(grid.bar('start')).toHaveCount(0);
+    });
+
+    test('setFreezeCount() still freezes an edge that has no bar', async() => {
+      await grid.goto();
+      await grid.page.evaluate(() => window.hot.getPlugin('freezeBar').setFreezeCount('end', 2));
+
+      expect(await grid.count('end')).toBe(2);
+      await expect(grid.bar('end')).toBeVisible();
+    });
+  });
+
   test.describe('a grid smaller than its container', () => {
     // 5 columns and 8 rows in a 500 x 300 box: the table ends before the container does
     test('the bars do not reach past the rendered table', async() => {
@@ -232,7 +282,7 @@ test.describe('freezeBar', () => {
     });
 
     test('the handle of an empty end edge sits on the table edge and starts the freezing', async() => {
-      await grid.goto({ narrow: 1, cols: 1 });
+      await grid.goto({ narrow: 1, cols: 1, empty: 1 });
 
       const handle = (await grid.bar('end').boundingBox())!;
       const tableRight = await grid.page.evaluate(() => {
@@ -259,7 +309,7 @@ test.describe('freezeBar', () => {
     });
 
     test('the focus stays on the bar when the first column gets frozen', async() => {
-      await grid.goto({ cols: 0 });
+      await grid.goto({ cols: 0, empty: 1 });
       await grid.bar('start').focus();
       await grid.page.keyboard.press('ArrowRight');
       await grid.page.keyboard.press('ArrowRight');

@@ -242,6 +242,17 @@ export class FreezeBar extends BasePlugin {
   }
 
   /**
+   * Checks if the `showEmptyHandles` setting asks for a handle on an edge with nothing frozen.
+   *
+   * @returns {boolean}
+   */
+  #showsEmptyHandles(): boolean {
+    const settings = this.hot.getSettings()[PLUGIN_KEY] as boolean | FreezeBarSettings | undefined;
+
+    return typeof settings === 'object' && settings.showEmptyHandles === true;
+  }
+
+  /**
    * Checks if the bar of the edge is available: the axis is enabled, and the rows are not paginated.
    *
    * @param {string} edge The edge.
@@ -379,8 +390,13 @@ export class FreezeBar extends BasePlugin {
     const count = available ? this.getFreezeCount(edge) : 0;
     // A bar sits in the overlay that holds the frozen tracks. With nothing frozen there is no overlay to
     // hold it, so the handle of an empty edge sits in the root element, on the edge of the data area.
-    const host = available ? this.#getHost(edge, count) : null;
-    let bar = this.#bars[edge];
+    const existing = this.#bars[edge];
+    // An edge with nothing frozen has no bar, unless the option asks for the handle. A bar that holds the focus
+    // stays until it loses it, so a keyboard user who pressed Home can still grow the area again.
+    const showEmpty = count > 0 || this.#showsEmptyHandles() ||
+      (!!existing && this.hot.rootDocument.activeElement === existing);
+    const host = available && showEmpty ? this.#getHost(edge, count) : null;
+    let bar = existing;
 
     if (!host) {
       bar?.remove();

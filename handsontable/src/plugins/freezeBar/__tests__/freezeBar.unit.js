@@ -202,6 +202,23 @@ describe('FreezeBar', () => {
     expect(hot.getSettings().fixedColumnsStart).toBe(0);
   });
 
+  it('should not draw a bar on an edge with nothing frozen', () => {
+    createGrid({ fixedColumnsStart: 2 });
+    hot.render();
+
+    expect(container.querySelector('.ht-freeze-bar--start')).not.toBeNull();
+    expect(container.querySelector('.ht-freeze-bar--top')).toBeNull();
+    expect(container.querySelector('.ht-freeze-bar--end')).toBeNull();
+    expect(container.querySelector('.ht-freeze-bar--bottom')).toBeNull();
+  });
+
+  it('should draw a handle on every edge with the showEmptyHandles setting', () => {
+    createGrid({ freezeBar: { showEmptyHandles: true } });
+    hot.render();
+
+    expect(container.querySelectorAll('.ht-freeze-bar--empty').length).toBe(4);
+  });
+
   it('should render nothing when the option is not set', () => {
     hot = new Handsontable(container, {
       licenseKey: 'non-commercial-and-evaluation',

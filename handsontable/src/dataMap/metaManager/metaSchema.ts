@@ -4841,6 +4841,7 @@ export default (): Record<string, unknown> => {
      * | --------- | --------- | ------- | ------------------------------------- |
      * | `rows`    | `boolean` | `true`  | Show the bar for frozen rows          |
      * | `columns` | `boolean` | `true`  | Show the bar for frozen columns       |
+     * | `showEmptyHandles` | `boolean` | `false` | Show a handle on an edge with nothing frozen, so users can start freezing. By default, an edge with nothing frozen has no bar. |
      *
      * The plugin changes the frozen counts on the grid only. It does not write them back to the settings you passed
      * in, so an application that keeps the counts in its own state copies them in the
@@ -4864,6 +4865,11 @@ export default (): Record<string, unknown> => {
      * // enable the `FreezeBar` plugin for columns only
      * freezeBar: {
      *   rows: false,
+     * },
+     *
+     * // enable the `FreezeBar` plugin, and show a handle on the edges with nothing frozen
+     * freezeBar: {
+     *   showEmptyHandles: true,
      * },
      * ```
      */
