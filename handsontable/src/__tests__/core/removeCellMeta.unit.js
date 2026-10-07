@@ -172,11 +172,12 @@ describe('Core#removeCellMeta', () => {
     });
   });
 
-  describe('known limitation: an index outside the current range while rows are trimmed', () => {
+  describe('known limitation (DEV-3306): an index outside the current range while rows are trimmed', () => {
     // KNOWN LIMITATION, not a contract. `setCellMeta` and `removeCellMeta` read a visual index at or
     // past `countRows()` as the PHYSICAL index as it is. With rows trimmed, that physical index can be
     // a live record shown at a different visual row, so the call reaches a cell the caller did not
     // name. Both JSDoc blocks document the limit and tell callers to pass the visual index instead.
+    // The fix is tracked in DEV-3306.
     //
     // These specs pin today's behavior so a change to it is noticed. A fix that stops the
     // mis-address SHOULD turn them red: then rewrite them to assert the corrected behavior instead
