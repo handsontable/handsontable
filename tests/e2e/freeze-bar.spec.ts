@@ -140,6 +140,71 @@ test.describe('freezeBar', () => {
     });
   });
 
+  test.describe('scrolling to the edge', () => {
+    test('a drag of the top bar scrolls the grid up, so the rows that get frozen are in view', async() => {
+      await grid.goto();
+      await grid.scrollTo({ row: 40 });
+
+      expect((await grid.scrollPosition()).top).toBeGreaterThan(0);
+
+      await grid.dragTo('top', 4);
+
+      expect((await grid.scrollPosition()).top).toBe(0);
+      await expect(grid.rowHeader(3)).toBeVisible();
+
+      await grid.release();
+
+      expect(await grid.count('top')).toBe(4);
+    });
+
+    test('a drag of the start bar scrolls the grid back to the first column', async() => {
+      await grid.goto();
+      await grid.scrollTo({ col: 12 });
+
+      expect((await grid.scrollPosition()).left).toBeGreaterThan(0);
+
+      await grid.dragTo('start', 4);
+
+      expect((await grid.scrollPosition()).left).toBe(0);
+      await grid.release();
+
+      expect(await grid.count('start')).toBe(4);
+    });
+
+    test('a drag of the bottom bar scrolls the grid down to the last rows', async() => {
+      await grid.goto({ bottom: 1 });
+
+      expect((await grid.scrollPosition()).top).toBe(0);
+
+      await grid.dragTo('bottom', 3);
+
+      expect((await grid.scrollPosition()).top).toBeGreaterThan(0);
+      await grid.release();
+
+      expect(await grid.count('bottom')).toBe(3);
+    });
+
+    test('a drag of the end bar scrolls the grid to the last columns', async() => {
+      await grid.goto({ end: 1 });
+      await grid.dragTo('end', 3);
+
+      expect((await grid.scrollPosition()).left).toBeGreaterThan(0);
+      await grid.release();
+
+      expect(await grid.count('end')).toBe(3);
+    });
+
+    test('a drag cancelled with Escape still leaves the count alone', async() => {
+      await grid.goto();
+      await grid.scrollTo({ row: 40 });
+      await grid.dragTo('top', 4);
+      await grid.page.keyboard.press('Escape');
+      await grid.release();
+
+      expect(await grid.count('top')).toBe(2);
+    });
+  });
+
   test.describe('hooks', () => {
     test('returning false from beforeFreezeChange leaves the grid unchanged and fires no afterFreezeChange', async() => {
       await grid.goto();

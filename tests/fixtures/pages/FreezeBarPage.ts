@@ -116,12 +116,14 @@ export class FreezeBarPage {
       throw new Error(`The ${edge} bar is not visible`);
     }
 
-    const target = await this.boundaryPosition(edge, count);
     const startX = bar.x + bar.width / 2;
     const startY = bar.y + bar.height / 2;
 
     await this.page.mouse.move(startX, startY);
     await this.page.mouse.down();
+
+    // measured after the press: the grid scrolls to the edge when a drag starts
+    const target = await this.boundaryPosition(edge, count);
     const horizontal = edge === 'start' || edge === 'end';
 
     await this.page.mouse.move(horizontal ? target : startX, horizontal ? startY : target, { steps: 5 });
@@ -192,6 +194,17 @@ export class FreezeBarPage {
     await client.detach();
 
     return { before, after: await readScroll() };
+  }
+
+  /**
+   * The scroll position of the grid: left and top of the master holder.
+   */
+  async scrollPosition(): Promise<{ left: number, top: number }> {
+    return this.page.evaluate(() => {
+      const holder = window.hot.view._wt.wtTable.holder;
+
+      return { left: Math.abs(holder.scrollLeft), top: holder.scrollTop };
+    });
   }
 
   async release(): Promise<void> {

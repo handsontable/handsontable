@@ -91,6 +91,7 @@ If your [layout direction](@/guides/internationalization/layout-direction/layout
 To let users change the number of frozen columns and rows by dragging, enable the [`freezeBar`](@/api/options.md#freezebar) option. The [`FreezeBar`](@/api/freezeBar.md) plugin draws a bar on each edge of the frozen area. Drag the bar to the column or row boundary where you want the freeze line.
 
 - The grid snaps the bar to whole columns and rows. A count that is too large for the grid is reduced to the number of columns and rows that leave room to scroll.
+- When a drag starts, the grid scrolls to the start of that axis (to the end for the bottom and end bars), so the rows or columns that get frozen are the ones on screen.
 - The bar never moves a column. It changes how many of the first (or last) columns are frozen.
 - An edge with nothing frozen has no bar by default, so the grid looks as it does without the plugin. To show a handle on those edges, so users can start freezing, set `showEmptyHandles: true`. The handle shows when the first or last row or column is in view. Scrolled to the middle of the grid, there is no edge to freeze from, so it hides.
 - Press <kbd>**Escape**</kbd> during a drag to cancel it.

@@ -616,6 +616,10 @@ export class FreezeBar extends BasePlugin {
     event.preventDefault();
     event.stopPropagation();
 
+    // The rows or columns that get frozen are the first (or last) ones, so they must be in view for the guide to
+    // show what the drag will freeze. The grid scrolls to that edge when the drag starts.
+    this.#scrollToEdge(edge);
+
     const doc = this.hot.rootDocument;
     const columns = isColumnEdge(edge);
     const scale = getElementScaleFactor(this.hot.rootElement, columns ? 'horizontal' : 'vertical');
@@ -684,6 +688,33 @@ export class FreezeBar extends BasePlugin {
     doc.addEventListener('pointercancel', onCancel);
     doc.addEventListener('keydown', onKey, true);
     this.#abortDrag = () => finish(false);
+  }
+
+  /**
+   * Scrolls the grid along the axis of the edge, so the first or last tracks that a drag can freeze are in view.
+   * The first or last scrollable track is the target, because the scroll never goes to a frozen one.
+   *
+   * @param {string} edge The edge.
+   */
+  #scrollToEdge(edge: FreezeEdge) {
+    const columns = isColumnEdge(edge);
+    const total = columns ? this.hot.countCols() : this.hot.countRows();
+    const opposite: FreezeEdge = { start: 'end', end: 'start', top: 'bottom', bottom: 'top' }[edge] as FreezeEdge;
+    const frozenHere = this.getFreezeCount(edge);
+
+    // every track is frozen, so nothing scrolls
+    if (total <= frozenHere + this.getFreezeCount(opposite)) {
+      return;
+    }
+
+    const toStart = growsFromStart(edge);
+    const index = toStart ? frozenHere : total - 1 - frozenHere;
+
+    if (columns) {
+      this.hot.scrollViewportTo({ col: index, horizontalSnap: toStart ? 'start' : 'end' });
+    } else {
+      this.hot.scrollViewportTo({ row: index, verticalSnap: toStart ? 'top' : 'bottom' });
+    }
   }
 
   /**
