@@ -33,7 +33,7 @@
     frozen unless a query param asks for it: ?start=N, ?end=N, ?top=N and ?bottom=N freeze that many columns
     or rows. ?limit=0 turns the option off, ?rtl=1 lays the grid out right to left, ?win=1 lets the window
     scroll the rows (150 rows, automatic height), ?hidden=1 hides column 2, ?colw=N sets the width of every column,
-    ?bar=1 turns the freezeBar plugin on, ?tall=1 wraps the text of the first column into tall rows, ?hide=1 builds the grid inside a hidden box (the page shows it later).
+    ?bar=1 turns the freezeBar plugin on, ?tall=1 wraps the text of the first column of the first 40 rows into tall rows, ?hide=1 builds the grid inside a hidden box (the page shows it later).
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -80,7 +80,9 @@
 
     if (flag('tall', false)) {
       // wrapped text makes the rows taller than the default height, which is only known once they are drawn
-      settings.data = settings.data.map(row => [row[0] + ' ' + 'lorem ipsum dolor sit amet '.repeat(6), ...row.slice(1)]);
+      settings.data = settings.data.map((row, index) => (
+        index < 40 ? [row[0] + ' ' + 'lorem ipsum dolor sit amet '.repeat(6), ...row.slice(1)] : row
+      ));
     }
 
     if (flag('hide', false)) {

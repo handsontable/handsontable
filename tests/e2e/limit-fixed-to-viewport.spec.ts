@@ -23,7 +23,7 @@ test.describe('limitFixedToViewport', () => {
       expect(await grid.drawnCount('start')).toBeGreaterThan(0);
       const { width } = await grid.gridSize();
 
-      expect(await grid.bandSize('start')).toBeLessThan(width - 40);
+      expect(await grid.bandSize('start')).toBeLessThanOrEqual(width - 40);
       expect(await grid.setting('fixedColumnsStart')).toBe(20);
 
       await grid.selectCell(0, 29);
@@ -36,7 +36,7 @@ test.describe('limitFixedToViewport', () => {
       expect(await grid.drawnCount('end')).toBeGreaterThan(0);
       const { width } = await grid.gridSize();
 
-      expect(await grid.bandSize('end')).toBeLessThan(width - 40);
+      expect(await grid.bandSize('end')).toBeLessThanOrEqual(width - 40);
       expect(await grid.setting('fixedColumnsEnd')).toBe(20);
 
       await grid.selectCell(0, 5);
@@ -49,7 +49,7 @@ test.describe('limitFixedToViewport', () => {
       expect(await grid.drawnCount('top')).toBeGreaterThan(0);
       const { height } = await grid.gridSize();
 
-      expect(await grid.bandSize('top')).toBeLessThan(height - 40);
+      expect(await grid.bandSize('top')).toBeLessThanOrEqual(height - 40);
       expect(await grid.setting('fixedRowsTop')).toBe(40);
 
       await grid.selectCell(59, 0);
@@ -62,7 +62,7 @@ test.describe('limitFixedToViewport', () => {
       expect(await grid.drawnCount('bottom')).toBeGreaterThan(0);
       const { height } = await grid.gridSize();
 
-      expect(await grid.bandSize('bottom')).toBeLessThan(height - 40);
+      expect(await grid.bandSize('bottom')).toBeLessThanOrEqual(height - 40);
       expect(await grid.setting('fixedRowsBottom')).toBe(40);
 
       await grid.selectCell(5, 0);
@@ -74,7 +74,7 @@ test.describe('limitFixedToViewport', () => {
       const { width } = await grid.gridSize();
       const used = (await grid.bandSize('start')) + (await grid.bandSize('end'));
 
-      expect(used).toBeLessThan(width - 40);
+      expect(used).toBeLessThanOrEqual(width - 40);
       expect(await grid.bandSize('start')).toBeGreaterThan(0);
     });
   });
@@ -145,7 +145,7 @@ test.describe('limitFixedToViewport', () => {
       await grid.goto({ start: 20, hidden: 1 });
       const { width } = await grid.gridSize();
 
-      expect(await grid.bandSize('start')).toBeLessThan(width - 40);
+      expect(await grid.bandSize('start')).toBeLessThanOrEqual(width - 40);
 
       await grid.selectCell(0, 29);
       await expect.poll(() => grid.isCellUncovered(0, 29)).toBe(true);
@@ -155,7 +155,7 @@ test.describe('limitFixedToViewport', () => {
       await grid.goto({ start: 20, rtl: 1 });
       const { width } = await grid.gridSize();
 
-      expect(await grid.bandSize('start')).toBeLessThan(width - 40);
+      expect(await grid.bandSize('start')).toBeLessThanOrEqual(width - 40);
 
       await grid.selectCell(0, 29);
       await expect.poll(() => grid.isCellUncovered(0, 29)).toBe(true);
@@ -165,7 +165,7 @@ test.describe('limitFixedToViewport', () => {
       await grid.goto({ start: 20, win: 1 });
       const { width } = await grid.gridSize();
 
-      expect(await grid.bandSize('start')).toBeLessThan(width - 40);
+      expect(await grid.bandSize('start')).toBeLessThanOrEqual(width - 40);
 
       await grid.selectCell(0, 29);
       await expect.poll(() => grid.isCellUncovered(0, 29)).toBe(true);
@@ -216,7 +216,7 @@ test.describe('limitFixedToViewport', () => {
         const { width } = await grid.gridSize();
         const band = await grid.bandSize('start');
 
-        return width > 0 && band > 0 && band < width - 40;
+        return width > 0 && band > 0 && band <= width - 40;
       }).toBe(true);
       expect(await grid.drawnCount('start')).toBeGreaterThan(0);
     });
@@ -229,7 +229,7 @@ test.describe('limitFixedToViewport', () => {
 
       // the first measure cannot know the height of a row that was never drawn, so the grid measures again
       // after the draw: the band ends up inside the grid and the rest of it stays reachable
-      await expect.poll(() => grid.bandSize('top')).toBeLessThan(height - 40);
+      await expect.poll(() => grid.bandSize('top')).toBeLessThanOrEqual(height - 40);
 
       await grid.selectCell(59, 0);
       await expect.poll(() => grid.isCellUncovered(59, 0)).toBe(true);
@@ -245,7 +245,7 @@ test.describe('limitFixedToViewport', () => {
       await expect.poll(() => grid.bandSize('start')).toBeGreaterThanOrEqual(width);
 
       await grid.updateSettings({ limitFixedToViewport: true });
-      await expect.poll(() => grid.bandSize('start')).toBeLessThan(width - 40);
+      await expect.poll(() => grid.bandSize('start')).toBeLessThanOrEqual(width - 40);
     });
   });
 

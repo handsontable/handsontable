@@ -147,7 +147,7 @@ export class LimitFixedToViewportPage {
 
   /**
    * Checks that part of the cell is on screen and nothing paints over it: the element at one of the points along
-   * its middle line is the cell itself. The strip the clamp keeps can be narrower than a column, so the center of
+   * its top, middle or bottom is the cell itself. The strip the clamp keeps can be narrower than a column, so the center of
    * the cell may be covered while its edge is not. A cell under the frozen band fails.
    *
    * @param row The visual row.
@@ -162,13 +162,14 @@ export class LimitFixedToViewportPage {
       }
 
       const rect = cell.getBoundingClientRect();
-      const y = rect.top + rect.height / 2;
+      // a row taller than the grid can show only part of itself, so look near its top, middle and bottom
+      const ys = [rect.top + Math.min(rect.height / 2, 15), rect.top + rect.height / 2, rect.bottom - Math.min(rect.height / 2, 15)];
 
-      return [0.1, 0.3, 0.5, 0.7, 0.9].some((share) => {
+      return ys.some(y => [0.1, 0.3, 0.5, 0.7, 0.9].some((share) => {
         const hit = window.hot.rootDocument.elementFromPoint(rect.left + rect.width * share, y);
 
         return hit === cell || (hit !== null && cell.contains(hit));
-      });
+      }));
     }, [row, col]);
   }
 
