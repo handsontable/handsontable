@@ -44,7 +44,13 @@ async function generateCommonCanonicalURLs(currentCanonicals) {
         headers: fetchCommonHeaders
       });
 
-      canonicalsURLs = (await canonicalsResponse.json()).urls;
+      try {
+        canonicalsURLs = (await canonicalsResponse.json()).urls;
+      } catch (error) {
+        // Docs versions built with the newer tooling (17.1 and later) do not publish `canonicals-raw.json`.
+        logger.warn(`Skipping the canonical URLs of the docs version ${docsVersion}: ${error.message}`);
+        canonicalsURLs = [];
+      }
     }
 
     for (let urlIndex = 0; urlIndex < canonicalsURLs.length; urlIndex++) {
