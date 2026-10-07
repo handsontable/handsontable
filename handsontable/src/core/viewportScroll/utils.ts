@@ -3,85 +3,93 @@ import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/
 import { isHTMLElement } from '../../helpers/dom/element';
 
 /**
- * The scroll offsets of one element, as read before a `scrollIntoView()` call.
+ * Scrolls the browser's viewport to the specified element.
+ *
+ * @param {HTMLElement} element The element to scroll.
  */
-interface ScrollOffsets {
-  element: HTMLElement;
+export function scrollWindowToCell(element: HTMLElement | null) {
+  if (isHTMLElement(element)) {
+    element.scrollIntoView({
+      block: 'nearest',
+      inline: 'nearest',
+    });
+  }
+}
+
+/**
+ * The scroll offset of the grid's viewport on both axes, as its scroll owners report it.
+ */
+interface ViewportOffset {
   top: number;
   left: number;
 }
 
 /**
- * Scrolls the browser's viewport, and any scrollable element of the page around the grid, so that the
- * specified cell is in view.
- *
- * `scrollIntoView()` moves every scrollable ancestor of the element, and that includes the grid's own
- * holders: the master's and each frozen overlay's. The engine positions those with `scrollViewportTo()`,
- * which knows about the frozen panes and headers painted over them, and `scrollIntoView()` does not. It
- * scrolled a selected cell wider than the viewport under the row headers. And because the selection runs
- * this on the next `afterScroll`, not on the one its own scroll fires, it pulled a scroll made right after
- * the selection back to the selected cell (a frozen overlay's holder moved this way is also replayed onto
- * the master as a user scroll). So every scroll offset inside the grid's container is put back in the same
- * task, before any scroll listener can read the moved value.
- *
- * @param {Core} hot The Handsontable instance the element belongs to.
- * @param {HTMLElement} element The element to scroll into view.
+ * The `scrollViewportTo()` options a scroll strategy passes.
  */
-export function scrollWindowToCell(hot: HotInstance, element: HTMLElement | null) {
-  if (!isHTMLElement(element)) {
+type ScrollTarget = Parameters<HotInstance['scrollViewportTo']>[0];
+
+/**
+ * Scrolls the viewport to the target, then runs `scrollWindow` (the strategy's `scrollWindowToCell()` call)
+ * once that scroll is drawn - unless the viewport has moved again since.
+ *
+ * `scrollViewportTo()` runs the callback on the next `afterScroll`, which the holder's `scroll` event fires a
+ * frame later, not the synchronous render. When the viewport moves again in between (an application that
+ * selects a cell and scrolls the grid in the same task), that `afterScroll` belongs to the later scroll, and
+ * `scrollIntoView()` pulled the grid back to the selected cell - directly, or through a frozen overlay's
+ * holder that `NativeScrollInput#onCloneScroll` replays onto the master. The later scroll is the one the
+ * viewport keeps, so the window scroll is dropped then. Otherwise it runs as before, holder adjustments
+ * included: a merged cell and a partly shown cell of a nested list rely on them.
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @param {object} target The `scrollViewportTo()` options.
+ * @param {Function} [scrollWindow] The window scroll to run after the viewport scroll.
+ */
+export function scrollViewportThenWindow(hot: HotInstance, target: ScrollTarget, scrollWindow?: () => void) {
+  if (!scrollWindow) {
+    hot.scrollViewportTo(target);
+
     return;
   }
 
-  const gridOffsets = readOffsetsUpTo(element, hot.rootContainer);
+  let offsetAfterScroll: ViewportOffset | null = null;
 
-  element.scrollIntoView({
-    block: 'nearest',
-    inline: 'nearest',
+  hot.scrollViewportTo(target, () => {
+    if (offsetAfterScroll === null || !hasViewportMovedFrom(hot, offsetAfterScroll)) {
+      scrollWindow();
+    }
   });
 
-  restoreOffsets(gridOffsets);
+  offsetAfterScroll = readViewportOffset(hot);
 }
 
 /**
- * Reads the scroll offsets of every ancestor of the element below the boundary. The boundary itself is
- * left out: it is the container the application handed to the grid, and scrolling it is the application's
- * call. Returns nothing when the element is not inside the boundary.
+ * Reads the viewport's scroll offset.
  *
- * @param {HTMLElement} element The element whose ancestors are read.
- * @param {HTMLElement} boundary The element the walk stops at.
- * @returns {ScrollOffsets[]}
+ * @param {Core} hot The Handsontable instance.
+ * @returns {ViewportOffset}
  */
-function readOffsetsUpTo(element: HTMLElement, boundary: HTMLElement): ScrollOffsets[] {
-  const offsets: ScrollOffsets[] = [];
+function readViewportOffset(hot: HotInstance): ViewportOffset {
+  const { wtOverlays } = hot.view._wt;
 
-  if (!boundary.contains(element)) {
-    return offsets;
-  }
-
-  let ancestor = element.parentElement;
-
-  while (ancestor !== null && ancestor !== boundary) {
-    offsets.push({ element: ancestor, top: ancestor.scrollTop, left: ancestor.scrollLeft });
-    ancestor = ancestor.parentElement;
-  }
-
-  return offsets;
+  return {
+    top: wtOverlays.topOverlay?.getScrollPosition() ?? 0,
+    left: wtOverlays.inlineStartOverlay?.getScrollPosition() ?? 0,
+  };
 }
 
 /**
- * Writes back every offset that changed since it was read.
+ * Whether the viewport's scroll offset differs from the given one by a pixel or more on either axis. A zoomed
+ * page stores a fraction of a pixel for an integer write, and that is not a scroll.
  *
- * @param {ScrollOffsets[]} offsets The offsets read by `readOffsetsUpTo()`.
+ * @param {Core} hot The Handsontable instance.
+ * @param {ViewportOffset} offset The offset to compare with.
+ * @returns {boolean}
  */
-function restoreOffsets(offsets: ScrollOffsets[]) {
-  offsets.forEach(({ element, top, left }) => {
-    if (element.scrollTop !== top) {
-      element.scrollTop = top;
-    }
-    if (element.scrollLeft !== left) {
-      element.scrollLeft = left;
-    }
-  });
+function hasViewportMovedFrom(hot: HotInstance, offset: ViewportOffset): boolean {
+  const { top, left } = readViewportOffset(hot);
+
+  return Math.abs(top - offset.top) >= 1 || Math.abs(left - offset.left) >= 1;
 }
 
 /**

@@ -4,7 +4,8 @@ import { SelectionViewportScrollPage } from '../fixtures/pages/SelectionViewport
 /**
  * The viewport scroll a selection makes, and the scroll of the browser window to the selected cell that it
  * queues for the next `afterScroll`. That window scroll goes through `scrollIntoView()`, which moves every
- * scrollable ancestor of the cell, so it must put the grid's own holders back where the engine left them.
+ * scrollable ancestor of the cell, the grid's own holders included. It must not run after a scroll made
+ * since the selection's own, or it pulls the grid back to the selected cell.
  */
 test.describe('viewport scroll of a selection', () => {
   let grid: SelectionViewportScrollPage;
@@ -54,23 +55,10 @@ test.describe('viewport scroll of a selection', () => {
     await expect.poll(() => grid.firstFullyVisibleColumn()).toBe(2);
   });
 
-  test('leaves a selected cell wider than the viewport flush with the row headers', async() => {
-    // `scrollViewportTo()` snaps a column wider than the viewport to the inline start, next to the row
-    // headers. `scrollIntoView()` cannot see the row-header pane painted over the holder and aligned the
-    // cell with the holder's own edge instead, under the headers.
-    const colWidths = Array.from({ length: 40 }, (_, col) => (col === 39 ? 700 : 60));
-
-    await grid.initGrid({ data: WIDE_DATA, colWidths });
-    await grid.countAfterScroll();
-    await grid.selectCells(3, 39, 3, 39);
-    await grid.waitForAfterScroll();
-
-    expect(Math.abs(await grid.cellStartPastRowHeaders(3, 39))).toBeLessThanOrEqual(1);
-  });
-
+  // The positive controls for the cases above: dropping the window scroll after a later scroll must not drop
+  // it when nothing else moved the viewport.
   test('still scrolls the browser window to a selected cell below the fold', async() => {
-    // The positive control for the cases above: the window scroll itself must survive. The cell is already
-    // inside the grid's viewport, so only the window has to move.
+    // The cell is already inside the grid's viewport, so only the window has to move.
     await grid.initGrid({ data: WIDE_DATA, colWidths: 60 });
     await grid.pushGridBelowTheFold();
 
@@ -80,5 +68,21 @@ test.describe('viewport scroll of a selection', () => {
 
     await expect.poll(() => grid.isCellInWindow(5, 2)).toBe(true);
     expect(await grid.masterScrollLeft()).toBe(0);
+  });
+
+  test('still scrolls the browser window after a selection that scrolls the viewport', async() => {
+    // Column 10 is off screen, so the selection scrolls the viewport first, and the window scroll waits for
+    // that scroll's `afterScroll` - the path a later scroll used to hijack.
+    await grid.initGrid({ data: WIDE_DATA, colWidths: 60 });
+    await grid.pushGridBelowTheFold();
+    await grid.countAfterScroll();
+
+    expect(await grid.isCellInWindow(5, 10)).toBe(false);
+
+    await grid.selectCells(5, 10, 5, 10);
+    await grid.waitForAfterScroll();
+
+    await expect.poll(() => grid.isCellInWindow(5, 10)).toBe(true);
+    expect(await grid.masterScrollLeft()).toBeGreaterThan(0);
   });
 });

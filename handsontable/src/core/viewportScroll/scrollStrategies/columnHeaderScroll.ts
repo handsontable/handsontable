@@ -1,6 +1,6 @@
 import type { HotInstance } from '../../types';
 import type { default as CellCoords } from '../../../3rdparty/walkontable/src/cell/coords';
-import { scrollWindowToCell, createScrollTargetCalculator } from '../utils';
+import { scrollViewportThenWindow, scrollWindowToCell, createScrollTargetCalculator } from '../utils';
 
 /**
  * Scroll strategy for column header selection.
@@ -13,10 +13,10 @@ export function columnHeaderScrollStrategy(hot: HotInstance) {
     const scrollColumnTarget = createScrollTargetCalculator(hot)
       .getComputedColumnTarget(cellCoords);
 
-    hot.scrollViewportTo({ col: scrollColumnTarget }, () => {
+    scrollViewportThenWindow(hot, { col: scrollColumnTarget }, () => {
       const hasColumnHeaders = !!hot.getSettings().colHeaders;
 
-      scrollWindowToCell(hot, hot.getCell(hasColumnHeaders ? -1 : 0, scrollColumnTarget, true));
+      scrollWindowToCell(hot.getCell(hasColumnHeaders ? -1 : 0, scrollColumnTarget, true));
     });
   };
 }

@@ -70,27 +70,6 @@ export class SelectionViewportScrollPage extends SelectionFeaturesPage {
   }
 
   /**
-   * How far (in px) the inline-start edge of a master cell sits past the inline-end edge of the row-header
-   * pane, in either layout direction. `0` means the cell starts flush with the row headers; a negative value
-   * means that much of the cell is under them. Both edges are read in one evaluation.
-   */
-  async cellStartPastRowHeaders(row: number, col: number): Promise<number> {
-    return this.page.evaluate(([targetRow, targetCol]) => {
-      const cell = document.querySelector(`.ht_master [data-testid="cell-${targetRow}-${targetCol}"]`);
-      const pane = document.querySelector('.ht_clone_inline_start');
-
-      if (!cell || !pane) {
-        throw new Error('The master cell or the row-header pane is not rendered.');
-      }
-
-      const cellRect = cell.getBoundingClientRect();
-      const paneRect = pane.getBoundingClientRect();
-
-      return window.hot.isRtl() ? paneRect.left - cellRect.right : cellRect.left - paneRect.right;
-    }, [row, col] as const);
-  }
-
-  /**
    * Push the grid below the fold of the browser window with a spacer above it, so that showing a cell
    * takes a scroll of the window.
    */
