@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-07T11:06:24.520Z",
+  "generatedAt": "2026-10-07T11:50:19.410Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 368,
+    "tests": 370,
     "needsTicket": 18,
     "quarantined": 0,
-    "entries": 1918
+    "entries": 1923
   },
   "rows": [
     {
@@ -20,14 +20,14 @@
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
-      "count7": 2,
-      "count30": 27,
-      "countAll": 27,
-      "runs30": 15,
-      "flakyRuns30": 15,
-      "branches30": 13,
+      "count7": 3,
+      "count30": 28,
+      "countAll": 28,
+      "runs30": 16,
+      "flakyRuns30": 16,
+      "branches30": 14,
       "nightlyRuns30": 0,
-      "openBranches30": 13,
+      "openBranches30": 14,
       "legs": [
         "e2e-classic",
         "e2e-classic-min",
@@ -42,10 +42,10 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-10-05T07:09:25Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37271790029/attempts/2",
-        "branch": "feature/DEV-150_Clear-column-collapsed-nested-rows",
-        "leg": "e2e-main",
+        "seenAt": "2026-10-07T11:49:14Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37613189147",
+        "branch": "feature/DEV-2700_Fit-frozen-area-to-viewport",
+        "leg": "e2e-main-min",
         "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
@@ -11711,6 +11711,74 @@
         "leg": "e2e-horizon",
         "status": "failed",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/limit-fixed-to-viewport.spec.ts|limitFixedToViewport › a frozen area bigger than the grid › frozen top rows leave a strip, and the last row is reachable",
+      "tier": "playwright",
+      "file": "e2e/limit-fixed-to-viewport.spec.ts",
+      "line": 46,
+      "title": "limitFixedToViewport › a frozen area bigger than the grid › frozen top rows leave a strip, and the last row is reachable",
+      "count7": 2,
+      "count30": 2,
+      "countAll": 2,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-horizon",
+        "e2e-horizon-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-07T11:49:14Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37613189147",
+        "branch": "feature/DEV-2700_Fit-frozen-area-to-viewport",
+        "leg": "e2e-horizon",
+        "status": "failed",
+        "error": "Error: expect(received).toBeLessThan(expected)",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/limit-fixed-to-viewport.spec.ts|limitFixedToViewport › frozen rows taller than the default height › are counted at the height they are drawn at, not the default one",
+      "tier": "playwright",
+      "file": "e2e/limit-fixed-to-viewport.spec.ts",
+      "line": 226,
+      "title": "limitFixedToViewport › frozen rows taller than the default height › are counted at the height they are drawn at, not the default one",
+      "count7": 2,
+      "count30": 2,
+      "countAll": 2,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-07T11:49:14Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37613189147",
+        "branch": "feature/DEV-2700_Fit-frozen-area-to-viewport",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
         "source": "ci"
       },
       "needsTicket": false
