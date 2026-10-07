@@ -141,6 +141,58 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   the grid's `overflow: clip` when the list stays left-aligned with the
   last cell.
 
+## The engine legs (Firefox, WebKit)
+
+- The six projects above are Chromium. Tests tagged `@cross-browser` run on Firefox and WebKit as
+  well: `{ tag: CROSS_BROWSER_TAG }` on the `test.describe` (`fixtures/test.ts`), picked up by the two
+  projects of `playwright-engines.config.ts`, `e2e-firefox` and `e2e-webkit`, on the main theme and
+  the plain UMD bundle. CI runs that config in one job, `E2E / Playwright engines (Firefox, WebKit)`.
+  The visual suite's cross-browser leg photographs on the develop seed, master and release candidate
+  pushes, the nightly, and pull requests that change the visual tier, so on any other pull request
+  the job is the only Firefox and WebKit run of the grid. On a pull request a red engine leg also
+  holds back the whole Visual stage, which needs `e2e` and runs only when nothing failed. `e2e.yml` is
+  shared, so the job also runs on every develop push and in the release candidate test runs: a red
+  engine leg holds back that develop push's experimental publish, and blocks a release candidate.
+- Tag a test whose behavior an engine could get wrong on its own: real key presses (the Tab order,
+  undo and redo shortcuts), pointer gestures (header clicks, drags, the fill handle's double click),
+  focus, and layout read back from the DOM. The specs that replaced the cross-browser visual
+  captures' photographed states (DEV-3257) are tagged, and
+  `.github/scripts/__tests__/playwright-engines.test.mjs` keeps them tagged and keeps the config
+  filtering by the tag and inheriting the base config's CI flake settings and reporters.
+- A separate config, so that `npx playwright test` without `--project` (all six legs) never needs the
+  engines installed. To run a tagged spec on them locally, install them once for this package's
+  Playwright and name the config:
+
+  ```bash
+  cd tests
+  npx playwright install firefox webkit
+  HOT_TEST_PORT=8131 npx playwright test --config playwright-engines.config.ts e2e/<spec>.spec.ts
+  ```
+
+  The local gates (pre-push, the Stop hook) run `e2e-main` only, so an engine failure first shows in
+  CI unless you run it. Before calling a tagged test deterministic, repeat it on the engines as well
+  as on the six legs (`--config playwright-engines.config.ts --repeat-each 20`). A pass on macOS
+  does not prove a keyboard shortcut on the Linux runner: `ControlOrMeta` is Meta on macOS and
+  Control in CI, and WebKit handles the two differently (the clipboard bullet below).
+- **Firefox cannot start in the job's container without `HOME=/root`.** The container runs as root,
+  and GitHub points `HOME` at `/github/home`, which belongs to the image's `pwuser`; Firefox refuses
+  to run as root under a home it does not own, so every Firefox test fails at launch (36 of 36 on the
+  job's first run). The run step sets `HOME: /root`, and the engines test pins it.
+- **Linux WebKit copies, cuts and pastes nothing on a real shortcut.** Playwright's WebKit takes a
+  shortcut's editing command from the macOS key map alone, so on the Linux runner a real Ctrl+C, X or
+  V reaches the page as a key press and nothing more (all three clipboard tests failed there, on both
+  attempts, while they pass on macOS WebKit). A test that uses one carries `CLIPBOARD_SHORTCUT_TAG`
+  beside `CROSS_BROWSER_TAG`, and `e2e-webkit` leaves it out on every platform, so a local run and CI
+  run the same tests. Reading the clipboard back needs `clipboard-read`: Playwright grants it on
+  Chromium and WebKit and rejects it on Firefox (`Unknown permission`), and it rejects
+  `clipboard-write` on Firefox and WebKit. So `clipboard-between-grids.spec.ts` asks for
+  `clipboard-read` on Chromium alone (`test.use({ permissions: async({ browserName }, use) => … })`)
+  and reads the clipboard back there; elsewhere the paste landing the copied value shows the copy.
+- **The clipboard outlives a test.** Each test gets a fresh context, not a fresh clipboard, so a copy
+  that writes nothing still pastes whatever an earlier test, or an earlier repeat of the same test,
+  left there. Copy a value no earlier run copied: both clipboard specs write a run-unique value into
+  the source cells first (`randomUUID()`), which proves the copy on every engine, read-back or not.
+
 ## Fixture contract (never get these wrong)
 
 - Fixtures are standalone HTML under `fixtures/demo/`, served statically. Every
@@ -311,6 +363,27 @@ not need a real press.
   shrinks with every Playwright/CDP speedup. Size the poll budgets so goto + gestures + every
   poll fit the 20s test timeout, or an exhausted wait surfaces as a locationless "Test timeout"
   instead of its message.
+- A click on the grid's far corner pins the scrollbar clearance band (#10370) open. The pointer then
+  rests within 26 px of both scrollbars, which keeps their bands up by design
+  (`OVERLAY_SCROLLBAR_PROXIMITY`), so the next scroll's wait for the band to close times out. Park the
+  pointer off the grid before scrolling (`GridLayoutsPage.scrollViewportTo()`), and wait for the band to
+  close before a click near an edge, or the scrollbar takes the click.
+- A press on a sortable column header's label (`.colHeader`), or on its sort indicator, sorts as well
+  as selects; a press elsewhere on the header only selects. A click on the middle of a header usually
+  lands on the label, which is how a test that meant only to select a column also sorts it – aim at the
+  label, or away from it, on purpose. On a paginated grid the column a header click selects is the
+  current page's rows only (Pagination clamps the range in `beforeSelectColumns` and
+  `beforeSetRangeEnd`), so a Delete after it empties that page and no other.
+  `pagination-filter-sort.spec.ts` asserts both.
+
+## Reading grid UI state
+
+- A closed editor stays in the DOM (`ht_editor_hidden`), and Playwright reports its textarea as
+  visible, so `toBeHidden()` after an Enter that committed the edit fails. Read the editor's own state,
+  `getActiveEditor().isOpened()` (`GridLayoutsPage.editorOpened()`).
+- Each grid on a page keeps its own context menu container, so a locator for "the" menu matches one per
+  grid; and a toggle entry such as "Read only" has the role `menuitemcheckbox`, not `menuitem`
+  (`TwoGridsPage.makeColumnReadOnly()`).
 
 ## Rendering away from 100% (zoom / display scaling)
 

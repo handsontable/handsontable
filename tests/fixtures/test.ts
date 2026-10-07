@@ -28,6 +28,24 @@ export type TestOptions = {
   bundle: string;
 };
 
+/**
+ * The tag that puts a test on the engine legs as well: `e2e-firefox` and `e2e-webkit`, the projects of
+ * `tests/playwright-engines.config.ts`, which run only tagged tests, on the main theme and the plain
+ * UMD bundle. Tag a test whose behavior an engine could get wrong on its own (real key presses,
+ * pointer gestures, focus, layout read back from the DOM), the way the cross-browser visual specs
+ * used to cover it: `test.describe('…', { tag: CROSS_BROWSER_TAG }, () => { … })`.
+ */
+export const CROSS_BROWSER_TAG = '@cross-browser';
+
+/**
+ * The tag for a test that copies, cuts or pastes with a real Ctrl/Cmd+C, X or V. The `e2e-webkit`
+ * project leaves these tests out. Playwright's WebKit takes the editing command for a shortcut
+ * from the macOS key map alone, so on the Linux runner the key press reaches the page and nothing
+ * is copied, cut or pasted (all three such tests failed there, on Playwright 1.62.1). Tag it beside
+ * `CROSS_BROWSER_TAG`: `{ tag: [CROSS_BROWSER_TAG, CLIPBOARD_SHORTCUT_TAG] }`.
+ */
+export const CLIPBOARD_SHORTCUT_TAG = '@clipboard-shortcut';
+
 export const test = base.extend<TestOptions>({
   theme: ['main', { option: true }],
   bundle: ['umd', { option: true }],
