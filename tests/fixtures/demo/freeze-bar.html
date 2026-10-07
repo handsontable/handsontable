@@ -34,7 +34,7 @@
     The freezeBar plugin on a grid small enough to scroll. Query params switch the variants a spec needs:
     ?rtl=1 lays the grid out right to left, ?legacy=1 configures the frozen columns with the legacy
     `fixedColumnsLeft` option, ?bar=0 leaves the plugin off, ?cols=0 and ?rows=0 start with nothing frozen,
-    ?bottom=N and ?end=N freeze the last N rows and columns, ?headers=0 turns the row and column headers off, ?narrow=1 gives the grid fewer columns and rows than its box (the table is smaller than its container), ?win=1 lets the window scroll the rows (a taller grid with an automatic height), ?pagination=1 pages the rows (it conflicts with frozen rows, so pass ?rows=0), ?aria=0 turns ariaTags off, ?undo=1 turns UndoRedo on, ?hidden=1 hides column 2 and row 2. Every change of the frozen area is
+    ?bottom=N and ?end=N freeze the last N rows and columns, ?resize=1 turns manualColumnResize and manualRowResize on, ?anc=1 puts the grid, with an automatic height, in a scrolling div, ?headers=0 turns the row and column headers off, ?narrow=1 gives the grid fewer columns and rows than its box (the table is smaller than its container), ?win=1 lets the window scroll the rows (a taller grid with an automatic height), ?pagination=1 pages the rows (it conflicts with frozen rows, so pass ?rows=0), ?aria=0 turns ariaTags off, ?undo=1 turns UndoRedo on, ?hidden=1 hides column 2 and row 2. Every change of the frozen area is
     appended to `window.freezeLog` by the `afterFreezeChange` hook.
   -->
   <div id="grid" data-testid="grid"></div>
@@ -76,6 +76,23 @@
       settings.fixedColumnsLeft = frozenColumns;
     } else {
       settings.fixedColumnsStart = frozenColumns;
+    }
+
+    if (flag('resize', false)) {
+      settings.manualColumnResize = true;
+      settings.manualRowResize = true;
+    }
+
+    if (flag('anc', false)) {
+      // a scrolling ancestor, not the window, scrolls a grid of an automatic height
+      const wrapper = document.createElement('div');
+
+      wrapper.setAttribute('data-testid', 'ancestor');
+      wrapper.style.cssText = 'height: 300px; width: 700px; overflow: auto; border: 1px solid #ccc;';
+      container.parentNode.insertBefore(wrapper, container);
+      wrapper.appendChild(container);
+      settings.data = Handsontable.helper.createSpreadsheetData(150, 15);
+      settings.height = 'auto';
     }
 
     if (flag('narrow', false)) {

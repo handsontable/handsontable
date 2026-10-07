@@ -668,6 +668,89 @@ test.describe('freezeBar', () => {
     });
   });
 
+  test.describe('a press that only wobbles', () => {
+    test('does not scroll the grid or change the count when the bar is pressed and released', async() => {
+      await grid.goto();
+      await grid.scrollTo({ row: 40 });
+
+      const before = await grid.scrollPosition();
+      const bar = (await grid.bar('top').boundingBox())!;
+
+      await grid.page.mouse.move(bar.x + bar.width / 2, bar.y + bar.height / 2);
+      await grid.page.mouse.down();
+      await grid.page.mouse.up();
+
+      expect(await grid.scrollPosition()).toEqual(before);
+      expect(await grid.count('top')).toBe(2);
+      expect(await grid.log()).toEqual([]);
+    });
+
+    test('does not lower a count that no longer fits', async() => {
+      // 12 columns of 50px do not fit in the 500px grid with a scrollable strip
+      await grid.goto({ cols: 12 });
+
+      const bar = (await grid.bar('start').boundingBox())!;
+      const x = bar.x + bar.width / 2;
+      const y = bar.y + bar.height / 2;
+
+      await grid.page.mouse.move(x, y);
+      await grid.page.mouse.down();
+      await grid.page.mouse.move(x + 4, y + 1);
+      await grid.page.mouse.move(x - 2, y);
+      await grid.release();
+
+      expect(await grid.count('start')).toBe(12);
+      expect(await grid.log()).toEqual([]);
+    });
+  });
+
+  test.describe('a bar next to the column and row resizers', () => {
+    test('keeps its distance from the last column when the resizers are on', async() => {
+      await grid.goto({ narrow: 1, resize: 1 });
+
+      const gap = await grid.page.evaluate(() => {
+        const content = window.hot.rootElement.getBoundingClientRect().left + window.hot.view.getTotalTableWidth();
+        const handle = document.querySelector('.ht-freeze-bar--end')!.getBoundingClientRect();
+
+        return Math.round(content - handle.right);
+      });
+
+      expect(gap).toBeGreaterThanOrEqual(12);
+    });
+  });
+
+  test.describe('a grid in a scrolling ancestor', () => {
+    test('keeps the empty top handle on the header corner while the ancestor scrolls', async() => {
+      await grid.goto({ anc: 1, rows: 0 });
+      await grid.page.getByTestId('ancestor').evaluate((element) => {
+        element.scrollTop = 400;
+      });
+
+      await expect.poll(async() => {
+        return grid.page.evaluate(() => {
+          const ancestor = document.querySelector('[data-testid="ancestor"]')!.getBoundingClientRect();
+          const handle = document.querySelector('.ht-freeze-bar--top')!.getBoundingClientRect();
+
+          return handle.top >= ancestor.top - 1 && handle.bottom <= ancestor.bottom + 1;
+        });
+      }).toBe(true);
+    });
+  });
+
+  test.describe('a press on the part of a bar in a corner overlay', () => {
+    test('updates the maximum on the bar itself, and no ARIA on the piece', async() => {
+      await grid.goto();
+
+      const piece = grid.segments('top').first();
+
+      await piece.dispatchEvent('pointerdown', { button: 0, isPrimary: true, pointerId: 7, bubbles: true });
+      await grid.page.evaluate(() => document.dispatchEvent(new PointerEvent('pointerup', { pointerId: 7 })));
+
+      await expect(grid.bar('top')).toHaveAttribute('aria-valuemax', /\d+/);
+      await expect(piece).not.toHaveAttribute('aria-valuemax', /.*/);
+    });
+  });
+
   test.describe('layout direction', () => {
     test('the column bar follows the right to left layout', async() => {
       await grid.goto({ rtl: 1 });

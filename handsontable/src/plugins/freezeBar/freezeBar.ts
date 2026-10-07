@@ -1,7 +1,7 @@
 import { BasePlugin } from '../base';
 import { A11Y_LABEL } from '../../helpers/a11y';
 import * as C from '../../i18n/constants';
-import { getDeepActiveElement, setAttribute } from '../../helpers/dom/element';
+import { getDeepActiveElement, getTrimmingContainer, setAttribute } from '../../helpers/dom/element';
 import { getMaxFittingFrozenCount, MIN_SCROLLABLE_SIZE } from '../../utils/frozenAreaFit';
 import { getElementScaleFactor, normalizeVisualDelta } from '../../utils/manualResize/utils';
 import { resolveFreezeCount } from './snapResolver';
@@ -16,6 +16,18 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  * The shortest handle on a header corner, in pixels. A grid without headers has no corner to size it by.
  */
 const MIN_HANDLE_LENGTH = 24;
+
+/**
+ * How far the pointer must move before a press becomes a drag, in pixels. A press that does not move is a click
+ * that focuses the bar, and a wobble of a finger must not scroll the grid or change the count.
+ */
+const DRAG_THRESHOLD = 3;
+
+/**
+ * The distance a handle on the end or the bottom edge keeps from the edge of the last column or row when the grid
+ * has the column or row resizer there, in pixels. The resizer is as wide as that.
+ */
+const RESIZER_CLEARANCE = 12;
 
 /**
  * The corner overlays a freeze line crosses. The bar of an edge also runs through them, so it is as long as the
@@ -129,6 +141,14 @@ export class FreezeBar extends BasePlugin {
    * The measurements of the render being synchronized.
    */
   #frame: Frame | null = null;
+  /**
+   * The scrolling ancestors whose scroll the plugin listens to.
+   */
+  #scrollAncestors = new Set<HTMLElement>();
+  /**
+   * The styles last written to each bar, so a style is written only when its value changed.
+   */
+  #appliedStyles = new WeakMap<HTMLElement, Record<string, string>>();
 
   /**
    * Checks if the plugin is enabled in the settings.
@@ -163,7 +183,6 @@ export class FreezeBar extends BasePlugin {
     // The bars stay, so a wrapper that re-sends its props on every commit neither drops the focus from a bar
     // nor cancels a drag. A bar of an axis that was switched off is removed by the sync.
     super.updatePlugin();
-    this.#onAfterRender();
   }
 
   /**
@@ -367,6 +386,7 @@ export class FreezeBar extends BasePlugin {
       return;
     }
 
+    this.#syncScrollAncestors();
     // one measurement per render: a read after a write would force a layout for every bar
     this.#frame = EDGES.some(edge => this.#isEdgeAvailable(edge)) ? this.#measureFrame() : null;
     EDGES.forEach(edge => this.#syncBar(edge));
@@ -407,9 +427,10 @@ export class FreezeBar extends BasePlugin {
       return;
     }
 
-    // In element scroll mode the handles sit in the root element, which does not scroll, and `afterRender` has
-    // just placed them. Only a page that scrolls an axis moves the pinned header corner away from them.
-    if (!this.hot.view.isHorizontallyScrollableByWindow() && !this.hot.view.isVerticallyScrollableByWindow()) {
+    // The handles sit in the root element. When the root clips both axes the grid scrolls inside it, the handles do
+    // not move, and `afterRender` has just placed them. Otherwise the page or an ancestor scrolls, and the header
+    // corner they belong to moves with it.
+    if (!this.#getClipRange('x') && !this.#getClipRange('y')) {
       return;
     }
 
@@ -547,38 +568,44 @@ export class FreezeBar extends BasePlugin {
    * @param {object} frame The measurements of the render.
    */
   #positionEmptyHandle(bar: HTMLElement, edge: FreezeEdge, empty: boolean, frame: Frame) {
-    const style = bar.style;
-    const view = this.hot.view;
-    const rtl = this.hot.isRtl();
-    const { rootRect, rendered, content } = frame;
+    const { rootRect, content } = frame;
     const columns = isColumnEdge(edge);
-
-    style.left = '';
-    style.right = '';
-    style.top = '';
-    style.bottom = '';
-    style.width = '';
-    style.height = '';
+    const styles: Record<string, string> = {};
 
     // A bar is as long as the rendered table, not as the container: a grid whose content is narrower or shorter
     // than its container would otherwise show a bar that reaches past the last column or row. The overlay that holds
     // a bar is as large as the container, so it only needs a limit when the table is smaller.
     if (columns && content.bottom - content.top < rootRect.height) {
-      style.height = `${content.bottom - content.top}px`;
+      styles.height = `${content.bottom - content.top}px`;
     } else if (!columns && content.right - content.left < rootRect.width) {
-      style.width = `${content.right - content.left}px`;
+      styles.width = `${content.right - content.left}px`;
     }
 
     bar.classList.remove('ht-freeze-bar--wide');
 
-    if (!empty) {
-      return;
+    if (empty) {
+      this.#placeEmptyHandle(bar, edge, frame, styles);
     }
 
-    // The handle of an empty edge sits in the root element. The start and top handles take the whole width or height
-    // of the grid to be grabbed on, like in Google Sheets, but draw only a short piece on the header corner (the
-    // corner stays in view while the grid scrolls). The end and bottom handles have no such edge to start from, so
-    // they are the short piece. A grid without headers gets a piece of a fixed length.
+    this.#applyStyles(bar, styles);
+  }
+
+  /**
+   * Computes where the handle of an empty edge sits in the root element. The start and top handles take the whole
+   * width or height of the grid to be grabbed on, like in Google Sheets, but draw only a short piece on the header
+   * corner (the corner stays in view while the grid scrolls). The end and bottom handles have no such edge to start
+   * from, so they are the short piece. A grid without headers gets a piece of a fixed length.
+   *
+   * @param {HTMLElement} bar The handle.
+   * @param {string} edge The edge.
+   * @param {object} frame The measurements of the render.
+   * @param {object} styles The styles to apply, filled in here.
+   */
+  #placeEmptyHandle(bar: HTMLElement, edge: FreezeEdge, frame: Frame, styles: Record<string, string>) {
+    const view = this.hot.view;
+    const rtl = this.hot.isRtl();
+    const { rootRect, rendered } = frame;
+    const columns = isColumnEdge(edge);
     const rowHeaderWidth = Math.max(view.getRowHeaderWidth(), MIN_HANDLE_LENGTH);
     const columnHeaderHeight = Math.max(view.getColumnHeaderHeight(), MIN_HANDLE_LENGTH);
     const wide = edge === 'start' || edge === 'top';
@@ -586,38 +613,64 @@ export class FreezeBar extends BasePlugin {
     const fromRight = rootRect.right - rendered.right;
     const fromTop = rendered.top - rootRect.top;
     const fromBottom = rootRect.bottom - rendered.bottom;
+    // The column and row resizers sit on the last column and row of the headers. A handle on the end or bottom edge
+    // would lie on top of them and take the grab, so it keeps its distance from the edge when they are there.
+    const clearance = (columns ? this.hot.getPlugin('manualColumnResize') : this.hot.getPlugin('manualRowResize'))
+      ?.enabled ? RESIZER_CLEARANCE : 0;
 
     bar.classList.toggle('ht-freeze-bar--wide', wide);
-    style.setProperty('--ht-freeze-bar-corner', `${columns ? columnHeaderHeight : rowHeaderWidth}px`);
-    style.left = 'auto';
-    style.right = 'auto';
-    style.top = 'auto';
-    style.bottom = 'auto';
+    styles['--ht-freeze-bar-corner'] = `${columns ? columnHeaderHeight : rowHeaderWidth}px`;
+    styles.left = 'auto';
+    styles.right = 'auto';
+    styles.top = 'auto';
+    styles.bottom = 'auto';
 
     if (columns) {
-      style.top = `${fromTop}px`;
-      style.height = `${wide ? rendered.bottom - rendered.top : columnHeaderHeight}px`;
+      styles.top = `${fromTop}px`;
+      styles.height = `${wide ? rendered.bottom - rendered.top : columnHeaderHeight}px`;
     } else {
-      style.width = `${wide ? rendered.right - rendered.left : rowHeaderWidth}px`;
+      styles.width = `${wide ? rendered.right - rendered.left : rowHeaderWidth}px`;
     }
 
     if (edge === 'start') {
-      // on the line between the row headers and the first column, inside the corner like in Google Sheets
+      // on the line between the row headers and the first column, inside the corner like in Google Sheets;
       // `max()` keeps the handle inside the root element when there are no row headers
-      style[rtl ? 'right' : 'left'] =
+      styles[rtl ? 'right' : 'left'] =
         `max(0px, calc(${(rtl ? fromRight : fromLeft) + view.getRowHeaderWidth()}px - var(--ht-sizing-size-1)))`;
     } else if (edge === 'end') {
       // inside the end edge of the rendered area, not past it
-      style.left = rtl ? `${fromLeft}px` : `calc(${rendered.right - rootRect.left}px - var(--ht-sizing-size-1))`;
+      styles.left = rtl ?
+        `${fromLeft + clearance}px` :
+        `calc(${rendered.right - rootRect.left - clearance}px - var(--ht-sizing-size-1))`;
     } else if (edge === 'top') {
       // on the line between the column headers and the first row, inside the corner
-      style.top = `max(0px, calc(${fromTop + view.getColumnHeaderHeight()}px - var(--ht-sizing-size-1)))`;
-      style[rtl ? 'right' : 'left'] = `${rtl ? fromRight : fromLeft}px`;
+      styles.top = `max(0px, calc(${fromTop + view.getColumnHeaderHeight()}px - var(--ht-sizing-size-1)))`;
+      styles[rtl ? 'right' : 'left'] = `${rtl ? fromRight : fromLeft}px`;
     } else {
       // on the bottom edge of the rendered area, over the row headers
-      style.bottom = `${fromBottom}px`;
-      style[rtl ? 'right' : 'left'] = `${rtl ? fromRight : fromLeft}px`;
+      styles.bottom = `${fromBottom + clearance}px`;
+      styles[rtl ? 'right' : 'left'] = `${rtl ? fromRight : fromLeft}px`;
     }
+  }
+
+  /**
+   * Writes the styles of a bar, only the ones whose value changed since the last write. The placement runs on every
+   * render, and a scroll renders on every frame.
+   *
+   * @param {HTMLElement} bar The bar.
+   * @param {object} styles The styles it should have. A style that is missing is cleared.
+   */
+  #applyStyles(bar: HTMLElement, styles: Record<string, string>) {
+    const applied = this.#appliedStyles.get(bar) ?? {};
+
+    Object.keys({ ...applied, ...styles }).forEach((name) => {
+      const next = styles[name] ?? '';
+
+      if ((applied[name] ?? '') !== next) {
+        bar.style.setProperty(name.startsWith('--') ? name : name.replace(/[A-Z]/g, c => `-${c.toLowerCase()}`), next);
+      }
+    });
+    this.#appliedStyles.set(bar, styles);
   }
 
   /**
@@ -693,35 +746,72 @@ export class FreezeBar extends BasePlugin {
     event.preventDefault();
     event.stopPropagation();
 
-    // The rows or columns that get frozen are the first (or last) ones, so they must be in view for the guide to
-    // show what the drag will freeze. The grid scrolls to that edge when the drag starts.
-    this.#scrollToEdge(edge);
-
     const doc = this.hot.rootDocument;
     const columns = isColumnEdge(edge);
-    const scale = getElementScaleFactor(this.hot.rootElement, columns ? 'horizontal' : 'vertical');
-    const rootRect = this.hot.rootElement.getBoundingClientRect();
-    const visibleRect = this.#measureFrame(rootRect).rendered;
-    const maxCount = this.#getMaxCount(edge);
-    const trackSizes = this.#getTrackSizes(edge, { maxTracks: maxCount });
-    // the pointer distance is measured from the edge of the data area, past the headers
-    const headerSize = this.#getBandOrigin(edge);
-    const fromLeft = columns && growsFromStart(edge) !== this.hot.isRtl();
+    const { pointerId, clientX: startX, clientY: startY } = event;
+    // what the drag works from, measured when the pointer first moves (see `begin`)
+    let session: {
+      scale: number,
+      rootRect: DOMRect,
+      visibleRect: Rect,
+      maxCount: number,
+      trackSizes: number[],
+      headerSize: number,
+      fromLeft: boolean,
+    } | null = null;
 
     this.#drag = { edge, count: this.getFreezeCount(edge) };
     this.#setActive(edge, true);
-    this.#updateValueMax(event.currentTarget as HTMLElement, edge);
 
-    const { pointerId } = event;
+    const bar = this.#bars[edge];
 
-    // keeps the touch and pen stream on the bar when the finger leaves it
-    (event.currentTarget as HTMLElement | null)?.setPointerCapture?.(pointerId);
+    if (bar) {
+      this.#updateValueMax(bar, edge);
+    }
 
+    try {
+      // keeps the touch and pen stream on the bar when the finger leaves it; it throws for a pointer that is not
+      // active, such as the synthetic one of a test tool, and the drag then goes on without it
+      (event.currentTarget as HTMLElement | null)?.setPointerCapture?.(pointerId);
+    } catch {
+      // no capture, the document listeners below still receive the pointer
+    }
+
+    // The rows or columns that get frozen are the first (or last) ones, so they must be in view for the guide to
+    // show what the drag will freeze. The grid scrolls to that edge when the pointer starts to move, not when it
+    // is pressed: a click that only focuses the bar, or a drag cancelled at once, leaves the grid where it was.
+    const begin = () => {
+      this.#scrollToEdge(edge);
+
+      const rootRect = this.hot.rootElement.getBoundingClientRect();
+      // A count above what fits keeps its room, so a wobble of the pointer cannot lower a count the user did not touch.
+      const maxCount = Math.max(this.#getMaxCount(edge), this.getFreezeCount(edge));
+
+      session = {
+        scale: getElementScaleFactor(this.hot.rootElement, columns ? 'horizontal' : 'vertical'),
+        rootRect,
+        visibleRect: this.#measureFrame(rootRect).rendered,
+        maxCount,
+        trackSizes: this.#getTrackSizes(edge, { maxTracks: maxCount }),
+        // the pointer distance is measured from the edge of the data area, past the headers
+        headerSize: this.#getBandOrigin(edge),
+        fromLeft: columns && growsFromStart(edge) !== this.hot.isRtl(),
+      };
+    };
     const onMove = (moveEvent: PointerEvent) => {
       if (moveEvent.pointerId !== pointerId) {
         return;
       }
 
+      if (!session) {
+        if (Math.hypot(moveEvent.clientX - startX, moveEvent.clientY - startY) < DRAG_THRESHOLD) {
+          return;
+        }
+
+        begin();
+      }
+
+      const { scale, rootRect, visibleRect, maxCount, trackSizes, headerSize, fromLeft } = session!;
       const pointer = this.#getPointerOffset(moveEvent, visibleRect, edge, fromLeft);
       const distance = normalizeVisualDelta(pointer, scale) - headerSize;
 
@@ -823,20 +913,19 @@ export class FreezeBar extends BasePlugin {
    * @returns {object}
    */
   #measureFrame(rootRect: DOMRect = this.hot.rootElement.getBoundingClientRect()): Frame {
-    const { view, rootWindow } = this.hot;
-    const byWindowX = view.isHorizontallyScrollableByWindow();
-    const byWindowY = view.isVerticallyScrollableByWindow();
-    const viewportElement = rootWindow.document.documentElement;
     const content = this.#getContentRect(rootRect);
     const rtl = this.hot.isRtl();
     const scrollbarX = this.#getScrollbarSize(true);
     const scrollbarY = this.#getScrollbarSize(false);
+    // An axis the root element does not clip is scrolled by the page or by an ancestor, and the overlays stick to
+    // that scroller, so the part of the root in view is cut down to it.
+    const clipX = this.#getClipRange('x');
+    const clipY = this.#getClipRange('y');
     const viewport: Rect = {
-      left: (byWindowX ? Math.max(rootRect.left, 0) : rootRect.left) + (rtl ? scrollbarX : 0),
-      right: (byWindowX ? Math.min(rootRect.right, viewportElement.clientWidth) : rootRect.right) -
-        (rtl ? 0 : scrollbarX),
-      top: byWindowY ? Math.max(rootRect.top, 0) : rootRect.top,
-      bottom: (byWindowY ? Math.min(rootRect.bottom, viewportElement.clientHeight) : rootRect.bottom) - scrollbarY,
+      left: (clipX ? Math.max(rootRect.left, clipX[0]) : rootRect.left) + (rtl ? scrollbarX : 0),
+      right: (clipX ? Math.min(rootRect.right, clipX[1]) : rootRect.right) - (rtl ? 0 : scrollbarX),
+      top: clipY ? Math.max(rootRect.top, clipY[0]) : rootRect.top,
+      bottom: (clipY ? Math.min(rootRect.bottom, clipY[1]) : rootRect.bottom) - scrollbarY,
     };
 
     return {
@@ -850,6 +939,67 @@ export class FreezeBar extends BasePlugin {
         bottom: Math.min(viewport.bottom, content.bottom),
       },
     };
+  }
+
+  /**
+   * Gets the band of the page, in client coordinates, that the scroller of an axis shows. It is `null` when the root
+   * element clips that axis itself, because the grid then scrolls inside it and nothing outside matters.
+   *
+   * @param {string} axis `x` or `y`.
+   * @returns {number[]|null}
+   */
+  #getClipRange(axis: 'x' | 'y'): [number, number] | null {
+    const { rootElement, rootWindow } = this.hot;
+    const overflow = rootWindow.getComputedStyle(rootElement)[axis === 'x' ? 'overflowX' : 'overflowY'];
+
+    if (overflow !== 'visible') {
+      return null;
+    }
+
+    const container = getTrimmingContainer(rootElement, axis);
+
+    if (container === rootWindow) {
+      const viewportElement = rootWindow.document.documentElement;
+
+      return axis === 'x' ? [0, viewportElement.clientWidth] : [0, viewportElement.clientHeight];
+    }
+
+    const rect = (container as HTMLElement).getBoundingClientRect();
+    const element = container as HTMLElement;
+
+    return axis === 'x' ?
+      [rect.left + element.clientLeft, rect.left + element.clientLeft + element.clientWidth] :
+      [rect.top + element.clientTop, rect.top + element.clientTop + element.clientHeight];
+  }
+
+  /**
+   * Listens to the scroll of the ancestors that scroll the grid, because a scrolling `div` around a grid of an
+   * automatic height does not run the grid's own scroll hooks. A scrolling page is covered by those hooks.
+   */
+  #syncScrollAncestors() {
+    const { rootElement, rootWindow } = this.hot;
+    const found = new Set<HTMLElement>();
+
+    (['x', 'y'] as const).forEach((axis) => {
+      const container = this.#getClipRange(axis) ? getTrimmingContainer(rootElement, axis) : null;
+
+      if (container && container !== rootWindow) {
+        found.add(container as HTMLElement);
+      }
+    });
+
+    this.#scrollAncestors.forEach((element) => {
+      if (!found.has(element)) {
+        element.removeEventListener('scroll', this.#onScroll);
+        this.#scrollAncestors.delete(element);
+      }
+    });
+    found.forEach((element) => {
+      if (!this.#scrollAncestors.has(element)) {
+        element.addEventListener('scroll', this.#onScroll, { passive: true });
+        this.#scrollAncestors.add(element);
+      }
+    });
   }
 
   /**
@@ -983,7 +1133,15 @@ export class FreezeBar extends BasePlugin {
   #onKeyDown(edge: FreezeEdge, event: KeyboardEvent) {
     // The grid keeps listening while a bar has the focus, so a key the bar does not use must not reach it: Delete
     // would clear the selected cell, and Enter or a letter would open its editor. Tab keeps its default, which
-    // moves the focus on.
+    // moves the focus on. Undo and redo are the one exception: they change the frozen counts back, and a bar that
+    // holds the focus must not take them away.
+    const key = event.key.toLowerCase();
+    const isHistoryChord = (event.ctrlKey || event.metaKey) && !event.altKey && (key === 'z' || key === 'y');
+
+    if (isHistoryChord) {
+      return;
+    }
+
     event.stopPropagation();
 
     if (event.key === 'F6') {
@@ -1016,7 +1174,8 @@ export class FreezeBar extends BasePlugin {
     } else if (event.key === 'Home') {
       target = 0;
     } else if (event.key === 'End') {
-      target = this.#getMaxCount(edge);
+      // as many as fit, but never fewer than there are
+      target = Math.max(current, this.#getMaxCount(edge));
     }
 
     if (target === null) {
@@ -1040,14 +1199,22 @@ export class FreezeBar extends BasePlugin {
   #stepOverHidden(edge: FreezeEdge, current: number, target: number): number {
     const total = isColumnEdge(edge) ? this.hot.countCols() : this.hot.countRows();
     const step = Math.sign(target - current);
-    let next = Math.min(target, total);
+
+    // no change was asked for, so nothing is moved or cut down
+    if (step === 0) {
+      return current;
+    }
+
+    // A step up stops at the last track and never lowers the count, even when the count is above the number of
+    // tracks (the data is still loading). A step down is one step from where the count is.
+    let next = step > 0 ? Math.min(target, total) : target;
 
     // a count that ends on a hidden track freezes nothing more than the count before it
-    while (step !== 0 && next > 0 && next <= total && this.#getEdgeTrackSize(edge, next - 1) === 0) {
+    while (next > 0 && next <= total && this.#getEdgeTrackSize(edge, next - 1) === 0) {
       next += step;
     }
 
-    return Math.min(next, total);
+    return step > 0 ? Math.max(current, Math.min(next, total)) : Math.max(0, next);
   }
 
   /**
@@ -1116,6 +1283,8 @@ export class FreezeBar extends BasePlugin {
     this.#drag = null;
     Object.values(this.#bars).forEach(bar => bar?.remove());
     Object.values(this.#segments).forEach(pieces => pieces?.forEach(piece => piece.remove()));
+    this.#scrollAncestors.forEach(element => element.removeEventListener('scroll', this.#onScroll));
+    this.#scrollAncestors.clear();
     this.#bars = {};
     this.#segments = {};
   }

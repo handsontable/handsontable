@@ -132,9 +132,13 @@ export class FreezeBarPage {
     await this.page.mouse.move(startX, startY);
     await this.page.mouse.down();
 
-    // measured after the press: the grid scrolls to the edge when a drag starts
-    const target = await this.boundaryPosition(edge, count);
     const horizontal = edge === 'start' || edge === 'end';
+
+    // The drag starts, and the grid scrolls to the edge, when the pointer first moves past a few pixels. The target
+    // is measured after that.
+    await this.page.mouse.move(horizontal ? startX + 5 : startX, horizontal ? startY : startY + 5);
+
+    const target = await this.boundaryPosition(edge, count);
 
     await this.page.mouse.move(horizontal ? target : startX, horizontal ? startY : target, { steps: 5 });
   }
