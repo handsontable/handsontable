@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-07T10:47:44.159Z",
+  "generatedAt": "2026-10-07T11:00:38.901Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -20,7 +20,7 @@
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
-      "count7": 3,
+      "count7": 2,
       "count30": 27,
       "countAll": 27,
       "runs30": 15,
@@ -533,7 +533,7 @@
       "file": "visual-tests/tests/js-only/editors/handsontable/rtl/position-scrolled-viewport.spec.ts",
       "line": null,
       "title": "js-only/editors/handsontable/rtl/position-scrolled-viewport-2",
-      "count7": 1,
+      "count7": 0,
       "count30": 3,
       "countAll": 3,
       "runs30": 3,
