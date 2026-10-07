@@ -407,6 +407,7 @@ export class FreezeBar extends BasePlugin {
 
     if (!host) {
       bar?.remove();
+      delete this.#bars[edge];
       this.#syncSegments(edge, false);
 
       return;
@@ -466,20 +467,23 @@ export class FreezeBar extends BasePlugin {
     const current = this.#segments[edge] ?? [];
 
     if (!show || !overlays) {
-      current.forEach(segment => segment.remove());
+      current.forEach(segment => segment?.remove());
       this.#segments[edge] = [];
 
       return;
     }
 
-    this.#segments[edge] = CORNER_OVERLAYS[edge].map((name, index) => {
+    // a corner overlay that has no clone gets no piece, so the list never holds a hole
+    const pieces: HTMLElement[] = [];
+
+    CORNER_OVERLAYS[edge].forEach((name, index) => {
       const root = overlays[name]?.clone?.wtTable?.holder?.parentNode;
-      let segment = current[index];
+      let segment: HTMLElement | undefined = current[index];
 
       if (!root) {
         segment?.remove();
 
-        return segment;
+        return;
       }
 
       if (!segment) {
@@ -492,8 +496,10 @@ export class FreezeBar extends BasePlugin {
         root.appendChild(segment);
       }
 
-      return segment;
+      pieces.push(segment);
     });
+
+    this.#segments[edge] = pieces;
   }
 
   /**
@@ -1016,7 +1022,7 @@ export class FreezeBar extends BasePlugin {
     this.hot.getShortcutManager().getContext('grid')?.addShortcut({
       keys: [['F6']],
       callback: () => {
-        const bar = EDGES.map(edge => this.#bars[edge]).find(candidate => candidate && !candidate.hidden);
+        const bar = EDGES.map(edge => this.#bars[edge]).find(candidate => candidate?.isConnected && !candidate.hidden);
 
         bar?.focus();
 
@@ -1042,7 +1048,7 @@ export class FreezeBar extends BasePlugin {
     this.#hideGuide();
     this.#drag = null;
     Object.values(this.#bars).forEach(bar => bar?.remove());
-    Object.values(this.#segments).forEach(pieces => pieces?.forEach(piece => piece.remove()));
+    Object.values(this.#segments).forEach(pieces => pieces?.forEach(piece => piece?.remove()));
     this.#bars = {};
     this.#segments = {};
   }

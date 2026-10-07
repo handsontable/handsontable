@@ -216,6 +216,42 @@ describe('FreezeBar', () => {
     expect(container.querySelector('.ht-freeze-bar--start').classList.contains('ht-freeze-bar--empty')).toBe(false);
   });
 
+  it('should not keep the bar of an axis that was switched off, so F6 skips it', () => {
+    const plugin = createGrid({ fixedColumnsStart: 2, fixedRowsTop: 1 });
+
+    hot.render();
+    hot.updateSettings({ freezeBar: { columns: false } });
+    hot.render();
+
+    expect(container.querySelector('.ht-freeze-bar--start')).toBeNull();
+
+    const focused = [];
+    const original = HTMLElement.prototype.focus;
+
+    HTMLElement.prototype.focus = function() {
+      focused.push(this.className);
+    };
+
+    try {
+      hot.getShortcutManager().getContext('grid').getShortcuts(['F6'])[0].callback();
+    } finally {
+      HTMLElement.prototype.focus = original;
+    }
+
+    expect(plugin.isEnabled()).toBe(true);
+    expect(focused.length).toBe(1);
+    expect(focused[0]).toContain('ht-freeze-bar--top');
+  });
+
+  it('should not throw when a bar is torn down, whatever the corner overlays are', () => {
+    createGrid({ fixedColumnsStart: 2, fixedRowsTop: 1, fixedColumnsEnd: 1, fixedRowsBottom: 1 });
+    hot.render();
+
+    expect(() => hot.updateSettings({ freezeBar: false })).not.toThrow();
+    expect(() => hot.destroy()).not.toThrow();
+    hot = null;
+  });
+
   it('should render nothing when the option is not set', () => {
     hot = new Handsontable(container, {
       licenseKey: 'non-commercial-and-evaluation',
