@@ -463,9 +463,19 @@ again. Five rules:
   a fresh mapping.** The index mapping DOES move on a switch: the switch's `loadData` clears runtime
   trims, so with row 0 trimmed a change to visual row 0 was written to sheet row 1, while a mapping
   after the switch named sheet row 0 and overwrote it with the old value. Pinned by the `first` sheet
-  assertions in the switch-only test, `puts the switched-away sheet back when a slower validator
+  assertions in both sheet-switch tests, `puts the switched-away sheet back when a slower validator
   answers after the switch`, and `restores the recorded cell when a trim the switch cleared moved
   the rows`.
+- **The restore escapes a text old value like any engine-bound write** (`#escapeEngineBoundValue`): written
+  back raw, a preserved text `'007'` came back as the number 7, and a non-ISO string in a `date` column
+  as a serial number. Pinned by `puts a preserved text value back as text in the switched-away sheet`.
+- **The restore keeps two guards that cover each other on purpose.** The removed-sheet check
+  (`getSheetName(sheetId) === undefined`) skips the whole batch for a sheet removed while the change was
+  validated; `isItPossibleToSetCellContents` guards each cell against the engine's own limits. Deleting
+  either one alone keeps the suite green, because the other one then absorbs a removed sheet; deleting
+  both throws. Keep both: the first states the intent and avoids an empty engine batch, the second is the
+  per-cell bound no sheet-level check gives. Pinned together by `leaves a switched-away sheet alone when
+  it was removed from the engine before the change was applied`.
 - **The write-back writes the whole set once, and the out-of-bounds write stands aside.** A change past
   the last row or column is not written from `afterSetDataAtCell` but from a one-off `afterChange`
   listener, after the Core created the row. By `beforeChangeRender` that row exists, so the write-back
@@ -473,16 +483,25 @@ again. Five rules:
   twice is a redundant engine write and an extra entry on the ENGINE's own undo stack. A grid undo never
   calls `engine.undo()` (it restores the engine from the state the plugin recorded), so only an app that
   calls `engine.undo()` itself would see that entry. Pinned by the `setCellContents` count in `writes the
-  out-of-bounds rows of a paste into the engine once, not again from afterChange`.
+  out-of-bounds rows of a paste into the engine once, not again from afterChange`. Its neighbor, `undoes a
+  paste past the last row in the grid and the engine`, checks the undo only and does not pin the single
+  write.
 - **The write-back repaints the other sheets' grids that read the cell** (`renderDependentSheets`), like
   the `afterSetDataAtCell` path: a grid on another sheet kept painting the old value while its data was
   already right. Pinned by `repaints another sheet's grid that reads the written-back cell`.
 - **The write-back validates the dependents it recalculated**, like the `afterSetDataAtCell` path. The
   first validation ran against the settings the update replaced (a swapped validator, for one).
 
-A validator's rejection needs no guard: `validateChanges()` splices a rejected change out of the very array
-`beforeChangeRender` receives, so the write-back never sees it. Keep the write-back reading that array, not
-a copy taken in `afterSetDataAtCell`.
+A validator's rejection needs no guard **in the write-back**: `validateChanges()` splices a rejected change
+out of the very array `beforeChangeRender` receives, so the write-back never sees it. Keep the write-back
+reading that array, not a copy taken in `afterSetDataAtCell`. **That does not hold for the FIRST write.**
+`afterSetDataAtCell` writes the change into the engine before validation, and nothing puts the old value
+back when the validator rejects it: when every change of the set is rejected `beforeChangeRender` does not
+fire at all, and a partly rejected set is applied without the rejected cell. A formula reading that cell
+shows a wrong result until the next full resync (`allowInvalid: false` numeric column, `setDataAtCell(2, 0,
+'abc')`: the engine holds `'abc'`, the grid keeps the old number). Pre-existing on `develop`, deferred to a
+follow-up. The test `does not write a change the validator rejected back into the engine` calls
+`updateSettings({})`, which rebuilds the sheet from source data, so it does not cover this leak.
 
 The write-back adds one engine undo entry on top of the resync's own, which is what keeps a later grid undo
 of that change consistent: `engine.undo()` then reverts the write-back, not the resync. Without a resync the

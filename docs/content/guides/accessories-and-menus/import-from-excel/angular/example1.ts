@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, signal } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 
 @Component({
@@ -11,7 +11,7 @@ import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/a
       <div class="controls">
         <label for="import-file">Import XLSX</label>
         <input type="file" id="import-file" accept=".xlsx" (change)="importFile($event)">
-        <output role="status">{{ status }}</output>
+        <output role="status">{{ status() }}</output>
       </div>
     </div>
 
@@ -22,7 +22,9 @@ import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/a
 export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) hotTable!: HotTableComponent;
 
-  status = '';
+  // A signal, not a plain field: `importFromBlob()` returns a native promise, so the code after
+  // `await` can run outside any Zone.js task, and in a zoneless app nothing else schedules a check.
+  readonly status = signal('');
 
   readonly hotData = [
     ['Ana García',    'Engineering', 'Senior Engineer',    98000, true,  '2022-03-14'],
@@ -64,12 +66,12 @@ export class AppComponent {
         colHeaders: 'firstRow',
       });
 
-      this.status = `Imported ${file.name}`;
+      this.status.set(`Imported ${file.name}`);
       console.log('Dropped features:', result.dropped);
     } catch (error) {
       // A file the engine refuses (an .xls, a password-protected or damaged workbook) rejects with a
       // message that says what to do; the grid keeps its data.
-      this.status = (error as Error).message;
+      this.status.set((error as Error).message);
     } finally {
       // Cleared either way, so picking the same file again fires `change` again.
       input.value = '';

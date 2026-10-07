@@ -278,15 +278,19 @@ for (const engine of ['exceljs', 'native'] as const) {
     test.describe('a workbook the reader refuses', () => {
       /**
        * Imports `bytes` and checks the outcome every refusal shares: the promise rejects, the grid keeps
-       * the data it had, and `afterImport` never runs.
+       * every cell of the data it had, and `afterImport` never runs.
        */
       async function expectRefused(bytes: Buffer) {
         await grids.roundTrip();
 
+        const before = await grids.page.evaluate(
+          () => (window as unknown as { __target: { getData(): unknown[][] } }).__target.getData(),
+        );
         const outcome = await grids.importBytes(bytes);
 
         expect(outcome.rejection).not.toBeNull();
         expect(outcome.data[0][0]).toBe('Ana García');
+        expect(outcome.data).toEqual(before);
         expect(outcome.afterImportRan).toBe(false);
 
         return outcome.rejection!;
@@ -295,8 +299,15 @@ for (const engine of ['exceljs', 'native'] as const) {
       test('refuses an archive cut in half, and one missing its last byte', async () => {
         const zip = await grids.exportSource();
 
-        await expectRefused(zip.subarray(0, Math.floor(zip.length / 2)));
-        await expectRefused(zip.subarray(0, zip.length - 1));
+        const halved = await expectRefused(zip.subarray(0, Math.floor(zip.length / 2)));
+        const lastByteMissing = await expectRefused(zip.subarray(0, zip.length - 1));
+
+        // The ExcelJS messages come from JSZip and are not this reader's contract, so only the
+        // built-in engine's refusal is pinned: without it, any rejection (a bug included) passed.
+        if (engine === 'native') {
+          expect(halved.message).toMatch(/end-of-central-directory/);
+          expect(lastByteMissing.message).toMatch(/end-of-central-directory/);
+        }
       });
 
       // ExcelJS reads the archive through JSZip without checking the CRC, and reads such a file, so

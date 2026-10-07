@@ -1555,7 +1555,7 @@ This is not a breaking change. Every configuration that exported an XLSX file in
 one in 19.0, and `exportFile: { engines: { xlsx: ExcelJS } }` keeps ExcelJS as the engine. The file
 differs from the 18.1 one only by the bug fixes described below.
 Three behaviors of the [`ExportFile`](@/api/exportFile.md) plugin changed additively: paths that
-refused the format now serve it. It applies if you set the [`exportFile`](@/api/options.md#exportfile)
+refused the format now serve it, apart from a value that is not an engine module, covered below. It applies if you set the [`exportFile`](@/api/options.md#exportfile)
 option, because the context menu change reaches grids that never export to XLSX.
 
 Handsontable 18.1 required ExcelJS for an XLSX export. You passed it as
@@ -1647,6 +1647,8 @@ export.
 What changed: with `exportFormulas: true`, a formula such as `=IFS(…)`, `=STDEV.S(…)`, `=CONCAT(…)`,
 `=TEXTJOIN(…)`, or `=XLOOKUP(…)` is now written as Excel stores it, with the `_xlfn.` prefix
 (`<f>_xlfn.IFS(…)</f>`). In 18.1, Excel showed `#NAME?` for such a cell until you entered it again.
+`NETWORKDAYS.INTL`, `WORKDAY.INTL`, `ISO.CEILING`, and `ECMA.CEILING` keep no prefix, as in 18.1,
+because Excel stores them without one.
 
 What to do: nothing, unless a tool reads the raw `<f>` text. Such a tool sees the prefix now.
 
@@ -1673,22 +1675,61 @@ sheet kept its name.
 What to do: pass sheet names without control characters if a consumer of the file looks a sheet up
 by name.
 
-#### Merged cells carry the merge's border and fill on every covered cell
+#### A cell a merge covers keeps its own formatting
 
 What changed: the cells a merge covers are written with formatting, so a merged block's border and
 fill reach every edge in every spreadsheet application. A covered cell with no formatting of its
-own takes the master cell's formatting. A covered cell with formatting of its own, such as one in a
-`numeric` column, keeps its lock, number format and its own border sides, and takes the master's
-fill and the master's border sides on top. In 18.1,
-ExcelJS skipped the master's style for every covered cell of a merge over a `numeric` column, so
-LibreOffice drew the block without its right edge.
+own takes the master cell's formatting. A covered cell with formatting of its own keeps its number
+format, its lock, and its own border sides, and takes the master's fill and the master's border
+sides on top. In 18.1, the ExcelJS engine replaced a covered cell's own style with the master's. The
+covered cell lost its number format, its lock, and its own border sides, so with a box border
+around a merge, LibreOffice drew the block without its right edge.
 
 What to do: nothing.
+
+#### A currency symbol longer than one character is written in quotes
+
+What changed: a `numeric` column whose `numericFormat` shows a currency symbol longer than one
+character, such as `USD`, `CHF`, or `zł`, is now written with the symbol in quotes, as
+`"USD"#,##0.00` or `#,##0.00"zł"`. In 18.1, the symbol was written without quotes, such as
+`#,##0.00USD`. Excel for the web repaired such a file when it opened it, and other spreadsheet
+applications dropped the number format. A one-character symbol, such as `$`, `€`, `£`, or `¥`, is
+written as before. This applies to both engines.
+
+What to do: nothing, unless a tool reads the raw number format. Such a tool sees the quotes now.
+
+#### The dropdown list sheet is hidden instead of very hidden
+
+What changed: the export writes the lists of `dropdown` and `autocomplete` columns to a helper sheet
+named `_HotValidation`. In 18.1, that sheet was very hidden, and Apple Numbers dropped every
+dropdown that pointed at it. The sheet is now hidden, so Numbers keeps the dropdowns. Excel lists
+the sheet under **Unhide**.
+
+What to do: nothing. Do not delete the `_HotValidation` sheet in the file, or the dropdowns lose
+their lists.
+
+#### A grid on a right-to-left page exports a right-to-left sheet
+
+What changed: a grid that renders right to left because its page is right-to-left (the default
+`layoutDirection: 'inherit'` on a page with `dir="rtl"`) now exports a right-to-left sheet. In 18.1,
+only `layoutDirection: 'rtl'` exported one, and such a grid exported a left-to-right sheet.
+
+What to do: nothing.
+
+#### A malformed conditional formatting rule is skipped
+
+What changed: with the ExcelJS engine, a `conditionalFormatting` rule that is not a rule object, an
+`expression` rule with no `formulae`, or a `colorScale`, `dataBar`, or `iconSet` rule with no `cfvo`
+thresholds (or a `colorScale` with no `color`) made the export reject with a `TypeError` in 18.1. Both engines now skip such a rule,
+report it in the console warning about dropped features, and write the rest of the file.
+
+What to do: nothing. To keep the rule, fix its shape.
 
 ### Who is affected
 
 - You call `supportsExportFormat('xlsx')` and use the answer to decide whether to render your own
-  export button, menu entry, or toolbar item. That affordance is now always rendered.
+  export button, menu entry, or toolbar item. That affordance is now rendered unless `engines.xlsx`
+  holds a value that is not an engine module.
 - You set `exportFile` without an `engines` entry and counted on the "To Excel" item staying out of
   the context menu. It now shows.
 - You catch the rejection of an XLSX export as a way to detect that no engine is configured.

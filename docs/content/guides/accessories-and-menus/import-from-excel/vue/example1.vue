@@ -17,6 +17,9 @@ const hotData = [
   ['Tom Bakker', 'Support', 'Support Specialist', 58900, true, '2019-05-30'],
 ];
 
+// `hotSettings` stays one stable `ref` that nothing changes after an import. A new settings object,
+// or a change to one of its keys, makes the wrapper send `data`, `colHeaders`, and `columns` to
+// `updateSettings` again, which would replace the imported sheet with the sample rows.
 const hotSettings = ref<GridSettings>({
   data: hotData,
   colHeaders: ['Name', 'Department', 'Job title', 'Salary ($)', 'Active', 'Hire date'],

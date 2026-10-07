@@ -110,9 +110,18 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   deliberately NOT modelled, so a re-export cannot claim one; `readOnly` is still derived from the
   protection) and `merge:overlap` from the write direction. They are listed in the import guide's
   dropped-features table; add to both or neither.
-- **A number index in `sheet` skips very-hidden sheets** (`selectSheet` in `mapper.ts`). The export writes
-  its dropdown sources into a `veryHidden` `_HotValidation` sheet; picking it by index would import a list
-  of options as data. By name it is still reachable.
+- **A number index in `sheet` skips very-hidden sheets AND a hidden sheet named `_HotValidation<n>`**
+  (`selectSheet` in `mapper.ts`). The export writes its dropdown sources into a `_HotValidation` sheet,
+  now `hidden` rather than `veryHidden` (Apple Numbers dropped every dropdown pointing at a very hidden
+  one), so the very-hidden test alone stopped skipping it, and picking it by index would import a list
+  of options as data. Any other hidden sheet still counts. By name it is still reachable.
+- **`importFromArrayBuffer` accepts an `ArrayBuffer` view** (a `Uint8Array`, a `subarray`, a
+  `DataView`): the plugin entry copies exactly the view's bytes (`byteOffset`, `byteLength`) before
+  either engine sees them. The native reader used to fail on a view with a `DataView` parse error
+  while ExcelJS accepted it.
+- **Disabling the plugin while a file is being read rejects the call** with the plugin-disabled
+  message instead of applying the result; `#assertEnabled()` and the destroyed-instance check run
+  again after the read and before `beforeImport`.
 - **An unqualified list range reads from the sheet the validation sits on.** Excel stores a Data Validation →
   List → range-on-this-sheet as a bare `$C$1:$C$10`; only a range on another sheet carries a `Sheet!`
   qualifier, and the export's own `_HotValidation` helper is the only shape the round-trip tests ever
@@ -187,8 +196,15 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   formulas that split `A1:E1000000` leave half of every column as an outlier run, 2.5 M `cellsMeta`
   entries from a 2 kB file. The sheet is refused once the expansion passes the larger of
   `MIN_CELL_META_BUDGET` (1 M, `limits.ts`) and the cells that hold a value or a formula
-  (`CellPass.dataCells`), so real data is never refused for the settings its own cells carry. Pinned
-  by `mapperCellMetaBudget.unit.js`, which mocks the floor down to 1 000.
+  (`CellPass.dataCells`), so real data is never refused for the settings its own cells carry. **The
+  same budget covers class names and borders, charged while the sheet is being read**: every
+  class-name run that cannot be lifted to a column (each run after a column's first) and every
+  `customBorders` entry (still one per bordered cell - the result shape did not change) count
+  against the larger of `MIN_CELL_META_BUDGET` and the data cells seen so far, with the same
+  message. Before that, `pass.classNames` and `pass.borders` were allocated BEFORE the `cellsMeta`
+  charge ran: a 101 KB alternating-fill file was refused only after 17 s / 2.2 GB, and a 103 KB
+  all-borders file was never refused (5 M entries, 2.7 GB). Pinned by `mapperCellMetaBudget.unit.js`,
+  which mocks the floor down to 1 000.
 - **Meta follows the `cell → column` cascade, dominant type first.** `placeMeta` lifts the meta MOST cells
   of a column share to `columns[c]` (the cached object itself, by reference) and emits `cellsMeta` only for
   the cells that differ; `className` is lifted when every row of the column agrees (`placeColumnWide`).
@@ -322,8 +338,10 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `formula:definedName`, the way `formula:outOfRange` already worked. The plugin hands the mapper
   what the engine holds (`MapperContext.formulaSheetNames`, `formulaNamedExpressions`, both
   lower-cased) and both readers carry the workbook's names (`WorkbookSnapshot.definedNames`, Excel's
-  `_xlnm.` names left out). Both checks walk the formula, so both are charged against the formula
-  budget. Registering the file's names in HyperFormula would make them round-trip; it is a feature
+  `_xlnm.` names left out). Each formula is charged ONCE against `MAX_TRANSLATED_FORMULA_CHARS`, and
+  that one charge covers the prefix strip, the reference walk (which also judges each sheet
+  qualifier, through the walk's own `qualifier` group) and the defined-name scan. Charging every
+  check separately refused files that imported at 1a59dedd71. Registering the file's names in HyperFormula would make them round-trip; it is a feature
   of its own, not done here.
 - **A live formula is shifted back into grid coordinates, and one that cannot be is dropped.** The export
   prepends a header row and a row-header column and shifts every relative reference forward by them
@@ -333,8 +351,13 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   walks a formula. A reference that would land above row 1 or left of column A pointed into the removed
   header band: the formula cannot be expressed in grid coordinates at all, so the cached value is imported,
   the formula is recorded in `result.formulas`, and `formula:outOfRange` lands in `result.dropped`.
-  **A qualified reference (`Rates!A1`, `'My Rates'!$A$1:$B$2`) is never shifted by `shiftFormulaReferences`,
-  in either direction** (a shared formula's translation does move it – see `../../utils/xlsxEngine/AGENTS.md`): the
+  **A qualified reference to ANOTHER sheet (`Rates!A1`, `'My Rates'!$A$1:$B$2`) is never shifted by
+  `shiftFormulaReferences`, in either direction.** A qualifier naming the imported sheet itself
+  (compared case-insensitively, `=Sheet1!B2*2` inside `Sheet1`) is dropped and the reference shifted
+  like an unqualified one, so it stays right after a header drop and is not mistaken for
+  `formula:otherSheet` when the grid's sheet has another name. A bare qualifier right after `]`
+  (`[1]Sheet1!A1`, an external workbook) or `:` (`Sheet1:Sheet3!A1`, a 3D reference) names no sheet
+  the engine holds, so it imports the cached value with `formula:otherSheet` (a shared formula's translation does move it – see `../../utils/xlsxEngine/AGENTS.md`): the
   band exists on this sheet only, so the regex captures the whole `Sheet!ref[:ref]` as an untouched token
   and the mapper never sees it. Shifting it used to turn `=Data!A2` into `=Data!A1` under a `firstRow`
   header and drop `=Data!A1` outright (Bugbot on #13551). The cell alternative is case-insensitive (`i`
@@ -419,14 +442,25 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   per `importFromArrayBuffer`/`importFromBlob` call. Keep it that way, or a multi-sheet read would warn per
   sheet.
 - **This plugin records under the same declared names the adapters use.** `importFile.ts` and `mapper.ts`
-  raise nine names of their own (`cellStyles`, `cellStyles:borders`, `comments`,
+  raise names of their own (`cellStyles`, `cellStyles:borders`, `comments`,
   `conditionalFormatting:unparsedRef`, `dataValidation:unresolvedList`, `formula:outOfRange`,
-  `formula:otherSheet`, `formula:definedName`, `layoutDirection`), and every one of them is passed as a `DROPPED_FEATURES.<member>`
+  `formula:otherSheet`, `formula:definedName`, `layoutDirection`, plus `mergeCells`, `hiddenRows` and
+  `hiddenColumns` when the result carries one of those, is applied, and its plugin is not
+  registered, so the setting would be inert), and every one of them is passed as a `DROPPED_FEATURES.<member>`
   (`utils/xlsxEngine/capabilities.ts`), never as a string literal - the names are public output and each
   is a row in the import guide's dropped-features table. The one name built from the file's own value,
   `numFmt:<pattern>`, goes through `dropped.recordUnsupported('numFmt', pattern)`, which BOUNDS what the
   file can put in the result: 64 characters per value, control characters replaced, and 32 distinct
-  file-driven names per read before the rest count into `numFmt:other`. Do not rebuild that name by hand.
+  file-driven names per read before the rest count into `numFmt:other`. Two more families carry a
+  tail: `cellType:<name>` (a derived cell type that is not registered: the plugin falls back to
+  `text` before `loadData`, strips the type's own keys and records the name, so a modular bundle no
+  longer half-applies an import and then throws from `getCellType`; the fallback lives in
+  `importFile.ts` and runs only when the result is applied, so `apply: false` returns the types the
+  file asked for) and the
+  `conditionalFormatting:colorScale`/`dataBar`/`iconSet` kinds, which the BUILT-IN reader reports and
+  leaves out of `result.conditionalFormatting` because it does not read their `cfvo` thresholds
+  (ExcelJS reads them, and still returns those rules complete - an engine difference the guide names) - the bare
+  `{ type, priority }` they used to return made the ExcelJS export throw `cfvo.forEach`. Do not rebuild a tailed name by hand.
 - **Merges, hidden rows/columns, and frozen panes are cropped to the import window**, not dropped outright.
   A `range`, a promoted header row, or a dropped row-header column each shift the window; a merge that
   crosses it is cropped to what remains inside, and only dropped when nothing or a single cell remains.

@@ -32,9 +32,17 @@ agree); any other value must duck-type or it throws `Invalid xlsx engine module.
 text – the first sentence is asserted).
 
 **The native adapter is imported EAGERLY, on purpose.** `detect.ts` imports `nativeAdapter`
-statically, which adds about 49.5 KB to the minified bundle. A lazy `import()` seam was considered
-and rejected: the single-file UMD bundles have no chunk seam to split it into, so it would save
-nothing there.
+statically. Measured against the merge base (49a370181a) with the same toolchain: `handsontable.min.js`
+and `handsontable.full.min.js` both grow by 73 380 B minified (+4.6% base, +3.4% full), about
++25.5 KB gzipped. ESM apps pay it only when they register `ExportFile` or `ImportFile`: 86-94 KB
+minified across esbuild, Rollup, Vite and webpack, while an app registering neither pays a few dozen
+bytes (the engine is tree-shaken, and the `sideEffects` list does not block that). An app that
+injects ExcelJS still pays for the built-in engine, because the import is static. A lazy `import()`
+seam was considered and rejected: the single-file UMD bundles have no chunk seam to split it into,
+so it would save nothing there. The cheaper ESM cut is a follow-up: `nativeAdapter` is one object
+with `read` and `write`, so an export-only app carries the reader (42.5 KB minified, 13.6 KB gzip)
+and an import-only app the writer (30.1 KB, 9.2 KB gzip). Letting each plugin import only its half
+would let bundlers drop the other with no chunk seam.
 
 **A per-call `engine` override resolves as `override ?? configured` in BOTH plugins**, through
 `resolveEngineOverride()` in `detect.ts` — so `null` and `undefined` both mean "no override" and
@@ -52,8 +60,10 @@ directions.
 - **Part child order is schema-fixed.** `<worksheet>`: dimension, sheetViews, sheetFormatPr, cols,
   sheetData, sheetProtection, mergeCells, conditionalFormatting*, dataValidations, pageMargins,
   legacyDrawing. `<styleSheet>`: numFmts, fonts, fills, borders, cellStyleXfs, cellXfs, cellStyles,
-  dxfs. A wrong order opens with Excel's "repair" dialog and no test catches it – open a native
-  export in Excel and LibreOffice after touching a writer.
+  dxfs. A wrong order opens with Excel's "repair" dialog. The unit tests pin both orders
+  ("should write the worksheet children in CT_Worksheet order", "should write the styleSheet
+  children in CT_Stylesheet order"), but only opening a native export in Excel proves the file is
+  accepted – do that, and open it in LibreOffice, after touching a writer.
 - **`styles.xml` needs its bootstrap rows**: font 0, fills `none` + `gray125`, border 0, cellXf 0,
   `cellStyles` Normal, `dxfs count="0"`. `StyleTable` writes them unconditionally.
 - **Style dedup is order-insensitive, and the sorted key is the SLOW path.** `KeyedList`
@@ -91,9 +101,10 @@ directions.
   `<dimension>` handler (`#openDimension`) and by `#finalize`. The parser itself charges the
   workbook budget through `#settleWorkbookCharge`, not `assertSheetFits` — the single-step form has
   no production caller in the native adapter, only tests.
-- **Merge members are MATERIALIZED on read, to match ExcelJS.** The writer emits no `<c>` element
-  for a covered cell that carries no style, so the reader's `<c>`-derived width alone left the row
-  a cell short and `importFile/mapper.ts` — which takes the used width from the widest row — then
+- **Merge members are MATERIALIZED on read, to match ExcelJS.** The native writer used to emit no
+  `<c>` element for a covered cell that carried no style; it now writes every covered member, but
+  files from other producers still leave covered cells out, which is why the reader keeps the pass.
+  Without it the reader's `<c>`-derived width alone left the row a cell short and `importFile/mapper.ts` — which takes the used width from the widest row — then
   dropped the merge entirely from the native engine's own export/import round trip. The merge pass
   in `parts/worksheetReader.ts` pads every row of a merge's row range up to the merge's last column
   (a covered cell becomes `createCoveredCellSnapshot()` – its own style and lock, no value – or `null`) and grows `width` to it (`#materializeMerges`). The clamp bound is the dimension's
@@ -105,7 +116,10 @@ directions.
   and its widest row), never to `<dimension>`: a sparse sheet under a wide dimension had every slot
   of a validation's rectangle walked and then kept by the mapper (a GB-class heap from a 2 kB file),
   and the ExcelJS adapter reads a validation only on the cells it walks, so an empty dropdown column
-  with no cell is lost on both engines alike. Rows always clamp to the rows that exist. Every `<mergeCell>` is charged one span
+  with no cell is lost on both engines alike. A merge past the last `<row>` GROWS the sheet's
+  rows to the merge's last row, as ExcelJS does (Google Sheets writes no `<row>` for an empty row
+  and no `<dimension>`, so clamping cut such a merge short and left the grid a row short); the
+  growth is bounded by the span charge below and the sheet caps. Every `<mergeCell>` is charged one span
   unit when it is collected (`#openMergeCell`). A merge that clamps to nothing is DROPPED from
   `sheet.merges`. The area charge (`#chargeSpan`) stays **before** the walk (see the span-budget
   trap below), and the padding costs nothing new because that span was already charged. `#finalize`
@@ -216,12 +230,15 @@ directions.
   infers percent — pinned in `inference.unit.js`.
 - **Jest has no Web streams of its own**: `test/cryptoSetup.js` installs `CompressionStream` and
   `DecompressionStream` from `node:stream/web` into the sandbox (Jest 27's node environment copies a
-  fixed allow-list of globals). Remove that and every adapter test fails through
-  `assertStreamAvailable` in `zip/streams.ts`, which names the missing global and the two ways out
-  (a browser or Node 18+, or ExcelJS through `engines`) instead of the bare `ReferenceError` the
-  engine used to raise. jsdom and Vitest's jsdom environment have neither global either, which is
-  why both guides carry a Requirements note. The guard is at the two entry points and throws
-  SYNCHRONOUSLY; inside the async zip writer that surfaces as a rejection.
+  fixed allow-list of globals). The engine needs `TextEncoder` and `TextDecoder` too, and reaches
+  them BEFORE the streams, so a single stream check let jsdom end in a bare
+  `ReferenceError: TextEncoder is not defined`. Both adapter entry points therefore check all four
+  globals (`CompressionStream`, `DecompressionStream`, `TextEncoder`, `TextDecoder`) up front, and
+  the message names the missing ones and how to supply them (assign them from `node:stream/web` and
+  `node:util`, as `test/cryptoSetup.js` does, or inject ExcelJS through `engines`). jsdom and
+  Vitest's jsdom environment lack them, which is why both guides carry a Requirements note with the
+  snippet. The guard throws SYNCHRONOUSLY; inside the async zip writer that surfaces as a
+  rejection.
 - **A sheet password is hashed exactly as ExcelJS hashes it** (`parts/protection.ts`: SHA-512 spin
   hash, 100000 rounds, UTF-16LE password, 16-byte salt) so Excel prompts for it on unprotect. The
   100000 awaited digests cost about 0.95 s in an idle Node 22 (measured) and 24–34 s inside a
@@ -440,8 +457,10 @@ directions.
   cell read-only. **The two adapters disagree on `sheet="true"`, LibreOffice's spelling:** the native
   reader reads it as protected, while ExcelJS 4.4 maps only `"1"` to `true`, so its model holds
   `undefined` there - the same as a bare `<sheetProtection/>` - and the adapter cannot tell them apart.
-  The ExcelJS engine therefore imports a LibreOffice-protected sheet unprotected; it also misses
-  LibreOffice's `rightToLeft="true"`, `locked="false"` and `date1904="true"`. Pinned with both values
+  The ExcelJS engine therefore imports a LibreOffice-protected sheet WITHOUT a password unprotected.
+  A password-protected one carries `algorithmName`/`hashValue`, which ExcelJS keeps, so the adapter
+  reads `sheet === true || algorithmName || hashValue` as protected and both engines agree there.
+  It also misses LibreOffice's `rightToLeft="true"`, `locked="false"` and `date1904="true"`. Pinned with both values
   in `enginesParity.unit.js` ("the LibreOffice attribute dialect"), and named in the import guide's
   engine notes.
 - **A duplicate ZIP entry name is refused.** The central directory is read into a `Map`, so the LAST
@@ -579,14 +598,18 @@ directions.
   figures stay in the `limits.ts` comment, because a wall-clock bound on them flaked under parallel
   Jest workers (2.96 µs measured in a loaded folder run). If the regex gains an alternative, re-measure every shape above before trusting
   that number. The import's own walks are budgeted too, against the same
-  `MAX_TRANSLATED_FORMULA_CHARS` (`CollectContext.walkedFormulaChars` in `importFile/mapper.ts`:
-  the prefix strip and the reference shift) — see `plugins/importFile/AGENTS.md`. The field is optional on
+  `MAX_TRANSLATED_FORMULA_CHARS` (`CollectContext.walkedFormulaChars` in `importFile/mapper.ts`),
+  charged ONCE per formula for the prefix strip, the reference shift (with its sheet-qualifier
+  check) and the defined-name scan together — see `plugins/importFile/AGENTS.md`. The field is optional on
   `WorkbookBudget` (absent reads as zero) because tests pass `{ declaredCells: 0 }`. Validation and
   conditional-formatting formulae are not capped: nothing runs that regex over them.
 - **The `date1904` shift asks `isTemporalFormatCode` (`numFmtCode.ts`), the import's own
   classification**, so a serial is shifted exactly when the import will show it as a date or time
   (`#numberValue`). The old reader-local letter test shifted `0.0\h` and `CHF #,##0` by 1462 days
-  while the import typed them numeric. Whatever replaces it must stay linear on a run of 40 000
+  while the import typed them numeric. An ELAPSED-time format (`[h]:mm`, `classifyTemporalFormat`
+  `'time'`) is a duration, not a date, so it is NOT shifted: the 1904 epoch moves dates, never
+  durations. The ExcelJS adapter reads `workbook.properties.date1904` and corrects elapsed-time cells
+  the same way, so both engines agree (pinned as a parity case). Whatever replaces it must stay linear on a run of 40 000
   unclosed `[` (the old `\[[^\]]*\]` cost ~550 ms per cell there), as pinned in
   `nativeReadCompat.unit.js`.
 - **`r` is OPTIONAL on `<row>` and `<c>`, and the reader places them implicitly.** ECMA-376: a
@@ -617,8 +640,11 @@ directions.
   kept. **The width cap is 260, not 255**: Excel's UI caps a column at 255 characters, but the stored
   width adds 5 px of cell padding (ECMA-376 18.3.1.13), so a 255-character Calibri 11 column is
   written `width="255.7109375"`, and an exported 1800 px column (about 257 units) has to survive a
-  re-import. `importFile/mapper.ts` imports the same two constants for its second layer; a
-  `<pane xSplit>`/`ySplit` that is not a non-negative whole number reads as no split on that axis.
+  re-import. `importFile/mapper.ts` imports the same two constants for its second layer. A
+  `<pane xSplit>`/`ySplit` is an `xsd:double` (Google Sheets writes `xSplit="3.0"`), so it is read
+  with `parseFiniteDoubleAttr` and rounded DOWN; one that is negative, non-finite or past the
+  sheet's own limit on its axis reads as no split there (`paneSplit`). Reading it as an
+  `unsignedInt` cost every Google file its frozen panes.
   `cfRuleFromXml` (`parts/conditionalFormatting.ts`) follows the same rule: a `priority` that is
   not a whole number is dropped (a re-export used to write `priority="NaN"`), and a `top10` `rank`
   that is not a positive whole number reads as `DEFAULT_TOP10_RANK`. So are `numFmtId`, `fontId`,
@@ -636,6 +662,9 @@ directions.
   and Jest's sandbox ignores a runtime `process.env.TZ` change (measured), so
   `nativeReadCompat.unit.js` simulates a New York host by spying on `Date.parse` (a zone-less
   date-time reads five hours later) — that case fails on the unfixed code in any host zone.
+  A `t="d"` value that is NOT ISO 8601 (no `YYYY-MM-DD` start, such as `1/15/2024`) is refused
+  rather than handed to `Date.parse`, whose reading of other shapes is host-dependent: the cell
+  reads as empty.
 - **An inline string (`<is>`) is read by the SAME collector as a shared string.** The worksheet
   reader forwards `is`/`r`/`rPh`/`t` (already-normalized names, `INLINE_STRING_ELEMENTS`) to a
   `collectRichTextRuns('is', …)` instance while the open `<c>` is typed `inlineStr`, so a phonetic
@@ -649,13 +678,13 @@ directions.
   `compressionLevel`, the one flag the engines disagree on, is not a parity case. The shape is FOUR-WAY: a snapshot is built twice (two independent
   objects), written by both engines, and each engine's bytes are then read by BOTH readers —
   `nn`/`ne`/`en`/`ee`. `nn` and `ee` alone would only prove each engine agrees with itself; the
-  cross legs are what catch a writer emitting something only its own reader understands. Exactly
-  four normalizations exist and no fifth may be added: a real divergence is asserted explicitly
-  with both actual values instead. **That list lives in ONE place, the header of
-  `snapshotNormalize.js`**, which names every pinned divergence and the test that pins it; keep it
-  and the suite in step rather than repeating it here. **The three live in ONE place —
-  `__tests__/helpers/snapshotNormalize.js`** — with each one's reason and the no-fifth rule in that
-  file's header comment; `enginesParity.unit.js` and `nativeRead.unit.js` both import from it, so
+  cross legs are what catch a writer emitting something only its own reader understands. Four
+  normalizations exist and no fifth may be added: a real divergence is asserted explicitly with
+  both actual values instead. **The four normalizations and the list of pinned divergences live in
+  ONE place, the header of `__tests__/helpers/snapshotNormalize.js`**, with each normalization's
+  reason and the no-fifth rule. The header names the file that pins each divergence
+  (`enginesParity.unit.js`), not the individual test; keep it and the suite in step rather than
+  repeating the list here. `enginesParity.unit.js` and `nativeRead.unit.js` both import from it, so
   the invariant is reviewable by reading one file. They were hand-copied into the two suites before
   that helper existed and had already drifted textually. `expectFourWayParity(buildFn,
   expectNative)` requires a callback asserting the feature on the native leg before the legs are
@@ -684,7 +713,9 @@ directions.
   `<v>` still uses `escapeXmlText`, because the native reader decodes `str`. Both writers run
   `addFunctionPrefixes` (`functionPrefixes.ts`) over a cell formula, so `IFS(` is stored as
   `_xlfn.IFS(`; neither adapter's reader strips it, `importFile/mapper.ts` does
-  (`stripFunctionPrefixes`).
+  (`stripFunctionPrefixes`). `NETWORKDAYS.INTL`, `WORKDAY.INTL`, `ISO.CEILING` and `ECMA.CEILING`
+  are NOT in the add list: Excel for the web re-saves them bare, and LibreOffice shows `#NAME?` for
+  the prefixed form. The strip still removes a prefix on them, because Google Sheets writes one.
 - **The `_xHHHH_` lookalike escape is a LOOKAHEAD.** `escapeXmlText` rewrites the underscore of
   every `_(?=x[0-9A-Fa-f]{4}_)` as `_x005F_` (`OOXML_ESCAPE_LOOKALIKE`, `xml/escapes.ts`). A
   pattern that consumed the trailing underscore escaped only the first of `_x0041_x0042_`, which
@@ -748,7 +779,9 @@ directions.
   the next cell of that row one column early - a vertical merge in the header corner shifted the
   whole second header row - and LibreOffice drew a block without the edges it takes from covered
   cells. LibreOffice, SheetJS and both readers here fill the gap in, so no round trip could see it;
-  the XML-level tests in `nativeParts.unit.js` pin it. The rule: an UNFORMATTED covered cell takes the
+  the XML-level tests in `nativeParts.unit.js` pin it. The same holds for an EMPTY master (a `null`
+  slot at the merge's top-left): both writers write `<c r="A2"/>` for it, or Apple's parser shifted
+  that row. The rule: an UNFORMATTED covered cell takes the
   master's whole formatting (what ExcelJS's `mergeCells` copies); a FORMATTED one (a style, a lock
   or a number format - every covered cell of a `numeric` column is one) keeps its own and takes the
   master's fill and border on top of it, the border merged SIDE BY SIDE with the master's side

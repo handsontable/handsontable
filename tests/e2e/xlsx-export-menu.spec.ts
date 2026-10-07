@@ -15,6 +15,19 @@ for (const engine of ['exceljs', 'native'] as const) {
       await page.goto(`/tests/fixtures/demo/xlsx-export-menu.html?theme=${theme}&bundle=${bundle}&engine=${engine}`);
       await awaitBundle(page);
 
+      // The page loads ExcelJS on both legs, so count the worksheets it creates: the file below is
+      // read back the same way whichever engine wrote it, and only this tells the legs apart.
+      await page.evaluate(() => {
+        const { prototype } = (window as any).ExcelJS.Workbook;
+        const addWorksheet = prototype.addWorksheet;
+
+        (window as any).addWorksheetCalls = 0;
+        prototype.addWorksheet = function(...args: unknown[]) {
+          (window as any).addWorksheetCalls += 1;
+
+          return addWorksheet.apply(this, args);
+        };
+      });
       await page.evaluate(() => (window as any).hot.selectRows(0, 1));
       // Inside the selection, or the right-click replaces it. Row 1 is frozen, so the cell the user
       // sees is the one in the top overlay clone.
@@ -25,6 +38,14 @@ for (const engine of ['exceljs', 'native'] as const) {
       const [download] = await Promise.all([page.waitForEvent('download'), toExcel.click()]);
 
       expect(download.suggestedFilename()).toMatch(/\.xlsx$/);
+
+      const addWorksheetCalls = await page.evaluate(() => (window as any).addWorksheetCalls);
+
+      if (engine === 'exceljs') {
+        expect(addWorksheetCalls).toBeGreaterThan(0);
+      } else {
+        expect(addWorksheetCalls).toBe(0);
+      }
 
       const workbook = new ExcelJS.Workbook();
 

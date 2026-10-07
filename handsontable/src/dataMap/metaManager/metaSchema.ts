@@ -3162,6 +3162,7 @@ export default (): Record<string, unknown> => {
      * | ----------- | ------------------------------------------------------------------------------------------ |
      * | `undefined` | Use the [`ExportFile`](@/api/exportFile.md) plugin with the default configuration, with the context-menu entry hidden |
      * | `true`      | Use the plugin with the default configuration (built-in xlsx engine), with the context-menu entry shown |
+     * | `false`     | The same as `true`: the plugin stays enabled, its API keeps working, and the context-menu entry is shown. To hide the entry, leave the option `undefined` |
      * | An object   | Enable the [`ExportFile`](@/api/exportFile.md) plugin and modify the plugin options        |
      *
      * If you set the `exportFile` option to an object, you can configure the following options:

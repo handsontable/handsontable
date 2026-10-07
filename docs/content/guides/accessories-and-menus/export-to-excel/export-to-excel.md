@@ -34,6 +34,7 @@ The `ExportFile` plugin writes `.xlsx` files with a built-in engine - no extra l
 - Column headers and nested headers, merged cells, and frozen panes are preserved.
 - [HyperFormula](@/guides/formulas/formula-calculation/formula-calculation.md) and [ColumnSummary](@/guides/columns/column-summary/column-summary.md) destination cells can be exported as live Excel formulas.
 - Multiple Handsontable instances can be exported into separate sheets of one workbook.
+- A grid that renders right to left, through [`layoutDirection`](@/api/options.md#layoutdirection) or a right-to-left page, exports a right-to-left sheet.
 
 ## Prerequisites
 
@@ -85,7 +86,18 @@ const hotSettings = ref({
 
 ### Requirements
 
-The built-in engine packs the archive with the Compression Streams API, which every browser Handsontable supports provides. A test environment without it - a jsdom environment (in Jest or Vitest), or Jest 27's `node` environment - needs either `CompressionStream` and `DecompressionStream` polyfilled, or ExcelJS injected through the `engines` option. Jest's `node` environment provides both streams from Jest 28 on.
+The built-in engine needs four globals: `CompressionStream`, `DecompressionStream`, `TextEncoder`, and `TextDecoder`. Every browser Handsontable supports provides them. A test environment can lack them - a jsdom environment (in Jest or Vitest), or Jest 27's `node` environment. The export then rejects with a message that names the missing globals. Jest's `node` environment provides all four from Jest 28 on.
+
+To run the built-in engine in such an environment, assign the four globals from Node.js before the test runs, for example in a Jest `setupFiles` module:
+
+```javascript
+const { CompressionStream, DecompressionStream } = require('node:stream/web');
+const { TextEncoder, TextDecoder } = require('node:util');
+
+Object.assign(globalThis, { CompressionStream, DecompressionStream, TextEncoder, TextDecoder });
+```
+
+You can also inject ExcelJS through the `engines` option. On Jest 29 with `jest-environment-jsdom`, loading ExcelJS fails with `SyntaxError: Unexpected token 'export'`, because that environment resolves the `browser` export condition. Set `testEnvironmentOptions: { customExportConditions: ['node', 'node-addons'] }` in your Jest configuration to load it.
 
 ## Engines
 
@@ -102,7 +114,7 @@ XLSX export runs on the built-in engine. You can pass [ExcelJS](https://github.c
 
 Both engines write a sheet synchronously. A very large grid blocks the tab for as long as the sheet takes to serialize, and a multi-sheet export pays that for each sheet in turn, so export a large grid from an interaction the user started rather than on a timer.
 
-When an engine cannot write a feature the export requested, the plugin reports it in one console warning per export call, naming the engine and every dropped feature. ExcelJS writes every conditional formatting rule kind and honors the numeric `compression` level, so it never reports a `conditionalFormatting:<type>` or `compressionLevel` key. It still reports `merge:overlap` when two merged ranges overlap, and both engines report `cellText:truncated`, `columnWidth:clamped`, and `rowHeight:clamped` when a value is past what Excel stores. The built-in engine writes `cellIs`, `expression`, and the `containsText` family (`containsText`, `containsBlanks`, `notContainsBlanks`, `containsErrors`, `notContainsErrors`), plus `top10`, `aboveAverage`, and `timePeriod` conditional formatting rules -- it reports every other rule kind, such as `colorScale`, `dataBar`, `iconSet`, `duplicateValues`, and `uniqueValues`, as a dropped feature. The same mechanism serves the [import](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md) direction, where cell styling is dropped on every file that carries it.
+When an engine cannot write a feature the export requested, the plugin reports it in one console warning per export call, naming the engine and every dropped feature. Both engines report `merge:overlap` when two merged ranges overlap, and `cellText:truncated`, `columnWidth:clamped`, and `rowHeight:clamped` when a value is past what Excel stores. Both engines also check each conditional formatting rule before they write it. They skip the same malformed rules and report them under the same keys (see the table below), and they write the rest of the file. ExcelJS writes every rule kind that passes the check, and honors the numeric `compression` level, so it never reports `compressionLevel`. The built-in engine writes `cellIs`, `expression`, and the `containsText` family (`containsText`, `containsBlanks`, `notContainsBlanks`, `containsErrors`, `notContainsErrors`), plus `top10`, `aboveAverage`, and `timePeriod` conditional formatting rules -- it reports every other rule kind, such as `colorScale`, `dataBar`, `iconSet`, `duplicateValues`, and `uniqueValues`, as a dropped feature. The same mechanism serves the [import](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md) direction, where cell styling is dropped on every file that carries it.
 
 These are the keys the export can report:
 
@@ -113,11 +125,11 @@ These are the keys the export can report:
 | `cellText:truncated` | A text value is longer than 32,767 characters, the most an Excel cell holds. Both engines cut it to that length. |
 | `columnWidth:clamped` | A column is wider than 260 width units (about 1,820 pixels), the widest column Excel stores. Both engines write it at that width. |
 | `rowHeight:clamped` | A row is taller than 409.5 points (546 pixels), the tallest row Excel stores. Both engines write it at that height. |
-| `conditionalFormatting:<type>` | A conditional formatting rule kind the built-in engine does not write, such as `colorScale`, `dataBar` or `iconSet`. The rest of the block is written. |
+| `conditionalFormatting:<type>` | A conditional formatting rule kind the built-in engine does not write, such as `colorScale`, `dataBar`, or `iconSet`. ExcelJS reports `colorScale`, `dataBar`, and `iconSet` too, but only for a rule it cannot write: one with no `cfvo` thresholds, or a `colorScale` with no `color`. The rest of the block is written. |
 | `conditionalFormatting:other` | The bucket the rule kinds above count into once one export has already reported 32 distinct ones. See the note under this table. |
 | `conditionalFormatting:invalid` | A `conditionalFormatting` entry that is not a rule object with a string `type`. Both engines skip it and write the rest of the block. |
 | `conditionalFormatting:expression` | An `expression` rule with no `formulae` entry. The rule means nothing without one. Both engines skip it. |
-| `conditionalFormatting:timePeriod` | A `timePeriod` rule with no `formulae` entry, or no `timePeriod` string. Both engines skip it. |
+| `conditionalFormatting:timePeriod` | A `timePeriod` rule with no `timePeriod` string, or with no `formulae` and a period other than `today`, `yesterday`, `tomorrow`, `last7Days`, `thisWeek`, `lastWeek`, `nextWeek`, `thisMonth`, `lastMonth`, or `nextMonth`. Both engines skip it. A rule with one of those periods and no `formulae` is written: both engines build the formula from the period and the block's top-left cell, as ExcelJS does. |
 
 The one key that ends in a value you wrote -- `conditionalFormatting:<type>` -- is bounded, the same way the [import](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md) direction bounds its own value-tailed keys. The rule kind is cut to 64 characters and its control characters are replaced, and after 32 distinct kinds in one export the rest are reported as `conditionalFormatting:other`. The counts stay complete either way.
 
@@ -265,6 +277,8 @@ Configure the plugin in Handsontable's settings under the `exportFile` key.
 | --------- | -------- | ------- | ----------- |
 | `engines` | `Object` | -       | Optional map of format keys to engine modules. Pass `{ xlsx: ExcelJS }` to export through [ExcelJS](https://github.com/exceljs/exceljs) instead of the built-in engine. |
 
+Set `exportFile` to `true`, or to an object with the options above, to show the **Export** item in the context menu. The plugin's API works whatever the value. `exportFile: false` does not turn the plugin off: the **Export** item stays in the context menu, and the export methods keep working. To keep the item out of the menu, leave `exportFile` unset.
+
 ## Export options
 
 Pass these options as the second argument to `downloadFileAsync('xlsx', options)` or `exportAsBlobAsync('xlsx', options)`.
@@ -274,10 +288,10 @@ Pass these options as the second argument to `downloadFileAsync('xlsx', options)
 | `filename` | `String`, default `'Handsontable [YYYY]-[MM]-[DD]'` | File name without extension. Placeholders `[YYYY]`, `[MM]`, and `[DD]` are replaced with the current date. |
 | `colHeaders` | `Boolean`, default `false` | Include column headers in the exported file. Supports the [NestedHeaders](@/api/nestedHeaders.md) plugin. |
 | `rowHeaders` | `Boolean`, default `false` | Include row headers as a frozen first column in the exported file. |
-| `exportFormulas` | `Boolean`, default `false` | Export [HyperFormula](@/guides/formulas/formula-calculation/formula-calculation.md) cells and [ColumnSummary](@/guides/columns/column-summary/column-summary.md) destination cells as live Excel formulas instead of their pre-calculated values. |
+| `exportFormulas` | `Boolean`, default `false` | Export [HyperFormula](@/guides/formulas/formula-calculation/formula-calculation.md) cells and [ColumnSummary](@/guides/columns/column-summary/column-summary.md) destination cells as live Excel formulas instead of their pre-calculated values. A number in a column of the default `text` type is written as a text cell, so a `SUM` over it calculates to `0` when the file opens. Give the columns that feed formulas `type: 'numeric'`. An array formula, such as `=TRANSPOSE(A1:B2)` or `=MMULT(A1:B2,A1:B2)`, is written as one plain formula in its first cell, and the cells it spills into are written as fixed values. A HyperFormula-only function, such as `ARRAYFORMULA`, is written by its name, and a spreadsheet application that lacks it shows `#NAME?`. |
 | `sheets` | `Array`, default `[]` | Multi-sheet configuration. Each entry is an object with an `instance` (a Handsontable object), a `name` (the sheet tab label), and any per-sheet options such as `colHeaders` or `rowHeaders`. When provided, the top-level `instance` is ignored and each sheet is exported separately. |
 | `compression` | `Boolean` \| `Number` (1–9), default DEFLATE level 6 | DEFLATE compression. Unset or `true` uses level 6. A number 1–9 sets a specific level (1 = fastest, 9 = smallest). `false` writes the workbook's entries stored, without compression. The built-in engine treats every level as the platform default. |
-| `conditionalFormatting` | `Array`, default `[]` | Array of conditional formatting descriptors. Each descriptor accepts optional `rows` and `cols` ranges (zero-based Handsontable indexes) and a `rules` array of ExcelJS-compatible conditional formatting rule objects ([shape reference](https://github.com/exceljs/exceljs#conditional-formatting)). The built-in engine writes `cellIs`, `expression`, and the `containsText` family (`containsText`, `containsBlanks`, `notContainsBlanks`, `containsErrors`, `notContainsErrors`), plus `top10`, `aboveAverage`, and `timePeriod`; other kinds are reported under the dropped features. |
+| `conditionalFormatting` | `Array`, default `[]` | Array of conditional formatting descriptors. Each descriptor accepts optional `rows` and `cols` ranges (zero-based Handsontable indexes) and a `rules` array of ExcelJS-compatible conditional formatting rule objects ([shape reference](https://github.com/exceljs/exceljs#conditional-formatting)). The built-in engine writes `cellIs`, `expression`, and the `containsText` family (`containsText`, `containsBlanks`, `notContainsBlanks`, `containsErrors`, `notContainsErrors`), plus `top10`, `aboveAverage`, and `timePeriod`; other kinds are reported under the dropped features. A `timePeriod` rule needs no `formulae`: both engines build the formula from the period. |
 | `range` | `Array`, default `[]` | Cell range to export: `[startRow, startColumn, endRow, endColumn]` (visual indexes). When omitted, the entire grid is exported. |
 
 ### Multi-sheet export
@@ -330,7 +344,7 @@ With `exportFormulas`, a formula reference that names another sheet, such as `=R
 
 ## Context menu
 
-When the context menu is enabled, an **Export** item with the **To CSV** and **To Excel** sub-items is automatically added to the grid's context menu. No extra configuration in `exportFile` is needed.
+When the context menu is enabled and the `exportFile` option is set, an **Export** item with the **To CSV** and **To Excel** sub-items is added to the grid's context menu. The option needs no further configuration. The item shows for `exportFile: false` too. Only an unset `exportFile` keeps it out of the menu.
 
 **To CSV** is always available. **To Excel** uses the built-in engine unless you configure `engines: { xlsx: ExcelJS }`, and it is hidden only when `engines.xlsx` holds a value that is not a recognized engine.
 
@@ -380,11 +394,11 @@ The following Handsontable cell types are recognized and written to the `.xlsx` 
 
 | Handsontable type            | Excel behavior |
 | ---------------------------- | -------------- |
-| `numeric`                    | Number cell. The `numericFormat` option is translated to an Excel `numFmt` string using `Intl.NumberFormat`. |
+| `numeric`                    | Number cell. The `numericFormat` option is translated to an Excel `numFmt` string using `Intl.NumberFormat`. A currency symbol longer than one character is written in quotes, such as `"USD"#,##0.00` or `#,##0.00"zł"`, and a one-character symbol such as `$`, `€`, `£`, or `¥` is written as it is. |
 | `date`                       | Date cell with an Excel date serial number. Reads ISO 8601 strings (`YYYY-MM-DD`). The `dateFormat` option is translated to an Excel `numFmt` string, ordered and separated the way the cell's [`locale`](@/api/options.md#locale) renders it: `{ year: 'numeric', month: '2-digit', day: '2-digit' }` is written as `mm/dd/yyyy` under `en-US` and `dd.mm.yyyy` under `de-DE`, and `{ weekday: 'long' }` is written as `dddd`. |
 | `time`                       | Time cell with an Excel time serial number. Reads `HH:mm`, `HH:mm:ss`, and 12-hour (`h:mm AM/PM`) formats. The `timeFormat` option is translated the same way, so `{ hour: '2-digit', minute: '2-digit', hour12: false }` is written as `hh:mm`. A `timeFormat` that sets no `hour12` takes its clock from the cell's [`locale`](@/api/options.md#locale), just as the grid does, so the same options under `en-US` are written as `hh:mm AM/PM`. |
 | `checkbox`                   | Boolean cell (`TRUE` / `FALSE`). A cell with no value exports as an empty cell. |
-| `dropdown` / `autocomplete`  | Text cell. An array `source` is exported as a list validation, on both engines. A function `source` is not exported. |
+| `dropdown` / `autocomplete`  | Text cell. An array `source` is exported as a list validation, on both engines. The lists are written to a hidden helper sheet named `_HotValidation`, which Excel lists under **Unhide**. Do not delete that sheet, or the dropdowns lose their lists. A function `source` is not exported. |
 | All others                   | Text cell. |
 
 Cell styling is read from the rendered DOM at export time. The following properties are transferred to the workbook:
@@ -393,6 +407,8 @@ Cell styling is read from the rendered DOM at export time. The following propert
 - **Fill**: background color.
 - **Alignment**: horizontal (`htLeft`, `htCenter`, `htRight`, `htJustify`) and vertical (`htTop`, `htMiddle`, `htBottom`).
 - **Borders**: configurations set via the [`CustomBorders`](@/api/customBorders.md) plugin. Border widths map to Excel styles: 1 px → `thin`, 2 px → `medium`, 3+ px → `thick`.
+
+Column headers are written as the text the grid stores. A header that holds HTML entities, such as the `R&amp;D` an [import](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md) stores for `R&D`, is written with the entities as they are. Set the grid's [`textExtractor`](@/api/options.md#textextractor) option to `true` to write the text the header shows instead.
 
 Read-only cells (`readOnly: true`) receive a light-gray fill and gray font color in the exported file by default. Applying CSS classes to a read-only cell overrides these defaults.
 

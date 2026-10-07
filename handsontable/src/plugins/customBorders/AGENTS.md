@@ -115,6 +115,15 @@ for undo like `removeCellMeta` but fires no meta hook, because those hooks carry
 The model is then rebuilt from whatever meta survived (`#rebuildModelFromMeta`), so a vetoed border
 keeps its entry at its current coordinates. Pinned by `__tests__/clearBordersTrimmedRows.unit.js`.
 
+**The reset walks the meta once.** `#resetBorderModel` collects the `borders` entries, removes them,
+and hands only the vetoed survivors (their values read again from `getCellMetaIfExists`) to
+`#rebuildModelFromMeta(bordered)`, so a clear does not walk `getUserDefinedCellMetas()` a second
+time. The walk is still O(every user-defined meta key) - a physical-index `Set` of bordered records is
+the follow-up. The `row < countRows() && column < countCols()` clause is load-bearing: after a
+lowered `maxRows` / `maxCols`, `toVisualRow()` answers an index the grid no longer counts, and
+`removeCellMeta` would read it as a raw physical index and leave the meta on the record. Pinned by
+the two "lowered maxRows / maxCols" cases in `clearBordersTrimmedRows.unit.js`.
+
 The removal is not cosmetic on the `updateData` path. Core drops the cell meta only in `loadData`
 (`metaManager.clearCellsCache()`); `updateData` - and therefore `updateSettings({ data })` - keeps it
 by physical row. So after a shrink through `updateData`, a reset, and a regrow, the old `borders`
@@ -131,6 +140,29 @@ covers the bottom-only, right-only, corner and exact-boundary (`row === countRow
 same-size control proving an in-range entry still has its meta removed, and the `updateData`
 shrink -> reset -> regrow regression. The core rule itself is pinned by
 `src/__tests__/core/removeCellMeta.unit.js`.
+
+## A filter or a trim rebuilds the model from the meta
+
+The plugin listens to `afterFilter`, `afterTrimRow` and `afterUntrimRow` (the trim hooks only when
+`stateChanged`) and rebuilds the model from the `borders` meta (`#rebuildAfterIndexChange`). **Behavior
+change (DEV-3011): after a filter or a trim, a border follows its record** - `getBorders()` reports it at
+the record's current visual row, and the border is painted there - instead of staying at the visual row it
+was set at, which by then held another record. Two defects drove it:
+
+- **A ghost border through undo.** `restoreState` rebuilds the model from the meta but skips a record
+  with no visual index, so `clearBorders()` under a filter (or a trim) that hid the row, then `undo()`,
+  put the meta back with no model entry. When the row came back nothing rebuilt the model: nothing was
+  painted, `getBorders()` was empty, and the XLSX export still wrote the border.
+- **A range clear missed the record.** After a sort and a filter, the model painted the border at its
+  stale visual row; `clearBorders([[row...]])` of what you see removed the model entry and left the meta
+  on the record.
+
+Hidden rows (`hiddenRows`) keep their visual indexes, so `afterHideRows` needs no rebuild. Sorting and
+row moves are not covered by this rebuild. A progressive load still in flight is flushed first, so the
+rebuild (which cancels the load) cannot drop its pending batches. The trim plugin does not render after
+its hooks, so the trim path schedules a render; `filter()` renders right after `afterFilter`. Each
+rebuild walks every user-defined meta key, once per filter or trim. Pinned by the filter, trim and
+sort-plus-filter range-clear cases in `__tests__/clearBordersTrimmedRows.unit.js`.
 
 ## A progressive load is never an undo step
 

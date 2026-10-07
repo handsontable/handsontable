@@ -309,13 +309,16 @@ The plugin registers **no `afterLoadData` hook**, so `loadData` (and `updateSett
 which routes to `updateData`) replaces the dataset while `mergedCellsCollection` keeps the previous
 grid's merges. Nothing draws them past the grid, but `#resetMergedCellMeta` walks every cell a
 dropped merge covers into `removeCellMeta` — `hidden` and `copyable` per cell, then `spanned`,
-`rowspan`, `colspan` on the master. On 8x8 data merged at
-`{ row: 6, col: 6, rowspan: 2, colspan: 2 }` followed by a 3x3 `loadData`, both
-`updateSettings({ mergeCells: [] })` and `updateSettings({ mergeCells: [in-range area] })` threw
-`Assertion failed: Expecting an unsigned number` — a pre-existing defect, reproducible on released
-18.1.1. The real-world path is `importFile`, which applies a result as `loadData` plus
+`rowspan`, `colspan` on the master. On released 18.1.1 MergeCells did NOT throw there (0 of 18
+shape x `loadData`/`updateData`/`updateSettings({ data })` x emptying/replacing runs threw, measured
+on the merge base); it ORPHANED the merge meta. On 8x8 data merged at
+`{ row: 6, col: 6, rowspan: 2, colspan: 2 }`, an `updateData` to 3x3, `updateSettings({ mergeCells: [] })`
+and a regrow to 8x8 left `hidden`/`copyable` on the old block, so `getCopyableText(6, 6, 7, 7)`
+returned `"6-6\t\n\t"` instead of the four cell values. Only CustomBorders threw
+`Assertion failed: Expecting an unsigned number` on that path (its `#resetBorderModel`). The
+real-world path is `importFile`, which applies a result as `loadData` plus
 `updateSettings({ mergeCells, … })`: importing a smaller sheet over a previous import whose merge
-sat near the bottom or right edge threw mid-import.
+sat near the bottom or right edge.
 
 **The cause was a core asymmetry, and it is fixed in `Core#removeCellMeta`, not here.**
 `Core#setCellMeta` passes an index outside the current range through as the physical one;

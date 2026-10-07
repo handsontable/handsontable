@@ -1537,21 +1537,34 @@ test.describe('CustomBorders cleared while rows are sorted and filtered', () => 
     // the next undo (which rebuilds the model from the meta) painted it again.
     await page.evaluate(() => {
       const hot = (window as any).hot;
+
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+      hot.getPlugin('customBorders').setBorders([[7, 0, 7, 0]], { top: { width: 2, color: '#FF0000' } });
+    });
+
+    // Positive control: the red border is painted, so its absence at the end is the clear's doing.
+    expect(await lab.visibleBorderColors()).toContain('rgb(255, 0, 0)');
+
+    await page.evaluate(() => {
+      const hot = (window as any).hot;
       const borders = hot.getPlugin('customBorders');
       const filters = hot.getPlugin('filters');
 
-      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
-      borders.setBorders([[7, 0, 7, 0]], { top: { width: 2, color: '#FF0000' } });
       filters.addCondition(0, 'gt', [6]);
       filters.filter();
       borders.clearBorders();
       filters.clearConditions();
       filters.filter();
       borders.setBorders([[0, 1, 0, 1]], { bottom: { width: 2, color: '#0000FF' } });
-      hot.getPlugin('undoRedo').undo();
     });
 
+    // Positive control: the unrelated blue border is painted before the undo removes it.
+    expect(await lab.visibleBorderColors()).toContain('rgb(0, 0, 255)');
+
+    await page.evaluate(() => (window as any).hot.getPlugin('undoRedo').undo());
+
     expect(await lab.visibleBorderColors()).not.toContain('rgb(255, 0, 0)');
+    expect(await lab.visibleBorderColors()).not.toContain('rgb(0, 0, 255)');
     expect(await page.evaluate(() => (window as any).hot.getCellMeta(7, 0).borders ?? null)).toBeNull();
     expect(await lab.borderCoords()).toEqual([]);
   });

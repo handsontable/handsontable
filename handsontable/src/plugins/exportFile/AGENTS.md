@@ -123,6 +123,12 @@ Other rules:
   every click fails with `Invalid xlsx engine module.` in the console only. Pinned by
   `__tests__/contextMenuItem.unit.js`, which also pins the 18.1 to 19.0 migration guide's
   `beforeContextMenuSetItems` recipe for removing only that sub-item.
+- **`exportFile: false` does NOT turn the plugin off, and that is documented, not fixed.** The parent
+  Export item's `hidden()` (`contextMenuItem/exportItem.ts`) tests `exportFile === undefined` only, and
+  `isEnabled()` always returns `true`, so `false` shows the menu entry and every export method still
+  works, exactly as in 18.1. Hiding on any falsy value would change released behavior, so the
+  `false` row in the `exportFile` table of `metaSchema.ts` and the export guide say it instead: only
+  an unset `exportFile` keeps the item out of the menu.
 - **A configured `engines: { xlsx: null }` means the built-in engine, everywhere, and `detect.ts` is the one
   place that says so.** It is what `xlsx: useExcelJs ? ExcelJS : null` writes, and it used to get three
   answers: `supportsExportFormat('xlsx')` answered `false` (the predicate reached `detectXlsxEngine(null)`,
@@ -204,7 +210,7 @@ Other rules:
   kind or number format) is built by `DroppedFeatures#recordUnsupported(group, value)` instead, which
   checks the group and leaves only the data-driven tail free; `record()` takes no template literal, so a
   hand-written `conditionalFormatting:unparsedRefs` no longer type-checks.
-  The write direction owns `compressionLevel`, `merge:overlap`, the four `conditionalFormatting:*`
+  The write direction owns `compressionLevel`, `merge:overlap`, the `conditionalFormatting:*`
   names, and `cellText:truncated`, `columnWidth:clamped` and `rowHeight:clamped` (the last three raised by
   BOTH engines); the read direction's are in the import guide.
 - **On a rendered cell the exported font color is the cell's OWN computed color, diffed against an
@@ -287,6 +293,33 @@ Other rules:
   Before this, an empty checkbox wrote `<c t="b"><v>0</v></c>` and re-imported as unchecked.
   Pinned by `xlsxCheckboxValue.unit.js`; the user-facing note is in section 28 of the 18.1 → 19.0
   migration guide, together with the frozen-pane change above.
+- **The `_HotValidation` helper sheet is `hidden`, NOT `veryHidden`.** Apple Numbers discards a very
+  hidden sheet on open together with every validation that points at it, so every dropdown of a
+  native or ExcelJS export was lost there (18.1 wrote it `veryHidden` too). `hidden` keeps them in
+  Numbers; the cost is that Excel lists the sheet under Unhide. Inlining short lists (255 characters)
+  was the alternative and stays open. Named in the export guide's cell-type table and in section 28
+  of the migration guide.
+- **A currency symbol longer than one character is QUOTED in the `numFmt`** (`numeric-utils.ts`,
+  shared by both engines): `"USD"#,##0.00`, `#,##0.00"zł"`. The raw `formatToParts` symbol used to go
+  in unquoted (`#,##0.00USD`, `CHF#,##0.00`), which Excel for the web REPAIRS and LibreOffice and
+  Numbers drop. A lone `$`, `€`, `£` or `¥` stays bare, because Excel accepts it. The import's
+  `captureQuotedCurrency` (`importFile/numFmtCode.ts`) reads the quoted ISO code back, so the round
+  trip keeps the currency.
+- **The exported sheet direction follows the RENDERED direction** (`hot.isRtl()`), not the raw
+  `layoutDirection` setting, so a grid on a `dir="rtl"` page with the default `'inherit'` writes a
+  right-to-left sheet. The import side already used `isRtl()`; the two disagreed before.
+- **A `timePeriod` rule needs no `formulae`.** ExcelJS documents `{ type, priority, timePeriod, style }`
+  and builds the formula itself; the native writer builds the same formula from the period and the
+  block's top-left cell, and the shared screen (`conditionalRules.ts#isWritableConditionalRule`)
+  rejects a rule without a `timePeriod` string, or without `formulae` whose period is not one of the
+  ten ExcelJS builds a formula for (`today`, `yesterday`, `tomorrow`, `last7Days`, `thisWeek`,
+  `lastWeek`, `nextWeek`, `thisMonth`, `lastMonth`, `nextMonth`). A `colorScale`/`dataBar`/`iconSet`
+  rule without `cfvo` (a `colorScale` also without `color`) is screened out for BOTH engines
+  (`conditionalFormatting:<kind>`), because ExcelJS throws `cfvo.forEach` on it.
+- **Destroying the grid mid-export rejects with a message, not a raw `TypeError`**:
+  `ExportFile: the Handsontable instance was destroyed while the file was being exported.` The
+  download path checks the instance again after the engine resolves, the way the import guards its
+  own apply.
 - **`types/xlsx.ts` builds a `WorkbookSnapshot` (`src/utils/xlsxEngine/model.ts`) through a 1-based
   `SheetBuilder` and hands it to the detected engine's `write`.** No ExcelJS call is allowed in this
   plugin any more; the ExcelJS-shaped interfaces live in `src/utils/xlsxEngine/adapters/exceljs.ts`. The
@@ -294,7 +327,7 @@ Other rules:
   row before it applies any merges — `worksheet.mergeCells()` forwards a merged slave's later value
   assignment to the master, so writing merges first would silently drop a slave cell's own write. Both
   orderings are load-bearing, and both are pinned by `exceljsWrite.unit.js`: it asserts
-  `workbook.worksheets[1].state === 'veryHidden'` for the validation sheet, and "should write the rows
+  `workbook.worksheets[1].state === 'hidden'` for the validation sheet, and "should write the rows
   before merging, so a merged range keeps its master value" is the row-before-merge regression test —
   run it before reordering `writeColumnLayout`/`writeRows`/`writeSheetFeatures` in `exceljs.ts`.
 
