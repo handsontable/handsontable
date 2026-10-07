@@ -28,7 +28,12 @@ async function generateCommonCanonicalURLs(currentCanonicals) {
       /* eslint-disable no-await-in-loop */
       const canonicalsResponse = await fetch(`${BASE_URL}/docs/${docsVersion}/data/canonicals-raw.json`);
 
-      canonicalsURLs = (await canonicalsResponse.json()).urls;
+      try {
+        canonicalsURLs = (await canonicalsResponse.json()).urls;
+      } catch (error) {
+        // Docs versions built with the newer tooling (17.1 and later) do not publish `canonicals-raw.json`.
+        canonicalsURLs = [];
+      }
     }
 
     for (let urlIndex = 0; urlIndex < canonicalsURLs.length; urlIndex++) {
