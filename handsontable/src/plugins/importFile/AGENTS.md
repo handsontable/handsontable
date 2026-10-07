@@ -354,7 +354,9 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `formula:definedName`, the way `formula:outOfRange` already worked. The plugin hands the mapper
   what the engine holds (`MapperContext.formulaSheetNames`, `formulaNamedExpressions`, both
   lower-cased) and both readers carry the workbook's names (`WorkbookSnapshot.definedNames`, Excel's
-  `_xlnm.` names left out). Each formula is charged ONCE against `MAX_TRANSLATED_FORMULA_CHARS`, and
+  `_xlnm.` names left out). The ExcelJS reader carries RANGE names only: ExcelJS 4.4's
+  `definedNames.model` drops a name whose value is a constant (`<definedName name="TaxRate">0.07`),
+  so a formula over such a name stays live and shows `#NAME?` on that engine, with nothing reported. Each formula is charged ONCE against `MAX_TRANSLATED_FORMULA_CHARS`, and
   that one charge covers the prefix strip, the reference walk (which also judges each sheet
   qualifier, through the walk's own `qualifier` group) and the defined-name scan. Charging every
   check separately refused files that imported at 1a59dedd71. Registering the file's names in HyperFormula would make them round-trip; it is a feature
