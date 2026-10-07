@@ -16,7 +16,7 @@ export function rowHeaderScrollStrategy(hot: HotInstance) {
     hot.scrollViewportTo({ row: scrollRowTarget }, () => {
       const hasRowHeaders = !!hot.getSettings().rowHeaders;
 
-      scrollWindowToCell(hot.getCell(scrollRowTarget, hasRowHeaders ? -1 : 0, true));
+      scrollWindowToCell(hot, hot.getCell(scrollRowTarget, hasRowHeaders ? -1 : 0, true));
     });
   };
 }

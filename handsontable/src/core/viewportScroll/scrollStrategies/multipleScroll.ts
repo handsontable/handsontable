@@ -19,7 +19,7 @@ export function multipleScrollStrategy(hot: HotInstance) {
     hot.scrollViewportTo(targetScroll, () => {
       const { row, col } = targetScroll;
 
-      scrollWindowToCell(hot.getCell(row, col, true));
+      scrollWindowToCell(hot, hot.getCell(row, col, true));
     });
   };
 }

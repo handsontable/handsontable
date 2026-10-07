@@ -370,6 +370,8 @@ declare global {
     initGrid(overrides?: Record<string, unknown>, containerWidth?: string): boolean;
     /** `afterScrollVertically` calls since the last rebuild (width-window-scroll fixture). */
     verticalScrollCount: number;
+    /** `afterScroll` calls since `SelectionViewportScrollPage#countAfterScroll()` started counting. */
+    afterScrollCount?: number;
     /**
      * Wheel events recorded by `WidthWindowScrollPage#watchWheelEvents()`, with the
      * `defaultPrevented` each one carried once the grid's own handler had run.

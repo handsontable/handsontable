@@ -16,7 +16,7 @@ export function columnHeaderScrollStrategy(hot: HotInstance) {
     hot.scrollViewportTo({ col: scrollColumnTarget }, () => {
       const hasColumnHeaders = !!hot.getSettings().colHeaders;
 
-      scrollWindowToCell(hot.getCell(hasColumnHeaders ? -1 : 0, scrollColumnTarget, true));
+      scrollWindowToCell(hot, hot.getCell(hasColumnHeaders ? -1 : 0, scrollColumnTarget, true));
     });
   };
 }

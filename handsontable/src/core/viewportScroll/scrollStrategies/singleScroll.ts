@@ -220,7 +220,7 @@ export function singleScrollStrategy(hot: HotInstance) {
     }
 
     const scrollWindow = () => {
-      scrollWindowToCell(hot.getCell(row, col, true));
+      scrollWindowToCell(hot, hot.getCell(row, col, true));
     };
 
     // navigating through the column headers (when `navigableHeaders` is enabled)
