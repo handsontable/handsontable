@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-07T11:00:38.901Z",
+  "generatedAt": "2026-10-07T11:06:24.520Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 367,
+    "tests": 368,
     "needsTicket": 18,
     "quarantined": 0,
-    "entries": 1915
+    "entries": 1918
   },
   "rows": [
     {
@@ -46,6 +46,42 @@
         "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37271790029/attempts/2",
         "branch": "feature/DEV-150_Clear-column-collapsed-nested-rows",
         "leg": "e2e-main",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "playwright|e2e/iframe-cross-realm-scroll.spec.ts|cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
+      "tier": "playwright",
+      "file": "e2e/iframe-cross-realm-scroll.spec.ts",
+      "line": 100,
+      "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
+      "count7": 3,
+      "count30": 12,
+      "countAll": 12,
+      "runs30": 9,
+      "flakyRuns30": 9,
+      "branches30": 8,
+      "nightlyRuns30": 0,
+      "openBranches30": 8,
+      "legs": [
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-07T11:05:43Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37607698284",
+        "branch": "feature/editor-false-and-readonly-styling",
+        "leg": "e2e-horizon-min",
         "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
@@ -240,42 +276,6 @@
         "leg": "UMD (theme: classic)",
         "status": "failed",
         "error": "Expected 28 to be 27.",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "playwright|e2e/iframe-cross-realm-scroll.spec.ts|cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
-      "tier": "playwright",
-      "file": "e2e/iframe-cross-realm-scroll.spec.ts",
-      "line": 100,
-      "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
-      "count7": 2,
-      "count30": 11,
-      "countAll": 11,
-      "runs30": 8,
-      "flakyRuns30": 8,
-      "branches30": 7,
-      "nightlyRuns30": 0,
-      "openBranches30": 7,
-      "legs": [
-        "e2e-classic-min",
-        "e2e-horizon",
-        "e2e-horizon-min",
-        "e2e-main-min"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-06T09:37:47Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37438225641/attempts/2",
-        "branch": "feature/DEV-307_Remeasure-rows-after-async-renderer-content",
-        "leg": "e2e-main-min",
-        "status": "flaky",
-        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": true
@@ -11711,6 +11711,40 @@
         "leg": "e2e-horizon",
         "status": "failed",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/read-only-styling.spec.ts|readOnlyStyling › a read-only cell is still dimmed by default",
+      "tier": "playwright",
+      "file": "e2e/read-only-styling.spec.ts",
+      "line": 18,
+      "title": "readOnlyStyling › a read-only cell is still dimmed by default",
+      "count7": 2,
+      "count30": 2,
+      "countAll": 2,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-horizon",
+        "e2e-horizon-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-07T11:05:43Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37607698284",
+        "branch": "feature/editor-false-and-readonly-styling",
+        "leg": "e2e-horizon",
+        "status": "failed",
+        "error": "Error: expect(received).not.toEqual(expected) // deep equality",
         "source": "ci"
       },
       "needsTicket": false
