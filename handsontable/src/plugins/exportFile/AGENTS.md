@@ -291,13 +291,13 @@ Other rules:
   `undefined`, `''`) that matches neither — the renderer's `noValue` state — and `false` for anything
   else. Checking `uncheckedTemplate` first is what keeps `uncheckedTemplate: ''` exporting `false`.
   Before this, an empty checkbox wrote `<c t="b"><v>0</v></c>` and re-imported as unchecked.
-  Pinned by `xlsxCheckboxValue.unit.js`; the user-facing note is in section 28 of the 18.1 → 19.0
+  Pinned by `xlsxCheckboxValue.unit.js`; the user-facing note is in section 30 of the 18.1 → 19.0
   migration guide, together with the frozen-pane change above.
 - **The `_HotValidation` helper sheet is `hidden`, NOT `veryHidden`.** Apple Numbers discards a very
   hidden sheet on open together with every validation that points at it, so every dropdown of a
   native or ExcelJS export was lost there (18.1 wrote it `veryHidden` too). `hidden` keeps them in
   Numbers; the cost is that Excel lists the sheet under Unhide. Inlining short lists (255 characters)
-  was the alternative and stays open. Named in the export guide's cell-type table and in section 28
+  was the alternative and stays open. Named in the export guide's cell-type table and in section 30
   of the migration guide.
 - **A currency symbol longer than one character is QUOTED in the `numFmt`** (`numeric-utils.ts`,
   shared by both engines): `"USD"#,##0.00`, `#,##0.00"zł"`. The raw `formatToParts` symbol used to go

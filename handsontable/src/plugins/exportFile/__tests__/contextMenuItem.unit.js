@@ -83,7 +83,7 @@ describe('ExportFile context menu "Export" submenu', () => {
 });
 
 describe('ExportFile context menu: removing only the "To Excel" sub-item', () => {
-  // The recipe the 18.1 to 19.0 migration guide (section 28) gives to keep the default menu and
+  // The recipe the 18.1 to 19.0 migration guide (section 30) gives to keep the default menu and
   // "To CSV" while dropping "To Excel". Keep the two in sync.
   let hot;
 

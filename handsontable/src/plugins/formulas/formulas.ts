@@ -1021,11 +1021,10 @@ export class Formulas extends BasePlugin {
       this.#trackPeerRewrites(() => this.columnAxisSyncer!.calculateAndSyncMoves(freezePerformed, freezePerformed));
     });
 
-    this.addHook('beforeColumnUnfreeze', (column: number, unfreezePerformed: boolean) => {
-      const fixedColumnsStart = this.hot.getSettings().fixedColumnsStart;
-
-      this.columnAxisSyncer!.storeMovesInformation(
-        [column], fixedColumnsStart! - 1, unfreezePerformed);
+    // The target comes from the hook: ManualColumnFreeze resolves it before the move, and with
+    // `restoreColumnPosition` it is not the freeze line.
+    this.addHook('beforeColumnUnfreeze', (column: number, unfreezePerformed: boolean, finalIndex: number) => {
+      this.columnAxisSyncer!.storeMovesInformation([column], finalIndex, unfreezePerformed);
     });
 
     this.addHook('afterColumnUnfreeze', (_column: number, unfreezePerformed: boolean) => {

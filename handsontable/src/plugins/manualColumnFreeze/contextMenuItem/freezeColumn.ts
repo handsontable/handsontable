@@ -1,6 +1,7 @@
 import type { HotInstance } from '../../../core/types';
 import * as C from '../../../i18n/constants';
 import { isPluginOff } from './isPluginOff';
+import { followColumn } from './followColumn';
 import { isInEndBand } from '../endBand';
 
 /**
@@ -18,7 +19,9 @@ export default function freezeColumnItem(manualColumnFreezePlugin: unknown) {
     callback(this: HotInstance, key: unknown, selected: { start: { col: number } }[]) {
       const [{ start: { col: selectedColumn } }] = selected;
 
-      (manualColumnFreezePlugin as { freezeColumn: Function }).freezeColumn(selectedColumn);
+      followColumn(this, selectedColumn, () => {
+        (manualColumnFreezePlugin as { freezeColumn: Function }).freezeColumn(selectedColumn);
+      });
 
       this.render();
     },

@@ -1,10 +1,17 @@
-import { extractEntitlementKeyData, getProductEntitlement, canonicalizeProse } from '../extractKeyData';
+import {
+  extractEntitlementKeyData,
+  getProductEntitlement,
+  canonicalizeProse,
+  computeProseDigest,
+} from '../extractKeyData';
 import { detectLicenseKeyFormat, isEntitlementKey } from '../detectFormat';
 import { sha512 } from '../sha512';
 import { stringToUtf8Bytes } from '../encoding';
-import { buildTestKey, blockOf, proseOf } from './buildTestKey';
+import { buildTestKey, blockOf, proseOf, payloadOf } from './buildTestKey';
 import {
   SUBSCRIPTION_KEY,
+  V1_SUBSCRIPTION_KEY,
+  V1_TRIAL_KEY,
   ACCENTED_HOLDER_KEY,
   CJK_HOLDER_KEY,
   SUBSCRIPTION_EXTERNAL_KEY,
@@ -126,7 +133,7 @@ describe('entitlementLicenseKey/extractKeyData', () => {
     it('should read a key whose product map is empty, granting nothing (H5)', () => {
       const data = extractEntitlementKeyData(buildTestKey({ products: {} }));
 
-      expect(data).toEqual({ products: {} });
+      expect(data).toEqual({ version: 2, products: {} });
       expect(getProductEntitlement(data, 'handsontable')).toBeNull();
     });
 
@@ -142,12 +149,12 @@ describe('entitlementLicenseKey/extractKeyData', () => {
   describe('the prose layer', () => {
     const expected = () => extractEntitlementKeyData(SUBSCRIPTION_KEY);
 
-    it('should reject the bare block of a real key, whose checksum was computed over its prose', () => {
+    it('should reject the bare block of a real key, whose prose digest covers its prose', () => {
       expect(extractEntitlementKeyData(blockOf(SUBSCRIPTION_KEY))).toBeNull();
       expect(extractEntitlementKeyData(` \n${blockOf(SUBSCRIPTION_KEY)}\n`)).toBeNull();
     });
 
-    it('should reject a bare block whose checksum was computed over empty prose', () => {
+    it('should reject a bare block whose prose digest was computed over empty prose', () => {
       const key = buildTestKey({ products: { handsontable: handsontableEntry() } }, { prose: '' });
 
       expect(key.startsWith('[')).toBe(true);
@@ -226,9 +233,9 @@ describe('entitlementLicenseKey/extractKeyData', () => {
       });
     });
 
-    // The expected verdicts below come from the license-key validator at bc03d89, run on the same
-    // variants of this generated key. They pin the reader to the generator: `buildTestKey` checksums
-    // with this reader's own `canonicalizeProse`, so it would agree with any change to it.
+    // The expected verdicts below come from the canonical license-key reader, run on the same
+    // variants of this generated key. They pin the reader to the generator: `buildTestKey` uses
+    // this reader's own helpers, so it would agree with any change to them.
     it('should ignore exactly the whitespace characters the generator ignores', () => {
       const prose = proseOf(SUBSCRIPTION_KEY);
       const block = blockOf(SUBSCRIPTION_KEY);
@@ -291,14 +298,51 @@ describe('entitlementLicenseKey/extractKeyData', () => {
       });
     });
 
-    it('should reject a key whose block was broken by a line wrap', () => {
+    it('should read a key whose block was broken by a line wrap, as a mail client does', () => {
       const block = blockOf(SUBSCRIPTION_KEY);
       const prose = proseOf(SUBSCRIPTION_KEY);
 
-      ['\n', '\r\n', ' ', '\\n'].forEach((separator) => {
-        const wrapped = `${prose}${block.slice(0, 60)}${separator}${block.slice(60)}`;
+      ['\n', '\r\n', ' ', '\t', '\u00a0', '\\n', '\\r\\n'].forEach((separator) => {
+        // Near the start of the block, and near its end.
+        [60, block.length - 40].forEach((at) => {
+          const wrapped = `${prose}${block.slice(0, at)}${separator}${block.slice(at)}`;
 
-        expect(extractEntitlementKeyData(wrapped)).toBeNull();
+          expect(extractEntitlementKeyData(wrapped)).toEqual(expected());
+        });
+      });
+
+      // Every 60 characters, the way the license email wraps the block.
+      const everySixty = block.match(/.{1,60}/g).join('\n');
+
+      expect(extractEntitlementKeyData(prose + everySixty)).toEqual(expected());
+    });
+
+    it('should ignore inside the block exactly the whitespace characters it ignores in the prose', () => {
+      // The same 25 characters and the same 4 exceptions as the text test below, as in the
+      // canonical reader.
+      const block = blockOf(SUBSCRIPTION_KEY);
+      const prose = proseOf(SUBSCRIPTION_KEY);
+      const ignored = [0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x20, 0xa0, 0x1680, 0x2000, 0x2001, 0x2002, 0x2003,
+        0x2004, 0x2005, 0x2006, 0x2007, 0x2008, 0x2009, 0x200a, 0x2028, 0x2029, 0x202f, 0x205f, 0x3000, 0xfeff];
+      const kept = [0x85, 0x180e, 0x200b, 0x2060];
+      const variant = code => `${prose}${block.slice(0, 60)}${String.fromCharCode(code)}${block.slice(60)}`;
+
+      ignored.forEach((code) => {
+        expect(extractEntitlementKeyData(variant(code))).toEqual(expected());
+      });
+      kept.forEach((code) => {
+        expect(extractEntitlementKeyData(variant(code))).toBeNull();
+      });
+    });
+
+    it('should reject a block broken by anything but whitespace', () => {
+      const block = blockOf(SUBSCRIPTION_KEY);
+      const prose = proseOf(SUBSCRIPTION_KEY);
+
+      ['-', '=', '\\', '\\x', '\u200b', '>'].forEach((separator) => {
+        const broken = `${prose}${block.slice(0, 60)}${separator}${block.slice(60)}`;
+
+        expect(extractEntitlementKeyData(broken)).toBeNull();
       });
     });
 
@@ -345,11 +389,191 @@ describe('entitlementLicenseKey/extractKeyData', () => {
       expect(extractEntitlementKeyData(prose.replace(holder, holder.slice(1)) + block)).toBeNull();
     });
 
-    it('should never let the prose and the payload trade characters across the boundary', () => {
-      // The canonical prose has no whitespace and no "\n", so the "\n" the checksum puts between the
-      // two parts cannot be forged from either side.
+    it('should digest the prose with every whitespace character and escaped line break removed', () => {
       expect(canonicalizeProse(proseOf(SUBSCRIPTION_KEY))).not.toMatch(/\s/);
       expect(canonicalizeProse('a \\n b\n\tc\u3000d')).toBe('abcd');
+    });
+  });
+
+  describe('format versions', () => {
+    const entry = handsontableEntry();
+    const payload = { products: { handsontable: entry } };
+
+    it('should read a key generated with a format version as version 2', () => {
+      expect(extractEntitlementKeyData(SUBSCRIPTION_KEY).version).toBe(2);
+      expect(payloadOf(SUBSCRIPTION_KEY)).toEqual(expect.objectContaining({ v: 2 }));
+      expect(payloadOf(SUBSCRIPTION_KEY).prose).toMatch(/^[0-9a-f]{64}$/);
+    });
+
+    it('should keep reading the keys license-key 4.x issued, as version 1', () => {
+      const subscription = extractEntitlementKeyData(V1_SUBSCRIPTION_KEY);
+      const trial = extractEntitlementKeyData(V1_TRIAL_KEY);
+
+      expect(payloadOf(V1_TRIAL_KEY)).not.toHaveProperty('v');
+      expect(payloadOf(V1_TRIAL_KEY)).not.toHaveProperty('prose');
+      expect(subscription).toEqual({ version: 1, products: extractEntitlementKeyData(SUBSCRIPTION_KEY).products });
+      expect(trial).toEqual({ version: 1, products: extractEntitlementKeyData(TRIAL_KEY).products });
+    });
+
+    it('should not check the prose of a version 1 key, as license-key 4.x did not cover it', () => {
+      const prose = proseOf(V1_TRIAL_KEY);
+      const block = blockOf(V1_TRIAL_KEY);
+      const expected = extractEntitlementKeyData(V1_TRIAL_KEY);
+
+      expect(extractEntitlementKeyData(prose.replace('Test Fixture', 'Someone Else') + block)).toEqual(expected);
+      expect(extractEntitlementKeyData(block)).toEqual(expected);
+    });
+
+    it('should read a version 1 key with text after the block, as Handsontable 18.1 does', () => {
+      // A trial key pasted out of an email often keeps the sentence's period or a closing quote.
+      // 18.1 reads such a key, so rejecting it would only lock grids 18.1 runs.
+      const expected = extractEntitlementKeyData(V1_TRIAL_KEY);
+
+      ['.', '"', '\'', ' x', '\n-- \nSent from my phone'].forEach((suffix) => {
+        expect(extractEntitlementKeyData(V1_TRIAL_KEY + suffix)).toEqual(expected);
+      });
+      // A current key protects its text, so the same suffix still makes it invalid.
+      expect(extractEntitlementKeyData(`${TRIAL_KEY}.`)).toBeNull();
+    });
+
+    it('should read the format version and the prose digest from the payload\'s own fields only', () => {
+      const v2Expected = extractEntitlementKeyData(TRIAL_KEY);
+
+      // Each read gets a key string of its own (trailing spaces), so the one-entry memo cannot
+      // answer from a read made before the prototype changed.
+      [2, 3, 'x', 1, null].forEach((value, index) => {
+        const padding = ' '.repeat(index + 1);
+
+        Object.prototype.v = value; // eslint-disable-line no-extend-native
+
+        try {
+          expect(extractEntitlementKeyData(V1_TRIAL_KEY + padding))
+            .toEqual({ version: 1, products: extractEntitlementKeyData(TRIAL_KEY).products });
+        } finally {
+          delete Object.prototype.v;
+        }
+      });
+
+      // An inherited value cannot stand in for a missing one, nor replace the key's own.
+      const withoutDigest = buildTestKey({ ...payload, prose: undefined });
+
+      Object.prototype.prose = payloadOf(buildTestKey(payload)).prose; // eslint-disable-line no-extend-native
+
+      try {
+        expect(extractEntitlementKeyData(withoutDigest)).toBeNull();
+        expect(extractEntitlementKeyData(`${TRIAL_KEY}  `)).toEqual(v2Expected);
+      } finally {
+        delete Object.prototype.prose;
+      }
+    });
+
+    it('should read a version 1 key whose block a mail client wrapped', () => {
+      const prose = proseOf(V1_TRIAL_KEY);
+      const block = blockOf(V1_TRIAL_KEY);
+      const expected = extractEntitlementKeyData(V1_TRIAL_KEY);
+
+      ['\n', '\r\n', ' ', '\\n'].forEach((separator) => {
+        expect(extractEntitlementKeyData(prose + block.match(/.{1,60}/g).join(separator))).toEqual(expected);
+      });
+    });
+
+    it('should close every block with the checksum a version 1 reader verifies (Handsontable 18.1)', () => {
+      // This is what lets Handsontable 18.1 read a key in the current format.
+      [SUBSCRIPTION_KEY, TRIAL_KEY, MIXED_KEY, CJK_HOLDER_KEY, V1_SUBSCRIPTION_KEY, V1_TRIAL_KEY].forEach((key) => {
+        const content = blockOf(key).slice(1, -1);
+
+        expect(sha512(stringToUtf8Bytes(content.slice(0, -128)))).toBe(content.slice(-128));
+      });
+    });
+
+    it('should reject a version 2 key whose prose digest is wrong, missing, or not a string', () => {
+      [
+        'f'.repeat(64),
+        payloadOf(TRIAL_KEY).prose, // another key's digest
+        payloadOf(SUBSCRIPTION_KEY).prose.toUpperCase(),
+        payloadOf(SUBSCRIPTION_KEY).prose.slice(0, 63),
+        payloadOf(SUBSCRIPTION_KEY).prose.slice(0, 32),
+        '',
+        undefined, // dropped by JSON.stringify
+        null,
+        64,
+        [payloadOf(SUBSCRIPTION_KEY).prose],
+      ].forEach((prose) => {
+        expect(extractEntitlementKeyData(buildTestKey({ ...payload, prose }, { prose: proseOf(SUBSCRIPTION_KEY) })))
+          .toBeNull();
+      });
+    });
+
+    it('should reject a version 2 key that drops its prose, even with a digest of empty prose', () => {
+      const bare = buildTestKey(payload, { prose: '' });
+
+      expect(payloadOf(bare).prose).toMatch(/^[0-9a-f]{64}$/);
+      expect(extractEntitlementKeyData(bare)).toBeNull();
+    });
+
+    it('should reject a format version that no generator writes', () => {
+      [0, 1, -2, 1.5, 2.5, '2', null, true, [2], {}].forEach((v) => {
+        expect(extractEntitlementKeyData(buildTestKey({ ...payload, v }))).toBeNull();
+      });
+    });
+
+    it('should reject a format version that decodes to Infinity', () => {
+      // `1e999` parses to Infinity; it must not pass as a whole number. The same raw payload with
+      // `"v":2` reads, so only the version can reject it.
+      const prose = 'This is a test license key.';
+      const digest = computeProseDigest(canonicalizeProse(prose));
+      const products = JSON.stringify(payload).slice(0, -1);
+      const withVersion = v => `${products},"v":${v},"prose":"${digest}"}`;
+
+      expect(extractEntitlementKeyData(buildTestKey(null, { prose, rawPayloadJson: withVersion('2') }))).not.toBeNull();
+      expect(extractEntitlementKeyData(buildTestKey(null, { prose, rawPayloadJson: withVersion('1e999') }))).toBeNull();
+    });
+
+    it('should not fold a compatibility character into another one (NFC, not NFKC)', () => {
+      // A fullwidth "F" is a different character; only NFKC would turn it into an ASCII "F".
+      const fullwidthF = String.fromCharCode(0xff26);
+
+      expect(extractEntitlementKeyData(SUBSCRIPTION_KEY.replace('Fixture', `${fullwidthF}ixture`))).toBeNull();
+    });
+
+    it('should read the last block when two keys were pasted together', () => {
+      const read = key => extractEntitlementKeyData(key);
+      const v1Trial = read(V1_TRIAL_KEY);
+
+      // A current key followed by an earlier-format one reads as the earlier-format key, the way
+      // Handsontable 18.1 reads it.
+      expect(read(`${TRIAL_KEY}\n\n${V1_TRIAL_KEY}`)).toEqual(v1Trial);
+      expect(read(`${V1_SUBSCRIPTION_KEY}\n\n${V1_TRIAL_KEY}`)).toEqual(v1Trial);
+      expect(read(`${TRIAL_KEY}\n\n${blockOf(V1_TRIAL_KEY)}`)).toEqual(v1Trial);
+      // A current key at the end protects its text, which now includes the first key.
+      expect(read(`${V1_TRIAL_KEY}\n\n${TRIAL_KEY}`)).toBeNull();
+      expect(read(`${SUBSCRIPTION_KEY}\n\n${TRIAL_KEY}`)).toBeNull();
+    });
+
+    it('should reject a malformed product entry in either format', () => {
+      const malformed = [
+        handsontableEntry({ release_until: SUBSCRIPTION_UNTIL }), // both dates
+        handsontableEntry({ usage_until: '2027-02-30' }),
+        handsontableEntry({ notice: -1 }),
+        handsontableEntry({ grace: 1.5 }),
+        handsontableEntry({ flags: 'trial' }),
+      ];
+
+      [1, 2].forEach((version) => {
+        malformed.forEach((malformedEntry) => {
+          expect(extractEntitlementKeyData(buildTestKey({ products: { handsontable: malformedEntry } }, { version })))
+            .toBeNull();
+        });
+        // The well-formed entry reads in the same format, so only the entry can reject it.
+        expect(extractEntitlementKeyData(buildTestKey(payload, { version }))).not.toBeNull();
+      });
+    });
+
+    it('should read a newer format version, still checking its prose digest', () => {
+      const key = buildTestKey({ ...payload, v: 3, seats: 25 });
+
+      expect(extractEntitlementKeyData(key)).toEqual({ version: 3, products: { handsontable: entry } });
+      expect(extractEntitlementKeyData(key.replace('test license', 'tested license'))).toBeNull();
     });
   });
 
@@ -362,7 +586,7 @@ describe('entitlementLicenseKey/extractKeyData', () => {
     });
 
     it('should reject a key whose payload was edited under an intact-looking block', () => {
-      // The last character of the encoded payload, one position before the 128-character checksum.
+      // The last character of the encoded payload, one position before the checksum.
       const payloadEnd = SUBSCRIPTION_KEY.length - 1 - 128;
       const tampered = `${SUBSCRIPTION_KEY.slice(0, payloadEnd - 1)}X${SUBSCRIPTION_KEY.slice(payloadEnd)}`;
 
@@ -542,9 +766,42 @@ describe('entitlementLicenseKey/extractKeyData', () => {
       expect(extractEntitlementKeyData(SUBSCRIPTION_KEY)).toBe(extractEntitlementKeyData(SUBSCRIPTION_KEY));
     });
 
+    it('should freeze the shared result, so one caller cannot change what the next one reads', () => {
+      const data = extractEntitlementKeyData(MIXED_KEY);
+      const entry = getProductEntitlement(data, 'handsontable');
+
+      [data, data.products, entry, entry.capabilities, entry.flags].forEach((part) => {
+        expect(Object.isFrozen(part)).toBe(true);
+      });
+      expect(() => entry.capabilities.push('solver')).toThrow(TypeError);
+      expect(() => { entry.usage_until = '2099-01-01'; }).toThrow(TypeError);
+      expect(getProductEntitlement(extractEntitlementKeyData(MIXED_KEY), 'handsontable').capabilities)
+        .toEqual(['core']);
+    });
+
+    it('should freeze a deeply nested extra field without throwing', () => {
+      // The freeze walks with its own stack, so a key nesting an unknown field thousands of levels
+      // deep still reads as data instead of overflowing the call stack.
+      const depth = 20000;
+      const nested = `${'{"a":'.repeat(depth)}1${'}'.repeat(depth)}`;
+      const products = JSON.stringify({ handsontable: handsontableEntry() }).slice(0, -2);
+      const rawPayloadJson = `{"products":${products},"extra":${nested}}}}`;
+      const data = extractEntitlementKeyData(buildTestKey(null, { rawPayloadJson, version: 1 }));
+
+      expect(data).not.toBeNull();
+
+      let inner = getProductEntitlement(data, 'handsontable').extra;
+
+      while (inner.a !== 1) {
+        inner = inner.a;
+      }
+
+      expect(Object.isFrozen(inner)).toBe(true);
+    });
+
     it('should read a date that cannot be turned into text as invalid, without throwing', () => {
       // An object whose `toString` is not a function throws when it is turned into a string. The
-      // checksum recipe ships in the bundle, so such a key can carry a valid checksum.
+      // reader must still return `null` for it, never throw.
       const crafted = buildTestKey({
         products: { handsontable: handsontableEntry({ usage_until: { toString: 1, valueOf: 1 } }) },
       });

@@ -437,6 +437,119 @@ export class UndoGridPage {
   }
 
   /**
+   * Select whole rows the way a user does: click the first row header, then Shift-click the last.
+   */
+  async selectRowHeaders(fromRow: number, toRow: number): Promise<void> {
+    const header = (row: number) => this.grid.locator('.ht_clone_inline_start tbody tr').nth(row).locator('th');
+
+    await header(fromRow).click();
+    await header(toRow).click({ modifiers: ['Shift'] });
+  }
+
+  /**
+   * Merge the current selection with the `Ctrl`+`M` shortcut.
+   */
+  async pressMergeShortcut(): Promise<void> {
+    await this.page.keyboard.press('Control+m');
+  }
+
+  /**
+   * Merge the selected rows from the context menu: right-click a row header of the selection, then
+   * pick "Merge cells".
+   */
+  async mergeRowsWithContextMenu(visualRow: number): Promise<void> {
+    const menu = this.page.locator('.htContextMenu:visible');
+
+    await this.grid.locator('.ht_clone_inline_start tbody tr').nth(visualRow).locator('th').click({ button: 'right' });
+    await expect(menu).toBeVisible();
+    await menu.locator('td').filter({ hasText: /^\s*Merge cells\s*$/ }).click();
+    await expect(menu).toBeHidden();
+  }
+
+  /**
+   * Merge a range through the MergeCells plugin API.
+   */
+  async mergeWithApi(range: [number, number, number, number]): Promise<void> {
+    await this.page.evaluate(([startRow, startColumn, endRow, endColumn]) => {
+      window.hot.getPlugin('mergeCells').merge(startRow, startColumn, endRow, endColumn);
+    }, range);
+  }
+
+  /**
+   * Start counting the `beforeMergeCells` and `afterMergeCells` calls (read with `mergeHookCalls()`).
+   */
+  async trackMergeHooks(): Promise<void> {
+    await this.page.evaluate(() => {
+      const calls = { before: 0, after: 0 };
+
+      window.mergeHookCalls = calls;
+      window.hot.addHook('beforeMergeCells', () => { calls.before += 1; });
+      window.hot.addHook('afterMergeCells', () => { calls.after += 1; });
+    });
+  }
+
+  /**
+   * The merge hook calls counted since `trackMergeHooks()`.
+   */
+  async mergeHookCalls(): Promise<{ before: number, after: number }> {
+    return this.page.evaluate(() => window.mergeHookCalls ?? { before: 0, after: 0 });
+  }
+
+  /**
+   * The cells of a range whose meta carries a merge flag (`hidden` or `spanned`), as `"row,col"`.
+   */
+  async cellsWithMergeMeta(range: [number, number, number, number]): Promise<string[]> {
+    return this.page.evaluate(([startRow, startColumn, endRow, endColumn]) => {
+      const flagged: string[] = [];
+
+      for (let row = startRow; row <= endRow; row++) {
+        for (let column = startColumn; column <= endColumn; column++) {
+          const { hidden, spanned } = window.hot.getCellMeta(row, column);
+
+          if (hidden || spanned) {
+            flagged.push(`${row},${column}`);
+          }
+        }
+      }
+
+      return flagged;
+    }, range);
+  }
+
+  /**
+   * Start collecting console warnings. The returned array fills up as the page logs.
+   */
+  collectWarnings(): string[] {
+    const warnings: string[] = [];
+
+    this.page.on('console', (message) => {
+      if (message.type() === 'warning') {
+        warnings.push(message.text());
+      }
+    });
+
+    return warnings;
+  }
+
+  /**
+   * From now on, the next `beforeMergeCells` listener call merges another range through the API, the
+   * way a listener can add a merge while one is being made.
+   */
+  async mergeOnceFromBeforeMergeCells(range: [number, number, number, number]): Promise<void> {
+    await this.page.evaluate(([startRow, startColumn, endRow, endColumn]) => {
+      let merged = false;
+
+      // A flag rather than `addHookOnce()`: the merge the listener makes fires `beforeMergeCells` too.
+      window.hot.addHook('beforeMergeCells', () => {
+        if (!merged) {
+          merged = true;
+          window.hot.getPlugin('mergeCells').merge(startRow, startColumn, endRow, endColumn);
+        }
+      });
+    }, range);
+  }
+
+  /**
    * Undo with the keyboard shortcut: `Cmd`+`Z` on macOS, `Ctrl`+`Z` elsewhere.
    */
   async undoWithKeyboard(): Promise<void> {
@@ -455,6 +568,13 @@ export class UndoGridPage {
    */
   async isUndoAvailable(): Promise<boolean> {
     return this.page.evaluate(() => window.hot.getPlugin('undoRedo').isUndoAvailable());
+  }
+
+  /**
+   * Whether the redo stack holds a step.
+   */
+  async isRedoAvailable(): Promise<boolean> {
+    return this.page.evaluate(() => window.hot.getPlugin('undoRedo').isRedoAvailable());
   }
 
   /**

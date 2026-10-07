@@ -152,10 +152,10 @@ test('stripHtmlComments removes every comment, including one that a single pass 
 });
 
 // --- redSpecFieldMissing ---
-const TEMPLATE_LINE = '- For a bug fix — the spec that fails without this fix: <!-- name -->';
+const TEMPLATE_LINE = '- For a bug fix – the spec that fails without this fix: <!-- name -->';
 const BUG_FIX_TICKED = '- [x] Bug fix (non-breaking change which fixes an issue)';
 const BUG_FIX_UNTICKED = '- [ ] Bug fix (non-breaking change which fixes an issue)';
-const EMPTY_LINE = '- For a bug fix — the spec that fails without this fix:';
+const EMPTY_LINE = '- For a bug fix – the spec that fails without this fix:';
 const NEXT_TEMPLATE_LINE = '- Demo page / recorded trace (for UI changes): n/a';
 
 test('a ticked Bug fix box with the red-spec line left as the template placeholder warns', () => {
@@ -184,7 +184,7 @@ test('the red-spec field is not demanded when Bug fix is unticked, the line is g
   assert.equal(redSpecFieldMissing(undefined), false);
 });
 
-test('the red-spec line is matched with a hyphen or an en dash as well as the template em dash', () => {
+test('the red-spec line is matched with a hyphen or an em dash as well as the template en dash', () => {
   for (const dash of ['-', '–', '—']) {
     const line = `- For a bug fix ${dash} the spec that fails without this fix:`;
 

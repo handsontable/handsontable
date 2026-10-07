@@ -27,6 +27,7 @@ import {
 import EventManager from './eventManager';
 import { CellPainter } from './core/incrementalRender/cellPainter';
 import { RenderSizeProbe } from './renderSizeProbe';
+import { getRenderedRowHeight } from './core/viewportScroll/scrollStrategies/singleScroll';
 import {
   isImmediatePropagationStopped,
   isRightClick,
@@ -50,6 +51,16 @@ import {
 import { parsePixelSize } from './utils/pixelSize';
 import { describeValue } from './utils/describeValue';
 import { warnOnce } from './helpers/console';
+
+/**
+ * The most redraws `TableView#onCellContentSettled` requests for one row inside one window.
+ */
+const CONTENT_SETTLED_MAX_REDRAWS = 5;
+
+/**
+ * The window, in milliseconds, that `CONTENT_SETTLED_MAX_REDRAWS` is counted over.
+ */
+const CONTENT_SETTLED_WINDOW_MS = 5000;
 
 /**
  * Checks whether a size setting (`rowHeights`, `minRowHeights`, or `colWidths`) guarantees a uniform
@@ -243,6 +254,16 @@ class TableView {
    * @type {boolean}
    */
   #sizesMeasuredWithoutStylesPending = false;
+
+  /**
+   * Counts how many times the column widths were invalidated. Every producer of column widths (the
+   * `manualColumnResize`, `autoColumnSize` and `stretchColumns` plugins, an index mapper change) drops the
+   * widths cache when a width changes, so a plugin that keeps something derived from the widths can compare
+   * this number between renders to know when to refresh it.
+   *
+   * @type {number}
+   */
+  #columnWidthEpoch = 0;
   /**
    * Defines if the text should be selected during mousemove.
    *
@@ -286,6 +307,15 @@ class TableView {
    * @type {number}
    */
   #lastHeight = 0;
+  /**
+   * The animation frame of the redraw requested by `#onCellContentSettled`, or `null` when none is queued.
+   */
+  #contentSettledFrame: number | null = null;
+  /**
+   * The redraws `#onCellContentSettled` requested per physical row inside the current time window.
+   */
+  #contentSettledRedraws = new Map<number, { since: number, count: number }>();
+
   /**
    * The layout-slot height reserved inside the vertical axis owner, memoized for one render (see
    * `#getReservedSlotHeight`).
@@ -745,6 +775,129 @@ class TableView {
       // Prevent text from being selected when performing drag down.
       event.preventDefault();
     });
+
+    // `load` and `error` do not bubble, so they are caught on the capture phase.
+    this.eventManager.addEventListener(rootElement, 'load', this.#onCellContentSettled, true);
+    this.eventManager.addEventListener(rootElement, 'error', this.#onCellContentSettled, true);
+  }
+
+  /**
+   * Redraws when asynchronously loading cell content (such as an `<img>` written by a renderer) changes
+   * the height of its row after the draw measured it. Without the redraw, the frozen overlays keep the row
+   * height from the draw while the master has already grown, and they stay misaligned until the next
+   * render. A row whose live height matches the height of the last draw is left alone, which stops a
+   * renderer that recreates its content on every render from redrawing in a loop. That check cannot see a
+   * height that never settles (an image that fails to load again on every render, say), so a row is also
+   * redrawn at most `CONTENT_SETTLED_MAX_REDRAWS` times per `CONTENT_SETTLED_WINDOW_MS`. Loads that settle
+   * within one frame share a single redraw.
+   *
+   * @param {Event} event The `load` or `error` event of a descendant element.
+   */
+  #onCellContentSettled = (event: Event): void => {
+    const { target } = event;
+
+    if (!isHTMLElement(target) || this.#contentSettledFrame !== null) {
+      return;
+    }
+
+    const found = this.#findGridCell(target);
+
+    if (found === null) {
+      return;
+    }
+
+    const { cell, row: visualRow } = found;
+    const rowElement = cell.parentElement;
+
+    // A row with no provided or recorded height was drawn at the default height.
+    const drawnHeight = getRenderedRowHeight(this.hot, visualRow) ??
+      this.hot.stylesHandler.getDefaultRowHeight(visualRow);
+
+    // `offsetHeight` is a layout height, so a CSS transform or zoom on an ancestor does not skew it
+    // against the layout heights Walkontable recorded.
+    if (
+      !rowElement ||
+      drawnHeight === undefined ||
+      drawnHeight === null ||
+      Math.abs(rowElement.offsetHeight - drawnHeight) < 1 ||
+      !this.#takeContentSettledRedraw(visualRow)
+    ) {
+      return;
+    }
+
+    this.#contentSettledFrame = this.hot.rootWindow.requestAnimationFrame(() => {
+      this.#contentSettledFrame = null;
+      this.hot.render();
+    });
+  };
+
+  /**
+   * Resolves the cell of this grid that holds a loaded element, in the master or in any overlay. Walks up
+   * the cells that contain the element, because a renderer may nest a table in a cell and the innermost
+   * cell then belongs to no grid.
+   *
+   * @param {HTMLElement} element The element that fired `load` or `error`.
+   * @returns {{ cell: HTMLTableCellElement, row: number } | null} The cell and its visual row, or `null`.
+   */
+  #findGridCell(element: HTMLElement): { cell: HTMLTableCellElement, row: number } | null {
+    let candidate = element.closest('td');
+
+    while (candidate) {
+      const coords = this.hot.getCoords(candidate);
+      const row = coords?.row ?? -1;
+      const column = coords?.col ?? -1;
+
+      if (row >= 0 && column >= 0 && this.hot.getCell(row, column, true) === candidate) {
+        return { cell: candidate, row };
+      }
+
+      candidate = candidate.parentElement?.closest('td') ?? null;
+    }
+
+    return null;
+  }
+
+  /**
+   * Spends one redraw of the per-row budget that bounds `#onCellContentSettled`. The budget belongs to the
+   * physical row, so a sort or a row move does not charge it to another record.
+   *
+   * @param {number} visualRow The visual row that asks for a redraw.
+   * @returns {boolean} `false` when the row used up its budget for the current window.
+   */
+  #takeContentSettledRedraw(visualRow: number): boolean {
+    const now = this.hot.rootWindow.performance.now();
+    const row = this.hot.toPhysicalRow(visualRow) ?? visualRow;
+    const entry = this.#contentSettledRedraws.get(row);
+
+    if (entry === undefined || now - entry.since > CONTENT_SETTLED_WINDOW_MS) {
+      // A new window starts: this is the moment to drop the windows that have expired, so the map only
+      // holds the rows that redrew recently.
+      this.#contentSettledRedraws.forEach((other, key) => {
+        if (now - other.since > CONTENT_SETTLED_WINDOW_MS) {
+          this.#contentSettledRedraws.delete(key);
+        }
+      });
+      this.#contentSettledRedraws.set(row, { since: now, count: 1 });
+
+      return true;
+    }
+
+    if (entry.count >= CONTENT_SETTLED_MAX_REDRAWS) {
+      return false;
+    }
+
+    entry.count += 1;
+
+    return true;
+  }
+
+  /**
+   * Returns the number of times the column widths were invalidated (see `#columnWidthEpoch`).
+   *
+   * @returns {number}
+   */
+  getColumnWidthEpoch() {
+    return this.#columnWidthEpoch;
   }
 
   /**
@@ -753,6 +906,7 @@ class TableView {
   invalidateIndexSizesCache() {
     this._wt.wtViewport.invalidateRowHeightCache();
     this._wt.wtViewport.invalidateColumnWidthCache();
+    this.#columnWidthEpoch += 1;
   }
 
   /**
@@ -760,6 +914,7 @@ class TableView {
    */
   invalidateColumnWidthCache() {
     this._wt.wtViewport.invalidateColumnWidthCache();
+    this.#columnWidthEpoch += 1;
   }
 
   /**
@@ -2946,6 +3101,11 @@ class TableView {
    * @private
    */
   destroy() {
+    if (this.#contentSettledFrame !== null) {
+      this.hot.rootWindow.cancelAnimationFrame(this.#contentSettledFrame);
+      this.#contentSettledFrame = null;
+    }
+
     this._wt.destroy();
     this.eventManager.destroy();
   }

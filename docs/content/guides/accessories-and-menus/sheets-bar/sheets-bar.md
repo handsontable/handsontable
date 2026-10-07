@@ -292,7 +292,7 @@ Formulas can also reference other sheets of the workbook. Share one [HyperFormul
 
 ```javascript
 const engine = HyperFormula.buildEmpty({
-  licenseKey: 'internal-use-in-handsontable',
+  licenseKey: 'your-hyperformula-license-key',
 });
 
 const configurationOptions = {

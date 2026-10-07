@@ -4676,8 +4676,8 @@ export default (): Record<string, unknown> => {
      * licenseKey: 'xxxxx-xxxxx-xxxxx-xxxxx-xxxxx', // your commercial license key
      *
      * // for an entitlement license key (trial, subscription, or perpetual),
-     * // pass the whole key string exactly as you received it – the checksum
-     * // covers the text too, so the `[...]` block on its own is not a valid key;
+     * // pass the whole key string exactly as you received it – the key
+     * // protects its text too, so the `[...]` block on its own is not a valid key;
      * // the text contains quotes, so use a template literal
      * licenseKey: `This is a Handsontable license key for Acme Corp, ... for the "Acme Portal" project. ... [eyJwcm9kdWN0cyI6...3a4f8361]`,
      *
@@ -4839,6 +4839,13 @@ export default (): Record<string, unknown> => {
      * | -------- | ---------------------------------------------------------------------- |
      * | `true`   | Enable the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin  |
      * | `false`  | Disable the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin |
+     * | An object | Enable the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin and configure it |
+     *
+     * The object form accepts the following property:
+     *
+     * | Property                | Type      | Default | Description                                                                                                                                                                  |
+     * | ----------------------- | --------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `restoreColumnPosition` | `boolean` | `false` | When `true`, an unfrozen column goes back among the scrollable columns by its data source order: right after the last scrollable column that comes before it in the data source. When `false`, it stays right after the frozen columns. Available since 19.0.0. |
      *
      * Read more:
      * - [Column freezing](@/guides/columns/column-freezing/column-freezing.md#user-triggered-freeze)
@@ -4847,7 +4854,7 @@ export default (): Record<string, unknown> => {
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
-     * @type {boolean}
+     * @type {boolean|object}
      * @default undefined
      * @category ManualColumnFreeze
      * @configScope grid
@@ -4856,6 +4863,11 @@ export default (): Record<string, unknown> => {
      * ```js
      * // enable the `ManualColumnFreeze` plugin
      * manualColumnFreeze: true,
+     *
+     * // enable the `ManualColumnFreeze` plugin, and move an unfrozen column back by its data source order
+     * manualColumnFreeze: {
+     *   restoreColumnPosition: true,
+     * },
      * ```
      */
     manualColumnFreeze: undefined,

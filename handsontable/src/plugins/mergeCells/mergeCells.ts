@@ -464,8 +464,10 @@ export class MergeCells extends BasePlugin {
     this.addHook('modifyGetCellCoords', this.#onModifyGetCellCoords);
     this.addHook('modifyGetCoordsElement', this.#onModifyGetCellCoords);
     this.addHook('afterIsMultipleSelection', this.#onAfterIsMultipleSelection);
+    this.addHook('beforeRenderer', this.#onBeforeRenderer);
     this.addHook('afterRenderer',
       (TD: HTMLTableCellElement, row: number, col: number) => this.#cellRenderer.after(TD, row, col));
+    this.addHook('beforeViewRender', this.#onBeforeViewRender);
     this.addHook('afterContextMenuDefaultOptions',
       (defaultOptions: { items: unknown[] }) => this.#addMergeActionsToContextMenu(defaultOptions));
     this.addHook('afterGetCellMeta', this.#onAfterGetCellMeta);
@@ -967,15 +969,45 @@ export class MergeCells extends BasePlugin {
     const { from, to } = cellRange;
 
     // The unmerge of the merges inside the range is part of this merge: one user action, one undo step.
-    this.runOperation('merge_cells', () => {
-      this.#describeMerge(cellRange);
-      this.unmergeRange(cellRange, true);
-      this.mergeRange(cellRange);
-    });
+    // It is asked first, against the merges the unmerge leaves: a merge refused after the unmerge has
+    // already dissolved the merges inside the range, and that alone was an undo step (DEV-159).
+    if (this.#canMergeSelection(cellRange)) {
+      this.runOperation('merge_cells', () => {
+        this.#describeMerge(cellRange);
+        this.unmergeRange(cellRange, true);
+        this.mergeRange(cellRange);
+      });
+    }
 
     if (from.row !== null && from.col !== null && to.row !== null && to.col !== null) {
       this.hot.selectCell(from.row, from.col, to.row, to.col, false);
     }
+  }
+
+  /**
+   * Checks whether `mergeSelection()` can merge the range once it has unmerged the merges inside it,
+   * so a refused merge changes nothing. The merges it ignores are the ones `unmergeRange()` removes.
+   *
+   * @param {CellRange} cellRange Selection cell range.
+   * @returns {boolean}
+   */
+  #canMergeSelection(cellRange: CellRange) {
+    const topStart = cellRange.getTopStartCorner();
+    const bottomEnd = cellRange.getBottomEndCorner();
+
+    if (topStart.row === null || topStart.col === null || bottomEnd.row === null || bottomEnd.col === null) {
+      return false;
+    }
+
+    const mergeParent = {
+      row: topStart.row,
+      col: topStart.col,
+      rowspan: bottomEnd.row - topStart.row + 1,
+      colspan: bottomEnd.col - topStart.col + 1
+    };
+
+    return this.canMergeRange(mergeParent) &&
+      this.mergedCellsCollection.canAdd(mergeParent, false, this.mergedCellsCollection.getWithinRange(cellRange));
   }
 
   /**
@@ -1005,8 +1037,8 @@ export class MergeCells extends BasePlugin {
    * @param {boolean} [auto=false] `true` if is called automatically, e.g. At initialization.
    * @param {boolean} [preventPopulation=false] `true`, if the method should not run `populateFromArray` at the end,
    *   but rather return its arguments.
-   * @returns {Array|boolean} Returns an array of [row, column, dataUnderCollection] if preventPopulation is set to
-   *   true. If the the merging process went successful, it returns `true`, otherwise - `false`.
+   * @returns {Array|boolean|null} Returns an array of [row, column, dataUnderCollection] if preventPopulation is set to
+   *   true. Otherwise, it returns `null` when the range was merged and `false` when the merge was refused.
    * @fires Hooks#beforeMergeCells
    * @fires Hooks#afterMergeCells
    */
@@ -1068,7 +1100,10 @@ export class MergeCells extends BasePlugin {
     const clearedData: unknown[][] = [];
     let populationInfo = null;
 
-    if (!this.canMergeRange(mergeParent, auto)) {
+    // The collection's check runs here, before any cell meta is written: once `add()` refused a merge,
+    // the `hidden` and `spanned` flags written for it would stay on unmerged cells and make the refused
+    // merge an undo step of its own (DEV-159).
+    if (!this.canMergeRange(mergeParent, auto) || !this.mergedCellsCollection.canAdd(mergeParent, auto)) {
       return false;
     }
 
@@ -1119,7 +1154,36 @@ export class MergeCells extends BasePlugin {
       return populationInfo;
     }
 
-    return true;
+    // Reached only when a `beforeMergeCells` or `setCellMeta` listener added a merge over this range
+    // after the check above. The flags written for this merge must not stay on the cells.
+    this.#removeRefusedMergeMeta(mergeParent);
+
+    return false;
+  }
+
+  /**
+   * Removes the `hidden` and `spanned` flags `#mergeRange()` wrote for a merge that `add()` then refused.
+   * A cell that a merge in the collection covers keeps the flag that merge gives it: `hidden` on its
+   * covered cells, `spanned` on its top-left.
+   *
+   * @param {object} mergeParent The refused merge: `row`, `col`, `rowspan` and `colspan`.
+   */
+  #removeRefusedMergeMeta(mergeParent: { row: number, col: number, rowspan: number, colspan: number }) {
+    rangeEach(mergeParent.row, mergeParent.row + mergeParent.rowspan - 1, (row) => {
+      rangeEach(mergeParent.col, mergeParent.col + mergeParent.colspan - 1, (column) => {
+        const isTopLeft = row === mergeParent.row && column === mergeParent.col;
+        const owner = this.mergedCellsCollection.get(row, column);
+        const isOwnerTopLeft = !!owner && owner.row === row && owner.col === column;
+
+        if (isTopLeft && !isOwnerTopLeft) {
+          this.hot.removeCellMeta(row, column, 'spanned');
+        }
+
+        if (!isTopLeft && (!owner || isOwnerTopLeft)) {
+          this.hot.removeCellMeta(row, column, 'hidden');
+        }
+      });
+    });
   }
 
   /**
@@ -3782,6 +3846,63 @@ export class MergeCells extends BasePlugin {
   };
 
   /**
+   * Runs before a cell is rendered and takes the content window off a cell that has one, so the cell renderer
+   * finds the cell the way it left it. The renderer keeps the registry of the cells that have a window, so a
+   * cell that never had one costs a single lookup.
+   *
+   * @param {HTMLTableCellElement} TD The cell about to be rendered.
+   */
+  #onBeforeRenderer = (TD: HTMLTableCellElement) => {
+    this.#cellRenderer.before(TD);
+  };
+
+  /**
+   * The column widths epoch (`TableView#getColumnWidthEpoch`) the content windows were last refreshed for.
+   */
+  #columnWidthEpoch = 0;
+
+  /**
+   * Runs before the grid is drawn. Under `renderMode: 'onChange'` a cell whose value, meta and band did not
+   * change is not painted, and the width of the content window of a merged block that crosses a freeze line
+   * is part of none of those: a resized or re-stretched column inside the block would leave the frozen pane
+   * with the old width. When the column widths changed since the last draw, the cells of such blocks are
+   * marked as changed, so this draw repaints them.
+   */
+  #onBeforeViewRender = () => {
+    const epoch = this.hot.view.getColumnWidthEpoch();
+
+    if (epoch === this.#columnWidthEpoch) {
+      return;
+    }
+
+    this.#columnWidthEpoch = epoch;
+
+    if (this.hot.getSettings().renderMode === 'onChange') {
+      this.#markBlocksCrossingFrozenColumnsChanged();
+    }
+  };
+
+  /**
+   * Marks the cells of the merged blocks that cross the `fixedColumnsStart` or `fixedColumnsEnd` freeze line as
+   * changed.
+   */
+  #markBlocksCrossingFrozenColumnsChanged() {
+    const countCols = this.hot.countCols();
+    // Both edges are visual column indexes, like the blocks' columns: the not-hidden count of the start band
+    // would move the edge left of the freeze line for every hidden column in the band.
+    const startEdge = Math.min(Number(this.hot.getSettings().fixedColumnsStart) || 0, countCols);
+    const endEdge = countCols - this.hot.view.countFixedColumnsEnd();
+
+    this.mergedCellsCollection.mergedCells.forEach(({ row, col, colspan }: MergedCellCoords) => {
+      const lastColumn = col + colspan - 1;
+
+      if ((col < startEdge && lastColumn >= startEdge) || (col < endEdge && lastColumn >= endEdge)) {
+        this.hot.markCellChanged(row, col);
+      }
+    });
+  }
+
+  /**
    * Opts the table out of single-pass rendering while merged cells are present. A virtualized merged
    * cell's height depends on which rows are in the viewport — the very thing the predicted layout is
    * trying to compute — so merge tables keep the legacy measure-then-render path. The opt-out is about
@@ -3794,7 +3915,15 @@ export class MergeCells extends BasePlugin {
   #onModifySinglePassLayout = () => false;
 
   /**
-   * Hook used to modify the row height depends on the merged cells in the row.
+   * Gives the cell that carries a merged block's span in a row the height of the rows it spans. Walkontable
+   * writes a row's height on the row's first cell, and without row headers that cell can be a block's cell
+   * that spans several rows; only the whole span's height holds those rows up when they have no height of
+   * their own. Walkontable also pins each such row on the row element, at its own height or the default one,
+   * so the browser cannot split the span's height between the rows differently in each pane.
+   *
+   * Only the span of the cell the row starts with counts. Taking the tallest span of every block in the
+   * viewport's part of the row (as before) gave a one-row cell the height of a two-row block next to it, and
+   * the top overlay then drew the frozen rows taller than the master.
    *
    * @param {number} height The row height value provided by the Core.
    * @param {number} row The visual row index.
@@ -3812,65 +3941,78 @@ export class MergeCells extends BasePlugin {
       return height;
     }
 
-    let firstColumn;
-    let lastColumn;
+    const firstColumn = this.#getFirstRenderedColumnOfTable(overlayType);
 
-    if (overlayType === 'master') {
-      firstColumn = this.hot.getFirstRenderedVisibleColumn();
-      lastColumn = this.hot.getLastRenderedVisibleColumn();
-
-    } else {
-      const activeOverlay = this.hot.view.getOverlayByName(overlayType) as unknown as Overlay | null;
-      const overlayWtTable = activeOverlay?.clone?.wtTable;
-
-      if (!overlayWtTable) {
-        return height;
-      }
-
-      firstColumn = this.hot.columnIndexMapper
-        .getVisualFromRenderableIndex(overlayWtTable.getFirstRenderedColumn());
-      lastColumn = this.hot.columnIndexMapper
-        .getVisualFromRenderableIndex(overlayWtTable.getLastRenderedColumn());
-    }
-
-    if (firstColumn === null || firstColumn === undefined) {
+    if (firstColumn === null) {
       return height;
     }
 
-    const firstMergedCellInRow = this.mergedCellsCollection.get(row, firstColumn);
+    const mergedCell = this.mergedCellsCollection.get(row, firstColumn);
 
-    if (!firstMergedCellInRow) {
+    if (!mergedCell || this.#getSpanCarrierRow(mergedCell.row, overlayType) !== row) {
       return height;
     }
 
-    const from = this.hot._createCellCoords(row, firstColumn);
-    const to = this.hot._createCellCoords(row, lastColumn ?? firstColumn);
-    const viewportRange = this.hot._createCellRange(from, from, to);
-    const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(viewportRange, true);
-    const maxRowspan = mergedCellsWithinRange.reduce(
-      (acc: number, { rowspan }: { rowspan: number }) => Math.max(acc, rowspan), 1);
-    let rowspanCorrection = 0;
+    // The rows from the carrier to the block's end (hidden ones add nothing). A carrier the `virtualized`
+    // rendering moved down to the overlay's first rendered row is the exception: it still shows the block at
+    // its full height, so it counts the block's whole row count from itself.
+    const isMovedByVirtualization = row !== this.hot.rowIndexMapper.getNearestNotHiddenIndex(mergedCell.row, 1);
+    let rowsToSum = isMovedByVirtualization ? mergedCell.rowspan : mergedCell.row + mergedCell.rowspan - row;
 
-    if (mergedCellsWithinRange.length > 1 && mergedCellsWithinRange[0].rowspan < maxRowspan) {
-      rowspanCorrection = maxRowspan - mergedCellsWithinRange[0].rowspan;
+    if (
+      overlayType === 'top' ||
+      overlayType === 'top_inline_start_corner' ||
+      overlayType === 'top_inline_end_corner'
+    ) {
+      // The top overlay renders the first `fixedRowsTop` rows by visual index (hidden ones add no height in the
+      // sum), so the clamp counts visual rows: the not-hidden count would cut a row off the span for every
+      // hidden row above the block.
+      rowsToSum = Math.min(rowsToSum, (Number(this.hot.getSettings().fixedRowsTop) || 0) - row);
     }
 
-    mergedCellsWithinRange.forEach(({ rowspan }: { rowspan: number }) => {
-      let rowspanAfterCorrection = 0;
+    if (rowsToSum <= 1) {
+      return height;
+    }
 
-      if (
-        overlayType === 'top' ||
-        overlayType === 'top_inline_start_corner' ||
-        overlayType === 'top_inline_end_corner'
-      ) {
-        rowspanAfterCorrection = Math.min(maxRowspan, this.hot.view.countNotHiddenFixedRowsTop() - row);
-      } else {
-        rowspanAfterCorrection = rowspan - rowspanCorrection;
-      }
-
-      height = Math.max(height ?? 0, sumCellsHeights(this.hot, row, rowspanAfterCorrection));
-    });
-
-    return height;
+    return Math.max(height ?? 0, sumCellsHeights(this.hot, row, rowsToSum));
   };
+
+  /**
+   * Returns the first (visual) column the table of the given overlay renders, or `null` when it renders none.
+   *
+   * @param {string} overlayType The overlay type that is currently rendered.
+   * @returns {number|null}
+   */
+  #getFirstRenderedColumnOfTable(overlayType: string): number | null {
+    if (overlayType === 'master') {
+      return this.hot.getFirstRenderedVisibleColumn();
+    }
+
+    const activeOverlay = this.hot.view.getOverlayByName(overlayType) as unknown as Overlay | null;
+    const overlayWtTable = activeOverlay?.clone?.wtTable;
+
+    if (!overlayWtTable) {
+      return null;
+    }
+
+    return this.hot.columnIndexMapper.getVisualFromRenderableIndex(overlayWtTable.getFirstRenderedColumn());
+  }
+
+  /**
+   * Returns the (visual) row on which the renderer puts a block's span in the given overlay: the block's first
+   * row that is not hidden, moved down to the overlay's first rendered row under the `virtualized` rendering.
+   *
+   * @param {number} blockRow Visual row index of the block's top-left cell.
+   * @param {string} overlayType The overlay type that is currently rendered.
+   * @returns {number|null}
+   */
+  #getSpanCarrierRow(blockRow: number, overlayType: string): number | null {
+    const carrierRow = this.hot.rowIndexMapper.getNearestNotHiddenIndex(blockRow, 1);
+
+    if (carrierRow === null || !this.getSetting('virtualized')) {
+      return carrierRow;
+    }
+
+    return Math.max(carrierRow, getFirstRenderedRowOfOverlay(this.hot, overlayType));
+  }
 }

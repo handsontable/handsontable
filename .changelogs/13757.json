@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the fill handle of a cell in a frozen top row showing over the row headers and the frozen columns after a horizontal scroll.",
+  "type": "fixed",
+  "issueOrPR": 13757,
+  "breaking": false,
+  "framework": "none"
+}

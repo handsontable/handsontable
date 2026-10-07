@@ -478,6 +478,18 @@ They are written in different places and can drift. Keep this in mind:
   stash/applyStash briefly un-trims all rows. It is used around add child, detach child, row move,
   and filtering. Do not reach for it to let a user-facing command see the hidden rows - see the next
   bullet for why "Clear column" stopped doing exactly that.
+- **The stash holds the selection's grid-tracking grow for as long as it is open.** `stash()` calls
+  `Selection#suspendGridTrackingFits()` and `applyStash()` releases it, so a whole-column selection or
+  a select-all does not grow onto the transient expanded height, and is fitted once to the grid the
+  operation left (DEV-152). The hold is load-bearing for a removal, whose `applyStash()` runs a tick
+  LATER from a `_registerTimeout`: the removal's `alter()` scope has already closed by then, and a grow
+  applied there painted highlights over rows the re-collapse then took away (`TR was expected to be
+  rendered but is not`). The hold is one flag per `CollapsingUI` (a second `stash()` before
+  `applyStash()` does not stack), and `disablePlugin()` releases it with
+  `releaseGridTrackingFits(true)`: a stash a disable or an `updatePlugin()` overtakes is never
+  applied, so the hold would otherwise outlive it, and its expand stays in place, so the held grow
+  must be applied rather than dropped (dropping it left a whole column short of the expanded grid).
+  During a destroy `Core` has already suspended the grow for good, so nothing runs there.
 - **A menu command that walks a column's visual rows never reaches a collapsed parent's
   descendants**, because they are trimmed and have no visual index. "Clear column" left every
   collapsed child with its value (DEV-150). The predefined `clear_column` callback now hands its

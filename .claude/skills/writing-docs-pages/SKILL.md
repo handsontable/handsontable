@@ -6,11 +6,7 @@ description: Use when creating or editing documentation pages in docs/content/gu
 
 # Writing Documentation Pages
 
-This skill covers how to create and edit guide pages in `docs/content/guides/`.
-
 ## 1. Frontmatter (required)
-
-Every `.md` file starts with YAML frontmatter.
 
 ```yaml
 ---
@@ -21,7 +17,6 @@ permalink: /feature-name
 canonicalUrl: /feature-name
 tags:
   - keyword1
-  - keyword2
 react:
   metaTitle: Feature Name - React Data Grid | Handsontable
 searchCategory: Guides
@@ -31,22 +26,17 @@ addedIn: "17.0.0"          # Optional; version that introduced the feature
 ---
 ```
 
-Set `menuTag: new` when you create a new page and `menuTag: updated` when you make a substantive content change to an existing page. Omit it for trivial fixes (typos, snippet/link corrections) and for changelog and migration-guide pages; leave any existing tag in place.
+- `menuTag: new` on a new page, `menuTag: updated` on a substantive content change. Omit it for typos, snippet/link corrections, and changelog and migration-guide pages; leave an existing tag in place.
+- `addedIn`: set when the page documents a feature introduced in 14.0.0 or later. Use the full version as a quoted string (`"18.1.0"`, not `18.1`), from the changelog's "Added" entry or the option's `@since` tag. Leave it out for recipes, a new page about an old feature, and a feature that is one section of an older page. `npm run build` fails on a malformed or never-released version.
 
-Set `addedIn` when the page documents a feature introduced in Handsontable 14.0.0 or later. Use the full version as a quoted string (`"18.1.0"`, never `18.1`), taken from the changelog's "Added" entry or the option's `@since` tag. It renders an "Added in Handsontable 18.1.0" badge next to the title and the same sentence in the page's Markdown and llms outputs. Leave it out for recipes, for a new page about an old feature, and when the feature is only one section of an older page. `npm run build` fails on a malformed value or a version that was never released.
+## 2. Page structure
 
-## 2. Page Structure
+1. No H1 in the body: Starlight renders the `title`.
+2. Overview: 1-2 sentences right after the frontmatter.
+3. `[[toc]]`.
+4. `##` and below only, basic to advanced: Enable the feature, Basic usage, Configuration options, Advanced usage, Keyboard shortcuts, Known limitations, API reference links.
 
-Follow this order consistently:
-
-1. **No H1 in the Markdown body** - Starlight renders the page heading from the `title` frontmatter field. Do not add `# Title` (or any other H1) after the frontmatter, or the title appears twice on the page.
-2. **Overview** - start with 1-2 sentences describing what the feature does and why it matters (first content after `---`).
-3. **`[[toc]]`** - auto-generates a table of contents from headings.
-4. **Progressive sections** - use `##` and below only, ordered from basic to advanced: Enable the feature, Basic usage, Configuration options, Advanced usage, Keyboard shortcuts, Known limitations, API reference links.
-
-## 3. Framework-Specific Content
-
-Wrap content that applies to only one framework:
+## 3. Framework-specific content
 
 ```markdown
 ::: only-for javascript
@@ -54,19 +44,13 @@ Wrap content that applies to only one framework:
 JavaScript-only content here.
 
 :::
-
-::: only-for react
-
-React-only content here.
-
-:::
 ```
 
-**Important:** The `:::` markers must be on their own lines with blank lines before and after the content block.
+Put the `:::` markers on their own lines, with blank lines around the content. Frameworks: `javascript`, `react`, `angular`, `vue`.
 
-## 4. Example Embedding
+## 4. Example embedding
 
-Embed runnable code examples using this pattern. The `--js 1 --ts 2` flags set tab order.
+`--js 1 --ts 2` sets tab order.
 
 ```markdown
 ::: only-for javascript
@@ -98,48 +82,43 @@ Embed runnable code examples using this pattern. The `--js 1 --ts 2` flags set t
 :::
 ```
 
-**Vue 3:** Embed a single TypeScript SFC (`vue/example1.vue` with `<script setup lang="ts">`). Use the `:vue3` preset (or `:vue3-languages`, `:vue3-vuex` when the feature needs extra dependencies). Do not use `--html` / `--js` tabs for new Vue examples. See skill `creating-docs-examples` for the full Vue SFC pattern.
+- **Vue 3:** embed a single TypeScript SFC (`<script setup lang="ts">`) with the `:vue3` preset (`:vue3-languages` or `:vue3-vuex` for extra dependencies). Skip `--html` / `--js` tabs. Full pattern: skill `creating-docs-examples`.
+- **Angular:** `:angular` with `--ts 1 --html 2`.
 
-**Angular:** Use `:angular` with `--ts 1 --html 2`.
+## 5. Writing style
 
-## 5. Writing Style
+Full voice and words-to-avoid list: `docs/AGENTS.md` §2.2 (overrides `.ai/DOC-STANDARDS.md` for the docs site). Page rules:
 
-Full site voice and the words-to-avoid list are in `docs/AGENTS.md` §2.2 (the docs-site override of the monorepo standards in `.ai/DOC-STANDARDS.md`). Key points for pages:
+- Active voice, American English, short sentences, "you", Oxford comma, no evaluative adjectives ("easy", "simple", "obvious").
+- Separate clauses with hyphens (`-`) or double hyphens (`--`). The docs site uses these where JSDoc and changelog use en dashes.
+- Bold for UI elements (**Add comment**), inline code for API names (`comments`).
+- Internal links: `[text](@/path/to/file.md#anchor)`.
+- End every sentence with a full stop, lists included.
 
-- Active voice, American English, short sentences.
-- Address the reader as "you", never "we". Use the Oxford comma.
-- No evaluative adjectives ("easy", "simple", "obvious").
-- Use hyphens (`-`) or double hyphens (`--`) to separate clauses, not en dashes — this is the docs-site convention (unlike JSDoc/changelog, which use en dashes).
-- Bold for UI elements: **Add comment**. Inline code for API names: `comments`.
-- Internal links: `[text](@/path/to/file.md#anchor)` syntax.
-- End every sentence with a full stop, including in lists.
+## 6. Trademark
 
-## 6. Trademark Rules
+Pages mentioning "Excel" end with the Microsoft/Excel trademark disclaimer. Pages that also mention "Google Sheets" use the expanded disclaimer for both.
 
-Pages mentioning "Excel" must include the Microsoft/Excel trademark disclaimer at the bottom. Pages that also mention "Google Sheets" use the expanded disclaimer covering both trademarks.
+## 7. Sidebar registration
 
-## 7. Sidebar Registration
-
-After creating a new page, add it to `docs/content/guides/sidebar.js`. Find the correct category array and insert an entry:
+Add a new page to the right category array in `docs/content/guides/sidebar.js`:
 
 ```js
 { path: 'guides/category/feature-name/feature-name' }
 ```
 
-Use `onlyFor: ['react']` or `onlyFor: ['angular']` if the page is framework-specific.
+Add `onlyFor: ['react']` or `onlyFor: ['angular']` for a framework-specific page.
 
-## 8. Code Example Generation
+## 8. Code example generation
 
-For **JavaScript** and **React** examples, edit the TypeScript source first (`.ts` or `.tsx`). Then generate the JavaScript variant from the `docs/` directory:
+Edit the TypeScript source first (`.ts` or `.tsx`), then generate JavaScript from `docs/` with a path relative to `docs/`:
 
 ```bash
-cd docs && npm run docs:code-examples:generate-js -- <path-to-ts-file>
+cd docs && npm run docs:code-examples:generate-js -- content/recipes/foo/javascript/example1.ts
 ```
 
-Use a path relative to `docs/` (for example `content/recipes/foo/javascript/example1.ts`).
-
-For **Vue** examples, write TypeScript directly in the `.vue` file (`<script setup lang="ts">`). There is no separate JS file to generate.
+Vue examples are written directly in the `.vue` file; no JS variant exists.
 
 ## Reference
 
-See `docs/README-EDITING.md` for the complete editing rules, including all frontmatter tags, container syntax, and content formatting details.
+`docs/README-EDITING.md`: all frontmatter tags, container syntax, content formatting.
