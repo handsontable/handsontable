@@ -407,13 +407,28 @@ In the following example, freeze and unfreeze a column by using the context menu
 
 ## Frozen area size limit
 
-Freeze only as many columns as fit within the grid's width.
-
-Handsontable always draws frozen columns in full. It never shrinks them, and it never scrolls them. If the frozen columns need more space than the grid has, they cover the whole grid. The remaining columns stay out of reach: the horizontal scrollbar still moves, but the view no longer changes.
+By default, Handsontable draws frozen columns in full. It never shrinks them, and it never scrolls them. If the frozen columns need more space than the grid has, they cover the whole grid. The remaining columns stay out of reach: the horizontal scrollbar still moves, but the view no longer changes.
 
 This applies to the total width of the frozen columns, not to how many there are. A single frozen column that you resize wider than the grid causes the same result.
 
-To avoid this, keep the combined width of your frozen columns smaller than the width of the grid. If your grid has to work at several sizes, pick a number of frozen columns that fits the narrowest one.
+To keep the rest of the grid reachable, set the [`limitFixedToViewport`](@/api/options.md#limitfixedtoviewport) option to `true`:
+
+```js
+fixedColumnsStart: 20,
+fixedColumnsEnd: 2,
+limitFixedToViewport: true,
+```
+
+With this option on, Handsontable draws only as many frozen columns as fit and keeps a strip of the grid scrollable. The option changes what the grid draws, not what you configured:
+
+- [`getSettings()`](@/api/core.md#getsettings) still returns the values of `fixedColumnsStart` and `fixedColumnsEnd`.
+- Handsontable measures the grid again when it resizes. The frozen columns come back when the grid grows.
+- The start columns have priority over the end columns.
+- The [`FreezeBar`](@/api/freezeBar.md) plugin shows the bar on the line where the drawn frozen area ends.
+
+The option works the same way for frozen rows. Read more in [Row freezing](@/guides/rows/row-freezing/row-freezing.md#frozen-area-size-limit).
+
+If you leave the option off, keep the combined width of your frozen columns smaller than the width of the grid. If your grid has to work at several sizes, pick a number of frozen columns that fits the narrowest one.
 
 ## Related API reference
 
@@ -426,6 +441,7 @@ To avoid this, keep the combined width of your frozen columns smaller than the w
 - [fixedRowsTop](@/api/options.md#fixedrowstop)
 - [fixedRowsBottom](@/api/options.md#fixedrowsbottom)
 - [freezeBar](@/api/options.md#freezebar)
+- [limitFixedToViewport](@/api/options.md#limitfixedtoviewport)
 - [manualColumnFreeze](@/api/options.md#manualcolumnfreeze)
 
 </div>
