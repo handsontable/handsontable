@@ -17,6 +17,13 @@ export const PLUGIN_PRIORITY = 380;
 const MIN_SCROLLABLE_SIZE = 40;
 const EDGES: readonly FreezeEdge[] = ['start', 'top', 'end', 'bottom'];
 
+interface Rect {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+}
+
 const isColumnEdge = (edge: FreezeEdge) => edge === 'start' || edge === 'end';
 const growsFromStart = (edge: FreezeEdge) => edge === 'start' || edge === 'top';
 
@@ -436,7 +443,7 @@ export class FreezeBar extends BasePlugin {
       A11Y_LABEL(this.hot.getTranslatedPhrase(columns ? C.FREEZE_BAR_COLUMNS : C.FREEZE_BAR_ROWS)),
     ]);
 
-    bar.addEventListener('mousedown', event => this.#onPointerDown(edge, event));
+    bar.addEventListener('pointerdown', event => this.#onPointerDown(edge, event));
     bar.addEventListener('keydown', event => this.#onKeyDown(edge, event));
 
     return bar;
@@ -446,10 +453,10 @@ export class FreezeBar extends BasePlugin {
    * Starts a drag.
    *
    * @param {string} edge The edge.
-   * @param {MouseEvent} event The event.
+   * @param {PointerEvent} event The event.
    */
-  #onPointerDown(edge: FreezeEdge, event: MouseEvent) {
-    if (event.button !== 0) {
+  #onPointerDown(edge: FreezeEdge, event: PointerEvent) {
+    if (event.button !== 0 || !event.isPrimary || this.#drag) {
       return;
     }
 
@@ -460,27 +467,37 @@ export class FreezeBar extends BasePlugin {
     const columns = isColumnEdge(edge);
     const scale = getElementScaleFactor(this.hot.rootElement, columns ? 'horizontal' : 'vertical');
     const rootRect = this.hot.rootElement.getBoundingClientRect();
+    const visibleRect = this.#getVisibleRect(rootRect);
     const trackSizes = this.#getTrackSizes(edge);
     const maxCount = this.#getMaxCount(edge);
-    const view = this.hot.view;
     // the pointer distance is measured from the edge of the data area, past the headers
     const headerSize = this.#getBandOrigin(edge);
     const fromLeft = columns && growsFromStart(edge) !== this.hot.isRtl();
 
     this.#drag = { edge, count: this.getFreezeCount(edge) };
 
-    const onMove = (moveEvent: MouseEvent) => {
-      const pointer = this.#getPointerOffset(moveEvent, rootRect, edge, fromLeft);
+    const { pointerId } = event;
+
+    // keeps the touch and pen stream on the bar when the finger leaves it
+    (event.currentTarget as HTMLElement | null)?.setPointerCapture?.(pointerId);
+
+    const onMove = (moveEvent: PointerEvent) => {
+      if (moveEvent.pointerId !== pointerId) {
+        return;
+      }
+
+      const pointer = this.#getPointerOffset(moveEvent, visibleRect, edge, fromLeft);
       const distance = normalizeVisualDelta(pointer, scale) - headerSize;
 
       this.#drag!.count = resolveFreezeCount({ distance, trackSizes, maxCount });
-      this.#showGuide(edge, trackSizes, this.#drag!.count, headerSize, rootRect);
+      this.#showGuide(edge, trackSizes, this.#drag!.count, headerSize, rootRect, visibleRect);
     };
     const finish = (commit: boolean) => {
       const drag = this.#drag;
 
-      doc.removeEventListener('mousemove', onMove);
-      doc.removeEventListener('mouseup', onUp);
+      doc.removeEventListener('pointermove', onMove);
+      doc.removeEventListener('pointerup', onUp);
+      doc.removeEventListener('pointercancel', onCancel);
       doc.removeEventListener('keydown', onKey, true);
       this.#hideGuide();
       this.#drag = null;
@@ -490,7 +507,17 @@ export class FreezeBar extends BasePlugin {
         this.#applyCount(edge, drag.count, 'drag');
       }
     };
-    const onUp = () => finish(true);
+    const onUp = (upEvent: PointerEvent) => {
+      if (upEvent.pointerId === pointerId) {
+        finish(true);
+      }
+    };
+    const onCancel = (cancelEvent: PointerEvent) => {
+      // the browser took the gesture over, so nothing is stored
+      if (cancelEvent.pointerId === pointerId) {
+        finish(false);
+      }
+    };
     const onKey = (keyEvent: KeyboardEvent) => {
       if (keyEvent.key === 'Escape') {
         keyEvent.stopPropagation();
@@ -498,8 +525,9 @@ export class FreezeBar extends BasePlugin {
       }
     };
 
-    doc.addEventListener('mousemove', onMove);
-    doc.addEventListener('mouseup', onUp);
+    doc.addEventListener('pointermove', onMove);
+    doc.addEventListener('pointerup', onUp);
+    doc.addEventListener('pointercancel', onCancel);
     doc.addEventListener('keydown', onKey, true);
     this.#abortDrag = () => finish(false);
   }
@@ -508,17 +536,38 @@ export class FreezeBar extends BasePlugin {
    * Gets the distance of the pointer from the edge of the root element that the band grows from.
    *
    * @param {MouseEvent} event The event.
-   * @param {DOMRect} rootRect The bounding rectangle of the root element.
+   * @param {object} visible The part of the root element the bands are pinned to.
    * @param {string} edge The edge.
    * @param {boolean} fromLeft `true` when the columns grow from the left edge.
    * @returns {number}
    */
-  #getPointerOffset(event: MouseEvent, rootRect: DOMRect, edge: FreezeEdge, fromLeft: boolean): number {
+  #getPointerOffset(event: MouseEvent, visible: Rect, edge: FreezeEdge, fromLeft: boolean): number {
     if (!isColumnEdge(edge)) {
-      return growsFromStart(edge) ? event.clientY - rootRect.top : rootRect.bottom - event.clientY;
+      return growsFromStart(edge) ? event.clientY - visible.top : visible.bottom - event.clientY;
     }
 
-    return fromLeft ? event.clientX - rootRect.left : rootRect.right - event.clientX;
+    return fromLeft ? event.clientX - visible.left : visible.right - event.clientX;
+  }
+
+  /**
+   * Gets the part of the root element that the frozen bands are pinned to. When the page scrolls an axis, the
+   * overlays stick to the viewport, so the root element's own edge may be scrolled out of view.
+   *
+   * @param {DOMRect} rootRect The bounding rectangle of the root element.
+   * @returns {object}
+   */
+  #getVisibleRect(rootRect: DOMRect): Rect {
+    const { view, rootWindow } = this.hot;
+    const byWindowX = view.isHorizontallyScrollableByWindow();
+    const byWindowY = view.isVerticallyScrollableByWindow();
+    const viewport = rootWindow.document.documentElement;
+
+    return {
+      left: byWindowX ? Math.max(rootRect.left, 0) : rootRect.left,
+      right: byWindowX ? Math.min(rootRect.right, viewport.clientWidth) : rootRect.right,
+      top: byWindowY ? Math.max(rootRect.top, 0) : rootRect.top,
+      bottom: byWindowY ? Math.min(rootRect.bottom, viewport.clientHeight) : rootRect.bottom,
+    };
   }
 
   /**
@@ -547,8 +596,16 @@ export class FreezeBar extends BasePlugin {
    * @param {number} count The snapped count.
    * @param {number} headerSize The size of the headers before the first track.
    * @param {DOMRect} rootRect The bounding rectangle of the root element.
+   * @param {object} visibleRect The part of the root element the bands are pinned to.
    */
-  #showGuide(edge: FreezeEdge, trackSizes: number[], count: number, headerSize: number, rootRect: DOMRect) {
+  #showGuide(
+    edge: FreezeEdge,
+    trackSizes: number[],
+    count: number,
+    headerSize: number,
+    rootRect: DOMRect,
+    visibleRect: Rect,
+  ) {
     const columns = isColumnEdge(edge);
     const offset = headerSize + trackSizes.slice(0, count).reduce((sum, size) => sum + size, 0);
 
@@ -567,13 +624,23 @@ export class FreezeBar extends BasePlugin {
     style.top = 'auto';
     style.bottom = 'auto';
 
+    // the offset is measured from the visible edge, the guide is placed from the root element's edge
+    const fromLeft = growsFromStart(edge) !== this.hot.isRtl();
+    const shift = {
+      left: visibleRect.left - rootRect.left,
+      right: rootRect.right - visibleRect.right,
+      top: visibleRect.top - rootRect.top,
+      bottom: rootRect.bottom - visibleRect.bottom,
+    };
+
     if (columns) {
-      style[growsFromStart(edge) !== this.hot.isRtl() ? 'left' : 'right'] = `${offset}px`;
+      style[fromLeft ? 'left' : 'right'] = `${offset + shift[fromLeft ? 'left' : 'right']}px`;
       style.top = '0';
       style.width = '2px';
       style.height = `${rootRect.height}px`;
     } else {
-      style[growsFromStart(edge) ? 'top' : 'bottom'] = `${offset}px`;
+      style[growsFromStart(edge) ? 'top' : 'bottom'] =
+        `${offset + shift[growsFromStart(edge) ? 'top' : 'bottom']}px`;
       style.left = '0';
       style.height = '2px';
       style.width = `${rootRect.width}px`;

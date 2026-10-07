@@ -208,6 +208,49 @@ test.describe('freezeBar', () => {
     });
   });
 
+  test.describe('window scroll', () => {
+    test('the row bar stays on the freeze line while the page scrolls, and still drags', async() => {
+      await grid.goto({ win: 1 });
+      await grid.page.evaluate(() => window.scrollTo(0, 400));
+      await expect.poll(() => grid.page.evaluate(() => window.scrollY)).toBeGreaterThan(300);
+
+      const lineBottom = async() => grid.page.evaluate(() => {
+        const clone = document.querySelector('.ht_clone_top') as HTMLElement;
+
+        return Math.round(clone.getBoundingClientRect().bottom);
+      });
+      const bar = (await grid.bar('top').boundingBox())!;
+
+      expect(Math.round(bar.y + bar.height)).toBe(await lineBottom());
+
+      await grid.drag('top', 4);
+
+      expect(await grid.count('top')).toBe(4);
+    });
+  });
+
+  test.describe('pagination', () => {
+    test('the row bars are not shown and the column bars keep working', async() => {
+      await grid.goto({ rows: 0, pagination: 1 });
+
+      await expect(grid.bar('top')).toHaveCount(0);
+      await expect(grid.bar('bottom')).toHaveCount(0);
+      await expect(grid.bar('start')).toBeVisible();
+
+      await grid.drag('start', 3);
+
+      expect(await grid.count('start')).toBe(3);
+      expect(await grid.page.evaluate(() => window.hot.getPlugin('pagination').enabled)).toBe(true);
+    });
+
+    test('the API does not freeze rows next to Pagination', async() => {
+      await grid.goto({ rows: 0, pagination: 1 });
+
+      expect(await grid.page.evaluate(() => window.hot.getPlugin('freezeBar').setFreezeCount('top', 2))).toBe(false);
+      expect(await grid.count('top')).toBe(0);
+    });
+  });
+
   test.describe('teardown', () => {
     test('updateSettings({ freezeBar: false }) removes every bar', async() => {
       await grid.goto();

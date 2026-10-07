@@ -139,6 +139,49 @@ export class FreezeBarPage {
     await this.release();
   }
 
+  /**
+   * Drags a bar with a finger (the Chrome DevTools protocol touch events) to the boundary after `count` tracks.
+   * Returns the scroll position of the grid before and after, to tell a drag from a scroll.
+   *
+   * @param edge The edge.
+   * @param count The count.
+   */
+  async touchDrag(edge: FreezeBarEdge, count: number): Promise<{ before: number[], after: number[] }> {
+    const bar = await this.bar(edge).boundingBox();
+
+    if (!bar) {
+      throw new Error(`The ${edge} bar is not visible`);
+    }
+
+    const target = await this.boundaryPosition(edge, count);
+    const horizontal = edge === 'start' || edge === 'end';
+    const x = bar.x + bar.width / 2;
+    const y = bar.y + bar.height / 2;
+    const readScroll = () => this.page.evaluate(() => {
+      const holder = window.hot.view._wt.wtTable.holder;
+
+      return [holder.scrollLeft, holder.scrollTop, window.scrollX, window.scrollY];
+    });
+    const client = await this.page.context().newCDPSession(this.page);
+    const before = await readScroll();
+
+    await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+
+    for (let step = 1; step <= 5; step++) {
+      const along = (horizontal ? x : y) + ((target - (horizontal ? x : y)) * step) / 5;
+
+      await client.send('Input.dispatchTouchEvent', {
+        type: 'touchMove',
+        touchPoints: [horizontal ? { x: along, y } : { x, y: along }],
+      });
+    }
+
+    await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await client.detach();
+
+    return { before, after: await readScroll() };
+  }
+
   async release(): Promise<void> {
     await this.page.mouse.up();
   }
@@ -162,25 +205,34 @@ export class FreezeBarPage {
     const root = info.root;
     const startSideLeft = !info.rtl;
 
+    // The tracks of the start and top bands may be scrolled out of view, so they are measured by their sizes from
+    // the overlay that is pinned to the viewport (the page scrolls the rows in window scroll mode).
+    if (edge === 'start' || edge === 'top') {
+      const pinned = await this.page.evaluate(([horizontal, taken]) => {
+        const clone = document.querySelector(horizontal ? '.ht_clone_inline_start' : '.ht_clone_top')!;
+        const rect = clone.getBoundingClientRect();
+        let sum = 0;
+
+        for (let index = 0; index < taken; index++) {
+          sum += horizontal ? window.hot.getColWidth(index) :
+            (window.hot.getRowHeight(index) ?? window.hot.stylesHandler.getDefaultRowHeight(index));
+        }
+
+        return { left: rect.left, right: rect.right, top: rect.top, sum };
+      }, [edge === 'start', count] as [boolean, number]);
+
+      if (edge === 'top') {
+        return pinned.top + info.colHeader + pinned.sum;
+      }
+
+      return startSideLeft ? pinned.left + info.rowHeader + pinned.sum : pinned.right - info.rowHeader - pinned.sum;
+    }
+
     if (count === 0) {
       return {
-        top: root.y + info.colHeader,
         bottom: root.y + root.height - info.scrollbarY,
-        start: startSideLeft ? root.x + info.rowHeader : root.x + root.width - info.rowHeader,
         end: startSideLeft ? root.x + root.width - info.scrollbarX : root.x + info.scrollbarX,
       }[edge];
-    }
-
-    if (edge === 'start') {
-      const box = (await this.colHeader(count - 1).boundingBox())!;
-
-      return startSideLeft ? box.x + box.width : box.x;
-    }
-
-    if (edge === 'top') {
-      const box = (await this.rowHeader(count - 1).boundingBox())!;
-
-      return box.y + box.height;
     }
 
     // The tracks of the end bands are not always rendered, so measure from the edge by their sizes.
