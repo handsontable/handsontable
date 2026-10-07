@@ -1174,7 +1174,10 @@ export class AutoColumnSize extends BasePlugin {
 
   /**
    * Triggers a full column width recalculation after new data is loaded, skipping the initial
-   * load since `#onInit` already handles it.
+   * load since `#onInit` already handles it. The Formulas plugin registers its own
+   * `afterLoadData` listener ahead of this one, so the sweep reads the values the engine derives
+   * from the new data, and the refinement queue the engine update fills is discarded by the
+   * sweep instead of triggering a second full rescan.
    */
   #onAfterLoadData = (_sourceData: unknown[], isFirstLoad: boolean) => {
     // Queued cells describe the previous dataset — their rows and previous values are

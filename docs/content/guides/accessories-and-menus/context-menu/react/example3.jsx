@@ -1,6 +1,6 @@
 import { HotTable } from '@handsontable/react-wrapper';
-import { registerAllModules } from 'handsontable/registry';
 import { ContextMenu } from 'handsontable/plugins/contextMenu';
+import { registerAllModules } from 'handsontable/registry';
 
 // register Handsontable's modules
 registerAllModules();
@@ -122,25 +122,26 @@ const contextMenuSettings = {
 
         return elem;
       },
-      disableSelection: true,
+      disableSelection: true, // Prevent mouseoever from highlighting the item for selection
       isCommand: false, // Prevent clicks from executing command and closing the menu
     },
   },
 };
 
+const data = [
+  ['Hydrogen', 'H', 1, 1.008, 7],
+  ['Helium', 'He', 2, 4.003, 9],
+  ['Lithium', 'Li', 3, 6.94, 9],
+  ['Beryllium', 'Be', 4, 9.012, 11],
+  ['Boron', 'B', 5, 10.81, 15],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
-        ['2017', 10, 11, 12, 13, 15, 16],
-        ['2018', 10, 11, 12, 13, 15, 16],
-        ['2019', 10, 11, 12, 13, 15, 16],
-        ['2020', 10, 11, 12, 13, 15, 16],
-        ['2021', 10, 11, 12, 13, 15, 16],
-      ]}
+      data={data}
       rowHeaders={true}
-      colHeaders={true}
+      colHeaders={['Name', 'Symbol', 'Atomic Number', 'Atomic Mass (u)', 'Known Isotopes']}
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"

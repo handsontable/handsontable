@@ -5,27 +5,29 @@ import { DetailedSettings } from 'handsontable/plugins/columnSummary';
 // register Handsontable's modules
 registerAllModules();
 
+//  generate an array of arrays with dummy numeric data
+const generateData = (rows = 3, columns = 7, additionalRows = true) => {
+  let counter = 0;
+
+  const array2d = [...new Array(rows)].map((_) => [...new Array(columns)].map((_) => counter++));
+
+  // add an empty row at the bottom, to display column summaries
+  if (additionalRows) {
+    array2d.push([]);
+  }
+
+  return array2d;
+};
+
+const data = generateData(5, 5, true);
+
 const ExampleComponent = () => {
-  //  generate an array of arrays with dummy numeric data
-  const generateData = (rows = 3, columns = 7, additionalRows = true) => {
-    let counter = 0;
-
-    const array2d = [...new Array(rows)].map((_) => [...new Array(columns)].map((_) => counter++));
-
-    // add an empty row at the bottom, to display column summaries
-    if (additionalRows) {
-      array2d.push([]);
-    }
-
-    return array2d;
-  };
-
   return (
     <HotTable
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
-      data={generateData(5, 5, true)}
+      data={data}
       height="auto"
       rowHeaders={true}
       colHeaders={['sum', 'min', 'max', 'count', 'average']}

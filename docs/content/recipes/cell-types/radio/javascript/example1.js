@@ -15,6 +15,7 @@ const data = [
   { task: 'GitHub triage rotation docs', priority: 'low', status: 'done' },
   { task: 'shadcn/ui integration recipe', priority: 'medium', status: 'todo' },
 ];
+/* end:skip-in-preview */
 
 // Minimal editor stub — all interaction is handled by the renderer.
 class RadioEditor extends BaseEditor {
@@ -43,10 +44,11 @@ const radioRenderer = rendererFactory(({ instance, td, row, column, value, cellP
 
   if (colHeader) wrapper.setAttribute('aria-label', String(colHeader));
 
-  // A cell the grid resolves to no editor cannot be changed by the user, so its radios are
-  // disabled the same way `readOnly` disables them. `getCellEditor()` answers both questions:
-  // it returns `false` when `editor: false` is set at any configuration level.
-  const isEditable = !cellProperties.readOnly && !!instance.getCellEditor(cellProperties);
+  // A cell with no editor cannot be changed by the user, so its radios are disabled the same
+  // way `readOnly` disables them. `editor: false` set at any configuration level reaches the
+  // cell through the cascade. Read the option directly: `getCellEditor()` throws on an editor
+  // name that isn't registered, and a renderer runs on every draw.
+  const isEditable = !cellProperties.readOnly && cellProperties.editor !== false && cellProperties.editor !== null;
 
   const hasChecked = options.some((opt) => {
     const v = typeof opt === 'object' ? opt.value : opt;
@@ -98,7 +100,16 @@ const radioRenderer = rendererFactory(({ instance, td, row, column, value, cellP
     span.className = 'htUIRadioLabel';
     span.textContent = optLabel;
 
+    // The checked dot is a real `<i class="ht-icon ht-icon-radio">` element (Handsontable
+    // itself inserts one as the input's next sibling for its own radio UI), not a CSS
+    // pseudo-element -- so the recipe must add it explicitly to get the dot.
+    const icon = document.createElement('i');
+
+    icon.className = 'ht-icon ht-icon-radio';
+    icon.setAttribute('aria-hidden', 'true');
+
     label.appendChild(input);
+    label.appendChild(icon);
     label.appendChild(span);
     wrapper.appendChild(label);
 
@@ -216,5 +227,5 @@ hot.rootElement.addEventListener(
       target.focus();
     }
   },
-  true
+  true,
 );

@@ -371,6 +371,25 @@ hot.updateSettings({
 hot.getDataAtCell(0, 1); // -> null, cleared as usual
 ```
 
+### Re-applying while a filter hides rows
+
+The `row` and `rowspan` of a range describe the rows on screen. While a filter hides rows, a re-applied range that fits the rows on screen is applied to those rows, as described above.
+
+A range that reaches past the rows on screen can't be applied. If the range was applied before, and its merged cell still covers the rows it was merged on, Handsontable keeps that merged cell instead of dropping it. The merged cell comes back when you clear the filter, and its values stay as they were. This covers a filter that hides every row, too.
+
+So one re-applied array can hold both kinds of range. For example, with only 3 rows on screen:
+
+```js
+hot.updateSettings({
+  mergeCells: [
+    { row: 0, col: 0, rowspan: 2, colspan: 1 }, // fits: applied to the first 2 rows on screen
+    { row: 4, col: 0, rowspan: 2, colspan: 1 }, // doesn't fit: the merged cell it made is kept
+  ],
+});
+```
+
+A range that reaches past the rows on screen and was never applied before is still rejected with a warning.
+
 ## Copying and pasting over merged cells
 
 Pasting a block of more than one cell over a merged range unmerges that range, and every pasted value becomes visible. Excel and Google Sheets behave the same way: a block with its own rows and columns cannot fit inside a single merged cell, so the merge gives way.
@@ -466,6 +485,22 @@ Some features remove rows from the grid entirely: [`filters`](@/api/options.md#f
 [`hiddenRows`](@/api/options.md#hiddenrows) works differently. A hidden row keeps its position, so a merged cell spanning one keeps its configured `rowspan` and simply draws over less space.
 
 One limitation applies to [`undo`](@/api/options.md#undo). Unmerging a merged cell whose rows are all hidden but one records only the single cell you can see, which is not a merged cell, so undoing that unmerge restores nothing. Expand or unfilter the rows first if you want the unmerge to be reversible.
+
+## Merged cells and frozen columns
+
+A merged cell can sit in, or cross, the frozen columns ([`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart) and [`fixedColumnsEnd`](@/api/options.md#fixedcolumnsend)). The frozen columns are drawn in their own part of the grid, so Handsontable draws the part of the merged cell that lies in them separately from the rest.
+
+When a merged cell crosses the line between the frozen and the scrollable columns:
+
+- Its content is laid out as wide as the whole merged cell, and each part shows its own slice of it. A right-aligned or centered value appears once, and a long value wraps the same way in both parts.
+- The content of the cell in the frozen part sits inside an extra `div` with the `htMergedCellContentWindow` class. If your CSS selects the direct children of the cell (`td > .my-class`), or your [`afterRenderer`](@/api/hooks.md#afterrenderer) code reads `TD.firstChild`, you get that `div` in the frozen part and not in the scrollable part. A hook that runs after the grid is built and appends to the cell (`TD.appendChild(icon)`) puts the icon on a line of its own under the content.
+- When the grid has no row headers, the rows of a merged cell keep the same height in every part.
+
+Some cases behave differently:
+
+- Content positioned against the cell, such as the arrow of an [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) or [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell, stays at the edge of the frozen part and shows again at the end of the merged cell.
+- A merged cell that crosses [`fixedRowsTop`](@/api/options.md#fixedrowstop) centers or bottom-aligns its content ([`htMiddle`, `htBottom`](@/guides/cell-features/text-alignment/text-alignment.md)) within each part separately.
+- With [`virtualized`](@/api/options.md#mergecells) set to `true`, the scrollable part moves its copy of the content as you scroll, while the frozen part keeps it where the merged cell starts.
 
 ## Keyboard navigation over a merged cell
 

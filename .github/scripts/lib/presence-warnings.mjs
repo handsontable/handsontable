@@ -9,7 +9,7 @@
  * silence, never a finding — a hook that false-positives gets disabled, which
  * is worse than no hook (see .ai/LOCAL-ENFORCEMENT.md §2).
  *
- * The four detectors, and what each one nudges:
+ * The five detectors, and what each one nudges:
  * - frozen-suite growth — ≥3 new `it` blocks appended to MODIFIED frozen
  *   Jasmine specs (the gate accepts an edited `*.spec.js` as coverage, so
  *   appended blocks are otherwise invisible). New E2E belongs in Playwright.
@@ -27,8 +27,21 @@
  *   deliberately requires classify(path) === 'source' (a spec or helper under
  *   `walkontable/test/` is never "the engine changed") and ignores a D status
  *   (a deletion needs no new coverage).
+ * - visual-only coverage — production source changed and every change the
+ *   gate counts as coverage is a capture spec under `visual-tests/tests/` (the
+ *   gate's `.spec.ts` rule admits one, whatever its status). A screenshot proves
+ *   pixels, not behavior. Added, modified, and renamed specs count; a deleted
+ *   one counts on neither side; and it is silent when there is no coverage at
+ *   all, because the verdict already says `missing-coverage`. It reads the
+ *   `--name-status` list, never the diff, so `isAdvisoryPath()` and the CLI's
+ *   pathspec are untouched. Its `::warning` annotations are the month of data
+ *   that decides whether a visual spec keeps counting as coverage on its own
+ *   (the advisory paragraph in .ai/LOCAL-ENFORCEMENT.md holds the criterion
+ *   and the tally recipe).
  */
-import { classify, isFrozenJasmineSpec } from './presence-gate.mjs';
+import {
+  classify, coverageGroups, isCoverage, isFrozenJasmineSpec, isSource, sourceGroup,
+} from './presence-gate.mjs';
 
 /**
  * Matches a NEW test-block opener on an added line: `it(`, `it.each(`, `fit(`.
@@ -52,6 +65,25 @@ const TEST_RTL_RE = /rtl|layoutDirection/i;
  * The Playwright package: specs, page objects, fixtures, and helpers alike.
  */
 const TESTS_PACKAGE_RE = /^tests\//;
+
+/**
+ * A capture spec: a `*.spec.ts` under `visual-tests/tests/`, the `testDir` of
+ * `visual-tests/playwright.config.ts`. Such a file satisfies the gate through
+ * the `.spec.ts` rule in presence-gate.mjs (`COVERAGE_ANY_STATUS`), which makes
+ * a screenshot the cheapest coverage a source change can carry. All 112 visual
+ * specs live there (measured 2026-09-18: 69 js-only, 23 multi-frameworks, 20
+ * cross-browser; none elsewhere under the package), and `tests/playwright.config.ts`
+ * reserves `tests/visual/` as a later home — so this constant is the one place to
+ * widen. The suffix is deliberate, not a package prefix: a `*.unit.js` for the
+ * visual package's own lib is behavioral coverage, not a capture, and must pair
+ * a source change rather than draw this warning (none exists today, but the G3
+ * and G5 guardrails add lib code there). Deliberately not `docs/tests/` either:
+ * its screenshot spec counts as coverage for a core change too, but a docs spec
+ * beside a core change is not the shape this warning is about, and admitting it
+ * invites the false positive that gets a hook disabled. Exported so the tests
+ * assert the matcher instead of re-deriving it.
+ */
+export const VISUAL_SPEC_RE = /^visual-tests\/tests\/.*\.spec\.ts$/;
 
 const WALKONTABLE_SOURCE_RE = /^handsontable\/src\/3rdparty\/walkontable\/src\//;
 const WALKONTABLE_TEST_RE = [
@@ -194,7 +226,7 @@ export function stripHtmlComments(text) {
 
 /**
  * Red-spec field: the PR body ticks "Bug fix" but the template's "For a bug
- * fix — the spec that fails without this fix:" line carries nothing after the
+ * fix – the spec that fails without this fix:" line carries nothing after the
  * colon once HTML comments (the `<!-- name -->` placeholder) are stripped. A
  * body without that line at all is not judged — the author removed the
  * Test-evidence section, or the template predates it — so it stays silent.
@@ -329,6 +361,74 @@ export function walkontableRouting(changes) {
 }
 
 /**
+ * Visual-only coverage: production source changed in a package, and every
+ * change that covers that package (in the gate's per-package sense,
+ * coverageGroups()) is a capture spec under `visual-tests/tests/` — no unit
+ * test (the visual package's own included), no `tests/e2e` spec, no spec of
+ * that wrapper, no `*.types.ts`, no edited Jasmine spec. A screenshot proves
+ * pixels, not behavior. Judged per package, like the gate: core source beside
+ * a visual spec and a React unit test fires for core, because the React test
+ * covers only React and the screenshot is core's only coverage.
+ *
+ * Deletions count on neither side. A removed source file needs no test, and a
+ * removed visual spec is not the coverage this warning is about – nor, since
+ * DEV-3066, coverage to the gate (`isCoverage()` rejects status `D`, although
+ * the `COVERAGE_ANY_STATUS` patterns themselves still match any status the
+ * gate admits). Added, modified, and renamed specs all count: the
+ * question is what proves the source change, not whether the spec is new, and
+ * a one-line edit to an existing capture spec is a cheaper gate-pass than a new
+ * file. Silent when there is no coverage at all — the verdict already says
+ * `missing-coverage`, and a warning under it would repeat it. Pure over the
+ * `--name-status` list: it never reads the diff, so `isAdvisoryPath()` and the
+ * CLI's pathspec stay as they are.
+ *
+ * Measured over 1251 first-parent commits since 2026-03-01 (origin/develop at
+ * 06b74cfcd, 2026-09-18; a scratch script running this predicate over
+ * `git diff-tree -M --name-status`): one would have fired — #12086, a
+ * `preventOverflow` scroll fix in `overlays.js` proven by a new visual spec —
+ * and none since the gate shipped on 2026-07-22. A count
+ * alone therefore decides nothing, which is why the decision this feeds is
+ * written down in advance (the advisory paragraph in .ai/LOCAL-ENFORCEMENT.md):
+ * the `::warning` annotations are the month of data, and a month of zero is a
+ * result too. #12086 is also the counter-example to keep the wording a nudge —
+ * a scroll fix a screenshot did prove — so the message asks for the assertion
+ * beside the capture, never instead of it.
+ *
+ * @param {{status: string, path: string}[]} changes Parsed `--name-status` entries.
+ * @returns {{sourceFiles: string[], visualSpecs: string[]}|null} The source
+ *   files and the specs (each suffixed with its status letter), or null.
+ */
+export function visualOnlyCoverage(changes) {
+  const live = changes.filter(change => change.status !== 'D');
+  const coverage = live.filter(change => isCoverage(change));
+  const byGroup = new Map();
+
+  for (const change of live.filter(isSource)) {
+    const group = sourceGroup(change.path);
+
+    if (!byGroup.has(group)) {
+      byGroup.set(group, []);
+    }
+    byGroup.get(group).push(change.path);
+  }
+
+  const sourceFiles = [];
+  const visualSpecs = new Set();
+
+  for (const [group, files] of byGroup) {
+    const covering = coverage.filter(change => coverageGroups(change.path).includes(group));
+
+    // No coverage at all: the verdict already says `missing-coverage`.
+    if (covering.length > 0 && covering.every(change => VISUAL_SPEC_RE.test(change.path))) {
+      sourceFiles.push(...files);
+      covering.forEach(change => visualSpecs.add(`${change.path} (${change.status})`));
+    }
+  }
+
+  return sourceFiles.length > 0 ? { sourceFiles, visualSpecs: [...visualSpecs] } : null;
+}
+
+/**
  * Run every detector and return the warnings to print. The body-dependent
  * check runs only when a body is supplied (CI); locally it is skipped silently.
  *
@@ -379,6 +479,30 @@ export function collectWarnings({ changes = [], diff = '', prBody } = {}) {
         + 'tiers — `tests/e2e/walkontable/` (Playwright, preferred) or an existing spec under '
         + '`handsontable/src/3rdparty/walkontable/test/` — a core-level test rarely pins the overlay/viewport math.',
       files: walkontable.engineFiles,
+    });
+  }
+
+  const visualOnly = visualOnlyCoverage(changes);
+
+  if (visualOnly) {
+    warnings.push({
+      type: 'visual-only-coverage',
+      // One line, no backticks or asterisks: the CLI's annotation() strips both
+      // before the text becomes a `::warning`, and the pointer has to survive it.
+      // "Every change the gate counts as coverage", not "the only test change":
+      // a deleted tests/e2e spec or a NEW Jasmine spec can sit beside the capture
+      // spec — neither is coverage to the gate, and the detector fires anyway.
+      //
+      // MERGE ORDER: the `Decision rule` heading this points at is created by the
+      // decision-rule guardrail (#13581), not by this change. Land that one first,
+      // or the first author who trips this advisory follows the pointer to a
+      // heading that is not there yet. Nothing breaks either way — the message is
+      // prose — but the pointer is the whole remedy, so it is worth sequencing.
+      message: 'Source changed and every change the gate counts as coverage is a visual spec under '
+        + 'visual-tests/tests/. A screenshot proves pixels, not behavior — add the Playwright assertion in '
+        + 'tests/e2e/ (or a unit test) that would fail if the behavior broke, and keep the visual spec for what '
+        + 'only pixels can show. Rule: visual-tests/AGENTS.md → Decision rule.',
+      files: [...visualOnly.sourceFiles, ...visualOnly.visualSpecs],
     });
   }
 

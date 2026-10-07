@@ -1223,12 +1223,465 @@ test.describe('an index-map change nested inside a removal', () => {
       expect(await grid.sourceRowCount()).toBe(4);
     });
 
-  // A variant nesting an ALTER (not just a trim) inside the removal deliberately has no case
-  // here: on unchanged develop the nested call's selection machinery and the outer
-  // `selection.shiftRows()` adjust the editor twice, and the commit lands one record up - a
-  // load-dependent, pre-existing defect at either nesting depth (`afterRemoveRow` or the
-  // cache-update hook). DEV-2755 owns that shape and carries the repro; a pin here would be
-  // permanently racy against a defect this suite's subject neither causes nor fixes.
+  /**
+   * Nesting an ALTER rather than a trim, which is the DEV-2755 shape. `alter()` renumbers the index
+   * space before it repairs the selection, so a nested `alter()` fired from inside that window
+   * repaired a selection the outer removal had not been accounted for yet: the nested call's clamp
+   * pulled the out-of-range highlight back into range - doing the outer call's job - and the outer
+   * `shiftRows()` then applied its own shift on top. The edit landed one record up.
+   *
+   * The nested call removes NOTHING here. An amount of `0` still runs the whole selection machinery,
+   * so the double adjustment is all that is left to explain a wrong landing.
+   */
+  test('commits to the record it was typed into when the nested alter removes nothing',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.openEditorAndType(4, 0, 'EDITED');
+
+      await grid.removeRowAlteringFromCacheUpdate(0, 0, 0);
+
+      await expect.poll(() => grid.editorState()).toBe('STATE_EDITING');
+
+      await grid.commitWithEnter();
+
+      await expect.poll(() => grid.sourceData()).toEqual([
+        ['A1', 'B1'],
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+        ['EDITED', 'B4'],
+      ]);
+      expect(await grid.sourceRowCount()).toBe(4);
+    });
+
+  /**
+   * The same nesting with a REAL second removal, so both calls have a shift to contribute and the
+   * fix has to compose them rather than drop one. `'A0'` goes with the outer call and `'A1'` with
+   * the nested one, leaving the edited record last.
+   */
+  test('composes both removals when the nested alter removes a row too',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.openEditorAndType(4, 0, 'EDITED');
+
+      await grid.removeRowAlteringFromCacheUpdate(0, 0, 1);
+
+      await expect.poll(() => grid.editorState()).toBe('STATE_EDITING');
+
+      await grid.commitWithEnter();
+
+      await expect.poll(() => grid.sourceData()).toEqual([
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+        ['EDITED', 'B4'],
+      ]);
+      expect(await grid.sourceRowCount()).toBe(3);
+    });
+
+  /**
+   * The ticket's second variant: a TRIM behind the nested call, still inside the listener. It puts a
+   * third selection repair in the same window - the trim captures and restores the selection in
+   * physical coordinates - and on unfixed code the landing was a coin flip, because whether the
+   * trim's capture could resolve the highlight depended on the nested call having already moved it.
+   * With the shift composed, the trim reads one settled state and the landing is the same every run.
+   */
+  test('lands on the same record when a trim follows the nested alter',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.openEditorAndType(4, 0, 'EDITED');
+
+      // Removes `'A0'`; the listener then alters without removing anything and trims what is by
+      // then physical row 0 - `'A1'`. A trim leaves the record in the source data, so the count
+      // stays at four.
+      await grid.removeRowAlteringFromCacheUpdate(0, 0, 0, [0]);
+
+      await expect.poll(() => grid.editorState()).toBe('STATE_EDITING');
+
+      await grid.commitWithEnter();
+
+      await expect.poll(() => grid.sourceData()).toEqual([
+        ['A1', 'B1'],
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+        ['EDITED', 'B4'],
+      ]);
+      expect(await grid.sourceRowCount()).toBe(4);
+    });
+
+  /**
+   * The nesting the other way round. `beforeCreateRow` fires BEFORE the insertion touches the data,
+   * so the nested removal's change lands FIRST and the outer call owes the selection nothing while
+   * the nested one runs. Composing by nesting order rather than by the order the changes landed
+   * moves the selection the wrong way here - it applies the outer insert to a range the nested
+   * removal had not yet pulled up, and then pulls it up afterwards.
+   *
+   * Asserted on the SELECTION rather than a commit: with nothing owed, this shape is not a bug on
+   * develop at all, and the case exists to keep it that way.
+   */
+  test('follows the data order when the nested change lands first',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.selectCell(3, 0);
+
+      await grid.insertRowRemovingFromBeforeHook(3, 0);
+
+      // The nested removal pulls the selection up to row 2; the outer insert at row 3 is then below
+      // it and moves nothing.
+      expect(await grid.selected()).toEqual([[2, 0, 2, 0]]);
+    });
+
+  /**
+   * The column axis. Nothing in core trims columns, so this half of the repair is reachable only
+   * through `alter('remove_col')` - and it was rewritten alongside the row half, so it needs its own
+   * case rather than an argument by symmetry.
+   */
+  test('commits to the record it was typed into when the nested alter is on the column axis',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.openEditorAndType(4, 1, 'EDITED');
+
+      await grid.removeColumnAlteringFromCacheUpdate(0, 0, 0);
+
+      await expect.poll(() => grid.editorState()).toBe('STATE_EDITING');
+
+      await grid.commitWithEnter();
+
+      await expect.poll(() => grid.sourceData()).toEqual([
+        ['B0'],
+        ['B1'],
+        ['B2'],
+        ['B3'],
+        ['EDITED'],
+      ]);
+    });
+
+  /**
+   * The control: the same nesting with the edited record NOT at the end, which develop already gets
+   * right. Both shifts are real there and both must keep applying - a fix that suppressed the nested
+   * call's shift instead of composing it would land the edit on `'A4'` here and still pass the two
+   * cases above.
+   */
+  test('keeps both shifts when the edited record is not the last one',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.openEditorAndType(3, 0, 'EDITED');
+
+      await grid.removeRowAlteringFromCacheUpdate(0, 0, 1);
+
+      await expect.poll(() => grid.editorState()).toBe('STATE_EDITING');
+
+      await grid.commitWithEnter();
+
+      await expect.poll(() => grid.sourceData()).toEqual([
+        ['A2', 'B2'],
+        ['EDITED', 'B3'],
+        ['A4', 'B4'],
+      ]);
+      expect(await grid.sourceRowCount()).toBe(3);
+    });
+});
+
+/**
+ * The two sources that repair the selection by `refresh()` instead of by a shift. `refresh()` clamps
+ * against the grid as it is after every nested removal, so a nested shift held back until the scope
+ * closes lands on top of a clamp that already did its job - the DEV-2755 shape through another door.
+ *
+ * Removing the selected LAST record is the case that clamps: the highlight has to move onto the new
+ * last record, which the nested removal then moves up by one.
+ */
+test.describe('a nested alter inside a context-menu removal', () => {
+  test('keeps the selection on the record after the removed row', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+
+    // Removes `'A4'` through the context-menu source, and `'A0'` from inside that removal.
+    const result = await grid.contextMenuRemoveRowAlteringFromCacheUpdate(4, 0);
+
+    expect(await grid.sourceData()).toEqual([
+      ['A1', 'B1'],
+      ['A2', 'B2'],
+      ['A3', 'B3'],
+    ]);
+    expect(result.selected).toEqual([[2, 0, 2, 0]]);
+    expect(result.value).toBe('A3');
+  });
+
+  test('keeps the selection on the column after the removed one', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+
+    // Removes `'D'` through the context-menu source, and `'A'` from inside that removal.
+    const result = await grid.contextMenuRemoveColumnAlteringFromCacheUpdate(3, 0);
+
+    expect((await grid.sourceData())[0]).toEqual(['B0', 'C0']);
+    expect(result.selected).toEqual([[0, 1, 0, 1]]);
+    expect(result.value).toBe('C0');
+  });
+});
+
+/**
+ * A corner selection is re-selected in full on every shift, which fires the selection hooks. The
+ * outermost scope's close-time flush runs with nothing held in the ordinary case, and it must not
+ * re-select then - or every `alter()` after a select-all fires those hooks twice more.
+ */
+test.describe('a structural change after select all', () => {
+  test('re-selects the grid once for an insert', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+
+    const result = await grid.countSelectionEndsForAlterAfterSelectAll('insert_row_above');
+
+    expect(result.selectedByCorner).toBe(true);
+    expect(result.count).toBe(1);
+    expect(await grid.sourceRowCount()).toBe(6);
+  });
+
+  // A vetoed insert still asks for a shift of zero rows, and that one re-select is not new.
+  test('re-selects the grid once for a vetoed insert', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.vetoRowCreation();
+
+    const result = await grid.countSelectionEndsForAlterAfterSelectAll('insert_row_above');
+
+    expect(result.selectedByCorner).toBe(true);
+    expect(result.count).toBe(1);
+    expect(await grid.sourceRowCount()).toBe(5);
+  });
+
+  // A vetoed removal returns before it asks for any shift, so only the close-time flush is left.
+  test('does not re-select the grid for a vetoed removal', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.vetoRowRemoval();
+
+    const result = await grid.countSelectionEndsForAlterAfterSelectAll('remove_row');
+
+    expect(result.selectedByCorner).toBe(true);
+    expect(result.count).toBe(0);
+    expect(await grid.sourceRowCount()).toBe(5);
+  });
+});
+
+/**
+ * Held shifts are folded in the order their changes LANDED. Every other held-path case above shifts
+ * at index 0, where both orders pass the `>=` gate and give the same result, so none of them can
+ * tell a correct sort from a reversed one. Here the nested removal sits AT the selected row: folded
+ * outer-first it is gated out, folded nested-first it moves the selection a second time.
+ *
+ * A selection rather than an open editor: a nested removal at the edited row closes the editor,
+ * because it reads the highlight before the outer shift has moved it - `develop` does the same.
+ */
+test.describe('the order held shifts are folded in', () => {
+  test('keeps the selection on its record when the nested removal is below the outer one',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+
+      // Removes `'A2'`, and from inside that removal `'A4'` - by then at row 3.
+      const result = await grid.removeRowRunningFromAfterRemoveRow([3, 0], 2, {
+        alter: ['remove_row', 3, 1],
+      });
+
+      expect(result.selected).toEqual([[2, 0, 2, 0]]);
+      expect(result.value).toBe('A3');
+    });
+
+  /**
+   * A spare row appended by `setDataAtCell()` changes the row count with no `alter()` of its own, so
+   * it lands while the OUTER scope is the innermost one. The append is not the outer call's change,
+   * so it must not stamp the outer scope - the nested shift would then sort first.
+   */
+  test('keeps the landing order when a spare row is appended after the nested removal',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+
+      const result = await grid.removeRowRunningFromAfterRemoveRow([3, 0], 2, {
+        alter: ['remove_row', 3, 1],
+        writeSpareRow: true,
+      }, { spareRows: 1 });
+
+      expect(result.selected).toEqual([[2, 0, 2, 0]]);
+      expect(result.value).toBe('A3');
+    });
+
+  /**
+   * A multi-group removal lands one change per group, and a call nested from a group's own
+   * `beforeRemoveRow` lands BEFORE that group's change. `A0` goes with the first group; before the
+   * second, a nested call removes `A1`; the second group then removes row 2 - by then `A4`. Folded
+   * in landing order the selection stays on `A3`; folded with the second group first, it slides
+   * onto `A2`.
+   */
+  test('keeps the landing order for a call nested before the second of two groups',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+
+      const result = await grid.removeRowGroupsNestingFromBeforeRemoveRow([3, 0], [[0, 1], [3, 1]], 2, 0);
+
+      expect(await grid.sourceData()).toEqual([
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+      ]);
+      expect(result.selected).toEqual([[1, 0, 1, 0]]);
+      expect(result.value).toBe('A3');
+    });
+
+  /**
+   * The mirror of the spare-row case above: the spare row is appended from a `before*` hook, BEFORE
+   * the outer removal lands. Stamped as the outer call's change, it made the outer scope look landed,
+   * so the nested removal that follows was held and folded after the outer shift although its change
+   * landed first. Two things now keep it in order: the append does not stamp the outer scope, and
+   * the outer call's own landing stamps it again. `A0` goes with the nested call; the outer call then
+   * removes row 3 - by then `A4`.
+   */
+  test('keeps the landing order when a spare row is appended before the nested removal',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+
+      const result = await grid.removeRowGroupsNestingFromBeforeRemoveRow([3, 0], [[3, 1]], 1, 0, true);
+
+      expect(result.selected).toEqual([[2, 0, 2, 0]]);
+      expect(result.value).toBe('A3');
+    });
+
+  /**
+   * The spare-row case through the other path that adds rows by itself: a write one row past the
+   * last makes `applyChanges()` create that row before it writes. It is not the outer call's change
+   * either, so it must not stamp the outer scope.
+   */
+  test('keeps the landing order when a write past the last row adds one after the nested removal',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+
+      const result = await grid.removeRowRunningFromAfterRemoveRow([3, 0], 2, {
+        alter: ['remove_row', 3, 1],
+        writePastLastRow: true,
+      });
+
+      expect(result.selected).toEqual([[2, 0, 2, 0]]);
+      expect(result.value).toBe('A3');
+    });
+
+  /**
+   * The scope a spare-row append runs in does not own that append, so it never holds a shift back:
+   * an `alter()` fired from the append's own `afterCreateRow` repairs the selection at once, as it
+   * did before the scopes existed, and reads the moved selection back inside the hook.
+   */
+  test('lets an alter fired from a spare-row append repair the selection at once', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+
+    const result = await grid.insertRowFromSpareRowAppend([3, 0]);
+
+    expect(result.seenInHook).toEqual([[4, 0, 4, 0]]);
+    expect(result.selected).toEqual([[4, 0, 4, 0]]);
+  });
+
+  /**
+   * The nested call is on the OTHER axis, so its column shift is held while the outer call's own
+   * row shift is written at once. That write lays a new selection, which drops whatever is still
+   * held - so the row write has to take the held column shift with it.
+   */
+  test('keeps a held column shift when the outer row shift is written', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+
+    // Removes `'A0'`, and from inside that removal the first column.
+    const result = await grid.removeRowRunningFromAfterRemoveRow([1, 1], 0, {
+      alter: ['remove_col', 0, 1],
+    });
+
+    expect(result.selected).toEqual([[0, 0, 0, 0]]);
+    expect(result.value).toBe('B1');
+  });
+});
+
+/**
+ * A held shift was computed for the selection that existed when it was recorded. A selection made
+ * after that is not the one it describes, so the shift must not be written onto it.
+ */
+test.describe('a selection made while a shift is held', () => {
+  test('stays where it was made', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+
+    // Removes `'A2'`; from inside that removal, inserts a row above the first one - a shift held for
+    // the outer call - and then selects the new first row.
+    const result = await grid.removeRowRunningFromAfterRemoveRow([3, 0], 2, {
+      alter: ['insert_row_above', 0, 1],
+      selectCell: [0, 0],
+    });
+
+    expect(result.selected).toEqual([[0, 0, 0, 0]]);
+  });
+});
+
+/**
+ * An `alter()` that throws closes its scope without writing the held shifts. Writing them runs the
+ * selection hooks, and a consumer that throws there would replace the error the caller has to see.
+ */
+test.describe('a throwing alter with a held shift', () => {
+  test('reports its own error, not one a selection hook throws', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+
+    const result = await grid.removeRowRunningFromAfterRemoveRow([3, 0], 2, {
+      alter: ['remove_row', 3, 1],
+      throwMessage: 'afterRemoveRow failed',
+    }, { throwOnSelection: 'afterSelection failed' });
+
+    expect(result.error).toBe('afterRemoveRow failed');
+  });
+});
+
+/**
+ * `batch()` suspends the index mapper, but a removal still updates the cache at once:
+ * `IndexMapper#removeIndexes()` suspends and resumes the mapper itself, and the suspension is a flag,
+ * not a count. So the scope is stamped as usual, and a nested removal lands on the record after both
+ * removals - `develop` lands it one row up.
+ */
+test.describe('a nested alter inside batch()', () => {
+  test('lands on the record after both removals', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+
+    const result = await grid.removeRowRunningFromAfterRemoveRow([3, 0], 2, {
+      alter: ['remove_row', 3, 1],
+    }, { inBatch: true });
+
+    expect(result.selected).toEqual([[2, 0, 2, 0]]);
+    expect(result.value).toBe('A3');
+  });
 });
 
 /**
@@ -1468,6 +1921,71 @@ test.describe('a grid-tracking extent through a restore', () => {
         ['A1', 'A1'],
         ['A4', 'B4'],
       ]);
+    });
+
+  test('keeps a shrunk column layer shrunk when the same update drops an earlier layer and untrims rows',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.trimRows([4]);
+      // Layer 0, a single cell the update below trims away.
+      await grid.cell(3, 1).click();
+      // Layer 1, the whole of column A: it spans the grid.
+      await grid.addWholeColumnLayer('A');
+      // Layer 2, column B shrunk by one row. Its grid-tracking flag is sticky and still set.
+      await grid.addWholeColumnLayer('B');
+      await grid.shrinkSelectionUpwards();
+      // Layer 3, the active one, with the editor open on its first cell.
+      await grid.addCellRangeLayer([1, 0, 2, 0]);
+
+      expect(await grid.selected()).toEqual([[3, 1, 3, 1], [-1, 0, 3, 0], [-1, 1, 2, 1], [1, 0, 2, 0]]);
+
+      await grid.listenAndType('EDITED');
+      // One update takes layer 0's record and the editor's, and brings row 4 back. The restore drops
+      // layer 0, so every later layer moves up one slot. The grow's coverage snapshot has to move
+      // with them: left on the old slots, "layer 1 spans the grid" lands on the shrunk column B,
+      // which then grows back over the row the user excluded.
+      await grid.batchUntrimAndTrim([4], [1, 3]);
+
+      await expect.poll(() => grid.isEditorOpen()).toBe(false);
+      expect(await grid.selected()).toEqual([[-1, 0, 2, 0], [-1, 1, 1, 1], [1, 0, 1, 0]]);
+    });
+
+  test('grows a whole-column selection with an open editor when an untrim is batched with a sort',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle, { sorting: true });
+
+      await grid.goto();
+      await grid.trimRows([3, 4]);
+      await grid.selectWholeColumn(0);
+      await grid.listenAndType('EDITED');
+
+      // The restore accepts a pure trim only, so a sort in the same update skips it. A whole column
+      // is still a whole column after a sort, so it has to grow onto the two rows that came back.
+      await grid.batchSortAndUntrim([3, 4]);
+
+      await expect.poll(() => grid.selected()).toEqual([[-1, 0, 4, 0]]);
+      expect(await grid.isEditorOpen()).toBe(true);
+    });
+
+  test('grows it no further than maxRows lets the grid show, with an open editor',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle, { sorting: true });
+
+      await grid.goto();
+      await grid.updateSettings({ maxRows: 4 });
+      await grid.trimRows([0, 1, 2]);
+      await grid.selectWholeColumn(0);
+      await grid.listenAndType('EDITED');
+
+      // With the editor open the grow commits its highlights directly, without the `refresh()` that
+      // clamps a no-editor grow to the row count. Five rows come back, but `maxRows` caps the grid
+      // at four, so the far corner must stop at row 3.
+      await grid.batchSortAndUntrim([0, 1, 2]);
+
+      await expect.poll(() => grid.selected()).toEqual([[-1, 0, 3, 0]]);
+      expect(await grid.isEditorOpen()).toBe(true);
     });
 
   test('does not re-pin a drag-selected range that merely reached both ends of the grid',

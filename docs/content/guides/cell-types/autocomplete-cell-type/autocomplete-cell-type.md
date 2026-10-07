@@ -44,9 +44,9 @@ In all three modes, validation runs when a value is written to a cell. Values th
 
 This example uses the `autocomplete` feature in the default flexible mode. In this mode, the user can choose one of the suggested options while typing or enter a custom value that is not included in the suggestions.
 
-The [`visibleRows`](@/api/options.md#visiblerows) option sets how many suggestions the dropdown shows without scrolling. The default is 10 rows. The **Chassis color** column sets `visibleRows: 4`, so the dropdown shows only four suggestions at a time and scrolls to reveal the rest.
+The [`visibleRows`](@/api/options.md#visiblerows) option sets how many suggestions the dropdown shows without scrolling. The default is 10 rows. The **Warehouse** column sets `visibleRows: 4`, so the dropdown shows up to four suggestions at a time and scrolls to reveal the rest. If there is not enough free space on the screen for four rows, the dropdown shows fewer.
 
-The [`trimDropdown`](@/api/options.md#trimdropdown) option controls the dropdown's width. By default (`trimDropdown: true`), the dropdown matches the width of the edited cell, which can truncate long suggestions. The **Bumper color** column sets `trimDropdown: false`, so the dropdown expands to fit its widest suggestion. It can grow wider than the cell, but never narrower.
+The [`trimDropdown`](@/api/options.md#trimdropdown) option controls the dropdown's width. By default (`trimDropdown: true`), the dropdown matches the width of the edited cell, which can truncate long suggestions. The **Product** column sets `trimDropdown: false`, so the dropdown expands to fit its widest suggestion. It can grow wider than the cell, but never narrower.
 
 ::: only-for javascript
 
@@ -150,7 +150,7 @@ In strict mode, the [`allowInvalid`](@/api/options.md#allowinvalid) option deter
 
 ## Autocomplete strict mode with asynchronous data
 
-Autocomplete can also use asynchronous data sources. In the example below, suggestions for the "Car" column are loaded from the server with the Fetch API. To load data from a remote source, assign a function to the `source` option. The function receives the query string and the `process` callback. Call `process()` with the result array when the request completes.
+Autocomplete can also use asynchronous data sources. In the example below, suggestions for the "Supplier" column are loaded from the server with the Fetch API. To load data from a remote source, assign a function to the `source` option. The function receives the query string and the `process` callback. Call `process()` with the result array when the request completes.
 
 Handsontable ignores a response that arrives after the editor closed - including a close you may not notice, such as scrolling the edited cell out of view - and it ignores a response that a newer query has superseded, which happens as you type. Call `process()` whenever the request completes, even late.
 

@@ -59,7 +59,14 @@ export default function hideRowItem(hiddenRowsPlugin: Record<string, Function>) 
     },
     disabled: false,
     hidden(this: HotInstance) {
-      return !(this.selection.isSelectedByRowHeader() || this.selection.isSelectedByCorner());
+      if (!(this.selection.isSelectedByRowHeader() || this.selection.isSelectedByCorner())) {
+        return true;
+      }
+
+      // Nothing to hide — no row is rendered. A corner select-all with every row already hidden is
+      // the reported case (DEV-164), but an empty or fully-trimmed grid is the same dead entry
+      // (`hideRows([])` hides nothing), so suppress the item whenever no row is visible.
+      return this.rowIndexMapper.getRenderableIndexesLength() === 0;
     }
   };
 }

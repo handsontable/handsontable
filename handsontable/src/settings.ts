@@ -4,6 +4,7 @@
  */
 import type Handsontable from './base';
 import type { CommentObject } from './plugins/comments';
+import type { FiltersColumnSettings } from './plugins/filters';
 import type { GridSettings } from './core/settings';
 /**
  * A row object, one of the two ways to supply data to the table, the alternative being an array of values.
@@ -57,7 +58,13 @@ export type ChangeSource = 'auto' | 'edit' | 'loadData' | 'updateData' | 'popula
   'CopyPaste.paste' | 'CopyPaste.cut' | 'UndoRedo.redo' | 'UndoRedo.undo' | 'ColumnSummary.set' |
   'ColumnSummary.reset' | 'DataProvider.revert';
 
-export type { GridSettings, SourceDataValidatorFn, SanitizerContext, TextExtractorContext } from './core/settings';
+export type {
+  GridSettings,
+  SourceDataValidatorFn,
+  SanitizerContext,
+  TextExtractorContext,
+  PasteClipboardData,
+} from './core/settings';
 
 /**
  * Removes the `[key: string]: any` / `[key: number]: any` index signature from a type while keeping
@@ -91,12 +98,24 @@ export interface ColumnSettings extends Omit<RemoveIndexSignature<GridSettings>,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
   data?: string | number | ColumnDataGetterSetterFunction;
+  // `false` hides that column's filter UI, and an object carries the column's own
+  // `availableConditions`. The other grid-level settings are ignored there, so they are not accepted.
+  filters?: boolean | FiltersColumnSettings;
 }
 
 /**
  * Additional cell-specific meta data.
+ *
+ * `filters` is re-declared with the GRID type: `ColumnSettings` narrows it to `boolean` for what a
+ * user may WRITE per column, but cell meta inherits the grid-level value through the prototype
+ * chain, so a read can return the `FiltersSettings` object. An extending interface cannot widen a
+ * property, hence the `Omit` - over `RemoveIndexSignature`, for the reason `ColumnSettings` gives.
  */
-export interface CellMeta extends ColumnSettings {
+export interface CellMeta extends Omit<RemoveIndexSignature<ColumnSettings>, 'filters'> {
+  // Same signature as on `ColumnSettings`, which `RemoveIndexSignature` strips; see the NOTE there.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
+  filters?: GridSettings['filters'];
   className?: string | string[];
   readOnly?: boolean;
   valid?: boolean;

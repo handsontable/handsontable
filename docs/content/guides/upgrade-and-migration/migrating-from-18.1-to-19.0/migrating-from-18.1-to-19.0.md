@@ -21,7 +21,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths). Section 16 concerns the new single-line default for those same three cell types, and applies only if you use one of them. Section 17 concerns the [`width`](@/api/options.md#width) and [`height`](@/api/options.md#height) options, and applies if you set `height: 'auto'`, or pass a CSS keyword, a `var()`, or a container-query unit to either option.
+Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths). Section 16 concerns the new single-line default for those same three cell types, and applies only if you use one of them. Section 17 concerns the [`width`](@/api/options.md#width) and [`height`](@/api/options.md#height) options, and applies if you set `height: 'auto'`, or pass a CSS keyword, a `var()`, or a container-query unit to either option. Section 18 concerns what [`getCopyableData()`](@/api/core.md#getcopyabledata) returns, and applies only if you call it or [`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) yourself. Section 19 concerns where the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), and [`multiselect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) editors open their lists, and applies if you use one of those cell types. Section 20 concerns two deprecated [`Core`](@/api/core.md) methods, [`spliceCol()`](@/api/core.md#splicecol) and [`spliceRow()`](@/api/core.md#splicerow), and applies only if you call either of them. Section 21 concerns the right-alignment and `htNumeric` class name of a [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md) cell, and applies only if such a cell can hold a non-numeric value. Section 22 concerns what [`colToProp()`](@/api/core.md#coltoprop) and [`propToCol()`](@/api/core.md#proptocol) return for a column that does not exist, and applies if you call either of them, call [`getDataAtProp()`](@/api/core.md#getdataatprop) with an index, or add a [`modifyData`](@/api/hooks.md#modifydata) hook. Section 23 concerns the TypeScript types of the [`filters`](@/api/options.md#filters) option, and applies only if you use TypeScript and set `filters` to an object. Section 24 concerns how undo and redo work, and applies if you keep the default [`undo`](@/api/options.md#undo) setting. Section 25 concerns the new [`maxLength`](@/api/options.md#maxlength) option, and applies only if you already keep a `maxLength` key in your cell settings. Section 26 concerns the narrowest width a column can be resized to, and applies if you enable [`dropdownMenu`](@/api/options.md#dropdownmenu) and let users resize columns with [`manualColumnResize`](@/api/options.md#manualcolumnresize), or call [`setManualSize()`](@/api/manualColumnResize.md#setmanualsize) or [`setManualSizes()`](@/api/manualColumnResize.md#setmanualsizes). Section 27 concerns icons rendering as `<i>` elements instead of CSS pseudo-elements, and applies if you style a built-in icon, query for one in a test, or use the [`icons`](@/guides/styling/themes/themes.md#icons) theme parameter. Section 28 concerns moving columns across the freeze line, and applies if you use [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) together with [`manualColumnMove`](@/api/options.md#manualcolumnmove), or if you listen to the column freeze and unfreeze hooks. Section 29 concerns entitlement license keys, and applies only if you pass one in another form than the one you received.
 
 ## 1. `date` cells reach the formula engine the same way on every data path
 
@@ -295,9 +295,31 @@ A property named `checked` holding anything else, such as any other string or a 
 The built-in "Read only" and "Read-only comment" items use `'mixed'` when only some of the selected
 cells are read-only. They show a dash there, where they used to show a check mark.
 
-If you use a theme without icons, such as `ht-theme-main-no-icons.css`, and draw the check mark
-yourself with a rule for `span.selected::after`, add a matching rule for `span.htMixed::after`.
-Otherwise the dash is not visible.
+If you use a theme without icons, such as `ht-theme-main-no-icons.css`, draw both marks on their icon
+elements. The check mark is an `<i class="ht-icon ht-icon-check">` inside `span.selected`, and the
+dash is an `<i class="ht-icon ht-icon-collapse-off">` inside `span.htMixed`. Give each one a mask:
+
+```css
+.htItemWrapper .ht-icon-check {
+  mask-image: url('/icons/check.svg');
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  background-color: currentColor;
+}
+
+.htItemWrapper .ht-icon-collapse-off {
+  mask-image: url('/icons/dash.svg');
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  background-color: currentColor;
+}
+```
+
+A rule for `span.selected::after` from 18.1 paints nothing in 19.0. The span keeps `font-size: 0`,
+so a pseudo-element added to it inherits that size and renders no box. See
+[Icons are rendered as `<i>` elements](#icons-are-rendered-as-i-elements).
 
 If the property was your own bookkeeping and you want neither effect, rename it:
 
@@ -581,6 +603,36 @@ To keep the dropdown and still store values outside the list, leave
 [`allowInvalid`](@/api/options.md#allowinvalid) at its default of `true`. The value is stored, and
 the cell is marked invalid.
 
+## 13. Leaving a merged cell with a left or right arrow lands on its top row
+
+This applies to every grid that uses [`mergeCells`](@/api/options.md#mergecells).
+
+Before 19.0.0, moving the selection off a merged cell with a left or right arrow kept the row you
+entered the merged cell on, so the result depended on the direction. Entering a three-row merged cell
+from below (arrow up) and pressing left landed one row lower than entering it from above (arrow down)
+and pressing left.
+
+A merged cell is now addressed by its top-left corner: a left or right arrow that leaves it always
+lands on its top row -- its topmost visible row when the top row is hidden -- whichever way you
+entered. Vertical navigation still keeps the column you were moving along, and the
+<kbd>**Tab**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> keys still keep the row they cycle
+along.
+
+### Who is affected
+
+- You read [`getSelected()`](@/api/core.md#getselected) or
+  [`getSelectedRangeLast()`](@/api/core.md#getselectedrangelast) after a left or right arrow that
+  leaves a merged cell entered on a row other than its first. The highlight now lands on the merged
+  cell's top row rather than the entered row.
+
+A grid without merged cells is unaffected.
+
+### How to migrate
+
+Nothing to change in most cases -- the landing is now consistent with a merged cell being a single
+cell at its top-left corner. If your code compensated for the old direction-dependent landing, drop
+that workaround.
+
 ## 14. Row elements move with their rows on a vertical scroll
 
 This section applies whether or not you set [`renderMode`](@/api/options.md#rendermode).
@@ -618,36 +670,6 @@ A renderer whose output depends on where the rendered area starts or ends, for e
 default `renderMode`. Under `renderMode: 'onChange'` such a cell is not repainted by a scroll, so set
 `renderMode: 'always'` on that column or cell, or call
 [`markCellChanged()`](@/api/core.md#markcellchanged) before you render.
-
-## 13. Leaving a merged cell with a left or right arrow lands on its top row
-
-This applies to every grid that uses [`mergeCells`](@/api/options.md#mergecells).
-
-Before 19.0.0, moving the selection off a merged cell with a left or right arrow kept the row you
-entered the merged cell on, so the result depended on the direction. Entering a three-row merged cell
-from below (arrow up) and pressing left landed one row lower than entering it from above (arrow down)
-and pressing left.
-
-A merged cell is now addressed by its top-left corner: a left or right arrow that leaves it always
-lands on its top row -- its topmost visible row when the top row is hidden -- whichever way you
-entered. Vertical navigation still keeps the column you were moving along, and the
-<kbd>**Tab**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> keys still keep the row they cycle
-along.
-
-### Who is affected
-
-- You read [`getSelected()`](@/api/core.md#getselected) or
-  [`getSelectedRangeLast()`](@/api/core.md#getselectedrangelast) after a left or right arrow that
-  leaves a merged cell entered on a row other than its first. The highlight now lands on the merged
-  cell's top row rather than the entered row.
-
-A grid without merged cells is unaffected.
-
-### How to migrate
-
-Nothing to change in most cases -- the landing is now consistent with a merged cell being a single
-cell at its top-left corner. If your code compensated for the old direction-dependent landing, drop
-that workaround.
 
 ## 15. AutoColumnSize includes the list-cell arrow in the column width
 
@@ -807,3 +829,781 @@ Three smaller changes ship with this one:
 - `width: null` clears the inline width, the way `height: null` clears the height. It used to write
   `width: nullpx`. Both resets restore their own property only, so `height: null` no longer removes a
   `width` set through the option.
+
+## 18. `getCopyableData()` returns a string
+
+[`getCopyableData()`](@/api/core.md#getcopyabledata) was documented and typed as returning a string,
+but it returned the cell value as stored: a number, a boolean, `null`, `undefined`, an array, or an
+object. It now returns a string, as documented.
+
+A value that is not already a string is converted. Numbers and booleans become their text form,
+`null` and `undefined` become an empty string, and any other value goes through its `toString()`. A
+cell with [`copyable`](@/api/options.md#copyable) set to `false` still returns an empty string.
+
+The result can differ from the text copied to the clipboard for an object with its own `valueOf()`,
+such as an instance of a date library. The clipboard reads that object through `valueOf()`, while
+`getCopyableData()` uses `toString()`.
+
+Copying, cutting, and autofill are unaffected. The [`beforeCopy`](@/api/hooks.md#beforecopy),
+[`afterCopy`](@/api/hooks.md#aftercopy), [`beforeCut`](@/api/hooks.md#beforecut),
+[`afterCut`](@/api/hooks.md#aftercut), and [`beforeAutofill`](@/api/hooks.md#beforeautofill) hooks
+still receive the values as they are stored.
+
+[`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) behaves the same as before at run
+time. It still returns the source value as it is stored, nested objects included. Its TypeScript
+return type changes from `string` to `unknown`, which matches what it returns.
+
+### Who is affected
+
+- You compare the result of `getCopyableData()` with a value that is not a string, for example
+  `hot.getCopyableData(0, 0) === 1`.
+- You read a property or an item of the result, for example `hot.getCopyableData(0, 0).name` on a
+  cell that holds an object. You now read it from a string, so you get `undefined` or a single
+  character, and no error is thrown.
+- You call `getCopyableSourceData()` from TypeScript and use its result as a string without checking
+  its type first. That code no longer compiles.
+
+### How to migrate
+
+To keep reading the value as it is stored, call [`getDataAtCell()`](@/api/core.md#getdataatcell)
+instead. Unlike `getCopyableData()`, it does not check the `copyable` option, so check it yourself if
+your code relies on it.
+
+**Before:**
+
+```js
+if (hot.getCopyableData(0, 0) === 1) {
+  hot.setDataAtCell(0, 1, 'Approved');
+}
+```
+
+**After:**
+
+```js
+if (hot.getCellMeta(0, 0).copyable && hot.getDataAtCell(0, 0) === 1) {
+  hot.setDataAtCell(0, 1, 'Approved');
+}
+```
+
+In TypeScript, narrow the result of `getCopyableSourceData()` before you use it as a string:
+
+```ts
+const value = hot.getCopyableSourceData(0, 0);
+
+if (typeof value === 'string') {
+  hot.setDataAtCell(0, 1, value.trim());
+}
+```
+
+## 19. Dropdown editor lists are no longer confined to the grid
+
+The lists of the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md),
+[`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md),
+[`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), and
+[`multiselect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) cell types used to
+be positioned inside the grid's root element. Whenever a `height`
+was set, that root clipped its own content, so a list opened near the bottom row was cut off at the
+grid's edge. The editor tried to compensate by trimming the list to the rows that fit the space left
+inside the grid, which on a short grid left as few as two choices visible.
+
+Those lists are now positioned against the viewport. The grid's edge no longer cuts them, and they
+are no longer trimmed to fit inside it, so every choice that fits on screen is shown.
+
+### Who is affected
+
+Anyone rendering `autocomplete`, `dropdown`, `handsontable`, or `multiselect` cells, in particular:
+
+- a grid with a set `height` whose last rows carry one of those editors
+- a grid inside a parent with a fixed height and `overflow: auto` or `overflow: hidden`
+- code or tests that read the list's position, or that assert it opens above the edited cell when the
+  grid has no room below
+
+### How to migrate
+
+For the common case, nothing. The list opens in the same place and simply is not cut off.
+
+What changed in detail:
+
+- The list can now paint outside the grid's box. Whether it paints over what sits next to it
+  depends on the page: the list still belongs to the grid's stacking context, so a host page that
+  puts the grid inside its own layer keeps its own chrome on top. If the list has to stay inside a
+  specific area, size that area rather than the grid.
+- One ancestor property changes where the list is anchored, and the grid reads it for you. An
+  element with any of these becomes the box the list is laid out in, instead of the browser
+  window:
+
+  - `transform`, `translate`, `rotate`, or `scale`
+  - `perspective`
+  - `filter` or `backdrop-filter`
+  - `contain` set to `paint`, `layout`, `strict`, or `content`
+  - `will-change` naming any of the above
+
+  A centered modal written `transform: translate(-50%, -50%)` is the common case, but `scale: 0.9`
+  and `contain: content` do it too. The list is placed and bounded against that element, so it
+  cannot leave it, and a list taller than it is trimmed to fit and scrolls. Give such a container
+  room if you want the whole list visible.
+
+  A `container-type` does not do this, so a grid inside a container-query layout places its list
+  against the browser window like any other grid.
+- Whether the list opens above or below the cell is decided by the space left in the **viewport**,
+  not the space left inside the grid. A list that used to flip above the cell to fit inside a short
+  grid now opens downwards and overhangs the grid instead. Sideways placement is unchanged: it is
+  still decided by the grid's own width.
+- The list is no longer trimmed to the space inside the grid, so it can render more choices than
+  before. [`visibleRows`](@/api/options.md#visiblerows) still caps it.
+
+## 20. `spliceCol()` and `spliceRow()` are deprecated
+
+This applies only if you call [`spliceCol()`](@/api/core.md#splicecol) or
+[`spliceRow()`](@/api/core.md#splicerow) on the grid.
+
+Both methods are deprecated since 19.0.0, and each prints a one-time console warning when called.
+They still work exactly as before and will be removed in 20.0.0.
+
+Nothing else changes yet: the `spliceCol` and `spliceRow` change sources that
+[`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange)
+report are unaffected in 19.x. They go away with the methods in 20.0.0, so do not build new code
+on them.
+
+### Who is affected
+
+You are affected only if your code calls `hot.spliceCol(...)` or `hot.spliceRow(...)`.
+
+### How to migrate
+
+Change the data yourself and write it back with
+[`populateFromArray()`](@/api/core.md#populatefromarray), or use
+[`alter()`](@/api/core.md#alter) to add or remove whole rows and columns. Read the column, run
+`Array.prototype.splice()` on it, and write the shifted tail back from the same row.
+
+**Before:**
+
+```js
+// Remove the cell in column 1 at row 1, shifting the cells below it up.
+hot.spliceCol(1, 1, 1);
+```
+
+**After:**
+
+```js
+// Remove the cell in column 1 at row 1, shifting the cells below it up.
+const column = hot.getDataAtCol(1);
+const shifted = column.slice(2);
+shifted.push(null);
+hot.populateFromArray(1, 1, shifted.map(value => [value]));
+```
+
+`spliceRow()` is the same, along the row. Its `populateFromArray()` form takes a single inner array:
+
+**Before:**
+
+```js
+// Remove the cell in row 1 at column 1, shifting the cells to its right left.
+hot.spliceRow(1, 1, 1);
+```
+
+**After:**
+
+```js
+// Remove the cell in row 1 at column 1, shifting the cells to its right left.
+const row = hot.getSourceDataAtRow(1);
+const shifted = row.slice(2);
+shifted.push(null);
+hot.populateFromArray(1, 1, [shifted]);
+```
+
+## 21. A `numeric` cell aligns itself by its type, not by its value
+
+This applies only to a [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md) cell
+that can hold a value other than a number -- `null`, `undefined`, or text.
+
+Such a cell used to look and align itself as a `numeric` cell only when its value actually parsed as a
+number. A `numeric` column cell holding `null`, `undefined`, or text stayed left-aligned and carried
+neither the `htRight` nor the `htNumeric` class name, even though
+[`getCellMeta()`](@/api/core.md#getcellmeta) reported `type: 'numeric'` for it. Once a cell picked up
+those classes -- for example while its value was briefly numeric during an edit -- they also never
+went away again, so the same cell could look `numeric` or not depending on what it happened to hold in
+the past rather than on its configured type.
+
+A `numeric` cell now aligns to the right and carries `htNumeric` and `dir="ltr"` because it is
+configured `numeric`, whatever value it holds. This also changes what
+[`ExportFile`](@/api/exportFile.md) writes for the XLSX format: such a cell now exports with
+right alignment too, matching what it now renders on screen.
+
+### Who is affected
+
+- You have a `numeric` column, or a cell set to `type: 'numeric'`, that can hold `null`,
+  `undefined`, or text -- for example while a row is still loading, or before a value passes
+  validation. Those cells are now right-aligned and carry `htNumeric` on screen, and export
+  right-aligned to XLSX.
+- You read the `className` cell meta or the cell's DOM class list to tell whether a `numeric` cell
+  currently holds a number. It no longer tells you that -- check the value itself instead, for example
+  with [`isNumeric()`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md).
+- You style `numeric` cells that hold non-numeric values with a custom rule that assumed they stayed
+  left-aligned. That rule may need updating to account for the new alignment.
+
+### How to migrate
+
+Nothing to change in most cases -- the new alignment matches the cell's configured type, and a cell
+that only ever holds numbers renders the same as before.
+
+If your own code or stylesheet relied on a `numeric` cell staying unstyled while it held a non-numeric
+value, account for the `htRight`/`htNumeric` classes and the right alignment now always being present
+on such a cell.
+
+## 22. `colToProp()` and `propToCol()` return `null` for an unknown column
+
+[`colToProp()`](@/api/core.md#coltoprop) and [`propToCol()`](@/api/core.md#proptocol) used to hand
+your argument straight back when it named no column. They now return `null`, matching
+[`toVisualColumn()`](@/api/core.md#tovisualcolumn) and the other index translators.
+
+```js
+// A grid with three columns.
+
+// Before 19.0
+hot.colToProp(999); // 999
+hot.propToCol(999); // 999
+hot.colToProp(-1); //  -1
+
+// 19.0 and later
+hot.colToProp(999); // null
+hot.propToCol(999); // null
+hot.colToProp(-1); //  null
+```
+
+### Why this changed
+
+The old result could not be told apart from a real answer. On a grid whose data is an array of
+arrays, `propToCol(3)` returning `3` might mean "column 3" or "there is no such column" — and where
+the visual and physical column order had diverged, the number it returned named a *different*
+column than the one you asked about. Code that used the result as an index read or wrote the wrong
+cell, with nothing to signal it.
+
+### Who is affected
+
+You are affected if you call either method and use the result without checking it. You are not
+affected if you only ever pass indexes you know are in range.
+
+Two cases now return `null` that did not before:
+
+| Call | Before | 19.0 |
+| --- | --- | --- |
+| An index past the last column, or negative | the argument | `null` |
+| `propToCol()` for a column that is trimmed | the physical index | `null` |
+
+A property name your data does not use is still handed back unchanged — only indexes resolve.
+
+### How to migrate
+
+Check the result before using it. Use `Number.isInteger()` for `propToCol()`, not a comparison
+against [`countCols()`](@/api/core.md#countcols): `null` compares as `0`, so a `column < countCols()`
+test lets it through as if it were the first column.
+
+```js
+// Before
+const column = hot.propToCol(prop);
+
+hot.selectCell(0, column);
+
+// After
+const column = hot.propToCol(prop);
+
+if (Number.isInteger(column)) {
+  hot.selectCell(0, column);
+}
+```
+
+```js
+// Before
+const prop = hot.colToProp(column);
+
+hot.setDataAtRowProp(0, prop, 'new value');
+
+// After
+const prop = hot.colToProp(column);
+
+if (prop !== null) {
+  hot.setDataAtRowProp(0, prop, 'new value');
+}
+```
+
+### TypeScript
+
+Both declarations widened, so TypeScript reports the sites that need a check:
+
+```ts
+// Before
+propToCol(prop: string | number): number;
+colToProp(column: number): string | number;
+
+// 19.0 and later
+propToCol(prop: string | number): number | null;
+colToProp(column: number): string | number | null;
+```
+
+Under `strictNullChecks`, an assignment such as `const col: number = hot.propToCol(prop)` stops
+compiling. Narrow it once and reuse the narrowed value:
+
+```ts
+const column = hot.propToCol(prop);
+
+if (column !== null) {
+  hot.selectCell(0, column); // `column` is `number` here
+}
+```
+
+### Hooks: what did not change
+
+The change is scoped to the two methods' own return values. Every hook that used to carry a resolved
+column still carries the same value, so a listener you have today keeps working — with the one
+exception in the next section.
+
+- **`afterSelectionByProp` and `afterSelectionEndByProp`** still report `-1` for a selection that
+  starts in the headers — a row selection, a column selection, or select-all. That `-1` is a
+  selection sentinel, not an out-of-range column index, so it reaches the hook untouched.
+- **`beforeChange` and `afterChange`.** A change addressed at a column index that names no column
+  still reports that index in the changes array, not `null`.
+- **`beforeValidate`, `afterValidate` and `postAfterValidate`**, and the `prop` on the cell
+  properties every cell function receives. A cell whose column does not exist yet — auto column
+  growth resolves the meta before creating the column — still reports the index.
+
+### Other behavior that did not change
+
+- **Auto column growth.** Writing past the last column with
+  [`setDataAtCell()`](@/api/core.md#setdataatcell) still creates the missing columns when your data
+  is an array of arrays with no `columns` setting.
+- **Reading through [`getDataAtCell()`](@/api/core.md#getdataatcell)** and the copyable-data
+  getters. An out-of-range index reads back what it did before.
+- **Undo and redo** still replay a change that created a column.
+
+### `getDataAtProp()` returns an empty array for an index that names no column
+
+[`getDataAtProp()`](@/api/core.md#getdataatprop) built a column range from the resolved property.
+When a *numeric* property named no column, both ends of that range collapsed to column `0`, so the
+method handed back column 0's values for a column that does not exist. It now returns an empty
+array.
+
+```js
+// A grid with three columns and 100 rows.
+
+// Before 19.0
+hot.getDataAtProp(99); // 100 entries, all null
+
+// 19.0 and later
+hot.getDataAtProp(99); // []
+```
+
+A property name your data set does not use is unaffected — it never resolved to an index, and it
+still does not.
+
+### One hook does change
+
+[`modifyData`](@/api/hooks.md#modifydata) receives the resolved column as its second argument. When
+the property is a *numeric* index that names no column, that argument is now `null` instead of the
+index. A property name your data does not use still arrives unchanged.
+
+```js
+// Before
+modifyData(row, column, valueHolder, ioMode) {
+  // `column` was the index you passed, even when no such column existed.
+}
+
+// After
+modifyData(row, column, valueHolder, ioMode) {
+  if (column === null) {
+    return; // no such column
+  }
+}
+```
+
+The TypeScript declaration widened to match, so a callback that annotates `column` as `number`
+stops compiling:
+
+```ts
+// Before
+modifyData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
+
+// 19.0 and later
+modifyData?: (row: number, column: number | null, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
+```
+
+## 23. The `filters` option is type-checked
+
+Before 19.0, TypeScript typed the [`filters`](@/api/options.md#filters) option as `boolean | object`.
+Any object compiled, so a misspelled key or a wrong value passed the compiler and was then ignored at
+runtime. The option now has real types:
+
+- At the grid level, the object accepts only `searchMode` (`'show'` or `'apply'`), `filterFixedRows`
+  (a boolean), and `availableConditions`, which is new in 19.0. See
+  [Choose the conditions the filter menu offers](@/guides/columns/column-filter/column-filter.md#choose-the-conditions-the-filter-menu-offers).
+- Inside [`columns`](@/api/options.md#columns), `filters` is a boolean or an object that holds only
+  `availableConditions`. Of the boolean values, only `false` has ever had an effect there.
+
+Nothing changes at runtime. This section applies only if you use TypeScript.
+
+### Who is affected
+
+Your code stops compiling in one of these cases:
+
+- The grid-level `filters` object has a key other than `searchMode`, `filterFixedRows`, or
+  `availableConditions`. The grid ignored that key without a warning.
+- `searchMode` holds a value other than `'show'` or `'apply'`. The grid ignored it and logged a
+  warning.
+- A column in `columns` sets `filters` to an object with a key other than `availableConditions`.
+  The grid ignored the object and logged a warning.
+
+In each case the setting already had no effect, so fixing the error does not change what your grid
+does.
+
+A valid setting can stop compiling too, when its value has a wider type than the option accepts.
+This happens when `searchMode` comes from a variable typed `string`, for example a value read from
+a configuration file, or when the whole `filters` object is typed `Record<string, unknown>`. Give the
+value a narrower type:
+
+```ts
+// Before: `searchMode` is a `string`, which 19.0 rejects
+const config = { searchMode: 'apply' };
+
+// After: `as const` keeps the literal type `'apply'`
+const config = { searchMode: 'apply' } as const;
+```
+
+### How to migrate
+
+Correct or remove the key that the compiler rejects:
+
+```ts
+// Before: this compiled, and the misspelled key did nothing
+filters: {
+  searchmode: 'apply',
+},
+
+// After
+filters: {
+  searchMode: 'apply',
+},
+```
+
+Move a per-column object to the grid level, where its options are read:
+
+```ts
+// Before: this compiled, but the grid ignored the object and logged a warning
+columns: [
+  { filters: { filterFixedRows: false } },
+],
+
+// After
+filters: {
+  filterFixedRows: false,
+},
+```
+
+To type a settings object that you build separately, use the exported type:
+
+```ts
+import Handsontable from 'handsontable';
+
+const filtersSettings: Handsontable.plugins.Filters.Settings = {
+  searchMode: 'apply',
+};
+```
+
+## 24. Undo and redo restore a recorded state
+
+The [`UndoRedo`](@/api/undoRedo.md) plugin used to undo an action by running a reverse action: it removed the row an insert added, sorted the rows back, or re-applied the previous filter. Each reverse action recalculated the grid, so a row that had moved, a trimmed row, or a sorted order could send a value to the wrong row.
+
+Now UndoRedo stores the grid state before and after each action, and a record of the values and the cell metadata the action changed. An undo puts back the state from before the action, and a redo puts back the state from after it. The action does not run again.
+
+This changes the following:
+
+- **With `undo: false`, nothing is recorded, so the plugin's [`undo()`](@/api/undoRedo.md#undo) and [`redo()`](@/api/undoRedo.md#redo) do nothing.** Before, the plugin recorded changes even with `undo: false`, and only its keyboard shortcuts were off, so an app could call `undo()` from its own buttons.
+- More actions are undoable: hiding, showing, and trimming rows and columns, resizing, freezing, collapsing nested rows and column headers, custom borders, comments, the pagination page and page size, and cell metadata written with [`setCellMeta()`](@/api/core.md#setcellmeta). The full list is in [Undo and redo](@/guides/accessories-and-menus/undo-redo/undo-redo.md#what-undoredo-tracks).
+- Changes your app makes through the API are recorded from the moment the grid exists, including the ones that set it up: a `setCellMeta()` call, hidden rows, a page, or a column width set after `new Handsontable()`. The first undo then reverts your setup.
+- Every call inside [`batch()`](@/api/core.md#batch) or [`batchExecution()`](@/api/core.md#batchexecution) is one undo step, with the `'batch'` action type. The new [`runOperation()`](@/api/core.md#runoperation) method groups calls the same way.
+- An undo or a redo writes values straight to the source data. [`beforeChange`](@/api/hooks.md#beforechange) and the cell's `valueSetter` do not run. [`afterChange`](@/api/hooks.md#afterchange) runs once, with the `UndoRedo.undo` or `UndoRedo.redo` source. The restored visible cells are validated again, and only their `valid` state changes.
+- The action's own hooks do not run on an undo or a redo, so they cannot cancel it: for example [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort), [`beforeFilter`](@/api/hooks.md#beforefilter), [`beforeRowMove`](@/api/hooks.md#beforerowmove), and [`beforeMoveCells`](@/api/hooks.md#beforemovecells). Returning `false` from `beforeMoveCells` no longer blocks the redo of a cell move.
+- A `beforeMoveCells` listener that returns anything other than `undefined` or the range it received cancels the move, whether or not UndoRedo is on. Before, with the default `undo: true`, the UndoRedo plugin's own listener canceled such a move. With `undo: false`, only `false` did.
+- A row or column hook that returns `false` during an undo, such as [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow), cancels the whole undo. The grid is put back as it was, and the step stays on its stack. [`beforeUndo`](@/api/hooks.md#beforeundo) has fired, and [`afterUndo`](@/api/hooks.md#afterundo) does not fire. The exception is a replayed removal that removes a different number of rows or columns than it recorded, for example because a listener removes more rows along with them: the undo stops there, and the rows that removal took are not put back.
+- Returning `false` from `beforeUndo` keeps the step on the undo stack, the way returning `false` from [`beforeRedo`](@/api/hooks.md#beforeredo) keeps a step on the redo stack. Before, a canceled undo removed the step for good. The stack hooks, such as [`afterUndoStackChange`](@/api/hooks.md#afterundostackchange), no longer fire for a canceled undo.
+- `beforeUndo` and `beforeRedo` fire before the stack hooks. So in `beforeUndo`, the plugin's `doneActions` array still holds the step. Before, the step was taken off the stack first.
+- The undo hooks receive the step object that the stack holds, not a copy. A listener that changes it changes the stored step.
+- The action hooks and the undo stacks hold plain step objects. A step no longer has `undo()` and `redo()` methods, and the internal properties are gone:
+  - `'change'`: `countCols`, `countRows`, `countSourceRows`, `mergedCells`, `physicalRows`, and `props`.
+  - `'remove_row'`: `fixedRowsTop`, `fixedRowsBottom`, `removedCellMetas`, `removedMergedCells`, `removedHiddenRows`, `rowIndexesSequence`, and the `nested...` properties.
+  - `'remove_col'`: `columnPositions`, `rowPositions`, `fixedColumnsStart`, `removedCellMetas`, and `removedMergedCells`.
+  - `'move_cells'`: `data`, `meta`, `fromRow`, `fromCol`, `toRow`, `toCol`, `sourceSnapshot`, and `targetSnapshot`. It has `sourceRange` and `targetRange` instead.
+  - `'nested_rows_detach'`: `amount`, `rowPath`, `detachedRowPath`, `formulasUndoRedoSteps`, and `removeAction`.
+
+  Every step recorded by the grid now has `source`, `operations`, and `sources`. A `cellRange`, `range`, or `ranges` field holds plain objects with the same coordinates, not [`CellRange`](@/api/cellRange.md) instances, so it has no methods.
+- An edit that waits for an asynchronous validator is recorded when the validation finishes. When two edits overlap, the undo stack holds them in the order they finished.
+- An action that changed the grid before it started to wait for a validator, such as a `batch()` that removes a row and then edits a validated cell, keeps the grid until the validation finishes. Anything changed in that time is part of its step, so one undo reverts both. A validator that throws an error ends the wait, and the step keeps what the action did before the error.
+- While such an action waits for its validator, [`isUndoAvailable()`](@/api/undoRedo.md#isundoavailable) and [`isRedoAvailable()`](@/api/undoRedo.md#isredoavailable) return `false`, and `undo()` and `redo()` do nothing. An edit on its own does not block them.
+- What a validator or an [`afterValidate`](@/api/hooks.md#aftervalidate) listener changes while an edit is validated is part of that edit's step: for example a value the validator corrects, or cell metadata the listener sets. Before, each such change was an undo step of its own, recorded after the edit.
+- [`updateData()`](@/api/core.md#updatedata) clears both stacks, as [`loadData()`](@/api/core.md#loaddata) always did. Turning on or turning off a plugin that keeps its own index map at runtime clears them too: for example [`HiddenRows`](@/api/hiddenRows.md), [`HiddenColumns`](@/api/hiddenColumns.md), [`TrimRows`](@/api/trimRows.md), the sorting plugins, or [`Filters`](@/api/filters.md). The move plugins do not. The stack hooks announce each of these drops.
+- A [`columns`](@/api/options.md#columns) settings update keeps the history. It drops a step that changed something on a column whose field changed or is gone -- a cell's metadata, a hidden or frozen column, a merge, or a filter -- together with every step that can only be undone or redone after it. Once `columns` is set, it also drops a step that inserted or removed columns. An edit is recorded by field, so a `columns` update never drops it on its own, only together with such a step. A column whose `data` is a function your app creates again on every render, such as an inline function in a React component, reads as a new field on every update, so each render drops the steps that changed something on that column. The stack hooks announce the drop.
+- With the [`Formulas`](@/api/formulas.md) plugin, the grid no longer calls HyperFormula's `undo()` and `redo()`. The grid restores the formulas itself and updates the engine to match. When several grids share one engine, an undo also puts back the formulas that the step changed in the other grids' sheets and in named expressions. A formula edited since the step keeps its new text, and the grid logs a warning.
+
+### Who is affected
+
+Everyone who uses the [`UndoRedo`](@/api/undoRedo.md) plugin, and everyone who sets [`undo: false`](@/api/options.md#undo) but calls the plugin's `undo()` or `redo()`. The change to `beforeMoveCells` applies with `undo: false` too. Check your code if you:
+
+- set `undo: false` to turn off the keyboard shortcuts, and undo from your own buttons
+- change the grid through the API right after you create it
+- use `beforeChange`, a `valueSetter`, or an action hook such as `beforeColumnSort` to change or block what an undo writes
+- read a step's properties in `beforeUndo`, `afterUndo`, `beforeRedo`, `afterRedo`, or the stack hooks, or read `doneActions` or `undoneActions`
+- call a `CellRange` method on a step's `cellRange`, `range`, or `ranges`
+- register a change to the grid with [`done()`](@/api/undoRedo.md#done)
+- call HyperFormula's `undo()` or `redo()` on an engine that a grid is connected to
+- expect an undo to reach across `updateData()`
+- run several changes in `batch()` or `batchExecution()` and expect each one to be undone separately
+
+### How to migrate
+
+- **Undo from your own buttons, without the keyboard shortcuts.** Keep `undo: true`, and remove the shortcuts you do not want:
+
+  ```js
+  const gridContext = hot.getShortcutManager().getContext('grid');
+
+  gridContext.removeShortcutsByKeys(['Control/Meta', 'z']);
+  gridContext.removeShortcutsByKeys(['Control/Meta', 'y']);
+  gridContext.removeShortcutsByKeys(['Control/Meta', 'Shift', 'z']);
+  ```
+
+- **Setup calls.** Call `hot.getPlugin('undoRedo').clear()` after the code that sets the grid up, or move the setup into the grid's settings.
+- **Blocking or changing an undo.** Move the logic from `beforeChange` or an action hook to [`beforeUndo`](@/api/hooks.md#beforeundo) and [`beforeRedo`](@/api/hooks.md#beforeredo). They receive the step, including its `actionType`, and return `false` to cancel it. To react to restored values, listen to `afterChange` and check for the `UndoRedo.undo` and `UndoRedo.redo` sources.
+- **Reading step properties.** Use `actionType`, `source`, and the properties listed in [Hooks and stack lifecycle](@/guides/accessories-and-menus/undo-redo/undo-redo.md#hooks-and-stack-lifecycle). Do not call `undo()` or `redo()` on a step. Call the plugin's [`undo()`](@/api/undoRedo.md#undo) and [`redo()`](@/api/undoRedo.md#redo) instead. Treat the step as read-only. To read the stack after the step left it, listen to `afterUndoStackChange`.
+- **Ranges.** Read the coordinates of a step's `cellRange`, `range`, or `ranges` directly, for example `step.cellRange.from.row` and `step.cellRange.to.col`.
+- **Custom actions.** Remove `done()` calls that record a change to the grid, such as a `setCellMeta()` call. UndoRedo records the change already, so keeping the `done()` call makes the change take two undo steps. Keep `done()` for state outside the grid.
+- **HyperFormula.** Remove calls to the engine's `undo()` and `redo()`, and call the grid's undo and redo instead.
+- **Separate steps inside `batch()` or `batchExecution()`.** Move the calls you want to undo one by one out of the batch.
+- **A long session.** To cap the memory the history uses, set `undo: { maxHistory: <number> }`. By default, the stack has no size limit, as before.
+
+## 25. `maxLength` is a built-in cell option
+
+Handsontable now reads the [`maxLength`](@/api/options.md#maxlength) option. A cell with a finite `maxLength` stops the user from typing or pasting more characters than the limit allows, and marks a longer value as invalid. Until now, Handsontable ignored a `maxLength` key and kept it in the cell settings like any other custom key. This section applies only if your app already uses that key.
+
+### What changed
+
+When a cell has a finite `maxLength`:
+
+- The text editor, and any custom editor that extends it, stops typing and pasting at the limit. The `autocomplete`, `dropdown`, and `handsontable` editors cap what the user types in the same way, while the editors of the other cell types, such as numeric, date, and password, don't limit input.
+- The cell validator marks a string value that is longer than the limit as invalid. The length check runs before your own [`validator`](@/api/options.md#validator), and your validator isn't called for a value that is too long.
+- The limit counts the characters a reader sees (a flag or an emoji with a skin tone is one character), and it counts the value after [`trimWhitespace`](@/api/options.md#trimwhitespace) is applied.
+- The cell has a validator, so every write to it is validated asynchronously. [`setDataAtCell()`](@/api/core.md#setdataatcell) applies the value after the validation finishes, and [`getDataAtCell()`](@/api/core.md#getdataatcell) returns the previous value until then.
+
+### Who is affected
+
+Apps that set `maxLength` on the grid, in [`columns`](@/api/options.md#columns), in [`cells`](@/api/options.md#cells) or [`cell`](@/api/options.md#cell), or with [`setCellMeta()`](@/api/core.md#setcellmeta), and read it in their own validator, editor, or renderer. A rule of your own that counts UTF-16 units, or that trims the value first, can now reject a value that it accepted before, because the built-in check runs first.
+
+### How to migrate
+
+- **Rename your key.** Use a name that Handsontable doesn't read, such as `maxChars`, in your settings and in the code that reads it, for example `this.maxChars` in a validator or `cellProperties.maxChars` in an editor or renderer.
+- **Or use the built-in option.** Remove your own length validator and keep `maxLength`. Set [`allowInvalid`](@/api/options.md#allowinvalid) to `false` if the grid must reject a value that is too long.
+- **Turn the built-in limit off for a cell.** Set `maxLength: Infinity` on that column or cell and keep your own limit under another key.
+
+## 26. The narrowest column width depends on the theme
+
+**This section can change the width a column ends up with.** A column resized by dragging or by [`setManualSize()`](@/api/manualColumnResize.md#setmanualsize) could be as narrow as `20px`. At that width the header's menu button didn't fit, so it hung over the neighboring header, and the label and the sort indicator pushed it out of its own cell.
+
+### What changed
+
+When the column headers render the menu button, which means the grid shows column headers (with [`colHeaders`](@/api/options.md#colheaders) or [`nestedHeaders`](@/api/options.md#nestedheaders)) and [`dropdownMenu`](@/api/options.md#dropdownmenu) is enabled, the narrowest width is now the room the header needs for that button: the icon size plus the horizontal cell padding on both sides (`--ht-icon-size + 2 × --ht-cell-horizontal-padding`). Any other grid has no button to protect and keeps the `20px` minimum.
+
+| Theme   | Narrowest width before | Narrowest width now, with the menu button |
+| ------- | ---------------------- | ----------------------------------------- |
+| Main    | 20px                   | 32px                                      |
+| Horizon | 20px                   | 40px                                      |
+| Classic | 20px                   | 24px                                      |
+
+The new minimum applies when you resize a column by dragging, when you double-click the resize handle to fit the column to its content, and when you call [`setManualSize()`](@/api/manualColumnResize.md#setmanualsize) or [`setManualSizes()`](@/api/manualColumnResize.md#setmanualsizes). The methods store the minimum for any smaller width, and `setManualSize()` returns it. A theme can declare the two values in any unit: Handsontable resolves them in the browser, so `rem`, `em`, and `calc()` count the same as `px`. The minimum is never less than `20px`, which is also what you get when the theme doesn't declare the values or the grid isn't rendered yet.
+
+As a column gets narrow, its header now gives things up in a fixed order: the label text, then the sort indicator, and the menu button last. The sort indicator of a column that has a menu button is hidden below `2 × --ht-cell-horizontal-padding + 2 × --ht-icon-size + 6px`, which is 54px in Main, 62px in Horizon, and 42px in Classic. That is above the minimum width, so a sorted column of that width shows no arrow (and no sort order number with [`multiColumnSorting`](@/api/multiColumnSorting.md)) where it used to. The label gives up room to the menu button earlier still, as soon as the column can't hold both. The menu button stays inside its own header at every width the user can reach. At the minimum width the label is gone, so a click on the header text can't sort the column. You can still sort with the [`sort()`](@/api/columnSorting.md#sort) method, or with <kbd>**Enter**</kbd> on the header when [`navigableHeaders`](@/api/options.md#navigableheaders) is enabled.
+
+These widths don't change:
+
+- A width you declare in the [`manualColumnResize`](@/api/options.md#manualcolumnresize) array, in [`colWidths`](@/api/options.md#colwidths), or in a column's `width`. Handsontable doesn't clamp them.
+- A width that [`autoColumnSize`](@/api/autoColumnSize.md) or column stretching calculates. The exception is the double-click on the resize handle, which stores the fitted width as a manual width, so it can't go below the minimum.
+- A width that is already stored. Handsontable applies the minimum when it writes a width, not when it reads one, so a theme change never rewrites stored widths. Writing a stored width back through `setManualSizes()` applies the minimum again. The [`sheetsBar`](@/api/sheetsBar.md) plugin does that when you switch sheets, so a width below the minimum that came from the `manualColumnResize` array comes back as the minimum after you leave a sheet and return.
+
+### Who is affected
+
+- Apps with the dropdown menu enabled where users resize columns and rely on a column getting as narrow as `20px`. A grid without column headers or without the menu isn't affected, so a narrow spacer or icon column in such a grid keeps working.
+- Apps with the dropdown menu enabled that call `setManualSize()` or `setManualSizes()` with a width below the new minimum, and apps that restore saved widths through `setManualSizes()`. They now store the minimum.
+- Apps and tests that read `getManualSize()` or the rendered header width after such a call and expect `20`.
+- Apps with their own CSS for the header layout, which targets `.colHeader.columnSorting.sortAction` or the `column-gap` of `.relative.has-header-button`. The built-in rules now shrink those in a narrow header.
+
+### How to migrate
+
+- **Update the expected width.** Read the minimum from the theme instead of hard-coding it: `parseFloat(style.getPropertyValue('--ht-icon-size')) + 2 * parseFloat(style.getPropertyValue('--ht-cell-horizontal-padding'))`, where `style` is the computed style of the grid's root element.
+- **Keep saved widths.** You don't need to migrate them. A saved width that you restore through `setManualSizes()` is stored as the minimum when it's below it, and unchanged when it's at or above it.
+- **Need a narrower column anyway?** Turn the dropdown menu off, or declare the width in the `manualColumnResize` array or in `colWidths`. These widths aren't clamped, but the header can't fit the menu button in a column narrower than the minimum.
+
+## 27. Icons are rendered as `<i>` elements
+
+Every built-in icon used to be a CSS `::before`/`::after` pseudo-element, generated from an `iconsMap` stylesheet. It's now a real DOM element: `<i class="ht-icon ht-icon-<name>" aria-hidden="true"></i>`, inserted into the cell, header, or menu item it belongs to. The glyph still comes from a `--ht-icon-<name>` CSS variable, applied by an unscoped `.ht-icon-<name>` rule.
+
+### Who is affected
+
+- You style a built-in icon with a `::before` or `::after` selector, such as `.changeType::before` or `.ht-page-next::before`.
+- Your tests assert on the DOM structure of a cell, header, or menu item that contains an icon -- for example, counting child elements, or using `:first-child`.
+- Your own CSS has a bare `i` rule, or a selector such as `td.querySelector('i')`, that could now match a Handsontable icon it wasn't written for.
+- You use `.ht-multi-select-editor-search-icon` to style the multi-select editor's search icon. In 18.1 the icon was a `<div>` with that class, already painted from a mask. It's now an `<i class="ht-icon ht-icon-search">` element that keeps the class as a legacy hook. A selector that names the `div` no longer matches. To change the glyph, override `--ht-icon-search`.
+- You build your own markup that reuses one of Handsontable's own input classes for its styling -- `htUIRadio` or `htCheckboxRendererInput` are the two that carried a glyph. Both used to get that glyph from CSS alone (a pseudo-element on the input); now the glyph is a separate `<i class="ht-icon ht-icon-<name>">` element, inserted as the input's next sibling only by Handsontable's own components. Markup you build by hand -- for example, a custom cell renderer that copies these classes for their look -- renders the input with no glyph and nothing tells you why: no error, no console warning, only a missing dot or check mark. Add the icon element yourself, as a sibling immediately after the input, to get it back.
+- You select or style the elements inside a `checkbox` cell. The input and its tick now share a wrapper: `span.htCheckboxRendererBox > input.htCheckboxRendererInput + i.ht-icon.ht-icon-checkbox`. The wrapper sits where the bare input used to be, before or after the label, so the cell has the same number of children as in 18.1. `td.querySelector('input')` and `input + .ht-icon` selectors still match. Code that treats the cell's first child as the input gets the wrapper instead -- use `querySelector('input')`. If a custom renderer hides the input, hide the wrapper too (or the icon, through `.htCheckboxRendererInput + .ht-icon`), or the tick stays visible on its own.
+- You compare screenshots of the multi-select editor's option list. The gap between a checkbox and its label is now one `--ht-gap-size`, on the label's inline-start side, in both LTR and RTL. In 18.1 the list set a physical left padding, so an RTL list had no gap at all.
+- You read or select the Filters condition dropdown's caption by its own text content. The caption's text now lives in a `<span class="htUISelectCaptionLabel">` child; see [The Filters caption text moved into a child element](#the-filters-caption-text-moved-into-a-child-element) below.
+- You pass a string icon value through the Theme API's `icons` parameter. In 18.1, every string was a glyph, wrapped in `url(...)`. In 19.0, a string can also be a class list for an icon font. Markup, `data:`/`http(s):`/`blob:` URLs, absolute and `./`/`../` paths, `url(...)`, and a file name with an image extension (a query string or fragment included, such as `icons/check.svg?v=2`) are still glyphs. A relative path with no file extension, such as `icons/check`, is now a class list and paints nothing -- start it with `./` or wrap it in `url(...)`. See [How a string value is read](@/guides/styling/themes/themes.md#how-a-string-value-is-read).
+- You import `iconsMap` from `handsontable/themes/static/variables/helpers/iconsMap` to generate icon CSS for a custom theme. The pseudo-element selectors it generated no longer exist, so it's deprecated and will be removed in 20.0.0. Until then, it logs a one-time warning and returns the `iconStyles()` output: the `--ht-icon-*` variables and the `.ht-icon-<name>` rules that paint the icon elements. Switch to `iconStyles(icons, scopeSelector)` from `handsontable/themes/static/variables/helpers/iconStyles`, which takes a full scope selector (such as `.ht-theme-main`) instead of a theme class prefix.
+- You render a grid whose `layoutDirection` disagrees with the page's `dir` attribute. Mirrored icons (pagination and sheets bar arrows, the submenu arrow) now follow the grid's own direction. Before, the pagination arrows followed any `dir="rtl"` ancestor of the icon, through the `[dir="rtl"]` prefix in the icon stylesheet, so an LTR grid on an RTL page mirrored them. That was a defect, and it no longer happens.
+- You mirror icons for RTL yourself, or compare RTL screenshots pixel by pixel. The RTL submenu arrow used to be flipped with `rotate(180deg)`, which also flipped it vertically. It now mirrors with `scaleX(-1)`, which flips only horizontally, so it sits about 0.5px higher than in 18.1. The RTL pagination arrows used to swap to the opposite glyph. They now mirror the same glyph with `scaleX(-1)`, which can move them by a fraction of a pixel. No Filters arrow is mirrored. The hidden-column carets still turn with `rotate(180deg)`.
+- You add an `afterGetColHeader` or `afterGetRowHeader` hook that rewrites the header cell through `TH.innerHTML`. The hidden-column and hidden-row carets are now children of the header cell, and your hook runs after the plugin's, so rewriting the whole cell removes them. The `beforeHiddenColumn`/`afterHiddenColumn` (and `beforeHiddenRow`/`afterHiddenRow`) classes stay on the cell. Write into the header's `.colHeader` label instead of the whole cell to keep the carets.
+- You load a `-no-icons` theme bundle and render `checkbox` cells. The checkbox used to fall back to a native checkbox there. It now renders the theme's styled box with no tick, because its `appearance: none` moved into the base stylesheet. The Filters "Filter by value" list changes the same way. Load the matching icon file to get the tick back: `ht-icons-main.css` for the main and classic themes, `ht-icons-horizon.css` for horizon.
+- You load a `-no-icons` theme bundle and use pagination or the sheets bar. Their buttons now hold an empty `.ht-icon` element, and the base `.ht-icon` rule in `handsontable.css` sizes it to `--ht-icon-size` (16px by default). So an icon-less button keeps the size it has with icons, instead of collapsing to its padding, as the pagination buttons did in 18.1.
+- **Your TypeScript code reads the theme's `icons` config. This is a type-level breaking change.** A value in `getThemeConfig().icons` is now typed `string | IconRenderer` (a renderer callback is a valid value), so code that passes it where a `string` is expected stops compiling -- narrow it with `typeof value === 'string'` first. `IconKey` also gained `chipClose`, `search`, `plus`, and `menuList`, so an exhaustive `switch` over `IconKey` needs four more cases.
+
+### The Filters caption text moved into a child element
+
+The Filters condition dropdown's caption (`.htUISelectCaption`) used to hold its text directly. It now holds a `<span class="htUISelectCaptionLabel">` with the text, followed by the caret icon element. This is a DOM-structure change that ships with the icon change because the caret became a child of the caption: writing the caption's text through `textContent` would have removed the icon on every condition change.
+
+Code that reads the caption through `textContent` still gets only the text when the caret is a built-in mask glyph, because the icon element holds no text. An icon mapped to a ligature font or a renderer callback that writes text adds its characters to the caption's `textContent`. To read the label alone, read `.htUISelectCaptionLabel`. Code that assumes the caption has no child elements, or that reads its first text node, needs to target `.htUISelectCaptionLabel` instead.
+
+### The new element can collide with your own selectors
+
+Icons are inserted into cells and headers, and in some renderers they are inserted **before** the existing content. A selector written before this change, when a cell or header held no extra child element, can now resolve to a Handsontable icon instead of what you meant:
+
+- `td.querySelector('i')` can return the icon instead of your own `<i>` element.
+- A bare `i { ... }` rule in your stylesheet now also styles every icon.
+- `:first-child`, or an index-based child selector, can point at the icon instead of your content.
+
+Exclude icons from such a selector, or scope it to the element you actually mean:
+
+```css
+/* Before: also matches Handsontable's own icons. */
+td i {
+  color: red;
+}
+
+/* After: excludes them. */
+td i:not(.ht-icon) {
+  color: red;
+}
+```
+
+### How to migrate
+
+Replace a pseudo-element selector with the matching `.ht-icon-<name>` class, or override the icon's `--ht-icon-<name>` CSS variable to change only its glyph. Both are documented in [Icons](@/guides/styling/themes/themes.md#icons) in the Themes guide.
+
+The table below lists every selector the old `iconsMap` stylesheet generated and its replacement. A `[dir="rtl"]`-prefixed selector used to point at a different, mirrored icon; that pairing no longer exists; the single new class mirrors itself when the grid's `layoutDirection` is RTL.
+
+| Old selector | New selector |
+| --- | --- |
+| `.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper::after`, `.htContextMenu table tbody tr td.htSubmenu .htItemWrapper::after`, `.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper::after` | `.ht-icon-arrow-right` |
+| `.ht-page-size-section__select-wrapper::after` | `.ht-icon-arrow-down` |
+| `.changeType::before` | `.ht-icon-menu` |
+| `.htUISelectCaption::after`, `.htAutocompleteArrow::after` | `.ht-icon-select-arrow` |
+| `.columnSorting.sortAction.ascending::before` | `.ht-icon-arrow-narrow-up` |
+| `.columnSorting.sortAction.descending::before` | `.ht-icon-arrow-narrow-down` |
+| `.ht-page-navigation-section .ht-page-first::before` (and its `[dir="rtl"]` pair) | `.ht-icon-arrow-left-with-bar` |
+| `.ht-page-navigation-section .ht-page-prev::before` (and its `[dir="rtl"]` pair) | `.ht-icon-arrow-left` |
+| `.ht-page-navigation-section .ht-page-next::before` (and its `[dir="rtl"]` pair) | `.ht-icon-arrow-right` |
+| `.ht-page-navigation-section .ht-page-last::before` (and its `[dir="rtl"]` pair) | `.ht-icon-arrow-right-with-bar` |
+| `.htDropdownMenu table tbody tr td .htItemWrapper span.selected::after`, `.htContextMenu table tbody tr td .htItemWrapper span.selected::after`, `.htFiltersConditionsMenu table tbody tr td .htItemWrapper span.selected::after` | `.ht-icon-check` |
+| `.htCheckboxRendererInput::after` | `.ht-icon-checkbox` |
+| `th.beforeHiddenColumn::after` | `.ht-icon-caret-hidden-left` |
+| `th.afterHiddenColumn::before` | `.ht-icon-caret-hidden-right` |
+| `th.beforeHiddenRow::after` | `.ht-icon-caret-hidden-up` |
+| `th.afterHiddenRow::before` | `.ht-icon-caret-hidden-down` |
+| `.collapsibleIndicator::before`, `.ht_nestingButton::before` | `.ht-icon-collapse-off` |
+| `.collapsibleIndicator.collapsed::before`, `.ht_nestingButton.ht_nestingExpand::before` | `.ht-icon-collapse-on` |
+| `.htUIRadio > input[type="radio"]::after` | `.ht-icon-radio` |
+| `.ht-multi-select-chip-remove::before` | `.ht-icon-chip-close` |
+| `.ht-notification__close::before` | `.ht-icon-chip-close` |
+| `.ht-multi-select-editor-item-selected input::after` | `.ht-icon-checkbox` |
+| `.ht-multi-select-editor-search-icon` (a class on the search icon's own element, not a pseudo-element; kept on the new element as a legacy class) | `.ht-icon-search` |
+
+The sheets bar and the mixed-state menu mark are new in 19.0, so no 18.1 selector exists for them. Their icons use the same classes: `.ht-icon-plus` (add sheet), `.ht-icon-menu-list` (all sheets), `.ht-icon-select-arrow` (tab chevron), `.ht-icon-arrow-left` and `.ht-icon-arrow-right` (tab paging), `.ht-icon-check` (the selected sheet), and `.ht-icon-collapse-off` (a mixed-state menu item).
+
+For example, a rule that used to read:
+
+```css
+.changeType::before {
+  background-color: blue;
+}
+```
+
+now targets the icon element directly:
+
+```css
+.changeType .ht-icon-menu {
+  background-color: blue;
+}
+```
+
+The descendant form works here because the menu icon is a child of the `.changeType` button. Not every icon is a descendant of the element its old pseudo-element hung on. The sort arrow is a following sibling of the `.colHeader` label, so target it with `~`, as in `.columnSorting.sortAction ~ .ht-icon`. The checkbox, radio, and multi-select editor ticks are the next sibling of their input, so target them with `+`, as in `.htCheckboxRendererInput + .ht-icon`. An input can't hold children, so a descendant selector such as `.htCheckboxRendererInput .ht-icon` never matches.
+
+To change only the glyph and keep the built-in color and mask behavior, override the CSS variable instead, scoped to the theme class:
+
+```css
+.ht-theme-main .changeType .ht-icon-menu {
+  --ht-icon-menu: url("/icons/menu.svg");
+}
+```
+
+## 28. Frozen columns can be dragged, and the unfreeze hooks get a target
+
+This applies if you use [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) together with [`manualColumnMove`](@/api/options.md#manualcolumnmove), if you listen to the column freeze and unfreeze hooks, or if you assert on the arguments of the unfreeze hooks in your tests.
+
+### Frozen columns can be dragged
+
+Once a column had been frozen with the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin, the plugin refused two kinds of moves: dropping a column in front of the frozen columns, and moving a frozen column. A grid configured with [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart) never refused them, so the same drag worked or failed depending on how the columns got frozen.
+
+The plugin no longer refuses either move. Freezing works by position, as it does with `fixedColumnsStart`: the first `fixedColumnsStart` columns are frozen, whichever columns they are. When you drop a column in front of a frozen column, the dropped column becomes frozen, and the last frozen column becomes scrollable. When you drag a frozen column out of the frozen area, the next column becomes frozen. The number of frozen columns stays the same.
+
+If you used `manualColumnFreeze` to pin a key column in place, users can now drag it out, and drop other columns in front of it.
+
+To keep the old lock, reject those moves in the [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) hook. Return `false` to reject a move, and return nothing otherwise, because any other value is passed on to the next `beforeColumnMove` handler:
+
+```js
+beforeColumnMove: function(movedColumns, finalIndex) {
+  const frozenCount = this.getSettings().fixedColumnsStart ?? 0;
+
+  if (finalIndex < frozenCount || movedColumns.some((column) => column < frozenCount)) {
+    return false;
+  }
+},
+```
+
+### A drag changes the frozen columns without firing the freeze hooks
+
+Dragging a column across the freeze line changes which columns are frozen, but it fires the [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) and [`afterColumnMove`](@/api/hooks.md#aftercolumnmove) hooks, not the column freeze and unfreeze hooks. If you track the frozen columns through [`afterColumnFreeze`](@/api/hooks.md#aftercolumnfreeze) and [`afterColumnUnfreeze`](@/api/hooks.md#aftercolumnunfreeze), also read them in `afterColumnMove`. The number of frozen columns is `getSettings().fixedColumnsStart`, and the order is in `getColHeader()` or the [column index mapper](@/guides/columns/column-moving/column-moving.md).
+
+### The unfreeze hooks get a third argument
+
+[`beforeColumnUnfreeze`](@/api/hooks.md#beforecolumnunfreeze) and [`afterColumnUnfreeze`](@/api/hooks.md#aftercolumnunfreeze) now receive `finalIndex`, the visual index the column moves to. It is the position right after the remaining frozen columns, or the restored position when you set the new `restoreColumnPosition` option of `manualColumnFreeze`. When nothing is unfrozen, it equals the column index.
+
+A listener that declares two parameters keeps working. Two things notice the new argument:
+
+- A test that asserts the exact arguments, such as `toHaveBeenCalledWith(column, performed)`, now needs the third one.
+- TypeScript code that calls a stored unfreeze callback with two arguments, such as `getSettings().beforeColumnUnfreeze?.(column, true)`, fails with `TS2554`, because `finalIndex` is declared as required.
+
+### The new `restoreColumnPosition` option
+
+[`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) now accepts an object. Set `restoreColumnPosition` to `true` to move an unfrozen column back to its place in the data source order. The default placement, right after the frozen columns, does not change. Read more in the [column freezing](@/guides/columns/column-freezing/column-freezing.md#restore-the-column-position-on-unfreeze) guide.
+
+## 29. License keys are checked more strictly
+
+Handsontable 19.0 checks an entitlement license key more strictly than Handsontable 18.1. A key that 18.1 accepts in a shortened or changed form can read as invalid in 19.0, and an invalid key shows the lock screen over the grid.
+
+### Who is affected
+
+You are affected only if you use an [entitlement license key](@/guides/getting-started/license-key/license-key.md#entitlement-license-keys) (plain-English text followed by a bracketed block) and you pass it in another form than the one you received. For example:
+
+- You pass only the bracketed block, without the text in front of it.
+- You changed the text of the key.
+- Something follows the bracketed block, such as an email signature or a closing quote.
+
+Keys in the 25-character format, and `'non-commercial-and-evaluation'`, are not affected.
+
+### How to migrate
+
+Before you upgrade, check the [`licenseKey`](@/api/options.md#licensekey) value you pass. Pass the whole key, exactly as you received it - the text and the bracketed block, with nothing after the block. Spaces and line breaks in the key are ignored, so a key that an email client wrapped across lines keeps working. For where to keep the key, see [License key](@/guides/getting-started/license-key/license-key.md#entitlement-license-keys).

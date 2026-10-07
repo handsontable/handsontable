@@ -1,17 +1,34 @@
 /**
- * @typedef {'top'|'bottom'|'inline_start'|'top_inline_start_corner'|'bottom_inline_start_corner'} CLONE_TYPES_ENUM
+ * @typedef {'top'|'bottom'|'inline_start'|'inline_end'|'top_inline_start_corner'|'bottom_inline_start_corner'|
+ * 'top_inline_end_corner'|'bottom_inline_end_corner'} CLONE_TYPES_ENUM
  */
 export const CLONE_TOP = 'top';
 export const CLONE_BOTTOM = 'bottom';
 export const CLONE_INLINE_START = 'inline_start';
+export const CLONE_INLINE_END = 'inline_end';
 export const CLONE_TOP_INLINE_START_CORNER = 'top_inline_start_corner';
 export const CLONE_BOTTOM_INLINE_START_CORNER = 'bottom_inline_start_corner';
+export const CLONE_TOP_INLINE_END_CORNER = 'top_inline_end_corner';
+export const CLONE_BOTTOM_INLINE_END_CORNER = 'bottom_inline_end_corner';
 export const CLONE_TYPES = [
   CLONE_TOP,
   CLONE_BOTTOM,
   CLONE_INLINE_START,
+  CLONE_INLINE_END,
   CLONE_TOP_INLINE_START_CORNER,
   CLONE_BOTTOM_INLINE_START_CORNER,
+  CLONE_TOP_INLINE_END_CORNER,
+  CLONE_BOTTOM_INLINE_END_CORNER,
+];
+
+/**
+ * The clones that render the last columns of the grid (`fixedColumnsEnd`). They draw no row headers:
+ * row headers belong to the inline-start clone only.
+ */
+export const INLINE_END_CLONE_TYPES = [
+  CLONE_INLINE_END,
+  CLONE_TOP_INLINE_END_CORNER,
+  CLONE_BOTTOM_INLINE_END_CORNER,
 ];
 
 /**
@@ -108,10 +125,27 @@ export const RESIZE_LOOP_GUARD_RECONNECT_DELAY = 2000;
  */
 export const RESIZE_LOOP_GUARD_RECONNECT_MAX_DELAY = 30000;
 
+/**
+ * The class name of the box that carries a clone the browser pins (`overlay/overlayRail.ts`).
+ * Declared here, not in the rail module, so `helpers/dom/element.ts` can read it without an import
+ * cycle – the rail imports its focus helpers from there.
+ */
+export const OVERLAY_RAIL_CLASS_NAME = 'htOverlayRail';
+
+/**
+ * The state class the three inline-end clone roots carry while the freeze line at their inline-start edge
+ * is drawn by the master (the clone rests against the last scrolling column, or against the row header).
+ * Without it the clone's own first cell draws the line. See `Overlays#syncInlineEndFreezeLine`.
+ */
+export const INLINE_END_FREEZE_LINE_SHARED_CLASS = 'htFreezeLineShared';
+
 export const CLONE_CLASS_NAMES = new Map([
   [CLONE_TOP, `ht_clone_${CLONE_TOP}`],
   [CLONE_BOTTOM, `ht_clone_${CLONE_BOTTOM}`],
   [CLONE_INLINE_START, `ht_clone_${CLONE_INLINE_START} ht_clone_left`],
   [CLONE_TOP_INLINE_START_CORNER, `ht_clone_${CLONE_TOP_INLINE_START_CORNER} ht_clone_top_left_corner`],
   [CLONE_BOTTOM_INLINE_START_CORNER, `ht_clone_${CLONE_BOTTOM_INLINE_START_CORNER} ht_clone_bottom_left_corner`],
+  [CLONE_INLINE_END, `ht_clone_${CLONE_INLINE_END}`],
+  [CLONE_TOP_INLINE_END_CORNER, `ht_clone_${CLONE_TOP_INLINE_END_CORNER}`],
+  [CLONE_BOTTOM_INLINE_END_CORNER, `ht_clone_${CLONE_BOTTOM_INLINE_END_CORNER}`],
 ]);

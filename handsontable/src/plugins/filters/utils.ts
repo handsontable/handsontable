@@ -1,5 +1,5 @@
 import { getComparisonFunction } from '../../helpers/feature';
-import { warnAboutGridLevelOptionInColumns } from '../../helpers/console';
+import { warnOnce } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 
 const sortCompare = getComparisonFunction();
@@ -39,16 +39,62 @@ export function getPinnedPhysicalRows(
 }
 
 /**
- * Warn that a per-column `filters` entry holds an object, which the plugin ignores.
+ * Warn that a per-column `filters` object holds settings the plugin ignores there.
  *
- * Only `false` is read at column level. The sub-options are resolved once, for the whole grid, so
- * an object written inside `columns` is silently dropped - and a user who found the per-column
- * switch is likely to try configuring it there the same way.
+ * At column level, `false` turns the filter UI off, and an object is read for `availableConditions`
+ * only. The other sub-options are resolved once, for the whole grid, so they are silently dropped
+ * from `columns` – and a user who found the per-column settings is likely to try them there too.
  */
 export function warnAboutPerColumnFilterSettings(scope: object, pluginKey: string) {
-  warnAboutGridLevelOptionInColumns(scope, `${pluginKey}`, toSingleLine`Only \`false\` is read there,\x20
-    and it turns the filter UI off for that column. The plugin settings are resolved once for the\x20
-    whole grid, so move them to the grid-level \`${pluginKey}\` option.`);
+  warnOnce(scope, `perColumn.${pluginKey}`, toSingleLine`The \`${pluginKey}\` option set inside\x20
+    \`columns\` holds settings that have no effect there. Only \`false\` and the\x20
+    \`availableConditions\` setting are read there. The other plugin settings are resolved once for\x20
+    the whole grid, so move them to the grid-level \`${pluginKey}\` option.`);
+}
+
+/**
+ * Warn that a per-column `availableConditions` value is not valid, so the column uses the
+ * grid-level value instead.
+ */
+export function warnAboutInvalidColumnAvailableConditions(scope: object, pluginKey: string) {
+  warnOnce(scope, `${pluginKey}.availableConditions.invalidColumnValue`, toSingleLine`The\x20
+    \`${pluginKey}.availableConditions\` option set inside \`columns\` is not valid and it will be\x20
+    ignored. Use an array of condition names, \`{ exclude: [...] }\`, or an object keyed by data type.`);
+}
+
+/**
+ * Warn that an `availableConditions` allow-list names a condition the column's list does not offer,
+ * so the condition is left out of the list.
+ */
+export function warnAboutUnavailableCondition(
+  scope: object, conditionName: string, columnType: string, listType: string
+) {
+  const typeDescription = columnType === listType ?
+    `"${columnType}" columns` : `"${columnType}" columns, which use the "${listType}" list`;
+
+  warnOnce(scope, `filters.availableConditions.${columnType}.${conditionName}`, toSingleLine`The\x20
+    "${conditionName}" condition is not available for ${typeDescription}, so the\x20
+    \`filters.availableConditions\` option leaves it out of the "Filter by condition" list.`);
+}
+
+/**
+ * Warn that an `availableConditions` setting names a condition that no data type offers.
+ */
+export function warnAboutUnknownCondition(scope: object, conditionName: string) {
+  warnOnce(scope, `filters.availableConditions.unknown.${conditionName}`, toSingleLine`The\x20
+    \`filters.availableConditions\` option names the "${conditionName}" condition, which does not\x20
+    exist, so it has no effect. Check the name against the ones \`addCondition()\` takes.`);
+}
+
+/**
+ * Warn that an `availableConditions` per-type map has a key that no condition list exists for.
+ */
+export function warnAboutUnknownConditionsDataType(scope: object, dataType: string, dataTypes: string[]) {
+  const keys = dataTypes.map(type => `"${type}"`).join(', ');
+
+  warnOnce(scope, `filters.availableConditions.dataType.${dataType}`, toSingleLine`The\x20
+    \`filters.availableConditions\` option has a "${dataType}" key, which no condition list exists for,\x20
+    so that entry is ignored. The keys are ${keys}. Any other column type uses the "text" list.`);
 }
 
 /**

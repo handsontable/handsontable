@@ -2,8 +2,9 @@ import { BasePlugin } from '../base';
 import { objectEach } from '../../helpers/object';
 import Endpoints, { type EndpointConfig } from './endpoints';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
-import { holdsNoNumber } from './utils';
+import { holdsNoNumber, isBlank } from './utils';
 import { throwWithCause } from '../../helpers/errors';
+import { normalizeClassNames } from '../../helpers/dom/element';
 
 export const PLUGIN_KEY = 'columnSummary';
 export const PLUGIN_PRIORITY = 220;
@@ -47,7 +48,7 @@ export interface SummaryEndpoint {
  * | `forceNumeric` | No | Boolean | `false` | [Forces the summary to treat non-numerics as numerics](@/guides/columns/column-summary/column-summary.md#force-numeric-values) |
  * | `reversedRowCoords` | No | Boolean | `false` | [Reverses the row coordinate, count row coordinates backward](@/guides/columns/column-summary/column-summary.md#step-5-make-room-for-the-destination-cell). Useful when displaying summary results at the bottom of the grid, as it allows you to reference rows relative to the last row (e.g., `destinationRow: 0` refers to the last row when this option is enabled) |
  * | `suppressDataTypeErrors` | No | Boolean | `true` | [Suppresses data type errors](@/guides/columns/column-summary/column-summary.md#throw-data-type-errors) |
- * | `readOnly` | No | Boolean | `true` | Makes summary cell [read-only](@/api/options.md#readonly) |
+ * | `readOnly` | No | Boolean | `true` | Makes summary cell [read-only](@/api/options.md#readonly). The plugin keeps the cell read-only: the "Read only" menu item and [`setCellMeta()`](@/api/core.md#setcellmeta) can't make it editable |
  * | `roundFloat` | No | Number/<br>Boolean | - | [Rounds summary result](@/guides/columns/column-summary/column-summary.md#round-a-column-summary-result) |
  * | `customFunction` | No | Function | - | [Lets you add a custom summary function](@/guides/columns/column-summary/column-summary.md#implement-a-custom-summary-function) |
  *
@@ -238,6 +239,8 @@ export class ColumnSummary extends BasePlugin {
       (index: number, amount: number, physicalColumns: number[], source: string) => this.endpoints!.resetSetupAfterStructureAlteration('remove_col', index, amount, physicalColumns, source)); // eslint-disable-line max-len
     this.addHook('afterRowMove', this.#onAfterRowMove);
     this.addHook('afterFormulasValuesUpdate', this.#onAfterFormulasValuesUpdate);
+    this.addHook('beforeSetCellMeta', this.#onBeforeSetCellMeta);
+    this.addHook('beforeRemoveCellMeta', this.#onBeforeRemoveCellMeta);
 
     super.enablePlugin();
   }
@@ -499,16 +502,23 @@ export class ColumnSummary extends BasePlugin {
    * Returns a cell value, taking into consideration a basic validation.
    *
    * @private
-   * @param {number} row Row index.
-   * @param {number} col Column index.
+   * @param {number} row Physical row index.
+   * @param {number} col Physical column index.
    * @returns {string} The cell value.
    */
   getCellValue(row: number, col: number): number | string | null {
     const visualRowIndex = this.hot.toVisualRow(row);
+    // The endpoint columns are physical, like the rows, while every read below takes a visual column -
+    // `getSourceDataAtCell` included, which pairs a physical row with a visual column.
+    const visualColumnIndex = this.hot.toVisualColumn(col);
+
+    if (visualColumnIndex === null) {
+      return null;
+    }
 
     let cellValue: number | string | null = (visualRowIndex !== null
-      ? this.hot.getDataAtCell(visualRowIndex, col)
-      : this.hot.getSourceDataAtCell(row, col)) as number | string | null;
+      ? this.hot.getDataAtCell(visualRowIndex, visualColumnIndex)
+      : this.hot.getSourceDataAtCell(row, visualColumnIndex)) as number | string | null;
 
     // A trimmed row has no visual coordinates, so its cell meta - and with it the
     // `columnSummaryResult` class - cannot be read. Fall back to the endpoint destinations, or a
@@ -518,13 +528,15 @@ export class ColumnSummary extends BasePlugin {
     // the user's own value on the first calculation pass, before any result was written, and that
     // value counts towards the summary. Three long-standing specs pin that behavior.
     const isSummaryResult = visualRowIndex !== null
-      ? ((this.hot.getCellMetaTransient(visualRowIndex, col).className as string) || '')
+      ? ((this.hot.getCellMetaTransient(visualRowIndex, visualColumnIndex).className as string) || '')
         .indexOf('columnSummaryResult') > -1
       : this.endpoints!.isSummaryDestination(row, col);
 
     if (isSummaryResult) {
       return null;
     }
+
+    const isBlankCell = isBlank(cellValue);
 
     if (this.endpoints!.currentEndpoint!.forceNumeric) {
       if (typeof cellValue === 'string') {
@@ -535,7 +547,12 @@ export class ColumnSummary extends BasePlugin {
     }
 
     if (isNaN(Number(cellValue))) {
-      if (!this.endpoints!.currentEndpoint!.suppressDataTypeErrors) {
+      // A blank cell inside the default range is not bad data: the user never named that range, and it covers
+      // the empty rows the grid adds (an appended row, or a row an undo restores). An explicit range keeps
+      // throwing on a blank cell (DEV-2995).
+      const isUnnamedBlankCell = isBlankCell && Boolean(this.endpoints!.currentEndpoint!.rangesFromDefault);
+
+      if (!this.endpoints!.currentEndpoint!.suppressDataTypeErrors && !isUnnamedBlankCell) {
         throwWithCause(toSingleLine`ColumnSummary plugin: cell at (${row}, ${col}) is not in a\x20
           numeric format. Cannot do the calculation.`);
       }
@@ -543,6 +560,91 @@ export class ColumnSummary extends BasePlugin {
 
     return cellValue;
   }
+
+  /**
+   * Checks whether a cell is the destination of a summary configured as `readOnly` (the default).
+   *
+   * The plugin owns the `readOnly` state of such a cell: it writes it on every recalculation, and
+   * nothing else may clear it. The "Read only" menu item leaves these cells out, and a `setCellMeta`
+   * that would make one writable, or a `removeCellMeta` of its `readOnly` key, is vetoed.
+   *
+   * A cache hit alone is not enough: it is keyed by the endpoint's `destinationColumn` as configured
+   * and is not re-keyed when a column moves (see the `manualColumnMove` limit in `AGENTS.md`), so it
+   * can still name a column a plain cell has since moved into. The cell's own current meta - the
+   * `readOnly` flag and the `columnSummaryResult` class the plugin itself writes - confirms the hit.
+   *
+   * @private
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {boolean}
+   */
+  isLockedSummaryCell(row: number, column: number): boolean {
+    if (!this.enabled || !this.endpoints) {
+      return false;
+    }
+
+    // Matches how `setCellMeta`/`_setCellMetaDeclarative` resolve `row` in `core.ts`: below the
+    // current row count it is a visual index to translate, at or past it it is already physical
+    // (a trimmed or otherwise out-of-range row addressed by its physical index directly). Reading
+    // `toPhysicalRow(row)` unconditionally instead answers `null` for such a row - which is `false`
+    // by construction below - and a locked, trimmed summary row loses its lock while trimmed.
+    const physicalRow = row < this.hot.countRows() ? this.hot.toPhysicalRow(row) : row;
+
+    if (physicalRow === null || !this.endpoints.isReadOnlyDestination(physicalRow, column)) {
+      return false;
+    }
+
+    // The cache above is keyed by `destinationColumn` as configured, and nothing re-keys it when a
+    // column moves (the plugin has no `afterColumnMove` refresh - see `AGENTS.md`). A cell that
+    // merely moved into that column position, and was never the plugin's own destination, must not
+    // be reported as locked just because a stale cache entry still names its column. The cell the
+    // plugin actually wrote to still carries the class and the flag it wrote, whatever the cache
+    // says, so confirming both against the CURRENT meta - the same signal `getCellValue()` uses to
+    // recognize a result - rules out a plain cell the cache alone cannot tell apart from the summary.
+    const cellMeta = this.hot.getCellMetaTransient(row, column);
+
+    return Boolean(cellMeta.readOnly) &&
+      normalizeClassNames(cellMeta.className as string | string[]).includes('columnSummaryResult');
+  }
+
+  /**
+   * `beforeSetCellMeta` hook callback. Vetoes any public write to the `readOnly` key of a locked
+   * summary cell: from the "Read only" menu item, its undo or redo, or a direct `setCellMeta` call.
+   *
+   * Every value is vetoed, not only a falsy one that would unlock the cell. Redo replays a "make
+   * read-only" toggle by writing `true` over its whole captured range, including a cell that was
+   * already locked - and unlike `_setCellMetaDeclarative`, the public `setCellMeta` records that as
+   * user-defined meta. Left unblocked, that write would survive a later `updateSettings` that moves
+   * the summary elsewhere, permanently pinning `readOnly` on a cell the plugin no longer tracks.
+   *
+   * The plugin's own writes go through `_setCellMetaDeclarative`, which fires no hooks, so they are
+   * never vetoed here.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {string} key The cell meta key.
+   * @returns {boolean|undefined} `false` to veto the write.
+   */
+  #onBeforeSetCellMeta = (row: number, column: number, key: string) => {
+    if (key === 'readOnly' && this.isLockedSummaryCell(row, column)) {
+      return false;
+    }
+  };
+
+  /**
+   * `beforeRemoveCellMeta` hook callback. Vetoes removing the `readOnly` key of a read-only summary
+   * cell, which would make it writable the same way a `setCellMeta` to `false` would.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {string} key The cell meta key.
+   * @returns {boolean|undefined} `false` to veto the removal.
+   */
+  #onBeforeRemoveCellMeta = (row: number, column: number, key: string) => {
+    if (key === 'readOnly' && this.isLockedSummaryCell(row, column)) {
+      return false;
+    }
+  };
 
   /**
    * `afterInit` hook callback.
@@ -601,7 +703,7 @@ export class ColumnSummary extends BasePlugin {
 
   /**
    * `afterFormulasValuesUpdate` hook callback. Refresh only endpoints whose
-   * `sourceColumn` (visual) maps to a column the engine recalculated.
+   * `sourceColumn` (physical) maps to a column the engine recalculated.
    *
    * @param {Array} changes Changes from the formula engine.
    */
@@ -629,39 +731,48 @@ export class ColumnSummary extends BasePlugin {
       return;
     }
 
-    const changedVisualColumns = new Set<number>();
+    const changedSourceColumns = new Set<number>();
 
     this.endpoints.getAllEndpoints().forEach((endpoint) => {
-      const hfSourceColumn = formulasPlugin.columnAxisSyncer!
-        .getHfIndexFromVisualIndex(endpoint.sourceColumn ?? 0);
+      const sourceColumn = endpoint.sourceColumn ?? 0;
+      const hfSourceColumn = formulasPlugin.columnAxisSyncer!.getHfIndexFromPhysicalIndex(sourceColumn);
 
       if (changedHfColumns.has(hfSourceColumn)) {
-        changedVisualColumns.add(endpoint.sourceColumn ?? 0);
+        changedSourceColumns.add(sourceColumn);
       }
     });
 
-    if (changedVisualColumns.size === 0) {
+    if (changedSourceColumns.size === 0) {
       return;
     }
 
     this.#refreshingFromFormulas = true;
 
     try {
-      this.endpoints.refreshEndpointsBySourceColumns(changedVisualColumns);
+      this.endpoints.refreshEndpointsBySourceColumns(changedSourceColumns);
     } finally {
       this.#refreshingFromFormulas = false;
     }
   };
 
   /**
-   * `beforeRowMove` hook callback.
+   * `afterRowMove` hook callback. The endpoint rows and ranges are physical, and ManualRowMove only permutes
+   * the row index, so a move changes neither which records a summary covers nor which record holds its
+   * result - both travel with their rows. The endpoints are still recalculated: NestedRows moves a row by
+   * splicing the data itself, which does change what a physical range holds, and a `custom` function may
+   * read the row order.
    *
-   * @param {Array} rows Array of visual row indexes to be moved.
-   * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-   * To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving/row-moving.md).
+   * @param {Array} rows Array of visual row indexes that were moved.
+   * @param {number} finalIndex Visual row index, being a start index for the moved rows.
+   * @param {number|undefined} dropIndex Visual row index, being a drop index for the moved rows.
+   * @param {boolean} movePossible Indicates if it was possible to move rows to the desired position.
+   * @param {boolean} orderChanged Indicates if order of rows was changed by move.
    */
-  #onAfterRowMove = (rows: number[], finalIndex: number) => {
-    this.endpoints!.resetSetupBeforeStructureAlteration('move_row', rows[0], rows.length);
-    this.endpoints!.resetSetupAfterStructureAlteration('move_row', finalIndex, rows.length, rows, this.pluginName!);
+  #onAfterRowMove = (
+    rows: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean, orderChanged: boolean
+  ) => {
+    if (orderChanged) {
+      this.endpoints!.refreshAllEndpoints();
+    }
   };
 }

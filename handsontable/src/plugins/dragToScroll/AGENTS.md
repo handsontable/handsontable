@@ -61,3 +61,13 @@ The guards exist because those hooks fire unconditionally from `TableView`, whil
 - Interval curve: `utils.ts` `calculateInterval` (logarithmic, `interval` + `rampDistance` settings).
 - Clamping a pointer to a cell: `helpers/dom/cellCoords.ts` `getCellCoordsFromMousePosition`.
 - Plugin contract, hooks, settings validation, lifecycle: `handsontable-plugin-dev` skill.
+
+## The row headers sit on the inline-start side, in the boundaries too
+
+`#setupListening()` shrinks the scroll boundaries by the row header width on the side where the row headers are:
+the left edge in LTR, the RIGHT edge in RTL. Reserving it on the left in RTL (the first version) made a pointer
+over the leftmost columns count as past the viewport edge, which with `fixedColumnsEnd` (the end columns stand on
+the left in RTL) scrolled the master away and ended the selection on a scrolling column. The same applies to any
+grid with row headers: the 50 px strip next to the inline-end edge in RTL used to start the auto-scroll early.
+Pinned by `tests/e2e/fixed-columns-end.spec.ts` ("selects a range by dragging onto the last end column", RTL) and
+`tests/e2e/fixed-columns-end-drag-scroll.spec.ts` (the strip scrolls, the opposite edge does not).

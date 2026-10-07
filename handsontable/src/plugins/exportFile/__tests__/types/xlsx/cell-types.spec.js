@@ -130,46 +130,6 @@ describe('exportFile XLSX type — cell types', () => {
       expect(ws.getRow(1).getCell(1).numFmt).toBeUndefined();
     });
 
-    // Known issue: ExcelJS omits OOXML built-in format IDs 5–8 (the dollar-currency
-    // built-ins) from its internal format table, so any `$`-currency format code is
-    // assigned a custom numFmtId ≥ 164.  Excel for Mac shows the "Custom" category for
-    // all custom IDs; Excel for Windows analyses the format string and shows "Currency".
-    // The fix requires post-processing the generated OOXML ZIP to replace the custom ID
-    // with the correct built-in ID (e.g. 7 for `$#,##0.00`) before the file is saved.
-    // The test is disabled until the post-processing step is implemented.
-    //
-    // To reproduce manually: export any Handsontable with a `numeric`-type column using
-    // `numericFormat: { style: 'currency', currency: 'USD' }` and `locale: 'en-US'`,
-    // open the XLSX in Excel for Mac, select a numeric cell,
-    // press ⌘1 — Category shows "Custom" instead of "Currency".
-    xit('should render currency cells in the "Currency" format category (not "Custom") in Excel', async() => {
-      // OOXML built-in format IDs that Excel maps to the "Currency" category:
-      // 5 → $#,##0_);($#,##0)    6 → $#,##0_);[Red]($#,##0)
-      // 7 → $#,##0.00_);($#,##0.00)   8 → $#,##0.00_);[Red]($#,##0.00)
-      const BUILT_IN_CURRENCY_FORMAT_CODES = new Set([
-        '$#,##0_);($#,##0)', '$#,##0_);[Red]($#,##0)',
-        '$#,##0.00_);($#,##0.00)', '$#,##0.00_);[Red]($#,##0.00)',
-      ]);
-
-      handsontable({
-        data: [[142000]],
-        columns: [{
-          type: 'numeric',
-          numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2 },
-          locale: 'en-US',
-        }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-      const cell = ws.getRow(1).getCell(1);
-
-      // Until the fix is in place, ExcelJS reads back a custom format string
-      // (`$#,##0.00`) rather than one of the built-in OOXML currency strings above.
-      // Once OOXML numFmtId=7 is written, ExcelJS will report `$#,##0.00_);($#,##0.00)`.
-      expect(BUILT_IN_CURRENCY_FORMAT_CODES.has(cell.numFmt)).toBe(true);
-    });
-
     it('should export non-parseable values in numeric type cells as strings', async() => {
       handsontable({
         data: [['not-a-number']],
@@ -212,7 +172,7 @@ describe('exportFile XLSX type — cell types', () => {
       expect(cell.value.getUTCDate()).toBe(28);
     });
 
-    it('should apply the mm-dd-yy numFmt to date cells', async() => {
+    it('should derive the date numFmt from the cell\'s dateFormat Intl options', async() => {
       handsontable({
         data: [['2020-01-15']],
         columns: [{ type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } }],
@@ -221,7 +181,10 @@ describe('exportFile XLSX type — cell types', () => {
 
       const ws = await parseXlsx();
 
-      expect(ws.getRow(1).getCell(1).numFmt).toBe('mm-dd-yy');
+      // A four-digit year is `yyyy`, not `yy`: the import inverts the pattern back into these same
+      // options, so a fixed `mm-dd-yy` made every round trip show a two-digit year. The order and the
+      // separator follow the cell's `locale`, `en-US` by default, so Excel shows what the grid showed.
+      expect(ws.getRow(1).getCell(1).numFmt).toBe('mm/dd/yyyy');
     });
 
     it('should export an `intl-date` type cell as an Excel date', async() => {
@@ -266,7 +229,7 @@ describe('exportFile XLSX type — cell types', () => {
   });
 
   describe('time type cells', () => {
-    it('should export a `time` type cell as an Excel time serial with h:mm:ss numFmt', async() => {
+    it('should export a `time` type cell as an Excel time serial with a time numFmt', async() => {
       handsontable({
         data: [['12:30:00']],
         columns: [{
@@ -286,7 +249,7 @@ describe('exportFile XLSX type — cell types', () => {
       expect(cell.value.getUTCSeconds()).toBe(0);
     });
 
-    it('should apply the h:mm:ss numFmt to time cells so Excel categorizes it as Time not Custom', async() => {
+    it('should derive the time numFmt from the cell\'s timeFormat Intl options', async() => {
       handsontable({
         data: [['08:05:30']],
         columns: [{
@@ -297,7 +260,9 @@ describe('exportFile XLSX type — cell types', () => {
 
       const ws = await parseXlsx();
 
-      expect(ws.getRow(1).getCell(1).numFmt).toBe('h:mm:ss');
+      // Excel still categorizes this as Time rather than Custom; the padding now follows the
+      // cell's own options so the import recovers them.
+      expect(ws.getRow(1).getCell(1).numFmt).toBe('hh:mm:ss');
     });
 
     it('should export midnight (00:00:00) correctly', async() => {

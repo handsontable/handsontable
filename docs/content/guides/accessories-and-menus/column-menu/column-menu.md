@@ -79,7 +79,25 @@ To enable the plugin, set the [`dropdownMenu`](@/api/options.md#dropdownmenu) co
 
 ## Plugin configuration
 
-To use the default dropdown contents, set it to `true`, or to customize it by setting it to use a custom list of actions. For the available entry options reference, see the [Context Menu demo](@/guides/accessories-and-menus/context-menu/context-menu.md#page-specific).
+To use the default dropdown contents, set it to `true`, or to customize it by setting it to use a custom list of actions. For the full list of entry options, see [Context menu with selected options](@/guides/accessories-and-menus/context-menu/context-menu.md#context-menu-with-selected-options).
+
+With no other plugin adding its own entries, setting [`dropdownMenu`](@/api/options.md#dropdownmenu) to `true` shows the following items, in this order -- this is also the value of [`DropdownMenu.DEFAULT_ITEMS`](@/api/dropdownMenu.md#default_items):
+
+```javascript
+['col_left', 'col_right', '---------', 'remove_col', '---------', 'clear_column', '---------', 'make_read_only', '---------', 'alignment']
+```
+
+| Key                                          | Action                                          |
+| --------------------------------------------- | ------------------------------------------------ |
+| [`col_left`](@/api/dropdownMenu.md)           | Insert a column to the left                      |
+| [`col_right`](@/api/dropdownMenu.md)          | Insert a column to the right                     |
+| [`---------`](@/api/dropdownMenu.md)          | Add a separator to the items in the menu         |
+| [`remove_col`](@/api/dropdownMenu.md)         | Remove the selected column                       |
+| [`clear_column`](@/api/dropdownMenu.md)       | Delete the data of the selected column            |
+| [`make_read_only`](@/api/dropdownMenu.md)     | Make the selected column read-only                |
+| [`alignment`](@/api/dropdownMenu.md)          | Align the text in the column                     |
+
+The [`Filters`](@/api/filters.md) plugin and the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin (see below) each append their own entries after this list when enabled -- they don't replace it. `Filters` appends its entries first, and `ManualColumnFreeze` appends after them. See [Filter menu items](#filter-menu-items) for what `Filters` adds.
 
 Some entries come from other plugins, and work only when their plugin is enabled. The `freeze_column` and `unfreeze_column` entries require the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin. When you enable it, both entries join the default dropdown contents. Each one shows only when it applies: `freeze_column` on a column that is not frozen, and `unfreeze_column` on a column that is.
 

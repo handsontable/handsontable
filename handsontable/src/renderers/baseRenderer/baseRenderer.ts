@@ -11,9 +11,10 @@ import {
 } from '../../helpers/dom/element';
 import { A11Y_INVALID, A11Y_READONLY } from '../../helpers/a11y';
 import { isEmpty } from '../../helpers/mixed';
+import { getTextTruncation, TEXT_ELLIPSIS_CLASS_NAME } from './textTruncation';
 
 export const RENDERER_TYPE: 'base' = 'base';
-const TEXT_ELLIPSIS_CLASS_NAME = 'htTextEllipsis';
+const NO_WORD_WRAP_CLASS_NAME = 'htNoWrap';
 
 /**
  * @param {Core} hotInstance The Handsontable instance.
@@ -71,15 +72,22 @@ export function baseRenderer(
     }
   }
 
+  // An empty `noWordWrapClassName` keeps meaning "add no class at all", which is the documented way
+  // to opt out of the no-wrap styling.
   if (cellProperties.wordWrap === false && cellProperties.noWordWrapClassName) {
-    classesToAdd.push(cellProperties.noWordWrapClassName);
+    // The built-in class carries the `white-space: nowrap` rule, so a custom class name can't replace it.
+    classesToAdd.push(NO_WORD_WRAP_CLASS_NAME, cellProperties.noWordWrapClassName);
   }
 
   if (isEmpty(value) && cellProperties.placeholder) {
     classesToAdd.push(cellProperties.placeholderCellClassName);
   }
 
-  if (cellProperties.textEllipsis) {
+  // A line count also gets the single-line class. The text renderer clamps the text inside a wrapper that
+  // restores wrapping, so for it the class is inert. A renderer that doesn't write through the text
+  // renderer (`html`, `password`) can't clamp, and the cell then falls back to a single line with an
+  // ellipsis, the way any truthy `textEllipsis` behaved before the option accepted numbers.
+  if (getTextTruncation(cellProperties).mode !== 'none') {
     classesToAdd.push(TEXT_ELLIPSIS_CLASS_NAME);
   }
 

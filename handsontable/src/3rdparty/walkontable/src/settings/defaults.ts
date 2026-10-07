@@ -36,6 +36,12 @@ import type { SettingsPort } from '../ports';
  *                                keys on it.
  * @property {Option} preventOverflow Option `preventOverflow`.
  * @property {Option} layoutReservedHeight Option `layoutReservedHeight`.
+ * @property {Option} heightFollowsContent Option `heightFollowsContent` - `true` when the host asked
+ *                                         for the grid's height to follow its content, so a vertical
+ *                                         owner with no height of its own leaves the holder at `auto`.
+ * @property {Option} widthFollowsRoot Option `widthFollowsRoot` - `true` when the host sized the grid
+ *                                     as a plain block, so an ancestor that owns the horizontal axis
+ *                                     sizes the holder no wider than the grid's own root element.
  * @property {Option} preventWheel Option `preventWheel`.
  * @property {Option} renderAllColumns Option `renderAllColumns`.
  * @property {Option} renderAllRows Option `renderAllRows`.
@@ -132,11 +138,24 @@ export function getDefaults(settings: SettingsPort): Record<string, unknown> {
     // resolved owner; only slots that owner CONTAINS count, so a root element that owns the axis
     // itself (an explicit `height`) reserves nothing there. Engine default: no host UI.
     layoutReservedHeight: () => 0,
+    // Whether the host sized the grid by its content (Handsontable's `height: 'auto'`). A single
+    // owner with no height of its own is then content-driven like the window, so the holder keeps
+    // `height: auto` instead of collapsing to that owner's 0px. Engine default: not requested.
+    heightFollowsContent: false,
+    // Whether the host sized the grid as a plain block (Handsontable's `height: 'auto'`), whose width
+    // is its root element's. An ancestor that owns the horizontal axis then sizes the holder no wider
+    // than that root (`viewport/rootWidthBound.ts`): the ancestor's own box can be wider than the
+    // grid (its padding, a padded wrapper in between, a relative `width` under 100%). Engine default:
+    // the owner alone.
+    widthFollowsRoot: false,
 
     // data source
     data: undefined,
     // Number of renderable columns for the left overlay.
     fixedColumnsStart: 0,
+    // Number of renderable columns for the inline end overlay (right for LTR and left for RTL document
+    // mode). Read it through `Settings#getSetting`, which clamps it against `fixedColumnsStart`.
+    fixedColumnsEnd: 0,
     // Number of renderable rows for the top overlay.
     fixedRowsTop: 0,
     // Number of renderable rows for the bottom overlay.
@@ -144,6 +163,11 @@ export function getDefaults(settings: SettingsPort): Record<string, unknown> {
     // Enable the inline start overlay when conditions are met (left for LTR and right for RTL document mode).
     shouldRenderInlineStartOverlay: () => {
       return settings.getSetting('fixedColumnsStart') > 0 || settings.getSetting('rowHeaders').length > 0;
+    },
+    // Enable the inline end overlay when conditions are met (right for LTR and left for RTL document mode).
+    // Reads the clamped `fixedColumnsEnd`, so an end band that the start band fully covers renders nothing.
+    shouldRenderInlineEndOverlay: () => {
+      return settings.getSetting('fixedColumnsEnd') > 0;
     },
     // Enable the top overlay when conditions are met.
     shouldRenderTopOverlay: () => {

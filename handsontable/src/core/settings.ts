@@ -11,11 +11,15 @@ import type {
   CellChange, ChangeSource, RowObject, CellValue, CellProperties, ColumnSettings,
   ColumnDataGetterSetterFunction, RemoveIndexSignature,
 } from '../settings';
-import type { ColumnConditions } from '../plugins/filters';
+import type { ColumnConditions, FiltersSettings } from '../plugins/filters';
 import type { LayoutConfig } from './layout';
 import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from '../plugins/contextMenu';
 import type { DropdownMenu } from '../plugins/dropdownMenu';
 import type { SheetsBarSettings, SheetsBarViewState } from '../plugins/sheetsBar';
+import type { ManualColumnFreezeSettings } from '../plugins/manualColumnFreeze';
+import type { ImportFileSettings, ImportResult } from '../plugins/importFile';
+import type { UndoRedoSettings } from '../plugins/undoRedo';
+import type { PasteClipboardData } from '../plugins/copyPaste';
 import type { ColumnSortingConfig } from '../plugins/columnSorting';
 import type { NestedHeader } from '../plugins/nestedHeaders';
 import type { UndoRedoAction } from '../plugins/undoRedo';
@@ -29,6 +33,8 @@ import type {
 import type { RangeType, HotInstance } from './types';
 import type { ThemeColorScheme, DensityType } from '../themes/types';
 import type { IndexesChangeSource } from '../translations/indexMapper';
+
+export type { PasteClipboardData };
 
 /**
  * The function shape of the `sourceDataValidator` option. Returns `true` when the value is valid.
@@ -202,6 +208,7 @@ export interface GridSettings {
   enterMoves?: { col: number; row: number } | ((event: KeyboardEvent) => { col: number; row: number });
   fillHandle?: boolean | string | { autoInsertRow?: boolean; direction?: string };
   imeFastEdit?: boolean;
+  maxLength?: number;
   readOnly?: boolean;
   skipColumnOnPaste?: boolean;
   skipRowOnPaste?: boolean;
@@ -209,7 +216,7 @@ export interface GridSettings {
   sourceDataWarningMessage?: string;
   tabMoves?: { row: number; col: number } | ((event: KeyboardEvent) => { row: number; col: number });
   trimWhitespace?: boolean;
-  undo?: boolean;
+  undo?: boolean | UndoRedoSettings;
   validator?: string | RegExp | ((value: unknown, callback: (valid: boolean) => void) => void);
   wordWrap?: boolean;
 
@@ -232,7 +239,7 @@ export interface GridSettings {
   viewportColumnRenderingThreshold?: number | 'auto';
   viewportRowRenderingThreshold?: number | 'auto';
   observeDOMVisibility?: boolean;
-  textEllipsis?: boolean;
+  textEllipsis?: boolean | number;
 
   // Selection & navigation
   disableVisualSelection?: boolean | string | string[];
@@ -247,6 +254,7 @@ export interface GridSettings {
   autoWrapRow?: boolean;
 
   // Fixed / frozen
+  fixedColumnsEnd?: number;
   fixedColumnsLeft?: number;
   fixedColumnsStart?: number;
   fixedRowsBottom?: number;
@@ -280,11 +288,12 @@ export interface GridSettings {
   customBorders?: boolean | object[];
   customBordersProgressive?: boolean | { chunkSize?: number };
   dialog?: boolean | object;
-  dataProvider?: DataProviderConfig;
+  dataProvider?: DataProviderConfig | null;
   dragToScroll?: boolean | { interval?: { min?: number; max?: number }; rampDistance?: number };
   dropdownMenu?: boolean | object | string[];
   emptyDataState?: boolean | object;
-  filters?: boolean | object;
+  filters?: boolean | FiltersSettings;
+  filterValueComparator?: (a: unknown, b: unknown) => number;
   formulas?: boolean | {
     engine: unknown;
     sheetName?: string;
@@ -294,7 +303,7 @@ export interface GridSettings {
   hiddenColumns?: boolean | object;
   hiddenRows?: boolean | object;
   loading?: boolean | object;
-  manualColumnFreeze?: boolean;
+  manualColumnFreeze?: boolean | ManualColumnFreezeSettings;
   manualColumnMove?: boolean | number[];
   manualColumnResize?: boolean | number[];
   manualRowMove?: boolean | number[];
@@ -304,6 +313,7 @@ export interface GridSettings {
   nestedRows?: boolean;
   pagination?: boolean | object;
   search?: boolean | object;
+  importFile?: boolean | ImportFileSettings;
   sheetsBar?: boolean | SheetsBarSettings;
   trimRows?: boolean | number[];
 
@@ -401,7 +411,7 @@ export interface GridSettings {
   }) => void;
   afterColumnSort?: (currentSortConfig: ColumnSortingConfig[], destinationSortConfigs: ColumnSortingConfig[],
     sortPossible: boolean) => void;
-  afterColumnUnfreeze?: (columnIndex: number, isFreezingPerformed: boolean) => void;
+  afterColumnUnfreeze?: (columnIndex: number, isFreezingPerformed: boolean, finalIndex: number) => void;
   afterContextMenuDefaultOptions?: (predefinedItems: Array<PredefinedMenuItemKey | MenuItemConfig>)
     => void;
   afterContextMenuHide?: (context: ContextMenu) => void;
@@ -415,7 +425,9 @@ export interface GridSettings {
   afterCut?: (data: CellValue[][], coords: RangeType[]) => void;
   afterDeselect?: () => void;
   afterDestroy?: () => void;
-  afterDetachChild?: (parent: RowObject, element: RowObject, finalElementPosition: number | null) => void;
+  afterDetachChild?: (
+    parent: RowObject, element: RowObject, finalElementPosition: number | null, source?: string
+  ) => void;
   afterDialogFocus?: (focusSource: 'tab_from_above' | 'tab_from_below' | 'click' | 'show') => void;
   afterDialogHide?: () => void;
   afterDialogShow?: () => void;
@@ -439,6 +451,7 @@ export interface GridSettings {
     actionPossible: boolean, stateChanged: boolean) => void;
   afterHideRows?: (currentHideConfig: number[], destinationHideConfig: number[],
     actionPossible: boolean, stateChanged: boolean) => void;
+  afterImport?: (result: ImportResult, format: string) => void;
   afterInit?: () => void;
   afterLanguageChange?: (languageCode: string) => void;
   afterListen?: () => void;
@@ -564,9 +577,11 @@ export interface GridSettings {
   afterUpdateSettings?: (newSettings: Partial<GridSettings>) => void;
   afterValidate?: (isValid: boolean, value: CellValue, row: number, prop: string | number,
     source: ChangeSource) => void | boolean;
-  afterDataProviderFetch?: (result: DataProviderFetchResult) => void;
+  afterDataProviderFetch?: (result: DataProviderFetchResult & { isRestored?: boolean }) => void;
   afterDataProviderFetchAbort?: (queryParameters: DataProviderQueryParameters, reason?: Error) => void;
-  afterDataProviderFetchError?: (error: Error, queryParameters: DataProviderQueryParameters) => void;
+  afterDataProviderFetchError?: (
+    error: Error, queryParameters: DataProviderQueryParameters, isVisible?: boolean
+  ) => void;
   afterViewportColumnCalculatorOverride?: (calc: {
     startColumn: number; endColumn: number; [key: string]: unknown;
   }) => void;
@@ -583,6 +598,8 @@ export interface GridSettings {
     event: { preventDefault(): void; [key: string]: unknown }, fullEditMode: boolean) => boolean | void;
   beforeCellAlignment?: (stateBefore: Record<string, string>, range: WalkontableCellRange[],
     type: string, alignmentClass: string) => void;
+  beforeReadOnlyToggle?: (stateBefore: Record<number, boolean[]>, ranges: WalkontableCellRange[],
+    readOnly: boolean) => void;
   beforeChange?: (changes: (CellChange | null)[], source: ChangeSource) => void | boolean;
   beforeChangeRender?: (changes: CellChange[], source: ChangeSource) => void;
   beforeColumnCollapse?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[],
@@ -595,7 +612,7 @@ export interface GridSettings {
   beforeColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void | number | false;
   beforeColumnSort?: (currentSortConfig: ColumnSortingConfig[],
     destinationSortConfigs: ColumnSortingConfig[], sortPossible: boolean) => void | boolean;
-  beforeColumnUnfreeze?: (columnIndex: number, isUnfreezingPerformed: boolean) => void | boolean;
+  beforeColumnUnfreeze?: (columnIndex: number, isUnfreezingPerformed: boolean, finalIndex: number) => void | boolean;
   beforeColumnWrap?: (isActionInterrupted: { value: boolean }, newCoords: WalkontableCellCoords,
     isColumnFlipped: boolean) => void;
   beforeCompositionStart?: (event: CompositionEvent) => void;
@@ -608,7 +625,7 @@ export interface GridSettings {
   beforeCreateRow?: (index: number, amount: number, source?: ChangeSource) => void | boolean;
   beforeCut?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
   beforeDataProviderFetch?: (queryParameters: DataProviderBeforeFetchParameters) => boolean | void;
-  beforeDetachChild?: (parent: RowObject, element: RowObject) => void;
+  beforeDetachChild?: (parent: RowObject, element: RowObject, source?: string) => void;
   beforeDialogHide?: () => void;
   beforeDialogShow?: () => void;
   beforeDrawBorders?: (corners: number[], borderClassName: string | undefined) => void;
@@ -628,6 +645,7 @@ export interface GridSettings {
     highlightMeta: { selectionType: string; columnCursor: number; selectionWidth: number }) => number | void;
   beforeHighlightingRowHeader?: (row: number, headerLevel: number,
     highlightMeta: { selectionType: string; rowCursor: number; selectionHeight: number }) => number | void;
+  beforeImport?: (result: ImportResult, format: string) => boolean | void;
   beforeInit?: (() => void) | (() => void)[];
   beforeInitWalkontable?: (walkontableConfig: object) => void;
   beforeKeyDown?: (event: KeyboardEvent) => void;
@@ -637,7 +655,9 @@ export interface GridSettings {
   beforeLoadingShow?: () => boolean | void;
   beforeMergeCells?: (cellRange: WalkontableCellRange, auto: boolean) => void;
   /**
-   * Fired before a `moveCells` drag relocates a selection. Return `false` to cancel the move.
+   * Fired before a `moveCells` drag relocates a selection. Return `false` to cancel the move. To let
+   * the move through, return nothing, or the `sourceRange` the listener received. Any other value,
+   * `true` included, cancels the move too.
    *
    * @since 18.1.0
    */
@@ -669,6 +689,7 @@ export interface GridSettings {
   beforePageChange?: (oldPage: number, newPage: number) => void | boolean;
   beforePageSizeChange?: (oldPageSize: number | 'auto', newPageSize: number | 'auto') => void | boolean;
   beforePaste?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
+  beforePasteParse?: (clipboardData: PasteClipboardData, event: ClipboardEvent | null) => void | false;
   beforeRedo?: (action: UndoRedoAction) => void;
   beforeRedoStackChange?: (undoneActions: UndoRedoAction[]) => void;
   beforeRefreshDimensions?: (previousDimensions: { width: number; height: number },
@@ -748,7 +769,7 @@ export interface GridSettings {
   modifyColumnHeaderValue?: (headerValue: string, visualColumnIndex: number, headerLevel: number) => void | string;
   modifyColWidth?: (width: number, column: number, source?: string) => void | number;
   modifyCopyableRange?: (copyableRanges: RangeType[]) => RangeType[] | void;
-  modifyData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
+  modifyData?: (row: number, column: number | null, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
   modifyFiltersMultiSelectValue?: (value: string, meta: CellProperties) => void | string;
   modifyFocusedElement?: (row: number, column: number, focusedElement: HTMLElement) => void | HTMLElement;
   modifyFocusOnTabNavigation?: (tabActivationDir: string, visualCoords: WalkontableCellCoords) => void;

@@ -415,7 +415,10 @@
     // marker instead, the carve-outs reach the seam whatever the row-header count.
     &.htRowHeaders {
       .ht_master:not(.emptyColumns),
-      .ht_master:not(.emptyColumns) ~ .handsontable:not(.htGhostTable) {
+      .ht_master:not(.emptyColumns) ~ .handsontable:not(.htGhostTable),
+      // A clone pinned while the window scrolls the grid sideways sits inside a rail, not beside the
+      // master (`walkontable/src/overlay/overlayRail.ts`).
+      .ht_master:not(.emptyColumns) ~ .htOverlayRail > .handsontable:not(.htGhostTable) {
         $seam-owner: ":not(.ht__active_highlight):not(.ht__active_highlight-prev)";
 
         :where(#{$grid-head-row}) > th.htLastRowHeaderColumn#{$seam-owner},
@@ -624,6 +627,24 @@
       :where(#{$grid-body-row}) > td:first-child {
         border-inline-start-width: 1px;
       }
+
+      // The freeze line at an end clone's inline-start edge is one pixel in every scroll state, and which
+      // element draws it depends on the state. Mid-scroll the clone's edge cuts through a master column,
+      // so the clone's own first-cell inline-start border (inherited from the rules above) is the line.
+      // At the junction (scrolled to the end, or no horizontal scroll) the clone's first column stands on
+      // the boundary of the column before it, whose inline-end border is already the line, and a second
+      // border would make it 2px against the 1px of the start side. The engine sets `htFreezeLineShared`
+      // on the three end clone roots in exactly that state (`Overlays#syncInlineEndFreezeLine`).
+      &.htFreezeLineShared {
+        &.ht_clone_inline_end,
+        &.ht_clone_top_inline_end_corner,
+        &.ht_clone_bottom_inline_end_corner {
+          :where(#{$grid-head-row}, #{$grid-body-row}) > th:first-child,
+          :where(#{$grid-body-row}) > td:first-child {
+            border-inline-start-width: 0;
+          }
+        }
+      }
     }
 
     :where(table.htCore, #{$ghost-table}) > thead > tr:not(:last-child) > th {
@@ -728,6 +749,42 @@
       text-overflow: ellipsis;
       overflow: hidden;
       white-space: nowrap;
+    }
+
+    // A numeric `textEllipsis` clamps the text to that many lines. A table cell can't clamp its own
+    // lines (`-webkit-line-clamp` needs `display: -webkit-box`, which pulls a `td` out of the table
+    // layout), so the text renderer writes the value into this wrapper and the `td` keeps its padding.
+    // The line count comes from the wrapper's own custom property, so any number of lines needs no
+    // extra rule. The prefixed property is deliberate: the unprefixed `line-clamp` is not available
+    // in the Chrome 130+, Firefox 132+ and Safari 18.2+ the grid targets (`browser-targets.js`).
+    // The wrapper matches `$user-cell-content` like `.htCellClip`, so it skips the normalize block
+    // and a host rule such as `.handsontable td div { padding: 4px }` reaches it. Padding at the bottom
+    // of an `overflow: hidden` clamp box shows the top of the next line under the ellipsis, so it
+    // resets its own box. It also restores wrapping: a cell that carries `htTextEllipsis` for the
+    // renderers that can't clamp is `nowrap`, and the wrapper inherits that.
+    .htLineClamp {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: var(--ht-text-line-clamp);
+      overflow: hidden;
+      white-space: pre-wrap;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      min-height: 0;
+      box-sizing: border-box;
+    }
+
+    // MergeCells lays out the content of a merged cell that crosses a frozen-column line in this wrapper, as
+    // wide as the whole block (`plugins/mergeCells/renderer.ts`). It matches `$user-cell-content` too, so a
+    // host rule such as `.handsontable td div { padding: 4px }` would widen it past the block and move the
+    // content off the master's copy. It resets its own box; its width and inline-start margin are inline.
+    .htMergedCellContentWindow {
+      display: block;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-sizing: border-box;
     }
 
     // `text-overflow` does not inherit, so a `textEllipsis` cell in an exact-height row shows no
@@ -838,13 +895,15 @@
 
     .ht_master table.htCore > thead,
     .ht_master table.htCore > tbody > tr > th,
-    .ht_clone_inline_start table.htCore > thead {
+    .ht_clone_inline_start table.htCore > thead,
+    .ht_clone_inline_end table.htCore > thead {
       visibility: hidden;
     }
   }
 
   .ht_master,
   .ht_clone_inline_start,
+  .ht_clone_inline_end,
   .ht_clone_top,
   .ht_clone_bottom {
     overflow: hidden;
@@ -854,8 +913,8 @@
     }
   }
 
-  // The three clones the master's scroll offset is mirrored onto - `ScrollSync#syncScrollPositions`
-  // writes `scrollTop` on the inline-start holder and `scrollLeft` on the top and bottom ones, once
+  // The clones the master's scroll offset is mirrored onto - `ScrollSync#syncScrollPositions`
+  // writes `scrollTop` on the inline-start and inline-end holders and `scrollLeft` on the top and bottom ones, once
   // per scroll frame - are composited scroll containers on purpose. A browser gives composited
   // scrolling only to a box the user can scroll, and an `overflow: hidden` box is not one: every one
   // of those writes then re-recorded the clone's contents on the main thread and dirtied the
@@ -873,26 +932,33 @@
   // other: the cross axis has no range today, and a rule that opened it would hand it to a pan the
   // moment rounding gave it a pixel. `src/3rdparty/walkontable/css/walkontable.scss` carries the
   // same rule for the engine's own test runner - keep the two in sync.
-  .ht_clone_inline_start .wtHolder,
-  .ht_clone_top .wtHolder,
-  .ht_clone_bottom .wtHolder {
+  .handsontable .ht_clone_inline_start .wtHolder,
+  .handsontable .ht_clone_inline_end .wtHolder,
+  .handsontable .ht_clone_top .wtHolder,
+  .handsontable .ht_clone_bottom .wtHolder {
     // A scroll container gets scroll anchoring, and a full draw rewrites the rows inside this box;
     // an anchoring nudge here is a frozen header out of step with the master. The same opt-out as
     // `.htScrollbarClearanceFillers` below.
     overflow-anchor: none;
     // No scrollbar of its own, the way the sheets bar hides one: `scrollbar-width` is the standard
-    // property, the `::-webkit-scrollbar` rule covers engines without it and beats the
-    // `.handsontable .wtHolder::-webkit-scrollbar` sizing above at equal specificity by source order.
+    // property and the one that matters, because the `scrollbar-styles` mixin sets `scrollbar-color`
+    // on every `.wtHolder` and that already makes Chrome 121+ skip `::-webkit-scrollbar`. The
+    // `::-webkit-scrollbar` rule is a fallback for older engines; it sets `display`, the sizing rule
+    // above sets `width` and `height`, so the two never compete.
     // Written out rather than shared through a mixin: a nesting `&` inside a mixin body has no
     // scoping root for the SonarCloud CSS analyzer (S8776), which fails the quality gate on it.
-    scrollbar-width: none;
+    // The `.handsontable` prefix and `!important` keep a page-wide rule such as
+    // `.handsontable .wtHolder { scrollbar-width: thin }` from winning, whether or not it is
+    // `!important` and whatever the load order, and painting a scrollbar into these holders (DEV-3160).
+    scrollbar-width: none !important;
 
     &::-webkit-scrollbar {
       display: none;
     }
   }
 
-  .ht_clone_inline_start .wtHolder {
+  .ht_clone_inline_start .wtHolder,
+  .ht_clone_inline_end .wtHolder {
     overflow-x: hidden;
     overflow-y: auto;
   }

@@ -1,8 +1,9 @@
 /* file: app.component.ts */
-import { Component, ViewChild } from '@angular/core';
+import { Component, NgZone, ViewChild, inject } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 import Papa from 'papaparse';
-import * as XLSX from 'xlsx';
+import readXlsxFile from 'read-excel-file/browser';
+import type { Sheet } from 'read-excel-file/browser';
 
 interface ParsedPayload {
   headers: string[];
@@ -20,6 +21,9 @@ function normalizeCellValue(value: unknown): unknown {
   }
   if (typeof value === 'number' || typeof value === 'boolean') {
     return value;
+  }
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
   }
   const text = String(value).trim();
   return text === '' ? null : text;
@@ -80,19 +84,17 @@ async function parseCsvFile(file: File): Promise<ParsedPayload> {
 }
 
 async function parseXlsxFile(file: File): Promise<ParsedPayload> {
-  const buf = await file.arrayBuffer();
-  let workbook: XLSX.WorkBook;
+  let sheets: Sheet[];
   try {
-    workbook = XLSX.read(buf, { type: 'array' });
+    sheets = await readXlsxFile(file);
   } catch {
     throw new Error('Could not read the Excel workbook. The file may be corrupted.');
   }
-  const sheetName = workbook.SheetNames[0];
-  if (!sheetName) {
+  const firstSheet = sheets[0];
+  if (!firstSheet) {
     throw new Error('The workbook has no sheets.');
   }
-  const sheet = workbook.Sheets[sheetName];
-  const matrix = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: null, raw: true });
+  const matrix: unknown[][] = firstSheet.data;
   if (!matrix.length) {
     throw new Error('The sheet is empty.');
   }
@@ -188,6 +190,8 @@ async function parseFile(file: File): Promise<ParsedPayload> {
 export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
+  private readonly zone = inject(NgZone);
+
   isDragOver = false;
   errorMessage = '';
   gridData: Record<string, unknown>[] = [];
@@ -250,9 +254,11 @@ Service Pack,Services,true,0`;
     }
     try {
       const payload = await parseFile(file);
-      this.loadIntoGrid(payload);
+      this.zone.run(() => this.loadIntoGrid(payload));
     } catch (e) {
-      this.errorMessage = e instanceof Error ? e.message : String(e);
+      this.zone.run(() => {
+        this.errorMessage = e instanceof Error ? e.message : String(e);
+      });
     }
   }
 

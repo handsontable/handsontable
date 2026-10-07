@@ -8,7 +8,7 @@
 - Jest for unit tests (configured in `handsontable/jest.config.js`; `jest-jasmine2` runner)
 - **Playwright for new E2E** (`tests/` package; the current paradigm — skill: `handsontable-playwright-e2e`)
 - Jasmine with Puppeteer for the **frozen legacy** E2E suite (headless Chrome via `test/scripts/run-puppeteer.mjs`)
-- Separate test runner for Walkontable (`npm run test:walkontable`)
+- Separate test runner for Walkontable's specs (`npm run test:walkontable`); Walkontable's unit tests run in the core Jest suite
 
 **Assertion Library:**
 - Jest's built-in `expect()` for unit tests
@@ -19,12 +19,12 @@
 **Run Commands:**
 ```bash
 # From handsontable/ directory:
-npm run test:unit                  # Run all Jest unit tests (~216 files)
+npm run test:unit                  # Run all Jest unit tests (~448 files, Walkontable's test/unit/ included)
 npm run test:e2e                   # Build + run the LEGACY Jasmine E2E suite (~946 spec files)
 npm run test:walkontable           # Run Walkontable-specific tests
 npm run test:types                 # TypeScript type checking only
 # New Playwright E2E (from the repo root):
-cd tests && npm test               # Playwright functional + visual projects
+cd tests && npm test               # Playwright functional E2E (visual regression is the separate visual-tests/ package)
 
 # From monorepo root (npm --prefix):
 npm --prefix handsontable run test:unit
@@ -71,18 +71,20 @@ The helper that derives the hash lives in `handsontable/.config/helper/run-id.js
 
 The spec file is known because `test/e2e/index.js` records which `require.context` key added each top-level suite (`window.__hotSpecFiles`), and the bridge reporter stamps it on every result as `filePath`. A top-level `it()` outside any `describe`, and `MemoryLeakTest`, carry no file and are reported without a verdict. An uncaught page error still aborts the run as before; it now also gets its own annotation, and the specs that failed before it are still reported, without probing.
 
+**A throw inside a `describe` body is NOT reported, and it silently deletes every spec after it in that block.** Jasmine records the throw as a suite-level failure, but the `jasmineSuiteDone` binding in `run-puppeteer.mjs` ignores the suite's result, so the run stays green with fewer specs. `it.skip(...)` is the case that shipped: Jasmine has no `it.skip`, so in `nestedHeaders/__tests__/rowspan.spec.js` the first one threw a `TypeError` and five specs after it never ran, from the day the file was added. Three of them failed once they did run, all on their own mistakes rather than on the grid (one measured the master copy of a header that the top overlay paints over), because a spec that never runs never has its mistakes caught. They now live in Playwright as `tests/e2e/nested-headers-rowspan.spec.ts`. Only the spec count gives it away, and only after one correction: `test/e2e/index.js` adds `MemoryLeakTest` to every run, filtered or not, which is 5 specs from the command line. So a `--testPathPattern` run of one file must report the file's `it(` calls **plus 5**. The rowspan file hid its gap this way: 15 registered specs plus the 5 from `MemoryLeakTest` printed 20, exactly its 20 `it(` calls.
+
 To reproduce a verdict locally, re-run one file alone against the same dump: `npm run test:e2e.puppeteer -- --specFile=<path-pattern>` (`--spec=<pattern>` also exists, but it has to match the spec names as well as the file path). With a `--testPathPattern` baked into the dump, either parameter narrows it rather than replacing it. The helpers behind the report are pure and unit-tested with `node:test` (`test/scripts/lib/failed-specs.mjs`, `test/scripts/__tests__/`), part of the root `npm run test:tooling`.
 
 **Test Environment:**
 - Unit tests: jsdom (JavaScript DOM implementation)
-- New E2E: Playwright (real Chromium; `tests/` package)
+- New E2E: Playwright (real Chromium, plus Firefox and WebKit for tests tagged `@cross-browser`; `tests/` package)
 - Legacy E2E: Puppeteer with real headless Chrome
 - Default legacy-Jasmine timeout: 15000ms (set in `test/bootstrap.js`)
 
 ## Test File Organization
 
 **Location:**
-- **Unit tests**: Co-located with source in `src/**/__tests__/` directories
+- **Unit tests**: Co-located with source in `src/**/__tests__/` directories; also `test/__tests__/`, Walkontable's `src/3rdparty/walkontable/test/unit/`, and `src/3rdparty/SheetClip/test/`
 - **Helper unit tests**: `handsontable/test/helpers/__tests__/` (for shared test helpers like themeLayoutFromTokens and its contract tests)
 - **E2E core method tests**: `src/__tests__/core/` — filename matches the method name (e.g., `selectCell.spec.js`)
 - **E2E hook tests**: `src/__tests__/hooks/` — filename matches the hook name (e.g., `afterChange.spec.js`)
@@ -93,9 +95,9 @@ To reproduce a verdict locally, re-run one file alone against the same dump: `np
 - **Plugin E2E tests**: `src/plugins/{pluginName}/__tests__/` (alongside plugin source)
 
 **Naming:**
-- Unit tests: `{feature}.unit.js` (e.g., `cellMeta.unit.js`, `dataFilter.unit.js`)
+- Unit tests: `{feature}.unit.js` or `{feature}.unit.ts` (e.g., `cellMeta.unit.js`, `dataFilter.unit.js`)
 - E2E tests: `{featureName}.spec.js` — the filename must match the method, hook, or setting name exactly (e.g., `selectCell.spec.js`, `afterChange.spec.js`, `height.spec.js`)
-- Type tests: `*.types.ts` in `test/types/`
+- Type tests: `*.types.ts` in a `src/**/__tests__/` dir (`test/types/tsconfig.json` compiles them)
 
 **Structure Examples:**
 ```
@@ -298,7 +300,7 @@ await waitForNextAnimationFrames(2);                // ← never; a frame count 
 
 ## What to test, and in which framework (Pillar 1)
 
-**Aim for a low number of extremely meaningful tests.** Coverage is the **floor**, not the goal: new code must be exercised (the unit coverage gate + SonarCloud enforce this, and it may extend to E2E), but coverage only proves a line *ran* — a test that executes it while asserting nothing, or asserting the *buggy* output, is worse than none. So: **hit the coverage floor with tests that meaningfully assert behavior** — never pad coverage with hollow tests, and never skip it either. Two principles govern every test here (full discipline in the `test-writing-discipline` skill):
+**Aim for a low number of extremely meaningful tests.** Coverage is the **floor**, not the goal: new code must be exercised (the unit changed-line coverage floor reports it on the PR, warn-only; SonarCloud measures no coverage, because `sonar-project.properties` excludes all of it), but coverage only proves a line *ran* — a test that executes it while asserting nothing, or asserting the *buggy* output, is worse than none. So: **hit the coverage floor with tests that meaningfully assert behavior** — never pad coverage with hollow tests, and never skip it either. Two principles govern every test here (full discipline in the `test-writing-discipline` skill):
 
 - **Green is not the goal — correct behavior is.** Write the test from the *intended* behavior (ideally before the code). When it is red, **diagnose which is actually wrong — the code or the test's expectation — and fix whichever genuinely is.** The code is the prime *suspect*, not a rule: if the test mis-encoded the intended behavior, fix the test (tighten it toward the real behavior). What is never allowed is reaching green by weakening/skipping/loosening a test to match output you have not confirmed is correct.
 - **Handsontable is a library, not an app** — it *implements* the low-level interactions, so tests validate **granular user actions**: scroll (incl. momentum), hover, drag / fill-handle / resize / move, keyboard, IME, touch, RTL, virtualization edges — not app happy-paths. Judge a test by whether it would **catch a real bug in the code it covers**, not only by whether it covers the line.
@@ -306,10 +308,14 @@ await waitForNextAnimationFrames(2);                // ← never; a frame count 
 Machine-enforced by the presence gate (`.github/scripts/test-presence-gate.mjs`): a change to `handsontable/src/**` or `wrappers/**` must ship a matching test change. Which kind:
 
 - **A user could see or do it** (rendering, editing, selection, keyboard, menus, overlays) → **E2E**. New E2E is **Playwright** in `tests/e2e/` — see the `handsontable-playwright-e2e` skill.
+- **Only pixels can prove it** (a theme token, geometry, compositing) → a **visual spec** in `visual-tests/tests/`, **in addition to, never instead of** the E2E above — a screenshot proves pixels only, and the presence gate counts it as coverage, so the reviewer holds this line. The rule is `visual-tests/AGENTS.md` → Decision rule.
 - **Behavior changed but is invisible to users** (data, indexing, algorithms, internal state) → a **Jest unit test** (`*.unit.js` or `*.unit.ts`). Still mandatory — "not user-facing" is not a free pass.
-- **No behavior change** (pure refactor) or **non-runtime** (types, docs, config, i18n text, re-exports) → **no new test**; declare a refactor with a `Refactor-only: <reason>` commit trailer.
+- **The public type surface changed** (an exported type, a `GridSettings` option, a wrapper prop or input) → a **type test** (`*.types.ts`) in the package whose types changed. Core and Vue run them (`test:types`). React and Angular have no type-test harness yet, so declare a type change there (next bullet) until they do.
+- **No behavior change** (pure refactor) or **internal non-runtime** (types no consumer imports, config, internal re-exports) → **no new test**; declare it with a `Refactor-only: <reason>` trailer on the commit that makes it (a trailer covers only its own commit's files), or, once that commit is pushed, with `[refactor-only: <reason>]` as plain text in the PR description; the reason needs at least three words. A comment-only edit and a translation dictionary (`src/i18n/languages/`) need no declaration.
 
 **New spec vs modify existing:** new public API / plugin / editor → a new spec; a bug fix → add a case to the closest existing spec (its test must fail without the fix).
+
+**The gate warns when only a screenshot covers a source change:** a source change draws the non-blocking `visual-only-coverage` advisory when every change the gate counts as *coverage* is a capture spec under `visual-tests/tests/`. It is not "the only test change" — a deleted `tests/e2e` spec or a new Jasmine `*.spec.js` is not coverage to the gate, so either can sit beside the capture spec and the advisory still fires. The criterion that decides whether such a spec keeps counting as coverage, and the recipe that tallies the warning, are in `.ai/LOCAL-ENFORCEMENT.md`.
 
 **The Jasmine suite is frozen — and migrates by attrition:**
 - Adding a **new** `*.spec.js` is blocked; new E2E goes to Playwright.
@@ -548,7 +554,8 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 
 **Unit Tests (`*.unit.js`, `*.unit.ts`):**
 - Framework: Jest with jsdom (`jest-jasmine2` runner)
-- Location: `src/**/__tests__/`
+- Location: mostly `src/**/__tests__/`; also `test/__tests__/` and `test/helpers/__tests__/`, Walkontable's `src/3rdparty/walkontable/test/unit/`, and `src/3rdparty/SheetClip/test/`
+- CI: the `Unit` job runs on a pull request only when `test-handsontable-unit` in `.github/workflows/checks.yml` matches a changed file. A pin that reads a file outside that route belongs in the root tooling suite (see the root `.ai/CI.md`).
 - Scope: Individual functions and classes in isolation
 - Synchronous (no async/await required)
 - Explicit imports needed
@@ -563,20 +570,21 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 
 **Type Tests (`*.types.ts`):**
 - Tool: tsc (TypeScript compiler only)
-- Location: `test/types/`
+- Location: `src/**/__tests__/` (82 files); `npm run test:types` compiles them with `test/types/tsconfig.json`
 - Purpose: Verify TypeScript type definitions generated into `handsontable/tmp/` from the `.ts` sources
 
 **Walkontable Tests:**
-- Separate test pipeline (`npm run test:walkontable`)
+- Specs (`test/spec/`): separate test pipeline (`npm run test:walkontable`) with its own spec runner (`SpecRunner.html`)
+- Unit tests (`test/unit/`): Jest tests that the core `npm run test:unit` runs, not `test:walkontable`
 - Location: `src/3rdparty/walkontable/test/`
-- Has its own spec runner (`SpecRunner.html`)
-- Do not mix with main E2E tests
+- Do not mix the specs with main E2E tests
 
 **Visual Regression Tests:**
 - Framework: Playwright
 - Location: `visual-tests/`
 - Config: `visual-tests/playwright.config.ts` and `playwright-cross-browser.config.ts`
 - Screenshots stored in `visual-tests/screenshots/`
+- What earns a capture, and why a visual spec is in addition to, never instead of a Playwright assertion: `visual-tests/AGENTS.md` → Decision rule
 
 ## Plugin Testing Requirements
 
@@ -700,9 +708,13 @@ it('should maintain selections after render', async() => {
 ```javascript
 {
   testEnvironment: 'jsdom',
-  roots: ['<rootDir>/src'],
-  setupFilesAfterEnv: ['<rootDir>/test/bootstrap.js'],
-  testRegex: '\\.unit\\.js$',
+  setupFiles: ['<rootDir>/test/cryptoSetup.js'],
+  roots: ['<rootDir>/src', '<rootDir>/test'],
+  coverageDirectory: '<rootDir>/coverage',
+  coverageReporters: ['json', 'lcov', 'clover'],
+  setupFilesAfterEnv: ['<rootDir>/test/bootstrap.js', '<rootDir>/test/jsdomThemeVars.js'],
+  testRegex: '\\.(unit\\.js|unit\\.ts)$',
+  testPathIgnorePatterns: ['<rootDir>/node_modules/'],
   testRunner: 'jest-jasmine2',
   moduleNameMapper: {
     '^handsontable(.*)$': '<rootDir>/src$1',

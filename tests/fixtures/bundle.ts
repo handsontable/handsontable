@@ -27,3 +27,24 @@ export const BUNDLE_POLLING_MS = 100;
 export async function awaitBundle(page: Page): Promise<void> {
   await page.waitForFunction(() => 'Handsontable' in window, undefined, { polling: BUNDLE_POLLING_MS });
 }
+
+/**
+ * Waits for the fixture's inline script to have built the grid (`window.hot`) and rethrows the constructor error
+ * the fixture captured in `window.htBuildError`, so a bad setting is a red test with the cause, not a mute
+ * timeout. Call it right after `awaitBundle()`.
+ *
+ * @param {Page} page The page the fixture is open on.
+ */
+export async function awaitFixtureBuilt(page: Page): Promise<void> {
+  await page.waitForFunction(
+    () => 'hot' in window || 'htBuildError' in window,
+    undefined,
+    { polling: BUNDLE_POLLING_MS }
+  );
+
+  const buildError = await page.evaluate(() => (window as { htBuildError?: string }).htBuildError ?? null);
+
+  if (buildError !== null) {
+    throw new Error(`Handsontable constructor threw in the fixture:\n${buildError}`);
+  }
+}

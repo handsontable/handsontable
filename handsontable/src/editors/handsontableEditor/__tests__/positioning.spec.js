@@ -28,7 +28,10 @@ describe('HandsontableEditor positioning', () => {
     };
   }
 
-  // all other E2E tests are moved to visual tests. See ./visual-tests/tests/js-only/editors/handsontable/
+  // Where the list opens from every corner, in a sized grid and on a page the WINDOW scrolls, is
+  // asserted in tests/e2e/handsontable-editor-list-position.spec.ts on every theme; this spec keeps a
+  // sized grid's horizontal flip and the #8688 vertical case. ./visual-tests/tests/js-only/editors/
+  // handsontable/ keeps a look check of the list.
 
   it('should render the editors dropdown on the left edited cell when there is no space left on the right', async() => {
     handsontable({
@@ -94,7 +97,7 @@ describe('HandsontableEditor positioning', () => {
     }
   });
 
-  it('should render the editors dropdown above the cell when there is no space left below', async() => {
+  it('should render the editors dropdown below the cell and past the table\'s edge when there is no space left below inside the table', async() => {
     handsontable({
       data: createSpreadsheetData(25, 25),
       colWidths: 80,
@@ -125,7 +128,8 @@ describe('HandsontableEditor positioning', () => {
     }
 
     await keyDownUp('escape');
-    // scroll so cell 11 is near the bottom of the viewport -- no space below for the dropdown
+    // scroll so cell 11 is near the bottom of the table -- no space below for the dropdown
+    // INSIDE the table, though the viewport still has room under the table itself
     await scrollViewportVertically(0);
     await selectCell(11, 1);
     await keyDownUp('enter');
@@ -134,14 +138,20 @@ describe('HandsontableEditor positioning', () => {
       const relativeRect = getCell(11, 1).getBoundingClientRect();
       const containerRect = getActiveEditor().htContainer.getBoundingClientRect();
 
-      // Dropdown is rendered above the edited cell.
-      expect({
-        top: containerRect.top,
-        left: containerRect.left,
-      }).toEqual({
-        top: relativeRect.top - containerRect.height - 1,
-        left: relativeRect.left - 1,
-      });
+      // #8688: the list is positioned `fixed`, so running out of room inside the table no longer
+      // decides anything - the space left in the box the list is laid out in does, which here is
+      // the viewport. Whether that leaves it below the cell or above it is theme-dependent: each
+      // theme's row height sets the list's height, so `horizon` flips where `main` does not.
+      // Asserting a side would pass on one theme and fail on another for a reason that has
+      // nothing to do with the behavior, so this pins what must hold on every theme - the list
+      // touches the edited cell and is aligned to its inline start.
+      const sitsBelow = Math.abs(containerRect.top - relativeRect.bottom) <= 1;
+      const sitsAbove = Math.abs(containerRect.bottom - relativeRect.top) <= 1;
+
+      expect(sitsBelow || sitsAbove).toBe(true);
+      expect(Math.abs(containerRect.left - (relativeRect.left - 1))).toBeLessThanOrEqual(1);
+      // The contract that makes the clip escapable in the first place.
+      expect(getActiveEditor().htContainer.style.position).toBe('fixed');
     }
   });
 });

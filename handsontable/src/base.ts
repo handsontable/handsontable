@@ -205,6 +205,7 @@ interface HandsontableFactory {
     Formulas: typeof import('./plugins/formulas').Formulas;
     HiddenColumns: typeof import('./plugins/hiddenColumns').HiddenColumns;
     HiddenRows: typeof import('./plugins/hiddenRows').HiddenRows;
+    ImportFile: typeof import('./plugins/importFile').ImportFile;
     Loading: typeof import('./plugins/loading').Loading;
     ManualColumnFreeze: typeof import('./plugins/manualColumnFreeze').ManualColumnFreeze;
     ManualColumnMove: typeof import('./plugins/manualColumnMove').ManualColumnMove;
@@ -318,6 +319,7 @@ declare namespace Handsontable {
   export type GridSettings = GridSettingsType;
   export type SanitizerContext = import('./core/settings').SanitizerContext;
   export type TextExtractorContext = import('./core/settings').TextExtractorContext;
+  export type PasteClipboardData = import('./core/settings').PasteClipboardData;
   export type ColumnSettings = ColumnSettingsType;
   export type CellProperties = CellPropertiesType;
   /** Alias of the top-level `CellMeta` export. */
@@ -424,10 +426,18 @@ declare namespace Handsontable {
     export namespace Filters {
       export type ConditionId = import('./plugins/filters').ConditionId;
       export type OperationType = import('./plugins/filters').OperationType;
+      export type Settings = import('./plugins/filters').FiltersSettings;
+      export type ColumnSettings = import('./plugins/filters').FiltersColumnSettings;
+      export type AvailableConditions = import('./plugins/filters').AvailableConditions;
+      export type AvailableConditionsRule = import('./plugins/filters').AvailableConditionsRule;
+      export type AvailableConditionsList = import('./plugins/filters').AvailableConditionsList;
+      export type AvailableConditionsExclusion = import('./plugins/filters').AvailableConditionsExclusion;
+      export type AvailableConditionsDataType = import('./plugins/filters').AvailableConditionsDataType;
     }
     export type Formulas = import('./plugins/formulas').Formulas;
     export type HiddenColumns = import('./plugins/hiddenColumns').HiddenColumns;
     export type HiddenRows = import('./plugins/hiddenRows').HiddenRows;
+    export type ImportFile = import('./plugins/importFile').ImportFile;
     export type Loading = import('./plugins/loading').Loading;
     export type ManualColumnFreeze = import('./plugins/manualColumnFreeze').ManualColumnFreeze;
     export type ManualColumnMove = import('./plugins/manualColumnMove').ManualColumnMove;
@@ -458,7 +468,7 @@ export {
 
 // Named type exports for user-facing API (mirrors src/index.ts)
 // Note: CellCoords and CellRange are already exported as runtime values above.
-export type { GridSettings, Events, SanitizerContext, TextExtractorContext } from './core/settings';
+export type { GridSettings, Events, SanitizerContext, TextExtractorContext, PasteClipboardData } from './core/settings';
 export type {
   CellValue, CellChange, ColumnDataGetterSetterFunction, RowObject, SourceRowData, ChangeSource,
   CellMeta, CellProperties, ColumnSettings, RemoveIndexSignature

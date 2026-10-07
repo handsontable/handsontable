@@ -18,6 +18,22 @@ Two placements, for two purposes:
 
 Because `ht-grid` holds the grid *and* the empty-data state, the two are siblings, not nested.
 
+## The overlay is sized on show, not only after a render
+
+`#updateLayout()` runs `updateSize()` and `updateClassNames()`, and it runs from `afterRender` and from
+`#show()`. The second one matters because the loading overlay turns on from `beforeDataProviderFetch`,
+outside any render. Sized only after a render, the overlay kept the size it had the last time it was on
+screen until the fetch finished, so a grid resized in between got an overlay that spilled over the pager
+and the sheets bar tabs (and swallowed their clicks) or covered only part of the grid. Pinned by
+`tests/e2e/empty-data-state-loading-size.spec.ts`, which compares the size on show to the size a render
+gives, so it holds on every theme.
+
+Do **not** add a resize to the branch of `#toggleEmptyDataState()` that switches an overlay that is ALREADY
+visible into loading. It cannot change the size: `updateSize()`'s `isLoading` flag only reaches the width
+through the `cols === 0` case, and it is only ever true with `cols > 0`. It runs on every
+`afterRow/ColumnSequenceCacheUpdate` during a fetch's `loadData()`, so a resize there only buys a forced
+reflow per index update (measured: six per fetch) and a line no test can pin.
+
 ## The `message` option accepts three shapes
 
 `string` | `function` | a record. `SETTINGS_VALIDATORS` accepts all three plus `undefined`, and the plugin
@@ -136,6 +152,8 @@ Either way, `afterEmptyDataStateHide` fires last.
 
 - Sibling overlay surfaces and the shared button-type rule: `../dialog/AGENTS.md`,
   `../notification/AGENTS.md`, `../loading/AGENTS.md`.
+- A failed DataProvider fetch hides the loading overlay only when the hook's third argument, `isVisible`, is not `false`. A request made for a view the grid no longer shows can fail while the view on screen still waits for its own fetch; clearing on that failure dropped the overlay mid-fetch.
+- **This plugin knows nothing about the view that changed.** When DataProvider's owner changes the view the grid shows, no fetch hook fires, so DataProvider calls the internal `_syncDataProviderLoading(isLoading, isViewChange)` (`@private`, not API) with its own `isFetching()`, also after releasing a context (an aborted fetch fires no hook). It does nothing while this plugin is disabled — the default — because `#show()` activates a focus scope that only exists while the plugin is enabled. The call exists because a fetch left running for another view must not keep the overlay up, and a view whose fetch still runs must show it again. A view change (`isViewChange: true`) also re-homes the selection `#show()` stashed: while the overlay stays up, the stash becomes the arriving view's selection (the owner restored it before the sync runs), and when the change hides the overlay, `#hide(false)` restores nothing — no `importSelection()` and no `selectCell(0, 0)` fallback. The stash otherwise belonged to the view that was left, and hiding pasted that view's selection over the arriving one, or reset it to the first cell. Never listen to an owner plugin's hooks here; `test/__tests__/releasedPluginsViewAgnostic.unit.js` fails if this directory's source names the owner plugin or its hooks.
 - Where the message usually comes from on a server-backed grid: `../dataProvider/AGENTS.md`.
 - Layout slots vs fixed internal elements: `../../core/layout/`.
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.

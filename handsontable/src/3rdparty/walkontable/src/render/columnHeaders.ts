@@ -76,6 +76,7 @@ export class ColumnHeadersRenderer extends BaseRenderer {
     // and the frozen-column count the ownership check needs (a mapper-walking function in core).
     const columnHeaderIdPrefix = this.table.isAriaEnabled() ? this.table.getAriaColumnHeaderIdPrefix() : '';
     const fixedColumnsStart = columnHeaderIdPrefix ? this.table.getFixedColumnsStart() : 0;
+    const firstFixedEndColumn = columnHeaderIdPrefix ? this.table.getFirstFixedEndColumn() : Infinity;
 
     for (let visibleRowIndex = 0; visibleRowIndex < columnHeadersCount; visibleRowIndex++) {
       const TR = columnHeaderRows!.getRenderedNode(visibleRowIndex);
@@ -125,12 +126,14 @@ export class ColumnHeadersRenderer extends BaseRenderer {
           const columnHeaderId = columnHeaderIdPrefix &&
             renderedColumnIndex >= 0 &&
             visibleRowIndex === columnHeadersCount - 1 &&
-            this.table.ownsAriaColumnHeaderId(sourceColumnIndex, fixedColumnsStart)
+            this.table.ownsAriaColumnHeaderId(sourceColumnIndex, fixedColumnsStart, firstFixedEndColumn)
             ? `${columnHeaderIdPrefix}${sourceColumnIndex}`
             : '';
 
           setAttribute(TH, [
-            A11Y_COLINDEX(visibleColumnIndex + 1),
+            A11Y_COLINDEX(
+              this.table.getAriaColumnHeaderIndex(visibleColumnIndex, renderedColumnIndex >= 0 ? sourceColumnIndex : -1)
+            ),
             A11Y_TABINDEX(-1),
             A11Y_COLUMNHEADER(),
             ...(renderedColumnIndex >= 0 ? [

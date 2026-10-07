@@ -17,6 +17,7 @@ import { A11Y_CHECKBOX, A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
 import { CHECKBOX_CHECKED, CHECKBOX_UNCHECKED } from '../../i18n/constants';
 import { BAD_VALUE_TEXT } from '../../helpers/constants';
 import { canAccessCellContent } from '../../shortcuts/guards';
+import { createIcon } from '../../themes/engine/icons';
 
 const isListeningKeyDownEvent = new WeakMap();
 const isCheckboxListenerAdded = new WeakMap<HotInstance, EventManager>();
@@ -72,6 +73,10 @@ export function checkboxRenderer(
   registerEvents(hotInstance);
 
   const input: HTMLInputElement = createInput(rootDocument);
+  // What the label branches place: the `span.htCheckboxRendererBox` positioning wrapper around the
+  // input and its tick, or the bare input for a `#bad-value#` cell. Resolved after
+  // `applyCheckedState()`, which is what decides the bad-value case.
+  let checkbox: HTMLElement = input;
   let inputOrWrapper: HTMLElement = input;
   const labelOptions = cellProperties.label as Record<string, unknown> | undefined;
   let badValue = false;
@@ -91,6 +96,29 @@ export function checkboxRenderer(
   const locale = cellProperties.locale as string | undefined;
 
   applyCheckedState();
+
+  // The tick is a real element, not the input's own `::after` - an `<input>` can hold no
+  // children - so the input and the tick share a `span.htCheckboxRendererBox` wrapper, and every
+  // label arrangement below places that wrapper where 18.1 placed the bare input. The wrapper is
+  // a single atomic inline: two adjacent inline-blocks (input, then icon) are a soft-wrap
+  // opportunity in the `white-space: pre-wrap` cell, which dropped the tick onto a second line in
+  // a narrow column. Inside the wrapper the icon is absolutely positioned over the input
+  // (`_checkbox-renderer.scss`), so the wrapper is again the only child where 18.1 had the input
+  // alone, and the 18.1 `:first-child`/`:last-child` gap rules apply to it unchanged.
+  // `.ht-icon` carries `pointer-events: none` (`_icon.scss`), so a click still reaches the input
+  // underneath. Every render builds a fresh input and wrapper after `empty(contentRoot)`, so no
+  // duplicate-removal is needed.
+  //
+  // A `#bad-value#` cell keeps the 18.1 shape - the bare, hidden input and no tick: the input is
+  // `display: none` (`applyCheckedState()`), and a visible wrapper or tick would leave an empty
+  // box next to the bad-value text with nothing to represent.
+  if (!badValue) {
+    checkbox = createBox(rootDocument);
+    checkbox.appendChild(input);
+    checkbox.appendChild(createIcon(hotInstance, 'checkbox'));
+    inputOrWrapper = checkbox;
+  }
+
   applyLabelOptions();
 
   /**
@@ -101,6 +129,13 @@ export function checkboxRenderer(
       localeLowerCase(stringify(value), locale) ===
       localeLowerCase(stringify(cellProperties.checkedTemplate), locale)) {
       input.checked = true;
+      // Reflect the checked state as the `checked` HTML attribute (via `defaultChecked`), not only as
+      // the IDL property. A custom renderer that chains this renderer and then rebuilds the cell with
+      // `TD.innerHTML += ...` re-serializes the cell; the IDL property is not serialized, so without the
+      // attribute the checkbox re-parses as unchecked on every render (handsontable/dev-handsontable#342).
+      // Only the checked branch sets it: `createInput()` returns a freshly cloned element on every
+      // render, so the attribute defaults to absent on the unchecked path with nothing to clear.
+      input.defaultChecked = true;
 
     } else if (value === cellProperties.uncheckedTemplate ||
       localeLowerCase(stringify(value), locale) ===
@@ -165,19 +200,19 @@ export function checkboxRenderer(
       if (labelOptions.position === 'before') {
         if (labelOptions.separated) {
           contentRoot.appendChild(label);
-          contentRoot.appendChild(input);
+          contentRoot.appendChild(checkbox);
 
         } else {
-          label.appendChild(input);
+          label.appendChild(checkbox);
           inputOrWrapper = label;
         }
       } else if (!labelOptions.position || labelOptions.position === 'after') {
         if (labelOptions.separated) {
-          contentRoot.appendChild(input);
+          contentRoot.appendChild(checkbox);
           contentRoot.appendChild(label);
 
         } else {
-          label.insertBefore(input, label.firstChild);
+          label.insertBefore(checkbox, label.firstChild);
           inputOrWrapper = label;
         }
       }
@@ -510,6 +545,20 @@ function createInput(rootDocument: Document): HTMLInputElement {
   input.setAttribute('tabindex', '-1');
 
   return input.cloneNode(false) as HTMLInputElement;
+}
+
+/**
+ * Create the positioning wrapper that holds the checkbox input and its tick icon.
+ *
+ * @param {Document} rootDocument The document owner.
+ * @returns {HTMLElement}
+ */
+function createBox(rootDocument: Document): HTMLElement {
+  const box = rootDocument.createElement('span');
+
+  box.className = 'htCheckboxRendererBox';
+
+  return box;
 }
 
 /**

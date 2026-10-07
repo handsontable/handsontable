@@ -60,11 +60,55 @@ twin, which is the same defect on the horizontal axis. Covered by
 `tests/e2e/hidden-indicator-overhang.spec.ts`, whose third describe compares every marked row header
 byte for byte against the 18.1.0 rules.
 
+## The caret is a real element now — box stays 10×10, glyph artwork is 8×8
+
+`#onAfterGetRowHeader` calls `syncIcon(this.hot, TH, slotClass, iconName)`
+(`themes/engine/icons.ts`) against `ht-hidden-indicator-start` (`afterHiddenRow`, `caretHiddenDown`)
+and `ht-hidden-indicator-end` (`beforeHiddenRow`, `caretHiddenUp`) as children of the row header
+`th` itself — not of its `.relative` wrapper — mirroring `../hiddenColumns/`'s column carets. See that
+file's "The caret is a real element now" section for the full mechanism, including why the `th` (the
+box the old pseudo-elements positioned against) and not `.relative` must be the container: `.relative`
+only fills the `th` for a one-line header.
+
+**The CSS box stays `10px !important`, matching the column carets — do not shrink it to match the
+glyph's own artwork size.** `caretHiddenUp`/`caretHiddenDown` are authored on an 8×8 viewBox
+(`caretHiddenLeft`/`caretHiddenRight`, the column carets, are 10×10 —
+`handsontable/src/themes/static/variables/icons/*.ts`), and `mask-size: contain` scales that 8×8
+artwork UP to fill the 10px box — same before icons became elements (the pre-existing pseudo-element rule was
+`width: 10px !important; height: 10px !important`, identical to the column plugin's) and unchanged by
+it. Sizing the box to 8px would render the indicator ~2px smaller than it has always shipped — a
+visible size change unrelated to the pseudo-element → real-element mechanism swap this task is about,
+and not something to slip into a Phase-2 migration without its own design ticket.
+
+**Disabling the plugin must clear both slots too**, for the same reason as `../hiddenColumns/`:
+`super.disablePlugin()` removes the tracked `#onAfterGetRowHeader` hook, so without an untracked,
+one-shot `afterGetRowHeader` cleanup hook (registered in `disablePlugin()`, self-removing on the next
+`afterViewRender`) a caret rendered before the disable is orphaned in the DOM forever.
+
+## Hide row suppresses itself when no row is rendered
+
+`contextMenuItem/hideRow.ts` `hidden()` mirrors `../hiddenColumns/` `hideColumn.ts` (DEV-164): after the
+selection-type gate it returns `true` when `rowIndexMapper.getRenderableIndexesLength() === 0`, so a corner
+(select-all) right-click stops showing a dead "Hide rows" entry whenever no row is visible — every row
+hidden (the reported case), an empty grid, or a fully-trimmed grid (a filter matching nothing). All three
+are the same no-op (`hideRows([])`). Using *renderable* count rather than `getHiddenRows().length` keeps the
+answer consistent whether the rows are gone by hiding or by trimming. Full rationale in
+`../hiddenColumns/AGENTS.md`.
+
 ## Known concern
 
 `../../../.ai/CONCERNS.md` used to list `contextMenuItem/showRow.ts`'s `arr.push(...largeArray)` as a
 stack-overflow risk. The `hidden()` path now copies with loops (DEV-1040). Do not reintroduce
 `push(...array)` here.
+
+## Undo of a row removal restores hidden state (DEV-134)
+
+This plugin registers no `beforeRemoveRow`/`afterRemoveRow` hook of its own — row removal and its undo are
+handled entirely from the `undoRedo` plugin's side, because `IndexMapper#removeIndexes()`/`insertIndexes()`
+splice and re-insert every registered `HidingMap` unconditionally, with no memory of the prior flags.
+UndoRedo records every index map, this plugin's `HidingMap` included, before and after each step, and an
+undo writes the recorded flags back once the removed rows are in place again. Nothing here has to be
+re-hidden by hand. Full mechanics: `../undoRedo/AGENTS.md`.
 
 ## Where to look next
 

@@ -26,6 +26,26 @@ describe('Core.getCopyableSourceData', () => {
     expect(getCopyableSourceData(1, 0)).toEqual({ id: 456, name: 'Mark' });
   });
 
+  it('should return non-string source values without converting them', async() => {
+    handsontable({
+      data: [
+        { id: 1, active: true, note: null },
+      ],
+      columns: [
+        { data: 'id' },
+        { data: 'active', type: 'checkbox' },
+        { data: 'note' },
+      ],
+      copyable: true
+    });
+
+    // Unlike `getCopyableData()`, this method hands back the source value as it is stored, so the
+    // CopyPaste plugin can serialize nested objects to JSON.
+    expect(getCopyableSourceData(0, 0)).toBe(1);
+    expect(getCopyableSourceData(0, 1)).toBe(true);
+    expect(getCopyableSourceData(0, 2)).toBe(null);
+  });
+
   it('should return empty string as copyable data when `copyable` option is disabled', async() => {
     handsontable({
       data: [

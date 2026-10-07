@@ -20,7 +20,7 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 
 ## Key Subsystems
 
-- **Overlay system** (6 types): Frozen rows/columns and scroll sync. Fragile - proceed with caution.
+- **Overlay system** (8 subclasses plus the shared base): Frozen rows/columns on all four edges and scroll sync. Fragile - proceed with caution. See "The inline-end overlay (`fixedColumnsEnd`)" below.
 - **Viewport calculation**: Determines visible rows/columns based on scroll position
 - **Renderer**: DOM element management, cell reuse
 - **Scroll handling**: requestAnimationFrame batching required
@@ -30,6 +30,218 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 
 `Border` in `src/selection/border/border.ts` has TWO distinct handle systems: `selectionHandles` (mobile touch handles, created by `createMultipleSelectorHandles()`, CSS classes `topSelectionHandle`/`bottomSelectionHandle`) and `adjustHandles` (desktop drag-to-resize handles added in 18.0.0, CSS class `.wtSelectionHandle`, controlled by the `selectionHandles` grid option). Do not conflate them.
 
+## Each adjust handle has exactly one owning overlay (DEV-3084)
+
+A selection that crosses a freeze line is drawn once per overlay. `appear()` runs in the master and in
+every clone, and each run clamps the corners to what that overlay renders. So a slice drawn by
+`inline_start`, for example, ends on the freeze line. When each slice placed its own full set of
+`adjustHandles`, handles showed up on the freeze line in the middle of the selection, and the top and
+bottom edges got one pair per slice.
+
+The rules now live in `selection/border/adjustHandlesOwnership.ts`. They are pure functions over a
+per-axis layout, unit-tested table-driven in `test/unit/selection/border/adjustHandlesOwnership.unit.ts`.
+`getHandleOwnership` gives each handle to exactly one overlay. `Border#planAdjustHandles` resolves the
+inputs and `Border#applyAdjustHandles` writes the result.
+
+- **One snapshot per draw.** The clones render their selections inside `wtOverlays.refresh()`, and
+  the master renders its own afterwards. In between, `createVisibleCalculators()` can run again, when a
+  frozen-derived row height changed. Read live, the clones and the master could decide on different
+  ranges and draw a handle twice or not at all. So `snapshotSelectionVisibleRange` (`table/drawCycle.ts`)
+  stores the master's visible ranges on `Overlays#selectionVisibleRange` right before each `refresh()`.
+  Every overlay reads that snapshot through `cloneSource`. A master draw that never reaches `refresh()`
+  keeps the previous snapshot, which is also what the clones last drew with.
+- **Visible, not rendered.** The master renders more tracks than the user can see:
+  - the rendering offset (`viewport*RenderingOffset: 'auto'`) adds one track on each side;
+  - the directional overscan adds more;
+  - `renderAllRows` and `renderAllColumns` render everything.
+
+  Those extra tracks sit behind a frozen pane or outside the holder. The visible calculators leave the
+  frozen panes out.
+- **Fully visible decides the center, and edges are checked per side.** A few pixels of a scrollable
+  column past the pane count as "partially visible". If that were enough to make the scrollable part
+  own the centered handles, they would be drawn on the sliver, behind the pane. So:
+  - `getCenterSegment` asks for a *fully* visible track of the selection's scrollable part.
+  - `isTrackEdgeVisible` checks each edge separately. The first partially visible track has lost its
+    start edge but keeps its end edge, and the last one the other way round. So a sliver's end handle
+    is still drawn, and can still be grabbed.
+- **On the handle's own axis,** the overlay's segment must contain the edge. Each overlay has a
+  segment on each axis: frozen `start`, scrollable `main`, or frozen `end`. The overlay must also
+  render the edge unclamped, and in `main` the edge must be on screen. An edge clamped to the
+  rendered band lies inside the selection.
+- **On the cross axis,** where the handle is centered, only the segment `getCenterSegment` picks may
+  draw it. Without the frozen fallback, the top and bottom handles vanish once the scrollable part is
+  scrolled away.
+- **The midpoint comes from the owner's visible segment** (`getHandlesSpan`, then
+  `Border#getAdjustHandlesBox`), not from the clamped box. At a scroll offset of 0 the master and the
+  scroll-synced clones render the frozen rows or columns at the start of their band, underneath the
+  frozen overlays. At any offset they render overscan tracks. So a handle centered on the whole box can
+  land on the freeze line, behind a pane, or outside the holder. As a result, a crossing selection's
+  top and bottom handles are **not** centered on the whole range. That is deliberate.
+- **The geometry is read before `appear()` writes any style.** `appear()` calls `planAdjustHandles`
+  before its first style write. A read after the writes would force a second synchronous layout per
+  border on every draw, including scroll frames. The reads cover the reference cell and the new edge
+  cell, and only for an edge the narrowing actually moves.
+- **Merged cells need care.** `getCell` resolves a covered coordinate to the merge's root, so the
+  edge it finds can be the whole block's, not the track's.
+  - `measureTrackEdgeDelta` walks the selection's other axis until it finds a cell whose own block
+    (`getCoords` plus the span on that axis) starts or ends on the track.
+  - When every cell on the track belongs to such a merge, it sums the master's size caches instead
+    (`measureTrackEdgeDeltaFromSizes`). It reads `PositionCache#getOffset` without `ensureBuilt()`,
+    because a build mid-draw skips a recalculation the draw cycle still owes.
+  - Skipping the narrowing is not safe: a merge crossing the freeze line then centers the pair on the
+    whole box, which can straddle the line.
+  - A selection of exactly one merged block shows no adjust handles at all, since it is not an area
+    selection.
+- **The rule also applies with no frozen panes.** In a plain grid the master is the only overlay,
+  and the visible-range checks still apply to it. When a selection is taller or wider than the
+  viewport, its handles are centered on the visible part. An edge that lies in the overscan rows
+  gets no handle; before, it got one drawn at the rendered band's edge, inside the selection.
+
+The older "edge lies exactly on a freeze line" hides (`isFrozenBoundaryEdge` and friends) still apply
+on top of this. So does the grid-boundary hide in `positionAdjustHandles`, which works in renderable
+space. With visual row 0 hidden, a selection starting at visual row 1 is at the boundary and gets no
+top handle.
+
+Testing needs care:
+- A crossing selection's master slice already shows the right number of handles, so the
+  master-scoped `handle()`/`visibleHandles()` locators pass on the bug. Count with
+  `visibleHandlesInAnyOverlay()` instead.
+- `:visible` does not check occlusion, so a handle drawn under a frozen pane still counts. Assert
+  with `reachableHandleEdges()`, which hit-tests each handle's center.
+- The rendered-versus-visible trap only shows when a scrollable track of the selection stays
+  rendered behind the pane. Scroll just one track past it (`scrollToColumn(2)` with one frozen
+  column), or leave a sliver (`scrollToLeaveSliverOfColumn()`), not to the far end.
+
+All of this is in `tests/e2e/selection-handles.spec.ts`, "a selection crossing a frozen pane".
+
+The `moveCells` bands (`.wtMoveZone`, `Border#positionMoveZone`) follow the same ownership idea, but
+only its own-axis half (`getMoveZoneOwnership`, built on the `ownsEdgeOnOwnAxis` predicate the handle
+rule also uses). Each slice used to show all four bands on its clamped box, so a band sat on each
+freeze line inside the selection (16 bands for a selection crossing both lines, where 8 are right).
+
+- **No cross-axis center rule.** A band spans its whole edge, so an edge that crosses a freeze line is
+  drawn by every overlay it passes through, each band covering that overlay's slice.
+- **No visibility clause.** A band on an overscan track is clipped by the holder or covered by a
+  frozen pane, so it cannot be grabbed and needs no hiding.
+- **Resolved apart from the handles.** `Border#getMoveZoneOwnership` builds the layout itself, because
+  `planAdjustHandles` gives up when the adjust handles are off (`selectionHandles: false`).
+- **The clamp applies to every grid, frozen panes or not.** In a plain grid the master is the only
+  overlay, so a selection taller or wider than the rendered band loses the band on an edge that lies
+  past the band, where it used to get one on the rendered band's edge, inside the selection. A
+  "missing" top or bottom band on a tall selection is therefore expected while that edge is scrolled
+  out of the rendered rows; it comes back once the edge is rendered. The adjust handles behave the
+  same way.
+- **Header-anchored corners never reach it.** `canMoveRange` rejects entire-row, entire-column, and
+  header selections, so the negative raw corners of such a selection never meet the rule.
+
+The same testing trap applies: the master-scoped `visibleMoveZones()` passes on the bug, so count with
+`visibleMoveZonesInAnyOverlay()` and hit-test with `moveZoneHitsAt()` (`tests/e2e/move-zone.spec.ts`,
+"a selection crossing a frozen pane").
+
+## A merged block crossing a freeze line keeps one outline and one fill handle (DEV-143)
+
+A merged focus cell reaches `Border#appear()` as ONE coordinate (`[r, c, r, c]`), so `isMultiple` is
+false and the box is measured from the block's root cell. Every overlay renders that cell over its
+own band only: with `mergeCells.virtualized` MergeCells clamps the `rowspan`/`colspan` to the band
+(`clampToVirtualViewport`), and without it the cell keeps the full span and the browser truncates it
+at the edge of the overlay's table (measured: `rowspan=3` in the two-row `top` clone lays out two
+rows tall). Either way an overlay that renders part of the block measures a box ending on the freeze
+line. Left alone, every slice drew a closed box (a selection edge through the merged cell on each
+seam) and its own fill handle and mobile bottom handle.
+
+- **The block's extent comes from the `onModifyGetCellCoords` setting, asked once per `appear()`**
+  (`Border#resolveMergedBlockEdges`). `getEdgesInsideBlock` (`selection/border/utils.ts`) compares it
+  with the overlay's rendered band and hides every edge the block reaches past; the overlay that
+  renders the block's outline there draws it.
+- **What the extent is depends on the MergeCells mode.** Without `virtualized` it is the full block,
+  and the master is a no-op because MergeCells' viewport-calculator overrides widen the master's band
+  to cover every merged block in view. With `virtualized` the `'render'` source clamps it to the
+  master's band (and reads `getActiveOverlayName()` for the frozen-start side, which names the clone
+  while that clone draws), so the master is a no-op by construction. The clamp also means the master
+  and a clone that start past the block's root (the master's band starts at column 1 behind a
+  frozen column) still draw a start edge inside the block; a frozen pane covers it, which is why the
+  E2E probe hit-tests instead of counting displayed edges.
+- **Only the single-cell path takes the interior-edge rule.** A multi-cell range crossing a seam has
+  the same geometry, but its clamped edge falls on the clone holder's clip edge, where a 1px layer
+  is hidden by accident; a 2px edge there still shows. That clamp also serves the master's overscan
+  and the entire-row/column header paths, so it was left alone.
+- **The fill handle and the mobile bottom handle are drawn only by an overlay that renders the
+  corner** (`checkRow`, `checkCol` inside the band, on BOTH paths). `isSouthEastOfAreaSelection`
+  answers `true` whenever there is no area range, and the hook remap points every clone at the
+  block's bottom-end, so an area whose bottom-end lies in a crossing block also put a handle on the
+  seam in each clone. A block entirely inside the frozen corner keeps the corner's handle; the
+  master's and the other clones' copies sit under it.
+- **A block whose scrollable part is scrolled behind a pane shows an outline open at the seam and no
+  fill handle**, like a multi-cell range in the same state; before, the frozen slice drew a closed
+  box with a handle on the seam. Checked against `functional continuity`: an ordinary (non-merged)
+  drag-selection whose real bottom-end is scrolled out of the rendered band already showed no fill
+  handle either, on develop before this fix - `toRow`/`toColumn` are clamped to the rendered band
+  before `resolveMergedBlockEdges` runs, and `isSouthEastOfAreaSelection` compares that clamped value
+  against the selection's real (unclamped) corner, which then disagrees. A stray handle on the freeze
+  line only ever showed for a merge that is also a SINGLE selected cell (`cellRange` null), where
+  `isSouthEastOfAreaSelection` returns `true` unconditionally without checking the corner at all -
+  the same shape that produced the 4-handle bug this section opens with. So this case loses no
+  behavior the rest of the grid guarantees; it extends the one general rule.
+- **`resolveBlockExtent` (`selection/border/utils.ts`) is what makes `resolveMergedBlockEdges` safe
+  for a cell that never touches MergeCells.** `modifyGetCellCoords` is documented to return either
+  `[row, column]` or a full `[row, column, row2, column2]` extent, and a hook indifferent to `source`
+  legitimately answers even this fix's own `'render'`-sourced lookup with the short form (found in
+  review on #13667: a custom hook returning `[row, column]` hid every plain cell's fill handle and
+  mobile handle, not only a merged one's). `TableView`'s adapter turns a short result into a 4-element
+  array whose last two slots are `null`, and `Number.isInteger` is what tells that apart from a real
+  extent - `undefined`/`null` fail it, so does a partial 3-element result. Read `blockExtent[2]`/`[3]`
+  only after that check passes.
+
+A block crossing the `fixedRowsBottom` line is covered since DEV-176, by the same rules. The bottom
+clone never holds the block's origin, so MergeCells gives the span to the clone's FIRST rendered row instead
+of hiding every covered cell, which slid the rest of the row one column to the inline start. The lookup half
+lives here: `Table#getCell` (`table/cellAccess.ts`) resolves a block extent that starts before a clone's
+first rendered row but reaches into it to that first row, for clones only and without asking which overlay is
+being drawn, so `hot.getCell(8, 1, true)` and `Event#parentCell` (a press on the clone's outline) work outside
+a draw. The block extent that `resolveMergedBlockEdges` reads stays the real one, so the clone's top edge on
+the freeze line is hidden and the clone owns the fill handle at the corner. Do not clamp the extent too: that
+drew a closed box in the clone with an edge through the block. The clone's span cell is emptied by the plugin.
+Pinned by `tests/e2e/merge-cells-frozen-bottom.spec.ts`.
+
+Pinned by `tests/e2e/merge-cells-frozen-selection.spec.ts` (both MergeCells modes, hit-tested: one
+reachable handle on the block's corner, no visible edge inside the block, the outline on every track
+of every side, and a plain cell keeping its handle against a naive `modifyGetCellCoords` hook), the
+merged-cell and plain-cell cases in `tests/e2e/ipad-selection-handles.spec.ts`, and
+`test/unit/selection/border/utils.unit.ts`.
+
+## The `top` overlay draws a fill handle only for a column the viewport shows (DEV-800)
+
+`TopOverlay#adjustRootChildrenSize` makes the `top` clone's `.wtHolder` half a fill handle taller than
+its table whenever the selection's bottom-end corner is in the frozen top rows, so the handle can hang
+past the frozen rows (#6937). That strip belongs to `.ht_clone_top` (z-index 160) and paints above both
+inline panes (`inline_start`, `inline_end`, 120); the top corners (180) cover only down to the frozen
+rows' bottom edge, not the strip. The `top` clone also renders the master's whole column band, frozen
+and off-screen columns included. So a handle it drew for a column the viewport did not show landed in
+the strip over the row headers or a frozen column: with a column scrolled behind the row headers, with
+its inline-end edge under the `fixedColumnsEnd` pane, and as a stale copy, one scroll offset off, of a
+frozen column's handle that the corner clone draws in the right place.
+
+`Border#canOverlayDrawFillCorner` gates it, folded into `appear()`'s `rendersFillCorner` (so the
+mobile bottom handle follows): in the `top` overlay the corner column must be in the scrollable segment
+(`getAxisSegment`) and its inline-end edge visible (`isTrackEdgeVisible` on the per-draw
+`selectionVisibleRange` snapshot, the same inputs the adjust handles use). Every other overlay is
+unchanged. A column whose inline-end edge lies past the holder's edge (the last, partially visible
+column with no end pane) also loses the `top` overlay's handle, which the holder clipped anyway. Two
+rules:
+
+- **Do not fix it by clipping the `top` holder.** That holder is a composited scroll container (see "The
+  clone holders are composited scroll containers"), and the overhang is what #6937 needs.
+- **The test is by column, not by pixel.** A column whose inline-end edge is on screen but closer than
+  half a handle to a pane still lets the handle overlap that pane by up to that much. Accepted, as for
+  the adjust handles; making it exact means re-deriving the pane geometry inside `Border`.
+
+The bottom overlay needs no gate: nothing reserves a strip outside it, and the bottom corners cover the
+pane part of it. Pinned by the "fill handle of a frozen top row" block of
+`tests/e2e/fill-handle-frozen-panes.spec.ts`, which hit-tests the strip below the frozen rows
+(`SelectionFeaturesPage#fillHandlesBelowFrozenRows`) in LTR, RTL and with `fixedColumnsEnd`, and checks
+that the corner overlays still draw the overhang for a frozen column; the iPad bottom handle is pinned in
+`tests/e2e/ipad-selection-handles.spec.ts`.
+
 ## Custom border `width: 0` is a real value (DEV-1137)
 
 `getBorderSettingsProperty` in `src/selection/border/utils.ts` reads per-side settings with `??`, not a truthy check. `width: 0` must stay 0 so the edge paints at 0px. A truthy `posSettings[property] ? … : settings.border[property]` falls back to the default 1px and the zero-width border reappears. The same helper keeps an explicit empty `style: ''` rather than inheriting `settings.border.style`; `Border#createBorders` then takes the solid-fill `else` path (`if (borderStyle)` is false). Omitting the key, or setting `null`/`undefined`, still falls through. Do not special-case `style`; keep `??` for every property on this helper, because a truthy check would resurrect the width-0 bug.
@@ -38,8 +250,8 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 
 `.ht_master` is `position: relative` with `z-index: 0`. The explicit zero is load-bearing: it traps
 the scroll holder and every browser-promoted scrolling layer below the overlay clone divs
-(`inline_start` 120, `bottom` 130, `bottom_inline_start_corner` 150, `top` 160,
-`top_inline_start_corner` 180). Removing the stacking context lets the holder compete directly with
+(`inline_start` and `inline_end` 120, `bottom` 130, `bottom_inline_start_corner` and
+`bottom_inline_end_corner` 150, `top` 160, `top_inline_start_corner` and `top_inline_end_corner` 180). Removing the stacking context lets the holder compete directly with
 the clones. Under a transformed ancestor, mobile browsers can then composite the scrolling master
 above the frozen panes.
 
@@ -98,7 +310,7 @@ frame and the page's CLS grows without bound — 10.4 after 25 wheel steps, wher
 transform moves pixels without moving layout and is exempt. Measured on the same build with and
 without it: CLS 10.44 → 0.004, forced layouts per scroll run 154 → 106, everything else within noise.
 
-Four rules follow, and the first is the one that bites.
+Five rules follow, and the first is the one that bites.
 
 - **`offsetTop`/`offsetLeft` and the `offset()` helper walk the layout chain, so they no longer see
   this distance.** Any code that compares a cell's document position against an element OUTSIDE the
@@ -132,6 +344,15 @@ Four rules follow, and the first is the one that bites.
   `Overlays#isStickyScrollOwningClones()` is true - suspend them on the master's flag and the
   frozen columns freeze for the length of a page-scrollbar drag. `#activate` reads its starting
   offset from the record, not from `style.top`, which is empty now.
+- **`StickyScrollStrategy#syncOffsets` resolves each axis on its own.** An axis with nothing
+  rendered (no rows, or every row hidden, trimmed or filtered out; likewise for columns) has a
+  `null` render-calculator `startPosition`, and it takes offset 0 on that sync, the same value the
+  overlays' `applyToDOM()` writes for that axis outside a drag; both axes are re-resolved on every
+  call, so an axis that gets rows back mid-drag follows them again. Skipping the whole update when
+  either axis is `null` froze the OTHER axis at its activation inset: on a grid with no rows the
+  column headers drifted off their columns mid-drag, and `deactivate()`, which derives the release
+  scroll from the inset, snapped the grid back towards its start (DEV-3083, regressed in 17.1.0 by
+  #12235). Pinned by `tests/e2e/walkontable/scrollbar-drag-empty-grid.spec.ts`.
 
 Pinned by `test/unit/overlay/spreaderOffset.unit.ts` and `tests/e2e/walkontable/spreader-layout-shift.spec.ts`,
 which reads the browser's own `layout-shift` entries under a real wheel scroll — a scripted
@@ -156,15 +377,26 @@ scroll was always cheap: `.ht_master .wtHolder` is `overflow: auto`.
 
 So `src/styles/base/_base.scss` makes each of those holders a scroll container on the ONE axis the
 engine writes (`overflow-y: auto` on the inline-start holder, `overflow-x: auto` on the top and
-bottom ones, the cross axis `hidden`), with the scrollbar suppressed (`scrollbar-width: none` plus
-the `::-webkit-scrollbar` fallback, written out in place: a `&` inside a mixin body fails the
-SonarCloud gate as "missing scoping root", S8776) and `overflow-anchor: none`. The same writes then take the compositor's
-scroll-offset fast path: measured on that grid, paint 850 → 90 ms per run and total main-thread time
-−45…−65 % on every renderer, with renderer calls, draws and frames identical. The worst frame and the
-long tasks do not move — they are the two full draws' renderer work — so the win is per-frame
-headroom, not a shorter stall. The corner clones are untouched (their holders were never clipped):
-nothing scrolls them. `css/walkontable.scss` carries the same rule for the engine's own test runner
-and must be kept in sync, or `npm run test:walkontable` runs against the old clip.
+bottom ones, the cross axis `hidden`), with the scrollbar suppressed (`scrollbar-width: none
+!important` plus the `::-webkit-scrollbar` fallback, written out in place: a `&` inside a mixin body
+fails the SonarCloud gate as "missing scoping root", S8776) and `overflow-anchor: none`. The same
+writes then take the compositor's scroll-offset fast path: measured on that grid, paint 850 → 90 ms
+per run and total main-thread time −45…−65 % on every renderer, with renderer calls, draws and frames
+identical. The worst frame and the long tasks do not move — they are the two full draws' renderer
+work — so the win is per-frame headroom, not a shorter stall. The corner clones are untouched (their
+holders were never clipped): nothing scrolls them. `css/walkontable.scss` carries the same rule for
+the engine's own test runner and must be kept in sync, or `npm run test:walkontable` runs against the
+old clip.
+
+Keep the `.handsontable` prefix and the `!important` on that `scrollbar-width` (DEV-3160). A page-wide
+`.handsontable .wtHolder { scrollbar-width: thin }` would otherwise win, and paint an 11px scrollbar
+into these holders that shrinks the row-header layer. The bare selector tied such a rule on
+specificity, so the winner was the source order, and `!important` was needed against a rule that
+carried it. Only `scrollbar-width` matters here: the theme's `scrollbar-styles` mixin sets
+`scrollbar-color` on every `.wtHolder`, which already makes Chrome 121+ skip `::-webkit-scrollbar`, so
+the pseudo-element rule is a fallback for older engines. The rule still loses to a host `!important`
+rule with higher specificity and to one inside a CSS `@layer` (important declarations reverse layer
+order), so do not claim the holders are immune to host CSS.
 
 Four rules come with it.
 
@@ -215,6 +447,119 @@ stylesheet half has no unit test that can see it, so the E2E is what stops a fut
 from silently giving the paint back. Window-scroll mode was probed at device scale 0.67–1.5 and CSS
 zoom 0.8–1.33: every clone holder has zero scroll range on both axes there, so a wheel over a frozen
 header cannot latch to a clone and `#onCloneWheel`'s window branch stays as it is.
+
+## A window-scrolled grid pins its clones with CSS, not from the scroll listener
+
+Whichever axis the WINDOW owns, the clones along that axis must stay at the viewport's edge while the
+page slides underneath them: `inline_start` and both corners sideways (DEV-127), `top`, `bottom` and
+both corners up and down (DEV-126). They used to be moved from the `scroll` listener (a `translate3d`
+on most of them, a `left` or `bottom` inset on the bottom ones). In window mode the wheel listener is
+passive, so the browser scrolls the page on its compositor and the listener runs afterwards: the clone
+was painted one step behind on about every other frame of a wheel scroll — the row headers torn away
+or gone, 49 of 98 frames on Chromium, 49% on Firefox, 15-24% on WebKit; the column headers 49 of 98
+frames, measured with the same harness. Element mode never had it: there the wheel listener is not
+passive and JavaScript scrolls the holder itself, in the same frame.
+
+The clones are now held by `position: sticky` (`overlay/overlayRail.ts`, reached through
+`Overlay#getRail()`), which the browser resolves on the scroll's own frame. A rail spans the table on
+each axis its clone travels, and each region overlay names the axes it follows: the inline-start one
+sideways, the top and bottom ones up and down, the corners both. Nine rules follow; most were a
+measured defect of a simpler version.
+
+- **A sticky box only travels inside its parent's box, and every ancestor of the clones is as large as
+  the viewport, not the table.** Pinned where it stands, a clone stops after one viewport width or
+  height. So the clone is moved into a rail: an absolutely positioned `div.htOverlayRail` holding only
+  that clone, at the clone's old slot among the master's siblings, as wide as the master's total width
+  when the clone travels sideways and as tall as its total height when the clone travels up and down.
+  A rail that spans neither axis has **no height** and covers nothing; one that spans the block axis
+  lies over the cells, so it takes `pointer-events: none` and the clone takes its own back. A corner
+  that travels on one axis only keeps the zero-height form, and a bottom one hangs from its rail's
+  bottom edge, so that rail's `bottom` is the corner's offset PLUS its height. Moving the clone in or
+  out detaches it for a moment, and the focus manager focuses the topmost copy of a cell – for a
+  frozen-column, header or corner cell, one inside this clone – so `pin()`/`release()` give the focus
+  back the way row recycling does (`render/rows.ts`), for an engine that blurs a detached element at
+  once.
+- **A sticky box only shifts from where it would otherwise stand, so a `bottom`-anchored clone has to
+  stand at the rail's BOTTOM.** Inside the rail a clone is the only child and stands at its top, where
+  a `bottom: 0` inset engages never: the clone is already above the viewport's bottom edge, so the
+  browser leaves it at the table's top (measured — the frozen bottom rows sat under the column
+  headers). The rail is a column flex box for that case, with the clone pushed down by `margin-top:
+  auto`, and `align-items: flex-start` so the clone keeps its own width instead of stretching to the
+  table's.
+- **A bottom rail reaches the table's PAINTED bottom, not its CSS-integer one.** At fractional zoom the
+  browser rounds each row's border to a physical pixel, so the table ends a fraction below the hider's
+  integer height. The bottom overlay used to subtract that fraction from its own inset; the rail's
+  height carries it instead (`getTotalHeight()` plus the master table's overflow), or the frozen rows
+  come to rest a fraction above the table's last row.
+- **A sticky shift is part of the layout; a transform never was.** `offsetLeft`/`offsetTop` and the
+  `offset()` helper see it (measured on Chromium, Firefox and WebKit: 300 against 0 at a 300px scroll),
+  so a reader that walks that chain and then adds `getOverlayOffset()` counts the scroll twice.
+  `BaseEditor#getEditedCellRect` did exactly that for a frozen-column cell, and on the vertical axis
+  for a frozen row; both add `Overlay#getOverlayTransformOffset()` instead, which is 0 while a rail
+  holds that overlay's OWN axis. `Overlay#railAxis` names it: `inline` for the inline-start overlay,
+  `block` for the top and bottom ones, nothing for the corners, which no such reader asks. Readers that subtract
+  two offsets inside the same clone (the fill-handle anchor, `Border#appear`) cancel the shift and need
+  nothing; `getRelativeCellPosition` derives it from the root's rect and needs nothing either.
+  `getOverlayOffset()` itself keeps its meaning — `manualColumnMove` places its backlight in the
+  master's hider from it.
+- **An inset on an axis the clone does NOT travel is a sticky constraint too.** On a sticky box
+  `top`/`bottom`/`left`/`right` are constraints, not offsets: the `top: 0` the clone factory writes
+  would pin the row headers to the viewport top as the page scrolls down. The rail clears every inset
+  it does not mean and carries that axis's place itself; `release()` restores `position: absolute;
+  top: 0` and drops every inset `pin()` wrote. Whatever the rail does not hold stays the listener's
+  transform, which is what a corner in a grid whose other axis an element owns still uses for that
+  half.
+- **An overlay that stops rendering must leave its rail.** `Overlay#reset()` clears the clone's inline
+  `width`, and a width-less clone behaves differently in the two positioning schemes: absolutely
+  positioned it shrinks to its empty table (0px), in the rail's normal flow it stretches to the rail's
+  full table width. `InlineStartOverlay#resetFixedPosition` returns early for a non-rendering overlay,
+  so nothing else would release it; `reset()` does. Four legacy specs caught this
+  (`rowHeader.spec.js` and `settings/fixedColumnsStart.spec.js` turn the overlay off and expect
+  `getInlineStartClone().width()` to be 0) — the frame-capture spec cannot, it never turns an overlay off.
+  The height has the same twin, and it is why `release()` must drop the `bottom` inset: a released
+  clone gets its `top` back, and an absolutely positioned box carrying BOTH insets is stretched to its
+  container instead of shrinking to its table, so a bottom overlay turned off went on measuring the
+  whole grid (`core/batch.spec.js`). Both bottom overlays write their own `bottom` again on every
+  element-mode draw, after the release, so nothing is lost by clearing it.
+  The corners go on positioning while they do not render (their `resetFixedPosition()` has no render
+  gate), so they pin only while `needFullRender` is set; otherwise the next draw would move an idle
+  corner straight back into a rail.
+- **Anything that recognizes a clone by its PARENT must look through the rail — stylesheets and
+  JavaScript alike.** `_base.scss` carries `.ht_master ~ .htOverlayRail > .handsontable` next to
+  `.ht_master ~ .handsontable` for the row-header seam color. `isInternalElement()`
+  (`helpers/dom/element.ts`) decided "this element belongs to this grid" by requiring the nearest
+  `.handsontable` to be a direct child of the root; with the clone in a rail it answered `false` for
+  every frozen-column, row-header and corner cell of a window-scrolled grid, and copy/paste, the text
+  editor's focus check and the focus manager all ask it. It now steps over a rail (pinned by
+  `element.unit.ts` and the legacy `helpers/dom/__tests__/element.spec.js`, which caught it).
+  `Border#getDimensionsFromHeader` reads the root's `ht__selection--rows`/`--columns` classes, and a
+  `Border` belongs to one clone, so it takes the root through the master (`cloneSource`), never
+  through its own table's parent. The class name lives in `overlay/constants.ts`: the rail imports its
+  focus helpers from `helpers/dom/element.ts`, which reads the class name, and the rail module would
+  close a cycle. Descendant queries (`root.querySelector('.ht_clone_*')`, `closest('.ht_clone_*')`)
+  need nothing.
+- **Not a pixel moves at rest, and one edge case moves by design.** A clone in a rail at `top: 0` lays
+  out exactly where the absolute clone did, and a bottom-anchored one at the rail's bottom edge lands
+  where its inset put it. Past the table's END, the listener reset the offset to 0 (the headers jumped
+  back to the table start); sticky keeps them against the table's end instead, on either axis. That
+  regime needs a page larger than the grid, scrolled past it. There `getOverlayOffset()` still snaps to
+  0 (legacy specs assert that reset), so a reader that places something over the clone from it – the
+  `manualColumnMove` backlight over a frozen column, `manualRowMove` over a frozen row – is off by the
+  parked distance in that regime only.
+
+**No DOM read can test this.** The engine's read-back agrees with itself on every frame, and a
+`page.screenshot()` forces a composite, which is the step the race loses. The pinning is pinned by
+`tests/e2e/walkontable/window-scroll-pinned-overlays.spec.ts`, which records a real wheel scroll through
+a CDP screencast (lossless PNG, the compositor's own scroll offset per frame) and scans the color the
+fixture paints each clone, next to a positive control whose clones stay behind; its placement tests
+(editor, fill handle, row-resize handle over the frozen columns and rows, LTR and RTL) are the ones
+that fail on a double-counted offset. The fixture is wide and short for the sideways legs and tall and
+narrow for the up-and-down ones (`?tall=1`), so one wheel moves one axis. Three traps for anyone
+extending it: keep the scroll profile inside the table (parking at max scroll measures end-of-table
+handling); do not record a scroll after an axis-owner flip — the wheel listener bound in element mode
+stays non-passive, JavaScript then scrolls the page itself, and nothing can tear either way; and scan
+only the clones a leg can see — with the clones unpinned they all stand at the table's top, where the
+top clone covers the bottom one, so the control names the two it scans.
 
 ## Naming gotcha: `moveCells` grid option vs. HyperFormula engine method
 
@@ -278,7 +623,7 @@ Everything else follows from that table, and each row of it was a separate bug b
 Two neighbours worth knowing about:
 
 - **`RenderSizeProbe` must measure every table that can hold a recorded row.** It is the intended replacement for the engine's measurement, and its characterization spec pins equality with `oversizedRows` — so a height sourced from a table it does not measure leaves it mirroring a subset while the spec stays green. The master's band plus the top and bottom clones cover every recordable row; the inline-start clone mirrors the master's band and adds none.
-- **MergeCells inflates row heights per overlay** (`modifyRowHeightByOverlayName`), so a frozen clone can render a row at the whole merged block's height while the overlay-agnostic `getRowHeight` that `markOversizedRows` compares against reports one row. That does not currently produce a bogus record — the inflated height is written on a TD whose `rowspan` covers exactly the rows it accounts for, so no single TR measures tall — but the two sides of that comparison do disagree, and a spec pins the outcome.
+- **MergeCells inflates the height of a row that starts with a block's spanning cell** (`modifyRowHeightByOverlayName`), to the block's rows, so a frozen clone can write that cell at the whole block's height while the overlay-agnostic `getRowHeight` that `markOversizedRows` compares against reports one row. That does not produce a bogus record: the height is written on a TD whose `rowspan` covers the rows it accounts for, and the row itself is pinned at its own height (next section), so no single TR measures tall. The listener counts that one cell's own span only (DEV-299); see `src/plugins/mergeCells/AGENTS.md`.
 
 Three more things that pass every functional test and only show up in a profile or a screenshot:
 
@@ -288,6 +633,44 @@ Three more things that pass every functional test and only show up in a profile 
 - **Steady state must cost zero row-height cache invalidations.** Each one drops the per-draw layout snapshot as well, and with a non-uniform row-size source (`rowHeights`/`minRowHeights` as an array or function, or any non-AutoRowSize `modifyRowHeight` hook) `PositionCache` has no sparse path, so a rebuild is a full prefix-sum walk over every row. Verified by counting: 0 invalidations/draw and an unchanged `createVisibleCalculators` count in every configuration. Two specs in `tests/e2e/walkontable/frozen-column-row-heights.spec.ts` pin the invalidation count at 0 through the fixture's `countRowCacheInvalidations` — the only way to see this class of bug, since the rows stay aligned and every visual assertion passes while it happens.
 
 When you add a new content-driven measurement, ask which tables actually render the content — measuring the master alone is the trap both of these exist to work around.
+
+## A row whose first cell cannot carry its height is pinned on the `tr`
+
+`applyRowHeight` (`render/exactRowHeight.ts`) writes a row's floor height on `TR.firstChild`. With row headers
+that is a 1x1 `th` and always works. Without them it can be a cell spanning several rows (a merged block,
+`rowspan > 1`) or a cell a merge covers (`display: none`). A spanning cell takes the height the host hands it
+(MergeCells inflates it to the rows it spans), but nothing pinned the rows inside the span, so the browser split
+the span between them as it liked: each pane drew the block's rows at different heights, and so did the master
+as its column band moved (DEV-299). Such a row is now pinned on the `tr`, and the spanning cell keeps the
+hooked height as before. Both call sites pass the row-size source and the source index (`rowUtils`,
+`sourceRowIndex`) rather than a closure, and the source is asked only for a row whose first cell cannot carry
+the height, so a grid without merges pays one style read per row.
+
+Five rules ride along:
+- **Only a pin this module wrote is ever taken off** (`pinnedRows`, a `WeakSet` like `exactRows`). The floor path
+  used to leave the row element alone, so a renderer or an `afterRenderer` hook that sizes `TD.parentElement`
+  still works; clearing `tr.style.height` for every row whose first cell can carry the height would have wiped it
+  on every draw.
+- **The pin is the row's OWN height, not the hooked one** (`RowUtils#getHeight`): the inflated height would make
+  the row as tall as the block.
+- **A row without a height of its own is pinned at the default height, plus the first row's border pixel.** A
+  row the block covers entirely has no cell to size it, and the browser hands the whole span to whichever row it
+  likes (measured: 29.5/29.5 for a 30/29 pair). The first row of a table whose head row is empty draws its own
+  1px top border (`thead:not(:empty) + tbody > tr:first-child`), so it is the default plus one. The question is
+  asked in ONE place, `firstRowDrawsTopBorder(thead)` (`axisSizing/boxModel.ts`), which `markOversizedRows`
+  shares; the callers hand `applyRowHeight` the answer for the row (`isFirstRow && drawsTopBorder`) rather than
+  letting it sniff the DOM. A recorded or provided height already includes that pixel. The host's inflation has to stay: pinning alone, with no inflated span, collapsed
+  rows a block covers entirely and broke seven legacy MergeCells specs.
+- **Clear the pin as soon as the first cell can carry the height again.** A row height is a minimum in CSS table
+  layout, and the row elements are recycled across rows, so one left behind would stop an ordinary row
+  shrinking. The write is skipped when the value is unchanged.
+- **The exact shape is untouched.** It picks its own carrier among all the cells and already falls back to the
+  `tr`. The same box adjustment as the exact shape applies to the pin.
+
+Pinned by `tests/e2e/walkontable/merged-rows-frozen-columns.spec.ts` (all panes agree at rest and scrolled, with
+AutoRowSize, `rowHeights`, and measured heights; rows inside a block keep their own heights; a hidden first row;
+a reused row element sheds the pin; `renderMode: 'onChange'`), in the `main`, `horizon` and `classic` themes, and
+by the floor-shape cases in `test/unit/renderer/exactRowHeight.unit.ts`.
 
 ## Rendered row band is refilled, bounded, when the measured rows shrink
 
@@ -715,10 +1098,89 @@ feeds it back – with two grids in the parent each holder takes the sum of both
 to the CSS height limit (issue #3119, the same loop the element mode's clone probe guards
 against). `alignHolderWithSplitOwners` runs that probe (`measureIntrinsicHeight`) on every full
 draw whenever the vertical owner is an element; the common split layout (vertical owner = window)
-never probes. `ScrollSync#scrollableElement` stays the holder
+never probes. **The element mode answers the same probe differently, on purpose, and only the host
+can override it.** When ONE element owns both axes and has no intrinsic height, the element mode
+writes `auto` only for the `overflow-x: auto|scroll` + non-scrolling `overflow-y` shape; any other
+heightless owner (`overflow: hidden`, `overflow: auto`, no `height`) keeps `0px`, and the engine
+specs in `test/spec/table/table/master.spec.js` pin that for a host that asked for nothing. So a
+Handsontable `height: 'auto'` grid in such a parent rendered at 0px once core stopped clipping the
+root for `'auto'` (DEV-3062, a regression from DEV-2789: before it, the clipped root was the owner
+and its inline `height: auto` hit the `trimmingHeight === 'auto'` branch). The host now says so
+through the `heightFollowsContent` setting (`TableView#isHeightContentDriven`, the root's inline
+`height === 'auto'`), which turns a zero probe into `auto` in the element mode, and it is part of the
+trimming-cache fingerprint because flipping `height` between `'auto'` and unset moves no box. Do not
+widen that `auto` to every heightless owner: an unset `height` in the same parent has been 0px since
+before 18.1, and `auto` there renders every row of the dataset (the parent grows to the hider, and the
+workspace with it). `ScrollSync#scrollableElement` stays the holder
 whenever any axis is element-owned, so the wheel translation, the sticky scroll and the scrollbar
 bands keep treating the grid as one that scrolls inside its box; the per-axis scroll positions are
 read off each overlay's own `mainTableScrollableElement`.
+
+**An element owner's box is not the grid's box, and on the horizontal axis `height: 'auto'` is where
+that shows.** An element that owns the horizontal axis sizes the holder to its own box (the smaller
+of `offsetWidth` and `scrollWidth`) and the workspace to its `clientWidth`. That is the grid's box
+only while the grid fills the owner edge to edge. The owner's padding, a padded wrapper between the
+two (the docs layout: `.hot-example` clips, `.hot-example-preview` pads), or a relative `width` under
+100% leave the grid narrower. A holder as wide as the owner then overflows the grid, and `.ht_master`
+(`overflow: hidden`, exactly as wide as the root) cuts off the part past the grid's inline-end edge:
+a stretched grid loses its end border, and a scrolling one never brings its last column fully into
+view. Before #13381 `height: 'auto'` clipped the root, so the root owned both axes and this never
+showed; an unset height has always had it and still does. The host now says so through
+`widthFollowsRoot` (the same `TableView#isHeightContentDriven` answer that `heightFollowsContent`
+reads), `resolveWidthBoundingRoot()` (`overlay/axisOwner.ts`) names the grid's root element – the
+Walkontable root's parent, the element `preventOverflow` forces an axis to – and
+`viewport/rootWidthBound.ts` resolves two widths from it, kept apart on purpose:
+
+- **The width the holder is used at is capped by CSS, not computed.** The holder carries
+  `max-width: 100%` (`applyHolderWidthCap`, element and split modes), so `.ht_master` bounds it, and
+  `boundWorkspaceWidth` bounds the columns the same way. In a chain sized by its content that
+  percentage is cyclic, so the browser leaves it out of the chain's intrinsic width: the cap never
+  narrows the element it depends on. A first version bounded the holder's pixel width by the root
+  instead, and in an inline-block host a `'90%'` grid decayed to a few pixels while a
+  `'calc(100% - 20px)'` one redrew forever through `ResizeMonitor`.
+- **The holder's pixel width is measured, because it is the grid's intrinsic width.** It decides how
+  wide a chain sized by its content becomes, and whether a flex item or a grid track with a
+  content-based minimum (`flex: 1` without `min-width: 0`, a `1fr` track) is pushed past its share.
+  The owner's box is wrong both ways: it pushes such a share open by its neighbors' width, and it
+  pushes a content-sized chain into a padded owner's padding. The container's current width is wrong
+  too: a content-sized container is only as wide as the holder made it on the draw before, so a grid
+  bounded by it shrank with the owner and never grew back, and a modal `<dialog>` with no width kept
+  the grid at its padding. `resolveHolderWidth()` measures the room instead
+  (`measureAvailableWidths()`): for one read the holder takes no width, and a probe that takes
+  whatever width it gets – a run of short words, one word wide at its narrowest and wider than any
+  page on one line – sits in `.ht_master`. The element the root sits in (core's `.ht-grid-content`
+  for a root instance, which takes its width from the host's chain above `.ht-root-wrapper`) then
+  shows the room that chain gives it: its own width, its share, or the room around it. The answer is bounded by the owner's content box, because core's
+  edge slots hold a content-sized container at their pixel width and the probe then overstates it –
+  except for a root wider than its container (a `width` above 100%), which fills up to the owner's
+  box as before.
+- **The probe only grows or keeps what is around the grid, and restores synchronously.** The holder
+  losing its width widens its own scroll range, nothing changes height, and both styles are back
+  before anything else reads the layout, so no scroll offset is clamped and no resize observer sees
+  it. It runs in the slow path of the element mode's trimming cache, whose fingerprint now carries
+  the root's width, its container's width, and the window's (a content-sized owner keeps its box
+  while the room around it grows), and on every full draw of the split mode, which caches nothing.
+  Scroll draws never align the holder.
+- **The workspace is bounded from the layout around the grid, never from the holder's inline
+  width.** It is measured before the holder is aligned in the same draw (the layout snapshot, the
+  column calculators), so a bound read off the holder would be the previous draw's, and a draw that
+  widened the holder would leave the columns short with nothing to redraw them. `boundWorkspaceWidth`
+  takes `.ht_master`'s width and the owner's content box (the latter again not for a root that
+  spills past its container). In a chain sized by its content a draw that widens the holder still
+  stretches the columns only on the draw the root's resize brings; a root that is back at its old
+  size within the same frame brings none, which only a test does.
+
+Known limits. A `flex: 1` item without `min-width: 0` (or a `1fr` track, or an auto-layout table
+cell) does not shrink below the width the grid has, because the holder and core's edge slots are its
+content minimum; it follows the item back up, and `min-width: 0` on the item removes the limit – 18.1.1
+behaves the same. In a chain sized by its content, a resize of the owner alone redraws nothing,
+because `refreshDimensions()` compares the root's size and the chain keeps it; the next render takes
+the new room. An unset `height` keeps the owner's box: the gate is `height: 'auto'`, and extending the
+cap to unset heights changes a released behavior, so it is left to its own change. And the vertical
+axis has the same inset problem inside a padded owner with a height of its own (the holder takes the
+owner's `offsetHeight`, padding included); nothing bounds it yet. Pinned by the `inside a parent that
+clips the grid and insets it` block of `tests/e2e/root-size-options.spec.ts`,
+`test/unit/viewport/rootWidthBound.unit.ts`, and `src/__tests__/core/widthFollowsRoot.unit.js`.
 
 **"Left to the DOM" is not symmetric between the axes, and one place has to know it.** Vertically it
 means `height: auto` — the holder's content *is* its height, so it can never scroll and the window
@@ -1250,3 +1712,148 @@ The first tool call should be `ToolSearch` for the graph schema whenever the use
 | `query_graph` pattern=`children_of` | Listing all methods in a class (use minimal mode) |
 | `get_impact_radius` | Quick blast-radius count before a large refactor |
 | `semantic_search_nodes` | Name-based lookup by exact or partial function/class name |
+
+## The inline-end overlay (`fixedColumnsEnd`)
+
+The overlay set is 8 concrete overlays (plus the shared base class): `top`, `bottom`, `inline_start`, `inline_end`, and the four corners
+(`top_inline_start_corner`, `top_inline_end_corner`, `bottom_inline_start_corner`,
+`bottom_inline_end_corner`). The end overlays mirror the start ones: `overlay/regions/inlineEndOverlay.ts`,
+`topInlineEndCornerOverlay.ts`, `bottomInlineEndCornerOverlay.ts`, backed by `table/regions/inlineEndTable.ts`
+and the two end corner tables. The end band is the LAST `fixedColumnsEnd` columns, so the end clone renders
+the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsEnd.ts`.
+
+- **The overlap clamp lives in one place.** `clampFixedColumnsEnd` in `settings/fixedColumnsEnd.ts` is
+  applied by `Settings#getSetting('fixedColumnsEnd')` (`settings/accessor.ts`), so every reader in the
+  engine sees the clamped number. Start has priority: `min(end, max(0, total - start))`. The host
+  (`TableView#countNotHiddenFixedColumnsEnd`) counts only columns that are not hidden or trimmed, then
+  passes the number in. Do not re-clamp in a caller, and do not read the raw option.
+- **The end clone is positioned like the bottom clone, not like the inline-start one.** In element
+  mode it is an absolutely positioned box with an inline-end inset, lifted off the holder's vertical
+  scrollbar. In window mode it is held by `position: sticky` in a rail, anchored to the rail's inline END:
+  `RailPlacement.inlineEdge` (`'start'` default, `'end'`) in `overlay/overlayRail.ts`. An inline-end
+  sticky inset only engages when the clone stands at the rail's inline end, so the rail pushes it there
+  with an auto margin on the clone's physical start side. Re-test all nine rail rules for the end side,
+  in LTR and RTL, when you touch the rail.
+- **`ScrollSync` mirrors vertical scroll to both vertical-axis holders.** The inline-start and the
+  inline-end clones hold the same rows, so every vertical write that used to reach only the start holder
+  (`#writeCloneScrollTop` and its readers) now reaches the end holder too. A new vertical write path
+  that forgets the end holder leaves the end columns showing stale rows.
+- **Scrollbar clearance.** The vertical scrollbar sits on the inline-end edge, exactly where the end
+  clone stands. `overlay/scrollbarClearance.ts` (`axisScrollbarClearance`, `overlayExtentBesideScrollbar`)
+  lifts the end clone off a real scrollbar and keeps an overlay ("floating") scrollbar reachable. The end
+  clone is the only overlay that needs the inline-end clearance.
+- **The main table renders the end columns only when the viewport is near the end.** The master draws a
+  contiguous band of columns, so while it is scrolled far from the end it does not render the last
+  columns at all. `TableView#isMainTableNotFullyCoveredByOverlays` therefore subtracts only the
+  end columns the master really rendered (`getLastRenderedColumn()` against `total - fixedColumnsEnd`).
+  A plain `renderedCols - fixedColumnsEnd` sum is wrong and makes the check lie in the middle of the
+  scroll range.
+- **The editor layer class drives the editor's z-index.** `checkEditorSection` and
+  `getEditedCellsLayerClass` (`editors/baseEditor/baseEditor.ts`) pick the overlay class the editor
+  is stacked with. An end-column cell must resolve to the end class, or the editor opens under the clone.
+- **Walkontable's overlay holder is a DIV in window mode.** A `scrollableContainerLeft !== rootWindow`
+  check in `getEditedCellRect` is therefore always true. Use `mainTableScrollableElement` to decide
+  which element scrolls.
+- **Local test traps.** A CSS-only rebuild (`build:styles`) makes a negative control pass falsely:
+  `handsontableStyles.ts` is bundled and injected, so rebuild `build:umd` after any SCSS change.
+- **The end clones are constructed AFTER the start ones, and `getOverlays()` follows that order.** Each overlay
+  constructor appends its clone to the wrapper, so `initOverlays()` builds top, bottom, inline-start, the two
+  start corners, and only then inline-end and the two end corners. The DOM position of the five clones every grid
+  had before `fixedColumnsEnd` stays where it was, and so do selectors and clone counts that depend on it. Do not
+  build an end overlay earlier, and keep `#overlays` in the construction order.
+- **`Overlays#getParentOverlay` skips clones that are not rendered.** It runs once per header cell of every draw,
+  so it walks the stored overlay list (no list or closure per call) and tests only the overlays whose
+  `needFullRender` is true. An idle clone (the three end clones with the option at 0) holds none of the cells being
+  drawn. `needFullRender` turns true in `beforeDraw` and false only after the draw that stopped rendering the clone,
+  so a clone that renders is always tested.
+- **The three end clones are always constructed, even when the option is 0.** That is a decision, the same
+  one the bottom corners follow: an idle clone costs one empty `ht_clone_inline_end*` root and nothing per
+  draw (`shouldBeRendered()` gates every read, `resetFixedPosition()` returns first), so the DOM of every
+  grid holds three idle end roots. Building them lazily was weighed and rejected as not worth the lifecycle
+  cost. Do not make them lazy without re-checking `updateSettings` toggling, `Overlays#currentLayoutSignature` and the scroll sync,
+  which all assume the clones exist.
+- **`getSetting('fixedColumnsEnd')` is a hot read, and 0 must stay cheap.** It runs many times per draw and
+  per pointer move (`CoreAbstract#getCell`, `getCellCoordsFromMousePosition`, the `Border` freeze-line
+  predicates, `shouldRenderInlineEndOverlay`, `stickyColumnsEnd`), and the clamp needs `fixedColumnsStart`,
+  which in core is a thunk that walks the index mapper. The accessor therefore returns 0 as soon as the
+  requested value is not positive, before it touches the start band or the column count. Keep that order,
+  and read the setting once into a local in a hot path instead of calling it twice
+  (`test/unit/settings/fixedColumnsEnd.unit.ts` spies on the other thunks).
+- **An idle end overlay is not refreshed by `ScrollSync`, so it refreshes itself when it wakes up.**
+  `ScrollSync#updateMainScrollableElements` skips an overlay with `needFullRender === false`, and
+  `#refreshAxisOwners` skips the end overlay's owner too. A grid that starts with `fixedColumnsEnd: 0` and
+  later gets a definite `width` or `height`, or a different `preventOverflow`, would then wake the end
+  overlay with the element it was born against. `InlineEndOverlay#updateStateOfRendering` re-reads
+  `mainTableScrollableElement` on the idle-to-active edge. The horizontal axis is owned by the
+  inline-start overlay; the end overlay only mirrors its answer.
+- **A selection edge on the first end column is drawn by the end clones alone.** The master and the top and
+  bottom clones also render that column, under the end overlay, and their copy of the start edge sits one
+  pixel off the freeze line, so both showed and the edge came out thicker (3px against 1px for an area in
+  the `main` theme). `Border#appear` hides it through `isFrozenEndBoundaryOppositeEdge`, the mirror of the
+  `isFrozenBoundaryEdge('column', ...)` rule on the start side. The end edge of a selection that stops at
+  the last scrollable column needs nothing: the master draws it inside its own cell, and the end overlay
+  starts right after that cell.
+- **Known limitation: a selection that crosses the freeze line shows a seam line, on both sides.** An area
+  that spans the last scrollable column and the first end column is drawn once by the master and once by the
+  end clone, each clamped to what it renders, so the clone draws an edge on its own start boundary inside the
+  selection. The start side behaves identically with `fixedColumnsStart` (a crossing area shows a line on the
+  freeze line). It is one border wide and has been so since before `fixedColumnsEnd`. The same goes for an
+  area that crosses the `fixedRowsTop` or `fixedRowsBottom` line inside the end columns, where the end clone
+  and the end corner each draw their own clamped slice and the corner's slice sits above the clone's.
+- **The end freeze line is drawn by the clone mid-scroll and by the master at the junction; a state class
+  chooses.** The line at an end clone's inline-start edge must be exactly 1px in every scroll state, as the start
+  side is. Mid-scroll the clone's edge cuts through a master column (the master's last scrolling column is
+  virtualized away or sits under the clone), so no master border stands there and the clone's own first-cell
+  inline-start border (the generic `td:first-child` / `th:first-child` rule in `_base.scss`) is the line. At the
+  junction, where the clone's first column stands on the boundary of the column before it (scrolled to the end, or
+  no horizontal scroll so the clone rests against the last column), that column's inline-end border is already
+  the line and a second border made it 2px. `Overlays#syncInlineEndFreezeLine` toggles `htFreezeLineShared`
+  (`INLINE_END_FREEZE_LINE_SHARED_CLASS`) on the three end clone roots from `InlineEndOverlay#isFreezeLineShared`,
+  and only the SCSS rule under that class zeroes the first cell's `border-inline-start-width`. It runs from
+  `afterDraw` and from `syncScrollPositions` (a sub-band scroll draws nothing), reads through the geometry reader,
+  and writes a root only when its state changes. Do not make the reset unconditional again: the end band then has
+  no line in the usual mid-scroll case. The class is off when nothing precedes the band (no column before it and
+  no row headers), so the clone's border stays the grid's outer frame line. Alignment is judged at the two
+  junction states only; a mid-scroll offset that happens to put the clone's edge on a master column boundary still
+  draws 2px. `tests/e2e/fixed-columns-end-line.spec.ts` measures all four states in LTR and RTL.
+- **RTL window scroll: read the inline-end edge from the table, not from the scroll position.**
+  `InlineEndOverlay#getOverlayOffset` compares the scroll position with the table's offset from the page start,
+  which is the inline-start margin. In RTL that margin is on the right and `getTableParentOffset()` reports the
+  left one, so the sum was off by the right margin (a page with a margin on the inline-start side reported
+  "resting" up to that many pixels too early). The RTL branch measures where the hider's left edge really is
+  against the viewport's left edge (`documentElement.clientLeft` carries a left-hand scrollbar).
+- **Ask the scroller, not the axis owner, whether the window holds the end clone.**
+  `InlineEndOverlay#isScrolledByWindow` reads `mainTableScrollableElement`, and the end corners call it too.
+  The horizontal axis owner (`trimmingContainer`) is the window in the reverse split (`preventOverflow:
+  'vertical'`, or an ancestor that clips the vertical axis only) while the holder scrolls the columns. A
+  clone pinned to the viewport there stands outside a grid narrower than the page. Do not test
+  `trimmingContainer === rootWindow` anywhere in the end overlays.
+- **A column header names its column by its grid position in every table.** `aria-colindex` of a header is
+  `renderedColumn + rowHeadersCount + 1`, the number the body cells of that column carry
+  (`TableRenderer#getAriaColumnHeaderIndex`). Counting rendered cells gave a scrolled master or top clone
+  headers that disagreed with the end clone's header and with the cells under them.
+- **The inline clones take the master's `fastDraw` on purpose; there is no horizontal twin of `bottomFastDraw`.**
+  A pure horizontal scroll that moves the master's column band fully redraws every clone, the end ones and
+  the start ones alike (measured: one full redraw per clone per ten 20px steps, identical for `inline_start`
+  and `inline_end`; the end side costs more only because it adds three clones). Skipping it looks safe, since
+  the cells of a fixed-column clone cannot change on a horizontal scroll, but it is not: a full master draw
+  wipes the frozen-derived row heights and relies on the clones re-rendering at their natural content height
+  right after (`resetFrozenOversizedRows`, then `syncOversizedRowsWithFrozenOverlays`), so a clone that kept
+  its DOM would be measured at the height it was last given and a wrapped row could no longer shrink. The
+  master can also grow a row on that same scroll when a new column holds a taller cell. If you add the twin,
+  gate it on "no frozen-derived rows are being synced and no row height changed in this draw", and keep a
+  test that a vertical scroll, a data change and `updateSettings` still redraw the clone.
+- **Header heights only grow, with or without the end corners.** The render-size probe measures the master's
+  THEAD, which already carries the height it was given, so a column header row never shrinks until the grid
+  is rebuilt (same with `fixedColumnsStart` alone). The two-sided sync in
+  `syncOversizedColumnHeadersWithFrozenOverlays` writes the taller corner's height onto both corners and
+  their clones; a full draw re-renders those cells and clears the written style, so the write cannot ratchet.
+
+- **Tests.** Do not add Walkontable Jasmine specs (the suite is frozen). New coverage is Jest
+  (`test/unit/**`, for example `test/unit/settings/`, `test/unit/table/stickyColumnsEnd.unit.ts`,
+  `test/unit/viewport/columnsCalculatorEnd.unit.ts`, `test/unit/overlay/inlineEndOverlay.unit.ts`,
+  `test/unit/table/endCloneAccess.unit.ts`) plus Playwright
+  (`tests/e2e/walkontable/inline-end-overlay.spec.ts`,
+  `tests/e2e/walkontable/inline-end-overlay-review.spec.ts`, `tests/e2e/fixed-columns-end.spec.ts`).
+  A unit test of an overlay or table module imports the `walkontable/overlay` barrel first: the table
+  modules and the overlays import each other and only that entry resolves the cycle.

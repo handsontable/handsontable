@@ -28,12 +28,15 @@ export class MobileHandlesPage {
    * Navigate to the fixture and wait for the grid to render. Frozen panes are off by default, and
    * headers are on, which is the configuration most grids run with.
    */
-  async goto({ direction = 'ltr', frozen = false, frozenBottom = false, headers = true, rows = 'short' }: {
+  async goto({
+    direction = 'ltr', frozen = false, frozenBottom = false, headers = true, rows = 'short', cols = 'short',
+  }: {
     direction?: 'ltr' | 'rtl';
     frozen?: boolean;
     frozenBottom?: boolean;
     headers?: boolean;
     rows?: 'short' | 'tall';
+    cols?: 'short' | 'wide';
   } = {}): Promise<void> {
     const query = new URLSearchParams({
       theme: this.theme,
@@ -43,6 +46,7 @@ export class MobileHandlesPage {
       frozenBottom: frozenBottom ? '2' : '0',
       headers: headers ? 'on' : 'off',
       rows,
+      cols,
     });
 
     await this.page.goto(`/tests/fixtures/demo/mobile-handles.html?${query}`);
@@ -212,6 +216,93 @@ export class MobileHandlesPage {
     await this.page.evaluate(() => {
       window.hot.updateSettings({ moveCells: true });
     });
+  }
+
+  /**
+   * Merges the given blocks after construction, so the frozen-pane fixture can put a merged cell
+   * across its freeze lines.
+   */
+  async mergeCells(cells: { row: number, col: number, rowspan: number, colspan: number }[]): Promise<void> {
+    await this.page.evaluate((mergedCells) => {
+      window.hot.updateSettings({ mergeCells: mergedCells });
+    }, cells);
+  }
+
+  /**
+   * Registers a `modifyGetCellCoords` hook that ignores `source` and answers every call with a
+   * short `[row, column]` result - a shape the setting's own type documents as legal
+   * (`core/settings.ts`). Used to prove a plain cell's mobile bottom handle does not depend on a
+   * hook that has nothing to do with it (DEV-143 follow-up).
+   */
+  async addNaiveModifyGetCellCoordsHook(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.hot.addHook('modifyGetCellCoords', (row: number, col: number) => [row, col]);
+    });
+  }
+
+  /**
+   * The overlays whose bottom mobile selection handle a finger can actually reach: the handle's hit
+   * area (the element a finger grabs) displayed, and the topmost element at its own center. Every
+   * overlay draws its own handles, and a copy drawn under a frozen pane still passes a `:visible`
+   * count.
+   */
+  async reachableBottomHandles(): Promise<string[]> {
+    return this.page.evaluate(() => {
+      const overlays: string[] = [];
+
+      document.querySelectorAll('.bottomSelectionHandle-HitArea').forEach((handle) => {
+        const rect = handle.getBoundingClientRect();
+
+        if (getComputedStyle(handle).display === 'none' || rect.width === 0 || rect.height === 0) {
+          return;
+        }
+
+        const hit = document.elementFromPoint(rect.x + (rect.width / 2), rect.y + (rect.height / 2));
+
+        if (hit && (hit === handle || handle.contains(hit))) {
+          const overlay = ['ht_master', 'ht_clone_top_inline_start_corner', 'ht_clone_bottom_inline_start_corner',
+            'ht_clone_inline_start', 'ht_clone_top', 'ht_clone_bottom'].find(name => handle.closest(`.${name}`));
+
+          overlays.push(overlay ?? 'none');
+        }
+      });
+
+      return overlays.sort();
+    });
+  }
+
+  /**
+   * Scroll the master viewport until the given column's inline-end edge sits a few pixels inside the
+   * frozen inline-start pane (row headers and the frozen column), so the column is off screen.
+   */
+  async scrollColumnEndUnderFrozenPane(col: number): Promise<void> {
+    const paneInset = 8;
+
+    await this.page.evaluate(({ targetCol, inset }) => {
+      const holder = document.querySelector('.ht_master .wtHolder');
+      const cell = document.querySelector(`.ht_master [data-testid="cell-1-${targetCol}"]`);
+      const pane = document.querySelector('.ht_clone_inline_start');
+
+      if (!holder || !cell || !pane) {
+        throw new Error('The master viewport, the target cell or the frozen pane is not rendered.');
+      }
+
+      holder.scrollLeft += cell.getBoundingClientRect().right - (pane.getBoundingClientRect().right - inset);
+    }, { targetCol: col, inset: paneInset });
+
+    // The redraw is rAF-batched, so wait until the viewport calculators stop counting the column.
+    await expect.poll(() => this.page.evaluate(column => window.hot.getFirstPartiallyVisibleColumn() > column, col))
+      .toBe(true);
+  }
+
+  /**
+   * Scroll back to the start of the grid so the given column is on screen again, and wait until the
+   * viewport calculators count it.
+   */
+  async scrollColumnIntoView(col: number): Promise<void> {
+    await this.page.evaluate(column => window.hot.scrollViewportTo({ col: column, horizontalSnap: 'start' }), col);
+    await expect.poll(() => this.page.evaluate(column => window.hot.getFirstFullyVisibleColumn() <= column
+      && column <= window.hot.getLastFullyVisibleColumn(), col)).toBe(true);
   }
 
   /**

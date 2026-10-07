@@ -36,6 +36,47 @@
     #container.css-host > #grid { height: 100%; }
     #container.bounded { height: 300px; overflow: auto; }
     #container.half-var { --grid-width: 50%; }
+    /* Scroll containers with no height of their own: their height is their content, the grid
+       (DEV-3062). */
+    #container.heightless-hidden { overflow: hidden; }
+    #container.heightless-auto { overflow: auto; }
+    /* Parents that clip the grid and inset it, so the parent's box is wider than the grid's own:
+       padding on the clipping parent, the docs layout (the clip on an outer element, the padding on
+       an inner wrapper), the same padded parent with a height of its own, a padded parent that clips
+       the horizontal axis only (the window scrolls the rows), and a grid half as wide as its clipping
+       parent (DEV-3107). Each leaves the grid root 688px wide, or 344px for the half. */
+    #container.padded-hidden { overflow: hidden; padding: 16px; width: 688px; }
+    #container.padded-bounded { overflow: hidden; padding: 16px; width: 688px; height: 300px; }
+    #container.clip-outer { overflow: hidden; width: 720px; }
+    #container.clip-outer > .inset { padding: 16px; }
+    #container.padded-clip-x { overflow-x: clip; padding: 16px; width: 688px; }
+    #container.narrow-hidden { overflow: hidden; width: 688px; }
+    /* Parents that clip and size the grid by its content: a flex item without `flex-grow` and an
+       inline block are as wide as what is inside them, so the grid root is exactly as wide as the
+       holder inside it. */
+    #container.flex-row-hidden { overflow: hidden; display: flex; width: 688px; }
+    #container.inline-block-hidden { overflow: hidden; width: 688px; }
+    #container.inline-block-hidden > #grid { display: inline-block; }
+    /* Parents that clip and give the grid a share of their width next to a 100px column: a `flex: 1`
+       item and a `1fr` grid track. Both are 588px wide, and neither shrinks below its content. */
+    #container.flex-share-hidden { overflow: hidden; display: flex; width: 688px; }
+    #container.flex-share-hidden::before { content: ''; flex: none; width: 100px; }
+    #container.flex-share-hidden.wide-side::before { width: 200px; }
+    #container.flex-share-hidden > #grid { flex: 1; }
+    #container.grid-track-hidden { overflow: hidden; display: grid; grid-template-columns: 100px 1fr; width: 688px; }
+    #container.grid-track-hidden::before { content: ''; }
+    #container.flex-share-clip-x { overflow-x: clip; display: flex; width: 688px; }
+    #container.flex-share-clip-x::before { content: ''; flex: none; width: 100px; }
+    #container.flex-share-clip-x > #grid { flex: 1; }
+    /* More chains sized by their content (DEV-3107 review): a flex item inside a padded parent, an
+       inline block whose root sits in a padded element, and an inline block in a parent as wide as
+       60% of the window, so a window resize moves the parent and nothing else. */
+    #container.padded-flex-row-hidden { overflow: hidden; display: flex; padding: 16px; width: 688px; }
+    #container.padded-root-parent-hidden { overflow: hidden; width: 688px; }
+    #container.padded-root-parent-hidden > #grid { display: inline-block; }
+    #container.padded-root-parent-hidden .ht-grid-content { padding: 0 8px; }
+    #container.fluid-inline-block-hidden { overflow: hidden; width: 60vw; }
+    #container.fluid-inline-block-hidden > #grid { display: inline-block; }
   </style>
 </head>
 <body>
@@ -66,22 +107,46 @@
     /**
      * Builds (or rebuilds) the grid. `containerClass` picks one of the parent
      * layouts declared in the stylesheet above (`css-host`, `bounded`,
-     * `half-var`); an empty string leaves the parent unstyled.
+     * `half-var`, `heightless-hidden`, `heightless-auto`, `padded-hidden`,
+     * `padded-bounded`, `clip-outer`, `padded-clip-x`, `narrow-hidden`,
+     * `flex-row-hidden`, `inline-block-hidden`, `flex-share-hidden`,
+     * `grid-track-hidden`, `flex-share-clip-x`, `padded-flex-row-hidden`,
+     * `padded-root-parent-hidden`, `fluid-inline-block-hidden`); an empty
+     * string leaves the parent unstyled. A non-empty `wrapperClass` puts a
+     * `<div>` with that class between the parent and the grid (`inset` for
+     * `clip-outer`), except `modal-dialog`, which puts the grid in a modal
+     * `<dialog>` with no width of its own.
      */
-    window.initRootSizeGrid = function(overrides = {}, containerClass = '') {
+    window.initRootSizeGrid = function(overrides = {}, containerClass = '', wrapperClass = '') {
       if (window.hot) {
         window.hot.destroy();
       }
 
       const container = document.getElementById('container');
-      const oldGrid = document.getElementById('grid');
       const grid = document.createElement('div');
 
       grid.id = 'grid';
       grid.setAttribute('data-testid', 'grid');
       grid.className = `ht-theme-${window.htTheme}`;
       container.className = containerClass;
-      oldGrid.replaceWith(grid);
+
+      if (wrapperClass === 'modal-dialog') {
+        const dialog = document.createElement('dialog');
+
+        dialog.appendChild(grid);
+        container.replaceChildren(dialog);
+        dialog.showModal();
+      } else if (wrapperClass) {
+        const wrapper = document.createElement('div');
+
+        wrapper.className = wrapperClass;
+        wrapper.appendChild(grid);
+        container.replaceChildren(wrapper);
+      } else {
+        // Replaces a wrapper left by the previous build too, not only the grid.
+        container.replaceChildren(grid);
+      }
+
       window.scrollTo(0, 0);
 
       window.hot = new Handsontable(grid, {

@@ -48,6 +48,20 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   real, say so in the test instead of pinning one bundle's answer. A real one is
   still a defect: that editor split is tracked as DEV-2862, since the fixture
   enables no Formulas and only the bundle differs.
+- **A stylesheet edit needs BOTH bundles rebuilt, not only the stylesheet.** The
+  bundles inline the base stylesheet (`src/styles/handsontableStyles.js`, which
+  `build:styles` rewrites) and inject it as a `<style>` after the fixture's
+  `<link>`s, so for a declaration both copies carry, the bundle's copy wins the
+  cascade. After `build:styles.min` alone, `handsontable.min.css` on disk shows
+  the new value while every leg still renders the old one — measured on the row
+  resize guide's `margin-top`: 4px in the stylesheet, 5px computed, and the spec
+  that guards it stayed green on the planted bug. `build:umd` refreshes the three
+  `umd` legs only; the three `-min` legs load `handsontable.full.min.js`, which
+  only `build:umd.min` rewrites, so a planted CSS bug rebuilt with `build:umd`
+  alone goes red on `umd` and stays green on `-min` — the same misread, split by
+  bundle. Rebuild `build:umd` and `build:umd.min`, or run the full `build`
+  (`handsontable/AGENTS.md`, Build). An additive rule takes effect from the
+  stylesheet alone, which is what makes the trap look intermittent.
 - **Never hardcode a row or column index that sits near the edge of the
   rendered band.** Each theme's padding feeds `autoColumnSize`, so the same
   content measures differently: in `width-window-scroll.html` (500px wide, 30
@@ -64,6 +78,40 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   the target row well inside the band on every theme, which is why `cell(40, 3)`
   after an 800px window scroll in the same spec is safe. Distance from the
   band's edge is what decides, not whether the index is written down.
+- **The same trap applies to any assertion about WHICH SIDE a popup opens on.**
+  A dropdown editor's list is as tall as its rows, so the theme decides whether
+  it fits below the cell or has to flip above it: the same grid flips on
+  `horizon` and does not on `main`. Because every local gate is pinned to
+  `e2e-main` (and the legacy Jasmine runner defaults to `main`), a spec that
+  pins the side goes green locally and reds exactly one CI leg, with a message
+  full of coordinates that says nothing about the cause — that is how
+  `E2E / UMD (theme: horizon)` went red on #13417 while the other two themes
+  passed. Assert **adjacency** instead: the popup touches the cell on one side
+  or the other. Leave "which side, and does it leave the grid" to a spec whose
+  grid is deliberately shaped to force that outcome on all three themes, and
+  run it on all three (`--theme=horizon`, `--project=e2e-horizon`).
+  `e2e/submenu-position.spec.ts` is that shape for menus: its fixture's menus
+  are three and two items long, so every point it opens a menu at clears or
+  misses the room the menu and its submenu need by 56 px or more on every
+  theme, more than a row. With the full default item list that margin
+  collapses: from the top-left corner the Alignment submenu has 142 px to
+  spare below on `main` and 5 px on `horizon`, one row-height change from
+  flipping.
+- **An RTL fixture the WINDOW scrolls needs an RTL document, not only an RTL
+  grid.** A `layoutDirection: 'rtl'` grid inside an LTR page is laid out with
+  its inline start at the far end of the page, so the page opens on the grid's
+  LAST columns and cell (0, 0) is never rendered: `goto()` dies on a missing
+  cell. Set `<html dir="rtl">` too, as a real RTL page does; the window then
+  scrolls toward the inline end with a NEGATIVE `scrollX`, which is the
+  arithmetic a window-scroll branch has to get right
+  (`e2e/handsontable-editor-list-position.spec.ts`, whose RTL window case
+  caught exactly such a bug: the list's flip added the viewport position of the
+  grid's LEFT edge to a distance measured from its right edge, so every list
+  flipped once the page was scrolled toward its inline end). Such a case must
+  SCROLL the window, not only render the RTL page: at `scrollX` 0 that bug made
+  no difference. And give it a layout where the grid root is not exactly as
+  wide as the viewport (that spec's `?inset=start`), or `scrollX` and the
+  root's width can stand in for the right terms and pass.
 - **A SHORT fixed-height fixture has no room to spare on the row axis, and
   `hover()` turns that into a delayed failure somewhere else.** Playwright
   scrolls a target into view before pressing it, so a `cell(row, col)` locator
@@ -92,6 +140,58 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   product flip: the first option is ~350px wide, so its centre sits past
   the grid's `overflow: clip` when the list stays left-aligned with the
   last cell.
+
+## The engine legs (Firefox, WebKit)
+
+- The six projects above are Chromium. Tests tagged `@cross-browser` run on Firefox and WebKit as
+  well: `{ tag: CROSS_BROWSER_TAG }` on the `test.describe` (`fixtures/test.ts`), picked up by the two
+  projects of `playwright-engines.config.ts`, `e2e-firefox` and `e2e-webkit`, on the main theme and
+  the plain UMD bundle. CI runs that config in one job, `E2E / Playwright engines (Firefox, WebKit)`.
+  The visual suite's cross-browser leg photographs on the develop seed, master and release candidate
+  pushes, the nightly, and pull requests that change the visual tier, so on any other pull request
+  the job is the only Firefox and WebKit run of the grid. On a pull request a red engine leg also
+  holds back the whole Visual stage, which needs `e2e` and runs only when nothing failed. `e2e.yml` is
+  shared, so the job also runs on every develop push and in the release candidate test runs: a red
+  engine leg holds back that develop push's experimental publish, and blocks a release candidate.
+- Tag a test whose behavior an engine could get wrong on its own: real key presses (the Tab order,
+  undo and redo shortcuts), pointer gestures (header clicks, drags, the fill handle's double click),
+  focus, and layout read back from the DOM. The specs that replaced the cross-browser visual
+  captures' photographed states (DEV-3257) are tagged, and
+  `.github/scripts/__tests__/playwright-engines.test.mjs` keeps them tagged and keeps the config
+  filtering by the tag and inheriting the base config's CI flake settings and reporters.
+- A separate config, so that `npx playwright test` without `--project` (all six legs) never needs the
+  engines installed. To run a tagged spec on them locally, install them once for this package's
+  Playwright and name the config:
+
+  ```bash
+  cd tests
+  npx playwright install firefox webkit
+  HOT_TEST_PORT=8131 npx playwright test --config playwright-engines.config.ts e2e/<spec>.spec.ts
+  ```
+
+  The local gates (pre-push, the Stop hook) run `e2e-main` only, so an engine failure first shows in
+  CI unless you run it. Before calling a tagged test deterministic, repeat it on the engines as well
+  as on the six legs (`--config playwright-engines.config.ts --repeat-each 20`). A pass on macOS
+  does not prove a keyboard shortcut on the Linux runner: `ControlOrMeta` is Meta on macOS and
+  Control in CI, and WebKit handles the two differently (the clipboard bullet below).
+- **Firefox cannot start in the job's container without `HOME=/root`.** The container runs as root,
+  and GitHub points `HOME` at `/github/home`, which belongs to the image's `pwuser`; Firefox refuses
+  to run as root under a home it does not own, so every Firefox test fails at launch (36 of 36 on the
+  job's first run). The run step sets `HOME: /root`, and the engines test pins it.
+- **Linux WebKit copies, cuts and pastes nothing on a real shortcut.** Playwright's WebKit takes a
+  shortcut's editing command from the macOS key map alone, so on the Linux runner a real Ctrl+C, X or
+  V reaches the page as a key press and nothing more (all three clipboard tests failed there, on both
+  attempts, while they pass on macOS WebKit). A test that uses one carries `CLIPBOARD_SHORTCUT_TAG`
+  beside `CROSS_BROWSER_TAG`, and `e2e-webkit` leaves it out on every platform, so a local run and CI
+  run the same tests. Reading the clipboard back needs `clipboard-read`: Playwright grants it on
+  Chromium and WebKit and rejects it on Firefox (`Unknown permission`), and it rejects
+  `clipboard-write` on Firefox and WebKit. So `clipboard-between-grids.spec.ts` asks for
+  `clipboard-read` on Chromium alone (`test.use({ permissions: async({ browserName }, use) => … })`)
+  and reads the clipboard back there; elsewhere the paste landing the copied value shows the copy.
+- **The clipboard outlives a test.** Each test gets a fresh context, not a fresh clipboard, so a copy
+  that writes nothing still pastes whatever an earlier test, or an earlier repeat of the same test,
+  left there. Copy a value no earlier run copied: both clipboard specs write a run-unique value into
+  the source cells first (`randomUUID()`), which proves the copy on every engine, read-back or not.
 
 ## Fixture contract (never get these wrong)
 
@@ -263,15 +363,44 @@ not need a real press.
   shrinks with every Playwright/CDP speedup. Size the poll budgets so goto + gestures + every
   poll fit the 20s test timeout, or an exhausted wait surfaces as a locationless "Test timeout"
   instead of its message.
+- A click on the grid's far corner pins the scrollbar clearance band (#10370) open. The pointer then
+  rests within 26 px of both scrollbars, which keeps their bands up by design
+  (`OVERLAY_SCROLLBAR_PROXIMITY`), so the next scroll's wait for the band to close times out. Park the
+  pointer off the grid before scrolling (`GridLayoutsPage.scrollViewportTo()`), and wait for the band to
+  close before a click near an edge, or the scrollbar takes the click.
+- A press on a sortable column header's label (`.colHeader`), or on its sort indicator, sorts as well
+  as selects; a press elsewhere on the header only selects. A click on the middle of a header usually
+  lands on the label, which is how a test that meant only to select a column also sorts it – aim at the
+  label, or away from it, on purpose. On a paginated grid the column a header click selects is the
+  current page's rows only (Pagination clamps the range in `beforeSelectColumns` and
+  `beforeSetRangeEnd`), so a Delete after it empties that page and no other.
+  `pagination-filter-sort.spec.ts` asserts both.
 
-## Rendering below 100% (zoom / display scaling)
+## Reading grid UI state
+
+- A closed editor stays in the DOM (`ht_editor_hidden`), and Playwright reports its textarea as
+  visible, so `toBeHidden()` after an Enter that committed the edit fails. Read the editor's own state,
+  `getActiveEditor().isOpened()` (`GridLayoutsPage.editorOpened()`).
+- Each grid on a page keeps its own context menu container, so a locator for "the" menu matches one per
+  grid; and a toggle entry such as "Read only" has the role `menuitemcheckbox`, not `menuitem`
+  (`TwoGridsPage.makeColumnReadOnly()`).
+
+## Rendering away from 100% (zoom / display scaling)
 
 Reach for **CSS `zoom` on the root element**, applied by the fixture before the grid is
 constructed (`fixtures/demo/row-height-device-scale.html`). Chrome routes it through the same
 effective-zoom machinery as browser page zoom, so a cell's 1px border is inflated exactly as it
 is under Ctrl+minus or Windows display scaling — `getComputedStyle` reads `1.111px` at 0.9
 either way. Assert that inflation as the test's own precondition; without it every geometry
-assertion passes on unfixed code.
+assertion passes on unfixed code. Above 100% the snapping goes the other way: at 1.25 the same
+1px border is computed as 0.8px (1.25 device pixels snapped down to one, measured on every
+theme in `overlay-alignment-css-zoom.spec.ts`), so the precondition there is a value away from
+1, not above it. `getBoundingClientRect()` is scaled by CSS zoom and `offsetWidth` is not, so
+their ratio is the zoom the grid really got — a stronger precondition than reading the style
+attribute back. A grid does not redraw when the page zoom changes after construction
+(`afterViewRender` count unchanged), so a zoom applied late is the browser re-laying out the
+sizes the grid wrote at 100%, and a fixture that wants the grid to MEASURE zoomed cells applies
+the zoom before constructing it.
 
 The two things that do **not** work: Playwright's context-level `deviceScaleFactor` reports the
 ratio faithfully but never inflates the border, so a test built on it is vacuous; and
@@ -374,8 +503,11 @@ artifact), and `.github/workflows/test-health.yml` collects every `flaky` or
 runs in 30 days — the playbook's line for a fix or migration ticket. A `flaky`
 outcome (failed, then passed on retry) reaches the ledger only because
 `failOnFlakyTests` fails the leg; keep `retries` at 1 in CI for that to hold.
-The report path is pinned by `.github/scripts/lib/test-health.mjs` and asserted
-in `.github/scripts/__tests__/test-health.test.mjs`, so moving it means changing
+`.github/scripts/__tests__/playwright-flake-settings.test.mjs` pins all three
+settings (`failOnFlakyTests`, `retries`, and `forbidOnly`) as text in the root
+`test:tooling` gate, and fails with this reason if one moves. The report path
+is pinned by `.github/scripts/lib/test-health.mjs` and asserted in
+`.github/scripts/__tests__/test-health.test.mjs`, so moving it means changing
 all three places.
 
 ## Quarantine
@@ -383,8 +515,12 @@ all three places.
 `failOnFlakyTests` stays on: a test that passes only on retry fails the leg, and
 fixing the flake is the answer. Quarantine is the narrow, expiring, capped
 exception for a *known* flake that would otherwise redden every unrelated pull
-request until the fix lands — and it exists in this tier only. The frozen
-Jasmine suite has no quarantine: a flaky legacy spec migrates here instead.
+request until the fix lands. The mechanism below is this tier's only. The visual
+suite parks a flaky capture with the same limits (owner, 30-day expiry, cap of
+six) through `visual-tests/visual-quarantine.json`, whose checks import
+`lib/quarantine-policy.mjs`; its rules are `visual-tests/AGENTS.md`, Guardrails
+(G5). The frozen Jasmine suite has no quarantine: a flaky legacy spec migrates
+here instead.
 
 - **Tag through the helper, never by hand.**
   `test('title', quarantined('DEV-1234', '2026-10-08', 'why'), async() => …)`
@@ -418,4 +554,8 @@ The decision logic is pure (`lib/quarantine-policy.mjs`, tested in
 `lib/__tests__/` through the root `test:tooling`); `e2e/quarantine-policy.spec.ts`
 proves the exit codes end to end by running synthetic projects in a child
 process (no browser). `QUARANTINE_CAP` and `QUARANTINE_MAX_DAYS` live in the
-policy module; change them there and in this section together.
+policy module; change them there, in this section, in the G5 bullet of
+`visual-tests/AGENTS.md`, and in `visual-tests/visual-quarantine.json`'s
+`$comment` together. The visual quarantine imports them, and
+`visual-tests/lib/__tests__/visual-quarantine.test.mjs` pins 6 and 30, so it
+fails until you do.

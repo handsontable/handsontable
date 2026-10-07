@@ -72,6 +72,13 @@ export class BottomOverlay extends Overlay {
   }
 
   /**
+   * @returns {'block'} This overlay follows the page up and down.
+   */
+  get railAxis(): 'block' {
+    return 'block';
+  }
+
+  /**
    * Updates the top overlay position.
    *
    * Reports no position change, for the same reason `TopOverlay#resetFixedPosition` does not:
@@ -85,26 +92,42 @@ export class BottomOverlay extends Overlay {
       return false;
     }
     const { rootWindow } = this.deps;
+    const wtTable = this.deps.getWtTable();
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
+    const rail = this.getRail();
+    const restsOnWindow = this.trimmingContainer === rootWindow;
+
+    if (!restsOnWindow) {
+      // Before the insets below: releasing restores the clone's own top inset.
+      rail?.release();
+    }
 
     overlayRoot.style.top = '';
 
     let overlayPosition = 0;
 
-    if (this.trimmingContainer === rootWindow) {
+    if (restsOnWindow) {
       overlayPosition = this.getOverlayOffset();
 
       // At non-integer zoom levels (e.g. 90%) the browser physically rounds each row's
       // border to the nearest physical pixel, causing the rendered TABLE to extend a
-      // fractional CSS pixel past the holder's integer CSS height. Subtract this overflow
-      // so the overlay sits flush against the actual table content instead of the
+      // fractional CSS pixel past the holder's integer CSS height. The rail reaches that far
+      // instead, so the clone rests against the actual table content rather than the
       // CSS-integer hider boundary.
       const { geometryReader } = this.deps;
-      const masterTableRect = geometryReader.getBoundingClientRect(this.deps.getWtTable().TABLE);
-      const masterHolderRect = geometryReader.getBoundingClientRect(this.deps.getWtTable().holder);
+      const masterTableRect = geometryReader.getBoundingClientRect(wtTable.TABLE);
+      const masterHolderRect = geometryReader.getBoundingClientRect(wtTable.holder);
       const masterTableOverflow = Math.max(0, masterTableRect.bottom - masterHolderRect.bottom);
 
-      overlayRoot.style.bottom = `${overlayPosition - masterTableOverflow}px`;
+      // Held at the viewport's bottom edge by the browser, never by this listener (DEV-126).
+      overlayRoot.style.bottom = '';
+      rail?.pin({
+        isRtl: this.isRtl(),
+        width: wtTable.getTotalWidth(),
+        height: wtTable.getTotalHeight() + masterTableOverflow,
+        inline: false,
+        block: { pinned: true, edge: 'bottom' },
+      });
 
     } else {
       overlayPosition = this.getScrollPosition();
@@ -119,16 +142,14 @@ export class BottomOverlay extends Overlay {
   }
 
   /**
-   * Updates the bottom overlay position.
+   * How far the clone's bottom edge sits above the holder's bottom edge, for a grid whose rows an
+   * element scrolls. The bottom-inline-end corner is placed with the same number.
+   *
+   * @returns {number}
    */
-  repositionOverlay() {
-    if (!this.clone) {
-      return;
-    }
-
+  getBottomInset(): number {
     const wtTable = this.deps.getWtTable();
     const wtViewport = this.deps.getWtViewport();
-    const cloneRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     let bottomOffset = 0;
 
     if (!wtViewport.hasVerticalScroll()) {
@@ -144,7 +165,20 @@ export class BottomOverlay extends Overlay {
       bottomOffset += reservedScrollbarSpace(this.deps.geometryReader, wtTable.holder, 'horizontal');
     }
 
-    cloneRoot.style.bottom = `${bottomOffset}px`;
+    return bottomOffset;
+  }
+
+  /**
+   * Updates the bottom overlay position.
+   */
+  repositionOverlay() {
+    if (!this.clone) {
+      return;
+    }
+
+    const cloneRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
+
+    cloneRoot.style.bottom = `${this.getBottomInset()}px`;
   }
 
   /**

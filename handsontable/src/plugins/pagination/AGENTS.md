@@ -94,6 +94,26 @@ twice — at enable and on a page-size change — because either path can introd
 Because the auto strategy computes a size *per page*, page boundaries are not uniform: never assume
 `page * pageSize` arithmetic works. Go through the strategy.
 
+## Undo and redo
+
+`setPage()` (`'set_page'`), `setPageSize()` (`'set_page_size'`) and `resetPagination()`
+(`'reset_pagination'`) each run as one operation, so every page change is one undo step - the pager
+buttons and the page-size select included, since they call the same methods.
+
+The page's hiding map is **not** part of the undo snapshot. It is listed in
+`DERIVED_INDEX_MAP_NAMES` (`../../translations/indexMapperSnapshot.ts`) as `'Pagination'` - the map is
+registered under `this.pluginName`, the capitalized registry name, not the `pagination` settings key,
+and a lowercase entry silently matches nothing (`gridState.unit.js` pins it). Like the size plugins' maps,
+because the plugin rebuilds it from the page, the page size and the other maps - and with
+`pageSize: 'auto'` it rebuilds it on every render. `captureState()` records the page and the page
+size instead, and `restoreState()` puts them back and runs `#computeAndApplyState()`. Two traps:
+
+- **Restoring the map from a snapshot would fight the plugin.** The plugin recomputes on every index
+  cache update (`#onIndexCacheUpdate`), which a restore of the other maps triggers, so a restored
+  page map would be overwritten with one computed from the page the grid was on before the undo.
+- **A grid paged by a data provider records nothing.** Its pages come from the server, so undoing a
+  page change would need a fetch. `captureState()` returns `undefined` there.
+
 ## Selection hooks it must intercept
 
 `beforeSelectAll`, `beforeSelectColumns`, `beforeSetRangeEnd`, `beforeSelectionHighlightSet`,
@@ -120,6 +140,15 @@ and keeps the last *n* rows, so a mid-page paste of a long clipboard writes the 
 (DEV-1119 / private #2861). The unique-value case in `__tests__/plugins/copyPaste.spec.js`
 is the regression pin; the older case used identical letters and could not catch it.
 
+**The paste start row is the selection, not `copyableRanges` (DEV-2935).** The hook's second argument
+is the copy SOURCE, and `CopyPaste#onAfterSelectionEnd` stops refreshing it when `fragmentSelection: true`,
+so it can point at the rows that were copied while the paste writes elsewhere. Clamping from it let a paste
+near the end of a page spill onto the next one. `#onBeforePaste` reads
+`getSelectedRangeActive().getTopStartCorner().row`, the cell `CopyPaste#populateValues` writes at, and
+ignores the argument. Every existing pagination paste spec selects the destination right before pasting,
+which refreshes the ranges, so none of them can tell the two sources apart; the pin is
+`tests/e2e/pagination-paste-fragment-selection.spec.ts`, which copies, moves the selection and then pastes.
+
 ## Styling: the page-size select fill lives on the wrapper, not the select
 
 In `../../styles/components/plugins/_pagination.scss`, the page-size control's background, border-radius
@@ -132,6 +161,48 @@ wrapper exactly (asserted in `tests/e2e/pagination-select-background.spec.ts`), 
 CSS. The select's `:disabled` background was dropped: it is safe only because `setPageSizeSectionVisibility`
 in `ui.ts` sets `pageSizeSelect.disabled` *only* while it hides the section (`display: none`), so a disabled
 select is never rendered. That coupling is pinned by `__tests__/ui.unit.js` — keep it.
+
+## Icons are built once, not per render
+
+`ui.ts`'s next/prev/first/last buttons and the page-size select arrow are real `<i class="ht-icon
+ht-icon-<name>">` elements kept through an injected `syncIcon()` (bound to the grid in `pagination.ts`)
+with the `ht-page-icon` slot class, built when the UI is constructed, not rebuilt on every draw. A theme
+change doesn't go through `updateSettings()` (`useTheme()` bypasses it), so `#onAfterSetTheme` explicitly
+calls `this.#ui?.refreshIcons()` — forgetting that hook leaves the pager showing the previous theme's icons
+after a `useTheme()` switch. The refresh updates the same elements in place and does nothing unless the
+theme's icons revision moved, so a color-scheme or density switch rebuilds nothing.
+
+**Do not center the button icon with flexbox.** `_pagination.scss` makes the `.ht-icon` inside a
+navigation button `display: block`, which sizes the button's content box to the icon exactly (what the
+18.1 `::before { display: block }` glyph did) with no line box adding strut height. A
+`display: inline-flex` button gives the same box, but under `forced-colors: active` Chromium kept
+painting the disabled `GrayText` border on first/prev after they were re-enabled - the computed
+`border-color` was already right, only the paint was stale. `tests/e2e/icon-elements-misc.spec.ts`
+compares the button's paint after a page change with a fresh paint of it.
+
+## Styling: the label spans declare their own text metrics
+
+`ht-page-size-section__label` and `ht-page-navigation-section__label` are `<span>`s. They declare
+`font-size`, `line-height`, `font-weight`, `letter-spacing`, and `font-family` as `inherit` in
+`_pagination.scss` (DEV-75). Without a declaration of their own they only inherit from `.ht-pagination`,
+and a host page rule as plain as `span { font-size: 20px }` beats inheritance – the labels grew while the
+rest of the bar kept the theme token (the buttons and the select are not spans, and they declare
+`font-size: inherit` for a different reason: resetting native control fonts). `inherit` rather than the
+token keeps a user's own override on the bar working – one that beats the bar's
+`.handsontable.ht-pagination` (0,2,0), for example `div.handsontable.ht-pagination`. The trade: the guard
+sits at (0,3,0), so a user rule on the label class itself (`.ht-page-navigation-section__label` or
+`.handsontable .ht-page-navigation-section__label`) that used to apply now loses. Any new text-bearing span
+added to the bar needs the same five lines; `tests/e2e/host-span-styles.spec.ts` pins the existing ones.
+
+## Server-backed paging is read live, not updated
+
+`#isDataProviderActive()` calls `hasExternalDataSource` on every check rather than being cached, because `updateSettings({ dataProvider })` never carries `pagination` in the payload, so it never reaches this plugin's own `updatePlugin()` — a view switch between a server-backed view and a local one is the everyday case.
+
+For the same reason, `#computeAndApplyState()` drops `#serverSideTotalCount` whenever it finds no DataProvider backing the grid. Without that, a `dataProvider` removed and added again through `updateSettings()` pages by the old server's total until the new `fetchRows` lands, and keeps it if that fetch fails.
+
+## The server total belongs to the view it came from
+
+DataProvider calls the internal `_resetDataProviderTotal()` (`@private`, not API; a no-op while this plugin is disabled) before its owner changes the view the grid shows, which drops `#serverSideTotalCount`. It has to happen before the change, not after: the change itself renders, and the pager must not show the previous view's total for that frame. A view shown again replays its own total through `afterDataProviderFetch`; one fetching for the first time, or showing a failed first fetch, has no response yet and would otherwise page by the previous view's total. This plugin never listens to an owner plugin's hooks; `test/__tests__/releasedPluginsViewAgnostic.unit.js` fails if its source names the owner plugin or its hooks.
 
 ## Where to look next
 

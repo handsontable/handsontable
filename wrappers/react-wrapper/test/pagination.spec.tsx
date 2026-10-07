@@ -10,7 +10,7 @@ import { HotTableProps } from '../src/types';
 registerAllModules();
 
 describe('HotTable pagination `initialPage`', () => {
-  it('should not snap the current page back to `initialPage` on re-render (DEV-1140)', async () => {
+  it('should not snap the current page back to `initialPage` on re-render (DEV-1140)', async() => {
     const hotSettings: HotTableProps = {
       licenseKey: 'non-commercial-and-evaluation',
       id: 'hot',

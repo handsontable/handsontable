@@ -5,6 +5,7 @@ import { rangeEach } from '../../../helpers/number';
 import { addClass, setAttribute, empty } from '../../../helpers/dom/element';
 import BaseUI from './_base';
 import { A11Y_EXPANDED, A11Y_HIDDEN } from '../../../helpers/a11y';
+import { createIcon } from '../../../themes/engine/icons';
 
 /**
  * Minimal interface for DataManager methods used by HeadersUI.
@@ -116,14 +117,9 @@ class HeadersUI extends BaseUI {
     const rowLevel = this.dataManager!.getRowLevel(rowIndex);
     const innerDiv = TH.getElementsByTagName('DIV')[0];
     const innerSpan = innerDiv.querySelector('span.rowHeader');
-    const previousIndicators = innerDiv.querySelectorAll('[class^="ht_nesting"]');
     const ariaEnabled = this.hot.getSettings().ariaTags;
 
-    arrayEach(previousIndicators, (elem) => {
-      if (elem) {
-        innerDiv.removeChild(elem as Node);
-      }
-    });
+    this.removeLevelIndicators(TH);
 
     addClass(TH, HeadersUI.CSS_CLASSES.indicatorContainer);
 
@@ -154,27 +150,84 @@ class HeadersUI extends BaseUI {
 
       addClass(TH, HeadersUI.CSS_CLASSES.parent);
 
-      if (this.collapsingUI!.areChildrenCollapsed(rowIndex)) {
-        addClass(buttonsContainer, `${HeadersUI.CSS_CLASSES.button} ${HeadersUI.CSS_CLASSES.expandButton}`);
+      const collapsed = this.collapsingUI!.areChildrenCollapsed(rowIndex);
+      const stateButtonClass = collapsed ? HeadersUI.CSS_CLASSES.expandButton : HeadersUI.CSS_CLASSES.collapseButton;
 
-        if (ariaEnabled) {
-          setAttribute(TH, [
-            A11Y_EXPANDED(false)
-          ]);
-        }
+      addClass(buttonsContainer, `${HeadersUI.CSS_CLASSES.button} ${stateButtonClass}`);
 
-      } else {
-        addClass(buttonsContainer, `${HeadersUI.CSS_CLASSES.button} ${HeadersUI.CSS_CLASSES.collapseButton}`);
-
-        if (ariaEnabled) {
-          setAttribute(TH, [
-            A11Y_EXPANDED(true)
-          ]);
-        }
+      if (ariaEnabled) {
+        setAttribute(TH, [
+          A11Y_EXPANDED(!collapsed)
+        ]);
       }
+
+      // `buttonsContainer` is a brand-new `DIV` created a few lines above (never reused across
+      // draws - `removeLevelIndicators()` at the top of this method tears down the previous one),
+      // so a plain `appendChild()` can never stack a second icon: each render starts
+      // from an empty container. `collapsed` mirrors `CollapsibleColumns#onAfterGetColHeader`'s
+      // `isCollapsed` branch - children collapsed (the `+`/expand button, `ht_nestingExpand`) gets
+      // `collapseOn`, children expanded (the `-`/collapse button, `ht_nestingCollapse`) gets
+      // `collapseOff`.
+      buttonsContainer.appendChild(createIcon(this.hot, collapsed ? 'collapseOn' : 'collapseOff'));
 
       innerDiv.appendChild(buttonsContainer);
     }
+  }
+
+  /**
+   * Removes the nesting-level indicator nodes (the collapse/expand button and the indent spacers)
+   * appended to a row header's inner container. Only direct children of that container are taken,
+   * which is where `appendLevelIndicators()` puts them; a deeper node with a matching class belongs
+   * to someone else's markup.
+   *
+   * @private
+   * @param {HTMLTableCellElement} TH TH element.
+   */
+  removeLevelIndicators(TH: HTMLTableCellElement) {
+    const innerDiv = TH.getElementsByTagName('DIV')[0];
+
+    if (!innerDiv) {
+      return;
+    }
+
+    const previousIndicators = innerDiv.querySelectorAll(':scope > [class^="ht_nesting"]');
+
+    arrayEach(previousIndicators, (elem) => {
+      if (elem) {
+        innerDiv.removeChild(elem as Node);
+      }
+    });
+  }
+
+  /**
+   * Removes the nesting-level indicators from every row header this instance has rendered.
+   *
+   * Walks the DOM rather than resolving coordinates. A row header is painted in the master table and
+   * in every overlay that covers its row - up to four copies for a frozen row - and `getCell()` can
+   * name only two of them. The walk also has to work with no grid state at all: the plugin disables
+   * itself from `beforeLoadData` on invalid data, which at construction fires before the view exists
+   * and on a later `loadData()` fires after `replaceData()` destroyed the previous DataMap, so
+   * anything that reaches `countRows()` - `getCell()` does, through the `fixedRowsTop` setting -
+   * throws there.
+   *
+   * A header is taken when the nearest `handsontable` ancestor above its table is this instance's
+   * root: `ht_master` and every `ht_clone_*` carry that class, as does the root, while on a
+   * window-scrolled grid an overlay sits inside a rail element that carries neither. That is what
+   * keeps a grid rendered inside a cell out of the walk.
+   *
+   * @private
+   */
+  removeRenderedLevelIndicators() {
+    const { rootElement } = this.hot;
+    const rowHeaders = rootElement.querySelectorAll<HTMLTableCellElement>('tbody th');
+
+    rowHeaders.forEach((TH) => {
+      const table = TH.closest('.handsontable');
+
+      if (table?.parentElement?.closest('.handsontable') === rootElement) {
+        this.removeLevelIndicators(TH);
+      }
+    });
   }
 
   /**

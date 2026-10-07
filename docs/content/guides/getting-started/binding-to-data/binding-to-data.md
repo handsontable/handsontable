@@ -33,8 +33,8 @@ Array of arrays is a good choice for the more grid-like scenarios where you need
 
 ::: example #example1 --js 1 --ts 2
 
-@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example1.js)
-@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example1.ts)
+@[code collapse={9-13}](@/content/guides/getting-started/binding-to-data/javascript/example1.js)
+@[code collapse={9-13}](@/content/guides/getting-started/binding-to-data/javascript/example1.ts)
 
 :::
 
@@ -78,14 +78,14 @@ Array of arrays is a good choice for the more grid-like scenarios where you need
 
 ### Array of arrays with a selective display of columns
 
-The following example shows how you would use the array of arrays with a selective display of columns. This scenario uses the same data source as in the previous example, this time omitting the `Tesla` column from the grid.
+The following example shows how you would use the array of arrays with a selective display of columns. This scenario uses the same data source as in the previous example, this time omitting the `Supplier` column from the grid.
 
 ::: only-for javascript
 
 ::: example #example2 --js 1 --ts 2
 
-@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example2.js)
-@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example2.ts)
+@[code collapse={9-13}](@/content/guides/getting-started/binding-to-data/javascript/example2.js)
+@[code collapse={9-13}](@/content/guides/getting-started/binding-to-data/javascript/example2.ts)
 
 :::
 
@@ -466,7 +466,7 @@ afterChange(changes, source) {
   changes.forEach(([row, prop, oldValue, newValue]) => {
     const column = this.propToCol(prop);
 
-    // column is the visual column index
+    // `column` is the visual column index, or `null` if the property names no column.
   });
 }
 ```
@@ -526,6 +526,16 @@ By default, if you don't provide any data, Handsontable renders as an empty 5x5 
 
 To change the number of rows or columns rendered by default, use the [`startRows`](@/api/options.md#startrows) and [`startCols`](@/api/options.md#startcols) options.
 
+### Data with an empty first row
+
+Without the [`columns`](@/api/options.md#columns) or [`dataSchema`](@/api/options.md#dataschema) option, Handsontable reads the number of columns from the first row of your data. If that row has no fields -- for example `[{}]`, `[null]`, or `[[], [1, 2]]` -- the grid displays rows with no cells, and values in later rows are not displayed. Handsontable logs a console warning for such data.
+
+Two cases log no warning:
+- An empty `data: []`.
+- An array of empty arrays (`[[]]`) while [`allowInsertColumn`](@/api/options.md#allowinsertcolumn) is on, because writing to it creates the columns.
+
+To define the columns, set the [`columns`](@/api/options.md#columns) or [`dataSchema`](@/api/options.md#dataschema) option. The check runs when the data loads, so set `columns` together with `data`. A `columns` option that arrives in a later update, for example from a column component rendered after the grid, can come too late to stop the warning.
+
 ## Data-manipulating API methods
 
 ### Understand binding as a reference
@@ -552,8 +562,8 @@ the [`setDataAtCell()`](@/api/core.md#setdataatcell) method.
 
 ::: example #example10 --js 1 --ts 2
 
-@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example10.js)
-@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example10.ts)
+@[code collapse={9-13}](@/content/guides/getting-started/binding-to-data/javascript/example10.js)
+@[code collapse={9-13}](@/content/guides/getting-started/binding-to-data/javascript/example10.ts)
 
 :::
 
@@ -738,6 +748,24 @@ hot.updateSettings({
 ::: only-for angular
 
 You can also use the built-in mechanism of the Angular wrapper to update data. When a change in the `@Input data` is detected by `ngOnChanges`, the wrapper will call `hot.updateData(newDataset);` with the data provided in the `@Input`.
+
+:::
+
+::: only-for react
+
+The React wrapper sends the `data` prop to the grid through [`updateSettings()`](@/api/core.md#updatesettings) on every render. Pass `data` as a stable reference: a constant declared outside the component, a `useState` value, or a `useMemo` result. If you write the array inline in JSX, every render creates a new array, and the grid replaces its data with it. Any change the user made to the previous array is lost.
+
+```jsx
+// Replaces the data on every render
+<HotTable data={[['Rent', 1200]]} />
+
+// Keeps the user's edits
+const data = [['Rent', 1200]];
+
+<HotTable data={data} />
+```
+
+To replace the data on purpose, pass a new array, for example through a `useState` setter.
 
 :::
 
@@ -945,8 +973,8 @@ When working with a copy of data for Handsontable, it is best practice is to clo
 
 ::: example #example11 --js 1 --ts 2
 
-@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example11.js)
-@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example11.ts)
+@[code collapse={9-13}](@/content/guides/getting-started/binding-to-data/javascript/example11.js)
+@[code collapse={9-13}](@/content/guides/getting-started/binding-to-data/javascript/example11.ts)
 
 :::
 

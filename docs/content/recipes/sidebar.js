@@ -3,6 +3,7 @@ const realTimeItems = [
   { path: 'real-time/chartjs-sync/chartjs-sync', title: 'Sync rows to Chart.js', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
   { path: 'real-time/liveblocks-multiplayer/liveblocks-multiplayer', title: 'Multiplayer editing with Liveblocks', onlyFor: ['javascript', 'react'] },
   { path: 'real-time/liveblocks-comments/liveblocks-comments', title: 'Cell comments with Liveblocks', onlyFor: ['javascript', 'react'] },
+  { path: 'real-time/a2ui-agent-grid/a2ui-agent-grid', title: 'Agent-driven grid with A2UI', onlyFor: ['javascript', 'react'] },
 ];
 
 const columnManagementItems = [
@@ -101,6 +102,7 @@ const themesItems = [
   { path: 'themes/ant-design/ant-design', title: 'Handsontable with Ant Design', onlyFor: ['react', 'javascript', 'angular'] },
   { path: 'themes/fluent-ui/fluent-ui', title: 'Handsontable with Fluent UI', onlyFor: ['react'] },
   { path: 'themes/mui-theme/mui-theme', title: 'Handsontable with MUI', onlyFor: ['react', 'javascript', 'angular'] },
+  { path: 'themes/tabler-icons/tabler-icons', title: 'Handsontable with Tabler Icons', onlyFor: ['react', 'javascript', 'angular', 'vue'] },
 ];
 
 const editingValidationItems = [
@@ -176,6 +178,6 @@ module.exports = {
     },
     { title: 'Performance', path: 'performance', children: performanceItems, collapsable: false, onlyFor: ['javascript', 'react', 'angular', 'vue'] },
     { title: 'Platforms and embedding', path: 'platforms', children: platformsItems, collapsable: false, onlyFor: ['javascript'] },
-    { title: 'Themes', path: 'themes', children: themesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
+    { title: 'Themes', path: 'themes', children: themesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular', 'vue'] },
   ],
 };

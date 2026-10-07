@@ -30,7 +30,7 @@ describe('UndoRedo -> CellAlignment action', () => {
 
     getPlugin('undoRedo').undo();
 
-    expect(afterUndo).toHaveBeenCalledWith({
+    expect(afterUndo).toHaveBeenCalledWith(jasmine.objectContaining({
       actionType: 'cell_alignment',
       alignment: 'htRight',
       range: [{
@@ -40,7 +40,7 @@ describe('UndoRedo -> CellAlignment action', () => {
       }],
       stateBefore: { 1: [undefined, undefined, undefined], 2: [undefined, undefined, undefined] },
       type: 'horizontal',
-    });
+    }));
   });
 
   it('should undo a sequence of aligning cells', async() => {

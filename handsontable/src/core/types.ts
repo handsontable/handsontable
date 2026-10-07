@@ -18,9 +18,11 @@ import type { ShortcutManager } from '../shortcuts/manager';
 import type { FocusGridManager as FocusManagerInstance } from '../focusManager/grid';
 import type { FocusScopeManager as FocusScopeManagerInstance } from '../focusManager/scopeManager';
 import type { LayoutManager } from './layout';
+import type { MinimumSizes } from './minimumSizes';
 import type { default as EditorManagerInstance } from '../editorManager';
 import type { default as DataSourceInstance } from '../dataMap/dataSource';
 import type { default as MetaManagerInstance } from '../dataMap/metaManager';
+import type { OperationScope } from './operationScope';
 import type { BaseEditor as BaseEditorInstance } from '../editors/baseEditor/baseEditor';
 import type { StylesHandler } from '../utils/stylesHandler';
 import type { ThemeManager } from '../themes/engine/manager';
@@ -45,7 +47,12 @@ export interface GridHelperInstance {
     start: CellCoords, input: unknown[][], end?: CellCoords, source?: string,
     method?: string, direction?: string, deltas?: unknown[]
   ): object | false | undefined;
+  runAlter(
+    action: string, index?: number | number[][], amount?: number, source?: string,
+    keepEmptyRows?: boolean
+  ): void;
   adjustRowsAndCols(): void;
+  removeSurplusRowsAndCols(previous: MinimumSizes): void;
   [key: string]: unknown;
 }
 
@@ -118,16 +125,17 @@ export interface HotInstance {
   toVisualRow(row: number): number;
   toVisualColumn(column: number): number;
   /**
-   * These two signatures are narrower than what runs, at both ends. Both methods hand an unmatched
-   * argument straight back, and both can return `null` – `propToCol` for a trimmed column whose
-   * property is cached, `colToProp` for a column declared as `{ data: null }`. Validate the result
+   * Both answer `null` when the argument names no column that currently exists and is visible.
+   * `colToProp` also answers `null` for a column declared as `{ data: null }`, which binds to no
+   * source property. The `null` is part of the contract, not an edge case – validate the result
    * before using it as an index or a property name.
    *
-   * The parameters are narrower too: `propToCol` resolves a `columns[].data` accessor function at
-   * runtime, and `colToProp` hands back any non-integer argument, but neither is accepted here.
+   * The parameters stay narrower than what runs: `propToCol` resolves a `columns[].data` accessor
+   * function at runtime and hands an unmatched property straight back, and `colToProp` hands back
+   * any non-integer argument, but neither is accepted here.
    */
-  propToCol(prop: string | number): number;
-  colToProp(column: number): string | number;
+  propToCol(prop: string | number): number | null;
+  colToProp(column: number): string | number | null;
 
   // Data access
   getSchema(): unknown[] | Record<string, unknown>;
@@ -143,7 +151,7 @@ export interface HotInstance {
   getSourceDataAtRow(row: number): unknown;
   getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): string;
   getCopyableData(row: number, column: number): string;
-  getCopyableSourceData(row: number, column: number): string;
+  getCopyableSourceData(row: number, column: number): unknown;
   setDataAtCell(row: number | unknown[][], column?: number | string | null, value?: unknown, source?: string): void;
   setDataAtRowProp(row: number | unknown[][], prop?: string | number, value?: unknown, source?: string): void;
   setSourceDataAtCell(
@@ -199,7 +207,15 @@ export interface HotInstance {
 
   // Alter
   alter(action: string, index?: number | number[][], amount?: number, source?: string, keepEmptyRows?: boolean): void;
+  /**
+   * @deprecated Since 19.0.0. This method will be removed in 20.0.0. Change the data yourself and
+   * write it back with `populateFromArray()`, or use `alter()` with `insert_col`/`remove_col`.
+   */
   spliceCol(column: number, index: number, amount: number, ...elements: unknown[]): void;
+  /**
+   * @deprecated Since 19.0.0. This method will be removed in 20.0.0. Change the data yourself and
+   * write it back with `populateFromArray()`, or use `alter()` with `insert_row`/`remove_row`.
+   */
   spliceRow(row: number, index: number, amount: number, ...elements: unknown[]): void;
 
   // Rendering
@@ -211,6 +227,7 @@ export interface HotInstance {
   batchRender(wrappedOperations: () => unknown): unknown;
   batchExecution(wrappedOperations: () => unknown, forceFlushChanges?: boolean): unknown;
   batch(wrappedOperations: () => unknown): unknown;
+  runOperation<T>(name: string, callback: () => T, source?: string): T;
   refreshDimensions(): void;
   isRenderSuspended(): boolean;
   suspendRender(): void;
@@ -264,6 +281,7 @@ export interface HotInstance {
   _getEditorManager(): EditorManagerInstance;
   _getDataSource(): DataSourceInstance;
   _getMetaManager(): MetaManagerInstance;
+  _getOperationScope(): OperationScope;
 
   // DOM references
   rootElement: HTMLElement;

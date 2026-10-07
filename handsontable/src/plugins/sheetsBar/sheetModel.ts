@@ -1,3 +1,4 @@
+import { splitIntoCharacters } from '../../helpers/string';
 import { deepClone, isPlainObject } from '../../helpers/object';
 
 /**
@@ -6,7 +7,7 @@ import { deepClone, isPlainObject } from '../../helpers/object';
 export interface Sheet {
   id: number;
   name: string;
-  data: unknown[][];
+  data: unknown[];
   settings?: Record<string, unknown>;
   viewState?: Record<string, unknown>;
 }
@@ -35,26 +36,6 @@ export const NEW_SHEET_ROW_COUNT = 1000;
 export const MAX_SHEET_NAME_LENGTH = 50;
 
 /**
- * The shared grapheme segmenter, built on first use. The constructor is one of the pricier
- * `Intl` ones, the instance keeps no state between calls, and name clamping runs on every
- * rename-input keystroke and once per candidate in the unique-name loop.
- */
-let segmenter: Intl.Segmenter | null = null;
-
-/**
- * Splits a string into the characters a reader sees — grapheme clusters, so a flag or a
- * family emoji or a letter with a combining mark is one character, not two or seven.
- *
- * @param {string} text The text to split.
- * @returns {string[]} The characters.
- */
-function toCharacters(text: string): string[] {
-  segmenter ??= new Intl.Segmenter();
-
-  return Array.from(segmenter.segment(text), segment => segment.segment);
-}
-
-/**
  * Cuts a name to the length limit without trimming it, for a value still being typed.
  *
  * @param {string} name The name as typed.
@@ -62,7 +43,7 @@ function toCharacters(text: string): string[] {
  * @returns {string} The name, no longer than the limit.
  */
 export function truncateSheetName(name: string, limit: number = MAX_SHEET_NAME_LENGTH): string {
-  const characters = toCharacters(name);
+  const characters = splitIntoCharacters(name);
 
   return characters.length <= limit ? name : characters.slice(0, limit).join('');
 }

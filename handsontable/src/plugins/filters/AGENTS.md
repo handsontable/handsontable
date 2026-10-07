@@ -8,6 +8,13 @@ This subsystem mixes physical and visual column indexes across an API boundary. 
 - **`conditionCollection` stores PHYSICAL column indexes.** `filteringStates` (a `LinkedPhysicalIndexToValueMap`) is keyed by physical column. Every `conditionCollection` method (`addCondition`, `getConditions`, `removeConditions`, `hasConditions`, `getFilteredColumns`) expects a **physical** index. Never call it with a visual index — under active `manualColumnMove` the two diverge and the filter attaches to the wrong column with no error.
 - **`getDataMapAtColumn(physicalColumn)` takes PHYSICAL, then converts back to visual** (`toVisualColumn`) for source-data access. Honor the parameter's stated space; do not feed it a visual index.
 - When in doubt, convert at the public boundary and treat everything inside `conditionCollection` as physical.
+- **The applied conditions (`#previousConditionStack`) are physical too, and nothing shifts them for free.** The
+  live conditions move with their index map on a column insert or removal; this plain copy does not, and it is
+  what `captureState()` records for UndoRedo. `#onAfterCreateCol` / `#onAfterRemoveCol` rewrite its `column`
+  fields (dropping the removed columns' entries) and give it a new array, so the next capture sees the change.
+  Without it an undo re-imported a filter onto the column that had taken the old number. Pinned in
+  `../undoRedo/__tests__/indexTransformations.unit.js` ("a filter recorded before a column was inserted or
+  removed").
 
 ## IndexMap lifecycle
 
@@ -54,40 +61,83 @@ captured when the plugin is enabled.
   silently — the first pins every row so nothing ever filters, the second throws only on a large
   `fixedRowsBottom`. `pinnedRows.unit.ts` pins both, plus the overlap on a dataset shorter than the
   two counts (hence a `Set`).
-- **`getDataMapAtColumn()` is the ONE exclusion point, and that is on purpose.** Dropping the pinned
-  rows from its full read covers `DataFilter`, the `ConditionUpdateObserver` memo, and the
+- **`_readColumn()` — the read `getDataMapAtColumn()` wraps — is the ONE exclusion point, and that is
+  on purpose.** Dropping the pinned rows from its full read covers `DataFilter`, the `ConditionUpdateObserver` memo, and the
   has-conditions branch of `_getValueListDataAtColumn()` at once. Do **not** instead pass the wanted
   rows as its `physicalRows` argument: subset reads intentionally bypass the memo, so that would
   re-scan the column on every condition (the DEV-2088 55 s freeze). A caller that already passes
   `physicalRows` has chosen its rows and is left alone.
-- **Resolving the set is memoized for one `filter()` call, and ONLY inside it.** Every filtered
+- **Resolving the set is memoized for one trimming pass, and ONLY inside it.** Every filtered
   column asks again, plus the trimmed-state pass, so the memo earns its place there. It is written
   only while `#isFilterPassActive`, because nothing clears it otherwise: the value list resolves the
   same set on each menu opening, and with no condition applied there is no `filter()` to run — so a
   memo written from a list read would answer every later opening from the row order of the first
-  one, across `fixedRows*` changes and row moves. `filter()` clears it on the way in AND in a
-  `finally`, since the hooks it fires are host code that can throw.
+  one, across `fixedRows*` changes and row moves. `#runTrimmingPass()` opens the scope and
+  RESTORES the outer one in a `finally` (not resets it): `filter()` renders while its own pass is
+  open, and a quiet pass started from that render must not close it. The hooks `filter()` fires are
+  host code that can throw, hence the `finally`.
 - **"Is the exemption on" and "how many rows are pinned right now" are different questions.** The
   counts are zero both when the grid never opted in and when the last overlay was just cleared, so
-  `#refilterForPinnedRows()` gates on `#isFixedRowExemptionActive()` (the option, and not under a
+  `#reapplyPinnedRowExemption()` gates on `#isFixedRowExemptionActive()` (the option, and not under a
   data provider) rather than on the counts. Gating on the counts skips the pass that puts the
   no-longer-pinned rows back under the conditions, so setting `fixedRowsTop: 0` leaves a row on
   screen that nothing pins any more.
 - **The exclusion means `filter()` has to put the pinned rows back.** They never reached the
   conditions, so they are absent from `rowIndexesToShow` and the trimmed-state pass marks them as
   "did not match". `filter()` forces them to `false` before `setValues()`.
-- **The exemption goes stale on its own, so it is re-applied by hook.** It is written while
-  filtering, and nothing re-runs that when the rows move underneath: `fixedRows*` changing, an insert
-  or remove at either end, a row move, a sort. Left alone a frozen pane shows a row the filter should
-  have hidden while the record that is really pinned stays trimmed. `#onAfterUpdateSettings` covers
-  the options, `#onAfterRowSequenceChange` covers the rest, and `#refilterForPinnedRows()` returns
-  early unless the grid opted in AND is actually filtering — so a grid that never set the option pays
-  nothing. **Its guard is a re-entrancy flag, not a test on the change's source.** Writing
-  `filtersRowsMap` does NOT fire `afterRowSequenceChange`: `indexMapper.ts` raises
-  `indexesSequenceChange` from `indexesSequence`'s own `change` handler alone, and the trimming-map
-  handler only sets `trimmedIndexesChanged`. So `filter()` cannot re-enter this path by itself — the
-  flag is there for a consumer that sorts or moves rows from `beforeFilter`/`afterFilter`. Source is
-  no help either: a sort reports `'update'`, the same value ordinary changes carry.
+- **The exemption goes stale on its own, so it is marked by hook and re-applied at render
+  (DEV-2941).** It is written while trimming, and nothing re-runs that when the rows move
+  underneath: `fixedRows*` changing, an insert or remove at either end, a row move, a sort. Left
+  alone a frozen pane shows a row the filter should have hidden while the record that is really
+  pinned stays trimmed. The two change hooks (`afterRowSequenceChange`, and `afterUpdateSettings`
+  for `fixedRows*`) only call `#markPinnedRowsStale()`; `#onBeforeRender` runs the check once, on the
+  next FULL render. **Never re-apply from the change hooks themselves — every one of them fires too
+  early.** `insertIndexes()`/`removeIndexes()` fire the sequence hook before they update the
+  trimming maps, and `DataMap#createRow` before it splices the data, so a pass there writes a result
+  the map then shifts by the rows being added. `alter()` lowers `fixedRowsTop`/`fixedRowsBottom`
+  only AFTER `afterRemoveRow`, so a pass there exempts rows by the old count — and, by rewriting the
+  trimming map between Core's `totalRowsBefore` and `totalRows` reads, it even stopped Core from
+  lowering `fixedRowsBottom` (DEV-2551's count). A re-sort fires the sequence hook on the restored
+  unsorted order before the new one. The render that ends each of those operations is where all of
+  it has settled, and it is always a full render because every index change sets
+  `forceFullRender`. Only a full render may act: `TableView#render()` reads the flag before
+  `beforeRender`, so a trim written during a fast draw is not drawn — the check stays pending.
+  Consequences: a direct `rowIndexMapper.moveIndexes()` (no render of its own) is re-applied only
+  when something renders, and inside `batch()` a read sees the previous frozen rows until the batch
+  renders. `updateData()` and a `NestedRows` resize go through `fitToLength()` and raise no row
+  hooks, which is why the row-count hooks were the wrong anchor and the render is the right one.
+- **The re-apply is a QUIET pass, not `filter()`.** `#reapplyPinnedRowExemption()` rewrites the
+  trimming map from the current conditions through `#writeTrimmedRows()` and nothing else: no
+  `beforeFilter`/`afterFilter` (so UndoRedo records no `FiltersAction` and DataProvider does not
+  fetch), and no `selectCell()` (which `filter()` does, and which made every insert jump the
+  selection to row 0). Running `filter()` from `beforeRender` would also nest a render, since
+  `filter()` renders at its end. The pending flag is cleared FIRST, so a render started from inside
+  the pass finds nothing to do. A trim that strands the selected record is handled by the Core,
+  which drops the selection.
+- **The check skips an unchanged set of pinned PHYSICAL rows, and must compare the right things.**
+  A sort fires `afterRowSequenceChange` twice, and each firing used to cost a full `filter()`. Every
+  trimming pass records the set it exempted (`#appliedPinnedRows`), and the check skips when
+  `#resolvePinnedRows()` still returns it. Four rules keep that sound. (1) **Compare against what
+  the last pass APPLIED, not against the set at the previous hook** — a `trimRows` change fires no
+  sequence hook, and only the applied set notices it on the next check. (2) **Never compare across an
+  insert, a remove, or a reload.** They renumber the physical rows: after `insert_row_above` at 0
+  with only a top frozen row the set reads `{0}` before and after, while the row behind it changed.
+  Any source other than `'move'`/`'update'` resets the record to `undefined`, which forces the
+  pass. A `fixedRows*` change never renumbers, so an unchanged value (which the wrappers re-send)
+  compares equal. (3) **Resolve afresh, never through the memo** — `filter()` renders while its pass
+  is open, and the memo there IS the applied set, so a move made from `afterFilter` compared equal to
+  itself. (4) **The comparison runs after the cheap gates**, because resolving the set walks the whole
+  row sequence. The pending flag is cleared only where the map is WRITTEN (`#writeTrimmedRows()`),
+  never on entry to `filter()`: a `filter()` that `beforeFilter` vetoes leaves the map as it was, so
+  clearing on entry lost a check a row change had queued. A check queued after the write, such as
+  that `afterFilter` move, stays pending for the render that ends `filter()`. Observable
+  consequence: on an opted-in grid a sort used to re-apply the conditions to rows edited since the
+  last `filter()`; now only a change of frozen rows re-evaluates them, which is still more than a
+  grid without the option ever does.
+- **`columnSorting` sorts only the rows the filter shows; trimmed rows keep their UNSORTED slots.**
+  So after a re-sort the row order can put a trimmed row at either end, and that row becomes the
+  frozen one — `Header` is frozen again after desc then asc, because the order returns to the
+  identity. A test that expects a full sort of every row there is wrong, not the code.
 - **The exemption is POSITIONAL — the visual span, not the rows that get painted.** It covers visual
   rows `[0, fixedRowsTop-1]` and the last `fixedRowsBottom`, which is exactly the span
   `countNotHiddenFixedRowsTop()` measures; that span never stretches to make up for a hidden row
@@ -109,8 +159,23 @@ captured when the plugin is enabled.
 - **`filterFixedRows` is inert under DataProvider.** Filtering happens server-side and the request
   carries no notion of a pinned row, so `#getPinnedRowCounts()` returns zeros rather than letting the
   local reads disagree with the server's own result.
+- **The option's types are closed since 19.0 (DEV-2941), and that is a breaking type change.** The
+  grid-level object is `FiltersSettings` (`searchMode`, `filterFixedRows`, `availableConditions`;
+  public as `Handsontable.plugins.Filters.Settings`), and `ColumnSettings['filters']` is
+  `boolean | FiltersColumnSettings`, an object with `availableConditions` only (public as
+  `Handsontable.plugins.Filters.ColumnSettings`). Before, both were `boolean | object`, so no
+  sub-option was ever type-checked. **Writing and reading differ:**
+  `CellMeta` (and so `CellProperties` and `getCellMeta()`) re-declares `filters` with the GRID type,
+  because cell meta inherits the grid-level object through the prototype chain — narrowing it there
+  made `typeof meta.filters === 'object'` narrow to `never`. It is built on
+  `Omit<RemoveIndexSignature<ColumnSettings>, 'filters'>`, since an extending interface cannot widen
+  a property. A new grid-level sub-option
+  must be added to `FiltersSettings` as well as to `DEFAULT_SETTINGS` and `SETTINGS_VALIDATORS`, or
+  TypeScript users cannot write it. `filters.types.ts` pins each rule with `@ts-expect-error`, which
+  fails the run by itself when the error it expects goes away.
 - **`columns: [{ filters: false }]` turns the filter UI off for one column.** Read through
-  `hot.getColumnMeta(visualColumn)`. Only `false` is honored; the effect is UI-only — `addCondition()`
+  `hot.getColumnMeta(visualColumn)`. Of the boolean values only `false` is honored (an object is
+  read for `availableConditions`, see below); the effect is UI-only — `addCondition()`
   still filters such a column, mirroring `columnSorting`'s `headerAction: false`, which leaves
   `sort()` working. Hiding the UI does NOT clear an existing condition, so such a column keeps
   filtering with no way to see it in its own menu; `clearConditions()` is the way out.
@@ -121,12 +186,44 @@ captured when the plugin is enabled.
   `false` and the whole filter menu renders blank. Whether the plugin runs at all is `BasePlugin`'s
   question (`isEnabled()`); this one answers only "did *this column* opt out", and only an own
   property is a per-column answer.
+- **A column `filters` OBJECT is read for `availableConditions` only (DEV-3056).** Every other key
+  in it (`searchMode`, `filterFixedRows`, anything unknown), and an EMPTY object, still warns, the
+  way `columnSorting` warns for `sortFixedRows` only. `_getAvailableConditions(visualColumn)`
+  resolves the value: a VALID own column value wins and REPLACES the grid-level one (no merging); an
+  own `undefined` (a wrapper prop left unset) and an invalid value both fall back to
+  `getSetting('availableConditions')`. The list itself is built in one place, `getOptionsList()`
+  called from `ConditionComponent#reset()`, which both condition selects share, and it is silent.
+  Five rules ride along. (1) `none` is always kept FIRST, because `reset()` selects `items[0]`, and
+  the no-selection branch passes a COPY of its descriptor, because `SelectUI#setItems()` translates
+  names in place and the registry's descriptor is shared. (2) An allow-list may only pick names from
+  the column type's STOCK list; any other name is dropped. (3) A per-type key matches the LIST type
+  after the `text` fallback (`getConditionListType()`), so `dropdown`, `checkbox`, custom types and
+  `mixed` follow the `text` entry. An unknown key does NOT invalidate the setting - rejecting it
+  dropped the valid entries next to it - it is ignored and warned. (4) Every warning comes from the
+  column scan (`#warnAboutPerColumnSettingsObjects`), never from a menu opening: names no type
+  offers (typos, in `exclude` too), off-list names in a column's allow-list (named with the column's
+  meta `type` and its list type - the scan reads column meta, not `getDataType()`, which walks every
+  cell), and unknown per-type keys. An excluded name some OTHER type offers is not reported, so one
+  grid-level `{ exclude }` can cover columns of every type. `enablePlugin()` scans right away when
+  `this.hot.view` exists and defers to `afterInit` only on the first enable, which runs before the
+  view is built. Deferring every time silently skipped the scan for any later enable, because
+  `afterInit` has already fired: a direct `enablePlugin()` call on a grid built with `filters: false`
+  never warned. The same branch covers `updateSettings({ filters })`, which goes through
+  `updatePlugin()`'s disable and enable. Scanning from `#onAfterUpdateSettings` instead cannot work
+  for that payload, because the disable removes that listener for the round that carries it.
+  (5) The setting shapes the list, never the filter: a condition added through
+  `addCondition()` still filters, and `setState()` still names it in the caption (the caption reads
+  `value.name`, not the item list). `false` is rejected on purpose, so it stays free to mean "hide
+  the section" later. Coverage: `availableConditions.unit.ts` (the pure helpers),
+  `perColumnFilters.unit.js` (the read and the warnings), `tests/e2e/filters-available-conditions.spec.ts`
+  (the menu).
 - **The ignored-object warning is raised by scanning every column, never from a visibility check.**
   A predicate is the wrong place for a side effect, and raising it there means a grid with no dropdown
   menu — or a column whose menu is never opened — is never warned, while the docs promise once per
-  grid. It runs from `afterInit` (NOT from `enablePlugin()`, which is `afterPluginsInitialized`, where
-  the column meta layer is not resolvable yet and every column reads as carrying nothing) and from
-  `#onAfterUpdateSettings` when the payload carries `columns`.
+  grid. On the first enable it runs from `afterInit`, NOT inline in `enablePlugin()`: that first
+  enable runs on `afterPluginsInitialized`, where the column meta layer is not resolvable yet and
+  every column reads as carrying nothing. Any later enable scans inline (see the bullet above), and
+  `#onAfterUpdateSettings` scans again when the payload carries `columns`.
 - **The option's `@configScope` is `grid columns`, and it cannot be widened.** `getColumnMeta()` reads
   the COLUMN meta layer, which the `cells` function and the `cell` option never reach — they write on
   the cell layer below it. `optionLevels.unit.js` enforces that listing `cells` also lists `cell`, so
@@ -154,15 +251,22 @@ captured when the plugin is enabled.
 ## Data-map row correlation (the memoization trap)
 
 - **Never correlate rows between two reads through the coordinate stamps on cell meta** (`meta.visualRow`, `meta.visualCol`, `meta.row`, `meta.col`). Stored cell-meta objects are shared, and EVERY meta read anywhere re-stamps those fields — `getCellMeta`, `getCellMetaTransient`, and `getCellMetaUncached` all write them on each call. A single unrelated read (for example, the `locale` lookup `getCellMetaTransient(0, column)` in `ValueComponent`, which translates visual→physical on a filtered grid) silently changes the stamps on rows you are still holding. This surfaced as lost `by_value` checkbox entries the moment `ConditionUpdateObserver` started memoizing column reads (DEV-2088): the cached rows' stamps were overwritten between the memo write and the memo hit.
-- **Correlate through the entry's own `row` property instead.** `getDataMapAtColumn` returns `{row, meta, value}` objects where `row` is the immutable physical row index. `Filters.filter()`, `DataFilter`, `ConditionUpdateObserver`'s `visibleDataFactory`, and `ValueComponent` all match rows via `entry.row` — keep any new consumer on that property.
-- **`getDataMapAtColumn` stamps `visualRow`/`visualCol` with PHYSICAL indexes** (a historical quirk — it passes physical coordinates as the visual options). Do not "fix" this by passing true visual indexes, and do not read those stamps expecting visual coordinates.
-- **`ConditionUpdateObserver` memoizes full-column data maps** per state update / per `flush()` batch (`#withColumnDataCache`/`#getColumnData`). The memo is only sound because source data cannot change inside one update and rows correlate via `entry.row`. If you add a code path that mutates source data during an update cascade, it must not run inside an active memo scope. Subset reads (`physicalRows` argument) intentionally bypass the memo.
+- **Correlate through the entry's own `row` property instead.** `getDataMapAtColumn` returns `{row, meta, value}` objects where `row` is the immutable physical row index, and `DataFilter.filter()` / `filterByColumn()` return those indexes directly. `Filters.filter()`, `DataFilter`, `ConditionUpdateObserver`'s `visibleDataFactory`, and `ValueComponent` all match rows that way — keep any new consumer on it.
+- **The read is columnar; `getDataMapAtColumn()` is `_readColumn()` plus `toArray()`.** `Filters#_readColumn()` returns a `ColumnDataMap` (`columnDataMap.ts`, internal — deliberately not on the `plugins/filters` barrel): `rows` and `values` as parallel arrays, cell meta resolved per entry on demand. **What the shape buys is object lifetime, not fewer metas.** `DataFilter.filterByColumn()` still resolves a meta for every row it scans (every condition gets one), but it builds each row's `{row, meta, value}` inside its loop and drops it once that row's condition call returns, so the objects die young. `toArray()` builds all of them up front and keeps them alive for the whole scan. DEV-2999 measured the same indexed scan over the materialized array at −4.4% against develop and the columnar one at −10.4% (100k rows, ~60 ms filter hook). That gap mixes two things the materialized read cannot have, and they were never measured apart: the per-row objects dying young, and no per-row `getValueGetterValue` call on a column without a `valueGetter`. So **never call `toArray()` inside the scan**, and route new internal consumers through `_readColumn()`. It is `_`-prefixed rather than `#private` because `conditionUpdateObserver.spec.js` spies on it to count full-column reads.
+- **The filter does not go through `getDataMapAtColumn()`, and cannot without losing that win.** `filter()`, `DataFilter`, and the `ConditionUpdateObserver` memo read through `_readColumn()`; only the has-conditions branch of `_getValueListDataAtColumn()` still calls the public method. A subclass or patch that overrides `getDataMapAtColumn()` therefore changes the value list but not what gets filtered. Any design that scans without materializing the public array has this property.
+- **A condition may keep the `dataRow` it was handed, so never hand two rows the same object.** A condition registered through `registerCondition()` is user code; nothing stops it from storing `dataRow`, or `dataRow.meta`, past its synchronous call. `DataFilter.filterByColumn()` therefore builds a fresh `{row, meta, value}` object per row, and `_readColumn()`'s resolver hands every row a cell meta of its own — the stored object for a cell that has one, otherwise a fresh transient. A reused cursor or a shared re-stamped meta would make such a condition read another row *silently*: the filter result stays correct, so only `conditionDataRow.unit.js` catches it. Both breaks are pinned there with a distinct-identity assertion per row.
+- **`getDataMapAtColumn`/`_readColumn` stamp `visualRow`/`visualCol` with PHYSICAL indexes** (a historical quirk — they pass physical coordinates as the visual options). `stampPhysicalCoordinates()` in `columnDataMap.ts` is the one place that writes them, and `ColumnDataMap#getMeta()` calls it on **every** call — memoized reads included, because any other meta reader may have re-stamped a stored object between two passes. Do not "fix" this by passing true visual indexes, and do not read those stamps expecting visual coordinates.
+- **The read resolves no cell meta for a row that stores none; `getMeta()` does, one fresh transient per call.** A row with stored meta is found with a two-lookup `getCellMetaIfExists` probe during the read; every other row gets `createTransientColumnMeta()` at resolve time, which skips the stored-meta lookup the read already did. The column-level `valueGetter` probe is hoisted out of the loop and reads `getColumnMeta(physicalColumn).valueGetter` (the column layer a transient inherits from, so no throwaway meta), and a row whose value went through one keeps the very object the getter was handed. A read with no rows returns `ColumnDataMap.empty()` before touching the column at all, so an index that names no column still yields `[]`, as it always did. A guard on "this column stores no meta at all" would be the wrong shape: rendering stores meta for the rows in the eviction band, so on any painted grid it never fires.
+- **`hasHook('modifyData')` is probed once per column read, not per row.** `_readColumn()` hoists it above the loop, so a `modifyData` listener registered from inside that read — by a `valueGetter`, or by any handler the read itself triggers — is not consulted for the rest of that read. It takes effect on the next one. Register the listener before the filter runs.
+- **`ConditionUpdateObserver` memoizes the column read twice, per state update / per `flush()` batch.** `#withColumnDataCache` opens one scope for both. `#columnDataCache` holds one `ColumnDataMap` per physical column, stored as `withMemoizedMeta()`, so a column's meta resolves at most once per row for the whole scope however many `DataFilter` passes ask for it — without that, the resolver would build a new transient on every pass and hand the same row two different objects. `#columnEntriesCache` holds that read's `toArray()` result, so `visibleDataFactory` and `columnValuesFactory` share ONE `{row, meta, value}` array per column, as they did before the read went columnar; calling `toArray()` per factory call instead builds a full-column array for every consumer on every update. `visibleDataFactory` still returns a copy (its empty-stack branch slices, its filtering branch filters), so no consumer ever holds the memoized array itself. The memo is only sound because source data cannot change inside one update and rows correlate via `entry.row`. If you add a code path that mutates source data during an update cascade, it must not run inside an active memo scope. Subset reads (`physicalRows` argument) intentionally bypass the memo.
+- **A canceled `filter()` falls back to the conditions of the last pass, not to what was imported.** The veto branch re-imports `#previousConditionStack`, and `importConditions()` does not touch it. A caller that swaps the dataset along with its filter state (SheetsBar) sets that fallback through the `@private` `importBaselineConditions()`, or a listener returning `false` lands the previous dataset's conditions on the new one. The same stack is the `previousConditionsStack` argument `beforeFilter` receives, so write it after a canceled pass rather than before a pass, or the listener sees two equal stacks. With DataProvider active, a canceled pass keeps the imported conditions instead, and the fallback is unused.
 - **Batch, don't loop, the update cascade.** `#onAfterChange` dedups changed columns per batch, and `importConditions` wraps its loop in `conditionUpdateObserver.groupChanges()`/`flush()` — the same pattern as the action-bar submit. Any new code path that adds/removes several conditions programmatically must group the same way, or every condition pays a full-dataset component update (this was a 55 s freeze for a 1,000-cell paste before DEV-2088).
 
 ## Filter-by-value display formatting
 
 - **The list formats through `meta.valueFormatter` only.** `ValueComponent#onModifyDisplayedValue` calls the cell-meta formatter when it is present and otherwise shows the source value. Filter-by-value builds those labels from data-map meta and does not resolve the paint-path renderer, so do not route the list through `formatCellValue` (`renderCell.ts`). That helper also falls back to `renderer.valueFormatter`; wiring it into `ValueComponent` would couple Filters to the render layer and change the list for every renderer-only `valueFormatter`, which is wider than DEV-1021. For password (and similar display masking), the list needs `type: 'password'` — or another cell type that exports `valueFormatter` so `extendByMetaType` copies it onto cell meta (same pattern as numeric #10756). A column with only `renderer: 'password'` still paints hashes in the grid (`formatCellValue` falls back to `renderer.valueFormatter`) but shows source plaintext in the value list until a type/`valueFormatter` lands on cell meta. That renderer-only case is intentionally out of scope for the list. `modifyFiltersMultiSelectValue` remains the app-level escape hatch.
 - **Skip formatters in `#onModifyDisplayedValue` when `item.value === ''`.** `intersectValues` / `toVisualValue` swap the empty bucket for the translated `(Blank cells)` label before the hook. Password `valueFormatter` hashes that label (thirteen `*` by default, or `####` when `hashLength` is 4); date/time formatters turn it into `#bad-value#`. The skip belongs in the handler, not the password formatter, so date/time keep the same path. The trigger still fires `modifyFiltersMultiSelectValue` (app handlers can still rewrite the blank label) and passes source `item.value` as a third argument the two-parameter public signature ignores. Do not match the translated label string (it follows `FILTERS_VALUES_BLANK_CELLS`). After `toEmptyString`, blanks are always `''`.
+- **The list's comparator comes from the FIRST ROW's cell meta, not from `getColumnMeta()`.** All three call sites in `component/value.ts` (`reset()`, `#buildItemsSnapshot()`, `#pruneToExistingValues()`) call `getSortComparatorForMeta(rows[0].meta)`. The first two decide the visible order (clean opening, and the rebuild after a confirmed selection); the third only feeds its sorted array into a membership check, so its order is unobservable. That is how `type` has always been read there, and `filterValueComparator` (DEV-2579) rides the same read, so a `cells()` callback that sets either key for the first listed row only would order the whole column — the public docs say so. **The two visible sites do not even read the same first row.** `reset()` sources `_getColumnVisibleValues()` → `getDataAtCol()`, iterated by VISUAL row index, so it follows the sort; `#buildItemsSnapshot()` sources `getDataMapAtColumn()`, which is PHYSICAL and sort-independent. Under an active row sort `rowEntries[0]` and `filteredRows[0]` are therefore different records. That is inert for the supported `grid` and `columns` scope, where every row resolves the same function reference — which is exactly why the option's scope stops there. It stops being inert the moment a per-row `cells()` value enters the picture, and then the list order changes between the first opening and a reopen after OK. So do not read column meta at one site only, and do not assume the two sites agree on which row they sampled. Ordering can never change the filter's result: `unifyColumnValues()` dedupes with a `Set` BEFORE it sorts, so a comparator cannot add or drop a value. Keep it that way; a hook that hands the built array to user code (PR #11126) was rejected for exactly that reason. `filterValueComparator` is declared `@configScope grid columns` with a `NOTES` entry in `handsontable/scripts/utils/option-levels.js` — change either and regenerate the option-levels page (`npm run generate:option-levels --prefix handsontable`).
 
 ## Condition inputs and date/time parsing
 
@@ -170,7 +274,35 @@ captured when the plugin is enabled.
 - A condition descriptor's `inputType` (`'date'` / `'time'`) controls the native input type rendered in the menu: `ConditionComponent` applies it via `InputUI.setType()` on condition select and on saved-state restore. A condition with inputs that expects ISO date/time values MUST declare `inputType`, or users get a free-text field whose locale-formatted input never matches.
 - `InputUI` syncs its value on `keyup`, `input`, AND `change`. A value picked from the native date/time calendar fires no `keyup` — do not remove the `input`/`change` hooks.
 
+## Server-backed filtering is read live, not updated
+
+`#isDataProviderActive()` calls `hasExternalDataSource` on every check rather than being cached, because `updateSettings({ dataProvider })` never carries `filters` in the payload, so it never reaches this plugin's own `updatePlugin()` — a view switch between a server-backed view and a local one is the everyday case.
+
+## A failed server fetch rolls back only the view on screen
+
+`#onAfterDataProviderFetchError` skips the rollback when the hook's third argument, `isVisible`, is `false`: that failure belongs to a view the grid does not show, and importing `#dataProviderFilterRollbackStack` would replace the visible view's conditions while its rows stay filtered. When DataProvider's owner changes the view, DataProvider calls the internal `_resetDataProviderRollback()` (`@private`, not API; a no-op while this plugin is disabled) — after the change and again after replaying the arriving view's response — so the stack holds the arriving view's own conditions. Otherwise it is left by the last server filter action in ANY view, and a page-change failure on the arriving view imported the previous view's conditions. The reset sets `#previousConditionStack` to the conditions on screen too, because `#filterInternal` rebuilds the rollback stack from it at the start of every filter pass, and a switch between two unfiltered views runs no pass at all — without it, the first failed server filter on the arriving view rolled back to the previous view's conditions. This plugin never listens to an owner plugin's hooks; `test/__tests__/releasedPluginsViewAgnostic.unit.js` fails if its source names the owner plugin or its hooks.
+
 ## Where to look next
 
 - Coordinate translation rules and `IndexMapper` usage: `coordinate-systems` skill and `handsontable/.ai/ARCHITECTURE.md`.
 - Plugin contract, hooks, settings validation, IndexMapper integration: `handsontable-plugin-dev` skill.
+
+## The condition-select arrow and the radio dot refresh their icon on every menu show
+
+`ui/select.ts` and `ui/radioInput.ts` build their `<i class="ht-icon">` once (`build()`), and the UI
+objects live as long as the plugin - so a runtime `theme.params({ icons })` or theme switch never
+reached them. `BaseUI#refreshIcons()` (a no-op in the base class) is overridden in
+both to run `syncIcon()` against the existing element, and `#onAfterDropdownMenuShow` calls it on every
+element of every component after `restoreComponents()`. `syncIcon()` re-applies only when the theme's
+icons revision moved, so an ordinary menu open costs one class check per icon. The radio dot must stay
+the input's NEXT SIBLING (`input + .ht-icon` in `_radio.scss`): `build()` inserts it with
+`insertAdjacentElement('afterend', ...)` carrying the slot class, and the refresh finds it by that class
+instead of appending a second one at the end of the wrapper.
+
+**The "Filter by value" list is a nested Handsontable instance, and only a root instance gets a
+ThemeManager** (`core.ts`). Its checkbox ticks would therefore always take the plain-glyph fallback and
+ignore a class-list or renderer mapping. `ui/multipleSelect.ts` calls `linkIconSource(itemsBox, hot)`
+(`themes/engine/icons.ts`) right after constructing the list and **before** `init()` renders its first
+checkbox; `createIcon()`/`syncIcon()` then draw its icons with the root's manager, read on every call so a
+later theme switch is followed. Do not assign the root's `themeManager` to the nested instance instead: the
+nested grid's own `updateSettings()`/`useTheme()` paths destroy the manager they find.

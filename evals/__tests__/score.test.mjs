@@ -1,8 +1,12 @@
-import { test } from 'node:test';
+import { after, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import { existsSync, readdirSync } from 'node:fs';
-import { basename, join } from 'node:path';
+import { execFileSync, spawnSync } from 'node:child_process';
+import {
+  existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync,
+} from 'node:fs';
+import { createRequire } from 'node:module';
+import { tmpdir } from 'node:os';
+import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   DETERMINISM_SIGNALS,
@@ -22,6 +26,8 @@ import {
   runMutation,
   scoreTestSource,
   scoreTestFile,
+  shellQuote,
+  toPackagePath,
 } from '../score.mjs';
 import { countTestBlocks } from '../../.github/scripts/lib/test-weakening.mjs';
 import { expectedSmellOf, missReason } from '../lib/counterexamples.mjs';
@@ -605,41 +611,603 @@ test('parseMutationReport yields a null score when there are no valid mutants', 
   assert.equal(parseMutationReport({ files: {} }).score, null);
 });
 
-test('runMutation scopes stryker with --mutate and parses the report (injected IO)', () => {
-  const calls = [];
-  const result = runMutation(['src/helpers/errors.ts'], {
+const SCORED_TEST = 'src/helpers/__tests__/errors.unit.js';
+// A unit test the scorer can read but the mutation layer must not run: it lives outside the package.
+const FIXTURE_REFERENCE = 'bug-fix-number-helper/reference/getParsedNumber-dot-thousands.unit.ts';
+const STRYKER_JEST_CONFIG = fileURLToPath(new URL('../../handsontable/jest.stryker.config.js', import.meta.url));
+const HOT_DIR = dirname(STRYKER_JEST_CONFIG);
+const requireCjs = createRequire(import.meta.url);
+// Every runMutation() test takes its lock here, never in the checkout's own `.stryker-tmp/`.
+const LOCK_ROOT = mkdtempSync(join(tmpdir(), 'hot-mutation-locks-'));
+let lockCount = 0;
+
+after(() => rmSync(LOCK_ROOT, { recursive: true, force: true }));
+
+/**
+ * Injectable IO for `runMutation()`: Stryker available, a lock file of the test's own, and a
+ * run and a report that fail the test unless the test supplies its own.
+ *
+ * @param {object} [overrides] The IO to replace.
+ * @returns {object} The deps.
+ */
+function mutationDeps(overrides = {}) {
+  lockCount += 1;
+
+  return {
     status: { available: true },
+    lockFile: join(LOCK_ROOT, String(lockCount), '.stryker-tmp', 'mutation.lock'),
+    run: () => assert.fail('stryker must not run'),
+    readReport: () => assert.fail('no report without a run'),
+    ...overrides,
+  };
+}
+
+/**
+ * Load `handsontable/jest.stryker.config.js` fresh, with `HOT_MUTATION_TEST_FILES` set
+ * to the given value (or unset), and put the environment back afterwards.
+ *
+ * @param {string|undefined} testFiles The variable's value; undefined leaves it unset.
+ * @returns {object} The Jest config the mutation run would use.
+ */
+function loadStrykerJestConfig(testFiles) {
+  const previous = process.env.HOT_MUTATION_TEST_FILES;
+  // The module cache is keyed by the resolved (real) path, not the one asked for.
+  const cacheKey = requireCjs.resolve(STRYKER_JEST_CONFIG);
+
+  if (testFiles === undefined) {
+    delete process.env.HOT_MUTATION_TEST_FILES;
+  } else {
+    process.env.HOT_MUTATION_TEST_FILES = testFiles;
+  }
+
+  delete requireCjs.cache[cacheKey];
+
+  try {
+    return requireCjs(STRYKER_JEST_CONFIG);
+  } finally {
+    delete requireCjs.cache[cacheKey];
+
+    if (previous === undefined) {
+      delete process.env.HOT_MUTATION_TEST_FILES;
+    } else {
+      process.env.HOT_MUTATION_TEST_FILES = previous;
+    }
+  }
+}
+
+/**
+ * Build the error `execSync` throws for a failed command: the message is only the
+ * command, and what the command printed rides along on `stdout` and `stderr`.
+ *
+ * @param {{status?: number|null, signal?: string|null, code?: string, stdout?: string[], stderr?: string[]}} output
+ *   The exit status, signal, or error code, and the lines printed to each stream.
+ * @returns {Error} The error.
+ */
+function commandFailure({ status = null, signal = null, code, stdout = [], stderr = [] }) {
+  return Object.assign(new Error(`Command failed: HOT_MUTATION_TEST_FILES='${SCORED_TEST}' BABEL_ENV=commonjs npx …`), {
+    status, signal, code, stdout: stdout.join('\n'), stderr: stderr.join('\n'),
+  });
+}
+
+// What these commands printed when they failed (Stryker 9.6.1, 2026-10-01), trimmed. Stryker's
+// log lines are colored even when piped, and its own reason is on stdout only: stderr carries
+// Node's generic rethrow of the error that ended the run. A case marked "built" was not
+// captured; it follows the layout of the code that prints it.
+const INFO_LOG = '\u001b[32m13:00:13 (92197) INFO';
+const ERROR_LOG = '\u001b[91m13:00:14 (92197) ERROR';
+const FATAL_LOG = '\u001b[35m15:30:40 (79371) FATAL';
+const UNEXPECTED = 'Unexpected error occurred while running Stryker';
+const WENT_WRONG = 'Something went wrong in the initial test run';
+const RECOVERY = 'Detecting unexpected exit, recovering original files from .stryker-tmp/backup-lm1yWA';
+const STACK_FRAME = '    at DryRunExecutor.validateResultCompleted (file:///…/3-dry-run-executor.js:76:15)';
+const NODE_RETHROW = [
+  'node:internal/process/promises:394',
+  '    triggerUncaughtException(err, true /* fromPromise */);',
+  '    ^',
+  '',
+];
+const childCrash = pid => `Stryker ${UNEXPECTED} ChildProcessCrashedError: Child process [pid ${pid}] `
+  + 'exited unexpectedly with exit code 1 (without signal).';
+const STRYKER_FAILURES = [
+  {
+    name: 'the initial test run timed out (the five-minute default this layer used to hit)',
+    error: commandFailure({
+      status: 1,
+      stdout: [
+        `${INFO_LOG} DryRunExecutor\u001b[39m Starting initial test run (jest test runner with "all" coverage).`,
+        `${ERROR_LOG} DryRunExecutor\u001b[39m Initial test run timed out!`,
+        `${ERROR_LOG} Stryker\u001b[39m ${UNEXPECTED} Error: ${WENT_WRONG}`,
+        STACK_FRAME,
+      ],
+      stderr: [...NODE_RETHROW, `Error: ${WENT_WRONG}`, STACK_FRAME, '', 'Node.js v22.23.1'],
+    }),
+    reason: 'stryker run failed (exit 1): DryRunExecutor Initial test run timed out! | '
+      + `Stryker ${UNEXPECTED} Error: ${WENT_WRONG}`,
+  },
+  {
+    name: 'a test failed in the initial run, so it is named',
+    error: commandFailure({
+      status: 1,
+      stdout: [
+        `${ERROR_LOG} DryRunExecutor\u001b[39m One or more tests failed in the initial test run:`,
+        '\tErrors helper throwWithCause fails on purpose',
+        '\t\tError: expect(received).toThrow(expected)',
+        '',
+        `${ERROR_LOG} Stryker\u001b[39m There were failed tests in the initial test run.`,
+      ],
+      stderr: ['ConfigError: There were failed tests in the initial test run.'],
+    }),
+    reason: 'stryker run failed (exit 1): DryRunExecutor One or more tests failed in the initial test run: '
+      + 'Errors helper throwWithCause fails on purpose | Stryker There were failed tests in the initial test run.',
+  },
+  {
+    name: 'the Stryker Jest config refused to run without a scoped test',
+    error: commandFailure({
+      status: 1,
+      stdout: [
+        `${ERROR_LOG} Stryker\u001b[39m ${UNEXPECTED} StrykerError: Error: HOT_MUTATION_TEST_FILES is not set.`,
+        'Error: HOT_MUTATION_TEST_FILES is not set.',
+        '    at resolveTestFiles (/…/handsontable/jest.stryker.config.js:28:11)',
+      ],
+      stderr: [...NODE_RETHROW, 'StrykerError: Error: HOT_MUTATION_TEST_FILES is not set.'],
+    }),
+    reason: `stryker run failed (exit 1): Stryker ${UNEXPECTED} `
+      + 'StrykerError: Error: HOT_MUTATION_TEST_FILES is not set.',
+  },
+  {
+    name: 'a broken config file logged a FATAL line (two --mutate words made Stryker read a source as its config)',
+    error: commandFailure({
+      status: 1,
+      stdout: [
+        `${FATAL_LOG} ConfigReader\u001b[39m Invalid config file. It is missing a default export.`,
+        `${ERROR_LOG} Stryker\u001b[39m Invalid config file "src/helpers/feature.ts". `
+          + 'Config file must have a default export!',
+      ],
+      stderr: ['(node:79371) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///…/feature.ts …'],
+    }),
+    reason: 'stryker run failed (exit 1): ConfigReader Invalid config file. It is missing a default export. | '
+      + 'Stryker Invalid config file "src/helpers/feature.ts". Config file must have a default export!',
+  },
+  {
+    name: 'more than three ERROR lines are cut to the first three (built: one line per crashed runner)',
+    error: commandFailure({
+      status: 1,
+      stdout: [4241, 4242, 4243, 4244].map(pid => `${ERROR_LOG} ${childCrash(pid)}`),
+    }),
+    reason: `stryker run failed (exit 1): ${[4241, 4242, 4243].map(childCrash).join(' | ')}`,
+  },
+  {
+    name: 'env-cmd could not find its file, so Node\'s error line on stderr explains it',
+    error: commandFailure({
+      status: 1,
+      stderr: [
+        'Error: Unable to locate env file at location (../missing.config.js)',
+        '    at /…/env-cmd/dist/get-env-vars.js:36:23',
+        '',
+      ],
+    }),
+    reason: 'stryker run failed (exit 1): Error: Unable to locate env file at location (../missing.config.js)',
+  },
+  {
+    name: 'a crash is named by Node\'s error line, not by the source excerpt above it (built)',
+    error: commandFailure({
+      status: 1,
+      stderr: [
+        'file:///…/@stryker-mutator/core/dist/src/stryker-cli.js:42',
+        '        throw new TypeError(\'boom\');',
+        '              ^',
+        '',
+        'TypeError: boom',
+        '    at StrykerCli.run (file:///…/stryker-cli.js:42:15)',
+        '',
+        'Node.js v22.23.1',
+      ],
+    }),
+    reason: 'stryker run failed (exit 1): TypeError: boom',
+  },
+  {
+    name: 'the command never reached Stryker, so stderr explains it',
+    error: commandFailure({ status: 127, stderr: ['/bin/bash: env-cmd: command not found', ''] }),
+    reason: 'stryker run failed (exit 127): /bin/bash: env-cmd: command not found',
+  },
+  {
+    name: 'a binary that is not executable is named past a warning line (built)',
+    error: commandFailure({
+      status: 126,
+      stderr: [
+        '(node:4242) Warning: an unrelated warning',
+        'sh: line 1: …/node_modules/.bin/stryker: Permission denied',
+      ],
+    }),
+    reason: 'stryker run failed (exit 126): sh: line 1: …/node_modules/.bin/stryker: Permission denied',
+  },
+  {
+    name: 'a SIGTERM ends the run with exit 143 and only Stryker\'s recovery line',
+    error: commandFailure({
+      status: 143,
+      stdout: [`${INFO_LOG} Sandbox\u001b[39m In place mode is enabled, Stryker will be overriding YOUR files.`],
+      stderr: [RECOVERY, ''],
+    }),
+    reason: `stryker run failed (exit 143): ${RECOVERY}`,
+  },
+  {
+    name: 'a run that printed past the output limit says so, not just SIGTERM (built: execSync\'s ENOBUFS report)',
+    error: commandFailure({ code: 'ENOBUFS', signal: 'SIGTERM', stderr: [RECOVERY] }),
+    reason: `stryker run failed (its output passed 64 MB): ${RECOVERY}`,
+  },
+  {
+    name: 'blank and indented stderr lines are skipped and trimmed (built)',
+    error: commandFailure({ status: 143, stderr: ['', '   ', '    Detecting unexpected exit', ''] }),
+    reason: 'stryker run failed (exit 143): Detecting unexpected exit',
+  },
+  {
+    name: 'a shell killed by a signal is reported by the signal (built: execSync\'s own report)',
+    error: commandFailure({ signal: 'SIGKILL', stderr: [] }),
+    reason: 'stryker run failed (SIGKILL): Command failed: '
+      + `HOT_MUTATION_TEST_FILES='${SCORED_TEST}' BABEL_ENV=commonjs npx …`,
+  },
+];
+
+test('runMutation scopes stryker to the mutated sources and the scored test, then parses the report', () => {
+  const calls = [];
+  const result = runMutation(['src/helpers/errors.ts'], [SCORED_TEST], mutationDeps({
     run: cmd => calls.push(cmd),
     readReport: () => ({
       files: { 'src/helpers/errors.ts': { mutants: [{ status: 'Killed' }, { status: 'Killed' }] } },
     }),
-  });
+  }));
 
+  assert.equal(calls.length, 1);
+  assert.match(calls[0], /^HOT_MUTATION_TEST_FILES='src\/helpers\/__tests__\/errors\.unit\.js' /);
   assert.match(calls[0], /--mutate 'src\/helpers\/errors\.ts'/);
   assert.match(calls[0], /--reporters json/);
+  // Stryker's own --testFiles scopes the initial run only. Under coverageAnalysis "all" it
+  // hands every mutant run the file paths as a test-name filter, so no test runs, each
+  // mutant times out, and a timeout counts as detected: a 100% score with nothing tested.
+  assert.doesNotMatch(calls[0], /--testFiles/);
   assert.equal(result.available, true);
   assert.equal(result.score, 100);
   assert.equal(result.killed, 2);
+  // A run that measured everything it was asked to carries no reason.
+  assert.equal(result.reason, undefined);
+});
+
+test('the Stryker Jest config runs exactly the test runMutation names, and nothing else', () => {
+  const calls = [];
+
+  runMutation(['src/helpers/errors.ts'], [SCORED_TEST], mutationDeps({
+    run: cmd => calls.push(cmd),
+    readReport: () => ({ files: {} }),
+  }));
+
+  const [, named] = calls[0].match(/^HOT_MUTATION_TEST_FILES='([^']*)'/);
+  const { testRegex } = loadStrykerJestConfig(named);
+  const scored = realpathSync(join(HOT_DIR, SCORED_TEST));
+  const runs = file => testRegex.some(pattern => new RegExp(pattern).test(file));
+
+  assert.equal(testRegex.length, 1);
+  assert.ok(runs(scored), 'the scored test is the one Jest runs');
+  assert.ok(!runs(realpathSync(join(HOT_DIR, 'src/helpers/__tests__/string.unit.ts'))), 'a sibling suite stays out');
+  // Anchored at both ends and escaped: a path that only shares the scored one's tail or
+  // head stays out, and a `.` is not read as any character.
+  assert.ok(!runs(`/elsewhere${scored}`), 'a longer path with the same tail stays out');
+  assert.ok(!runs(`${scored}.orig`), 'a longer path with the same head stays out');
+  assert.ok(!runs(scored.replace('errors.unit.js', 'errors_unit.js')), 'the dots are literal');
+});
+
+test('the Stryker Jest config scopes to every listed test, and says why it refuses one', () => {
+  const calls = [];
+
+  runMutation(['src/helpers/errors.ts'], [SCORED_TEST, 'src/helpers/__tests__/string.unit.ts'], mutationDeps({
+    run: cmd => calls.push(cmd),
+    readReport: () => ({ files: {} }),
+  }));
+
+  const [, named] = calls[0].match(/^HOT_MUTATION_TEST_FILES='([^']*)'/);
+
+  assert.equal(loadStrykerJestConfig(named).testRegex.length, 2);
+  assert.equal(loadStrykerJestConfig(`${SCORED_TEST}, src/helpers/__tests__/string.unit.ts`).testRegex.length, 2);
+  assert.throws(() => loadStrykerJestConfig(undefined), /HOT_MUTATION_TEST_FILES is not set/);
+  assert.throws(() => loadStrykerJestConfig(' , '), /HOT_MUTATION_TEST_FILES is not set/);
+  // A typo in a valid name is named as a missing file, not as the wrong kind of file.
+  assert.throws(
+    () => loadStrykerJestConfig('src/helpers/__tests__/eror.unit.js'),
+    /^Error: HOT_MUTATION_TEST_FILES: src\/helpers\/__tests__\/eror\.unit\.js does not exist$/,
+  );
+  assert.throws(
+    () => loadStrykerJestConfig('src/helpers/errors.ts'),
+    /: src\/helpers\/errors\.ts is not a unit test file \(\*\.unit\.js or \*\.unit\.ts\);/,
+  );
+  // A file in the package that Jest never collects, because it is outside Jest's roots.
+  assert.throws(
+    () => loadStrykerJestConfig('jest.config.js'),
+    /: jest\.config\.js is not under src\/ or test\/, where Jest looks for tests$/,
+  );
+  // An existing file the unit-test pattern matches, but outside the package: an evals fixture.
+  assert.throws(
+    () => loadStrykerJestConfig(`../evals/fixtures/${FIXTURE_REFERENCE}`),
+    /\.unit\.ts is outside handsontable\/; the mutation layer runs core Jest unit tests only$/,
+  );
+});
+
+test('the Stryker Jest config matches a test typed in another letter case', {
+  skip: !existsSync(join(HOT_DIR, 'src/Helpers/__tests__/errors.unit.js')) && 'the file system is case-sensitive',
+}, () => {
+  // Jest's paths carry the case the file system stores, so the pattern must too.
+  const { testRegex } = loadStrykerJestConfig('src/Helpers/__tests__/errors.unit.js');
+
+  assert.ok(new RegExp(testRegex[0]).test(realpathSync.native(join(HOT_DIR, SCORED_TEST))));
+});
+
+test('toPackagePath addresses a test from the package, from the root, and through a symlinked directory', () => {
+  const repoRoot = dirname(HOT_DIR);
+  const scratch = mkdtempSync(join(tmpdir(), 'hot-mutation-'));
+
+  try {
+    assert.equal(toPackagePath(SCORED_TEST, HOT_DIR), SCORED_TEST);
+    assert.equal(toPackagePath(`handsontable/${SCORED_TEST}`, repoRoot), SCORED_TEST);
+    assert.equal(toPackagePath(join(HOT_DIR, SCORED_TEST), '/'), SCORED_TEST);
+    assert.equal(toPackagePath('evals/README.md', repoRoot), join('..', 'evals', 'README.md'));
+
+    symlinkSync(repoRoot, join(scratch, 'checkout'));
+    assert.equal(toPackagePath(`checkout/handsontable/${SCORED_TEST}`, scratch), SCORED_TEST);
+  } finally {
+    // `rmSync` removes the link itself and never follows it into the checkout.
+    rmSync(scratch, { recursive: true, force: true });
+  }
+});
+
+test('scoreTestFile checks the mutants against the scored file, addressed from the package', async() => {
+  const calls = [];
+  const deps = mutationDeps({
+    run: cmd => calls.push(cmd),
+    readReport: () => ({ files: { 'src/helpers/errors.ts': { mutants: [{ status: 'Killed' }] } } }),
+  });
+  const score = await scoreTestFile(join(HOT_DIR, SCORED_TEST), { mutate: ['src/helpers/errors.ts'] }, deps);
+
+  assert.equal(calls.length, 1);
+  assert.match(calls[0], /^HOT_MUTATION_TEST_FILES='src\/helpers\/__tests__\/errors\.unit\.js' /);
+  assert.equal(score.mutation.score, 100);
+
+  const fixture = join(dirname(HOT_DIR), 'evals', 'fixtures', FIXTURE_REFERENCE);
+  const outside = await scoreTestFile(fixture, { mutate: ['src/helpers/number.ts'] }, mutationDeps());
+
+  assert.match(outside.mutation.reason, /^\.\.\/evals\/fixtures\/.+ is outside handsontable\/;/);
 });
 
 test('runMutation refuses an unscoped (whole-tree) run', () => {
-  const result = runMutation([], { status: { available: true }, run: () => {}, readReport: () => ({}) });
+  const result = runMutation([], [SCORED_TEST], mutationDeps());
 
   assert.equal(result.available, true);
   assert.match(result.reason, /no source files/);
 });
 
+test('runMutation refuses to run without a unit test to measure', () => {
+  for (const testFiles of [undefined, []]) {
+    const result = runMutation(['src/helpers/errors.ts'], testFiles, mutationDeps());
+
+    assert.equal(result.reason, 'no unit test to measure the mutants against');
+  }
+});
+
+test('runMutation refuses a test outside the handsontable package (only core Jest unit tests run)', () => {
+  const outsiders = [
+    '../tests/e2e/escape-cancels-edit.spec.ts',
+    '/abs/evals/fixtures/a.unit.ts',
+    'src/../../evals/x.unit.ts',
+  ];
+
+  for (const outside of outsiders) {
+    const result = runMutation(['src/helpers/errors.ts'], [outside], mutationDeps());
+
+    assert.equal(
+      result.reason,
+      `${outside} is outside handsontable/; the mutation layer runs core Jest unit tests only`,
+    );
+  }
+
+  // A name that merely starts with two dots is inside the package: it is missing, not outside.
+  assert.equal(
+    runMutation(['src/helpers/errors.ts'], ['..hidden/a.unit.js'], mutationDeps()).reason,
+    '..hidden/a.unit.js does not exist',
+  );
+});
+
+test('runMutation checks every test file as the Jest config does, before Stryker starts', () => {
+  const refuse = (sourceFiles, testFiles) => runMutation(sourceFiles, testFiles, mutationDeps()).reason;
+
+  // Stryker rewrites the mutated sources in place, so each of these must stop it from starting.
+  assert.equal(
+    refuse(['src/plugins/trimRows/trimRows.ts'], ['src/plugins/trimRows/__tests__/trimRows.spec.js']),
+    'src/plugins/trimRows/__tests__/trimRows.spec.js is not a unit test file (*.unit.js or *.unit.ts); '
+      + 'the mutation layer runs core Jest unit tests only',
+  );
+  assert.equal(
+    refuse(['src/helpers/errors.ts'], ['src/helpers/__tests__/eror.unit.js']),
+    'src/helpers/__tests__/eror.unit.js does not exist',
+  );
+  assert.equal(
+    refuse(['src/helpers/errors.ts'], ['scripts/__tests__/x.unit.js']),
+    'scripts/__tests__/x.unit.js does not exist',
+  );
+  assert.equal(
+    refuse(['src/helpers/errors.ts'], ['jest.config.js']),
+    'jest.config.js is not under src/ or test/, where Jest looks for tests',
+  );
+  assert.equal(
+    refuse(['src/helpers/errors.ts'], ['src/a,b.unit.js']),
+    'a path passed to Stryker cannot contain a comma: src/a,b.unit.js',
+  );
+  assert.equal(
+    refuse(['src/a.ts,src/b.ts'], [SCORED_TEST]),
+    'a path passed to Stryker cannot contain a comma: src/a.ts,src/b.ts',
+  );
+});
+
+test('runMutation sends --mutate as one comma-joined value and quotes it for the shell', () => {
+  const calls = [];
+  const run = cmd => calls.push(cmd);
+  const readReport = () => ({ files: { 'src/helpers/errors.ts': { mutants: [{ status: 'Killed' }] } } });
+
+  runMutation(['src/helpers/errors.ts', 'src/helpers/feature.ts'], [SCORED_TEST], mutationDeps({ run, readReport }));
+  // A glob is not checked against the disk, so it reaches the command as typed, quote and all.
+  runMutation(['src/helpers/it\'s*.ts'], [SCORED_TEST], mutationDeps({ run, readReport }));
+
+  // Stryker's `--mutate` takes ONE value: a second word would be read as its config file.
+  assert.match(calls[0], / --mutate 'src\/helpers\/errors\.ts,src\/helpers\/feature\.ts' --reporters json$/);
+  assert.match(calls[1], / --mutate 'src\/helpers\/it'\\''s\*\.ts' --reporters json$/);
+});
+
+test('shellQuote keeps a single quote and spaces intact through a real shell', () => {
+  const value = 'src/it\'s a.unit.js';
+
+  assert.equal(shellQuote(value), String.raw`'src/it'\''s a.unit.js'`);
+  assert.equal(execFileSync('/bin/bash', ['-c', `printf %s ${shellQuote(value)}`], { encoding: 'utf8' }), value);
+});
+
+test('runMutation refuses a --mutate path that names no file, before Stryker starts', () => {
+  // Checked on disk, so the check does not depend on the wording of Stryker's warning.
+  for (const [sourceFiles, missing] of [
+    [['handsontable/src/helpers/errors.ts'], 'handsontable/src/helpers/errors.ts'],
+    [['src/helpers/errors.ts', 'src/helpers/errorz.ts'], 'src/helpers/errorz.ts'],
+    [['src/helpers/errorz.ts:1-5'], 'src/helpers/errorz.ts:1-5'],
+  ]) {
+    assert.equal(
+      runMutation(sourceFiles, [SCORED_TEST], mutationDeps()).reason,
+      `--mutate matched no file (paths are relative to handsontable/): ${missing}`,
+    );
+  }
+
+  // A mutation range names lines of a file that exists.
+  const calls = [];
+
+  runMutation(['src/helpers/errors.ts:1-5'], [SCORED_TEST], mutationDeps({
+    run: cmd => calls.push(cmd),
+    readReport: () => ({ files: { 'src/helpers/errors.ts': { mutants: [{ status: 'Killed' }] } } }),
+  }));
+  assert.equal(calls.length, 1);
+});
+
+test('runMutation gives a reason when a glob matched no file, and keeps the score of the rest', () => {
+  const result = runMutation(['src/helpers/errors.ts', 'src/helpers/errorz*.ts'], [SCORED_TEST], mutationDeps({
+    run: () => '\u001b[33m15:00:00 (1) WARN ProjectReader\u001b[39m Glob pattern "src/helpers/errorz*.ts" '
+      + 'did not result in any files.',
+    readReport: () => ({ files: { 'src/helpers/errors.ts': { mutants: [{ status: 'Killed' }] } } }),
+  }));
+
+  assert.equal(result.score, 100);
+  assert.equal(result.reason, '--mutate matched no file (paths are relative to handsontable/): src/helpers/errorz*.ts');
+});
+
+test('runMutation gives a reason when the report holds no valid mutant', () => {
+  const result = runMutation(['src/helpers/errors.ts'], [SCORED_TEST], mutationDeps({
+    run: () => '',
+    readReport: () => ({ files: { 'src/helpers/errors.ts': { mutants: [{ status: 'Ignored' }] } } }),
+  }));
+
+  assert.equal(result.total, 0);
+  assert.equal(result.reason, 'stryker reported no valid mutant in src/helpers/errors.ts');
+});
+
 test('runMutation surfaces a failed stryker run as a reason, not a throw', () => {
-  const result = runMutation(['src/a.ts'], {
-    status: { available: true },
+  const result = runMutation(['src/helpers/errors.ts'], [SCORED_TEST], mutationDeps({
     run: () => {
       throw new Error('stryker exploded\nstack…');
     },
-    readReport: () => ({}),
-  });
+  }));
 
   assert.equal(result.available, true);
-  assert.match(result.reason, /stryker run failed: stryker exploded/);
+  assert.equal(result.reason, 'stryker run failed: stryker exploded');
+});
+
+for (const { name, error, reason } of STRYKER_FAILURES) {
+  test(`runMutation reports Stryker's own reason, not the command: ${name}`, () => {
+    const result = runMutation(['src/helpers/errors.ts'], [SCORED_TEST], mutationDeps({
+      run: () => {
+        throw error;
+      },
+    }));
+
+    assert.equal(result.available, true);
+    assert.equal(result.reason, reason);
+  });
+}
+
+test('runMutation tells an unreadable report apart from a failed run', () => {
+  const result = runMutation(['src/helpers/errors.ts'], [SCORED_TEST], mutationDeps({
+    run: () => {},
+    readReport: () => {
+      throw new Error('ENOENT: no such file or directory, open reports/mutation/mutation.json');
+    },
+  }));
+
+  assert.equal(
+    result.reason,
+    'stryker report unreadable: ENOENT: no such file or directory, open reports/mutation/mutation.json',
+  );
+});
+
+test('runMutation holds the checkout while Stryker runs, and refuses a second run meanwhile', () => {
+  const deps = mutationDeps({
+    readReport: () => ({ files: { 'src/helpers/errors.ts': { mutants: [{ status: 'Killed' }] } } }),
+  });
+  let inside;
+
+  // A second run started while the first holds the lock: it must not touch the checkout.
+  deps.run = () => {
+    assert.equal(readFileSync(deps.lockFile, 'utf8'), String(process.pid));
+    inside = runMutation(['src/helpers/errors.ts'], [SCORED_TEST], { ...mutationDeps(), lockFile: deps.lockFile });
+  };
+
+  assert.equal(runMutation(['src/helpers/errors.ts'], [SCORED_TEST], deps).score, 100);
+  assert.equal(
+    inside.reason,
+    `another mutation run (process ${process.pid}) is using this checkout: wait for it, `
+      + `or delete ${deps.lockFile} if no run is active`,
+  );
+  // Released afterwards, with the temp directory it emptied.
+  assert.equal(existsSync(deps.lockFile), false);
+  assert.equal(existsSync(dirname(deps.lockFile)), false);
+});
+
+test('runMutation takes over a lock left by a run that died, and releases it when the run fails', () => {
+  const deps = mutationDeps({
+    run: () => {
+      throw new Error('stryker exploded');
+    },
+  });
+  // The process id of a run that has ended.
+  const dead = spawnSync(process.execPath, ['-e', '']).pid;
+
+  mkdirSync(join(dirname(deps.lockFile), 'backup-left-by-a-killed-run'), { recursive: true });
+  writeFileSync(deps.lockFile, String(dead));
+
+  assert.equal(
+    runMutation(['src/helpers/errors.ts'], [SCORED_TEST], deps).reason,
+    'stryker run failed: stryker exploded',
+  );
+  assert.equal(existsSync(deps.lockFile), false);
+  // A temp directory that still holds something is left alone.
+  assert.equal(existsSync(join(dirname(deps.lockFile), 'backup-left-by-a-killed-run')), true);
+});
+
+test('a lock held by a process the user may not signal still counts as held', () => {
+  const deps = mutationDeps();
+
+  mkdirSync(dirname(deps.lockFile), { recursive: true });
+  // Process 1 always runs, and a user other than root may not signal it (EPERM).
+  writeFileSync(deps.lockFile, '1');
+
+  assert.match(
+    runMutation(['src/helpers/errors.ts'], [SCORED_TEST], deps).reason,
+    /^another mutation run \(process 1\) is using this checkout/,
+  );
+  assert.equal(readFileSync(deps.lockFile, 'utf8'), '1', 'a lock it did not take is left alone');
+});
+
+test('the report lands where git ignores it', () => {
+  // `git check-ignore` exits 1, and so throws here, when no rule matches.
+  execFileSync('git', ['check-ignore', '-q', 'handsontable/reports/mutation/mutation.json'], { cwd: dirname(HOT_DIR) });
 });
 
 // --- theme-sensitive-viewport: a rendered-row count without a pinned viewport ---

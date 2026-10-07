@@ -112,9 +112,12 @@ describe('UndoRedo', () => {
 
       await setDataAtCell(1, 1, 'X2');
 
+      // A disabled plugin records nothing, so there is nothing to undo.
+      expect(getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+
       getPlugin('undoRedo').undo();
 
-      expect(getDataAtCell(1, 1)).toBe('B2');
+      expect(getDataAtCell(1, 1)).toBe('X2');
     });
   });
 
@@ -806,26 +809,6 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 2)).toBe('C2');
         expect(getDataAtCell(1, 3)).toBe('D2');
         expect(getColHeader()).toEqual(['Header1', 'Header2', 'Header3', 'Header4']);
-      });
-
-      xit('should undo removal of multiple columns (with a used manualColumnMove)', async() => {
-        handsontable({
-          data: createSpreadsheetData(2, 7),
-          manualColumnMove: [3, 2, 0, 6, 1, 5, 4]
-        });
-
-        expect(countCols()).toEqual(7);
-        expect(getDataAtRow(0)).toEqual(['D1', 'C1', 'A1', 'G1', 'B1', 'F1', 'E1']);
-
-        await alter('remove_col', 1, 3);
-
-        expect(countCols()).toEqual(4);
-        expect(getDataAtRow(0)).toEqual(['D1', 'B1', 'F1', 'E1']);
-
-        getPlugin('undoRedo').undo();
-
-        expect(countCols()).toEqual(7);
-        expect(getDataAtRow(0)).toEqual(['D1', 'C1', 'A1', 'G1', 'B1', 'F1', 'E1']);
       });
 
       it('should undo multiple changes', async() => {

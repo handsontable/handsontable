@@ -159,23 +159,41 @@ test.describe('row and column move undo bookkeeping', () => {
     expect(await grid.rowOrder()).toEqual(IDENTITY);
   });
 
-  test('a move vetoed by manualColumnFreeze records no undo action', async () => {
+  test('a move vetoed by the fixedColumnsEnd guard records no undo action', async () => {
+    await grid.initGrid({ manualColumnMove: true, fixedColumnsEnd: 2, undo: true });
+
+    // ManualColumnMove refuses a move across the end freeze line. This is a real shipped veto path,
+    // not the fixture's test-only toggle.
+    await grid.moveColumns([0], 9);
+
+    expect(await grid.columnOrder()).toEqual(IDENTITY);
+    expect(await grid.doneActionsCount()).toBe(0);
+    expect(await grid.isUndoAvailable()).toBe(false);
+  });
+
+  test('a move of a column frozen by manualColumnFreeze records one undo action', async () => {
     await grid.initGrid({ manualColumnMove: true, manualColumnFreeze: true, undo: true });
 
-    // manualColumnFreeze only guards moves after its own first use. Freezing reorders through the
-    // index mapper directly rather than through moveColumns, so it registers no undo action itself.
+    // The freeze itself is one undo step.
     await grid.freezeColumn(3);
 
     const afterFreeze = await grid.columnOrder();
 
-    expect(await grid.doneActionsCount()).toBe(0);
+    expect(await grid.doneActionsCount()).toBe(1);
 
-    // Visual column 0 now sits inside the frozen area, so the plugin vetoes moving it. This is a
-    // real shipped veto path, not the fixture's test-only toggle.
+    // Visual column 0 now sits inside the frozen area. Freezing is positional, so the move is
+    // allowed, as it is with a plain `fixedColumnsStart`.
     await grid.moveColumns([0], 5);
 
+    expect(await grid.columnOrder()).not.toEqual(afterFreeze);
+    expect(await grid.doneActionsCount()).toBe(2);
+
+    await grid.undo();
+
     expect(await grid.columnOrder()).toEqual(afterFreeze);
-    expect(await grid.doneActionsCount()).toBe(0);
+
+    await grid.undo();
+
     expect(await grid.isUndoAvailable()).toBe(false);
   });
 });

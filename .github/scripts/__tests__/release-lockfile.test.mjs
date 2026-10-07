@@ -9,7 +9,7 @@ import { repoRoot } from '../lib/repo-root.mjs';
 // A release must ship the exact dependency set CI already tested. `pnpm-lock.yaml`
 // records `specifier: workspace:^` for every in-repo dependency and never a package's
 // own version, so bumping the version can never legitimately change it. Any difference
-// during a cut means the specifiers re-resolved -- and 15 of them are `latest`, which
+// during a cut means the specifiers re-resolved -- and 14 of them are `latest`, which
 // re-resolves to whatever the registry serves that day.
 //
 // That is DEV-2667: the 18.1.0-rc1 cut deleted the lockfile and reinstalled, floating
@@ -216,7 +216,7 @@ test('no workflow or composite action deletes the lockfile', () => {
       assert.equal(
         pattern.test(clean),
         false,
-        `${rel}: ${why}, so the next install re-resolves every specifier -- 15 of them are `
+        `${rel}: ${why}, so the next install re-resolves every specifier -- 14 of them are `
         + '`latest` (DEV-2667). It is a local developer script, not a CI step.'
       );
     }

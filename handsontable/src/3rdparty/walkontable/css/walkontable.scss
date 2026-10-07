@@ -235,7 +235,8 @@
   z-index: 100;
 }
 
-.ht_clone_inline_start {
+.ht_clone_inline_start,
+.ht_clone_inline_end {
   z-index: 120;
 }
 
@@ -243,7 +244,8 @@
   z-index: 130;
 }
 
-.ht_clone_bottom_inline_start_corner {
+.ht_clone_bottom_inline_start_corner,
+.ht_clone_bottom_inline_end_corner {
   z-index: 150;
 }
 
@@ -251,7 +253,8 @@
   z-index: 160;
 }
 
-.ht_clone_top_inline_start_corner {
+.ht_clone_top_inline_start_corner,
+.ht_clone_top_inline_end_corner {
   z-index: 180;
 }
 
@@ -267,6 +270,7 @@
 
 .ht_master,
 .ht_clone_inline_start,
+.ht_clone_inline_end,
 .ht_clone_top,
 .ht_clone_bottom {
   overflow: hidden;
@@ -278,25 +282,29 @@
 
 .handsontable .ht_master table.htCore > thead,
 .handsontable .ht_master table.htCore > tbody > tr > th,
-.handsontable .ht_clone_inline_start table.htCore > thead {
+.handsontable .ht_clone_inline_start table.htCore > thead,
+.handsontable .ht_clone_inline_end table.htCore > thead {
   visibility: hidden;
 }
 
 // Mirrors the clone-holder rule in `src/styles/base/_base.scss` (DEV-2937): each of the three
 // scroll-mirrored clone holders is a composited scroll container on the one axis the engine writes,
 // with no scrollbar of its own. Keep the two in sync.
-.ht_clone_top .wtHolder,
-.ht_clone_inline_start .wtHolder,
-.ht_clone_bottom .wtHolder {
+.handsontable .ht_clone_top .wtHolder,
+.handsontable .ht_clone_inline_start .wtHolder,
+.handsontable .ht_clone_inline_end .wtHolder,
+.handsontable .ht_clone_bottom .wtHolder {
   overflow-anchor: none;
-  scrollbar-width: none;
+  // `!important` so a page-wide `scrollbar-width` rule cannot paint a scrollbar here (DEV-3160).
+  scrollbar-width: none !important;
 
   &::-webkit-scrollbar {
     display: none;
   }
 }
 
-.ht_clone_inline_start .wtHolder {
+.ht_clone_inline_start .wtHolder,
+.ht_clone_inline_end .wtHolder {
   overflow-x: hidden;
   overflow-y: auto;
 }

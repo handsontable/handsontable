@@ -22,7 +22,10 @@ describe('DropdownMenu', () => {
       $('html').attr('dir', 'ltr');
     });
 
-    // all other E2E tests are moved to visual tests. See ./visual-tests/tests/js-only/dropdown-menu/
+    // Where a submenu opens is asserted from DOM rects in tests/e2e/submenu-position.spec.ts: at both
+    // inline edges, in both grid directions and both document directions (the rows of this using()
+    // table), with the grid scrolled. ./visual-tests/tests/js-only/dropdown-menu/ keeps a look check of
+    // the menu.
 
     it('should show tick from "Read only" element at proper place', async() => {
       handsontable({

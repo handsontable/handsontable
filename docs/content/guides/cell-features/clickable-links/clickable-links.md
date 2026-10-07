@@ -20,6 +20,7 @@ vue:
 searchCategory: Guides
 category: Cell features
 menuTag: new
+addedIn: "19.0.0"
 ---
 
 Render the URLs, email addresses, and phone numbers in your cell values as clickable links, without changing the data.

@@ -433,10 +433,17 @@ describe('Formulas', () => {
         nestedRows: true,
       });
 
-      await alter('remove_row', 0);
-      getPlugin('undoRedo').undo();
-
       const formulasPlugin = getPlugin('formulas');
+
+      await alter('remove_row', 0);
+
+      // DEV-3092: the removed parent's only child must leave the engine with it. Formulas'
+      // `beforeRemoveRow` used to read the removed physical rows before NestedRows expanded that
+      // list to the whole subtree, so the engine dropped the parent and kept the child.
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([]);
+      expect(countRows()).toBe(0);
+
+      getPlugin('undoRedo').undo();
 
       expect(countRows()).toBe(2);
       expect(getPlugin('nestedRows').dataManager.getRawSourceData()).toEqual([{
@@ -449,7 +456,316 @@ describe('Formulas', () => {
       ]);
     });
 
-    it('should not undo HyperFormula when a nested parent undo is vetoed', async() => {
+    it('should keep HyperFormula in step when undoing and redoing a detached subtree', async() => {
+      handsontable({
+        data: [
+          {
+            col1: 'Parent',
+            __children: [{
+              col1: '=A1 & "-child"',
+              __children: [{
+                col1: 'Grandchild',
+                __children: [{ col1: 'Great grandchild' }],
+              }],
+            }],
+          },
+          { col1: 'After' },
+        ],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1',
+        },
+        nestedRows: true,
+      });
+
+      const nestedRows = getPlugin('nestedRows');
+      const undoRedo = getPlugin('undoRedo');
+
+      nestedRows.dataManager.detachFromParent(nestedRows.dataManager.getDataObject(1));
+
+      expect(undoRedo.doneActions.length).toBe(1);
+      expect(getDataAtCell(0, 0)).toBe('Parent');
+      expect(getDataAtCell(1, 0)).toBe('After');
+      expect(getDataAtCell(2, 0)).toBe('Parent-child');
+      expect(getDataAtCell(3, 0)).toBe('Grandchild');
+      expect(getDataAtCell(4, 0)).toBe('Great grandchild');
+
+      undoRedo.undo();
+      await waitUntil(() => undoRedo.undoneActions.length === 1);
+
+      expect(nestedRows.dataManager.getData()).toEqual([
+        {
+          col1: 'Parent',
+          __children: [{
+            col1: '=A1 & "-child"',
+            __children: [{
+              col1: 'Grandchild',
+              __children: [{ col1: 'Great grandchild' }],
+            }],
+          }],
+        },
+        { col1: 'After' },
+      ]);
+      expect(getDataAtCell(0, 0)).toBe('Parent');
+      expect(getDataAtCell(1, 0)).toBe('Parent-child');
+      expect(getDataAtCell(2, 0)).toBe('Grandchild');
+      expect(getDataAtCell(3, 0)).toBe('Great grandchild');
+      expect(getDataAtCell(4, 0)).toBe('After');
+      expect(getPlugin('formulas').engine.getSheetSerialized(getPlugin('formulas').sheetId)).toEqual([
+        ['Parent'],
+        ['=A1 & "-child"'],
+        ['Grandchild'],
+        ['Great grandchild'],
+        ['After'],
+      ]);
+
+      undoRedo.redo();
+      await waitUntil(() => undoRedo.doneActions.length === 1);
+
+      expect(nestedRows.dataManager.getData()).toEqual([
+        { col1: 'Parent', __children: [] },
+        { col1: 'After' },
+        {
+          col1: '=A1 & "-child"',
+          __children: [{
+            col1: 'Grandchild',
+            __children: [{ col1: 'Great grandchild' }],
+          }],
+        },
+      ]);
+      expect(getDataAtCell(0, 0)).toBe('Parent');
+      expect(getDataAtCell(1, 0)).toBe('After');
+      expect(getDataAtCell(2, 0)).toBe('Parent-child');
+      expect(getDataAtCell(3, 0)).toBe('Grandchild');
+      expect(getDataAtCell(4, 0)).toBe('Great grandchild');
+      expect(getPlugin('formulas').engine.getSheetSerialized(getPlugin('formulas').sheetId)).toEqual([
+        ['Parent'],
+        ['After'],
+        ['=A1 & "-child"'],
+        ['Grandchild'],
+        ['Great grandchild'],
+      ]);
+    });
+
+    it('should keep HyperFormula in step when undoing a detached child is vetoed', async() => {
+      const originalData = [
+        {
+          col1: 'Parent',
+          __children: [{ col1: '=A1 & "-child"' }],
+        },
+        { col1: 'After' },
+      ];
+      let vetoUndo = false;
+
+      handsontable({
+        data: JSON.parse(JSON.stringify(originalData)),
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1',
+        },
+        nestedRows: true,
+        beforeUndo: () => !vetoUndo,
+      });
+
+      const nestedRows = getPlugin('nestedRows');
+      const undoRedo = getPlugin('undoRedo');
+      const formulasPlugin = getPlugin('formulas');
+
+      nestedRows.dataManager.detachFromParent(nestedRows.dataManager.getDataObject(1));
+
+      const detachedData = JSON.parse(JSON.stringify(nestedRows.dataManager.getData()));
+      const sheetAfterDetach = formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId);
+
+      // The undo of a detach moves rows without creating or removing any – it journals only meta row
+      // shifts – so no row hook is asked during its replay, and `beforeUndo` is its only veto. A vetoed
+      // undo keeps the step and leaves the grid and HyperFormula as they were.
+      vetoUndo = true;
+      undoRedo.undo();
+
+      expect(undoRedo.doneActions.length).toBe(1);
+      expect(undoRedo.undoneActions.length).toBe(0);
+      expect(nestedRows.dataManager.getData()).toEqual(detachedData);
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual(sheetAfterDetach);
+      expect(getDataAtCell(2, 0)).toBe('Parent-child');
+
+      // Once the veto is lifted, the kept step undoes the detach, in the grid and in HyperFormula.
+      vetoUndo = false;
+      undoRedo.undo();
+      await waitUntil(() => undoRedo.undoneActions.length === 1);
+
+      expect(nestedRows.dataManager.getData()).toEqual(originalData);
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        ['Parent'],
+        ['=A1 & "-child"'],
+        ['After'],
+      ]);
+      expect(getDataAtCell(1, 0)).toBe('Parent-child');
+    });
+
+    it('should keep HyperFormula in step when redoing a detached child is vetoed', async() => {
+      const originalData = [
+        {
+          col1: 'Parent',
+          __children: [{ col1: '=A1 & "-child"' }],
+        },
+        { col1: 'After' },
+      ];
+
+      handsontable({
+        data: JSON.parse(JSON.stringify(originalData)),
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1',
+        },
+        nestedRows: true,
+      });
+
+      const nestedRows = getPlugin('nestedRows');
+      const undoRedo = getPlugin('undoRedo');
+      const formulasPlugin = getPlugin('formulas');
+
+      nestedRows.dataManager.detachFromParent(nestedRows.dataManager.getDataObject(1));
+
+      const detachedData = JSON.parse(JSON.stringify(nestedRows.dataManager.getData()));
+      const sheetAfterDetach = formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId);
+
+      undoRedo.undo();
+      await waitUntil(() => undoRedo.undoneActions.length === 1);
+
+      const dataAfterUndo = JSON.parse(JSON.stringify(nestedRows.dataManager.getData()));
+      const sheetAfterUndo = formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId);
+      let vetoRedo = true;
+
+      hot().addHook('beforeRedo', () => {
+        return vetoRedo ? false : undefined;
+      });
+      undoRedo.redo();
+
+      expect(undoRedo.doneActions.length).toBe(0);
+      expect(undoRedo.undoneActions.length).toBe(1);
+      expect(nestedRows.dataManager.getData()).toEqual(dataAfterUndo);
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual(sheetAfterUndo);
+
+      vetoRedo = false;
+      undoRedo.redo();
+      await waitUntil(() => undoRedo.doneActions.length === 1);
+
+      expect(nestedRows.dataManager.getData()).toEqual(detachedData);
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual(sheetAfterDetach);
+    });
+
+    it('should keep HyperFormula history aligned when the detached subtree has collapsed and trimmed rows',
+      async() => {
+        const originalData = [
+          {
+            col1: 'Parent',
+            __children: [{
+              col1: 'Child',
+              __children: [
+                {
+                  col1: 'Grandchild A',
+                  __children: [{ col1: 'Leaf' }],
+                },
+                { col1: 'Grandchild B' },
+              ],
+            }],
+          },
+          { col1: 'After' },
+        ];
+
+        handsontable({
+          data: JSON.parse(JSON.stringify(originalData)),
+          formulas: {
+            engine: HyperFormula,
+            sheetName: 'Sheet1',
+          },
+          nestedRows: true,
+          trimRows: true,
+        });
+
+        const nestedRows = getPlugin('nestedRows');
+        const undoRedo = getPlugin('undoRedo');
+        const formulasPlugin = getPlugin('formulas');
+        const originalSheet = formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId);
+
+        // An earlier grid action. Undoing the detach must leave this edit in place.
+        await setDataAtCell(5, 0, 'Edited');
+
+        nestedRows.collapsingUI.collapseChildren(2);
+        getPlugin('trimRows').trimRows([4]);
+        await render();
+
+        nestedRows.dataManager.detachFromParent(nestedRows.dataManager.getDataObject(1));
+
+        expect(undoRedo.doneActions.map(action => action.actionType)).toEqual([
+          'change',
+          'collapse_rows',
+          'trim_rows',
+          'nested_rows_detach',
+        ]);
+
+        undoRedo.undo();
+
+        expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+          ['Parent'],
+          ['Child'],
+          ['Grandchild A'],
+          ['Leaf'],
+          ['Grandchild B'],
+          ['Edited'],
+        ]);
+
+        // The trim, the collapse, and the edit are one step each.
+        undoRedo.undo();
+        undoRedo.undo();
+        undoRedo.undo();
+
+        expect(undoRedo.undoneActions.length).toBe(4);
+        expect(nestedRows.dataManager.getRawSourceData()).toEqual(originalData);
+        expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual(originalSheet);
+      });
+
+    it('should redo a detach from its recorded shape, without running the detach hooks again', async() => {
+      handsontable({
+        data: [
+          {
+            col1: 'Parent',
+            __children: [{ col1: '=A1 & "-child"' }],
+          },
+          { col1: 'After' },
+        ],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1',
+        },
+        nestedRows: true,
+      });
+
+      const nestedRows = getPlugin('nestedRows');
+      const undoRedo = getPlugin('undoRedo');
+      const formulasPlugin = getPlugin('formulas');
+
+      nestedRows.dataManager.detachFromParent(nestedRows.dataManager.getDataObject(1));
+
+      const detachedData = JSON.parse(JSON.stringify(nestedRows.dataManager.getData()));
+      const sheetAfterDetach = formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId);
+
+      undoRedo.undo();
+
+      // The hooks fired when the user detached the row. A redo restores the recorded shape instead of
+      // detaching again, so a listener that throws on a second detach cannot break it.
+      const beforeDetachChild = jasmine.createSpy('beforeDetachChild').and.throwError('Detach ran again');
+
+      addHook('beforeDetachChild', beforeDetachChild);
+
+      expect(() => undoRedo.redo()).not.toThrow();
+      expect(beforeDetachChild).not.toHaveBeenCalled();
+      expect(nestedRows.dataManager.getData()).toEqual(detachedData);
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual(sheetAfterDetach);
+      expect(getDataAtCell(2, 0)).toBe('Parent-child');
+    });
+
+    it('should keep HyperFormula in line with the grid when a nested parent undo is vetoed', async() => {
       handsontable({
         data: [{
           col1: 'A1',
@@ -466,12 +782,14 @@ describe('Formulas', () => {
       await alter('remove_row', 0);
 
       const formulasPlugin = getPlugin('formulas');
-      const sheetAfterRemove = formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId);
 
       getPlugin('undoRedo').undo();
 
+      // The veto leaves the grid without the removed subtree, and the engine holds exactly what the
+      // grid holds - no row the grid does not have.
       expect(countRows()).toBe(0);
-      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual(sheetAfterRemove);
+      expect(getPlugin('undoRedo').doneActions.length).toBe(1);
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([]);
     });
 
     it('should not undo HyperFormula when NestedRows is disabled before undo', async() => {

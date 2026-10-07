@@ -3,6 +3,7 @@ import { clamp } from '../../helpers/number';
 import { getScrollbarWidth } from '../../helpers/dom/element';
 import { PaginationUI } from './ui';
 import { announce } from '../../utils/a11yAnnouncer';
+import { syncIcon } from '../../themes/engine/icons';
 import { createPaginatorStrategy } from './strategies';
 import { isRootInstance } from '../../utils/rootInstance';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
@@ -25,6 +26,25 @@ const LAYOUT_WEIGHT = 100;
 
 const AUTO_PAGE_SIZE_WARNING = toSingleLine`The \`auto\` page size setting requires the \`autoRowSize\`\x20
   plugin to be enabled. Set the \`autoRowSize: true\` in the configuration to ensure correct behavior.`;
+
+/**
+ * The page state `Pagination#captureState()` records.
+ */
+interface PageState {
+  readonly currentPage: number;
+  readonly pageSize: number | 'auto';
+}
+
+/**
+ * Tells whether a value is a state `Pagination#captureState()` recorded.
+ *
+ * @param {*} value The value to test.
+ * @returns {boolean}
+ */
+function isPageState(value: unknown): value is PageState {
+  return isPlainObject(value) && typeof value.currentPage === 'number' &&
+    (typeof value.pageSize === 'number' || value.pageSize === 'auto');
+}
 
 /**
  * Reads a declared `initialPage` from the raw `pagination` setting.
@@ -221,13 +241,8 @@ export class Pagination extends BasePlugin {
    */
   #internalRenderCall = false;
   /**
-   * Whether settings include a complete `dataProvider` configuration (server-backed rows).
-   *
-   * @type {boolean}
-   */
-  #isDataProviderActive = false;
-  /**
-   * Total row count from the last successful `afterDataProviderFetch` when `#isDataProviderActive` is true.
+   * Total row count from the last successful `afterDataProviderFetch` when `#isDataProviderActive()` is true.
+   * Dropped whenever the state is computed with no DataProvider backing the grid.
    *
    * @type {number|null}
    */
@@ -276,7 +291,6 @@ export class Pagination extends BasePlugin {
       this.#pageSize = this.getSetting<number | 'auto'>('pageSize')!;
     }
 
-    this.#isDataProviderActive = this.hot.runHooks('hasExternalDataSource') === true;
     this.#serverSideTotalCount = null;
 
     this.#pagedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName!, 'hiding', false);
@@ -295,6 +309,12 @@ export class Pagination extends BasePlugin {
         themeName: this.hot.getCurrentThemeName(),
         phraseTranslator: (key: string, extraArguments?: unknown) => this.hot.getTranslatedPhrase(key, extraArguments),
         a11yAnnouncer: (message: unknown) => announce(String(message ?? '')),
+        syncIcon: (
+          container: HTMLElement,
+          slotClass: string,
+          name: Parameters<typeof syncIcon>[3],
+          options?: Parameters<typeof syncIcon>[4],
+        ) => syncIcon(this.hot, container, slotClass, name, options),
       });
 
       this.#updateSectionsVisibilityState();
@@ -347,7 +367,7 @@ export class Pagination extends BasePlugin {
     queryParameters: { page?: number; pageSize?: number | 'auto'; [key: string]: unknown };
     totalRows?: number;
   }) => {
-    if (!this.#isDataProviderActive) {
+    if (!this.#isDataProviderActive()) {
       return;
     }
 
@@ -364,7 +384,7 @@ export class Pagination extends BasePlugin {
       this.#setPageSizeValue(pageSize);
     }
 
-    if (this.#isDataProviderActive && typeof totalRows === 'number' && totalRows >= 0) {
+    if (this.#isDataProviderActive() && typeof totalRows === 'number' && totalRows >= 0) {
       this.#serverSideTotalCount = totalRows;
     }
 
@@ -395,6 +415,34 @@ export class Pagination extends BasePlugin {
   #setPageSizeValue(pageSize: number | 'auto') {
     this.#calcStrategy = createPaginatorStrategy(pageSize === 'auto' ? 'auto' : 'fixed');
     this.#pageSize = pageSize;
+  }
+
+  /**
+   * Forgets the row total the last DataProvider response reported. The DataProvider plugin calls it when the view
+   * the grid shows is about to change, because that total described the view being left: a view that is shown
+   * again brings its own total back through {@link Hooks#afterDataProviderFetch}, and one fetching for the first
+   * time counts its own rows until its response lands. Does nothing while this plugin is disabled. Internal; not
+   * public API.
+   *
+   * @private
+   */
+  _resetDataProviderTotal(): void {
+    if (!this.enabled) {
+      return;
+    }
+
+    this.#serverSideTotalCount = null;
+  }
+
+  /**
+   * Tells whether a DataProvider currently backs the grid. Read on demand, because the answer
+   * changes whenever `updateSettings()` adds or removes a `dataProvider`, and this plugin is not
+   * updated then.
+   *
+   * @returns {boolean}
+   */
+  #isDataProviderActive(): boolean {
+    return this.hot.runHooks('hasExternalDataSource') === true;
   }
 
   /**
@@ -506,7 +554,7 @@ export class Pagination extends BasePlugin {
     let firstVisibleRowIndex = -1;
     let lastVisibleRowIndex = -1;
 
-    if (this.#isDataProviderActive) {
+    if (this.#isDataProviderActive()) {
       const countRows = this.hot.countRows();
 
       if (countRows > 0) {
@@ -605,6 +653,15 @@ export class Pagination extends BasePlugin {
       return;
     }
 
+    this.runOperation('set_page', () => this.#setPage(pageNumber));
+  }
+
+  /**
+   * The body of `setPage()`, run inside its operation.
+   *
+   * @param {number} pageNumber The page number to set.
+   */
+  #setPage(pageNumber: number): void {
     const oldPage = this.#currentPage;
     const shouldProceed = this.hot.runHooks('beforePageChange', oldPage, pageNumber);
 
@@ -640,6 +697,15 @@ export class Pagination extends BasePlugin {
       return;
     }
 
+    this.runOperation('set_page_size', () => this.#setPageSize(pageSize));
+  }
+
+  /**
+   * The body of `setPageSize()`, run inside its operation.
+   *
+   * @param {number | 'auto'} pageSize The page size to set.
+   */
+  #setPageSize(pageSize: number | 'auto'): void {
     const oldPageSize = this.#pageSize;
     const shouldProceed = this.hot.runHooks('beforePageSizeChange', oldPageSize, pageSize);
 
@@ -667,9 +733,64 @@ export class Pagination extends BasePlugin {
    * Resets the pagination state to the initial values defined in the settings.
    */
   resetPagination(): void {
-    this.resetPage();
-    this.resetPageSize();
+    this.runOperation('reset_pagination', () => {
+      this.resetPage();
+      this.resetPageSize();
+    });
     this.#updateSectionsVisibilityState();
+  }
+
+  /**
+   * Returns the current page and page size, for UndoRedo. The rows a page hides are not recorded:
+   * the plugin rebuilds them from the restored page. A grid paged by a data provider records
+   * nothing – its pages come from the server.
+   *
+   * @private
+   * @param {*} previous The value the previous capture returned.
+   * @returns {object|undefined}
+   */
+  captureState(previous: unknown): unknown {
+    if (this.#isDataProviderActive()) {
+      return undefined;
+    }
+
+    if (isPageState(previous) && previous.currentPage === this.#currentPage &&
+        previous.pageSize === this.#pageSize) {
+      return previous;
+    }
+
+    return { currentPage: this.#currentPage, pageSize: this.#pageSize };
+  }
+
+  /**
+   * Puts back the page and the page size a `captureState()` call recorded, and rebuilds the rows
+   * the page hides. Hook-silent: the page hooks fired when the user acted.
+   *
+   * @private
+   * @param {*} state The recorded state.
+   */
+  restoreState(state: unknown): void {
+    if (this.#isDataProviderActive() || !isPageState(state)) {
+      return;
+    }
+
+    if (state.pageSize !== this.#pageSize) {
+      this.#setPageSizeValue(state.pageSize);
+    }
+
+    this.#setCurrentPage(state.currentPage);
+    this.#computeAndApplyState();
+  }
+
+  /**
+   * The page and the page size name no column, so a `columns` settings update never makes a page
+   * change unsafe to undo.
+   *
+   * @private
+   * @returns {number[]}
+   */
+  getStateColumns(): readonly number[] {
+    return [];
   }
 
   /**
@@ -831,7 +952,12 @@ export class Pagination extends BasePlugin {
     const renderableRowsLength = renderableIndexes.length;
     const { stylesHandler } = this.hot;
 
-    const externalPagedMode = this.#isDataProviderActive;
+    const externalPagedMode = this.#isDataProviderActive();
+
+    if (!externalPagedMode) {
+      this.#serverSideTotalCount = null;
+    }
+
     const totalItems = externalPagedMode
       ? (this.#serverSideTotalCount ?? renderableRowsLength)
       : renderableRowsLength;
@@ -1019,12 +1145,14 @@ export class Pagination extends BasePlugin {
    * cannot overflow past the last visible row of the current page. The leading rows of the
    * clipboard are kept; the overflow tail is dropped.
    *
+   * The paste start row is the top row of the active selection, the same cell the CopyPaste plugin
+   * writes at. The copy-source ranges (`copyableRanges`) are not used: with `fragmentSelection: true`
+   * the plugin does not refresh them when the selection moves, so they can point at the copy source.
+   *
    * @param {Array} pastedData The data that was pasted.
-   * @param {Array<{startRow: number, endRow: number}>} ranges Copy-source ranges (`copyableRanges`);
-   * used as the paste start row when selection and clipboard ranges coincide.
    * @returns {boolean} Returns `false` to prevent the paste operation.
    */
-  #onBeforePaste = (pastedData: unknown[][], ranges: { startRow: number; endRow: number }[]) => {
+  #onBeforePaste = (pastedData: unknown[][]) => {
     const {
       firstVisibleRowIndex,
       lastVisibleRowIndex,
@@ -1034,17 +1162,17 @@ export class Pagination extends BasePlugin {
       return false;
     }
 
-    ranges.forEach(({ startRow }: { startRow: number }) => {
-      if (pastedData.length === 0) {
-        return;
-      }
+    const startRow = this.hot.getSelectedRangeActive()?.getTopStartCorner().row;
 
-      const remainingRowCount = Math.max(0, lastVisibleRowIndex - startRow + 1);
+    if (pastedData.length === 0 || startRow === null || startRow === undefined) {
+      return;
+    }
 
-      if (pastedData.length > remainingRowCount) {
-        pastedData.length = remainingRowCount;
-      }
-    });
+    const remainingRowCount = Math.max(0, lastVisibleRowIndex - startRow + 1);
+
+    if (pastedData.length > remainingRowCount) {
+      pastedData.length = remainingRowCount;
+    }
   };
 
   /**
@@ -1090,6 +1218,7 @@ export class Pagination extends BasePlugin {
    */
   #onAfterSetTheme = (themeName: unknown) => {
     this.#ui?.updateTheme(themeName as string | undefined);
+    this.#ui?.refreshIcons();
   };
 
   /**

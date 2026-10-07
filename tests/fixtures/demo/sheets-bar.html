@@ -95,6 +95,14 @@
       },
       manualColumnResize: true,
       columnSorting: true,
+      filters: htParams.has('filters'),
+      dropdownMenu: htParams.has('filters'),
+      undo: true,
+      afterGetColHeader(col, TH) {
+        if (col >= 0) {
+          TH.setAttribute('data-testid', `col-header-${col}`);
+        }
+      },
       layoutDirection: htParams.get('rtl') ? 'rtl' : 'ltr',
       licenseKey: 'non-commercial-and-evaluation',
     });

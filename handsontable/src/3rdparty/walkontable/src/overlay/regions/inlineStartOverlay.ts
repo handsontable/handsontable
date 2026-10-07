@@ -3,7 +3,6 @@ import {
   addClass,
   getScrollLeft,
   removeClass,
-  setOverlayPosition,
   resetCssTransform,
 } from '../../../../../helpers/dom/element';
 import InlineStartOverlayTable from '../../table/regions/inlineStartTable';
@@ -58,6 +57,13 @@ export class InlineStartOverlay extends Overlay {
   }
 
   /**
+   * @returns {'inline'} This overlay follows the page sideways.
+   */
+  get railAxis(): 'inline' {
+    return 'inline';
+  }
+
+  /**
    * Updates the left overlay position.
    *
    * @returns {boolean} Always `false` - this overlay's header-border classes shift no layout, so it
@@ -77,16 +83,27 @@ export class InlineStartOverlay extends Overlay {
 
     const { rootWindow } = this.deps;
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
+    const rail = this.getRail();
     let overlayPosition = 0;
 
     if (this.trimmingContainer === rootWindow) {
       overlayPosition = this.getOverlayOffset() * (this.isRtl() ? -1 : 1);
-      setOverlayPosition(overlayRoot, `${overlayPosition}px`, '0px');
+      // Held at the viewport's inline-start edge by the browser, never by this listener (DEV-127).
+      // The block axis is the page's: this clone mirrors the master's rows and scrolls with them.
+      rail?.pin({
+        isRtl: this.isRtl(),
+        width: wtTable.getTotalWidth(),
+        height: wtTable.getTotalHeight(),
+        inline: true,
+        block: { pinned: false, edge: 'top' },
+      });
 
     } else {
+      rail?.release();
       overlayPosition = this.getScrollPosition();
-      resetCssTransform(overlayRoot);
     }
+
+    resetCssTransform(overlayRoot);
 
     this.adjustHeaderBordersPosition(overlayPosition);
 
@@ -342,11 +359,15 @@ export class InlineStartOverlay extends Overlay {
     let newX = this.getTableParentOffset();
     let scrollbarCompensation = 0;
 
+    // The end columns cover the inline-end edge of the viewport (as the bottom rows cover the bottom one).
+    const inlineEndBandWidth = this.deps.getWtOverlays().inlineEndOverlay.getBandWidth();
+    const viewportWidth = this.deps.getWtViewport().getViewportWidth();
+
     if (beyondRendered) {
       const columnWidth = this.deps.getWtTable().getColumnWidth(sourceCol);
-      const viewportWidth = this.deps.getWtViewport().getViewportWidth();
 
-      if (columnWidth > viewportWidth) {
+      // A column wider than the room the end band leaves cannot be aligned to the inline-end edge.
+      if (columnWidth > viewportWidth - inlineEndBandWidth) {
         beyondRendered = false;
       }
     }
@@ -356,7 +377,7 @@ export class InlineStartOverlay extends Overlay {
     }
     if (beyondRendered) {
       newX += this.sumCellSizes(0, sourceCol + 1);
-      newX -= this.deps.getWtViewport().getViewportWidth();
+      newX -= viewportWidth - inlineEndBandWidth;
 
     } else {
       newX += this.sumCellSizes(this.wtSettings.getSetting<number>('fixedColumnsStart'), sourceCol);

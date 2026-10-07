@@ -21,7 +21,8 @@ const GLOB_MAP = {
   'handsontable-validator-dev': ['handsontable/src/validators/**'],
   'handsontable-celltype-dev': ['handsontable/src/cellTypes/**'],
   'handsontable-unit-testing': [
-    'handsontable/src/**/*.unit.js', 'handsontable/src/**/*.unit.ts', 'handsontable/test/unit/**',
+    'handsontable/src/**/*.unit.js', 'handsontable/src/**/*.unit.ts',
+    'handsontable/test/**/*.unit.js', 'handsontable/test/**/*.unit.ts',
   ],
   'handsontable-e2e-testing': ['handsontable/src/**/*.spec.js', 'handsontable/test/e2e/**'],
   'handsontable-playwright-e2e': ['tests/e2e/**', 'tests/fixtures/**'],
@@ -38,7 +39,9 @@ const GLOB_MAP = {
   'angular-wrapper-dev': ['wrappers/angular-wrapper/**'],
   'writing-docs-pages': ['docs/content/**/*.md'],
   'creating-docs-examples': ['docs/content/**/javascript/**', 'docs/content/**/react/**', 'docs/content/**/angular/**'],
-  'creating-visual-test-examples': ['examples/**'],
+  // The visual suite serves `examples/next/visual-tests/<framework>/demo` only; the docs examples tree
+  // (`examples/next/docs/`) belongs to `creating-docs-examples`, so a wider glob attached the wrong skill.
+  'creating-visual-test-examples': ['examples/next/visual-tests/**'],
   'coordinate-systems': ['handsontable/src/translations/**', 'handsontable/src/plugins/**'],
   'i18n-translations': ['handsontable/src/i18n/**'],
   'handsontable-css-dev': ['handsontable/src/styles/**', 'handsontable/src/themes/**'],

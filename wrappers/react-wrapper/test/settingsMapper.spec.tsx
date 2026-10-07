@@ -9,8 +9,8 @@ describe('Settings mapper unit tests', () => {
         height: 300,
         contextMenu: true,
         columns: [
-          { label: { value: 'first label' }},
-          { label: { value: 'second label' }}
+          { label: { value: 'first label' } },
+          { label: { value: 'second label' } }
         ],
         afterChange: () => {
           return 'works!';
@@ -21,7 +21,10 @@ describe('Settings mapper unit tests', () => {
       };
       const result = SettingsMapper.getSettings(initial);
 
-      expect(!!result.width && !!result.height && !!result.contextMenu && !!result.columns && !!result.afterChange && !!result.afterRender).toEqual(true);
+      expect(
+        !!result.width && !!result.height && !!result.contextMenu &&
+        !!result.columns && !!result.afterChange && !!result.afterRender
+      ).toEqual(true);
       expect(Object.keys(initial).length).toEqual(Object.keys(result).length);
       expect(result.width).toEqual(300);
       expect(result.height).toEqual(300);
@@ -86,8 +89,8 @@ describe('Settings mapper unit tests', () => {
         isInit: false,
       });
 
-      expect(result.dataSchema).toBe(void 0);
-      expect(result.columns).toBe(void 0);
+      expect(result.dataSchema).toBe(undefined);
+      expect(result.columns).toBe(undefined);
       expect(result.readOnly).toBe(false);
     });
 
@@ -285,10 +288,10 @@ describe('Settings mapper unit tests', () => {
         initOnlySettingKeys: ['renderAllRows', 'renderAllColumns', 'layoutDirection', 'ariaTags'] as any,
       });
 
-      expect(result.renderAllRows).toBe(void 0);
-      expect(result.renderAllColumns).toBe(void 0);
-      expect(result.layoutDirection).toBe(void 0);
-      expect(result.ariaTags).toBe(void 0);
+      expect(result.renderAllRows).toBe(undefined);
+      expect(result.renderAllColumns).toBe(undefined);
+      expect(result.layoutDirection).toBe(undefined);
+      expect(result.ariaTags).toBe(undefined);
       expect(result.width).toBe(500);
     });
 

@@ -20,6 +20,7 @@ vue:
 searchCategory: Guides
 category: Cell features
 menuTag: new
+addedIn: "18.1.0"
 ---
 Move or copy a selected range of cells by dragging its border, the same way you would in a spreadsheet application.
 
@@ -100,7 +101,7 @@ When the [`formulas`](@/api/options.md#formulas) plugin is active, formula refer
 
 ## Hooks
 
-- [`beforeMoveCells`](@/api/hooks.md#beforemovecells) fires before the data relocates. Return `false` from the handler to cancel the move.
+- [`beforeMoveCells`](@/api/hooks.md#beforemovecells) fires before the data relocates. Return `false` from the handler to cancel the move. To let the move through, return nothing, or the range the handler received. Any other return value, `true` included, cancels the move too.
 - [`afterMoveCells`](@/api/hooks.md#aftermovecells) fires after the data has been relocated.
 
 ## Move cells programmatically

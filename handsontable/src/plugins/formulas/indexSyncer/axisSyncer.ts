@@ -26,11 +26,19 @@ interface HfTranslationCache {
   visualIndexOfPhysical: number[];
 }
 
+/**
+ * What an axis syncer knows about the engine's order: the physical indexes the engine holds, in its
+ * own order, and the grid's sequence at the moment the engine's sheet was found empty.
+ */
+export interface EngineOrder {
+  sequence: number[];
+  fillSequence: number[] | null;
+}
+
 interface ParentIndexSyncer {
   getEngine(): HyperFormulaEngine | null;
   getSheetId(): number | null;
   getPostponeAction(callback?: Function): Function;
-  isPerformingUndoRedo(): boolean;
 }
 
 /**
@@ -162,14 +170,16 @@ class AxisSyncer {
   /**
    * Sets removed HF indexes (it should be done right before performing move on HOT).
    *
+   * The indexes are translated physically. A removal can include trimmed rows – NestedRows removes every
+   * descendant of a removed or detached parent, including one trimmed by another plugin – and the engine holds
+   * trimmed rows too. A trimmed row has no visual index, so a visual translation would report it as `-1`.
+   *
    * @param {Array<number>} removedIndexes List of removed physical indexes.
-   * @returns {Array<number>} List of removed visual indexes.
+   * @returns {Array<number>} List of removed HF indexes.
    */
   setRemovedHfIndexes(removedIndexes: number[]) {
     this.#removedIndexes = removedIndexes.map((physicalIndex: number) => {
-      const visualIndex = this.#indexMapper.getVisualFromPhysicalIndex(physicalIndex);
-
-      return this.getHfIndexFromVisualIndex(visualIndex ?? -1);
+      return this.getHfIndexFromPhysicalIndex(physicalIndex);
     });
 
     return this.#removedIndexes;
@@ -182,6 +192,30 @@ class AxisSyncer {
    */
   getRemovedHfIndexes() {
     return this.#removedIndexes;
+  }
+
+  /**
+   * Returns what the syncer knows about the engine's order on this axis, for UndoRedo to put back
+   * with `adoptEngineOrder()`.
+   *
+   * @returns {object}
+   */
+  getEngineOrder(): EngineOrder {
+    return {
+      sequence: this.#indexesSequence.slice(),
+      fillSequence: this.#fillSequence === null ? null : this.#fillSequence.slice(),
+    };
+  }
+
+  /**
+   * Takes over an engine order `getEngineOrder()` returned, without sending anything to the engine:
+   * the caller has just loaded a sheet that already holds its content in that order.
+   *
+   * @param {object} order The order to take over.
+   */
+  adoptEngineOrder(order: EngineOrder) {
+    this.#indexesSequence = order.sequence.slice();
+    this.#fillSequence = order.fillSequence === null ? null : order.fillSequence.slice();
   }
 
   /**
@@ -323,10 +357,6 @@ class AxisSyncer {
    * @param {boolean} orderChanged Indicates if order of HOT indexes was changed by move.
    */
   calculateAndSyncMoves(movePossible: boolean, orderChanged: boolean) {
-    if (this.#indexSyncer.isPerformingUndoRedo()) {
-      return;
-    }
-
     if (movePossible === false || orderChanged === false) {
       return;
     }
@@ -475,6 +505,18 @@ class AxisSyncer {
   }
 
   /**
+   * Tells whether the sheet this axis is synced with was removed from the engine behind the grid's back.
+   *
+   * @returns {boolean}
+   */
+  #isSheetRemoved(): boolean {
+    const engine = this.#indexSyncer.getEngine();
+    const sheetId = this.#indexSyncer.getSheetId();
+
+    return engine !== null && sheetId !== null && engine.getSheetName(sheetId) === undefined;
+  }
+
+  /**
    * Gets callback for hook triggered after performing change of indexes order.
    *
    * @returns {Function}
@@ -483,17 +525,11 @@ class AxisSyncer {
     return (source: string) => {
       const newSequence = this.#indexMapper.getIndexesSequence();
 
-      // The engine reverts its own axis order from its own undo stack, so nothing is sent here — but the
-      // stored order is the only record of what the engine holds, and it has to follow the revert. Both
-      // sides come out of an undo on the sequence the grid ends up with.
-      if (this.#indexSyncer.isPerformingUndoRedo()) {
-        this.#indexesSequence = newSequence;
-
-        return;
-      }
-
       if (source === 'update' && newSequence.length > 0) {
-        this.#syncOrderWithEngine(newSequence);
+        // A sheet the host removed from the engine has no order to follow: asking its size throws.
+        if (!this.#isSheetRemoved()) {
+          this.#syncOrderWithEngine(newSequence);
+        }
 
         return;
       }

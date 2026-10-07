@@ -6,56 +6,32 @@ description: Use when developing or modifying the @handsontable/angular-wrapper 
 
 # Angular Wrapper Development
 
-## Package location
+Package: `wrappers/angular-wrapper/`; library source in `projects/hot-table/src/lib/`. Wrapper rules, build, and test commands: `wrappers/angular-wrapper/AGENTS.md`.
 
-`wrappers/angular-wrapper/`
+## Architecture
 
-Library source lives under `projects/hot-table/src/lib/`.
+`HotTableComponent` uses `@Component` with an `@Input()` per Handsontable option.
 
-## Component architecture
+- **AfterViewInit:** creates the instance on the `@ViewChild('container')` element.
+- **OnChanges:** calls `updateSettings()` with the changed inputs.
+- **OnDestroy:** `hot.destroy()` and reference cleanup.
+- `NgZone.runOutsideAngular()` wraps the constructor and most grid operations so internal grid events skip change detection.
 
-The main `HotTableComponent` uses Angular `@Component` with individual `@Input()` decorators for each Handsontable option. This gives consumers standard Angular template binding for every grid setting.
+Services: **HotSettingsResolver** merges component inputs with the aggregate settings object (priority between them); **HotGlobalConfig** supplies global defaults for all instances. `HotTableModule` declares and exports the component.
 
-### Lifecycle
-
-- **AfterViewInit** - creates the Handsontable instance on the DOM element obtained via `@ViewChild('container')`.
-- **OnChanges** - detects input property changes and calls `updateSettings()` with the new values.
-- **OnDestroy** - calls `hot.destroy()` and cleans up references.
-
-### Performance
-
-`NgZone.runOutsideAngular()` wraps the Handsontable constructor and most grid operations. This prevents Angular change detection from running on every internal grid event (scroll, render, mouse move), which is critical for performance with large datasets.
-
-## Services
-
-- **HotSettingsResolver** - resolves and merges settings from component inputs, handling priority between individual inputs and the aggregate settings object.
-- **HotGlobalConfig** - provides global default settings that apply to all HotTable instances in the application.
-
-## Module system
-
-`HotTableModule` is the Angular module that declares and exports the component. Consumers add it to their `imports` array in standalone components.
-
-## Build and test
-
-- **Build system:** ng-packagr 16.
-- **Tests:** Jest with `jest-preset-angular`.
-- **Gotcha:** Tests require `NODE_OPTIONS=--openssl-legacy-provider` (already configured in the test script).
-- **Run tests:** `npm run test --prefix wrappers/angular-wrapper`
-- **Important:** Build core first with `npm run build --prefix handsontable`. Wrappers consume `handsontable/tmp/`, not `dist/`.
-
-## Key files
+Build: ng-packagr 16. Tests: Jest with `jest-preset-angular` and `NODE_OPTIONS=--openssl-legacy-provider` (already in the script). Wrappers consume `handsontable/tmp/`, not `dist/`; run `npm run test --prefix wrappers/angular-wrapper` after `npm run build --prefix handsontable`.
 
 | File | Purpose |
 |---|---|
 | `projects/hot-table/src/lib/hot-table.component.ts` | Main grid component |
-| `projects/hot-table/src/lib/services/` | Settings resolver and global config services |
-| `projects/hot-table/src/lib/hot-table.module.ts` | Angular module declaration |
+| `projects/hot-table/src/lib/services/` | Settings resolver and global config |
+| `projects/hot-table/src/lib/hot-table.module.ts` | Angular module |
 
-## Modern Angular patterns (required for all new and updated examples)
+## Modern Angular patterns (all new and updated examples)
 
 ### Standalone components
 
-All Angular example components must use `standalone: true` with `HotTableModule` in the `imports` array. Do **not** use `standalone: false` or `NgModule`-based declarations.
+`standalone: true` with `HotTableModule` in `imports`.
 
 ```typescript
 import { Component } from '@angular/core';
@@ -70,9 +46,9 @@ import { HotTableModule } from '@handsontable/angular-wrapper';
 export class AppComponent { ... }
 ```
 
-### app.config.ts instead of app.module.ts
+### app.config.ts
 
-Replace `AppModule` (`@NgModule`) with an `ApplicationConfig` in `app.config.ts`. Register Handsontable modules and provide the global license key here:
+Use an `ApplicationConfig` in `app.config.ts` in place of `AppModule` (`@NgModule`). Register Handsontable modules and the global license key there:
 
 ```typescript
 /* file: app.config.ts */
@@ -93,53 +69,30 @@ export const appConfig: ApplicationConfig = {
 };
 ```
 
-- `provideZoneChangeDetection({ eventCoalescing: true })` is required in every `app.config.ts`.
-- The global `HOT_GLOBAL_CONFIG` license replaces per-table `licenseKey` on every `<hot-table>`. Do **not** add `licenseKey` to individual component settings.
-- `CommonModule` and `BrowserModule` are no longer needed in standalone components.
+- `provideZoneChangeDetection({ eventCoalescing: true })` goes in every `app.config.ts`.
+- The global `HOT_GLOBAL_CONFIG` license replaces per-table `licenseKey` on every `<hot-table>`; set `licenseKey` nowhere in component settings.
+- Standalone components need no `CommonModule` or `BrowserModule`.
 
 ### Template control flow
 
-Use Angular 17+ built-in control flow syntax instead of structural directives:
+Use Angular 17+ built-in control flow instead of structural directives.
 
-| Old (do not use) | New (required) |
+| Old | Required |
 |---|---|
 | `*ngIf="condition"` | `@if (condition) { ... }` |
 | `*ngFor="let x of list"` | `@for (x of list; track x.id) { ... }` |
 
-Example:
-```html
-@if (isOpen) {
-  <ul role="listbox">
-    @for (opt of options; track opt.value) {
-      <li (click)="select(opt.value)">{{ opt.label }}</li>
-    }
-  </ul>
-}
-```
-
 ### Type safety
 
-- Use `RowObject` from `handsontable` instead of `any[]` for row data arrays.
-- Use typed `querySelector`: `document.querySelector<HTMLInputElement>('#my-input')`.
-- Use non-null assertion on `hotInstance` where the instance is guaranteed to exist: `this.hotTable.hotInstance!.updateSettings(...)`.
-- Use `hotInstance!.updateSettings()` to change settings at runtime -- never destroy and recreate the Handsontable instance.
+- `RowObject` from `handsontable` for row data arrays, in place of `any[]` (`hotData: RowObject[] = []`).
+- Typed `querySelector`: `document.querySelector<HTMLInputElement>('#my-input')`.
+- `this.hotTable.hotInstance!.updateSettings(...)` for runtime changes (non-null assertion where the instance exists); keep the instance alive across setting changes.
 
-```typescript
-import { RowObject } from 'handsontable';
+### Naming
 
-export class AppComponent {
-  hotData: RowObject[] = [];
-}
-```
-
-### Component naming
-
-Name all example components `AppComponent`, not `ExampleNComponent` or feature-specific names.
+Example components are named `AppComponent` (not `ExampleNComponent` or feature-specific names).
 
 ## Rules
 
-- No business logic in wrappers. All data transformation and validation belongs in `handsontable/src/`.
-- Cross-platform npm scripts: use Node.js `.mjs` helpers instead of bash-only constructs. Never use bash-specific syntax (`if [ ]`, `mv`, `&&` with `||`) directly in `package.json` script entries.
-- Never add `licenseKey` to individual `<hot-table>` settings in examples -- set it globally via `HOT_GLOBAL_CONFIG` in `app.config.ts`.
-- Never use `standalone: false` in new or updated example components.
-- Never use `*ngIf` or `*ngFor` in new or updated templates -- use `@if` / `@for` control flow.
+- All data transformation and validation lives in `handsontable/src/`.
+- npm scripts use Node.js `.mjs` helpers; keep bash-specific syntax (`if [ ]`, `mv`, `&&` with `||`) out of `package.json` script entries.

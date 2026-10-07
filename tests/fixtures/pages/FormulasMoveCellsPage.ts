@@ -105,15 +105,6 @@ export class FormulasMoveCellsPage {
     await editor.press('Enter');
   }
 
-  /**
-   * Whether the Formulas plugin's index syncer still believes an undo/redo is in progress.
-   * Must be `false` between operations — a leaked flag makes the plugin treat subsequent
-   * operations as undo/redo replay (e.g. it skips the engine step of a `moveCells` commit).
-   */
-  async isFormulasSyncerInUndoRedo(): Promise<boolean> {
-    return this.page.evaluate(() => window.hot.getPlugin('formulas').indexSyncer.isPerformingUndoRedo());
-  }
-
   /** Assert a cell renders the expected text (web-first, auto-retrying). */
   async expectCell(row: number, col: number, text: string): Promise<void> {
     await expect(this.cell(row, col)).toHaveText(text);

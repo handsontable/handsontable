@@ -23,12 +23,14 @@ export class NestedRowsPage {
   readonly theme: string;
   readonly grid: Locator;
   readonly rowHeaderOverlay: Locator;
+  readonly pageErrors: string[] = [];
 
   constructor(page: Page, theme = 'main') {
     this.page = page;
     this.theme = theme;
     this.grid = page.getByTestId('grid');
     this.rowHeaderOverlay = page.locator('.ht_clone_inline_start');
+    page.on('pageerror', (error) => { this.pageErrors.push(error.message); });
   }
 
   /**
@@ -52,6 +54,19 @@ export class NestedRowsPage {
   /** The collapse/expand button in a row header, by visual row index. */
   collapseButton(row: number): Locator {
     return this.rowHeaderOverlay.locator('tbody tr').nth(row).locator('.ht_nestingButton');
+  }
+
+  /**
+   * Every nesting indicator the plugin has drawn into a row header - the collapse/expand buttons and
+   * the indent spacers - across both copies of the headers: the master table and the inline-start
+   * clone painted over it.
+   *
+   * Scoped to the whole grid on purpose. Only the clone is visible, but Walkontable recycles the
+   * master's `th` elements too, so a leak there is just as permanent. Scoped to `tbody` because
+   * CollapsibleColumns draws the same class names into `thead th`.
+   */
+  nestingIndicators(): Locator {
+    return this.grid.locator('tbody th [class^="ht_nesting"]');
   }
 
   /** How many rows the grid currently shows. Collapsing trims rows, so this shrinks. */
@@ -148,6 +163,51 @@ export class NestedRowsPage {
    */
   selectedRange(): Promise<number[] | null> {
     return this.page.evaluate(() => window.hot.getSelectedLast() ?? null);
+  }
+
+  /**
+   * Add a child to the parent at the given visual row by calling the plugin's private
+   * `dataManager.addChild()` directly. It is the method the "Insert child row" context-menu item ends
+   * in, but this skips the menu and resolves the parent with `toPhysicalRow()` rather than the menu's
+   * `translateTrimmedRow()`. It expands every parent for its own length (`collapsedRowsStash`) and
+   * re-collapses afterwards.
+   */
+  async addChildTo(parentRow: number): Promise<void> {
+    await this.page.evaluate((row) => {
+      const plugin = window.hot.getPlugin('nestedRows');
+
+      plugin.dataManager.addChild(plugin.dataManager.getDataObject(window.hot.toPhysicalRow(row)));
+    }, parentRow);
+  }
+
+  /** Scroll the grid so the given visual row is at the top. */
+  async scrollToRow(row: number): Promise<void> {
+    await this.page.evaluate(r => window.hot.scrollViewportTo({ row: r, verticalSnap: 'top' }), row);
+  }
+
+  /** The first visual row the viewport renders fully, which moves only when the grid scrolls. */
+  firstVisibleRow(): Promise<number> {
+    return this.page.evaluate(() => window.hot.getFirstFullyVisibleRow());
+  }
+
+  /**
+   * Remove rows through `alter()`, by visual row. With a parent collapsed, the plugin expands every
+   * parent for the length of the removal (`collapsedRowsStash`) and re-collapses afterwards.
+   */
+  async removeRow(row: number, amount = 1): Promise<void> {
+    await this.page.evaluate(([r, n]) => window.hot.alter('remove_row', r, n), [row, amount]);
+  }
+
+  /**
+   * Remove a row and push settings in the SAME task, so `updateSettings()` lands while the removal's
+   * collapse stash is still open - the plugin re-collapses the stashed parents a tick later. A React
+   * parent re-rendering right after a removal produces exactly this.
+   */
+  async removeRowThenUpdateSettings(row: number, settings: Record<string, unknown>): Promise<void> {
+    await this.page.evaluate(([r, config]) => {
+      window.hot.alter('remove_row', r as number, 1);
+      window.hot.updateSettings(config as Record<string, unknown>);
+    }, [row, settings] as [number, Record<string, unknown>]);
   }
 
   /** Push settings through `updateSettings()`, which rebuilds the plugin and replays its state. */

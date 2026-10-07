@@ -69,6 +69,71 @@ test.describe('NestedRows enabled at runtime', () => {
     expect(await nestedRows.consoleErrors()).toEqual([]);
   });
 
+  test('turning a runtime-enabled plugin off removes its header decoration', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsRuntimeEnablePage(page, theme, bundle);
+
+    await nestedRows.goto();
+    await expect(nestedRows.nestingIndicators()).toHaveCount(0);
+
+    await nestedRows.setNestedRows(true);
+    await expect(nestedRows.collapseButton(0)).toBeVisible();
+    expect(await nestedRows.nestingIndicators().count()).toBeGreaterThan(0);
+
+    await nestedRows.setNestedRows(false);
+
+    await expect(nestedRows.nestingIndicators()).toHaveCount(0);
+    await expect(nestedRows.paintedNames()).toHaveText(FLAT_ROWS);
+  });
+
+  test('turning the plugin off strips the header copies painted in the top overlays too', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsRuntimeEnablePage(page, theme, bundle);
+
+    await nestedRows.goto({ fixed: 'rows' });
+    await nestedRows.setNestedRows(true);
+    await expect(nestedRows.collapseButton(0)).toBeVisible();
+    expect(await nestedRows.nestingIndicators().count()).toBeGreaterThan(0);
+
+    await nestedRows.setNestedRows(false);
+
+    await expect(nestedRows.nestingIndicators()).toHaveCount(0);
+  });
+
+  test('turning the plugin off leaves the headers of a grid rendered inside a cell alone', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsRuntimeEnablePage(page, theme, bundle);
+
+    await nestedRows.goto({ nested: 'inner' });
+
+    const innerIndicators = await nestedRows.innerNestingIndicators().count();
+
+    expect(innerIndicators).toBeGreaterThan(0);
+    await expect(nestedRows.nestingIndicators()).toHaveCount(innerIndicators);
+
+    await nestedRows.setNestedRows(true);
+    expect(await nestedRows.nestingIndicators().count()).toBeGreaterThan(innerIndicators);
+
+    expect(await nestedRows.disableNestedRowsAndCountInnerIndicators()).toBe(innerIndicators);
+
+    await expect(nestedRows.innerNestingIndicators()).toHaveCount(innerIndicators);
+    await expect(nestedRows.nestingIndicators()).toHaveCount(innerIndicators);
+  });
+
+  test('replacing the data with arrays while the plugin is on disables it without throwing', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsRuntimeEnablePage(page, theme, bundle);
+
+    await nestedRows.goto();
+    await nestedRows.setNestedRows(true);
+    await expect(nestedRows.collapseButton(0)).toBeVisible();
+
+    expect(await nestedRows.loadData([['Row 1'], ['Row 2']])).toBeNull();
+
+    expect(await nestedRows.consoleErrors()).toEqual([
+      expect.stringContaining('requires an Array of Objects'),
+    ]);
+    expect(await nestedRows.isPluginEnabled()).toBe(false);
+    expect(await nestedRows.countRows()).toBe(2);
+    await expect(nestedRows.nestingIndicators()).toHaveCount(0);
+  });
+
   test('re-sending the same setting leaves the rows and the collapsed state alone', async({ page, theme, bundle }) => {
     const nestedRows = new NestedRowsRuntimeEnablePage(page, theme, bundle);
 

@@ -18,6 +18,11 @@ absolute:
   meta key that was never written.
 - **Remove the meta first, too.** A blocked removal leaves the cell's `borders` meta in place; dropping the
   border from the model anyway leaves the two disagreeing.
+- **The one exception is an undo or a redo.** UndoRedo restores the `borders` meta from its journal
+  before it calls `restoreState()`, so `#rebuildModelFromMeta()` only fills the model
+  (`insertBorderIntoSettings()`) and writes no meta. Going through `prepareBorderFromCustomAdded()` there
+  fired the meta hooks once per bordered cell, and a listener that vetoes border writes on locked cells
+  dropped the border from the model while the meta kept it.
 - **A cell whose write is vetoed is skipped entirely**, so the model never gets ahead of the meta.
 - **Sample the veto flag *before* the write.** A `runOnce` veto listener removes itself the moment it fires,
   so probing afterwards reads `false` for a write that was in fact vetoed.
@@ -84,6 +89,15 @@ split across batches still merge correctly. A plain synchronous call owns and cl
   and do **not** shift cell meta in the core (`DataMap#createCol` skips `metaManager.createColumn` when
   `source === 'auto'`), so shifting the model would diverge from the meta.
 
+## A progressive load is never an undo step
+
+Every `borders` meta write goes through `setCellMeta()`, which opens an operation of its own. So both
+progressive paths write under `operationScope.suppress()`: a batch run from the timer
+(`#processProgressiveChunk`) would otherwise record one undo step per bordered cell, and the flush
+(`#flushProgressiveApply`) runs from a user action's `before*` hook, so its writes would join that
+action's step - an undo of the row insert that finished the load then removed the borders it wrote.
+Pinned in `../undoRedo/__tests__/pluginState.unit.js` ("a progressive border load").
+
 ## `setCellMeta('borders', …)` written directly is supported
 
 The value may be a complete plugin-shaped object (UndoRedo restoring an undone removal) **or** a partial
@@ -127,3 +141,10 @@ breaks** — that is expected; update the assertion and reference the issue.
 
 `__tests__/` has separate `hidingColumns.spec.js`, `hidingRows.spec.js`, `borderStyle.spec.js`,
 `backward-compatibility.spec.js` and `rtl/` — the hiding and RTL specs catch most regressions here.
+
+## `fixedColumnsEnd` joins the working window
+
+`#syncViewportSelections` passes the real end count to `isIndexInViewportUnion()` (the `fixedColumnsEnd` setting,
+read through `hot.view.countFixedColumnsEnd()`, so the start columns keep the priority). The end clone renders the last
+columns even when the master range is far from them, exactly like the start clone, so a border on an end column
+has to be in the working set or it is never drawn. Pinned by `tests/e2e/fixed-columns-end-plugins.spec.ts`.

@@ -1,8 +1,9 @@
 import type { HotInstance } from '../../../core/types';
 import { rangeEach } from '../../../helpers/number';
-import { deepClone, objectEach, stripFunctionValues } from '../../../helpers/object';
+import { objectEach } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';
 import type { NestedRows } from '../nestedRows';
+import { recordMetaRowsShift } from '../../../dataMap/dataJournal';
 
 type ReadTreeResult = number | { result: unknown; end: boolean };
 
@@ -17,33 +18,58 @@ interface NodeInfo {
   level: number;
 }
 
-interface RemovedRowSnapshot {
-  data: RowObject;
-  index: number;
-  path: number[];
-  parentPath: number[] | null;
-  parent: RowObject | null;
-  physicalRows: number[];
-  visualIndex: number | null;
+/**
+ * What a row's `__children` held when a shape was taken: a copy of its child list, or the value
+ * itself when it was not an array.
+ */
+type ChildrenState = RowObject[] | { readonly value: unknown };
+
+/**
+ * The shape of the nested source at one moment, as `DataManager#captureShape()` returns it.
+ */
+export interface NestedRowsShape {
+  /**
+   * The cache version the shape was taken at. The cache is rebuilt after every change of the shape.
+   */
+  readonly version: number;
+  /**
+   * The source array the shape belongs to.
+   */
+  readonly data: RowObject[];
+  /**
+   * The top-level rows, in order.
+   */
+  readonly roots: RowObject[];
+  /**
+   * What `__children` held, for every row that had the key.
+   */
+  readonly children: ReadonlyMap<RowObject, ChildrenState>;
 }
 
-interface IndexMapSnapshot {
-  name: string;
-  values: unknown[];
-  orderOfIndexes?: number[];
+/**
+ * Tells whether a value is a shape `DataManager#captureShape()` returned.
+ *
+ * @param {*} value The value to test.
+ * @returns {boolean}
+ */
+export function isNestedRowsShape(value: unknown): value is NestedRowsShape {
+  return typeof value === 'object' && value !== null &&
+    'version' in value && typeof value.version === 'number' &&
+    'roots' in value && Array.isArray(value.roots) &&
+    'children' in value && value.children instanceof Map;
 }
 
-interface RowIndexMapsSnapshot {
-  indexesSequence: number[];
-  trimmingMaps: IndexMapSnapshot[];
-  hidingMaps: IndexMapSnapshot[];
-  variousMaps: IndexMapSnapshot[];
-}
-
-export interface NestedRowsRemovalSnapshot {
-  rows: RemovedRowSnapshot[];
-  rowIndexMaps: RowIndexMapsSnapshot;
-  collapsedRows: number[];
+/**
+ * Replaces the contents of an array with the items of another one, keeping the array itself.
+ *
+ * @param {Array} target The array to refill.
+ * @param {Array} items The new contents.
+ */
+function refillArray<T>(target: T[], items: readonly T[]) {
+  target.length = 0;
+  items.forEach((item) => {
+    target.push(item);
+  });
 }
 
 interface CacheStructure {
@@ -51,20 +77,6 @@ interface CacheStructure {
   levelCount: number;
   rows: RowObject[];
   nodeInfo: WeakMap<object, NodeInfo>;
-}
-
-/**
- * Creates a detached copy of a nested row, retaining its complete subtree.
- *
- * @param {RowObject} row The row to clone.
- * @returns {RowObject} The detached row tree.
- */
-function cloneRowData(row: RowObject): RowObject {
-  const clonedRow = deepClone(row);
-
-  stripFunctionValues(clonedRow);
-
-  return clonedRow;
 }
 
 /**
@@ -108,6 +120,11 @@ class DataManager {
     rows: [],
     nodeInfo: new WeakMap<object, NodeInfo>()
   };
+  /**
+   * Advances every time the cache is rebuilt, which every change of the tree's shape does, so a
+   * shape capture can tell whether anything moved since the previous one.
+   */
+  #shapeVersion = 0;
 
   /**
    * Initializes the data manager with references to the NestedRows plugin and the Handsontable instance.
@@ -161,350 +178,90 @@ class DataManager {
   }
 
   /**
-   * Captures the top-level roots represented by a physical removal list, including each root's
-   * complete nested subtree and its original parent position.
+   * Returns the shape of the nested source – the top-level rows and the child list of every row, by
+   * reference – for UndoRedo. When the shape did not change since the previous capture, the previous
+   * one itself is returned. The rows' values are not copied: they travel in the undo journal, so
+   * restoring a shape never brings an old cell value back.
    *
-   * Descendants are omitted when an ancestor is also being removed. The parent object reference
-   * lets restoration find a surviving parent even when another removed top-level row shifted its
-   * tree path.
-   *
-   * @param {number[]} physicalRows Physical rows being removed.
-   * @returns {NestedRowsRemovalSnapshot} Detached nested-row removal snapshot.
+   * @param {*} previous The value the previous capture returned.
+   * @returns {object|undefined}
    */
-  captureRemovedRows(physicalRows: number[]): NestedRowsRemovalSnapshot {
-    const rowsToRemove = new Set(physicalRows);
-    const rows: RemovedRowSnapshot[] = [];
+  captureShape(previous: unknown): NestedRowsShape | undefined {
+    const data = this.data;
 
-    physicalRows.forEach((physicalRow) => {
-      const rowObject = this.getDataObject(physicalRow);
+    if (data === null) {
+      return undefined;
+    }
 
-      if (!rowObject) {
+    if (isNestedRowsShape(previous) && previous.version === this.#shapeVersion && previous.data === data) {
+      return previous;
+    }
+
+    const children = new Map<RowObject, ChildrenState>();
+    const visit = (node: RowObject) => {
+      if (typeof node !== 'object' || node === null || !('__children' in node) || children.has(node)) {
         return;
       }
 
-      const parent = this.getRowParent(rowObject);
-      const parentRow = parent === null ? null : this.getRowIndex(parent);
+      const value: unknown = node.__children;
 
-      if (parentRow !== null && rowsToRemove.has(parentRow)) {
-        return;
+      if (Array.isArray(value)) {
+        children.set(node, value.slice());
+        value.forEach(visit);
+      } else {
+        children.set(node, { value });
       }
-
-      const path = this.getRowTreePath(physicalRow);
-
-      if (path === null) {
-        return;
-      }
-
-      const subtreePhysicalRows = [physicalRow];
-
-      this.#collectSubtreePhysicalRows(rowObject, subtreePhysicalRows);
-
-      rows.push({
-        data: cloneRowData(rowObject),
-        index: this.getRowIndexWithinParent(rowObject),
-        path,
-        parentPath: parentRow === null ? null : this.getRowTreePath(parentRow),
-        parent,
-        physicalRows: subtreePhysicalRows,
-        visualIndex: this.hot.toVisualRow(physicalRow),
-      });
-    });
-
-    return {
-      rows,
-      rowIndexMaps: this.#captureRowIndexMaps(),
-      collapsedRows: this.plugin.collapsingUI?.getCollapsedParents() ?? [],
     };
+
+    data.forEach(visit);
+
+    return { version: this.#shapeVersion, data, roots: data.slice(), children };
   }
 
   /**
-   * Returns every physical row represented by a nested removal snapshot.
+   * Puts the nested source back into a shape `captureShape()` returned. The arrays the host holds are
+   * refilled in place, so the host keeps seeing the grid's data.
    *
-   * @param {NestedRowsRemovalSnapshot} snapshot Detached nested-row removal snapshot.
-   * @returns {number[]} Physical rows in the removed subtrees.
+   * @param {object} shape The shape to restore.
    */
-  getRemovedPhysicalRows(snapshot: NestedRowsRemovalSnapshot): number[] {
-    const physicalRows = new Set<number>();
+  restoreShape(shape: NestedRowsShape) {
+    const data = this.data;
 
-    snapshot.rows.forEach((row) => {
-      row.physicalRows.forEach((physicalRow) => {
-        physicalRows.add(physicalRow);
-      });
-    });
-
-    return Array.from(physicalRows);
-  }
-
-  /**
-   * Visual insert index for a captured nested root. `row.index` is the position inside the parent,
-   * so it must not stand in for a missing visual row – a trimmed root would hand the hooks `0`
-   * instead of the physical slot Formulas uses for its veto check.
-   *
-   * @param {RemovedRowSnapshot} row A captured nested removal root.
-   * @returns {number} A visual row, or the physical row when the root was trimmed.
-   */
-  #visualIndexForRemovedRow(row: RemovedRowSnapshot): number {
-    return row.visualIndex ?? this.hot.toVisualRow(row.physicalRows[0]) ?? row.physicalRows[0];
-  }
-
-  /**
-   * Runs the create-row lifecycle hooks for a nested undo without mutating the tree.
-   *
-   * UndoRedo must call this before `beforeUndo`. Formulas always calls `engine.undo()` in
-   * `beforeUndo`, so a veto discovered only while applying the snapshot would leave HyperFormula
-   * restored and Handsontable empty.
-   *
-   * @param {NestedRowsRemovalSnapshot} snapshot Detached nested-row removal snapshot.
-   * @returns {boolean} `true` when every restore hook allows the operation.
-   */
-  canRestoreRemovedRows(snapshot: NestedRowsRemovalSnapshot): boolean {
-    const roots = snapshot.rows.map(row => ({
-      row,
-      visualIndex: this.#visualIndexForRemovedRow(row),
-      subtreeLength: row.physicalRows.length,
-    }));
-
-    // Ask every root before deciding. Stopping at the first `false` would fire the insert
-    // hooks for earlier roots and skip later ones, so a listener pairing before/after on the
-    // first root is left holding state and a veto on the second root is never heard.
-    let allowed = true;
-
-    roots.forEach(({ visualIndex, subtreeLength }) => {
-      if (this.hot.runHooks('beforeAlter', 'insert_row_above', visualIndex, subtreeLength, 'UndoRedo.undo') === false) {
-        allowed = false;
-      }
-
-      if (this.hot.runHooks('beforeCreateRow', visualIndex, subtreeLength, 'UndoRedo.undo') === false) {
-        allowed = false;
-      }
-    });
-
-    if (!allowed) {
-      return false;
+    if (data === null || shape.data !== data) {
+      return;
     }
 
-    roots.forEach(({ row }) => {
-      this.plugin.disableCoreAPIModifiers();
+    refillArray(data, shape.roots);
 
-      try {
-        if (this.hot.runHooks('beforeDataSplice', row.physicalRows[0], 0, [row.data]) === false) {
-          allowed = false;
+    const visit = (node: RowObject) => {
+      const state = shape.children.get(node);
+
+      if (state === undefined) {
+        // The row had no child list when the shape was taken – a child added since created it.
+        if (typeof node === 'object' && node !== null && '__children' in node) {
+          Reflect.deleteProperty(node, '__children');
         }
-      } finally {
-        this.plugin.enableCoreAPIModifiers();
+
+        return;
       }
-    });
 
-    return allowed;
-  }
+      if (!Array.isArray(state)) {
+        Reflect.set(node, '__children', state.value);
 
-  /**
-   * Restores nested removal roots at their original parent positions and repairs the row index
-   * mapper to the sequence that existed before the removal.
-   *
-   * Call {@link DataManager#canRestoreRemovedRows} first. This method applies the snapshot and
-   * does not re-run the veto hooks.
-   *
-   * @param {NestedRowsRemovalSnapshot} snapshot Detached nested-row removal snapshot.
-   * @param {number[]} rowIndexesSequence Physical row sequence from before the removal.
-   * @param {boolean} [shiftSelection=true] When `false`, skip `selection.shiftRows`. Context-menu
-   *   removal never shifted the highlight, so undoing that path must not push it down by the subtree.
-   * @returns {boolean} `true` when the operation was restored.
-   */
-  restoreRemovedRows(
-    snapshot: NestedRowsRemovalSnapshot,
-    rowIndexesSequence: number[],
-    shiftSelection = true
-  ): boolean {
-    if (!this.plugin.enabled || this.plugin.dataManager !== this) {
-      return false;
-    }
+        return;
+      }
 
-    const rowsByParent = new Map<RowObject | null, RemovedRowSnapshot[]>();
+      if (Array.isArray(node.__children)) {
+        refillArray(node.__children, state);
+      } else {
+        node.__children = state.slice();
+      }
 
-    snapshot.rows.forEach((row) => {
-      const parent = row.parent !== null && this.getRowIndex(row.parent) !== null
-        ? row.parent
-        : this.#getRowObjectByTreePath(row.parentPath);
-      const rows = rowsByParent.get(parent) ?? [];
+      state.forEach(visit);
+    };
 
-      rows.push({ ...row, parent });
-      rowsByParent.set(parent, rows);
-    });
-
-    rowsByParent.forEach((rows, parent) => {
-      // The live array is already compacted. Inserting high indexes first writes past the
-      // remaining siblings and lands them in the wrong order (A,B,C minus A and B becomes A,C,B).
-      // Ascending original-index order pushes that compacted tail to the right as each root
-      // goes back, which rebuilds the pre-removal layout.
-      rows.sort((first, second) => first.index - second.index);
-
-      rows.forEach((row) => {
-        if (parent === null) {
-          this.data!.splice(row.index, 0, row.data);
-        } else {
-          if (!Array.isArray(parent.__children)) {
-            parent.__children = [];
-          }
-
-          parent.__children.splice(row.index, 0, row.data);
-        }
-      });
-    });
-
+    shape.roots.forEach(visit);
     this.rewriteCache();
-
-    const restoredPhysicalRows: number[] = [];
-    const restoredRowBlocks: Array<{ physicalRow: number, amount: number, visualIndex: number | null }> = [];
-
-    snapshot.rows.forEach((row) => {
-      const physicalRow = this.getRowIndex(row.data);
-
-      if (physicalRow === null) {
-        return;
-      }
-
-      const subtreeLength = this.countChildren(row.data) + 1;
-
-      restoredRowBlocks.push({ physicalRow, amount: subtreeLength, visualIndex: row.visualIndex });
-
-      for (let offset = 0; offset < subtreeLength; offset++) {
-        restoredPhysicalRows.push(physicalRow + offset);
-      }
-    });
-
-    Array.from(new Set(restoredPhysicalRows))
-      .sort((first, second) => first - second)
-      .forEach((physicalRow) => {
-        this.hot._getMetaManager().createRow(physicalRow, 1);
-      });
-
-    this.#restoreRowIndexMaps(snapshot.rowIndexMaps, rowIndexesSequence);
-
-    if (this.plugin.collapsingUI) {
-      this.plugin.collapsingUI.collapsedRows = snapshot.collapsedRows.slice();
-    }
-
-    restoredRowBlocks.forEach(({ physicalRow, amount, visualIndex }) => {
-      this.hot.runHooks(
-        'afterCreateRow',
-        visualIndex ?? this.hot.toVisualRow(physicalRow) ?? physicalRow,
-        amount,
-        'UndoRedo.undo'
-      );
-    });
-
-    if (shiftSelection) {
-      restoredRowBlocks.forEach(({ physicalRow, amount }) => {
-        const visualRow = this.hot.toVisualRow(physicalRow);
-        let visibleAmount = 0;
-
-        for (let offset = 0; offset < amount; offset++) {
-          if (this.hot.toVisualRow(physicalRow + offset) !== null) {
-            visibleAmount += 1;
-          }
-        }
-
-        if (visualRow !== null && visibleAmount > 0) {
-          this.hot.selection.shiftRows(visualRow, visibleAmount);
-        }
-      });
-    }
-
-    return true;
-  }
-
-  /**
-   * Captures every row index map by physical index. Row removal compacts the map arrays, so restoring
-   * only the physical order leaves trimming, hiding, and plugin-owned values attached to the wrong
-   * rows.
-   *
-   * @returns {RowIndexMapsSnapshot} Row index-map values from before the removal.
-   */
-  #captureRowIndexMaps(): RowIndexMapsSnapshot {
-    const rowIndexMapper = this.hot.rowIndexMapper;
-
-    return {
-      indexesSequence: rowIndexMapper.getIndexesSequence().slice(),
-      trimmingMaps: this.#captureIndexMapCollection(rowIndexMapper.trimmingMapsCollection),
-      hidingMaps: this.#captureIndexMapCollection(rowIndexMapper.hidingMapsCollection),
-      variousMaps: this.#captureIndexMapCollection(rowIndexMapper.variousMapsCollection),
-    };
-  }
-
-  /**
-   * Restores every row index map after the source tree has been put back.
-   *
-   * @param {RowIndexMapsSnapshot} snapshot Row index-map values from before the removal.
-   * @param {number[]} fallbackSequence The legacy sequence captured by the generic action.
-   */
-  #restoreRowIndexMaps(snapshot: RowIndexMapsSnapshot | undefined, fallbackSequence: number[]) {
-    const rowIndexMapper = this.hot.rowIndexMapper;
-    const indexesSequence = snapshot?.indexesSequence ?? fallbackSequence;
-
-    rowIndexMapper.fitToLength(indexesSequence.length);
-    rowIndexMapper.suspendOperations();
-
-    try {
-      rowIndexMapper.setIndexesSequence(indexesSequence);
-
-      const restoreMaps = (
-        collection: { collection: Map<string, {
-          getValues: () => unknown[];
-          setValues: (values: unknown[]) => void;
-          indexedValues: unknown[];
-          orderOfIndexes?: number[];
-        }> },
-        maps: IndexMapSnapshot[] = []
-      ) => {
-        maps.forEach(({ name, values, orderOfIndexes }) => {
-          const indexMap = collection.collection.get(name);
-
-          if (!indexMap) {
-            return;
-          }
-
-          indexMap.setValues(values);
-
-          if (orderOfIndexes !== undefined && 'orderOfIndexes' in indexMap) {
-            indexMap.orderOfIndexes = orderOfIndexes.slice();
-          }
-        });
-      };
-
-      restoreMaps(rowIndexMapper.trimmingMapsCollection, snapshot?.trimmingMaps);
-      restoreMaps(rowIndexMapper.hidingMapsCollection, snapshot?.hidingMaps);
-      restoreMaps(rowIndexMapper.variousMapsCollection, snapshot?.variousMaps);
-    } finally {
-      rowIndexMapper.resumeOperations();
-    }
-  }
-
-  /**
-   * Captures map values by registration name. Linked maps expose their values in link order, so the
-   * physical backing array and its order are both retained.
-   *
-   * @param {{collection: Map<string, object>}} collection Registered row index maps.
-   * @returns {IndexMapSnapshot[]} Named map snapshots.
-   */
-  #captureIndexMapCollection(collection: {
-    collection: Map<string, {
-      getValues: () => unknown[];
-      indexedValues: unknown[];
-      orderOfIndexes?: number[];
-    }>
-  }): IndexMapSnapshot[] {
-    return Array.from(collection.collection.entries()).map(([name, indexMap]) => {
-      const isLinkedMap = indexMap.orderOfIndexes !== undefined;
-
-      return {
-        name,
-        values: (isLinkedMap ? indexMap.indexedValues : indexMap.getValues()).slice(),
-        ...(isLinkedMap ? {
-          orderOfIndexes: indexMap.orderOfIndexes!.slice(),
-        } : {}),
-      };
-    });
   }
 
   /**
@@ -513,6 +270,7 @@ class DataManager {
    * @private
    */
   rewriteCache() {
+    this.#shapeVersion += 1;
     this.cache = {
       levels: [],
       levelCount: 0,
@@ -768,57 +526,6 @@ class DataManager {
   }
 
   /**
-   * Returns the row object at a tree path.
-   *
-   * @param {number[]|null} path Chain of child indexes.
-   * @returns {RowObject|null} The row object, or `null` when the path is invalid.
-   */
-  #getRowObjectByTreePath(path: number[] | null): RowObject | null {
-    if (!Array.isArray(path) || path.length === 0) {
-      return null;
-    }
-
-    let siblings: RowObject[] | null | undefined = this.data;
-    let row: RowObject | null = null;
-
-    for (let i = 0; i < path.length; i++) {
-      row = siblings?.[path[i]] ?? null;
-
-      if (row === null) {
-        return null;
-      }
-
-      siblings = row.__children;
-    }
-
-    return row;
-  }
-
-  /**
-   * Collects the physical rows currently known for a subtree.
-   *
-   * @param {RowObject} row The current subtree node.
-   * @param {number[]} physicalRows Accumulator of known physical rows.
-   */
-  #collectSubtreePhysicalRows(row: RowObject, physicalRows: number[]): void {
-    const children = row.__children;
-
-    if (!Array.isArray(children)) {
-      return;
-    }
-
-    children.forEach((child) => {
-      const childPhysicalRow = this.getRowIndex(child);
-
-      if (childPhysicalRow !== null) {
-        physicalRows.push(childPhysicalRow);
-      }
-
-      this.#collectSubtreePhysicalRows(child, physicalRows);
-    });
-  }
-
-  /**
    * Count all rows (including all parents and children).
    *
    * @returns {number}
@@ -988,6 +695,16 @@ class DataManager {
    * @param {object} [element] The element to add as a child.
    */
   addChild(parent: RowObject, element?: RowObject) {
+    this.plugin.runOperation('insert_row', () => this.#addChild(parent, element));
+  }
+
+  /**
+   * The body of `addChild()`, run inside its operation.
+   *
+   * @param {object} parent The parent row object.
+   * @param {object} [element] The element to add as a child.
+   */
+  #addChild(parent: RowObject, element?: RowObject) {
     let childElement = element;
 
     this.hot.runHooks('beforeAddChild', parent, childElement);
@@ -1042,6 +759,15 @@ class DataManager {
       return;
     }
 
+    // Journaled as the row insertion it completes, the way `DataMap#createRow` journals its own, so
+    // an undo reports the row it takes away through the row hooks.
+    // Every caller has already inserted the row's index into the index mapper.
+    this.hot._getOperationScope().record({
+      type: 'insertRows',
+      physicalIndex: physicalRow,
+      amount: 1,
+      atAxisEnd: physicalRow === this.hot.rowIndexMapper.getNumberOfIndexes() - 1,
+    });
     this.hot._getMetaManager().createRow(physicalRow, 1);
   }
 
@@ -1073,7 +799,9 @@ class DataManager {
 
     const metaManager = this.hot._getMetaManager();
 
+    recordMetaRowsShift(this.hot, false, fromPhysicalRow, amount);
     metaManager.removeRow(fromPhysicalRow, amount);
+    recordMetaRowsShift(this.hot, true, toPhysicalRow, amount);
     metaManager.createRow(toPhysicalRow, amount);
   }
 
@@ -1113,6 +841,17 @@ class DataManager {
    * @param {object} [element] Element (node) to insert.
    */
   addChildAtIndex(parent: RowObject | null, index: number, element: RowObject | null) {
+    this.plugin.runOperation('insert_row', () => this.#addChildAtIndex(parent, index, element));
+  }
+
+  /**
+   * The body of `addChildAtIndex()`, run inside its operation.
+   *
+   * @param {object} parent Parent node.
+   * @param {number} index Index to insert the child element at.
+   * @param {object} [element] Element (node) to insert.
+   */
+  #addChildAtIndex(parent: RowObject | null, index: number, element: RowObject | null) {
     let childElement = element;
     let flattenedIndex: number;
 
@@ -1233,8 +972,20 @@ class DataManager {
    *
    * @param {object|Array} elements Row object or an array of selected coordinates.
    * @param {boolean} [forceRender=true] If true (default), it triggers render after finished.
+   * @param {string} [source] Source emitted with the row mutation hooks.
    */
-  detachFromParent(elements: RowObject | number[], forceRender = true) {
+  detachFromParent(elements: RowObject | number[], forceRender = true, source = this.plugin.pluginName) {
+    this.plugin.runOperation('nested_rows_detach', () => this.#detachFromParent(elements, forceRender, source));
+  }
+
+  /**
+   * The body of `detachFromParent()`, run inside its operation.
+   *
+   * @param {object|Array} elements Row object or an array of selected coordinates.
+   * @param {boolean} forceRender If true, it triggers render after finished.
+   * @param {string|null} source Source emitted with the row mutation hooks.
+   */
+  #detachFromParent(elements: RowObject | number[], forceRender: boolean, source: string | null) {
     let element: RowObject | null = null;
     const rowObjects: (RowObject | null | undefined)[] = [];
 
@@ -1249,7 +1000,7 @@ class DataManager {
         const rowObj = rowObjects[i];
 
         if (rowObj !== null && rowObj !== undefined) {
-          this.detachFromParent(rowObj, false);
+          this.detachFromParent(rowObj, false, source);
         }
       });
 
@@ -1278,7 +1029,7 @@ class DataManager {
     // condition, free to drift away from the one the data operation is gated on.
     let hasMovedTheRow = false;
 
-    this.hot.runHooks('beforeDetachChild', parent, element);
+    this.hot.runHooks('beforeDetachChild', parent, element, source);
 
     if (indexWithinParent !== null && indexWithinParent !== undefined) {
       const removedRowIndexes = Array.from(
@@ -1290,7 +1041,7 @@ class DataManager {
         childRowIndex,
         childCount + 1,
         removedRowIndexes,
-        this.plugin.pluginName
+        source
       );
 
       parent!.__children!.splice(indexWithinParent, 1);
@@ -1302,7 +1053,7 @@ class DataManager {
         childRowIndex,
         childCount + 1,
         removedRowIndexes,
-        this.plugin.pluginName
+        source
       );
 
       if (grandparent) {
@@ -1311,13 +1062,13 @@ class DataManager {
         const lastGrandparentChild = this.getChild(grandparent, this.countChildren(grandparent) - 1);
         const lastGrandparentChildIndex = this.getRowIndex(lastGrandparentChild) ?? 0;
 
-        this.hot.runHooks('beforeCreateRow', lastGrandparentChildIndex + 1, childCount + 1, this.plugin.pluginName);
+        this.hot.runHooks('beforeCreateRow', lastGrandparentChildIndex + 1, childCount + 1, source);
 
         grandparent.__children!.push(element);
 
       } else {
         movedElementRowIndex = this.hot.countRows() + 1;
-        this.hot.runHooks('beforeCreateRow', movedElementRowIndex - 2, childCount + 1, this.plugin.pluginName);
+        this.hot.runHooks('beforeCreateRow', movedElementRowIndex - 2, childCount + 1, source);
 
         this.data!.push(element);
       }
@@ -1334,9 +1085,9 @@ class DataManager {
       this.moveCellsMeta(childPhysicalIndex, this.getRowIndex(element), childCount + 1);
     }
 
-    this.hot.runHooks('afterCreateRow', movedElementRowIndex! - 2, childCount + 1, this.plugin.pluginName);
+    this.hot.runHooks('afterCreateRow', movedElementRowIndex! - 2, childCount + 1, source);
 
-    this.hot.runHooks('afterDetachChild', parent, element, this.getRowIndex(element));
+    this.hot.runHooks('afterDetachChild', parent, element, this.getRowIndex(element), source);
 
     if (forceRender) {
       this.hot.render();

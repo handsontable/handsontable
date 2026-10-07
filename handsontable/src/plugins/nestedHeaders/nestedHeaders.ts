@@ -8,6 +8,7 @@ import { isLeftClick, isRightClick, isTouchEvent } from '../../helpers/dom/event
 import { warn } from '../../helpers/console';
 import {
   ACTIVE_HEADER_TYPE,
+  COLUMN_TYPE,
   HEADER_TYPE,
 } from '../../selection';
 import { BasePlugin } from '../base';
@@ -19,6 +20,7 @@ import type { ColumnDropMode, HeaderVisibility } from './stateManager/utils';
 import type CellCoords from '../../3rdparty/walkontable/src/cell/coords';
 import GhostTable from './utils/ghostTable';
 import { resolveRowspanNavigationContextRow } from './utils/navigation';
+import { getEndOverlayHeaders } from '../../utils/endOverlayHeaders';
 
 /**
  * A single configured nested header. Declares the header label and how it spans and behaves.
@@ -66,6 +68,32 @@ export type NestedHeader = string | number | NestedHeaderSettings;
 
 export const PLUGIN_KEY = 'nestedHeaders';
 export const PLUGIN_PRIORITY = 280;
+
+/**
+ * The header group membership a column move left behind, as `NestedHeaders#captureState()` records it.
+ */
+interface MembershipState {
+  readonly version: number;
+  /**
+   * The state manager's config version when the overrides were recorded. Overrides from another
+   * `nestedHeaders` configuration name columns and groups of that one.
+   */
+  readonly configVersion: number;
+  readonly overrides: ReadonlyArray<readonly [number, ReadonlyArray<readonly [number, number]>]>;
+}
+
+/**
+ * Tells whether a value is a membership state `NestedHeaders#captureState()` recorded.
+ *
+ * @param {*} value The value to test.
+ * @returns {boolean}
+ */
+function isMembershipState(value: unknown): value is MembershipState {
+  return typeof value === 'object' && value !== null &&
+    'version' in value && typeof value.version === 'number' &&
+    'configVersion' in value && typeof value.configVersion === 'number' &&
+    'overrides' in value && Array.isArray(value.overrides);
+}
 
 /**
  * @plugin NestedHeaders
@@ -505,6 +533,63 @@ export class NestedHeaders extends BasePlugin {
   }
 
   /**
+   * Returns the header group membership column moves recorded, for UndoRedo. When it did not change
+   * since the previous capture, the previous state itself is returned.
+   *
+   * @private
+   * @param {*} previous The value the previous capture returned.
+   * @returns {object}
+   */
+  captureState(previous: unknown): unknown {
+    const version = this.#stateManager.getMembershipOverridesVersion();
+
+    if (isMembershipState(previous) && previous.version === version) {
+      return previous;
+    }
+
+    return {
+      version,
+      configVersion: this.#stateManager.getConfigVersion(),
+      overrides: this.#stateManager.exportMembershipOverrides(),
+    };
+  }
+
+  /**
+   * The group membership changes only with a column move, insertion or removal, or a new
+   * `nestedHeaders` configuration. The UndoRedo check of a `columns` settings update drops a step
+   * that moved, inserted or removed columns on its own, and a configuration names headers, not
+   * fields – so the membership itself never makes a step unsafe to undo.
+   *
+   * @private
+   * @returns {number[]}
+   */
+  getStateColumns(): readonly number[] {
+    return [];
+  }
+
+  /**
+   * Puts back the header group membership a `captureState()` call recorded and derives the headers
+   * from it. The column order is already restored by then. Overrides recorded under another
+   * `nestedHeaders` configuration are not put back, but the headers are still derived again, for
+   * the restored column order.
+   *
+   * @private
+   * @param {*} state The recorded state.
+   */
+  restoreState(state: unknown): void {
+    if (!isMembershipState(state)) {
+      return;
+    }
+
+    if (state.configVersion === this.#stateManager.getConfigVersion()) {
+      this.#stateManager.importMembershipOverrides(state.overrides);
+    }
+
+    this.#stateManager.rebuildState();
+    this.#stateManager.syncVisibility(createColumnVisibilityAdapter(this.hot));
+  }
+
+  /**
    * Returns the internal state manager that tracks the nested header spans and their layout configuration.
    */
   getStateManager() {
@@ -579,6 +664,19 @@ export class NestedHeaders extends BasePlugin {
           removeClass(cornerChild, 'hiddenHeader');
         }
       }
+
+      // The inline-end clones render only the last columns, so their cells do not line up with the
+      // master's by position and are cleared on their own.
+      getEndOverlayHeaders(this.hot).forEach((endHeaders) => {
+        const endLevel = endHeaders.childNodes[i];
+
+        endLevel?.childNodes.forEach((endChild) => {
+          (endChild as HTMLElement).removeAttribute('colspan');
+          (endChild as HTMLElement).removeAttribute('rowspan');
+          (endChild as HTMLElement).style.display = '';
+          removeClass(endChild as HTMLElement, 'hiddenHeader');
+        });
+      });
     }
   }
 
@@ -587,6 +685,9 @@ export class NestedHeaders extends BasePlugin {
    */
   headerRendererFactory(headerLevel: number) {
     const fixedColumnsStart = this.hot.view._wt.getSetting('fixedColumnsStart') as number;
+    const fixedColumnsEnd = (this.hot.view._wt.getSetting('fixedColumnsEnd') as number | undefined) ?? 0;
+    const totalColumns = this.hot.view._wt.getSetting('totalColumns') as number;
+    const firstEndColumn = fixedColumnsEnd > 0 ? totalColumns - fixedColumnsEnd : Infinity;
 
     return (renderedColumnIndex: number, TH: HTMLTableCellElement) => {
       const { columnIndexMapper } = this.hot;
@@ -605,16 +706,18 @@ export class NestedHeaders extends BasePlugin {
       removeClass(TH, 'htRowspanHeader');
       removeClass(TH, 'htRowspanBottomLevel');
 
+      let groupOriginColumn = visualColumnIndex;
       const rendererHeaderSettings: Partial<HeaderNodeData> =
         this.#stateManager.getHeaderSettings(headerLevel, visualColumnIndex) ?? {};
       const {
         colspan,
-        rowspan,
         isHidden,
         isPlaceholder,
         isRowspanPlaceholder,
-        headerClassNames,
       } = rendererHeaderSettings;
+      // The settings the cell is drawn from: its own, or the origin group's for an end continuation cell.
+      let groupSettings = rendererHeaderSettings;
+      let isEndContinuation = false;
 
       if (isRowspanPlaceholder) {
         addClass(TH, 'hiddenHeader');
@@ -623,15 +726,33 @@ export class NestedHeaders extends BasePlugin {
       } else if (isPlaceholder || isHidden) {
         addClass(TH, 'hiddenHeader');
 
+        // A group that starts before the end band and reaches into it has no header cell of its own on the
+        // end clones. The first end column carries the rest of it (mirrors a group that starts in the
+        // start band and reaches past it).
+        if (isPlaceholder && !isHidden && renderedColumnIndex === firstEndColumn && this.#isEndOverlayHeader(TH)) {
+          const continuation = this.#renderEndGroupContinuation(
+            TH, headerLevel, visualColumnIndex, renderedColumnIndex
+          );
+
+          if (continuation) {
+            groupOriginColumn = continuation.originColumn;
+            groupSettings = continuation.originSettings;
+            isEndContinuation = true;
+          }
+        }
+
       } else {
-        this.#applyColspan(TH, colspan, visualColumnIndex, renderedColumnIndex, fixedColumnsStart);
-        this.#applyRowspan(TH, rowspan, headerLevel);
+        this.#applyColspan(TH, colspan, visualColumnIndex, renderedColumnIndex, fixedColumnsStart, firstEndColumn);
+        this.#applyRowspan(TH, groupSettings.rowspan, headerLevel);
       }
 
+      // A continuation cell shows the label of the group's origin column, but it is rendered for the column it
+      // sits on: `TableView#updateCellHeader` maps the column to a rendered index of the clone, and the origin
+      // column is not in the end clone (an update of an existing cell would then draw an empty label).
       this.hot.view.appendColHeader(
         visualColumnIndex,
         TH,
-        (colIndex: number, level: number) => this.getColumnHeaderValue(colIndex, level),
+        (_colIndex: number, level: number) => this.getColumnHeaderValue(groupOriginColumn, level),
         headerLevel,
       );
 
@@ -639,13 +760,14 @@ export class NestedHeaders extends BasePlugin {
       // to the cells (the one whose bottom edge reaches the last header row). Upper-level headers -
       // group parents, or single-column headers stacked above - would point at an internal or
       // duplicated boundary, so strip the indicator from every header that does not touch the cells.
-      const reachesCells = headerLevel + (rowspan ?? 1) === this.getLayersCount();
+      const reachesCells = headerLevel + (groupSettings.rowspan ?? 1) === this.getLayersCount();
 
       if (!reachesCells) {
         removeClass(TH, ['beforeHiddenColumn', 'afterHiddenColumn']);
       }
 
-      if (!isPlaceholder && !isHidden && !isRowspanPlaceholder) {
+      if ((!isPlaceholder && !isHidden && !isRowspanPlaceholder) || isEndContinuation) {
+        const { headerClassNames } = groupSettings;
         const innerHeaderDiv = TH.querySelector('div.relative') as HTMLElement;
 
         if (innerHeaderDiv && headerClassNames && headerClassNames.length > 0) {
@@ -658,6 +780,55 @@ export class NestedHeaders extends BasePlugin {
   }
 
   /**
+   * Checks whether the header cell belongs to one of the clones that render the `fixedColumnsEnd` columns.
+   */
+  #isEndOverlayHeader(TH: HTMLTableCellElement): boolean {
+    return getEndOverlayHeaders(this.hot).some(thead => thead.contains(TH));
+  }
+
+  /**
+   * Renders the part of a group header that lies in the end band when the group starts before it.
+   * Returns the group's origin column and settings, or `undefined` when the cell is not such a continuation.
+   */
+  #renderEndGroupContinuation(
+    TH: HTMLTableCellElement,
+    headerLevel: number,
+    visualColumnIndex: number,
+    renderedColumnIndex: number,
+  ): { originColumn: number, originSettings: Partial<HeaderNodeData> } | undefined {
+    const { columnIndexMapper } = this.hot;
+    const originColumn = this.#stateManager.findLeftMostColumnIndex(headerLevel, visualColumnIndex);
+
+    if (originColumn === visualColumnIndex) {
+      return undefined;
+    }
+
+    const originSettings: Partial<HeaderNodeData> =
+      this.#stateManager.getHeaderSettings(headerLevel, originColumn) ?? {};
+    const originRendered = columnIndexMapper.getRenderableFromVisualIndex(originColumn);
+
+    if (originRendered === null || !originSettings.colspan || originSettings.isHidden) {
+      return undefined;
+    }
+
+    const rest = originRendered + originSettings.colspan - renderedColumnIndex;
+
+    if (rest < 1) {
+      return undefined;
+    }
+
+    removeClass(TH, 'hiddenHeader');
+
+    if (rest > 1) {
+      TH.setAttribute('colspan', String(rest));
+    }
+
+    this.#applyRowspan(TH, originSettings.rowspan, headerLevel);
+
+    return { originColumn, originSettings };
+  }
+
+  /**
    * Applies colspan attribute and related CSS classes to a header cell.
    */
   #applyColspan(
@@ -666,6 +837,7 @@ export class NestedHeaders extends BasePlugin {
     visualColumnIndex: number,
     renderedColumnIndex: number,
     fixedColumnsStart: number,
+    firstEndColumn = Infinity,
   ) {
     if (colspan === undefined || colspan <= 1) {
       return;
@@ -677,6 +849,11 @@ export class NestedHeaders extends BasePlugin {
     const isTopOverlay = wtOverlays.topOverlay?.clone?.wtTable.THEAD?.contains(TH);
 
     if (isTopOverlay && visualColumnIndex < fixedColumnsStart) {
+      addClass(TH, 'hiddenHeaderText');
+    }
+
+    // The end clones show the label of a group that reaches into the end band, so the top overlay hides it.
+    if (isTopOverlay && renderedColumnIndex + colspan > firstEndColumn) {
       addClass(TH, 'hiddenHeaderText');
     }
 
@@ -933,7 +1110,11 @@ export class NestedHeaders extends BasePlugin {
   };
 
   /**
-   * Adjusts the column highlight start index and width to align with the nested header spanning configuration.
+   * Adjusts the column highlight start index and width to align with the nested header spanning
+   * configuration. Redirects a non-root (`hiddenHeader`) column onto the group's visible origin `<th>`
+   * for `HEADER_TYPE` (header-selection highlight) and `COLUMN_TYPE` (the `currentColClassName`
+   * row/column highlight) alike, since both can resolve to a group-level header cell once the
+   * selection's header extent spans more than the leaf level.
    */
   #onBeforeHighlightingColumnHeader = (
     visualColumn: number, headerLevel: number,
@@ -955,7 +1136,7 @@ export class NestedHeaders extends BasePlugin {
       colspan = 1,
     }: Partial<HeaderNodeData> = this.#stateManager.getHeaderSettings(headerLevel, visualColumn) ?? {};
 
-    if (selectionType === HEADER_TYPE) {
+    if (selectionType === HEADER_TYPE || selectionType === COLUMN_TYPE) {
       if (!isRoot) {
         return headerNodeData.columnIndex as number;
       }

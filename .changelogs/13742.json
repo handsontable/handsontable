@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed the narrowest width a column can be resized to, in a grid whose headers render the dropdown menu button, from 20px to the icon size plus the cell padding on both sides (32px in Main, 40px in Horizon, 24px in Classic), so the menu button stays inside its own cell. A narrow header now hides the label text first, then the sort indicator, and keeps the menu button. See the migration guide.",
+  "type": "changed",
+  "issueOrPR": 13742,
+  "breaking": true,
+  "framework": "none"
+}

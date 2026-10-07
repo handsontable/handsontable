@@ -168,4 +168,54 @@ test.describe('iPadOS frozen-top corner reserve', () => {
 
     await expect.poll(() => grid.topOverlayHolderOverhang()).toBe(0);
   });
+
+  test('keeps a frozen-row bottom handle while its column is on screen, and only then', async () => {
+    // The top overlay draws a frozen-row selection's handles only for a column the viewport shows.
+    // Its bottom handle must survive that gate while the column is on screen, and stop being
+    // reachable once the column scrolls behind the frozen pane.
+    await grid.goto({ frozen: true, cols: 'wide' });
+    await grid.selectRange(0, 1, 0, 1);
+
+    await expect.poll(() => grid.reachableBottomHandles()).toEqual(['ht_clone_top', 'ht_master']);
+
+    await grid.scrollColumnEndUnderFrozenPane(1);
+
+    await expect.poll(() => grid.reachableBottomHandles()).toEqual([]);
+
+    // Back on screen, so a stale visible-range snapshot would keep the handle hidden.
+    await grid.scrollColumnIntoView(1);
+
+    await expect.poll(() => grid.reachableBottomHandles()).toEqual(['ht_clone_top', 'ht_master']);
+  });
+});
+
+test.describe('iPadOS range handles on a merged cell across the freeze lines', () => {
+  let grid: MobileHandlesPage;
+
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    await emulateIpadOS(page);
+
+    grid = new MobileHandlesPage(page, theme, bundle);
+    await grid.goto({ frozen: true });
+  });
+
+  test('draws one bottom handle, on the block\'s own corner', async () => {
+    // One frozen row and column: a 2x2 block at (0,0) crosses both freeze lines. Every overlay
+    // renders part of it, and each used to put a bottom handle on its own freeze line inside the
+    // block (DEV-143).
+    await grid.mergeCells([{ row: 0, col: 0, rowspan: 2, colspan: 2 }]);
+    await grid.selectRange(0, 0, 0, 0);
+
+    await expect.poll(() => grid.reachableBottomHandles()).toEqual(['ht_master']);
+  });
+
+  test('keeps a plain cell\'s bottom handle when an unrelated hook answers with a short result', async () => {
+    // budnix review on #13667: a `modifyGetCellCoords` hook indifferent to `source` may legally
+    // answer this fix's own lookup with a short `[row, column]` result, and reading it as a merge
+    // extent hid the mobile handle of every cell, merged or not.
+    await grid.addNaiveModifyGetCellCoordsHook();
+    await grid.selectRange(4, 4, 4, 4);
+
+    await expect.poll(() => grid.reachableBottomHandles()).toEqual(['ht_master']);
+  });
 });

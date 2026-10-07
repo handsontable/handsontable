@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `ImportFile` plugin, which loads an `.xlsx` workbook into the grid through the ExcelJS engine: cell values and inferred types with their number, date, and time formats, dropdown sources, formulas, merged cells, frozen panes, hidden rows and columns, column widths and row heights, read-only cells from sheet protection, comments, nested headers, and, with `importStyles`, alignment, font, fill, and borders. Features the engine cannot read are reported in one console warning per call. The `ExportFile` plugin's XLSX writer now shares the same engine adapter: date and time cells export the Excel number format derived from their `dateFormat` and `timeFormat` options (a cell using the default options and the default `en-US` locale now writes `mm/dd/yyyy` and `hh:mm AM/PM` instead of `mm-dd-yy` and `h:mm:ss`; a date cell follows its `locale`, so `de-DE` writes `dd.mm.yyyy`), formula cells carry their column's number format and a cached result, sheet names are sanitized, `compression: false` writes an uncompressed archive, a formula reference qualified with a sheet name (`Rates!A1`) is written and read back unshifted (a known limitation when the referenced sheet is exported in the same workbook with headers, see the export guide), a rendered cell's font color is exported from the cell itself while a cell outside the viewport is read from its classes only, and a rendered font color inherited from a container-scoped CSS variable is no longer written to the file. `batch()`, `batchRender()`, and `batchExecution()` now resume rendering and execution when the wrapped callback throws, instead of leaving the grid suspended.",
+  "type": "added",
+  "issueOrPR": 13551,
+  "breaking": false,
+  "framework": "none"
+}

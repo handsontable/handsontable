@@ -47,6 +47,14 @@ export interface ResizeAxis {
    */
   afterResizeHook: 'afterRowResize' | 'afterColumnResize';
   /**
+   * The name of the undo step a resize is recorded as.
+   */
+  operationName: 'resize_row' | 'resize_column';
+  /**
+   * The source the undo step of a resize carries.
+   */
+  operationSource: string;
+  /**
    * Returns the index mapper of this axis.
    */
   getIndexMapper(hot: HotInstance): IndexMapper;
@@ -71,9 +79,27 @@ export interface ResizeAxis {
    */
   getHeaderPosition(hot: HotInstance, header: HTMLElement, coords: CellCoords): HeaderPosition | undefined;
   /**
+   * Checks whether a header is anchored to the inline-end edge of the grid, as the frozen end columns are.
+   * Such a header keeps its inline-end edge when it is resized, so the gesture puts the handle on its
+   * inline-start edge. Optional: an axis without anchored headers leaves it out.
+   */
+  isAnchoredAtInlineEnd?(hot: HotInstance, header: HTMLElement): boolean;
+  /**
    * Returns the size reported to the resize hooks.
    */
   getHookSize(hot: HotInstance, index: number, newSize: number | null): number | null;
+}
+
+/**
+ * Checks whether a header is rendered by the top inline-end corner overlay (the headers of the frozen
+ * end columns).
+ *
+ * @param {HotInstance} hot The Handsontable instance.
+ * @param {HTMLElement} header The header element.
+ * @returns {boolean}
+ */
+function isInTopInlineEndCorner(hot: HotInstance, header: HTMLElement): boolean {
+  return hot.view._wt.wtOverlays.topInlineEndCornerOverlay.clone?.wtTable.holder.contains(header) === true;
 }
 
 /**
@@ -85,6 +111,8 @@ export const ROW_RESIZE_AXIS: ResizeAxis = {
   guideClassName: 'manualRowResizerGuide',
   beforeResizeHook: 'beforeRowResize',
   afterResizeHook: 'afterRowResize',
+  operationName: 'resize_row',
+  operationSource: 'manualRowResize.resize_row',
 
   getIndexMapper(hot) {
     return hot.rowIndexMapper;
@@ -167,6 +195,8 @@ export const COLUMN_RESIZE_AXIS: ResizeAxis = {
   guideClassName: 'manualColumnResizerGuide',
   beforeResizeHook: 'beforeColumnResize',
   afterResizeHook: 'afterColumnResize',
+  operationName: 'resize_column',
+  operationSource: 'manualColumnResize.resize_column',
 
   getIndexMapper(hot) {
     return hot.columnIndexMapper;
@@ -182,12 +212,20 @@ export const COLUMN_RESIZE_AXIS: ResizeAxis = {
 
   isHeaderElement(hot, element) {
     const thead = closest(element, ['THEAD'], hot.rootElement) as HTMLElement | null;
-    const { topOverlay, topInlineStartCornerOverlay } = hot.view._wt.wtOverlays;
+    const { topOverlay, topInlineStartCornerOverlay, topInlineEndCornerOverlay } = hot.view._wt.wtOverlays;
 
     return ([
       topOverlay.clone!.wtTable.THEAD,
       topInlineStartCornerOverlay.clone!.wtTable.THEAD,
-    ] as (HTMLElement | null)[]).includes(thead);
+      topInlineEndCornerOverlay.clone?.wtTable.THEAD,
+    ] as (HTMLElement | null | undefined)[]).includes(thead);
+  },
+
+  isAnchoredAtInlineEnd(hot, header) {
+    // The clone sits at the inline-end edge only while the columns overflow the holder. When they
+    // do not fill it, the end columns rest against the last column, the grid has no edge to anchor
+    // to, and the header keeps its inline-start edge as every other header does.
+    return isInTopInlineEndCorner(hot, header) && hot.view._wt.wtViewport.hasHorizontalScroll();
   },
 
   canResizeHeader(header) {
@@ -208,6 +246,10 @@ export const COLUMN_RESIZE_AXIS: ResizeAxis = {
 
     if (fixedColumn) {
       position = wt.wtOverlays.topInlineStartCornerOverlay.getRelativeCellPosition(header, row, column);
+
+    } else if (isInTopInlineEndCorner(hot, header)) {
+      // A header of the frozen end columns lives in the top inline-end corner overlay.
+      position = wt.wtOverlays.topInlineEndCornerOverlay.getRelativeCellPosition(header, row, column);
     }
 
     // If the TH is not a child of the top-left overlay, recalculate using

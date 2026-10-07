@@ -6,7 +6,10 @@ import { SheetsBarMenus } from './ui/menus';
 import { OverflowController } from './ui/overflow';
 import {
   captureViewState,
+  clearMergedCells,
+  keepSelectionOnPage,
   resetViewState,
+  resetViewport,
   restoreViewState,
   restoreViewport,
   type TrackedCellMeta,
@@ -16,8 +19,17 @@ import * as C from '../../i18n/constants';
 import { announce } from '../../utils/a11yAnnouncer';
 import { isRootInstance } from '../../utils/rootInstance';
 import { isPlainObject } from '../../helpers/object';
-import { warn } from '../../helpers/console';
+import { error as logError, warn, warnOnce } from '../../helpers/console';
 import { isHTMLElement } from '../../helpers/dom/element';
+import { syncIcon } from '../../themes/engine/icons';
+import type {
+  DataProvider,
+  DataProviderConfig,
+  DataProviderContextOwner,
+  DataProviderDetachedOutcome,
+  DataProviderFetchResult,
+  DataProviderRequestKind,
+} from '../dataProvider/dataProvider';
 
 export const PLUGIN_KEY = 'sheetsBar';
 export const PLUGIN_PRIORITY = 910;
@@ -33,6 +45,17 @@ export const SOURCE_API = 'SheetsBar.api';
  * Source tag for operations initiated from the bar UI.
  */
 export const SOURCE_UI = 'SheetsBar.ui';
+
+/**
+ * `warnOnce` key for the grid-level `dataProvider` that the sheets bar disables.
+ */
+const GRID_LEVEL_DATA_PROVIDER_WARN_KEY = 'sheetsBar.gridLevelDataProvider';
+
+/**
+ * Console message for the grid-level `dataProvider` that the sheets bar disables.
+ */
+const GRID_LEVEL_DATA_PROVIDER_WARNING = 'The grid-level `dataProvider` is disabled while `sheetsBar` is ' +
+  'enabled. Declare `dataProvider` in the `settings` of each sheet that loads from a server.';
 
 /**
  * A sheet definition accepted by the `sheets` setting.
@@ -68,14 +91,18 @@ function trackedCellKey(row: number, col: number): string {
  * sheets that are not in front of the grid, whose engine content was seeded from that same
  * array — the two layouts are one, so the strings go back index for index.
  */
-function applyEngineRewritesToSheetData(data: unknown[][], serialized: unknown[][]): void {
+function applyEngineRewritesToSheetData(data: unknown[], serialized: unknown[][]): void {
   data.forEach((row, rowIndex) => {
-    (row as unknown[]).forEach((cell, columnIndex) => {
+    if (!Array.isArray(row)) {
+      return;
+    }
+
+    row.forEach((cell, columnIndex) => {
       const fromEngine = serialized[rowIndex]?.[columnIndex];
 
       if (typeof cell === 'string' && cell.startsWith('=')
         && typeof fromEngine === 'string' && fromEngine !== cell) {
-        (row as unknown[])[columnIndex] = fromEngine;
+        row[columnIndex] = fromEngine;
       }
     });
   });
@@ -86,8 +113,13 @@ function applyEngineRewritesToSheetData(data: unknown[][], serialized: unknown[]
  * recomputes them from the data, so replaying a captured value after a switch would restore a
  * stale verdict — and a validated sheet writes one such entry per cell, which is what made the
  * tracking balloon to six figures on large sheets.
+ *
+ * `hidden` and `spanned` are MergeCells' own bookkeeping, not options: the plugin writes them when it
+ * merges and removes them when it unmerges, and the switch restores the merges itself. Tracked, they
+ * came back on every read after MergeCells removed them from a row that was trimmed at the time,
+ * because that removal fires no `afterRemoveCellMeta` (DEV-3135).
  */
-const UNTRACKED_META_KEYS = new Set(['valid']);
+const UNTRACKED_META_KEYS = new Set(['valid', 'hidden', 'spanned']);
 
 /**
  * Compares two values structurally, with two deliberate reference-equality floors: arrays are
@@ -164,7 +196,7 @@ interface SheetFormulas {
     renameSheet?: (sheetId: number, name: string) => void;
     removeSheet?: (sheetId: number) => void;
     getSheetId?: (name: string) => number | undefined;
-    setSheetContent?: (sheetId: number, content: unknown[][]) => void;
+    setSheetContent?: (sheetId: number, content: unknown[]) => void;
     getSheetSerialized?: (sheetId: number) => unknown[][];
   };
   sheetName?: string;
@@ -204,6 +236,18 @@ function freeEngineName(engine: NonNullable<SheetFormulas['engine']>, requested:
   }
 
   return candidate;
+}
+
+/**
+ * What a server sheet (a sheet with its own `dataProvider`) keeps while it is not shown: its last `fetchRows`
+ * response, shown again on return through `DataProvider#_restoreFetchResult()`, and the failures whose error
+ * notifications wait for the sheet to be shown.
+ */
+interface ServerSheetView {
+  lastResult: DataProviderFetchResult | null;
+  failure: unknown;
+  hasFailure: boolean;
+  mutationFailures: Array<{ kind: DataProviderRequestKind, error: unknown }>;
 }
 
 /**
@@ -302,6 +346,75 @@ export class SheetsBar extends BasePlugin {
    */
   #isInitializing = false;
   /**
+   * The server view of each sheet that loads its rows through its own `dataProvider`.
+   *
+   * @type {WeakMap<object, object>}
+   */
+  #serverViews = new WeakMap<Sheet, ServerSheetView>();
+  /**
+   * The DataProvider context of each sheet: a frozen, empty object handed to DataProvider in place
+   * of the sheet record, so nothing outside this plugin ever holds the record itself.
+   *
+   * @type {WeakMap<object, object>}
+   */
+  #contextTokens = new WeakMap<Sheet, object>();
+  /**
+   * The sheet each DataProvider context token stands for (the reverse of `#contextTokens`).
+   *
+   * @type {WeakMap<object, object>}
+   */
+  #sheetsByContext = new WeakMap<object, Sheet>();
+  /**
+   * What the DataProvider plugin asks this plugin, as the owner of its contexts: the context the
+   * grid shows, the outcome of a request made for a sheet the grid no longer shows, and the latest
+   * response of such a sheet, whose query an off-screen refetch asks for.
+   *
+   * @type {object}
+   */
+  #contextOwner: DataProviderContextOwner = {
+    getContext: () => {
+      const sheet = this.#activeSheetRecord();
+
+      return sheet ? this.#contextOf(sheet) : null;
+    },
+    onDetachedRequest: (kind, outcome, context) => this.#keepDetachedOutcome(kind, outcome, context),
+    onShownResponse: (result, context) => {
+      const sheet = this.#sheetOfContext(context);
+
+      if (sheet) {
+        this.#storeServerResult(sheet, result);
+      }
+    },
+    getContextResult: (context) => {
+      const sheet = this.#sheetOfContext(context);
+
+      return sheet ? this.#serverViews.get(sheet)?.lastResult : undefined;
+    },
+  };
+  /**
+   * `true` while `#restoreBaselineToGrid` writes the grid-level settings back, so the grid-level
+   * `dataProvider` it restores on a teardown is not blocked as if the user had set it.
+   *
+   * @type {boolean}
+   */
+  #isRestoringBaseline = false;
+  /**
+   * `true` while `#restoreActiveSheetDataProvider` writes the visible server sheet's own
+   * `dataProvider` back over the grid-level value sent again.
+   *
+   * @type {boolean}
+   */
+  #isRestoringSheetDataProvider = false;
+  /**
+   * The grid-level `dataProvider` carried across a workbook rebuild (`undefined` when there is
+   * none), or `null` outside one. A rebuild does not write it back to the grid (that would enable
+   * it, and fetch, for the moment between the two workbooks); the rebuilt workbook blocks it again
+   * from this value, and never reads the grid, which holds the departing sheet's own value then.
+   *
+   * @type {{ value: unknown }|null}
+   */
+  #rebuildGridDataProvider: { value: unknown } | null = null;
+  /**
    * The UI instance rendering the bar and its controls.
    *
    * @type {SheetsBarUI | null}
@@ -350,6 +463,14 @@ export class SheetsBar extends BasePlugin {
    * @type {string|null}
    */
   #retainActiveName: string | null = null;
+  /**
+   * Set while `#applySheet` applies a sheet's settings. The grid still holds the departing sheet's
+   * data then, so the rows and columns core adds to meet the `min*` settings are vetoed
+   * (`#onBeforeAutoCreate`); the `loadData()` that follows pads the arriving sheet's data instead.
+   *
+   * @type {boolean}
+   */
+  #blockAutoPadding = false;
   /**
    * Owns the per-tab and all-sheets dropdown menus.
    *
@@ -408,6 +529,13 @@ export class SheetsBar extends BasePlugin {
    * @type {number|undefined}
    */
   #neutralFixedColumnsStart: number | undefined;
+  /**
+   * The grid-level `fixedColumnsEnd` as it stood before any sheet was applied. It plays the same part
+   * as `#neutralFixedColumnsStart` for the frozen end columns.
+   *
+   * @type {number|undefined}
+   */
+  #neutralFixedColumnsEnd: number | undefined;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings.
@@ -426,12 +554,18 @@ export class SheetsBar extends BasePlugin {
       return;
     }
 
+    this.addHook('beforeCreateRow', this.#onBeforeAutoCreate);
+    this.addHook('beforeCreateCol', this.#onBeforeAutoCreate);
+
     // A preserved re-enable is the framework-wrapper re-emit path, where the active sheet's own
     // freeze is currently applied to the grid — re-reading it here would adopt that freeze as
     // the neutral value and leak it onto never-visited sheets.
     if (this.#preservedState === null) {
       this.#neutralFixedColumnsStart = this.hot.getSettings().fixedColumnsStart as number | undefined;
+      this.#neutralFixedColumnsEnd = this.hot.getSettings().fixedColumnsEnd as number | undefined;
     }
+
+    this.#getDataProvider()?._setContextOwner(this.#contextOwner);
 
     if (this.#preservedState) {
       this.#model = this.#preservedState.model;
@@ -441,7 +575,9 @@ export class SheetsBar extends BasePlugin {
     } else {
       try {
         this.#isInitializing = true;
+        this.#releaseDataProviderContexts([]);
         this.#model = new SheetModel(() => this.hot.getTranslatedPhrase(C.SHEETS_BAR_DEFAULT_SHEET_NAME) as string);
+        this.#captureGridDataProvider();
         this.#buildInitialWorkbook();
       } finally {
         this.#isInitializing = false;
@@ -452,6 +588,15 @@ export class SheetsBar extends BasePlugin {
 
     this.#lastBuiltSheets = this.getSetting('sheets');
 
+    // Injected into the bar and the tab strip so both stay decoupled from the theme engine —
+    // shared here rather than declared per call site.
+    const syncIconForHot = (
+      container: HTMLElement,
+      slotClass: string,
+      name: Parameters<typeof syncIcon>[3],
+      options?: Parameters<typeof syncIcon>[4],
+    ) => syncIcon(this.hot, container, slotClass, name, options);
+
     if (!this.#ui) {
       this.#ui = new SheetsBarUI({
         rootDocument: this.hot.rootDocument,
@@ -461,6 +606,7 @@ export class SheetsBar extends BasePlugin {
         phraseTranslator: (key: string, args?: unknown) => this.hot.getTranslatedPhrase(key, args),
         a11yAnnouncer: (message: unknown) => announce(String(message ?? '')),
         ariaTags: this.hot.getSettings().ariaTags,
+        syncIcon: syncIconForHot,
       });
       this.#ui.setControlsVisible(this.getSetting<boolean>('controls') !== false);
       this.#ui
@@ -483,6 +629,7 @@ export class SheetsBar extends BasePlugin {
         translate: (key: string, args?: unknown) => this.#ui!.translate(key, args),
         ariaTags: this.hot.getSettings().ariaTags !== false,
         isRtl: this.hot.isRtl(),
+        syncIcon: syncIconForHot,
       });
       this.#tabStrip
         .addLocalHook('tabClick', (id: number) => this.setActiveSheet(id, SOURCE_UI))
@@ -546,6 +693,7 @@ export class SheetsBar extends BasePlugin {
         .register(PLUGIN_KEY, this.#ui.getContainer(), { side: this.#registeredSide, weight: LAYOUT_WEIGHT });
     }
 
+    this.hot.getFocusManager().registerOutsideClickExemptElement(this.#ui.getContainer());
     this.#registerFocusScope();
     this.#registerShortcuts();
 
@@ -554,7 +702,16 @@ export class SheetsBar extends BasePlugin {
     this.addHook('afterSetCellMeta', this.#onAfterSetCellMeta);
     this.addHook('afterRemoveCellMeta', this.#onAfterRemoveCellMeta);
     this.addHook('afterGetCellMeta', this.#onAfterGetCellMeta);
+    this.addHook('afterCreateRow', this.#onAfterCreateRow, -1);
+    this.addHook('afterRemoveRow', this.#onAfterRemoveRow, -1);
+    this.addHook('afterCreateCol', this.#onAfterCreateCol, -1);
+    this.addHook('afterRemoveCol', this.#onAfterRemoveCol, -1);
+    this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('beforeLoadData', this.#onBeforeLoadData);
+    this.addHook('beforeUpdateData', this.#onBeforeUpdateData);
+    this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings, -1);
+    this.addHook('afterDocumentKeyDown', this.#onKeyDownWithinBar, -1);
+    this.addHook('beforeCompositionStart', this.#onKeyDownWithinBar, -1);
 
     this.#refreshUI();
 
@@ -590,6 +747,9 @@ export class SheetsBar extends BasePlugin {
     // Assigned before the disable, which restores the settings baseline to the grid on a
     // genuine teardown and must stand aside on a preserved one.
     this.#preservedState = preservedState;
+    this.#rebuildGridDataProvider = preservedState === null
+      ? { value: this.#settingsBaseline.get('dataProvider') }
+      : null;
 
     try {
       this.disablePlugin();
@@ -597,6 +757,7 @@ export class SheetsBar extends BasePlugin {
     } finally {
       this.#preservedState = null;
       this.#retainActiveName = null;
+      this.#rebuildGridDataProvider = null;
     }
 
     if (preservedState) {
@@ -632,18 +793,29 @@ export class SheetsBar extends BasePlugin {
 
   /**
    * Disables the plugin functionality for this Handsontable instance.
+   *
+   * A genuine teardown discards the workbook: it drops the model first and releases every
+   * sheet's DataProvider context, so whatever the settings restore below starts (a restored
+   * grid-level `dataProvider` fetches) already sees a grid without sheets. Then it puts the
+   * grid-level settings back before the baseline is dropped: the active sheet's own settings are
+   * applied to the grid at this point, and leaving them there would make the next enable read a
+   * polluted grid as its neutral state — a sheet's `fixedColumnsStart` or `columns` would follow
+   * the user into the rebuilt workbook. A preserved re-enable keeps the workbook and the active
+   * sheet applied, so it does neither. The restore re-enters this method on a `sheetsBar: false`
+   * teardown; the model is gone by then, which is what keeps the second pass from releasing and
+   * restoring again.
    */
   disablePlugin() {
-    // A genuine teardown puts the grid-level settings back before the baseline is dropped:
-    // the active sheet's own settings are applied to the grid at this point, and leaving them
-    // there would make the next enable read a polluted grid as its neutral state — a sheet's
-    // `fixedColumnsStart` or `columns` would follow the user into the rebuilt workbook. A
-    // preserved re-enable keeps the active sheet applied, so it must not restore.
-    if (this.#preservedState === null) {
+    if (this.#preservedState === null && this.#model !== null) {
+      const discardedSheets = this.#sheetRecords();
+
+      this.#model = null;
+      this.#releaseDataProviderContexts(discardedSheets);
       this.#restoreBaselineToGrid();
     }
 
     super.disablePlugin();
+    this.#getDataProvider()?._setContextOwner(null);
     this.#releaseState();
   }
 
@@ -656,6 +828,11 @@ export class SheetsBar extends BasePlugin {
    * written to the grid by the view-state machinery directly and never enters the baseline
    * map, so on a workbook where no sheet declares `settings` the map alone would restore
    * nothing and the next enable would adopt the runtime freeze as neutral.
+   *
+   * A rebuild leaves the grid-level `dataProvider` out: written back, it would enable and fetch
+   * for the moment between the two workbooks. The rebuilt workbook blocks it again from
+   * `#rebuildGridDataProvider`. While this method writes, the `dataProvider` gate stands aside,
+   * so a `sheetsBar: false` teardown gives the grid its own `dataProvider` back.
    */
   #restoreBaselineToGrid() {
     if (this.hot.isDestroyed) {
@@ -665,12 +842,19 @@ export class SheetsBar extends BasePlugin {
     const restored: Record<string, unknown> = {};
 
     this.#settingsBaseline.forEach((value, key) => {
-      restored[key] = value === undefined ? null : value;
+      if (key !== 'dataProvider' || this.#rebuildGridDataProvider === null) {
+        restored[key] = value === undefined ? null : value;
+      }
     });
 
     if (!('fixedColumnsStart' in restored)
       && (this.hot.getSettings().fixedColumnsStart ?? 0) !== (this.#neutralFixedColumnsStart ?? 0)) {
       restored.fixedColumnsStart = this.#neutralFixedColumnsStart ?? 0;
+    }
+
+    if (!('fixedColumnsEnd' in restored)
+      && (this.hot.getSettings().fixedColumnsEnd ?? 0) !== (this.#neutralFixedColumnsEnd ?? 0)) {
+      restored.fixedColumnsEnd = this.#neutralFixedColumnsEnd ?? 0;
     }
 
     if (Object.keys(restored).length === 0) {
@@ -683,7 +867,39 @@ export class SheetsBar extends BasePlugin {
     // restoring in a loop.
     this.#settingsBaseline = new Map();
 
-    this.hot.updateSettings(restored);
+    try {
+      this.#isRestoringBaseline = true;
+      this.hot.updateSettings(restored);
+    } finally {
+      this.#isRestoringBaseline = false;
+    }
+  }
+
+  /**
+   * Captures the grid-level `dataProvider` as the workbook starts, and warns once when there is
+   * one: the bar disables it on every sheet, including a workbook whose sheets all declare their
+   * own. A rebuild takes the value carried over from the workbook it replaces, since the grid
+   * holds the departing sheet's own `dataProvider` at that point, not the grid-level one. Only a
+   * value that was actually set enters the baseline, so a workbook without any `dataProvider`
+   * never writes the key back to the grid on a teardown.
+   */
+  #captureGridDataProvider() {
+    const value = this.#rebuildGridDataProvider === null
+      ? this.hot.getSettings().dataProvider
+      : this.#rebuildGridDataProvider.value;
+
+    if (value) {
+      this.#recordBlockedGridDataProvider(value);
+    }
+  }
+
+  /**
+   * Records a grid-level `dataProvider` the bar disables, so a genuine teardown gives it back, and
+   * warns about it once.
+   */
+  #recordBlockedGridDataProvider(value: unknown) {
+    this.#settingsBaseline.set('dataProvider', value);
+    warnOnce(this, GRID_LEVEL_DATA_PROVIDER_WARN_KEY, GRID_LEVEL_DATA_PROVIDER_WARNING);
   }
 
   /**
@@ -709,6 +925,10 @@ export class SheetsBar extends BasePlugin {
 
       this.#unregisterFocusScope();
       this.#unregisterShortcuts();
+    }
+
+    if (this.#ui) {
+      this.hot.getFocusManager().unregisterOutsideClickExemptElement(this.#ui.getContainer());
     }
 
     this.#model = null;
@@ -808,6 +1028,10 @@ export class SheetsBar extends BasePlugin {
         const oldSheet = oldId === null ? null : model.getSheetById(oldId);
 
         if (oldSheet) {
+          if (this.hot.getActiveEditor()?.isOpened()) {
+            this.hot.destroyEditor(false, false);
+          }
+
           this.#syncActiveSheetData();
           oldSheet.viewState = captureViewState(this.hot, this.#flattenTrackedCellMeta()) as
             unknown as Record<string, unknown>;
@@ -816,12 +1040,13 @@ export class SheetsBar extends BasePlugin {
 
         try {
           this.#isSwitching = true;
-          this.#switchTo(model, newId, source);
+          this.#withoutFetching(() => this.#switchTo(model, newId, source));
         } finally {
           this.#isSwitching = false;
         }
 
         this.#refreshUI();
+        this.#showServerSheet();
 
         return true;
       },
@@ -948,6 +1173,233 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
+   * Runs a switch as a DataProvider context change: DataProvider stays passive (the arriving
+   * sheet's `dataProvider` applies without a refetch, every sheet's running fetch keeps going, and
+   * the arriving sheet's sort and filters are restored without being sent to the server), and it
+   * brings the per-view state of the plugins it drives (the pager total, the loading overlay, the
+   * server-filter rollback) in line with the arriving sheet. What the arriving server sheet shows
+   * is decided once the switch completes. The passive window covers `#switchTo` only, and
+   * `afterSheetTabStateRestore` fires inside it: a sort or filter applied from that listener on a
+   * server sheet is canceled, not sent to the server. A sort or filter made from an
+   * `afterSheetTabStateCapture` or `afterSheetTabChange` listener is an ordinary user action and goes
+   * to the server.
+   */
+  #withoutFetching(operation: () => void) {
+    const dataProvider = this.#getDataProvider();
+
+    if (dataProvider) {
+      dataProvider._runContextChange(operation);
+    } else {
+      operation();
+    }
+  }
+
+  /**
+   * Returns the DataProvider plugin instance, or `undefined` when the build does not register it.
+   */
+  #getDataProvider(): DataProvider | undefined {
+    return this.hot.getPlugin('dataProvider');
+  }
+
+  /**
+   * Returns the record of the sheet the grid shows, or `null` without a workbook.
+   */
+  #activeSheetRecord(): Sheet | null {
+    const activeId = this.#model?.getActiveSheet()?.id;
+
+    return activeId === undefined ? null : this.#model?.getSheetById(activeId) ?? null;
+  }
+
+  /**
+   * Returns the records of every sheet in the workbook, in tab order.
+   */
+  #sheetRecords(): Sheet[] {
+    return this.getSheets()
+      .map(({ id }) => this.#model?.getSheetById(id) ?? null)
+      .filter((sheet): sheet is Sheet => sheet !== null);
+  }
+
+  /**
+   * Returns a sheet's DataProvider context token, creating it on first use.
+   */
+  #contextOf(sheet: Sheet): object {
+    let token = this.#contextTokens.get(sheet);
+
+    if (!token) {
+      token = Object.freeze({});
+      this.#contextTokens.set(sheet, token);
+      this.#sheetsByContext.set(token, sheet);
+    }
+
+    return token;
+  }
+
+  /**
+   * Returns the sheet of the current workbook that a DataProvider context names, or `null` for a
+   * context of a removed sheet, of a replaced workbook, or of no sheet at all.
+   */
+  #sheetOfContext(context: object): Sheet | null {
+    const sheet = this.#sheetsByContext.get(context);
+
+    return sheet && this.#sheetRecords().includes(sheet) ? sheet : null;
+  }
+
+  /**
+   * Returns a sheet's server view, creating an empty one on first use.
+   */
+  #serverViewOf(sheet: Sheet): ServerSheetView {
+    let view = this.#serverViews.get(sheet);
+
+    if (!view) {
+      view = { lastResult: null, failure: undefined, hasFailure: false, mutationFailures: [] };
+      this.#serverViews.set(sheet, view);
+    }
+
+    return view;
+  }
+
+  /**
+   * Keeps a server sheet's latest response and forgets the fetch failure it replaces.
+   */
+  #storeServerResult(sheet: Sheet, result: DataProviderFetchResult) {
+    const view = this.#serverViewOf(sheet);
+
+    view.lastResult = result;
+    view.failure = undefined;
+    view.hasFailure = false;
+  }
+
+  /**
+   * Keeps the outcome of a request DataProvider made for a sheet the grid no longer shows. A
+   * response's rows replace the sheet's data array rather than being written into it, so an array
+   * the host declared (frozen, or observed by a framework) is never touched. The cell meta the sheet
+   * kept is dropped with its old rows, the way a `loadData()` on the grid shown drops it. A failure waits in the
+   * sheet's server view, and its error notification appears when the sheet is shown again. The
+   * outcome of a request for a sheet that no longer exists is dropped, and so is one for the sheet
+   * the grid shows (DataProvider reports it as detached only while it is disabled there): writing
+   * it would overwrite the visible sheet's record behind the grid's back.
+   */
+  #keepDetachedOutcome(kind: DataProviderRequestKind, outcome: DataProviderDetachedOutcome, context: object) {
+    const sheet = this.#sheetOfContext(context);
+
+    if (!sheet || sheet === this.#activeSheetRecord()) {
+      return;
+    }
+
+    if ('result' in outcome) {
+      sheet.data = outcome.result.rows;
+      this.#storeServerResult(sheet, outcome.result);
+
+      if (sheet.viewState) {
+        sheet.viewState = { ...sheet.viewState, cellMeta: [] };
+      }
+
+      return;
+    }
+
+    const view = this.#serverViewOf(sheet);
+
+    if (kind === 'fetch') {
+      view.failure = outcome.error;
+      view.hasFailure = true;
+    } else {
+      view.mutationFailures.push({ kind, error: outcome.error });
+    }
+  }
+
+  /**
+   * Gives a duplicated sheet the original's last response, so its first visit shows it instead of
+   * fetching. Failures waiting on the original stay with the original, and so does a fetch the
+   * original still has running.
+   */
+  #copyServerView(original: Sheet, duplicate: Sheet) {
+    const lastResult = this.#serverViews.get(original)?.lastResult;
+
+    if (lastResult) {
+      this.#storeServerResult(duplicate, lastResult);
+    }
+  }
+
+  /**
+   * Tells the DataProvider plugin that the given sheets are gone for good, together with the
+   * default context: the fetch the grid had running before the workbook was built, if any, is
+   * aborted, and the work still queued for a discarded sheet is dropped.
+   */
+  #releaseDataProviderContexts(sheets: Sheet[]) {
+    const dataProvider = this.#getDataProvider();
+
+    if (!dataProvider) {
+      return;
+    }
+
+    dataProvider._releaseContext(null);
+    sheets.forEach(sheet => dataProvider._releaseContext(this.#contextOf(sheet)));
+  }
+
+  /**
+   * Decides what a server sheet shows once a switch has brought it in: the error notifications
+   * its requests left while it was not shown, then its own fetch still running, its last response
+   * (with the fetch error that came after it, when there is one), or a first fetch.
+   */
+  #showServerSheet() {
+    const dataProvider = this.#getDataProvider();
+    const sheet = this.#activeSheetRecord();
+
+    if (!dataProvider?.enabled || !sheet) {
+      return;
+    }
+
+    const view = this.#serverViews.get(sheet);
+
+    if (view) {
+      const failures = view.mutationFailures;
+
+      view.mutationFailures = [];
+      failures.forEach(({ kind, error }) => dataProvider._showRequestError(kind, error));
+    }
+
+    if (dataProvider.isFetching()) {
+      return;
+    }
+
+    if (view?.hasFailure) {
+      this.#showStoredFetchFailure(dataProvider, view);
+
+      return;
+    }
+
+    if (view?.lastResult) {
+      dataProvider._restoreFetchResult(view.lastResult);
+
+      return;
+    }
+
+    dataProvider.fetchData({ page: 1 }).catch((error) => {
+      logError('Data fetch failed:', error);
+    });
+  }
+
+  /**
+   * Shows the fetch failure a server sheet kept while it was not shown: its last response comes
+   * back (so its sort, filters, and pager do), and the error notification appears, its Refetch
+   * action fetching the sheet. Nothing is fetched automatically.
+   */
+  #showStoredFetchFailure(dataProvider: DataProvider, view: ServerSheetView) {
+    const { failure, lastResult } = view;
+
+    view.failure = undefined;
+    view.hasFailure = false;
+
+    if (lastResult) {
+      dataProvider._restoreFetchResult(lastResult);
+    } else {
+      this.hot.render();
+    }
+
+    dataProvider._showRequestError('fetch', failure);
+  }
+
+  /**
    * Returns the array the grid currently works on. `loadData` assigns the caller's array
    * by reference, so this is the same array every cell edit mutates — storing it, rather
    * than a materialized copy, is what makes the design's "the grid works directly on the
@@ -992,6 +1444,10 @@ export class SheetsBar extends BasePlugin {
     // was four sweeps over the same data before a single frame reached the screen.
     const viewState = newSheet.viewState as unknown as ViewState | undefined;
     const switchSheet = () => {
+      if (!viewState?.selection && this.hot.view) {
+        this.hot.deselectCell();
+      }
+
       // The neutral reset runs BEFORE the sheet arrives. `loadData` resets only the index
       // mappers, so the reset is what clears the previous sheet's filters, hidden and trimmed
       // indexes, merges, borders, manual sizes, and a runtime freeze — and running it first
@@ -1000,30 +1456,47 @@ export class SheetsBar extends BasePlugin {
       // those declarations were wiped on the sheet's first activation and then captured as
       // its own empty state.
       if (!viewState) {
-        resetViewState(this.hot, this.#neutralFixedColumnsStart);
+        resetViewState(this.hot, this.#neutralFixedColumnsStart, this.#neutralFixedColumnsEnd);
+      } else {
+        clearMergedCells(this.hot);
       }
 
-      this.#applySheet(newSheet, source);
+      this.#applySheet(newSheet, source, { restoresMerges: viewState !== undefined });
 
       if (viewState) {
         restoreViewState(this.hot, viewState);
       }
     };
 
-    if (this.hot.view) {
-      this.#batchRender(switchSheet);
-    } else {
-      switchSheet();
-    }
+    this.#withoutUndoEntry(() => {
+      if (this.hot.view) {
+        this.#batchRender(switchSheet);
+      } else {
+        switchSheet();
+      }
+    });
 
     // The selection, the scroll position, and the hook wait for the batch to end: the first two
     // need the arriving sheet painted at its own sizes, and a listener reading the DOM from the
     // hook has to see the sheet it is being told about.
-    if (viewState) {
-      if (this.hot.view) {
-        this.#batchRender(() => restoreViewport(this.hot, viewState));
-      }
+    if (this.hot.view) {
+      let selectionRestored = false;
 
+      this.#batchRender(() => {
+        if (viewState) {
+          selectionRestored = restoreViewport(this.hot, viewState);
+
+          if (!selectionRestored) {
+            this.hot.deselectCell();
+          }
+        } else {
+          resetViewport(this.hot);
+        }
+      });
+      keepSelectionOnPage(this.hot, selectionRestored);
+    }
+
+    if (viewState) {
       this.hot.runHooks('afterSheetTabStateRestore', newId, newSheet.viewState, source);
     }
   }
@@ -1064,11 +1537,19 @@ export class SheetsBar extends BasePlugin {
       // and be captured as its own state on the first switch away. The reset runs before the
       // sheet is applied, so the opening sheet's own declared `settings` stay in force.
       if (this.hot.view) {
-        resetViewState(this.hot, this.#neutralFixedColumnsStart);
+        this.#withoutUndoEntry(() => resetViewState(
+          this.hot, this.#neutralFixedColumnsStart, this.#neutralFixedColumnsEnd
+        ));
       }
 
       this.#applySheet(targetSheet, SOURCE_API);
     } else {
+      const settings = this.#withBaselineFor(undefined);
+
+      if (settings) {
+        this.hot.updateSettings(settings);
+      }
+
       model.addSheet(null, this.#getLiveSourceData());
     }
   }
@@ -1077,16 +1558,32 @@ export class SheetsBar extends BasePlugin {
    * Applies a sheet's settings and data to the grid. Undeclared settings keys keep the
    * grid-level values. Batches the operation into a single render when the grid's view
    * is already constructed; during initial plugin setup the view does not exist yet and
-   * the grid's own startup render covers it.
+   * the grid's own startup render covers it. The settings update runs with core's `min*` padding
+   * vetoed, because the grid still holds the departing sheet's data then; the `loadData()` pads
+   * the arriving sheet's data before its `afterLoadData`.
+   *
+   * The merges the settings declare are built after the load, against the arriving sheet's data.
+   * With `restoresMerges` set they are not built at all: a sheet that returns with a stored view
+   * state restores its own merges, and the declared ones would win over the ones the user changed.
+   * Without a view the grid is still being built, and MergeCells builds them from its own
+   * `afterInit`, against the data loaded here.
    */
-  #applySheet(sheet: Sheet, source: string) {
+  #applySheet(sheet: Sheet, source: string, { restoresMerges = false }: { restoresMerges?: boolean } = {}) {
     const apply = () => {
       const settings = this.#withBaselineFor(sheet.settings);
 
       if (settings) {
-        this.hot.updateSettings(settings);
+        this.#withoutAutoPadding(() => {
+          this.#withoutMergeCellsSettingsPass(() => {
+            this.#withoutFormulasSwitchLoad(() => this.hot.updateSettings(settings));
+          });
+        });
       }
       this.hot.loadData(sheet.data as never, `${source}.switch`);
+
+      if (this.hot.view) {
+        this.#runMergeCellsSettingsPass(!restoresMerges);
+      }
     };
 
     if (this.hot.view) {
@@ -1125,6 +1622,18 @@ export class SheetsBar extends BasePlugin {
    * captured the first time a sheet overrides it, which is the last moment it is still the
    * grid's own.
    *
+   * The bar introduces the incompatibility between a grid-level `dataProvider` and a multi-sheet
+   * workbook (most sheets have no server of their own), so it owns blocking it, rather than the
+   * plugin conflict registry, which would also block a sheet's own provider. A sheet without a
+   * `dataProvider` of its own (a missing key, or a falsy value) gets `null`; the grid-level value
+   * stays in the baseline, captured when the workbook started, so a genuine teardown gives it
+   * back. The `null` is only added while there is a `dataProvider` to take off the grid (a
+   * baseline one, or the one a previous sheet applied), so a workbook where nobody declared a
+   * `dataProvider` never sends the key at all. The baseline never reads `dataProvider` from the
+   * grid: a grid-level value was captured before the workbook was built, so the grid holds a
+   * sheet's own `dataProvider` by now (after a rebuild, the departing sheet's), and a teardown must
+   * not give that back as if it were the grid's.
+   *
    * @param {object|undefined} settings The sheet's own settings.
    * @returns {object|null} The settings to apply, or `null` when there is nothing to apply.
    */
@@ -1137,7 +1646,10 @@ export class SheetsBar extends BasePlugin {
 
     Object.keys(settings ?? {}).forEach((key) => {
       if (!this.#settingsBaseline.has(key)) {
-        this.#settingsBaseline.set(key, (this.hot.getSettings() as Record<string, unknown>)[key]);
+        this.#settingsBaseline.set(
+          key,
+          key === 'dataProvider' ? undefined : (this.hot.getSettings() as Record<string, unknown>)[key]
+        );
       }
     });
 
@@ -1152,6 +1664,11 @@ export class SheetsBar extends BasePlugin {
         restored[key] = value === undefined ? null : value;
       }
     });
+
+    if (!settings?.dataProvider
+      && (this.#settingsBaseline.has('dataProvider') || this.hot.getSettings().dataProvider)) {
+      restored.dataProvider = null;
+    }
 
     const merged = { ...restored, ...(settings ?? {}) };
 
@@ -1339,6 +1856,7 @@ export class SheetsBar extends BasePlugin {
 
         if (removedSheet) {
           this.#removeFormulaSheet(removedSheet);
+          this.#getDataProvider()?._releaseContext(this.#contextOf(removedSheet));
         }
 
         this.#pruneDeclaredSheet(id);
@@ -1470,6 +1988,8 @@ export class SheetsBar extends BasePlugin {
         if (!sheet) {
           return false;
         }
+
+        this.#copyServerView(original, sheet);
 
         // The copy cannot share the original's engine sheet — two tabs writing into one set of
         // cells — so it gets an engine sheet of its own, named like the copy, seeded with the
@@ -1761,7 +2281,11 @@ export class SheetsBar extends BasePlugin {
     let wroteDirectly = false;
 
     sheet.data.forEach((row, rowIndex) => {
-      (row as unknown[]).forEach((cell, columnIndex) => {
+      if (!Array.isArray(row)) {
+        return;
+      }
+
+      row.forEach((cell, columnIndex) => {
         const current = typeof cell === 'string' ? cell : null;
         const fromEngine = serialized[rowIndex]?.[columnIndex];
 
@@ -1777,7 +2301,7 @@ export class SheetsBar extends BasePlugin {
         if (addressable) {
           changes.push([visualRow, visualColumn as number, fromEngine]);
         } else {
-          (row as unknown[])[columnIndex] = fromEngine;
+          row[columnIndex] = fromEngine;
           wroteDirectly = true;
         }
       });
@@ -1793,10 +2317,14 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Runs a data write without recording it on the undo stack. The rename rewrites travel
-   * through `setDataAtCell` so `afterChange` fires and the grid repaints, but the engine
-   * rename they follow is not an undoable action — an undo restoring the old reference
-   * strings against the already-renamed engine sheet would resolve them to `#REF!`.
+   * Runs an operation without recording it on the undo stack. Two callers need it. The rename
+   * rewrites travel through `setDataAtCell` so `afterChange` fires and the grid repaints, but
+   * the engine rename they follow is not an undoable action — an undo restoring the old
+   * reference strings against the already-renamed engine sheet would resolve them to `#REF!`.
+   * And a sheet switch re-applies the arriving sheet's sort, filters, and merges through the
+   * public APIs, which the user did not just perform.
+   *
+   * @param {Function} write The operation to run.
    */
   #withoutUndoEntry(write: () => void) {
     const undoRedo = this.hot.getPlugin('undoRedo') as
@@ -1818,10 +2346,110 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
+   * Runs a settings update with the Formulas plugin's sheet switch reduced to binding the sheet.
+   * A `formulas.sheetName` change otherwise makes `Formulas#switchSheet` load the engine's content
+   * into the grid, and the bar's own `loadData` replaces it right after — two full loads per switch.
+   * The grid still holds the departing sheet's data during that update, which is why `#applySheet`
+   * also runs it under `#withoutAutoPadding`.
+   *
+   * @param {Function} update The operation to run.
+   */
+  #withoutFormulasSwitchLoad(update: () => void) {
+    const formulas = this.hot.getPlugin('formulas') as { skipSheetSwitchLoad: boolean } | undefined;
+
+    if (!formulas || formulas.skipSheetSwitchLoad) {
+      update();
+
+      return;
+    }
+
+    formulas.skipSheetSwitchLoad = true;
+
+    try {
+      update();
+    } finally {
+      formulas.skipSheetSwitchLoad = false;
+    }
+  }
+
+  /**
+   * Runs a settings update with MergeCells' settings pass held back. The pass builds the merges
+   * the settings declare, and the grid still holds the departing sheet's data during that update:
+   * the merges would be validated against the departing sheet's size, and their clearing write
+   * would land in the departing sheet's data, which the host holds by reference.
+   * `#runMergeCellsSettingsPass` runs it once the arriving sheet is loaded.
+   *
+   * @param {Function} update The operation to run.
+   */
+  #withoutMergeCellsSettingsPass(update: () => void) {
+    const mergeCells = this.hot.getPlugin('mergeCells');
+
+    if (!mergeCells || mergeCells.deferSettingsPass) {
+      update();
+
+      return;
+    }
+
+    mergeCells.deferSettingsPass = true;
+
+    try {
+      update();
+    } finally {
+      mergeCells.deferSettingsPass = false;
+    }
+  }
+
+  /**
+   * Runs the MergeCells settings pass `#withoutMergeCellsSettingsPass` held back, against the
+   * arriving sheet's data. With `apply` unset, the declared merges are not built: a sheet that
+   * returns with a stored view state restores its own merges, and the declared ones would win over
+   * the ones the user unmerged or moved.
+   *
+   * @param {boolean} apply Whether to build the declared merges.
+   */
+  #runMergeCellsSettingsPass(apply: boolean) {
+    this.hot.getPlugin('mergeCells')?.runDeferredSettingsPass(apply);
+  }
+
+  /**
+   * Runs an operation with core's `min*` padding vetoed (`#blockAutoPadding`), restoring the
+   * previous state in a `finally` so a throwing listener cannot leave padding blocked.
+   *
+   * @param {Function} update The operation to run.
+   */
+  #withoutAutoPadding(update: () => void) {
+    const previous = this.#blockAutoPadding;
+
+    this.#blockAutoPadding = true;
+
+    try {
+      update();
+    } finally {
+      this.#blockAutoPadding = previous;
+    }
+  }
+
+  /**
+   * Vetoes a row or column core creates with source `auto` (the `min*` padding in
+   * `adjustRowsAndCols()`) while `#blockAutoPadding` is set. Any other creation, and any creation
+   * outside that window, is left to the other listeners: `undefined` keeps their verdict.
+   */
+  #onBeforeAutoCreate = (index: number, amount: number, source?: string) => {
+    return this.#blockAutoPadding && source === 'auto' ? false : undefined;
+  };
+
+  /**
    * Updates the bar's theme when the grid's theme changes.
    */
   #onAfterSetTheme = (themeName: unknown) => {
     this.#ui?.updateTheme(themeName as string | undefined);
+    // The icons are refreshed in place, never through `#refreshUI()`: `TabStrip#render()` aborts
+    // a tab drag and cancels an open rename, and this hook also fires for a color-scheme or
+    // density switch (a ThemeBuilder `params()` or `setColorScheme()` included), so a user typing
+    // a sheet name would lose it when the app toggled dark mode. `syncIcon()` re-applies a
+    // class-list or renderer mapping only when the theme's icons revision moved.
+    this.#ui?.refreshIcons();
+    this.#tabStrip?.refreshIcons();
   };
 
   /**
@@ -1896,6 +2524,126 @@ export class SheetsBar extends BasePlugin {
   };
 
   /**
+   * Shifts the tracked rows at or below the first inserted row down by the inserted amount.
+   * The buckets are keyed by physical row, and an insert renumbers every physical row from the
+   * insertion point on — core's `MetaManager` shifts its own cell meta the same way — so a key
+   * left alone would serve its properties onto the cell that now sits at the old index.
+   */
+  #onAfterCreateRow = (visualRow: number, amount: number, source?: string) => {
+    this.#shiftTrackedCellMetaOnCreate('row', this.hot.toPhysicalRow(visualRow), amount, source);
+  };
+
+  /**
+   * Drops the tracked buckets of the removed rows and shifts the rows below them up, so each
+   * bucket keeps following its cell.
+   */
+  #onAfterRemoveRow = (visualRow: number, amount: number, physicalRows: number[]) => {
+    this.#shiftTrackedCellMetaOnRemove('row', physicalRows);
+  };
+
+  /**
+   * Shifts the tracked columns at or after the first inserted column by the inserted amount,
+   * for the reason `#onAfterCreateRow` gives.
+   */
+  #onAfterCreateCol = (visualColumn: number, amount: number, source?: string) => {
+    this.#shiftTrackedCellMetaOnCreate('col', this.hot.toPhysicalColumn(visualColumn), amount, source);
+  };
+
+  /**
+   * Drops the tracked buckets of the removed columns and shifts the columns after them, for the
+   * reason `#onAfterRemoveRow` gives.
+   */
+  #onAfterRemoveCol = (visualColumn: number, amount: number, physicalColumns: number[]) => {
+    this.#shiftTrackedCellMetaOnRemove('col', physicalColumns);
+  };
+
+  /**
+   * Forgets every tracked write when the host loads a new dataset. `loadData` clears core's cell
+   * meta, so a surviving bucket would paint the old dataset's `readOnly` or `className` onto
+   * whichever new row sits at that physical index. The plugin's own loads — the initial build
+   * and every switch — are skipped: they bring the arriving sheet's map in themselves.
+   */
+  #onAfterLoadData = (sourceData: unknown[], initialLoad: boolean) => {
+    if (initialLoad || this.#isSwitching || this.#isInitializing) {
+      return;
+    }
+
+    this.#trackedCellMeta = new Map();
+  };
+
+  /**
+   * Moves every tracked bucket at or past `firstPhysicalIndex` on the given axis by `amount`.
+   *
+   * An `auto` insert is skipped, because `DataMap` does not shift core's cell meta for it
+   * (`minRows`, `minSpareRows`, and the rows a paste adds). That also covers the rows a switch
+   * creates while the arriving sheet's map is in place over the outgoing sheet's data. A key can
+   * outlive its row after an `updateData` shrink, so an append is not skipped on its own; it
+   * must move such a key the way core moves its meta.
+   */
+  #shiftTrackedCellMetaOnCreate(
+    axis: 'row' | 'col', firstPhysicalIndex: number | null, amount: number, source?: string,
+  ) {
+    if (
+      source === 'auto' || this.#trackedCellMeta.size === 0 ||
+      firstPhysicalIndex === null || amount <= 0
+    ) {
+      return;
+    }
+
+    this.#rekeyTrackedCellMeta(axis, index => (index >= firstPhysicalIndex ? index + amount : index));
+  }
+
+  /**
+   * Drops the tracked buckets on the removed physical indexes of the given axis, and moves every
+   * other bucket back by the number of removed indexes before it. The removed indexes may be
+   * any set: adjacent visual rows or columns map to scattered physical ones once they are
+   * sorted, moved, or trimmed.
+   */
+  #shiftTrackedCellMetaOnRemove(axis: 'row' | 'col', removedPhysicalIndexes: number[]) {
+    if (this.#trackedCellMeta.size === 0 || removedPhysicalIndexes.length === 0) {
+      return;
+    }
+
+    const removed = [...new Set(removedPhysicalIndexes)].sort((a, b) => a - b);
+
+    this.#rekeyTrackedCellMeta(axis, (index) => {
+      let low = 0;
+      let high = removed.length;
+
+      while (low < high) {
+        const middle = Math.floor((low + high) / 2);
+
+        if (removed[middle] < index) {
+          low = middle + 1;
+        } else {
+          high = middle;
+        }
+      }
+
+      return removed[low] === index ? null : index - low;
+    });
+  }
+
+  /**
+   * Rebuilds the tracked map with each bucket's index on the given axis passed through
+   * `mapIndex`. A `null` result drops the bucket.
+   */
+  #rekeyTrackedCellMeta(axis: 'row' | 'col', mapIndex: (index: number) => number | null) {
+    const rekeyed = new Map<string, Map<string, unknown>>();
+
+    this.#trackedCellMeta.forEach((bucket, cellKey) => {
+      const [row, col] = cellKey.split(':').map(Number);
+      const mapped = mapIndex(axis === 'row' ? row : col);
+
+      if (mapped !== null) {
+        rekeyed.set(axis === 'row' ? trackedCellKey(mapped, col) : trackedCellKey(row, mapped), bucket);
+      }
+    });
+
+    this.#trackedCellMeta = rekeyed;
+  }
+
+  /**
    * Serves the tracked cell-meta writes lazily, the moment a cell's meta is actually read —
    * the renderer for the viewport, `getCellMeta` for a paste, an editor, or any API consumer.
    * Replaying the whole map eagerly on every switch cost one `setCellMeta` call and one
@@ -1928,6 +2676,26 @@ export class SheetsBar extends BasePlugin {
   };
 
   /**
+   * Keeps the keys typed inside the bar away from the grid. A press on the bar keeps the grid's
+   * selection, and the editor manager opens the cell editor on any printable key while the grid
+   * listens and has a selection, whatever shortcut context is active - so without this a letter
+   * typed into the rename input, or pressed on a focused tab, would start editing the selected
+   * cell. Registered ahead of the editor manager's own listener, which skips an event marked this
+   * way. Only the mark is set: `stopImmediatePropagation()` from `helpers/dom/event` also sets
+   * `cancelBubble`, and the grid's key listener sits on the `documentElement`, so the host page's
+   * own `document` and `window` listeners would stop seeing every key pressed in the bar.
+   *
+   * @param {Event} event The keyboard or composition event.
+   */
+  #onKeyDownWithinBar = (event: Event) => {
+    const container = this.#ui?.getContainer();
+
+    if (container && event.composedPath().includes(container)) {
+      (event as Event & { isImmediatePropagationEnabled: boolean }).isImmediatePropagationEnabled = false;
+    }
+  };
+
+  /**
    * Makes the declared workbook win the initial data load. The plugin applies the active
    * sheet's data while the plugins are initialized, but the grid's own init pass then loads
    * whatever the top-level `data` setting declares — which would leave the active sheet never
@@ -1935,6 +2703,14 @@ export class SheetsBar extends BasePlugin {
    * rows, destroying them. With a declared workbook, each sheet owns its data, so the initial
    * load is redirected at the active sheet's array and a clashing top-level `data` is
    * reported once.
+   *
+   * When the active sheet's own `dataProvider` makes {@link Hooks#hasExternalDataSource} return
+   * `true`, this same hook also fires for core's OWN placeholder reload — an unconditional fresh
+   * `[]`, never a user-declared top-level `data` (core already ignores that in this mode; see
+   * `core.ts`'s own warning for it). That placeholder can never be reference-equal to any sheet's
+   * `data`, so without this check every workbook whose active sheet declares a `dataProvider`
+   * would warn on every load. The redirect to the active sheet's array still applies — the
+   * placeholder must not overwrite it — only the warning is skipped.
    */
   #onBeforeLoadData = (sourceData: unknown[][], initialLoad: boolean) => {
     const activeId = this.#model?.getActiveSheet()?.id ?? null;
@@ -1944,7 +2720,9 @@ export class SheetsBar extends BasePlugin {
       return;
     }
 
-    if (!this.#warnedAboutTopLevelData) {
+    const isExternalDataSourcePlaceholder = this.hot.runHooks('hasExternalDataSource') === true;
+
+    if (!isExternalDataSourcePlaceholder && !this.#warnedAboutTopLevelData) {
       this.#warnedAboutTopLevelData = true;
       warn('The `data` setting is ignored when `sheetsBar.sheets` declares a workbook — each ' +
         'sheet declares its own data.');
@@ -1952,6 +2730,141 @@ export class SheetsBar extends BasePlugin {
 
     return activeSheet.data;
   };
+
+  /**
+   * Tells whether a `dataProvider` written to the grid now is the grid-level value the bar
+   * disables: not a switch applying a sheet's own `dataProvider`, not the teardown restoring the
+   * grid-level one, and not the user re-configuring the visible server sheet (the active sheet
+   * declares a `dataProvider` of its own).
+   *
+   * @returns {boolean}
+   */
+  #blocksGridDataProvider(): boolean {
+    if (this.#isSwitching || this.#isRestoringBaseline || this.#model === null) {
+      return false;
+    }
+
+    const activeId = this.#model.getActiveSheet()?.id ?? null;
+    const activeSheet = activeId === null ? null : this.#model.getSheetById(activeId);
+
+    return !activeSheet?.settings?.dataProvider;
+  }
+
+  /**
+   * Keeps the visible sheet's rows when a later `updateSettings()` call sets a grid-level
+   * `dataProvider`. Core applies the new setting before this plugin can block it, sees a complete
+   * `dataProvider`, and replaces the grid's data with an empty placeholder through
+   * `updateData([])`. The sheet record still points at the rows the grid shows, so the next switch
+   * away would store the placeholder as the sheet's data. The placeholder is redirected at the
+   * rows the grid already shows, and `#onAfterUpdateSettings` then blocks the value itself. The
+   * same holds for the grid-level value sent again while a server sheet is shown, and for the
+   * update that puts that sheet's own `dataProvider` back.
+   *
+   * @param {Array} sourceData The rows about to be loaded.
+   * @param {boolean} initialLoad `true` for the initial data load.
+   * @param {string} source The source of the update.
+   * @returns {Array|undefined} The grid's current rows while a blocked `dataProvider` is applied.
+   */
+  #onBeforeUpdateData = (sourceData: unknown[], initialLoad: boolean, source: string) => {
+    const { dataProvider } = this.hot.getSettings();
+
+    if (source !== 'updateSettings' || !dataProvider) {
+      return;
+    }
+
+    if (this.#blocksGridDataProvider() || this.#isRestoringSheetDataProvider
+      || this.#isResentGridDataProvider(dataProvider)) {
+      return this.#getLiveSourceData();
+    }
+  };
+
+  /**
+   * Blocks a grid-level `dataProvider` set through a later `updateSettings()` call, the same way
+   * `#withBaselineFor` blocks it on a switch. It runs ahead of every other `afterUpdateSettings`
+   * listener (a negative `orderIndex`), so the DataProvider plugin never enables with the blocked
+   * value: no `fetchRows` call, no loading overlay. The initial workbook build needs no guard here
+   * — it completes before this hook is registered. See `#blocksGridDataProvider` for the cases
+   * that are left alone.
+   *
+   * @param {object} newSettings The settings passed to `updateSettings()`.
+   */
+  #onAfterUpdateSettings = (newSettings: Record<string, unknown>) => {
+    if (!newSettings.dataProvider) {
+      return;
+    }
+
+    if (!this.#blocksGridDataProvider()) {
+      if (this.#isResentGridDataProvider(newSettings.dataProvider)) {
+        this.#restoreActiveSheetDataProvider();
+      } else {
+        this.#keepActiveSheetDataProvider(newSettings.dataProvider);
+      }
+
+      return;
+    }
+
+    this.#recordBlockedGridDataProvider(newSettings.dataProvider);
+    this.hot.updateSettings({ dataProvider: null });
+  };
+
+  /**
+   * Tells whether a `dataProvider` written to the grid is the grid-level value the bar blocked,
+   * sent again while a server sheet is shown. Framework wrappers re-send unchanged settings on every
+   * render, so this value must not be taken for the user re-configuring the visible sheet.
+   *
+   * @param {*} dataProvider The value written to the grid.
+   * @returns {boolean}
+   */
+  #isResentGridDataProvider(dataProvider: unknown): boolean {
+    if (!dataProvider || this.#isSwitching || this.#isRestoringBaseline) {
+      return false;
+    }
+
+    const own = this.#activeSheetRecord()?.settings?.dataProvider;
+
+    return Boolean(own) && own !== dataProvider && dataProvider === this.#settingsBaseline.get('dataProvider');
+  }
+
+  /**
+   * Puts the visible server sheet's own `dataProvider` back over the grid-level value sent again,
+   * without a refetch: the sheet keeps its rows, its running fetch, and its query.
+   */
+  #restoreActiveSheetDataProvider() {
+    const own = this.#activeSheetRecord()?.settings?.dataProvider as DataProviderConfig;
+    const apply = () => this.hot.updateSettings({ dataProvider: own });
+    const dataProvider = this.#getDataProvider();
+
+    this.#isRestoringSheetDataProvider = true;
+
+    try {
+      if (dataProvider) {
+        dataProvider._runWithoutFetching(apply);
+      } else {
+        apply();
+      }
+    } finally {
+      this.#isRestoringSheetDataProvider = false;
+    }
+  }
+
+  /**
+   * Keeps a `dataProvider` the user sets through `updateSettings()` on the visible server sheet as
+   * that sheet's own, so switching away and back applies it again instead of the one the sheet was
+   * declared with. The sheet record's `settings` object is replaced, never written into: it may be
+   * the object the host declared. A switch applying a sheet, and the teardown restoring the
+   * grid-level value, are left alone.
+   */
+  #keepActiveSheetDataProvider(dataProvider: unknown) {
+    if (this.#isSwitching || this.#isRestoringBaseline) {
+      return;
+    }
+
+    const sheet = this.#activeSheetRecord();
+
+    if (sheet?.settings?.dataProvider && sheet.settings.dataProvider !== dataProvider) {
+      sheet.settings = { ...sheet.settings, dataProvider };
+    }
+  }
 
   /**
    * Flattens the per-cell buckets into the flat entry list the captured view state carries.

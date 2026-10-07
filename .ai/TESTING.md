@@ -11,11 +11,11 @@ global helpers, mocking, fixtures, custom matchers), see
 
 | Pipeline | Framework | File pattern | Run command | Deep reference |
 |---|---|---|---|---|
-| Core unit | Jest (jsdom, `jest-jasmine2` runner) | `*.unit.js` | `npm --prefix handsontable run test:unit` | [`handsontable/.ai/TESTING.md`](../handsontable/.ai/TESTING.md) |
-| E2E (new — the paradigm) | Playwright (real Chromium) | `tests/e2e/*.spec.ts` | `cd tests && npm test` | skill `handsontable-playwright-e2e` |
+| Core unit | Jest (jsdom, `jest-jasmine2` runner) | `*.unit.js`, `*.unit.ts` (Walkontable's `test/unit/` included) | `npm --prefix handsontable run test:unit` | [`handsontable/.ai/TESTING.md`](../handsontable/.ai/TESTING.md) |
+| E2E (new – the paradigm) | Playwright (real Chromium; Firefox and WebKit too for tests tagged `@cross-browser`) | `tests/e2e/*.spec.ts` | `cd tests && npm test` | skill `handsontable-playwright-e2e` |
 | E2E (legacy — frozen) | Jasmine + Puppeteer (headless Chrome) | `*.spec.js` | `npm --prefix handsontable run test:e2e` | [`handsontable/.ai/TESTING.md`](../handsontable/.ai/TESTING.md); skill `handsontable-e2e-testing` |
 | Type tests | `tsc` only | `*.types.ts` | `npm --prefix handsontable run test:types` | [`handsontable/.ai/TESTING.md`](../handsontable/.ai/TESTING.md) |
-| Walkontable | Separate runner (`SpecRunner.html`) | — | `npm --prefix handsontable run test:walkontable` | `handsontable/src/3rdparty/walkontable/AGENTS.md`; skills `walkontable-testing`, `walkontable-dev` |
+| Walkontable | Separate runner (`SpecRunner.html`) | `test/spec/**/*.spec.js` | `npm --prefix handsontable run test:walkontable` | `handsontable/src/3rdparty/walkontable/AGENTS.md`; skills `walkontable-testing`, `walkontable-dev` |
 | React wrapper | Jest + `@testing-library/react` | — | `npm --prefix wrappers/react-wrapper run test` | `wrappers/react-wrapper/AGENTS.md` |
 | Vue 3 wrapper | Jest + `@vue/test-utils` | — | `npm --prefix wrappers/vue3 run test` | `wrappers/vue3/AGENTS.md` |
 | Angular wrapper | `jest-preset-angular` | — | `npm --prefix wrappers/angular-wrapper run test` | `wrappers/angular-wrapper/AGENTS.md` |
@@ -36,11 +36,13 @@ global helpers, mocking, fixtures, custom matchers), see
 - Build the core package before running wrapper tests. Wrappers consume the
   core `tmp/` output through workspace linking. See
   [`.ai/BUILD.md`](BUILD.md).
-- Flaky and failed tests of every red `Tests` or `Develop` run are collected
-  across runs by `.github/workflows/test-health.yml` into the ledger at
+- Flaky and failed tests of every completed `Tests`, `Develop`, `Publish`, and
+  `Visual nightly` run are collected across runs by
+  `.github/workflows/test-health.yml` into the ledger at
   <https://handsontable.github.io/handsontable/test-health/> (Playwright `flaky`
   and `unexpected` outcomes from the JSON report, Jasmine failures from the
-  Puppeteer runner's failed-specs record). A test that flaked in 2+ distinct
+  Puppeteer runner's failed-specs record, and every changed visual capture
+  from the `visual-compare-*` record). A test that flaked in 2+ distinct
   runs within 30 days is flagged as needing a fix or migration ticket. A known
   flake in the Playwright tier can be quarantined for up to 30 days (six at
   once) through `quarantined()` in `tests/fixtures/quarantine.ts`; it still

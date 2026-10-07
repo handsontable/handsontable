@@ -48,8 +48,8 @@ const instance = null as unknown as HotTableInstance;
 
 // The nullable members must stay nullable in the emit. `hotInstance` returns `null` before
 // `hotInit()` and after the grid is destroyed; `columnSettings` is `null` until the first
-// `getColumnSettings()`. Both are asserted positively, so a declaration build that drops
-// `strictNullChecks` turns these lines red instead of silently shipping a non-null type.
+// `getColumnSettings()`. Both are asserted positively, so a declaration build that widens
+// either annotation to a non-null type turns these lines red instead of silently shipping it.
 const hotInstanceIsNotAny: IsAny<HotTableInstance['hotInstance']> = false;
 const hotInstanceIsNullable: IsNullable<HotTableInstance['hotInstance']> = true;
 const hotInstance = instance.hotInstance as NonNullable<HotTableInstance['hotInstance']>;

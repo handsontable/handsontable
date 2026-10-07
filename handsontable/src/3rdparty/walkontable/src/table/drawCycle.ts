@@ -2,14 +2,18 @@ import ColumnFilter from '../filter/column';
 import RowFilter from '../filter/row';
 import {
   CLONE_BOTTOM,
+  CLONE_BOTTOM_INLINE_END_CORNER,
   CLONE_BOTTOM_INLINE_START_CORNER,
+  CLONE_INLINE_END,
   CLONE_INLINE_START,
+  INLINE_END_CLONE_TYPES,
 } from '../overlay';
 import {
   adjustColumnHeaderHeights,
   markOversizedRows,
   resetOversizedRows,
   resetFrozenOversizedRows,
+  isFrozenColumnBandOutsideMasterBand,
   shouldSyncOversizedRowsWithFrozenOverlays,
   syncOversizedColumnHeadersWithFrozenOverlays,
   syncOversizedRowsWithFrozenOverlays,
@@ -78,7 +82,10 @@ interface DrawContext {
  */
 export function runDrawCycle(table: Table, fastDraw: boolean): void {
   const { wtSettings } = table;
-  const rowHeaders = wtSettings.getSetting<Function[]>('rowHeaders');
+  // Row headers belong to the inline-start tables only: the tables of the end columns draw none, and
+  // every consumer of the header count below (the column filter, the colgroup, the renderers) agrees.
+  const rowHeaders = INLINE_END_CLONE_TYPES.includes(table.name) ?
+    [] : wtSettings.getSetting<Function[]>('rowHeaders');
   const columnHeaders = wtSettings.getSetting<Function[]>('columnHeaders');
   const ctx: DrawContext = {
     runFastDraw: fastDraw,
@@ -152,6 +159,7 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
   });
 
   if (ctx.runFastDraw) {
+    snapshotSelectionVisibleRange(table, wtOverlays);
     wtOverlays.refresh(true);
     // Fast (scroll) draws skip the full-render header-height pass below, so the master/top
     // header heights can drift against the frozen overlays during scrolling (a tall wrapped
@@ -266,6 +274,7 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
       // re-measurable instead of ratcheting on their own cached value.
       const wipedFrozenRows = ctx.syncFrozenRows ? resetFrozenOversizedRows(table) : undefined;
 
+      snapshotSelectionVisibleRange(table, wtOverlays);
       wtOverlays.refresh(false);
       syncOversizedColumnHeadersWithFrozenOverlays(table);
       // The frozen overlays have now rendered, so a row whose tallest cell lives in a frozen column
@@ -459,8 +468,8 @@ function restoreRenderedStateIfSafe(
 }
 
 /**
- * Whether an overlay clone takes part in the row recycling. Only the inline-start clone does: its
- * rows are the master's rows, so a vertical scroll moves its band the same way. The top and bottom
+ * Whether an overlay clone takes part in the row recycling. Only the inline-start and inline-end
+ * clones do: their rows are the master's rows, so a vertical scroll moves its band the same way. The top and bottom
  * clones and their corners hold the frozen rows, which never scroll; the bottom clone's band offset
  * still moves in renderable space when rows are hidden or trimmed, and a rotation there would be a
  * move inside a band that never scrolls. Those clones keep the stationary elements and, with them,
@@ -472,7 +481,7 @@ function restoreRenderedStateIfSafe(
  * @returns {boolean}
  */
 export function recyclesRowsOnClone(cloneName: string): boolean {
-  return cloneName === CLONE_INLINE_START;
+  return cloneName === CLONE_INLINE_START || cloneName === CLONE_INLINE_END;
 }
 
 /**
@@ -532,8 +541,9 @@ function renderCellBand(
   table.tableRenderer.setRenderEpoch(ctx.renderEpochAtDrawStart);
 
   if (table.is(CLONE_BOTTOM) ||
-      table.is(CLONE_BOTTOM_INLINE_START_CORNER)) {
-    // do NOT render headers on the bottom or bottom-left corner overlay
+      table.is(CLONE_BOTTOM_INLINE_START_CORNER) ||
+      table.is(CLONE_BOTTOM_INLINE_END_CORNER)) {
+    // do NOT render headers on the bottom or a bottom corner overlay
     table.tableRenderer.setHeaderContentRenderers(ctx.rowHeaders, []);
   }
 
@@ -941,7 +951,8 @@ export function refillDisagreesWithFrozenColumnSync(
   ctx: DrawContext,
   renderBand: ViewportBand,
 ): boolean {
-  if (!table.wtSettings.getSetting<number>('fixedColumnsStart')) {
+  if (!table.wtSettings.getSetting<number>('fixedColumnsStart') &&
+      !table.wtSettings.getSetting<number>('fixedColumnsEnd')) {
     return false;
   }
 
@@ -950,11 +961,41 @@ export function refillDisagreesWithFrozenColumnSync(
   // Read the row-header width the assignment will read, not the one pass 1 left behind (see JSDoc).
   wtViewport.rowHeaderWidth = NaN;
 
-  const proposedStartColumn = wtViewport
+  const proposed = wtViewport
     .createColumnsCalculator(['rendered'], renderBand, { proposeOnly: true })
-    .getResultsFor('rendered')?.startColumn ?? null;
+    .getResultsFor('rendered');
 
-  return (proposedStartColumn !== null && proposedStartColumn > 0) !== ctx.syncFrozenRows;
+  if (!proposed || proposed.startColumn === null || proposed.endColumn === null) {
+    return ctx.syncFrozenRows;
+  }
+
+  return isFrozenColumnBandOutsideMasterBand(
+    table.wtSettings, proposed.startColumn, proposed.endColumn
+  ) !== ctx.syncFrozenRows;
+}
+
+/**
+ * Snapshots the master's visible rows and columns for the selection handles, right before the
+ * overlays render. The clones render their selections inside `wtOverlays.refresh()` and the master
+ * renders its own afterwards, and `createVisibleCalculators()` can run again in between (after a
+ * frozen-derived row height changed). Every overlay decides which of them draws each handle from this
+ * one snapshot, so the rule can never see two different ranges within a draw. A master draw that
+ * never reaches `refresh()` keeps the previous snapshot, which is also what the clones last drew with.
+ *
+ * @param {Table} table The master table.
+ * @param {Overlays} wtOverlays The master's overlays.
+ */
+function snapshotSelectionVisibleRange(table: Table, wtOverlays: Overlays): void {
+  wtOverlays.selectionVisibleRange = {
+    row: {
+      partial: [table.getFirstPartiallyVisibleRow(), table.getLastPartiallyVisibleRow()],
+      full: [table.getFirstVisibleRow(), table.getLastVisibleRow()],
+    },
+    column: {
+      partial: [table.getFirstPartiallyVisibleColumn(), table.getLastPartiallyVisibleColumn()],
+      full: [table.getFirstVisibleColumn(), table.getLastVisibleColumn()],
+    },
+  };
 }
 
 /**
@@ -992,6 +1033,7 @@ function placeFixedOverlays(table: Table): void {
   }
 
   wtOverlays.inlineStartOverlay.resetFixedPosition();
+  wtOverlays.inlineEndOverlay.resetFixedPosition();
 
   if (wtOverlays.topInlineStartCornerOverlay) {
     wtOverlays.topInlineStartCornerOverlay.resetFixedPosition();
@@ -1000,4 +1042,8 @@ function placeFixedOverlays(table: Table): void {
   if (wtOverlays.bottomInlineStartCornerOverlay && wtOverlays.bottomInlineStartCornerOverlay.clone) {
     wtOverlays.bottomInlineStartCornerOverlay.resetFixedPosition();
   }
+
+  // The end overlays are idle (and read nothing) unless `fixedColumnsEnd` is set.
+  wtOverlays.topInlineEndCornerOverlay.resetFixedPosition();
+  wtOverlays.bottomInlineEndCornerOverlay.resetFixedPosition();
 }

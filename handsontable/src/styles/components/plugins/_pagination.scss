@@ -1,5 +1,3 @@
-@use "../../utils/mixins";
-
 // Pagination
 
 @mixin output {
@@ -38,6 +36,15 @@
 
         &__label {
           white-space: nowrap;
+          // DEV-75. Declared, not left to inheritance: a host rule on bare `span` (e.g. `span { font-size: 20px }`)
+          // matches this label directly and beats the value it would otherwise inherit from `.ht-pagination`,
+          // so the label took the host's size while the rest of the bar kept the theme token. `inherit` (not the
+          // token) keeps a user's own override on the bar in force.
+          font-size: inherit;
+          line-height: inherit;
+          font-weight: inherit;
+          letter-spacing: inherit;
+          font-family: inherit;
         }
 
         &__select-wrapper {
@@ -96,15 +103,12 @@
             }
           }
 
-          &::after {
-            @include mixins.pseudo;
-
+          .ht-icon {
             position: absolute;
             inset-inline-end: var(--ht-gap-size);
-            inset-block-end: 50%;
-            transform: translateY(50%);
-            background-color: var(--ht-foreground-color);
-            pointer-events: none;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--ht-foreground-color);
           }
         }
       }
@@ -127,8 +131,14 @@
           padding: var(--ht-icon-button-large-padding);
           cursor: pointer;
 
-          &::before {
-            @include mixins.pseudo;
+          // A block icon makes the button's content box exactly the icon's box - the size the
+          // 18.1 `::before { display: block }` glyph gave it - without an inline line box adding
+          // strut/descender height. Do not make the button `inline-flex` to center the icon
+          // instead: under `forced-colors: active` Chromium keeps painting the disabled
+          // `GrayText` border on a flex button after `--disabled` is removed (see the
+          // pagination plugin's AGENTS.md).
+          .ht-icon {
+            display: block;
           }
 
           &--disabled {
@@ -157,6 +167,12 @@
           white-space: nowrap;
           min-width: 100px;
           text-align: center;
+          // DEV-75. See `.ht-page-size-section__label`.
+          font-size: inherit;
+          line-height: inherit;
+          font-weight: inherit;
+          letter-spacing: inherit;
+          font-family: inherit;
         }
       }
     }

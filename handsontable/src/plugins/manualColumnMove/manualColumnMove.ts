@@ -4,6 +4,7 @@ import { arrayReduce } from '../../helpers/array';
 import { addClass, removeClass, offset, outerWidth } from '../../helpers/dom/element';
 import { offsetRelativeTo } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
+import { clampFixedColumnsEnd } from '../../3rdparty/walkontable/src/settings/fixedColumnsEnd';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
 
@@ -215,25 +216,27 @@ export class ManualColumnMove extends BasePlugin {
    * @returns {boolean}
    */
   moveColumns(columns: number[], finalIndex: number): boolean {
-    const dropIndex = this.#cachedDropIndex;
-    const movePossible = this.isMovePossible(columns, finalIndex);
-    const beforeMoveHook = this.hot.runHooks('beforeColumnMove', columns, finalIndex, dropIndex, movePossible);
+    return this.runOperation('col_move', () => {
+      const dropIndex = this.#cachedDropIndex;
+      const movePossible = this.isMovePossible(columns, finalIndex);
+      const beforeMoveHook = this.hot.runHooks('beforeColumnMove', columns, finalIndex, dropIndex, movePossible);
 
-    this.#cachedDropIndex = undefined;
+      this.#cachedDropIndex = undefined;
 
-    if (beforeMoveHook === false) {
-      return false;
-    }
+      if (beforeMoveHook === false) {
+        return false;
+      }
 
-    if (movePossible) {
-      this.hot.columnIndexMapper.moveIndexes(columns, finalIndex);
-    }
+      if (movePossible) {
+        this.hot.columnIndexMapper.moveIndexes(columns, finalIndex);
+      }
 
-    const movePerformed = movePossible && this.isColumnOrderChanged(columns, finalIndex);
+      const movePerformed = movePossible && this.isColumnOrderChanged(columns, finalIndex);
 
-    this.hot.runHooks('afterColumnMove', columns, finalIndex, dropIndex, movePossible, movePerformed);
+      this.hot.runHooks('afterColumnMove', columns, finalIndex, dropIndex, movePossible, movePerformed);
 
-    return movePerformed;
+      return movePerformed;
+    }, { columns: Array.isArray(columns) ? columns.slice() : columns, finalColumnIndex: finalIndex });
   }
 
   /**
@@ -304,7 +307,76 @@ export class ManualColumnMove extends BasePlugin {
       return false;
     }
 
+    return this.#keepsEndBandIntact(movedColumns, finalIndex);
+  }
+
+  /**
+   * The frozen end columns are a band of their own: a move may not change which columns the band holds. A column
+   * cannot leave it, a scrolling column cannot land in it, and a selection that holds both is allowed only when
+   * the result puts the same columns back in the band (for example a full saved column order that keeps the
+   * end columns last). Without `fixedColumnsEnd` nothing is restricted.
+   *
+   * @param {Array} movedColumns Array of visual column indexes to be moved.
+   * @param {number} finalIndex Visual column index, being a start index for the moved columns.
+   * @returns {boolean}
+   */
+  #keepsEndBandIntact(movedColumns: number[], finalIndex: number): boolean {
+    const endCount = this.getFixedColumnsEndCount();
+
+    if (endCount === 0 || movedColumns.length === 0) {
+      return true;
+    }
+
+    // The band sits at the end of the columns the grid draws (`countCols()`, capped by `maxCols`), which is not
+    // the end of the not trimmed ones when `maxCols` is lower than the source column count.
+    const totalColumns = this.hot.countCols();
+    const bandStart = totalColumns - endCount;
+    const length = this.hot.columnIndexMapper.getNotTrimmedIndexesLength();
+    const moved = new Set(movedColumns);
+    const remaining: number[] = [];
+
+    for (let column = 0; column < length; column++) {
+      if (!moved.has(column)) {
+        remaining.push(column);
+      }
+    }
+
+    // The order after the move: the moved columns are taken out and put back at the final index.
+    const order = [...remaining.slice(0, finalIndex), ...movedColumns, ...remaining.slice(finalIndex)];
+
+    // The band is intact when its slots still hold columns that were in the band before the move.
+    for (let slot = bandStart; slot < totalColumns; slot++) {
+      if (order[slot] < bandStart || order[slot] >= totalColumns) {
+        return false;
+      }
+    }
+
     return true;
+  }
+
+  /**
+   * Gets how far (a negative number) the frozen end columns sit from their place in the scrolled content. The
+   * end overlay is pinned to the inline-end edge of the viewport, while the backlight and the guideline are
+   * positioned in the content that scrolls under it. Zero when the grid is scrolled to its inline end.
+   *
+   * The distance is read from the rendered boxes, so it holds for a grid the element scrolls and for a grid the
+   * window scrolls alike: the viewport width of the window includes the scrollbar and ignores the offset of the
+   * grid's root in the page, the boxes do not.
+   *
+   * @returns {number}
+   */
+  #getEndBandShift(): number {
+    const { wtTable, wtOverlays } = this.hot.view._wt;
+    const endClone = wtOverlays.inlineEndOverlay?.clone;
+
+    if (!endClone) {
+      return 0;
+    }
+
+    const endRect = endClone.wtTable.holder.getBoundingClientRect();
+    const hiderRect = wtTable.hider.getBoundingClientRect();
+
+    return Math.min(0, this.hot.isRtl() ? hiderRect.left - endRect.left : endRect.right - hiderRect.right);
   }
 
   /**
@@ -391,6 +463,45 @@ export class ManualColumnMove extends BasePlugin {
   }
 
   /**
+   * Gets the number of columns the inline-end overlay really holds, after the `fixedColumnsStart` priority
+   * clamp. The columns are the last ones in the visual order.
+   *
+   * @private
+   * @returns {number}
+   */
+  getFixedColumnsEndCount(): number {
+    const { fixedColumnsEnd, fixedColumnsStart } = this.hot.getSettings();
+
+    // The initial `manualColumnMove` array moves the columns while the plugin is enabled, before the table view
+    // exists. A grid with no end columns has nothing to count, so answer without reading the view.
+    if (!fixedColumnsEnd) {
+      return 0;
+    }
+
+    // Without the view, count over the same total the view uses (`countCols()`, capped by `maxCols`).
+    if (!this.hot.view) {
+      return clampFixedColumnsEnd(fixedColumnsEnd, fixedColumnsStart, this.hot.countCols());
+    }
+
+    return this.hot.view.countFixedColumnsEnd();
+  }
+
+  /**
+   * Checks if the provided column is in the fixedColumnsEnd section.
+   *
+   * @private
+   * @param {number} column Visual column index to check.
+   * @returns {boolean}
+   */
+  isFixedColumnsEnd(column: number): boolean {
+    const endCount = this.getFixedColumnsEndCount();
+
+    const totalColumns = this.hot.countCols();
+
+    return endCount > 0 && column >= totalColumns - endCount && column < totalColumns;
+  }
+
+  /**
    * Prepares an array of indexes based on actual selection.
    *
    * @private
@@ -448,6 +559,9 @@ export class ManualColumnMove extends BasePlugin {
 
     if (this.isFixedColumnsStart(hoveredColumn)) {
       tdOffsetStart += scrollStart;
+
+    } else if (this.isFixedColumnsEnd(hoveredColumn)) {
+      tdOffsetStart += this.#getEndBandShift();
     }
 
     tdOffsetStart += rowHeaderWidth;
@@ -481,7 +595,50 @@ export class ManualColumnMove extends BasePlugin {
     }
 
     this.#backlight.setPosition(undefined, backlightStart);
-    this.#guideline.setPosition(undefined, guidelineStart);
+    this.#placeGuideline(guidelineStart, tdOffsetStart - (this.isFixedColumnsStart(hoveredColumn) ? scrollStart : 0));
+  }
+
+  /**
+   * Places the guideline. Over a frozen start column it goes into the frozen overlay and not into the master
+   * table: the overlay paints over the master as a whole (the master is a stacking context), so a guideline
+   * living in the master is covered there however high its `z-index` is. The line stays in the master
+   * everywhere else, where it scrolls with the columns.
+   *
+   * @param {number} masterStart The guideline start offset in the master table's coordinates.
+   * @param {number} overlayStart The same position in the frozen overlay's coordinates: the target column's
+   * offset without the scroll that the master coordinates add for a frozen column, and without the clamps
+   * `masterStart` goes through. Taken before them on purpose, so a window-scrolled grid is not shifted twice.
+   */
+  #placeGuideline(masterStart: number, overlayStart: number) {
+    const masterHider = this.hot.view._wt.wtTable.hider;
+    const overFrozen = this.isFixedColumnsStart(this.#hoveredColumn ?? 0);
+    const cloneTable = overFrozen ? this.hot.view._wt.wtOverlays.inlineStartOverlay.clone?.wtTable : undefined;
+    const cloneHider = cloneTable?.hider;
+
+    if (!cloneTable || !cloneHider) {
+      this.#attachGuideline(masterHider);
+      this.#guideline.setPosition(undefined, masterStart);
+
+      return;
+    }
+
+    this.#attachGuideline(cloneHider);
+    // The overlay's table starts at the grid's start edge. A drop at the freeze line is the table's last pixel: the
+    // overlay holder clips anything past it. The overlay's hider has no width of its own, so the table is measured.
+    this.#guideline.setPosition(undefined, Math.min(Math.max(overlayStart, 1), cloneTable.TABLE.offsetWidth - 1));
+  }
+
+  /**
+   * Moves the guideline into the given hider, unless it is already there. A guideline that was never appended is
+   * left alone: `onMouseDown` appends it together with the backlight, and appending it here first would make that
+   * check skip the backlight.
+   *
+   * @param {HTMLElement} hider The hider of the table to draw the guideline in.
+   */
+  #attachGuideline(hider: HTMLElement) {
+    if (this.#guideline.isAppended() && this.#guideline._element!.parentElement !== hider) {
+      this.#guideline.appendTo(hider);
+    }
   }
 
   /**
@@ -681,10 +838,11 @@ export class ManualColumnMove extends BasePlugin {
       const topPos = wtTable.holder.scrollTop + this.#grabbedHeaderOffsetTop + 1;
       const fixedColumnsStart = coords.col < (this.#fixedColumnsStart ?? 0);
       const horizontalScrollPosition = this.hot.view._wt.wtOverlays.inlineStartOverlay.getOverlayOffset();
+      const endBandShift = this.isFixedColumnsEnd(coords.col) ? this.#getEndBandShift() : 0;
       const offsetX = Math.abs(eventOffsetX - (this.hot.isRtl() ? TD.offsetWidth : 0));
       const inlineOffset = this.getColumnsWidth(start, coords.col - 1) + offsetX;
       const inlinePos = this.getColumnsWidth(countColumnsFrom, start - 1) +
-        (fixedColumnsStart ? horizontalScrollPosition : 0) + inlineOffset;
+        (fixedColumnsStart ? horizontalScrollPosition : 0) + endBandShift + inlineOffset;
 
       this.#backlight.setPosition(topPos, inlinePos);
       this.#backlight.setSize(this.getColumnsWidth(start, end), wtTable.hider.offsetHeight - topPos);
@@ -783,6 +941,9 @@ export class ManualColumnMove extends BasePlugin {
     this.#hoveredColumn = undefined;
     this.#pressed = false;
     this.#dragged = false;
+
+    // The next drag starts with the guideline in the master table, where `onMouseDown` expects it.
+    this.#attachGuideline(this.hot.view._wt.wtTable.hider);
 
     removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI, CSS_AFTER_SELECTION]);
 

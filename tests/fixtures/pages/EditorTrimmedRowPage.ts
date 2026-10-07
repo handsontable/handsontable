@@ -9,6 +9,7 @@ interface FiltersPlugin {
 interface TrimRowsPlugin {
   trimRows(rows: number[]): void;
   untrimRows(rows: number[]): void;
+  untrimAll(): void;
 }
 
 interface CopyPastePlugin {
@@ -38,7 +39,11 @@ interface ManualColumnMovePlugin {
 
 interface HandsontableFixture {
   addHook(name: string, callback: (...args: unknown[]) => unknown): void;
-  getSelectedRangeActive(): { from: { row: number | null } } | undefined;
+  getSelectedRangeActive(): { from: { row: number | null }; highlight: { row: number | null } } | undefined;
+  columnIndexMapper: {
+    createAndRegisterIndexMap(name: string, type: string): { setValueAtIndex(index: number, value: boolean): void };
+    getIndexesSequence(): number[];
+  };
   getSelected(): number[][] | undefined;
   selectCells(ranges: number[][]): void;
   selectColumns(
@@ -54,6 +59,7 @@ interface HandsontableFixture {
     transformFocus(row: number, col: number): void;
     transformEnd(rowDelta: number, colDelta: number): void;
     isEntireColumnSelected(): boolean;
+    isSelectedByCorner(): boolean;
     getActiveSelectionLayerIndex(): number;
     highlight: {
       getAreas(): Array<{ isEmpty(): boolean; getCorners(): number[] }>;
@@ -72,6 +78,8 @@ interface HandsontableFixture {
   getSourceData(): unknown[][];
   countSourceRows(): number;
   countRows(): number;
+  render(): void;
+  destroy(): void;
   listen(): void;
   getPlugin(name: string): FiltersPlugin & TrimRowsPlugin & ColumnSortingPlugin & ManualRowMovePlugin
     & ManualColumnMovePlugin & CopyPastePlugin & HiddenRowsPlugin & DialogPlugin;
@@ -83,7 +91,11 @@ interface HandsontableFixture {
   updateData(data: unknown[][]): void;
   runHooks(name: string): void;
   toPhysicalRow(row: number): number;
-  alter(action: string, index: number, amount?: number): void;
+  alter(action: string, index: number, amount?: number, source?: string): void;
+  getDataAtCell(row: number, column: number): unknown;
+  setDataAtCell(row: number, column: number, value: unknown): void;
+  selectCell(row: number, column: number): boolean;
+  updateSettings(settings: Record<string, unknown>): void;
   scrollViewportTo(options: { row: number; verticalSnap: string }): void;
   getCell(row: number, col: number, topmost?: boolean): HTMLElement | null;
 }
@@ -263,6 +275,16 @@ export class EditorTrimmedRowPage {
   }
 
   /**
+   * Vetoes every row removal from here on. `alter()` then returns before it reaches
+   * `selection.shiftRows()`, so the removal repairs nothing.
+   */
+  async vetoRowRemoval(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as Window & { hot: HandsontableFixture }).hot.addHook('beforeRemoveRow', () => false);
+    });
+  }
+
+  /**
    * Selects a range and then moves the FOCUS below its top-start corner, the state Enter or Tab
    * produces inside a multi-cell selection.
    *
@@ -385,6 +407,349 @@ export class EditorTrimmedRowPage {
       });
       hot.alter('remove_row', target as number, 1);
     }, [removeIndex, trimRow] as [number, number]);
+  }
+
+  /**
+   * Removes a row, and from inside the removal's own cache update calls `alter()` AGAIN - the
+   * nesting DEV-2755 is about. The nested call's selection repair runs while the outer removal's
+   * repair is still pending, so on unfixed code the two adjust the open editor one after the other
+   * and the commit lands one record above the one it was typed into.
+   *
+   * `nestedAmount` of `0` removes nothing at all: the nested call still runs `alter()`'s selection
+   * machinery, which is the whole mechanism, with no second removal to reason about.
+   *
+   * `trimAfter` adds a trimming-map write behind the nested call, still inside the listener. That
+   * puts a THIRD selection repair in the same window - the trim captures and restores the selection
+   * in physical coordinates - so it pins that the composed shift and the trim's own repair agree.
+   */
+  async removeRowAlteringFromCacheUpdate(
+    removeIndex: number, nestedIndex: number, nestedAmount: number,
+    trimAfter: number[] = []): Promise<void> {
+    await this.page.evaluate(([target, nestedTarget, nested, trimmed]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      let fired = false;
+
+      hot.addHook('afterRowSequenceCacheUpdate', (state) => {
+        const source = (state as { indexesChangeSource?: string } | undefined)?.indexesChangeSource;
+
+        if (fired || source !== 'remove') {
+          return;
+        }
+
+        fired = true;
+
+        hot.alter('remove_row', nestedTarget as number, nested as number);
+
+        if ((trimmed as number[]).length > 0) {
+          hot.getPlugin('trimRows').trimRows(trimmed as number[]);
+        }
+      });
+      hot.alter('remove_row', target as number, 1);
+    }, [removeIndex, nestedIndex, nestedAmount, trimAfter] as [number, number, number, number[]]);
+  }
+
+  /**
+   * Inserts a row, and from inside `beforeCreateRow` - which fires BEFORE the insertion touches the
+   * data - removes one. The nested change therefore lands FIRST, the opposite order from a nested
+   * call fired by a cache update, and nothing is owed to the selection while it runs.
+   *
+   * The composition has to follow the DATA order rather than the nesting order, or this shape moves
+   * the selection the wrong way (DEV-2755 review).
+   */
+  async insertRowRemovingFromBeforeHook(insertIndex: number, removeIndex: number): Promise<void> {
+    await this.page.evaluate(([target, removed]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      let fired = false;
+
+      hot.addHook('beforeCreateRow', () => {
+        if (fired) {
+          return;
+        }
+
+        fired = true;
+
+        hot.alter('remove_row', removed as number, 1);
+      });
+      hot.alter('insert_row_above', target as number, 1);
+    }, [insertIndex, removeIndex] as [number, number]);
+  }
+
+  /**
+   * The column axis's version of `removeRowAlteringFromCacheUpdate()`: removes a column, and from
+   * inside that removal's own cache update calls `alter()` again.
+   */
+  async removeColumnAlteringFromCacheUpdate(
+    removeIndex: number, nestedIndex: number, nestedAmount: number): Promise<void> {
+    await this.page.evaluate(([target, nestedTarget, nested]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      let fired = false;
+
+      hot.addHook('afterColumnSequenceCacheUpdate', (state) => {
+        const source = (state as { indexesChangeSource?: string } | undefined)?.indexesChangeSource;
+
+        if (fired || source !== 'remove') {
+          return;
+        }
+
+        fired = true;
+
+        hot.alter('remove_col', nestedTarget as number, nested as number);
+      });
+      hot.alter('remove_col', target as number, 1);
+    }, [removeIndex, nestedIndex, nestedAmount] as [number, number, number]);
+  }
+
+  /**
+   * Selects a cell, removes its row with the `ContextMenu.removeRow` source, and from inside that
+   * removal's own cache update removes another row. That source repairs the selection by
+   * `refresh()` instead of by a shift, and `refresh()` clamps against the grid the nested call has
+   * already shortened. Returns the selection and the value under its highlight afterwards.
+   */
+  async contextMenuRemoveRowAlteringFromCacheUpdate(
+    selectedRow: number, nestedIndex: number): Promise<{ selected: number[][] | undefined, value: unknown }> {
+    return this.page.evaluate(([target, nestedTarget]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      let fired = false;
+
+      hot.selectCells([[target, 0]]);
+      hot.addHook('afterRowSequenceCacheUpdate', (state) => {
+        const source = (state as { indexesChangeSource?: string } | undefined)?.indexesChangeSource;
+
+        if (fired || source !== 'remove') {
+          return;
+        }
+
+        fired = true;
+
+        hot.alter('remove_row', nestedTarget, 1);
+      });
+      hot.alter('remove_row', target, 1, 'ContextMenu.removeRow');
+
+      const selected = hot.getSelected();
+
+      return { selected, value: selected ? hot.getDataAtCell(selected[0][0], selected[0][1]) : null };
+    }, [selectedRow, nestedIndex] as [number, number]);
+  }
+
+  /**
+   * Selects a cell, removes a row, and from inside that removal's `afterRemoveRow` runs the steps
+   * `nested` names, in this order: another `alter()`, a write into the spare row (which appends a
+   * new one through `adjustRowsAndCols()`, a count change with no `alter()` scope of its own), a
+   * write one row past the last (which `applyChanges()` creates first - the same kind of change), a
+   * fresh `selectCell()`, and a throw. `spareRows` sets `minSpareRows` first, `inBatch` runs the
+   * whole removal inside `hot.batch()`, and `throwOnSelection` makes every `afterSelection` throw
+   * from then on - the hook a shift's write fires. Returns the selection, the value under its highlight, and the message of
+   * whatever the removal threw.
+   */
+  async removeRowRunningFromAfterRemoveRow(
+    select: [number, number],
+    removeIndex: number,
+    nested: {
+      alter?: [string, number, number],
+      writeSpareRow?: boolean,
+      writePastLastRow?: boolean,
+      selectCell?: [number, number],
+      throwMessage?: string,
+    },
+    options: { spareRows?: number, inBatch?: boolean, throwOnSelection?: string } = {},
+  ): Promise<{ selected: number[][] | undefined, value: unknown, error: string | null }> {
+    return this.page.evaluate(([target, removed, steps, settings]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      let fired = false;
+      let error: string | null = null;
+
+      if (settings.spareRows) {
+        hot.updateSettings({ minSpareRows: settings.spareRows });
+      }
+
+      hot.selectCells([[target[0], target[1]]]);
+      hot.addHook('afterRemoveRow', () => {
+        if (fired) {
+          return;
+        }
+
+        fired = true;
+
+        if (steps.alter) {
+          hot.alter(steps.alter[0], steps.alter[1], steps.alter[2]);
+        }
+
+        if (steps.writeSpareRow) {
+          hot.setDataAtCell(hot.countRows() - 1, 0, 'SPARE');
+        }
+
+        if (steps.writePastLastRow) {
+          hot.setDataAtCell(hot.countRows(), 0, 'APPENDED');
+        }
+
+        if (steps.selectCell) {
+          hot.selectCell(steps.selectCell[0], steps.selectCell[1]);
+        }
+
+        if (steps.throwMessage) {
+          throw new Error(steps.throwMessage);
+        }
+      });
+
+      if (settings.throwOnSelection) {
+        hot.addHook('afterSelection', () => {
+          throw new Error(settings.throwOnSelection);
+        });
+      }
+
+      const remove = () => hot.alter('remove_row', removed, 1);
+
+      try {
+        if (settings.inBatch) {
+          hot.batch(remove);
+        } else {
+          remove();
+        }
+      } catch (thrown) {
+        error = (thrown as Error).message;
+      }
+
+      const selected = hot.getSelected();
+
+      return {
+        selected,
+        value: selected ? hot.getDataAtCell(selected[0][0], selected[0][1]) : null,
+        error,
+      };
+    }, [select, removeIndex, nested, options] as [
+      [number, number], number, typeof nested, typeof options,
+    ]);
+  }
+
+  /**
+   * Selects a cell and removes several row groups in one `alter()`. From inside the
+   * `beforeRemoveRow` of the group numbered `nestedBeforeGroup` (counting from 1), a nested
+   * `alter()` removes `nestedIndex` - so that change lands BEFORE the group's own. With
+   * `writeSpareRow`, the grid gets `minSpareRows: 1` first, and the same hook writes into the spare
+   * row just before the nested call, which appends a new one - a count change no `alter()` owns.
+   * Returns the selection and the value under its highlight afterwards.
+   */
+  async removeRowGroupsNestingFromBeforeRemoveRow(
+    select: [number, number], groups: number[][], nestedBeforeGroup: number, nestedIndex: number,
+    writeSpareRow = false,
+  ): Promise<{ selected: number[][] | undefined, value: unknown }> {
+    return this.page.evaluate(([target, removed, groupNumber, nestedTarget, spareWrite]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      let calls = 0;
+
+      if (spareWrite) {
+        hot.updateSettings({ minSpareRows: 1 });
+      }
+
+      hot.selectCells([[target[0], target[1]]]);
+      hot.addHook('beforeRemoveRow', () => {
+        calls += 1;
+
+        if (calls !== groupNumber) {
+          return;
+        }
+
+        if (spareWrite) {
+          hot.setDataAtCell(hot.countRows() - 1, 0, 'SPARE');
+        }
+
+        hot.alter('remove_row', nestedTarget, 1);
+      });
+      hot.alter('remove_row', removed as unknown as number, 1);
+
+      const selected = hot.getSelected();
+
+      return { selected, value: selected ? hot.getDataAtCell(selected[0][0], selected[0][1]) : null };
+    }, [select, groups, nestedBeforeGroup, nestedIndex, writeSpareRow] as [
+      [number, number], number[][], number, number, boolean,
+    ]);
+  }
+
+  /**
+   * Sets `minSpareRows: 1`, selects a cell, and writes into the spare row, so `adjustRowsAndCols()`
+   * appends a new one. From that append's `afterCreateRow`, inserts a row above the first one and
+   * reads the selection back at once. Returns what the hook read and the final selection.
+   */
+  async insertRowFromSpareRowAppend(select: [number, number]): Promise<{
+    seenInHook: number[][] | undefined, selected: number[][] | undefined,
+  }> {
+    return this.page.evaluate((target) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      let fired = false;
+      let seenInHook: number[][] | undefined;
+
+      hot.updateSettings({ minSpareRows: 1 });
+      hot.selectCells([[target[0], target[1]]]);
+      hot.addHook('afterCreateRow', (...args: unknown[]) => {
+        if (fired || args[2] !== 'auto') {
+          return;
+        }
+
+        fired = true;
+        hot.alter('insert_row_above', 0, 1);
+        seenInHook = hot.getSelected();
+      });
+      hot.setDataAtCell(hot.countRows() - 1, 0, 'SPARE');
+
+      return { seenInHook, selected: hot.getSelected() };
+    }, select);
+  }
+
+  /**
+   * The column axis's version of `contextMenuRemoveRowAlteringFromCacheUpdate()`. The fixture has
+   * only two columns, which a removal and a nested removal would empty, so the data is replaced with
+   * four first (`C…` and `D…` added).
+   */
+  async contextMenuRemoveColumnAlteringFromCacheUpdate(
+    selectedColumn: number, nestedIndex: number): Promise<{ selected: number[][] | undefined, value: unknown }> {
+    return this.page.evaluate(([target, nestedTarget]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      let fired = false;
+
+      hot.updateData(Array.from({ length: 5 }, (unused, row) => ['A', 'B', 'C', 'D'].map(letter => `${letter}${row}`)));
+      hot.selectCells([[0, target]]);
+      hot.addHook('afterColumnSequenceCacheUpdate', (state) => {
+        const source = (state as { indexesChangeSource?: string } | undefined)?.indexesChangeSource;
+
+        if (fired || source !== 'remove') {
+          return;
+        }
+
+        fired = true;
+
+        hot.alter('remove_col', nestedTarget, 1);
+      });
+      hot.alter('remove_col', target, 1, 'ContextMenu.removeColumn');
+
+      const selected = hot.getSelected();
+
+      return { selected, value: selected ? hot.getDataAtCell(selected[0][0], selected[0][1]) : null };
+    }, [selectedColumn, nestedIndex] as [number, number]);
+  }
+
+  /**
+   * Selects the whole grid, then runs one row `alter()` at index 0 and counts the
+   * `afterSelectionEnd` calls it caused. Also reports whether the selection was a corner selection
+   * when the `alter()` started, so a low count cannot come from a setup that never reached the
+   * corner path.
+   */
+  async countSelectionEndsForAlterAfterSelectAll(
+    action: 'insert_row_above' | 'remove_row'): Promise<{ selectedByCorner: boolean, count: number }> {
+    return this.page.evaluate((alterAction) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      let count = 0;
+
+      hot.selectAll();
+
+      const selectedByCorner = hot.selection.isSelectedByCorner();
+
+      hot.addHook('afterSelectionEnd', () => {
+        count += 1;
+      });
+      hot.alter(alterAction, 0, 1);
+
+      return { selectedByCorner, count };
+    }, action);
   }
 
   /**
@@ -538,6 +903,16 @@ export class EditorTrimmedRowPage {
       (window as Window & { hot: HandsontableFixture }).hot
         .scrollViewportTo({ row: target, verticalSnap: 'top' });
     }, row);
+  }
+
+  /**
+   * Renders the grid synchronously. The draw reads the scroll position as it is now, so what it
+   * renders afterwards answers "did anything scroll the viewport" without waiting on a scroll event.
+   */
+  async render(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as Window & { hot: HandsontableFixture }).hot.render();
+    });
   }
 
   /**
@@ -983,5 +1358,145 @@ export class EditorTrimmedRowPage {
     await this.page.evaluate((rowSteps) => {
       (window as Window & { hot: HandsontableFixture }).hot.selection.transformEnd(-rowSteps, 0);
     }, steps);
+  }
+
+  /**
+   * Adds a whole column as a NEW selection layer, the `Ctrl`/`Cmd`+click on its header. Unlike
+   * `selectWholeColumn()`, which replaces the selection, this is the only way to build several
+   * grid-tracking layers at once.
+   */
+  async addWholeColumnLayer(header: string): Promise<void> {
+    await this.page.locator('.ht_clone_top thead th')
+      .filter({ hasText: new RegExp(`^${header}$`) })
+      .click({ modifiers: ['ControlOrMeta'] });
+  }
+
+  /**
+   * Adds a cell range as a NEW selection layer, `Ctrl`/`Cmd`+click on its first cell and `Shift`+click
+   * on its last. The range becomes the active layer.
+   */
+  async addCellRangeLayer(range: [number, number, number, number]): Promise<void> {
+    const [fromRow, fromCol, toRow, toCol] = range;
+
+    await this.cell(fromRow, fromCol).click({ modifiers: ['ControlOrMeta'] });
+    await this.cell(toRow, toCol).click({ modifiers: ['Shift'] });
+  }
+
+  /**
+   * Untrims and trims rows inside one `batch()`, so a single trimming cache update both brings rows
+   * back and takes rows away.
+   */
+  async batchUntrimAndTrim(untrimmedRows: number[], trimmedRows: number[]): Promise<void> {
+    await this.page.evaluate(([untrimmed, trimmed]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+
+      hot.batch(() => {
+        hot.getPlugin('trimRows').untrimRows(untrimmed);
+        hot.getPlugin('trimRows').trimRows(trimmed);
+      });
+    }, [untrimmedRows, trimmedRows] as [number[], number[]]);
+  }
+
+  /**
+   * Sorts and untrims inside one `batch()`, the untrim counterpart of `batchSortAndTrim()`: one cache
+   * update carrying `indexesSequenceChanged` and `trimmedIndexesChanged` together, which is the shape
+   * the editor-open restore refuses.
+   */
+  async batchSortAndUntrim(rows: number[]): Promise<void> {
+    await this.page.evaluate((targetRows) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+
+      hot.batch(() => {
+        hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+        hot.getPlugin('trimRows').untrimRows(targetRows);
+      });
+    }, rows);
+  }
+
+  /**
+   * Trims or untrims columns through a trimming map registered on the column index mapper - the
+   * public route to a column trim, since no built-in plugin trims columns.
+   */
+  async setColumnsTrimmed(columns: number[], trimmed: boolean): Promise<void> {
+    await this.page.evaluate(([targetColumns, isTrimmed]) => {
+      const target = window as Window & {
+        hot: HandsontableFixture;
+        htColumnTrimMap?: { setValueAtIndex(index: number, value: boolean): void };
+      };
+
+      target.htColumnTrimMap = target.htColumnTrimMap ??
+        target.hot.columnIndexMapper.createAndRegisterIndexMap('e2e-column-trim', 'trimming');
+
+      const map = target.htColumnTrimMap;
+
+      target.hot.batch(() => {
+        (targetColumns as number[]).forEach(column => map.setValueAtIndex(column, isTrimmed as boolean));
+      });
+      target.hot.render();
+    }, [columns, trimmed] as [number[], boolean]);
+  }
+
+  /**
+   * Removes a row while an `afterRemoveRow` hook untrims every row, so the untrim lands INSIDE the
+   * removal's `alter()` scope - the shape a consumer clearing its trims after a removal produces.
+   * `untrimAll()` rather than named rows, because the removal has already renumbered them.
+   */
+  async removeRowUntrimmingAllFromAfterRemoveRow(row: number): Promise<void> {
+    await this.page.evaluate((targetRow) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      let isDone = false;
+
+      hot.addHook('afterRemoveRow', () => {
+        if (!isDone) {
+          isDone = true;
+          hot.getPlugin('trimRows').untrimAll();
+        }
+      });
+      hot.alter('remove_row', targetRow, 1);
+    }, row);
+  }
+
+  /**
+   * Presses `Enter` the given number of times on a listening grid and returns the row the focus sat
+   * on before each press. Inside a multi-cell selection `Enter` walks the focus down through it and
+   * wraps at its end, so the sequence shows how far the selection reaches.
+   */
+  async focusRowsWalkedByEnter(presses: number): Promise<Array<number | null>> {
+    const rows: Array<number | null> = [];
+
+    await this.page.evaluate(() => (window as Window & { hot: HandsontableFixture }).hot.listen());
+
+    for (let press = 0; press < presses; press++) {
+      rows.push(await this.page.evaluate(() => (
+        (window as Window & { hot: HandsontableFixture }).hot.getSelectedRangeActive()?.highlight.row ?? null
+      )));
+      await this.page.keyboard.press('Enter');
+    }
+
+    return rows;
+  }
+
+  /**
+   * Destroys the grid and returns the message of whatever the teardown threw, or `null`.
+   */
+  async destroyGrid(): Promise<string | null> {
+    return this.page.evaluate(() => {
+      try {
+        (window as Window & { hot: HandsontableFixture }).hot.destroy();
+
+        return null;
+      } catch (error) {
+        return (error as Error).message;
+      }
+    });
+  }
+
+  /**
+   * Pushes settings through `updateSettings()`.
+   */
+  async updateSettings(settings: Record<string, unknown>): Promise<void> {
+    await this.page.evaluate((config) => {
+      (window as Window & { hot: HandsontableFixture }).hot.updateSettings(config);
+    }, settings);
   }
 }

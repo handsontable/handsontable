@@ -5,6 +5,14 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['https://api.acme-inventory.com/live-stock', '=WEBSERVICE("https://api.acme-inventory.com/live-stock")'],
+  ['https://status.vertex-logistics.com/feed', '=WEBSERVICE("https://status.vertex-logistics.com/feed")'],
+  ['http://malicious.example/payload.exe', '=CMD("| calc.exe")'],
+  ['https://news.example.com/q2-briefing', '=HYPERLINK("http://malicious.example","Open report")'],
+  ['https://cdn.example.com/daily.csv', '+SUM(1,1)'],
+];
+
 const ExampleComponent = () => {
   const hotRef = useRef(null);
 
@@ -99,13 +107,7 @@ const ExampleComponent = () => {
       </div>
       <HotTable
         ref={hotRef}
-        data={[
-          ['https://api.acme-inventory.com/live-stock', '=WEBSERVICE("https://api.acme-inventory.com/live-stock")'],
-          ['https://status.vertex-logistics.com/feed', '=WEBSERVICE("https://status.vertex-logistics.com/feed")'],
-          ['http://malicious.example/payload.exe', '=CMD("| calc.exe")'],
-          ['https://news.example.com/q2-briefing', '=HYPERLINK("http://malicious.example","Open report")'],
-          ['https://cdn.example.com/daily.csv', '+SUM(1,1)'],
-        ]}
+        data={data}
         colHeaders={true}
         rowHeaders={true}
         height="auto"

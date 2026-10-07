@@ -41,7 +41,8 @@ jobs:
           if-no-files-found: warn
       # Report-only: a UNIT-coverage floor reads 0% for changes that are correctly
       # E2E-tested (routing, not a gap), so it must be calibrated before it can
-      # block. Flip GATE_MODE to 'block' later (pairs with the presence-gate flip).
+      # block. The presence gate already blocks (checks.yml); this floor flips only
+      # once E2E coverage feeds it.
       - name: Changed-line coverage floor (warn)
         if: inputs.is-pr
         run: node .github/scripts/diff-coverage-gate.mjs

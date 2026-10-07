@@ -25,9 +25,37 @@ Each plugin owns its sizes: the index map, every public size accessor, `SETTING_
 row plugin also keeps `getLastDesiredRowHeight()`, and the column plugin keeps its stretching hooks.
 
 **The seam runs both ways.** Facts flow in through the axis descriptor. Calls flow out through the owner the
-plugin passes in: `isActive()` and `setManualSize()`. That second one is the plugin's **public**
-`setManualSize` on purpose - the gesture never writes a size map itself, so the clamping rules (the 20px
-column floor, the theme's default row height) stay in one place.
+plugin passes in: `isActive()`, `clampSize()` and `setManualSize()`. The last two are the plugin's
+**private** bodies (`#clampSize`, `#setManualSize`), not the public `setManualSize()`: the public method opens
+an undo step of its own, and the gesture records its own step. The gesture still never writes a size map
+itself, and `setManualSize()` clamps through `clampSize()`, so the clamping rules (the theme-derived column floor,
+the theme's default row height) stay in one place.
+
+## One press, one undo step - and nothing stored before the release
+
+A drag stores **no size until the `mouseup`**. `#onMouseMove` only tracks the pointer: it sets `#currentSize`
+(which positions the handle and the guide) and `#newSize = clampSize(#currentSize)`, and writes nothing.
+UndoRedo reads a step's "before" state at settle time, from the state the previous step ended in. So a step
+that settles during the drag - a `setDataAtCell()` made while the button is down - recorded the half-dragged
+size as its own "after", the drag's undo then went back only to that size, and undoing the edit moved the
+width. `tests/e2e/undo-plugin-state.spec.ts` pins it ("an edit made while a column resize is dragged...").
+
+- **`#onMouseUp` stores the size first, then runs the hooks.** Every selected index gets `setManualSize()`
+  with the dragged size, then `before*Resize` / `after*Resize` fire per index as before: `false` puts the
+  start size back, a number is stored instead. The order matters for rows: `ROW_RESIZE_AXIS#getHookSize`
+  reports `max(dragged, wtTable.getRowHeight())`, and that height is read back from the size map (every
+  write clears the row-height cache). Firing the hooks before the write reports the old height, and a
+  manually tall row could no longer be reported smaller.
+- **`#newSize` is still updated on every mousemove**, even though nothing is stored: the double-click timer's
+  "still hold or drag?" test (`#newSize === #startSize`) and the release's "did it move?" test read it.
+- **The press holds the step** (`#openStep()` on `mousedown`, `#closeStep()` on `mouseup`), so the autosize a
+  held second press runs and the size its release stores are one step. **Three more places close it:** a
+  fresh `mousedown` (a step still held there was left by a drag whose `mouseup` never arrived), `detach()`,
+  and the context menu. After a `detach()` in the middle of a drag - the `disablePlugin(); enablePlugin();`
+  cycle of a wrapper re-render - the `mouseup` records the drag in a step of its own through
+  `hot.runOperation()`. That is only safe because nothing was stored before the release.
+- **A drag the context menu aborts stores nothing**, so it keeps the size it started from. Before, the
+  mousemove writes left the half-dragged size in the map with no resize hook.
 
 ## One gesture for both axes: along and across
 
@@ -148,7 +176,7 @@ it when `#dblclick >= 2`. It still must not detach – that is the flicker trap 
 is held is a drag, so the same timer must leave the guide alone when the count is below two.
 
 **Do not clear `#pressed` on every dblclick timeout.** `#newSize` is reset to `#startSize` on each press
-and written on mousemove. They still matching is a still hold: clear `#pressed` so a later mousemove
+and updated on mousemove. They still matching is a still hold: clear `#pressed` so a later mousemove
 cannot overwrite the autosize and mouseup takes the idle branch (no second round of drag-end hooks).
 They differing means the second press already started a drag: keep `#pressed`. The `#setupHandlePosition`
 that follows then resets `#startSize`, so later mousemove/mouseup keep following the pointer – the
@@ -232,7 +260,7 @@ measurement, which is what a grid built inside a `display: none` container measu
 
 - `npm run test:unit --prefix handsontable -- --testPathPattern='manualResize'`
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='manualRowResize|manualColumnResize|autoRowSize'`
-- `cd tests && npx playwright test --project=e2e-main e2e/manual-resize-teardown.spec.ts e2e/manual-resize-drag-interruption.spec.ts e2e/manual-resize-dblclick-hold-guide.spec.ts`
+- `cd tests && npx playwright test --project=e2e-main e2e/manual-resize-teardown.spec.ts e2e/manual-resize-drag-interruption.spec.ts e2e/manual-resize-dblclick-hold-guide.spec.ts e2e/manual-resize-guide-geometry.spec.ts`
 
 `__tests__/resizeGesture.unit.js` drives the gesture through its constructor, with a small grid, axis and owner
 passed in - no module is mocked. Each of its tests was checked against a deliberate regression of the
@@ -245,3 +273,37 @@ held second press whose 500ms window is interrupted by the same re-init).
 DEV-1038 is pinned by `__tests__/resizeGesture.unit.js` (the held double-click hides the guide, a held
 single press does not, a second press that already moved keeps the drag). The still-hold hide is also
 in `tests/e2e/manual-resize-dblclick-hold-guide.spec.ts`.
+
+Where the handle and the guide are DRAWN is `tests/e2e/manual-resize-guide-geometry.spec.ts`: the handle
+as wide as the header, flush with its inline edge and centered one pixel above the row boundary (the
+`- 6` in `#setupHandlePosition` against the stylesheet's 10px strip); on a press the guide's 1px line
+level with that boundary, starting where the handle ends and reaching the table's far edge; both stacked
+above every overlay; the line following the pointer by the dragged distance while the row itself stays put
+until release; the row grown by exactly that distance on release — on a header in each of the three
+overlays `ROW_RESIZE_AXIS.getHeaderPosition` resolves against. The line sits on the boundary because
+`.manualRowResizerGuide` has `margin-top: 5px` in `../../styles/components/plugins/_manual-row-resize.scss`
+(#11500 moved it from 4px, and until that spec the only guard was a screenshot). A change to that
+stylesheet needs both bundles rebuilt (`build:umd` and `build:umd.min`, or the full `build`) before the
+Playwright legs see it: the bundles inline the base stylesheet and their copy wins the cascade over the
+linked one, and each pair of legs loads one of them (`../../../AGENTS.md`, Build; `tests/AGENTS.md`, The
+matrix).
+
+## The frozen end columns anchor to the inline-end edge
+
+A column header rendered by the top inline-end corner overlay (`fixedColumnsEnd`) keeps its inline-end edge
+when it is resized: the band stands at the grid's edge, so a wider column grows towards the inline start.
+`ResizeAxis#isAnchoredAtInlineEnd` (optional; only `COLUMN_RESIZE_AXIS` implements it, by checking whether the
+header sits in `topInlineEndCornerOverlay` AND `wtViewport.hasHorizontalScroll()`) tells the gesture. Without a
+horizontal scroll the columns do not fill the holder, the end clone rests against the last column instead of the
+edge, so the header is not anchored (anchoring it put its handle on the previous column's handle and inverted the
+drag). When it is anchored:
+
+- the handle sits on the header's inline-START edge, not the inline-end one;
+- the pointer delta is inverted (dragging towards the inline start widens, in RTL too, because the direction
+  factor is applied first);
+- the handle moves with the growing edge (`2 * startSize - currentSize`).
+
+`isHeaderElement` includes the end corner's `THEAD`, and `getHeaderPosition` resolves against that corner (the
+overlay's `getRelativeCellPosition` already adds the clone's own inline start). The row axis has no end headers
+and leaves the hook out. Pinned by `__tests__/axis.unit.js`, `__tests__/resizeGesture.unit.js` and
+`tests/e2e/fixed-columns-end-plugins.spec.ts`.

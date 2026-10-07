@@ -27,6 +27,9 @@ export function focusGridScope(hot: HotInstance) {
         hot.getSelectedRangeActive()?.highlight as unknown as Record<string, number> | undefined;
     }
   });
+  hot.addHook('afterLoadData', () => {
+    recentlyAddedFocusCoords = undefined;
+  });
   hot.addHook('beforeRowWrap', (
     interruptedByAutoInsertMode: boolean, newCoords: Record<string, number>, isFlipped: boolean) => {
     rowWrapState.wrapped = true;
