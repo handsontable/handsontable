@@ -236,13 +236,18 @@ project. It includes 1 license:
 ```
 
 Pass the whole key string, exactly as you received it, in the same
-[`licenseKey`](@/api/options.md#licensekey) option:
+[`licenseKey`](@/api/options.md#licensekey) option. The key text contains double quotes (around the
+project name) and can contain apostrophes (in a company name), so do not paste it into a quoted
+string or a quoted HTML attribute - the first quote inside the key ends the value there. Read the key
+from your configuration, or write it as a template literal (in backticks), as in the examples below.
+A template literal works as long as the key text contains no backtick and no `${`; if it does, read
+the key from your configuration.
 
 ::: only-for javascript
 
 ```js
 const settings = {
-  licenseKey: 'This is a Handsontable license key for Acme Corp, ... [eyJwcm9kdWN0cyI6...3a4f8361]',
+  licenseKey: `This is a Handsontable license key for Acme Corp, issued on 2026-08-12 for the "Acme Portal" project. ... [eyJwcm9kdWN0cyI6...3a4f8361]`,
   //... other options
 }
 ```
@@ -252,7 +257,9 @@ const settings = {
 ::: only-for react
 
 ```jsx
-<HotTable licenseKey="This is a Handsontable license key for Acme Corp, ... [eyJwcm9kdWN0cyI6...3a4f8361]" />
+const licenseKey = `This is a Handsontable license key for Acme Corp, issued on 2026-08-12 for the "Acme Portal" project. ... [eyJwcm9kdWN0cyI6...3a4f8361]`;
+
+<HotTable licenseKey={licenseKey} />
 ```
 
 :::
@@ -263,7 +270,7 @@ const settings = {
 import { GridSettings } from "@handsontable/angular-wrapper";
 
 readonly gridSettings: GridSettings = {
-  licenseKey: 'This is a Handsontable license key for Acme Corp, ... [eyJwcm9kdWN0cyI6...3a4f8361]',
+  licenseKey: `This is a Handsontable license key for Acme Corp, issued on 2026-08-12 for the "Acme Portal" project. ... [eyJwcm9kdWN0cyI6...3a4f8361]`,
 };
 ```
 
@@ -272,17 +279,40 @@ readonly gridSettings: GridSettings = {
 ::: only-for vue
 
 ```html
-<HotTable licenseKey="This is a Handsontable license key for Acme Corp, ... [eyJwcm9kdWN0cyI6...3a4f8361]" />
+<script setup>
+const licenseKey = `This is a Handsontable license key for Acme Corp, issued on 2026-08-12 for the "Acme Portal" project. ... [eyJwcm9kdWN0cyI6...3a4f8361]`;
+</script>
+
+<template>
+  <HotTable :licenseKey="licenseKey" />
+</template>
 ```
 
 :::
 
 Keys issued in the 25-character format keep working without any change.
 
-Only the bracketed block is protected by a checksum. You can rewrap the text above it, or paste the
-key through an email client, and the key still works. Keep the block itself on one line, and end the
-key there - the block must be the last thing in the string. Space and newlines around the whole key
-are trimmed for you, so a key pasted with a trailing newline still works.
+Pass the key unchanged. A newer key protects its text as well as the bracketed block, so editing
+the text, removing it, pasting the bracketed block alone, or adding text after the block makes it
+invalid. Keys issued earlier keep working the way they did in Handsontable 18.1.
+Spaces and line breaks are ignored, in the text and inside the block, so you can rewrap the key,
+paste it out of an email that broke the block across lines, or put the whole key on one line, and the
+key still works. Line breaks saved as the characters `\n`, as some `.env` files and CI secret fields
+store them, work too. End the key with the block - only whitespace, or line breaks saved as `\n`,
+may follow it. Space and line breaks around the whole key are trimmed for you, so a key pasted with a
+trailing newline still works.
+
+Handsontable 18.1 does not ignore line breaks inside the block. If you use 18.1, make sure the block
+is on one line, with no spaces in it. Later versions check newer keys more strictly than 18.1, so
+before you upgrade from 18.1, make sure you pass the whole key, exactly as you received it - not
+only the bracketed block, and with nothing after it.
+
+When you store the key in an environment variable, a `.env` file, or a CI secret, put it on one
+line. In a `.env` file, also wrap the key in single quotes (`'...'`), or in backticks if the key text
+contains an apostrophe. Without quotes, a line break or a ` #` in the key cuts the value short, and
+double quotes end at the first double quote inside the key. Do not escape the quotes inside the key
+(`\"`) - the backslashes stay in the value, and the key becomes invalid. Never change any other
+character of the key, for example by replacing straight quotes with curly ones.
 
 Each license behaves differently around its date:
 

@@ -15,7 +15,8 @@ export const INSTANT = {
 } as const;
 
 type LicenseKeyName = 'trial' | 'trial-external' | 'subscription' | 'subscription-external' |
-  'tampered' | 'legacy-expired' | 'non-commercial-padded' | 'missing';
+  'tampered' | 'legacy-expired' | 'non-commercial-padded' | 'missing' |
+  'bare-block' | 'edited-prose' | 'subscription-pasted' | 'subscription-wrapped' | 'trial-v1';
 type Variant = 'default' | 'no-row-headers' | 'no-headers-frozen' | 'narrow-corner' | 'dialog' |
   'nested' | 'narrow';
 
