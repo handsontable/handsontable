@@ -1117,7 +1117,8 @@ class TableView {
   countNotHiddenFixedColumnsEnd() {
     // Walkontable reads this setting many times per draw and per mouse move. Most grids freeze no end
     // columns, so answer before `countCols()` and the not-hidden lookup run.
-    const requested = this._effectiveFixed ? this._effectiveFixed.end : this.settings.fixedColumnsEnd;
+    const effective = this.settings.limitFixedToViewport ? this._effectiveFixed : null;
+    const requested = effective ? effective.end : this.settings.fixedColumnsEnd;
 
     if (!requested) {
       return 0;
@@ -1154,7 +1155,7 @@ class TableView {
    * @returns {number} A non-negative integer; `0` when the option is not set.
    */
   countFixedColumnsEnd() {
-    if (this._effectiveFixed) {
+    if (this._effectiveFixed && this.settings.limitFixedToViewport) {
       return this._effectiveFixed.end;
     }
 
@@ -1176,7 +1177,7 @@ class TableView {
    * @returns {number} A non-negative number; `0` when the option is not set.
    */
   countFixedColumnsStart() {
-    if (this._effectiveFixed) {
+    if (this._effectiveFixed && this.settings.limitFixedToViewport) {
       return this._effectiveFixed.start;
     }
 
@@ -1190,7 +1191,7 @@ class TableView {
    * @returns {number} A non-negative number; `0` when the option is not set.
    */
   countFixedRowsTop() {
-    if (this._effectiveFixed) {
+    if (this._effectiveFixed && this.settings.limitFixedToViewport) {
       return this._effectiveFixed.top;
     }
 
@@ -1204,7 +1205,7 @@ class TableView {
    * @returns {number} A non-negative number; `0` when the option is not set.
    */
   countFixedRowsBottom() {
-    if (this._effectiveFixed) {
+    if (this._effectiveFixed && this.settings.limitFixedToViewport) {
       return this._effectiveFixed.bottom;
     }
 
@@ -1213,13 +1214,16 @@ class TableView {
 
   /**
    * Returns the size of one track as the frozen area counts it: a hidden track takes no room, a column has its
-   * width, and a row has the height it was drawn at, or the default height when it was never drawn.
+   * width, and a row has the height it is drawn at (the larger of the engine's value and its rendered height), or the
+   * default height when it was never drawn.
    *
    * @param {boolean} isColumn `true` for a column, `false` for a row.
    * @param {number} visualIndex The visual index.
+   * @param {boolean} [measureDom=false] `true` to also read the rendered height of a row. Only valid after a draw:
+   * before one, the engine's row filter can be stale and the lookup of a cell throws.
    * @returns {number}
    */
-  getFrozenTrackSize(isColumn: boolean, visualIndex: number) {
+  getFrozenTrackSize(isColumn: boolean, visualIndex: number, measureDom = false) {
     const mapper = isColumn ? this.hot.columnIndexMapper : this.hot.rowIndexMapper;
     const physical = isColumn ? this.hot.toPhysicalColumn(visualIndex) : this.hot.toPhysicalRow(visualIndex);
 
@@ -1231,8 +1235,19 @@ class TableView {
       return this.hot.getColWidth(visualIndex);
     }
 
-    return getRenderedRowHeight(this.hot, visualIndex) ??
+    const rowHeight = getRenderedRowHeight(this.hot, visualIndex) ??
       this.hot.stylesHandler.getDefaultRowHeight(visualIndex) ?? 0;
+
+    if (!measureDom) {
+      return rowHeight;
+    }
+
+    // The engine records the height of a content-tall row only for the rows the master table renders, so a tall
+    // frozen row still reads as the default height there. A row that is on screen has its real height in the DOM.
+    const firstColumn = this.hot.columnIndexMapper.getNearestNotHiddenIndex(0, 1) ?? 0;
+    const drawnHeight = this.hot.getCell(visualIndex, firstColumn, true)?.parentElement?.offsetHeight ?? 0;
+
+    return Math.max(rowHeight, drawnHeight);
   }
 
   /**
@@ -2449,9 +2464,10 @@ class TableView {
    * horizontal scrollbar that appears after them takes room from the rows, and the next full render sees it.
    * Nothing is measured for an axis with no frozen track.
    *
+   * @param {boolean} measureDom `true` after a draw, when the rendered height of a row can be read.
    * @returns {EffectiveFixedCounts | null} `null` when the option is off.
    */
-  #resolveEffectiveFixed(): EffectiveFixedCounts | null {
+  #resolveEffectiveFixed(measureDom: boolean): EffectiveFixedCounts | null {
     if (!this.settings.limitFixedToViewport) {
       return null;
     }
@@ -2462,25 +2478,33 @@ class TableView {
     const bottom = Number(this.settings.fixedRowsBottom) || 0;
     const columns = { leading: 0, trailing: 0 };
     const rows = { leading: 0, trailing: 0 };
+    const columnsViewport = start > 0 || end > 0 ? this.getFrozenViewportSize(true) : 1;
+    const rowsViewport = top > 0 || bottom > 0 ? this.getFrozenViewportSize(false) : 1;
+
+    // A grid that is not laid out (hidden, in a closed tab) measures 0. Clamping against that would collapse every
+    // band, and nothing redraws when the grid is shown, so keep the configured counts until a size is known.
+    if (columnsViewport <= 0 || rowsViewport <= 0) {
+      return null;
+    }
 
     if (start > 0 || end > 0) {
       Object.assign(columns, resolveFittingFrozenCounts({
-        viewportSize: this.getFrozenViewportSize(true),
+        viewportSize: columnsViewport,
         requestedLeading: start,
         requestedTrailing: end,
         total: this.hot.countCols(),
-        getTrackSize: visualIndex => this.getFrozenTrackSize(true, visualIndex),
+        getTrackSize: visualIndex => this.getFrozenTrackSize(true, visualIndex, measureDom),
         minScrollableSize: MIN_SCROLLABLE_SIZE,
       }));
     }
 
     if (top > 0 || bottom > 0) {
       Object.assign(rows, resolveFittingFrozenCounts({
-        viewportSize: this.getFrozenViewportSize(false),
+        viewportSize: rowsViewport,
         requestedLeading: top,
         requestedTrailing: bottom,
         total: this.hot.countRows(),
-        getTrackSize: visualIndex => this.getFrozenTrackSize(false, visualIndex),
+        getTrackSize: visualIndex => this.getFrozenTrackSize(false, visualIndex, measureDom),
         minScrollableSize: MIN_SCROLLABLE_SIZE,
       }));
     }
@@ -2499,7 +2523,7 @@ class TableView {
       this._effectiveFixed = null;
 
     } else if (isFullRender || this._effectiveFixed === null) {
-      this._effectiveFixed = this.#resolveEffectiveFixed();
+      this._effectiveFixed = this.#resolveEffectiveFixed(false);
     }
   }
 
@@ -2516,7 +2540,7 @@ class TableView {
       return;
     }
 
-    const next = this.#resolveEffectiveFixed();
+    const next = this.#resolveEffectiveFixed(true);
 
     if (!isSameEffectiveFixed(this._effectiveFixed, next)) {
       this._effectiveFixed = next;

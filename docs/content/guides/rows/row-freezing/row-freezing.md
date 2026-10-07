@@ -127,6 +127,7 @@ With this option on, Handsontable draws only as many frozen rows as fit and keep
 - Handsontable measures the grid again when it resizes. The frozen rows come back when the grid grows.
 - The top rows have priority over the bottom rows.
 - The [`FreezeBar`](@/api/freezeBar.md) plugin shows the bar on the line where the drawn frozen area ends.
+- Sorting and filtering still treat the rows you configured as frozen. A row that the grid does not draw as frozen stays out of the sort and the filter.
 
 The option works the same way for frozen columns. Read more in [Column freezing](@/guides/columns/column-freezing/column-freezing.md#frozen-area-size-limit).
 

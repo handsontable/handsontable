@@ -53,7 +53,10 @@ export class LimitFixedToViewportPage {
       throw new Error(`Grid failed to initialize: ${initError}`);
     }
 
-    await expect.poll(() => this.page.evaluate(() => window.hot.getCell(0, 0, true) !== null)).toBe(true);
+    // a grid built inside a hidden box draws nothing until it is shown
+    if (!query.hide) {
+      await expect.poll(() => this.page.evaluate(() => window.hot.getCell(0, 0, true) !== null)).toBe(true);
+    }
   }
 
   /**
@@ -115,6 +118,20 @@ export class LimitFixedToViewportPage {
 
       return horizontal ? rect.width : rect.height;
     }, { className: CLONE_CLASS[edge], horizontal: edge === 'start' || edge === 'end' });
+  }
+
+  /**
+   * The number of frozen tracks the grid draws on an edge (not the configured one).
+   *
+   * @param edge The edge.
+   */
+  async drawnCount(edge: FrozenEdge): Promise<number> {
+    return this.page.evaluate((e) => {
+      const { view } = window.hot;
+
+      return { top: view.countFixedRowsTop(), bottom: view.countFixedRowsBottom(),
+        start: view.countFixedColumnsStart(), end: view.countFixedColumnsEnd() }[e];
+    }, edge);
   }
 
   /**

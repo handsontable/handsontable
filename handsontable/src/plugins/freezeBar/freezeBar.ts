@@ -294,7 +294,7 @@ export class FreezeBar extends BasePlugin {
     for (let index = 0; index < total; index++) {
       const visual = growsFromStart(edge) ? index : total - 1 - index;
 
-      sizes.push(this.hot.view.getFrozenTrackSize(columns, visual));
+      sizes.push(this.hot.view.getFrozenTrackSize(columns, visual, true));
     }
 
     return sizes;

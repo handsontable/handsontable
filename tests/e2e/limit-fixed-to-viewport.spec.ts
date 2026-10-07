@@ -19,6 +19,8 @@ test.describe('limitFixedToViewport', () => {
   test.describe('a frozen area bigger than the grid', () => {
     test('frozen start columns leave a strip, and the last column is reachable', async() => {
       await grid.goto({ start: 20 });
+
+      expect(await grid.drawnCount('start')).toBeGreaterThan(0);
       const { width } = await grid.gridSize();
 
       expect(await grid.bandSize('start')).toBeLessThan(width - 40);
@@ -30,6 +32,8 @@ test.describe('limitFixedToViewport', () => {
 
     test('frozen end columns leave a strip, and the first scrollable column is reachable', async() => {
       await grid.goto({ end: 20 });
+
+      expect(await grid.drawnCount('end')).toBeGreaterThan(0);
       const { width } = await grid.gridSize();
 
       expect(await grid.bandSize('end')).toBeLessThan(width - 40);
@@ -41,6 +45,8 @@ test.describe('limitFixedToViewport', () => {
 
     test('frozen top rows leave a strip, and the last row is reachable', async() => {
       await grid.goto({ top: 40 });
+
+      expect(await grid.drawnCount('top')).toBeGreaterThan(0);
       const { height } = await grid.gridSize();
 
       expect(await grid.bandSize('top')).toBeLessThan(height - 40);
@@ -52,6 +58,8 @@ test.describe('limitFixedToViewport', () => {
 
     test('frozen bottom rows leave a strip, and the first scrollable row is reachable', async() => {
       await grid.goto({ bottom: 40 });
+
+      expect(await grid.drawnCount('bottom')).toBeGreaterThan(0);
       const { height } = await grid.gridSize();
 
       expect(await grid.bandSize('bottom')).toBeLessThan(height - 40);
@@ -161,6 +169,70 @@ test.describe('limitFixedToViewport', () => {
 
       await grid.selectCell(0, 29);
       await expect.poll(() => grid.isCellUncovered(0, 29)).toBe(true);
+    });
+  });
+
+  test.describe('the code that reads the frozen band', () => {
+    test('manualColumnMove and manualRowMove use the drawn band, not the configured one', async() => {
+      await grid.goto({ start: 20, top: 40 });
+
+      const result = await grid.page.evaluate(() => ({
+        columnInsideDrawn: window.hot.getPlugin('manualColumnMove').isFixedColumnsStart(1),
+        columnPastDrawn: window.hot.getPlugin('manualColumnMove').isFixedColumnsStart(10),
+        rowInsideDrawn: window.hot.getPlugin('manualRowMove').isFixedRowTop(1),
+        rowPastDrawn: window.hot.getPlugin('manualRowMove').isFixedRowTop(20),
+      }));
+
+      expect(result).toEqual({
+        columnInsideDrawn: true, columnPastDrawn: false, rowInsideDrawn: true, rowPastDrawn: false,
+      });
+    });
+
+    test('the editor of a cell past the drawn band is a scrollable-area editor', async() => {
+      await grid.goto({ start: 20 });
+      await grid.selectCell(0, 10);
+      await expect.poll(() => grid.isCellUncovered(0, 10)).toBe(true);
+      await grid.page.keyboard.press('Enter');
+
+      const section = await grid.page.evaluate(() => window.hot.getActiveEditor()!.checkEditorSection());
+
+      expect(section).not.toContain('inline-start');
+    });
+  });
+
+  test.describe('a grid that is not laid out when it is built', () => {
+    test('keeps the configured counts while unmeasured, and clamps once it is drawn', async() => {
+      await grid.goto({ start: 20, hide: 1 });
+
+      // no size is known yet, so nothing collapses to 0
+      expect(await grid.drawnCount('start')).toBe(20);
+
+      await grid.page.evaluate(() => {
+        (document.querySelector('[data-testid="grid"]') as HTMLElement).style.display = '';
+        window.hot.render();
+      });
+
+      await expect.poll(async() => {
+        const { width } = await grid.gridSize();
+        const band = await grid.bandSize('start');
+
+        return width > 0 && band > 0 && band < width - 40;
+      }).toBe(true);
+      expect(await grid.drawnCount('start')).toBeGreaterThan(0);
+    });
+  });
+
+  test.describe('frozen rows taller than the default height', () => {
+    test('are counted at the height they are drawn at, not the default one', async() => {
+      await grid.goto({ top: 40, tall: 1 });
+      const { height } = await grid.gridSize();
+
+      // the first measure cannot know the height of a row that was never drawn, so the grid measures again
+      // after the draw: the band ends up inside the grid and the rest of it stays reachable
+      await expect.poll(() => grid.bandSize('top')).toBeLessThan(height - 40);
+
+      await grid.selectCell(59, 0);
+      await expect.poll(() => grid.isCellUncovered(59, 0)).toBe(true);
     });
   });
 

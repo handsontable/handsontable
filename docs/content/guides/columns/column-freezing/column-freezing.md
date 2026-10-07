@@ -425,6 +425,7 @@ With this option on, Handsontable draws only as many frozen columns as fit and k
 - Handsontable measures the grid again when it resizes. The frozen columns come back when the grid grows.
 - The start columns have priority over the end columns.
 - The [`FreezeBar`](@/api/freezeBar.md) plugin shows the bar on the line where the drawn frozen area ends.
+- [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) still works on the columns you configured. A column that the grid does not draw as frozen can still be unfrozen from the context menu.
 
 The option works the same way for frozen rows. Read more in [Row freezing](@/guides/rows/row-freezing/row-freezing.md#frozen-area-size-limit).
 

@@ -403,3 +403,53 @@ describe('TableView#countNotHiddenFixedColumnsEnd', () => {
     expect(view.countNotHiddenColumnIndexes).not.toHaveBeenCalled();
   });
 });
+
+describe('TableView frozen counts with limitFixedToViewport', () => {
+  const createView = (settings, effective) => {
+    const view = Object.create(TableView.prototype);
+
+    view.hot = { countCols: jest.fn(() => 30), countRows: jest.fn(() => 60) };
+    view.settings = settings;
+    view._effectiveFixed = effective;
+
+    return view;
+  };
+  const configured = { fixedColumnsStart: 20, fixedColumnsEnd: 5, fixedRowsTop: 40, fixedRowsBottom: 3 };
+
+  it('should return the configured counts when the option is off, whatever the memo holds', () => {
+    const view = createView({ ...configured, limitFixedToViewport: false }, { start: 1, end: 1, top: 1, bottom: 1 });
+
+    expect(view.countFixedColumnsStart()).toBe(20);
+    expect(view.countFixedColumnsEnd()).toBe(5);
+    expect(view.countFixedRowsTop()).toBe(40);
+    expect(view.countFixedRowsBottom()).toBe(3);
+  });
+
+  it('should return the configured counts when the option is on but nothing was measured yet', () => {
+    const view = createView({ ...configured, limitFixedToViewport: true }, null);
+
+    expect(view.countFixedColumnsStart()).toBe(20);
+    expect(view.countFixedRowsTop()).toBe(40);
+  });
+
+  it('should return the memo when the option is on', () => {
+    const view = createView({ ...configured, limitFixedToViewport: true }, { start: 4, end: 1, top: 7, bottom: 0 });
+
+    expect(view.countFixedColumnsStart()).toBe(4);
+    expect(view.countFixedColumnsEnd()).toBe(1);
+    expect(view.countFixedRowsTop()).toBe(7);
+    expect(view.countFixedRowsBottom()).toBe(0);
+  });
+
+  it('should feed the not-hidden counts from the memo, so Walkontable draws what fits', () => {
+    const view = createView({ ...configured, limitFixedToViewport: true }, { start: 4, end: 1, top: 7, bottom: 2 });
+
+    view.countNotHiddenColumnIndexes = jest.fn((visualIndex, incrementBy) => ({ visualIndex, incrementBy }));
+    view.countNotHiddenRowIndexes = jest.fn((visualIndex, incrementBy) => ({ visualIndex, incrementBy }));
+
+    expect(view.countNotHiddenFixedColumnsStart()).toEqual({ visualIndex: 3, incrementBy: -1 });
+    expect(view.countNotHiddenFixedColumnsEnd()).toEqual({ visualIndex: 29, incrementBy: 1 });
+    expect(view.countNotHiddenFixedRowsTop()).toEqual({ visualIndex: 6, incrementBy: -1 });
+    expect(view.countNotHiddenFixedRowsBottom()).toEqual({ visualIndex: 58, incrementBy: 1 });
+  });
+});
