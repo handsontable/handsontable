@@ -1,9 +1,10 @@
 /**
- * The prefixes Excel writes in front of a name in a stored formula (`<f>`). `_xlfn.` marks a
- * function added after Excel 2007, `_xlws.` a worksheet-only function (written after `_xlfn.`),
- * and `_xlpm.` a `LET`/`LAMBDA` parameter name. The formula bar shows none of them.
+ * Matches the run of prefixes Excel writes in front of a name in a stored formula (`<f>`).
+ * `_xlfn.` marks a function added after Excel 2007, `_xlws.` a worksheet-only function (written
+ * after `_xlfn.`), and `_xlpm.` a `LET`/`LAMBDA` parameter name. The formula bar shows none of
+ * them. One anchored match strips any number of them in linear time.
  */
-const STORED_PREFIXES = ['_xlfn.', '_xlws.', '_xlpm.'];
+const STORED_PREFIXES = /^(?:_xl(?:fn|ws|pm)\.)+/i;
 
 /**
  * The functions Excel stores with the `_xlfn._xlws.` prefix.
@@ -13,7 +14,8 @@ const WORKSHEET_FUNCTIONS = new Set(['FILTER', 'SORT']);
 /**
  * The functions Excel stores with the `_xlfn.` prefix - every function added after Excel 2007.
  * A file that holds one of these without the prefix shows `#NAME?` in Excel until the cell is
- * entered again.
+ * entered again. `NETWORKDAYS.INTL`, `WORKDAY.INTL`, `ISO.CEILING` and `ECMA.CEILING` are not
+ * here: Excel saves them bare, and LibreOffice shows `#NAME?` for the prefixed spelling.
  */
 const FUTURE_FUNCTIONS = new Set([
   'ACOT', 'ACOTH', 'AGGREGATE', 'ANCHORARRAY', 'ARABIC', 'ARRAYTOTEXT', 'BASE', 'BETA.DIST',
@@ -21,15 +23,15 @@ const FUTURE_FUNCTIONS = new Set([
   'BITRSHIFT', 'BITXOR', 'BYCOL', 'BYROW', 'CEILING.MATH', 'CEILING.PRECISE', 'CHISQ.DIST',
   'CHISQ.DIST.RT', 'CHISQ.INV', 'CHISQ.INV.RT', 'CHISQ.TEST', 'CHOOSECOLS', 'CHOOSEROWS', 'COMBINA',
   'CONCAT', 'CONFIDENCE.NORM', 'CONFIDENCE.T', 'COT', 'COTH', 'COVARIANCE.P', 'COVARIANCE.S', 'CSC',
-  'CSCH', 'DAYS', 'DECIMAL', 'DROP', 'ECMA.CEILING', 'ENCODEURL', 'ERF.PRECISE', 'ERFC.PRECISE',
+  'CSCH', 'DAYS', 'DECIMAL', 'DROP', 'ENCODEURL', 'ERF.PRECISE', 'ERFC.PRECISE',
   'EXPAND', 'EXPON.DIST', 'F.DIST', 'F.DIST.RT', 'F.INV', 'F.INV.RT', 'F.TEST', 'FIELDVALUE',
   'FILTERXML', 'FLOOR.MATH', 'FLOOR.PRECISE', 'FORECAST.ETS', 'FORECAST.ETS.CONFINT',
   'FORECAST.ETS.SEASONALITY', 'FORECAST.ETS.STAT', 'FORECAST.LINEAR', 'FORMULATEXT', 'GAMMA',
   'GAMMA.DIST', 'GAMMA.INV', 'GAMMALN.PRECISE', 'GAUSS', 'GROUPBY', 'HSTACK', 'HYPGEOM.DIST',
   'IFNA', 'IFS', 'IMAGE', 'IMCOSH', 'IMCOT', 'IMCSC', 'IMCSCH', 'IMSEC', 'IMSECH', 'IMSINH',
-  'IMTAN', 'ISFORMULA', 'ISO.CEILING', 'ISOMITTED', 'ISOWEEKNUM', 'LAMBDA', 'LET', 'LOGNORM.DIST',
+  'IMTAN', 'ISFORMULA', 'ISOMITTED', 'ISOWEEKNUM', 'LAMBDA', 'LET', 'LOGNORM.DIST',
   'LOGNORM.INV', 'MAKEARRAY', 'MAP', 'MAXIFS', 'MINIFS', 'MODE.MULT', 'MODE.SNGL', 'MUNIT',
-  'NEGBINOM.DIST', 'NETWORKDAYS.INTL', 'NORM.DIST', 'NORM.INV', 'NORM.S.DIST', 'NORM.S.INV',
+  'NEGBINOM.DIST', 'NORM.DIST', 'NORM.INV', 'NORM.S.DIST', 'NORM.S.INV',
   'NUMBERVALUE', 'PDURATION', 'PERCENTILE.EXC', 'PERCENTILE.INC', 'PERCENTOF', 'PERCENTRANK.EXC',
   'PERCENTRANK.INC', 'PERMUTATIONA', 'PHI', 'PIVOTBY', 'POISSON.DIST', 'QUARTILE.EXC',
   'QUARTILE.INC', 'QUERYSTRING', 'RANDARRAY', 'RANK.AVG', 'RANK.EQ', 'REDUCE', 'REGEXEXTRACT',
@@ -37,7 +39,7 @@ const FUTURE_FUNCTIONS = new Set([
   'SINGLE', 'SKEW.P', 'SORTBY', 'STDEV.P', 'STDEV.S', 'STOCKHISTORY', 'SWITCH', 'T.DIST',
   'T.DIST.2T', 'T.DIST.RT', 'T.INV', 'T.INV.2T', 'T.TEST', 'TAKE', 'TEXTAFTER', 'TEXTBEFORE',
   'TEXTJOIN', 'TEXTSPLIT', 'TOCOL', 'TOROW', 'TRIMRANGE', 'UNICHAR', 'UNICODE', 'UNIQUE',
-  'VALUETOTEXT', 'VAR.P', 'VAR.S', 'VSTACK', 'WEBSERVICE', 'WEIBULL.DIST', 'WORKDAY.INTL',
+  'VALUETOTEXT', 'VAR.P', 'VAR.S', 'VSTACK', 'WEBSERVICE', 'WEIBULL.DIST',
   'WRAPCOLS', 'WRAPROWS', 'XLOOKUP', 'XMATCH', 'XOR', 'Z.TEST',
 ]);
 
@@ -132,23 +134,7 @@ export function stripFunctionPrefixes(formula: string): string {
     return formula;
   }
 
-  return mapNames(formula, (name) => {
-    let stripped = name;
-    let stripping = true;
-
-    while (stripping) {
-      const lowerName = stripped.toLowerCase();
-      const prefix = STORED_PREFIXES.find(candidate => lowerName.startsWith(candidate));
-
-      if (prefix === undefined) {
-        stripping = false;
-      } else {
-        stripped = stripped.slice(prefix.length);
-      }
-    }
-
-    return stripped;
-  });
+  return mapNames(formula, name => name.replace(STORED_PREFIXES, ''));
 }
 
 /**

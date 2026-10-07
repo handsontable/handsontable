@@ -92,6 +92,14 @@ export const MAX_FORMULA_LENGTH = 32768;
  * here and re-taken by hand: a wall-clock bound in a unit test flakes under parallel Jest workers,
  * so `nativeReadCompat.unit.js` pins the value and the exact `REFERENCE_REGEX` they were taken
  * with instead. Re-measure before changing either, then update that pin.
+ *
+ * The import mapper charges the same budget, ONCE per formula it walks, whatever walks that formula
+ * needs: the `_xlfn.` prefix strip, one `REFERENCE_REGEX` walk that shifts the references and checks
+ * every sheet qualifier together (`rebaseImportedFormula`), and the defined-name scan. The figures
+ * above are for that reference walk. The name scan adds 0.04 us per character on the same dense
+ * `A1+A1+...` text (developer machine), and the strip is a single pass, so one charge per formula
+ * keeps the bound within about 15% of the measured one. Charging each walk separately spent the
+ * budget two or three times per formula and refused workbooks the reader accepts.
  */
 export const MAX_TRANSLATED_FORMULA_CHARS = 32 * 1024 * 1024;
 

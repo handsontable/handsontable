@@ -451,6 +451,118 @@ describe('mapWorkbook', () => {
     expect(dropped.list()).toEqual([]);
   });
 
+  it('should drop the qualifier naming the imported sheet and shift it with the header row', () => {
+    // `Sheet1!B2` in `Sheet1` is a reference into this very sheet, so the dropped header moves it
+    // like `B2`. Kept qualified and unshifted, it read the formula cell below instead of the 10.
+    const sheet = createSheetSnapshot('Sheet1');
+
+    sheet.rows = [
+      [text('A'), text('B')],
+      [cell({ value: 1 }), cell({ value: 10 })],
+      [cell({ value: null, formula: { text: 'Sheet1!B2*2', result: 20 } }),
+        cell({ value: null, formula: { text: 'B2*2', result: 20 } })],
+    ];
+
+    const { result, dropped } = map(
+      workbook(sheet),
+      { colHeaders: 'firstRow' },
+      { formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['sheet1']) }
+    );
+
+    expect(result.data[1]).toEqual(['=B1*2', '=B1*2']);
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should keep a formula naming the imported sheet live when the engine calls its sheet otherwise', () => {
+    // The grid holds the imported sheet as the engine's `Sheet1`, so `Data!A1` in `Data` is `A1`,
+    // not a reference to a sheet the engine lacks.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[cell({ value: 5 })], [cell({ value: null, formula: { text: 'Data!A1*2', result: 10 } })]];
+
+    const { result, dropped } = map(
+      workbook(sheet),
+      {},
+      { formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['sheet1']) }
+    );
+
+    expect(result.data[1][0]).toBe('=A1*2');
+    expect(result.formulas).toBeUndefined();
+    expect(dropped.list()).not.toContain('formula:otherSheet');
+  });
+
+  it('should import the cached value of an external-workbook or unquoted 3D reference', () => {
+    // The match for the qualifier starts after `[1]` and after `Sheet1:`, so `Sheet1` and `Sheet3`
+    // read as sheets the engine holds; live, HyperFormula showed `#ERROR!` and `#NAME?`.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[
+      cell({ value: null, formula: { text: '[1]Sheet1!A1', result: 42 } }),
+      cell({ value: null, formula: { text: 'SUM(Sheet1:Sheet3!A1)', result: 8 } }),
+    ]];
+
+    const { result, dropped } = map(
+      workbook(sheet),
+      {},
+      { formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['sheet1', 'sheet2', 'sheet3']) }
+    );
+
+    expect(result.data[0]).toEqual([42, 8]);
+    expect(result.formulas).toEqual([
+      { row: 0, col: 0, formula: '[1]Sheet1!A1' },
+      { row: 0, col: 1, formula: 'SUM(Sheet1:Sheet3!A1)' },
+    ]);
+    expect(dropped.list()).toContain('formula:otherSheet');
+  });
+
+  describe('defined-name and unknown-sheet guards', () => {
+    const context = {
+      formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['calc', 'data']),
+    };
+
+    /**
+     * Maps one row of cells on a sheet named `Calc`, in a workbook that defines `names`.
+     *
+     * @param {object[]} row The cells.
+     * @param {object} [settings] The workbook's names and the import options.
+     * @param {string[]} [settings.names] The names the workbook defines.
+     * @param {object} [settings.options] The import options.
+     * @returns {object}
+     */
+    function mapRow(row, { names = [], options = {} } = {}) {
+      const sheet = createSheetSnapshot('Calc');
+      const wb = workbook(sheet);
+
+      sheet.rows = [row];
+      wb.definedNames = names;
+
+      return map(wb, options, context);
+    }
+
+    it('should keep a function call live when the workbook defines a name spelled like it', () => {
+      const { result, dropped } = mapRow([cell({ formula: { text: 'RATE(12,-100,1000)', result: 1 } })], {
+        names: ['Rate'],
+      });
+
+      expect(result.data[0][0]).toBe('=RATE(12,-100,1000)');
+      expect(dropped.list()).not.toContain('formula:definedName');
+    });
+
+    it('should keep a sheet reference live when the workbook defines a name spelled like the sheet', () => {
+      const { result } = mapRow([cell({ formula: { text: 'SUM(Data!A1:A3)', result: 6 } })], { names: ['Data'] });
+
+      expect(result.data[0][0]).toBe('=SUM(Data!A1:A3)');
+    });
+
+    it('should not report another-sheet loss when live formulas are off', () => {
+      const { dropped } = mapRow([cell({ formula: { text: 'Rates!A1', result: 1 } })], {
+        options: { importFormulas: false },
+      });
+
+      expect(dropped.list()).not.toContain('formula:otherSheet');
+    });
+  });
+
   it('should strip the _xlfn., _xlws. and _xlpm. prefixes Excel stores, from live and recorded formulas', () => {
     // Excel stores every post-2007 function with a prefix the formula bar never shows; handed to
     // HyperFormula verbatim, `_xlfn.STDEV.S(...)` is an unknown name and the cell shows `#NAME?`.

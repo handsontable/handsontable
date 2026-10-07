@@ -1,5 +1,5 @@
 import {
-  formulaSheetQualifiers,
+  rebaseImportedFormula,
   mapFormulaReferences,
   shiftFormulaReferences,
   translateSharedFormula,
@@ -255,12 +255,68 @@ describe('translateSharedFormula', () => {
   });
 });
 
-describe('formulaSheetQualifiers', () => {
-  it('should list the sheets a formula names, unquoted, once each, skipping string literals', () => {
-    expect(formulaSheetQualifiers('B1*Rates!A1+Rates!B2')).toEqual(['Rates']);
-    expect(formulaSheetQualifiers('SUM(\'My Rates\'!$A$1:$B$2)+\'O\'\'Brien\'!A1')).toEqual(['My Rates', 'O\'Brien']);
-    expect(formulaSheetQualifiers('LEN("Rates!A1")')).toEqual([]);
-    expect(formulaSheetQualifiers('SUM(A1:B2)')).toEqual([]);
-    expect(formulaSheetQualifiers('\u041b\u0438\u0441\u04421!A1')).toEqual(['\u041b\u0438\u0441\u04421']);
+describe('rebaseImportedFormula', () => {
+  /**
+   * Rebases a formula imported from the sheet `Sheet1` with the given known sheets, recording the
+   * names the check was asked about.
+   *
+   * @param {string} formula The formula.
+   * @param {number} rowDelta The row shift.
+   * @param {number} colDelta The column shift.
+   * @param {string[]} [known] The sheets the engine holds, lower-cased.
+   * @param {string} [self] The imported sheet's name.
+   * @returns {object}
+   */
+  function rebase(formula, rowDelta, colDelta, known = ['sheet1', 'rates'], self = 'Sheet1') {
+    const asked = [];
+    const result = rebaseImportedFormula(formula, rowDelta, colDelta, {
+      self,
+      isKnown: (name) => {
+        asked.push(name);
+
+        return known.includes(name.toLowerCase());
+      },
+    });
+
+    return { ...result, asked };
+  }
+
+  it('should shift the unqualified references and keep a known sheet\'s reference where it is', () => {
+    expect(rebase('B2*Rates!A1', -1, 0)).toEqual({ formula: 'B1*Rates!A1', unknownSheet: false, asked: ['Rates'] });
+  });
+
+  it('should ask about every qualifier, unquoted, skipping string literals', () => {
+    const { asked } = rebase('SUM(\'My Rates\'!$A$1:$B$2)+\'O\'\'Brien\'!A1+LEN("X!A1")+Лист1!A1', 0, 0);
+
+    expect(asked).toEqual(['My Rates', 'O\'Brien', 'Лист1']);
+  });
+
+  it('should report a sheet the engine does not hold', () => {
+    expect(rebase('Missing!A1*2', 0, 0)).toMatchObject({ unknownSheet: true });
+    expect(rebase('\'My Rates\'!A1*2', -1, 0)).toMatchObject({ unknownSheet: true });
+    expect(rebase('LEN("Missing!A1")', 0, 0)).toMatchObject({ formula: 'LEN("Missing!A1")', unknownSheet: false });
+  });
+
+  it('should drop the qualifier naming the imported sheet itself and shift the reference', () => {
+    // The header band is dropped from this very sheet, so its own qualified references move with it.
+    expect(rebase('Sheet1!B2*2', -1, 0)).toEqual({ formula: 'B1*2', unknownSheet: false, asked: [] });
+    expect(rebase('SUM(sheet1!$B$2:B3)+\'Sheet1\'!C:C', -1, -1)).toMatchObject({ formula: 'SUM($A$1:A2)+B:B' });
+    expect(rebase('Data!A1*2', 0, 0, ['sheet1'], 'Data')).toEqual({ formula: 'A1*2', unknownSheet: false, asked: [] });
+  });
+
+  it('should reject a self-qualified reference the shift pushes into the dropped band', () => {
+    expect(rebase('Sheet1!B1*2', -1, 0)).toMatchObject({ formula: null, unknownSheet: false });
+  });
+
+  it('should treat a bare qualifier after an external-workbook index or a 3D range colon as unknown', () => {
+    // `[1]Sheet1!A1` points at another workbook and `Sheet1:Sheet3!A1` at a stack of sheets; the
+    // match starts after `]` or `:`, so the name alone would read as a sheet the engine holds.
+    expect(rebase('[1]Sheet1!A1', 0, 0)).toMatchObject({ unknownSheet: true });
+    expect(rebase('SUM(Rates:Sheet1!A1)', 0, 0)).toMatchObject({ unknownSheet: true });
+    expect(rebase('SUM(Sheet1:Rates!A1)', -1, 0)).toMatchObject({ unknownSheet: true });
+  });
+
+  it('should return the formula unchanged without a walk when nothing can change it', () => {
+    expect(rebase('SUM(A1:B2)', 0, 0)).toEqual({ formula: 'SUM(A1:B2)', unknownSheet: false, asked: [] });
   });
 });

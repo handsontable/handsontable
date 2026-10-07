@@ -27,12 +27,30 @@ describe('functionPrefixes', () => {
     expect(addFunctionPrefixes('SUM(XLOOKUP(1,A:A,B:B))')).toBe('SUM(_xlfn.XLOOKUP(1,A:A,B:B))');
   });
 
-  it('should prefix the Excel 2010 functions whose names carry a dot, which HyperFormula implements', () => {
-    // Exported bare, these show `#NAME?` in Excel until the cell is entered again.
-    expect(addFunctionPrefixes('NETWORKDAYS.INTL(A1,B1,1)')).toBe('_xlfn.NETWORKDAYS.INTL(A1,B1,1)');
-    expect(addFunctionPrefixes('WORKDAY.INTL(A1,5)')).toBe('_xlfn.WORKDAY.INTL(A1,5)');
-    expect(addFunctionPrefixes('ISO.CEILING(A1,2)')).toBe('_xlfn.ISO.CEILING(A1,2)');
+  it('should write the Excel 2010 dotted functions Excel stores bare without a prefix', () => {
+    // Excel saves these four without `_xlfn.`, and LibreOffice shows `#NAME?` for the prefixed
+    // spelling once it recalculates.
+    expect(addFunctionPrefixes('NETWORKDAYS.INTL(A1,B1,1)')).toBe('NETWORKDAYS.INTL(A1,B1,1)');
+    expect(addFunctionPrefixes('WORKDAY.INTL(A1,5)')).toBe('WORKDAY.INTL(A1,5)');
+    expect(addFunctionPrefixes('ISO.CEILING(A1,2)')).toBe('ISO.CEILING(A1,2)');
+    expect(addFunctionPrefixes('ECMA.CEILING(A1,2)')).toBe('ECMA.CEILING(A1,2)');
+  });
+
+  it('should strip the prefix from the dotted functions other writers store prefixed', () => {
+    // Google Sheets writes them with `_xlfn.`.
     expect(stripFunctionPrefixes('_xlfn.NETWORKDAYS.INTL(A1,B1)')).toBe('NETWORKDAYS.INTL(A1,B1)');
+    expect(stripFunctionPrefixes('_xlfn.WORKDAY.INTL(A1,5)')).toBe('WORKDAY.INTL(A1,5)');
+    expect(stripFunctionPrefixes('_xlfn.ISO.CEILING(A1,2)')).toBe('ISO.CEILING(A1,2)');
+  });
+
+  it('should strip a token made of thousands of repeated prefixes down to the name', () => {
+    const prefixes = '_xlfn.'.repeat(5460);
+
+    expect(prefixes.length).toBe(32760);
+    expect(stripFunctionPrefixes(`${prefixes}SUM(A1)`)).toBe('SUM(A1)');
+    expect(stripFunctionPrefixes(`${'_xlfn._XLWS._xlpm.'.repeat(1820)}SORT(A1:A9)`)).toBe('SORT(A1:A9)');
+    expect(stripFunctionPrefixes('_xlfn._xlfn.')).toBe('');
+    expect(stripFunctionPrefixes('_xlfn._xlfnX')).toBe('_xlfnX');
   });
 
   it('should not prefix a pre-2007 function, a name without a call, or text in a string', () => {

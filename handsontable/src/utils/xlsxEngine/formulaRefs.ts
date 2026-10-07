@@ -251,30 +251,114 @@ export function mapFormulaReferences(
 }
 
 /**
- * The sheet names a formula's qualified references point at (`Rates` for `Rates!A1`, `My Rates` for
- * `'My Rates'!$A$1:$B$2`), unquoted, once each, in the order they first appear. A string literal is
- * skipped, so `"Rates!A1"` names no sheet.
+ * The sheets an imported formula is checked against by `rebaseImportedFormula`.
+ */
+export interface ImportedFormulaSheets {
+  /**
+   * The name of the sheet the formula sits on. A qualifier naming it (compared case-insensitively,
+   * unquoted) is dropped and its reference shifted like an unqualified one, because the grid holds
+   * this sheet under whatever name its Formulas engine gives it.
+   */
+  self: string;
+  /**
+   * Whether the Formulas engine holds a sheet of this name (unquoted, as written).
+   */
+  isKnown: (name: string) => boolean;
+}
+
+/**
+ * What `rebaseImportedFormula` answers.
+ */
+export interface ImportedFormula {
+  /**
+   * The formula in grid coordinates, or `null` when a reference cannot be expressed there.
+   */
+  formula: string | null;
+  /**
+   * Whether the formula names a sheet the engine does not hold, or one it cannot resolve at all: a
+   * bare qualifier right after `]` (an external workbook, `[1]Sheet1!A1`) or after `:` (a 3D
+   * range, `Sheet1:Sheet3!A1`).
+   */
+  unknownSheet: boolean;
+}
+
+/**
+ * Unquotes a qualifier matched by `REFERENCE_REGEX`, without its `!`.
+ */
+function unquoteQualifier(qualifier: string): string {
+  const name = qualifier.slice(0, -1);
+
+  return name.startsWith('\'') ? name.slice(1, -1).replaceAll('\'\'', '\'') : name;
+}
+
+/**
+ * Moves a formula read from a sheet into grid coordinates in ONE walk of `REFERENCE_REGEX`, which
+ * the import charges once against `MAX_TRANSLATED_FORMULA_CHARS`:
+ *
+ * - every unqualified reference is shifted by `rowDelta` rows and `colDelta` columns, the way
+ * `shiftFormulaReferences` does;
+ * - a qualifier naming the formula's own sheet (`sheets.self`) is dropped, and its reference is
+ * shifted like an unqualified one, because the band the shift accounts for is on that sheet;
+ * - a qualifier naming any other sheet is kept with its reference as written, and checked with
+ * `sheets.isKnown`; a bare qualifier right after `]` or `:` is never a sheet the engine can resolve.
+ *
+ * A formula with no `!` and a zero shift is returned as it is, without a walk.
  *
  * The formula is expected without its leading `=`.
  */
-export function formulaSheetQualifiers(formula: string): string[] {
-  if (!formula.includes('!')) {
-    return [];
+export function rebaseImportedFormula(
+  formula: string, rowDelta: number, colDelta: number, sheets: ImportedFormulaSheets
+): ImportedFormula {
+  if (rowDelta === 0 && colDelta === 0 && !formula.includes('!')) {
+    return { formula, unknownSheet: false };
   }
 
-  const names = new Set<string>();
+  const self = sheets.self.toLowerCase();
+  let unknownSheet = false;
+  let rejected = false;
+  const map: ReferenceMap = (reference) => {
+    const row = reference.row === null ? null : reference.row + rowDelta;
+    const col = reference.col === null ? null : reference.col + colDelta;
+    const rowOut = row !== null && (row < 1 || row > MAX_SHEET_ROWS);
+    const colOut = col !== null && (col < 1 || col > MAX_SHEET_COLUMNS);
 
-  for (const match of formula.matchAll(REFERENCE_REGEX)) {
-    const qualifier = match.groups?.qualifier;
+    return rowOut || colOut ? null : { row, col };
+  };
 
-    if (qualifier !== undefined) {
-      const name = qualifier.slice(0, -1);
+  const rebased = formula.replace(REFERENCE_REGEX, (match: string, ...args: unknown[]) => {
+    const groups = args[args.length - 1] as ReferenceGroups;
+    const offset = args[args.length - 3] as number;
+    let replacement: string | null = match;
 
-      names.add(name.startsWith('\'') ? name.slice(1, -1).replaceAll('\'\'', '\'') : name);
+    if (groups.qualifier !== undefined) {
+      const name = unquoteQualifier(groups.qualifier);
+      const before = formula[offset - 1];
+
+      if (before === ']' || before === ':') {
+        unknownSheet = true;
+
+      } else if (name.toLowerCase() === self) {
+        // The reference part is a cell, a range or a span of at most a few dozen characters.
+        replacement = rewriteReferences(groups.qualified ?? '', QUALIFIED_PART_REGEX, map, false);
+
+      } else if (!sheets.isKnown(name)) {
+        unknownSheet = true;
+      }
+
+    } else if (groups.literal === undefined) {
+      replacement = groups.colLetters !== undefined ? mapCell(groups, map) : mapSpan(groups, map);
     }
-  }
 
-  return [...names];
+    if (replacement === null) {
+      rejected = true;
+
+      return match;
+    }
+
+    return replacement;
+  });
+
+  return { formula: rejected ? null : rebased, unknownSheet };
 }
 
 /**
