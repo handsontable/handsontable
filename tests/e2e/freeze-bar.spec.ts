@@ -65,12 +65,37 @@ test.describe('freezeBar', () => {
       expect(await grid.count('end')).toBe(3);
     });
 
-    test('the handle of an empty end edge starts the freezing', async() => {
+    test('the handle of an empty end edge starts the freezing once the last column is in view', async() => {
       await grid.goto();
+      await expect(grid.bar('end')).toBeHidden();
+
+      await grid.scrollTo({ col: 14 });
       await expect(grid.bar('end')).toBeVisible();
       await grid.drag('end', 2);
 
       expect(await grid.count('end')).toBe(2);
+    });
+
+    test('an empty bottom handle is hidden while the last row is out of view, and shown at the end', async() => {
+      await grid.goto();
+      await grid.scrollTo({ row: 25 });
+
+      await expect(grid.bar('bottom')).toBeHidden();
+
+      await grid.scrollTo({ row: 49 });
+      await expect(grid.bar('bottom')).toBeVisible();
+      await grid.drag('bottom', 2);
+
+      expect(await grid.count('bottom')).toBe(2);
+    });
+
+    test('an empty top handle is hidden while the first row is scrolled away', async() => {
+      await grid.goto({ rows: 0 });
+      await expect(grid.bar('top')).toBeVisible();
+
+      await grid.scrollTo({ row: 25 });
+
+      await expect(grid.bar('top')).toBeHidden();
     });
 
     test('the end bar follows the right to left layout', async() => {
@@ -160,6 +185,65 @@ test.describe('freezeBar', () => {
 
       expect(await grid.count('start')).toBe(0);
       expect((await grid.log()).map(entry => entry.source)).toEqual(['keyboard', 'keyboard', 'keyboard', 'keyboard']);
+    });
+  });
+
+  test.describe('a grid smaller than its container', () => {
+    // 5 columns and 8 rows in a 500 x 300 box: the table ends before the container does
+    test('the bars do not reach past the rendered table', async() => {
+      await grid.goto({ narrow: 1, end: 1, bottom: 1, cols: 1, rows: 1 });
+
+      const extent = await grid.page.evaluate(() => {
+        const root = window.hot.rootElement.getBoundingClientRect();
+        const table = {
+          right: root.left + window.hot.view.getTotalTableWidth(),
+          bottom: root.top + window.hot.view.getTotalTableHeight(),
+        };
+        const rect = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
+
+        return {
+          tableRight: Math.round(table.right),
+          tableBottom: Math.round(table.bottom),
+          top: Math.round(rect('.ht-freeze-bar--top').right),
+          bottom: Math.round(rect('.ht-freeze-bar--bottom').right),
+          start: Math.round(rect('.ht-freeze-bar--start').bottom),
+          end: Math.round(rect('.ht-freeze-bar--end').bottom),
+        };
+      });
+
+      expect(extent.top).toBeLessThanOrEqual(extent.tableRight);
+      expect(extent.bottom).toBeLessThanOrEqual(extent.tableRight);
+      expect(extent.start).toBeLessThanOrEqual(extent.tableBottom);
+      expect(extent.end).toBeLessThanOrEqual(extent.tableBottom);
+    });
+
+    test('the end bar snaps to whole columns measured from the table edge, not the container edge', async() => {
+      await grid.goto({ narrow: 1, end: 1, cols: 1 });
+      await grid.drag('end', 2);
+
+      expect(await grid.count('end')).toBe(2);
+    });
+
+    test('the bottom bar snaps to whole rows measured from the table edge', async() => {
+      await grid.goto({ narrow: 1, bottom: 1, rows: 1 });
+      await grid.drag('bottom', 3);
+
+      expect(await grid.count('bottom')).toBe(3);
+    });
+
+    test('the handle of an empty end edge sits on the table edge and starts the freezing', async() => {
+      await grid.goto({ narrow: 1, cols: 1 });
+
+      const handle = (await grid.bar('end').boundingBox())!;
+      const tableRight = await grid.page.evaluate(() => {
+        return window.hot.rootElement.getBoundingClientRect().left + window.hot.view.getTotalTableWidth();
+      });
+
+      expect(Math.round(handle.x + handle.width)).toBeLessThanOrEqual(Math.round(tableRight) + 1);
+
+      await grid.drag('end', 2);
+
+      expect(await grid.count('end')).toBe(2);
     });
   });
 

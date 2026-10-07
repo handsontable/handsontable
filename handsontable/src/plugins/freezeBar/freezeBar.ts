@@ -26,6 +26,22 @@ interface Rect {
   bottom: number;
 }
 
+interface Frame {
+  rootRect: DOMRect;
+  /**
+   * The part of the root element in view, without the scrollbars.
+   */
+  viewport: Rect;
+  /**
+   * The whole content of the grid, as if nothing were clipped.
+   */
+  content: Rect;
+  /**
+   * The viewport cut down to the content: where the frozen bands really are.
+   */
+  rendered: Rect;
+}
+
 const isColumnEdge = (edge: FreezeEdge) => edge === 'start' || edge === 'end';
 const growsFromStart = (edge: FreezeEdge) => edge === 'start' || edge === 'top';
 
@@ -89,6 +105,10 @@ export class FreezeBar extends BasePlugin {
    * Ends the drag in progress without storing anything.
    */
   #abortDrag: (() => void) | null = null;
+  /**
+   * The measurements of the render being synchronized.
+   */
+  #frame: Frame | null = null;
 
   /**
    * Checks if the plugin is enabled in the settings.
@@ -108,6 +128,8 @@ export class FreezeBar extends BasePlugin {
     }
 
     this.addHook('afterRender', this.#onAfterRender);
+    this.addHook('afterScrollVertically', this.#onScroll);
+    this.addHook('afterScrollHorizontally', this.#onScroll);
     this.#registerShortcuts();
 
     super.enablePlugin();
@@ -323,7 +345,28 @@ export class FreezeBar extends BasePlugin {
       return;
     }
 
+    // one measurement per render: a read after a write would force a layout for every bar
+    this.#frame = EDGES.some(edge => this.#isEdgeAvailable(edge)) ? this.#measureFrame() : null;
     EDGES.forEach(edge => this.#syncBar(edge));
+    this.#frame = null;
+  };
+
+  /**
+   * Shows or hides the handles of the empty edges as the grid scrolls. A bar inside an overlay needs nothing: the
+   * overlay keeps it on the freeze line.
+   */
+  #onScroll = () => {
+    const empty = EDGES.filter(edge => this.#bars[edge]?.classList.contains('ht-freeze-bar--empty'));
+
+    if (empty.length === 0 || !this.hot.view?._wt) {
+      return;
+    }
+
+    const frame = this.#measureFrame();
+
+    empty.forEach((edge) => {
+      this.#bars[edge]!.hidden = !this.#isEdgeInView(edge, frame);
+    });
   };
 
   /**
@@ -363,10 +406,13 @@ export class FreezeBar extends BasePlugin {
 
     const empty = count === 0;
 
-    if (bar.classList.contains('ht-freeze-bar--empty') !== empty || empty) {
-      bar.classList.toggle('ht-freeze-bar--empty', empty);
-      this.#positionEmptyHandle(bar, edge, empty);
-    }
+    const frame = this.#frame ?? this.#measureFrame();
+
+    bar.classList.toggle('ht-freeze-bar--empty', empty);
+    this.#positionEmptyHandle(bar, edge, empty, frame);
+    // With nothing frozen, the handle only makes sense where the edge of the data is in view. Scrolled to the
+    // middle of the grid it would sit on half a cell, and the rows it counts are not the ones next to it.
+    bar.hidden = empty && !this.#isEdgeInView(edge, frame);
 
     if (this.hot.getSettings().ariaTags) {
       bar.setAttribute('aria-valuenow', String(count));
@@ -403,30 +449,82 @@ export class FreezeBar extends BasePlugin {
    * @param {HTMLElement} bar The bar element.
    * @param {string} edge The edge.
    * @param {boolean} empty `true` when the edge has no frozen tracks.
+   * @param {object} frame The measurements of the render.
    */
-  #positionEmptyHandle(bar: HTMLElement, edge: FreezeEdge, empty: boolean) {
+  #positionEmptyHandle(bar: HTMLElement, edge: FreezeEdge, empty: boolean, frame: Frame) {
     const style = bar.style;
     const view = this.hot.view;
     const rtl = this.hot.isRtl();
+    const { rootRect, rendered, content } = frame;
+    const columns = isColumnEdge(edge);
 
     style.left = '';
     style.right = '';
     style.top = '';
     style.bottom = '';
+    style.width = '';
+    style.height = '';
+
+    // A bar is as long as the rendered table, not as the container: a grid whose content is narrower or shorter
+    // than its container would otherwise show a bar that reaches past the last column or row. The overlay that holds
+    // a bar is as large as the container, so it only needs a limit when the table is smaller.
+    if (columns && content.bottom - content.top < rootRect.height) {
+      style.height = `${content.bottom - content.top}px`;
+    } else if (!columns && content.right - content.left < rootRect.width) {
+      style.width = `${content.right - content.left}px`;
+    }
 
     if (!empty) {
       return;
     }
 
+    // the handle of an empty edge sits in the root element, along the rendered area
+    if (columns) {
+      style.top = `${rendered.top - rootRect.top}px`;
+      style.bottom = 'auto';
+      style.height = `${rendered.bottom - rendered.top}px`;
+    } else {
+      style.left = `${rendered.left - rootRect.left}px`;
+      style.right = 'auto';
+      style.width = `${rendered.right - rendered.left}px`;
+    }
+
     if (edge === 'start') {
       style[rtl ? 'right' : 'left'] = `${view.getRowHeaderWidth()}px`;
+      style[rtl ? 'left' : 'right'] = 'auto';
     } else if (edge === 'end') {
-      style[rtl ? 'left' : 'right'] = `${this.#getScrollbarSize(true)}px`;
+      // The handle sits inside the edge of the rendered area, not past it. The end edge is the right edge in LTR
+      // and the left edge in RTL.
+      style.right = 'auto';
+      style.left = rtl ?
+        `${rendered.left - rootRect.left}px` :
+        `calc(${rendered.right - rootRect.left}px - var(--ht-sizing-size-1))`;
     } else if (edge === 'top') {
-      style.top = `${view.getColumnHeaderHeight()}px`;
+      style.top = `${view.getColumnHeaderHeight() + rendered.top - rootRect.top}px`;
+      style.bottom = 'auto';
     } else {
-      style.bottom = `${this.#getScrollbarSize(false)}px`;
+      style.top = 'auto';
+      style.bottom = `${rootRect.bottom - rendered.bottom}px`;
     }
+  }
+
+  /**
+   * Checks if the first or last track of the edge is in view, so the freeze line of an empty edge is next to it.
+   *
+   * @param {string} edge The edge.
+   * @param {object} frame The measurements of the render.
+   * @returns {boolean}
+   */
+  #isEdgeInView(edge: FreezeEdge, { viewport, content }: Frame): boolean {
+    const rtl = this.hot.isRtl();
+    const tolerance = 1;
+
+    return {
+      top: content.top >= viewport.top - tolerance,
+      bottom: content.bottom <= viewport.bottom + tolerance,
+      start: rtl ? content.right <= viewport.right + tolerance : content.left >= viewport.left - tolerance,
+      end: rtl ? content.left >= viewport.left - tolerance : content.right <= viewport.right + tolerance,
+    }[edge];
   }
 
   /**
@@ -506,7 +604,7 @@ export class FreezeBar extends BasePlugin {
     const columns = isColumnEdge(edge);
     const scale = getElementScaleFactor(this.hot.rootElement, columns ? 'horizontal' : 'vertical');
     const rootRect = this.hot.rootElement.getBoundingClientRect();
-    const visibleRect = this.#getVisibleRect(rootRect);
+    const visibleRect = this.#measureFrame(rootRect).rendered;
     const trackSizes = this.#getTrackSizes(edge);
     const maxCount = this.#getMaxCount(edge);
     // the pointer distance is measured from the edge of the data area, past the headers
@@ -590,29 +688,72 @@ export class FreezeBar extends BasePlugin {
   }
 
   /**
-   * Gets the part of the root element that the frozen bands are pinned to. When the page scrolls an axis, the
-   * overlays stick to the viewport, so the root element's own edge may be scrolled out of view.
+   * Measures the root element, the part of it in view, the content and the area the frozen bands are pinned to.
+   * When the page scrolls an axis, the overlays stick to the viewport, so the root element's own edge may be
+   * scrolled out of view. A grid whose content is narrower or shorter than its container ends before the container
+   * does, and the end and bottom bands sit at the edge of the content.
    *
-   * @param {DOMRect} rootRect The bounding rectangle of the root element.
+   * @param {DOMRect} [rootRect] The bounding rectangle of the root element, when it was just measured.
    * @returns {object}
    */
-  #getVisibleRect(rootRect: DOMRect): Rect {
+  #measureFrame(rootRect: DOMRect = this.hot.rootElement.getBoundingClientRect()): Frame {
     const { view, rootWindow } = this.hot;
     const byWindowX = view.isHorizontallyScrollableByWindow();
     const byWindowY = view.isVerticallyScrollableByWindow();
-    const viewport = rootWindow.document.documentElement;
+    const viewportElement = rootWindow.document.documentElement;
+    const content = this.#getContentRect(rootRect);
+    const rtl = this.hot.isRtl();
+    const scrollbarX = this.#getScrollbarSize(true);
+    const scrollbarY = this.#getScrollbarSize(false);
+    const viewport: Rect = {
+      left: (byWindowX ? Math.max(rootRect.left, 0) : rootRect.left) + (rtl ? scrollbarX : 0),
+      right: (byWindowX ? Math.min(rootRect.right, viewportElement.clientWidth) : rootRect.right) -
+        (rtl ? 0 : scrollbarX),
+      top: byWindowY ? Math.max(rootRect.top, 0) : rootRect.top,
+      bottom: (byWindowY ? Math.min(rootRect.bottom, viewportElement.clientHeight) : rootRect.bottom) - scrollbarY,
+    };
 
     return {
-      left: byWindowX ? Math.max(rootRect.left, 0) : rootRect.left,
-      right: byWindowX ? Math.min(rootRect.right, viewport.clientWidth) : rootRect.right,
-      top: byWindowY ? Math.max(rootRect.top, 0) : rootRect.top,
-      bottom: byWindowY ? Math.min(rootRect.bottom, viewport.clientHeight) : rootRect.bottom,
+      rootRect,
+      viewport,
+      content,
+      rendered: {
+        left: Math.max(viewport.left, content.left),
+        right: Math.min(viewport.right, content.right),
+        top: Math.max(viewport.top, content.top),
+        bottom: Math.min(viewport.bottom, content.bottom),
+      },
     };
   }
 
   /**
-   * Gets the distance between the edge of the root element and the first track of the band: the headers for the
-   * start and top bands, the scrollbar for the end and bottom bands.
+   * Gets the rectangle the whole grid content takes, headers included, as if nothing were clipped. Its far edges are
+   * where the last column and the last row end.
+   *
+   * @param {DOMRect} rootRect The bounding rectangle of the root element.
+   * @returns {object}
+   */
+  #getContentRect(rootRect: DOMRect): Rect {
+    const { view } = this.hot;
+    const holder = view._wt.wtTable.holder;
+    const width = view.getTotalTableWidth();
+    const top = rootRect.top - holder.scrollTop;
+
+    // in RTL the content starts at the right edge and a scrolled holder has a negative `scrollLeft`
+    if (this.hot.isRtl()) {
+      const right = rootRect.right - holder.scrollLeft;
+
+      return { left: right - width, right, top, bottom: top + view.getTotalTableHeight() };
+    }
+
+    const left = rootRect.left - holder.scrollLeft;
+
+    return { left, right: left + width, top, bottom: top + view.getTotalTableHeight() };
+  }
+
+  /**
+   * Gets the distance between the edge of the rendered area and the first track of the band: the headers for the
+   * start and top bands, nothing for the end and bottom bands.
    *
    * @param {string} edge The edge.
    * @returns {number}
@@ -623,8 +764,8 @@ export class FreezeBar extends BasePlugin {
     return {
       start: view.getRowHeaderWidth(),
       top: view.getColumnHeaderHeight(),
-      end: this.#getScrollbarSize(true),
-      bottom: this.#getScrollbarSize(false),
+      end: 0,
+      bottom: 0,
     }[edge];
   }
 
@@ -675,15 +816,15 @@ export class FreezeBar extends BasePlugin {
 
     if (columns) {
       style[fromLeft ? 'left' : 'right'] = `${offset + shift[fromLeft ? 'left' : 'right']}px`;
-      style.top = '0';
+      style.top = `${shift.top}px`;
       style.width = 'var(--ht-sizing-size-0-5)';
-      style.height = `${rootRect.height}px`;
+      style.height = `${visibleRect.bottom - visibleRect.top}px`;
     } else {
       style[growsFromStart(edge) ? 'top' : 'bottom'] =
         `${offset + shift[growsFromStart(edge) ? 'top' : 'bottom']}px`;
-      style.left = '0';
+      style.left = `${shift.left}px`;
       style.height = 'var(--ht-sizing-size-0-5)';
-      style.width = `${rootRect.width}px`;
+      style.width = `${visibleRect.right - visibleRect.left}px`;
     }
   }
 
@@ -769,7 +910,7 @@ export class FreezeBar extends BasePlugin {
     this.hot.getShortcutManager().getContext('grid')?.addShortcut({
       keys: [['F6']],
       callback: () => {
-        const bar = EDGES.map(edge => this.#bars[edge]).find(Boolean);
+        const bar = EDGES.map(edge => this.#bars[edge]).find(candidate => candidate && !candidate.hidden);
 
         bar?.focus();
 

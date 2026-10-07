@@ -92,7 +92,7 @@ To let users change the number of frozen columns and rows by dragging, enable th
 
 - The grid snaps the bar to whole columns and rows. A count that is too large for the grid is reduced to the number of columns and rows that leave room to scroll.
 - The bar never moves a column. It changes how many of the first (or last) columns are frozen.
-- When an edge has nothing frozen, a handle waits on that edge of the grid, so users can start freezing.
+- When an edge has nothing frozen, a handle waits on that edge of the grid, so users can start freezing. The handle shows when the first or last row or column is in view. Scrolled to the middle of the grid, there is no edge to freeze from, so it hides.
 - Press <kbd>**Escape**</kbd> during a drag to cancel it.
 - To use the keyboard, press <kbd>**F6**</kbd> in the grid to focus the first bar. Then press the <kbd>**Arrow**</kbd> keys to change the count by one, <kbd>**Home**</kbd> to unfreeze, or <kbd>**End**</kbd> to freeze as many as fit. Each bar is a `separator` with the `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes.
 - When the [`Pagination`](@/api/pagination.md) plugin is on, the bars for rows are hidden, because Pagination doesn't support frozen rows.

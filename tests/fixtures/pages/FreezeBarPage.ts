@@ -46,7 +46,7 @@ export class FreezeBarPage {
       throw new Error(`Grid failed to initialize: ${initError}`);
     }
 
-    await expect(this.colHeader(5)).toBeVisible();
+    await expect(this.colHeader(3)).toBeVisible();
   }
 
   colHeader(col: number): Locator {
@@ -72,6 +72,18 @@ export class FreezeBarPage {
    */
   get allBars(): Locator {
     return this.page.locator('.ht-freeze-bar, .ht-freeze-bar-guide');
+  }
+
+  /**
+   * Scrolls the grid to a cell and waits until the scroll is done.
+   *
+   * @param target The visual row and/or column to scroll to.
+   */
+  async scrollTo(target: { row?: number, col?: number }): Promise<void> {
+    await this.page.evaluate((to) => {
+      window.hot.scrollViewportTo({ row: to.row, col: to.col, verticalSnap: 'bottom', horizontalSnap: 'end' });
+    }, target);
+    await this.page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
   }
 
   /**
@@ -199,11 +211,24 @@ export class FreezeBarPage {
       rtl: window.hot.isRtl(),
       rowHeader: window.hot.view.getRowHeaderWidth(),
       colHeader: window.hot.view.getColumnHeaderHeight(),
+      content: (() => {
+        const root = window.hot.rootElement.getBoundingClientRect();
+        const rtl = window.hot.isRtl();
+        const w = window.hot.view.getTotalTableWidth();
+        const h = window.hot.view.getTotalTableHeight();
+
+        return { left: rtl ? root.right - w : root.left, right: rtl ? root.right : root.left + w, bottom: root.top + h };
+      })(),
       scrollbarX: window.hot.view._wt.wtTable.holder.offsetWidth - window.hot.view._wt.wtTable.holder.clientWidth,
       scrollbarY: window.hot.view._wt.wtTable.holder.offsetHeight - window.hot.view._wt.wtTable.holder.clientHeight,
     }));
     const root = info.root;
     const startSideLeft = !info.rtl;
+    // the end and bottom bands sit at the edge of the rendered table when it is smaller than the container
+    const endEdgeX = startSideLeft ?
+      Math.min(root.x + root.width - info.scrollbarX, info.content.right) :
+      Math.max(root.x + info.scrollbarX, info.content.left);
+    const bottomEdgeY = Math.min(root.y + root.height - info.scrollbarY, info.content.bottom);
 
     // The tracks of the start and top bands may be scrolled out of view, so they are measured by their sizes from
     // the overlay that is pinned to the viewport (the page scrolls the rows in window scroll mode).
@@ -230,8 +255,8 @@ export class FreezeBarPage {
 
     if (count === 0) {
       return {
-        bottom: root.y + root.height - info.scrollbarY,
-        end: startSideLeft ? root.x + root.width - info.scrollbarX : root.x + info.scrollbarX,
+        bottom: bottomEdgeY,
+        end: endEdgeX,
       }[edge];
     }
 
@@ -248,10 +273,10 @@ export class FreezeBarPage {
     }, [edge === 'end', count] as [boolean, number]);
 
     if (edge === 'end') {
-      return startSideLeft ? root.x + root.width - info.scrollbarX - sizes : root.x + info.scrollbarX + sizes;
+      return startSideLeft ? endEdgeX - sizes : endEdgeX + sizes;
     }
 
-    return root.y + root.height - info.scrollbarY - sizes;
+    return bottomEdgeY - sizes;
   }
 
   /**
