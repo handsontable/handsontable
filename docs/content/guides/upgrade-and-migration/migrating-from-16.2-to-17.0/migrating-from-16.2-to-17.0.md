@@ -1150,7 +1150,7 @@ The **Formulas** plugin uses [HyperFormula](https://hyperformula.handsontable.co
 ### How to prepare
 
 1. Install HyperFormula in your project (e.g. `npm install hyperformula`).
-2. Import HyperFormula and pass it to the Formulas plugin with `licenseKey: 'internal-use-in-handsontable'`.
+2. Import HyperFormula and pass it to the Formulas plugin with `formulas: { engine: HyperFormula }`.
 
 See the [Formulas installation](@/guides/formulas/installation/installation.md) guide to install and license HyperFormula, and the [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md) guide for configuration details.
 
@@ -1162,7 +1162,7 @@ See the [Formulas installation](@/guides/formulas/installation/installation.md) 
 | `handsontable.full.min.css` no longer available   | Use Theme API or import a theme CSS file (e.g. `ht-theme-classic.min.css`) |
 | CSS-based themes (optional migration)             | Consider migrating to Theme API for runtime features                       |
 | `core-js` dependency removed                      | Add `core-js` or other polyfills in your app if you support older environments |
-| Built-in HyperFormula (deprecation)               | In 18.0, import HyperFormula yourself and pass it to the Formulas plugin with `licenseKey: 'internal-use-in-handsontable'` |
+| Built-in HyperFormula (deprecation)               | In 18.0, import HyperFormula yourself and pass it to the Formulas plugin with `formulas: { engine: HyperFormula }` |
 
 ## Result
 
