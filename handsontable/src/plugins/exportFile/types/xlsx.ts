@@ -137,9 +137,18 @@ function toPrimitiveResult(value: unknown): CellValue {
  * @returns {string[]}
  */
 function getSourceLabels(meta: CellMeta): string[] {
-  return (meta.source ?? []).map(item => (isKeyValueEntry(item)
-    ? String(getChoiceLabel(item.value, meta.sourceLabel))
-    : String(item)));
+  return (meta.source ?? []).map((item) => {
+    if (!isKeyValueEntry(item)) {
+      return String(item);
+    }
+
+    const label = getChoiceLabel(item.value, meta.sourceLabel);
+
+    // A label `sourceLabel` derived goes through `stringify()`, so a path that resolves to nothing
+    // lists as empty - the text the exported cell holds - rather than the word `undefined`. A value
+    // that was not relabeled keeps the `String()` it was always written with.
+    return label === item.value ? String(label) : stringify(label);
+  });
 }
 
 /**

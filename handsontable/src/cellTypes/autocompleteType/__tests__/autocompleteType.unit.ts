@@ -232,6 +232,19 @@ describe('AutocompleteCellType', () => {
         .toBe(countries[1].value);
     });
 
+    it('should hand back anything that is not an entry with a `value` unchanged', () => {
+      // A plain label, a blank cell, and an object without a `value` half are not relabeled.
+      const noValue = { key: 'US' };
+
+      expect(AutocompleteCellType.valueGetter('BMW', 0, 0, meta)).toBe('BMW');
+      expect(AutocompleteCellType.valueGetter(null, 0, 0, meta)).toBe(null);
+      expect(AutocompleteCellType.valueGetter(noValue, 0, 0, meta)).toBe(noValue);
+    });
+
+    it('should display the `value` half when the getter is called without cell meta', () => {
+      expect(AutocompleteCellType.valueGetter(countries[1])).toBe(countries[1].value);
+    });
+
     it('should share the getter with the dropdown cell type, cell meta included', () => {
       // The dropdown getter used to forward only `value`, which would drop `sourceLabel`.
       expect(DropdownCellType.valueGetter).toBe(AutocompleteCellType.valueGetter);

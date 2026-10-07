@@ -327,3 +327,24 @@ describe('Xlsx validation list for object values (`sourceLabel`)', () => {
     expect(cells.some(cell => cell.dataValidation?.type === 'list')).toBe(true);
   });
 });
+
+describe('Xlsx validation list for a `sourceLabel` that resolves to nothing', () => {
+  it('should list an empty label, the text the exported cell holds, not the word "undefined"', async() => {
+    const airports = [
+      { key: 'CDG', value: { name: 'Charles de Gaulle Airport', location: { city: 'Paris' } } },
+      { key: 'XXX', value: { name: 'Unknown Field', location: null } },
+    ];
+    const { cells } = await exportOneCell({}, { type: 'dropdown', source: airports, sourceLabel: 'location.city' }, '');
+    const values = cells.map(cell => cell.value);
+
+    expect(values).toContain('Paris');
+    expect(values).not.toContain('undefined');
+  });
+
+  it('should keep writing a string source entry exactly as before', async() => {
+    // Not relabeled, so not touched: a `null` label still exports as it always did.
+    const { cells } = await exportOneCell({}, { type: 'dropdown', source: [{ key: '0', value: null }, 'red'] }, 'red');
+
+    expect(cells.map(cell => cell.value)).toEqual(expect.arrayContaining(['null', 'red']));
+  });
+});
