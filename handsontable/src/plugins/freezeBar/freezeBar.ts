@@ -116,7 +116,7 @@ export class FreezeBar extends BasePlugin {
   /**
    * The pieces of a bar that lie in the corner overlays. They only draw and start a drag.
    */
-  #segments: Partial<Record<FreezeEdge, HTMLElement[]>> = {};
+  #segments: Partial<Record<FreezeEdge, Map<string, HTMLElement>>> = {};
   /**
    * The guide that shows the snapped position while a bar is dragged.
    */
@@ -464,24 +464,25 @@ export class FreezeBar extends BasePlugin {
    */
   #syncSegments(edge: FreezeEdge, show: boolean) {
     const overlays = this.hot.view?._wt?.wtOverlays as unknown as Record<string, OverlayLike | undefined> | undefined;
-    const current = this.#segments[edge] ?? [];
+    // keyed by the overlay, so a corner overlay that has no clone does not shift the pieces of the others
+    const pieces = this.#segments[edge] ?? new Map<string, HTMLElement>();
+
+    this.#segments[edge] = pieces;
 
     if (!show || !overlays) {
-      current.forEach(segment => segment?.remove());
-      this.#segments[edge] = [];
+      pieces.forEach(piece => piece.remove());
+      pieces.clear();
 
       return;
     }
 
-    // a corner overlay that has no clone gets no piece, so the list never holds a hole
-    const pieces: HTMLElement[] = [];
-
-    CORNER_OVERLAYS[edge].forEach((name, index) => {
+    CORNER_OVERLAYS[edge].forEach((name) => {
       const root = overlays[name]?.clone?.wtTable?.holder?.parentNode;
-      let segment: HTMLElement | undefined = current[index];
+      let segment = pieces.get(name);
 
       if (!root) {
         segment?.remove();
+        pieces.delete(name);
 
         return;
       }
@@ -490,16 +491,13 @@ export class FreezeBar extends BasePlugin {
         segment = this.hot.rootDocument.createElement('div');
         segment.className = `ht-freeze-bar ht-freeze-bar--${edge} ht-freeze-bar--segment`;
         segment.addEventListener('pointerdown', event => this.#onPointerDown(edge, event));
+        pieces.set(name, segment);
       }
 
       if (segment.parentNode !== root) {
         root.appendChild(segment);
       }
-
-      pieces.push(segment);
     });
-
-    this.#segments[edge] = pieces;
   }
 
   /**
@@ -935,7 +933,7 @@ export class FreezeBar extends BasePlugin {
    * @param {boolean} active `true` while the bar is held.
    */
   #setActive(edge: FreezeEdge, active: boolean) {
-    [this.#bars[edge], ...(this.#segments[edge] ?? [])].forEach((piece) => {
+    [this.#bars[edge], ...(this.#segments[edge]?.values() ?? [])].forEach((piece) => {
       piece?.classList.toggle('ht-freeze-bar--active', active);
     });
   }
@@ -1048,7 +1046,7 @@ export class FreezeBar extends BasePlugin {
     this.#hideGuide();
     this.#drag = null;
     Object.values(this.#bars).forEach(bar => bar?.remove());
-    Object.values(this.#segments).forEach(pieces => pieces?.forEach(piece => piece?.remove()));
+    Object.values(this.#segments).forEach(pieces => pieces?.forEach(piece => piece.remove()));
     this.#bars = {};
     this.#segments = {};
   }

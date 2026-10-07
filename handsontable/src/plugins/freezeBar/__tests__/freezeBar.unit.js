@@ -252,6 +252,40 @@ describe('FreezeBar', () => {
     hot = null;
   });
 
+  it('should keep the piece of a corner overlay when another corner overlay has no clone', () => {
+    createGrid({ fixedColumnsStart: 2, fixedRowsTop: 1, fixedRowsBottom: 1 });
+    hot.render();
+
+    const piecesOf = () => [...container.querySelectorAll('.ht-freeze-bar--start.ht-freeze-bar--segment')];
+    const before = piecesOf();
+    const overlays = hot.view._wt.wtOverlays;
+    const original = overlays.topInlineStartCornerOverlay;
+
+    expect(before.length).toBe(2);
+
+    // the first corner overlay of the start edge has no clone, but only while the plugin looks for it
+    Object.defineProperty(overlays, 'topInlineStartCornerOverlay', {
+      configurable: true,
+      get() {
+        return new Error().stack.includes('syncSegments') ? undefined : original;
+      },
+    });
+
+    try {
+      // the second render is the one that read the previous piece with the wrong position
+      hot.render();
+      hot.render();
+    } finally {
+      Object.defineProperty(overlays, 'topInlineStartCornerOverlay', { configurable: true, value: original });
+    }
+
+    const after = piecesOf();
+
+    expect(after.length).toBe(1);
+    // the piece of the other corner is the same element: it was not removed and built again
+    expect(before).toContain(after[0]);
+  });
+
   it('should render nothing when the option is not set', () => {
     hot = new Handsontable(container, {
       licenseKey: 'non-commercial-and-evaluation',
