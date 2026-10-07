@@ -96,7 +96,7 @@ To let users change the number of frozen columns and rows by dragging, enable th
 - An edge with nothing frozen can be grabbed along its whole length, so users can start freezing from there. Only a short piece on a corner of the headers is drawn, and it stays in place while the grid scrolls.
 - The bar is gray, and turns to the accent color while it is held.
 - Press <kbd>**Escape**</kbd> during a drag to cancel it.
-- To use the keyboard, press <kbd>**F6**</kbd> in the grid to focus the first bar. Then press the <kbd>**Arrow**</kbd> keys to change the count by one, <kbd>**Home**</kbd> to unfreeze, or <kbd>**End**</kbd> to freeze as many as fit. Each bar is a `separator` with the `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes.
+- To use the keyboard, press <kbd>**F6**</kbd> in the grid to focus the first bar, and <kbd>**F6**</kbd> again (or <kbd>**Shift**</kbd>+<kbd>**F6**</kbd>) to move to the next (or the previous) bar. Then press the <kbd>**Arrow**</kbd> keys to change the count by one, <kbd>**Home**</kbd> to unfreeze, or <kbd>**End**</kbd> to freeze as many as fit. Each bar is a `separator` with the `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes.
 - When the [`Pagination`](@/api/pagination.md) plugin is on, the bars for rows are hidden, because Pagination doesn't support frozen rows.
 
 The bars cover all four edges: [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart), [`fixedColumnsEnd`](@/api/options.md#fixedcolumnsend), [`fixedRowsTop`](@/api/options.md#fixedrowstop), and [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom). To show the bars for columns only, pass `{ rows: false }` to the option.
@@ -147,6 +147,8 @@ The bars cover all four edges: [`fixedColumnsStart`](@/api/options.md#fixedcolum
 ### Keep your own state in sync
 
 The plugin changes the frozen counts on the grid. It doesn't write them back to the settings you passed in. If your application keeps the counts in its own state, copy the new count in the [`afterFreezeChange`](@/api/hooks.md#afterfreezechange) hook. A framework that sends the same value again on the next render doesn't undo the change the user made.
+
+`afterFreezeChange` reports the changes the bar makes. Other code changes the same counts without it: undo and redo restore them, and [`alter()`](@/api/core.md#alter) and the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin write them as well. An app that copies the counts in the hook can therefore hold a count the grid no longer shows after <kbd>**Ctrl**</kbd>+<kbd>**Z**</kbd>. To keep your state exact, read the count with [`getFreezeCount()`](@/api/freezeBar.md#getfreezecount) after those actions, for example in the [`afterUndo`](@/api/hooks.md#afterundo) and [`afterRedo`](@/api/hooks.md#afterredo) hooks.
 
 To veto a request, use the [`beforeFreezeChange`](@/api/hooks.md#beforefreezechange) hook. It receives the edge (`top`, `bottom`, `start`, or `end`), the new and the current count, and the source of the change (`drag`, `keyboard`, or `api`). Return `false` to cancel the change.
 

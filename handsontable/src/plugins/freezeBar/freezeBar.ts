@@ -1,7 +1,7 @@
 import { BasePlugin } from '../base';
 import { A11Y_LABEL } from '../../helpers/a11y';
 import * as C from '../../i18n/constants';
-import { setAttribute } from '../../helpers/dom/element';
+import { getDeepActiveElement, setAttribute } from '../../helpers/dom/element';
 import { getMaxFittingFrozenCount, MIN_SCROLLABLE_SIZE } from '../../utils/frozenAreaFit';
 import { getElementScaleFactor, normalizeVisualDelta } from '../../utils/manualResize/utils';
 import { resolveFreezeCount } from './snapResolver';
@@ -57,6 +57,7 @@ interface Frame {
   rendered: Rect;
 }
 
+const isEdge = (edge: unknown): edge is FreezeEdge => EDGES.includes(edge as FreezeEdge);
 const isColumnEdge = (edge: FreezeEdge) => edge === 'start' || edge === 'end';
 const growsFromStart = (edge: FreezeEdge) => edge === 'start' || edge === 'top';
 
@@ -111,7 +112,7 @@ export class FreezeBar extends BasePlugin {
   /**
    * The pieces of a bar that lie in the corner overlays. They only draw and start a drag.
    */
-  #segments: Partial<Record<FreezeEdge, HTMLElement[]>> = {};
+  #segments: Partial<Record<FreezeEdge, Map<string, HTMLElement>>> = {};
   /**
    * The guide that shows the snapped position while a bar is dragged.
    */
@@ -148,6 +149,7 @@ export class FreezeBar extends BasePlugin {
 
     this.addHook('afterRender', this.#onAfterRender);
     this.addHook('afterScrollVertically', this.#onScroll);
+    this.addHook('afterLanguageChange', this.#onAfterLanguageChange);
     this.addHook('afterScrollHorizontally', this.#onScroll);
     this.#registerShortcuts();
 
@@ -181,6 +183,10 @@ export class FreezeBar extends BasePlugin {
    * @returns {number}
    */
   getFreezeCount(edge: FreezeEdge): number {
+    if (!isEdge(edge)) {
+      return 0;
+    }
+
     const view = this.hot.view;
     const count = {
       top: view.countFixedRowsTop(),
@@ -224,12 +230,16 @@ export class FreezeBar extends BasePlugin {
    * @returns {boolean} `true` when the count changed.
    */
   #applyCount(edge: FreezeEdge, requested: number, source: FreezeSource): boolean {
-    if (!this.#isEdgeAvailable(edge)) {
+    if (!isEdge(edge) || !this.#isEdgeAvailable(edge)) {
       return false;
     }
 
     const oldCount = this.getFreezeCount(edge);
-    const newCount = Math.max(0, Math.min(Math.floor(requested), this.#getMaxCount(edge)));
+    const target = Math.floor(requested);
+    // Only a count that grows is cut down to what fits. A count the user did not touch stays, even when the grid
+    // got smaller since, so a click on a bar or a step down never changes more than it was asked to.
+    const grown = Math.max(oldCount, Math.min(target, this.#getMaxCount(edge)));
+    const newCount = Math.max(0, target > oldCount ? grown : target);
 
     if (!Number.isFinite(newCount) || newCount === oldCount) {
       return false;
@@ -286,18 +296,38 @@ export class FreezeBar extends BasePlugin {
    * @param {string} edge The edge the tracks are counted from.
    * @returns {number[]}
    */
-  #getTrackSizes(edge: FreezeEdge): number[] {
+  #getTrackSizes(edge: FreezeEdge, limits: { maxTracks?: number, sizeBudget?: number } = {}): number[] {
     const columns = isColumnEdge(edge);
     const total = columns ? this.hot.countCols() : this.hot.countRows();
+    const { maxTracks = total, sizeBudget = Infinity } = limits;
     const sizes: number[] = [];
+    let used = 0;
 
-    for (let index = 0; index < total; index++) {
-      const visual = growsFromStart(edge) ? index : total - 1 - index;
+    // The walk stops when the tracks are used up or fill the budget: on a grid of a million rows, only the few
+    // that can fit in the viewport matter.
+    for (let index = 0; index < Math.min(total, maxTracks) && used < sizeBudget; index++) {
+      const size = this.#getEdgeTrackSize(edge, index);
 
-      sizes.push(this.hot.view.getFrozenTrackSize(columns, visual, true));
+      sizes.push(size);
+      used += size;
     }
 
     return sizes;
+  }
+
+  /**
+   * Gets the size of one track, counted from the edge the band grows from.
+   *
+   * @param {string} edge The edge.
+   * @param {number} indexFromEdge The position of the track, 0 for the one next to the edge.
+   * @returns {number}
+   */
+  #getEdgeTrackSize(edge: FreezeEdge, indexFromEdge: number): number {
+    const columns = isColumnEdge(edge);
+    const total = columns ? this.hot.countCols() : this.hot.countRows();
+    const visual = growsFromStart(edge) ? indexFromEdge : total - 1 - indexFromEdge;
+
+    return this.hot.view.getFrozenTrackSize(columns, visual, true);
   }
 
   /**
@@ -311,21 +341,22 @@ export class FreezeBar extends BasePlugin {
     const columns = isColumnEdge(edge);
     const opposite: FreezeEdge = { start: 'end', end: 'start', top: 'bottom', bottom: 'top' }[edge] as FreezeEdge;
     const view = this.hot.view;
+    const total = columns ? this.hot.countCols() : this.hot.countRows();
     const viewportSize = view.getFrozenViewportSize(columns);
-    const trackSizes = this.#getTrackSizes(edge);
-    const oppositeSizes = this.#getTrackSizes(opposite);
-    const oppositeCount = Math.min(this.getFreezeCount(opposite), oppositeSizes.length);
-    // the band with priority keeps its count, the other one gives way
-    const oppositeHasPriority = edge === 'end' || edge === 'bottom';
-    const oppositeBandSize = oppositeSizes.slice(0, oppositeCount).reduce((sum, size) => sum + size, 0);
+    const oppositeCount = Math.min(this.getFreezeCount(opposite), total);
+    // The band on the other edge takes its room first, so the two bands together never fill the viewport.
+    const oppositeBandSize = this.#getTrackSizes(opposite, { maxTracks: oppositeCount })
+      .reduce((sum, size) => sum + size, 0);
+    // tracks past the viewport can not fit, so the walk stops there
+    const trackSizes = this.#getTrackSizes(edge, { sizeBudget: viewportSize });
     const fit = getMaxFittingFrozenCount({
       viewportSize,
       trackSizes,
-      oppositeBandSize: oppositeHasPriority ? oppositeBandSize : 0,
+      oppositeBandSize,
       minScrollableSize: MIN_SCROLLABLE_SIZE,
     });
 
-    return oppositeHasPriority ? Math.min(fit, trackSizes.length - oppositeCount) : fit;
+    return Math.min(fit, total - oppositeCount);
   }
 
   /**
@@ -343,6 +374,29 @@ export class FreezeBar extends BasePlugin {
   };
 
   /**
+   * Translates the accessible names of the bars again, because the language changed after they were built.
+   */
+  #onAfterLanguageChange = () => {
+    EDGES.forEach((edge) => {
+      const bar = this.#bars[edge];
+
+      if (bar && this.hot.getSettings().ariaTags) {
+        bar.setAttribute('aria-label', this.hot.getTranslatedPhrase(this.#getLabelKey(edge)));
+      }
+    });
+  };
+
+  /**
+   * Gets the translation key of the accessible name of a bar.
+   *
+   * @param {string} edge The edge.
+   * @returns {string}
+   */
+  #getLabelKey(edge: FreezeEdge): string {
+    return isColumnEdge(edge) ? C.FREEZE_BAR_COLUMNS : C.FREEZE_BAR_ROWS;
+  }
+
+  /**
    * Keeps the handles of the empty edges on the header corners as the page scrolls. A bar inside an overlay needs
    * nothing: the overlay keeps it on the freeze line.
    */
@@ -350,6 +404,12 @@ export class FreezeBar extends BasePlugin {
     const empty = EDGES.filter(edge => this.#bars[edge]?.classList.contains('ht-freeze-bar--empty'));
 
     if (empty.length === 0 || !this.hot.view?._wt) {
+      return;
+    }
+
+    // In element scroll mode the handles sit in the root element, which does not scroll, and `afterRender` has
+    // just placed them. Only a page that scrolls an axis moves the pinned header corner away from them.
+    if (!this.hot.view.isHorizontallyScrollableByWindow() && !this.hot.view.isVerticallyScrollableByWindow()) {
       return;
     }
 
@@ -374,6 +434,7 @@ export class FreezeBar extends BasePlugin {
 
     if (!host) {
       bar?.remove();
+      delete this.#bars[edge];
       this.#syncSegments(edge, false);
 
       return;
@@ -386,7 +447,7 @@ export class FreezeBar extends BasePlugin {
 
     if (bar.parentNode !== host) {
       // moving a node blurs it, so a bar that holds the focus gets it back
-      const hadFocus = this.hot.rootDocument.activeElement === bar;
+      const hadFocus = getDeepActiveElement(this.hot.rootDocument) === bar;
 
       host.appendChild(bar);
 
@@ -430,36 +491,39 @@ export class FreezeBar extends BasePlugin {
    */
   #syncSegments(edge: FreezeEdge, show: boolean) {
     const overlays = this.hot.view?._wt?.wtOverlays as unknown as Record<string, OverlayLike | undefined> | undefined;
-    const current = this.#segments[edge] ?? [];
+    // keyed by the overlay, so a corner overlay that has no clone does not shift the pieces of the others
+    const pieces = this.#segments[edge] ?? new Map<string, HTMLElement>();
+
+    this.#segments[edge] = pieces;
 
     if (!show || !overlays) {
-      current.forEach(segment => segment.remove());
-      this.#segments[edge] = [];
+      pieces.forEach(piece => piece.remove());
+      pieces.clear();
 
       return;
     }
 
-    this.#segments[edge] = CORNER_OVERLAYS[edge].map((name, index) => {
+    CORNER_OVERLAYS[edge].forEach((name) => {
       const root = overlays[name]?.clone?.wtTable?.holder?.parentNode;
-      let segment = current[index];
+      let segment = pieces.get(name);
 
       if (!root) {
         segment?.remove();
+        pieces.delete(name);
 
-        return segment;
+        return;
       }
 
       if (!segment) {
         segment = this.hot.rootDocument.createElement('div');
         segment.className = `ht-freeze-bar ht-freeze-bar--${edge} ht-freeze-bar--segment`;
         segment.addEventListener('pointerdown', event => this.#onPointerDown(edge, event));
+        pieces.set(name, segment);
       }
 
       if (segment.parentNode !== root) {
         root.appendChild(segment);
       }
-
-      return segment;
     });
   }
 
@@ -539,14 +603,15 @@ export class FreezeBar extends BasePlugin {
 
     if (edge === 'start') {
       // on the line between the row headers and the first column, inside the corner like in Google Sheets
+      // `max()` keeps the handle inside the root element when there are no row headers
       style[rtl ? 'right' : 'left'] =
-        `calc(${(rtl ? fromRight : fromLeft) + view.getRowHeaderWidth()}px - var(--ht-sizing-size-1))`;
+        `max(0px, calc(${(rtl ? fromRight : fromLeft) + view.getRowHeaderWidth()}px - var(--ht-sizing-size-1)))`;
     } else if (edge === 'end') {
       // inside the end edge of the rendered area, not past it
       style.left = rtl ? `${fromLeft}px` : `calc(${rendered.right - rootRect.left}px - var(--ht-sizing-size-1))`;
     } else if (edge === 'top') {
       // on the line between the column headers and the first row, inside the corner
-      style.top = `calc(${fromTop + view.getColumnHeaderHeight()}px - var(--ht-sizing-size-1))`;
+      style.top = `max(0px, calc(${fromTop + view.getColumnHeaderHeight()}px - var(--ht-sizing-size-1)))`;
       style[rtl ? 'right' : 'left'] = `${rtl ? fromRight : fromLeft}px`;
     } else {
       // on the bottom edge of the rendered area, over the row headers
@@ -603,7 +668,7 @@ export class FreezeBar extends BasePlugin {
         ['role', 'separator'],
         ['aria-orientation', columns ? 'vertical' : 'horizontal'],
         ['aria-valuemin', 0],
-        A11Y_LABEL(this.hot.getTranslatedPhrase(columns ? C.FREEZE_BAR_COLUMNS : C.FREEZE_BAR_ROWS)),
+        A11Y_LABEL(this.hot.getTranslatedPhrase(this.#getLabelKey(edge))),
       ]);
     }
 
@@ -637,8 +702,8 @@ export class FreezeBar extends BasePlugin {
     const scale = getElementScaleFactor(this.hot.rootElement, columns ? 'horizontal' : 'vertical');
     const rootRect = this.hot.rootElement.getBoundingClientRect();
     const visibleRect = this.#measureFrame(rootRect).rendered;
-    const trackSizes = this.#getTrackSizes(edge);
     const maxCount = this.#getMaxCount(edge);
+    const trackSizes = this.#getTrackSizes(edge, { maxTracks: maxCount });
     // the pointer distance is measured from the edge of the data area, past the headers
     const headerSize = this.#getBandOrigin(edge);
     const fromLeft = columns && growsFromStart(edge) !== this.hot.isRtl();
@@ -896,7 +961,7 @@ export class FreezeBar extends BasePlugin {
    * @param {boolean} active `true` while the bar is held.
    */
   #setActive(edge: FreezeEdge, active: boolean) {
-    [this.#bars[edge], ...(this.#segments[edge] ?? [])].forEach((piece) => {
+    [this.#bars[edge], ...(this.#segments[edge]?.values() ?? [])].forEach((piece) => {
       piece?.classList.toggle('ht-freeze-bar--active', active);
     });
   }
@@ -916,6 +981,18 @@ export class FreezeBar extends BasePlugin {
    * @param {KeyboardEvent} event The event.
    */
   #onKeyDown(edge: FreezeEdge, event: KeyboardEvent) {
+    // The grid keeps listening while a bar has the focus, so a key the bar does not use must not reach it: Delete
+    // would clear the selected cell, and Enter or a letter would open its editor. Tab keeps its default, which
+    // moves the focus on.
+    event.stopPropagation();
+
+    if (event.key === 'F6') {
+      event.preventDefault();
+      this.#focusBar(event.shiftKey ? -1 : 1);
+
+      return;
+    }
+
     if (event.ctrlKey || event.altKey || event.metaKey) {
       return;
     }
@@ -947,7 +1024,6 @@ export class FreezeBar extends BasePlugin {
     }
 
     event.preventDefault();
-    event.stopPropagation();
 
     // hidden tracks have no size, so a step over them would change nothing visible
     this.#applyCount(edge, this.#stepOverHidden(edge, current, target), 'keyboard');
@@ -962,16 +1038,16 @@ export class FreezeBar extends BasePlugin {
    * @returns {number}
    */
   #stepOverHidden(edge: FreezeEdge, current: number, target: number): number {
-    const sizes = this.#getTrackSizes(edge);
+    const total = isColumnEdge(edge) ? this.hot.countCols() : this.hot.countRows();
     const step = Math.sign(target - current);
-    let next = Math.min(target, sizes.length);
+    let next = Math.min(target, total);
 
     // a count that ends on a hidden track freezes nothing more than the count before it
-    while (step !== 0 && next > 0 && next < sizes.length + (step > 0 ? 1 : 0) && sizes[next - 1] === 0) {
+    while (step !== 0 && next > 0 && next <= total && this.#getEdgeTrackSize(edge, next - 1) === 0) {
       next += step;
     }
 
-    return Math.min(next, sizes.length);
+    return Math.min(next, total);
   }
 
   /**
@@ -980,18 +1056,48 @@ export class FreezeBar extends BasePlugin {
    * between the panes of a page.
    */
   #registerShortcuts() {
-    this.hot.getShortcutManager().getContext('grid')?.addShortcut({
-      keys: [['F6']],
-      callback: () => {
-        const bar = EDGES.map(edge => this.#bars[edge]).find(candidate => candidate && !candidate.hidden);
+    const context = this.hot.getShortcutManager().getContext('grid');
 
-        bar?.focus();
-
-        return !!bar;
-      },
-      runOnlyIf: () => this.enabled,
+    // F6 only claims the key when there is a bar to focus, so it stays the browser's key otherwise
+    const options = {
+      runOnlyIf: () => this.enabled && this.#getFocusableBars().length > 0,
       group: SHORTCUTS_GROUP,
-    });
+    };
+
+    context?.addShortcut({ keys: [['F6']], callback: () => this.#focusBar(1), ...options });
+    context?.addShortcut({ keys: [['Shift', 'F6']], callback: () => this.#focusBar(-1), ...options });
+  }
+
+  /**
+   * Gets the bars the keyboard can reach: the ones that are in the document and shown.
+   *
+   * @returns {HTMLElement[]}
+   */
+  #getFocusableBars(): HTMLElement[] {
+    return EDGES.map(edge => this.#bars[edge])
+      .filter((bar): bar is HTMLElement => !!bar?.isConnected && !bar.hidden);
+  }
+
+  /**
+   * Moves the focus to the next or the previous bar, or to the first or the last one when no bar has it.
+   *
+   * @param {number} direction `1` for the next bar, `-1` for the previous one.
+   * @returns {boolean} `true` when a bar got the focus.
+   */
+  #focusBar(direction: 1 | -1): boolean {
+    const bars = this.#getFocusableBars();
+
+    if (bars.length === 0) {
+      return false;
+    }
+
+    const current = bars.indexOf(getDeepActiveElement(this.hot.rootDocument) as HTMLElement);
+    const fallback = direction === 1 ? 0 : bars.length - 1;
+    const next = current === -1 ? fallback : (current + direction + bars.length) % bars.length;
+
+    bars[next].focus();
+
+    return true;
   }
 
   /**

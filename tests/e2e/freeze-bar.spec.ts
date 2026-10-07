@@ -174,7 +174,7 @@ test.describe('freezeBar', () => {
       await grid.goto({ cols: 0 });
 
       const pieceColor = () => grid.page.evaluate(() => {
-        return getComputedStyle(document.querySelector('.ht-freeze-bar--start')!, '::before').backgroundColor;
+        return getComputedStyle(document.querySelector('.ht-freeze-bar--start')!, '::after').backgroundColor;
       });
       const idle = await pieceColor();
 
@@ -314,7 +314,7 @@ test.describe('freezeBar', () => {
       const geometry = await grid.page.evaluate(() => {
         const visible = (selector: string) => {
           const bar = document.querySelector(selector)!;
-          const style = getComputedStyle(bar, '::before');
+          const style = getComputedStyle(bar, '::after');
           const rect = bar.getBoundingClientRect();
 
           return {
@@ -570,6 +570,101 @@ test.describe('freezeBar', () => {
 
       await expect(grid.bar('start')).not.toHaveAttribute('role', 'separator');
       await expect(grid.bar('start')).not.toHaveAttribute('aria-valuenow', /.*/);
+    });
+  });
+
+  test.describe('a bar that holds the focus', () => {
+    test('keeps Delete and Enter from reaching the grid', async() => {
+      await grid.goto();
+      await grid.page.evaluate(() => {
+        window.hot.selectCell(5, 5);
+      });
+
+      const before = await grid.page.evaluate(() => window.hot.getDataAtCell(5, 5));
+
+      await grid.page.keyboard.press('F6');
+      await expect(grid.bar('start')).toBeFocused();
+      await grid.page.keyboard.press('Delete');
+      await grid.page.keyboard.press('Enter');
+      await grid.page.keyboard.press('x');
+
+      expect(await grid.page.evaluate(() => window.hot.getDataAtCell(5, 5))).toBe(before);
+      expect(await grid.page.evaluate(() => window.hot.getActiveEditor()?.isOpened() ?? false)).toBe(false);
+    });
+
+    test('F6 moves on to the next bar, so the top, end and bottom bars can be reached', async() => {
+      await grid.goto();
+      await grid.page.evaluate(() => {
+        window.hot.selectCell(5, 5);
+      });
+      await grid.page.keyboard.press('F6');
+      await expect(grid.bar('start')).toBeFocused();
+      await grid.page.keyboard.press('F6');
+      await expect(grid.bar('top')).toBeFocused();
+      await grid.page.keyboard.press('F6');
+      await expect(grid.bar('end')).toBeFocused();
+      await grid.page.keyboard.press('F6');
+      await expect(grid.bar('bottom')).toBeFocused();
+      await grid.page.keyboard.press('Shift+F6');
+      await expect(grid.bar('end')).toBeFocused();
+    });
+
+    test('an arrow on the top bar freezes a row', async() => {
+      await grid.goto({ rows: 0 });
+      await grid.page.evaluate(() => {
+        window.hot.selectCell(5, 5);
+      });
+      await grid.page.keyboard.press('F6');
+      await grid.page.keyboard.press('F6');
+      await expect(grid.bar('top')).toBeFocused();
+      await grid.page.keyboard.press('ArrowDown');
+
+      expect(await grid.count('top')).toBe(1);
+    });
+  });
+
+  test.describe('language', () => {
+    test('the bars announce the new language after it changes', async() => {
+      await grid.goto();
+      await expect(grid.bar('start')).toHaveAttribute('aria-label', 'Frozen columns');
+      await grid.page.evaluate(() => {
+        // the base bundle has no language files, so the dictionary is registered here
+        const languages = (window as any).Handsontable.languages;
+
+        languages.registerLanguageDictionary({
+          ...languages.getLanguageDictionary('en-US'),
+          languageCode: 'pl-PL',
+          'FreezeBar:columns': 'Zablokowane kolumny',
+          'FreezeBar:rows': 'Zablokowane wiersze',
+        });
+        window.hot.updateSettings({ language: 'pl-PL' });
+      });
+
+      await expect(grid.bar('start')).toHaveAttribute('aria-label', 'Zablokowane kolumny');
+      await expect(grid.bar('top')).toHaveAttribute('aria-label', 'Zablokowane wiersze');
+    });
+  });
+
+  test.describe('a grid without headers', () => {
+    test('has handles on an empty edge that stay inside the grid', async() => {
+      await grid.goto({ headers: 0, cols: 0, rows: 0 });
+
+      const inside = await grid.page.evaluate(() => {
+        const root = window.hot.rootElement.getBoundingClientRect();
+
+        return ['start', 'top', 'end', 'bottom'].map((edge) => {
+          const rect = document.querySelector(`.ht-freeze-bar--${edge}`)!.getBoundingClientRect();
+
+          return rect.left >= root.left - 0.5 && rect.top >= root.top - 0.5 &&
+            rect.right <= root.right + 0.5 && rect.bottom <= root.bottom + 0.5;
+        });
+      });
+
+      expect(inside).toEqual([true, true, true, true]);
+
+      await grid.drag('start', 2);
+
+      expect(await grid.count('start')).toBe(2);
     });
   });
 
