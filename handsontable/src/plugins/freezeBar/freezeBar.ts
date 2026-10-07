@@ -571,14 +571,15 @@ export class FreezeBar extends BasePlugin {
     }
 
     if (edge === 'start') {
-      // on the line between the row headers and the first column
-      style[rtl ? 'right' : 'left'] = `${(rtl ? fromRight : fromLeft) + view.getRowHeaderWidth()}px`;
+      // on the line between the row headers and the first column, inside the corner like in Google Sheets
+      style[rtl ? 'right' : 'left'] =
+        `calc(${(rtl ? fromRight : fromLeft) + view.getRowHeaderWidth()}px - var(--ht-sizing-size-1))`;
     } else if (edge === 'end') {
       // inside the end edge of the rendered area, not past it
       style.left = rtl ? `${fromLeft}px` : `calc(${rendered.right - rootRect.left}px - var(--ht-sizing-size-1))`;
     } else if (edge === 'top') {
-      // on the line between the column headers and the first row
-      style.top = `${fromTop + view.getColumnHeaderHeight()}px`;
+      // on the line between the column headers and the first row, inside the corner
+      style.top = `calc(${fromTop + view.getColumnHeaderHeight()}px - var(--ht-sizing-size-1))`;
       style[rtl ? 'right' : 'left'] = `${rtl ? fromRight : fromLeft}px`;
     } else {
       // on the bottom edge of the rendered area, over the row headers
