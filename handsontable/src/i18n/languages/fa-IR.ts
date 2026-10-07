@@ -159,7 +159,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'حذف ردیف‌ها ناموفق بود',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'درخواست ناموفق بود',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'بارگذاری مجدد',
-  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'ردیف [label] باز شد، ردیف‌های نمایش داده‌شده: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'ردیف [label] باز شد، ردیف‌های بازشدهٔ نمایش داده‌شده: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'ردیف [label] بسته شد',
 };
 

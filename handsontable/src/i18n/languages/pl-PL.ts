@@ -161,7 +161,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nie udało się usunąć wierszy',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Żądanie nie powiodło się',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ponów pobieranie',
-  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rozwinięto wiersz [label], widoczne wiersze: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rozwinięto wiersz [label], widoczne rozwinięte wiersze: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Zwinięto wiersz [label]',
 };
 

@@ -151,7 +151,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: '행을 제거할 수 없습니다',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: '요청이 실패했습니다',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: '다시 불러오기',
-  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '[label]행 펼침, 표시된 행: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '[label]행 펼침, 펼쳐진 행: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '[label]행 접음',
 };
 

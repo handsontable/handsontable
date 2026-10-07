@@ -1,5 +1,6 @@
-import { type Page, type Locator, expect } from '@playwright/test';
+import { type Page, expect, type Locator } from '@playwright/test';
 import { awaitBundle } from '../bundle';
+import { NestedRowsPage } from './NestedRowsPage';
 
 /**
  * The treegrid attributes of one rendered row: `level`, `posinset` and `setsize` as read off its
@@ -15,21 +16,20 @@ export interface TreegridRowAttributes {
 /**
  * Page Object for the nested-rows treegrid accessibility fixture.
  *
+ * It extends {@link NestedRowsPage}, which already knows how to read and drive a nested grid, and
+ * adds what only the treegrid behavior needs: the row attributes, the keyboard entry onto a row
+ * header, the polite announcements, and a covering overlay.
+ *
  * A row is painted in the master table and in the inline-start clone that carries the row headers,
  * so every attribute read walks both copies and reports a row only when they agree. A copy that
  * disagrees is a bug in itself, and the read says so instead of picking one.
  */
-export class NestedRowsTreegridPage {
-  readonly page: Page;
-  readonly theme: string;
+export class NestedRowsTreegridPage extends NestedRowsPage {
   readonly bundle: string;
-  readonly grid: Locator;
 
   constructor(page: Page, theme = 'main', bundle = 'umd') {
-    this.page = page;
-    this.theme = theme;
+    super(page, theme);
     this.bundle = bundle;
-    this.grid = page.getByTestId('grid');
   }
 
   /**
@@ -47,20 +47,6 @@ export class NestedRowsTreegridPage {
     );
     await awaitBundle(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
-  }
-
-  /**
-   * A single data cell, by visual row/column, via its stable test id.
-   */
-  cell(row: number, col: number): Locator {
-    return this.page.getByTestId(`cell-${row}-${col}`);
-  }
-
-  /**
-   * The collapse/expand button in a row header, by visual row index.
-   */
-  collapseButton(row: number): Locator {
-    return this.page.locator('.ht_clone_inline_start tbody tr').nth(row).locator('.ht_nestingButton');
   }
 
   /**
@@ -96,40 +82,25 @@ export class NestedRowsTreegridPage {
   }
 
   /**
-   * How many rendered rows still carry any of the treegrid attributes, across every copy.
+   * The position attributes of every visual row, keyed by the row's name, read in one evaluation.
+   * Every row of the fixture is rendered, so the rendered rows and the visual rows line up.
+   */
+  async setPositionsByName(): Promise<Record<string, string>> {
+    const [names, attributes] = await Promise.all([this.visibleNames(), this.rowAttributes()]);
+
+    return Object.fromEntries(names.map((name, index) => [
+      name,
+      `${attributes[index].level}:${attributes[index].posinset}/${attributes[index].setsize}`,
+    ]));
+  }
+
+  /**
+   * How many rendered rows carry any of the treegrid row attributes, across every copy.
    */
   countRowsWithTreegridAttributes(): Promise<number> {
     return this.page.evaluate(() => document.querySelectorAll(
       '[data-testid="grid"] tbody tr:is([aria-level], [aria-posinset], [aria-setsize])'
     ).length);
-  }
-
-  /**
-   * The text of the first column for every visual row, top to bottom. Rows `HiddenRows` hides are
-   * included, rows a collapse trims are not.
-   */
-  visibleNames(): Promise<string[]> {
-    return this.page.evaluate(() => {
-      const rows: string[] = [];
-
-      for (let row = 0; row < window.hot.countRows(); row++) {
-        rows.push(String(window.hot.getDataAtCell(row, 0)));
-      }
-
-      return rows;
-    });
-  }
-
-  /**
-   * The selected cell as `[row, column]` in VISUAL coordinates, or `null` when nothing is selected.
-   * A row header reads as column `-1`.
-   */
-  selectedCell(): Promise<[number, number] | null> {
-    return this.page.evaluate(() => {
-      const last = window.hot.getSelectedLast();
-
-      return last ? [last[0], last[1]] as [number, number] : null;
-    });
   }
 
   /**
@@ -147,20 +118,6 @@ export class NestedRowsTreegridPage {
   }
 
   /**
-   * The polite live region the plugin announces through.
-   */
-  politeAnnouncer(): Locator {
-    return this.page.locator('[role="status"][aria-live="polite"]');
-  }
-
-  /**
-   * Push settings through `updateSettings()`.
-   */
-  async updateSettings(settings: Record<string, unknown>): Promise<void> {
-    await this.page.evaluate(config => window.hot.updateSettings(config), settings);
-  }
-
-  /**
    * Select a row header through the API, by visual row index. For a row whose cells cannot be
    * clicked, such as one with every column hidden.
    *
@@ -169,6 +126,63 @@ export class NestedRowsTreegridPage {
   async selectRowHeader(row: number): Promise<void> {
     await this.page.evaluate(visualRow => window.hot.selectCell(visualRow, -1), row);
     await expect.poll(() => this.selectedCell()).toEqual([row, -1]);
+  }
+
+  /**
+   * The polite live region the plugin announces through.
+   */
+  politeAnnouncer(): Locator {
+    return this.page.locator('[role="status"][aria-live="polite"]');
+  }
+
+  /**
+   * Start recording every message written to the polite live region, so a spec can tell an
+   * announcement that never happened from one that was overwritten by a later one.
+   */
+  async recordAnnouncements(): Promise<void> {
+    await this.page.evaluate(() => {
+      const region = document.querySelector('[role="status"][aria-live="polite"]') as HTMLElement;
+      const log: string[] = [];
+
+      (window as unknown as { announcementLog: string[] }).announcementLog = log;
+      new MutationObserver(() => {
+        if (region.textContent) {
+          log.push(region.textContent);
+        }
+      }).observe(region, { childList: true, characterData: true, subtree: true });
+    });
+  }
+
+  /**
+   * Every message written to the polite live region since {@link NestedRowsTreegridPage#recordAnnouncements}.
+   */
+  announcements(): Promise<string[]> {
+    return this.page.evaluate(() => (window as unknown as { announcementLog: string[] }).announcementLog);
+  }
+
+  /**
+   * Cover the grid body the way an overlay plugin does, through a focus scope that declares
+   * `coversGridBody`. The scope is registered once and only switched on and off afterwards; it never
+   * takes the keyboard, so the grid keeps answering keys while it covers the body.
+   *
+   * @param covered Whether the body is covered.
+   */
+  async setGridBodyCovered(covered: boolean): Promise<void> {
+    await this.page.evaluate((isCovered) => {
+      const state = window as unknown as { treegridBodyCovered?: boolean };
+
+      if (state.treegridBodyCovered === undefined) {
+        const container = document.createElement('div');
+
+        document.body.appendChild(container);
+        window.hot.getFocusScopeManager().registerScope('treegrid-test-cover', container, {
+          coversGridBody: true,
+          runOnlyIf: () => state.treegridBodyCovered === true,
+        });
+      }
+
+      state.treegridBodyCovered = isCovered;
+    }, covered);
   }
 
   /**
@@ -181,23 +195,31 @@ export class NestedRowsTreegridPage {
   }
 
   /**
-   * Replace the data with `loadData()`.
+   * Append a child to a parent row through the plugin's data manager, as the context menu's
+   * "Insert child row" does.
+   *
+   * @param physicalRow Physical index of the parent row.
+   * @param name The name of the new child.
    */
-  async loadData(data: unknown[]): Promise<void> {
-    await this.page.evaluate(rows => window.hot.loadData(rows), data);
+  async addChild(physicalRow: number, name: string): Promise<void> {
+    await this.page.evaluate(({ row, childName }) => {
+      const { dataManager } = window.hot.getPlugin('nestedRows');
+
+      dataManager.addChild(dataManager.getDataObject(row), { name: childName });
+    }, { row: physicalRow, childName: name });
   }
 
   /**
-   * Call one of the plugin's public methods in the page and return its result.
+   * Detach a child from its parent through the plugin's data manager, as the context menu's
+   * "Detach from parent" does.
+   *
+   * @param physicalRow Physical index of the child row.
    */
-  callPlugin(method: string, ...args: unknown[]): Promise<unknown> {
-    return this.page.evaluate(
-      ({ method: name, args: methodArgs }) => {
-        const plugin = window.hot.getPlugin('nestedRows') as unknown as Record<string, (...a: unknown[]) => unknown>;
+  async detachFromParent(physicalRow: number): Promise<void> {
+    await this.page.evaluate((row) => {
+      const { dataManager } = window.hot.getPlugin('nestedRows');
 
-        return plugin[name](...methodArgs);
-      },
-      { method, args }
-    );
+      dataManager.detachFromParent(dataManager.getDataObject(row));
+    }, physicalRow);
   }
 }

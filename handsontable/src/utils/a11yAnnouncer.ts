@@ -39,8 +39,10 @@ function createLiveRegion(document: Document, politeness: AnnouncementPoliteness
 }
 
 /**
- * Installs the a11y announcer element into the provided root portal element. For each new Handsontable
- * instance only one announcer element is created, so it can be reused across multiple instances.
+ * Installs the a11y announcer elements (an assertive and a polite live region) into the provided root
+ * portal element. Only one pair is created, so it is reused across multiple Handsontable instances.
+ * Both regions exist before anything is announced through them, because some screen readers ignore
+ * the first update of a live region that was added to the page a moment earlier.
  *
  * @param {HTMLElement} rootPortalElement The root element where the announcer will be installed.
  */
@@ -49,15 +51,15 @@ export function install(rootPortalElement: HTMLElement) {
 
   if (!announcerElement) {
     announcerElement = createLiveRegion(document, 'assertive');
-    rootPortalElement.appendChild(announcerElement);
+    politeAnnouncerElement = createLiveRegion(document, 'polite');
+    rootPortalElement.append(announcerElement, politeAnnouncerElement);
   }
 
   installCounter += 1;
 }
 
 /**
- * Uninstalls the a11y announcer elements (the assertive one, and the polite one when it was created)
- * once the last instance that installed them is gone.
+ * Uninstalls the a11y announcer elements once the last instance that installed them is gone.
  */
 export function uninstall() {
   if (installCounter === 0) {
@@ -67,31 +69,11 @@ export function uninstall() {
   if (installCounter === 1) {
     announcerElement!.remove();
     announcerElement = null;
-    politeAnnouncerElement?.remove();
+    politeAnnouncerElement!.remove();
     politeAnnouncerElement = null;
   }
 
   installCounter -= 1;
-}
-
-/**
- * Returns the live region for the given politeness. The polite region is created on its first use,
- * next to the assertive one, so a page that never announces politely carries a single element.
- *
- * @param {AnnouncementPoliteness} politeness The politeness of the announcement.
- * @returns {HTMLElement|null}
- */
-function getLiveRegion(politeness: AnnouncementPoliteness): HTMLElement | null {
-  if (!announcerElement || politeness === 'assertive') {
-    return announcerElement;
-  }
-
-  if (!politeAnnouncerElement) {
-    politeAnnouncerElement = createLiveRegion(announcerElement.ownerDocument, 'polite');
-    announcerElement.after(politeAnnouncerElement);
-  }
-
-  return politeAnnouncerElement;
 }
 
 /**
@@ -102,7 +84,7 @@ function getLiveRegion(politeness: AnnouncementPoliteness): HTMLElement | null {
  * finish what it is reading, which suits a confirmation of an action the user just took.
  */
 export function announce(message: string, politeness: AnnouncementPoliteness = 'assertive') {
-  const liveRegion = getLiveRegion(politeness);
+  const liveRegion = politeness === 'polite' ? politeAnnouncerElement : announcerElement;
 
   if (!liveRegion) {
     return;

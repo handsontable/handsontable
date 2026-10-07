@@ -153,7 +153,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'تعذر إزالة الصفوف',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'فشل الطلب',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'إعادة التحميل',
-  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'تم توسيع الصف [label]، الصفوف المعروضة: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'تم توسيع الصف [label]، الصفوف الموسّعة المعروضة: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'تم طي الصف [label]',
 };
 

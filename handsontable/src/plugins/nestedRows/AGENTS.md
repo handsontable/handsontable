@@ -624,15 +624,16 @@ row semantics. Six things look simpler than they are.
   every hiding or trimming change.
 - **Only user gestures announce.** `toggleParentByUser()` (the button, <kbd>Enter</kbd>, the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow chords)
   wraps the choke point and announces through the shared announcer's POLITE region
-  (`announce(message, 'polite')`, created lazily next to the assertive one, so a grid that never
-  announces politely still carries one element). The public methods stay silent on purpose: an app
+  (`announce(message, 'polite')`). Both regions are created in `install()`: some screen readers ignore
+  the first update of a live region added to the page a moment earlier, so a region made on the first
+  announcement could swallow it. The public methods stay silent on purpose: an app
   driving them knows what it changed, and `collapseAll()` would queue one message per parent. The
   `ariaTags: false` grid announces nothing. The row is named by the TEXT its rendered header shows
   (`getCell(row, -1)` and its `.rowHeader` span), never by `getRowHeader()`: a header configured as
-  HTML came back with its markup, and the screen reader read the tags aloud. "rows shown" is a delta of
+  HTML came back with its markup, and the screen reader read the tags aloud. "expanded rows shown" is a delta of
   `rowIndexMapper.getRenderableIndexesLength()`, not of `countRows()`: a row `HiddenRows` hides keeps
   its visual index, so `countRows()` announced it as shown. The phrase avoids a plural
-  ("rows shown: [count]") because the phrase formatters cannot pluralize and substitute in one call -
+  ("expanded rows shown: [count]" - an earlier "rows shown" read as the total of visible rows) because the phrase formatters cannot pluralize and substitute in one call -
   `pluralize` needs an integer argument, `substitute` an object, and `getTranslatedPhrase()` passes
   the same one to both.
 - **The tree keys are <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrows on a row header, never the plain arrows.**
@@ -663,7 +664,10 @@ row semantics. Six things look simpler than they are.
   group at index 0 it is `splice(-1, ...)`: with a single entry that still lands in front, but a host
   shortcut appended after the grid's would put the chord behind the jump. Fixing the helper was tried
   and reverted, because it reorders every existing `'before'` registrant: on a collapsible and sortable
-  bottom column header <kbd>Enter</kbd> stopped collapsing and started sorting.
+  bottom column header <kbd>Enter</kbd> stopped collapsing and started sorting. A rebuild
+  (`updateSettings({ nestedRows })`) unregisters and re-registers the chords against that single
+  entry, which `tests/e2e/nested-rows-treegrid-a11y.spec.ts` pins.
+
 ## How it interacts with the rest of the grid
 
 - **Pagination** declares a hard conflict against `nestedRows`

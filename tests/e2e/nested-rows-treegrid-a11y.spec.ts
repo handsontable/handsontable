@@ -73,7 +73,7 @@ test.describe('NestedRows treegrid accessibility', () => {
 
       await nestedRows.collapseButton(0).click();
 
-      await expect(nestedRows.politeAnnouncer()).toHaveText('Expanded row 1, rows shown: 5');
+      await expect(nestedRows.politeAnnouncer()).toHaveText('Expanded row 1, expanded rows shown: 5');
       await expect.poll(() => nestedRows.rowAttributes()).toHaveLength(9);
     });
 
@@ -126,7 +126,7 @@ test.describe('NestedRows treegrid accessibility', () => {
 
       await page.keyboard.press('ControlOrMeta+ArrowRight');
       await expect.poll(() => nestedRows.visibleNames()).toEqual(A2_COLLAPSED);
-      await expect(nestedRows.politeAnnouncer()).toHaveText('Expanded row 1, rows shown: 3');
+      await expect(nestedRows.politeAnnouncer()).toHaveText('Expanded row 1, expanded rows shown: 3');
       expect(await nestedRows.selectedCell()).toEqual([0, -1]);
 
       await page.keyboard.press('ArrowDown');
@@ -177,7 +177,7 @@ test.describe('NestedRows treegrid accessibility', () => {
 
     await page.keyboard.press('ControlOrMeta+ArrowLeft');
     await expect.poll(() => nestedRows.visibleNames()).toEqual(FULL_TREE);
-    await expect(nestedRows.politeAnnouncer()).toHaveText('Expanded row 7, rows shown: 2');
+    await expect(nestedRows.politeAnnouncer()).toHaveText('Expanded row 7, expanded rows shown: 2');
     expect(await nestedRows.selectedCell()).toEqual([6, -1]);
 
     await page.keyboard.press('ControlOrMeta+ArrowLeft');
@@ -209,7 +209,7 @@ test.describe('NestedRows treegrid accessibility', () => {
 
     await page.keyboard.press('ControlOrMeta+ArrowRight');
 
-    await expect(nestedRows.politeAnnouncer()).toHaveText('Expanded row 7, rows shown: 1');
+    await expect(nestedRows.politeAnnouncer()).toHaveText('Expanded row 7, expanded rows shown: 1');
   });
 
   test('a row is named after the text its row header shows, HTML markup excluded', async({ page, theme, bundle }) => {
@@ -285,20 +285,95 @@ test.describe('NestedRows treegrid accessibility', () => {
     const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
 
     await nestedRows.goto({ aria: 'off' });
-    await nestedRows.collapseButton(0).click();
+    await nestedRows.recordAnnouncements();
 
+    await nestedRows.collapseButton(0).click();
     await expect.poll(() => nestedRows.visibleNames()).toEqual(ROOT_A_COLLAPSED);
+    await nestedRows.collapseButton(0).click();
+    await expect.poll(() => nestedRows.visibleNames()).toEqual(FULL_TREE);
+
     expect(await nestedRows.countRowsWithTreegridAttributes()).toBe(0);
-    await expect(nestedRows.politeAnnouncer()).toHaveCount(0);
+    expect(await nestedRows.announcements()).toEqual([]);
   });
 
   test('the public API changes the attributes but does not announce', async({ page, theme, bundle }) => {
     const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
 
     await nestedRows.goto();
+    await nestedRows.recordAnnouncements();
     await nestedRows.callPlugin('collapseParent', 0);
 
     await expect.poll(async() => (await nestedRows.rowAttributes())[0]).toEqual(row(1, 1, 2, false));
-    await expect(nestedRows.politeAnnouncer()).toHaveCount(0);
+
+    await nestedRows.collapseButton(1).click();
+
+    await expect.poll(() => nestedRows.announcements()).toEqual(['Collapsed row 2']);
+  });
+
+  test('Enter and the Ctrl/Cmd+arrow chords do nothing while an overlay covers the grid body',
+    async({ page, theme, bundle }) => {
+      const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
+
+      await nestedRows.goto();
+      await nestedRows.focusRowHeader(0);
+      await nestedRows.setGridBodyCovered(true);
+
+      await page.keyboard.press('Enter');
+      expect(await nestedRows.visibleNames()).toEqual(FULL_TREE);
+
+      await page.keyboard.press('ControlOrMeta+ArrowLeft');
+      expect(await nestedRows.visibleNames()).toEqual(FULL_TREE);
+
+      await nestedRows.callPlugin('collapseParent', 0);
+      await page.keyboard.press('ControlOrMeta+ArrowRight');
+      expect(await nestedRows.visibleNames()).toEqual(ROOT_A_COLLAPSED);
+
+      await nestedRows.callPlugin('expandParent', 0);
+
+      await nestedRows.setGridBodyCovered(false);
+      await nestedRows.selectRowHeader(0);
+      await page.keyboard.press('ControlOrMeta+ArrowLeft');
+
+      await expect.poll(() => nestedRows.visibleNames()).toEqual(ROOT_A_COLLAPSED);
+    });
+
+  test('the Ctrl/Cmd+arrow chords keep working after the plugin is rebuilt by updateSettings',
+    async({ page, theme, bundle }) => {
+      const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
+
+      await nestedRows.goto();
+      await nestedRows.callPlugin('collapseParent', 0);
+      await nestedRows.updateSettings({ nestedRows: true });
+      await nestedRows.updateSettings({ nestedRows: true });
+      await nestedRows.focusRowHeader(0);
+
+      await page.keyboard.press('ControlOrMeta+ArrowRight');
+
+      await expect.poll(() => nestedRows.visibleNames()).toEqual(FULL_TREE);
+      expect(await nestedRows.selectedCell()).toEqual([0, -1]);
+    });
+
+  test('the position and set size follow a child added to and detached from a parent', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
+
+    await nestedRows.goto();
+    await nestedRows.addChild(6, 'B-3');
+
+    await expect.poll(() => nestedRows.setPositionsByName()).toMatchObject({
+      'Root B': '1:2/2',
+      'B-1': '2:1/3',
+      'B-2': '2:2/3',
+      'B-3': '2:3/3',
+    });
+
+    await nestedRows.detachFromParent(7);
+
+    await expect.poll(() => nestedRows.setPositionsByName()).toMatchObject({
+      'Root A': '1:1/3',
+      'Root B': '1:2/3',
+      'B-1': '1:3/3',
+      'B-2': '2:1/2',
+      'B-3': '2:2/2',
+    });
   });
 });

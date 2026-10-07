@@ -47,8 +47,8 @@ By default, <kbd>Tab</kbd> moves the active cell one column to the right and <kb
 | <kbd>**Ctrl**</kbd>+<kbd>**Backspace**</kbd> | <kbd>⌘</kbd>+<kbd>**Backspace**</kbd> | Scroll the viewport to show the focused cell or header                                          | &cross; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**↑**</kbd>         | <kbd>⌘</kbd>+<kbd>**↑**</kbd>         | Move to the first cell of the current column                                                    | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**↓**</kbd>         | <kbd>⌘</kbd>+<kbd>**↓**</kbd>         | Move to the last cell of the current column                                                     | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**←**</kbd>         | <kbd>⌘</kbd>+<kbd>**←**</kbd>         | Move to the leftmost cell of the current row                                                    | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**→**</kbd>         | <kbd>⌘</kbd>+<kbd>**→**</kbd>         | Move to the rightmost cell of the current row                                                   | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**←**</kbd>         | <kbd>⌘</kbd>+<kbd>**←**</kbd>         | Move to the leftmost cell of the current row<sup>\*\*</sup>                                    | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**→**</kbd>         | <kbd>⌘</kbd>+<kbd>**→**</kbd>         | Move to the rightmost cell of the current row<sup>\*\*</sup>                                   | &check; | &check; |
 | <kbd>**F2**</kbd>                            | <kbd>**F2**</kbd>                           | Enter the editing mode of the active cell                                                       | &check; | &check; |
 | <kbd>**Enter**</kbd>                         | <kbd>**Enter**</kbd>                        | Enter the editing mode of the active cell                                                       | &cross; | &check; |
 | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>    | <kbd>⇧</kbd>+<kbd>**Enter**</kbd>   | Enter the editing mode of the active cell                                                       | &cross; | &check; |
@@ -64,7 +64,8 @@ By default, <kbd>Tab</kbd> moves the active cell one column to the right and <kb
 | <kbd>**Page Down**</kbd>                     | <kbd>**Page Down**</kbd>                    | Move one screen down                                                                            | &check; | &check; |
 | <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>      | <kbd>⌥</kbd>+<kbd>**Enter**</kbd>     | Open the link of the selected cell (when the cell renders a link, for example through `autoLink` or `formulas.hyperlinks`) | &cross; | &cross; |
 
-<sup>\*</sup> This action depends on your layout direction.
+<sup>\*</sup> This action depends on your layout direction.<br>
+<sup>\*\*</sup> On a row header of a grid with [row groups](#row-parent-child-keyboard-shortcuts), this shortcut expands or collapses the row group instead.
 
 ## Selection keyboard shortcuts
 

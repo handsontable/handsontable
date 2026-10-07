@@ -13,29 +13,32 @@ describe('a11yAnnouncer', () => {
     jest.useRealTimers();
   });
 
-  it('should create only one DOM element for multiple `install` function calls', () => {
+  it('should create only one pair of live regions for multiple `install` function calls', () => {
     const portalElement = document.createElement('div');
 
     install(portalElement);
 
-    expect(portalElement.childElementCount).toBe(1);
+    expect(portalElement.childElementCount).toBe(2);
     expect(portalElement.firstChild.getAttribute('role')).toBe('status');
+    expect(portalElement.firstChild.getAttribute('aria-live')).toBe('assertive');
+    expect(portalElement.lastChild.getAttribute('role')).toBe('status');
+    expect(portalElement.lastChild.getAttribute('aria-live')).toBe('polite');
 
     install(portalElement);
 
-    expect(portalElement.childElementCount).toBe(1);
+    expect(portalElement.childElementCount).toBe(2);
 
     install(portalElement);
 
-    expect(portalElement.childElementCount).toBe(1);
+    expect(portalElement.childElementCount).toBe(2);
 
     uninstall();
 
-    expect(portalElement.childElementCount).toBe(1);
+    expect(portalElement.childElementCount).toBe(2);
 
     uninstall();
 
-    expect(portalElement.childElementCount).toBe(1);
+    expect(portalElement.childElementCount).toBe(2);
 
     uninstall();
 
@@ -63,37 +66,47 @@ describe('a11yAnnouncer', () => {
     portalElement.remove();
   });
 
-  it('should create the polite live region on its first use and remove it on the last uninstall', () => {
+  it('should announce politely through the polite live region and leave the assertive one empty', () => {
     const portalElement = document.createElement('div');
 
     install(portalElement);
 
-    expect(portalElement.childElementCount).toBe(1);
-
-    announce('Polite announcement', 'polite');
-
-    expect(portalElement.childElementCount).toBe(2);
-
     const politeRegion = portalElement.querySelector('[aria-live="polite"]');
+    const assertiveRegion = portalElement.querySelector('[aria-live="assertive"]');
 
-    expect(politeRegion.getAttribute('role')).toBe('status');
     expect(politeRegion.getAttribute('aria-atomic')).toBe('true');
 
+    announce('Polite announcement', 'polite');
     jest.runAllTimers();
 
     expect(politeRegion.textContent).toBe('Polite announcement');
-    expect(portalElement.querySelector('[aria-live="assertive"]').textContent).toBe('');
+    expect(assertiveRegion.textContent).toBe('');
 
     announce('Second polite announcement', 'polite');
     jest.runAllTimers();
 
-    expect(portalElement.childElementCount).toBe(2);
     expect(politeRegion.textContent).toBe('Second polite announcement');
 
     uninstall();
 
     expect(portalElement.childElementCount).toBe(0);
 
+    portalElement.remove();
+  });
+
+  it('should keep announcing politely while another instance that installed the announcer is gone', () => {
+    const portalElement = document.createElement('div');
+
+    install(portalElement);
+    install(portalElement);
+    uninstall();
+
+    announce('Still here', 'polite');
+    jest.runAllTimers();
+
+    expect(portalElement.querySelector('[aria-live="polite"]').textContent).toBe('Still here');
+
+    uninstall();
     portalElement.remove();
   });
 
