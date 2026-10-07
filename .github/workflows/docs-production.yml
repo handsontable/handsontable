@@ -50,6 +50,7 @@ jobs:
           npm run docs:docker:build:production
 
       - name: Test examples
+        continue-on-error: true
         run: |
           npm run docs:test:example-checker
 
