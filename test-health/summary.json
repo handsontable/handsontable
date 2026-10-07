@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-07T07:38:08.824Z",
+  "generatedAt": "2026-10-07T08:54:27.474Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -9,9 +9,9 @@
   "retentionDays": 90,
   "totals": {
     "tests": 366,
-    "needsTicket": 14,
+    "needsTicket": 15,
     "quarantined": 0,
-    "entries": 1887
+    "entries": 1888
   },
   "rows": [
     {
@@ -235,6 +235,45 @@
         "leg": "UMD.min (theme: classic)",
         "status": "failed",
         "error": "Expected '' to equal 'cyan'.",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "jasmine|handsontable/src/plugins/manualRowResize/__tests__/manualRowResize.spec.js|manualRowResize should autosize selected rows after double click on handler and move mouse to the next row",
+      "tier": "jasmine",
+      "file": "handsontable/src/plugins/manualRowResize/__tests__/manualRowResize.spec.js",
+      "line": null,
+      "title": "manualRowResize should autosize selected rows after double click on handler and move mouse to the next row",
+      "count7": 1,
+      "count30": 5,
+      "countAll": 5,
+      "runs30": 2,
+      "flakyRuns30": 0,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "UMD (theme: horizon)",
+        "UMD (theme: main)",
+        "UMD.min (theme: classic)",
+        "UMD.min (theme: horizon)",
+        "UMD.min (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-07T08:53:37Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37592742912",
+        "branch": "feature/PRO-1337_Treegrid-a11y-nested-rows",
+        "leg": "UMD.min (theme: classic)",
+        "status": "failed",
+        "error": "Expected 100 to be around 26 (between 25",
         "source": "ci"
       },
       "needsTicket": true
@@ -11034,42 +11073,6 @@
       "file": "handsontable/src/plugins/manualRowResize/__tests__/manualRowResize.spec.js",
       "line": null,
       "title": "manualRowResize should autosize selected rows after double click on handler",
-      "count7": 0,
-      "count30": 4,
-      "countAll": 4,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "UMD (theme: horizon)",
-        "UMD (theme: main)",
-        "UMD.min (theme: horizon)",
-        "UMD.min (theme: main)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-09-18T13:55:05Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35350768101",
-        "branch": "feature/DEV-2579_Filter-value-list-order",
-        "leg": "UMD (theme: horizon)",
-        "status": "failed",
-        "error": "Expected 39 to be around 37 (between 36",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "jasmine|handsontable/src/plugins/manualRowResize/__tests__/manualRowResize.spec.js|manualRowResize should autosize selected rows after double click on handler and move mouse to the next row",
-      "tier": "jasmine",
-      "file": "handsontable/src/plugins/manualRowResize/__tests__/manualRowResize.spec.js",
-      "line": null,
-      "title": "manualRowResize should autosize selected rows after double click on handler and move mouse to the next row",
       "count7": 0,
       "count30": 4,
       "countAll": 4,
