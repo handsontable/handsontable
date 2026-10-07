@@ -49,12 +49,13 @@ const PARKED_SPEC = 'cross-browser/merging.spec.ts';
 
 // How many live specs the sweep expects to read a declaration out of: 112 files on 2026-09-18, one of
 // them parked. The filters consolidation (#13647) deleted nine multi-framework specs and added three
-// js-only ones, the submenu-placement trim deleted four scrolled-viewport menu specs, and the editors
-// trim deleted six editor specs, which left 96 files. The UI-state trim deleted 24 and added one (the
-// complex demo's RTL dropdown under a new name), which leaves 73 files, one of them parked, so 72 live.
-// Adding or deleting a spec moves this number, and moves a number in LIVE_GOLDENS too — the pair is the
-// review a description cannot give, so update both in the pull request that adds the spec.
-const LIVE_SPEC_COUNT = 72;
+// js-only ones, the submenu-placement trim deleted four scrolled-viewport menu specs, the editors
+// trim deleted six editor specs, and the cross-browser trim (DEV-3257) deleted six whose states
+// moved to tests/e2e, which left 90 files. The UI-state trim deleted 24 and added one (the complex
+// demo's RTL dropdown under a new name), which leaves 67 files, one of them parked, so 66 live.
+// Adding or deleting a spec moves this number, and moves a number in LIVE_GOLDENS too – the pair is
+// the review a description cannot give, so update both in the pull request that adds the spec.
+const LIVE_SPEC_COUNT = 66;
 
 // How many of the specs under `tests/multi-frameworks/` (23 on 2026-09-18, 14 since the filters
 // consolidation retired that family's nine) still carry the shared unaudited reason.
@@ -92,7 +93,7 @@ const VOCABULARY = {
   CLASSIC, CROSS_BROWSERS, JS_VARIANTS, WRAPPERS, WRAPPERS_REASON_UNAUDITED,
 };
 
-// What opens a string in a spec. The backtick is in the set because the five looped cross-browser specs
+// What opens a string in a spec. The backtick is in the set because the two looped cross-browser specs
 // title their tests with a template literal (`Test scrolling for: ${url}`), whose `${` would otherwise
 // read as the opening brace of the declaration object.
 const QUOTES = new Set(['\'', '"', '`']);
@@ -438,8 +439,8 @@ function visualTestCallOffsets(clean) {
  * Mirrors `helpers.screenshotPath()`: the capture index restarts at 1 for every test (the `tablePage`
  * fixture resets the counter), and a cross-browser capture carries the demo route it was taken on, so two
  * tests in one cross-browser file that photograph the same route share stems rather than adding them. That
- * is why this returns a set and not a count, and it is why the five `urls.forEach` specs hold 33 capture
- * calls but 66 goldens per browser.
+ * is why this returns a set and not a count, and it is why the two `urls.forEach` specs hold 3 capture
+ * calls but 14 goldens per browser.
  *
  * Counted over comment-free source, and that is load-bearing: the slice runs from one `visualTest(` offset
  * to the next, so in a multi-call spec a docblock written above the second call sits inside the first
@@ -718,7 +719,7 @@ test('a leg violation names the spec it came from', () => {
     [{ crossBrowser: false, where: 'js-only/pagination/paging.spec.ts' }, { browsers: CROSS_BROWSERS }],
     [{ crossBrowser: true, where: 'cross-browser/selection.spec.ts' }, { themes: JS_VARIANTS }],
     [
-      { crossBrowser: true, where: 'cross-browser/undo-redo.spec.ts' },
+      { crossBrowser: true, where: 'cross-browser/scroll.spec.ts' },
       { themes: [CLASSIC], wrappers: WRAPPERS, wrappersReason: 'w' },
     ],
   ].forEach(([leg, declared]) => {
@@ -753,7 +754,7 @@ test('the reader accepts the inline declaration and the one-per-line declaration
 
   assert.deepEqual(readDeclarations(inline, 'probe.spec.ts')[0].declaration, expected);
   assert.deepEqual(readDeclarations(multiLine, 'probe.spec.ts')[0].declaration, expected);
-  // The template-literal title of the five looped cross-browser specs holds an interpolation, whose brace
+  // The template-literal title of the two looped cross-browser specs holds an interpolation, whose brace
   // would be read as the declaration's opening brace by anything that looks for the first `{`. The
   // interpolation is assembled here so this fixture is not itself read as an accidental template string.
   const interpolation = ['$', '{url}'].join('');
@@ -978,8 +979,8 @@ test('every spec declares a shape its own directory can host', () => {
       + 'A spec that needs no wrapper belongs in tests/js-only/; trimming a wrapper here needs the '
       + 'per-spec seed copy first, or the nightly reports the orphaned goldens deleted every night.',
     'cross-browser': 'The cross-browser leg sets no HOT_THEME and no HOT_FRAMEWORK, so themes is '
-      + '[\'classic\'] and wrappers is empty; browsers is all three, or chromium alone for the clipboard '
-      + 'specs only Chromium can run.',
+      + '[\'classic\'] and wrappers is empty; browsers is all three. Chromium alone is allowed for a spec '
+      + 'only Chromium can run (a clipboard check), though no spec takes that shape since DEV-3257.',
   };
 
   specPaths().forEach((relativePath) => {

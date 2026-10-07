@@ -29,8 +29,8 @@ const WAIT_FOR_FUNCTION_POLLING_RESTRICTIONS = [
 // too. A visual spec has no assertion of its own — the screenshot is the assertion — so a fixed delay
 // before a capture photographs whichever half of a transition the runner reached; the two flake shapes
 // DEV-2797 measured in CI (a scrollbar-clearance band created on the frame after a click, a filters
-// input focused on a 10 ms timer) are exactly that. The 2024 import carries fixed sleeps at 40-odd
-// sites; each one now wears an eslint-disable line naming the task, the convention `tests/AGENTS.md`
+// input focused on a 10 ms timer) are exactly that. The 2024 import carried fixed sleeps at 40-odd
+// sites (25 on 2026-10-05); each one now wears an eslint-disable line naming the task, the convention `tests/AGENTS.md`
 // uses for `test.fixme`, so the debt is counted and greppable while it is paid down. `.skip` is banned
 // in its bare and titled forms only: the two-argument conditional form (`test.skip(condition, why)`) is
 // what `visualTest()` in `src/test-runner.ts` emits from a spec's variant declaration, so it stays legal
@@ -110,8 +110,8 @@ const DETERMINISM_RESTRICTIONS = [
 // of them in the other six filters specs, got a tracked disable line. The filters consolidation (#13647)
 // retired those six with their 15 lines, and its replacements assert every state they capture; the
 // submenu-placement trim (#13656) retired the menu family's 24 the same way, the editors trim that
-// family's 15, the resize-guide trim the complex demo's 2, and the UI-state trim the dialog, empty-data-state,
-// loading and sheets-bar specs' 17, so 27 remain.
+// family's 15, the resize-guide trim the complex demo's 2, the cross-browser trim that family's 8, and the
+// UI-state trim the dialog, empty-data-state, loading and sheets-bar specs' 17, so 19 remain.
 //
 // esquery 1.7.0 (ESLint 8.57.1): `A + B` reports B when A is the statement right before it, so the message
 // lands on the capture line, which is where the disable line goes. Three traps, all measured. The relative
@@ -120,9 +120,10 @@ const DETERMINISM_RESTRICTIONS = [
 // and is not a broader `+`. And the capture half must be the statement's OWN call, read through attribute
 // paths: a descendant `:has()` there also matches a whole `visualTest(…)` statement whose body captures, so
 // a test that acts followed by a test that captures reported the second test call itself (2 false sites in
-// cross-browser/copy-paste.spec.ts). The action half keeps the descendant form on purpose — an action
-// nested inside the previous statement (`await Promise.all([… click() …])`) still acted — and it takes a
-// declaration as well as an expression statement, because `const clicked = await cell.click();` acted too.
+// cross-browser/copy-paste.spec.ts, a spec retired since). The action half keeps the descendant form on
+// purpose – an action nested inside the previous statement (`await Promise.all([… click() …])`) still
+// acted – and it takes a declaration as well as an expression statement, because
+// `const clicked = await cell.click();` acted too.
 //
 // Adjacency sees the previous statement only, and only when that statement is an expression or a
 // declaration. A comment between the action and the capture does not break it (comments are not AST
@@ -132,11 +133,11 @@ const DETERMINISM_RESTRICTIONS = [
 // four as unseen. A capture is the statement's own `screenshot()` call: awaited or not, kept in a `const`,
 // returned, or handed straight to `expect()` (the last three are in no spec today; the self-test pins them
 // too). A tracked `waitForTimeout()`
-// in between shields 13 captures in 7 specs: replacing such a sleep with the assertion it stands for clears
+// in between shields 7 captures in 3 specs: replacing such a sleep with the assertion it stands for clears
 // both lines, while deleting it with nothing in its place makes the capture fire, so the disable line moves
 // to the capture. Page helpers are deliberately not enumerated: a renamed helper would silently leave the
 // list, and the helpers that act with no `expect()` or wait (25 of the 48 exported from `src/page-helpers.ts`
-// on 2026-09-23, one of them the `tryToEscapeFromTheComponentsFocus` #13647 deleted with its callers, plus three that wait only with a fixed sleep: collapseNestedRow, resizeColumn, resizeRow)
+// on 2026-09-23, one of them the `tryToEscapeFromTheComponentsFocus` #13647 deleted with its callers, plus one that waits only with a fixed sleep, collapseNestedRow; resizeColumn and resizeRow went with the cross-browser resize specs in DEV-3257)
 // are their own follow-up, each ending on the state it produced.
 //
 // Primitives only: the pointer, keyboard, and focus methods a spec calls on a locator or a page, plus any

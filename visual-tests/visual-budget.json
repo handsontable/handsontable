@@ -24,9 +24,9 @@
     "angular-wrapper/chromium/": 30,
     "react-wrapper/chromium/": 30,
     "vue3/chromium/": 30,
-    "cross-browser/chromium/": 68,
-    "cross-browser/firefox/": 66,
-    "cross-browser/webkit/": 66
+    "cross-browser/chromium/": 26,
+    "cross-browser/firefox/": 26,
+    "cross-browser/webkit/": 26
   },
   "captureCap": 4
 }
