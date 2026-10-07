@@ -34,10 +34,11 @@ const radioRenderer = rendererFactory(({ instance, td, row, column, value, cellP
 
   if (colHeader) wrapper.setAttribute('aria-label', String(colHeader));
 
-  // A cell the grid resolves to no editor cannot be changed by the user, so its radios are
-  // disabled the same way `readOnly` disables them. `getCellEditor()` answers both questions:
-  // it returns `false` when `editor: false` is set at any configuration level.
-  const isEditable = !cellProperties.readOnly && !!instance.getCellEditor(cellProperties);
+  // A cell with no editor cannot be changed by the user, so its radios are disabled the same
+  // way `readOnly` disables them. `editor: false` set at any configuration level reaches the
+  // cell through the cascade. Read the option directly: `getCellEditor()` throws on an editor
+  // name that isn't registered, and a renderer runs on every draw.
+  const isEditable = !cellProperties.readOnly && cellProperties.editor !== false && cellProperties.editor !== null;
 
   const hasChecked = options.some((opt) => {
     const v = typeof opt === 'object' ? opt.value : opt;
@@ -152,6 +153,7 @@ const radioRenderer = rendererFactory(({ instance, td, row, column, value, cellP
 
 registerCellType('radio', { editor: RadioEditor, renderer: radioRenderer });
 
+/* start:skip-in-preview */
 const data = [
   { task: 'Refactor licensing app navigation', priority: 'high', status: 'in-progress' },
   { task: 'Theme Builder onboarding tour', priority: 'medium', status: 'todo' },
@@ -200,7 +202,7 @@ const ExampleComponent = () => {
           target.focus();
         }
       },
-      true
+      true,
     );
   };
 
@@ -217,8 +219,8 @@ const ExampleComponent = () => {
       licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn data="task" type="text" width={300} />
-      <HotColumn data="priority" type="radio" width={160} {...{ options: priorityOptions }} />
-      <HotColumn data="status" type="radio" width={170} {...{ options: statusOptions }} />
+      <HotColumn data="priority" type="radio" width={160} options={priorityOptions} />
+      <HotColumn data="status" type="radio" width={170} options={statusOptions} />
     </HotTable>
   );
 };

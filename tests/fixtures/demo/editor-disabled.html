@@ -52,6 +52,9 @@
   <h2>Grid level + typed columns</h2>
   <div id="typed" data-testid="typed"></div>
 
+  <h2>Grid level set later by updateSettings</h2>
+  <div id="updated" data-testid="updated"></div>
+
   <script>
     document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
   </script>
@@ -130,6 +133,27 @@
         // A checkbox has no separate editing gesture - the click IS the edit - so with no
         // editor it must be non-toggleable, and must say so rather than ignoring clicks.
         { data: 'done', type: 'checkbox' },
+      ],
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    // Starts fully editable: specs switch editing off at runtime with `updateSettings()`. One
+    // untyped column and one typed column, because the two resolve a grid-level `editor: false`
+    // set after construction differently (see the `editor` option's API reference).
+    const updated = document.querySelector('[data-testid="updated"]');
+
+    updated.className = `ht-theme-${window.htTheme}`;
+
+    window.hotUpdated = new Handsontable(updated, {
+      data: [
+        { label: 'Alpha', amount: 1234.5 },
+        { label: 'Beta', amount: 67.25 },
+      ],
+      colHeaders: ['label', 'amount'],
+      rowHeaders: true,
+      columns: [
+        { data: 'label' },
+        { data: 'amount', type: 'numeric' },
       ],
       licenseKey: 'non-commercial-and-evaluation',
     });

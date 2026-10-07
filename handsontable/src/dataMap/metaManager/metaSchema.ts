@@ -6332,6 +6332,7 @@ export default (): Record<string, unknown> => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @since 19.0.0
      * @category Core
      * @configScope grid columns cells cell
      *

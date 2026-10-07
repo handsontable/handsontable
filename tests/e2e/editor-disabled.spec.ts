@@ -92,14 +92,30 @@ test.describe('editor: false', () => {
 
   // A checkbox has no separate editing gesture — clicking the box IS the edit — so with no editor
   // it must not toggle. Before the fix, `editor: false` on a checkbox column had no effect at all.
-  test('a checkbox cannot be toggled when the grid has no editor', async({ page, theme, bundle }) => {
+  //
+  // The native `disabled` attribute alone would block a click, so these cases remove it first:
+  // they pin the renderer's own `click` and `change` guards, which must hold even when the
+  // attribute is missing (for example, after a custom renderer rebuilds the cell).
+  test('a checkbox click is cancelled when the grid has no editor, even without `disabled`', async({ page, theme, bundle }) => {
     const grid = new EditorDisabledPage(page, theme, bundle);
 
     await grid.goto();
 
     expect(await grid.dataAtCell('typed', 0, 2)).toBe(true);
 
-    await grid.checkbox('typed', 0, 2).click({ force: true });
+    await grid.clickCheckboxBypassingDisabled('typed', 0, 2);
+
+    // The `click` guard cancels the native toggle, so the box itself stays checked...
+    await expect(grid.checkbox('typed', 0, 2)).toBeChecked();
+    // ...and nothing is written to the data.
+    expect(await grid.dataAtCell('typed', 0, 2)).toBe(true);
+  });
+
+  test('a checkbox change writes nothing when the grid has no editor', async({ page, theme, bundle }) => {
+    const grid = new EditorDisabledPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.dispatchCheckboxChange('typed', 0, 2);
 
     expect(await grid.dataAtCell('typed', 0, 2)).toBe(true);
   });
@@ -124,6 +140,48 @@ test.describe('editor: false', () => {
     await page.keyboard.press('Space');
 
     expect(await grid.dataAtCell('typed', 0, 2)).toBe(true);
+  });
+
+  // `updateSettings()` reaches an untyped column through the cascade, so it is switched off.
+  test('updateSettings({ editor: false }) disables an untyped column', async({ page, theme, bundle }) => {
+    const grid = new EditorDisabledPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.updateSettings('updated', { editor: false });
+    await grid.cell('updated', 0, 0).dblclick();
+
+    await grid.expectNoEditor('updated');
+  });
+
+  // Documented limitation of the `editor` option, pinned so a change to it is noticed: a column
+  // `type` wrote its editor onto the column when the column was built, and an `updateSettings()`
+  // call that does not restate `columns` never rebuilds it, so the typed column stays editable.
+  test('updateSettings({ editor: false }) without `columns` leaves a typed column editable', async({ page, theme, bundle }) => {
+    const grid = new EditorDisabledPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.updateSettings('updated', { editor: false });
+    await grid.cell('updated', 0, 1).dblclick();
+
+    await grid.expectEditorOpen('updated');
+  });
+
+  // The documented workaround: restating `columns` in the same call rebuilds the typed column.
+  test('updateSettings({ editor: false, columns }) disables a typed column', async({ page, theme, bundle }) => {
+    const grid = new EditorDisabledPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.updateSettings('updated', {
+      editor: false,
+      columns: [
+        { data: 'label' },
+        { data: 'amount', type: 'numeric' },
+      ],
+    });
+    await grid.cell('updated', 0, 1).dblclick();
+
+    await grid.expectNoEditor('updated');
+    await grid.expectCellClass('updated', 0, 1, 'htNumeric');
   });
 
   // Typing is the other way into an editor, and it must stay closed off.

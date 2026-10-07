@@ -365,6 +365,16 @@ columns: [
 ]
 ```
 
+If you switch editing off at runtime, pass [`columns`](@/api/options.md#columns) in the same [`updateSettings()`](@/api/core.md#updatesettings) call. A column's `type` writes its editor onto that column when the column is built, so `editor: false` passed without `columns` doesn't reach a typed column:
+
+```js
+// the numeric column stays editable
+hot.updateSettings({ editor: false });
+
+// the numeric column becomes non-editable too
+hot.updateSettings({ editor: false, columns: [{ type: 'text' }, { type: 'numeric' }] });
+```
+
 A [checkbox](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) has no separate editing gesture -- clicking the box is the edit -- so a checkbox cell with no editor is rendered as a disabled checkbox. Neither a click nor the <kbd>**Space**</kbd> key toggles it. You can still select the cell.
 
 ## Toggle read-only from the menus

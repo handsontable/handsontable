@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /** Which grid of the fixture a locator or probe addresses. */
 export type GridName = 'editable' | 'styled' | 'unstyled';
@@ -40,6 +41,7 @@ export class ReadOnlyStylingPage {
    */
   async goto(): Promise<void> {
     await this.page.goto(`/tests/fixtures/demo/read-only-styling.html?theme=${this.theme}&bundle=${this.bundle}`);
+    await awaitBundle(this.page);
     await expect(this.cell('unstyled', 0, 0)).toBeVisible();
   }
 

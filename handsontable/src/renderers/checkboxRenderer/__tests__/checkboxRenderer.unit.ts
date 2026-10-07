@@ -168,5 +168,22 @@ describe('checkboxRenderer', () => {
       expect(input.checked).toBe(false);
       expect(input.hasAttribute('checked')).toBe(false);
     });
+
+    // A checkbox has no separate editing gesture, so a cell that names no editor must render its
+    // box disabled. Core treats both falsy editor values as "no editor"; `undefined` means "not set".
+    it.each([
+      { editor: false, disabled: true },
+      { editor: null, disabled: true },
+      { editor: undefined, disabled: false },
+      { editor: 'checkbox', disabled: false },
+    ])('should render the input disabled=$disabled when `editor` is $editor', ({ editor, disabled }) => {
+      const TD = document.createElement('td');
+      const instance = getInstance();
+      const cellMeta = { editor };
+
+      checkboxRenderer(instance, TD, 0, 0, undefined, true, cellMeta);
+
+      expect((TD.querySelector('input') as HTMLInputElement).disabled).toBe(disabled);
+    });
   });
 });
