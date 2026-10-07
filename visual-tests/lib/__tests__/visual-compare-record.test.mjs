@@ -28,8 +28,8 @@ test('itemToSpec reads the leg, the spec and the capture off each shape the suit
   // A wrapper leg, and a nested js-only directory.
   assert.equal(itemToSpec('react-wrapper/chromium/multi-frameworks/tab-navigation-1.png', CROSS_BROWSER).leg,
     'react-wrapper/chromium');
-  assert.equal(itemToSpec('js/chromium/js-only/complex-demo/rtl/select-cells-1.png', CROSS_BROWSER).spec,
-    'visual-tests/tests/js-only/complex-demo/rtl/select-cells.spec.ts');
+  assert.equal(itemToSpec('js/chromium-theme-main/js-only/complex-demo/rtl/open-date-editor-1.png', CROSS_BROWSER).spec,
+    'visual-tests/tests/js-only/complex-demo/rtl/open-date-editor.spec.ts');
   // A cross-browser spec on the root page has no URL segment; one that navigates carries the demo's path.
   assert.deepEqual(itemToSpec('cross-browser/webkit/columns-filter-2.png', CROSS_BROWSER), {
     leg: 'cross-browser/webkit',
@@ -37,7 +37,7 @@ test('itemToSpec reads the leg, the spec and the capture off each shape the suit
     capture: 'columns-filter-2',
     index: 2,
   });
-  assert.equal(itemToSpec('cross-browser/firefox/alignment-custom-style-demo-1.png', CROSS_BROWSER).spec,
+  assert.equal(itemToSpec('cross-browser/firefox/alignment-merged-cells-demo-1.png', CROSS_BROWSER).spec,
     'visual-tests/tests/cross-browser/alignment.spec.ts');
 });
 
@@ -76,13 +76,13 @@ test('a sample of real golden paths maps to specs that exist', () => {
   const sample = [
     'angular-wrapper/chromium/multi-frameworks/change-rows-order-1.png',
     'vue3/chromium/multi-frameworks/tab-navigation-1.png',
-    'js/chromium/js-only/sheetsBar/tabs-6.png',
-    'js/chromium-theme-horizon/js-only/dialog/dialog-focus-5.png',
+    'js/chromium/js-only/complex-demo/manual-row-resize-1.png',
+    'js/chromium-theme-horizon/js-only/context-menu/menus-position-1.png',
     'js/chromium-theme-horizon-dark/multi-frameworks/mouse-wheel-2.png',
-    'js/chromium-theme-main/js-only/pagination/navigation-4.png',
-    'cross-browser/chromium/copy-paste-large-dataset-demo-1.png',
-    'cross-browser/firefox/selection-arabic-rtl-demo-3.png',
-    'cross-browser/webkit/undo-redo-nested-rows-demo-2.png',
+    'js/chromium-theme-main/js-only/pagination/rtl/navigation-1.png',
+    'cross-browser/chromium/columns-add-remove-two-tables-demo-1.png',
+    'cross-browser/firefox/selection-arabic-rtl-demo-1.png',
+    'cross-browser/webkit/selection-nested-rows-demo-2.png',
     'cross-browser/webkit/borders-1.png',
   ];
 
