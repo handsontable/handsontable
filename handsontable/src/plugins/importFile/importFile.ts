@@ -499,6 +499,13 @@ function toArrayBuffer(buffer: ArrayBuffer | ArrayBufferView): ArrayBuffer {
  */
 export class ImportFile extends BasePlugin {
   /**
+   * The ticket of the last applying import started on this instance. Each `apply: true` call takes
+   * the next ticket before its first `await`, and a call whose ticket is no longer the latest when
+   * its read ends is rejected instead of applied, so the import started last always wins.
+   */
+  #latestApplyTicket = 0;
+
+  /**
    * Returns the plugin key used to identify this plugin in Handsontable settings.
    */
   static get PLUGIN_KEY() {
@@ -561,6 +568,10 @@ export class ImportFile extends BasePlugin {
    * Reads a workbook from an `ArrayBuffer` (or a view onto one, such as a `Uint8Array`) and maps it
    * into an {@link ImportResult}. Applies the result to the grid unless `options.apply` is `false`
    * or a `beforeImport` hook returns `false`.
+   *
+   * When a newer import that applies its result starts on the same instance before this one
+   * finishes, this one is not applied and the returned promise rejects: the import started last
+   * wins. An `apply: false` import neither cancels another import nor is cancelled by one.
    */
   async importFromArrayBuffer(
     format: string, buffer: ArrayBuffer | ArrayBufferView, options: ImportOptions = {}
@@ -568,6 +579,46 @@ export class ImportFile extends BasePlugin {
     this.#assertEnabled();
 
     const detected = requireEngine(this.hot, format, options.engine);
+
+    return this.#importBuffer(format, buffer, options, detected, this.#takeApplyTicket(options));
+  }
+
+  /**
+   * Reads a workbook from a `Blob` (e.g. a `File` from an `<input type="file">`) and maps it into
+   * an {@link ImportResult}. Applies the result to the grid unless `options.apply` is `false` or a
+   * `beforeImport` hook returns `false`.
+   *
+   * When a newer import that applies its result starts on the same instance before this one
+   * finishes, this one is not applied and the returned promise rejects: the import started last
+   * wins. An `apply: false` import neither cancels another import nor is cancelled by one.
+   */
+  async importFromBlob(format: string, blob: Blob, options: ImportOptions = {}): Promise<ImportResult> {
+    this.#assertEnabled();
+
+    // Detected and ticketed before the first `await`, so a call refused for its format or engine
+    // never cancels an import in flight, and the order of the tickets is the order of the calls.
+    const detected = requireEngine(this.hot, format, options.engine);
+    const ticket = this.#takeApplyTicket(options);
+    const buffer = await blob.arrayBuffer();
+
+    if (!this.hot) {
+      throwWithCause('ImportFile: the Handsontable instance was destroyed while the file was being read.');
+    }
+
+    return this.#importBuffer(format, buffer, options, detected, ticket);
+  }
+
+  /**
+   * Reads, maps and (unless `apply: false`) applies one workbook. `ticket` is `null` for an
+   * `apply: false` call, which never touches the grid and so takes no part in the ordering.
+   */
+  async #importBuffer(
+    format: string,
+    buffer: ArrayBuffer | ArrayBufferView,
+    options: ImportOptions,
+    detected: DetectedXlsxEngine,
+    ticket: number | null,
+  ): Promise<ImportResult> {
     const resolved = resolveImportOptions(options);
     const dropped = new DroppedFeatures();
     const workbook = await detected.adapter.read(toArrayBuffer(buffer), detected.module, dropped);
@@ -575,6 +626,7 @@ export class ImportFile extends BasePlugin {
     // The read is the one async boundary: `BasePlugin#destroy` deletes `hot`, so a grid torn down
     // while the file was being parsed has nothing left to apply the result to.
     this.#assertAlive();
+    this.#assertLatest(ticket);
 
     const formulasPlugin = this.hot.getPlugin('formulas');
     const commentsPlugin = this.hot.getPlugin('comments');
@@ -616,30 +668,14 @@ export class ImportFile extends BasePlugin {
       return result;
     }
 
-    // A `beforeImport` handler may destroy the grid.
+    // A `beforeImport` handler may destroy the grid, or start a newer import.
     this.#assertAlive();
+    this.#assertLatest(ticket);
 
     applyImportResult(this.hot, result, { importLayout: resolved.importLayout });
     this.hot.runHooks('afterImport', result, format);
 
     return result;
-  }
-
-  /**
-   * Reads a workbook from a `Blob` (e.g. a `File` from an `<input type="file">`) and maps it into
-   * an {@link ImportResult}. Applies the result to the grid unless `options.apply` is `false` or a
-   * `beforeImport` hook returns `false`.
-   */
-  async importFromBlob(format: string, blob: Blob, options: ImportOptions = {}): Promise<ImportResult> {
-    this.#assertEnabled();
-
-    const buffer = await blob.arrayBuffer();
-
-    if (!this.hot) {
-      throwWithCause('ImportFile: the Handsontable instance was destroyed while the file was being read.');
-    }
-
-    return this.importFromArrayBuffer(format, buffer, options);
   }
 
   /**
@@ -650,6 +686,30 @@ export class ImportFile extends BasePlugin {
   #assertEnabled(): void {
     if (!this.enabled) {
       throwWithCause('ImportFile: the plugin is disabled (`importFile: false`), so nothing can be imported.');
+    }
+  }
+
+  /**
+   * Takes the next apply ticket for an import that applies its result, or `null` for an
+   * `apply: false` import. Must run before the call's first `await`.
+   */
+  #takeApplyTicket(options: ImportOptions): number | null {
+    if (options.apply === false) {
+      return null;
+    }
+
+    this.#latestApplyTicket += 1;
+
+    return this.#latestApplyTicket;
+  }
+
+  /**
+   * Rejects an applying import when a newer applying import started on this instance after it, so
+   * an older file that finishes last cannot overwrite the newer one. No hook fires for it.
+   */
+  #assertLatest(ticket: number | null): void {
+    if (ticket !== null && ticket !== this.#latestApplyTicket) {
+      throwWithCause('ImportFile: a newer import started before this one finished, so its result was not applied.');
     }
   }
 

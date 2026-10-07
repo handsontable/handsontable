@@ -179,6 +179,22 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
 - **Guard `this.hot` after every `await`.** The workbook read (and `blob.arrayBuffer()`) is the plugin's
   async boundary; `BasePlugin#destroy` deletes `hot`, so a grid torn down mid-read used to surface as a raw
   `Cannot read properties of undefined`. Both entry points now reject with a Handsontable error instead.
+- **Overlapping applying imports are ordered by when they STARTED, not when they finish (T90).** Each
+  `apply: true` call takes a ticket from `#latestApplyTicket` before its first `await` (in
+  `importFromBlob` that is before `blob.arrayBuffer()`, so the two entry points share one sequence), and
+  `#assertLatest(ticket)` rejects with `a newer import started before this one finished` after the read and
+  again after `beforeImport` (a handler can start a newer import). A rejected import applies nothing and
+  fires no `afterImport`. Three rules: the ticket is taken AFTER `#assertEnabled()` and `requireEngine()`,
+  so a call refused for its format or engine never cancels one in flight (which is why `importFromBlob`
+  now resolves the engine before its read); `apply: false` takes no ticket, so a preview neither cancels
+  nor is cancelled; and an older import is rejected even when it finishes FIRST, because the grid would
+  otherwise flash the file the caller already replaced. A newer import that later fails its parse still
+  cancelled the older one. Pinned by `importFile.unit.js` › "ImportFile overlapping imports"; the import
+  guide's "Several imports at once" states the contract.
+- **ColumnSummary endpoints are not re-derived by an import.** A `reversedRowCoords` endpoint keeps the
+  destination row it computed for the previous data (`loadData` does the same), so the summary overwrites
+  an imported value. ColumnSummary is deliberately not changed; the guide documents turning `columnSummary`
+  off for the import and back on after it, pinned by `columnSummaryReimport.unit.js`.
 - **Never read `worksheet.model` in the ExcelJS adapter.** It is a getter that re-serializes the whole
   worksheet (every row, every cell) on each access. Merges are collected inside the row pass
   (`trackMerge`, keyed by the master cell) and sheet protection is `worksheet.sheetProtection`, which the

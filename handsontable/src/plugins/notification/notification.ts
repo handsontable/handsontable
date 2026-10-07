@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import { isObject } from '../../helpers/object';
+import { isHTMLElement } from '../../helpers/dom/element';
 import { randomString } from '../../helpers/string';
 import { resolveButtonType, type ButtonType } from '../../helpers/uiButton';
 import * as C from '../../i18n/constants';
@@ -503,7 +504,7 @@ export class Notification extends BasePlugin {
    */
   #normalizeOptions(raw: NotificationMessageOptions): NotificationNormalizedOptions {
     if (!isObject(raw) || (typeof raw.message !== 'string' &&
-      !(typeof HTMLElement !== 'undefined' && raw.message instanceof HTMLElement))) {
+      !isHTMLElement(raw.message))) {
       throwWithCause('Notification.showMessage expects an object with a `message` string or HTMLElement.');
     }
 

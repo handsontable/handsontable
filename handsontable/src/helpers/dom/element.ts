@@ -1930,6 +1930,29 @@ export function isHTMLElement(element: unknown): element is HTMLElement {
 }
 
 /**
+ * Check if the value is a `DocumentFragment`. Cross-realm safe: a fragment built from an iframe's
+ * document fails `instanceof DocumentFragment` against the top window's constructor, so it is also
+ * tested against its own realm's constructor through `ownerDocument.defaultView`.
+ *
+ * @param {*} value Value to check.
+ * @returns {boolean} `true` if the value is a `DocumentFragment` from any realm.
+ */
+export function isDocumentFragment(value: unknown): value is DocumentFragment {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  if (typeof DocumentFragment !== 'undefined' && value instanceof DocumentFragment) {
+    return true;
+  }
+
+  const OwnFragment = (value as { ownerDocument?: { defaultView?: { DocumentFragment?: typeof DocumentFragment } } })
+    .ownerDocument?.defaultView?.DocumentFragment;
+
+  return !!(OwnFragment && value instanceof OwnFragment);
+}
+
+/**
  * Check if the element is an HTMLTableCellElement (TD or TH). Cross-realm safe: uses the
  * element's own realm's constructor via `ownerDocument.defaultView`.
  *

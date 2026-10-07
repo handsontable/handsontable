@@ -9,6 +9,7 @@ import {
   hasClass,
   fastInnerHTML,
   isHTMLElement,
+  isDocumentFragment,
   setAttribute,
   removeAttribute,
   empty,
@@ -326,7 +327,7 @@ export class DialogUI {
       if (typeof content === 'string') {
         fastInnerHTML(contentElement, content, this.#sanitizer, 'dialog', this.#warnScope);
 
-      } else if (isHTMLElement(content) || content instanceof DocumentFragment) {
+      } else if (isHTMLElement(content) || isDocumentFragment(content)) {
         contentElement.appendChild(content);
       }
 

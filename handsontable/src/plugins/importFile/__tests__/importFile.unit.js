@@ -323,6 +323,139 @@ describe('ImportFile#importFromBlob', () => {
   });
 });
 
+describe('ImportFile overlapping imports', () => {
+  /**
+   * A blob stand-in whose `arrayBuffer()` resolves only when the test calls `release()`, so the
+   * order in which two reads finish is under the test's control.
+   *
+   * @param {ArrayBuffer} buffer The bytes the blob resolves with.
+   * @returns {{ blob: object, release: Function }} The blob and the function that releases its read.
+   */
+  function deferredBlob(buffer) {
+    let release;
+    const ready = new Promise((resolve) => {
+      release = () => resolve(buffer);
+    });
+
+    return { blob: { arrayBuffer: () => ready }, release };
+  }
+
+  const STALE = /a newer import started before this one finished, so its result was not applied/;
+
+  it('should apply the import started last and reject the older one when the older one finishes last', async() => {
+    const { plugin, calls } = pluginWithFakeHot({ engines: { xlsx: ExcelJS } });
+    const slow = deferredBlob(fixture('values'));
+    const fast = deferredBlob(fixture('values'));
+    const older = plugin.importFromBlob('xlsx', slow.blob);
+    const newer = plugin.importFromBlob('xlsx', fast.blob);
+
+    fast.release();
+
+    const newerResult = await newer;
+
+    slow.release();
+
+    await expect(older).rejects.toThrow(STALE);
+    expect(calls.filter(([name]) => name === 'loadData')).toHaveLength(1);
+
+    const afterImports = calls.filter(([name]) => name === 'afterImport');
+
+    expect(afterImports).toHaveLength(1);
+    expect(afterImports[0][1]).toBe(newerResult);
+  });
+
+  it('should reject the older import even when it finishes first', async() => {
+    const { plugin, calls } = pluginWithFakeHot({ engines: { xlsx: ExcelJS } });
+    const first = deferredBlob(fixture('values'));
+    const second = deferredBlob(fixture('values'));
+    const older = plugin.importFromBlob('xlsx', first.blob);
+    const newer = plugin.importFromBlob('xlsx', second.blob);
+
+    first.release();
+    await expect(older).rejects.toThrow(STALE);
+    // Nothing reached the grid or fired a hook for the discarded import.
+    expect(calls).toEqual([]);
+
+    second.release();
+
+    const newerResult = await newer;
+
+    expect(calls.filter(([name]) => name === 'beforeImport')).toHaveLength(1);
+    expect(calls.filter(([name]) => name === 'loadData')).toHaveLength(1);
+    expect(calls[calls.length - 1]).toEqual(['afterImport', newerResult, 'xlsx']);
+  });
+
+  it('should order importFromArrayBuffer calls the same way', async() => {
+    const { plugin, calls } = pluginWithFakeHot({ engines: { xlsx: ExcelJS } });
+    const older = plugin.importFromArrayBuffer('xlsx', fixture('values'));
+    const newer = plugin.importFromArrayBuffer('xlsx', fixture('values'));
+    const [olderOutcome, newerOutcome] = await Promise.allSettled([older, newer]);
+
+    expect(olderOutcome.status).toBe('rejected');
+    expect(olderOutcome.reason.message).toMatch(STALE);
+    expect(newerOutcome.status).toBe('fulfilled');
+    expect(calls.filter(([name]) => name === 'afterImport')).toHaveLength(1);
+  });
+
+  it('should count a blob import against a later array-buffer import', async() => {
+    const { plugin } = pluginWithFakeHot({ engines: { xlsx: ExcelJS } });
+    const slow = deferredBlob(fixture('values'));
+    const older = plugin.importFromBlob('xlsx', slow.blob);
+    const newer = plugin.importFromArrayBuffer('xlsx', fixture('values'));
+
+    await newer;
+    slow.release();
+
+    await expect(older).rejects.toThrow(STALE);
+  });
+
+  it('should neither cancel nor be cancelled by an apply: false import', async() => {
+    const { plugin, calls } = pluginWithFakeHot({ engines: { xlsx: ExcelJS } });
+    const slowApply = deferredBlob(fixture('values'));
+    const slowPeek = deferredBlob(fixture('values'));
+    const applied = plugin.importFromBlob('xlsx', slowApply.blob);
+    const peekAfter = plugin.importFromBlob('xlsx', slowPeek.blob, { apply: false });
+    const peekBefore = plugin.importFromArrayBuffer('xlsx', fixture('values'), { apply: false });
+
+    slowPeek.release();
+    slowApply.release();
+
+    await expect(applied).resolves.toBeDefined();
+    await expect(peekAfter).resolves.toBeDefined();
+    await expect(peekBefore).resolves.toBeDefined();
+    expect(calls.filter(([name]) => name === 'afterImport')).toHaveLength(1);
+  });
+
+  it('should not let a call refused before its read cancel an import in flight', async() => {
+    const { plugin, calls } = pluginWithFakeHot({ engines: { xlsx: ExcelJS } });
+    const slow = deferredBlob(fixture('values'));
+    const pending = plugin.importFromBlob('xlsx', slow.blob);
+
+    await expect(plugin.importFromBlob('csv', slow.blob)).rejects.toThrow(/cannot import "csv"/);
+    await expect(plugin.importFromArrayBuffer('csv', fixture('values'))).rejects.toThrow(/cannot import "csv"/);
+
+    slow.release();
+
+    await expect(pending).resolves.toBeDefined();
+    expect(calls.filter(([name]) => name === 'afterImport')).toHaveLength(1);
+  });
+
+  it('should reject the older import when a beforeImport handler starts a newer one', async() => {
+    const { plugin, calls, hooks } = pluginWithFakeHot({ engines: { xlsx: ExcelJS } });
+    let newer;
+
+    hooks.beforeImport = () => {
+      hooks.beforeImport = undefined;
+      newer = plugin.importFromArrayBuffer('xlsx', fixture('values'));
+    };
+
+    await expect(plugin.importFromArrayBuffer('xlsx', fixture('values'))).rejects.toThrow(STALE);
+    await newer;
+
+    expect(calls.filter(([name]) => name === 'loadData')).toHaveLength(1);
+  });
+});
+
 describe('ImportFile dropped-features warning', () => {
   let warnSpy;
 
