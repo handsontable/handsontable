@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /**
  * One recorded collapse/expand hook call, as captured by the fixture.
@@ -21,13 +22,15 @@ export interface NestedRowsHookCall {
 export class NestedRowsPage {
   readonly page: Page;
   readonly theme: string;
+  readonly bundle: string;
   readonly grid: Locator;
   readonly rowHeaderOverlay: Locator;
   readonly pageErrors: string[] = [];
 
-  constructor(page: Page, theme = 'main') {
+  constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
+    this.bundle = bundle;
     this.grid = page.getByTestId('grid');
     this.rowHeaderOverlay = page.locator('.ht_clone_inline_start');
     page.on('pageerror', (error) => { this.pageErrors.push(error.message); });
@@ -42,7 +45,8 @@ export class NestedRowsPage {
   async goto(options: { block?: 'rowCollapse' | 'rowExpand' } = {}): Promise<void> {
     const block = options.block ? `&block=${options.block}` : '';
 
-    await this.page.goto(`/tests/fixtures/demo/nested-rows.html?theme=${this.theme}${block}`);
+    await this.page.goto(`/tests/fixtures/demo/nested-rows.html?theme=${this.theme}&bundle=${this.bundle}${block}`);
+    await awaitBundle(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 

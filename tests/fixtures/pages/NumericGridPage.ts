@@ -1,5 +1,6 @@
 import type { Page, Locator } from '@playwright/test';
 import { expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /**
  * Page Object for the numeric-cell E2E fixture.
@@ -12,16 +13,23 @@ import { expect } from '@playwright/test';
 export class NumericGridPage {
   readonly page: Page;
   readonly theme: string;
-  readonly fixture: string;
+  readonly bundle: string;
+  readonly fixture: 'numeric' | 'numeric-formulas';
   readonly grid: Locator;
   readonly editor: Locator;
   readonly columnHeader: Locator;
   readonly rows: Locator;
   readonly dropdownMenu: Locator;
 
-  constructor(page: Page, theme = 'main', fixture = 'numeric') {
+  constructor(
+    page: Page,
+    theme = 'main',
+    bundle = 'umd',
+    fixture: 'numeric' | 'numeric-formulas' = 'numeric',
+  ) {
     this.page = page;
     this.theme = theme;
+    this.bundle = bundle;
     this.fixture = fixture;
     this.grid = page.getByTestId('grid');
     this.editor = page.locator('.handsontableInput');
@@ -31,11 +39,12 @@ export class NumericGridPage {
   }
 
   /**
-   * Navigate to the fixture and wait for the grid to render. The active theme is
-   * passed as a query param so the fixture loads the matching stylesheet.
+   * Navigate to the fixture and wait for the grid to render. The active theme and bundle
+   * are passed as query params so the fixture loads the matching stylesheet and build.
    */
   async goto(): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/${this.fixture}.html?theme=${this.theme}`);
+    await this.page.goto(`/tests/fixtures/demo/${this.fixture}.html?theme=${this.theme}&bundle=${this.bundle}`);
+    await awaitBundle(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
