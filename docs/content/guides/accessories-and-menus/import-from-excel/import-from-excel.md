@@ -65,83 +65,86 @@ Read files saved by LibreOffice or SheetJS with the built-in engine. ExcelJS 4.4
 The built-in engine reads a `t="d"` date cell only when its value is an ISO 8601 date, such as `2024-01-15` or `2024-01-15T12:00:00`. It imports any other value as an empty cell rather than guess its time zone, and reports it as `cellValue:date`.
 
 Three more differences come from ExcelJS itself, whatever wrote the file. A formula whose cached result is an empty string imports with no value when the Formulas plugin is off. A number format with an escaped percent sign, such as `0.0\%` (a literal `%`, shown as `12.5%` in Excel), reads as a percentage, so a cell holding `12.5` shows `1250.0%`; the built-in engine shows `12.5`. A cell that uses one of the built-in currency or accounting formats (ids 5-8 and 41-44) without a custom number format entry imports with no number format. For example, `1234.5678` under id 7 shows as `1234.5678`, where the built-in engine shows `$1,234.57`.
+
 ## Steps
 
-1. Enable the plugin.
+### Enable the plugin
 
-   ::: only-for javascript
+::: only-for javascript
 
-   ```javascript
-   const hot = new Handsontable(container, {
-     importFile: true,
-     licenseKey: 'non-commercial-and-evaluation',
-   });
-   ```
+```javascript
+const hot = new Handsontable(container, {
+  importFile: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
 
-   :::
+:::
 
-   ::: only-for react
+::: only-for react
 
-   ```jsx
-   <HotTable
-     importFile={true}
-     licenseKey="non-commercial-and-evaluation"
-   />
-   ```
+```jsx
+<HotTable
+  importFile={true}
+  licenseKey="non-commercial-and-evaluation"
+/>
+```
 
-   :::
+:::
 
-   ::: only-for angular
+::: only-for angular
 
-   ```typescript
-   readonly hotSettings: GridSettings = {
-     importFile: true,
-     licenseKey: 'non-commercial-and-evaluation',
-   };
-   ```
+```typescript
+readonly hotSettings: GridSettings = {
+  importFile: true,
+  licenseKey: 'non-commercial-and-evaluation',
+};
+```
 
-   :::
+:::
 
-   ::: only-for vue
+::: only-for vue
 
-   ```js
-   const hotSettings = ref({
-     importFile: true,
-     licenseKey: 'non-commercial-and-evaluation',
-   });
-   ```
+```js
+const hotSettings = ref({
+  importFile: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
 
-   :::
+:::
 
-2. Import a file picked by the user.
+### Import a file picked by the user
 
-   ```javascript
-   fileInput.addEventListener('change', async () => {
-     const [file] = fileInput.files;
+```javascript
+fileInput.addEventListener('change', async () => {
+  const [file] = fileInput.files;
 
-     try {
-       const result = await hot.getPlugin('importFile').importFromBlob('xlsx', file, {
-         colHeaders: 'firstRow',
-       });
+  try {
+    const result = await hot.getPlugin('importFile').importFromBlob('xlsx', file, {
+      colHeaders: 'firstRow',
+    });
 
-       console.log(result.dropped); // features the engine could not recover, for example cellStyles
-     } catch (error) {
-       status.textContent = error.message; // a refused file says what to do, and the grid keeps its data
-     } finally {
-       fileInput.value = ''; // lets the user pick the same file again
-     }
-   });
-   ```
+    console.log(result.dropped); // features the engine could not recover, for example cellStyles
+  } catch (error) {
+    status.textContent = error.message; // a refused file says what to do, and the grid keeps its data
+  } finally {
+    fileInput.value = ''; // lets the user pick the same file again
+  }
+});
+```
 
-3. Inspect the result before applying it, for a large file or one from an untrusted source.
+### Inspect the result before applying it
 
-   ```javascript
-   const preview = await hot.getPlugin('importFile').importFromArrayBuffer('xlsx', buffer, { apply: false });
+For a large file or one from an untrusted source, read the result first and apply it only when it passes your checks.
 
-   if (preview.data.length <= 10000) {
-     await hot.getPlugin('importFile').importFromArrayBuffer('xlsx', buffer);
-   }
-   ```
+```javascript
+const preview = await hot.getPlugin('importFile').importFromArrayBuffer('xlsx', buffer, { apply: false });
+
+if (preview.data.length <= 10000) {
+  await hot.getPlugin('importFile').importFromArrayBuffer('xlsx', buffer);
+}
+```
 
 ## Result
 
