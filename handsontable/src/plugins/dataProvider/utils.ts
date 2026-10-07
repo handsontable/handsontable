@@ -1,7 +1,10 @@
-import { DEFAULT_PAGE_SIZE, SETTINGS_VALIDATORS } from './constants';
+import { DEFAULT_PAGE_SIZE, REQUIRED_CONFIG_KEYS, SETTINGS_VALIDATORS } from './constants';
+import type { DataProviderRequestKind } from './dataProvider';
 
 /**
  * Whether `dataProvider` settings are complete enough for the DataProvider plugin to run.
+ * Only the keys in `REQUIRED_CONFIG_KEYS` decide this; optional keys are ignored here and validated
+ * by `BasePlugin#updatePluginSettings` when present.
  *
  * @param {*} c Value of the `dataProvider` setting.
  * @returns {boolean}
@@ -13,7 +16,18 @@ export function isCompleteDataProviderConfig(c: unknown): boolean {
 
   const record = c as Record<string, unknown>;
 
-  return Object.keys(SETTINGS_VALIDATORS).every(key => SETTINGS_VALIDATORS[key](record[key]));
+  return REQUIRED_CONFIG_KEYS.every(key => SETTINGS_VALIDATORS[key](record[key]));
+}
+
+/**
+ * Tells whether a string names one of the DataProvider requests: `fetchRows`, `onRowsCreate`, `onRowsUpdate`,
+ * or `onRowsRemove`.
+ *
+ * @param {string} kind The request kind.
+ * @returns {boolean}
+ */
+export function isDataProviderRequestKind(kind: string): kind is DataProviderRequestKind {
+  return kind === 'fetch' || kind === 'create' || kind === 'update' || kind === 'remove';
 }
 
 /**

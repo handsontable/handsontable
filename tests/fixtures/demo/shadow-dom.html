@@ -31,6 +31,19 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } #outside-area { margin-top: .8rem; } </style>
+  <!--
+    The grid's stylesheets are linked inside the shadow root below, because document styles
+    do not cross the boundary. They are ALSO linked here, in the light DOM, because the
+    comment editor and the context menu are portaled into `document.body` and so live outside
+    the shadow tree. Without these, `.htComments { position: absolute }` never applies and the
+    tooltip renders in normal page flow - visible, so the show/hide assertions still hold, but
+    positioned nowhere near its cell and impossible to move the pointer onto.
+  -->
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-'
+      + window.htTheme + '.min.css">');
+  </script>
 </head>
 <body>
   <!--
@@ -42,12 +55,25 @@
     shadow boundary. Cells are stamped with data-testid via a renderer;
     Playwright locators pierce open shadow roots transparently.
   -->
+  <!--
+    A light-DOM button ABOVE the host, so sequential Tab navigation enters the grid from
+    outside the shadow tree (DEV-2886). The textarea below the host is the counterpart for
+    Shift+Tab from beneath.
+  -->
+  <button data-testid="before-grid" type="button">Before the grid</button>
   <div id="shadow-host" data-testid="shadow-host"></div>
   <div id="outside-area">
     <textarea data-testid="outside-textarea" rows="3" cols="40"></textarea>
     <input data-testid="outside-input" type="text">
     <button data-testid="focus-mover" type="button">Move focus to the input</button>
   </div>
+  <!--
+    A SECOND, unrelated shadow root, standing in for any other web component on the host
+    page. Moving the pointer from the grid into this tree never touches the light DOM, so
+    it is the case that catches a containment check which only knows the grid's own shadow
+    root - see the comment-tooltip tests.
+  -->
+  <div id="other-shadow-host" data-testid="other-shadow-host"></div>
 
   <script>
     // The bundle under test, selected above from the sanitized allowlist. The
@@ -124,9 +150,43 @@
     shadowSibling.addEventListener('mousedown', (event) => event.preventDefault());
     shadowRoot.appendChild(shadowSibling);
 
+    const otherShadowRoot = document.querySelector('[data-testid="other-shadow-host"]')
+      .attachShadow({ mode: 'open' });
+    const otherShadowContent = document.createElement('div');
+
+    otherShadowContent.setAttribute('data-testid', 'other-shadow-content');
+    otherShadowContent.style.cssText = 'padding: 16px; margin-top: 8px; background: #dde;';
+    otherShadowContent.textContent = 'Content inside a different shadow root';
+    otherShadowRoot.appendChild(otherShadowContent);
+
     const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
       Handsontable.renderers.TextRenderer.apply(this, arguments);
       td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    // A web component rendered INSIDE a cell, so its content sits one shadow boundary deeper
+    // than the grid itself. An event raised in there resolves to a node the cell's own tree
+    // cannot see with `Node.contains()`, which is the case that must not read as outside the grid.
+    class CellWidgetElement extends HTMLElement {
+      constructor() {
+        super();
+
+        const widgetRoot = this.attachShadow({ mode: 'open' });
+        const button = document.createElement('button');
+
+        button.type = 'button';
+        button.setAttribute('data-testid', 'cell-widget-button');
+        button.textContent = 'Widget';
+        widgetRoot.appendChild(button);
+      }
+    }
+
+    customElements.define('cell-widget', CellWidgetElement);
+
+    const widgetRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.dom.empty(td);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+      td.appendChild(document.createElement('cell-widget'));
     };
 
     const hot = new Handsontable(container, {
@@ -140,6 +200,14 @@
       colHeaders: true,
       rowHeaders: true,
       contextMenu: true,
+      // The comment on B4 backs the hover-tooltip cases (issue #8624). B4 and A4 are
+      // untouched by the other tests, so the comment cannot disturb them.
+      comments: true,
+      cell: [
+        { row: 3, col: 1, comment: { value: 'Comment inside the shadow root' } },
+        // C2 hosts the nested web component; no other test touches that cell.
+        { row: 1, col: 2, renderer: widgetRenderer },
+      ],
       renderer: testIdRenderer,
       licenseKey: 'non-commercial-and-evaluation',
     });
@@ -153,6 +221,24 @@
     hot.addHook('afterPaste', () => {
       window.__pasteHookCalls += 1;
     });
+
+    // What each `beforePasteParse` call received (DEV-2930), copied out at call time. The hook has
+    // to fire once per paste in this fixture as well: all three listeners (document, shadow root,
+    // container) see the event under the default delivery, and only the `lws-shape` one reaches
+    // the plugin through a single listener.
+    window.__beforePasteParseCalls = [];
+    // Opt-in (`?pasteParseProbe=1`): every other paste test here runs with no callback registered,
+    // the default path a regression in the snapshot would otherwise hide.
+    if (htParams.get('pasteParseProbe') === '1') {
+      hot.addHook('beforePasteParse', (clipboardData, event) => {
+        window.__beforePasteParseCalls.push({
+          eventType: event === null ? null : event.type,
+          eventIsClipboardEvent: event instanceof ClipboardEvent,
+          types: clipboardData.types.slice(),
+          plain: clipboardData.getData('text/plain'),
+        });
+      });
+    }
 
     document.querySelector('[data-testid="focus-mover"]').addEventListener('mousedown', (event) => {
       event.preventDefault();
@@ -179,6 +265,7 @@
       outsideClickTargets: () => window.__outsideClickTargets,
       clipboardEventsSeenAtDocument: () => window.__clipboardAtDocument,
       pasteHookCalls: () => window.__pasteHookCalls,
+      beforePasteParseCalls: () => window.__beforePasteParseCalls,
     };
   </script>
 </body>

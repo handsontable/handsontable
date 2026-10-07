@@ -4,8 +4,10 @@ import { isObject } from '../../helpers/object';
 import { randomString } from '../../helpers/string';
 import { resolveButtonType, type ButtonType } from '../../helpers/uiButton';
 import * as C from '../../i18n/constants';
+import { syncIcon } from '../../themes/engine/icons';
 import { NotificationUI } from './ui';
 import { getSanitizer } from '../../utils/sanitizer';
+import { isRootInstance } from '../../utils/rootInstance';
 import { FOCUS_SOURCES } from '../../focusManager/constants';
 import { GRID_SCOPE } from '../../shortcuts/contexts/constants';
 import {
@@ -201,10 +203,15 @@ export class Notification extends BasePlugin {
   /**
    * Returns whether the `notification` setting is enabled for this instance.
    *
+   * The notification host renders into the `ht-overlay` element and registers a focus scope, and both
+   * belong to the main Handsontable instance. In a nested grid (the one the `handsontable`,
+   * `autocomplete`, and `dropdown` cell types create) neither exists, so the plugin stays disabled
+   * there.
+   *
    * @returns {boolean}
    */
   isEnabled(): boolean {
-    return !!this.hot.getSettings()[PLUGIN_KEY];
+    return isRootInstance(this.hot) && !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -222,6 +229,12 @@ export class Notification extends BasePlugin {
         sanitizer: getSanitizer(this.hot),
         warnScope: this.hot.rootElement,
         isRtl: this.hot.isRtl(),
+        syncIcon: (
+          container: HTMLElement,
+          slotClass: string,
+          name: Parameters<typeof syncIcon>[3],
+          options?: Parameters<typeof syncIcon>[4],
+        ) => syncIcon(this.hot, container, slotClass, name, options),
       });
     }
 
@@ -237,6 +250,7 @@ export class Notification extends BasePlugin {
     );
 
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
+    this.addHook('afterSetTheme', this.#onAfterSetTheme);
     this.eventManager.addEventListener(this.hot.rootDocument, 'visibilitychange', () => {
       if (this.#hasActiveCountdowns()) {
         this.#queueTick();
@@ -469,6 +483,15 @@ export class Notification extends BasePlugin {
     }
 
     this.#ui.setSanitizer(getSanitizer(this.hot));
+  };
+
+  /**
+   * Rebuilds the close icon of every currently-open toast after a theme change. A toast built
+   * before the change keeps showing its close control - only the icon inside it needs to catch
+   * up, the same way pagination and the sheets bar refresh their persistent icons.
+   */
+  readonly #onAfterSetTheme = () => {
+    this.#ui?.refreshIcons();
   };
 
   /**

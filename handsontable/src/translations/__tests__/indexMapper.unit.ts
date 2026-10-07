@@ -746,6 +746,113 @@ describe('IndexMapper', () => {
       expect(indexesSequenceChangeCallback.calls.count()).toEqual(1);
       expect(indexesSequenceChangeCallback).toHaveBeenCalledWith('move');
     });
+
+    const cacheUpdateSourceTestCases: Array<{
+      source: 'init' | 'insert' | 'remove' | 'move' | 'update';
+      initializeBeforeObserving?: boolean;
+      change(indexMapper: IndexMapper): void;
+    }> = [
+      {
+        source: 'init',
+        change(indexMapper) {
+          indexMapper.initToLength(3);
+        },
+      },
+      {
+        source: 'insert',
+        initializeBeforeObserving: true,
+        change(indexMapper) {
+          indexMapper.insertIndexes(1, 1);
+        },
+      },
+      {
+        source: 'remove',
+        initializeBeforeObserving: true,
+        change(indexMapper) {
+          indexMapper.removeIndexes([1]);
+        },
+      },
+      {
+        source: 'move',
+        initializeBeforeObserving: true,
+        change(indexMapper) {
+          indexMapper.moveIndexes([0], 2);
+        },
+      },
+      {
+        source: 'update',
+        initializeBeforeObserving: true,
+        change(indexMapper) {
+          indexMapper.setIndexesSequence([1, 0, 2]);
+        },
+      },
+    ];
+
+    cacheUpdateSourceTestCases.forEach(({ source, initializeBeforeObserving, change }) => {
+      it(`should expose "${source}" as the source of a sequence change on the \`cacheUpdated\` hook`, () => {
+        const indexMapper = new IndexMapper();
+        const cacheUpdatedCallback = jasmine.createSpy('cacheUpdated');
+
+        if (initializeBeforeObserving) {
+          indexMapper.initToLength(3);
+        }
+
+        indexMapper.addLocalHook('cacheUpdated', cacheUpdatedCallback);
+        change(indexMapper);
+
+        expect(cacheUpdatedCallback.calls.count()).toBe(1);
+        expect(cacheUpdatedCallback.calls.mostRecent().args[0]).toEqual(jasmine.objectContaining({
+          indexesChangeSource: source,
+        }));
+      });
+    });
+
+    it('should not emit an insertion source when no indexes are inserted', () => {
+      const indexMapper = new IndexMapper();
+      const cacheUpdatedCallback = jasmine.createSpy('cacheUpdated');
+
+      indexMapper.initToLength(3);
+      indexMapper.addLocalHook('cacheUpdated', cacheUpdatedCallback);
+
+      indexMapper.insertIndexes(1, 0);
+
+      expect(cacheUpdatedCallback).not.toHaveBeenCalled();
+    });
+
+    it('should not reuse a sequence source for a cache update nested in a hook', () => {
+      const indexMapper = new IndexMapper();
+      const cacheUpdatedCallback = jasmine.createSpy('cacheUpdated');
+
+      indexMapper.initToLength(3);
+      indexMapper.addLocalHook('cacheUpdated', (indexesChangesState) => {
+        cacheUpdatedCallback(indexesChangesState);
+
+        if (cacheUpdatedCallback.calls.count() === 1) {
+          indexMapper.updateCache(true);
+        }
+      });
+
+      indexMapper.insertIndexes(1, 1);
+
+      expect(cacheUpdatedCallback.calls.mostRecent().args[0]).toEqual(jasmine.objectContaining({
+        indexesChangeSource: undefined,
+      }));
+    });
+
+    it('should expose the source of a batched sequence change on the `cacheUpdated` hook', () => {
+      const indexMapper = new IndexMapper();
+      const cacheUpdatedCallback = jasmine.createSpy('cacheUpdated');
+
+      indexMapper.initToLength(3);
+      indexMapper.addLocalHook('cacheUpdated', cacheUpdatedCallback);
+      indexMapper.suspendOperations();
+      indexMapper.setIndexesSequence([1, 0, 2]);
+      indexMapper.resumeOperations();
+
+      expect(cacheUpdatedCallback).toHaveBeenCalledWith(jasmine.objectContaining({
+        indexesChangeSource: 'update',
+      }));
+    });
   });
 
   describe('getNearestNotHiddenIndex()', () => {
@@ -2369,6 +2476,67 @@ describe('IndexMapper', () => {
   });
 
   describe('cache management', () => {
+    it('should expose the pending change state before replacing the caches', () => {
+      const indexMapper = new IndexMapper();
+      const beforeCacheUpdate = jasmine.createSpy('beforeCacheUpdate');
+
+      indexMapper.initToLength(5);
+      indexMapper.addLocalHook('beforeCacheUpdate', beforeCacheUpdate);
+      indexMapper.trimmedIndexesChanged = true;
+      indexMapper.updateCache();
+
+      expect(beforeCacheUpdate).toHaveBeenCalledWith({
+        indexesSequenceChanged: false,
+        trimmedIndexesChanged: true,
+        hiddenIndexesChanged: false,
+      });
+    });
+
+    it('should still resolve the PRE-update visual space inside `beforeCacheUpdate`', () => {
+      const indexMapper = new IndexMapper();
+      const trimmingMap = new TrimmingMap();
+      const readings: Array<number | null> = [];
+
+      indexMapper.initToLength(5);
+      indexMapper.registerMap('trimming', trimmingMap);
+      // The whole reason the hook exists: a consumer captures physical indexes here, and it can only
+      // do that while the visual-to-physical mapping still describes the space the selection was
+      // laid in. Firing this after any cache is rebuilt would silently hand it the new mapping, and
+      // nothing in the payload would say so.
+      indexMapper.addLocalHook('beforeCacheUpdate', () => {
+        readings.push(indexMapper.getPhysicalFromVisualIndex(1));
+      });
+
+      trimmingMap.setValueAtIndex(0, true);
+
+      expect(readings).toEqual([1]);
+      expect(indexMapper.getPhysicalFromVisualIndex(1)).toBe(2);
+
+      indexMapper.unregisterMap('trimming');
+    });
+
+    it('should finish the cache-update lifecycle when rebuilding a cache throws', () => {
+      const indexMapper = new IndexMapper();
+      const beforeCacheUpdate = jasmine.createSpy('beforeCacheUpdate');
+      const cacheUpdated = jasmine.createSpy('cacheUpdated');
+      const afterCacheUpdate = jasmine.createSpy('afterCacheUpdate');
+
+      indexMapper.initToLength(5);
+      indexMapper.addLocalHook('beforeCacheUpdate', beforeCacheUpdate);
+      indexMapper.addLocalHook('cacheUpdated', cacheUpdated);
+      indexMapper.addLocalHook('afterCacheUpdate', afterCacheUpdate);
+      indexMapper.trimmedIndexesChanged = true;
+      spyOn(indexMapper.trimmingMapsCollection, 'updateCache').and.throwError('cache failure');
+
+      expect(() => indexMapper.updateCache()).toThrowError('cache failure');
+      // The pair is what a consumer balances its own state against, so both halves matter: the
+      // opening hook ran, the `finally` still closed it, and the update that never completed did NOT
+      // announce itself as completed.
+      expect(beforeCacheUpdate).toHaveBeenCalledTimes(1);
+      expect(afterCacheUpdate).toHaveBeenCalledTimes(1);
+      expect(cacheUpdated).not.toHaveBeenCalled();
+    });
+
     it('should reset the cache when `initToLength` function is called', () => {
       const indexMapper = new IndexMapper();
       const cacheUpdatedCallback = jasmine.createSpy('cacheUpdated');

@@ -2,7 +2,7 @@
 type: how-to
 title: Migrate to server-side data
 metaTitle: Migrate to server-side data - JavaScript Data Grid | Handsontable
-description: Move from a full in-memory data array and afterChange saves to Handsontable dataProvider—stable row ids, fetchRows, CRUD callbacks, pagination, and filters.
+description: Move from a full in-memory data array and afterChange saves to Handsontable dataProvider -- stable row ids, fetchRows, CRUD callbacks, pagination, and filters.
 permalink: /server-side-data-migration
 canonicalUrl: /server-side-data-migration
 tags:
@@ -17,6 +17,7 @@ vue:
   metaTitle: Migrate to server-side data - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Server-side data
+addedIn: "17.1.0"
 ---
 
 Use this checklist when moving from a full in-memory `data` array and hooks such as [`afterChange`](@/api/hooks.md#afterchange) to `dataProvider`. For an overview and demo, see [Server-side data](@/guides/getting-started/server-side-data/server-side-data.md).

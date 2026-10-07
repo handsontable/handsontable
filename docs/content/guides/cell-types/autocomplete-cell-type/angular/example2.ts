@@ -2,19 +2,33 @@
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 
-const colors = [
-  'yellow',
-  'red',
-  'orange and another color',
-  'green',
-  'blue',
-  'gray',
-  'black',
-  'white',
-  'purple',
-  'lime',
-  'olive',
-  'cyan',
+const warehouses = [
+  'Seattle',
+  'Denver',
+  'Portland',
+  'Austin',
+  'Minneapolis',
+  'Boston',
+  'Chicago',
+  'Phoenix',
+  'Atlanta',
+  'Dallas',
+  'San Jose',
+  'Columbus',
+];
+const products = [
+  'Stainless Steel Water Bottle',
+  'Wireless Mouse',
+  'Ergonomic Office Chair',
+  'USB-C Charging Cable',
+  'Aluminum Water Filter',
+  'Canvas Tote Bag',
+  'USB-C Hub',
+  'Ceramic Mug Set',
+  'Desk Lamp',
+  'Laptop Stand',
+  'Bluetooth Speaker',
+  'Standing Desk',
 ];
 
 const ALLOWED_TAGS = ['BR', 'TABLE', 'THEAD', 'TBODY', 'TR', 'TD', 'TH'];
@@ -60,38 +74,47 @@ const sanitizeHeader = (html: string): string => {
 export class AppComponent {
 
   readonly data = [
-    ['BMW', 2017, 'black', 'black'],
-    ['Nissan', 2018, 'blue', 'blue'],
-    ['Chrysler', 2019, 'yellow', 'black'],
-    ['Volvo', 2020, 'white', 'gray'],
+    ['Harbor Goods', 'SKU-4821', 'Seattle', 'Stainless Steel Water Bottle'],
+    ['Alpine Supply Co.', 'SKU-0093', 'Denver', 'Wireless Mouse'],
+    ['Cascade Distributors', 'SKU-1170', 'Portland', 'Ergonomic Office Chair'],
+    ['Summit Trading', 'SKU-2208', 'Austin', 'USB-C Charging Cable'],
+    ['Northgate Wholesale', 'SKU-3341', 'Minneapolis', 'Aluminum Water Filter'],
   ];
 
   readonly gridSettings: GridSettings = {
     height: 'auto',
     sanitizer: sanitizeHeader,
     colHeaders: [
-      'Car<br>(allowInvalid true)',
-      'Year',
-      'Chassis color',
-      'Bumper color<br>(allowInvalid true)',
+      'Supplier<br>(allowInvalid false)',
+      'SKU',
+      'Warehouse',
+      'Product<br>(allowInvalid true)',
     ],
     autoWrapRow: true,
     autoWrapCol: true,
     columns: [
       {
         type: 'autocomplete',
-        source: ['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'],
+        source: [
+          'Harbor Goods',
+          'Alpine Supply Co.',
+          'Cascade Distributors',
+          'Summit Trading',
+          'Northgate Wholesale',
+          'Nordic Traders',
+        ],
         strict: true,
+        allowInvalid: false,
       },
       {},
       {
         type: 'autocomplete',
-        source: colors,
+        source: warehouses,
         strict: true,
       },
       {
         type: 'autocomplete',
-        source: colors,
+        source: products,
         strict: true,
         allowInvalid: true, // true is default
       },

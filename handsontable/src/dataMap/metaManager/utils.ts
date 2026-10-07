@@ -115,3 +115,26 @@ export function assert(condition: () => boolean, errorMessage: string) {
 export function isNullish(variable: unknown): variable is null | undefined {
   return variable === null || variable === undefined;
 }
+
+/**
+ * Normalizes the "editor" property of the passed settings object.
+ *
+ * An `editor` of `true` names no editor, so it is treated as if the setting was not passed at all.
+ * The property is dropped rather than resolved to the text editor here, so the cell still receives
+ * the editor that its "type" (or a higher meta layer) provides - for example, a `type: 'numeric'`
+ * column keeps the numeric editor.
+ *
+ * @param {object} settings The settings object to normalize.
+ * @returns {object} The passed object, or a copy of it with the "editor" property removed.
+ */
+export function normalizeEditorSetting<T extends Record<string, unknown>>(settings: T): T {
+  if (settings.editor !== true) {
+    return settings;
+  }
+
+  const normalizedSettings = { ...settings };
+
+  delete normalizedSettings.editor;
+
+  return normalizedSettings;
+}

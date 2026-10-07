@@ -1,5 +1,5 @@
 import { extend } from '../../../helpers/object';
-import { extendByMetaType } from '../utils';
+import { extendByMetaType, normalizeEditorSetting } from '../utils';
 import metaSchemaFactory from '../metaSchema';
 
 /**
@@ -85,10 +85,12 @@ export default class GlobalMeta {
    * @param {object} settings An object to merge with.
    */
   updateMeta(settings: Record<string, unknown>) {
-    extend(this.meta, settings);
+    const normalizedSettings = normalizeEditorSetting(settings);
+
+    extend(this.meta, normalizedSettings);
     extendByMetaType(this.meta, {
-      ...settings,
-      type: settings.type ?? this.meta.type,
-    }, settings);
+      ...normalizedSettings,
+      type: normalizedSettings.type ?? this.meta.type,
+    }, normalizedSettings);
   }
 }

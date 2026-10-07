@@ -6,10 +6,11 @@ registerAllModules();
 
 const templateValues = ['one', 'two', 'three'];
 const data = [
-  ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
-  ['2017', 10, 11, 12, 13],
-  ['2018', 20, 11, 14, 13],
-  ['2019', 30, 15, 12, 13],
+  ['Hydrogen', 'H', 1, 1.008, 7],
+  ['Helium', 'He', 2, 4.003, 9],
+  ['Lithium', 'Li', 3, 6.94, 9],
+  ['Beryllium', 'Be', 4, 9.012, 11],
+  ['Boron', 'B', 5, 10.81, 15],
 ];
 
 const ExampleComponent = () => {
@@ -41,6 +42,7 @@ const ExampleComponent = () => {
   return (
     <HotTable
       data={data}
+      colHeaders={['Name', 'Symbol', 'Atomic Number', 'Atomic Mass (u)', 'Known Isotopes']}
       minSpareRows={1}
       height="auto"
       autoWrapRow={true}

@@ -129,7 +129,9 @@ Setting [`contextMenu`](@/api/options.md#contextmenu) to `true` shows the full d
 
 :::
 
-The [`allowInsertColumn`](@/api/options.md#allowinsertcolumn) and [`allowRemoveColumn`](@/api/options.md#allowremovecolumn) options control whether these context menu items are available. Both default to `true`. Set [`allowInsertColumn`](@/api/options.md#allowinsertcolumn) to `false` to hide the insert items, or [`allowRemoveColumn`](@/api/options.md#allowremovecolumn) to `false` to hide the remove item.
+The [`allowInsertColumn`](@/api/options.md#allowinsertcolumn) and [`allowRemoveColumn`](@/api/options.md#allowremovecolumn) options control whether these menu items are available, in both the context menu and the [column menu](@/guides/accessories-and-menus/column-menu/column-menu.md). Both default to `true`. Set [`allowInsertColumn`](@/api/options.md#allowinsertcolumn) to `false` to hide the insert items, or [`allowRemoveColumn`](@/api/options.md#allowremovecolumn) to `false` to hide the remove item.
+
+[`allowInsertColumn`](@/api/options.md#allowinsertcolumn) does more than hide menu items. Set to `false`, it also stops the grid from adding columns on its own: a paste wider than the remaining columns stops at the last column and Handsontable drops the extra values. It also stops [`setDataAtCell()`](@/api/core.md#setdataatcell) from creating the missing columns, but only when your [`data`](@/api/options.md#data) is an array of arrays and you do not set the [`columns`](@/api/options.md#columns) option - in any other configuration that method never adds columns anyway. See the [`allowInsertColumn`](@/api/options.md#allowinsertcolumn) reference for the full list.
 
 ## Add spare columns automatically
 

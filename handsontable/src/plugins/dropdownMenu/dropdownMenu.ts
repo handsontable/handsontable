@@ -22,6 +22,7 @@ import {
 } from '../contextMenu/predefinedItems';
 
 import { A11Y_HASPOPUP, A11Y_HIDDEN, A11Y_LABEL } from '../../helpers/a11y';
+import { syncIcon } from '../../themes/engine/icons';
 
 Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');
 Hooks.getSingleton().register('beforeDropdownMenuShow');
@@ -36,6 +37,7 @@ export type { MenuAnchorRectProvider };
 export const PLUGIN_KEY = 'dropdownMenu';
 export const PLUGIN_PRIORITY = 230;
 const BUTTON_CLASS_NAME = 'changeType';
+const BUTTON_ICON_CLASS_NAME = 'ht-dropdown-menu-button-icon';
 /**
  * Marks a header that carries a trailing icon button, so styles that position something against
  * the header's trailing edge - the ColumnSorting indicator - can keep clear of it. A class rather
@@ -140,9 +142,11 @@ export class DropdownMenu extends BasePlugin {
   }
 
   /**
-   * Default menu items order when `dropdownMenu` is enabled by setting the config item to `true`.
+   * Default menu items order when `dropdownMenu` is enabled by setting the config item to `true`:
+   * `'col_left'`, `'col_right'`, `'---------'`, `'remove_col'`, `'---------'`, `'clear_column'`,
+   * `'---------'`, `'make_read_only'`, `'---------'`, `'alignment'`.
    *
-   * @returns {Array}
+   * @returns {string[]}
    */
   static get DEFAULT_ITEMS() {
     return [
@@ -218,17 +222,12 @@ export class DropdownMenu extends BasePlugin {
       return;
     }
 
-    this.itemsFactory = new ItemsFactory(this.hot, DropdownMenu.DEFAULT_ITEMS);
-
     this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
     this.addHook('beforeViewportScrollHorizontally', this.#onBeforeViewportScrollHorizontally);
     this.addHook('beforeDialogShow', () => this.close());
 
     const settings = this.hot.getSettings()[PLUGIN_KEY];
     const settingsObj = settings as DropdownMenuSettings;
-    const predefinedItems = {
-      items: this.itemsFactory.getItems(settings)
-    };
 
     this.registerEvents();
 
@@ -240,11 +239,6 @@ export class DropdownMenu extends BasePlugin {
     super.enablePlugin();
 
     this.callOnPluginsReady(() => {
-      this.hot.runHooks('afterDropdownMenuDefaultOptions', predefinedItems);
-
-      this.itemsFactory!.setPredefinedItems(predefinedItems.items);
-      const menuItems = this.itemsFactory!.getItems(settings);
-
       if (this.menu) {
         this.menu.destroy();
       }
@@ -254,9 +248,6 @@ export class DropdownMenu extends BasePlugin {
         container: (typeof settings === 'object' ? settingsObj.uiContainer : null) ||
           this.hot.rootPortalElement,
       });
-      this.hot.runHooks('beforeDropdownMenuSetItems', menuItems);
-
-      this.menu.setMenuItems(menuItems);
 
       this.menu.addLocalHook('afterOpen', () => this.#onMenuAfterOpen());
       this.menu.addLocalHook('afterSubmenuOpen', (subMenuInstance: Menu) => this.#onSubMenuAfterOpen(subMenuInstance));
@@ -264,15 +255,52 @@ export class DropdownMenu extends BasePlugin {
       this.menu.addLocalHook('executeCommand',
         (commandName: string, ...params: unknown[]) => this.executeCommand(commandName, ...params));
 
-      // Register all commands. Predefined and added by user or by plugins
-      arrayEach(menuItems, (command) => {
-        const cmd = command as Record<string, unknown>;
+      this.prepareMenuItems();
+    });
+  }
 
-        this.commandExecutor.registerCommand(
-          cmd.key as string,
-          command as Parameters<CommandExecutor['registerCommand']>[1]
-        );
-      });
+  /**
+   * Prepares available dropdown menu's items list and registers them in commandExecutor.
+   *
+   * Rebuilt on every open, matching {@link ContextMenu#prepareMenuItems}. Building it once, when
+   * the plugin is enabled, left the list frozen at that moment: a plugin enabled later through
+   * `updateSettings` never reached the menu, and one disabled later kept entries that still ran.
+   *
+   * @private
+   * @fires Hooks#afterDropdownMenuDefaultOptions
+   * @fires Hooks#beforeDropdownMenuSetItems
+   */
+  prepareMenuItems() {
+    // The menu is built once every plugin is ready, so an `open()` before that has nothing to
+    // fill in yet.
+    if (!this.menu) {
+      return;
+    }
+
+    this.itemsFactory = new ItemsFactory(this.hot, DropdownMenu.DEFAULT_ITEMS, PLUGIN_KEY);
+
+    const settings = this.hot.getSettings()[PLUGIN_KEY];
+    const predefinedItems = {
+      items: this.itemsFactory.getItems(settings)
+    };
+
+    this.hot.runHooks('afterDropdownMenuDefaultOptions', predefinedItems);
+
+    this.itemsFactory.setPredefinedItems(predefinedItems.items);
+    const menuItems = this.itemsFactory.getItems(settings);
+
+    this.hot.runHooks('beforeDropdownMenuSetItems', menuItems);
+
+    this.menu!.setMenuItems(menuItems);
+
+    // Register all commands. Predefined and added by user or by plugins
+    arrayEach(menuItems, (command) => {
+      const cmd = command as Record<string, unknown>;
+
+      this.commandExecutor.registerCommand(
+        cmd.key as string,
+        command as Parameters<CommandExecutor['registerCommand']>[1]
+      );
     });
   }
 
@@ -296,6 +324,10 @@ export class DropdownMenu extends BasePlugin {
 
     if (this.menu) {
       this.menu.destroy();
+      // Cleared, as ContextMenu does. A destroyed menu left in the field still passes the guard in
+      // `prepareMenuItems()`, so a later `open()` or `executeCommand()` would rebuild items against
+      // a detached container on a plugin that is off.
+      this.menu = null;
     }
 
     this.unregisterShortcuts();
@@ -493,6 +525,8 @@ export class DropdownMenu extends BasePlugin {
    * scroll-follow repositioning, or `null` when the anchor is no longer rendered.
    * @fires Hooks#beforeDropdownMenuShow
    * @fires Hooks#afterDropdownMenuShow
+   * @fires Hooks#afterDropdownMenuDefaultOptions
+   * @fires Hooks#beforeDropdownMenuSetItems
    * @example
    * ```js
    * const menu = hot.getPlugin('dropdownMenu');
@@ -506,7 +540,9 @@ export class DropdownMenu extends BasePlugin {
     offset: Record<string, number> = { above: 0, below: 0, left: 0, right: 0 },
     anchorRectProvider?: MenuAnchorRectProvider,
   ): void {
-    if (this.menu?.isOpened()) {
+    // `isClosed()`, not `isOpened()`: a menu still being built is not open yet, and a nested `open()`
+    // from one of its item callbacks must not announce and position a second one (DEV-41).
+    if (this.menu && !this.menu.isClosed()) {
       return;
     }
 
@@ -515,6 +551,7 @@ export class DropdownMenu extends BasePlugin {
     // open flow below proceeds on the fresh `this.menu` instance with the new items.
     this.hot.runHooks('beforeDropdownMenuShow', this);
 
+    this.prepareMenuItems();
     this.menu?.open();
 
     objectEach(offset, (value, key) => {
@@ -556,8 +593,26 @@ export class DropdownMenu extends BasePlugin {
    *
    * @param {string} commandName Command name to execute.
    * @param {*} params Additional parameters passed to the command executor.
+   * @fires Hooks#afterDropdownMenuDefaultOptions
+   * @fires Hooks#beforeDropdownMenuSetItems
    */
   executeCommand(commandName: string, ...params: unknown[]): void {
+    // Commands are registered when the item list is built, which happens on open. A command
+    // contributed by a plugin that was enabled since the last build is not registered yet, so an
+    // unknown name earns a rebuild.
+    //
+    // Only an unknown one: rebuilding on every call would fire both item hooks per command, which
+    // a listener would see as noise. And never while the menu is open — it was just built, and a
+    // rebuild would swap the items out from under the click that is running this command.
+    // A command can also be registered under a key that itself contains a colon, so both names
+    // count as known here. `hasCommand()` is the boolean form of the resolution rule `execute()`
+    // applies, and asking it keeps the two from drifting apart. Testing only the primary name
+    // would rebuild the list on every colon-keyed command, which is exactly the per-call hook
+    // noise this check exists to avoid.
+    if (!this.commandExecutor.hasCommand(commandName) && (!this.menu || this.menu.isClosed())) {
+      this.prepareMenuItems();
+    }
+
     this.commandExecutor.execute(commandName, ...params);
   }
 
@@ -600,12 +655,16 @@ export class DropdownMenu extends BasePlugin {
    * @param {Event} event The mouse event object.
    */
   #onTableClick(event: Event) {
-    const target = eventTargetEl(event)!;
+    // By ancestor, not by the target's own class, and the BUTTON is what is measured and walked
+    // up from: a theme `icons` renderer may put markup with its own pointer events inside the
+    // button's icon, and the press then targets that markup (`#onBeforeOnCellMouseDown` matches
+    // the same way).
+    const button = eventTargetEl(event)!.closest<HTMLElement>(`.${BUTTON_CLASS_NAME}`);
 
-    if (hasClass(target, BUTTON_CLASS_NAME)) {
+    if (button) {
       const offset = getDocumentOffsetByElement(this.menu?.container ?? this.hot.rootElement, this.hot.rootDocument);
-      const buttonRect = this.#getButtonRect(target);
-      const th = target.closest('th');
+      const buttonRect = this.#getButtonRect(button);
+      const th = button.closest('th');
       const cellCoords = th ? this.hot.getCoords(th) : null;
       const visualColumn = cellCoords?.col ?? null;
       const headerRowIndex = cellCoords?.row ?? -1;
@@ -637,23 +696,12 @@ export class DropdownMenu extends BasePlugin {
    * @returns {{ top: number, left: number, right: number, bottom: number, width: number, height: number }}
    */
   #getButtonRect(button: HTMLElement) {
-    const rect = button.getBoundingClientRect();
-    const beforeStyle = this.hot.rootWindow.getComputedStyle(button, '::before');
-    const iconSize = Number.parseFloat(beforeStyle.width);
-
-    if (Number.isFinite(iconSize) && rect.width >= iconSize && rect.height >= iconSize) {
-      const left = rect.left + ((rect.width - iconSize) / 2);
-      const top = rect.top + ((rect.height - iconSize) / 2);
-
-      return {
-        top,
-        left,
-        right: left + iconSize,
-        bottom: top + iconSize,
-        width: iconSize,
-        height: iconSize,
-      };
-    }
+    // The glyph is a real `<i class="ht-icon ht-icon-menu">` child of the button
+    // (`syncIcon(this.hot, button, BUTTON_ICON_CLASS_NAME, 'menu')` above), not a `::before` pseudo-element -
+    // measure its own box directly. Falls back to the button's own rect when the icon is missing
+    // (a theme config that maps the `menu` slot to nothing renders no `<i>` at all).
+    const icon = button.querySelector('.ht-icon');
+    const rect = (icon ?? button).getBoundingClientRect();
 
     return {
       top: rect.top,
@@ -688,6 +736,11 @@ export class DropdownMenu extends BasePlugin {
         addClass(existingButton.parentNode, HEADER_WITH_BUTTON_CLASS_NAME);
       }
 
+      // The button survives too, so its icon must follow a runtime `icons` remap or theme switch
+      // here as well - `syncIcon()` re-applies the mapping only when the theme's icons revision
+      // moved, so on an ordinary redraw this is one class check per header.
+      syncIcon(this.hot, existingButton as HTMLElement, BUTTON_ICON_CLASS_NAME, 'menu');
+
       return;
     }
     // Plugin disabled and buttons still exists, so remove them.
@@ -709,6 +762,7 @@ export class DropdownMenu extends BasePlugin {
     button.className = BUTTON_CLASS_NAME;
     button.type = 'button';
     button.tabIndex = -1;
+    syncIcon(this.hot, button, BUTTON_ICON_CLASS_NAME, 'menu');
 
     if (this.hot.getSettings().ariaTags) {
       setAttribute(button, [
@@ -796,7 +850,9 @@ export class DropdownMenu extends BasePlugin {
    * @param {MouseEvent} event The mouse event object.
    */
   #onBeforeOnCellMouseDown = (event: MouseEvent) => {
-    if (hasClass(eventTargetEl(event)!, BUTTON_CLASS_NAME)) {
+    // By ancestor, not by the target's own class: the button hosts a real icon element whose
+    // markup a theme `icons` renderer may extend, and the press may then target that markup.
+    if (eventTargetEl(event)!.closest(`.${BUTTON_CLASS_NAME}`) !== null) {
       this.#isButtonClicked = true;
     }
   };

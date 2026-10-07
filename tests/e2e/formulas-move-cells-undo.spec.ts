@@ -10,8 +10,8 @@ import { FormulasMoveCellsPage } from '../fixtures/pages/FormulasMoveCellsPage';
 test.describe('Formulas: moveCells undo/redo integration', () => {
   let grid: FormulasMoveCellsPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new FormulasMoveCellsPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new FormulasMoveCellsPage(page, theme, bundle);
     await grid.goto();
     // B1 = '=A1+10' → computed as 11 (A1=1) — the dataset every case starts from.
     await grid.initGrid([[1, '=A1+10'], [null, null], [null, null]]);
@@ -48,11 +48,10 @@ test.describe('Formulas: moveCells undo/redo integration', () => {
     expect(await grid.cellValue(0, 1)).toBe(null);
   });
 
-  test('cancels the redo without desyncing when a global listener returns a truthy non-action', async ({ page }) => {
-    // `Hooks.run` threads a listener's truthy return into the next listener's first argument.
-    // Without a trustworthy `actionType` the Formulas plugin cannot pick the engine step
-    // (`engine.redo()` vs the move_cells replay path), so it cancels the redo — no crash,
-    // no HyperFormula advance, and no leaked redo flag.
+  test('redoes the move when a global listener returns a truthy non-action', async ({ page }) => {
+    // `Hooks.run` threads a listener's truthy return into the next listener's first argument. The
+    // Formulas plugin no longer reads the step from `beforeRedo` - it follows the restored grid - so
+    // a garbage argument there changes nothing, and the redo lands in both the data and the engine.
     await grid.moveRange([0, 1, 0, 1], [2, 1]);
     await grid.undo();
 
@@ -62,11 +61,8 @@ test.describe('Formulas: moveCells undo/redo integration', () => {
 
     await grid.redo();
 
-    // The redo was cancelled: the grid still shows the undone state, consistently in both
-    // the data and the engine.
-    await grid.expectCell(0, 1, '11');
-    expect(await grid.cellValue(2, 1)).toBe(null);
-    expect(await grid.isFormulasSyncerInUndoRedo()).toBe(false);
+    await grid.expectCell(2, 1, '11');
+    expect(await grid.cellValue(0, 1)).toBe(null);
   });
 
   test('undo of a copy keeps the source and restores the overwritten target', async () => {
@@ -94,5 +90,25 @@ test.describe('Formulas: moveCells undo/redo integration', () => {
     // source, and the target's source data is cleared.
     expect(await grid.sourceCellValue(0, 1)).toBe('=A1+10');
     expect(await grid.sourceCellValue(2, 1)).toBe(null);
+  });
+
+  test('restores a dependent formula in the passed data array after undo', async () => {
+    // C1 points at A1:A3. Moving that range makes HyperFormula rewrite C1, and the rewrite is
+    // written into the array the developer owns. Undo has to put the original back there too: the
+    // rewrite is part of the move's own undo step.
+    await grid.initGrid([
+      [1, null, '=SUM(A1:A3)'],
+      [2, null, null],
+      [3, null, null],
+    ]);
+
+    await grid.moveRange([0, 0, 2, 0], [0, 1]);
+
+    expect((await grid.rawData())[0][2]).toBe('=SUM(B1:B3)');
+
+    await grid.undo();
+
+    expect((await grid.rawData())[0][2]).toBe('=SUM(A1:A3)');
+    expect(await grid.sourceCellValue(0, 2)).toBe('=SUM(A1:A3)');
   });
 });

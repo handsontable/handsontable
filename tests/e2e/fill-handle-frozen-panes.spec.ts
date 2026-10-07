@@ -2,10 +2,8 @@ import { test, expect } from '../fixtures/test';
 import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
 
 /**
- * The autofill fill handle (`.wtBorder.corner`) against the frozen panes. `.ht_master` declares no
- * z-index, so it opens no stacking context and every border inside it competes directly with the
- * overlay clones. A handle whose z-index reaches the clone range paints over a frozen pane the
- * selection has scrolled under, and wins hit-testing there.
+ * The autofill fill handle (`.wtBorder.corner`) against the frozen panes. `.ht_master` starts a
+ * stacking context below the overlay clones, and every frozen overlay draws its own handle.
  */
 test.describe('fill handle and frozen panes', () => {
   let grid: SelectionFeaturesPage;
@@ -91,6 +89,133 @@ test.describe('fill handle and frozen panes', () => {
     const stack = await grid.selectionStackOrder();
 
     expect(stack.resizeHandle).toBeLessThan(stack.frozenColumnsPane);
+  });
+
+  test.describe('the fill handle of a frozen top row', () => {
+    // The `top` overlay's holder reaches a few pixels below the frozen rows so the handle of a
+    // selection ending there can hang past them (#6937). That strip paints above both inline panes,
+    // so a handle the `top` overlay draws for a column the viewport no longer shows covered the row
+    // headers or the frozen columns of the rows below.
+
+    test('stays off the row headers when its column scrolls behind them', async () => {
+      await grid.initGrid({ data: WIDE_DATA, fixedRowsTop: 1 });
+      await grid.selectCells(0, 0, 0, 0);
+
+      // The handle hangs below the frozen row while its column is on screen (#6937).
+      await expect.poll(() => grid.fillHandlesBelowFrozenRows()).toEqual(['top@main']);
+
+      // A short scroll keeps column 0 in the band the `top` overlay renders, so the draw it triggers
+      // re-renders that overlay instead of dropping the column.
+      await grid.scrollCellEndUnderInlinePane(0, 0, 'start');
+
+      await expect.poll(() => grid.fillHandlesBelowFrozenRows()).toEqual([]);
+
+      // Back on screen, so a stale visible-range snapshot would keep the handle hidden.
+      await grid.scrollToColumn(0);
+
+      await expect.poll(() => grid.fillHandlesBelowFrozenRows()).toEqual(['top@main']);
+    });
+
+    test('stays off the row headers in RTL', async () => {
+      await grid.initGrid({ data: WIDE_DATA, fixedRowsTop: 1, layoutDirection: 'rtl' });
+      await grid.selectCells(0, 0, 0, 0);
+
+      await expect.poll(() => grid.fillHandlesBelowFrozenRows()).toEqual(['top@main']);
+
+      await grid.scrollCellEndUnderInlinePane(0, 0, 'start');
+
+      await expect.poll(() => grid.fillHandlesBelowFrozenRows()).toEqual([]);
+
+      await grid.scrollToColumn(0);
+
+      await expect.poll(() => grid.fillHandlesBelowFrozenRows()).toEqual(['top@main']);
+    });
+
+    test('leaves a frozen column\'s handle to the frozen corner when the grid scrolls', async () => {
+      await grid.initGrid({ data: WIDE_DATA, fixedRowsTop: 1, fixedColumnsStart: 1 });
+      await grid.selectCells(0, 0, 0, 0);
+
+      // The corner overlay draws the handle, overhang included. The handle is centered on the
+      // freeze line, so part of it lies over the scrollable part: compare the drawing overlays only.
+      const drawingOverlays = async() => Array.from(new Set(
+        (await grid.fillHandlesBelowFrozenRows()).map(hit => hit.split('@')[0])
+      ));
+
+      await expect.poll(() => grid.fillHandlesBelowFrozenRows())
+        .toContain('top_inline_start_corner@inline_start');
+      await expect.poll(drawingOverlays).toEqual(['top_inline_start_corner']);
+
+      // Column 0 stays in the band the `top` overlay renders, so it went on drawing its own copy of
+      // the handle there, one scroll offset off the cell and over the frozen column.
+      await grid.scrollCellEndUnderInlinePane(0, 1, 'start');
+
+      await expect.poll(drawingOverlays).toEqual(['top_inline_start_corner']);
+      await expect.poll(() => grid.fillHandlesBelowFrozenRows())
+        .toContain('top_inline_start_corner@inline_start');
+    });
+
+    // An ownership guard, not a repro: it also passes with the gate disabled, because the corner
+    // overlay's handle covers the `top` overlay's copy. It pins that the corner overlay keeps drawing
+    // the overhang once the `top` overlay stops.
+    test('leaves an inline-end frozen column\'s handle to the frozen corner', async () => {
+      await grid.initGrid({ data: WIDE_DATA, fixedRowsTop: 1, fixedColumnsEnd: 2 });
+      await grid.selectCells(0, 39, 0, 39);
+
+      await expect.poll(() => grid.fillHandlesBelowFrozenRows()).toEqual(['top_inline_end_corner@inline_end']);
+
+      // At the end of the scroll range the `top` overlay renders the end columns too, under the corner.
+      await grid.scrollToColumn(37);
+
+      await expect.poll(() => grid.fillHandlesBelowFrozenRows()).toEqual(['top_inline_end_corner@inline_end']);
+    });
+
+    test('stays off the inline-end frozen columns when its column scrolls under them', async () => {
+      await grid.initGrid({ data: WIDE_DATA, fixedRowsTop: 1, fixedColumnsEnd: 2 });
+      await grid.scrollToColumn(20);
+
+      const col = await grid.lastColumnClearOfInlineEndPane(0);
+
+      await grid.selectCells(0, col, 0, col);
+      await expect.poll(() => grid.fillHandlesBelowFrozenRows()).toEqual(['top@main']);
+
+      await grid.scrollCellEndUnderInlinePane(0, col, 'end');
+
+      await expect.poll(() => grid.fillHandlesBelowFrozenRows()).toEqual([]);
+
+      await grid.scrollToColumn(col);
+
+      await expect.poll(() => grid.fillHandlesBelowFrozenRows()).toEqual(['top@main']);
+    });
+
+    test('stays off the inline-end frozen columns in RTL', async () => {
+      await grid.initGrid({ data: WIDE_DATA, fixedRowsTop: 1, fixedColumnsEnd: 2, layoutDirection: 'rtl' });
+      await grid.scrollToColumn(20);
+
+      const col = await grid.lastColumnClearOfInlineEndPane(0);
+
+      await grid.selectCells(0, col, 0, col);
+      await expect.poll(() => grid.fillHandlesBelowFrozenRows()).toEqual(['top@main']);
+
+      await grid.scrollCellEndUnderInlinePane(0, col, 'end');
+
+      await expect.poll(() => grid.fillHandlesBelowFrozenRows()).toEqual([]);
+
+      await grid.scrollToColumn(col);
+
+      await expect.poll(() => grid.fillHandlesBelowFrozenRows()).toEqual(['top@main']);
+    });
+
+    test('keeps the handle of the last column when it is wider than the viewport and scrolled to the end', async () => {
+      // The visible range counts a column as fully visible only when it is whole, and a column wider
+      // than the viewport never is, so the last column's edge is read off the cell at the scroll end.
+      const colWidths = Array.from({ length: 40 }, (_, col) => (col === 39 ? 700 : 60));
+
+      await grid.initGrid({ data: WIDE_DATA, fixedRowsTop: 1, colWidths });
+      await grid.selectCells(0, 39, 0, 39);
+      await grid.scrollHolderToInlineEnd();
+
+      await expect.poll(() => grid.fillHandlesBelowFrozenRows()).toEqual(['top@main']);
+    });
   });
 
   test('hides the fill handle behind the bottom frozen rows when the cell scrolls under them', async () => {

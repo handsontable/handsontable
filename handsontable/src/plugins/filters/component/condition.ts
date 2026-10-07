@@ -45,11 +45,13 @@ export class ConditionComponent extends BaseComponent {
    * Initializes the condition component with the given ID, display name, separator flag, and optional menu container.
    */
   constructor(hotInstance: HotInstance, options: {
-    id: string; name: string | (() => string); addSeparator: boolean; menuContainer?: HTMLElement
+    id: string; name: string | (() => string); addSeparator: boolean; menuContainer?: HTMLElement;
+    hiddenWhen?: (() => boolean);
   }) {
     super(hotInstance, {
       id: options.id,
       stateless: false,
+      hiddenWhen: options.hiddenWhen,
     });
 
     this.name = options.name;
@@ -195,7 +197,7 @@ export class ConditionComponent extends BaseComponent {
       name: this.name,
       isCommand: false,
       disableSelection: true,
-      hidden: () => this.isHidden(),
+      hidden: () => this.isHiddenInMenu(),
       renderer: (
         hot: HotInstance, wrapper: HTMLTableCellElement, row: number, col: number, prop: string | number, value: string
       ) => {
@@ -237,12 +239,16 @@ export class ConditionComponent extends BaseComponent {
    */
   reset() {
     const selectedColumn = this.hot?.getPlugin('filters').getSelectedColumn() ?? null;
-    let items = [getConditionDescriptor(CONDITION_NONE)];
+    // A copy, because `setItems()` translates the names in place and the descriptor is shared.
+    let items = [{ ...getConditionDescriptor(CONDITION_NONE) }];
 
-    if (selectedColumn !== null) {
+    if (selectedColumn !== null && this.hot) {
       const { visualIndex } = selectedColumn;
 
-      items = getOptionsList(this.hot?.getDataType(0, visualIndex, this.hot.countRows(), visualIndex) ?? 'text');
+      items = getOptionsList(
+        this.hot.getDataType(0, visualIndex, this.hot.countRows(), visualIndex) ?? 'text',
+        this.hot.getPlugin('filters')._getAvailableConditions(visualIndex),
+      );
     }
 
     arrayEach(this.getInputElements(), element => element.hide());

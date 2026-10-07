@@ -1,12 +1,14 @@
 import type { HotInstance } from '../../core/types';
+import type { IndexesChangeSource } from '../../translations/indexMapper';
 import { BasePlugin } from '../base';
-import { arrayEach, arrayFilter, arrayMap } from '../../helpers/array';
+import { arrayEach, arrayFilter } from '../../helpers/array';
+import { isFunction } from '../../helpers/function';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import { addClass, isBottomMostColumnHeader, isHTMLElement, removeClass } from '../../helpers/dom/element';
 import { isKey } from '../../helpers/unicode';
 import { getValueGetterValue } from '../../utils/valueAccessors';
-import { createObjectPropListener, deepClone } from '../../helpers/object';
+import { createObjectPropListener, deepClone, hasOwnProperty, isObject } from '../../helpers/object';
 import type { ObjectPropListener } from '../../helpers/object';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import * as constants from '../../i18n/constants';
@@ -18,8 +20,23 @@ import { ActionBarComponent } from './component/actionBar';
 import ConditionCollection from './conditionCollection';
 import DataFilter from './dataFilter';
 import ConditionUpdateObserver from './conditionUpdateObserver';
-import { createArrayAssertion, toEmptyString, unifyColumnValues } from './utils';
-import { getSortComparatorForMeta } from './sortComparators';
+import {
+  createArrayAssertion,
+  getPinnedPhysicalRows,
+  toEmptyString,
+  warnAboutInvalidColumnAvailableConditions,
+  warnAboutPerColumnFilterSettings,
+  warnAboutUnavailableCondition,
+  warnAboutUnknownCondition,
+  warnAboutUnknownConditionsDataType,
+} from './utils';
+import type { AvailableConditions } from './availableConditions';
+import {
+  findAvailableConditionsProblems,
+  findOffListNames,
+  isAvailableConditionsSetting,
+  resolveAvailableConditionsRule,
+} from './availableConditions';
 import { createMenuFocusController } from './menu/focusController';
 import type { Menu } from '../contextMenu/menu/menu';
 import type { DropdownMenu } from '../dropdownMenu/dropdownMenu';
@@ -28,10 +45,15 @@ import {
   CONDITION_BY_VALUE,
   OPERATION_AND,
   OPERATION_OR,
-  OPERATION_OR_THEN_VARIABLE
+  OPERATION_OR_THEN_VARIABLE,
+  TYPES,
+  getConditionListType,
 } from './constants';
-import type { TrimmingMap } from '../../translations';
+import type { IndexMap, TrimmingMap } from '../../translations';
 import type { BaseComponent } from './component/_base';
+import type { BaseUI } from './ui/_base';
+import { ColumnDataMap, stampPhysicalCoordinates } from './columnDataMap';
+import type { CellProperties } from '../../settings';
 
 export type OperationType = 'conjunction' | 'disjunction' | 'disjunctionWithExtraCondition';
 
@@ -46,9 +68,77 @@ export interface ColumnConditions {
   operation: OperationType;
 }
 
+/**
+ * The object form of the grid-level `filters` option.
+ *
+ * A closed interface on purpose: before 19.0 the option was typed `boolean | object`, so a
+ * misspelled key or a wrong value type compiled and was silently ignored at runtime.
+ */
+export interface FiltersSettings {
+  /**
+   * `'show'` filters only the values shown in the "Filter by value" list, `'apply'` applies the
+   * search term as the filter.
+   */
+  searchMode?: 'show' | 'apply';
+  /**
+   * `false` leaves the rows frozen by `fixedRowsTop` and `fixedRowsBottom` out of the filter.
+   */
+  filterFixedRows?: boolean;
+  /**
+   * The operators the "Filter by condition" lists offer: an allow-list, `{ exclude }`, or one rule
+   * per data type.
+   */
+  availableConditions?: AvailableConditions;
+}
+
+/**
+ * The `filters` object accepted inside `columns`. Only `availableConditions` is read per column; the
+ * other settings are resolved once for the whole grid.
+ */
+export interface FiltersColumnSettings {
+  /**
+   * The operators this column's "Filter by condition" lists offer. Replaces the grid-level value.
+   */
+  availableConditions?: AvailableConditions;
+}
+
 export const PLUGIN_KEY = 'filters';
 export const PLUGIN_PRIORITY = 250;
+const AVAILABLE_CONDITIONS_KEY = 'availableConditions';
+const DATA_TYPES = Object.keys(TYPES);
+const KNOWN_CONDITION_NAMES = new Set(Object.values(TYPES).flat().filter(name => name !== SEPARATOR));
 const SHORTCUTS_GROUP = PLUGIN_KEY;
+
+/**
+ * Default for the `filterFixedRows` option: the rows pinned by `fixedRowsTop` and `fixedRowsBottom`
+ * take part in filtering, which is what the plugin has always done. Flipping this constant is a
+ * breaking change - a grid whose footer row happens not to match its own filter would start
+ * keeping that row on screen.
+ *
+ * The sibling option on the sorting side, `columnSorting`'s `sortFixedRows`, defaults the other way
+ * round, because 18.0.0 had already shipped "pinned rows stay put" for sorting before the option
+ * existed. The two defaults therefore disagree on purpose.
+ */
+const FILTER_FIXED_ROWS_DEFAULT = true;
+
+/**
+ * The state `Filters#captureState()` returns: the applied conditions array itself (to tell whether it
+ * changed) and a detached copy of it (to restore).
+ */
+interface AppliedConditionsState {
+  applied: ColumnConditions[];
+  conditions: ColumnConditions[];
+}
+
+/**
+ * Tells whether a value is a state `Filters#captureState()` returned.
+ *
+ * @param {*} value The value to test.
+ * @returns {boolean}
+ */
+function isAppliedConditionsState(value: unknown): value is AppliedConditionsState {
+  return typeof value === 'object' && value !== null && 'conditions' in value && Array.isArray(value.conditions);
+}
 
 /**
  * @plugin Filters
@@ -56,6 +146,21 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  *
  * @description
  * The plugin allows filtering the table data either by the built-in component or with the API.
+ *
+ * Set the `filters` option to an object to configure the plugin:
+ *
+ * | Option            | Possible settings                                                                                                                                             |
+ * | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+ * | `searchMode`      | `'show'`: Filter only the values shown in the list<br>`'apply'`: Apply the search term as the filter                                                         |
+ * | `filterFixedRows` | `true`: Filter the whole dataset, including the frozen rows<br>`false`: Leave the rows frozen by `fixedRowsTop` and `fixedRowsBottom` out of the filter<br>Grid-level only |
+ * | `availableConditions` | The operators the **Filter by condition** lists offer: an array of condition names, `{ exclude: [...] }`, or an object keyed by data type<br>Grid level and column level |
+ *
+ * To turn filtering off for a single column, set `filters` to `false` for that column in the
+ * `columns` option. That hides the filter controls in the column's dropdown menu; the API is
+ * unaffected, so {@link Filters#addCondition} still filters the column.
+ *
+ * To choose the operators one column offers, set `filters: { availableConditions: [...] }` for that
+ * column in the `columns` option. It replaces the grid-level `availableConditions` for that column.
  *
  * See [the filtering demo](@/guides/columns/column-filter/column-filter.md) for examples.
  *
@@ -69,6 +174,37 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  *   rowHeaders: true,
  *   dropdownMenu: true,
  *   filters: true
+ * });
+ *
+ * // keep the frozen rows out of the filter, and turn filtering off for the first column
+ * const hot2 = new Handsontable(container2, {
+ *   data: getData(),
+ *   colHeaders: true,
+ *   dropdownMenu: true,
+ *   fixedRowsBottom: 1,
+ *   filters: {
+ *     filterFixedRows: false,
+ *   },
+ *   columns: [
+ *     { filters: false },
+ *     {},
+ *   ],
+ * });
+ *
+ * // remove "Is not between" from numeric columns, and offer three operators in the first column
+ * const hot3 = new Handsontable(container3, {
+ *   data: getData(),
+ *   colHeaders: true,
+ *   dropdownMenu: true,
+ *   filters: {
+ *     availableConditions: {
+ *       numeric: { exclude: ['not_between'] },
+ *     },
+ *   },
+ *   columns: [
+ *     { filters: { availableConditions: ['eq', 'contains', 'empty'] } },
+ *     { type: 'numeric' },
+ *   ],
  * });
  * ```
  * :::
@@ -122,6 +258,8 @@ export class Filters extends BasePlugin {
   static get DEFAULT_SETTINGS() {
     return {
       searchMode: 'show',
+      filterFixedRows: FILTER_FIXED_ROWS_DEFAULT,
+      availableConditions: undefined,
     };
   }
 
@@ -131,6 +269,8 @@ export class Filters extends BasePlugin {
   static get SETTINGS_VALIDATORS() {
     return {
       searchMode: (value: unknown) => typeof value === 'string' && ['show', 'apply'].includes(value),
+      filterFixedRows: (value: unknown) => typeof value === 'boolean',
+      availableConditions: (value: unknown) => isAvailableConditionsSetting(value),
     };
   }
 
@@ -207,7 +347,7 @@ export class Filters extends BasePlugin {
   #previousConditionStack: ColumnConditions[] = [];
 
   /**
-   * Snapshot of [[#previousConditionStack]] at the start of [[filter]] when the DataProvider plugin is active.
+   * Snapshot of `#previousConditionStack` at the start of `filter()` when the DataProvider plugin is active.
    * Used to restore filter UI after `fetchRows` fails (the fetch request used the in-collection state; this holds the last committed stack).
    *
    * @type {Array}
@@ -215,11 +355,40 @@ export class Filters extends BasePlugin {
   #dataProviderFilterRollbackStack: ColumnConditions[] = [];
 
   /**
-   * Indicates if the DataProvider plugin is active.
+   * Memoized result of `#getPinnedRows()`, or `undefined` while nothing is memoized.
+   *
+   * Resolving the pinned rows walks every physical row against the other plugins' trimming maps,
+   * and one `filter()` asks for them once per filtered column plus once for the trimmed-state pass.
+   * The memo is only sound for the length of that call, so `filter()` clears it on the way in and
+   * on the way out - the row order and the `fixedRows*` options can both change between calls.
+   *
+   * @type {Set<number>|null|undefined}
+   */
+  #pinnedRowsCache: Set<number> | null | undefined;
+  /**
+   * Whether a trimming pass is running, which is the only scope `#pinnedRowsCache` is valid in.
    *
    * @type {boolean}
    */
-  #isDataProviderActive = false;
+  #isFilterPassActive = false;
+  /**
+   * The pinned rows the trimming map currently reflects: the set the last trimming pass exempted,
+   * `null` when it exempted nothing, or `undefined` when that is unknown.
+   *
+   * Lets a sort or a row move skip the re-apply when it left the same physical rows pinned. It
+   * names PHYSICAL rows, so anything that renumbers them (an insert, a remove, a data reload) sets
+   * it back to `undefined`.
+   *
+   * @type {Set<number>|null|undefined}
+   */
+  #appliedPinnedRows: Set<number> | null | undefined;
+  /**
+   * Whether the rows may have moved since the exemption was last applied, so the next full render
+   * has to check it. See `#onBeforeRender`.
+   *
+   * @type {boolean}
+   */
+  #isPinnedRowCheckPending = false;
 
   /**
    * Initializes the plugin and registers the column header hook needed to inject the filter UI.
@@ -252,6 +421,405 @@ export class Filters extends BasePlugin {
   }
 
   /**
+   * Makes the conditions on screen the ones a failed DataProvider fetch rolls back to. The DataProvider plugin
+   * calls it when the view the grid shows changes: the rollback target is otherwise whatever the last server
+   * filter action left, possibly in another view. The conditions on screen also become the previous ones the next
+   * filter pass starts from, since that pass derives its rollback target from them. Does nothing while this plugin
+   * is disabled. Internal; not public API.
+   *
+   * @private
+   */
+  _resetDataProviderRollback(): void {
+    if (!this.enabled) {
+      return;
+    }
+
+    this.#previousConditionStack = this.exportConditions();
+    this.#dataProviderFilterRollbackStack = this.exportConditions();
+  }
+
+  /**
+   * Tells whether a DataProvider currently backs the grid. Read on demand, because the answer
+   * changes whenever `updateSettings()` adds or removes a `dataProvider`, and this plugin is not
+   * updated then.
+   *
+   * @returns {boolean}
+   */
+  #isDataProviderActive(): boolean {
+    return this.hot.runHooks('hasExternalDataSource') === true;
+  }
+
+  /**
+   * Whether this grid exempts its frozen rows from filtering at all.
+   *
+   * Deliberately separate from "how many rows are pinned right now": those counts are zero both
+   * when the grid never opted in AND when the last overlay was just cleared. Reading the counts to
+   * decide whether to act conflates the two, so clearing `fixedRowsTop` would skip the re-filter
+   * and leave a row on screen that nothing pins any more.
+   *
+   * @private
+   */
+  #isFixedRowExemptionActive(): boolean {
+    // A data provider filters server-side, and the request carries no notion of a pinned row, so
+    // exempting rows locally would only make the grid disagree with the server's own result.
+    return !this.#isDataProviderActive() && this.getSetting('filterFixedRows') === false;
+  }
+
+  /**
+   * How many rows each overlay pins, or zeros while `filterFixedRows` keeps them in the filter.
+   *
+   * Read straight from the grid settings on every call, the same way `fixedRowsTop` and
+   * `fixedRowsBottom` themselves are read, so `updateSettings` needs no wiring of its own.
+   *
+   * @private
+   */
+  #getPinnedRowCounts(): { top: number, bottom: number } {
+    if (!this.#isFixedRowExemptionActive()) {
+      return { top: 0, bottom: 0 };
+    }
+
+    const { fixedRowsTop, fixedRowsBottom } = this.hot.getSettings();
+
+    // `Number(x) || 0` rather than `?? 0`, to match how `TableView` reads the same two options.
+    // `Math.max` alone lets a non-numeric value through as NaN, which silently empties the
+    // value-list loop that counts up to it.
+    return {
+      top: Math.max(0, Number(fixedRowsTop) || 0),
+      bottom: Math.max(0, Number(fixedRowsBottom) || 0),
+    };
+  }
+
+  /**
+   * The physical rows the filter must leave alone, or `null` when every row is in scope.
+   *
+   * `null` rather than an empty set, so the read loops can skip the membership test entirely on a
+   * grid that pins nothing - which is every grid that has not opted in.
+   *
+   * The rows are resolved from the rows the grid SHOWS, minus the ones this plugin's own map is
+   * trimming. The raw index sequence cannot answer it: it still holds rows that `trimRows` or a
+   * collapsed `nestedRows` parent removed, while the two overlays freeze the first and last
+   * VISIBLE rows - so on such a grid the sequence names rows that are not pinned and misses the
+   * ones that are. This plugin's own trim is excluded because it is the thing being recomputed;
+   * counting it would let the pinned set drift with each pass.
+   *
+   * Memoized for the duration of one trimming pass, where every column read asks again.
+   *
+   * @private
+   */
+  #getPinnedRows(): Set<number> | null {
+    if (this.#pinnedRowsCache !== undefined) {
+      return this.#pinnedRowsCache;
+    }
+
+    const pinnedRows = this.#resolvePinnedRows();
+
+    // Stored ONLY while a trimming pass is running. Every other caller - the value list, which is built
+    // on each menu opening - must resolve afresh: nothing clears the memo between those calls, and
+    // with no condition applied there is no `filter()` to clear it, so a later `fixedRows*` change
+    // or row move would keep being answered from the set this call resolved.
+    if (this.#isFilterPassActive) {
+      this.#pinnedRowsCache = pinnedRows;
+    }
+
+    return pinnedRows;
+  }
+
+  /**
+   * Resolves the pinned rows from the current row order and `fixedRows*` counts, bypassing the memo.
+   */
+  #resolvePinnedRows(): Set<number> | null {
+    const { top, bottom } = this.#getPinnedRowCounts();
+
+    if (top === 0 && bottom === 0) {
+      return null;
+    }
+
+    // Visual order, so the two overlays freeze the rows the user actually sees. `getIndexesSequence()`
+    // carries the sort permutation, and the rows another plugin trims are dropped from it here.
+    const rowOrder = this.hot.rowIndexMapper.getIndexesSequence();
+    const visibleRows = rowOrder.filter(physicalRow => !this.#isTrimmedByAnotherPlugin(physicalRow));
+    const resolved = getPinnedPhysicalRows(visibleRows, top, bottom);
+
+    return resolved.size > 0 ? resolved : null;
+  }
+
+  /**
+   * Whether a row is trimmed by a map other than this plugin's own.
+   *
+   * @private
+   */
+  #isTrimmedByAnotherPlugin(physicalRow: number): boolean {
+    const trimmingMaps = this.hot.rowIndexMapper.trimmingMapsCollection.get() as IndexMap[];
+
+    return trimmingMaps.some(map => map !== this.filtersRowsMap && map.getValueAtIndex(physicalRow) === true);
+  }
+
+  /**
+   * Marks the exemption as possibly stale, for the next full render to check.
+   *
+   * The exemption is applied while trimming, so nothing re-applies it on its own when the rows move
+   * underneath: changing `fixedRows*`, inserting or removing a row at either end, moving rows or
+   * sorting all can change WHICH rows are pinned, and the trimming map still holds the answer from
+   * the previous pass. Only marking here, and checking once the operation has finished, is what
+   * keeps the check correct: `alter()` lowers `fixedRows*` only after `afterRemoveRow`, the index
+   * mapper fires the sequence hook before it updates the trimming maps, and a sort fires it on an
+   * intermediate order. A pass run at any of those points works from a state that is about to change.
+   *
+   * Pass `true` for a change that renumbers the physical rows (an insert, a remove, a reload). The
+   * last pass's set then names other rows, so it cannot be compared: after `insert_row_above` at 0
+   * it reads `{0}` before and after, while the row behind it changed.
+   */
+  #markPinnedRowsStale(isRenumbered: boolean) {
+    if (isRenumbered) {
+      this.#appliedPinnedRows = undefined;
+    }
+
+    this.#isPinnedRowCheckPending = true;
+  }
+
+  /**
+   * Re-applies the exemption when the pinned rows are no longer the ones the last pass exempted.
+   *
+   * A quiet pass: it rewrites the trimming map from the current conditions and nothing else. It
+   * fires no `beforeFilter`/`afterFilter` (so UndoRedo records nothing and DataProvider fetches
+   * nothing) and does not move the selection - the conditions did not change, only which rows are
+   * frozen. Only grids that opted in and are actually filtering pay for the comparison.
+   */
+  #reapplyPinnedRowExemption() {
+    // Cleared first, so a render started from inside this pass (by a hook the trim's cache update
+    // reaches) finds nothing to do instead of re-entering.
+    this.#isPinnedRowCheckPending = false;
+
+    // The OPTION, not the current counts: clearing the last `fixedRows*` count makes the counts
+    // zero, and gating on them would read that as "this grid never opted in" and skip the pass
+    // that puts the no-longer-pinned rows back under the conditions.
+    if (!this.#isFixedRowExemptionActive() ||
+        !this.conditionCollection ||
+        this.conditionCollection.isEmpty() ||
+        this.#arePinnedRowsApplied()) {
+      return;
+    }
+
+    this.#runTrimmingPass(() => this.#writeTrimmedRows());
+  }
+
+  /**
+   * Runs a trimming pass inside the pinned-rows memo scope, restoring the outer scope afterwards.
+   *
+   * Restored rather than reset, because `filter()` renders while its own pass is still open, and a
+   * quiet pass started from that render must not close the outer one. Released in a `finally`,
+   * because the hooks `filter()` fires are host code and may throw, and a memo surviving the call
+   * would answer the next read from this pass's row order.
+   */
+  #runTrimmingPass<T>(pass: () => T): T {
+    const outerCache = this.#pinnedRowsCache;
+    const wasFilterPassActive = this.#isFilterPassActive;
+
+    this.#pinnedRowsCache = undefined;
+    this.#isFilterPassActive = true;
+
+    try {
+      return pass();
+    } finally {
+      this.#isFilterPassActive = wasFilterPassActive;
+      this.#pinnedRowsCache = outerCache;
+    }
+  }
+
+  /**
+   * Gets the `filters` value a column declares itself, or `undefined` when it declares none.
+   *
+   * Only an OWN property of the column meta is a per-column answer. Column meta inherits from the
+   * grid meta through the prototype chain, so a plain read would also see the grid-level `filters`
+   * value - and report every column as opted out on a grid built with `filters: false` whose plugin
+   * was switched on afterwards through `enablePlugin()`.
+   */
+  #getOwnColumnSettings(visualColumn: number): unknown {
+    const columnMeta = this.hot.getColumnMeta(visualColumn) as Record<string, unknown>;
+
+    return hasOwnProperty(columnMeta, PLUGIN_KEY) ? columnMeta[PLUGIN_KEY] : undefined;
+  }
+
+  /**
+   * Writes the trimming map from the current conditions, with the pinned rows exempt, records the
+   * exempted set, and answers whether any row is left visible. Must run inside `#runTrimmingPass()`.
+   */
+  #writeTrimmedRows(): boolean {
+    const dataFilter = this._createDataFilter();
+    const rowIndexesToShow = dataFilter.filter();
+    const rowIndexesToShowAssertion = createArrayAssertion(rowIndexesToShow);
+    const countSourceRows = this.hot.countSourceRows();
+    // `getDataMapAtColumn()` never handed the pinned rows to the conditions, so they are absent
+    // from `rowIndexesToShow` and would be trimmed here as "did not match". Put them back.
+    const pinnedRows = this.#getPinnedRows();
+    // Build the trimmed-state array in a single pass (`true` marks a row hidden by the filter), then
+    // write it to the map in one bulk `setValues` call. The previous approach scanned the dataset
+    // twice (a `clear()` that rebuilt the whole array, then a `rangeEach` pass) and fired a map
+    // `change` per trimmed row; for large datasets that was a measurable share of `filter()` time.
+    const trimmedRowsState = new Array(countSourceRows);
+
+    for (let physicalRow = 0; physicalRow < countSourceRows; physicalRow++) {
+      trimmedRowsState[physicalRow] = !rowIndexesToShowAssertion(physicalRow);
+    }
+
+    pinnedRows?.forEach((physicalRow) => {
+      trimmedRowsState[physicalRow] = false;
+    });
+
+    this.hot.batchExecution(() => {
+      this.filtersRowsMap?.setValues(trimmedRowsState);
+    }, true);
+
+    // This write answers every check queued so far. One queued after it - a row move made from
+    // `afterFilter` - stays pending for the render that ends `filter()`.
+    this.#appliedPinnedRows = pinnedRows;
+    this.#isPinnedRowCheckPending = false;
+
+    // The visible rows are the matches plus the pinned rows, so an empty match list no longer
+    // means an empty grid.
+    return rowIndexesToShow.length > 0 || pinnedRows !== null;
+  }
+
+  /**
+   * Whether the rows pinned now are exactly the physical rows the last trimming pass exempted.
+   *
+   * Resolved afresh, never through the memo: `filter()` renders while its pass is open, and the
+   * memo there is the very set recorded as applied, so a move made from `afterFilter` would
+   * compare equal to itself.
+   */
+  #arePinnedRowsApplied(): boolean {
+    const appliedRows = this.#appliedPinnedRows;
+
+    if (appliedRows === undefined) {
+      return false;
+    }
+
+    const pinnedRows = this.#resolvePinnedRows();
+
+    if (appliedRows === null || pinnedRows === null) {
+      return appliedRows === pinnedRows;
+    }
+
+    if (appliedRows.size !== pinnedRows.size) {
+      return false;
+    }
+
+    for (const physicalRow of pinnedRows) {
+      if (!appliedRows.has(physicalRow)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Whether a column takes part in filtering at all.
+   *
+   * Whether the plugin runs at all is `BasePlugin`'s question, not this one's.
+   *
+   * @private
+   */
+  #isColumnFilterable(visualColumn = this.getSelectedColumn()?.visualIndex ?? -1): boolean {
+    if (visualColumn < 0) {
+      return true;
+    }
+
+    return this.#getOwnColumnSettings(visualColumn) !== false;
+  }
+
+  /**
+   * Warns once per grid about per-column `filters` objects and `availableConditions` values that do
+   * not do what they say.
+   *
+   * Scanned over every column rather than raised from the visibility check or a menu opening, so a
+   * grid with no dropdown menu, or a column whose menu is never opened, still gets the message – the
+   * docs promise it is logged once per grid, not once per menu opening. A visibility predicate is
+   * also the wrong place for a side effect.
+   *
+   * @private
+   */
+  #warnAboutPerColumnSettingsObjects = () => {
+    const columnCount = this.hot.countCols();
+
+    this.#warnAboutAvailableConditionsProblems(this.getSetting(AVAILABLE_CONDITIONS_KEY));
+
+    for (let visualColumn = 0; visualColumn < columnCount; visualColumn++) {
+      const columnSettings = this.#getOwnColumnSettings(visualColumn);
+
+      if (isObject(columnSettings)) {
+        this.#warnAboutColumnSettingsObject(columnSettings as Record<string, unknown>);
+      }
+
+      this.#warnAboutOffListConditions(visualColumn);
+    }
+  };
+
+  /**
+   * Warns about one per-column `filters` object.
+   *
+   * It is read for `availableConditions` only. An object with any other key, or with no key at all,
+   * warns, because it does nothing there. An invalid `availableConditions` value warns too, because
+   * the column then falls back to the grid-level one.
+   */
+  #warnAboutColumnSettingsObject(settings: Record<string, unknown>) {
+    const keys = Object.keys(settings);
+
+    if (keys.length === 0 || keys.some(key => key !== AVAILABLE_CONDITIONS_KEY)) {
+      warnAboutPerColumnFilterSettings(this.hot.rootElement, PLUGIN_KEY);
+    }
+
+    if (!hasOwnProperty(settings, AVAILABLE_CONDITIONS_KEY)) {
+      return;
+    }
+
+    const value = settings[AVAILABLE_CONDITIONS_KEY];
+
+    if (isAvailableConditionsSetting(value)) {
+      this.#warnAboutAvailableConditionsProblems(value);
+    } else {
+      warnAboutInvalidColumnAvailableConditions(this.hot.rootElement, PLUGIN_KEY);
+    }
+  }
+
+  /**
+   * Warns about the condition names no data type offers, and the per-type keys no list exists for,
+   * in a valid `availableConditions` value.
+   */
+  #warnAboutAvailableConditionsProblems(setting: unknown) {
+    findAvailableConditionsProblems(setting, TYPES, SEPARATOR).forEach((problem) => {
+      if (problem.kind === 'unknownName') {
+        warnAboutUnknownCondition(this.hot.rootElement, problem.name);
+      } else {
+        warnAboutUnknownConditionsDataType(this.hot.rootElement, problem.dataType, DATA_TYPES);
+      }
+    });
+  }
+
+  /**
+   * Warns about the allow-listed conditions that exist, but not in the list a column uses.
+   *
+   * The column's type is read from its column meta, not from every cell as the menu does, because
+   * this runs for every column on every scan.
+   */
+  #warnAboutOffListConditions(visualColumn: number) {
+    const setting = this._getAvailableConditions(visualColumn);
+
+    if (setting === undefined) {
+      return;
+    }
+
+    const { type } = this.hot.getColumnMeta(visualColumn);
+    const columnType = typeof type === 'string' ? type : 'text';
+    const listType = getConditionListType(columnType);
+    const rule = resolveAvailableConditionsRule(setting, listType);
+
+    findOffListNames(rule, TYPES[listType], SEPARATOR)
+      .filter(name => KNOWN_CONDITION_NAMES.has(name))
+      .forEach(name => warnAboutUnavailableCondition(this.hot.rootElement, name, columnType, listType));
+  }
+
+  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link Filters#enablePlugin} method is called.
    *
@@ -269,8 +837,6 @@ export class Filters extends BasePlugin {
     if (this.enabled) {
       return;
     }
-
-    this.#isDataProviderActive = this.hot.runHooks('hasExternalDataSource') === true;
 
     this.filtersRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName ?? '', 'trimming');
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
@@ -292,12 +858,16 @@ export class Filters extends BasePlugin {
 
     const filterByConditionLabel = () => `${this.hot.getTranslatedPhrase(constants.FILTERS_DIVS_FILTER_BY_CONDITION)}:`;
     const filterValueLabel = () => `${this.hot.getTranslatedPhrase(constants.FILTERS_DIVS_FILTER_BY_VALUE)}:`;
+    // Re-read on every menu opening, never captured: it answers for the column the menu was opened
+    // on, and `updateSettings` can change the answer without the plugin being re-enabled.
+    const hiddenForColumn = () => !this.#isColumnFilterable();
 
     if (!this.components.get('filter_by_condition')) {
       const conditionComponent = new ConditionComponent(this.hot, {
         id: 'filter_by_condition',
         name: filterByConditionLabel,
         addSeparator: false,
+        hiddenWhen: hiddenForColumn,
         menuContainer
       });
 
@@ -309,7 +879,8 @@ export class Filters extends BasePlugin {
     if (!this.components.get('filter_operators')) {
       this.components.set('filter_operators', new OperatorsComponent(this.hot, {
         id: 'filter_operators',
-        name: 'Operators'
+        name: 'Operators',
+        hiddenWhen: hiddenForColumn,
       }));
     }
 
@@ -318,6 +889,7 @@ export class Filters extends BasePlugin {
         id: 'filter_by_condition2',
         name: '',
         addSeparator: true,
+        hiddenWhen: hiddenForColumn,
         menuContainer
       });
 
@@ -333,14 +905,15 @@ export class Filters extends BasePlugin {
         id: 'filter_by_value',
         name: filterValueLabel,
         searchMode,
-        hiddenWhen: () => this.#isDataProviderActive,
+        hiddenWhen: () => this.#isDataProviderActive() || hiddenForColumn(),
       })));
     }
 
     if (!this.components.get('filter_action_bar')) {
       this.components.set('filter_action_bar', addConfirmationHooks(new ActionBarComponent(this.hot, {
         id: 'filter_action_bar',
-        name: 'Action bar'
+        name: 'Action bar',
+        hiddenWhen: hiddenForColumn,
       })));
     }
 
@@ -353,7 +926,7 @@ export class Filters extends BasePlugin {
         this.hot,
         this.conditionCollection,
         (physicalColumn: number, physicalRows?: number[]) =>
-          this.getDataMapAtColumn(physicalColumn, physicalRows),
+          this._readColumn(physicalColumn, physicalRows),
       );
       this.conditionUpdateObserver.addLocalHook('update',
         (conditionState: Record<string, unknown>) => this.#updateComponents(conditionState));
@@ -366,7 +939,15 @@ export class Filters extends BasePlugin {
     this.addHook('afterDropdownMenuShow', this.#onAfterDropdownMenuShow);
     this.addHook('afterDropdownMenuHide', this.#onAfterDropdownMenuHide);
     this.addHook('afterChange', this.#onAfterChange);
+    this.addHook('afterCreateCol', this.#onAfterCreateCol);
+    this.addHook('afterRemoveCol', this.#onAfterRemoveCol);
     this.addHook('afterUpdateData', this.#onAfterUpdateData);
+    // The stale exemption: the two change hooks only MARK it (`#markPinnedRowsStale()`), and the
+    // next full render re-applies it when the frozen rows differ. The check is a cheap no-op unless
+    // the grid opted in AND is actually filtering - see `#reapplyPinnedRowExemption()`.
+    this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
+    this.addHook('afterRowSequenceChange', this.#onAfterRowSequenceChange);
+    this.addHook('beforeRender', this.#onBeforeRender);
     this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch);
     this.addHook('afterDataProviderFetchError', this.#onAfterDataProviderFetchError);
 
@@ -428,6 +1009,15 @@ export class Filters extends BasePlugin {
         ?.addLocalHook('selectTabKeydown', forwardToFocusNavigation);
     }
 
+    // On the first enable this runs on `afterPluginsInitialized`, before the view exists, where the
+    // column meta layer is not resolvable yet and every column reads as carrying nothing - so the scan
+    // waits for `afterInit`. Any later enable (`updatePlugin()`, a direct `enablePlugin()` call, the
+    // off-to-on `updateSettings()` path) comes after `afterInit` has fired, so it scans right away.
+    if (this.hot.view) {
+      this.#warnAboutPerColumnSettingsObjects();
+    } else {
+      this.addHook('afterInit', this.#warnAboutPerColumnSettingsObjects);
+    }
     this.registerShortcuts();
     super.enablePlugin();
   }
@@ -470,6 +1060,8 @@ export class Filters extends BasePlugin {
       // guard - so a surviving instance keeps pointing the Tab focus at detached elements and blocks
       // a fresh one. Same stale-reference family as the collection/observer above (DEV-2889).
       this.#menuFocusNavigator = undefined;
+      this.#appliedPinnedRows = undefined;
+      this.#isPinnedRowCheckPending = false;
       this.hot.rowIndexMapper.unregisterMap(this.pluginName ?? '');
     }
 
@@ -903,7 +1495,7 @@ export class Filters extends BasePlugin {
    * @param {string} [operationId=conjunction] `id` of operation which is performed on the column.
    */
   addCondition(column: number, name: string, args: unknown[], operationId: string = OPERATION_AND): void {
-    if (name === CONDITION_BY_VALUE && this.#isDataProviderActive) {
+    if (name === CONDITION_BY_VALUE && this.#isDataProviderActive()) {
       return;
     }
 
@@ -963,6 +1555,22 @@ export class Filters extends BasePlugin {
   }
 
   /**
+   * Imports filter conditions and records them as the fallback that a {@link Filters#filter} call
+   * canceled by a `beforeFilter` listener restores. Nothing is filtered. {@link Filters#importConditions}
+   * leaves that fallback at the conditions of the previous filter pass, which is right for a change
+   * to the same dataset, and wrong for a caller that swaps the dataset along with its filter state:
+   * a canceled pass would land the other dataset's conditions on it. With the DataProvider plugin
+   * active, a canceled pass keeps the imported conditions instead, so the fallback is not used.
+   *
+   * @private
+   * @param {Array} conditions Array of conditions keyed by physical column indexes.
+   */
+  importBaselineConditions(conditions: ColumnConditions[]): void {
+    this.importConditions(conditions);
+    this.#previousConditionStack = this.exportConditions();
+  }
+
+  /**
    * Exports filter conditions for all columns from the plugin.
    * The array represents the filter state for each column and uses physical column indexes in each `column` property.
    * For example:
@@ -1000,13 +1608,109 @@ export class Filters extends BasePlugin {
    * @fires Hooks#afterFilter
    */
   filter(): void {
+    this.runOperation('filter', () => this.#filterPass());
+  }
+
+  /**
+   * Returns the conditions the grid is filtered by – the ones the last `filter()` call applied, not
+   * the ones edited since. Undo and redo restore these, so undoing a filter also drops the conditions
+   * that were added for it.
+   *
+   * @private
+   * @param {*} previous The value the previous capture returned.
+   * @returns {object}
+   */
+  captureState(previous: unknown): unknown {
+    const applied = this.#previousConditionStack;
+
+    if (isAppliedConditionsState(previous) && previous.applied === applied) {
+      return previous;
+    }
+
+    return { applied, conditions: deepClone(applied) };
+  }
+
+  /**
+   * Puts back the conditions a `captureState()` call recorded. The rows they trim are restored by
+   * UndoRedo with the rest of the index maps, so the grid is not filtered again.
+   *
+   * @private
+   * @param {*} state The recorded state.
+   */
+  restoreState(state: unknown): void {
+    if (!isAppliedConditionsState(state)) {
+      return;
+    }
+
+    this.#previousConditionStack = deepClone(state.conditions);
+    this.importConditions(deepClone(state.conditions));
+  }
+
+  /**
+   * Returns the physical columns whose applied conditions differ between two recorded states.
+   *
+   * @private
+   * @param {*} state The state on one side of a step.
+   * @param {*} other The state on the other side.
+   * @returns {number[]|null}
+   */
+  getStateColumns(state: unknown, other: unknown): readonly number[] | null {
+    if (!isAppliedConditionsState(state) || !isAppliedConditionsState(other)) {
+      return null;
+    }
+
+    const byColumn = new Map<number, string>();
+    const columns = new Set<number>();
+
+    state.conditions.forEach((entry) => {
+      byColumn.set(entry.column, JSON.stringify(entry));
+    });
+    other.conditions.forEach((entry) => {
+      if (byColumn.get(entry.column) !== JSON.stringify(entry)) {
+        columns.add(entry.column);
+      }
+
+      byColumn.delete(entry.column);
+    });
+    byColumn.forEach((_, column) => {
+      columns.add(column);
+    });
+
+    return Array.from(columns);
+  }
+
+  /**
+   * The body of `filter()`, run inside its operation.
+   */
+  #filterPass(): void {
     const { navigableHeaders } = this.hot.getSettings();
     const needToFilter = !this.conditionCollection?.isEmpty();
     const conditions = this.exportConditions();
 
-    if (this.#isDataProviderActive) {
+    // The queued check is answered only where the map is written (`#writeTrimmedRows()`): a pass
+    // that `beforeFilter` vetoes leaves the map, and so the check, as they were.
+    this.#appliedPinnedRows = undefined;
+
+    this.#runTrimmingPass(() => this.#filterInternal(navigableHeaders, needToFilter, conditions));
+  }
+
+  /**
+   * The body of `filter()`, run inside the pinned-rows memo scope it sets up.
+   *
+   * @private
+   */
+  #filterInternal(
+    navigableHeaders: boolean | undefined, needToFilter: boolean, conditions: ColumnConditions[]
+  ): void {
+
+    if (this.#isDataProviderActive()) {
       this.#dataProviderFilterRollbackStack = deepClone(this.#previousConditionStack) as ColumnConditions[];
     }
+
+    this.hot._getOperationScope().describe({
+      conditionsStack: conditions,
+      previousConditionsStack: this.#previousConditionStack,
+    });
 
     const allowFiltering = this.hot.runHooks(
       'beforeFilter',
@@ -1014,28 +1718,24 @@ export class Filters extends BasePlugin {
       this.#previousConditionStack
     );
 
+    // Captured BEFORE the branch chain below, which is where the trimming map is written
+    // (`setValues()` on the filtering branch, `clear()` on the nothing-to-filter one). Writing the
+    // map fires the index mapper's cache update, and the Core drops a selection that the trim left
+    // pointing at a record that is no longer there - so by the time the re-selection at the end of
+    // this method runs, there may be no selection left to read the column from. Reading it here
+    // also keeps the `beforeFilter` hook able to move the selection, which a consumer may
+    // legitimately do.
+    const selectedHighlightColumn = this.hot.getSelectedRangeActive()?.highlight.col;
+    let isSelectionDropped = false;
+
     if (allowFiltering !== false && needToFilter) {
-      const dataFilter = this._createDataFilter();
-      const rowIndexesToShow = arrayMap(dataFilter.filter(),
-        rowData => (rowData as { row: number }).row);
-      const rowIndexesToShowAssertion = createArrayAssertion(rowIndexesToShow);
-      const countSourceRows = this.hot.countSourceRows();
-      // Build the trimmed-state array in a single pass (`true` marks a row hidden by the filter), then
-      // write it to the map in one bulk `setValues` call. The previous approach scanned the dataset
-      // twice (a `clear()` that rebuilt the whole array, then a `rangeEach` pass) and fired a map
-      // `change` per trimmed row; for large datasets that was a measurable share of `filter()` time.
-      const trimmedRowsState = new Array(countSourceRows);
+      // Deselecting on an empty MATCH list would drop the selection while pinned rows are on screen,
+      // so this asks whether any row is left at all.
+      const hasVisibleRows = this.#writeTrimmedRows();
 
-      for (let physicalRow = 0; physicalRow < countSourceRows; physicalRow++) {
-        trimmedRowsState[physicalRow] = !rowIndexesToShowAssertion(physicalRow);
-      }
-
-      this.hot.batchExecution(() => {
-        this.filtersRowsMap?.setValues(trimmedRowsState);
-      }, true);
-
-      if (!navigableHeaders && !rowIndexesToShow.length) {
+      if (!navigableHeaders && !hasVisibleRows) {
         this.hot.deselectCell();
+        isSelectionDropped = true;
       }
 
       this.#previousConditionStack = this.exportConditions();
@@ -1044,27 +1744,36 @@ export class Filters extends BasePlugin {
       this.#previousConditionStack = this.exportConditions();
       this.filtersRowsMap?.clear();
 
-    } else if (this.#isDataProviderActive) {
+    } else if (this.#isDataProviderActive()) {
       this.#previousConditionStack = this.exportConditions();
 
     } else {
       this.importConditions(this.#previousConditionStack);
     }
 
-    if (this.hot.selection.isSelected()) {
-      const highlightCol = this.hot.getSelectedRangeActive()?.highlight.col;
+    // The selection is read again here, and the captured value is only a FALLBACK. Both halves
+    // earn their place. A selection can arrive during the call - `emptyDataState` restores the one
+    // it stashed when the grid emptied, which is why the state at entry cannot be the only source -
+    // and a selection can disappear during it, dropped by the Core when the trim strands it, which
+    // is why the state at exit cannot be either.
+    // The captured column is a FALLBACK, and it deliberately outranks a deselect that happened
+    // during the call, because the Core drops a selection this filter's own trim stranded and the
+    // re-selection below is what puts the user back on the column they were working in. The cost is
+    // that a consumer deselecting from `beforeFilter` or a cache-update hook is overruled; a
+    // consumer that wants the grid deselected after filtering should do it from `afterFilter`,
+    // which runs last.
+    const currentHighlightColumn = this.hot.getSelectedRangeActive()?.highlight.col;
+    const columnToSelect = currentHighlightColumn ?? selectedHighlightColumn;
 
-      if (highlightCol !== null && highlightCol !== undefined) {
-        this.hot.selectCell(
-          navigableHeaders ? -1 : 0,
-          highlightCol,
-        );
-      }
+    if (!isSelectionDropped && columnToSelect !== null && columnToSelect !== undefined) {
+      this.hot.selectCell(
+        navigableHeaders ? -1 : 0,
+        columnToSelect,
+      );
     }
 
     if (allowFiltering !== false) {
       this.hot.runHooks('afterFilter', conditions);
-      this.hot.view.adjustElementsSize();
       this.hot.render();
     }
   }
@@ -1092,7 +1801,13 @@ export class Filters extends BasePlugin {
   /**
    * Returns the full dataset for a column with cell meta for each row. The dataset is independent of
    * any index mapper - no matter if the data is filtered, sorted, or otherwise transformed all rows
-   * are included, unless `physicalRows` narrows the read to specific rows.
+   * are included, unless `physicalRows` narrows the read to specific rows, or `filterFixedRows` is
+   * `false`, which drops the rows pinned by `fixedRowsTop` and `fixedRowsBottom` from the full read.
+   *
+   * That single exclusion is what keeps pinned rows out of every consumer at once: `DataFilter`, the
+   * `ConditionUpdateObserver` memo, and the has-conditions branch of `_getValueListDataAtColumn()`
+   * all read the column through the same read as this method. A caller that passes `physicalRows`
+   * has already chosen its rows and is left alone.
    *
    * @param {number} physicalColumn The physical column index.
    * @param {number[]} [physicalRows] When provided, only these physical rows are read (in the given
@@ -1102,22 +1817,75 @@ export class Filters extends BasePlugin {
    * the coordinate stamps on `meta` are shared with other readers and may change after this method returns.
    */
   getDataMapAtColumn(physicalColumn: number, physicalRows?: number[]): Record<string, unknown>[] {
+    return this._readColumn(physicalColumn, physicalRows).toArray();
+  }
+
+  /**
+   * Reads a column into the columnar form the filter scan runs on: the physical row indexes and the
+   * cell values in two parallel arrays, with each entry's cell meta resolved on demand. Every rule
+   * `getDataMapAtColumn()` documents applies here – it is the same read, and that method is this
+   * one plus `toArray()`.
+   *
+   * The read resolves meta only for the rows that store their own and, in a column with a
+   * `valueGetter`, for the rows whose value went through it. The filter scan resolves every other
+   * row's meta inside its own loop and drops it with the row's entry after the row's condition
+   * call, so a filter run never holds a whole column of those objects alive at once. Rows that
+   * already store per-cell meta keep their own object, so per-cell overrides stay exact.
+   *
+   * @private
+   * @param {number} physicalColumn The physical column index.
+   * @param {number[]} [physicalRows] When provided, only these physical rows are read (in the given
+   * order) instead of every source row.
+   * @returns {ColumnDataMap} The column read.
+   */
+  _readColumn(physicalColumn: number, physicalRows?: number[]): ColumnDataMap {
     const rowsCount = physicalRows ? physicalRows.length : this.hot.countSourceRows();
+
+    if (rowsCount === 0) {
+      return ColumnDataMap.empty();
+    }
+
     const visualColumn = this.hot.toVisualColumn(physicalColumn);
-    const data: Record<string, unknown>[] = [];
+    const excludedRows = physicalRows ? null : this.#getPinnedRows();
+    const metaManager = this.hot._getMetaManager();
+    // A `valueGetter` is declared by the cell type, so it resolves through the column layer for
+    // every row that carries no per-cell meta. Probing it once keeps the whole meta destructure out
+    // of the loop for every column that has none.
+    const columnHasValueGetter = isFunction(metaManager.getColumnMeta(physicalColumn).valueGetter);
+    const hasModifyDataHook = this.hot.hasHook('modifyData');
+    const rows: number[] = [];
+    const values: unknown[] = [];
+    // Indexed by entry position. Holds the rows that store meta of their own, plus every row whose
+    // value went through a `valueGetter` – that getter already got the row's own meta, and the
+    // conditions must get the same object. Sparse unless the column has a `valueGetter`.
+    const resolvedMetas: Array<CellProperties | undefined> = [];
 
     for (let rowIndex = 0; rowIndex < rowsCount; rowIndex++) {
       const physicalRow = physicalRows ? physicalRows[rowIndex] : rowIndex;
-      const cellMeta = this.hot._getMetaManager().getCellMetaUncached(physicalRow, physicalColumn, {
-        visualRow: physicalRow,
-        visualColumn: physicalColumn,
-      });
-      let value = getValueGetterValue(
-        this.hot.getSourceDataAtCell(physicalRow, visualColumn),
-        cellMeta
-      );
 
-      if (this.hot.hasHook('modifyData')) {
+      if (excludedRows !== null && excludedRows.has(physicalRow)) {
+        continue; // eslint-disable-line no-continue
+      }
+
+      const storedMeta = metaManager.getCellMetaIfExists(physicalRow, physicalColumn);
+      let value = this.hot.getSourceDataAtCell(physicalRow, visualColumn);
+
+      if (storedMeta !== undefined) {
+        stampPhysicalCoordinates(storedMeta, physicalRow, physicalColumn);
+        resolvedMetas[rows.length] = storedMeta;
+
+        value = getValueGetterValue(value, storedMeta);
+
+      } else if (columnHasValueGetter) {
+        const cellMeta = metaManager.createTransientColumnMeta(physicalColumn);
+
+        stampPhysicalCoordinates(cellMeta, physicalRow, physicalColumn);
+        resolvedMetas[rows.length] = cellMeta;
+
+        value = getValueGetterValue(value, cellMeta);
+      }
+
+      if (hasModifyDataHook) {
         const valueHolder: ObjectPropListener = createObjectPropListener(value);
 
         this.hot.runHooks('modifyData', physicalRow, physicalColumn, valueHolder, 'get');
@@ -1127,14 +1895,12 @@ export class Filters extends BasePlugin {
         }
       }
 
-      data.push({
-        row: physicalRow,
-        meta: cellMeta,
-        value: toEmptyString(value),
-      });
+      rows.push(physicalRow);
+      values.push(toEmptyString(value));
     }
 
-    return data;
+    return new ColumnDataMap(rows, values, physicalColumn,
+      (index: number) => resolvedMetas[index] ?? metaManager.createTransientColumnMeta(physicalColumn));
   }
 
   /**
@@ -1152,6 +1918,12 @@ export class Filters extends BasePlugin {
       arrayEach(changes, (change) => {
         const [, prop] = change as unknown[];
         const visualColumnIndex = this.hot.propToCol(prop as string | number);
+
+        // A change addressed at no existing column cannot be filtered on.
+        if (visualColumnIndex === null) {
+          return;
+        }
+
         const physicalColumnIndex = this.hot.toPhysicalColumn(visualColumnIndex);
 
         if (this.conditionCollection?.hasConditions(physicalColumnIndex)) {
@@ -1166,19 +1938,21 @@ export class Filters extends BasePlugin {
   };
 
   /**
-   * Update the condition of ValueComponent, based on the handled changes.
+   * Refreshes the "filter by value" list of a column whose data changed, leaving the user's
+   * selection alone.
+   *
+   * A data change must never re-select values on the user's behalf. The list is rebuilt from the
+   * rows surviving the *other* columns' conditions, so a value typed into a filtered column appears
+   * in the list unchecked instead of being added to the condition (issue #6471).
+   *
+   * The columns filtered after this one are refreshed too, so their lists follow the new data. Their
+   * selections survive that refresh, including the values their lists cannot show.
    *
    * @private
    * @param {number} columnIndex Physical column index of handled ValueComponent condition.
    */
   updateValueComponentCondition(columnIndex: number) {
-    const visualColumnIndex = this.hot.toVisualColumn(columnIndex);
-    const dataAtCol = this.hot.getDataAtCol(visualColumnIndex);
-    const columnMeta = this.hot.countRows() > 0 ? this.hot.getCellMetaTransient(0, visualColumnIndex) : null;
-    const comparator = getSortComparatorForMeta(columnMeta);
-    const selectedValues = unifyColumnValues(dataAtCol, comparator);
-
-    this.conditionUpdateObserver?.updateStatesAtColumn(columnIndex, selectedValues);
+    this.conditionUpdateObserver?.updateStatesAtColumn(columnIndex);
   }
 
   /**
@@ -1202,6 +1976,84 @@ export class Filters extends BasePlugin {
   }
 
   /**
+   * `afterCreateCol` listener. The applied conditions (`#previousConditionStack`) name physical
+   * columns, and nothing else shifts them: the live conditions move with their index map, this copy
+   * does not. So the columns at or after the first inserted one move right by the inserted amount.
+   *
+   * @param {number} visualColumn The visual index of the first inserted column.
+   * @param {number} amount The number of inserted columns.
+   */
+  #onAfterCreateCol = (visualColumn: number, amount: number) => {
+    if (amount <= 0 || this.#previousConditionStack.length === 0) {
+      return;
+    }
+
+    const firstInsertedColumn = this.hot.toPhysicalColumn(visualColumn);
+
+    if (firstInsertedColumn === null) {
+      return;
+    }
+
+    this.#shiftAppliedColumns(column => (column >= firstInsertedColumn ? column + amount : column));
+  };
+
+  /**
+   * `afterRemoveCol` listener. Drops the applied conditions of the removed physical columns, and moves
+   * the rest left by the number of removed columns before each of them.
+   *
+   * @param {number} _visualColumn The visual index of the first removed column.
+   * @param {number} _amount The number of removed columns.
+   * @param {number[]} physicalColumns The physical indexes of the removed columns.
+   */
+  #onAfterRemoveCol = (_visualColumn: number, _amount: number, physicalColumns: number[]) => {
+    if (physicalColumns.length === 0 || this.#previousConditionStack.length === 0) {
+      return;
+    }
+
+    const removedColumns = new Set(physicalColumns);
+
+    this.#shiftAppliedColumns((column) => {
+      if (removedColumns.has(column)) {
+        return null;
+      }
+
+      return column - physicalColumns.filter(removedColumn => removedColumn < column).length;
+    });
+  };
+
+  /**
+   * Rewrites the physical column of each applied condition. A condition whose column maps to `null`
+   * is dropped. When anything changed, the stack becomes a new array, so the next
+   * `captureState()` records the change.
+   *
+   * @param {Function} toNewColumn Maps a physical column to its new index, or to `null`.
+   */
+  #shiftAppliedColumns(toNewColumn: (column: number) => number | null) {
+    const stack: ColumnConditions[] = [];
+    let isChanged = false;
+
+    arrayEach(this.#previousConditionStack, (entry: ColumnConditions) => {
+      const column = toNewColumn(entry.column);
+
+      if (column === entry.column) {
+        stack.push(entry);
+
+        return;
+      }
+
+      isChanged = true;
+
+      if (column !== null) {
+        stack.push({ ...entry, column });
+      }
+    });
+
+    if (isChanged) {
+      this.#previousConditionStack = stack;
+    }
+  }
+
+  /**
    * `afterUpdateData` listener. `updateData` replaces the source data but keeps
    * conditions intact. The `filter_by_value` snapshots were computed against the
    * previous dataset, so they need to be rebuilt so newly introduced values appear
@@ -1212,7 +2064,7 @@ export class Filters extends BasePlugin {
    * @param {boolean} firstRun `true` for the initial data load.
    */
   #onAfterUpdateData = (_data: unknown, firstRun: boolean) => {
-    if (firstRun || this.#isDataProviderActive || !this.conditionCollection) {
+    if (firstRun || this.#isDataProviderActive() || !this.conditionCollection) {
       return;
     }
 
@@ -1228,6 +2080,55 @@ export class Filters extends BasePlugin {
   };
 
   /**
+   * `afterUpdateSettings` listener.
+   *
+   * Two jobs, both keyed on the payload rather than run unconditionally. `fixedRowsTop` and
+   * `fixedRowsBottom` change WHICH rows are exempt, and they are not among this plugin's
+   * `SETTING_KEYS`, so nothing else re-applies the exemption for them. And `columns` is where a
+   * per-column `filters` value lives, which is the one place the ignored-object warning can be
+   * raised for every column rather than only for a column whose menu someone opens.
+   */
+  #onAfterUpdateSettings = (settings: Record<string, unknown>) => {
+    if (hasOwnProperty(settings, 'columns')) {
+      this.#warnAboutPerColumnSettingsObjects();
+    }
+
+    // A settings change never renumbers the physical rows, so an unchanged value - which the
+    // wrappers re-send on every update - compares equal and costs nothing.
+    if (hasOwnProperty(settings, 'fixedRowsTop') || hasOwnProperty(settings, 'fixedRowsBottom')) {
+      this.#markPinnedRowsStale(false);
+    }
+  };
+
+  /**
+   * `afterRowSequenceChange` listener.
+   *
+   * `'move'` and `'update'` (a sort) only reorder rows, so the physical row numbers still mean what
+   * they meant in the last pass and the check may skip an unchanged set. Every other source - an
+   * insert, a remove (`alter()`, `updateData()`, a NestedRows resize), a reload - renumbers them.
+   * Typed from the mapper, not from the hook's `ChangeSource` declaration, which lists cell-change
+   * sources and none of these.
+   */
+  #onAfterRowSequenceChange = (source: IndexesChangeSource | undefined) => {
+    this.#markPinnedRowsStale(source !== 'move' && source !== 'update');
+  };
+
+  /**
+   * `beforeRender` listener: runs the check that `#markPinnedRowsStale()` queued.
+   *
+   * The render that ends an operation is where every piece the check reads has settled -
+   * `alter()`, a sort, `updateData()` and `updateSettings()` all end with one, and it is a full
+   * render because every index change sets `forceFullRender`. A fast render leaves the check
+   * pending: `TableView#render()` reads `forceFullRender` before this hook, so a trim written during
+   * a fast draw would not be drawn. Inside a `batch()` the check waits for the render that ends it.
+   */
+  #onBeforeRender = (isFullRender: boolean) => {
+    if (isFullRender && this.#isPinnedRowCheckPending) {
+      this.#reapplyPinnedRowExemption();
+    }
+  };
+
+  /**
    * After dataProvider fetch listener.
    *
    * @param {object} [result] Fetch result (filters match the request that just completed). May include `filtersConditionsStack` (Array).
@@ -1237,9 +2138,19 @@ export class Filters extends BasePlugin {
   };
 
   /**
-   * After dataProvider fetch error listener.
+   * After dataProvider fetch error listener. Rolls the conditions back to the state before the failed server
+   * filter. A failed fetch made for a view the grid no longer shows (`isVisible` is `false`) changes nothing: the
+   * conditions on screen belong to the view the grid shows.
+   *
+   * @param {Error} error The thrown error.
+   * @param {object} queryParameters The query parameters of the failed request.
+   * @param {boolean} [isVisible] `false` when the request was made for a view the grid does not show.
    */
-  #onAfterDataProviderFetchError = () => {
+  #onAfterDataProviderFetchError = (error: unknown, queryParameters: unknown, isVisible?: boolean) => {
+    if (isVisible === false) {
+      return;
+    }
+
     this.importConditions(this.#dataProviderFilterRollbackStack);
   };
 
@@ -1257,6 +2168,13 @@ export class Filters extends BasePlugin {
       Array.from(this.components.values()).filter((c): c is BaseComponent => c !== null)
     );
 
+    // The UI elements live as long as the plugin, so a runtime `icons` remap or theme switch is
+    // picked up here rather than only at build time. Each `refreshIcons()` is a no-op unless the
+    // theme's icons revision moved.
+    this.components.forEach((component) => {
+      component?.getElements().forEach(element => (element as BaseUI).refreshIcons());
+    });
+
     menu.updateMenuDimensions();
   };
 
@@ -1268,6 +2186,9 @@ export class Filters extends BasePlugin {
       ?.getSelectElement()?.closeOptions();
     (this.components.get('filter_by_condition2') as ConditionComponent | null | undefined)
       ?.getSelectElement()?.closeOptions();
+    // The by-value list is a grid of its own and keeps its selection while the menu is hidden, so a
+    // reopened menu would show a focus ring on an item while the focus is elsewhere.
+    this.#getValueComponent()?.getMultipleSelectElement().deselect();
   };
 
   /**
@@ -1387,7 +2308,7 @@ export class Filters extends BasePlugin {
         }
       }
 
-      if (cmdV !== CONDITION_NONE && !this.#isDataProviderActive) {
+      if (cmdV !== CONDITION_NONE && !this.#isDataProviderActive()) {
         this.conditionCollection?.addCondition(physicalIndex, byValueState, operation, columnStackPosition);
       }
 
@@ -1480,6 +2401,32 @@ export class Filters extends BasePlugin {
   };
 
   /**
+   * Gets the `availableConditions` setting that applies to a column.
+   *
+   * A valid value in the column's own `filters` object wins, and replaces the grid-level one for
+   * that column. Otherwise the grid-level value applies. An invalid column value is ignored here;
+   * the warning comes from the column scan, not from this read.
+   *
+   * @private
+   * @param {number} column Visual column index.
+   * @returns {Array|object|undefined}
+   */
+  _getAvailableConditions(column: number): unknown {
+    const columnSettings = this.#getOwnColumnSettings(column);
+
+    if (isObject(columnSettings) && hasOwnProperty(columnSettings as object, AVAILABLE_CONDITIONS_KEY)) {
+      const value = (columnSettings as Record<string, unknown>)[AVAILABLE_CONDITIONS_KEY];
+
+      // An own `undefined` (a wrapper prop left unset) means "not set", so the grid-level value applies.
+      if (value !== undefined && isAvailableConditionsSetting(value)) {
+        return value;
+      }
+    }
+
+    return this.getSetting(AVAILABLE_CONDITIONS_KEY);
+  }
+
+  /**
    * Gets the values the "filter by value" list of a column is built from.
    *
    * A column that carries conditions of its own reads the rows that survive the conditions of the
@@ -1499,11 +2446,27 @@ export class Filters extends BasePlugin {
 
     // A data provider filters server-side and the list is hidden anyway, so re-running the
     // conditions locally would filter data that is already filtered.
-    if (stackPosition === -1 || this.#isDataProviderActive) {
-      return arrayMap(this.hot.getDataAtCol(column), (value, rowIndex) => ({
-        value: toEmptyString(value),
-        meta: this.hot.getCellMetaTransient(rowIndex, column),
-      }));
+    if (stackPosition === -1 || this.#isDataProviderActive()) {
+      const visibleValues = this.hot.getDataAtCol(column);
+      // The SAME physical set the has-conditions branch below uses, translated per row rather than
+      // dropped by position. Two different ways of deciding "pinned" made the two branches disagree
+      // whenever another plugin trimmed a row, so a column's value list changed the moment it got a
+      // condition of its own.
+      const pinnedRows = this.#getPinnedRows();
+      const rows: Record<string, unknown>[] = [];
+
+      for (let rowIndex = 0; rowIndex < visibleValues.length; rowIndex++) {
+        if (pinnedRows !== null && pinnedRows.has(this.hot.toPhysicalRow(rowIndex))) {
+          continue; // eslint-disable-line no-continue
+        }
+
+        rows.push({
+          value: toEmptyString(visibleValues[rowIndex]),
+          meta: this.hot.getCellMetaTransient(rowIndex, column),
+        });
+      }
+
+      return rows;
     }
 
     const allRows = this.getDataMapAtColumn(physicalColumn);
@@ -1517,12 +2480,10 @@ export class Filters extends BasePlugin {
 
     splitConditionCollection.importAllConditions(conditionsBefore);
 
-    // Rows are correlated through the entry's own `row` property - the coordinate stamps on `meta`
-    // are shared with every other meta reader and may have been overwritten since.
-    // `DataFilter` is typed against `unknown[]` throughout, so its entries are narrowed here - the
-    // same boundary cast `DataFilter.filter()` and `ConditionUpdateObserver` already make.
-    const survivingRows = arrayMap(this._createDataFilter(splitConditionCollection).filter(),
-      rowData => (rowData as { row: number }).row);
+    // Rows are correlated through their physical index, which `DataFilter.filter()` returns
+    // directly - the coordinate stamps on `meta` are shared with every other meta reader and may
+    // have been overwritten since.
+    const survivingRows = this._createDataFilter(splitConditionCollection).filter();
     const survivingRowsAssertion = createArrayAssertion(survivingRows);
 
     splitConditionCollection.destroy();
@@ -1543,7 +2504,7 @@ export class Filters extends BasePlugin {
     }
 
     return new DataFilter(conditionCollection,
-      (physicalColumn: number, physicalRows?: number[]) => this.getDataMapAtColumn(physicalColumn, physicalRows));
+      (physicalColumn: number, physicalRows?: number[]) => this._readColumn(physicalColumn, physicalRows));
   }
 
   /**
@@ -1561,23 +2522,9 @@ export class Filters extends BasePlugin {
     const editedStack = conditionsState.editedConditionStack as Record<string, unknown>;
     const conditions = editedStack.conditions as unknown[];
     const column = editedStack.column as number;
-    const conditionArgsChange = conditionsState.conditionArgsChange;
 
-    if (Array.isArray(conditionArgsChange)) {
-      // update the previous condition stack (only for 'by_value' condition) on each dataset
-      // change to make the undo/redo work properly
-      this.#previousConditionStack = this.#previousConditionStack.map((stack) => {
-        if (stack.column === column && conditions.length > 0) {
-          stack.conditions.forEach((condition) => {
-            if (condition.name === 'by_value') {
-              condition.args = [[...(conditionArgsChange as unknown[])]];
-            }
-          });
-        }
-
-        return stack;
-      });
-    }
+    // `#previousConditionStack` needs no re-sync here: a data change no longer rewrites the live
+    // `by_value` args, so the snapshot taken by the last `filter()` still matches the collection.
 
     const conditionsByValue = conditions.filter(
       condition => (condition as Record<string, unknown>).name === CONDITION_BY_VALUE);
@@ -1585,7 +2532,7 @@ export class Filters extends BasePlugin {
       condition => (condition as Record<string, unknown>).name !== CONDITION_BY_VALUE);
 
     if (conditionsByValue.length >= 2 || conditionsWithoutByValue.length >= 3) {
-      warn(toSingleLine`The filter conditions have been applied properly, but couldn’t be displayed visually.\x20
+      warn(toSingleLine`The filter conditions have been applied properly, but couldn\u2019t be displayed visually.\x20
         The dropdown menu supports at most 2 regular conditions and 1 'filter by value' condition per column,\x20
         but more were provided. For more details see the documentation.`);
 

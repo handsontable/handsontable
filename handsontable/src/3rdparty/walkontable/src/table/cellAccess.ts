@@ -22,8 +22,11 @@ import {
   CLONE_TOP,
   CLONE_BOTTOM,
   CLONE_INLINE_START,
+  CLONE_INLINE_END,
   CLONE_TOP_INLINE_START_CORNER,
   CLONE_BOTTOM_INLINE_START_CORNER,
+  CLONE_TOP_INLINE_END_CORNER,
+  CLONE_BOTTOM_INLINE_END_CORNER,
 } from '../overlay';
 import type { default as Table } from './baseTable';
 import type CellCoords from '../cell/coords';
@@ -71,7 +74,24 @@ const cellAccess = {
 
     if (hookResult && Array.isArray(hookResult)) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const [, , lastRow] = hookResult as (number | null | undefined)[];
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       [row, column] = hookResult;
+
+      // The hook may answer with the extent of a block (a merged cell) that starts before this overlay's
+      // first rendered row but reaches into it: the overlay renders only the part of the block it holds, so
+      // the cell that stands for the block here is its first rendered row. Only a clone can render a block
+      // from the middle (the bottom overlay holds the last rows and never the block's origin).
+      if (
+        !this.isMaster &&
+        typeof lastRow === 'number' &&
+        row >= 0 &&
+        this.isRowBeforeRenderedRows(row) &&
+        !this.isRowBeforeRenderedRows(lastRow)
+      ) {
+        row = this.getFirstRenderedRow();
+      }
     }
 
     if (this.isRowBeforeRenderedRows(row)) {
@@ -190,7 +210,8 @@ const cellAccess = {
    * @this Table
    */
   getRowHeader(this: Table, row: number, level = 0): HTMLElement | undefined {
-    const rowHeadersCount = this.wtSettings.getSetting<Function[]>('rowHeaders').length;
+    // Zero for the end clones, which render no row headers.
+    const rowHeadersCount = this.getRowHeadersCount();
 
     if (level >= rowHeadersCount) {
       return undefined;
@@ -214,7 +235,8 @@ const cellAccess = {
    */
   getRowHeaders(this: Table, row: number): ChildNode[] {
     const THs = [];
-    const rowHeadersCount = this.wtSettings.getSetting<Function[]>('rowHeaders').length;
+    // Zero for the end clones, which render no row headers.
+    const rowHeadersCount = this.getRowHeadersCount();
 
     for (let renderedRowIndex = 0; renderedRowIndex < rowHeadersCount; renderedRowIndex++) {
       const TR = this.TBODY!.childNodes[this.rowFilter!.sourceToRendered(row)];
@@ -263,12 +285,14 @@ const cellAccess = {
     let col = isHTMLTableCellElement(cellElement) ? cellElement.cellIndex : 0;
 
     if (overlayContainsElement(CLONE_TOP_INLINE_START_CORNER, cellElement, this.wtRootElement)
+      || overlayContainsElement(CLONE_TOP_INLINE_END_CORNER, cellElement, this.wtRootElement)
       || overlayContainsElement(CLONE_TOP, cellElement, this.wtRootElement)) {
       if (CONTAINER.nodeName === 'THEAD') {
         row -= CONTAINER.childNodes.length;
       }
 
     } else if (overlayContainsElement(CLONE_BOTTOM_INLINE_START_CORNER, cellElement, this.wtRootElement)
+      || overlayContainsElement(CLONE_BOTTOM_INLINE_END_CORNER, cellElement, this.wtRootElement)
       || overlayContainsElement(CLONE_BOTTOM, cellElement, this.wtRootElement)) {
       const totalRows = this.wtSettings.getSetting<number>('totalRows');
 
@@ -285,6 +309,13 @@ const cellAccess = {
       || overlayContainsElement(CLONE_INLINE_START, cellElement, this.wtRootElement)
       || overlayContainsElement(CLONE_BOTTOM_INLINE_START_CORNER, cellElement, this.wtRootElement)) {
       col = this.columnFilter!.offsettedTH(col);
+
+    } else if (overlayContainsElement(CLONE_TOP_INLINE_END_CORNER, cellElement, this.wtRootElement)
+      || overlayContainsElement(CLONE_INLINE_END, cellElement, this.wtRootElement)
+      || overlayContainsElement(CLONE_BOTTOM_INLINE_END_CORNER, cellElement, this.wtRootElement)) {
+      // The end clones render the LAST columns and no row headers, so the first cell is the first end column.
+      col = this.wtSettings.getSetting<number>('totalColumns') -
+        this.wtSettings.getSetting<number>('fixedColumnsEnd') + col;
 
     } else if (this.columnFilter) {
       col = this.columnFilter!.visibleRowHeadedColumnToSourceColumn(col);

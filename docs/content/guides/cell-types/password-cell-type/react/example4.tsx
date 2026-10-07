@@ -4,14 +4,16 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  { id: 1, name: { first: 'Chris', last: 'Right' }, password: 'plainTextPassword' },
+  { id: 2, name: { first: 'John', last: 'Honest' }, password: 'txt' },
+  { id: 3, name: { first: 'Greg', last: 'Well' }, password: 'longer' },
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        { id: 1, name: { first: 'Chris', last: 'Right' }, password: 'plainTextPassword' },
-        { id: 2, name: { first: 'John', last: 'Honest' }, password: 'txt' },
-        { id: 3, name: { first: 'Greg', last: 'Well' }, password: 'longer' },
-      ]}
+      data={data}
       colHeaders={['ID', 'First name', 'Last name', 'Password']}
       height="auto"
       autoWrapRow={true}

@@ -4,26 +4,30 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['Hydrogen', 'H', 1],
+  ['Helium', 'He', 2],
+  ['Lithium', 'Li', 3],
+  ['Beryllium', 'Be', 4],
+  ['Boron', 'B', 5],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        ['A1', 'B1', 'C1', 'D1'],
-        ['A2', 'B2', 'C2', 'D2'],
-        ['A3', 'B3', 'C3', 'D3'],
-      ]}
-      colHeaders={true}
+      data={data}
+      colHeaders={['Name', 'Symbol', 'Atomic Number']}
       rowHeaders={true}
       autoWrapRow={true}
       autoWrapCol={true}
       height="auto"
+      stretchH="all"
       headerClassName="htCenter"
       licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn headerClassName="htRight" />
       <HotColumn headerClassName="htLeft" />
-      <HotColumn />
-      <HotColumn />
+      <HotColumn type="numeric" />
     </HotTable>
   );
 };

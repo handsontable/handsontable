@@ -33,8 +33,8 @@ Array of arrays is a good choice for the more grid-like scenarios where you need
 
 ::: example #example1 --js 1 --ts 2
 
-@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example1.js)
-@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example1.ts)
+@[code collapse={9-13}](@/content/guides/getting-started/binding-to-data/javascript/example1.js)
+@[code collapse={9-13}](@/content/guides/getting-started/binding-to-data/javascript/example1.ts)
 
 :::
 
@@ -78,14 +78,14 @@ Array of arrays is a good choice for the more grid-like scenarios where you need
 
 ### Array of arrays with a selective display of columns
 
-The following example shows how you would use the array of arrays with a selective display of columns. This scenario uses the same data source as in the previous example, this time omitting the `Tesla` column from the grid.
+The following example shows how you would use the array of arrays with a selective display of columns. This scenario uses the same data source as in the previous example, this time omitting the `Supplier` column from the grid.
 
 ::: only-for javascript
 
 ::: example #example2 --js 1 --ts 2
 
-@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example2.js)
-@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example2.ts)
+@[code collapse={9-13}](@/content/guides/getting-started/binding-to-data/javascript/example2.js)
+@[code collapse={9-13}](@/content/guides/getting-started/binding-to-data/javascript/example2.ts)
 
 :::
 
@@ -366,9 +366,94 @@ The example below shows how to use such objects:
 
 :::
 
+### Column-oriented data source
+
+Handsontable reads its data row by row. If your data arrives as one array per column, you don't have to keep a transposed copy in sync -- point each column's [`data`](@/api/options.md#data) option at the array it belongs to.
+
+Handsontable can't tell the two orientations apart on its own. `[['a', 'b'], ['c', 'd']]` is the same value whether you mean it as two rows or as two columns, so you state which one you mean through [`columns`](@/api/options.md#columns).
+
+The [`data`](@/api/options.md#data) option still needs one entry per row. Use a small object per row that records its own index, and mint new ones through [`dataSchema`](@/api/options.md#dataschema):
+
+```javascript
+const source = [
+  ['a', 'b'],      // column A
+  ['c', 'd', 'e'], // column B
+];
+
+const rowCount = source.reduce((max, column) => Math.max(max, column.length), 0);
+const restamp = rows => {
+  rows.forEach((row, index) => {
+    row.index = index;
+  });
+
+  return rows;
+};
+
+// Handsontable splices this array in place, so it stays a live view of the row order.
+const rows = restamp(Array.from({ length: rowCount }, () => ({ index: 0 })));
+
+// A regular function, not an arrow function: `arguments.length` tells a read from a write.
+const accessor = columnIndex => function(row, value) {
+  if (arguments.length === 1) {
+    // The row can be missing while the grid measures sizes or replays an undo step.
+    return row ? source[columnIndex][row.index] ?? null : null;
+  }
+
+  if (row) {
+    source[columnIndex][row.index] = value;
+  }
+};
+
+const settings = {
+  data: rows,
+  columns: source.map((column, columnIndex) => ({ data: accessor(columnIndex) })),
+  dataSchema: () => ({ index: -1 }),
+};
+```
+
+Pass `settings` to Handsontable the way your framework does -- as the second argument to the constructor, or as the component's settings.
+
+The grid now renders one row per position across the columns. Columns of unequal length leave empty cells at the bottom of the shorter ones. An edit writes straight into `source`, so no copy can fall behind.
+
+That is the whole setup for reading and writing existing cells. Adding and removing rows needs two more hooks.
+
+A row the grid creates has no slot in your column arrays yet. Its row object still holds the [`dataSchema`](@/api/options.md#dataschema) marker `-1`, so the accessor writes a value typed into that row to `source[columnIndex][-1]` -- a property on the array object, not one of its elements. The grid displays the value, because the accessor reads the same slot back, but the value never joins your data, and every row the grid creates shares that one slot. So if anything can create a row -- the context menu, [`minSpareRows`](@/api/options.md#minsparerows), or [`alter()`](@/api/core.md#alter) -- keep the column arrays in step through [`afterCreateRow`](@/api/hooks.md#aftercreaterow) and [`afterRemoveRow`](@/api/hooks.md#afterremoverow).
+
+Both hooks report a **visual** row index, while the column arrays are physical, so translate before you splice. For an insert, the new row object still carries the [`dataSchema`](@/api/options.md#dataschema) marker, and its position in `rows` is the physical index. For a removal, use the hook's `physicalRows` argument and splice the highest index first:
+
+```javascript
+const settings = {
+  // ... the options above
+  afterCreateRow(index, amount) {
+    const at = rows.findIndex(row => row.index === -1);
+
+    source.forEach(column => {
+      column.splice(at === -1 ? index : at, 0, ...new Array(amount).fill(null));
+    });
+    restamp(rows);
+    // Call `this.render()`, not a variable holding the instance: with `minSpareRows` this hook
+    // runs while Handsontable is still starting up, before that variable holds anything.
+    this.render();
+  },
+  afterRemoveRow(index, amount, physicalRows) {
+    [...physicalRows].sort((a, b) => b - a).forEach(row => {
+      source.forEach(column => column.splice(row, 1));
+    });
+    restamp(rows);
+    this.render();
+  },
+};
+```
+
+Three more things to know about this setup:
+
+- [`getSourceData()`](@/api/core.md#getsourcedata) returns copies of the row objects, so you can't re-stamp the row indexes through it. Hold on to the array you passed as [`data`](@/api/options.md#data).
+- Undo of a row removal restores the removed cell values through your column accessors, so you don't have to record them yourself. The values are written after the row is back in the grid, so the [`afterCreateRow`](@/api/hooks.md#aftercreaterow) hook above has to give the restored row its slot in the column arrays first.
+- [`columns`](@/api/options.md#columns) fixes the number of columns, so [`alter()`](@/api/core.md#alter) can't insert one. To add a column, push a new array onto your source and call [`updateSettings()`](@/api/core.md#updatesettings) with a new [`columns`](@/api/options.md#columns) array.
+
 ### Identify changed columns in hooks
 
-When you use a [function data source](#function-data-source-and-schema), each column's [`data`](@/api/options.md#data) option is a getter/setter function. In [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange), the second element of each change tuple is `prop`. With function-based columns, `prop` is that accessor function -- not a property name or a column index.
+When you use a [function data source](#function-data-source-and-schema), each column's [`data`](@/api/options.md#data) option is a getter/setter function. In [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange), the second element of each change tuple is `prop`. With function-based columns, `prop` is that accessor function -- not a property name or a column index. In TypeScript, the accessor's type is exported as `ColumnDataGetterSetterFunction` (see [TypeScript types](@/guides/tools-and-building/typescript-types/typescript-types.md#data-types)).
 
 To find which column changed, call [`propToCol()`](@/api/core.md#proptocol) on the `prop` value:
 
@@ -381,7 +466,7 @@ afterChange(changes, source) {
   changes.forEach(([row, prop, oldValue, newValue]) => {
     const column = this.propToCol(prop);
 
-    // column is the visual column index
+    // `column` is the visual column index, or `null` if the property names no column.
   });
 }
 ```
@@ -441,6 +526,16 @@ By default, if you don't provide any data, Handsontable renders as an empty 5x5 
 
 To change the number of rows or columns rendered by default, use the [`startRows`](@/api/options.md#startrows) and [`startCols`](@/api/options.md#startcols) options.
 
+### Data with an empty first row
+
+Without the [`columns`](@/api/options.md#columns) or [`dataSchema`](@/api/options.md#dataschema) option, Handsontable reads the number of columns from the first row of your data. If that row has no fields -- for example `[{}]`, `[null]`, or `[[], [1, 2]]` -- the grid displays rows with no cells, and values in later rows are not displayed. Handsontable logs a console warning for such data.
+
+Two cases log no warning:
+- An empty `data: []`.
+- An array of empty arrays (`[[]]`) while [`allowInsertColumn`](@/api/options.md#allowinsertcolumn) is on, because writing to it creates the columns.
+
+To define the columns, set the [`columns`](@/api/options.md#columns) or [`dataSchema`](@/api/options.md#dataschema) option. The check runs when the data loads, so set `columns` together with `data`. A `columns` option that arrives in a later update, for example from a column component rendered after the grid, can come too late to stop the warning.
+
 ## Data-manipulating API methods
 
 ### Understand binding as a reference
@@ -467,8 +562,8 @@ the [`setDataAtCell()`](@/api/core.md#setdataatcell) method.
 
 ::: example #example10 --js 1 --ts 2
 
-@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example10.js)
-@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example10.ts)
+@[code collapse={9-13}](@/content/guides/getting-started/binding-to-data/javascript/example10.js)
+@[code collapse={9-13}](@/content/guides/getting-started/binding-to-data/javascript/example10.ts)
 
 :::
 
@@ -656,6 +751,24 @@ You can also use the built-in mechanism of the Angular wrapper to update data. W
 
 :::
 
+::: only-for react
+
+The React wrapper sends the `data` prop to the grid through [`updateSettings()`](@/api/core.md#updatesettings) on every render. Pass `data` as a stable reference: a constant declared outside the component, a `useState` value, or a `useMemo` result. If you write the array inline in JSX, every render creates a new array, and the grid replaces its data with it. Any change the user made to the previous array is lost.
+
+```jsx
+// Replaces the data on every render
+<HotTable data={[['Rent', 1200]]} />
+
+// Keeps the user's edits
+const data = [['Rent', 1200]];
+
+<HotTable data={data} />
+```
+
+To replace the data on purpose, pass a new array, for example through a `useState` setter.
+
+:::
+
 ### The data-modifying API methods
 
 To modify just a subset of data passed to Handsontable, these are the methods you might want to check out:
@@ -764,6 +877,94 @@ hot.populateFromArray(1, 1, newValues, 2, 2);
 </li>
 </ol>
 
+## Empty cell values
+
+An empty cell can hold either `null` or an empty string (`''`). The two look the same in the grid,
+but they are different values in your data source, and the difference matters as soon as the data
+leaves the grid. An empty string in a `numeric`, `date` or `time` column is a string where a number
+or a date is expected, and `''` is not the same value as `NULL` to a database.
+
+By default, the way a cell is emptied decides which value it gets:
+
+| How the cell is emptied                                     | Stored value |
+| ----------------------------------------------------------- | ------------ |
+| Pressing <kbd>**Delete**</kbd> or <kbd>**Backspace**</kbd>   | `null`       |
+| [`setDataAtCell()`](@/api/core.md#setdataatcell) with `null` | `null`       |
+| Filling a blank cell across a range                          | `null`       |
+| Merging cells over data                                      | `null`       |
+| Clearing the cell editor and confirming                      | `''`         |
+| Pasting a blank cell                                         | `''`         |
+
+Set [`emptyValue`](@/api/options.md#emptyvalue) to `null` to make every one of those paths store
+`null`:
+
+```js
+const hot = new Handsontable(container, {
+  data: getData(),
+  emptyValue: null,
+});
+```
+
+You can set it for the whole grid, or only for the columns whose type makes an empty string wrong:
+
+```js
+const hot = new Handsontable(container, {
+  data: getData(),
+  columns: [
+    // a text column keeps storing an empty string
+    { data: 'name' },
+    // these store `null` when emptied
+    { data: 'amount', type: 'numeric', emptyValue: null },
+    { data: 'due', type: 'date', emptyValue: null },
+  ],
+});
+```
+
+The option changes only what an emptied cell stores. A `0` or a `false` is a real value, not an empty
+cell, and is never affected.
+
+A column whose configuration already gives `''` a meaning keeps it. In a
+[`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) column, an `''` used as
+[`checkedTemplate`](@/api/options.md#checkedtemplate) or
+[`uncheckedTemplate`](@/api/options.md#uncheckedtemplate) is one of the two states the column defines,
+not an empty cell. In an
+[`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) or
+[`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column, an `''` listed in
+[`source`](@/api/options.md#source) is an option you can pick. Both keep storing `''`.
+
+::: tip
+
+Only an array [`source`](@/api/options.md#source) is checked this way. A function `source` answers
+through a callback, and the value is stored before that callback runs, so a blank option it returns
+goes unnoticed and `emptyValue` applies to the column like any other.
+
+:::
+
+::: tip
+
+Opening a cell editor and confirming it without typing anything never changes the cell, whatever
+`emptyValue` is set to.
+
+Nothing is written, and no [`afterChange`](@/api/hooks.md#afterchange) hook fires. That holds whether
+or not the cell has a [`validator`](@/api/options.md#validator). Because there is no change,
+[`beforeChange`](@/api/hooks.md#beforechange) does not run either, so a handler that cancels changes
+has nothing to cancel on such a confirm.
+
+A validated cell is still validated on that confirm, so
+[`allowInvalid`](@/api/options.md#allowinvalid) keeps behaving as it always has and an invalid value
+still holds the editor open. The validator runs against the cell's stored value directly, which is
+why no write is needed to trigger it.
+
+:::
+
+::: tip
+
+Pasting from outside the grid cannot preserve the difference between `null` and `''`. A clipboard
+holds text or HTML, and neither can mark a cell as `null`, so a blank pasted cell follows the
+`emptyValue` setting like any other emptied cell.
+
+:::
+
 ## Working with a copy of data
 
 When working with a copy of data for Handsontable, it is best practice is to clone the data source before loading it into Handsontable. This can be done with `structuredClone(data)` or legacy `JSON.parse(JSON.stringify(data))` or another deep-cloning function.
@@ -772,8 +973,8 @@ When working with a copy of data for Handsontable, it is best practice is to clo
 
 ::: example #example11 --js 1 --ts 2
 
-@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example11.js)
-@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example11.ts)
+@[code collapse={9-13}](@/content/guides/getting-started/binding-to-data/javascript/example11.js)
+@[code collapse={9-13}](@/content/guides/getting-started/binding-to-data/javascript/example11.ts)
 
 :::
 
@@ -823,6 +1024,7 @@ When the full dataset lives on a server, use [`dataProvider`](@/api/options.md#d
 - [data](@/api/options.md#data)
 - [dataProvider](@/api/options.md#dataprovider)
 - [dataSchema](@/api/options.md#dataschema)
+- [emptyValue](@/api/options.md#emptyvalue)
 
 </div>
 
@@ -884,5 +1086,5 @@ When the full dataset lives on a server, use [`dataProvider`](@/api/options.md#d
 
 ## Next steps
 
-- [Configuration options](@/guides/getting-started/configuration-options/configuration-options.md) -- learn how to configure every aspect of your grid.
+- [Setting options](@/guides/configuration/configuration-options/configuration-options.md) -- learn how to configure every aspect of your grid.
 - [Saving data](@/guides/getting-started/saving-data/saving-data.md) -- persist changes to a backend or local storage.

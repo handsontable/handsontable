@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug where a column's `sourceDataValidator` checked one cell but cleared a different one when the columns were moved or remapped through `columns[].data`, so setting `allowInvalid` to `false` could erase a column that was never validated.",
+  "type": "fixed",
+  "issueOrPR": 13323,
+  "breaking": false,
+  "framework": "none"
+}

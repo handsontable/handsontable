@@ -35,7 +35,16 @@ const allSettings: Required<Handsontable.GridSettings> = {
   allowRemoveRow: true,
   ariaTags: true,
   autoColumnSize: true,
+  autoLink: oneOf(true, {
+    target: '_self' as const,
+    schemes: ['http', 'https'] as Array<'http' | 'https' | 'mailto' | 'tel'>,
+    inline: false,
+    strict: false,
+    className: 'company-link',
+  }),
   autoRowSize: true,
+  autoRowHeaderSize: oneOf(true, { samplingRatio: 3, allowSampleDuplicates: true, syncLimit: 500 },
+    { syncLimit: '40%' }),
   autoWrapCol: true,
   autoWrapRow: true,
   bindRowsWithHeaders: true,
@@ -63,11 +72,12 @@ const allSettings: Required<Handsontable.GridSettings> = {
   collapsibleColumns: true,
   colorScheme: oneOf('light', 'dark', 'auto'),
   density: oneOf('default', 'compact', 'comfortable'),
-  columnHeaderHeight: oneOf(35, [35, 55]),
+  columnHeaderHeight: oneOf(35, [35, 55], '35', '35px', ['35px', 55]),
   columns: [
     {
       type: 'numeric',
-      numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }
+      numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 },
+      emptyValue: null,
     },
     { type: 'text', readOnly: true }
   ],
@@ -113,13 +123,17 @@ const allSettings: Required<Handsontable.GridSettings> = {
   dropdownMenu: true,
   editor: oneOf(true, 'autocomplete', 'checkbox', 'date', 'dropdown', 'handsontable', 'mobile',
     'password', 'select', 'text', 'time', 'custom.editor'),
+  emptyValue: oneOf('' as const, null),
   enterBeginsEditing: true,
   enterMoves: oneOf({ col: 1, row: 1 }, (event: KeyboardEvent) => ({ row: 1, col: 1 })),
   exportFile: { engines: { xlsx: {} } },
+  importFile: { engines: { xlsx: {} } },
   fillHandle: true,
   filter: true,
   filteringCaseSensitive: true,
   filters: false,
+  filterValueComparator: (a: unknown, b: unknown) => String(a).localeCompare(String(b)),
+  fixedColumnsEnd: 123,
   fixedColumnsLeft: 123,
   fixedColumnsStart: 123,
   fixedRowsBottom: 123,
@@ -140,7 +154,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   hashLength: 8,
   hashRevealDelay: 1000,
   hashSymbol: '#',
-  height: oneOf(500, 'auto', '75vh', () => 500, () => 'auto'),
+  height: oneOf(500, 'auto', '250', '250px', '50%', '75vh', 'calc(100% - 40px)', () => 500, () => 'auto'),
   hiddenColumns: true,
   hiddenRows: true,
   initialState: {
@@ -172,6 +186,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   manualRowMove: true,
   manualRowResize: true,
   maxCols: 123,
+  maxLength: 123,
   maxRows: 123,
   mergeCells: true,
   minCols: 123,
@@ -209,19 +224,21 @@ const allSettings: Required<Handsontable.GridSettings> = {
   parsePastedValue: true,
   placeholder: 'foo',
   placeholderCellClassName: 'foo',
+  preserveTextValue: true,
   preventOverflow: oneOf(true, 'vertical', 'horizontal'),
   preventWheel: true,
   readOnly: true,
   readOnlyCellClassName: 'foo',
   renderAllColumns: true,
   renderAllRows: true,
+  renderMode: 'onChange',
   renderer: oneOf(
     'autocomplete', 'checkbox', 'html', 'numeric', 'password', 'text', 'time', 'custom.renderer',
     (instance: Handsontable, TD: HTMLTableCellElement, row: number, col: number,
      prop: number | string, value: any, cellProperties: Handsontable.CellProperties) => TD
   ),
   rowHeaders: oneOf(true, ['1', '2', '3'], (index: number) => `Row ${index}`),
-  rowHeaderWidth: oneOf(25, [25, 30, 55]),
+  rowHeaderWidth: oneOf(25, [25, 30, 55], '25', '25px', ['25px', 30]),
   rowHeights: oneOf(100, '100px', [100, 120, 90], (index: number) => index * 10),
   // The option's own signature is unchanged; `SanitizerContext` is the opt-in annotation. Full
   // coverage, including the call-arity axis, lives in `sanitizer.types.ts`.
@@ -232,9 +249,26 @@ const allSettings: Required<Handsontable.GridSettings> = {
     (content: string, source: 'innerHTML' | 'CopyPaste.paste') => content,
   ),
   search: true,
+  // The `true` shorthand selects the built-in extraction. Full coverage, including the union's
+  // effect on reading the option back out, lives in `textExtractor.types.ts`.
+  textExtractor: oneOf(
+    true,
+    false,
+    (content: string) => content,
+    (content: string, source: string) => content,
+    (content: string, source: Handsontable.TextExtractorContext) => content,
+    (content: string, source: 'ExportFile.columnHeader') => content,
+  ),
   selectionMode: oneOf('single', 'range', 'multiple'),
   selectionHandles: true,
   moveCells: true,
+  sheetsBar: oneOf(true, {
+    sheets: [{ name: 'Budget', data: [[1, 2]], settings: { readOnly: true } }],
+    activeSheet: 0,
+    controls: true,
+    paging: true,
+    uiContainer: document.body,
+  }),
   selectOptions: oneOf(
     ['A', 'B', 'C'],
     { a: 'A', b: 'B', c: 'C' },
@@ -256,7 +290,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   strict: true,
   tableClassName: oneOf('foo', ['first-class-name', 'second-class-name']),
   tabMoves: oneOf({ col: 1, row: 1 }, (event: KeyboardEvent) => ({ row: 2, col: 2 })),
-  textEllipsis: false,
+  textEllipsis: oneOf(true_or_false, 3),
   themeName: 'ht-theme-some-theme',
   theme: '',
   title: 'foo',
@@ -354,7 +388,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   viewportColumnRenderingThreshold: oneOf(100, 'auto'),
   viewportRowRenderingThreshold: oneOf(100, 'auto'),
   visibleRows: 123,
-  width: oneOf(500, 'auto', '75vw', () => 500, () => 'auto'),
+  width: oneOf(500, 'auto', '250', '250px', '50%', '75vw', 'calc(100% - 40px)', () => 500, () => 'auto'),
   wordWrap: true,
 
   // Hooks via settings object
@@ -404,9 +438,16 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterColumnResize: (newSize, column, isDoubleClick) => {},
   afterColumnSequenceChange: (source) => {},
   afterCustomBordersUpdate: () => {},
-  afterColumnSequenceCacheUpdate: (indexesChangesState) => {},
-  afterColumnSort: (currentSortConfig, destinationSortConfigs) => {},
-  afterColumnUnfreeze: (columnIndex, isFreezingPerformed) => {},
+  afterColumnSequenceCacheUpdate: (indexesChangesState) => {
+    const _source: 'init' | 'remove' | 'insert' | 'move' | 'update' | undefined =
+      indexesChangesState.indexesChangeSource;
+  },
+  afterColumnSort: (currentSortConfig, destinationSortConfigs, sortPossible) => {
+    const _sortPossible: boolean = sortPossible;
+  },
+  afterColumnUnfreeze: (columnIndex, isFreezingPerformed, finalIndex) => {
+    const _finalIndex: number = finalIndex;
+  },
   beforeCompositionStart: (event) => {
     const _event: CompositionEvent = event;
   },
@@ -420,7 +461,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterCut: (data, coords) => {},
   afterDeselect: () => {},
   afterDestroy: () => {},
-  afterDetachChild: (parent, element) => {},
+  afterDetachChild: (parent, element, finalElementPosition, source) => {
+    const _source: string | undefined = source;
+  },
   afterDialogFocus: (focusSource) => {},
   afterDialogHide: () => {},
   afterDialogShow: () => {},
@@ -445,6 +488,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterGetRowHeaderRenderers: (array) => {},
   afterHideColumns: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
   afterHideRows: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
+  afterImport: (result, format) => {},
   afterInit: () => {},
   afterLanguageChange: (languageCode) => {},
   afterListen: () => {},
@@ -526,7 +570,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
                  orderChanged) => movedRows.forEach(row => row.toFixed(1) === finalIndex.toFixed(1)),
   afterRowResize: (newSize, row, isDoubleClick) => {},
   afterRowSequenceChange: (source) => {},
-  afterRowSequenceCacheUpdate: (indexesChangesState) => {},
+  afterRowSequenceCacheUpdate: (indexesChangesState) => {
+    const _source: 'init' | 'remove' | 'insert' | 'move' | 'update' | undefined =
+      indexesChangesState.indexesChangeSource;
+  },
   afterScrollHorizontally: () => {},
   afterScrollVertically: () => {},
   afterScroll: () => {},
@@ -558,6 +605,13 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterSheetAdded: (addedSheetDisplayName) => {},
   afterSheetRemoved: (removedSheetDisplayName, changes) => {},
   afterSheetRenamed: (oldDisplayName, newDisplayName) => {},
+  afterSheetTabAdd: (sheetId, name, source) => {},
+  afterSheetTabChange: (oldSheetId, newSheetId, source) => {},
+  afterSheetTabMove: (sheetId, finalIndex, source) => {},
+  afterSheetTabRemove: (sheetId, source) => {},
+  afterSheetTabRename: (sheetId, oldName, newName, source) => {},
+  afterSheetTabStateCapture: (sheetId, viewState) => {},
+  afterSheetTabStateRestore: (sheetId, viewState) => {},
   afterTrimRow: (rows) => {},
   afterUndo: (action) => {},
   afterUndoStackChange: (doneActionsBefore, doneActionsAfter) => {},
@@ -567,8 +621,12 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterUnmergeCells: (cellRange, auto) => {},
   afterUntrimRow: (rows) => {},
   afterUpdateData: (sourceData, firstTime, source) => {},
-  afterDataProviderFetch: (result) => {},
-  afterDataProviderFetchError: (error, queryParameters) => {},
+  afterDataProviderFetch: (result) => {
+    const restored: boolean | undefined = result.isRestored;
+
+    void restored;
+  },
+  afterDataProviderFetchError: (error, queryParameters, isVisible) => {},
   afterDataProviderFetchAbort: (queryParameters, reason) => {},
   afterUpdateSettings: () => {},
   afterValidate: () => {},
@@ -583,6 +641,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     return true;
   },
   beforeCellAlignment: (stateBefore, range, type, alignmentClass) => {},
+  beforeReadOnlyToggle: (stateBefore, ranges, readOnly) => {},
   beforeChange: (changes, source) => {
     if (changes?.[0] !== null) { changes[0][3] = 10; }
 
@@ -595,7 +654,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeColumnFreeze: (columnIndex, isFreezingPerformed) => false,
   beforeColumnMove: (columns, target) => {},
   beforeColumnResize: (newSize, column, isDoubleClick) => false,
-  beforeColumnSort: (currentSortConfig, destinationSortConfigs) => {},
+  beforeColumnSort: (currentSortConfig, destinationSortConfigs, sortPossible) => {
+    const _sortPossible: boolean = sortPossible;
+  },
   beforeColumnWrap: (isActionInterrupted, newCoords, isColumnFlipped) => {
     const _isActionInterrupted: boolean = isActionInterrupted.value;
     const _isColumnFlipped: boolean = isColumnFlipped;
@@ -603,7 +664,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
     isActionInterrupted.value = false;
     newCoords.clone();
   },
-  beforeColumnUnfreeze: (columnIndex, isFreezingPerformed) => false,
+  beforeColumnUnfreeze: (columnIndex, isFreezingPerformed, finalIndex) => {
+    const _finalIndex: number = finalIndex;
+
+    return false;
+  },
   beforeContextMenuSetItems: (menuItems) => {},
   beforeContextMenuShow: (context) => {},
   beforeCopy: (data, coords) => {
@@ -619,7 +684,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
 
     return false;
   },
-  beforeDetachChild: (parent, element) => {},
+  beforeDetachChild: (parent, element, source) => {
+    const _source: string | undefined = source;
+  },
   beforeDialogHide: () => {},
   beforeDialogShow: () => {},
   beforeDrawBorders: (corners, borderClassName) => {},
@@ -658,6 +725,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
 
     return 10;
   },
+  beforeImport: (result, format) => {},
   beforeInit: () => {},
   beforeInitWalkontable: (walkontableConfig) => {},
   beforeKeyDown: (event) => {},
@@ -683,6 +751,17 @@ const allSettings: Required<Handsontable.GridSettings> = {
     const _newPageSize: number | 'auto' = newPageSize;
 
     return true;
+  },
+  beforePasteParse: (clipboardData, event) => {
+    const _types: string[] = clipboardData.types;
+    const _text: string = clipboardData.getData('text/plain');
+    const _event: ClipboardEvent | null = event;
+
+    clipboardData.setData('text/plain', _text);
+    clipboardData.clearData('text/html');
+    clipboardData.clearData();
+
+    return false;
   },
   beforePaste: (data, coords) => {
     data.splice(0, 1);
@@ -729,6 +808,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeSetRangeEnd: (coords) => {},
   beforeSetRangeStart: (coords) => {},
   beforeSetRangeStartOnly: (coords) => {},
+  beforeSheetTabAdd: (name, source) => {},
+  beforeSheetTabChange: (oldSheetId, newSheetId, source) => {},
+  beforeSheetTabMove: (sheetId, finalIndex, source) => {},
+  beforeSheetTabRemove: (sheetId, source) => {},
+  beforeSheetTabRename: (sheetId, oldName, newName, source) => {},
   beforeStretchingColumnWidth: (stretchedWidth, column) => {
     const _stretchedWidth: number = stretchedWidth;
     const _column: number = column;
@@ -806,7 +890,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   modifyRowData: (row) => {},
   modifyRowHeader: (row) => {},
-  modifyRowHeaderWidth: (rowHeaderWidth) => {},
+  modifyRowHeaderWidth: rowHeaderWidth => oneOf(80, [80, 40]),
   modifyRowHeight: (height, row, source) => {
     const _height: number = height;
     const _row: number = row;
@@ -971,6 +1055,7 @@ hot.updateSettings({ selectionHandles: true });
 
 // Regression: moveCells must be accepted by updateSettings.
 hot.updateSettings({ moveCells: true });
+hot.updateSettings({ dataProvider: null });
 
 // Regression: afterOnSelectionHandleMouseDown must be accepted by updateSettings.
 hot.updateSettings({ afterOnSelectionHandleMouseDown(event, edge) {} });
@@ -983,3 +1068,41 @@ hot.updateSettings({ afterMoveCells(sourceRange, targetRange, isCopy) {} });
 // Regression: MoveCells exposes moveCellRange with correct arg/return types.
 const moveResult: boolean = hot.getPlugin('moveCells')
   .moveCellRange(hot.getSelectedRangeLast()!, hot._createCellCoords(5, 5), false);
+
+// Regression: beforeInit accepts the array form, which the runtime has always supported (#5933).
+hot.updateSettings({ beforeInit: [() => {}, () => {}] });
+hot.updateSettings({ beforeInit: () => {} });
+
+// Regression: `emptyValue` must reach `ColumnSettings` from `GridSettings`, not through the
+// `[key: string]: any` index signature that `ColumnSettings` also carries. A literal inside the
+// `columns` array compiles either way, so it proves nothing on its own — this reads the property
+// type back out and fails if the option is ever dropped from `GridSettings`.
+const columnEmptyValue: Handsontable.ColumnSettings['emptyValue'] = null;
+const cellEmptyValue: Handsontable.CellMeta['emptyValue'] = null;
+
+// Regression: sheetsBar settings and hooks must be accepted by updateSettings.
+hot.updateSettings({ sheetsBar: true });
+hot.updateSettings({
+  sheetsBar: {
+    sheets: [{ name: 'Budget', data: [[1, 2]], settings: { readOnly: true } }],
+    activeSheet: 0,
+    controls: true,
+    paging: false,
+    position: 'top',
+    uiContainer: document.createElement('div'),
+  },
+  beforeSheetTabChange: (oldSheetId, newSheetId, source) => false,
+  afterSheetTabChange: (oldSheetId, newSheetId, source) => {},
+  afterSheetTabAdd: (sheetId, name, source) => {},
+});
+
+// DEV-2723: `modifyData` receives `null` as its column for a numeric property that names no column,
+// so the declared parameter must admit it. The directive below turns into an "unused" error if the
+// parameter is ever narrowed back to `number`.
+const _modifyDataColumnIsNullable: Handsontable.GridSettings = {
+  modifyData(row, column) {
+    // @ts-expect-error `column` can be `null`, which does not fit a plain `number`.
+    const _plainNumberColumn: number = column;
+    const _nullableColumn: number | null = column;
+  },
+};

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - editor open while a checkbox takes the focus</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright
+    // projects, mapped through fixed allowlists to LITERALS so a crafted param can never be
+    // reflected into the document. An ABSENT param keeps the default (main / plain UMD); an
+    // unknown value THROWS rather than falling back, so a typo in the project config is one red
+    // leg instead of a silently mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    A custom-editor column beside a checkbox column. The checkbox renderer builds a plain `<input>`
+    with no `data-hot-input` stamp, so it is the shape that reaches `tableView`'s focused-input
+    verdict from INSIDE the grid, in a cell that is not the edited one.
+
+    Two things have to hold for that gesture to keep the editor open, and BOTH are load-bearing
+    here. `core.ts` skips `editorManager.closeEditor()` when the selection source is `'shift'`, so
+    the press must be a Shift+Click. And the editor must not end the edit on its own when the
+    focus leaves its field - which rules out the DEFAULT editor: `textEditor` registers
+    `focusout` -> `finishEditing(false)` on its textarea, so with it the edit is already over by
+    the time the `mouseup` verdict runs. A plain `editorFactory` editor registers no such handler,
+    which is also true of every wrapper's component editor, so that is what this column uses.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    window.htUnlistenCount = 0;
+
+    // Deliberately bare: an input in the editor's own container and nothing else. No `focusout`
+    // handler, so moving the browser focus elsewhere does not end the edit.
+    const plainInputEditor = Handsontable.editors.editorFactory({
+      init(editor) {
+        editor.input = editor.hot.rootDocument.createElement('INPUT');
+        editor.input.setAttribute('data-testid', 'editor-input');
+      },
+      getValue(editor) {
+        return editor.input.value;
+      },
+      setValue(editor, value) {
+        editor.input.value = value === null || value === undefined ? '' : value;
+      },
+      afterOpen(editor) {
+        editor.input.focus();
+      },
+    });
+
+    window.hot = new Handsontable(container, {
+      data: [['A1', true], ['A2', false], ['A3', true]],
+      colHeaders: true,
+      rowHeaders: true,
+      columns: [
+        { editor: plainInputEditor },
+        { type: 'checkbox' },
+      ],
+      // Stamped from `afterRenderer` rather than a grid-level `renderer`, which the checkbox
+      // column's `type` would override.
+      afterRenderer(td, row, col) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    window.hot.addHook('afterUnlisten', () => {
+      window.htUnlistenCount += 1;
+    });
+  </script>
+</body>
+</html>

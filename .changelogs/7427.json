@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a bug where enabling the `hiddenRows` or `hiddenColumns` plugin alongside a cell `className` given as an array stopped the grid from rendering, or merged the array entries into a single invalid CSS class. The `afterHiddenRow` and `afterHiddenColumn` markers are now matched as whole class names, so a cell whose own class contains the marker name still gets the marker.",
+  "type": "fixed",
+  "issueOrPR": 7427,
+  "breaking": false,
+  "framework": "none"
+}

@@ -1,23 +1,13 @@
 import { DIALOG_CLASS_NAME } from '../constants';
 import { throwWithCause } from '../../../helpers/errors';
-import { html } from '../../../helpers/templateLiteralTag';
+import { buildTemplate } from '../../../helpers/dom/template';
 
 /**
- * The `baseTemplate` function returns a HTML string with the base template.
+ * The `baseTemplate` function returns the base dialog template.
  *
- * @returns {string} HTML string with the base template.
+ * @returns {object} The template.
  */
 export function baseTemplate() {
-  /**
-   * Returns the HTML string for the template.
-   *
-   * @returns {string}
-   */
-  function template() {
-    return `
-      <div data-ref="contentElement" class="${DIALOG_CLASS_NAME}__content"></div>
-    `;
-  }
 
   let fragment: DocumentFragment | null = null;
   const refs = {};
@@ -25,10 +15,13 @@ export function baseTemplate() {
   /**
    * Compiles the template.
    *
+   * @param {Document} rootDocument The document to build the nodes in.
    * @returns {object} The compiled template.
    */
-  function compile() {
-    const elements = html`${template()}`;
+  function compile(rootDocument: Document) {
+    const elements = buildTemplate(
+      { tag: 'div', ref: 'contentElement', className: `${DIALOG_CLASS_NAME}__content` }, rootDocument
+    );
 
     Object.assign(refs, elements.refs);
     fragment = elements.fragment;

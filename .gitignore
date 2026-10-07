@@ -10,13 +10,22 @@
 !.claude/agents/
 !.claude/settings.json
 .playwright-mcp
-dev*.html
-dev*.js
+# Dev pages at the repository root only. handsontable/.gitignore covers the core
+# package's root (/dev*.html, /dev*.js, and /dev*.ts); a dev page in any other
+# package shows in `git status`. Without the slash these matched at every depth and
+# kept new sources such as handsontable/src/**/dev*.js out of it. Pinned by
+# scripts/__tests__/gitignore-scope.test.mjs.
+/dev*.html
+/dev*.js
 npm-debug.log
 
 .nx/
 .parcel-cache/
+# Both spellings on purpose. The trailing slash matches directories only, so in a
+# worktree whose node_modules is a SYMLINK git would report it as untracked and
+# `git add -A` would commit a link holding an absolute machine-local path.
 node_modules/
+node_modules
 docs/tests/test-artifacts/
 docs/tests/.env
 docs/.env
@@ -36,7 +45,7 @@ docs/.env
 # QA overhaul planning scaffold — local-only, never committed. Durable rules
 # live in the committed structure (AGENTS.md, .ai/, .claude/skills/, ESLint
 # rules, hooks); decisions are recorded in ClickUp (DEV-2055).
-quality/
+/quality/
 
 # StrykerJS mutation-testing artifacts (evals — DEV-2061)
 .stryker-tmp/

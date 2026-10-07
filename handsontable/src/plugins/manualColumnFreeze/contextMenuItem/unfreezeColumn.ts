@@ -1,5 +1,8 @@
 import type { HotInstance } from '../../../core/types';
 import * as C from '../../../i18n/constants';
+import { isPluginOff } from './isPluginOff';
+import { followColumn } from './followColumn';
+import { unfreezeWouldShiftEndBand } from '../endBand';
 
 /**
  * @param {ManualColumnFreeze} manualColumnFreezePlugin The plugin instance.
@@ -16,16 +19,27 @@ export default function unfreezeColumnItem(manualColumnFreezePlugin: unknown) {
     callback(this: HotInstance, key: unknown, selected: { start: { col: number } }[]) {
       const [{ start: { col: selectedColumn } }] = selected;
 
-      (manualColumnFreezePlugin as { unfreezeColumn: Function }).unfreezeColumn(selectedColumn);
+      followColumn(this, selectedColumn, () => {
+        (manualColumnFreezePlugin as { unfreezeColumn: Function }).unfreezeColumn(selectedColumn);
+      });
 
-      this.view.adjustElementsSize();
       this.render();
+    },
+    // The menu rebuilds its items on every open, so a disabled plugin contributes none. The
+    // command executor never evicts what it registered, though, so
+    // `executeCommand('unfreeze_column')` still reaches this entry — and `execute()` gates on
+    // `disabled`, not `hidden`.
+    disabled() {
+      return isPluginOff(manualColumnFreezePlugin);
     },
     hidden(this: HotInstance) {
       const selection = this.getSelectedRange();
       let hide = false;
 
-      if (selection === undefined) {
+      if (isPluginOff(manualColumnFreezePlugin)) {
+        hide = true;
+
+      } else if (selection === undefined) {
         hide = true;
 
       } else if (selection.length > 1) {
@@ -37,6 +51,10 @@ export default function unfreezeColumnItem(manualColumnFreezePlugin: unknown) {
         const fixedColumnsStart = this.getSettings().fixedColumnsStart ?? 0;
 
         if (fromCol !== toCol || (fromCol !== null && fromCol >= fixedColumnsStart)) {
+          hide = true;
+
+        } else if (unfreezeWouldShiftEndBand(this)) {
+          // The unfrozen column would slide into the `fixedColumnsEnd` band.
           hide = true;
         }
       }

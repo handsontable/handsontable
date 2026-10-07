@@ -15,6 +15,8 @@ vue:
 |Plugin Name  | Description |
 |--|--|
 |[AutoColumnSize](@/api/autoColumnSize.md) |Automatically adjusts the column's width to the size of the content.|
+|[AutoLink](@/api/autoLink.md)| Renders the URLs found in cell values as clickable links.|
+|[AutoRowHeaderSize](@/api/autoRowHeaderSize.md)| Automatically adjusts the row header's width to the size of its longest label.|
 |[AutoRowSize](@/api/autoRowSize.md)| Automatically adjusts the row's height to the size of the content.|
 |[Autofill](@/api/autofill.md)| Drag the fill handle - a square in the bottom right corner of the cell to fill cells with the data series.|
 |[BindRowsWithHeaders](@/api/bindRowsWithHeaders.md)| Bind rows with headers to lock the row number, always displaying them side by side. Especially useful when each row has its unique ID.|
@@ -32,6 +34,7 @@ vue:
 |[Formulas](@/api/formulas.md) | Use Excel-like functions inside of cells to perform calculations.|
 |[HiddenColumns](@/api/hiddenColumns.md) | Hide specific columns. |
 |[HiddenRows](@/api/hiddenRows.md) | Hide specific rows.|
+|[ImportFile](@/api/importFile.md) | Load an Excel (`.xlsx`) workbook into the data grid, with cell types, dropdown sources, formulas, and layout derived from the file.|
 |[ManualColumnFreeze](@/api/manualColumnFreeze.md) | Pin the columns to the left to keep them visible while scrolling.|
 |[ManualColumnMove](@/api/manualColumnMove.md) | Drag a column to change its order in the data grid.|
 |[ManualColumnResize](@/api/manualColumnResize.md) | Drag the sizing handle to change the width of a column.|

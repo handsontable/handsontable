@@ -583,7 +583,11 @@ describe('NestedRows cooperation with ManualRowMove plugin', () => {
 
     $targetHeader.simulate('mouseover');
     $targetHeader.simulate('mousemove', {
-      clientY: $targetHeader.offset().top + 18
+      // Drop in the LOWER half of the target row, which is what makes the drop index the row
+      // BELOW it. Derived from the row's own height rather than a fixed 18px: horizon's rows
+      // are 37px, so a literal 18 sits half a pixel above the midpoint the plugin compares
+      // against and the drop lands on the hovered row instead.
+      clientY: $targetHeader.offset().top + $targetHeader.outerHeight() - 2
     });
 
     $targetHeader.simulate('mouseup');
@@ -713,7 +717,11 @@ describe('NestedRows cooperation with ManualRowMove plugin', () => {
 
     $targetHeader.simulate('mouseover');
     $targetHeader.simulate('mousemove', {
-      clientY: $targetHeader.offset().top + 18
+      // Drop in the LOWER half of the target row, which is what makes the drop index the row
+      // BELOW it. Derived from the row's own height rather than a fixed 18px: horizon's rows
+      // are 37px, so a literal 18 sits half a pixel above the midpoint the plugin compares
+      // against and the drop lands on the hovered row instead.
+      clientY: $targetHeader.offset().top + $targetHeader.outerHeight() - 2
     });
 
     $targetHeader.simulate('mouseup');

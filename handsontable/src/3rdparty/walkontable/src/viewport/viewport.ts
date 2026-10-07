@@ -47,6 +47,7 @@ export function createViewportDeps(ctx: EngineContext) {
     wtTable: ctx.getWtTable(),
     getTopOverlay: ctx.getTopOverlay,
     getInlineStartOverlay: ctx.getInlineStartOverlay,
+    getInlineEndOverlay: ctx.getInlineEndOverlay,
     getBottomOverlay: ctx.getBottomOverlay,
   };
 }
@@ -140,6 +141,12 @@ class Viewport {
    * @type {number}
    */
   declare columnHeaderHeight: number;
+  /**
+   * The sub-pixel part `columnHeaderHeight` rounds away. Always 0 at 100% zoom.
+   *
+   * @type {number}
+   */
+  declare columnHeaderHeightFraction: number;
   /**
    * @type {number}
    */

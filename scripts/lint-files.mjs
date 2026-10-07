@@ -9,9 +9,12 @@
  * Scope sources of truth:
  *   handsontable  tasks.json lint:eslint  → src/ test/ .config/plugin scripts/
  *   vue3          package.json lint       → src test
+ *   react-wrapper package.json lint       → src test
  *   tests         package.json lint       → e2e fixtures
+ *   visual-tests  package.json lint       → whole package; the hook takes src/ tests/ only
+ *                 (lib/ and scripts/ drive no page and carry no determinism ban)
  *   root          package.json eslint     → .github/scripts/ bin/changelog scripts/
- *   react / angular / docs — no plain-eslint script → not linted by the hook.
+ *   angular / docs — no plain-eslint script → not linted by the hook.
  *
  * Dot-directories and dotfiles are excluded even when inside a scope: ESLint
  * ignores them by default when passed as individual file paths (CI passes the
@@ -29,16 +32,39 @@ const WIN = process.platform === 'win32';
 const SCOPES = [
   /^handsontable\/(src|test|scripts)\//,
   /^wrappers\/vue3\/(src|test)\//,
+  /^wrappers\/react-wrapper\/(src|test)\//,
   /^tests\/(e2e|fixtures)\//,
+  // The visual tier's specs and fixtures share the functional tier's determinism bans
+  // (visual-tests/.eslintrc.js), so a fixed sleep before a capture is caught at commit time too.
+  /^visual-tests\/(src|tests)\//,
   /^scripts\//,
 ];
 const LINTABLE = /\.(js|ts|mjs|tsx|vue)$/;
 // Any dotfile or dot-directory segment (".eslintrc.js", ".config/…", ".github/…").
 const DOT_SEGMENT = /(^|\/)\.[^/]+(\/|$)/;
+// Paths that sit inside a scope directory but that the owning package's own
+// `.eslintignore` excludes. The hook runs ESLint from the repo root, where that
+// ignore file does not apply, so without this the hook lints a file CI never lints —
+// exactly the false block this module exists to prevent. The figma templates are
+// verbatim TS stencils outside any tsconfig project, so ESLint answers with a
+// PARSING error; that is reported as a lint error (exit 1), not as the config gap
+// (exit 2) `runEslint` tolerates, and it would block the commit.
+// Mirrors every `handsontable/.eslintignore` entry that falls inside a scope above. Entries the
+// scopes never reach (`dist/*`, `tmp/*`, `node_modules`) need no row here. `wrappers/vue3` has an
+// entry of the same shape (`src/lib/lru`) but that directory no longer exists.
+const PACKAGE_IGNORED = [
+  // "Verbatim TS stencil copied into generated theme output; not lintable source."
+  /^handsontable\/scripts\/themes\/figma\/templates\//,
+  // Vendored test libraries (jquery and friends) and built test bundles: third-party or generated
+  // code that would fail rules CI never runs on it.
+  /^handsontable\/test\/(lib|dist)\//,
+  /^handsontable\/src\/3rdparty\/autoResize\//,
+  /^handsontable\/src\/3rdparty\/walkontable\/test\/(lib|dist)\//,
+];
 
 /**
- * Keep only files the hook may lint: lintable extension, inside a CI lint scope,
- * and not under a dotfile/dot-directory path.
+ * Keep only files the hook may lint: lintable extension, inside a CI lint scope, not
+ * under a dotfile/dot-directory path, and not excluded by the owning package.
  *
  * @param {string[]} files Repo-relative paths.
  * @returns {string[]} The safe-to-lint subset (a strict subset of what CI lints).
@@ -46,6 +72,7 @@ const DOT_SEGMENT = /(^|\/)\.[^/]+(\/|$)/;
 export function lintable(files) {
   return files.filter(f => LINTABLE.test(f)
     && !DOT_SEGMENT.test(f)
+    && !PACKAGE_IGNORED.some(ignored => ignored.test(f))
     && SCOPES.some(scope => scope.test(f)));
 }
 

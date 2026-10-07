@@ -182,7 +182,7 @@ Each _parent_ row header contains a `+`/`-` button. It is used to collapse or ex
 The child row headers have a bigger indentation, to enable the user to clearly recognize the child and parent elements. In the example above, the
 `Best Metal Performance` category loads collapsed so you can see the expand/collapse controls right away.
 
-### Context Menu
+### Context menu
 
 The context menu has been extended with a few Nested Rows related options, such as:
 
@@ -359,10 +359,27 @@ const configurationOptions = {
 };
 ```
 
+One case fires no hooks: when [`updateData()`](@/api/core.md#updatedata) collapses the same parents
+again on the new data. That is not a new action, only the state the user already chose, so it stays
+silent. If you mirror the collapsed state somewhere, read it back with
+[`getCollapsedParents()`](@/api/nestedRows.md#getcollapsedparents) after `updateData()` instead of
+counting on a hook.
+
 ### Save and restore the collapsed rows
 
-The hooks carry physical indexes, which is what you want to store. To restore the state after
-replacing the data, collapse the deepest parents first: collapsing a parent hides its children, so a
+The two data methods treat the collapsed rows differently, and the difference decides whether you
+have to restore anything at all:
+
+- [`updateData()`](@/api/core.md#updatedata) **keeps** the collapsed parents. It matches them by
+  their position in the tree, so they stay collapsed even when the number of children changes. Do
+  not restore them yourself here. A saved list holds physical row indexes, and those move as soon as
+  a parent gains or loses a child, so replaying it collapses the wrong rows.
+- [`loadData()`](@/api/core.md#loaddata) **drops** them, along with every other row state.
+  [`getCollapsedParents()`](@/api/nestedRows.md#getcollapsedparents) returns an empty array
+  afterwards. Restore the state yourself if you want it back.
+
+The example below covers the `loadData()` case. The hooks carry physical indexes, which is what you
+want to store. Collapse the deepest parents first: collapsing a parent hides its children, so a
 nested parent has to be collapsed while it is still visible.
 
 ```js
@@ -405,6 +422,22 @@ When you use the parent-child row structure, the following Handsontable features
 - [Manual row moving via `moveRows()`](@/api/manualRowMove.md#moverows) - use [`dragRows()`](@/api/manualRowMove.md#dragrows) instead
 
 When the `NestedRows` plugin is enabled, the `ManualRowMove` plugin's [`moveRows()`](@/api/manualRowMove.md#moverows) method has no effect and logs a console warning. To move rows programmatically, use [`dragRows()`](@/api/manualRowMove.md#dragrows) instead.
+
+### Row header width with custom labels
+
+The `NestedRows` plugin sizes the row header column from the depth of your data, not from the text in
+the headers. It then spends part of that width on the indentation and on the collapse or expand
+button. If you pass your own labels through [`rowHeaders`](@/api/options.md#rowheaders), they can be
+cut off, and the indentation that separates parents from children gets squeezed.
+
+You have two ways to give the labels room:
+
+- Set [`rowHeaderWidth`](@/api/options.md#rowheaderwidth) to a fixed number of pixels. The plugin
+  treats the width it computes as a minimum, so a larger value of your own wins.
+- Enable the [`AutoRowHeaderSize`](@/api/autoRowHeaderSize.md) plugin by setting
+  [`autoRowHeaderSize`](@/api/options.md#autorowheadersize) to `true`. It measures the headers as they
+  are rendered, so the indentation and the button are counted, and it sizes the column to the longest
+  label.
 
 ### Keyboard shortcuts
 

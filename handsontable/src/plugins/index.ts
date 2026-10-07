@@ -1,6 +1,8 @@
+import { AutoLink } from './autoLink';
 import { AutoColumnSize } from './autoColumnSize';
 import { Autofill } from './autofill';
 import { AutoRowSize } from './autoRowSize';
+import { AutoRowHeaderSize } from './autoRowHeaderSize';
 export { BasePlugin } from './base';
 import { BindRowsWithHeaders } from './bindRowsWithHeaders';
 import { CollapsibleColumns } from './collapsibleColumns';
@@ -14,6 +16,7 @@ import { DataProvider } from './dataProvider';
 import { DragToScroll } from './dragToScroll';
 import { DropdownMenu } from './dropdownMenu';
 import { ExportFile } from './exportFile';
+import { ImportFile } from './importFile';
 import { Filters } from './filters';
 import { Formulas } from './formulas';
 import { HiddenColumns } from './hiddenColumns';
@@ -32,6 +35,7 @@ import { NestedRows } from './nestedRows';
 import { Pagination } from './pagination';
 import { Search } from './search';
 import { SelectionHandles } from './selectionHandles';
+import { SheetsBar } from './sheetsBar';
 import { StretchColumns } from './stretchColumns';
 import { TouchScroll } from './touchScroll';
 import { TrimRows } from './trimRows';
@@ -51,9 +55,11 @@ import {
  */
 declare module './registry' {
   interface PluginClassMap {
+    autoLink: typeof AutoLink;
     autoColumnSize: typeof AutoColumnSize;
     autofill: typeof Autofill;
     autoRowSize: typeof AutoRowSize;
+    autoRowHeaderSize: typeof AutoRowHeaderSize;
     bindRowsWithHeaders: typeof BindRowsWithHeaders;
     collapsibleColumns: typeof CollapsibleColumns;
     columnSorting: typeof ColumnSorting;
@@ -66,6 +72,7 @@ declare module './registry' {
     dragToScroll: typeof DragToScroll;
     dropdownMenu: typeof DropdownMenu;
     exportFile: typeof ExportFile;
+    importFile: typeof ImportFile;
     filters: typeof Filters;
     formulas: typeof Formulas;
     hiddenColumns: typeof HiddenColumns;
@@ -84,6 +91,7 @@ declare module './registry' {
     pagination: typeof Pagination;
     search: typeof Search;
     selectionHandles: typeof SelectionHandles;
+    sheetsBar: typeof SheetsBar;
     stretchColumns: typeof StretchColumns;
     touchScroll: typeof TouchScroll;
     trimRows: typeof TrimRows;
@@ -99,9 +107,11 @@ declare module './registry' {
  * Registers all available plugins.
  */
 export function registerAllPlugins() {
+  registerPlugin(AutoLink);
   registerPlugin(AutoColumnSize);
   registerPlugin(Autofill);
   registerPlugin(AutoRowSize);
+  registerPlugin(AutoRowHeaderSize);
   registerPlugin(BindRowsWithHeaders);
   registerPlugin(CollapsibleColumns);
   registerPlugin(ColumnSorting);
@@ -114,6 +124,7 @@ export function registerAllPlugins() {
   registerPlugin(DragToScroll);
   registerPlugin(DropdownMenu);
   registerPlugin(ExportFile);
+  registerPlugin(ImportFile);
   registerPlugin(Filters);
   registerPlugin(Formulas);
   registerPlugin(HiddenColumns);
@@ -132,6 +143,7 @@ export function registerAllPlugins() {
   registerPlugin(Pagination);
   registerPlugin(Search);
   registerPlugin(SelectionHandles);
+  registerPlugin(SheetsBar);
   registerPlugin(StretchColumns);
   registerPlugin(TouchScroll);
   registerPlugin(TrimRows);
@@ -143,9 +155,11 @@ export function registerAllPlugins() {
 }
 
 export {
+  AutoLink,
   AutoColumnSize,
   Autofill,
   AutoRowSize,
+  AutoRowHeaderSize,
   BindRowsWithHeaders,
   CollapsibleColumns,
   ColumnSorting,
@@ -158,6 +172,7 @@ export {
   DragToScroll,
   DropdownMenu,
   ExportFile,
+  ImportFile,
   Filters,
   Formulas,
   HiddenColumns,
@@ -176,6 +191,7 @@ export {
   Pagination,
   Search,
   SelectionHandles,
+  SheetsBar,
   StretchColumns,
   TouchScroll,
   TrimRows,

@@ -14,6 +14,7 @@ vue:
 searchCategory: Guides
 category: Cell types
 menuTag: new
+addedIn: "18.1.0"
 ---
 Display, format, sort, and filter combined date and time values by using the datetime cell type. Edit values via a native date-time picker.
 

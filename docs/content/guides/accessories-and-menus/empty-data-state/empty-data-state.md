@@ -1,6 +1,6 @@
 ---
 type: how-to
-title: Empty Data State
+title: Empty data state
 metaTitle: Empty Data State - JavaScript Data Grid | Handsontable
 description: Display empty data state overlays and provide user feedback when your data grid has no data to display using the Empty Data State plugin.
 permalink: /empty-data-state
@@ -20,6 +20,7 @@ vue:
   metaTitle: Empty Data State - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and Menus
+addedIn: "16.2.0"
 ---
 Use the `EmptyDataState` plugin to display a contextual overlay when the grid has no data or all rows are hidden by active filters.
 

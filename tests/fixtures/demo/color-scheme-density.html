@@ -47,13 +47,21 @@
     class and no `theme` option, core registers the default `main` theme through
     the engine — the "works out of the box" path the ticket asks for.
 
-    The MINIFIED `main` stylesheet is loaded on purpose. The CSS minifier
-    rewrites `light-dark()` into a pair of `--lightningcss-*` variables switched
-    by theme class name, because native `light-dark()` is newer than the browsers
-    Handsontable supports. Those declarations out-specify the ones the engine
-    generates, so a grid that merely flipped `color-scheme` would keep the light
-    colors. The manager therefore emits the resolved light or dark value for
-    every light/dark token, and this fixture is what proves it.
+    The MINIFIED `main` stylesheet is loaded on purpose: it is the sheet real
+    users load, so this is the end-to-end check that the override reaches the
+    rendered colors.
+
+    It no longer creates the lowering conflict it was written for. While the
+    compile floor sat below `light-dark()`, the minifier rewrote that function
+    into a pair of `--lightningcss-*` variables switched by theme class name, and
+    those out-specified anything the engine generated — a grid that merely
+    flipped `color-scheme` kept the light colors. At the Baseline 2024 floor the
+    minified sheet uses `light-dark()` as written, so that conflict is gone here.
+    A sheet built below the floor (18.0.0 and earlier, or a consumer's own build)
+    still carries it, which is why the manager keeps emitting the resolved light
+    or dark value for every light/dark token. The assertion that it does is in
+    `handsontable/src/themes/engine/__tests__/manager.unit.js` — deleting
+    `#buildResolvedColorVariables` fails there, not here.
 
     It is always the `main` stylesheet, never the one named by `?theme=`, because
     every grid here renders the engine-driven `main` theme. That makes every leg

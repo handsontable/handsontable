@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed undoing the removal of a nested parent row.",
+  "type": "fixed",
+  "issueOrPR": 13471,
+  "breaking": false,
+  "framework": "none"
+}

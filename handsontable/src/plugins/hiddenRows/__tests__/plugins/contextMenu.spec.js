@@ -107,7 +107,7 @@ describe('HiddenRows', () => {
           expect(actions.text()).toBe(MENU_NO_ITEMS);
         });
 
-        it('should not render context menu item for unhiding if the first visible row is selected and no row before is hidden', async() => {
+        it('should render context menu item for unhiding if the first visible row is selected and rows after it are hidden', async() => {
           handsontable({
             data: createSpreadsheetData(5, 5),
             rowHeaders: true,
@@ -126,10 +126,10 @@ describe('HiddenRows', () => {
           const items = $('.htContextMenu tbody td');
           const actions = items.not('.htSeparator');
 
-          expect(actions.text()).toBe(MENU_NO_ITEMS);
+          expect(actions.text()).toEqual(MENU_ITEM_SHOW_ROWS);
         });
 
-        it('should not render context menu item for unhiding if the last visible row is selected and no row after is hidden', async() => {
+        it('should render context menu item for unhiding if the last visible row is selected and rows before it are hidden', async() => {
           handsontable({
             data: createSpreadsheetData(5, 5),
             rowHeaders: true,
@@ -148,10 +148,10 @@ describe('HiddenRows', () => {
           const items = $('.htContextMenu tbody td');
           const actions = items.not('.htSeparator');
 
-          expect(actions.text()).toBe(MENU_NO_ITEMS);
+          expect(actions.text()).toEqual(MENU_ITEM_SHOW_ROWS);
         });
 
-        it('should not render context menu item for unhiding if selected row is not the first one and is not the last one', async() => {
+        it('should render context menu item for unhiding if a middle visible row is selected and adjacent rows are hidden', async() => {
           handsontable({
             data: createSpreadsheetData(5, 5),
             rowHeaders: true,
@@ -162,6 +162,28 @@ describe('HiddenRows', () => {
           });
 
           const header = getCell(2, -1);
+
+          await mouseDown(header);
+          await mouseUp(header);
+          await contextMenu(header);
+
+          const items = $('.htContextMenu tbody td');
+          const actions = items.not('.htSeparator');
+
+          expect(actions.text()).toEqual(MENU_ITEM_SHOW_ROWS);
+        });
+
+        it('should not render context menu item for unhiding if hidden rows exist but none are adjacent to the selected row', async() => {
+          handsontable({
+            data: createSpreadsheetData(5, 5),
+            rowHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_SHOW],
+            hiddenRows: {
+              rows: [1],
+            },
+          });
+
+          const header = getCell(3, -1);
 
           await mouseDown(header);
           await mouseUp(header);
@@ -712,6 +734,70 @@ describe('HiddenRows', () => {
             |   ║   :   |
             |   ║   :   |
           `).toBeMatchToSelectionPattern();
+        });
+
+        it('should unhide an initially hidden middle row from a single adjacent header', async() => {
+          handsontable({
+            data: createSpreadsheetData(5, 2),
+            colHeaders: true,
+            rowHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_SHOW],
+            hiddenRows: {
+              rows: [2],
+            },
+          });
+
+          expect(spec().$container.find('.ht_master tr').length).toBe(5); // + column header
+          expect(getCell(0, 0).innerText).toBe('A1');
+          expect(getCell(1, 0).innerText).toBe('A2');
+          expect(getCell(2, 0)).toBe(null);
+          expect(getCell(3, 0).innerText).toBe('A4');
+          expect(getCell(4, 0).innerText).toBe('A5');
+
+          await selectRows(1);
+          await contextMenu();
+          getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
+
+          expect(spec().$container.find('.ht_master tr').length).toBe(6); // + column header
+          expect(getCell(0, 0).innerText).toBe('A1');
+          expect(getCell(1, 0).innerText).toBe('A2');
+          expect(getCell(2, 0).innerText).toBe('A3');
+          expect(getCell(3, 0).innerText).toBe('A4');
+          expect(getCell(4, 0).innerText).toBe('A5');
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,-1 to: 3,1']);
+          expect(`
+            |   ║ - : - |
+            |===:===:===|
+            |   ║   :   |
+            | * ║ A : 0 |
+            | * ║ 0 : 0 |
+            | * ║ 0 : 0 |
+            |   ║   :   |
+          `).toBeMatchToSelectionPattern();
+        });
+
+        it('should unhide hidden rows on both sides of a selected middle row', async() => {
+          handsontable({
+            data: createSpreadsheetData(5, 2),
+            colHeaders: true,
+            rowHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_SHOW],
+            hiddenRows: {
+              rows: [1, 3],
+            },
+          });
+
+          expect(getCell(1, 0)).toBe(null);
+          expect(getCell(2, 0).innerText).toBe('A3');
+          expect(getCell(3, 0)).toBe(null);
+
+          await selectRows(2);
+          await contextMenu();
+          getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
+
+          expect(getCell(1, 0).innerText).toBe('A2');
+          expect(getCell(2, 0).innerText).toBe('A3');
+          expect(getCell(3, 0).innerText).toBe('A4');
         });
 
         it('should unhide hidden rows after the last visible and selected row', async() => {

@@ -7,9 +7,16 @@
  * the matching Handsontable example modules.
  */
 import Default from '@astrojs/starlight/components/Head.astro';
+import { AGENT_NOTE_HTML_COMMENT } from '../agent-note.mjs';
 ---
 
 <Default {...Astro.props} />
+
+{/* Invisible to readers; a pointer for AI agents that scrape the rendered HTML
+    instead of fetching the page's /docs/_md Markdown twin. set:html emits the
+    HTML comment verbatim — an Astro template comment (the syntax of this very
+    note) would be stripped at build time. */}
+<Fragment set:html={AGENT_NOTE_HTML_COMMENT} />
 
 <link rel="icon" media="(prefers-color-scheme: light)" href="/docs/img/favicon.png" />
 <link rel="icon" media="(prefers-color-scheme: dark)" href="/docs/img/favicon-dark.png" />
@@ -29,6 +36,44 @@ import Default from '@astrojs/starlight/components/Head.astro';
 </script>
 
 <script is:inline>
+  // A page cached from before a deploy asks for content-hashed _astro/ chunks that no longer
+  // exist, and Vite's preload helper fires vite:preloadError ("Unable to preload CSS for ...").
+  // Reload once per session to pick up the current build. A second failure, or no
+  // sessionStorage, lets the error through so a real outage never loops. This only mitigates
+  // stale chunks on builds that include this Head; frozen /docs/<major>.<minor>/ images never
+  // get it, and their nested wrong-base preloads (Sentry HANDSONTABLE-DOCS-22T) are fixed at
+  // assemble time by deploy/rewriteVersionedPaths.mjs.
+  //
+  // Only a CSS preload failure is suppressed. Vite fires the same event when the import()
+  // itself rejects, and cancelling that one makes the import resolve to `undefined`, so the
+  // caller crashes on `.default` before the reload lands (Sentry HANDSONTABLE-DOCS-24F,
+  // HANDSONTABLE-DOCS-24P, HANDSONTABLE-DOCS-246). Such failures still reload, but the
+  // original error reaches the caller, where the chunk-load filters drop it.
+  window.addEventListener('vite:preloadError', function (event) {
+    var reloadKey = 'hot-docs-preload-error-reload';
+    var payload = event.payload;
+    var isCssPreloadFailure = !!payload && typeof payload.message === 'string' &&
+      payload.message.indexOf('Unable to preload CSS') === 0;
+
+    try {
+      if (sessionStorage.getItem(reloadKey)) {
+        return;
+      }
+
+      sessionStorage.setItem(reloadKey, '1');
+    } catch (error) {
+      return;
+    }
+
+    if (isCssPreloadFailure) {
+      event.preventDefault();
+    }
+
+    window.location.reload();
+  });
+</script>
+
+<script is:inline>
   // Patch Starlight's table-of-contents elements to silently handle browsers without :has()
   // support (Chrome < 105, e.g. Chrome Mobile 75 on Android 6.0; Safari < 15.4). Their init
   // passes :has() to querySelectorAll, which throws a DOMException named "SyntaxError" there
@@ -44,6 +89,13 @@ import Default from '@astrojs/starlight/components/Head.astro';
     var originalDefine = customElements.define;
 
     customElements.define = function (name, constructor, options) {
+      // A second evaluation of the module that registers an element would otherwise throw a
+      // NotSupportedError ("the name has already been used with this registry", Sentry
+      // HANDSONTABLE-DOCS-22D). The first definition stays in place, so skip the repeat.
+      if (customElements.get(name)) {
+        return undefined;
+      }
+
       if (guardedTags.indexOf(name) === -1 || typeof constructor !== 'function') {
         return originalDefine.call(customElements, name, constructor, options);
       }
@@ -77,6 +129,99 @@ import Default from '@astrojs/starlight/components/Head.astro';
   })();
 </script>
 
+<script is:inline>
+  // Third-party marketing scripts inject utility iframes with no accessible name, so axe and
+  // Lighthouse flag them (frame-title) and screen readers announce an empty frame (DEV-63).
+  // Give each iframe a title once it appears. The Visual Website Optimizer communication proxy
+  // carries no content and is never displayed, so also remove it from the accessibility tree
+  // and the tab order. Headway's #HW_frame is the changelog panel, which is real UI when shown,
+  // so it gets a title only - never aria-hidden, which would hide a working feature.
+  //
+  // Both iframes are injected asynchronously - Headway through a deferred CDN script, VWO through
+  // a tag inside the externally managed Google Tag Manager container - so a one-shot lookup at
+  // head-parse time would race the injection. A MutationObserver catches each iframe whenever it
+  // lands, and disconnects once every target has been patched.
+  (function () {
+    var TARGETS = [
+      { id: 'HW_frame', title: 'Product updates', removeFromA11yTree: false },
+      { id: '_vwo_communication_proxy', title: 'A/B testing communication frame', removeFromA11yTree: true },
+    ];
+
+    var pending = TARGETS.slice();
+    var observer;
+    var deadline;
+
+    function stop() {
+      clearTimeout(deadline);
+
+      if (observer) {
+        observer.disconnect();
+        observer = null;
+      }
+    }
+
+    function patch() {
+      pending = pending.filter(function (target) {
+        var iframe = document.getElementById(target.id);
+
+        if (!iframe) {
+          return true;
+        }
+
+        if (!iframe.getAttribute('title')) {
+          iframe.setAttribute('title', target.title);
+        }
+
+        if (target.removeFromA11yTree) {
+          iframe.setAttribute('aria-hidden', 'true');
+          iframe.setAttribute('tabindex', '-1');
+        }
+
+        return false;
+      });
+
+      if (pending.length === 0) {
+        stop();
+      }
+    }
+
+    function arm() {
+      if (pending.length === 0) {
+        return;
+      }
+
+      patch();
+
+      if (pending.length === 0) {
+        return;
+      }
+
+      if (!observer) {
+        observer = new MutationObserver(patch);
+      }
+
+      observer.observe(document.documentElement, { childList: true, subtree: true });
+
+      // Bound the observer's lifetime. A childList+subtree observer left live for the page's
+      // lifetime queues a MutationRecord for every DOM change (example-runner injection, island
+      // hydration, grids re-rendering on scroll), and a target may never appear at all - an ad
+      // blocker kills the scripts, and #_vwo_communication_proxy never appears off production.
+      // Third-party injection lands within a few seconds of its trigger.
+      clearTimeout(deadline);
+      deadline = setTimeout(stop, 15000);
+    }
+
+    arm();
+
+    // The VWO tag inside Google Tag Manager fires only after analytics consent, and its proxy
+    // iframe injects asynchronously after that - which can be well past the initial deadline for
+    // a reader who lingers in the Cookiebot banner. Cookiebot dispatches CookiebotOnAccept on the
+    // consent click and again on every later load once consent is stored, so re-arm the watcher
+    // there rather than widen the deadline. The listener is inert where Cookiebot is absent.
+    window.addEventListener('CookiebotOnAccept', arm);
+  })();
+</script>
+
 <script>
   import Handsontable from 'handsontable/base';
 
@@ -94,6 +239,10 @@ import Default from '@astrojs/starlight/components/Head.astro';
 
 <script>
   import '../scripts/version-comparison-bootstrap';
+</script>
+
+<script>
+  import '../scripts/option-levels';
 </script>
 
 <script>

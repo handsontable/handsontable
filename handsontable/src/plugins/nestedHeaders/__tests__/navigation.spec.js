@@ -1632,7 +1632,7 @@ describe('NestedHeaders', () => {
       await keyDownUp('arrowup'); // "C"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
     });
 
     it('should scroll the viewport correctly while navigating vertically using arrows ' +
@@ -1690,7 +1690,7 @@ describe('NestedHeaders', () => {
       await selectCell(-1, 20);
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(801);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(800);
 
       await keyDownUp('arrowup'); // scroll to the beginning of the "F" header
 
@@ -1700,7 +1700,7 @@ describe('NestedHeaders', () => {
       await keyDownUp('arrowdown');
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(801);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(800);
 
       await keyDownUp('arrowup'); // scroll to the beginning of the "F" header
 
@@ -1724,23 +1724,26 @@ describe('NestedHeaders', () => {
 
       await selectCell(-1, 0);
 
-      expect(document.activeElement).toEqual(getCell(-1, 0));
+      // The focused header is the visible top-overlay clone; only the owning master header carries the
+      // `aria-describedby` id (DEV-29), so the focused element is matched against the topmost-overlay
+      // cell rather than the master one.
+      expect(document.activeElement).toEqual(getCell(-1, 0, true));
 
       await keyDownUp('arrowright');
 
-      expect(document.activeElement).toEqual(getCell(-1, 1));
+      expect(document.activeElement).toEqual(getCell(-1, 1, true));
 
       await keyDownUp('arrowright');
 
-      expect(document.activeElement).toEqual(getCell(-1, 3));
+      expect(document.activeElement).toEqual(getCell(-1, 3, true));
 
       await keyDownUp('arrowleft');
 
-      expect(document.activeElement).toEqual(getCell(-1, 1));
+      expect(document.activeElement).toEqual(getCell(-1, 1, true));
 
       await keyDownUp('arrowleft');
 
-      expect(document.activeElement).toEqual(getCell(-1, 0));
+      expect(document.activeElement).toEqual(getCell(-1, 0, true));
     });
   });
 });

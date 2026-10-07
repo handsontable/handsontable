@@ -14,4 +14,7 @@ export const DropdownCellType = {
   valueGetter,
   valueSetter,
   parsePastedValue: true,
+  // See `autocompleteType.ts`: one-line-with-ellipsis by default (DEV-28), overridable per column
+  // with `textEllipsis: false`.
+  textEllipsis: true,
 };

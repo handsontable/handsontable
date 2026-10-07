@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Manual resize vs size option e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+</head>
+<body>
+  <!--
+    Issue #4371. After a row is resized by dragging, the height is kept in an index map that the
+    `rowHeights` option cannot reach, because `ManualRowResize` overrides the option from the
+    `modifyRowHeight` hook. A later `updateSettings({ rowHeights })` then moved every row EXCEPT the
+    dragged one, which is what the reporter saw as "sometimes it does not work".
+
+    Passing the size option now re-declares the sizes and discards the stored ones. The same applies
+    to `colWidths` and `ManualColumnResize`, which is the twin plugin.
+
+    All of this is geometry driven by a pointer drag, so none of it can be checked in jsdom.
+  -->
+  <h2>Rows</h2>
+  <div id="rows" data-testid="rows"></div>
+
+  <h2>Columns</h2>
+  <div id="cols" data-testid="cols"></div>
+
+  <!--
+    A grid built with `manualRowResize` as an array. The array states the manual heights, and the
+    plugin replays it whenever its index map initializes, so re-declaring `rowHeights` must leave it
+    alone - clearing it would leave the stored heights and the option disagreeing until the next
+    replay put them back.
+  -->
+  <h2>Rows, built with a manualRowResize array</h2>
+  <div id="rows-array" data-testid="rows-array"></div>
+
+  <!--
+    `manualRowResize: []` is a normal way to spell "enabled, no presets". It presets nothing, so it
+    must not stop `rowHeights` from discarding the dragged heights the way a real array does.
+  -->
+  <h2>Rows, built with an empty manualRowResize array</h2>
+  <div id="rows-empty-array" data-testid="rows-empty-array"></div>
+
+  <!--
+    With AutoRowSize on, `#onModifyRowHeight` takes `Math.max(stored, incoming)`, so a taller
+    `rowHeights` overrides a dragged height with no re-declaration at all. That different branch is
+    the premise the whole fix rests on, so it is pinned here.
+  -->
+  <h2>Rows, with AutoRowSize</h2>
+  <div id="rows-auto" data-testid="rows-auto"></div>
+
+  <!-- The column twin of the array grid. The logic is duplicated in `manualColumnResize.ts`. -->
+  <h2>Columns, built with a manualColumnResize array</h2>
+  <div id="cols-array" data-testid="cols-array"></div>
+
+  <!-- The column twin of the empty-array grid. -->
+  <h2>Columns, built with an empty manualColumnResize array</h2>
+  <div id="cols-empty-array" data-testid="cols-empty-array"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    /**
+     * Builds one grid.
+     *
+     * @param {string} testId The container's test id.
+     * @param {object} settings The settings under test.
+     * @returns {Handsontable} The grid instance.
+     */
+    function buildGrid(testId, settings) {
+      const container = document.querySelector(`[data-testid="${testId}"]`);
+
+      container.className = `ht-theme-${window.htTheme}`;
+
+      return new Handsontable(container, Object.assign({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        width: 600,
+        height: 500,
+        licenseKey: 'non-commercial-and-evaluation',
+      }, settings));
+    }
+
+    // Well above every theme's default row height, so it cannot be confused with a fallback.
+    window.ARRAY_HEIGHT = 90;
+    window.ARRAY_WIDTH = 90;
+
+    window.grids = {
+      rows: buildGrid('rows', { manualRowResize: true }),
+      cols: buildGrid('cols', { manualColumnResize: true }),
+      rowsArray: buildGrid('rows-array', {
+        manualRowResize: new Array(5).fill(window.ARRAY_HEIGHT),
+      }),
+      rowsEmptyArray: buildGrid('rows-empty-array', { manualRowResize: [] }),
+      rowsAuto: buildGrid('rows-auto', { manualRowResize: true, autoRowSize: true }),
+      colsArray: buildGrid('cols-array', {
+        manualColumnResize: new Array(5).fill(window.ARRAY_WIDTH),
+      }),
+      colsEmptyArray: buildGrid('cols-empty-array', { manualColumnResize: [] }),
+    };
+
+    /**
+     * Applies settings to one grid.
+     *
+     * @param {string} name The grid's key in `window.grids`.
+     * @param {object} settings The settings to apply.
+     */
+    window.applySettings = function(name, settings) {
+      window.grids[name].updateSettings(settings);
+    };
+
+    /**
+     * Calls a method on one grid's resize plugin and repaints, the way the guides tell users to.
+     *
+     * @param {string} name The grid's key in `window.grids`.
+     * @param {string} plugin The plugin name.
+     * @param {string} method The method to call.
+     * @param {Array} args The arguments to pass.
+     */
+    window.callPluginMethod = function(name, plugin, method, args) {
+      const grid = window.grids[name];
+
+      grid.getPlugin(plugin)[method](...args);
+      grid.render();
+    };
+  </script>
+</body>
+</html>

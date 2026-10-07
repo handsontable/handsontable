@@ -419,7 +419,7 @@ For more information about this release, see:
 - Deprecated **moment.js** for date parsing and display. Replace it with the `Intl.DateTimeFormat` API. [Migration guide](https://handsontable.com/docs/javascript-data-grid/migration-from-16.2-to-17.0#_4-migrate-from-moment-js-format-to-intl-datetimeformat)
 - Deprecated **DOMPurify** as a built-in XSS sanitizer. Use the new `sanitizer` option or convert content to plain text. [Migration guide](https://handsontable.com/docs/javascript-data-grid/migration-from-16.2-to-17.0#_5-migrate-from-built-in-dompurify-to-the-sanitizer-option)
 - Deprecated **core-js** polyfills for ECMAScript features. [Migration guide](https://handsontable.com/docs/javascript-data-grid/migration-from-16.2-to-17.0#_6-core-js-dependency-removed)
-- Deprecated bundling **HyperFormula** as a Handsontable dependency. Starting from version 18.0, install and import it separately, then pass it to the Formulas plugin with `licenseKey: 'internal-use-in-handsontable'`. [Formula calculation](https://handsontable.com/docs/javascript-data-grid/formula-calculation)
+- Deprecated bundling **HyperFormula** as a Handsontable dependency. Starting from version 18.0, install and import it separately, then pass it to the Formulas plugin with `formulas: { engine: HyperFormula }`. [Formula calculation](https://handsontable.com/docs/javascript-data-grid/formula-calculation)
 
 #### Removed
 - **Breaking change**: Removed deprecated wrapper packages for Angular, React, and Vue, the `PersistentState` plugin, and the legacy undo/redo methods. [#12015](https://github.com/handsontable/handsontable/pull/12015)
@@ -1921,7 +1921,7 @@ For more information on this release, see:
 
 - Fixed an issue where the validator function was called twice when the `Formulas` plugin was
   enabled. ([#8138](https://github.com/handsontable/handsontable/issues/8138))
-- Introduced a new CSS style for cells of the `checkbox` type to restore previous behaviour.
+- Introduced a new CSS style for cells of the `checkbox` type to restore previous behavior.
   ([#8196](https://github.com/handsontable/handsontable/issues/8196))
 
 ## 9.0.0
@@ -1987,7 +1987,7 @@ For more information on this release, see:
 
 - Introduced a `separated` attribute for the label options (the `label` DOM element may wrap `input`
   or be placed next to it). ([#3172](https://github.com/handsontable/handsontable/issues/3172))
-- Introduced the `modifyAutoColumnSizeSeed` hook to let developers overwrite the default behaviour
+- Introduced the `modifyAutoColumnSizeSeed` hook to let developers overwrite the default behavior
   of the AutoColumnSize sampling.
   ([#3339](https://github.com/handsontable/handsontable/issues/3339))
 - Added support for hiding columns for the `NestedHeaders` plugin.
@@ -2412,7 +2412,7 @@ methods and hooks were added and there are few depreciations and removals, too.
   `boolean`. [#6547](https://github.com/handsontable/handsontable/pull/6547)
 - Added additional information available in the cell meta object - the language.
   [#6254](https://github.com/handsontable/handsontable/pull/6254).
-- Added a possibility to allow cancelling of `autofill` in the `beforeAutofill` hook.
+- Added a possibility to allow canceling of `autofill` in the `beforeAutofill` hook.
   [#4441](https://github.com/handsontable/handsontable/issues/4441)
 - Added support for newer versions of moment, numbro and pikaday.
   [#5159](https://github.com/handsontable/handsontable/issues/5159)

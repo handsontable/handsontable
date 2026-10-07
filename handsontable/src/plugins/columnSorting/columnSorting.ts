@@ -7,22 +7,27 @@ import {
   setAttribute,
 } from '../../helpers/dom/element';
 import { isUndefined, isDefined } from '../../helpers/mixed';
-import { isObject, isPlainObject } from '../../helpers/object';
+import { hasOwnProperty, isObject, isPlainObject } from '../../helpers/object';
 import { isFunction } from '../../helpers/function';
+import { isUnsignedNumber } from '../../helpers/number';
 import { arrayMap } from '../../helpers/array';
 import { BasePlugin } from '../base';
 import type { IndexesSequence, PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import { Hooks } from '../../core/hooks';
 import { ColumnStatesManager } from './columnStatesManager';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
+import { createTrackedIconSync } from '../../themes/engine/icons';
 import {
   HEADER_SPAN_CLASS,
+  ASC_SORT_STATE,
+  DESC_SORT_STATE,
   getNextSortOrder,
   areValidSortStates,
   getHeaderSpanElement,
   isFirstLevelColumnHeader,
   wasHeaderClickedProperly,
   warnAboutPluginsConflict,
+  warnAboutPerColumnSortFixedRows,
 } from './utils';
 import {
   HEADER_ACTION_CLASS,
@@ -31,9 +36,27 @@ import {
   getClassesToRemove,
   getClassesToAdd
 } from './domHelpers';
-import { rootComparator } from './rootComparator';
-import { registerRootComparator, sort } from './sortService';
+import { positionComparator, rootComparator } from './rootComparator';
+import {
+  getBuiltInPositionComparator,
+  markBuiltInRootComparator,
+  registerRootComparator,
+  sort,
+} from './sortService';
+import type { PositionComparatorFactory } from './sortService';
+import type { HotInstance } from '../../core/types';
 import { A11Y_SORT } from '../../helpers/a11y';
+
+/**
+ * `HotInstance` augmented with the internal `_getDataAtColumnForRows` method. The method exists on the
+ * Core runtime object but is intentionally NOT part of the public `HotInstance` type, so it is not
+ * exposed to third-party code (it is the bulk form of `getDataAtCell()` the sort gather loop reads
+ * through, and an implementation detail of how that loop resolves the column coordinates once). The
+ * sorting plugins are internal consumers and reach it through this local type.
+ */
+type HotInstanceInternal = HotInstance & {
+  _getDataAtColumnForRows(column: number, physicalRows: (number | null)[]): unknown[];
+};
 
 export interface ColumnSortingConfig {
   column: number;
@@ -54,14 +77,30 @@ export const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
 export const REPLACE_COLUMN_CONFIG_STRATEGY = 'replace';
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 /**
+ * Default for the `sortFixedRows` option: rows pinned by `fixedRowsTop` or `fixedRowsBottom` stay
+ * where they are and take no part in the sort.
+ *
+ * Flipping this to `true` is a breaking change - it un-pins those rows for every grid that does
+ * not set the option, and it re-corrupts absolute-address formulas in footer rows (#12627).
+ */
+const SORT_FIXED_ROWS_DEFAULT = false;
+/**
  * Marks the header container of a column that is showing a sort indicator. The indicator is
  * positioned against that container, so the room it needs is reserved there rather than as padding
  * on the label - padding on the label would enlarge the area that sorts on click, which is exactly
  * what it must not do. A class rather than a `:has()` selector, which is banned in this package.
  */
 const CONTAINER_WITH_INDICATOR_CLASS = 'has-sort-indicator';
+/**
+ * The `syncIcon()` slot class for the sort-direction arrow. Keeps exactly one icon element inside
+ * the header container across renders - created when the column becomes sorted, kept
+ * across re-renders while the direction is unchanged, replaced when the direction flips, and
+ * removed when the column is not showing an indicator.
+ */
+const SORT_INDICATOR_SLOT_CLASS = 'ht-sort-indicator';
 
 registerRootComparator(PLUGIN_KEY, rootComparator);
+markBuiltInRootComparator(rootComparator, positionComparator);
 
 /**
  * A press on a sortable column header, waiting to be resolved on mouse up.
@@ -120,6 +159,7 @@ const pluginConflictsState = new WeakMap();
  *   sortEmptyCells: true, // true = the table sorts empty cells, false = the table moves all empty cells to the end of the table (by default)
  *   indicator: true, // true = shows indicator for all columns (by default), false = don't show indicator for columns
  *   headerAction: true, // true = allow to click on the headers to sort (by default), false = turn off possibility to click on the headers to sort
+ *   sortFixedRows: false, // false = rows pinned by `fixedRowsTop` and `fixedRowsBottom` keep their place (by default), true = the whole dataset is sorted, pinned rows included
  *   compareFunctionFactory: function(sortOrder, columnMeta) {
  *     return function(value, nextValue) {
  *       // Some value comparisons which will return -1, 0 or 1...
@@ -176,6 +216,14 @@ export class ColumnSorting extends BasePlugin {
    * Sort queued by a header press, applied on mouse up unless the press became a column drag.
    */
   #pendingHeaderSort: HeaderSortPress | null = null;
+  /**
+   * `syncIcon()` for the sort arrow, remembering which headers ever got one. The header hook clears
+   * the slot on every unsorted column, so a header that never held an arrow skips the subtree
+   * query.
+   *
+   * @type {Function}
+   */
+  #syncIcon = createTrackedIconSync();
   /**
    * Main settings key designed for the plugin.
    *
@@ -278,6 +326,12 @@ export class ColumnSorting extends BasePlugin {
 
       this.updateHeaderClasses(headerSpanElement);
       this.#syncIndicatorReserve(headerSpanElement);
+
+      const container = headerSpanElement.parentElement;
+
+      if (container) {
+        this.#syncIcon(this.hot, container, SORT_INDICATOR_SLOT_CLASS, null);
+      }
     };
 
     pluginConflictsState.delete(this.hot);
@@ -378,10 +432,24 @@ export class ColumnSorting extends BasePlugin {
    * @fires Hooks#afterColumnSort
    */
   sort(sortConfig?: SortConfig | SortConfig[]): void {
+    this.runOperation('col_sort', () => this.#sort(sortConfig));
+  }
+
+  /**
+   * The body of `sort()`, run inside its operation.
+   *
+   * @param {undefined|object|Array} sortConfig Single column sort configuration or full sort configuration.
+   */
+  #sort(sortConfig?: SortConfig | SortConfig[]): void {
     const currentSortConfig = this.columnStatesManager!.getSortStates();
 
     // We always pass configs defined as an array to `beforeColumnSort` and `afterColumnSort` hooks.
     const destinationSortConfigs = this.getNormalizedSortConfigs(sortConfig);
+
+    this.hot._getOperationScope().describe({
+      previousSortState: currentSortConfig,
+      nextSortState: destinationSortConfigs,
+    });
 
     const sortPossible = this.areValidSortConfigs(destinationSortConfigs);
     const allowSort = this.hot.runHooks('beforeColumnSort', currentSortConfig, destinationSortConfigs, sortPossible);
@@ -603,6 +671,12 @@ export class ColumnSorting extends BasePlugin {
       const pluginColumnConfig = columnConfig[this.pluginKey];
 
       if (isObject(pluginColumnConfig)) {
+        // Every per-column config passes through here, for both the array and the function form of
+        // `columns`, so this is the one place that can see `sortFixedRows` written where it is ignored.
+        if (hasOwnProperty(pluginColumnConfig as object, 'sortFixedRows')) {
+          warnAboutPerColumnSortFixedRows(this.hot.rootElement, this.pluginKey);
+        }
+
         return pluginColumnConfig;
       }
     }
@@ -656,7 +730,53 @@ export class ColumnSorting extends BasePlugin {
   }
 
   /**
+   * Whether the rows pinned in the top and bottom overlays take part in the sort.
+   *
+   * Read straight from the grid-level plugin settings on every sort, the same way `fixedRowsTop`
+   * and `fixedRowsBottom` themselves are, so `updateSettings` needs no extra wiring. It is
+   * deliberately NOT one of the `inheritedColumnProperties` in `columnStatesManager.ts`: the two
+   * `fixedRows*` options pin rows for the whole table, so a per-column answer would be
+   * meaningless - two columns could not disagree about which rows are in range.
+   *
+   * @returns {boolean} `true` when the pinned rows are inside the sortable range.
+   */
+  #sortsFixedRows() {
+    const pluginSettings = (this.hot.getSettings() as Record<string, unknown>)[this.pluginKey];
+
+    // The option can be set to `true` rather than to an object, which enables the plugin with its
+    // defaults and carries no sub-options at all.
+    if (!isPlainObject(pluginSettings)) {
+      return SORT_FIXED_ROWS_DEFAULT;
+    }
+
+    // `Boolean` keeps the return type honest to the JSDoc: the settings object is user input, so the
+    // property can hold anything, and the callers use the result to zero a row count.
+    return Boolean(
+      (pluginSettings as { sortFixedRows?: boolean }).sortFixedRows ?? SORT_FIXED_ROWS_DEFAULT
+    );
+  }
+
+  /**
+   * The first visual row that takes part in the sort.
+   *
+   * `fixedRowsTop` holds the top overlay's rows above it, unless `sortFixedRows` opts them back in.
+   *
+   * @returns {number}
+   */
+  #getSortableRowStart() {
+    return this.#sortsFixedRows() ? 0 : (this.hot.getSettings().fixedRowsTop || 0);
+  }
+
+  /**
    * Get number of rows which should be sorted.
+   *
+   * This is the sortable band's exclusive upper bound, not a count - the lower bound comes from
+   * `#getSortableRowStart()`. `sortByPresetSortStates()` reads it through `this`, so a subclass that
+   * overrides this method decides where the sort stops. Two things keep rows below it: the
+   * `fixedRowsBottom` rows, which keeps a footer row's SUM over absolute addresses from being
+   * permuted into the data (unless `sortFixedRows` opts them back in), and the trailing spare rows.
+   * Those two bands overlap, so the exclusion is `Math.max(spareRows, fixedRowsBottom)`, not the
+   * sum of the two (DEV-2881).
    *
    * @private
    * @param {number} numberOfRows Total number of displayed rows.
@@ -664,16 +784,45 @@ export class ColumnSorting extends BasePlugin {
    */
   getNumberOfRowsToSort(numberOfRows: number) {
     const settings = this.hot.getSettings();
-    const fixedRowsBottom = settings.fixedRowsBottom || 0;
+    // `sortFixedRows: true` opts back into sorting the whole dataset, pinned rows included, so the
+    // bottom overlay reserves nothing from the sortable range.
+    const fixedRowsBottom = this.#sortsFixedRows() ? 0 : (settings.fixedRowsBottom || 0);
+    const minSpareRows = settings.minSpareRows ?? 0;
+    // The spare rows are COUNTED, never assumed from the option. `minSpareRows` says how many
+    // trailing empty rows the Core tops the grid up to, not how many are on screen right now:
+    // a filter trims an empty spare row away like any other non-matching row, and nothing
+    // re-creates it while the filter is on. Subtracting the option there pinned the last N real
+    // data rows below the sortable range and left them unsorted (#5983). Counting also caps the
+    // other direction - trailing empty rows beyond `minSpareRows` are ordinary data and stay in
+    // the sort.
+    //
+    // The count stops at `minSpareRows` rather than going through `countEmptyRows(true)`, whose
+    // walk is uncapped: verifying that a row is empty reads every column of it, and this runs on
+    // every sort, so a grid with a large block of trailing empty rows (`minRows`, or a dataset
+    // that simply ends blank) would pay for rows the cap then discards. `adjustRowsAndCols()`
+    // caps its `minSpareCols` count the same way, for the same reason.
+    //
+    // Count trailing empties whenever `minSpareRows` is positive, including when
+    // `maxRows` already equals `countRows()`. Spare rows that filled the cap still
+    // occupy the trailing visual rows and must stay out of the sort. The walk is
+    // capped at `minSpareRows`, so the extra cost is at most `minSpareRows` ×
+    // countCols() cell reads per sort.
+    let spareRows = 0;
 
-    // `maxRows` option doesn't take into account `minSpareRows` option in this case.
-    // `fixedRowsBottom` is excluded from the sort range so footer rows (e.g. SUM formulas)
-    // stay pinned and keep their absolute-address references intact.
-    if ((settings.maxRows ?? Infinity) <= numberOfRows) {
-      return Math.max(0, (settings.maxRows ?? 0) - fixedRowsBottom);
+    if (minSpareRows > 0) {
+      for (let row = numberOfRows - 1; row >= 0 && spareRows < minSpareRows; row--) {
+        if (!this.hot.isEmptyRow(row)) {
+          break;
+        }
+
+        spareRows += 1;
+      }
     }
 
-    return Math.max(0, numberOfRows - (settings.minSpareRows ?? 0) - fixedRowsBottom);
+    // Spare rows are appended at the end of the data, so they sit inside the band
+    // `fixedRowsBottom` already reserves. Subtracting both independently dropped one real
+    // data row per overlapping row (DEV-2881).
+    return Math.max(0, numberOfRows - Math.max(spareRows, fixedRowsBottom));
   }
 
   /**
@@ -689,20 +838,179 @@ export class ColumnSorting extends BasePlugin {
       return;
     }
 
-    const indexesWithData: [number, ...unknown[]][] = [];
-    const numberOfRows = this.hot.countRows();
-    const settings = this.hot.getSettings();
-    const fixedRowsTop = settings.fixedRowsTop || 0;
-    const upperBound = this.getNumberOfRowsToSort(numberOfRows);
+    const from = this.#getSortableRowStart();
+    // Through `this`, never inlined: a subclass that overrides `getNumberOfRowsToSort()` owns the
+    // upper bound.
+    const to = this.getNumberOfRowsToSort(this.hot.countRows());
+    // Re-resolved on every sort run, and by function identity: `staticRegister.register()` replaces
+    // silently, so a custom root comparator registered under this plugin's own key must send the
+    // sort down the tuple path. A key whitelist would take the fast path and never call it.
+    const positionComparatorFactory = getBuiltInPositionComparator(this.pluginKey);
 
-    const getDataForSortedColumns = (visualRowIndex: number) =>
-      arrayMap(sortConfigs, (sortConfig: SortConfig) => this.hot.getDataAtCell(visualRowIndex, sortConfig.column));
+    const { indexesBefore, indexesAfter, highestPhysicalIndex } = positionComparatorFactory === undefined ?
+      this.#sortRowTuples(sortConfigs, from, to) :
+      this.#sortRowPositions(sortConfigs, from, to, positionComparatorFactory);
 
-    for (let visualRowIndex = fixedRowsTop; visualRowIndex < upperBound; visualRowIndex += 1) {
-      indexesWithData.push([this.hot.toPhysicalRow(visualRowIndex), ...getDataForSortedColumns(visualRowIndex)]);
+    const currentIndexesSequence = this.hot.rowIndexMapper.getIndexesSequence();
+    // Physical indexes are dense integers, so the before-to-after remap is an array lookup rather
+    // than a hash lookup. The table is indexed BY physical index, and every index it is written at
+    // comes from the band, so covering the highest physical index the band holds covers all of
+    // them. `countRows()` would not: it is `getNotTrimmedIndexesLength()` clamped by `maxRows`, so
+    // under `filters`, `trimRows` or a plain `maxRows` the band's physical indexes reach past it, a
+    // typed-array write past the end is discarded with no error, and those rows silently keep their
+    // pre-sort place. The sequence length is no better - `setIndexesSequence()` is public and
+    // accepts an index above the sequence length.
+    const indexMapping = new Int32Array(highestPhysicalIndex + 1).fill(-1);
+
+    // Only the sorted band is mapped. The rows outside it keep their place because they never
+    // enter `indexMapping`, so nothing has to be appended here.
+    for (let i = 0; i < indexesBefore.length; i += 1) {
+      const indexBefore = indexesBefore[i];
+      const indexAfter = indexesAfter[i];
+
+      // A widening `getNumberOfRowsToSort()` override puts a visual index past the mapper's reach in
+      // the band and `toPhysicalRow()` answers `null` for it. A typed array coerces that `null` to
+      // `0`, which would remap the row onto physical row 0 and duplicate it; the `Map` this replaced
+      // fell through to the row's own index instead. Skipping the pair reproduces that.
+      if (isUnsignedNumber(indexBefore) && isUnsignedNumber(indexAfter)) {
+        indexMapping[indexBefore] = indexAfter;
+      }
     }
 
-    const indexesBefore = arrayMap(indexesWithData, (indexWithData: [number, ...unknown[]]) => indexWithData[0]);
+    // Grown by ascending assignment from an empty literal, the way `arrayMap()` builds its result:
+    // a preallocated `new Array(n)` stays holey in V8 even once every slot is written, and
+    // `IndexesSequence.setValues()` slices the array it is handed, so the mapper's caches would read
+    // a holey array on every sort.
+    const newIndexesSequence: number[] = [];
+
+    for (let i = 0; i < currentIndexesSequence.length; i += 1) {
+      const physicalIndex = currentIndexesSequence[i];
+      const mappedIndex = indexMapping[physicalIndex];
+
+      // `-1` marks an index the sort never touched, and a read past the table's end gives
+      // `undefined`; both fail `>= 0`, so the row keeps its own index. A sentinel rather than an
+      // offset encoding, because a physical index is never negative and cannot collide with it.
+      newIndexesSequence[i] = mappedIndex >= 0 ? mappedIndex : physicalIndex;
+    }
+
+    // A plain `number[]`, never the typed array - `IndexesSequence.setValues()` stores whatever
+    // array type it is handed.
+    this.hot.rowIndexMapper.setIndexesSequence(newIndexesSequence);
+  }
+
+  /**
+   * Reads the sortable band: its physical rows in visual order, one value array per sorted column,
+   * and the highest physical index it holds. Both sort paths start from this.
+   *
+   * @param {Array} sortConfigs Sort configuration for all sorted columns.
+   * @param {number} from The first visual row of the sortable band.
+   * @param {number} to The sortable band's exclusive upper bound.
+   * @returns {{ physicalRows: number[], columnValues: unknown[][], highestPhysicalIndex: number }}
+   */
+  #gatherBand(sortConfigs: SortConfig[], from: number, to: number) {
+    // A plain array, never an `Int32Array`: `getNumberOfRowsToSort()` is an overridable seam, and a
+    // widening override makes `toPhysicalRow()` return `null`, which a typed array would store as
+    // the real physical row 0.
+    const physicalRows: number[] = [];
+    // The highest physical index is tracked in the gather pass: it sizes the remap table in the
+    // caller and costs nothing extra here.
+    let highestPhysicalIndex = -1;
+
+    for (let visualRowIndex = from; visualRowIndex < to; visualRowIndex += 1) {
+      const physicalIndex = this.hot.toPhysicalRow(visualRowIndex);
+
+      physicalRows.push(physicalIndex);
+
+      // Guarded where the value is first read: `toPhysicalRow()` answers `null` for a visual index
+      // the mapper does not reach, and `null > -1` is `true`, so an unguarded comparison would make
+      // `highestPhysicalIndex` itself `null` and size the remap table at 1.
+      if (isUnsignedNumber(physicalIndex) && physicalIndex > highestPhysicalIndex) {
+        highestPhysicalIndex = physicalIndex;
+      }
+    }
+
+    // One resolved read per sorted column instead of a full `getDataAtCell()` round trip per cell.
+    // The column property, the physical column and the hook answers are constant across the band, so
+    // the accessor resolves them once; it falls back to the per-cell path, value for value, whenever
+    // anything on the read path could transform a value. The physical rows the loop above computed
+    // are handed over rather than translated a second time inside every read.
+    const columnValues: unknown[][] = arrayMap(
+      sortConfigs,
+      (sortConfig: SortConfig) =>
+        (this.hot as HotInstanceInternal)._getDataAtColumnForRows(sortConfig.column, physicalRows)
+    );
+
+    return { physicalRows, columnValues, highestPhysicalIndex };
+  }
+
+  /**
+   * Sorts the band by sorting a plain array of positions against one value array per sorted column.
+   *
+   * No per-row object is built: `#gatherBand()` fills one physical-row array and `k` value arrays,
+   * and the sort moves small integers instead of array pointers. `Array.prototype.sort` is stable
+   * and the comparator is a pure function of the gathered values, so tied rows keep the order the
+   * gather gave them - the same order the tuple path produces.
+   *
+   * @param {Array} sortConfigs Sort configuration for all sorted columns.
+   * @param {number} from The first visual row of the sortable band.
+   * @param {number} to The sortable band's exclusive upper bound.
+   * @param {Function} positionComparatorFactory Builds the comparator over the parallel value arrays.
+   * @returns {{ indexesBefore: number[], indexesAfter: number[], highestPhysicalIndex: number }} The
+   *   band's pre-sort and post-sort physical indexes, and the highest one it holds - which is what
+   *   sizes the caller's remap table.
+   */
+  #sortRowPositions(
+    sortConfigs: SortConfig[], from: number, to: number, positionComparatorFactory: PositionComparatorFactory
+  ) {
+    // The gather is already columnar - the shape the position comparator wants - so no per-row
+    // transposition is needed.
+    const { physicalRows, columnValues, highestPhysicalIndex } = this.#gatherBand(sortConfigs, from, to);
+    const positions: number[] = [];
+
+    for (let position = 0; position < physicalRows.length; position += 1) {
+      positions.push(position);
+    }
+
+    positions.sort(positionComparatorFactory(
+      arrayMap(sortConfigs, (sortConfig: SortConfig) => sortConfig.sortOrder),
+      arrayMap(sortConfigs, (sortConfig: SortConfig) => this.getFirstCellSettings(sortConfig.column)),
+      columnValues
+    ));
+
+    return {
+      // `physicalRows` is never permuted - only `positions` is - so it still holds the pre-sort order.
+      indexesBefore: physicalRows,
+      indexesAfter: arrayMap(positions, (position: number) => physicalRows[position]),
+      highestPhysicalIndex,
+    };
+  }
+
+  /**
+   * Sorts the band as an array of `[physicalRow, ...values]` tuples, through the registered root
+   * comparator.
+   *
+   * This is the path a custom root comparator gets, and the shape it is documented to receive.
+   *
+   * @param {Array} sortConfigs Sort configuration for all sorted columns.
+   * @param {number} from The first visual row of the sortable band.
+   * @param {number} to The sortable band's exclusive upper bound.
+   * @returns {{ indexesBefore: number[], indexesAfter: number[], highestPhysicalIndex: number }} The
+   *   band's pre-sort and post-sort physical indexes, and the highest one it holds - which is what
+   *   sizes the caller's remap table.
+   */
+  #sortRowTuples(sortConfigs: SortConfig[], from: number, to: number) {
+    const { physicalRows, columnValues, highestPhysicalIndex } = this.#gatherBand(sortConfigs, from, to);
+    const indexesWithData: [number, ...unknown[]][] = [];
+
+    for (let rowIndex = 0; rowIndex < physicalRows.length; rowIndex += 1) {
+      const rowWithData: [number, ...unknown[]] = [physicalRows[rowIndex]];
+
+      for (let columnIndex = 0; columnIndex < columnValues.length; columnIndex += 1) {
+        rowWithData.push(columnValues[columnIndex][rowIndex]);
+      }
+
+      indexesWithData.push(rowWithData);
+    }
 
     sort(
       indexesWithData,
@@ -711,23 +1019,15 @@ export class ColumnSorting extends BasePlugin {
       arrayMap(sortConfigs, (sortConfig: SortConfig) => this.getFirstCellSettings(sortConfig.column))
     );
 
-    // Append fixedRowsBottom + spareRows (everything between upperBound and numberOfRows)
-    for (let visualRowIndex = upperBound; visualRowIndex < numberOfRows; visualRowIndex += 1) {
-      indexesWithData.push([visualRowIndex, ...getDataForSortedColumns(visualRowIndex)]);
-    }
-
     const indexesAfter = arrayMap(indexesWithData, (indexWithData: [number, ...unknown[]]) => indexWithData[0]);
 
-    const indexMapping: Map<number, number> = new Map(
-      arrayMap(indexesBefore, (indexBefore: number, indexInsideArray: number): [number, number] =>
-        [indexBefore, indexesAfter[indexInsideArray]])
-    );
-
-    const newIndexesSequence = arrayMap(this.hot.rowIndexMapper.getIndexesSequence(), (physicalIndex: number) => {
-      return indexMapping.get(physicalIndex) ?? physicalIndex;
-    });
-
-    this.hot.rowIndexMapper.setIndexesSequence(newIndexesSequence);
+    return {
+      // The engine sorts `indexesWithData` in place, never `physicalRows`, so it still holds the
+      // pre-sort order.
+      indexesBefore: physicalRows,
+      indexesAfter,
+      highestPhysicalIndex,
+    };
   }
 
   /**
@@ -744,7 +1044,8 @@ export class ColumnSorting extends BasePlugin {
    *
    * @private
    * @param {object} allSortSettings All sort config settings. Object may contain `initialConfig`, `indicator`,
-   * `sortEmptyCells`, `headerAction` and `compareFunctionFactory` properties.
+   * `sortEmptyCells`, `headerAction` and `compareFunctionFactory` properties. `sortFixedRows` is read
+   * separately, at sort time, because it is grid-level rather than per-column.
    */
   sortBySettings(allSortSettings: unknown) {
     if (isPlainObject(allSortSettings)) {
@@ -788,6 +1089,25 @@ export class ColumnSorting extends BasePlugin {
       headerActionEnabled
     );
     this.#syncIndicatorReserve(headerSpanElement);
+
+    const container = headerSpanElement.parentElement;
+
+    if (container) {
+      const order = this.columnStatesManager?.getSortOrderOfColumn(column);
+      let iconName: 'arrowNarrowUp' | 'arrowNarrowDown' | null = null;
+
+      // With `headerAction: false` the label never gets `sortAction`, and 18.1 painted the arrow
+      // only on `.sortAction`, so such a column shows no indicator (its `aria-sort` stays set).
+      const indicatorVisible = showSortIndicator && headerActionEnabled;
+
+      if (indicatorVisible && order === ASC_SORT_STATE) {
+        iconName = 'arrowNarrowUp';
+      } else if (indicatorVisible && order === DESC_SORT_STATE) {
+        iconName = 'arrowNarrowDown';
+      }
+
+      this.#syncIcon(this.hot, container, SORT_INDICATOR_SLOT_CLASS, iconName);
+    }
 
     if (this.hot.getSettings().ariaTags) {
       const currentSortState = this.columnStatesManager?.getSortOrderOfColumn(column);
@@ -840,8 +1160,7 @@ export class ColumnSorting extends BasePlugin {
     }
 
     // `sortAction` is required: the CSS that pulls the indicator out of the flex row is keyed on
-    // it. With `headerAction: false` the label shows an indicator but keeps its full width, so
-    // reserving would just push it inwards.
+    // it, and with `headerAction: false` no indicator is rendered, so there is nothing to reserve.
     const showsIndicator = hasClass(headerSpanElement, HEADER_ACTION_CLASS) && (
       hasClass(headerSpanElement, HEADER_CLASS_ASC_SORT) ||
       hasClass(headerSpanElement, HEADER_CLASS_DESC_SORT)
@@ -862,6 +1181,11 @@ export class ColumnSorting extends BasePlugin {
    * @param {object} newSettings New settings object.
    */
   onUpdateSettings(newSettings: Record<string, unknown>) {
+    // Captured before `super` may flip the plugin from disabled to enabled: a fresh `enablePlugin()`
+    // already runs `#loadOrSortBySettings()` (the #6806 `this.hot.view` workaround), so re-running the
+    // settings sort below on that same pass would run the comparator twice for no reason (DEV-187).
+    const wasEnabled = this.enabled;
+
     super.onUpdateSettings(newSettings);
 
     if (this.columnMetaCache !== null) {
@@ -871,7 +1195,7 @@ export class ColumnSorting extends BasePlugin {
 
     const pluginSettings = newSettings[this.pluginKey];
 
-    if (isDefined(pluginSettings)) {
+    if (wasEnabled && this.enabled && isDefined(pluginSettings)) {
       this.sortBySettings(pluginSettings);
     }
   }
@@ -894,7 +1218,7 @@ export class ColumnSorting extends BasePlugin {
    * Callback for the `afterDataProviderFetch` hook.
    * Keeps header sort state in sync with query `sort` after server-backed `loadData` (same timing as Pagination).
    *
-   * @param {object} result [[Hooks#afterDataProviderFetch]] payload; reads `columnSortConfig` only.
+   * @param {object} result {@link Hooks#afterDataProviderFetch} payload; reads `columnSortConfig` only.
    */
   readonly #onAfterDataProviderFetch = (result: { columnSortConfig?: Record<string, unknown>[] }) => {
     this.setSortConfig((result?.columnSortConfig ?? []) as unknown as SortConfig[]);
@@ -913,8 +1237,18 @@ export class ColumnSorting extends BasePlugin {
     const pluginSettingsForColumn = columnSettings[this.pluginKey] as ColumnSortingPluginColumnSettings;
     const headerActionEnabled = pluginSettingsForColumn.headerAction;
 
+    const target = eventTargetEl(event)!;
+
+    // The indicator used to be a `::before` of the label, so a press on the arrow targeted the
+    // label itself. It is a sibling `<i>` now with its own hit surface, so accept it
+    // as a sort click too - otherwise the arrow becomes the one part of a sortable header that
+    // does not sort. Matched by ancestor, not by the target's own class: a theme `icons`
+    // renderer callback may put its own markup inside the `<i>` (an inline SVG, a ligature
+    // span), and a press then targets that child.
+    const pressedIndicator = target.closest(`.${SORT_INDICATOR_SLOT_CLASS}`) !== null;
+
     return (
-      headerActionEnabled && hasClass(eventTargetEl(event)!, HEADER_SPAN_CLASS)
+      headerActionEnabled && (hasClass(target, HEADER_SPAN_CLASS) || pressedIndicator)
     );
   }
 

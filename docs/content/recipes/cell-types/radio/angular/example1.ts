@@ -98,7 +98,16 @@ const radioRenderer = rendererFactory(({ instance, td, row, column, value, cellP
     span.className = 'htUIRadioLabel';
     span.textContent = optLabel;
 
+    // The checked dot is a real `<i class="ht-icon ht-icon-radio">` element (Handsontable
+    // itself inserts one as the input's next sibling for its own radio UI), not a CSS
+    // pseudo-element -- so the recipe must add it explicitly to get the dot.
+    const icon = document.createElement('i');
+
+    icon.className = 'ht-icon ht-icon-radio';
+    icon.setAttribute('aria-hidden', 'true');
+
     label.appendChild(input);
+    label.appendChild(icon);
     label.appendChild(span);
     wrapper.appendChild(label);
 

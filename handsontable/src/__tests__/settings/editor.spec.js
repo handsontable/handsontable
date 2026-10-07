@@ -224,5 +224,80 @@ describe('settings', () => {
         await selectCell(0, 0);
       });
     });
+
+    describe('set to `true`', () => {
+      // `true` names no editor. It used to reach `getEditorInstance()` untouched, which threw
+      // 'Only strings and functions can be passed as "editor" parameter' on the first edit.
+      it('should open the default text editor instead of throwing', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          editor: true,
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+
+        expect(getActiveEditor() instanceof Handsontable.editors.TextEditor).toBe(true);
+        expect(isEditorVisible()).toBe(true);
+
+        getActiveEditor().setValue('edited');
+
+        await keyDownUp('enter');
+
+        expect(getDataAtCell(0, 0)).toBe('edited');
+      });
+
+      it('should open the `type` editor of the column instead of the text editor', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          columns: [
+            { type: 'numeric', editor: true },
+            {},
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+
+        expect(getActiveEditor() instanceof Handsontable.editors.NumericEditor).toBe(true);
+
+        await keyDownUp('escape');
+
+        // control column - proves the harness opens editors at all
+        await selectCell(0, 1);
+        await keyDownUp('enter');
+
+        expect(getActiveEditor() instanceof Handsontable.editors.TextEditor).toBe(true);
+      });
+
+      it('should open the default text editor when set through the `cell` option', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          cell: [
+            { row: 0, col: 0, editor: true },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+
+        expect(getActiveEditor() instanceof Handsontable.editors.TextEditor).toBe(true);
+        expect(isEditorVisible()).toBe(true);
+      });
+
+      it('should open the default text editor when set through `updateSettings`', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+        });
+
+        await updateSettings({ editor: true });
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+
+        expect(getActiveEditor() instanceof Handsontable.editors.TextEditor).toBe(true);
+        expect(isEditorVisible()).toBe(true);
+      });
+    });
   });
 });

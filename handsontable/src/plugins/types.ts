@@ -7,6 +7,7 @@
  */
 import type { AutoColumnSize } from './autoColumnSize';
 import type { Autofill } from './autofill';
+import type { AutoLink } from './autoLink';
 import type { AutoRowSize } from './autoRowSize';
 import type { BindRowsWithHeaders } from './bindRowsWithHeaders';
 import type { CollapsibleColumns } from './collapsibleColumns';
@@ -26,6 +27,7 @@ import type { Filters } from './filters';
 import type { Formulas } from './formulas';
 import type { HiddenColumns } from './hiddenColumns';
 import type { HiddenRows } from './hiddenRows';
+import type { ImportFile } from './importFile';
 import type { Loading } from './loading';
 import type { ManualColumnFreeze } from './manualColumnFreeze';
 import type { ManualColumnMove } from './manualColumnMove';
@@ -54,6 +56,7 @@ import type { UndoRedo } from './undoRedo';
 export interface PluginTypeMap {
   autoColumnSize: AutoColumnSize;
   autofill: Autofill;
+  autoLink: AutoLink;
   autoRowSize: AutoRowSize;
   bindRowsWithHeaders: BindRowsWithHeaders;
   collapsibleColumns: CollapsibleColumns;
@@ -73,6 +76,7 @@ export interface PluginTypeMap {
   formulas: Formulas;
   hiddenColumns: HiddenColumns;
   hiddenRows: HiddenRows;
+  importFile: ImportFile;
   loading: Loading;
   manualColumnFreeze: ManualColumnFreeze;
   manualColumnMove: ManualColumnMove;

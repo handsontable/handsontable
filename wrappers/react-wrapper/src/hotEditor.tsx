@@ -7,7 +7,6 @@ import React, {
   RefObject,
   createContext,
   useContext,
-  useDeferredValue,
   useImperativeHandle,
   useMemo,
   useState,
@@ -70,7 +69,8 @@ export function makeEditorClass(
         }
 
         const baseMethod = Handsontable.editors.BaseEditor.prototype[propName];
-        (CustomEditor.prototype as any)[propName] = function (
+
+        (CustomEditor.prototype as any)[propName] = function(
           this: CustomEditor,
           ...args: any[]
         ) {
@@ -133,8 +133,11 @@ interface EditorContextProviderProps {
  * Provider of the context that exposes Handsontable-native editor instance and passes hooks object
  * for custom editor components.
  *
- * @param {Ref} hooksRef Reference for component-based editor overridden hooks object.
- * @param {RefObject} hotCustomEditorInstanceRef  Reference to Handsontable-native editor instance.
+ * @param {object} root0 The provider props.
+ * @param {Ref} root0.hooksRef Reference for component-based editor overridden hooks object.
+ * @param {RefObject} root0.hotCustomEditorInstanceRef Reference to Handsontable-native editor instance.
+ * @param {ReactNode} root0.children The provider's children.
+ * @returns {ReactElement} The provider component.
  */
 export const EditorContextProvider: FC<EditorContextProviderProps> = ({
   hooksRef,
@@ -152,7 +155,13 @@ type EditorWithPosition = Handsontable.editors.BaseEditor & { position?: string 
 
 /**
  * Applies editor overlay position/dimensions to an element.
- * @returns true if position was applied, false if editor should close (e.g. cell no longer available).
+ *
+ * @param {HTMLElement} el The editor's main element.
+ * @param {EditorWithPosition} editor The editor instance.
+ * @param {Handsontable.Core} hot The Handsontable instance.
+ * @param {Element | null | undefined} td The edited cell's TD element.
+ * @returns {boolean} `true` if position was applied, `false` if editor should close (e.g. cell no longer
+ * available).
  */
 function applyEditorPosition(
   el: HTMLElement,
@@ -227,7 +236,7 @@ function applyEditorPosition(
 }
 
 /**
- * Hook that allows encapsulating custom behaviours of component-based editor by customizing passed ref with overridden hooks object.
+ * Hook that allows encapsulating custom behaviors of component-based editor by customizing passed ref with overridden hooks object.
  *
  * @param {HotEditorHooks} overriddenHooks Overrides specific for the custom editor.
  * @param {DependencyList} deps Overridden hooks object React dependency list.
@@ -242,9 +251,6 @@ export function useHotEditor<T>(
   const [rerenderTrigger, setRerenderTrigger] = useState(0);
   const [editorValue, setEditorValue] = useState<T>();
 
-  // return a deferred value that allows for optimizing performance by delaying the update of a value until the next render.
-  const deferredValue = useDeferredValue(editorValue);
-
   useImperativeHandle(
     hooksRef,
     () => ({
@@ -252,7 +258,7 @@ export function useHotEditor<T>(
       onOpen() {
         setEditorValue(hotCustomEditorInstanceRef.current?.getValue() as T | undefined);
         overriddenHooks?.onOpen?.();
-        setRerenderTrigger((t) => t + 1);
+        setRerenderTrigger(t => t + 1);
       },
     }),
     deps
@@ -261,7 +267,7 @@ export function useHotEditor<T>(
   return useMemo(
     () => ({
       get value(): T | undefined {
-        return deferredValue;
+        return editorValue;
       },
       setValue(newValue) {
         setEditorValue(newValue);
@@ -275,17 +281,18 @@ export function useHotEditor<T>(
       },
       get row() {
         const row = hotCustomEditorInstanceRef.current?.row;
+
         return row ?? undefined;
       },
       get col() {
         const col = hotCustomEditorInstanceRef.current?.col;
+
         return col ?? undefined;
       },
     }),
-    [rerenderTrigger, hotCustomEditorInstanceRef, deferredValue]
+    [rerenderTrigger, hotCustomEditorInstanceRef, editorValue]
   );
 }
-
 
 type EditorChildrenProps<T> = {
   value: T;
@@ -302,7 +309,14 @@ type EditorRenderProp<T> = (props: EditorChildrenProps<T>) => React.ReactNode;
 
 // EditorComponent props - children typed to work with JSX syntax
 type EditorComponentProps = {
-  onPrepare?: (row: number, column: number, prop: string | number, TD: HTMLTableCellElement, originalValue: any, cellProperties: Handsontable.CellProperties) => void;
+  onPrepare?: (
+    row: number,
+    column: number,
+    prop: string | number,
+    TD: HTMLTableCellElement,
+    originalValue: any,
+    cellProperties: Handsontable.CellProperties
+  ) => void;
   onOpen?: () => void;
   onClose?: () => void;
   onFocus?: () => void;
@@ -316,19 +330,32 @@ type EditorComponentProps = {
     preventDefault?: boolean;
     stopPropagation?: boolean;
     relativeToGroup?: string;
-    position?: "before" | "after";
+    position?: 'before' | 'after';
     forwardToContext?: any;
   }[];
 }
 
-
+/**
+ * Component-based editor. Renders the `children` render prop inside the editor's positioned overlay
+ * and wires up its shortcuts and scroll-repositioning.
+ *
+ * @param {object} root0 The component props.
+ * @param {Function} [root0.onPrepare] Called when the editor is prepared for a cell.
+ * @param {Function} [root0.onClose] Called when the editor closes.
+ * @param {Function} [root0.onOpen] Called when the editor opens.
+ * @param {Function} [root0.onFocus] Called when the editor is focused.
+ * @param {EditorRenderProp} [root0.children] Render prop returning the editor's UI.
+ * @param {string} [root0.shortcutsGroup] The shortcuts group name to register under.
+ * @param {Array} [root0.shortcuts] The editor's keyboard shortcuts.
+ * @returns {React.ReactElement} The editor overlay element.
+ */
 export function EditorComponent<T = any>({
   onPrepare,
   onClose,
   onOpen,
   onFocus,
   children,
-  shortcutsGroup = "custom-editor",
+  shortcutsGroup = 'custom-editor',
   shortcuts,
 }: EditorComponentProps & { children?: EditorRenderProp<T> }): React.ReactElement {
   const mainElementRef = useRef<HTMLDivElement>(null);
@@ -337,9 +364,11 @@ export function EditorComponent<T = any>({
   const { hotCustomEditorInstanceRef } = useContext(EditorContext)!;
 
   const registerShortcuts = useCallback(() => {
-    if (!hotCustomEditorInstanceRef.current?.hot) return;
+    if (!hotCustomEditorInstanceRef.current?.hot) {
+      return;
+    }
 
-    hotCustomEditorInstanceRef.current?.hot?.getShortcutManager().setActiveContextName("editor");
+    hotCustomEditorInstanceRef.current?.hot?.getShortcutManager().setActiveContextName('editor');
 
     const shortcutManager = hotCustomEditorInstanceRef.current?.hot?.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
@@ -357,18 +386,19 @@ export function EditorComponent<T = any>({
         callback: (event: KeyboardEvent) =>
           shortcut.callback({ value: currentValue.current, setValue, finishEditing }, event),
       })),
-        //@ts-ignore
-        contextConfig
+      contextConfig
       );
     }
   }, [shortcuts]);
 
-
   const unRegisterShortcuts = useCallback(() => {
-    if (!hotCustomEditorInstanceRef.current?.hot) return;
+    if (!hotCustomEditorInstanceRef.current?.hot) {
+      return;
+    }
 
     const shortcutManager = hotCustomEditorInstanceRef.current?.hot?.getShortcutManager();
-    const editorContext = shortcutManager.getContext("editor")!;
+    const editorContext = shortcutManager.getContext('editor')!;
+
     editorContext.removeShortcutsByGroup(shortcutsGroup);
   }, [shortcuts]);
 
@@ -376,13 +406,19 @@ export function EditorComponent<T = any>({
     const editor = hotCustomEditorInstanceRef.current as EditorWithPosition | null;
     const el = mainElementRef.current;
 
-    if (!editor || !el) return;
+    if (!editor || !el) {
+      return;
+    }
 
     const hot = editor.hot;
 
-    if (!hot) return;
+    if (!hot) {
+      return;
+    }
 
-    if (typeof editor.isOpened !== 'function' || !editor.isOpened()) return;
+    if (typeof editor.isOpened !== 'function' || !editor.isOpened()) {
+      return;
+    }
 
     if (!applyEditorPosition(el, editor, hot, null) && typeof editor.close === 'function') {
       editor.close();
@@ -393,7 +429,9 @@ export function EditorComponent<T = any>({
     const editor = hotCustomEditorInstanceRef.current;
     const hot = editor?.hot;
 
-    if (!hot || typeof hot.removeHook !== 'function') return;
+    if (!hot || typeof hot.removeHook !== 'function') {
+      return;
+    }
 
     hot.removeHook('afterScrollHorizontally', refreshDimensions);
     hot.removeHook('afterScrollVertically', refreshDimensions);
@@ -403,7 +441,9 @@ export function EditorComponent<T = any>({
     const editor = hotCustomEditorInstanceRef.current;
     const hot = editor?.hot;
 
-    if (!hot || typeof hot.addHook !== 'function') return;
+    if (!hot || typeof hot.addHook !== 'function') {
+      return;
+    }
 
     hot.addHook('afterScrollHorizontally', refreshDimensions);
     hot.addHook('afterScrollVertically', refreshDimensions);
@@ -411,14 +451,18 @@ export function EditorComponent<T = any>({
 
   const { value, setValue, finishEditing, isOpen, col, row } = useHotEditor<T>({
     onOpen: () => {
-      if (!mainElementRef.current) return;
+      if (!mainElementRef.current) {
+        return;
+      }
 
       const themeName = hotCustomEditorInstanceRef.current?.hot.getCurrentThemeName();
 
-      if (themeName) setThemeClassName(themeName);
-  
+      if (themeName) {
+        setThemeClassName(themeName);
+      }
+
       mainElementRef.current.style.display = 'block';
-  
+
       onOpen?.();
 
       const el = mainElementRef.current;
@@ -432,8 +476,10 @@ export function EditorComponent<T = any>({
       registerScrollHooks();
     },
     onClose: () => {
-      if (!mainElementRef.current) return;
-  
+      if (!mainElementRef.current) {
+        return;
+      }
+
       mainElementRef.current.style.display = 'none';
 
       onClose?.();
@@ -456,7 +502,6 @@ export function EditorComponent<T = any>({
     e.stopPropagation();
   };
 
-
   return (
     <div
       ref={mainElementRef}
@@ -471,7 +516,15 @@ export function EditorComponent<T = any>({
       }}
       onMouseDown={stopMousedownPropagation}
     >
-      {(children as EditorRenderProp<T>)({ value: value as T, setValue, finishEditing, mainElementRef: mainElementRef as React.RefObject<HTMLDivElement>, isOpen, col, row })}
+      {(children as EditorRenderProp<T>)({
+        value: value as T,
+        setValue,
+        finishEditing,
+        mainElementRef: mainElementRef as React.RefObject<HTMLDivElement>,
+        isOpen,
+        col,
+        row,
+      })}
     </div>
   );
-};
+}

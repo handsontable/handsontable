@@ -97,6 +97,30 @@ export class GridPage {
       .click();
   }
 
+  /**
+   * Put plain text on the real clipboard (requires clipboard-write permission). The Async
+   * Clipboard API rejects while the document is unfocused, so interact with the page first.
+   */
+  async writeClipboardText(text: string): Promise<void> {
+    await this.page.evaluate(value => navigator.clipboard.writeText(value), text);
+  }
+
+  /**
+   * Put both clipboard flavors on the real clipboard, the way a spreadsheet app does.
+   * Handsontable prefers `text/html` whenever it holds a table, so passing a different
+   * `text` makes it unambiguous which flavor a paste actually consumed.
+   */
+  async writeClipboardHtml(html: string, text: string): Promise<void> {
+    await this.page.evaluate(async ({ htmlValue, textValue }) => {
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          'text/html': new Blob([htmlValue], { type: 'text/html' }),
+          'text/plain': new Blob([textValue], { type: 'text/plain' }),
+        }),
+      ]);
+    }, { htmlValue: html, textValue: text });
+  }
+
   /** Read the page clipboard (requires clipboard-read permission). */
   async clipboardText(): Promise<string> {
     return this.page.evaluate(() => navigator.clipboard.readText());
@@ -108,5 +132,29 @@ export class GridPage {
    */
   async pasteHookCalls(): Promise<number> {
     return this.page.evaluate(() => (window as any).__pasteHookCalls);
+  }
+
+  /** The grid's current selection, or `null` when nothing is selected. */
+  async selected(): Promise<number[][] | null> {
+    return this.page.evaluate(() => (window as any).hot.getSelected() ?? null);
+  }
+
+  /** Replace the grid's data through `loadData()`. */
+  async loadData(rows: string[][]): Promise<void> {
+    await this.page.evaluate(data => (window as any).hot.loadData(data), rows);
+  }
+
+  /**
+   * Append a focusable field after the grid, so Shift+Tab from it enters the grid from below.
+   */
+  async appendFieldBelow(): Promise<Locator> {
+    await this.page.evaluate(() => {
+      const field = document.createElement('textarea');
+
+      field.setAttribute('data-testid', 'field-below');
+      document.body.appendChild(field);
+    });
+
+    return this.page.getByTestId('field-below');
   }
 }

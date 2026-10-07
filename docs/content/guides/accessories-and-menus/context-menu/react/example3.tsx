@@ -90,8 +90,24 @@ const contextMenuSettings: DetailedSettings = {
               }, 0);
             },
           },
-          { key: 'colors:green', name: 'Green' },
-          { key: 'colors:blue', name: 'Blue' },
+          {
+            key: 'colors:green',
+            name: 'Green',
+            callback() {
+              setTimeout(() => {
+                alert('You clicked green!');
+              }, 0);
+            },
+          },
+          {
+            key: 'colors:blue',
+            name: 'Blue',
+            callback() {
+              setTimeout(() => {
+                alert('You clicked blue!');
+              }, 0);
+            },
+          },
         ],
       },
     },
@@ -112,19 +128,20 @@ const contextMenuSettings: DetailedSettings = {
   },
 };
 
+const data = [
+  ['Hydrogen', 'H', 1, 1.008, 7],
+  ['Helium', 'He', 2, 4.003, 9],
+  ['Lithium', 'Li', 3, 6.94, 9],
+  ['Beryllium', 'Be', 4, 9.012, 11],
+  ['Boron', 'B', 5, 10.81, 15],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
-        ['2017', 10, 11, 12, 13, 15, 16],
-        ['2018', 10, 11, 12, 13, 15, 16],
-        ['2019', 10, 11, 12, 13, 15, 16],
-        ['2020', 10, 11, 12, 13, 15, 16],
-        ['2021', 10, 11, 12, 13, 15, 16],
-      ]}
+      data={data}
       rowHeaders={true}
-      colHeaders={true}
+      colHeaders={['Name', 'Symbol', 'Atomic Number', 'Atomic Mass (u)', 'Known Isotopes']}
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"

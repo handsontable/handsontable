@@ -13,6 +13,51 @@ describe('Formulas', () => {
   });
 
   describe('Integration with Autofill', () => {
+    it('should not leak the escape apostrophe when the source range spans a trimmed row', async() => {
+      handsontable({
+        data: [
+          ['0123456'],
+          ['0222222'],
+          ['0333333'],
+          [null],
+          [null],
+          [null],
+        ],
+        columns: [{ type: 'text' }],
+        // Marked per PHYSICAL row rather than per column, so a meta read that resolves to the wrong
+        // row - or to no row at all - drops the marking instead of silently still finding it.
+        cell: [
+          { row: 0, col: 0, preserveTextValue: true },
+          { row: 1, col: 0, preserveTextValue: true },
+          { row: 2, col: 0, preserveTextValue: true },
+        ],
+        // Physical row 1 keeps its HyperFormula index but has no visual one, so the engine source
+        // range for visual rows 0-1 spans HF rows 0..2 and the fill loop walks the trimmed row.
+        trimRows: [1],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        fillHandle: true,
+      });
+
+      await selectRows(0, 1);
+
+      const lastRowCell = $(getCell(1, 0, true));
+
+      simulateFillHandleDragStart(lastRowCell);
+      simulateFillHandleDragMove(lastRowCell, { offsetY: 200 });
+
+      await waitForNextAnimationFrames(25);
+
+      simulateFillHandleDragFinish(lastRowCell, { offsetY: 200 });
+
+      // The engine stores every preserved text value escaped. Whichever rows the fill ends up
+      // populating, none of them may carry the engine's escape apostrophe into the grid.
+      expect(getDataAtCol(0).filter(value => typeof value === 'string' && value.startsWith('\'')))
+        .toEqual([]);
+    });
+
     it('should cooperate properly with trimmed rows (populating not trimmed elements)', async() => {
       handsontable({
         data: [
@@ -52,46 +97,6 @@ describe('Formulas', () => {
         [null, null, null, null, null, null, null],
       ]);
     });
-
-    // Verified still failing (2026-08-05): the fill populates only one visual
-    // row (the last source row stays untouched) and the expectation itself
-    // predates trimming semantics (expects 5 visual rows where trimRows leaves
-    // 4). Needs a product-level decision on fill-across-trimmed-rows before
-    // the expectations can be trusted — tracked in DEV-2195.
-    xit('should cooperate properly with trimmed rows (populating two elements placed next to trimmed element)',
-      async() => {
-        handsontable({
-          data: [
-            ['=B1+10', 1, 2, 3, 4, 5, 6],
-            ['=B2+20', 7, 8, 9, 0, 1, 2],
-            ['=B3+30', 3, 4, 5, 6, 7, 8],
-            ['=B4+40', 9, 0, 1, 2, 3, 4],
-            ['=B5+50', 5, 6, 7, 8, 9, 0],
-          ],
-          formulas: {
-            engine: HyperFormula,
-            sheetName: 'Sheet1'
-          },
-          trimRows: [1],
-          fillHandle: true
-        });
-
-        await selectRows(0, 1);
-
-        const lastRowCell = $(getCell(2, 0, true));
-
-        simulateFillHandleDrag(lastRowCell);
-
-        await waitForNextAnimationFrames(19);
-
-        expect(getData()).toEqual([
-          [11, 1, 2, 3, 4, 5, 6],
-          [33, 3, 4, 5, 6, 7, 8],
-          [11, 1, 2, 3, 4, 5, 6],
-          [33, 3, 4, 5, 6, 7, 8],
-          [null, null, null, null, null, null, null],
-        ]);
-      });
 
     it('should not overwrite extra visible columns when dragging right across hidden columns', async() => {
       handsontable({

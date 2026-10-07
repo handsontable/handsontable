@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Added the `AutoRowHeaderSize` plugin, which sizes the row header column to its longest label instead of clipping it.",
+  "type": "added",
+  "issueOrPR": 7147,
+  "breaking": false,
+  "framework": "none"
+}

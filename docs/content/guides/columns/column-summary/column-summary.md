@@ -97,9 +97,20 @@ To decide how a column summary is calculated, you can use one of the following s
 | `sum`     | Returns the sum of all values in a column.                                                             |
 | `min`     | Returns the lowest value in a column.                                                                  |
 | `max`     | Returns the highest value in a column.                                                                 |
-| `count`   | Returns the number of all non-empty cells in a column.                                                 |
-| `average` | Returns the sum of all values in a column,<br>divided by the number of non-empty cells in that column. |
+| `count`   | Returns the number of cells in a column that hold a number.                                            |
+| `average` | Returns the sum of all values in a column,<br>divided by the number of cells that hold a number.       |
 | `custom`  | Lets you implement a [custom summary function](#implement-a-custom-summary-function).                  |
+
+The built-in summary functions calculate from cells that hold a number. A cell is skipped when it is
+empty, when it holds only whitespace, or when it holds text. Checkbox cells still count: `true` reads
+as `1` and `false` as `0`, so a `sum` summary over a checkbox column returns the number of checked
+boxes.
+
+To read a number out of a cell that starts with one, such as `3 kg`, use the
+[`forceNumeric`](#force-numeric-values) option.
+
+If a column holds no values to calculate from, `min`, `max`, and `average` return `Not enough data`.
+The `sum` and `count` functions return `0`.
 
 ### Column summary options
 
@@ -515,6 +526,10 @@ To display your column summary result in a cell, provide the destination cell's 
 
 Set the [`destinationRow`](@/api/columnSummary.md#options) and [`destinationColumn`](@/api/columnSummary.md#options) options to the physical coordinates of your required cell.
 
+Because all column summary coordinates are physical, [moving columns](@/guides/columns/column-moving/column-moving.md) or [rows](@/guides/rows/row-moving/row-moving.md) doesn't change what a column summary covers. The summary moves together with its column, the result moves together with its destination row, and the summary keeps summarizing the same rows, wherever they're displayed.
+
+The [nested rows](@/guides/rows/row-parent-child/row-parent-child.md) feature is the exception: it moves a row by moving its data, so with a column summary set up as an array, a fixed range keeps covering the same positions instead. To keep a summary accurate there, [set up column summaries using a function](#set-up-column-summaries-using-a-function).
+
 ::: only-for javascript
 
 ```js
@@ -612,6 +627,14 @@ columnSummary: [
 Don't change the [`className`](@/api/options.md#classname) metadata of the summary row.
 
 If you need to style the summary row, use the class name assigned automatically by the [`ColumnSummary`](@/api/columnSummary.md) plugin: `columnSummaryResult`.
+
+:::
+
+::: tip
+
+By default, a summary cell is [read-only](@/api/options.md#readonly), and the [`ColumnSummary`](@/api/columnSummary.md) plugin keeps it that way. The **Read only** item of the context menu and the column menu doesn't appear when the selection is only summary cells, and it leaves a summary cell unchanged when you toggle a wider selection, such as a whole column. Calling [`setCellMeta()`](@/api/core.md#setcellmeta) or [`removeCellMeta()`](@/api/core.md#removecellmeta) to make a summary cell editable has no effect either.
+
+To make a summary cell editable, set the `readOnly` option of its column summary object (in the [`columnSummary`](@/api/options.md#columnsummary) configuration) to `false`.
 
 :::
 

@@ -11,7 +11,20 @@ export default defineConfig({
   timeout: 60000,
   testDir: './tests',
   outputDir: './tests/test-artifacts/output',
+  /*
+   * Do NOT add {projectName} here: the golden records are keyed by this path in R2
+   * (docs/base/<branch>/screenshots/**), so a change to the template re-keys every one of them.
+   */
   snapshotPathTemplate: './tests/test-artifacts/screenshots/{testFilePath}/{arg}{ext}',
+  /*
+   * On CI a missing golden FAILS its test instead of being written and passed. Until DEV-2860 this
+   * was Playwright's default 'missing' behind an actions/cache baseline that never restored from
+   * develop, so a cache miss re-baselined the whole suite against whatever the preview rendered and
+   * reported a green check — the false green that let 61 differences through on PR #13440 unrecorded.
+   * A golden now comes from R2 and a page with none is reported as a new item for a human to accept.
+   * Locally 'missing' stays: writing a golden for a page you just added is the point of running it.
+   */
+  updateSnapshots: isCI ? 'none' : 'missing',
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -33,7 +46,14 @@ export default defineConfig({
       outputFolder: './tests/test-artifacts/results',
       open: 'never',
     }],
-    ...(isCI ? [['github'], ['list']] as const : [['line']] as const),
+    /*
+     * The JSON report is what `tests/scripts/visual-manifest.mjs` turns into the reg-suit manifest the
+     * core visual gate reads, so a docs run gets the same verdict, comment and approval as a core one.
+     * CI only: locally the HTML report is the one anybody opens.
+     */
+    ...(isCI
+      ? [['json', { outputFile: './tests/test-artifacts/report.json' }], ['github'], ['list']] as const
+      : [['line']] as const),
   ],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
@@ -43,10 +63,22 @@ export default defineConfig({
     trace: 'off',
   },
 
-  /* Configure projects for major browsers */
+  /*
+   * Two projects over one testDir, so CI can run them apart: `visual` is the full-page screenshot
+   * suite, which needs the R2 baseline and the approval gate and stays behind the `run-docs-visual`
+   * label; `functional` is everything else in ./tests — assertions about the built pages that need no
+   * golden and, until this split, only ever ran when someone applied that label. A bare
+   * `npx playwright test` still runs both, which is what a local run wants.
+   */
   projects: [
     {
-      name: 'chromium',
+      name: 'visual',
+      testMatch: /visualDocs\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'functional',
+      testIgnore: /visualDocs\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
 

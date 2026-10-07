@@ -71,6 +71,74 @@ describe('Formulas: initial manualColumnMove configuration (issue #9952)', () =>
     ]);
   });
 
+  it('should keep formula references intact when loadData() re-applies the initial column order', async() => {
+    handsontable({
+      data: [
+        [1, '=A1+10', 100, 1000],
+        [2, '=A2+10', 200, 2000],
+      ],
+      manualColumnMove: [0, 2, 1, 3],
+      formulas: {
+        engine: HyperFormula,
+      },
+    });
+
+    await loadData([
+      [5, '=A1+10', 500, 5000],
+      [6, '=A2+10', 600, 6000],
+    ]);
+
+    // The move plugin re-applies its array in `afterLoadData`, and the Formulas plugin feeds the engine
+    // first (DEV-2905). The order therefore reaches the engine once, as a move. It used to arrive twice
+    // - as a move on the previous sheet and again as an order after the load - which rewrote `=A1+10`
+    // to `=B1+10` and evaluated it against the wrong column (510 instead of 15).
+    expect(getSourceData()).toEqual([
+      [5, '=A1+10', 500, 5000],
+      [6, '=A2+10', 600, 6000],
+    ]);
+
+    expect(getData()).toEqual([
+      [5, 500, 15, 5000],
+      [6, 600, 16, 6000],
+    ]);
+  });
+
+  it('should keep the row path unchanged when loadData() re-applies the initial row order', async() => {
+    handsontable({
+      data: [
+        [1, '=A1+10'],
+        [2, '=A2+10'],
+        [3, '=A3+10'],
+      ],
+      manualRowMove: [2, 0, 1],
+      formulas: {
+        engine: HyperFormula,
+      },
+    });
+
+    await loadData([
+      [5, '=A1+10'],
+      [6, '=A2+10'],
+      [7, '=A3+10'],
+    ]);
+
+    // The mirror of the column case above. On the row axis the outcome is the same before and after the
+    // Formulas plugin moved ahead of the move plugin (DEV-2905): the engine used to receive `moveRows`
+    // on the previous sheet, then the new content, then `setRowOrder`; it now receives the content and
+    // one `moveRows`. Both rewrite the relative references once, so the source reads the same.
+    expect(getSourceData()).toEqual([
+      [5, '=A2+10'],
+      [6, '=A3+10'],
+      [7, '=A1+10'],
+    ]);
+
+    expect(getData()).toEqual([
+      [7, 17],
+      [5, 15],
+      [6, 16],
+    ]);
+  });
+
   it('should keep getSourceData() consistent after performing a runtime move on top of an initial move config', async() => {
     handsontable({
       data: [

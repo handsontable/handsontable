@@ -59,6 +59,10 @@ class CollapsingUI extends BaseUI {
    * @type {Array|undefined}
    */
   declare lastCollapsedRows: number[] | undefined;
+  /**
+   * Whether this stash holds the selection's grid-tracking grow (see `collapsedRowsStash.stash()`).
+   */
+  #holdsGridTrackingFits = false;
 
   /**
    * Initializes the collapsing UI component and sets up the stash mechanism for preserving collapsed row state across operations.
@@ -75,8 +79,20 @@ class CollapsingUI extends BaseUI {
       stash: (forceRender = false) => {
         this.lastCollapsedRows = this.collapsedRows.slice(0);
 
+        // The expand below is transient: `applyStash()` collapses the same parents again, after the
+        // insert, removal or move it brackets - for a removal a tick later. A whole-column selection
+        // must not grow onto that height, or its highlights reach past the rows the re-collapse takes
+        // away (`TR was expected to be rendered but is not`). The grow is held until `applyStash()`,
+        // which then fits the selection to the grid the operation actually left (DEV-152).
+        // Held only when there is something to expand, so a stash with nothing collapsed - every row
+        // removal stashes - cannot leave a hold behind on a path that never applies it.
+        if (!this.#holdsGridTrackingFits && this.lastCollapsedRows.length > 0) {
+          this.#holdsGridTrackingFits = true;
+          this.hot.selection.suspendGridTrackingFits();
+        }
+
         // Workaround for wrong indexes being set in the trimRows plugin
-        this.expandMultipleChildren(this.lastCollapsedRows ?? [], forceRender);
+        this.#expandMultipleChildren(this.lastCollapsedRows ?? [], forceRender, true);
       },
       shiftStash: (baseIndex: number, targetIndex: number | null | undefined = undefined, delta = 1) => {
         const targetIdx = targetIndex === null || targetIndex === undefined ? Infinity : targetIndex;
@@ -88,8 +104,16 @@ class CollapsingUI extends BaseUI {
         });
       },
       applyStash: (forceRender = true) => {
-        this.collapseMultipleChildren(this.lastCollapsedRows ?? [], forceRender);
-        this.lastCollapsedRows = undefined;
+        let isCollapsed = false;
+
+        try {
+          this.#collapseMultipleChildren(this.lastCollapsedRows ?? [], forceRender, true);
+          this.lastCollapsedRows = undefined;
+          isCollapsed = true;
+        } finally {
+          // A re-collapse that threw drops the held grows: applying them runs the selection hooks.
+          this.releaseGridTrackingFits(isCollapsed);
+        }
       },
       trimStash: (realElementIndex: number, amount: number) => {
         rangeEach(realElementIndex, realElementIndex + amount - 1, (i: number) => {
@@ -104,6 +128,25 @@ class CollapsingUI extends BaseUI {
   }
 
   /**
+   * Releases the selection's grid-tracking grow this stash holds, if it holds it. `applyStash()` calls
+   * it once the parents are collapsed again, so the held grow is applied to the re-collapsed grid.
+   * `disablePlugin()` calls it for a stash that is never applied - a removal's deferred re-collapse
+   * overtaken by a disable or an `updateSettings()` - so the hold cannot outlive the stash. Its expand
+   * stays in place then, so the held grow is applied to the expanded grid. During a destroy `Core` has
+   * already suspended the grow for good, so nothing is applied there.
+   *
+   * @param {boolean} applyPending Whether to apply the grows recorded while the hold lasted.
+   */
+  releaseGridTrackingFits(applyPending: boolean): void {
+    if (!this.#holdsGridTrackingFits) {
+      return;
+    }
+
+    this.#holdsGridTrackingFits = false;
+    this.hot.selection?.resumeGridTrackingFits(applyPending);
+  }
+
+  /**
    * Collapse the children of the row passed as an argument.
    *
    * @param {number|object} row The parent row.
@@ -112,6 +155,18 @@ class CollapsingUI extends BaseUI {
    * @returns {Array}
    */
   collapseChildren(row: number, forceRender = true, doTrimming = true): number[] {
+    return this.plugin.runOperation('collapse_rows', () => this.#collapseChildren(row, forceRender, doTrimming));
+  }
+
+  /**
+   * The body of `collapseChildren()`, run inside its undo step.
+   *
+   * @param {number|object} row The parent row.
+   * @param {boolean} forceRender Whether to render the table after the function ends.
+   * @param {boolean} doTrimming Whether collapsing should trim the rows.
+   * @returns {Array}
+   */
+  #collapseChildren(row: number, forceRender: boolean, doTrimming: boolean): number[] {
     const rowsToCollapse: number[] = [];
     let rowObject: Record<string, unknown> | null | undefined = null;
     let rowIndex: number | null = null;
@@ -146,7 +201,7 @@ class CollapsingUI extends BaseUI {
     }
 
     if (forceRender) {
-      this.renderAndAdjust();
+      this.renderTable();
     }
 
     // Only a row that actually has children can be collapsed. Without this check pressing Enter on a
@@ -166,10 +221,24 @@ class CollapsingUI extends BaseUI {
    * @param {boolean} [doTrimming=true] I determine whether collapsing should envolve trimming rows.
    */
   collapseMultipleChildren(rows: number[] | RowObject[], forceRender = true, doTrimming = true) {
+    this.plugin.runOperation('collapse_rows', () => this.#collapseMultipleChildren(rows, forceRender, doTrimming));
+  }
+
+  /**
+   * The body of `collapseMultipleChildren()`, run inside its undo step.
+   *
+   * @param {Array} rows Rows to collapse (including their children).
+   * @param {boolean} forceRender `true` if the table should be rendered after finishing the function.
+   * @param {boolean} doTrimming Whether collapsing should trim the rows.
+   */
+  #collapseMultipleChildren(rows: number[] | RowObject[], forceRender: boolean, doTrimming: boolean) {
     const rowsToTrim: number[] = [];
 
     arrayEach(rows as number[], (elem: number) => {
-      rowsToTrim.push(...this.collapseChildren(elem, false, false));
+      // Not `push(...rows)`: a parent with many children would overflow the call stack.
+      arrayEach(this.#collapseChildren(elem, false, false), (row: number) => {
+        rowsToTrim.push(row);
+      });
     });
 
     if (doTrimming) {
@@ -177,7 +246,7 @@ class CollapsingUI extends BaseUI {
     }
 
     if (forceRender) {
-      this.renderAndAdjust();
+      this.renderTable();
     }
   }
 
@@ -318,6 +387,18 @@ class CollapsingUI extends BaseUI {
    * @returns {number[]}
    */
   expandChildren(row: number, forceRender = true, doTrimming = true): number[] {
+    return this.plugin.runOperation('expand_rows', () => this.#expandChildren(row, forceRender, doTrimming));
+  }
+
+  /**
+   * The body of `expandChildren()`, run inside its undo step.
+   *
+   * @param {number|object} row Parent row.
+   * @param {boolean} forceRender Whether to render the table after the function ends.
+   * @param {boolean} doTrimming Whether the rows should be untrimmed when the function finishes.
+   * @returns {number[]}
+   */
+  #expandChildren(row: number, forceRender: boolean, doTrimming: boolean): number[] {
     const rowsToExpand: number[] = [];
     let rowObject: Record<string, unknown> | null | undefined = null;
     let rowIndex: number | null = null;
@@ -356,7 +437,7 @@ class CollapsingUI extends BaseUI {
     }
 
     if (forceRender) {
-      this.renderAndAdjust();
+      this.renderTable();
     }
 
     return rowsToUntrim;
@@ -370,10 +451,24 @@ class CollapsingUI extends BaseUI {
    * @param {boolean} [doTrimming=true] `true` if the rows should be untrimmed after finishing the function.
    */
   expandMultipleChildren(rows: number[] | RowObject[], forceRender = true, doTrimming = true) {
+    this.plugin.runOperation('expand_rows', () => this.#expandMultipleChildren(rows, forceRender, doTrimming));
+  }
+
+  /**
+   * The body of `expandMultipleChildren()`, run inside its undo step.
+   *
+   * @param {Array} rows Array of rows which children are about to be expanded.
+   * @param {boolean} forceRender `true` if the table should render after finishing the function.
+   * @param {boolean} doTrimming `true` if the rows should be untrimmed after finishing the function.
+   */
+  #expandMultipleChildren(rows: number[] | RowObject[], forceRender: boolean, doTrimming: boolean) {
     const rowsToUntrim: number[] = [];
 
     arrayEach(rows as number[], (elem: number) => {
-      rowsToUntrim.push(...this.expandChildren(elem, false, false));
+      // Not `push(...rows)`: a parent with many children would overflow the call stack.
+      arrayEach(this.#expandChildren(elem, false, false), (row: number) => {
+        rowsToUntrim.push(row);
+      });
     });
 
     if (doTrimming) {
@@ -381,7 +476,7 @@ class CollapsingUI extends BaseUI {
     }
 
     if (forceRender) {
-      this.renderAndAdjust();
+      this.renderTable();
     }
   }
 
@@ -407,14 +502,21 @@ class CollapsingUI extends BaseUI {
    * @param {string} action Either `'collapse'` or `'expand'`.
    * @param {boolean} [shouldRunHooks=true] `false` skips both hooks - used when replaying state that the
    * user already chose, such as restoring after an `updateSettings` call.
+   * @param {boolean} [forceRender=true] `false` leaves the render to the caller, for the cases where one
+   * runs right afterwards anyway.
    * @returns {boolean} `true` if the collapsed state actually changed.
    * @fires Hooks#beforeRowCollapse
    * @fires Hooks#afterRowCollapse
    * @fires Hooks#beforeRowExpand
    * @fires Hooks#afterRowExpand
    */
-  toggleCollapsedRows(parents: number[], action: 'collapse' | 'expand', shouldRunHooks = true): boolean {
-    return this.applyCollapsedRowsChange(parents, action, shouldRunHooks).performed;
+  toggleCollapsedRows(
+    parents: number[],
+    action: 'collapse' | 'expand',
+    shouldRunHooks = true,
+    forceRender = true
+  ): boolean {
+    return this.applyCollapsedRowsChange(parents, action, shouldRunHooks, forceRender).performed;
   }
 
   /**
@@ -427,6 +529,7 @@ class CollapsingUI extends BaseUI {
    * @param {number[]} parents Physical row indexes of the parents to act on.
    * @param {string} action Either `'collapse'` or `'expand'`.
    * @param {boolean} [shouldRunHooks=true] `false` skips both hooks.
+   * @param {boolean} [forceRender=true] `false` leaves the render to the caller.
    * @returns {{performed: boolean, vetoed: boolean}} `performed` says the collapsed state changed,
    * `vetoed` says a `before*` hook returned `false`.
    * @fires Hooks#beforeRowCollapse
@@ -437,7 +540,33 @@ class CollapsingUI extends BaseUI {
   applyCollapsedRowsChange(
     parents: number[],
     action: 'collapse' | 'expand',
-    shouldRunHooks = true
+    shouldRunHooks = true,
+    forceRender = true
+  ): { performed: boolean, vetoed: boolean } {
+    // A user's collapse or expand is one undo step. A replay of a state chosen earlier (a settings
+    // update, a data reload) runs hook-silent and is not recorded.
+    if (!shouldRunHooks) {
+      return this.#applyCollapsedRowsChange(parents, action, false, forceRender);
+    }
+
+    return this.plugin.runOperation(action === 'collapse' ? 'collapse_rows' : 'expand_rows',
+      () => this.#applyCollapsedRowsChange(parents, action, true, forceRender));
+  }
+
+  /**
+   * The body of `applyCollapsedRowsChange()`.
+   *
+   * @param {number[]} parents Physical row indexes of the parents to act on.
+   * @param {string} action Either `'collapse'` or `'expand'`.
+   * @param {boolean} shouldRunHooks `false` skips both hooks.
+   * @param {boolean} forceRender `false` leaves the render to the caller.
+   * @returns {{performed: boolean, vetoed: boolean}}
+   */
+  #applyCollapsedRowsChange(
+    parents: number[],
+    action: 'collapse' | 'expand',
+    shouldRunHooks: boolean,
+    forceRender: boolean
   ): { performed: boolean, vetoed: boolean } {
     const actionTranslator = actionDictionary.get(action);
 
@@ -450,6 +579,23 @@ class CollapsingUI extends BaseUI {
     }
 
     const isCollapse = action === 'collapse';
+    // Two conditions, and both are about whether the user is the one collapsing.
+    //
+    // `shouldRunHooks` separates a gesture from a replay: every path that re-collapses a state the
+    // user chose earlier - `updatePlugin()`, `#onAfterUpdateData()` - passes `false` here precisely
+    // because it is not a new action. The marker is opt-IN rather than opt-out so that any collapse
+    // path added later leaves the selection alone until it says otherwise.
+    //
+    // `isListening()` separates the grid from the page around it. `selectCell()` scrolls and takes
+    // the focus, which is right when the user is working IN the grid and rude when they are not: an
+    // app calling `collapseAll()` from its own toolbar button would otherwise have the focus yanked
+    // off that button mid-keyboard-navigation. A grid the user is not in keeps the behaviour it has
+    // always had - the core drops the stranded selection and nothing takes its place.
+    //
+    // Read before the trim: afterwards the highlight's visual row no longer names the record the
+    // user picked.
+    const selectionAnchor = isCollapse && shouldRunHooks && this.hot.isListening() ?
+      this.#captureSelectionAnchor() : null;
     const currentCollapsedRows = this.getCollapsedParents();
     // The action is possible only when every index points at a row that really has children. An
     // impossible action still reports through the hooks, matching the CollapsibleColumns plugin.
@@ -471,16 +617,23 @@ class CollapsingUI extends BaseUI {
 
     if (actionPossible) {
       if (isCollapse) {
-        this.collapseMultipleChildren(parents, false, true);
+        this.#collapseMultipleChildren(parents, false, true);
       } else {
-        this.expandMultipleChildren(parents, false, true);
+        this.#expandMultipleChildren(parents, false, true);
       }
     }
 
     const isActionPerformed = !this.#isSameCollapsedState(currentCollapsedRows);
 
-    if (isActionPerformed) {
-      this.renderAndAdjust();
+    if (isActionPerformed && forceRender) {
+      this.renderTable();
+    }
+
+    // After `collapsedRows` has been updated and the table repainted, so an `afterSelection`
+    // consumer reading `getCollapsedParents()` sees the collapse that caused the move - and before
+    // `afterRowCollapse`, so that hook reports the selection the user is left with.
+    if (selectionAnchor !== null) {
+      this.#restoreSelection(selectionAnchor);
     }
 
     if (shouldRunHooks) {
@@ -604,6 +757,82 @@ class CollapsingUI extends BaseUI {
   }
 
   /**
+   * Records where the selection sits, so a collapse that trims it away can put it back somewhere.
+   *
+   * The PHYSICAL row is what is kept: the highlight stores a VISUAL row, and the trim is exactly
+   * what invalidates that. Read from the ACTIVE range rather than the last one, because the active
+   * layer is the one `Selection#deselectIfHighlightStranded()` judges - reading a different layer
+   * would fire on a selection the core left alone, or stay silent on the one it dropped.
+   *
+   * @returns {{physicalRow: number, column: number}|null} The anchor, or `null` when there is no
+   * selection or the highlight names no row.
+   */
+  #captureSelectionAnchor(): { physicalRow: number, column: number } | null {
+    const highlight = this.hot.getSelectedRangeActive()?.highlight;
+
+    // A highlight on a column header names no row, so a row trim cannot strand it.
+    if (!highlight || highlight.row === null || highlight.row < 0 || highlight.col === null) {
+      return null;
+    }
+
+    const physicalRow = this.hot.toPhysicalRow(highlight.row);
+
+    if (physicalRow === null) {
+      return null;
+    }
+
+    return { physicalRow, column: highlight.col };
+  }
+
+  /**
+   * Puts the selection back on the nearest row that is still visible, when a collapse left the grid
+   * with none at all.
+   *
+   * Collapsing is backed by a trimming map, so a collapsed row leaves visual index space altogether.
+   * The selection holds a VISUAL row, which the trim invalidates, and
+   * `Selection#deselectIfHighlightStranded()` then drops it: DOM focus falls back to `<body>` and the
+   * grid stops answering the keyboard until the user clicks into it again.
+   *
+   * The walk starts at the record the user actually picked, and only then climbs to its ancestors.
+   * Starting at the parent is wrong, because the core drops a selection for two different reasons:
+   * the picked row was trimmed, OR it survived while rows ABOVE it were trimmed, which slides its
+   * visual index down until the stored one is past the last row. In that second case the record is
+   * still on screen - collapsing one section must not move the user onto the parent of another.
+   *
+   * From there it keeps climbing until a row with a visual index turns up, rather than stopping at
+   * the first ancestor this plugin did not collapse: another trimming map can be hiding it, since
+   * Filters, `trimRows` and Pagination all share this index space.
+   *
+   * Only the "dropped it entirely" case is filled in. A selection whose extent tracks the grid - a
+   * full-column selection anchored in the column header, or a select-all - is CLAMPED by the core
+   * rather than dropped, and survives the trim in a form the user still recognises; replacing that
+   * with a single cell would throw away a repair the core deliberately made.
+   *
+   * @param {{physicalRow: number, column: number}} anchor Where the selection was before the trim.
+   */
+  #restoreSelection(anchor: { physicalRow: number, column: number }) {
+    if (this.hot.getSelectedRangeActive()) {
+      return;
+    }
+
+    let physicalRow: number | null = anchor.physicalRow;
+
+    while (physicalRow !== null) {
+      const visualRow = this.hot.toVisualRow(physicalRow);
+
+      if (visualRow !== null) {
+        this.hot.selectCell(visualRow, anchor.column);
+
+        return;
+      }
+
+      const parent = this.dataManager.getRowParent(physicalRow);
+
+      physicalRow = parent === null ? null : this.dataManager.getRowIndex(parent);
+    }
+  }
+
+  /**
    * Trim rows.
    *
    * @param {Array} rows Physical row indexes.
@@ -701,7 +930,9 @@ class CollapsingUI extends BaseUI {
 
     const row = this.translateTrimmedRow((coords as { row: number }).row);
 
-    if (hasClass(eventTargetEl(event)!, HeadersUI.CSS_CLASSES.button)) {
+    // By ancestor, not by the target's own class: the button hosts a real icon element whose
+    // markup a theme `icons` renderer may extend, and the press may then target that markup.
+    if (eventTargetEl(event)!.closest(`.${HeadersUI.CSS_CLASSES.button}`) !== null) {
       this.toggleCollapsedRows([row], this.areChildrenCollapsed(row) ? 'expand' : 'collapse');
 
       stopImmediatePropagation(event);
@@ -731,13 +962,11 @@ class CollapsingUI extends BaseUI {
   }
 
   /**
-   * Helper function to render the table and call the `adjustElementsSize` method.
+   * Helper function to render the table.
    *
    * @private
    */
-  renderAndAdjust() {
-    // Dirty workaround to prevent scroll height not adjusting to the table height. Needs refactoring in the future.
-    this.hot.view.adjustElementsSize();
+  renderTable() {
     this.hot.render();
   }
 }

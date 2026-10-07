@@ -14,7 +14,7 @@ This is the engine-specific subset of the core concerns doc (`handsontable/.ai/C
 
 **Overlay System (Walkontable):**
 - Files: `handsontable/src/3rdparty/walkontable/src/overlay/overlays.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/regions/topOverlay.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/regions/inlineStartOverlay.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/regions/bottomOverlay.ts`
-- Why fragile: The overlay system manages 6 overlay types (top, bottom, left, and 3 corners) with complex positioning logic. TODO comments indicate a workaround for `innerBorderTop` that is documented to be clearable only after SVG borders are merged. Lazy creation of corner overlays adds initialization complexity.
+- Why fragile: The overlay system manages 8 overlay types (top, bottom, inline-start, inline-end, and 4 corners) with complex positioning logic. TODO comments indicate a workaround for `innerBorderTop` that is documented to be clearable only after SVG borders are merged. The corners and the three end clones are all built eagerly and only hidden while they have nothing to draw, so an idle clone still takes part in the initialization and in the layout signature.
 - Safe modification: Test with combinations of `fixedRowsTop`, `fixedRowsBottom`, `fixedColumnsStart`. Test RTL layout. Verify no visual artifacts at overlay boundaries.
 - Test coverage: Walkontable has its own test pipeline (`npm run test:walkontable`), separate from the main E2E tests.
 
@@ -44,3 +44,9 @@ This is the engine-specific subset of the core concerns doc (`handsontable/.ai/C
 - What's thin: the wiring that feeds it (`gatherLayoutInput.ts`) and its interaction with the `singlePassLayout` escape hatch (off for `mergeCells`, and window-mode fallback to DOM measurement) are exercised only through the integration suites.
 - Files: `handsontable/src/3rdparty/walkontable/src/viewport/boxLayout/`.
 - Priority: Medium.
+
+**Per-axis prediction (`viewport/boxLayout/` + `overlay/axisOwner.ts`):**
+- What's covered: the split-owner layout (an element owning one axis, the window the other – a definite `width` with no `height`) is a measured mode; `viewport.spec.js`, `master.spec.js`, `overlay.spec.js`, and `tests/e2e/width-window-scroll.spec.ts` pin its geometry.
+- What's thin: the layout snapshot still carries one `scrollMode` for both axes (`gatherLayoutInput.ts`), so the single-pass solver never runs for a split layout and every draw there measures the DOM. A per-axis `scrollMode` would let the prediction cover it; nothing asserts the cost today.
+- Files: `handsontable/src/3rdparty/walkontable/src/viewport/boxLayout/gatherLayoutInput.ts`, `resolveLayout.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/axisOwner.ts`.
+- Priority: Low.

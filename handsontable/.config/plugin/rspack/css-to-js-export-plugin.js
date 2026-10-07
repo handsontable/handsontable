@@ -26,7 +26,9 @@ module.exports = function cssToJsExportPlugin(options) {
           return;
         }
 
-        const css = fs.readFileSync(cssPath, 'utf8');
+        // `utf8` does not strip a BOM in Node. strip-css-bom-plugin already cleans the
+        // asset; this is the belt to its braces.
+        const css = fs.readFileSync(cssPath, 'utf8').replace(/\uFEFF/g, '');
         const jsContent = [
           '/* eslint-disable max-len, quotes */\n',
           banner ? `${banner}\n\n` : '',

@@ -3,7 +3,7 @@ name: E2E
 # End-to-end tests, build-dependent (consume the UMD artifact). Two matrices,
 # 1:1 with each other: the frozen Puppeteer suite and the new Playwright suite,
 # both over theme × bundle (UMD / UMD.min). Per-leg gating keeps the exact old
-# scope behaviour (UMD legs on the e2e scope, UMD.min on the e2e-min scope).
+# scope behavior (UMD legs on the e2e scope, UMD.min on the e2e-min scope).
 # The UMD.min legs load handsontable.full.min.js — the exact file Puppeteer's
 # test:production runs. The bundles Puppeteer does not test either
 # (handsontable.full.js and handsontable.min.js) are deliberately not covered
@@ -63,9 +63,26 @@ jobs:
           path: ./
       - run: tar -zxf dist.tar.gz ./handsontable/dist ./handsontable/styles && rm dist.tar.gz
       - name: Test
+        # HOT_E2E_LEG labels the failure annotations, the step summary, and the
+        # failed-specs record the runner writes on a red run (test/e2e-results/).
+        env:
+          HOT_E2E_LEG: ${{ matrix.bundle.label }}
         run: |
           cd handsontable
           npm run ${{ matrix.bundle.dump }} --theme=${{ matrix.theme }} && npm run test:e2e.puppeteer --theme=${{ matrix.theme }}
+      # The record names every failed spec with its file and whether it fails
+      # alone; the flake ledger collects these across runs. Uploading needs no
+      # secret, so fork and Dependabot runs keep it.
+      - name: Upload the failed-specs record
+        if: failure()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: puppeteer-failed-specs-${{ matrix.bundle.label }}-${{ matrix.theme }}
+          path: handsontable/test/e2e-results/
+          if-no-files-found: ignore
+          # A re-run attempt that fails again replaces the record; without this
+          # the upload 409s on the name and the newer record is lost.
+          overwrite: true
 
   # Runs inside the pinned Playwright container so the engine + browsers match
   # local and baseline generation. One leg per theme × bundle — the same matrix
@@ -75,7 +92,7 @@ jobs:
     name: "Playwright ${{ matrix.bundle.label }} (theme: ${{ matrix.theme }})"
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.61.1-noble
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
     if: inputs.run-all || inputs.run-playwright
     strategy:
       fail-fast: false
@@ -96,9 +113,13 @@ jobs:
       - name: Install the Playwright test package
         run: pnpm install --filter handsontable-tests
       - name: Run Playwright E2E
+        id: playwright
         run: cd tests && npx playwright test --project=e2e-${{ matrix.theme }}${{ matrix.bundle.suffix }}
+      # Also when the leg stayed green only because a flaky test was under
+      # quarantine (the quarantine reporter sets the output): the ledger still
+      # records that test.
       - name: Upload the Playwright report on failure
-        if: failure()
+        if: failure() || steps.playwright.outputs.quarantined-flaky == 'true'
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
         with:
           name: playwright-report-${{ matrix.theme }}${{ matrix.bundle.suffix }}
@@ -106,3 +127,59 @@ jobs:
             tests/playwright-report
             tests/test-results
           retention-days: 3
+          # A re-run attempt that fails again replaces the report; without this
+          # the upload 409s on the name and the newer report is lost.
+          overwrite: true
+
+  # The engine legs: the specs tagged @cross-browser (`CROSS_BROWSER_TAG` in tests/fixtures/test.ts)
+  # on Firefox and WebKit, on the main theme and the plain UMD bundle. They are the projects
+  # e2e-firefox and e2e-webkit of tests/playwright-engines.config.ts, which inherits everything else
+  # from tests/playwright.config.ts (so a run there never needs the engines). The six legs above are
+  # Chromium. The visual suite's cross-browser leg photographs on the develop seed, master and
+  # release candidate pushes, the nightly, and pull requests that change the visual tier, so on any
+  # other pull request this job is the only Firefox and WebKit run of anything the grid does. The
+  # theme and bundle axes are Chromium's: what a tagged spec asserts is the same under every theme
+  # and either bundle, and an engine difference shows on one of each. One job for both engines
+  # rather than one each keeps the run one job further from the organization's concurrent-job cap;
+  # the report names the project (the engine) of every failure, and the upload's name keeps the
+  # ledger's prefix. On a pull request a red engine leg also holds back the whole Visual stage:
+  # test.yml's `visual` job needs `e2e` and runs only when nothing failed, so a Firefox- or
+  # WebKit-only failure withholds every visual result until a re-run passes. This workflow is
+  # shared, so the job also runs on every develop push (a red engine leg holds back that push's
+  # experimental publish) and in the release candidate test runs (a red engine leg blocks the
+  # release candidate publish).
+  playwright-engines:
+    name: "Playwright engines (Firefox, WebKit)"
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
+    if: inputs.run-all || inputs.run-playwright
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - name: Download the Handsontable UMD build artifact
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
+        with:
+          name: handsontable-build-umd
+      - run: tar -zxf dist.tar.gz ./handsontable/dist ./handsontable/styles && rm dist.tar.gz
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # https://github.com/pnpm/action-setup/releases/tag/v6.0.8
+        name: Install pnpm
+      - name: Install the Playwright test package
+        run: pnpm install --filter handsontable-tests
+      - name: Run the cross-browser specs on Firefox and WebKit
+        id: playwright
+        # The container runs as root, and GitHub points HOME at /github/home, which belongs to the
+        # image's pwuser. Firefox refuses to start under a HOME its user does not own, so every
+        # Firefox test fails at launch; HOME=/root is the workaround Playwright's own error prints.
+        env:
+          HOME: /root
+        run: cd tests && npx playwright test --config playwright-engines.config.ts
+      - name: Upload the Playwright report on failure
+        if: failure() || steps.playwright.outputs.quarantined-flaky == 'true'
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: playwright-report-engines
+          path: |
+            tests/playwright-report
+            tests/test-results
+          retention-days: 3
+          overwrite: true

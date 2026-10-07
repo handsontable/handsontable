@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an in-progress cell edit landing on the wrong record, or appending rows to the source data, when rows or columns were filtered, trimmed, sorted, moved, inserted, removed, or replaced while the editor was open. The edit now follows its own record, and is discarded when a filter or trim takes that record out of view.",
+  "type": "fixed",
+  "issueOrPR": 13272,
+  "breaking": false,
+  "framework": "none"
+}

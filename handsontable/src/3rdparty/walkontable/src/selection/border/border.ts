@@ -10,14 +10,69 @@ import {
   isHTMLElement,
 } from '../../../../../helpers/dom/element';
 import { stopImmediatePropagation, isRightClick } from '../../../../../helpers/dom/event';
-import { isMobileBrowser } from '../../../../../helpers/browser';
-import { getCornerStyle } from './utils';
+import { isMobileBrowser, isMobileOrIpadOS } from '../../../../../helpers/browser';
+import {
+  getBorderSettingsProperty,
+  getCornerStyle,
+  getEdgesInsideBlock,
+  lookupSelectionHeader,
+  resolveBlockExtent,
+  measureHeaderSelectionBox,
+  resolveHeaderLevel,
+  standsBelowColumnHeader,
+} from './utils';
+import type { InteriorEdges, RenderedBand } from './utils';
 import { CUSTOM_SELECTION_TYPE } from '../constants';
+import { getSpreaderOffset } from '../../overlay/spreaderOffset';
+import {
+  ADJUST_HANDLE_EDGES,
+  getAxisSegment,
+  getHandleOwnership,
+  getHandlesSpan,
+  getMoveZoneOwnership,
+  getOverlaySegment,
+  isTrackEdgeVisible,
+} from './adjustHandlesOwnership';
+import type {
+  AdjustHandleEdge,
+  AdjustHandlesAxisLayout,
+  AdjustHandlesLayout,
+  AxisVisibleRange,
+} from './adjustHandlesOwnership';
 
 const BORDER_STYLE_CLASS_PREFIX = 'ht-border-style-';
 const MOVE_ZONE_THICKNESS = 6;
 const BORDER_STYLE_VERTICAL_SUFFIX = '-vertical';
 const BORDER_STYLE_HORIZONTAL_SUFFIX = '-horizontal';
+
+/**
+ * A selection box in container-relative pixels, as `appear()` computes it for the border edges.
+ */
+interface SelectionBox {
+  top: number;
+  inlineStart: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * What `appear()` resolved about the edge-adjustment handles before it wrote any style: which edges
+ * this overlay draws, and the box they are centered on.
+ */
+interface AdjustHandlesPlan {
+  owned: Record<AdjustHandleEdge, boolean>;
+  box: SelectionBox;
+}
+
+/**
+ * A cell's document position and outer size.
+ */
+interface DOMRectLike {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+}
 
 /**
  *
@@ -92,9 +147,13 @@ class Border {
    */
   declare cornerStyle: CSSStyleDeclaration | null;
   /**
-   * @type {SelectionHandles}
+   * Created in the constructor only when `isMobileOrIpadOS()` is true. Guard every use —
+   * `isIpadOS()` reads `navigator.maxTouchPoints` live, so Chrome device toolbar can flip
+   * it after construction and leave this undefined.
+   *
+   * @type {SelectionHandles | undefined}
    */
-  declare selectionHandles: SelectionHandles;
+  declare selectionHandles: SelectionHandles | undefined;
   /**
    * Created lazily on the first `appear()` whose visibility predicate resolves truthy, so it stays
    * `undefined` while the `selectionHandles` option is off.
@@ -277,12 +336,11 @@ class Border {
     for (let i = 0; i < 5; i++) {
       const position = borderDivs[i];
       const div = rootDocument.createElement('div');
-      const getSettingsProperty = (property: string) => {
-        const posSettings = this.settings[position];
-
-        return (posSettings && posSettings[property])
-          ? posSettings[property] : settings.border?.[property];
-      };
+      const getSettingsProperty = (property: string) => getBorderSettingsProperty(
+        this.settings[position],
+        property,
+        settings.border,
+      );
 
       div.className = `wtBorder ${this.settings.className || ''}`; // + borderDivs[i];
 
@@ -339,7 +397,7 @@ class Border {
       this.cornerDefaultStyle.borderColor
     ].join(' ');
 
-    if (isMobileBrowser() && this.wot.getSetting('isDataViewInstance')) {
+    if (isMobileOrIpadOS() && this.wot.getSetting('isDataViewInstance')) {
       this.createMultipleSelectorHandles();
     }
     // The `selectionHandles` and `moveCells` elements are created lazily, on the first `appear()`
@@ -536,13 +594,21 @@ class Border {
    * pixels tall (or wide for the vertical bands) and centered on its respective edge line. RTL layout
    * is handled by using `right` instead of `left` for the inline axis, mirroring `positionAdjustHandles`.
    *
+   * Only the bands in `owned` are shown. A selection that crosses a freeze line is drawn once per
+   * overlay, each slice clamped to what that overlay renders, and a band on a clamped edge would sit
+   * on the freeze line inside the selection (see `getMoveZoneOwnership`).
+   *
    * @private
    * @param {number} top The selection border top (px, container-relative).
    * @param {number} inlineStart The selection border inline-start (px, container-relative).
    * @param {number} width The selection border width (px).
    * @param {number} height The selection border height (px).
+   * @param {object} owned One flag per edge (`top`, `bottom`, `start`, `end`), `true` for a band this
+   * overlay draws.
    */
-  positionMoveZone(top: number, inlineStart: number, width: number, height: number) {
+  positionMoveZone(
+    top: number, inlineStart: number, width: number, height: number, owned: Record<AdjustHandleEdge, boolean>,
+  ) {
     const isRtl = this.wot.wtSettings.getSetting('rtlMode');
     const inlineProp = isRtl ? 'right' : 'left';
     // Only ever called from `appear()` after the bands have been created.
@@ -554,28 +620,28 @@ class Border {
     s.top.top = `${top - half}px`;
     s.top.width = `${width}px`;
     s.top.height = `${MOVE_ZONE_THICKNESS}px`;
-    s.top.display = 'block';
+    s.top.display = owned.top ? 'block' : 'none';
 
     // Bottom band — full width, centered on the bottom edge.
     s.bottom[inlineProp] = `${inlineStart}px`;
     s.bottom.top = `${top + height - half}px`;
     s.bottom.width = `${width}px`;
     s.bottom.height = `${MOVE_ZONE_THICKNESS}px`;
-    s.bottom.display = 'block';
+    s.bottom.display = owned.bottom ? 'block' : 'none';
 
     // Start band — full height, centered on the inline-start edge.
     s.start[inlineProp] = `${inlineStart - half}px`;
     s.start.top = `${top}px`;
     s.start.width = `${MOVE_ZONE_THICKNESS}px`;
     s.start.height = `${height}px`;
-    s.start.display = 'block';
+    s.start.display = owned.start ? 'block' : 'none';
 
     // End band — full height, centered on the inline-end edge.
     s.end[inlineProp] = `${inlineStart + width - half}px`;
     s.end.top = `${top}px`;
     s.end.width = `${MOVE_ZONE_THICKNESS}px`;
     s.end.height = `${height}px`;
-    s.end.display = 'block';
+    s.end.display = owned.end ? 'block' : 'none';
   }
 
   /**
@@ -605,15 +671,36 @@ class Border {
   }
 
   /**
-   * @param {number} row The visual row index.
-   * @param {number} col The visual column index.
+   * @param {number} fromRow The visual row index of the selection's top-left corner.
+   * @param {number} fromCol The visual column index of the selection's top-left corner.
+   * @param {number} toRow The visual row index of the selection's bottom-right corner.
+   * @param {number} toCol The visual column index of the selection's bottom-right corner.
    * @param {number} top The top position of the handler.
    * @param {number} left The left position of the handler.
    * @param {number} width The width of the handler.
    * @param {number} height The height of the handler.
+   * @param {boolean} [rendersBottomEnd=true] Whether this overlay renders the selection's bottom-end
+   *   corner. `false` for an overlay that renders only part of a merged block, whose own box ends on a
+   *   freeze line inside the block (DEV-143); the bottom handle belongs to the overlay that renders
+   *   the block's real corner.
    */
   updateMultipleSelectionHandlesPosition(
-    row: number, col: number, top: number, left: number, width: number, height: number) {
+    fromRow: number,
+    fromCol: number,
+    toRow: number,
+    toCol: number,
+    top: number,
+    left: number,
+    width: number,
+    height: number,
+    rendersBottomEnd = true,
+  ) {
+    const handles = this.selectionHandles;
+
+    if (!handles) {
+      return;
+    }
+
     const isRtl = this.wot.wtSettings.getSetting('rtlMode');
     const inlinePosProperty = isRtl ? 'right' : 'left';
     const {
@@ -621,19 +708,29 @@ class Border {
       topHitArea: topHitAreaStyles,
       bottom: bottomStyles,
       bottomHitArea: bottomHitAreaStyles,
-    } = this.selectionHandles.styles;
+    } = handles.styles;
 
     const handleBorderSize = parseInt(topStyles.borderWidth, 10);
     const handleSize = parseInt(topStyles.width, 10);
     const hitAreaSize = parseInt(topHitAreaStyles.width, 10);
     const totalTableWidth = this.wot.wtTable.getWidth();
     const totalTableHeight = this.wot.wtTable.getHeight();
+    // The trigger is the clone, not the freeze count: a rendered `top`/`inline_start` clone owns the
+    // band the handle would hang into, whether it holds a frozen pane or only the headers.
+    const isTopHandleUnderTopClone = this.isTopHandleOccludedByClone('row', fromRow);
+    const isTopHandleUnderInlineStartClone = this.isTopHandleOccludedByClone('column', fromCol);
 
-    topStyles.top = `${parseInt(String(top - handleSize - 1), 10)}px`;
-    topStyles[inlinePosProperty] = `${parseInt(String(left - handleSize - 1), 10)}px`;
+    topStyles.top = `${parseInt(String(isTopHandleUnderTopClone ? top + 1 : top - handleSize - 1), 10)}px`;
+    topStyles[inlinePosProperty] = `${
+      parseInt(String(isTopHandleUnderInlineStartClone ? left + 1 : left - handleSize - 1), 10)
+    }px`;
 
-    topHitAreaStyles.top = `${parseInt(String(top - ((hitAreaSize / 4) * 3)), 10)}px`;
-    topHitAreaStyles[inlinePosProperty] = `${parseInt(String(left - ((hitAreaSize / 4) * 3)), 10)}px`;
+    topHitAreaStyles.top = `${
+      parseInt(String(isTopHandleUnderTopClone ? top : top - ((hitAreaSize / 4) * 3)), 10)
+    }px`;
+    topHitAreaStyles[inlinePosProperty] = `${
+      parseInt(String(isTopHandleUnderInlineStartClone ? left : left - ((hitAreaSize / 4) * 3)), 10)
+    }px`;
 
     const bottomHandlerInline = Math.min(
       parseInt(String(left + width), 10),
@@ -647,12 +744,18 @@ class Border {
     bottomStyles[inlinePosProperty] = `${bottomHandlerInline}px`;
     bottomHitAreaStyles[inlinePosProperty] = `${bottomHandlerAreaInline}px`;
 
+    // Mirror of the top handle: the `bottom` clone owns the band below the `fixedRowsBottom` line
+    // that the handle would otherwise hang into, so pull it fully inside the scrollable pane.
+    const isBottomHandleUnderBottomClone = this.isBottomHandleOccludedByClone(toRow);
+
     const bottomHandlerTop = Math.min(
-      parseInt(String(top + height), 10),
+      parseInt(String(isBottomHandleUnderBottomClone ? top + height - handleSize - 1 : top + height), 10),
       totalTableHeight - handleSize - (handleBorderSize * 2),
     );
     const bottomHandlerAreaTop = Math.min(
-      parseInt(String(top + height - (hitAreaSize / 4)), 10),
+      parseInt(String(
+        isBottomHandleUnderBottomClone ? top + height - hitAreaSize : top + height - (hitAreaSize / 4)
+      ), 10),
       totalTableHeight - hitAreaSize - (handleBorderSize * 2),
     );
 
@@ -665,7 +768,7 @@ class Border {
       topStyles.display = 'block';
       topHitAreaStyles.display = 'block';
 
-      if (this.isSouthEastOfAreaSelection(row, col)) {
+      if (rendersBottomEnd && this.isSouthEastOfAreaSelection(toRow, toCol)) {
         bottomStyles.display = 'block';
         bottomHitAreaStyles.display = 'block';
       } else {
@@ -679,14 +782,60 @@ class Border {
       bottomHitAreaStyles.display = 'none';
     }
 
-    if (row === this.wot.wtSettings.getSetting('fixedRowsTop') ||
-        col === this.wot.wtSettings.getSetting('fixedColumnsStart')) {
+    // Deliberately still the raw, unguarded comparison from #9850, unlike the positioning above.
+    // Inside the master this value cannot clear a clone any more, so it only orders the handle
+    // against its siblings; narrowing it would be a behavior change with nothing to gain.
+    if (fromRow === this.wot.wtSettings.getSetting('fixedRowsTop') ||
+        fromCol === this.wot.wtSettings.getSetting('fixedColumnsStart')) {
       topStyles.zIndex = '9999';
       topHitAreaStyles.zIndex = '9999';
     } else {
       topStyles.zIndex = '';
       topHitAreaStyles.zIndex = '';
     }
+  }
+
+  /**
+   * Tells whether the master's top mobile selection handle, drawn hanging outside the selection's
+   * top-start corner, would land under an overlay clone.
+   *
+   * The question is which clone renders, not how many rows or columns are frozen, and the two are
+   * not the same: with `fixedRowsTop: 0` and column headers on, the `top` clone still renders and
+   * row 0's top edge sits flush against it, exactly where row `fixedRowsTop` sits with a frozen
+   * pane. {@link Border#isFrozenBoundaryEdge} answers the narrower freeze-line question and is
+   * therefore wrong here. Only the master needs the test: a clone draws its own copy of the handle,
+   * and its `.wtHolder` clips that copy instead of hiding it under a higher layer.
+   *
+   * @private
+   * @param {'row'|'column'} axis The clone axis to test (`row` for `top`, `column` for `inline_start`).
+   * @param {number} fromIndex The selection's top (`row`) or inline-start (`column`) corner index.
+   * @returns {boolean}
+   */
+  isTopHandleOccludedByClone(axis: 'row' | 'column', fromIndex: number): boolean {
+    if (this.wot.wtTable.name !== 'master') {
+      return false;
+    }
+
+    if (axis === 'row') {
+      return (this.wot.getSetting('shouldRenderTopOverlay') as boolean)
+        && fromIndex === (this.wot.getSetting('fixedRowsTop') as number);
+    }
+
+    return (this.wot.getSetting('shouldRenderInlineStartOverlay') as boolean)
+      && fromIndex === (this.wot.getSetting('fixedColumnsStart') as number);
+  }
+
+  /**
+   * Mirror of {@link Border#isTopHandleOccludedByClone} for the bottom mobile selection handle,
+   * which hangs past the selection's bottom-end corner and so meets the `bottom` clone rather than
+   * the `top` one. No headers case here: the `bottom` clone renders only for `fixedRowsBottom`.
+   *
+   * @private
+   * @param {number} toRow The selection's bottom corner row index, as drawn by this table.
+   * @returns {boolean}
+   */
+  isBottomHandleOccludedByClone(toRow: number): boolean {
+    return this.wot.wtTable.name === 'master' && this.isFrozenBottomBoundaryEdge(toRow);
   }
 
   /**
@@ -787,6 +936,41 @@ class Border {
     const totalRows = this.wot.getSetting('totalRows') as number;
 
     return fixedRowsBottom > 0 && fromIndex === totalRows - fixedRowsBottom;
+  }
+
+  /**
+   * Inline-end mirror of {@link Border#isFrozenBottomBoundaryEdge}: tells whether the selection's
+   * inline-end edge lands exactly on the `fixedColumnsEnd` boundary (the line between the last
+   * scrollable column and the first end column), and is therefore owned by the end overlay.
+   *
+   * @private
+   * @param {number} toIndex The selection's inline-end corner column index.
+   * @returns {boolean}
+   */
+  isFrozenEndBoundaryEdge(toIndex: number): boolean {
+    const fixedColumnsEnd = this.wot.getSetting('fixedColumnsEnd') as number;
+
+    // The column count is read only when there is an end band: most grids have none.
+    return fixedColumnsEnd > 0 &&
+      toIndex === (this.wot.getSetting('totalColumns') as number) - fixedColumnsEnd - 1;
+  }
+
+  /**
+   * Inline-end mirror of {@link Border#isFrozenBottomBoundaryOppositeEdge}: tells whether the
+   * selection's inline-start edge lands exactly on the `fixedColumnsEnd` boundary (the selection starts
+   * at the first end column), so the start handle sits on the freeze line and must be suppressed there
+   * like every other frozen-seam edge.
+   *
+   * @private
+   * @param {number} fromIndex The selection's inline-start corner column index.
+   * @returns {boolean}
+   */
+  isFrozenEndBoundaryOppositeEdge(fromIndex: number): boolean {
+    const fixedColumnsEnd = this.wot.getSetting('fixedColumnsEnd') as number;
+
+    // The column count is read only when there is an end band: most grids have none.
+    return fixedColumnsEnd > 0 &&
+      fromIndex === (this.wot.getSetting('totalColumns') as number) - fixedColumnsEnd;
   }
 
   /**
@@ -1239,17 +1423,22 @@ class Border {
     }
 
     const hiderOffset = geometryReader.offset(this.wot.wtTable.hider);
+    // `TDOffset` comes from the offset chain, which does not see the transform that places the
+    // spreader (`overlay/spreaderOffset.ts`); add it back so the anchor lands on the cell.
+    const spreaderOffset = getSpreaderOffset(this.wot.wtTable.spreader);
 
     return {
-      top: TDOffset.top - hiderOffset.top,
-      left: TDOffset.left - hiderOffset.left,
+      top: TDOffset.top - hiderOffset.top + spreaderOffset.y,
+      left: TDOffset.left - hiderOffset.left + spreaderOffset.x,
     };
   }
 
   /**
    * Tells whether the fill handle must be pulled back inside the selection's inline-end edge instead
-   * of straddling it. Only the grid's last column needs that, where the overhang would spill out of
-   * the trimming container and force a scrollbar. A selection ending on the last frozen-start column
+   * of straddling it. Two columns need that: the grid's last column, where the overhang would spill out
+   * of the trimming container and force a scrollbar, and the last scrollable column before the
+   * `fixedColumnsEnd` columns, where the end overlay is painted above the master and would cover the
+   * overhang. A selection ending on the last frozen-start column
    * does not: the frozen overlay draws that handle itself and already lands it flush against its own
    * edge, which `border.spec.js` pins to the pixel — lifting it there moves it off that line.
    *
@@ -1268,6 +1457,12 @@ class Border {
     trimmingContainer: HTMLElement | Window,
     isRtl: boolean,
   ): boolean {
+    // The end overlay is painted above the master, so it would cover the half of the handle that hangs
+    // past a selection ending on the line before the `fixedColumnsEnd` columns.
+    if (this.isFrozenEndBoundaryEdge(toColumn)) {
+      return true;
+    }
+
     if (toColumn !== (this.wot.getSetting('totalColumns') as number) - 1) {
       return false;
     }
@@ -1317,6 +1512,124 @@ class Border {
 
     return anchorTop + geometryReader.outerHeight(TD) + cornerHalfHeight
       >= geometryReader.innerHeight(trimmingContainer);
+  }
+
+  /**
+   * Tells whether this overlay may draw the fill handle (and the mobile bottom handle) of a selection
+   * whose bottom-end corner is on the given cell. Only the `top` overlay is restricted. Its holder
+   * reaches a few pixels below the frozen rows so the handle can hang past them (#6937), and that
+   * strip paints above both inline frozen panes, which the corner overlays cover down to the frozen
+   * rows' bottom edge only. The `top` overlay renders the same column band as the master, frozen and
+   * off-screen columns included, so a handle it drew for a column the viewport does not show landed
+   * in that strip over the row headers or a frozen column.
+   *
+   * So the `top` overlay draws the handle only for a scrollable column whose inline-end edge, where
+   * the handle is centered, is on screen. A frozen column's handle is drawn by its corner overlay, and
+   * a column whose inline-end edge is past the holder's edge gets no handle (it was clipped there
+   * anyway). The test is by column, like the adjust handles': when the edge is on screen but closer
+   * than half a handle to a pane, the handle can still overlap the pane by that much. The grid's last
+   * column is the exception to "fully visible": the visible range reports it only when it is whole,
+   * and a column wider than the viewport never is, so there the edge is read off the cell itself.
+   *
+   * @private
+   * @param {number} row The renderable row of the selection's bottom-end corner.
+   * @param {number} column The renderable column of the selection's bottom-end corner.
+   * @returns {boolean}
+   */
+  canOverlayDrawFillCorner(row: number, column: number): boolean {
+    if (this.wot.wtTable.name !== 'top') {
+      return true;
+    }
+
+    const layout = this.getAdjustHandlesAxisLayout('column');
+
+    if (getAxisSegment(layout, column) !== 'main') {
+      return false;
+    }
+
+    return isTrackEdgeVisible(layout.visible, column, 'end') ||
+      column === layout.total - 1 && this.isCellEndWithinHolder(row, column);
+  }
+
+  /**
+   * Tells whether the inline-end edge of a cell lies within a pixel of this overlay's holder edge or
+   * inside it. A fractional position (browser zoom) at the end of the scroll range reads as arrived.
+   *
+   * @private
+   * @param {number} row The renderable row of the cell.
+   * @param {number} column The renderable column of the cell.
+   * @returns {boolean}
+   */
+  isCellEndWithinHolder(row: number, column: number): boolean {
+    const { wtTable, wtSettings } = this.wot;
+    const cell = wtTable.getCell(this.wot.createCellCoords(row, column));
+
+    if (!isHTMLElement(cell)) {
+      return false;
+    }
+
+    const { geometryReader } = this.wot.domBindings;
+    const cellRect = geometryReader.getBoundingClientRect(cell);
+    const holderRect = geometryReader.getBoundingClientRect(wtTable.holder);
+
+    return wtSettings.getSetting('rtlMode') ?
+      cellRect.left >= holderRect.left - 1 : cellRect.right <= holderRect.right + 1;
+  }
+
+  /**
+   * Resolves which corner the fill handle is drawn for and which edges of the box lie inside a
+   * merged block (DEV-143).
+   *
+   * A merged focus cell reaches `appear()` as one coordinate, so the box is measured from the
+   * block's root cell, and each overlay renders that cell over its own band only. An overlay that
+   * renders part of the block therefore measures a box ending on the freeze line. The
+   * `onModifyGetCellCoords` setting reports the block's extent, and every edge the block reaches past
+   * this overlay's band is interior: the overlay that renders the block's outline there draws it.
+   * The same answer moves the fill-handle check onto the block's bottom-end corner. Not a layout
+   * read, so `appear()` may ask it before its style writes. See {@link resolveBlockExtent} for what
+   * counts as a usable extent - a plain cell must not lose its handle to an unrelated hook.
+   *
+   * @param {number} toRow The box's bottom row, clamped to this overlay's band.
+   * @param {number} toColumn The box's end column, clamped to this overlay's band.
+   * @param {boolean} isMultiple Whether the box spans more than one coordinate. A multi-cell range
+   *   keeps all its edges; only the single-coordinate path measures a merged block from its root.
+   * @param {RenderedBand} band This overlay's rendered band.
+   * @returns {{ checkRow: number, checkCol: number, interiorEdges: InteriorEdges | null }}
+   */
+  resolveMergedBlockEdges(toRow: number, toColumn: number, isMultiple: boolean, band: RenderedBand) {
+    const hookResult = this.wot.getSetting('onModifyGetCellCoords', toRow, toColumn, false, 'render');
+    const blockExtent = resolveBlockExtent(hookResult);
+
+    if (!blockExtent) {
+      return { checkRow: toRow, checkCol: toColumn, interiorEdges: null };
+    }
+
+    return {
+      checkRow: blockExtent[2],
+      checkCol: blockExtent[3],
+      interiorEdges: isMultiple ? null : getEdgesInsideBlock(blockExtent, band),
+    };
+  }
+
+  /**
+   * Hides the edges of a merged block's box that lie inside the block (see `getEdgesInsideBlock` in
+   * `utils.ts`).
+   *
+   * @param {InteriorEdges} interiorEdges The edges to hide.
+   */
+  hideInteriorEdges(interiorEdges: InteriorEdges) {
+    if (interiorEdges.top) {
+      this.topStyle!.display = 'none';
+    }
+    if (interiorEdges.bottom) {
+      this.bottomStyle!.display = 'none';
+    }
+    if (interiorEdges.start) {
+      this.startStyle!.display = 'none';
+    }
+    if (interiorEdges.end) {
+      this.endStyle!.display = 'none';
+    }
   }
 
   /**
@@ -1439,8 +1752,9 @@ class Border {
     }
 
     if (this.isEntireColumnSelected(fromRow, toRow)) {
-      const rowHeader = fromRow;
-      const modifiedValues = this.getDimensionsFromHeader('columns', fromColumn, toColumn, rowHeader, containerOffset);
+      const modifiedValues = this.getDimensionsFromHeader(
+        'columns', fromColumn, toColumn, originalFromRow, containerOffset
+      );
       let fromTH = null;
 
       if (modifiedValues) {
@@ -1456,8 +1770,9 @@ class Border {
     let height = toOffset.top + geometryReader.outerHeight(toTDEl) - minTop;
 
     if (this.isEntireRowSelected(fromColumn, toColumn)) {
-      const columnHeader = fromColumn;
-      const modifiedValues = this.getDimensionsFromHeader('rows', fromRow, toRow, columnHeader, containerOffset);
+      const modifiedValues = this.getDimensionsFromHeader(
+        'rows', fromRow, toRow, originalFromColumn, containerOffset
+      );
       let fromTH = null;
 
       if (modifiedValues) {
@@ -1471,16 +1786,52 @@ class Border {
 
     const style = geometryReader.getComputedStyle(fromTDEl);
 
-    if (parseInt(style.borderTopWidth, 10) > 0) {
+    // The top gridline sits INSIDE the cell when the cell draws its own top border, so the edge has
+    // to move onto it. A cell in the first body row of a table that renders a head row draws no top
+    // border - the column header owns that gridline (DEV-2786) - and the shared pixel is then the
+    // last pixel of the top overlay, which paints at z-index 160 against this layer's 10. An edge
+    // left centered on it loses half its thickness behind the column header, so both cases put the
+    // visible edge at the cell's own top boundary. The row axis's twin of the inline-start case
+    // below; `standsBelowColumnHeader` explains why it is read from the DOM.
+    if (parseInt(style.borderTopWidth, 10) > 0 || standsBelowColumnHeader(fromTDEl)) {
       top += 1;
       height = height > 0 ? height - 1 : 0;
     }
-    if (parseInt(style[isRtl ? 'borderRightWidth' : 'borderLeftWidth'], 10) > 0) {
+    // The inline-start gridline sits INSIDE the cell when the cell draws its own start border, so the
+    // edge has to move onto it. A cell standing behind a row header draws no start border - the row
+    // header owns that gridline (#6673) - and the shared pixel is then the last pixel of the
+    // inline-start overlay, which paints at z-index 120 against this layer's 10. An edge left centered
+    // on it would be hidden behind the row header, so both cases put the visible edge at the cell's
+    // own inline-start boundary. Read from the DOM, not from a column index: with row headers no cell
+    // owns that border, and `htFirstDatasetColumnNotRendered` takes it off the first rendered column
+    // too.
+    const ownsInlineStartBorder = parseInt(style[isRtl ? 'borderRightWidth' : 'borderLeftWidth'], 10) > 0;
+    const standsBehindRowHeader = fromTDEl.previousElementSibling?.nodeName === 'TH';
+
+    if (ownsInlineStartBorder || standsBehindRowHeader) {
       inlineStartPos += 1;
       width = width > 0 ? width - 1 : 0;
     }
 
+    // Resolved before the first style write below: narrowing the handle box reads cell geometry, and
+    // a read after the writes would force a second synchronous layout on every draw.
+    const adjustHandlesPlan = this.planAdjustHandles(
+      { top, inlineStart: inlineStartPos, width, height },
+      corners,
+      [fromRow, fromColumn, toRow, toColumn],
+      fromTDEl,
+      toTDEl,
+    );
     const inlinePosProperty = isRtl ? 'right' : 'left';
+
+    // Resolved before the long corner-geometry comment below because the extensions it describes
+    // depend on it: an edge inside a merged block is not drawn, so nothing extends toward it.
+    const { checkRow, checkCol, interiorEdges } = this.resolveMergedBlockEdges(toRow, toColumn, isMultiple, {
+      firstRow: firstRenderedRow,
+      lastRow: lastRenderedRow,
+      firstColumn: firstRenderedColumn,
+      lastColumn: lastRenderedColumn,
+    });
 
     // Corner geometry is resolved per edge rather than from a single `settings.border.width` delta,
     // which misaligns edges whose own width differs from the border-object default - e.g. a cell
@@ -1496,11 +1847,12 @@ class Border {
     // A corner is only filled when the perpendicular edge is actually drawn there. A horizontal edge
     // extends toward the end corner only if this cell has a visible end edge, and toward the bottom
     // only if it has a visible bottom edge. Without this, a per-cell custom border whose end/bottom
-    // side is hidden (an interior or split-range edge) would still extend into the empty neighbour and
+    // side is hidden (an interior or split-range edge) would still extend into the empty neighbor and
     // stick out. For regular selections the side settings are absent, so `!undefined?.hide` is `true`
-    // and the extension behaves exactly as before.
-    const extendToEnd = !this.settings.end?.hide;
-    const extendToBottom = !this.settings.bottom?.hide;
+    // and the extension behaves exactly as before. An edge inside a merged block is not drawn either,
+    // so the same rule applies to it.
+    const extendToEnd = !this.settings.end?.hide && !interiorEdges?.end;
+    const extendToBottom = !this.settings.bottom?.hide && !interiorEdges?.bottom;
     const bottomThickness = parseInt(this.bottomStyle!.height, 10);
     const endThickness = parseInt(this.endStyle!.width, 10);
     const bottomDelta = Math.ceil(bottomThickness / 2);
@@ -1548,6 +1900,14 @@ class Border {
         (wtTable.isMaster || overlayName === 'top' || overlayName === 'bottom')) {
       this.startStyle!.display = 'none';
     }
+    // The inline-end mirror of the rule above: a selection starting at the first `fixedColumnsEnd` column has
+    // its start edge drawn by the end overlay (and its corners). The master and the top/bottom overlays render
+    // that column too, under the end overlay, but their copy sits one pixel off the freeze line and shows
+    // beside the end overlay's, thickening the edge.
+    if (this.isFrozenEndBoundaryOppositeEdge(originalFromColumn) &&
+        (wtTable.isMaster || overlayName === 'top' || overlayName === 'bottom')) {
+      this.startStyle!.display = 'none';
+    }
     // The bottom-freeze edge straddles its seam: the master draws the half above the freeze line and
     // the `bottom` overlay the half below it (on top of the opaque bottom pane), so together they show
     // the full thickness in both selection and edit modes. Hide the master only when the whole
@@ -1558,20 +1918,29 @@ class Border {
       this.bottomStyle!.display = 'none';
     }
 
+    if (interiorEdges) {
+      this.hideInteriorEdges(interiorEdges);
+    }
+
     let cornerVisibleSetting = this.settings.border?.cornerVisible;
 
     cornerVisibleSetting = typeof cornerVisibleSetting === 'function' ?
       cornerVisibleSetting(this.settings.layerLevel) : cornerVisibleSetting;
 
-    const hookResult = this.wot.getSetting('onModifyGetCellCoords', toRow, toColumn, false, 'render');
-    let [checkRow, checkCol] = [toRow, toColumn];
+    // The hook can move the corner onto a merged block's bottom-end, which an overlay rendering only
+    // part of the block does not render. Only the overlay that does draws the handle; the others
+    // would put one on the freeze line inside the block (DEV-143).
+    // The `top` overlay also skips a corner on a column the viewport does not show. That check is
+    // asked last, and only when this border draws a corner handle at all.
+    const rendersFillCorner = checkRow <= lastRenderedRow && checkCol <= lastRenderedColumn &&
+      Boolean(cornerVisibleSetting || this.selectionHandles) && this.canOverlayDrawFillCorner(checkRow, checkCol);
 
-    if (hookResult && Array.isArray(hookResult)) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      [,, checkRow, checkCol] = hookResult;
-    }
-
-    if (isMobileBrowser() || !cornerVisibleSetting || !this.isSouthEastOfAreaSelection(checkRow, checkCol)) {
+    if (
+      isMobileOrIpadOS() ||
+      !cornerVisibleSetting ||
+      !rendersFillCorner ||
+      !this.isSouthEastOfAreaSelection(checkRow, checkCol)
+    ) {
       this.cornerStyle!.display = 'none';
 
     } else {
@@ -1638,55 +2007,41 @@ class Border {
       this.cornerStyle!.display = 'block';
     }
 
-    if (isMobileBrowser() && this.wot.getSetting('isDataViewInstance')) {
-      this.updateMultipleSelectionHandlesPosition(toRow, toColumn, top, inlineStartPos, width, height);
+    if (this.selectionHandles) {
+      this.updateMultipleSelectionHandlesPosition(
+        corners[0],
+        corners[1],
+        toRow,
+        toColumn,
+        top,
+        inlineStartPos,
+        width,
+        height,
+        rendersFillCorner,
+      );
     }
 
-    let adjustVisible = this.settings.border?.adjustHandlesVisible;
-
-    adjustVisible = typeof adjustVisible === 'function'
-      ? adjustVisible(this.settings.layerLevel) : adjustVisible;
-
-    if (!isMobileBrowser() && adjustVisible && this.wot.getSetting('isDataViewInstance')) {
-      const adjustHandles = this.adjustHandles ?? this.createAdjustHandles();
-
-      this.positionAdjustHandles(top, inlineStartPos, width, height, corners);
-
-      // Hide handles on an edge that lands on a frozen-pane line. This boundary rule is
-      // intentionally Walkontable-local: Walkontable cannot import core helpers, so the
-      // matching core-side check was removed as dead code — this is the single
-      // authoritative enforcement point.
-      if (this.isFrozenBoundaryEdge('row', corners[0]) || this.isFrozenBottomBoundaryOppositeEdge(corners[0])) {
-        adjustHandles.styles.top.display = 'none';
-      }
-      if (this.isFrozenBoundaryEdge('column', corners[1])) {
-        adjustHandles.styles.start.display = 'none';
-      }
-      if (this.isFrozenStartBoundaryOppositeEdge('row', corners[2]) ||
-          this.isFrozenBottomBoundaryEdge(corners[2])) {
-        adjustHandles.styles.bottom.display = 'none';
-      }
-      if (this.isFrozenStartBoundaryOppositeEdge('column', corners[3])) {
-        adjustHandles.styles.end.display = 'none';
-      }
-    } else if (this.adjustHandles) {
-      this.adjustHandles.styles.top.display = 'none';
-      this.adjustHandles.styles.bottom.display = 'none';
-      this.adjustHandles.styles.start.display = 'none';
-      this.adjustHandles.styles.end.display = 'none';
-    }
+    this.applyAdjustHandles(adjustHandlesPlan, corners);
 
     let moveEnabled = this.settings.border?.moveEnabled;
 
     moveEnabled = typeof moveEnabled === 'function'
       ? moveEnabled(this.settings.layerLevel) : moveEnabled;
 
-    if (!isMobileBrowser() && moveEnabled && this.wot.getSetting('isDataViewInstance')) {
+    // iPad reports a desktop UA (`isMobileBrowser()` is false) and kept this band
+    // before DEV-1081. Gate it with `isMobileBrowser()` only — `isMobileOrIpadOS()`
+    // would hide the band on iPad. Mobile range-handle UI stays on
+    // `isMobileOrIpadOS()` (constructor / `adjustHandles` above).
+    const ownedMoveZone = !isMobileBrowser() && moveEnabled && this.wot.getSetting('isDataViewInstance')
+      ? this.getMoveZoneOwnership(corners, [fromRow, fromColumn, toRow, toColumn])
+      : null;
+
+    if (ownedMoveZone && ADJUST_HANDLE_EDGES.some(edge => ownedMoveZone[edge])) {
       if (!this.moveZone) {
         this.createMoveZone();
       }
 
-      this.positionMoveZone(top, inlineStartPos, width, height);
+      this.positionMoveZone(top, inlineStartPos, width, height, ownedMoveZone);
     } else if (this.moveZone) {
       this.moveZone.styles.top.display = 'none';
       this.moveZone.styles.bottom.display = 'none';
@@ -1728,21 +2083,25 @@ class Border {
    * @param {string} direction `rows` or `columns`, defines if an entire column or row is selected.
    * @param {number} fromIndex Start index of the selection.
    * @param {number} toIndex End index of the selection.
-   * @param {number} headerIndex The header index as negative value.
+   * @param {number} headerIndex The unclamped selection corner on the perpendicular axis. A
+   *   negative value is a header coordinate (`-1` is closest to the cells). A non-negative value is
+   *   a body index and resolves to the closest header.
    * @param {number} containerOffset Offset of the container.
-   * @returns {Array|boolean} Returns an array of [headerElement, left, width] or [headerElement, top, height], depending on `direction` (`false` in case of an error getting the headers).
+   * @returns {Array|boolean} Returns an array of [headerElement, inlineOrBlockStart, size] —
+   *   `[th, left, width]` in LTR columns, `[th, right, width]` in RTL columns, `[th, top, height]`
+   *   for rows — or `false` when the headers cannot be resolved.
    */
   getDimensionsFromHeader(
     direction: string, fromIndex: number, toIndex: number, headerIndex: number,
     containerOffset: { top: number; left: number }): false | [HTMLElement, number, number] {
     const { geometryReader } = this.wot.domBindings;
     const { wtTable } = this.wot;
-    const rootHotElement = wtTable.wtRootElement.parentNode as HTMLElement;
+    // Read off the master: a pinned clone's parent is its rail, not the grid root (DEV-127).
+    const masterTable = this.wot.cloneSource?.wtTable ?? wtTable;
+    const rootHotElement = masterTable.wtRootElement.parentNode as HTMLElement;
     let getHeaderFn: ((...args: unknown[]) => HTMLElement | undefined) | null = null;
     let dimensionFn: ((el: HTMLElement) => number) | null = null;
     let entireSelectionClassname: string | null = null;
-    let index: number | null = null;
-    let dimension: number | null = null;
     let dimensionProperty: 'top' | 'left' | null = null;
     let startHeader: HTMLElement | undefined | null = null;
     let endHeader: HTMLElement | undefined | null = null;
@@ -1766,29 +2125,405 @@ class Border {
     }
 
     if (entireSelectionClassname && rootHotElement.classList.contains(entireSelectionClassname)) {
-      type ColHeadersFn = (...args: unknown[]) => unknown;
-      const columnHeaderLevelCount = (this.wot.getSetting('columnHeaders') as ColHeadersFn[]).length;
+      const headerCount = direction === 'rows'
+        ? wtTable.getRowHeadersCount()
+        : wtTable.getColumnHeadersCount();
 
-      startHeader = getHeaderFn?.(fromIndex, columnHeaderLevelCount - headerIndex);
-      endHeader = getHeaderFn?.(toIndex, columnHeaderLevelCount - headerIndex);
+      if (!getHeaderFn || !dimensionFn) {
+        return false;
+      }
+
+      const headerLevel = resolveHeaderLevel(headerCount, headerIndex);
+      const closestLevel = headerCount - 1;
+      const getHeader = (index: number, level: number) => getHeaderFn(index, level);
+      const sizeFn = dimensionFn;
+
+      startHeader = lookupSelectionHeader(getHeader, fromIndex, headerLevel, closestLevel, sizeFn);
+      endHeader = lookupSelectionHeader(getHeader, toIndex, headerLevel, closestLevel, sizeFn);
 
       if (!startHeader || !endHeader) {
         return false;
       }
 
+      const isRtl = this.wot.wtSettings.getSetting('rtlMode');
       const startHeaderOffset = geometryReader.offset(startHeader);
       const endOffset = geometryReader.offset(endHeader);
       const startOff = startHeaderOffset[dimensionProperty!];
       const endOff = endOffset[dimensionProperty!];
       const contOff = containerOffset[dimensionProperty!];
-
-      index = startOff - contOff - 1;
-      dimension = endOff + dimensionFn!(endHeader) - startOff;
+      const startSize = sizeFn(startHeader);
+      const endSize = sizeFn(endHeader);
+      const containerWidth = direction === 'columns' && isRtl
+        ? geometryReader.outerWidth(wtTable.TABLE)
+        : 0;
+      const [index, dimension] = measureHeaderSelectionBox(
+        direction === 'rows' ? 'rows' : 'columns',
+        startOff,
+        endOff,
+        startSize,
+        endSize,
+        contOff,
+        isRtl,
+        containerWidth,
+      );
 
       return [startHeader, index, dimension];
     }
 
     return false;
+  }
+
+  /**
+   * Resolves the edge-adjustment handles (`selectionHandles`) for this overlay's slice of the
+   * selection: which of them this overlay draws, and the box they are centered on. Reads only, so
+   * `appear()` calls it before it writes any style (see {@link Border#applyAdjustHandles}).
+   *
+   * A selection that crosses a frozen-pane line is drawn once per overlay, each slice clamped to what
+   * that overlay renders. The rules in `adjustHandlesOwnership.ts` give every handle exactly one
+   * owning overlay and center it on the owner's visible segment. Without them each slice would carry
+   * a full handle set, with handles on the freeze line in the middle of the selection.
+   *
+   * @private
+   * @param {SelectionBox} box The selection box as drawn by this overlay.
+   * @param {number[]} corners The raw `[fromRow, fromColumn, toRow, toColumn]` renderable corners.
+   * @param {number[]} clampedCorners The corners clamped to the range this overlay renders.
+   * @param {HTMLElement} fromTD The cell at the clamped top-start corner.
+   * @param {HTMLElement} toTD The cell at the clamped bottom-end corner.
+   * @returns {AdjustHandlesPlan|null} `null` when this overlay draws no handle.
+   */
+  planAdjustHandles(
+    box: SelectionBox,
+    corners: number[],
+    clampedCorners: number[],
+    fromTD: HTMLElement,
+    toTD: HTMLElement,
+  ): AdjustHandlesPlan | null {
+    let adjustVisible = this.settings.border?.adjustHandlesVisible;
+
+    adjustVisible = typeof adjustVisible === 'function'
+      ? adjustVisible(this.settings.layerLevel) : adjustVisible;
+
+    if (isMobileOrIpadOS() || !adjustVisible || !this.wot.getSetting('isDataViewInstance')) {
+      return null;
+    }
+
+    const layout: AdjustHandlesLayout = {
+      row: this.getAdjustHandlesAxisLayout('row'),
+      column: this.getAdjustHandlesAxisLayout('column'),
+    };
+    const owned = getHandleOwnership(layout, corners, clampedCorners);
+
+    if (!ADJUST_HANDLE_EDGES.some(edge => owned[edge])) {
+      return null;
+    }
+
+    return {
+      owned,
+      box: this.getAdjustHandlesBox(layout, box, clampedCorners, fromTD, toTD),
+    };
+  }
+
+  /**
+   * Shows, positions, or hides the edge-adjustment handles as {@link Border#planAdjustHandles}
+   * resolved them. Writes only.
+   *
+   * @private
+   * @param {AdjustHandlesPlan|null} plan The resolved plan, or `null` to hide every handle.
+   * @param {number[]} corners The raw `[fromRow, fromColumn, toRow, toColumn]` renderable corners.
+   */
+  applyAdjustHandles(plan: AdjustHandlesPlan | null, corners: number[]) {
+    if (!plan) {
+      this.hideAdjustHandles();
+
+      return;
+    }
+
+    const adjustHandles = this.adjustHandles ?? this.createAdjustHandles();
+    const { owned, box } = plan;
+
+    this.positionAdjustHandles(box.top, box.inlineStart, box.width, box.height, corners);
+
+    // Hide handles on an edge that lands on a frozen-pane line. This boundary rule is
+    // intentionally Walkontable-local: Walkontable cannot import core helpers, so the
+    // matching core-side check was removed as dead code — this is the single
+    // authoritative enforcement point.
+    const [fromRow, fromColumn, toRow, toColumn] = corners;
+    const onSeam = {
+      top: this.isFrozenBoundaryEdge('row', fromRow) || this.isFrozenBottomBoundaryOppositeEdge(fromRow),
+      start: this.isFrozenBoundaryEdge('column', fromColumn) || this.isFrozenEndBoundaryOppositeEdge(fromColumn),
+      bottom: this.isFrozenStartBoundaryOppositeEdge('row', toRow) || this.isFrozenBottomBoundaryEdge(toRow),
+      end: this.isFrozenStartBoundaryOppositeEdge('column', toColumn) || this.isFrozenEndBoundaryEdge(toColumn),
+    };
+
+    ADJUST_HANDLE_EDGES.forEach((edge) => {
+      if (!owned[edge] || onSeam[edge]) {
+        adjustHandles.styles[edge].display = 'none';
+      }
+    });
+  }
+
+  /**
+   * Hides the four edge-adjustment handles, if they have been created.
+   *
+   * @private
+   */
+  hideAdjustHandles() {
+    if (!this.adjustHandles) {
+      return;
+    }
+
+    ADJUST_HANDLE_EDGES.forEach((edge) => {
+      this.adjustHandles!.styles[edge].display = 'none';
+    });
+  }
+
+  /**
+   * Tells which of the four `moveCells` bands this overlay draws for its slice of the selection. Reads
+   * settings only, no DOM, so it is safe after `appear()` has written its styles (the shared axis
+   * layout also carries the visible range, which the band rule does not use). Resolved independently
+   * of {@link Border#planAdjustHandles}, which gives up when the adjust handles are off.
+   *
+   * @private
+   * @param {number[]} corners The raw `[fromRow, fromColumn, toRow, toColumn]` renderable corners.
+   * @param {number[]} clampedCorners The corners clamped to the range this overlay renders.
+   * @returns {object} One flag per edge (`top`, `bottom`, `start`, `end`).
+   */
+  getMoveZoneOwnership(corners: number[], clampedCorners: number[]): Record<AdjustHandleEdge, boolean> {
+    const layout: AdjustHandlesLayout = {
+      row: this.getAdjustHandlesAxisLayout('row'),
+      column: this.getAdjustHandlesAxisLayout('column'),
+    };
+
+    return getMoveZoneOwnership(layout, corners, clampedCorners);
+  }
+
+  /**
+   * Resolves what the handle-ownership rules need to know about one axis: the frozen-pane segments,
+   * which segment this overlay renders, and the master's visible range.
+   *
+   * The visible range, not the rendered one, is what decides. The master renders more tracks than it
+   * shows (the rendering offset, the directional overscan, `renderAllRows`/`renderAllColumns`), and
+   * those extra tracks sit behind a frozen pane or outside the holder. The range comes from the
+   * snapshot the master draw cycle takes before the overlays render
+   * (`Overlays#selectionVisibleRange`), so every overlay decides on the same one; before the first
+   * snapshot it is read live.
+   *
+   * @private
+   * @param {'row'|'column'} axis The axis to resolve.
+   * @returns {AdjustHandlesAxisLayout}
+   */
+  getAdjustHandlesAxisLayout(axis: 'row' | 'column'): AdjustHandlesAxisLayout {
+    const isRow = axis === 'row';
+    const total = this.wot.getSetting(isRow ? 'totalRows' : 'totalColumns') as number;
+    const fixedStart = this.wot.getSetting(isRow ? 'fixedRowsTop' : 'fixedColumnsStart') as number;
+    const fixedEnd = this.wot.getSetting(isRow ? 'fixedRowsBottom' : 'fixedColumnsEnd') as number;
+    const master = this.wot.cloneSource ?? this.wot;
+    const snapshot = master.wtOverlays.selectionVisibleRange;
+
+    return {
+      total,
+      main: [fixedStart, total - fixedEnd - 1],
+      overlaySegment: getOverlaySegment(this.wot.wtTable.name, axis),
+      visible: snapshot ? snapshot[axis] : this.readMasterVisibleRange(axis),
+    };
+  }
+
+  /**
+   * Reads the master's visible range on one axis directly, for a draw that has no snapshot yet.
+   *
+   * @private
+   * @param {'row'|'column'} axis The axis to read.
+   * @returns {AxisVisibleRange}
+   */
+  readMasterVisibleRange(axis: 'row' | 'column'): AxisVisibleRange {
+    const masterTable = (this.wot.cloneSource ?? this.wot).wtTable;
+
+    if (axis === 'row') {
+      return {
+        partial: [masterTable.getFirstPartiallyVisibleRow(), masterTable.getLastPartiallyVisibleRow()],
+        full: [masterTable.getFirstVisibleRow(), masterTable.getLastVisibleRow()],
+      };
+    }
+
+    return {
+      partial: [masterTable.getFirstPartiallyVisibleColumn(), masterTable.getLastPartiallyVisibleColumn()],
+      full: [masterTable.getFirstVisibleColumn(), masterTable.getLastVisibleColumn()],
+    };
+  }
+
+  /**
+   * Narrows this overlay's selection box to the part the handles are centered on: the selection
+   * inside this overlay's own segment and, in the scrollable segment, inside the master's visible
+   * range (`getHandlesSpan`). The master and the scroll-synced clones also render tracks nobody can see (the frozen
+   * rows or columns at the start of their band while scrolled to it, and the rendering overscan), so
+   * a handle centered on the whole box can land on the freeze line, behind a frozen pane, or outside
+   * the holder. Reads cell geometry only for an edge it actually narrows.
+   *
+   * @private
+   * @param {object} layout The per-axis layout (`row`, `column`).
+   * @param {SelectionBox} box The selection box as drawn by this overlay.
+   * @param {number[]} clampedCorners The corners clamped to the range this overlay renders.
+   * @param {HTMLElement} fromTD The cell at the clamped top-start corner.
+   * @param {HTMLElement} toTD The cell at the clamped bottom-end corner.
+   * @returns {SelectionBox}
+   */
+  getAdjustHandlesBox(
+    layout: AdjustHandlesLayout,
+    box: SelectionBox,
+    clampedCorners: number[],
+    fromTD: HTMLElement,
+    toTD: HTMLElement,
+  ): SelectionBox {
+    const [fromRow, fromColumn, toRow, toColumn] = clampedCorners;
+    const [handlesFromRow, handlesToRow] = getHandlesSpan(layout.row, fromRow, toRow);
+    const [handlesFromColumn, handlesToColumn] = getHandlesSpan(layout.column, fromColumn, toColumn);
+
+    if (handlesFromRow > handlesToRow || handlesFromColumn > handlesToColumn) {
+      return box;
+    }
+
+    const isRtl = this.wot.wtSettings.getSetting('rtlMode');
+    const result = { ...box };
+    const startEdge = (rect: DOMRectLike) => (isRtl ? rect.left + rect.width : rect.left);
+    const endEdge = (rect: DOMRectLike) => (isRtl ? rect.left : rect.left + rect.width);
+
+    const rows: [number, number] = [fromRow, toRow];
+    const columns: [number, number] = [fromColumn, toColumn];
+
+    if (handlesFromColumn !== fromColumn) {
+      const delta = this.measureTrackEdgeDelta(fromTD, 'column', handlesFromColumn, 'start', rows, startEdge);
+
+      result.inlineStart += delta;
+      result.width -= delta;
+    }
+    if (handlesToColumn !== toColumn) {
+      result.width -= this.measureTrackEdgeDelta(toTD, 'column', handlesToColumn, 'end', rows, endEdge);
+    }
+    if (handlesFromRow !== fromRow) {
+      const delta = this.measureTrackEdgeDelta(fromTD, 'row', handlesFromRow, 'start', columns, rect => rect.top);
+
+      result.top += delta;
+      result.height -= delta;
+    }
+    if (handlesToRow !== toRow) {
+      result.height -= this.measureTrackEdgeDelta(
+        toTD, 'row', handlesToRow, 'end', columns, rect => rect.top + rect.height,
+      );
+    }
+
+    return result;
+  }
+
+  /**
+   * Measures how far a track's edge (the start or end edge of a row or column) lies from the same
+   * edge of a reference cell, in pixels. Used to narrow a selection box by whole tracks without
+   * re-deriving its border compensations.
+   *
+   * The edge is read from a rendered cell in that track whose own block starts (or ends) on it. A
+   * merged cell stands for its whole block, and `getCell` resolves a covered coordinate to the
+   * block's root, so the first cell tried may belong to a merge that reaches across the track's
+   * edge; the next rows (or columns) of the selection are tried until one does not. The reference
+   * cell needs no such care: the selection box was measured from it, so its edge is the box's edge
+   * even when it is merged.
+   *
+   * @private
+   * @param {HTMLElement} referenceTD The cell the box edge was computed from.
+   * @param {'row'|'column'} axis The axis of the track.
+   * @param {number} index The renderable index of the track.
+   * @param {'start'|'end'} side Which edge of the track to measure.
+   * @param {number[]} crossRange The `[from, to]` range to search on the other axis.
+   * @param {Function} edge Picks the edge coordinate from a cell's document rect.
+   * @returns {number} The absolute distance, or `0` when no rendered cell has its edge on the track.
+   */
+  measureTrackEdgeDelta(
+    referenceTD: HTMLElement,
+    axis: 'row' | 'column',
+    index: number,
+    side: 'start' | 'end',
+    [crossFrom, crossTo]: [number, number],
+    edge: (rect: DOMRectLike) => number,
+  ): number {
+    const { wtTable } = this.wot;
+    const isColumn = axis === 'column';
+
+    for (let cross = crossFrom; cross <= crossTo; cross++) {
+      const cell = wtTable.getCell(this.wot.createCellCoords(isColumn ? cross : index, isColumn ? index : cross));
+      const ownCoords = isHTMLElement(cell) ? wtTable.getCoords(cell) : null;
+
+      if (ownCoords) {
+        const ownIndex = (isColumn ? ownCoords.col : ownCoords.row) ?? -1;
+        const span = isColumn ? (cell as HTMLTableCellElement).colSpan : (cell as HTMLTableCellElement).rowSpan;
+        const edgeIndex = side === 'start' ? ownIndex : ownIndex + Math.max(span, 1) - 1;
+
+        if (edgeIndex === index) {
+          return Math.abs(edge(this.readCellRect(cell as HTMLElement)) - edge(this.readCellRect(referenceTD)));
+        }
+      }
+    }
+
+    return this.measureTrackEdgeDeltaFromSizes(referenceTD, axis, index, side);
+  }
+
+  /**
+   * The fallback of {@link Border#measureTrackEdgeDelta} for a track on which no rendered cell has its
+   * own edge: every cell there belongs to a merge reaching across it, as when the selection is itself
+   * one merged block crossing a freeze line. The distance is then summed from the engine's own track
+   * sizes (the size caches the viewport lays the grid out with), between the reference cell's edge and
+   * the track's. It skips the border compensations the DOM path keeps, which costs at most a pixel of
+   * centering on this rare path.
+   *
+   * @private
+   * @param {HTMLElement} referenceTD The cell the box edge was computed from.
+   * @param {'row'|'column'} axis The axis of the track.
+   * @param {number} index The renderable index of the track.
+   * @param {'start'|'end'} side Which edge of the track to measure.
+   * @returns {number} The absolute distance, or `0` when the reference cell cannot be located or the
+   * size cache is not built.
+   */
+  measureTrackEdgeDeltaFromSizes(
+    referenceTD: HTMLElement,
+    axis: 'row' | 'column',
+    index: number,
+    side: 'start' | 'end',
+  ): number {
+    const referenceCoords = this.wot.wtTable.getCoords(referenceTD);
+
+    if (!referenceCoords) {
+      return 0;
+    }
+
+    const isColumn = axis === 'column';
+    const referenceIndex = (isColumn ? referenceCoords.col : referenceCoords.row) ?? -1;
+    const span = Math.max(
+      isColumn ? (referenceTD as HTMLTableCellElement).colSpan : (referenceTD as HTMLTableCellElement).rowSpan,
+      1,
+    );
+    // An end edge lies where the next track starts.
+    const referenceEdge = side === 'start' ? referenceIndex : referenceIndex + span;
+    const trackEdge = side === 'start' ? index : index + 1;
+    // Read the master's caches without building them: a build here, mid-draw, would skip a
+    // recalculation the draw cycle still owes (see `table/drawCycle.ts`). An unbuilt cache reads 0.
+    const { wtViewport } = this.wot.cloneSource ?? this.wot;
+    const cache = isColumn ? wtViewport.columnWidthCache : wtViewport.rowHeightCache;
+
+    return Math.abs(cache.getOffset(trackEdge) - cache.getOffset(referenceEdge));
+  }
+
+  /**
+   * Reads a cell's document position and outer size through the geometry reader.
+   *
+   * @private
+   * @param {HTMLElement} cell The cell element.
+   * @returns {DOMRectLike}
+   */
+  readCellRect(cell: HTMLElement): DOMRectLike {
+    const { geometryReader } = this.wot.domBindings;
+
+    return {
+      ...geometryReader.offset(cell),
+      width: geometryReader.outerWidth(cell),
+      height: geometryReader.outerHeight(cell),
+    };
   }
 
   /**
@@ -1944,19 +2679,14 @@ class Border {
     this.endStyle!.display = 'none';
     this.cornerStyle!.display = 'none';
 
-    if (isMobileBrowser() && this.wot.getSetting('isDataViewInstance')) {
+    if (this.selectionHandles) {
       this.selectionHandles.styles.top.display = 'none';
       this.selectionHandles.styles.topHitArea.display = 'none';
       this.selectionHandles.styles.bottom.display = 'none';
       this.selectionHandles.styles.bottomHitArea.display = 'none';
     }
 
-    if (this.adjustHandles) {
-      this.adjustHandles.styles.top.display = 'none';
-      this.adjustHandles.styles.bottom.display = 'none';
-      this.adjustHandles.styles.start.display = 'none';
-      this.adjustHandles.styles.end.display = 'none';
-    }
+    this.hideAdjustHandles();
 
     if (this.moveZone) {
       this.moveZone.styles.top.display = 'none';

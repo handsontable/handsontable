@@ -145,8 +145,10 @@ describe('Hook', () => {
 
       await scrollViewportTo({ col: 10 });
 
-      // 2050 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
-      expect(inlineStartOverlay().getScrollPosition()).toBe(1816);
+      // 2050 column width - 250 viewport width + 15 scrollbar compensation. There is no header
+      // border compensation any more: the row header keeps its inline-end border at every scroll
+      // position, so the viewport width is the same scrolled or not (#6673).
+      expect(inlineStartOverlay().getScrollPosition()).toBe(1815);
       expect(topOverlay().getScrollPosition()).toBe(0);
     });
 
@@ -177,8 +179,9 @@ describe('Hook', () => {
         value: 'auto',
       }));
 
-      // 900 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
-      expect(inlineStartOverlay().getScrollPosition()).toBe(666);
+      // 900 column width - 250 viewport width + 15 scrollbar compensation (no header border
+      // compensation, see above).
+      expect(inlineStartOverlay().getScrollPosition()).toBe(665);
       expect(topOverlay().getScrollPosition()).toBe(0);
     });
 

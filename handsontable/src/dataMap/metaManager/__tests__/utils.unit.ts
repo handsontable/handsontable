@@ -3,6 +3,7 @@ import {
   columnFactory,
   assert,
   isNullish,
+  normalizeEditorSetting,
 } from '../utils';
 import { registerAllCellTypes, getCellType } from '../../../cellTypes';
 
@@ -101,6 +102,7 @@ describe('MetaManager utils', () => {
             'valueGetter',
             'valueSetter',
             'parsePastedValue',
+            'textEllipsis',
           ]
         ),
         copyPaste: true,
@@ -111,6 +113,7 @@ describe('MetaManager utils', () => {
         valueGetter: getCellType('autocomplete').valueGetter,
         valueSetter: getCellType('autocomplete').valueSetter,
         parsePastedValue: getCellType('autocomplete').parsePastedValue,
+        textEllipsis: getCellType('autocomplete').textEllipsis,
       });
 
       extendByMetaType(metaObject, {
@@ -120,6 +123,7 @@ describe('MetaManager utils', () => {
       expect(metaObject).toEqual({
         _automaticallyAssignedMetaProps: new Set([
           'editor', 'validator', 'valueGetter', 'valueSetter', 'dataType', 'valueFormatter', 'parsePastedValue',
+          'textEllipsis',
         ]),
         copyPaste: true,
         test: 'foo',
@@ -131,6 +135,7 @@ describe('MetaManager utils', () => {
         valueSetter: getCellType('numeric').valueSetter,
         valueFormatter: getCellType('numeric').valueFormatter,
         parsePastedValue: getCellType('autocomplete').parsePastedValue,
+        textEllipsis: getCellType('autocomplete').textEllipsis,
       });
 
       extendByMetaType(metaObject, {
@@ -140,6 +145,7 @@ describe('MetaManager utils', () => {
       expect(metaObject).toEqual({
         _automaticallyAssignedMetaProps: new Set([
           'editor', 'validator', 'valueGetter', 'valueSetter', 'dataType', 'valueFormatter', 'parsePastedValue',
+          'textEllipsis',
         ]),
         copyPaste: true,
         test: 'foo',
@@ -151,6 +157,7 @@ describe('MetaManager utils', () => {
         valueSetter: getCellType('numeric').valueSetter,
         valueFormatter: getCellType('numeric').valueFormatter,
         parsePastedValue: getCellType('autocomplete').parsePastedValue,
+        textEllipsis: getCellType('autocomplete').textEllipsis,
       });
     });
 
@@ -163,7 +170,7 @@ describe('MetaManager utils', () => {
 
       expect(metaObject).toEqual({
         _automaticallyAssignedMetaProps: new Set([
-          'editor', 'renderer', 'validator', 'valueGetter', 'valueSetter', 'parsePastedValue',
+          'editor', 'renderer', 'validator', 'valueGetter', 'valueSetter', 'parsePastedValue', 'textEllipsis',
         ]),
         renderer: getCellType('autocomplete').renderer,
         editor: getCellType('autocomplete').editor,
@@ -171,6 +178,7 @@ describe('MetaManager utils', () => {
         valueGetter: getCellType('autocomplete').valueGetter,
         valueSetter: getCellType('autocomplete').valueSetter,
         parsePastedValue: getCellType('autocomplete').parsePastedValue,
+        textEllipsis: getCellType('autocomplete').textEllipsis,
       });
 
       metaObject.renderer = 'my-renderer';
@@ -181,7 +189,7 @@ describe('MetaManager utils', () => {
 
       expect(metaObject).toEqual({
         _automaticallyAssignedMetaProps: new Set([
-          'editor', 'validator', 'valueGetter', 'valueSetter', 'parsePastedValue',
+          'editor', 'validator', 'valueGetter', 'valueSetter', 'parsePastedValue', 'textEllipsis',
         ]),
         renderer: 'my-renderer',
         editor: getCellType('autocomplete').editor,
@@ -189,6 +197,7 @@ describe('MetaManager utils', () => {
         valueGetter: getCellType('autocomplete').valueGetter,
         valueSetter: getCellType('autocomplete').valueSetter,
         parsePastedValue: getCellType('autocomplete').parsePastedValue,
+        textEllipsis: getCellType('autocomplete').textEllipsis,
       });
     });
 
@@ -264,6 +273,45 @@ describe('MetaManager utils', () => {
       expect(isNullish(NaN)).toBe(false);
       expect(isNullish({})).toBe(false);
       expect(isNullish([])).toBe(false);
+    });
+  });
+
+  describe('normalizeEditorSetting', () => {
+    it('should drop an "editor" property of `true`, so it reads as "not passed"', () => {
+      const settings = { editor: true, type: 'numeric' };
+      const normalizedSettings = normalizeEditorSetting(settings);
+
+      expect(normalizedSettings).not.toBe(settings);
+      expect('editor' in normalizedSettings).toBe(false);
+      expect(normalizedSettings.type).toBe('numeric');
+    });
+
+    it('should not mutate the passed settings object', () => {
+      const settings = { editor: true };
+
+      normalizeEditorSetting(settings);
+
+      expect(settings.editor).toBe(true);
+    });
+
+    it('should return the very same object when the "editor" property needs no normalization', () => {
+      const namedEditor = { editor: 'numeric' };
+      const disabledEditor = { editor: false };
+      const nullEditor = { editor: null };
+      const noEditor = { type: 'numeric' };
+
+      expect(normalizeEditorSetting(namedEditor)).toBe(namedEditor);
+      expect(normalizeEditorSetting(disabledEditor)).toBe(disabledEditor);
+      expect(normalizeEditorSetting(nullEditor)).toBe(nullEditor);
+      expect(normalizeEditorSetting(noEditor)).toBe(noEditor);
+    });
+
+    it('should keep an "editor" property that is a truthy non-boolean value', () => {
+      class CustomEditor {}
+
+      const settings = { editor: CustomEditor };
+
+      expect(normalizeEditorSetting(settings).editor).toBe(CustomEditor);
     });
   });
 });

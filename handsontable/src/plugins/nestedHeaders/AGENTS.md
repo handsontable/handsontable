@@ -85,6 +85,21 @@ future `'reject'`/`'displace'` can be added without a breaking change.)
 - **Preserved** on `rebuildState` (move), `mergeStateWith`, `mapState` — these use identity shift, so
   overrides stay valid.
 
+**Two version counters on the state manager, for UndoRedo.** `getConfigVersion()` advances on a
+`setState()` whose configuration differs from the previous one (compared as JSON) - not on
+`rebuildState()`, and not on a wrapper re-render that re-sends the same configuration: a counter that
+moved on every re-send made CollapsibleColumns skip the groups of every older step, so an undo and a
+redo brought the hidden columns back without their collapsed group. `captureState()` records it next to the overrides, and
+`restoreState()` imports the overrides only when it still matches: overrides recorded under an earlier
+`nestedHeaders` config name that config's groups. It still runs `rebuildState()` either way, because a
+restored column order arrives through `setIndexesSequence()` (source `'update'`, not `'move'`), so
+`#onColumnIndexMapperCacheUpdated` does not re-derive the tree for it. `getCollapsedGroupsVersion()`
+advances on every `#applyNodeModification()` that finds a node, every `#deriveTree()` and `clear()`;
+CollapsibleColumns reads it to skip walking the tree on a step that changed no header group. A re-sent
+config still runs the whole `setState()` - it resets the overrides and expands every group, as it always
+did - but an undo of an older step can put back that step's overrides and collapsed groups, because
+they were recorded under the same config.
+
 ## State rebuild paths
 
 | Path | Trigger | Collapse kept | Overrides reset | Regens matrix |
@@ -144,6 +159,55 @@ outside, do not assume each call rebuilds the matrix.
   is consumed** in the cacheUpdated handler, not unconditionally — a CollapsibleColumns auto-expand fires
   a synchronous hidden-only `cacheUpdated` *before* `moveIndexes`, and clearing eagerly dropped the
   pending move.
+- The header renderer strips `beforeHiddenColumn` / `afterHiddenColumn` from every header that does not
+  reach the cells (`reachesCells`). It runs *after* HiddenColumns' `afterGetColHeader` hook, which — since
+  icons became elements — also appends a real `<i class="ht-icon …">` caret into `.relative`. Stripping the class does
+  not remove that element, so HiddenColumns now withholds it with the same `isBottomMostColumnHeader(TH)`
+  test, and its SCSS hides any stray caret under `th:not(.beforeHiddenColumn)`. If you change what
+  `reachesCells` means, change `../hiddenColumns/hiddenColumns.ts` to match, or the two disagree about
+  which level shows the caret (`../hiddenColumns/AGENTS.md`, "With NestedHeaders…").
+
+## Header-highlight redirect must list every selection type that can reach a group level
+
+`#onBeforeHighlightingColumnHeader` redirects a non-root (`hiddenHeader`) column onto the group's
+visible origin `<th>` so a highlight painted at a group level lands on the cell that actually carries
+the `colspan`, not an invisible placeholder. It only redirects the selection types it explicitly checks
+(`HEADER_TYPE`, `COLUMN_TYPE`; `ACTIVE_HEADER_TYPE` takes a separate branch) — any other selection type
+whose header extent later grows to span more than the leaf level (see `Selection#createHeaderExtentCoords`
+in `handsontable/src/selection/selection.ts`) will silently paint its class onto a hidden `<th>` instead
+of the group cell until this hook is taught about it too (DEV-3012 added `COLUMN_TYPE` for
+`currentColClassName`).
+
+## `fixedColumnsEnd`: a group that crosses the end line is drawn by the end clone
+
+The inline-end clone and the top inline-end corner render only the LAST `fixedColumnsEnd` columns, so their
+header cells do not line up by position with the master's, and a group that starts before the band has no
+header cell of its own there: its covered columns are placeholders. This is the mirror of a group that starts in
+the `fixedColumnsStart` band and reaches past it, and it follows the same rule: **the fixed band shows the label**.
+
+- `headerRendererFactory` turns the placeholder at the FIRST end column (`renderedColumnIndex ===
+  totalColumns - fixedColumnsEnd`, read from the Walkontable settings, so they are the clamped values) into a
+  continuation: `#renderEndGroupContinuation` finds the group's origin with `findLeftMostColumnIndex`, sets a
+  `colspan` of the columns left in the band and renders the origin's label. The cell is a continuation only when
+  `#isEndOverlayHeader(TH)` says it sits in an end clone, so the master and the top clone are untouched.
+- The label comes from the ORIGIN column, but the cell is rendered FOR the column it sits on: the renderer calls
+  `appendColHeader` with that column and a label callback that reads the origin's value. Passing the origin column
+  itself looks natural and works on the first draw, but `TableView#updateCellHeader` maps the column to a rendered
+  index of the CLONE, and the origin is not in the end clone, so every later draw of the same `<th>` (a scroll
+  that does not rebuild it) wrote an empty label. Pinned by the scrolled case in `fixed-columns-end-headers.spec.ts`.
+  `afterGetColHeader` listeners therefore see the placeholder column, not the origin.
+- The top clone's `<th>` of a group that reaches into the band gets `hiddenHeaderText`, like a group that starts in the
+  start band. Without it the label would be painted twice, half of it under the end corner.
+- The cells of the end clones are NOT index-aligned with the master's `<th>` list. `clearColspans()` therefore walks
+  `getEndOverlayHeaders(this.hot)` (shared with collapsibleColumns, in `src/utils/endOverlayHeaders.ts`; plugins must not
+  import each other) on their own instead of reusing the loop index `j`.
+- A continuation cell is still a placeholder in the state, so the renderer draws it from the ORIGIN group's settings:
+  `headerClassName` of the group is applied to it, and `reachesCells` (hidden-column indicators) and the rowspan read
+  the group's `rowspan`, not the placeholder's. Reading the placeholder's own settings drops the class and the
+  indicators of a group with `rowspan > 1`.
+- With `fixedColumnsEnd: 0` none of this runs (`firstEndColumn` is `Infinity`).
+- Pinned by `tests/e2e/fixed-columns-end-headers.spec.ts` (LTR and RTL). Toggle `#renderEndGroupContinuation` off to
+  see the end band header lose the label of a crossing group.
 
 ## TypeScript notes
 
@@ -157,6 +221,10 @@ outside, do not assume each call rebuilds the matrix.
 
 - E2E: `npm run test:e2e --prefix handsontable -- --testPathPattern='nestedHeaders'`
 - Unit: `npm run test:unit --prefix handsontable -- --testPathPattern='nestedHeaders'`
+- A collapsible group whose label is longer than the group:
+  `npm --prefix tests run test:e2e -- e2e/nested-headers-long-label.spec.ts` (Shift+Tab reaching the group,
+  Enter collapsing it, and the label cut with an ellipsis before the collapse icon, measured against the
+  icon element `.collapsibleIndicator__icon`, not the indicator's wider hit area, on every theme).
 - Move/reparent behavior: `__tests__/plugins/manualColumnMove/` — `general.spec.js` (cooperation:
   follow-data, collapse coordination, insert/remove, freeze) plus one file per `columnDropMode`
   strategy (`adopt.spec.js`, `split.spec.js`). **Add a new drop strategy's tests in its own

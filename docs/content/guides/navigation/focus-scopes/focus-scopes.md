@@ -21,6 +21,7 @@ vue:
   metaTitle: Focus scopes - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
+menuTag: updated
 ---
 Use focus scopes to create isolated focus boundaries within a Handsontable instance and control which keyboard shortcuts are active for each part of the UI. Focus scopes come in two types: `inline` (default) allows natural DOM tab order, and `modal` blocks focus outside the scope -- useful for dialogs and overlays.
 
@@ -254,6 +255,53 @@ customScopeContext.addShortcut({
 });
 ```
 
+### Inherit another context's shortcuts
+
+A scope that *covers* the grid rather than replacing it can keep the grid's shortcuts working while it
+is active. Set `fallbackShortcutsContextName` to `'grid'`. When a key arrives, Handsontable looks in the
+scope's own context first, and moves on to the fallback only when nothing there answers the key. The
+scope therefore answers everything the grid answers, including shortcuts added to the grid later, and
+you never maintain a list of keys.
+
+```js
+const focusScopeManager = hot.getFocusScopeManager();
+
+focusScopeManager.registerScope('customOverlay', containerElement, {
+  shortcutsContextName: 'plugin:customOverlay',
+  fallbackShortcutsContextName: 'grid',
+  coversGridBody: true,
+});
+```
+
+Set `shortcutsContextName` as well. It defaults to `'grid'`, so a scope that declares only the fallback
+names the same context twice, and Handsontable throws.
+
+The fallback belongs to the shortcuts context, not to the scope. Several scopes may share one context,
+and they must all name the same fallback. Register a second scope on a shared context with a different
+`fallbackShortcutsContextName` and Handsontable throws, because the second registration would otherwise
+replace the first one's fallback without a word.
+
+A shortcut in the scope's own context wins over the fallback's shortcut for the same keys, as long as its
+`runOnlyIf` returns `true`. When `runOnlyIf` returns `false`, the fallback answers instead. Use that to
+override one key without shadowing it the rest of the time.
+
+Leave the option unset for a modal scope. A modal blocks the rest of the grid, so letting the grid's
+shortcuts through it defeats the point. The fallback may declare a fallback of its own, and Handsontable
+walks the chain; a chain that loops back on itself stops rather than repeating.
+
+Set `coversGridBody` to `true` when the scope's container is painted over the grid body. A shortcut that
+writes cell content then refuses to run, both while the grid draws no cells and while your scope covers
+the cells it does draw. Those are different states: an overlay shown during a data fetch covers rows that
+are still on screen, and without this flag a shortcut would ask only "does the grid draw a cell", get
+`yes`, and change data the user cannot reach.
+
+Covering and inheriting are separate questions, which is why they are separate options. A pagination bar
+may inherit the grid's shortcuts without covering the body — the cells stay visible and usable.
+
+Two write paths sit outside the shortcut manager and are not affected by either option: the clipboard
+`paste` and `cut` handlers, which listen for the browser's own events, and anything your own code calls
+through the API.
+
 ### Add conditional scope activation
 
 To add conditional scope activation, use the `runOnlyIf` option. This allows you to enable or disable the scope based on custom logic. The option is useful for situations where your UI depends on whether it has any focusable elements, or when you want to prevent the scope from activating for a particular part of the UI. For cases where focus should bypass the scope activation after <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> key presses, the logic should return `false`.
@@ -363,6 +411,36 @@ The focus scope manager automatically:
 - Updates the [`Core#isListening`](@/api/core.md#islistening) state based on scope activity
 - Switches the shortcuts context to the scope's specified context name when the scope is activated
 - Handles tab navigation between scopes
+
+## Keyboard listening state
+
+Only one Handsontable instance at a time listens to keyboard input on the document. When a grid is not listening, it ignores keyboard events -- navigation and shortcuts stop working until the grid becomes active again. You can check the current state with [`isListening()`](@/api/core.md#islistening).
+
+When the user clicks or tabs to an element outside the table -- an external input, a button, or a custom panel -- the grid stops listening automatically. This is the most common cause of keyboard navigation issues in applications that combine Handsontable with external UI elements.
+
+To hand keyboard input back to the grid without forcing the user to click a cell, call [`listen()`](@/api/core.md#listen):
+
+```js
+// return keyboard input to the grid
+// after the user interacts with an external element
+hot.listen();
+```
+
+Calling `listen()` also deactivates listening on every other Handsontable instance on the page, so on multi-grid pages exactly one grid receives keyboard input. To make the grid ignore keyboard input explicitly, call [`unlisten()`](@/api/core.md#unlisten).
+
+::: only-for react
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page.
+
+:::
+
+:::
+
+For UI elements registered as [focus scopes](#register-a-focus-scope), you don't need to call these methods -- the focus scope manager updates the listening state automatically as scopes activate and deactivate.
 
 ## Result
 

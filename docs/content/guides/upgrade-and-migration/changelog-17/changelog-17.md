@@ -1,16 +1,16 @@
 ---
 type: reference
-title: Changelog 17.0
-metaTitle: Changelog 17.0 - JavaScript Data Grid | Handsontable
-description: See the full history of changes made to Handsontable 17.0 in each minor and patch release.
+title: Changelog 17.x
+metaTitle: Changelog 17.x - JavaScript Data Grid | Handsontable
+description: See the full history of changes made to Handsontable 17.x in each minor and patch release.
 permalink: /changelog-17
 canonicalUrl: /changelog-17
 react:
-  metaTitle: Changelog 17.0 - React Data Grid | Handsontable
+  metaTitle: Changelog 17.x - React Data Grid | Handsontable
 angular:
-  metaTitle: Changelog 17.0 - Angular Data Grid | Handsontable
+  metaTitle: Changelog 17.x - Angular Data Grid | Handsontable
 vue:
-  metaTitle: Changelog 17.0 - Vue Data Grid | Handsontable
+  metaTitle: Changelog 17.x - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---
@@ -32,8 +32,8 @@ For more information about this release, see:
 
 #### Added
 - Added a hit area for dropdown menu and collapsible buttons [#12070](https://github.com/handsontable/handsontable/pull/12070)
-- Added `rowspan` support to the NestedHeaders plugin, allowing column headers to span multiple header rows. [#191](https://github.com/handsontable/handsontable/issues/191)
-- Added the DataProvider plugin and `dataProvider` table option for server-side row loading and mutations. [#12147](https://github.com/handsontable/handsontable/pull/12147)
+- Added `rowspan` support to the [`NestedHeaders`](@/api/nestedHeaders.md) plugin, allowing column headers to span multiple header rows. [#191](https://github.com/handsontable/handsontable/issues/191)
+- Added the [`DataProvider`](@/api/dataProvider.md) plugin and [`dataProvider`](@/api/options.md#dataprovider) table option for server-side row loading and mutations. [#12147](https://github.com/handsontable/handsontable/pull/12147)
 - Added XLSX export support to the ExportFile plugin [#12166](https://github.com/handsontable/handsontable/pull/12166)
 - Added build weight comparison tables to the Modules guide, showing the minified and gzip size added by each optional module when imported on top of `handsontable/base`. [#12262](https://github.com/handsontable/handsontable/issues/12262)
 - Added Notification plugin for non-blocking toast notifications. [#12299](https://github.com/handsontable/handsontable/issues/12299)
@@ -143,12 +143,12 @@ For more information about this release, see:
 
 #### Added
 - **Breaking change**: Added the Theme API. [#11950](https://github.com/handsontable/handsontable/pull/11950)
-- Introduced a simple way to define custom editors using the new `BaseEditor.factory` method. [#11899](https://github.com/handsontable/handsontable/pull/11899)
+- Introduced a simple way to define custom editors using the new [`BaseEditor.factory`](@/api/baseEditor.md) method. [#11899](https://github.com/handsontable/handsontable/pull/11899)
 - Implemented a new MultiSelect cell type with a dedicated editor, renderer, and validator. [#11981](https://github.com/handsontable/handsontable/pull/11981)
 - Added support for `Intl.NumberFormat` options. [#11997](https://github.com/handsontable/handsontable/pull/11997)
 - Added support for `Intl.DateTimeFormat` options. [#11999](https://github.com/handsontable/handsontable/pull/11999)
 - Added a copy-as-Markdown button to the documentation pages. [#12009](https://github.com/handsontable/handsontable/pull/12009)
-- Added a new `sanitizer` table option. [#12016](https://github.com/handsontable/handsontable/pull/12016)
+- Added a new [`sanitizer`](@/api/options.md#sanitizer) table option. [#12016](https://github.com/handsontable/handsontable/pull/12016)
 - React: Introduced a simple way to define custom editors using the new `ComponentEditor`. [#11978](https://github.com/handsontable/handsontable/pull/11978)
 
 #### Changed
@@ -163,7 +163,7 @@ For more information about this release, see:
 - Deprecated **moment.js** for date parsing and display. Replace it with the `Intl.DateTimeFormat` API. [Migration guide](https://handsontable.com/docs/javascript-data-grid/migration-from-16.2-to-17.0#_4-migrate-from-moment-js-format-to-intl-datetimeformat)
 - Deprecated **DOMPurify** as a built-in XSS sanitizer. Use the new `sanitizer` option or convert content to plain text. [Migration guide](https://handsontable.com/docs/javascript-data-grid/migration-from-16.2-to-17.0#_5-migrate-from-built-in-dompurify-to-the-sanitizer-option)
 - Deprecated **core-js** polyfills for ECMAScript features. [Migration guide](https://handsontable.com/docs/javascript-data-grid/migration-from-16.2-to-17.0#_6-core-js-dependency-removed)
-- Deprecated bundling **HyperFormula** as a Handsontable dependency. Starting from version 18.0, install and import it separately, then pass it to the Formulas plugin with `licenseKey: 'internal-use-in-handsontable'`. [Formula calculation](https://handsontable.com/docs/javascript-data-grid/formula-calculation)
+- Deprecated bundling **HyperFormula** as a Handsontable dependency. Starting from version 18.0, install and import it separately, then pass it to the Formulas plugin with `formulas: { engine: HyperFormula }`. [Formula calculation](https://handsontable.com/docs/javascript-data-grid/formula-calculation)
 
 #### Removed
 - **Breaking change**: Removed deprecated wrapper packages for Angular, React, and Vue, the `PersistentState` plugin, and the legacy undo/redo methods. [#12015](https://github.com/handsontable/handsontable/pull/12015)

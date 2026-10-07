@@ -22,23 +22,23 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-## 1. Migrate from Legacy Styles to Classic Theme
+## 1. Migrate from legacy styles to Classic theme
 
 Handsontable 16.1 introduces a new **Classic** theme that replaces the legacy theme. Handsontable 17.0 will remove the legacy styles.
 
-### What Changed
+### What changed
 
 - **New Classic Theme**: A new theme called `ht-theme-classic` that retains the familiar look and feel of the original classic styles
 - **CSS Variables Support**: The new theme supports CSS variables for customization, unlike the legacy theme
 - **Dark Mode Support**: The new theme includes built-in dark mode variants (`ht-theme-classic-dark` and `ht-theme-classic-dark-auto`)
 
-### Why This Change
+### Why this change
 
 The legacy style uses hardcoded styles that cannot be customized. The new Classic theme provides the same visual appearance but with the flexibility of CSS variables, making it easier to customize and maintain consistency with your application's design system.
 
-### How to Migrate
+### How to migrate
 
-#### Step 1: Update CSS Imports
+#### Step 1: Update CSS imports
 
 **Before:**
 ```html
@@ -51,7 +51,7 @@ The legacy style uses hardcoded styles that cannot be customized. The new Classi
 <link href="styles/ht-theme-classic.css" rel="stylesheet">
 ```
 
-#### Step 2: Update Theme Configuration
+#### Step 2: Update theme configuration
 
 **Before:**
 
@@ -108,7 +108,7 @@ const hot = new Handsontable(container, {
 
 :::
 
-#### Step 3: Choose Your Variant
+#### Step 3: Choose your variant
 
 The new Classic theme offers three variants:
 
@@ -116,7 +116,7 @@ The new Classic theme offers three variants:
 - **Dark Mode**: `ht-theme-classic-dark`
 - **Auto Dark Mode**: `ht-theme-classic-dark-auto` (automatically follows system preference)
 
-#### Step 4: Customize with CSS Variables (Optional)
+#### Step 4: Customize with CSS variables (optional)
 
 The new theme supports over 180 CSS variables for [customization](@/guides/styling/theme-customization/theme-customization.md):
 
@@ -128,7 +128,7 @@ The new theme supports over 180 CSS variables for [customization](@/guides/styli
 }
 ```
 
-### What to Expect
+### What to expect
 
 - **Visual Consistency**: The new theme maintains the same visual appearance as the legacy style
 - **Future-Proof**: The new theme will continue to be supported and enhanced

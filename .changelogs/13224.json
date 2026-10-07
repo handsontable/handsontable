@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed how the `nestedRows` plugin treats collapsed rows when the data is replaced: `updateData()` now keeps the collapsed parents, matching them by their position in the tree, while `loadData()` drops them, so `getCollapsedParents()` no longer reports parents from the previous dataset.",
+  "type": "changed",
+  "issueOrPR": 13224,
+  "breaking": false,
+  "framework": "none"
+}

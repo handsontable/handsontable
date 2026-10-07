@@ -28,6 +28,7 @@ export function createScrollDeps(ctx: EngineContext) {
     getWtViewport: ctx.getWtViewport,
     getTopOverlay: ctx.getTopOverlay,
     getInlineStartOverlay: ctx.getInlineStartOverlay,
+    getInlineEndOverlay: ctx.getInlineEndOverlay,
   };
 }
 
@@ -111,6 +112,13 @@ class Scroll {
 
     // for auto-snapping do not scroll the viewport when the columns points to the overlays
     if (autoSnapping && column < fixedColumnsStart) {
+      return false;
+    }
+
+    // ... and the same for the end columns, which never leave the inline-end edge
+    const fixedColumnsEnd = wtSettings.getSetting<number>('fixedColumnsEnd');
+
+    if (autoSnapping && fixedColumnsEnd > 0 && column >= totalColumns - fixedColumnsEnd) {
       return false;
     }
 
@@ -289,7 +297,8 @@ class Scroll {
 
       // Only calculate lastColumnIndex when table didn't filled (from right) whole viewport space
       if (inlineStartRootElementOffset > windowScrollLeft) {
-        const windowWidth = geometryReader.innerWidth(rootWindow);
+        // The end columns cover the inline-end edge of the viewport, so the scrollable ones reach less far.
+        const windowWidth = geometryReader.innerWidth(rootWindow) - this.#deps.getInlineEndOverlay().getBandWidth();
         let columnsWidth = wtViewport.getRowHeaderWidth();
 
         for (let column = 1; column <= totalColumns; column++) {

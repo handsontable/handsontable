@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>RefreshDimensions hooks fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+  <iframe data-testid="frame" width="500" height="60"></iframe>
+  <div id="dvh-parent" data-testid="dvh-parent"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    // Every entry is one hook invocation: which hook ran, the previous and current dimensions it
+    // was given (cloned - the grid passes live objects), and whether it reported that a resize
+    // action is possible. Specs assert on this log, so a wait can poll for the delivery instead of
+    // guessing how long the resize-event -> rAF -> hook pipeline takes.
+    window.htHookLog = [];
+
+    // Every `console.warn` the library printed. Wrapped here rather than listened for through
+    // Playwright's console event, so a spec can poll the page for the warning in the same round
+    // trip it polls the hook log with, and can never miss one emitted before the listener attached.
+    window.htWarnLog = [];
+
+    // One sample per frame of the refresh count, taken for a stretch that STARTS when the loop guard
+    // warns and ends safely inside the guard's cooldown. Sampling in the page rather than from the
+    // spec is what makes the check deterministic: a spec that polls for the warning learns about it up
+    // to a poll interval late, and its own frame waits stretch on a loaded runner, so the pair can add
+    // up past the cooldown and read a count the reconnect has already moved.
+    window.htGuardSamples = [];
+    window.htGuardSamplingDone = false;
+
+    const GUARD_WARNING_FRAGMENT = 'fired too many times in direct succession';
+    // Comfortably below `RESIZE_LOOP_GUARD_RECONNECT_DELAY` (2000 ms) in resizeMonitor.ts. The elapsed
+    // time is checked BEFORE each sample is taken, so every sample is strictly inside the cooldown
+    // however long an individual frame turns out to be.
+    const GUARD_SAMPLE_WINDOW = 1500;
+
+    const countRefreshes = () => window.htHookLog.filter(item => item.hook === 'after').length;
+
+    const startGuardSampling = () => {
+      const warnedAt = performance.now();
+      const step = () => {
+        const elapsed = performance.now() - warnedAt;
+
+        if (elapsed >= GUARD_SAMPLE_WINDOW) {
+          window.htGuardSamplingDone = true;
+
+          return;
+        }
+
+        window.htGuardSamples.push({ elapsed: elapsed, refreshes: countRefreshes() });
+        requestAnimationFrame(step);
+      };
+
+      requestAnimationFrame(step);
+    };
+
+    const nativeWarn = console.warn.bind(console);
+
+    console.warn = (...args) => {
+      const message = args.join(' ');
+
+      window.htWarnLog.push(message);
+
+      if (message.indexOf(GUARD_WARNING_FRAGMENT) !== -1) {
+        startGuardSampling();
+      }
+
+      nativeWarn(...args);
+    };
+
+    const logDimensions = dims => ({ width: dims.width, height: dims.height });
+    const buildHooks = blockRefresh => ({
+      beforeRefreshDimensions(previousDimensions, currentDimensions, actionPossible) {
+        window.htHookLog.push({
+          hook: 'before',
+          prev: logDimensions(previousDimensions),
+          curr: logDimensions(currentDimensions),
+          action: actionPossible,
+        });
+
+        return blockRefresh ? false : undefined;
+      },
+      afterRefreshDimensions(previousDimensions, currentDimensions, actionPossible) {
+        window.htHookLog.push({
+          hook: 'after',
+          prev: logDimensions(previousDimensions),
+          curr: logDimensions(currentDimensions),
+          action: actionPossible,
+        });
+      },
+    });
+    const DATA = [
+      ['A0', 'B0'],
+      ['A1', 'B1'],
+      ['A2', 'B2'],
+      ['A3', 'B3'],
+      ['A4', 'B4'],
+    ];
+
+    // A sized grid in the main document: overlay-scroll mode, so its container is watched by the
+    // ResizeObserver pipeline - one delivery on observe (the "initial delivery"), then one per
+    // real container resize.
+    window.buildMainGrid = ({ blockRefresh = false } = {}) => {
+      const container = document.querySelector('[data-testid="grid"]');
+
+      container.className = `ht-theme-${window.htTheme}`;
+
+      window.hot = new Handsontable(container, Object.assign({
+        data: DATA,
+        width: 120,
+        height: 100,
+        afterRenderer(td, row, col) {
+          td.setAttribute('data-testid', `cell-${row}-${col}`);
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      }, buildHooks(blockRefresh)));
+    };
+
+    // The endless-ResizeObserver-loop shape: a parent sized in dynamic units whose height the grid's
+    // own refresh feeds back into, plus a sibling element that keeps the two sizes from ever settling
+    // (#11021). `overflow: hidden` makes the parent the grid's trimming container, so the grid runs
+    // in container-scroll mode and its parent is what the ResizeObserver watches - with no such
+    // container the grid scrolls on the window instead and is never observed at all.
+    window.buildDvhGrid = () => {
+      const parent = document.querySelector('[data-testid="dvh-parent"]');
+
+      parent.style.width = '100%';
+      parent.style.minHeight = '100dvh';
+      parent.style.overflow = 'hidden';
+
+      const container = document.createElement('div');
+
+      container.className = `ht-theme-${window.htTheme}`;
+      parent.appendChild(container);
+
+      const sibling = document.createElement('div');
+
+      sibling.textContent = 'Test';
+      parent.appendChild(sibling);
+
+      window.hot = new Handsontable(container, Object.assign({
+        data: [[1, 2], [3, 4]],
+        licenseKey: 'non-commercial-and-evaluation',
+      }, buildHooks(false)));
+    };
+
+    // A grid inside the iframe, created by THIS document's Handsontable on a node of the iframe's
+    // document - the cross-document shape the legacy suite exercised. With no width/height it runs
+    // in window-scroll mode, so dimension refreshes come from the iframe window's resize events,
+    // not from a ResizeObserver. Resolves only after the copied stylesheets finished loading, so
+    // the grid measures its final CSS from the first render on - the settle the legacy fixture
+    // approximated with `sleep(50)`.
+    // `columns` widens the data set past the iframe (20 × 50 px against a 500 px viewport), so
+    // horizontal virtualization makes the refresh OBSERVABLE: how many columns render depends on
+    // the viewport width the refresh adopted - or, when blocked, did not.
+    window.buildIframeGrid = ({ width, height, blockRefresh = false, columns = 2 } = {}) => {
+      const iframe = document.querySelector('[data-testid="frame"]');
+      const doc = iframe.contentDocument;
+
+      doc.open('text/html', 'replace');
+      doc.write('<!doctype html><html><head></head><body style="margin: 0"></body></html>');
+      doc.close();
+
+      const stylesheetsReady = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+        .map(link => new Promise((resolve, reject) => {
+          const copy = doc.createElement('link');
+
+          copy.rel = 'stylesheet';
+          copy.href = link.href;
+          copy.addEventListener('load', resolve, { once: true });
+          copy.addEventListener('error', () => reject(new Error('Stylesheet failed: ' + link.href)), { once: true });
+          doc.head.appendChild(copy);
+        }));
+
+      return Promise.all(stylesheetsReady).then(() => {
+        const container = doc.createElement('div');
+
+        container.className = `ht-theme-${window.htTheme}`;
+        doc.body.appendChild(container);
+
+        const settings = Object.assign({
+          data: columns === 2
+            ? DATA
+            : DATA.map((row, rowIndex) => Array.from({ length: columns }, (unused, col) => `R${rowIndex}C${col}`)),
+          licenseKey: 'non-commercial-and-evaluation',
+        }, buildHooks(blockRefresh));
+
+        if (width !== undefined) {
+          settings.width = width;
+          settings.height = height;
+        }
+
+        window.hot = new Handsontable(container, settings);
+      });
+    };
+  </script>
+</body>
+</html>

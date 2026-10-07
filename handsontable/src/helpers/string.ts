@@ -82,6 +82,122 @@ export function isPercentValue(value: string): boolean {
 }
 
 /**
+ * The named character references a message string may carry, plus numeric ones handled below.
+ */
+const NAMED_ENTITIES: Record<string, string> = {
+  amp: '&',
+  lt: '<',
+  gt: '>',
+  quot: '"',
+  apos: '\'',
+  nbsp: '\xA0',
+  // Punctuation and symbols that turn up in authored UI copy. Without these, a title written as
+  // `Loading&hellip;` displayed the reference itself once these surfaces stopped being parsed.
+  ndash: '\u2013',
+  mdash: '\u2014',
+  hellip: '\u2026',
+  lsquo: '\u2018',
+  rsquo: '\u2019',
+  ldquo: '\u201C',
+  rdquo: '\u201D',
+  laquo: '\xAB',
+  raquo: '\xBB',
+  bull: '\u2022',
+  middot: '\xB7',
+  dagger: '\u2020',
+  copy: '\xA9',
+  reg: '\xAE',
+  trade: '\u2122',
+  deg: '\xB0',
+  plusmn: '\xB1',
+  times: '\xD7',
+  divide: '\xF7',
+  euro: '\u20AC',
+  pound: '\xA3',
+  yen: '\xA5',
+  cent: '\xA2',
+  sect: '\xA7',
+  para: '\xB6',
+  shy: '\xAD',
+  ensp: '\u2002',
+  emsp: '\u2003',
+  thinsp: '\u2009',
+};
+
+/**
+ * Decodes HTML character references in a string.
+ *
+ * UI copy that carries tags used to be stripped with `stripTags()` and then assigned to
+ * `innerHTML`, so the HTML parser decoded any character references on the way in: a title written
+ * as `&lt;` displayed as `<`. Those surfaces now build DOM and write through `textContent`, which
+ * decodes nothing, so this reproduces that step and keeps what those messages render unchanged.
+ *
+ * Covers the named references that appear in authored copy plus decimal and hexadecimal numeric
+ * ones. The full HTML entity table is roughly two thousand names, and reproducing it would mean
+ * shipping the table; a reference outside this set is left as written. Numeric references have no
+ * such limit, so `&#8212;` resolves whether or not `&mdash;` is listed.
+ *
+ * Two limits of that table are worth knowing, because the parser this imitates has neither:
+ *
+ * - The lookup is **case-sensitive**. HTML5 also defines a handful of names in upper case, so
+ *   `&AMP;`, `&COPY;` and `&REG;` are valid references the parser decoded and this leaves as
+ *   written. Use the lower-case spelling in authored copy.
+ * - A name outside `NAMED_ENTITIES` stays literal. `a &hearts; b` used to render `a ♥ b` and now
+ *   renders as written.
+ *
+ * Reachable as `Handsontable.helper.decodeHtmlEntities()`, because `src/index.ts` spreads the
+ * string helpers into the public barrel, so both limits above are part of the published contract.
+ *
+ * @param {string} string String to decode.
+ * @returns {string}
+ */
+export function decodeHtmlEntities(string: string): string {
+  // One pass, so a decoded `&` cannot start a second reference - `&amp;lt;` decodes to `&lt;`,
+  // which is what the parser produced, not to `<`.
+  return String(string).replace(/&(#[0-9]+|#[xX][0-9a-fA-F]+|[a-zA-Z]+);/g, (match, reference: string) => {
+    if (reference[0] === '#') {
+      const codePoint = reference[1] === 'x' || reference[1] === 'X'
+        ? parseInt(reference.slice(2), 16)
+        : parseInt(reference.slice(1), 10);
+
+      if (!Number.isFinite(codePoint) || codePoint < 0 || codePoint > 0x10FFFF) {
+        return match;
+      }
+
+      // The parser replaces NUL and lone surrogates with U+FFFD rather than passing them through,
+      // and `Number.isFinite` cannot catch either, because `parseInt` succeeds on both. Passing a
+      // lone surrogate on would put invalid UTF-16 into cell data, which a later JSON or CSV write
+      // then has to deal with.
+      if (codePoint === 0 || (codePoint >= 0xD800 && codePoint <= 0xDFFF)) {
+        return '\uFFFD';
+      }
+
+      return String.fromCodePoint(codePoint);
+    }
+
+    // `Object.hasOwn`, not a bare lookup: `NAMED_ENTITIES` is an object literal, so a bare read
+    // walks the prototype chain and `&constructor;` resolves to `Object`, stringified into the
+    // output. The same went for `&toString;`, `&valueOf;`, `&hasOwnProperty;`, `&isPrototypeOf;`
+    // and `&propertyIsEnumerable;`. The parser leaves all of those literal, and so must this.
+    return Object.hasOwn(NAMED_ENTITIES, reference) ? NAMED_ENTITIES[reference] : match;
+  });
+}
+
+/**
+ * Strips HTML tags from a string and decodes any character references left behind.
+ *
+ * This is what a surface needs when it renders authored copy as text: it reproduces what assigning
+ * the string to `innerHTML` and reading `textContent` back used to produce, without going near a
+ * sink. Use it wherever `stripTags()` output is written through `textContent`.
+ *
+ * @param {string} string String to convert.
+ * @returns {string}
+ */
+export function htmlToPlainText(string: string): string {
+  return decodeHtmlEntities(stripTags(string));
+}
+
+/**
  * Strip any HTML tag from the string.
  *
  * @param {string} string String to cut HTML from.
@@ -240,4 +356,79 @@ function localeAffectsLowerCase(locale?: string): boolean {
 export function localeLowerCase(value: string, locale?: string): string {
   // eslint-disable-next-line no-restricted-syntax
   return localeAffectsLowerCase(locale) ? value.toLocaleLowerCase(locale) : value.toLowerCase();
+}
+
+/**
+ * The shared grapheme segmenter, built on first use. The constructor is one of the pricier `Intl`
+ * ones and the instance keeps no state between calls, while the callers run on every keystroke.
+ */
+let characterSegmenter: Intl.Segmenter | null = null;
+
+/**
+ * Matches a string in which every UTF-16 code unit is a character of its own. That holds for all the
+ * code units below U+0300, which has no combining mark, joiner, or surrogate, except the carriage return,
+ * because `\r\n` is one character. Such a string is by far the most common one, and it can skip the
+ * segmenter, which costs about 6 µs for a short string, against 0.1 µs for this test.
+ */
+// The range is deliberate: it names every code unit that may join a neighbor, and so keeps it out of the fast path.
+// eslint-disable-next-line no-misleading-character-class
+const SINGLE_UNIT_CHARACTERS = /^[^\r\u0300-\uFFFF]*$/;
+
+/**
+ * Splits a string into the characters a reader sees. These are grapheme clusters, so a flag, a skin
+ * tone emoji, a family emoji, or a letter with a combining mark is one character, not two or seven.
+ *
+ * @param {string} text The text to split.
+ * @returns {string[]} The characters.
+ */
+export function splitIntoCharacters(text: string): string[] {
+  if (SINGLE_UNIT_CHARACTERS.test(text)) {
+    return text.split('');
+  }
+
+  characterSegmenter ??= new Intl.Segmenter();
+
+  return Array.from(characterSegmenter.segment(text), segment => segment.segment);
+}
+
+/**
+ * Counts the characters a reader sees in a string (see {@link splitIntoCharacters}), where
+ * `String#length` counts UTF-16 code units.
+ *
+ * @param {string} value The string to measure.
+ * @returns {number}
+ */
+export function getCharacterLength(value: string): number {
+  if (SINGLE_UNIT_CHARACTERS.test(value)) {
+    return value.length;
+  }
+
+  characterSegmenter ??= new Intl.Segmenter();
+
+  let length = 0;
+
+  for (const segment of characterSegmenter.segment(value)) { // eslint-disable-line no-unused-vars
+    length += 1;
+  }
+
+  return length;
+}
+
+/**
+ * Removes up to `count` characters that end right before the given UTF-16 index. A character is
+ * never split. Stops early when it reaches the start of the string.
+ *
+ * @param {string} value The source string.
+ * @param {number} index The UTF-16 index that the removed range ends at (exclusive).
+ * @param {number} count The number of characters to remove.
+ * @returns {object} The shortened string (`value`) and the UTF-16 index (`index`) that now sits where
+ * the removed range began.
+ */
+export function removeCharactersBefore(
+  value: string, index: number, count: number
+): { value: string, index: number } {
+  const characters = splitIntoCharacters(value.slice(0, index));
+  const kept = characters.slice(0, Math.max(characters.length - count, 0)).join('');
+
+  return { value: kept + value.slice(index), index: kept.length };
 }

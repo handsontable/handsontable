@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a non-left-button click on a cell's dropdown arrow opening the cell editor.",
+  "type": "fixed",
+  "issueOrPR": 13295,
+  "breaking": false,
+  "framework": "none"
+}

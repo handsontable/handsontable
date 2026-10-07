@@ -70,6 +70,10 @@
       "raw": 20636,
       "gzip": 5716
     },
+    "AutoRowHeaderSize": {
+      "raw": 24415,
+      "gzip": 6661
+    },
     "AutoRowSize": {
       "raw": 20940,
       "gzip": 5706

@@ -83,7 +83,13 @@ In this example we set the same width of `100px` for all columns across the enti
 
 ## Set the column width in an array
 
-In this example, the width is only set for the first four columns. Each additional column would automatically adjust to the content.
+In this example, each of the ten columns gets its own width, from `70px` for the narrowest column to `160px` for the widest. Every width is wide enough for the column's header and data.
+
+::: tip
+
+Setting `colWidths` for even one column disables the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin for the entire grid. Any column left out of the array does **not** auto-adjust to its content -- it falls back to the default `50px` column width, which can cut off longer content. For this reason, if you use `colWidths`, set a width for every column.
+
+:::
 
 ::: only-for javascript
 
@@ -131,7 +137,7 @@ In this example, the width is only set for the first four columns. Each addition
 
 ## Set the column width using a function
 
-In this example, the size of all columns is set using a function by taking a column `index` (1, 2 ...) and multiplying it by `40px` for each consecutive column.
+In this example, the size of all columns is set using a function by taking a column `index` (1, 2 ...) and multiplying it by `60px` for each consecutive column.
 
 ::: only-for javascript
 
@@ -182,11 +188,13 @@ Use the [`modifyColWidth`](@/api/hooks.md#modifycolwidth) hook to cap how wide a
 
 Unlike [`colWidths`](@/api/options.md#colwidths), a cap in `modifyColWidth` does not force every cell onto one width. Short values keep a narrow column on a single line. When content would exceed your threshold, the column shrinks to your cap and the text wraps.
 
-Leave `colWidths` unset for columns you want to auto-size (or set the entry to `undefined` in an array). The [`AutoColumnSize`](@/api/autoColumnSize.md) plugin must stay enabled so Handsontable can measure content first. Setting `colWidths` as a single number disables auto-sizing for all columns.
+Don't set the top-level [`colWidths`](@/api/options.md#colwidths) option at all if you want columns to auto-size: even an array with `undefined` entries disables the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin for the entire grid, so none of its columns get measured. To fix a width on some columns while letting others auto-size, set `width` per column in the [`columns`](@/api/options.md#columns) array instead -- only the columns you give a `width` skip auto-sizing.
 
 You can also enforce a minimum width by returning `Math.max(width, minWidth)` from the same hook.
 
 ::: tip
+
+A few edge cases to keep in mind:
 
 - Auto-sized columns never go below 50px.
 - [`stretchH`](@/api/options.md#stretchh) runs after your hook and can widen columns beyond your cap.
@@ -243,16 +251,59 @@ Set the option [`manualColumnResize`](@/api/options.md#manualcolumnresize) to `t
 
 You can adjust the size of one or multiple columns simultaneously, even if the selected columns are not placed next to each other.
 
+### Minimum column width
+
+When the column headers render the menu button (the grid shows column headers, with [`colHeaders`](@/api/options.md#colheaders) or [`nestedHeaders`](@/api/options.md#nestedheaders), and [`dropdownMenu`](@/api/options.md#dropdownmenu) is enabled), a column can't get narrower than the button needs. The minimum width is the icon size plus the horizontal cell padding on both sides (`--ht-icon-size + 2 × --ht-cell-horizontal-padding`), so it depends on your [theme](@/guides/styling/themes/themes.md):
+
+| Theme   | Minimum column width |
+| ------- | -------------------- |
+| Main    | 32px                 |
+| Horizon | 40px                 |
+| Classic | 24px                 |
+
+A custom theme can declare these values in any unit, such as `rem` or `calc()`. Any other grid has no button to protect, so its minimum is `20px`, which is also the lowest the minimum can be.
+
+When a column is narrow, the header hides things in this order: the label text, then the sort indicator, and then the menu button. The menu button stays visible at the minimum width. At that width you can't sort by clicking the header text. You can still sort with the [`sort()`](@/api/columnSorting.md#sort) method, or with <kbd>**Enter**</kbd> on the header when [`navigableHeaders`](@/api/options.md#navigableheaders) is enabled.
+
 ::: tip
 
-When you set a column width programmatically with [`ManualColumnResize#setManualSize()`](@/api/manualColumnResize.md#setmanualsize), call `hot.render()` after the method call to repaint the grid. Values below `20px` are stored as `20px`.
+When you set a column width programmatically with [`ManualColumnResize#setManualSize()`](@/api/manualColumnResize.md#setmanualsize), call `hot.render()` after the method call to repaint the grid. Values below the minimum column width are stored as the minimum.
 
 :::
 
+A column resized this way keeps its width, and that width wins over the [`colWidths`](@/api/options.md#colwidths) option. To hand control back to the option, pass `colWidths` to [`updateSettings()`](@/api/core.md#updatesettings). That re-declares the widths and discards the stored ones:
+
+```js
+// every column is 100px again, including the columns the user dragged
+hot.updateSettings({ colWidths: 100 });
+```
+
+To resize columns without discarding what the user dragged, leave `colWidths` out of the call. To replace the stored widths with your own, pass [`manualColumnResize`](@/api/options.md#manualcolumnresize) as an array. You can also clear them yourself with [`ManualColumnResize#clearManualSize()`](@/api/manualColumnResize.md#clearmanualsize) for one column, or [`clearManualSizes()`](@/api/manualColumnResize.md#clearmanualsizes) for all of them, followed by `hot.render()`.
+
+::: tip
+
+These cases never discard the stored widths, so passing `colWidths` does not reset anything:
+
+- `colWidths` set to a function. A function states no fixed width, so the stored widths are left alone.
+- A grid whose [`manualColumnResize`](@/api/options.md#manualcolumnresize) option is already a non-empty array. The plugin replays that array, so the stored widths stay.
+- The React, Angular and Vue wrappers, where a `colWidths` prop whose value did not change is not forwarded to `updateSettings()`. Re-applying the same value is not an update.
+
+In each case, clear the widths explicitly.
+
+:::
+
+```js
+hot.getPlugin('manualColumnResize').clearManualSizes();
+hot.render();
+```
+
 ::: only-for javascript
 
-::: example #example4 --js 1 --ts 2
+Try it in the demo below: drag a column header to resize it, then select **Clear manual sizes**, which runs the snippet above.
 
+::: example #example4 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/columns/column-width/javascript/example4.html)
 @[code](@/content/guides/columns/column-width/javascript/example4.js)
 @[code](@/content/guides/columns/column-width/javascript/example4.ts)
 

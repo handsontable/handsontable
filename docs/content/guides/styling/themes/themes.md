@@ -30,6 +30,7 @@ vue:
 searchCategory: Guides
 category: Styling
 menuTag: updated
+addedIn: "15.0.0"
 ---
 Use Handsontable's built-in themes or customize its look using the Theme API or CSS variables.
 
@@ -303,13 +304,15 @@ export class AppComponent {
 ::: only-for vue
 
 ```ts
-import { ref } from 'vue';
+import { markRaw, ref } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { mainTheme, registerTheme } from 'handsontable/themes';
 
-const theme = registerTheme(mainTheme)
-  .setColorScheme('auto')
-  .setDensityType('comfortable');
+const theme = markRaw(
+  registerTheme(mainTheme)
+    .setColorScheme('auto')
+    .setDensityType('comfortable')
+);
 
 const hotSettings = ref({
   theme: theme,
@@ -321,6 +324,8 @@ const hotSettings = ref({
 ```html
 <HotTable :settings="hotSettings" />
 ```
+
+`markRaw()` is required here. Without it, Vue wraps the `ThemeBuilder` in a reactive proxy that can't reach the builder's private fields, and the grid throws `TypeError: attempted to get private field on non-instance` when it mounts.
 
 :::
 
@@ -418,6 +423,319 @@ const hotSettings = ref({
 
 :::
 
+## Switch between CSS-file themes at runtime
+
+Switch a grid to another CSS-file theme by giving it a different theme class name, either through [`useTheme()`](@/api/core.md#usetheme) or through the `theme` option. Both take a class name string such as `ht-theme-main-dark`, never a theme config object or a `ThemeBuilder` instance.
+
+In the framework wrappers, prefer changing the value your component binds over calling the instance directly. A wrapper re-asserts its bound settings as the component re-renders, which can undo an imperative call.
+
+::: only-for javascript
+
+```js
+import Handsontable from 'handsontable';
+import 'handsontable/styles/ht-theme-main.min.css';
+
+const hot = new Handsontable(container, {
+  theme: 'ht-theme-main',
+  // ... other options
+});
+
+function toggleTheme(isDarkMode) {
+  hot.useTheme(isDarkMode ? 'ht-theme-main-dark' : 'ht-theme-main');
+}
+```
+
+:::
+
+::: only-for react
+
+```jsx
+import { useState } from 'react';
+import { HotTable } from '@handsontable/react-wrapper';
+import 'handsontable/styles/ht-theme-main.min.css';
+
+const App = () => {
+  const [theme, setTheme] = useState('ht-theme-main');
+
+  const toggleTheme = (isDarkMode) => {
+    setTheme(isDarkMode ? 'ht-theme-main-dark' : 'ht-theme-main');
+  };
+
+  return (
+    <HotTable
+      theme={theme}
+    />
+  );
+};
+```
+
+Keep the theme in React state and pass it through the `theme` prop. The React wrapper re-sends the `theme` prop on every render, so a `useTheme()` call made through the instance ref is undone by the next render.
+
+:::
+
+::: only-for angular
+
+```typescript
+import { Component } from '@angular/core';
+import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
+import 'handsontable/styles/ht-theme-main.min.css';
+
+@Component({
+  standalone: true,
+  imports: [HotTableModule],
+  template: `<hot-table [settings]="hotSettings" />`,
+})
+export class AppComponent {
+  hotSettings: GridSettings = { theme: 'ht-theme-main' };
+
+  toggleTheme(isDarkMode: boolean) {
+    this.hotSettings = {
+      ...this.hotSettings,
+      theme: isDarkMode ? 'ht-theme-main-dark' : 'ht-theme-main',
+    };
+  }
+}
+```
+
+:::
+
+::: only-for vue
+
+```ts
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import 'handsontable/styles/ht-theme-main.min.css';
+
+const hotSettings = ref({
+  theme: 'ht-theme-main',
+});
+
+function toggleTheme(isDarkMode) {
+  hotSettings.value.theme = isDarkMode ? 'ht-theme-main-dark' : 'ht-theme-main';
+}
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
+Load the matching static stylesheet for every class name you switch to. Light and dark modes of a theme live in the same file: `ht-theme-main.min.css` defines `ht-theme-main`, `ht-theme-main-dark`, and `ht-theme-main-dark-auto` (see [Step 1. Load CSS files](#load-css-files)). Without the file, the grid logs a warning that the theme's stylesheets are missing and loses its styling.
+
+`useTheme()` validates the format of the name, not whether a stylesheet for it exists. The two cases behave differently:
+
+| Value | Result |
+| --- | --- |
+| `useTheme('dark')` | Rejected. The grid keeps its current theme and logs `dark isn't a valid theme name. Please ensure it follows the format ht-theme-<theme-name>.` |
+| `useTheme('ht-theme-doesnotexist')` | Applied. The grid switches to a class that no stylesheet defines, loses its styling, and logs the missing-stylesheets warning. |
+
+## Switch the color scheme at runtime with the Theme API
+
+When a grid uses the Theme API, call `setColorScheme()` directly on the `ThemeBuilder` instance returned by `registerTheme()`. The builder notifies the grid on its own -- no `updateSettings()` call is needed.
+
+::: only-for javascript
+
+```js
+import Handsontable from 'handsontable';
+import { mainTheme, registerTheme } from 'handsontable/themes';
+
+const theme = registerTheme(mainTheme);
+
+const hot = new Handsontable(container, {
+  theme,
+  // ... other options
+});
+
+function toggleTheme(isDarkMode) {
+  theme.setColorScheme(isDarkMode ? 'dark' : 'light');
+}
+```
+
+:::
+
+::: only-for react
+
+```jsx
+import { HotTable } from '@handsontable/react-wrapper';
+import { mainTheme, registerTheme } from 'handsontable/themes';
+
+const theme = registerTheme(mainTheme);
+
+const App = () => {
+  const toggleTheme = (isDarkMode) => {
+    theme.setColorScheme(isDarkMode ? 'dark' : 'light');
+  };
+
+  return (
+    <HotTable
+      theme={theme}
+    />
+  );
+};
+```
+
+:::
+
+::: only-for angular
+
+```typescript
+import { Component } from '@angular/core';
+import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
+import { mainTheme, registerTheme } from 'handsontable/themes';
+
+const mainThemeBuilder = registerTheme(mainTheme);
+
+@Component({
+  standalone: true,
+  imports: [HotTableModule],
+  template: `<hot-table [settings]="hotSettings" />`,
+})
+export class AppComponent {
+  theme = mainThemeBuilder;
+  hotSettings: GridSettings = { theme: this.theme };
+
+  toggleTheme(isDarkMode: boolean) {
+    this.theme.setColorScheme(isDarkMode ? 'dark' : 'light');
+  }
+}
+```
+
+An Angular template resolves names against the component instance, so the builder has to reach it as a class field. A module-level `const` alone leaves the `theme` option `undefined`, and the grid silently falls back to the registered `main` theme. The settings object stays untouched when the color scheme changes: the builder notifies the grid by itself.
+
+:::
+
+::: only-for vue
+
+```ts
+import { HotTable } from '@handsontable/vue3';
+import { mainTheme, registerTheme } from 'handsontable/themes';
+
+const theme = registerTheme(mainTheme);
+
+function toggleTheme(isDarkMode) {
+  theme.setColorScheme(isDarkMode ? 'dark' : 'light');
+}
+```
+
+```html
+<HotTable :settings="{ theme: theme }" />
+```
+
+:::
+
+Don't mix this with [`useTheme()`](#switch-between-css-file-themes-at-runtime): the Theme API only ever generates styles under the plain `ht-theme-{name}` class, never a `-dark` variant of it, so switching to `ht-theme-{name}-dark` on a Theme API grid loses the theme instead of applying its dark mode. A `useTheme()` call with a different valid class name drops the theme object, including its `icons` mapping, the same way passing a class name to `updateSettings({ theme })` does. A rejected value, such as `dark`, keeps both the current theme and the theme object.
+
+`setColorScheme()` changes the `ThemeBuilder` itself, so every grid that shares that builder switches with it. To change one grid only, leave the builder alone and set the per-instance [`colorScheme`](@/api/options.md#colorscheme) option, as described in [Switch the color scheme or density at runtime](#switch-the-color-scheme-or-density-at-runtime).
+
+## Switch between two registered themes at runtime
+
+To swap the grid's theme for a genuinely different one -- not a light/dark variant of the same theme -- hand the target theme to the grid through the `theme` option: with [`updateSettings()`](@/api/core.md#updatesettings) on a plain instance, or by changing the value your component binds, so that the new theme survives the next render.
+
+::: only-for javascript
+
+```js
+import Handsontable from 'handsontable';
+import { mainTheme, horizonTheme, registerTheme } from 'handsontable/themes';
+
+const themeA = registerTheme(mainTheme);
+const themeB = registerTheme(horizonTheme);
+
+const hot = new Handsontable(container, {
+  theme: themeA,
+  // ... other options
+});
+
+function switchTheme(useHorizon) {
+  hot.updateSettings({ theme: useHorizon ? themeB : themeA });
+}
+```
+
+:::
+
+::: only-for react
+
+```jsx
+import { useState } from 'react';
+import { HotTable } from '@handsontable/react-wrapper';
+import { mainTheme, horizonTheme, registerTheme } from 'handsontable/themes';
+
+const themeA = registerTheme(mainTheme);
+const themeB = registerTheme(horizonTheme);
+
+const App = () => {
+  const [theme, setTheme] = useState(themeA);
+
+  const switchTheme = (useHorizon) => {
+    setTheme(useHorizon ? themeB : themeA);
+  };
+
+  return (
+    <HotTable
+      theme={theme}
+    />
+  );
+};
+```
+
+:::
+
+::: only-for angular
+
+```typescript
+import { Component } from '@angular/core';
+import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
+import { mainTheme, horizonTheme, registerTheme } from 'handsontable/themes';
+
+const themeA = registerTheme(mainTheme);
+const themeB = registerTheme(horizonTheme);
+
+@Component({
+  standalone: true,
+  imports: [HotTableModule],
+  template: `<hot-table [settings]="hotSettings" />`,
+})
+export class AppComponent {
+  hotSettings: GridSettings = { theme: themeA };
+
+  switchTheme(useHorizon: boolean) {
+    this.hotSettings = { ...this.hotSettings, theme: useHorizon ? themeB : themeA };
+  }
+}
+```
+
+Bind a settings field and replace it, rather than calling `updateSettings()` on the instance. An object literal written straight into `[settings]="{ ... }"` is restated whenever anything else inside it changes, which undoes the imperative call.
+
+:::
+
+::: only-for vue
+
+```ts
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import { mainTheme, horizonTheme } from 'handsontable/themes';
+
+const hotSettings = ref({
+  theme: mainTheme,
+});
+
+function switchTheme(useHorizon) {
+  hotSettings.value.theme = useHorizon ? horizonTheme : mainTheme;
+}
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+Pass the plain theme config objects here, not the `ThemeBuilder` instances that `registerTheme()` returns, and never put a `ThemeBuilder` inside `ref()` or `reactive()`. Vue wraps such an object in a reactive proxy, and the builder keeps its state in private class fields that a proxy can't reach, so the grid throws `TypeError: attempted to get private field on non-instance` when it mounts. Wrapping the builder in `markRaw()` stops the error but doesn't make the swap work: the Vue wrapper compares settings with `JSON.stringify()`, and because a builder exposes no public fields, every builder serializes to `{}` and the change looks like no change at all.
+
+The grid registers the config you pass, so re-applying a config whose theme is already registered logs `Theme "main" is already registered. Registration skipped.` and reuses the theme that is already there.
+
+:::
+
+Passing a theme object works only when no `ht-theme-*` class is set on the grid's container element or on any of its ancestors. If one is, the grid stays on that CSS-file theme, and the passed theme object is ignored without a warning. Remove the class from your own markup before switching themes this way.
+
 ## Set the color scheme or density without a theme
 
 If the only thing you want to change is the color scheme or the amount of white space, you don't have to import, register, and configure a theme. Set the [`colorScheme`](@/api/options.md#colorscheme) or [`density`](@/api/options.md#density) option directly, and the grid applies it on top of the theme it already uses.
@@ -512,7 +830,7 @@ Apart from that, it doesn't matter which stylesheets you load. Both options work
 
 ::: only-for angular
 
-## Global Theme Management
+## Global theme management
 
 In addition to passing a theme via the settings object for individual Handsontable instances, you can set a global default theme that applies to all instances. This can be accomplished in two ways:
 
@@ -574,7 +892,7 @@ When registering a theme with `registerTheme()` or updating it using the `params
 | `name`        | Theme name string (can only be set during `registerTheme()`, cannot be updated via `params()`) |
 | `sizing`      | Size scale values (`size_0` through `size_10`)                                                 |
 | `density`     | Density type (`'default'`, `'compact'`, `'comfortable'`) or density configuration object       |
-| `icons`       | SVG icon definitions                                                                           |
+| `icons`       | Icon definitions per slot: a glyph, a class list, or a renderer callback. See [Icons](#icons)  |
 | `colors`      | Color palette with nested color values                                                         |
 | `tokens`      | Design tokens for visual properties                                                            |
 | `colorScheme` | Color scheme (`'light'`, `'dark'`, or `'auto'`)                                                |
@@ -677,13 +995,119 @@ All themes are available in two variants:
 
 #### Icon files
 
-If you're using a theme without icons (`*-no-icons.css`), you can optionally load separate icon files:
+A `-no-icons` bundle (`ht-theme-{name}-no-icons.css`) ships no `--ht-icon-<name>` variables and no glyph rules, so its icons render as empty boxes. The checkbox is a partial exception: its `appearance: none` now lives in the base stylesheet rather than the icon-specific rules, so a `-no-icons` bundle still renders the checkbox's styled box with no tick, instead of falling back to a native checkbox the way earlier versions did -- the radio has worked this way for a long time, so this brings the checkbox in line rather than changing its own behavior. Load a separate icon file to restore the built-in glyphs:
 
 - **`ht-icons-{name}.css`** / **`ht-icons-{name}.min.css`** - Icon styles for the theme (where `{name}` is `main` or `horizon`).
+
+See [Icons](#icons) for the icon element contract, the CSS variables behind each glyph, and how to map icons to your own icon set through the Theme API.
 
 #### Recommended usage
 
 For production, use the minified versions (`.min.css`) to reduce file size and improve load times. For development, you may prefer the unminified versions (`.css`) for easier debugging.
+
+## Icons
+
+Every built-in icon (menu arrows, the sort indicator, the checkbox glyph, the search icon, and so on) renders as a real DOM element:
+
+```html
+<i class="ht-icon ht-icon-search" aria-hidden="true"></i>
+```
+
+Each icon slot has a camelCase name, such as `search` or `arrowRight`, and its CSS class is the kebab-case form prefixed with `ht-icon-`: `search` becomes `ht-icon-search`, `arrowRight` becomes `ht-icon-arrow-right`. The `aria-hidden="true"` attribute keeps the element out of the accessibility tree -- Handsontable exposes the underlying action (a button, a menu item) through its own accessible name, not through the icon.
+
+### Icon CSS variables
+
+A built-in glyph comes from a `--ht-icon-<name>` CSS custom property, declared on the theme root and applied through the matching `.ht-icon-<name>` rule. The rule masks the variable's value and paints it with `currentColor`, so an icon always matches the surrounding text color.
+
+Override a variable the same way you override any other theme variable, scoped to the theme class:
+
+```css
+.ht-theme-main {
+  --ht-icon-search: url("/icons/search.svg");
+}
+```
+
+Scope the override to the theme class itself, not to a selector that goes through your grid's container, such as `#my-grid .ht-theme-main`. Dropdown menus, the Filters menu, and other popups mount in a separate `.ht-portal` element at the end of `<body>`, which carries the theme class but sits outside your container, so an override scoped to the container misses every icon they show.
+
+The same rule works with a theme stylesheet and with a theme object passed to the `theme` option:
+
+- A theme stylesheet declares the icon variables with a selector of the same specificity as a bare `.ht-theme-main` rule, so load your stylesheet after the theme stylesheet.
+- A theme object emits the icon variables, like every other theme variable, under `:where(.ht-theme-<name>)`. That selector has zero specificity, so your `.ht-theme-<name>` rule wins wherever your stylesheet loads.
+
+A relative `url()` in a custom property resolves against the stylesheet that reads it through `var()`, not the one that declares it. With class-name theming, that is Handsontable's theme stylesheet, so `url("icons/search.svg")` in your own stylesheet resolves against the URL the theme stylesheet is served from, not against your stylesheet's URL. If your bundler inlines the theme stylesheet into a `<style>` element, the value resolves against the page URL instead. With a theme object, Handsontable reads the icon variables in a `<style>` element it adds to the page, so the same value resolves against the page URL, as does a relative value passed through the Theme API's `icons` parameter. Prefer root-relative (`/icons/search.svg`) or absolute URLs, which resolve the same way in every case.
+
+### Map icons through the Theme API
+
+To replace icons with your own icon set, pass an `icons` object to `params()` on a registered theme. Each key is an icon slot name, and the value can be one of four kinds:
+
+```js
+import { mainTheme, registerTheme } from 'handsontable/themes';
+
+const myTheme = registerTheme(mainTheme);
+
+myTheme.params({
+  icons: {
+    // SVG markup
+    search: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 2a8 8 0 105.3 14.3l4.2 4.2 1.4-1.4-4.2-4.2A8 8 0 0010 2z"/></svg>',
+
+    // A `data:` URI, or a path wrapped in `url(...)`
+    plus: 'url(/icons/plus.svg)',
+
+    // A class list -- for an icon font such as Tabler Icons
+    selectArrow: 'ti ti-chevron-down',
+
+    // A renderer callback -- for an icon font that needs text content, such as Material Symbols ligatures
+    check: (element) => {
+      element.classList.add('material-symbols-outlined');
+      element.textContent = 'check';
+    },
+  },
+});
+
+const hot = new Handsontable(container, {
+  theme: myTheme,
+  // other options
+});
+```
+
+A class list or a callback adds the `ht-icon--external` class to the element, which turns off the built-in mask so your class or callback controls how the icon paints.
+
+A renderer callback runs every time Handsontable creates an icon element, including on each render of a checkbox or dropdown cell. Keep it cheap and free of side effects.
+
+Each `params()` call starts from the configuration the theme was registered with, not from the previous `params()` call. Pass every icon override in one call: a second call with only `{ icons: { check: ... } }` drops the overrides the first call set.
+
+::: warning Requires a theme object
+
+The Theme API mapping only works when the grid receives its theme as a configuration object through the `theme` option, as in the example above. If you apply a theme by putting a class such as `ht-theme-main` directly on the container element, Handsontable never creates a theme manager for that instance, so a class-list or callback icon mapping does nothing, silently. Built-in glyphs and CSS variable overrides still work in that setup, because they come from the stylesheet, not from JavaScript.
+
+With a theme object, a runtime theme change -- switching `icons` at runtime, or switching to a different registered theme -- reaches every icon the grid renders, including the ones a plugin builds once and keeps around. Pagination, the sheets bar, and notifications update their icons in place on the change, so an open sheet rename or a tab drag is not interrupted. The dropdown menu button refreshes its icon on the next header render, the Filters plugin's condition-select arrow and radio dot on the next menu open, and the select editor's arrow on the next editor open.
+
+:::
+
+Loading a built-in theme over a `<script>` tag and then deriving a custom theme from it works the same way as any other Theme API customization, but the theme's own script must load first. See [UMD build (script tags)](#configure-the-theme) in [Use a theme](#use-a-theme).
+
+#### How a string value is read
+
+A string value is treated as a glyph when it is one of the following:
+
+- Markup: any value that starts with `<`, such as `<svg ...>` or an SVG with an XML prolog (`<?xml ...?><svg ...>`). If the root `<svg>` has no `xmlns` attribute, Handsontable adds `xmlns="http://www.w3.org/2000/svg"`, without which a browser paints nothing.
+- A URL or a path: a value that starts with `data:`, `blob:`, `http://`, `https://`, `//`, `/`, `./`, `../`, or `url(`.
+- A value that names an image file (`.svg`, `.svgz`, `.png`, `.apng`, `.gif`, `.jpg`, `.jpeg`, `.jfif`, `.webp`, `.avif`, `.jxl`, `.bmp`, `.ico`, `.tif`, or `.tiff`), with an optional query string or fragment, such as `icons/check.svg?v=2`. The path can contain spaces, such as `icons/my star.svg`.
+- A single token (no spaces) that contains both a `/` and a `?`, such as `api/icon?name=check`.
+
+Any other string is treated as a class list.
+
+In version 18.1, every string value was a glyph. The one form that changes meaning in 19.0 is a relative path with no file extension and no query string, such as `icons/check`, which is now read as a class list. Wrap such a path in `url(...)`, or start it with `./`, so it is recognized as a glyph:
+
+```js
+icons: {
+  check: './icons/check',
+}
+```
+
+### Selectors that changed
+
+Icons used to be CSS `::before`/`::after` pseudo-elements. Rendering them as real elements can collide with a selector that assumed no extra child existed -- see [Icons are rendered as `<i>` elements](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#icons-are-rendered-as-i-elements) in the migration guide for the full old-to-new selector list and how to migrate.
 
 ## The legacy theme
 

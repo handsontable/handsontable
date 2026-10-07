@@ -1,10 +1,119 @@
-import { extendByMetaType, assert } from '../utils';
+import { extendByMetaType, assert, normalizeEditorSetting } from '../utils';
 import LazyFactoryMap from '../lazyFactoryMap';
-import { extend, hasOwnProperty } from '../../../helpers/object';
+import { extend, hasOwnProperty, objectEach } from '../../../helpers/object';
 import { isDefined } from '../../../helpers/mixed';
 import { isUnsignedNumber } from '../../../helpers/number';
 import type ColumnMeta from './columnMeta';
 import type { CellProperties } from '../../../settings';
+import { markCellMetaChanged } from '../../../core/incrementalRender/renderChangeTracker';
+
+/**
+ * Tells whether the cell's own last validation failed. The validation flow writes `valid` straight
+ * onto the meta object instead of going through `setMeta`, so this is the only marker such a cell
+ * carries - both the viewport eviction and the `updateSettings` cache clear key their keep rules on
+ * it, and they must agree.
+ *
+ * The read is `hasOwnProperty`-guarded: `valid` is an ordinary meta key, so a grid can inherit
+ * `valid: false` from the column or global layer (`columns: [{ valid: false }]`, or any unrecognized
+ * top-level setting). Reading through the prototype chain would report every materialized cell of
+ * such a grid as invalid and let the restore stamp the flag on as an own property, which then
+ * outlives the setting that produced it and pins the cell against eviction forever.
+ *
+ * Only `false` counts, never `true`: a passing result has no rendered state, and preserving every
+ * validated-valid cell would defeat the memory bound on a fully validated grid. The trade-off is
+ * that such a cell reads back as `undefined` rather than `true`; no core reader distinguishes the
+ * two (all branch on `!== false`).
+ *
+ * @param {object} meta The cell meta object to test.
+ * @returns {boolean}
+ */
+function isFlaggedInvalid(meta: CellProperties): boolean {
+  return hasOwnProperty(meta, 'valid') && meta.valid === false;
+}
+
+/**
+ * One cell meta property captured for replay across a cache reset, located by physical coordinates.
+ */
+export interface CellMetaSnapshotEntry {
+  physicalRow: number;
+  physicalColumn: number;
+  key: string;
+  value: unknown;
+}
+
+export interface CellMetaAtRowEntry {
+  physicalColumn: number;
+  meta: CellProperties;
+}
+
+/**
+ * The origin bucket a cell meta key is filed in: `user` for an imperative `setCellMeta` write,
+ * `cellOption` for a write applied from the declarative `cell` option, and `none` for a
+ * plugin-declarative write (or a key that is not stored at all).
+ */
+export type CellMetaOrigin = 'user' | 'cellOption' | 'none';
+
+/**
+ * What one cell meta key holds at a moment: whether it is stored on the cell, its value, and the
+ * origin bucket it is filed in. Captured before and after a write, so the write can be reverted
+ * exactly – including the bucket, which decides whether an `updateSettings` call replays the value.
+ */
+export interface CellMetaKeyState {
+  hadOwn: boolean;
+  value: unknown;
+  origin: CellMetaOrigin;
+}
+
+/**
+ * A `CellMetaKeyState` located by physical coordinates.
+ */
+export interface CellMetaKeyStateEntry {
+  physicalRow: number;
+  physicalColumn: number;
+  key: string;
+  state: CellMetaKeyState;
+}
+
+/**
+ * The state of a key a cell does not store.
+ */
+const ABSENT_KEY_STATE: CellMetaKeyState = Object.freeze({ hadOwn: false, value: undefined, origin: 'none' });
+
+/**
+ * Returns one of the key sets a cell meta object keeps for its bookkeeping, or `undefined` when the
+ * cell has none.
+ *
+ * @param {object} meta The cell meta object.
+ * @param {string} name The name of the set.
+ * @returns {Set<string>|undefined}
+ */
+function getKeySet(
+  meta: CellProperties,
+  name: '_userDefinedMetaProps' | '_cellOptionMetaProps' | '_persistedMetaProps',
+): Set<string> | undefined {
+  const keys: unknown = meta[name];
+
+  return keys instanceof Set ? keys : undefined;
+}
+
+/**
+ * Tells which origin bucket a stored key is filed in.
+ *
+ * @param {object} meta The cell meta object.
+ * @param {string} key The key.
+ * @returns {string}
+ */
+function getKeyOrigin(meta: CellProperties, key: string): CellMetaOrigin {
+  if (getKeySet(meta, '_userDefinedMetaProps')?.has(key)) {
+    return 'user';
+  }
+
+  if (getKeySet(meta, '_cellOptionMetaProps')?.has(key)) {
+    return 'cellOption';
+  }
+
+  return 'none';
+}
 
 /**
  * @class CellMeta
@@ -59,6 +168,20 @@ export default class CellMeta {
    * @type {number}
    */
   #userDefinedMetaRecordingSuspendCount = 0;
+  /**
+   * Counts how many `cell`-option recording scopes are open. While the count is above `0`, and user-defined
+   * recording is suspended, `setMeta` files its keys as written by the declarative `cell` option, so they
+   * can be replayed across a cache reset. A counter (rather than a boolean) keeps nested scopes correct,
+   * for the same re-entrancy reason as `#userDefinedMetaRecordingSuspendCount`.
+   *
+   * This distinguishes the `cell` option from the other declarative writer, `Core#_setCellMetaDeclarative`,
+   * which suspends user-defined recording without opening this scope. Plugins using that method (for
+   * example ColumnSummary) re-apply their meta from their own configuration after every update and rely on
+   * a cache reset dropping it, so their keys must stay out of this bucket.
+   *
+   * @type {number}
+   */
+  #cellOptionMetaRecordingCount = 0;
 
   /**
    * Initializes the cell meta layer with a reference to the ColumnMeta layer used as the prototype source for new cell meta objects.
@@ -90,6 +213,49 @@ export default class CellMeta {
   }
 
   /**
+   * Tells whether a `setMeta` call made now would be filed as a user-defined write – that is, no
+   * `cell`-option scope and no plugin-declarative suspension is open.
+   *
+   * @returns {boolean}
+   */
+  isUserDefinedMetaRecording(): boolean {
+    return this.#userDefinedMetaRecordingSuspendCount === 0;
+  }
+
+  /**
+   * Opens a `cell`-option recording scope. Writes made inside it are filed as applied from the declarative
+   * `cell` option, so they can be replayed across the cache reset that `updateSettings` performs. The scope
+   * also suspends user-defined recording, because a declarative write must never be mistaken for an
+   * imperative one. Scopes nest; each call must be matched by an `endCellOptionMetaRecording` call.
+   *
+   * Known limitation, shared with `disableUserDefinedMetaRecording`: an imperative `setCellMeta` made from a
+   * hook that fires while this scope is open is filed as a `cell`-option write, so it is replayed but loses
+   * to a restated `cell`. No built-in caller does that. A plugin-declarative write nested here is filed
+   * correctly – see the bucket comment in `setMeta`.
+   */
+  startCellOptionMetaRecording() {
+    this.#cellOptionMetaRecordingCount += 1;
+    this.disableUserDefinedMetaRecording();
+  }
+
+  /**
+   * Closes one `cell`-option recording scope opened by `startCellOptionMetaRecording`, and the user-defined
+   * recording suspension that came with it.
+   *
+   * The two counters move together or not at all. An unbalanced call – one `end` too many, or one on an
+   * error path – must not lift a suspension that a plain `disableUserDefinedMetaRecording()` caller owns:
+   * that would make the next plugin-declarative write read as imperative and be replayed forever.
+   */
+  endCellOptionMetaRecording() {
+    if (this.#cellOptionMetaRecordingCount === 0) {
+      return;
+    }
+
+    this.#cellOptionMetaRecordingCount -= 1;
+    this.enableUserDefinedMetaRecording();
+  }
+
+  /**
    * Updates cell meta object by merging settings with the current state.
    *
    * @param {number} physicalRow The physical row index which points what cell meta object is updated.
@@ -97,10 +263,43 @@ export default class CellMeta {
    * @param {object} settings An object to merge with.
    */
   updateMeta(physicalRow: number, physicalColumn: number, settings: Record<string, unknown>) {
-    const meta = this.getMeta(physicalRow, physicalColumn);
+    const meta = this.extendMeta(physicalRow, physicalColumn, settings);
 
-    extend(meta, settings);
-    extendByMetaType(meta, settings);
+    markCellMetaChanged(meta);
+  }
+
+  /**
+   * Merges settings into the cell meta object and marks the cell as changed for the render only when
+   * a merged value differs from what the meta held (compared by identity). This is the path of the
+   * per-render dynamic extension (`cells` function, `type` expansion), which re-applies its result on
+   * every full render: counting an unchanged result as a change would make a `renderMode: 'onChange'`
+   * cell paint on every draw, while a result that did change (a `cells` function reading state
+   * outside the grid) has to be painted.
+   *
+   * @param {number} physicalRow The physical row index which points what cell meta object is updated.
+   * @param {number} physicalColumn The physical column index which points what cell meta object is updated.
+   * @param {object} settings An object to merge with.
+   * @returns {object} The cell meta object.
+   */
+  extendMeta(physicalRow: number, physicalColumn: number, settings: Record<string, unknown>): CellProperties {
+    const meta = this.getMeta(physicalRow, physicalColumn);
+    const normalizedSettings = normalizeEditorSetting(settings);
+    let changed = false;
+
+    objectEach(normalizedSettings, (value: unknown, key: string) => {
+      if ((meta as Record<string, unknown>)[key] !== value) {
+        changed = true;
+      }
+    });
+
+    extend(meta, normalizedSettings);
+    extendByMetaType(meta, normalizedSettings);
+
+    if (changed) {
+      markCellMetaChanged(meta);
+    }
+
+    return meta;
   }
 
   /**
@@ -230,6 +429,23 @@ export default class CellMeta {
   setMeta(physicalRow: number, physicalColumn: number, key: string, value: unknown) {
     const cellMeta = this.metas.obtain(physicalRow).obtain(physicalColumn);
 
+    markCellMetaChanged(cellMeta);
+
+    // An `editor` of `true` names no editor, so it reads as "the setting was not passed". Dropping
+    // the own property lets the cell keep the editor its `type` expands to, or the one inherited
+    // from the column and grid layers. Storing the boolean instead would hand a bare `true` to
+    // `getEditorInstance()` and, by clearing the key from `_automaticallyAssignedMetaProps`, would
+    // also stop `extendByMetaType()` from supplying the type's editor. The bookkeeping entries are
+    // cleared too, so an earlier real write does not keep the cell pinned against meta eviction.
+    if (key === 'editor' && value === true) {
+      delete cellMeta[key];
+      (cellMeta._persistedMetaProps as Set<string> | undefined)?.delete(key);
+      (cellMeta._userDefinedMetaProps as Set<string> | undefined)?.delete(key);
+      (cellMeta._cellOptionMetaProps as Set<string> | undefined)?.delete(key);
+
+      return;
+    }
+
     (cellMeta._automaticallyAssignedMetaProps as Set<string> | undefined)?.delete(key);
     cellMeta[key] = value;
 
@@ -241,14 +457,43 @@ export default class CellMeta {
 
     (cellMeta._persistedMetaProps as Set<string>).add(key);
 
+    // A key belongs to exactly one origin bucket, and the newest write decides which. That is what makes an
+    // imperative override of a `cell`-option value survive a cache reset: the key moves to the user-defined
+    // bucket and leaves the `cell`-option one, so only the override is replayed.
+    //
+    // The `cell`-option test is an equality, not `> 0`. Every `cell`-option scope raises both counters, and a
+    // plain `disableUserDefinedMetaRecording()` raises only the suspend one, so the counts differ exactly
+    // when a plugin-declarative scope is open somewhere. Testing `> 0` would file a `_setCellMetaDeclarative`
+    // write nested inside the `cell` loop - reachable, because applying the option fires
+    // `beforeSetCellMeta`/`afterSetCellMeta` - as a `cell`-option write, and it would then be replayed on
+    // every later update: the stranded stale value the third bucket exists to prevent. The reverse nesting
+    // (a `cell` scope opened inside a plugin one) reads as plugin-declarative and is dropped, which is the
+    // pre-fix behavior and therefore safe; it is also unreachable, since `_setCellMetaDeclarative` fires no
+    // hooks and so runs nothing user-controlled inside its scope.
+    const isCellOptionWrite = this.#cellOptionMetaRecordingCount > 0 &&
+      this.#userDefinedMetaRecordingSuspendCount === this.#cellOptionMetaRecordingCount;
+
     if (this.#userDefinedMetaRecordingSuspendCount === 0) {
       if (cellMeta._userDefinedMetaProps === undefined) {
         cellMeta._userDefinedMetaProps = new Set();
       }
 
       (cellMeta._userDefinedMetaProps as Set<string>).add(key);
-    } else {
+      (cellMeta._cellOptionMetaProps as Set<string> | undefined)?.delete(key);
+
+    } else if (isCellOptionWrite) {
+      if (cellMeta._cellOptionMetaProps === undefined) {
+        cellMeta._cellOptionMetaProps = new Set();
+      }
+
+      (cellMeta._cellOptionMetaProps as Set<string>).add(key);
       (cellMeta._userDefinedMetaProps as Set<string> | undefined)?.delete(key);
+
+    } else {
+      // Declarative writes from a plugin (`Core#_setCellMetaDeclarative`). They belong to no bucket: the
+      // plugin re-applies them from its own configuration after every update and relies on the reset.
+      (cellMeta._userDefinedMetaProps as Set<string> | undefined)?.delete(key);
+      (cellMeta._cellOptionMetaProps as Set<string> | undefined)?.delete(key);
     }
   }
 
@@ -271,7 +516,113 @@ export default class CellMeta {
 
     delete cellMeta[key];
     (cellMeta._userDefinedMetaProps as Set<string> | undefined)?.delete(key);
+    (cellMeta._cellOptionMetaProps as Set<string> | undefined)?.delete(key);
     (cellMeta._persistedMetaProps as Set<string> | undefined)?.delete(key);
+    markCellMetaChanged(cellMeta);
+  }
+
+  /**
+   * Returns what one key of a cell's meta holds. Nothing is created: a cell with no stored meta, or
+   * one that does not store the key, reports the key as absent. A key only counts as stored when a
+   * `setMeta` call wrote it – a value the `type` expansion or the `cells` function put on the object
+   * is re-derived on every read, so it is reported as absent too.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @param {string} key The key.
+   * @returns {CellMetaKeyState}
+   */
+  getMetaKeyState(physicalRow: number, physicalColumn: number, key: string): CellMetaKeyState {
+    const cellMeta = this.metas.getIfExists(physicalRow)?.getIfExists(physicalColumn);
+
+    if (
+      cellMeta === undefined ||
+      !getKeySet(cellMeta, '_persistedMetaProps')?.has(key) ||
+      !hasOwnProperty(cellMeta, key)
+    ) {
+      return ABSENT_KEY_STATE;
+    }
+
+    return {
+      hadOwn: true,
+      value: cellMeta[key],
+      origin: getKeyOrigin(cellMeta, key),
+    };
+  }
+
+  /**
+   * Puts one key of a cell's meta into a state captured by `getMetaKeyState()`: an absent key is
+   * removed, a stored one is written back and filed in the origin bucket it came from, so a later
+   * `updateSettings` call treats it exactly as it did before (#5661).
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @param {string} key The key.
+   * @param {CellMetaKeyState} state The state to apply.
+   */
+  applyMetaKeyState(physicalRow: number, physicalColumn: number, key: string, state: CellMetaKeyState) {
+    if (!state.hadOwn) {
+      this.removeMeta(physicalRow, physicalColumn, key);
+
+      return;
+    }
+
+    if (state.origin === 'cellOption') {
+      this.startCellOptionMetaRecording();
+
+      try {
+        this.setMeta(physicalRow, physicalColumn, key, state.value);
+      } finally {
+        this.endCellOptionMetaRecording();
+      }
+
+    } else if (state.origin === 'none') {
+      this.disableUserDefinedMetaRecording();
+
+      try {
+        this.setMeta(physicalRow, physicalColumn, key, state.value);
+      } finally {
+        this.enableUserDefinedMetaRecording();
+      }
+
+    } else {
+      this.setMeta(physicalRow, physicalColumn, key, state.value);
+    }
+  }
+
+  /**
+   * Appends the state of every user-defined and `cell`-option key stored in one row to `target`.
+   * Plugin-declarative keys are left out: their plugin derives them again from its own state.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {CellMetaKeyStateEntry[]} target The list to append to.
+   */
+  captureRowMetaKeyStates(physicalRow: number, target: CellMetaKeyStateEntry[]) {
+    const rowMap = this.metas.getIfExists(physicalRow);
+
+    if (rowMap === undefined) {
+      return;
+    }
+
+    for (const [physicalColumn, meta] of rowMap) {
+      this.#collectOwnKeyStates(physicalRow, physicalColumn, meta, target);
+    }
+  }
+
+  /**
+   * Appends the state of every user-defined and `cell`-option key stored in one column to `target`.
+   *
+   * @param {number} physicalColumn The physical column index.
+   * @param {CellMetaKeyStateEntry[]} target The list to append to.
+   */
+  captureColumnMetaKeyStates(physicalColumn: number, target: CellMetaKeyStateEntry[]) {
+    for (const [physicalRow, rowMap] of this.metas) {
+      const meta = rowMap.getIfExists(physicalColumn);
+
+      if (meta !== undefined) {
+        this.#collectOwnKeyStates(physicalRow, physicalColumn, meta, target);
+      }
+    }
   }
 
   /**
@@ -318,6 +669,28 @@ export default class CellMeta {
   }
 
   /**
+   * Returns the materialized cell metas for a physical row together with the physical column keys
+   * that own them. The coordinate fields on a meta object are render-time values and can be stale
+   * after a row or column map changes.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @returns {{physicalColumn: number, meta: object}[]}
+   */
+  getMetasAtRowWithPhysicalColumns(physicalRow: number): CellMetaAtRowEntry[] {
+    assert(() => isUnsignedNumber(physicalRow), 'Expecting an unsigned number.');
+
+    const rowMeta = this.metas.getIfExists(physicalRow);
+
+    if (rowMeta === undefined) {
+      return [];
+    }
+
+    return Array.from(rowMeta)
+      .sort(([a], [b]) => a - b)
+      .map(([physicalColumn, meta]) => ({ physicalColumn, meta }));
+  }
+
+  /**
    * Returns a flat snapshot of all cell meta properties that were set imperatively through
    * `setMeta` (tracked in each cell's `_userDefinedMetaProps`). The coordinates are read from the
    * map keys (physical indexes), not from the meta object's `row`/`col` properties, which are only
@@ -326,18 +699,66 @@ export default class CellMeta {
    *
    * @returns {{physicalRow: number, physicalColumn: number, key: string, value: *}[]}
    */
-  getUserDefinedMetas(): { physicalRow: number, physicalColumn: number, key: string, value: unknown }[] {
-    const result: { physicalRow: number, physicalColumn: number, key: string, value: unknown }[] = [];
+  getUserDefinedMetas(): CellMetaSnapshotEntry[] {
+    return this.#getMetasByOrigin('_userDefinedMetaProps');
+  }
+
+  /**
+   * Returns a flat snapshot of all cell meta properties that were applied from the declarative `cell` option
+   * (tracked in each cell's `_cellOptionMetaProps`). Used to replay the option across a cache reset during
+   * `updateSettings`, so cells keep it on a call that does not restate `cell`.
+   *
+   * The snapshot is keyed by physical coordinates, so the replay puts every value back on the record it was
+   * resolved to, not on whatever record now sits at the option's visual coordinates.
+   *
+   * @returns {{physicalRow: number, physicalColumn: number, key: string, value: *}[]}
+   */
+  getCellOptionMetas(): CellMetaSnapshotEntry[] {
+    return this.#getMetasByOrigin('_cellOptionMetaProps');
+  }
+
+  /**
+   * Appends the state of every user-defined and `cell`-option key one cell stores to `target`.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @param {object} meta The cell meta object.
+   * @param {CellMetaKeyStateEntry[]} target The list to append to.
+   */
+  #collectOwnKeyStates(
+    physicalRow: number, physicalColumn: number, meta: CellProperties, target: CellMetaKeyStateEntry[]
+  ) {
+    const persistedProps = getKeySet(meta, '_persistedMetaProps');
+
+    persistedProps?.forEach((key) => {
+      const origin = getKeyOrigin(meta, key);
+
+      if (origin !== 'none' && hasOwnProperty(meta, key)) {
+        target.push({ physicalRow, physicalColumn, key, state: { hadOwn: true, value: meta[key], origin } });
+      }
+    });
+  }
+
+  /**
+   * Collects a flat snapshot of the cell meta properties filed under one origin bucket. The coordinates are
+   * read from the map keys (physical indexes), not from the meta object's `row`/`col` properties, which are
+   * only populated on `getCellMeta` and become stale after row or column shifts.
+   *
+   * @param {string} originProp Name of the bookkeeping set to read – `_userDefinedMetaProps` or `_cellOptionMetaProps`.
+   * @returns {{physicalRow: number, physicalColumn: number, key: string, value: *}[]}
+   */
+  #getMetasByOrigin(originProp: '_userDefinedMetaProps' | '_cellOptionMetaProps'): CellMetaSnapshotEntry[] {
+    const result: CellMetaSnapshotEntry[] = [];
 
     for (const [physicalRow, rowMap] of this.metas) {
       for (const [physicalColumn, meta] of rowMap) {
-        const userDefinedProps = meta._userDefinedMetaProps as Set<string> | undefined;
+        const props = meta[originProp] as Set<string> | undefined;
 
-        if (userDefinedProps === undefined) {
+        if (props === undefined) {
           continue; // eslint-disable-line no-continue
         }
 
-        userDefinedProps.forEach((key) => {
+        props.forEach((key) => {
           if (hasOwnProperty(meta, key)) {
             result.push({ physicalRow, physicalColumn, key, value: meta[key] });
           }
@@ -346,6 +767,47 @@ export default class CellMeta {
     }
 
     return result;
+  }
+
+  /**
+   * Returns the physical coordinates of every cell whose last validation failed. Such a cell carries
+   * no `_userDefinedMetaProps` entry, so `getUserDefinedMetas()` cannot see it - see
+   * `isFlaggedInvalid()` for why, and for the own-property and `false`-only rules this shares with
+   * `evictRow()`. Used together with `restoreInvalidMetas()` to keep the invalid-cell highlight
+   * across the cache clear that `updateSettings` performs when its payload carries `cell`, `cells`
+   * or `columns`.
+   *
+   * @returns {{physicalRow: number, physicalColumn: number}[]}
+   */
+  getInvalidMetas(): { physicalRow: number, physicalColumn: number }[] {
+    const result: { physicalRow: number, physicalColumn: number }[] = [];
+
+    for (const [physicalRow, rowMap] of this.metas) {
+      for (const [physicalColumn, meta] of rowMap) {
+        if (isFlaggedInvalid(meta)) {
+          result.push({ physicalRow, physicalColumn });
+        }
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Re-applies the failed validation results captured by `getInvalidMetas()`. The write is a direct
+   * property assignment, matching how the validation flow itself records the result. It deliberately
+   * does not go through `setMeta`: that would record `valid` as a user-defined property, and every
+   * later cache clear would then replay a stale `false` onto a cell that has since been corrected.
+   *
+   * @param {{physicalRow: number, physicalColumn: number}[]} invalidMetas Coordinates to flag as invalid.
+   */
+  restoreInvalidMetas(invalidMetas: { physicalRow: number, physicalColumn: number }[]) {
+    invalidMetas.forEach(({ physicalRow, physicalColumn }) => {
+      const cellMeta = this.getMeta(physicalRow, physicalColumn);
+
+      cellMeta.valid = false;
+      markCellMetaChanged(cellMeta);
+    });
   }
 
   /**
@@ -372,17 +834,12 @@ export default class CellMeta {
     const evictedColumns: number[] = [];
 
     for (const [physicalColumn, meta] of rowMap) {
-      const persistedProps = meta._persistedMetaProps as Set<string> | undefined;
+      const persistedProps = getKeySet(meta, '_persistedMetaProps');
       const hasPersistedProps = persistedProps !== undefined && persistedProps.size > 0;
-      // A failed validation result (`valid === false`) is written directly onto the meta object by
-      // the core validation flow (not through `setMeta`) and is not rebuilt on render, so the cell
-      // must survive eviction or the invalid-cell highlight would disappear after scrolling away.
-      // Only `false` is preserved, not `valid === true`: a passing result has no rendered state and
-      // preserving every validated-valid cell would defeat the memory bound on a fully validated grid.
-      // The trade-off is that `getCellMeta().valid` reads back as `undefined` (not `true`) for an
-      // evicted-and-re-minted valid cell until it is validated again; no core reader distinguishes the
-      // two (all branch on `!== false`).
-      const isInvalid = meta.valid === false;
+      // A cell flagged invalid is not rebuilt on render, so it must survive eviction or the
+      // invalid-cell highlight would disappear after scrolling away. Same rule, same predicate as
+      // the `updateSettings` snapshot - see `isFlaggedInvalid()`.
+      const isInvalid = isFlaggedInvalid(meta);
 
       if (hasPersistedProps || isInvalid) {
         hasKeptCell = true;

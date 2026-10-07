@@ -1,4 +1,17 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
+
+/**
+ * Escapes a Filter-by-value, header, or condition label so it can be used
+ * in a `^…$` exact-match regexp. Password hashes are runs of `*`, which
+ * would otherwise throw `Nothing to repeat`.
+ *
+ * @param {string} label The visible list, header, or condition label.
+ * @returns {string} The label with regexp special characters escaped.
+ */
+export function escapeRegExp(label: string): string {
+  return label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 /**
  * Page Object for the "filter by value" dropdown-menu fixture.
@@ -12,15 +25,60 @@ export class FiltersValueListPage {
   readonly page: Page;
   readonly theme: string;
   readonly bundle: string;
+  readonly fixture: string;
   readonly menu: Locator;
   readonly valueList: Locator;
+  readonly valueLabels: Locator;
+  readonly searchInput: Locator;
+  readonly conditionsMenu: Locator;
+  readonly okButton: Locator;
+  readonly cancelButton: Locator;
 
-  constructor(page: Page, theme = 'main', bundle = 'umd') {
+  /**
+   * Builds the page object for one fixture, theme and bundle.
+   *
+   * @param {Page} page The Playwright page.
+   * @param {string} theme The active theme.
+   * @param {string} bundle The active bundle.
+   * @param {string} fixture The fixture file to open. The locale variant seeds Turkish values on a
+   *   `tr-TR` grid, the value-order variant configures `filterValueComparator`; everything else
+   *   about these pages is the same, so they share this object.
+   */
+  constructor(page: Page, theme = 'main', bundle = 'umd', fixture = 'filters-value-list.html') {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
-    this.menu = page.locator('.htDropdownMenu');
+    this.fixture = fixture;
+    // A submenu's container carries this class too (`Menu.createContainer()` adds the parent's class
+    // and `<class>Sub_<item>`), and a closed submenu stays in the DOM, hidden, until its parent
+    // closes. Leaving those containers out keeps `menu` one element while a submenu exists.
+    this.menu = page.locator('.htDropdownMenu:not([class*="htDropdownMenuSub_"])');
     this.valueList = this.menu.locator('.htUIMultipleSelect .ht_master .htCore tbody tr');
+    this.valueLabels = this.menu.locator('.htUIMultipleSelect .ht_master .htCore tbody label');
+    this.searchInput = this.menu.locator('.htUIMultipleSelectSearch input');
+    // Each of the two condition selects owns a `.htFiltersConditionsMenu` container; only the
+    // opened one is rendered.
+    this.conditionsMenu = page.locator('.htFiltersConditionsMenu:visible');
+    this.okButton = this.menu.locator('.htUIButtonOK input');
+    this.cancelButton = this.menu.locator('.htUIButtonCancel input');
+  }
+
+  /**
+   * Throws when `bundle` is not one the fixtures know. `theme`, `bundle` and the next argument are
+   * same-typed positional arguments, so passing that argument in the bundle's slot is a one-token
+   * slip. The fixture's head script does throw on an unknown `?bundle=`, but it throws before
+   * `window.htBundle` is set, so the body still injects `/handsontable/dist/undefined` and the spec
+   * dies 10s later on a missing cell with nothing naming the cause. A subclass with its own `goto()`
+   * calls this too.
+   *
+   * @param {string} argumentOrder The constructor's argument order, for the message.
+   */
+  protected assertKnownBundle(argumentOrder: string): void {
+    if (this.bundle !== 'umd' && this.bundle !== 'full-min') {
+      throw new Error(
+        `Unknown bundle ${JSON.stringify(this.bundle)} - expected 'umd' or 'full-min'. ` +
+        `Check the argument order: ${argumentOrder}.`);
+    }
   }
 
   /**
@@ -29,8 +87,13 @@ export class FiltersValueListPage {
    * and Handsontable build.
    */
   async goto(): Promise<void> {
+    this.assertKnownBundle('(page, theme, bundle, fixture)');
+
     await this.page.goto(
-      `/tests/fixtures/demo/filters-value-list.html?theme=${this.theme}&bundle=${this.bundle}`);
+      `/tests/fixtures/demo/${this.fixture}?theme=${this.theme}&bundle=${this.bundle}`);
+    // The bundle first: it is several megabytes and every worker pulls its own copy, so on a cold
+    // server the cell assertion alone times out before the grid has a chance to build.
+    await awaitBundle(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
@@ -39,21 +102,69 @@ export class FiltersValueListPage {
     return this.page.getByTestId(`cell-${row}-${col}`);
   }
 
+  /**
+   * The data cells currently rendered in the given column, top to bottom.
+   *
+   * @param {number} col The visual column index.
+   * @returns {Locator} One element per rendered cell.
+   */
+  columnCells(col: number): Locator {
+    return this.page.locator(`.ht_master .htCore tbody td[data-testid$="-${col}"]`);
+  }
+
   /** The values currently rendered in the given column, top to bottom. */
   async columnValues(col: number): Promise<string[]> {
-    return this.page.locator(`.ht_master .htCore tbody td[data-testid$="-${col}"]`).allTextContents();
+    return this.columnCells(col).allTextContents();
+  }
+
+  /**
+   * Type a value into a data cell, replacing what it held.
+   *
+   * Typing straight onto a selected cell starts a fresh edit, so the new value replaces the old
+   * one. Opening the editor with a double click would keep the old text and append to it instead.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @param {string} value The value to type.
+   */
+  async typeIntoCell(row: number, col: number, value: string): Promise<void> {
+    await this.cell(row, col).click();
+    await this.page.keyboard.type(value);
+    await this.page.keyboard.press('Enter');
+
+    await expect(this.cell(row, col)).toHaveText(value);
   }
 
   /** Open the dropdown menu of the column with the given header label. */
   async openMenu(headerLabel: string): Promise<void> {
     await this.page
       .locator('.ht_clone_top th')
-      .filter({ hasText: new RegExp(`^${headerLabel}$`) })
+      .filter({ hasText: new RegExp(`^${escapeRegExp(headerLabel)}$`) })
       .locator('.changeType')
       .click();
 
     await expect(this.menu).toBeVisible();
     await expect(this.valueList.first()).toBeVisible();
+  }
+
+  /**
+   * Open the dropdown menu of a column whose value list is empty.
+   *
+   * A column that is not filtered itself builds its list from the rows still on screen, so another
+   * column's filter can leave it with nothing to list. `openMenu()` waits for a first row and would
+   * time out here, so this variant waits for the list container instead.
+   *
+   * @param {string} headerLabel The column header's visible label.
+   */
+  async openEmptyMenu(headerLabel: string): Promise<void> {
+    await this.page
+      .locator('.ht_clone_top th')
+      .filter({ hasText: new RegExp(`^${escapeRegExp(headerLabel)}$`) })
+      .locator('.changeType')
+      .click();
+
+    await expect(this.menu).toBeVisible();
+    await expect(this.menu.locator('.htUIMultipleSelect')).toBeVisible();
   }
 
   /** The list items that currently carry the grid's focus highlight. */
@@ -87,7 +198,7 @@ export class FiltersValueListPage {
 
   /** Confirm the menu with the "OK" button and wait for it to close. */
   async confirmMenu(): Promise<void> {
-    await this.menu.locator('.htUIButtonOK input').click();
+    await this.okButton.click();
     await expect(this.menu).toBeHidden();
   }
 
@@ -99,13 +210,11 @@ export class FiltersValueListPage {
   async selectCondition(conditionLabel: string): Promise<void> {
     await this.menu.locator('.htFiltersMenuCondition .htUISelect').first().click();
 
-    // Each of the two condition selects owns a `.htFiltersConditionsMenu` container;
-    // only the opened one is rendered.
-    const conditionsMenu = this.page.locator('.htFiltersConditionsMenu:visible');
-
-    await expect(conditionsMenu).toBeVisible();
-    await conditionsMenu.locator('td').filter({ hasText: new RegExp(`^${conditionLabel}$`) }).click();
-    await expect(conditionsMenu).toBeHidden();
+    await expect(this.conditionsMenu).toBeVisible();
+    await this.conditionsMenu.locator('td')
+      .filter({ hasText: new RegExp(`^${escapeRegExp(conditionLabel)}$`) })
+      .click();
+    await expect(this.conditionsMenu).toBeHidden();
   }
 
   /**
@@ -120,9 +229,33 @@ export class FiltersValueListPage {
     const input = this.menu.locator('.htFiltersMenuCondition .htUIInput input').first();
 
     await expect(input).toBeVisible();
+    // `InputUI` syncs its value on `input` as well as on `keyup` and `change`, and `fill()`
+    // dispatches `input` - so no trailing key press is needed to commit the value.
     await input.fill(value);
-    // `InputUI` syncs its value on `keyup`, so a plain `fill()` alone is not enough.
-    await input.press('End');
+  }
+
+  /**
+   * Change the grid's `locale` setting after construction.
+   *
+   * @param {string} locale A BCP 47 tag, e.g. `en-US`.
+   */
+  async setLocale(locale: string): Promise<void> {
+    await this.page.evaluate(tag => (window as unknown as {
+      hot: { updateSettings(settings: { locale: string }): void };
+    }).hot.updateSettings({ locale: tag }), locale);
+  }
+
+  /**
+   * Type a term into the value list's search box, narrowing the list to the values that contain it.
+   *
+   * The comparison is locale-aware on both sides — the term and every listed value are lowercased
+   * with the column's locale — so the caller waits on `valueLabels`, not on this call.
+   *
+   * @param {string} term The search term. Pass an empty string to clear the box.
+   */
+  async searchValues(term: string): Promise<void> {
+    // `MultipleSelectUI` reads the box on the native `input` event, which `fill()` dispatches.
+    await this.searchInput.fill(term);
   }
 
   /**
@@ -139,10 +272,79 @@ export class FiltersValueListPage {
     })));
   }
 
-  /** Uncheck the "filter by value" item carrying the given label. */
+  /**
+   * Check the "filter by value" item carrying the given label.
+   *
+   * The value box is about 110px tall and virtualized, so it holds roughly four rows. A row at or
+   * past that fold used to flake — Playwright scrolled the inner list first, the row moved out
+   * from under the pointer, and the press landed outside the menu and closed it. DEV-1159 (#13544)
+   * fixed that in the product: the mouse single-scroll strategy skips the whole move for a
+   * non-oversized last-partial click, which is what keeps a real click on a virtualized checkbox
+   * from moving the list. So a below-fold value is a legitimate target, and
+   * `filters-value-list.spec.ts` keeps clicking one on purpose as coverage of that skip. Do not
+   * dodge the fold with a different value or `force: true` — see the Filters plugin's AGENTS.md.
+   *
+   * @param {string} label The value's visible label.
+   */
+  async checkValue(label: string): Promise<void> {
+    const checkbox = this.valueList
+      .filter({ has: this.page.locator('label', { hasText: new RegExp(`^${escapeRegExp(label)}$`) }) })
+      .locator('input[type="checkbox"]');
+
+    await checkbox.click();
+    await expect(checkbox).toBeChecked();
+  }
+
+  /**
+   * The filter conditions the grid currently holds, as the plugin exports them. Some defects only
+   * show here — a condition naming a value that no longer exists matches nothing, so the rows on
+   * screen look correct while the column still reads as filtered.
+   *
+   * @returns {Promise<Array>} One entry per filtered column.
+   */
+  async exportedConditions(): Promise<unknown[]> {
+    return this.page.evaluate(() => (window as unknown as {
+      hot: { getPlugin(name: string): { exportConditions(): unknown[] } };
+    }).hot.getPlugin('filters').exportConditions());
+  }
+
+  /** Click the "Select all" link, which checks every value the filter holds. */
+  async selectAllValues(): Promise<void> {
+    await this.menu.locator('.htUIMultipleSelect a', { hasText: /^Select all$/ }).click();
+
+    await expect(this.valueList.first().locator('input[type="checkbox"]')).toBeChecked();
+  }
+
+  /**
+   * Click the "Clear" link, which unchecks every value the filter holds.
+   *
+   * @param {object} [options] Options.
+   * @param {boolean} [options.expectEmptyList] Set when the list holds no values, so there are no
+   *   checkboxes to wait for.
+   */
+  async clearAllValues({ expectEmptyList = false } = {}): Promise<void> {
+    await this.menu.locator('.htUIMultipleSelect a', { hasText: /^Clear$/ }).click();
+
+    if (expectEmptyList) {
+      return;
+    }
+
+    // The inner list is its own Handsontable, so wait for it to repaint before the caller confirms
+    // the menu - otherwise OK can read the pre-clear checkboxes.
+    await expect(this.valueList.first().locator('input[type="checkbox"]')).not.toBeChecked();
+  }
+
+  /**
+   * Uncheck the "filter by value" item carrying the given label.
+   *
+   * Same virtualized fold as `checkValue()`, and the same answer: the product handles it since
+   * DEV-1159, so a below-fold value is a legitimate target.
+   *
+   * @param {string} label The value's visible label.
+   */
   async uncheckValue(label: string): Promise<void> {
     const checkbox = this.valueList
-      .filter({ has: this.page.locator('label', { hasText: new RegExp(`^${label}$`) }) })
+      .filter({ has: this.page.locator('label', { hasText: new RegExp(`^${escapeRegExp(label)}$`) }) })
       .locator('input[type="checkbox"]');
 
     await checkbox.click();
@@ -177,6 +379,37 @@ export class FiltersValueListPage {
     await this.page.evaluate((newData) => {
       window.hot.updateSettings({ data: newData, filters: true });
     }, data);
+  }
+
+  /**
+   * Re-configure the grid with `updateSettings()`, the way a host application changes options at
+   * runtime. The payload crosses into the page, so it must be serializable, and any function it
+   * carries (a comparator, for example) is built inside the page from a source string.
+   *
+   * @param {string} settingsSource JavaScript source of an object literal, evaluated in the page.
+   */
+  async updateSettings(settingsSource: string): Promise<void> {
+    await this.page.evaluate((source) => {
+      // eslint-disable-next-line no-new-func
+      window.hot.updateSettings(new Function(`return (${source});`)());
+    }, settingsSource);
+  }
+
+  /**
+   * Append an empty row under the last one the grid shows, the way a toolbar "add row" button does.
+   *
+   * @returns {Promise<number>} The visual index of the row that was added.
+   */
+  async insertRowBelowLast(): Promise<number> {
+    const newIndex = await this.page.evaluate(() => {
+      window.hot.alter('insert_row_below', window.hot.countRows() - 1);
+
+      return window.hot.countRows() - 1;
+    });
+
+    await expect(this.cell(newIndex, 0)).toBeVisible();
+
+    return newIndex;
   }
 
   /**

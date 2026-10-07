@@ -4,23 +4,27 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['SKU-4821', 'Stainless Steel Water Bottle', 'Drinkware'],
+  ['SKU-0093', 'Wireless Mouse', 'Electronics'],
+  ['SKU-1170', 'Ergonomic Office Chair', 'Furniture'],
+  ['SKU-2208', 'USB-C Charging Cable', 'Electronics'],
+  ['SKU-3341', 'Aluminum Water Filter', 'Drinkware'],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        ['2017', 'Honda', 10],
-        ['2018', 'Toyota', 20],
-        ['2019', 'Nissan', 30],
-      ]}
-      colWidths={[70, 90, 80]}
-      colHeaders={['Year', 'Make', 'In stock']}
+      data={data}
+      colWidths={[90, 210, 110]}
+      colHeaders={['SKU', 'Product', 'Category']}
       columns={[
+        {},
         {},
         {
           type: 'select',
-          selectOptions: ['Kia', 'Nissan', 'Toyota', 'Honda'],
+          selectOptions: ['Drinkware', 'Electronics', 'Furniture', 'Apparel'],
         },
-        {},
       ]}
       autoWrapRow={true}
       autoWrapCol={true}

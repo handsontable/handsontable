@@ -18,12 +18,13 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='14.8626' he
     // Spans the root wrapper box exactly and clips its children: an absolutely positioned box still
     // adds scrollable overflow to a scroll container above it, so a badge sticking out of a short
     // grid would spawn a scrollbar on the user's `overflow: auto` container (and shrink the measured
-    // grid width - see the settings/width E2E specs). With inset 0 + clip, the license chrome can
-    // never leak outside the grid's own box. `clip` (not `hidden`) - it does not create a scroll
-    // container - but `clip` is Safari 16, above the declared 14.1 floor, where it is simply invalid
-    // and falls back to `visible`: no clipping at all, which is the bug this rule exists to prevent.
-    // So `hidden` it is. A `hidden`-then-`clip` pair does not help either: lightningcss drops the
-    // fallback and ships only `clip`. The cost is a scroll container that nothing ever scrolls.
+    // grid width - see the settings/width E2E specs). With inset 0, the license chrome can never
+    // leak outside the grid's own box. `clip` would be the better keyword - it clips without
+    // creating a scroll container - and it is inside the current floor (Safari 16, against our
+    // 18.2); it was ruled out when the floor was 14.1, where it fell back to `visible` and clipped
+    // nothing. `hidden` is kept for now because the swap changes layout behavior rather than
+    // comments: the box stops being a scroll container, which the settings/width specs measure.
+    // The cost of keeping it is a scroll container that nothing ever scrolls.
     inset: 0;
     overflow: hidden;
     z-index: 1050; // above the grid, below the hard-stop dialog (1060)
@@ -314,7 +315,8 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='14.8626' he
       // `word-break`, not just `overflow-wrap`: only the former shrinks the MIN-CONTENT width, which
       // is what the flex items above are sized by. `overflow-wrap: break-word` breaks a long token
       // during layout but still reports it whole as the minimum, so the column would keep sticking
-      // out. (`overflow-wrap: anywhere` would do both, but it is Safari 15.4 - above the floor.)
+      // out. (`overflow-wrap: anywhere` would do both on its own, and at Safari 15.4 it is inside
+      // the current floor - the pair is kept because collapsing it changes where lines break.)
       word-break: break-word;
       overflow-wrap: break-word;
     }

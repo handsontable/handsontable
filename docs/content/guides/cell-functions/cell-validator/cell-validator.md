@@ -13,6 +13,7 @@ vue:
   metaTitle: Cell validator - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
+menuTag: updated
 ---
 
 Cell validators run when a user finishes editing a cell. Use them to enforce data rules such as required fields, numeric ranges, or pattern matching.
@@ -103,6 +104,16 @@ columns: [
 ```
 
 :::
+
+## Limit the text length without a validator
+
+To limit the number of characters in a cell, set the [`maxLength`](@/api/options.md#maxlength) option. You don't need to write a validator. Handsontable validates the length for you, and the text cell editor stops the user from typing more characters than the limit allows.
+
+`maxLength` counts the characters a reader sees, so a flag or an emoji with a skin tone counts as one character. A value that is too long is invalid. Like any other invalid value, [`allowInvalid`](@/api/options.md#allowinvalid) decides whether the grid keeps it, and [`invalidCellClassName`](@/api/options.md#invalidcellclassname) sets the class that marks the cell.
+
+If a cell has both `maxLength` and a `validator`, the value must pass both checks. Handsontable checks the length first, and doesn't call your validator for a value that is too long.
+
+For a full description and examples, see [Limiting the text length](@/guides/cell-types/text-cell-type/text-cell-type.md#limiting-the-text-length) in the text cell type guide.
 
 ## Register custom cell validator
 
@@ -405,7 +416,7 @@ Mind that changes in table are applied after running all validators (both synchr
 
 ## Result
 
-You now have a cell validator that enforces data rules when a user finishes editing. Register it under an alias to reference it by name across your column configuration. Use <code>allowInvalid</code> set to false to keep the editor open until the user enters a valid value, or <code>allowInvalid</code> set to true to accept the value while still visually flagging the cell. Use <code>invalidCellClassName</code> to customise the CSS class applied to cells that fail validation — the default is <code>htInvalid</code>.
+You now have a cell validator that enforces data rules when a user finishes editing. Register it under an alias to reference it by name across your column configuration. Use <code>allowInvalid</code> set to false to keep the editor open until the user enters a valid value, or <code>allowInvalid</code> set to true to accept the value while still visually flagging the cell. Use <code>invalidCellClassName</code> to customize the CSS class applied to cells that fail validation — the default is <code>htInvalid</code>.
 
 ## Related API reference
 
@@ -424,6 +435,7 @@ You now have a cell validator that enforces data rules when a user finishes edit
 - [allowEmpty](@/api/options.md#allowempty)
 - <code>allowInvalid</code> (@/api/options.md#allowinvalid) — controls whether an invalid value is committed to the data source
 - <code>invalidCellClassName</code> (@/api/options.md#invalidcellclassname) — sets the CSS class applied to cells that fail validation (default: <code>htInvalid</code>)
+- [maxLength](@/api/options.md#maxlength)
 - [validator](@/api/options.md#validator)
 
 </div>

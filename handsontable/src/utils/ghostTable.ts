@@ -5,6 +5,7 @@ import { renderCell } from '../renderers/renderCell';
 import { addClass } from './../helpers/dom/element';
 import { arrayEach } from './../helpers/array';
 import { throwWithCause } from '../helpers/errors';
+import { colToPropOrIndex } from '../helpers/columnProp';
 
 /**
  * Structure returned by createTable().
@@ -160,6 +161,55 @@ class GhostTable {
 
       rowObject.table = this.table.table;
     }
+  }
+
+  /**
+   * Add a column consisting of the row headers of the sampled rows.
+   *
+   * The mirror image of {@link GhostTable#addColumnHeadersRow}: that one measures how tall the
+   * column headers are, this one measures how wide the row headers are. The column is registered
+   * under a negative index (`-1` for the first header level, `-2` for the second, and so on),
+   * matching the convention that the row header sits at column `-1`.
+   *
+   * @param {Map} samples A map with sampled row header labels, keyed the way
+   *                      {@link SamplesGenerator} keys them. Only the row indexes are read - the
+   *                      label itself is rendered by the grid's own row header renderers.
+   * @param {number} [headerLevel=0] The row header level, counting from the grid's edge.
+   * @param {Function} [renderer] The renderer that fills one header cell of that level. Defaults to
+   *                              the grid's own first-level row header renderer.
+   */
+  addRowHeadersColumn(
+    samples: Map<string | number, SampleEntry>,
+    headerLevel = 0,
+    renderer?: (visualRow: number, TH: HTMLTableCellElement) => void
+  ) {
+    if (this.rows.length) {
+      throwWithCause('Doesn\'t support multi-dimensional table');
+    }
+    // `hasRowHeaders()` answers whether the SETTING is on, which is not the same question. A
+    // renderer pushed through `afterGetRowHeaderRenderers` draws a row header column with the
+    // setting off, and measuring one used to leave `container` null here and then dereference it in
+    // `getWidths()` - killing the draw the measurement was called from. So the setting only decides
+    // whether the DEFAULT renderer has anything to draw; a caller that brings its own is trusted.
+    if (samples.size === 0 || (!renderer && !this.hot!.hasRowHeaders())) {
+      return;
+    }
+    if (!this.columns.length) {
+      this.container = this.createContainer(this.hot!.rootElement.className);
+    }
+    const columnObject: Record<string, unknown> = { col: -1 - headerLevel };
+
+    this.columns.push(columnObject);
+    this.samples = samples;
+
+    // `createTable` reads the row/column counts to decide the table's orientation, so it has to run
+    // after the `push` above - the horizontal branch is what overrides the `width: 0` and
+    // `table-layout: fixed` that the copied `htCore` class would otherwise impose (#4363).
+    this.table = this.createTable(this.hot!.table.className);
+    this.table.tBody.appendChild(this.createRowHeadersCol(renderer));
+    this.container!.container.appendChild(this.table.fragment);
+
+    columnObject.table = this.table.table;
   }
 
   /**
@@ -407,6 +457,42 @@ class GhostTable {
   }
 
   /**
+   * Create the table rows holding the row headers to measure.
+   *
+   * The row header counterpart of {@link GhostTable#createCol}, and shaped like it: one `<tr>` per
+   * sampled row, so the column sizes itself to the widest of them.
+   *
+   * @param {Function} [renderer] The renderer that fills one header cell. Defaults to the grid's
+   *                              own first-level row header renderer.
+   * @returns {DocumentFragment} Returns created table row elements.
+   */
+  createRowHeadersCol(renderer?: (visualRow: number, TH: HTMLTableCellElement) => void) {
+    const rootDocument = this.hot!.rootDocument;
+    const fragment = rootDocument.createDocumentFragment();
+    // Using a source renderer so the measured header carries whatever the renderers and the
+    // `afterGetRowHeader` hook put there - the width has to cover the real markup, not just the label.
+    const fillHeader = renderer ?? ((visualRow: number, th: HTMLTableCellElement) => {
+      this.hot!.view.appendRowHeader(visualRow, th);
+    });
+
+    this.samples!.forEach((sample: SampleEntry) => {
+      arrayEach(sample.strings, (string: SampleString) => {
+        const tr = rootDocument.createElement('tr');
+        const th = rootDocument.createElement('th');
+
+        // Indicate that this element is created and supported by GhostTable. It can be useful to
+        // exclude rendering performance costly logic or exclude logic which doesn't work within a hidden table.
+        th.setAttribute('ghost-table', '1');
+        fillHeader(string.row!, th);
+        tr.appendChild(th);
+        fragment.appendChild(tr);
+      });
+    });
+
+    return fragment;
+  }
+
+  /**
    * Remove table from document and reset internal state.
    */
   clean() {
@@ -558,7 +644,11 @@ class GhostTable {
       td,
       row,
       column,
-      this.hot!.colToProp(column),
+      // Resolved so a renderer keeps receiving what it did before `colToProp()` began answering
+      // `null` for a column it cannot resolve. An unbound column (`{ data: null }`) has always
+      // reached renderers as `null`; `BaseRenderer` declares `string | number`, so the cast keeps
+      // that long-standing mismatch here instead of widening the renderer contract in this PR.
+      colToPropOrIndex(this.hot!, column) as string | number,
       value,
       cellProperties,
     ];

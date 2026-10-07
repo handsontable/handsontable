@@ -169,16 +169,12 @@ new Handsontable(container, {
     fixedRowsTop: 1,
     fixedRowsBottom: 1,
     colHeaders: true,
-    // enable filtering
-    filters: true,
+    // enable filtering, and leave the frozen rows out of it
+    filters: {
+        filterFixedRows: false,
+    },
     // enable the column menu
     dropdownMenu: true,
-    afterFilter() {
-        const filtersPlugin = this.getPlugin('filters');
-        const filtersRowsMap = filtersPlugin.filtersRowsMap;
-        filtersRowsMap.setValueAtIndex(0, false);
-        filtersRowsMap.setValueAtIndex(filtersRowsMap.getLength() - 1, false);
-    },
     autoWrapRow: true,
     autoWrapCol: true,
     licenseKey: 'non-commercial-and-evaluation',

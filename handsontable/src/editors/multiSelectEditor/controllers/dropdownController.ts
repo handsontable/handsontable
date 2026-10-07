@@ -1,3 +1,4 @@
+import type { HotInstance } from '../../../core/types';
 import { eventTargetEl } from '../../../helpers/dom/element';
 import { mixin } from '../../../helpers/object';
 import localHooks from '../../../mixins/localHooks';
@@ -9,6 +10,7 @@ import {
   deselectItem,
   createSearchInputWrapper,
   createSearchIcon,
+  refreshSearchIcon,
   createSearchInputElement,
   createSeparatorElement,
   createListElement,
@@ -46,6 +48,10 @@ export class DropdownController {
    * The Handsontable instance GUID used to scope checkbox IDs within the dropdown.
    */
   #instanceId: string | null = null;
+  /**
+   * The Handsontable instance, used to render icon elements (search, checkbox tick).
+   */
+  #hotInstance: Pick<HotInstance, 'rootDocument' | 'themeManager'>;
   /**
    * The host div element that contains the search wrapper, separator, and list.
    */
@@ -117,11 +123,17 @@ export class DropdownController {
    *
    * @param {HTMLDivElement} containerElement Host element created by the editor.
    * @param {string} instanceId Handsontable instance id.
+   * @param {HotInstance} hotInstance The Handsontable instance, used to render icon elements.
    */
-  constructor(containerElement: HTMLDivElement, instanceId: string) {
+  constructor(
+    containerElement: HTMLDivElement,
+    instanceId: string,
+    hotInstance: Pick<HotInstance, 'rootDocument' | 'themeManager'>
+  ) {
     this.#containerElement = containerElement;
     this.#rootDocument = this.#containerElement.ownerDocument;
     this.#instanceId = instanceId;
+    this.#hotInstance = hotInstance;
 
     this.init();
   }
@@ -136,12 +148,10 @@ export class DropdownController {
     this.#dropdownListElement = createListElement({ root: this.#rootDocument });
     this.#searchInputElement = createSearchInputElement({ root: this.#rootDocument });
 
-    const searchIcon = createSearchIcon({ root: this.#rootDocument });
-
     this.#searchInputWrapper = createSearchInputWrapper({ root: this.#rootDocument });
     this.#separatorElement = createSeparatorElement({ root: this.#rootDocument });
 
-    this.#searchInputWrapper!.appendChild(searchIcon);
+    this.#searchInputWrapper!.appendChild(createSearchIcon({ hotInstance: this.#hotInstance }));
     this.#searchInputWrapper!.appendChild(this.#searchInputElement);
     this.#containerElement.appendChild(this.#searchInputWrapper);
     this.#containerElement.appendChild(this.#separatorElement);
@@ -151,6 +161,18 @@ export class DropdownController {
       input: this.#searchInputElement,
       eventManager: this.#eventManager,
     });
+  }
+
+  /**
+   * Re-applies the theme's current icon mapping to the search icon. The dropdown is built once in
+   * `init()` and reused for the life of the editor, so this is what lets a runtime `icons` remap or
+   * theme switch reach it; the editor calls it from `prepare()`. A no-op unless the theme's icons
+   * revision moved.
+   */
+  refreshIcons(): void {
+    if (this.#searchInputWrapper) {
+      refreshSearchIcon({ hotInstance: this.#hotInstance, wrapper: this.#searchInputWrapper });
+    }
   }
 
   /**
@@ -227,7 +249,7 @@ export class DropdownController {
    * Controls dropdown height based on entry count and configured visible rows.
    *
    * @param {object} availableSpace Available space object.
-   * @param {boolean} noFlip If true, the dropdown will not be flipped vertically.
+   * @param {boolean} noFlip If true, the current vertical flip is kept as it is.
    */
   updateDimensions(
     availableSpace: { spaceAbove: number; spaceBelow: number; cellHeight: number }, noFlip = false): void {
@@ -235,8 +257,11 @@ export class DropdownController {
     const requiresFlippingVertically = this.#requiresFlippingVertically(availableSpace);
     const availableHeight = requiresFlippingVertically ? availableSpace.spaceAbove : availableSpace.spaceBelow;
 
-    if (!noFlip && requiresFlippingVertically) {
-      this.#cache.flippedVertically = true;
+    // Decided both ways: a scroll that follows the cell calls this again, and a flip that could
+    // only be set would keep the list above a cell that has room below it again. `prepare()`
+    // resets the flag before every open, so the first call of an edit is unaffected.
+    if (!noFlip) {
+      this.#cache.flippedVertically = requiresFlippingVertically;
     }
 
     if (this.#cache.entriesCount > 0 && availableHeight < this.getHeight(true)) {
@@ -376,6 +401,15 @@ export class DropdownController {
   }
 
   /**
+   * Returns the pixel width of the dropdown box, including padding and border.
+   *
+   * @returns {number}
+   */
+  getOuterWidth(): number {
+    return this.#containerElement ? this.#containerElement.offsetWidth : 0;
+  }
+
+  /**
    * Calculates the total pixel height of the dropdown including the item list and search input wrapper.
    */
   getHeight(maxRowsCalculation = false, outerWidth = false): number {
@@ -409,7 +443,10 @@ export class DropdownController {
       this.#unregisterEvents(itemElement as HTMLLIElement)
     );
     this.#cache.checkboxChangeListeners.clear();
-    this.#dropdownListElement.innerHTML = '';
+    // `replaceChildren()`, not `empty()`: this list holds one `li` per distinct value, so a
+    // multi-select over a few hundred of them sits well past the ~30-child crossover where
+    // removing children one at a time starts losing. It is not a Trusted Types sink either.
+    this.#dropdownListElement.replaceChildren();
   }
 
   /**
@@ -547,6 +584,7 @@ export class DropdownController {
       indexWithinList,
       checked,
       disabled,
+      hotInstance: this.#hotInstance,
     });
 
     if (checked) {

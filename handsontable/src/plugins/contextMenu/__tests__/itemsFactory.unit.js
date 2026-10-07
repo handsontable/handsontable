@@ -1,0 +1,235 @@
+import { ItemsFactory } from 'handsontable/plugins/contextMenu/itemsFactory';
+
+/**
+ * `ItemsFactory` only needs `hot.rootElement` — it is the scope the "warn once" state binds to.
+ *
+ * @returns {object} A minimal Handsontable stand-in.
+ */
+function hotMock() {
+  return { rootElement: {} };
+}
+
+/**
+ * Describes every produced item so a resolved entry is distinguishable from a placeholder, which
+ * is the whole subject of these tests.
+ *
+ * A resolved item carries a `name` FUNCTION returning the translated phrase, and is reported as
+ * `<its key>`. A placeholder carries the raw key string as its `name` — the value that used to be
+ * rendered into the menu verbatim — and is reported as that string.
+ *
+ * @param {object[]} items The produced menu items.
+ * @returns {string[]}
+ */
+function namesOf(items) {
+  return items.map(item => (typeof item.name === 'function' ? `<${item.key}>` : item.name));
+}
+
+describe('contextMenu/ItemsFactory', () => {
+  let warnSpy;
+
+  beforeEach(() => {
+    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    warnSpy.mockRestore();
+  });
+
+  describe('the pass before the default-options hook has run', () => {
+    // This is the pass whose output is handed to `afterContextMenuDefaultOptions`. Plugin keys are
+    // legitimately unknown here, so a placeholder MUST still be emitted for a plugin to merge its
+    // rich entry into. See the merge comment in `setPredefinedItems` and issue #9894.
+    it('emits a placeholder for a key it cannot resolve yet', () => {
+      const factory = new ItemsFactory(hotMock());
+
+      const items = factory.getItems(['row_above', 'borders']);
+
+      expect(namesOf(items)).toEqual(['<row_above>', 'borders']);
+    });
+
+    it('does not warn, because the key may still be contributed', () => {
+      const factory = new ItemsFactory(hotMock());
+
+      factory.getItems(['borders']);
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('keeps the list non-empty, which plugins that splice by index depend on', () => {
+      // `nestedRows/ui/contextMenu.ts` runs `rangeEach(0, items.length - 1, …)` and inserts its
+      // entries only when the list is NOT empty. Dropping unknown keys on this pass would make
+      // `contextMenu: ['add_child']` produce an empty list, nestedRows would never insert, and
+      // `add_child` would vanish — re-breaking issue #9894.
+      const factory = new ItemsFactory(hotMock());
+
+      expect(factory.getItems(['add_child'])).toHaveLength(1);
+    });
+  });
+
+  describe('the pass after the default-options hook has run', () => {
+    it('skips a key that still resolves to nothing', () => {
+      const factory = new ItemsFactory(hotMock());
+
+      // What the plugins contributed. `borders` was never among them, so it stays unresolvable.
+      factory.setPredefinedItems(factory.getItems(['row_above', 'borders']));
+
+      const items = factory.getItems(['row_above', 'borders']);
+
+      // Before this fix the unresolved key became `{ name: 'borders', key: '0' }` and the menu
+      // rendered a row reading `borders` that did nothing when clicked (issues #5429, #5027).
+      expect(namesOf(items)).toEqual(['<row_above>']);
+    });
+
+    it('warns once per unresolved key so a typo is findable', () => {
+      const factory = new ItemsFactory(hotMock());
+
+      factory.setPredefinedItems(factory.getItems(['row_abvoe']));
+      factory.getItems(['row_abvoe']);
+      factory.getItems(['row_abvoe']);
+
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy.mock.calls[0][0]).toContain('row_abvoe');
+    });
+
+    it('warns separately for each distinct unresolved key', () => {
+      const factory = new ItemsFactory(hotMock());
+
+      factory.setPredefinedItems(factory.getItems(['row_abvoe', 'col_lfet']));
+      factory.getItems(['row_abvoe', 'col_lfet']);
+
+      expect(warnSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('still resolves a key a plugin did contribute', () => {
+      const factory = new ItemsFactory(hotMock());
+      const contributed = factory.getItems(['borders']);
+
+      // Stand in for what `customBorders` pushes from the hook when it is enabled.
+      contributed.push({ key: 'borders', name: 'Borders', submenu: { items: [] } });
+      factory.setPredefinedItems(contributed);
+
+      // Resolved to the rich entry, so it keeps its translated name rather than being skipped.
+      expect(namesOf(factory.getItems(['borders']))).toEqual(['Borders']);
+    });
+
+    it('never skips an array entry that is a full item definition object', () => {
+      const factory = new ItemsFactory(hotMock());
+      const custom = { name: 'My own item', callback() {} };
+
+      factory.setPredefinedItems(factory.getItems([custom]));
+
+      // An object entry is a definition, not a key to look up, so the unresolved-key path must
+      // not touch it.
+      expect(namesOf(factory.getItems([custom]))).toEqual(['My own item']);
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('leaves the object form of `items` alone', () => {
+      const factory = new ItemsFactory(hotMock());
+      const pattern = { items: { 'alignment:left': { name: 'Left' } } };
+
+      factory.setPredefinedItems(factory.getItems(pattern));
+
+      // Only the array form looks a bare string up in the registry. The object form declares the
+      // item inline, so its key is taken verbatim and the entry is kept.
+      expect(namesOf(factory.getItems(pattern))).toEqual(['Left']);
+    });
+  });
+
+  describe('overriding a plugin-provided item through the object form of `items`', () => {
+    // Mirrors what `ContextMenu#updatePlugin` does: build the list from the user's settings, let
+    // a plugin splice its rich entry into it (`afterContextMenuDefaultOptions`), register the
+    // result, then build the final list from the same settings.
+    it('keeps the user callbacks that the plugin entry also defines', () => {
+      const factory = new ItemsFactory(hotMock());
+      const userDisabled = jest.fn(() => true);
+      const settings = { items: { commentsAddEdit: { disabled: userDisabled, hidden: () => false } } };
+      const pluginDisabled = () => false;
+      const pluginItems = factory.getItems(settings);
+
+      pluginItems.push({ key: 'commentsAddEdit', name: () => 'Add comment', disabled: pluginDisabled });
+      factory.setPredefinedItems(pluginItems);
+
+      const [item] = factory.getItems(settings);
+
+      expect(item.disabled).toBe(userDisabled);
+      expect(item.hidden).toBe(settings.items.commentsAddEdit.hidden);
+      expect(typeof item.name).toBe('function');
+    });
+
+    it('keeps the user name and callback over the ones the plugin entry defines', () => {
+      const factory = new ItemsFactory(hotMock());
+      const userCallback = jest.fn();
+      const settings = { items: { commentsAddEdit: { name: 'My label', callback: userCallback } } };
+      const pluginItems = factory.getItems(settings);
+
+      pluginItems.push({ key: 'commentsAddEdit', name: () => 'Add comment', callback: () => {} });
+      factory.setPredefinedItems(pluginItems);
+
+      const [item] = factory.getItems(settings);
+
+      expect(item.name).toBe('My label');
+      expect(item.callback).toBe(userCallback);
+    });
+
+    it('does not mutate the user settings', () => {
+      const factory = new ItemsFactory(hotMock());
+      const userDisabled = () => true;
+      const override = { disabled: userDisabled };
+      const settings = { items: { commentsAddEdit: override } };
+      const pluginItems = factory.getItems(settings);
+
+      pluginItems.push({ key: 'commentsAddEdit', disabled: () => false });
+      factory.setPredefinedItems(pluginItems);
+
+      // The key stamp and the plugin's own `disabled` are two separate ways to mutate this object.
+      expect(Object.keys(override)).toEqual(['disabled']);
+      expect(override.disabled).toBe(userDisabled);
+    });
+
+    it('keeps the callbacks an item defines on its prototype', () => {
+      class CustomItem {
+        callback() {}
+      }
+
+      const factory = new ItemsFactory(hotMock());
+      const custom = new CustomItem();
+      const settings = { items: { myItem: custom } };
+
+      factory.setPredefinedItems(factory.getItems(settings));
+
+      const [item] = factory.getItems(settings);
+
+      // On develop the user's own object was the item, so its prototype came along.
+      expect(item.callback).toBe(CustomItem.prototype.callback);
+    });
+
+    it('applies to the dropdown menu too, where the Filters items define their own hidden()', () => {
+      const factory = new ItemsFactory(hotMock(), null, 'dropdownMenu');
+      const userHidden = () => false;
+      const settings = { items: { filter_by_value: { hidden: userHidden } } };
+      const pluginItems = factory.getItems(settings);
+
+      pluginItems.push({ key: 'filter_by_value', name: () => 'Filter by value', hidden: () => true });
+      factory.setPredefinedItems(pluginItems);
+
+      const [item] = factory.getItems(settings);
+
+      expect(item.hidden).toBe(userHidden);
+      expect(typeof item.name).toBe('function');
+    });
+  });
+
+  describe('keys that name a built-in item with no entry', () => {
+    it('are dropped without a warning, as they always were', () => {
+      const factory = new ItemsFactory(hotMock());
+
+      // `ITEMS` members are known names, so an absent entry is an availability question, not a
+      // mistake — the `allowInsert*`/`allowRemove*` options hide these at render time instead.
+      factory.setPredefinedItems([]);
+
+      expect(factory.getItems(['row_above'])).toEqual([]);
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+  });
+});

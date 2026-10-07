@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Walkontable (inline-start border refresh) e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    // Read through `Object.hasOwn`, never by plain lookup. These maps are object literals, so a
+    // PROTOTYPE key reaches them: `?theme=constructor` resolves to the `Object` constructor, which is
+    // truthy, so a truthiness guard never fires and a stringified function lands in the href. The one
+    // that actually bites is `?colWidths=valueOf`, which passes such a guard and then matches neither
+    // branch below, so a leg labelled `varied` would quietly measure the uniform grid - the silently
+    // mislabeled green this whole block exists to prevent.
+    const pick = (map, raw, name) => {
+      if (!Object.hasOwn(map, raw)) {
+        throw new Error(`Unknown ?${name}= value: ${JSON.stringify(raw)}`);
+      }
+
+      return map[raw];
+    };
+
+    window.htTheme = pick(
+      { main: 'main', horizon: 'horizon', classic: 'classic' },
+      htParams.get('theme') ?? 'main',
+      'theme'
+    );
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = pick(
+      { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' },
+      htParams.get('bundle') ?? 'umd',
+      'bundle'
+    );
+    // `uniform` keeps one declared column width, which is what the single-pass
+    // layout snapshot needs; `varied` passes a colWidths ARRAY, which drops the
+    // grid off that path. Both must cost zero reconciliation draws, and the
+    // varied one is where the cost used to double. Unknown values THROW.
+    window.htColWidthsMode = pick(
+      { uniform: 'uniform', varied: 'varied' },
+      htParams.get('colWidths') ?? 'uniform',
+      'colWidths'
+    );
+    // `element` gives the grid a width/height so it scrolls inside its own
+    // holder; `window` omits both, which makes the window the trimming
+    // container. That is the SECOND way off the single-pass path, and the one
+    // `prepareHeaderBorders` bails on outright, so it toggled the class after
+    // the render on every crossing. Unknown values THROW.
+    window.htScrollMode = pick(
+      { element: 'element', window: 'window' },
+      htParams.get('scroll') ?? 'element',
+      'scroll'
+    );
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    DEV-2786 item 2. `InlineStartOverlay#resetFixedPosition` used to report a position change
+    whenever it toggled `innerBorderInlineStart`, and that result was ORed into the draw cycle's
+    `positionChanged`. Since #6673 the class shifts nothing - the row header carries its inline-end
+    border at every scroll position and no cell behind it carries an inline-start border - so every
+    scroll crossing horizontal offset 0 ran `refreshAll()`, a nested `wot.draw(true)` over the
+    master and every clone, to reconcile a 1px shift that cannot happen.
+
+    The grid shape is the one that toggles the class at all: row headers on, `fixedColumnsStart` 0,
+    and content far wider than the container so there is somewhere to scroll.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const TOTAL_COLUMNS = 30;
+    // The column to scroll to when leaving offset 0. Far enough in that the rendered band no longer
+    // contains column 0, so the draw is a real band change rather than a reposition.
+    const FAR_COLUMN = 12;
+    // The page offset window mode scrolls to instead, chosen to land well past column 0's band for
+    // the same reason. 30 columns at ~75px leaves plenty of document to the right of it.
+    const WINDOW_FAR_OFFSET = 900;
+    // The row axis twin of FAR_COLUMN, far enough down to leave the first rendered band.
+    const FAR_ROW = 12;
+
+    // Element mode sizes the grid so it scrolls inside its own holder. Window mode declares neither
+    // width nor height, which is what makes the window the trimming container - the columns then
+    // overflow the viewport and the PAGE scrolls.
+    const scrollBox = window.htScrollMode === 'window' ? {} : { width: 500, height: 300 };
+
+    const hot = new Handsontable(container, {
+      data: Handsontable.helper.createSpreadsheetData(20, TOTAL_COLUMNS),
+      ...scrollBox,
+      // The shape under test: a row header, and NO frozen columns. The overlay only toggles
+      // `innerBorderInlineStart` in exactly this combination.
+      rowHeaders: true,
+      colHeaders: true,
+      fixedColumnsStart: 0,
+      colWidths: window.htColWidthsMode === 'varied'
+        ? Array.from({ length: TOTAL_COLUMNS }, (_, c) => (c % 2 ? 80 : 75))
+        : 75,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    window.hot = hot;
+
+    // A real draw signal. The scroll offset alone cannot serve as one: `setScrollPosition` writes
+    // `scrollEl.scrollLeft` synchronously, so an offset-only predicate is already true on its first
+    // evaluation and the wait then returns two frames after the scroll was ISSUED, while the draw
+    // arrives later from the async scroll event through `ScrollSync`. On a loaded runner that gap can
+    // outlast the two frames, and the crossing's draws would then be counted against the next
+    // direction - a wrong count rather than a visible timing miss.
+    let viewRenders = 0;
+
+    hot.addHook('afterViewRender', () => {
+      viewRenders += 1;
+    });
+
+    const holder = () => container.querySelector('.ht_master .wtHolder');
+    const masterParent = () => container.querySelector('.ht_master');
+
+    /**
+     * Resolves once `predicate` holds, then after two more frames so the rAF-batched draw has
+     * landed. Throws rather than hanging if the state never arrives - a silent timeout here would
+     * read as "zero reconciliation draws" and pass the very assertion under test.
+     */
+    const waitFor = async (predicate, what) => {
+      for (let frame = 0; frame < 240; frame++) {
+        if (predicate()) {
+          await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+          return;
+        }
+        await new Promise(resolve => requestAnimationFrame(resolve));
+      }
+
+      throw new Error(`Timed out waiting for ${what}`);
+    };
+
+    /**
+     * The grid's horizontal scroll offset, read from whichever element actually scrolls. In window
+     * mode the PAGE scrolls and the holder's own `scrollLeft` stays 0 forever, so keying the wait on
+     * the holder there would return immediately and the draw would not have happened yet.
+     */
+    const horizontalOffset = () => (
+      window.htScrollMode === 'window' ? window.scrollX : holder().scrollLeft
+    );
+
+    /**
+     * Scrolls so `column` sits at the inline start and waits for the draw.
+     *
+     * The wait is on the real scroll offset rather than on the class: whether
+     * `innerBorderInlineStart` appears is the thing under test, so waiting on it would make the
+     * test depend on its own conclusion.
+     *
+     * Window mode drives the PAGE scroll directly instead of going through `scrollViewportTo`.
+     * Asking that API for column 0 there targets the grid's own document origin, which is NOT
+     * `scrollX === 0` - the body margin and the heading above the grid put the table a little way
+     * into the page - so the offset the border state is derived from never returns to zero and the
+     * crossing never happens. A page scroll to 0 is both unambiguous and what a user does.
+     */
+    const scrollToColumn = async (column) => {
+      const atTarget = () => (column === 0 ? horizontalOffset() === 0 : horizontalOffset() !== 0);
+      // Already there (the opening scroll to column 0 on a fresh page): nothing will scroll, so no
+      // draw is coming and requiring one would hang. Settle and return.
+      if (atTarget()) {
+        await waitFor(() => true, 'the current position to settle');
+
+        return;
+      }
+
+      const rendersBefore = viewRenders;
+
+      if (window.htScrollMode === 'window') {
+        window.scrollTo(column === 0 ? 0 : WINDOW_FAR_OFFSET, window.scrollY);
+      } else {
+        hot.scrollViewportTo({ col: column, horizontalSnap: 'start' });
+      }
+
+      // Both conditions: the offset has moved AND a draw has actually run for it.
+      await waitFor(
+        () => atTarget() && viewRenders > rendersBefore,
+        `the grid to scroll to column ${column} and redraw`
+      );
+    };
+
+    window.scrollToColumn = scrollToColumn;
+    window.scrollToFarColumn = () => scrollToColumn(FAR_COLUMN);
+
+    /** The vertical twin of `horizontalOffset`. */
+    const verticalOffset = () => (
+      window.htScrollMode === 'window' ? window.scrollY : holder().scrollTop
+    );
+
+    /**
+     * The vertical twin of `scrollToColumn`, for the ROW axis - which still shifts the layout by 1px
+     * and still feeds `positionChanged`. Used by the positive assertion: a vertical crossing off the
+     * single-pass path must cost exactly one re-entrant `refreshAll`, so a change that deleted the
+     * flag and its branch outright cannot pass this file.
+     */
+    const scrollToRow = async (row) => {
+      const atTarget = () => (row === 0 ? verticalOffset() === 0 : verticalOffset() !== 0);
+
+      if (atTarget()) {
+        await waitFor(() => true, 'the current position to settle');
+
+        return;
+      }
+
+      const rendersBefore = viewRenders;
+
+      if (window.htScrollMode === 'window') {
+        window.scrollTo(window.scrollX, row === 0 ? 0 : WINDOW_FAR_OFFSET);
+      } else {
+        hot.scrollViewportTo({ row, verticalSnap: 'top' });
+      }
+
+      await waitFor(
+        () => atTarget() && viewRenders > rendersBefore,
+        `the grid to scroll to row ${row} and redraw`
+      );
+    };
+
+    /** Whether this grid takes the single-pass calculator path. A premise, asserted by the spec. */
+    window.usesSinglePassPath = () => hot.view._wt.wtViewport.usesLayoutSnapshotForCalculators();
+
+    /** The backward-compatibility classes the overlay still stamps on `.ht_master`. */
+    window.masterBorderClasses = () => ({
+      innerBorderInlineStart: masterParent().classList.contains('innerBorderInlineStart'),
+      innerBorderLeft: masterParent().classList.contains('innerBorderLeft'),
+    });
+
+    /**
+     * Counts the draws that one round trip across horizontal offset 0 costs, split into the two
+     * kinds, per direction (the class toggles on one and off on the other).
+     *
+     * `scrollDriven` is the legitimate response to a scroll event: `ScrollSync` calls
+     * `Overlays#refreshAll` once per scroll, and it must keep happening or the overlays go stale.
+     *
+     * `reconciliation` is the 1px-shift reconciliation, and it is measured as a RE-ENTRANT
+     * `refreshAll`: the scroll-driven call runs `wot.draw(true)`, and a draw that sees
+     * `positionChanged` calls `refreshAll` again from inside it. Nesting is what separates the two -
+     * counting `refreshAll` outright cannot, because the scroll-driven call is always there and
+     * would mask the difference entirely.
+     *
+     * A counter is the only way to see any of this: the reconciliation re-renders the cells the
+     * draw already rendered, so the grid looks identical whether it runs or not.
+     */
+    window.countDrawsAcrossOffsetZero = async (axis = 'horizontal') => {
+      const { wtOverlays } = hot.view._wt;
+      const original = wtOverlays.refreshAll.bind(wtOverlays);
+      const goTo = axis === 'vertical' ? scrollToRow : scrollToColumn;
+      const goFar = () => goTo(axis === 'vertical' ? FAR_ROW : FAR_COLUMN);
+      let depth = 0;
+      let scrollDriven = 0;
+      let reconciliation = 0;
+
+      // Start the measurement at offset 0, so leaving it is a real crossing.
+      await goTo(0);
+
+      wtOverlays.refreshAll = () => {
+        if (depth === 0) {
+          scrollDriven += 1;
+        } else {
+          reconciliation += 1;
+        }
+
+        depth += 1;
+
+        try {
+          return original();
+        } finally {
+          depth -= 1;
+        }
+      };
+
+      try {
+        await goFar();
+
+        const leaving = { scrollDriven, reconciliation };
+
+        await goTo(0);
+
+        return {
+          leavingOffsetZero: leaving,
+          returningToOffsetZero: {
+            scrollDriven: scrollDriven - leaving.scrollDriven,
+            reconciliation: reconciliation - leaving.reconciliation,
+          },
+        };
+
+      } finally {
+        // `delete`, not `= original`. `original` is pre-bound, so assigning it back would leave an
+        // OWN property shadowing `Overlays.prototype.refreshAll` rather than falling through to it -
+        // anything later spying on the prototype, or calling with another receiver, would miss the
+        // real one. Deleting the own property is what actually restores the instance.
+        delete wtOverlays.refreshAll;
+      }
+    };
+
+    /**
+     * Crosses horizontal offset 0 on a draw whose cell render is CANCELLED, and reports the master's
+     * sizes either side of it.
+     *
+     * This is the one shape the other metrics cannot reach, because they only ever come from draws
+     * that rendered. A skipped draw used to take the `positionChanged` branch and with it the master
+     * `wtOverlays.adjustElementsSize()`, and now takes the plain `else`, so the stale-scrollbar note
+     * on that line is what narrows. It is reachable outside tests: `NestedRows` turns its own
+     * `#skipRender` on and clears it inside a `_registerTimeout`, so a horizontal scroll landing in
+     * that window is exactly this.
+     *
+     * The wait is on the offset alone, deliberately: no draw renders here, so `afterViewRender` never
+     * fires and requiring it would hang.
+     */
+    window.crossOffsetZeroWithRenderSkipped = async () => {
+      await scrollToColumn(0);
+
+      const before = window.overlayMetrics();
+      let armed = true;
+      let skipped = 0;
+      const skipNextRender = (isForced, skipObject) => {
+        if (armed && skipObject) {
+          skipObject.skipRender = true;
+          armed = false;
+          skipped += 1;
+        }
+      };
+
+      hot.addHook('beforeViewRender', skipNextRender);
+
+      try {
+        hot.scrollViewportTo({ col: FAR_COLUMN, horizontalSnap: 'start' });
+
+        await waitFor(() => horizontalOffset() !== 0, 'the grid to scroll off offset 0');
+
+        return { skipped, before, after: window.overlayMetrics() };
+
+      } finally {
+        hot.removeHook('beforeViewRender', skipNextRender);
+      }
+    };
+
+    /**
+     * The overlay geometry that a dropped refresh would leave stale: each clone's rendered size, the
+     * row header width, the hider width that drives the scroll range, and the vertical alignment
+     * between the master's first rendered row and the inline-start clone's copy of it.
+     */
+    window.overlayMetrics = () => {
+      const round = value => Math.round(value * 100) / 100;
+      // Every selector below must resolve in this fixture's single grid. Returning `null` on a miss
+      // would make the spec's comparisons pass on `null === null` - a selector that silently stopped
+      // matching (a renamed clone class, a theme leg that renders a clone differently) would read as
+      // "geometry unchanged" instead of failing. Throw instead, so a miss surfaces as a red leg.
+      const need = (selector) => {
+        const element = container.querySelector(selector);
+
+        if (!element) {
+          throw new Error(`overlayMetrics: nothing matched ${selector}`);
+        }
+
+        return element;
+      };
+      const rect = selector => round(need(selector).getBoundingClientRect().width);
+      const firstRowTop = (overlay) => {
+        const table = need(`${overlay} table.htCore`);
+        const row = need(`${overlay} table.htCore > tbody > tr`);
+
+        return round(row.getBoundingClientRect().top - table.getBoundingClientRect().top);
+      };
+
+      return {
+        rowHeaderWidth: rect('.ht_master table.htCore > tbody > tr > th'),
+        hiderWidth: need('.ht_master .wtHider').style.width,
+        // The disconnected branch also carried the master's `wtOverlays.adjustElementsSize()`, which
+        // is the only place the hider is sized on the 1px-shift path. The hider drives the scroll
+        // range, so a size left stale by the dropped reconciliation shows up here and nowhere else.
+        // Height as well as width: the vertical compensation is still live on the row axis, and the
+        // point is that a HORIZONTAL crossing may not disturb it.
+        hiderHeight: need('.ht_master .wtHider').style.height,
+        masterScrollHeight: need('.ht_master .wtHolder').scrollHeight,
+        masterScrollWidth: need('.ht_master .wtHolder').scrollWidth,
+        inlineStartCloneWidth: rect('.ht_clone_inline_start'),
+        topCloneWidth: rect('.ht_clone_top'),
+        cornerCloneWidth: rect('.ht_clone_top_inline_start_corner'),
+        masterFirstRowTop: firstRowTop('.ht_master'),
+        inlineStartFirstRowTop: firstRowTop('.ht_clone_inline_start'),
+      };
+    };
+  </script>
+</body>
+</html>

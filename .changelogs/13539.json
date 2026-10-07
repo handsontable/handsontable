@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Made the frozen overlays' clone holders composited scroll containers, so a scroll frame no longer repaints the whole grid on grids with content-rich cells, and a touch pan over a frozen header now scrolls the grid instead of the page.",
+  "type": "changed",
+  "issueOrPR": 13539,
+  "breaking": false,
+  "framework": "none"
+}

@@ -2,7 +2,7 @@
 type: tutorial
 title: Server-side data
 metaTitle: Server-side data - JavaScript Data Grid | Handsontable
-description: Load paged data with Handsontable DataProvider—fetchRows, CRUD callbacks, migration from client-side arrays, pagination, sorting, filters, REST and GraphQL examples, and a JavaScript monorepo project with two Node servers.
+description: Load paged data with Handsontable DataProvider -- fetchRows, CRUD callbacks, migration from client-side arrays, pagination, sorting, filters, REST and GraphQL examples, and a JavaScript monorepo project with two Node servers.
 permalink: /server-side-data
 canonicalUrl: /server-side-data
 tags:
@@ -18,6 +18,7 @@ vue:
   metaTitle: Server-side data - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
+addedIn: "17.1.0"
 ---
 Use the [`dataProvider`](@/api/options.md#dataprovider) option so Handsontable loads row data from your backend instead of keeping the full dataset in the browser. The grid stays aligned with paging, column sorting, and (optionally) column filters that run on the server. The same configuration wires **create**, **update**, and **remove** to your API. When the `dataProvider` object is **complete** (all required keys valid), Handsontable ignores a static [`data`](@/api/options.md#data) array and loads rows only through `fetchRows`. If you still pass a `data` array with a complete provider, Handsontable logs a console warning that `data` is ignored.
 
@@ -149,7 +150,7 @@ Called when you insert rows (for example from the context menu). Payload shape:
 - `referenceRowId`: anchor row id when inserting next to a row (from `rowId`); may be `undefined` when there is no anchor (for example some programmatic inserts).
 - `rowsAmount`: how many rows to create in one request.
 
-Your API should create the rows and return a promise. Handsontable refetches the current query after success.
+Your API should create the rows and return a promise. By default, Handsontable refetches the current query after success. Set `refetchAfterCreate: false` to skip the refetch and apply the server response yourself; see [Server-side CRUD](@/guides/getting-started/server-side-data/server-side-data-crud.md#onrowscreate).
 
 Create, update, and remove requests are **serialized**: if you trigger another mutation before the previous one finishes, work runs in order so your backend sees a single stream of operations.
 
@@ -174,7 +175,7 @@ From the plugin instance (`hot.getPlugin('dataProvider')`), you can also call [`
 ### Mutation hooks
 
 - [`beforeRowsMutation`](@/api/hooks.md#beforerowsmutation) — `(operation, payload)`; return `false` to cancel. For **create** and **remove**, the server callback is not invoked and there is no refetch. For **update** from the grid, `false` reverts optimistic cell values and skips `onRowsUpdate`; cell validators run only when the hook allows the mutation to continue.
-- [`afterRowsMutation`](@/api/hooks.md#afterrowsmutation) — runs after the server mutation callback succeeds and before the post-mutation refetch.
+- [`afterRowsMutation`](@/api/hooks.md#afterrowsmutation) — runs after the server mutation callback succeeds and before the post-mutation refetch (for `create`, the refetch is skipped when `refetchAfterCreate` is `false`).
 - [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror) — runs when the mutation callback throws or rejects, when validation fails before the request, or when the refetch after a successful update fails.
 
 `operation` is `'create'`, `'update'`, or `'remove'`. The hook `payload` is a wrapper object, not the same reference as the callback argument: `'create'` uses `{ rowsCreate }` (same inner shape as `onRowsCreate`), `'update'` uses `{ rows }` (the array passed to `onRowsUpdate`), and `'remove'` uses `{ rowsRemove }` (the id array passed to `onRowsRemove`).
@@ -200,7 +201,7 @@ When `onRowsUpdate` is set, Handsontable skips stacking certain edit sources on 
 - [`afterDataProviderFetchError`](@/api/hooks.md#afterdataproviderfetcherror) — `(error, queryParameters)` when `fetchRows` throws or rejects with a non-abort error.
 - [`afterDataProviderFetchAbort`](@/api/hooks.md#afterdataproviderfetchabort) — `(queryParameters, reason)` when a fetch is superseded, aborted, or ends with `AbortError`.
 
-When [`notification`](@/api/options.md#notification) is enabled, the [Notification](@/api/notification.md) plugin shows an error toast if `fetchRows` rejects or if `onRowsCreate`, `onRowsUpdate`, or `onRowsRemove` rejects, including when a refetch after a successful mutation fails. The title is translated per operation (load vs create vs update vs remove). The message text prefers a string `message`, `error`, or `detail` from a JSON body, including when that body is nested on the error object (`error.response?.data`, `error.data`, or `error.body`, as with some HTTP clients). Otherwise it falls back to an `Error` message, a string rejection, or a generic fallback. **Fetch** errors also add a **Refetch** button that calls `hot.getPlugin('dataProvider').fetchData()` again; that toast stays until you dismiss it or use Refetch. If Notification is disabled, use [`afterDataProviderFetchError`](@/api/hooks.md#afterdataproviderfetcherror) for failed loads and refetches, and [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror) for rejected mutation callbacks; you supply your own error UI.
+When [`notification`](@/api/options.md#notification) is enabled, the [Notification](@/api/notification.md) plugin shows an error toast if `fetchRows` rejects or if `onRowsCreate`, `onRowsUpdate`, or `onRowsRemove` rejects, including when a refetch after a successful mutation fails. The title is translated per operation (load vs create vs update vs remove). The message text prefers a string `message`, `error`, or `detail` from a JSON body, including when that body is nested on the error object (`error.response?.data`, `error.data`, or `error.body`, as with some HTTP clients). Otherwise it falls back to an `Error` message, a string rejection, or a generic fallback. **Fetch** errors also add a **Refetch** button that retries the request that failed, with the same page, page size, sort, and filters. If a later request has succeeded since, Refetch reloads the current data instead. That toast stays until you dismiss it or use Refetch. If Notification is disabled, use [`afterDataProviderFetchError`](@/api/hooks.md#afterdataproviderfetcherror) for failed loads and refetches, and [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror) for rejected mutation callbacks; you supply your own error UI.
 
 The [Empty data state / loading](@/guides/accessories-and-menus/empty-data-state/empty-data-state.md) overlay follows DataProvider for the `"loading"` branch: [`beforeDataProviderFetch`](@/api/hooks.md#beforedataproviderfetch) turns loading on when `skipLoading` is not set; [`afterDataProviderFetch`](@/api/hooks.md#afterdataproviderfetch) and [`afterDataProviderFetchError`](@/api/hooks.md#afterdataproviderfetcherror) turn it off. [`afterDataProviderFetchAbort`](@/api/hooks.md#afterdataproviderfetchabort) does **not** clear loading by itself (for example when you change page while a request is in flight), so the overlay stays until a fetch finishes successfully or with an error. Refetches after column sort or CRUD pass `skipLoading: true` into [`beforeDataProviderFetch`](@/api/hooks.md#beforedataproviderfetch), so the Empty data state plugin skips the full loading overlay for those internal loads.
 
@@ -208,11 +209,23 @@ The [Empty data state / loading](@/guides/accessories-and-menus/empty-data-state
 
 From `hot.getPlugin('dataProvider')`:
 
-- [`fetchData`](@/api/dataProvider.md#fetchdata) — refetch with optional overrides (`page`, `pageSize`, `sort`, `filters`, and client-only `skipLoading`). Overrides are merged into the current query; `page` is clamped to at least 1, and Handsontable may issue a follow-up fetch if `totalRows` from the server implies a lower last page than requested. After init, changing the `dataProvider` object through [`updateSettings`](@/api/core.md#updatesettings) runs the plugin’s update path and triggers a **refetch** when the grid is already rendered.
-- **`updateSettings` and loaded rows** — When [`hasExternalDataSource`](@/api/hooks.md#hasexternaldatasource) is `true`, Handsontable only resets the in-memory placeholder to an empty array during init or when the `updateSettings` payload includes [`data`](@/api/options.md#data) or [`dataProvider`](@/api/options.md#dataprovider). Other keys alone (for example `height` or `colHeaders`) do not clear the current page of rows or force a refetch; the DataProvider plugin refetches when its settings change. If you update `columns` without `data` or `dataProvider`, the data map is rebuilt but the same rule avoids wiping the grid with an empty dataset by accident.
+- [`fetchData`](@/api/dataProvider.md#fetchdata) — fetches the visible sheet, with optional overrides (`page`, `pageSize`, `sort`, `filters`, and client-only `skipLoading`). Overrides are merged into the current query; `page` is clamped to at least 1, and Handsontable may issue a follow-up fetch if `totalRows` from the server implies a lower last page than requested. After init, changing the `dataProvider` object through [`updateSettings`](@/api/core.md#updatesettings) runs the plugin's update path and triggers a **refetch** when the grid is already rendered. A sheets bar switch is the exception: it applies the arriving sheet's `dataProvider` without refetching (see [Use DataProvider with the sheets bar](#use-dataprovider-with-the-sheets-bar) below).
+- [`isFetching`](@/api/dataProvider.md#isfetching) — whether the visible sheet is waiting for a `fetchRows` response that shows the loading overlay. A fetch that passes `skipLoading` (like the refetch after a sort or a row change) does not count, and inside the `afterDataProviderFetch`, `afterDataProviderFetchError`, and `afterDataProviderFetchAbort` listeners of the fetch that settled, it's already `false`.
+- **`updateSettings` and loaded rows** — When [`hasExternalDataSource`](@/api/hooks.md#hasexternaldatasource) is `true`, Handsontable only resets the in-memory placeholder to an empty array during init or when the `updateSettings` payload includes [`data`](@/api/options.md#data) or [`dataProvider`](@/api/options.md#dataprovider). Other keys alone (for example `height` or `colHeaders`) do not clear the current page of rows or force a refetch; the DataProvider plugin refetches when its settings change. If you update `columns` without `data` or `dataProvider`, the data map is rebuilt but the same rule avoids wiping the grid with an empty dataset by accident. The [`Pagination`](@/api/pagination.md) and [`Filters`](@/api/filters.md) plugins follow a `dataProvider` added or removed this way too: both read live whether a data provider backs the grid, so they switch between server-side and client-side behavior the moment the setting changes. Destroying the grid while a fetch is in flight aborts that fetch without logging a console error.
 - [`getQueryParameters`](@/api/dataProvider.md#getqueryparameters) — current `page`, `pageSize`, `sort`, `filters`.
 - [`getRowId`](@/api/dataProvider.md#getrowid) — resolve the id for a visual row.
 - [`createRows`](@/api/dataProvider.md#createrows), [`updateRows`](@/api/dataProvider.md#updaterows), [`removeRows`](@/api/dataProvider.md#removerows) — programmatic CRUD through the same server callbacks.
+
+## Use DataProvider with the sheets bar
+
+With the [sheets bar](@/guides/accessories-and-menus/sheets-bar/sheets-bar.md), declare `dataProvider` in the `settings` of each sheet that loads from a server. Sheets without it stay local - sorting, filtering, paging, and editing all run in the browser. Handsontable disables a grid-level `dataProvider` while the sheets bar is enabled, even when every sheet declares its own, and logs one console warning; it restores that value if you disable the sheets bar later. Setting a grid-level `dataProvider` afterward through `updateSettings()`, on a sheet that does not declare its own, is blocked the same way, and the sheet keeps its rows. On a sheet that declares its own `dataProvider`, a value passed through `updateSettings()` replaces that sheet's own one, unless it is the same object as the ignored grid-level value. If you keep a grid-level `dataProvider` anyway, pass the same object every time: a framework wrapper that builds a new object on every render re-configures the sheet you see.
+
+- The first time you show a sheet, it fetches its rows.
+- Returning to a sheet that already fetched does not trigger a new fetch. The sheet shows the rows, sort, filters, page, and page size it had when you left - Handsontable replays the saved response through [`afterDataProviderFetch`](@/api/hooks.md#afterdataproviderfetch) instead of re-sorting or re-filtering the rows in the browser. Call [`fetchData()`](@/api/dataProvider.md#fetchdata) to refresh them.
+- A fetch that is still running when you switch away keeps running, and its rows land in the sheet that started it.
+- An edit you save on a sheet after switching away still reaches that sheet's server, with that sheet's own row ids.
+- If a fetch or a mutation fails while its sheet is off-screen, [`afterDataProviderFetchError`](@/api/hooks.md#afterdataproviderfetcherror) or [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror) fires right away, and the error notification appears when you return to that sheet. `afterDataProviderFetchError` then receives a third argument, `isVisible`, set to `false`, so a custom error UI can tell such a failure apart from one on the sheet you see. The failure changes nothing on the visible sheet: its filters and its loading overlay stay as they are.
+- A duplicated sheet starts with a copy of the original's rows and server view, and its first visit does not fetch. Removing a sheet aborts its running fetch silently.
 
 ## Examples (REST and GraphQL)
 
@@ -236,7 +249,7 @@ Runnable projects under the Handsontable examples monorepo (Devbox):
 Each folder includes the same Express servers (`server-rest.mjs`, `server-graphql.mjs`, `start-servers.mjs`). Run `npm run server`, then `npm run start` for the framework dev server.
 
 - [JavaScript (Vite)](https://codesandbox.io/p/devbox/github/handsontable/handsontable/tree/develop/examples/next/docs/js/data-provider) — override URLs with `VITE_API_BASE` and `VITE_GRAPHQL_URL`.
-- [React (CRA)](https://codesandbox.io/p/devbox/github/handsontable/handsontable/tree/develop/examples/next/docs/react-wrapper/data-provider) — override with `REACT_APP_API_BASE` and `REACT_APP_GRAPHQL_URL`.
+- [React (Vite)](https://codesandbox.io/p/devbox/github/handsontable/handsontable/tree/develop/examples/next/docs/react-wrapper/data-provider) — override with `VITE_API_BASE` and `VITE_GRAPHQL_URL`.
 - [Vue 3 (Vite)](https://codesandbox.io/p/devbox/github/handsontable/handsontable/tree/develop/examples/next/docs/vue3/data-provider) — override with `VITE_API_BASE` and `VITE_GRAPHQL_URL`.
 - [Angular](https://codesandbox.io/p/devbox/github/handsontable/handsontable/tree/develop/examples/next/docs/angular-wrapper/data-provider) — set `restApiBase` and `graphqlUrl` in `src/environments/environment.ts`.
 

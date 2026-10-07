@@ -1,37 +1,63 @@
-import { type Page, type Locator, expect } from '@playwright/test';
+import { type Page, type Locator, type CDPSession, expect } from '@playwright/test';
 
 /**
  * Page Object for the mobile selection handles fixture (DEV-2165).
  *
  * The spec using this page object must run with touch + mobile user agent
  * emulation (`test.use({ hasTouch: true, ... })`) — Handsontable decides
- * whether to create the selection handles from the user agent at grid
- * construction time.
+ * whether to create the selection handles from `isMobileOrIpadOS()` at grid
+ * construction time. iPadOS 13+ needs a Macintosh Safari UA plus an init
+ * script that sets `navigator.platform` to `MacIntel` and `maxTouchPoints`
+ * to 5 before the grid script loads (see `e2e/ipad-selection-handles.spec.ts`).
  */
 export class MobileHandlesPage {
   readonly page: Page;
   readonly theme: string;
+  readonly bundle: string;
   readonly grid: Locator;
+  #cdp: CDPSession | null = null;
 
-  constructor(page: Page, theme = 'main') {
+  constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
+    this.bundle = bundle;
     this.grid = page.getByTestId('grid');
   }
 
   /**
-   * Navigate to the fixture and wait for the grid to render.
+   * Navigate to the fixture and wait for the grid to render. Frozen panes are off by default, and
+   * headers are on, which is the configuration most grids run with.
    */
-  async goto(): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/mobile-handles.html?theme=${this.theme}`);
-    await expect(this.cell(0, 0)).toBeVisible();
+  async goto({
+    direction = 'ltr', frozen = false, frozenBottom = false, headers = true, rows = 'short', cols = 'short',
+  }: {
+    direction?: 'ltr' | 'rtl';
+    frozen?: boolean;
+    frozenBottom?: boolean;
+    headers?: boolean;
+    rows?: 'short' | 'tall';
+    cols?: 'short' | 'wide';
+  } = {}): Promise<void> {
+    const query = new URLSearchParams({
+      theme: this.theme,
+      bundle: this.bundle,
+      direction,
+      frozen: frozen ? '1' : '0',
+      frozenBottom: frozenBottom ? '2' : '0',
+      headers: headers ? 'on' : 'off',
+      rows,
+      cols,
+    });
+
+    await this.page.goto(`/tests/fixtures/demo/mobile-handles.html?${query}`);
+    await expect(this.cell(1, 1)).toBeVisible();
   }
 
   /**
    * A single data cell, by visual row/column, via its stable test id.
    */
   cell(row: number, col: number): Locator {
-    return this.page.getByTestId(`cell-${row}-${col}`);
+    return this.page.locator('.ht_master').getByTestId(`cell-${row}-${col}`);
   }
 
   /**
@@ -42,11 +68,21 @@ export class MobileHandlesPage {
   }
 
   /**
+   * Extends the current selection while preserving its top-left corner.
+   */
+  async selectRange(fromRow: number, fromCol: number, toRow: number, toCol: number): Promise<void> {
+    await this.page.evaluate(
+      range => window.hot.selectCell(range.fromRow, range.fromCol, range.toRow, range.toCol),
+      { fromRow, fromCol, toRow, toCol }
+    );
+  }
+
+  /**
    * The top-left mobile selection handle of the focus selection, scoped to
    * the master overlay.
    */
   topHandle(): Locator {
-    return this.page.locator('.ht_master .htBorders .topSelectionHandle').first();
+    return this.page.locator('.ht_master .htBorders .topSelectionHandle:visible').first();
   }
 
   /**
@@ -54,7 +90,24 @@ export class MobileHandlesPage {
    * to the master overlay.
    */
   bottomHandle(): Locator {
-    return this.page.locator('.ht_master .htBorders .bottomSelectionHandle').first();
+    return this.page.locator('.ht_master .htBorders .bottomSelectionHandle:visible').first();
+  }
+
+  /**
+   * The fill-handle square on the selection's bottom-end corner. On mobile and
+   * iPadOS this element exists but stays hidden; on desktop it is the visible
+   * autocomplete handle.
+   */
+  fillHandle(): Locator {
+    return this.page.locator('.ht_master .htBorders .wtBorder.corner').first();
+  }
+
+  /**
+   * The hit area of the bottom-right mobile selection handle — the element a
+   * finger grabs. It is larger than the painted handle.
+   */
+  bottomHitArea(): Locator {
+    return this.page.locator('.ht_master .htBorders .bottomSelectionHandle-HitArea:visible').first();
   }
 
   /**
@@ -72,5 +125,317 @@ export class MobileHandlesPage {
       expect(box!.width).toBeGreaterThan(0);
       expect(box!.height).toBeGreaterThan(0);
     }
+  }
+
+  /**
+   * Returns whether the top handle owns the pixels at the center of its visible marker.
+   */
+  async isTopHandleHitAreaAtHandleCenter(): Promise<boolean> {
+    return this.topHandle().evaluate((handle) => {
+      const { left, top, width, height } = handle.getBoundingClientRect();
+      const element = document.elementFromPoint(left + (width / 2), top + (height / 2));
+
+      return element?.closest('.topSelectionHandle-HitArea') !== null;
+    });
+  }
+
+  /**
+   * Returns whether the bottom handle owns the pixels at the center of its visible marker.
+   */
+  async isBottomHandleHitAreaAtHandleCenter(): Promise<boolean> {
+    return this.bottomHandle().evaluate((handle) => {
+      const { left, top, width, height } = handle.getBoundingClientRect();
+      const element = document.elementFromPoint(left + (width / 2), top + (height / 2));
+
+      return element?.closest('.bottomSelectionHandle-HitArea') !== null;
+    });
+  }
+
+  /**
+   * Returns whether the top handle hangs off the cell's outer corner (LTR), which is where it
+   * belongs whenever no overlay clone renders over that corner. The corner placement leaves the
+   * handle touching the cell edge, while the clone placement moves it a full handle inside, so
+   * half a handle separates the two.
+   */
+  async isTopHandleOnCellOuterCorner(row: number, col: number): Promise<boolean> {
+    const handleBox = await this.topHandle().boundingBox();
+    const cellBox = await this.cell(row, col).boundingBox();
+
+    if (!handleBox || !cellBox) {
+      return false;
+    }
+
+    return handleBox.y + handleBox.height <= cellBox.y + (handleBox.height / 2)
+      && handleBox.x + handleBox.width <= cellBox.x + (handleBox.width / 2);
+  }
+
+  /**
+   * Asserts the fill-handle square is not shown. On iPadOS the desktop
+   * autocomplete corner used to appear instead of the mobile range handles.
+   */
+  async expectFillHandleHidden(): Promise<void> {
+    await expect(this.fillHandle()).toBeHidden();
+  }
+
+  /**
+   * Whether MultipleSelectionHandles turned on at construction time.
+   */
+  async isHandlesPluginEnabled(): Promise<boolean> {
+    return this.page.evaluate(() => window.hot.getPlugin('multipleSelectionHandles').enabled);
+  }
+
+  /**
+   * Whether the active cell editor is currently open (the engine's own state, not DOM visibility —
+   * the `.handsontableInput` textarea is always rendered, off-screen when closed).
+   */
+  async isEditorOpen(): Promise<boolean> {
+    return this.page.evaluate(() => window.hot.getActiveEditor()?.isOpened() ?? false);
+  }
+
+  async expectEditorOpen(): Promise<void> {
+    await expect.poll(() => this.isEditorOpen()).toBe(true);
+  }
+
+  async expectEditorClosed(): Promise<void> {
+    await expect.poll(() => this.isEditorOpen()).toBe(false);
+  }
+
+  /**
+   * The `moveCells` edge-band overlays. iPad keeps these when the option is on
+   * (`!isMobileBrowser()`); phones do not (`isMobileOrIpadOS()` must not gate them).
+   */
+  moveZones(): Locator {
+    return this.page.locator('.ht_master .htBorders .wtMoveZone');
+  }
+
+  /**
+   * Turns `moveCells` on after construction so the iPad handle fixture can also
+   * assert the drag band still appears (DEV-1081 gate split).
+   */
+  async enableMoveCells(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.hot.updateSettings({ moveCells: true });
+    });
+  }
+
+  /**
+   * Merges the given blocks after construction, so the frozen-pane fixture can put a merged cell
+   * across its freeze lines.
+   */
+  async mergeCells(cells: { row: number, col: number, rowspan: number, colspan: number }[]): Promise<void> {
+    await this.page.evaluate((mergedCells) => {
+      window.hot.updateSettings({ mergeCells: mergedCells });
+    }, cells);
+  }
+
+  /**
+   * Registers a `modifyGetCellCoords` hook that ignores `source` and answers every call with a
+   * short `[row, column]` result - a shape the setting's own type documents as legal
+   * (`core/settings.ts`). Used to prove a plain cell's mobile bottom handle does not depend on a
+   * hook that has nothing to do with it (DEV-143 follow-up).
+   */
+  async addNaiveModifyGetCellCoordsHook(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.hot.addHook('modifyGetCellCoords', (row: number, col: number) => [row, col]);
+    });
+  }
+
+  /**
+   * The overlays whose bottom mobile selection handle a finger can actually reach: the handle's hit
+   * area (the element a finger grabs) displayed, and the topmost element at its own center. Every
+   * overlay draws its own handles, and a copy drawn under a frozen pane still passes a `:visible`
+   * count.
+   */
+  async reachableBottomHandles(): Promise<string[]> {
+    return this.page.evaluate(() => {
+      const overlays: string[] = [];
+
+      document.querySelectorAll('.bottomSelectionHandle-HitArea').forEach((handle) => {
+        const rect = handle.getBoundingClientRect();
+
+        if (getComputedStyle(handle).display === 'none' || rect.width === 0 || rect.height === 0) {
+          return;
+        }
+
+        const hit = document.elementFromPoint(rect.x + (rect.width / 2), rect.y + (rect.height / 2));
+
+        if (hit && (hit === handle || handle.contains(hit))) {
+          const overlay = ['ht_master', 'ht_clone_top_inline_start_corner', 'ht_clone_bottom_inline_start_corner',
+            'ht_clone_inline_start', 'ht_clone_top', 'ht_clone_bottom'].find(name => handle.closest(`.${name}`));
+
+          overlays.push(overlay ?? 'none');
+        }
+      });
+
+      return overlays.sort();
+    });
+  }
+
+  /**
+   * Scroll the master viewport until the given column's inline-end edge sits a few pixels inside the
+   * frozen inline-start pane (row headers and the frozen column), so the column is off screen.
+   */
+  async scrollColumnEndUnderFrozenPane(col: number): Promise<void> {
+    const paneInset = 8;
+
+    await this.page.evaluate(({ targetCol, inset }) => {
+      const holder = document.querySelector('.ht_master .wtHolder');
+      const cell = document.querySelector(`.ht_master [data-testid="cell-1-${targetCol}"]`);
+      const pane = document.querySelector('.ht_clone_inline_start');
+
+      if (!holder || !cell || !pane) {
+        throw new Error('The master viewport, the target cell or the frozen pane is not rendered.');
+      }
+
+      holder.scrollLeft += cell.getBoundingClientRect().right - (pane.getBoundingClientRect().right - inset);
+    }, { targetCol: col, inset: paneInset });
+
+    // The redraw is rAF-batched, so wait until the viewport calculators stop counting the column.
+    await expect.poll(() => this.page.evaluate(column => window.hot.getFirstPartiallyVisibleColumn() > column, col))
+      .toBe(true);
+  }
+
+  /**
+   * Scroll back to the start of the grid so the given column is on screen again, and wait until the
+   * viewport calculators count it.
+   */
+  async scrollColumnIntoView(col: number): Promise<void> {
+    await this.page.evaluate(column => window.hot.scrollViewportTo({ col: column, horizontalSnap: 'start' }), col);
+    await expect.poll(() => this.page.evaluate(column => window.hot.getFirstFullyVisibleColumn() <= column
+      && column <= window.hot.getLastFullyVisibleColumn(), col)).toBe(true);
+  }
+
+  /**
+   * Turns the fill handle off so a frozen-row overlay-size assertion can pin the
+   * `isMobileOrIpadOS()` corner-reserve branch without `cornerVisible` also being true.
+   */
+  async disableFillHandle(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.hot.updateSettings({ fillHandle: false });
+    });
+  }
+
+  /**
+   * How many extra pixels the top overlay's holder is taller than its parent. On iPad this is
+   * half the autofill-corner size whenever the selection's bottom-end sits inside `fixedRowsTop`.
+   */
+  async topOverlayHolderOverhang(): Promise<number> {
+    return this.page.evaluate(() => {
+      const holder = document.querySelector('.ht_clone_top .wtHolder');
+      const parent = holder?.parentElement;
+
+      if (!(holder instanceof HTMLElement) || !(parent instanceof HTMLElement)) {
+        return Number.NaN;
+      }
+
+      return parseFloat(holder.style.height) - parseFloat(parent.style.height);
+    });
+  }
+
+  /**
+   * Half of `--ht-cell-autofill-size`, which is the strip `TopOverlay` adds when it reserves
+   * the selection-corner offset.
+   */
+  async autofillCornerHalfHeight(): Promise<number> {
+    return this.page.evaluate(() => {
+      const themeRoot = document.querySelector('[data-testid="grid"]');
+      const size = getComputedStyle(themeRoot as Element).getPropertyValue('--ht-cell-autofill-size');
+
+      return parseInt(size, 10) / 2;
+    });
+  }
+
+  /**
+   * The grid's root wrapper carrying the `ht__moving` drag-state class.
+   */
+  movingRoot(): Locator {
+    return this.page.locator('.handsontable.ht__moving');
+  }
+
+  /**
+   * Presses the midpoint of the top `moveCells` band with the mouse. That point sits on the
+   * selection edge, away from the round range handles that hang off the corners.
+   */
+  async pressTopMoveBandMidpoint(): Promise<void> {
+    const box = await this.moveZones().first().boundingBox();
+
+    expect(box, 'the top move band must be laid out').not.toBeNull();
+
+    await this.page.mouse.move(box!.x + (box!.width / 2), box!.y + (box!.height / 2));
+    await this.page.mouse.down();
+  }
+
+  /**
+   * Drags the painted bottom range handle with the mouse. The plugin listens for `touchstart`
+   * only, so a trackpad drag from this point must not extend the selection.
+   */
+  async mouseDragBottomHandleBy(deltaX: number, deltaY: number): Promise<void> {
+    const box = await this.bottomHandle().boundingBox();
+
+    expect(box, 'the bottom range handle must be laid out').not.toBeNull();
+
+    const startX = box!.x + (box!.width / 2);
+    const startY = box!.y + (box!.height / 2);
+
+    await this.page.mouse.move(startX, startY);
+    await this.page.mouse.down();
+    await this.page.mouse.move(startX + deltaX, startY + deltaY);
+    await this.page.mouse.up();
+  }
+
+  /**
+   * The current selection as `[fromRow, fromCol, toRow, toCol]`.
+   */
+  async selectedLast(): Promise<number[]> {
+    return this.page.evaluate(() => window.hot.getSelectedLast());
+  }
+
+  /**
+   * Drags the bottom range handle onto another cell with a trusted touch
+   * gesture. Playwright's `touchscreen` only taps, so this goes through CDP.
+   */
+  async dragBottomHandleToCell(row: number, col: number): Promise<void> {
+    if (!this.#cdp) {
+      this.#cdp = await this.page.context().newCDPSession(this.page);
+    }
+
+    const startBox = await this.bottomHitArea().boundingBox();
+    const targetBox = await this.cell(row, col).boundingBox();
+
+    expect(startBox, 'the bottom handle hit area must be laid out').not.toBeNull();
+    expect(targetBox, 'the target cell must be laid out').not.toBeNull();
+
+    const start = {
+      x: startBox!.x + (startBox!.width / 2),
+      y: startBox!.y + (startBox!.height / 2),
+    };
+    const target = {
+      x: targetBox!.x + (targetBox!.width / 2),
+      y: targetBox!.y + (targetBox!.height / 2),
+    };
+
+    await this.#dispatchTouch('touchStart', start);
+
+    for (let step = 1; step <= 12; step++) {
+      await this.#dispatchTouch('touchMove', {
+        x: start.x + ((target.x - start.x) * step) / 12,
+        y: start.y + ((target.y - start.y) * step) / 12,
+      });
+    }
+
+    await this.#dispatchTouch('touchEnd');
+  }
+
+  /**
+   * Dispatches one touch event carrying a single touch point.
+   */
+  async #dispatchTouch(
+    type: 'touchStart' | 'touchMove' | 'touchEnd',
+    point?: { x: number, y: number },
+  ): Promise<void> {
+    await this.#cdp!.send('Input.dispatchTouchEvent', {
+      type,
+      touchPoints: point ? [{ x: point.x, y: point.y, radiusX: 12, radiusY: 12, force: 1, id: 1 }] : [],
+    });
   }
 }

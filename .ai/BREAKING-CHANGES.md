@@ -49,3 +49,17 @@ When you deprecate a public API, do all of the following in the same PR:
 ## What is NOT considered breaking
 
 Changes to JavaScript APIs not listed in the public API reference (e.g., internal Walkontable code that does not affect the DOM or CSS). Note such changes in release notes.
+
+### `Handsontable.helper` and `Handsontable.dom` are internal
+
+Neither namespace has a page in the API reference — `docs/content/api/sidebar.js` lists no helpers and no DOM entry — and nothing generates one. They are filled at runtime by a loop in `handsontable/src/index.ts` that copies every export of the modules in its `HELPERS` and `DOM` lists (`helpers/array`, `helpers/function`, `helpers/dom/element`, and the rest), skipping names that start with `_`. `base.ts` types them the same way, as an intersection of `typeof import(...)`.
+
+So a new export added to one of those modules lands on the global object automatically, and that is **additive, not breaking**: it needs no changelog line, no docs page and no deprecation cycle. Use the `_` prefix only when you want the runtime copy skipped — `_injectProductInfo` and `_getLicenseState` in `helpers/mixed.ts` do — and know that the type still lists it, so the prefix hides it from the object, not from TypeScript.
+
+Three members escaped that rule by being taught to users, and they are the exception rather than the pattern: `Handsontable.dom.empty()` appears in a guide's cell-renderer example, `Handsontable.helper.sanitize()` has a row in the deprecation policy table, and `Handsontable.dom.getCellContentRoot()` is taught in the checkbox cell type guide as the supported way to extend a chained renderer (DEV-185). A member a guide teaches is public in practice and earns a deprecation cycle. Removing or renaming anything else in these namespaces is still a judgement call, not a free action: it ships in the bundle and applications do reach for it.
+
+## Automated advisory check
+
+`.github/workflows/breaking-check.yml` runs `.github/scripts/breaking-check.mjs` on every pull request. It comments when the diff removes or renames a public name (method, option, hook, CSS class, CSS variable, export), deletes a non-comment line of `metaSchema` (a default change), or adds an entry to `REMOVED_HOOKS`/`REMOVED_OPTIONS`. A `"breaking": true` changelog entry silences the name and registry items, but not a default change, because changing a default is forbidden. It is advisory and never blocks. Try it locally with `node .github/scripts/breaking-check.mjs --render`.
+
+Known gaps, so no comment is not an all-clear: it does not check behavior, DOM structure, or CSS property or value changes. A name that survives elsewhere in source is missed (a deleted plugin, or `hot.undo()` when `undo` remains as an option). A default set outside `metaSchema`, such as the cell-type `textEllipsis`, is missed. Plugin sub-options (`search.searchResultClass`, `autoColumnSize.syncLimit`) and public class fields are not extracted, so renaming one is missed.

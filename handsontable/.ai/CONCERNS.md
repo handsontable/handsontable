@@ -2,12 +2,6 @@
 
 ## Tech Debt
 
-**Walkontable DAO Layer (Data Access Objects):**
-- Issue: The Walkontable rendering engine uses a DAO (Data Access Object) pattern with deeply nested getter properties that should be replaced with proper dependency injection (IOC). Over 20 TODO comments across Walkontable files acknowledge this debt.
-- Files: `handsontable/src/3rdparty/walkontable/src/core/_base.ts`, `handsontable/src/3rdparty/walkontable/src/core/core.ts`, `handsontable/src/3rdparty/walkontable/src/table.ts`
-- Impact: Makes Walkontable difficult to test in isolation, creates tight coupling between components, and hinders refactoring. Every overlay, table, and viewport component reaches through DAOs rather than receiving dependencies explicitly.
-- Fix approach: Introduce constructor-based dependency injection. Replace DAO getter objects with direct parameter passing. Start with `createScrollDao()` and `getTableDao()` in `_base.ts`.
-
 **Broken Plugin Initialization Abstraction (#6806):**
 - Issue: Multiple plugins contain explicit workarounds for a broken plugin initialization order. Plugins must guard against uninitialized state (`!this.hot.view`) and force `updatePlugin()` calls during `enablePlugin()`.
 - Files: `handsontable/src/plugins/nestedHeaders/nestedHeaders.ts`, `handsontable/src/plugins/collapsibleColumns/collapsibleColumns.ts`
@@ -19,12 +13,6 @@
 - Files: `handsontable/src/eventManager.ts`
 - Impact: Makes it hard to reason about listener ownership. Clearing one manager's listeners requires filtering by manager identity, which is inefficient and error-prone.
 - Fix approach: Each `EventManager` instance should maintain its own listener list. Provide a central registry only for debugging/leak detection purposes.
-
-**Redundant Render Cycle Calls:**
-- Issue: Several plugins independently trigger operations that should be batched per render cycle. The TODO comments are explicit: "Should call once per render cycle, currently fired separately in different plugins."
-- Files: `handsontable/src/plugins/hiddenColumns/hiddenColumns.ts`, `handsontable/src/plugins/autoColumnSize/autoColumnSize.ts`, `handsontable/src/plugins/autoRowSize/autoRowSize.ts`
-- Impact: Unnecessary re-renders degrade performance, especially with large datasets. Each redundant call triggers layout recalculations.
-- Fix approach: Consolidate these operations into a single per-render-cycle hook. Use the existing `batchRender()` / `suspendRender()` / `resumeRender()` infrastructure to coalesce these calls.
 
 **core.ts Monolith:**
 - Issue: `core.ts` is covering initialization, data manipulation, rendering coordination, selection management, and the entire public API surface. Functions use `this` binding via closure (constructor function pattern), not class syntax.
@@ -72,43 +60,44 @@
 - Current mitigation: every sink resolves the option through `getSanitizer()`/`sanitizeHTML()` in `utils/sanitizer.ts` and binds the missing-sanitizer warning to `hot.rootElement`, so a grid warns once no matter how many surfaces write raw HTML. Covered surfaces and their context strings: `'header'` (including nested headers and the ghost table that measures them), `'password'`, `'contextMenu'`, `'selectEditor'`, `'dialog'`, `'notification'`, `'CopyPaste.paste'`.
 - Deliberate exclusions: the `html` cell type (`renderers/htmlRenderer`) and `allowHtml` autocomplete/dropdown sources both pass `false`, meaning raw and silent. PR #7368 (2020) disabled sanitizing for them on purpose, and it held through the DOMPurify era, so a configured sanitizer has never reached them. Whether it should is an open product question. Do not "fix" it as a bug: it is a behavior change under `.ai/BREAKING-CHANGES.md`.
 - Recommendations: keep new HTML sinks going through `utils/sanitizer.ts` rather than reading `getSettings().sanitizer` inline, and give each one its own context string so the warning names it.
+- Not a sanitizer surface: a consumer **outside** the DOM — a file, the clipboard, later a printer or an assistive label — goes through `utils/textExtractor.ts` (`extractText(hot, value, 'Plugin.surface')`) and the grid-level `textExtractor` option instead. Routing one through `sanitizer` looks right and is wrong: a sanitizer returns HTML *source*, so plain headers come back entity-encoded (`R&D` → `R&amp;D`), and an allowlist sanitizer returns `<b>Bold</b>` unchanged. The built-in extraction still calls the configured sanitizer first, under the DOM surface the content belongs to, because a sanitizer may delete text rather than unwrap it. Measured on issue #4088; the full rationale is in the `handsontable/AGENTS.md` bullet.
 
 **Clipboard Paste Parses Into an Inert Document:**
 - Risk: `htmlToGridSettings()` used to write pasted markup into a detached `<div>` of the live document. Detached is not inert: the owning document has a browsing context, so `<img src=x onerror>` in a paste payload loaded and executed.
 - Files: `handsontable/src/utils/parseTable.ts`, `handsontable/src/plugins/copyPaste/copyPaste.ts`
 - Current mitigation: the string path parses with `DOMParser.parseFromString()`, which has no browsing context, so nothing loads or runs while the markup is read. Both clipboard branches (`text/html` and the private `application/ht-source-data-json-html`) are sanitized under `'CopyPaste.paste'`.
 - Recommendations: never `importNode` the parsed nodes back into the live document, which would make them live again. Keep every downstream read on that document read-only.
-- Still open in the same class: `Core#toTableElement()` (`handsontable/src/core.ts:6448`) writes `instanceToHTML()` output into a live-document element with `insertAdjacentHTML`, and `instanceToHTML` escapes cell data but not headers (`utils/parseTable.ts:55`), so a `colHeaders` entry containing markup executes there. No internal caller (it is public API only), and the same label executes when rendered into a real `<th>` anyway, so it is not a trust escalation. A `DOMParser` swap does not fix it either: the function must return a node the caller can insert, and adopting it into the live document reactivates the payload. The real fix is escaping headers in `instanceToHTML`.
+- Closed in the same class: `Core#toTableElement()` used to write `instanceToHTML()` output into a live-document element with `insertAdjacentHTML`, so a `colHeaders` entry containing markup executed there. It now builds the table through `instanceToTableElement()` (`utils/parseTable.ts`), which constructs nodes and writes header text through `textContent`, so nothing is parsed and the header carries no execution path. `instanceToHTML()` still exists for `toHTML()`, which returns a string rather than a node and now sanitizes headers.
 
-**innerHTML Usage in Template Literal Tag:**
-- Risk: The `templateLiteralTag.ts` helper uses `template.innerHTML` to parse tagged template literals. If user-supplied data flows into the template, it could introduce XSS.
-- Files: `handsontable/src/helpers/templateLiteralTag.ts`
-- Current mitigation: The function is used internally for UI element construction, not directly with user data.
-- Recommendations: Add a comment documenting that this function must not be used with unsanitized user input. Consider using `DOMParser` or `textContent` where possible.
+**innerHTML in internal UI construction:**
+- Risk: the `html` tagged template parsed its result with `template.innerHTML`, and `helpers/mixed.ts` wrote license messages through `messageNode.innerHTML`.
+- Files: `handsontable/src/helpers/templateLiteralTag.ts`, `handsontable/src/helpers/mixed.ts`
+- Current mitigation: both are gone. Internal UI is built as a `TemplateSpec` through `buildTemplate()` (`helpers/dom/template.ts`), and the license messages are rendered from a part list with `createTextNode` / `createElement` / `textContent`. The `html` tag was deleted; only `toSingleLine` remains in `templateLiteralTag.ts`.
+- Recommendations: never reintroduce an HTML string for library-authored UI. Every parse entry point is also a Trusted Types sink, so a string there breaks any page enforcing `require-trusted-types-for 'script'`, not only the XSS case.
 
-**innerHTML in Mixed Helper:**
-- Risk: `helpers/mixed.ts` uses `messageNode.innerHTML` to render domain-specific messages.
-- Files: `handsontable/src/helpers/mixed.ts`
-- Current mitigation: The messages are internally generated string templates, not user input.
-- Recommendations: Switch to `textContent` or DOM API construction to eliminate the innerHTML call entirely.
+**The `<template>` parse in the built-in text extractor:**
+- Risk: `extractDisplayText()` assigns to `template.innerHTML` to read the text a header renders as.
+- Files: `handsontable/src/utils/textExtractor.ts`
+- Current mitigation: the content is the user's own header, gated on the same `HTML_CHARACTERS` predicate `fastInnerHTML` uses, and the configured `sanitizer` runs before the parse. The parse happens in a `<template>`, whose content belongs to an inert document, so nothing loads or runs. It is reachable only when the user sets `textExtractor: true`; an extractor function of their own never reaches it. A `TrustedHTML` from the sanitizer passes to the sink unmodified.
+- Recommendations: do not swap it for `stripTags()`. That scans characters instead of parsing, so it drops everything from a `<` onwards and would silently mangle a header such as `'Loaded 5 < 10 rows'` on the export path.
 
 ## Performance Bottlenecks
 
 **Spread Operator with Potentially Large Arrays:**
 - Problem: At least 28 instances of `array.push(...otherArray)` exist in production source code. With arrays of 10k+ elements, this causes stack overflow due to argument count limits.
-- Files: `handsontable/src/dataMap/metaManager/metaLayers/cellMeta.ts`, `handsontable/src/plugins/nestedRows/nestedRows.ts`, `handsontable/src/plugins/nestedRows/ui/collapsing.ts`, `handsontable/src/plugins/collapsibleColumns/collapsibleColumns.ts`, `handsontable/src/plugins/hiddenRows/contextMenuItem/showRow.ts`, `handsontable/src/plugins/hiddenColumns/contextMenuItem/showColumn.ts`, `handsontable/src/core.ts`
+- Files: `handsontable/src/dataMap/metaManager/metaLayers/cellMeta.ts`, `handsontable/src/plugins/nestedRows/nestedRows.ts`, `handsontable/src/plugins/nestedRows/ui/collapsing.ts`, `handsontable/src/plugins/collapsibleColumns/collapsibleColumns.ts`, `handsontable/src/core.ts`
 - Cause: `Function.prototype.apply` (which spread desugars to) has a maximum argument count (~65k in V8, lower in other engines).
 - Improvement path: Replace `arr.push(...largeArr)` with `for` or `forEach` loops in all code paths that may handle large datasets. Priority: `cellMeta.ts` handles per-cell metadata and scales with table size.
 
 **Walkontable Filter Object Recreation:**
 - Problem: `rowFilter` and `columnFilter` are set to `null` and recreated on every render pass instead of updating state in place. Two TODO comments acknowledge this.
-- Files: `handsontable/src/3rdparty/walkontable/src/table.ts`
+- Files: `handsontable/src/3rdparty/walkontable/src/table/baseTable.ts`, `handsontable/src/3rdparty/walkontable/src/table/drawCycle.ts`
 - Cause: The filter objects are recreated rather than having their state updated incrementally.
 - Improvement path: Refactor filter objects to support state updates without full reconstruction.
 
 **Limited requestAnimationFrame Batching:**
-- Problem: `requestAnimationFrame` is used in only 7 source files, primarily in `autoRowSize`, `autoColumnSize`, and the overlay system. Scroll events and resize operations in other areas may not be batched.
-- Files: `handsontable/src/helpers/feature.ts`, `handsontable/src/utils/interval.ts`, `handsontable/src/3rdparty/walkontable/src/overlays.ts`, `handsontable/src/plugins/autoRowSize/autoRowSize.ts`, `handsontable/src/plugins/autoColumnSize/autoColumnSize.ts`
+- Problem: `requestAnimationFrame` is used in only a handful of source files: the helpers, two Walkontable overlay modules, and a few plugin UIs. Scroll events and resize operations in other areas may not be batched.
+- Files: `handsontable/src/helpers/feature.ts`, `handsontable/src/utils/interval.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/resizeMonitor.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/scroll/nativeScrollInput.ts`, `handsontable/src/plugins/contextMenu/menu/menu.ts`, `handsontable/src/plugins/stretchColumns/stretchColumns.ts`
 - Cause: Not all rendering-triggering events are routed through a rAF-based scheduler.
 - Improvement path: Introduce a central render scheduler that batches all render-triggering events through `requestAnimationFrame`.
 
@@ -127,9 +116,9 @@
 - Test coverage: Good E2E coverage exists but the workarounds themselves are not directly tested.
 
 **Overlay System (Walkontable):**
-- Files: `handsontable/src/3rdparty/walkontable/src/overlays.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/top.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/inlineStart.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/bottom.ts`
-- Why fragile: The overlay system manages 6 overlay types (top, bottom, left, and 3 corners) with complex positioning logic. TODO comments indicate a workaround for `innerBorderTop` that is documented to be clearable only after SVG borders are merged. Lazy creation of corner overlays adds initialization complexity.
-- Safe modification: Test with combinations of `fixedRowsTop`, `fixedRowsBottom`, `fixedColumnsStart`. Test RTL layout. Verify no visual artifacts at overlay boundaries.
+- Files: `handsontable/src/3rdparty/walkontable/src/overlay/overlays.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/regions/topOverlay.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/regions/inlineStartOverlay.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/regions/bottomOverlay.ts`
+- Why fragile: The overlay system manages 8 overlay types (top, bottom, inline-start, inline-end, and 4 corners) with complex positioning logic. TODO comments indicate a workaround for `innerBorderTop` that is documented to be clearable only after SVG borders are merged. The corners and the three end clones are all built eagerly and only hidden while they have nothing to draw, so an idle clone still takes part in the initialization and in the layout signature.
+- Safe modification: Test with combinations of `fixedRowsTop`, `fixedRowsBottom`, `fixedColumnsStart`, `fixedColumnsEnd`, including all four together and a start plus end count that exceeds the column count (start wins). Test RTL layout, window scroll, and a visible vertical scrollbar at the end edge. Verify no visual artifacts at overlay boundaries.
 - Test coverage: Walkontable has its own test pipeline (`npm run test:walkontable`), separate from the main E2E tests.
 
 ## Scaling Limits
@@ -163,12 +152,6 @@
 - Files: `handsontable/src/plugins/touchScroll/`
 - Risk: Touch scrolling regressions on mobile browsers go undetected.
 - Priority: Medium (mobile usage is increasing).
-
-**Walkontable DAO Layer:**
-- What's not tested: The DAO objects in `_base.ts` are not unit tested. They are exercised only indirectly through higher-level integration tests.
-- Files: `handsontable/src/3rdparty/walkontable/src/core/_base.ts`
-- Risk: Refactoring the DAO layer could break property access patterns without test detection.
-- Priority: Medium (blocks the DAO refactoring effort).
 
 **Visual Selection Highlight Internals:**
 - What's not tested: The coordinate adjustment logic in `visualSelection.ts` with MergeCells interaction has TODO comments but no dedicated unit tests.

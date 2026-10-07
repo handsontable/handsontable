@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a problem where filtering or trimming rows could leave the selection on a row that no longer held the record it was put on, so a paste or a Ctrl+Enter commit through that selection appended new rows to the data. Such a selection is now cleared.",
+  "type": "fixed",
+  "issueOrPR": 13310,
+  "breaking": false,
+  "framework": "none"
+}

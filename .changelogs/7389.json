@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed pasted columns being dropped when the clipboard's first row held fewer cells than a later row.",
+  "type": "fixed",
+  "issueOrPR": 7389,
+  "breaking": false,
+  "framework": "none"
+}

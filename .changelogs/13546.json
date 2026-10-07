@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed inconsistent navigation over merged cells: a non-Tab horizontal move off a merged cell now always lands on the merged cell's top row, whichever row it was entered from.",
+  "type": "fixed",
+  "issueOrPR": 13546,
+  "breaking": false,
+  "framework": "none"
+}

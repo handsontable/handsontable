@@ -1,6 +1,7 @@
 import { isKey } from '../../../../../helpers/unicode';
-import { eventTargetEl } from '../../../../../helpers/dom/element';
+import { eventTargetEl, isHTMLElement } from '../../../../../helpers/dom/element';
 import { requestAnimationFrame } from '../../../../../helpers/feature';
+import { matchesCloneScrollTarget, measureCloneScrollDrift } from './cloneScrollDrift';
 import type { EngineContext } from '../../wire';
 import type { default as Overlays } from '../overlays';
 import type { StickyScrollStrategy } from '../strategies/stickyScrollStrategy';
@@ -23,6 +24,37 @@ interface WheelEventWithLegacyDelta extends WheelEvent {
  */
 function isWheelEventWithLegacyDelta(event: WheelEvent): event is WheelEventWithLegacyDelta {
   return 'wheelDeltaY' in event || 'wheelDeltaX' in event;
+}
+
+/**
+ * Reads the scroll distance a wheel event asks for, in pixels on both axes.
+ *
+ * A free function so the scroll and the decision whether the grid may swallow the event read the
+ * same numbers - including the legacy and line-mode conversions, which `event.deltaX`/`deltaY`
+ * alone do not give.
+ *
+ * @param {WheelEvent} event The wheel event.
+ * @param {number} browserLineHeight The line height used to convert a line-mode delta.
+ * @returns {{ deltaX: number, deltaY: number }}
+ */
+function resolveWheelDeltas(event: WheelEvent, browserLineHeight: number): { deltaX: number, deltaY: number } {
+  let deltaY: number;
+  let deltaX: number;
+
+  if (isWheelEventWithLegacyDelta(event)) {
+    deltaY = isNaN(event.deltaY) ? (-1) * (event.wheelDeltaY ?? 0) : event.deltaY;
+    deltaX = isNaN(event.deltaX) ? (-1) * (event.wheelDeltaX ?? 0) : event.deltaX;
+  } else {
+    deltaY = event.deltaY;
+    deltaX = event.deltaX;
+  }
+
+  if (event.deltaMode === 1) {
+    deltaX += deltaX * browserLineHeight;
+    deltaY += deltaY * browserLineHeight;
+  }
+
+  return { deltaX, deltaY };
 }
 
 /**
@@ -51,17 +83,32 @@ export function createNativeScrollInputDeps(
     geometryReader: ctx.geometryReader,
     wtTable: ctx.getWtTable(),
     eventManager: overlays.eventManager,
+    notifyScrolledForScrollbarVisibility: () => overlays.notifyScrolledForScrollbarVisibility(),
     getTopOverlay: () => overlays.topOverlay,
     getInlineStartOverlay: () => overlays.inlineStartOverlay,
     getCloneableOverlays: () => [
       overlays.topOverlay,
       overlays.bottomOverlay,
       overlays.inlineStartOverlay,
+      overlays.inlineEndOverlay,
       overlays.topInlineStartCornerOverlay,
       overlays.bottomInlineStartCornerOverlay,
+      overlays.topInlineEndCornerOverlay,
+      overlays.bottomInlineEndCornerOverlay,
+    ],
+    // The clones `ScrollSync` mirrors the master's offset onto, and so the ones whose holders are
+    // scroll containers (the clone-holder rule in `src/styles/base/_base.scss`).
+    getScrollMirroredOverlays: () => [
+      overlays.topOverlay,
+      overlays.bottomOverlay,
+      overlays.inlineStartOverlay,
+      overlays.inlineEndOverlay,
     ],
     getScrollableElement: () => overlays.scrollableElement,
     syncScrollPositions: () => overlays.syncScrollPositions(),
+    getCloneScrollTarget: (holder: HTMLElement) => overlays.getCloneScrollTarget(holder),
+    recordClampedCloneScrollTarget: (holder: HTMLElement, offset: { top: number, left: number }) =>
+      overlays.recordClampedCloneScrollTarget(holder, offset),
     scrollVertically: (delta: number) => overlays.scrollVertically(delta),
     scrollHorizontally: (delta: number) => overlays.scrollHorizontally(delta),
     registerStickyScrollListeners: () => stickyScroll.registerListeners(),
@@ -173,6 +220,19 @@ export class NativeScrollInput {
       );
     });
 
+    this.#deps.getScrollMirroredOverlays().forEach((overlay) => {
+      if (!overlay.clone) {
+        return;
+      }
+
+      eventManager.addEventListener(
+        overlay.clone.wtTable.holder,
+        'scroll',
+        (event: Event) => this.#onCloneScroll(event),
+        { passive: true }
+      );
+    });
+
     let resizeTimeout: ReturnType<typeof setTimeout>;
 
     eventManager.addEventListener(rootWindow, 'resize', () => {
@@ -205,18 +265,44 @@ export class NativeScrollInput {
     const masterVertical = this.#deps.getTopOverlay().mainTableScrollableElement;
     const target = event.target;
 
+    // Scrolling is what brings an overlay scrollbar on screen, so the clearance strip the frozen
+    // overlays leave for it has to open now and fade with it (#10370). Deliberately below the
+    // key-press branch: keyboard navigation moves the viewport without the browser drawing a
+    // scrollbar, and notifying from there carved out a strip nothing was painted in.
+    if (!this.#keyPressed) {
+      this.#deps.notifyScrolledForScrollbarVisibility();
+    }
+
     // For key press, sync only master -> overlay position because while pressing Walkontable.render is triggered
     // by hot.refreshBorder
-    if (this.#keyPressed) {
-      if ((masterVertical !== rootWindow && target !== rootWindow &&
-           !(masterVertical instanceof HTMLElement && eventTargetEl(event)!.contains(masterVertical))) ||
-          (masterHorizontal !== rootWindow && target !== rootWindow &&
-           !(masterHorizontal instanceof HTMLElement && eventTargetEl(event)!.contains(masterHorizontal)))) {
-        return;
-      }
+    if (this.#keyPressed &&
+        (this.#isOutsideAxisOwner(event, masterVertical) || this.#isOutsideAxisOwner(event, masterHorizontal))) {
+      return;
     }
 
     this.#deps.syncScrollPositions();
+  }
+
+  /**
+   * Whether an event fired away from the element that owns an axis: the owner is an element (not
+   * the window), the event's target is not the window, and the target does not hold the owner.
+   * The key-press branches of the scroll and wheel listeners skip their work in that case.
+   *
+   * `isHTMLElement`, never `instanceof`: an owner from another realm (an iframe driven from the
+   * parent page) failed the realm-bound test, which made every key-press holder scroll look
+   * foreign, so `syncScrollPositions` was skipped for the whole key press and the clones kept the
+   * band they had before it.
+   *
+   * @param {Event} event The scroll or wheel event.
+   * @param {HTMLElement | Window} owner The element (or window) that scrolls one axis.
+   * @returns {boolean}
+   */
+  #isOutsideAxisOwner(event: Event, owner: HTMLElement | Window): boolean {
+    const { rootWindow } = this.#deps;
+    const target = eventTargetEl(event);
+
+    return owner !== rootWindow && (event.target as unknown) !== rootWindow &&
+      !(isHTMLElement(owner) && target !== null && target.contains(owner));
   }
 
   /**
@@ -238,19 +324,12 @@ export class NativeScrollInput {
 
     const masterHorizontal = this.#deps.getInlineStartOverlay().mainTableScrollableElement;
     const masterVertical = this.#deps.getTopOverlay().mainTableScrollableElement;
-    const target = event.target;
 
     // For key press, sync only master -> overlay position because while pressing Walkontable.render is triggered
     // by hot.refreshBorder
-    const shouldNotWheelVertically = masterVertical !== rootWindow &&
-      target !== rootWindow &&
-      !(target instanceof Node && masterVertical instanceof HTMLElement && target.contains(masterVertical));
-    const shouldNotWheelHorizontally = masterHorizontal !== rootWindow &&
-      target !== rootWindow &&
-      !(target instanceof Node && masterHorizontal instanceof HTMLElement && target.contains(masterHorizontal));
-
     if (
-      (this.#keyPressed && (shouldNotWheelVertically || shouldNotWheelHorizontally))
+      (this.#keyPressed &&
+        (this.#isOutsideAxisOwner(event, masterVertical) || this.#isOutsideAxisOwner(event, masterHorizontal)))
        ||
       this.#deps.getScrollableElement() === rootWindow
     ) {
@@ -261,6 +340,70 @@ export class NativeScrollInput {
 
     if (preventDefault || (this.#deps.getScrollableElement() !== rootWindow && isScrollPossible)) {
       event.preventDefault();
+    }
+  }
+
+  /**
+   * Scroll listener for the clone holders.
+   *
+   * The frozen overlays' clone holders are composited scroll containers (the clone-holder rule in
+   * `src/styles/base/_base.scss`), so the browser can scroll one on its own - a touch pan over a
+   * frozen header, a wheel the clone listener did not cancel - and the clone then sits out of step
+   * with the master. The engine's own writes fire this listener too and read as no drift, through
+   * the ledger `ScrollSync` keeps of what it wrote. A real drift is undone on the holder and handed
+   * to the axis owner as a relative scroll; the owner's own scroll event then re-syncs every clone
+   * the ordinary way, so a pan over a frozen header scrolls the grid like a wheel over it does.
+   *
+   * The ledger, not the owner's current offset, is the reference on purpose. Scroll events are
+   * dispatched a frame after the offset changed, and a clone's pending event can run BEFORE the
+   * master's in the same frame: the clone still holds last frame's offset while the master already
+   * moved on, and a comparison against the master would read that as a user scroll backwards.
+   *
+   * The engine's own writes are the common case - three per scroll frame - and an in-range write
+   * lands on the ledger, so it returns before any geometry read. Two things can put the holder a
+   * little off the ledger without a user touching it, and both are resolved to no drift: a zoomed
+   * page stores a fraction of a pixel for an integer write, which the tolerance absorbs, and a write
+   * made while the master sat past the clone's momentary range is clamped by the browser, which the
+   * range measure absorbs. The clamped offset is handed back to the ledger so the next event on that
+   * holder returns early instead of measuring the range again. A corrective write below re-applies
+   * the ledger's own value, so the ledger stays true through it.
+   *
+   * @param {Event} event The scroll event object.
+   */
+  #onCloneScroll(event: Event) {
+    const holder = event.currentTarget;
+
+    if (!isHTMLElement(holder)) {
+      return;
+    }
+
+    const current = { top: holder.scrollTop, left: holder.scrollLeft };
+    const target = this.#deps.getCloneScrollTarget(holder);
+
+    if (matchesCloneScrollTarget(current, target)) {
+      return;
+    }
+
+    const { geometryReader } = this.#deps;
+    const drift = measureCloneScrollDrift(
+      current,
+      { maxTop: geometryReader.getMaximumScrollTop(holder), maxLeft: geometryReader.getMaximumScrollLeft(holder) },
+      target,
+    );
+
+    if (drift.driftTop === 0 && drift.driftLeft === 0) {
+      this.#deps.recordClampedCloneScrollTarget(holder, { top: drift.expectedTop, left: drift.expectedLeft });
+
+      return;
+    }
+
+    if (drift.driftTop !== 0) {
+      holder.scrollTop = drift.expectedTop;
+      this.#deps.scrollVertically(drift.driftTop);
+    }
+    if (drift.driftLeft !== 0) {
+      holder.scrollLeft = drift.expectedLeft;
+      this.#deps.scrollHorizontally(drift.driftLeft);
     }
   }
 
@@ -287,21 +430,7 @@ export class NativeScrollInput {
    * @returns {boolean}
    */
   #translateMouseWheelToScroll(event: WheelEvent) {
-    let deltaY: number;
-    let deltaX: number;
-
-    if (isWheelEventWithLegacyDelta(event)) {
-      deltaY = isNaN(event.deltaY) ? (-1) * (event.wheelDeltaY ?? 0) : event.deltaY;
-      deltaX = isNaN(event.deltaX) ? (-1) * (event.wheelDeltaX ?? 0) : event.deltaX;
-    } else {
-      deltaY = event.deltaY;
-      deltaX = event.deltaX;
-    }
-
-    if (event.deltaMode === 1) {
-      deltaX += deltaX * this.#browserLineHeight;
-      deltaY += deltaY * this.#browserLineHeight;
-    }
+    const { deltaX, deltaY } = resolveWheelDeltas(event, this.#browserLineHeight);
 
     const isScrollVerticallyPossible = this.#deps.scrollVertically(deltaY);
     const isScrollHorizontallyPossible = this.#deps.scrollHorizontally(deltaX);

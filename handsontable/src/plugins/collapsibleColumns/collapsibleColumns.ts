@@ -8,12 +8,11 @@ import {
   eventTargetEl,
   hasClass,
   removeClass,
-  fastInnerText,
   removeAttribute,
   setAttribute
 } from '../../helpers/dom/element';
-import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { throwWithCause } from '../../helpers/errors';
+import { syncIcon } from '../../themes/engine/icons';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
 import {
   A11Y_EXPANDED,
@@ -21,16 +20,46 @@ import {
 } from '../../helpers/a11y';
 import type { NestedHeaders } from '../nestedHeaders/nestedHeaders';
 import type StateManager from '../nestedHeaders/stateManager';
+import { getEndOverlayHeaders } from '../../utils/endOverlayHeaders';
 
 export const PLUGIN_KEY = 'collapsibleColumns';
 export const PLUGIN_PRIORITY = 290;
 const SETTING_KEYS = ['nestedHeaders'];
 const COLLAPSIBLE_ELEMENT_CLASS = 'collapsibleIndicator';
+/**
+ * The `syncIcon()` slot class of the collapse/expand icon inside the indicator.
+ *
+ * @type {string}
+ */
+const INDICATOR_ICON_SLOT_CLASS = 'collapsibleIndicator__icon';
 // Name of the hiding map that holds columns hidden by the per-child `visibleWhen` rules (issue
 // #10243). Kept separate from the main collapsed-columns map so `getCollapsedColumns()` and the
 // collapse hooks never report a column that is merely hidden in the expanded state.
 const VISIBLE_WHEN_MAP_NAME = 'collapsibleColumns.visibleWhen';
 const SHORTCUTS_GROUP = PLUGIN_KEY;
+
+/**
+ * The collapsed header groups, as `CollapsibleColumns#captureState()` records them.
+ */
+interface CollapsedGroupsState {
+  readonly groups: ReadonlyArray<{ headerLevel: number, authoredColumnIndex: number }>;
+  /**
+   * The header state manager's config version when the groups were recorded. Groups from another
+   * `nestedHeaders` configuration name that configuration's headers.
+   */
+  readonly configVersion: number;
+}
+
+/**
+ * Tells whether a value is a state `CollapsibleColumns#captureState()` recorded.
+ *
+ * @param {*} value The value to test.
+ * @returns {boolean}
+ */
+function isCollapsedGroupsState(value: unknown): value is CollapsedGroupsState {
+  return typeof value === 'object' && value !== null && 'groups' in value && Array.isArray(value.groups) &&
+    'configVersion' in value && typeof value.configVersion === 'number';
+}
 
 const actionDictionary = new Map([
   ['collapse', {
@@ -62,7 +91,7 @@ const actionDictionary = new Map([
  *
  * Read more:
  * - [Guides: Column groups](@/guides/columns/column-groups/column-groups.md#collapsible-headers)
- * - [Configuration options: `collapsibleColumns`](@/api/options.md#collapsiblecolumns)
+ * - [Setting options: `collapsibleColumns`](@/api/options.md#collapsiblecolumns)
  *
  * @example
  * ::: only-for javascript
@@ -206,6 +235,12 @@ export class CollapsibleColumns extends BasePlugin {
    * `#collapsedColumnsMap`.
    */
   #visibleWhenMap: HidingMap | null = null;
+  /**
+   * The collapsed-groups version of the header state manager at which each state `captureState()`
+   * returned was last known to be current. Kept out of the state itself: a state returned again
+   * after a version change must still be the same object.
+   */
+  #capturedVersions = new WeakMap<object, number>();
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -283,7 +318,6 @@ export class CollapsibleColumns extends BasePlugin {
         });
 
       } else if (Array.isArray(collapsibleColumns)) {
-
         this.headerStateManager?.mapState(() => {
           return { collapsible: false };
         });
@@ -426,6 +460,13 @@ export class CollapsibleColumns extends BasePlugin {
           removeButton(button);
         }
       });
+
+      // The inline-end clones render only the last columns, so they are walked on their own.
+      getEndOverlayHeaders(this.hot).forEach((endHeaders) => {
+        endHeaders.childNodes[i]?.childNodes.forEach((endChild) => {
+          removeButton((endChild as Element).querySelector<HTMLElement>(`.${COLLAPSIBLE_ELEMENT_CLASS}`));
+        });
+      });
     });
   }
 
@@ -501,6 +542,82 @@ export class CollapsibleColumns extends BasePlugin {
    * @fires Hooks#afterColumnExpand
    */
   toggleCollapsibleSection(coords: { row: number, col: number }[], action?: 'collapse' | 'expand'): void {
+    this.runOperation(action === 'expand' ? 'expand_columns' : 'collapse_columns',
+      () => this.#toggleCollapsibleSection(coords, action));
+  }
+
+  /**
+   * Returns the collapsed header groups, for UndoRedo. The columns they hide are restored with the
+   * rest of the index maps. When the groups did not change since the previous capture, the previous
+   * state itself is returned.
+   *
+   * @private
+   * @param {*} previous The value the previous capture returned.
+   * @returns {object|undefined}
+   */
+  captureState(previous: unknown): unknown {
+    if (this.headerStateManager === null) {
+      return undefined;
+    }
+
+    const version = this.headerStateManager.getCollapsedGroupsVersion();
+    const configVersion = this.headerStateManager.getConfigVersion();
+    const isSameConfig = isCollapsedGroupsState(previous) && previous.configVersion === configVersion;
+
+    // Every transaction captures the state, so the tree is walked only when it may have changed.
+    if (isSameConfig && this.#capturedVersions.get(previous) === version) {
+      return previous;
+    }
+
+    const groups = this.headerStateManager.exportCollapsedGroups();
+    const state = (
+      isSameConfig &&
+      previous.groups.length === groups.length &&
+      previous.groups.every((group, index) => group.headerLevel === groups[index].headerLevel &&
+        group.authoredColumnIndex === groups[index].authoredColumnIndex)
+    ) ? previous : { groups, configVersion };
+
+    this.#capturedVersions.set(state, version);
+
+    return state;
+  }
+
+  /**
+   * A group is recorded by its header position, and the columns a collapse hides are in this plugin's
+   * hiding maps, which the UndoRedo check of a `columns` settings update reads column by column. So the
+   * groups themselves never make a step unsafe to undo.
+   *
+   * @private
+   * @returns {number[]}
+   */
+  getStateColumns(): readonly number[] {
+    return [];
+  }
+
+  /**
+   * Collapses exactly the header groups a `captureState()` call recorded. Hook-silent: the collapse
+   * hooks fired when the user acted. Groups recorded under another `nestedHeaders` configuration are
+   * not put back: they would collapse whatever group of the new one sits at the same position.
+   *
+   * @private
+   * @param {*} state The recorded state.
+   */
+  restoreState(state: unknown): void {
+    if (
+      this.headerStateManager !== null && isCollapsedGroupsState(state) &&
+      state.configVersion === this.headerStateManager.getConfigVersion()
+    ) {
+      this.headerStateManager.importCollapsedGroups(state.groups);
+    }
+  }
+
+  /**
+   * The body of `toggleCollapsibleSection()`, run inside its operation.
+   *
+   * @param {Array} coords Array of coords - section coordinates.
+   * @param {string} [action] Action definition ('collapse' or 'expand').
+   */
+  #toggleCollapsibleSection(coords: { row: number, col: number }[], action?: 'collapse' | 'expand'): void {
     if (action === undefined || !actionDictionary.has(action)) {
       throwWithCause(`Unsupported action is passed (${action}).`);
     }
@@ -622,7 +739,6 @@ export class CollapsibleColumns extends BasePlugin {
       isActionPerformed,
     );
 
-    this.hot.view.adjustElementsSize();
     this.hot.render();
   }
 
@@ -832,6 +948,57 @@ export class CollapsibleColumns extends BasePlugin {
   }
 
   /**
+   * Brings an indicator's content in line with its state: the '+'/'-' text, kept as a no-CSS
+   * fallback (`text-indent` and `font-size: 0` hide it visually), followed by one icon.
+   *
+   * This runs for every collapsible header on every draw, so it touches only what changed. The
+   * text node is updated in place and the icon goes through `syncIcon()`, which keeps the same
+   * element (and does not re-run a renderer callback) until the state or the theme's icon mapping
+   * changes. Emptying the indicator on each draw, which `fastInnerText()` does once the text has
+   * a sibling, rebuilt both nodes per header per scroll frame.
+   *
+   * @param {HTMLElement} indicator The `.collapsibleIndicator` element.
+   * @param {string} text The fallback text.
+   * @param {string} iconName The icon to show.
+   */
+  #syncIndicatorContent(indicator: HTMLElement, text: string, iconName: 'collapseOn' | 'collapseOff') {
+    const first = indicator.firstChild;
+
+    if (first?.nodeType === 3) {
+      if (first.textContent !== text) {
+        first.textContent = text;
+      }
+    } else {
+      indicator.insertBefore(this.hot.rootDocument.createTextNode(text), first);
+    }
+
+    syncIcon(this.hot, indicator, INDICATOR_ICON_SLOT_CLASS, iconName);
+  }
+
+  /**
+   * Checks whether a group that starts at the column and spans `colspan` columns touches the
+   * `fixedColumnsEnd` band. Such a group gets no toggle: collapsing it would move the band over other columns
+   * (the same reason a group that starts in the `fixedColumnsStart` band gets none).
+   *
+   * The group is judged by its authored range, never by its visible end. A collapsed group hides its last
+   * columns, and a hidden column keeps its slot in the band, so judging by the visible end would give the
+   * group a toggle while it is collapsed and take it away once it expands over the band.
+   *
+   * @param {number} column The visual column the group starts at.
+   * @param {number} colspan The authored number of columns of the group.
+   * @returns {boolean}
+   */
+  #reachesFixedColumnsEnd(column: number, colspan: number): boolean {
+    const fixedColumnsEnd = this.hot.view?.countFixedColumnsEnd() ?? 0;
+
+    if (!fixedColumnsEnd) {
+      return false;
+    }
+
+    return column + colspan - 1 >= this.hot.countCols() - fixedColumnsEnd;
+  }
+
+  /**
    * Adds the indicator to the headers.
    *
    * @param {number} column Column index.
@@ -844,7 +1011,8 @@ export class CollapsibleColumns extends BasePlugin {
     const { collapsible, origColspan, isCollapsed } = headerSettings ?? {};
     const isNodeCollapsible = collapsible === true &&
       (origColspan ?? 0) > 1 &&
-      column >= (this.hot.getSettings().fixedColumnsStart ?? 0);
+      column >= (this.hot.getSettings().fixedColumnsStart ?? 0) &&
+      !this.#reachesFixedColumnsEnd(column, origColspan ?? 0);
     const isAriaTagsEnabled = this.hot.getSettings().ariaTags;
     let collapsibleElement = TH.querySelector<HTMLElement>(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
 
@@ -866,8 +1034,7 @@ export class CollapsibleColumns extends BasePlugin {
 
       if (isCollapsed) {
         addClass(el, 'collapsed');
-
-        fastInnerText(el, '+');
+        this.#syncIndicatorContent(el, '+', 'collapseOn');
 
         // Add ARIA tags
         if (isAriaTagsEnabled) {
@@ -876,8 +1043,7 @@ export class CollapsibleColumns extends BasePlugin {
 
       } else {
         addClass(el, 'expanded');
-
-        fastInnerText(el, '-');
+        this.#syncIndicatorContent(el, '-', 'collapseOff');
 
         // Add ARIA tags
         if (isAriaTagsEnabled) {
@@ -901,9 +1067,11 @@ export class CollapsibleColumns extends BasePlugin {
    * @param {object} coords Event coordinates.
    */
   #onBeforeOnCellMouseDown = (event: MouseEvent, coords: { row: number; col: number }) => {
-    const target = eventTargetEl(event)!;
+    // Matched by ancestor, like every other icon host's gate: an icon renderer can put markup
+    // that takes pointer events inside the indicator, and a press on it must still toggle.
+    const target = eventTargetEl(event)?.closest<HTMLElement>(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
 
-    if (hasClass(target, COLLAPSIBLE_ELEMENT_CLASS)) {
+    if (target) {
       if (hasClass(target, 'expanded')) {
         this.eventManager.fireEvent(target, 'mouseup');
         this.toggleCollapsibleSection([coords], 'collapse');
@@ -913,7 +1081,10 @@ export class CollapsibleColumns extends BasePlugin {
         this.toggleCollapsibleSection([coords], 'expand');
       }
 
-      stopImmediatePropagation(event);
+      // Only the grid's own flag, which makes the table skip selection handling. The shared
+      // `stopImmediatePropagation()` helper also sets `cancelBubble`, so the press would never reach
+      // `document` and a dropdown menu or context menu open at that moment would not close (DEV-214).
+      (event as MouseEvent & { isImmediatePropagationEnabled: boolean }).isImmediatePropagationEnabled = false;
     }
   };
 

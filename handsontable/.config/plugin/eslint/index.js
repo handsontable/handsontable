@@ -12,6 +12,7 @@ module.exports = {
   },
   rules: {
     'restricted-module-imports': require('./rules/restricted-module-imports'),
+    'require-tracked-hook-in-enable': require('./rules/require-tracked-hook-in-enable'),
     'require-async-in-it': require('./rules/require-async-in-it'),
     'require-await': require('./rules/require-await'),
     'no-native-error-throw': require('./rules/no-native-error-throw'),

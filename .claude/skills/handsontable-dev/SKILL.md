@@ -8,18 +8,17 @@ description: >
   systems, hook registration, TypeScript conventions). Triggers on file paths under
   `handsontable/src/` (excluding `3rdparty/walkontable/` which has its own skill), or when
   the user describes a symptom in the core grid without naming a file. This is the primary
-  entry point for all core Handsontable development — when in doubt, load it.
+  entry point for all core Handsontable development, when in doubt, load it.
 ---
 
 # Handsontable Core Development
 
-## Dispatch table — always invoke the specialist first
+## Dispatch table
 
-Always invoke `handsontable-code-review` (architecture dimension) alongside the task-specific specialist — it carries the SOLID / Law-of-Demeter / plugin-decoupling / breaking-changes rules that apply to **every** change, not just reviews. Treat its checks as the design lens; treat the task skill as the implementation guide.
+Load `handsontable-code-review` (architecture dimension) first for every change, then the task-specific specialist. It is the design lens (SOLID, Law of Demeter, plugin decoupling, breaking changes); the task skill is the implementation guide.
 
 | Task | Skill |
 |---|---|
-| Any feature / fix in core (design-level rules) | `handsontable-code-review` (architecture dimension) — load first, regardless of task |
 | Create / modify a **plugin** | `handsontable-plugin-dev` |
 | Create / modify an **editor** | `handsontable-editor-dev` |
 | Create / modify a **renderer** | `handsontable-renderer-dev` |
@@ -27,132 +26,85 @@ Always invoke `handsontable-code-review` (architecture dimension) alongside the 
 | Create / modify a **cell type** | `handsontable-celltype-dev` |
 | Write a **new E2E test** | `handsontable-playwright-e2e` (Playwright, `tests/e2e/`) |
 | Maintain a **legacy E2E test** (`*.spec.js`, frozen) | `handsontable-e2e-testing` |
-| Write / modify **unit tests** (`*.unit.js`) | `handsontable-unit-testing` |
+| Write / modify **unit tests** (`*.unit.js` or `*.unit.ts`) | `handsontable-unit-testing` |
 | Make a test actually prove behavior | `test-writing-discipline` |
 | Build a **demo / test page** | `handsontable-demo-page` |
 | Work on **CSS / themes** | `handsontable-css-dev` |
 | Walkontable rendering engine | `walkontable-dev` / `walkontable-testing` |
+| A rendering-engine **geometry** change needs a spec (viewport, overlays, sizing, scroll sync) | engine tier: edit an existing walkontable Jasmine spec, or add new coverage in `tests/e2e/walkontable/*.spec.ts` (`walkontable-dev`, Testing) |
 | Lint violations | `handsontable/AGENTS.md` (Lint) + `handsontable/.ai/CONVENTIONS.md` |
 | Coordinate translation (physical/visual/renderable) | `coordinate-systems` |
 | i18n / translations | `i18n-translations` |
 | Visual regression tests | `visual-testing` |
 | Docs pages | `writing-docs-pages` |
 
-The task-specific skills hold the deep how-to. `handsontable-code-review` (architecture dimension) holds the design constraints. This skill holds the TS conventions that cut across both.
+## Design rules from `handsontable-code-review`
 
-## Design rules from `handsontable-code-review` (apply to every change)
+Full checklist: its `references/architecture.md`.
 
-The full rules live in that skill's `references/architecture.md` — load it for the complete checklist. The non-negotiables to keep in mind while writing or modifying code:
-
-- **Plugin decoupling.** No direct cross-plugin imports. Talk via hooks; reach for another plugin's API only through `hot.getPlugin('Name')`. No circular plugin dependencies.
-- **Conflict ownership.** The plugin that introduces an incompatibility owns the blocking logic. Don't sprinkle `if (otherPluginEnabled) return;` checks across unrelated plugins. For hard conflicts, use `registerConflict()` from `src/plugins/base/conflictRegistry.ts` at module load time.
-- **Law of Demeter.** No `this.hot.view.wt.wtTable`-style deep chains. Each layer has a public API — use it. Go through `TableView` or `Core` for Walkontable data.
-- **SOLID where it bites.** Single Responsibility per plugin (one purpose, UI separated from logic). Open/Closed via hooks, never patch another plugin's internals. Liskov — honor the full `BasePlugin` contract (lifecycle methods + static properties).
-- **Cascading config.** New options should fit the `cell → column → global` model when applicable. If an option is table-level only (like `data`), document that explicitly in JSDoc.
-- **Breaking changes are forbidden by default.** Renamed CSS classes must keep the legacy class in the DOM. Renamed APIs must keep the old name working (no warnings for legacy, one-time warning for deprecated). **Never change a default setting value.** Removed hooks/options must go on the removed list so misuse throws.
-- **Convention over configuration.** Zero-config for the common case. Red flags: new options whose value is the same in every call site (should be the default), new directories that break the existing taxonomy, explicit wiring where auto-discovery would do.
-- **Gold standard.** When in doubt, read `src/plugins/pagination/pagination.ts` — it's the reference implementation for plugin structure, settings validation, conflict registration, and focus management.
+- **Plugin decoupling.** Talk via hooks; reach another plugin only through `hot.getPlugin('Name')`. No circular plugin dependencies.
+- **Conflict ownership.** The plugin that introduces an incompatibility owns the blocking logic. For hard conflicts, call `registerConflict()` from `src/plugins/base/conflictRegistry.ts` at module load time.
+- **Law of Demeter.** Go through `TableView` or `Core` for Walkontable data, not `this.hot.view.wt.wtTable` chains.
+- **Liskov.** Honor the full `BasePlugin` contract (lifecycle methods + static properties).
+- **Cascading config.** New options fit `cell → column → global` where applicable; document table-level-only options (like `data`) in JSDoc.
+- **Breaking changes.** Keep the legacy CSS class in the DOM when renaming. Keep old API names working (no warning for legacy, one-time warning for deprecated). Keep every default setting value. Put removed hooks/options on the removed list so misuse throws.
+- **Convention over configuration.** Red flags: new options with the same value at every call site (make it the default), new directories outside the existing taxonomy, explicit wiring where auto-discovery works.
+- **Gold standard:** `src/plugins/pagination/pagination.ts` (plugin structure, settings validation, conflict registration, focus management).
 
 ---
 
 ## File layout
 
 ```
-src/plugins/{pluginName}/        index.ts, {pluginName}.ts, types.ts?, __tests__/
+src/plugins/{pluginName}/        index.ts, {pluginName}.ts, types.ts?, __tests__/,
+                                 AGENTS.md + CLAUDE.md->AGENTS.md (required)
 src/editors/{editorName}/        index.ts, {editorName}.ts
 src/renderers/{rendererName}/    index.ts, {rendererName}.ts
 src/validators/{validatorName}/  index.ts, {validatorName}.ts
 src/cellTypes/{typeName}/        index.ts, {typeName}.ts
 ```
 
-Test files stay as `.js`: `*.spec.js` (E2E) and `*.unit.js` (unit).
-
-`handsontable/src/` is fully TypeScript. `.d.ts` files are **auto-generated** by `npm run build:types` directly into `handsontable/tmp/`.
+Unit tests are `*.unit.js` or `*.unit.ts`. New E2E is Playwright (`tests/e2e/*.spec.ts`); the Jasmine `*.spec.js` suite is frozen (edit existing specs, migrate broken ones to Playwright). `.d.ts` files are generated by `npm run build:types` into `handsontable/tmp/`.
 
 ---
 
-## TypeScript gotchas — read this before editing types
+## TypeScript gotchas
 
-These are the highest-impact mistakes in this codebase. Most lint passes won't catch them; reviewers will.
+### 1. Generalize the signature, add zero `as` casts
 
-### 1. Don't cast — generalize the signature
-
-**Rule for new code: add zero `as` casts.** When you write or modify code here, the target is no new casts at all. Treat the urge to write `as` as a signal that a type is wrong somewhere upstream — so fix the type instead of papering over it: make the function or entity generic, declare the missing field on its interface, or narrow with a type guard. A cast trades a real compile-time guarantee for a silent assumption the next refactor can break without warning; that concrete cost — not style preference — is why casting is bad practice in this codebase. If you genuinely cannot type something without a cast, that's a signal to refactor the surrounding module so the type flows correctly, not to reach for `as`. (The one narrow exception, a true external I/O or normalization boundary, is covered below and must be commented with *why*.)
-
-The wrong reflex is to silence a type error with `as SomeType` (or `<SomeType>value`). Casts are an assertion that you know better than the compiler — and the next refactor breaks silently.
-
-When a function receives a value whose shape varies, **change the signature to be generic** rather than casting at the call site.
+New code adds no `as` casts (`as SomeType`, `<SomeType>value`). Treat the urge to write one as a wrong type upstream. Exhaust these in order: (1) make the function/method signature generic; (2) make the shared **entity** generic; (3) narrow with a type guard; (4) use `unknown` only at a true I/O boundary. A cast is acceptable only when none apply (external/normalization boundary, known TS generic-inference gap) and carries a comment saying *why*. `as unknown as T` (double cast) is banned. Use `unknown` instead of `any` at boundaries, then narrow. After removing casts, rerun `npm run test:types`; some are load-bearing.
 
 ```ts
-// ✗ Bad — casts hide assumptions
-function getFirst(items: unknown[]): SomeRow {
-  return items[0] as SomeRow;
-}
-const row = getFirst(rows) as UserRow;
-
-// ✓ Good — generic preserves the caller's knowledge
-function getFirst<T>(items: T[]): T {
-  return items[0];
-}
-const row = getFirst(rows); // typed as UserRow
+// ✗ function getFirst(items: unknown[]): SomeRow { return items[0] as SomeRow; }
+// ✓ function getFirst<T>(items: T[]): T { return items[0]; }
 ```
 
-The same applies to `any`. If you need `any` to make something compile, the function should usually take a type parameter instead. Reach for `unknown` at boundaries, then narrow with a type guard.
-
-**`as` is a last resort, not a convenience.** Before writing one, exhaust these in order: (1) make the function/method signature generic; (2) make the shared **entity** generic; (3) narrow with a type guard; (4) use `unknown` only at a true I/O boundary. A cast is only acceptable when none of those apply — e.g. a genuine external/normalization boundary or a known TS generic-inference gap — and it must be commented with *why*. Never reach for `as unknown as T` (double cast); it defeats the checker entirely. When you remove casts, rerun `npm run test:types` — some are load-bearing.
-
-**Fix the type at its source, not at each call site.** When the *same* cast repeats across many consumers, the type is wrong one level down — fix it there. If a shared data structure (a tree, collection, map, or state container) stores `Record<string, unknown>`/`any` and every consumer casts `node.data as ConcreteType`, make the **structure itself generic** with a permissive default so existing callers are unaffected and informed callers parameterize it:
+**Fix the type at its source.** When the same cast repeats across consumers, make the shared structure generic with a permissive default so existing callers compile unchanged:
 
 ```ts
-// ✗ Bad — every consumer re-asserts the element shape
-class TreeNode { data: Record<string, unknown> = {}; walkDown(cb: Function) { /* ... */ } }
-node.walkDown((n: TreeNode) => { const d = n.data as HeaderNodeData; /* ... */ });
-
-// ✓ Good — the entity is generic; the default keeps every other consumer compiling
 class TreeNode<T extends object = Record<string, unknown>> {
   data: T;
   walkDown(cb: (node: TreeNode<T>) => unknown) { /* ... */ }
 }
-node.walkDown((n) => { const d = n.data; /* already HeaderNodeData, no cast */ });
 ```
 
-This relocates at most one or two unavoidable casts into the entity (e.g. a generic-spread re-assertion) and removes them from every call site. Prefer it over a sweep of per-site casts. (Real example in this repo: `src/utils/dataStructures/tree.ts` `TreeNode<T>`, consumed by `nestedHeaders` as `TreeNode<HeaderNodeData>`.)
+Example: `src/utils/dataStructures/tree.ts` `TreeNode<T>`, consumed by `nestedHeaders` as `TreeNode<HeaderNodeData>`.
 
-### 1a. DOM narrowing — prefer `isHTMLElement` over `as HTMLElement`
+### 1a. DOM narrowing
 
-A common DOM pattern is casting a `Node | Element | null` to `HTMLElement`. Use the existing type guard from `src/helpers/dom/element.ts` instead:
+Use `isHTMLElement` from `src/helpers/dom/element.ts` (for a `Node | Element | null` value) instead of `x as HTMLElement`, `x instanceof HTMLElement`, or a `nodeType === Node.ELEMENT_NODE` guard.
 
-```ts
-// ✗ Bad — assertion hides the null/non-HTML case
-const el = node.nextSibling as HTMLElement;
+### 2. `.d.ts` files
 
-// ✓ Good — narrows safely with a runtime check
-import { isHTMLElement } from '../helpers/dom/element';
-if (isHTMLElement(node.nextSibling)) {
-  // node.nextSibling is HTMLElement here
-}
-```
+Declarations are generated from source into `handsontable/tmp/` only: hand-write no `.d.ts` anywhere (there is no separate `types/` mirror) and edit nothing under `tmp/`. If a type is missing from the public API, fix the JSDoc/export in the `.ts` source and rerun `npm run build:types`.
 
-`isHTMLElement` is exported from `src/helpers/dom/element.ts` and is equivalent to `instanceof HTMLElement`. Use it wherever you'd write `x as HTMLElement`, `x instanceof HTMLElement`, or a manual `nodeType === Node.ELEMENT_NODE` guard.
-
-### 2. Don't hand-write mirror `.d.ts` files
-
-Declarations are generated from source. Never edit anything under `handsontable/tmp/`. If a type isn't appearing in the public API, fix the JSDoc/export in the `.ts` source and rerun `npm run build:types`.
-
-Type declarations live exclusively in `handsontable/tmp/` and are regenerated from source — there is no separate `types/` mirror to keep in sync.
-
-### 3. Always `import type` for types
+### 3. `import type` for types
 
 ```ts
 import type { HotInstance } from '../../core/types';
-import type { CellMeta } from '../../common';
 ```
 
-Mixing value and type imports defeats tree-shaking and creates accidental runtime dependencies on type-only modules.
-
-### 4. Find shared types in `core/` — don't re-declare them inline
-
-Shared core types live in `core/` — import them, don't re-declare them. (Consumers get the same types from the package: `import type { GridSettings } from 'handsontable'`; see `docs/content/guides/tools-and-building/typescript-types/typescript-types.md`.)
+### 4. Import shared types from `core/`
 
 | Type | Location |
 |---|---|
@@ -160,14 +112,7 @@ Shared core types live in `core/` — import them, don't re-declare them. (Consu
 | `HotInstance` | `src/core/types.ts` |
 | Plugin-local types | the plugin's own `types.ts` |
 
-Always reach for them via `import type`:
-
-```ts
-import type { HotInstance } from '../../core/types';
-import type { GridSettings, HookKey } from '../../core/settings';
-```
-
-Don't paste a partial mirror of these interfaces into the file you're editing. That's how drift starts — a method signature ends up typed against a stale local copy. If the existing type is too wide for your call site, narrow it with a generic parameter or a type guard at the boundary; don't fork the type definition.
+Import these types; never paste a partial copy of `GridSettings`/`HotInstance` into the file you are editing (a local copy drifts from the real signature). When the existing type is too wide, narrow it with a generic parameter or type guard at the boundary. Consumers import the same types from the package (`import type { GridSettings } from 'handsontable'`); see `docs/content/guides/tools-and-building/typescript-types/typescript-types.md`.
 
 Adding a new hook:
 
@@ -180,15 +125,15 @@ Adding a new hook:
 ```ts
 class MyPlugin extends BasePlugin {
   #map: HidingMap | null = null;
-  #onAfterRender = (): void => { /* `this` is bound, no .bind() needed */ };
+  #onAfterRender = (): void => { /* `this` is bound */ };
 }
 ```
 
-`@private` JSDoc tags and `.bind(this)` are forbidden. The arrow-field form is also what makes hooks easy to add/remove by reference.
+`@private` JSDoc tags and `.bind(this)` are forbidden.
 
-### 6. Keep cognitive complexity ≤ 15 per function
+### 6. Cognitive complexity ≤ 15 per function
 
-ESLint will fail the build if a function gets too branchy. The fix is almost always to extract a helper — not to silence the rule.
+Extract a helper to fix a violation.
 
 ---
 
@@ -196,130 +141,37 @@ ESLint will fail the build if a function gets too branchy. The fix is almost alw
 
 | Rule | What to do |
 |---|---|
-| No `throw new Error()` | Use `throwWithCause('...', cause)` from `src/helpers/errors.ts` |
-| No `window` / `document` / `console` globals | Use `this.hot.rootWindow`, `this.hot.rootDocument`, helpers from `src/helpers/console.ts` |
-| No raw `setTimeout` / `setInterval` | Use `this.hot._registerTimeout(fn, delay)` — auto-clears on `hot.destroy()` |
-| No barrel imports | Import from the specific submodule path, not `plugins/index`, `editors/index`, `renderers/index`, `validators/index`, `cellTypes/index`, `i18n/index`. Only `src/registry.ts` may use barrels. |
-| No direct cross-plugin imports | Communicate via hooks or `this.hot.getPlugin('Name')` — never `import` another plugin's class |
-| `it()` in `*.spec.js` must be `async` | All `it()` callbacks calling HOT rendering APIs must be `async` with `await` |
+| No `throw new Error()` | `throwWithCause('...', cause)` from `src/helpers/errors.ts` |
+| No `window` / `document` / `console` globals | `this.hot.rootWindow`, `this.hot.rootDocument`, helpers from `src/helpers/console.ts` |
+| No raw `setTimeout` / `setInterval` | `this.hot._registerTimeout(fn, delay)` (auto-clears on `hot.destroy()`) |
+| No barrel imports | Import from the specific submodule path (`plugins/index`, `editors/index`, `renderers/index`, `validators/index`, `cellTypes/index`, `i18n/index` are off limits). Only `src/registry.ts` may use barrels. |
+| No direct cross-plugin imports | Hooks or `this.hot.getPlugin('Name')` |
+| `it()` in `*.spec.js` must be `async` | `async` with `await` when calling HOT rendering APIs |
+| No native `toLocaleLowerCase(locale)` | `localeLowerCase(value, locale)` from `helpers/string` (enforced by `no-restricted-syntax`) |
 
 ---
 
 ## JSDoc
 
-### When it is required
+`jsdoc/require-jsdoc` is `error` for `src/**/*.ts` and `scripts/**/*.mjs`: every class, method, function declaration, and class field needs a block. Test and type files (`*.unit.ts`, `*.spec.ts`, `*.types.ts`, `*.d.ts`) are exempt.
 
-`jsdoc/require-jsdoc` is set to `error` for `src/**/*.ts` and `scripts/**/*.mjs`. Every **class**, **method**, **function declaration**, and **class field** must have a JSDoc block. Test and type files (`*.unit.ts`, `*.spec.ts`, `*.types.ts`, `*.d.ts`) are exempt.
-
-### Format — always multiline
-
-Never write a single-line block. Even a one-sentence description needs the three-line form so it can be extended later:
-
-```ts
-// ✗ Bad
-/** Returns the active editor instance. */
-
-// ✓ Good
-/**
- * Returns the active editor instance.
- */
-```
-
-There must be a blank line before `/**` and after the closing `*/` (i.e., at least one empty line separating the JSDoc block from the previous code and from the next declaration).
-
-### Type annotations and sync with TypeScript
-
-**Always include `{Type}` in `@param` and `@returns` tags** — for every method, public or private. The `docs:api` generator (`jsdoc-to-markdown`) reads `handsontable/tmp/` (compiled JS that preserves JSDoc verbatim), and the type annotations are what appear in the API reference. Without them, type information is absent from the generated docs.
-
-```ts
-// ✓ Good — {Type} present, keeps docs accurate
-/**
- * Sets the value at the given coordinates.
- *
- * @param {number} row - The visual row index.
- * @param {number} col - The visual column index.
- * @param {*} value - The value to set.
- */
-setValue(row: number, col: number, value: unknown): void
-
-// ✗ Bad — no type information in docs
-/**
- * Sets the value at the given coordinates.
- *
- * @param row - The visual row index.
- * @param col - The visual column index.
- * @param value - The value to set.
- */
-setValue(row: number, col: number, value: unknown): void
-```
-
-**Types must stay in sync with the TypeScript signature.** When you change a parameter's TS type, update the JSDoc `{Type}` to match. An outdated type in JSDoc is actively misleading — it appears verbatim in the generated docs.
-
-```ts
-// ✗ Bad — JSDoc says {number} but TS accepts a range object too
-/**
- * @param {number} colRange - Visual column index.
- */
-calculateColumnsWidth(colRange: number | { from: number; to: number }): void
-
-// ✓ Good — JSDoc matches the TS signature
-/**
- * @param {number|object} colRange - Visual column index or a range object with `from`/`to`.
- */
-calculateColumnsWidth(colRange: number | { from: number; to: number }): void
-```
-
-The TS `[80004]` lint warning ("JSDoc types may be moved to TypeScript types") is **suppressed** in this codebase for `.ts` source files — do not let it discourage you from writing `{Type}` annotations.
-
-### Private `#` fields
-
-Add a description block but omit `@private` — the `#` prefix is the privacy marker:
-
-```ts
-// ✗ Bad
-/**
- * @private
- * The plugin's internal state map.
- */
-#stateMap: Map<number, boolean> = new Map();
-
-// ✓ Good
-/**
- * Internal state map keyed by visual column index.
- */
-#stateMap: Map<number, boolean> = new Map();
-```
-
-### Description quality
-
-Descriptions must be substantive — explain what the member does or represents, not just restate its name. American English, active voice, short sentences.
-
-```ts
-// ✗ Bad — circular
-/**
- * The column widths cache.
- */
-
-// ✓ Good — tells the reader something new
-/**
- * Stores calculated column widths keyed by visual column index.
- * Populated on demand; invalidated when column configuration changes.
- */
-```
+- **Multiline format** (root `AGENTS.md`), with a blank line before `/**` and after `*/`.
+- **`{Type}` in every `@param` and `@returns`**, public or private. `docs:api` (`jsdoc-to-markdown`) reads compiled `handsontable/tmp/` and prints these types in the API reference. Keep them in sync with the TS signature (`{number|object}` for `number | { from: number; to: number }`). The TS `[80004]` warning is suppressed for `.ts` source.
+- **The `{Type}` must parse as JSDoc (catharsis), not TypeScript.** A tuple breaks `docs:api` with `Invalid type expression`. Write `@type {Array<number> | null}` and keep the tuple on the TS annotation (`#pastePlan: [number, number, number, number] | null`). No PR check catches this: the `docs` path filter in `.github/workflows/checks.yml` covers `docs/**` and `handsontable/package.json`, not `handsontable/src/**`, so the break surfaces as a failing `Docs Staging Deployment` on the next unrelated push touching `docs/**`. After a JSDoc type change, build the package and run `npm --prefix docs run docs:api`.
+- **Private `#` fields:** a description block, no `@private`.
+- **Descriptions state something new** (what the member does or represents, with population/invalidation rules where relevant), not a restatement of its name. American English, active voice, short sentences.
 
 ---
 
 ## DOM and data gotchas
 
-- **Merged cells: read meta, not DOM.** Always read `colspan`/`rowspan` from `hot.getCellMeta(row, col)`, never from `td.colSpan` / `td.rowSpan`. The MergeCells plugin sets `cellProperties.colspan` via `afterGetCellMeta` — that value is authoritative. The DOM attribute may be missing when the cell is outside the viewport, and it ignores custom `afterGetCellMeta` overrides.
-- **Coordinate systems matter.** `physical` ≠ `visual` ≠ `renderable`. Use `hot.rowIndexMapper` / `hot.columnIndexMapper` for translation. See the `coordinate-systems` skill.
-- **i18n.** No hardcoded user-visible strings. Add constants to `src/i18n/constants.ts` and translations to every file in `src/i18n/languages/`.
+- **Merged cells: read meta, not DOM.** Read `colspan`/`rowspan` from `hot.getCellMeta(row, col)`, not `td.colSpan` / `td.rowSpan`. MergeCells sets `cellProperties.colspan` via `afterGetCellMeta`; the DOM attribute may be missing outside the viewport and ignores custom `afterGetCellMeta` overrides.
+- **Coordinates.** Translate physical/visual/renderable with `hot.rowIndexMapper` / `hot.columnIndexMapper` (`coordinate-systems` skill).
+- **i18n.** Add constants to `src/i18n/constants.ts` and translations to every file in `src/i18n/languages/`.
 
 ---
 
 ## Registration wiring
-
-After creating a new component, wire it into the right index/factory:
 
 | Component | Wire into |
 |---|---|
@@ -332,50 +184,29 @@ After creating a new component, wire it into the right index/factory:
 
 ---
 
-## Build — type declarations
-
-The type build is a **two-step pipeline**:
+## Build: type declarations
 
 ```bash
-npm run build:types        # step 1 — tsc emits tmp/**/*.d.ts
-npm run downlevel:types    # step 2 — rewrites post-TS-5.1 lib types to TS 5.1-compatible equivalents
+npm run build:types        # step 1: tsc emits tmp/**/*.d.ts
+npm run downlevel:types    # step 2: rewrites post-TS-5.1 lib types to TS 5.1 equivalents
 ```
 
-Running the full build executes both automatically:
+`npm run build` runs both. Run after any change to the public type surface (new export, changed parameter type, new `GridSettings` option). Wrappers consume `handsontable/tmp/`.
 
-```bash
-npm run build              # includes build:types → downlevel:types in sequence
-```
-
-Run this after any change that affects the public type surface (new exported function, changed parameter type, new option in `GridSettings`). Wrapper packages consume `handsontable/tmp/` via workspace linking.
-
-### Why the downlevel step exists
-
-The dev compiler is TS 6. TS 5.6+ infers newer lib types (`ArrayIterator`, `IteratorObject`) on iterator return sites, and TS 5.2+ infers `WeakKey` on bare `WeakMap` key types. These don't exist in TS 5.1, so published declarations must not reference them. `scripts/downlevel-dts.mjs` replaces them with TS 5.1 equivalents (`IterableIterator<T>`, `object`). The CI job `verify-emitted-types` enforces this by running `tsc@5.1.6 --noEmit` against `tmp/` on every PR.
-
-### If a new post-TS-5.1 lib type leaks into emit
-
-Two ways to fix it — pick whichever is cleaner:
-
-1. **Annotate at the source.** Add an explicit return type annotation that uses TS 5.1 types, e.g. `: IterableIterator<T>` instead of letting TS 6 infer `ArrayIterator<T>`, or `WeakMap<object, V>` instead of `WeakMap<WeakKey, V>`.
-
-2. **Extend the replacement table.** Add a row to the `REPLACEMENTS` array in `scripts/downlevel-dts.mjs`.
-
-The CI `verify-emitted-types` job reports the exact leaked identifier with `TS2304: Cannot find name '...'`, so it's always clear what to fix.
+The dev compiler is TS 6, which infers `ArrayIterator`, `IteratorObject` (TS 5.6+) and `WeakKey` (TS 5.2+), absent from TS 5.1. `scripts/downlevel-dts.mjs` swaps them for `IterableIterator<T>` / `object`. CI job `verify-emitted-types` runs `tsc@5.1.6 --noEmit` against `tmp/` and reports the leaked identifier as `TS2304: Cannot find name '...'`. Fix by either annotating the source with the TS 5.1 type (`: IterableIterator<T>`, `WeakMap<object, V>`) or adding a row to `REPLACEMENTS` in `scripts/downlevel-dts.mjs`.
 
 ---
 
 ## Mandatory checklist for every change
 
 - [ ] Source file is `.ts`
-- [ ] No `as` / `any` casts introduced — used generics or `unknown` + guards instead
+- [ ] No `as` / `any` casts introduced
 - [ ] No `.d.ts` files hand-edited
-- [ ] Unit tests written (`*.unit.js`) — pure logic, no mocks
-- [ ] E2E tests written — Playwright in `tests/e2e/` (new); the legacy `*.spec.js` suite is frozen
+- [ ] Unit tests (`*.unit.js` or `*.unit.ts`), pure logic, no mocks
+- [ ] E2E tests: Playwright in `tests/e2e/` (new); legacy `*.spec.js` suite is frozen
 - [ ] `npm run build` (or `build:types` + `downlevel:types`) run if public types changed
 - [ ] Wired into all relevant index / factory files
 - [ ] Added to `metaSchema.ts` if a new option was introduced
-- [ ] JSDoc on every class, method, function declaration, and class field (multiline format; `{Type}` in every `@param`/`@returns`, in sync with the TS signature; no `@private` on `#` fields)
-- [ ] No breaking change introduced (or the breaking change is explicitly called out)
+- [ ] JSDoc on every class, method, function declaration, and class field (multiline; `{Type}` in every `@param`/`@returns`, in sync with the TS signature; no `@private` on `#` fields)
+- [ ] No breaking change (or it is explicitly called out)
 - [ ] Changelog entry added (`bin/changelog entry`)
-- **Locale-aware lowercasing:** use `localeLowerCase(value, locale)` from `helpers/string`, never native `toLocaleLowerCase(locale)` (ICU-slow, throws on bad tags). Enforced by `no-restricted-syntax`.

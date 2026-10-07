@@ -94,7 +94,8 @@ Verified method names and signatures (`index.ts`):
 | `getColumnMeta(physicalColumn)` | `(number)` | The column meta object for that physical column. |
 | `updateColumnMeta(physicalColumn, settings)` | `(number, Record<string, unknown>)` | void. |
 | `getCellMeta(physicalRow, physicalColumn, options)` | `(number, number, { visualRow, visualColumn, skipMetaExtension? })` | The cell meta object, with `row`, `col`, `visualRow`, and `visualCol` stamped on it. Fires the `afterGetCellMeta` local hook unless `skipMetaExtension` is `true`. **Permanently materializes the cell** — viewport/render use only; bulk scans use one of the two no-retention reads below. |
-| `getCellMetaUncached(physicalRow, physicalColumn, options)` | `(number, number, { visualRow, visualColumn })` | The stored meta object when the cell has one, otherwise a transient object inheriting from the column layer — nothing is stored and NO dynamic extension runs. The cheapest bulk read; used by `dataMap.get` and `filters`. |
+| `getCellMetaUncached(physicalRow, physicalColumn, options)` | `(number, number, { visualRow, visualColumn })` | The stored meta object when the cell has one, otherwise a transient object inheriting from the column layer — nothing is stored and NO dynamic extension runs. The cheapest bulk read; used by `dataMap.get`. |
+| `createTransientColumnMeta(physicalColumn)` | `(number)` | A transient cell meta object inheriting from the column layer, with no coordinate stamps and nothing stored. For a bulk read that has already established, with `getCellMetaIfExists`, that the cell stores no meta — it skips the stored-meta lookup `getCellMetaUncached` would repeat. Used by the `Filters` column read (`Filters#_readColumn`), which stamps the object itself. |
 | `getCellMetaTransient(physicalRow, physicalColumn, options)` | `(number, number, { visualRow, visualColumn })` | Like `getCellMetaUncached`, but the full dynamic extension DOES run (hooks + `cells`, applied via the `extendTransientCellMeta` local hook directly on the transient object), so hook-driven properties (`readOnly`, `hidden`, `spanned`) resolve. Cells with stored meta fall back to the memoized `getCellMeta` path. Exposed publicly as `Core.getCellMetaTransient(visualRow, visualColumn)` (since 18.1.0) — internal consumers (`autoColumnSize`/`autoRowSize` samplers, the copy path, `exportFile`, bulk validation) go through the Core wrapper, which does the visual-to-physical conversion. Hook mutations on transients do not persist. |
 | `getCellMetaKeyValue(physicalRow, physicalColumn, key)` | `(number, number, string)` | The value of one key from the cell meta object. Throws if `key` is not a string. |
 | `setCellMeta(physicalRow, physicalColumn, key, value)` | `(number, number, string, unknown)` | void. Writes `key` onto the cell meta object and removes `key` from its `_automaticallyAssignedMetaProps` set. |
@@ -108,6 +109,29 @@ Verified method names and signatures (`index.ts`):
 | `removeColumn(physicalColumn, amount = 1)` | `(number, number)` | void. Removes from both cell-meta and column-meta storage. |
 | `clearCellsCache()` | — | void. Drops all cell meta objects. Keeps column, table, and global meta. |
 | `clearCache()` | — | void. Drops all cell and column meta objects. |
+| `getUserDefinedCellMetas()` | — | Flat snapshot of every property set imperatively through `setCellMeta`, by physical coordinates. |
+| `getCellOptionCellMetas()` | — | Flat snapshot of every property applied from the declarative `cell` option, by physical coordinates. |
+| `getCellMetaIfExists(physicalRow, physicalColumn)` | `(number, number)` | The stored cell meta object, or `undefined` when the cell has none. Creates nothing — a peek for paths that must not materialize meta (the validation flow uses it to find a cell's current meta object after a cache clear detached the one it was given). |
+| `getStructureVersion()` | — | A counter that changes whenever a captured cell coordinate pair stops meaning what it meant: a row/column insert or remove (`LazyFactoryMap` re-keys stored metas, but the `row`/`col` stamped on them are not rewritten) **and** `clearCellsCache()` (`loadData` replaces the data behind those coordinates). `clearCache()` deliberately does not bump it — that is the `updateSettings` path, where rows and data stay put. The async validation flow captures it at the start and drops a result whose coordinates can no longer be trusted. |
+| `getInvalidCellMetas()` | — | Physical coordinates of every cell whose own last validation failed, as `{ physicalRow, physicalColumn }`. The validation flow writes `valid` directly, so `getUserDefinedCellMetas()` cannot see it. Own-property read, `valid === false` only — the same predicate `evictRow()` uses. |
+| `restoreInvalidCellMetas(invalidCellMetas)` | `({ physicalRow, physicalColumn }[])` | void. Re-applies the failures captured by `getInvalidCellMetas()`, by direct property write — never through `setCellMeta`, which would record `valid` as user-defined and replay a stale `false` onto a corrected cell (GitHub issue #7553). |
+| `startCellOptionMetaRecording()` / `endCellOptionMetaRecording()` | — | void. Opens/closes a scope in which `setCellMeta` writes are filed as applied from the `cell` option. Nests. |
+| `enableUserDefinedMetaRecording()` / `disableUserDefinedMetaRecording()` | — | void. Resumes/suspends filing `setCellMeta` writes as imperative. Nests. |
+
+### What survives an `updateSettings` cache clear
+
+`updateSettings` calls `clearCache()` whenever `columns`, `cells`, or `cell` is passed, then replays part of what it dropped. Which part depends on the recording scope that was open when the value was written — every `setMeta` write belongs to exactly one origin, and the newest write for a key decides which:
+
+| Origin | Scope open at write time | Bookkeeping set | Survives the clear |
+|---|---|---|---|
+| Imperative `setCellMeta` | none | `_userDefinedMetaProps` | yes — replayed |
+| Declarative `cell` option | `startCellOptionMetaRecording()` | `_cellOptionMetaProps` | yes — replayed, unless the call restates `cell` |
+| Plugin-declarative (`Core#_setCellMetaDeclarative`) | `disableUserDefinedMetaRecording()` | none | no — dropped, and the plugin re-applies it |
+| Failed validation (`valid === false`) | not a `setMeta` write at all | none | yes — its own snapshot pair |
+
+The first two replays run before the `columns` and `cell` re-application, and use the physical coordinates read from the storage keys — so a value returns to the record it was resolved to, not to whatever record now sits at the same visual position. Restating `cell` replaces every previously declared entry (`cell: []` removes them all), which is why its bucket is skipped on those calls.
+
+The last row is the odd one out and the reason a fourth mechanism exists. The validation flow writes `valid` **straight onto the meta object**, never through `setMeta`, so it lands in no bookkeeping set and neither snapshot above can see it — it needs `getInvalidCellMetas()` / `restoreInvalidCellMetas()` (GitHub issue #7553). That restore runs last and is itself a direct write, so it neither files `valid` under an origin nor competes with the two replays. Any future state written directly onto a cell meta object needs the same treatment, plus its own keep condition in `evictRow()`.
 
 `MetaManager` mixes in `localHooks` (`mixin(MetaManager, localHooks)`), so it exposes `addLocalHook`, `removeLocalHook`, `runLocalHooks`, and `clearLocalHooks`. The dynamic-meta modifier uses these.
 

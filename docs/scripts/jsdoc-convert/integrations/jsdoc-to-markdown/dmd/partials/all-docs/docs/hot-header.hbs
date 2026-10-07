@@ -2,4 +2,7 @@
 ## Description
 {{else}}
 ### {{{name}}}{{#if deprecated}} <span class="tag-deprecated">Deprecated</span>{{/if}}
+{{#if configScopeLevels}}
+<p class="tag-config-scope-list"><span class="tag-config-scope-label">Can be set at:</span>{{#each configScopeLevels}} <span class="tag-config-scope">{{this}}</span>{{/each}}</p>
+{{/if}}
 {{/if}}

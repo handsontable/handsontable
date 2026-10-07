@@ -32,7 +32,20 @@ const minimalConfig: DataProviderConfig = {
   },
   onRowsUpdate: async() => {},
   onRowsRemove: async() => {},
+  refetchAfterCreate: false,
 };
+
+const configWithDefaultRefetch: DataProviderConfig = {
+  rowId: 'id',
+  fetchRows: minimalConfig.fetchRows,
+};
+
+void configWithDefaultRefetch.refetchAfterCreate;
+
+// @ts-expect-error `refetchAfterCreate` accepts only a boolean.
+const configWithWrongRefetchType: DataProviderConfig = { rowId: 'id', refetchAfterCreate: 'no' };
+
+void configWithWrongRefetchType;
 
 const hot = new Handsontable(document.createElement('div'), {
   dataProvider: minimalConfig,
@@ -70,6 +83,14 @@ hot.addHook('afterDataProviderFetchError', (error: Error, queryParameters: DataP
   }
 });
 
+const onFetchError = (error: Error, queryParameters: DataProviderQueryParameters, isVisible?: boolean) => {
+  const visible: boolean = isVisible !== false;
+
+  void visible;
+};
+
+hot.addHook('afterDataProviderFetchError', onFetchError);
+
 hot.addHook('afterDataProviderFetchAbort', (queryParameters: DataProviderQueryParameters, reason?: Error) => {
   void queryParameters.page;
   void reason?.name;
@@ -92,6 +113,10 @@ const dataProviderPlugin = hot.getPlugin('dataProvider');
 if (dataProviderPlugin) {
   void dataProviderPlugin.getQueryParameters();
   void dataProviderPlugin.fetchData({ skipLoading: true });
+
+  const fetching: boolean = dataProviderPlugin.isFetching();
+
+  void fetching;
 }
 
 void minimalConfig;

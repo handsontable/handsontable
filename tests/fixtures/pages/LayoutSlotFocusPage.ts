@@ -1,4 +1,5 @@
 import { type Locator, type Page, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 interface HandsontableFixture {
   getSelected(): number[][] | undefined;
@@ -37,7 +38,7 @@ export class LayoutSlotFocusPage {
 
     // Wait for the bundle before the cell. The test id comes from the fixture's custom renderer,
     // so "cell not found" alone cannot tell a slow bundle apart from a grid that failed to render.
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await awaitBundle(this.page);
 
     await expect(this.cell(0, 0)).toBeVisible();
   }

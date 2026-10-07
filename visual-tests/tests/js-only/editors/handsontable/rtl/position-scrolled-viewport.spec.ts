@@ -1,4 +1,4 @@
-import { test } from '../../../../../src/test-runner';
+import { visualTest, expect } from '../../../../../src/test-runner';
 import { helpers } from '../../../../../src/helpers';
 import {
   clickRelativeToViewport,
@@ -6,9 +6,21 @@ import {
   scrollTableToTheBottom,
 } from '../../../../../src/page-helpers';
 
-test.skip(helpers.hotWrapper !== 'js', 'This test case is only for JavaScript framework');
-
-test(__filename, async({ goto, tablePage }) => {
+/**
+ * The look of the RTL handsontable editor's list, in a grid scrolled to its bottom and inline end,
+ * from the top-left corner (below the cell) and the bottom-right corner (flipped above it), which
+ * between them show both horizontal and both vertical branches mirrored. Where the list opens is
+ * asserted from DOM rects in `tests/e2e/handsontable-editor-list-position.spec.ts` for a sized RTL
+ * grid, on an RTL and on an LTR page, on all six theme and bundle legs; these captures are a check of
+ * how the mirrored list looks. `main` only: the mirror does not depend on the theme, and
+ * `../position-scrolled-viewport.spec.ts` photographs the list itself on all five js variants. Owned
+ * by DEV-3139.
+ */
+visualTest(__filename, {
+  themes: ['main'],
+  browsers: ['chromium'],
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto(
     helpers
       .setBaseUrl('/editors-demo')
@@ -20,28 +32,25 @@ test(__filename, async({ goto, tablePage }) => {
       .getFullUrl()
   );
 
+  const list = tablePage.locator('.handsontableEditor');
+
   await scrollTableToTheInlineEnd();
   await scrollTableToTheBottom();
 
   await clickRelativeToViewport(250, 80); // top-left
   await tablePage.keyboard.press('Enter');
+  await expect(list).toBeVisible();
+
+  // the mirrored list below the cell
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   await tablePage.keyboard.press('Escape'); // closes the editor
-
-  await clickRelativeToViewport(-120, 80); // top-right
-  await tablePage.keyboard.press('Enter');
-  await tablePage.screenshot({ path: helpers.screenshotPath() });
-
-  await tablePage.keyboard.press('Escape'); // closes the editor
-
-  await clickRelativeToViewport(250, -195); // bottom-left
-  await tablePage.keyboard.press('Enter');
-  await tablePage.screenshot({ path: helpers.screenshotPath() });
-
-  await tablePage.keyboard.press('Escape'); // closes the editor
+  await expect(list).toBeHidden();
 
   await clickRelativeToViewport(-120, -195); // bottom-right
   await tablePage.keyboard.press('Enter');
+  await expect(list).toBeVisible();
+
+  // the mirrored list flipped above the cell
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

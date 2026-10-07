@@ -9,8 +9,8 @@ describe('Settings mapper unit tests', () => {
         height: 300,
         contextMenu: true,
         columns: [
-          { label: { value: 'first label' }},
-          { label: { value: 'second label' }}
+          { label: { value: 'first label' } },
+          { label: { value: 'second label' } }
         ],
         afterChange: () => {
           return 'works!';
@@ -21,7 +21,10 @@ describe('Settings mapper unit tests', () => {
       };
       const result = SettingsMapper.getSettings(initial);
 
-      expect(!!result.width && !!result.height && !!result.contextMenu && !!result.columns && !!result.afterChange && !!result.afterRender).toEqual(true);
+      expect(
+        !!result.width && !!result.height && !!result.contextMenu &&
+        !!result.columns && !!result.afterChange && !!result.afterRender
+      ).toEqual(true);
       expect(Object.keys(initial).length).toEqual(Object.keys(result).length);
       expect(result.width).toEqual(300);
       expect(result.height).toEqual(300);
@@ -86,9 +89,87 @@ describe('Settings mapper unit tests', () => {
         isInit: false,
       });
 
-      expect(result.dataSchema).toBe(void 0);
-      expect(result.columns).toBe(void 0);
+      expect(result.dataSchema).toBe(undefined);
+      expect(result.columns).toBe(undefined);
       expect(result.readOnly).toBe(false);
+    });
+
+    // Issue #4371. Passing `rowHeights` or `colWidths` to `updateSettings()` re-declares the sizes
+    // and discards the ones the user produced by dragging. A re-render must not do that, and an app
+    // commonly writes the value inline, which is a new array on every render.
+    it('should skip `rowHeights` and `colWidths` when the value did not change', () => {
+      const prevProps: HotTableProps = {
+        rowHeights: [50, 50, 50],
+        colWidths: 100,
+        readOnly: false,
+      };
+      const nextProps: HotTableProps = {
+        // A new array with the same contents, as an inline prop produces on every render.
+        rowHeights: [50, 50, 50],
+        colWidths: 100,
+        readOnly: false,
+      };
+
+      const settings = SettingsMapper.getSettings(nextProps, { prevProps, isInit: false });
+
+      expect(settings.rowHeights).toBeUndefined();
+      expect(settings.colWidths).toBeUndefined();
+      expect(settings.readOnly).toBe(false);
+    });
+
+    it('should keep `rowHeights` and `colWidths` when the value changed', () => {
+      const prevProps: HotTableProps = {
+        rowHeights: [50, 50, 50],
+        colWidths: 100,
+      };
+      const nextProps: HotTableProps = {
+        rowHeights: [150, 150, 150],
+        colWidths: 120,
+      };
+
+      const settings = SettingsMapper.getSettings(nextProps, { prevProps, isInit: false });
+
+      expect(settings.rowHeights).toEqual([150, 150, 150]);
+      expect(settings.colWidths).toBe(120);
+    });
+
+    it('should compare `rowHeights` against the live grid settings, not the previous props', () => {
+      // Angular and Vue already diff against the grid. Comparing props alone would stop re-asserting
+      // the prop after something changed the size through the instance ref.
+      const props: HotTableProps = { rowHeights: 50 };
+
+      // The grid was moved to 100 imperatively, so the unchanged prop still has to be forwarded.
+      const settings = SettingsMapper.getSettings(props, {
+        prevProps: props,
+        isInit: false,
+        currentSettings: { rowHeights: 100 },
+      });
+
+      expect(settings.rowHeights).toBe(50);
+    });
+
+    it('should skip `rowHeights` when the live grid settings already match', () => {
+      const props: HotTableProps = { rowHeights: 50 };
+
+      const settings = SettingsMapper.getSettings(props, {
+        prevProps: props,
+        isInit: false,
+        currentSettings: { rowHeights: 50 },
+      });
+
+      expect(settings.rowHeights).toBeUndefined();
+    });
+
+    it('should keep `rowHeights` and `colWidths` when initializing', () => {
+      const props: HotTableProps = {
+        rowHeights: [50, 50, 50],
+        colWidths: 100,
+      };
+
+      const settings = SettingsMapper.getSettings(props, { prevProps: props, isInit: true });
+
+      expect(settings.rowHeights).toEqual([50, 50, 50]);
+      expect(settings.colWidths).toBe(100);
     });
 
     it('should keep `dataSchema` in updated settings when the schema changes', () => {
@@ -207,10 +288,10 @@ describe('Settings mapper unit tests', () => {
         initOnlySettingKeys: ['renderAllRows', 'renderAllColumns', 'layoutDirection', 'ariaTags'] as any,
       });
 
-      expect(result.renderAllRows).toBe(void 0);
-      expect(result.renderAllColumns).toBe(void 0);
-      expect(result.layoutDirection).toBe(void 0);
-      expect(result.ariaTags).toBe(void 0);
+      expect(result.renderAllRows).toBe(undefined);
+      expect(result.renderAllColumns).toBe(undefined);
+      expect(result.layoutDirection).toBe(undefined);
+      expect(result.ariaTags).toBe(undefined);
       expect(result.width).toBe(500);
     });
 

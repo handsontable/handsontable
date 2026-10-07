@@ -6,6 +6,7 @@ import {
 } from 'handsontable/i18n';
 import { register as registerPhraseFormatter } from 'handsontable/i18n/phraseFormatters';
 import plPL from 'handsontable/i18n/languages/pl-PL';
+import srSP from 'handsontable/i18n/languages/sr-SP';
 import * as allLanguages from 'handsontable/i18n/languages';
 import * as constants from 'handsontable/i18n/constants';
 import Handsontable from 'handsontable';
@@ -33,6 +34,11 @@ describe('i18n', () => {
       .toEqual(plPL[INSERT_ROW_ABOVE_DICTIONARY_KEY]);
     expect(Handsontable.languages.getTranslatedPhrase(plPL.languageCode, INSERT_ROW_ABOVE_DICTIONARY_KEY))
       .toEqual(INSERT_ROW_ABOVE_IN_POLISH_LANGUAGE);
+  });
+
+  it('should translate Serbian insert-column-right with Unesi, matching insert-column-left', () => {
+    expect(srSP[constants.CONTEXTMENU_ITEMS_INSERT_RIGHT]).toBe('Unesi kolonu desno');
+    expect(srSP[constants.CONTEXTMENU_ITEMS_INSERT_LEFT]).toBe('Unesi kolonu levo');
   });
 
   it('should get `null` when trying to translate phrase by passing language code of not registered language', () => {

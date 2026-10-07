@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Deprecated the `spliceCol()` and `spliceRow()` methods. They still work but print a one-time console warning and will be removed in 20.0.0. Use `populateFromArray()` or `alter()` instead.",
+  "type": "deprecated",
+  "issueOrPR": 13599,
+  "breaking": false,
+  "framework": "none"
+}

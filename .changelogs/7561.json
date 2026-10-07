@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a bug where the `editor` and `hotEditor` props did not accept a boolean in the React wrapper. Setting either to `false` now disables editing on `HotTable` and on `HotColumn` (the reported `<HotColumn editor={false} />` case keeps working as asked), unless a component is passed to `editor` or an editor is named in `hotEditor`, both of which still win. Setting either to `true`, or to another falsy value such as `null`, is now treated as if the prop were not provided, so the cell keeps the editor its column type or the grid supplies instead of throwing or locking. The `renderer` and `hotRenderer` props are unchanged.",
+  "type": "fixed",
+  "issueOrPR": 7561,
+  "breaking": false,
+  "framework": "react"
+}

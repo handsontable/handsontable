@@ -9,10 +9,13 @@ import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers';
 import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections';
 import { vuepressPreprocessor } from './src/plugins/vuepress-preprocessor.mjs';
 import { replaceTemplateVariables } from './src/plugins/template-variables.mjs';
+import { buildPageMarkdown } from './src/lib/added-in.mjs';
 import { rehypeTableWrapper } from './src/plugins/rehype-table-wrapper.mjs';
 import { rehypeMigrationSteps } from './src/plugins/rehype-migration-steps.mjs';
 import { replaceHasSelectors } from './src/plugins/replace-has-selectors.mjs';
-import { buildAllSidebars, buildAllValidUrls } from './src/sidebar.mjs';
+import { buildAllSidebars, buildAllValidUrls, FRAMEWORK_PREFIXES } from './src/sidebar.mjs';
+import { AGENT_NOTE_MD } from './src/agent-note.mjs';
+import { buildLlmsFull, buildLlmsIndex, buildLlmsSections, SITE_URL } from './src/llms.mjs';
 import { resolveHotVersion } from './src/lib/hot-version.mjs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -325,7 +328,7 @@ function commonJsonIntegration() {
   const matter = _require('gray-matter');
   const semver = _require('semver');
   const contentDir = resolve(__dirname, 'content');
-  const PREFIXES = ['javascript-data-grid', 'react-data-grid', 'angular-data-grid'];
+  const PREFIXES = Object.values(FRAMEWORK_PREFIXES);
   const MIN_DOCS_VERSION = '9.0';
 
   // ── Version helpers ──────────────────────────────────────────────────────
@@ -566,36 +569,37 @@ function commonJsonIntegration() {
 
 /**
  * Astro integration that generates clean Markdown files for the
- * starlight-page-actions "View in Markdown" / "Copy Markdown" features.
+ * starlight-page-actions "View in Markdown" / "Copy Markdown" features,
+ * plus the /docs/llms.txt and /docs/llms-full.txt agent-discovery files
+ * (built by src/llms.mjs from the same route map).
  *
  * Scans docs/content/ for .md files, reads their `permalink` frontmatter,
- * and writes cleaned Markdown to public/ (dev) and dist/ (build) for all
- * three framework prefixes.
+ * and writes cleaned Markdown to public/ (dev) and dist/ (build) for every
+ * framework prefix in FRAMEWORK_PREFIXES.
  *
- * Generated files live under public/_md/ and are gitignored.
+ * Generated files live under public/ and are gitignored.
+ *
+ * @param {object} sidebars The buildAllSidebars() result the llms files are
+ *   derived from.
  */
-function markdownRoutesIntegration() {
+function markdownRoutesIntegration(sidebars) {
   const matter = _require('gray-matter');
   const contentDir = resolve(__dirname, 'content');
   const publicMdDir = resolve(__dirname, 'public', '_md');
-  const PREFIXES = ['javascript-data-grid', 'react-data-grid', 'angular-data-grid'];
+  const PREFIXES = Object.values(FRAMEWORK_PREFIXES);
 
-  /**
-   * Assembles one output file: an H1 from the frontmatter title, then the body
-   * with its template variables resolved. Without the substitution a reader
-   * copying the Markdown of a page gets a literal `{{$examplesBranch}}` (or
-   * `{{$currentMinorVersion}}`) instead of a working link.
-   *
-   * @param {string} title The page title from frontmatter.
-   * @param {string} content The page body, frontmatter already stripped.
-   * @returns {string}
-   */
-  function buildMarkdown(title, content) {
-    return replaceTemplateVariables(`# ${title}\n\n${content.trim()}`);
-  }
+  // One output file = an H1 from the frontmatter title, the "Added in" sentence
+  // when the page has `addedIn` (DEV-2877), then the body with its template
+  // variables resolved -- without the substitution a reader copying the
+  // Markdown of a page gets a literal `{{$examplesBranch}}` instead of a
+  // working link. Assembled in src/lib/added-in.mjs so it is unit-tested.
+  const buildMarkdown = (data, content) => buildPageMarkdown(data, content, replaceTemplateVariables);
 
   function buildRouteMap() {
     const routeMap = new Map();
+    // Per-page frontmatter, keyed by the bare slug (no framework prefix, no
+    // trailing slash). Feeds the llms.txt link descriptions.
+    const pageMeta = new Map();
 
     function scanDir(dir) {
       for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -623,14 +627,16 @@ function markdownRoutesIntegration() {
         const rel = relative(contentDir, full);
 
         if (rel === 'index.md') {
-          routeMap.set('index.md', buildMarkdown(data.title, content));
+          routeMap.set('index.md', buildMarkdown(data, content));
           continue;
         }
 
         if (!data.permalink) continue;
 
         const slug = data.permalink.replace(/^\//, '').replace(/\/$/, '') || 'index';
-        const md = buildMarkdown(data.title, content);
+        const md = buildMarkdown(data, content);
+
+        pageMeta.set(slug, { title: data.title, description: data.description || '' });
 
         for (const prefix of PREFIXES) {
           routeMap.set(`${prefix}/${slug}.md`, md);
@@ -640,19 +646,29 @@ function markdownRoutesIntegration() {
 
     scanDir(contentDir);
 
-    return routeMap;
+    return { routeMap, pageMeta };
   }
 
   function writeFiles(outDir) {
-    const routeMap = buildRouteMap();
+    const { routeMap, pageMeta } = buildRouteMap();
 
     for (const [filePath, md] of routeMap) {
       const dest = resolve(outDir, filePath);
       const destDir = dirname(dest);
 
       mkdirSync(destDir, { recursive: true });
-      writeFileSync(dest, md, 'utf-8');
+      // The agent note is appended per file, not stored in the route map, so
+      // llms-full.txt (built from the map) does not repeat it per page —
+      // buildLlmsFull() appends it once, at the end of the corpus.
+      writeFileSync(dest, md + AGENT_NOTE_MD, 'utf-8');
     }
+
+    // The llms files live one level above _md, at the site root (/docs/).
+    const sections = buildLlmsSections(sidebars);
+    const rootDir = dirname(outDir);
+
+    writeFileSync(resolve(rootDir, 'llms.txt'), buildLlmsIndex(pageMeta, sections), 'utf-8');
+    writeFileSync(resolve(rootDir, 'llms-full.txt'), buildLlmsFull(routeMap, sections), 'utf-8');
 
     return routeMap.size;
   }
@@ -695,7 +711,7 @@ const _validUrlArrays = (() => {
 })();
 
 export default defineConfig({
-  site: 'https://handsontable.com',
+  site: SITE_URL,
   base: '/docs',
 
   // Astro 7 changed the default from `true` to `'jsx'` (JSX-like whitespace
@@ -768,6 +784,16 @@ export default defineConfig({
           tag: 'script',
           attrs: { src: '/docs/example-tabs.js', defer: true },
         },
+        // Fills the "design system last updated" field on the design system
+        // guide and the changelog. Loaded here rather than from a <script> in
+        // page markdown: head injection is the mechanism this site already
+        // proves works (example-tabs.js above), and no guide page executes an
+        // inline script today. The file returns immediately on every page that
+        // carries no field, so the cost elsewhere is one small cached request.
+        {
+          tag: 'script',
+          attrs: { src: '/docs/scripts/design-system-updated.js', defer: true },
+        },
         // Prevent HOT from injecting a duplicate <style id="handsontable-core-styles"> at runtime.
         // StylesHandler.#injectCoreStyles() skips injection when it finds an element with this ID.
         // The actual HOT CSS is already loaded by handsontable-import.css via customCss above.
@@ -782,7 +808,7 @@ export default defineConfig({
         // DSN and any dashboard-enabled integrations (Performance/Replay) are applied
         // automatically, so adding `beforeSend` does not disturb the rest of the setup.
         //
-        // Six classes of expected errors are dropped:
+        // Seven classes of expected errors are dropped:
         //
         //   1. Failed requests from server-side data recipe examples.
         //      The docs site runs no backend for those examples, so every request from
@@ -841,14 +867,28 @@ export default defineConfig({
         //      anything about our code.
         //
         //      `src/lib/example-error-reporting.mjs` drops the same three phrasings for
-        //      failures the example runner catches, and `docs-assistant-bootstrap.ts`
-        //      repeats them for its own mount. Neither can reach these events: they
+        //      failures the example runner catches. It cannot reach these events: they
         //      arrive through `onunhandledrejection` from Astro's own island hydration,
-        //      outside any try/catch of ours. Keep the three lists in step.
+        //      outside any try/catch of ours. Keep the two lists in step.
         //
         //      Tradeoff: this also hides a deployment that ships HTML referencing a
         //      chunk that was never uploaded. Deploy-time asset verification, not error
         //      volume from readers, is the right detector for that.
+        //
+        //   6. Errors raised entirely inside Google Tag Manager: every stack frame is
+        //      `gtm.js`, `gtag/js`, or the `<anonymous>` code a Custom HTML tag injects.
+        //      Those tags reference globals the docs never load (`jQuery`, `$`, `_cio`,
+        //      `ym`, `FundraiseUp`, ... - Sentry HANDSONTABLE-DOCS-24E, -24D, -25A, -24J,
+        //      -251 and ~30 more), so the fix belongs in the GTM container, not here. At
+        //      least one frame must be a real `gtm.js`/`gtag/js` frame: an all-`<anonymous>`
+        //      stack has no provable owner and stays visible. One frame from our own
+        //      bundles keeps the event, so a GTM call into our code that breaks it stays
+        //      visible too.
+        //
+        //   7. `Script error.`. The browser strips every detail - message, file, and stack -
+        //      from an error thrown by a cross-origin script loaded without CORS, leaving at
+        //      most a frame pointing at the page itself, so there is nothing to attribute
+        //      or fix (Sentry HANDSONTABLE-DOCS-24A, -245, -247).
         {
           tag: 'script',
           content: `window.sentryOnLoad = function () {
@@ -910,6 +950,52 @@ export default defineConfig({
         });
 
         if (isChunkLoadError) {
+          return null;
+        }
+
+        // Drop errors whose every frame belongs to Google Tag Manager or the anonymous
+        // code its Custom HTML tags inject, as long as one frame is a real GTM frame.
+        // A single frame from our bundles keeps it.
+        var frames = [];
+
+        values.forEach(function (value) {
+          var valueFrames = value && value.stacktrace && value.stacktrace.frames;
+
+          if (valueFrames && valueFrames.length) {
+            frames = frames.concat(valueFrames);
+          }
+        });
+
+        var frameFile = function (frame) {
+          return (frame && (frame.abs_path || frame.filename)) || '';
+        };
+        var isTagManagerFrame = function (frame) {
+          var file = frameFile(frame);
+
+          return /googletagmanager\\.com\\/(gtm\\.js|gtag\\/js)/.test(file) ||
+            file === '/gtm.js' || file === '/gtag/js';
+        };
+        var isTagManagerOrInjectedFrame = function (frame) {
+          return isTagManagerFrame(frame) || frameFile(frame) === '<anonymous>';
+        };
+
+        if (frames.some(isTagManagerFrame) && frames.every(isTagManagerOrInjectedFrame)) {
+          return null;
+        }
+
+        // Drop cross-origin "Script error." reports - the browser strips all detail.
+        // The SDK words it either as the bare message or as
+        // "Event 'ErrorEvent' captured as exception with message 'Script error.'" (quoted
+        // with backticks in the real message).
+        var isOpaqueScriptError = function (message) {
+          return typeof message === 'string' &&
+            (/^Script error\\.?$/.test(message) || (message.indexOf('captured as exception with message') !== -1 &&
+              message.indexOf('Script error.') !== -1));
+        };
+
+        if (isOpaqueScriptError(event.message) || values.some(function (value) {
+          return value && isOpaqueScriptError(value.value);
+        })) {
           return null;
         }
 
@@ -1040,7 +1126,7 @@ export default defineConfig({
 
     // Serves clean Markdown at *.md URLs for the "View in Markdown" button
     // added by starlight-page-actions.
-    markdownRoutesIntegration(),
+    markdownRoutesIntegration(allSidebars),
 
     // Generates /docs/data/common.json consumed by the version dropdown in
     // all deployed doc versions (current and previous).
@@ -1078,6 +1164,21 @@ export default defineConfig({
   vite: {
     server: {
       allowedHosts: ['.trycloudflare.com'],
+    },
+    experimental: {
+      // Resolve the JS/CSS dependencies Vite preloads for a dynamic import relative to the
+      // importing chunk (`new URL(dep, import.meta.url)`) instead of the absolute `/docs/`
+      // base. Every build becomes a frozen previous version later, served nested under
+      // /docs/<version>/, where the absolute base 404s and throws "Unable to preload CSS"
+      // (DEV-3058, Sentry HANDSONTABLE-DOCS-22T). Limited to .js/.css so an inlined script's
+      // static asset import never resolves against the page URL; server builds ignore it.
+      renderBuiltUrl(filename, { hostType }) {
+        if (hostType === 'js' && /\.(?:js|css)$/.test(filename)) {
+          return { relative: true };
+        }
+
+        return undefined;
+      },
     },
     // Use the React automatic JSX runtime for .tsx source files under src/,
     // so components don't need an explicit `import React from 'react'`.

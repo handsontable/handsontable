@@ -38,9 +38,9 @@ const HotTable = defineComponent({
   watch: {
     $props: {
       handler(props) {
-        const settings = prepareSettings(props, this.hotInstance ? this.hotInstance.getSettings() : void 0);
+        const settings = prepareSettings(props, this.hotInstance ? this.hotInstance.getSettings() : undefined);
 
-        if (!this.hotInstance || settings === void 0) {
+        if (!this.hotInstance || settings === undefined) {
           return;
         }
 
@@ -77,12 +77,12 @@ const HotTable = defineComponent({
   data() {
     return {
       /* eslint-disable vue/no-reserved-keys */
-      __hotInstance: null as Handsontable,
+      __hotInstance: null as Handsontable | null,
       /* eslint-enable vue/no-reserved-keys */
       miscCache: {
         currentSourceColumns: null,
       },
-      columnSettings: null as HotTableProps[],
+      columnSettings: null as HotTableProps[] | null,
       columnsCache: new Map<VNode, HotTableProps>(),
       columnsRefreshScheduled: false,
       get hotInstance(): Handsontable | null {
@@ -98,7 +98,7 @@ const HotTable = defineComponent({
           return null;
         }
       },
-      set hotInstance(hotInstance: Handsontable) {
+      set hotInstance(hotInstance: Handsontable | null) {
         this.__hotInstance = hotInstance;
       },
     };
@@ -207,7 +207,7 @@ const HotTable = defineComponent({
         })
         .map(([, columnSettings]) => columnSettings);
 
-      return orderedColumns.length ? orderedColumns : void 0;
+      return orderedColumns.length ? orderedColumns : undefined;
     },
 
     /**
@@ -248,7 +248,7 @@ const HotTable = defineComponent({
         }
 
         this.columnSettings = newColumnSettings || null;
-        this.hotInstance.updateSettings({ columns: newColumnSettings || void 0 });
+        this.hotInstance.updateSettings({ columns: newColumnSettings || undefined });
       });
     },
   },

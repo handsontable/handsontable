@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — pagination pager states</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme, bundle and the fixture's own options come from query params, each mapped through a fixed
+    // allowlist to LITERALS so a crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default so the fixture stays browsable by hand; an unknown value THROWS
+    // instead of falling back — a typo in a spec must be one red test, never a silently mislabeled green
+    // one.
+    const htParams = new URLSearchParams(location.search);
+    const htPick = (name, allowed, fallback) => {
+      const value = allowed[htParams.get(name) ?? fallback];
+
+      if (value === undefined) {
+        throw new Error(`Unknown ?${name}= value: ${JSON.stringify(htParams.get(name))}`);
+      }
+
+      return value;
+    };
+
+    window.htTheme = htPick('theme', { main: 'main', horizon: 'horizon', classic: 'classic' }, 'main');
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min = handsontable.full.min.js).
+    window.htBundle = htPick('bundle', { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, 'umd');
+    window.htDirection = htPick('dir', { ltr: 'ltr', rtl: 'rtl' }, 'ltr');
+    window.htPageSize = htPick('pagesize', { 10: 10, auto: 'auto' }, '10');
+    // `fixed` is the demo's 450 px grid with a page input above and below it; `window` is its
+    // `ignoreTableSize` + `hideInputs` shape: no height, so the page scrolls, and no inputs.
+    window.htSize = htPick('size', { fixed: 'fixed', window: 'window' }, 'fixed');
+  </script>
+  <style>
+    input { margin: 10px; }
+    /* The demo's two cell styles (`styles/styles.css`), so the Progress and Rating columns draw. */
+    .handsontable .progressBar { background: #37bc6c !important; height: 10px; }
+    .handsontable .star, .handsontable .htDimmed.star { color: #fcb515 !important; }
+  </style>
+</head>
+<body>
+  <!--
+    E2E fixture for the pagination plugin, configured as the visual suite's `/pagination-demo` route
+    configures it, on that demo's 100 rows: nine columns (two with custom renderers, wrapped text in
+    others, so rows differ in height), `autoRowSize`, a pager with the page sizes auto, 10, 20, 30, 40
+    and 50, filters, multi-column sorting, the dropdown and context menus, hidden-row indicators, and a
+    comment. `pagesize=auto` starts on the auto page size; `size=window` drops the height and the page
+    inputs; `dir=rtl` builds an RTL grid with the ar-AR language pack loaded, as the demo does, but keeps
+    the LTR rows and the `en-US` date locale where the demo switches to its Arabic rows and `ar-AR` dates:
+    no assertion here reads the cells' text in RTL. The body keeps the browser's default margin, which the
+    auto page size reads when the window scrolls.
+  -->
+  <div id="root"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+
+    if (window.htDirection === 'rtl') {
+      // Neither bundle carries the language packs.
+      document.write('<scr' + 'ipt src="/handsontable/dist/languages/ar-AR.js"></scr' + 'ipt>');
+    }
+  </script>
+  <script>
+    const root = document.getElementById('root');
+    const container = document.createElement('div');
+
+    container.setAttribute('data-testid', 'grid');
+    container.className = `ht-theme-${window.htTheme}`;
+    root.appendChild(container);
+
+    if (window.htSize === 'fixed') {
+      ['inputTop', 'inputBottom'].forEach((name, index) => {
+        const input = document.createElement('input');
+
+        input.name = name;
+        input.placeholder = index === 0 ? 'Input top' : 'Input bottom';
+
+        if (index === 0) {
+          container.before(input);
+        } else {
+          container.after(input);
+        }
+      });
+    }
+
+    function progressBarRenderer(instance, td, row, col, prop, value, cellProperties) {
+      const bar = document.createElement('div');
+
+      bar.style.width = `${value * 10}px`;
+      bar.className = 'progressBar';
+      Handsontable.dom.empty(td);
+      Handsontable.dom.addClass(td, cellProperties.className);
+      td.appendChild(bar);
+    }
+
+    function starRenderer(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.call(this, instance, td, row, col, prop, '★'.repeat(value), cellProperties);
+    }
+
+    const settings = {};
+
+    if (window.htSize === 'fixed') {
+      settings.height = 450;
+    }
+
+    // Fail loud: a constructor that throws must not leave the page looking like a grid that simply
+    // has not rendered yet. `awaitFixtureBuilt()` rethrows the captured message.
+    try {
+      window.hot = new Handsontable(container, {
+        data: [
+        [false,"Tagcat","United Kingdom","Classic Vest","2020-10-11","01-2331942",true,"172",2,2],
+        [true,"Zoomzone","Indonesia","Cycling Cap","2020-05-03","88-2768633",true,"188",6,2],
+        [true,"Meeveo","United States","Full-Finger Gloves","2020-03-27","51-6775945",true,"162",1,3],
+        [false,"Buzzdog","Philippines","HL Mountain Frame","2020-08-29","44-4028109",true,"133",7,1],
+        [true,"Katz","India","Half-Finger Gloves","2020-10-02","08-2758492",true,"87",1,3],
+        [false,"Jaxbean","China","HL Road Frame","2020-09-28","84-3557705",false,"26",8,1],
+        [false,"Wikido","Brazil","HL Touring Frame","2020-06-24","20-9397637",false,"110",4,1],
+        [false,"Browsedrive","United States","LL Mountain Frame","2020-03-13","36-0079556",true,"50",4,4],
+        [false,"Twinder","United Kingdom","LL Road Frame","2020-04-06","41-1489542",false,"160",6,1],
+        [false,"Jetwire","China","LL Touring Frame","2020-02-01","37-1531629",true,"30",8,5],
+        [false,"Chatterpoint","China","Long-Sleeve Logo Jersey","2020-07-14","25-5083429",true,"39",7,2],
+        [false,"Twinder","Egypt","Men's Bib-Shorts","2020-08-31","04-4281278",false,"96",6,1],
+        [false,"Midel","United States","Men's Sports Shorts","2020-06-27","55-1711908",true,"108",10,3],
+        [false,"Yodo","India","ML Mountain Frame","2020-03-16","58-8360815",false,"46",1,1],
+        [false,"Camido","Russia","ML Mountain Frame-W","2020-09-13","10-3786104",true,"97",8,3],
+        [false,"Eire","Thailand","ML Road Frame","2020-04-10","45-1186054",true,"161",1,4],
+        [false,"Vinte","United Kingdom","ML Road Frame-W","2020-01-22","62-6202742",true,"58",4,3],
+        [false,"Twitterlist","China","Mountain Bike Socks","2020-11-09","88-9646223",true,"92",8,3],
+        [false,"Eidel","Bangladesh","Mountain-100","2020-09-19","45-5588112",true,"5",6,5],
+        [false,"Trunyx","Nigeria","Mountain-200","2020-03-09","66-6271819",true,"158",4,1],
+        [false,"Katz","Turkey","Mountain-300","2020-03-05","38-9245023",false,"121",5,4],
+        [false,"Kaymbo","United States","Mountain-400-W","2020-12-24","44-5916927",false,"61",5,4],
+        [false,"Ozu","Pakistan","Mountain-500","2020-06-13","31-5449914",true,"155",2,2],
+        [false,"Rhynyx","India","Racing Socks","2020-12-05","19-9413869",true,"162",2,4],
+        [false,"Flashset","Iran","Road-150","2020-12-14","25-9807605",false,"46",7,1],
+        [false,"Yata","Congo (Kinshasa)","Road-250","2020-06-12","74-4291983",true,"47",4,4],
+        [false,"Brainlounge","Vietnam","Road-350-W","2020-03-10","83-0980643",true,"104",2,3],
+        [false,"Babblestorm","United States","Road-450","2020-10-10","19-2878430",true,"101",6,4],
+        [false,"Youspan","Brazil","Road-550-W","2020-12-16","19-1838230",true,"150",10,3],
+        [false,"Nlounge","China","Road-650","2020-10-31","32-2267938",true,"42",4,2],
+        [false,"Twinte","India","Road-750","2020-08-17","79-2821972",true,"144",9,3],
+        [false,"Oyonder","United Kingdom","Short-Sleeve Classic Jersey","2020-12-04","46-6597557",true,"195",4,1],
+        [false,"Gigabox","Pakistan","Sport-100","2020-02-03","15-1793960",true,"199",4,4],
+        [false,"Livetube","France","Touring-1000","2020-05-16","86-0811003",true,"110",4,5],
+        [false,"Voomm","United Kingdom","Touring-2000","2020-07-15","95-3068680",true,"51",4,4],
+        [false,"Voonyx","China","Touring-3000","2020-11-27","35-3085360",false,"69",2,5],
+        [false,"Zoombeat","United States","Women's Mountain Shorts","2020-11-03","56-8673088",false,"53",2,3],
+        [false,"Roomm","China","Women's Tights","2020-03-16","76-0085918",true,"168",1,1],
+        [false,"Leenti","China","Mountain-400","2020-05-16","03-0893276",false,"58",1,4],
+        [false,"Jetpulse","United States","Road-550","2020-02-08","79-9013306",true,"152",9,3],
+        [false,"Katz","Peru","Road-350","2020-02-15","55-7799920",true,"66",4,2],
+        [false,"Cogidoo","India","LL Mountain Front Wheel","2020-06-04","07-0881122",false,"112",9,2],
+        [false,"Divavu","Colombia","Touring Rear Wheel","2020-02-24","58-6157387",true,"50",10,4],
+        [false,"Mydeo","China","Touring Front Wheel","2020-12-07","12-2810010",false,"31",3,5],
+        [false,"Browsebug","Japan","ML Mountain Front Wheel","2020-01-14","64-9249984",true,"132",5,5],
+        [false,"Layo","China","HL Mountain Front Wheel","2020-04-24","45-0739652",true,"45",1,5],
+        [false,"Snaptags","United Kingdom","LL Touring Handlebars","2020-08-06","09-5712761",true,"197",4,2],
+        [false,"Cogilith","China","HL Touring Handlebars","2020-05-31","01-7345008",true,"190",4,3],
+        [false,"Reallinks","United Kingdom","LL Road Front Wheel","2020-05-14","62-1065350",true,"184",3,4],
+        [false,"Quaxo","United States","ML Road Front Wheel","2020-03-23","44-7241323",true,"169",3,4],
+        [false,"Devify","China","HL Road Front Wheel","2020-12-12","52-0295699",false,"152",4,4],
+        [false,"Youopia","Angola","LL Mountain Handlebars","2020-04-01","52-2650922",false,"182",6,4],
+        [false,"Ainyx","China","Touring Pedal","2020-02-27","48-3618525",true,"141",6,1],
+        [false,"Browsetype","Malaysia","ML Mountain Handlebars","2020-04-28","51-8893923",true,"169",7,1],
+        [false,"Muxo","China","HL Mountain Handlebars","2020-08-22","68-5911361",false,"39",7,1],
+        [false,"Bubbletube","China","LL Road Handlebars","2020-10-04","41-5880042",true,"71",8,3],
+        [false,"Fadeo","Vietnam","ML Road Handlebars","2020-04-23","90-5913983",true,"148",10,3],
+        [false,"Yadel","United Kingdom","HL Road Handlebars","2020-04-18","92-0960699",true,"116",8,1],
+        [false,"Blognation","China","LL Headset","2020-01-10","06-9493898",true,"96",10,1],
+        [false,"Devpoint","China","ML Headset","2020-12-25","69-5878565",true,"35",4,2],
+        [false,"Aibox","United Kingdom","HL Headset","2020-03-18","13-1133017",true,"16",8,2],
+        [false,"Brightdog","China","LL Mountain Pedal","2020-09-11","39-6530433",true,"194",2,5],
+        [false,"Gabcube","Nigeria","ML Mountain Pedal","2020-04-22","96-6860388",true,"24",1,3],
+        [false,"Muxo","China","HL Mountain Pedal","2020-06-05","30-0356137",true,"170",4,4],
+        [false,"Tambee","China","ML Touring Seat/Saddle","2020-02-22","93-9058255",true,"184",9,5],
+        [false,"Cogilith","India","LL Touring Seat/Saddle","2020-04-06","82-9268909",false,"153",10,4],
+        [false,"Dynabox","Hong Kong","HL Touring Seat/Saddle","2020-01-10","20-6913815",false,"88",10,1],
+        [false,"Shuffledrive","Sudan","LL Road Pedal","2020-09-16","08-8238817",true,"57",9,2],
+        [false,"Fivechat","China","ML Road Pedal","2020-08-26","44-7370350",false,"62",4,1],
+        [false,"Meembee","United States","HL Road Pedal","2020-12-27","01-3525949",true,"123",2,4],
+        [false,"Dynazzy","United Kingdom","LL Mountain Seat/Saddle 1","2020-12-15","04-2414623",true,"77",10,5],
+        [false,"Eare","China","ML Mountain Seat/Saddle 1","2020-04-04","15-1917509",false,"199",9,4],
+        [false,"Yozio","China","HL Mountain Seat/Saddle 1","2020-03-15","06-2526845",true,"149",8,2],
+        [false,"Quinu","Xi'an","425-777-7829","2020-02-22","83-1713558",false,"191",9,5],
+        [false,"Jazzy","United Kingdom","ML Road Seat/Saddle 1","2020-08-07","00-8892524",true,"150",10,2],
+        [false,"Thoughtsphere","China","HL Road Seat/Saddle 1","2020-11-28","39-5538991",true,"130",7,3],
+        [false,"Leenti","China","ML Road Rear Wheel","2020-12-29","06-9002973",true,"179",1,2],
+        [false,"Quaxo","United Kingdom","HL Road Rear Wheel","2020-09-06","73-6104901",true,"98",5,3],
+        [false,"Tanoodle","Chile","LL Mountain Seat/Saddle 2","2020-05-24","68-7384479",true,"175",2,3],
+        [false,"Feednation","China","ML Mountain Seat/Saddle 2","2020-11-21","26-7757763",true,"11",1,3],
+        [false,"Kayveo","China","HL Mountain Seat/Saddle 2","2020-06-21","07-4873562",false,"184",7,4],
+        [false,"Meevee","Saudi Arabia","LL Road Seat/Saddle 1","2020-11-16","46-5819554",false,"27",9,3],
+        [false,"Twitterworks","China","ML Road Seat/Saddle 2","2020-04-19","01-2666826",true,"186",3,2],
+        [false,"Wikizz","Tanzania","HL Road Seat/Saddle 2","2020-03-08","54-7090503",true,"20",3,3],
+        [false,"Yoveo","United States","LL Mountain Tire","2020-10-14","78-7658520",false,"153",2,1],
+        [false,"Yakidoo","China","ML Mountain Tire","2020-10-12","23-9926318",true,"161",8,5],
+        [false,"Oyope","China","HL Mountain Tire","2020-09-20","20-0179517",true,"98",10,5],
+        [false,"Skipstorm","United States","LL Road Tire","2020-10-01","02-9543343",true,"30",7,3],
+        [false,"Minyx","United States","ML Road Tire","2020-07-07","98-3938169",true,"73",10,2],
+        [false,"Miboo","China","HL Road Tire","2020-07-25","68-5197934",true,"158",9,1],
+        [false,"Realfire","United States","Touring Tire","2020-08-27","39-8260460",true,"122",5,2],
+        [false,"Shufflester","China","Mountain Tire Tube","2020-06-08","45-9776170",true,"33",2,4],
+        [false,"Ntag","China","Road Tire Tube","2020-12-06","45-0858451",true,"107",6,2],
+        [false,"Jabberbean","United States","Touring Tire Tube","2020-04-26","15-4247305",true,"15",1,2],
+        [false,"Thoughtblab","China","LL Bottom Bracket","2020-05-21","15-8534931",true,"168",5,2],
+        [false,"Jabbertype","China","Classic Vest","2020-07-25","23-1251557",true,"135",4,2],
+        [false,"Buzzshare","United Kingdom","Cycling Cap","2020-07-07","86-5920601",true,"11",1,4],
+        [false,"Roodel","United States","Full-Finger Gloves","2020-01-13","48-1055459",true,"41",6,4],
+        [false,"Zoovu","China","Half-Finger Gloves","2020-06-03","12-7842022",true,"144",6,1],
+        [false,"Photofeed","China","HL Mountain Frame","2020-07-14","94-5088099",true,"106",1,4],
+        ],
+        layoutDirection: window.htDirection,
+        language: window.htDirection === 'rtl' ? 'ar-AR' : 'en-US',
+        colWidths: [160, 100, 135, 100, 90, 110, 120, 115, 140],
+        colHeaders: ['Company name', 'Name', 'Sell date', 'In stock', 'Qty', 'Progress', 'Rating', 'Order ID', 'Country'],
+        columns: [
+          { data: 1, type: 'text' },
+          { data: 3, type: 'text' },
+          { data: 4, type: 'date', allowInvalid: false, dateFormat: { dateStyle: 'short' }, locale: 'en-US' },
+          { data: 6, type: 'checkbox', className: 'htCenter', headerClassName: 'htCenter' },
+          { data: 7, type: 'numeric', headerClassName: 'htRight' },
+          { data: 8, renderer: progressBarRenderer, readOnly: true, readOnlyCellClassName: '', className: 'htMiddle' },
+          {
+            data: 9,
+            renderer: starRenderer,
+            readOnly: true,
+            readOnlyCellClassName: '',
+            className: 'star htCenter',
+            headerClassName: 'htCenter',
+          },
+          { data: 5, type: 'text' },
+          { data: 2, type: 'text' },
+        ],
+        autoRowSize: true,
+        pagination: {
+          pageSize: window.htPageSize,
+          pageSizeList: ['auto', 10, 20, 30, 40, 50],
+        },
+        dropdownMenu: true,
+        hiddenRows: { indicators: true },
+        multiColumnSorting: true,
+        filters: true,
+        contextMenu: true,
+        rowHeaders: true,
+        comments: true,
+        cell: [{ row: 2, col: 1, comment: { value: 'Note: To be checked if the name is valid' } }],
+        licenseKey: 'non-commercial-and-evaluation',
+        ...settings,
+      });
+    } catch (error) {
+      window.htBuildError = String(error && error.stack || error);
+    }
+  </script>
+</body>
+</html>

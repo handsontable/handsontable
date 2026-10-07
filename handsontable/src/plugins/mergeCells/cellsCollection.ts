@@ -6,6 +6,11 @@ import { warn } from '../../helpers/console';
 import { arrayEach } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import type { MergeCells } from './mergeCells';
+import {
+  getFirstRowOfActiveBottomOverlay,
+  getFirstRenderedRowOfOverlay,
+  getFirstRenderedColumnOfOverlay,
+} from './utils';
 
 /**
  * Defines a container object for the merged cells.
@@ -155,7 +160,10 @@ class MergedCellsCollection {
   }
 
   /**
-   * Filters merge cells objects provided by users from overlapping cells.
+   * Filters merge cells objects provided by users from overlapping cells. The cells the existing
+   * merges occupy are read from the lookup matrix, not the list: a merge whose rows are all trimmed
+   * is purged from the matrix and keeps stale coordinates in the list, so it occupies nothing on
+   * screen (DEV-3135).
    *
    * @param {{ row: number, col: number, rowspan: number, colspan: number }} mergedCellsInfo The merged cell information object.
    * Has to contain `row`, `col`, `colspan` and `rowspan` properties.
@@ -164,14 +172,10 @@ class MergedCellsCollection {
   filterOverlappingMergeCells(mergedCellsInfo: { row: number, col: number, rowspan: number, colspan: number }[]) {
     const occupiedCells = new Set();
 
-    this.mergedCells.forEach((mergedCell) => {
-      const { row, col, colspan, rowspan } = mergedCell;
-
-      for (let r = row; r < row + rowspan; r++) {
-        for (let c = col; c < col + colspan; c++) {
-          occupiedCells.add(`r${r},c${c}`);
-        }
-      }
+    this.mergedCellsMatrix.forEach((columns, row) => {
+      columns.forEach((_mergedCell, col) => {
+        occupiedCells.add(`r${row},c${col}`);
+      });
     });
 
     type MergeCellInfo = { row: number, col: number, rowspan: number, colspan: number };
@@ -261,31 +265,96 @@ class MergedCellsCollection {
    * @returns {MergedCellCoords|boolean} Returns the new merged cell on success and `false` on failure.
    */
   add(mergedCellInfo: { row: number, col: number, rowspan: number, colspan: number }, auto = false) {
-    const row = mergedCellInfo.row;
-    const column = mergedCellInfo.col;
-    const rowspan = mergedCellInfo.rowspan;
-    const colspan = mergedCellInfo.colspan;
-    const newMergedCell = new MergedCellCoords(row, column, rowspan, colspan,
-      this.hot._createCellCoords, this.hot._createCellRange);
-    const alreadyExists = this.get(row, column);
-    const isOverlapping = auto ? false : this.isOverlapping(newMergedCell);
+    const newMergedCell = this.#createMergedCell(mergedCellInfo);
 
-    if (!alreadyExists && !isOverlapping) {
-      if (this.hot) {
-        newMergedCell.normalize(this.hot);
-      }
-
-      this.mergedCells.push(newMergedCell);
-      this.#addMergedCellToMatrix(newMergedCell);
-
-      return newMergedCell;
+    if (!this.#accepts(newMergedCell, auto)) {
+      return false;
     }
+
+    if (this.hot) {
+      newMergedCell.normalize(this.hot);
+    }
+
+    this.mergedCells.push(newMergedCell);
+    this.#addMergedCellToMatrix(newMergedCell);
+    this.hot?.markAllCellsChanged();
+
+    return newMergedCell;
+  }
+
+  /**
+   * Checks whether `add()` would accept a merged cell, and warns as `add()` does when it overlaps
+   * another one. A merge runs it before it touches the cells, so a merge `add()` would refuse
+   * writes no cell meta and leaves no undo step (DEV-159). Both methods decide through the same
+   * private check, so a rule cannot reach one of them without the other.
+   *
+   * `ignoredMergedCells` lists merges that the caller removes before it adds this one:
+   * `mergeSelection()` unmerges the merges whose anchor lies inside the range first, and asks here
+   * before it touches any of them.
+   *
+   * @param {object} mergedCellInfo The merged cell information object. Has to contain `row`, `col`, `colspan` and `rowspan` properties.
+   * @param {boolean} [auto=false] `true` if called internally by the plugin (usually in batch).
+   * @param {MergedCellCoords[]} [ignoredMergedCells=[]] Merged cells to treat as already removed.
+   * @returns {boolean} `true` if `add()` would add the merged cell.
+   */
+  canAdd(
+    mergedCellInfo: { row: number, col: number, rowspan: number, colspan: number },
+    auto = false,
+    ignoredMergedCells: MergedCellCoords[] = [],
+  ) {
+    return this.#accepts(this.#createMergedCell(mergedCellInfo), auto, ignoredMergedCells);
+  }
+
+  /**
+   * Builds a merged cell object from its plain description.
+   *
+   * @param {object} mergedCellInfo The merged cell information object.
+   * @returns {MergedCellCoords}
+   */
+  #createMergedCell(mergedCellInfo: { row: number, col: number, rowspan: number, colspan: number }) {
+    return new MergedCellCoords(mergedCellInfo.row, mergedCellInfo.col, mergedCellInfo.rowspan,
+      mergedCellInfo.colspan, this.hot._createCellCoords, this.hot._createCellRange);
+  }
+
+  /**
+   * The one place that decides whether a merged cell can be added. It is refused when another merged
+   * cell starts at its anchor, or, unless `auto` is `true`, when another merged cell overlaps it. An
+   * overlap warns.
+   *
+   * @param {MergedCellCoords} newMergedCell The merged cell to check.
+   * @param {boolean} auto `true` if called internally by the plugin.
+   * @param {MergedCellCoords[]} [ignoredMergedCells=[]] Merged cells to treat as already removed.
+   * @returns {boolean}
+   */
+  #accepts(newMergedCell: MergedCellCoords, auto: boolean, ignoredMergedCells: MergedCellCoords[] = []) {
+    const atAnchor = this.get(newMergedCell.row, newMergedCell.col);
+    const alreadyExists = !!atAnchor && !ignoredMergedCells.includes(atAnchor);
+    const isOverlapping = auto ? false : this.isOverlapping(newMergedCell, ignoredMergedCells);
 
     if (isOverlapping) {
       warn(MergedCellsCollection.IS_OVERLAPPING_WARNING(newMergedCell));
     }
 
-    return false;
+    return !alreadyExists && !isOverlapping;
+  }
+
+  /**
+   * Adds a merged cell to the list without placing it in the lookup matrix. It is for a merge whose
+   * rows are all trimmed: its coordinates are stale, another merge can be drawn there now, and the
+   * matrix must not hold it (see `removeFromMatrix()`).
+   *
+   * @param {object} mergedCellInfo The merged cell information object. Has to contain `row`, `col`, `colspan` and `rowspan` properties.
+   * @returns {MergedCellCoords} The new merged cell.
+   */
+  addOutsideMatrix(mergedCellInfo: { row: number, col: number, rowspan: number, colspan: number }) {
+    const newMergedCell = new MergedCellCoords(mergedCellInfo.row, mergedCellInfo.col, mergedCellInfo.rowspan,
+      mergedCellInfo.colspan, this.hot._createCellCoords, this.hot._createCellRange);
+
+    newMergedCell.normalize(this.hot);
+    this.mergedCells.push(newMergedCell);
+    this.hot.markAllCellsChanged();
+
+    return newMergedCell;
   }
 
   /**
@@ -303,6 +372,7 @@ class MergedCellsCollection {
     if (mergedCell && mergedCellIndex !== -1) {
       this.mergedCells.splice(mergedCellIndex, 1);
       this.#removeMergedCellFromMatrix(mergedCell);
+      this.hot?.markAllCellsChanged();
 
       return mergedCell;
     }
@@ -330,15 +400,19 @@ class MergedCellsCollection {
 
     this.mergedCells.length = 0;
     this.mergedCellsMatrix = new Map<number, Map<number, MergedCellCoords>>();
+    this.hot?.markAllCellsChanged();
   }
 
   /**
-   * Check if the provided merged cell overlaps with the others already added.
+   * Check if the provided merged cell overlaps with the others already added. Like `getWithinRange()`,
+   * it asks the lookup matrix which merges take up cells: a merge purged from the matrix because all of
+   * its rows are trimmed keeps stale visual coordinates and covers no cell on screen.
    *
    * @param {MergedCellCoords} mergedCell The merged cell to check against all others in the container.
+   * @param {MergedCellCoords[]} [ignoredMergedCells=[]] Merged cells to leave out of the check.
    * @returns {boolean} `true` if the provided merged cell overlaps with the others, `false` otherwise.
    */
-  isOverlapping(mergedCell: MergedCellCoords) {
+  isOverlapping(mergedCell: MergedCellCoords, ignoredMergedCells: MergedCellCoords[] = []) {
     const mergedCellRange = mergedCell.getRange();
 
     if (!mergedCellRange) {
@@ -347,6 +421,14 @@ class MergedCellsCollection {
 
     for (let i = 0; i < this.mergedCells.length; i++) {
       const otherMergedCell = this.mergedCells[i];
+
+      if (
+        ignoredMergedCells.includes(otherMergedCell) ||
+        this.get(otherMergedCell.row, otherMergedCell.col) !== otherMergedCell
+      ) {
+        continue;
+      }
+
       const otherMergedCellRange = otherMergedCell.getRange();
 
       const overlappingRange = otherMergedCellRange as CellRange & { overlaps(range: CellRange): boolean };
@@ -380,10 +462,10 @@ class MergedCellsCollection {
       colspan,
     } = mergeParent;
     const overlayName = this.hot.view.getActiveOverlayName() as string;
-    const firstRenderedRow = ['top', 'top_inline_start_corner']
-      .includes(overlayName) ? 0 : this.hot.getFirstRenderedVisibleRow();
-    const firstRenderedColumn = ['inline_start', 'top_inline_start_corner', 'bottom_inline_start_corner']
-      .includes(overlayName) ? 0 : this.hot.getFirstRenderedVisibleColumn();
+    // A bottom overlay renders from its own first row, the same row that carries the span in `renderer.ts`.
+    const firstRenderedRow = getFirstRowOfActiveBottomOverlay(this.hot) ??
+      getFirstRenderedRowOfOverlay(this.hot, overlayName);
+    const firstRenderedColumn = getFirstRenderedColumnOfOverlay(this.hot, overlayName);
 
     const mergeCellsTopRow = clamp(firstRenderedRow, mergeRow, mergeRow + rowspan - 1);
     const mergeCellsStartColumn = clamp(firstRenderedColumn, mergeColumn, mergeColumn + colspan - 1);
@@ -608,8 +690,18 @@ class MergedCellsCollection {
    * @param {string} direction `right`, `left`, `up` or `down`.
    * @param {number} index Index where the change, which caused the shifting took place.
    * @param {number} count Number of rows/columns added/removed in the preceding action.
+   * @param {function(MergedCellCoords): boolean} [canRemove] Decides whether a merge the shift wants
+   * to drop may really be dropped. A merge whose rows are partly trimmed occupies fewer visual rows
+   * than it owns, so removing all of its *visible* rows must not delete the trimmed ones with them.
+   * Such a merge is kept with its coordinates left as the shift found them; the caller re-derives them
+   * from the merge's physical rows right after.
    */
-  shiftCollections(direction: string, index: number, count: number) {
+  shiftCollections(
+    direction: string,
+    index: number,
+    count: number,
+    canRemove: (mergedCell: MergedCellCoords) => boolean = () => true
+  ) {
     const shiftVector = [0, 0];
 
     switch (direction) {
@@ -638,7 +730,11 @@ class MergedCellsCollection {
       currentMerge.shift(shiftVector, index);
 
       if (currentMerge.removed) {
-        removedMergedCells.push(currentMerge);
+        if (canRemove(currentMerge)) {
+          removedMergedCells.push(currentMerge);
+        } else {
+          currentMerge.removed = false;
+        }
       }
     });
 
@@ -723,12 +819,29 @@ class MergedCellsCollection {
    * Note: single-cell fragments (`colspan === 1 && rowspan === 1`) are dropped because
    * they no longer represent a merge. The user-facing behavior (auto-split + silent drop
    * of singletons) is documented in `docs/content/guides/cell-features/merge-cells/merge-cells.md`
-   * under "Behavior during row/column reorder and column freeze".
+   * under "Behavior during row/column reorder and column freeze". The one exception is a fragment
+   * the caller lists in `retainedIndexes`: it shows one cell only because the rest of its rows are
+   * trimmed, so it is a merge again as soon as they come back. Both the row and the column callers
+   * pass it, since a merge trimmed to one visible row is already `rowspan: 1` before any column move.
+   *
+   * Every merge is replaced by a new object, so the returned map tells the caller which merges came
+   * out of which — the plugin uses it to carry each merge's physical anchor onto its replacements
+   * instead of re-deriving one from the post-move visual coordinates.
    *
    * @param {'column' | 'row'} axis Axis that was reordered.
    * @param {Map<MergedCellCoords, number[]>} snapshot Snapshot taken before the reorder.
+   * @param {Map<MergedCellCoords, Set<number>>} [retainedIndexes] Per merge, the physical indexes
+   * along `axis` whose single-cell fragment must survive the singleton drop. Keyed per merge because
+   * two merges in different columns can cover the same rows, and only one of them may be carrying
+   * trimmed rows.
+   * @returns {Map<MergedCellCoords, MergedCellCoords[]>} Map of the merge before the reorder -> the
+   * merges that replaced it. A merge the reorder dropped entirely maps to an empty array.
    */
-  translateAfterAxisMove(axis: 'column' | 'row', snapshot: Map<MergedCellCoords, number[]>): void {
+  translateAfterAxisMove(
+    axis: 'column' | 'row',
+    snapshot: Map<MergedCellCoords, number[]>,
+    retainedIndexes: Map<MergedCellCoords, Set<number>> = new Map()
+  ): Map<MergedCellCoords, MergedCellCoords[]> {
     const isColumn = axis === 'column';
     const indexProp = isColumn ? 'col' : 'row';
     const spanProp = isColumn ? 'colspan' : 'rowspan';
@@ -737,17 +850,26 @@ class MergedCellsCollection {
     const toVisual = isColumn
       ? (physicalIndex: number) => this.hot.toVisualColumn(physicalIndex)
       : (physicalIndex: number) => this.hot.toVisualRow(physicalIndex);
-    const replacements: Array<{ row: number; col: number; rowspan: number; colspan: number }> = [];
+    const toPhysical = isColumn
+      ? (visualIndex: number) => this.hot.toPhysicalColumn(visualIndex)
+      : (visualIndex: number) => this.hot.toPhysicalRow(visualIndex);
+    const replacements: Array<{
+      source: MergedCellCoords,
+      info: { row: number; col: number; rowspan: number; colspan: number },
+    }> = [];
 
     this.mergedCells.forEach((merge) => {
       const physicals = snapshot.get(merge);
 
       if (!physicals) {
         replacements.push({
-          row: merge.row,
-          col: merge.col,
-          rowspan: merge.rowspan,
-          colspan: merge.colspan,
+          source: merge,
+          info: {
+            row: merge.row,
+            col: merge.col,
+            rowspan: merge.rowspan,
+            colspan: merge.colspan,
+          },
         });
 
         return;
@@ -762,6 +884,8 @@ class MergedCellsCollection {
         return;
       }
 
+      const retained = retainedIndexes.get(merge);
+
       MergedCellsCollection.detectContiguousRuns(newVisuals).forEach((run) => {
         const replacement = {
           [indexProp]: run.start,
@@ -770,20 +894,34 @@ class MergedCellsCollection {
           [otherSpanProp]: merge[otherSpanProp],
         };
 
-        if (replacement.colspan === 1 && replacement.rowspan === 1) {
+        if (replacement.colspan === 1 && replacement.rowspan === 1
+          && !retained?.has(toPhysical(run.start))) {
           return;
         }
 
-        replacements.push(replacement as { row: number; col: number; rowspan: number; colspan: number });
+        replacements.push({
+          source: merge,
+          info: replacement as { row: number; col: number; rowspan: number; colspan: number },
+        });
       });
     });
+
+    const sources = new Map<MergedCellCoords, MergedCellCoords[]>();
+
+    this.mergedCells.forEach(merge => sources.set(merge, []));
 
     this.mergedCells.length = 0;
     this.mergedCellsMatrix.clear();
 
-    replacements.forEach((info) => {
-      this.add(info, true);
+    replacements.forEach(({ source, info }) => {
+      const added = this.add(info, true);
+
+      if (added !== false) {
+        sources.get(source)?.push(added);
+      }
     });
+
+    return sources;
   }
 
   /**
@@ -810,14 +948,14 @@ class MergedCellsCollection {
    * phases (remove all, then re-add all) so merges that swap visual positions don't clobber each
    * other's freshly written entries.
    *
-   * @param {Array<{ mergedCell: MergedCellCoords, row: number, col: number }>} relocations The merges
-   * to move together with their new top-left visual `row`/`col`.
+   * @param {Array<object>} relocations The merges to move together with their new top-left visual
+   * `row`/`col` and, when rows inside them have been trimmed away, their new visual `rowspan`.
    */
-  relocateInMatrix(relocations: { mergedCell: MergedCellCoords, row: number, col: number }[]) {
+  relocateInMatrix(relocations: { mergedCell: MergedCellCoords, row: number, col: number, rowspan?: number }[]) {
     relocations.forEach(({ mergedCell }) => this.#removeMergedCellFromMatrix(mergedCell));
 
-    relocations.forEach(({ mergedCell, row, col }) => {
-      mergedCell.relocate(row, col);
+    relocations.forEach(({ mergedCell, row, col, rowspan }) => {
+      mergedCell.relocate(row, col, rowspan);
       this.#addMergedCellToMatrix(mergedCell);
     });
   }
@@ -835,14 +973,49 @@ class MergedCellsCollection {
   }
 
   /**
+   * Drops a batch of merges from both the `mergedCells` list and the lookup matrix, matching them by
+   * identity rather than by coordinates. A merge that no longer covers any row has visual coordinates
+   * that describe nothing, so {@link MergedCellsCollection#remove}'s coordinate lookup cannot find it.
+   *
+   * @param {Array<MergedCellCoords>} merges The merges to drop.
+   */
+  dropMerges(merges: MergedCellCoords[]) {
+    merges.forEach((mergedCell) => {
+      const index = this.mergedCells.indexOf(mergedCell);
+
+      if (index !== -1) {
+        this.mergedCells.splice(index, 1);
+      }
+
+      this.#removeMergedCellFromMatrix(mergedCell);
+    });
+  }
+
+  /**
+   * Puts existing merges back into the `mergedCells` list, keeping each object (and so everything the
+   * plugin keys on it). The lookup matrix is left untouched: the caller places the merges there
+   * itself, from their physical anchors.
+   */
+  restoreMerges(merges: MergedCellCoords[]) {
+    merges.forEach(mergedCell => this.mergedCells.push(mergedCell));
+    this.hot?.markAllCellsChanged();
+  }
+
+  /**
    * Removes a merged cell from the matrix.
    *
    * @param {MergedCellCoords} mergedCell The merged cell to remove.
    */
   #removeMergedCellFromMatrix(mergedCell: MergedCellCoords) {
     for (let row = mergedCell.row; row < mergedCell.row + mergedCell.rowspan; row++) {
+      const matrixRow = this.mergedCellsMatrix.get(row);
+
       for (let col = mergedCell.col; col < mergedCell.col + mergedCell.colspan; col++) {
-        this.mergedCellsMatrix.get(row)?.delete(col);
+        // Only the merge's own entries: a purged merge keeps stale coordinates, and another merge can
+        // be drawn over them now.
+        if (matrixRow?.get(col) === mergedCell) {
+          matrixRow.delete(col);
+        }
       }
     }
   }

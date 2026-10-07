@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a bug where a component-based renderer in a frozen row or column left the cell empty in one of the two tables the grid draws it in, which made the frozen area stop lining up with the rest of the rows.",
+  "type": "fixed",
+  "issueOrPR": 9063,
+  "breaking": false,
+  "framework": "react"
+}

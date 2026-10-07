@@ -118,6 +118,36 @@ describe('DynamicComponentService - createRendererFromComponent', () => {
     });
   });
 
+  describe('when clearing a TD that holds plain content', () => {
+    it('should clear it without assigning to innerHTML', () => {
+      const rendererFn = service.createRendererFromComponent(DummyRendererComponent, {}, false);
+      const td = createDummyTD();
+      const cellProperties: Handsontable.CellProperties = {} as any;
+      const innerHTMLSetter = jest.fn();
+
+      // Leftover content from a non-component renderer: no ComponentRef and no embedded view are
+      // registered for this TD, so `replaceChildren()` is the only thing that can clear it.
+      td.appendChild(document.createTextNode('stale text'));
+      td.appendChild(document.createElement('span'));
+
+      Object.defineProperty(td, 'innerHTML', {
+        configurable: true,
+        get: () => '',
+        set: innerHTMLSetter,
+      });
+
+      rendererFn(dummyHTInstance, td, 0, 0, 'prop', 'fresh', cellProperties);
+      appRef.tick();
+
+      // `innerHTML = ''` reads as "assign nothing", but `innerHTML` is a Trusted Types sink
+      // whatever the value: under `require-trusted-types-for 'script'` the empty string throws
+      // exactly like markup would, and every cell re-render would take the grid down.
+      expect(innerHTMLSetter).not.toHaveBeenCalled();
+      expect(Array.from(td.childNodes).some(node => node.textContent === 'stale text')).toBe(false);
+      expect(td.querySelectorAll('span').length).toBe(0);
+    });
+  });
+
   describe('when re-rendering a connected TD with the same component type', () => {
     it('should recycle the existing ComponentRef instead of recreating it', () => {
       const rendererFn = service.createRendererFromComponent(DummyRendererComponent, {}, false);

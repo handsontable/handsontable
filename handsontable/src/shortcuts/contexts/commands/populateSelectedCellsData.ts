@@ -1,32 +1,33 @@
 import type { HotInstance } from '../../../core/types';
+import { collectSelectionFillChanges } from '../../../selection/fillSelection';
 
 export const command = {
   name: 'populateSelectedCellsData',
   callback(hot: HotInstance) {
-    const selectedRange = hot.getSelectedRange();
+    const selectedRanges = hot.getSelectedRange();
 
-    if (!selectedRange) {
+    if (!selectedRanges?.length) {
       return;
     }
 
-    const normalizedHighlight = selectedRange[selectedRange.length - 1].highlight.normalize();
+    // The value comes from the cell holding the focus, which is not always the newest layer: the
+    // focus rotates between layers with Tab and Enter, and reading `ranges[length - 1]` took the
+    // value from whichever layer was added last instead. An open editor fills from the focused cell
+    // too, so both paths now answer the keystroke with the same value.
+    const normalizedHighlight = (hot.getSelectedRangeActive() ?? selectedRanges[selectedRanges.length - 1])
+      .highlight.normalize();
     const highlightRow = normalizedHighlight.row ?? 0;
     const highlightColumn = normalizedHighlight.col ?? 0;
-    const valueToPopulate = hot.getDataAtCell(highlightRow, highlightColumn);
-    const cellValues = new Map();
+    const changes = collectSelectionFillChanges(
+      hot,
+      hot.getDataAtCell(highlightRow, highlightColumn),
+      selectedRanges,
+      highlightRow,
+      highlightColumn,
+    );
 
-    for (let i = 0; i < selectedRange.length; i++) {
-      selectedRange[i].forAll((row: number, column: number) => {
-        if (row >= 0 && column >= 0 && (row !== highlightRow || column !== highlightColumn)) {
-          const { readOnly } = hot.getCellMetaTransient(row, column);
-
-          if (!readOnly) {
-            cellValues.set(`${row}x${column}`, [row, column, valueToPopulate]);
-          }
-        }
-      });
+    if (changes.length > 0) {
+      hot.setDataAtCell(changes);
     }
-
-    hot.setDataAtCell(Array.from(cellValues.values()));
   },
 };

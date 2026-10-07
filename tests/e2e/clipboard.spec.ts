@@ -52,4 +52,75 @@ test.describe('clipboard', () => {
     await expect.poll(() => grid.clipboardText()).toBe('B2');
     await grid.expectCell(1, 1, '');
   });
+
+  /**
+   * CopyPaste binds its clipboard listeners on the document and on the grid's own element, so
+   * one Ctrl+V reaches the plugin twice on an ordinary page too, and only `#processedClipboardEvents`
+   * keeps the handler running once (DEV-2795). Every other assertion in this file is a final cell
+   * value under the default `overwrite` paste mode, which looks the same whether the paste ran
+   * once or twice — so a broken registry would silently double-paste and nothing here would see
+   * it. With `pasteMode: 'shift_down'` the same fault would insert the rows twice.
+   */
+  test('handles one paste exactly once', async ({ page }) => {
+    await grid.selectCell(0, 0);
+    await grid.writeClipboardText('x');
+    await page.keyboard.press('ControlOrMeta+v');
+
+    await grid.expectCell(0, 0, 'x');
+    await expect.poll(() => grid.pasteHookCalls()).toBe(1);
+  });
+
+  /**
+   * A clipboard whose first row is narrower than a later one used to be cut down to the
+   * first row's width, dropping the surplus cells with no warning (#7389).
+   */
+  test.describe('ragged clipboard', () => {
+    test('pastes every column of ragged plain text', async ({ page }) => {
+      // Row 1 holds one cell, row 2 holds three. "z" and "w" sat past the first row's width.
+      await grid.selectCell(0, 0);
+      await grid.writeClipboardText('x\ny\tz\tw');
+      await page.keyboard.press('ControlOrMeta+v');
+
+      await grid.expectCell(1, 0, 'y');
+      await grid.expectCell(1, 1, 'z');
+      await grid.expectCell(1, 2, 'w');
+      // The short first row is padded out, so it blanks the cells it covers.
+      await grid.expectCell(0, 0, 'x');
+      await grid.expectCell(0, 1, '');
+      // Rows the clipboard never covered keep their values.
+      await grid.expectCell(2, 1, 'B3');
+    });
+
+    test('pastes every column of a ragged HTML table', async ({ page }) => {
+      // The plain-text flavor is deliberately a single cell: if it were the one consumed,
+      // "z" and "w" would never appear, so these assertions pin the HTML path.
+      await grid.selectCell(0, 0);
+      await grid.writeClipboardHtml(
+        '<table><tr><td>x</td></tr><tr><td>y</td><td>z</td><td>w</td></tr></table>',
+        'PLAIN-FLAVOR-ONLY'
+      );
+      await page.keyboard.press('ControlOrMeta+v');
+
+      await grid.expectCell(1, 0, 'y');
+      await grid.expectCell(1, 1, 'z');
+      await grid.expectCell(1, 2, 'w');
+      await grid.expectCell(0, 0, 'x');
+      await grid.expectCell(2, 1, 'B3');
+    });
+
+    test('keeps pasting a clipboard whose first row is the widest', async ({ page }) => {
+      // The reverse shape was never broken — this guards it against the fix.
+      await grid.selectCell(0, 0);
+      await grid.writeClipboardText('x\ty\tz\nw');
+      await page.keyboard.press('ControlOrMeta+v');
+
+      await grid.expectCell(0, 0, 'x');
+      await grid.expectCell(0, 1, 'y');
+      await grid.expectCell(0, 2, 'z');
+      await grid.expectCell(1, 0, 'w');
+      // What the padded cells actually hold is asserted in copyPaste.unit.ts - a rendered cell
+      // looks the same whether it holds `null` or `undefined`.
+      await grid.expectCell(2, 1, 'B3');
+    });
+  });
 });

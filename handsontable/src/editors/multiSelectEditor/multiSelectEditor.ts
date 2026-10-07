@@ -4,7 +4,13 @@ import { BaseEditor } from '../baseEditor';
 import EventManager from '../../eventManager';
 import { DropdownController, type DropdownEntry } from './controllers/dropdownController';
 import { SelectedItemsController } from './controllers/selectedItemsController';
-import { addClass, getDeepActiveElement, setAttribute } from '../../helpers/dom/element';
+import {
+  addClass,
+  getDeepActiveElement,
+  getFixedContainingBlockRect,
+  isHTMLElement,
+  setAttribute,
+} from '../../helpers/dom/element';
 import { isPrintableChar } from '../../helpers/unicode';
 import { localeLowerCase } from '../../helpers/string';
 import { A11Y_LABEL, A11Y_GROUP } from '../../helpers/a11y';
@@ -13,6 +19,13 @@ import {
   getValuesIntersection,
   parseStringifiedValue,
 } from './utils/utils';
+import {
+  getDropdownInlineSpace,
+  getFlippedInlineStartOffset,
+  shouldFlipDropdownHorizontally,
+} from './controllers/positioning';
+import type { CellInlineBox } from './controllers/positioning';
+import { getWindowScrollInlineMetrics } from '../utils/windowScrollInlineMetrics';
 
 export const EDITOR_TYPE = 'multiselect';
 
@@ -42,6 +55,15 @@ export class MultiSelectEditor extends BaseEditor {
    * The outer wrapper element that positions the dropdown relative to the edited cell.
    */
   #editorContainer: HTMLDivElement | null = null;
+  /**
+   * `true` when the editor wrapper opened the dropdown toward the inline start of the edited cell.
+   *
+   * Horizontal placement is applied on this wrapper in `refreshDimensions()`, so the flag
+   * lives here — the same place `HandsontableEditor` keeps `isFlippedHorizontally`.
+   *
+   * @type {boolean}
+   */
+  isFlippedHorizontally: boolean = false;
 
   /**
    * The container element passed to `DropdownController` that holds the dropdown UI.
@@ -56,6 +78,11 @@ export class MultiSelectEditor extends BaseEditor {
    * The event manager used to register and clean up DOM event listeners.
    */
   declare eventManager: InstanceType<typeof EventManager>;
+
+  /**
+   * Whether the document scroll listener that keeps the list on its cell is bound.
+   */
+  #scrollFollowBound = false;
 
   /**
    * Returns the unique editor type identifier for the multiselect editor.
@@ -97,7 +124,7 @@ export class MultiSelectEditor extends BaseEditor {
     this.#editorContainer.appendChild(this.dropdownContainerElement);
     this.hot.rootElement.appendChild(this.#editorContainer);
 
-    this.dropdownController = new DropdownController(this.dropdownContainerElement, this.hot.guid);
+    this.dropdownController = new DropdownController(this.dropdownContainerElement, this.hot.guid, this.hot);
   }
 
   /**
@@ -130,6 +157,9 @@ export class MultiSelectEditor extends BaseEditor {
     this.dropdownController!.fillDropdown(this.#getSource(), valuesIntersection);
     this.dropdownController!.setVisibleRowsNumberSetting(this.#getEditorSetting<number>('visibleRows'));
     this.dropdownController!.setSearchInputVisibility(this.#getEditorSetting<boolean>('searchInput'));
+    // The dropdown is built once and reused, so the search icon picks up a runtime `icons` remap or
+    // theme switch here. A no-op unless the theme's icons revision moved.
+    this.dropdownController!.refreshIcons();
 
     if (cellProperties.maxSelections !== undefined) {
       this.#selectedItems.setMaxSelectionCount(this.#getEditorSetting<number>('maxSelections'));
@@ -169,8 +199,8 @@ export class MultiSelectEditor extends BaseEditor {
     this.addHook('afterDestroy', () => this.destroy());
     this.addHook('afterChange',
       (changes: unknown[][], source: string) => this.#onAfterChange(changes, source));
-    this.addHook('afterScrollHorizontally', () => this.refreshDimensions());
-    this.addHook('afterScrollVertically', () => this.refreshDimensions());
+    this.addHook('afterScrollHorizontally', () => this.#followCell());
+    this.addHook('afterScrollVertically', () => this.#followCell());
 
     this.dropdownController!.getInputController()!.addLocalHook(
       'triggerFilter', (value: string) => this.#filterEntries(value));
@@ -197,13 +227,12 @@ export class MultiSelectEditor extends BaseEditor {
     }
 
     this.#showEditableElement();
+    this.dropdownController!.updateDimensions(this.#getAvailableSpace());
     this.refreshDimensions();
     this.hot.getShortcutManager().setActiveContextName('editor');
     this.#registerShortcuts();
     this.dropdownController!.getInputController()!.listen();
-
-    this.dropdownController!.updateDimensions(this.#getAvailableSpace());
-
+    this.#bindScrollFollow();
   }
 
   /**
@@ -213,6 +242,7 @@ export class MultiSelectEditor extends BaseEditor {
     this.#hideEditableElement();
     this.#unregisterShortcuts();
     this.dropdownController!.getInputController()!.unlisten();
+    this.isFlippedHorizontally = false;
   }
 
   /**
@@ -231,19 +261,65 @@ export class MultiSelectEditor extends BaseEditor {
 
   /**
    * Repositions the dropdown next to the edited cell; closes the editor if the cell is no longer rendered.
+   *
+   * When the list is wider than the remaining inline-end space, the wrapper shifts toward the
+   * inline start so the list stays fully usable (DEV-1198).
+   *
+   * Filter keystrokes pass `false` so the side chosen on open/scroll cannot jump as the
+   * filtered list narrows. Check/uncheck uses the same sticky path. The wrapper offset
+   * still updates, so a flipped list stays pinned to the cell's inline end at the new width.
+   *
+   * @param {boolean} [reevaluateHorizontalFlip=true] When `false`, keep the current horizontal flip.
    */
-  refreshDimensions(): void {
-    if (!this.getEditedCell()) {
+  refreshDimensions(reevaluateHorizontalFlip: boolean = true): void {
+    const cellRect = this.getEditedCellRect();
+
+    if (!cellRect) {
       this.close();
 
       return;
     }
 
-    const { top, start, height } = this.getEditedCellRect()!;
+    // Positioned `fixed`: the container stays a child of the grid root in the DOM, but the
+    // root's `overflow: clip` and any scrolling ancestor can no longer cut the list (#8688).
+    //
+    // The origin is the grid root's own rendered box plus the root-relative offset
+    // `getEditedCellRect()` returns, NOT the cell's `getBoundingClientRect()`. That offset
+    // carries a conditional 1px inline-start compensation - cancelled for a cell that draws its
+    // own inline-start border, which depends on row headers and on which columns are rendered -
+    // and a top border compensation. Reading the cell's rect directly drops both, which shifts
+    // this container relative to 18.1 on some columns and puts it a pixel out of line with the
+    // `handsontable` editor's list on the same grid.
+    const { top, start, height, width } = cellRect;
+    const rootRect = this.hot.rootElement.getBoundingClientRect();
+    const block = getFixedContainingBlockRect(this.#editorContainer!);
     const editorStyle = this.#editorContainer!.style;
+    const { spaceInlineStart, spaceInlineEnd } = this.#getInlineSpace(cellRect);
+    const dropdownWidth = this.dropdownController!.getOuterWidth();
+    const flipHorizontally = reevaluateHorizontalFlip
+      ? shouldFlipDropdownHorizontally(dropdownWidth, spaceInlineStart, spaceInlineEnd)
+      : this.isFlippedHorizontally;
 
-    editorStyle.top = `${top + height}px`;
-    editorStyle[this.hot.isRtl() ? 'right' : 'left'] = `${start}px`;
+    this.isFlippedHorizontally = flipHorizontally;
+
+    const inlineStart = flipHorizontally
+      ? getFlippedInlineStartOffset(start, dropdownWidth, width)
+      : start;
+
+    editorStyle.position = 'fixed';
+    editorStyle.top = `${(rootRect.top + top + height) - block.top}px`;
+
+    if (this.hot.isRtl()) {
+      // `inlineStart` is measured from the root's inline-start edge, which in RTL is its right edge.
+      // Resolved against the containing block's right edge, never `documentElement.clientWidth`:
+      // on an RTL page with classic scrollbars the gutter sits on the left, inside the rect
+      // origin, so mixing the two moves the container by the scrollbar's width.
+      editorStyle.left = '';
+      editorStyle.right = `${((block.left + block.width) - rootRect.right) + inlineStart}px`;
+    } else {
+      editorStyle.right = '';
+      editorStyle.left = `${(rootRect.left + inlineStart) - block.left}px`;
+    }
 
     addClass(this.#editorContainer!, EDITOR_VISIBLE_CLASS_NAME);
   }
@@ -272,6 +348,11 @@ export class MultiSelectEditor extends BaseEditor {
   destroy(): void {
     this.close();
     this.dropdownController!.reset();
+    // The editor's own DOM listeners - the document `scroll` follow this editor registers on
+    // `open()`. Nothing used this event manager before that listener existed, which is why
+    // destroying it was not needed here until now; without it the listener outlives the grid
+    // and `MemoryLeakTest` counts it.
+    this.eventManager.destroy();
   }
 
   /**
@@ -397,32 +478,128 @@ export class MultiSelectEditor extends BaseEditor {
     });
 
     this.dropdownController!.fillDropdown(filteredItems, this.#selectedItems.getItemsArray());
+    // Height-only: `updateDimensions(..., true)` keeps the vertical flip sticky.
+    // Pass `false` so the horizontal side chosen on open/scroll cannot jump as
+    // the filtered list narrows or widens (develop only called `updateDimensions`).
     this.dropdownController!.updateDimensions(this.#getAvailableSpace(), true);
+    this.refreshDimensions(false);
+  }
+
+  /**
+   * Re-clamps the list to the room around its cell, then moves it there. Runs on every scroll that
+   * moves the cell - the grid's own, the page's, an ancestor's - and on a resize: the cell moves
+   * relative to the containing block, so a list that fitted where it opened can stop fitting, and
+   * a list moved without a re-clamp keeps its opening height and hangs past the box's edge where
+   * nothing can reach its lower entries.
+   */
+  #followCell(): void {
+    // A closed editor has nothing to clamp, and a row scrolled out of the rendered range leaves
+    // no cell to measure - `refreshDimensions()` hides the list for that one.
+    if (this.isOpened() && this.getEditedCell()) {
+      const list = this.dropdownContainerElement!;
+      // `updateDimensions()` scrolls the list back to its first entry, which suits a new list, not
+      // one being scrolled: a wheel past its last entry scrolls the grid or the page, and the list
+      // would jump back to the top under the pointer.
+      const { scrollTop } = list;
+
+      // Clamp first: the horizontal flip in `refreshDimensions()` reads the clamped width.
+      this.dropdownController!.updateDimensions(this.#getAvailableSpace());
+      list.scrollTop = scrollTop;
+    }
+
+    this.refreshDimensions();
+  }
+
+  /**
+   * Keeps the `fixed` container attached to its cell while something outside the grid scrolls:
+   * the page, or an ancestor of the grid. The grid's own scroll already reaches `#followCell()`
+   * through the `afterScroll*` hooks. Capture phase, because `scroll` does not bubble. Bound once
+   * for the editor's life and gated on the editor being open, because `refreshDimensions()` also
+   * shows the container. Gated on the grid being alive too: tearing the grid down shrinks the
+   * document, the window's scroll position clamps, and the resulting `scroll` event reaches this
+   * listener before the event manager releases it - and `getEditedCell()` throws on a destroyed
+   * instance.
+   */
+  #bindScrollFollow(): void {
+    if (this.#scrollFollowBound) {
+      return;
+    }
+
+    const follow = (event?: Event) => {
+      // The grid's own scroll already reaches `#followCell()` through the `afterScroll*`
+      // hooks, and a capture listener runs BEFORE the target-phase handler that re-places the
+      // grid, so acting on it would position from a stale rect and then do it again.
+      // `isHTMLElement()`, not `instanceof Node`: the check has to hold for a node from another
+      // realm - a grid built inside an iframe from the parent's constructor - and a bare
+      // `instanceof` is bound to the realm this file was compiled in, so it answers `false`
+      // there and the skip silently stops working.
+      // The liveness check comes FIRST, the order `handsontable/AGENTS.md` requires of any
+      // callback that can outlive a task boundary: `Core#destroy()` nulls `rootElement` on its way
+      // past, so reading it before asking whether the grid is gone would throw rather than return.
+      if (this.hot.isDestroyed || !this.hot.rootElement || !this.isOpened()) {
+        return;
+      }
+
+      const target = event?.target;
+
+      if (isHTMLElement(target) && this.hot.rootElement.contains(target)) {
+        return;
+      }
+
+      this.#followCell();
+    };
+
+    this.eventManager.addEventListener(this.hot.rootDocument, 'scroll', follow, {
+      capture: true,
+      passive: true,
+    });
+    // A resize or a device rotation moves the cell without scrolling anything, which strands a
+    // `fixed` container - an `absolute` one rode along with the grid for free.
+    this.eventManager.addEventListener(this.hot.rootWindow, 'resize', () => follow(), { passive: true });
+    this.#scrollFollowBound = true;
   }
 
   /**
    * Calculates the available vertical space above and below the edited cell for positioning the dropdown.
+   *
+   * @returns {object} Space above and below the cell, plus the cell height.
    */
   #getAvailableSpace(): { spaceAbove: number; spaceBelow: number; cellHeight: number } {
-    const cellRect = this.getEditedCellRect()!;
-    const isVerticallyScrollableByWindow = this.hot.view.isVerticallyScrollableByWindow();
-    const workspaceHeight = this.hot.view.getWorkspaceHeight();
-
-    let spaceAbove = cellRect.top;
-
-    if (isVerticallyScrollableByWindow) {
-      const topOffset = this.hot.view.getTableOffset().top - this.hot.rootWindow.scrollY;
-
-      spaceAbove = Math.max(spaceAbove + topOffset, 0);
-    }
-
-    const spaceBelow = workspaceHeight - spaceAbove - cellRect.height;
+    // The container is positioned `fixed` (see `refreshDimensions()`), so the grid's workspace no
+    // longer bounds the list. What does is the box a fixed box is laid out in: the viewport, or
+    // an ancestor that establishes a containing block for it. Never `rootWindow.innerHeight` -
+    // that counts the classic scrollbar's gutter and, on mobile, the area under collapsible
+    // browser chrome and the software keyboard, which is up precisely because a text editor has
+    // focus.
+    const cellRect = this.getEditedCell()!.getBoundingClientRect();
+    const block = getFixedContainingBlockRect(this.#editorContainer!);
 
     return {
-      spaceAbove,
-      spaceBelow,
+      spaceAbove: Math.max(cellRect.top - block.top, 0),
+      spaceBelow: Math.max((block.top + block.height) - cellRect.bottom, 0),
       cellHeight: cellRect.height,
     };
+  }
+
+  /**
+   * Calculates the remaining inline-start and inline-end space around the edited cell.
+   *
+   * Uses the same workspace / window-scroll split as
+   * `HandsontableEditor.flipDropdownHorizontallyIfNeeded()`, and reads the window-scroll viewport from
+   * the same helper, `getWindowScrollInlineMetrics()`.
+   *
+   * @param {object} cellRect Edited-cell box already returned by `getEditedCellRect()`.
+   * @param {number} cellRect.start Inline-start position of the cell.
+   * @param {number} cellRect.width Pixel width of the cell.
+   * @returns {object} Remaining inline-start and inline-end space in pixels.
+   */
+  #getInlineSpace(cellRect: CellInlineBox): { spaceInlineStart: number; spaceInlineEnd: number } {
+    const { view } = this.hot;
+    const windowScroll = view.isHorizontallyScrollableByWindow()
+      ? getWindowScrollInlineMetrics(this.hot)
+      : undefined;
+
+    return getDropdownInlineSpace(cellRect, view.getWorkspaceWidth(), windowScroll);
   }
 
   /**
@@ -444,7 +621,7 @@ export class MultiSelectEditor extends BaseEditor {
       this.#selectedItems.add(selectedValue);
     }
     this.#saveCurrentSelection();
-    this.refreshDimensions();
+    this.refreshDimensions(false);
   }
 
   /**
@@ -457,7 +634,7 @@ export class MultiSelectEditor extends BaseEditor {
       this.#selectedItems.remove(deselectedValue);
     }
     this.#saveCurrentSelection();
-    this.refreshDimensions();
+    this.refreshDimensions(false);
   }
 
   /**

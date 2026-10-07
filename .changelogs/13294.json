@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "When `manualColumnFreeze` is enabled, the column (dropdown) menu now offers the \"Freeze column\" and \"Unfreeze column\" entries by default, and rebuilds its item list every time it opens.",
+  "type": "changed",
+  "issueOrPR": 13294,
+  "breaking": false,
+  "framework": "none"
+}

@@ -40,7 +40,7 @@ Disabling a cell makes the cell read-only or non-editable. Both have similar out
 
 ## Make the grid read-only
 
-To make the entire grid read-only, set [`readOnly`](@/api/options.md#readonly) to `true` as a [top-level grid option](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+To make the entire grid read-only, set [`readOnly`](@/api/options.md#readonly) to `true` as a [top-level grid option](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
 
 ::: only-for javascript
 
@@ -183,7 +183,7 @@ To make an entire row read-only, use the [`cells`](@/api/options.md#cells) funct
 
 ## Make specific cells read-only
 
-To make specific cells read-only, use the [`cells`](@/api/options.md#cells) function to set the [`readOnly`](@/api/options.md#readonly) property conditionally. The example below makes cells that contain the word "Nissan" read-only.
+To make specific cells read-only, use the [`cells`](@/api/options.md#cells) function to set the [`readOnly`](@/api/options.md#readonly) property conditionally. The example below makes cells that contain the word "Helium" read-only.
 
 ::: only-for javascript
 
@@ -279,7 +279,7 @@ To make a column non-editable, declare it in the [`columns`](@/api/options.md#co
 
 ## Make specific cells non-editable
 
-To make specific cells non-editable, set `editor: false` in the cell configuration. The following example shows a table with non-editable cells containing the word "Nissan".
+To make specific cells non-editable, set `editor: false` in the cell configuration. The following example shows a table with non-editable cells containing the word "Helium".
 
 ::: only-for javascript
 
@@ -323,6 +323,20 @@ To make specific cells non-editable, set `editor: false` in the cell configurati
 :::
 
 :::
+
+## Toggle read-only from the menus
+
+The **Read only** item of the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) and the [column menu](@/guides/accessories-and-menus/column-menu/column-menu.md) toggles the `readOnly` state of the selected cells.
+
+The [`cells`](@/api/options.md#cells) function runs again on top of every stored cell value, so a `readOnly` value that it sets, by returning it or by assigning it to `this`, always takes precedence over the menu. When the selection also holds other cells, the **Read only** item skips the ones that `cells` controls. It changes the rest, and its check mark reflects only them.
+
+If `cells` sets `readOnly` on every selected cell, the item behaves as it always did: it stays in the menu, shows the cell state, and can't change anything. This is the case when `cells` returns a `readOnly` value for every cell, for example `{ readOnly: false }` as a default.
+
+Undo and redo of a menu toggle change only the cells that the toggle changed. A cell that the **Read only** item skips keeps its stored value.
+
+## Block the entire grid
+
+The [`readOnly`](@/api/options.md#readonly) and [`editor`](@/api/options.md#editor) options control editing, but users can still navigate and select cells. To block all interaction with the grid temporarily -- for example, during a loading state or a blocking workflow step -- use the [Dialog](@/guides/dialog/dialog/dialog.md) plugin. An open dialog overlays the grid and moves keyboard input into its own [focus scope](@/guides/navigation/focus-scopes/focus-scopes.md), so users can't reach the cells until the dialog closes. The grid regains focus automatically.
 
 ## Accessibility
 

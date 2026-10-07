@@ -1,9 +1,9 @@
 <div align="center">
   <br><br>
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-logo-white.svg?raw=true"/>
-    <source media="(prefers-color-scheme: light)" srcset="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-logo-black.svg?raw=true"/>
-    <img width="360" alt="Logo of Handsontable data grid" src="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-logo-black.svg?raw=true"/>
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-logo-black.svg"/>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-logo-white.svg"/>
+    <img width="360" alt="Logo of Handsontable data grid" src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-logo-black.svg"/>
   </picture>
   <br><br>
   <h3>Handsontable is a <a href="https://handsontable.com/docs" target="_blank">JavaScript Data Grid</a> with a spreadsheet-like look and feel.</h3>
@@ -30,9 +30,9 @@
   <br>
 
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-preview-dark-theme.png?raw=true"/>
-    <source media="(prefers-color-scheme: light)" srcset="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-preview-light-theme.png?raw=true"/>
-    <img width="780" alt="JavaScript data grid preview" src="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-preview-light-theme.png?raw=true"/>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-preview-dark-theme.png"/>
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-preview-light-theme.png"/>
+    <img width="780" alt="JavaScript data grid preview" src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-preview-light-theme.png"/>
   </picture>
 </div>
 
@@ -60,6 +60,8 @@
 &nbsp;&nbsp;✅&nbsp; [Server-side data](https://handsontable.com/docs/javascript-data-grid/server-side-data/) <br>
 &nbsp;&nbsp;✅&nbsp; [Notifications](https://handsontable.com/docs/javascript-data-grid/notification/) <br>
 &nbsp;&nbsp;✅&nbsp; [Export to Excel](https://handsontable.com/docs/javascript-data-grid/export-to-excel/) <br>
+&nbsp;&nbsp;✅&nbsp; [Date and time editing](https://handsontable.com/docs/javascript-data-grid/cell-type/) <br>
+&nbsp;&nbsp;✅&nbsp; [Shadow DOM / Web Components support](https://handsontable.com/docs/javascript-data-grid/shadow-dom/) <br>
 
 <br>
 
@@ -184,7 +186,7 @@ Each theme supports:
 - Dark mode
 
 <picture>
-  <img width="780" alt="JavaScript data grid preview" src="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-themes.png?raw=true"/>
+  <img width="780" alt="JavaScript data grid preview" src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-themes.png"/>
 </picture>
 
 ## 🏗️ Custom Themes
@@ -227,6 +229,20 @@ Handsontable is a data grid component written in JavaScript, not a spreadsheet. 
 - Built-in cell editors like a date picker or dropdown list
 
 At first glance, it might seem that a data table, spreadsheet, and data grid are just different names for the same thing - an interactive table displaying data. In reality, these tools serve different purposes and offer distinct functionalities, designed to meet specific needs. Handsontable sits comfortably in the data grid category while incorporating many of the best aspects of spreadsheet software.
+
+<br>
+
+## 🤖 AI & agent resources
+
+Handsontable and HyperFormula ship first-party resources for AI assistants and coding agents:
+
+- **Agent Skills** - official skills for Claude Code, Codex, and other coding agents, covering both products. Install in Claude Code with `/plugin marketplace add handsontable/handsontable-skills`.
+  → [github.com/handsontable/handsontable-skills](https://github.com/handsontable/handsontable-skills)
+- **AI Docs Assistant** - ask questions in English (or any other language) and get cited answers from the live docs, right in the [documentation header](https://handsontable.com/docs/javascript-data-grid/ai-docs-assistant/).
+- **[Docs MCP server](https://handsontable.com/docs/javascript-data-grid/docs-mcp-server/)** - semantic search over the full Handsontable + HyperFormula knowledge base: docs guides, API reference, code recipes, release notes, blog posts, and GitHub issues, always current with the latest release.
+  `claude mcp add --transport http handsontable-docs https://docs-assistant.handsontable.com/mcp`
+- **Docs written for agents** - every docs page has a Markdown twin; start at [handsontable.com/docs/llms.txt](https://handsontable.com/docs/llms.txt).
+- **Already using Context7?** Handsontable and HyperFormula are indexed there too.
 
 <br>
 

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an error thrown when the `nestedRows` plugin was enabled at runtime through `updateSettings()`, and made switching the plugin on or off update the number of rows the grid shows.",
+  "type": "fixed",
+  "issueOrPR": 13564,
+  "breaking": false,
+  "framework": "none"
+}

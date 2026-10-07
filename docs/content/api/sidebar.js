@@ -15,13 +15,13 @@ module.exports = {
     {
       title: 'Rows',
       children: [
-        'autoRowSize', 'bindRowsWithHeaders', 'hiddenRows',
+        'autoRowHeaderSize', 'autoRowSize', 'bindRowsWithHeaders', 'hiddenRows',
         'manualRowMove', 'manualRowResize', 'nestedRows', 'trimRows',
       ],
     },
     {
       title: 'Cells',
-      children: ['autofill', 'comments', 'customBorders', 'formulas', 'mergeCells'],
+      children: ['autoLink', 'autofill', 'comments', 'customBorders', 'formulas', 'mergeCells'],
     },
     {
       title: 'Menus & UI',

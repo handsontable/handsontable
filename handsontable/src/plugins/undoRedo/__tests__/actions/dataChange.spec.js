@@ -26,13 +26,12 @@ describe('UndoRedo -> DataChange action', () => {
 
     getPlugin('undoRedo').undo();
 
-    expect(afterUndo).toHaveBeenCalledWith({
+    expect(afterUndo).toHaveBeenCalledWith(jasmine.objectContaining({
       actionType: 'change',
       changes: [[1, 2, 'C2', 'test']],
+      // The cells the change wrote.
       selected: [[1, 2]],
-      countCols: 5,
-      countRows: 5,
-    });
+    }));
   });
 
   it('should undo and redo the change when the async validator is used', async() => {

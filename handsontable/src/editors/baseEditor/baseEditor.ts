@@ -1,5 +1,6 @@
 import type { HotInstance } from '../../core/types';
 import type { CellProperties } from '../../settings';
+import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 import { stringify } from '../../helpers/mixed';
 import { throwWithCause } from '../../helpers/errors';
 import { warn } from '../../helpers/console';
@@ -14,6 +15,7 @@ import {
   outerHeight,
 } from '../../helpers/dom/element';
 import { getValueGetterValue } from '../../utils/valueAccessors';
+import { collectSelectionFillChanges, selectionFillsOtherCells } from '../../selection/fillSelection';
 
 export const EDITOR_TYPE = 'base';
 export const EDITOR_STATE = Object.freeze({
@@ -92,6 +94,18 @@ export class BaseEditor {
    * @type {HTMLTableCellElement}
    */
   TD: HTMLTableCellElement | null = null;
+  // Declared without an initializer on purpose. An editor that never assigns one has to keep
+  // reading `undefined`, which is what it read while this property lived on `editorFactory`'s own
+  // type, and what `editors/__tests__/index.spec.js` asserts.
+  /**
+   * An element the editor renders OUTSIDE its own container – a dropdown, popover or third-party
+   * picker appended to the document body. The grid treats this element and its whole subtree as a
+   * part of the editor, so neither a click landing in it nor the browser focus moving into it
+   * counts as a click or a focus loss outside the grid.
+   *
+   * @type {HTMLElement|null}
+   */
+  preventCloseElement?: HTMLElement | null;
   /**
    * Visual row index.
    *
@@ -116,6 +130,37 @@ export class BaseEditor {
    * @type {*}
    */
   originalValue: unknown = null;
+  /**
+   * What the editor held the moment it finished opening, captured only when it was seeded from the
+   * cell's own value. `finishEditing()` compares against it to tell a real edit from a confirm that
+   * changed nothing.
+   *
+   * Stays `null` whenever the guard must not apply: the editor was not seeded (fast edit mode, where
+   * the user's first keystroke supplies the value), or it was seeded with a caller-supplied string.
+   * Both keep the unconditional save they have always had.
+   */
+  #valueBeforeEdit: unknown = null;
+
+  /**
+   * Whether `#valueBeforeEdit` holds a baseline at all.
+   *
+   * Kept separate from the value: `getValue()` is typed `unknown`, and a custom editor is free to
+   * return `null` or `undefined` from it. Using the value itself as the "armed" marker would arm the
+   * guard with `undefined` for such an editor, `undefined === undefined` would hold on every confirm,
+   * and the cell could never be saved.
+   */
+  #hasValueBeforeEdit: boolean = false;
+
+  /**
+   * Re-arms the unchanged-edit guard after the editor's content has been reloaded from the data
+   * source, so the baseline describes what the editor shows now rather than what it showed when it
+   * opened. Does nothing while the guard is disarmed.
+   */
+  protected resetValueBeforeEdit(): void {
+    if (this.#hasValueBeforeEdit) {
+      this.#valueBeforeEdit = this.getValue();
+    }
+  }
   /**
    * Object containing the cell's properties.
    *
@@ -237,40 +282,77 @@ export class BaseEditor {
   /**
    * Saves value from editor into data storage.
    *
+   * With `ctrlDown` the value goes into every cell of **every** selection layer, not only the layer
+   * that holds the focus - the same reach the grid's own `Ctrl`/`Cmd`+`Enter` fill has when no
+   * editor is open. The whole fill leaves through one `setDataAtCell()` call, so it fires one
+   * `afterChange` and costs one undo step however many layers it spans.
+   *
    * @param {*} value The editor value.
-   * @param {boolean} ctrlDown If `true`, applies value to each cell in the last selected range.
+   * @param {boolean} ctrlDown If `true`, applies value to each cell in every selected range.
    */
   saveValue(value: unknown, ctrlDown?: boolean): void {
-    let visualRowFrom;
-    let visualColumnFrom;
-    let visualRowTo;
-    let visualColumnTo;
-
     // if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
     if (ctrlDown) {
-      const activeRange = this.hot.getSelectedRangeActive();
-      const topStartCorner = activeRange?.getTopStartCorner();
-      const bottomEndCorner = activeRange?.getBottomEndCorner();
+      const selectedRanges = this.hot.getSelectedRange();
 
-      visualRowFrom = topStartCorner?.row ?? this.row;
-      visualColumnFrom = topStartCorner?.col ?? this.col;
-      visualRowTo = bottomEndCorner?.row ?? this.row;
-      visualColumnTo = bottomEndCorner?.col ?? this.col;
+      // The editor can outlive the selection - a custom editor saving from a detached UI, say - and
+      // then there is no layer to fill, so the value goes to the cell the editor was opened on.
+      if (selectedRanges?.length) {
+        this.#saveValueToSelection(value, selectedRanges);
 
-    } else {
-      [visualRowFrom, visualColumnFrom, visualRowTo, visualColumnTo] = [this.row, this.col, null, null];
+        return;
+      }
     }
 
-    const modifiedCellCoords = this.hot.runHooks('modifyGetCellCoords', visualRowFrom, visualColumnFrom, false, 'meta');
+    this.#saveValueToEditedCell(value as unknown[][]);
+  }
+
+  /**
+   * Writes the editor's value into the single cell the editor was opened on.
+   *
+   * @param {Array[]} value The editor value, in the 2D form `saveValue()` receives it.
+   */
+  #saveValueToEditedCell(value: unknown[][]): void {
+    let visualRow: number | null = this.row;
+    let visualColumn: number | null = this.col;
+
+    const modifiedCellCoords = this.hot.runHooks('modifyGetCellCoords', visualRow, visualColumn, false, 'meta');
 
     if (Array.isArray(modifiedCellCoords)) {
-      [visualRowFrom, visualColumnFrom] = modifiedCellCoords as [number, number];
+      [visualRow, visualColumn] = modifiedCellCoords as [number, number];
     }
 
     // Saving values using the modified coordinates.
-    this.hot.populateFromArray(
-      visualRowFrom as number, visualColumnFrom as number, value as unknown[][],
-      visualRowTo as number, visualColumnTo as number, 'edit');
+    this.hot.populateFromArray(visualRow as number, visualColumn as number, value, null, null, 'edit');
+  }
+
+  /**
+   * Writes the editor's value into every cell of every selection layer.
+   *
+   * The collecting is shared with the grid's own `Ctrl`/`Cmd`+`Enter` fill, so both answer that
+   * keystroke the same way - see `selection/fillSelection.ts` for what the walk skips and why the
+   * whole fill has to leave through a single `setDataAtCell()` call.
+   *
+   * Only the first cell of the 2D wrapper is read. A fill writes one value into every selected
+   * cell, so there is nothing to tile - unlike `#saveValueToEditedCell()`, which hands the block to
+   * `populateFromArray()` and does tile it over a rectangle. A custom editor passing a real 2D block
+   * with `ctrlDown` therefore has every cell of that block but the first ignored.
+   *
+   * @param {*} value The editor value, as `saveValue()` receives it.
+   * @param {CellRange[]} selectedRanges The selection layers to fill.
+   */
+  #saveValueToSelection(value: unknown, selectedRanges: CellRange[]): void {
+    // `saveValue()` is called with the value wrapped in a 2D array, which is the shape
+    // `populateFromArray()` tiles over a rectangle. A fill writes one value into every cell, so the
+    // wrapper is unwrapped here rather than indexed per cell - and anything that is not that shape
+    // (a custom editor passing the raw value) is written as it stands instead of being indexed into
+    // characters.
+    const cellValue: unknown = Array.isArray(value) && Array.isArray(value[0]) ? value[0][0] : value;
+    const changes = collectSelectionFillChanges(this.hot, cellValue, selectedRanges);
+
+    if (changes.length > 0) {
+      this.hot.setDataAtCell(changes, null, null, 'edit');
+    }
   }
 
   /**
@@ -305,10 +387,18 @@ export class BaseEditor {
 
     // Set the editor value only in the full edit mode. In other mode the focusable element has to be empty,
     // otherwise IME (editor for Asia users) doesn't work.
+    // `seededFromCell` records whether the editor was filled from the cell's own value, which is the
+    // only case the no-op guard in `finishEditing()` may act on.
+    let seededFromCell = false;
+    let seededValue: unknown = null;
+
     if (this.isInFullEditMode()) {
       const originalValue = getValueGetterValue(this.originalValue, this.hot.getCellMeta(this.row, this.col));
       const stringifiedInitialValue = typeof newInitialValue === 'string' ?
         newInitialValue : stringify(originalValue);
+
+      seededFromCell = typeof newInitialValue !== 'string';
+      seededValue = stringifiedInitialValue;
 
       this.setValue(stringifiedInitialValue);
     }
@@ -316,6 +406,15 @@ export class BaseEditor {
     this.open(event);
     this._opened = true;
     this.focus();
+
+    // The baseline is the string the CELL's value produced, not what the editor ended up showing.
+    // The two differ whenever an editor substitutes something of its own - `DateEditor` swaps in
+    // `defaultDate` for an empty cell - and in that case the editor is genuinely offering a value the
+    // cell does not hold, so confirming has to save it. Reading `getValue()` back here instead made
+    // every confirm on such a cell compare equal, and a `date` column could no longer store its
+    // `defaultDate` from the editor at all.
+    this.#hasValueBeforeEdit = seededFromCell;
+    this.#valueBeforeEdit = seededFromCell ? seededValue : null;
 
     // only rerender the selections (FillHandle should disappear when beginEditing is triggered)
     hotInstance.view.render();
@@ -325,15 +424,13 @@ export class BaseEditor {
   }
 
   /**
-   * Finishes editing and start saving or restoring process for editing cell or last selected range.
+   * Finishes editing and start saving or restoring process for the editing cell, or for every selected range.
    *
    * @param {boolean} restoreOriginalValue If true, then closes editor without saving value from the editor into a cell.
-   * @param {boolean} ctrlDown If true, then saveValue will save editor's value to each cell in the last selected range.
+   * @param {boolean} ctrlDown If true, then saveValue will save editor's value to each cell in every selected range.
    * @param {Function} callback The callback function, fired after editor closing.
    */
   finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: Function): void {
-    let val: unknown;
-
     if (callback) {
       const previousCloseCallback = this._closeCallback;
 
@@ -369,12 +466,41 @@ export class BaseEditor {
 
       let value = this.getValue();
 
+      // Normalization runs BEFORE the comparison, so an unchanged confirm still trims whitespace and
+      // still runs `valueParser` exactly as it always did. Comparing first would silently drop both
+      // for a cell whose content the user did not touch.
       if (this.cellProperties.trimWhitespace) {
         value = typeof value === 'string' ? String.prototype.trim.call(value || '') : value;
       }
 
       if (typeof this.cellProperties.valueParser === 'function') {
         value = this.cellProperties.valueParser(value, this.cellProperties);
+      }
+
+      // Ctrl/Meta + Enter over a real range copies the edited value into every other cell of the
+      // selection, so an unchanged editor still has work to do there. Where it writes only the
+      // edited cell it is the same gesture as a plain Enter, and the guard has to stay armed: that
+      // is the #3927 case, where the editor's `''` was written over a `null` cell.
+      //
+      // The question is asked of the cells the fill would actually reach, not of the selection's
+      // shape. A single-cell active layer says nothing about the other layers (DEV-103), and a
+      // layer that contributes no writable cell - all `readOnly`, or a header - is not work either.
+      //
+      // It is asked of the NORMALIZED value, which is the one `saveValue()` goes on to write. A
+      // `valueParser` returning an object would otherwise have the guard read the raw string and the
+      // write read the object, and the two answer the object-cell rule differently.
+      const fillsOtherCells = ctrlDown === true &&
+        selectionFillsOtherCells(this.hot, value, this.row, this.col);
+
+      // The editor still holds exactly what it was opened with, so the user confirmed without changing
+      // anything. Writing the editor's stringified value back over the cell is what turned a `null`
+      // into `''` (#3927), so an unchanged confirm must not go through the normal save path.
+      const isUnchanged = !fillsOtherCells && this.#hasValueBeforeEdit && value === this.#valueBeforeEdit;
+
+      if (isUnchanged) {
+        this.#finishUnchangedEdit();
+
+        return;
       }
 
       this.state = EDITOR_STATE.WAITING;
@@ -393,6 +519,43 @@ export class BaseEditor {
   }
 
   /**
+   * Closes an editor whose content the user never changed, without writing anything.
+   *
+   * Nothing is written on either branch, so the stored value is untouched and no `afterChange` fires
+   * for an edit that never happened - whether or not the cell has a validator. Writing the value back
+   * to trigger validation was tried and rejected: re-entering the write path re-applies `valueSetter`
+   * and `emptyValue` to an already-stored value, which can change it, and it made the event fire in a
+   * validated column but not an unvalidated one, a split nothing in the configuration predicted.
+   *
+   * A validated cell is still validated, because `allowInvalid: false` has to keep the editor open on
+   * an invalid value however the user got there. `discardEditor()` is driven from `postAfterValidate`
+   * rather than from `validateCell()`'s own callback: the callback runs first, and closing from there
+   * leaves the `allowInvalid: false` reopen unable to hold the editor open.
+   *
+   * Renders on the way out, matching `beginEditing()` and the `cancelChanges()` path. The normal save
+   * path gets its render from `populateFromArray()`, which this one deliberately never reaches.
+   */
+  #finishUnchangedEdit(): void {
+    if (!this.hot.getCellValidator(this.cellProperties)) {
+      this.state = EDITOR_STATE.FINISHED;
+      this.discardEditor(true);
+      this.hot.view.render();
+
+      return;
+    }
+
+    this.state = EDITOR_STATE.WAITING;
+
+    this.hot.addHookOnce('postAfterValidate', (result: unknown) => {
+      this.state = EDITOR_STATE.FINISHED;
+      this.discardEditor(result as boolean);
+      this.hot.view.render();
+    });
+
+    this.hot.validateCell(this.originalValue, this.cellProperties, () => {}, 'edit');
+  }
+
+  /**
    * Finishes editing without saving value.
    */
   cancelChanges(): void {
@@ -401,7 +564,7 @@ export class BaseEditor {
   }
 
   /**
-   * Verifies result of validation or closes editor if user's cancelled changes.
+   * Verifies result of validation or closes editor if user's canceled changes.
    *
    * @param {boolean|undefined} result If `false` and the cell using allowInvalid option,
    *                                   then an editor won't be closed until validation is passed.
@@ -427,6 +590,12 @@ export class BaseEditor {
 
       this._opened = false;
       this._fullEditMode = false;
+      // Released only once the editor really closes - this branch. `allowInvalid: false` returns to
+      // EDITING through the branch above without closing, so the baseline has to survive that: a
+      // rejected edit leaves the same editor open, and disarming here would let the NEXT confirm of
+      // that session write the editor's stringified value, reintroducing #3927.
+      this.#hasValueBeforeEdit = false;
+      this.#valueBeforeEdit = null;
       this.state = EDITOR_STATE.VIRGIN;
       this._fireCallbacks(true);
 
@@ -515,8 +684,14 @@ export class BaseEditor {
     const gridMostRightPos = rootWindow.innerWidth - containerOffset.left - containerWidth;
     const { wtTable: overlayTable } = wtOverlays.getParentOverlay(TD) ?? this.hot.view._wt;
     const overlayName = overlayTable.name;
+    // `offset()` walks the layout chain and misses the transform that places the spreader
+    // (`walkontable/src/overlay/spreaderOffset.ts`); fold that offset into the cell's document position.
+    const spreaderOffset = overlayTable.getSpreaderOffset();
 
-    const scrollTop = ['master', 'inline_start'].includes(overlayName) ? containerScrollTop : 0;
+    currentOffset.top += spreaderOffset.y;
+    currentOffset.left += spreaderOffset.x;
+
+    const scrollTop = ['master', 'inline_start', 'inline_end'].includes(overlayName) ? containerScrollTop : 0;
     const scrollLeft = ['master', 'top', 'bottom'].includes(overlayName) ? containerScrollLeft : 0;
 
     // If colHeaders is disabled, cells in the first row have border-top
@@ -534,17 +709,25 @@ export class BaseEditor {
     // When the scrollable element is Window object then the editor position needs to be compensated
     // by the overlays' position (position relative to the table viewport). In other cases, the overlay's
     // position always returns 0.
-    if (['top', 'top_inline_start_corner'].includes(overlayName)) {
-      topPos += wtOverlays.topOverlay?.getOverlayOffset() ?? 0;
+    // Only the part the offset chain cannot see: a clone pinned with `position: sticky` is already
+    // shifted in the layout `offset()` walks (DEV-126 on this axis).
+    if (['top', 'top_inline_start_corner', 'top_inline_end_corner'].includes(overlayName)) {
+      topPos += wtOverlays.topOverlay?.getOverlayTransformOffset() ?? 0;
     }
 
+    // Only the part the offset chain cannot see: a clone pinned with `position: sticky` is already
+    // shifted in the layout `offset()` walks (DEV-127).
     if (['inline_start', 'top_inline_start_corner'].includes(overlayName)) {
-      inlineStartPos += Math.abs(wtOverlays.inlineStartOverlay?.getOverlayOffset() ?? 0);
+      inlineStartPos += Math.abs(wtOverlays.inlineStartOverlay?.getOverlayTransformOffset() ?? 0);
+    }
+
+    // The same for the clones pinned to the inline-end edge, which have an overlay of their own.
+    if (['inline_end', 'top_inline_end_corner'].includes(overlayName)) {
+      inlineStartPos += Math.abs(wtOverlays.inlineEndOverlay?.getOverlayTransformOffset() ?? 0);
     }
 
     const hasColumnHeaders = this.hot.hasColHeaders();
     const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row ?? 0);
-    const renderableColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.col ?? 0);
     const nrOfRenderableRowIndexes = this.hot.rowIndexMapper.getRenderableIndexesLength();
     const firstRowIndexOfTheBottomOverlay =
       nrOfRenderableRowIndexes - (this.hot.view._wt.getSetting('fixedRowsBottom') as number);
@@ -553,7 +736,18 @@ export class BaseEditor {
       topPos += 1;
     }
 
-    if ((renderableColumn ?? 0) <= 0) {
+    const cellComputedStyle = rootWindow.getComputedStyle(TD);
+    const borderPhysicalWidthProp = this.hot.isRtl() ? 'borderRightWidth' : 'borderLeftWidth';
+    const inlineStartBorderCompensation = Number.parseInt(cellComputedStyle[borderPhysicalWidthProp], 10) > 0 ? 0 : 1;
+
+    // The position above shifted the editor 1px towards the inline start so that it covers the
+    // gridline the previous cell draws on its inline-end side. A cell that draws its OWN
+    // inline-start border keeps that gridline inside its box, so there is nothing to cover and the
+    // shift is canceled here. Which cells those are is not a fixed index: with row headers the
+    // header owns the gridline and column 0 draws none (#6673), and `htFirstDatasetColumnNotRendered`
+    // takes it off the first rendered column too - so read the border rather than the index, and
+    // key it off the same value that sizes the editor below, or the two disagree by a pixel.
+    if (inlineStartBorderCompensation === 0) {
       inlineStartPos += 1;
     }
 
@@ -564,12 +758,16 @@ export class BaseEditor {
     const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
     const cellTopOffset = this.#calcCellTopOffset(TD, overlayName, firstRowOffset,
       verticalScrollPosition, scrollbarWidth);
-    const cellStartOffset = this.#calcCellStartOffset(TD, overlayName, overlayTable, cellWidth,
-      firstColumnOffset, horizontalScrollPosition);
+    // The end clones are pinned to the inline-end edge, so a position inside the clone says nothing about
+    // where the cell stands in the grid. The editor's own inline-start position is measured from the grid's
+    // inline-start edge already, and the width the editor may grow to is the room left from there. When the
+    // window scrolls the grid, that position is in the page, so the scroll comes off it, the way it does for
+    // the cells of the main table.
+    const cellStartOffset = ['inline_end', 'top_inline_end_corner', 'bottom_inline_end_corner'].includes(overlayName) ?
+      inlineStartPos - (wtOverlays.inlineStartOverlay?.mainTableScrollableElement === rootWindow ?
+        horizontalScrollPosition : 0) :
+      this.#calcCellStartOffset(TD, overlayName, overlayTable, cellWidth, firstColumnOffset, horizontalScrollPosition);
 
-    const cellComputedStyle = rootWindow.getComputedStyle(TD);
-    const borderPhysicalWidthProp = this.hot.isRtl() ? 'borderRightWidth' : 'borderLeftWidth';
-    const inlineStartBorderCompensation = Number.parseInt(cellComputedStyle[borderPhysicalWidthProp], 10) > 0 ? 0 : 1;
     const topBorderCompensation = Number.parseInt(cellComputedStyle.borderTopWidth, 10) > 0 ? 0 : 1;
     const width = outerWidth(TD) + inlineStartBorderCompensation;
     const height = outerHeight(TD) + topBorderCompensation;
@@ -577,8 +775,9 @@ export class BaseEditor {
       hasVerticalScrollbar(scrollableContainerTop) ? scrollbarWidth : 0;
     const actualHorizontalScrollbarWidth = scrollableContainerLeft &&
       hasHorizontalScrollbar(scrollableContainerLeft) ? scrollbarWidth : 0;
-    const maxWidth = this.hot.view.maximumVisibleElementWidth(cellStartOffset) -
-      actualVerticalScrollbarWidth + inlineStartBorderCompensation;
+    // The end clones paint over the master editor (z-index), so the room it may grow into ends where the band starts.
+    const maxWidth = Math.max(this.hot.view.maximumVisibleElementWidth(cellStartOffset) -
+      actualVerticalScrollbarWidth + inlineStartBorderCompensation - this.#calcEndBandWidth(overlayName), 0);
     const maxHeight = Math.max(this.hot.view.maximumVisibleElementHeight(cellTopOffset ?? 0) -
       actualHorizontalScrollbarWidth + topBorderCompensation, this.hot.stylesHandler.getDefaultRowHeight() ?? 0);
 
@@ -590,6 +789,34 @@ export class BaseEditor {
       width,
       maxWidth,
     };
+  }
+
+  /**
+   * Calculates the width the editor of a cell may not grow into because the frozen end columns (`fixedColumnsEnd`)
+   * are painted over it. It is `0` for a cell of an end clone, which stands at the band itself, and for a grid
+   * without end columns.
+   *
+   * @param {string} overlayName The name of the overlay containing the edited cell.
+   * @returns {number}
+   */
+  #calcEndBandWidth(overlayName: string): number {
+    if (['inline_end', 'top_inline_end_corner', 'bottom_inline_end_corner'].includes(overlayName)) {
+      return 0;
+    }
+
+    const { wtOverlays, wtViewport, wtTable } = this.hot.view._wt;
+    const bandWidth = wtOverlays.inlineEndOverlay?.getBandWidth() ?? 0;
+
+    if (bandWidth === 0) {
+      return 0;
+    }
+
+    // Without a horizontal scroll the columns do not fill the holder and the band rests against the last column,
+    // so the free room between the two counts as taken as well.
+    const restingGap = wtViewport.hasHorizontalScroll() ?
+      0 : Math.max(wtViewport.getWorkspaceWidth() - wtTable.getTotalWidth(), 0);
+
+    return bandWidth + restingGap;
   }
 
   /**
@@ -609,11 +836,14 @@ export class BaseEditor {
     let cellTopOffset = TD.offsetTop;
     const { wtOverlays } = this.hot.view._wt;
 
-    if (['inline_start', 'master'].includes(overlayName)) {
+    if (['inline_start', 'inline_end', 'master'].includes(overlayName)) {
       cellTopOffset += firstRowOffset - verticalScrollPosition;
     }
 
-    if (['bottom', 'bottom_inline_start_corner'].includes(overlayName) && wtOverlays.bottomOverlay?.clone) {
+    if (
+      ['bottom', 'bottom_inline_start_corner', 'bottom_inline_end_corner'].includes(overlayName) &&
+      wtOverlays.bottomOverlay?.clone
+    ) {
       const {
         wtViewport: bottomWtViewport,
         wtTable: bottomWtTable,
@@ -672,14 +902,20 @@ export class BaseEditor {
     switch (editorSection) {
       case 'inline-start':
         return 'ht_clone_left ht_clone_inline_start';
+      case 'inline-end':
+        return 'ht_clone_inline_end';
       case 'bottom':
         return 'ht_clone_bottom';
       case 'bottom-inline-start-corner':
         return 'ht_clone_bottom_left_corner ht_clone_bottom_inline_start_corner';
+      case 'bottom-inline-end-corner':
+        return 'ht_clone_bottom_inline_end_corner';
       case 'top':
         return 'ht_clone_top';
       case 'top-inline-start-corner':
         return 'ht_clone_top_left_corner ht_clone_top_inline_start_corner';
+      case 'top-inline-end-corner':
+        return 'ht_clone_top_inline_end_corner';
       default:
         return 'ht_clone_master';
     }
@@ -710,24 +946,36 @@ export class BaseEditor {
     }
 
     const totalRows = this.hot.countRows();
+    const totalColumns = this.hot.countCols();
     const settings = this.hot.getSettings();
+    const fixedColumnsStart = settings.fixedColumnsStart ?? 0;
+    // The start band has priority, so only the columns it leaves can belong to the end band.
+    const firstFixedColumnEnd = totalColumns - this.hot.view.countFixedColumnsEnd();
+    const isInlineStart = this.col < fixedColumnsStart;
+    const isInlineEnd = !isInlineStart && this.col >= firstFixedColumnEnd;
     let section = '';
 
     if (this.row < (settings.fixedRowsTop ?? 0)) {
-      if (this.col < (settings.fixedColumnsStart ?? 0)) {
+      if (isInlineStart) {
         section = 'top-inline-start-corner';
+      } else if (isInlineEnd) {
+        section = 'top-inline-end-corner';
       } else {
         section = 'top';
       }
     } else if (settings.fixedRowsBottom &&
                this.row >= totalRows - settings.fixedRowsBottom) {
-      if (this.col < (settings.fixedColumnsStart ?? 0)) {
+      if (isInlineStart) {
         section = 'bottom-inline-start-corner';
+      } else if (isInlineEnd) {
+        section = 'bottom-inline-end-corner';
       } else {
         section = 'bottom';
       }
-    } else if (this.col < (settings.fixedColumnsStart ?? 0)) {
+    } else if (isInlineStart) {
       section = 'inline-start';
+    } else if (isInlineEnd) {
+      section = 'inline-end';
     }
 
     return section;

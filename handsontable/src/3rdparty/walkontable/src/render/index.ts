@@ -5,6 +5,7 @@ import { ColGroupRenderer } from './colGroup';
 import { RowsRenderer } from './rows';
 import { CellsRenderer } from './cells';
 import { TableRenderer } from './tableRenderer';
+import type { ShouldPaintCell } from './tableRenderer';
 import type RowFilter from '../filter/row';
 import type ColumnFilter from '../filter/column';
 import type RowUtils from '../axisSizing/rowUtils';
@@ -19,6 +20,7 @@ interface RendererOptions {
   rowUtils?: RowUtils;
   columnUtils?: ColumnUtils;
   cellRenderer?: Function;
+  shouldPaintCell?: ShouldPaintCell;
   stylesHandler?: StylesHandler;
 }
 
@@ -39,14 +41,14 @@ class Renderer {
    * @param {RendererOptions} options The renderer configuration options.
    */
   constructor({
-    TABLE, THEAD, COLGROUP, TBODY, rowUtils, columnUtils, cellRenderer, stylesHandler
+    TABLE, THEAD, COLGROUP, TBODY, rowUtils, columnUtils, cellRenderer, shouldPaintCell, stylesHandler
   }: RendererOptions = {}) {
     /**
      * General renderer class used to render Walkontable content on screen.
      *
      * @type {TableRenderer}
      */
-    this.renderer = new TableRenderer(TABLE!, { cellRenderer, stylesHandler });
+    this.renderer = new TableRenderer(TABLE!, { cellRenderer, shouldPaintCell, stylesHandler });
     this.renderer.setRenderers({
       rowHeaders: new RowHeadersRenderer(),
       columnHeaderRows: new ColumnHeaderRowsRenderer(THEAD!),
@@ -61,7 +63,7 @@ class Renderer {
   /**
    * Sets the overlay that is currently rendered. If `null` is provided, the master overlay is set.
    *
-   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|'master'} overlayName The overlay name.
+   * @param {'inline_start'|'inline_end'|'top'|'top_inline_start_corner'|'top_inline_end_corner'|'bottom'|'bottom_inline_start_corner'|'bottom_inline_end_corner'|'master'} overlayName The overlay name.
    * @returns {Renderer}
    */
   setActiveOverlayName(overlayName: string) {
@@ -111,6 +113,19 @@ class Renderer {
   }
 
   /**
+   * Restricts the next render's cell and row-header repaint to the rows at and after
+   * `fromVisibleRow` (see `TableRenderer#setPaintWindow`).
+   *
+   * @param {number} fromVisibleRow The first visible row index to repaint; `0` repaints the whole band.
+   * @returns {Renderer}
+   */
+  setPaintWindow(fromVisibleRow: number) {
+    this.renderer.setPaintWindow(fromVisibleRow);
+
+    return this;
+  }
+
+  /**
    * Marks this draw as one where the column-header (THEAD) pass may be skipped when the column render
    * window is unchanged (a pure vertical scroll).
    *
@@ -119,6 +134,42 @@ class Renderer {
    */
   setColumnHeadersRenderSkippable(skippable: boolean) {
     this.renderer.setColumnHeadersRenderSkippable(skippable);
+
+    return this;
+  }
+
+  /**
+   * Sets whether this draw was entered as a scroll draw.
+   *
+   * @param {boolean} scrollDriven Whether the draw is scroll-driven.
+   * @returns {Renderer}
+   */
+  setScrollDrivenDraw(scrollDriven: boolean) {
+    this.renderer.setScrollDrivenDraw(scrollDriven);
+
+    return this;
+  }
+
+  /**
+   * Records the host's render epoch this draw started from (see `TableRenderer#renderEpoch`).
+   *
+   * @param {number} epoch The `renderEpoch` setting at draw start.
+   * @returns {Renderer}
+   */
+  setRenderEpoch(epoch: number) {
+    this.renderer.setRenderEpoch(epoch);
+
+    return this;
+  }
+
+  /**
+   * Sets whether the viewport allows row recycling on this draw.
+   *
+   * @param {boolean} allowed Whether row recycling is allowed.
+   * @returns {Renderer}
+   */
+  setRowRecyclingAllowed(allowed: boolean) {
+    this.renderer.setRowRecyclingAllowed(allowed);
 
     return this;
   }

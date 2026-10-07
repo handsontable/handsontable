@@ -125,7 +125,7 @@ export const appConfig: ApplicationConfig = {
 
 To reduce the size of your JavaScript bundle, [import only the modules that you need](@/guides/tools-and-building/modules/modules.md) instead of calling `registerAllModules()`.
 
-## Use the `HotTable` Component
+## Use the `HotTable` component
 
 The main Handsontable component is called `HotTableComponent`. Import `HotTableModule` in your component and pass configuration via a `GridSettings` object:
 
@@ -145,15 +145,15 @@ import {
 })
 export class HotTableWrapperComponent {
   readonly data = [
-    ["", "Tesla", "Volvo", "Toyota", "Ford"],
-    ["2019", 10, 11, 12, 13],
-    ["2020", 20, 11, 14, 13],
-    ["2021", 30, 15, 12, 13],
-    ["2022", 25, 20, 11, 14],
+    ["SKU-4821", "Stainless Steel Water Bottle", "Harbor Goods", "Drinkware", "Seattle"],
+    ["SKU-0093", "Wireless Mouse", "Alpine Supply Co.", "Electronics", "Denver"],
+    ["SKU-1170", "Ergonomic Office Chair", "Cascade Distributors", "Furniture", "Portland"],
+    ["SKU-2208", "USB-C Charging Cable", "Summit Trading", "Electronics", "Austin"],
+    ["SKU-3341", "Aluminum Water Filter", "Northgate Wholesale", "Drinkware", "Minneapolis"],
   ];
   readonly gridSettings: GridSettings = {
     rowHeaders: true,
-    colHeaders: true,
+    colHeaders: ["SKU", "Product", "Supplier", "Category", "Warehouse"],
     height: "auto",
     autoWrapRow: true,
     autoWrapCol: true,
@@ -185,7 +185,7 @@ For more information on `@handsontable/angular`, see the [15.3 documentation](ht
 
 If you're using Angular 21 or newer, please note that older versions of `@handsontable/angular-wrapper` are incompatible due to recent breaking changes in Angular. To ensure smooth integration, upgrade to `@handsontable/angular-wrapper@16.2` or later.
 
-## Server Side Rendering (SSR)
+## Server-side rendering (SSR)
 
 Currently, `HotTable` cannot be rendered on the server-side. If your application uses SSR, render it only in the browser using the `@if` control flow block.
 
@@ -206,15 +206,15 @@ export class App {
   readonly isBrowser = isPlatformBrowser(this.platformId);
 
   readonly data = [
-    ["", "Tesla", "Volvo", "Toyota", "Ford"],
-    ["2019", 10, 11, 12, 13],
-    ["2020", 20, 11, 14, 13],
-    ["2021", 30, 15, 12, 13],
-    ["2022", 25, 20, 11, 14],
+    ["SKU-4821", "Stainless Steel Water Bottle", "Harbor Goods", "Drinkware", "Seattle"],
+    ["SKU-0093", "Wireless Mouse", "Alpine Supply Co.", "Electronics", "Denver"],
+    ["SKU-1170", "Ergonomic Office Chair", "Cascade Distributors", "Furniture", "Portland"],
+    ["SKU-2208", "USB-C Charging Cable", "Summit Trading", "Electronics", "Austin"],
+    ["SKU-3341", "Aluminum Water Filter", "Northgate Wholesale", "Drinkware", "Minneapolis"],
   ];
   readonly gridSettings: GridSettings = {
     rowHeaders: true,
-    colHeaders: true,
+    colHeaders: ["SKU", "Product", "Supplier", "Category", "Warehouse"],
     height: "auto",
     autoWrapRow: true,
     autoWrapCol: true,
@@ -234,7 +234,7 @@ export class App {
 
 ## Result
 
-Handsontable is installed and running in your Angular application. You can now [configure options](@/guides/getting-started/configuration-options/configuration-options.md) or [import only the modules you need](@/guides/tools-and-building/modules/modules.md) to reduce your bundle size.
+Handsontable is installed and running in your Angular application. You can now [configure options](@/guides/configuration/configuration-options/configuration-options.md) or [import only the modules you need](@/guides/tools-and-building/modules/modules.md) to reduce your bundle size.
 
 :::
 
@@ -340,13 +340,14 @@ const container = document.querySelector('#example1');
 
 const hot = new Handsontable(container, {
   data: [
-    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-    ['2019', 10, 11, 12, 13],
-    ['2020', 20, 11, 14, 13],
-    ['2021', 30, 15, 12, 13]
+    ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods', 'Drinkware', 'Seattle'],
+    ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.', 'Electronics', 'Denver'],
+    ['SKU-1170', 'Ergonomic Office Chair', 'Cascade Distributors', 'Furniture', 'Portland'],
+    ['SKU-2208', 'USB-C Charging Cable', 'Summit Trading', 'Electronics', 'Austin'],
+    ['SKU-3341', 'Aluminum Water Filter', 'Northgate Wholesale', 'Drinkware', 'Minneapolis']
   ],
   rowHeaders: true,
-  colHeaders: true,
+  colHeaders: ['SKU', 'Product', 'Supplier', 'Category', 'Warehouse'],
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
@@ -429,18 +430,19 @@ The main Handsontable component is called `HotTable`.
 import { HotTable } from '@handsontable/react-wrapper';
 ```
 
-To set Handsontable's [configuration options](@/guides/getting-started/configuration-options/configuration-options.md), use `HotTable`'s props. For example:
+To set Handsontable's [configuration options](@/guides/configuration/configuration-options/configuration-options.md), use `HotTable`'s props. For example:
 
 ```jsx
 <HotTable
   data={[
-    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-    ['2019', 10, 11, 12, 13],
-    ['2020', 20, 11, 14, 13],
-    ['2021', 30, 15, 12, 13]
+    ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods', 'Drinkware', 'Seattle'],
+    ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.', 'Electronics', 'Denver'],
+    ['SKU-1170', 'Ergonomic Office Chair', 'Cascade Distributors', 'Furniture', 'Portland'],
+    ['SKU-2208', 'USB-C Charging Cable', 'Summit Trading', 'Electronics', 'Austin'],
+    ['SKU-3341', 'Aluminum Water Filter', 'Northgate Wholesale', 'Drinkware', 'Minneapolis']
   ]}
   rowHeaders={true}
-  colHeaders={true}
+  colHeaders={['SKU', 'Product', 'Supplier', 'Category', 'Warehouse']}
   height="auto"
   autoWrapRow={true}
   autoWrapCol={true}
@@ -528,13 +530,13 @@ The main Handsontable component is called `HotTable`.
 import { HotTable } from '@handsontable/vue3';
 ```
 
-To set Handsontable's [configuration options](@/guides/getting-started/configuration-options/configuration-options.md), use `HotTable`'s props. For example:
+To set Handsontable's [configuration options](@/guides/configuration/configuration-options/configuration-options.md), use `HotTable`'s props. For example:
 
 ```html
 <HotTable
   :data="data"
   :row-headers="true"
-  :col-headers="true"
+  :col-headers="['SKU', 'Product', 'Supplier', 'Category', 'Warehouse']"
   height="auto"
   :auto-wrap-row="true"
   :auto-wrap-col="true"

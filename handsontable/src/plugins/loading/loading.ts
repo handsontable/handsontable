@@ -1,6 +1,8 @@
 import { BasePlugin } from '../base';
 import { loadingContent } from './content';
+import { getSanitizer } from '../../utils/sanitizer';
 import * as C from '../../i18n/constants';
+import { isRootInstance } from '../../utils/rootInstance';
 import { LOADING_CLASS_NAME } from '../../helpers/constants';
 
 /**
@@ -11,8 +13,13 @@ interface DialogPlugin {
   isVisible(): boolean;
   show(): void;
   hide(): void;
+  getSetting<T = unknown>(settingName?: string): T;
   update(options: {
-    content: string;
+    // `HTMLElement` since `loadingContent()` builds nodes rather than a string. The dialog UI has
+    // always accepted both (`dialog/ui.ts` branches on the type); only this local structural type
+    // was narrower than the thing it describes. An element rather than a fragment because the
+    // dialog re-reads this setting on every render, and a fragment is empty after one append.
+    content: string | HTMLElement;
     customClassName: string;
     background: string;
     a11y: {
@@ -23,6 +30,16 @@ interface DialogPlugin {
   }): void;
   focus(): void;
 }
+
+/**
+ * The built-in spinner, as markup.
+ *
+ * Hoisted out of `DEFAULT_SETTINGS` so `content.ts` can tell the default from a caller-supplied
+ * icon and build the default as DOM nodes instead of parsing it. The string itself is unchanged and
+ * still the option's documented default value, because `icon` is public API.
+ */
+// eslint-disable-next-line max-len
+export const DEFAULT_ICON = `<svg class="${LOADING_CLASS_NAME}__icon-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16"><path stroke="currentColor" stroke-width="2" d="M15 8a7 7 0 1 1-3.5-6.062"></path></svg>`;
 
 export const PLUGIN_KEY = 'loading';
 export const PLUGIN_PRIORITY = 350;
@@ -142,8 +159,7 @@ export class Loading extends BasePlugin {
    */
   static get DEFAULT_SETTINGS() {
     return {
-      // eslint-disable-next-line max-len
-      icon: `<svg class="${LOADING_CLASS_NAME}__icon-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16"><path stroke="currentColor" stroke-width="2" d="M15 8a7 7 0 1 1-3.5-6.062"></path></svg>`,
+      icon: DEFAULT_ICON,
       title: undefined as string | undefined,
       description: '',
     };
@@ -170,10 +186,15 @@ export class Loading extends BasePlugin {
   /**
    * Check if the plugin is enabled in the handsontable settings.
    *
+   * The loading indicator renders through the Dialog plugin, which is available on the main
+   * Handsontable instance only. In a nested grid (the one the `handsontable`, `autocomplete`, and
+   * `dropdown` cell types create) there is nothing to render into, so the plugin stays disabled
+   * there.
+   *
    * @returns {boolean}
    */
   isEnabled(): boolean {
-    return !!this.hot.getSettings()[PLUGIN_KEY];
+    return isRootInstance(this.hot) && !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -190,9 +211,12 @@ export class Loading extends BasePlugin {
       if (!this.#dialogPlugin?.isEnabled()) {
         this.hot.getSettings().dialog = true;
       }
-
-      this.hot.addHook('afterDialogFocus', () => this.#onAfterDialogFocus());
     }
+
+    // Registered on every enable, not only on the first: disabling the plugin removes its hooks
+    // while the dialog reference above survives, so a hook inside that branch would be gone
+    // after the first updateSettings.
+    this.addHook('afterDialogFocus', () => this.#onAfterDialogFocus());
 
     super.enablePlugin();
   }
@@ -300,7 +324,9 @@ export class Loading extends BasePlugin {
       icon,
       title,
       description,
-    });
+      sanitizer: getSanitizer(this.hot),
+      warnScope: this.hot.rootElement,
+    }, this.hot.rootDocument);
 
     this.#dialogPlugin.update({
       content,
@@ -316,8 +342,19 @@ export class Loading extends BasePlugin {
 
   /**
    * Handle dialog focus event.
+   *
+   * The hook fires for every dialog on the grid, not only for the one this plugin opened. A loading
+   * screen always renders through the `content` option, so it reports no focusable elements and
+   * nothing inside it can take the focus - putting it on the container is what lets a screen reader
+   * announce the dialog. A dialog built from a `template` is the opposite case: it reports its own
+   * focusable elements and the dialog plugin has just focused one of them, so pulling the focus back
+   * onto the container would undo that and leave the buttons unannounced.
    */
   #onAfterDialogFocus() {
+    if (this.#dialogPlugin!.getSetting('template') !== null) {
+      return;
+    }
+
     this.#dialogPlugin!.focus();
   }
 

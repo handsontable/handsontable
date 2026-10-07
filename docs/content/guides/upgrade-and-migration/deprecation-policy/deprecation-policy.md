@@ -44,6 +44,14 @@ For significant deprecations (especially those affecting many users), we will pr
 
 For more details about our versioning policy please visit [Versioning policy](@/guides/upgrade-and-migration/versioning-policy/versioning-policy.md)
 
+## Removed in version 20.0
+
+### Behaviors
+
+| Removed | Deprecated in | Replacement | Migration guide |
+| ------- | ------------- | ----------- | --------------- |
+| Writing past the last column of an object data source, which added a property named after the column index | 19.0 | `setDataAtRowProp()` | [Migrate from 19.0 to 20.0 -> Writing past the last column](@/guides/upgrade-and-migration/migrating-from-19.0-to-20.0/migrating-from-19.0-to-20.0.md#writing-past-the-last-column-of-an-object-data-source-is-ignored) |
+
 ## Removed in version 18.0
 
 ### Dependencies
@@ -71,12 +79,12 @@ The following dependencies were deprecated in version 17.0 and removed in versio
 
 | Removed | Deprecated in | Replacement | Migration guide |
 | ------- | ------------- | ----------- | --------------- |
-| `PersistentState` plugin, its `persistentState` option, and the `persistentStateSave`, `persistentStateLoad`, and `persistentStateReset` hooks | 16.1 | Persist state in your application code. The `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, and `loadManualRowHeights()` methods that relied on the plugin are deprecated (see below). | [Changelog 17.0](@/guides/upgrade-and-migration/changelog-17/changelog-17.md) |
-| `hot.undo()`, `hot.redo()`, `hot.clearUndo()`, `hot.isUndoAvailable()`, `hot.isRedoAvailable()`, and `hot.undoRedo` | Before 16.0 | `hot.getPlugin('undoRedo')` | [Changelog 17.0](@/guides/upgrade-and-migration/changelog-17/changelog-17.md) |
+| `PersistentState` plugin, its `persistentState` option, and the `persistentStateSave`, `persistentStateLoad`, and `persistentStateReset` hooks | 16.1 | Persist state in your application code. The `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, and `loadManualRowHeights()` methods that relied on the plugin are deprecated (see below). | [Changelog 17.x](@/guides/upgrade-and-migration/changelog-17/changelog-17.md) |
+| `hot.undo()`, `hot.redo()`, `hot.clearUndo()`, `hot.isUndoAvailable()`, `hot.isRedoAvailable()`, and `hot.undoRedo` | Before 16.0 | `hot.getPlugin('undoRedo')` | [Changelog 17.x](@/guides/upgrade-and-migration/changelog-17/changelog-17.md) |
 
 ## List of current deprecations
 
-The following APIs are deprecated. They keep working and print a one-time console warning. They are scheduled for removal in version 19.0, the next major release.
+The following APIs are deprecated. They keep working and print a one-time console warning. The Removal column names the version that drops each one.
 
 ### Methods
 
@@ -87,6 +95,11 @@ The following APIs are deprecated. They keep working and print a one-time consol
 | `saveManualRowHeights()` (`ManualRowResize`) | 18.0 | 19.0 | No-op. Persist heights in your application code. | [Migrate from 17.1 to 18.0 -> Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#stop-calling-deprecated-resize-state-methods) |
 | `loadManualRowHeights()` (`ManualRowResize`) | 18.0 | 19.0 | No-op. Pass an array to `manualRowResize`. | [Migrate from 17.1 to 18.0 -> Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#stop-calling-deprecated-resize-state-methods) |
 | `Handsontable.helper.sanitize()` | 18.0 | 19.0 | Pass-through. Use the `sanitizer` option. | [`sanitizer` option](@/api/options.md#sanitizer) |
+| `registerShortcuts()` (`Formulas`) | 19.0 | 20.0 | No-op. The `Alt`+`Enter` shortcut that opens a cell's link is a core grid shortcut. Remove the call. | [Migrate from 18.1 to 19.0 -> Formulas shortcut methods](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#formulas-shortcut-methods) |
+| `unregisterShortcuts()` (`Formulas`) | 19.0 | 20.0 | No-op. The `Alt`+`Enter` shortcut that opens a cell's link is a core grid shortcut. Remove the call. | [Migrate from 18.1 to 19.0 -> Formulas shortcut methods](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#formulas-shortcut-methods) |
+| `spliceCol()` (`Core`) | 19.0 | 20.0 | Read the column, splice it, and write it back with `populateFromArray()`; or use `alter()` for whole columns. | [Migrate from 18.1 to 19.0 -> spliceCol and spliceRow](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#splicecol-and-splicerow-are-deprecated) |
+| `spliceRow()` (`Core`) | 19.0 | 20.0 | Read the row, splice it, and write it back with `populateFromArray()`; or use `alter()` for whole rows. | [Migrate from 18.1 to 19.0 -> spliceCol and spliceRow](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#splicecol-and-splicerow-are-deprecated) |
+| `iconsMap()` (`handsontable/themes/static/variables/helpers/iconsMap`) | 19.0 | 20.0 | `iconStyles(icons, scopeSelector)` from `handsontable/themes/static/variables/helpers/iconStyles`. `iconsMap()` already returns its output. | [Migrate from 18.1 to 19.0 -> Icons are rendered as `<i>` elements](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#icons-are-rendered-as-i-elements) |
 
 ### Options
 

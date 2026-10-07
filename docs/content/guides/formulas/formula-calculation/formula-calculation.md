@@ -144,6 +144,9 @@ This example is more typical of data grids than spreadsheets. Calculations are p
 The `formulas` option accepts either the `HyperFormula` class or an already-created HyperFormula
 instance. Choose the pattern that matches your use case.
 
+HyperFormula is licensed separately from Handsontable. For how to set a HyperFormula license key,
+see [License HyperFormula](@/guides/formulas/installation/installation.md#license-hyperformula).
+
 All patterns require importing HyperFormula:
 
 ```js
@@ -153,18 +156,11 @@ import { HyperFormula } from 'hyperformula';
 See [HyperFormula's installation docs](https://handsontable.github.io/hyperformula/guide/client-side-installation.html)
 for alternative installation methods (CDN, UMD, etc.).
 
-::: tip HyperFormula instance
-
-To use the [`Formulas`](@/api/formulas.md) plugin with an external HyperFormula instance, initialize
-HyperFormula with the `'internal-use-in-handsontable'` license key:
-
-:::
-
 ```js
 // create an external HyperFormula instance
 const hyperformulaInstance = HyperFormula.buildEmpty({
-  // initialize it with the `'internal-use-in-handsontable'` license key
-  licenseKey: 'internal-use-in-handsontable',
+  // replace with your HyperFormula license key
+  licenseKey: 'your-hyperformula-license-key',
 });
 ```
 
@@ -222,7 +218,7 @@ const hotSettings = ref({
 
 :::
 
-Or pass a configuration object to customize the engine. For all available options, see the [HyperFormula `ConfigParams` reference](https://hyperformula.handsontable.com/api/interfaces/configparams.html).
+Pass a configuration object to customize the engine. For all available options, see the [HyperFormula `ConfigParams` reference](https://hyperformula.handsontable.com/api/interfaces/configparams.html).
 
 ::: only-for javascript
 
@@ -298,9 +294,8 @@ const hotSettings = ref({
 
 ```js
 const hyperformulaInstance = HyperFormula.buildEmpty({
-  // to use an external HyperFormula instance,
-  // initialize it with the `'internal-use-in-handsontable'` license key
-  licenseKey: 'internal-use-in-handsontable',
+  // replace with your HyperFormula license key
+  licenseKey: 'your-hyperformula-license-key',
 });
 
 {
@@ -317,9 +312,8 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 ```jsx
 const ExampleComponent = () => {
   const hyperformulaInstance = HyperFormula.buildEmpty({
-    // to use an external HyperFormula instance,
-    // initialize it with the `'internal-use-in-handsontable'` license key
-    licenseKey: 'internal-use-in-handsontable',
+    // replace with your HyperFormula license key
+    licenseKey: 'your-hyperformula-license-key',
   });
 
   return (
@@ -341,9 +335,8 @@ import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 import {HyperFormula} from 'hyperformula';
 
 const hyperformulaInstance = HyperFormula.buildEmpty({
-  // to use an external HyperFormula instance,
-  // initialize it with the `'internal-use-in-handsontable'` license key
-  licenseKey: 'internal-use-in-handsontable',
+  // replace with your HyperFormula license key
+  licenseKey: 'your-hyperformula-license-key',
 });
 
 const configurationOptions: GridSettings = {
@@ -364,9 +357,8 @@ const configurationOptions: GridSettings = {
 ```js
 const hyperformulaInstance = markRaw(
   HyperFormula.buildEmpty({
-    // to use an external HyperFormula instance,
-    // initialize it with the `'internal-use-in-handsontable'` license key
-    licenseKey: 'internal-use-in-handsontable',
+    // replace with your HyperFormula license key
+    licenseKey: 'your-hyperformula-license-key',
   })
 );
 
@@ -513,9 +505,8 @@ const hotSettings2 = ref({
 
 ```js
 const hyperformulaInstance = HyperFormula.buildEmpty({
-  // to use an external HyperFormula instance,
-  // initialize it with the `'internal-use-in-handsontable'` license key
-  licenseKey: 'internal-use-in-handsontable',
+  // replace with your HyperFormula license key
+  licenseKey: 'your-hyperformula-license-key',
 });
 
 // Instance 1
@@ -544,9 +535,8 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 ```jsx
 const ExampleComponent = () => {
   const hyperformulaInstance = HyperFormula.buildEmpty({
-    // to use an external HyperFormula instance,
-    // initialize it with the `'internal-use-in-handsontable'` license key
-    licenseKey: 'internal-use-in-handsontable',
+    // replace with your HyperFormula license key
+    licenseKey: 'your-hyperformula-license-key',
   });
 
   return (
@@ -576,9 +566,8 @@ const ExampleComponent = () => {
 
 ```ts
 const hyperformulaInstance = HyperFormula.buildEmpty({
-  // to use an external HyperFormula instance,
-  // initialize it with the `'internal-use-in-handsontable'` license key
-  licenseKey: 'internal-use-in-handsontable',
+  // replace with your HyperFormula license key
+  licenseKey: 'your-hyperformula-license-key',
 });
 
 // Instance 1
@@ -607,9 +596,8 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 ```js
 const hyperformulaInstance = markRaw(
   HyperFormula.buildEmpty({
-    // to use an external HyperFormula instance,
-    // initialize it with the `'internal-use-in-handsontable'` license key
-    licenseKey: 'internal-use-in-handsontable',
+    // replace with your HyperFormula license key
+    licenseKey: 'your-hyperformula-license-key',
   })
 );
 
@@ -644,6 +632,42 @@ const hotSettings2 = ref({
 For the full list of configuration options and plugin methods, see the
 [`Formulas` API reference](@/api/formulas.md).
 
+## Inspect formula dependencies
+
+The plugin exposes two methods that read the dependency graph HyperFormula builds for your formulas.
+Use them to debug why a cell recalculates.
+
+- [`getCellPrecedents(address)`](@/api/formulas.md#getcellprecedents) returns the cells and ranges that a
+  cell's formula reads.
+- [`getCellDependents(address)`](@/api/formulas.md#getcelldependents) returns the cells whose formulas read
+  a given cell.
+
+Both take a HyperFormula address (`{ sheet, row, col }`) or a range (`{ start, end }`), and both return an
+array of addresses and ranges.
+
+```javascript
+const formulas = hot.getPlugin('formulas');
+
+// The cells that reference A1.
+formulas.getCellDependents({ sheet: 0, row: 0, col: 0 });
+
+// The cells that the formula in C1 reads.
+formulas.getCellPrecedents({ sheet: 0, row: 0, col: 2 });
+```
+
+The returned coordinates use HyperFormula's index space, which matches Handsontable's visual coordinates
+only when no rows or columns are trimmed, hidden, moved, or sorted. Results can include cells on other
+sheets and, for a named expression, a `sheet` id of `-1`.
+
+Each result can hold ranges as well as single cells. `getCellDependents` can return a range that contains
+the address you passed, and `getCellPrecedents` can return a range that the address reads. When you pass a
+range, HyperFormula returns some of the related cells and ranges, not always every one, because it
+optimizes how large ranges are stored. Pass a single cell address when you need the complete set for that
+cell.
+
+Both methods throw when `address` is neither a valid address nor a range, names a sheet id that does not
+exist, or is a range whose `start` and `end` are on different sheets. Always set the `sheet` id.
+
 ## Available functions
 
 The plugin inherits all calculation capabilities from HyperFormula. The complete function reference
@@ -676,6 +700,19 @@ Only a cell whose root expression is `HYPERLINK` becomes a link. A nested call s
 `=CONCATENATE("see ", HYPERLINK("https://handsontable.com"))` evaluates to text, so the cell renders
 as text.
 
+To configure the links, set `hyperlinks` to an object: `target` is `'_blank'` (default) or `'_self'`, and
+`schemes` narrows the allowed URL schemes to a subset of `'http'`, `'https'`, `'mailto'`, and `'tel'`.
+
+```js
+formulas: {
+  engine: HyperFormula,
+  hyperlinks: {
+    target: '_self',
+    schemes: ['http', 'https'],
+  },
+},
+```
+
 ### Allowed URL schemes
 
 Handsontable creates a link only for the `http`, `https`, `mailto`, and `tel` schemes. Any other
@@ -685,17 +722,52 @@ the URL that the formula produces, so a URL that comes from cell data is checked
 ### Keyboard access
 
 A link inside a cell stays out of the tab order, so tabbing still moves between cells. To open the
-link of the selected cell, press <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>. Links open in a new browser
-tab.
+link of the selected cell, press <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>. Links open where the `target` setting says, a new browser tab by default.
 
 ### Styling
 
-Each link element gets the `ht-hyperlink` class, and takes its color from the `--ht-link-color` and
+Each link element gets the `ht-link` and `ht-hyperlink` classes, and takes its color from the `--ht-link-color` and
 `--ht-link-hover-color` [theme variables](@/guides/styling/themes/themes.md).
 
-To render links in cells that hold plain URLs rather than formulas, write a
-[custom renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md#render-hyperlinks-in-cells)
-instead.
+To render links in cells that hold plain URLs rather than formulas, use the
+[`autoLink`](@/guides/cell-features/clickable-links/clickable-links.md) option.
+
+## Show formulas instead of values
+
+By default, a formula cell displays its calculated value. To display the formula text instead (for
+example, `=SUM(A1:A2)`), call [`showFormulas()`](@/api/formulas.md#showformulas):
+
+```js
+const formulas = hot.getPlugin('formulas');
+
+formulas.showFormulas();
+```
+
+Call [`hideFormulas()`](@/api/formulas.md#hideformulas) to display calculated values again, and
+[`isShowingFormulas()`](@/api/formulas.md#isshowingformulas) to check the current mode.
+
+```js
+formulas.hideFormulas();
+formulas.isShowingFormulas(); // false
+```
+
+While formulas are shown, copying or cutting a formula cell copies its formula text, matching what's
+on screen.
+
+This mode is display-only. Sorting, the [filter-by-value list](@/guides/columns/column-filter/column-filter.md),
+and cell validation keep reading each formula cell's calculated value, not its formula text - the
+same as in Excel and Google Sheets. Pasting is unaffected either way: what lands in a cell depends
+on the clipboard content, not on whether formulas are currently shown.
+
+Column and row sizing (`autoColumnSize`, `autoRowSize`) also keep measuring the calculated value,
+since they sample cells directly rather than through the grid's normal render pass. A column sized
+for a short calculated value can clip a long formula while it's shown.
+
+### Keyboard shortcut
+
+Press <kbd>**Ctrl**</kbd>+<kbd>**`**</kbd> to toggle between showing formulas and showing values.
+On macOS this is still <kbd>**Ctrl**</kbd>+<kbd>**`**</kbd>, not <kbd>**Cmd**</kbd>+<kbd>**`**</kbd> -
+`Cmd`+`` ` `` is the system's window-cycling shortcut.
 
 ## [`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) hook
 
@@ -823,7 +895,7 @@ initialization sequence:
 
 ```js
 const hfInstance = HyperFormula.buildEmpty({
-  licenseKey: 'internal-use-in-handsontable',
+  licenseKey: 'your-hyperformula-license-key',
 });
 
 hfInstance.addSheet('Sheet1');
@@ -1089,6 +1161,123 @@ hot.updateSettings({
 For the full list of available language packs, see the
 [HyperFormula localizing functions guide](https://hyperformula.handsontable.com/guide/localizing-functions.html).
 
+## Preserve text values
+
+By default, the engine parses number-like strings into numbers, following the behavior known
+from spreadsheet software. A cell of the [`text`](@/guides/cell-types/cell-type/cell-type.md)
+type that holds `0123456` reaches formulas as `123456`, so the leading zero is lost.
+
+To keep such values as strings on the engine side, enable the
+[`preserveTextValue`](@/api/options.md#preservetextvalue) option on the `text`-type cells.
+The value then stays a string: `=LEN(A1)` returns `7`, and concatenation keeps the leading zero.
+
+::: only-for javascript
+
+```js
+const hot = new Handsontable(container, {
+  data: [
+    ['0123456'],
+    ['=LEN(A1)'],
+  ],
+  columns: [
+    {
+      type: 'text',
+      preserveTextValue: true,
+    },
+  ],
+  formulas: {
+    engine: HyperFormula,
+  },
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={[
+        ['0123456'],
+        ['=LEN(A1)'],
+      ]}
+      columns={[
+        {
+          type: 'text',
+          preserveTextValue: true,
+        },
+      ]}
+      formulas={{
+        engine: HyperFormula,
+      }}
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+import {HyperFormula} from 'hyperformula';
+
+const configurationOptions: GridSettings = {
+  data: [
+    ['0123456'],
+    ['=LEN(A1)'],
+  ],
+  columns: [
+    {
+      type: 'text',
+      preserveTextValue: true,
+    },
+  ],
+  formulas: {
+    engine: HyperFormula,
+  },
+  licenseKey: 'non-commercial-and-evaluation',
+};
+```
+
+```html
+<hot-table [settings]="configurationOptions"></hot-table>
+```
+
+:::
+
+::: only-for vue
+
+```js
+const hotSettings = ref({
+  data: [
+    ['0123456'],
+    ['=LEN(A1)'],
+  ],
+  columns: [
+    {
+      type: 'text',
+      preserveTextValue: true,
+    },
+  ],
+  formulas: {
+    engine: HyperFormula,
+  },
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
 ## View the explainer video
 
 <div class="docs-video-embed">
@@ -1100,6 +1289,18 @@ For the full list of available language packs, see the
 - Using the [`IndexMapper`](@/api/indexMapper.md) API to programmatically [move rows](@/guides/rows/row-moving/row-moving.md) or [columns](@/guides/columns/column-moving/column-moving.md) that contain formulas is not supported. Instead, use the [`ManualRowMove`](@/api/manualRowMove.md) or [`ManualColumnMove`](@/api/manualColumnMove.md) APIs.
 - Formulas don't support [`getSourceData()`](@/api/core.md#getsourcedata), as this method operates on source data (using [physical indexes](@/api/indexMapper.md)), whereas formulas operate on visual data (using visual indexes).
 - Formulas don't support nested data, i.e., when Handsontable's [`data`](@/api/options.md#data) is set to an [array of nested objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects).
+- [`preserveTextValue`](@/api/options.md#preservetextvalue) works only with the built-in [`text`](@/guides/cell-types/cell-type/cell-type.md) cell type. Custom cell types are not supported, even when they reuse the text editor or renderer.
+- Sorting a column that contains formulas can produce `#REF!`. Handsontable does not rewrite formula references to follow sorted rows. See [Sorting formula cells](#sorting-formula-cells).
+
+### Sorting formula cells
+
+Sorting a column that contains formulas can produce `#REF!`. A later sort does not restore the original formulas.
+
+This is a known limitation. Handsontable does not rewrite formula references to follow sorted rows.
+
+Keep summary and totals formulas on a [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom) row. Frozen footer rows stay out of the sortable body by default. See [Frozen rows stay out of the sort by default](@/guides/rows/rows-sorting/rows-sorting.md#frozen-rows-stay-out-of-the-sort-by-default) and [#12627](https://github.com/handsontable/handsontable/pull/12627).
+
+A hook or snippet that pins a non-frozen totals row does not protect other formula cells in the sortable range.
 
 ### HyperFormula version support
 
@@ -1118,17 +1319,6 @@ To find out which HyperFormula version to use, see the table below:
 | [`14.x.x`](https://github.com/handsontable/handsontable/releases/tag/14.0.0)            | [`^2.4.0`](https://github.com/handsontable/hyperformula/releases/tag/2.4.0) |
 | [`14.3.x - 15.0.x`](https://github.com/handsontable/handsontable/releases/tag/14.3.0)   | [`^2.6.2`](https://github.com/handsontable/hyperformula/releases/tag/2.6.2) |
 | [`15.1.x`](https://github.com/handsontable/handsontable/releases/tag/15.1.0) and higher | [`^3.0.0`](https://github.com/handsontable/hyperformula/releases/tag/3.0.0) |
-
-::: tip
-
-You can use the `'internal-use-in-handsontable'` license key only in those HyperFormula instances
-that are connected to a Handsontable instance.
-
-To use HyperFormula outside of a Handsontable instance (e.g., on a server), you need a dedicated
-[HyperFormula license key](https://hyperformula.handsontable.com/guide/license-key.html). For
-details, [contact our Sales Team](https://handsontable.com/get-a-quote).
-
-:::
 
 ## Result
 
@@ -1187,3 +1377,5 @@ After setting up the `Formulas` plugin with a HyperFormula engine, cells that co
 - [Formulas](@/api/formulas.md)
 
 </div>
+
+Microsoft and Excel are registered trademarks of Microsoft Corporation. Google Sheets is a trademark of Google LLC.

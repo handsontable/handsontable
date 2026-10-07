@@ -346,4 +346,41 @@ describe('DataProvider with alter (insert row / remove row)', () => {
 
     expect(onRowsCreate).not.toHaveBeenCalled();
   });
+
+  it('should not refetch after insert_row_below when `refetchAfterCreate` is false', async() => {
+    const fetchRows = jasmine.createSpy('fetchRows').and.returnValue(Promise.resolve({
+      rows: [{ id: 1, name: 'A' }],
+      totalRows: 1,
+    }));
+    const onRowsCreate = jasmine.createSpy('onRowsCreate').and.returnValue(Promise.resolve([{ id: 2 }]));
+    const afterMutation = jasmine.createSpy('afterRowsMutation');
+
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }, { data: 'name' }],
+      dataProvider: createDataProviderConfig({
+        fetchRows,
+        onRowsCreate,
+        refetchAfterCreate: false,
+      }),
+      afterRowsMutation: afterMutation,
+    });
+
+    await waitUntil(() => fetchRows.calls.count() === 1);
+
+    await alter('insert_row_below', 0);
+
+    // The refetch (when enabled) starts synchronously right after `afterRowsMutation`, so once the hook has
+    // fired, `fetchRows` already reflects whether a refetch was issued.
+    await waitUntil(() => afterMutation.calls.count() === 1);
+
+    expect(onRowsCreate).toHaveBeenCalledWith(jasmine.objectContaining({
+      position: 'below',
+      referenceRowId: 1,
+      rowsAmount: 1,
+    }));
+    // The alter is handed to the server path (local insert blocked) and no refetch follows.
+    expect(fetchRows).toHaveBeenCalledTimes(1);
+    expect(countRows()).toBe(1);
+  });
 });

@@ -106,6 +106,13 @@ export class FocusGridManager {
    * @type {boolean}
    */
   #isSuspended = false;
+  /**
+   * Plugin-owned elements outside the grid's root element that a press inside does not deselect
+   * (see `registerOutsideClickExemptElement()`).
+   *
+   * @type {Set<HTMLElement>}
+   */
+  #outsideClickExemptElements = new Set<HTMLElement>();
 
   /**
    * Initializes the manager with a reference to the Handsontable instance.
@@ -158,6 +165,44 @@ export class FocusGridManager {
    */
   hasBrowserFocus(): boolean {
     return this.#hasBrowserFocus;
+  }
+
+  /**
+   * Exempts a plugin-owned element from the outside-click deselect. The document `mousedown` in
+   * `TableView` closes an open editor, saving it, and keeps the selection for a press inside the
+   * element, whatever `outsideClickDeselects` says. Used by the sheets bar.
+   *
+   * @private
+   * @param {HTMLElement} element The element to exempt.
+   */
+  registerOutsideClickExemptElement(element: HTMLElement): void {
+    this.#outsideClickExemptElements.add(element);
+  }
+
+  /**
+   * Removes an element exempted with `registerOutsideClickExemptElement()`.
+   *
+   * @private
+   * @param {HTMLElement} element The element to remove.
+   */
+  unregisterOutsideClickExemptElement(element: HTMLElement): void {
+    this.#outsideClickExemptElements.delete(element);
+  }
+
+  /**
+   * Checks whether an event path passes through an element exempted with
+   * `registerOutsideClickExemptElement()`.
+   *
+   * @private
+   * @param {EventTarget[]} eventPath The event propagation path (`event.composedPath()`).
+   * @returns {boolean}
+   */
+  isPathOutsideClickExempt(eventPath: EventTarget[]): boolean {
+    if (this.#outsideClickExemptElements.size === 0) {
+      return false;
+    }
+
+    return eventPath.some(entry => isHTMLElement(entry) && this.#outsideClickExemptElements.has(entry));
   }
 
   /**

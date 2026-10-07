@@ -724,19 +724,21 @@ describe('NestedHeaders', () => {
         expect(calls.argsFor(10)).toEqual([2, getCell(-1, 2), 2]);
         expect(calls.argsFor(11)).toEqual([3, getCell(-1, 3), 2]);
 
-        // the second render triggered by some other module
-        expect(calls.argsFor(12)).toEqual([0, getCell(-3, 0), 0]);
-        expect(calls.argsFor(13)).toEqual([1, getCell(-3, 1), 0]);
-        expect(calls.argsFor(14)).toEqual([2, getCell(-3, 2), 0]);
-        expect(calls.argsFor(15)).toEqual([3, getCell(-3, 3), 0]);
-        expect(calls.argsFor(16)).toEqual([0, getCell(-2, 0), 1]);
-        expect(calls.argsFor(17)).toEqual([1, getCell(-2, 1), 1]);
-        expect(calls.argsFor(18)).toEqual([2, getCell(-2, 2), 1]);
-        expect(calls.argsFor(19)).toEqual([3, getCell(-2, 3), 1]);
-        expect(calls.argsFor(20)).toEqual([0, getCell(-1, 0), 2]);
-        expect(calls.argsFor(21)).toEqual([1, getCell(-1, 1), 2]);
-        expect(calls.argsFor(22)).toEqual([2, getCell(-1, 2), 2]);
-        expect(calls.argsFor(23)).toEqual([3, getCell(-1, 3), 2]);
+        // the top overlay clone (headers render once per overlay); its leaf header carries no
+        // `aria-describedby` id (only the owning master header does, DEV-29), so this batch is matched
+        // against the topmost-overlay cells rather than the master ones
+        expect(calls.argsFor(12)).toEqual([0, getCell(-3, 0, true), 0]);
+        expect(calls.argsFor(13)).toEqual([1, getCell(-3, 1, true), 0]);
+        expect(calls.argsFor(14)).toEqual([2, getCell(-3, 2, true), 0]);
+        expect(calls.argsFor(15)).toEqual([3, getCell(-3, 3, true), 0]);
+        expect(calls.argsFor(16)).toEqual([0, getCell(-2, 0, true), 1]);
+        expect(calls.argsFor(17)).toEqual([1, getCell(-2, 1, true), 1]);
+        expect(calls.argsFor(18)).toEqual([2, getCell(-2, 2, true), 1]);
+        expect(calls.argsFor(19)).toEqual([3, getCell(-2, 3, true), 1]);
+        expect(calls.argsFor(20)).toEqual([0, getCell(-1, 0, true), 2]);
+        expect(calls.argsFor(21)).toEqual([1, getCell(-1, 1, true), 2]);
+        expect(calls.argsFor(22)).toEqual([2, getCell(-1, 2, true), 2]);
+        expect(calls.argsFor(23)).toEqual([3, getCell(-1, 3, true), 2]);
       });
     });
 
@@ -768,6 +770,64 @@ describe('NestedHeaders', () => {
 
       expect(rowMapperHooks).toBe(rowIndexMapper().__localHooks.cacheUpdated.length);
       expect(columnMapperHooks).toBe(columnIndexMapper().__localHooks.cacheUpdated.length);
+    });
+
+    it('should respect colWidths and not expand columns to fit nested header labels when autoColumnSize is false', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        colHeaders: true,
+        autoColumnSize: false,
+        colWidths: 50,
+        nestedHeaders: [
+          ['a', { label: 'This is a very long group header label', colspan: 2 }, 'c', 'd'],
+          ['a', 'b', 'c', 'd', 'e']
+        ]
+      });
+
+      expect(getColWidth(0)).toBe(50);
+      expect(getColWidth(1)).toBe(50);
+      expect(getColWidth(2)).toBe(50);
+      expect(getColWidth(3)).toBe(50);
+    });
+
+    it('should re-expand columns to content width after `updateSettings({ colWidths: undefined })` when `nestedHeaders` is enabled (#7604)', async() => {
+      const longContent = 'this is a very long cell content that should expand the column';
+
+      handsontable({
+        data: [
+          [longContent, 'b', 'c', 'd', 'e'],
+          ['a', 'b', 'c', 'd', 'e'],
+        ],
+        colHeaders: true,
+        colWidths: 100,
+        nestedHeaders: [
+          [{ label: 'h', colspan: 2 }, 'c', 'd', 'e'],
+          ['a', 'b', 'c', 'd', 'e'],
+        ],
+      });
+
+      expect(getColWidth(0)).toBe(100);
+
+      await updateSettings({ colWidths: undefined });
+
+      expect(getColWidth(0)).toBeGreaterThan(200);
+    });
+
+    it('should not override a programmatically narrowed column width when `nestedHeaders` and `manualColumnResize` are enabled', async() => {
+      handsontable({
+        data: [
+          ['this is a very long cell content', 'b', 'c', 'd', 'e'],
+          ['a', 'b', 'c', 'd', 'e'],
+        ],
+        colHeaders: true,
+        manualColumnResize: [30, 50, 50, 50, 50],
+        nestedHeaders: [
+          [{ label: 'h', colspan: 2 }, 'c', 'd', 'e'],
+          ['a', 'b', 'c', 'd', 'e'],
+        ],
+      });
+
+      expect(getColWidth(0)).toBe(30);
     });
   });
 });

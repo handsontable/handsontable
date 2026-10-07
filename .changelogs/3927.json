@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Added an `emptyValue` option that sets what an emptied cell stores, and stopped a cell editor confirmed without any typing from overwriting the cell's value with an empty string.",
+  "type": "added",
+  "issueOrPR": 3927,
+  "breaking": false,
+  "framework": "none"
+}

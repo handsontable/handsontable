@@ -7,7 +7,7 @@ import { confirmTemplate } from '../confirm';
  * @returns {DocumentFragment}
  */
 function render(vars) {
-  return confirmTemplate(vars).compile().fragment;
+  return confirmTemplate(vars).compile(document).fragment;
 }
 
 describe('confirmTemplate', () => {
@@ -57,11 +57,14 @@ describe('confirmTemplate', () => {
         title: 'Title',
         description: 'Description',
       });
-      const fragment = template.compile().fragment;
+      const fragment = template.compile(document).fragment;
       const title = fragment.querySelector('h2');
       const description = fragment.querySelector('p');
 
-      expect(title.getAttributeNames()).toEqual(['id', 'class']);
+      // sorted, because the attribute order follows the order `buildTemplate` writes them in
+      // (`class` before `attrs`) and carries no meaning. The set is what matters: an escaped
+      // payload would show up here as an extra attribute.
+      expect(title.getAttributeNames().sort()).toEqual(['class', 'id']);
       expect(title.id).toBe('ht_id-dialog-confirm-title');
       expect(description.id).toBe('ht_id-dialog-confirm-description');
     });
@@ -72,7 +75,7 @@ describe('confirmTemplate', () => {
         title: 'Title',
         description: 'Description',
       });
-      const fragment = template.compile().fragment;
+      const fragment = template.compile(document).fragment;
       const a11yOptions = template.dialogA11YOptions();
 
       expect(a11yOptions.ariaLabelledby).toBe(fragment.querySelector('h2').id);

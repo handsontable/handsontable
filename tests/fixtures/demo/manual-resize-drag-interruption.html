@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Manual resize drag interruption e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+</head>
+<body>
+  <!--
+    DEV-2719, fourth trap. `updateSettings()` carrying a resize plugin's OWN key runs
+    `disablePlugin(); enablePlugin();` - which is what a framework wrapper sends on every re-render.
+    The teardown that cycle runs is shared with the real disable path, so it is tempting to reset
+    the drag state there. Doing that was measured to break an in-flight drag: the `mouseup` that
+    ends it then takes the idle branch, so no `afterRowResize`/`afterColumnResize` fires and the
+    dragged size is never confirmed. The reset therefore lives at the context-menu call site only.
+
+    Nothing pins that today. The teardown fixture cannot: every one of its tests completes or
+    abandons the drag BEFORE it changes an option, so the pressed state is already false by then.
+    Reaching this needs the update to land BETWEEN `mousedown` and `mouseup`, which is why the
+    gesture here is split rather than driven by the shared `dragResizeHandle`.
+
+    Nothing here can be checked in jsdom: the handle only exists once the header has a layout box.
+  -->
+  <h2>Resize drag interrupted by updateSettings</h2>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // Every `afterRowResize`/`afterColumnResize` call, in order. The drag that this fixture exists
+    // to test is one whose ONLY observable failure is that the hook never fires, so the log is the
+    // assertion surface rather than a convenience.
+    window.resizeHookLog = [];
+
+    window.grid = new Handsontable(container, {
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      colHeaders: true,
+      rowHeaders: true,
+      manualRowResize: true,
+      manualColumnResize: true,
+      width: 600,
+      height: 400,
+      licenseKey: 'non-commercial-and-evaluation',
+      afterRowResize(newSize, row, isDoubleClick) {
+        window.resizeHookLog.push({ hook: 'afterRowResize', newSize, index: row, isDoubleClick });
+      },
+      afterColumnResize(newSize, column, isDoubleClick) {
+        window.resizeHookLog.push({
+          hook: 'afterColumnResize', newSize, index: column, isDoubleClick
+        });
+      },
+    });
+
+    /**
+     * Re-states a resize option through `updateSettings()`, carrying the plugin's OWN key. That is
+     * what makes `BasePlugin#onUpdateSettings` run the `disablePlugin(); enablePlugin();` cycle,
+     * and it is what a framework wrapper sends on every re-render.
+     *
+     * @param {string} option Either `manualRowResize` or `manualColumnResize`.
+     * @param {boolean|number[]} value The value to set.
+     */
+    window.restateResizeOption = function(option, value) {
+      window.grid.updateSettings({ [option]: value });
+    };
+
+    /**
+     * Updates a setting that is NOT either plugin's key, so no resize plugin re-initializes. The
+     * control for the test above: it proves a drag survives an unrelated update, which isolates the
+     * failure to the re-initialization rather than to `updateSettings()` in general.
+     */
+    window.updateUnrelatedOption = function() {
+      window.grid.updateSettings({ rowHeaderWidth: 60 });
+    };
+
+    /**
+     * The runtime `enabled` flag `ResizeGesture#afterMouseDownTimeout()` reads through
+     * `owner.isActive()`. That is not `isEnabled()` (the settings answer), which stays true
+     * through the disable/enable cycle.
+     *
+     * @param {string} pluginName Either `manualRowResize` or `manualColumnResize`.
+     * @returns {boolean}
+     */
+    window.isResizePluginActive = function(pluginName) {
+      return window.grid.getPlugin(pluginName).enabled === true;
+    };
+
+    /**
+     * The recorded resize hook calls.
+     *
+     * @returns {Array<{hook: string, newSize: number, index: number, isDoubleClick: boolean}>}
+     */
+    window.resizeHooks = function() {
+      return window.resizeHookLog;
+    };
+
+    /**
+     * Empties the hook log, so a test can separate the calls made by its own gesture from any made
+     * while the fixture was being set up.
+     */
+    window.clearResizeHooks = function() {
+      window.resizeHookLog.length = 0;
+    };
+
+    /**
+     * The rendered height of a visual row, so a test can prove the interrupted drag actually
+     * applied its size rather than only firing the hook.
+     *
+     * @param {number} row The visual row index.
+     * @returns {number}
+     */
+    window.renderedRowHeight = function(row) {
+      return window.grid.getCell(row, 0).parentNode.getBoundingClientRect().height;
+    };
+
+    /**
+     * The rendered width of a visual column.
+     *
+     * @param {number} column The visual column index.
+     * @returns {number}
+     */
+    window.renderedColumnWidth = function(column) {
+      return window.grid.getCell(0, column).getBoundingClientRect().width;
+    };
+  </script>
+</body>
+</html>

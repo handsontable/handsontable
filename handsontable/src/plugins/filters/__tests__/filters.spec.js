@@ -880,7 +880,7 @@ describe('Filters', () => {
       expect(plugin.updateValueComponentCondition).toHaveBeenCalledWith(physicalColumn);
     });
 
-    it('should convert visual to physical index in updateValueComponentCondition', async() => {
+    it('should refresh the state of the physical column passed to updateValueComponentCondition', async() => {
       handsontable({
         data: [
           ['A1', 'B1', 'C1'],
@@ -888,35 +888,41 @@ describe('Filters', () => {
         ],
         colHeaders: true,
         manualColumnMove: true,
+        dropdownMenu: true,
         filters: true
       });
 
       const plugin = getPlugin('filters');
       const manualColumnMove = getPlugin('manualColumnMove');
 
-      // Move column 0 to position 2
+      // Move column 0 to position 2, so the physical index no longer equals the visual one.
       manualColumnMove.moveColumn(0, 2);
       await render();
 
       const physicalColumn = 0;
       const visualColumn = toVisualColumn(physicalColumn);
 
+      expect(visualColumn).not.toBe(physicalColumn);
+
       plugin.addCondition(visualColumn, 'by_value', [['A1', 'A2']]);
       plugin.filter();
 
-      // Spy on hot.getDataAtCol to verify it's called with visual index
-      const hotInstance = plugin.hot;
+      const valueComponent = plugin.components.get('filter_by_value');
 
-      spyOn(hotInstance, 'getDataAtCol').and.callThrough();
-      spyOn(hotInstance, 'toVisualColumn').and.callThrough();
+      // `addCondition` already refreshed this state through the collection's `afterAdd` hook, so
+      // wipe it first. Without this the assertions below pass even when the method does nothing,
+      // and they also pass when it refreshes the wrong column.
+      valueComponent.state.setValueAtIndex(physicalColumn, null);
 
-      // Call updateValueComponentCondition with physical index
       plugin.updateValueComponentCondition(physicalColumn);
 
-      // Verify that toVisualColumn was called to convert physical to visual
-      expect(hotInstance.toVisualColumn).toHaveBeenCalledWith(physicalColumn);
-      // Verify that getDataAtCol was called with the visual index
-      expect(hotInstance.getDataAtCol).toHaveBeenCalledWith(visualColumn);
+      // The refreshed state must belong to the physical column that was passed in, and list that
+      // column's own values - not those of whatever column now sits at that visual index.
+      const state = valueComponent.state.getValueAtIndex(physicalColumn);
+
+      expect(state).not.toBeNull();
+      expect(state.itemsSnapshot.map(item => item.value)).toEqual(['A1', 'A2']);
+      expect(state.args).toEqual([['A1', 'A2']]);
     });
   });
 
@@ -953,6 +959,33 @@ describe('Filters', () => {
 
         expect(valueComponentState.args[0]).toEqual(['Mercedes', 'Renault']);
       });
+  });
+
+  describe('Editing a cell in the filtered column itself (issue #6471)', () => {
+    it('should leave the edited column\'s own by_value condition untouched', async() => {
+      handsontable({
+        data: [
+          ['foo'], ['bar'], ['foo'], ['bar'], ['foo'],
+        ],
+        colHeaders: true,
+        dropdownMenu: true,
+        filters: true,
+      });
+
+      const filters = getPlugin('filters');
+
+      filters.addCondition(0, 'by_value', [['foo']]);
+      filters.filter();
+
+      // Type the excluded value into a row that survived the filter.
+      await setDataAtCell(0, 0, 'bar');
+
+      // The stored condition is what the next `filter()` re-applies, so it must still say `foo`
+      // alone. Before the fix it was rewritten to every visible value, which made the next
+      // confirmation of the menu report "no condition" and drop the filter entirely.
+      expect(filters.conditionCollection.getConditions(0)[0].args[0]).toEqual(['foo']);
+      expect(filters.exportConditions()[0].conditions[0].args[0]).toEqual(['foo']);
+    });
   });
 
   describe('Batched value component updates (`afterChange`)', () => {

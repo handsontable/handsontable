@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed an issue where the grid scrollbars could not be reached under frozen rows, frozen columns, or the column header.",
+  "type": "fixed",
+  "issueOrPR": 10370,
+  "breaking": false,
+  "framework": "none"
+}

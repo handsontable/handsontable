@@ -7,11 +7,13 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const hotRef = useRef(null);
+
   const data = [
-    ['Tesla', 2017, 'black', 'black'],
-    ['Nissan', 2018, 'blue', 'blue'],
-    ['Chrysler', 2019, 'yellow', 'black'],
-    ['Volvo', 2020, 'white', 'gray'],
+    ['Hydrogen', 'H', 1, 1.008],
+    ['Helium', 'He', 2, 4.003],
+    ['Lithium', 'Li', 3, 6.94],
+    ['Beryllium', 'Be', 4, 9.012],
+    ['Boron', 'B', 5, 10.81],
   ];
 
   const searchFieldKeyupCallback = useCallback(
@@ -22,9 +24,10 @@ const ExampleComponent = () => {
       const queryResult = search?.query(event.currentTarget.value);
 
       console.log(queryResult);
+
       hot?.render();
     },
-    [hotRef.current]
+    [hotRef.current],
   );
 
   //  define your custom query method
@@ -47,7 +50,7 @@ const ExampleComponent = () => {
       <HotTable
         ref={hotRef}
         data={data}
-        colHeaders={true}
+        colHeaders={['Name', 'Symbol', 'Atomic number', 'Atomic mass']}
         // enable the `Search` plugin
         search={{
           // add your custom query method

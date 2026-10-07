@@ -68,9 +68,25 @@ export type IconKey =
   | 'caretHiddenDown'
   | 'collapseOff'
   | 'collapseOn'
-  | 'radio';
+  | 'radio'
+  | 'chipClose'
+  | 'search'
+  | 'plus'
+  | 'menuList';
 
-export type ThemeIconsConfig = Partial<Record<IconKey, string>> & Record<string, string>;
+/**
+ * Fills an icon element by hand. Used for icon libraries that need text content, such as
+ * Material Symbols ligatures.
+ */
+export type IconRenderer = (element: HTMLElement, name: IconKey) => void;
+
+/**
+ * One icon slot value: an SVG markup string, a `data:` or `url(...)` glyph, a class list
+ * (for example `'ti ti-chevron-right'`), or a renderer callback.
+ */
+export type IconValue = string | IconRenderer;
+
+export type ThemeIconsConfig = Partial<Record<IconKey, IconValue>> & Record<string, IconValue>;
 
 export interface ThemeColorsConfig {
   [key: string]: string | Record<string, string>;
@@ -389,6 +405,19 @@ export type TokenKey =
   | 'paginationButtonFocusBorderColor'
   | 'paginationButtonFocusForegroundColor'
   | 'paginationButtonFocusBackgroundColor'
+  // Sheets bar
+  | 'sheetsBarHorizontalPadding'
+  | 'sheetsBarBackgroundColor'
+  | 'sheetsBarTabHorizontalPadding'
+  | 'sheetsBarTabVerticalPadding'
+  | 'sheetsBarTabForegroundColor'
+  | 'sheetsBarTabBackgroundColor'
+  | 'sheetsBarTabHoverForegroundColor'
+  | 'sheetsBarTabHoverBackgroundColor'
+  | 'sheetsBarTabActiveForegroundColor'
+  | 'sheetsBarTabActiveBackgroundColor'
+  | 'sheetsBarTabActiveBorderWidth'
+  | 'sheetsBarTabActiveBorderColor'
   // Multiselect
   | 'chipBackground'
   | 'chipBorderRadius'

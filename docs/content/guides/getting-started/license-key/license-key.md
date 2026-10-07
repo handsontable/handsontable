@@ -141,7 +141,7 @@ Or include it in the settings object passed to `:settings`:
 
 :::
 
-## Non-Commercial license
+## Non-commercial license
 
 If you use Handsontable for purposes not intended toward monetary compensation such as, but not limited to, teaching, academic research, evaluation, testing and experimentation, pass the string  `'non-commercial-and-evaluation'`.
 

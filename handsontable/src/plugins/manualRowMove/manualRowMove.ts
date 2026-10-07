@@ -98,7 +98,7 @@ export class ManualRowMove extends BasePlugin {
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link ManualRowMove#enablePlugin} method is called.
-   * When [[Options#dataProvider]] is a complete server-backed configuration, the DataProvider plugin blocks this plugin from enabling.
+   * When {@link Options#dataProvider} is a complete server-backed configuration, the DataProvider plugin blocks this plugin from enabling.
    *
    * @returns {boolean}
    */
@@ -188,25 +188,27 @@ export class ManualRowMove extends BasePlugin {
    * @returns {boolean}
    */
   moveRows(rows: number[], finalIndex: number): boolean {
-    const dropIndex = this.#cachedDropIndex;
-    const movePossible = this.isMovePossible(rows, finalIndex);
-    const beforeMoveHook = this.hot.runHooks('beforeRowMove', rows, finalIndex, dropIndex, movePossible);
+    return this.runOperation('row_move', () => {
+      const dropIndex = this.#cachedDropIndex;
+      const movePossible = this.isMovePossible(rows, finalIndex);
+      const beforeMoveHook = this.hot.runHooks('beforeRowMove', rows, finalIndex, dropIndex, movePossible);
 
-    this.#cachedDropIndex = undefined;
+      this.#cachedDropIndex = undefined;
 
-    if (beforeMoveHook === false) {
-      return false;
-    }
+      if (beforeMoveHook === false) {
+        return false;
+      }
 
-    if (movePossible) {
-      this.hot.rowIndexMapper.moveIndexes(rows, finalIndex);
-    }
+      if (movePossible) {
+        this.hot.rowIndexMapper.moveIndexes(rows, finalIndex);
+      }
 
-    const movePerformed = movePossible && this.isRowOrderChanged(rows, finalIndex);
+      const movePerformed = movePossible && this.isRowOrderChanged(rows, finalIndex);
 
-    this.hot.runHooks('afterRowMove', rows, finalIndex, dropIndex, movePossible, movePerformed);
+      this.hot.runHooks('afterRowMove', rows, finalIndex, dropIndex, movePossible, movePerformed);
 
-    return movePerformed;
+      return movePerformed;
+    }, { rows: Array.isArray(rows) ? rows.slice() : rows, finalRowIndex: finalIndex });
   }
 
   /**
@@ -434,7 +436,17 @@ export class ManualRowMove extends BasePlugin {
     const backlightElemHeight = this.#backlight.getSize().height;
     const tdMiddle = (TD.offsetHeight / 2);
     const tdHeight = TD.offsetHeight;
-    let tdStartPixel = this.hot.view.THEAD.offsetHeight + this.getRowsHeight(0, coords.row - 1);
+    // `getRowsHeight` sums the LOGICAL row heights, which fall 1px short of the rendered band once
+    // the first rendered row is behind us — but only when that row draws its own `border-top`, which
+    // since DEV-2786 means a grid that renders no head row (when one is rendered it owns that
+    // gridline and every body row is the same height). Fold the shortfall in so `tdStartPixel` is
+    // the hovered row's real top edge in both shapes; the guideline is then put on the gridline just
+    // above it. The question goes through `StylesHandler` rather than `hasColHeaders()` because a
+    // plugin can add head rows to a grid that declared none — see the note on the predicate.
+    const firstRowBorderCompensation =
+      (coords.row > 0 && this.hot.stylesHandler.firstRenderedRowDrawsTopBorder()) ? 1 : 0;
+    let tdStartPixel = this.hot.view.THEAD.offsetHeight +
+      this.getRowsHeight(0, coords.row - 1) + firstRowBorderCompensation;
     const isBelowTable = pixelsRelToTableStart >= tdStartPixel + tdMiddle;
 
     if (this.isFixedRowTop(coords.row)) {
@@ -445,10 +457,11 @@ export class ManualRowMove extends BasePlugin {
       // if hover on colHeader
       this.#target.row = firstVisible > 0 ? firstVisible - 1 : firstVisible;
     } else if (isBelowTable) {
-      // if hover on lower part of TD
+      // if hover on lower part of TD - the boundary moves to this row's bottom edge, which is its
+      // RENDERED height away (no first-row special case: `tdStartPixel` above is already the real
+      // top edge, and `tdHeight` is read from the DOM).
       this.#target.row = coords.row + 1;
-      // unfortunately first row is bigger than rest
-      tdStartPixel += coords.row === 0 ? tdHeight - 1 : tdHeight;
+      tdStartPixel += tdHeight;
 
     } else {
       // elsewhere on table
@@ -456,7 +469,11 @@ export class ManualRowMove extends BasePlugin {
     }
 
     let backlightTop = pixelsRelToTableStart;
-    let guidelineTop = tdStartPixel;
+    // The drop boundary is the gridline shared by the two rows, which is the last pixel of the
+    // element ABOVE it - so one pixel up from the row's top edge. `Math.max` covers the one boundary
+    // with nothing above it: the top edge of a grid with no column headers, where the gridline is
+    // row 0's own `border-top` and therefore sits AT the edge.
+    let guidelineTop = Math.max(tdStartPixel - 1, 0);
 
     if (pixelsRelToTableStart + backlightElemHeight + backlightElemMarginTop >= hiderHeight) {
       // prevent display backlight below table
@@ -650,7 +667,6 @@ export class ManualRowMove extends BasePlugin {
     this.#rowsToMove.length = 0;
 
     if (movePerformed === true) {
-      this.hot.view.adjustElementsSize();
       this.hot.render();
 
       const selectionStart = this.hot.toVisualRow(firstMovedPhysicalRow);

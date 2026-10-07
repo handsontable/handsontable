@@ -1,19 +1,21 @@
-import { test, expect } from '../../../src/test-runner';
+import { visualTest, expect } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 
-test.skip(helpers.hotWrapper !== 'js', 'This test case is only for JavaScript framework');
-
 /**
- * Verifies that a dashed source border and a `.wtMoveGhost` preview rectangle
- * are rendered during a `moveCells` drag (mouse button held down mid-drag).
- *
- * The demo pre-selects rows 2–4, cols 2–4 with `moveCells: true`, making the
- * four `.wtMoveZone` edge bands immediately visible on the selection border.
- * The test initiates a drag by pressing down on the top-edge zone band, moves
- * the mouse over an interior target cell while the button is held, asserts the
- * ghost is visible, takes a screenshot, then releases the button.
+ * Checks how a `moveCells` drag looks while the button is held: the source range keeps its cell fill with
+ * no border, and the dashed `.wtMoveGhost` preview rectangle sits over the cells the pointer is on. The
+ * demo pre-selects rows 2–4, cols 2–4 with `moveCells: true`, so the four `.wtMoveZone` edge bands are on
+ * the selection border; the drag starts on the first visible band in DOM order and moves over (7, 6),
+ * outside the source range, and the ghost is asserted visible before the capture. The move affordances
+ * and the source's border lines hiding during the drag, the ghost's count and its position beyond the
+ * viewport are asserted in `tests/e2e/move-zone.spec.ts`; the ghost's colors are what only pixels prove,
+ * and `main` and `main-dark` cover them. Added in #13076; owned by DEV-3285.
  */
-test(__filename, async({ goto, tablePage }) => {
+visualTest(__filename, {
+  themes: ['main', 'main-dark'],
+  browsers: ['chromium'],
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto(
     helpers
       .setBaseUrl('/move-cells-demo')
@@ -92,7 +94,7 @@ test(__filename, async({ goto, tablePage }) => {
   await expect(ghost).toBeAttached();
   await expect(ghost).toBeVisible();
 
-  // Capture the mid-drag state: dashed source border + ghost preview rectangle.
+  // Capture the mid-drag state: the source's fill without its border, and the dashed ghost.
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   // Release the mouse to end the drag.

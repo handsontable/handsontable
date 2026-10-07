@@ -3,8 +3,9 @@
  * Claude Code Stop hook. When the agent ends a turn, verify the tests it
  * touched this session. Blocks (exit 2, which returns control to the agent with
  * the message) only on unambiguous problems:
- *   - a NEW Jasmine spec was created (new E2E must be Playwright), or
- *   - a Playwright spec the session touched now fails.
+ *   - a NEW Jasmine spec was created (new E2E must be Playwright),
+ *   - a Playwright spec the session touched now fails, or
+ *   - a unit test the session touched now fails.
  *
  * It does NOT hard-block on "source changed without a test" — that fires every
  * turn and would be hostile mid-task; pre-push and CI enforce existence, where
@@ -15,7 +16,15 @@ import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { isNewJasmineSpec } from '../../.github/scripts/lib/presence-gate.mjs';
 import { repoRoot, sessionEditsFile, stopVerdict, toRepoRelative } from './session.mjs';
-import { changedPlaywrightSpecs, changedUnitTests, unitTestPattern, isJestInfraFailure } from '../pre-push.mjs';
+import {
+  changedPlaywrightSpecs,
+  changedUnitTests,
+  unitTestPattern,
+  isJestInfraFailure,
+  isSpawnInfraFailure,
+  condenseTestOutput,
+  TEST_RUN_MAX_BUFFER,
+} from '../pre-push.mjs';
 import { filterCached, recordGreen } from '../e2e-run-cache.mjs';
 
 // npx/npm are .cmd shims on Windows; spawnSync needs a shell there or it ENOENTs.
@@ -128,37 +137,76 @@ if (toRun.length > 0) {
   // theme matrix (main/horizon/classic). See the run-scope note in the
   // handsontable-playwright-e2e skill.
   const pw = spawnSync('npx', ['playwright', 'test', '--project=e2e-main', ...toRun], {
-    cwd: path.join(root, 'tests'), stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8', shell: WIN,
+    cwd: path.join(root, 'tests'),
+    stdio: ['ignore', 'pipe', 'pipe'],
+    encoding: 'utf8',
+    shell: WIN,
+    maxBuffer: TEST_RUN_MAX_BUFFER,
   });
 
-  if (pw.status !== 0) {
+  if (pw.status !== 0 && isSpawnInfraFailure(pw)) {
+    // No verdict, so nothing to block on — but the unit checks below are
+    // independent and must still run. Do NOT exit here.
+    //
+    // Audience caveat: Claude Code forwards a hook's stderr to the agent only on
+    // exit 2. This leg does not exit, so the note reaches the agent only if a
+    // later leg blocks in the same run (stderr accumulates) — otherwise it lands
+    // in the debug log. Best-effort by design: nothing may depend on the agent
+    // reading it. The same holds for the unit-loop note below.
     process.stderr.write(
-      `Playwright specs you touched are failing — fix them before finishing:\n${pw.stdout || ''}${pw.stderr || ''}`,
+      `Note: the Playwright run for ${toRun.join(', ')} could not complete (${
+        pw.error?.code || pw.signal}). Not treated as a test failure — verify it yourself.\n`,
+    );
+  } else if (pw.status !== 0) {
+    process.stderr.write(
+      `Playwright specs you touched are failing — fix them before finishing:\n${
+        condenseTestOutput(`${pw.stdout || ''}${pw.stderr || ''}`)}\n`,
     );
     process.exit(2);
+  } else {
+    recordGreen(root, toRun);
   }
-  recordGreen(root, toRun);
 }
 
-// Run any changed Jest unit test the session touched — fast (jest maps to src,
-// no build). One jest per existing file (a single, shell-safe --testPathPattern;
-// never a `|`-joined regex, which run.mjs would append to a shell unquoted). An
-// infra failure (jest could not start) does not block the turn.
+// Run any changed Jest unit test the session touched. Jest maps imports to src,
+// so the leg builds no bundle, but `test:unit` runs `build:styles` first
+// (handsontable/scripts/tasks.json), once per file below. One jest per existing
+// file (a single, shell-safe --testPathPattern; never a `|`-joined regex, which
+// run.mjs would append to a shell unquoted). An infra failure (jest could not
+// start) does not block the turn.
 const unitFiles = changedUnitTests(paths).filter(f => existsSync(path.join(root, f)));
 
 for (const file of unitFiles) {
   const jest = spawnSync(
     'npm',
     ['run', 'test:unit', '--', `--testPathPattern=${unitTestPattern(file)}`],
-    { cwd: path.join(root, 'handsontable'), encoding: 'utf8', shell: WIN },
+    {
+      cwd: path.join(root, 'handsontable'),
+      encoding: 'utf8',
+      shell: WIN,
+      maxBuffer: TEST_RUN_MAX_BUFFER,
+    },
   );
 
   if (jest.status !== 0) {
-    if (isJestInfraFailure(`${jest.stdout || ''}${jest.stderr || ''}`)) {
+    const output = `${jest.stdout || ''}${jest.stderr || ''}`;
+
+    if (isSpawnInfraFailure(jest)) {
+      // This one file produced no verdict; the others are independent runs, so
+      // keep checking them rather than abandoning the loop. As above, this note
+      // only reaches the agent if a later leg exits 2 — do not rely on it.
+      process.stderr.write(
+        `Note: the unit run for ${file} could not complete (${
+          jest.error?.code || jest.signal}). Not treated as a test failure — verify it yourself.\n`,
+      );
+      continue;
+    }
+
+    if (isJestInfraFailure(output)) {
       break;
     }
     process.stderr.write(
-      `Unit tests you touched are failing — fix them before finishing:\n${jest.stdout || ''}${jest.stderr || ''}`,
+      `Unit tests you touched are failing — fix them before finishing:\n${condenseTestOutput(output)}\n`,
     );
     process.exit(2);
   }

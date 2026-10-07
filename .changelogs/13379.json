@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Made a grid with a pixel `width` and no `height` scroll its columns inside its own box while the page scrolls its rows, and fixed the `preventOverflow: 'horizontal'` layout (the bottom frozen rows now scroll with the page, the vertical scroll hooks fire, and the workspace width follows the container).",
+  "type": "changed",
+  "issueOrPR": 13379,
+  "breaking": false,
+  "framework": "none"
+}

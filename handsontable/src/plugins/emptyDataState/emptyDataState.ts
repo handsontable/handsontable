@@ -2,8 +2,12 @@ import { BasePlugin } from '../base';
 import { EmptyDataStateUI } from './ui';
 import { isObject } from '../../helpers/object';
 import { isButtonType } from '../../helpers/uiButton';
+import { isRootInstance } from '../../utils/rootInstance';
+import { GRID_SCOPE } from '../../shortcuts/contexts/constants';
+import { command as selectAllCellsCommand } from '../../shortcuts/contexts/commands/selectAllCells';
+import { hasRenderedCells } from '../../shortcuts/guards';
 import * as C from '../../i18n/constants';
-import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
+import type { SelectionState } from '../../selection/types';
 
 /**
  * Local type-guard narrowing `unknown` to `Record<string, unknown>`.
@@ -25,15 +29,6 @@ type MessageSetting =
   | ((source: string) => string | Record<string, unknown>)
   | undefined;
 
-interface SelectionState {
-  ranges: CellRange[];
-  activeRange: CellRange | undefined;
-  activeSelectionLayer: number;
-  selectedByRowHeader: number[];
-  selectedByColumnHeader: number[];
-  disableHeadersHighlight: boolean;
-}
-
 export const PLUGIN_KEY = 'emptyDataState';
 export const PLUGIN_PRIORITY = 370;
 const SOURCE = Object.freeze({
@@ -42,6 +37,7 @@ const SOURCE = Object.freeze({
   LOADING: 'loading',
 });
 const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
+const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 /**
  * @plugin EmptyDataState
@@ -53,8 +49,8 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  *
  * In order to enable the empty data state mechanism, {@link Options#emptyDataState} option must be set to `true`.
  *
- * When [[Options#dataProvider]] is enabled, the loading overlay is toggled from DataProvider fetch hooks
- * ([[Hooks#beforeDataProviderFetch]], [[Hooks#afterDataProviderFetch]], [[Hooks#afterDataProviderFetchError]]).
+ * When {@link Options#dataProvider} is enabled, the loading overlay is toggled from DataProvider fetch hooks
+ * ({@link Hooks#beforeDataProviderFetch}, {@link Hooks#afterDataProviderFetch}, {@link Hooks#afterDataProviderFetchError}).
  *
  * The plugin provides several configuration options to customize the empty data state behavior and appearance:
  * - `message`: Message to display in the empty data state overlay.
@@ -299,10 +295,15 @@ export class EmptyDataState extends BasePlugin {
   /**
    * Check if the plugin is enabled in the handsontable settings.
    *
+   * The empty data state renders into the root grid element and registers a focus scope, and both
+   * belong to the main Handsontable instance. In a nested grid (the one the `handsontable`,
+   * `autocomplete`, and `dropdown` cell types create) neither exists, so the plugin stays disabled
+   * there.
+   *
    * @returns {boolean}
    */
   isEnabled(): boolean {
-    return !!this.hot.getSettings()[PLUGIN_KEY];
+    return isRootInstance(this.hot) && !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -320,6 +321,7 @@ export class EmptyDataState extends BasePlugin {
       });
 
       this.#registerFocusScope();
+      this.#registerShortcuts();
       this.#registerEvents();
     }
 
@@ -338,7 +340,7 @@ export class EmptyDataState extends BasePlugin {
       }
     });
     this.addHook('afterDataProviderFetch', () => this.#clearLoadingActive());
-    this.addHook('afterDataProviderFetchError', () => this.#clearLoadingActive());
+    this.addHook('afterDataProviderFetchError', this.#onAfterDataProviderFetchError);
 
     super.enablePlugin();
 
@@ -349,12 +351,24 @@ export class EmptyDataState extends BasePlugin {
    * Update plugin state after Handsontable settings update.
    */
   updatePlugin() {
+    // `disablePlugin()` below unregisters the scope, which deactivates it and rolls the shortcuts
+    // context back. Only re-activate it when it was the active scope to begin with: re-activating
+    // unconditionally steals the keyboard from wherever the user actually is - an open modal dialog,
+    // or an element outside the grid they tabbed to - and `activateScope()` would then deactivate that
+    // scope on the way.
+    const hadActiveScope = isRootInstance(this.hot) &&
+      this.hot.getFocusScopeManager().getActiveScopeId() === PLUGIN_KEY;
+
     this.disablePlugin();
     this.enablePlugin();
     this.#update();
 
     if (this.isVisible()) {
       this.#ui?.show();
+
+      if (hadActiveScope) {
+        this.hot.getFocusScopeManager().activateScope(PLUGIN_KEY);
+      }
     }
 
     super.updatePlugin();
@@ -366,6 +380,7 @@ export class EmptyDataState extends BasePlugin {
   disablePlugin() {
     this.#loadingActive = false;
 
+    this.#unregisterShortcuts();
     this.#unregisterFocusScope();
 
     this.#ui?.destroy();
@@ -393,6 +408,35 @@ export class EmptyDataState extends BasePlugin {
   }
 
   /**
+   * Shows or hides the loading overlay to match whether the DataProvider plugin is waiting for a `fetchRows`
+   * response that shows loading. The DataProvider plugin calls it when the view the grid shows changes, because
+   * no fetch hook fires then: a fetch left running for another view must not keep the overlay up, and a view
+   * whose fetch is still running must show it again. After a view change, the selection the overlay restores when
+   * it hides is the one the new view has, not the one the previous view had when the overlay appeared, and an
+   * overlay hidden by the change restores no selection at all. Does nothing while this plugin is disabled.
+   * Internal; not public API.
+   *
+   * @private
+   * @param {boolean} isLoading Whether the grid waits for a fetch that shows loading.
+   * @param {boolean} [isViewChange=false] Whether the view the grid shows has just changed.
+   */
+  _syncDataProviderLoading(isLoading: boolean, isViewChange = false): void {
+    if (!this.enabled) {
+      return;
+    }
+
+    if (isViewChange && this.#isVisible) {
+      this.#selectionState = this.hot.selection.exportSelection();
+    }
+
+    if (isLoading) {
+      this.#setLoadingActive();
+    } else {
+      this.#clearLoadingActive(!isViewChange);
+    }
+  }
+
+  /**
    * Sets the loading active flag and toggles the emptyDataState.
    */
   #setLoadingActive() {
@@ -406,14 +450,16 @@ export class EmptyDataState extends BasePlugin {
 
   /**
    * Clears the loading active flag and hides the emptyDataState.
+   *
+   * @param {boolean} [restoresSelection=true] Whether hiding restores the selection kept when the overlay appeared.
    */
-  #clearLoadingActive() {
+  #clearLoadingActive(restoresSelection = true) {
     if (!this.#loadingActive) {
       return;
     }
 
     this.#loadingActive = false;
-    this.#hide();
+    this.#hide(restoresSelection);
     this.#toggleEmptyDataState();
     this.hot.render();
   }
@@ -425,6 +471,13 @@ export class EmptyDataState extends BasePlugin {
     this.hot.getFocusScopeManager()
       .registerScope(PLUGIN_KEY, this.#ui!.getElement()!, {
         shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
+        // The overlay covers the grid, it does not replace it, so everything the grid answers stays
+        // answered - including shortcuts added to it after this line was written.
+        fallbackShortcutsContextName: GRID_SCOPE,
+        // The overlay is painted over the grid body, and during a DataProvider fetch it does that while
+        // the cells underneath are still DRAWN. Without this a shortcut that writes cell content asked
+        // only "are cells drawn", got `true`, and `Delete` wiped the data under the overlay.
+        coversGridBody: true,
         runOnlyIf: () => this.isVisible(),
         onActivate: (focusSource: string) => {
           const focusableElements = this.#ui?.getFocusableElements() ?? [];
@@ -442,9 +495,51 @@ export class EmptyDataState extends BasePlugin {
   }
 
   /**
+   * Registers the one shortcut the overlay answers differently from the grid.
+   *
+   * Everything else is inherited, through the scope's `fallbackShortcutsContextName`. Select all is
+   * the exception: the grid's own entry is guarded on `isDefined(getSelected())`, and the overlay
+   * starts with nothing selected, so the inherited one would be silently inert exactly when the user
+   * needs it - with every column hidden, where selecting the data is the way back to a context menu.
+   */
+  #registerShortcuts() {
+    const manager = this.hot.getShortcutManager();
+    const pluginContext = manager.getOrCreateContext(SHORTCUTS_CONTEXT_NAME);
+
+    pluginContext.addShortcut({
+      keys: [['Control/Meta', 'A']],
+      callback: () => selectAllCellsCommand.callback(this.hot),
+      // The data is still there when only the columns are hidden, which is the case worth selecting.
+      // With no rows or no columns at all there is nothing to select, so the chord stays unclaimed.
+      //
+      // `!hasRenderedCells()` keeps the override to the case it was written for. While a DataProvider
+      // fetch covers a grid whose cells are still DRAWN, selecting them all would put the selection on
+      // cells the user cannot see - the very move the grid's own guards refuse there.
+      runOnlyIf: () => this.hot.countRows() > 0 && this.hot.countCols() > 0 &&
+        !hasRenderedCells(this.hot),
+      group: SHORTCUTS_GROUP,
+    });
+  }
+
+  /**
+   * Unregisters the plugin's shortcut group.
+   */
+  #unregisterShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext(SHORTCUTS_CONTEXT_NAME)?.removeShortcutsByGroup(SHORTCUTS_GROUP);
+  }
+
+  /**
    * Unregisters the focus scope for the emptyDataState plugin.
+   *
+   * Nothing was registered on a non-root instance, where the plugin never enables and the
+   * `FocusScopeManager` does not exist, so a direct `disablePlugin()` call there must not reach it.
    */
   #unregisterFocusScope() {
+    if (!isRootInstance(this.hot)) {
+      return;
+    }
+
     this.hot.getFocusScopeManager().unregisterScope(PLUGIN_KEY);
   }
 
@@ -550,6 +645,7 @@ export class EmptyDataState extends BasePlugin {
 
     this.#ui?.show();
     this.#isVisible = true;
+    this.#updateLayout();
 
     this.#selectionState = this.hot.selection.exportSelection();
     this.hot.getFocusScopeManager().activateScope(PLUGIN_KEY);
@@ -571,9 +667,28 @@ export class EmptyDataState extends BasePlugin {
   }
 
   /**
-   * Hides the emptyDataState overlay.
+   * Fits the visible overlay to the current grid layout.
+   *
+   * It runs after every render, and also when the overlay is shown between renders – a DataProvider
+   * fetch starting, for example. Without that the overlay keeps the size it had the last time it was on
+   * screen, and can spill over the pager or the sheets bar.
    */
-  #hide() {
+  #updateLayout() {
+    if (!this.#ui?.getElement() || !this.isVisible() || !this.hot.view?._wt) {
+      return;
+    }
+
+    this.#ui.updateSize(this.hot.view, this.#loadingActive);
+    this.#ui.updateClassNames(this.hot.view);
+  }
+
+  /**
+   * Hides the emptyDataState overlay.
+   *
+   * @param {boolean} [restoresSelection=true] Whether to restore the selection kept when the overlay appeared,
+   * or select the first cell when none was kept. With `false`, the selection is left as it is.
+   */
+  #hide(restoresSelection = true) {
     if (!this.#isVisible) {
       return;
     }
@@ -583,9 +698,13 @@ export class EmptyDataState extends BasePlugin {
     this.#ui?.hide();
     this.#isVisible = false;
 
+    // `deactivateScope()` restores the shortcuts context this scope displaced. Do not roll it back
+    // here as well - two rollbacks eventually disagree, and this one cannot know what it displaced.
     this.hot.getFocusScopeManager().deactivateScope(PLUGIN_KEY);
 
-    if (this.#selectionState && this.#selectionState.ranges.length > 0) {
+    if (!restoresSelection) {
+      this.#selectionState = null;
+    } else if (this.#selectionState && this.#selectionState.ranges.length > 0) {
       this.hot.selection.importSelection({
         ...this.#selectionState,
         activeRange: this.#selectionState.activeRange!,
@@ -632,10 +751,7 @@ export class EmptyDataState extends BasePlugin {
    * It updates the height and class names of the emptyDataState element.
    */
   #onAfterRender = () => {
-    if (this.#ui?.getElement() && this.isVisible() && this.hot.view) {
-      this.#ui.updateSize(this.hot.view, this.#loadingActive);
-      this.#ui.updateClassNames(this.hot.view);
-    }
+    this.#updateLayout();
   };
 
   /**
@@ -649,6 +765,22 @@ export class EmptyDataState extends BasePlugin {
 
     if (this.isVisible()) {
       this.#update();
+    }
+  };
+
+  /**
+   * Hides the loading overlay when the fetch it waits for fails. A failed fetch made for a view the grid no longer
+   * shows (`isVisible` is `false`) leaves the overlay alone: the overlay belongs to the view on screen, which may
+   * still be waiting for its own fetch.
+   *
+   * @param {Error} error The thrown error.
+   * @param {object} queryParameters The query parameters of the failed request.
+   * @param {boolean} [isVisible] `false` when the request was made for a view the grid does not show.
+   * @returns {void}
+   */
+  readonly #onAfterDataProviderFetchError = (error: unknown, queryParameters: unknown, isVisible?: boolean) => {
+    if (isVisible !== false) {
+      this.#clearLoadingActive();
     }
   };
 

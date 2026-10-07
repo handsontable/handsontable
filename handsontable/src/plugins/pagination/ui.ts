@@ -1,4 +1,4 @@
-import { html } from '../../helpers/templateLiteralTag';
+import { buildTemplate, type TemplateSpec } from '../../helpers/dom/template';
 import { mixin } from '../../helpers/object';
 import localHooks from '../../mixins/localHooks';
 import * as C from '../../i18n/constants';
@@ -8,27 +8,58 @@ import {
   setAttribute,
 } from '../../helpers/dom/element';
 import { A11Y_DISABLED, A11Y_LABEL } from '../../helpers/a11y';
+import type { IconKey } from '../../themes/types';
+import type { IconSlotSync } from '../../themes/engine/icons';
 
-const TEMPLATE = `
-<div data-ref="container" class="ht-pagination handsontable">
-  <div class="ht-pagination__inner">
-    <div data-ref="pageSizeSection" class="ht-page-size-section">
-      <span data-ref="pageSizeLabel" class="ht-page-size-section__label"></span>
-      <div class="ht-page-size-section__select-wrapper">
-        <select data-ref="pageSizeSelect" name="pageSize" data-hot-input></select>
-      </div>
-    </div>
-    <div data-ref="pageCounterSection" class="ht-page-counter-section"></div>
-    <nav data-ref="pageNavSection" class="ht-page-navigation-section">
-      <button data-ref="first" class="ht-page-navigation-section__button ht-page-first"></button>
-      <button data-ref="prev" class="ht-page-navigation-section__button ht-page-prev"></button>
-      <span data-ref="pageNavLabel" class="ht-page-navigation-section__label"></span>
-      <button data-ref="next" class="ht-page-navigation-section__button ht-page-next"></button>
-      <button data-ref="last" class="ht-page-navigation-section__button ht-page-last"></button>
-    </nav>
-  </div>
-</div>
-`;
+/**
+ * The `syncIcon()` slot class of the one icon inside each navigation button and inside the
+ * page-size select's wrapper.
+ *
+ * @type {string}
+ */
+const ICON_SLOT_CLASS = 'ht-page-icon';
+
+const TEMPLATE: TemplateSpec = {
+  tag: 'div',
+  ref: 'container',
+  className: 'ht-pagination handsontable',
+  children: [{
+    tag: 'div',
+    className: 'ht-pagination__inner',
+    children: [
+      {
+        tag: 'div',
+        ref: 'pageSizeSection',
+        className: 'ht-page-size-section',
+        children: [
+          { tag: 'span', ref: 'pageSizeLabel', className: 'ht-page-size-section__label' },
+          {
+            tag: 'div',
+            className: 'ht-page-size-section__select-wrapper',
+            children: [{
+              tag: 'select',
+              ref: 'pageSizeSelect',
+              attrs: { name: 'pageSize', 'data-hot-input': '' },
+            }],
+          },
+        ],
+      },
+      { tag: 'div', ref: 'pageCounterSection', className: 'ht-page-counter-section' },
+      {
+        tag: 'nav',
+        ref: 'pageNavSection',
+        className: 'ht-page-navigation-section',
+        children: [
+          { tag: 'button', ref: 'first', className: 'ht-page-navigation-section__button ht-page-first' },
+          { tag: 'button', ref: 'prev', className: 'ht-page-navigation-section__button ht-page-prev' },
+          { tag: 'span', ref: 'pageNavLabel', className: 'ht-page-navigation-section__label' },
+          { tag: 'button', ref: 'next', className: 'ht-page-navigation-section__button ht-page-next' },
+          { tag: 'button', ref: 'last', className: 'ht-page-navigation-section__button ht-page-last' },
+        ],
+      },
+    ],
+  }],
+};
 
 interface PaginationRefs {
   container: HTMLDivElement;
@@ -104,6 +135,13 @@ export class PaginationUI {
    * @type {function(string): void}
    */
   readonly #a11yAnnouncer: (message: unknown) => void;
+  /**
+   * Keeps one icon slot of a container in step with the theme (`syncIcon()` bound to the grid).
+   * Injected so the UI stays decoupled from the theme engine.
+   *
+   * @type {Function}
+   */
+  readonly #syncIcon: IconSlotSync;
 
   /**
    * Initializes the pagination UI by creating DOM elements, applying layout settings, and registering event listeners.
@@ -115,6 +153,7 @@ export class PaginationUI {
     themeName,
     phraseTranslator,
     a11yAnnouncer,
+    syncIcon,
   }: Record<string, unknown>) {
     this.#rootElement = rootElement as HTMLElement;
     this.#uiContainer = uiContainer as HTMLElement | null;
@@ -122,6 +161,7 @@ export class PaginationUI {
     this.#themeName = themeName as string | undefined;
     this.#phraseTranslator = phraseTranslator as (...args: unknown[]) => string;
     this.#a11yAnnouncer = a11yAnnouncer as (message: unknown) => void;
+    this.#syncIcon = syncIcon as IconSlotSync;
 
     this.install();
   }
@@ -134,7 +174,7 @@ export class PaginationUI {
       return;
     }
 
-    const elements = html`${TEMPLATE}`;
+    const elements = buildTemplate(TEMPLATE, this.#rootElement.ownerDocument);
     const {
       container,
       first,
@@ -169,6 +209,8 @@ export class PaginationUI {
       this.runLocalHooks('pageSizeChange', value);
     });
 
+    this.#installIcons();
+
     this.setCounterSectionVisibility(false);
     this.setNavigationSectionVisibility(false);
     this.setPageSizeSectionVisibility(false);
@@ -190,6 +232,38 @@ export class PaginationUI {
    */
   getContainer(): HTMLDivElement {
     return this.#refs!.container;
+  }
+
+  /**
+   * Brings the icons in step with the theme after a theme change. An icon whose mapping did not
+   * move is left alone (`syncIcon()` checks the theme's icons revision), so a color-scheme or
+   * density switch rebuilds nothing.
+   */
+  refreshIcons() {
+    if (this.#refs) {
+      this.#installIcons();
+    }
+  }
+
+  /**
+   * Installs the icon elements into the navigation buttons and the page-size select's caret, or
+   * re-applies the theme's mapping to the ones already there. Safe to call repeatedly:
+   * `syncIcon()` keeps exactly one icon per slot.
+   */
+  #installIcons() {
+    const refs = this.#refs!;
+    const map: Array<[HTMLElement, IconKey]> = [
+      [refs.first, 'arrowLeftWithBar'],
+      [refs.prev, 'arrowLeft'],
+      [refs.next, 'arrowRight'],
+      [refs.last, 'arrowRightWithBar'],
+    ];
+
+    map.forEach(([button, name]) => {
+      this.#syncIcon(button, ICON_SLOT_CLASS, name, { flipInRtl: true });
+    });
+
+    this.#syncIcon(refs.pageSizeSelect.parentElement!, ICON_SLOT_CLASS, 'arrowDown');
   }
 
   /**

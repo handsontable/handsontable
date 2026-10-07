@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `SheetsBar` plugin \u2014 a tab bar for switching between sheets of a multi-sheet workbook \u2014 and the `getManualSize()`, `getManualSizes()`, and `setManualSizes()` methods to the `ManualColumnResize` and `ManualRowResize` plugins.",
+  "type": "added",
+  "issueOrPR": 13409,
+  "breaking": false,
+  "framework": "none"
+}

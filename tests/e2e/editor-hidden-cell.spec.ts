@@ -153,12 +153,25 @@ test.describe('non-text editors whose cell is hidden', () => {
 
     await grid.setPage(2);
 
-    // Assert only that the editor is gone. Whether a dropdown COMMITS or DISCARDS is decided by
-    // `DropdownEditor.finishEditing`, which rewrites the flag based on the active range, and by its
-    // own `queryChoices` timeout scheduled in `open()`. Both are pre-existing and race real typing,
-    // so the committed value is not a stable assertion here. The editor surviving a hidden cell is
-    // what this change fixes, and that is what this pins.
     await expect.poll(() => grid.isEditorOpen()).toBe(false);
+    // The typed value, not the choice the list happened to be highlighting. `AutocompleteEditor`
+    // defers every query by 10 ms, so a close forced inside that window used to read the match for
+    // `'A'` - the previous keystroke - and commit `'A1'` over it. Pinned across all six legs at
+    // 600 repeats; before the fix that reproduced 14 times.
+    await expect.poll(() => grid.sourceColumn(0)).toEqual(['A4', 'A2', 'A3', 'A4']);
+  });
+
+  test('finishes the dropdown edit when hiddenRows hides the edited cell', async({ page, theme, bundle }) => {
+    const grid = new EditorHiddenCellPage(page, theme, bundle, { editor: 'dropdown' });
+
+    await grid.goto();
+    await grid.openEditorAndType(0, 0, 'A4');
+
+    // A second hiding trigger, so the commit is not pinned to Pagination alone.
+    await grid.hideRow(0);
+
+    await expect.poll(() => grid.isEditorOpen()).toBe(false);
+    await expect.poll(() => grid.sourceColumn(0)).toEqual(['A4', 'A2', 'A3', 'A4']);
   });
 });
 

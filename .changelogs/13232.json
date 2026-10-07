@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed missing theme icons and, in right-to-left grids, rounded corners drawn on the wrong cells, both caused by the CSS minifier lowering nested rules and logical properties for browsers below the build targets; those targets are now Chrome and Edge 130, Firefox 132, and Safari and iOS 18.2.",
+  "type": "fixed",
+  "issueOrPR": 13232,
+  "breaking": false,
+  "framework": "none"
+}
