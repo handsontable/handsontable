@@ -304,7 +304,13 @@ Other rules:
   in unquoted (`#,##0.00USD`, `CHF#,##0.00`), which Excel for the web REPAIRS and LibreOffice and
   Numbers drop. A lone `$`, `€`, `£` or `¥` stays bare, because Excel accepts it. The import's
   `captureQuotedCurrency` (`importFile/numFmtCode.ts`) reads the quoted ISO code back, so the round
-  trip keeps the currency.
+  trip keeps the currency. A symbol SEVERAL currencies share (`kr`, `kr.`, halfwidth `¥`) is written
+  as a locale token `[$<symbol>-<LCID>]` with the CURRENCY's home LCID, never the column locale's
+  (en-US JPY must not get 409, or yen and yuan read the same): `[$kr-414]` NOK, `[$kr-41D]` SEK,
+  `[$kr.-406]` DKK, `[$kr.-40F]` ISK, `[$¥-411]` JPY, `[$¥-804]` CNY. The reader maps the LCID per
+  symbol (`SHARED_SYMBOL_LCID_TO_CODE`), so an LCID never reassigns another symbol (`[$$-414]` stays USD).
+- **`minimumIntegerDigits: n` is written as n zeros** in the integer part (`00000`, `000.00`, `#,#00`),
+  and the import sets it from a zero-padded code, so a ZIP-code column keeps its zeros both ways.
 - **The exported sheet direction follows the RENDERED direction** (`hot.isRtl()`), not the raw
   `layoutDirection` setting, so a grid on a `dir="rtl"` page with the default `'inherit'` writes a
   right-to-left sheet. The import side already used `isRtl()`; the two disagreed before.
