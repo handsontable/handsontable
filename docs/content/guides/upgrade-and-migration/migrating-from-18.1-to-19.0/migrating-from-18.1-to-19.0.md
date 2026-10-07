@@ -1746,14 +1746,15 @@ around a merge, LibreOffice drew the block without its right edge.
 
 What to do: nothing.
 
-#### A currency symbol longer than one character is written in quotes
+#### A currency symbol is written in quotes
 
 What changed: a `numeric` column whose `numericFormat` shows a currency symbol longer than one
 character, such as `USD`, `CHF`, or `zł`, is now written with the symbol in quotes, as
 `"USD"#,##0.00` or `#,##0.00"zł"`. In 18.1, the symbol was written without quotes, such as
 `#,##0.00USD`. Excel for the web repaired such a file when it opened it, and other spreadsheet
-applications dropped the number format. A one-character symbol, such as `$`, `€`, or `£`, is
-written as before. A symbol that several currencies share, such as `kr` or `¥`, is now written as an
+applications dropped the number format. A one-character symbol other than `$`, such as `€` or `£`,
+is now quoted too, as `#,##0.00"€"`, because Apple Numbers and Quick Look misread it bare. A lone `$`
+is written as before. A symbol that several currencies share, such as `kr` or `¥`, is now written as an
 Excel locale token that names the currency's home locale, such as `#,##0.00[$kr-41D]` for the Swedish
 krona or `[$¥-411]#,##0.00` for the yen. In 18.1, a Norwegian krone column came back from its own export
 as the Swedish krona. A `minimumIntegerDigits` value is now written as that many zeros, such as `00000`.

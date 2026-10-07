@@ -38,14 +38,14 @@ describe('intlNumFormatToExcelNumFmt', () => {
       // fr-FR formats EUR as "1 234,56 €" — symbol is a suffix.
       const fmt = intlNumFormatToExcelNumFmt({ style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }, 'fr-FR');
 
-      expect(fmt).toBe('#,##0.00€');
+      expect(fmt).toBe('#,##0.00"€"');
     });
 
     it('should place the currency symbol after the number for suffix locales (de-DE / EUR)', () => {
       // de-DE formats EUR as "1.234,56 €" — symbol is a suffix.
       const fmt = intlNumFormatToExcelNumFmt({ style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }, 'de-DE');
 
-      expect(fmt).toBe('#,##0.00€');
+      expect(fmt).toBe('#,##0.00"€"');
     });
 
     it('should keep the currency symbol before the number for prefix locales (en-US / USD)', () => {
@@ -74,12 +74,16 @@ describe('intlNumFormatToExcelNumFmt', () => {
       expect(intlNumFormatToExcelNumFmt({ style: 'currency', currency: 'HKD' }, 'en-US')).toBe('"HK$"#,##0');
     });
 
-    it('should keep a lone single-character currency symbol bare', () => {
+    it('should keep a lone dollar sign bare and quote every other one-character symbol', () => {
+      // Apple Numbers and Quick Look misread an unquoted euro or pound sign (Numbers showed 1235 for
+      // 1234.5, Quick Look 1234,5); the quoted form renders in Numbers, Quick Look, LibreOffice and
+      // Excel. The dollar sign is Excel's own bare form, so it stays as it is.
       const options = { style: 'currency', minimumFractionDigits: 2 };
 
       expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'USD' }, 'en-US')).toBe('$#,##0.00');
-      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'EUR' }, 'de-DE')).toBe('#,##0.00\u20AC');
-      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'GBP' }, 'en-GB')).toBe('\u00A3#,##0.00');
+      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'EUR' }, 'de-DE')).toBe('#,##0.00"\u20AC"');
+      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'GBP' }, 'en-GB')).toBe('"\u00A3"#,##0.00');
+      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'INR' }, 'en-IN')).toBe('"\u20B9"#,##0.00');
     });
 
     it('should write minimumIntegerDigits back as zeros in the integer part', () => {
@@ -107,8 +111,8 @@ describe('intlNumFormatToExcelNumFmt', () => {
       expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'ISK' }, 'is-IS')).toBe('#,##0.00[$kr.-40F]');
       expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'JPY' }, 'en-US')).toBe('[$\u00A5-411]#,##0.00');
       expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'CNY' }, 'zh-CN')).toBe('[$\u00A5-804]#,##0.00');
-      // The fullwidth yen sign belongs to the yen alone, so it stays bare.
-      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'JPY' }, 'ja-JP')).toBe('\uFFE5#,##0.00');
+      // The fullwidth yen sign belongs to the yen alone, so it needs no locale token, only quotes.
+      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'JPY' }, 'ja-JP')).toBe('"\uFFE5"#,##0.00');
     });
 
     it('should ignore style: currency when no currency code is provided', () => {

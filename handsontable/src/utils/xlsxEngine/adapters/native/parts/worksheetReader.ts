@@ -313,6 +313,22 @@ function paneSplit(text: string | undefined, max: number): number {
 }
 
 /**
+ * Tells whether the `YYYY-MM-DD` part of an ISO value names a day that exists. `Date.parse` rolls
+ * `2024-02-30` over to March 1 in Chromium and Firefox and refuses it in WebKit, so the same file
+ * imported a different value per browser.
+ */
+function namesRealDay(text: string): boolean {
+  const year = Number(text.slice(0, 4));
+  const month = Number(text.slice(5, 7));
+  const day = Number(text.slice(8, 10));
+  const date = new Date(Date.UTC(2000, month - 1, day));
+
+  date.setUTCFullYear(year);
+
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+}
+
+/**
  * Reads an ISO date cell (`t="d"`) as a 1900-system serial number, or `null` for a value that is
  * not an ISO 8601 date or date-time with a `T` (`ISO_DATE_VALUE`).
  *
@@ -324,7 +340,7 @@ function paneSplit(text: string | undefined, max: number): number {
 function dateSerial(rawText: string): CellValue {
   const text = rawText.trim();
 
-  if (!ISO_DATE_VALUE.test(text)) {
+  if (!ISO_DATE_VALUE.test(text) || !namesRealDay(text)) {
     return null;
   }
 

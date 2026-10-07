@@ -77,6 +77,9 @@ describe('captureCurrency', () => {
     expect(captureCurrency('#,##0.00\\z\\\u0142')).toEqual({ currency: 'PLN', rest: '#,##0.00' });
     expect(captureCurrency('\\C\\H\\F#,##0.00')).toEqual({ currency: 'CHF', rest: '#,##0.00' });
     expect(captureCurrency('\\C\\H\\F\\ #,##0.00')).toEqual({ currency: 'CHF', rest: '#,##0.00' });
+    // Excel's re-save of the koruna and the forint, one backslash per character.
+    expect(captureCurrency('#,##0.00\\K\\\u010D')).toEqual({ currency: 'CZK', rest: '#,##0.00' });
+    expect(captureCurrency('#,##0.00\\ \\F\\t')).toEqual({ currency: 'HUF', rest: '#,##0.00' });
     expect(captureCurrency('#,##0.00\\ \\U\\S\\D')).toEqual({ currency: 'USD', rest: '#,##0.00' });
     expect(captureCurrency('\\H\\K\\$#,##0')).toEqual({ currency: 'HKD', rest: '#,##0' });
     // An escaped literal that is not a currency stays in the pattern.

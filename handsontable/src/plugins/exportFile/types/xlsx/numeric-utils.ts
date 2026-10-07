@@ -106,17 +106,18 @@ export function intlNumFormatToExcelNumFmt(
 
   if (style === 'currency' && currency) {
     const { symbol: rawSymbol, isPrefix } = getCurrencyInfo(currency, locale);
-    // A lone symbol (the dollar, euro, pound or yen sign) is written bare. Anything longer is
-    // quoted: Excel for the web repairs a workbook holding an unquoted letter code (`#,##0.00USD`,
-    // `CHF#,##0.00`) and drops the format, and Numbers and LibreOffice misread unquoted multi-letter
-    // symbols such as the zloty's or `kr`.
+    // A lone dollar sign is written bare, Excel's own form. Every other symbol is quoted: Excel for
+    // the web repairs a workbook holding an unquoted letter code (`#,##0.00USD`, `CHF#,##0.00`) and
+    // drops the format, Numbers and LibreOffice misread unquoted multi-letter symbols such as the
+    // zloty's or `kr`, and Numbers and Quick Look misread even a lone euro or pound sign
+    // (`#,##0.00\u20AC` showed 1235 in Numbers for 1234.5).
     // The import reads the quoted form back (`captureCurrency` in `utils/xlsxEngine/numFmtCode.ts`).
     // A symbol several currencies share (`kr` for four kronor, the yen sign for the yen and the
     // yuan) is written as Excel's locale token with the currency's home LCID (`[$kr-414]`): Excel
     // shows the symbol, and the import reads the LCID back to the right currency
     // (`captureCurrency`).
     const lcid = sharedSymbolLcid(rawSymbol, currency);
-    let symbol = rawSymbol.length > 1 ? `"${rawSymbol.replaceAll('"', '')}"` : rawSymbol;
+    let symbol = rawSymbol === '$' ? rawSymbol : `"${rawSymbol.replaceAll('"', '')}"`;
 
     if (lcid !== null) {
       symbol = `[$${rawSymbol}-${lcid.toString(16).toUpperCase()}]`;

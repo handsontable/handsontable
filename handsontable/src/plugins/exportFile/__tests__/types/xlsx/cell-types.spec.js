@@ -101,7 +101,7 @@ import ExcelJS from 'exceljs';
 
         const ws = await parseXlsx();
 
-        expect(ws.getRow(1).getCell(1).numFmt).toBe('#,##0.00€');
+        expect(ws.getRow(1).getCell(1).numFmt).toBe('#,##0.00"€"');
       });
 
       it('should place the currency symbol after the number for suffix locales (de-DE / EUR)', async() => {
@@ -117,7 +117,7 @@ import ExcelJS from 'exceljs';
 
         const ws = await parseXlsx();
 
-        expect(ws.getRow(1).getCell(1).numFmt).toBe('#,##0.00€');
+        expect(ws.getRow(1).getCell(1).numFmt).toBe('#,##0.00"€"');
       });
 
       it('should not set numFmt on numeric cells without a numericFormat pattern', async() => {

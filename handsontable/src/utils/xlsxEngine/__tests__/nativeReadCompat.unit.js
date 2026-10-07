@@ -737,6 +737,25 @@ describe('native reader compatibility: a t="d" value that is not ISO 8601', () =
       expect(dropped.list()).toEqual([DROPPED_FEATURES.cellValueDate]);
     });
 
+  it.each(['2024-02-30', '2023-02-29', '2024-13-01', '2024-04-31T10:00:00', '2024-00-10'])(
+    'should read the impossible date "%s" as an empty cell and record cellValue:date', (text) => {
+      // ISO-shaped but naming no real day: Chromium and Firefox rolled `2024-02-30` over to
+      // 2024-03-01, and WebKit read it as invalid, so one file imported differently per browser.
+      const { sheet, dropped } = readSheet(worksheetXml(
+        `<row r="1"><c r="A1" t="d"><v>${text}</v></c></row>`
+      ));
+
+      expect(sheet.rows[0][0]).toBeNull();
+      expect(dropped.list()).toEqual([DROPPED_FEATURES.cellValueDate]);
+    });
+
+  it('should still read a real leap day', () => {
+    const { sheet, dropped } = readSheet(worksheetXml('<row r="1"><c r="A1" t="d"><v>2024-02-29</v></c></row>'));
+
+    expect(sheet.rows[0][0].value).toBe(45351);
+    expect(dropped.list()).toEqual([]);
+  });
+
   it('should not ask Date.parse about a value that is not ISO 8601', () => {
     const spy = jest.spyOn(Date, 'parse');
 

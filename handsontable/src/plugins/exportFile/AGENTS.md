@@ -299,10 +299,11 @@ Other rules:
   Numbers; the cost is that Excel lists the sheet under Unhide. Inlining short lists (255 characters)
   was the alternative and stays open. Named in the export guide's cell-type table and in section 30
   of the migration guide.
-- **A currency symbol longer than one character is QUOTED in the `numFmt`** (`numeric-utils.ts`,
+- **Every currency symbol except a lone `$` is QUOTED in the `numFmt`** (a lone `€`/`£` too: Numbers
+  and Quick Look misread it bare, `#,##0.00€` showed 1235 for 1234.5 in Numbers) (`numeric-utils.ts`,
   shared by both engines): `"USD"#,##0.00`, `#,##0.00"zł"`. The raw `formatToParts` symbol used to go
   in unquoted (`#,##0.00USD`, `CHF#,##0.00`), which Excel for the web REPAIRS and LibreOffice and
-  Numbers drop. A lone `$`, `€`, `£` or `¥` stays bare, because Excel accepts it. The import's
+  Numbers drop. Only a lone `$` stays bare (Excel's own form). The import's
   `captureQuotedCurrency` (`importFile/numFmtCode.ts`) reads the quoted ISO code back, so the round
   trip keeps the currency. A symbol SEVERAL currencies share (`kr`, `kr.`, halfwidth `¥`) is written
   as a locale token `[$<symbol>-<LCID>]` with the CURRENCY's home LCID, never the column locale's
