@@ -381,6 +381,22 @@ describe('ExportFile downloads and the grid lifecycle', () => {
     await expect(pending).rejects.toThrow(/ExportFile: the Handsontable instance was destroyed/);
     expect(createSpy).not.toHaveBeenCalled();
   });
+
+  it('should name the destroyed instance, not throw a TypeError, for an export started after destroy()', async() => {
+    // Every export entry point builds its formatter first, which read `this.hot.getSettings()` and
+    // threw `Cannot read properties of undefined (reading 'getSettings')` on a destroyed grid.
+    const plugin = hot.getPlugin('exportFile');
+
+    hot.destroy();
+
+    const destroyed = /ExportFile: the Handsontable instance is destroyed, so nothing can be exported/;
+
+    expect(() => plugin.exportAsString('csv')).toThrow(destroyed);
+    expect(() => plugin.exportAsBlob('csv')).toThrow(destroyed);
+    expect(() => plugin.downloadFile('csv')).toThrow(destroyed);
+    await expect(plugin.exportAsBlobAsync('xlsx')).rejects.toThrow(destroyed);
+    await expect(plugin.downloadFileAsync('xlsx')).rejects.toThrow(destroyed);
+  });
 });
 
 describe('DataProvider#getLayoutDirection', () => {

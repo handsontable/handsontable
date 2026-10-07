@@ -178,7 +178,9 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   source list per cell. Do not clone the meta per cell.
 - **Guard `this.hot` after every `await`.** The workbook read (and `blob.arrayBuffer()`) is the plugin's
   async boundary; `BasePlugin#destroy` deletes `hot`, so a grid torn down mid-read used to surface as a raw
-  `Cannot read properties of undefined`. Both entry points now reject with a Handsontable error instead.
+  `Cannot read properties of undefined`. Both entry points now reject with a Handsontable error instead,
+  and a call made AFTER `destroy()` says the instance is destroyed (`#assertEnabled` checks `this.hot`
+  first), not that `importFile` is `false`.
 - **Overlapping applying imports are ordered by when they STARTED, not when they finish (T90).** Each
   `apply: true` call takes a ticket from `#latestApplyTicket` before its first `await` (in
   `importFromBlob` that is before `blob.arrayBuffer()`, so the two entry points share one sequence), and
@@ -449,7 +451,12 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `hot.updateSettings()` second, inside one `hot.batch`. Every layout setting is validated against the table
   that exists when it is applied: MergeCells rejects (and logs about) a merge reaching past the last row, and
   a target grid usually starts with a single empty row — so the previous order silently dropped every merge
-  the workbook declared while `result.mergeCells` stayed correct. Do not fold the two into one
+  the workbook declared while `result.mergeCells` stayed correct. **The one exception is `columns`**,
+  which goes in BEFORE `loadData` (and again with the other settings): `loadData` runs the source-data
+  validators against whatever `columns` apply, so the previous grid's types judged the imported values
+  and logged a false `Source data warning` on every first import into a typed grid. `columns` has no row
+  bound, so moving it ahead costs nothing the layout order protects (`importIntoTypedGrid.unit.js`).
+  Do not fold the two into one
   `updateSettings({ ...settings, data })`: that routes through `updateData`, which keeps the previous
   import's cell states instead of resetting them. The `batch` suspends rendering, so the pair paints once.
 - **`updateSettings` gets only the keys the workbook set.** `applier.ts#toSettings` omits `undefined`, so

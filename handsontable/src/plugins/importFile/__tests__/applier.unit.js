@@ -49,7 +49,7 @@ describe('applyImportResult', () => {
     document.querySelectorAll(STYLE_SELECTOR).forEach(element => element.remove());
   });
 
-  it('should load the data first, then update only the settings the result carries, inside one batch', () => {
+  it('should apply the column types, then the data, then only the other settings the result carries, in one batch', () => {
     const hot = fakeHot();
 
     applyImportResult(hot, {
@@ -64,8 +64,16 @@ describe('applyImportResult', () => {
       dropped: [],
     });
 
+    // The column types go first, so `loadData` validates the new data against them rather than
+    // against the previous grid's types; the layout keys (merges, freeze, widths) stay after it.
     expect(hot.calls).toEqual([
       ['batch:start'],
+      ['updateSettings', {
+        columns: [
+          { type: 'text' },
+          { type: 'numeric', numericFormat: { minimumFractionDigits: 0, useGrouping: false } },
+        ],
+      }],
       ['loadData', [['a', 1]]],
       ['updateSettings', {
         colHeaders: ['Name', 'Amount'],
@@ -370,7 +378,9 @@ describe('applyImportResult – layout across imports', () => {
 
     applyImportResult(hot, { data: [['a', 'b'], ['c']], sheetNames: ['Plain'], dropped: [] }, { importLayout: true });
 
-    const [, settings] = hot.calls[2];
+    expect(hot.calls[1]).toEqual(['updateSettings', { columns: [{}, {}] }]);
+
+    const [, settings] = hot.calls[3];
 
     expect(Object.keys(settings).sort()).toEqual(['colWidths', 'columns', 'rowHeights']);
     expect(settings).toEqual({ colWidths: undefined, rowHeights: undefined, columns: [{}, {}] });
@@ -381,7 +391,8 @@ describe('applyImportResult – layout across imports', () => {
 
     applyImportResult(hot, { data: [['a']], sheetNames: ['Plain'], dropped: [] }, { importLayout: false });
 
-    expect(hot.calls[2]).toEqual(['updateSettings', { columns: [{}] }]);
+    expect(hot.calls[1]).toEqual(['updateSettings', { columns: [{}] }]);
+    expect(hot.calls[3]).toEqual(['updateSettings', { columns: [{}] }]);
   });
 
   it('should size the reset from the headers when the sheet has no data cells', () => {
@@ -391,7 +402,7 @@ describe('applyImportResult – layout across imports', () => {
 
     applyImportResult(hot, { data: [], colHeaders: ['A', 'B'], sheetNames: ['Head'], dropped: [] });
 
-    expect(hot.calls[2]).toEqual(['updateSettings', { colHeaders: ['A', 'B'], columns: [{}, {}] }]);
+    expect(hot.calls[3]).toEqual(['updateSettings', { colHeaders: ['A', 'B'], columns: [{}, {}] }]);
 
     const nested = fakeHot({ gridSettings: { columns: [{ type: 'numeric' }] } });
 
@@ -399,7 +410,7 @@ describe('applyImportResult – layout across imports', () => {
       data: [], nestedHeaders: [[{ label: 'G', colspan: 2 }, 'C'], ['a', 'b', 'c']], sheetNames: ['Head'], dropped: [],
     });
 
-    expect(nested.calls[2][1].columns).toEqual([{}, {}, {}]);
+    expect(nested.calls[3][1].columns).toEqual([{}, {}, {}]);
   });
 
   it('should leave columns alone when the result describes no width at all', () => {

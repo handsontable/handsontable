@@ -316,6 +316,16 @@ export function applyImportResult(
   hot.batch(() => {
     const settings = toSettings(hot, result, options);
 
+    // The column types go in BEFORE the data, unlike the layout below: `loadData` runs the source-data
+    // validators against whatever `columns` apply at that moment, so the previous grid's types used to
+    // judge the imported values and log a false "Source data warning". `columns` is validated against
+    // nothing (no row bound), so moving it ahead loses nothing the layout order protects.
+    if (settings.columns !== undefined) {
+      const columnTypes: Record<string, unknown> = { columns: settings.columns };
+
+      hot.updateSettings(columnTypes);
+    }
+
     hot.loadData(result.data);
 
     installImportedStyles(hot, result.styles ?? {});

@@ -684,6 +684,11 @@ export class ImportFile extends BasePlugin {
    * Handsontable error inside them rather than resolving with nothing.
    */
   #assertEnabled(): void {
+    // A destroyed plugin is not `enabled` either; name the real cause rather than `importFile: false`.
+    if (!this.hot) {
+      throwWithCause('ImportFile: the Handsontable instance is destroyed, so nothing can be imported.');
+    }
+
     if (!this.enabled) {
       throwWithCause('ImportFile: the plugin is disabled (`importFile: false`), so nothing can be imported.');
     }

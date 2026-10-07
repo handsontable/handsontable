@@ -547,8 +547,6 @@ export class CustomBorders extends BasePlugin {
 
   /**
    * Returns every `borders` entry of the user-defined cell meta, keyed by physical coordinates.
-   *
-   * @returns {{physicalRow: number, physicalColumn: number, value: *}[]}
    */
   #collectBorderedMetas(): { physicalRow: number, physicalColumn: number, value: unknown }[] {
     return this.hot._getMetaManager().getUserDefinedCellMetas()

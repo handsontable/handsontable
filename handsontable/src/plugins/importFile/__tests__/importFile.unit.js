@@ -155,7 +155,8 @@ describe('ImportFile#importFromArrayBuffer', () => {
     expect(result.colHeaders).toEqual(['Name', 'Amount', 'Active', 'Hired', 'Start', 'Ratio']);
     expect(result.data[0]).toEqual(['Ana García', 4200.5, true, '2024-01-01', '12:30:00', 0.034]);
     expect(result.engine).toEqual({ kind: 'exceljs', version: null });
-    expect(calls.map(call => call[0])).toEqual(['beforeImport', 'loadData', 'updateSettings', 'afterImport']);
+    expect(calls.map(call => call[0]))
+      .toEqual(['beforeImport', 'updateSettings', 'loadData', 'updateSettings', 'afterImport']);
   });
 
   it('should not touch the grid with apply: false', async() => {
@@ -1021,6 +1022,19 @@ describe('ImportFile lifecycle guards around beforeImport', () => {
     await expect(rejection).rejects.toThrow(/ImportFile: the Handsontable instance was destroyed/);
     await expect(rejection).rejects.not.toThrow(TypeError);
     expect(calls.map(call => call[0])).toEqual(['beforeImport']);
+  });
+
+  it('should say the instance is destroyed, not that the plugin is disabled, for an import after destroy()', async() => {
+    // A destroyed plugin is also not `enabled`, so the call used to blame `importFile: false`.
+    const { plugin } = pluginWithFakeHot(true);
+
+    plugin.destroy();
+
+    const rejection = plugin.importFromArrayBuffer('xlsx', fixture('values'));
+
+    await expect(rejection).rejects
+      .toThrow(/ImportFile: the Handsontable instance is destroyed, so nothing can be imported/);
+    await expect(rejection).rejects.not.toThrow(/plugin is disabled/);
   });
 });
 

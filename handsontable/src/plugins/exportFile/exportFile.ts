@@ -778,6 +778,12 @@ export class ExportFile extends BasePlugin {
    * @returns {BaseType}
    */
   _createTypeFormatter(format: string, options: ExportOptions | Record<string, unknown> = {}): BaseType {
+    // Every public export method builds its formatter first, so this is the one place that turns a call
+    // on a destroyed grid into a clear error instead of a TypeError on `this.hot.getSettings()`.
+    if (!this.hot) {
+      throwWithCause('ExportFile: the Handsontable instance is destroyed, so nothing can be exported.');
+    }
+
     if (!EXPORT_TYPES[format]) {
       throwWithCause(`Export format type "${format}" is not supported.`);
     }
