@@ -5,14 +5,13 @@
     .ht-freeze-bar {
       position: absolute;
       z-index: 215;
-      background: var(--ht-accent-color);
+      background: var(--ht-resize-indicator-color);
       border-radius: var(--ht-border-radius);
-      opacity: 0.55;
       touch-action: none;
 
-      &:hover,
-      &:focus-visible {
-        opacity: 1;
+      // the bar turns to the accent color while it is held
+      &--active {
+        background: var(--ht-accent-color);
       }
 
       &:focus-visible {
@@ -59,10 +58,9 @@
         cursor: row-resize;
       }
 
-      // the handle of an edge with nothing frozen, mounted in the root element
+      // The handle of an edge with nothing frozen, mounted in the root element. A wide one can be grabbed along
+      // the whole edge, but only a piece on the header corner is drawn.
       &--empty {
-        opacity: 0.4;
-
         &.ht-freeze-bar--start {
           inset-inline-end: auto;
         }
@@ -79,6 +77,33 @@
         &.ht-freeze-bar--bottom {
           top: auto;
           inset-inline: 0;
+        }
+
+        &.ht-freeze-bar--wide {
+          background: transparent;
+
+          &::before {
+            content: "";
+            position: absolute;
+            background: var(--ht-resize-indicator-color);
+            border-radius: var(--ht-border-radius);
+          }
+
+          &.ht-freeze-bar--active::before {
+            background: var(--ht-accent-color);
+          }
+
+          &.ht-freeze-bar--start::before {
+            inset-block-start: 0;
+            inset-inline: 0;
+            height: var(--ht-freeze-bar-corner);
+          }
+
+          &.ht-freeze-bar--top::before {
+            inset-block: 0;
+            inset-inline-start: 0;
+            width: var(--ht-freeze-bar-corner);
+          }
         }
       }
     }

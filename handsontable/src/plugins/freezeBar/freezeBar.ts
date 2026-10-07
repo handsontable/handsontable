@@ -19,6 +19,17 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
 const MIN_HANDLE_LENGTH = 24;
 
 /**
+ * The corner overlays a freeze line crosses. The bar of an edge also runs through them, so it is as long as the
+ * viewport and does not stop at the other frozen rows and columns.
+ */
+const CORNER_OVERLAYS: Record<FreezeEdge, string[]> = {
+  top: ['topInlineStartCornerOverlay', 'topInlineEndCornerOverlay'],
+  bottom: ['bottomInlineStartCornerOverlay', 'bottomInlineEndCornerOverlay'],
+  start: ['topInlineStartCornerOverlay', 'bottomInlineStartCornerOverlay'],
+  end: ['topInlineEndCornerOverlay', 'bottomInlineEndCornerOverlay'],
+};
+
+/**
  * The size that always stays scrollable, in pixels. The frozen area never grows into it.
  */
 const MIN_SCROLLABLE_SIZE = 40;
@@ -29,6 +40,10 @@ interface Rect {
   right: number;
   top: number;
   bottom: number;
+}
+
+interface OverlayLike {
+  clone?: { wtTable?: { holder?: { parentNode?: HTMLElement | null } } };
 }
 
 interface Frame {
@@ -98,6 +113,10 @@ export class FreezeBar extends BasePlugin {
    * root element.
    */
   #bars: Partial<Record<FreezeEdge, HTMLElement>> = {};
+  /**
+   * The pieces of a bar that lie in the corner overlays. They only draw and start a drag.
+   */
+  #segments: Partial<Record<FreezeEdge, HTMLElement[]>> = {};
   /**
    * The guide that shows the snapped position while a bar is dragged.
    */
@@ -388,6 +407,7 @@ export class FreezeBar extends BasePlugin {
 
     if (!host) {
       bar?.remove();
+      this.#syncSegments(edge, false);
 
       return;
     }
@@ -414,6 +434,7 @@ export class FreezeBar extends BasePlugin {
 
     bar.classList.toggle('ht-freeze-bar--empty', empty);
     this.#positionEmptyHandle(bar, edge, empty, frame);
+    this.#syncSegments(edge, !empty);
 
     if (this.hot.getSettings().ariaTags) {
       bar.setAttribute('aria-valuenow', String(count));
@@ -431,6 +452,48 @@ export class FreezeBar extends BasePlugin {
     if (this.hot.getSettings().ariaTags) {
       bar.setAttribute('aria-valuemax', String(this.#getMaxCount(edge)));
     }
+  }
+
+  /**
+   * Adds the pieces of a bar that lie in the corner overlays, or removes them. A freeze line crosses the overlays of
+   * the other frozen rows and columns, and the bar is as long as the viewport, like the one in Google Sheets.
+   *
+   * @param {string} edge The edge.
+   * @param {boolean} show `true` to have the pieces, `false` to remove them.
+   */
+  #syncSegments(edge: FreezeEdge, show: boolean) {
+    const overlays = this.hot.view?._wt?.wtOverlays as unknown as Record<string, OverlayLike | undefined> | undefined;
+    const current = this.#segments[edge] ?? [];
+
+    if (!show || !overlays) {
+      current.forEach(segment => segment.remove());
+      this.#segments[edge] = [];
+
+      return;
+    }
+
+    this.#segments[edge] = CORNER_OVERLAYS[edge].map((name, index) => {
+      const root = overlays[name]?.clone?.wtTable?.holder?.parentNode;
+      let segment = current[index];
+
+      if (!root) {
+        segment?.remove();
+
+        return segment;
+      }
+
+      if (!segment) {
+        segment = this.hot.rootDocument.createElement('div');
+        segment.className = `ht-freeze-bar ht-freeze-bar--${edge} ht-freeze-bar--segment`;
+        segment.addEventListener('pointerdown', event => this.#onPointerDown(edge, event));
+      }
+
+      if (segment.parentNode !== root) {
+        root.appendChild(segment);
+      }
+
+      return segment;
+    });
   }
 
   /**
@@ -475,20 +538,26 @@ export class FreezeBar extends BasePlugin {
       style.width = `${content.right - content.left}px`;
     }
 
+    bar.classList.remove('ht-freeze-bar--wide');
+
     if (!empty) {
       return;
     }
 
-    // The handle of an empty edge sits in the root element, on a corner of the header row and column, which stay in
-    // view while the grid scrolls: a short handle that the rest of the grid does not show. A grid without headers
-    // gets a handle of a fixed length.
+    // The handle of an empty edge sits in the root element. The start and top handles take the whole width or height
+    // of the grid to be grabbed on, like in Google Sheets, but draw only a short piece on the header corner (the
+    // corner stays in view while the grid scrolls). The end and bottom handles have no such edge to start from, so
+    // they are the short piece. A grid without headers gets a piece of a fixed length.
     const rowHeaderWidth = Math.max(view.getRowHeaderWidth(), MIN_HANDLE_LENGTH);
     const columnHeaderHeight = Math.max(view.getColumnHeaderHeight(), MIN_HANDLE_LENGTH);
+    const wide = edge === 'start' || edge === 'top';
     const fromLeft = rendered.left - rootRect.left;
     const fromRight = rootRect.right - rendered.right;
     const fromTop = rendered.top - rootRect.top;
     const fromBottom = rootRect.bottom - rendered.bottom;
 
+    bar.classList.toggle('ht-freeze-bar--wide', wide);
+    style.setProperty('--ht-freeze-bar-corner', `${columns ? columnHeaderHeight : rowHeaderWidth}px`);
     style.left = 'auto';
     style.right = 'auto';
     style.top = 'auto';
@@ -496,9 +565,9 @@ export class FreezeBar extends BasePlugin {
 
     if (columns) {
       style.top = `${fromTop}px`;
-      style.height = `${columnHeaderHeight}px`;
+      style.height = `${wide ? rendered.bottom - rendered.top : columnHeaderHeight}px`;
     } else {
-      style.width = `${rowHeaderWidth}px`;
+      style.width = `${wide ? rendered.right - rendered.left : rowHeaderWidth}px`;
     }
 
     if (edge === 'start') {
@@ -508,7 +577,7 @@ export class FreezeBar extends BasePlugin {
       // inside the end edge of the rendered area, not past it
       style.left = rtl ? `${fromLeft}px` : `calc(${rendered.right - rootRect.left}px - var(--ht-sizing-size-1))`;
     } else if (edge === 'top') {
-      // on the line between the column headers and the first row, over the row headers
+      // on the line between the column headers and the first row
       style.top = `${fromTop + view.getColumnHeaderHeight()}px`;
       style[rtl ? 'right' : 'left'] = `${rtl ? fromRight : fromLeft}px`;
     } else {
@@ -607,6 +676,7 @@ export class FreezeBar extends BasePlugin {
     const fromLeft = columns && growsFromStart(edge) !== this.hot.isRtl();
 
     this.#drag = { edge, count: this.getFreezeCount(edge) };
+    this.#setActive(edge, true);
     this.#updateValueMax(event.currentTarget as HTMLElement, edge);
 
     const { pointerId } = event;
@@ -633,6 +703,7 @@ export class FreezeBar extends BasePlugin {
       doc.removeEventListener('pointercancel', onCancel);
       doc.removeEventListener('keydown', onKey, true);
       this.#hideGuide();
+      this.#setActive(edge, false);
       this.#drag = null;
       this.#abortDrag = null;
 
@@ -851,6 +922,18 @@ export class FreezeBar extends BasePlugin {
   }
 
   /**
+   * Marks the bar of an edge as held, which draws it in the accent color, or clears the mark.
+   *
+   * @param {string} edge The edge.
+   * @param {boolean} active `true` while the bar is held.
+   */
+  #setActive(edge: FreezeEdge, active: boolean) {
+    [this.#bars[edge], ...(this.#segments[edge] ?? [])].forEach((piece) => {
+      piece?.classList.toggle('ht-freeze-bar--active', active);
+    });
+  }
+
+  /**
    * Removes the guide.
    */
   #hideGuide() {
@@ -958,6 +1041,8 @@ export class FreezeBar extends BasePlugin {
     this.#hideGuide();
     this.#drag = null;
     Object.values(this.#bars).forEach(bar => bar?.remove());
+    Object.values(this.#segments).forEach(pieces => pieces?.forEach(piece => piece.remove()));
     this.#bars = {};
+    this.#segments = {};
   }
 }

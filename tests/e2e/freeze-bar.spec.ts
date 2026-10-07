@@ -147,6 +147,53 @@ test.describe('freezeBar', () => {
     });
   });
 
+  test.describe('colors', () => {
+    test('a bar is gray until it is held, and accent colored while it is', async() => {
+      await grid.goto();
+
+      const color = (selector: string) => grid.page.evaluate((sel) => {
+        return getComputedStyle(document.querySelector(sel)!).backgroundColor;
+      }, selector);
+      const idle = await color('.ht-freeze-bar--start:not(.ht-freeze-bar--segment)');
+
+      await grid.dragTo('start', 4);
+
+      const held = await color('.ht-freeze-bar--start:not(.ht-freeze-bar--segment)');
+
+      await expect(grid.bar('start')).toHaveClass(/ht-freeze-bar--active/);
+      await expect(grid.segments('start').first()).toHaveClass(/ht-freeze-bar--active/);
+      expect(held).not.toBe(idle);
+
+      await grid.release();
+
+      await expect(grid.bar('start')).not.toHaveClass(/ht-freeze-bar--active/);
+      expect(await color('.ht-freeze-bar--start:not(.ht-freeze-bar--segment)')).toBe(idle);
+    });
+
+    test('the drawn piece of an empty edge is gray too, and accent colored while held', async() => {
+      await grid.goto({ cols: 0 });
+
+      const pieceColor = () => grid.page.evaluate(() => {
+        return getComputedStyle(document.querySelector('.ht-freeze-bar--start')!, '::before').backgroundColor;
+      });
+      const idle = await pieceColor();
+
+      await grid.dragTo('start', 3);
+
+      expect(await pieceColor()).not.toBe(idle);
+
+      await grid.release();
+
+      // the edge is frozen now, so the bar itself is drawn, in the same gray
+      const bar = await grid.page.evaluate(() => {
+        return getComputedStyle(document.querySelector('.ht-freeze-bar--start:not(.ht-freeze-bar--segment)')!)
+          .backgroundColor;
+      });
+
+      expect(bar).toBe(idle);
+    });
+  });
+
   test.describe('scrolling to the edge', () => {
     test('a drag of the top bar scrolls the grid up, so the rows that get frozen are in view', async() => {
       await grid.goto();
@@ -261,30 +308,73 @@ test.describe('freezeBar', () => {
   });
 
   test.describe('edges with nothing frozen', () => {
-    test('have a short handle on a header corner, not a bar along the whole edge', async() => {
+    test('draw only a short piece on a header corner, but can be grabbed along the whole edge', async() => {
       await grid.goto({ cols: 0, rows: 0 });
 
-      const sizes = await grid.page.evaluate(() => {
-        const size = (selector: string) => {
-          const rect = document.querySelector(selector)!.getBoundingClientRect();
+      const geometry = await grid.page.evaluate(() => {
+        const visible = (selector: string) => {
+          const bar = document.querySelector(selector)!;
+          const style = getComputedStyle(bar, '::before');
+          const rect = bar.getBoundingClientRect();
 
-          return { width: Math.round(rect.width), height: Math.round(rect.height) };
+          return {
+            background: getComputedStyle(bar).backgroundColor,
+            hitWidth: Math.round(rect.width),
+            hitHeight: Math.round(rect.height),
+            drawnWidth: Math.round(parseFloat(style.width) || 0),
+            drawnHeight: Math.round(parseFloat(style.height) || 0),
+          };
         };
+        const root = window.hot.rootElement.getBoundingClientRect();
 
         return {
           headerWidth: window.hot.view.getRowHeaderWidth(),
           headerHeight: window.hot.view.getColumnHeaderHeight(),
-          top: size('.ht-freeze-bar--top'),
-          start: size('.ht-freeze-bar--start'),
-          bottom: size('.ht-freeze-bar--bottom'),
-          end: size('.ht-freeze-bar--end'),
+          rootWidth: Math.round(root.width),
+          rootHeight: Math.round(root.height),
+          top: visible('.ht-freeze-bar--top'),
+          start: visible('.ht-freeze-bar--start'),
         };
       });
 
-      expect(sizes.top.width).toBe(sizes.headerWidth);
-      expect(sizes.bottom.width).toBe(sizes.headerWidth);
-      expect(sizes.start.height).toBe(sizes.headerHeight);
-      expect(sizes.end.height).toBe(sizes.headerHeight);
+      // grabbed along the whole edge...
+      expect(geometry.top.hitWidth).toBeGreaterThan(geometry.rootWidth - 30);
+      expect(geometry.start.hitHeight).toBeGreaterThan(geometry.rootHeight - 30);
+      // ...but drawn only on the header corner
+      expect(geometry.top.background).toBe('rgba(0, 0, 0, 0)');
+      expect(geometry.start.background).toBe('rgba(0, 0, 0, 0)');
+      expect(geometry.top.drawnWidth).toBe(geometry.headerWidth);
+      expect(geometry.start.drawnHeight).toBe(geometry.headerHeight);
+    });
+
+    test('a drag started in the middle of the empty top edge freezes rows', async() => {
+      await grid.goto({ rows: 0 });
+
+      const bar = (await grid.bar('top').boundingBox())!;
+      const x = bar.x + bar.width / 2;
+      const y = bar.y + bar.height / 2;
+
+      await grid.page.mouse.move(x, y);
+      await grid.page.mouse.down();
+      await grid.page.mouse.move(x, y + 80, { steps: 4 });
+      await grid.release();
+
+      expect(await grid.count('top')).toBeGreaterThan(0);
+    });
+
+    test('a drag started in the middle of the empty start edge freezes columns', async() => {
+      await grid.goto({ cols: 0 });
+
+      const bar = (await grid.bar('start').boundingBox())!;
+      const x = bar.x + bar.width / 2;
+      const y = bar.y + bar.height / 2;
+
+      await grid.page.mouse.move(x, y);
+      await grid.page.mouse.down();
+      await grid.page.mouse.move(x + 120, y, { steps: 4 });
+      await grid.release();
+
+      expect(await grid.count('start')).toBeGreaterThan(0);
     });
 
     test('every edge has a handle by default', async() => {
@@ -295,12 +385,49 @@ test.describe('freezeBar', () => {
       }
     });
 
-    test('a frozen edge has a bar along the whole freeze line', async() => {
+    test('a frozen edge has a bar along the whole freeze line, through the other frozen rows and columns', async() => {
       await grid.goto();
 
-      const startBar = (await grid.bar('start').boundingBox())!;
+      const extent = await grid.page.evaluate(() => {
+        const bounds = (selector: string) => {
+          const rects = [...document.querySelectorAll(selector)].map(el => el.getBoundingClientRect());
 
-      expect(startBar.height).toBeGreaterThan(200);
+          return {
+            left: Math.round(Math.min(...rects.map(rect => rect.left))),
+            right: Math.round(Math.max(...rects.map(rect => rect.right))),
+            top: Math.round(Math.min(...rects.map(rect => rect.top))),
+            bottom: Math.round(Math.max(...rects.map(rect => rect.bottom))),
+            pieces: rects.length,
+          };
+        };
+        const root = window.hot.rootElement.getBoundingClientRect();
+
+        return {
+          root: { left: Math.round(root.left), top: Math.round(root.top) },
+          top: bounds('.ht-freeze-bar--top'),
+          start: bounds('.ht-freeze-bar--start'),
+        };
+      });
+
+      // the top bar starts over the row headers, so it crosses the frozen start columns
+      expect(extent.top.pieces).toBeGreaterThan(1);
+      expect(extent.top.left).toBe(extent.root.left);
+      // the start bar starts over the column headers, so it crosses the frozen top rows
+      expect(extent.start.pieces).toBeGreaterThan(1);
+      expect(extent.start.top).toBe(extent.root.top);
+    });
+
+    test('every piece of a bar starts the drag', async() => {
+      await grid.goto();
+
+      const piece = (await grid.segments('start').first().boundingBox())!;
+
+      await grid.page.mouse.move(piece.x + piece.width / 2, piece.y + piece.height / 2);
+      await grid.page.mouse.down();
+      await grid.page.mouse.move(piece.x + 120, piece.y + piece.height / 2, { steps: 4 });
+      await grid.release();
+
+      expect(await grid.count('start')).toBeGreaterThan(2);
     });
 
     test('Home leaves the bar in place, so the area can grow again', async() => {

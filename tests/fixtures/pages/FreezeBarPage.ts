@@ -64,7 +64,16 @@ export class FreezeBarPage {
    * @param edge The edge.
    */
   bar(edge: FreezeBarEdge): Locator {
-    return this.grid.locator(`.ht-freeze-bar--${edge}`);
+    return this.grid.locator(`.ht-freeze-bar--${edge}:not(.ht-freeze-bar--segment)`);
+  }
+
+  /**
+   * The pieces of a bar that lie in the corner overlays, so the bar is as long as the viewport.
+   *
+   * @param edge The edge.
+   */
+  segments(edge: FreezeBarEdge): Locator {
+    return this.grid.locator(`.ht-freeze-bar--${edge}.ht-freeze-bar--segment`);
   }
 
   /**
