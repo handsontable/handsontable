@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-07T11:50:19.410Z",
+  "updatedAt": "2026-10-07T12:39:21.218Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-horizon",
+      "file": "e2e/fixed-columns-end.spec.ts",
+      "line": 224,
+      "title": "fixedColumnsEnd keyboard navigation (ltr) › keeps the cell reached with the arrow key visible beside the end columns",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "37618096029",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37618096029",
+      "workflow": "Tests",
+      "branch": "feature/DEV-2700_Fit-frozen-area-to-viewport",
+      "headSha": "daed8fd230549155aacada13a27e7aeba7ed10af",
+      "event": "pull_request",
+      "seenAt": "2026-10-07T12:38:41Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-horizon",

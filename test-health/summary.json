@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-07T11:50:19.410Z",
+  "generatedAt": "2026-10-07T12:39:21.218Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 370,
+    "tests": 371,
     "needsTicket": 18,
     "quarantined": 0,
-    "entries": 1923
+    "entries": 1924
   },
   "rows": [
     {
@@ -12362,6 +12362,39 @@
       "needsTicket": false
     },
     {
+      "key": "playwright|e2e/fixed-columns-end.spec.ts|fixedColumnsEnd keyboard navigation (ltr) › keeps the cell reached with the arrow key visible beside the end columns",
+      "tier": "playwright",
+      "file": "e2e/fixed-columns-end.spec.ts",
+      "line": 224,
+      "title": "fixedColumnsEnd keyboard navigation (ltr) › keeps the cell reached with the arrow key visible beside the end columns",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 1,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-horizon"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-07T12:38:41Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37618096029",
+        "branch": "feature/DEV-2700_Fit-frozen-area-to-viewport",
+        "leg": "e2e-horizon",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
       "key": "playwright|e2e/column-move-sorting.spec.ts|column move with sorting enabled › does not move the column when a press on the header is released without moving",
       "tier": "playwright",
       "file": "e2e/column-move-sorting.spec.ts",
@@ -13659,13 +13692,13 @@
       "line": 57,
       "title": "walkontable exact row heights › in the `exact` mode › keeps a row with a tall frozen cell at the provided height in both tables",
       "count7": 0,
-      "count30": 1,
+      "count30": 0,
       "countAll": 1,
-      "runs30": 1,
-      "flakyRuns30": 1,
-      "branches30": 1,
+      "runs30": 0,
+      "flakyRuns30": 0,
+      "branches30": 0,
       "nightlyRuns30": 0,
-      "openBranches30": 1,
+      "openBranches30": 0,
       "legs": [
         "e2e-classic-min"
       ],
