@@ -4,13 +4,14 @@ import { ReadOnlyStylingPage } from '../fixtures/pages/ReadOnlyStylingPage';
 test.describe('readOnlyStyling', () => {
   // The point of the option: a non-editable grid that does not look non-editable.
   // Compared against the fixture's editable grid rather than a fixed palette, so
-  // the assertion means the same thing on every theme.
+  // the assertion means the same thing on every theme. Row 0, not an odd row: a theme
+  // that stripes alternate rows (horizon) can paint them in the read-only color.
   test('a read-only cell is painted like an editable one when styling is off', async({ page, theme, bundle }) => {
     const grid = new ReadOnlyStylingPage(page, theme, bundle);
 
     await grid.goto();
 
-    await grid.expectSameLook(['unstyled', 1, 1], ['editable', 1, 1]);
+    await grid.expectSameLook(['unstyled', 0, 1], ['editable', 0, 1]);
   });
 
   // The negative control. Without it the test above passes on a build where
@@ -20,7 +21,7 @@ test.describe('readOnlyStyling', () => {
 
     await grid.goto();
 
-    await grid.expectDifferentLook(['styled', 1, 1], ['editable', 1, 1]);
+    await grid.expectDifferentLook(['styled', 0, 1], ['editable', 0, 1]);
   });
 
   // Appearance is ALL the option changes — the cell is as non-editable as before.
