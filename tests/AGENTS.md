@@ -315,6 +315,15 @@ A page-object helper that starts with a click therefore takes the cell as a para
 different cell the second time. Selecting through `hot.selectCell()` avoids it entirely where the spec does
 not need a real press.
 
+## A header's accessible name can change under a role locator
+
+`getByRole('columnheader', { name: 'Interest', exact: true })` finds the header until a second column is
+sorted, then finds nothing: MultiColumnSorting draws each sorted header's order number as `::after`
+content, CSS-generated content is part of the accessible name, so the name stops being the label alone.
+The same holds for any badge a theme or plugin draws with `content`. Locate a header by its label's own
+text instead, `span.colHeader` matched with `getByText(label, { exact: true })`, the way
+`ComplexDemoStatesPage.columnHeader()` does.
+
 ## Touch and mobile specs
 
 - Page objects for mobile specs live in `fixtures/pages/mobile/` (as walkontable's do in

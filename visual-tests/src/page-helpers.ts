@@ -650,30 +650,6 @@ export async function filterByCondition(
 }
 
 /**
- * Clicks the "Go to first page" button in the pagination section.
- *
- * @param {string} value The value to select in the page size dropdown.
- */
-export async function forPaginationChangePageSize(value: string) {
-  const select = getPageInstance()
-    .locator('.ht-page-size-section')
-    .locator('select[name="pageSize"]');
-
-  await select.selectOption(value);
-}
-
-/**
- * Clicks the "Go to first page" button in the pagination section.
- */
-export async function forPaginationClickFirstPageButton() {
-  const button = getPageInstance()
-    .locator('.ht-page-navigation-section')
-    .locator('.ht-page-first');
-
-  await button.click();
-}
-
-/**
  * Clicks the "Go to previous page" button in the pagination section.
  */
 export async function forPaginationClickPrevPageButton() {
@@ -941,16 +917,3 @@ export async function waitForDropdownSubmenuToAppear(submenuName: string) {
   await getPageInstance().waitForSelector(`.htDropdownMenuSub_${submenuClassSuffix(submenuName)}`);
 }
 
-/**
- * Updates Handsontable settings.
- *
- * @param {object} options Handsontable settings options.
- */
-export async function forHandsontableUpdateSettings(options) {
-  await getPageInstance().evaluate(async(hotOptions) => {
-    // eslint-disable-next-line no-restricted-globals
-    const hotInstance = document.defaultView?.hotInstance;
-
-    hotInstance.updateSettings(hotOptions);
-  }, options);
-}

@@ -93,3 +93,7 @@ caller-supplied.
 
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='loading'`
 - `npm run test:unit --prefix handsontable -- --testPathPattern='loading'`
+- `npm --prefix tests run test:e2e -- e2e/loading-states.spec.ts`: the overlay's states from the visual
+  suite's `/loading-demo`, on every theme and bundle (default and custom content, the focus Tab puts on
+  the container, a grid with no rows, the RTL mirror). Its fixture loads the ar-AR pack for RTL, which
+  neither bundle carries.

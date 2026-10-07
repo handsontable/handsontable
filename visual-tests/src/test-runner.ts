@@ -163,10 +163,10 @@ async function awaitScrollbarClearance(page: Page): Promise<'closed' | 'pinned' 
 
   // The slow path is about to spend up to another SETTLE_TIMEOUT - FADE_ALLOWANCE, so buy that budget
   // here rather than from the config. A flat per-test bump only helps a test that still has room left:
-  // `js-only/pagination/auto-page-size-table-with-defined-size.spec.ts` takes nine captures, so a
-  // band stuck on a late one would die on "Test timeout of 15000ms exceeded" and the message naming
-  // the cause — the whole point of failing loudly — would never be printed. Granting it here makes the
-  // diagnosis win on whichever capture hits it.
+  // a spec takes up to four captures (`captureCap` in `visual-budget.json`), so a band stuck on a late
+  // one would die on "Test timeout of 15000ms exceeded" and the message naming the cause — the whole
+  // point of failing loudly — would never be printed. Granting it here makes the diagnosis win on
+  // whichever capture hits it.
   baseTest.info().setTimeout(baseTest.info().timeout + SETTLE_TIMEOUT);
 
   // Still open after the fade: a pointer resting beside an OPEN band's scrollbar holds exactly that
