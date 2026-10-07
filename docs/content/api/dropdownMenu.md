@@ -31,7 +31,7 @@ Initializes the plugin and registers the column header hook needed to inject the
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/dataMap/metaManager/metaSchema.ts#L2350
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/dataMap/metaManager/metaSchema.ts#L2350
 
 :::
 
@@ -99,7 +99,7 @@ dropdownMenu: {
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dropdownMenu/dropdownMenu.ts#L171
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dropdownMenu/dropdownMenu.ts#L171
 
 :::
 
@@ -115,7 +115,7 @@ Default menu items order when `dropdownMenu` is enabled by setting the config it
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dropdownMenu/dropdownMenu.ts#L162
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dropdownMenu/dropdownMenu.ts#L162
 
 :::
 
@@ -131,7 +131,7 @@ Returns the list of plugin dependencies required before this plugin can be initi
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dropdownMenu/dropdownMenu.ts#L152
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dropdownMenu/dropdownMenu.ts#L152
 
 :::
 
@@ -147,7 +147,7 @@ Returns the plugin key used to identify this plugin in Handsontable settings.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dropdownMenu/dropdownMenu.ts#L157
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dropdownMenu/dropdownMenu.ts#L157
 
 :::
 
@@ -164,7 +164,7 @@ Returns the priority order used to determine the order in which plugins are init
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dropdownMenu/dropdownMenu.ts#L448
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dropdownMenu/dropdownMenu.ts#L448
 
 :::
 
@@ -180,7 +180,7 @@ Closes dropdown menu.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dropdownMenu/dropdownMenu.ts#L497
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dropdownMenu/dropdownMenu.ts#L497
 
 :::
 
@@ -196,7 +196,7 @@ Destroys the plugin instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dropdownMenu/dropdownMenu.ts#L254
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dropdownMenu/dropdownMenu.ts#L254
 
 :::
 
@@ -212,7 +212,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dropdownMenu/dropdownMenu.ts#L198
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dropdownMenu/dropdownMenu.ts#L198
 
 :::
 
@@ -229,7 +229,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dropdownMenu/dropdownMenu.ts#L477
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dropdownMenu/dropdownMenu.ts#L477
 
 :::
 
@@ -272,7 +272,7 @@ Or you can execute command registered in settings where `key` is your command na
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dropdownMenu/dropdownMenu.ts#L190
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dropdownMenu/dropdownMenu.ts#L190
 
 :::
 
@@ -289,7 +289,7 @@ hook and if it returns `true` then the [DropdownMenu#enablePlugin](@/api/dropdow
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dropdownMenu/dropdownMenu.ts#L427
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dropdownMenu/dropdownMenu.ts#L427
 
 :::
 
@@ -320,7 +320,7 @@ menu.open({ top: 50, left: 50 });
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dropdownMenu/dropdownMenu.ts#L247
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dropdownMenu/dropdownMenu.ts#L247
 
 :::
 

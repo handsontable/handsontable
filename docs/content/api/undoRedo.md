@@ -31,7 +31,7 @@ Initializes the plugin and registers all built-in undo/redo action handlers for 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/dataMap/metaManager/metaSchema.ts#L6500
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/dataMap/metaManager/metaSchema.ts#L6502
 
 :::
 
@@ -71,7 +71,7 @@ undo: true,
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/undoRedo/undoRedo.ts#L82
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/undoRedo/undoRedo.ts#L82
 
 :::
 
@@ -87,7 +87,7 @@ Returns the plugin key used to identify this plugin in Handsontable settings.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/undoRedo/undoRedo.ts#L87
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/undoRedo/undoRedo.ts#L87
 
 :::
 
@@ -103,7 +103,7 @@ Returns the priority order used to determine the order in which plugins are init
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/undoRedo/undoRedo.ts#L92
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/undoRedo/undoRedo.ts#L92
 
 :::
 
@@ -120,7 +120,7 @@ Returns whether the plugin handles its own settings keys without a dedicated key
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/undoRedo/undoRedo.ts#L321
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/undoRedo/undoRedo.ts#L321
 
 :::
 
@@ -136,7 +136,7 @@ Clears undo and redo history.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/undoRedo/undoRedo.ts#L327
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/undoRedo/undoRedo.ts#L327
 
 :::
 
@@ -152,7 +152,7 @@ Destroys the plugin instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/undoRedo/undoRedo.ts#L115
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/undoRedo/undoRedo.ts#L115
 
 :::
 
@@ -168,7 +168,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/undoRedo/undoRedo.ts#L210
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/undoRedo/undoRedo.ts#L210
 
 :::
 
@@ -217,7 +217,7 @@ function setCellBackgroundColor(row, col, className) {
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/undoRedo/undoRedo.ts#L105
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/undoRedo/undoRedo.ts#L105
 
 :::
 
@@ -233,7 +233,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/undoRedo/undoRedo.ts#L100
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/undoRedo/undoRedo.ts#L100
 
 :::
 
@@ -250,7 +250,7 @@ hook and if it returns `true` then the [UndoRedo#enablePlugin](@/api/undoRedo.md
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/undoRedo/undoRedo.ts#L316
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/undoRedo/undoRedo.ts#L316
 
 :::
 
@@ -267,7 +267,7 @@ Checks if redo action is available.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/undoRedo/undoRedo.ts#L309
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/undoRedo/undoRedo.ts#L309
 
 :::
 
@@ -284,7 +284,7 @@ Checks if undo action is available.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/undoRedo/undoRedo.ts#L274
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/undoRedo/undoRedo.ts#L274
 
 :::
 
@@ -301,7 +301,7 @@ Redo the previous action performed to the table (used to reverse an undo).
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/undoRedo/undoRedo.ts#L242
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/undoRedo/undoRedo.ts#L242
 
 :::
 

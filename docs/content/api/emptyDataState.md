@@ -25,7 +25,7 @@ angular:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/dataMap/metaManager/metaSchema.ts#L2514
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/dataMap/metaManager/metaSchema.ts#L2514
 
 :::
 
@@ -129,7 +129,7 @@ emptyDataState: {
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/emptyDataState/emptyDataState.ts#L210
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/emptyDataState/emptyDataState.ts#L210
 
 :::
 
@@ -145,7 +145,7 @@ Returns the default settings applied when the plugin is enabled without explicit
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/emptyDataState/emptyDataState.ts#L200
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/emptyDataState/emptyDataState.ts#L200
 
 :::
 
@@ -161,7 +161,7 @@ Returns the plugin key used to identify this plugin in Handsontable settings.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/emptyDataState/emptyDataState.ts#L205
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/emptyDataState/emptyDataState.ts#L205
 
 :::
 
@@ -177,7 +177,7 @@ Returns the priority order used to determine the order in which plugins are init
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/emptyDataState/emptyDataState.ts#L217
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/emptyDataState/emptyDataState.ts#L217
 
 :::
 
@@ -194,7 +194,7 @@ Returns validator functions for each plugin setting to verify their values are v
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/emptyDataState/emptyDataState.ts#L299
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/emptyDataState/emptyDataState.ts#L299
 
 :::
 
@@ -210,7 +210,7 @@ Destroy plugin instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/emptyDataState/emptyDataState.ts#L283
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/emptyDataState/emptyDataState.ts#L283
 
 :::
 
@@ -226,7 +226,7 @@ Disable plugin for this Handsontable instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/emptyDataState/emptyDataState.ts#L239
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/emptyDataState/emptyDataState.ts#L239
 
 :::
 
@@ -242,7 +242,7 @@ Enable plugin for this Handsontable instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/emptyDataState/emptyDataState.ts#L234
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/emptyDataState/emptyDataState.ts#L234
 
 :::
 
@@ -258,7 +258,7 @@ Check if the plugin is enabled in the handsontable settings.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/emptyDataState/emptyDataState.ts#L294
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/emptyDataState/emptyDataState.ts#L294
 
 :::
 
@@ -274,7 +274,7 @@ Check if the plugin is currently visible.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/emptyDataState/emptyDataState.ts#L272
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/emptyDataState/emptyDataState.ts#L272
 
 :::
 

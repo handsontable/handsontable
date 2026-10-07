@@ -29,7 +29,7 @@ Initializes the endpoints manager with a reference to the ColumnSummary plugin a
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSummary/endpoints.ts#L639
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSummary/endpoints.ts#L639
 
 :::
 
@@ -46,7 +46,7 @@ The current endpoint (calculation destination point) in question.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSummary/endpoints.ts#L627
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSummary/endpoints.ts#L627
 
 :::
 
@@ -63,7 +63,7 @@ Array of declared plugin endpoints (calculation destination points).
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSummary/endpoints.ts#L633
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSummary/endpoints.ts#L633
 
 :::
 
@@ -81,7 +81,7 @@ Settings type. Can be either 'array' or 'function'.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSummary/endpoints.ts#L228
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSummary/endpoints.ts#L228
 
 :::
 
@@ -105,7 +105,7 @@ Setter for the internal setting objects.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSummary/endpoints.ts#L144
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSummary/endpoints.ts#L144
 
 :::
 
@@ -129,7 +129,7 @@ re-invoke a settings function and could describe a different layout than the pas
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSummary/endpoints.ts#L101
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSummary/endpoints.ts#L101
 
 :::
 
@@ -149,7 +149,7 @@ anything falsy means no cap.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSummary/endpoints.ts#L90
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSummary/endpoints.ts#L90
 
 :::
 
@@ -169,7 +169,7 @@ plugin trims rows (NestedRows collapsing a group, TrimRows, the Filters plugin).
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSummary/endpoints.ts#L131
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSummary/endpoints.ts#L131
 
 :::
 
@@ -185,7 +185,7 @@ Get an array with all the endpoints.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSummary/endpoints.ts#L76
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSummary/endpoints.ts#L76
 
 :::
 
@@ -206,7 +206,7 @@ Get a single endpoint object.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSummary/endpoints.ts#L67
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSummary/endpoints.ts#L67
 
 :::
 
@@ -222,7 +222,7 @@ Initialize the endpoints provided in the settings.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSummary/endpoints.ts#L122
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSummary/endpoints.ts#L122
 
 :::
 
@@ -249,7 +249,7 @@ because the grid renders no cell for it.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSummary/endpoints.ts#L165
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSummary/endpoints.ts#L165
 
 :::
 
@@ -275,7 +275,7 @@ hidden summary row is summed as if it were plain data and inflates every summary
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSummary/endpoints.ts#L185
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSummary/endpoints.ts#L185
 
 :::
 
@@ -296,7 +296,7 @@ Parse plugin's settings.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSummary/endpoints.ts#L454
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSummary/endpoints.ts#L454
 
 :::
 
@@ -312,7 +312,7 @@ Calculate and refresh all defined endpoints.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSummary/endpoints.ts#L523
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSummary/endpoints.ts#L523
 
 :::
 
@@ -329,7 +329,7 @@ cases (call with `columns` option) can reset the cell metas to the initial state
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSummary/endpoints.ts#L473
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSummary/endpoints.ts#L473
 
 :::
 
@@ -350,7 +350,7 @@ Calculate and refresh endpoints only in the changed columns.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSummary/endpoints.ts#L541
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSummary/endpoints.ts#L541
 
 :::
 
@@ -371,7 +371,7 @@ Calculate and refresh a single endpoint.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSummary/endpoints.ts#L501
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSummary/endpoints.ts#L501
 
 :::
 
@@ -392,7 +392,7 @@ Calculate and refresh endpoints whose `sourceColumn` (visual) matches any of the
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSummary/endpoints.ts#L436
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSummary/endpoints.ts#L436
 
 :::
 
@@ -414,7 +414,7 @@ Resets (removes) the endpoints from the table.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSummary/endpoints.ts#L552
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSummary/endpoints.ts#L552
 
 :::
 
@@ -436,7 +436,7 @@ Reset the endpoint value.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSummary/endpoints.ts#L573
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSummary/endpoints.ts#L573
 
 :::
 

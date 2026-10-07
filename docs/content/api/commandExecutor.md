@@ -23,7 +23,7 @@ Initializes the command executor with a reference to the Handsontable instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/contextMenu/commandExecutor.ts#L71
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/contextMenu/commandExecutor.ts#L71
 
 :::
 
@@ -37,7 +37,7 @@ _commandExecutor.commands : object_
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/contextMenu/commandExecutor.ts#L74
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/contextMenu/commandExecutor.ts#L74
 
 :::
 
@@ -52,7 +52,7 @@ _commandExecutor.commonCallback : function_
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/contextMenu/commandExecutor.ts#L36
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/contextMenu/commandExecutor.ts#L36
 
 :::
 
@@ -74,7 +74,7 @@ Execute command by its name.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/contextMenu/commandExecutor.ts#L21
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/contextMenu/commandExecutor.ts#L21
 
 :::
 
@@ -96,7 +96,7 @@ Register command.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/contextMenu/commandExecutor.ts#L28
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/contextMenu/commandExecutor.ts#L28
 
 :::
 

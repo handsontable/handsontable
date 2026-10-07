@@ -17,7 +17,7 @@ editLink: false
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/multipleSelectionHandles/multipleSelectionHandles.ts#L499
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/multipleSelectionHandles/multipleSelectionHandles.ts#L499
 
 :::
 
@@ -31,7 +31,7 @@ _multipleSelectionHandles.dragged : Array_
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/multipleSelectionHandles/multipleSelectionHandles.ts#L126
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/multipleSelectionHandles/multipleSelectionHandles.ts#L126
 
 :::
 
@@ -47,7 +47,7 @@ Returns the plugin key used to identify this plugin in Handsontable settings.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/multipleSelectionHandles/multipleSelectionHandles.ts#L131
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/multipleSelectionHandles/multipleSelectionHandles.ts#L131
 
 :::
 
@@ -64,7 +64,7 @@ Returns the priority order used to determine the order in which plugins are init
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/multipleSelectionHandles/multipleSelectionHandles.ts#L157
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/multipleSelectionHandles/multipleSelectionHandles.ts#L157
 
 :::
 
@@ -84,7 +84,7 @@ unrelated finger handed a stale id would pass `isDraggedBy()` and start scrollin
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/multipleSelectionHandles/multipleSelectionHandles.ts#L143
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/multipleSelectionHandles/multipleSelectionHandles.ts#L143
 
 :::
 
@@ -100,7 +100,7 @@ Enable plugin for this Handsontable instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/multipleSelectionHandles/multipleSelectionHandles.ts#L306
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/multipleSelectionHandles/multipleSelectionHandles.ts#L306
 
 :::
 
@@ -116,7 +116,7 @@ Calculates the new selection range coordinates after dragging a touch handle, ac
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/multipleSelectionHandles/multipleSelectionHandles.ts#L470
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/multipleSelectionHandles/multipleSelectionHandles.ts#L470
 
 :::
 
@@ -133,7 +133,7 @@ Check if user is currently dragging the handle.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/multipleSelectionHandles/multipleSelectionHandles.ts#L138
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/multipleSelectionHandles/multipleSelectionHandles.ts#L138
 
 :::
 

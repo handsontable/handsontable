@@ -32,7 +32,7 @@ Initializes the observer with the Handsontable instance, a condition collection 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/filters/conditionUpdateObserver.ts#L179
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/filters/conditionUpdateObserver.ts#L179
 
 :::
 
@@ -49,7 +49,7 @@ Collected changes when grouping is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/filters/conditionUpdateObserver.ts#L184
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/filters/conditionUpdateObserver.ts#L184
 
 :::
 
@@ -65,7 +65,7 @@ Flag which determines if grouping events is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/filters/conditionUpdateObserver.ts#L190
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/filters/conditionUpdateObserver.ts#L190
 
 :::
 
@@ -82,7 +82,7 @@ The latest known position of edited conditions at specified column index.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/filters/conditionUpdateObserver.ts#L195
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/filters/conditionUpdateObserver.ts#L195
 
 :::
 
@@ -99,7 +99,7 @@ The latest known order of conditions stack.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/filters/conditionUpdateObserver.ts#L155
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/filters/conditionUpdateObserver.ts#L155
 
 :::
 
@@ -115,7 +115,7 @@ Destroy instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/filters/conditionUpdateObserver.ts#L128
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/filters/conditionUpdateObserver.ts#L128
 
 :::
 
@@ -131,7 +131,7 @@ Flush all collected changes. This trigger `update` hook for every previously col
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/filters/conditionUpdateObserver.ts#L123
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/filters/conditionUpdateObserver.ts#L123
 
 :::
 
@@ -149,7 +149,7 @@ it once.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/filters/conditionUpdateObserver.ts#L144
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/filters/conditionUpdateObserver.ts#L144
 
 :::
 

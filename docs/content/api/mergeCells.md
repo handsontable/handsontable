@@ -25,7 +25,7 @@ angular:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/dataMap/metaManager/metaSchema.ts#L4119
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/dataMap/metaManager/metaSchema.ts#L4121
 
 :::
 
@@ -99,7 +99,7 @@ mergeCells: {
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/mergeCells.ts#L405
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/mergeCells.ts#L405
 
 :::
 
@@ -115,7 +115,7 @@ Returns the default settings applied when the plugin is enabled without explicit
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/mergeCells.ts#L395
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/mergeCells.ts#L395
 
 :::
 
@@ -131,7 +131,7 @@ Returns the plugin key used to identify this plugin in Handsontable settings.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/mergeCells.ts#L400
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/mergeCells.ts#L400
 
 :::
 
@@ -148,7 +148,7 @@ Returns the priority order used to determine the order in which plugins are init
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/mergeCells.ts#L621
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/mergeCells.ts#L621
 
 :::
 
@@ -164,7 +164,7 @@ Clears the merged cells from the merged cell container.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/mergeCells.ts#L493
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/mergeCells.ts#L493
 
 :::
 
@@ -181,7 +181,7 @@ Destroys the plugin instance. Removes the row index mapper local hook explicitly
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/mergeCells.ts#L482
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/mergeCells.ts#L482
 
 :::
 
@@ -197,7 +197,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/mergeCells.ts#L423
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/mergeCells.ts#L423
 
 :::
 
@@ -213,7 +213,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/mergeCells.ts#L418
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/mergeCells.ts#L418
 
 :::
 
@@ -230,7 +230,7 @@ hook and if it returns `true` then the [MergeCells#enablePlugin](@/api/mergeCell
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/mergeCells.ts#L781
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/mergeCells.ts#L781
 
 :::
 
@@ -255,7 +255,7 @@ Merges the specified range.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/mergeCells.ts#L641
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/mergeCells.ts#L641
 
 :::
 
@@ -276,7 +276,7 @@ Merges the selection provided as a cell range.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/mergeCells.ts#L795
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/mergeCells.ts#L795
 
 :::
 
@@ -301,7 +301,7 @@ Unmerges the merged cell in the provided range.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/mergeCells.ts#L657
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/mergeCells.ts#L657
 
 :::
 
@@ -322,7 +322,7 @@ Unmerges the selection provided as a cell range.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/mergeCells.ts#L503
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/mergeCells.ts#L503
 
 :::
 

@@ -25,7 +25,7 @@ angular:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/dataMap/metaManager/metaSchema.ts#L846
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/dataMap/metaManager/metaSchema.ts#L846
 
 :::
 
@@ -74,7 +74,7 @@ collapsibleColumns: [
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L201
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L201
 
 :::
 
@@ -90,7 +90,7 @@ Returns the list of plugin dependencies required before this plugin can be initi
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L191
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L191
 
 :::
 
@@ -106,7 +106,7 @@ Returns the plugin key used to identify this plugin in Handsontable settings.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L196
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L196
 
 :::
 
@@ -122,7 +122,7 @@ Returns the priority order used to determine the order in which plugins are init
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L208
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L208
 
 :::
 
@@ -139,7 +139,7 @@ Returns the setting keys that trigger a plugin update when changed via `updateSe
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L437
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L437
 
 :::
 
@@ -155,7 +155,7 @@ Collapses all collapsible sections.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L414
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L414
 
 :::
 
@@ -177,7 +177,7 @@ not only its first (anchor) column - it resolves to the owning collapsible group
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L558
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L558
 
 :::
 
@@ -193,7 +193,7 @@ Destroys the plugin instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L292
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L292
 
 :::
 
@@ -209,7 +209,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L224
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L224
 
 :::
 
@@ -225,7 +225,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L442
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L442
 
 :::
 
@@ -241,7 +241,7 @@ Expands all collapsible sections.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L404
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L404
 
 :::
 
@@ -263,7 +263,7 @@ not only its first (anchor) column - it resolves to the owning collapsible group
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L219
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L219
 
 :::
 
@@ -280,7 +280,7 @@ hook and if it returns `true` then the [CollapsibleColumns#enablePlugin](@/api/c
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L423
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L423
 
 :::
 
@@ -301,7 +301,7 @@ Collapses or expand all collapsible sections, depending on the action parameter.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L454
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L454
 
 :::
 
@@ -324,7 +324,7 @@ Collapses/Expands a section.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L262
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/collapsibleColumns/collapsibleColumns.ts#L262
 
 :::
 

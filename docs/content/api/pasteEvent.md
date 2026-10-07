@@ -23,7 +23,7 @@ Initializes the paste event with an empty `ClipboardData` instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/copyPaste/pasteEvent.ts#L23
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/copyPaste/pasteEvent.ts#L23
 
 :::
 
@@ -39,7 +39,7 @@ Returns an empty array as a stub for the composed path of this synthetic event.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/copyPaste/pasteEvent.ts#L20
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/copyPaste/pasteEvent.ts#L20
 
 :::
 

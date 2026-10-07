@@ -17,7 +17,7 @@ editLink: false
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/selectEditor/selectEditor.ts#L30
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/selectEditor/selectEditor.ts#L30
 
 :::
 
@@ -34,7 +34,7 @@ Returns the unique editor type identifier for the select editor.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/selectEditor/selectEditor.ts#L80
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/selectEditor/selectEditor.ts#L80
 
 :::
 
@@ -50,7 +50,7 @@ Closes the editor.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/selectEditor/selectEditor.ts#L91
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/selectEditor/selectEditor.ts#L91
 
 :::
 
@@ -66,7 +66,7 @@ Sets focus state on the select element.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/selectEditor/selectEditor.ts#L58
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/selectEditor/selectEditor.ts#L58
 
 :::
 
@@ -82,7 +82,7 @@ Returns select's value.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/selectEditor/selectEditor.ts#L35
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/selectEditor/selectEditor.ts#L35
 
 :::
 
@@ -98,7 +98,7 @@ Initializes editor instance, DOM Element and mount hooks.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/selectEditor/selectEditor.ts#L70
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/selectEditor/selectEditor.ts#L70
 
 :::
 
@@ -114,7 +114,7 @@ Opens the editor and adjust its size.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/selectEditor/selectEditor.ts#L113
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/selectEditor/selectEditor.ts#L113
 
 :::
 
@@ -140,7 +140,7 @@ Prepares editor's meta data and a list of available options.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/selectEditor/selectEditor.ts#L65
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/selectEditor/selectEditor.ts#L65
 
 :::
 

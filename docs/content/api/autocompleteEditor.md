@@ -17,7 +17,7 @@ editLink: false
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L97
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L97
 
 :::
 
@@ -33,7 +33,7 @@ Returns the unique editor type identifier for the autocomplete editor.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L576
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L576
 
 :::
 
@@ -49,7 +49,7 @@ Query string to turn available values over.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L584
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L584
 
 :::
 
@@ -65,7 +65,7 @@ Contains raw choices.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L580
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L580
 
 :::
 
@@ -82,7 +82,7 @@ Contains stripped choices.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L276
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L276
 
 :::
 
@@ -98,7 +98,7 @@ Closes the editor.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L117
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L117
 
 :::
 
@@ -114,7 +114,7 @@ Creates an editor's elements and adds necessary CSS classnames.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L290
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L290
 
 :::
 
@@ -135,7 +135,7 @@ Verifies result of validation or closes editor if user's cancelled changes.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L473
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L473
 
 :::
 
@@ -152,7 +152,7 @@ The method may be overwritten in the child class to provide a custom size logic.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L497
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L497
 
 :::
 
@@ -169,7 +169,7 @@ The method may be overwritten in the child class to provide a custom size logic.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L104
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L104
 
 :::
 
@@ -185,7 +185,7 @@ Gets current value from editable element.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L154
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L154
 
 :::
 
@@ -201,7 +201,7 @@ Opens the editor and adjust its size and internal Handsontable's instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L139
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L139
 
 :::
 
@@ -227,7 +227,7 @@ Prepares editor's metadata and configuration of the internal Handsontable's inst
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L298
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L298
 
 :::
 
@@ -248,7 +248,7 @@ Prepares choices list based on applied argument.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L317
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/autocompleteEditor/autocompleteEditor.ts#L317
 
 :::
 

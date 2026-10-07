@@ -17,7 +17,7 @@ editLink: false
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/checkboxEditor/checkboxEditor.ts#L25
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/checkboxEditor/checkboxEditor.ts#L25
 
 :::
 
@@ -34,7 +34,7 @@ Returns the unique editor type identifier for the checkbox editor.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/checkboxEditor/checkboxEditor.ts#L30
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/checkboxEditor/checkboxEditor.ts#L30
 
 :::
 
@@ -50,7 +50,7 @@ Handles the mouseup event on the cell TD element to trigger a checkbox click via
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/checkboxEditor/checkboxEditor.ts#L53
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/checkboxEditor/checkboxEditor.ts#L53
 
 :::
 
@@ -66,7 +66,7 @@ No-op override — the checkbox editor has no visible editing element to close.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/checkboxEditor/checkboxEditor.ts#L44
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/checkboxEditor/checkboxEditor.ts#L44
 
 :::
 
@@ -82,7 +82,7 @@ No-op override — the checkbox editor does not perform a finish step.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/checkboxEditor/checkboxEditor.ts#L64
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/checkboxEditor/checkboxEditor.ts#L64
 
 :::
 
@@ -98,7 +98,7 @@ No-op override — the checkbox editor delegates focus to the native checkbox el
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/checkboxEditor/checkboxEditor.ts#L56
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/checkboxEditor/checkboxEditor.ts#L56
 
 :::
 
@@ -114,7 +114,7 @@ Returns undefined because checkbox state is written directly to the cell; no sep
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/checkboxEditor/checkboxEditor.ts#L47
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/checkboxEditor/checkboxEditor.ts#L47
 
 :::
 
@@ -130,7 +130,7 @@ No-op override — the checkbox editor requires no DOM initialization.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/checkboxEditor/checkboxEditor.ts#L50
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/checkboxEditor/checkboxEditor.ts#L50
 
 :::
 
@@ -146,7 +146,7 @@ No-op override — the checkbox editor has no visible editing element to open.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/checkboxEditor/checkboxEditor.ts#L61
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/checkboxEditor/checkboxEditor.ts#L61
 
 :::
 

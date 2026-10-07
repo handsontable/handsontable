@@ -44,7 +44,7 @@ import Handsontable, { CellRange } from '/handsontable/base';
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L842
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L842
 
 :::
 
@@ -60,7 +60,7 @@ Clones your `CellRange` instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L197
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L197
 
 :::
 
@@ -76,7 +76,7 @@ Checks if your range overlaps headers range (negative coordinates).
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L347
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L347
 
 :::
 
@@ -100,7 +100,7 @@ The `cellCoords` coordinates must exceed a corner of your range.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L378
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L378
 
 :::
 
@@ -122,7 +122,7 @@ Expand your range with another range (`expandingRange`).
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L506
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L506
 
 :::
 
@@ -138,7 +138,7 @@ Flips the direction of your range horizontally (e.g., `NW-SE` changes to `NE-SW`
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L485
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L485
 
 :::
 
@@ -154,7 +154,7 @@ Flips the direction of your range vertically (e.g., `NW-SE` changes to `SW-NE`).
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L819
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L819
 
 :::
 
@@ -177,7 +177,7 @@ You can break the iteration by returning `false` in the callback function.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L789
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L789
 
 :::
 
@@ -193,7 +193,7 @@ Gets the coordinates of all cells of your range.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L730
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L730
 
 :::
 
@@ -215,7 +215,7 @@ your `CellRange`instance and another `range` that's within your range.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L553
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L553
 
 :::
 
@@ -234,7 +234,7 @@ the corner coordinates are normalized to `0`.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L606
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L606
 
 :::
 
@@ -254,7 +254,7 @@ the corner coordinates are normalized to `0`.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L564
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L564
 
 :::
 
@@ -274,7 +274,7 @@ the corner coordinates are normalized to `0`.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L595
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L595
 
 :::
 
@@ -293,7 +293,7 @@ the corner coordinates are normalized to `0`.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L244
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L244
 
 :::
 
@@ -309,7 +309,7 @@ Returns the number of cells within your range (excluding column and row headers)
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L410
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L410
 
 :::
 
@@ -326,7 +326,7 @@ Gets the direction of the selection.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L218
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L218
 
 :::
 
@@ -342,7 +342,7 @@ Returns the height of your range (as a number of rows, excluding row headers).
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L470
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L470
 
 :::
 
@@ -359,7 +359,7 @@ Gets the horizontal direction of the selection.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L480
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L480
 
 :::
 
@@ -376,7 +376,7 @@ Gets the inline (horizontal) direction of the selection.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L765
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L765
 
 :::
 
@@ -392,7 +392,7 @@ Gets the coordinates of the inner cells of your range.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L709
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L709
 
 :::
 
@@ -416,7 +416,7 @@ the coordinates of the top-left corner of your range are returned.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L637
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L637
 
 :::
 
@@ -435,7 +435,7 @@ the top and start coordinates are pointed to that header.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L690
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L690
 
 :::
 
@@ -455,7 +455,7 @@ the top and left coordinates are pointed to that header.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L648
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L648
 
 :::
 
@@ -475,7 +475,7 @@ the top and left coordinates are pointed to that header.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L679
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L679
 
 :::
 
@@ -494,7 +494,7 @@ the top and start coordinates are pointed to that header.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L204
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L204
 
 :::
 
@@ -510,7 +510,7 @@ Returns the height of your range (as a number of rows, including row headers).
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L658
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L658
 
 :::
 
@@ -529,7 +529,7 @@ the top and start coordinates are pointed to that header.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L627
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L627
 
 :::
 
@@ -549,7 +549,7 @@ the top and left coordinates are pointed to that header.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L669
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L669
 
 :::
 
@@ -569,7 +569,7 @@ the top and left coordinates are pointed to that header.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L616
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L616
 
 :::
 
@@ -588,7 +588,7 @@ the top and start coordinates are pointed to that header.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L211
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L211
 
 :::
 
@@ -604,7 +604,7 @@ Returns the width of your range (as a number of columns, including column header
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L574
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L574
 
 :::
 
@@ -623,7 +623,7 @@ the corner coordinates are normalized to `0`.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L543
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L543
 
 :::
 
@@ -643,7 +643,7 @@ the corner coordinates are normalized to `0`.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L585
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L585
 
 :::
 
@@ -663,7 +663,7 @@ the corner coordinates are normalized to `0`.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L532
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L532
 
 :::
 
@@ -682,7 +682,7 @@ the corner coordinates are normalized to `0`.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L460
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L460
 
 :::
 
@@ -699,7 +699,7 @@ Gets the vertical direction of the selection.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L231
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L231
 
 :::
 
@@ -715,7 +715,7 @@ Returns the width of your range (as a number of columns, excluding column header
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L253
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L253
 
 :::
 
@@ -737,7 +737,7 @@ is within the `from` and `to` coordinates of your range.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L268
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L268
 
 :::
 
@@ -758,7 +758,7 @@ Checks if another range (`cellRange`) is within your range.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L698
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L698
 
 :::
 
@@ -779,7 +779,7 @@ Checks if a set of coordinates (`coords`) matches one of the 4 corners of your r
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L276
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L276
 
 :::
 
@@ -800,7 +800,7 @@ Checks if another range (`cellRange`) is equal to your range.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L187
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L187
 
 :::
 
@@ -816,7 +816,7 @@ Checks if your range covers only headers range (negative coordinates, without an
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L313
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L313
 
 :::
 
@@ -837,7 +837,7 @@ Checks if coordinates point is north-west of your range.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L324
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L324
 
 :::
 
@@ -861,7 +861,7 @@ and the first column of the `cellRange` range is `3`.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L335
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L335
 
 :::
 
@@ -885,7 +885,7 @@ and the first row of the `cellRange` range is `3`.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L160
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L160
 
 :::
 
@@ -901,7 +901,7 @@ Checks if your range is just a single cell or header.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L167
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L167
 
 :::
 
@@ -917,7 +917,7 @@ Checks if your range is just a single cell.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L177
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L177
 
 :::
 
@@ -933,7 +933,7 @@ Checks if your range is just a single header.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L305
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L305
 
 :::
 
@@ -954,7 +954,7 @@ Checks if coordinates point is south-east of your range.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L153
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L153
 
 :::
 
@@ -982,7 +982,7 @@ See the [`isValid()`](@/api/cellCoords.md#isvalid) method of the [`CellCoords`](
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L135
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L135
 
 :::
 
@@ -1000,7 +1000,7 @@ Coordinates that point to headers (negative values) are normalized to `0`.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L297
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L297
 
 :::
 
@@ -1023,7 +1023,7 @@ Range A overlaps range B if the intersection of A and B (or B and A) is not empt
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L426
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L426
 
 :::
 
@@ -1044,7 +1044,7 @@ Sets the direction of the selection.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L116
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L116
 
 :::
 
@@ -1065,7 +1065,7 @@ Sets the `coords` coordinates as the start of your range.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L107
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L107
 
 :::
 
@@ -1086,7 +1086,7 @@ Highlights cell selection at the `coords` coordinates.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L125
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L125
 
 :::
 
@@ -1107,7 +1107,7 @@ Sets the `coords` coordinates as the end of your range.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L856
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/range.js#L856
 
 :::
 

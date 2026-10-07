@@ -26,7 +26,7 @@ angular:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L536
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L536
 
 :::
 
@@ -42,7 +42,7 @@ Flag to specify if the editor should be closed after data change.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L551
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L551
 
 :::
 
@@ -58,7 +58,7 @@ Visual column index.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L79
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L79
 
 :::
 
@@ -74,7 +74,7 @@ Returns the unique editor type identifier for the base editor.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L561
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L561
 
 :::
 
@@ -90,7 +90,7 @@ Original cell's value.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L556
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L556
 
 :::
 
@@ -106,7 +106,7 @@ Column property name or a column index, if datasource is an array of arrays.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L546
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L546
 
 :::
 
@@ -122,7 +122,7 @@ Visual row index.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L510
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L510
 
 :::
 
@@ -138,7 +138,7 @@ Editor's state.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L541
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L541
 
 :::
 
@@ -155,7 +155,7 @@ Currently rendered cell's `TD` element.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L186
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L186
 
 :::
 
@@ -177,7 +177,7 @@ Begins editing on a highlighted cell and hides fillHandle corner if was present.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L280
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L280
 
 :::
 
@@ -193,7 +193,7 @@ Finishes editing without saving value.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L113
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L113
 
 :::
 
@@ -209,7 +209,7 @@ Required method to close editor.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L289
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L289
 
 :::
 
@@ -230,7 +230,7 @@ Verifies result of validation or closes editor if user's cancelled changes.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L315
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L315
 
 :::
 
@@ -247,7 +247,7 @@ automatically after hit ENTER or F2 key on the cell or while editing cell press 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L143
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L143
 
 :::
 
@@ -263,7 +263,7 @@ Fallback method to provide extendable editors in ES5.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L227
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L227
 
 :::
 
@@ -286,7 +286,7 @@ Finishes editing and start saving or restoring process for editing cell or last 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L118
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L118
 
 :::
 
@@ -302,7 +302,7 @@ Required method to focus editor.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L466
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L466
 
 :::
 
@@ -318,7 +318,7 @@ Gets the `HTMLTableCellElement` of the edited cell, if it exists.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L352
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L352
 
 :::
 
@@ -343,7 +343,7 @@ The rectangle has six integer properties:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L445
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L445
 
 :::
 
@@ -359,7 +359,7 @@ Gets the `className` of the edited cell, if it exists.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L98
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L98
 
 :::
 
@@ -375,7 +375,7 @@ Required method to get current value from editable element.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L95
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L95
 
 :::
 
@@ -391,7 +391,7 @@ Initializes an editor's intance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L322
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L322
 
 :::
 
@@ -407,7 +407,7 @@ Checks if editor is in full edit mode.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L329
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L329
 
 :::
 
@@ -423,7 +423,7 @@ Returns information whether the editor is open.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L336
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L336
 
 :::
 
@@ -439,7 +439,7 @@ Returns information whether the editor is waiting, eg.: for async validation.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L108
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L108
 
 :::
 
@@ -455,7 +455,7 @@ Required method to open editor.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L130
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L130
 
 :::
 
@@ -481,7 +481,7 @@ Prepares editor's meta data.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L152
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L152
 
 :::
 
@@ -503,7 +503,7 @@ Saves value from editor into data storage.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/baseEditor/baseEditor.ts#L103
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/baseEditor/baseEditor.ts#L103
 
 :::
 

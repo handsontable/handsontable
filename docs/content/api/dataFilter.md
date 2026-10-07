@@ -23,7 +23,7 @@ Initializes the data filter with a condition collection that provides filtering 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/filters/dataFilter.ts#L20
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/filters/dataFilter.ts#L20
 
 :::
 
@@ -39,7 +39,7 @@ Filter data based on the conditions collection.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/filters/dataFilter.ts#L42
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/filters/dataFilter.ts#L42
 
 :::
 

@@ -23,7 +23,7 @@ Initializes the clipboard data store as an empty object.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/copyPaste/clipboardData.ts#L21
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/copyPaste/clipboardData.ts#L21
 
 :::
 
@@ -39,7 +39,7 @@ Returns the clipboard data stored under the given MIME type key, or `undefined` 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/copyPaste/clipboardData.ts#L16
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/copyPaste/clipboardData.ts#L16
 
 :::
 

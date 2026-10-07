@@ -23,7 +23,7 @@ Initializes the condition collection with the Handsontable instance, optionally 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/filters/conditionCollection.ts#L75
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/filters/conditionCollection.ts#L75
 
 :::
 
@@ -48,7 +48,7 @@ Add condition to the collection.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/filters/conditionCollection.ts#L194
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/filters/conditionCollection.ts#L194
 
 :::
 
@@ -65,7 +65,7 @@ Clean all conditions collection and reset order stack.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/filters/conditionCollection.ts#L215
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/filters/conditionCollection.ts#L215
 
 :::
 
@@ -81,7 +81,7 @@ Destroy object.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/filters/conditionCollection.ts#L150
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/filters/conditionCollection.ts#L150
 
 :::
 
@@ -97,7 +97,7 @@ Export all previously added conditions.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/filters/conditionCollection.ts#L143
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/filters/conditionCollection.ts#L143
 
 :::
 
@@ -119,7 +119,7 @@ Gets position in the filtering states stack for the specific column.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/filters/conditionCollection.ts#L120
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/filters/conditionCollection.ts#L120
 
 :::
 
@@ -141,7 +141,7 @@ Get all added conditions from the collection at specified column index.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/filters/conditionCollection.ts#L135
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/filters/conditionCollection.ts#L135
 
 :::
 
@@ -157,7 +157,7 @@ Get all filtered physical columns in the order in which actions are performed.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/filters/conditionCollection.ts#L128
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/filters/conditionCollection.ts#L128
 
 :::
 
@@ -178,7 +178,7 @@ Get operation for particular column.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/filters/conditionCollection.ts#L206
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/filters/conditionCollection.ts#L206
 
 :::
 
@@ -201,7 +201,7 @@ check if condition exists under its name.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/filters/conditionCollection.ts#L170
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/filters/conditionCollection.ts#L170
 
 :::
 
@@ -222,7 +222,7 @@ Import conditions to the collection.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/filters/conditionCollection.ts#L35
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/filters/conditionCollection.ts#L35
 
 :::
 
@@ -238,7 +238,7 @@ Check if condition collection is empty (so no needed to filter data).
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/filters/conditionCollection.ts#L44
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/filters/conditionCollection.ts#L44
 
 :::
 
@@ -260,7 +260,7 @@ Check if value is matched to the criteria of conditions chain.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/filters/conditionCollection.ts#L57
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/filters/conditionCollection.ts#L57
 
 :::
 
@@ -283,7 +283,7 @@ Check if the value is matches the conditions.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/filters/conditionCollection.ts#L184
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/filters/conditionCollection.ts#L184
 
 :::
 

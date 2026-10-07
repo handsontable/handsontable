@@ -23,7 +23,7 @@ Initializes the empty data state UI with the grid container and document, then b
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/emptyDataState/ui.ts#L312
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/emptyDataState/ui.ts#L312
 
 :::
 
@@ -39,7 +39,7 @@ Removes the emptyDataState UI elements from the DOM and clears the refs.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/emptyDataState/ui.ts#L184
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/emptyDataState/ui.ts#L184
 
 :::
 
@@ -56,7 +56,7 @@ Gets the emptyDataState element.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/emptyDataState/ui.ts#L191
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/emptyDataState/ui.ts#L191
 
 :::
 
@@ -73,7 +73,7 @@ Gets the focusable elements of the emptyDataState element.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/emptyDataState/ui.ts#L212
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/emptyDataState/ui.ts#L212
 
 :::
 
@@ -89,7 +89,7 @@ Hides the emptyDataState element.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/emptyDataState/ui.ts#L163
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/emptyDataState/ui.ts#L163
 
 :::
 
@@ -105,7 +105,7 @@ Creates the emptyDataState UI elements and sets up the structure.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/emptyDataState/ui.ts#L204
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/emptyDataState/ui.ts#L204
 
 :::
 
@@ -121,7 +121,7 @@ Shows the emptyDataState element.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/emptyDataState/ui.ts#L266
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/emptyDataState/ui.ts#L266
 
 :::
 
@@ -142,7 +142,7 @@ Updates the class names of the emptyDataState element.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/emptyDataState/ui.ts#L226
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/emptyDataState/ui.ts#L226
 
 :::
 
@@ -164,7 +164,7 @@ Updates the content of the emptyDataState element.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/emptyDataState/ui.ts#L290
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/emptyDataState/ui.ts#L290
 
 :::
 

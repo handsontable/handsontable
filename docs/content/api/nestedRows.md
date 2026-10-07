@@ -25,7 +25,7 @@ angular:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/dataMap/metaManager/metaSchema.ts#L4484
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/dataMap/metaManager/metaSchema.ts#L4486
 
 :::
 
@@ -61,7 +61,7 @@ nestedRows: true,
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L228
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L228
 
 :::
 
@@ -77,7 +77,7 @@ Returns the plugin key used to identify and access this plugin within Handsontab
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L233
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L233
 
 :::
 
@@ -94,7 +94,7 @@ Returns the priority value that determines the plugin's initialization order rel
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L358
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L358
 
 :::
 
@@ -113,7 +113,7 @@ A parent that was already collapsed inside another one stays collapsed.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L383
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L383
 
 :::
 
@@ -137,7 +137,7 @@ when it is already collapsed, or when the [Hooks#beforeRowCollapse](@/api/hooks.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L497
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L497
 
 :::
 
@@ -159,7 +159,7 @@ Counts the children of a row.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L643
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L643
 
 :::
 
@@ -175,7 +175,7 @@ Destroys the plugin instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L282
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L282
 
 :::
 
@@ -191,7 +191,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L246
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L246
 
 :::
 
@@ -207,7 +207,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L369
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L369
 
 :::
 
@@ -224,7 +224,7 @@ Expands every collapsed parent row at every nesting level, so no row stays hidde
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L394
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L394
 
 :::
 
@@ -248,7 +248,7 @@ when it is already expanded, or when the [Hooks#beforeRowExpand](@/api/hooks.md#
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L555
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L555
 
 :::
 
@@ -277,7 +277,7 @@ expand step stays applied.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L518
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L518
 
 :::
 
@@ -303,7 +303,7 @@ visual index.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L425
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L425
 
 :::
 
@@ -324,7 +324,7 @@ store when saving the state. Convert one with [Core#toVisualRow](@/api/core.md#t
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L463
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L463
 
 :::
 
@@ -346,7 +346,7 @@ Returns how deeply a row is nested. Top-level rows are at level `0`.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L477
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L477
 
 :::
 
@@ -370,7 +370,7 @@ A visible row always has visible ancestors, so the returned index is visual like
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L241
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L241
 
 :::
 
@@ -387,7 +387,7 @@ hook and if it returns `true` then the [NestedRows#enablePlugin](@/api/nestedRow
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L451
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L451
 
 :::
 
@@ -408,7 +408,7 @@ Checks whether a row has children.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L436
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L436
 
 :::
 
@@ -430,7 +430,7 @@ Checks whether a parent row is collapsed.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L407
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L407
 
 :::
 
@@ -454,7 +454,7 @@ the button in the row header or pressing Enter on it.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L292
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedRows/nestedRows.ts#L292
 
 :::
 

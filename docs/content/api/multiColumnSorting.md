@@ -25,7 +25,7 @@ angular:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/dataMap/metaManager/metaSchema.ts#L4328
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/dataMap/metaManager/metaSchema.ts#L4330
 
 :::
 
@@ -105,7 +105,7 @@ multiColumnSorting: {
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/multiColumnSorting/multiColumnSorting.ts#L35
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/multiColumnSorting/multiColumnSorting.ts#L35
 
 :::
 
@@ -121,7 +121,7 @@ Returns the plugin key used to identify this plugin in Handsontable settings.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/multiColumnSorting/multiColumnSorting.ts#L40
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/multiColumnSorting/multiColumnSorting.ts#L40
 
 :::
 
@@ -137,7 +137,7 @@ Returns the priority order used to determine the order in which plugins are init
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/multiColumnSorting/multiColumnSorting.ts#L45
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/multiColumnSorting/multiColumnSorting.ts#L45
 
 :::
 
@@ -154,7 +154,7 @@ Returns the list of settings keys observed by the plugin for configuration chang
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/multiColumnSorting/multiColumnSorting.ts#L143
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/multiColumnSorting/multiColumnSorting.ts#L143
 
 :::
 
@@ -170,7 +170,7 @@ Clear the sort performed on the table.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/multiColumnSorting/multiColumnSorting.ts#L69
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/multiColumnSorting/multiColumnSorting.ts#L69
 
 :::
 
@@ -186,7 +186,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/multiColumnSorting/multiColumnSorting.ts#L61
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/multiColumnSorting/multiColumnSorting.ts#L61
 
 :::
 
@@ -202,7 +202,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/multiColumnSorting/multiColumnSorting.ts#L160
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/multiColumnSorting/multiColumnSorting.ts#L160
 
 :::
 
@@ -225,7 +225,7 @@ Get sort configuration for particular column or for all sorted columns. Objects 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/multiColumnSorting/multiColumnSorting.ts#L56
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/multiColumnSorting/multiColumnSorting.ts#L56
 
 :::
 
@@ -243,7 +243,7 @@ When [[Options#dataProvider]] is a complete server-backed configuration, the Dat
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/multiColumnSorting/multiColumnSorting.ts#L150
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/multiColumnSorting/multiColumnSorting.ts#L150
 
 :::
 
@@ -259,7 +259,7 @@ Checks if the table is sorted (any column have to be sorted).
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/multiColumnSorting/multiColumnSorting.ts#L186
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/multiColumnSorting/multiColumnSorting.ts#L186
 
 :::
 
@@ -295,7 +295,7 @@ beforeColumnSort: function(currentSortConfig, destinationSortConfigs) {
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/multiColumnSorting/multiColumnSorting.ts#L138
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/multiColumnSorting/multiColumnSorting.ts#L138
 
 :::
 

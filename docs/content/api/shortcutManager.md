@@ -25,7 +25,7 @@ angular:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/shortcuts/manager.ts#L39
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/shortcuts/manager.ts#L39
 
 :::
 
@@ -47,7 +47,7 @@ Create a new [`ShortcutContext`](@/api/shortcutContext.md) object.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/shortcuts/manager.ts#L207
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/shortcuts/manager.ts#L207
 
 :::
 
@@ -63,7 +63,7 @@ Destroy a context manager instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/shortcuts/manager.ts#L49
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/shortcuts/manager.ts#L49
 
 :::
 
@@ -79,7 +79,7 @@ Get the ID of the active [`ShortcutContext`](@/api/shortcutContext.md).
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/shortcuts/manager.ts#L58
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/shortcuts/manager.ts#L58
 
 :::
 
@@ -101,7 +101,7 @@ Get a keyboard shortcut context by its name.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/shortcuts/manager.ts#L68
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/shortcuts/manager.ts#L68
 
 :::
 
@@ -124,7 +124,7 @@ Get a keyboard shortcut context by its name, or create it if it doesn't exist.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/shortcuts/manager.ts#L174
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/shortcuts/manager.ts#L174
 
 :::
 
@@ -148,7 +148,7 @@ the unified `control/meta` form.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/shortcuts/manager.ts#L195
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/shortcuts/manager.ts#L195
 
 :::
 
@@ -164,7 +164,7 @@ Returns whether `control` or `meta` keys are pressed.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/shortcuts/manager.ts#L201
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/shortcuts/manager.ts#L201
 
 :::
 
@@ -180,7 +180,7 @@ Release every previously pressed key.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/shortcuts/manager.ts#L76
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/shortcuts/manager.ts#L76
 
 :::
 

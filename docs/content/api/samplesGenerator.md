@@ -31,7 +31,7 @@ Initializes the samples generator with the data factory function used to retriev
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L205
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L205
 
 :::
 
@@ -48,7 +48,7 @@ _samplesGenerator.allowDuplicates : boolean_
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L199
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L199
 
 :::
 
@@ -65,7 +65,7 @@ Custom number of samples to take of each value length.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L193
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L193
 
 :::
 
@@ -81,7 +81,7 @@ Function which give the data to collect samples.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L211
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L211
 
 :::
 
@@ -98,7 +98,7 @@ _samplesGenerator.includeHidden : boolean_
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L52
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L52
 
 :::
 
@@ -114,7 +114,7 @@ Number of samples to take of each value length.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L188
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L188
 
 :::
 
@@ -132,7 +132,7 @@ Samples prepared for calculations.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L101
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L101
 
 :::
 
@@ -154,7 +154,7 @@ Generate samples for column. You can control which area should be sampled by pas
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L92
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L92
 
 :::
 
@@ -176,7 +176,7 @@ Generate samples for row. You can control which area should be sampled by passin
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L135
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L135
 
 :::
 
@@ -204,7 +204,7 @@ while keeping the per-bucket sample limits and the duplicate detection working a
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L168
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L168
 
 :::
 
@@ -228,7 +228,7 @@ cell values carried by a change batch).
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L111
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L111
 
 :::
 
@@ -251,7 +251,7 @@ Generate collection of samples.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L59
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L59
 
 :::
 
@@ -267,7 +267,7 @@ Get the sample count for this instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L76
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L76
 
 :::
 
@@ -288,7 +288,7 @@ Set if the generator should accept duplicate values.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L83
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L83
 
 :::
 
@@ -309,7 +309,7 @@ Sets the sampler to the mode where it will generate samples for hidden indexes.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L69
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L69
 
 :::
 
@@ -337,7 +337,7 @@ Initializes the samples generator with the data factory function used to retriev
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L205
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L205
 
 :::
 
@@ -354,7 +354,7 @@ _samplesGenerator.allowDuplicates : boolean_
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L199
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L199
 
 :::
 
@@ -371,7 +371,7 @@ Custom number of samples to take of each value length.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L193
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L193
 
 :::
 
@@ -387,7 +387,7 @@ Function which give the data to collect samples.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L211
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L211
 
 :::
 
@@ -404,7 +404,7 @@ _samplesGenerator.includeHidden : boolean_
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L52
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L52
 
 :::
 
@@ -420,7 +420,7 @@ Number of samples to take of each value length.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L188
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L188
 
 :::
 
@@ -438,7 +438,7 @@ Samples prepared for calculations.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L101
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L101
 
 :::
 
@@ -460,7 +460,7 @@ Generate samples for column. You can control which area should be sampled by pas
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L92
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L92
 
 :::
 
@@ -482,7 +482,7 @@ Generate samples for row. You can control which area should be sampled by passin
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L135
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L135
 
 :::
 
@@ -510,7 +510,7 @@ while keeping the per-bucket sample limits and the duplicate detection working a
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L168
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L168
 
 :::
 
@@ -534,7 +534,7 @@ cell values carried by a change batch).
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L111
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L111
 
 :::
 
@@ -557,7 +557,7 @@ Generate collection of samples.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L59
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L59
 
 :::
 
@@ -573,7 +573,7 @@ Get the sample count for this instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L76
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L76
 
 :::
 
@@ -594,7 +594,7 @@ Set if the generator should accept duplicate values.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L83
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L83
 
 :::
 
@@ -615,7 +615,7 @@ Sets the sampler to the mode where it will generate samples for hidden indexes.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/utils/samplesGenerator.ts#L69
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/utils/samplesGenerator.ts#L69
 
 :::
 

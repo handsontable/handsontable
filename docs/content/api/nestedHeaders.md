@@ -25,7 +25,7 @@ angular:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/dataMap/metaManager/metaSchema.ts#L4456
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/dataMap/metaManager/metaSchema.ts#L4458
 
 :::
 
@@ -115,7 +115,7 @@ collapsibleColumns: true,
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L708
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L708
 
 :::
 
@@ -132,7 +132,7 @@ configuration.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L702
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L702
 
 :::
 
@@ -148,7 +148,7 @@ Custom helper for getting widths of the nested headers.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L298
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L298
 
 :::
 
@@ -164,7 +164,7 @@ Returns the plugin key used to identify this plugin in Handsontable settings.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L303
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L303
 
 :::
 
@@ -181,7 +181,7 @@ Returns the priority order used to determine the order in which plugins are init
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L530
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L530
 
 :::
 
@@ -197,7 +197,7 @@ Returns the header tree node data for the given coordinates, or undefined if the
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L421
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L421
 
 :::
 
@@ -213,7 +213,7 @@ Removes all colspan and rowspan attributes from the rendered header cells in all
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L523
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L523
 
 :::
 
@@ -229,7 +229,7 @@ Destroys the plugin instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L392
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L392
 
 :::
 
@@ -245,7 +245,7 @@ Disables the plugin by removing all registered hooks, clearing header state, and
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L313
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L313
 
 :::
 
@@ -261,7 +261,7 @@ Enables the plugin by registering all required hooks and initializing the header
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L514
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L514
 
 :::
 
@@ -277,7 +277,7 @@ Returns the display value for a nested header cell at the given visual column in
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L416
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L416
 
 :::
 
@@ -293,7 +293,7 @@ Returns the header settings node for the specified header level and column index
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L411
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L411
 
 :::
 
@@ -309,7 +309,7 @@ Returns the number of nested header rows currently configured in the plugin.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L406
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L406
 
 :::
 
@@ -325,7 +325,7 @@ Returns the internal state manager that tracks the nested header spans and their
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L465
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L465
 
 :::
 
@@ -341,7 +341,7 @@ Creates and returns a header renderer function for the specified header layer le
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L308
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L308
 
 :::
 
@@ -357,7 +357,7 @@ Returns whether the plugin is enabled based on the presence of the `nestedHeader
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L358
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/nestedHeaders/nestedHeaders.ts#L358
 
 :::
 

@@ -17,7 +17,7 @@ editLink: false
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/timeEditor/timeEditor.ts#L27
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/timeEditor/timeEditor.ts#L27
 
 :::
 
@@ -34,7 +34,7 @@ Returns the unique editor type identifier for the time editor.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/timeEditor/timeEditor.ts#L42
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/timeEditor/timeEditor.ts#L42
 
 :::
 
@@ -50,7 +50,7 @@ Creates the editor's textarea element as a native time input.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/timeEditor/timeEditor.ts#L60
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/timeEditor/timeEditor.ts#L60
 
 :::
 
@@ -66,7 +66,7 @@ Selects all text in the time input element when the editor receives focus.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/timeEditor/timeEditor.ts#L32
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/timeEditor/timeEditor.ts#L32
 
 :::
 
@@ -82,7 +82,7 @@ Initializes the editor and registers an afterSetTheme hook to close on theme cha
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/timeEditor/timeEditor.ts#L65
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/timeEditor/timeEditor.ts#L65
 
 :::
 
@@ -98,7 +98,7 @@ Opens the editor and programmatically invokes the native time picker via showPic
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/timeEditor/timeEditor.ts#L49
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/timeEditor/timeEditor.ts#L49
 
 :::
 

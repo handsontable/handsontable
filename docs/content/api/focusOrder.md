@@ -28,7 +28,7 @@ Initializes the focus order manager with the merged cell getter and row and colu
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/focusOrder.ts#L262
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/focusOrder.ts#L262
 
 :::
 
@@ -50,7 +50,7 @@ captured — the focus stops themselves are computed lazily during navigation.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/focusOrder.ts#L211
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/focusOrder.ts#L211
 
 :::
 
@@ -66,7 +66,7 @@ Gets the currently selected node data from the horizontal focus order.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/focusOrder.ts#L180
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/focusOrder.ts#L180
 
 :::
 
@@ -82,7 +82,7 @@ Gets the currently selected node data from the vertical focus order.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/focusOrder.ts#L218
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/focusOrder.ts#L218
 
 :::
 
@@ -98,7 +98,7 @@ Gets the first node data from the horizontal focus order.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/focusOrder.ts#L187
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/focusOrder.ts#L187
 
 :::
 
@@ -114,7 +114,7 @@ Gets the first node data from the vertical focus order.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/focusOrder.ts#L225
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/focusOrder.ts#L225
 
 :::
 
@@ -130,7 +130,7 @@ Gets the next selected node data from the horizontal focus order.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/focusOrder.ts#L194
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/focusOrder.ts#L194
 
 :::
 
@@ -146,7 +146,7 @@ Gets the next selected node data from the vertical focus order.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/focusOrder.ts#L233
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/focusOrder.ts#L233
 
 :::
 
@@ -162,7 +162,7 @@ Gets the previous selected node data from the horizontal focus order.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/focusOrder.ts#L203
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/focusOrder.ts#L203
 
 :::
 
@@ -178,7 +178,7 @@ Gets the previous selected node data from the vertical focus order.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/focusOrder.ts#L294
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/focusOrder.ts#L294
 
 :::
 
@@ -201,7 +201,7 @@ Sets the active node based on the provided row and column.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/focusOrder.ts#L249
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/focusOrder.ts#L249
 
 :::
 
@@ -217,7 +217,7 @@ Sets the next node in both focus orders as active.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/focusOrder.ts#L239
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/focusOrder.ts#L239
 
 :::
 

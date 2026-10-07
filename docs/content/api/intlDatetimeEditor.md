@@ -17,7 +17,7 @@ editLink: false
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/intlDatetimeEditor/intlDatetimeEditor.ts#L30
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/intlDatetimeEditor/intlDatetimeEditor.ts#L30
 
 :::
 
@@ -34,7 +34,7 @@ Returns the unique editor type identifier for the intl-datetime editor.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/intlDatetimeEditor/intlDatetimeEditor.ts#L54
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/intlDatetimeEditor/intlDatetimeEditor.ts#L54
 
 :::
 
@@ -50,7 +50,7 @@ Creates the editor's element as a native datetime-local input that shows seconds
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/intlDatetimeEditor/intlDatetimeEditor.ts#L95
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/intlDatetimeEditor/intlDatetimeEditor.ts#L95
 
 :::
 
@@ -66,7 +66,7 @@ Selects all text in the input element when the editor receives focus.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/intlDatetimeEditor/intlDatetimeEditor.ts#L86
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/intlDatetimeEditor/intlDatetimeEditor.ts#L86
 
 :::
 
@@ -82,7 +82,7 @@ Returns the editor value, canonicalizing to `YYYY-MM-DDTHH:mm:ss` (native input 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/intlDatetimeEditor/intlDatetimeEditor.ts#L35
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/intlDatetimeEditor/intlDatetimeEditor.ts#L35
 
 :::
 
@@ -98,7 +98,7 @@ Initializes the editor and registers an afterSetTheme hook to close on theme cha
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/intlDatetimeEditor/intlDatetimeEditor.ts#L100
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/intlDatetimeEditor/intlDatetimeEditor.ts#L100
 
 :::
 
@@ -114,7 +114,7 @@ Opens the editor and programmatically invokes the native picker via showPicker()
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/intlDatetimeEditor/intlDatetimeEditor.ts#L45
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/intlDatetimeEditor/intlDatetimeEditor.ts#L45
 
 :::
 
@@ -130,7 +130,7 @@ Prepares the editor, replacing the display value with the raw ISO source data fo
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/intlDatetimeEditor/intlDatetimeEditor.ts#L63
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/intlDatetimeEditor/intlDatetimeEditor.ts#L63
 
 :::
 

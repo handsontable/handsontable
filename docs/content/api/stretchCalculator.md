@@ -23,7 +23,7 @@ Initializes the stretch columns calculator with the Handsontable instance and re
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/stretchColumns/calculator.ts#L134
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/stretchColumns/calculator.ts#L134
 
 :::
 
@@ -44,7 +44,7 @@ Gets the calculated column width.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/stretchColumns/calculator.ts#L99
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/stretchColumns/calculator.ts#L99
 
 :::
 
@@ -60,7 +60,7 @@ Recalculates the column widths.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/stretchColumns/calculator.ts#L94
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/stretchColumns/calculator.ts#L94
 
 :::
 

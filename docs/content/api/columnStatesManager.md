@@ -23,7 +23,7 @@ Initializes the column states manager with the Handsontable instance and registe
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L160
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L160
 
 :::
 
@@ -39,7 +39,7 @@ Determines whether click on the header perform sorting.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L155
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L155
 
 :::
 
@@ -55,7 +55,7 @@ Determines whether indicator should be visible (for sorted columns).
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L150
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L150
 
 :::
 
@@ -72,7 +72,7 @@ Determines whether we should sort empty cells.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L139
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L139
 
 :::
 
@@ -88,7 +88,7 @@ Destroy the state manager.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L42
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L42
 
 :::
 
@@ -104,7 +104,7 @@ Get all column properties which affect the sorting result.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L115
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L115
 
 :::
 
@@ -127,7 +127,7 @@ Get sort state for particular column. Object contains `column` and `sortOrder` p
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L66
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L66
 
 :::
 
@@ -148,7 +148,7 @@ Get order of particular column in the states queue.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L74
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L74
 
 :::
 
@@ -164,7 +164,7 @@ Get number of sorted columns.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L58
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L58
 
 :::
 
@@ -186,7 +186,7 @@ Get sort order of column.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L98
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L98
 
 :::
 
@@ -204,7 +204,7 @@ Queue of sort states containing sorted columns and their orders (Array of object
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L89
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L89
 
 :::
 
@@ -225,7 +225,7 @@ Get if particular column is sorted.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L81
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L81
 
 :::
 
@@ -241,7 +241,7 @@ Get if list of sorted columns is empty.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L128
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L128
 
 :::
 
@@ -262,7 +262,7 @@ Set all column states.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L28
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/columnSorting/columnStatesManager.ts#L28
 
 :::
 

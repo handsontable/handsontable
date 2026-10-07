@@ -17,7 +17,7 @@ editLink: false
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/moveCells/moveCells.ts#L155
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/moveCells/moveCells.ts#L155
 
 :::
 
@@ -33,7 +33,7 @@ The plugin's registration key (the name of the setting that enables it).
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/moveCells/moveCells.ts#L162
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/moveCells/moveCells.ts#L162
 
 :::
 
@@ -49,7 +49,7 @@ The plugin's initialization priority within the plugin registry.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/moveCells/moveCells.ts#L169
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/moveCells/moveCells.ts#L169
 
 :::
 
@@ -66,7 +66,7 @@ The settings whose change through `updateSettings` triggers `updatePlugin`.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/moveCells/moveCells.ts#L208
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/moveCells/moveCells.ts#L208
 
 :::
 
@@ -82,7 +82,7 @@ Destroys the plugin and removes any active drag preview.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/moveCells/moveCells.ts#L201
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/moveCells/moveCells.ts#L201
 
 :::
 
@@ -98,7 +98,7 @@ Disables selection move interactions and cancels an active drag.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/moveCells/moveCells.ts#L183
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/moveCells/moveCells.ts#L183
 
 :::
 
@@ -114,7 +114,7 @@ Enables selection move interactions.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/moveCells/moveCells.ts#L178
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/moveCells/moveCells.ts#L178
 
 :::
 
@@ -130,7 +130,7 @@ Checks whether the plugin is enabled in the Handsontable settings.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/moveCells/moveCells.ts#L231
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/moveCells/moveCells.ts#L231
 
 :::
 
@@ -156,7 +156,7 @@ more than [CELLS_LIMIT](@/api/cELLS_LIMIT.md) cells, or when any other guard vet
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/moveCells/moveCells.ts#L194
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/moveCells/moveCells.ts#L194
 
 :::
 

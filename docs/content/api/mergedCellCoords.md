@@ -29,7 +29,7 @@ Initializes the merged cell coordinates with its top-left position, span dimensi
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L308
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L308
 
 :::
 
@@ -46,7 +46,7 @@ _mergedCellCoords.removed : boolean_
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L110
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L110
 
 :::
 
@@ -67,7 +67,7 @@ Check whether the values provided for a merged cell contain any negative values.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L273
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L273
 
 :::
 
@@ -83,7 +83,7 @@ Get the rightmost column index of the merged cell.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L266
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L266
 
 :::
 
@@ -99,7 +99,7 @@ Get the bottom row index of the merged cell.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L291
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L291
 
 :::
 
@@ -115,7 +115,7 @@ Get the range coordinates of the merged cell.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L174
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L174
 
 :::
 
@@ -137,7 +137,7 @@ Returns `true` if the provided coordinates are inside the merged cell.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L182
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L182
 
 :::
 
@@ -158,7 +158,7 @@ Returns `true` if the provided `column` property is within the column span of th
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L190
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L190
 
 :::
 
@@ -179,7 +179,7 @@ Returns `true` if the provided `row` property is within the row span of the merg
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L80
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L80
 
 :::
 
@@ -200,7 +200,7 @@ Get a warning message for when the declared merged cell data contains values exc
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L90
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L90
 
 :::
 
@@ -221,7 +221,7 @@ Get a warning message for when the declared merged cell data represents a single
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L247
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L247
 
 :::
 
@@ -244,7 +244,7 @@ Check if the second provided merged cell is "farther" in the provided direction.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L140
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L140
 
 :::
 
@@ -267,7 +267,7 @@ Check whether the provided merged cell object is to be declared out of bounds of
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L69
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L69
 
 :::
 
@@ -288,7 +288,7 @@ Get a warning message for when the declared merged cell data contains negative v
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L147
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L147
 
 :::
 
@@ -309,7 +309,7 @@ Sanitize (prevent from going outside the boundaries) the merged cell.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L282
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L282
 
 :::
 
@@ -332,7 +332,7 @@ merge's position (e.g. re-anchoring to visible rows) don't leave `getRange()` se
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L199
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L199
 
 :::
 
@@ -355,7 +355,7 @@ Shift (and possibly resize, if needed) the merged cell.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L100
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellCoords.ts#L100
 
 :::
 

@@ -17,7 +17,7 @@ editLink: false
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/dateEditor/dateEditor.ts#L28
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/dateEditor/dateEditor.ts#L28
 
 :::
 
@@ -34,7 +34,7 @@ Returns the unique editor type identifier for the date editor.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/dateEditor/dateEditor.ts#L55
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/dateEditor/dateEditor.ts#L55
 
 :::
 
@@ -50,7 +50,7 @@ Creates the editor's textarea element as a native date input.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/dateEditor/dateEditor.ts#L75
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/dateEditor/dateEditor.ts#L75
 
 :::
 
@@ -66,7 +66,7 @@ Selects all text in the date input element when the editor receives focus.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/dateEditor/dateEditor.ts#L33
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/dateEditor/dateEditor.ts#L33
 
 :::
 
@@ -82,7 +82,7 @@ Initializes the editor and registers an afterSetTheme hook to close on theme cha
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/dateEditor/dateEditor.ts#L80
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/dateEditor/dateEditor.ts#L80
 
 :::
 
@@ -98,7 +98,7 @@ Opens the editor and programmatically invokes the native date picker via showPic
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/dateEditor/dateEditor.ts#L43
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/dateEditor/dateEditor.ts#L43
 
 :::
 
@@ -114,7 +114,7 @@ Prepares the editor, replacing the display value with the raw ISO source data fo
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/dateEditor/dateEditor.ts#L61
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/dateEditor/dateEditor.ts#L61
 
 :::
 

@@ -17,7 +17,7 @@ editLink: false
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/selectionHandles/selectionHandles.ts#L112
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/selectionHandles/selectionHandles.ts#L112
 
 :::
 
@@ -33,7 +33,7 @@ Returns the plugin key.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/selectionHandles/selectionHandles.ts#L117
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/selectionHandles/selectionHandles.ts#L117
 
 :::
 
@@ -49,7 +49,7 @@ Returns the plugin priority.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/selectionHandles/selectionHandles.ts#L122
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/selectionHandles/selectionHandles.ts#L122
 
 :::
 
@@ -66,7 +66,7 @@ Returns the settings that trigger a plugin update.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/selectionHandles/selectionHandles.ts#L173
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/selectionHandles/selectionHandles.ts#L173
 
 :::
 
@@ -82,7 +82,7 @@ Destroys the plugin and clears an active resize interaction.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/selectionHandles/selectionHandles.ts#L166
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/selectionHandles/selectionHandles.ts#L166
 
 :::
 
@@ -98,7 +98,7 @@ Disables the plugin and clears transient resize state.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/selectionHandles/selectionHandles.ts#L146
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/selectionHandles/selectionHandles.ts#L146
 
 :::
 
@@ -114,7 +114,7 @@ Enables handle hover and resize interactions.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/selectionHandles/selectionHandles.ts#L131
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/selectionHandles/selectionHandles.ts#L131
 
 :::
 
@@ -130,7 +130,7 @@ Checks whether the plugin is enabled in the Handsontable settings.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/selectionHandles/selectionHandles.ts#L159
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/selectionHandles/selectionHandles.ts#L159
 
 :::
 

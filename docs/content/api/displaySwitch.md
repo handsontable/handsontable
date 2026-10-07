@@ -29,7 +29,7 @@ Initializes the display switch and configures the debounced show delay.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/comments/displaySwitch.ts#L87
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/comments/displaySwitch.ts#L87
 
 :::
 
@@ -45,7 +45,7 @@ Reference to timer, run by `setTimeout`, which is hiding comment.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/comments/displaySwitch.ts#L82
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/comments/displaySwitch.ts#L82
 
 :::
 
@@ -61,7 +61,7 @@ Show comment after predefined delay. It keeps reference to immutable `debounce` 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/comments/displaySwitch.ts#L77
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/comments/displaySwitch.ts#L77
 
 :::
 
@@ -79,7 +79,7 @@ was an attempt to show comment element. State `false` mean that it was attempt t
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/comments/displaySwitch.ts#L47
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/comments/displaySwitch.ts#L47
 
 :::
 
@@ -95,7 +95,7 @@ Cancel hiding comment.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/comments/displaySwitch.ts#L66
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/comments/displaySwitch.ts#L66
 
 :::
 
@@ -111,7 +111,7 @@ Destroy the switcher.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/comments/displaySwitch.ts#L29
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/comments/displaySwitch.ts#L29
 
 :::
 
@@ -127,7 +127,7 @@ Responsible for hiding comment after proper delay.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/comments/displaySwitch.ts#L41
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/comments/displaySwitch.ts#L41
 
 :::
 
@@ -148,7 +148,7 @@ Responsible for showing comment after proper delay.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/comments/displaySwitch.ts#L56
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/comments/displaySwitch.ts#L56
 
 :::
 

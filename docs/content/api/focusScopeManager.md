@@ -25,7 +25,7 @@ angular:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/focusManager/scopeManager.ts#L109
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/focusManager/scopeManager.ts#L109
 
 :::
 
@@ -47,7 +47,7 @@ Activates a focus scope by its ID.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/focusManager/scopeManager.ts#L122
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/focusManager/scopeManager.ts#L122
 
 :::
 
@@ -68,7 +68,7 @@ Deactivates a scope by its ID.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/focusManager/scopeManager.ts#L28
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/focusManager/scopeManager.ts#L28
 
 :::
 
@@ -85,7 +85,7 @@ Returns the ID of the active scope.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/focusManager/scopeManager.ts#L81
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/focusManager/scopeManager.ts#L81
 
 :::
 
@@ -138,7 +138,7 @@ hot.getFocusScopeManager().registerScope('myPluginName', containerElement, {
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/focusManager/scopeManager.ts#L94
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/focusManager/scopeManager.ts#L94
 
 :::
 

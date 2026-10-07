@@ -25,7 +25,7 @@ angular:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/shortcuts/manager.ts#L31
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/shortcuts/manager.ts#L31
 
 :::
 
@@ -41,7 +41,7 @@ The name of the active [`ShortcutContext`](@/api/shortcutContext.md).
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/shortcuts/manager.ts#L24
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/shortcuts/manager.ts#L24
 
 :::
 
@@ -57,7 +57,7 @@ A unique map that stores keyboard shortcut contexts.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/shortcuts/manager.ts#L89
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/shortcuts/manager.ts#L89
 
 :::
 
@@ -76,7 +76,7 @@ Some of the default keyboard shortcuts related to cell selection need this featu
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/shortcuts/manager.ts#L135
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/shortcuts/manager.ts#L135
 
 :::
 
@@ -97,7 +97,7 @@ Handle the event with the scope of the active context.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/shortcuts/manager.ts#L99
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/shortcuts/manager.ts#L99
 
 :::
 
@@ -120,7 +120,7 @@ A callback function for listening events from the recorder.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/shortcuts/manager.ts#L146
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/shortcuts/manager.ts#L146
 
 :::
 

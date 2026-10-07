@@ -17,7 +17,7 @@ editLink: false
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/passwordEditor/passwordEditor.ts#L106
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/passwordEditor/passwordEditor.ts#L106
 
 :::
 
@@ -32,7 +32,7 @@ _PasswordEditor.EDITOR\_TYPE ⇒ string_
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/passwordEditor/passwordEditor.ts#L154
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/passwordEditor/passwordEditor.ts#L154
 
 :::
 
@@ -49,7 +49,7 @@ resets reveal-mode state, and restores the input to `type="password"`.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/passwordEditor/passwordEditor.ts#L112
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/passwordEditor/passwordEditor.ts#L112
 
 :::
 
@@ -66,7 +66,7 @@ Creates the editor's DOM elements. Replaces the `<textarea>` from `TextEditor` w
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/passwordEditor/passwordEditor.ts#L178
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/passwordEditor/passwordEditor.ts#L178
 
 :::
 
@@ -84,7 +84,7 @@ hash symbols.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/passwordEditor/passwordEditor.ts#L130
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/passwordEditor/passwordEditor.ts#L130
 
 :::
 
@@ -102,7 +102,7 @@ replaced by `hashSymbol`.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/passwordEditor/passwordEditor.ts#L191
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/passwordEditor/passwordEditor.ts#L191
 
 :::
 

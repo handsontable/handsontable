@@ -18,7 +18,7 @@ editLink: false
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dragToScroll/autoScroller.ts#L73
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dragToScroll/autoScroller.ts#L73
 
 :::
 
@@ -34,7 +34,7 @@ Whether any axis is currently scrolling.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dragToScroll/autoScroller.ts#L80
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dragToScroll/autoScroller.ts#L80
 
 :::
 
@@ -50,7 +50,7 @@ Whether the horizontal axis is currently scrolling.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dragToScroll/autoScroller.ts#L87
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dragToScroll/autoScroller.ts#L87
 
 :::
 
@@ -67,7 +67,7 @@ Whether the vertical axis is currently scrolling.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dragToScroll/autoScroller.ts#L98
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dragToScroll/autoScroller.ts#L98
 
 :::
 
@@ -92,7 +92,7 @@ Configures scroll timing settings for both axes.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dragToScroll/autoScroller.ts#L128
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dragToScroll/autoScroller.ts#L128
 
 :::
 
@@ -108,7 +108,7 @@ Destroys the scroll looper.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dragToScroll/autoScroller.ts#L112
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dragToScroll/autoScroller.ts#L112
 
 :::
 
@@ -124,7 +124,7 @@ Stops all scrolling.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dragToScroll/autoScroller.ts#L118
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dragToScroll/autoScroller.ts#L118
 
 :::
 
@@ -140,7 +140,7 @@ Stops the horizontal axis scrolling only.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dragToScroll/autoScroller.ts#L123
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dragToScroll/autoScroller.ts#L123
 
 :::
 
@@ -156,7 +156,7 @@ Stops the vertical axis scrolling only.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dragToScroll/autoScroller.ts#L106
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dragToScroll/autoScroller.ts#L106
 
 :::
 

@@ -34,7 +34,7 @@ Initializes the cells collection with references to the MergeCells plugin and th
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L577
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L577
 
 :::
 
@@ -50,7 +50,7 @@ Array of merged cells.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L582
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L582
 
 :::
 
@@ -67,7 +67,7 @@ Matrix of cells (row, col) that points to the instances of the MergedCellCoords 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L237
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L237
 
 :::
 
@@ -90,7 +90,7 @@ Add a merged cell to the container.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L442
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L442
 
 :::
 
@@ -117,7 +117,7 @@ results) after the visual sequence changes.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L277
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L277
 
 :::
 
@@ -133,7 +133,7 @@ Clear all the merged cells.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L462
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L462
 
 :::
 
@@ -154,7 +154,7 @@ Group an ascending list of integers into contiguous runs.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L163
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L163
 
 :::
 
@@ -175,7 +175,7 @@ Filters merge cells objects provided by users from overlapping cells.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L96
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L96
 
 :::
 
@@ -199,7 +199,7 @@ of a merged cell, or any coordinates from the body of the merged cell.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L388
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L388
 
 :::
 
@@ -221,7 +221,7 @@ Gets the bottom-most visual row index that do not intersect with other merged ce
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L107
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L107
 
 :::
 
@@ -242,7 +242,7 @@ Get the first-found merged cell containing the provided range.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L146
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L146
 
 :::
 
@@ -266,7 +266,7 @@ lookup matrix (fully hidden) are not returned.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L132
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L132
 
 :::
 
@@ -290,7 +290,7 @@ from the lookup matrix (fully hidden) are not returned.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L370
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L370
 
 :::
 
@@ -312,7 +312,7 @@ Gets the end-most visual column index that do not intersect with other merged ce
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L346
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L346
 
 :::
 
@@ -336,7 +336,7 @@ Get the first renderable coords of the merged cell at the provided coordinates.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L361
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L361
 
 :::
 
@@ -358,7 +358,7 @@ Gets the start-most visual column index that do not intersect with other merged 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L379
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L379
 
 :::
 
@@ -380,7 +380,7 @@ Gets the top-most visual row index that do not intersect with other merged cells
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L206
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L206
 
 :::
 
@@ -405,7 +405,7 @@ the collection, not with the area of the range.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L84
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L84
 
 :::
 
@@ -426,7 +426,7 @@ Get a warning message for when the declared merged cell data overlaps already ex
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L319
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L319
 
 :::
 
@@ -448,7 +448,7 @@ Check whether the provided row/col coordinates direct to a first not hidden cell
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L298
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L298
 
 :::
 
@@ -470,7 +470,7 @@ Check if the provided merged cell overlaps with the others already added.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L549
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L549
 
 :::
 
@@ -495,7 +495,7 @@ other's freshly written entries.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L265
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L265
 
 :::
 
@@ -519,7 +519,7 @@ of a merged cell, or any coordinates from the body of the merged cell.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L563
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L563
 
 :::
 
@@ -543,7 +543,7 @@ slot. The merges themselves are kept (their physical anchor lets them be re-adde
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L397
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L397
 
 :::
 
@@ -566,7 +566,7 @@ Shift the merged cell in the direction and by an offset defined in the arguments
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L498
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/mergeCells/cellsCollection.ts#L498
 
 :::
 

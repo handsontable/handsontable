@@ -17,7 +17,7 @@ editLink: false
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/handsontableEditor/handsontableEditor.ts#L29
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/handsontableEditor/handsontableEditor.ts#L29
 
 :::
 
@@ -33,7 +33,7 @@ Returns the unique editor type identifier for the Handsontable editor.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/handsontableEditor/handsontableEditor.ts#L433
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/handsontableEditor/handsontableEditor.ts#L433
 
 :::
 
@@ -50,7 +50,7 @@ the inline start of the edited cell) or not.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/handsontableEditor/handsontableEditor.ts#L428
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/handsontableEditor/handsontableEditor.ts#L428
 
 :::
 
@@ -68,7 +68,7 @@ the top of the edited cell) or not.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/handsontableEditor/handsontableEditor.ts#L126
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/handsontableEditor/handsontableEditor.ts#L126
 
 :::
 
@@ -90,7 +90,7 @@ Begins editing on a highlighted cell and hides fillHandle corner if was present.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/handsontableEditor/handsontableEditor.ts#L67
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/handsontableEditor/handsontableEditor.ts#L67
 
 :::
 
@@ -106,7 +106,7 @@ Closes the editor.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/handsontableEditor/handsontableEditor.ts#L135
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/handsontableEditor/handsontableEditor.ts#L135
 
 :::
 
@@ -122,7 +122,7 @@ Creates an editor's elements and adds necessary CSS classnames.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/handsontableEditor/handsontableEditor.ts#L149
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/handsontableEditor/handsontableEditor.ts#L149
 
 :::
 
@@ -145,7 +145,7 @@ Finishes editing and start saving or restoring process for editing cell or last 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/handsontableEditor/handsontableEditor.ts#L284
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/handsontableEditor/handsontableEditor.ts#L284
 
 :::
 
@@ -161,7 +161,7 @@ Return the DOM height of the editor's container.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/handsontableEditor/handsontableEditor.ts#L291
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/handsontableEditor/handsontableEditor.ts#L291
 
 :::
 
@@ -177,7 +177,7 @@ Return the DOM width of the editor's container.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/handsontableEditor/handsontableEditor.ts#L307
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/handsontableEditor/handsontableEditor.ts#L307
 
 :::
 
@@ -194,7 +194,7 @@ The method may be overwritten in the child class to provide a custom size logic.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/handsontableEditor/handsontableEditor.ts#L299
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/handsontableEditor/handsontableEditor.ts#L299
 
 :::
 
@@ -211,7 +211,7 @@ The method may be overwritten in the child class to provide a custom size logic.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/handsontableEditor/handsontableEditor.ts#L34
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/handsontableEditor/handsontableEditor.ts#L34
 
 :::
 
@@ -227,7 +227,7 @@ Opens the editor and adjust its size.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/handsontableEditor/handsontableEditor.ts#L83
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/handsontableEditor/handsontableEditor.ts#L83
 
 :::
 

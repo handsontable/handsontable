@@ -28,7 +28,7 @@ Initializes the editor, creates DOM elements, and binds dropdown and hook events
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L277
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L277
 
 :::
 
@@ -44,7 +44,7 @@ Overrides the base flag to keep the editor open after data changes — multisele
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L279
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L279
 
 :::
 
@@ -60,7 +60,7 @@ The container element passed to `DropdownController` that holds the dropdown UI.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L281
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L281
 
 :::
 
@@ -76,7 +76,7 @@ The controller responsible for rendering and managing the dropdown list.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L127
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L127
 
 :::
 
@@ -93,7 +93,7 @@ Returns the unique editor type identifier for the multiselect editor.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L176
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L176
 
 :::
 
@@ -109,7 +109,7 @@ Wires dropdown check/uncheck hooks, scroll hooks, destroy cleanup, and the searc
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L218
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L218
 
 :::
 
@@ -125,7 +125,7 @@ Hides the dropdown element, unregisters keyboard shortcuts, and stops the search
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L132
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L132
 
 :::
 
@@ -141,7 +141,7 @@ Creates the outer container, dropdown container, accessibility attributes, and t
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L262
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L262
 
 :::
 
@@ -157,7 +157,7 @@ Closes the editor and resets the dropdown controller state, releasing DOM resour
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L171
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L171
 
 :::
 
@@ -173,7 +173,7 @@ Delegates to the base finishEditing to complete saving or restoring the cell val
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L248
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L248
 
 :::
 
@@ -189,7 +189,7 @@ Focuses the first dropdown item when search input is disabled, or the search inp
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L257
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L257
 
 :::
 
@@ -205,7 +205,7 @@ Returns the underlying search input element from the dropdown's input controller
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L225
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L225
 
 :::
 
@@ -221,7 +221,7 @@ Returns the currently selected values as an array to be written to the cell.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L197
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L197
 
 :::
 
@@ -237,7 +237,7 @@ Shows the dropdown, positions it next to the edited cell, registers keyboard sho
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L149
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L149
 
 :::
 
@@ -253,7 +253,7 @@ Prepares the editor for the given cell, resets the dropdown, syncs the current s
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L235
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L235
 
 :::
 
@@ -269,7 +269,7 @@ Repositions the dropdown next to the edited cell; closes the editor if the cell 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L230
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/multiSelectEditor/multiSelectEditor.ts#L230
 
 :::
 

@@ -43,7 +43,7 @@ import Handsontable, { CellCoords } from '/handsontable/base';
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L287
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L287
 
 :::
 
@@ -59,7 +59,7 @@ A visual column index.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L282
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L282
 
 :::
 
@@ -76,7 +76,7 @@ A visual row index.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L238
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L238
 
 :::
 
@@ -98,7 +98,7 @@ to your `CellCoords` instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L254
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L254
 
 :::
 
@@ -114,7 +114,7 @@ Clones your `CellCoords` instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L146
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L146
 
 :::
 
@@ -131,7 +131,7 @@ the cell (positive value) then method returns `true`.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L127
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L127
 
 :::
 
@@ -153,7 +153,7 @@ is equal to the coordinates in your `CellCoords` instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L138
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L138
 
 :::
 
@@ -170,7 +170,7 @@ the header (negative value) then method returns `true`.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L210
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L210
 
 :::
 
@@ -192,7 +192,7 @@ is north-east of the coordinates in your `CellCoords` instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L178
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L178
 
 :::
 
@@ -214,7 +214,7 @@ is north-west of the coordinates in your `CellCoords` instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L153
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L153
 
 :::
 
@@ -230,7 +230,7 @@ Checks if the coordinates runs in RTL mode.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L118
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L118
 
 :::
 
@@ -246,7 +246,7 @@ Checks whether both row and col coordinates are set (not null).
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L162
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L162
 
 :::
 
@@ -268,7 +268,7 @@ is south-east of the coordinates in your `CellCoords` instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L194
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L194
 
 :::
 
@@ -290,7 +290,7 @@ is south-west of the coordinates in your `CellCoords` instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L93
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L93
 
 :::
 
@@ -327,7 +327,7 @@ The `col` index:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L226
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L226
 
 :::
 
@@ -345,7 +345,7 @@ Coordinates that point to headers (negative values) are normalized to `0`.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L261
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/3rdparty/walkontable/src/cell/coords.js#L261
 
 :::
 

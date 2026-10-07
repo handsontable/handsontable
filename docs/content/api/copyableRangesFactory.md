@@ -26,7 +26,7 @@ angular:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/copyPaste/copyableRanges.ts#L158
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/copyPaste/copyableRanges.ts#L158
 
 :::
 
@@ -43,7 +43,7 @@ Returns a new coords object within all column headers layers (including nested h
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/copyPaste/copyableRanges.ts#L109
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/copyPaste/copyableRanges.ts#L109
 
 :::
 
@@ -60,7 +60,7 @@ and `endCol` keys.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/copyPaste/copyableRanges.ts#L134
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/copyPaste/copyableRanges.ts#L134
 
 :::
 
@@ -77,7 +77,7 @@ Returns a new coords object within the most-bottom column headers range with `st
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/copyPaste/copyableRanges.ts#L101
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/copyPaste/copyableRanges.ts#L101
 
 :::
 

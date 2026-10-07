@@ -27,7 +27,7 @@ Initializes the data provider with a reference to the Handsontable instance used
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L242
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L242
 
 :::
 
@@ -43,7 +43,7 @@ Returns the default settings applied when the plugin is enabled without explicit
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/exportFile/dataProvider.ts#L784
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/exportFile/dataProvider.ts#L784
 
 :::
 
@@ -59,7 +59,7 @@ Format type class options.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L225
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L225
 
 :::
 
@@ -75,7 +75,7 @@ Returns the plugin key used to identify this plugin in Handsontable settings.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L230
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L230
 
 :::
 
@@ -91,7 +91,7 @@ Returns the priority order used to determine the order in which plugins are init
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L235
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L235
 
 :::
 
@@ -107,7 +107,7 @@ Returns the setting keys that trigger a plugin update when changed via `updateSe
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L247
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L247
 
 :::
 
@@ -124,7 +124,7 @@ Returns validator functions for each plugin setting to verify their values are v
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/exportFile/dataProvider.ts#L422
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/exportFile/dataProvider.ts#L422
 
 :::
 
@@ -150,7 +150,7 @@ Appends a nested header entry for a single column when hidden columns are includ
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/exportFile/dataProvider.ts#L462
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/exportFile/dataProvider.ts#L462
 
 :::
 
@@ -176,7 +176,7 @@ Appends a nested header entry for a single column when hidden columns are exclud
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L391
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L391
 
 :::
 
@@ -197,7 +197,7 @@ Server create via `onRowsCreate`. Use `rowsAmount` to insert more than one row i
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L482
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L482
 
 :::
 
@@ -213,7 +213,7 @@ Destroys the plugin.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L291
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L291
 
 :::
 
@@ -232,7 +232,7 @@ The constructor registers [[Hooks#hasExternalDataSource]] for the period before 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L259
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L259
 
 :::
 
@@ -248,7 +248,7 @@ Enables the plugin, syncs query parameters from Pagination, ColumnSorting, and F
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L321
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L321
 
 :::
 
@@ -270,7 +270,7 @@ Fetches rows from `fetchRows` with current or overridden query parameters.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/exportFile/dataProvider.ts#L258
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/exportFile/dataProvider.ts#L258
 
 :::
 
@@ -290,7 +290,7 @@ the rendered viewport (virtualised grid).
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/exportFile/dataProvider.ts#L243
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/exportFile/dataProvider.ts#L243
 
 :::
 
@@ -309,7 +309,7 @@ Each entry corresponds to the cell at the same position in the data array.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/exportFile/dataProvider.ts#L79
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/exportFile/dataProvider.ts#L79
 
 :::
 
@@ -325,7 +325,7 @@ Gets list of columns headers.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/exportFile/dataProvider.ts#L499
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/exportFile/dataProvider.ts#L499
 
 :::
 
@@ -344,7 +344,7 @@ An empty string is returned for columns that have no `headerClassName` configure
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/exportFile/dataProvider.ts#L542
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/exportFile/dataProvider.ts#L542
 
 :::
 
@@ -370,7 +370,7 @@ Each descriptor contains:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/exportFile/dataProvider.ts#L321
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/exportFile/dataProvider.ts#L321
 
 :::
 
@@ -388,7 +388,7 @@ Returns values in the same column order as [DataProvider#getData](@/api/dataProv
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/exportFile/dataProvider.ts#L54
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/exportFile/dataProvider.ts#L54
 
 :::
 
@@ -404,7 +404,7 @@ Get table data based on provided settings to the class constructor.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/exportFile/dataProvider.ts#L161
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/exportFile/dataProvider.ts#L161
 
 :::
 
@@ -428,7 +428,7 @@ live Excel formulas from HyperFormula formula strings.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/exportFile/dataProvider.ts#L136
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/exportFile/dataProvider.ts#L136
 
 :::
 
@@ -452,7 +452,7 @@ live Excel formulas from HyperFormula formula strings.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/exportFile/dataProvider.ts#L229
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/exportFile/dataProvider.ts#L229
 
 :::
 
@@ -471,7 +471,7 @@ separator OOXML (Excel) always expects.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/exportFile/dataProvider.ts#L372
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/exportFile/dataProvider.ts#L372
 
 :::
 
@@ -487,7 +487,7 @@ Gets the number of frozen columns (`fixedColumnsStart` setting).
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/exportFile/dataProvider.ts#L365
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/exportFile/dataProvider.ts#L365
 
 :::
 
@@ -503,7 +503,7 @@ Gets the number of frozen rows (`fixedRowsTop` setting).
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/exportFile/dataProvider.ts#L207
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/exportFile/dataProvider.ts#L207
 
 :::
 
@@ -524,7 +524,7 @@ are omitted entirely and there is nothing to mark as hidden.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/exportFile/dataProvider.ts#L183
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/exportFile/dataProvider.ts#L183
 
 :::
 
@@ -545,7 +545,7 @@ are omitted entirely and there is nothing to mark as hidden.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/exportFile/dataProvider.ts#L525
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/exportFile/dataProvider.ts#L525
 
 :::
 
@@ -561,7 +561,7 @@ Gets the layout direction of the Handsontable instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/exportFile/dataProvider.ts#L273
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/exportFile/dataProvider.ts#L273
 
 :::
 
@@ -585,7 +585,7 @@ exclusion, are omitted from the result.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/exportFile/dataProvider.ts#L385
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/exportFile/dataProvider.ts#L385
 
 :::
 
@@ -607,7 +607,7 @@ from spanning headers.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L300
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L300
 
 :::
 
@@ -622,7 +622,7 @@ _dataProvider.getQueryParameters() ⇒ DataProviderQueryParameters_
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/exportFile/dataProvider.ts#L61
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/exportFile/dataProvider.ts#L61
 
 :::
 
@@ -638,7 +638,7 @@ Gets list of row headers.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L306
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L306
 
 :::
 
@@ -658,7 +658,7 @@ _dataProvider.getRowId(visualRow) ⇒ \*_
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/exportFile/dataProvider.ts#L344
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/exportFile/dataProvider.ts#L344
 
 :::
 
@@ -676,7 +676,7 @@ Returns values in the same row order as [DataProvider#getData](@/api/dataProvide
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/exportFile/dataProvider.ts#L121
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/exportFile/dataProvider.ts#L121
 
 :::
 
@@ -696,7 +696,7 @@ rather than the calculated value.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L254
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L254
 
 :::
 
@@ -712,7 +712,7 @@ Check if the plugin is enabled in the handsontable settings.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L421
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L421
 
 :::
 
@@ -742,7 +742,7 @@ and the current page is still greater than 1.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/exportFile/dataProvider.ts#L19
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/exportFile/dataProvider.ts#L19
 
 :::
 
@@ -763,7 +763,7 @@ Set options for data provider.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L278
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L278
 
 :::
 
@@ -779,7 +779,7 @@ Re-applies settings and refetches when the instance is already initialized.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L465
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/dataProvider/dataProvider.ts#L465
 
 :::
 

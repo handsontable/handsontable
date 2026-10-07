@@ -17,7 +17,7 @@ editLink: false
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/dropdownEditor/dropdownEditor.ts#L25
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/dropdownEditor/dropdownEditor.ts#L25
 
 :::
 
@@ -34,7 +34,7 @@ Returns the unique editor type identifier for the dropdown editor.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/dropdownEditor/dropdownEditor.ts#L46
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/dropdownEditor/dropdownEditor.ts#L46
 
 :::
 
@@ -57,7 +57,7 @@ Finishes editing and start saving or restoring process for editing cell or last 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/editors/dropdownEditor/dropdownEditor.ts#L35
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/editors/dropdownEditor/dropdownEditor.ts#L35
 
 :::
 

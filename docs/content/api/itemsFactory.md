@@ -28,7 +28,7 @@ Initializes the items factory with a Handsontable instance and an optional defau
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/contextMenu/itemsFactory.ts#L70
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/contextMenu/itemsFactory.ts#L70
 
 :::
 
@@ -43,7 +43,7 @@ _itemsFactory.predefinedItems : object_
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/contextMenu/itemsFactory.ts#L62
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/contextMenu/itemsFactory.ts#L62
 
 :::
 
@@ -64,7 +64,7 @@ Get all menu items based on pattern.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/plugins/contextMenu/itemsFactory.ts#L19
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/contextMenu/itemsFactory.ts#L19
 
 :::
 

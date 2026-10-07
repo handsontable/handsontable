@@ -25,7 +25,7 @@ angular:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/translations/maps/linkedPhysicalIndexToValueMap.ts#L61
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/translations/maps/linkedPhysicalIndexToValueMap.ts#L61
 
 :::
 
@@ -46,7 +46,7 @@ Clear value for particular index.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/translations/maps/linkedPhysicalIndexToValueMap.ts#L115
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/translations/maps/linkedPhysicalIndexToValueMap.ts#L115
 
 :::
 
@@ -62,7 +62,7 @@ Get every entry containing index and value, respecting order of indexes.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/translations/maps/linkedPhysicalIndexToValueMap.ts#L75
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/translations/maps/linkedPhysicalIndexToValueMap.ts#L75
 
 :::
 
@@ -78,7 +78,7 @@ Get length of the index map.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/translations/maps/linkedPhysicalIndexToValueMap.ts#L21
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/translations/maps/linkedPhysicalIndexToValueMap.ts#L21
 
 :::
 
@@ -94,7 +94,7 @@ Get full list of ordered values for particular indexes.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/translations/maps/linkedPhysicalIndexToValueMap.ts#L46
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/translations/maps/linkedPhysicalIndexToValueMap.ts#L46
 
 :::
 
@@ -119,7 +119,7 @@ Note: Value will be added at the end of the queue.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/translations/maps/linkedPhysicalIndexToValueMap.ts#L30
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/translations/maps/linkedPhysicalIndexToValueMap.ts#L30
 
 :::
 

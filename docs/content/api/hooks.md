@@ -25,7 +25,7 @@ angular:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3121
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3121
 
 :::
 
@@ -49,7 +49,7 @@ Fired by [NestedRows](@/api/nestedRows.md) plugin after adding a children to the
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1267
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1267
 
 :::
 
@@ -75,7 +75,7 @@ Fired by [Autofill](@/api/autofill.md) plugin after populating the data in the a
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3307
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3307
 
 :::
 
@@ -97,7 +97,7 @@ Fired after the editor is opened and rendered.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L148
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L148
 
 :::
 
@@ -113,7 +113,7 @@ Fired after resetting a cell's meta. This happens when the [Core#updateSettings]
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L153
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L153
 
 :::
 
@@ -182,7 +182,7 @@ settings = {
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3387
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3387
 
 :::
 
@@ -207,7 +207,7 @@ Fired by [CollapsibleColumns](@/api/collapsibleColumns.md) plugin before columns
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3407
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3407
 
 :::
 
@@ -232,7 +232,7 @@ Fired by [CollapsibleColumns](@/api/collapsibleColumns.md) plugin before columns
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2278
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2278
 
 :::
 
@@ -255,7 +255,7 @@ Fired by the [ManualColumnFreeze](@/api/manualColumnFreeze.md) plugin, right aft
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2304
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2304
 
 :::
 
@@ -281,7 +281,7 @@ This hook is fired when [Options#manualColumnMove](@/api/options.md#manualcolumn
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2443
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2443
 
 :::
 
@@ -305,7 +305,7 @@ fired when [Options#manualColumnResize](@/api/options.md#manualcolumnresize) opt
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L325
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L325
 
 :::
 
@@ -330,7 +330,7 @@ Fired after the cache of the column sequence has been updated.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L335
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L335
 
 :::
 
@@ -352,7 +352,7 @@ This hook is fired by changing column indexes of any type supported by the [Inde
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1920
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1920
 
 :::
 
@@ -375,7 +375,7 @@ or [Options#multiColumnSorting](@/api/options.md#multicolumnsorting) option is e
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2341
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2341
 
 :::
 
@@ -398,7 +398,7 @@ Fired by the [ManualColumnFreeze](@/api/manualColumnFreeze.md) plugin, right aft
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L216
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L216
 
 :::
 
@@ -420,7 +420,7 @@ which user can select by setting an array of keys or an array of objects in [Opt
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L247
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L247
 
 :::
 
@@ -442,7 +442,7 @@ option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L261
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L261
 
 :::
 
@@ -464,7 +464,7 @@ option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2174
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2174
 
 :::
 
@@ -488,7 +488,7 @@ option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L268
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L268
 
 :::
 
@@ -513,7 +513,7 @@ Fired by [CopyPaste](@/api/copyPaste.md) plugin after reaching the copy limit wh
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L342
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L342
 
 :::
 
@@ -536,7 +536,7 @@ Fired after created a new column.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L363
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L363
 
 :::
 
@@ -559,7 +559,7 @@ Fired after created a new row.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2322
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2322
 
 :::
 
@@ -580,7 +580,7 @@ application enabled it fires when the last background batch has been applied, si
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2078
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2078
 
 :::
 
@@ -603,7 +603,7 @@ Fired by [CopyPaste](@/api/copyPaste.md) plugin after data was cut out from the 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L486
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L486
 
 :::
 
@@ -625,7 +625,7 @@ Fired after the dataProvider has fetched and loaded data.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L501
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L501
 
 :::
 
@@ -649,7 +649,7 @@ Fired after a dataProvider `fetchRows` request ends without loading data because
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L493
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L493
 
 :::
 
@@ -672,7 +672,7 @@ Fired when the dataProvider fetch throws an error (e.g. network error).
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L386
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L386
 
 :::
 
@@ -688,7 +688,7 @@ Fired after all selected cells are deselected.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L391
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L391
 
 :::
 
@@ -704,7 +704,7 @@ Fired after destroying the Handsontable instance.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3138
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3138
 
 :::
 
@@ -728,7 +728,7 @@ Fired by [NestedRows](@/api/nestedRows.md) plugin after detaching a child from i
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3206
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3206
 
 :::
 
@@ -751,7 +751,7 @@ option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3164
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3164
 
 :::
 
@@ -769,7 +769,7 @@ option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3171
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3171
 
 :::
 
@@ -787,7 +787,7 @@ option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L396
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L396
 
 :::
 
@@ -808,7 +808,7 @@ Hook fired after `keydown` event is handled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L402
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L402
 
 :::
 
@@ -834,7 +834,7 @@ Fired inside the Walkontable's selection `draw` method. Can be used to add addit
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L231
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L231
 
 :::
 
@@ -857,7 +857,7 @@ option.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3105
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3105
 
 :::
 
@@ -879,7 +879,7 @@ option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3098
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3098
 
 :::
 
@@ -901,7 +901,7 @@ option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3265
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3265
 
 :::
 
@@ -919,7 +919,7 @@ option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3251
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3251
 
 :::
 
@@ -937,7 +937,7 @@ option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2607
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2607
 
 :::
 
@@ -997,7 +997,7 @@ Read more:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2718
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2718
 
 :::
 
@@ -1033,7 +1033,7 @@ Read more:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L427
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L427
 
 :::
 
@@ -1056,7 +1056,7 @@ Fired after getting the cell settings.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L435
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L435
 
 :::
 
@@ -1079,7 +1079,7 @@ Fired after retrieving information about a column header and appending it to the
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2471
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2471
 
 :::
 
@@ -1128,7 +1128,7 @@ Read more:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L446
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L446
 
 :::
 
@@ -1150,7 +1150,7 @@ Fired after retrieving information about a row header and appending it to the ta
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2505
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2505
 
 :::
 
@@ -1199,7 +1199,7 @@ Read more:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3025
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3025
 
 :::
 
@@ -1223,7 +1223,7 @@ Fired by [HiddenColumns](@/api/hiddenColumns.md) plugin after marking the column
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2987
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2987
 
 :::
 
@@ -1247,7 +1247,7 @@ Fired by [HiddenRows](@/api/hiddenRows.md) plugin after marking the rows as hidd
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L453
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L453
 
 :::
 
@@ -1263,7 +1263,7 @@ Fired after the Handsontable instance is initiated.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1246
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1246
 
 :::
 
@@ -1285,7 +1285,7 @@ Fired after successful change of language (when proper language code was set).
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3347
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3347
 
 :::
 
@@ -1302,7 +1302,7 @@ respond in the right way.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L458
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L458
 
 :::
 
@@ -1331,7 +1331,7 @@ Read more:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3237
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3237
 
 :::
 
@@ -1349,7 +1349,7 @@ option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3222
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3222
 
 :::
 
@@ -1367,7 +1367,7 @@ option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3322
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3322
 
 :::
 
@@ -1391,7 +1391,7 @@ option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2946
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2946
 
 :::
 
@@ -1414,7 +1414,7 @@ Fired after the end of the selection is being modified (e.g. Moving the selectio
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2929
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2929
 
 :::
 
@@ -1438,7 +1438,7 @@ Fired after the focus of the selection is being modified (e.g. Moving the focus 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2938
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2938
 
 :::
 
@@ -1461,7 +1461,7 @@ Fired after the start of the selection is being modified (e.g. Moving the select
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L544
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L544
 
 :::
 
@@ -1477,7 +1477,7 @@ Fired after a scroll event, which is identified as a momentum scroll (e.g. on an
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L581
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L581
 
 :::
 
@@ -1501,7 +1501,7 @@ Fired after a `moveCells` drag has relocated a selection.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2739
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2739
 
 :::
 
@@ -1530,7 +1530,7 @@ Read more:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2753
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2753
 
 :::
 
@@ -1558,7 +1558,7 @@ Read more:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3300
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3300
 
 :::
 
@@ -1580,7 +1580,7 @@ Fired by [Notification](@/api/notification.md) plugin after a toast is hidden.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3282
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3282
 
 :::
 
@@ -1603,7 +1603,7 @@ Fired by [Notification](@/api/notification.md) plugin after a toast is shown.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L620
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L620
 
 :::
 
@@ -1630,7 +1630,7 @@ with coordinates `{row: 0, col: -1}`.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L590
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L590
 
 :::
 
@@ -1651,7 +1651,7 @@ Fired after a `dblclick` event is triggered on the cell corner (the drag handle)
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L549
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L549
 
 :::
 
@@ -1672,7 +1672,7 @@ Fired after a `mousedown` event is triggered on the cell corner (the drag handle
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L596
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L596
 
 :::
 
@@ -1699,7 +1699,7 @@ with coordinates `{row: 0, col: -1}`.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L644
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L644
 
 :::
 
@@ -1722,7 +1722,7 @@ Fired after leaving a cell or row/column header with the mouse cursor.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L632
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L632
 
 :::
 
@@ -1749,7 +1749,7 @@ with coords `{row: 0, col: -1}`.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L652
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L652
 
 :::
 
@@ -1775,7 +1775,7 @@ the cursor remains outside the viewport.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L608
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L608
 
 :::
 
@@ -1802,7 +1802,7 @@ with coordinates `{row: 0, col: -1}`.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L563
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L563
 
 :::
 
@@ -1825,7 +1825,7 @@ Fired after the user presses a selection edge move zone.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L555
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L555
 
 :::
 
@@ -1848,7 +1848,7 @@ Fired after the user presses a selection-adjustment handle (see [`selectionHandl
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2662
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2662
 
 :::
 
@@ -1874,7 +1874,7 @@ UI from [[Hooks#afterDataProviderFetch]].
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2702
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2702
 
 :::
 
@@ -1897,7 +1897,7 @@ This hook is fired when [Options#pagination](@/api/options.md#pagination) option
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2710
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2710
 
 :::
 
@@ -1920,7 +1920,7 @@ This hook is fired when [Options#pagination](@/api/options.md#pagination) option
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2683
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2683
 
 :::
 
@@ -1946,7 +1946,7 @@ its UI from [[Hooks#afterDataProviderFetch]].
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2694
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2694
 
 :::
 
@@ -1969,7 +1969,7 @@ This hook is fired when [Options#pagination](@/api/options.md#pagination) option
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2260
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2260
 
 :::
 
@@ -1992,7 +1992,7 @@ Fired by [CopyPaste](@/api/copyPaste.md) plugin after values are pasted into tab
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2966
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2966
 
 :::
 
@@ -2013,7 +2013,7 @@ Handsontable.hooks.add('afterPluginsInitialized', myCallback);
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2888
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2888
 
 :::
 
@@ -2035,7 +2035,7 @@ This hook is fired when [Options#undo](@/api/options.md#undo) option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2896
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2896
 
 :::
 
@@ -2058,7 +2058,7 @@ Fired by [UndoRedo](@/api/undoRedo.md) plugin after changing redo stack.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3359
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3359
 
 :::
 
@@ -2081,7 +2081,7 @@ Fired after the window was resized or the size of the Handsontable root element 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1171
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1171
 
 :::
 
@@ -2105,7 +2105,7 @@ Fired after cell meta is removed.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L663
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L663
 
 :::
 
@@ -2134,7 +2134,7 @@ column, with `amount` equal to `1` each time. This is by design.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L678
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L678
 
 :::
 
@@ -2163,7 +2163,7 @@ row, with `amount` equal to `1` each time. This is by design.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1637
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1637
 
 :::
 
@@ -2184,7 +2184,7 @@ Fired after Handsontable's view-rendering engine updates the view.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L704
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L704
 
 :::
 
@@ -2210,7 +2210,7 @@ Fired after finishing rendering the cell (after the renderer finishes).
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2362
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2362
 
 :::
 
@@ -2236,7 +2236,7 @@ Fired by the [NestedRows](@/api/nestedRows.md) plugin after parent rows are coll
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2386
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2386
 
 :::
 
@@ -2262,7 +2262,7 @@ Fired by the [NestedRows](@/api/nestedRows.md) plugin after parent rows are expa
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2415
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2415
 
 :::
 
@@ -2288,7 +2288,7 @@ This hook is fired when [Options#manualRowMove](@/api/options.md#manualrowmove) 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2462
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2462
 
 :::
 
@@ -2312,7 +2312,7 @@ fired when [Options#manualRowResize](@/api/options.md#manualrowresize) option is
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L715
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L715
 
 :::
 
@@ -2337,7 +2337,7 @@ Fired after the cache of the row sequence has been updated.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L725
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L725
 
 :::
 
@@ -2359,7 +2359,7 @@ This hook is fired by changing row indexes of any type supported by the [IndexMa
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L527
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L527
 
 :::
 
@@ -2382,7 +2382,7 @@ Fired after rows mutation (create, update, remove) succeeds on the server.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L535
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L535
 
 :::
 
@@ -2406,7 +2406,7 @@ Fired when rows mutation (create, update, remove) fails on the server.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L776
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L776
 
 :::
 
@@ -2423,7 +2423,7 @@ Fired after the vertical or horizontal scroll event.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L766
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L766
 
 :::
 
@@ -2439,7 +2439,7 @@ Fired after the horizontal scroll event.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L771
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L771
 
 :::
 
@@ -2455,7 +2455,7 @@ Fired after the vertical scroll event.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1153
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1153
 
 :::
 
@@ -2479,7 +2479,7 @@ Fired after all cells are selected (e.g. during mouse corner click or [Core#sele
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1035
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1035
 
 :::
 
@@ -2503,7 +2503,7 @@ Fired after one or more columns are selected (e.g. during mouse header click or 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L782
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L782
 
 :::
 
@@ -2582,7 +2582,7 @@ settings = {
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L848
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L848
 
 :::
 
@@ -2654,7 +2654,7 @@ settings = {
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L907
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L907
 
 :::
 
@@ -2679,7 +2679,7 @@ Fired after one or more cells are selected (e.g. on mouse up).
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L917
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L917
 
 :::
 
@@ -2706,7 +2706,7 @@ The `prop` and `prop2` arguments represent the source object property name inste
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L929
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L929
 
 :::
 
@@ -2776,7 +2776,7 @@ settings = {
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1093
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1093
 
 :::
 
@@ -2800,7 +2800,7 @@ Fired after one or more rows are selected (e.g. during mouse header click or [Co
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1162
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1162
 
 :::
 
@@ -2824,7 +2824,7 @@ Fired after cell meta is changed.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1180
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1180
 
 :::
 
@@ -2848,7 +2848,7 @@ Use [`afterChange`](@/api/hooks.md#afterchange) if you need to react after the d
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1190
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1190
 
 :::
 
@@ -2872,7 +2872,7 @@ Use [`afterChange`](@/api/hooks.md#afterchange) if you need to react after the d
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1200
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1200
 
 :::
 
@@ -2895,7 +2895,7 @@ Fired after cell source data was changed.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1208
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1208
 
 :::
 
@@ -2918,7 +2918,7 @@ Fired after a theme is enabled, changed, or disabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2766
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2766
 
 :::
 
@@ -2948,7 +2948,7 @@ Read more:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2793
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2793
 
 :::
 
@@ -2975,7 +2975,7 @@ Read more:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2781
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2781
 
 :::
 
@@ -3002,7 +3002,7 @@ Read more:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3062
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3062
 
 :::
 
@@ -3027,7 +3027,7 @@ Fired by [TrimRows](@/api/trimRows.md) plugin after trimming rows. This hook is 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2856
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2856
 
 :::
 
@@ -3049,7 +3049,7 @@ This hook is fired when [Options#undo](@/api/options.md#undo) option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2864
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2864
 
 :::
 
@@ -3072,7 +3072,7 @@ Fired by [UndoRedo](@/api/undoRedo.md) plugin after changing undo stack.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3044
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3044
 
 :::
 
@@ -3096,7 +3096,7 @@ Fired by [HiddenColumns](@/api/hiddenColumns.md) plugin after marking the column
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3006
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3006
 
 :::
 
@@ -3120,7 +3120,7 @@ Fired by [HiddenRows](@/api/hiddenRows.md) plugin after marking the rows as not 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3353
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3353
 
 :::
 
@@ -3137,7 +3137,7 @@ keyboard events.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3339
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3339
 
 :::
 
@@ -3160,7 +3160,7 @@ option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3081
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3081
 
 :::
 
@@ -3185,7 +3185,7 @@ Fired by [TrimRows](@/api/trimRows.md) plugin after untrimming rows. This hook i
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L472
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L472
 
 :::
 
@@ -3214,7 +3214,7 @@ Read more:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1216
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1216
 
 :::
 
@@ -3235,7 +3235,7 @@ Fired after calling the [`updateSettings`](@/api/core.md#updatesettings) method.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1222
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1222
 
 :::
 
@@ -3264,7 +3264,7 @@ __Returning false from the callback will mark the cell as invalid__.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2960
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2960
 
 :::
 
@@ -3285,7 +3285,7 @@ Fired inside the `viewportColumnCalculatorOverride` method. Allows modifying the
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2954
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2954
 
 :::
 
@@ -3306,7 +3306,7 @@ Fired inside the `viewportRowCalculatorOverride` method. Allows modifying the ro
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1613
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1613
 
 :::
 
@@ -3331,7 +3331,7 @@ __Note:__ In Handsontable 9.x and earlier, the `afterViewRender` hook was named 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3112
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3112
 
 :::
 
@@ -3355,7 +3355,7 @@ Fired by [NestedRows](@/api/nestedRows.md) plugin before adding a children to th
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L372
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L372
 
 :::
 
@@ -3383,7 +3383,7 @@ Return `false` to cancel the default alter behavior (e.g. so a plugin can handle
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1253
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1253
 
 :::
 
@@ -3411,7 +3411,7 @@ Fired by [Autofill](@/api/autofill.md) plugin before populating the data in the 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3147
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3147
 
 :::
 
@@ -3442,7 +3442,7 @@ Returning `true` removes those restrictions.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1279
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1279
 
 :::
 
@@ -3466,7 +3466,7 @@ Fired before aligning the cell contents.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1290
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1290
 
 :::
 
@@ -3596,7 +3596,7 @@ settings3 = {
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1413
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1413
 
 :::
 
@@ -3618,7 +3618,7 @@ Fired right before rendering the changes.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3377
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3377
 
 :::
 
@@ -3643,7 +3643,7 @@ Fired by [CollapsibleColumns](@/api/collapsibleColumns.md) plugin before columns
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3397
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3397
 
 :::
 
@@ -3668,7 +3668,7 @@ Fired by [CollapsibleColumns](@/api/collapsibleColumns.md) plugin before columns
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2269
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2269
 
 :::
 
@@ -3692,7 +3692,7 @@ Fired by the [ManualColumnFreeze](@/api/manualColumnFreeze.md) plugin, before fr
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2286
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2286
 
 :::
 
@@ -3718,7 +3718,7 @@ Fired by [ManualColumnMove](@/api/manualColumnMove.md) plugin before change orde
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2433
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2433
 
 :::
 
@@ -3743,7 +3743,7 @@ fired when [Options#manualColumnResize](@/api/options.md#manualcolumnresize) opt
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1909
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1909
 
 :::
 
@@ -3769,7 +3769,7 @@ This hook is fired when [Options#columnSorting](@/api/options.md#columnsorting) 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2332
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2332
 
 :::
 
@@ -3793,7 +3793,7 @@ Fired by the [ManualColumnFreeze](@/api/manualColumnFreeze.md) plugin, before un
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1660
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1660
 
 :::
 
@@ -3818,7 +3818,7 @@ the hook is triggered.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L420
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L420
 
 :::
 
@@ -3840,7 +3840,7 @@ Hook fired after `compositionstart` event is handled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L223
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L223
 
 :::
 
@@ -3863,7 +3863,7 @@ one of the menu item to by always visible.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L254
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L254
 
 :::
 
@@ -3885,7 +3885,7 @@ option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2087
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2087
 
 :::
 
@@ -3985,7 +3985,7 @@ settings2 = {
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L278
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L278
 
 :::
 
@@ -4046,7 +4046,7 @@ settings = {
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L351
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L351
 
 :::
 
@@ -4070,7 +4070,7 @@ Fired before a new row is created.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2002
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2002
 
 :::
 
@@ -4160,7 +4160,7 @@ settings2 = {
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1504
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1504
 
 :::
 
@@ -4183,7 +4183,7 @@ Fired before the dataProvider fetches data. Return `false` to cancel the fetch.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3130
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3130
 
 :::
 
@@ -4206,7 +4206,7 @@ Fired by [NestedRows](@/api/nestedRows.md) plugin before detaching a child from 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3178
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3178
 
 :::
 
@@ -4224,7 +4224,7 @@ option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3185
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3185
 
 :::
 
@@ -4242,7 +4242,7 @@ option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1437
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1437
 
 :::
 
@@ -4264,7 +4264,7 @@ Fired before drawing the borders.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L239
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L239
 
 :::
 
@@ -4287,7 +4287,7 @@ up one of the menu item to by always visible.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3091
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3091
 
 :::
 
@@ -4309,7 +4309,7 @@ option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3258
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3258
 
 :::
 
@@ -4327,7 +4327,7 @@ option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3244
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3244
 
 :::
 
@@ -4345,7 +4345,7 @@ option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2547
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2547
 
 :::
 
@@ -4420,7 +4420,7 @@ Read more:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1444
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1444
 
 :::
 
@@ -4443,7 +4443,7 @@ Fired before getting cell settings.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1421
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1421
 
 :::
 
@@ -4466,7 +4466,7 @@ Fired before the height of the table is changed.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3015
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3015
 
 :::
 
@@ -4491,7 +4491,7 @@ Returning `false` in the callback will prevent the hiding action from completing
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2977
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2977
 
 :::
 
@@ -4516,7 +4516,7 @@ Returning `false` in the callback will prevent the hiding action from completing
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1896
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1896
 
 :::
 
@@ -4543,7 +4543,7 @@ elements than that the rendering engine, by default, would have highlighted.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1883
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1883
 
 :::
 
@@ -4570,7 +4570,7 @@ elements than that the rendering engine, by default, would have highlighted.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1462
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1462
 
 :::
 
@@ -4586,7 +4586,7 @@ Fired before the Handsontable instance is initiated.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1467
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1467
 
 :::
 
@@ -4607,7 +4607,7 @@ Fired before the Walkontable instance is initiated.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1513
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1513
 
 :::
 
@@ -4630,7 +4630,7 @@ __Note__: To prevent default behavior you need to call `false` in your `beforeKe
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1239
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1239
 
 :::
 
@@ -4652,7 +4652,7 @@ Fired before successful change of language (when proper language code was set).
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1473
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1473
 
 :::
 
@@ -4683,7 +4683,7 @@ Read more:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3229
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3229
 
 :::
 
@@ -4702,7 +4702,7 @@ option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3214
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3214
 
 :::
 
@@ -4721,7 +4721,7 @@ option is enabled. The callback can return `false` to prevent the loading indica
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3314
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3314
 
 :::
 
@@ -4744,7 +4744,7 @@ option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L571
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L571
 
 :::
 
@@ -4768,7 +4768,7 @@ Fired before a `moveCells` drag relocates a selection. Return `false` to cancel 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3290
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3290
 
 :::
 
@@ -4793,7 +4793,7 @@ reached zero, the countdown restarts from the configured duration.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3272
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3272
 
 :::
 
@@ -4818,7 +4818,7 @@ Queued toasts already passed this hook once when [Notification#showMessage](@/ap
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1539
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1539
 
 :::
 
@@ -4842,7 +4842,7 @@ Fired after the user clicked a cell, but before all the calculations related wit
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1521
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1521
 
 :::
 
@@ -4866,7 +4866,7 @@ Fired after the user clicked a cell, but before all the calculations related wit
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1558
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1558
 
 :::
 
@@ -4889,7 +4889,7 @@ Fired after the user moved cursor out from a cell, but before all the calculatio
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1548
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1548
 
 :::
 
@@ -4913,7 +4913,7 @@ Fired after the user moved cursor over a cell, but before all the calculations r
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1566
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1566
 
 :::
 
@@ -4940,7 +4940,7 @@ object to suppress row, column, or cell selection changes for this tick.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1531
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1531
 
 :::
 
@@ -4963,7 +4963,7 @@ Fired after the user clicked a cell.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2652
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2652
 
 :::
 
@@ -4988,7 +4988,7 @@ Fired by [Pagination](@/api/pagination.md) plugin before changing the page. This
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2673
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2673
 
 :::
 
@@ -5013,7 +5013,7 @@ Fired by [Pagination](@/api/pagination.md) plugin before changing the page size.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2184
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2184
 
 :::
 
@@ -5103,7 +5103,7 @@ settings2 = {
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2872
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2872
 
 :::
 
@@ -5126,7 +5126,7 @@ This hook is fired when [Options#undo](@/api/options.md#undo) option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2881
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2881
 
 :::
 
@@ -5148,7 +5148,7 @@ Fired by [UndoRedo](@/api/undoRedo.md) plugin before changing redo stack.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3367
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3367
 
 :::
 
@@ -5173,7 +5173,7 @@ Handsontable root element, but before redrawing a table.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L413
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L413
 
 :::
 
@@ -5191,7 +5191,7 @@ Fired inside the Walkontable's `refreshSelections` method. Can be used to remove
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1452
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1452
 
 :::
 
@@ -5216,7 +5216,7 @@ Fired before cell meta is removed.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1579
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1579
 
 :::
 
@@ -5241,7 +5241,7 @@ Fired before one or more columns are about to be removed.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1590
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1590
 
 :::
 
@@ -5266,7 +5266,7 @@ Fired when one or more rows are about to be removed.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1625
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1625
 
 :::
 
@@ -5291,7 +5291,7 @@ the Core logic, renderers, cell meta objects etc. to update the view.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L693
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L693
 
 :::
 
@@ -5317,7 +5317,7 @@ Fired before starting rendering the cell.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2349
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2349
 
 :::
 
@@ -5345,7 +5345,7 @@ Returning `false` in the callback will prevent the collapsing action from comple
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2373
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2373
 
 :::
 
@@ -5373,7 +5373,7 @@ Returning `false` in the callback will prevent the expanding action from complet
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2397
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2397
 
 :::
 
@@ -5399,7 +5399,7 @@ Fired by [ManualRowMove](@/api/manualRowMove.md) plugin before changing the orde
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2452
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2452
 
 :::
 
@@ -5424,7 +5424,7 @@ fired when [Options#manualRowResize](@/api/options.md#manualrowresize) option is
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L519
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L519
 
 :::
 
@@ -5447,7 +5447,7 @@ Fired before rows mutation (create, update, remove) is sent to the server. Retur
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1645
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1645
 
 :::
 
@@ -5472,7 +5472,7 @@ the hook is triggered.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1102
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1102
 
 :::
 
@@ -5538,7 +5538,7 @@ settings = {
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L986
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L986
 
 :::
 
@@ -5602,7 +5602,7 @@ settings = {
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1686
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1686
 
 :::
 
@@ -5624,7 +5624,7 @@ Fired before setting focus selection.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1711
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1711
 
 :::
 
@@ -5643,7 +5643,7 @@ The behavior of <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> differs from <kbd>**←*
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1044
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1044
 
 :::
 
@@ -5707,7 +5707,7 @@ settings = {
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1675
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1675
 
 :::
 
@@ -5733,7 +5733,7 @@ Fired before cell meta is changed.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1705
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1705
 
 :::
 
@@ -5754,7 +5754,7 @@ Fired before setting range is ended.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1699
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1699
 
 :::
 
@@ -5775,7 +5775,7 @@ Fired before setting range is started.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1693
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1693
 
 :::
 
@@ -5796,7 +5796,7 @@ Fired before setting range is started but not finished yet.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2539
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2539
 
 :::
 
@@ -5819,7 +5819,7 @@ Fired before applying stretched column width to column.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1719
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1719
 
 :::
 
@@ -5835,7 +5835,7 @@ Fired before the logic of handling a touch scroll, when user started scrolling o
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3053
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3053
 
 :::
 
@@ -5859,7 +5859,7 @@ Fired by [TrimRows](@/api/trimRows.md) plugin before trimming rows. This hook is
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2837
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2837
 
 :::
 
@@ -5882,7 +5882,7 @@ This hook is fired when [Options#undo](@/api/options.md#undo) option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2846
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2846
 
 :::
 
@@ -5906,7 +5906,7 @@ Fired by [UndoRedo](@/api/undoRedo.md) plugin before changing undo stack.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3034
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3034
 
 :::
 
@@ -5931,7 +5931,7 @@ Returning `false` in the callback will prevent the column revealing action from 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2996
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2996
 
 :::
 
@@ -5956,7 +5956,7 @@ Returning `false` in the callback will prevent the row revealing action from com
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3331
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3331
 
 :::
 
@@ -5979,7 +5979,7 @@ option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3072
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3072
 
 :::
 
@@ -6003,7 +6003,7 @@ Fired by [TrimRows](@/api/trimRows.md) plugin before untrimming rows. This hook 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1489
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1489
 
 :::
 
@@ -6033,7 +6033,7 @@ Read more:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1724
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1724
 
 :::
 
@@ -6060,7 +6060,7 @@ __Note:__ this will not affect values of changes. This will change value *ONLY* 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1738
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1738
 
 :::
 
@@ -6083,7 +6083,7 @@ value which is passed to the renderer without modifying the renderer itself.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L759
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L759
 
 :::
 
@@ -6101,7 +6101,7 @@ method or table internals.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L746
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L746
 
 :::
 
@@ -6127,7 +6127,7 @@ the viewport will be scrolled. If the returned value is `false`, the scrolling w
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L732
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L732
 
 :::
 
@@ -6153,7 +6153,7 @@ the viewport will be scrolled. If the returned value is `false`, the scrolling w
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1601
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1601
 
 :::
 
@@ -6178,7 +6178,7 @@ __Note:__ In Handsontable 9.x and earlier, the `beforeViewRender` hook was named
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1429
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1429
 
 :::
 
@@ -6201,7 +6201,7 @@ Fired before the width of the table is changed.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1746
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1746
 
 :::
 
@@ -6217,7 +6217,7 @@ Fired after Handsontable instance is constructed (using `new` operator).
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3199
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3199
 
 :::
 
@@ -6235,7 +6235,7 @@ option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3192
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3192
 
 :::
 
@@ -6253,7 +6253,7 @@ option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L510
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L510
 
 :::
 
@@ -6272,7 +6272,7 @@ When the DataProvider plugin is enabled, it adds an instance handler in `enableP
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1751
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1751
 
 :::
 
@@ -6288,7 +6288,7 @@ Fired after Handsontable instance is initiated but before table is rendered.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L3417
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L3417
 
 :::
 
@@ -6312,7 +6312,7 @@ Fired by [AutoColumnSize](@/api/autoColumnSize.md) plugin within SampleGenerator
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1928
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1928
 
 :::
 
@@ -6336,7 +6336,7 @@ option is enabled.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1756
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1756
 
 :::
 
@@ -6357,7 +6357,7 @@ Fired when a column header index is about to be modified by a callback function.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2805
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2805
 
 :::
 
@@ -6373,7 +6373,7 @@ Fired while retrieving the column header height.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2824
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2824
 
 :::
 
@@ -6398,7 +6398,7 @@ Fired while retrieving a column header's value.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1762
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1762
 
 :::
 
@@ -6431,7 +6431,7 @@ modifyColWidth(width, column) {
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1937
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1937
 
 :::
 
@@ -6510,7 +6510,7 @@ settings = {
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1823
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1823
 
 :::
 
@@ -6534,7 +6534,7 @@ Fired when a data was retrieved or modified.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1780
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1780
 
 :::
 
@@ -6558,7 +6558,7 @@ The hook allows modifying the displayed values in that component.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1789
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1789
 
 :::
 
@@ -6583,7 +6583,7 @@ different HTML element.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1873
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1873
 
 :::
 
@@ -6607,7 +6607,7 @@ Used to modify the cell coordinates when the table is activated (going into the 
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1848
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1848
 
 :::
 
@@ -6633,7 +6633,7 @@ and saving values from the closed editor.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1864
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1864
 
 :::
 
@@ -6656,7 +6656,7 @@ Used to modify the returned cell coordinates of clicked cells (TD or TH elements
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1842
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1842
 
 :::
 
@@ -6677,7 +6677,7 @@ Fired when a data was retrieved or modified.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1799
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1799
 
 :::
 
@@ -6698,7 +6698,7 @@ Fired when a row header index is about to be modified by a callback function.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2904
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2904
 
 :::
 
@@ -6719,7 +6719,7 @@ Fired while retrieving the row header width.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1805
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1805
 
 :::
 
@@ -6742,7 +6742,7 @@ Fired when a row height is about to be modified by a callback function.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1813
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1813
 
 :::
 
@@ -6767,7 +6767,7 @@ for the specified overlay type.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2810
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2810
 
 :::
 
@@ -6796,7 +6796,7 @@ out this way; user code can also return `false` to disable single-pass rendering
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L1832
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L1832
 
 :::
 
@@ -6821,7 +6821,7 @@ Fired when a data was retrieved or modified from the source data set.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2923
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2923
 
 :::
 
@@ -6842,7 +6842,7 @@ Fired when the end of the selection is being modified (e.g. Moving the selection
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2910
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2910
 
 :::
 
@@ -6864,7 +6864,7 @@ Fired when the focus of the selection is being modified (e.g. Moving the focus w
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/d245350fda6e344e4c2f941f434ac2a733697d46/prod-docs-18.1/handsontable/tmp/core/hooks/constants.ts#L2917
+::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/core/hooks/constants.ts#L2917
 
 :::
 
