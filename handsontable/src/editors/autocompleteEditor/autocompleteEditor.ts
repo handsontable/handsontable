@@ -3,7 +3,7 @@ import type { CellProperties } from '../../settings';
 import { EDITOR_STATE } from '../baseEditor';
 import { HandsontableEditor } from '../handsontableEditor';
 import { pivot } from '../../helpers/array';
-import { findChoiceByDisplayedValue, isKeyValueEntry } from '../../utils/cellSource';
+import { findChoiceByDisplayedValue, getChoiceLabel, isKeyValueEntry } from '../../utils/cellSource';
 import {
   addClass,
   fastInnerHTML,
@@ -126,8 +126,10 @@ export class AutocompleteEditor extends HandsontableEditor {
       return this.TEXTAREA.value;
     }
 
+    // `rawChoices`, not the stripped list the user sees: the match hands back the source entry
+    // itself, so an object `value` is stored whole - the stripped copies carry only its label.
     const selectedValue = findChoiceByDisplayedValue(
-      this.rawChoices, this.TEXTAREA.value, this.cellProperties.allowHtml === true
+      this.rawChoices, this.TEXTAREA.value, this.cellProperties.allowHtml === true, this.cellProperties.sourceLabel
     );
 
     if (isDefined(selectedValue)) {
@@ -369,7 +371,7 @@ export class AutocompleteEditor extends HandsontableEditor {
       // `source` setting) must keep its original order. The spread also keeps iterable callers (a
       // Set, a NodeList) working, which `Array#toSorted` would not — the floor now allows it, but
       // switching would narrow what this public method accepts.
-      choices = [...choices].sort((a, b) => stringify(a).localeCompare(stringify(b)));
+      choices = [...choices].sort(this.#getChoiceComparator());
     }
 
     const filteredChoiceIndexes: number[] = [];
@@ -401,6 +403,27 @@ export class AutocompleteEditor extends HandsontableEditor {
     }
 
     return { choices, highlightIndex };
+  }
+
+  /**
+   * Returns the comparator the list is sorted with when `sortByRelevance` is `false`.
+   *
+   * With `sourceLabel` set, a key/value entry is compared by the label it displays - the choices
+   * reaching here are already stripped, so its `value` half holds that label. Without the option
+   * the comparison stays as it always was: `stringify()` of the whole choice, which for a
+   * key/value entry is `[object Object]`, so such a list keeps its source order. Comparing labels
+   * there too would reorder lists of existing configurations, so it stays gated on the option.
+   *
+   * @returns {Function}
+   */
+  #getChoiceComparator(): (a: unknown, b: unknown) => number {
+    if (!this.cellProperties.sourceLabel) {
+      return (a, b) => stringify(a).localeCompare(stringify(b));
+    }
+
+    const toText = (choice: unknown): string => stringify(isKeyValueEntry(choice) ? choice.value : choice);
+
+    return (a, b) => toText(a).localeCompare(toText(b));
   }
 
   /**
@@ -906,7 +929,7 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @returns {Array<string|{key: string, value: string}>}
    */
   stripValuesIfNeeded(values: unknown[]): unknown[] {
-    const { allowHtml } = this.cellProperties;
+    const { allowHtml, sourceLabel } = this.cellProperties;
     const processValue = (value: unknown) => stringify(allowHtml ? value : stripTags(String(value)));
 
     if (values.every(value => isKeyValueEntry(value))) {
@@ -915,7 +938,9 @@ export class AutocompleteEditor extends HandsontableEditor {
 
         return {
           key: processValue(obj.key),
-          value: processValue(obj.value),
+          // Labeled before stringifying: an object `value` would otherwise reach the list as
+          // `[object Object]`, every option alike, and a pick would resolve to the first one.
+          value: processValue(getChoiceLabel(obj.value, sourceLabel)),
         };
       });
     }

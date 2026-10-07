@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — key/value source with object values</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD); an unknown value
+    // THROWS instead of falling back — a typo in the project config must be one
+    // red leg, never a silently mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.getRenderer(cellProperties.type).apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    // A key/value source whose `value` is an object, nested data included. The cell must store the
+    // very entry picked - before `sourceLabel` every option displayed `[object Object]`, so any
+    // pick resolved to the FIRST entry, and an edit fabricated `{ key: <label>, value: <label> }`.
+    const COUNTRIES = [
+      { key: 'US', value: { name: 'United States', currency: 'USD', meta: { region: 'Americas' } } },
+      { key: 'PL', value: { name: 'Poland', currency: 'PLN', meta: { region: 'Europe' } } },
+      { key: 'JP', value: { name: 'Japan', currency: 'JPY', meta: { region: 'Asia' } } },
+    ];
+
+    // A string key/value source with the same labels, in the same order. It has no `sourceLabel`,
+    // so it is the control for the list sort: its order must stay exactly as it always was.
+    const COUNTRIES_TEXT = [
+      { key: 'US', value: 'United States' },
+      { key: 'PL', value: 'Poland' },
+      { key: 'JP', value: 'Japan' },
+    ];
+
+    let hot;
+
+    try {
+      hot = new Handsontable(container, {
+        data: [
+          // Row 0: both cells hold the FIRST entry - the one a broken lookup would fall back to.
+          [COUNTRIES[0], COUNTRIES[0], COUNTRIES[0], COUNTRIES_TEXT[0]],
+          // Row 1: empty cells, the state a paste into a fresh cell starts from.
+          [null, null, null, null],
+          // Rows 2-3: the remaining entries, so sorting and filtering have distinct labels to order.
+          [COUNTRIES[1], COUNTRIES[1], COUNTRIES[1], COUNTRIES_TEXT[1]],
+          [COUNTRIES[2], COUNTRIES[2], COUNTRIES[2], COUNTRIES_TEXT[2]],
+        ],
+        columns: [
+          // Dropdown (strict by default) labeled by a property path.
+          { type: 'dropdown', source: COUNTRIES, sourceLabel: 'name', width: 200, renderer: testIdRenderer },
+          // Autocomplete labeled by a function, so typing filters by the composed label.
+          {
+            type: 'autocomplete',
+            source: COUNTRIES,
+            sourceLabel: value => `${value.name} (${value.currency})`,
+            strict: true,
+            width: 200,
+            renderer: testIdRenderer,
+          },
+          // An alphabetical list (`sortByRelevance: false`) labeled through `sourceLabel`.
+          {
+            type: 'dropdown',
+            source: COUNTRIES,
+            sourceLabel: 'name',
+            sortByRelevance: false,
+            width: 200,
+            renderer: testIdRenderer,
+          },
+          // The control: same labels, no `sourceLabel`.
+          { type: 'dropdown', source: COUNTRIES_TEXT, sortByRelevance: false, width: 200, renderer: testIdRenderer },
+        ],
+        colHeaders: [
+          'Country (dropdown, path)',
+          'Country (autocomplete, function)',
+          'Country (alphabetical)',
+          'Country (text, control)',
+        ],
+        rowHeaders: true,
+        columnSorting: true,
+        filters: true,
+        dropdownMenu: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      // Fail loud. Without this a settings error surfaces as "element(s) not found" from the page
+      // object's first locator, with the real exception only in the browser console.
+      container.setAttribute('data-init-error', String(error && error.message));
+
+      throw error;
+    }
+
+    window.hot = hot;
+
+    /**
+     * Reports which `COUNTRIES` entry the DATA SOURCE holds at a cell: `entry:<key>` only when the
+     * stored object equals that entry in full, nested `value` included. The grid stores a copy of
+     * the entry, so this compares structure, not identity - but a flattened pair
+     * (`{ key: 'Poland', value: 'Poland' }`) or the wrong entry never passes. Anything else is
+     * described with its type.
+     */
+    window.htStoredEntryAt = function(row, col) {
+      const value = hot.getSourceDataAtCell(hot.toPhysicalRow(row), col);
+      const json = JSON.stringify(value);
+      const entry = COUNTRIES.find(country => JSON.stringify(country) === json);
+
+      if (entry) return `entry:${entry.key}`;
+      if (value === null) return 'null';
+      if (typeof value === 'object') return `other:${json}`;
+
+      return `${typeof value}:${value}`;
+    };
+
+    /** Pastes plain text into a cell through the CopyPaste plugin, which sets `text/plain` only. */
+    window.htPastePlainText = function(row, col, text) {
+      hot.selectCell(row, col);
+      hot.getPlugin('copyPaste').paste(text);
+    };
+
+    /** Sorts a column through the ColumnSorting plugin. */
+    window.htSortColumn = function(col, sortOrder) {
+      hot.getPlugin('columnSorting').sort({ column: col, sortOrder });
+    };
+
+    /** Selects a cell, so the spec can open its editor with a real key press. */
+    window.htSelectCell = function(row, col) {
+      hot.selectCell(row, col);
+    };
+
+    /**
+     * Reports the cell's validation flag as `'valid'`, `'invalid'` or `'unvalidated'`, so "valid"
+     * cannot pass on a cell nothing has validated yet.
+     */
+    window.htValidState = function(row, col) {
+      const { valid } = hot.getCellMeta(row, col);
+
+      if (valid === undefined) return 'unvalidated';
+
+      return valid === true ? 'valid' : 'invalid';
+    };
+  </script>
+</body>
+</html>

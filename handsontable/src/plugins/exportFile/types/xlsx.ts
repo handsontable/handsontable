@@ -1,5 +1,5 @@
 import { isDefined, stringify } from '../../../helpers/mixed';
-import { isKeyValueObject } from '../../../helpers/object';
+import { getChoiceLabel, isKeyValueEntry } from '../../../utils/cellSource';
 import DataProvider from '../dataProvider';
 import BaseType from './_base';
 import { normalizeExportOptions } from '../utils';
@@ -126,6 +126,20 @@ function toPrimitiveResult(value: unknown): CellValue {
   }
 
   return null;
+}
+
+/**
+ * Lists the labels a dropdown or autocomplete cell offers, in `source` order - the text the
+ * exported cells hold, so the Excel validation list has to hold the same text. A key/value entry
+ * contributes its `value` half, labeled by the cell's `sourceLabel` when that half is an object.
+ *
+ * @param {object} meta Cell meta object with an array `source`.
+ * @returns {string[]}
+ */
+function getSourceLabels(meta: CellMeta): string[] {
+  return (meta.source ?? []).map(item => (isKeyValueEntry(item)
+    ? String(getChoiceLabel(item.value, meta.sourceLabel))
+    : String(item)));
 }
 
 /**
@@ -665,7 +679,7 @@ class Xlsx extends BaseType {
     }
 
     const rangeRef = Array.isArray(meta.source)
-      ? (context.validationMap.get(JSON.stringify(meta.source)) ?? null)
+      ? (context.validationMap.get(JSON.stringify(getSourceLabels(meta))) ?? null)
       : null;
     const dropdownValidation = getDropdownValidation(meta, rangeRef);
 
@@ -1128,7 +1142,7 @@ class Xlsx extends BaseType {
   /**
    * Creates a `veryHidden` sheet containing all unique dropdown/autocomplete source arrays found
    * in `cellsMeta`, the 2D cell-meta array of the sheet being exported, one array per column.
-   * Returns a map from `JSON.stringify(source)` to an Excel range-reference string pointing at
+   * Returns a map from the JSON of the source's labels to an Excel range-reference string pointing at
    * that column, together with the sheet snapshot the caller pushes into the workbook after the
    * data sheet.
    *
@@ -1146,7 +1160,7 @@ class Xlsx extends BaseType {
   #buildValidationSheet(
     usedSheetNames: Set<string>, cellsMeta: CellMeta[][]
   ): { validationMap: Map<string, string>; sheet: SheetSnapshot | null } {
-    const sourceMap = new Map<string, unknown[]>();
+    const sourceMap = new Map<string, string[]>();
 
     for (let rowIndex = 0; rowIndex < cellsMeta.length; rowIndex++) {
       for (let colIndex = 0; colIndex < cellsMeta[rowIndex].length; colIndex++) {
@@ -1154,10 +1168,13 @@ class Xlsx extends BaseType {
         const isDropdown = meta.type === 'dropdown' || meta.type === 'autocomplete';
 
         if (isDropdown && Array.isArray(meta.source) && meta.source.length > 0) {
-          const key = JSON.stringify(meta.source);
+          // Keyed by the labels, not the raw `source`: a `sourceLabel` function cannot be
+          // serialized, and two columns listing the same labels need only one Excel range.
+          const labels = getSourceLabels(meta);
+          const key = JSON.stringify(labels);
 
           if (!sourceMap.has(key)) {
-            sourceMap.set(key, meta.source);
+            sourceMap.set(key, labels);
           }
         }
       }
@@ -1177,11 +1194,7 @@ class Xlsx extends BaseType {
 
     sourceMap.forEach((source, key) => {
       for (let rowNumber = 0; rowNumber < source.length; rowNumber++) {
-        const item = source[rowNumber];
-
-        builder.cell(rowNumber + 1, colNumber).value = isKeyValueObject(item)
-          ? String((item as { value: unknown }).value)
-          : String(item);
+        builder.cell(rowNumber + 1, colNumber).value = source[rowNumber];
       }
 
       const colLetter = colIndexToLetter(colNumber);
