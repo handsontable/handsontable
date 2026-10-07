@@ -71,7 +71,6 @@ describe('intlNumFormatToExcelNumFmt', () => {
       expect(intlNumFormatToExcelNumFmt({ ...usd, currency: 'EUR' }, 'en-AU')).toBe('"EUR"#,##0.00');
       expect(intlNumFormatToExcelNumFmt({ ...usd, currency: 'CHF' }, 'de-CH')).toBe('"CHF"#,##0.00');
       expect(intlNumFormatToExcelNumFmt({ ...usd, currency: 'PLN' }, 'pl-PL')).toBe('#,##0.00"z\u0142"');
-      expect(intlNumFormatToExcelNumFmt({ ...usd, currency: 'SEK' }, 'sv-SE')).toBe('#,##0.00"kr"');
       expect(intlNumFormatToExcelNumFmt({ style: 'currency', currency: 'HKD' }, 'en-US')).toBe('"HK$"#,##0');
     });
 
@@ -81,7 +80,35 @@ describe('intlNumFormatToExcelNumFmt', () => {
       expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'USD' }, 'en-US')).toBe('$#,##0.00');
       expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'EUR' }, 'de-DE')).toBe('#,##0.00\u20AC');
       expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'GBP' }, 'en-GB')).toBe('\u00A3#,##0.00');
-      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'JPY' }, 'en-US')).toBe('\u00A5#,##0.00');
+    });
+
+    it('should write minimumIntegerDigits back as zeros in the integer part', () => {
+      expect(intlNumFormatToExcelNumFmt({ minimumIntegerDigits: 5, useGrouping: false })).toBe('00000');
+      expect(intlNumFormatToExcelNumFmt({ minimumIntegerDigits: 3, useGrouping: false, minimumFractionDigits: 2 }))
+        .toBe('000.00');
+      expect(intlNumFormatToExcelNumFmt({ minimumIntegerDigits: 2 })).toBe('#,#00');
+      expect(intlNumFormatToExcelNumFmt({ minimumIntegerDigits: 5 })).toBe('00,000');
+      expect(intlNumFormatToExcelNumFmt({ minimumIntegerDigits: 7 })).toBe('0,000,000');
+      expect(intlNumFormatToExcelNumFmt({ minimumIntegerDigits: 1 })).toBe('#,##0');
+      expect(intlNumFormatToExcelNumFmt({ minimumIntegerDigits: 3, style: 'percent', useGrouping: false }))
+        .toBe('000%');
+      // An out-of-range value is ignored, the way Intl would reject it.
+      expect(intlNumFormatToExcelNumFmt({ minimumIntegerDigits: 0, useGrouping: false })).toBe('0');
+      expect(intlNumFormatToExcelNumFmt({ minimumIntegerDigits: 22, useGrouping: false })).toBe('0');
+      expect(intlNumFormatToExcelNumFmt({ minimumIntegerDigits: 2.5, useGrouping: false })).toBe('0');
+    });
+
+    it('should write a symbol several currencies share as a locale token with the currency\'s LCID', () => {
+      const options = { style: 'currency', minimumFractionDigits: 2 };
+
+      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'NOK' }, 'nb-NO')).toBe('#,##0.00[$kr-414]');
+      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'SEK' }, 'sv-SE')).toBe('#,##0.00[$kr-41D]');
+      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'DKK' }, 'da-DK')).toBe('#,##0.00[$kr.-406]');
+      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'ISK' }, 'is-IS')).toBe('#,##0.00[$kr.-40F]');
+      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'JPY' }, 'en-US')).toBe('[$\u00A5-411]#,##0.00');
+      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'CNY' }, 'zh-CN')).toBe('[$\u00A5-804]#,##0.00');
+      // The fullwidth yen sign belongs to the yen alone, so it stays bare.
+      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'JPY' }, 'ja-JP')).toBe('\uFFE5#,##0.00');
     });
 
     it('should ignore style: currency when no currency code is provided', () => {

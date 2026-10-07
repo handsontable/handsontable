@@ -881,3 +881,149 @@ describe('inferCellType - hostile number formats', () => {
     expect(excelNumFmtToIntlOptions('[[x]0')).toBeNull();
   });
 });
+
+describe('inferCellType (review round 5)', () => {
+  it('should never read a code with a condition section as a date, whatever its letters say', () => {
+    // LibreOffice writes `[>=1000000]0.0,,\M;[>=1000]0.0,\K;0`. ExcelJS drops the backslashes, so
+    // the code arrives with a bare `M`, which read as a month and imported 1234567 as `5280-02-15`.
+    const stripped = '[>=1000000]0.0,,M;[>=1000]0.0,K;0';
+    const snapshot = cell({ value: 1234567, numFmt: stripped });
+    const inferred = inferCellType(snapshot);
+
+    expect(inferred).toEqual({ type: 'numeric', unsupportedNumFmt: stripped });
+    expect(toGridValue(snapshot, inferred)).toBe(1234567);
+    // The escaped form the native reader passes through stays a number too.
+    expect(inferCellType(cell({ value: 1234567, numFmt: '[>=1000000]0.0,,\\M;[>=1000]0.0,\\K;0' })))
+      .toEqual({ type: 'numeric', unsupportedNumFmt: '[>=1000000]0.0,,\\M;[>=1000]0.0,\\K;0' });
+    // A plain date is still a date.
+    expect(inferCellType(cell({ value: 45292, numFmt: 'yyyy-mm-dd' })).type).toBe('date');
+  });
+
+  it('should keep the leading zeros a zero-padded format pins (US ZIP codes, employee IDs)', () => {
+    expect(inferCellType(cell({ value: 2134, numFmt: '00000' }))).toEqual({
+      type: 'numeric',
+      numericFormat: {
+        minimumIntegerDigits: 5, minimumFractionDigits: 0, maximumFractionDigits: 0, useGrouping: false,
+      },
+    });
+    expect(excelNumFmtToIntlOptions('000000').minimumIntegerDigits).toBe(6);
+    expect(excelNumFmtToIntlOptions('0000').minimumIntegerDigits).toBe(4);
+    expect(excelNumFmtToIntlOptions('000.00')).toEqual({
+      minimumIntegerDigits: 3, minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: false,
+    });
+    expect(excelNumFmtToIntlOptions('00,000')).toEqual({
+      minimumIntegerDigits: 5, minimumFractionDigits: 0, maximumFractionDigits: 0, useGrouping: true,
+    });
+    expect(excelNumFmtToIntlOptions('#00').minimumIntegerDigits).toBe(2);
+    // One zero is the default and is not written.
+    expect(excelNumFmtToIntlOptions('#,##0.00').minimumIntegerDigits).toBeUndefined();
+    expect(excelNumFmtToIntlOptions('0').minimumIntegerDigits).toBeUndefined();
+    // `Intl.NumberFormat` throws above 21 integer digits, so a longer pad is reported instead.
+    expect(excelNumFmtToIntlOptions('0'.repeat(22))).toBeNull();
+    expect(excelNumFmtToIntlOptions('0'.repeat(21)).minimumIntegerDigits).toBe(21);
+  });
+
+  it('should show a zero-padded number with its zeros and write the pad back on export', () => {
+    const { numericFormat } = inferCellType(cell({ value: 2134, numFmt: '00000' }));
+
+    expect(new Intl.NumberFormat('en-US', numericFormat).format(2134)).toBe('02134');
+    expect(intlNumFormatToExcelNumFmt(numericFormat, 'en-US')).toBe('00000');
+
+    const decimal = inferCellType(cell({ value: 7, numFmt: '000.00' })).numericFormat;
+
+    expect(new Intl.NumberFormat('en-US', decimal).format(7)).toBe('007.00');
+    expect(intlNumFormatToExcelNumFmt(decimal, 'en-US')).toBe('000.00');
+  });
+
+  it('should return null for a comma right before the decimal point, which scales the number', () => {
+    expect(excelNumFmtToIntlOptions('#,##0,.0')).toBeNull();
+  });
+
+  describe('currency round trip per locale', () => {
+    const cases = [
+      ['nb-NO', 'NOK'],
+      ['sv-SE', 'SEK'],
+      ['da-DK', 'DKK'],
+      ['is-IS', 'ISK'],
+      ['cs-CZ', 'CZK'],
+      ['hu-HU', 'HUF'],
+      ['ru-RU', 'RUB'],
+      ['tr-TR', 'TRY'],
+      ['ja-JP', 'JPY'],
+      ['en-US', 'JPY'],
+      ['zh-CN', 'CNY'],
+      ['de-DE', 'EUR'],
+      ['it-IT', 'USD'],
+      ['pl-PL', 'PLN'],
+      ['en-GB', 'GBP'],
+    ];
+
+    cases.forEach(([locale, currency]) => {
+      it(`should bring ${locale} ${currency} back as ${currency}`, () => {
+        const numFmt = intlNumFormatToExcelNumFmt({ style: 'currency', currency, minimumFractionDigits: 2 }, locale);
+        const inferred = inferCellType(cell({ value: 1234.5, numFmt }));
+
+        expect(inferred.type).toBe('numeric');
+        expect(inferred.numericFormat).toEqual(expect.objectContaining({ style: 'currency', currency }));
+        expect(inferred.unsupportedNumFmt).toBeUndefined();
+      });
+    });
+
+    it('should read the krone and yen signs by the LCID of their locale token', () => {
+      const yen = '\u00A5';
+
+      expect(excelNumFmtToIntlOptions('#,##0.00[$kr-414]').currency).toBe('NOK');
+      expect(excelNumFmtToIntlOptions('#,##0.00[$kr-41D]').currency).toBe('SEK');
+      expect(excelNumFmtToIntlOptions('#,##0.00[$kr.-406]').currency).toBe('DKK');
+      expect(excelNumFmtToIntlOptions('#,##0[$kr.-40F]').currency).toBe('ISK');
+      expect(excelNumFmtToIntlOptions(`[$${yen}-411]#,##0`).currency).toBe('JPY');
+      expect(excelNumFmtToIntlOptions(`[$${yen}-804]#,##0.00`).currency).toBe('CNY');
+      // An LCID the table does not hold falls back to the symbol table.
+      expect(excelNumFmtToIntlOptions('#,##0.00[$kr-409]').currency).toBe('SEK');
+      expect(excelNumFmtToIntlOptions(`[$${yen}-409]#,##0`).currency).toBe('JPY');
+      // The LCID never reassigns another symbol: `[$$-414]` is still the dollar.
+      expect(excelNumFmtToIntlOptions('[$$-414]#,##0').currency).toBe('USD');
+      expect(excelNumFmtToIntlOptions('[$\u20AC-407]#,##0').currency).toBe('EUR');
+    });
+
+    it('should read the koruna, forint, ruble, lira and fullwidth yen symbols', () => {
+      expect(excelNumFmtToIntlOptions('#,##0.00"K\u010D"').currency).toBe('CZK');
+      expect(excelNumFmtToIntlOptions('#,##0.00 K\u010D').currency).toBe('CZK');
+      expect(excelNumFmtToIntlOptions('#,##0.00"Ft"').currency).toBe('HUF');
+      expect(excelNumFmtToIntlOptions('#,##0.00\u20BD').currency).toBe('RUB');
+      expect(excelNumFmtToIntlOptions('\u20BA#,##0.00').currency).toBe('TRY');
+      expect(excelNumFmtToIntlOptions('\uFFE5#,##0').currency).toBe('JPY');
+      expect(excelNumFmtToIntlOptions('#,##0.00"z\u0142"').currency).toBe('PLN');
+      expect(excelNumFmtToIntlOptions('\u00A3#,##0.00').currency).toBe('GBP');
+    });
+  });
+});
+
+describe('inferCellType - Excel BOOLEAN format on a number', () => {
+  // Excel stores a cell formatted as BOOLEAN as the number 1 or 0 under `"TRUE";"TRUE";"FALSE"`, and
+  // shows TRUE for any non-zero value. Read as a number, the column imported as 1 and 0 with the format
+  // reported as dropped (found on a workbook Excel for Mac 16.113 saved, `excel-saved.xlsx`).
+  it('should infer a checkbox for a number under the BOOLEAN format', () => {
+    expect(inferCellType(cell({ value: 1, numFmt: '"TRUE";"TRUE";"FALSE"' }))).toEqual({ type: 'checkbox' });
+    expect(inferCellType(cell({ value: 0, numFmt: '"TRUE";"TRUE";"FALSE"' }))).toEqual({ type: 'checkbox' });
+    expect(inferCellType(cell({ value: 1, numFmt: '"true";"true";"false"' }))).toEqual({ type: 'checkbox' });
+  });
+
+  it('should import the number as the boolean Excel shows', () => {
+    const format = '"TRUE";"TRUE";"FALSE"';
+    const gridValue = (value) => {
+      const snapshot = cell({ value, numFmt: format });
+
+      return toGridValue(snapshot, inferCellType(snapshot));
+    };
+
+    expect(gridValue(1)).toBe(true);
+    expect(gridValue(0)).toBe(false);
+    expect(gridValue(-3)).toBe(true);
+  });
+
+  it('should leave other quoted three-section formats alone', () => {
+    expect(inferCellType(cell({ value: 1, numFmt: '"Yes";"Yes";"No"' })).type).not.toBe('checkbox');
+    expect(inferCellType(cell({ value: 1, numFmt: '"TRUE";"FALSE";"TRUE"' })).type).not.toBe('checkbox');
+  });
+});

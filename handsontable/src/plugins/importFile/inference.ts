@@ -196,6 +196,22 @@ export function excelDateFmtToIntlOptions(numFmt: string): Intl.DateTimeFormatOp
 const MAX_INTL_FRACTION_DIGITS = 100;
 
 /**
+ * The most integer digits `Intl.NumberFormat` accepts in `minimumIntegerDigits`; the constructor
+ * throws a `RangeError` above it, inside the grid's numeric renderer.
+ */
+const MAX_INTL_INTEGER_DIGITS = 21;
+
+/**
+ * Counts the zeros before the decimal point, which is how many integer digits the format pins
+ * (`00000` shows 2134 as `02134`). A `#` never makes a zero optional: `#00` shows 7 as `07`.
+ */
+function countIntegerDigits(pattern: string): number {
+  const separator = pattern.indexOf('.');
+
+  return (separator === -1 ? pattern : pattern.slice(0, separator)).split('').filter(char => char === '0').length;
+}
+
+/**
  * Counts the zeros that follow the decimal point, which is how many fraction digits the format pins.
  */
 function countFractionDigits(pattern: string): number {
@@ -213,8 +229,9 @@ function countFractionDigits(pattern: string): number {
  * `Intl.NumberFormat` options Handsontable's numeric cell type takes. Returns `null` when the
  * pattern carries codes with no `Intl` equivalent (scientific notation, fractions, text literals
  * that change the reading, a trailing comma that scales the number by a thousand, sections split
- * by a condition such as `[>=1000]`), or pins more than the 100 fraction digits `Intl` accepts, so
- * the caller can report it as dropped.
+ * by a condition such as `[>=1000]`), or pins more than the 100 fraction digits or the 21 integer
+ * digits `Intl` accepts, so the caller can report it as dropped. Two or more `0`s before the
+ * decimal point become `minimumIntegerDigits`.
  */
 export function excelNumFmtToIntlOptions(numFmt: string): Intl.NumberFormatOptions | null {
   // A first section that applies only where its condition holds cannot stand for every value.
@@ -231,13 +248,15 @@ export function excelNumFmtToIntlOptions(numFmt: string): Intl.NumberFormatOptio
 
   // A comma after the last digit placeholder divides the shown number by 1000 (`#,##0,` is "in
   // thousands"), which `Intl` cannot express; read as a grouping flag, the scale was lost.
-  if (!PLAIN_NUMBER_PATTERN_REGEX.test(bare) || !/[#0]/.test(bare) || bare.endsWith(',')) {
+  // So does a comma right before the decimal point (`#,##0,.0`).
+  if (!PLAIN_NUMBER_PATTERN_REGEX.test(bare) || !/[#0]/.test(bare) || bare.endsWith(',') || bare.includes(',.')) {
     return null;
   }
 
   const fractionDigits = countFractionDigits(bare);
+  const integerDigits = countIntegerDigits(bare);
 
-  if (fractionDigits > MAX_INTL_FRACTION_DIGITS) {
+  if (fractionDigits > MAX_INTL_FRACTION_DIGITS || integerDigits > MAX_INTL_INTEGER_DIGITS) {
     return null;
   }
 
@@ -250,9 +269,15 @@ export function excelNumFmtToIntlOptions(numFmt: string): Intl.NumberFormatOptio
     options.style = 'percent';
   }
 
+  // A zero-padded integer part (ZIP codes, employee IDs) keeps its zeros. One zero is the default.
+  if (integerDigits > 1) {
+    options.minimumIntegerDigits = integerDigits;
+  }
+
   options.minimumFractionDigits = fractionDigits;
   options.maximumFractionDigits = fractionDigits;
-  options.useGrouping = bare.includes('#,##');
+  // Any comma left in the integer part groups thousands (`#,##0`, and the zero-padded `00,000`).
+  options.useGrouping = bare.split('.')[0].includes(',');
 
   return options;
 }
@@ -354,6 +379,19 @@ export function exceedsElapsedFormat(numFmt: string | null, value: CellValue): b
 }
 
 /**
+ * The BOOLEAN number format both Excel and LibreOffice write: `"TRUE";"TRUE";"FALSE"`, a quoted TRUE
+ * for the positive and negative sections and a quoted FALSE for zero. Matched case-insensitively.
+ */
+const BOOLEAN_FORMAT_CODE_REGEX = /^"true";"true";"false"$/i;
+
+/**
+ * Tells whether a number format is the BOOLEAN format, under which a number shows as TRUE or FALSE.
+ */
+function isBooleanFormatCode(numFmt: string | null): boolean {
+  return typeof numFmt === 'string' && BOOLEAN_FORMAT_CODE_REGEX.test(numFmt.trim());
+}
+
+/**
  * Derives a cell type from a cell's number format and value. Returns `null` when the cell is empty
  * and carries no format, so the caller can leave the column untyped.
  */
@@ -364,6 +402,12 @@ export function inferCellType(cell: CellSnapshot): InferredType | null {
   // `"TRUE";"TRUE";"FALSE"` on every `t="b"` cell; read first, that format made the column
   // `numeric` and reported a number format the import never needed.
   if (typeof cellDisplayValue(cell) === 'boolean') {
+    return { type: 'checkbox' };
+  }
+
+  // Excel stores a cell formatted as BOOLEAN as a NUMBER under the same code, and shows TRUE for any
+  // non-zero value; `toGridValue` turns the number into that boolean.
+  if (typeof cellDisplayValue(cell) === 'number' && isBooleanFormatCode(numFmt)) {
     return { type: 'checkbox' };
   }
 
@@ -471,6 +515,10 @@ export function toGridValue(cell: CellSnapshot, inferred: InferredType | null): 
 
   if (typeof value !== 'number' || !inferred) {
     return value;
+  }
+
+  if (inferred.type === 'checkbox') {
+    return value !== 0;
   }
 
   if (inferred.type === 'date') {

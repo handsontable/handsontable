@@ -28,8 +28,85 @@ const CURRENCY_SYMBOL_TO_CODE: Record<string, string> = {
   '\u20A9': 'KRW',
   CHF: 'CHF',
   kr: 'SEK',
+  // eslint-disable-next-line quote-props
+  'kr.': 'DKK',
   R$: 'BRL',
+  // eslint-disable-next-line quote-props
+  'K\u010D': 'CZK',
+  Ft: 'HUF',
+  '\u20BD': 'RUB',
+  '\u20BA': 'TRY',
+  '\uFFE5': 'JPY',
 };
+
+/**
+ * Symbols several currencies share, mapped to the LCIDs (Windows locale IDs) that tell them apart in
+ * Excel's locale token `[$<symbol>-<LCID>]`. `intlNumFormatToExcelNumFmt` writes the token with the
+ * currency's home LCID for exactly these symbols, so `kr` comes back as the krone it was and not as
+ * the first krone the symbol table names. Keyed by symbol so an LCID never reassigns another symbol
+ * (`[$$-414]` stays the dollar). The writer reads the LCID back out with `currencyLcid`.
+ */
+const SHARED_SYMBOL_LCID_TO_CODE: Record<string, Record<number, string>> = {
+  kr: { 0x414: 'NOK', 0x814: 'NOK', 0x41D: 'SEK', 0x81D: 'SEK', 0x406: 'DKK', 0x40F: 'ISK' },
+  // eslint-disable-next-line quote-props
+  'kr.': { 0x414: 'NOK', 0x814: 'NOK', 0x41D: 'SEK', 0x81D: 'SEK', 0x406: 'DKK', 0x40F: 'ISK' },
+  '\u00A5': { 0x411: 'JPY', 0x804: 'CNY' },
+};
+
+/**
+ * The home LCID of each currency whose symbol another currency shares, the inverse of
+ * `SHARED_SYMBOL_LCID_TO_CODE`.
+ */
+const SHARED_SYMBOL_CURRENCY_LCID: Record<string, number> = {
+  NOK: 0x414,
+  SEK: 0x41D,
+  DKK: 0x406,
+  ISK: 0x40F,
+  JPY: 0x411,
+  CNY: 0x804,
+};
+
+/**
+ * The LCID `intlNumFormatToExcelNumFmt` writes into a locale token for a symbol several currencies
+ * share (`kr`, `kr.`, the yen sign), or `null` when the symbol belongs to one currency only and can
+ * be written as it is. Both lookups are own-property checks: the currency code comes from the
+ * column's settings.
+ *
+ * @param {string} symbol The symbol `Intl.NumberFormat` renders for the currency.
+ * @param {string} currency The ISO 4217 code.
+ * @returns {number|null}
+ */
+export function sharedSymbolLcid(symbol: string, currency: string): number | null {
+  if (!Object.hasOwn(SHARED_SYMBOL_LCID_TO_CODE, symbol) || !Object.hasOwn(SHARED_SYMBOL_CURRENCY_LCID, currency)) {
+    return null;
+  }
+
+  const lcid = SHARED_SYMBOL_CURRENCY_LCID[currency];
+
+  return SHARED_SYMBOL_LCID_TO_CODE[symbol][lcid] === currency ? lcid : null;
+}
+
+/**
+ * Maps the symbol and LCID of a locale token to an ISO 4217 code: by the LCID for a symbol several
+ * currencies share, by the symbol table for every other symbol and for an LCID the table does not
+ * hold.
+ *
+ * @param {string} symbol The token's symbol, trimmed.
+ * @param {string|undefined} lcid The token's LCID as hex text (`414`, `0414`), if any.
+ * @returns {string|null}
+ */
+function currencyForToken(symbol: string, lcid: string | undefined): string | null {
+  if (lcid !== undefined && /^[0-9a-f]{1,8}$/i.test(lcid) && Object.hasOwn(SHARED_SYMBOL_LCID_TO_CODE, symbol)) {
+    const byLcid = SHARED_SYMBOL_LCID_TO_CODE[symbol];
+    const id = Number.parseInt(lcid, 16);
+
+    if (Object.hasOwn(byLcid, id)) {
+      return byLcid[id];
+    }
+  }
+
+  return currencyForSymbol(symbol);
+}
 
 /**
  * `CURRENCY_SYMBOL_TO_CODE`'s symbols, longest first, so a multi-character symbol wins over a
@@ -56,7 +133,7 @@ function currencyForSymbol(symbol: string): string | null {
  * `[$` in `[$[$[$...` rescan the rest of the string, which is quadratic (a 100 000-character format
  * hung the tab for seconds).
  */
-const CURRENCY_TOKEN_REGEX = /\[\$([^[\]-]*)(?:-[^[\]]*)?\]/;
+const CURRENCY_TOKEN_REGEX = /\[\$([^[\]-]*)(?:-([^[\]]*))?\]/;
 
 /**
  * The dollar-sign composites `Intl.NumberFormat` writes under `en-US` for currencies whose symbol
@@ -361,7 +438,7 @@ export function captureCurrency(numFmt: string): CurrencyCapture {
 
   if (token) {
     return {
-      currency: currencyForSymbol(token[1].trim()),
+      currency: currencyForToken(token[1].trim(), token[2]),
       rest: numFmt.replace(CURRENCY_TOKEN_REGEX, ''),
     };
   }
@@ -483,7 +560,8 @@ export type TemporalFormatKind = 'date' | 'time' | 'datetime';
 /**
  * Detects a date-only, time-only or date-time number format, or answers `null` for any other.
  *
- * Three rules, in order. A format longer than `MAX_NUMBER_FORMAT_LENGTH` is not classified at all.
+ * Three rules, in order. A format longer than `MAX_NUMBER_FORMAT_LENGTH`, or one whose sections
+ * are split by a condition (`hasConditionalSection`), is not classified at all.
  * An elapsed-time section (`[h]:mm`, `[mm]:ss`, `[s]`) is a time: stripped first, `[h]:mm` left
  * `:mm`, a bare month, so Excel's standard duration format typed a timesheet column as 1899 dates.
  * And the currency comes off before the date and time codes are read: `CHF`, `SEK` and `HK$` carry
@@ -493,7 +571,10 @@ export type TemporalFormatKind = 'date' | 'time' | 'datetime';
  * @returns {TemporalFormatKind|null}
  */
 export function classifyTemporalFormat(numFmt: string): TemporalFormatKind | null {
-  if (numFmt.length > MAX_NUMBER_FORMAT_LENGTH) {
+  // A code split by a condition (`[>=1000000]0.0,,\M;[>=1000]0.0,\K;0`) formats numbers in ranges;
+  // no such code is a date. Read on its letters it can look like one: ExcelJS strips the escapes,
+  // so LibreOffice's `\M` (millions) arrived as a month and 1234567 imported as `5280-02-15`.
+  if (numFmt.length > MAX_NUMBER_FORMAT_LENGTH || hasConditionalSection(numFmt)) {
     return null;
   }
 

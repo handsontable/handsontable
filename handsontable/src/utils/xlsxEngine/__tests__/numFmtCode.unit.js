@@ -131,3 +131,26 @@ describe('isTemporalFormatCode', () => {
     expect(isTemporalFormatCode('[$-409]mmm d, yyyy')).toBe(true);
   });
 });
+
+describe('classifyTemporalFormat (review round 5)', () => {
+  it('should not classify a code with a condition section as temporal', () => {
+    // ExcelJS strips LibreOffice's `\M`, so the code reads a bare `M`.
+    expect(classifyTemporalFormat('[>=1000000]0.0,,M;[>=1000]0.0,K;0')).toBeNull();
+    expect(isTemporalFormatCode('[>=1000000]0.0,,M;[>=1000]0.0,K;0')).toBe(false);
+    expect(classifyTemporalFormat('[<1]0.0d;0')).toBeNull();
+    // A single-section condition is not a split, so a date stays a date.
+    expect(classifyTemporalFormat('[Red]yyyy-mm-dd')).toBe('date');
+  });
+});
+
+describe('captureCurrency (review round 5)', () => {
+  it('should map an ambiguous symbol in a locale token by its LCID', () => {
+    expect(captureCurrency('#,##0.00[$kr-414]')).toEqual({ currency: 'NOK', rest: '#,##0.00' });
+    expect(captureCurrency('#,##0.00[$kr-0414]').currency).toBe('NOK');
+    expect(captureCurrency('#,##0.00[$kr-41d]').currency).toBe('SEK');
+    expect(captureCurrency('#,##0.00[$kr.-406]').currency).toBe('DKK');
+    expect(captureCurrency('[$\u00A5-804]#,##0').currency).toBe('CNY');
+    expect(captureCurrency('[$kr-constructor]0').currency).toBe('SEK');
+    expect(captureCurrency('[$constructor-414]0').currency).toBeNull();
+  });
+});
