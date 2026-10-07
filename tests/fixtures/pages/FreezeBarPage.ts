@@ -46,7 +46,8 @@ export class FreezeBarPage {
       throw new Error(`Grid failed to initialize: ${initError}`);
     }
 
-    await expect(this.colHeader(3)).toBeVisible();
+    // a grid without headers has no column header to wait for
+    await expect(this.grid.locator('.ht_master td').first()).toBeAttached();
   }
 
   colHeader(col: number): Locator {

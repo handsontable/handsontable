@@ -82,24 +82,25 @@
         &.ht-freeze-bar--wide {
           background: transparent;
 
-          &::before {
+          // the drawn piece is `::after`, so `::before` stays the larger hit area for a finger
+          &::after {
             content: "";
             position: absolute;
             background: var(--ht-resize-indicator-color);
             border-radius: var(--ht-border-radius);
           }
 
-          &.ht-freeze-bar--active::before {
+          &.ht-freeze-bar--active::after {
             background: var(--ht-accent-color);
           }
 
-          &.ht-freeze-bar--start::before {
+          &.ht-freeze-bar--start::after {
             inset-block-start: 0;
             inset-inline: 0;
             height: var(--ht-freeze-bar-corner);
           }
 
-          &.ht-freeze-bar--top::before {
+          &.ht-freeze-bar--top::after {
             inset-block: 0;
             inset-inline-start: 0;
             width: var(--ht-freeze-bar-corner);

@@ -30,4 +30,16 @@ test.describe('freezeBar with a finger', () => {
     expect(after).toEqual(before);
     expect(grid.pageErrors).toEqual([]);
   });
+
+  test('dragging the handle of an empty edge with a finger freezes columns', async({ page, theme, bundle }) => {
+    const grid = new FreezeBarPage(page, theme, bundle);
+
+    await grid.goto({ cols: 0 });
+
+    const { before, after } = await grid.touchDrag('start', 3);
+
+    expect(await grid.count('start')).toBe(3);
+    expect(after).toEqual(before);
+    expect(grid.pageErrors).toEqual([]);
+  });
 });

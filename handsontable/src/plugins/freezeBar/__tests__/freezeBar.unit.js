@@ -286,6 +286,115 @@ describe('FreezeBar', () => {
     expect(before).toContain(after[0]);
   });
 
+  it('should ignore an edge it does not know', () => {
+    const plugin = createGrid();
+    const before = jest.fn();
+
+    hot.addHook('beforeFreezeChange', before);
+
+    expect(plugin.setFreezeCount('left', 2)).toBe(false);
+    expect(plugin.getFreezeCount('left')).toBe(0);
+    expect(before).not.toHaveBeenCalled();
+  });
+
+  it('should leave a count alone that did not grow, even when it no longer fits', () => {
+    const plugin = createGrid({ fixedColumnsStart: 4 });
+
+    // 150px viewport, 40px kept scrollable, 50px columns: only 2 columns fit
+    hot.view.getWorkspaceWidth.mockReturnValue(150);
+
+    expect(plugin.setFreezeCount('start', 4)).toBe(false);
+    expect(plugin.getFreezeCount('start')).toBe(4);
+    expect(plugin.setFreezeCount('start', 3)).toBe(true);
+    expect(plugin.getFreezeCount('start')).toBe(3);
+    // a count that grows is still cut down, here to what it already was
+    expect(plugin.setFreezeCount('start', 9)).toBe(false);
+    expect(plugin.getFreezeCount('start')).toBe(3);
+  });
+
+  it('should leave room for the band on the opposite edge, whichever edge grows', () => {
+    const plugin = createGrid({ fixedRowsBottom: 3 });
+
+    // 200px viewport, 3 bottom rows of 23px, 40px kept scrollable: 91px remain, so 3 top rows fit
+    hot.view.getWorkspaceHeight.mockReturnValue(200);
+    plugin.setFreezeCount('top', 9);
+
+    expect(plugin.getFreezeCount('top')).toBe(3);
+  });
+
+  it('should leave room for the end band when the start bar grows', () => {
+    const plugin = createGrid({ fixedColumnsEnd: 4 });
+
+    // 400px viewport, 4 end columns of 50px, 40px kept scrollable: 160px remain, so 3 start columns fit
+    hot.view.getWorkspaceWidth.mockReturnValue(400);
+    plugin.setFreezeCount('start', 9);
+
+    expect(plugin.getFreezeCount('start')).toBe(3);
+  });
+
+  it('should not claim F6 when there is no bar to focus', () => {
+    createGrid({ freezeBar: { rows: false, columns: false } });
+    hot.render();
+
+    const shortcut = hot.getShortcutManager().getContext('grid').getShortcuts(['F6'])[0];
+
+    expect(shortcut.runOnlyIf()).toBe(false);
+  });
+
+  it('should move the focus to the next bar on F6, and to the previous one on Shift+F6', () => {
+    createGrid({ fixedColumnsStart: 2, fixedRowsTop: 1 });
+    hot.render();
+
+    const start = container.querySelector('.ht-freeze-bar--start:not(.ht-freeze-bar--segment)');
+    const press = (target, shiftKey = false) => {
+      target.dispatchEvent(new KeyboardEvent('keydown', { key: 'F6', shiftKey, bubbles: true, cancelable: true }));
+    };
+
+    start.focus();
+    press(start);
+
+    const second = document.activeElement;
+
+    expect(second).not.toBe(start);
+    expect(second.classList.contains('ht-freeze-bar')).toBe(true);
+
+    press(second, true);
+
+    expect(document.activeElement).toBe(start);
+  });
+
+  it('should keep every key the bar does not use from reaching the grid', () => {
+    createGrid({ fixedColumnsStart: 2 });
+    hot.render();
+
+    const bar = container.querySelector('.ht-freeze-bar--start:not(.ht-freeze-bar--segment)');
+    const reached = jest.fn();
+
+    document.addEventListener('keydown', reached);
+
+    try {
+      ['Delete', 'Enter', 'a', 'Backspace', 'Tab'].forEach((key) => {
+        bar.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+      });
+    } finally {
+      document.removeEventListener('keydown', reached);
+    }
+
+    expect(reached).not.toHaveBeenCalled();
+  });
+
+  it('should keep the Tab default of the bar, so the focus can move on', () => {
+    createGrid({ fixedColumnsStart: 2 });
+    hot.render();
+
+    const bar = container.querySelector('.ht-freeze-bar--start:not(.ht-freeze-bar--segment)');
+    const event = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+
+    bar.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(false);
+  });
+
   it('should render nothing when the option is not set', () => {
     hot = new Handsontable(container, {
       licenseKey: 'non-commercial-and-evaluation',
