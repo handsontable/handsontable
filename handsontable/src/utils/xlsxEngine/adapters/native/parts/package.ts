@@ -1,4 +1,5 @@
 import { localeLowerCase } from '../../../../../helpers/string';
+import { DROPPED_FEATURES, type DroppedFeatures } from '../../../capabilities';
 import { MAX_WORKBOOK_SHEETS, throwLimitExceeded } from '../../../limits';
 import type { SheetSnapshot } from '../../../model';
 import { createLocalName, tokenizeXml, type XmlAttributes } from '../xml/tokenizer';
@@ -56,6 +57,7 @@ export const REL_TYPES = {
   sharedStrings: `${OFFICE_REL}/sharedStrings`,
   comments: `${OFFICE_REL}/comments`,
   vmlDrawing: `${OFFICE_REL}/vmlDrawing`,
+  drawing: `${OFFICE_REL}/drawing`,
   coreProperties: 'http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties',
   extendedProperties: `${OFFICE_REL}/extended-properties`,
   // Microsoft's own namespace, not the office one: a strict package keeps it as it is, so
@@ -454,14 +456,19 @@ function createRelationshipIdReader(): RelationshipIdReader {
  * How many defined names `parseWorkbook` keeps. A name costs a few bytes of the workbook part, so
  * the part's own inflate budget bounds the list; this bounds the set the mapper builds from it.
  */
-const MAX_DEFINED_NAMES = 65536;
+export const MAX_DEFINED_NAMES = 65536;
 
 /**
  * Parses `xl/workbook.xml`: the sheet list in order, the `date1904` flag, and the names the
  * workbook defines (Excel's own `_xlnm.` names left out).
+ *
+ * A name past `MAX_DEFINED_NAMES` is left out and `DROPPED_FEATURES.definedNamesTruncated` is
+ * recorded once. Dropped silently, a formula using such a name stayed live and showed `#NAME?`
+ * with nothing in the import result to say why.
  */
 export function parseWorkbook(
   xml: string,
+  dropped?: DroppedFeatures,
 ): { sheets: WorkbookSheetEntry[]; date1904: boolean; definedNames: string[] } {
   const sheets: WorkbookSheetEntry[] = [];
   const definedNames = new Set<string>();
@@ -492,12 +499,40 @@ export function parseWorkbook(
         sheets.push({ name: attrs.name ?? '', relId: relationshipIds.idOf(attrs), state });
       } else if (name === 'workbookPr') {
         date1904 = attrs.date1904 === '1' || attrs.date1904 === 'true';
-      } else if (name === 'definedName' && attrs.name && !attrs.name.startsWith('_xlnm.')
-        && definedNames.size < MAX_DEFINED_NAMES) {
-        definedNames.add(attrs.name);
+      } else if (name === 'definedName' && attrs.name && !attrs.name.startsWith('_xlnm.')) {
+        if (definedNames.size < MAX_DEFINED_NAMES) {
+          definedNames.add(attrs.name);
+        } else if (!definedNames.has(attrs.name) && dropped?.count(DROPPED_FEATURES.definedNamesTruncated) === 0) {
+          dropped.record(DROPPED_FEATURES.definedNamesTruncated);
+        }
       }
     },
   });
 
   return { sheets, date1904, definedNames: [...definedNames] };
+}
+
+/**
+ * The elements of a drawing part (`xdr:wsDr`) that place something on the sheet, matched by the
+ * name after any prefix.
+ */
+const DRAWING_ANCHORS: ReadonlySet<string> = new Set(['twoCellAnchor', 'oneCellAnchor', 'absoluteAnchor', 'pic']);
+
+/**
+ * Whether a drawing part places anything on the sheet. Google Sheets links an empty `<xdr:wsDr>`
+ * from every sheet it writes, and recording `images` for the bare `<drawing>` reported lost
+ * images on every Google file.
+ */
+export function drawingHasAnchor(xml: string): boolean {
+  let found = false;
+
+  tokenizeXml(xml, {
+    open(rawName) {
+      if (!found && DRAWING_ANCHORS.has(rawName.slice(rawName.indexOf(':') + 1))) {
+        found = true;
+      }
+    },
+  });
+
+  return found;
 }

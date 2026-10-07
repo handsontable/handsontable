@@ -13,6 +13,7 @@ import { hashSheetPassword } from './parts/protection';
 import { SharedStringTable } from './parts/sharedStrings';
 import { StyleTable } from './parts/styles';
 import { worksheetXml } from './parts/worksheetWriter';
+import { assertNativeEngineGlobals } from './zip/streams';
 import { writeZip, type ZipEntryInput } from './zip/writer';
 
 /**
@@ -80,6 +81,8 @@ function assertSheetNames(names: string[]): void {
  * Serializes a workbook snapshot into `.xlsx` bytes.
  */
 export async function writeWorkbook(snapshot: WorkbookSnapshot, dropped: DroppedFeatures): Promise<Uint8Array> {
+  assertNativeEngineGlobals();
+
   // `<sheets>` must hold at least one `<sheet>` (CT_Sheets); an empty one fails schema validation and
   // LibreOffice opens it by inventing a sheet. `exportFile` always passes one, so only a snapshot
   // built by other code reaches this - the case `assertSheetNames` is the backstop for too.

@@ -79,6 +79,14 @@ export const DROPPED_FEATURES = {
   // Raised by the native reader only: an `<f>` longer than `MAX_FORMULA_LENGTH`. The formula is
   // dropped and the cell keeps its cached value; the rest of the workbook reads as usual.
   formulaTooLong: 'formula:tooLong',
+  // Raised by the native reader only: the workbook defines more names than `MAX_DEFINED_NAMES`
+  // (`parts/package.ts`). The names past the cap are left out, so a formula using one is not
+  // recognized as using a defined name.
+  definedNamesTruncated: 'definedNames:truncated',
+  // Raised by the native reader only: a `t="d"` cell whose value is not an ISO 8601 date or
+  // date-time with a `T`. Any other spelling would be read in the browser's time zone, so the
+  // cell imports empty instead.
+  cellValueDate: 'cellValue:date',
   // Raised by both readers, once per read: an Excel 365 threaded comment. Its legacy note is read
   // without the fixed notice in front of the thread (`threadedComments.ts`), so the comment and its
   // replies import as text; the authors, timestamps, and resolved state of the thread are dropped.
@@ -109,6 +117,11 @@ export const DROPPED_FEATURES = {
   formulaOtherSheet: 'formula:otherSheet',
   formulaDefinedName: 'formula:definedName',
   layoutDirection: 'layoutDirection',
+  // Raised by `importFile` when the result carries the layout and the plugin that applies it is not
+  // registered (a bundle that registers modules one by one): the setting is written, nothing reads it.
+  mergeCells: 'mergeCells',
+  hiddenRows: 'hiddenRows',
+  hiddenColumns: 'hiddenColumns',
 } as const;
 
 /**
@@ -125,9 +138,11 @@ export type DroppedFeatureName = typeof DROPPED_FEATURES[keyof typeof DROPPED_FE
  * this module declares: an unsupported validation type, an unsupported conditional-formatting rule
  * kind, and a number format with no `Intl.NumberFormat` equivalent. The tail is genuinely
  * data-driven — it is whatever the workbook wrote — so it cannot be enumerated here, and the group
- * in front of it is what stays checked.
+ * in front of it is what stays checked. `cellType` is the exception whose tail is not file text: it
+ * is an inferred cell type the cell type registry does not hold (`importFile`), a bounded set that
+ * goes through the same door so the name is built in one place.
  */
-export type DroppedFeatureGroup = 'conditionalFormatting' | 'dataValidation' | 'numFmt';
+export type DroppedFeatureGroup = 'cellType' | 'conditionalFormatting' | 'dataValidation' | 'numFmt';
 
 /**
  * How many characters of a file-controlled value a dropped-feature name may carry. The value is a
@@ -149,9 +164,22 @@ const MAX_UNSUPPORTED_NAMES = 32;
 const OTHER_UNSUPPORTED_VALUE = 'other';
 
 /**
+ * Whether a UTF-16 code unit is a control character a dropped-feature name must not carry: C0, DEL,
+ * C1, or a bidi embedding, override or isolate control.
+ */
+function isUnsafeCodeUnit(code: number): boolean {
+  return code < 0x20
+    || (code >= 0x7F && code <= 0x9F)
+    || (code >= 0x202A && code <= 0x202E)
+    || (code >= 0x2066 && code <= 0x2069);
+}
+
+/**
  * Trims a file-controlled value to what a dropped-feature name may carry: at most
- * `MAX_UNSUPPORTED_VALUE_LENGTH` characters, with every control character replaced, so neither the
- * public result nor the console warning can be steered by the workbook's own text.
+ * `MAX_UNSUPPORTED_VALUE_LENGTH` characters, with every C0, DEL and C1 control character and every
+ * bidi formatting control (U+202A–U+202E, U+2066–U+2069) replaced, so neither the public result nor
+ * the console warning can be steered by the workbook's own text. A right-to-left override would
+ * otherwise reverse the rest of the name in a bidi-aware console.
  *
  * The cut is made on a CODE POINT boundary, not on a code unit. Slicing code units puts a lone
  * surrogate into `ImportResult.dropped` and into the console warning whenever an astral character
@@ -169,7 +197,7 @@ function boundUnsupportedValue(value: string): string {
   for (let index = 0; index < clipped.length; index++) {
     const code = clipped.charCodeAt(index);
 
-    safe += (code < 0x20 || (code >= 0x7F && code <= 0x9F)) ? '\uFFFD' : clipped.charAt(index);
+    safe += isUnsafeCodeUnit(code) ? '\uFFFD' : clipped.charAt(index);
   }
 
   return safe;

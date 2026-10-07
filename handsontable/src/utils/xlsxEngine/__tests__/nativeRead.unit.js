@@ -10,7 +10,7 @@ import { SheetBuilder } from '../builder';
 import { createWorkbookSnapshot } from '../model';
 import { readZip } from '../adapters/native/zip/reader';
 import { writeZip } from '../adapters/native/zip/writer';
-import { loadFixture as load, toArrayBuffer } from './helpers/fixtures';
+import { loadFixture as load, rewriteArchive, toArrayBuffer } from './helpers/fixtures';
 import { strip } from './helpers/snapshotNormalize';
 
 async function read(name) {
@@ -182,12 +182,13 @@ describe('nativeAdapter.read', () => {
 
 describe('nativeAdapter.read: merge members with no <c> element of their own', () => {
   it('should materialize a merge member the writer never emitted, so the row reaches full width', async() => {
-    // Exactly the shape the native writer produces for `A1:B1` merged with only A1 carrying a
-    // value: `writeCell`'s `isCovered` branch emits no `<c r="B1">` at all because B1 has no style,
-    // so the only evidence B1 exists is `<mergeCells>` and `<dimension>`. Before the merge pass
-    // materialized its members, the reader derived the width from the `<c>` elements alone and
-    // handed back a one-cell row — `importFile`'s mapper takes the sheet width from the widest row,
-    // so the merge then fell outside the used range and was dropped entirely.
+    // A file from a producer that leaves covered cells out: `A1:B1` merged with only A1 written,
+    // so the only evidence B1 exists is `<mergeCells>` and `<dimension>`. The native writer now
+    // emits `<c r="B1"/>` for every covered cell, so the input is its output with that element
+    // stripped. Before the merge pass materialized its members, the reader derived the width from
+    // the `<c>` elements alone and handed back a one-cell row — `importFile`'s mapper takes the
+    // sheet width from the widest row, so the merge then fell outside the used range and was
+    // dropped entirely.
     const snapshot = createWorkbookSnapshot();
     const sheet = new SheetBuilder('Sheet1');
 
@@ -195,8 +196,23 @@ describe('nativeAdapter.read: merge members with no <c> element of their own', (
     sheet.merge(1, 1, 1, 2);
     snapshot.sheets.push(sheet.toSnapshot());
 
-    const bytes = await nativeAdapter.write(snapshot, undefined, new DroppedFeatures());
-    const roundTripped = await nativeAdapter.read(toArrayBuffer(bytes), undefined, new DroppedFeatures());
+    const written = await nativeAdapter.write(snapshot, undefined, new DroppedFeatures());
+    let stripped = false;
+    const bytes = await rewriteArchive(written, (part, text) => {
+      if (part !== 'xl/worksheets/sheet1.xml') {
+        return text;
+      }
+
+      const without = text.replace(/<c r="B1"[^>]*\/>/, '');
+
+      stripped = without !== text;
+
+      return without;
+    });
+
+    expect(stripped).toBe(true);
+
+    const roundTripped = await nativeAdapter.read(bytes, undefined, new DroppedFeatures());
     const row = roundTripped.sheets[0].rows[0];
 
     expect(row).toHaveLength(2);
@@ -205,7 +221,7 @@ describe('nativeAdapter.read: merge members with no <c> element of their own', (
     expect(roundTripped.sheets[0].merges).toEqual([{ row: 0, col: 0, rowspan: 1, colspan: 2 }]);
 
     // The same file read by ExcelJS, the behavior this reader was brought in line with.
-    const viaExcelJs = await excelJsAdapter.read(toArrayBuffer(bytes), ExcelJS, new DroppedFeatures());
+    const viaExcelJs = await excelJsAdapter.read(bytes, ExcelJS, new DroppedFeatures());
 
     expect(viaExcelJs.sheets[0].rows[0]).toHaveLength(2);
     expect(viaExcelJs.sheets[0].rows[0][1]).toBeNull();

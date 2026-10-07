@@ -12,8 +12,108 @@ import { excelJsAdapter } from '../adapters/exceljs';
 import { DroppedFeatures } from '../capabilities';
 import { createWorkbookSnapshot } from '../model';
 import { SheetBuilder } from '../builder';
+import { inferCellType } from '../../../plugins/importFile/inference';
 import { loadFixture as load, rewriteArchive, toArrayBuffer } from './helpers/fixtures';
 import { normalizeFont, normalizeStyle, strip } from './helpers/snapshotNormalize';
+
+describe('parity on the number-format fixes of the #13634 review round 4', () => {
+  /**
+   * Writes a workbook with ExcelJS directly, bypassing both adapters' writers.
+   * @param buildFn
+   */
+  async function writeDirectly(buildFn) {
+    const workbook = new ExcelJS.Workbook();
+
+    buildFn(workbook);
+
+    return toArrayBuffer(new Uint8Array(await workbook.xlsx.writeBuffer()));
+  }
+
+  async function readBoth(bytes) {
+    return {
+      native: (await nativeAdapter.read(bytes, undefined, new DroppedFeatures())).sheets[0],
+      exceljs: (await excelJsAdapter.read(bytes, ExcelJS, new DroppedFeatures())).sheets[0],
+    };
+  }
+
+  it('does not shift an elapsed or clock time in a 1904 workbook on either reader, and still shifts a date', async() => {
+    // A duration is not a date serial: 12:00 is 0.5 and 25:30 is 1.0625 in either date system.
+    // Shifted by 1462 days, a 12:00 duration imported as the number 1462.5.
+    const bytes = await writeDirectly((workbook) => {
+      const sheet = workbook.addWorksheet('S');
+
+      workbook.properties.date1904 = true;
+      sheet.addRow([0.5, 25.5 / 24, 2, 0.75, 43844]);
+      ['A1', 'B1', 'C1'].forEach((address) => {
+        sheet.getCell(address).numFmt = '[h]:mm';
+      });
+      sheet.getCell('D1').numFmt = 'h:mm';
+      sheet.getCell('E1').numFmt = 'yyyy-mm-dd';
+    });
+    const { native, exceljs } = await readBoth(bytes);
+    // 2024-01-15 in the 1900 system.
+    const expected = [0.5, 1.0625, 2, 0.75, 45306];
+
+    expect(native.rows[0].map(cell => cell.value)).toEqual(expected);
+    expect(exceljs.rows[0].map(cell => cell.value)).toEqual(expected);
+  });
+
+  it('reads a duration past its elapsed format as the stored number on both readers, without Date noise', async() => {
+    // ExcelJS hands a time-formatted cell over as a `Date`, and converting it back left float noise
+    // (`0.0750000000007276`) in the grid value. ExcelJS's `Date` holds whole milliseconds, so a serial
+    // finer than that still differs between the readers; these are all millisecond-exact.
+    const bytes = await writeDirectly((workbook) => {
+      const sheet = workbook.addWorksheet('S');
+
+      sheet.addRow([0.075, 1234.5678, 45306.5]);
+      sheet.getCell('A1').numFmt = '[mm]:ss';
+      sheet.getCell('B1').numFmt = '[h]:mm';
+      sheet.getCell('C1').numFmt = 'yyyy-mm-dd hh:mm:ss';
+    });
+    const { native, exceljs } = await readBoth(bytes);
+
+    expect(native.rows[0].map(cell => cell.value)).toEqual([0.075, 1234.5678, 45306.5]);
+    expect(exceljs.rows[0].map(cell => cell.value)).toEqual([0.075, 1234.5678, 45306.5]);
+  });
+
+  it('reads a per-character escaped currency as the same currency on both readers', async() => {
+    // Excel saves `#,##0.00zł` as `#,##0.00\z\ł`. ExcelJS strips every escape on read; the native
+    // reader keeps the code verbatim, so the import has to unescape the run itself.
+    const zloty = `z${String.fromCharCode(0x142)}`;
+    const bytes = await writeDirectly((workbook) => {
+      const sheet = workbook.addWorksheet('S');
+
+      sheet.addRow([1234.5, 1234.5]);
+      sheet.getCell('A1').numFmt = `#,##0.00\\${zloty[0]}\\${zloty[1]}`;
+      sheet.getCell('B1').numFmt = '\\C\\H\\F#,##0.00';
+    });
+    const { native, exceljs } = await readBoth(bytes);
+    const currencies = sheet => sheet.rows[0].map(cell => inferCellType(cell).numericFormat?.currency);
+
+    expect(currencies(native)).toEqual(['PLN', 'CHF']);
+    expect(currencies(exceljs)).toEqual(['PLN', 'CHF']);
+  });
+
+  it('round-trips the export\'s quoted currency codes as the same currency on all four legs', async() => {
+    const zloty = `z${String.fromCharCode(0x142)}`;
+    const codes = ['#,##0.00"USD"', `#,##0.00"${zloty}"`, '"CHF"#,##0.00'];
+    const legs = await fourWayRead((snapshot) => {
+      const sheet = new SheetBuilder('Sheet1');
+
+      codes.forEach((numFmt, index) => {
+        sheet.cell(1, index + 1).value = 1234.5;
+        sheet.cell(1, index + 1).numFmt = numFmt;
+      });
+      snapshot.sheets.push(sheet.toSnapshot());
+    });
+
+    Object.values(legs).forEach((leg) => {
+      expect(leg.sheets[0].rows[0].map(cell => cell.numFmt)).toEqual(codes);
+      expect(leg.sheets[0].rows[0].map(cell => inferCellType(cell).numericFormat.currency))
+        .toEqual(['USD', 'PLN', 'CHF']);
+    });
+  });
+});
 
 // `strip()` applies the four — and only four — cross-engine normalizations. Their reasons, and
 // the rule that no fifth may be added, live at the top of `helpers/snapshotNormalize.js`.
@@ -496,10 +596,9 @@ describe('write parity: a native-written and an ExcelJS-written file agree, read
     });
 
     // Every leg pads the covered cell to an explicit `null`, matching the model's documented
-    // "padded to sheet width" contract. The native reader used to derive the width from the `<c>`
-    // elements it saw alone, so its own round trip (`nn`) came back one cell short — the native
-    // writer emits no `<c>` for an unstyled covered cell. The reader now materializes every merge
-    // member, exactly as ExcelJS does.
+    // "padded to sheet width" contract. Both writers emit a `<c>` for every covered member, so this
+    // is a round trip; the reader's merge pass for a member with no `<c>` at all (another producer's
+    // file) is pinned in `nativeRead.unit.js` and `nativeParts.unit.js`.
     [nn, ne, en, ee].forEach((snapshot) => {
       expect(snapshot.sheets[0].rows[0][0].value).toBe('master');
       expect(snapshot.sheets[0].merges).toEqual([{ row: 0, col: 0, rowspan: 1, colspan: 2 }]);
@@ -861,7 +960,8 @@ describe('conditional formatting: every rule kind the export can produce, four w
 
     const nn = await nativeAdapter.read(toArrayBuffer(nativeBytes), undefined, new DroppedFeatures());
     const ne = await excelJsAdapter.read(toArrayBuffer(nativeBytes), ExcelJS, new DroppedFeatures());
-    const en = await nativeAdapter.read(toArrayBuffer(exceljsBytes), undefined, new DroppedFeatures());
+    const enDropped = new DroppedFeatures();
+    const en = await nativeAdapter.read(toArrayBuffer(exceljsBytes), undefined, enDropped);
     const ee = await excelJsAdapter.read(toArrayBuffer(exceljsBytes), ExcelJS, new DroppedFeatures());
 
     // A block whose every rule was refused is not written at all, so both readers agree there is
@@ -869,12 +969,23 @@ describe('conditional formatting: every rule kind the export can produce, four w
     expect(cfShape(nn)).toEqual([]);
     expect(cfShape(ne)).toEqual([]);
 
-    // The ExcelJS-written file carries the rule, and both readers see the SAME block — the native
-    // reader is not the limitation, the native writer is. `duplicateValues` is the exception:
-    // ExcelJS's own writer emits an empty block for it, so both readers report zero rules.
-    expect(cfShape(en)).toEqual(cfShape(ee));
-    expect(cfShape(en)[0].ref).toBe('A1:A2');
-    expect(cfShape(en)[0].count).toBe(kind === 'duplicateValues' ? 0 : 1);
+    // The ExcelJS-written file carries the rule. `duplicateValues` is the exception: ExcelJS's own
+    // writer emits an empty block for it, so both readers report zero rules.
+    expect(cfShape(ee)[0].ref).toBe('A1:A2');
+    expect(cfShape(ee)[0].count).toBe(kind === 'duplicateValues' ? 0 : 1);
+
+    if (kind === 'duplicateValues') {
+      expect(cfShape(en)).toEqual(cfShape(ee));
+
+      return;
+    }
+
+    // A color scale, a data bar and an icon set live in child elements the native READER does not
+    // read either: it leaves the rule out and records it, rather than import a bare
+    // `{ type, priority }` that the ExcelJS export then threw on. ExcelJS reads the whole rule.
+    expect(cfShape(en)).toEqual([{ ref: 'A1:A2', count: 0, rules: [] }]);
+    expect(enDropped.list()).toEqual([`conditionalFormatting:${kind}`]);
+    expect(ee.sheets[0].conditionalFormatting[0].rules[0].cfvo).toEqual(rules[0].cfvo);
   });
 });
 
@@ -938,9 +1049,10 @@ describe('sheet-name validation: the same illegal set through both writers, outc
   }
 
   it.each(SHEET_NAMES)('pins the accept/reject outcome for %s', async(_, name, nativeOutcome, exceljsOutcome) => {
-    // Two rows disagree, and both are the ExcelJS side being the lenient one: it TRUNCATES a name
-    // over 31 characters with a console warning instead of refusing it, and its reserved-name check
-    // is `name === 'History'` exactly, so any other casing passes. The native writer refuses both.
+    // Four rows disagree, and all four are the ExcelJS side being the lenient one: it writes a name
+    // holding a control character as it is handed, it TRUNCATES a name over 31 characters with a
+    // console warning instead of refusing it, and its reserved-name check is `name === 'History'`
+    // exactly, so `history` and `HISTORY` pass. The native writer refuses all four.
     // Asserted with each engine's real outcome so neither can drift unnoticed.
     expect(await outcomeOf(nativeAdapter, undefined, [name])).toBe(nativeOutcome);
     expect(await outcomeOf(excelJsAdapter, ExcelJS, [name])).toBe(exceljsOutcome);
@@ -1145,6 +1257,52 @@ describe('parity on the writer and reader fixes of the #13634 review round', () 
 });
 
 describe('the LibreOffice attribute dialect: what each reader makes of `"true"`/`"false"`', () => {
+  it('reads a LibreOffice sheet protected with a password as protected on both engines', async() => {
+    // LibreOffice writes `<sheetProtection algorithmName="SHA-512" hashValue=… sheet="true"/>`.
+    // ExcelJS 4.4 leaves `sheet` undefined for `"true"`, but keeps the hash attributes, and a hash
+    // exists only on a protected sheet: the ExcelJS engine used to import it unprotected and report
+    // no password, while the native engine reported `sheetProtection:password`.
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('P');
+
+    worksheet.getCell('A1').value = 'a';
+    await worksheet.protect('', {});
+
+    const bytes = await rewriteArchive(new Uint8Array(await workbook.xlsx.writeBuffer()), (part, text) => (
+      part === 'xl/worksheets/sheet1.xml'
+        ? text.replace(/<sheetProtection[^>]*\/>/, '<sheetProtection algorithmName="SHA-512" '
+          + 'hashValue="aGFzaA==" saltValue="c2FsdA==" spinCount="100000" sheet="true" '
+          + 'objects="true" scenarios="true" formatCells="false"/>')
+        : text
+    ));
+    const nativeDropped = new DroppedFeatures();
+    const exceljsDropped = new DroppedFeatures();
+    const native = (await nativeAdapter.read(bytes, undefined, nativeDropped)).sheets[0];
+    const exceljs = (await excelJsAdapter.read(bytes, ExcelJS, exceljsDropped)).sheets[0];
+
+    expect(native.protection).toEqual(expect.objectContaining({ enabled: true, password: null }));
+    expect(exceljs.protection).toEqual(expect.objectContaining({ enabled: true, password: null }));
+    expect(nativeDropped.list()).toContain('sheetProtection:password');
+    expect(exceljsDropped.list()).toContain('sheetProtection:password');
+  });
+
+  it('keeps a sheet that carries only permissions (the Apache POI shape) unprotected on both engines', async() => {
+    const workbook = new ExcelJS.Workbook();
+
+    workbook.addWorksheet('P').getCell('A1').value = 'a';
+
+    const bytes = await rewriteArchive(new Uint8Array(await workbook.xlsx.writeBuffer()), (part, text) => (
+      part === 'xl/worksheets/sheet1.xml'
+        ? text.replace('</sheetData>', '</sheetData><sheetProtection formatCells="0"/>')
+        : text
+    ));
+    const native = (await nativeAdapter.read(bytes, undefined, new DroppedFeatures())).sheets[0];
+    const exceljs = (await excelJsAdapter.read(bytes, ExcelJS, new DroppedFeatures())).sheets[0];
+
+    expect(native.protection).toBeNull();
+    expect(exceljs.protection).toBeNull();
+  });
+
   it('documents that the ExcelJS reader misses LibreOffice\'s protection, RTL, unlock and 1904 flags', async() => {
     // LibreOffice spells every boolean attribute `"true"`/`"false"`. ExcelJS 4.4 maps only `"1"` to
     // true for these, and its model keeps nothing the adapter could recover the flag from: a

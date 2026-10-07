@@ -2,67 +2,118 @@
  * @jest-environment node
  */
 import { WritableStreamDefaultWriter } from 'node:stream/web';
+import * as streams from '../adapters/native/zip/streams';
 import { deflateRaw, inflateRaw, inflateRawText, STREAM_WRITE_CHUNK_BYTES } from '../adapters/native/zip/streams';
+import { readZip } from '../adapters/native/zip/reader';
+import { MAX_INFLATED_TOTAL_BYTES } from '../limits';
+import { loadFixture } from './helpers/fixtures';
 import { nativeAdapter } from '../adapters/native';
 import { DroppedFeatures } from '../capabilities';
 import { createWorkbookSnapshot } from '../model';
 import { SheetBuilder } from '../builder';
 
 /**
- * Runs `fn` with `name` removed from the global object, then puts it back.
+ * Runs `fn` with every global in `names` removed from the global object, then puts them back.
  *
- * @param {string} name The global to remove.
+ * @param {string|string[]} names The globals to remove.
  * @param {Function} fn The body to run.
  * @returns {Promise<*>}
  */
-async function withoutGlobal(name, fn) {
-  const saved = globalThis[name];
+async function withoutGlobal(names, fn) {
+  const list = Array.isArray(names) ? names : [names];
+  const saved = list.map(name => globalThis[name]);
 
-  delete globalThis[name];
+  list.forEach((name) => {
+    delete globalThis[name];
+  });
 
   try {
     return await fn();
   } finally {
-    globalThis[name] = saved;
+    list.forEach((name, i) => {
+      globalThis[name] = saved[i];
+    });
   }
 }
 
-describe('native zip streams without the Compression Streams API', () => {
+/**
+ * The refusal the engine raises when the host lacks `missing`.
+ *
+ * @param {string} missing The missing globals, as the message lists them.
+ * @returns {string}
+ */
+function missingGlobalsMessage(missing) {
+  return `The built-in xlsx engine needs ${missing}, which this environment does not define. In a test `
+    + 'environment such as jsdom, assign CompressionStream and DecompressionStream from `node:stream/web` '
+    + 'and TextEncoder and TextDecoder from `node:util` to the global object, or inject ExcelJS through the '
+    + '`engines` option.';
+}
+
+/**
+ * A one-sheet snapshot to export.
+ *
+ * @returns {object}
+ */
+function oneSheetSnapshot() {
+  const snapshot = createWorkbookSnapshot();
+  const sheet = new SheetBuilder('Sheet1');
+
+  sheet.cell(1, 1).value = 'text';
+  snapshot.sheets.push(sheet.toSnapshot());
+  snapshot.compression = 6;
+
+  return snapshot;
+}
+
+describe('native engine without the globals it needs', () => {
   it('should refuse to deflate with a message naming CompressionStream and both ways out', async() => {
-    // jsdom, Vitest's jsdom environment and Jest's default environment have neither global, and
-    // this used to surface as a bare `ReferenceError` from inside the zip writer.
     await withoutGlobal('CompressionStream', async() => {
-      // The guard runs before the promise is built, so this throws synchronously; inside the
-      // async zip writer the same throw surfaces as a rejection (the export case below).
-      expect(() => deflateRaw(new Uint8Array([1, 2, 3]))).toThrow(
-        'CompressionStream is not available here, and the built-in xlsx engine needs the Web '
-        + 'Compression Streams API. Run Handsontable in a browser or on Node 18+, or inject ExcelJS '
-        + 'through the `engines` option.'
-      );
+      // The guard runs before the promise is built, so this throws synchronously.
+      expect(() => deflateRaw(new Uint8Array([1, 2, 3]))).toThrow(missingGlobalsMessage('CompressionStream'));
     });
   });
 
   it('should refuse to inflate with a message naming DecompressionStream and both ways out', async() => {
     await withoutGlobal('DecompressionStream', async() => {
-      expect(() => inflateRaw(new Uint8Array([1, 2, 3]), 1024)).toThrow(
-        'DecompressionStream is not available here, and the built-in xlsx engine needs the Web '
-        + 'Compression Streams API. Run Handsontable in a browser or on Node 18+, or inject ExcelJS '
-        + 'through the `engines` option.'
-      );
+      expect(() => inflateRaw(new Uint8Array([1, 2, 3]), 1024)).toThrow(missingGlobalsMessage('DecompressionStream'));
     });
   });
 
-  it('should surface the same message from a native export', async() => {
-    const snapshot = createWorkbookSnapshot();
-    const sheet = new SheetBuilder('Sheet1');
+  it('should refuse an export up front when TextEncoder is missing, before it reaches a ReferenceError', async() => {
+    // jsdom has neither text codec, and the export reached `new TextEncoder()` before any stream, so
+    // it ended in `ReferenceError: TextEncoder is not defined`.
+    await withoutGlobal('TextEncoder', async() => {
+      await expect(nativeAdapter.write(oneSheetSnapshot(), undefined, new DroppedFeatures()))
+        .rejects.toThrow(missingGlobalsMessage('TextEncoder'));
+    });
+  });
 
-    sheet.cell(1, 1).value = 'text';
-    snapshot.sheets.push(sheet.toSnapshot());
-    snapshot.compression = 6;
+  it('should refuse an import up front when TextDecoder is missing', async() => {
+    const bytes = await nativeAdapter.write(oneSheetSnapshot(), undefined, new DroppedFeatures());
+    const buffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
 
+    await withoutGlobal('TextDecoder', async() => {
+      await expect(nativeAdapter.read(buffer, undefined, new DroppedFeatures()))
+        .rejects.toThrow(missingGlobalsMessage('TextDecoder'));
+    });
+  });
+
+  it('should name every missing global at once, on both entry points', async() => {
+    const all = ['CompressionStream', 'DecompressionStream', 'TextEncoder', 'TextDecoder'];
+    const message = missingGlobalsMessage('CompressionStream, DecompressionStream, TextEncoder, TextDecoder');
+
+    await withoutGlobal(all, async() => {
+      await expect(nativeAdapter.write(oneSheetSnapshot(), undefined, new DroppedFeatures()))
+        .rejects.toThrow(message);
+      await expect(nativeAdapter.read(new ArrayBuffer(4), undefined, new DroppedFeatures()))
+        .rejects.toThrow(message);
+    });
+  });
+
+  it('should surface the stream message from a native export', async() => {
     await withoutGlobal('CompressionStream', async() => {
-      await expect(nativeAdapter.write(snapshot, undefined, new DroppedFeatures()))
-        .rejects.toThrow(/the built-in xlsx engine needs the Web Compression Streams API/);
+      await expect(nativeAdapter.write(oneSheetSnapshot(), undefined, new DroppedFeatures()))
+        .rejects.toThrow(missingGlobalsMessage('CompressionStream'));
     });
   });
 
@@ -184,6 +235,37 @@ describe('native zip streams: the input is written in bounded slices', () => {
     })).resolves.toMatchObject({ byteLength: STREAM_WRITE_CHUNK_BYTES * 8 });
   });
 
+  it('should charge the decoded string at two bytes per UTF-16 unit', async() => {
+    // The 64 KiB and 256 KiB limits above sit on either side of one 128 KiB string at one byte per
+    // unit and at two, so they cannot tell the two charges apart; Firefox peaked near +1 GB on the
+    // one-byte charge.
+    const deflated = await deflateRaw(new TextEncoder().encode('a'.repeat(1000)));
+    const refusal = (stringBytes) => { throw new Error(`text limit at ${stringBytes}`); };
+
+    // 1000 units weigh 2000 bytes: over a 1500-byte limit, and exactly at a 2000-byte one.
+    await expect(inflateRawText(deflated, Number.MAX_SAFE_INTEGER, undefined, undefined, {
+      maxBytes: 1500, refuse: refusal,
+    })).rejects.toThrow(/text limit at 2000$/);
+    await expect(inflateRawText(deflated, Number.MAX_SAFE_INTEGER, undefined, undefined, {
+      maxBytes: 2000, refuse: refusal,
+    })).resolves.toMatchObject({ byteLength: 1000 });
+  });
+
+  it('should hand the archive reader\'s remaining budget to the inflate as its text limit', async() => {
+    const spy = jest.spyOn(streams, 'inflateRawText');
+
+    try {
+      const archive = await readZip(loadFixture('values'));
+
+      await archive.text(archive.names().find(name => name.endsWith('.xml')));
+
+      expect(spy).toHaveBeenCalled();
+      expect(spy.mock.calls[0][4].maxBytes).toBe(MAX_INFLATED_TOTAL_BYTES);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
   it('should still raise the caller\'s refusal when the output passes the cap mid-stream', async() => {
     const deflated = await deflateRaw(new Uint8Array(STREAM_WRITE_CHUNK_BYTES * 64));
     const refuse = jest.fn(() => {
@@ -192,5 +274,28 @@ describe('native zip streams: the input is written in bounded slices', () => {
 
     await expect(inflateRawText(deflated, 1000, refuse)).rejects.toThrow('caller refusal');
     expect(refuse).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('the Jest crypto setup', () => {
+  it('should install crypto.subtle on a crypto object that has getRandomValues only', () => {
+    // jsdom 20 and later define `crypto` without `subtle`; a guard on `crypto` alone skipped the
+    // install there, and the sheet-password hash then failed as if the page were insecure.
+    const saved = Object.getOwnPropertyDescriptor(globalThis, 'crypto');
+    const partial = { getRandomValues: array => array };
+
+    Object.defineProperty(globalThis, 'crypto', { value: partial, writable: false, configurable: true });
+
+    try {
+      jest.isolateModules(() => {
+        // eslint-disable-next-line global-require -- the setup file runs on load.
+        require('../../../../test/cryptoSetup');
+      });
+
+      expect(globalThis.crypto).toBe(partial);
+      expect(typeof globalThis.crypto.subtle.digest).toBe('function');
+    } finally {
+      Object.defineProperty(globalThis, 'crypto', saved);
+    }
   });
 });

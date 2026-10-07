@@ -7,6 +7,8 @@ import { nativeAdapter } from '../adapters/native';
 import { DroppedFeatures } from '../capabilities';
 import { createWorkbookSnapshot } from '../model';
 import { SheetBuilder } from '../builder';
+import { readZip } from '../adapters/native/zip/reader';
+import { toArrayBuffer } from './helpers/fixtures';
 
 async function writeAndLoad(snapshot) {
   const dropped = new DroppedFeatures();
@@ -16,6 +18,10 @@ async function writeAndLoad(snapshot) {
   await workbook.xlsx.load(bytes);
 
   return { workbook, dropped };
+}
+
+async function sheetXmlOf(bytes) {
+  return (await readZip(toArrayBuffer(bytes))).text('xl/worksheets/sheet1.xml');
 }
 
 function snapshotWith(buildFn) {
@@ -245,29 +251,121 @@ describe('excelJsAdapter.write', () => {
     expect(ws.getCell('C1').border).toEqual(border);
   });
 
-  it('should drop the malformed conditional formatting rules the native writer drops, under the same names', async() => {
-    // Unscreened, ExcelJS threw a TypeError for the first two blocks and wrote a formula of its own
-    // for the `timePeriod` rule; the native writer reports all three and writes the rest.
-    const build = () => snapshotWith((b) => {
-      b.cell(1, 1).value = 5;
-      b.addConditionalFormatting('A1:A2', [{ type: 42 }, 'x']);
-      b.addConditionalFormatting('A1:A2', [{ type: 'expression', style: { font: { bold: true } } }]);
-      b.addConditionalFormatting('A1:A2', [{ type: 'timePeriod', timePeriod: 'today' }]);
-      b.addConditionalFormatting('A1:A2', [{ type: 'cellIs', operator: 'greaterThan', formulae: [1], style: {} }]);
+  it('should keep the number format of a covered cell that has nothing else, and give it the master border', async() => {
+    // A covered cell of a `date` column carries a number format and no style, no lock.
+    const thin = { style: 'thin' };
+    const border = { top: thin, left: thin, bottom: thin, right: thin };
+    const { workbook } = await writeAndLoad(snapshotWith((b) => {
+      b.cell(1, 1).value = 'master';
+      b.cell(1, 1).numFmt = '0.000';
+      b.cell(1, 1).style = { alignment: null, font: null, fill: null, border };
+      b.cell(1, 2).numFmt = 'yyyy-mm-dd';
+      b.merge(1, 1, 1, 3);
+    }));
+    const ws = workbook.worksheets[0];
+
+    expect(ws.getCell('B1').numFmt).toBe('yyyy-mm-dd');
+    expect(ws.getCell('B1').border).toEqual(border);
+  });
+
+  it.each([
+    ['a vertical merge', [2, 1, 3, 1]],
+    ['a horizontal merge', [2, 1, 2, 2]],
+  ])('should write the empty master of %s, so the next cell keeps its column', async(_, merge) => {
+    // ExcelJS skips a cell with no value and no style, and Apple's parser (Quick Look, Numbers) then
+    // places the cells after the missing master one column early.
+    const snapshot = snapshotWith((b) => {
+      b.cell(1, 1).value = 'a1';
+      b.cell(1, 2).value = 'b1';
+      b.cell(1, 3).value = 'c1';
+      b.cell(2, 2).value = 'b2';
+      b.cell(2, 3).value = 'c2';
+      b.cell(3, 1).value = 'a3';
+      b.cell(3, 2).value = 'b3';
+      b.merge(...merge);
     });
-    const { workbook, dropped } = await writeAndLoad(build());
+    const bytes = await excelJsAdapter.write(snapshot, ExcelJS, new DroppedFeatures());
+
+    expect(await sheetXmlOf(bytes)).toMatch(/<row r="2"[^>]*><c r="A2"/);
+
+    // The empty alignment that makes ExcelJS write the master changes nothing a reader shows: the
+    // native reader reads no cell there, and ExcelJS's reader an empty one carrying only the
+    // workbook's default font and an empty fill, neither of which the import turns into a style.
+    const exceljsRead = await excelJsAdapter.read(toArrayBuffer(bytes), ExcelJS, new DroppedFeatures());
+    const nativeRead = await nativeAdapter.read(toArrayBuffer(bytes), undefined, new DroppedFeatures());
+    const exceljsMaster = exceljsRead.sheets[0].rows[1][0];
+
+    expect(nativeRead.sheets[0].rows[1][0]).toBeNull();
+    expect(exceljsMaster.value).toBeNull();
+    expect(exceljsMaster.formula).toBeNull();
+    expect(exceljsMaster.style.alignment).toBeNull();
+    expect(exceljsMaster.style.border).toBeNull();
+    expect(exceljsMaster.style.fill).toEqual({ type: 'pattern', pattern: 'none' });
+  });
+
+  it('should write a timePeriod rule with no formula on both engines, with the formula ExcelJS documents', async() => {
+    // ExcelJS's README documents `{ type, priority, timePeriod, style }`, and 18.1 wrote it with the
+    // formula ExcelJS builds itself. The native writer builds the same one.
+    const build = () => snapshotWith((b) => {
+      b.cell(1, 1).value = 1;
+      b.addConditionalFormatting('B2:C3', [
+        { type: 'timePeriod', timePeriod: 'today', style: { font: { bold: true } } },
+        { type: 'timePeriod', timePeriod: 'lastMonth', style: { font: { italic: true } } },
+      ]);
+    });
+    const exceljsDropped = new DroppedFeatures();
     const nativeDropped = new DroppedFeatures();
+    const exceljsXml = await sheetXmlOf(await excelJsAdapter.write(build(), ExcelJS, exceljsDropped));
+    const nativeXml = await sheetXmlOf(await nativeAdapter.write(build(), undefined, nativeDropped));
+    const rulePattern = /<cfRule type="timePeriod"[^>]*timePeriod="(\w+)"[^>]*><formula>([^<]*)<\/formula>/g;
+    const formulas = xml => [...xml.matchAll(rulePattern)]
+      .map(([, period, formula]) => [period, formula]);
 
-    await nativeAdapter.write(build(), undefined, nativeDropped);
+    expect(exceljsDropped.list()).toEqual([]);
+    expect(nativeDropped.list()).toEqual([]);
+    expect(formulas(exceljsXml)).toEqual([
+      ['today', 'FLOOR(B2,1)=TODAY()'],
+      ['lastMonth', 'AND(MONTH(B2)=MONTH(EDATE(TODAY(),0-1)),YEAR(B2)=YEAR(EDATE(TODAY(),0-1)))'],
+    ]);
+    expect(formulas(nativeXml)).toEqual(formulas(exceljsXml));
+  });
 
-    expect(dropped.list()).toEqual(expect.arrayContaining([
-      'conditionalFormatting:invalid', 'conditionalFormatting:expression', 'conditionalFormatting:timePeriod',
-    ]));
-    expect(nativeDropped.list()).toEqual(expect.arrayContaining([
-      'conditionalFormatting:invalid', 'conditionalFormatting:expression', 'conditionalFormatting:timePeriod',
-    ]));
-    expect(workbook.worksheets[0].conditionalFormattings.map(cf => cf.rules.map(rule => rule.type)))
-      .toEqual([['cellIs']]);
+  it('should drop the malformed conditional formatting rules the native writer drops, under the same names', async() => {
+    // Unscreened, ExcelJS threw a TypeError for each of these but two: an `expression` with an
+    // empty `formulae` was written with an empty `<formula/>`, and a `timePeriod` with a formula and
+    // no period without its `timePeriod` attribute. The native writer reports every one of them.
+    const blocks = [
+      [[{ type: 42 }, 'x', null], 'conditionalFormatting:invalid'],
+      [[{ type: 'expression', style: { font: { bold: true } } }], 'conditionalFormatting:expression'],
+      [[{ type: 'expression', formulae: [], style: { font: { bold: true } } }], 'conditionalFormatting:expression'],
+      [[{ type: 'timePeriod', formulae: ['TODAY()'], style: {} }], 'conditionalFormatting:timePeriod'],
+      // A period `ST_TimePeriod` does not list has no formula to build.
+      [[{ type: 'timePeriod', timePeriod: 'nextYear', style: {} }], 'conditionalFormatting:timePeriod'],
+      // The bare rule the native reader used to import for these kinds: ExcelJS threw on `cfvo.forEach`.
+      [[{ type: 'colorScale', priority: 1 }], 'conditionalFormatting:colorScale'],
+      [[{ type: 'colorScale', cfvo: [{ type: 'min' }, { type: 'max' }] }], 'conditionalFormatting:colorScale'],
+      [[{ type: 'dataBar', priority: 1 }], 'conditionalFormatting:dataBar'],
+      [[{ type: 'iconSet', priority: 1 }], 'conditionalFormatting:iconSet'],
+    ];
+
+    for (const [rules, name] of blocks) {
+      const build = () => snapshotWith((b) => {
+        b.cell(1, 1).value = 5;
+        b.addConditionalFormatting('A1:A2', rules);
+        b.addConditionalFormatting('A1:A2', [{ type: 'cellIs', operator: 'greaterThan', formulae: [1], style: {} }]);
+      });
+      // eslint-disable-next-line no-await-in-loop -- one engine pair per block, so a failure names it.
+      const { workbook, dropped } = await writeAndLoad(build());
+      const nativeDropped = new DroppedFeatures();
+
+      // eslint-disable-next-line no-await-in-loop
+      await nativeAdapter.write(build(), undefined, nativeDropped);
+
+      expect([name, dropped.list()]).toEqual([name, [name]]);
+      expect([name, nativeDropped.list()]).toEqual([name, [name]]);
+      expect(workbook.worksheets[0].conditionalFormattings.map(cf => cf.rules.map(rule => rule.type)))
+        .toEqual([['cellIs']]);
+    }
   });
 
   it('should write conditional formatting and honor the compression level', async() => {

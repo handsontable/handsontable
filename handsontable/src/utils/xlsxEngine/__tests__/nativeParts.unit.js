@@ -10,7 +10,7 @@ import { SharedStringTable, parseSharedStrings } from '../adapters/native/parts/
 import { commentsXml, vmlDrawingXml, vmlBlockCount, parseComments } from '../adapters/native/parts/comments';
 import { dataValidationsXml } from '../adapters/native/parts/dataValidation';
 import {
-  conditionalFormattingXml, cfRuleFromXml, maxRulePriority,
+  conditionalFormattingXml, cfRuleFromXml, readCfRule, maxRulePriority,
 } from '../adapters/native/parts/conditionalFormatting';
 import { StyleTable, parseStyles, EMPTY_STYLES } from '../adapters/native/parts/styles';
 import { hashSheetPassword, SHEET_PASSWORD_SPIN_COUNT } from '../adapters/native/parts/protection';
@@ -60,8 +60,14 @@ describe('package parts', () => {
       '<Override PartName="/xl/styles.xml" '
       + 'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>',
     );
-    expect(xml).toContain('/docProps/core.xml');
-    expect(xml).toContain('/docProps/app.xml');
+    expect(xml).toContain(
+      '<Override PartName="/docProps/core.xml" '
+      + 'ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>',
+    );
+    expect(xml).toContain(
+      '<Override PartName="/docProps/app.xml" '
+      + 'ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>',
+    );
 
     expect(contentTypesXml([{ ...sheets[0], hasComments: false }], false)).not.toMatch(/vml|sharedStrings/);
   });
@@ -127,6 +133,29 @@ describe('package parts', () => {
       + '</definedNames></workbook>');
 
     expect(definedNames).toEqual(['Sales', 'Rate']);
+  });
+
+  it('should record the names past the defined-name cap as dropped, once', () => {
+    const dropped = new DroppedFeatures();
+    const names = Array.from({ length: 65537 }, (_, i) => `<definedName name="N${i}">1</definedName>`).join('');
+    const { definedNames } = parseWorkbook(`<workbook><sheets/><definedNames>${names}`
+      + '<definedName name="N65537">1</definedName><definedName name="N0">2</definedName>'
+      + '</definedNames></workbook>', dropped);
+
+    expect(definedNames).toHaveLength(65536);
+    expect(definedNames[65535]).toBe('N65535');
+    expect(dropped.list()).toEqual(['definedNames:truncated']);
+    expect(dropped.count('definedNames:truncated')).toBe(1);
+  });
+
+  it('should record nothing at exactly the defined-name cap, or for a repeated name past it', () => {
+    const dropped = new DroppedFeatures();
+    const names = Array.from({ length: 65536 }, (_, i) => `<definedName name="N${i}">1</definedName>`).join('');
+
+    parseWorkbook(`<workbook><sheets/><definedNames>${names}<definedName name="N7">2</definedName>`
+      + '</definedNames></workbook>', dropped);
+
+    expect(dropped.list()).toEqual([]);
   });
 
   it('should escape a sheet name with markup characters', () => {
@@ -318,7 +347,11 @@ describe('conditional formatting', () => {
       '<cfRule type="containsBlanks" priority="3">'
       + '<formula>LEN(TRIM(B2))=0</formula></cfRule>',
     );
-    expect(xml).not.toMatch(/type="(not)?contains(Blanks|Errors)"[^>]*operator=/);
+    expect(xml).not.toMatch(/type="(?:not)?[Cc]ontains(?:Blanks|Errors)"[^>]*operator=/);
+    expect(xml).toContain(
+      '<cfRule type="notContainsBlanks" priority="4"><formula>LEN(TRIM(B2))&gt;0</formula></cfRule>',
+    );
+    expect(xml).toContain('<cfRule type="notContainsErrors" priority="6"><formula>NOT(ISERROR(B2))</formula></cfRule>');
     expect(dropped.list()).toEqual([]);
   });
 
@@ -348,14 +381,45 @@ describe('conditional formatting', () => {
     expect(dropped.list()).toEqual([]);
   });
 
-  it('should drop a timePeriod rule that names no period or carries no formula, and an expression rule with none', () => {
+  it('should build the formula of a timePeriod rule that carries none, from the top-left cell of its range', () => {
+    // ExcelJS documents `{ type, timePeriod, style }` and builds the formula itself
+    // (`getTimePeriodFormula`); the native writer builds the same text.
+    const dropped = new DroppedFeatures();
+    const periods = [
+      ['today', 'FLOOR(C3,1)=TODAY()'],
+      ['yesterday', 'FLOOR(C3,1)=TODAY()-1'],
+      ['tomorrow', 'FLOOR(C3,1)=TODAY()+1'],
+      ['last7Days', 'AND(TODAY()-FLOOR(C3,1)&lt;=6,FLOOR(C3,1)&lt;=TODAY())'],
+      ['thisWeek', 'AND(TODAY()-ROUNDDOWN(C3,0)&lt;=WEEKDAY(TODAY())-1,'
+        + 'ROUNDDOWN(C3,0)-TODAY()&lt;=7-WEEKDAY(TODAY()))'],
+      ['lastWeek', 'AND(TODAY()-ROUNDDOWN(C3,0)&gt;=(WEEKDAY(TODAY())),'
+        + 'TODAY()-ROUNDDOWN(C3,0)&lt;(WEEKDAY(TODAY())+7))'],
+      ['nextWeek', 'AND(ROUNDDOWN(C3,0)-TODAY()&gt;(7-WEEKDAY(TODAY())),'
+        + 'ROUNDDOWN(C3,0)-TODAY()&lt;(15-WEEKDAY(TODAY())))'],
+      ['lastMonth', 'AND(MONTH(C3)=MONTH(EDATE(TODAY(),0-1)),YEAR(C3)=YEAR(EDATE(TODAY(),0-1)))'],
+      ['thisMonth', 'AND(MONTH(C3)=MONTH(TODAY()),YEAR(C3)=YEAR(TODAY()))'],
+      ['nextMonth', 'AND(MONTH(C3)=MONTH(EDATE(TODAY(),0+1)),YEAR(C3)=YEAR(EDATE(TODAY(),0+1)))'],
+    ];
+    const rules = periods.map(([timePeriod]) => ({ type: 'timePeriod', timePeriod }));
+    const xml = conditionalFormattingXml('$C$3:D9 F1', rules, new StyleTable(), { next: 1 }, dropped);
+
+    periods.forEach(([timePeriod, formula], index) => {
+      expect(xml).toContain(
+        `<cfRule type="timePeriod" priority="${index + 1}" timePeriod="${timePeriod}">`
+        + `<formula>${formula}</formula></cfRule>`,
+      );
+    });
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should drop a timePeriod rule that names no period, or no known one and no formula, and an expression rule with none', () => {
     const dropped = new DroppedFeatures();
 
     // An `expression` rule IS its formula — there is nothing left to write when `formulae` is empty
     // or absent, so it is recorded under its own name rather than emitted as a `<cfRule>` with no
     // `<formula>` child, which Excel opens with the "repair" dialog.
     expect(conditionalFormattingXml('A1:A3', [
-      { type: 'timePeriod', timePeriod: 'today' },
+      { type: 'timePeriod', timePeriod: 'nextYear' },
       { type: 'timePeriod', formulae: ['TRUE()'] },
       { type: 'expression', formulae: [] },
       { type: 'expression' },
@@ -369,12 +433,14 @@ describe('conditional formatting', () => {
       { type: 'dataBar', cfvo: [{ type: 'min' }, { type: 'max' }] },
       { type: 'iconSet' },
       'not a rule',
+      null,
     ], new StyleTable(), { next: 1 }, dropped);
 
     expect(xml).toBe('');
     expect(dropped.list()).toEqual([
       'conditionalFormatting:dataBar', 'conditionalFormatting:iconSet', 'conditionalFormatting:invalid',
     ]);
+    expect(dropped.count('conditionalFormatting:invalid')).toBe(2);
   });
 
   it('should continue priorities above the highest one any rule declares', () => {
@@ -399,6 +465,11 @@ describe('conditional formatting', () => {
       .toEqual({ type: 'aboveAverage', aboveAverage: false, priority: 5 });
     expect(cfRuleFromXml({ type: 'duplicateValues', priority: '6', dxfId: '9' }, [], dxfs))
       .toEqual({ type: 'duplicateValues', priority: 6 });
+    // LibreOffice spells every flag "true"/"false".
+    expect(cfRuleFromXml({ type: 'top10', rank: '5', percent: 'true', bottom: 'true', priority: '1' }, [], []))
+      .toEqual({ type: 'top10', rank: 5, percent: true, bottom: true, priority: 1 });
+    expect(cfRuleFromXml({ type: 'aboveAverage', aboveAverage: 'false', priority: '2' }, [], []))
+      .toEqual({ type: 'aboveAverage', aboveAverage: false, priority: 2 });
   });
 
   it.each(['NaN', 'Infinity', '1e999', '', '0x10', '2.5', 'abc'])(
@@ -414,6 +485,24 @@ describe('conditional formatting', () => {
       expect(cfRuleFromXml({ type: 'top10', rank, priority: '1' }, [], []))
         .toEqual({ type: 'top10', rank: 10, percent: false, bottom: false, priority: 1 });
     });
+
+  it.each(['colorScale', 'dataBar', 'iconSet'])(
+    'should leave a %s rule out of the import and record it, rather than rebuild a rule nothing writes', (type) => {
+      // The reader does not read the `<colorScale>`, `<dataBar>` or `<iconSet>` child, so the rule it
+      // rebuilt was a bare `{ type, priority }`: the ExcelJS export then threw on `cfvo.forEach`.
+      const dropped = new DroppedFeatures();
+
+      expect(readCfRule({ type, priority: '1' }, [], [], dropped)).toBeNull();
+      expect(dropped.list()).toEqual([`conditionalFormatting:${type}`]);
+    });
+
+  it('should rebuild every other kind through readCfRule, recording nothing', () => {
+    const dropped = new DroppedFeatures();
+
+    expect(readCfRule({ type: 'cellIs', operator: 'equal', priority: '1' }, ['1'], [], dropped))
+      .toEqual({ type: 'cellIs', operator: 'equal', priority: 1, formulae: ['1'] });
+    expect(dropped.list()).toEqual([]);
+  });
 
   it('should give two rules sharing a dxfId their own style object, not the same instance', () => {
     const dxfs = [{ font: { bold: true } }];
@@ -728,6 +817,48 @@ describe('worksheetXml', () => {
     });
 
     expect(xml).toContain('<row r="2"><c r="A2"/><c r="B2" t="s">');
+  });
+
+  it('should write the empty master of a vertical merge, so the cells after it keep their columns', () => {
+    // A `null` master slot was skipped: only covered cells were looked up. Quick Look then drew no
+    // merge and placed `b3` under column A.
+    const { xml } = writeSheet((b) => {
+      b.cell(1, 1).value = 'a1';
+      b.cell(1, 2).value = 'b1';
+      b.cell(2, 2).value = 'b2';
+      b.cell(3, 1).value = 'a3';
+      b.cell(3, 2).value = 'b3';
+      b.merge(2, 1, 3, 1); // A2:A3, master A2 is empty
+    });
+
+    expect(xml).toContain('<row r="2"><c r="A2"/><c r="B2"');
+  });
+
+  it('should write the empty master of a horizontal and of a 2 x 2 merge, and the master of a merge past the row end', () => {
+    const { xml } = writeSheet((b) => {
+      b.cell(1, 1).value = 'a1';
+      b.cell(2, 3).value = 'c2';
+      b.merge(2, 1, 2, 2); // A2:B2, empty master
+      b.cell(3, 1).value = 'a3';
+      b.cell(4, 3).value = 'c4';
+      b.merge(4, 1, 5, 2); // A4:B5, empty master
+      b.merge(1, 5, 1, 6); // E1:F1, past the last cell of row 1
+    });
+
+    expect(xml).toContain('<row r="1"><c r="A1" t="s"><v>0</v></c><c r="E1"/><c r="F1"/></row>');
+    expect(xml).toContain('<row r="2"><c r="A2"/><c r="B2"/><c r="C2"');
+    expect(xml).toContain('<row r="4"><c r="A4"/><c r="B4"/><c r="C4"');
+    expect(xml).toContain('<row r="5"><c r="A5"/><c r="B5"/></row>');
+  });
+
+  it('should not write an empty cell that is not a merge master', () => {
+    const { xml } = writeSheet((b) => {
+      b.cell(1, 1).value = 'a1';
+      b.cell(1, 2).value = null;
+      b.cell(1, 3).value = 'c1';
+    });
+
+    expect(xml).toContain('<row r="1"><c r="A1" t="s"><v>0</v></c><c r="C1"');
   });
 
   it('should write a covered row that holds no cell of its own', () => {
@@ -1110,10 +1241,10 @@ describe('parseWorksheet', () => {
   });
 
   it('should materialize a merge member that has no <c> element, up to the dimension', () => {
-    // The shape the native writer emits for `A1:B1` merged with only A1 written: B1 carries no
-    // style, so `writeCell`'s `isCovered` branch emits no `<c>` for it at all. The merge pass
-    // materializes it as an explicit `null` — what ExcelJS returns for the same file — instead of
-    // clamping the merge to the master and leaving the row a cell short.
+    // `A1:B1` merged with only A1 written and no `<c>` for B1 at all, the shape a producer that
+    // leaves covered cells out writes (the native writer itself now emits `<c r="B1"/>`). The merge
+    // pass materializes it as an explicit `null` — what ExcelJS returns for the same file — instead
+    // of clamping the merge to the master and leaving the row a cell short.
     const xml = `<worksheet ${NS}><dimension ref="A1:B1"/><sheetData>`
       + '<row r="1"><c r="A1" t="s"><v>0</v></c></row></sheetData>'
       + '<mergeCells count="1"><mergeCell ref="A1:B1"/></mergeCells></worksheet>';

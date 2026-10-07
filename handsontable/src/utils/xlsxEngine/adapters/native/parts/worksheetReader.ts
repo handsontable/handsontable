@@ -3,7 +3,7 @@ import { DROPPED_FEATURES, type DroppedFeatureName, type DroppedFeatures } from 
 import { parseCellRef, parseMultiRangeRef, parseRangeRef } from '../../../cellRef';
 import { EXCEL_EPOCH_OFFSET, MS_PER_DAY } from '../../../dates';
 import { translateSharedFormula } from '../../../formulaRefs';
-import { isTemporalFormatCode } from '../../../numFmtCode';
+import { classifyTemporalFormat } from '../../../numFmtCode';
 import {
   MAX_FORMULA_LENGTH, MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_SHEET_ROWS, MAX_TRANSLATED_FORMULA_CHARS,
   MAX_WORKBOOK_CELLS, throwCellLimit, throwColumnLimit, throwLimitExceeded, throwRowLimit,
@@ -18,7 +18,7 @@ import { decodeOoxmlEscapes } from '../xml/escapes';
 import { parseFiniteDoubleAttr, parseUnsignedIntAttr } from '../xml/numbers';
 import { collectRichTextRuns } from '../xml/richText';
 import { createLocalName, tokenizeXml, type XmlAttributes } from '../xml/tokenizer';
-import { cfRuleFromXml } from './conditionalFormatting';
+import { readCfRule } from './conditionalFormatting';
 import { PROTECTION_INVERTED_OPTIONS } from './protection';
 import type { ParsedSharedStrings } from './sharedStrings';
 import type { DxfStyle, ParsedStyles } from './styles';
@@ -49,6 +49,13 @@ export interface WorksheetReadContext {
   styles: ParsedStyles;
   sharedStrings: ParsedSharedStrings;
   comments: Map<string, string>;
+  /**
+   * The relationship ids of the sheet's drawing parts that place at least one anchor, which
+   * `read.ts` resolves before the sheet is parsed. A `<drawing>` naming any other id records nothing:
+   * Google Sheets links an empty drawing from every sheet. Left out (a caller driving the parser
+   * alone), every `<drawing>` records `images`, as the parser cannot see the part.
+   */
+  imageDrawings?: ReadonlySet<string>;
   date1904: boolean;
   dropped: DroppedFeatures;
   budget: WorkbookBudget;
@@ -247,6 +254,14 @@ const INLINE_STRING_ELEMENTS = new Set(['is', 'r', 'rPh', 't']);
 const ZONED_DATE_TIME = /(?:Z|[+-]\d{2}:?\d{2})$/i;
 
 /**
+ * The spellings a `t="d"` value may take: an ISO 8601 date (`2024-01-15`) or date-time with a `T`
+ * (`2024-01-15T09:30:45`, optional fraction and zone). `Date.parse` reads anything else, such as
+ * `2024-01-15 09:30:45` or `2024/01/15`, in the browser's time zone, so one file imported a
+ * different value per zone; such a value is refused instead (`DROPPED_FEATURES.cellValueDate`).
+ */
+const ISO_DATE_VALUE = /^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:[Zz]|[+-]\d{2}:?\d{2})?)?$/;
+
+/**
  * The elements the conditional-formatting state machine owns.
  */
 const CF_ELEMENTS = new Set(['conditionalFormatting', 'cfRule', 'formula']);
@@ -278,12 +293,28 @@ function afterPrefix(name: string): string {
 const DROPPED_ON_OPEN = new Map<string, DroppedFeatureName>([
   ['autoFilter', DROPPED_FEATURES.autoFilter],
   ['hyperlink', DROPPED_FEATURES.hyperlink],
-  ['drawing', DROPPED_FEATURES.images],
   ['tablePart', DROPPED_FEATURES.tables],
 ]);
 
 /**
- * Reads an ISO date cell (`t="d"`) as a 1900-system serial number.
+ * A `<pane>` split as a whole count of frozen rows or columns: a finite `xsd:double` rounded down,
+ * or 0 when the text is not one or the count is negative or above `max`.
+ */
+function paneSplit(text: string | undefined, max: number): number {
+  const value = parseFiniteDoubleAttr(text);
+
+  if (value === null) {
+    return 0;
+  }
+
+  const count = Math.floor(value);
+
+  return count >= 0 && count <= max ? count : 0;
+}
+
+/**
+ * Reads an ISO date cell (`t="d"`) as a 1900-system serial number, or `null` for a value that is
+ * not an ISO 8601 date or date-time with a `T` (`ISO_DATE_VALUE`).
  *
  * A date-time with no zone designator is read as UTC. `Date.parse` reads such a value as LOCAL
  * time (a date-only value it already reads as UTC), so the serial moved with the machine's zone:
@@ -292,6 +323,11 @@ const DROPPED_ON_OPEN = new Map<string, DroppedFeatureName>([
  */
 function dateSerial(rawText: string): CellValue {
   const text = rawText.trim();
+
+  if (!ISO_DATE_VALUE.test(text)) {
+    return null;
+  }
+
   const iso = text.includes('T') && !ZONED_DATE_TIME.test(text) ? `${text}Z` : text;
   const ms = Date.parse(iso);
 
@@ -345,6 +381,11 @@ class WorksheetParser {
    * The column count `<dimension>` declares, the bound the merge and validation passes clamp to.
    */
   #declaredColumns = 0;
+
+  /**
+   * The row count `<dimension>` declares, the bound a merge may grow the rows to.
+   */
+  #declaredRows = 0;
 
   /**
    * Cells covered so far by declared column, merge and validation ranges. A `sqref` may repeat the
@@ -676,6 +717,29 @@ class WorksheetParser {
       this.#openMergeCell(attrs);
     } else if (name === 'sheetProtection') {
       this.#openProtection(attrs);
+    } else if (name === 'drawing') {
+      this.#openDrawing(attrs);
+    }
+  }
+
+  /**
+   * Reads `<drawing>`, recording `images` when the drawing part it names places anything on the
+   * sheet. The relationship id is read from `r:id`, or from any other prefix's `id` when the file
+   * binds the relationships namespace to another one.
+   */
+  #openDrawing(attrs: XmlAttributes): void {
+    const { imageDrawings } = this.#ctx;
+
+    if (imageDrawings === undefined) {
+      this.#ctx.dropped.record(DROPPED_FEATURES.images);
+
+      return;
+    }
+
+    const idKey = attrs['r:id'] === undefined ? Object.keys(attrs).find(key => key.endsWith(':id')) : 'r:id';
+
+    if (idKey !== undefined && imageDrawings.has(attrs[idKey])) {
+      this.#ctx.dropped.record(DROPPED_FEATURES.images);
     }
   }
 
@@ -697,17 +761,19 @@ class WorksheetParser {
       // rows made three rows under `A1:B5000` a 5000-row sheet, and a million-row declaration with
       // no row at all a million empty arrays that a validation then filled with cells.
       this.#declaredColumns = dimension.endCol;
+      this.#declaredRows = dimension.endRow;
     }
   }
 
   /**
-   * Reads `<pane>`, the frozen rows and columns. A split that is not a whole, non-negative number
-   * reads as no split on its axis.
+   * Reads `<pane>`, the frozen rows and columns. ECMA-376 types both splits as `xsd:double`, and
+   * Google Sheets writes `xSplit="3.0"`, so a split is read as a finite double and rounded down. One
+   * that is negative, non-finite or past the sheet's own limit on its axis reads as no split there.
    */
   #openPane(attrs: XmlAttributes): void {
     if (attrs.state === 'frozen' || attrs.state === 'frozenSplit') {
-      const frozenColumns = parseUnsignedIntAttr(attrs.xSplit) ?? 0;
-      const frozenRows = parseUnsignedIntAttr(attrs.ySplit) ?? 0;
+      const frozenColumns = paneSplit(attrs.xSplit, MAX_SHEET_COLUMNS);
+      const frozenRows = paneSplit(attrs.ySplit, MAX_SHEET_ROWS);
 
       this.#sheet.freeze = frozenColumns > 0 || frozenRows > 0
         ? { rows: frozenRows, cols: frozenColumns }
@@ -1249,7 +1315,12 @@ class WorksheetParser {
     const cfRule = this.#cfRule;
 
     if (this.#cf && cfRule) {
-      this.#cf.rules.push(cfRuleFromXml(cfRule.attrs, cfRule.formulae, this.#ctx.styles.dxfs as DxfStyle[]));
+      const rule = readCfRule(cfRule.attrs, cfRule.formulae, this.#ctx.styles.dxfs as DxfStyle[], this.#ctx.dropped);
+
+      if (rule !== null) {
+        this.#cf.rules.push(rule);
+      }
+
       this.#cfRule = null;
     }
   }
@@ -1280,18 +1351,38 @@ class WorksheetParser {
 
   /**
    * A numeric `<v>`, shifted into the 1900 system when the workbook counts from 1904 and the cell's
-   * format reads as a date or a time. The question is answered by `isTemporalFormatCode`, the
-   * import's own classification: a reader-local letter test saw the `h` of `0.0\h` (a literal) and
-   * of `CHF`, and shifted serials the import then showed as numbers.
+   * format reads as a date or a date-time. The question is answered by `classifyTemporalFormat`,
+   * the import's own classification: a reader-local letter test saw the `h` of `0.0\h` (a literal)
+   * and of `CHF`, and shifted serials the import then showed as numbers. A time format is not
+   * shifted: a time of day or an elapsed `[h]:mm` value is a fraction of a day or a duration, the
+   * same number in either date system, and shifted, a 12:00 duration imported as 1462.5.
    */
   #numberValue(rawText: string, numFmt: string | null): CellValue {
     const value = toNumber(rawText);
 
-    if (this.#ctx.date1904 && typeof value === 'number' && isTemporalFormatCode(numFmt)) {
-      return value + DATE_1904_OFFSET;
+    if (this.#ctx.date1904 && typeof value === 'number' && numFmt !== null) {
+      const kind = classifyTemporalFormat(numFmt);
+
+      if (kind === 'date' || kind === 'datetime') {
+        return value + DATE_1904_OFFSET;
+      }
     }
 
     return value;
+  }
+
+  /**
+   * An ISO date cell's serial, or `null` with `DROPPED_FEATURES.cellValueDate` recorded when the
+   * text is not an ISO 8601 date or date-time (`dateSerial`) or names no real instant.
+   */
+  #dateValue(rawText: string): CellValue {
+    const serial = dateSerial(rawText);
+
+    if (serial === null) {
+      this.#ctx.dropped.record(DROPPED_FEATURES.cellValueDate);
+    }
+
+    return serial;
   }
 
   /**
@@ -1321,7 +1412,7 @@ class WorksheetParser {
       case 'e':
         return rawText;
       case 'd':
-        return dateSerial(rawText);
+        return this.#dateValue(rawText);
       default:
         return this.#numberValue(rawText, numFmt);
     }
@@ -1402,23 +1493,30 @@ class WorksheetParser {
   /**
    * Merges: the master keeps its content, every covered cell keeps only its own style and lock. A merge member with
    * no `<c>` element of its own is MATERIALIZED here as an explicit `null`, which is what ExcelJS
-   * returns for the same file — without it a merge whose covered cells were never written (the
-   * native writer emits no `<c>` for an unstyled covered cell) left the row one column short, and
-   * `importFile`'s mapper, which takes the sheet width from the widest row, then dropped the merge.
+   * returns for the same file — without it a merge whose covered cells were never written left the
+   * row one column short, and `importFile`'s mapper, which takes the sheet width from the widest
+   * row, then dropped the merge. The native writer used to emit no `<c>` for an unstyled covered
+   * cell; it now writes every covered member and an empty master. The pass stays for files from
+   * other producers that still leave covered cells out (Google Sheets, openpyxl, older exports).
    */
   #materializeMerges(): void {
-    // The dimension is the column bound, the same one the validation pass below uses: both the
+    // The dimension is the column bound: both the
     // native writer and Excel include every merge in `<dimension>`, so a merge reaching past it is
     // malformed and stays clamped rather than growing the sheet on a hostile file's say-so. A sheet
     // that declares NO dimension (openpyxl's write-only mode, ExcelJS's streaming writer) has no
     // such bound, and clamping to the widest row cropped a merge whose covered cells carry no `<c>`:
     // there the merge widens the sheet, and the span charge below bounds a hostile one.
     const colBound = this.#declaredColumns === 0 ? MAX_SHEET_COLUMNS : Math.max(this.#width, this.#declaredColumns, 1);
+    // Rows follow the same rule. Google Sheets writes a `<row>` only for a row that has a cell or a
+    // height, and no `<dimension>`, so the last row of a merge over empty cells has no `<row>`:
+    // clamping to the rows that exist cut `A6:B7` to one row and the grid to six rows, where
+    // ExcelJS grows the sheet to the merge. A declared dimension still bounds the growth.
+    const rowBound = this.#declaredRows === 0 ? MAX_SHEET_ROWS : Math.max(this.#rows.length, this.#declaredRows);
 
     // A merge that clamps to nothing is DROPPED rather than kept: it covers no cell the sheet holds,
     // and keeping it left any number of far-away merges on the snapshot of a one-cell sheet.
     this.#sheet.merges = this.#sheet.merges.filter((merge) => {
-      const lastRow = Math.min(merge.row + merge.rowspan, this.#rows.length);
+      const lastRow = Math.min(merge.row + merge.rowspan, rowBound);
       const lastCol = Math.min(merge.col + merge.colspan, colBound);
 
       if (lastRow <= merge.row || lastCol <= merge.col) {
@@ -1431,9 +1529,10 @@ class WorksheetParser {
       // padding below walks no further than this charge already paid for.
       this.#chargeSpan((lastRow - merge.row) * (lastCol - merge.col));
 
-      // `#finalize` re-checks the rectangle with the grown width, so a whole-sheet merge
-      // is still refused rather than silently widening the sheet.
+      // `#finalize` re-checks the rectangle with the grown width and row count, so a whole-sheet
+      // merge is still refused rather than silently growing the sheet.
       this.#width = Math.max(this.#width, lastCol);
+      this.#ensureRow(lastRow - 1);
 
       this.#padMergeMembers(merge.row, merge.col, lastRow, lastCol);
 

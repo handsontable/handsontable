@@ -44,14 +44,16 @@
  * way in `enginesParity.unit.js`, the ONE list of them:
  *
  * - the theme fill (the native reader has no theme palette);
- * - the conditional-formatting rule-kind subset the native writer supports;
+ * - the conditional-formatting rule-kind subset the native writer supports (and the native reader
+ *   leaving out the `colorScale`, `dataBar` and `iconSet` rules ExcelJS reads complete);
  * - the `containsText` `text` attribute, which ExcelJS neither writes nor reads;
  * - non-finite numbers, which ExcelJS writes as `<v>NaN</v>` and the readers then disagree on;
  * - ExcelJS stripping the backslash escapes of a number format (`0.0\%` reads as `0.0%`);
  * - four sheet-name rows (a control character, over 31 characters, `history`, `HISTORY`);
  * - the `lossy.xlsx` dropped ORDER;
  * - an empty-string cached formula result, which the ExcelJS reader loses;
- * - the LibreOffice attribute dialect (`"true"`/`"false"`), which the ExcelJS reader misses;
+ * - the LibreOffice attribute dialect (`"true"`/`"false"`), which the ExcelJS reader misses (a
+ *   password-protected sheet excepted: its hash attributes survive, so both engines read it protected);
  * - a hidden column with no width of its own, which ExcelJS writes and reads as its default width 9
  *   while the native writer and reader leave it without one (the export always passes a width).
  *

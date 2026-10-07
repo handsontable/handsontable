@@ -53,6 +53,10 @@ interface ResolvedMerges {
    */
   covered: Map<string, MergeSnapshot>;
   /**
+   * The master (top-left) cell of each kept merge, keyed `${row}:${col}`.
+   */
+  masters: Set<string>;
+  /**
    * The last covered column of each row a merge covers part of.
    */
   lastCoveredColByRow: Map<number, number>;
@@ -61,12 +65,13 @@ interface ResolvedMerges {
 /**
  * Resolves overlapping merges: the first one wins, a later one that overlaps is recorded and
  * skipped. A single-cell "merge" is skipped silently: it merges nothing, and a `<mergeCell>` of
- * one cell is not something Excel itself writes. Returns the kept merges and the covered
- * (non-master) cells.
+ * one cell is not something Excel itself writes. Returns the kept merges, their masters and the
+ * covered (non-master) cells.
  */
 function resolveMerges(merges: MergeSnapshot[], dropped: DroppedFeatures): ResolvedMerges {
   const occupied = new Set<string>();
   const covered = new Map<string, MergeSnapshot>();
+  const masters = new Set<string>();
   const lastCoveredColByRow = new Map<number, number>();
   const kept: MergeSnapshot[] = [];
 
@@ -91,6 +96,7 @@ function resolveMerges(merges: MergeSnapshot[], dropped: DroppedFeatures): Resol
 
     keys.forEach(key => occupied.add(key));
     keys.slice(1).forEach(key => covered.set(key, merge));
+    masters.add(keys[0]);
     kept.push(merge);
 
     const lastCol = merge.col + merge.colspan - 1;
@@ -100,7 +106,7 @@ function resolveMerges(merges: MergeSnapshot[], dropped: DroppedFeatures): Resol
     }
   });
 
-  return { kept, covered, lastCoveredColByRow };
+  return { kept, covered, masters, lastCoveredColByRow };
 }
 
 /**
@@ -240,16 +246,20 @@ function writeCoveredCell(
 function writeCell(
   w: XmlWriter,
   ref: string,
-  cell: CellSnapshot,
+  cell: CellSnapshot | null | undefined,
   styles: StyleTable,
   strings: SharedStringTable,
   dropped: DroppedFeatures,
+  isMergeMaster: boolean,
 ): boolean {
   const s = cellStyleIndex(cell, styles);
   const styleAttr = s === 0 ? undefined : s;
 
-  if (cell.value === null && cell.formula === null) {
-    if (styleAttr !== undefined) {
+  if (!cell || (cell.value === null && cell.formula === null)) {
+    // A merge master is written even when it holds nothing: Apple's parser (Quick Look, Numbers)
+    // places the cells after a missing `<c>` one column early, so the merge was not drawn and the
+    // row shifted left - the same defect `writeCoveredCell` prevents for the covered members.
+    if (styleAttr !== undefined || isMergeMaster) {
       w.raw(`${cellStartTag(ref, styleAttr, undefined)}/>`);
     }
 
@@ -284,6 +294,7 @@ interface SheetDataContext {
   colCount: number;
   hiddenRows: Set<number>;
   covered: Map<string, MergeSnapshot>;
+  masters: Set<string>;
   lastCoveredColByRow: Map<number, number>;
   styles: StyleTable;
   strings: SharedStringTable;
@@ -419,7 +430,9 @@ function writeRowCells(
   row: Array<CellSnapshot | null>,
   collected: SheetDataResult,
 ): void {
-  const { sheet, covered, lastCoveredColByRow, styles, strings, dropped } = context;
+  const {
+    sheet, covered, masters, lastCoveredColByRow, styles, strings, dropped,
+  } = context;
   // A `${row}:${col}` key per cell is only worth allocating on a row a merge covers part of.
   const lastCoveredCol = lastCoveredColByRow.get(rowIndex) ?? -1;
   const end = Math.max(row.length, lastCoveredCol + 1);
@@ -427,9 +440,11 @@ function writeRowCells(
 
   for (let c = 0; c < end; c++) {
     const cell = row[c];
-    const merge = c <= lastCoveredCol ? covered.get(`${rowIndex}:${c}`) : undefined;
+    const key = c <= lastCoveredCol ? `${rowIndex}:${c}` : undefined;
+    const merge = key === undefined ? undefined : covered.get(key);
+    const isMergeMaster = key !== undefined && merge === undefined && masters.has(key);
 
-    if (merge === undefined && (cell === null || cell === undefined)) {
+    if (merge === undefined && !isMergeMaster && (cell === null || cell === undefined)) {
       continue;
     }
 
@@ -437,7 +452,7 @@ function writeRowCells(
 
     if (merge !== undefined) {
       writeCoveredCell(w, ref, cell, sheet.rows[merge.row]?.[merge.col], styles);
-    } else if (cell && writeCell(w, ref, cell, styles, strings, dropped)) {
+    } else if (writeCell(w, ref, cell, styles, strings, dropped, isMergeMaster)) {
       collected.wroteFormula = true;
     }
 
@@ -559,7 +574,9 @@ export function worksheetXml(
   dropped: DroppedFeatures,
   passwordHash: ProtectionHash | null,
 ): WorksheetWriteResult {
-  const { kept: merges, covered, lastCoveredColByRow } = resolveMerges(sheet.merges, dropped);
+  const {
+    kept: merges, covered, masters, lastCoveredColByRow,
+  } = resolveMerges(sheet.merges, dropped);
   const { rowCount, colCount } = measureExtent(sheet, merges);
   const hiddenRows = new Set(sheet.hiddenRows);
   const hiddenCols = new Set(sheet.hiddenCols);
@@ -573,7 +590,7 @@ export function worksheetXml(
   writeCols(w, sheet, hiddenCols, colCount, dropped);
 
   const { comments, validations, wroteFormula } = writeSheetData(w, {
-    sheet, rowCount, colCount, hiddenRows, covered, lastCoveredColByRow, styles, strings, dropped,
+    sheet, rowCount, colCount, hiddenRows, covered, masters, lastCoveredColByRow, styles, strings, dropped,
   });
 
   writeSheetProtection(w, sheet, passwordHash);

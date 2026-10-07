@@ -3,6 +3,7 @@
  */
 import { nativeAdapter } from '../adapters/native';
 import { DROPPED_FEATURES, DroppedFeatures } from '../capabilities';
+import { unwrapThreadedComment } from '../threadedComments';
 import {
   MAX_FORMULA_LENGTH, MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_TRANSLATED_FORMULA_CHARS, MAX_WORKBOOK_CELLS,
   isLimitError,
@@ -420,7 +421,9 @@ describe('native reader compatibility: the date1904 temporal-format test', () =>
     );
     const { sheet } = readSheet(xml, { styles, date1904: true });
 
-    expect(sheet.rows[0].map(cell => cell.value)).toEqual([1, 1, 1463]);
+    // `[h]:mm` is a duration, not a date serial: 24:00 is `1` in either date system, so it is not
+    // shifted.
+    expect(sheet.rows[0].map(cell => cell.value)).toEqual([1, 1, 1]);
   });
 });
 
@@ -617,12 +620,31 @@ describe('native reader compatibility: numeric layout attributes', () => {
     expect(sheet.rowHeights).toEqual([expected]);
   });
 
-  it.each(['2.5', '-1', '1e308', 'NaN', '', '0x10', 'Infinity'])(
+  it.each(['-1', '-0.5', '1e308', 'NaN', '', '0x10', 'Infinity'])(
     'should read a pane split of "%s" as no split on that axis', (split) => {
       expect(readSheet(paneXml(`xSplit="${split}" ySplit="2"`)).sheet.freeze).toEqual({ rows: 2, cols: 0 });
       expect(readSheet(paneXml(`xSplit="3" ySplit="${split}"`)).sheet.freeze).toEqual({ rows: 0, cols: 3 });
       expect(readSheet(paneXml(`xSplit="${split}" ySplit="${split}"`)).sheet.freeze).toBeNull();
     });
+
+  it.each([['2.5', 2], ['3.0', 3], ['3.9', 3], ['3e0', 3], ['+4', 4]])(
+    'should round a pane split of "%s" down to %d', (split, expected) => {
+      // ECMA-376 types `xSplit`/`ySplit` as `xsd:double`, and Google Sheets writes `3.0`.
+      expect(readSheet(paneXml(`xSplit="${split}" ySplit="2"`)).sheet.freeze).toEqual({ rows: 2, cols: expected });
+      expect(readSheet(paneXml(`xSplit="1" ySplit="${split}"`)).sheet.freeze).toEqual({ rows: expected, cols: 1 });
+    });
+
+  it('should read the frozen pane Google Sheets writes, with decimal splits', () => {
+    const xml = `<worksheet ${NS}><sheetViews><sheetView workbookViewId="0">`
+      + '<pane xSplit="3.0" ySplit="3.0" topLeftCell="D4" activePane="bottomRight" state="frozen"/>'
+      + '</sheetView></sheetViews><sheetData><row r="1"><c><v>1</v></c></row></sheetData></worksheet>';
+
+    expect(readSheet(xml).sheet.freeze).toEqual({ rows: 3, cols: 3 });
+  });
+
+  it('should read a split below one as no split on that axis', () => {
+    expect(readSheet(paneXml('xSplit="0.5" ySplit="2"')).sheet.freeze).toEqual({ rows: 2, cols: 0 });
+  });
 });
 
 describe('native reader compatibility: a self-closing <si/>', () => {
@@ -698,6 +720,52 @@ describe('native reader compatibility: ISO date cells', () => {
     } finally {
       spy.mockRestore();
     }
+  });
+});
+
+describe('native reader compatibility: a t="d" value that is not ISO 8601', () => {
+  it.each(['2024-01-15 09:30:45', '2024-1-5', '2024/01/15', 'January 15, 2024', '15.01.2024', '2024-01-15T'])(
+    'should read "%s" as an empty cell and record cellValue:date', (text) => {
+      // `Date.parse` reads these in the browser's time zone, so one file imported a different value
+      // per zone (`2024-01-15 09:30:45` was 14:30:45 in New York and 04:00:45 in Kolkata).
+      const { sheet, dropped } = readSheet(worksheetXml(
+        `<row r="1"><c r="A1" t="d"><v>${text}</v></c><c r="B1"><v>1</v></c></row>`
+      ));
+
+      expect(sheet.rows[0][0]).toBeNull();
+      expect(sheet.rows[0][1].value).toBe(1);
+      expect(dropped.list()).toEqual([DROPPED_FEATURES.cellValueDate]);
+    });
+
+  it('should not ask Date.parse about a value that is not ISO 8601', () => {
+    const spy = jest.spyOn(Date, 'parse');
+
+    try {
+      readSheet(worksheetXml('<row r="1"><c r="A1" t="d"><v>2024-01-15 09:30:45</v></c></row>'));
+
+      expect(spy).not.toHaveBeenCalled();
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it('should still read a date-only ISO value as UTC midnight, recording nothing', () => {
+    const { sheet, dropped } = readSheet(worksheetXml(
+      '<row r="1"><c r="A1" t="d"><v>2024-01-15</v></c><c r="B1" t="d"><v> 2024-01-15T09:30:45Z </v></c></row>'
+    ));
+
+    expect(sheet.rows[0][0].value).toBe(45306);
+    expect(sheet.rows[0][1].value).toBeCloseTo(45306 + (((9.5 * 3600) + 45) / 86400), 9);
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should keep the formula of a cell whose cached t="d" value is refused', () => {
+    const { sheet, dropped } = readSheet(worksheetXml(
+      '<row r="1"><c r="A1" t="d"><f>TODAY()</f><v>2024-01-15 00:00:00</v></c></row>'
+    ));
+
+    expect(sheet.rows[0][0].formula).toEqual({ text: 'TODAY()' });
+    expect(dropped.list()).toEqual([DROPPED_FEATURES.cellValueDate]);
   });
 });
 
@@ -923,6 +991,78 @@ describe('native reader compatibility: threaded comments', () => {
     expect(c1.comment).toBe('[Threaded comment] is what I call these');
     expect(dropped.list()).toEqual([DROPPED_FEATURES.threadedComments]);
     expect(dropped.count(DROPPED_FEATURES.threadedComments)).toBe(1);
+  });
+
+  it('should strip the tab indent and the closing line feed Google Sheets writes around each entry', () => {
+    // Google Sheets writes the same fallback note with a tab, not four spaces, in front of each
+    // entry and a line feed after it, which imported as "\tShort note\n".
+    const notice = '[Threaded comment]\n Your version of Excel allows you to read this threaded comment; '
+      + 'however, any edits to it will get removed if the file is opened in a newer version of Excel.\n';
+
+    expect(unwrapThreadedComment(`${notice}Comment:\n\tShort note\n`)).toBe('Short note');
+    expect(unwrapThreadedComment(`${notice}Comment:\n\tLine one\nLine two\nLine three\n`))
+      .toBe('Line one\nLine two\nLine three');
+    expect(unwrapThreadedComment(`${notice}Comment:\n\tfirst comment line\nReply:\n\ta reply here\n`))
+      .toBe('first comment line\na reply here');
+    // Only ONE closing line feed per entry goes: a blank last line the author typed stays.
+    expect(unwrapThreadedComment(`${notice}Comment:\n\tends blank\n\n`)).toBe('ends blank\n');
+  });
+});
+
+describe('native reader compatibility: a sheet\'s drawing part', () => {
+  const DRAWING_REL = `${TRANSITIONAL_REL}/drawing`;
+  const XDR = 'http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing';
+
+  /**
+   * Packs one sheet carrying `<drawing r:id="rId1"/>` whose drawing part holds `drawing`.
+   *
+   * @param {string|null} drawing The drawing part's text, or `null` to leave the part out.
+   * @returns {Promise<ArrayBuffer>}
+   */
+  function withDrawing(drawing) {
+    const sheet = `<worksheet ${NS} xmlns:r="${TRANSITIONAL_REL}"><sheetData><row r="1"><c r="A1"><v>1</v></c></row>`
+      + '</sheetData><drawing r:id="rId1"/></worksheet>';
+    const rels = `<Relationships xmlns="${PACKAGE_REL}">`
+      + `<Relationship Id="rId1" Type="${DRAWING_REL}" Target="../drawings/drawing1.xml"/></Relationships>`;
+    const extraEntries = [{ name: 'xl/worksheets/_rels/sheet1.xml.rels', data: encoder.encode(rels) }];
+
+    if (drawing !== null) {
+      extraEntries.push({ name: 'xl/drawings/drawing1.xml', data: encoder.encode(drawing) });
+    }
+
+    return packWorkbook([{ name: 'Sheet1', kind: 'worksheet', part: 'xl/worksheets/sheet1.xml', xml: sheet }], {
+      extraEntries,
+    });
+  }
+
+  it('should record nothing for the empty drawing part Google Sheets links from every sheet', async() => {
+    // Google writes `<drawing r:id>` into every sheet and an `<xdr:wsDr>` with no anchor, so every
+    // Google file reported `images` and the import warned about pictures it never had.
+    const { snapshot, dropped } = await readWorkbook(await withDrawing(`<xdr:wsDr xmlns:xdr="${XDR}"/>`));
+
+    expect(snapshot.sheets[0].rows[0][0].value).toBe(1);
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should record nothing when the drawing part is missing', async() => {
+    const { dropped } = await readWorkbook(await withDrawing(null));
+
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it.each(['twoCellAnchor', 'oneCellAnchor', 'absoluteAnchor'])(
+    'should record images for a drawing part holding an <xdr:%s>', async(anchor) => {
+      const { dropped } = await readWorkbook(await withDrawing(
+        `<xdr:wsDr xmlns:xdr="${XDR}"><xdr:${anchor}><xdr:pic/><xdr:clientData/></xdr:${anchor}></xdr:wsDr>`
+      ));
+
+      expect(dropped.list()).toEqual([DROPPED_FEATURES.images]);
+    });
+
+  it('should record images for a drawing part that cannot be read, rather than guess it empty', async() => {
+    const { dropped } = await readWorkbook(await withDrawing(`<xdr:wsDr xmlns:xdr="${XDR}"><xdr:twoCellAnchor>`));
+
+    expect(dropped.list()).toEqual([DROPPED_FEATURES.images]);
   });
 });
 
@@ -1202,12 +1342,42 @@ describe('native reader compatibility: a merge with no <dimension> to bound it',
     expect(sheet.merges).toEqual([{ row: 0, col: 0, rowspan: 1, colspan: 3 }]);
   });
 
-  it('should still clamp such a merge to the rows that exist', () => {
+  it('should grow the rows to such a merge, as it grows the columns', () => {
+    // ExcelJS grows the sheet to the merge; clamping to the rows that exist cut the merge short and
+    // left the grid a row shorter than the sheet.
     const { sheet } = readSheet(`<worksheet ${NS}><sheetData><row r="1"><c r="A1"><v>1</v></c></row>`
       + '</sheetData><mergeCells count="1"><mergeCell ref="A1:B9"/></mergeCells></worksheet>');
 
-    expect(sheet.rows.length).toBe(1);
+    expect(sheet.rows.length).toBe(9);
     expect(sheet.rows[0]).toHaveLength(2);
+    expect(sheet.rows[8]).toEqual([null, null]);
+    expect(sheet.rowHeights).toHaveLength(9);
+    expect(sheet.merges).toEqual([{ row: 0, col: 0, rowspan: 9, colspan: 2 }]);
+  });
+
+  it('should keep the second row of a merge Google Sheets writes below the last <row>', () => {
+    // Google writes a `<row>` only for a row with a cell or a height, and no `<dimension>`: `A6:B7`
+    // over `merged` in A6 read back as a one-row merge on a six-row sheet.
+    const { sheet } = readSheet(`<worksheet ${NS}><sheetData>`
+      + '<row r="1"><c r="A1"><v>1</v></c></row><row r="6"><c r="A6" t="inlineStr"><is><t>merged</t></is></c></row>'
+      + '</sheetData><mergeCells count="1"><mergeCell ref="A6:B7"/></mergeCells></worksheet>');
+
+    expect(sheet.rows.length).toBe(7);
+    expect(sheet.rows[5][0].value).toBe('merged');
+    expect(sheet.merges).toEqual([{ row: 5, col: 0, rowspan: 2, colspan: 2 }]);
+  });
+
+  it('should grow the rows up to a declared <dimension> and no further', () => {
+    const rows = [1, 2, 3, 4, 5, 6, 7].map(r => `<row r="${r}"><c r="A${r}"><v>${r}</v></c></row>`).join('');
+    const within = readSheet(`<worksheet ${NS}><dimension ref="A1:E8"/><sheetData>${rows}</sheetData>`
+      + '<mergeCells count="1"><mergeCell ref="A7:B8"/></mergeCells></worksheet>').sheet;
+    const past = readSheet(`<worksheet ${NS}><dimension ref="A1:B7"/><sheetData>${rows}</sheetData>`
+      + '<mergeCells count="1"><mergeCell ref="A7:B9"/></mergeCells></worksheet>').sheet;
+
+    expect(within.rows.length).toBe(8);
+    expect(within.merges).toEqual([{ row: 6, col: 0, rowspan: 2, colspan: 2 }]);
+    expect(past.rows.length).toBe(7);
+    expect(past.rows[6]).toHaveLength(2);
   });
 });
 
@@ -1266,6 +1436,15 @@ describe('native reader compatibility: list validations stored in <extLst>', () 
     expect(sheet.rows[0][0].validation).toBeNull();
     expect(dropped.list()).toEqual(['dataValidation:whole']);
   });
+
+  it('should read an x14 list written with allowBlank="true"', () => {
+    const { sheet } = readSheet(withExtValidation(
+      '<x14:dataValidation type="list" allowBlank="true"><x14:formula1><xm:f>Lists!$A$1:$A$3</xm:f></x14:formula1>'
+      + '<xm:sqref>A1</xm:sqref></x14:dataValidation>'
+    ));
+
+    expect(sheet.rows[0][0].validation.allowBlank).toBe(true);
+  });
 });
 
 describe('native reader compatibility: the "true"/"false" boolean spelling', () => {
@@ -1302,6 +1481,22 @@ describe('native reader compatibility: the "true"/"false" boolean spelling', () 
     expect(styles.cellXfs[0].locked).toBeNull();
     expect(styles.cellXfs[1].style.font.bold).toBe(true);
     expect(styles.cellXfs[2].locked).toBe(false);
+  });
+
+  it('should read "true"/"false" on every sheet protection option', () => {
+    const { sheet } = readSheet(`<worksheet ${NS}><sheetData/><sheetProtection sheet="true" objects="true" `
+      + 'formatCells="false" formatColumns="true"/></worksheet>');
+
+    // `sheet` is stored as written, every other option inverted ("true" = locked).
+    expect(sheet.protection.options).toEqual({ sheet: true, objects: false, formatCells: true, formatColumns: false });
+  });
+
+  it('should read <b val="false"/> and <i val="false"/> as off', () => {
+    const styles = parseStyles(`<styleSheet ${NS}><fonts count="2"><font/><font><b val="false"/><i val="false"/>`
+      + '<sz val="11"/></font></fonts><fills count="1"><fill/></fills><borders count="1"><border/></borders>'
+      + '<cellXfs count="2"><xf fontId="0"/><xf fontId="1"/></cellXfs></styleSheet>');
+
+    expect(styles.cellXfs[1].style).toBeNull();
   });
 });
 

@@ -1,5 +1,6 @@
 import { isPlainObject } from '../../../../../helpers/object';
 import { DROPPED_FEATURES, type DroppedFeatures } from '../../../capabilities';
+import { isUnreadConditionalRuleKind, timePeriodFormula } from '../../../conditionalRules';
 import { parseFiniteDoubleAttr, parseUnsignedIntAttr } from '../xml/numbers';
 import type { XmlAttributes } from '../xml/tokenizer';
 import { XmlWriter } from '../xml/writer';
@@ -199,18 +200,23 @@ const writeAboveAverageRule: CfRuleWriter = (w, { rule, base }) => {
 };
 
 /**
- * A `timePeriod` rule, which is dropped without both its period and its formula.
+ * A `timePeriod` rule. With no formula of its own it gets the one its period means - the formula
+ * ExcelJS builds for the documented `{ type, timePeriod, style }` shape - so it is dropped only
+ * without a period, or with no formula and a period `ST_TimePeriod` does not list.
  */
-const writeTimePeriodRule: CfRuleWriter = (w, { rule, base, formulae, dropped }) => {
+const writeTimePeriodRule: CfRuleWriter = (w, { rule, base, formulae, ref, dropped }) => {
   const timePeriod = readString(rule, 'timePeriod');
+  const formula = timePeriod === undefined
+    ? undefined
+    : formulae[0] ?? timePeriodFormula(timePeriod, topLeftOf(ref));
 
-  if (formulae.length === 0 || timePeriod === undefined) {
+  if (timePeriod === undefined || formula === undefined) {
     dropped.record(DROPPED_FEATURES.conditionalFormattingTimePeriod);
 
     return false;
   }
 
-  w.open('cfRule', { ...base, timePeriod }).formulaLeaf('formula', formulae[0]).close();
+  w.open('cfRule', { ...base, timePeriod }).formulaLeaf('formula', formula).close();
 
   return true;
 };
@@ -407,4 +413,24 @@ export function cfRuleFromXml(attrs: XmlAttributes, formulae: string[], dxfs: Dx
   }
 
   return rule;
+}
+
+/**
+ * Rebuilds the rule for one `<cfRule>` as `cfRuleFromXml` does, or answers `null` - recording
+ * `conditionalFormatting:<type>` - for a color scale, a data bar or an icon set. Their look lives
+ * in child elements this reader does not read, and the bare `{ type, priority }` left without them
+ * is a rule no writer can write: handed back to the ExcelJS export, it threw.
+ */
+export function readCfRule(
+  attrs: XmlAttributes, formulae: string[], dxfs: DxfStyle[], dropped: DroppedFeatures,
+): RuleObject | null {
+  const type = attrs.type ?? 'expression';
+
+  if (isUnreadConditionalRuleKind(type)) {
+    dropped.recordUnsupported('conditionalFormatting', type);
+
+    return null;
+  }
+
+  return cfRuleFromXml(attrs, formulae, dxfs);
 }

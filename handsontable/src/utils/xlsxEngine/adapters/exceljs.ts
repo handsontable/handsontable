@@ -20,6 +20,7 @@ import { EXCEL_EPOCH_OFFSET, MS_PER_DAY } from '../dates';
 import { isWritableConditionalRule } from '../conditionalRules';
 import { coveredCellFormatting, type CellFormatting } from '../coveredCellFormatting';
 import { addFunctionPrefixes } from '../functionPrefixes';
+import { classifyTemporalFormat } from '../numFmtCode';
 import {
   MAX_INPUT_BYTES, MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_SHEET_ROWS, MAX_WORKBOOK_CELLS, MAX_WORKBOOK_SHEETS,
   throwCellLimit, throwColumnLimit, throwLimitExceeded, throwRowLimit,
@@ -174,6 +175,11 @@ export interface ExcelJsWorkbook {
    * recalculate every formula when the file is opened.
    */
   calcProperties?: { fullCalcOnLoad?: boolean };
+  /**
+   * The workbook properties ExcelJS reads from `<workbookPr>`. `date1904` is set when the file
+   * counts dates from 1904 (ExcelJS 4.4 recognizes only the `"1"` spelling).
+   */
+  properties?: { date1904?: boolean };
   /**
    * The names the workbook defines, as `{ name, ranges }` entries.
    */
@@ -384,6 +390,26 @@ function mergeKeepingOwnFormatting(
 }
 
 /**
+ * Makes ExcelJS write the `<c>` of a merge master that holds nothing: no value, no formula and no
+ * formatting (a `null` slot included). ExcelJS skips such a cell, and Apple's parser (Quick Look,
+ * Numbers) then places the cells after it one column early, so the merge is not drawn and the row
+ * shifts left. An empty alignment is the smallest style that gives the cell a style index of its
+ * own: it changes nothing a reader shows, and ExcelJS then writes `<c r="A2" s="1"/>`. The native
+ * writer writes the same master as `<c r="A2"/>`.
+ */
+function markEmptyMaster(worksheet: ExcelJsWorksheet, sheet: SheetSnapshot, row: number, col: number): void {
+  const master = sheet.rows[row]?.[col];
+  const isEmpty = !master || (
+    master.value === null && master.formula === null
+    && master.numFmt === null && master.style === null && master.locked === null
+  );
+
+  if (isEmpty) {
+    worksheet.getCell(row + 1, col + 1).alignment = {};
+  }
+}
+
+/**
  * Writes the layout that must come after the cells: hidden rows, protection, merges,
  * conditional formatting and the sheet state.
  *
@@ -421,6 +447,8 @@ async function writeSheetFeatures(
     }
 
     try {
+      markEmptyMaster(worksheet, sheet, row, col);
+
       if (worksheet.mergeCellsWithoutStyle && coversOwnFormatting(sheet, { row, col, rowspan, colspan })) {
         mergeKeepingOwnFormatting(worksheet, sheet, { row, col, rowspan, colspan });
       } else {
@@ -446,10 +474,55 @@ async function writeSheetFeatures(
 }
 
 /**
- * Converts the `Date` ExcelJS materializes for a date-formatted cell back into its serial number.
+ * Converts the `Date` ExcelJS materializes for a date-formatted cell back into its serial number,
+ * rounded to 9 decimal places (well under a millisecond). The division left float noise the native
+ * reader never has: a `[mm]:ss` cell holding 0.075 read back as `0.0750000000007276`.
  */
 function dateToSerial(date: Date): number {
-  return (date.getTime() / MS_PER_DAY) + EXCEL_EPOCH_OFFSET;
+  return Math.round(((date.getTime() / MS_PER_DAY) + EXCEL_EPOCH_OFFSET) * 1e9) / 1e9;
+}
+
+/**
+ * Days between the 1904 and the 1900 date systems' day zero.
+ */
+const DATE_1904_OFFSET = 1462;
+
+/**
+ * Whether ExcelJS handed a value over as a `Date` (by brand, so a `Date` from another realm counts).
+ */
+function isDateValue(value: unknown): boolean {
+  return Object.prototype.toString.call(value) === '[object Date]';
+}
+
+/**
+ * Takes the 1904 shift back off every time-formatted cell of a 1904 workbook. ExcelJS builds a
+ * `Date` on the 1904 epoch for any date-like format, and `dateToSerial` turns it into a 1900
+ * serial - right for a date, wrong for a time: a time of day or an elapsed `[h]:mm` value is a
+ * fraction of a day or a duration, the same number in either system, so a 12:00 duration read as
+ * 1462.5. Only a value ExcelJS really turned into a `Date` is corrected (ExcelJS leaves `[s]` a
+ * number), which is why the worksheet is consulted again. Mirrors the native reader, which never
+ * shifts a time.
+ */
+function unshiftTimes1904(worksheet: ExcelJsWorksheet, sheet: SheetSnapshot): void {
+  sheet.rows.forEach((cells, rowIndex) => {
+    cells.forEach((cell, colIndex) => {
+      if (!cell?.numFmt || classifyTemporalFormat(cell.numFmt) !== 'time') {
+        return;
+      }
+
+      const raw = worksheet.findRow(rowIndex + 1)?.getCell(colIndex + 1).value;
+
+      if (typeof cell.value === 'number' && isDateValue(raw)) {
+        cell.value = Math.round((cell.value - DATE_1904_OFFSET) * 1e9) / 1e9;
+      }
+
+      const result = (raw as { result?: unknown } | null | undefined)?.result;
+
+      if (cell.formula && typeof cell.formula.result === 'number' && isDateValue(result)) {
+        cell.formula.result = Math.round((cell.formula.result - DATE_1904_OFFSET) * 1e9) / 1e9;
+      }
+    });
+  });
 }
 
 /**
@@ -755,7 +828,15 @@ function readSheetLayout(
   // ECMA-376 defaults `sheet` to false, and ExcelJS reads only `sheet="1"` as `true`: a
   // `<sheetProtection formatCells="0"/>` (the shape Apache POI writes) records permissions for a
   // sheet nobody protected, and reading it as protected made every imported cell read-only.
-  if (sheetProtection?.sheet === true) {
+  // LibreOffice writes `sheet="true"`, which ExcelJS reads as not protected; for a sheet with a
+  // password it still keeps the hash attributes, and a password hash only exists on a protected
+  // sheet, so the hash counts as protection too. A LibreOffice sheet protected WITHOUT a password
+  // carries nothing ExcelJS keeps, and still reads as unprotected on this engine.
+  const isProtected = sheetProtection?.sheet === true
+    || typeof sheetProtection?.algorithmName === 'string'
+    || typeof sheetProtection?.hashValue === 'string';
+
+  if (sheetProtection && isProtected) {
     const {
       password, hashValue, algorithmName, saltValue, spinCount, ...options
     } = sheetProtection as {
@@ -1014,8 +1095,16 @@ export const excelJsAdapter: XlsxEngineAdapter = {
     const snapshot = createWorkbookSnapshot();
     const budget: WorkbookBudget = { declaredCells: 0 };
 
+    const isDate1904 = workbook.properties?.date1904 === true;
+
     workbook.worksheets.forEach((worksheet) => {
-      snapshot.sheets.push(readSheet(worksheet, dropped, mergeType, budget));
+      const sheet = readSheet(worksheet, dropped, mergeType, budget);
+
+      if (isDate1904) {
+        unshiftTimes1904(worksheet, sheet);
+      }
+
+      snapshot.sheets.push(sheet);
     });
 
     snapshot.definedNames = readDefinedNames(workbook);

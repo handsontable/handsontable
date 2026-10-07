@@ -208,19 +208,49 @@ async function pump(
 }
 
 /**
- * Refuses the operation when the host has no Compression Streams API. jsdom, Vitest's jsdom
- * environment and Jest's default environment all lack both globals, and without this the engine
- * failed with a bare `ReferenceError` raised from inside this module.
+ * The globals the built-in engine needs from its host: the Web Compression Streams for every ZIP
+ * entry, and the text codecs for every part.
+ */
+const NATIVE_ENGINE_GLOBALS = ['CompressionStream', 'DecompressionStream', 'TextEncoder', 'TextDecoder'] as const;
+
+/**
+ * Whether the host defines one of the globals the engine needs.
+ */
+function hasGlobal(name: typeof NATIVE_ENGINE_GLOBALS[number]): boolean {
+  return typeof (globalThis as Record<string, unknown>)[name] !== 'undefined';
+}
+
+/**
+ * Refuses with a message that names the missing globals and the two ways to supply them.
+ */
+function throwMissingGlobals(missing: string[]): never {
+  throwWithCause(`The built-in xlsx engine needs ${missing.join(', ')}, which this environment does `
+    + 'not define. In a test environment such as jsdom, assign CompressionStream and DecompressionStream '
+    + 'from `node:stream/web` and TextEncoder and TextDecoder from `node:util` to the global object, or '
+    + 'inject ExcelJS through the `engines` option.');
+}
+
+/**
+ * Refuses an engine call up front when the host lacks any global the engine needs. jsdom has
+ * neither the streams nor the text codecs, and Jest's node environment hides the streams, so the
+ * engine used to fail with a bare `ReferenceError` from whichever it reached first – the export at
+ * `new TextEncoder()`, before any stream. Both adapter entry points call this before anything else.
+ */
+export function assertNativeEngineGlobals(): void {
+  const missing = NATIVE_ENGINE_GLOBALS.filter(name => !hasGlobal(name));
+
+  if (missing.length > 0) {
+    throwMissingGlobals(missing);
+  }
+}
+
+/**
+ * Refuses a stream operation when the host lacks its stream. The entry points check every global
+ * first (`assertNativeEngineGlobals`); this keeps the stream helpers safe for a direct caller.
  */
 function assertStreamAvailable(globalName: 'CompressionStream' | 'DecompressionStream'): void {
-  const available = globalName === 'CompressionStream'
-    ? typeof CompressionStream !== 'undefined'
-    : typeof DecompressionStream !== 'undefined';
-
-  if (!available) {
-    throwWithCause(`${globalName} is not available here, and the built-in xlsx engine needs the Web `
-      + 'Compression Streams API. Run Handsontable in a browser or on Node 18+, or inject ExcelJS '
-      + 'through the `engines` option.');
+  if (!hasGlobal(globalName)) {
+    throwMissingGlobals([globalName]);
   }
 }
 

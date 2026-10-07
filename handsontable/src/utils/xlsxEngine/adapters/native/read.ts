@@ -6,7 +6,8 @@ import { createWorkbookSnapshot, type WorkbookSnapshot } from '../../model';
 import { noteToComment } from '../../threadedComments';
 import { parseComments } from './parts/comments';
 import {
-  BINARY_WORKBOOK_CONTENT_TYPE, CONTENT_TYPES, contentTypeOf, type ContentTypes, parseContentTypes, parseRels,
+  BINARY_WORKBOOK_CONTENT_TYPE, CONTENT_TYPES, contentTypeOf, type ContentTypes, drawingHasAnchor, parseContentTypes,
+  parseRels,
   parseWorkbook, resolvePartPath, REL_TYPES, type Relationship, SPREADSHEET_MAIN_CONTENT_TYPES,
   type WorkbookSheetEntry,
 } from './parts/package';
@@ -14,6 +15,7 @@ import { parseSharedStrings, type ParsedSharedStrings } from './parts/sharedStri
 import { EMPTY_STYLES, parseStyles, type ParsedStyles } from './parts/styles';
 import { parseWorksheet, type WorkbookBudget } from './parts/worksheetReader';
 import { foldPartName, readZip, type ZipArchive } from './zip/reader';
+import { assertNativeEngineGlobals } from './zip/streams';
 
 /**
  * The `.rels` part that belongs to a part, or `[]` when it has none.
@@ -224,7 +226,7 @@ async function openPackage(buffer: ArrayBuffer, dropped: DroppedFeatures): Promi
     throwWithCause(`The archive has no workbook part at "${workbookPath}".`);
   }
 
-  const { sheets, date1904, definedNames } = parseWorkbook(await archive.text(workbookPath));
+  const { sheets, date1904, definedNames } = parseWorkbook(await archive.text(workbookPath), dropped);
   const workbookRels = await relsOf(archive, workbookPath);
   const stylesPath = targetOf(workbookRels, REL_TYPES.styles, workbookPath);
   const stringsPath = targetOf(workbookRels, REL_TYPES.sharedStrings, workbookPath);
@@ -323,6 +325,44 @@ function worksheetPathOf(opened: OpenedPackage, sheetRel: Relationship | undefin
 }
 
 /**
+ * The relationship ids of a sheet's drawing parts that place at least one anchor on it. A drawing
+ * part is read (and charged like every other part) only to answer this: Google Sheets links an
+ * empty `<xdr:wsDr>` from every sheet, so a bare `<drawing>` is no sign of an image. A drawing part
+ * that cannot be tokenized is answered as holding one, so a picture is never reported kept on a
+ * guess; a limit refusal still ends the read.
+ */
+async function imageDrawingIds(
+  archive: ZipArchive,
+  sheetRels: Relationship[],
+  sheetPath: string,
+  ledger: TokenizeLedger
+): Promise<Set<string>> {
+  const ids = new Set<string>();
+
+  for (const rel of sheetRels) {
+    const drawingPath = rel.type === REL_TYPES.drawing ? resolvePartPath(sheetPath, rel.target) : null;
+
+    if (drawingPath !== null && archive.has(drawingPath)) {
+      // eslint-disable-next-line no-await-in-loop -- one part at a time, each charged as it is read.
+      const xml = await partToTokenize(archive, drawingPath, ledger);
+      let anchored: boolean;
+
+      try {
+        anchored = drawingHasAnchor(xml);
+      } catch {
+        anchored = true;
+      }
+
+      if (anchored) {
+        ids.add(rel.id);
+      }
+    }
+  }
+
+  return ids;
+}
+
+/**
  * Reads one worksheet into the snapshot. The sheet's relationship is the one its `r:id` resolved
  * to, or `undefined` when the workbook declares none — which is refused here, as is a part the
  * archive does not hold.
@@ -360,6 +400,7 @@ async function readSheet(
     comments.forEach((text, ref) => {
       comments.set(ref, noteToComment(text, dropped));
     });
+    const imageDrawings = await imageDrawingIds(opened.archive, sheetRels, sheetPath, ledger);
     const xml = await partToTokenize(opened.archive, sheetPath, ledger);
 
     snapshot.sheets.push(parseWorksheet(xml, {
@@ -368,6 +409,7 @@ async function readSheet(
       styles: opened.styles,
       sharedStrings: opened.sharedStrings,
       comments,
+      imageDrawings,
       date1904: opened.date1904,
       dropped,
       budget,
@@ -426,6 +468,8 @@ async function readSheets(
  * the sheet caps run inside the sheet reader before a row is allocated.
  */
 export async function readWorkbook(buffer: ArrayBuffer, dropped: DroppedFeatures): Promise<WorkbookSnapshot> {
+  assertNativeEngineGlobals();
+
   if (buffer.byteLength > MAX_INPUT_BYTES) {
     throwLimitExceeded(`The workbook is ${buffer.byteLength} bytes, `
       + `above the ${MAX_INPUT_BYTES}-byte limit this reader accepts.`);

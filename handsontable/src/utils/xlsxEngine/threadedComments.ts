@@ -5,7 +5,8 @@ import { DROPPED_FEATURES, type DroppedFeatures } from './capabilities';
  * lives in `xl/threadedComments/threadedComment{N}.xml` (authors in `xl/persons/person.xml`); the
  * note in `comments{N}.xml` is a fallback for readers that cannot read threads, and its text is
  * this line, a fixed English notice, then `Comment:` and the thread, every reply after a
- * `Reply:` line and every entry indented by four spaces.
+ * `Reply:` line and every entry indented by four spaces. Google Sheets writes the same note with a
+ * tab in place of the four spaces and a line feed after each entry.
  */
 const THREADED_COMMENT_HEADER = '[Threaded comment]';
 
@@ -20,9 +21,15 @@ const THREAD_START = '\nComment:\n';
 const REPLY_START = '\nReply:\n';
 
 /**
- * The indent Excel writes in front of every line of an entry.
+ * The indent in front of every line of an entry: four spaces from Excel, a tab from Google Sheets.
  */
-const ENTRY_INDENT = /^ {4}/gm;
+const ENTRY_INDENT = /^(?: {4}|\t)/gm;
+
+/**
+ * The line feed Google Sheets writes after each entry. One per entry is removed, so a blank line
+ * the author typed at the end still survives.
+ */
+const ENTRY_END = /\n$/;
 
 /**
  * Returns the thread an Excel 365 threaded-comment note carries, without the notice in front of
@@ -51,7 +58,7 @@ export function unwrapThreadedComment(text: string): string | null {
   return normalized
     .slice(start + THREAD_START.length)
     .split(REPLY_START)
-    .map(entry => entry.replace(ENTRY_INDENT, ''))
+    .map(entry => entry.replace(ENTRY_END, '').replace(ENTRY_INDENT, ''))
     .join('\n');
 }
 

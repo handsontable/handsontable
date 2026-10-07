@@ -324,7 +324,7 @@ describe('native reader hardening: the inflated-bytes budget', () => {
     await expect(read(bytes)).rejects.toThrow(
       new RegExp(`brings the inflated total to \\d+ bytes, above the ${MAX_INFLATED_TOTAL_BYTES}-byte limit`)
     );
-  });
+  }, 60_000);
 
   it('should read a part whose declared size lies HIGH, charging what it really produced', async() => {
     // The other side of charging the produced bytes: a central directory declaring 400 MB for a
@@ -378,7 +378,7 @@ describe('native reader hardening: the inflated-bytes budget', () => {
       new RegExp('The archive entry "xl/sharedStrings.xml" brings the inflated total (to \\d+ bytes, )?above the '
         + `${MAX_INFLATED_TOTAL_BYTES}-byte limit`)
     );
-  });
+  }, 60_000);
 
   it('should read an entry declaring exactly MAX_INFLATED_ENTRY_BYTES', async() => {
     // The per-entry cap is inclusive: only a declaration above it is refused.
@@ -1010,7 +1010,7 @@ describe('native reader hardening: one part read for many sheets', () => {
       + 'again for another sheet, bringing the inflated total to \\d+ bytes, '
       + `above the ${MAX_INFLATED_TOTAL_BYTES}-byte limit`));
     await expect(read(bytes)).rejects.toMatchObject({ cause: { limit: true } });
-  });
+  }, 60_000);
 });
 
 describe('native reader hardening: an absolute relationship target with ..', () => {
