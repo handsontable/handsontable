@@ -179,6 +179,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   layoutDirection: oneOf('rtl', 'ltr', 'inherit'),
   licenseKey: '',
+  limitFixedToViewport: true,
   locale: 'pl-PL',
   freezeBar: { rows: true, columns: false },
   manualColumnFreeze: true,

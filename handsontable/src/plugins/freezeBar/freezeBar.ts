@@ -2,8 +2,7 @@ import { BasePlugin } from '../base';
 import { A11Y_LABEL } from '../../helpers/a11y';
 import * as C from '../../i18n/constants';
 import { setAttribute } from '../../helpers/dom/element';
-import { getRenderedRowHeight } from '../../core/viewportScroll/scrollStrategies/singleScroll';
-import { getMaxFittingFrozenCount } from '../../utils/frozenAreaFit';
+import { getMaxFittingFrozenCount, MIN_SCROLLABLE_SIZE } from '../../utils/frozenAreaFit';
 import { getElementScaleFactor, normalizeVisualDelta } from '../../utils/manualResize/utils';
 import { resolveFreezeCount } from './snapResolver';
 import type { FreezeBarSettings, FreezeEdge, FreezeSource } from './types';
@@ -29,10 +28,6 @@ const CORNER_OVERLAYS: Record<FreezeEdge, string[]> = {
   end: ['topInlineEndCornerOverlay', 'bottomInlineEndCornerOverlay'],
 };
 
-/**
- * The size that always stays scrollable, in pixels. The frozen area never grows into it.
- */
-const MIN_SCROLLABLE_SIZE = 40;
 const EDGES: readonly FreezeEdge[] = ['start', 'top', 'end', 'bottom'];
 
 interface Rect {
@@ -179,26 +174,22 @@ export class FreezeBar extends BasePlugin {
   }
 
   /**
-   * Gets the number of frozen rows or columns on the given edge.
+   * Gets the number of frozen rows or columns on the given edge. It is the count the grid draws: the start band
+   * has priority over the end band, and with `limitFixedToViewport` a band that does not fit is cut down.
    *
    * @param {string} edge The edge: `top`, `bottom`, `start` or `end`.
    * @returns {number}
    */
   getFreezeCount(edge: FreezeEdge): number {
-    const settings = this.hot.getSettings();
-
-    // the start band has priority, so the end band is the part of it that remains
-    if (edge === 'end') {
-      return this.hot.view.countFixedColumnsEnd();
-    }
-
+    const view = this.hot.view;
     const count = {
-      top: settings.fixedRowsTop,
-      bottom: settings.fixedRowsBottom,
-      start: settings.fixedColumnsStart,
+      top: view.countFixedRowsTop(),
+      bottom: view.countFixedRowsBottom(),
+      start: view.countFixedColumnsStart(),
+      end: view.countFixedColumnsEnd(),
     }[edge];
 
-    return Math.max(0, Math.floor(Number(count) || 0));
+    return Math.max(0, Math.floor(count));
   }
 
   /**
@@ -303,32 +294,10 @@ export class FreezeBar extends BasePlugin {
     for (let index = 0; index < total; index++) {
       const visual = growsFromStart(edge) ? index : total - 1 - index;
 
-      sizes.push(this.#getTrackSize(columns, visual));
+      sizes.push(this.hot.view.getFrozenTrackSize(columns, visual));
     }
 
     return sizes;
-  }
-
-  /**
-   * Gets the size of one track.
-   *
-   * @param {boolean} column `true` for a column, `false` for a row.
-   * @param {number} visualIndex The visual index.
-   * @returns {number}
-   */
-  #getTrackSize(column: boolean, visualIndex: number): number {
-    const mapper = column ? this.hot.columnIndexMapper : this.hot.rowIndexMapper;
-    const physical = column ? this.hot.toPhysicalColumn(visualIndex) : this.hot.toPhysicalRow(visualIndex);
-
-    if (physical === null || mapper.isHidden(physical)) {
-      return 0;
-    }
-
-    if (column) {
-      return this.hot.getColWidth(visualIndex);
-    }
-
-    return getRenderedRowHeight(this.hot, visualIndex) ?? this.hot.stylesHandler.getDefaultRowHeight(visualIndex) ?? 0;
   }
 
   /**
@@ -342,9 +311,7 @@ export class FreezeBar extends BasePlugin {
     const columns = isColumnEdge(edge);
     const opposite: FreezeEdge = { start: 'end', end: 'start', top: 'bottom', bottom: 'top' }[edge] as FreezeEdge;
     const view = this.hot.view;
-    const viewportSize = columns ?
-      view.getWorkspaceWidth() - view.getRowHeaderWidth() :
-      view.getWorkspaceHeight() - view.getColumnHeaderHeight();
+    const viewportSize = view.getFrozenViewportSize(columns);
     const trackSizes = this.#getTrackSizes(edge);
     const oppositeSizes = this.#getTrackSizes(opposite);
     const oppositeCount = Math.min(this.getFreezeCount(opposite), oppositeSizes.length);

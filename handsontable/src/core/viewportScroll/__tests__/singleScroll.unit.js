@@ -33,6 +33,9 @@ function createOversizedHot({
     view: {
       // The real TableView counter, so the stub cannot drift from the band size the renderer uses.
       countFixedColumnsEnd: () => TableView.prototype.countFixedColumnsEnd.call({ settings, hot }),
+      countFixedColumnsStart: () => TableView.prototype.countFixedColumnsStart.call({ settings, hot }),
+      countFixedRowsTop: () => TableView.prototype.countFixedRowsTop.call({ settings, hot }),
+      countFixedRowsBottom: () => TableView.prototype.countFixedRowsBottom.call({ settings, hot }),
       getViewportWidth: () => viewportWidth,
       getViewportHeight: () => viewportHeight,
       _wt: {

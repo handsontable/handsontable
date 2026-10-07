@@ -37,6 +37,8 @@ import {
 import { getMouseEventTouchOrigin, TOUCH_SYNTHESIZED_MOUSE_WINDOW } from './helpers/dom/inputOrigin';
 import Walkontable from './3rdparty/walkontable/src';
 import { clampFixedColumnsEnd } from './3rdparty/walkontable/src/settings/fixedColumnsEnd';
+import { measureWorkspaceHeight, measureWorkspaceWidth } from './3rdparty/walkontable/src/viewport/workspaceSize';
+import { MIN_SCROLLABLE_SIZE, resolveFittingFrozenCounts } from './utils/frozenAreaFit';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
 import { getSanitizer } from './utils/sanitizer';
@@ -61,6 +63,27 @@ const CONTENT_SETTLED_MAX_REDRAWS = 5;
  * The window, in milliseconds, that `CONTENT_SETTLED_MAX_REDRAWS` is counted over.
  */
 const CONTENT_SETTLED_WINDOW_MS = 5000;
+
+/**
+ * The frozen counts the grid draws, as visual counts (hidden tracks included).
+ */
+interface EffectiveFixedCounts {
+  start: number;
+  end: number;
+  top: number;
+  bottom: number;
+}
+
+/**
+ * Checks whether two sets of effective frozen counts describe the same drawn area.
+ *
+ * @param {EffectiveFixedCounts | null} a The first counts.
+ * @param {EffectiveFixedCounts | null} b The second counts.
+ * @returns {boolean}
+ */
+function isSameEffectiveFixed(a: EffectiveFixedCounts | null, b: EffectiveFixedCounts | null): boolean {
+  return a?.start === b?.start && a?.end === b?.end && a?.top === b?.top && a?.bottom === b?.bottom;
+}
 
 /**
  * Checks whether a size setting (`rowHeights`, `minRowHeights`, or `colWidths`) guarantees a uniform
@@ -321,6 +344,14 @@ class TableView {
    * `#getReservedSlotHeight`).
    */
   #reservedSlotHeight: { owner: HTMLElement, height: number } | null = null;
+
+  /**
+   * The frozen counts the grid draws while `limitFixedToViewport` is on, as visual counts (hidden tracks included).
+   * `null` when the option is off, so every reader falls back to the configured counts. It is refreshed on each
+   * full render, before the draw, and kept through scroll-only draws. It is not a `#` field on purpose: the unit tests
+   * of the count accessors run them on `Object.create(TableView.prototype)`, which has no private fields.
+   */
+  _effectiveFixed: EffectiveFixedCounts | null = null;
   /**
    * The last mouse position of the mousedown event.
    *
@@ -384,8 +415,10 @@ class TableView {
 
       this.#discardSizesMeasuredWithoutStyles();
       this.#reservedSlotHeight = null;
+      this.#refreshEffectiveFixed(isFullRender);
 
       this._wt.draw(!isFullRender);
+      this.#redrawOnceWhenEffectiveFixedMoved(isFullRender);
       this.#updateScrollbarClassNames();
 
       this.hot.runHooks('afterRender', isFullRender);
@@ -1067,7 +1100,7 @@ class TableView {
    */
   countNotHiddenFixedColumnsStart() {
     const countCols = this.hot.countCols();
-    const visualFixedColumnsStart = Math.min(Number(this.settings.fixedColumnsStart) || 0, countCols) - 1;
+    const visualFixedColumnsStart = Math.min(this.countFixedColumnsStart(), countCols) - 1;
 
     return this.countNotHiddenColumnIndexes(visualFixedColumnsStart, -1);
   }
@@ -1084,14 +1117,16 @@ class TableView {
   countNotHiddenFixedColumnsEnd() {
     // Walkontable reads this setting many times per draw and per mouse move. Most grids freeze no end
     // columns, so answer before `countCols()` and the not-hidden lookup run.
-    if (!this.settings.fixedColumnsEnd) {
+    const requested = this._effectiveFixed ? this._effectiveFixed.end : this.settings.fixedColumnsEnd;
+
+    if (!requested) {
       return 0;
     }
 
     // Floor the requested count the way `countFixedColumnsEnd()` does (through `clampFixedColumnsEnd`).
     // A fractional count would give a fractional visual index below and no band would be drawn, while
     // the rest of the grid (End, Ctrl+End, editors) would still treat the floored count as frozen.
-    const requestedColumnsEnd = Math.floor(Number(this.settings.fixedColumnsEnd));
+    const requestedColumnsEnd = Math.floor(Number(requested));
 
     if (!(requestedColumnsEnd > 0)) {
       return 0;
@@ -1119,11 +1154,104 @@ class TableView {
    * @returns {number} A non-negative integer; `0` when the option is not set.
    */
   countFixedColumnsEnd() {
+    if (this._effectiveFixed) {
+      return this._effectiveFixed.end;
+    }
+
     if (!this.settings.fixedColumnsEnd) {
       return 0;
     }
 
     return clampFixedColumnsEnd(this.settings.fixedColumnsEnd, this.settings.fixedColumnsStart, this.hot.countCols());
+  }
+
+  /**
+   * Returns how many of the FIRST visual columns form the inline-start band, hidden columns included.
+   *
+   * With `limitFixedToViewport` on, it is the count the grid draws: the configured count cut down to the columns
+   * that leave a scrollable strip. Otherwise it is the configured count. Everything outside Walkontable that
+   * compares a column against the frozen band (scrolling, editors, shortcuts, plugins) reads this, never the
+   * option. The code that describes what the data means (`alter()`, sorting, export) keeps reading the option.
+   *
+   * @returns {number} A non-negative number; `0` when the option is not set.
+   */
+  countFixedColumnsStart() {
+    if (this._effectiveFixed) {
+      return this._effectiveFixed.start;
+    }
+
+    return Number(this.settings.fixedColumnsStart) || 0;
+  }
+
+  /**
+   * Returns how many of the FIRST visual rows form the top band, hidden rows included. Follows the same rule as
+   * `countFixedColumnsStart()`.
+   *
+   * @returns {number} A non-negative number; `0` when the option is not set.
+   */
+  countFixedRowsTop() {
+    if (this._effectiveFixed) {
+      return this._effectiveFixed.top;
+    }
+
+    return Number(this.settings.fixedRowsTop) || 0;
+  }
+
+  /**
+   * Returns how many of the LAST visual rows form the bottom band, hidden rows included. Follows the same rule as
+   * `countFixedColumnsStart()`.
+   *
+   * @returns {number} A non-negative number; `0` when the option is not set.
+   */
+  countFixedRowsBottom() {
+    if (this._effectiveFixed) {
+      return this._effectiveFixed.bottom;
+    }
+
+    return Number(this.settings.fixedRowsBottom) || 0;
+  }
+
+  /**
+   * Returns the size of one track as the frozen area counts it: a hidden track takes no room, a column has its
+   * width, and a row has the height it was drawn at, or the default height when it was never drawn.
+   *
+   * @param {boolean} isColumn `true` for a column, `false` for a row.
+   * @param {number} visualIndex The visual index.
+   * @returns {number}
+   */
+  getFrozenTrackSize(isColumn: boolean, visualIndex: number) {
+    const mapper = isColumn ? this.hot.columnIndexMapper : this.hot.rowIndexMapper;
+    const physical = isColumn ? this.hot.toPhysicalColumn(visualIndex) : this.hot.toPhysicalRow(visualIndex);
+
+    if (physical === null || mapper.isHidden(physical)) {
+      return 0;
+    }
+
+    if (isColumn) {
+      return this.hot.getColWidth(visualIndex);
+    }
+
+    return getRenderedRowHeight(this.hot, visualIndex) ??
+      this.hot.stylesHandler.getDefaultRowHeight(visualIndex) ?? 0;
+  }
+
+  /**
+   * Returns the room the frozen bands of an axis share: the workspace without the headers. It measures the DOM live
+   * through the free functions, not through `Viewport#getWorkspaceWidth()`: in the single-pass layout that goes
+   * through a snapshot whose calculators read the frozen counts, so asking it here would freeze this draw on the
+   * counts of the previous one.
+   *
+   * @param {boolean} isColumn `true` for the width, `false` for the height.
+   * @returns {number}
+   */
+  getFrozenViewportSize(isColumn: boolean) {
+    const viewport = this._wt.wtViewport;
+
+    if (isColumn) {
+      return measureWorkspaceWidth(viewport) - viewport.getRowHeaderWidth();
+    }
+
+    return measureWorkspaceHeight(viewport) - viewport.getColumnHeaderHeight();
   }
 
   /**
@@ -1134,7 +1262,7 @@ class TableView {
    */
   countNotHiddenFixedRowsTop() {
     const countRows = this.hot.countRows();
-    const visualFixedRowsTop = Math.min(Number(this.settings.fixedRowsTop) || 0, countRows) - 1;
+    const visualFixedRowsTop = Math.min(this.countFixedRowsTop(), countRows) - 1;
 
     return this.countNotHiddenRowIndexes(visualFixedRowsTop, -1);
   }
@@ -1147,7 +1275,7 @@ class TableView {
    */
   countNotHiddenFixedRowsBottom() {
     const countRows = this.hot.countRows();
-    const visualFixedRowsBottom = Math.max(countRows - (Number(this.settings.fixedRowsBottom) || 0), 0);
+    const visualFixedRowsBottom = Math.max(countRows - this.countFixedRowsBottom(), 0);
 
     return this.countNotHiddenRowIndexes(visualFixedRowsBottom, 1);
   }
@@ -2313,6 +2441,86 @@ class TableView {
   beforeRender(force: boolean, skipRender: boolean) {
     if (force) {
       this.hot.runHooks('beforeViewRender', this.hot.forceFullRender, skipRender);
+    }
+  }
+
+  /**
+   * Resolves the frozen counts the grid can draw while `limitFixedToViewport` is on. The columns come first: a
+   * horizontal scrollbar that appears after them takes room from the rows, and the next full render sees it.
+   * Nothing is measured for an axis with no frozen track.
+   *
+   * @returns {EffectiveFixedCounts | null} `null` when the option is off.
+   */
+  #resolveEffectiveFixed(): EffectiveFixedCounts | null {
+    if (!this.settings.limitFixedToViewport) {
+      return null;
+    }
+
+    const start = Number(this.settings.fixedColumnsStart) || 0;
+    const end = Math.floor(Number(this.settings.fixedColumnsEnd)) || 0;
+    const top = Number(this.settings.fixedRowsTop) || 0;
+    const bottom = Number(this.settings.fixedRowsBottom) || 0;
+    const columns = { leading: 0, trailing: 0 };
+    const rows = { leading: 0, trailing: 0 };
+
+    if (start > 0 || end > 0) {
+      Object.assign(columns, resolveFittingFrozenCounts({
+        viewportSize: this.getFrozenViewportSize(true),
+        requestedLeading: start,
+        requestedTrailing: end,
+        total: this.hot.countCols(),
+        getTrackSize: visualIndex => this.getFrozenTrackSize(true, visualIndex),
+        minScrollableSize: MIN_SCROLLABLE_SIZE,
+      }));
+    }
+
+    if (top > 0 || bottom > 0) {
+      Object.assign(rows, resolveFittingFrozenCounts({
+        viewportSize: this.getFrozenViewportSize(false),
+        requestedLeading: top,
+        requestedTrailing: bottom,
+        total: this.hot.countRows(),
+        getTrackSize: visualIndex => this.getFrozenTrackSize(false, visualIndex),
+        minScrollableSize: MIN_SCROLLABLE_SIZE,
+      }));
+    }
+
+    return { start: columns.leading, end: columns.trailing, top: rows.leading, bottom: rows.trailing };
+  }
+
+  /**
+   * Brings the memo of the effective frozen counts up to date before a draw. A full render measures again, a
+   * scroll-only draw keeps the memo (the viewport did not change size).
+   *
+   * @param {boolean} isFullRender `true` for a full render.
+   */
+  #refreshEffectiveFixed(isFullRender: boolean) {
+    if (!this.settings.limitFixedToViewport) {
+      this._effectiveFixed = null;
+
+    } else if (isFullRender || this._effectiveFixed === null) {
+      this._effectiveFixed = this.#resolveEffectiveFixed();
+    }
+  }
+
+  /**
+   * Draws once more when the counts measured after a full draw differ from the ones it was drawn with. The first
+   * measurement runs before the draw, so it used the default height of a row that was never drawn and the
+   * scrollbars of the previous draw. One more pass is enough, and there is never a third: a layout that keeps
+   * flipping between two answers stays on the last one.
+   *
+   * @param {boolean} isFullRender `true` for a full render.
+   */
+  #redrawOnceWhenEffectiveFixedMoved(isFullRender: boolean) {
+    if (!isFullRender || !this.settings.limitFixedToViewport) {
+      return;
+    }
+
+    const next = this.#resolveEffectiveFixed();
+
+    if (!isSameEffectiveFixed(this._effectiveFixed, next)) {
+      this._effectiveFixed = next;
+      this._wt.draw(false);
     }
   }
 

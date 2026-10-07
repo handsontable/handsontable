@@ -1011,7 +1011,7 @@ export class CollapsibleColumns extends BasePlugin {
     const { collapsible, origColspan, isCollapsed } = headerSettings ?? {};
     const isNodeCollapsible = collapsible === true &&
       (origColspan ?? 0) > 1 &&
-      column >= (this.hot.getSettings().fixedColumnsStart ?? 0) &&
+      column >= (this.hot.view?.countFixedColumnsStart() ?? this.hot.getSettings().fixedColumnsStart ?? 0) &&
       !this.#reachesFixedColumnsEnd(column, origColspan ?? 0);
     const isAriaTagsEnabled = this.hot.getSettings().ariaTags;
     let collapsibleElement = TH.querySelector<HTMLElement>(`.${COLLAPSIBLE_ELEMENT_CLASS}`);

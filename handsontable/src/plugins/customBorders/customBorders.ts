@@ -1223,10 +1223,9 @@ export class CustomBorders extends BasePlugin {
 
     // Frozen rows/columns are rendered by the overlay clones even when the master rendered range
     // excludes them, so the working window is the union of the frozen areas and the master range.
-    const settings = this.hot.getSettings();
-    const fixedRowsTop = Number(settings.fixedRowsTop) || 0;
-    const fixedRowsBottom = Number(settings.fixedRowsBottom) || 0;
-    const fixedColumnsStart = Number(settings.fixedColumnsStart) || 0;
+    const fixedRowsTop = this.hot.view.countFixedRowsTop();
+    const fixedRowsBottom = this.hot.view.countFixedRowsBottom();
+    const fixedColumnsStart = this.hot.view.countFixedColumnsStart();
     const totalRows = this.hot.countRows();
     const totalColumns = this.hot.countCols();
     // The start columns have priority over the end ones when the two bands would overlap.

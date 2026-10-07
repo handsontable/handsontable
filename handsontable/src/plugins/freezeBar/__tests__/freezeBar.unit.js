@@ -23,10 +23,7 @@ describe('FreezeBar', () => {
     });
 
     // jsdom has no layout: give the viewport a size, so the count is not clamped to 0
-    jest.spyOn(hot.view, 'getWorkspaceWidth').mockReturnValue(1000);
-    jest.spyOn(hot.view, 'getWorkspaceHeight').mockReturnValue(1000);
-    jest.spyOn(hot.view, 'getRowHeaderWidth').mockReturnValue(0);
-    jest.spyOn(hot.view, 'getColumnHeaderHeight').mockReturnValue(0);
+    jest.spyOn(hot.view, 'getFrozenViewportSize').mockReturnValue(1000);
     jest.spyOn(hot, 'getColWidth').mockReturnValue(50);
     jest.spyOn(hot.stylesHandler, 'getDefaultRowHeight').mockReturnValue(23);
 
@@ -121,7 +118,7 @@ describe('FreezeBar', () => {
   it('should clamp the count to what fits the viewport', () => {
     const plugin = createGrid();
 
-    hot.view.getWorkspaceWidth.mockReturnValue(300);
+    hot.view.getFrozenViewportSize.mockImplementation(isColumn => (isColumn ? 300 : 1000));
     plugin.setFreezeCount('start', 100);
 
     // 300px viewport, 40px kept scrollable, 50px columns: 5 columns fit

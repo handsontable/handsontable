@@ -105,16 +105,18 @@ Freezing moves a column with `columnIndexMapper.moveIndexes()` directly, so it n
   the band. With `fixedColumnsEnd: 0` every guard is a no-op.
 - Pinned by `__tests__/fixedColumnsEnd.unit.js` and `tests/e2e/fixed-columns-end-review-plugins.spec.ts`.
 
-## Open issue: freezing beyond the viewport (#4259)
+## Freezing beyond the viewport (#4259)
 
-Freezing more columns than fit the viewport still reproduces on 18.0.0 and on `develop`: the frozen overlay
-overflows and covers the master table, so the scrollbar moves but the grid does not. The cause is
-Walkontable's `stickyColumnsStart` / `stickyRowsTop` clamping their rendered count against a **count**
-rather than against available **width**.
+By default, a frozen area bigger than the grid is drawn in full and covers the master table, so the rest of the
+grid is unreachable. The cause is that Walkontable's `stickyColumnsStart` / `stickyRowsTop` clamp the rendered
+count against a **count** of tracks, not against available size.
 
-There is no fix in the plugin, and a render-time clamp is a behavior change that needs sign-off. If you are
-asked about it: the current recommendation is a documentation note plus a `warnOnce`, not a silent
-auto-unfreeze.
+The opt-in `limitFixedToViewport` option fixes it at render time: `TableView` resolves the counts the grid can
+really draw and hands those to Walkontable. This plugin is not involved, and it must stay out of it. Read the
+configured count (`getSettings().fixedColumnsStart`) when you decide what the data means, because that is what
+the app set and what `ManualColumnFreeze` writes. Never write the effective count back: the clamp is recomputed
+on each full render and reverses when the grid grows. Which readers use which count is in
+`handsontable/AGENTS.md`, under "Raw versus effective frozen counts".
 
 ## Where to look next
 
