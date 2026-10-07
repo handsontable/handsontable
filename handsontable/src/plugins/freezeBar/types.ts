@@ -20,9 +20,4 @@ export interface FreezeBarSettings {
    * Show the bar for frozen columns. Defaults to `true`.
    */
   columns?: boolean;
-  /**
-   * Show a handle on an edge with nothing frozen, so users can start freezing. Defaults to `false`: an edge
-   * with nothing frozen has no bar, and the grid looks as it does without the plugin.
-   */
-  showEmptyHandles?: boolean;
 }

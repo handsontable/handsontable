@@ -14,6 +14,11 @@ export const PLUGIN_PRIORITY = 380;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 /**
+ * The shortest handle on a header corner, in pixels. A grid without headers has no corner to size it by.
+ */
+const MIN_HANDLE_LENGTH = 24;
+
+/**
  * The size that always stays scrollable, in pixels. The frozen area never grows into it.
  */
 const MIN_SCROLLABLE_SIZE = 40;
@@ -242,17 +247,6 @@ export class FreezeBar extends BasePlugin {
   }
 
   /**
-   * Checks if the `showEmptyHandles` setting asks for a handle on an edge with nothing frozen.
-   *
-   * @returns {boolean}
-   */
-  #showsEmptyHandles(): boolean {
-    const settings = this.hot.getSettings()[PLUGIN_KEY] as boolean | FreezeBarSettings | undefined;
-
-    return typeof settings === 'object' && settings.showEmptyHandles === true;
-  }
-
-  /**
    * Checks if the bar of the edge is available: the axis is enabled, and the rows are not paginated.
    *
    * @param {string} edge The edge.
@@ -363,8 +357,8 @@ export class FreezeBar extends BasePlugin {
   };
 
   /**
-   * Shows or hides the handles of the empty edges as the grid scrolls. A bar inside an overlay needs nothing: the
-   * overlay keeps it on the freeze line.
+   * Keeps the handles of the empty edges on the header corners as the page scrolls. A bar inside an overlay needs
+   * nothing: the overlay keeps it on the freeze line.
    */
   #onScroll = () => {
     const empty = EDGES.filter(edge => this.#bars[edge]?.classList.contains('ht-freeze-bar--empty'));
@@ -375,9 +369,8 @@ export class FreezeBar extends BasePlugin {
 
     const frame = this.#measureFrame();
 
-    empty.forEach((edge) => {
-      this.#bars[edge]!.hidden = !this.#isEdgeInView(edge, frame);
-    });
+    // in window scroll mode the header corner is pinned to the viewport while the root element scrolls away
+    empty.forEach(edge => this.#positionEmptyHandle(this.#bars[edge]!, edge, true, frame));
   };
 
   /**
@@ -389,14 +382,9 @@ export class FreezeBar extends BasePlugin {
     const available = this.#isEdgeAvailable(edge);
     const count = available ? this.getFreezeCount(edge) : 0;
     // A bar sits in the overlay that holds the frozen tracks. With nothing frozen there is no overlay to
-    // hold it, so the handle of an empty edge sits in the root element, on the edge of the data area.
-    const existing = this.#bars[edge];
-    // An edge with nothing frozen has no bar, unless the option asks for the handle. A bar that holds the focus
-    // stays until it loses it, so a keyboard user who pressed Home can still grow the area again.
-    const showEmpty = count > 0 || this.#showsEmptyHandles() ||
-      (!!existing && this.hot.rootDocument.activeElement === existing);
-    const host = available && showEmpty ? this.#getHost(edge, count) : null;
-    let bar = existing;
+    // hold it, so the handle of an empty edge sits in the root element, on a header corner.
+    const host = available ? this.#getHost(edge, count) : null;
+    let bar = this.#bars[edge];
 
     if (!host) {
       bar?.remove();
@@ -426,9 +414,6 @@ export class FreezeBar extends BasePlugin {
 
     bar.classList.toggle('ht-freeze-bar--empty', empty);
     this.#positionEmptyHandle(bar, edge, empty, frame);
-    // With nothing frozen, the handle only makes sense where the edge of the data is in view. Scrolled to the
-    // middle of the grid it would sit on half a cell, and the rows it counts are not the ones next to it.
-    bar.hidden = empty && !this.#isEdgeInView(edge, frame);
 
     if (this.hot.getSettings().ariaTags) {
       bar.setAttribute('aria-valuenow', String(count));
@@ -494,53 +479,43 @@ export class FreezeBar extends BasePlugin {
       return;
     }
 
-    // the handle of an empty edge sits in the root element, along the rendered area
+    // The handle of an empty edge sits in the root element, on a corner of the header row and column, which stay in
+    // view while the grid scrolls: a short handle that the rest of the grid does not show. A grid without headers
+    // gets a handle of a fixed length.
+    const rowHeaderWidth = Math.max(view.getRowHeaderWidth(), MIN_HANDLE_LENGTH);
+    const columnHeaderHeight = Math.max(view.getColumnHeaderHeight(), MIN_HANDLE_LENGTH);
+    const fromLeft = rendered.left - rootRect.left;
+    const fromRight = rootRect.right - rendered.right;
+    const fromTop = rendered.top - rootRect.top;
+    const fromBottom = rootRect.bottom - rendered.bottom;
+
+    style.left = 'auto';
+    style.right = 'auto';
+    style.top = 'auto';
+    style.bottom = 'auto';
+
     if (columns) {
-      style.top = `${rendered.top - rootRect.top}px`;
-      style.bottom = 'auto';
-      style.height = `${rendered.bottom - rendered.top}px`;
+      style.top = `${fromTop}px`;
+      style.height = `${columnHeaderHeight}px`;
     } else {
-      style.left = `${rendered.left - rootRect.left}px`;
-      style.right = 'auto';
-      style.width = `${rendered.right - rendered.left}px`;
+      style.width = `${rowHeaderWidth}px`;
     }
 
     if (edge === 'start') {
-      style[rtl ? 'right' : 'left'] = `${view.getRowHeaderWidth()}px`;
-      style[rtl ? 'left' : 'right'] = 'auto';
+      // on the line between the row headers and the first column
+      style[rtl ? 'right' : 'left'] = `${(rtl ? fromRight : fromLeft) + view.getRowHeaderWidth()}px`;
     } else if (edge === 'end') {
-      // The handle sits inside the edge of the rendered area, not past it. The end edge is the right edge in LTR
-      // and the left edge in RTL.
-      style.right = 'auto';
-      style.left = rtl ?
-        `${rendered.left - rootRect.left}px` :
-        `calc(${rendered.right - rootRect.left}px - var(--ht-sizing-size-1))`;
+      // inside the end edge of the rendered area, not past it
+      style.left = rtl ? `${fromLeft}px` : `calc(${rendered.right - rootRect.left}px - var(--ht-sizing-size-1))`;
     } else if (edge === 'top') {
-      style.top = `${view.getColumnHeaderHeight() + rendered.top - rootRect.top}px`;
-      style.bottom = 'auto';
+      // on the line between the column headers and the first row, over the row headers
+      style.top = `${fromTop + view.getColumnHeaderHeight()}px`;
+      style[rtl ? 'right' : 'left'] = `${rtl ? fromRight : fromLeft}px`;
     } else {
-      style.top = 'auto';
-      style.bottom = `${rootRect.bottom - rendered.bottom}px`;
+      // on the bottom edge of the rendered area, over the row headers
+      style.bottom = `${fromBottom}px`;
+      style[rtl ? 'right' : 'left'] = `${rtl ? fromRight : fromLeft}px`;
     }
-  }
-
-  /**
-   * Checks if the first or last track of the edge is in view, so the freeze line of an empty edge is next to it.
-   *
-   * @param {string} edge The edge.
-   * @param {object} frame The measurements of the render.
-   * @returns {boolean}
-   */
-  #isEdgeInView(edge: FreezeEdge, { viewport, content }: Frame): boolean {
-    const rtl = this.hot.isRtl();
-    const tolerance = 1;
-
-    return {
-      top: content.top >= viewport.top - tolerance,
-      bottom: content.bottom <= viewport.bottom + tolerance,
-      start: rtl ? content.right <= viewport.right + tolerance : content.left >= viewport.left - tolerance,
-      end: rtl ? content.left >= viewport.left - tolerance : content.right <= viewport.right + tolerance,
-    }[edge];
   }
 
   /**

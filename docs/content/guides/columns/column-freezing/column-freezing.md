@@ -93,12 +93,12 @@ To let users change the number of frozen columns and rows by dragging, enable th
 - The grid snaps the bar to whole columns and rows. A count that is too large for the grid is reduced to the number of columns and rows that leave room to scroll.
 - When a drag starts, the grid scrolls to the start of that axis (to the end for the bottom and end bars), so the rows or columns that get frozen are the ones on screen.
 - The bar never moves a column. It changes how many of the first (or last) columns are frozen.
-- An edge with nothing frozen has no bar by default, so the grid looks as it does without the plugin. To show a handle on those edges, so users can start freezing, set `showEmptyHandles: true`. The handle shows when the first or last row or column is in view. Scrolled to the middle of the grid, there is no edge to freeze from, so it hides.
+- An edge with nothing frozen has a short handle on a corner of the headers, so users can start freezing from there. The handle stays in place while the grid scrolls.
 - Press <kbd>**Escape**</kbd> during a drag to cancel it.
 - To use the keyboard, press <kbd>**F6**</kbd> in the grid to focus the first bar. Then press the <kbd>**Arrow**</kbd> keys to change the count by one, <kbd>**Home**</kbd> to unfreeze, or <kbd>**End**</kbd> to freeze as many as fit. Each bar is a `separator` with the `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes.
 - When the [`Pagination`](@/api/pagination.md) plugin is on, the bars for rows are hidden, because Pagination doesn't support frozen rows.
 
-The bars cover all four edges: [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart), [`fixedColumnsEnd`](@/api/options.md#fixedcolumnsend), [`fixedRowsTop`](@/api/options.md#fixedrowstop), and [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom). To show the bars for columns only, pass `{ rows: false }` to the option. To also show a handle on the edges with nothing frozen, pass `{ showEmptyHandles: true }`.
+The bars cover all four edges: [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart), [`fixedColumnsEnd`](@/api/options.md#fixedcolumnsend), [`fixedRowsTop`](@/api/options.md#fixedrowstop), and [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom). To show the bars for columns only, pass `{ rows: false }` to the option.
 
 ::: only-for javascript
 

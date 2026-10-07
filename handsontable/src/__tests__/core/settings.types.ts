@@ -180,7 +180,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   layoutDirection: oneOf('rtl', 'ltr', 'inherit'),
   licenseKey: '',
   locale: 'pl-PL',
-  freezeBar: { rows: true, columns: false, showEmptyHandles: true },
+  freezeBar: { rows: true, columns: false },
   manualColumnFreeze: true,
   manualColumnMove: true,
   manualColumnResize: true,

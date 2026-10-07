@@ -202,21 +202,18 @@ describe('FreezeBar', () => {
     expect(hot.getSettings().fixedColumnsStart).toBe(0);
   });
 
-  it('should not draw a bar on an edge with nothing frozen', () => {
+  it('should draw a short handle on the header corner of an edge with nothing frozen', () => {
     createGrid({ fixedColumnsStart: 2 });
     hot.render();
 
-    expect(container.querySelector('.ht-freeze-bar--start')).not.toBeNull();
-    expect(container.querySelector('.ht-freeze-bar--top')).toBeNull();
-    expect(container.querySelector('.ht-freeze-bar--end')).toBeNull();
-    expect(container.querySelector('.ht-freeze-bar--bottom')).toBeNull();
-  });
+    ['top', 'bottom', 'end'].forEach((edge) => {
+      const handle = container.querySelector(`.ht-freeze-bar--${edge}`);
 
-  it('should draw a handle on every edge with the showEmptyHandles setting', () => {
-    createGrid({ freezeBar: { showEmptyHandles: true } });
-    hot.render();
-
-    expect(container.querySelectorAll('.ht-freeze-bar--empty').length).toBe(4);
+      expect(handle).not.toBeNull();
+      expect(handle.classList.contains('ht-freeze-bar--empty')).toBe(true);
+      expect(handle.parentNode).toBe(hot.rootElement);
+    });
+    expect(container.querySelector('.ht-freeze-bar--start').classList.contains('ht-freeze-bar--empty')).toBe(false);
   });
 
   it('should render nothing when the option is not set', () => {
