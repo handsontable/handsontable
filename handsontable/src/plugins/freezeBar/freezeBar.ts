@@ -18,6 +18,7 @@ const MIN_SCROLLABLE_SIZE = 40;
 const EDGES: readonly FreezeEdge[] = ['start', 'top', 'end', 'bottom'];
 
 const isColumnEdge = (edge: FreezeEdge) => edge === 'start' || edge === 'end';
+const growsFromStart = (edge: FreezeEdge) => edge === 'start' || edge === 'top';
 
 /**
  * @plugin FreezeBar
@@ -238,7 +239,7 @@ export class FreezeBar extends BasePlugin {
     const sizes: number[] = [];
 
     for (let index = 0; index < total; index++) {
-      const visual = edge === 'start' || edge === 'top' ? index : total - 1 - index;
+      const visual = growsFromStart(edge) ? index : total - 1 - index;
 
       sizes.push(this.#getTrackSize(columns, visual));
     }
@@ -315,7 +316,7 @@ export class FreezeBar extends BasePlugin {
    * @param {string} edge The edge.
    */
   #syncBar(edge: FreezeEdge) {
-    const available = this.#isEdgeAvailable(edge) && (edge === 'start' || edge === 'top');
+    const available = this.#isEdgeAvailable(edge);
     const count = available ? this.getFreezeCount(edge) : 0;
     // A bar sits in the overlay that holds the frozen tracks. With nothing frozen there is no overlay to
     // hold it, so the handle of an empty edge sits in the root element, on the edge of the data area.
@@ -364,6 +365,7 @@ export class FreezeBar extends BasePlugin {
   #positionEmptyHandle(bar: HTMLElement, edge: FreezeEdge, empty: boolean) {
     const style = bar.style;
     const view = this.hot.view;
+    const rtl = this.hot.isRtl();
 
     style.left = '';
     style.right = '';
@@ -375,10 +377,26 @@ export class FreezeBar extends BasePlugin {
     }
 
     if (edge === 'start') {
-      style[this.hot.isRtl() ? 'right' : 'left'] = `${view.getRowHeaderWidth()}px`;
-    } else {
+      style[rtl ? 'right' : 'left'] = `${view.getRowHeaderWidth()}px`;
+    } else if (edge === 'end') {
+      style[rtl ? 'left' : 'right'] = `${this.#getScrollbarSize(true)}px`;
+    } else if (edge === 'top') {
       style.top = `${view.getColumnHeaderHeight()}px`;
+    } else {
+      style.bottom = `${this.#getScrollbarSize(false)}px`;
     }
+  }
+
+  /**
+   * Gets the thickness of the scrollbar of the grid on an axis. The bands of the end edges sit before it.
+   *
+   * @param {boolean} vertical `true` for the vertical scrollbar, which takes width.
+   * @returns {number}
+   */
+  #getScrollbarSize(vertical: boolean): number {
+    const holder = this.hot.view._wt.wtTable.holder;
+
+    return vertical ? holder.offsetWidth - holder.clientWidth : holder.offsetHeight - holder.clientHeight;
   }
 
   /**
@@ -389,7 +407,12 @@ export class FreezeBar extends BasePlugin {
    */
   #getOverlayRoot(edge: FreezeEdge): HTMLElement | null {
     const overlays = this.hot.view._wt.wtOverlays;
-    const overlay = edge === 'start' ? overlays.inlineStartOverlay : overlays.topOverlay;
+    const overlay = {
+      start: overlays.inlineStartOverlay,
+      top: overlays.topOverlay,
+      end: overlays.inlineEndOverlay,
+      bottom: overlays.bottomOverlay,
+    }[edge];
 
     return (overlay?.clone?.wtTable?.holder?.parentNode as HTMLElement | undefined) ?? null;
   }
@@ -441,13 +464,13 @@ export class FreezeBar extends BasePlugin {
     const maxCount = this.#getMaxCount(edge);
     const view = this.hot.view;
     // the pointer distance is measured from the edge of the data area, past the headers
-    const headerSize = columns ? view.getRowHeaderWidth() : view.getColumnHeaderHeight();
-    const isRtl = columns && this.hot.isRtl();
+    const headerSize = this.#getBandOrigin(edge);
+    const fromLeft = columns && growsFromStart(edge) !== this.hot.isRtl();
 
     this.#drag = { edge, count: this.getFreezeCount(edge) };
 
     const onMove = (moveEvent: MouseEvent) => {
-      const pointer = this.#getPointerOffset(moveEvent, rootRect, columns, isRtl);
+      const pointer = this.#getPointerOffset(moveEvent, rootRect, edge, fromLeft);
       const distance = normalizeVisualDelta(pointer, scale) - headerSize;
 
       this.#drag!.count = resolveFreezeCount({ distance, trackSizes, maxCount });
@@ -486,16 +509,34 @@ export class FreezeBar extends BasePlugin {
    *
    * @param {MouseEvent} event The event.
    * @param {DOMRect} rootRect The bounding rectangle of the root element.
-   * @param {boolean} columns `true` for a column band.
-   * @param {boolean} isRtl `true` when the columns grow from the right edge.
+   * @param {string} edge The edge.
+   * @param {boolean} fromLeft `true` when the columns grow from the left edge.
    * @returns {number}
    */
-  #getPointerOffset(event: MouseEvent, rootRect: DOMRect, columns: boolean, isRtl: boolean): number {
-    if (!columns) {
-      return event.clientY - rootRect.top;
+  #getPointerOffset(event: MouseEvent, rootRect: DOMRect, edge: FreezeEdge, fromLeft: boolean): number {
+    if (!isColumnEdge(edge)) {
+      return growsFromStart(edge) ? event.clientY - rootRect.top : rootRect.bottom - event.clientY;
     }
 
-    return isRtl ? rootRect.right - event.clientX : event.clientX - rootRect.left;
+    return fromLeft ? event.clientX - rootRect.left : rootRect.right - event.clientX;
+  }
+
+  /**
+   * Gets the distance between the edge of the root element and the first track of the band: the headers for the
+   * start and top bands, the scrollbar for the end and bottom bands.
+   *
+   * @param {string} edge The edge.
+   * @returns {number}
+   */
+  #getBandOrigin(edge: FreezeEdge): number {
+    const view = this.hot.view;
+
+    return {
+      start: view.getRowHeaderWidth(),
+      top: view.getColumnHeaderHeight(),
+      end: this.#getScrollbarSize(true),
+      bottom: this.#getScrollbarSize(false),
+    }[edge];
   }
 
   /**
@@ -521,16 +562,19 @@ export class FreezeBar extends BasePlugin {
 
     style.position = 'absolute';
     style.pointerEvents = 'none';
+    style.left = 'auto';
+    style.right = 'auto';
+    style.top = 'auto';
+    style.bottom = 'auto';
 
     if (columns) {
-      style[this.hot.isRtl() ? 'right' : 'left'] = `${offset}px`;
-      style[this.hot.isRtl() ? 'left' : 'right'] = 'auto';
+      style[growsFromStart(edge) !== this.hot.isRtl() ? 'left' : 'right'] = `${offset}px`;
       style.top = '0';
       style.width = '2px';
       style.height = `${rootRect.height}px`;
     } else {
+      style[growsFromStart(edge) ? 'top' : 'bottom'] = `${offset}px`;
       style.left = '0';
-      style.top = `${offset}px`;
       style.height = '2px';
       style.width = `${rootRect.width}px`;
     }
@@ -552,11 +596,15 @@ export class FreezeBar extends BasePlugin {
    */
   #onKeyDown(edge: FreezeEdge, event: KeyboardEvent) {
     const columns = isColumnEdge(edge);
-    const forward = columns ? 'ArrowRight' : 'ArrowDown';
-    const backward = columns ? 'ArrowLeft' : 'ArrowUp';
+    // The bar of a start or top band grows towards the end of the grid. The bar of an end or bottom band
+    // grows towards the start, so its arrows point the other way. In RTL the horizontal arrows swap again.
+    const rtl = columns && this.hot.isRtl();
+    const forwardKey = columns ? 'ArrowRight' : 'ArrowDown';
+    const backwardKey = columns ? 'ArrowLeft' : 'ArrowUp';
+    const forward = growsFromStart(edge) ? forwardKey : backwardKey;
+    const backward = growsFromStart(edge) ? backwardKey : forwardKey;
     const current = this.getFreezeCount(edge);
-    // in RTL, the end of a column band is on the other side, so the arrows swap
-    const flip = columns && this.hot.isRtl() ? -1 : 1;
+    const flip = columns && rtl ? -1 : 1;
     let target: number | null = null;
 
     if (event.key === forward) {

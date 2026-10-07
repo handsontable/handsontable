@@ -29,6 +29,21 @@
         cursor: row-resize;
       }
 
+      &--end {
+        top: 0;
+        bottom: 0;
+        inset-inline-start: 0;
+        width: 4px;
+        cursor: col-resize;
+      }
+
+      &--bottom {
+        inset-inline: 0;
+        top: 0;
+        height: 4px;
+        cursor: row-resize;
+      }
+
       // the handle of an edge with nothing frozen, mounted in the root element
       &--empty {
         opacity: 0.25;
@@ -39,6 +54,15 @@
 
         &.ht-freeze-bar--top {
           bottom: auto;
+          inset-inline: 0;
+        }
+
+        &.ht-freeze-bar--end {
+          inset-inline-start: auto;
+        }
+
+        &.ht-freeze-bar--bottom {
+          top: auto;
           inset-inline: 0;
         }
       }

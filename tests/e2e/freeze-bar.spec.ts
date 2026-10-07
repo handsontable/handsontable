@@ -50,6 +50,36 @@ test.describe('freezeBar', () => {
       expect(await grid.count('start')).toBe(3);
     });
 
+    test('the bottom bar freezes the last rows', async() => {
+      await grid.goto({ bottom: 1 });
+      await grid.drag('bottom', 3);
+
+      expect(await grid.count('bottom')).toBe(3);
+      expect(await grid.log()).toEqual([{ edge: 'bottom', newCount: 3, oldCount: 1, source: 'drag' }]);
+    });
+
+    test('the end bar freezes the last columns', async() => {
+      await grid.goto({ end: 1 });
+      await grid.drag('end', 3);
+
+      expect(await grid.count('end')).toBe(3);
+    });
+
+    test('the handle of an empty end edge starts the freezing', async() => {
+      await grid.goto();
+      await expect(grid.bar('end')).toBeVisible();
+      await grid.drag('end', 2);
+
+      expect(await grid.count('end')).toBe(2);
+    });
+
+    test('the end bar follows the right to left layout', async() => {
+      await grid.goto({ rtl: 1, end: 1 });
+      await grid.drag('end', 3);
+
+      expect(await grid.count('end')).toBe(3);
+    });
+
     test('a drag stores nothing until the pointer is released', async() => {
       await grid.goto();
       await grid.dragTo('start', 5);

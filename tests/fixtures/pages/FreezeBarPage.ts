@@ -94,10 +94,10 @@ export class FreezeBarPage {
   /**
    * Starts a drag on the bar and moves the pointer to the boundary after `count` tracks, without releasing.
    *
-   * @param edge The edge (`start` or `top`).
+   * @param edge The edge.
    * @param count The count to drag to.
    */
-  async dragTo(edge: 'start' | 'top', count: number): Promise<void> {
+  async dragTo(edge: FreezeBarEdge, count: number): Promise<void> {
     const bar = await this.bar(edge).boundingBox();
 
     if (!bar) {
@@ -110,7 +110,9 @@ export class FreezeBarPage {
 
     await this.page.mouse.move(startX, startY);
     await this.page.mouse.down();
-    await this.page.mouse.move(edge === 'start' ? target : startX, edge === 'top' ? target : startY, { steps: 5 });
+    const horizontal = edge === 'start' || edge === 'end';
+
+    await this.page.mouse.move(horizontal ? target : startX, horizontal ? startY : target, { steps: 5 });
   }
 
   /**
@@ -119,7 +121,7 @@ export class FreezeBarPage {
    * @param edge The edge (`start` or `top`).
    * @param pixels How far to move the pointer.
    */
-  async dragByPixels(edge: 'start' | 'top', pixels: number): Promise<void> {
+  async dragByPixels(edge: FreezeBarEdge, pixels: number): Promise<void> {
     const bar = await this.bar(edge).boundingBox();
 
     if (!bar) {
@@ -131,7 +133,9 @@ export class FreezeBarPage {
 
     await this.page.mouse.move(x, y);
     await this.page.mouse.down();
-    await this.page.mouse.move(edge === 'start' ? x + pixels : x, edge === 'top' ? y + pixels : y, { steps: 5 });
+    const horizontal = edge === 'start' || edge === 'end';
+
+    await this.page.mouse.move(horizontal ? x + pixels : x, horizontal ? y : y + pixels, { steps: 5 });
     await this.release();
   }
 
@@ -140,44 +144,71 @@ export class FreezeBarPage {
   }
 
   /**
-   * The page coordinate of the boundary after `count` tracks: the far edge of the last frozen header.
+   * The page coordinate of the boundary after `count` tracks: the inner edge of the last frozen header.
+   * With nothing frozen it is the edge of the data area.
    *
-   * @param edge The edge (`start` or `top`).
+   * @param edge The edge.
    * @param count The count.
    */
-  async boundaryPosition(edge: 'start' | 'top', count: number): Promise<number> {
+  async boundaryPosition(edge: FreezeBarEdge, count: number): Promise<number> {
+    const info = await this.page.evaluate(() => ({
+      root: window.hot.rootElement.getBoundingClientRect().toJSON() as { x: number, y: number, width: number, height: number },
+      rtl: window.hot.isRtl(),
+      rowHeader: window.hot.view.getRowHeaderWidth(),
+      colHeader: window.hot.view.getColumnHeaderHeight(),
+      scrollbarX: window.hot.view._wt.wtTable.holder.offsetWidth - window.hot.view._wt.wtTable.holder.clientWidth,
+      scrollbarY: window.hot.view._wt.wtTable.holder.offsetHeight - window.hot.view._wt.wtTable.holder.clientHeight,
+    }));
+    const root = info.root;
+    const startSideLeft = !info.rtl;
+
     if (count === 0) {
-      const root = (await this.grid.boundingBox())!;
-      const rtl = await this.page.evaluate(() => window.hot.isRtl());
-      const header = await this.page.evaluate(() => ({
-        row: window.hot.view.getRowHeaderWidth(),
-        col: window.hot.view.getColumnHeaderHeight(),
-      }));
-
-      if (edge === 'top') {
-        return root.y + header.col;
-      }
-
-      return rtl ? root.x + root.width - header.row : root.x + header.row;
+      return {
+        top: root.y + info.colHeader,
+        bottom: root.y + root.height - info.scrollbarY,
+        start: startSideLeft ? root.x + info.rowHeader : root.x + root.width - info.rowHeader,
+        end: startSideLeft ? root.x + root.width - info.scrollbarX : root.x + info.scrollbarX,
+      }[edge];
     }
 
-    const rtl = await this.page.evaluate(() => window.hot.isRtl());
-    const box = (await (edge === 'start' ? this.colHeader(count - 1) : this.rowHeader(count - 1)).boundingBox())!;
+    if (edge === 'start') {
+      const box = (await this.colHeader(count - 1).boundingBox())!;
+
+      return startSideLeft ? box.x + box.width : box.x;
+    }
 
     if (edge === 'top') {
+      const box = (await this.rowHeader(count - 1).boundingBox())!;
+
       return box.y + box.height;
     }
 
-    return rtl ? box.x : box.x + box.width;
+    // The tracks of the end bands are not always rendered, so measure from the edge by their sizes.
+    const sizes = await this.page.evaluate(([horizontal, taken]) => {
+      const total = horizontal ? window.hot.countCols() : window.hot.countRows();
+      let sum = 0;
+
+      for (let index = total - taken; index < total; index++) {
+        sum += horizontal ? window.hot.getColWidth(index) : (window.hot.getRowHeight(index) ?? window.hot.stylesHandler.getDefaultRowHeight(index));
+      }
+
+      return sum;
+    }, [edge === 'end', count] as [boolean, number]);
+
+    if (edge === 'end') {
+      return startSideLeft ? root.x + root.width - info.scrollbarX - sizes : root.x + info.scrollbarX + sizes;
+    }
+
+    return root.y + root.height - info.scrollbarY - sizes;
   }
 
   /**
    * Drags a bar to the boundary after `count` tracks and releases.
    *
-   * @param edge The edge (`start` or `top`).
+   * @param edge The edge.
    * @param count The count.
    */
-  async drag(edge: 'start' | 'top', count: number): Promise<void> {
+  async drag(edge: FreezeBarEdge, count: number): Promise<void> {
     await this.dragTo(edge, count);
     await this.release();
   }
