@@ -249,6 +249,19 @@ test.describe('limitFixedToViewport', () => {
     });
   });
 
+  test.describe('ManualColumnFreeze with a cut start band and an end band', () => {
+    test('does not unfreeze when writing the smaller start would widen the end band', async() => {
+      // 30 columns, start 28 (4 drawn) and end 5: the end band is 30 - 28 = 2, and a start of 3 would make it 5
+      await grid.goto({ start: 28, end: 5 });
+
+      expect((await grid.drawnCounts()).start).toBeLessThan(28);
+
+      expect(await grid.unfreezeColumn(0)).toBe(false);
+      expect(await grid.setting('fixedColumnsStart')).toBe(28);
+      expect(await grid.setting('fixedColumnsEnd')).toBe(5);
+    });
+  });
+
   test.describe('a grid that is not laid out when it is built', () => {
     test('keeps the configured counts while unmeasured, and clamps once it is drawn', async() => {
       await grid.goto({ start: 20, hide: 1 });

@@ -76,7 +76,12 @@ export function isInEndBand(hot: HotInstance, column: number): boolean {
  * @returns {boolean}
  */
 export function unfreezeWouldShiftEndBand(hot: HotInstance): boolean {
-  const fixedColumnsStart = getStartBandCount(hot);
+  // The unfreeze writes the drawn start count minus one over the configured one. With `limitFixedToViewport` the
+  // configured start can be larger than the drawn one, so the band it replaces is the one the CONFIGURED start gives,
+  // not the one at the drawn start: comparing the drawn start with the drawn start minus one would miss that the
+  // smaller write un-squeezes `fixedColumnsEnd`. Without the option the two starts are the same number.
+  const configuredStart = Number(hot.getSettings().fixedColumnsStart) || 0;
+  const startAfterUnfreeze = Math.max(getStartBandCount(hot) - 1, 0);
 
-  return getEndBandCount(hot, fixedColumnsStart) !== getEndBandCount(hot, Math.max(fixedColumnsStart - 1, 0));
+  return getEndBandCount(hot, configuredStart) !== getEndBandCount(hot, startAfterUnfreeze);
 }
