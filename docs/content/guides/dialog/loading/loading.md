@@ -132,6 +132,16 @@ Use `icon` for the one option that takes markup, such as a custom SVG spinner.
 
 :::
 
+## Update the loading dialog
+
+To change the `icon`, `title`, or `description` of the loading dialog without hiding and showing it again, use the [`update()`](@/api/loading.md#update) method. For example, you can show the progress of a long operation.
+
+`update()` takes the same options as [`show()`](@/api/loading.md#show). Options that you leave out keep their current values. The new values stay in place, so the next `show()` call without options reuses them.
+
+If the dialog is hidden, `update()` changes its content but doesn't show it. If the [`loading`](@/api/options.md#loading) option is `false`, `update()` does nothing.
+
+Calling `show()` while the dialog is visible has the same effect as `update()`. It doesn't run the [`beforeLoadingShow`](@/api/hooks.md#beforeloadingshow) and [`afterLoadingShow`](@/api/hooks.md#afterloadingshow) hooks.
+
 ## Real-world usage
 
 Here are some common scenarios where the loading dialog is useful:
