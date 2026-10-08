@@ -313,6 +313,23 @@ These keyboard shortcuts work when the [`Formulas`](@/api/formulas.md) plugin is
 | <kbd>**Ctrl**</kbd>+<kbd>**`**</kbd> | <kbd>⌃</kbd>+<kbd>**`**</kbd> | Toggle between showing formulas and showing values | &check; | &check; |
 
 
+### Freeze bar keyboard shortcuts
+
+These keyboard shortcuts work when the [`FreezeBar`](@/api/freezeBar.md) plugin is enabled. The first two work in the grid. The rest work on a freeze bar that has the focus.
+
+| Windows                                                  | macOS                                                  | Action                                                                                                           |  Excel  | Sheets  |
+| -------------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- | :-----: | :-----: |
+| <kbd>**F6**</kbd>                                        | <kbd>**F6**</kbd>                                      | Move the focus to the first freeze bar. When a bar has the focus, move to the next bar.                          | &cross; | &cross; |
+| <kbd>**Shift**</kbd>+<kbd>**F6**</kbd>                   | <kbd>⇧</kbd>+<kbd>**F6**</kbd>                         | Move the focus to the last freeze bar. When a bar has the focus, move to the previous bar.                       | &cross; | &cross; |
+| <kbd>**→**</kbd> / <kbd>**↓**</kbd>                      | <kbd>**→**</kbd> / <kbd>**↓**</kbd>                    | Freeze one more column or row on the start and top edges, and one fewer on the end and bottom edges.             | &cross; | &cross; |
+| <kbd>**←**</kbd> / <kbd>**↑**</kbd>                      | <kbd>**←**</kbd> / <kbd>**↑**</kbd>                    | Freeze one fewer column or row on the start and top edges, and one more on the end and bottom edges.             | &cross; | &cross; |
+| <kbd>**Home**</kbd>                                      | <kbd>**Home**</kbd>                                    | Unfreeze all the columns or rows on the edge.                                                                    | &cross; | &cross; |
+| <kbd>**End**</kbd>                                       | <kbd>**End**</kbd>                                     | Freeze as many columns or rows as fit in the grid, and leave room to scroll.                                     | &cross; | &cross; |
+| <kbd>**Escape**</kbd>                                    | <kbd>**Escape**</kbd>                                  | Move the focus back to the selected cell.                                                                        | &cross; | &cross; |
+
+In a right-to-left layout, the horizontal arrows swap. <kbd>**Escape**</kbd> also cancels a drag of a freeze bar.
+
+
 ## API reference
 
 For the list of [options](@/guides/configuration/configuration-options/configuration-options.md), methods, and [Handsontable hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md) related to keyboard navigation, see the following API reference pages:

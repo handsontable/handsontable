@@ -602,7 +602,7 @@ export class FreezeBar extends BasePlugin {
 
   /**
    * Adds the pieces of a bar that lie in the corner overlays, or removes them. A freeze line crosses the overlays of
-   * the other frozen rows and columns, and the bar is as long as the viewport, like the one in Google Sheets.
+   * the other frozen rows and columns, and the bar is as long as the viewport.
    *
    * @param {string} edge The edge.
    * @param {boolean} show `true` to have the pieces, `false` to remove them.
@@ -691,7 +691,7 @@ export class FreezeBar extends BasePlugin {
 
   /**
    * Computes where the handle of an empty edge sits in the root element. The start and top handles take the whole
-   * width or height of the grid to be grabbed on, like in Google Sheets, but draw only a short piece on the header
+   * width or height of the grid to be grabbed on, but draw only a short piece on the header
    * corner (the corner stays in view while the grid scrolls). The end and bottom handles have no such edge to start
    * from, so they are the short piece. A grid without headers gets a piece of a fixed length.
    *
@@ -732,7 +732,7 @@ export class FreezeBar extends BasePlugin {
     }
 
     if (edge === 'start') {
-      // on the line between the row headers and the first column, inside the corner like in Google Sheets;
+      // on the line between the row headers and the first column, inside the corner;
       // `max()` keeps the handle inside the root element when there are no row headers
       styles[rtl ? 'right' : 'left'] =
         `max(0px, calc(${(rtl ? fromRight : fromLeft) + view.getRowHeaderWidth()}px - var(--ht-sizing-size-1)))`;
