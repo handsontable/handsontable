@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-08T13:11:25.538Z",
+  "generatedAt": "2026-10-08T14:48:14.739Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -13588,7 +13588,7 @@
       "file": "handsontable/src/editors/intlDateEditor/__tests__/intlDateEditor.spec.js",
       "line": null,
       "title": "IntlDateEditor should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)",
-      "count7": 1,
+      "count7": 0,
       "count30": 1,
       "countAll": 1,
       "runs30": 1,
