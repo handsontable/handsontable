@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-07T13:02:38.527Z",
+  "generatedAt": "2026-10-08T02:27:00.151Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -1305,7 +1305,7 @@
       "file": "handsontable/src/plugins/undoRedo/__tests__/UndoRedo.spec.js",
       "line": null,
       "title": "UndoRedo should save the undo action even if a new value is the same as the previous one",
-      "count7": 6,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 1,
