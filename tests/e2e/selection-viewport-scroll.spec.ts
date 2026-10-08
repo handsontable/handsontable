@@ -4,8 +4,9 @@ import { SelectionViewportScrollPage } from '../fixtures/pages/SelectionViewport
 /**
  * The viewport scroll a selection makes, and the scroll of the browser window to the selected cell that it
  * queues for the next `afterScroll`. That window scroll goes through `scrollIntoView()`, which moves every
- * scrollable ancestor of the cell, the grid's own holders included. It must not run after a scroll made
- * since the selection's own, or it pulls the grid back to the selected cell.
+ * scrollable ancestor of the cell, the grid's own holders included. After a scroll made since the selection's
+ * own, it must still scroll the window but leave the grid's holders alone, or it pulls the grid back to the
+ * selected cell.
  */
 test.describe('viewport scroll of a selection', () => {
   let grid: SelectionViewportScrollPage;
@@ -13,6 +14,9 @@ test.describe('viewport scroll of a selection', () => {
   // 40 columns of 60px in a 500px-wide grid: column 10 is off screen at first, so selecting it scrolls.
   const WIDE_DATA = Array.from({ length: 10 }, (_, row) =>
     Array.from({ length: 40 }, (_, col) => `R${row + 1}C${col + 1}`));
+  // 100 rows, so a page of rows below row 10 exists to extend into.
+  const TALL_DATA = Array.from({ length: 100 }, (_, row) =>
+    Array.from({ length: 10 }, (_, col) => `R${row + 1}C${col + 1}`));
 
   test.beforeEach(async({ page, theme, bundle }) => {
     grid = new SelectionViewportScrollPage(page, theme, bundle);
@@ -33,7 +37,12 @@ test.describe('viewport scroll of a selection', () => {
 
       await grid.waitForAfterScroll();
 
-      expect(await grid.masterScrollLeft()).toBe(offsets.afterScroll);
+      // The queued window scroll had a cell to act on: column 10 is still rendered past the viewport's end.
+      expect(await grid.isCellRendered(3, 10)).toBe(true);
+      expect(await grid.holderScrollLefts()).toEqual({
+        master: offsets.afterScroll,
+        topOverlay: offsets.afterScroll,
+      });
       await expect.poll(() => grid.firstFullyVisibleColumn()).toBe(2);
     });
   }
@@ -51,12 +60,43 @@ test.describe('viewport scroll of a selection', () => {
 
     await grid.waitForAfterScroll();
 
-    expect(await grid.masterScrollLeft()).toBe(offsets.afterScroll);
+    expect(await grid.isCellRendered(0, 10)).toBe(true);
+    // Both holders in one read: the overlay's moves first, the master one `scroll` event later.
+    expect(await grid.holderScrollLefts()).toEqual({
+      master: offsets.afterScroll,
+      topOverlay: offsets.afterScroll,
+    });
     await expect.poll(() => grid.firstFullyVisibleColumn()).toBe(2);
   });
 
-  // The positive controls for the cases above: dropping the window scroll after a later scroll must not drop
-  // it when nothing else moved the viewport.
+  test('scrolls the browser window to the range end Shift+PageDown extends to', async({ page }) => {
+    // Shift+PageDown extends the selection with `setRangeEnd()`, whose scroll queues the window scroll, and
+    // then scrolls the viewport again itself in the same task. The window must still follow the range end,
+    // and the grid must keep the command's own scroll.
+    await grid.initGrid({ data: TALL_DATA, colWidths: 60 });
+    await grid.placeGridAcrossTheFold();
+    await grid.selectCells(10, 0, 10, 0);
+    await grid.scrollWindowToTop();
+
+    // The command keeps the range end as many rows below the first visible row as row 10 is now, and row 10 is
+    // below the fold.
+    expect(await grid.isCellInWindow(10, 0)).toBe(false);
+
+    const rowsBelowFirstVisible = 10 - await grid.firstFullyVisibleRow();
+
+    await page.keyboard.press('Shift+PageDown');
+
+    await expect.poll(() => grid.selectionEndRow()).toBeGreaterThan(10);
+
+    const endRow = (await grid.selectionEndRow())!;
+
+    await expect.poll(() => grid.isCellInWindow(endRow, 0)).toBe(true);
+    expect(await grid.windowScrollY()).toBeGreaterThan(0);
+    expect(await grid.firstFullyVisibleRow()).toBe(endRow - rowsBelowFirstVisible);
+  });
+
+  // The positive controls for the cases above: a window scroll that runs after a later scroll must not change
+  // when nothing else moved the viewport.
   test('still scrolls the browser window to a selected cell below the fold', async() => {
     // The cell is already inside the grid's viewport, so only the window has to move.
     await grid.initGrid({ data: WIDE_DATA, colWidths: 60 });

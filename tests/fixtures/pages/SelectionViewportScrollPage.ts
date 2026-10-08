@@ -63,6 +63,43 @@ export class SelectionViewportScrollPage extends SelectionFeaturesPage {
   }
 
   /**
+   * The `scrollLeft` of the master holder and of the top overlay's holder, read in one evaluation. A window
+   * scroll to a cell in a frozen row moves the overlay's holder at once, and the master only on that holder's
+   * next `scroll` event, when the overlay's holder has been put back - so between them, one of the two always
+   * shows the move, whenever it is read.
+   */
+  async holderScrollLefts(): Promise<{ master: number, topOverlay: number }> {
+    return this.page.evaluate(() => ({
+      master: document.querySelector('.ht_master .wtHolder')!.scrollLeft,
+      topOverlay: document.querySelector('.ht_clone_top .wtHolder')!.scrollLeft,
+    }));
+  }
+
+  /**
+   * Whether the grid renders the cell, in the master or in a frozen overlay. The window scroll a selection
+   * queues reads the cell when it runs and does nothing when it is gone, so a spec about that scroll asserts
+   * this first, or it passes because there was nothing to scroll to.
+   */
+  async isCellRendered(row: number, col: number): Promise<boolean> {
+    return this.page.evaluate(([targetRow, targetCol]) => window.hot.getCell(targetRow, targetCol, true) !== null,
+      [row, col] as const);
+  }
+
+  /**
+   * The first row the viewport shows whole, as the last draw computed it.
+   */
+  async firstFullyVisibleRow(): Promise<number> {
+    return this.page.evaluate(() => window.hot.getFirstFullyVisibleRow());
+  }
+
+  /**
+   * The row the last selection layer ends on.
+   */
+  async selectionEndRow(): Promise<number | null> {
+    return this.page.evaluate(() => window.hot.getSelectedRangeLast().to.row);
+  }
+
+  /**
    * The first column the viewport shows whole, as the last draw computed it.
    */
   async firstFullyVisibleColumn(): Promise<number> {
@@ -80,6 +117,34 @@ export class SelectionViewportScrollPage extends SelectionFeaturesPage {
       spacer.style.height = `${window.innerHeight * 2}px`;
       document.body.insertBefore(spacer, document.querySelector('[data-testid="grid"]'));
     });
+  }
+
+  /**
+   * Push the grid down so that only its top 200px are above the fold of the browser window: the rows past
+   * that need a scroll of the window to be seen, with the grid's own viewport left where it is.
+   */
+  async placeGridAcrossTheFold(): Promise<void> {
+    await this.page.evaluate(() => {
+      const spacer = document.createElement('div');
+
+      spacer.style.height = `${window.innerHeight - 200}px`;
+      document.body.insertBefore(spacer, document.querySelector('[data-testid="grid"]'));
+    });
+  }
+
+  /**
+   * Scroll the browser window back to its top.
+   */
+  async scrollWindowToTop(): Promise<void> {
+    await this.page.evaluate(() => window.scrollTo(0, 0));
+    await expect.poll(() => this.page.evaluate(() => window.scrollY)).toBe(0);
+  }
+
+  /**
+   * The browser window's `scrollY`.
+   */
+  async windowScrollY(): Promise<number> {
+    return this.page.evaluate(() => window.scrollY);
   }
 
   /**

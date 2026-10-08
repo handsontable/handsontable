@@ -1,6 +1,6 @@
 import type { HotInstance } from '../../types';
 import type { default as CellCoords } from '../../../3rdparty/walkontable/src/cell/coords';
-import { scrollViewportThenWindow, scrollWindowToCell, createScrollTargetCalculator } from '../utils';
+import { scrollViewportThenWindow, createScrollTargetCalculator } from '../utils';
 
 /**
  * Scroll strategy for row header selection.
@@ -16,7 +16,7 @@ export function rowHeaderScrollStrategy(hot: HotInstance) {
     scrollViewportThenWindow(hot, { row: scrollRowTarget }, () => {
       const hasRowHeaders = !!hot.getSettings().rowHeaders;
 
-      scrollWindowToCell(hot.getCell(scrollRowTarget, hasRowHeaders ? -1 : 0, true));
+      return hot.getCell(scrollRowTarget, hasRowHeaders ? -1 : 0, true);
     });
   };
 }

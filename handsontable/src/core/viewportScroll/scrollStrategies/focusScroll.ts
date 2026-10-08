@@ -1,5 +1,5 @@
 import type { HotInstance } from '../../types';
-import { scrollViewportThenWindow, scrollWindowToCell } from '../utils';
+import { scrollViewportThenWindow } from '../utils';
 
 /**
  * Scroll strategy for changed the focus position of the selection.
@@ -13,14 +13,12 @@ export function focusScrollStrategy(hot: HotInstance) {
       const activeRange = hot.getSelectedRangeActive();
 
       if (!activeRange) {
-        return;
+        return null;
       }
 
       const { row, col } = activeRange.highlight;
 
-      if (row !== null && col !== null) {
-        scrollWindowToCell(hot.getCell(row, col, true));
-      }
+      return row !== null && col !== null ? hot.getCell(row, col, true) : null;
     });
   };
 }

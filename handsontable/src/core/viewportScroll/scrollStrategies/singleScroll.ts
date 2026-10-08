@@ -1,6 +1,6 @@
 import type { HotInstance } from '../../types';
 import type { default as CellCoords } from '../../../3rdparty/walkontable/src/cell/coords';
-import { scrollViewportThenWindow, scrollWindowToCell } from '../utils';
+import { scrollViewportThenWindow } from '../utils';
 
 /**
  * Axes `scrollViewportTo` should receive for a mouse single-cell selection.
@@ -219,19 +219,17 @@ export function singleScrollStrategy(hot: HotInstance) {
       return;
     }
 
-    const scrollWindow = () => {
-      scrollWindowToCell(hot.getCell(row, col, true));
-    };
+    const getSelectedCell = () => hot.getCell(row, col, true);
 
     // navigating through the column headers (when `navigableHeaders` is enabled)
     // scrolls the viewport horizontally only
     if (row < 0 && col >= 0) {
-      scrollViewportThenWindow(hot, { col }, scrollWindow);
+      scrollViewportThenWindow(hot, { col }, getSelectedCell);
 
     // navigating through the row headers (when `navigableHeaders` is enabled)
     // scrolls the viewport vertically only
     } else if (col < 0 && row >= 0) {
-      scrollViewportThenWindow(hot, { row }, scrollWindow);
+      scrollViewportThenWindow(hot, { row }, getSelectedCell);
 
     // navigating through the cells
     } else {
@@ -257,7 +255,7 @@ export function singleScrollStrategy(hot: HotInstance) {
       // `scrollIntoView` on a last-partial cell would move the skipped axis.
       const skippedAnAxis = target.row === undefined || target.col === undefined;
 
-      scrollViewportThenWindow(hot, target, skippedAnAxis ? undefined : scrollWindow);
+      scrollViewportThenWindow(hot, target, skippedAnAxis ? undefined : getSelectedCell);
     }
   };
 }

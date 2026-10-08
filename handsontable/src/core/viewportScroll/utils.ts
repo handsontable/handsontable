@@ -25,28 +25,43 @@ interface ViewportOffset {
 }
 
 /**
+ * The scroll offsets of one element, as read before a `scrollIntoView()` call.
+ */
+interface ElementScrollOffsets {
+  element: HTMLElement;
+  top: number;
+  left: number;
+}
+
+/**
  * The `scrollViewportTo()` options a scroll strategy passes.
  */
 type ScrollTarget = Parameters<HotInstance['scrollViewportTo']>[0];
 
 /**
- * Scrolls the viewport to the target, then runs `scrollWindow` (the strategy's `scrollWindowToCell()` call)
- * once that scroll is drawn - unless the viewport has moved again since.
+ * Scrolls the viewport to the target and then, once that scroll is drawn, the browser window to the element
+ * `getWindowTarget` returns (the selected cell or header).
  *
- * `scrollViewportTo()` runs the callback on the next `afterScroll`, which the holder's `scroll` event fires a
- * frame later, not the synchronous render. When the viewport moves again in between (an application that
- * selects a cell and scrolls the grid in the same task), that `afterScroll` belongs to the later scroll, and
- * `scrollIntoView()` pulled the grid back to the selected cell - directly, or through a frozen overlay's
- * holder that `NativeScrollInput#onCloneScroll` replays onto the master. The later scroll is the one the
- * viewport keeps, so the window scroll is dropped then. Otherwise it runs as before, holder adjustments
- * included: a merged cell and a partly shown cell of a nested list rely on them.
+ * `scrollViewportTo()` runs that second step on the next `afterScroll`, which the holder's `scroll` event fires
+ * a frame later, not the synchronous render. When the viewport moves again in between - an application that
+ * selects a cell and scrolls the grid in the same task, or a command such as Shift+PageDown that scrolls
+ * again after `setRangeEnd()` - the `afterScroll` belongs to the later scroll. `scrollIntoView()` then pulled
+ * the grid back to the selected cell: directly, or through a frozen overlay's holder that
+ * `NativeScrollInput#onCloneScroll` replays onto the master. So in that case the window still scrolls to the
+ * element, but every scroll offset inside the grid's container is put back afterwards. When the viewport did
+ * not move, `scrollIntoView()` runs untouched: its adjustment of the grid's own holder finishes revealing a
+ * clicked merged cell and a partly shown cell of a nested list.
  *
  * @param {Core} hot The Handsontable instance.
  * @param {object} target The `scrollViewportTo()` options.
- * @param {Function} [scrollWindow] The window scroll to run after the viewport scroll.
+ * @param {Function} [getWindowTarget] Returns the element to scroll the window to, read after the scroll.
  */
-export function scrollViewportThenWindow(hot: HotInstance, target: ScrollTarget, scrollWindow?: () => void) {
-  if (!scrollWindow) {
+export function scrollViewportThenWindow(
+  hot: HotInstance,
+  target: ScrollTarget,
+  getWindowTarget?: () => HTMLElement | null,
+) {
+  if (!getWindowTarget) {
     hot.scrollViewportTo(target);
 
     return;
@@ -55,8 +70,12 @@ export function scrollViewportThenWindow(hot: HotInstance, target: ScrollTarget,
   let offsetAfterScroll: ViewportOffset | null = null;
 
   hot.scrollViewportTo(target, () => {
-    if (offsetAfterScroll === null || !hasViewportMovedFrom(hot, offsetAfterScroll)) {
-      scrollWindow();
+    const element = getWindowTarget();
+
+    if (offsetAfterScroll !== null && hasViewportMovedFrom(hot, offsetAfterScroll)) {
+      scrollWindowToCellKeepingGridScroll(hot, element);
+    } else {
+      scrollWindowToCell(element);
     }
   });
 
@@ -73,8 +92,8 @@ function readViewportOffset(hot: HotInstance): ViewportOffset {
   const { wtOverlays } = hot.view._wt;
 
   return {
-    top: wtOverlays.topOverlay?.getScrollPosition() ?? 0,
-    left: wtOverlays.inlineStartOverlay?.getScrollPosition() ?? 0,
+    top: wtOverlays.topOverlay.getScrollPosition(),
+    left: wtOverlays.inlineStartOverlay.getScrollPosition(),
   };
 }
 
@@ -90,6 +109,59 @@ function hasViewportMovedFrom(hot: HotInstance, offset: ViewportOffset): boolean
   const { top, left } = readViewportOffset(hot);
 
   return Math.abs(top - offset.top) >= 1 || Math.abs(left - offset.left) >= 1;
+}
+
+/**
+ * Scrolls the browser window, and any scrollable element of the page around the grid, to the element, and
+ * leaves every scroll offset inside the grid's container (`rootContainer`) where it was. The offsets are
+ * written back in the same task, before any scroll listener can read the moved values.
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @param {HTMLElement} element The element to scroll the window to.
+ */
+function scrollWindowToCellKeepingGridScroll(hot: HotInstance, element: HTMLElement | null) {
+  if (!isHTMLElement(element)) {
+    return;
+  }
+
+  const gridOffsets = readOffsetsUpTo(element, hot.rootContainer);
+
+  scrollWindowToCell(element);
+
+  gridOffsets.forEach(({ element: ancestor, top, left }) => {
+    if (ancestor.scrollTop !== top) {
+      ancestor.scrollTop = top;
+    }
+    if (ancestor.scrollLeft !== left) {
+      ancestor.scrollLeft = left;
+    }
+  });
+}
+
+/**
+ * Reads the scroll offsets of every ancestor of the element below the boundary. The boundary itself is left
+ * out: it is the container the application handed to the grid, and scrolling it is the application's call.
+ * Returns nothing when the element is not inside the boundary.
+ *
+ * @param {HTMLElement} element The element whose ancestors are read.
+ * @param {HTMLElement} boundary The element the walk stops at.
+ * @returns {ElementScrollOffsets[]}
+ */
+function readOffsetsUpTo(element: HTMLElement, boundary: HTMLElement): ElementScrollOffsets[] {
+  const offsets: ElementScrollOffsets[] = [];
+
+  if (!boundary.contains(element)) {
+    return offsets;
+  }
+
+  let ancestor = element.parentElement;
+
+  while (ancestor !== null && ancestor !== boundary) {
+    offsets.push({ element: ancestor, top: ancestor.scrollTop, left: ancestor.scrollLeft });
+    ancestor = ancestor.parentElement;
+  }
+
+  return offsets;
 }
 
 /**

@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed an issue where selecting a cell pulled the grid back to that cell when the grid was scrolled elsewhere right after the selection.",
+  "title": "Fixed an issue where selecting a cell pulled the grid back to that cell when the grid was scrolled programmatically right after selecting it.",
   "type": "fixed",
   "issueOrPR": 13768,
   "breaking": false,
