@@ -1621,6 +1621,8 @@ Since 19.0, those shortcuts are the [row group keys](@/guides/rows/row-parent-ch
 
 When there is nothing to expand, collapse, or move to, they do nothing. In a right-to-left layout, the two arrows swap. From a cell, both shortcuts still move to the first or last cell of the row.
 
+While an overlay covers the grid body - for example, the loading overlay during a data fetch, or the empty data state - the row group keys do nothing. That includes <kbd>**Enter**</kbd> on a row header, which before 19.0 expanded or collapsed the row group under the overlay.
+
 ### How to migrate
 
 Nothing to change in your code. To reach the last cell of a row from its row header, press <kbd>**→**</kbd> to move into the row, then <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + <kbd>**→**</kbd>, or press <kbd>**End**</kbd>. If you document keyboard shortcuts for your users, update that documentation.

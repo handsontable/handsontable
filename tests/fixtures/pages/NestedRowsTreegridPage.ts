@@ -104,6 +104,36 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
   }
 
   /**
+   * How many treegrid row attributes the grid writes or removes during one synchronous action:
+   * a plain repaint, or a collapse of the first parent.
+   *
+   * @param action `'render'` repaints the grid, `'collapse'` collapses visual row 0.
+   */
+  rowAttributeWritesDuring(action: 'render' | 'collapse'): Promise<number> {
+    return this.page.evaluate((name) => {
+      const observer = new MutationObserver(() => {});
+
+      observer.observe(document.querySelector('[data-testid="grid"]') as HTMLElement, {
+        attributes: true,
+        attributeFilter: ['aria-level', 'aria-posinset', 'aria-setsize'],
+        subtree: true,
+      });
+
+      if (name === 'render') {
+        window.hot.render();
+      } else {
+        window.hot.getPlugin('nestedRows').collapseParent(0);
+      }
+
+      const writes = observer.takeRecords().length;
+
+      observer.disconnect();
+
+      return writes;
+    }, action);
+  }
+
+  /**
    * Put the focus on a row header the way a user does: click the first cell of the row, then step
    * into the header with the inline-start arrow.
    *
@@ -158,6 +188,28 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
    */
   announcements(): Promise<string[]> {
     return this.page.evaluate(() => (window as unknown as { announcementLog: string[] }).announcementLog);
+  }
+
+  /**
+   * Start counting `afterSelection` calls, which fire whenever a key moves the selection, even when
+   * the selection is put back right after.
+   */
+  async recordSelections(): Promise<void> {
+    await this.page.evaluate(() => {
+      const state = window as unknown as { selectionCount: number };
+
+      state.selectionCount = 0;
+      window.hot.addHook('afterSelection', () => {
+        state.selectionCount += 1;
+      });
+    });
+  }
+
+  /**
+   * The number of `afterSelection` calls since {@link NestedRowsTreegridPage#recordSelections}.
+   */
+  selectionCount(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as { selectionCount: number }).selectionCount);
   }
 
   /**

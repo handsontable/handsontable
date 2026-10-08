@@ -364,11 +364,11 @@ export class NestedRows extends BasePlugin {
     context?.addShortcuts([{
       keys: [['ArrowRight', 'Control/Meta']],
       callback: () => this.#runTreeArrowCommand('ArrowRight'),
-      runOnlyIf: () => this.#getFocusedRowHeader() !== null,
+      runOnlyIf: () => this.#getFocusedRowHeaderRow() !== null,
     }, {
       keys: [['ArrowLeft', 'Control/Meta']],
       callback: () => this.#runTreeArrowCommand('ArrowLeft'),
-      runOnlyIf: () => this.#getFocusedRowHeader() !== null,
+      runOnlyIf: () => this.#getFocusedRowHeaderRow() !== null,
     }], {
       captureCtrl: true,
       group: SHORTCUTS_GROUP,
@@ -1180,22 +1180,36 @@ export class NestedRows extends BasePlugin {
 
   /**
    * Returns the visual row of the row header that holds the focus, or `null` when the focus is
-   * anywhere else - on a cell, on a column header, or on a multi-cell selection - and while an
-   * overlay covers the grid body, where a collapse would change rows the user cannot see.
+   * anywhere else - on a cell, on a column header, or on a multi-cell selection.
+   *
+   * The Ctrl/Cmd+arrow chords claim the key whenever this answers a row, even while an overlay
+   * covers the grid body, so they never fall through to the grid's jump to the row's edge: that
+   * jump moved the selection onto a covered cell, fired the selection hooks, and was only then put
+   * back on the header.
    *
    * @returns {number|null}
    */
-  #getFocusedRowHeader(): number | null {
+  #getFocusedRowHeaderRow(): number | null {
     const activeRange = this.hot.getSelectedRangeActive();
     const highlight = activeRange?.highlight;
 
     if (!highlight || !activeRange.isSingle() || !this.hot.selection.isCellVisible(highlight) ||
-        highlight.col !== -1 || highlight.row === null || highlight.row < 0 ||
-        isGridBodyCovered(this.hot)) {
+        highlight.col !== -1 || highlight.row === null || highlight.row < 0) {
       return null;
     }
 
     return highlight.row;
+  }
+
+  /**
+   * Returns the visual row of the focused row header that a tree key may act on: the one
+   * `#getFocusedRowHeaderRow()` answers, or `null` while an overlay covers the grid
+   * body, where a collapse would change rows the user cannot see.
+   *
+   * @returns {number|null}
+   */
+  #getFocusedRowHeader(): number | null {
+    return isGridBodyCovered(this.hot) ? null : this.#getFocusedRowHeaderRow();
   }
 
   /**

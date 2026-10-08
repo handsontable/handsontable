@@ -2,7 +2,7 @@ import type { HotInstance } from '../../../core/types';
 import type { NestedRows } from '../nestedRows';
 import { arrayEach } from '../../../helpers/array';
 import { rangeEach } from '../../../helpers/number';
-import { addClass, setAttribute, removeAttribute, empty } from '../../../helpers/dom/element';
+import { addClass, setAttribute, empty } from '../../../helpers/dom/element';
 import BaseUI from './_base';
 import {
   A11Y_EXPANDED,
@@ -19,6 +19,38 @@ import type { RowSetPosition } from '../data/dataManager';
  * across rows and never strips these, so every write has to cover all of them.
  */
 const ROW_ARIA_ATTRIBUTES = ['aria-level', 'aria-posinset', 'aria-setsize'];
+
+/**
+ * Writes the row attributes that differ from what the `TR` already carries. The writer runs on
+ * every row header paint, in every overlay copy, and an unchanged value written again still counts
+ * as a DOM mutation that assistive technologies re-read, so a repaint of an unchanged row writes
+ * nothing.
+ *
+ * @param {HTMLElement} TR The row element.
+ * @param {Array} attributes The `[name, value]` pairs to write.
+ */
+function writeRowAttributes(TR: HTMLElement, attributes: [string, number][]) {
+  attributes.forEach(([name, value]) => {
+    const text = `${value}`;
+
+    if (TR.getAttribute(name) !== text) {
+      TR.setAttribute(name, text);
+    }
+  });
+}
+
+/**
+ * Removes the row attributes the `TR` carries, and touches nothing when it carries none.
+ *
+ * @param {HTMLElement} TR The row element.
+ */
+function clearRowAttributes(TR: HTMLElement) {
+  ROW_ARIA_ATTRIBUTES.forEach((name) => {
+    if (TR.hasAttribute(name)) {
+      TR.removeAttribute(name);
+    }
+  });
+}
 
 /**
  * Minimal interface for DataManager methods used by HeadersUI.
@@ -214,12 +246,12 @@ class HeadersUI extends BaseUI {
     const setPosition = physicalRow === null ? null : this.dataManager!.getRowSetPosition(physicalRow);
 
     if (!setPosition || !this.hot.getSettings().ariaTags) {
-      removeAttribute(TR, ROW_ARIA_ATTRIBUTES);
+      clearRowAttributes(TR);
 
       return;
     }
 
-    setAttribute(TR, [
+    writeRowAttributes(TR, [
       A11Y_LEVEL(this.dataManager!.getRowLevel(physicalRow!) + 1),
       A11Y_POSINSET(setPosition.position),
       A11Y_SETSIZE(setPosition.setSize),
@@ -240,7 +272,7 @@ class HeadersUI extends BaseUI {
 
     rows.forEach((TR) => {
       if (this.#isOwnRenderedElement(TR)) {
-        removeAttribute(TR, ROW_ARIA_ATTRIBUTES);
+        clearRowAttributes(TR);
       }
     });
   }

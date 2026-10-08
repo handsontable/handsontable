@@ -65,7 +65,7 @@ By default, <kbd>Tab</kbd> moves the active cell one column to the right and <kb
 | <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>      | <kbd>⌥</kbd>+<kbd>**Enter**</kbd>     | Open the link of the selected cell (when the cell renders a link, for example through `autoLink` or `formulas.hyperlinks`) | &cross; | &cross; |
 
 <sup>\*</sup> This action depends on your layout direction.<br>
-<sup>\*\*</sup> On a row header of a grid with [row groups](#row-parent-child-keyboard-shortcuts), this shortcut expands or collapses the row group instead.
+<sup>\*\*</sup> On a row header of a grid with [row groups](#row-parent-child-keyboard-shortcuts), this shortcut works as a row group key instead.
 
 ## Selection keyboard shortcuts
 

@@ -609,7 +609,9 @@ row semantics. Six things look simpler than they are.
   cell that takes the focus, and a copy on the row too would be read twice, so do not add one.
   Walkontable strips every `aria-*` from a `TH` on each paint but **never from a `TR`**, and it
   recycles `TR` elements across rows, so every write covers all three and a row the cache does not
-  know clears them. Two cleanups exist because the writer is a header hook. `disablePlugin()` walks
+  know clears them. The writer compares before it writes (`writeRowAttributes()`): it runs on every
+  header paint, in every overlay copy, and a same-value `setAttribute()` is still a DOM mutation
+  that assistive technologies re-read on each scroll. Two cleanups exist because the writer is a header hook. `disablePlugin()` walks
   `tbody tr` (`removeRenderedRowAttributes()`), not the headers. And `afterUpdateSettings` clears the
   rows once `rowHeaders` is off, because `afterGetRowHeader` stops firing then while the recycled
   `TR` elements keep what they carried (both pinned in `tests/e2e/nested-rows-treegrid-a11y.spec.ts`).
@@ -656,7 +658,12 @@ row semantics. Six things look simpler than they are.
   parent, but a parent `HiddenRows` hides keeps its visual index, and `selectCell()` there parked the
   focus on an invisible header, after which every treegrid key stopped answering. The keys act only on
   a focused row header (`navigableHeaders`), like <kbd>Enter</kbd>, and none of them acts while an
-  overlay covers the grid body (`isGridBodyCovered()` in `#getFocusedRowHeader()`). Not
+  overlay covers the grid body (`isGridBodyCovered()` in `#getFocusedRowHeader()`). The chords still
+  CLAIM the key there: their `runOnlyIf` reads `#getFocusedRowHeaderRow()`, which skips the covered
+  check, and the callback gets `null` from `#getTreeArrowCommand()`. Gating `runOnlyIf` on the
+  covered check let the chord fall through to the jump, which moved the selection onto a covered
+  cell and fired `afterSelection` before `keepCoveredCellsUnselectable` put it back. <kbd>Enter</kbd>
+  keeps the covered check in its `runOnlyIf`. Not
   `canAccessCellContent()`: that also asks for rendered cells, and with every column hidden it took
   <kbd>Enter</kbd> on a still-visible row header away, which worked before.
 - **They sit before `GRID_GROUP`, and that works only because the grid's entry is the only one on

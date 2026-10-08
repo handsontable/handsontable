@@ -56,6 +56,16 @@ test.describe('NestedRows treegrid accessibility', () => {
       ]);
     });
 
+  test('a repaint of unchanged rows writes no row attribute', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
+
+    await nestedRows.goto();
+    await expect.poll(() => nestedRows.countRowsWithTreegridAttributes()).toBeGreaterThan(0);
+
+    expect(await nestedRows.rowAttributeWritesDuring('render')).toBe(0);
+    expect(await nestedRows.rowAttributeWritesDuring('collapse')).toBeGreaterThan(0);
+  });
+
   test('collapsing with the row header button updates the attributes and announces it politely',
     async({ page, theme, bundle }) => {
       const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
@@ -317,6 +327,7 @@ test.describe('NestedRows treegrid accessibility', () => {
       await nestedRows.goto();
       await nestedRows.focusRowHeader(0);
       await nestedRows.setGridBodyCovered(true);
+      await nestedRows.recordSelections();
 
       await page.keyboard.press('Enter');
       expect(await nestedRows.visibleNames()).toEqual(FULL_TREE);
@@ -327,6 +338,10 @@ test.describe('NestedRows treegrid accessibility', () => {
       await nestedRows.callPlugin('collapseParent', 0);
       await page.keyboard.press('ControlOrMeta+ArrowRight');
       expect(await nestedRows.visibleNames()).toEqual(ROOT_A_COLLAPSED);
+
+      await page.keyboard.press('ControlOrMeta+ArrowLeft');
+      expect(await nestedRows.selectedCell()).toEqual([0, -1]);
+      expect(await nestedRows.selectionCount()).toBe(0);
 
       await nestedRows.callPlugin('expandParent', 0);
 

@@ -328,16 +328,17 @@ class DataManager {
   /**
    * Caches a list of sibling nodes. Only object entries become rows, so only those count towards a
    * node's position and the size of its set - a `null` among the children would otherwise make the
-   * last row report a position past the number of rows. The list goes through `Array.from()`, as
-   * `arrayEach()` did before, so a string or an array-like `__children` keeps loading instead of
-   * throwing.
+   * last row report a position past the number of rows. A string or an array-like `__children` goes
+   * through `Array.from()` first, as `arrayEach()` did, so it keeps loading instead of throwing; an
+   * array is filtered without that extra copy.
    *
    * @param {Array} siblings The nodes to cache.
    * @param {number} level Level of the nodes.
    * @param {object} parent Parent of the nodes.
    */
   #cacheSiblings(siblings: RowObject[], level: number, parent: RowObject | null) {
-    const rows = Array.from(siblings).filter(node => node !== null && typeof node === 'object');
+    const list = Array.isArray(siblings) ? siblings : Array.from<RowObject>(siblings);
+    const rows = list.filter(node => node !== null && typeof node === 'object');
 
     arrayEach(rows, (node: RowObject, index: number) => {
       this.cacheNode(node, level, parent, index, rows.length);
