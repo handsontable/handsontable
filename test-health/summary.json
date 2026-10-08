@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-08T02:27:00.151Z",
+  "generatedAt": "2026-10-08T08:24:42.721Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -1267,7 +1267,7 @@
       "file": "e2e/trusted-types.spec.ts",
       "line": 218,
       "title": "Trusted Types enforcement › the converted sink: the context menu check mark › marks an item as checked whether or not a sanitizer is configured",
-      "count7": 6,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 1,
