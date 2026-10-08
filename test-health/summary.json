@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-08T11:36:13.193Z",
+  "generatedAt": "2026-10-08T12:48:09.842Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -208,7 +208,7 @@
       "file": "visual-tests/tests/js-only/complex-demo/manual-row-resize.spec.ts",
       "line": null,
       "title": "js-only/complex-demo/manual-row-resize-1",
-      "count7": 12,
+      "count7": 7,
       "count30": 12,
       "countAll": 12,
       "runs30": 3,
@@ -636,7 +636,7 @@
       "file": "handsontable/src/editors/textEditor/__tests__/textEditor.spec.js",
       "line": null,
       "title": "TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
-      "count7": 2,
+      "count7": 1,
       "count30": 2,
       "countAll": 2,
       "runs30": 2,
