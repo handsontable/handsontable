@@ -314,6 +314,24 @@ export class LimitFixedToViewportPage {
   }
 
   /**
+   * Presses and releases the start bar without moving the pointer, the way a click focuses it.
+   */
+  async clickStartBar(): Promise<void> {
+    await this.barValue('start').click({ position: { x: 1, y: 40 } });
+  }
+
+  /**
+   * Focuses a bar and presses a key on it.
+   *
+   * @param edge The edge.
+   * @param key The key.
+   */
+  async pressOnBar(edge: FrozenEdge, key: string): Promise<void> {
+    await this.barValue(edge).focus();
+    await this.page.keyboard.press(key);
+  }
+
+  /**
    * The `aria-valuenow` of the bar of an edge, which is the count the bar sits on.
    *
    * @param edge The edge.

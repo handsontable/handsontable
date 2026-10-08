@@ -133,7 +133,7 @@ export class FreezeBar extends BasePlugin {
   /**
    * The state of the drag in progress.
    */
-  #drag: { edge: FreezeEdge, count: number } | null = null;
+  #drag: { edge: FreezeEdge, count: number, startCount: number } | null = null;
   /**
    * Ends the drag in progress without storing anything.
    */
@@ -786,7 +786,9 @@ export class FreezeBar extends BasePlugin {
       fromLeft: boolean,
     } | null = null;
 
-    this.#drag = { edge, count: this.#getDrawnCount(edge) };
+    const startCount = this.#getDrawnCount(edge);
+
+    this.#drag = { edge, count: startCount, startCount };
     this.#setActive(edge, true);
 
     const bar = this.#bars[edge];
@@ -856,7 +858,9 @@ export class FreezeBar extends BasePlugin {
       this.#drag = null;
       this.#abortDrag = null;
 
-      if (commit && drag) {
+      // A gesture that ends where it began (a click that only focuses the bar, a drag back to the start) changes
+      // nothing, so it must not replace a configured count the grid draws fewer tracks of.
+      if (commit && drag && drag.count !== drag.startCount) {
         this.#applyCount(edge, drag.count, 'drag');
       }
     };
@@ -1211,7 +1215,13 @@ export class FreezeBar extends BasePlugin {
     event.preventDefault();
 
     // hidden tracks have no size, so a step over them would change nothing visible
-    this.#applyCount(edge, this.#stepOverHidden(edge, current, target), 'keyboard');
+    const stepped = this.#stepOverHidden(edge, current, target);
+
+    // a step that lands on the drawn count (`End` when the band already fills the viewport, a grow that cannot
+    // fit) changes nothing visible, so it must not replace a configured count that is larger than what is drawn
+    if (stepped !== current) {
+      this.#applyCount(edge, stepped, 'keyboard');
+    }
   }
 
   /**

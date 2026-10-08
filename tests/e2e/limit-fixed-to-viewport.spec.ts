@@ -344,6 +344,20 @@ test.describe('limitFixedToViewport', () => {
       expect(await grid.freezeLog()).toEqual([{ edge: 'start', newCount: drawn, oldCount: 20, source: 'api' }]);
     });
 
+    test('keeps the configured count when a gesture ends where it began', async() => {
+      await grid.goto({ start: 20, bar: 1 });
+
+      const { start: drawn } = await grid.drawnCounts();
+
+      // a click that only presses and releases the bar, and End when the band already fills the viewport
+      await grid.clickStartBar();
+      await grid.pressOnBar('start', 'End');
+
+      expect(await grid.setting('fixedColumnsStart')).toBe(20);
+      expect((await grid.drawnCounts()).start).toBe(drawn);
+      expect(await grid.freezeLog()).toEqual([]);
+    });
+
     test('keeps a configured count the app did not touch', async() => {
       await grid.goto({ start: 20, bar: 1 });
 
