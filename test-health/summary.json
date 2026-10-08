@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-08T12:48:09.842Z",
+  "generatedAt": "2026-10-08T12:54:36.729Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -208,7 +208,7 @@
       "file": "visual-tests/tests/js-only/complex-demo/manual-row-resize.spec.ts",
       "line": null,
       "title": "js-only/complex-demo/manual-row-resize-1",
-      "count7": 7,
+      "count7": 2,
       "count30": 12,
       "countAll": 12,
       "runs30": 3,
