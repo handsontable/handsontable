@@ -277,24 +277,24 @@ test.describe('freezeBar', () => {
     test('exposes a separator that reports the count', async() => {
       await grid.goto();
 
-      const bar = grid.bar('start');
+      const bar = grid.separator('start');
 
       await expect(bar).toHaveAttribute('role', 'separator');
       await expect(bar).toHaveAttribute('aria-orientation', 'vertical');
       await expect(bar).toHaveAttribute('aria-valuenow', '2');
       await expect(bar).toHaveAttribute('aria-valuemin', '0');
-      await expect(grid.bar('top')).toHaveAttribute('aria-orientation', 'horizontal');
+      await expect(grid.separator('top')).toHaveAttribute('aria-orientation', 'horizontal');
     });
 
     test('the arrow keys change the count by one and Home sets 0', async() => {
       await grid.goto();
-      await grid.bar('start').focus();
+      await grid.separator('start').focus();
       await grid.page.keyboard.press('ArrowRight');
 
       expect(await grid.count('start')).toBe(3);
-      await expect(grid.bar('start')).toHaveAttribute('aria-valuenow', '3');
+      await expect(grid.separator('start')).toHaveAttribute('aria-valuenow', '3');
 
-      await grid.bar('start').focus();
+      await grid.separator('start').focus();
       await grid.page.keyboard.press('ArrowLeft');
       await grid.page.keyboard.press('ArrowLeft');
 
@@ -432,11 +432,11 @@ test.describe('freezeBar', () => {
 
     test('Home leaves the bar in place, so the area can grow again', async() => {
       await grid.goto();
-      await grid.bar('start').focus();
+      await grid.separator('start').focus();
       await grid.page.keyboard.press('Home');
 
       expect(await grid.count('start')).toBe(0);
-      await expect(grid.bar('start')).toBeFocused();
+      await expect(grid.separator('start')).toBeFocused();
 
       await grid.page.keyboard.press('ArrowRight');
 
@@ -519,22 +519,22 @@ test.describe('freezeBar', () => {
       });
       await grid.page.keyboard.press('F6');
 
-      await expect(grid.bar('start')).toBeFocused();
+      await expect(grid.separator('start')).toBeFocused();
     });
 
     test('the focus stays on the bar when the first column gets frozen', async() => {
       await grid.goto({ cols: 0 });
-      await grid.bar('start').focus();
+      await grid.separator('start').focus();
       await grid.page.keyboard.press('ArrowRight');
       await grid.page.keyboard.press('ArrowRight');
 
       expect(await grid.count('start')).toBe(2);
-      await expect(grid.bar('start')).toBeFocused();
+      await expect(grid.separator('start')).toBeFocused();
     });
 
     test('the focus stays on the bar when the application updates the settings', async() => {
       await grid.goto();
-      await grid.bar('start').focus();
+      await grid.separator('start').focus();
       await grid.page.keyboard.press('ArrowRight');
       await grid.page.evaluate(() => {
         window.hot.updateSettings({ freezeBar: true, fixedColumnsStart: 2 });
@@ -542,24 +542,24 @@ test.describe('freezeBar', () => {
       await grid.page.keyboard.press('ArrowRight');
 
       expect(await grid.count('start')).toBe(4);
-      await expect(grid.bar('start')).toBeFocused();
+      await expect(grid.separator('start')).toBeFocused();
     });
 
     test('End freezes as many columns as fit', async() => {
       await grid.goto();
-      await grid.bar('start').focus();
+      await grid.separator('start').focus();
       await grid.page.keyboard.press('End');
 
       const count = await grid.count('start');
 
       expect(count).toBeGreaterThan(2);
       expect(count).toBeLessThan(14);
-      await expect(grid.bar('start')).toHaveAttribute('aria-valuemax', String(count));
+      await expect(grid.separator('start')).toHaveAttribute('aria-valuemax', String(count));
     });
 
     test('Ctrl+ArrowRight is left to the browser and screen readers', async() => {
       await grid.goto();
-      await grid.bar('start').focus();
+      await grid.separator('start').focus();
       await grid.page.keyboard.press('Control+ArrowRight');
 
       expect(await grid.count('start')).toBe(2);
@@ -568,8 +568,8 @@ test.describe('freezeBar', () => {
     test('ariaTags: false leaves the bars without ARIA attributes', async() => {
       await grid.goto({ aria: 0 });
 
-      await expect(grid.bar('start')).not.toHaveAttribute('role', 'separator');
-      await expect(grid.bar('start')).not.toHaveAttribute('aria-valuenow', /.*/);
+      await expect(grid.separator('start')).not.toHaveAttribute('role', 'separator');
+      await expect(grid.separator('start')).not.toHaveAttribute('aria-valuenow', /.*/);
     });
   });
 
@@ -583,7 +583,7 @@ test.describe('freezeBar', () => {
       const before = await grid.page.evaluate(() => window.hot.getDataAtCell(5, 5));
 
       await grid.page.keyboard.press('F6');
-      await expect(grid.bar('start')).toBeFocused();
+      await expect(grid.separator('start')).toBeFocused();
       await grid.page.keyboard.press('Delete');
       await grid.page.keyboard.press('Enter');
       await grid.page.keyboard.press('x');
@@ -598,15 +598,31 @@ test.describe('freezeBar', () => {
         window.hot.selectCell(5, 5);
       });
       await grid.page.keyboard.press('F6');
-      await expect(grid.bar('start')).toBeFocused();
+      await expect(grid.separator('start')).toBeFocused();
       await grid.page.keyboard.press('F6');
-      await expect(grid.bar('top')).toBeFocused();
+      await expect(grid.separator('top')).toBeFocused();
       await grid.page.keyboard.press('F6');
-      await expect(grid.bar('end')).toBeFocused();
+      await expect(grid.separator('end')).toBeFocused();
       await grid.page.keyboard.press('F6');
-      await expect(grid.bar('bottom')).toBeFocused();
+      await expect(grid.separator('bottom')).toBeFocused();
       await grid.page.keyboard.press('Shift+F6');
-      await expect(grid.bar('end')).toBeFocused();
+      await expect(grid.separator('end')).toBeFocused();
+    });
+
+    test('F6 does not scroll the page to the hidden separator', async() => {
+      await grid.goto({ win: 1 });
+      await grid.page.evaluate(() => {
+        window.hot.selectCell(5, 5);
+        window.scrollTo(0, 0);
+      });
+
+      const before = await grid.page.evaluate(() => window.scrollY);
+
+      await grid.page.keyboard.press('F6');
+      await grid.page.keyboard.press('F6');
+      await expect(grid.separator('top')).toBeFocused();
+
+      expect(await grid.page.evaluate(() => window.scrollY)).toBe(before);
     });
 
     test('an arrow on the top bar freezes a row', async() => {
@@ -616,7 +632,7 @@ test.describe('freezeBar', () => {
       });
       await grid.page.keyboard.press('F6');
       await grid.page.keyboard.press('F6');
-      await expect(grid.bar('top')).toBeFocused();
+      await expect(grid.separator('top')).toBeFocused();
       await grid.page.keyboard.press('ArrowDown');
 
       expect(await grid.count('top')).toBe(1);
@@ -626,7 +642,7 @@ test.describe('freezeBar', () => {
   test.describe('language', () => {
     test('the bars announce the new language after it changes', async() => {
       await grid.goto();
-      await expect(grid.bar('start')).toHaveAttribute('aria-label', 'Frozen columns');
+      await expect(grid.separator('start')).toHaveAttribute('aria-label', 'Frozen columns');
       await grid.page.evaluate(() => {
         // the base bundle has no language files, so the dictionary is registered here
         const languages = (window as any).Handsontable.languages;
@@ -640,8 +656,8 @@ test.describe('freezeBar', () => {
         window.hot.updateSettings({ language: 'pl-PL' });
       });
 
-      await expect(grid.bar('start')).toHaveAttribute('aria-label', 'Zablokowane kolumny');
-      await expect(grid.bar('top')).toHaveAttribute('aria-label', 'Zablokowane wiersze');
+      await expect(grid.separator('start')).toHaveAttribute('aria-label', 'Zablokowane kolumny');
+      await expect(grid.separator('top')).toHaveAttribute('aria-label', 'Zablokowane wiersze');
     });
   });
 
@@ -746,8 +762,186 @@ test.describe('freezeBar', () => {
       await piece.dispatchEvent('pointerdown', { button: 0, isPrimary: true, pointerId: 7, bubbles: true });
       await grid.page.evaluate(() => document.dispatchEvent(new PointerEvent('pointerup', { pointerId: 7 })));
 
-      await expect(grid.bar('top')).toHaveAttribute('aria-valuemax', /\d+/);
+      await expect(grid.separator('top')).toHaveAttribute('aria-valuemax', /\d+/);
       await expect(piece).not.toHaveAttribute('aria-valuemax', /.*/);
+    });
+  });
+
+  test.describe('accessibility tree', () => {
+    test('the separators are outside the treegrid, and the bars in it are hidden from assistive technology', async() => {
+      await grid.goto();
+
+      const tree = await grid.page.evaluate(() => {
+        const treegrid = document.querySelector('[role="treegrid"]')!;
+        const separators = [...document.querySelectorAll('[role="separator"]')];
+        const bars = [...treegrid.querySelectorAll('.ht-freeze-bar')];
+
+        return {
+          separators: separators.length,
+          insideTreegrid: separators.filter(separator => treegrid.contains(separator)).length,
+          barsHidden: bars.every(bar => bar.getAttribute('aria-hidden') === 'true' && !bar.hasAttribute('role')),
+          barsFocusable: bars.some(bar => bar.hasAttribute('tabindex')),
+        };
+      });
+
+      expect(tree).toEqual({ separators: 4, insideTreegrid: 0, barsHidden: true, barsFocusable: false });
+    });
+
+    test('a keyboard focus shows a ring on the bar, and a pointer press does not', async() => {
+      await grid.goto();
+      await grid.page.evaluate(() => {
+        window.hot.selectCell(5, 5);
+      });
+      await grid.page.keyboard.press('F6');
+      await expect(grid.bar('start')).toHaveClass(/ht-freeze-bar--focused/);
+
+      await grid.page.keyboard.press('Escape');
+      await expect(grid.bar('start')).not.toHaveClass(/ht-freeze-bar--focused/);
+
+      const bar = (await grid.bar('start').boundingBox())!;
+
+      await grid.page.mouse.move(bar.x + bar.width / 2, bar.y + bar.height / 2);
+      await grid.page.mouse.down();
+      await grid.page.mouse.up();
+
+      await expect(grid.separator('start')).toBeFocused();
+      await expect(grid.bar('start')).not.toHaveClass(/ht-freeze-bar--focused/);
+    });
+
+    test('Escape gives the focus back to the grid and still reaches the page', async() => {
+      await grid.goto();
+      await grid.page.evaluate(() => {
+        window.hot.selectCell(5, 5);
+        (window as any).escapes = 0;
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') {
+            (window as any).escapes += 1;
+          }
+        });
+      });
+      await grid.page.keyboard.press('F6');
+      await expect(grid.separator('start')).toBeFocused();
+      await grid.page.keyboard.press('Escape');
+
+      expect(await grid.page.evaluate(() => (window as any).escapes)).toBe(1);
+      await expect(grid.separator('start')).not.toBeFocused();
+      expect(await grid.page.evaluate(() => window.hot.getDataAtCell(5, 5))).toBe('F6');
+    });
+
+    test('a cut and a paste on a focused separator leave the selected cell alone', async() => {
+      await grid.goto();
+      await grid.page.evaluate(() => {
+        window.hot.selectCell(5, 5);
+      });
+      await grid.page.keyboard.press('F6');
+      await grid.separator('start').dispatchEvent('cut');
+      await grid.separator('start').dispatchEvent('paste');
+
+      expect(await grid.page.evaluate(() => window.hot.getDataAtCell(5, 5))).toBe('F6');
+    });
+
+    test('the value range stays valid when the count is above what fits', async() => {
+      await grid.goto({ cols: 12 });
+      await grid.separator('start').focus();
+
+      const separator = grid.separator('start');
+
+      await expect(separator).toHaveAttribute('aria-valuenow', '12');
+      expect(Number(await separator.getAttribute('aria-valuemax'))).toBeGreaterThanOrEqual(12);
+    });
+  });
+
+  test.describe('a wheel over a bar', () => {
+    test('scrolls the grid, as it does over a cell', async() => {
+      await grid.goto();
+
+      const before = await grid.scrollPosition();
+      const bar = (await grid.bar('start').boundingBox())!;
+
+      await grid.page.mouse.move(bar.x + bar.width / 2, bar.y + bar.height / 2);
+      await grid.page.mouse.wheel(0, 150);
+
+      await expect.poll(async() => (await grid.scrollPosition()).top).toBeGreaterThan(before.top);
+      expect(await grid.page.evaluate(() => window.scrollY)).toBe(0);
+    });
+  });
+
+  test.describe('a step over a hidden column', () => {
+    test('down skips the column that would be unfrozen', async() => {
+      await grid.goto({ cols: 3, hidden: 1 });
+      await grid.separator('start').focus();
+      await grid.page.keyboard.press('ArrowLeft');
+
+      // column 2 is hidden, so 3 to 2 would change nothing on screen
+      expect(await grid.count('start')).toBe(1);
+    });
+  });
+
+  test.describe('a press that follows an undo', () => {
+    test('does not write the count read at the press back', async() => {
+      await grid.goto({ undo: 1 });
+      await grid.drag('start', 4);
+
+      const bar = (await grid.bar('start').boundingBox())!;
+
+      await grid.page.mouse.move(bar.x + bar.width / 2, bar.y + bar.height / 2);
+      await grid.page.mouse.down();
+      await grid.page.evaluate(() => {
+        window.hot.getPlugin('undoRedo').undo();
+      });
+      await grid.page.mouse.up();
+
+      expect(await grid.count('start')).toBe(2);
+      expect((await grid.log()).map(entry => entry.source)).toEqual(['drag']);
+    });
+  });
+
+  test.describe('Filters with filterFixedRows set to false', () => {
+    test('exempts a row from the filter as soon as it is frozen', async() => {
+      await grid.goto({ filters: 1, rows: 1 });
+
+      const state = () => grid.page.evaluate(() => ({
+        rows: window.hot.countRows(),
+        first: [0, 1, 2, 3].map(row => window.hot.getDataAtCell(row, 0)).join(','),
+      }));
+
+      await grid.page.evaluate(() => {
+        const filters = window.hot.getPlugin('filters');
+
+        filters.addCondition(0, 'begins_with', ['A1']);
+        filters.filter();
+      });
+
+      // A1 and A10 to A19 pass the filter
+      expect(await state()).toEqual({ rows: 11, first: 'A1,A10,A11,A12' });
+
+      await grid.page.evaluate(() => window.hot.getPlugin('freezeBar').setFreezeCount('top', 3));
+
+      // the three frozen rows are exempt from the filter now, as with `updateSettings({ fixedRowsTop: 3 })`
+      expect(await state()).toEqual({ rows: 13, first: 'A1,A2,A3,A10' });
+    });
+  });
+
+  test.describe('with the sheets bar', () => {
+    test('a freeze made on one sheet does not follow the user onto a sheet that was never visited', async() => {
+      await grid.goto({ sheets: 1, bottom: 1 });
+      await grid.drag('start', 4);
+      await grid.page.evaluate(() => window.hot.getPlugin('freezeBar').setFreezeCount('top', 3));
+
+      expect(await grid.count('start')).toBe(4);
+      expect(await grid.count('top')).toBe(3);
+
+      await grid.page.evaluate(() => window.hot.getPlugin('sheetsBar').setActiveSheet('B'));
+
+      // the frozen counts the grid started with
+      expect(await grid.count('start')).toBe(2);
+      expect(await grid.count('top')).toBe(2);
+      expect(await grid.count('bottom')).toBe(1);
+
+      await grid.page.evaluate(() => window.hot.getPlugin('sheetsBar').setActiveSheet('A'));
+
+      expect(await grid.count('start')).toBe(4);
+      expect(await grid.count('top')).toBe(3);
     });
   });
 

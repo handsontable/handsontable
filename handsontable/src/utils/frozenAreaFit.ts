@@ -38,6 +38,13 @@ export function getMaxFittingFrozenCount(options: FrozenAreaFitOptions): number 
     count += 1;
   }
 
+  // A zero-size track (a hidden one) always fits, so the count may end on one. A count that ends on a hidden track
+  // freezes nothing more than the count before it, so the trailing ones are dropped, the same way the snap
+  // resolver prefers the lowest count.
+  while (count > 0 && trackSizes[count - 1] === 0) {
+    count -= 1;
+  }
+
   return count;
 }
 

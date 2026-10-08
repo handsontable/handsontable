@@ -37,6 +37,8 @@ export interface ViewState {
   mergedCells: MergeAreaGeometry[];
   fixedColumnsStart: number | undefined;
   fixedColumnsEnd: number | undefined;
+  fixedRowsTop?: number | undefined;
+  fixedRowsBottom?: number | undefined;
   customBorders: Array<Record<string, unknown>>;
   cellMeta: TrackedCellMeta[];
   pagination: PaginationState | null;
@@ -503,6 +505,8 @@ export function captureViewState(hot: HotInstance, trackedCellMeta: TrackedCellM
     mergedCells: captureMergedCells(hot),
     fixedColumnsStart: hot.getSettings().fixedColumnsStart as number | undefined,
     fixedColumnsEnd: hot.getSettings().fixedColumnsEnd as number | undefined,
+    fixedRowsTop: hot.getSettings().fixedRowsTop as number | undefined,
+    fixedRowsBottom: hot.getSettings().fixedRowsBottom as number | undefined,
     customBorders: captureCustomBorders(hot),
     cellMeta: trackedCellMeta.slice(),
     pagination: capturePagination(hot),
@@ -819,15 +823,9 @@ export function restoreViewState(hot: HotInstance, state: ViewState): void {
     restoreMergedCells(hot, state);
 
     // A captured `undefined` means no freeze was configured when the sheet was captured, so a
-    // freeze another sheet set at runtime is cleared back to none rather than left in force.
-    if ((state.fixedColumnsStart ?? 0) !== (hot.getSettings().fixedColumnsStart ?? 0)) {
-      hot.updateSettings({ fixedColumnsStart: state.fixedColumnsStart ?? 0 });
-    }
-
-    // The frozen end columns follow the same rule as the start ones.
-    if ((state.fixedColumnsEnd ?? 0) !== (hot.getSettings().fixedColumnsEnd ?? 0)) {
-      hot.updateSettings({ fixedColumnsEnd: state.fixedColumnsEnd ?? 0 });
-    }
+    // freeze another sheet set at runtime is cleared back to none rather than left in force. The
+    // frozen end columns and the frozen rows follow the same rule as the start ones.
+    FROZEN_COUNT_KEYS.forEach(key => setFrozenCount(hot, key, state[key] ?? 0));
 
     restoreCustomBorders(hot, state);
   });
@@ -983,6 +981,8 @@ function createNeutralViewState(): ViewState {
     mergedCells: [],
     fixedColumnsStart: undefined,
     fixedColumnsEnd: undefined,
+    fixedRowsTop: undefined,
+    fixedRowsBottom: undefined,
     customBorders: [],
     cellMeta: [],
     pagination: null,
@@ -993,29 +993,69 @@ function createNeutralViewState(): ViewState {
 }
 
 /**
+ * The four frozen counts of a sheet, as the grid had them before any sheet was applied.
+ */
+export type NeutralFrozenCounts = Partial<Record<FrozenCountKey, number | undefined>>;
+
+export type FrozenCountKey = 'fixedColumnsStart' | 'fixedColumnsEnd' | 'fixedRowsTop' | 'fixedRowsBottom';
+
+export const FROZEN_COUNT_KEYS: readonly FrozenCountKey[] = [
+  'fixedColumnsStart',
+  'fixedColumnsEnd',
+  'fixedRowsTop',
+  'fixedRowsBottom',
+];
+
+/**
+ * Removes the count a plugin or an action wrote on the table meta. The freeze bar, `ManualColumnFreeze`, `alter()` and
+ * undo write a frozen count there, where it shadows the grid-level setting, and `updateSettings()` leaves a shadow
+ * alone when the new value equals the previous grid-level one. A sheet's count must win over what another sheet left
+ * behind, so the shadow goes first.
+ *
+ * @param {object} hot The Handsontable instance.
+ * @param {string} key The frozen count option.
+ */
+export function clearFrozenCountShadow(hot: HotInstance, key: FrozenCountKey): void {
+  const meta = hot.getSettings();
+
+  Reflect.deleteProperty(meta, key);
+
+  // the two names of the start freeze share one backing field
+  if (key === 'fixedColumnsStart') {
+    Reflect.deleteProperty(meta, '_fixedColumnsStart');
+  }
+}
+
+/**
+ * Makes a frozen count what a sheet needs it to be.
+ *
+ * @param {object} hot The Handsontable instance.
+ * @param {string} key The frozen count option.
+ * @param {number} value The count.
+ */
+function setFrozenCount(hot: HotInstance, key: FrozenCountKey, value: number): void {
+  if ((hot.getSettings()[key] ?? 0) === value) {
+    return;
+  }
+
+  clearFrozenCountShadow(hot, key);
+  hot.updateSettings({ [key]: value });
+}
+
+/**
  * Returns the grid to a neutral baseline. Switching to a sheet that carries no captured
  * view state must not inherit the previous sheet's filters, hidden or trimmed indexes,
  * sort, merges, borders, manual sizes, or a freeze set at runtime (`fixedColumnsStart`
  * carries the value the grid started with): `loadData` resets the index mappers and
  * ColumnSorting clears itself on `afterLoadData`, but every other collection survives it.
  */
-export function resetViewState(hot: HotInstance, fixedColumnsStart?: number, fixedColumnsEnd?: number): void {
+export function resetViewState(hot: HotInstance, neutral: NeutralFrozenCounts = {}): void {
   const state = createNeutralViewState();
 
   safeBatch(hot, () => {
-    // An `undefined` neutral value means the grid never configured a freeze, so a freeze set at
+    // An `undefined` neutral value means the grid never configured that freeze, so a freeze set at
     // runtime on another sheet is cleared back to none rather than left in force.
-    const targetFreeze = fixedColumnsStart ?? 0;
-
-    if ((hot.getSettings().fixedColumnsStart ?? 0) !== targetFreeze) {
-      hot.updateSettings({ fixedColumnsStart: targetFreeze });
-    }
-
-    const targetFreezeEnd = fixedColumnsEnd ?? 0;
-
-    if ((hot.getSettings().fixedColumnsEnd ?? 0) !== targetFreezeEnd) {
-      hot.updateSettings({ fixedColumnsEnd: targetFreezeEnd });
-    }
+    FROZEN_COUNT_KEYS.forEach(key => setFrozenCount(hot, key, neutral[key] ?? 0));
 
     getSortingPlugin(hot)?.sort([]);
     restoreFilterConditions(hot, state);

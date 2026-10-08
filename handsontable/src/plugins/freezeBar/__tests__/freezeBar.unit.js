@@ -1,10 +1,11 @@
 import Handsontable from 'handsontable/base';
-import { registerPlugin, FreezeBar, Pagination } from 'handsontable/plugins';
+import { registerPlugin, FreezeBar, Pagination, HiddenColumns } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
 
 registerAllCellTypes();
 registerPlugin(FreezeBar);
 registerPlugin(Pagination);
+registerPlugin(HiddenColumns);
 
 describe('FreezeBar', () => {
   let container;
@@ -172,7 +173,7 @@ describe('FreezeBar', () => {
     createGrid({ fixedColumnsStart: 2 });
     hot.render();
 
-    const bar = container.querySelector('.ht-freeze-bar--start');
+    const bar = container.querySelector('[data-ht-freeze-separator="start"]');
 
     expect(bar.getAttribute('role')).toBe('separator');
     expect(bar.getAttribute('aria-orientation')).toBe('vertical');
@@ -185,7 +186,7 @@ describe('FreezeBar', () => {
     createGrid({ fixedColumnsStart: 2 });
     hot.render();
 
-    const bar = container.querySelector('.ht-freeze-bar--start');
+    const bar = container.querySelector('[data-ht-freeze-separator="start"]');
     const press = key => bar.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
 
     press('ArrowRight');
@@ -237,7 +238,33 @@ describe('FreezeBar', () => {
 
     expect(plugin.isEnabled()).toBe(true);
     expect(focused.length).toBe(1);
-    expect(focused[0]).toContain('ht-freeze-bar--top');
+    expect(focused[0]).toContain('ht-freeze-bar-separator');
+  });
+
+  it('should tear down without throwing when a corner overlay has no clone', () => {
+    createGrid({ fixedColumnsStart: 2, fixedRowsTop: 1 });
+    hot.render();
+
+    const overlays = hot.view._wt.wtOverlays;
+    const original = overlays.topInlineStartCornerOverlay;
+
+    Object.defineProperty(overlays, 'topInlineStartCornerOverlay', {
+      configurable: true,
+      get() {
+        return new Error().stack.includes('syncSegments') ? { clone: undefined } : original;
+      },
+    });
+
+    try {
+      hot.render();
+
+      expect(() => hot.updateSettings({ freezeBar: false })).not.toThrow();
+    } finally {
+      Object.defineProperty(overlays, 'topInlineStartCornerOverlay', { configurable: true, value: original });
+    }
+
+    expect(() => hot.destroy()).not.toThrow();
+    hot = null;
   });
 
   it('should not throw when a bar is torn down, whatever the corner overlays are', () => {
@@ -342,7 +369,7 @@ describe('FreezeBar', () => {
     createGrid({ fixedColumnsStart: 2, fixedRowsTop: 1 });
     hot.render();
 
-    const start = container.querySelector('.ht-freeze-bar--start:not(.ht-freeze-bar--segment)');
+    const start = container.querySelector('[data-ht-freeze-separator="start"]');
     const press = (target, shiftKey = false) => {
       target.dispatchEvent(new KeyboardEvent('keydown', { key: 'F6', shiftKey, bubbles: true, cancelable: true }));
     };
@@ -353,7 +380,7 @@ describe('FreezeBar', () => {
     const second = document.activeElement;
 
     expect(second).not.toBe(start);
-    expect(second.classList.contains('ht-freeze-bar')).toBe(true);
+    expect(second.hasAttribute('data-ht-freeze-separator')).toBe(true);
 
     press(second, true);
 
@@ -364,7 +391,7 @@ describe('FreezeBar', () => {
     createGrid({ fixedColumnsStart: 2 });
     hot.render();
 
-    const bar = container.querySelector('.ht-freeze-bar--start:not(.ht-freeze-bar--segment)');
+    const bar = container.querySelector('[data-ht-freeze-separator="start"]');
     const reached = jest.fn();
 
     document.addEventListener('keydown', reached);
@@ -384,7 +411,7 @@ describe('FreezeBar', () => {
     createGrid({ fixedColumnsStart: 2 });
     hot.render();
 
-    const bar = container.querySelector('.ht-freeze-bar--start:not(.ht-freeze-bar--segment)');
+    const bar = container.querySelector('[data-ht-freeze-separator="start"]');
     const event = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
 
     bar.dispatchEvent(event);
@@ -397,7 +424,7 @@ describe('FreezeBar', () => {
 
     hot.render();
 
-    const bar = container.querySelector('.ht-freeze-bar--start:not(.ht-freeze-bar--segment)');
+    const bar = container.querySelector('[data-ht-freeze-separator="start"]');
     const after = jest.fn();
 
     hot.addHook('afterFreezeChange', after);
@@ -412,7 +439,7 @@ describe('FreezeBar', () => {
     createGrid({ fixedColumnsStart: 2 });
     hot.render();
 
-    const bar = container.querySelector('.ht-freeze-bar--start:not(.ht-freeze-bar--segment)');
+    const bar = container.querySelector('[data-ht-freeze-separator="start"]');
     const reached = [];
     const listener = event => reached.push(`${event.ctrlKey ? 'ctrl+' : ''}${event.key}`);
 
@@ -472,6 +499,119 @@ describe('FreezeBar', () => {
     hot.render();
 
     expect(writes.reduce((sum, spy) => sum + spy.mock.calls.length, 0)).toBe(0);
+  });
+
+  it('should keep the focusable separators outside the grid, which may own rows only', () => {
+    createGrid({ fixedColumnsStart: 2, fixedRowsTop: 1 });
+    hot.render();
+
+    const separators = [...container.querySelectorAll('[role="separator"]')];
+
+    expect(separators.length).toBe(4);
+    separators.forEach((separator) => {
+      expect(hot.rootElement.contains(separator)).toBe(false);
+      expect(separator.tabIndex).toBe(0);
+    });
+
+    // the bars in the grid only draw: nothing in them is focusable or announced
+    [...hot.rootElement.querySelectorAll('.ht-freeze-bar')].forEach((bar) => {
+      expect(bar.getAttribute('aria-hidden')).toBe('true');
+      expect(bar.hasAttribute('role')).toBe(false);
+      expect(bar.hasAttribute('tabindex')).toBe(false);
+    });
+  });
+
+  it('should keep a cut and a paste on the separator from reaching the grid', () => {
+    createGrid({ fixedColumnsStart: 2 });
+    hot.render();
+
+    const separator = container.querySelector('[data-ht-freeze-separator="start"]');
+    const reached = jest.fn();
+
+    document.addEventListener('cut', reached);
+    document.addEventListener('paste', reached);
+
+    try {
+      separator.dispatchEvent(new Event('cut', { bubbles: true, cancelable: true }));
+      separator.dispatchEvent(new Event('paste', { bubbles: true, cancelable: true }));
+    } finally {
+      document.removeEventListener('cut', reached);
+      document.removeEventListener('paste', reached);
+    }
+
+    expect(reached).not.toHaveBeenCalled();
+  });
+
+  it('should keep the range of the value valid when the count is above what fits', () => {
+    createGrid({ fixedColumnsStart: 4 });
+    hot.render();
+    hot.view.getWorkspaceWidth.mockReturnValue(150);
+
+    const separator = container.querySelector('[data-ht-freeze-separator="start"]');
+
+    separator.dispatchEvent(new Event('focus'));
+
+    expect(separator.getAttribute('aria-valuenow')).toBe('4');
+    expect(Number(separator.getAttribute('aria-valuemax'))).toBeGreaterThanOrEqual(4);
+  });
+
+  it('should give the focus back to the grid on Escape, and let the key go on', () => {
+    createGrid({ fixedColumnsStart: 2 });
+    hot.render();
+
+    const separator = container.querySelector('[data-ht-freeze-separator="start"]');
+    const refocus = jest.spyOn(hot.getFocusManager(), 'focusOnHighlightedCell').mockImplementation(() => {});
+    const reached = jest.fn();
+
+    document.addEventListener('keydown', reached);
+
+    try {
+      separator.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    } finally {
+      document.removeEventListener('keydown', reached);
+    }
+
+    expect(refocus).toHaveBeenCalledTimes(1);
+    expect(reached).toHaveBeenCalledTimes(1);
+  });
+
+  it('should skip a hidden column when a step down unfreezes it', () => {
+    const plugin = createGrid({ fixedColumnsStart: 3, hiddenColumns: { columns: [2] } });
+
+    hot.render();
+
+    const separator = container.querySelector('[data-ht-freeze-separator="start"]');
+
+    separator.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true, cancelable: true }));
+
+    // column 2 is hidden, so a step from 3 to 2 would change nothing on screen
+    expect(plugin.getFreezeCount('start')).toBe(1);
+  });
+
+  it('should not commit a press that never moved', () => {
+    const plugin = createGrid({ fixedColumnsStart: 2 });
+
+    hot.render();
+
+    const bar = container.querySelector('.ht-freeze-bar--start:not(.ht-freeze-bar--segment)');
+    const after = jest.fn();
+    const send = (type, target) => {
+      const event = new MouseEvent(type, { button: 0, bubbles: true, cancelable: true });
+
+      Object.defineProperty(event, 'isPrimary', { value: true });
+      Object.defineProperty(event, 'pointerId', { value: 5 });
+      target.dispatchEvent(event);
+    };
+
+    hot.addHook('afterFreezeChange', after);
+    send('pointerdown', bar);
+    // the count changes while the pointer is down, as an undo would do
+    plugin.setFreezeCount('start', 3);
+    after.mockClear();
+    send('pointerup', document);
+
+    expect(plugin.getFreezeCount('start')).toBe(3);
+    expect(after).not.toHaveBeenCalled();
   });
 
   it('should render nothing when the option is not set', () => {
