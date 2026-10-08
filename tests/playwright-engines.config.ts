@@ -26,7 +26,7 @@ const engine = (name: string, device: string) => ({
   name,
   testDir: 'e2e',
   grep: new RegExp(CROSS_BROWSER_TAG),
-  use: { ...devices[device], theme: 'main', bundle: 'umd' },
+  use: { ...devices[device], theme: 'main', bundle: 'umd' as const },
 });
 
 export default defineConfig<TestOptions>({

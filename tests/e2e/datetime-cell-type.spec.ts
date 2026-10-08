@@ -11,10 +11,10 @@ import { DatetimePage } from '../fixtures/pages/DatetimePage';
 test.describe('intl-datetime cell type', () => {
   let datetimeGrid: DatetimePage;
 
-  test.beforeEach(async ({ page, theme }) => {
+  test.beforeEach(async ({ page, theme, bundle }) => {
     await page.clock.install({ time: new Date('2025-05-05T12:00:00') });
 
-    datetimeGrid = new DatetimePage(page, theme);
+    datetimeGrid = new DatetimePage(page, theme, bundle);
     await datetimeGrid.goto();
   });
 
