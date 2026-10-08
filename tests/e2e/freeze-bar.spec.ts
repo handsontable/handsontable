@@ -906,6 +906,29 @@ test.describe('freezeBar', () => {
     });
   });
 
+  test.describe('with the sheets bar', () => {
+    test('a freeze made on one sheet does not follow the user onto a sheet that was never visited', async() => {
+      await grid.goto({ sheets: 1, bottom: 1 });
+      await grid.drag('start', 4);
+      await grid.page.evaluate(() => window.hot.getPlugin('freezeBar').setFreezeCount('top', 3));
+
+      expect(await grid.count('start')).toBe(4);
+      expect(await grid.count('top')).toBe(3);
+
+      await grid.page.evaluate(() => window.hot.getPlugin('sheetsBar').setActiveSheet('B'));
+
+      // the frozen counts the grid started with
+      expect(await grid.count('start')).toBe(2);
+      expect(await grid.count('top')).toBe(2);
+      expect(await grid.count('bottom')).toBe(1);
+
+      await grid.page.evaluate(() => window.hot.getPlugin('sheetsBar').setActiveSheet('A'));
+
+      expect(await grid.count('start')).toBe(4);
+      expect(await grid.count('top')).toBe(3);
+    });
+  });
+
   test.describe('layout direction', () => {
     test('the column bar follows the right to left layout', async() => {
       await grid.goto({ rtl: 1 });

@@ -3178,6 +3178,126 @@ describe('SheetsBar plugin', () => {
     expect(hot.getSettings().fixedColumnsEnd).toBe(2);
   });
 
+  describe('a freeze written on the table meta, as the freeze bar and ManualColumnFreeze write it', () => {
+    const createWorkbook = () => {
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'A', data: [['a', 'b', 'c'], ['d', 'e', 'f'], ['g', 'h', 'i']] },
+            { name: 'B', data: [['x', 'y', 'z'], ['u', 'v', 'w'], ['p', 'q', 'r']] },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      return hot.getPlugin('sheetsBar');
+    };
+
+    it('does not carry a start freeze onto a sheet that was never visited, and brings it back to its own sheet', () => {
+      const sheetsBar = createWorkbook();
+
+      hot.getSettings()._fixedColumnsStart = 2;
+      hot.render();
+
+      expect(hot.getSettings().fixedColumnsStart).toBe(2);
+
+      sheetsBar.setActiveSheet('B');
+
+      expect(hot.getSettings().fixedColumnsStart).toBe(0);
+
+      sheetsBar.setActiveSheet('A');
+
+      expect(hot.getSettings().fixedColumnsStart).toBe(2);
+    });
+
+    it('does not carry an end freeze onto a sheet that was never visited, and brings it back to its own sheet', () => {
+      const sheetsBar = createWorkbook();
+
+      hot.getSettings().fixedColumnsEnd = 2;
+      hot.render();
+      sheetsBar.setActiveSheet('B');
+
+      expect(hot.getSettings().fixedColumnsEnd).toBe(0);
+
+      sheetsBar.setActiveSheet('A');
+
+      expect(hot.getSettings().fixedColumnsEnd).toBe(2);
+    });
+
+    it('does not carry frozen top and bottom rows onto a sheet that was never visited, and brings them back', () => {
+      const sheetsBar = createWorkbook();
+
+      hot.getSettings().fixedRowsTop = 1;
+      hot.getSettings().fixedRowsBottom = 1;
+      hot.render();
+      sheetsBar.setActiveSheet('B');
+
+      expect(hot.getSettings().fixedRowsTop).toBe(0);
+      expect(hot.getSettings().fixedRowsBottom).toBe(0);
+
+      sheetsBar.setActiveSheet('A');
+
+      expect(hot.getSettings().fixedRowsTop).toBe(1);
+      expect(hot.getSettings().fixedRowsBottom).toBe(1);
+    });
+
+    it('does not carry frozen rows set with updateSettings onto a sheet that was never visited', () => {
+      const sheetsBar = createWorkbook();
+
+      hot.updateSettings({ fixedRowsTop: 2, fixedRowsBottom: 1 });
+      sheetsBar.setActiveSheet('B');
+
+      expect(hot.getSettings().fixedRowsTop).toBe(0);
+      expect(hot.getSettings().fixedRowsBottom).toBe(0);
+
+      sheetsBar.setActiveSheet('A');
+
+      expect(hot.getSettings().fixedRowsTop).toBe(2);
+      expect(hot.getSettings().fixedRowsBottom).toBe(1);
+    });
+
+    it('keeps the rows a never-visited sheet declares in its own settings', () => {
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'A', data: [['a', 'b'], ['c', 'd'], ['e', 'f']] },
+            { name: 'B', data: [['x', 'y'], ['z', 'w'], ['u', 'v']], settings: { fixedRowsTop: 1 } },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const sheetsBar = hot.getPlugin('sheetsBar');
+
+      sheetsBar.setActiveSheet('B');
+
+      expect(hot.getSettings().fixedRowsTop).toBe(1);
+
+      sheetsBar.setActiveSheet('A');
+
+      expect(hot.getSettings().fixedRowsTop).toBe(0);
+    });
+
+    it('gives the grid its own frozen counts back when the plugin is turned off', () => {
+      hot = new Handsontable(container, {
+        fixedRowsTop: 1,
+        sheetsBar: {
+          sheets: [
+            { name: 'A', data: [['a', 'b'], ['c', 'd'], ['e', 'f']] },
+            { name: 'B', data: [['x', 'y'], ['z', 'w'], ['u', 'v']] },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.getSettings().fixedRowsTop = 2;
+      hot.render();
+      hot.updateSettings({ sheetsBar: false });
+
+      expect(hot.getSettings().fixedRowsTop).toBe(1);
+    });
+  });
+
   it('keeps the freeze a never-visited sheet declares in its own settings', () => {
     hot = new Handsontable(container, {
       sheetsBar: {
