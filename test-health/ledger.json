@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-08T11:12:48.059Z",
+  "updatedAt": "2026-10-08T11:36:13.193Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-horizon",
+      "file": "e2e/fixed-columns-end-core.spec.ts",
+      "line": 60,
+      "title": "fixedColumnsEnd editor rectangle (rtl) › puts the editor on the cell in the end column, the top corner and the bottom corner",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: inline_end 5,29: top edge",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "37764704286",
+      "runAttempt": 2,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37764704286/attempts/2",
+      "workflow": "Tests",
+      "branch": "feature/DEV-3222_Draggable-freeze-bar",
+      "headSha": "f8140b77051f2b581e1c943c69095ad75bbbc81c",
+      "event": "pull_request",
+      "seenAt": "2026-10-08T11:35:28Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-horizon",
