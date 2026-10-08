@@ -1,6 +1,6 @@
 import type { Page, Locator } from '@playwright/test';
 import { expect } from '@playwright/test';
-import { awaitBundle } from '../bundle';
+import { awaitBundle, type Bundle } from '../bundle';
 
 /**
  * Page Object for the numeric-cell E2E fixture.
@@ -13,7 +13,7 @@ import { awaitBundle } from '../bundle';
 export class NumericGridPage {
   readonly page: Page;
   readonly theme: string;
-  readonly bundle: string;
+  readonly bundle: Bundle;
   readonly fixture: 'numeric' | 'numeric-formulas';
   readonly grid: Locator;
   readonly editor: Locator;
@@ -24,7 +24,7 @@ export class NumericGridPage {
   constructor(
     page: Page,
     theme = 'main',
-    bundle = 'umd',
+    bundle: Bundle = 'umd',
     fixture: 'numeric' | 'numeric-formulas' = 'numeric',
   ) {
     this.page = page;

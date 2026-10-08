@@ -1,4 +1,5 @@
 import { test as base, expect } from '@playwright/test';
+import type { Bundle } from './bundle';
 
 /**
  * Shared test fixture for the functional E2E suite.
@@ -25,7 +26,7 @@ import { test as base, expect } from '@playwright/test';
  */
 export type TestOptions = {
   theme: string;
-  bundle: string;
+  bundle: Bundle;
 };
 
 /**

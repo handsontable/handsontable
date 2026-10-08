@@ -206,7 +206,10 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   destructure. Miss one link and a leg silently tests the wrong build. The
   constructor default is what hides it: omit `bundle` in the spec's
   `test.beforeEach` and every leg loads plain UMD, so the `-min` legs go green
-  without ever touching the minified bundle.
+  without ever touching the minified bundle. The option is typed `Bundle`
+  (`fixtures/bundle.ts`); where another positional argument follows `bundle`,
+  type the parameter with it too, so a value in the wrong slot is a type error
+  rather than a bad `?bundle=` (`NumericGridPage`).
 - **A fixture's own `ready` flag does not prove the bundle loaded.** The
   `document.write`-injected bundle script and the block that installs the
   fixture helper are separate, so a page can report `ready` while
@@ -221,7 +224,10 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   test budget), with the interval in `BUNDLE_POLLING_MS` — see Determinism
   below for why the rAF default times out on a healthy page. Do not inline a
   copy: the lint catches a missing `{ polling }`, but only the helper keeps
-  the value from drifting between page objects.
+  the value from drifting between page objects. The helper also rethrows the
+  fixture's own `Unknown ?theme=`/`?bundle= value` error before it waits: that
+  throw happens in `<head>`, before the bundle script is written, so without
+  it a bad value ends as a bare 20s timeout in the wait.
 - The `umd` legs run the BASE bundle: **no HyperFormula** (a formulas fixture
   loads HF as an external script beside the bundle, or the plugin logs a
   warning and silently stays off) and **no languages pack** (an i18n fixture
@@ -273,11 +279,14 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   there (and the static server refuses it locally too, for CI parity). **Pin
   the exact version the owning package's lockfile carries** — an identical
   RANGE is not enough (both packages declared `^3.0.0` and still locked 3.3.0
-  vs 3.4.0, because pnpm resolves each importer at its own time). One
-  `hyperformula` entry in `pnpm-lock.yaml` is the invariant; two entries mean
-  the `umd` legs test a different engine than the one baked into `full.min`.
-  Moving the version into the pnpm catalog is the durable upgrade when the
-  core package can take that change.
+  vs 3.4.0, because pnpm resolves each importer at its own time). The
+  invariant is that the `handsontable` and `tests` importers in
+  `pnpm-lock.yaml` resolve the same `hyperformula`, and `tests/package.json`
+  pins it exactly; otherwise the `umd` legs test a different engine than the
+  one baked into `full.min`. Other importers do not count (`docs` resolves its
+  own). `lib/__tests__/hyperformula-pin.test.mjs` asserts it in the root
+  `test:tooling` gate on every pull request. Moving the version into the pnpm
+  catalog is the durable upgrade when the core package can take that change.
 - The green-run cache (`scripts/e2e-run-cache.mjs`) hashes BOTH bundles, the
   fixture-served HyperFormula artifact + `tests/package.json`, and every file
   under `fixtures/`; rebuilding a bundle or reinstalling the engine re-runs
