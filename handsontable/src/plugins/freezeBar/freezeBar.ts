@@ -131,6 +131,12 @@ export class FreezeBar extends BasePlugin {
    */
   #segments: Partial<Record<FreezeEdge, Map<string, HTMLElement>>> = {};
   /**
+   * The focusable separators, one per edge. They carry the role, the value and the keyboard, and sit next to the
+   * grid and not in it: the grid is a `treegrid`, which may own only rows, so a separator inside it is an
+   * accessibility error. The bars in the overlays only draw and take the pointer.
+   */
+  #separators: Partial<Record<FreezeEdge, HTMLElement>> = {};
+  /**
    * The guide that shows the snapped position while a bar is dragged.
    */
   #guide: HTMLElement | null = null;
@@ -227,7 +233,8 @@ export class FreezeBar extends BasePlugin {
   }
 
   /**
-   * Sets the number of frozen rows or columns on the given edge. The count is clamped to what fits the viewport.
+   * Sets the number of frozen rows or columns on the given edge. A count that grows is cut down to what fits the
+   * viewport; a count that stays or shrinks is taken as it is, even when more than that no longer fits.
    * The change can be canceled in the {@link Hooks#beforeFreezeChange} hook.
    *
    * @param {string} edge The edge: `top`, `bottom`, `start` or `end`.
@@ -287,6 +294,12 @@ export class FreezeBar extends BasePlugin {
         settings[{ top: 'fixedRowsTop', bottom: 'fixedRowsBottom', end: 'fixedColumnsEnd' }[edge]] = newCount;
       }
     });
+
+    // Filters decides which rows `filterFixedRows: false` exempts from the settings payload of an update. A write on
+    // the table meta is not an update, so the plugin is told the same way: with the key that changed.
+    if (edge === 'top' || edge === 'bottom') {
+      this.hot.runHooks('afterUpdateSettings', { [edge === 'top' ? 'fixedRowsTop' : 'fixedRowsBottom']: newCount });
+    }
 
     this.hot.render();
     this.hot.runHooks('afterFreezeChange', edge, newCount, oldCount, source);
@@ -430,10 +443,10 @@ export class FreezeBar extends BasePlugin {
    */
   #onAfterLanguageChange = () => {
     EDGES.forEach((edge) => {
-      const bar = this.#bars[edge];
+      const separator = this.#separators[edge];
 
-      if (bar && this.hot.getSettings().ariaTags) {
-        bar.setAttribute('aria-label', this.hot.getTranslatedPhrase(this.#getLabelKey(edge)));
+      if (separator && this.hot.getSettings().ariaTags) {
+        separator.setAttribute('aria-label', this.hot.getTranslatedPhrase(this.#getLabelKey(edge)));
       }
     });
   };
@@ -447,6 +460,40 @@ export class FreezeBar extends BasePlugin {
   #getLabelKey(edge: FreezeEdge): string {
     return isColumnEdge(edge) ? C.FREEZE_BAR_COLUMNS : C.FREEZE_BAR_ROWS;
   }
+
+  /**
+   * Forwards a wheel over a bar to the grid. The grid listens for the wheel on its holders only, so a wheel over a bar
+   * would scroll the page instead, and the grid would stay where it is. An axis the root element does not clip is
+   * scrolled by the page or an ancestor, which gets the wheel as it is.
+   *
+   * @param {WheelEvent} event The event.
+   */
+  #onWheel = (event: WheelEvent) => {
+    const holder = this.hot.view?._wt?.wtTable?.holder;
+
+    if (!holder) {
+      return;
+    }
+
+    const unit = event.deltaMode === 1 ? 16 : 1;
+    // the root clips the axis, so the grid scrolls inside it
+    const scrollsY = this.#getClipRange('y') === null && event.deltaY !== 0;
+    const scrollsX = this.#getClipRange('x') === null && event.deltaX !== 0;
+
+    if (!scrollsY && !scrollsX) {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (scrollsY) {
+      holder.scrollTop += event.deltaY * unit;
+    }
+
+    if (scrollsX) {
+      holder.scrollLeft += event.deltaX * unit;
+    }
+  };
 
   /**
    * Keeps the handles of the empty edges on the header corners as the page scrolls. A bar inside an overlay needs
@@ -488,6 +535,8 @@ export class FreezeBar extends BasePlugin {
     if (!host) {
       bar?.remove();
       delete this.#bars[edge];
+      this.#separators[edge]?.remove();
+      delete this.#separators[edge];
       this.#syncSegments(edge, false);
 
       return;
@@ -499,14 +548,7 @@ export class FreezeBar extends BasePlugin {
     }
 
     if (bar.parentNode !== host) {
-      // moving a node blurs it, so a bar that holds the focus gets it back
-      const hadFocus = getDeepActiveElement(this.hot.rootDocument) === bar;
-
       host.appendChild(bar);
-
-      if (hadFocus) {
-        bar.focus();
-      }
     }
 
     const empty = count === 0;
@@ -516,9 +558,31 @@ export class FreezeBar extends BasePlugin {
     bar.classList.toggle('ht-freeze-bar--empty', empty);
     this.#positionEmptyHandle(bar, edge, empty, frame);
     this.#syncSegments(edge, !empty);
+    this.#syncSeparator(edge, count);
+  }
+
+  /**
+   * Creates the separator of an edge next to the grid when it is missing, and brings its value up to date.
+   *
+   * @param {string} edge The edge.
+   * @param {number} count The number of frozen rows or columns on the edge.
+   */
+  #syncSeparator(edge: FreezeEdge, count: number) {
+    let separator = this.#separators[edge];
+
+    if (!separator) {
+      separator = this.#createSeparator(edge);
+      this.#separators[edge] = separator;
+    }
+
+    const parent = this.hot.rootElement.parentNode;
+
+    if (parent && separator.parentNode !== parent) {
+      parent.appendChild(separator);
+    }
 
     if (this.hot.getSettings().ariaTags) {
-      bar.setAttribute('aria-valuenow', String(count));
+      separator.setAttribute('aria-valuenow', String(count));
     }
   }
 
@@ -531,7 +595,8 @@ export class FreezeBar extends BasePlugin {
    */
   #updateValueMax(bar: HTMLElement, edge: FreezeEdge) {
     if (this.hot.getSettings().ariaTags) {
-      bar.setAttribute('aria-valuemax', String(this.#getMaxCount(edge)));
+      // a count above what fits stays as it is, so the range must include it
+      bar.setAttribute('aria-valuemax', String(Math.max(this.getFreezeCount(edge), this.#getMaxCount(edge))));
     }
   }
 
@@ -570,6 +635,8 @@ export class FreezeBar extends BasePlugin {
       if (!segment) {
         segment = this.hot.rootDocument.createElement('div');
         segment.className = `ht-freeze-bar ht-freeze-bar--${edge} ht-freeze-bar--segment`;
+        segment.setAttribute('aria-hidden', 'true');
+        segment.addEventListener('wheel', this.#onWheel, { passive: false });
         segment.addEventListener('pointerdown', event => this.#onPointerDown(edge, event));
         pieces.set(name, segment);
       }
@@ -743,13 +810,34 @@ export class FreezeBar extends BasePlugin {
    */
   #createBar(edge: FreezeEdge): HTMLElement {
     const bar = this.hot.rootDocument.createElement('div');
-    const columns = isColumnEdge(edge);
 
     bar.className = `ht-freeze-bar ht-freeze-bar--${edge}`;
-    bar.tabIndex = 0;
+    // the bar only draws and takes the pointer, the separator next to the grid is what assistive technology meets
+    bar.setAttribute('aria-hidden', 'true');
+    bar.addEventListener('pointerdown', event => this.#onPointerDown(edge, event));
+    bar.addEventListener('wheel', this.#onWheel, { passive: false });
+
+    return bar;
+  }
+
+  /**
+   * Builds the focusable separator of an edge. It is visually hidden: the focus is shown on the bar.
+   *
+   * @param {string} edge The edge.
+   * @returns {HTMLElement}
+   */
+  #createSeparator(edge: FreezeEdge): HTMLElement {
+    const separator = this.hot.rootDocument.createElement('div');
+    const columns = isColumnEdge(edge);
+
+    separator.className = 'ht-freeze-bar-separator';
+    separator.setAttribute('data-ht-freeze-separator', edge);
+    separator.tabIndex = 0;
+    separator.style.cssText = 'position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; ' +
+      'overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;';
 
     if (this.hot.getSettings().ariaTags) {
-      setAttribute(bar, [
+      setAttribute(separator, [
         ['role', 'separator'],
         ['aria-orientation', columns ? 'vertical' : 'horizontal'],
         ['aria-valuemin', 0],
@@ -757,11 +845,18 @@ export class FreezeBar extends BasePlugin {
       ]);
     }
 
-    bar.addEventListener('focus', () => this.#updateValueMax(bar, edge));
-    bar.addEventListener('pointerdown', event => this.#onPointerDown(edge, event));
-    bar.addEventListener('keydown', event => this.#onKeyDown(edge, event));
+    separator.addEventListener('focus', () => {
+      this.#updateValueMax(separator, edge);
+      // the ring is shown for the keyboard only, as `:focus-visible` is
+      this.#bars[edge]?.classList.toggle('ht-freeze-bar--focused', separator.matches(':focus-visible'));
+    });
+    separator.addEventListener('blur', () => this.#bars[edge]?.classList.remove('ht-freeze-bar--focused'));
+    separator.addEventListener('keydown', event => this.#onKeyDown(edge, event));
+    // the keys are stopped, and so are the clipboard events they start: a cut or a paste must not reach the grid
+    separator.addEventListener('cut', event => event.stopPropagation());
+    separator.addEventListener('paste', event => event.stopPropagation());
 
-    return bar;
+    return separator;
   }
 
   /**
@@ -795,10 +890,14 @@ export class FreezeBar extends BasePlugin {
     this.#drag = { edge, count: this.getFreezeCount(edge) };
     this.#setActive(edge, true);
 
-    const bar = this.#bars[edge];
+    const separator = this.#separators[edge];
 
-    if (bar) {
-      this.#updateValueMax(bar, edge);
+    if (separator) {
+      this.#updateValueMax(separator, edge);
+      // the keyboard goes on from the bar that was pressed; the page is not scrolled to bring the separator into view
+      separator.focus({ preventScroll: true });
+      // a press is not the keyboard, so no ring, whatever the last key was
+      this.#bars[edge]?.classList.remove('ht-freeze-bar--focused');
     }
 
     try {
@@ -862,7 +961,9 @@ export class FreezeBar extends BasePlugin {
       this.#drag = null;
       this.#abortDrag = null;
 
-      if (commit && drag) {
+      // a release that never passed the threshold is a click, and writes nothing (the count may have changed since
+      // the press, by an undo for example)
+      if (commit && drag && session) {
         this.#applyCount(edge, drag.count, 'drag');
       }
     };
@@ -1163,17 +1264,24 @@ export class FreezeBar extends BasePlugin {
    * @param {KeyboardEvent} event The event.
    */
   #onKeyDown(edge: FreezeEdge, event: KeyboardEvent) {
-    // The grid keeps listening while a bar has the focus, so a key the bar does not use must not reach it: Delete
-    // would clear the selected cell, and Enter or a letter would open its editor. Tab keeps its default, which
-    // moves the focus on. Undo and redo are the one exception: they change the frozen counts back, and a bar that
-    // holds the focus must not take them away.
-    const key = event.key.toLowerCase();
-    const isHistoryChord = (event.ctrlKey || event.metaKey) && !event.altKey && (key === 'z' || key === 'y');
+    // Escape gives the focus back to the grid and goes on to the page, so a modal around the grid still closes on it
+    if (event.key === 'Escape') {
+      this.hot.getFocusManager().focusOnHighlightedCell();
 
-    if (isHistoryChord) {
       return;
     }
 
+    // Undo and redo go through: they put the frozen counts back, and a bar that holds the focus must not take them away.
+    const key = event.key.toLowerCase();
+
+    if ((event.ctrlKey || event.metaKey) && !event.altKey && (key === 'z' || key === 'y')) {
+      return;
+    }
+
+    // The grid keeps listening while a bar has the focus, so a key the bar does not use must not reach it: Delete
+    // would clear the selected cell, and Enter or a letter would open its editor. Chords are stopped too, because
+    // `Ctrl+X` or `Ctrl+Enter` would reach a grid shortcut that writes to the selected cell. Nothing calls
+    // `preventDefault`, so Tab and the browser's own chords keep their default.
     event.stopPropagation();
 
     if (event.key === 'F6') {
@@ -1241,8 +1349,11 @@ export class FreezeBar extends BasePlugin {
     // tracks (the data is still loading). A step down is one step from where the count is.
     let next = step > 0 ? Math.min(target, total) : target;
 
-    // a count that ends on a hidden track freezes nothing more than the count before it
-    while (next > 0 && next <= total && this.#getEdgeTrackSize(edge, next - 1) === 0) {
+    // A step changes what is on screen only when the track it freezes (up) or unfreezes (down) is shown. Going up
+    // that is the track before the new count, going down it is the track at the new count.
+    const changedTrack = () => (step > 0 ? next - 1 : next);
+
+    while (changedTrack() >= 0 && changedTrack() < total && this.#getEdgeTrackSize(edge, changedTrack()) === 0) {
       next += step;
     }
 
@@ -1268,13 +1379,13 @@ export class FreezeBar extends BasePlugin {
   }
 
   /**
-   * Gets the bars the keyboard can reach: the ones that are in the document and shown.
+   * Gets the separators the keyboard can reach: the ones that are in the document.
    *
    * @returns {HTMLElement[]}
    */
   #getFocusableBars(): HTMLElement[] {
-    return EDGES.map(edge => this.#bars[edge])
-      .filter((bar): bar is HTMLElement => !!bar?.isConnected && !bar.hidden);
+    return EDGES.map(edge => this.#separators[edge])
+      .filter((separator): separator is HTMLElement => !!separator?.isConnected);
   }
 
   /**
@@ -1314,10 +1425,12 @@ export class FreezeBar extends BasePlugin {
     this.#hideGuide();
     this.#drag = null;
     Object.values(this.#bars).forEach(bar => bar?.remove());
+    Object.values(this.#separators).forEach(separator => separator?.remove());
     Object.values(this.#segments).forEach(pieces => pieces?.forEach(piece => piece.remove()));
     this.#scrollAncestors.forEach(element => element.removeEventListener('scroll', this.#onScroll));
     this.#scrollAncestors.clear();
     this.#bars = {};
+    this.#separators = {};
     this.#segments = {};
   }
 }

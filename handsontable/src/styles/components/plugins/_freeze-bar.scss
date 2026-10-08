@@ -14,17 +14,35 @@
         background: var(--ht-accent-color);
       }
 
-      &:focus-visible {
+      // the ring is on the bar, the focus itself is on the separator next to the grid
+      &--focused {
         outline: var(--ht-sizing-size-0-5) solid var(--ht-accent-color);
         outline-offset: var(--ht-sizing-size-0-5);
       }
 
-      // a finger needs a larger target than the visible bar
+      // A finger needs a larger target than the visible bar. It grows towards the frozen side only: the overlay that
+      // holds the bar cuts everything past its edge, and a tap just past the line must select a cell.
       @media (pointer: coarse) {
         &::before {
           content: "";
           position: absolute;
-          inset: -20px;
+          inset: 0;
+        }
+
+        &.ht-freeze-bar--start::before {
+          inset-inline-start: -40px;
+        }
+
+        &.ht-freeze-bar--top::before {
+          inset-block-start: -40px;
+        }
+
+        &.ht-freeze-bar--end::before {
+          inset-inline-end: -40px;
+        }
+
+        &.ht-freeze-bar--bottom::before {
+          inset-block-end: -40px;
         }
       }
 
@@ -61,6 +79,9 @@
       // The handle of an edge with nothing frozen, mounted in the root element. A wide one can be grabbed along
       // the whole edge, but only a piece on the header corner is drawn.
       &--empty {
+        // below the open editor (200), which an empty handle on the edge of a grid without headers would cover
+        z-index: 190;
+
         &.ht-freeze-bar--start {
           inset-inline-end: auto;
         }

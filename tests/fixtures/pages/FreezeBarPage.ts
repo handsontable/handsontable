@@ -69,6 +69,16 @@ export class FreezeBarPage {
   }
 
   /**
+   * The focusable separator of an edge. It sits next to the grid, outside the `treegrid`, and carries the role, the
+   * value and the keyboard. The bar of the same edge only draws and takes the pointer.
+   *
+   * @param edge The edge.
+   */
+  separator(edge: FreezeBarEdge): Locator {
+    return this.grid.locator(`[data-ht-freeze-separator="${edge}"]`);
+  }
+
+  /**
    * The pieces of a bar that lie in the corner overlays, so the bar is as long as the viewport.
    *
    * @param edge The edge.
@@ -81,7 +91,7 @@ export class FreezeBarPage {
    * Every element the plugin added to the page.
    */
   get allBars(): Locator {
-    return this.page.locator('.ht-freeze-bar, .ht-freeze-bar-guide');
+    return this.page.locator('.ht-freeze-bar, .ht-freeze-bar-guide, .ht-freeze-bar-separator');
   }
 
   /**

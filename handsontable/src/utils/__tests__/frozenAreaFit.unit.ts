@@ -64,4 +64,23 @@ describe('getMaxFittingFrozenCount', () => {
       minScrollableSize: 50,
     })).toBe(2);
   });
+
+  it('should not end the count on a hidden track that follows the last one that fits', () => {
+    // 50 + 50 fit in 140 with a 40px strip, the hidden track after them is free, and must not be counted
+    expect(getMaxFittingFrozenCount({
+      viewportSize: 140,
+      trackSizes: [50, 50, 0, 50],
+      oppositeBandSize: 0,
+      minScrollableSize: 40,
+    })).toBe(2);
+  });
+
+  it('should return 0 when every track that fits is hidden', () => {
+    expect(getMaxFittingFrozenCount({
+      viewportSize: 100,
+      trackSizes: [0, 0, 90],
+      oppositeBandSize: 0,
+      minScrollableSize: 50,
+    })).toBe(0);
+  });
 });
