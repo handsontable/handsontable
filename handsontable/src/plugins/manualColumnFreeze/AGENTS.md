@@ -108,15 +108,19 @@ Freezing moves a column with `columnIndexMapper.moveIndexes()` directly, so it n
 ## Freezing beyond the viewport (#4259)
 
 By default, a frozen area bigger than the grid is drawn in full and covers the master table, so the rest of the
-grid is unreachable. The cause is that Walkontable's `stickyColumnsStart` / `stickyRowsTop` clamp the rendered
-count against a **count** of tracks, not against available size.
+grid is unreachable. The opt-in `limitFixedToViewport` option fixes it at render time: `TableView` resolves the
+counts the grid can really draw (`countFixedColumnsStart()` and its siblings) and hands those to Walkontable.
 
-The opt-in `limitFixedToViewport` option fixes it at render time: `TableView` resolves the counts the grid can
-really draw and hands those to Walkontable. This plugin is not involved, and it must stay out of it. Read the
-configured count (`getSettings().fixedColumnsStart`) when you decide what the data means, because that is what
-the app set and what `ManualColumnFreeze` writes. Never write the effective count back: the clamp is recomputed
-on each full render and reverses when the grid grows. Which readers use which count is in
-`handsontable/AGENTS.md`, under "Raw versus effective frozen counts".
+With the option on and a configured count larger than what is drawn, **the user sees the drawn band, so this plugin
+works on it**: `getStartBandCount()` in `endBand.ts` is the one place that reads it. A column past the drawn band
+scrolls, so the Unfreeze item hides for it and `unfreezeColumn()` does nothing; `freezeColumn()` moves a scrolling
+column to the drawn freeze line and writes `drawn + 1`. The write is absolute (`_fixedColumnsStart = start ± 1` from
+the drawn count), not `+= 1` on the configured count, which with the option off is the same number. The user's action
+replaces the configured count, so after it the frozen area no longer returns when the grid grows. The end band
+follows the same rule (`getEndBandCount()` reads the drawn end count). Without the option nothing changes.
+
+Pinned by `tests/e2e/limit-fixed-to-viewport.spec.ts` ("ManualColumnFreeze does not unfreeze a column that scrolls").
+Which readers use which count is in `handsontable/AGENTS.md`, under "Raw versus effective frozen counts".
 
 ## Where to look next
 

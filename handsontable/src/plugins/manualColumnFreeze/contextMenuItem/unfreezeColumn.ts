@@ -2,7 +2,7 @@ import type { HotInstance } from '../../../core/types';
 import * as C from '../../../i18n/constants';
 import { isPluginOff } from './isPluginOff';
 import { followColumn } from './followColumn';
-import { unfreezeWouldShiftEndBand } from '../endBand';
+import { getStartBandCount, unfreezeWouldShiftEndBand } from '../endBand';
 
 /**
  * @param {ManualColumnFreeze} manualColumnFreezePlugin The plugin instance.
@@ -48,7 +48,7 @@ export default function unfreezeColumnItem(manualColumnFreezePlugin: unknown) {
       } else {
         const fromCol = selection[0].from.col;
         const toCol = selection[0].to.col;
-        const fixedColumnsStart = this.getSettings().fixedColumnsStart ?? 0;
+        const fixedColumnsStart = getStartBandCount(this);
 
         if (fromCol !== toCol || (fromCol !== null && fromCol >= fixedColumnsStart)) {
           hide = true;

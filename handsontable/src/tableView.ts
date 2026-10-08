@@ -352,6 +352,12 @@ class TableView {
    * of the count accessors run them on `Object.create(TableView.prototype)`, which has no private fields.
    */
   _effectiveFixed: EffectiveFixedCounts | null = null;
+
+  /**
+   * The rendered height of the frozen rows by physical index, as the last draw measured them. The engine does not
+   * know the height of a content-tall frozen row, so the next measurement starts from these instead of the default.
+   */
+  #drawnRowHeights = new Map<number, number>();
   /**
    * The last mouse position of the mousedown event.
    *
@@ -1117,8 +1123,8 @@ class TableView {
   countNotHiddenFixedColumnsEnd() {
     // Walkontable reads this setting many times per draw and per mouse move. Most grids freeze no end
     // columns, so answer before `countCols()` and the not-hidden lookup run.
-    const effective = this.settings.limitFixedToViewport ? this._effectiveFixed : null;
-    const requested = effective ? effective.end : this.settings.fixedColumnsEnd;
+    const useDrawnCount = this._effectiveFixed && this.settings.limitFixedToViewport;
+    const requested = useDrawnCount ? this.countFixedColumnsEnd() : this.settings.fixedColumnsEnd;
 
     if (!requested) {
       return 0;
@@ -1156,7 +1162,14 @@ class TableView {
    */
   countFixedColumnsEnd() {
     if (this._effectiveFixed && this.settings.limitFixedToViewport) {
-      return this._effectiveFixed.end;
+      // The memo is from the last render. A count lowered or a column removed since then must not be exceeded.
+      const configuredEnd = Math.floor(Number(this.settings.fixedColumnsEnd)) || 0;
+
+      return clampFixedColumnsEnd(
+        Math.min(this._effectiveFixed.end, configuredEnd),
+        this.countFixedColumnsStart(),
+        this.hot.countCols()
+      );
     }
 
     if (!this.settings.fixedColumnsEnd) {
@@ -1177,11 +1190,13 @@ class TableView {
    * @returns {number} A non-negative number; `0` when the option is not set.
    */
   countFixedColumnsStart() {
+    const configured = Number(this.settings.fixedColumnsStart) || 0;
+
     if (this._effectiveFixed && this.settings.limitFixedToViewport) {
-      return this._effectiveFixed.start;
+      return Math.min(this._effectiveFixed.start, configured, this.hot.countCols());
     }
 
-    return Number(this.settings.fixedColumnsStart) || 0;
+    return configured;
   }
 
   /**
@@ -1191,11 +1206,13 @@ class TableView {
    * @returns {number} A non-negative number; `0` when the option is not set.
    */
   countFixedRowsTop() {
+    const configured = Number(this.settings.fixedRowsTop) || 0;
+
     if (this._effectiveFixed && this.settings.limitFixedToViewport) {
-      return this._effectiveFixed.top;
+      return Math.min(this._effectiveFixed.top, configured, this.hot.countRows());
     }
 
-    return Number(this.settings.fixedRowsTop) || 0;
+    return configured;
   }
 
   /**
@@ -1205,11 +1222,15 @@ class TableView {
    * @returns {number} A non-negative number; `0` when the option is not set.
    */
   countFixedRowsBottom() {
+    const configured = Number(this.settings.fixedRowsBottom) || 0;
+
     if (this._effectiveFixed && this.settings.limitFixedToViewport) {
-      return this._effectiveFixed.bottom;
+      const rowsLeftBelowTop = Math.max(this.hot.countRows() - this.countFixedRowsTop(), 0);
+
+      return Math.min(this._effectiveFixed.bottom, configured, rowsLeftBelowTop);
     }
 
-    return Number(this.settings.fixedRowsBottom) || 0;
+    return configured;
   }
 
   /**
@@ -1239,15 +1260,34 @@ class TableView {
       this.hot.stylesHandler.getDefaultRowHeight(visualIndex) ?? 0;
 
     if (!measureDom) {
-      return rowHeight;
+      // Before a draw the engine knows nothing of a content-tall row it never rendered, so use the height the
+      // last draw measured, which saves a second draw on every render while the content stays the same.
+      return Math.max(rowHeight, this.#drawnRowHeights.get(physical) ?? 0);
     }
 
     // The engine records the height of a content-tall row only for the rows the master table renders, so a tall
     // frozen row still reads as the default height there. A row that is on screen has its real height in the DOM.
-    const firstColumn = this.hot.columnIndexMapper.getNearestNotHiddenIndex(0, 1) ?? 0;
-    const drawnHeight = this.hot.getCell(visualIndex, firstColumn, true)?.parentElement?.offsetHeight ?? 0;
+    // The first column the master renders is in every rendered row, whatever the horizontal scroll position. The
+    // row header is not a substitute: its row in the header clone is not always as tall as the content row.
+    const drawnHeight = this.hot.getCell(visualIndex, this.#getFirstRenderedVisualColumn(), true)
+      ?.parentElement?.offsetHeight ?? 0;
 
-    return Math.max(rowHeight, drawnHeight);
+    if (drawnHeight > 0) {
+      this.#drawnRowHeights.set(physical, drawnHeight);
+    }
+
+    return Math.max(rowHeight, drawnHeight, this.#drawnRowHeights.get(physical) ?? 0);
+  }
+
+  /**
+   * Returns the visual index of the first column the master table renders, `0` before a draw.
+   *
+   * @returns {number}
+   */
+  #getFirstRenderedVisualColumn() {
+    const renderable = this._wt.wtTable.getFirstRenderedColumn();
+
+    return renderable >= 0 ? this.hot.columnIndexMapper.getVisualFromRenderableIndex(renderable) ?? 0 : 0;
   }
 
   /**
@@ -2472,44 +2512,75 @@ class TableView {
       return null;
     }
 
-    const start = Number(this.settings.fixedColumnsStart) || 0;
-    const end = Math.floor(Number(this.settings.fixedColumnsEnd)) || 0;
-    const top = Number(this.settings.fixedRowsTop) || 0;
-    const bottom = Number(this.settings.fixedRowsBottom) || 0;
-    const columns = { leading: 0, trailing: 0 };
-    const rows = { leading: 0, trailing: 0 };
-    const columnsViewport = start > 0 || end > 0 ? this.getFrozenViewportSize(true) : 1;
-    const rowsViewport = top > 0 || bottom > 0 ? this.getFrozenViewportSize(false) : 1;
-
-    // A grid that is not laid out (hidden, in a closed tab) measures 0. Clamping against that would collapse every
-    // band, and nothing redraws when the grid is shown, so keep the configured counts until a size is known.
-    if (columnsViewport <= 0 || rowsViewport <= 0) {
-      return null;
-    }
-
-    if (start > 0 || end > 0) {
-      Object.assign(columns, resolveFittingFrozenCounts({
-        viewportSize: columnsViewport,
-        requestedLeading: start,
-        requestedTrailing: end,
-        total: this.hot.countCols(),
-        getTrackSize: visualIndex => this.getFrozenTrackSize(true, visualIndex, measureDom),
-        minScrollableSize: MIN_SCROLLABLE_SIZE,
-      }));
-    }
-
-    if (top > 0 || bottom > 0) {
-      Object.assign(rows, resolveFittingFrozenCounts({
-        viewportSize: rowsViewport,
-        requestedLeading: top,
-        requestedTrailing: bottom,
-        total: this.hot.countRows(),
-        getTrackSize: visualIndex => this.getFrozenTrackSize(false, visualIndex, measureDom),
-        minScrollableSize: MIN_SCROLLABLE_SIZE,
-      }));
-    }
+    const columns = this.#resolveAxisCounts(
+      true,
+      Number(this.settings.fixedColumnsStart) || 0,
+      Math.floor(Number(this.settings.fixedColumnsEnd)) || 0,
+      measureDom
+    );
+    const rows = this.#resolveAxisCounts(
+      false,
+      Number(this.settings.fixedRowsTop) || 0,
+      Number(this.settings.fixedRowsBottom) || 0,
+      measureDom
+    );
 
     return { start: columns.leading, end: columns.trailing, top: rows.leading, bottom: rows.trailing };
+  }
+
+  /**
+   * Resolves the counts of one axis. Nothing is measured for an axis with no frozen track. An axis that is not laid
+   * out (a hidden grid, a closed tab, a grid that was never drawn) keeps the configured counts: clamping against a
+   * size of 0 would collapse every band, and nothing redraws when the grid is shown. The check is per axis, on the
+   * holder, because the workspace measurement falls back to the window size for a hidden grid.
+   *
+   * @param {boolean} isColumn `true` for the columns, `false` for the rows.
+   * @param {number} requestedLeading The configured start columns or top rows.
+   * @param {number} requestedTrailing The configured end columns or bottom rows.
+   * @param {boolean} measureDom `true` after a draw, when the rendered height of a row can be read.
+   * @returns {{ leading: number, trailing: number }}
+   */
+  #resolveAxisCounts(isColumn: boolean, requestedLeading: number, requestedTrailing: number, measureDom: boolean) {
+    const total = isColumn ? this.hot.countCols() : this.hot.countRows();
+
+    if (requestedLeading <= 0 && requestedTrailing <= 0) {
+      return { leading: 0, trailing: 0 };
+    }
+
+    const holder = this._wt.wtTable.holder;
+    const isLaidOut = (isColumn ? holder.clientWidth : holder.clientHeight) > 0;
+    const viewportSize = isLaidOut ? this.getFrozenViewportSize(isColumn) : 0;
+
+    if (viewportSize <= 0) {
+      const leading = Math.min(Math.max(Math.floor(requestedLeading), 0), total);
+
+      return { leading, trailing: clampFixedColumnsEnd(requestedTrailing, leading, total) };
+    }
+
+    return resolveFittingFrozenCounts({
+      viewportSize,
+      requestedLeading,
+      requestedTrailing,
+      total,
+      getTrackSize: visualIndex => this.getFrozenTrackSize(isColumn, visualIndex, measureDom),
+      minScrollableSize: MIN_SCROLLABLE_SIZE,
+    });
+  }
+
+  /**
+   * Stores new effective counts. When they differ from the stored ones, the freeze lines moved, and a cell that sits
+   * on one (a merged block that crosses it) must be painted again even where `renderMode` skips unchanged cells.
+   *
+   * @param {EffectiveFixedCounts | null} next The new counts.
+   */
+  #setEffectiveFixed(next: EffectiveFixedCounts | null) {
+    const moved = !isSameEffectiveFixed(this._effectiveFixed, next);
+
+    this._effectiveFixed = next;
+
+    if (moved) {
+      this.hot.markAllCellsChanged();
+    }
   }
 
   /**
@@ -2521,9 +2592,10 @@ class TableView {
   #refreshEffectiveFixed(isFullRender: boolean) {
     if (!this.settings.limitFixedToViewport) {
       this._effectiveFixed = null;
+      this.#drawnRowHeights.clear();
 
     } else if (isFullRender || this._effectiveFixed === null) {
-      this._effectiveFixed = this.#resolveEffectiveFixed(false);
+      this.#setEffectiveFixed(this.#resolveEffectiveFixed(false));
     }
   }
 
@@ -2543,7 +2615,7 @@ class TableView {
     const next = this.#resolveEffectiveFixed(true);
 
     if (!isSameEffectiveFixed(this._effectiveFixed, next)) {
-      this._effectiveFixed = next;
+      this.#setEffectiveFixed(next);
       this._wt.draw(false);
     }
   }

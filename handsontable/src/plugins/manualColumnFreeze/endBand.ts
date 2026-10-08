@@ -11,7 +11,23 @@ import { clampFixedColumnsEnd } from '../../3rdparty/walkontable/src/settings/fi
  * @returns {number} Zero without `fixedColumnsEnd`.
  */
 export function getEndBandCount(hot: HotInstance, fixedColumnsStart: number): number {
-  return clampFixedColumnsEnd(hot.getSettings().fixedColumnsEnd, fixedColumnsStart, hot.countCols());
+  const settings = hot.getSettings();
+  // with `limitFixedToViewport` the grid draws a smaller end band, and that is the band the user sees
+  const drawsLess = settings.limitFixedToViewport && hot.view;
+  const requestedEnd = drawsLess ? hot.view.countFixedColumnsEnd() : settings.fixedColumnsEnd;
+
+  return clampFixedColumnsEnd(requestedEnd, fixedColumnsStart, hot.countCols());
+}
+
+/**
+ * The number of frozen start columns the grid draws. It is the configured count unless `limitFixedToViewport`
+ * cut the band down to what fits, and then the columns past it are scrollable, so they count as not frozen.
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @returns {number}
+ */
+export function getStartBandCount(hot: HotInstance): number {
+  return hot.view ? hot.view.countFixedColumnsStart() : Number(hot.getSettings().fixedColumnsStart) || 0;
 }
 
 /**
@@ -24,7 +40,7 @@ export function getEndBandCount(hot: HotInstance, fixedColumnsStart: number): nu
  * @returns {boolean}
  */
 export function isInEndBand(hot: HotInstance, column: number): boolean {
-  const endCount = getEndBandCount(hot, hot.getSettings().fixedColumnsStart ?? 0);
+  const endCount = getEndBandCount(hot, getStartBandCount(hot));
 
   return endCount > 0 && column >= hot.countCols() - endCount;
 }
@@ -38,7 +54,7 @@ export function isInEndBand(hot: HotInstance, column: number): boolean {
  * @returns {boolean}
  */
 export function unfreezeWouldShiftEndBand(hot: HotInstance): boolean {
-  const fixedColumnsStart = hot.getSettings().fixedColumnsStart ?? 0;
+  const fixedColumnsStart = getStartBandCount(hot);
 
   return getEndBandCount(hot, fixedColumnsStart) !== getEndBandCount(hot, Math.max(fixedColumnsStart - 1, 0));
 }

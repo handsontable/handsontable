@@ -212,4 +212,183 @@ export class LimitFixedToViewportPage {
       };
     }, [row, col]);
   }
+
+  /**
+   * The counts the clamp has to resolve, worked out from the sizes on the page and not from the code under test:
+   * the grid box, the headers, the width of a column and the height of a row. A track is as large as the first
+   * one, which holds for the fixture (a uniform grid), and the strip that stays scrollable is 40 px.
+   *
+   * @param requested The configured counts.
+   * @param requested.start The configured start columns.
+   * @param requested.end The configured end columns.
+   * @param requested.top The configured top rows.
+   * @param requested.bottom The configured bottom rows.
+   */
+  async expectedCounts(requested: { start?: number, end?: number, top?: number, bottom?: number }) {
+    return this.page.evaluate(({ start = 0, end = 0, top = 0, bottom = 0 }) => {
+      const strip = 40;
+      const root = window.hot.rootElement;
+      const colWidth = window.hot.getColWidth(0);
+      const rowHeight = window.hot.getCell(1, -1, true)!.parentElement!.offsetHeight;
+      const fit = (room: number, size: number, count: number) => Math.min(count, Math.max(Math.floor(room / size), 0));
+      const columnsRoom = root.clientWidth - window.hot.view.getRowHeaderWidth() - strip;
+      const rowsRoom = root.clientHeight - window.hot.view.getColumnHeaderHeight() - strip;
+      const startDrawn = fit(columnsRoom, colWidth, start);
+      const topDrawn = fit(rowsRoom, rowHeight, top);
+
+      return {
+        start: startDrawn,
+        end: fit(columnsRoom - startDrawn * colWidth, colWidth, Math.min(end, window.hot.countCols() - start)),
+        top: topDrawn,
+        bottom: fit(rowsRoom - topDrawn * rowHeight, rowHeight, Math.min(bottom, window.hot.countRows() - top)),
+      };
+    }, requested);
+  }
+
+  /**
+   * The counts the grid draws.
+   */
+  async drawnCounts() {
+    return {
+      start: await this.drawnCount('start'),
+      end: await this.drawnCount('end'),
+      top: await this.drawnCount('top'),
+      bottom: await this.drawnCount('bottom'),
+    };
+  }
+
+  /**
+   * How many times the grid finished a view render since the page loaded.
+   */
+  async viewRenderCount(): Promise<number> {
+    return this.page.evaluate(() => (window as any).viewRenders as number);
+  }
+
+  /**
+   * Renders the grid, the way an app does after it changed the data.
+   */
+  async render(): Promise<void> {
+    await this.page.evaluate(() => window.hot.render());
+  }
+
+  /**
+   * Loads data whose first 40 rows wrap into tall rows, into a grid that has only measured default-height rows.
+   */
+  async loadTallRows(): Promise<void> {
+    await this.page.evaluate(() => {
+      const rows = window.hot.getData() as string[][];
+
+      window.hot.loadData(rows.map((row, index) => (
+        index < 40 ? [`${row[0]} ${'lorem ipsum dolor sit amet '.repeat(6)}`, ...row.slice(1)] : row
+      )));
+    });
+  }
+
+  /**
+   * Shows a grid that the fixture built inside a hidden box, and draws it.
+   */
+  async showHiddenGrid(): Promise<void> {
+    await this.page.evaluate(() => {
+      (document.querySelector('[data-testid="grid"]') as HTMLElement).style.display = '';
+      window.hot.render();
+    });
+  }
+
+  /**
+   * The freezeBar plugin's count of an edge, as an app reads it.
+   *
+   * @param edge The edge.
+   */
+  async freezeBarCount(edge: FrozenEdge): Promise<number> {
+    return this.page.evaluate(e => window.hot.getPlugin('freezeBar').getFreezeCount(e), edge);
+  }
+
+  /**
+   * Asks the freezeBar plugin for a count, the way an app does through the API.
+   *
+   * @param edge The edge.
+   * @param count The requested count.
+   */
+  async setFreezeBarCount(edge: FrozenEdge, count: number): Promise<boolean> {
+    return this.page.evaluate(([e, c]) => window.hot.getPlugin('freezeBar').setFreezeCount(e as any, c as number), [edge, count]);
+  }
+
+  /**
+   * The `aria-valuenow` of the bar of an edge, which is the count the bar sits on.
+   *
+   * @param edge The edge.
+   */
+  barValue(edge: FrozenEdge): Locator {
+    return this.page.locator(`.ht-freeze-bar--${edge}:not(.ht-freeze-bar--segment)`);
+  }
+
+  /**
+   * The log the `afterFreezeChange` hook wrote.
+   */
+  async freezeLog(): Promise<Array<{ edge: string, newCount: number, oldCount: number, source: string }>> {
+    return this.page.evaluate(() => (window as any).freezeLog);
+  }
+
+  /**
+   * The inline-start edge of the band that is drawn, and the middle of the start bar, in viewport coordinates.
+   */
+  async startBarAndBandEdge(): Promise<{ bar: number, band: number }> {
+    return this.page.evaluate(() => {
+      const root = window.hot.rootElement;
+      const barRect = root.querySelector('.ht-freeze-bar--start:not(.ht-freeze-bar--segment)')!.getBoundingClientRect();
+      const bandRect = root.querySelector('.ht_clone_inline_start')!.getBoundingClientRect();
+
+      return { bar: barRect.left + barRect.width / 2, band: bandRect.right };
+    });
+  }
+
+  /**
+   * What the move plugins say about a column and a row: are they inside the frozen band that is drawn?
+   *
+   * @param column A visual column.
+   * @param row A visual row.
+   */
+  async moveBandFlags(column: number, row: number) {
+    return this.page.evaluate(([c, r]) => ({
+      column: window.hot.getPlugin('manualColumnMove').isFixedColumnsStart(c),
+      row: window.hot.getPlugin('manualRowMove').isFixedRowTop(r),
+    }), [column, row]);
+  }
+
+  /**
+   * The section the open editor reports it sits in (a corner, an overlay, or the master).
+   */
+  async editorSection(): Promise<string> {
+    return this.page.evaluate(() => window.hot.getActiveEditor()!.checkEditorSection());
+  }
+
+  /**
+   * Freezes a column through the ManualColumnFreeze API.
+   *
+   * @param column The visual column.
+   */
+  async freezeColumn(column: number): Promise<void> {
+    await this.page.evaluate(c => window.hot.getPlugin('manualColumnFreeze').freezeColumn(c), column);
+  }
+
+  /**
+   * Unfreezes a column through the ManualColumnFreeze API and reports whether the plugin did it.
+   *
+   * @param column The visual column.
+   */
+  async unfreezeColumn(column: number): Promise<boolean> {
+    return this.page.evaluate(c => new Promise<boolean>((resolve) => {
+      window.hot.addHookOnce('afterColumnUnfreeze', (_column: number, performed: boolean) => resolve(performed));
+      window.hot.getPlugin('manualColumnFreeze').unfreezeColumn(c);
+    }), column);
+  }
+
+  /**
+   * The visual index a physical column sits at.
+   *
+   * @param physical The physical column.
+   */
+  async visualColumnOf(physical: number): Promise<number | null> {
+    return this.page.evaluate(p => window.hot.columnIndexMapper.getVisualFromPhysicalIndex(p), physical);
+  }
 }

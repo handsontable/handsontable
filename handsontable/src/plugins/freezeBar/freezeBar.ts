@@ -2,6 +2,7 @@ import { BasePlugin } from '../base';
 import { A11Y_LABEL } from '../../helpers/a11y';
 import * as C from '../../i18n/constants';
 import { getDeepActiveElement, getTrimmingContainer, setAttribute } from '../../helpers/dom/element';
+import { clampFixedColumnsEnd } from '../../3rdparty/walkontable/src/settings/fixedColumnsEnd';
 import { getMaxFittingFrozenCount, MIN_SCROLLABLE_SIZE } from '../../utils/frozenAreaFit';
 import { getElementScaleFactor, normalizeVisualDelta } from '../../utils/manualResize/utils';
 import { resolveFreezeCount } from './snapResolver';
@@ -195,8 +196,10 @@ export class FreezeBar extends BasePlugin {
   }
 
   /**
-   * Gets the number of frozen rows or columns on the given edge. It is the count the grid draws: the start band
-   * has priority over the end band, and with `limitFixedToViewport` a band that does not fit is cut down.
+   * Gets the number of frozen rows or columns on the given edge, as configured. It is the count an app saves and the
+   * count the hooks report. The start band has priority over the end band, so the end band is the part of it that
+   * remains. With `limitFixedToViewport` the grid may draw fewer tracks than this: the bar and its ARIA value follow
+   * the drawn count, which `TableView#countFixedColumnsStart()` and its siblings return.
    *
    * @param {string} edge The edge: `top`, `bottom`, `start` or `end`.
    * @returns {number}
@@ -206,6 +209,29 @@ export class FreezeBar extends BasePlugin {
       return 0;
     }
 
+    const settings = this.hot.getSettings();
+
+    if (edge === 'end') {
+      return clampFixedColumnsEnd(settings.fixedColumnsEnd, settings.fixedColumnsStart, this.hot.countCols());
+    }
+
+    const count = {
+      top: settings.fixedRowsTop,
+      bottom: settings.fixedRowsBottom,
+      start: settings.fixedColumnsStart,
+    }[edge];
+
+    return Math.max(0, Math.floor(Number(count) || 0));
+  }
+
+  /**
+   * Gets the number of frozen rows or columns the grid draws on the given edge. It equals the configured count
+   * unless `limitFixedToViewport` cut the band down to what fits.
+   *
+   * @param {string} edge The edge.
+   * @returns {number}
+   */
+  #getDrawnCount(edge: FreezeEdge): number {
     const view = this.hot.view;
     const count = {
       top: view.countFixedRowsTop(),
@@ -362,7 +388,7 @@ export class FreezeBar extends BasePlugin {
     const view = this.hot.view;
     const total = columns ? this.hot.countCols() : this.hot.countRows();
     const viewportSize = view.getFrozenViewportSize(columns);
-    const oppositeCount = Math.min(this.getFreezeCount(opposite), total);
+    const oppositeCount = Math.min(this.#getDrawnCount(opposite), total);
     // The band on the other edge takes its room first, so the two bands together never fill the viewport.
     const oppositeBandSize = this.#getTrackSizes(opposite, { maxTracks: oppositeCount })
       .reduce((sum, size) => sum + size, 0);
@@ -447,7 +473,7 @@ export class FreezeBar extends BasePlugin {
    */
   #syncBar(edge: FreezeEdge) {
     const available = this.#isEdgeAvailable(edge);
-    const count = available ? this.getFreezeCount(edge) : 0;
+    const count = available ? this.#getDrawnCount(edge) : 0;
     // A bar sits in the overlay that holds the frozen tracks. With nothing frozen there is no overlay to
     // hold it, so the handle of an empty edge sits in the root element, on a header corner.
     const host = available ? this.#getHost(edge, count) : null;
@@ -760,7 +786,7 @@ export class FreezeBar extends BasePlugin {
       fromLeft: boolean,
     } | null = null;
 
-    this.#drag = { edge, count: this.getFreezeCount(edge) };
+    this.#drag = { edge, count: this.#getDrawnCount(edge) };
     this.#setActive(edge, true);
 
     const bar = this.#bars[edge];
@@ -785,7 +811,7 @@ export class FreezeBar extends BasePlugin {
 
       const rootRect = this.hot.rootElement.getBoundingClientRect();
       // A count above what fits keeps its room, so a wobble of the pointer cannot lower a count the user did not touch.
-      const maxCount = Math.max(this.#getMaxCount(edge), this.getFreezeCount(edge));
+      const maxCount = Math.max(this.#getMaxCount(edge), this.#getDrawnCount(edge));
 
       session = {
         scale: getElementScaleFactor(this.hot.rootElement, columns ? 'horizontal' : 'vertical'),
@@ -869,10 +895,10 @@ export class FreezeBar extends BasePlugin {
     const columns = isColumnEdge(edge);
     const total = columns ? this.hot.countCols() : this.hot.countRows();
     const opposite: FreezeEdge = { start: 'end', end: 'start', top: 'bottom', bottom: 'top' }[edge] as FreezeEdge;
-    const frozenHere = this.getFreezeCount(edge);
+    const frozenHere = this.#getDrawnCount(edge);
 
     // every track is frozen, so nothing scrolls
-    if (total <= frozenHere + this.getFreezeCount(opposite)) {
+    if (total <= frozenHere + this.#getDrawnCount(opposite)) {
       return;
     }
 
@@ -1163,7 +1189,7 @@ export class FreezeBar extends BasePlugin {
     const backwardKey = columns ? 'ArrowLeft' : 'ArrowUp';
     const forward = growsFromStart(edge) ? forwardKey : backwardKey;
     const backward = growsFromStart(edge) ? backwardKey : forwardKey;
-    const current = this.getFreezeCount(edge);
+    const current = this.#getDrawnCount(edge);
     const flip = columns && rtl ? -1 : 1;
     let target: number | null = null;
 

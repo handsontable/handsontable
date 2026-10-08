@@ -150,6 +150,27 @@ describe('resolveFittingFrozenCounts', () => {
     })).toEqual({ leading: 5, trailing: 0 });
   });
 
+  it('should not hand the tracks a cut leading band gives up to the trailing band', () => {
+    // 10 columns, start 8 and end 5: without the option the end band is 10 - 8 = 2 columns
+    expect(resolveFittingFrozenCounts({
+      viewportSize: 450,
+      requestedLeading: 8,
+      requestedTrailing: 5,
+      total: 10,
+      getTrackSize: uniform(100),
+      minScrollableSize: 40,
+    })).toEqual({ leading: 4, trailing: 0 });
+
+    expect(resolveFittingFrozenCounts({
+      viewportSize: 10000,
+      requestedLeading: 8,
+      requestedTrailing: 5,
+      total: 10,
+      getTrackSize: uniform(10),
+      minScrollableSize: 40,
+    })).toEqual({ leading: 8, trailing: 2 });
+  });
+
   it('should walk only as many tracks as it needs on a large axis', () => {
     const getTrackSize = jest.fn(() => 100);
 

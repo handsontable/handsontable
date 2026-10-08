@@ -63,6 +63,10 @@
       freezeBar: flag('bar', false),
       manualColumnMove: true,
       manualRowMove: true,
+      manualColumnFreeze: true,
+      afterFreezeChange: (edge, newCount, oldCount, source) => {
+        window.freezeLog.push({ edge, newCount, oldCount, source });
+      },
       licenseKey: 'non-commercial-and-evaluation',
     };
 
@@ -75,6 +79,7 @@
       settings.hiddenColumns = { columns: [2] };
     }
 
+    window.freezeLog = [];
     window.viewRenders = 0;
     settings.afterViewRender = () => { window.viewRenders += 1; };
 

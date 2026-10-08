@@ -125,7 +125,9 @@ With this option on, Handsontable draws only as many frozen rows as fit and keep
 
 - [`getSettings()`](@/api/core.md#getsettings) still returns the values of `fixedRowsTop` and `fixedRowsBottom`.
 - Handsontable measures the grid again when it resizes. The frozen rows come back when the grid grows.
-- The top rows have priority over the bottom rows.
+- A strip of at least 40 px stays scrollable.
+- The top rows have priority over the bottom rows. When the top rows fill the grid, the bottom rows are not drawn as frozen at all, so rows you pin at the bottom, such as summary rows, can disappear from the frozen area first.
+- When a user drags a [`FreezeBar`](@/api/freezeBar.md) bar, the new count replaces the configured one, and the frozen area no longer returns when the grid grows. [`getFreezeCount()`](@/api/freezeBar.md#getfreezecount) reports the configured count, so an app that saves it keeps the value that was set.
 - The [`FreezeBar`](@/api/freezeBar.md) plugin shows the bar on the line where the drawn frozen area ends.
 - Sorting and filtering still treat the rows you configured as frozen. A row that the grid does not draw as frozen stays out of the sort and the filter.
 
@@ -133,7 +135,7 @@ The option works the same way for frozen columns. Read more in [Column freezing]
 
 If you leave the option off, keep the combined height of your frozen rows smaller than the grid's height. If your grid has to work at several sizes, pick a number of frozen rows that fits the shortest one.
 
-Without a defined `height`, the grid grows to fit its rows, so the frozen rows cannot outgrow it and this limit does not apply. Read more in [Grid size](@/guides/getting-started/grid-size/grid-size.md).
+Without a defined `height`, the grid grows to fit its rows, so the frozen rows cannot outgrow it and this limit does not apply. With `limitFixedToViewport` on, the grid measures the height of the window instead, and draws only the frozen rows that fit in it. Read more in [Grid size](@/guides/getting-started/grid-size/grid-size.md).
 
 ## Related API reference
 

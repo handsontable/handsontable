@@ -108,7 +108,7 @@ function collectTrackSizes(
  * Resolves how many tracks each frozen band may take so both fit the viewport and leave a scrollable strip.
  *
  * The leading band (start columns or top rows) has priority. The trailing band gets what the leading one leaves,
- * and never more than the tracks that remain after it. Counts are visual and include hidden tracks, which take
+ * and never more than the tracks that remain after the leading band as configured. Counts are visual and include hidden tracks, which take
  * no room.
  *
  * @param {ResolveFrozenCountsOptions} options The measured sizes and the requested counts.
@@ -124,7 +124,9 @@ export function resolveFittingFrozenCounts(
     leadingRequest,
     getMaxFittingFrozenCount({ viewportSize, trackSizes: leadingSizes, oppositeBandSize: 0, minScrollableSize })
   );
-  const trailingRequest = Math.min(Math.max(Math.floor(requestedTrailing) || 0, 0), total - leading);
+  // The trailing band is capped by the CONFIGURED leading band, as it is without the option: cutting the leading band
+  // down must not hand its tracks to the trailing band, which would freeze more of them than the option off does.
+  const trailingRequest = Math.min(Math.max(Math.floor(requestedTrailing) || 0, 0), total - leadingRequest);
   const trailingSizes = collectTrackSizes(trailingRequest, total, false, getTrackSize, viewportSize);
   const leadingBandSize = leadingSizes.slice(0, leading).reduce((sum, size) => sum + size, 0);
   const trailing = Math.min(

@@ -425,7 +425,9 @@ With this option on, Handsontable draws only as many frozen columns as fit and k
 
 - [`getSettings()`](@/api/core.md#getsettings) still returns the values of `fixedColumnsStart` and `fixedColumnsEnd`.
 - Handsontable measures the grid again when it resizes. The frozen columns come back when the grid grows.
-- The start columns have priority over the end columns.
+- A strip of at least 40 px stays scrollable.
+- The start columns have priority over the end columns. When the start columns fill the grid, the end columns are not drawn as frozen at all.
+- When a user drags a [`FreezeBar`](@/api/freezeBar.md) bar, the new count replaces the configured one, and the frozen area no longer returns when the grid grows. [`getFreezeCount()`](@/api/freezeBar.md#getfreezecount) reports the configured count, so an app that saves it keeps the value that was set.
 - The [`FreezeBar`](@/api/freezeBar.md) plugin shows the bar on the line where the drawn frozen area ends.
 - [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) still works on the columns you configured. A column that the grid does not draw as frozen can still be unfrozen from the context menu.
 

@@ -20,7 +20,8 @@ test.describe('limitFixedToViewport', () => {
     test('frozen start columns leave a strip, and the last column is reachable', async() => {
       await grid.goto({ start: 20 });
 
-      expect(await grid.drawnCount('start')).toBeGreaterThan(0);
+      expect(await grid.drawnCounts()).toEqual(await grid.expectedCounts({ start: 20 }));
+      expect((await grid.drawnCounts()).start).toBeGreaterThan(0);
       const { width } = await grid.gridSize();
 
       expect(await grid.bandSize('start')).toBeLessThanOrEqual(width - 40);
@@ -33,7 +34,8 @@ test.describe('limitFixedToViewport', () => {
     test('frozen end columns leave a strip, and the first scrollable column is reachable', async() => {
       await grid.goto({ end: 20 });
 
-      expect(await grid.drawnCount('end')).toBeGreaterThan(0);
+      expect(await grid.drawnCounts()).toEqual(await grid.expectedCounts({ end: 20 }));
+      expect((await grid.drawnCounts()).end).toBeGreaterThan(0);
       const { width } = await grid.gridSize();
 
       expect(await grid.bandSize('end')).toBeLessThanOrEqual(width - 40);
@@ -46,7 +48,8 @@ test.describe('limitFixedToViewport', () => {
     test('frozen top rows leave a strip, and the last row is reachable', async() => {
       await grid.goto({ top: 40 });
 
-      expect(await grid.drawnCount('top')).toBeGreaterThan(0);
+      expect(await grid.drawnCounts()).toEqual(await grid.expectedCounts({ top: 40 }));
+      expect((await grid.drawnCounts()).top).toBeGreaterThan(0);
       const { height } = await grid.gridSize();
 
       expect(await grid.bandSize('top')).toBeLessThanOrEqual(height - 40);
@@ -59,7 +62,8 @@ test.describe('limitFixedToViewport', () => {
     test('frozen bottom rows leave a strip, and the first scrollable row is reachable', async() => {
       await grid.goto({ bottom: 40 });
 
-      expect(await grid.drawnCount('bottom')).toBeGreaterThan(0);
+      expect(await grid.drawnCounts()).toEqual(await grid.expectedCounts({ bottom: 40 }));
+      expect((await grid.drawnCounts()).bottom).toBeGreaterThan(0);
       const { height } = await grid.gridSize();
 
       expect(await grid.bandSize('bottom')).toBeLessThanOrEqual(height - 40);
@@ -71,11 +75,25 @@ test.describe('limitFixedToViewport', () => {
 
     test('the start band has priority over the end band', async() => {
       await grid.goto({ start: 20, end: 20 });
-      const { width } = await grid.gridSize();
-      const used = (await grid.bandSize('start')) + (await grid.bandSize('end'));
 
-      expect(used).toBeLessThanOrEqual(width - 40);
-      expect(await grid.bandSize('start')).toBeGreaterThan(0);
+      // not an even split: the start band takes what fits, and the end band gets what is left of it
+      expect(await grid.drawnCounts()).toEqual(await grid.expectedCounts({ start: 20, end: 20 }));
+      expect((await grid.drawnCounts()).start).toBeGreaterThan((await grid.drawnCounts()).end);
+    });
+
+    test('the top band has priority over the bottom band', async() => {
+      await grid.goto({ top: 40, bottom: 40 });
+
+      expect(await grid.drawnCounts()).toEqual(await grid.expectedCounts({ top: 40, bottom: 40 }));
+      expect((await grid.drawnCounts()).top).toBeGreaterThan((await grid.drawnCounts()).bottom);
+    });
+
+    test('a cut start band does not hand its columns to the end band', async() => {
+      // 30 columns, start 28 and end 5: without the option the end band is 30 - 28 = 2 columns, never more
+      await grid.goto({ start: 28, end: 5 });
+
+      expect(await grid.drawnCounts()).toEqual(await grid.expectedCounts({ start: 28, end: 5 }));
+      expect((await grid.drawnCounts()).end).toBeLessThanOrEqual(2);
     });
   });
 
@@ -83,8 +101,7 @@ test.describe('limitFixedToViewport', () => {
     test('is drawn in full', async() => {
       await grid.goto({ start: 2, top: 2 });
 
-      // 2 columns of 100px, and 2 rows, plus the row header
-      expect(await grid.bandSize('start')).toBeGreaterThanOrEqual(200);
+      expect(await grid.drawnCounts()).toEqual({ start: 2, end: 0, top: 2, bottom: 0 });
       expect(await grid.isCellUncovered(4, 3)).toBe(true);
     });
   });
@@ -176,16 +193,8 @@ test.describe('limitFixedToViewport', () => {
     test('manualColumnMove and manualRowMove use the drawn band, not the configured one', async() => {
       await grid.goto({ start: 20, top: 40 });
 
-      const result = await grid.page.evaluate(() => ({
-        columnInsideDrawn: window.hot.getPlugin('manualColumnMove').isFixedColumnsStart(1),
-        columnPastDrawn: window.hot.getPlugin('manualColumnMove').isFixedColumnsStart(10),
-        rowInsideDrawn: window.hot.getPlugin('manualRowMove').isFixedRowTop(1),
-        rowPastDrawn: window.hot.getPlugin('manualRowMove').isFixedRowTop(20),
-      }));
-
-      expect(result).toEqual({
-        columnInsideDrawn: true, columnPastDrawn: false, rowInsideDrawn: true, rowPastDrawn: false,
-      });
+      expect(await grid.moveBandFlags(1, 1)).toEqual({ column: true, row: true });
+      expect(await grid.moveBandFlags(10, 20)).toEqual({ column: false, row: false });
     });
 
     test('the editor of a cell past the drawn band is a scrollable-area editor', async() => {
@@ -194,9 +203,27 @@ test.describe('limitFixedToViewport', () => {
       await expect.poll(() => grid.isCellUncovered(0, 10)).toBe(true);
       await grid.page.keyboard.press('Enter');
 
-      const section = await grid.page.evaluate(() => window.hot.getActiveEditor()!.checkEditorSection());
+      expect(await grid.editorSection()).not.toContain('inline-start');
+    });
 
-      expect(section).not.toContain('inline-start');
+    test('ManualColumnFreeze does not unfreeze a column that scrolls, and freezes at the drawn line', async() => {
+      await grid.goto({ start: 20 });
+
+      const { start: drawn } = await grid.drawnCounts();
+
+      // configured 20, drawn fewer: column 10 is past the drawn band, so it is not frozen as far as the user sees
+      expect(drawn).toBeLessThan(10);
+      expect(await grid.unfreezeColumn(10)).toBe(false);
+      expect(await grid.setting('fixedColumnsStart')).toBe(20);
+
+      // a column inside the drawn band can be unfrozen
+      expect(await grid.unfreezeColumn(0)).toBe(true);
+      expect(await grid.setting('fixedColumnsStart')).toBe(drawn - 1);
+
+      // freezing a scrolling column puts it on the drawn freeze line, where the user can see it
+      await grid.freezeColumn(25);
+      expect(await grid.visualColumnOf(25)).toBe(drawn - 1);
+      expect(await grid.setting('fixedColumnsStart')).toBe(drawn);
     });
   });
 
@@ -207,10 +234,7 @@ test.describe('limitFixedToViewport', () => {
       // no size is known yet, so nothing collapses to 0
       expect(await grid.drawnCount('start')).toBe(20);
 
-      await grid.page.evaluate(() => {
-        (document.querySelector('[data-testid="grid"]') as HTMLElement).style.display = '';
-        window.hot.render();
-      });
+      await grid.showHiddenGrid();
 
       await expect.poll(async() => {
         const { width } = await grid.gridSize();
@@ -233,6 +257,25 @@ test.describe('limitFixedToViewport', () => {
 
       await grid.selectCell(59, 0);
       await expect.poll(() => grid.isCellUncovered(59, 0)).toBe(true);
+    });
+  });
+
+  test.describe('drawing again after the first measure', () => {
+    test('tall frozen rows loaded after a measure draw once more, and then the heights are known', async() => {
+      await grid.goto({ top: 40 });
+
+      const first = await grid.viewRenderCount();
+
+      // the grid measured default-height rows, so the first measure of the new rows is stale: the draw, and one
+      // corrective draw, never a third
+      await grid.loadTallRows();
+      const loaded = await grid.viewRenderCount();
+
+      expect(loaded - first).toBe(2);
+
+      // the heights the last draw measured are reused, so the same content draws once
+      await grid.render();
+      expect(await grid.viewRenderCount()).toBe(loaded + 1);
     });
   });
 
@@ -271,44 +314,43 @@ test.describe('limitFixedToViewport', () => {
   });
 
   test.describe('with the freezeBar plugin', () => {
-    test('reports the drawn count, not the configured one', async() => {
+    test('puts the bar on the drawn count, while the plugin reports the configured one', async() => {
       await grid.goto({ start: 20, bar: 1 });
 
-      const drawn = await grid.page.evaluate(() => window.hot.getPlugin('freezeBar').getFreezeCount('start'));
+      const { start: drawn } = await grid.drawnCounts();
 
       expect(drawn).toBeGreaterThan(0);
       expect(drawn).toBeLessThan(20);
+      expect(await grid.freezeBarCount('start')).toBe(20);
       expect(await grid.setting('fixedColumnsStart')).toBe(20);
-      await expect(grid.page.locator('.ht-freeze-bar--start:not(.ht-freeze-bar--segment)'))
-        .toHaveAttribute('aria-valuenow', String(drawn));
+      await expect(grid.barValue('start')).toHaveAttribute('aria-valuenow', String(drawn));
     });
 
     test('puts the bar on the line where the drawn band ends', async() => {
       await grid.goto({ start: 20, bar: 1 });
 
-      const { bar, band } = await grid.page.evaluate(() => {
-        const root = window.hot.rootElement;
-        const barRect = root.querySelector('.ht-freeze-bar--start:not(.ht-freeze-bar--segment)')!
-          .getBoundingClientRect();
-        const bandRect = root.querySelector('.ht_clone_inline_start')!.getBoundingClientRect();
-
-        return { bar: barRect.left + barRect.width / 2, band: bandRect.right };
-      });
+      const { bar, band } = await grid.startBarAndBandEdge();
 
       expect(Math.abs(bar - band)).toBeLessThanOrEqual(4);
     });
 
-    test('changes the count from the drawn one', async() => {
+    test('commits the drawn count when the app asks for it, and reports the configured one as the old count', async() => {
       await grid.goto({ start: 20, bar: 1 });
 
-      const drawn = await grid.page.evaluate(() => window.hot.getPlugin('freezeBar').getFreezeCount('start'));
-      const sameAsDrawn = await grid.page.evaluate(count => window.hot.getPlugin('freezeBar').setFreezeCount('start', count), drawn);
-      const fewer = await grid.page.evaluate(count => window.hot.getPlugin('freezeBar').setFreezeCount('start', count), drawn - 1);
+      const { start: drawn } = await grid.drawnCounts();
 
-      // asking for what is already drawn changes nothing, whatever was configured
-      expect(sameAsDrawn).toBe(false);
-      expect(fewer).toBe(true);
-      expect(await grid.setting('fixedColumnsStart')).toBe(drawn - 1);
+      expect(await grid.setFreezeBarCount('start', drawn)).toBe(true);
+      expect(await grid.setting('fixedColumnsStart')).toBe(drawn);
+      expect(await grid.freezeLog()).toEqual([{ edge: 'start', newCount: drawn, oldCount: 20, source: 'api' }]);
+    });
+
+    test('keeps a configured count the app did not touch', async() => {
+      await grid.goto({ start: 20, bar: 1 });
+
+      // asking for the count that is already configured changes nothing, so the columns still come back on resize
+      expect(await grid.setFreezeBarCount('start', 20)).toBe(false);
+      expect(await grid.setting('fixedColumnsStart')).toBe(20);
+      expect(await grid.freezeLog()).toEqual([]);
     });
   });
 });
