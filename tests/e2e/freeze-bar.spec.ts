@@ -609,6 +609,22 @@ test.describe('freezeBar', () => {
       await expect(grid.separator('end')).toBeFocused();
     });
 
+    test('F6 does not scroll the page to the hidden separator', async() => {
+      await grid.goto({ win: 1 });
+      await grid.page.evaluate(() => {
+        window.hot.selectCell(5, 5);
+        window.scrollTo(0, 0);
+      });
+
+      const before = await grid.page.evaluate(() => window.scrollY);
+
+      await grid.page.keyboard.press('F6');
+      await grid.page.keyboard.press('F6');
+      await expect(grid.separator('top')).toBeFocused();
+
+      expect(await grid.page.evaluate(() => window.scrollY)).toBe(before);
+    });
+
     test('an arrow on the top bar freezes a row', async() => {
       await grid.goto({ rows: 0 });
       await grid.page.evaluate(() => {

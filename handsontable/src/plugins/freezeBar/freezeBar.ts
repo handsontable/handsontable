@@ -1405,7 +1405,8 @@ export class FreezeBar extends BasePlugin {
     const fallback = direction === 1 ? 0 : bars.length - 1;
     const next = current === -1 ? fallback : (current + direction + bars.length) % bars.length;
 
-    bars[next].focus();
+    // the separator is a hidden node next to the grid, so the page must not scroll to it
+    bars[next].focus({ preventScroll: true });
 
     return true;
   }
