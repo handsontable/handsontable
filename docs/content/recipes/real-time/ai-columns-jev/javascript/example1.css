@@ -9,7 +9,8 @@
   opacity: 0.8;
 }
 
-/* A cell waiting for the model's answer. */
+/* A cell waiting for the model's answer. The theme paints read-only cells with its own
+   background, so these rules use !important to win. */
 @keyframes aiShimmer {
   from {
     background-position: 200% 0;
@@ -20,28 +21,28 @@
   }
 }
 
-.handsontable td.ai-pending {
+.handsontable tbody td.ai-pending {
   background-image: linear-gradient(
     90deg,
     rgba(59, 130, 246, 0.08) 25%,
     rgba(59, 130, 246, 0.3) 50%,
     rgba(59, 130, 246, 0.08) 75%
-  );
-  background-size: 200% 100%;
+  ) !important;
+  background-size: 200% 100% !important;
   animation: aiShimmer 1.1s linear infinite;
 }
 
 /* A row the model could not answer. The tooltip carries the reason. */
-.handsontable td.ai-error {
+.handsontable tbody td.ai-error {
   color: #c62828;
   font-weight: 600;
 }
 
 /* Confidence bands: below 60% and above 85%. Everything in between stays neutral. */
-.handsontable td.ai-low {
-  background-color: rgba(239, 68, 68, 0.22);
+.handsontable tbody td.ai-low {
+  background-color: rgba(239, 68, 68, 0.22) !important;
 }
 
-.handsontable td.ai-high {
-  background-color: rgba(34, 197, 94, 0.22);
+.handsontable tbody td.ai-high {
+  background-color: rgba(34, 197, 94, 0.22) !important;
 }

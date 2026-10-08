@@ -88,38 +88,79 @@ const reviews = [
   },
 ];
 
-// Real Jev answers for the rows above, recorded on 2026-10-08. Keyed "<column key>:<review id>".
+// Jev's answers for the rows above, recorded from the API on 2026-10-08.
+// Keyed "<column key>:<review id>". Score probabilities are per level index.
 const RECORDED = {
-  'sentiment:1': { value: 'Very positive (1.00)', confidence: 1 },
-  'sentiment:2': { value: 'Mixed (0.42)', confidence: 0.75 },
-  'sentiment:3': { value: 'Very positive (0.99)', confidence: 0.97 },
-  'sentiment:4': { value: 'Mixed (0.49)', confidence: 0.97 },
-  'sentiment:5': { value: 'Positive (0.76)', confidence: 0.94 },
-  'sentiment:6': { value: 'Very negative (0.04)', confidence: 0.88 },
-  'sentiment:7': { value: 'Very positive (0.99)', confidence: 0.98 },
-  'sentiment:8': { value: 'Negative (0.32)', confidence: 0.77 },
-  'sentiment:14': { value: 'Mixed (0.51)', confidence: 0.97 },
-  'sentiment:24': { value: 'Mixed (0.52)', confidence: 0.93 },
-  'category:1': { value: 'quality', confidence: 0.52 },
-  'category:2': { value: 'quality', confidence: 1 },
-  'category:3': { value: 'quality', confidence: 0.79 },
-  'category:4': { value: 'shipping', confidence: 0.86 },
-  'category:5': { value: 'usability', confidence: 0.66 },
-  'category:6': { value: 'quality', confidence: 1 },
-  'category:7': { value: 'usability', confidence: 0.5 },
-  'category:8': { value: 'quality', confidence: 1 },
-  'category:14': { value: 'quality', confidence: 1 },
-  'category:24': { value: 'shipping', confidence: 0.98 },
-  'needsReply:1': { value: 0.12, confidence: 0.76 },
-  'needsReply:2': { value: 0.7, confidence: 0.4 },
-  'needsReply:3': { value: 0.12, confidence: 0.76 },
-  'needsReply:4': { value: 0.9, confidence: 0.8 },
-  'needsReply:5': { value: 0.12, confidence: 0.76 },
-  'needsReply:6': { value: 0.89, confidence: 0.78 },
-  'needsReply:7': { value: 0.13, confidence: 0.74 },
-  'needsReply:8': { value: 0.78, confidence: 0.56 },
-  'needsReply:14': { value: 0.64, confidence: 0.28 },
-  'needsReply:24': { value: 0.7, confidence: 0.4 },
+  'sentiment:1': { type: 'score', score: 4.0, confidence: 1.0, probabilities: { 0: 0, 1: 0, 2: 0, 3: 0, 4: 1 } },
+  'sentiment:2': {
+    type: 'score',
+    score: 1.66,
+    confidence: 0.72,
+    probabilities: { 0: 0, 1: 0.33, 2: 0.67, 3: 0, 4: 0 },
+  },
+  'sentiment:3': {
+    type: 'score',
+    score: 3.95,
+    confidence: 0.96,
+    probabilities: { 0: 0, 1: 0, 2: 0, 3: 0.04, 4: 0.96 },
+  },
+  'sentiment:4': {
+    type: 'score',
+    score: 1.95,
+    confidence: 0.96,
+    probabilities: { 0: 0, 1: 0.05, 2: 0.95, 3: 0, 4: 0 },
+  },
+  'sentiment:5': {
+    type: 'score',
+    score: 3.05,
+    confidence: 0.95,
+    probabilities: { 0: 0, 1: 0, 2: 0.01, 3: 0.93, 4: 0.06 },
+  },
+  'sentiment:6': { type: 'score', score: 0.2, confidence: 0.83, probabilities: { 0: 0.8, 1: 0.2, 2: 0, 3: 0, 4: 0 } },
+  'sentiment:7': {
+    type: 'score',
+    score: 3.98,
+    confidence: 0.98,
+    probabilities: { 0: 0, 1: 0, 2: 0, 3: 0.02, 4: 0.98 },
+  },
+  'sentiment:8': {
+    type: 'score',
+    score: 1.21,
+    confidence: 0.81,
+    probabilities: { 0: 0.01, 1: 0.77, 2: 0.22, 3: 0, 4: 0 },
+  },
+  'sentiment:14': {
+    type: 'score',
+    score: 2.04,
+    confidence: 0.97,
+    probabilities: { 0: 0, 1: 0, 2: 0.96, 3: 0.04, 4: 0 },
+  },
+  'sentiment:24': {
+    type: 'score',
+    score: 2.06,
+    confidence: 0.94,
+    probabilities: { 0: 0, 1: 0.01, 2: 0.92, 3: 0.07, 4: 0 },
+  },
+  'category:1': { type: 'choice', choice: 'quality', confidence: 0.52 },
+  'category:2': { type: 'choice', choice: 'quality', confidence: 1.0 },
+  'category:3': { type: 'choice', choice: 'quality', confidence: 0.79 },
+  'category:4': { type: 'choice', choice: 'shipping', confidence: 0.86 },
+  'category:5': { type: 'choice', choice: 'usability', confidence: 0.62 },
+  'category:6': { type: 'choice', choice: 'quality', confidence: 1.0 },
+  'category:7': { type: 'choice', choice: 'usability', confidence: 0.46 },
+  'category:8': { type: 'choice', choice: 'quality', confidence: 1.0 },
+  'category:14': { type: 'choice', choice: 'quality', confidence: 1.0 },
+  'category:24': { type: 'choice', choice: 'shipping', confidence: 0.99 },
+  'needsReply:1': { type: 'noul', noul: 0.12 },
+  'needsReply:2': { type: 'noul', noul: 0.7 },
+  'needsReply:3': { type: 'noul', noul: 0.12 },
+  'needsReply:4': { type: 'noul', noul: 0.9 },
+  'needsReply:5': { type: 'noul', noul: 0.12 },
+  'needsReply:6': { type: 'noul', noul: 0.88 },
+  'needsReply:7': { type: 'noul', noul: 0.12 },
+  'needsReply:8': { type: 'noul', noul: 0.79 },
+  'needsReply:14': { type: 'noul', noul: 0.65 },
+  'needsReply:24': { type: 'noul', noul: 0.69 },
 };
 /* end:skip-in-preview */
 
@@ -141,6 +182,25 @@ function classify(row, column) {
       150 + Math.random() * 250,
     );
   });
+}
+
+// Which of Jev's fields go into the cells. A Noul is a single probability and
+// has no confidence field, so a Noul column gets no confidence column.
+function toCells(column, answer) {
+  switch (answer.type) {
+    case 'noul':
+      return { value: answer.noul };
+    case 'score': {
+      // The level with the highest probability; `probabilities` is keyed by level index.
+      const [best] = Object.entries(answer.probabilities).sort(([, a], [, b]) => b - a)[0];
+
+      return { value: column.options?.[Number(best)] ?? String(answer.score), confidence: answer.confidence };
+    }
+    case 'choice':
+      return { value: answer.choice, confidence: answer.confidence };
+    default:
+      return { value: '' };
+  }
 }
 
 // Per-cell state, keyed "<column key>:<review id>" so it survives sorting.
@@ -236,18 +296,29 @@ async function runPool(items, limit, worker) {
 button.addEventListener('click', async () => {
   button.disabled = true;
 
-  // 1. Add an empty value column and confidence column per definition,
-  //    and mark every new cell as pending.
+  // 1. Add a value column per definition, a confidence column where Jev
+  //    returns one, and mark every new cell as pending.
   AI_COLUMNS.forEach((column) => {
-    columns.push({ data: column.key, readOnly: true, renderer: valueRenderer(column), width: 150 });
     columns.push({
-      data: `${column.key}Confidence`,
+      data: column.key,
       readOnly: true,
-      renderer: confidenceRenderer(column),
-      width: 100,
-      className: 'htRight',
+      renderer: valueRenderer(column),
+      width: 130,
+      className: column.type === 'noul' ? 'htRight' : '',
     });
-    headers.push(column.name, `${column.name} conf.`);
+    headers.push(column.name);
+
+    if (column.type !== 'noul') {
+      columns.push({
+        data: `${column.key}Confidence`,
+        readOnly: true,
+        renderer: confidenceRenderer(column),
+        width: 125,
+        className: 'htRight',
+      });
+      headers.push(`${column.name} conf.`);
+    }
+
     reviews.forEach((row) => pending.add(`${column.key}:${row.id}`));
   });
   hot.updateSettings({ columns: [...columns], colHeaders: [...headers] });
@@ -262,10 +333,13 @@ button.addEventListener('click', async () => {
     const physicalRow = reviews.indexOf(row);
 
     try {
-      const answer = await classify(row, column);
+      const cells = toCells(column, await classify(row, column));
 
-      hot.setSourceDataAtCell(physicalRow, column.key, answer.value);
-      hot.setSourceDataAtCell(physicalRow, `${column.key}Confidence`, answer.confidence);
+      hot.setSourceDataAtCell(physicalRow, column.key, cells.value);
+
+      if (cells.confidence !== undefined) {
+        hot.setSourceDataAtCell(physicalRow, `${column.key}Confidence`, cells.confidence);
+      }
     } catch (error) {
       failed.set(key, error instanceof Error ? error.message : 'Request failed');
     } finally {

@@ -1,15 +1,14 @@
 // A Cloudflare Worker that holds the Jev API key and answers POST /api/classify.
-// Any server that can keep a secret works the same way; only the framing differs.
 //
 // Request:  { type: 'noul' | 'score' | 'choice', prompt: string, options?: string[], row: object }
-// Response: { value, confidence } for every type, plus `label` for score answers.
+// Response: Jev's answer object for the row, unchanged.
 //
-// Jev facts (https://docs.typesafe.ai/api, verified 2026-10-07):
+// Jev API (https://docs.typesafe.ai/api):
 // - POST https://api.typesafe.ai/v1/systemone with `Authorization: Bearer <key>`.
 // - Body { model, state, questions }. `state` can be the row object. Type names are lowercase.
-// - noul:   criteria optional           -> { type: 'noul', noul: 0..1 } (no confidence field)
-// - choice: criteria { option: null }    -> { choice, probabilities, confidence }
-// - score:  criteria [level, ...] (2-10) -> { score: 0..levels-1, legend, probabilities, confidence }
+// - noul:   criteria optional           -> { type: 'noul', noul: 0..1 }
+// - choice: criteria { option: null }    -> { type: 'choice', choice, probabilities, confidence }
+// - score:  criteria [level, ...] (2-10) -> { type: 'score', score, legend, probabilities, confidence }
 // - Errors: 400 invalid request, 401 bad key, 429 rate limit, 529 overloaded.
 
 const JEV_ENDPOINT = 'https://api.typesafe.ai/v1/systemone';
@@ -71,37 +70,13 @@ async function classify(request, env) {
   });
 
   if (!upstream.ok) {
-    // Never forward the upstream body: it is not needed, and it must not leak.
-    const status = upstream.status === 429 ? 429 : 502;
-
-    return json({ error: 'Classifier request failed' }, status);
+    // Jev's error body is not forwarded.
+    return json({ error: 'Classifier request failed' }, upstream.status === 429 ? 429 : 502);
   }
 
   const { answers } = await upstream.json();
 
-  return json(normalize(answers.q, levels));
-}
-
-// One shape for the grid, whatever Jev answered.
-function normalize(answer, levels) {
-  if (answer.type === 'noul') {
-    // A single probability of "yes". Its distance from 0.5 is the confidence.
-    return { value: round(answer.noul), confidence: round(Math.abs(2 * answer.noul - 1)) };
-  }
-
-  if (answer.type === 'score') {
-    // `score` is a fractional position between the levels; normalize it to 0-1
-    // and name the most likely level.
-    const best = Object.entries(answer.probabilities).sort((a, b) => b[1] - a[1])[0][0];
-
-    return {
-      value: round(answer.score / Math.max(1, levels.length - 1)),
-      confidence: round(answer.confidence),
-      label: answer.legend?.[best] ?? levels[Number(best)],
-    };
-  }
-
-  return { value: answer.choice, confidence: round(answer.confidence) };
+  return json(answers.q);
 }
 
 function json(payload, status = 200) {
@@ -110,5 +85,3 @@ function json(payload, status = 200) {
     headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
   });
 }
-
-const round = (n) => Math.round(n * 1000) / 1000;
