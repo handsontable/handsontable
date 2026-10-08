@@ -2,21 +2,31 @@ import type { HotInstance } from '../../core/types';
 import { clampFixedColumnsEnd } from '../../3rdparty/walkontable/src/settings/fixedColumnsEnd';
 
 /**
- * The number of frozen end columns the grid really renders, for the given start count. It is the same
+ * The number of frozen end columns the configured settings describe, for the given start count. It is the same
  * clamp the end overlay and ManualColumnMove use: the start band has priority, so
  * `min(fixedColumnsEnd, max(0, countCols - fixedColumnsStart))`.
+ *
+ * It reads the configured end count on purpose, not the drawn one. The drawn end band is already clamped against the
+ * drawn start band, so comparing it for two start counts would never differ, and a column could slide into the band
+ * when the start band shrinks. Whether a column is in the band the user sees is `isInEndBand()`.
  *
  * @param {Core} hot The Handsontable instance.
  * @param {number} fixedColumnsStart The number of frozen start columns to clamp against.
  * @returns {number} Zero without `fixedColumnsEnd`.
  */
 export function getEndBandCount(hot: HotInstance, fixedColumnsStart: number): number {
-  const settings = hot.getSettings();
-  // with `limitFixedToViewport` the grid draws a smaller end band, and that is the band the user sees
-  const drawsLess = settings.limitFixedToViewport && hot.view;
-  const requestedEnd = drawsLess ? hot.view.countFixedColumnsEnd() : settings.fixedColumnsEnd;
+  return clampFixedColumnsEnd(hot.getSettings().fixedColumnsEnd, fixedColumnsStart, hot.countCols());
+}
 
-  return clampFixedColumnsEnd(requestedEnd, fixedColumnsStart, hot.countCols());
+/**
+ * The number of frozen end columns the grid draws. It equals `getEndBandCount()` for the drawn start band unless
+ * `limitFixedToViewport` cut the end band down to what fits.
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @returns {number}
+ */
+export function getDrawnEndBandCount(hot: HotInstance): number {
+  return hot.view ? hot.view.countFixedColumnsEnd() : getEndBandCount(hot, getStartBandCount(hot));
 }
 
 /**
@@ -52,7 +62,7 @@ export function isStartBandCut(hot: HotInstance): boolean {
  * @returns {boolean}
  */
 export function isInEndBand(hot: HotInstance, column: number): boolean {
-  const endCount = getEndBandCount(hot, getStartBandCount(hot));
+  const endCount = getDrawnEndBandCount(hot);
 
   return endCount > 0 && column >= hot.countCols() - endCount;
 }

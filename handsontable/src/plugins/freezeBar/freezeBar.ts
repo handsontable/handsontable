@@ -401,10 +401,13 @@ export class FreezeBar extends BasePlugin {
     const view = this.hot.view;
     const total = columns ? this.hot.countCols() : this.hot.countRows();
     const viewportSize = view.getFrozenViewportSize(columns);
-    const oppositeCount = Math.min(this.#getDrawnCount(opposite), total);
+    const oppositeDrawn = Math.min(this.#getDrawnCount(opposite), total);
     // The band on the other edge takes its room first, so the two bands together never fill the viewport.
-    const oppositeBandSize = this.#getTrackSizes(opposite, { maxTracks: oppositeCount })
+    const oppositeBandSize = this.#getTrackSizes(opposite, { maxTracks: oppositeDrawn })
       .reduce((sum, size) => sum + size, 0);
+    // The tracks that remain are counted after the CONFIGURED opposite band, as `resolveFittingFrozenCounts` does:
+    // a count the bar commits above that is cut by the grid, and the hook would report more than is drawn.
+    const oppositeConfigured = Math.min(this.getFreezeCount(opposite), total);
     // tracks past the viewport can not fit, so the walk stops there
     const trackSizes = this.#getTrackSizes(edge, { sizeBudget: viewportSize });
     const fit = getMaxFittingFrozenCount({
@@ -414,7 +417,7 @@ export class FreezeBar extends BasePlugin {
       minScrollableSize: MIN_SCROLLABLE_SIZE,
     });
 
-    return Math.min(fit, total - oppositeCount);
+    return Math.min(fit, total - oppositeConfigured);
   }
 
   /**
@@ -1322,7 +1325,12 @@ export class FreezeBar extends BasePlugin {
     event.preventDefault();
 
     // hidden tracks have no size, so a step over them would change nothing visible
-    const stepped = this.#stepOverHidden(edge, current, target);
+    const steppedOverHidden = this.#stepOverHidden(edge, current, target);
+    // A grow is cut down to what fits, as `End` is. Without it a step from the drawn count would ask for one more
+    // track that does not fit, and below a larger configured count that reads as a shrink.
+    const stepped = steppedOverHidden > current ?
+      Math.min(steppedOverHidden, Math.max(this.#getMaxCount(edge), current)) :
+      steppedOverHidden;
 
     // a step that lands on the drawn count (`End` when the band already fills the viewport, a grow that cannot
     // fit) changes nothing visible, so it must not replace a configured count that is larger than what is drawn

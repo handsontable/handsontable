@@ -545,7 +545,7 @@ describe('FreezeBar', () => {
   it('should keep the range of the value valid when the count is above what fits', () => {
     createGrid({ fixedColumnsStart: 4 });
     hot.render();
-    hot.view.getWorkspaceWidth.mockReturnValue(150);
+    hot.view.getFrozenViewportSize.mockImplementation(isColumn => (isColumn ? 150 : 1000));
 
     const separator = container.querySelector('[data-ht-freeze-separator="start"]');
 
@@ -612,6 +612,30 @@ describe('FreezeBar', () => {
 
     expect(plugin.getFreezeCount('start')).toBe(3);
     expect(after).not.toHaveBeenCalled();
+  });
+
+  it('should cap a band by the tracks left after the configured opposite band, not the drawn one', () => {
+    const plugin = createGrid({
+      data: Array.from({ length: 12 }, (rowValue, row) => [`${row}:0`, `${row}:1`]),
+      fixedRowsTop: 10,
+      limitFixedToViewport: true,
+    });
+
+    // 10 top rows are configured but only 3 are drawn (100 px each); the bottom rows are small, so 5 of them fit
+    jest.spyOn(hot.view, 'countFixedRowsTop').mockReturnValue(3);
+    hot.view.getFrozenViewportSize.mockReturnValue(400);
+    jest.spyOn(hot.view, 'getFrozenTrackSize').mockImplementation((isColumn, index) => {
+      if (isColumn) {
+        return 50;
+      }
+
+      return index >= 7 ? 5 : 100;
+    });
+
+    plugin.setFreezeCount('bottom', 5);
+
+    // the grid cuts the bottom band at 12 - 10 = 2 rows, so the plugin must not commit or report more
+    expect(plugin.getFreezeCount('bottom')).toBe(2);
   });
 
   it('should render nothing when the option is not set', () => {

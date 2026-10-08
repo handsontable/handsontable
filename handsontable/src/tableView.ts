@@ -945,6 +945,7 @@ class TableView {
   invalidateIndexSizesCache() {
     this._wt.wtViewport.invalidateRowHeightCache();
     this._wt.wtViewport.invalidateColumnWidthCache();
+    this.#drawnRowHeights.clear();
     this.#columnWidthEpoch += 1;
   }
 
@@ -961,6 +962,8 @@ class TableView {
    */
   invalidateRowHeightCache() {
     this._wt.wtViewport.invalidateRowHeightCache();
+    // the heights are keyed by physical row, and a move, a trim or a removal hands an index to another row
+    this.#drawnRowHeights.clear();
   }
 
   /**
@@ -1161,6 +1164,11 @@ class TableView {
    * @returns {number} A non-negative integer; `0` when the option is not set.
    */
   countFixedColumnsEnd() {
+    // Walkontable reads this many times per draw and per mouse move, and most grids freeze no end columns.
+    if (!this.settings.fixedColumnsEnd) {
+      return 0;
+    }
+
     if (this._effectiveFixed && this.settings.limitFixedToViewport) {
       // The memo is from the last render. A count lowered or a column removed since then must not be exceeded.
       const configuredEnd = Math.floor(Number(this.settings.fixedColumnsEnd)) || 0;
@@ -1259,9 +1267,11 @@ class TableView {
     const rowHeight = getRenderedRowHeight(this.hot, visualIndex) ??
       this.hot.stylesHandler.getDefaultRowHeight(visualIndex) ?? 0;
 
-    if (!measureDom) {
-      // Before a draw the engine knows nothing of a content-tall row it never rendered, so use the height the
-      // last draw measured, which saves a second draw on every render while the content stays the same.
+    // Before a draw, and while rendering is suspended (`batch()`, `suspendRender()`), the row filter of the engine can
+    // be from an earlier state and a cell lookup throws. The engine knows nothing of a content-tall row it never
+    // rendered, so use the height the last draw measured, which also saves a second draw on every render while the
+    // content stays the same.
+    if (!measureDom || this.hot.isRenderSuspended()) {
       return Math.max(rowHeight, this.#drawnRowHeights.get(physical) ?? 0);
     }
 
@@ -1269,8 +1279,10 @@ class TableView {
     // frozen row still reads as the default height there. A row that is on screen has its real height in the DOM.
     // The first column the master renders is in every rendered row, whatever the horizontal scroll position. The
     // row header is not a substitute: its row in the header clone is not always as tall as the content row.
-    const drawnHeight = this.hot.getCell(visualIndex, this.#getFirstRenderedVisualColumn(), true)
-      ?.parentElement?.offsetHeight ?? 0;
+    const cell = this.hot.getCell(visualIndex, this.#getFirstRenderedVisualColumn(), true);
+    // A cell covered by a vertical merge resolves to the origin of the block, whose row is another row.
+    const isOwnRow = cell !== null && this.hot.getCoords(cell)?.row === visualIndex;
+    const drawnHeight = isOwnRow ? cell.parentElement?.offsetHeight ?? 0 : 0;
 
     if (drawnHeight > 0) {
       this.#drawnRowHeights.set(physical, drawnHeight);
@@ -1301,12 +1313,19 @@ class TableView {
    */
   getFrozenViewportSize(isColumn: boolean) {
     const viewport = this._wt.wtViewport;
+    const holder = this._wt.wtTable.holder;
+    // The workspace measure is the client size of the root, which still contains the scrollbars of the holder, and
+    // the strip that stays scrollable is what is left inside them. Classic scrollbars are 15 to 17 px, so without
+    // this the strip would be that much narrower than promised. Overlay scrollbars take no room and measure 0.
+    const scrollbar = isColumn ?
+      Math.max(holder.offsetWidth - holder.clientWidth, 0) :
+      Math.max(holder.offsetHeight - holder.clientHeight, 0);
 
     if (isColumn) {
-      return measureWorkspaceWidth(viewport) - viewport.getRowHeaderWidth();
+      return measureWorkspaceWidth(viewport) - viewport.getRowHeaderWidth() - scrollbar;
     }
 
-    return measureWorkspaceHeight(viewport) - viewport.getColumnHeaderHeight();
+    return measureWorkspaceHeight(viewport) - viewport.getColumnHeaderHeight() - scrollbar;
   }
 
   /**
@@ -1560,6 +1579,7 @@ class TableView {
       onWindowResize: () => {
         if (this.hot && !this.hot.isDestroyed) {
           this.hot.refreshDimensions();
+          this.#renderWhenWindowResizeMovedFixed();
         }
       },
       onContainerElementResize: () => {
@@ -2596,6 +2616,27 @@ class TableView {
 
     } else if (isFullRender || this._effectiveFixed === null) {
       this.#setEffectiveFixed(this.#resolveEffectiveFixed(false));
+    }
+  }
+
+  /**
+   * Renders when a resize of the window changed the counts that fit. A grid that the window scrolls keeps the size of
+   * its root when the window is resized (its height follows its content), so `refreshDimensions()` finds no change
+   * and does not render, while the room the frozen bands share is the size of the window.
+   */
+  #renderWhenWindowResizeMovedFixed() {
+    if (!this.settings.limitFixedToViewport || !this.hot.view) {
+      return;
+    }
+
+    const viewport = this._wt.wtViewport;
+
+    if (!viewport.isVerticallyScrollableByWindow() && !viewport.isHorizontallyScrollableByWindow()) {
+      return;
+    }
+
+    if (!isSameEffectiveFixed(this._effectiveFixed, this.#resolveEffectiveFixed(true))) {
+      this.hot.render();
     }
   }
 

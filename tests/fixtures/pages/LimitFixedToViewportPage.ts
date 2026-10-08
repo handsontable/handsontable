@@ -231,8 +231,12 @@ export class LimitFixedToViewportPage {
       const colWidth = window.hot.getColWidth(0);
       const rowHeight = window.hot.getCell(1, -1, true)!.parentElement!.offsetHeight;
       const fit = (room: number, size: number, count: number) => Math.min(count, Math.max(Math.floor(room / size), 0));
-      const columnsRoom = root.clientWidth - window.hot.view.getRowHeaderWidth() - strip;
-      const rowsRoom = root.clientHeight - window.hot.view.getColumnHeaderHeight() - strip;
+      // the holder's own scrollbars are inside the box, and the strip is what is left within them
+      const holder = root.querySelector('.wtHolder') as HTMLElement;
+      const verticalScrollbar = holder.offsetWidth - holder.clientWidth;
+      const horizontalScrollbar = holder.offsetHeight - holder.clientHeight;
+      const columnsRoom = root.clientWidth - window.hot.view.getRowHeaderWidth() - verticalScrollbar - strip;
+      const rowsRoom = root.clientHeight - window.hot.view.getColumnHeaderHeight() - horizontalScrollbar - strip;
       const startDrawn = fit(columnsRoom, colWidth, start);
       const topDrawn = fit(rowsRoom, rowHeight, top);
 
@@ -317,7 +321,7 @@ export class LimitFixedToViewportPage {
    * Presses and releases the start bar without moving the pointer, the way a click focuses it.
    */
   async clickStartBar(): Promise<void> {
-    await this.barValue('start').click({ position: { x: 1, y: 40 } });
+    await this.bar('start').click({ position: { x: 1, y: 40 } });
   }
 
   /**
@@ -327,17 +331,27 @@ export class LimitFixedToViewportPage {
    * @param key The key.
    */
   async pressOnBar(edge: FrozenEdge, key: string): Promise<void> {
-    await this.barValue(edge).focus();
+    await this.separator(edge).focus();
     await this.page.keyboard.press(key);
   }
 
   /**
-   * The `aria-valuenow` of the bar of an edge, which is the count the bar sits on.
+   * The bar of an edge, which is what a pointer presses.
    *
    * @param edge The edge.
    */
-  barValue(edge: FrozenEdge): Locator {
+  bar(edge: FrozenEdge): Locator {
     return this.page.locator(`.ht-freeze-bar--${edge}:not(.ht-freeze-bar--segment)`);
+  }
+
+  /**
+   * The focusable separator of an edge. It carries the ARIA value (`aria-valuenow` is the count the bar sits on)
+   * and receives the keys.
+   *
+   * @param edge The edge.
+   */
+  separator(edge: FrozenEdge): Locator {
+    return this.page.locator(`[data-ht-freeze-separator="${edge}"]`);
   }
 
   /**
@@ -411,5 +425,51 @@ export class LimitFixedToViewportPage {
    */
   async visualColumnOf(physical: number): Promise<number | null> {
     return this.page.evaluate(p => window.hot.columnIndexMapper.getVisualFromPhysicalIndex(p), physical);
+  }
+
+  /**
+   * The size of the part of the grid that still scrolls next to a band: what the master holder shows, without the
+   * band and the headers it holds. It is what the 40 px promise is about, whatever the scrollbars take.
+   *
+   * @param edge The edge.
+   */
+  async scrollableStrip(edge: FrozenEdge): Promise<number> {
+    const band = await this.bandSize(edge);
+
+    return this.page.evaluate(({ band: bandSize, horizontal }) => {
+      const holder = window.hot.rootElement.querySelector('.wtHolder') as HTMLElement;
+
+      return (horizontal ? holder.clientWidth : holder.clientHeight) - bandSize;
+    }, { band, horizontal: edge === 'start' || edge === 'end' });
+  }
+
+  /**
+   * Loads the plain data of the fixture back, the way an app reloads its rows.
+   */
+  async loadPlainRows(): Promise<void> {
+    await this.page.evaluate(() => window.hot.loadData(window.Handsontable.helper.createSpreadsheetData(60, 30)));
+  }
+
+  /**
+   * Resizes the browser window, which is what changes the room of a grid that the window scrolls.
+   *
+   * @param size The new size of the window.
+   * @param size.width The width.
+   * @param size.height The height.
+   */
+  async resizeWindow(size: { width: number, height: number }): Promise<void> {
+    await this.page.setViewportSize(size);
+  }
+
+  /**
+   * Removes a row and asks the freezeBar plugin for a count in one batch, before anything is drawn.
+   */
+  async alterAndSetCountInBatch(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.hot.batch(() => {
+        window.hot.alter('remove_row', 0);
+        window.hot.getPlugin('freezeBar').setFreezeCount('top', 5);
+      });
+    });
   }
 }
