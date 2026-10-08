@@ -3,7 +3,7 @@ import { Hooks } from '../../core/hooks';
 import freezeColumnItem from './contextMenuItem/freezeColumn';
 import unfreezeColumnItem from './contextMenuItem/unfreezeColumn';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
-import { getEndBandCount, getStartBandCount, isInEndBand, unfreezeWouldShiftEndBand } from './endBand';
+import { getEndBandCount, getStartBandCount, isInEndBand, isStartBandCut, unfreezeWouldShiftEndBand } from './endBand';
 
 Hooks.getSingleton().register('beforeColumnFreeze');
 Hooks.getSingleton().register('afterColumnFreeze');
@@ -162,7 +162,9 @@ export class ManualColumnFreeze extends BasePlugin {
     const fixedStart = getStartBandCount(this.hot);
     const freezePerformed = fixedStart < this.hot.countCols()
       && column > fixedStart - 1
-      && !isInEndBand(this.hot, column);
+      && !isInEndBand(this.hot, column)
+      // a band the grid had to cut is the most that fits, so one more frozen column would keep scrolling
+      && !isStartBandCut(this.hot);
 
     const beforeColumnFreezeHook = this.hot.runHooks('beforeColumnFreeze', column, freezePerformed);
 

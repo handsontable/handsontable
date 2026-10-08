@@ -31,6 +31,18 @@ export function getStartBandCount(hot: HotInstance): number {
 }
 
 /**
+ * Checks whether `limitFixedToViewport` cut the start band down, so the grid draws fewer frozen columns than are
+ * configured. The drawn band is then the most that fits, so freezing one more column cannot show: it would only
+ * move a column to the freeze line, where it keeps scrolling.
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @returns {boolean}
+ */
+export function isStartBandCut(hot: HotInstance): boolean {
+  return getStartBandCount(hot) < (Number(hot.getSettings().fixedColumnsStart) || 0);
+}
+
+/**
  * Checks whether the visual column sits in the frozen end band. Such a column is pinned by `fixedColumnsEnd`
  * and cannot also be frozen at the start: moving it to the freeze line would pull the column in front of the
  * band into it.

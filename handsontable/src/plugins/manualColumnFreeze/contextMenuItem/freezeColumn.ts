@@ -2,7 +2,7 @@ import type { HotInstance } from '../../../core/types';
 import * as C from '../../../i18n/constants';
 import { isPluginOff } from './isPluginOff';
 import { followColumn } from './followColumn';
-import { getStartBandCount, isInEndBand } from '../endBand';
+import { getStartBandCount, isInEndBand, isStartBandCut } from '../endBand';
 
 /**
  * @param {ManualColumnFreeze} manualColumnFreezePlugin The plugin instance.
@@ -50,6 +50,10 @@ export default function freezeColumnItem(manualColumnFreezePlugin: unknown) {
 
       } else if (isInEndBand(this, selection[0]!.from.col!)) {
         // A column of the `fixedColumnsEnd` band is already pinned, to the other edge.
+        hide = true;
+
+      } else if (isStartBandCut(this)) {
+        // `limitFixedToViewport` drew fewer start columns than configured: one more would keep scrolling.
         hide = true;
       }
 

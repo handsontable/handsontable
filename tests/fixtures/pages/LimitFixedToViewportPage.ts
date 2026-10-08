@@ -381,12 +381,15 @@ export class LimitFixedToViewportPage {
   }
 
   /**
-   * Freezes a column through the ManualColumnFreeze API.
+   * Freezes a column through the ManualColumnFreeze API and reports whether the plugin did it.
    *
    * @param column The visual column.
    */
-  async freezeColumn(column: number): Promise<void> {
-    await this.page.evaluate(c => window.hot.getPlugin('manualColumnFreeze').freezeColumn(c), column);
+  async freezeColumn(column: number): Promise<boolean> {
+    return this.page.evaluate(c => new Promise<boolean>((resolve) => {
+      window.hot.addHookOnce('afterColumnFreeze', (_column: number, performed: boolean) => resolve(performed));
+      window.hot.getPlugin('manualColumnFreeze').freezeColumn(c);
+    }), column);
   }
 
   /**

@@ -216,12 +216,18 @@ test.describe('limitFixedToViewport', () => {
       expect(await grid.unfreezeColumn(10)).toBe(false);
       expect(await grid.setting('fixedColumnsStart')).toBe(20);
 
+      // the drawn band is the most that fits, so freezing one more column could not show: the plugin refuses
+      expect(await grid.freezeColumn(25)).toBe(false);
+      expect(await grid.visualColumnOf(25)).toBe(25);
+      expect(await grid.setting('fixedColumnsStart')).toBe(20);
+
       // a column inside the drawn band can be unfrozen
       expect(await grid.unfreezeColumn(0)).toBe(true);
       expect(await grid.setting('fixedColumnsStart')).toBe(drawn - 1);
 
-      // freezing a scrolling column puts it on the drawn freeze line, where the user can see it
-      await grid.freezeColumn(25);
+      // nothing is cut any more (the configured count is the drawn one), so a scrolling column can be frozen
+      // onto the freeze line, where the user can see it
+      expect(await grid.freezeColumn(25)).toBe(true);
       expect(await grid.visualColumnOf(25)).toBe(drawn - 1);
       expect(await grid.setting('fixedColumnsStart')).toBe(drawn);
     });

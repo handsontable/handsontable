@@ -116,7 +116,7 @@ works on it**: `getStartBandCount()` in `endBand.ts` is the one place that reads
 scrolls, so the Unfreeze item hides for it and `unfreezeColumn()` does nothing; `freezeColumn()` moves a scrolling
 column to the drawn freeze line and writes `drawn + 1`. The write is absolute (`_fixedColumnsStart = start ± 1` from
 the drawn count), not `+= 1` on the configured count, which with the option off is the same number. The user's action
-replaces the configured count, so after it the frozen area no longer returns when the grid grows. The end band
+replaces the configured count, so after it the frozen area no longer returns when the grid grows. When the start band is cut (`isStartBandCut()`: drawn below configured), `freezeColumn()` does nothing and the Freeze item hides, because the drawn band is the most that fits and one more frozen column would keep scrolling. The end band
 follows the same rule (`getEndBandCount()` reads the drawn end count). Without the option nothing changes.
 
 Pinned by `tests/e2e/limit-fixed-to-viewport.spec.ts` ("ManualColumnFreeze does not unfreeze a column that scrolls").
