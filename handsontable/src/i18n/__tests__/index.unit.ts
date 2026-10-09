@@ -6,6 +6,7 @@ import {
 } from 'handsontable/i18n';
 import { register as registerPhraseFormatter } from 'handsontable/i18n/phraseFormatters';
 import plPL from 'handsontable/i18n/languages/pl-PL';
+import srLatnRS from 'handsontable/i18n/languages/sr-Latn-RS';
 import srSP from 'handsontable/i18n/languages/sr-SP';
 import * as allLanguages from 'handsontable/i18n/languages';
 import * as constants from 'handsontable/i18n/constants';
@@ -39,6 +40,13 @@ describe('i18n', () => {
   it('should translate Serbian insert-column-right with Unesi, matching insert-column-left', () => {
     expect(srSP[constants.CONTEXTMENU_ITEMS_INSERT_RIGHT]).toBe('Unesi kolonu desno');
     expect(srSP[constants.CONTEXTMENU_ITEMS_INSERT_LEFT]).toBe('Unesi kolonu levo');
+  });
+
+  it('should expose the Serbian dictionary under the `sr-Latn-RS` code and keep `sr-SP` as an alias', () => {
+    expect(srLatnRS.languageCode).toBe('sr-Latn-RS');
+    expect(allLanguages.srLatnRS).toBe(srLatnRS);
+    expect(srSP.languageCode).toBe('sr-SP');
+    expect({ ...srSP, languageCode: srLatnRS.languageCode }).toEqual(srLatnRS);
   });
 
   it('should get `null` when trying to translate phrase by passing language code of not registered language', () => {
@@ -100,18 +108,20 @@ describe('i18n', () => {
         });
 
         it('should provide export names corresponding to dictionaries file names', () => {
-          // two lowercase letters, two uppercase letters, for example: `esPY`.
+          // two lowercase letters, two uppercase letters, for example: `esPY`. An optional script, such as `Latn`,
+          // goes between them: `srLatnRS`.
           expect(indexFileExportNames).toBeListFulfillingCondition((exportName) => {
-            return languagePacks.map(lp => lp.replace(/\.(js|ts)$/, '').replace('-', '')).includes(exportName);
+            return languagePacks.map(lp => lp.replace(/\.(js|ts)$/, '').replaceAll('-', '')).includes(exportName);
           });
         });
       });
 
       describe('Particular dictionary', () => {
         it('should contain language code of proper format', () => {
-          // two lowercase letters, hyphen, two uppercase letters, for example: `es-PY`.
+          // two lowercase letters, hyphen, two uppercase letters, for example: `es-PY`. An optional script subtag,
+          // such as `Latn`, goes between them: `sr-Latn-RS`.
           expect(languageCodes)
-            .toBeListFulfillingCondition(languageCode => /^([a-z]{2})-([A-Z]{2})$/.test(languageCode));
+            .toBeListFulfillingCondition(languageCode => /^([a-z]{2})(-[A-Z][a-z]{3})?-([A-Z]{2})$/.test(languageCode));
         });
 
         it('should have file name corresponding to its language code', () => {

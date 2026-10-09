@@ -3,20 +3,12 @@
  * Author: Ivan Zarkovic
  * Last updated: May 9, 2022
  *
- * Description: Deprecated alias of the `sr-Latn-RS` language. It keeps the old `sr-SP` language code working.
- * Keep the phrases identical to `sr-Latn-RS.ts`.
+ * Description: Definition file for Serbian - Republic of Serbia language-country.
  */
 import * as C from '../constants';
 
-/**
- * The Serbian dictionary registered under the deprecated `sr-SP` language code. Keep the phrases identical to
- * `sr-Latn-RS.ts`: each language file is also built as a standalone bundle, so this file cannot import it.
- *
- * @deprecated Since 19.0.0. The `SP` region subtag is deprecated by IANA. This language code will be removed
- * in 20.0.0. Use `srLatnRS` (the `sr-Latn-RS` language code) instead.
- */
 const dictionary = {
-  languageCode: 'sr-SP',
+  languageCode: 'sr-Latn-RS',
 
   [C.OK]: 'U redu',
   [C.CANCEL]: 'Otkaži',
