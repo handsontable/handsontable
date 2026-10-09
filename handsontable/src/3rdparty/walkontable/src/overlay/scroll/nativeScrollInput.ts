@@ -31,13 +31,14 @@ function isWheelEventWithLegacyDelta(event: WheelEvent): event is WheelEventWith
  *
  * A free function so the scroll and the decision whether the grid may swallow the event read the
  * same numbers - including the legacy and line-mode conversions, which `event.deltaX`/`deltaY`
- * alone do not give.
+ * alone do not give. A vertical delta with Shift held and no horizontal delta is returned on the
+ * horizontal axis, the way the browser would scroll it.
  *
  * @param {WheelEvent} event The wheel event.
  * @param {number} browserLineHeight The line height used to convert a line-mode delta.
  * @returns {{ deltaX: number, deltaY: number }}
  */
-function resolveWheelDeltas(event: WheelEvent, browserLineHeight: number): { deltaX: number, deltaY: number } {
+export function resolveWheelDeltas(event: WheelEvent, browserLineHeight: number): { deltaX: number, deltaY: number } {
   let deltaY: number;
   let deltaX: number;
 
@@ -52,6 +53,14 @@ function resolveWheelDeltas(event: WheelEvent, browserLineHeight: number): { del
   if (event.deltaMode === 1) {
     deltaX += deltaX * browserLineHeight;
     deltaY += deltaY * browserLineHeight;
+  }
+
+  // Some browsers turn a Shift + wheel gesture into a horizontal scroll only as the default action
+  // of the event, and leave `deltaX` at 0 on the event itself. The grid consumes the event after it
+  // scrolls, so that default action never runs. A browser that already moved the delta to `deltaX`
+  // is left alone.
+  if (event.shiftKey && deltaX === 0 && deltaY !== 0) {
+    return { deltaX: deltaY, deltaY: 0 };
   }
 
   return { deltaX, deltaY };

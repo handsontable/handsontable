@@ -969,7 +969,7 @@ the holder scrolls the columns inside the root's box, and the page scrolls the r
 The owners live on the overlays: the top and bottom overlays carry the vertical owner in
 `trimmingContainer`, the inline-start overlay the horizontal one, and
 `isVerticallyScrollableByWindow()` / `isHorizontallyScrollableByWindow()` read exactly those two
-fields. Seven rules follow.
+fields. Eight rules follow.
 
 - **A decision about the other axis goes through the viewport predicate, never `this.trimmingContainer`.**
   The width of the top and bottom clones is a horizontal question and the height of the inline-start
@@ -1010,6 +1010,15 @@ fields. Seven rules follow.
   horizontal-only gesture there still has to be preventable. Pinned by the two exact-distance wheel
   tests in `tests/e2e/width-window-scroll.spec.ts`; a "moved more than zero" assertion cannot see a
   doubling, which is how this survived a full review round.
+- **The grid converts Shift + wheel into a horizontal scroll itself.** Some browsers (Chrome on Windows)
+  leave `deltaX` at 0 on a Shift + wheel event and apply the Shift-to-horizontal conversion only as the
+  default action. The grid scrolls from the event and then consumes it, so that default action never
+  runs, and the gesture scrolled the rows (GitHub issue #13752). `resolveWheelDeltas`
+  (`overlay/scroll/nativeScrollInput.ts`) moves a vertical delta onto the horizontal axis when `shiftKey`
+  is set and `deltaX` is 0. The `deltaX === 0` guard is what keeps a browser that already rewrote the
+  deltas (macOS) from being swapped twice. Pinned by `test/unit/overlay/resolveWheelDeltas.unit.ts` and
+  `tests/e2e/shift-wheel-scroll.spec.ts`, which needs real wheel input: a dispatched `WheelEvent` carries
+  whatever deltas the test gives it and proves nothing about the browser.
 - **`preventOverflow` is an alias, not a mode.** `'horizontal'` forces the horizontal owner to the
   root's parent and `'vertical'` the vertical one; everything the option used to switch by string
   comparison now follows from the owners. Its only remaining reads are the window-mode overflow
