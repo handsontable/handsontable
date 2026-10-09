@@ -10,6 +10,7 @@
   ],
   "overrides": {
     "webpack-dev-middleware@8": "^8.3.0",
+    "postcss-selector-parser@7": "^7.1.6",
     "uuid@<11.1.1": "^11.1.1"
   }
 }
