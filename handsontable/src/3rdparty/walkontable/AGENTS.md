@@ -1019,8 +1019,12 @@ fields. Nine rules follow.
   deltas from being swapped twice. **macOS is excluded** (`!isMacOS()` at the call site): Chromium and
   Safari leave a Shift + trackpad swipe vertical there and the OS converts only mouse wheels, so the
   swap would change what a Mac trackpad does, and a frame with a pixel of `deltaX` noise would zigzag
-  between the axes. Mac users keep the vertical scroll they had. A trackpad on Windows or Linux with
-  `deltaX` noise has the same hole, tracked as a follow-up. Pinned by `test/unit/overlay/resolveWheelDeltas.unit.ts` and
+  between the axes. Mac users keep the vertical scroll they had. **Keep the exact-zero test.** On a Windows
+  precision touchpad (Edge 154) `deltaX` was 0 on all 328 events of four straight vertical swipes with Shift
+  held, so the small-nonzero-`deltaX` hole did not occur. A nonzero `deltaX` came only with a diagonal swipe,
+  where a dominance test (`|deltaX| < |deltaY|`) flips the axis inside one gesture. The numbers, the two known
+  warts of the exact-zero test, the logger demo to re-run, and what is not measured (native Edge behavior,
+  Firefox, a Linux touchpad): `.ai/CONCERNS.md`, "Shift + wheel on a touchpad". Pinned by `test/unit/overlay/resolveWheelDeltas.unit.ts` and
   `tests/e2e/shift-wheel-scroll.spec.ts`, which needs real wheel input: a dispatched `WheelEvent` carries
   whatever deltas the test gives it and proves nothing about the browser.
 - **`preventOverflow` is an alias, not a mode.** `'horizontal'` forces the horizontal owner to the
