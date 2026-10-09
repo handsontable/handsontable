@@ -51,5 +51,6 @@ export function condition(dataRow: DataRow, [from, to]: (string | number | undef
 registerCondition(CONDITION_NAME, condition, {
   name: C.FILTERS_CONDITIONS_BETWEEN,
   inputsCount: 2,
-  showOperators: true
+  showOperators: true,
+  inputTypeByColumnType: { date: 'date' },
 });
