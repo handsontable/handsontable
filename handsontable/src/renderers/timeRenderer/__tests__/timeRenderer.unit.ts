@@ -16,6 +16,7 @@ import {
   registerCellType,
   TextCellType,
 } from '../../../cellTypes';
+import { valueFormatter } from '../timeRenderer';
 
 registerCellType(TextCellType);
 
@@ -132,5 +133,39 @@ describe('intlTimeRenderer (intl-time alias)', () => {
       expect(getRegisteredRendererNames()).toContain(INTL_TIME_RENDERER_TYPE);
       expect(getRenderer(INTL_TIME_RENDERER_TYPE)).toBeInstanceOf(Function);
     });
+  });
+});
+
+describe('timeRenderer valueFormatter', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('builds the Intl formatter once for repeated values with the same format', () => {
+    const cellProperties = { timeFormat: { hour: '2-digit', minute: '2-digit', hour12: true }, locale: 'en-US' };
+
+    valueFormatter('14:30', cellProperties);
+
+    const constructorSpy = jest.spyOn(Intl, 'DateTimeFormat');
+
+    for (let i = 0; i < 100; i++) {
+      valueFormatter(`${String(i % 24).padStart(2, '0')}:30`, cellProperties);
+    }
+
+    expect(constructorSpy).not.toHaveBeenCalled();
+  });
+
+  it('formats like a new Intl.DateTimeFormat and follows a timeFormat object changed in place', () => {
+    const timeFormat: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit', hour12: false };
+    const cellProperties = { timeFormat, locale: 'en-GB' };
+
+    expect(valueFormatter('14:30', cellProperties)).toBe('14:30');
+
+    timeFormat.hour12 = true;
+
+    expect(valueFormatter('14:30', cellProperties)).toBe(
+      new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true })
+        .format(new Date(1970, 0, 1, 14, 30)),
+    );
   });
 });
