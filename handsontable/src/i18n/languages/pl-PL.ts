@@ -163,6 +163,8 @@ const dictionary = {
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ponów pobieranie',
   [C.FREEZE_BAR_ROWS]: 'Zablokowane wiersze',
   [C.FREEZE_BAR_COLUMNS]: 'Zablokowane kolumny',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rozwinięto wiersz [label], widoczne rozwinięte wiersze: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Zwinięto wiersz [label]',
 };
 
 export default dictionary;

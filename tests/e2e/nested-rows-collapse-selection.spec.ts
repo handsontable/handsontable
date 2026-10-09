@@ -27,8 +27,8 @@ import { NestedRowsPage } from '../fixtures/pages/NestedRowsPage';
 
 test.describe('NestedRows selection when a section is collapsed', () => {
   test('collapsing the last section moves the selection to its parent and keeps the grid usable',
-    async({ page, theme }) => {
-      const nestedRows = new NestedRowsPage(page, theme);
+    async({ page, theme, bundle }) => {
+      const nestedRows = new NestedRowsPage(page, theme, bundle);
 
       await nestedRows.goto();
 
@@ -51,8 +51,8 @@ test.describe('NestedRows selection when a section is collapsed', () => {
       expect(await nestedRows.focusInsideGrid()).toBe(true);
     });
 
-  test('collapsing a section the selection is not in leaves the selection alone', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('collapsing a section the selection is not in leaves the selection alone', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -67,8 +67,8 @@ test.describe('NestedRows selection when a section is collapsed', () => {
     expect(await nestedRows.selectedCell()).toEqual([2, 0]);
   });
 
-  test('a selection BELOW the collapsed section stays on its own row', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('a selection BELOW the collapsed section stays on its own row', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -91,8 +91,8 @@ test.describe('NestedRows selection when a section is collapsed', () => {
     expect(await nestedRows.selectedCell()).toEqual([3, 0]);
   });
 
-  test('collapseAll from two levels deep lands on the nearest ancestor that survives', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('collapseAll from two levels deep lands on the nearest ancestor that survives', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -110,8 +110,8 @@ test.describe('NestedRows selection when a section is collapsed', () => {
     expect(await nestedRows.focusInsideGrid()).toBe(true);
   });
 
-  test('a highlight on a row header keeps the header column it was on', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('a highlight on a row header keeps the header column it was on', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -127,8 +127,8 @@ test.describe('NestedRows selection when a section is collapsed', () => {
     expect(await nestedRows.selectedCell()).toEqual([6, -1]);
   });
 
-  test('a whole-column selection the core clamps is not replaced by a single cell', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('a whole-column selection the core clamps is not replaced by a single cell', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -149,8 +149,8 @@ test.describe('NestedRows selection when a section is collapsed', () => {
   });
 
   test('expanding a section grows a whole-column selection made while it was collapsed (DEV-152)',
-    async({ page, theme }) => {
-      const nestedRows = new NestedRowsPage(page, theme);
+    async({ page, theme, bundle }) => {
+      const nestedRows = new NestedRowsPage(page, theme, bundle);
 
       await nestedRows.goto();
       await nestedRows.collapseButton(0).click();
@@ -171,8 +171,8 @@ test.describe('NestedRows selection when a section is collapsed', () => {
       await expect(nestedRows.cell(8, 0)).toHaveClass(/\b(area|current)\b/);
     });
 
-  test('adding a child under a whole-column selection keeps the viewport where it was', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('adding a child under a whole-column selection keeps the viewport where it was', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
     await nestedRows.collapseButton(6).click();
@@ -194,8 +194,8 @@ test.describe('NestedRows selection when a section is collapsed', () => {
     expect(nestedRows.pageErrors).toEqual([]);
   });
 
-  test('a row removal under a whole-column selection does not grow it onto the stash expand', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('a row removal under a whole-column selection does not grow it onto the stash expand', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
     await nestedRows.collapseButton(0).click();
@@ -215,8 +215,8 @@ test.describe('NestedRows selection when a section is collapsed', () => {
   });
 
   test('updateSettings() during a removal grows a whole-column selection onto the rows left expanded',
-    async({ page, theme }) => {
-      const nestedRows = new NestedRowsPage(page, theme);
+    async({ page, theme, bundle }) => {
+      const nestedRows = new NestedRowsPage(page, theme, bundle);
 
       await nestedRows.goto();
       await nestedRows.collapseButton(0).click();
@@ -235,8 +235,8 @@ test.describe('NestedRows selection when a section is collapsed', () => {
       expect(nestedRows.pageErrors).toEqual([]);
     });
 
-  test('a collapsed-state stash restore does not move the selection', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('a collapsed-state stash restore does not move the selection', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -259,8 +259,8 @@ test.describe('NestedRows selection when a section is collapsed', () => {
     expect(await nestedRows.selectedCell()).toBeNull();
   });
 
-  test('a collapse driven from outside the grid does not pull focus into it', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('a collapse driven from outside the grid does not pull focus into it', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -288,8 +288,8 @@ test.describe('NestedRows selection when a section is collapsed', () => {
     expect(await nestedRows.selectedCell()).toBeNull();
   });
 
-  test('an updateSettings replay does not move the selection', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('an updateSettings replay does not move the selection', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 

@@ -650,30 +650,6 @@ export async function filterByCondition(
 }
 
 /**
- * Clicks the "Go to first page" button in the pagination section.
- *
- * @param {string} value The value to select in the page size dropdown.
- */
-export async function forPaginationChangePageSize(value: string) {
-  const select = getPageInstance()
-    .locator('.ht-page-size-section')
-    .locator('select[name="pageSize"]');
-
-  await select.selectOption(value);
-}
-
-/**
- * Clicks the "Go to first page" button in the pagination section.
- */
-export async function forPaginationClickFirstPageButton() {
-  const button = getPageInstance()
-    .locator('.ht-page-navigation-section')
-    .locator('.ht-page-first');
-
-  await button.click();
-}
-
-/**
  * Clicks the "Go to previous page" button in the pagination section.
  */
 export async function forPaginationClickPrevPageButton() {
@@ -767,49 +743,6 @@ export async function redo() {
     await getPageInstance().keyboard.press('Meta+Y');
   } else {
     await getPageInstance().keyboard.press('Control+Y');
-  }
-}
-
-/**
- * @param {string} columnName Column name.
- * @param {number} resizeAmount Resize amount.
- */
-export async function resizeColumn(columnName: string, resizeAmount: number) {
-  const columnHeader = getPageInstance().getByRole('columnheader', { name: columnName });
-
-  const box = await columnHeader.boundingBox();
-
-  if (box) {
-    await getPageInstance().mouse.move(box.x + box.width - 3, box.y + (box.height / 2));
-    // eslint-disable-next-line no-restricted-syntax -- DEV-2797: the resize handle appears on hover with no class to wait for yet; replace with a hover-state probe when this helper is reworked
-    await getPageInstance().waitForTimeout(500);
-
-    // Drag the resize handle to resize the column
-    await getPageInstance().mouse.down();
-    await getPageInstance().mouse.move(box.x + box.width + resizeAmount, box.y + (box.height / 2), { steps: 10 }); // Adjust the value to resize the column
-    await getPageInstance().mouse.up();
-  }
-}
-
-/**
- * @param {number} rowIndex Row index.
- * @param {number} resizeAmount Resize amount.
- * @param {Locator} tableLocator The locator of the page.
- */
-export async function resizeRow(rowIndex: number, resizeAmount: number, tableLocator = getDefaultTableInstance()) {
-  const box = await tableLocator.getByRole('rowheader').nth(rowIndex).boundingBox();
-
-  if (box) {
-    // Move to the bottom border of the row header
-    await getPageInstance().mouse.move(box.x + (box.width / 2), box.y + box.height - 3);
-    // Add a small delay to ensure the hover action is registered
-    // eslint-disable-next-line no-restricted-syntax -- DEV-2797: the resize handle appears on hover with no class to wait for yet; replace with a hover-state probe when this helper is reworked
-    await getPageInstance().waitForTimeout(500);
-
-    // Drag the resize handle to resize the row
-    await getPageInstance().mouse.down();
-    await getPageInstance().mouse.move(box.x + (box.width / 2), box.y + box.height + resizeAmount, { steps: 10 }); // Adjust the value to resize the row
-    await getPageInstance().mouse.up();
   }
 }
 
@@ -984,16 +917,3 @@ export async function waitForDropdownSubmenuToAppear(submenuName: string) {
   await getPageInstance().waitForSelector(`.htDropdownMenuSub_${submenuClassSuffix(submenuName)}`);
 }
 
-/**
- * Updates Handsontable settings.
- *
- * @param {object} options Handsontable settings options.
- */
-export async function forHandsontableUpdateSettings(options) {
-  await getPageInstance().evaluate(async(hotOptions) => {
-    // eslint-disable-next-line no-restricted-globals
-    const hotInstance = document.defaultView?.hotInstance;
-
-    hotInstance.updateSettings(hotOptions);
-  }, options);
-}

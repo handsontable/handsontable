@@ -153,6 +153,8 @@ const dictionary = {
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Recarregar',
   [C.FREEZE_BAR_ROWS]: 'Linhas congeladas',
   [C.FREEZE_BAR_COLUMNS]: 'Colunas congeladas',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Linha [label] expandida, linhas expandidas exibidas: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Linha [label] recolhida',
 };
 
 export default dictionary;

@@ -153,6 +153,8 @@ const dictionary = {
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Повторить загрузку',
   [C.FREEZE_BAR_ROWS]: 'Закреплённые строки',
   [C.FREEZE_BAR_COLUMNS]: 'Закреплённые столбцы',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Развёрнута строка [label], показано развёрнутых строк: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Свёрнута строка [label]',
 };
 
 export default dictionary;

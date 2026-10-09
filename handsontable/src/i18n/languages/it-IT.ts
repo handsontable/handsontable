@@ -156,6 +156,8 @@ const dictionary = {
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ricarica',
   [C.FREEZE_BAR_ROWS]: 'Righe bloccate',
   [C.FREEZE_BAR_COLUMNS]: 'Colonne bloccate',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Riga [label] espansa, righe espanse visualizzate: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Riga [label] compressa',
 };
 
 export default dictionary;

@@ -153,6 +153,8 @@ const dictionary = {
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: '重新載入',
   [C.FREEZE_BAR_ROWS]: '凍結的列',
   [C.FREEZE_BAR_COLUMNS]: '凍結的欄',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '已展開列 [label]，顯示的展開列數：[count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '已摺疊列 [label]',
 };
 
 export default dictionary;

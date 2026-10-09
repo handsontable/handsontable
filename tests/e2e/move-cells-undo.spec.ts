@@ -11,8 +11,8 @@ import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
 test.describe('moveCells undo/redo', () => {
   let grid: SelectionFeaturesPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new SelectionFeaturesPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new SelectionFeaturesPage(page, theme, bundle);
     await grid.goto();
     await grid.initGrid({ undo: true });
   });

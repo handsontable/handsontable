@@ -156,6 +156,8 @@ const dictionary = {
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: '重新加载',
   [C.FREEZE_BAR_ROWS]: '冻结的行',
   [C.FREEZE_BAR_COLUMNS]: '冻结的列',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '已展开行 [label]，显示的展开行数：[count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '已折叠行 [label]',
 };
 
 export default dictionary;

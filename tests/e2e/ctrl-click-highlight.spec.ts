@@ -24,8 +24,8 @@ import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
 test.describe('Ctrl+click inside a multiple selection', () => {
   let grid: SelectionFeaturesPage;
 
-  test.beforeEach(async({ page, theme }) => {
-    grid = new SelectionFeaturesPage(page, theme);
+  test.beforeEach(async({ page, theme, bundle }) => {
+    grid = new SelectionFeaturesPage(page, theme, bundle);
     await grid.goto();
     // The client's configuration. `disableVisualSelection: 'area'` hides the area highlight, which
     // is what made the focus the only visible marker in the original report.

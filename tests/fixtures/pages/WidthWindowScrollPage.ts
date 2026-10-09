@@ -197,6 +197,7 @@ export class WidthWindowScrollPage {
     holderScrollLeft: number,
     documentScrollWidth: number,
     documentClientWidth: number,
+    windowScrollX: number,
     windowScrollY: number,
   }> {
     return this.page.evaluate(() => {
@@ -212,6 +213,7 @@ export class WidthWindowScrollPage {
         holderScrollLeft: holder.scrollLeft,
         documentScrollWidth: document.documentElement.scrollWidth,
         documentClientWidth: document.documentElement.clientWidth,
+        windowScrollX: window.scrollX,
         windowScrollY: window.scrollY,
       };
     });

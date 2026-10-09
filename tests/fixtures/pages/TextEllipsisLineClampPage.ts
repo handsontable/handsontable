@@ -38,6 +38,18 @@ export interface CellMeasure {
    * The cell's full `textContent`.
    */
   text: string;
+  /**
+   * The cell's computed `text-overflow`, `white-space` and `overflow-x`, which together draw a
+   * single-line ellipsis.
+   */
+  textOverflow: string;
+  whiteSpace: string;
+  overflowX: string;
+  /**
+   * The cell's `scrollWidth` and `clientWidth`: wider content than box is text that was cut off.
+   */
+  scrollWidth: number;
+  clientWidth: number;
 }
 
 /**
@@ -215,6 +227,11 @@ export class TextEllipsisLineClampPage {
         lineHeight,
         classes: [...td.classList],
         text: td.textContent ?? '',
+        textOverflow: getComputedStyle(td).textOverflow,
+        whiteSpace: getComputedStyle(td).whiteSpace,
+        overflowX: getComputedStyle(td).overflowX,
+        scrollWidth: td.scrollWidth,
+        clientWidth: td.clientWidth,
       };
     }, [row, col] as const);
   }

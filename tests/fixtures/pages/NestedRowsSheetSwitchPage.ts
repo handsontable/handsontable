@@ -9,12 +9,10 @@ import { SheetsBarPage } from './SheetsBarPage';
  * from `NestedRowsPage` and the tab strip from `SheetsBarPage`, so the three stay in step.
  */
 export class NestedRowsSheetSwitchPage extends NestedRowsPage {
-  readonly bundle: string;
   readonly sheetsBar: SheetsBarPage;
 
   constructor(page: Page, theme = 'main', bundle = 'umd') {
-    super(page, theme);
-    this.bundle = bundle;
+    super(page, theme, bundle);
     this.sheetsBar = new SheetsBarPage(page, theme, bundle);
   }
 

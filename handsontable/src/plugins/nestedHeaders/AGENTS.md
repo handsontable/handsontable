@@ -217,10 +217,25 @@ the `fixedColumnsStart` band and reaches past it, and it follows the same rule: 
 - `ColumnDropMode` is declared in `stateManager/utils.ts` and re-used across the pipeline; import the
   type, don't inline `'adopt' | 'split'` string unions.
 
+## Ghost-table widths drop the engine's column-width cache
+
+`GhostTable#buildWidthsMap()` and `GhostTable#clear()` end with `hot.view?.invalidateColumnWidthCache()`.
+The widths map feeds `modifyColWidth`, and the engine's column `PositionCache` tests only the column
+COUNT, so a width-only change is invisible to it. Left stale, the cache kept the narrow pre-growth sums
+while the scroll range used the grown widths, and a grid scrolled to the right edge showed a blank area
+instead of its last columns. A second writer of the widths map must call it too.
+
 ## Testing
 
 - E2E: `npm run test:e2e --prefix handsontable -- --testPathPattern='nestedHeaders'`
 - Unit: `npm run test:unit --prefix handsontable -- --testPathPattern='nestedHeaders'`
+- A collapsible group whose label is longer than the group:
+  `npm --prefix tests run test:e2e -- e2e/nested-headers-long-label.spec.ts` (Shift+Tab reaching the group,
+  Enter collapsing it, and the label cut with an ellipsis before the collapse icon, measured against the
+  icon element `.collapsibleIndicator__icon`, not the indicator's wider hit area, on every theme).
+- Ghost-table growth and the column-width cache:
+  `npm --prefix tests run test:e2e -- e2e/nested-headers-grown-widths.spec.ts` (scrolled to the right edge,
+  the last column's cell must lie inside the holder's visible area).
 - Move/reparent behavior: `__tests__/plugins/manualColumnMove/` — `general.spec.js` (cooperation:
   follow-data, collapse coordination, insert/remove, freeze) plus one file per `columnDropMode`
   strategy (`adopt.spec.js`, `split.spec.js`). **Add a new drop strategy's tests in its own

@@ -157,6 +157,8 @@ const dictionary = {
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ponovo učitaj',
   [C.FREEZE_BAR_ROWS]: 'Zamrznuti redovi',
   [C.FREEZE_BAR_COLUMNS]: 'Zamrznute kolone',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Proširen red [label], prikazani prošireni redovi: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Skupljen red [label]',
 };
 
 export default dictionary;

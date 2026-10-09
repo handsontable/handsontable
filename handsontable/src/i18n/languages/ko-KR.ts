@@ -153,6 +153,8 @@ const dictionary = {
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: '다시 불러오기',
   [C.FREEZE_BAR_ROWS]: '고정된 행',
   [C.FREEZE_BAR_COLUMNS]: '고정된 열',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '[label]행 펼침, 펼쳐진 행: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '[label]행 접음',
 };
 
 export default dictionary;

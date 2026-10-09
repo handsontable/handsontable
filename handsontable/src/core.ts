@@ -7991,7 +7991,7 @@ export default function Core(
     dataSource = null!;
 
     if (isRootInstance(this)) {
-      uninstallAccessibilityAnnouncer();
+      uninstallAccessibilityAnnouncer(instance.rootPortalElement);
       this.getFocusScopeManager().destroy();
       layoutManager?.destroy();
 

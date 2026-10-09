@@ -159,6 +159,8 @@ const dictionary = {
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Volver a cargar',
   [C.FREEZE_BAR_ROWS]: 'Filas inmovilizadas',
   [C.FREEZE_BAR_COLUMNS]: 'Columnas inmovilizadas',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Se expandió la fila [label], filas expandidas mostradas: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Se contrajo la fila [label]',
 };
 
 export default dictionary;

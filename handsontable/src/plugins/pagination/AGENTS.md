@@ -217,7 +217,18 @@ DataProvider calls the internal `_resetDataProviderTotal()` (`@private`, not API
 
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='pagination'`
 - `npm run test:unit --prefix handsontable -- --testPathPattern='pagination'`
+- `npm --prefix tests run test:e2e -- e2e/pagination-pager-states.spec.ts`: the pager on the visual
+  suite's `/pagination-demo` data, on every theme and bundle: the buttons, the counter, the disabled
+  states and the focus hand-off, the RTL mirror, a page size changed on a filtered, sorted grid, and the
+  auto page size filling each page of a 450 px grid and of a grid the window scrolls.
 
 `__tests__/conflictingOptions.spec.js` pins the hard-conflict behavior, and `__tests__/strategies/`
 covers the two page-size strategies. There are also `hooks/`, `methods/`, `options/`,
 `keyboardShortcuts/`, `plugins/`, `selection.spec.js` and `ui.spec.js`.
+
+**Measure "the next row would not fit" on the next page, not with `getRowHeight()`.** The auto strategy
+starts a new page once a row's height would bring the page's total to the viewport's height
+(`autoPageSize.ts`). Read back after paging, `hot.getRowHeight()` of a row the plugin hides reports the
+theme's default row height (29 px on `main`) rather than the height the strategy used, so a "page is
+full" check built on it passes or fails by accident. The Playwright spec pages forward and takes the
+first rendered row's height instead.

@@ -159,6 +159,8 @@ const dictionary = {
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: '再読み込み',
   [C.FREEZE_BAR_ROWS]: '固定された行',
   [C.FREEZE_BAR_COLUMNS]: '固定された列',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '行 [label] を展開しました。展開された行数: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '行 [label] を折りたたみました',
 };
 
 export default dictionary;

@@ -161,6 +161,8 @@ const dictionary = {
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'بارگذاری مجدد',
   [C.FREEZE_BAR_ROWS]: 'ردیف‌های ثابت',
   [C.FREEZE_BAR_COLUMNS]: 'ستون‌های ثابت',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'ردیف [label] باز شد، ردیف‌های بازشدهٔ نمایش داده‌شده: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'ردیف [label] بسته شد',
 };
 
 export default dictionary;

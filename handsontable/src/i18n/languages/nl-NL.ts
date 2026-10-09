@@ -159,6 +159,8 @@ const dictionary = {
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Opnieuw laden',
   [C.FREEZE_BAR_ROWS]: 'Vastgezette rijen',
   [C.FREEZE_BAR_COLUMNS]: 'Vastgezette kolommen',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rij [label] uitgevouwen, getoonde uitgevouwen rijen: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Rij [label] samengevouwen',
 };
 
 export default dictionary;

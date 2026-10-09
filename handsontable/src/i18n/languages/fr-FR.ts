@@ -153,6 +153,8 @@ const dictionary = {
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Recharger',
   [C.FREEZE_BAR_ROWS]: 'Lignes figées',
   [C.FREEZE_BAR_COLUMNS]: 'Colonnes figées',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Ligne [label] développée, lignes développées affichées : [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Ligne [label] réduite',
 };
 
 export default dictionary;

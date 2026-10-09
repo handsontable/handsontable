@@ -157,6 +157,8 @@ const dictionary = {
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Pārlādēt',
   [C.FREEZE_BAR_ROWS]: 'Nofiksētās rindas',
   [C.FREEZE_BAR_COLUMNS]: 'Nofiksētās kolonnas',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Izvērsta rinda [label], parādītās izvērstās rindas: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sakļauta rinda [label]',
 };
 
 export default dictionary;
