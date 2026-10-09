@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a column resize drag that overshot by the width of the hidden column indicator for a column next to a hidden column.",
+  "type": "fixed",
+  "issueOrPR": 13795,
+  "breaking": false,
+  "framework": "none"
+}
