@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-09T10:10:27.523Z",
+  "updatedAt": "2026-10-09T10:16:52.804Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "jasmine",
+      "leg": "UMD (theme: classic)",
+      "file": "handsontable/src/editors/intlDateEditor/__tests__/intlDateEditor.spec.js",
+      "line": null,
+      "title": "IntlDateEditor should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)",
+      "status": "failed",
+      "attempts": 1,
+      "error": "Expected <td class=\"current\" role=\"gridcell\" tabindex=\"-1\" aria-colindex=\"1\" aria-selected=\"true\">...</td> to be <input data-hot-input tabindex=\"-1\" class=\"handsontableInput\" type=\"date\" style=\"width: 86px; height: 27px; overflow-y: visible; font-size: 13px; font-family: sans-serif;\">. Tip: To ch...",
+      "isolation": "passes alone",
+      "quarantine": null,
+      "source": "ci",
+      "runId": "37913372976",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37913372976",
+      "workflow": "Tests",
+      "branch": "feature/DEV-680_HotColumn-props-exclude-hooks",
+      "headSha": "9c1892c09bff49002485b458538e9a000eabde7a",
+      "event": "pull_request",
+      "seenAt": "2026-10-09T10:16:07Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-classic",
