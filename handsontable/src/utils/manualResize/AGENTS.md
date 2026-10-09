@@ -46,6 +46,16 @@ width. `tests/e2e/undo-plugin-state.spec.ts` pins it ("an edit made while a colu
   reports `max(dragged, wtTable.getRowHeight())`, and that height is read back from the size map (every
   write clears the row-height cache). Firing the hooks before the write reports the old height, and a
   manually tall row could no longer be reported smaller.
+- **Two start sizes, two spaces.** `#startRenderedSize` is what the header rendered at, and the handle and the guide
+  (and `#currentSize`, the pointer's rendered size) live there, including the anchored `2 * start - current` math.
+  `#startSize` is the size the owner stores: the rendered size minus `owner.getRenderedOverhead(index)`, which is
+  what something else adds on every render (the hidden-column indicator's 15px). `#newSize`, the hook sizes, what
+  the release stores and the "did it move?" tests all use the stored space, and `mousemove` clamps
+  `#currentSize - #startOverhead`. An owner without the optional method has an overhead of 0 and both are equal. A multi-selection stores one size
+  for every column, measured from the dragged one, so a selected column without the overhead renders narrower or wider
+  than the dragged one by it.
+  Starting a drag from the rendered size stored the overhead into the size, so the column ended up wider than the
+  drag by it, and by it again on every further drag.
 - **`#newSize` is still updated on every mousemove**, even though nothing is stored: the double-click timer's
   "still hold or drag?" test (`#newSize === #startSize`) and the release's "did it move?" test read it.
 - **The press holds the step** (`#openStep()` on `mousedown`, `#closeStep()` on `mouseup`), so the autosize a
