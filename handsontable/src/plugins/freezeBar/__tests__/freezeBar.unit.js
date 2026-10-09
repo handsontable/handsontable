@@ -24,10 +24,7 @@ describe('FreezeBar', () => {
     });
 
     // jsdom has no layout: give the viewport a size, so the count is not clamped to 0
-    jest.spyOn(hot.view, 'getWorkspaceWidth').mockReturnValue(1000);
-    jest.spyOn(hot.view, 'getWorkspaceHeight').mockReturnValue(1000);
-    jest.spyOn(hot.view, 'getRowHeaderWidth').mockReturnValue(0);
-    jest.spyOn(hot.view, 'getColumnHeaderHeight').mockReturnValue(0);
+    jest.spyOn(hot.view, 'getFrozenViewportSize').mockReturnValue(1000);
     jest.spyOn(hot, 'getColWidth').mockReturnValue(50);
     jest.spyOn(hot.stylesHandler, 'getDefaultRowHeight').mockReturnValue(23);
 
@@ -122,7 +119,7 @@ describe('FreezeBar', () => {
   it('should clamp the count to what fits the viewport', () => {
     const plugin = createGrid();
 
-    hot.view.getWorkspaceWidth.mockReturnValue(300);
+    hot.view.getFrozenViewportSize.mockImplementation(isColumn => (isColumn ? 300 : 1000));
     plugin.setFreezeCount('start', 100);
 
     // 300px viewport, 40px kept scrollable, 50px columns: 5 columns fit
@@ -328,7 +325,7 @@ describe('FreezeBar', () => {
     const plugin = createGrid({ fixedColumnsStart: 4 });
 
     // 150px viewport, 40px kept scrollable, 50px columns: only 2 columns fit
-    hot.view.getWorkspaceWidth.mockReturnValue(150);
+    hot.view.getFrozenViewportSize.mockImplementation(isColumn => (isColumn ? 150 : 1000));
 
     expect(plugin.setFreezeCount('start', 4)).toBe(false);
     expect(plugin.getFreezeCount('start')).toBe(4);
@@ -343,7 +340,7 @@ describe('FreezeBar', () => {
     const plugin = createGrid({ fixedRowsBottom: 3 });
 
     // 200px viewport, 3 bottom rows of 23px, 40px kept scrollable: 91px remain, so 3 top rows fit
-    hot.view.getWorkspaceHeight.mockReturnValue(200);
+    hot.view.getFrozenViewportSize.mockImplementation(isColumn => (isColumn ? 1000 : 200));
     plugin.setFreezeCount('top', 9);
 
     expect(plugin.getFreezeCount('top')).toBe(3);
@@ -353,7 +350,7 @@ describe('FreezeBar', () => {
     const plugin = createGrid({ fixedColumnsEnd: 4 });
 
     // 400px viewport, 4 end columns of 50px, 40px kept scrollable: 160px remain, so 3 start columns fit
-    hot.view.getWorkspaceWidth.mockReturnValue(400);
+    hot.view.getFrozenViewportSize.mockImplementation(isColumn => (isColumn ? 400 : 1000));
     plugin.setFreezeCount('start', 9);
 
     expect(plugin.getFreezeCount('start')).toBe(3);
@@ -548,7 +545,7 @@ describe('FreezeBar', () => {
   it('should keep the range of the value valid when the count is above what fits', () => {
     createGrid({ fixedColumnsStart: 4 });
     hot.render();
-    hot.view.getWorkspaceWidth.mockReturnValue(150);
+    hot.view.getFrozenViewportSize.mockImplementation(isColumn => (isColumn ? 150 : 1000));
 
     const separator = container.querySelector('[data-ht-freeze-separator="start"]');
 
@@ -615,6 +612,30 @@ describe('FreezeBar', () => {
 
     expect(plugin.getFreezeCount('start')).toBe(3);
     expect(after).not.toHaveBeenCalled();
+  });
+
+  it('should cap a band by the tracks left after the configured opposite band, not the drawn one', () => {
+    const plugin = createGrid({
+      data: Array.from({ length: 12 }, (rowValue, row) => [`${row}:0`, `${row}:1`]),
+      fixedRowsTop: 10,
+      limitFixedToViewport: true,
+    });
+
+    // 10 top rows are configured but only 3 are drawn (100 px each); the bottom rows are small, so 5 of them fit
+    jest.spyOn(hot.view, 'countFixedRowsTop').mockReturnValue(3);
+    hot.view.getFrozenViewportSize.mockReturnValue(400);
+    jest.spyOn(hot.view, 'getFrozenTrackSize').mockImplementation((isColumn, index) => {
+      if (isColumn) {
+        return 50;
+      }
+
+      return index >= 7 ? 5 : 100;
+    });
+
+    plugin.setFreezeCount('bottom', 5);
+
+    // the grid cuts the bottom band at 12 - 10 = 2 rows, so the plugin must not commit or report more
+    expect(plugin.getFreezeCount('bottom')).toBe(2);
   });
 
   it('should render nothing when the option is not set', () => {

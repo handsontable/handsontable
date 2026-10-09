@@ -3620,7 +3620,7 @@ export default (): Record<string, unknown> => {
      * and [`fixedRowsBottom`](#fixedrowsbottom) to freeze all four edges.
      *
      * ::: tip
-     * Freeze only as many columns as fit within the grid's width. Frozen columns are always drawn in full.
+     * Freeze only as many columns as fit within the grid's width. By default, Handsontable draws frozen columns in full. To draw only the ones that fit, use [`limitFixedToViewport`](#limitfixedtoviewport).
      * If they need more space than the grid has, they cover the whole grid. You can then no longer scroll
      * the remaining columns into view.
      * :::
@@ -3697,7 +3697,7 @@ export default (): Record<string, unknown> => {
      * If your grid's [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL, the `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing/column-freezing.md) at the right-hand edge of the grid.
      *
      * ::: tip
-     * Freeze only as many columns as fit within the grid's width. Frozen columns are always drawn in full.
+     * Freeze only as many columns as fit within the grid's width. By default, Handsontable draws frozen columns in full. To draw only the ones that fit, use [`limitFixedToViewport`](#limitfixedtoviewport).
      * If they need more space than the grid has, they cover the whole grid. You can then no longer scroll
      * the remaining columns into view.
      * :::
@@ -3752,7 +3752,7 @@ export default (): Record<string, unknown> => {
      * :::
      *
      * ::: tip
-     * Freeze only as many rows as fit within the grid's height. Frozen rows are always drawn in full.
+     * Freeze only as many rows as fit within the grid's height. By default, Handsontable draws frozen rows in full. To draw only the ones that fit, use [`limitFixedToViewport`](#limitfixedtoviewport).
      * If they need more space than the grid has, they cover the whole grid. You can then no longer scroll
      * the remaining rows into view.
      * :::
@@ -3788,7 +3788,7 @@ export default (): Record<string, unknown> => {
      * :::
      *
      * ::: tip
-     * Freeze only as many rows as fit within the grid's height. Frozen rows are always drawn in full.
+     * Freeze only as many rows as fit within the grid's height. By default, Handsontable draws frozen rows in full. To draw only the ones that fit, use [`limitFixedToViewport`](#limitfixedtoviewport).
      * If they need more space than the grid has, they cover the whole grid. You can then no longer scroll
      * the remaining rows into view.
      * :::
@@ -4677,6 +4677,46 @@ export default (): Record<string, unknown> => {
      * ```
      */
     licenseKey: undefined,
+
+    /**
+     * The `limitFixedToViewport` option keeps the [frozen rows and columns](@/guides/columns/column-freezing/column-freezing.md)
+     * from growing larger than the space the grid has.
+     *
+     * By default, Handsontable draws the frozen area in full. If the frozen rows and columns need more space than
+     * the grid has, they cover the whole grid, and you can no longer scroll the rest of it into view.
+     *
+     * When you set `limitFixedToViewport` to `true`, Handsontable draws only as many frozen columns and rows as fit,
+     * and keeps a strip of the grid scrollable. The option changes what is drawn, not what you configured:
+     * - [`getSettings()`](@/api/core.md#getsettings) still returns the values of [`fixedColumnsStart`](#fixedcolumnsstart),
+     * [`fixedColumnsEnd`](#fixedcolumnsend), [`fixedRowsTop`](#fixedrowstop), and [`fixedRowsBottom`](#fixedrowsbottom).
+     * - The count is measured again when the grid is resized, so the frozen area returns when the grid grows.
+     * - A strip of at least 40 px stays scrollable on each axis.
+     * - The start columns have priority over the end columns, and the top rows have priority over the bottom rows.
+     * When the start columns or top rows fill the grid, the end columns or bottom rows are not drawn as frozen at all.
+     * - When a user changes the frozen area with the [`FreezeBar`](@/api/freezeBar.md) plugin, the new count replaces the
+     * configured one, and the frozen area no longer returns when the grid grows.
+     *
+     * Read more:
+     * - [Column freezing](@/guides/columns/column-freezing/column-freezing.md#frozen-area-size-limit)
+     * - [Row freezing](@/guides/rows/row-freezing/row-freezing.md#frozen-area-size-limit)
+     *
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @memberof Options#
+     * @type {boolean}
+     * @default false
+     * @since 19.0.0
+     * @category Core
+     * @configScope grid
+     *
+     * @example
+     * ```js
+     * // draw only the frozen columns and rows that fit the grid
+     * limitFixedToViewport: true,
+     * ```
+     */
+    limitFixedToViewport: false,
 
     /**
      * The `locale` option configures Handsontable's [locale](@/guides/internationalization/locale/locale.md) settings.

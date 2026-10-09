@@ -105,16 +105,21 @@ Freezing moves a column with `columnIndexMapper.moveIndexes()` directly, so it n
   the band. With `fixedColumnsEnd: 0` every guard is a no-op.
 - Pinned by `__tests__/fixedColumnsEnd.unit.js` and `tests/e2e/fixed-columns-end-review-plugins.spec.ts`.
 
-## Open issue: freezing beyond the viewport (#4259)
+## Freezing beyond the viewport (#4259)
 
-Freezing more columns than fit the viewport still reproduces on 18.0.0 and on `develop`: the frozen overlay
-overflows and covers the master table, so the scrollbar moves but the grid does not. The cause is
-Walkontable's `stickyColumnsStart` / `stickyRowsTop` clamping their rendered count against a **count**
-rather than against available **width**.
+By default, a frozen area bigger than the grid is drawn in full and covers the master table, so the rest of the
+grid is unreachable. The opt-in `limitFixedToViewport` option fixes it at render time: `TableView` resolves the
+counts the grid can really draw (`countFixedColumnsStart()` and its siblings) and hands those to Walkontable.
 
-There is no fix in the plugin, and a render-time clamp is a behavior change that needs sign-off. If you are
-asked about it: the current recommendation is a documentation note plus a `warnOnce`, not a silent
-auto-unfreeze.
+With the option on and a configured count larger than what is drawn, **the user sees the drawn band, so this plugin
+works on it**: `getStartBandCount()` in `endBand.ts` is the one place that reads it. A column past the drawn band
+scrolls, so the Unfreeze item hides for it and `unfreezeColumn()` does nothing; `freezeColumn()` moves a scrolling
+column to the drawn freeze line and writes `drawn + 1`. The write is absolute (`_fixedColumnsStart = start ± 1` from
+the drawn count), not `+= 1` on the configured count, which with the option off is the same number. The user's action
+replaces the configured count, so after it the frozen area no longer returns when the grid grows. When the start band is cut (`isStartBandCut()`: drawn below configured), `freezeColumn()` does nothing and the Freeze item hides, because the drawn band is the most that fits and one more frozen column would keep scrolling. `isInEndBand()` asks about the drawn end band (`getDrawnEndBandCount()`), but the check that unfreezing would slide a column into the end band compares the CONFIGURED end count (`getEndBandCount()`): the drawn one is already clamped against the drawn start band, so it would never differ between two start counts. Without the option nothing changes.
+
+Pinned by `tests/e2e/limit-fixed-to-viewport.spec.ts` ("ManualColumnFreeze does not unfreeze a column that scrolls").
+Which readers use which count is in `handsontable/AGENTS.md`, under "Raw versus effective frozen counts".
 
 ## Where to look next
 

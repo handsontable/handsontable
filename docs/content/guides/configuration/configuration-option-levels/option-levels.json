@@ -6,9 +6,9 @@
     "cells",
     "cell"
   ],
-  "total": 178,
+  "total": 179,
   "counts": {
-    "grid": 109,
+    "grid": 110,
     "grid columns cells cell": 62,
     "grid columns": 6,
     "columns": 1
@@ -896,6 +896,15 @@
         "grid"
       ],
       "since": null,
+      "note": null
+    },
+    {
+      "name": "limitFixedToViewport",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.0.0",
       "note": null
     },
     {

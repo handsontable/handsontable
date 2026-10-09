@@ -459,7 +459,7 @@ export class ManualColumnMove extends BasePlugin {
    * @returns {boolean}
    */
   isFixedColumnsStart(column: number) {
-    return column < (this.hot.getSettings().fixedColumnsStart ?? 0);
+    return column < (this.hot.view?.countFixedColumnsStart() ?? this.hot.getSettings().fixedColumnsStart ?? 0);
   }
 
   /**
@@ -826,7 +826,7 @@ export class ManualColumnMove extends BasePlugin {
       this.#columnsToMove = this.prepareColumnsToMoving(start, end);
       this.#hasRowHeaders = !!this.hot.getSettings().rowHeaders;
       this.#countCols = this.hot.countCols();
-      this.#fixedColumnsStart = this.hot.getSettings().fixedColumnsStart;
+      this.#fixedColumnsStart = this.hot.view.countFixedColumnsStart();
       this.#rootElementOffset = offset(this.hot.rootElement).left;
 
       const countColumnsFrom = this.#hasRowHeaders ? -1 : 0;
