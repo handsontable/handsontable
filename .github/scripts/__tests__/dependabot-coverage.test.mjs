@@ -120,7 +120,19 @@ test('every block is security-only and groups its security fixes', () => {
     assert.match(
       block,
       /^\s*applies-to:\s*security-updates\s*$/m,
-      `security fixes must be grouped into one PR per directory:\n${block}`
+      `security fixes must be grouped into one PR:\n${block}`
     );
+  });
+});
+
+test('every security group keeps Playwright out', () => {
+  blocks.forEach((block) => {
+    ['"@playwright/*"', '"playwright"', '"playwright-core"'].forEach((name) => {
+      assert.match(
+        block,
+        new RegExp(`exclude-patterns:[\\s\\S]*-\\s*${name.replace(/[*/]/g, '\\$&')}`),
+        `${name} must be excluded: a Playwright bump fails playwright-version-sync.test.mjs and would hold back every other fix in the group:\n${block}`
+      );
+    });
   });
 });
