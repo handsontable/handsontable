@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-09T13:09:43.786Z",
+  "updatedAt": "2026-10-09T13:31:04.785Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-horizon-min",
+      "file": "e2e/selection-viewport-scroll.spec.ts",
+      "line": 72,
+      "title": "viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: expect(received).toBe(expected) // Object.is equality",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "37933022010",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37933022010",
+      "workflow": "Tests",
+      "branch": "feature/DEV-3276_Hidden-column-neighbor-resize-overshoot",
+      "headSha": "8a66ec5870d581f4a19d87c9122d8309e2b8ab6b",
+      "event": "pull_request",
+      "seenAt": "2026-10-09T13:30:12Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-firefox",
