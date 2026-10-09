@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the row and column that a drag-selection reaches when the pointer leaves the grid next to a merged cell, which could land several rows or columns off.",
+  "type": "fixed",
+  "issueOrPR": 13793,
+  "breaking": false,
+  "framework": "none"
+}
