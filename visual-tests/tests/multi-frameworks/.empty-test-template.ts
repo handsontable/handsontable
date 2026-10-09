@@ -12,14 +12,13 @@ visualTest(__filename, {
   // spec is about the delivery path the bare render covers (the core inlines the main theme stylesheet
   // there), a `horizon` theme when the pixels being judged are theme tokens rather than geometry, and a
   // wrapper only with a `wrappersReason` saying what the wrapper render proves that the js render does
-  // not — each wrapper is one more golden per capture. A spec that renders under no wrapper belongs in
-  // `tests/js-only/`: the seed copies this whole directory into the three wrapper baselines, so a spec
-  // that sits here without declaring them gets wrapper goldens nothing ever renders again.
+  // not — each wrapper is one more golden per capture. A spec here photographs the shared `/` grid, which
+  // every wrapper demo also builds; the seed copies each spec's bare js captures into the wrappers that
+  // spec declares (`lib/wrapper-copy.mjs`), so a spec that declares none gets no wrapper golden.
   //
-  // So a copy of this file that STAYS in `tests/multi-frameworks/` needs `CLASSIC` in `themes`, all three
-  // `WRAPPERS`, and a `wrappersReason` saying what the wrapper render proves. Copied anywhere else, the
-  // declaration below is the one to keep. The sweep in `lib/__tests__/visual-declarations.test.mjs`
-  // enforces that, and its message names this rule.
+  // The sweep in `lib/__tests__/visual-declarations.test.mjs` names the shapes this directory hosts:
+  // this default, the five js variants with no wrapper, and the five js variants under all three
+  // `WRAPPERS` (the parity canary, which needs `CLASSIC` and a `wrappersReason`).
   themes: ['main', 'main-dark'],
   browsers: ['chromium'],
   wrappers: [],

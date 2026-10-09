@@ -16,6 +16,7 @@ import {
   REFERENCE_FRAMEWORK,
   EXAMPLES_SERVER_PORT
 } from '../src/config.mjs';
+import { BARE_JS_DIRECTORY, copyDeclaredWrapperCaptures } from '../lib/wrapper-copy.mjs';
 
 const dirs = {
   examples: '../examples/next/visual-tests',
@@ -118,37 +119,41 @@ for (let i = 0; i < frameworksToTest.length; i++) {
 // the screenshots are ready
 console.log(chalk.green('Done.'));
 
-// The seed tier renders js once and copies it into every wrapper directory, so the golden set keeps its
+// The seed tier renders js once and copies it into the wrapper directories, so the golden set keeps its
 // full shape and every other tier is compared against an exact subset of it (the js-copied-baseline
 // gotcha in ../AGENTS.md).
 //
-// The copy is wholesale by directory, and it is equal to the declarations only while every spec under
-// `tests/multi-frameworks/` declares all three wrappers — which is what the declaration codemod wrote and
-// what `lib/__tests__/visual-declarations.test.mjs` pins. The moment one of them declares fewer, this copy
-// writes wrapper goldens the `full` tier then skips, and the nightly reports them deleted every night. So
-// the per-spec copy has to land before any wrapper is trimmed: read each spec's `visual-variants`
-// annotation from `npx playwright test --list --reporter=json` (collection cost, no browser launched) and
-// copy that spec's `<specDir>-N.png` files into only the wrappers it declares.
+// The copy follows the declarations, spec by spec (`lib/wrapper-copy.mjs`): each spec's own
+// `<stem>-N.png` captures go into only the wrappers that spec declares. A wholesale copy of the
+// `multi-frameworks` directory would write wrapper goldens for every spec there, and the `full` tier,
+// which skips a wrapper a spec does not declare, would report the extra ones deleted every night.
 //
-// Take the spec path from the ENCLOSING SUITE's `file` in that JSON, never from the test's own
-// `spec.file`: `visualTest()` registers every test, so Playwright records `../src/test-runner.ts` as the
-// location of all 92 of them, while the file suite is still titled with the spec path relative to the
-// run's root. The same rule applies to anything else that reads the JSON report of this tier.
+// The declarations are read from `npx playwright test --list --reporter=json` (collection cost, no browser
+// launched), where `visualTest()` reports each one as a `visual-variants` annotation. The spec path comes
+// from the ENCLOSING SUITE's `file` in that JSON, never from the test's own `spec.file`: `visualTest()`
+// registers every test, so Playwright records `../src/test-runner.ts` as the location of all of them.
 if (tier.copyWrappers) {
   if (!fse.existsSync(dirs.screenshots)) {
     throw new Error(`Directory \`${dirs.screenshots}\` doesn't exist.`);
   }
 
-  if (!fse.existsSync(`${dirs.screenshots}/${REFERENCE_FRAMEWORK}`)) {
-    throw new Error(`Directory \`${dirs.screenshots}/${REFERENCE_FRAMEWORK}\` doesn't exist.`);
+  const bareJs = path.resolve(dirs.screenshots, ...BARE_JS_DIRECTORY.split('/'));
+
+  if (!fse.existsSync(bareJs)) {
+    throw new Error(`Directory \`${bareJs}\` doesn't exist, so there is no bare js render to copy.`);
   }
 
-  // The comparison matches screenshot files by the same name and path,
-  // so we need to make sure the paths are the same
-  for (let i = 0; i < WRAPPERS.length; ++i) {
-    fse.copySync(
-      path.resolve(`${dirs.screenshots}/${REFERENCE_FRAMEWORK}/chromium/multi-frameworks`),
-      path.resolve(`${dirs.screenshots}/${WRAPPERS[i]}/chromium/multi-frameworks`),
-      { overwrite: true });
-  }
+  const { stdout } = await execa.command('npx playwright test --list --reporter=json', {
+    env: {
+      HOT_FRAMEWORK: REFERENCE_FRAMEWORK
+    },
+  });
+  const plan = copyDeclaredWrapperCaptures(path.resolve(dirs.screenshots), JSON.parse(stdout));
+
+  WRAPPERS.forEach((wrapper) => {
+    const copies = plan.filter(entry => entry.wrapper === wrapper);
+    const specs = new Set(copies.map(entry => entry.spec));
+
+    console.log(chalk.green(`Copied ${copies.length} bare js capture(s) of ${specs.size} spec(s) into "${wrapper}".`));
+  });
 }

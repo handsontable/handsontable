@@ -5,7 +5,6 @@ import PageHolder from './page-holder';
 import { CLASSIC, CROSS_BROWSERS, JS_VARIANTS, REFERENCE_FRAMEWORK, WRAPPERS } from './config.mjs';
 import {
   VISUAL_VARIANTS_ANNOTATION,
-  WRAPPERS_REASON_UNAUDITED,
   isDeclared,
   normalizeDeclaration,
 } from '../lib/visual-declarations.mjs';
@@ -742,5 +741,4 @@ export {
   JS_VARIANTS,
   WRAPPERS,
   CROSS_BROWSERS,
-  WRAPPERS_REASON_UNAUDITED,
 };
