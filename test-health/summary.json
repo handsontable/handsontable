@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-09T10:16:52.804Z",
+  "generatedAt": "2026-10-09T10:20:24.589Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -13625,7 +13625,7 @@
       "file": "visual-tests/tests/cross-browser/columns-filter.spec.ts",
       "line": null,
       "title": "columns-filter-2",
-      "count7": 1,
+      "count7": 0,
       "count30": 1,
       "countAll": 1,
       "runs30": 1,
