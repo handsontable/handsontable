@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-09T12:58:58.012Z",
+  "generatedAt": "2026-10-09T13:09:43.786Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 374,
+    "tests": 375,
     "needsTicket": 19,
     "quarantined": 0,
-    "entries": 1938
+    "entries": 1939
   },
   "rows": [
     {
@@ -12533,6 +12533,39 @@
         "leg": "e2e-main",
         "status": "flaky",
         "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/merge-cells-drag-outside.spec.ts|drag-selecting out of the grid over a merge › a vertical merge › ends the selection on the row beside the pointer, inside the merged band",
+      "tier": "playwright",
+      "file": "e2e/merge-cells-drag-outside.spec.ts",
+      "line": 35,
+      "title": "drag-selecting out of the grid over a merge › a vertical merge › ends the selection on the row beside the pointer, inside the merged band",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-firefox"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-09T13:08:47Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37930727206",
+        "branch": "feature/DEV-2123_Unify-merge-aware-pointer-to-row-mapping",
+        "leg": "e2e-firefox",
+        "status": "failed",
+        "error": "Error: expect(received).toEqual(expected) // deep equality",
         "source": "ci"
       },
       "needsTicket": false

@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-09T12:58:58.012Z",
+  "updatedAt": "2026-10-09T13:09:43.786Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-firefox",
+      "file": "e2e/merge-cells-drag-outside.spec.ts",
+      "line": 35,
+      "title": "drag-selecting out of the grid over a merge › a vertical merge › ends the selection on the row beside the pointer, inside the merged band",
+      "status": "failed",
+      "attempts": 2,
+      "error": "Error: expect(received).toEqual(expected) // deep equality",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "37930727206",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37930727206",
+      "workflow": "Tests",
+      "branch": "feature/DEV-2123_Unify-merge-aware-pointer-to-row-mapping",
+      "headSha": "47fd0b2082cb4addcba922f3d3bd405f3181094e",
+      "event": "pull_request",
+      "seenAt": "2026-10-09T13:08:47Z"
+    },
     {
       "tier": "jasmine",
       "leg": "UMD (theme: classic)",
