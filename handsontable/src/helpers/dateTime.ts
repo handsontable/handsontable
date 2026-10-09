@@ -202,3 +202,43 @@ export function isSameLocalDay(a: Date, b: Date): boolean {
     a.getMonth() === b.getMonth() &&
     a.getDate() === b.getDate();
 }
+
+const dateTimeFormatCache = new Map<unknown, Map<string, Intl.DateTimeFormat>>();
+
+/**
+ * Returns an `Intl.DateTimeFormat` for the locale and options, built once and reused. Building one
+ * is far slower than formatting with it, and a renderer's formatter runs for every cell value,
+ * including every row AutoColumnSize samples.
+ *
+ * The locale is a key of its own, so a value `Intl` rejects (`''`, `null`) keeps throwing whatever
+ * was formatted before it. The options are keyed by value, so an options object changed in place
+ * gets a formatter of its own (only their own enumerable properties are read, so pass a plain
+ * object). The current UTC offset is part of the key too: a formatter without a `timeZone` option
+ * keeps the zone it was built in, and the renderers parse values to local time, so a time zone
+ * change made while the page is open would otherwise render every date one day off.
+ *
+ * @param {string|undefined} locale The BCP 47 locale tag, `undefined` for the default locale.
+ * @param {Intl.DateTimeFormatOptions} options The format options.
+ * @returns {Intl.DateTimeFormat}
+ */
+export function getDateTimeFormat(
+  locale: string | undefined,
+  options: Intl.DateTimeFormatOptions,
+): Intl.DateTimeFormat {
+  let localeFormatters = dateTimeFormatCache.get(locale);
+
+  if (localeFormatters === undefined) {
+    localeFormatters = new Map();
+    dateTimeFormatCache.set(locale, localeFormatters);
+  }
+
+  const cacheKey = `${new Date().getTimezoneOffset()}:${JSON.stringify(options)}`;
+  let formatter = localeFormatters.get(cacheKey);
+
+  if (formatter === undefined) {
+    formatter = new Intl.DateTimeFormat(locale, options);
+    localeFormatters.set(cacheKey, formatter);
+  }
+
+  return formatter;
+}

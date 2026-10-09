@@ -9,6 +9,7 @@ import {
   ISO_DATETIME_REGEX,
   parseToLocalDateTime,
   isValidISODateTime,
+  getDateTimeFormat,
 } from 'handsontable/helpers/dateTime';
 
 describe('Date helper', () => {
@@ -346,6 +347,98 @@ describe('dateTime datetime helpers', () => {
 
     it('is false for non-strings', () => {
       expect(isValidISODateTime(20240315)).toBe(false);
+    });
+  });
+
+  describe('getDateTimeFormat', () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('returns the same formatter for the same locale and equal options', () => {
+      const formatter = getDateTimeFormat('en-US', { year: 'numeric', month: '2-digit' });
+
+      expect(getDateTimeFormat('en-US', { year: 'numeric', month: '2-digit' })).toBe(formatter);
+    });
+
+    it('builds the formatter only once for repeated calls', () => {
+      const options = { year: 'numeric', month: 'short', day: '2-digit' };
+
+      getDateTimeFormat('en-GB', options);
+
+      const constructorSpy = jest.spyOn(Intl, 'DateTimeFormat');
+
+      for (let i = 0; i < 100; i++) {
+        getDateTimeFormat('en-GB', { ...options });
+      }
+
+      expect(constructorSpy).not.toHaveBeenCalled();
+    });
+
+    it('returns a formatter that formats like a new Intl.DateTimeFormat', () => {
+      const date = new Date(2024, 11, 25, 14, 30);
+      const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+
+      expect(getDateTimeFormat('de-DE', options).format(date))
+        .toBe(new Intl.DateTimeFormat('de-DE', options).format(date));
+      expect(getDateTimeFormat(undefined, options).format(date))
+        .toBe(new Intl.DateTimeFormat(undefined, options).format(date));
+    });
+
+    it('returns separate formatters for other locales and other options', () => {
+      const date = new Date(2024, 11, 25);
+      const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+
+      expect(getDateTimeFormat('en-US', options).format(date)).toBe('12/25/2024');
+      expect(getDateTimeFormat('de-DE', options).format(date)).toBe('25.12.2024');
+      expect(getDateTimeFormat('en-US', { ...options, month: 'long' }).format(date)).toBe('December 25, 2024');
+      expect(getDateTimeFormat(undefined, options)).not.toBe(getDateTimeFormat('en-US', options));
+    });
+
+    it('follows an options object changed in place', () => {
+      const date = new Date(2024, 11, 25);
+      const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+
+      expect(getDateTimeFormat('en-US', options).format(date)).toBe('12/25/2024');
+
+      options.month = 'long';
+
+      expect(getDateTimeFormat('en-US', options).format(date)).toBe('December 25, 2024');
+    });
+
+    it('returns separate formatters for other time zones in the options', () => {
+      const date = new Date(Date.UTC(2024, 11, 25, 20, 0));
+      const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+
+      expect(getDateTimeFormat('en-US', { ...options, timeZone: 'UTC' }).format(date)).toBe('12/25/2024');
+      expect(getDateTimeFormat('en-US', { ...options, timeZone: 'Asia/Tokyo' }).format(date)).toBe('12/26/2024');
+    });
+
+    it('builds a new formatter when the UTC offset changes while the page is open', () => {
+      // A formatter without a `timeZone` option keeps the zone it was built in, while the renderers
+      // parse values to the current local time, so a time zone change must not reuse it.
+      const options = { year: 'numeric', month: 'narrow', day: 'numeric' };
+      const offsetSpy = jest.spyOn(Date.prototype, 'getTimezoneOffset').mockReturnValue(300);
+      const formatter = getDateTimeFormat('en-US', options);
+
+      offsetSpy.mockReturnValue(-540);
+
+      const constructorSpy = jest.spyOn(Intl, 'DateTimeFormat');
+
+      expect(getDateTimeFormat('en-US', options)).not.toBe(formatter);
+      expect(constructorSpy).toHaveBeenCalledTimes(1);
+
+      offsetSpy.mockReturnValue(300);
+
+      expect(getDateTimeFormat('en-US', options)).toBe(formatter);
+    });
+
+    it('keeps rejecting a locale Intl rejects, whatever was formatted before', () => {
+      const options = { year: 'numeric' };
+
+      getDateTimeFormat(undefined, options);
+
+      expect(() => getDateTimeFormat('', options)).toThrowError(RangeError);
     });
   });
 });
