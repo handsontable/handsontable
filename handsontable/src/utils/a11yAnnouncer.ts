@@ -3,7 +3,7 @@
  */
 let announcerElement: HTMLElement | null = null;
 let politeAnnouncerElement: HTMLElement | null = null;
-let installCounter = 0;
+const installedPortals: HTMLElement[] = [];
 
 /**
  * How urgently an announcement interrupts the screen reader. `assertive` interrupts the current
@@ -55,25 +55,42 @@ export function install(rootPortalElement: HTMLElement) {
     rootPortalElement.append(announcerElement, politeAnnouncerElement);
   }
 
-  installCounter += 1;
+  installedPortals.push(rootPortalElement);
 }
 
 /**
  * Uninstalls the a11y announcer elements once the last instance that installed them is gone.
+ *
+ * The regions live in the portal of the instance that installed them first, and that portal is
+ * removed when its instance is destroyed. When other instances remain, the regions move to the
+ * portal of one of them, so an announcement made later still reaches the document.
+ *
+ * @param {HTMLElement} [rootPortalElement] The root portal element of the instance being destroyed.
+ * Without it, the most recent installation is released.
  */
-export function uninstall() {
-  if (installCounter === 0) {
+export function uninstall(rootPortalElement?: HTMLElement) {
+  if (installedPortals.length === 0) {
     return;
   }
 
-  if (installCounter === 1) {
+  const index = rootPortalElement ? installedPortals.lastIndexOf(rootPortalElement) : -1;
+
+  installedPortals.splice(index === -1 ? installedPortals.length - 1 : index, 1);
+
+  if (installedPortals.length === 0) {
     announcerElement!.remove();
     announcerElement = null;
     politeAnnouncerElement!.remove();
     politeAnnouncerElement = null;
+
+    return;
   }
 
-  installCounter -= 1;
+  const currentPortal = announcerElement!.parentElement;
+
+  if (!currentPortal || !installedPortals.includes(currentPortal)) {
+    installedPortals[0].append(announcerElement!, politeAnnouncerElement!);
+  }
 }
 
 /**

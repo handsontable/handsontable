@@ -105,11 +105,13 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
 
   /**
    * How many treegrid row attributes the grid writes or removes during one synchronous action:
-   * a plain repaint, or a collapse of the first parent.
+   * a plain repaint, a collapse of the first parent, or a rebuild of the plugin.
    *
-   * @param action `'render'` repaints the grid, `'collapse'` collapses visual row 0.
+   * @param action `'render'` repaints the grid, `'collapse'` collapses visual row 0, and
+   * `'rebuild'` sends `{ nestedRows: true }` through `updateSettings()`, which tears the plugin down
+   * and builds it again, as every re-render in React does.
    */
-  rowAttributeWritesDuring(action: 'render' | 'collapse'): Promise<number> {
+  rowAttributeWritesDuring(action: 'render' | 'collapse' | 'rebuild'): Promise<number> {
     return this.page.evaluate((name) => {
       const observer = new MutationObserver(() => {});
 
@@ -121,6 +123,8 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
 
       if (name === 'render') {
         window.hot.render();
+      } else if (name === 'rebuild') {
+        window.hot.updateSettings({ nestedRows: true });
       } else {
         window.hot.getPlugin('nestedRows').collapseParent(0);
       }
@@ -156,6 +160,39 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
   async selectRowHeader(row: number): Promise<void> {
     await this.page.evaluate(visualRow => window.hot.selectCell(visualRow, -1), row);
     await expect.poll(() => this.selectedCell()).toEqual([row, -1]);
+  }
+
+  /**
+   * Click the label of a row header, the way a user selects a whole row. The label is aimed at
+   * rather than the middle of the header, because a parent's header carries the collapse button.
+   *
+   * @param row Visual row index.
+   */
+  async clickRowHeaderLabel(row: number): Promise<void> {
+    await this.page.locator('[data-testid="grid"] .ht_clone_inline_start tbody tr').nth(row)
+      .locator('th .rowHeader').click();
+    await expect.poll(() => this.selectedCell()).toEqual([row, -1]);
+  }
+
+  /**
+   * The active selection range as `[fromRow, fromColumn, toRow, toColumn]`.
+   */
+  activeRange(): Promise<[number, number, number, number]> {
+    return this.page.evaluate(() => {
+      const range = window.hot.getSelectedRangeActive()!;
+
+      return [range.from.row!, range.from.col!, range.to.row!, range.to.col!];
+    });
+  }
+
+  /**
+   * Put a stale treegrid attribute on the first rendered row, to tell whether a later step walks
+   * the rows and clears it.
+   */
+  async markFirstRowStale(): Promise<void> {
+    await this.page.evaluate(() => {
+      document.querySelector('[data-testid="grid"] .ht_master tbody tr')!.setAttribute('aria-level', '9');
+    });
   }
 
   /**

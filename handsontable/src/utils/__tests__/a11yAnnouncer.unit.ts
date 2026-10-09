@@ -110,6 +110,51 @@ describe('a11yAnnouncer', () => {
     portalElement.remove();
   });
 
+  it('should move both regions to a remaining instance\'s portal when the instance holding them is gone', () => {
+    const firstPortal = document.createElement('div');
+    const secondPortal = document.createElement('div');
+
+    document.body.append(firstPortal, secondPortal);
+    install(firstPortal);
+    install(secondPortal);
+
+    uninstall(firstPortal);
+    firstPortal.remove();
+
+    expect(firstPortal.childElementCount).toBe(0);
+    expect(secondPortal.childElementCount).toBe(2);
+
+    announce('Collapsed row 1', 'polite');
+    jest.runAllTimers();
+
+    const politeRegion = secondPortal.querySelector('[aria-live="polite"]');
+
+    expect(politeRegion.isConnected).toBe(true);
+    expect(politeRegion.textContent).toBe('Collapsed row 1');
+
+    uninstall(secondPortal);
+
+    expect(secondPortal.childElementCount).toBe(0);
+
+    secondPortal.remove();
+  });
+
+  it('should leave the regions in place when an instance that does not hold them is gone', () => {
+    const firstPortal = document.createElement('div');
+    const secondPortal = document.createElement('div');
+
+    install(firstPortal);
+    install(secondPortal);
+
+    uninstall(secondPortal);
+
+    expect(firstPortal.childElementCount).toBe(2);
+
+    uninstall(firstPortal);
+
+    expect(firstPortal.childElementCount).toBe(0);
+  });
+
   it('should not write a pending announcement into a region removed before the timeout', () => {
     const portalElement = document.createElement('div');
 

@@ -1,4 +1,5 @@
 import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
+import type { GridSettings } from '../../core/settings';
 import { BasePlugin } from '../base';
 import DataManager, { isNestedRowsShape, type RowObject } from './data/dataManager';
 import CollapsingUI from './ui/collapsing';
@@ -145,6 +146,15 @@ export class NestedRows extends BasePlugin {
   #stashedParentPaths: number[][] | null = null;
 
   /**
+   * `true` while `updatePlugin()` tears the plugin down only to build it again. The treegrid row
+   * attributes stay on the rows then: the next draw writes only the values that changed, so a
+   * rebuild of an unchanged tree - every re-render in React - touches none of them.
+   *
+   * @type {boolean}
+   */
+  #isRebuilding = false;
+
+  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link NestedRows#enablePlugin} method is called.
    *
@@ -225,6 +235,10 @@ export class NestedRows extends BasePlugin {
     this.collapsingUI?.releaseGridTrackingFits(true);
 
     this.headersUI!.removeRenderedLevelIndicators();
+
+    if (!this.#isRebuilding) {
+      this.headersUI!.removeRenderedRowAttributes();
+    }
   }
 
   /**
@@ -244,7 +258,9 @@ export class NestedRows extends BasePlugin {
     // which, in React, is every parent re-render.
     const collapsedParents = this.collapsingUI?.getCollapsedParents() ?? [];
 
+    this.#isRebuilding = true;
     this.disablePlugin();
+    this.#isRebuilding = false;
 
     // We store a state of the data manager.
     let currentSourceData = this.dataManager!.getData();
@@ -257,6 +273,8 @@ export class NestedRows extends BasePlugin {
       // ran inside `BasePlugin#onUpdateSettings`, so this only skips the rebuild, not the whole
       // build-up.
       if (!this.#acceptsData(currentSourceData)) {
+        this.headersUI!.removeRenderedRowAttributes();
+
         return;
       }
     }
@@ -1180,7 +1198,11 @@ export class NestedRows extends BasePlugin {
 
   /**
    * Returns the visual row of the row header that holds the focus, or `null` when the focus is
-   * anywhere else - on a cell, on a column header, or on a multi-cell selection.
+   * anywhere else - on a cell, on a column header, or on a selection of several rows.
+   *
+   * A click on a row header selects the whole row: the highlight sits on the header, and the range
+   * runs to the last column. That still counts as a focused row header, so the keys answer the same
+   * way whether the header was reached by a click or by the keyboard.
    *
    * The Ctrl/Cmd+arrow chords claim the key whenever this answers a row, even while an overlay
    * covers the grid body, so they never fall through to the grid's jump to the row's edge: that
@@ -1193,8 +1215,9 @@ export class NestedRows extends BasePlugin {
     const activeRange = this.hot.getSelectedRangeActive();
     const highlight = activeRange?.highlight;
 
-    if (!highlight || !activeRange.isSingle() || !this.hot.selection.isCellVisible(highlight) ||
-        highlight.col !== -1 || highlight.row === null || highlight.row < 0) {
+    if (!highlight || !this.hot.selection.isCellVisible(highlight) ||
+        highlight.col !== -1 || highlight.row === null || highlight.row < 0 ||
+        activeRange.from.row !== highlight.row || activeRange.to.row !== highlight.row) {
       return null;
     }
 
@@ -1296,10 +1319,13 @@ export class NestedRows extends BasePlugin {
   /**
    * `afterUpdateSettings` hook callback. The treegrid row attributes are written from
    * `afterGetRowHeader`, which stops firing once `rowHeaders` is switched off, so the rows rendered
-   * until then are cleared here.
+   * until then are cleared here. Only a call that names `rowHeaders` can switch them off, so any
+   * other call skips the walk.
+   *
+   * @param {object} newSettings The settings object passed to `updateSettings()`.
    */
-  #onAfterUpdateSettings = () => {
-    if (!this.hot.hasRowHeaders()) {
+  #onAfterUpdateSettings = (newSettings: Partial<GridSettings>) => {
+    if ('rowHeaders' in newSettings && !this.hot.hasRowHeaders()) {
       this.headersUI!.removeRenderedRowAttributes();
     }
   };

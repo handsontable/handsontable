@@ -63,7 +63,47 @@ test.describe('NestedRows treegrid accessibility', () => {
     await expect.poll(() => nestedRows.countRowsWithTreegridAttributes()).toBeGreaterThan(0);
 
     expect(await nestedRows.rowAttributeWritesDuring('render')).toBe(0);
+    expect(await nestedRows.rowAttributeWritesDuring('rebuild')).toBe(0);
     expect(await nestedRows.rowAttributeWritesDuring('collapse')).toBeGreaterThan(0);
+  });
+
+  test('a row header selected by a click answers Ctrl/Cmd+arrows and Enter', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
+
+    await nestedRows.goto();
+    await nestedRows.callPlugin('collapseParent', 0);
+    await nestedRows.clickRowHeaderLabel(0);
+
+    const [fromRow, , toRow, toColumn] = await nestedRows.activeRange();
+
+    expect([fromRow, toRow]).toEqual([0, 0]);
+    expect(toColumn).toBeGreaterThan(0);
+
+    await page.keyboard.press('ControlOrMeta+ArrowRight');
+
+    await expect.poll(() => nestedRows.visibleNames()).toEqual(FULL_TREE);
+    expect(await nestedRows.selectedCell()).toEqual([0, -1]);
+
+    await page.keyboard.press('Enter');
+
+    await expect.poll(() => nestedRows.visibleNames()).toEqual(ROOT_A_COLLAPSED);
+  });
+
+  test('an updateSettings() call that does not name rowHeaders leaves the rows alone', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
+
+    await nestedRows.goto();
+    await nestedRows.updateSettings({ rowHeaders: false });
+    await expect.poll(() => nestedRows.countRowsWithTreegridAttributes()).toBe(0);
+
+    await nestedRows.markFirstRowStale();
+    await nestedRows.updateSettings({ colHeaders: true });
+
+    expect(await nestedRows.countRowsWithTreegridAttributes()).toBe(1);
+
+    await nestedRows.updateSettings({ rowHeaders: false });
+
+    expect(await nestedRows.countRowsWithTreegridAttributes()).toBe(0);
   });
 
   test('collapsing with the row header button updates the attributes and announces it politely',

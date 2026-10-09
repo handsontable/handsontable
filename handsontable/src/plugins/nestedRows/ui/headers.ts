@@ -318,8 +318,7 @@ class HeadersUI extends BaseUI {
   }
 
   /**
-   * Removes the nesting-level indicators from every row header this instance has rendered, and the
-   * treegrid attributes from every row.
+   * Removes the nesting-level indicators from every row header this instance has rendered.
    *
    * Walks the DOM rather than resolving coordinates. A row header is painted in the master table and
    * in every overlay that covers its row - up to four copies for a frozen row - and `getCell()` can
@@ -341,8 +340,6 @@ class HeadersUI extends BaseUI {
         this.removeLevelIndicators(TH);
       }
     });
-
-    this.removeRenderedRowAttributes();
   }
 
   /**

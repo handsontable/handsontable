@@ -612,9 +612,13 @@ row semantics. Six things look simpler than they are.
   know clears them. The writer compares before it writes (`writeRowAttributes()`): it runs on every
   header paint, in every overlay copy, and a same-value `setAttribute()` is still a DOM mutation
   that assistive technologies re-read on each scroll. Two cleanups exist because the writer is a header hook. `disablePlugin()` walks
-  `tbody tr` (`removeRenderedRowAttributes()`), not the headers. And `afterUpdateSettings` clears the
-  rows once `rowHeaders` is off, because `afterGetRowHeader` stops firing then while the recycled
-  `TR` elements keep what they carried (both pinned in `tests/e2e/nested-rows-treegrid-a11y.spec.ts`).
+  `tbody tr` (`removeRenderedRowAttributes()`), not the headers, and skips it while `updatePlugin()`
+  rebuilds (`#isRebuilding`): a rebuild runs on every React re-render, and stripping there made the
+  next draw write every attribute back. A rebuild that stops on invalid data clears them itself.
+  And `afterUpdateSettings` clears the rows once `rowHeaders` is off, because `afterGetRowHeader`
+  stops firing then while the recycled `TR` elements keep what they carried - but only on a call
+  whose payload names `rowHeaders`, so a grid without row headers does not walk its rows on every
+  commit (all pinned in `tests/e2e/nested-rows-treegrid-a11y.spec.ts`).
   A grid without `rowHeaders` therefore gets no row attributes at all - it has no button and no
   focusable header either - and every overlay copy of a row gets identical attributes.
 - **The sibling position comes from the flatten cache, never from `indexOf`, and it counts the
@@ -628,7 +632,9 @@ row semantics. Six things look simpler than they are.
   wraps the choke point and announces through the shared announcer's POLITE region
   (`announce(message, 'polite')`). Both regions are created in `install()`: some screen readers ignore
   the first update of a live region added to the page a moment earlier, so a region made on the first
-  announcement could swallow it. The public methods stay silent on purpose: an app
+  announcement could swallow it. They live in the portal of the first grid that installed them, and
+  `Core#destroy()` removes that portal, so `uninstall(rootPortalElement)` moves them into a remaining
+  grid's portal; without that, a second grid's announcements went into a detached node. The public methods stay silent on purpose: an app
   driving them knows what it changed, and `collapseAll()` would queue one message per parent. The
   `ariaTags: false` grid announces nothing. The row is named by the TEXT its rendered header shows
   (`getCell(row, -1)` and its `.rowHeader` span), never by `getRowHeader()`: a header configured as
@@ -657,7 +663,10 @@ row semantics. Six things look simpler than they are.
   walk to a parent declines when the parent is not RENDERED: `toVisualRow()` catches a trimmed
   parent, but a parent `HiddenRows` hides keeps its visual index, and `selectCell()` there parked the
   focus on an invisible header, after which every treegrid key stopped answering. The keys act only on
-  a focused row header (`navigableHeaders`), like <kbd>Enter</kbd>, and none of them acts while an
+  a focused row header (`navigableHeaders`), like <kbd>Enter</kbd>. A click on the header counts:
+  it selects the whole row, so the range runs to the last column and `isSingle()` is false, which
+  is why `#getFocusedRowHeaderRow()` asks for a range of that one row instead. A selection of
+  several rows still declines, as `__tests__/keyboardShortcuts.spec.js` pins for <kbd>Enter</kbd>. None of them acts while an
   overlay covers the grid body (`isGridBodyCovered()` in `#getFocusedRowHeader()`). The chords still
   CLAIM the key there: their `runOnlyIf` reads `#getFocusedRowHeaderRow()`, which skips the covered
   check, and the callback gets `null` from `#getTreeArrowCommand()`. Gating `runOnlyIf` on the
