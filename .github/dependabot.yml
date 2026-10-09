@@ -1,17 +1,44 @@
 version: 2
 updates:
-  # @playwright/test is declared once, in the pnpm catalog (pnpm-workspace.yaml),
-  # and the only lockfile is the root pnpm-lock.yaml — so Dependabot must watch
-  # the workspace root, not a leaf package (a leaf directory has no lockfile,
-  # which made Dependabot open manifest-only PRs that failed the frozen-lockfile
-  # install; see PR #13152). Merging a Playwright bump requires moving the
-  # container tag in .github/workflows/e2e.yml (mcr.microsoft.com/playwright)
-  # to the same version in the same PR — the catalog and the image bump
-  # together, never apart. performance-tests/ (npm-managed, own package-lock)
-  # is bumped by hand in lockstep.
+  # Security updates only, for every committed lockfile. `allow` and `ignore`
+  # filter security updates too, not just version updates, so an `allow` list
+  # here silently stops fix PRs for every alert outside it — the earlier
+  # `allow: @playwright/test` did exactly that. `open-pull-requests-limit: 0`
+  # turns version updates off and leaves security updates on (they have no PR
+  # limit). Each block groups its fixes into one PR per directory.
+  #
+  # Every `directory`/`directories` entry must hold a committed lockfile: a
+  # directory without one makes Dependabot open manifest-only PRs that fail the
+  # frozen-lockfile install (PR #13152). `dependabot-coverage.test.mjs` pins
+  # both rules.
+  #
+  # @playwright/test is bumped by hand: the pnpm catalog version and the
+  # mcr.microsoft.com/playwright tag in .github/workflows/e2e.yml move together
+  # in one PR, which Dependabot cannot do (playwright-version-sync.test.mjs).
+
+  # The pnpm workspace: one root pnpm-lock.yaml covers every workspace package.
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
-    allow:
-      - dependency-name: "@playwright/test"
+    open-pull-requests-limit: 0
+    groups:
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  # Separate npm trees with their own package-lock.json, outside pnpm.overrides.
+  - package-ecosystem: "npm"
+    directories:
+      - "/performance-tests"
+      - "/examples/next/docs/*"
+      - "/examples/next/visual-tests/*"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
+    groups:
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
