@@ -8,6 +8,14 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 - The bridge to core Handsontable is `src/tableView.ts` (TableView class)
 - Plugins must NEVER access Walkontable internals directly - always go through TableView
 - Do not import core Handsontable modules from Walkontable code
+- **The pointer-to-cell lookup is shared with the core.** `findRowAtY`, `findColumnAtX`, `findRowReferenceColumn`
+  and `findColumnReferenceRow` live in `helpers/dom/cellMeasure.ts` and reach the grid only through the
+  `CellMeasurer` seam. `utils/pointerToCoords.ts` (renderable indexes, spans read from the rendered cell's
+  `rowSpan`/`colSpan`, because Walkontable has no cell meta) and `helpers/dom/cellCoords.ts` (visual indexes, spans
+  read from the cell meta) each build their own measurer. Fix a merge-related lookup bug there once, not in either
+  caller. A slave of a merge resolves to the anchor's element, so measuring a merged column adds the band's full
+  height once per slave: each band is measured against a column (or row) no merge spans. The lookup runs on every
+  pointer move of a held drag, so the reference scan must stay inside the rendered rows and columns.
 - `Core#getRowHeight` is the provided height only (`rowHeights` / ManualRowResize / AutoRowSize). Walkontable layout uses `max(provided, wtViewport.oversizedRows[renderable])`. Handsontable code that must match that measurement goes through `getRenderedRowHeight` in `src/core/viewportScroll/scrollStrategies/singleScroll.ts` (visual → renderable → `wtTable.getRowHeight`) — never `hot.view._wt.wtViewport.oversizedRows` (Law of Demeter) and never `Core#getRowHeight` alone. Content-tall rows without those plugins keep `getRowHeight` at `undefined`. Forced mouse start-snap on an oversized axis bypasses Walkontable's auto-snap frozen-row/column guard, so frozen start columns and frozen top/bottom rows must not count as oversized.
 
 ## Dependency injection & DOM reads (mandatory)

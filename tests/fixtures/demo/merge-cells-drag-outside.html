@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MergeCells drag out of the grid fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    // The merge the drag crosses: `vertical` is a column-0 band over rows 3-8, `horizontal` a row-0 band over
+    // columns A-C.
+    window.htScenario = ({ vertical: 'vertical', horizontal: 'horizontal' })[htParams.get('scenario') ?? 'vertical'];
+    if (!window.htScenario) {
+      throw new Error('Unknown ?scenario= value: ' + JSON.stringify(htParams.get('scenario')));
+    }
+  </script>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const settings = {
+      data: Array.from({ length: 10 }, (unused, row) =>
+        Array.from({ length: 5 }, (unusedCol, column) => `${String.fromCharCode(65 + column)}${row + 1}`)),
+      rowHeaders: true,
+      colHeaders: true,
+      width: 500,
+      height: 520,
+      mergeCells: window.htScenario === 'vertical' ?
+        [{ row: 2, col: 0, rowspan: 6, colspan: 1 }] :
+        [{ row: 0, col: 0, rowspan: 1, colspan: 3 }],
+      // Nothing scrolls, and the auto-scroll must not take part: the selection follows a pointer that
+      // left the grid only through the cell lookup of the table's own mouse handling.
+      dragToScroll: false,
+      afterRenderer(td, row, col) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    };
+
+    window.hot = new Handsontable(container, settings);
+
+  </script>
+</body>
+</html>
