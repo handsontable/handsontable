@@ -147,10 +147,18 @@ function computeEmptyDataStateHeight(view: ViewInstance, cols: number, headerCol
     } else {
       height = view.hot.getTableHeight();
     }
-  } else if (headerCols > 0 && cols > 0) {
-    height = view.getViewportHeight() - scrollbarSize;
-  } else if (headerCols > 0 && cols === 0) {
-    height = view.getWorkspaceHeight() - scrollbarSize;
+  } else if (headerCols > 0) {
+    // The workspace and the viewport are measured on the container that clips the grid, which is
+    // taller than a `height: 'auto'` grid when it holds more than the grid. The overlay must not
+    // reach past the root's own box. A root with no box (hidden) has nothing to cap against.
+    const rootHeight = view.hot.getTableHeight();
+    const measured = cols > 0 ? view.getViewportHeight() : view.getWorkspaceHeight();
+
+    height = measured - scrollbarSize;
+
+    if (rootHeight > 0) {
+      height = Math.min(height, Math.max(0, rootHeight - (cols > 0 ? view.getColumnHeaderHeight() : 0)));
+    }
   }
 
   return height;
