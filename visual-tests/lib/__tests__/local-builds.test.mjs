@@ -130,7 +130,7 @@ function makeRepo(t, { parent = tmpdir() } = {}) {
   write(join(demo('angular-wrapper'), 'package.json'),
     { dependencies: { handsontable: 'latest', '@handsontable/angular-wrapper': 'latest' } });
   // The framework directory's own manifest, the npm workspace root the demo sits in.
-  write(join(frameworkDir('js'), 'package.json'), { name: 'examples-js', workspaces: ['@(!(node_modules))/'] });
+  write(join(frameworkDir('js'), 'package.json'), { name: 'examples-js', workspaces: ['*'] });
 
   // What the linker writes: absolute links to the pnpm links, under each framework directory, and for Angular
   // under the demo too, for every package it linked at the framework level.
