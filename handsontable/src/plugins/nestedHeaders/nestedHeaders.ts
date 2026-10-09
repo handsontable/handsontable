@@ -1228,11 +1228,19 @@ export class NestedHeaders extends BasePlugin {
       return;
     }
 
-    this.#focusInitialCoords = { row: coords.row, col: coords.col, clone: () => coords.clone() };
-    this.#isColumnsSelectionInProgress = true;
-
     const { selection } = this.hot;
     const currentSelection = selection.isSelected() ? selection.getSelectedRange().current() : null;
+    const anchor = currentSelection?.highlight.clone();
+
+    // A Shift+click extends the range, so the focus stays on the header the range started from.
+    if (event.shiftKey && typeof anchor?.row === 'number' && typeof anchor.col === 'number' && anchor.row < 0) {
+      this.#focusInitialCoords = { row: anchor.row, col: anchor.col, clone: () => anchor.clone() };
+
+    } else {
+      this.#focusInitialCoords = { row: coords.row, col: coords.col, clone: () => coords.clone() };
+    }
+
+    this.#isColumnsSelectionInProgress = true;
     let columnsToSelect: [number, number, number] | null = null;
     const {
       columnIndex,

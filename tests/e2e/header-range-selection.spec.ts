@@ -162,18 +162,33 @@ test.describe('a header click and a Shift+click select the range between them', 
     });
   }
 
-  // On a grid with nested headers and navigableHeaders, NestedHeaders records the pressed header as
-  // the focus to restore on every mousedown, a Shift+click included (`#focusInitialCoords`, set in
-  // `#onAfterOnCellMouseDown`), and `#onBeforeSelectionHighlightSet` moves the focus there, so a
-  // Shift+click moves it to the clicked header. A drag across the headers and Shift+ArrowRight keep it
-  // on the first one. The nested-rows shape has navigableHeaders over a single header row and keeps
-  // the focus on the header the range started from, and so do this shape's row headers.
-  // eslint-disable-next-line no-restricted-syntax -- DEV-3261: a Shift+click on a nested column header moves the focus to the clicked header
-  test.fixme('keeps the focus on the first column header of a range on the /nested-headers-demo shape', async() => {
+  // On a grid with nested headers and navigableHeaders, a Shift+click keeps the focus on the header
+  // the range started from, like a drag across the headers, Shift+ArrowRight, the nested-rows shape
+  // (navigableHeaders over a single header row) and this shape's row headers.
+  test('keeps the focus on the first column header of a range on the /nested-headers-demo shape', async() => {
     await grid.goto('nested-headers');
 
     await grid.clickColumnHeader(2);
     await grid.clickColumnHeader(5, ['Shift']);
+
+    expect(await grid.focus()).toEqual({ row: -1, col: 2 });
+  });
+
+  test('keeps the focus on the first column header when the Shift+click lands to its left on the /nested-headers-demo shape', async() => {
+    await grid.goto('nested-headers');
+
+    await grid.clickColumnHeader(5);
+    await grid.clickColumnHeader(2, ['Shift']);
+
+    expect(await grid.focus()).toEqual({ row: -1, col: 5 });
+  });
+
+  test('keeps the focus on the first column header after a second Shift+click on the /nested-headers-demo shape', async() => {
+    await grid.goto('nested-headers');
+
+    await grid.clickColumnHeader(2);
+    await grid.clickColumnHeader(5, ['Shift']);
+    await grid.clickColumnHeader(7, ['Shift']);
 
     expect(await grid.focus()).toEqual({ row: -1, col: 2 });
   });

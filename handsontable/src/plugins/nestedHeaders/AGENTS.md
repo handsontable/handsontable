@@ -178,6 +178,16 @@ in `handsontable/src/selection/selection.ts`) will silently paint its class onto
 of the group cell until this hook is taught about it too (DEV-3012 added `COLUMN_TYPE` for
 `currentColClassName`).
 
+## A Shift+click must not overwrite the focus anchor (`#focusInitialCoords`)
+
+`#onAfterOnCellMouseDown` records the pressed header in `#focusInitialCoords`, and with `navigableHeaders`
+`#onBeforeSelectionHighlightSet` moves the focus there. A Shift+click extends a range, so the focus has to
+stay on the header the range started from, as it does for a drag, Shift+ArrowRight and row headers.
+Recording the Shift-clicked header moved the focus to it. On a Shift+click the handler therefore keeps the
+current range's highlight as the anchor when that highlight sits in a header row, and falls back to the
+clicked header otherwise (the range started from a cell). The anchor is a snapshot, not the live highlight
+object, which the selection rewrites during the same click. Pinned by `tests/e2e/header-range-selection.spec.ts`.
+
 ## `fixedColumnsEnd`: a group that crosses the end line is drawn by the end clone
 
 The inline-end clone and the top inline-end corner render only the LAST `fixedColumnsEnd` columns, so their
