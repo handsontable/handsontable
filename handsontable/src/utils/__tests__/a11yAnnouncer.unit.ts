@@ -155,6 +155,25 @@ describe('a11yAnnouncer', () => {
     expect(firstPortal.childElementCount).toBe(0);
   });
 
+  it('should release nothing for a portal that never installed the announcer', () => {
+    const installedPortal = document.createElement('div');
+    const strayPortal = document.createElement('div');
+
+    install(installedPortal);
+    uninstall(strayPortal);
+
+    expect(installedPortal.childElementCount).toBe(2);
+
+    announce('Still announced', 'polite');
+    jest.runAllTimers();
+
+    expect(installedPortal.querySelector('[aria-live="polite"]').textContent).toBe('Still announced');
+
+    uninstall(installedPortal);
+
+    expect(installedPortal.childElementCount).toBe(0);
+  });
+
   it('should not write a pending announcement into a region removed before the timeout', () => {
     const portalElement = document.createElement('div');
 

@@ -66,16 +66,21 @@ export function install(rootPortalElement: HTMLElement) {
  * portal of one of them, so an announcement made later still reaches the document.
  *
  * @param {HTMLElement} [rootPortalElement] The root portal element of the instance being destroyed.
- * Without it, the most recent installation is released.
+ * Without it, the most recent installation is released. A portal that never installed the
+ * announcer - a grid destroyed before its initialization reached `install()` - releases nothing.
  */
 export function uninstall(rootPortalElement?: HTMLElement) {
   if (installedPortals.length === 0) {
     return;
   }
 
-  const index = rootPortalElement ? installedPortals.lastIndexOf(rootPortalElement) : -1;
+  const index = rootPortalElement ? installedPortals.lastIndexOf(rootPortalElement) : installedPortals.length - 1;
 
-  installedPortals.splice(index === -1 ? installedPortals.length - 1 : index, 1);
+  if (index === -1) {
+    return;
+  }
+
+  installedPortals.splice(index, 1);
 
   if (installedPortals.length === 0) {
     announcerElement!.remove();
