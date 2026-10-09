@@ -51,6 +51,13 @@ never through the public `setManualSize()` (that one opens an undo step of its o
 so the width floor has one home. A drag stores the width only on release - see "One press, one undo step" in
 `../../utils/manualResize/AGENTS.md`.
 
+## A stored width is the width without what other plugins add on render
+
+`HiddenColumns` adds 15px (the indicator) to a column next to a hidden one, after this plugin's `modifyColWidth`
+(order 1 against 2), so such a column renders 15px wider than `getManualSize()` says. `getRenderedOverhead` of the
+gesture owner reports that difference, so a drag stores the pointer travel on top of the stored width. A new plugin
+that pads a width the same way must be added to it, or its columns overshoot the drag (DEV-3276).
+
 ## The width floor is derived from the theme, and only for grids with a menu button (DEV-158)
 
 `#getMinWidth()` returns the room a header needs for its menu button, `--ht-icon-size + 2 *

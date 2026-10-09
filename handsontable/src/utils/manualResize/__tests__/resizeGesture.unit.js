@@ -456,6 +456,103 @@ describe('ResizeGesture', () => {
     });
   });
 
+  describe('a header that renders wider than the size the owner stores for it', () => {
+    // The header renders 80px wide, 15px of which the owner adds on every render, so it stores 65.
+    function createPadded(options) {
+      const grid = createGesture({ orientation: 'horizontal', ...options });
+
+      grid.owner.getRenderedOverhead = jest.fn(() => 15);
+      Object.defineProperty(grid.th, 'offsetWidth', { value: 80 });
+
+      return grid;
+    }
+
+    it('should ask the owner for the overhead of the header being resized', () => {
+      const { th, owner } = createPadded();
+
+      mouse('mouseover', th);
+
+      expect(owner.getRenderedOverhead).toHaveBeenCalledWith(3);
+    });
+
+    it('should store the pointer travel on top of the size without the overhead', () => {
+      const { th, handle, owner, hot } = createPadded();
+
+      mouse('mouseover', th);
+      mouse('mousedown', handle(), { pageX: 100 });
+      mouse('mousemove', window, { pageX: 130 });
+
+      expect(owner.clampSize).toHaveBeenLastCalledWith(95);
+
+      mouse('mouseup', window);
+
+      expect(owner.setManualSize).toHaveBeenLastCalledWith(3, 95);
+      expect(hot.runHooks).toHaveBeenCalledWith('afterTestResize', 95, 3, false);
+    });
+
+    it('should keep the handle on the rendered edge of the header', () => {
+      const { th, handle } = createPadded();
+
+      mouse('mouseover', th);
+
+      // The header starts at 50 and renders 80px wide: its end is 130, the handle is 6px before it.
+      expect(handle().style.left).toBe('124px');
+
+      mouse('mousedown', handle(), { pageX: 100 });
+      mouse('mousemove', window, { pageX: 130 });
+
+      expect(handle().style.left).toBe('154px');
+    });
+
+    it('should store nothing when the pointer does not move', () => {
+      const { th, handle, owner } = createPadded();
+
+      mouse('mouseover', th);
+      mouse('mousedown', handle(), { pageX: 100 });
+      mouse('mouseup', window);
+
+      expect(owner.setManualSize).not.toHaveBeenCalled();
+    });
+
+    it('should store the pointer travel on top of the size without the overhead for a header anchored to the inline end', () => {
+      const { th, handle, owner } = createPadded({ axis: { isAnchoredAtInlineEnd: () => true } });
+
+      mouse('mouseover', th);
+      mouse('mousedown', handle(), { pageX: 100 });
+      mouse('mousemove', window, { pageX: 70 });
+
+      // The handle stays on the inline-start edge, which moves with the pointer.
+      expect(handle().style.left).toBe('14px');
+
+      mouse('mouseup', window);
+
+      expect(owner.setManualSize).toHaveBeenLastCalledWith(3, 95);
+    });
+
+    it('should store the pointer travel on top of the size without the overhead under RTL', () => {
+      const { th, handle, owner } = createPadded({ rtl: true });
+
+      mouse('mouseover', th);
+      mouse('mousedown', handle(), { pageX: 100 });
+      mouse('mousemove', window, { pageX: 70 });
+      mouse('mouseup', window);
+
+      expect(owner.setManualSize).toHaveBeenLastCalledWith(3, 95);
+    });
+
+    it('should restore the size without the overhead when a before-resize hook cancels the drag', () => {
+      const { th, handle, owner, hot } = createPadded();
+
+      hot.runHooks.mockImplementation(hookName => (hookName === 'beforeTestResize' ? false : undefined));
+      mouse('mouseover', th);
+      mouse('mousedown', handle(), { pageX: 100 });
+      mouse('mousemove', window, { pageX: 130 });
+      mouse('mouseup', window);
+
+      expect(owner.setManualSize).toHaveBeenLastCalledWith(3, 65);
+    });
+  });
+
   describe('teardown (DEV-2719)', () => {
     it('should keep a drag in flight across detach(), so its mouseup still confirms the size', () => {
       // `updatePlugin()` runs `disablePlugin(); enablePlugin();` - and so `detach()` - on every

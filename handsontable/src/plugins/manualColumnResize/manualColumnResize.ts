@@ -96,6 +96,7 @@ export class ManualColumnResize extends BasePlugin {
       isActive: () => this.enabled,
       clampSize: width => this.#clampSize(width),
       setManualSize: (column, width) => this.#setManualSize(column, width),
+      getRenderedOverhead: column => this.hot.getPlugin('hiddenColumns')?.getIndicatorExtraWidth(column) ?? 0,
     });
   }
 

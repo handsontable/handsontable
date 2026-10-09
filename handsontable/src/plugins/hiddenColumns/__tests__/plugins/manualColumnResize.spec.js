@@ -29,7 +29,57 @@ describe('HiddenColumns', () => {
       // Resize renderable column index `1` (within visual index term the index at 1 is hidden).
       await resizeColumn(1, 100);
 
-      expect(colWidth(spec().$container, 1)).toBe(114); // 100 + 15 (indicator) - 1 (margin from overlay)
+      expect(colWidth(spec().$container, 1)).toBe(99); // 100 (the dragged width, the indicator included) - 1 (margin from overlay)
+    });
+
+    it('should report the indicator width of a column next to a hidden column on both sides', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 6),
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [2],
+          indicators: true
+        },
+      });
+
+      const plugin = getPlugin('hiddenColumns');
+
+      expect(plugin.getIndicatorExtraWidth(0)).toBe(0);
+      expect(plugin.getIndicatorExtraWidth(1)).toBe(15);
+      expect(plugin.getIndicatorExtraWidth(3)).toBe(15);
+      expect(plugin.getIndicatorExtraWidth(4)).toBe(0);
+    });
+
+    it('should report no indicator width when the indicators are off or there are no column headers', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 6),
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [2],
+          indicators: false
+        },
+      });
+
+      expect(getPlugin('hiddenColumns').getIndicatorExtraWidth(1)).toBe(0);
+
+      await updateSettings({ colHeaders: false, hiddenColumns: { columns: [2], indicators: true } });
+
+      expect(getPlugin('hiddenColumns').getIndicatorExtraWidth(1)).toBe(0);
+    });
+
+    it('should report no indicator width when the plugin is disabled', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 6),
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [2],
+          indicators: true
+        },
+      });
+
+      await updateSettings({ hiddenColumns: false });
+
+      expect(getPlugin('hiddenColumns').getIndicatorExtraWidth(1)).toBe(0);
     });
 
     it('should resize a proper column when the table contains hidden column using public API', async() => {
