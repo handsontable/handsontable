@@ -51,7 +51,9 @@ import { SCOPE_TYPES, FOCUS_SOURCES, DEFAULT_SHORTCUTS_CONTEXT } from './constan
  *   - `unknown`: The scope is activated by an unknown source.<br/>
  *   - `click`: The scope is activated by a click event.<br/>
  *   - `tab_from_above`: The scope is activated by a tab key press.<br/>
- *   - `tab_from_below`: The scope is activated by a shift+tab key press.
+ *   - `tab_from_below`: The scope is activated by a shift+tab key press.<br/>
+ * The callback runs again when the focus comes back into the scope that is already active through its focus
+ * catcher (a `tab_from_above` or `tab_from_below` source), so it must be safe to run more than once.
  * @param {boolean} [options.enableFocusCatchers=true] When `false`, tab traps are not installed around the container
  * (for example use an F6 shortcut instead of sequential Tab into the scope).
  * @param {function(): void} [options.onDeactivate] Callback function to be called when the scope is deactivated.

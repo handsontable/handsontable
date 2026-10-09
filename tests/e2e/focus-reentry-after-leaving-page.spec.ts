@@ -22,6 +22,9 @@ test.describe('Tab re-entry after the focus left the page', { tag: CROSS_BROWSER
   const getSelected = (page: GridPage['page']) =>
     page.evaluate(() => (window as Window & { hot: HandsontableFixture }).hot.getSelected());
 
+  const activeTestId = (page: GridPage['page']) =>
+    page.evaluate(() => document.activeElement?.getAttribute('data-testid') ?? null);
+
   test.beforeEach(async({ page, theme, bundle }) => {
     grid = new GridPage(page, theme, bundle);
     await grid.goto();
@@ -53,6 +56,9 @@ test.describe('Tab re-entry after the focus left the page', { tag: CROSS_BROWSER
     await page.keyboard.press('Tab');
 
     await expect.poll(() => getSelected(grid.page)).toEqual([[2, 1, 2, 1]]);
+
+    // The focus is on the selected cell, not left on the focus catcher.
+    await expect.poll(() => activeTestId(page)).toBe('cell-2-1');
 
     // The grid has the keyboard: an arrow key moves the selection.
     await page.keyboard.press('ArrowDown');

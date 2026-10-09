@@ -6,7 +6,8 @@ import type { HotInstance } from '../../core/types';
  * Builds the smallest instance the scope manager reads: a shortcut manager that remembers the active
  * context, and the document and window the event listener and the focus catchers attach to.
  *
- * @returns {{ manager: FocusScopeManager, container: HTMLElement, getActiveContextName: function(): string }}
+ * @returns {{ manager: FocusScopeManager, container: HTMLElement, getActiveContextName: function(): string,
+ * setActiveContextName: function(string): void }}
  */
 function makeManager() {
   const wrapper = document.createElement('div');
@@ -33,7 +34,14 @@ function makeManager() {
     unlisten: jest.fn(),
   } as unknown as HotInstance;
 
-  return { manager: createFocusScopeManager(hot), container, getActiveContextName: () => activeContextName };
+  return {
+    manager: createFocusScopeManager(hot),
+    container,
+    getActiveContextName: () => activeContextName,
+    setActiveContextName: (name: string) => {
+      activeContextName = name;
+    },
+  };
 }
 
 describe('FocusScopeManager#activateScope', () => {
@@ -87,10 +95,11 @@ describe('FocusScopeManager#activateScope', () => {
 
   it('should keep ignoring repeated `click` and `unknown` activations after a Tab re-entry', () => {
     manager.activateScope('grid', 'tab_from_above');
+    manager.activateScope('grid', 'tab_from_above');
     manager.activateScope('grid', 'click');
     manager.activateScope('grid');
 
-    expect(onActivate).toHaveBeenCalledTimes(1);
+    expect(onActivate).toHaveBeenCalledTimes(2);
   });
 
   it('should deactivate the previously active scope when another scope is entered through a catcher', () => {
@@ -108,23 +117,31 @@ describe('FocusScopeManager#activateScope', () => {
     expect(manager.getActiveScopeId()).toBe('grid');
   });
 
-  it('should not call `onDeactivate` and should keep the displaced context on a Tab re-entry', () => {
+  it('should leave the shortcuts context alone on a Tab re-entry and keep the displaced name', () => {
     const made = makeManager();
     const onDeactivate = jest.fn();
 
-    made.manager.registerScope('plugin', made.container, {
-      shortcutsContextName: 'plugin',
-      onDeactivate,
-    });
-    made.manager.activateScope('plugin', 'tab_from_above');
-    made.manager.activateScope('plugin', 'tab_from_above');
+    try {
+      made.manager.registerScope('plugin', made.container, {
+        shortcutsContextName: 'plugin',
+        onDeactivate,
+      });
+      made.manager.activateScope('plugin', 'tab_from_above');
 
-    expect(onDeactivate).not.toHaveBeenCalled();
+      // Something else takes the keyboard while the focus is away, an editor left open for example.
+      made.setActiveContextName('editor');
+      made.manager.activateScope('plugin', 'tab_from_above');
 
-    made.manager.deactivateScope('plugin');
+      expect(made.getActiveContextName()).toBe('editor');
+      expect(onDeactivate).not.toHaveBeenCalled();
 
-    expect(onDeactivate).toHaveBeenCalledTimes(1);
-    expect(made.getActiveContextName()).toBe('grid');
-    made.manager.destroy();
+      made.setActiveContextName('plugin');
+      made.manager.deactivateScope('plugin');
+
+      expect(onDeactivate).toHaveBeenCalledTimes(1);
+      expect(made.getActiveContextName()).toBe('grid');
+    } finally {
+      made.manager.destroy();
+    }
   });
 });
