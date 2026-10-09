@@ -512,6 +512,21 @@ that same evaluation (`FrozenTallCellPage.rowHeights()`), and poll a pinned
 expected value rather than comparing two reads with each other — two reads
 that both landed before the draw agree with each other and prove nothing.
 
+**`keyboard.press()` cannot make several presses share one animation frame
+reliably.** Each press is its own round trip, so presses land a few milliseconds
+apart. How many of them fall between two frames depends on the machine, the
+bundle and the load. A race that needs several presses in one frame therefore
+fails now and then, and never on demand. The arrow-key test in
+`fixed-columns-end.spec.ts` failed that way on three pull requests in two days
+with `Expected: <= 2, Received: 4` (DEV-3345). A window scroll queued by each
+press ran after the grid had scrolled on, and pulled it back. Send the presses
+from one `page.evaluate` task instead, as synthetic `KeyboardEvent`s that carry
+their `keyCode`, and end on an `afterScroll` hook added after them, so it runs
+after whatever they queued (`FixedColumnsEndPage.pressInOneTask()`). Assert that
+the grid scrolled far enough for a queued scroll to have something to move, or
+the test passes on the bug when the fixture changes. Real presses still get the
+grid to its starting state.
+
 **Where a flake goes.** In CI the config adds a `json` reporter
 (`test-results/report.json`, shipped inside the `playwright-report-*` failure
 artifact), and `.github/workflows/test-health.yml` collects every `flaky` or
