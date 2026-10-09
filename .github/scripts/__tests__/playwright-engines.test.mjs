@@ -46,6 +46,7 @@ const TAGGED_SPECS = [
   'pagination-filter-sort.spec.ts',
   'shared-demo-keyboard-navigation.spec.ts',
   'tab-navigation-two-grids.spec.ts',
+  'text-editor-native-undo.spec.ts',
   'undo-redo-keyboard.spec.ts',
   'wheel-scroll-overlay-sync.spec.ts',
 ];

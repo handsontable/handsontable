@@ -194,10 +194,11 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   the source cells first (`randomUUID()`), which proves the copy on every engine, read-back or not.
 - **A native undo or redo in a text field has the clipboard's trap, and the native date input has its
   own.** Ctrl+Z and Ctrl+Shift+Z inside the open text editor are the textarea's own undo, which Linux
-  WebKit never runs on a real shortcut, so `text-editor-native-undo.spec.ts` carries no `@cross-browser`
-  tag. The date editor's picker takes the keys while it is shown, and Escape closes the picker and leaves
-  the editor open in Chromium but closes the editor in Firefox and WebKit, so
-  `date-editor-native-input.spec.ts` is untagged too. Both run on the six Chromium legs.
+  WebKit never runs on a real shortcut, so `text-editor-native-undo.spec.ts` carries
+  `CLIPBOARD_SHORTCUT_TAG` beside `CROSS_BROWSER_TAG`: Firefox runs it and WebKit does not. The date
+  editor's picker takes the keys while it is shown, and Escape closes the picker and leaves the editor
+  open in Chromium but closes the editor in Firefox and WebKit, so `date-editor-native-input.spec.ts`
+  carries no tag and runs on the six Chromium legs only.
 - **Tab past a page's last focusable element leaves the document in Chromium and WebKit, and goes nowhere
   in headless Firefox.** There `document.hasFocus()` turns false; headless Firefox has no browser UI to
   move the focus to, so it stays on the cell. Assert what the grid draws after the exit (no selection, no

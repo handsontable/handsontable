@@ -33,6 +33,7 @@ test.describe('moving a row by dragging its header', { tag: CROSS_BROWSER_TAG },
     expect(await grid.physicalRows(5)).toEqual([0, 3, 1, 2, 4]);
     expect(await grid.dataAt(1, 0)).toBe(moved);
     expect(await grid.selected()).toEqual([[1, -1, 1, 8]]);
-    expect(await grid.activeHeaders()).toEqual(['row-header-1']);
+    // The headers are read from the DOM, which the drop's render may reach a frame later.
+    await expect.poll(() => grid.activeHeaders()).toEqual(['row-header-1']);
   });
 });

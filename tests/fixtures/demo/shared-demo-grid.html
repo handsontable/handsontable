@@ -53,6 +53,8 @@
     draws into every row header and the hook that toggles it, the row class that follows it, and the
     progress-bar and star renderers (their columns keep `editor: false` and `readOnly`). The data is
     synthetic in the demo's shape, and dates are ISO strings, as the native date editor needs.
+    `tests/lib/__tests__/shared-demo-fixture-drift.test.mjs` compares these options with the demo's
+    and names each of those differences, so a change to the demo fails it until this file follows.
 
     `?transform=scale-0.75|scale-0.5` scales <body> before the grid is built, the CSS
     `transform: scale()` case #10482 fixed.

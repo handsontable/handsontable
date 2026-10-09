@@ -18,6 +18,7 @@ export type SelectedRange = [number, number, number, number];
 export type EditorState = {
   opened: boolean,
   value: string,
+  width: number,
   height: number,
   scrollHeight: number,
   clientHeight: number,
@@ -50,6 +51,9 @@ export type LayoutMetrics = {
   rowHeaderHeights: number[],
   columnWidths: number[],
   columnHeaderWidths: number[],
+  columnHeaderHeight: number,
+  topOverlayHeight: number,
+  cornerOverlayHeight: number,
 };
 
 type SharedDemoHot = {
@@ -366,7 +370,8 @@ export class SharedDemoGridPage {
 
       if (!editor) {
         return {
-          opened: false, value: '', height: 0, scrollHeight: 0, clientHeight: 0, scrollWidth: 0, clientWidth: 0,
+          opened: false, value: '', width: 0, height: 0, scrollHeight: 0, clientHeight: 0, scrollWidth: 0,
+          clientWidth: 0,
         };
       }
 
@@ -375,6 +380,7 @@ export class SharedDemoGridPage {
       return {
         opened: editor.isOpened(),
         value: input.value,
+        width: input.offsetWidth,
         height: input.offsetHeight,
         scrollHeight: input.scrollHeight,
         clientHeight: input.clientHeight,
@@ -500,9 +506,9 @@ export class SharedDemoGridPage {
   }
 
   /**
-   * The sizes the grid laid out, in one evaluate: the master holder, the last row rendered, and the
-   * first rows' heights and the columns' widths in the master next to their headers in the overlays.
-   * Every size is a layout size (`offset*`), which a CSS transform does not scale; the scale itself is
+   * The sizes the grid laid out, in one evaluate: the master holder, the last row rendered, the first
+   * rows' heights and the columns' widths in the master next to their headers in the overlays, and the
+   * height of the top overlay and the corner beside the column header they hold. Every size is a layout size (`offset*`), which a CSS transform does not scale; the scale itself is
    * read off the root's rendered box against its layout box, so the caller can prove the transform
    * applied.
    *
@@ -528,6 +534,11 @@ export class SharedDemoGridPage {
         rowHeaderHeights: rowIndexes.map(row => height(`.ht_clone_inline_start [data-testid="row-header-${row}"]`)),
         columnWidths: columnIndexes.map(column => width(`.ht_master [data-testid="cell-0-${column}"]`)),
         columnHeaderWidths: columnIndexes.map(column => width(`.ht_clone_top [data-testid="col-header-${column}"]`)),
+        // The top overlay and the corner are sized from their clone tables' height (`outerHeight()`), so a
+        // height read from the transformed box cuts them to the scale and they clip the column headers.
+        columnHeaderHeight: height('.ht_clone_top [data-testid="col-header-0"]'),
+        topOverlayHeight: height('.ht_clone_top'),
+        cornerOverlayHeight: height('.ht_clone_top_inline_start_corner'),
       };
     }, rows);
   }

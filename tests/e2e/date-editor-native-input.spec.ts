@@ -50,7 +50,8 @@ test.describe('the native date editor', () => {
 
     expect((await grid.editorState()).opened).toBe(false);
     expect(await grid.sourceAt(1, 2)).toBe('2021-06-15');
-    expect(await grid.shownAt(1, 2)).toBe('6/15/21');
+    // The rendered text is read from the DOM, which the commit's render may reach a frame later.
+    await expect.poll(() => grid.shownAt(1, 2)).toBe('6/15/21');
   });
 
   // eslint-disable-next-line no-restricted-syntax -- DEV-3355: the editor commits the empty value a native date input reports for an incomplete date, erasing the cell

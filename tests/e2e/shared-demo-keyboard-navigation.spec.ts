@@ -75,7 +75,9 @@ test.describe('keyboard focus on the shared demo grid', { tag: CROSS_BROWSER_TAG
     // The first capture: the last cell of the last row focused.
     expect(await grid.selected()).toEqual([[99, 8, 99, 8]]);
     expect(await grid.focusState()).toMatchObject({ focusInGrid: true, listening: true });
-    expect((await grid.drawnSelection()).current).toEqual(['cell-99-8']);
+    // The press scrolled the grid down to the last row, and the grid redraws on the scroll event a frame
+    // later, so the drawn state is polled.
+    await expect.poll(async() => (await grid.drawnSelection()).current).toEqual(['cell-99-8']);
 
     // Nine more presses walk the row back, one column a press, onto its row header.
     for (let column = 7; column >= -1; column--) {
@@ -86,7 +88,7 @@ test.describe('keyboard focus on the shared demo grid', { tag: CROSS_BROWSER_TAG
     }
 
     // The second capture: the last row's header focused.
-    expect((await grid.drawnSelection()).current).toEqual(['row-header-99']);
+    await expect.poll(async() => (await grid.drawnSelection()).current).toEqual(['row-header-99']);
     await expectRing('ht_clone_inline_start', 'row-header-99');
 
     // The third capture: the next press leaves the grid and drops the selection.
@@ -118,8 +120,10 @@ test.describe('keyboard focus on the shared demo grid', { tag: CROSS_BROWSER_TAG
 /**
  * Coming back with Tab into a grid that Tab left at the edge of the page. The exit above takes the focus
  * out of the document; the next Tab brings it back to the grid's first focus catcher, which should
- * select the corner as the first entry does. Untagged: headless Firefox has no browser UI to move the
- * focus to, so the focus never leaves its document and this case has no Firefox counterpart.
+ * select the header the walk left from: the grid's focus scope re-selects the last highlighted cell on
+ * any re-entry, the first entry being the only one that starts at the corner. Untagged: headless Firefox
+ * has no browser UI to move the focus to, so the focus never leaves its document and this case has no
+ * Firefox counterpart.
  */
 test.describe('keyboard focus returning to the shared demo grid', () => {
   // eslint-disable-next-line no-restricted-syntax -- DEV-3354: the grid's focus scope is never deactivated when the focus leaves the document, so re-entry selects nothing
@@ -136,7 +140,7 @@ test.describe('keyboard focus returning to the shared demo grid', () => {
 
     await grid.press('Tab');
 
-    expect(await grid.selected()).toEqual([[-1, -1, -1, -1]]);
-    expect((await grid.drawnSelection()).current).toEqual(['corner']);
+    expect(await grid.selected()).toEqual([[-1, 8, -1, 8]]);
+    await expect.poll(async() => (await grid.drawnSelection()).current).toEqual(['col-header-8']);
   });
 });
