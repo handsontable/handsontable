@@ -15,6 +15,13 @@ const COLS = 30;
 const ROWS = 40;
 
 /**
+ * How many arrow presses share one task when keys queue up. The grid scrolls to its end on the last one, which
+ * leaves the cells of the first presses behind the inline-start edge: a window scroll that still runs for them
+ * has something to move.
+ */
+const BURST = 6;
+
+/**
  * Asserts that the open editor starts where the cell it edits starts, and is at least as tall as that cell. The
  * width is left out on purpose: the textarea grows to fit its text, so it differs from the cell's by the content.
  *
@@ -231,17 +238,34 @@ for (const direction of ['ltr', 'rtl'] as const) {
 
       expect(await grid.selectedRange()).toEqual([5, COLS - 4, 5, COLS - 4]);
 
-      const cell = await grid.cellBox(5, COLS - 4);
-      const overlay = await grid.page.locator('.ht_clone_inline_end').first().evaluate((el) => {
-        const { left, right } = el.getBoundingClientRect();
-
-        return { left, right };
-      });
-
       // The scrolled-to cell ends where the end columns begin: not under them.
-      const overlap = rtl ? overlay.right - cell.left : cell.right - overlay.left;
+      expect(await grid.endColumnsOverlap(5, COLS - 4, rtl)).toBeLessThanOrEqual(TOLERANCE);
+    });
 
-      expect(overlap).toBeLessThanOrEqual(TOLERANCE);
+    test('keeps the cell reached with arrow presses that arrive together visible beside the end columns', async () => {
+      // The real presses stop BURST columns short of the last column that scrolls.
+      const walkEnd = COLS - 4 - BURST;
+
+      await grid.goto({ rtl, fixedColumnsEnd: 3 });
+      await grid.selectCell(5, 0);
+
+      for (let step = 0; step < walkEnd; step += 1) {
+        await grid.press(towardEnd);
+      }
+
+      // The last presses arrive in one task, as keys do after a long task. Each one queues a window scroll to its
+      // own cell for the next `afterScroll`, and the grid has scrolled on by the time they run.
+      const { firstVisibleColumn } = await grid.pressInOneTask(towardEnd, BURST);
+
+      // The test means something only if the cell of the first press is out of view by then: a window scroll
+      // queued for a cell that is still shown has nothing to move.
+      expect(firstVisibleColumn, 'first column shown after the presses').toBeGreaterThan(walkEnd + 1);
+      expect(await grid.selectedRange()).toEqual([5, COLS - 4, 5, COLS - 4]);
+
+      // The probe returned once the scroll the presses made was delivered. A pull-back that comes a little later
+      // shows within a few more frames.
+      await grid.settleFrames(3);
+      expect(await grid.endColumnsOverlap(5, COLS - 4, rtl)).toBeLessThanOrEqual(TOLERANCE);
     });
 
     test('End goes to the last column that scrolls, and Home goes back to the first one', async () => {
