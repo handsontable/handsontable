@@ -86,7 +86,7 @@ export type RemoveIndexSignature<T> = {
  *
  * Derived from the keys rather than from the callback shape, because options such as `renderer`,
  * `validator`, and `cells` are functions too but are not hooks. The `hookSettingKeys` unit test keeps
- * this in step with `REGISTERED_HOOKS`.
+ * this in step with `REGISTERED_HOOKS`, but it holds a hand copy of this rule: change both together.
  */
 export type HookSettingKey = Extract<
   keyof RemoveIndexSignature<GridSettings>,

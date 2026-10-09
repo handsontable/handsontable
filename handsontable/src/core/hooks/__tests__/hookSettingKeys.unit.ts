@@ -3,8 +3,9 @@ import { join } from 'node:path';
 import { REGISTERED_HOOKS } from 'handsontable/core/hooks/constants';
 
 /**
- * Mirrors the key rule behind `HookSettingKey` in `src/settings.ts`. When this test fails, a hook
- * was added (or a function option was named like one) and the rule there needs to follow.
+ * A hand copy of the key rule behind `HookSettingKey` in `src/settings.ts`: change one and change the
+ * other, because nothing links them. When this test fails, a hook was added (or a function option was
+ * named like one) and both need to follow.
  */
 const isHookSettingKey = (key: string) =>
   /^(before|after|modify)/.test(key) ||
@@ -17,7 +18,7 @@ const declaredGridSettingKeys = (): string[] => {
   const keys: string[] = [];
 
   body.slice(0, body.indexOf('\n}\n')).split('\n').forEach((line) => {
-    const match = line.match(/^ {2}(\w+)\??: /);
+    const match = line.match(/^ {2}(\w+)\??[:(]/);
 
     if (match) {
       keys.push(match[1]);
@@ -28,9 +29,10 @@ const declaredGridSettingKeys = (): string[] => {
 };
 
 /**
- * Options that the rule treats as hooks although the hook bus does not register them. Each one is typed
- * as a hook callback in `GridSettings`, so `HotColumnProps` is right to leave it out. Add a name here
- * only after checking that it is a callback and not an option that merely holds a function.
+ * Options that the rule treats as hooks although the hook bus does not register them. Nothing registers
+ * or runs `afterChangesObserved`: it is a dead option that `GridSettings` types as a hook callback, so
+ * `HotColumnProps` is right to leave it out. Add a name here only after checking that it is a callback
+ * and not an option that merely holds a function.
  */
 const UNREGISTERED_HOOK_CALLBACKS = ['afterChangesObserved'];
 
@@ -40,7 +42,10 @@ describe('HookSettingKey', () => {
 
   it('should read the GridSettings keys (guards against the key scan going quiet)', () => {
     expect(settingKeys.length).toBeGreaterThan(300);
-    expect(settingKeys).toEqual(expect.arrayContaining(['afterChange', 'init', 'renderer', 'readOnly']));
+    // `modifySourceData` is declared in method form (`name?(`), which the scan has to read too.
+    expect(settingKeys).toEqual(
+      expect.arrayContaining(['afterChange', 'init', 'renderer', 'readOnly', 'modifySourceData'])
+    );
   });
 
   it('should cover every registered hook that GridSettings declares', () => {

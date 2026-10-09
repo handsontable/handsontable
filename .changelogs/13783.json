@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed the React `HotColumn` props type so it no longer suggests hook callbacks such as `afterChange`, which only run from `HotTable`.",
+  "title": "Fixed the React `HotColumn` props type so it no longer suggests hook callbacks such as `afterChange`, which only run from `HotTable`. A hook passed to `HotColumn` now fails with TS7006 under `noImplicitAny`.",
   "type": "fixed",
   "issueOrPR": 13783,
-  "breaking": false,
+  "breaking": true,
   "framework": "react"
 }
