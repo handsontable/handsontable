@@ -20,10 +20,14 @@ test.describe('Shift + mouse wheel', { tag: CROSS_BROWSER_TAG }, () => {
 
   test('scrolls the columns, not the rows, for a vertical wheel while Shift is held', async() => {
     await grid.goto('element');
+
+    const swaps = await grid.shiftSwapsAxes();
+
     await grid.wheelOver('master', 0, 200, { shift: true });
 
-    await expect.poll(async() => (await grid.offsets()).master.left).toBe(200);
-    expect((await grid.offsets()).master.top).toBe(0);
+    // On macOS the grid leaves the gesture vertical, as it was.
+    await expect.poll(async() => (await grid.offsets()).master[swaps ? 'left' : 'top']).toBe(200);
+    expect((await grid.offsets()).master[swaps ? 'top' : 'left']).toBe(0);
   });
 
   test('keeps scrolling the rows for a vertical wheel without Shift', async() => {
@@ -44,11 +48,20 @@ test.describe('Shift + mouse wheel', { tag: CROSS_BROWSER_TAG }, () => {
 
   test('scrolls the columns like a horizontal wheel in an RTL grid', async() => {
     await grid.goto('element', 'rtl');
+
+    const swaps = await grid.shiftSwapsAxes();
+
     // A negative horizontal delta moves an RTL holder toward its inline end, which is negative
     // `scrollLeft`. A positive one would only clamp at the start, so it would prove nothing.
     await grid.wheelOver('master', 0, -200, { shift: true });
 
-    await expect.poll(async() => (await grid.offsets()).master.left).toBe(-200);
+    if (swaps) {
+      await expect.poll(async() => (await grid.offsets()).master.left).toBe(-200);
+    } else {
+      // Left vertical on macOS, and the rows are already at the top.
+      expect((await grid.offsets()).master.left).toBe(0);
+    }
+
     expect((await grid.offsets()).master.top).toBe(0);
   });
 
@@ -57,6 +70,7 @@ test.describe('Shift + mouse wheel', { tag: CROSS_BROWSER_TAG }, () => {
     await grid.scrollMasterTo({ top: 0, left: 1e6 });
 
     const atEdge = (await grid.offsets()).master.left;
+    const swaps = await grid.shiftSwapsAxes();
 
     expect(atEdge).toBeGreaterThan(0);
 
@@ -65,12 +79,13 @@ test.describe('Shift + mouse wheel', { tag: CROSS_BROWSER_TAG }, () => {
 
     // Nothing is left to scroll horizontally, so the grid hands the event back to the browser. Where
     // the rows then go is the browser's call (Chromium converts Shift itself everywhere but macOS),
-    // so the grid's verdict is what this pins, not the rows' offset.
-    await expect.poll(() => grid.wheelPrevented()).toEqual([false]);
+    // so the grid's verdict is what this pins, not the rows' offset. On macOS the grid scrolls the
+    // rows itself, so it does consume the event.
+    await expect.poll(() => grid.wheelPrevented()).toEqual([!swaps]);
     expect((await grid.offsets()).master.left).toBe(atEdge);
   });
 
-  test('consumes a Shift + vertical wheel while the columns can still scroll', async() => {
+  test('consumes a Shift + vertical wheel while the grid can still scroll it', async() => {
     await grid.goto('element');
     await grid.startWheelLog();
     await grid.wheelOver('master', 0, 200, { shift: true });

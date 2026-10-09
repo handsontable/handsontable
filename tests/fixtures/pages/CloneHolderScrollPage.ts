@@ -231,6 +231,15 @@ export class CloneHolderScrollPage {
   }
 
   /**
+   * Whether the grid turns a Shift + vertical wheel into a horizontal scroll itself. It does not on
+   * macOS, where Chromium and Safari never convert the gesture and a trackpad swipe stays vertical,
+   * so the rows keep scrolling there. Asked of the bundle under test, so the answer is the grid's.
+   */
+  async shiftSwapsAxes(): Promise<boolean> {
+    return !(await this.page.evaluate(() => Handsontable.helper.isMacOS()));
+  }
+
+  /**
    * Starts recording whether the grid consumed each wheel event. The listener sits on the window in
    * the bubble phase, after the grid's own listeners, so `defaultPrevented` is the grid's verdict.
    */

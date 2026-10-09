@@ -47,4 +47,8 @@ describe('resolveWheelDeltas', () => {
 
     expect(resolveWheelDeltas(legacy as unknown as WheelEvent, 20)).toEqual({ deltaX: 100, deltaY: 0 });
   });
+
+  it('should keep a vertical wheel vertical while Shift is held when the swap is off', () => {
+    expect(resolveWheelDeltas(wheel({ deltaY: 100, shiftKey: true }), 20, false)).toEqual({ deltaX: 0, deltaY: 100 });
+  });
 });
