@@ -41,4 +41,10 @@ describe('resolveWheelDeltas', () => {
     expect(resolveWheelDeltas(wheel({ deltaY: 3, deltaMode: 1, shiftKey: true }), 20))
       .toEqual({ deltaX: 3 + (3 * 20), deltaY: 0 });
   });
+
+  it('should read the legacy delta of an event that reports none before it swaps the axes', () => {
+    const legacy = { deltaX: NaN, deltaY: NaN, wheelDeltaX: 0, wheelDeltaY: -100, deltaMode: 0, shiftKey: true };
+
+    expect(resolveWheelDeltas(legacy as unknown as WheelEvent, 20)).toEqual({ deltaX: 100, deltaY: 0 });
+  });
 });

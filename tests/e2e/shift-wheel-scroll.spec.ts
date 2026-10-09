@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { CloneHolderScrollPage } from '../fixtures/pages/CloneHolderScrollPage';
 
 /**
@@ -9,7 +9,7 @@ import { CloneHolderScrollPage } from '../fixtures/pages/CloneHolderScrollPage';
  * happens. The grid has to make the conversion itself. Driven with real wheel input over the
  * element-scrolled grid of the clone-holder fixture.
  */
-test.describe('Shift + mouse wheel', () => {
+test.describe('Shift + mouse wheel', { tag: CROSS_BROWSER_TAG }, () => {
   let grid: CloneHolderScrollPage;
 
   /**
@@ -40,10 +40,10 @@ test.describe('Shift + mouse wheel', () => {
 
   test.beforeEach(async({ page, theme, bundle }) => {
     grid = new CloneHolderScrollPage(page, theme, bundle);
-    await grid.goto('element');
   });
 
   test('scrolls the columns, not the rows, for a vertical wheel while Shift is held', async() => {
+    await grid.goto('element');
     await wheel(0, 200, true);
 
     // The exact distance: "moved more than zero" cannot see a doubled or halved scroll.
@@ -52,6 +52,7 @@ test.describe('Shift + mouse wheel', () => {
   });
 
   test('keeps scrolling the rows for a vertical wheel without Shift', async() => {
+    await grid.goto('element');
     await wheel(0, 200);
 
     await expect.poll(async() => (await grid.offsets()).master.top).toBeGreaterThan(0);
@@ -59,9 +60,20 @@ test.describe('Shift + mouse wheel', () => {
   });
 
   test('keeps scrolling the columns for a horizontal wheel', async() => {
+    await grid.goto('element');
     await wheel(200, 0);
 
     await expect.poll(async() => (await grid.offsets()).master.left).toBeGreaterThan(0);
+    expect((await grid.offsets()).master.top).toBe(0);
+  });
+
+  test('scrolls the columns like a horizontal wheel in an RTL grid', async() => {
+    await grid.goto('element', 'rtl');
+    // A negative horizontal delta moves an RTL holder toward its inline end, which is negative
+    // `scrollLeft`. A positive one would only clamp at the start, so it would prove nothing.
+    await wheel(0, -200, true);
+
+    await expect.poll(async() => (await grid.offsets()).master.left).toBe(-200);
     expect((await grid.offsets()).master.top).toBe(0);
   });
 });
