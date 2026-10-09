@@ -38,6 +38,10 @@ export class ConditionComponent extends BaseComponent {
    */
   name: string | (() => string) = '';
   /**
+   * The data type of the column the menu is open for, computed once by `reset()`.
+   */
+  #columnType: string | undefined;
+  /**
    * @type {boolean}
    */
   addSeparator = false;
@@ -245,11 +249,14 @@ export class ConditionComponent extends BaseComponent {
     // A copy, because `setItems()` translates the names in place and the descriptor is shared.
     let items = [{ ...getConditionDescriptor(CONDITION_NONE) }];
 
+    this.#columnType = undefined;
+
     if (selectedColumn !== null && this.hot) {
       const { visualIndex } = selectedColumn;
 
+      this.#columnType = this.#getColumnDataType(visualIndex);
       items = getOptionsList(
-        this.#getColumnDataType(visualIndex) ?? 'text',
+        this.#columnType ?? 'text',
         this.hot.getPlugin('filters')._getAvailableConditions(visualIndex),
       );
     }
@@ -270,11 +277,8 @@ export class ConditionComponent extends BaseComponent {
    * @returns {string}
    */
   #getInputType(command: ConditionDescriptor): string {
-    const selectedColumn = this.hot?.getPlugin('filters').getSelectedColumn() ?? null;
-
-    if (command.inputTypeByColumnType && selectedColumn !== null) {
-      const columnType = this.#getColumnDataType(selectedColumn.visualIndex);
-      const inputType = columnType ? command.inputTypeByColumnType[columnType] : undefined;
+    if (command.inputTypeByColumnType) {
+      const inputType = this.#columnType ? command.inputTypeByColumnType[this.#columnType] : undefined;
 
       if (inputType) {
         return inputType;
@@ -291,7 +295,7 @@ export class ConditionComponent extends BaseComponent {
    * @returns {string | undefined}
    */
   #getColumnDataType(visualIndex: number): string | undefined {
-    return this.hot?.getDataType(0, visualIndex, this.hot.countRows(), visualIndex);
+    return this.hot?.getDataType(0, visualIndex, Math.max(this.hot.countRows() - 1, 0), visualIndex);
   }
 
   /**

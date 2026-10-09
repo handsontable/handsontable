@@ -29,10 +29,6 @@ export class FiltersAvailableConditionsPage {
    */
   readonly bundle: string;
   /**
-   * The fixture file to open, relative to `fixtures/demo/`.
-   */
-  readonly fixture: string;
-  /**
    * The top overlay, which holds the column headers.
    */
   readonly topOverlay: Locator;
@@ -57,11 +53,10 @@ export class FiltersAvailableConditionsPage {
    * Wires up the page object for one theme/bundle leg and starts collecting uncaught page errors
    * immediately, so a spec that never calls `goto()` before an assertion still sees them.
    */
-  constructor(page: Page, theme = 'main', bundle = 'umd', fixture = 'filters-available-conditions.html') {
+  constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
-    this.fixture = fixture;
     this.topOverlay = page.locator('.ht_clone_top');
     this.menu = page.locator('.htDropdownMenu:not([class*="htDropdownMenuSub_"])');
     this.conditionSelects = this.menu.locator('.htFiltersMenuCondition .htUISelect');
@@ -77,7 +72,7 @@ export class FiltersAvailableConditionsPage {
    */
   async goto(): Promise<void> {
     await this.page.goto(
-      `/tests/fixtures/demo/${this.fixture}?theme=${this.theme}&bundle=${this.bundle}`);
+      `/tests/fixtures/demo/filters-available-conditions.html?theme=${this.theme}&bundle=${this.bundle}`);
 
     await awaitBundle(this.page);
     await this.page.waitForFunction(

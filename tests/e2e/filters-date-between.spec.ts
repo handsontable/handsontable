@@ -1,7 +1,20 @@
 import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { FiltersAvailableConditionsPage } from '../fixtures/pages/FiltersAvailableConditionsPage';
 
-const FIXTURE = 'filters-date-between.html';
+const DATE_AND_NUMERIC_GRID = {
+  data: [
+    ['2019-12-31', 5],
+    ['2020-01-15', 15],
+    ['2020-03-10', 25],
+    ['2020-06-30', 35],
+    ['2020-09-01', 45],
+  ],
+  colHeaders: ['Sell date', 'Qty'],
+  columns: [
+    { type: 'date', locale: 'en-US', dateFormat: { dateStyle: 'short' } },
+    { type: 'numeric' },
+  ],
+};
 
 /**
  * Regression coverage for DEV-3278.
@@ -14,9 +27,14 @@ const FIXTURE = 'filters-date-between.html';
 test.describe('Filters - "Is between" input type', { tag: CROSS_BROWSER_TAG }, () => {
   let grid: FiltersAvailableConditionsPage;
 
+  test.afterEach(() => {
+    expect(grid.pageErrors).toEqual([]);
+  });
+
   test.beforeEach(async({ page, theme, bundle }) => {
-    grid = new FiltersAvailableConditionsPage(page, theme, bundle, FIXTURE);
+    grid = new FiltersAvailableConditionsPage(page, theme, bundle);
     await grid.goto();
+    await grid.rebuild(DATE_AND_NUMERIC_GRID);
   });
 
   test('renders date inputs on a date column', async() => {
@@ -75,5 +93,39 @@ test.describe('Filters - "Is between" input type', { tag: CROSS_BROWSER_TAG }, (
     await expect(grid.conditionInputs()).toHaveCount(2);
     await expect(grid.conditionInputs().nth(0)).toHaveAttribute('type', 'text');
     await expect(grid.conditionInputs().nth(1)).toHaveAttribute('type', 'text');
+  });
+
+  test('switches the shared inputs back to text when the next column is numeric', async({ page }) => {
+    await grid.openMenu('Sell date');
+    await grid.openConditionSelect();
+    await grid.pickCondition('Is between');
+    await expect(grid.conditionInputs().nth(0)).toHaveAttribute('type', 'date');
+    await page.keyboard.press('Escape');
+    await expect(grid.menu).toBeHidden();
+
+    await grid.openMenu('Qty');
+    await grid.openConditionSelect();
+    await grid.pickCondition('Is between');
+
+    await expect(grid.conditionInputs().nth(0)).toHaveAttribute('type', 'text');
+    await expect(grid.conditionInputs().nth(1)).toHaveAttribute('type', 'text');
+  });
+
+  test('drops text the date input cannot hold when the condition changes to "Is between"', async({ page }) => {
+    await grid.openMenu('Sell date');
+    await grid.openConditionSelect();
+    await grid.pickCondition('Is equal to');
+    await grid.typeConditionValue('1/15/20');
+    await grid.openConditionSelect();
+    await grid.pickCondition('Is between');
+    await grid.conditionInputs().nth(1).fill('2020-06-30');
+    await grid.confirmMenu();
+
+    // The hidden first bound must not submit the text the date input blanked.
+    const args = await page.evaluate(
+      () => window.hot.getPlugin('filters').exportConditions()
+        .flatMap((column: { conditions: { args: unknown[] }[] }) => column.conditions.map(({ args }) => args)));
+
+    expect(args).toEqual([['', '2020-06-30']]);
   });
 });

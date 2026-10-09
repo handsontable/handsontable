@@ -86,10 +86,18 @@ export class InputUI extends BaseUI {
    * Set the type of the native input element (e.g. `text`, `date`, or `time`).
    */
   setType(type: string) {
+    const changed = this.options.type !== type;
+
     this.options.type = type;
 
     if (this.isBuilt()) {
       this.update();
+
+      // The native input blanks a value its new type cannot hold (e.g. `1/15/20` in a date input),
+      // so the stored value follows it. Otherwise the condition would submit text the input hides.
+      if (changed && this.#input) {
+        this.options.value = this.#input.value;
+      }
     }
   }
 
