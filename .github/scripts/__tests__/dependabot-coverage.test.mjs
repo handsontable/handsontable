@@ -34,6 +34,19 @@ function updateBlocks() {
 }
 
 /**
+ * Read the quoted string items of a YAML list key inside a block.
+ *
+ * @param {string} block One `updates` block.
+ * @param {string} key The list key, e.g. `directories` or `exclude-patterns`.
+ * @returns {string[]|null} The items, or null when the block has no such list.
+ */
+function listOf(block, key) {
+  const list = block.match(new RegExp(`^(\\s*)${key}:\\s*\\n((?:\\1\\s+-\\s*"[^"]+"\\s*\\n)+)`, 'm'));
+
+  return list ? [...list[2].matchAll(/"([^"]+)"/g)].map(m => m[1]) : null;
+}
+
+/**
  * Read the directory patterns a block declares, from `directory:` or `directories:`.
  *
  * @param {string} block One `updates` block.
@@ -46,11 +59,11 @@ function directoriesOf(block) {
     return [single[1]];
   }
 
-  const list = block.match(/^(\s*)directories:\s*\n((?:\1\s+-\s*"[^"]+"\s*\n)+)/m);
+  const list = listOf(block, 'directories');
 
   assert.ok(list, `block declares neither directory nor directories:\n${block}`);
 
-  return [...list[2].matchAll(/"([^"]+)"/g)].map(m => m[1]);
+  return list;
 }
 
 /**
@@ -127,10 +140,11 @@ test('every block is security-only and groups its security fixes', () => {
 
 test('every security group keeps Playwright out', () => {
   blocks.forEach((block) => {
-    ['"@playwright/*"', '"playwright"', '"playwright-core"'].forEach((name) => {
-      assert.match(
-        block,
-        new RegExp(`exclude-patterns:[\\s\\S]*-\\s*${name.replace(/[*/]/g, '\\$&')}`),
+    const excluded = listOf(block, 'exclude-patterns') ?? [];
+
+    ['@playwright/*', 'playwright', 'playwright-core'].forEach((name) => {
+      assert.ok(
+        excluded.includes(name),
         `${name} must be excluded: a Playwright bump fails playwright-version-sync.test.mjs and would hold back every other fix in the group:\n${block}`
       );
     });
