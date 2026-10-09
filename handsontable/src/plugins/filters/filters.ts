@@ -555,6 +555,17 @@ export class Filters extends BasePlugin {
   }
 
   /**
+   * Tells the plugin that the rows pinned by `fixedRowsTop` and `fixedRowsBottom` changed without an
+   * `updateSettings()` call (the freeze bar writes the counts straight on the table meta), so the
+   * next full render re-checks which rows `filterFixedRows: false` exempts.
+   *
+   * @private
+   */
+  markPinnedRowsStale() {
+    this.#markPinnedRowsStale(false);
+  }
+
+  /**
    * Marks the exemption as possibly stale, for the next full render to check.
    *
    * The exemption is applied while trimming, so nothing re-applies it on its own when the rows move

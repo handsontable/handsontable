@@ -915,10 +915,19 @@ test.describe('freezeBar', () => {
       // A1 and A10 to A19 pass the filter
       expect(await state()).toEqual({ rows: 11, first: 'A1,A10,A11,A12' });
 
-      await grid.page.evaluate(() => window.hot.getPlugin('freezeBar').setFreezeCount('top', 3));
+      const updates = await grid.page.evaluate(() => {
+        let count = 0;
+
+        window.hot.addHook('afterUpdateSettings', () => { count += 1; });
+        window.hot.getPlugin('freezeBar').setFreezeCount('top', 3);
+
+        return count;
+      });
 
       // the three frozen rows are exempt from the filter now, as with `updateSettings({ fixedRowsTop: 3 })`
       expect(await state()).toEqual({ rows: 13, first: 'A1,A2,A3,A10' });
+      // and no settings update was announced for a write that is not one
+      expect(updates).toBe(0);
     });
   });
 
