@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture – the visual suite's shared multi-feature grid</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright
+    // projects, mapped through fixed allowlists to LITERALS so a crafted param can never be
+    // reflected into the document. An ABSENT param keeps the default (main / plain UMD) so the
+    // fixture stays browsable by hand; an unknown value THROWS rather than falling back – a typo
+    // in the project config must be one red leg, never a silently mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    // `Object.hasOwn`, not a bare lookup: a plain object inherits `constructor`, `toString` and
+    // `__proto__`, so `?theme=constructor` would resolve to a truthy inherited value, sail past the
+    // guard below and be written into the document. Only the map's own keys are allowed.
+    const htPick = (map, value, fallback, label) => {
+      const key = value ?? fallback;
+
+      if (!Object.hasOwn(map, key)) {
+        throw new Error('Unknown ?' + label + '= value: ' + JSON.stringify(value));
+      }
+
+      return map[key];
+    };
+
+    window.htTheme = htPick(
+      { main: 'main', horizon: 'horizon', classic: 'classic' }, htParams.get('theme'), 'main', 'theme');
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = htPick(
+      { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, htParams.get('bundle'), 'umd', 'bundle');
+
+    // The CSS transform on <body> while the grid is built: none, or one of the two scales the
+    // visual suite photographed the grid under.
+    window.htTransform = htPick(
+      { none: '', 'scale-0.75': 'scale(0.75)', 'scale-0.5': 'scale(0.5)' },
+      htParams.get('transform'), 'none', 'transform');
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 1rem; transform-origin: 0 0; }
+  </style>
+</head>
+<body>
+  <!--
+    The grid the visual suite's `/` route builds (`initDefaultDemo()` in
+    `examples/next/visual-tests/js/demo/src/demos/default/index.js`), which every spec under
+    `visual-tests/tests/multi-frameworks/` photographed on every js variant and copied into the
+    three wrapper baselines: nine columns over 100 rows (text, text, a short `en-US` date, a
+    checkbox, a number, two read-only rendered columns, text, text), 450 px high, with the same
+    plugins and options. What it leaves out is demo code, not grid behavior: the checkbox the demo
+    draws into every row header and the hook that toggles it, the row class that follows it, and the
+    progress-bar and star renderers (their columns keep `editor: false` and `readOnly`). The data is
+    synthetic in the demo's shape, and dates are ISO strings, as the native date editor needs.
+
+    `?transform=scale-0.75|scale-0.5` scales <body> before the grid is built, the CSS
+    `transform: scale()` case #10482 fixed.
+
+    Every rendered cell carries `data-testid="cell-<visualRow>-<visualColumn>"`, every column
+    header `data-testid="col-header-<visualColumn>"`, the corner `data-testid="corner"`, and every
+    row header `data-testid="row-header-<visualRow>"`. A header is drawn once per overlay, so the
+    page object scopes each locator to the overlay that takes the pointer.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The closing tag is split
+    // so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+    document.body.style.transform = window.htTransform;
+
+    const COMPANIES = ['Tagcat', 'Zoomzone', 'Meeveo', 'Buzzdog', 'Katz', 'Jaxbean', 'Skinte', 'Yodel'];
+    const COUNTRIES = ['United Kingdom', 'Indonesia', 'United States', 'Philippines', 'India', 'China'];
+    const PRODUCTS = ['Classic Vest', 'Cycling Cap', 'Full-Finger Gloves', 'HL Mountain Frame', 'Half-Finger Gloves'];
+    const pad = value => String(value).padStart(2, '0');
+
+    /**
+     * One source row in the demo's shape: a row flag, company, country, product, ISO sell date,
+     * order id, in-stock flag, quantity, progress and rating.
+     *
+     * @param {number} index The row index.
+     * @returns {Array}
+     */
+    const sourceRow = index => [
+      index % 3 === 0,
+      `${COMPANIES[index % COMPANIES.length]} ${index + 1}`,
+      COUNTRIES[index % COUNTRIES.length],
+      `${PRODUCTS[index % PRODUCTS.length]} ${index + 1}`,
+      `2020-${pad((index % 12) + 1)}-${pad((index % 28) + 1)}`,
+      `${pad(index % 100)}-${1000000 + (index * 7919)}`,
+      index % 4 !== 0,
+      String(10 + ((index * 37) % 190)),
+      (index * 3) % 10,
+      (index % 5) + 1,
+    ];
+
+    // A constructor that throws stamps its message on the container instead of taking the whole
+    // page down, so a failure reads as the real error rather than a bare "element not visible".
+    try {
+      window.hot = new Handsontable(container, {
+        data: Array.from({ length: 100 }, (_, index) => sourceRow(index)),
+        height: 450,
+        colWidths: [140, 210, 135, 100, 90, 110, 120, 115, 140],
+        colHeaders: ['Company name', 'Name', 'Sell date', 'In stock', 'Qty', 'Progress', 'Rating', 'Order ID', 'Country'],
+        columns: [
+          { data: 1, type: 'text' },
+          { data: 3, type: 'text' },
+          { data: 4, type: 'date', allowInvalid: false, dateFormat: { dateStyle: 'short' }, locale: 'en-US' },
+          { data: 6, type: 'checkbox', className: 'htCenter', headerClassName: 'htCenter' },
+          { data: 7, type: 'numeric', headerClassName: 'htRight' },
+          { data: 8, editor: false, className: 'htMiddle', readOnly: true },
+          { data: 9, editor: false, className: 'htCenter', headerClassName: 'htCenter', readOnly: true },
+          { data: 5, type: 'text' },
+          { data: 2, type: 'text' },
+        ],
+        mergeCells: true,
+        dropdownMenu: true,
+        hiddenColumns: { indicators: true },
+        navigableHeaders: true,
+        contextMenu: true,
+        multiColumnSorting: true,
+        filters: true,
+        rowHeaders: true,
+        manualRowMove: true,
+        comments: true,
+        manualColumnMove: true,
+        customBorders: true,
+        headerClassName: 'htLeft',
+        afterRenderer(td, row, column) {
+          td.setAttribute('data-testid', `cell-${row}-${column}`);
+        },
+        afterGetColHeader(column, th) {
+          th.setAttribute('data-testid', column < 0 ? 'corner' : `col-header-${column}`);
+        },
+        afterGetRowHeader(row, th) {
+          if (row >= 0) {
+            th.setAttribute('data-testid', `row-header-${row}`);
+          }
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      container.setAttribute('data-init-error', String(error && error.message));
+    }
+  </script>
+</body>
+</html>

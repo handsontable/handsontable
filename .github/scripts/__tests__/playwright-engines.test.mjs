@@ -27,20 +27,27 @@ const ENGINES_CONFIG = 'tests/playwright-engines.config.ts';
 const DOC = 'See tests/AGENTS.md, "The engine legs".';
 
 // The specs that took over what the cross-browser visual specs photographed (DEV-3257), plus the
-// column-move spec that asserts the header drag one of them showed. Each must stay tagged; a new
-// tagged spec may join without touching this list.
+// column-move spec that asserts the header drag one of them showed, and the tagged specs that took over
+// what the multi-frameworks captures of the shared `/` grid photographed (DEV-3351). Each must stay
+// tagged; a new tagged spec may join without touching this list.
 const TAGGED_SPECS = [
   'clipboard-between-grids.spec.ts',
   'clipboard-scrolled-range.spec.ts',
   'column-move-sorting.spec.ts',
+  'css-transform-scale.spec.ts',
+  'drag-selection-range.spec.ts',
   'fill-handle-merged-cells.spec.ts',
   'filters-search-then-condition.spec.ts',
   'header-range-selection.spec.ts',
   'hidden-columns-context-menu.spec.ts',
   'manual-resize-drag-distance.spec.ts',
+  'manual-row-move-drag.spec.ts',
+  'merge-cells-header-selection.spec.ts',
   'pagination-filter-sort.spec.ts',
+  'shared-demo-keyboard-navigation.spec.ts',
   'tab-navigation-two-grids.spec.ts',
   'undo-redo-keyboard.spec.ts',
+  'wheel-scroll-overlay-sync.spec.ts',
 ];
 
 test('the engines config runs only tagged tests on Firefox and WebKit, inheriting the rest', () => {
