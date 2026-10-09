@@ -141,17 +141,17 @@ export class DateEditor extends TextEditor {
       return false;
     }
 
+    // `allowEmpty: false` with `allowInvalid: false` keeps the editor open on the empty value. Without
+    // `allowInvalid: false` the empty value would still be saved, and only marked invalid.
+    if (this.cellProperties.allowEmpty === false && this.cellProperties.allowInvalid === false) {
+      return false;
+    }
+
     // An empty edited cell has no date to keep, and an untouched input there is just empty. Only a fill
     // is at stake: Ctrl+Enter writes the empty value over the other selected cells, which hold dates, and
     // that is wrong only when the input is flagged as incomplete.
     if (isEmpty(this.originalValue)) {
       return ctrlDown === true && input.validity.badInput;
-    }
-
-    // `allowEmpty: false` with `allowInvalid: false` keeps the editor open on the empty value. Without
-    // `allowInvalid: false` the empty value would still be saved, and only marked invalid.
-    if (this.cellProperties.allowEmpty === false && this.cellProperties.allowInvalid === false) {
-      return false;
     }
 
     return input.validity.badInput || (!this.#dateSeeded && !this.#inputEventFired);
