@@ -224,6 +224,13 @@ const valueRenderer = (column: AiColumn): BaseRenderer => (instance, td, row, co
 
   td.classList.toggle('ai-pending', pending.has(key));
   td.classList.toggle('ai-error', failed.has(key));
+
+  if (failed.has(key)) {
+    td.textContent = 'err';
+    td.title = failed.get(key) ?? '';
+  } else {
+    td.removeAttribute('title');
+  }
 };
 
 const confidenceRenderer = (column: AiColumn): BaseRenderer => (instance, td, row, col, prop, value, cellProperties) => {
@@ -263,7 +270,7 @@ function classify(row: Row, column: AiColumn): Promise<JevAnswer> {
 }
 ```
 
-The proxy below is a Cloudflare Worker. It checks the request shape, caps the row at 4 KB, builds the Jev question, and returns Jev's answer unchanged. It does not log the row and does not forward Jev's error bodies.
+The proxy below is a Cloudflare Worker. It accepts calls from its own origin only, rate limits each caller, checks the request shape, caps the row at 4 KB, builds the Jev question, and returns Jev's answer unchanged. It does not log the row and does not forward Jev's error bodies. The endpoint is visible in the browser's network tab once the page is deployed, so the origin check and the rate limit are not optional: without them anyone can spend your key's quota.
 
 ::: example #worker --code-only
 
@@ -275,7 +282,7 @@ The proxy below is a Cloudflare Worker. It checks the request shape, caps the ro
 
 Three limits to keep in mind:
 
-- One request per cell. Ten rows and three columns is 30 requests. Cap the row count in the proxy before you point this at a large sheet. Jev's published limit is 80 requests per second.
+- One request per cell. Ten rows and three columns is 30 requests. The Worker's rate-limiting binding allows 60 requests a minute per caller; raise it, and cap the row count, before you point this at a large sheet. Jev's published limit is 80 requests per second.
 - Send only what the model needs. The example sends the whole row, which is fine for reviews. For a sheet with personal or confidential columns, send the columns the prompt is about.
 - Thresholds are yours to set. Pick them per column from your own data, and send low-confidence rows to a person instead of acting on them.
 

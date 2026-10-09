@@ -10,11 +10,16 @@
 // - choice: criteria { option: null }    -> { type: 'choice', choice, probabilities, confidence }
 // - score:  criteria [level, ...] (2-10) -> { type: 'score', score, legend, probabilities, confidence }
 // - Errors: 400 invalid request, 401 bad key, 429 rate limit, 529 overloaded.
+//
+// Who may call it: only the page this Worker serves (same-origin check), and each caller
+// is rate limited through a Rate Limiting binding. In wrangler.jsonc:
+//   "ratelimits": [{ "name": "RATE_LIMITER", "namespace_id": "1001", "simple": { "limit": 60, "period": 60 } }]
 
 const JEV_ENDPOINT = 'https://api.typesafe.ai/v1/systemone';
 const JEV_MODEL = 'jev-latest';
 const TYPES = new Set(['noul', 'score', 'choice']);
 const MAX_ROW_BYTES = 4096;
+const MAX_OPTIONS = 255; // Jev's limit for choice; score takes 2-10, which Jev enforces
 
 export default {
   async fetch(request, env) {
@@ -26,6 +31,21 @@ export default {
 
     if (request.method !== 'POST') {
       return json({ error: 'Method not allowed' }, 405);
+    }
+
+    // Browsers send Origin on every POST. Anything that is not this app's own page is refused.
+    if (request.headers.get('Origin') !== new URL(request.url).origin) {
+      return json({ error: 'Forbidden' }, 403);
+    }
+
+    // 60 requests a minute per caller, counted per Cloudflare location. The IP is the only
+    // caller id a public page has; an app with accounts should key on the user instead.
+    if (env.RATE_LIMITER) {
+      const { success } = await env.RATE_LIMITER.limit({ key: request.headers.get('CF-Connecting-IP') ?? 'unknown' });
+
+      if (!success) {
+        return json({ error: 'Too many requests' }, 429);
+      }
     }
 
     return classify(request, env);
@@ -51,7 +71,12 @@ async function classify(request, env) {
     return json({ error: `row must be an object under ${MAX_ROW_BYTES} bytes` }, 400);
   }
 
-  const levels = Array.isArray(options) ? options.map(String) : [];
+  const levels = Array.isArray(options) ? options.map((option) => String(option).trim()).filter(Boolean) : [];
+
+  if (type !== 'noul' && (levels.length < 2 || levels.length > MAX_OPTIONS)) {
+    return json({ error: `${type} needs between 2 and ${MAX_OPTIONS} options` }, 400);
+  }
+
   const question = { type, instructions: prompt };
 
   if (type === 'choice') {
@@ -75,6 +100,10 @@ async function classify(request, env) {
   }
 
   const { answers } = await upstream.json();
+
+  if (!answers?.q) {
+    return json({ error: 'Classifier request failed' }, 502);
+  }
 
   return json(answers.q);
 }
