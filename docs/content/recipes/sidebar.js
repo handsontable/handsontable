@@ -4,6 +4,7 @@ const realTimeItems = [
   { path: 'real-time/liveblocks-multiplayer/liveblocks-multiplayer', title: 'Multiplayer editing with Liveblocks', onlyFor: ['javascript', 'react'] },
   { path: 'real-time/liveblocks-comments/liveblocks-comments', title: 'Cell comments with Liveblocks', onlyFor: ['javascript', 'react'] },
   { path: 'real-time/a2ui-agent-grid/a2ui-agent-grid', title: 'Agent-driven grid with A2UI', onlyFor: ['javascript', 'react'] },
+  { path: 'real-time/ai-columns-jev/ai-columns-jev', title: 'AI-classified columns with Jev', onlyFor: ['javascript'] },
 ];
 
 const columnManagementItems = [
