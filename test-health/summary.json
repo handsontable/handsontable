@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-09T08:28:16.635Z",
+  "generatedAt": "2026-10-09T09:40:45.078Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 373,
     "needsTicket": 18,
     "quarantined": 0,
-    "entries": 1928
+    "entries": 1929
   },
   "rows": [
     {
@@ -58,15 +58,16 @@
       "file": "e2e/iframe-cross-realm-scroll.spec.ts",
       "line": 100,
       "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
-      "count7": 3,
-      "count30": 12,
-      "countAll": 12,
-      "runs30": 9,
-      "flakyRuns30": 9,
-      "branches30": 8,
+      "count7": 4,
+      "count30": 13,
+      "countAll": 13,
+      "runs30": 10,
+      "flakyRuns30": 10,
+      "branches30": 9,
       "nightlyRuns30": 0,
-      "openBranches30": 8,
+      "openBranches30": 9,
       "legs": [
+        "e2e-classic",
         "e2e-classic-min",
         "e2e-horizon",
         "e2e-horizon-min",
@@ -78,10 +79,10 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-10-07T11:05:43Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37607698284",
-        "branch": "feature/editor-false-and-readonly-styling",
-        "leg": "e2e-horizon-min",
+        "seenAt": "2026-10-09T09:39:58Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37910350952",
+        "branch": "feature/DEV-3345_Test-arrow-key-burst-beside-end-columns",
+        "leg": "e2e-classic",
         "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
