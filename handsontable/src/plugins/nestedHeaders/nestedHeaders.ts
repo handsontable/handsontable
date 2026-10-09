@@ -1260,23 +1260,29 @@ export class NestedHeaders extends BasePlugin {
 
   /**
    * Finds the header cell a Shift+click extends the column range from: the focus of the current range when
-   * it sits in a header row, or the bottom header of the focused column when the range started from a cell.
-   * Returns `null` when the range does not start under a nested header (a row header or the corner).
+   * it sits in a header row. Without `navigableHeaders` the focus is a cell, so the anchor is the header the
+   * range started from (the first corner of the range) or, when that is a cell too, the bottom header of its
+   * column. Returns `null` when the range does not start under a nested header (a row header or the corner).
    */
   #resolveShiftClickAnchor = (currentSelection: CellRange | null | undefined) => {
-    const highlight = currentSelection?.highlight;
+    if (!currentSelection) {
+      return null;
+    }
 
-    if (!highlight || highlight.row === null || highlight.col === null) {
+    const { highlight, from } = currentSelection;
+    const source = highlight.row !== null && highlight.row < 0 ? highlight : from;
+
+    if (source.row === null || source.col === null) {
       return null;
     }
 
     // A snapshot, so a later change of the selection cannot move the anchor.
-    const anchor = highlight.clone();
+    const anchor = source.clone();
 
-    anchor.row = Math.min(anchor.row ?? -1, -1);
+    anchor.row = Math.min(source.row, -1);
 
-    return this._getHeaderTreeNodeDataByCoords({ row: anchor.row, col: highlight.col }) ?
-      { row: anchor.row, col: highlight.col, clone: () => anchor.clone() } :
+    return this._getHeaderTreeNodeDataByCoords({ row: anchor.row, col: source.col }) ?
+      { row: anchor.row, col: source.col, clone: () => anchor.clone() } :
       null;
   };
 

@@ -173,9 +173,11 @@ test.describe('a header click and a Shift+click select the range between them', 
   const nestedFocusCases: Array<{
     name: string,
     cell?: [number, number],
+    // Without `navigableHeaders` the focus is a cell, so the case asserts the range alone.
+    navigableHeaders?: false,
     clicks: Click[],
     selected: number[][],
-    focus: { row: number, col: number },
+    focus?: { row: number, col: number },
   }> = [
     {
       name: 'to the right of a leaf header',
@@ -217,6 +219,12 @@ test.describe('a header click and a Shift+click select the range between them', 
       focus: { row: -1, col: 2 },
     },
     {
+      name: 'to the left of a group header without navigableHeaders',
+      navigableHeaders: false,
+      clicks: [{ level: 0, column: 4, shift: false }, { level: 1, column: 1, shift: true }],
+      selected: [[-1, 6, 29, 1]],
+    },
+    {
       name: 'from a cell',
       cell: [3, 2],
       clicks: [{ level: 1, column: 5, shift: true }],
@@ -228,6 +236,11 @@ test.describe('a header click and a Shift+click select the range between them', 
   for (const testCase of nestedFocusCases) {
     test(`keeps the range and the focus on the anchor of a Shift+click ${testCase.name} on the /nested-headers-demo shape`, async() => {
       await grid.goto('nested-headers');
+
+      if (testCase.navigableHeaders === false) {
+        await grid.page.evaluate(() => (window as unknown as { hot: { updateSettings(s: object): void } })
+          .hot.updateSettings({ navigableHeaders: false }));
+      }
 
       if (testCase.cell) {
         const [row, column] = testCase.cell;
@@ -241,7 +254,9 @@ test.describe('a header click and a Shift+click select the range between them', 
       }
 
       expect(await grid.selected()).toEqual(testCase.selected);
-      expect(await grid.focus()).toEqual(testCase.focus);
+      if (testCase.focus) {
+        expect(await grid.focus()).toEqual(testCase.focus);
+      }
     });
   }
 });
