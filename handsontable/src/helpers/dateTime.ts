@@ -228,12 +228,12 @@ const ZONE_PROBE_DATES = [new Date(2024, 0, 1), new Date(2024, 6, 1)];
  * date one day off and a time some hours off. Two zones with the same offsets on both dates but
  * other daylight saving dates still share a formatter until the page reloads.
  *
- * @param {Intl.LocalesArgument} locale The locale, `undefined` for the default locale.
+ * @param {string|string[]|undefined} locale The locale or locales, `undefined` for the default locale.
  * @param {Intl.DateTimeFormatOptions} options The format options.
  * @returns {Intl.DateTimeFormat}
  */
 export function getDateTimeFormat(
-  locale: Intl.LocalesArgument,
+  locale: string | readonly string[] | undefined,
   options: Intl.DateTimeFormatOptions,
 ): Intl.DateTimeFormat {
   const localeKey = locale === undefined || typeof locale === 'string' ? locale : `\u0000${String(locale)}`;
