@@ -33,7 +33,12 @@ import { spreadsheetColumnLabel, hasChangeForCell } from './helpers/data';
 import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
 import { DEFAULT_COLUMN_WIDTH } from './3rdparty/walkontable/src';
-import { hasLanguageDictionary, getValidLanguageCode, getTranslatedPhrase } from './i18n/registry';
+import {
+  hasLanguageDictionary,
+  getValidLanguageCode,
+  getTranslatedPhrase,
+  warnAboutDeprecatedLanguageCode,
+} from './i18n/registry';
 import { warnUserAboutLanguageRegistration, normalizeLanguageCode } from './i18n/utils';
 import { Selection } from './selection';
 import {
@@ -2351,6 +2356,8 @@ export default function Core(
     const normalizedLanguageCode = normalizeLanguageCode(languageCode);
 
     if (hasLanguageDictionary(normalizedLanguageCode)) {
+      warnAboutDeprecatedLanguageCode(normalizedLanguageCode);
+
       instance.runHooks('beforeLanguageChange', normalizedLanguageCode);
 
       globalMeta.language = normalizedLanguageCode;

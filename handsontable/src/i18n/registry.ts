@@ -154,6 +154,21 @@ function getFormattedPhrase(phrasePropositions: unknown, argumentsForFormatters:
 }
 
 /**
+ * Warns once when the language code is a deprecated alias of another language code.
+ *
+ * @param {string} normalizedLanguageCode Normalized language code of a registered language.
+ */
+export function warnAboutDeprecatedLanguageCode(normalizedLanguageCode: string) {
+  if (normalizedLanguageCode === DEPRECATED_SERBIAN_LANGUAGE_CODE) {
+    deprecatedWarnOnce(
+      `language.${DEPRECATED_SERBIAN_LANGUAGE_CODE}`,
+      `The "${DEPRECATED_SERBIAN_LANGUAGE_CODE}" language code will be removed in 20.0.0. ` +
+      'Use the "sr-Latn-RS" language code instead.'
+    );
+  }
+}
+
+/**
  * Returns valid language code. If the passed language code doesn't exist default one will be used.
  *
  * @param {string} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
@@ -166,12 +181,8 @@ export function getValidLanguageCode(languageCode: string) {
     normalizedLanguageCode = DEFAULT_LANGUAGE_CODE;
 
     warnUserAboutLanguageRegistration(languageCode);
-  } else if (normalizedLanguageCode === DEPRECATED_SERBIAN_LANGUAGE_CODE) {
-    deprecatedWarnOnce(
-      `language.${DEPRECATED_SERBIAN_LANGUAGE_CODE}`,
-      `The "${DEPRECATED_SERBIAN_LANGUAGE_CODE}" language code will be removed in 20.0.0. ` +
-      'Use the "sr-Latn-RS" language code instead.'
-    );
+  } else {
+    warnAboutDeprecatedLanguageCode(normalizedLanguageCode);
   }
 
   return normalizedLanguageCode;
