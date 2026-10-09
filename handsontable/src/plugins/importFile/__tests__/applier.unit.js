@@ -1,4 +1,6 @@
 import { applyImportResult, installImportedStyles, removeImportedStyles } from '../applier';
+import { fontFillRule } from '../styles';
+import { READ_ONLY_FILL_ARGB, READ_ONLY_TEXT_ARGB } from '../../../utils/xlsxEngine/readOnlyStyle';
 import * as consoleHelpers from '../../../helpers/console';
 
 const STYLE_SELECTOR = 'style[data-hot-imported-styles="hot-1"]';
@@ -47,7 +49,7 @@ describe('applyImportResult', () => {
     document.querySelectorAll(STYLE_SELECTOR).forEach(element => element.remove());
   });
 
-  it('should load the data first, then update only the settings the result carries, inside one batch', () => {
+  it('should apply the column types, then the data, then only the other settings the result carries, in one batch', () => {
     const hot = fakeHot();
 
     applyImportResult(hot, {
@@ -62,8 +64,16 @@ describe('applyImportResult', () => {
       dropped: [],
     });
 
+    // The column types go first, so `loadData` validates the new data against them rather than
+    // against the previous grid's types; the layout keys (merges, freeze, widths) stay after it.
     expect(hot.calls).toEqual([
       ['batch:start'],
+      ['updateSettings', {
+        columns: [
+          { type: 'text' },
+          { type: 'numeric', numericFormat: { minimumFractionDigits: 0, useGrouping: false } },
+        ],
+      }],
       ['loadData', [['a', 1]]],
       ['updateSettings', {
         colHeaders: ['Name', 'Amount'],
@@ -368,7 +378,9 @@ describe('applyImportResult – layout across imports', () => {
 
     applyImportResult(hot, { data: [['a', 'b'], ['c']], sheetNames: ['Plain'], dropped: [] }, { importLayout: true });
 
-    const [, settings] = hot.calls[2];
+    expect(hot.calls[1]).toEqual(['updateSettings', { columns: [{}, {}] }]);
+
+    const [, settings] = hot.calls[3];
 
     expect(Object.keys(settings).sort()).toEqual(['colWidths', 'columns', 'rowHeights']);
     expect(settings).toEqual({ colWidths: undefined, rowHeights: undefined, columns: [{}, {}] });
@@ -379,7 +391,8 @@ describe('applyImportResult – layout across imports', () => {
 
     applyImportResult(hot, { data: [['a']], sheetNames: ['Plain'], dropped: [] }, { importLayout: false });
 
-    expect(hot.calls[2]).toEqual(['updateSettings', { columns: [{}] }]);
+    expect(hot.calls[1]).toEqual(['updateSettings', { columns: [{}] }]);
+    expect(hot.calls[3]).toEqual(['updateSettings', { columns: [{}] }]);
   });
 
   it('should size the reset from the headers when the sheet has no data cells', () => {
@@ -389,7 +402,7 @@ describe('applyImportResult – layout across imports', () => {
 
     applyImportResult(hot, { data: [], colHeaders: ['A', 'B'], sheetNames: ['Head'], dropped: [] });
 
-    expect(hot.calls[2]).toEqual(['updateSettings', { colHeaders: ['A', 'B'], columns: [{}, {}] }]);
+    expect(hot.calls[3]).toEqual(['updateSettings', { colHeaders: ['A', 'B'], columns: [{}, {}] }]);
 
     const nested = fakeHot({ gridSettings: { columns: [{ type: 'numeric' }] } });
 
@@ -397,7 +410,7 @@ describe('applyImportResult – layout across imports', () => {
       data: [], nestedHeaders: [[{ label: 'G', colspan: 2 }, 'C'], ['a', 'b', 'c']], sheetNames: ['Head'], dropped: [],
     });
 
-    expect(nested.calls[2][1].columns).toEqual([{}, {}, {}]);
+    expect(nested.calls[3][1].columns).toEqual([{}, {}, {}]);
   });
 
   it('should leave columns alone when the result describes no width at all', () => {
@@ -518,5 +531,112 @@ describe('installImportedStyles – mount point', () => {
     removeImportedStyles(hot);
 
     expect(hot.rootWrapperElement.querySelector(STYLE_SELECTOR)).toBeNull();
+  });
+});
+
+describe('installImportedStyles - declaration allow-list', () => {
+  let warnSpy;
+
+  beforeEach(() => {
+    warnSpy = jest.spyOn(consoleHelpers, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    warnSpy.mockRestore();
+    document.querySelectorAll(STYLE_SELECTOR).forEach(element => element.remove());
+  });
+
+  function installs(declarations) {
+    const hot = fakeHot();
+
+    installImportedStyles(hot, { 'htImported-a': declarations });
+
+    const installed = document.querySelector(STYLE_SELECTOR) !== null;
+
+    removeImportedStyles(hot);
+
+    return installed;
+  }
+
+  /**
+   * Every rule `fontFillRule` can produce: each combination of the three font flags and the two
+   * colors, with six- and eight-digit, upper- and lower-case ARGB input, on read-only and editable
+   * cells alike. Derived from `fontFillRule` itself, so the allow-list cannot drift from it.
+   */
+  function everyFontFillRule() {
+    const rules = [];
+    const colors = [undefined, 'FF00FF00', 'ab12cd', READ_ONLY_TEXT_ARGB, READ_ONLY_FILL_ARGB];
+
+    [false, true].forEach((bold) => {
+      [false, true].forEach((italic) => {
+        [false, true].forEach((underline) => {
+          colors.forEach((color) => {
+            colors.forEach((fill) => {
+              [false, true].forEach((readOnly) => {
+                const rule = fontFillRule({
+                  font: { bold, italic, underline, color: color ? { argb: color } : undefined },
+                  fill: fill ? { fgColor: { argb: fill } } : undefined,
+                }, { readOnly });
+
+                if (rule) {
+                  rules.push(rule.declarations);
+                }
+              });
+            });
+          });
+        });
+      });
+    });
+
+    return rules;
+  }
+
+  it('should accept every declaration block fontFillRule can produce', () => {
+    const rules = everyFontFillRule();
+
+    // Sanity: the derivation reaches every declaration shape the builder writes.
+    expect(rules).toContain('font-weight:bold;font-style:italic;text-decoration:underline;color:#00ff00;'
+      + 'background-color:#ab12cd');
+    expect(rules.length).toBeGreaterThan(100);
+
+    rules.forEach((declarations) => {
+      expect([declarations, installs(declarations)]).toEqual([declarations, true]);
+    });
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  [
+    'color:expression(alert(1))',
+    'background-color:rgb(1,2,3)',
+    'background-image:url(x.png)',
+    'background:url(x.png)',
+    '-moz-binding:url(x.xml)',
+    'behavior:url(x.htc)',
+    'list-style-image:url(x.png)',
+    'cursor:url(x.cur)',
+    'content:attr(title)',
+    'color:red',
+    'color:#ff0000 ',
+    'color:#ff00',
+    'color:#ff0000;font-weight:900',
+    'font-weight:bold;position:fixed',
+    'font-style:oblique',
+    // Text after an allowed keyword breaks out of the rule.
+    'font-weight:bold}td{background:url(x.png)',
+    'font-style:italic}td{background:url(x.png)',
+    // Text before an allowed color breaks out of the rule.
+    'color:red}td{background:url(//x.example/a.png)}td{color:#000000',
+    'background-color:x#000000',
+    'color:##000000',
+    'text-decoration:underline overline',
+    'font-weight:bold;',
+    'font-weight:bold;;color:#000000',
+    'constructor:#000000',
+    '',
+  ].forEach((declarations) => {
+    it(`should reject "${declarations}"`, () => {
+      expect(installs(declarations)).toBe(false);
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+    });
   });
 });

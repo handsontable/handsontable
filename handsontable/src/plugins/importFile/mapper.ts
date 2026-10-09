@@ -1,12 +1,19 @@
 import { throwWithCause } from '../../helpers/errors';
 import { escapeHtml } from '../../helpers/string';
-import type { DroppedFeatures } from '../../utils/xlsxEngine/capabilities';
+import { DROPPED_FEATURES, type DroppedFeatures } from '../../utils/xlsxEngine/capabilities';
 import type { CellSnapshot, MergeSnapshot, SheetSnapshot, WorkbookSnapshot } from '../../utils/xlsxEngine/model';
 import { parseMultiRangeRef, parseRangeRef } from '../../utils/xlsxEngine/cellRef';
-import { shiftFormulaReferences } from '../../utils/xlsxEngine/formulaRefs';
+import { rebaseImportedFormula } from '../../utils/xlsxEngine/formulaRefs';
+import { stripFunctionPrefixes } from '../../utils/xlsxEngine/functionPrefixes';
+import { MAX_TRANSLATED_FORMULA_CHARS, MIN_CELL_META_BUDGET, throwLimitExceeded } from '../../utils/xlsxEngine/limits';
+import {
+  MAX_COLUMN_WIDTH_UNITS as MAX_EXCEL_COLUMN_WIDTH,
+  MAX_ROW_HEIGHT_POINTS as MAX_EXCEL_ROW_HEIGHT_POINTS,
+} from '../../utils/xlsxEngine/units';
 import {
   excelWidthToPx,
   cellDisplayValue,
+  exceedsElapsedFormat,
   inferCellType,
   pointsToPx,
   resolveListSource,
@@ -35,6 +42,18 @@ export interface MapperContext {
    * Whether the `customBorders` plugin is enabled, so border styles can be collected into the result.
    */
   customBordersEnabled: boolean;
+  /**
+   * The sheets the Formulas plugin's engine holds, lower-cased. A live formula that names any other
+   * sheet cannot resolve in the grid (HyperFormula shows `#REF!`), so its cached value is imported
+   * instead. Absent means the engine holds none.
+   */
+  formulaSheetNames?: ReadonlySet<string>;
+  /**
+   * The names the Formulas plugin's engine defines (named expressions), lower-cased. A live formula
+   * that uses a name the WORKBOOK defines and the engine does not shows `#NAME?` in the grid, so its
+   * cached value is imported instead. Absent means the engine defines none.
+   */
+  formulaNamedExpressions?: ReadonlySet<string>;
 }
 
 /**
@@ -140,13 +159,29 @@ export function resolveImportOptions(options: ImportOptions | undefined): Resolv
 }
 
 /**
- * Selects the sheet to import. A number indexes the sheets that are not very hidden (helper sheets
- * never get picked by accident); a string matches any sheet by name.
+ * The name the export gives its dropdown helper sheet: `_HotValidation`, or `_HotValidation<n>` when
+ * the name was taken. The export writes it `hidden` (not `veryHidden`, which Numbers discards along
+ * with every validation pointing at it), so an index has to skip it by name.
+ */
+const EXPORT_HELPER_SHEET_NAME = /^_HotValidation\d*$/;
+
+/**
+ * Whether a sheet is skipped by a numeric `sheet` selector: a very hidden sheet, or the export's own
+ * hidden dropdown helper.
+ */
+function isHelperSheet(sheet: SheetSnapshot): boolean {
+  return sheet.state === 'veryHidden' || (sheet.state === 'hidden' && EXPORT_HELPER_SHEET_NAME.test(sheet.name));
+}
+
+/**
+ * Selects the sheet to import. A number indexes the sheets that are not very hidden and are not the
+ * export's hidden `_HotValidation` helper (helper sheets never get picked by accident); a string
+ * matches any sheet by name.
  */
 export function selectSheet(workbook: WorkbookSnapshot, selector: string | number): SheetSnapshot {
   const names = workbook.sheets.map(sheet => sheet.name).join(', ');
   const sheet = typeof selector === 'number'
-    ? workbook.sheets.filter(candidate => candidate.state !== 'veryHidden')[selector]
+    ? workbook.sheets.filter(candidate => !isHelperSheet(candidate))[selector]
     : workbook.sheets.find(candidate => candidate.name === selector);
 
   if (!sheet) {
@@ -236,11 +271,36 @@ function toMeta(inferred: InferredType): ImportColumn {
         : { type: 'numeric' };
     case 'date':
       return { type: 'date', dateFormat: inferred.dateFormat };
+    case 'intl-datetime':
+      return { type: 'intl-datetime', dateTimeFormat: inferred.dateTimeFormat };
     case 'time':
       return { type: 'time', timeFormat: inferred.timeFormat };
     default:
       return { type: inferred.type };
   }
+}
+
+/**
+ * Consecutive rows of one column (`start` to `end`, inclusive) whose cells wear the same imported
+ * class names, joined with a space.
+ */
+interface ClassNameRun {
+  start: number;
+  end: number;
+  value: string;
+}
+
+/**
+ * Consecutive rows of one column (`start` to `end`, inclusive) whose cells derived the SAME meta
+ * object. Every cell of one number format shares one cached meta, and so does every slot one list
+ * validation covers, so a column is a handful of runs however many rows it has. Keying the meta
+ * per cell instead cost one `Map` entry per covered slot: one list validation over `A1:E1000000`
+ * in a 2 kB file put five million entries in the map (+1.2 GB, 11 s in `mapWorkbook`).
+ */
+interface MetaRun {
+  start: number;
+  end: number;
+  meta: ImportColumn;
 }
 
 /**
@@ -252,9 +312,15 @@ interface CellPass {
    */
   data: unknown[][];
   /**
-   * Per-cell meta keyed by `"row:col"`, before it is lifted to `columns` or `cellsMeta`.
+   * Per-cell meta, before it is lifted to `columns` or `cellsMeta`, kept per column as runs of
+   * consecutive rows that share one meta object. See `MetaRun`.
    */
-  metaByCell: Map<string, ImportColumn>;
+  metaRuns: Map<number, MetaRun[]>;
+  /**
+   * How many visited cells hold a value or a formula: the data the per-cell meta budget is measured
+   * against (`MIN_CELL_META_BUDGET`).
+   */
+  dataCells: number;
   /**
    * Cell formulas read from the workbook.
    */
@@ -264,23 +330,34 @@ interface CellPass {
    */
   comments: NonNullable<ImportResult['comments']>;
   /**
-   * Coordinates of every cell that must be marked `readOnly`.
+   * The cells that must be marked `readOnly`, per column as runs of consecutive rows (`[start, end]`,
+   * inclusive). Under sheet protection every blank is locked, so one entry per cell cost one object
+   * per slot of the window: a protected sheet with cells in `A1:E1` and `A1000000:E1000000` grew the
+   * heap by 1.3 GB.
    */
-  readOnly: Array<{ row: number; col: number }>;
+  readOnly: Map<number, Array<[number, number]>>;
   /**
    * Whether any visited cell carried a style, so `cellStyles` can be reported once as dropped.
    */
   sawStyle: boolean;
   /**
-   * Class names collected per cell, keyed by `"row:col"`, when `importStyles` is on.
+   * Class names collected when `importStyles` is on, per column as runs of consecutive rows that
+   * wear the same classes. One `"row:col"` entry per styled cell let a 101 KB file of 305 x 16 384
+   * cells with two fills alternating by row allocate 2.2 GB before the per-cell meta budget saw it.
    */
-  classNames: Map<string, string[]>;
+  classNames: Map<number, ClassNameRun[]>;
+  /**
+   * Class-name runs charged so far against the per-cell meta budget: every run past a column's
+   * first, because a column with more than one run is expanded per cell. See `chargeStyleEntry`.
+   */
+  chargedClassRuns: number;
   /**
    * Generated style rules, keyed by class name, deduplicated across cells.
    */
   styles: Map<string, string>;
   /**
-   * `customBorders` entries collected when `importStyles` is on and the plugin is enabled.
+   * `customBorders` entries collected when `importStyles` is on and the plugin is enabled, one per
+   * bordered cell, each charged against the per-cell meta budget before it is pushed.
    */
   borders: ImportedBorder[];
   /**
@@ -318,7 +395,7 @@ function resolveDropdownMeta(cell: CellSnapshot, scope: CollectContext): ImportC
   const meta: ImportColumn | null = source ? { type: 'dropdown', source } : null;
 
   if (!meta) {
-    scope.dropped.record('dataValidation:unresolvedList');
+    scope.dropped.record(DROPPED_FEATURES.dataValidationUnresolvedList);
   }
 
   scope.listMetaByFormula.set(key, meta);
@@ -331,11 +408,7 @@ function resolveDropdownMeta(cell: CellSnapshot, scope: CollectContext): ImportC
  * shared with every other cell of the same number format.
  */
 function resolveCellMeta(cell: CellSnapshot, inferredMeta: InferredMeta, scope: CollectContext): ImportColumn | null {
-  const { inferred, meta } = inferredMeta;
-
-  if (inferred?.type === 'numeric' && inferred.unsupportedNumFmt) {
-    scope.dropped.record(`numFmt:${inferred.unsupportedNumFmt}`);
-  }
+  const { meta } = inferredMeta;
 
   if (cell.validation) {
     const dropdown = resolveDropdownMeta(cell, scope);
@@ -364,6 +437,143 @@ interface FormulaShift {
 }
 
 /**
+ * Escapes a plain text value the grid would otherwise reinterpret.
+ *
+ * TWO shapes need it, and they are exactly the values the Formulas plugin's own
+ * `unescapeFormulaExpression` would change (`plugins/formulas/utils.ts`; the predicates are
+ * mirrored here rather than imported, because a plugin never imports another plugin).
+ *
+ * A cell holding the TEXT `=HYPERLINK("http://…")` is inert in Excel - it is a string, not a
+ * formula - but the grid hands every `=`-leading string to HyperFormula, so importing it verbatim
+ * turned the file's text into a formula the file never had.
+ *
+ * A cell whose text is `'=1+1` is the other half: the leading apostrophe is the FILE's own
+ * character, and `isEscapedFormulaExpression` (an apostrophe followed by `=`) reads it as the
+ * grid's escape marker and strips it. Escaping it keeps the file's apostrophe in the data. A value
+ * starting with an apostrophe that is NOT followed by `=` is left alone, because the grid leaves it
+ * alone too - the marker is `'=`, not a bare `'`.
+ *
+ * Only applied when the plugin is enabled: without it an apostrophe would be part of the value.
+ */
+function escapeTextFormula(value: unknown, formulasEnabled: boolean): unknown {
+  if (!formulasEnabled || typeof value !== 'string') {
+    return value;
+  }
+
+  return value.startsWith('=') || value.startsWith('\'=') ? `'${value}` : value;
+}
+
+/**
+ * Matches the start of a prefix Excel stores in a formula (`_xlfn.`, `_xlws.`, `_xlpm.`), the cheap
+ * test that decides whether `stripFunctionPrefixes` has to walk the formula at all.
+ */
+const STORED_PREFIX_HINT = /_xl/i;
+
+/**
+ * Charges one formula's walks against the pass's budget, refusing the workbook once the sum crosses
+ * `MAX_TRANSLATED_FORMULA_CHARS` - the same budget the native reader charges a shared formula's
+ * translation. Charged before the walks, so the refusal lands before the work it bounds: the import
+ * runs `REFERENCE_REGEX` over every formula's whole text, and nothing else bounds the product of the
+ * cell count and the formula length. Each formula is charged once, whatever walks it needs.
+ */
+function chargeFormulaWalk(length: number, scope: CollectContext): void {
+  scope.walkedFormulaChars += length;
+
+  if (scope.walkedFormulaChars > MAX_TRANSLATED_FORMULA_CHARS) {
+    throwLimitExceeded('The workbook\'s formulas rewrite to more than '
+      + `${MAX_TRANSLATED_FORMULA_CHARS} characters, above the limit this reader accepts.`);
+  }
+}
+
+/**
+ * The formula as the grid takes it: the `_xlfn.`/`_xlws.`/`_xlpm.` prefixes Excel stores in front of
+ * post-2007 functions and `LET`/`LAMBDA` parameters removed, so HyperFormula does not read them as
+ * unknown names (`#NAME?`). Every engine hands the stored text over verbatim, so the mapper strips
+ * it for both.
+ *
+ * A formula any walk will run over is charged against the budget ONCE, before the first walk: the
+ * prefix strip, and - with live formulas on - the reference walk of `rebaseImportedFormula` (a
+ * non-zero window origin, or a `!` to check) and the defined-name scan (a workbook that defines a
+ * name the engine lacks). Each walk is linear in the formula's length, so one charge per formula is
+ * what the budget's figures in `limits.ts` were measured against.
+ */
+function readFormulaText(text: string, scope: CollectContext): string {
+  const { shift } = scope;
+  const stripping = STORED_PREFIX_HINT.test(text);
+  const walking = shift !== null && (
+    shift.rowDelta !== 0 || shift.colDelta !== 0 || text.includes('!') || scope.unresolvedNames.size > 0
+  );
+
+  if (stripping || walking) {
+    chargeFormulaWalk(text.length, scope);
+  }
+
+  return stripping ? stripFunctionPrefixes(text) : text;
+}
+
+/**
+ * Whether the Formulas plugin's engine holds a sheet of this name. A formula naming a sheet it does
+ * not hold shows `#REF!` in the grid, and so does every formula that depends on it, while the file
+ * carries the value it evaluated to.
+ */
+function isSheetKnown(name: string, scope: CollectContext): boolean {
+  return scope.context.formulaSheetNames?.has(name.toLowerCase()) === true;
+}
+
+/**
+ * An identifier in a formula: a name, a function name or a cell reference. A string literal and a
+ * quoted sheet name (`'Sales Data'!A1`) are matched whole so their words are never read as names.
+ * Linear: one greedy run per match, no backtracking.
+ */
+const FORMULA_IDENTIFIER_REGEX = /"(?:[^"]|"")*"|'(?:[^']|'')*'|[\p{L}_\\][\p{L}\p{N}_.]*/gu;
+
+/**
+ * Whether a formula uses a name the workbook defines and the Formulas engine does not. HyperFormula
+ * shows `#NAME?` for it, while the file carries the value it evaluated to. A string literal names
+ * nothing; a name followed by `(` is a function, and one followed by `!` a sheet. `readFormulaText`
+ * has already charged the formula; a workbook that defines no name unknown to the engine costs
+ * nothing.
+ */
+function usesUnresolvedName(formula: string, scope: CollectContext): boolean {
+  const { unresolvedNames } = scope;
+
+  if (unresolvedNames.size === 0) {
+    return false;
+  }
+
+  for (const match of formula.matchAll(FORMULA_IDENTIFIER_REGEX)) {
+    const [token] = match;
+    const next = formula[(match.index ?? 0) + token.length];
+
+    const isQuoted = token[0] === '"' || token[0] === '\'';
+
+    if (!isQuoted && next !== '(' && next !== '!' && unresolvedNames.has(token.toLowerCase())) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * The names a workbook defines that the Formulas engine does not, lower-cased.
+ */
+function unresolvedDefinedNames(workbook: WorkbookSnapshot, context: MapperContext): Set<string> {
+  const known = context.formulaNamedExpressions;
+  const names = new Set<string>();
+
+  (workbook.definedNames ?? []).forEach((name) => {
+    const lowered = name.toLowerCase();
+
+    if (!known?.has(lowered)) {
+      names.add(lowered);
+    }
+  });
+
+  return names;
+}
+
+/**
  * Pushes one cell's value onto the data row, writing a live formula string when the formulas
  * plugin is enabled and recording the cached formula otherwise.
  *
@@ -371,15 +581,25 @@ interface FormulaShift {
  * prepends, so the sheet's `C2` is the grid's `B1`; this shifts it back by the window origin. A
  * reference the shift would push above row 1 or left of column A pointed into that header band,
  * which the import drops - the formula then cannot be expressed in grid coordinates at all, so the
- * cached value is imported instead and the formula is reported.
+ * cached value is imported instead and the formula is reported. A reference qualified with the
+ * imported sheet's own name is a reference into this sheet: its qualifier is dropped and it shifts
+ * like an unqualified one (`rebaseImportedFormula`).
  */
 function pushCellValue(
   pass: CellPass, cell: CellSnapshot, inferred: InferredType | null,
-  shift: FormulaShift | null, row: number, col: number, dropped: DroppedFeatures
+  row: number, col: number, scope: CollectContext
 ): void {
-  const live = cell.formula && shift
-    ? shiftFormulaReferences(cell.formula.text, shift.rowDelta, shift.colDelta)
+  const { shift, dropped } = scope;
+  const formula = cell.formula ? readFormulaText(cell.formula.text, scope) : null;
+  const rebased = formula !== null && shift !== null
+    ? rebaseImportedFormula(formula, shift.rowDelta, shift.colDelta, {
+      self: scope.sheet.name,
+      isKnown: name => isSheetKnown(name, scope),
+    })
     : null;
+  const otherSheet = rebased !== null && rebased.unknownSheet;
+  const unknownName = rebased !== null && !otherSheet && usesUnresolvedName(formula ?? '', scope);
+  const live = rebased !== null && !otherSheet && !unknownName ? rebased.formula : null;
 
   if (live !== null) {
     pass.data[pass.data.length - 1].push(`=${live}`);
@@ -387,24 +607,21 @@ function pushCellValue(
     return;
   }
 
-  pass.data[pass.data.length - 1].push(toGridValue(cell, inferred));
+  pass.data[pass.data.length - 1].push(
+    escapeTextFormula(toGridValue(cell, inferred), scope.context.formulasEnabled)
+  );
 
-  if (cell.formula) {
-    pass.formulas.push({ row, col, formula: cell.formula.text });
+  if (formula !== null) {
+    pass.formulas.push({ row, col, formula });
 
-    if (shift) {
-      dropped.record('formula:outOfRange');
+    if (otherSheet) {
+      dropped.record(DROPPED_FEATURES.formulaOtherSheet);
+    } else if (unknownName) {
+      dropped.record(DROPPED_FEATURES.formulaDefinedName);
+    } else if (shift) {
+      dropped.record(DROPPED_FEATURES.formulaOutOfRange);
     }
   }
-}
-
-/**
- * Splits a `"row:col"` cell key back into the two indexes it carries.
- */
-function parseCellKey(key: string): { row: number; col: number } {
-  const separator = key.indexOf(':');
-
-  return { row: Number(key.slice(0, separator)), col: Number(key.slice(separator + 1)) };
 }
 
 /**
@@ -451,19 +668,82 @@ function collectStyle(
     classes.push(registerStyleRule(pass.styles, rule));
   }
 
-  if (classes.length > 0) {
-    pass.classNames.set(`${row}:${col}`, classes);
+  if (classes.length > 0 && recordClassName(pass.classNames, row, col, classes.join(' '))) {
+    pass.chargedClassRuns = chargeStyleEntry(pass.chargedClassRuns, pass.dataCells);
   }
 
   const border = borderEntry(style.border, row, col);
 
   if (border) {
     if (context.customBordersEnabled) {
+      chargeStyleEntry(pass.borders.length, pass.dataCells);
       pass.borders.push(border);
     } else {
       pass.droppedBorders = true;
     }
   }
+}
+
+/**
+ * Adds one cell's class names to its column's runs, and answers whether that started a run in a
+ * column that already had one. Such a column cannot be lifted to `columns`, so each of its runs
+ * costs at least one `cellsMeta` entry later. The window is walked row by row, so a column's rows
+ * arrive in ascending order.
+ */
+function recordClassName(runs: Map<number, ClassNameRun[]>, row: number, col: number, value: string): boolean {
+  const columnRuns = runs.get(col);
+  const last = columnRuns?.[columnRuns.length - 1];
+
+  if (last && last.value === value && last.end === row - 1) {
+    last.end = row;
+
+    return false;
+  }
+
+  if (columnRuns) {
+    columnRuns.push({ start: row, end: row, value });
+
+    return true;
+  }
+
+  runs.set(col, [{ start: row, end: row, value }]);
+
+  return false;
+}
+
+/**
+ * The per-cell meta budget: the larger of `MIN_CELL_META_BUDGET` and the cells that hold a value or
+ * a formula, so a sheet of real data is never refused for the settings its own cells carry.
+ */
+function cellMetaBudget(dataCells: number): number {
+  return Math.max(MIN_CELL_META_BUDGET, dataCells);
+}
+
+/**
+ * Refuses the sheet because its per-cell settings expand past `budget`.
+ */
+function refuseCellMeta(budget: number, dataCells: number): never {
+  return throwLimitExceeded(`The sheet's cell settings expand to more than ${budget} cells, above the limit `
+    + `this reader accepts for a sheet with ${dataCells} cells of data.`);
+}
+
+/**
+ * Charges one style entry (a class-name run that will expand per cell, or a `customBorders` entry)
+ * against the per-cell meta budget at COLLECTION, before the entry is allocated, and answers the new
+ * count. The budget is measured against the data cells seen so far, because the window is walked
+ * once: a 103 KB file of 5 M bordered empty cells pushed 5 M `customBorders` entries (2.7 GB) with
+ * nothing to stop it, and a file of fills alternating by row was refused only after placement had
+ * copied every class name. Class-name runs and borders are counted apart, so a bordered, banded
+ * sheet of real data is not charged twice for one cell.
+ */
+function chargeStyleEntry(charged: number, dataCells: number): number {
+  const budget = cellMetaBudget(dataCells);
+
+  if (charged >= budget) {
+    refuseCellMeta(budget, dataCells);
+  }
+
+  return charged + 1;
 }
 
 /**
@@ -500,11 +780,20 @@ interface CollectContext {
    */
   listMetaByFormula: Map<string, ImportColumn | null>;
   /**
+   * The names the workbook defines and the Formulas engine does not, lower-cased.
+   */
+  unresolvedNames: Set<string>;
+  /**
    * The inferred type and its meta object per distinct number format and value kind, so a sheet
    * with a handful of formats parses each once rather than once per cell, and every cell of a
    * homogeneous column shares one meta object that `columnMetaAgrees` settles by reference.
    */
   inferredByFormat: Map<string, InferredMeta>;
+  /**
+   * Characters of formula text walked so far in this pass, each formula charged once for its prefix
+   * strip, reference walk and defined-name scan, against `MAX_TRANSLATED_FORMULA_CHARS`.
+   */
+  walkedFormulaChars: number;
 }
 
 /**
@@ -517,10 +806,14 @@ interface InferredMeta {
 
 /**
  * Infers a cell's type through the pass cache. The key is the number format plus the kind of value,
- * which is everything `inferCellType` reads.
+ * which is everything `inferCellType` reads. An unsupported format is reported here, once per
+ * distinct key, rather than once per cell.
  */
 function inferForCell(cell: CellSnapshot, scope: CollectContext): InferredMeta {
-  const key = `${cell.numFmt ?? ''}\u0000${typeof cellDisplayValue(cell)}`;
+  const value = cellDisplayValue(cell);
+  // An elapsed-time format infers differently past the duration it can show, so that is part of
+  // the key too.
+  const key = `${cell.numFmt ?? ''}\u0000${typeof value}\u0000${exceedsElapsedFormat(cell.numFmt, value)}`;
   const cached = scope.inferredByFormat.get(key);
 
   if (cached) {
@@ -530,25 +823,69 @@ function inferForCell(cell: CellSnapshot, scope: CollectContext): InferredMeta {
   const inferred = inferCellType(cell);
   const entry: InferredMeta = { inferred, meta: inferred ? toMeta(inferred) : null };
 
+  // Reported on the cache miss only: `recordUnsupported` bounds and copies the whole format string,
+  // so once per cell cost one walk of a file-sized string per cell for a name it records once.
+  if (inferred?.type === 'numeric' && inferred.unsupportedNumFmt) {
+    scope.dropped.recordUnsupported('numFmt', inferred.unsupportedNumFmt);
+  }
+
   scope.inferredByFormat.set(key, entry);
 
   return entry;
 }
 
 /**
+ * Adds one cell's meta to its column's runs. The window is walked row by row, so a column's rows
+ * arrive in ascending order and a cell either extends the column's last run or starts a new one.
+ */
+function recordMeta(metaRuns: Map<number, MetaRun[]>, row: number, col: number, meta: ImportColumn): void {
+  const runs = metaRuns.get(col);
+  const last = runs?.[runs.length - 1];
+
+  if (last && last.meta === meta && last.end === row - 1) {
+    last.end = row;
+  } else if (runs) {
+    runs.push({ start: row, end: row, meta });
+  } else {
+    metaRuns.set(col, [{ start: row, end: row, meta }]);
+  }
+}
+
+/**
+ * Marks one cell read-only, extending its column's last run when the row follows it. The window is
+ * walked row by row, so a column's rows arrive in ascending order.
+ */
+function recordReadOnly(readOnly: Map<number, Array<[number, number]>>, row: number, col: number): void {
+  const runs = readOnly.get(col);
+  const last = runs?.[runs.length - 1];
+
+  if (last && last[1] === row - 1) {
+    last[1] = row;
+  } else if (runs) {
+    runs.push([row, row]);
+  } else {
+    readOnly.set(col, [[row, row]]);
+  }
+}
+
+/**
  * Collects one cell into the pass, in the window's own 0-based coordinates.
  */
 function collectCell(pass: CellPass, cell: CellSnapshot, row: number, col: number, scope: CollectContext): void {
-  const { sheet, options, context, shift, dropped } = scope;
+  const { sheet, options, context } = scope;
   const inferredMeta = options.inferCellTypes ? inferForCell(cell, scope) : null;
   const inferred = inferredMeta?.inferred ?? null;
   const meta = inferredMeta ? resolveCellMeta(cell, inferredMeta, scope) : null;
 
   if (meta) {
-    pass.metaByCell.set(`${row}:${col}`, meta);
+    recordMeta(pass.metaRuns, row, col, meta);
   }
 
-  pushCellValue(pass, cell, inferred, shift, row, col, dropped);
+  if (cell.value !== null || cell.formula !== null) {
+    pass.dataCells += 1;
+  }
+
+  pushCellValue(pass, cell, inferred, row, col, scope);
 
   if (cell.comment !== null) {
     if (context.commentsEnabled) {
@@ -561,7 +898,7 @@ function collectCell(pass: CellPass, cell: CellSnapshot, row: number, col: numbe
   const readOnly = sheet.protection?.enabled === true && cell.locked !== false;
 
   if (readOnly) {
-    pass.readOnly.push({ row, col });
+    recordReadOnly(pass.readOnly, row, col);
   }
 
   pass.sawStyle = pass.sawStyle || cell.style !== null;
@@ -580,12 +917,14 @@ function collectCells(
 ): CellPass {
   const pass: CellPass = {
     data: [],
-    metaByCell: new Map(),
+    metaRuns: new Map(),
+    dataCells: 0,
     formulas: [],
     comments: [],
-    readOnly: [],
+    readOnly: new Map(),
     sawStyle: false,
     classNames: new Map(),
+    chargedClassRuns: 0,
     styles: new Map(),
     borders: [],
     droppedBorders: false,
@@ -601,7 +940,11 @@ function collectCells(
       : null,
     dropped,
     listMetaByFormula: new Map(),
+    unresolvedNames: options.importFormulas && context.formulasEnabled
+      ? unresolvedDefinedNames(workbook, context)
+      : new Set(),
     inferredByFormat: new Map(),
+    walkedFormulaChars: 0,
   };
 
   for (let row = window.firstRow; row <= window.lastRow; row++) {
@@ -616,7 +959,7 @@ function collectCells(
         // OOXML treats a cell with no explicit `<protection>` as locked, and an empty cell has
         // none, so under sheet protection a blank imports read-only like its filled neighbours.
         if (sheet.protection?.enabled === true) {
-          pass.readOnly.push({ row: row - window.firstRow, col: col - window.firstCol });
+          recordReadOnly(pass.readOnly, row - window.firstRow, col - window.firstCol);
         }
       } else {
         collectCell(pass, cell, row - window.firstRow, col - window.firstCol, scope);
@@ -628,65 +971,58 @@ function collectCells(
 }
 
 /**
- * Buckets the per-cell meta by column in one pass, so placing it costs one walk over the map
- * instead of one walk per column. Each bucket keeps the map's insertion order, which is row-major,
- * so a column's entries come out with ascending row indexes.
- */
-function groupMetaByColumn(metaByCell: Map<string, ImportColumn>): Map<number, Array<[number, ImportColumn]>> {
-  const byColumn = new Map<number, Array<[number, ImportColumn]>>();
-
-  metaByCell.forEach((meta, key) => {
-    const { row, col } = parseCellKey(key);
-    const entries = byColumn.get(col);
-
-    if (entries) {
-      entries.push([row, meta]);
-    } else {
-      byColumn.set(col, [[row, meta]]);
-    }
-  });
-
-  return byColumn;
-}
-
-/**
  * One `cellsMeta` entry, as the result carries it.
  */
 type CellMetaEntry = NonNullable<ImportResult['cellsMeta']>[number];
 
 /**
- * Returns the `cellsMeta` entry for one cell, appending a fresh one the first time that cell is
- * seen. The `"row:col"` index is what keeps this constant-time: the `readOnly` and `className`
- * merges both fold into entries the column pass already produced, and scanning the growing array
- * for each of them made placing the meta quadratic in the number of styled or locked cells.
+ * Answers the function that returns the `cellsMeta` entry for one cell, appending a fresh one the
+ * first time that cell is seen. The `"row:col"` index is what keeps this constant-time: the
+ * `readOnly` and `className` merges both fold into entries the column pass already produced, and
+ * scanning the growing array for each of them made placing the meta quadratic in the number of
+ * styled or locked cells.
+ *
+ * Every new entry is charged against the sheet's budget BEFORE it is allocated: the sheet is refused
+ * once `cellsMeta` would hold more entries than the larger of `MIN_CELL_META_BUDGET` and the cells
+ * that hold a value or a formula. The type outliers, the `readOnly` cells and the `className` cells
+ * all go through here, and a cell that carries several of them is one entry, charged once. Those
+ * cells need not hold any data: two list validations with different formulas that split
+ * `A1:E1000000` in half expanded 2.5 million empty cells from a 2 kB file.
  */
-function cellMetaEntryAt(
-  cellsMeta: CellMetaEntry[], index: Map<string, CellMetaEntry>, row: number, col: number
-): CellMetaEntry {
-  const key = `${row}:${col}`;
-  const existing = index.get(key);
+function cellMetaEntries(
+  cellsMeta: CellMetaEntry[], dataCells: number
+): (row: number, col: number) => CellMetaEntry {
+  const index = new Map<string, CellMetaEntry>();
+  const budget = cellMetaBudget(dataCells);
 
-  if (existing) {
-    return existing;
-  }
+  return (row: number, col: number): CellMetaEntry => {
+    const key = `${row}:${col}`;
+    const existing = index.get(key);
 
-  const entry: CellMetaEntry = { row, col, meta: {} };
+    if (existing) {
+      return existing;
+    }
 
-  cellsMeta.push(entry);
-  index.set(key, entry);
+    if (cellsMeta.length >= budget) {
+      refuseCellMeta(budget, dataCells);
+    }
 
-  return entry;
+    const entry: CellMetaEntry = { row, col, meta: {} };
+
+    cellsMeta.push(entry);
+    index.set(key, entry);
+
+    return entry;
+  };
 }
 
 /**
- * The meta most cells of a column derived, with the entries that disagree with it. Reference-equal
- * entries (every cell of one number format shares one meta object, every cell of one list formula
+ * The meta most cells of a column derived, with the runs that disagree with it. Reference-equal
+ * runs (every cell of one number format shares one meta object, every cell of one list formula
  * one dropdown meta) are counted without serializing; a structurally equal object that is not the
- * same reference still counts as the same meta.
+ * same reference still counts as the same meta. A run counts as many cells as it spans.
  */
-function dominantMeta(
-  entries: Array<[number, ImportColumn]>
-): { meta: ImportColumn; outliers: Array<[number, ImportColumn]> } {
+function dominantMeta(runs: MetaRun[]): { meta: ImportColumn; outliers: MetaRun[] } {
   const counts = new Map<ImportColumn, number>();
   const canonical = new Map<string, ImportColumn>();
   const resolve = (meta: ImportColumn): ImportColumn => {
@@ -705,14 +1041,14 @@ function dominantMeta(
 
     return meta;
   };
-  const resolved = entries.map(([row, meta]): [number, ImportColumn] => {
-    const same = resolve(meta);
+  const resolved = runs.map((run): MetaRun => {
+    const same = resolve(run.meta);
 
-    counts.set(same, (counts.get(same) ?? 0) + 1);
+    counts.set(same, (counts.get(same) ?? 0) + (run.end - run.start + 1));
 
-    return [row, same];
+    return { ...run, meta: same };
   });
-  let dominant = resolved[0][1];
+  let dominant = resolved[0].meta;
 
   counts.forEach((count, meta) => {
     if (count > (counts.get(dominant) ?? 0)) {
@@ -720,7 +1056,7 @@ function dominantMeta(
     }
   });
 
-  return { meta: dominant, outliers: resolved.filter(([, meta]) => meta !== dominant) };
+  return { meta: dominant, outliers: resolved.filter(run => run.meta !== dominant) };
 }
 
 /**
@@ -738,52 +1074,42 @@ function placeMeta(
 ): Pick<ImportResult, 'columns' | 'cellsMeta'> {
   const columns: ImportColumn[] = Array.from({ length: colCount }, () => ({}));
   const cellsMeta: NonNullable<ImportResult['cellsMeta']> = [];
-  const byCoords = new Map<string, CellMetaEntry>();
-  const metaByColumn = groupMetaByColumn(pass.metaByCell);
+  const entryAt = cellMetaEntries(cellsMeta, pass.dataCells);
 
   if (includeTypes) {
     for (let c = 0; c < colCount; c++) {
-      const entries = metaByColumn.get(c) ?? [];
+      const runs = pass.metaRuns.get(c) ?? [];
 
-      if (entries.length === 0) {
+      if (runs.length === 0) {
         continue;
       }
 
-      const { meta, outliers } = dominantMeta(entries);
+      const { meta, outliers } = dominantMeta(runs);
 
       // The dominant meta object itself, not a copy: every column of one number format or one list
       // formula then shares it, which is what keeps a wide sheet from allocating one per column.
       columns[c] = meta;
-      outliers.forEach(([row, outlier]) => {
-        cellMetaEntryAt(cellsMeta, byCoords, row, c).meta = withResetKeys(outlier, meta);
+      outliers.forEach(({ start, end, meta: outlier }) => {
+        for (let row = start; row <= end; row++) {
+          entryAt(row, c).meta = withResetKeys(outlier, meta);
+        }
       });
     }
   }
 
-  placeColumnWide(
-    pass.readOnly.map(({ row, col }): [number, number, true] => [row, col, true]), rowCount, colCount,
-    (col, value) => {
-      columns[col] = { ...columns[col], readOnly: value };
-    },
-    (row, col, value) => {
-      cellMetaEntryAt(cellsMeta, byCoords, row, col).meta.readOnly = value;
-    },
-  );
-
-  const classEntries: Array<[number, number, string]> = [];
-
-  pass.classNames.forEach((classes, key) => {
-    const { row, col } = parseCellKey(key);
-
-    classEntries.push([row, col, classes.join(' ')]);
+  placeReadOnly(pass.readOnly, rowCount, colCount, (col) => {
+    columns[col] = { ...columns[col], readOnly: true };
+  }, (row, col, value) => {
+    entryAt(row, col).meta.readOnly = value;
   });
+
   placeColumnWide(
-    classEntries, rowCount, colCount,
+    pass.classNames, rowCount, colCount,
     (col, value) => {
       columns[col] = { ...columns[col], className: value };
     },
     (row, col, value) => {
-      cellMetaEntryAt(cellsMeta, byCoords, row, col).meta.className = value;
+      entryAt(row, col).meta.className = value;
     },
   );
 
@@ -813,34 +1139,74 @@ function withResetKeys(outlier: ImportColumn, columnMeta: ImportColumn): Record<
 }
 
 /**
- * Places one per-cell fact (`readOnly`, `className`) at the column level when every row of the
- * column carries the same value, and per cell otherwise.
+ * Places the read-only runs. A column that is locked on more than half of its rows becomes
+ * `readOnly` as a whole, and only its unlocked rows get a `readOnly: false` cell entry; any other
+ * column gets a `readOnly: true` entry per locked row. Before, one unlocked cell on a protected
+ * sheet sent every OTHER cell of its column through `cellsMeta`.
  */
-function placeColumnWide<T>(
-  entries: Array<[number, number, T]>, rowCount: number, colCount: number,
-  onColumn: (col: number, value: T) => void, onCell: (row: number, col: number, value: T) => void
+function placeReadOnly(
+  readOnly: Map<number, Array<[number, number]>>, rowCount: number, colCount: number,
+  onColumn: (col: number) => void, onCell: (row: number, col: number, value: boolean) => void
 ): void {
-  const byColumn = new Map<number, Array<[number, T]>>();
+  readOnly.forEach((runs, col) => {
+    if (col >= colCount || rowCount === 0) {
+      return;
+    }
 
-  entries.forEach(([row, col, value]) => {
-    const list = byColumn.get(col);
+    const locked = runs.reduce((sum, [start, end]) => sum + (end - start + 1), 0);
 
-    if (list) {
-      list.push([row, value]);
-    } else {
-      byColumn.set(col, [[row, value]]);
+    if (locked * 2 <= rowCount) {
+      runs.forEach(([start, end]) => {
+        for (let row = start; row <= end; row++) {
+          onCell(row, col, true);
+        }
+      });
+
+      return;
+    }
+
+    onColumn(col);
+
+    let next = 0;
+
+    runs.forEach(([start, end]) => {
+      for (let row = next; row < start; row++) {
+        onCell(row, col, false);
+      }
+
+      next = end + 1;
+    });
+
+    for (let row = next; row < rowCount; row++) {
+      onCell(row, col, false);
     }
   });
+}
 
-  byColumn.forEach((list, col) => {
-    const uniform = rowCount > 0 && list.length === rowCount && col < colCount
-      && list.every(([, value]) => value === list[0][1]);
+/**
+ * Places the class-name runs: at the column level when one run covers every row of the column, and
+ * per cell otherwise. Each cell placed per cell goes through `entryAt`, which charges the budget.
+ */
+function placeColumnWide(
+  runs: Map<number, ClassNameRun[]>, rowCount: number, colCount: number,
+  onColumn: (col: number, value: string) => void, onCell: (row: number, col: number, value: string) => void
+): void {
+  runs.forEach((columnRuns, col) => {
+    const [first] = columnRuns;
+    const uniform = rowCount > 0 && col < colCount && columnRuns.length === 1
+      && first.start === 0 && first.end === rowCount - 1;
 
     if (uniform) {
-      onColumn(col, list[0][1]);
-    } else {
-      list.forEach(([row, value]) => onCell(row, col, value));
+      onColumn(col, first.value);
+
+      return;
     }
+
+    columnRuns.forEach(({ start, end, value }) => {
+      for (let row = start; row <= end; row++) {
+        onCell(row, col, value);
+      }
+    });
   });
 }
 
@@ -873,6 +1239,47 @@ function cropMerge(
 }
 
 /**
+ * Converts a file-supplied column width or row height to pixels, or `undefined` when the file's
+ * value is not a finite, positive size inside Excel's own limit. This is the plugin's half of the
+ * bound, independent of the engine: `-350`, `7e+300` and `Infinity` reached `updateSettings` as
+ * column widths before it.
+ */
+function toLayoutPixels(size: unknown, max: number, toPx: (value: number) => number): number | undefined {
+  if (typeof size !== 'number' || !Number.isFinite(size) || size <= 0 || size > max) {
+    return undefined;
+  }
+
+  const pixels = toPx(size);
+
+  return pixels > 0 ? pixels : undefined;
+}
+
+/**
+ * Turns a file-supplied freeze count into the whole, non-negative number of rows or columns to fix
+ * in the window: floored, shifted by the window origin and clamped to the window. Anything that is
+ * not a number, and `NaN`, freezes nothing.
+ */
+function toFreezeCount(value: unknown, shift: number, count: number): number {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(Math.floor(value) - shift, count));
+}
+
+/**
+ * Shifts file-supplied hidden indexes into the window, dropping each one that is not a whole
+ * number or falls outside the window ON ITS OWN. `HiddenRows`/`HiddenColumns` reject the whole list
+ * when one entry is invalid, so a single `0.5` used to unhide every row the file legitimately hid.
+ */
+function toHiddenIndexes(indexes: unknown[], shift: number, count: number): number[] {
+  return indexes
+    .filter((index): index is number => Number.isInteger(index))
+    .map(index => index - shift)
+    .filter(index => index >= 0 && index < count);
+}
+
+/**
  * Shifts and crops the sheet layout into the window's coordinates.
  */
 function mapLayout(sheet: SheetSnapshot, window: SheetWindow): Partial<ImportResult> {
@@ -880,27 +1287,22 @@ function mapLayout(sheet: SheetSnapshot, window: SheetWindow): Partial<ImportRes
   const colShift = window.firstCol;
   const rowCount = window.lastRow - window.firstRow + 1;
   const colCount = window.lastCol - window.firstCol + 1;
-  const inWindow = (row: number, col: number) => row >= 0 && row < rowCount && col >= 0 && col < colCount;
 
   const mergeCells = sheet.merges
     .map(merge => cropMerge(merge, rowShift, colShift, rowCount, colCount))
     .filter((merge): merge is MergeSnapshot => merge !== null);
-  const hiddenRows = sheet.hiddenRows.map(row => row - rowShift).filter(row => inWindow(row, 0));
-  const hiddenColumns = sheet.hiddenCols.map(col => col - colShift).filter(col => inWindow(0, col));
-  const colWidths = Array.from({ length: colCount }, (_, c) => {
-    const width = sheet.colWidths[c + colShift];
-
-    return width === null || width === undefined ? undefined : excelWidthToPx(width);
-  });
-  const rowHeights = Array.from({ length: rowCount }, (_, r) => {
-    const height = sheet.rowHeights[r + rowShift];
-
-    return height === null || height === undefined ? undefined : pointsToPx(height);
-  });
+  const hiddenRows = toHiddenIndexes(sheet.hiddenRows, rowShift, rowCount);
+  const hiddenColumns = toHiddenIndexes(sheet.hiddenCols, colShift, colCount);
+  const colWidths = Array.from({ length: colCount }, (_, c) => (
+    toLayoutPixels(sheet.colWidths[c + colShift], MAX_EXCEL_COLUMN_WIDTH, excelWidthToPx)
+  ));
+  const rowHeights = Array.from({ length: rowCount }, (_, r) => (
+    toLayoutPixels(sheet.rowHeights[r + rowShift], MAX_EXCEL_ROW_HEIGHT_POINTS, pointsToPx)
+  ));
   // Clamped to the window like every other layout value: a freeze reaching past a short `range`
   // would otherwise ask the grid to freeze more rows than it has.
-  const fixedRowsTop = sheet.freeze ? Math.min(sheet.freeze.rows - rowShift, rowCount) : 0;
-  const fixedColumnsStart = sheet.freeze ? Math.min(sheet.freeze.cols - colShift, colCount) : 0;
+  const fixedRowsTop = sheet.freeze ? toFreezeCount(sheet.freeze.rows, rowShift, rowCount) : 0;
+  const fixedColumnsStart = sheet.freeze ? toFreezeCount(sheet.freeze.cols, colShift, colCount) : 0;
 
   return {
     mergeCells: mergeCells.length > 0 ? mergeCells : undefined,
@@ -945,7 +1347,7 @@ function mapConditionalFormatting(
     // Flag a token the parser refused, not a difference in counts: a parser that one day coalesces
     // duplicate rectangles must not read as a loss.
     if (tokens.some(token => parseRangeRef(token) === null)) {
-      dropped.record('conditionalFormatting:unparsedRef');
+      dropped.record(DROPPED_FEATURES.conditionalFormattingUnparsedRef);
     }
 
     ranges.forEach((range) => {
@@ -1113,14 +1515,14 @@ export function mapWorkbook(
 
   if (options.importStyles) {
     if (pass.droppedBorders) {
-      dropped.record('cellStyles:borders');
+      dropped.record(DROPPED_FEATURES.cellStylesBorders);
     }
   } else if (pass.sawStyle) {
-    dropped.record('cellStyles');
+    dropped.record(DROPPED_FEATURES.cellStyles);
   }
 
   if (pass.droppedComments) {
-    dropped.record('comments');
+    dropped.record(DROPPED_FEATURES.comments);
   }
 
   const result: MappedResult = {

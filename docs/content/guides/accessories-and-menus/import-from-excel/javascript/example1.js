@@ -1,6 +1,5 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import ExcelJS from 'exceljs';
 
 registerAllModules();
 
@@ -26,12 +25,13 @@ const hot = new Handsontable(container, {
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
-  importFile: { engines: { xlsx: ExcelJS } },
+  importFile: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 
 const importPlugin = hot.getPlugin('importFile');
 const fileInput = document.querySelector('#import-file');
+const status = document.querySelector('#import-status');
 
 fileInput.addEventListener('change', async () => {
   const file = fileInput.files?.[0];
@@ -40,11 +40,19 @@ fileInput.addEventListener('change', async () => {
     return;
   }
 
-  const result = await importPlugin.importFromBlob('xlsx', file, {
-    colHeaders: 'firstRow',
-  });
+  try {
+    const result = await importPlugin.importFromBlob('xlsx', file, {
+      colHeaders: 'firstRow',
+    });
 
-  console.log('Dropped features:', result.dropped);
-
-  fileInput.value = '';
+    status.textContent = `Imported ${file.name}`;
+    console.log('Dropped features:', result.dropped);
+  } catch (error) {
+    // A file the engine refuses (an .xls, a password-protected or damaged workbook) rejects with a
+    // message that says what to do; the grid keeps its data.
+    status.textContent = error.message;
+  } finally {
+    // Cleared either way, so picking the same file again fires `change` again.
+    fileInput.value = '';
+  }
 });

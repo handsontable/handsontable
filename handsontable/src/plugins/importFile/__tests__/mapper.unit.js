@@ -1,6 +1,10 @@
+import Handsontable from 'handsontable';
 import { mapWorkbook, registerStyleRule, resolveImportOptions, selectSheet } from '../mapper';
 import { DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
+import { isLimitError, MAX_TRANSLATED_FORMULA_CHARS } from '../../../utils/xlsxEngine/limits';
 import { createCellSnapshot, createSheetSnapshot, createWorkbookSnapshot } from '../../../utils/xlsxEngine/model';
+import { EMPTY_STYLES } from '../../../utils/xlsxEngine/adapters/native/parts/styles';
+import { parseWorksheet } from '../../../utils/xlsxEngine/adapters/native/parts/worksheetReader';
 
 function cell(overrides) {
   return { ...createCellSnapshot(), ...overrides };
@@ -397,12 +401,262 @@ describe('mapWorkbook', () => {
     const { result, dropped } = map(
       workbook(sheet, rates),
       { colHeaders: 'firstRow' },
-      { formulasEnabled: true, commentsEnabled: false }
+      { formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['rates']) }
     );
 
     expect(result.data[0][2]).toBe('=B1*Rates!A1');
     expect(result.formulas).toBeUndefined();
     expect(dropped.list()).not.toContain('formula:outOfRange');
+  });
+
+  it('should import the cached value of a formula naming a sheet the Formulas engine does not hold', () => {
+    // HyperFormula has no `Rates` sheet, so the live formula showed `#REF!` - and so did every
+    // formula depending on it - while the file carried the value it evaluated to.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [
+      [cell({ value: null, formula: { text: 'Rates!A1*2', result: 10 } }),
+        cell({ value: null, formula: { text: 'A1+1', result: 11 } }),
+        cell({ value: null, formula: { text: '\'My Rates\'!$A$1+1', result: 6 } }),
+        cell({ value: null, formula: { text: 'LEN("Rates!A1")', result: 8 } })],
+    ];
+
+    const { result, dropped } = map(
+      workbook(sheet),
+      {},
+      { formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['sheet1']) }
+    );
+
+    expect(result.data[0]).toEqual([10, '=A1+1', 6, '=LEN("Rates!A1")']);
+    expect(result.formulas).toEqual([
+      { row: 0, col: 0, formula: 'Rates!A1*2' },
+      { row: 0, col: 2, formula: '\'My Rates\'!$A$1+1' },
+    ]);
+    expect(dropped.list()).toContain('formula:otherSheet');
+    expect(dropped.list()).not.toContain('formula:outOfRange');
+  });
+
+  it('should keep a formula live when the Formulas engine holds the sheet it names, in any case', () => {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[cell({ value: null, formula: { text: '\'My Rates\'!A1*2', result: 10 } })]];
+
+    const { result, dropped } = map(
+      workbook(sheet),
+      {},
+      { formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['my rates']) }
+    );
+
+    expect(result.data[0][0]).toBe('=\'My Rates\'!A1*2');
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should drop the qualifier naming the imported sheet and shift it with the header row', () => {
+    // `Sheet1!B2` in `Sheet1` is a reference into this very sheet, so the dropped header moves it
+    // like `B2`. Kept qualified and unshifted, it read the formula cell below instead of the 10.
+    const sheet = createSheetSnapshot('Sheet1');
+
+    sheet.rows = [
+      [text('A'), text('B')],
+      [cell({ value: 1 }), cell({ value: 10 })],
+      [cell({ value: null, formula: { text: 'Sheet1!B2*2', result: 20 } }),
+        cell({ value: null, formula: { text: 'B2*2', result: 20 } })],
+    ];
+
+    const { result, dropped } = map(
+      workbook(sheet),
+      { colHeaders: 'firstRow' },
+      { formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['sheet1']) }
+    );
+
+    expect(result.data[1]).toEqual(['=B1*2', '=B1*2']);
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should keep a formula naming the imported sheet live when the engine calls its sheet otherwise', () => {
+    // The grid holds the imported sheet as the engine's `Sheet1`, so `Data!A1` in `Data` is `A1`,
+    // not a reference to a sheet the engine lacks.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[cell({ value: 5 })], [cell({ value: null, formula: { text: 'Data!A1*2', result: 10 } })]];
+
+    const { result, dropped } = map(
+      workbook(sheet),
+      {},
+      { formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['sheet1']) }
+    );
+
+    expect(result.data[1][0]).toBe('=A1*2');
+    expect(result.formulas).toBeUndefined();
+    expect(dropped.list()).not.toContain('formula:otherSheet');
+  });
+
+  it('should import the cached value of an external-workbook or unquoted 3D reference', () => {
+    // The match for the qualifier starts after `[1]` and after `Sheet1:`, so `Sheet1` and `Sheet3`
+    // read as sheets the engine holds; live, HyperFormula showed `#ERROR!` and `#NAME?`.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[
+      cell({ value: null, formula: { text: '[1]Sheet1!A1', result: 42 } }),
+      cell({ value: null, formula: { text: 'SUM(Sheet1:Sheet3!A1)', result: 8 } }),
+    ]];
+
+    const { result, dropped } = map(
+      workbook(sheet),
+      {},
+      { formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['sheet1', 'sheet2', 'sheet3']) }
+    );
+
+    expect(result.data[0]).toEqual([42, 8]);
+    expect(result.formulas).toEqual([
+      { row: 0, col: 0, formula: '[1]Sheet1!A1' },
+      { row: 0, col: 1, formula: 'SUM(Sheet1:Sheet3!A1)' },
+    ]);
+    expect(dropped.list()).toContain('formula:otherSheet');
+  });
+
+  describe('defined-name and unknown-sheet guards', () => {
+    const context = {
+      formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['calc', 'data']),
+    };
+
+    /**
+     * Maps one row of cells on a sheet named `Calc`, in a workbook that defines `names`.
+     *
+     * @param {object[]} row The cells.
+     * @param {object} [settings] The workbook's names and the import options.
+     * @param {string[]} [settings.names] The names the workbook defines.
+     * @param {object} [settings.options] The import options.
+     * @returns {object}
+     */
+    function mapRow(row, { names = [], options = {} } = {}) {
+      const sheet = createSheetSnapshot('Calc');
+      const wb = workbook(sheet);
+
+      sheet.rows = [row];
+      wb.definedNames = names;
+
+      return map(wb, options, context);
+    }
+
+    it('should keep a function call live when the workbook defines a name spelled like it', () => {
+      const { result, dropped } = mapRow([cell({ formula: { text: 'RATE(12,-100,1000)', result: 1 } })], {
+        names: ['Rate'],
+      });
+
+      expect(result.data[0][0]).toBe('=RATE(12,-100,1000)');
+      expect(dropped.list()).not.toContain('formula:definedName');
+    });
+
+    it('should keep a sheet reference live when the workbook defines a name spelled like the sheet', () => {
+      const { result } = mapRow([cell({ formula: { text: 'SUM(Data!A1:A3)', result: 6 } })], { names: ['Data'] });
+
+      expect(result.data[0][0]).toBe('=SUM(Data!A1:A3)');
+    });
+
+    it('should not report another-sheet loss when live formulas are off', () => {
+      const { dropped } = mapRow([cell({ formula: { text: 'Rates!A1', result: 1 } })], {
+        options: { importFormulas: false },
+      });
+
+      expect(dropped.list()).not.toContain('formula:otherSheet');
+    });
+  });
+
+  it('should strip the _xlfn., _xlws. and _xlpm. prefixes Excel stores, from live and recorded formulas', () => {
+    // Excel stores every post-2007 function with a prefix the formula bar never shows; handed to
+    // HyperFormula verbatim, `_xlfn.STDEV.S(...)` is an unknown name and the cell shows `#NAME?`.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [
+      [text('Value'), text('Spread')],
+      [cell({ value: 1 }), cell({ value: null, formula: { text: '_xlfn.STDEV.S(A2:A4)', result: 1 } })],
+      [cell({ value: 2 }), cell({ value: null, formula: { text: '_xlfn._xlws.SORT(A2:A4)', result: 1 } })],
+      [cell({ value: 3 }), cell({ value: null, formula: { text: '_xlfn.LET(_xlpm.x,A4,_xlpm.x*2)', result: 6 } })],
+    ];
+
+    const live = map(workbook(sheet), { colHeaders: 'firstRow' }, { formulasEnabled: true, commentsEnabled: false });
+
+    expect(live.result.data.map(row => row[1])).toEqual(['=STDEV.S(A1:A3)', '=SORT(A1:A3)', '=LET(x,A3,x*2)']);
+
+    const recorded = map(workbook(sheet), { colHeaders: 'firstRow' }).result;
+
+    expect(recorded.formulas.map(entry => entry.formula))
+      .toEqual(['STDEV.S(A2:A4)', 'SORT(A2:A4)', 'LET(x,A4,x*2)']);
+  });
+
+  it('should strip the prefixes on a formula that needs no shift', () => {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[cell({ value: 1 }), cell({ value: null, formula: { text: '_xlfn.IFS(A1>0,"y")', result: 'y' } })]];
+
+    const { result } = map(workbook(sheet), {}, { formulasEnabled: true, commentsEnabled: false });
+
+    expect(result.data[0][1]).toBe('=IFS(A1>0,"y")');
+  });
+
+  it('should refuse a workbook whose formulas would cost more shift work than the reader\'s budget', () => {
+    // A shift runs a regex over every formula's whole text once the window origin is not (0, 0), so
+    // N cells at the 32 768-character formula cap cost N x 32 768 characters of regex work with no
+    // other bound. The import charges the same budget the native reader charges a shared formula's
+    // translation and refuses past it, before the work it bounds.
+    const formula = '1+'.repeat(16384);
+    const formulas = Math.floor(MAX_TRANSLATED_FORMULA_CHARS / formula.length) + 1;
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[text('Header')]];
+
+    for (let row = 0; row < formulas; row++) {
+      sheet.rows.push([cell({ value: null, formula: { text: formula, result: 1 } })]);
+    }
+
+    let refusal = null;
+
+    try {
+      map(workbook(sheet), { colHeaders: 'firstRow' }, { formulasEnabled: true, commentsEnabled: false });
+    } catch (error) {
+      refusal = error;
+    }
+
+    expect(refusal?.message).toMatch(/above the limit this reader accepts/);
+    expect(isLimitError(refusal)).toBe(true);
+  });
+
+  it('should refuse a workbook whose prefixed formulas would cost more strip work than the budget', () => {
+    // With no shift, the `_xlfn.` strip still walks each formula's whole text, so it is charged
+    // against the same budget as the shift.
+    const formula = `_xlfn.ABS(${'1+'.repeat(16378)}1)`;
+    const formulas = Math.floor(MAX_TRANSLATED_FORMULA_CHARS / formula.length) + 1;
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = Array.from({ length: formulas }, () => [cell({ value: null, formula: { text: formula, result: 1 } })]);
+
+    let refusal = null;
+
+    try {
+      map(workbook(sheet), {}, { formulasEnabled: true, commentsEnabled: false });
+    } catch (error) {
+      refusal = error;
+    }
+
+    expect(refusal?.message).toMatch(/above the limit this reader accepts/);
+    expect(isLimitError(refusal)).toBe(true);
+  });
+
+  it('should not charge the shift budget for formulas that need no shift', () => {
+    const formula = '1+'.repeat(16384);
+    const formulas = Math.floor(MAX_TRANSLATED_FORMULA_CHARS / formula.length) + 1;
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [];
+
+    for (let row = 0; row < formulas; row++) {
+      sheet.rows.push([cell({ value: null, formula: { text: formula, result: 1 } })]);
+    }
+
+    const { result } = map(workbook(sheet), {}, { formulasEnabled: true, commentsEnabled: false });
+
+    expect(result.data).toHaveLength(formulas);
   });
 
   it('should fall back to the cached value for a formula pointing into the removed header band', () => {
@@ -422,6 +676,45 @@ describe('mapWorkbook', () => {
     expect(result.data[0][1]).toBe('Rate rate');
     expect(result.formulas).toEqual([{ row: 0, col: 1, formula: 'B1&" rate"' }]);
     expect(dropped.list()).toContain('formula:outOfRange');
+  });
+
+  it('should escape a text value that starts with = when the formulas plugin is enabled', () => {
+    // The cell is a STRING in the file, inert in Excel. The grid hands every `=`-leading string to
+    // HyperFormula, so importing it verbatim turns the file's text into a formula it never had.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[text('=HYPERLINK("http://evil","x")')], [text('plain')]];
+
+    const withFormulas = map(workbook(sheet), {}, { formulasEnabled: true, commentsEnabled: false }).result;
+    const withoutFormulas = map(workbook(sheet)).result;
+
+    // The leading apostrophe is the Formulas plugin's own text escape and is unescaped on read, so
+    // the cell renders the text the file carried.
+    expect(withFormulas.data[0][0]).toBe('\'=HYPERLINK("http://evil","x")');
+    expect(withFormulas.data[1][0]).toBe('plain');
+    // Without the plugin nothing evaluates the string, and an apostrophe would be part of the value.
+    expect(withoutFormulas.data[0][0]).toBe('=HYPERLINK("http://evil","x")');
+  });
+
+  it('should escape a text value the grid would read as its own escape marker', () => {
+    // The other half of the escape. `'=1+1` is the FILE's text — the apostrophe is a character of
+    // the cell, not a marker — and `isEscapedFormulaExpression` (an apostrophe followed by `=`) is
+    // exactly the shape the Formulas plugin strips on read, so importing it verbatim hands the
+    // grid the file's own apostrophe to eat. A value whose apostrophe is NOT followed by `=` is
+    // left alone, because the plugin leaves it alone too: the marker is `'=`, never a bare `'`.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[text('\'=1+1')], [text('\'hello')], [text('it\'s fine')]];
+
+    const withFormulas = map(workbook(sheet), {}, { formulasEnabled: true, commentsEnabled: false }).result;
+    const withoutFormulas = map(workbook(sheet)).result;
+
+    expect(withFormulas.data[0][0]).toBe('\'\'=1+1');
+    expect(withFormulas.data[1][0]).toBe('\'hello');
+    expect(withFormulas.data[2][0]).toBe('it\'s fine');
+    // With no plugin to unescape anything, every value keeps exactly what the file carried.
+    expect(withoutFormulas.data[0][0]).toBe('\'=1+1');
+    expect(withoutFormulas.data[1][0]).toBe('\'hello');
   });
 
   it('should keep cached values when importFormulas is false', () => {
@@ -457,6 +750,34 @@ describe('mapWorkbook', () => {
     expect(result.columns[1]).toEqual({ type: 'text' });
     expect(dropped.list()).toEqual(['dataValidation:unresolvedList']);
     expect(result.sheetNames).toEqual(['Data', '_HotValidation']);
+  });
+
+  it('should keep a validation over a sparse sheet to the columns the sheet uses', () => {
+    // A ~1 kB part: values in A1 and A1000 under a five-column dimension, and one list validation
+    // over the whole rectangle. Clamped to the dimension, the reader filled every slot of it and
+    // the mapper kept one meta entry per slot, which at A1:E1000000 is a GB-class heap.
+    const ns = 'xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"';
+    const sheet = parseWorksheet(`<worksheet ${ns}><dimension ref="A1:E1000"/><sheetData>`
+      + '<row r="1"><c r="A1"><v>1</v></c></row><row r="1000"><c r="A1000"><v>2</v></c></row></sheetData>'
+      + '<dataValidations count="1"><dataValidation type="list" sqref="A1:E1000">'
+      + '<formula1>"a,b"</formula1></dataValidation></dataValidations></worksheet>', {
+      name: 'Data',
+      state: 'visible',
+      styles: EMPTY_STYLES,
+      sharedStrings: { strings: [], rich: [] },
+      comments: new Map(),
+      date1904: false,
+      dropped: new DroppedFeatures(),
+      budget: { declaredCells: 0 },
+    });
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.data.length).toBe(1000);
+    expect(result.data.every(row => row.length === 1)).toBe(true);
+    expect(result.columns.length).toBe(1);
+    expect(result.columns[0]).toEqual(expect.objectContaining({ type: 'dropdown', source: ['a', 'b'] }));
+    expect(result.cellsMeta ?? []).toEqual([]);
   });
 
   it('should resolve one list formula once per pass and share the dropdown meta across its cells', () => {
@@ -577,6 +898,22 @@ describe('mapWorkbook', () => {
     const { result, dropped } = map(workbook(sheet));
 
     expect(result.columns).toEqual([{ type: 'numeric' }]);
+    expect(dropped.list()).toEqual(['numFmt:0.00E+00']);
+  });
+
+  it('should report an unsupported number format once per distinct format, not once per cell', () => {
+    // `recordUnsupported` bounds and copies the whole format string on every call, so calling it
+    // per cell made a long format on many cells cost one string walk per cell.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = Array.from({ length: 500 }, (_, row) => [cell({ value: row, numFmt: '0.00E+00' })]);
+
+    const dropped = new DroppedFeatures();
+    const recordUnsupported = jest.spyOn(dropped, 'recordUnsupported');
+
+    mapWorkbook(workbook(sheet), resolveImportOptions({}), { formulasEnabled: false, commentsEnabled: false }, dropped);
+
+    expect(recordUnsupported).toHaveBeenCalledTimes(1);
     expect(dropped.list()).toEqual(['numFmt:0.00E+00']);
   });
 
@@ -994,3 +1331,264 @@ describe('mapWorkbook – conditionalFormatting', () => {
     expect(map(workbook(cfSheet())).result.conditionalFormatting).toBeUndefined();
   });
 });
+
+describe('mapWorkbook - date-time cells', () => {
+  let container;
+  let hot;
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    hot = null;
+  });
+
+  afterEach(() => {
+    hot?.destroy();
+    container.remove();
+  });
+
+  it('should map a date-time format to an intl-datetime column carrying dateTimeFormat and an ISO value', () => {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [
+      [cell({ value: 45292.5, numFmt: 'yyyy-mm-dd hh:mm:ss' }), cell({ value: 45292.25, numFmt: 'm/d/yy h:mm' })],
+    ];
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.data).toEqual([['2024-01-01 12:00:00', '2024-01-01 06:00:00']]);
+    expect(result.columns).toEqual([
+      {
+        type: 'intl-datetime',
+        dateTimeFormat: {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        },
+      },
+      {
+        type: 'intl-datetime',
+        dateTimeFormat: {
+          month: 'numeric', day: 'numeric', year: '2-digit', hour: 'numeric', minute: '2-digit', hour12: false,
+        },
+      },
+    ]);
+  });
+
+  it('should render and validate an imported date-time cell instead of showing #bad-value#', async() => {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[cell({ value: 45292.5, numFmt: 'yyyy-mm-dd hh:mm:ss' })]];
+
+    const { result } = map(workbook(sheet));
+
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: result.data,
+      columns: result.columns,
+      locale: 'en-US',
+    });
+
+    expect(hot.getCell(0, 0).textContent).toBe('01/01/2024, 12:00:00');
+
+    const valid = await new Promise(resolve => hot.validateCells(resolve));
+
+    expect(valid).toBe(true);
+  });
+});
+
+describe('mapLayout - file-controlled layout values', () => {
+  // The layout comes straight from the file, through whichever engine read it. Whatever the
+  // reader lets through, the grid must only ever be handed finite, positive sizes and
+  // non-negative integer counts and indexes.
+  function layoutSheet() {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [
+      [text('a'), text('b'), text('c'), text('d')],
+      [text('e'), text('f'), text('g'), text('h')],
+      [text('i'), text('j'), text('k'), text('l')],
+      [text('m'), text('n'), text('o'), text('p')],
+    ];
+
+    return sheet;
+  }
+
+  it('should omit a column width that is not finite and positive, or wider than Excel allows', () => {
+    const sheet = layoutSheet();
+
+    // A 255-character column, Excel's UI maximum, is stored with its 5 px of cell padding added
+    // (255.7109375 at a 7 px digit width); the cap is 260 width units.
+    // `0.05` passes the size check but rounds to 0 px, which the grid must not be handed either.
+    sheet.colWidths = [-50, 7e300, Infinity, 255.7109375, 260.5, NaN, 0, 10, 0.05];
+    sheet.rows.forEach(row => row.push(text('x'), text('y'), text('z'), text('w'), text('v')));
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.colWidths).toEqual([
+      undefined, undefined, undefined, Math.round(255.7109375 * 7), undefined, undefined, undefined, 70, undefined,
+    ]);
+  });
+
+  it('should omit a row height that is not finite and positive, or taller than Excel allows', () => {
+    const sheet = layoutSheet();
+
+    // 409.5 points is Excel's maximum row height.
+    sheet.rowHeights = [1.33e300, -15, 409.5, 410];
+
+    expect(map(workbook(sheet)).result.rowHeights).toEqual([undefined, undefined, 546, undefined]);
+
+    sheet.rowHeights = [NaN, Infinity, 0, -1];
+
+    expect(map(workbook(sheet)).result.rowHeights).toBeUndefined();
+  });
+
+  it('should hand the grid whole, non-negative freeze counts', () => {
+    const sheet = layoutSheet();
+
+    sheet.freeze = { rows: 2.7, cols: 1.5 };
+
+    let { result } = map(workbook(sheet));
+
+    expect(result.fixedRowsTop).toBe(2);
+    expect(result.fixedColumnsStart).toBe(1);
+
+    sheet.freeze = { rows: -3, cols: NaN };
+    ({ result } = map(workbook(sheet)));
+
+    expect(result.fixedRowsTop).toBeUndefined();
+    expect(result.fixedColumnsStart).toBeUndefined();
+
+    // A fractional freeze is floored before the promoted header row is taken off it.
+    sheet.freeze = { rows: 1.5, cols: Infinity };
+    ({ result } = map(workbook(sheet), { colHeaders: 'firstRow' }));
+
+    expect(result.fixedRowsTop).toBeUndefined();
+    expect(result.fixedColumnsStart).toBe(4);
+  });
+
+  it('should drop each hidden index that is not a whole number on its own, keeping the valid ones', () => {
+    const sheet = layoutSheet();
+
+    // HiddenRows rejects a whole list that holds one bad index, so one stray `0.5` used to make the
+    // legitimately hidden row 1 visible.
+    sheet.hiddenRows = [0.5, 1, -1, NaN, Infinity, 3];
+    sheet.hiddenCols = [2, 1.25, 0, '1'];
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.hiddenRows).toEqual([1, 3]);
+    expect(result.hiddenColumns).toEqual([2, 0]);
+  });
+
+  it('should drop a hidden index just past the window end, keeping the ones inside', () => {
+    const sheet = createSheetSnapshot('Data');
+
+    // Row 3 sits one past the end of a 3-row window. `HiddenRows` rejects the whole list over that
+    // one index, which would make row 1, hidden by the file, visible again.
+    sheet.rows = Array.from({ length: 5 }, (_, r) => [text(`r${r}`), text('x')]);
+    sheet.hiddenRows = [1, 3];
+
+    expect(map(workbook(sheet), { range: [0, 0, 2, 1] }).result.hiddenRows).toEqual([1]);
+  });
+});
+
+describe('mapWorkbook on the slots one list validation covers', () => {
+  /**
+   * A sheet of `rowCount` rows by `colCount` columns where every slot is ONE shared cell carrying
+   * the same list validation, the shape the native reader hands over for a validation over empty
+   * rows, with real text cells in the first and last rows.
+   *
+   * @param {number} rowCount The number of rows.
+   * @param {number} colCount The number of columns.
+   * @returns {object} The workbook snapshot.
+   */
+  function validatedSheet(rowCount, colCount) {
+    const validation = { type: 'list', formulae: ['"a,b"'], allowBlank: true };
+    const shared = cell({ value: null, validation });
+    const sheet = createSheetSnapshot('S');
+
+    sheet.rows = Array.from({ length: rowCount }, (_, row) => Array.from({ length: colCount }, () => (
+      row === 0 || row === rowCount - 1 ? cell({ value: 'x', validation }) : shared
+    )));
+
+    return workbook(sheet);
+  }
+
+  it('should keep the meta of a covered column as runs, not one entry per cell', () => {
+    // Every slot between the first and last real row shares one dropdown meta. Keyed per cell it cost
+    // one `Map` entry per covered slot: a validation over `A1:E1000000` in a 2 kB file allocated five
+    // million entries, +1.2 GB and 11 s in `mapWorkbook`. Counting the writes keeps this
+    // deterministic where a wall-clock or a heap bound would flake.
+    const wb = validatedSheet(200000, 5);
+    const sets = jest.spyOn(Map.prototype, 'set');
+
+    try {
+      const { result } = map(wb);
+
+      expect(result.columns.map(column => column.type)).toEqual(Array(5).fill('dropdown'));
+      expect(result.cellsMeta).toBeUndefined();
+      expect(sets.mock.calls.length).toBeLessThan(1000);
+    } finally {
+      sets.mockRestore();
+    }
+  });
+
+  it('should still give every outlier row of a run its own cellsMeta entry', () => {
+    const sheet = createSheetSnapshot('S');
+
+    sheet.rows = [
+      [cell({ value: 1 })], [cell({ value: 2 })], [text('a')], [text('b')], [cell({ value: 3 })],
+    ];
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.columns[0].type).toBe('numeric');
+    expect(result.cellsMeta.map(({ row, meta }) => [row, meta.type])).toEqual([[2, 'text'], [3, 'text']]);
+  });
+
+  it('should mark a protected sheet\'s blank column read-only as a whole', () => {
+    // Under sheet protection every blank is locked. The mapper keeps those cells as runs per column
+    // (one `{ row, col }` per slot cost +1.3 GB on a protected sheet with cells in `A1:E1` and
+    // `A1000000:E1000000`); this pins the result that shape must still produce.
+    const sheet = createSheetSnapshot('S');
+
+    sheet.protection = { enabled: true, password: null, options: {} };
+    sheet.rows = Array.from({ length: 200000 }, (_, row) => (row === 0 || row === 199999 ? [text('x')] : []));
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.columns[0].readOnly).toBe(true);
+    expect(result.cellsMeta).toBeUndefined();
+  });
+
+  it('should mark only the unlocked rows of a mostly locked column, as readOnly: false', () => {
+    // One unlocked cell used to send every OTHER cell of its column through `cellsMeta`.
+    const sheet = createSheetSnapshot('S');
+
+    sheet.protection = { enabled: true, password: null, options: {} };
+    sheet.rows = [[text('a')], [cell({ value: 'b', locked: false })], [text('c')], [text('d')]];
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.columns[0].readOnly).toBe(true);
+    expect(result.cellsMeta).toEqual([{ row: 1, col: 0, meta: { readOnly: false } }]);
+  });
+
+  it('should mark only the locked rows of a mostly unlocked column, as readOnly: true', () => {
+    const sheet = createSheetSnapshot('S');
+
+    sheet.protection = { enabled: true, password: null, options: {} };
+    sheet.rows = [[cell({ value: 'a', locked: false })], [text('b')], [cell({ value: 'c', locked: false })]];
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.columns[0].readOnly).toBeUndefined();
+    expect(result.cellsMeta).toEqual([{ row: 1, col: 0, meta: { readOnly: true } }]);
+  });
+});
+

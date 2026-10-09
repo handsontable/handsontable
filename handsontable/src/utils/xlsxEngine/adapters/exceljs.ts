@@ -1,18 +1,32 @@
 import { throwWithCause } from '../../../helpers/errors';
-import type { DroppedFeatures } from '../capabilities';
+import { DROPPED_FEATURES, type DroppedFeatures } from '../capabilities';
 import {
   createCellSnapshot,
+  createCoveredCellSnapshot,
   createSheetSnapshot,
   createWorkbookSnapshot,
+  isProtectionOptionName,
   type CellFormula,
   type CellSnapshot,
   type CellStyleSnapshot,
   type CellValue,
+  type MergeSnapshot,
+  type SheetProtectionOptions,
   type SheetSnapshot,
   type WorkbookSnapshot,
 } from '../model';
 import { parseRangeRef } from '../cellRef';
-import { MAX_INPUT_BYTES, MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_SHEET_ROWS, MAX_WORKBOOK_CELLS } from '../limits';
+import { EXCEL_EPOCH_OFFSET, MS_PER_DAY } from '../dates';
+import { isWritableConditionalRule } from '../conditionalRules';
+import { coveredCellFormatting, type CellFormatting } from '../coveredCellFormatting';
+import { addFunctionPrefixes } from '../functionPrefixes';
+import { classifyTemporalFormat } from '../numFmtCode';
+import {
+  MAX_INPUT_BYTES, MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_SHEET_ROWS, MAX_WORKBOOK_CELLS, MAX_WORKBOOK_SHEETS,
+  throwCellLimit, throwColumnLimit, throwLimitExceeded, throwRowLimit,
+} from '../limits';
+import { noteToComment } from '../threadedComments';
+import { clampCellText, clampColumnWidth, clampRowHeight } from '../writeLimits';
 import type { XlsxEngineAdapter } from './types';
 
 /**
@@ -38,6 +52,10 @@ export interface ExcelJsCell {
   value: ExcelCellValue;
   type: number;
   formula: string | undefined;
+  /**
+   * The cached result of a formula cell, `undefined` for any other cell.
+   */
+  result?: unknown;
   numFmt: string | undefined;
   alignment: object | undefined;
   border: object | undefined;
@@ -106,8 +124,13 @@ export interface ExcelJsWorksheet {
   getColumn(colNumber: number): ExcelJsColumn;
   getCell(rowNumber: number, colNumber: number): ExcelJsCell;
   mergeCells(startRow: number, startCol: number, endRow: number, endCol: number): void;
+  /**
+   * Merges like `mergeCells` but leaves every covered cell its own style. Optional because the
+   * engine is the caller's module: ExcelJS 4 has it, a duck-typed stand-in need not.
+   */
+  mergeCellsWithoutStyle?(startRow: number, startCol: number, endRow: number, endCol: number): void;
   addConditionalFormatting(descriptor: { ref: string; rules: unknown[] }): void;
-  protect(password: string, options?: Record<string, boolean>): void | Promise<void>;
+  protect(password: string, options?: SheetProtectionOptions): void | Promise<void>;
   sheetProtection: Record<string, unknown> | undefined;
   conditionalFormattings: Array<{ ref: string; rules: unknown[] }>;
   rowCount: number;
@@ -152,6 +175,15 @@ export interface ExcelJsWorkbook {
    * recalculate every formula when the file is opened.
    */
   calcProperties?: { fullCalcOnLoad?: boolean };
+  /**
+   * The workbook properties ExcelJS reads from `<workbookPr>`. `date1904` is set when the file
+   * counts dates from 1904 (ExcelJS 4.4 recognizes only the `"1"` spelling).
+   */
+  properties?: { date1904?: boolean };
+  /**
+   * The names the workbook defines, as `{ name, ranges }` entries.
+   */
+  definedNames?: { model?: Array<{ name?: string }> };
   xlsx: {
     writeBuffer(options?: object): Promise<Uint8Array>;
     load(buffer: ArrayBuffer): Promise<unknown>;
@@ -197,35 +229,22 @@ function toWriteOptions(compression: WorkbookSnapshot['compression']): object {
 /**
  * Copies one cell snapshot onto an ExcelJS cell. Only set fields are assigned, so ExcelJS never
  * initializes its style sentinels for cells the snapshot left untouched.
+ *
+ * The formula gets the `_xlfn.` prefix Excel stores in front of a post-2007 function, exactly as
+ * the native writer does: ExcelJS writes the text it is handed verbatim, and a bare `IFS(` shows
+ * `#NAME?` in Excel until the cell is entered again. A string past Excel's cell limit is cut the
+ * same way the native writer cuts it.
  */
-function writeCell(target: ExcelJsCell, cell: CellSnapshot): void {
+function writeCell(target: ExcelJsCell, cell: CellSnapshot, dropped: DroppedFeatures): void {
   if (cell.formula) {
-    target.value = 'result' in cell.formula
-      ? { formula: cell.formula.text, result: cell.formula.result }
-      : { formula: cell.formula.text };
+    const formula = addFunctionPrefixes(cell.formula.text);
+
+    target.value = 'result' in cell.formula ? { formula, result: cell.formula.result } : { formula };
   } else {
-    target.value = cell.value;
+    target.value = typeof cell.value === 'string' ? clampCellText(cell.value, dropped) : cell.value;
   }
 
-  if (cell.numFmt) {
-    target.numFmt = cell.numFmt;
-  }
-
-  if (cell.style?.alignment) {
-    target.alignment = cell.style.alignment;
-  }
-
-  if (cell.style?.border) {
-    target.border = cell.style.border;
-  }
-
-  if (cell.style?.font) {
-    target.font = cell.style.font;
-  }
-
-  if (cell.style?.fill) {
-    target.fill = cell.style.fill;
-  }
+  writeCellFormatting(target, cell);
 
   if (cell.validation) {
     target.dataValidation = cell.validation;
@@ -234,9 +253,35 @@ function writeCell(target: ExcelJsCell, cell: CellSnapshot): void {
   if (cell.comment !== null) {
     target.note = cell.comment;
   }
+}
 
-  if (cell.locked !== null) {
-    target.protection = { locked: cell.locked };
+/**
+ * Copies a cell's number format, style and lock onto an ExcelJS cell. Only set fields are
+ * assigned, so ExcelJS never initializes its style sentinels for an unformatted cell.
+ */
+function writeCellFormatting(target: ExcelJsCell, formatting: CellFormatting): void {
+  if (formatting.numFmt) {
+    target.numFmt = formatting.numFmt;
+  }
+
+  if (formatting.style?.alignment) {
+    target.alignment = formatting.style.alignment;
+  }
+
+  if (formatting.style?.border) {
+    target.border = formatting.style.border;
+  }
+
+  if (formatting.style?.font) {
+    target.font = formatting.style.font;
+  }
+
+  if (formatting.style?.fill) {
+    target.fill = formatting.style.fill;
+  }
+
+  if (formatting.locked !== null) {
+    target.protection = { locked: formatting.locked };
   }
 }
 
@@ -244,7 +289,7 @@ function writeCell(target: ExcelJsCell, cell: CellSnapshot): void {
  * Writes the rows of one sheet, committing each row the way the export always did. Answers whether
  * any cell carried a formula, which is what decides the workbook's `fullCalcOnLoad` flag.
  */
-function writeRows(worksheet: ExcelJsWorksheet, sheet: SheetSnapshot): boolean {
+function writeRows(worksheet: ExcelJsWorksheet, sheet: SheetSnapshot, dropped: DroppedFeatures): boolean {
   let wroteFormula = false;
 
   sheet.rows.forEach((cells, rowIndex) => {
@@ -252,13 +297,13 @@ function writeRows(worksheet: ExcelJsWorksheet, sheet: SheetSnapshot): boolean {
     const height = sheet.rowHeights[rowIndex];
 
     if (height !== null && height !== undefined) {
-      row.height = height;
+      row.height = clampRowHeight(height, dropped);
     }
 
     cells.forEach((cell, colIndex) => {
       if (cell !== null) {
         wroteFormula = wroteFormula || cell.formula !== null;
-        writeCell(row.getCell(colIndex + 1), cell);
+        writeCell(row.getCell(colIndex + 1), cell, dropped);
       }
     });
 
@@ -270,12 +315,13 @@ function writeRows(worksheet: ExcelJsWorksheet, sheet: SheetSnapshot): boolean {
 
 /**
  * Writes the layout that must exist before the cells: column widths, hidden columns and the
- * sheet view carrying freeze panes and RTL.
+ * sheet view carrying freeze panes and RTL. A width past what Excel stores is written at Excel's
+ * maximum, the same clamp the native writer applies.
  */
-function writeColumnLayout(worksheet: ExcelJsWorksheet, sheet: SheetSnapshot): void {
+function writeColumnLayout(worksheet: ExcelJsWorksheet, sheet: SheetSnapshot, dropped: DroppedFeatures): void {
   sheet.colWidths.forEach((width, colIndex) => {
     if (width !== null && width !== undefined) {
-      worksheet.getColumn(colIndex + 1).width = width;
+      worksheet.getColumn(colIndex + 1).width = clampColumnWidth(width, dropped);
     }
   });
   sheet.hiddenCols.forEach((colIndex) => {
@@ -300,6 +346,70 @@ function writeColumnLayout(worksheet: ExcelJsWorksheet, sheet: SheetSnapshot): v
 }
 
 /**
+ * Whether any cell a merge covers (every member but the master) carries formatting of its own in
+ * the snapshot: a style, a lock or a number format.
+ */
+function coversOwnFormatting(sheet: SheetSnapshot, merge: MergeSnapshot): boolean {
+  for (let row = merge.row; row < merge.row + merge.rowspan; row++) {
+    for (let col = merge.col; col < merge.col + merge.colspan; col++) {
+      const cell = sheet.rows[row]?.[col] ?? null;
+      const isFormatted = cell !== null && (cell.style !== null || cell.locked !== null || cell.numFmt !== null);
+
+      if ((row !== merge.row || col !== merge.col) && isFormatted) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Merges a range whose covered cells carry formatting of their own. `mergeCellsWithoutStyle` leaves
+ * every covered cell as it is, and each one is then given the formatting `coveredCellFormatting`
+ * resolves - the rule the native writer applies - so its own lock survives and the master's border
+ * and fill still reach the block's edges.
+ */
+function mergeKeepingOwnFormatting(
+  worksheet: ExcelJsWorksheet, sheet: SheetSnapshot, merge: MergeSnapshot,
+): void {
+  const { row, col, rowspan, colspan } = merge;
+  const master = sheet.rows[row]?.[col] ?? null;
+
+  (worksheet.mergeCellsWithoutStyle as NonNullable<ExcelJsWorksheet['mergeCellsWithoutStyle']>)(
+    row + 1, col + 1, row + rowspan, col + colspan,
+  );
+
+  for (let r = row; r < row + rowspan; r++) {
+    for (let c = col; c < col + colspan; c++) {
+      if (r !== row || c !== col) {
+        writeCellFormatting(worksheet.getCell(r + 1, c + 1), coveredCellFormatting(master, sheet.rows[r]?.[c]));
+      }
+    }
+  }
+}
+
+/**
+ * Makes ExcelJS write the `<c>` of a merge master that holds nothing: no value, no formula and no
+ * formatting (a `null` slot included). ExcelJS skips such a cell, and Apple's parser (Quick Look,
+ * Numbers) then places the cells after it one column early, so the merge is not drawn and the row
+ * shifts left. An empty alignment is the smallest style that gives the cell a style index of its
+ * own: it changes nothing a reader shows, and ExcelJS then writes `<c r="A2" s="1"/>`. The native
+ * writer writes the same master as `<c r="A2"/>`.
+ */
+function markEmptyMaster(worksheet: ExcelJsWorksheet, sheet: SheetSnapshot, row: number, col: number): void {
+  const master = sheet.rows[row]?.[col];
+  const isEmpty = !master || (
+    master.value === null && master.formula === null
+    && master.numFmt === null && master.style === null && master.locked === null
+  );
+
+  if (isEmpty) {
+    worksheet.getCell(row + 1, col + 1).alignment = {};
+  }
+}
+
+/**
  * Writes the layout that must come after the cells: hidden rows, protection, merges,
  * conditional formatting and the sheet state.
  *
@@ -308,7 +418,15 @@ function writeColumnLayout(worksheet: ExcelJsWorksheet, sheet: SheetSnapshot): v
  * before the rows are written makes the last cell of each range overwrite the master's value.
  *
  * An overlapping merge is recorded as `merge:overlap` and skipped rather than thrown, so one bad
- * range cannot abandon a whole export.
+ * range cannot abandon a whole export. A single-cell merge is skipped silently, as the native
+ * writer skips it: it merges nothing.
+ *
+ * `mergeCells` copies the master's style over every covered cell, protection included, so an
+ * unlocked covered cell was written locked and imported read-only once unmerged. A merge whose
+ * covered cells carry formatting of their own is therefore merged through
+ * `mergeKeepingOwnFormatting`, which applies `coveredCellFormatting` - the native writer's rule - to
+ * each covered cell. Every other merge keeps the copy, which is what that rule gives an unformatted
+ * covered cell anyway.
  */
 async function writeSheetFeatures(
   worksheet: ExcelJsWorksheet, sheet: SheetSnapshot, dropped: DroppedFeatures
@@ -324,27 +442,87 @@ async function writeSheetFeatures(
   }
 
   sheet.merges.forEach(({ row, col, rowspan, colspan }) => {
+    if (rowspan <= 1 && colspan <= 1) {
+      return;
+    }
+
     try {
-      worksheet.mergeCells(row + 1, col + 1, row + rowspan, col + colspan);
+      markEmptyMaster(worksheet, sheet, row, col);
+
+      if (worksheet.mergeCellsWithoutStyle && coversOwnFormatting(sheet, { row, col, rowspan, colspan })) {
+        mergeKeepingOwnFormatting(worksheet, sheet, { row, col, rowspan, colspan });
+      } else {
+        worksheet.mergeCells(row + 1, col + 1, row + rowspan, col + colspan);
+      }
     } catch {
       // ExcelJS throws `Cannot merge already merged cells` on an overlap. One malformed merge must
       // not abandon the whole export, so the range is skipped and reported instead.
-      dropped.record('merge:overlap');
+      dropped.record(DROPPED_FEATURES.mergeOverlap);
     }
   });
 
-  sheet.conditionalFormatting.forEach(descriptor => worksheet.addConditionalFormatting(descriptor));
+  sheet.conditionalFormatting.forEach((descriptor) => {
+    const rules = Array.isArray(descriptor.rules)
+      ? descriptor.rules.filter(rule => isWritableConditionalRule(rule, dropped))
+      : [];
+
+    if (rules.length > 0) {
+      worksheet.addConditionalFormatting({ ...descriptor, rules });
+    }
+  });
   worksheet.state = sheet.state;
 }
 
-const MS_PER_DAY = 86400000;
-const UNIX_EPOCH_SERIAL = 25569;
-
 /**
- * Converts the `Date` ExcelJS materializes for a date-formatted cell back into its serial number.
+ * Converts the `Date` ExcelJS materializes for a date-formatted cell back into its serial number,
+ * rounded to 9 decimal places (well under a millisecond). The division left float noise the native
+ * reader never has: a `[mm]:ss` cell holding 0.075 read back as `0.0750000000007276`.
  */
 function dateToSerial(date: Date): number {
-  return (date.getTime() / MS_PER_DAY) + UNIX_EPOCH_SERIAL;
+  return Math.round(((date.getTime() / MS_PER_DAY) + EXCEL_EPOCH_OFFSET) * 1e9) / 1e9;
+}
+
+/**
+ * Days between the 1904 and the 1900 date systems' day zero.
+ */
+const DATE_1904_OFFSET = 1462;
+
+/**
+ * Whether ExcelJS handed a value over as a `Date` (by brand, so a `Date` from another realm counts).
+ */
+function isDateValue(value: unknown): boolean {
+  return Object.prototype.toString.call(value) === '[object Date]';
+}
+
+/**
+ * Takes the 1904 shift back off every time-formatted cell of a 1904 workbook. ExcelJS builds a
+ * `Date` on the 1904 epoch for any date-like format, and `dateToSerial` turns it into a 1900
+ * serial - right for a date, wrong for a time: a time of day or an elapsed `[h]:mm` value is a
+ * fraction of a day or a duration, the same number in either system, so a 12:00 duration read as
+ * 1462.5. Only a value ExcelJS really turned into a `Date` is corrected (ExcelJS leaves `[s]` a
+ * number), which is why the worksheet is consulted again. Mirrors the native reader, which never
+ * shifts a time.
+ */
+function unshiftTimes1904(worksheet: ExcelJsWorksheet, sheet: SheetSnapshot): void {
+  sheet.rows.forEach((cells, rowIndex) => {
+    cells.forEach((cell, colIndex) => {
+      if (!cell?.numFmt || classifyTemporalFormat(cell.numFmt) !== 'time') {
+        return;
+      }
+
+      const raw = worksheet.findRow(rowIndex + 1)?.getCell(colIndex + 1).value;
+
+      if (typeof cell.value === 'number' && isDateValue(raw)) {
+        cell.value = Math.round((cell.value - DATE_1904_OFFSET) * 1e9) / 1e9;
+      }
+
+      const result = (raw as { result?: unknown } | null | undefined)?.result;
+
+      if (cell.formula && typeof cell.formula.result === 'number' && isDateValue(result)) {
+        cell.formula.result = Math.round((cell.formula.result - DATE_1904_OFFSET) * 1e9) / 1e9;
+      }
+    });
+  });
 }
 
 /**
@@ -370,8 +548,15 @@ function hyperlinkText(text: unknown): CellValue {
  * *master cell's address* (e.g. `"C1"`), not an expression, while `cell.formula` is the expression
  * already translated for that slave's position (e.g. `"A2*2"`). `raw.formula` is kept only as a
  * fallback for a formula-shaped raw value with no translated getter available.
+ *
+ * `cellResult` is `source.result`, the cached result ExcelJS keeps on the cell. The value object
+ * carries `result` only when it is truthy (`FormulaValue#value` in ExcelJS 4.4), so a formula that
+ * evaluates to `0`, `FALSE` or `""` read back with no result at all, and imported empty without the
+ * Formulas plugin; `cell.result` still answers for it.
  */
-function readValue(raw: ExcelCellValue, cellFormula?: string): { value: CellValue; formula: CellFormula | null } {
+function readValue(
+  raw: ExcelCellValue, cellFormula?: string, cellResult?: unknown,
+): { value: CellValue; formula: CellFormula | null } {
   if (raw === null || raw === undefined) {
     return { value: null, formula: null };
   }
@@ -396,7 +581,10 @@ function readValue(raw: ExcelCellValue, cellFormula?: string): { value: CellValu
       text = raw.formula;
     }
 
-    const formula: CellFormula = raw.result === undefined ? { text } : { text, result: readValue(raw.result).value };
+    const result = raw.result === undefined ? cellResult : raw.result;
+    const formula: CellFormula = result === undefined
+      ? { text }
+      : { text, result: readValue(result as ExcelCellValue).value };
 
     return { value: null, formula };
   }
@@ -443,29 +631,20 @@ function recordLossyValue(raw: ExcelCellValue, dropped: DroppedFeatures): void {
   }
 
   if ('hyperlink' in raw) {
-    dropped.record('hyperlink');
+    dropped.record(DROPPED_FEATURES.hyperlink);
   }
 
   // A hyperlink's own text may itself be a rich-text run list, in which case the runs are nested one
   // level down and the top-level `in` test above does not see them.
   if ('richText' in raw || hasNestedRichText(raw)) {
-    dropped.record('richText');
+    dropped.record(DROPPED_FEATURES.richText);
   }
 }
 
 /**
- * Reads one ExcelJS cell into a snapshot, recording validations the model cannot hold.
+ * The style an ExcelJS cell carries, or `null` when it carries none.
  */
-function readCell(source: ExcelJsCell, dropped: DroppedFeatures): CellSnapshot {
-  const cell = createCellSnapshot();
-  const { value, formula } = readValue(source.value, source.formula);
-
-  recordLossyValue(source.value, dropped);
-
-  cell.value = value;
-  cell.formula = formula;
-  cell.numFmt = source.numFmt ?? null;
-
+function readStyle(source: ExcelJsCell): CellStyleSnapshot | null {
   const style: CellStyleSnapshot = {
     alignment: hasKeys(source.alignment) ? source.alignment as CellStyleSnapshot['alignment'] : null,
     font: hasKeys(source.font) ? source.font as CellStyleSnapshot['font'] : null,
@@ -473,28 +652,85 @@ function readCell(source: ExcelJsCell, dropped: DroppedFeatures): CellSnapshot {
     border: hasKeys(source.border) ? source.border as CellStyleSnapshot['border'] : null,
   };
 
-  if (style.alignment || style.font || style.fill || style.border) {
-    cell.style = style;
-  }
+  return style.alignment || style.font || style.fill || style.border ? style : null;
+}
+
+/**
+ * The lock an ExcelJS cell declares, or `null` when it declares none.
+ */
+function readLocked(source: ExcelJsCell): boolean | null {
+  return typeof source.protection?.locked === 'boolean' ? source.protection.locked : null;
+}
+
+/**
+ * The code ExcelJS answers for built-in number format 22. ECMA-376 defines id 22 as `m/d/yy h:mm`;
+ * ExcelJS's table quotes the `h`, which turns it into a literal letter, so the inference read the
+ * rest as a date and the time of day was lost from the data (a re-export lost it too).
+ */
+const EXCELJS_BUILT_IN_22 = 'm/d/yy "h":mm';
+
+/**
+ * Reads a cell's number format, with ExcelJS's spelling of built-in id 22 mapped back to the one
+ * ECMA-376 defines and the native reader reads.
+ */
+function readNumFmt(source: ExcelJsCell): string | null {
+  const numFmt = source.numFmt ?? null;
+
+  return numFmt === EXCELJS_BUILT_IN_22 ? 'm/d/yy h:mm' : numFmt;
+}
+
+/**
+ * The names an ExcelJS workbook defines, Excel's own `_xlnm.` names left out. ExcelJS keeps only
+ * the names whose value is a range, which is what a formula over a named range uses.
+ */
+function readDefinedNames(workbook: ExcelJsWorkbook): string[] {
+  const model = workbook.definedNames?.model;
+  const names = new Set<string>();
+
+  (Array.isArray(model) ? model : []).forEach(({ name }) => {
+    if (typeof name === 'string' && name !== '' && !name.startsWith('_xlnm.')) {
+      names.add(name);
+    }
+  });
+
+  return [...names];
+}
+
+/**
+ * Reads one ExcelJS cell into a snapshot, recording validations the model cannot hold.
+ */
+function readCell(source: ExcelJsCell, dropped: DroppedFeatures): CellSnapshot {
+  const cell = createCellSnapshot();
+  const { value, formula } = readValue(source.value, source.formula, source.result);
+
+  recordLossyValue(source.value, dropped);
+
+  cell.value = value;
+  cell.formula = formula;
+  cell.numFmt = readNumFmt(source);
+  cell.style = readStyle(source);
 
   if (source.dataValidation?.type === 'list') {
     cell.validation = {
       type: 'list',
       formulae: source.dataValidation.formulae ?? [],
-      allowBlank: source.dataValidation.allowBlank ?? true,
+      // OOXML defaults `allowBlank` to false, and ExcelJS leaves the key out when the attribute is.
+      allowBlank: source.dataValidation.allowBlank ?? false,
     };
   } else if (source.dataValidation?.type) {
-    dropped.record(`dataValidation:${source.dataValidation.type}`);
+    dropped.recordUnsupported('dataValidation', source.dataValidation.type);
   }
 
-  if (typeof source.protection?.locked === 'boolean') {
-    cell.locked = source.protection.locked;
-  }
+  cell.locked = readLocked(source);
 
   if (typeof source.note === 'string') {
-    cell.comment = source.note;
+    cell.comment = noteToComment(source.note, dropped);
+  } else if (source.note?.texts?.length === 0) {
+    // ExcelJS reads a note's text from its `<r>` runs only, so a plain `<text><t>` note arrives
+    // with no runs at all. Importing it as an empty comment would hide that the text was lost.
+    dropped.record(DROPPED_FEATURES.commentUnreadable);
   } else if (source.note?.texts) {
-    cell.comment = source.note.texts.map(part => part.text).join('');
+    cell.comment = noteToComment(source.note.texts.map(part => part.text).join(''), dropped);
   }
 
   return cell;
@@ -506,15 +742,15 @@ function readCell(source: ExcelJsCell, dropped: DroppedFeatures): CellSnapshot {
  */
 function recordUnmodelledSheetFeatures(worksheet: ExcelJsWorksheet, dropped: DroppedFeatures): void {
   if ((worksheet.getImages?.() ?? []).length > 0) {
-    dropped.record('images');
+    dropped.record(DROPPED_FEATURES.images);
   }
 
   if (Object.keys(worksheet.tables ?? {}).length > 0) {
-    dropped.record('tables');
+    dropped.record(DROPPED_FEATURES.tables);
   }
 
   if (worksheet.autoFilter) {
-    dropped.record('autoFilter');
+    dropped.record(DROPPED_FEATURES.autoFilter);
   }
 }
 
@@ -589,7 +825,18 @@ function readSheetLayout(
 
   const { sheetProtection } = worksheet;
 
-  if (sheetProtection) {
+  // ECMA-376 defaults `sheet` to false, and ExcelJS reads only `sheet="1"` as `true`: a
+  // `<sheetProtection formatCells="0"/>` (the shape Apache POI writes) records permissions for a
+  // sheet nobody protected, and reading it as protected made every imported cell read-only.
+  // LibreOffice writes `sheet="true"`, which ExcelJS reads as not protected; for a sheet with a
+  // password it still keeps the hash attributes, and a password hash only exists on a protected
+  // sheet, so the hash counts as protection too. A LibreOffice sheet protected WITHOUT a password
+  // carries nothing ExcelJS keeps, and still reads as unprotected on this engine.
+  const isProtected = sheetProtection?.sheet === true
+    || typeof sheetProtection?.algorithmName === 'string'
+    || typeof sheetProtection?.hashValue === 'string';
+
+  if (sheetProtection && isProtected) {
     const {
       password, hashValue, algorithmName, saltValue, spinCount, ...options
     } = sheetProtection as {
@@ -597,15 +844,18 @@ function readSheetLayout(
     } & Record<string, unknown>;
 
     if (typeof hashValue === 'string' || typeof algorithmName === 'string') {
-      dropped.record('sheetProtection:password');
+      dropped.record(DROPPED_FEATURES.sheetProtectionPassword);
     }
 
     sheet.protection = {
       enabled: true,
       password: typeof password === 'string' && password !== '' ? password : null,
+      // Only the names the model declares are kept: ExcelJS hands back whatever the file carried,
+      // and an unknown attribute would otherwise live in the snapshot for the import's lifetime.
       options: Object.fromEntries(
-        Object.entries(options).filter(([, optionValue]) => typeof optionValue === 'boolean'),
-      ) as Record<string, boolean>,
+        Object.entries(options)
+          .filter(([key, optionValue]) => typeof optionValue === 'boolean' && isProtectionOptionName(key)),
+      ) as SheetProtectionOptions,
     };
   }
 
@@ -632,16 +882,11 @@ function assertSheetFits(
   name: string, rowCount: number, cellColCount: number, layoutColCount: number, budget: WorkbookBudget
 ): void {
   if (rowCount > MAX_SHEET_ROWS) {
-    throwWithCause(
-      `The sheet "${name}" declares ${rowCount} rows, above the ${MAX_SHEET_ROWS}-row limit this reader accepts.`
-    );
+    throwRowLimit(name, rowCount);
   }
 
   if (layoutColCount > MAX_SHEET_COLUMNS) {
-    throwWithCause(
-      `The sheet "${name}" declares ${layoutColCount} columns, ` +
-      `above the ${MAX_SHEET_COLUMNS}-column limit this reader accepts.`
-    );
+    throwColumnLimit(name, layoutColCount);
   }
 
   // The product is measured against the CELL column count, never the layout one. Excel writes a
@@ -649,10 +894,7 @@ function assertSheetFits(
   // expands it into 16384 `Column` objects — so a 400-row, one-column workbook would otherwise be
   // refused as "400 × 16384 cells". A column declaration costs one object, not one per row.
   if (rowCount * cellColCount > MAX_SHEET_CELLS) {
-    throwWithCause(
-      `The sheet "${name}" declares ${rowCount} × ${cellColCount} cells, ` +
-      `above the ${MAX_SHEET_CELLS}-cell limit this reader accepts.`
-    );
+    throwCellLimit(name, rowCount, cellColCount);
   }
 
   // A sheet of rows with no cells still costs one array per row, so it counts one column wide; and
@@ -688,7 +930,16 @@ function readRow(
       trackMerge(cell, merges);
     }
 
-    cells[colNumber - 1] = isEmpty || cell.type === mergeType ? null : readCell(cell, dropped);
+    if (isEmpty) {
+      cells[colNumber - 1] = null;
+    } else if (cell.type === mergeType) {
+      // A covered cell's `value` getter answers with the MASTER's value, so only its own style
+      // and lock are read, the way the native reader reads it. ExcelJS's loader merges without
+      // copying the master's style (`mergeCellsWithoutStyle`), so these are the cell's own.
+      cells[colNumber - 1] = createCoveredCellSnapshot(readStyle(cell), readLocked(cell));
+    } else {
+      cells[colNumber - 1] = readCell(cell, dropped);
+    }
   });
 
   sheet.rows[rowNumber - 1] = cells;
@@ -833,13 +1084,30 @@ export const excelJsAdapter: XlsxEngineAdapter = {
       throwWithCause(`The workbook could not be parsed by ExcelJS: ${(error as Error).message}`);
     }
 
+    // The same cap, and the same sentence, as the native reader's. ExcelJS has already parsed every
+    // sheet by now, so this bounds what the adapter copies into the snapshot, not the parse.
+    if (workbook.worksheets.length > MAX_WORKBOOK_SHEETS) {
+      throwLimitExceeded(`The workbook declares more than ${MAX_WORKBOOK_SHEETS} sheets, `
+        + 'above the limit this reader accepts.');
+    }
+
     const mergeType = module.ValueType?.Merge ?? 1;
     const snapshot = createWorkbookSnapshot();
     const budget: WorkbookBudget = { declaredCells: 0 };
 
+    const isDate1904 = workbook.properties?.date1904 === true;
+
     workbook.worksheets.forEach((worksheet) => {
-      snapshot.sheets.push(readSheet(worksheet, dropped, mergeType, budget));
+      const sheet = readSheet(worksheet, dropped, mergeType, budget);
+
+      if (isDate1904) {
+        unshiftTimes1904(worksheet, sheet);
+      }
+
+      snapshot.sheets.push(sheet);
     });
+
+    snapshot.definedNames = readDefinedNames(workbook);
 
     return snapshot;
   },
@@ -859,9 +1127,9 @@ export const excelJsAdapter: XlsxEngineAdapter = {
     for (const sheet of snapshot.sheets) {
       const worksheet = addWorksheet(workbook, sheet.name);
 
-      writeColumnLayout(worksheet, sheet);
-      wroteFormula = writeRows(worksheet, sheet) || wroteFormula;
-      // eslint-disable-next-line no-await-in-loop
+      writeColumnLayout(worksheet, sheet, dropped);
+      wroteFormula = writeRows(worksheet, sheet, dropped) || wroteFormula;
+      // eslint-disable-next-line no-await-in-loop -- one sheet at a time: `protect()` hashes the password.
       await writeSheetFeatures(worksheet, sheet, dropped);
     }
 

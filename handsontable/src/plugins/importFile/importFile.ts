@@ -1,10 +1,13 @@
 import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import { isObject } from '../../helpers/object';
-import { detectXlsxEngine, type DetectedXlsxEngine } from '../../utils/xlsxEngine/detect';
-import { DroppedFeatures, type XlsxEngineKind } from '../../utils/xlsxEngine/capabilities';
+import {
+  detectXlsxEngine, resolveEngineOverride, tryDetectXlsxEngine, type DetectedXlsxEngine,
+} from '../../utils/xlsxEngine/detect';
+import { DROPPED_FEATURES, DroppedFeatures, type XlsxEngineKind } from '../../utils/xlsxEngine/capabilities';
 import { mapWorkbook, resolveImportOptions, type MappedResult } from './mapper';
 import { applyImportResult, removeImportedStyles } from './applier';
+import { hasCellType } from '../../cellTypes/registry';
 import type { ImportedBorder } from './styles';
 import type { HotInstance } from '../../core/types';
 
@@ -16,9 +19,11 @@ export const PLUGIN_PRIORITY = 245;
  */
 export interface ImportFileSettings {
   /**
-   * Map of import engines keyed by format name (e.g. `{ xlsx: ExcelJS }`).
+   * Optional map of import engines keyed by format name (e.g. `{ xlsx: ExcelJS }`). Without it, or
+   * with a map whose entry for the format is absent or `null`, the built-in engine reads `.xlsx`.
+   * An entry that holds any other value must be a supported engine module.
    */
-  engines?: Record<string, object>;
+  engines?: Record<string, object | null | undefined>;
 }
 
 /**
@@ -66,9 +71,10 @@ export interface ImportOptions {
    */
   apply?: boolean;
   /**
-   * Per-call engine override.
+   * An xlsx engine module for this import only. `null`/absent uses the plugin's `engines` entry, or
+   * the built-in engine.
    */
-  engine?: object;
+  engine?: object | null;
   /**
    * Apply alignment, font, fill and borders from the workbook as generated class names
    * (`result.cellsMeta[].meta.className`), style rules (`result.styles`) and `customBorders`
@@ -87,7 +93,8 @@ export type ImportedNestedHeader = string | { label: string; colspan: number };
  */
 export interface ImportColumn {
   /**
-   * The cell type derived for the column, e.g. `'numeric'`, `'date'`, `'time'`, `'checkbox'` or `'dropdown'`.
+   * The cell type derived for the column, e.g. `'numeric'`, `'date'`, `'intl-datetime'`, `'time'`,
+   * `'checkbox'` or `'dropdown'`.
    */
   type?: string;
   /**
@@ -97,7 +104,7 @@ export interface ImportColumn {
   numericFormat?: Intl.NumberFormatOptions;
   /**
    * The `Intl.DateTimeFormatOptions` derived for the column, when the source cells carried a date
-   * (or date-time) number format. Handsontable 18 takes `dateFormat` as `Intl.DateTimeFormatOptions`
+   * number format. Handsontable 18 takes `dateFormat` as `Intl.DateTimeFormatOptions`
    * and rejects a pattern string, so the Excel pattern is inverted into options rather than copied.
    */
   dateFormat?: Intl.DateTimeFormatOptions;
@@ -106,6 +113,11 @@ export interface ImportColumn {
    * number format.
    */
   timeFormat?: Intl.DateTimeFormatOptions;
+  /**
+   * The `Intl.DateTimeFormatOptions` derived for an `intl-datetime` column, when the source cells
+   * carried a date-time number format. The values are ISO `YYYY-MM-DD HH:mm:ss` strings.
+   */
+  dateTimeFormat?: Intl.DateTimeFormatOptions;
   /**
    * The dropdown source values, derived from a list data validation on the column.
    */
@@ -263,48 +275,33 @@ function getPluginSettings(settings: unknown): ImportFileSettings | undefined {
  * The engine module configured for `format` under `engines`, keyed by format name the way the
  * option is documented and the way `exportFile` reads its own `engines`.
  */
-function configuredEngine(
-  hot: HotInstance, format: string
-): { engines: Record<string, object> | undefined; injected: object | undefined } {
-  const engines = getPluginSettings(hot.getSettings()[PLUGIN_KEY])?.engines;
-
-  return { engines, injected: engines?.[format] };
+function configuredEngine(hot: HotInstance, format: string): object | null | undefined {
+  return getPluginSettings(hot.getSettings()[PLUGIN_KEY])?.engines?.[format];
 }
 
 /**
  * Detects the engine from the per-call override or the plugin settings for `format`. Returns
  * `null` instead of throwing when nothing usable was injected.
  */
-function tryDetectEngine(hot: HotInstance, override: object | undefined, format: string): DetectedXlsxEngine | null {
-  const injected = override ?? configuredEngine(hot, format).injected;
-
-  if (injected === undefined) {
-    return null;
-  }
-
-  try {
-    return detectXlsxEngine(injected, PLUGIN_KEY);
-  } catch {
-    return null;
-  }
+function tryDetectEngine(
+  hot: HotInstance,
+  override: object | null | undefined,
+  format: string,
+): DetectedXlsxEngine | null {
+  return tryDetectXlsxEngine(resolveEngineOverride(override, configuredEngine(hot, format)), PLUGIN_KEY);
 }
 
 /**
  * Detects the engine from the per-call override or the plugin settings and checks it can read the
- * given format. Throws a Handsontable error when no engine is configured or the detected engine
- * cannot read the format.
+ * given format. An `engines` map that names no engine for `format`, or names `null`, falls back to
+ * the built-in engine – `detectXlsxEngine` reads both the same way – which is what
+ * `supportsImportFormat` predicts and what `exportFile` does for the same configuration. Throws a
+ * Handsontable error when the injected value does not duck-type to a known engine, or when the
+ * detected engine cannot read the format.
  */
-function requireEngine(hot: HotInstance, format: string, override: object | undefined): DetectedXlsxEngine {
-  const { engines, injected } = configuredEngine(hot, format);
-
-  if (override === undefined && injected === undefined && engines && Object.keys(engines).length > 0) {
-    throwWithCause(
-      `ImportFile: no engine is configured for "${format}" files. ` +
-      `Configured formats: ${Object.keys(engines).join(', ')}.`
-    );
-  }
-
-  const detected = detectXlsxEngine(override ?? injected, PLUGIN_KEY);
+function requireEngine(hot: HotInstance, format: string, override: object | null | undefined): DetectedXlsxEngine {
+  const injected = resolveEngineOverride(override, configuredEngine(hot, format));
+  const detected = detectXlsxEngine(injected, PLUGIN_KEY);
 
   if (!detected.capabilities.readFormats.includes(format)) {
     throwWithCause(
@@ -314,6 +311,27 @@ function requireEngine(hot: HotInstance, format: string, override: object | unde
   }
 
   return detected;
+}
+
+/**
+ * The sheet names a Formulas engine holds, lower-cased. A formula naming any other sheet cannot
+ * resolve in the grid, so the mapper imports its cached value.
+ */
+function engineSheetNames(engine: { getSheetNames?: () => string[] } | null | undefined): Set<string> {
+  const names = typeof engine?.getSheetNames === 'function' ? engine.getSheetNames() : [];
+
+  return new Set(names.map(name => name.toLowerCase()));
+}
+
+/**
+ * The workbook-scoped named expressions a Formulas engine defines, lower-cased. A formula using a
+ * name the file defines and the engine does not shows `#NAME?`, so the mapper imports its cached
+ * value.
+ */
+function engineNamedExpressions(engine: { listNamedExpressions?: () => string[] } | null | undefined): Set<string> {
+  const names = typeof engine?.listNamedExpressions === 'function' ? engine.listNamedExpressions() : [];
+
+  return new Set(names.map(name => name.toLowerCase()));
 }
 
 /**
@@ -333,8 +351,124 @@ function recordLayoutDirectionMismatch(
   }
 
   if (mapped.layoutDirection !== (hot.isRtl() ? 'rtl' : 'ltr')) {
-    dropped.record('layoutDirection');
+    dropped.record(DROPPED_FEATURES.layoutDirection);
   }
+}
+
+/**
+ * The cell meta keys only a specific cell type reads. A cell that falls back to `text` drops them,
+ * so the grid holds no setting the type it ended up with cannot use.
+ */
+const TYPE_SPECIFIC_META_KEYS = [
+  'source', 'numericFormat', 'dateFormat', 'timeFormat', 'dateTimeFormat', 'checkedTemplate', 'uncheckedTemplate',
+] as const;
+
+/**
+ * Returns `meta`, or a `text` copy of it when its `type` is not registered in the cell type
+ * registry. The mapper shares one meta object between every cell of a format, so the copy is made
+ * once per object (`fallbacks`) and the shared object itself is never mutated.
+ */
+function withRegisteredType<T extends { type?: unknown }>(
+  meta: T, fallbacks: Map<object, object>, dropped: DroppedFeatures,
+): T {
+  const { type } = meta;
+
+  if (typeof type !== 'string' || hasCellType(type)) {
+    return meta;
+  }
+
+  let fallback = fallbacks.get(meta);
+
+  if (fallback === undefined) {
+    const copy: Record<string, unknown> = { ...meta, type: 'text' };
+
+    TYPE_SPECIFIC_META_KEYS.forEach((key) => {
+      delete copy[key];
+    });
+    fallback = copy;
+    fallbacks.set(meta, fallback);
+    dropped.recordUnsupported('cellType', type);
+  }
+
+  return fallback as T;
+}
+
+/**
+ * Replaces every inferred cell type the cell type registry does not know with `text`, and records
+ * `cellType:<name>` for each. A bundle that registers modules one by one may lack a type the
+ * inference derives (`dropdown`, `date`, ...); applying it used to throw from `getCellType` after
+ * `loadData` had already replaced the data, which left the grid half imported and made every later
+ * `updateSettings` call throw the same error. Runs only for a result about to be applied.
+ */
+function fallBackUnregisteredCellTypes(mapped: MappedResult, dropped: DroppedFeatures): void {
+  const fallbacks = new Map<object, object>();
+  const { columns, cellsMeta } = mapped;
+
+  if (columns) {
+    for (let index = 0; index < columns.length; index++) {
+      columns[index] = withRegisteredType(columns[index], fallbacks, dropped);
+    }
+  }
+
+  if (cellsMeta) {
+    for (let index = 0; index < cellsMeta.length; index++) {
+      const entry = cellsMeta[index];
+      const meta = withRegisteredType(entry.meta, fallbacks, dropped);
+
+      if (meta !== entry.meta) {
+        cellsMeta[index] = { ...entry, meta };
+      }
+    }
+  }
+}
+
+/**
+ * The layout keys a result may carry whose plugin has to be registered for the setting to do
+ * anything, keyed by the plugin name `getPlugin` takes.
+ */
+const LAYOUT_PLUGIN_FEATURES = [
+  ['mergeCells', DROPPED_FEATURES.mergeCells],
+  ['hiddenRows', DROPPED_FEATURES.hiddenRows],
+  ['hiddenColumns', DROPPED_FEATURES.hiddenColumns],
+] as const;
+
+/**
+ * Records `mergeCells`, `hiddenRows` or `hiddenColumns` as dropped when the result carries a
+ * non-empty list for it and the plugin that applies it is not registered. The applier still writes
+ * the setting, but nothing reads it, so the merge or the hidden row was lost without a word, while
+ * a missing `Comments` or `CustomBorders` plugin was reported. Nothing is recorded for a result
+ * that is not applied.
+ */
+function recordMissingLayoutPlugins(
+  hot: HotInstance, mapped: MappedResult, apply: boolean, dropped: DroppedFeatures
+): void {
+  if (!apply) {
+    return;
+  }
+
+  LAYOUT_PLUGIN_FEATURES.forEach(([key, feature]) => {
+    const list = mapped[key];
+
+    if (list !== undefined && list.length > 0 && hot.getPlugin(key) === undefined) {
+      dropped.record(feature);
+    }
+  });
+}
+
+/**
+ * Hands the engine a plain `ArrayBuffer`. A typed array or a `DataView` is copied out of its
+ * backing buffer by `byteOffset` and `byteLength`, so a view onto part of a larger buffer reads
+ * only its own bytes. The built-in reader takes an `ArrayBuffer` alone and used to report a view
+ * as a damaged file; ExcelJS accepted both.
+ */
+function toArrayBuffer(buffer: ArrayBuffer | ArrayBufferView): ArrayBuffer {
+  if (!ArrayBuffer.isView(buffer)) {
+    return buffer;
+  }
+
+  const { byteOffset, byteLength } = buffer;
+
+  return buffer.buffer.slice(byteOffset, byteOffset + byteLength) as ArrayBuffer;
 }
 
 /**
@@ -346,17 +480,15 @@ function recordLayoutDirectionMismatch(
  * derived from number formats, dropdown sources from list validations, formulas, merged cells,
  * hidden rows and columns, frozen panes, column widths and row heights.
  *
- * XLSX import needs an engine passed through the `engines` option. [ExcelJS](https://github.com/exceljs/exceljs)
- * is the only engine supported today. The plugin reports, in one console warning, anything the
- * engine could not recover from the file.
+ * XLSX import works out of the box through the built-in engine. Pass an engine module through the
+ * `engines` option to read through [ExcelJS](https://github.com/exceljs/exceljs) instead. The plugin
+ * reports, in one console warning, anything the engine could not recover from the file.
  *
  * @example
  * ::: only-for javascript
  * ```js
- * import ExcelJS from 'exceljs';
- *
  * const hot = new Handsontable(container, {
- *   importFile: { engines: { xlsx: ExcelJS } },
+ *   importFile: true,
  * });
  *
  * const result = await hot.getPlugin('importFile').importFromBlob('xlsx', file, {
@@ -366,6 +498,13 @@ function recordLayoutDirectionMismatch(
  * :::
  */
 export class ImportFile extends BasePlugin {
+  /**
+   * The ticket of the last applying import started on this instance. Each `apply: true` call takes
+   * the next ticket before its first `await`, and a call whose ticket is no longer the latest when
+   * its read ends is rejected instead of applied, so the import started last always wins.
+   */
+  #latestApplyTicket = 0;
+
   /**
    * Returns the plugin key used to identify this plugin in Handsontable settings.
    */
@@ -416,8 +555,8 @@ export class ImportFile extends BasePlugin {
   }
 
   /**
-   * Returns `true` when an engine is configured for the format and that engine can read it. ExcelJS,
-   * the only engine supported today, reads `xlsx` only.
+   * Returns `true` when the format can be read: `xlsx`, through the built-in engine or the one
+   * configured in `engines`. An engine of unknown shape reads nothing and answers `false`.
    */
   supportsImportFormat(format: string): boolean {
     const detected = tryDetectEngine(this.hot, undefined, format);
@@ -426,33 +565,87 @@ export class ImportFile extends BasePlugin {
   }
 
   /**
-   * Reads a workbook from an `ArrayBuffer` and maps it into an {@link ImportResult}. Applies the
-   * result to the grid unless `options.apply` is `false` or a `beforeImport` hook returns `false`.
+   * Reads a workbook from an `ArrayBuffer` (or a view onto one, such as a `Uint8Array`) and maps it
+   * into an {@link ImportResult}. Applies the result to the grid unless `options.apply` is `false`
+   * or a `beforeImport` hook returns `false`.
+   *
+   * When a newer import that applies its result starts on the same instance before this one
+   * finishes, this one is not applied and the returned promise rejects: the import started last
+   * wins. An `apply: false` import neither cancels another import nor is cancelled by one.
    */
-  async importFromArrayBuffer(format: string, buffer: ArrayBuffer, options: ImportOptions = {}): Promise<ImportResult> {
+  async importFromArrayBuffer(
+    format: string, buffer: ArrayBuffer | ArrayBufferView, options: ImportOptions = {}
+  ): Promise<ImportResult> {
     this.#assertEnabled();
 
     const detected = requireEngine(this.hot, format, options.engine);
+
+    return this.#importBuffer(format, buffer, options, detected, this.#takeApplyTicket(options));
+  }
+
+  /**
+   * Reads a workbook from a `Blob` (e.g. a `File` from an `<input type="file">`) and maps it into
+   * an {@link ImportResult}. Applies the result to the grid unless `options.apply` is `false` or a
+   * `beforeImport` hook returns `false`.
+   *
+   * When a newer import that applies its result starts on the same instance before this one
+   * finishes, this one is not applied and the returned promise rejects: the import started last
+   * wins. An `apply: false` import neither cancels another import nor is cancelled by one.
+   */
+  async importFromBlob(format: string, blob: Blob, options: ImportOptions = {}): Promise<ImportResult> {
+    this.#assertEnabled();
+
+    // Detected and ticketed before the first `await`, so a call refused for its format or engine
+    // never cancels an import in flight, and the order of the tickets is the order of the calls.
+    const detected = requireEngine(this.hot, format, options.engine);
+    const ticket = this.#takeApplyTicket(options);
+    const buffer = await blob.arrayBuffer();
+
+    if (!this.hot) {
+      throwWithCause('ImportFile: the Handsontable instance was destroyed while the file was being read.');
+    }
+
+    return this.#importBuffer(format, buffer, options, detected, ticket);
+  }
+
+  /**
+   * Reads, maps and (unless `apply: false`) applies one workbook. `ticket` is `null` for an
+   * `apply: false` call, which never touches the grid and so takes no part in the ordering.
+   */
+  async #importBuffer(
+    format: string,
+    buffer: ArrayBuffer | ArrayBufferView,
+    options: ImportOptions,
+    detected: DetectedXlsxEngine,
+    ticket: number | null,
+  ): Promise<ImportResult> {
     const resolved = resolveImportOptions(options);
     const dropped = new DroppedFeatures();
-    const workbook = await detected.adapter.read(buffer, detected.module, dropped);
+    const workbook = await detected.adapter.read(toArrayBuffer(buffer), detected.module, dropped);
 
     // The read is the one async boundary: `BasePlugin#destroy` deletes `hot`, so a grid torn down
     // while the file was being parsed has nothing left to apply the result to.
-    if (!this.hot) {
-      throwWithCause('ImportFile: the Handsontable instance was destroyed while the workbook was being read.');
-    }
+    this.#assertAlive();
+    this.#assertLatest(ticket);
 
     const formulasPlugin = this.hot.getPlugin('formulas');
     const commentsPlugin = this.hot.getPlugin('comments');
     const customBordersPlugin = this.hot.getPlugin('customBorders');
+    const formulasEnabled = formulasPlugin?.isEnabled() === true;
     const mapped = mapWorkbook(workbook, resolved, {
-      formulasEnabled: formulasPlugin?.isEnabled() === true,
+      formulasEnabled,
       commentsEnabled: commentsPlugin?.isEnabled() === true,
       customBordersEnabled: customBordersPlugin?.isEnabled() === true,
+      formulaSheetNames: formulasEnabled ? engineSheetNames(formulasPlugin?.engine) : undefined,
+      formulaNamedExpressions: formulasEnabled ? engineNamedExpressions(formulasPlugin?.engine) : undefined,
     }, dropped);
 
     recordLayoutDirectionMismatch(this.hot, mapped, resolved.apply, dropped);
+    recordMissingLayoutPlugins(this.hot, mapped, resolved.apply, dropped);
+
+    if (resolved.apply) {
+      fallBackUnregisteredCellTypes(mapped, dropped);
+    }
 
     const result: ImportResult = {
       ...mapped,
@@ -466,9 +659,18 @@ export class ImportFile extends BasePlugin {
       return result;
     }
 
+    // `updateSettings({ importFile: false })` during the read disables the plugin without deleting
+    // `hot`, and a late apply would put the imported stylesheet back on a disabled plugin.
+    this.#assertEnabled();
+    this.#assertAlive();
+
     if (this.hot.runHooks<boolean | void>('beforeImport', result, format) === false) {
       return result;
     }
+
+    // A `beforeImport` handler may destroy the grid, or start a newer import.
+    this.#assertAlive();
+    this.#assertLatest(ticket);
 
     applyImportResult(this.hot, result, { importLayout: resolved.importLayout });
     this.hot.runHooks('afterImport', result, format);
@@ -477,30 +679,52 @@ export class ImportFile extends BasePlugin {
   }
 
   /**
-   * Reads a workbook from a `Blob` (e.g. a `File` from an `<input type="file">`) and maps it into
-   * an {@link ImportResult}. Applies the result to the grid unless `options.apply` is `false` or a
-   * `beforeImport` hook returns `false`.
-   */
-  async importFromBlob(format: string, blob: Blob, options: ImportOptions = {}): Promise<ImportResult> {
-    this.#assertEnabled();
-
-    const buffer = await blob.arrayBuffer();
-
-    if (!this.hot) {
-      throwWithCause('ImportFile: the Handsontable instance was destroyed while the file was being read.');
-    }
-
-    return this.importFromArrayBuffer(format, buffer, options);
-  }
-
-  /**
    * Rejects a public call on a disabled plugin (`importFile: false`), the way every other plugin's
    * public methods return early on `!this.enabled`. The methods return promises, so this throws a
    * Handsontable error inside them rather than resolving with nothing.
    */
   #assertEnabled(): void {
+    // A destroyed plugin is not `enabled` either; name the real cause rather than `importFile: false`.
+    if (!this.hot) {
+      throwWithCause('ImportFile: the Handsontable instance is destroyed, so nothing can be imported.');
+    }
+
     if (!this.enabled) {
       throwWithCause('ImportFile: the plugin is disabled (`importFile: false`), so nothing can be imported.');
+    }
+  }
+
+  /**
+   * Takes the next apply ticket for an import that applies its result, or `null` for an
+   * `apply: false` import. Must run before the call's first `await`.
+   */
+  #takeApplyTicket(options: ImportOptions): number | null {
+    if (options.apply === false) {
+      return null;
+    }
+
+    this.#latestApplyTicket += 1;
+
+    return this.#latestApplyTicket;
+  }
+
+  /**
+   * Rejects an applying import when a newer applying import started on this instance after it, so
+   * an older file that finishes last cannot overwrite the newer one. No hook fires for it.
+   */
+  #assertLatest(ticket: number | null): void {
+    if (ticket !== null && ticket !== this.#latestApplyTicket) {
+      throwWithCause('ImportFile: a newer import started before this one finished, so its result was not applied.');
+    }
+  }
+
+  /**
+   * Rejects a call whose grid was destroyed across an `await` or by a hook: `BasePlugin#destroy`
+   * deletes `hot`, so continuing would surface as a raw `TypeError`.
+   */
+  #assertAlive(): void {
+    if (!this.hot) {
+      throwWithCause('ImportFile: the Handsontable instance was destroyed while the workbook was being read.');
     }
   }
 

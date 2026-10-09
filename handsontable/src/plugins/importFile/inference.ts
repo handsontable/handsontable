@@ -1,5 +1,15 @@
 import { parseRangeRef, type RangeRef } from '../../utils/xlsxEngine/cellRef';
+import { EXCEL_EPOCH_UTC, MS_PER_DAY } from '../../utils/xlsxEngine/dates';
 import { PIXELS_PER_EXCEL_COLUMN_WIDTH_UNIT, POINTS_PER_PIXEL } from '../../utils/xlsxEngine/units';
+import {
+  MAX_NUMBER_FORMAT_LENGTH,
+  captureCurrency,
+  classifyTemporalFormat,
+  hasConditionalSection,
+  isNegativeSectionShowable,
+  positiveFormatSection,
+  stripFormatDecorations,
+} from '../../utils/xlsxEngine/numFmtCode';
 import type {
   CellSnapshot,
   CellValidationSnapshot,
@@ -11,81 +21,16 @@ import type {
 /**
  * A cell type derived from a cell's number format and value. A `numeric` cell carries
  * `numericFormat` only when its Excel number format could be inverted into `Intl.NumberFormat`
- * options, and `unsupportedNumFmt` (the raw pattern) only when it could not.
+ * options, and `unsupportedNumFmt` (the raw pattern) when it could not, or when its negative section
+ * shows differently from what the grid draws.
  */
 export type InferredType =
   | { type: 'numeric'; numericFormat?: Intl.NumberFormatOptions; unsupportedNumFmt?: string }
   | { type: 'date'; dateFormat: Intl.DateTimeFormatOptions }
+  | { type: 'intl-datetime'; dateTimeFormat: Intl.DateTimeFormatOptions }
   | { type: 'time'; timeFormat: Intl.DateTimeFormatOptions }
   | { type: 'checkbox' }
   | { type: 'text' };
-
-/**
- * Currency symbols the export can write, mapped back to their ISO 4217 codes. Longer symbols are
- * matched first, so `R$` never reads as `$`.
- */
-const CURRENCY_SYMBOL_TO_CODE: Record<string, string> = {
-  $: 'USD',
-  '€': 'EUR',
-  '£': 'GBP',
-  '¥': 'JPY',
-  // An escape, not a bare `z\u0142` key: a raw non-ASCII identifier stops the non-minified bundles from
-  // parsing on a page that is not served as UTF-8 (see the Build section of AGENTS.md).
-  // eslint-disable-next-line quote-props
-  'z\u0142': 'PLN',
-  '₹': 'INR',
-  '₩': 'KRW',
-  CHF: 'CHF',
-  kr: 'SEK',
-  R$: 'BRL',
-};
-
-/**
- * `CURRENCY_SYMBOL_TO_CODE`'s symbols, longest first, so a multi-character symbol wins over a
- * single-character one that is its suffix.
- */
-const CURRENCY_SYMBOLS = Object.keys(CURRENCY_SYMBOL_TO_CODE).sort((a, b) => b.length - a.length);
-
-/**
- * Matches Excel's locale-tagged currency token, `[$<symbol>-<LCID>]` or `[$<symbol>]`.
- */
-const CURRENCY_TOKEN_REGEX = /\[\$([^\]-]*)(?:-[^\]]*)?\]/;
-
-/**
- * The dollar-sign composites `Intl.NumberFormat` writes under `en-US` for currencies whose symbol
- * is a dollar but not THE dollar, mapped to their ISO 4217 codes. `intlNumFormatToExcelNumFmt`
- * emits them bare (`HK$#,##0`), the same way it emits a bare ISO code for a currency with no
- * symbol at all (`CHF#,##0`, `SEK#,##0`).
- */
-const DOLLAR_COMPOSITE_TO_CODE: Record<string, string> = {
-  A$: 'AUD',
-  CA$: 'CAD',
-  HK$: 'HKD',
-  MX$: 'MXN',
-  NT$: 'TWD',
-  NZ$: 'NZD',
-  US$: 'USD',
-};
-
-/**
- * A bare currency marker at either end of a number format: a three-letter ISO code (`CHF`, `SEK`)
- * or a dollar composite (`HK$`, `US$`), separated from the digits by an optional space. The
- * alternation is anchored to the pattern's number part (`#` or `0`) on the inner side so a format
- * code that happens to be uppercase, such as `YYYY-MM-DD`, is never read as a currency.
- */
-const BARE_CURRENCY_REGEX = /^([A-Z]{1,3}\$|[A-Z]{3}) ?(?=[#0])|(?<=[#0%]) ?([A-Z]{1,3}\$|[A-Z]{3})$/;
-
-/**
- * Maps a bare currency marker to its ISO code: a three-letter code is its own code, a dollar
- * composite is looked up, anything else is unknown.
- */
-function bareMarkerToCode(marker: string): string | null {
-  if (marker.endsWith('$')) {
-    return DOLLAR_COMPOSITE_TO_CODE[marker] ?? null;
-  }
-
-  return marker;
-}
 
 /**
  * The format codes a number pattern may be composed of once its currency token and percent sign are
@@ -94,76 +39,40 @@ function bareMarkerToCode(marker: string): string | null {
 const PLAIN_NUMBER_PATTERN_REGEX = /^[#0,.\s]+$/;
 
 /**
- * The Excel epoch (1899-12-30) expressed in UTC milliseconds, the base every date serial counts from.
+ * Splits a decoration-stripped, lower-cased number format into elapsed-time sections (`[h]`,
+ * `[mm]`, `[ss]`), runs of one repeated format letter, the `AM/PM` marker in either of its two
+ * spellings, and the single characters between them. An `m` run has to be read next to its
+ * neighbours, so a run is the smallest useful token.
  */
-const EXCEL_EPOCH_UTC = Date.UTC(1899, 11, 30);
+const FORMAT_TOKEN_REGEX = /\[(?:h+|m+|s+)\]|am\/pm|a\/p|y+|m+|d+|h+|s+|./g;
 
 /**
- * Milliseconds in a day, used to convert whole-day offsets to and from the Excel epoch.
- */
-const MS_PER_DAY = 86400000;
-
-/**
- * Strips bracketed sections (`[$-409]`, `[Red]`, `[h]`) and quoted literals from a number format so
- * the classifier sees only format codes.
- */
-function stripDecorations(numFmt: string): string {
-  return numFmt.replace(/\[[^\]]*\]/g, '').replace(/"[^"]*"/g, '').replace(/\\./g, '');
-}
-
-/**
- * Detects a date-shaped format code: `y`, `d` or a month name (`mmm`) anywhere, or a bare `m`
- * (ambiguous between "month" and "minute") when the format carries no `h` or `s` to disambiguate it
- * as a time — Excel's own rule for a lone `m`/`mm` token.
- */
-function hasDateCode(bare: string): boolean {
-  return /y|d|mmm/.test(bare) || (/m/.test(bare) && !/h|s/.test(bare));
-}
-
-/**
- * Detects a time-shaped format code: `h`, `s` or `AM/PM` anywhere, or a bare `m` read as "minute"
- * because the format also carries an `h` or `s`.
- */
-function hasTimeCode(bare: string): boolean {
-  return /h|s|am\/pm/.test(bare) || (/m/.test(bare) && /h|s/.test(bare));
-}
-
-/**
- * Detects a date-only, time-only or date-time number format.
- */
-function classifyTemporal(numFmt: string): 'date' | 'time' | 'datetime' | null {
-  const bare = stripDecorations(numFmt).toLowerCase();
-  const hasDate = hasDateCode(bare);
-  const hasTime = hasTimeCode(bare);
-  const elapsedHours = /\[h\]/i.test(numFmt);
-
-  if (hasDate && hasTime) {
-    return 'datetime';
-  }
-
-  if (hasDate) {
-    return 'date';
-  }
-
-  if (hasTime || elapsedHours) {
-    return 'time';
-  }
-
-  return null;
-}
-
-/**
- * Splits a decoration-stripped, lower-cased number format into runs of one repeated format letter,
- * the `AM/PM` marker in either of its two spellings, and the single characters between them. An
- * `m` run has to be read next to its neighbours, so a run is the smallest useful token.
- */
-const FORMAT_TOKEN_REGEX = /am\/pm|a\/p|y+|m+|d+|h+|s+|./g;
-
-/**
- * The format letter a token is a run of, or an empty string for a separator or the `AM/PM` marker.
+ * The format letter a token is a run of (an elapsed-time section counts as its letter), or an empty
+ * string for a separator or the `AM/PM` marker.
  */
 function tokenCode(token: string): string {
-  return /^[ymdhs]/.test(token) ? token[0] : '';
+  const match = /^\[?([ymdhs])/.exec(token);
+
+  return match ? match[1] : '';
+}
+
+/**
+ * Writes the option an elapsed-time section stands for. `[m]` and `[s]` are always a minute and a
+ * second, whatever surrounds them. `[h]` writes an `hour`: leaving the hour out showed `13:30` as
+ * `30` and every whole hour as `0`. `Intl.DateTimeFormat` has no elapsed components, so these
+ * options fit only a duration under the leading section's capacity (a day for `[h]`, an hour for
+ * `[m]`, a minute for `[s]`); `inferCellType` keeps a longer one a number (`exceedsElapsedFormat`).
+ */
+function applyElapsedToken(options: Intl.DateTimeFormatOptions, token: string): void {
+  const length = token.length - 2;
+
+  if (token[1] === 'h') {
+    options.hour = length >= 2 ? '2-digit' : 'numeric';
+  } else if (token[1] === 'm') {
+    options.minute = length >= 2 ? '2-digit' : 'numeric';
+  } else if (token[1] === 's') {
+    options.second = length >= 2 ? '2-digit' : 'numeric';
+  }
 }
 
 /**
@@ -228,6 +137,12 @@ function applyDayOrWeekday(options: Intl.DateTimeFormatOptions, tokens: string[]
 function applyFormatToken(options: Intl.DateTimeFormatOptions, tokens: string[], index: number): void {
   const length = tokens[index].length;
 
+  if (tokens[index].startsWith('[')) {
+    applyElapsedToken(options, tokens[index]);
+
+    return;
+  }
+
   switch (tokenCode(tokens[index])) {
     case 'y':
       options.year = length >= 3 ? 'numeric' : '2-digit';
@@ -259,7 +174,7 @@ function applyFormatToken(options: Intl.DateTimeFormatOptions, tokens: string[],
  * format does not pin a clock it says nothing about.
  */
 export function excelDateFmtToIntlOptions(numFmt: string): Intl.DateTimeFormatOptions {
-  const tokens = stripDecorations(numFmt).toLowerCase().match(FORMAT_TOKEN_REGEX) ?? [];
+  const tokens = stripFormatDecorations(numFmt, { keepElapsed: true }).toLowerCase().match(FORMAT_TOKEN_REGEX) ?? [];
   const options: Intl.DateTimeFormatOptions = {};
 
   tokens.forEach((token, index) => applyFormatToken(options, tokens, index));
@@ -272,58 +187,6 @@ export function excelDateFmtToIntlOptions(numFmt: string): Intl.DateTimeFormatOp
 }
 
 /**
- * What a number format's currency capture produced: the ISO 4217 code when a known symbol was
- * found, and the pattern with that symbol removed.
- */
-interface CurrencyCapture {
-  /**
-   * The ISO 4217 code the captured symbol maps to, or `null` when the pattern carries no currency.
-   */
-  currency: string | null;
-  /**
-   * The number format with the currency token removed.
-   */
-  rest: string;
-}
-
-/**
- * Captures the currency a number format carries: Excel's `[$<symbol>-<LCID>]` / `[$<symbol>]` token
- * first, then a leading or trailing symbol the way `intlNumFormatToExcelNumFmt` writes it, then a
- * bare ISO code or dollar composite (`CHF#,##0`, `HK$#,##0`) the same function writes for a
- * currency with no single-character symbol.
- */
-function captureCurrency(numFmt: string): CurrencyCapture {
-  const token = numFmt.match(CURRENCY_TOKEN_REGEX);
-
-  if (token) {
-    return {
-      currency: CURRENCY_SYMBOL_TO_CODE[token[1].trim()] ?? null,
-      rest: numFmt.replace(CURRENCY_TOKEN_REGEX, ''),
-    };
-  }
-
-  const trimmed = numFmt.trim();
-
-  for (const symbol of CURRENCY_SYMBOLS) {
-    if (trimmed.startsWith(symbol)) {
-      return { currency: CURRENCY_SYMBOL_TO_CODE[symbol], rest: trimmed.slice(symbol.length) };
-    }
-
-    if (trimmed.endsWith(symbol)) {
-      return { currency: CURRENCY_SYMBOL_TO_CODE[symbol], rest: trimmed.slice(0, -symbol.length) };
-    }
-  }
-
-  const bare = trimmed.match(BARE_CURRENCY_REGEX);
-
-  if (bare) {
-    return { currency: bareMarkerToCode(bare[1] ?? bare[2]), rest: trimmed.replace(BARE_CURRENCY_REGEX, '') };
-  }
-
-  return { currency: null, rest: numFmt };
-}
-
-/**
  * The most fraction digits `Intl.NumberFormat` accepts. ECMA-402 caps `minimumFractionDigits` and
  * `maximumFractionDigits` at 100, and the constructor throws a `RangeError` above it — inside the
  * grid's numeric renderer, which builds its formatter from whatever the column carries, so it would
@@ -331,6 +194,22 @@ function captureCurrency(numFmt: string): CurrencyCapture {
  * above this is malformed rather than merely exotic, and is reported as unsupported.
  */
 const MAX_INTL_FRACTION_DIGITS = 100;
+
+/**
+ * The most integer digits `Intl.NumberFormat` accepts in `minimumIntegerDigits`; the constructor
+ * throws a `RangeError` above it, inside the grid's numeric renderer.
+ */
+const MAX_INTL_INTEGER_DIGITS = 21;
+
+/**
+ * Counts the zeros before the decimal point, which is how many integer digits the format pins
+ * (`00000` shows 2134 as `02134`). A `#` never makes a zero optional: `#00` shows 7 as `07`.
+ */
+function countIntegerDigits(pattern: string): number {
+  const separator = pattern.indexOf('.');
+
+  return (separator === -1 ? pattern : pattern.slice(0, separator)).split('').filter(char => char === '0').length;
+}
 
 /**
  * Counts the zeros that follow the decimal point, which is how many fraction digits the format pins.
@@ -349,22 +228,35 @@ function countFractionDigits(pattern: string): number {
  * Inverts `intlNumFormatToExcelNumFmt`: turns an Excel number format back into the
  * `Intl.NumberFormat` options Handsontable's numeric cell type takes. Returns `null` when the
  * pattern carries codes with no `Intl` equivalent (scientific notation, fractions, text literals
- * that change the reading), or pins more than the 100 fraction digits `Intl` accepts, so the caller
- * can report it as dropped.
+ * that change the reading, a trailing comma that scales the number by a thousand, sections split
+ * by a condition such as `[>=1000]`), or pins more than the 100 fraction digits or the 21 integer
+ * digits `Intl` accepts, so the caller can report it as dropped. Two or more `0`s before the
+ * decimal point become `minimumIntegerDigits`.
  */
 export function excelNumFmtToIntlOptions(numFmt: string): Intl.NumberFormatOptions | null {
-  const { currency, rest } = captureCurrency(numFmt);
-  const stripped = stripDecorations(rest).trim();
+  // A first section that applies only where its condition holds cannot stand for every value.
+  if (hasConditionalSection(numFmt)) {
+    return null;
+  }
+
+  // `Intl` renders a negative number with its own minus sign, so the positive section is the whole
+  // format as far as it can be expressed.
+  const { currency, rest } = captureCurrency(positiveFormatSection(numFmt).trim());
+  const stripped = stripFormatDecorations(rest).trim();
   const isPercent = stripped.endsWith('%');
   const bare = (isPercent ? stripped.slice(0, -1) : stripped).trim();
 
-  if (!PLAIN_NUMBER_PATTERN_REGEX.test(bare) || !/[#0]/.test(bare)) {
+  // A comma after the last digit placeholder divides the shown number by 1000 (`#,##0,` is "in
+  // thousands"), which `Intl` cannot express; read as a grouping flag, the scale was lost.
+  // So does a comma right before the decimal point (`#,##0,.0`).
+  if (!PLAIN_NUMBER_PATTERN_REGEX.test(bare) || !/[#0]/.test(bare) || bare.endsWith(',') || bare.includes(',.')) {
     return null;
   }
 
   const fractionDigits = countFractionDigits(bare);
+  const integerDigits = countIntegerDigits(bare);
 
-  if (fractionDigits > MAX_INTL_FRACTION_DIGITS) {
+  if (fractionDigits > MAX_INTL_FRACTION_DIGITS || integerDigits > MAX_INTL_INTEGER_DIGITS) {
     return null;
   }
 
@@ -377,21 +269,126 @@ export function excelNumFmtToIntlOptions(numFmt: string): Intl.NumberFormatOptio
     options.style = 'percent';
   }
 
+  // A zero-padded integer part (ZIP codes, employee IDs) keeps its zeros. One zero is the default.
+  if (integerDigits > 1) {
+    options.minimumIntegerDigits = integerDigits;
+  }
+
   options.minimumFractionDigits = fractionDigits;
   options.maximumFractionDigits = fractionDigits;
-  options.useGrouping = bare.includes('#,##');
+  // Any comma left in the integer part groups thousands (`#,##0`, and the zero-padded `00,000`).
+  options.useGrouping = bare.split('.')[0].includes(',');
 
   return options;
 }
 
 /**
  * Turns a non-temporal number format into a numeric inferred type: with `numericFormat` when the
- * format inverts, and with the raw pattern under `unsupportedNumFmt` when it does not.
+ * format inverts, and with the raw pattern under `unsupportedNumFmt` when it does not. A format
+ * whose positive section inverts but whose negative section the grid cannot show (`(#,##0)`)
+ * carries both: the column keeps the positive section, and the code is still reported.
  */
 function toNumericType(numFmt: string): InferredType {
   const numericFormat = excelNumFmtToIntlOptions(numFmt);
 
-  return numericFormat ? { type: 'numeric', numericFormat } : { type: 'numeric', unsupportedNumFmt: numFmt };
+  if (!numericFormat) {
+    return { type: 'numeric', unsupportedNumFmt: numFmt };
+  }
+
+  return isNegativeSectionShowable(numFmt)
+    ? { type: 'numeric', numericFormat }
+    : { type: 'numeric', numericFormat, unsupportedNumFmt: numFmt };
+}
+
+/**
+ * Derives a cell type from a non-empty number format alone. Returns `null` for `General`, which
+ * says nothing about the type, so the caller falls back to the cell's value.
+ */
+function inferFromNumberFormat(numFmt: string): InferredType | null {
+  if (numFmt === '@') {
+    return { type: 'text' };
+  }
+
+  // Excel caps a format code at 255 characters, so a longer one is malformed: it is reported as an
+  // unsupported format instead of being parsed, which also bounds every regex below.
+  if (numFmt.length > MAX_NUMBER_FORMAT_LENGTH) {
+    return { type: 'numeric', unsupportedNumFmt: numFmt };
+  }
+
+  // The same classification both readers' `date1904` handling asks, so a serial shifted into the
+  // 1900 system is always one this types as a date or a date-time (a time is never shifted). It
+  // takes the currency off first and reads an elapsed-time section (`[h]:mm`) as a time.
+  const temporal = classifyTemporalFormat(numFmt);
+
+  if (temporal === 'time') {
+    return { type: 'time', timeFormat: excelDateFmtToIntlOptions(numFmt) };
+  }
+
+  // A date-time pattern is an `intl-datetime` cell, the type the export writes one from: a `date`
+  // cell accepts a date-only ISO value, so a date-time value rendered `#bad-value#` there.
+  if (temporal === 'datetime') {
+    return { type: 'intl-datetime', dateTimeFormat: excelDateFmtToIntlOptions(numFmt) };
+  }
+
+  if (temporal === 'date') {
+    return { type: 'date', dateFormat: excelDateFmtToIntlOptions(numFmt) };
+  }
+
+  return numFmt === 'General' ? null : toNumericType(numFmt);
+}
+
+/**
+ * The first elapsed-time section of a format (`[h]`, `[mm]`, `[ss]`), read on the format's own
+ * letters. Bounded by `MAX_NUMBER_FORMAT_LENGTH`, which every caller checks first.
+ */
+const LEADING_ELAPSED_SECTION_REGEX = /\[(h+|m+|s+)\]/i;
+
+/**
+ * The serial (in days) at which an elapsed section stops fitting the clock component it renders
+ * through: `Intl.DateTimeFormat` has no elapsed hours, minutes or seconds, so `[h]` shows the hour
+ * of the day, `[m]` the minute of the hour and `[s]` the second of the minute.
+ */
+const ELAPSED_SECTION_CAPACITY: Record<string, number> = {
+  h: 1,
+  m: 1 / 24,
+  s: 1 / 1440,
+};
+
+/**
+ * Whether a value under an elapsed-time format is a duration the grid cannot show as a time: one
+ * past the capacity of the format's leading section (`[h]:mm` at 25:30, `[mm]:ss` at 90 minutes),
+ * or a negative one. Such a cell would lose its whole days or hours from the data, not only from
+ * the display, because the grid value is a `HH:mm:ss` string - so it stays a number instead.
+ * Rounded to a second, the precision `serialToTimeString` keeps.
+ */
+export function exceedsElapsedFormat(numFmt: string | null, value: CellValue): boolean {
+  if (typeof value !== 'number' || !numFmt || numFmt.length > MAX_NUMBER_FORMAT_LENGTH) {
+    return false;
+  }
+
+  const section = LEADING_ELAPSED_SECTION_REGEX.exec(stripFormatDecorations(numFmt, { keepElapsed: true }));
+
+  if (!section) {
+    return false;
+  }
+
+  const seconds = Math.round(value * 86400);
+  const capacity = Math.round(ELAPSED_SECTION_CAPACITY[section[1][0].toLowerCase()] * 86400);
+
+  return seconds < 0 || seconds >= capacity;
+}
+
+/**
+ * The BOOLEAN number format both Excel and LibreOffice write: `"TRUE";"TRUE";"FALSE"`, a quoted TRUE
+ * for the positive and negative sections and a quoted FALSE for zero. Matched case-insensitively.
+ */
+const BOOLEAN_FORMAT_CODE_REGEX = /^"true";"true";"false"$/i;
+
+/**
+ * Tells whether a number format is the BOOLEAN format, under which a number shows as TRUE or FALSE.
+ */
+function isBooleanFormatCode(numFmt: string | null): boolean {
+  return typeof numFmt === 'string' && BOOLEAN_FORMAT_CODE_REGEX.test(numFmt.trim());
 }
 
 /**
@@ -400,35 +397,31 @@ function toNumericType(numFmt: string): InferredType {
  */
 export function inferCellType(cell: CellSnapshot): InferredType | null {
   const { numFmt } = cell;
-  const value = cellDisplayValue(cell);
 
-  if (numFmt === '@') {
-    return { type: 'text' };
-  }
-
-  if (numFmt) {
-    // The currency comes off first: `CHF`, `SEK` and `HK$` carry an `h` or an `s` that would
-    // otherwise read as a time code and turn a money column into `12:00:00`s.
-    const temporal = classifyTemporal(captureCurrency(numFmt).rest);
-
-    if (temporal === 'time') {
-      return { type: 'time', timeFormat: excelDateFmtToIntlOptions(numFmt) };
-    }
-
-    // A date-time pattern stays a `date` cell carrying both halves in `dateFormat`, which is what
-    // the export writes an `intl-date` cell as.
-    if (temporal === 'date' || temporal === 'datetime') {
-      return { type: 'date', dateFormat: excelDateFmtToIntlOptions(numFmt) };
-    }
-
-    if (numFmt !== 'General') {
-      return toNumericType(numFmt);
-    }
-  }
-
-  if (typeof value === 'boolean') {
+  // A boolean is a checkbox whatever its format says. LibreOffice writes its BOOLEAN format
+  // `"TRUE";"TRUE";"FALSE"` on every `t="b"` cell; read first, that format made the column
+  // `numeric` and reported a number format the import never needed.
+  if (typeof cellDisplayValue(cell) === 'boolean') {
     return { type: 'checkbox' };
   }
+
+  // Excel stores a cell formatted as BOOLEAN as a NUMBER under the same code, and shows TRUE for any
+  // non-zero value; `toGridValue` turns the number into that boolean.
+  if (typeof cellDisplayValue(cell) === 'number' && isBooleanFormatCode(numFmt)) {
+    return { type: 'checkbox' };
+  }
+
+  const fromFormat = numFmt ? inferFromNumberFormat(numFmt) : null;
+
+  if (fromFormat?.type === 'time' && exceedsElapsedFormat(numFmt, cellDisplayValue(cell))) {
+    return { type: 'numeric', unsupportedNumFmt: numFmt as string };
+  }
+
+  if (fromFormat) {
+    return fromFormat;
+  }
+
+  const value = cellDisplayValue(cell);
 
   if (typeof value === 'number') {
     return { type: 'numeric' };
@@ -454,7 +447,8 @@ function pad(value: number): string {
 export function serialToIsoDate(serial: number): string {
   const date = new Date(EXCEL_EPOCH_UTC + (Math.floor(serial) * MS_PER_DAY));
 
-  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
+  // Padded to four digits: `1-01-01` is no ISO date, and the date cell rendered `#bad-value#`.
+  return `${String(date.getUTCFullYear()).padStart(4, '0')}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
 }
 
 /**
@@ -523,10 +517,17 @@ export function toGridValue(cell: CellSnapshot, inferred: InferredType | null): 
     return value;
   }
 
-  // The presence of an hour in the derived options is what separates a date-time format from a
-  // date-only one; the value the grid stores stays the ISO string either way.
+  if (inferred.type === 'checkbox') {
+    return value !== 0;
+  }
+
   if (inferred.type === 'date') {
-    return inferred.dateFormat.hour === undefined ? serialToIsoDate(value) : serialToIsoDateTime(value);
+    return serialToIsoDate(value);
+  }
+
+  // `YYYY-MM-DD HH:mm:ss`, which the `intl-datetime` renderer, validator and editor all accept.
+  if (inferred.type === 'intl-datetime') {
+    return serialToIsoDateTime(value);
   }
 
   if (inferred.type === 'time') {

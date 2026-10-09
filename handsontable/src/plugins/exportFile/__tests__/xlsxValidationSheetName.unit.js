@@ -104,6 +104,7 @@ jest.mock('../dataProvider', () => ({
  */
 function createRecordingEngine() {
   const sheetNames = [];
+  const worksheets = [];
   const cells = [];
   const recorded = { writeOptions: undefined };
 
@@ -151,12 +152,13 @@ function createRecordingEngine() {
       };
 
       this.worksheets.push(worksheet);
+      worksheets.push(worksheet);
 
       return worksheet;
     }
   }
 
-  return { engine: { Workbook: FakeWorkbook }, sheetNames, cells, recorded };
+  return { engine: { Workbook: FakeWorkbook }, sheetNames, worksheets, cells, recorded };
 }
 
 /**
@@ -223,6 +225,23 @@ describe('Xlsx validation helper sheet name', () => {
   });
 });
 
+describe('Xlsx validation helper sheet state', () => {
+  it('should write the helper sheet hidden, not very hidden, so Numbers keeps the dropdowns', async() => {
+    // Numbers discards a `veryHidden` sheet when it opens the file and keeps no validation that
+    // points at it, so every dropdown exported from an array `source` lost its list there.
+    const instance = { rootDocument: document, rootWindow: window };
+    const { engine, worksheets } = createRecordingEngine();
+    const xlsx = new Xlsx(new DataProvider(instance), { engine, sheets: [{ instance, name: 'Data' }] });
+
+    await xlsx.export();
+
+    expect(worksheets.map(sheet => [sheet.name, sheet.state])).toEqual([
+      ['Data', 'visible'],
+      ['_HotValidation', 'hidden'],
+    ]);
+  });
+});
+
 describe('Xlsx sheet-name sanitization', () => {
   it('should strip the characters the format forbids', async() => {
     // ExcelJS throws `Worksheet name … cannot include any of the following characters` for each of
@@ -264,6 +283,15 @@ describe('Xlsx sheet-name sanitization', () => {
     expect(await exportSheetsNamed('Data', 'data')).toEqual(
       ['Data', '_HotValidation', 'data1', '_HotValidation1'],
     );
+  });
+
+  it('should strip control characters BEFORE de-duplicating, so two names cannot collapse into one', async() => {
+    // `workbook.xml` drops a control character from the attribute, so `Sheet\u0001` and
+    // `Sheet\u0002` passed the duplicate check and then both landed as `name="Sheet"`.
+    expect(await exportSheetsNamed('Sheet\u0001', 'Sheet\u0002')).toEqual(
+      ['Sheet', '_HotValidation', 'Sheet1', '_HotValidation1'],
+    );
+    expect(await exportSheetsNamed('a\tb\nc\u007F')).toEqual(['abc', '_HotValidation']);
   });
 });
 

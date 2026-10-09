@@ -3,9 +3,12 @@
  */
 import ExcelJS from 'exceljs';
 import { excelJsAdapter } from '../adapters/exceljs';
+import { nativeAdapter } from '../adapters/native';
 import { DroppedFeatures } from '../capabilities';
 import { createWorkbookSnapshot } from '../model';
 import { SheetBuilder } from '../builder';
+import { readZip } from '../adapters/native/zip/reader';
+import { toArrayBuffer } from './helpers/fixtures';
 
 async function writeAndLoad(snapshot) {
   const dropped = new DroppedFeatures();
@@ -15,6 +18,10 @@ async function writeAndLoad(snapshot) {
   await workbook.xlsx.load(bytes);
 
   return { workbook, dropped };
+}
+
+async function sheetXmlOf(bytes) {
+  return (await readZip(toArrayBuffer(bytes))).text('xl/worksheets/sheet1.xml');
 }
 
 function snapshotWith(buildFn) {
@@ -132,8 +139,9 @@ describe('excelJsAdapter.write', () => {
       b.cell(2, 2).value = 'B2';
       b.merge(1, 1, 2, 2);
       // Overlaps the range above. ExcelJS answers `Cannot merge already merged cells` with a bare
-      // `Error`, which used to escape the adapter and abandon the whole export.
-      b.merge(2, 2, 2, 2);
+      // `Error`, which used to escape the adapter and abandon the whole export. (A single-cell
+      // range would not test this: both writers skip one before it reaches the overlap check.)
+      b.merge(2, 2, 3, 3);
     });
     const { workbook, dropped } = await writeAndLoad(snapshot);
 
@@ -198,7 +206,190 @@ describe('excelJsAdapter.write', () => {
     expect(stored.byteLength).toBeGreaterThan(deflated.byteLength);
   });
 
+  it('should keep a covered merge cell\'s own lock, and copy the master\'s style onto unstyled covered cells', async() => {
+    // `mergeCells` copies the master's style over the covered cells, protection included, so an
+    // unlocked covered cell was written locked. A merge whose covered cells carry nothing of their
+    // own still takes the copy, which is how a merged header's border reaches its covered edge.
+    const thin = { style: 'thin' };
+    const border = { top: thin, left: thin, bottom: thin, right: thin };
+    const { workbook } = await writeAndLoad(snapshotWith((b) => {
+      b.cell(1, 1).value = 'own lock';
+      b.cell(1, 2).locked = false;
+      b.merge(1, 1, 1, 2);
+      b.cell(2, 1).value = 'header';
+      b.cell(2, 1).style = {
+        alignment: null, font: null, fill: null, border,
+      };
+      b.merge(2, 1, 2, 2);
+    }));
+    const ws = workbook.worksheets[0];
+
+    expect(ws.getCell('B1').protection).toEqual(expect.objectContaining({ locked: false }));
+    expect(ws.getCell('B2').border).toEqual(border);
+  });
+
+  it('should give a formatted covered cell the master border and fill, and keep its own number format', async() => {
+    // A covered cell of a `numeric` column carries a number format and an alignment, so the merge
+    // went through `mergeCellsWithoutStyle` and the master's box border stopped at that cell:
+    // LibreOffice drew the block without its right edge.
+    const thin = { style: 'thin' };
+    const border = { top: thin, left: thin, bottom: thin, right: thin };
+    const fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+    const { workbook } = await writeAndLoad(snapshotWith((b) => {
+      b.cell(1, 1).value = 'master';
+      b.cell(1, 1).style = { alignment: null, font: null, fill, border };
+      b.cell(1, 2).numFmt = '0.00';
+      b.cell(1, 2).style = { alignment: { horizontal: 'right' }, font: null, fill: null, border: null };
+      b.merge(1, 1, 1, 3);
+    }));
+    const ws = workbook.worksheets[0];
+
+    expect(ws.getCell('B1').border).toEqual(border);
+    expect(ws.getCell('B1').fill).toEqual(fill);
+    expect(ws.getCell('B1').numFmt).toBe('0.00');
+    expect(ws.getCell('B1').alignment).toEqual({ horizontal: 'right' });
+    expect(ws.getCell('C1').border).toEqual(border);
+  });
+
+  it('should keep the number format of a covered cell that has nothing else, and give it the master border', async() => {
+    // A covered cell of a `date` column carries a number format and no style, no lock.
+    const thin = { style: 'thin' };
+    const border = { top: thin, left: thin, bottom: thin, right: thin };
+    const { workbook } = await writeAndLoad(snapshotWith((b) => {
+      b.cell(1, 1).value = 'master';
+      b.cell(1, 1).numFmt = '0.000';
+      b.cell(1, 1).style = { alignment: null, font: null, fill: null, border };
+      b.cell(1, 2).numFmt = 'yyyy-mm-dd';
+      b.merge(1, 1, 1, 3);
+    }));
+    const ws = workbook.worksheets[0];
+
+    expect(ws.getCell('B1').numFmt).toBe('yyyy-mm-dd');
+    expect(ws.getCell('B1').border).toEqual(border);
+  });
+
+  it.each([
+    ['a vertical merge', [2, 1, 3, 1]],
+    ['a horizontal merge', [2, 1, 2, 2]],
+  ])('should write the empty master of %s, so the next cell keeps its column', async(_, merge) => {
+    // ExcelJS skips a cell with no value and no style, and Apple's parser (Quick Look, Numbers) then
+    // places the cells after the missing master one column early.
+    const snapshot = snapshotWith((b) => {
+      b.cell(1, 1).value = 'a1';
+      b.cell(1, 2).value = 'b1';
+      b.cell(1, 3).value = 'c1';
+      b.cell(2, 2).value = 'b2';
+      b.cell(2, 3).value = 'c2';
+      b.cell(3, 1).value = 'a3';
+      b.cell(3, 2).value = 'b3';
+      b.merge(...merge);
+    });
+    const bytes = await excelJsAdapter.write(snapshot, ExcelJS, new DroppedFeatures());
+
+    expect(await sheetXmlOf(bytes)).toMatch(/<row r="2"[^>]*><c r="A2"/);
+
+    // The empty alignment that makes ExcelJS write the master changes nothing a reader shows: the
+    // native reader reads no cell there, and ExcelJS's reader an empty one carrying only the
+    // workbook's default font and an empty fill, neither of which the import turns into a style.
+    const exceljsRead = await excelJsAdapter.read(toArrayBuffer(bytes), ExcelJS, new DroppedFeatures());
+    const nativeRead = await nativeAdapter.read(toArrayBuffer(bytes), undefined, new DroppedFeatures());
+    const exceljsMaster = exceljsRead.sheets[0].rows[1][0];
+
+    expect(nativeRead.sheets[0].rows[1][0]).toBeNull();
+    expect(exceljsMaster.value).toBeNull();
+    expect(exceljsMaster.formula).toBeNull();
+    expect(exceljsMaster.style.alignment).toBeNull();
+    expect(exceljsMaster.style.border).toBeNull();
+    expect(exceljsMaster.style.fill).toEqual({ type: 'pattern', pattern: 'none' });
+  });
+
+  it('should write a timePeriod rule with no formula on both engines, with the formula ExcelJS documents', async() => {
+    // ExcelJS's README documents `{ type, priority, timePeriod, style }`, and 18.1 wrote it with the
+    // formula ExcelJS builds itself. The native writer builds the same one.
+    const build = () => snapshotWith((b) => {
+      b.cell(1, 1).value = 1;
+      b.addConditionalFormatting('B2:C3', [
+        { type: 'timePeriod', timePeriod: 'today', style: { font: { bold: true } } },
+        { type: 'timePeriod', timePeriod: 'lastMonth', style: { font: { italic: true } } },
+      ]);
+    });
+    const exceljsDropped = new DroppedFeatures();
+    const nativeDropped = new DroppedFeatures();
+    const exceljsXml = await sheetXmlOf(await excelJsAdapter.write(build(), ExcelJS, exceljsDropped));
+    const nativeXml = await sheetXmlOf(await nativeAdapter.write(build(), undefined, nativeDropped));
+    const rulePattern = /<cfRule type="timePeriod"[^>]*timePeriod="(\w+)"[^>]*><formula>([^<]*)<\/formula>/g;
+    const formulas = xml => [...xml.matchAll(rulePattern)]
+      .map(([, period, formula]) => [period, formula]);
+
+    expect(exceljsDropped.list()).toEqual([]);
+    expect(nativeDropped.list()).toEqual([]);
+    expect(formulas(exceljsXml)).toEqual([
+      ['today', 'FLOOR(B2,1)=TODAY()'],
+      ['lastMonth', 'AND(MONTH(B2)=MONTH(EDATE(TODAY(),0-1)),YEAR(B2)=YEAR(EDATE(TODAY(),0-1)))'],
+    ]);
+    expect(formulas(nativeXml)).toEqual(formulas(exceljsXml));
+  });
+
+  it('should drop the malformed conditional formatting rules the native writer drops, under the same names', async() => {
+    // Unscreened, ExcelJS threw a TypeError for each of these but two: an `expression` with an
+    // empty `formulae` was written with an empty `<formula/>`, and a `timePeriod` with a formula and
+    // no period without its `timePeriod` attribute. The native writer reports every one of them.
+    const blocks = [
+      [[{ type: 42 }, 'x', null], 'conditionalFormatting:invalid'],
+      [[{ type: 'expression', style: { font: { bold: true } } }], 'conditionalFormatting:expression'],
+      [[{ type: 'expression', formulae: [], style: { font: { bold: true } } }], 'conditionalFormatting:expression'],
+      [[{ type: 'timePeriod', formulae: ['TODAY()'], style: {} }], 'conditionalFormatting:timePeriod'],
+      // A period `ST_TimePeriod` does not list has no formula to build.
+      [[{ type: 'timePeriod', timePeriod: 'nextYear', style: {} }], 'conditionalFormatting:timePeriod'],
+      // The bare rule the native reader used to import for these kinds: ExcelJS threw on `cfvo.forEach`.
+      [[{ type: 'colorScale', priority: 1 }], 'conditionalFormatting:colorScale'],
+      [[{ type: 'colorScale', cfvo: [{ type: 'min' }, { type: 'max' }] }], 'conditionalFormatting:colorScale'],
+      [[{ type: 'dataBar', priority: 1 }], 'conditionalFormatting:dataBar'],
+      [[{ type: 'iconSet', priority: 1 }], 'conditionalFormatting:iconSet'],
+    ];
+
+    for (const [rules, name] of blocks) {
+      const build = () => snapshotWith((b) => {
+        b.cell(1, 1).value = 5;
+        b.addConditionalFormatting('A1:A2', rules);
+        b.addConditionalFormatting('A1:A2', [{ type: 'cellIs', operator: 'greaterThan', formulae: [1], style: {} }]);
+      });
+      // eslint-disable-next-line no-await-in-loop -- one engine pair per block, so a failure names it.
+      const { workbook, dropped } = await writeAndLoad(build());
+      const nativeDropped = new DroppedFeatures();
+
+      // eslint-disable-next-line no-await-in-loop
+      await nativeAdapter.write(build(), undefined, nativeDropped);
+
+      expect([name, dropped.list()]).toEqual([name, [name]]);
+      expect([name, nativeDropped.list()]).toEqual([name, [name]]);
+      expect(workbook.worksheets[0].conditionalFormattings.map(cf => cf.rules.map(rule => rule.type)))
+        .toEqual([['cellIs']]);
+    }
+  });
+
   it('should write conditional formatting and honor the compression level', async() => {
+    // The level is not observable in the bytes of a one-cell workbook (levels 1 and 9 can deflate
+    // it identically), so the options ExcelJS's `writeBuffer` receives are recorded instead, on a
+    // workbook whose `xlsx` writer passes every call through to the real one.
+    const writeOptions = [];
+    const recordingModule = {
+      Workbook: class RecordingWorkbook extends ExcelJS.Workbook {
+        constructor() {
+          super();
+
+          const { xlsx } = this;
+          const writeBuffer = xlsx.writeBuffer.bind(xlsx);
+
+          xlsx.writeBuffer = (options) => {
+            writeOptions.push(options);
+
+            return writeBuffer(options);
+          };
+        }
+      },
+      ValueType: ExcelJS.ValueType,
+    };
     const snapshot = snapshotWith((b) => {
       b.cell(1, 1).value = 5;
       b.addConditionalFormatting('A1:A1', [{ type: 'cellIs', operator: 'greaterThan', formulae: [1], style: {} }]);
@@ -206,8 +397,12 @@ describe('excelJsAdapter.write', () => {
 
     snapshot.compression = 9;
 
-    const { workbook } = await writeAndLoad(snapshot);
+    const bytes = await excelJsAdapter.write(snapshot, recordingModule, new DroppedFeatures());
+    const workbook = new ExcelJS.Workbook();
 
+    await workbook.xlsx.load(bytes);
+
+    expect(writeOptions).toEqual([{ zip: { compression: 'DEFLATE', compressionOptions: { level: 9 } } }]);
     expect(workbook.worksheets[0].conditionalFormattings[0].ref).toBe('A1:A1');
   });
 });

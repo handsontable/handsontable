@@ -1,4 +1,4 @@
-import { isDefined, stringify } from '../../../helpers/mixed';
+import { isDefined, isEmpty, stringify } from '../../../helpers/mixed';
 import { isKeyValueObject } from '../../../helpers/object';
 import DataProvider from '../dataProvider';
 import BaseType from './_base';
@@ -34,6 +34,10 @@ import { detectXlsxEngine } from '../../../utils/xlsxEngine/detect';
 import { DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
 import { SheetBuilder } from '../../../utils/xlsxEngine/builder';
 import { colIndexToLetter, toRangeRef } from '../../../utils/xlsxEngine/cellRef';
+import { DEFAULT_COMPRESSION_LEVEL } from '../../../utils/xlsxEngine/compression';
+import {
+  isReservedSheetName, SHEET_NAME_MAX_LENGTH, stripIllegalSheetNameChars,
+} from '../../../utils/xlsxEngine/sheetNames';
 import {
   PIXELS_PER_EXCEL_COLUMN_WIDTH_UNIT,
   POINTS_PER_PIXEL as PIXELS_TO_POINTS_RATIO,
@@ -51,25 +55,9 @@ import {
 import type { HotInstance } from '../../../core/types';
 
 /**
- * The longest worksheet name the XLSX format accepts. A longer one is truncated by Excel itself,
- * and by ExcelJS with a console warning.
- */
-const SHEET_NAME_MAX_LENGTH = 31;
-
-/**
- * The characters a worksheet name may not contain: `* ? : / \ [ ]`.
- */
-const ILLEGAL_SHEET_NAME_CHARS = /[*?:/\\[\]]/g;
-
-/**
  * The name used when sanitization leaves nothing behind (a sheet named `"[*]"`, say).
  */
 const FALLBACK_SHEET_NAME = 'Sheet';
-
-/**
- * The name the XLSX format reserves for a workbook's change history.
- */
-const RESERVED_SHEET_NAME = 'History';
 
 /**
  * The base name of the very hidden helper sheet carrying the dropdown source lists.
@@ -77,20 +65,21 @@ const RESERVED_SHEET_NAME = 'History';
 const VALIDATION_SHEET_NAME = '_HotValidation';
 
 /**
- * Turns a user-supplied sheet name into one the format accepts: illegal characters removed, leading
- * and trailing single quotes stripped, the reserved `History` renamed, and an empty result replaced.
- * The reserved name is matched in any case: ExcelJS rejects the exact `History` only, but Excel
- * reserves the name case-insensitively, the same way it compares names for duplicates.
+ * Turns a user-supplied sheet name into one the format accepts: illegal characters and control
+ * characters removed (before the caller de-duplicates, so two names differing only by a control
+ * character cannot collapse into one in `workbook.xml`), leading and trailing single quotes
+ * stripped, the reserved `History` renamed, and an empty result replaced.
+ * The reserved name is matched in any case: the ExcelJS engine rejects the exact `History` only, but
+ * Excel reserves the name case-insensitively, the same way it compares names for duplicates.
  *
- * This is the only place the export enforces the rules, and it has to: ExcelJS answers each of them
- * with a thrown `Error`, so a grid whose sheet name carries a colon — a date, `Q1: Sales` — used to
- * abandon the whole export rather than exporting under a slightly different name.
+ * This is the only place the export enforces the rules, and it has to: the ExcelJS engine answers
+ * each of them with a thrown `Error`, so a grid whose sheet name carries a colon — a date, `Q1: Sales`
+ * — used to abandon the whole export rather than exporting under a slightly different name.
  */
 function sanitizeSheetName(baseName: string): string {
-  // Trim on BOTH sides of the quote strip. ExcelJS tests the name it is handed, so `" 'Q1' "` with
-  // the trim last still reaches it as `"'Q1'"` — quotes at the ends, and rejected.
-  const stripped = baseName
-    .replace(ILLEGAL_SHEET_NAME_CHARS, '')
+  // Trim on BOTH sides of the quote strip. The ExcelJS engine tests the name it is handed, so
+  // `" 'Q1' "` with the trim last still reaches it as `"'Q1'"` — quotes at the ends, and rejected.
+  const stripped = stripIllegalSheetNameChars(baseName)
     .trim()
     .replace(/^'+/, '')
     .replace(/'+$/, '')
@@ -100,13 +89,13 @@ function sanitizeSheetName(baseName: string): string {
     return FALLBACK_SHEET_NAME;
   }
 
-  return stripped.toLowerCase() === RESERVED_SHEET_NAME.toLowerCase() ? `${stripped}_` : stripped;
+  return isReservedSheetName(stripped) ? `${stripped}_` : stripped;
 }
 
 /**
  * Cuts a sanitized sheet name down to `maxLength`, dropping any single quote the cut left at the
- * end. An interior quote is legal, a trailing one is not — and ExcelJS checks for it before its own
- * truncation, so it would reject a name only this cut had made end in one.
+ * end. An interior quote is legal, a trailing one is not — and the ExcelJS engine checks for it
+ * before its own truncation, so it would reject a name only this cut had made end in one.
  */
 function truncateSheetName(name: string, maxLength: number): string {
   const sliced = name.slice(0, maxLength).replace(/'+$/, '');
@@ -117,11 +106,20 @@ function truncateSheetName(name: string, maxLength: number): string {
 /**
  * Narrows a pre-calculated display value to the primitives a cached formula result may carry.
  *
- * ExcelJS throws `I could not understand type of value` for anything else, so an object or an array
- * left in a cell by a custom renderer would abandon the export from inside the summary branch.
+ * The ExcelJS engine throws `I could not understand type of value` for anything else, so an object
+ * or an array left in a cell by a custom renderer would abandon the export from inside the summary
+ * branch.
  */
 function toPrimitiveResult(value: unknown): CellValue {
-  if (value === null || typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+  // A non-finite number is not a legal `<v>` content. HyperFormula reports its own errors as
+  // objects (which fall through to `null` below), but a ColumnSummary destination takes its cached
+  // result straight from the displayed value, so a `sum` over a source holding `Infinity` reaches
+  // this as `Infinity`, and a `custom` function can answer `NaN`. Both are cached as text instead.
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : stringify(value);
+  }
+
+  if (value === null || typeof value === 'string' || typeof value === 'boolean') {
     return value;
   }
 
@@ -311,6 +309,8 @@ class Xlsx extends BaseType {
    * @returns {Promise<Uint8Array>}
    */
   async export(): Promise<Uint8Array> {
+    // A nullish `engine` (the option's own default, or a resolved `engines: { xlsx: null }`) is
+    // read as the built-in engine by `detectXlsxEngine` itself, so nothing is mapped here.
     const detected = detectXlsxEngine(this.options.engine, 'exportFile');
 
     // Clear style caches for all documents involved in this export. In multi-sheet
@@ -327,9 +327,9 @@ class Xlsx extends BaseType {
 
     workbook.compression = this.#getCompressionLevel();
 
-    // Every name the workbook takes, lower-cased: ExcelJS compares names case-insensitively and
-    // throws on a duplicate. The `_HotValidation` helper sheets share the set, so a data sheet
-    // carrying that name can never collide with one.
+    // Every name the workbook takes, lower-cased: the ExcelJS engine compares names
+    // case-insensitively and throws on a duplicate. The `_HotValidation` helper sheets share the
+    // set, so a data sheet carrying that name can never collide with one.
     const usedSheetNames = new Set<string>();
 
     if (sheets && sheets.length > 0) {
@@ -367,9 +367,9 @@ class Xlsx extends BaseType {
    *
    * The name is sanitized first, then truncated, then de-duplicated — in that order. Truncating
    * last would let two distinct 35-character names that differ only past character 31 collide
-   * *after* the de-duplication had already passed them, which ExcelJS answers by throwing. The
-   * counter is made room for inside the 31 characters for the same reason. Comparison is
-   * case-insensitive because ExcelJS's own duplicate check is.
+   * *after* the de-duplication had already passed them, which the ExcelJS engine answers by
+   * throwing. The counter is made room for inside the 31 characters for the same reason. Comparison
+   * is case-insensitive because the ExcelJS engine's own duplicate check is.
    */
   #uniqueSheetName(baseName: string, usedSheetNames: Set<string>): string {
     const sanitized = sanitizeSheetName(baseName);
@@ -490,7 +490,7 @@ class Xlsx extends BaseType {
     //    those cells in Excel surprises users and adds no value, so protection is
     //    suppressed whenever ColumnSummary is present.
     //
-    // 2. Setting protection on every cell — even { locked: false } — causes ExcelJS to
+    // 2. Setting protection on every cell — even { locked: false } — causes the ExcelJS engine to
     //    initialize font/fill/border to sentinel values, which adds noise to the file
     //    and breaks styling assertions in tests.
     const hasColumnSummary = summaryMap.size > 0;
@@ -688,7 +688,7 @@ class Xlsx extends BaseType {
    *    formula's `result`.
    * 3. Date cells (ISO 8601 string → serial number).
    * 4. Time cells (time string → fractional day serial).
-   * 5. Checkbox cells (boolean from `checkedTemplate` comparison).
+   * 5. Checkbox cells (boolean from `checkedTemplate` comparison; an empty value stays empty).
    * 6. Multiselect cells (comma-separated string).
    * 7. All other cells (numeric-aware or stringified).
    *
@@ -786,13 +786,23 @@ class Xlsx extends BaseType {
     }
 
     if (meta.type === 'numeric') {
+      // `NaN`, `Infinity` and `-Infinity` are all `typeof 'number'`, and none of them is a legal
+      // `<v>` content: Excel refuses to open a file that carries one. They fall back to the same
+      // text the not-a-number branch below produces, so the cell is written as a string cell.
       if (typeof value === 'number') {
-        return value;
+        return Number.isFinite(value) ? value : stringify(value);
+      }
+
+      // The editor stores `''` for a numeric cell the user cleared, and `Number('')` is `0`, so the
+      // grid showed an empty cell while the spreadsheet showed 0 (and `AVERAGE` and `COUNT` counted
+      // it). A cleared cell exports as an empty one, the way a `null` one does.
+      if (typeof value === 'string' && value.trim() === '') {
+        return null;
       }
 
       const numericValue = Number(value);
 
-      return Number.isNaN(numericValue) ? stringify(value) : numericValue;
+      return Number.isFinite(numericValue) ? numericValue : stringify(value);
     }
 
     return stringify(value);
@@ -801,14 +811,28 @@ class Xlsx extends BaseType {
   /**
    * Returns the boolean export value for a checkbox cell.
    *
+   * A value matching `checkedTemplate` exports as `true` and one matching `uncheckedTemplate` as
+   * `false`. An empty value (`null`, `undefined` or `''`) that matches neither template exports as
+   * an empty cell, the same as the checkbox renderer's "no value" state, so a round trip does not
+   * turn it into an unchecked box. Any other value keeps exporting as `false`.
+   *
    * @param {*} value Raw cell value.
    * @param {object} meta Cell meta object.
-   * @returns {boolean}
+   * @returns {boolean|null}
    */
-  #getCheckboxValue(value: unknown, meta: CellMeta): boolean {
+  #getCheckboxValue(value: unknown, meta: CellMeta): boolean | null {
     const checkedTemplate = meta.checkedTemplate ?? true;
+    const uncheckedTemplate = meta.uncheckedTemplate ?? false;
 
-    return value === checkedTemplate;
+    if (value === checkedTemplate) {
+      return true;
+    }
+
+    if (value !== uncheckedTemplate && isEmpty(value)) {
+      return null;
+    }
+
+    return false;
   }
 
   /**
@@ -896,6 +920,10 @@ class Xlsx extends BaseType {
    * DEFLATE level, anything else (`true`, `null`, `undefined`) = DEFLATE level 6. Only an explicit
    * `false` turns compression off: the default has been DEFLATE since the option existed, and an
    * unset option must keep producing the same file size.
+   *
+   * The fallback level comes from `utils/xlsxEngine/compression.ts`, which the built-in engine
+   * imports too: it tells a chosen level from an unset one by that same constant when deciding
+   * whether to report `compressionLevel` as dropped.
    */
   #getCompressionLevel(): false | number {
     const { compression } = this.options;
@@ -908,7 +936,7 @@ class Xlsx extends BaseType {
       return compression;
     }
 
-    return 6;
+    return DEFAULT_COMPRESSION_LEVEL;
   }
 
   /**
@@ -1126,7 +1154,7 @@ class Xlsx extends BaseType {
   }
 
   /**
-   * Creates a `veryHidden` sheet containing all unique dropdown/autocomplete source arrays found
+   * Creates a `hidden` sheet containing all unique dropdown/autocomplete source arrays found
    * in `cellsMeta`, the 2D cell-meta array of the sheet being exported, one array per column.
    * Returns a map from `JSON.stringify(source)` to an Excel range-reference string pointing at
    * that column, together with the sheet snapshot the caller pushes into the workbook after the
@@ -1170,7 +1198,10 @@ class Xlsx extends BaseType {
     const sheetName = this.#uniqueSheetName(VALIDATION_SHEET_NAME, usedSheetNames);
     const builder = new SheetBuilder(sheetName);
 
-    builder.setState('veryHidden');
+    // `hidden`, not `veryHidden`: Numbers discards a very hidden sheet when it opens the file and
+    // keeps no validation pointing at it, so every dropdown lost its list there. Excel lists a hidden
+    // sheet under Unhide, which is the price; the import still skips it by index.
+    builder.setState('hidden');
 
     const validationMap = new Map<string, string>();
     let colNumber = 1;

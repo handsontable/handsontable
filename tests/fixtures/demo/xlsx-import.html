@@ -26,6 +26,15 @@
     if (!window.htBundle) {
       throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
     }
+
+    // Which xlsx engine the two grids use. `native` is the built-in engine (`importFile: true`,
+    // `exportFile: true`); `exceljs` injects the ExcelJS module as the alternative engine
+    // (`engines: { xlsx: ExcelJS }`). The ExcelJS script is loaded on both legs because the styles
+    // round trip reads the re-exported blob back with it as an oracle.
+    window.htEngine = ({ exceljs: 'exceljs', native: 'native' })[htParams.get('engine') ?? 'exceljs'];
+    if (!window.htEngine) {
+      throw new Error('Unknown ?engine= value: ' + JSON.stringify(htParams.get('engine')));
+    }
   </script>
   <style>
     body { font-family: sans-serif; margin: 1rem; } #toolbar { margin-bottom: .8rem; }
@@ -46,6 +55,7 @@
     <button data-testid="round-trip" type="button">Export then import</button>
     <button data-testid="round-trip-styles" type="button">Export then import styles</button>
     <button data-testid="round-trip-nested" type="button">Export then import nested headers</button>
+    <input data-testid="import-input" type="file" accept=".xlsx">
     <span data-testid="status"></span>
   </div>
   <div id="source" data-testid="source"></div>
@@ -72,6 +82,7 @@
   <script>
     const sourceEl = document.querySelector('[data-testid="source"]');
     const targetEl = document.querySelector('[data-testid="target"]');
+    const engineSetting = window.htEngine === 'native' ? true : { engines: { xlsx: ExcelJS } };
 
     sourceEl.className = `ht-theme-${window.htTheme}`;
     targetEl.className = `ht-theme-${window.htTheme}`;
@@ -103,6 +114,9 @@
         {},
       ],
       formulas: { engine: HyperFormula, sheetName: 'Source' },
+      // A note on Ana's name, so a real grid imports a comment (the built-in comment reader is new).
+      comments: true,
+      cell: [{ row: 0, col: 0, comment: { value: 'Team lead' } }],
       mergeCells: [{ row: 1, col: 0, rowspan: 2, colspan: 1 }],
       hiddenColumns: { columns: [4] },
       fixedRowsTop: 1,
@@ -116,7 +130,7 @@
       customBorders: [
         { row: 0, col: 1, top: { width: 2, color: '#0000ff' }, start: { width: 1, color: '#0000ff' } },
       ],
-      exportFile: { engines: { xlsx: ExcelJS } },
+      exportFile: engineSetting,
       afterRenderer: stamp('source'),
       licenseKey: 'non-commercial-and-evaluation',
     });
@@ -135,7 +149,7 @@
         [{ label: 'Team', colspan: 2 }, 'Totals'],
         ['Name', 'Role', 'Revenue'],
       ],
-      exportFile: { engines: { xlsx: ExcelJS } },
+      exportFile: engineSetting,
       afterRenderer: stamp('source2'),
       licenseKey: 'non-commercial-and-evaluation',
     });
@@ -145,12 +159,13 @@
     const target = new Handsontable(targetEl, {
       data: [[]],
       formulas: { engine: HyperFormula, sheetName: 'Target' },
-      importFile: { engines: { xlsx: ExcelJS } },
+      comments: true,
+      importFile: engineSetting,
       // Enabled so an imported `customBorders` entry (via `importStyles: true`) actually lands,
       // rather than being reported under `result.dropped` as `cellStyles:borders`.
       customBorders: true,
       // Used only by the styles round trip, to re-export the target and read the styling back.
-      exportFile: { engines: { xlsx: ExcelJS } },
+      exportFile: engineSetting,
       afterRenderer: stamp('target'),
       licenseKey: 'non-commercial-and-evaluation',
     });
@@ -163,7 +178,19 @@
       window.__lastImport = result;
     });
 
-    document.querySelector('[data-testid="round-trip"]').addEventListener('click', async() => {
+    // Every handler reports a thrown import as `error: <message>`, so a red run names its cause
+    // instead of waiting out the status timeout on `working`.
+    const reportErrors = handler => async() => {
+      const status = document.querySelector('[data-testid="status"]');
+
+      try {
+        await handler();
+      } catch (error) {
+        status.textContent = `error: ${error.message}`;
+      }
+    };
+
+    document.querySelector('[data-testid="round-trip"]').addEventListener('click', reportErrors(async() => {
       const status = document.querySelector('[data-testid="status"]');
 
       status.textContent = 'working';
@@ -176,14 +203,31 @@
         colHeaders: 'firstRow', rowHeaders: true,
       });
       status.textContent = 'done';
-    });
+    }));
+
+    // The flow the import guide documents: a file the user picks in an `<input type="file">`.
+    document.querySelector('[data-testid="import-input"]').addEventListener('change', reportErrors(async() => {
+      const status = document.querySelector('[data-testid="status"]');
+      const input = document.querySelector('[data-testid="import-input"]');
+
+      status.textContent = 'working';
+
+      try {
+        await target.getPlugin('importFile').importFromBlob('xlsx', input.files[0], {
+          colHeaders: 'firstRow', rowHeaders: true,
+        });
+        status.textContent = 'done-file';
+      } finally {
+        input.value = '';
+      }
+    }));
 
     // Same export -> import round trip as above, but with `importStyles: true`, followed by a
     // RE-export of the target: the target is exported again and the resulting blob is read back
     // with the in-page ExcelJS, so the assertions can check that the generated stylesheet and
     // `customBorders` entries the import installed actually reach a re-exported file, not just
     // the grid's own rendered DOM.
-    document.querySelector('[data-testid="round-trip-styles"]').addEventListener('click', async() => {
+    document.querySelector('[data-testid="round-trip-styles"]').addEventListener('click', reportErrors(async() => {
       const status = document.querySelector('[data-testid="status"]');
 
       status.textContent = 'working';
@@ -213,13 +257,13 @@
         amountBorder: ws.getCell('C2').border,
       };
       status.textContent = 'done-styles';
-    });
+    }));
 
     // Nested headers + conditional formatting in one pass. The export writes two header rows (so
     // `dataRowOffset` is 3) and no row headers (`dataColOffset` is 1), which puts the descriptor's
     // rows [0, 1] x cols [2, 2] at the sheet reference `C3:C4`; the import shifts the same two
     // header rows back off and has to land on rows [0, 1] x cols [2, 2] again.
-    document.querySelector('[data-testid="round-trip-nested"]').addEventListener('click', async() => {
+    document.querySelector('[data-testid="round-trip-nested"]').addEventListener('click', reportErrors(async() => {
       const status = document.querySelector('[data-testid="status"]');
 
       status.textContent = 'working';
@@ -243,7 +287,7 @@
         colHeaders: 'firstRow', headerRows: 2,
       });
       status.textContent = 'done-nested';
-    });
+    }));
   </script>
 </body>
 </html>

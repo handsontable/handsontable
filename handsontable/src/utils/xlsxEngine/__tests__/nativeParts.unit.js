@@ -1,0 +1,1514 @@
+/**
+ * @jest-environment node
+ */
+import Encryptor from 'exceljs/lib/utils/encryptor';
+import {
+  contentTypesXml, rootRelsXml, workbookRelsXml, workbookXml, sheetRelsXml, coreXml, appXml,
+  parseRels, parseWorkbook, resolvePartPath, REL_TYPES,
+} from '../adapters/native/parts/package';
+import { SharedStringTable, parseSharedStrings } from '../adapters/native/parts/sharedStrings';
+import { commentsXml, vmlDrawingXml, vmlBlockCount, parseComments } from '../adapters/native/parts/comments';
+import { dataValidationsXml } from '../adapters/native/parts/dataValidation';
+import {
+  conditionalFormattingXml, cfRuleFromXml, readCfRule, maxRulePriority,
+} from '../adapters/native/parts/conditionalFormatting';
+import { StyleTable, parseStyles, EMPTY_STYLES } from '../adapters/native/parts/styles';
+import { hashSheetPassword, SHEET_PASSWORD_SPIN_COUNT } from '../adapters/native/parts/protection';
+import { worksheetXml } from '../adapters/native/parts/worksheetWriter';
+import { parseWorksheet, assertSheetFits } from '../adapters/native/parts/worksheetReader';
+import { XmlWriter } from '../adapters/native/xml/writer';
+import { escapeXmlText, escapeXmlAttr, decodeOoxmlEscapes } from '../adapters/native/xml/escapes';
+import { DroppedFeatures } from '../capabilities';
+import { SheetBuilder } from '../builder';
+import { MAX_SHEET_CELLS, MAX_WORKBOOK_CELLS } from '../limits';
+
+const sheets = [
+  { index: 1, name: 'Data', state: 'visible', hasComments: true },
+  { index: 2, name: '_HotValidation', state: 'veryHidden', hasComments: false },
+];
+
+describe('package parts', () => {
+  it('should declare every part in [Content_Types].xml, the vml default only when a sheet has comments', () => {
+    const xml = contentTypesXml(sheets, true);
+
+    expect(xml).toContain(
+      '<Default Extension="rels" '
+      + 'ContentType="application/vnd.openxmlformats-package.relationships+xml"/>',
+    );
+    expect(xml).toContain(
+      '<Default Extension="vml" '
+      + 'ContentType="application/vnd.openxmlformats-officedocument.vmlDrawing"/>',
+    );
+    expect(xml).toContain(
+      '<Override PartName="/xl/workbook.xml" '
+      + 'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>',
+    );
+    expect(xml).toContain(
+      '<Override PartName="/xl/worksheets/sheet2.xml" '
+      + 'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>',
+    );
+    expect(xml).toContain(
+      '<Override PartName="/xl/comments1.xml" '
+      + 'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.comments+xml"/>',
+    );
+    expect(xml).not.toContain('/xl/comments2.xml');
+    expect(xml).toContain(
+      '<Override PartName="/xl/sharedStrings.xml" '
+      + 'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/>',
+    );
+    expect(xml).toContain(
+      '<Override PartName="/xl/styles.xml" '
+      + 'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>',
+    );
+    expect(xml).toContain(
+      '<Override PartName="/docProps/core.xml" '
+      + 'ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>',
+    );
+    expect(xml).toContain(
+      '<Override PartName="/docProps/app.xml" '
+      + 'ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>',
+    );
+
+    expect(contentTypesXml([{ ...sheets[0], hasComments: false }], false)).not.toMatch(/vml|sharedStrings/);
+  });
+
+  it('should relate the root to the workbook and both docProps parts', () => {
+    const rels = parseRels(rootRelsXml());
+
+    expect(rels).toEqual([
+      { id: 'rId1', type: REL_TYPES.officeDocument, target: 'xl/workbook.xml' },
+      { id: 'rId2', type: REL_TYPES.coreProperties, target: 'docProps/core.xml' },
+      { id: 'rId3', type: REL_TYPES.extendedProperties, target: 'docProps/app.xml' },
+    ]);
+  });
+
+  it('should relate the workbook to styles, shared strings and every sheet, and hand the sheet ids back', () => {
+    const { xml, sheetRelIds } = workbookRelsXml(sheets, true);
+    const rels = parseRels(xml);
+
+    expect(rels.map(r => r.type)).toEqual([
+      REL_TYPES.styles, REL_TYPES.sharedStrings, REL_TYPES.worksheet, REL_TYPES.worksheet,
+    ]);
+    expect(rels.map(r => r.target)).toEqual([
+      'styles.xml', 'sharedStrings.xml', 'worksheets/sheet1.xml', 'worksheets/sheet2.xml',
+    ]);
+    expect(sheetRelIds).toEqual(['rId3', 'rId4']);
+    expect(workbookRelsXml(sheets, false).sheetRelIds).toEqual(['rId2', 'rId3']);
+  });
+
+  it('should write and read back the sheet list with states, and the full-calc flag', () => {
+    const xml = workbookXml(sheets, ['rId3', 'rId4'], true);
+
+    expect(xml).toContain('<sheet name="Data" sheetId="1" r:id="rId3"/>');
+    expect(xml).toContain('<sheet name="_HotValidation" sheetId="2" state="veryHidden" r:id="rId4"/>');
+    expect(xml).toContain('<calcPr calcId="171027" fullCalcOnLoad="1"/>');
+    expect(xml.indexOf('<bookViews>')).toBeLessThan(xml.indexOf('<sheets>'));
+    expect(xml.indexOf('<sheets>')).toBeLessThan(xml.indexOf('<calcPr'));
+    expect(workbookXml(sheets, ['rId3', 'rId4'], false)).toContain('<calcPr calcId="171027"/>');
+    expect(workbookXml([
+      { index: 1, name: 'Data', state: 'visible', hasComments: false },
+      { index: 2, name: 'Lists', state: 'hidden', hasComments: false },
+    ], ['rId3', 'rId4'], false)).toContain('<sheet name="Lists" sheetId="2" state="hidden" r:id="rId4"/>');
+
+    expect(parseWorkbook(xml)).toEqual({
+      sheets: [
+        { name: 'Data', relId: 'rId3', state: 'visible' },
+        { name: '_HotValidation', relId: 'rId4', state: 'veryHidden' },
+      ],
+      date1904: false,
+      definedNames: [],
+    });
+    expect(parseWorkbook('<workbook><workbookPr date1904="1"/><sheets/></workbook>').date1904).toBe(true);
+    // LibreOffice and SheetJS spell the flag `true`.
+    expect(parseWorkbook('<workbook><workbookPr date1904="true"/><sheets/></workbook>').date1904).toBe(true);
+    expect(parseWorkbook('<workbook><workbookPr date1904="false"/><sheets/></workbook>').date1904).toBe(false);
+  });
+
+  it('should read the names a workbook defines, leaving out Excel\'s own `_xlnm.` names', () => {
+    const { definedNames } = parseWorkbook('<workbook><sheets/><definedNames>'
+      + '<definedName name="Sales">Data!$B$2:$B$4</definedName>'
+      + '<definedName name="Rate" localSheetId="0">Data!$F$1</definedName>'
+      + '<definedName name="_xlnm.Print_Area" localSheetId="0">Data!$A$1:$D$4</definedName>'
+      + '<definedName name="Sales">Other!$A$1</definedName>'
+      + '</definedNames></workbook>');
+
+    expect(definedNames).toEqual(['Sales', 'Rate']);
+  });
+
+  it('should record the names past the defined-name cap as dropped, once', () => {
+    const dropped = new DroppedFeatures();
+    const names = Array.from({ length: 65537 }, (_, i) => `<definedName name="N${i}">1</definedName>`).join('');
+    const { definedNames } = parseWorkbook(`<workbook><sheets/><definedNames>${names}`
+      + '<definedName name="N65537">1</definedName><definedName name="N0">2</definedName>'
+      + '</definedNames></workbook>', dropped);
+
+    expect(definedNames).toHaveLength(65536);
+    expect(definedNames[65535]).toBe('N65535');
+    expect(dropped.list()).toEqual(['definedNames:truncated']);
+    expect(dropped.count('definedNames:truncated')).toBe(1);
+  });
+
+  it('should record nothing at exactly the defined-name cap, or for a repeated name past it', () => {
+    const dropped = new DroppedFeatures();
+    const names = Array.from({ length: 65536 }, (_, i) => `<definedName name="N${i}">1</definedName>`).join('');
+
+    parseWorkbook(`<workbook><sheets/><definedNames>${names}<definedName name="N7">2</definedName>`
+      + '</definedNames></workbook>', dropped);
+
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should escape a sheet name with markup characters', () => {
+    expect(workbookXml([{ index: 1, name: 'A & B', state: 'visible', hasComments: false }], ['rId2'], false))
+      .toContain('name="A &amp; B"');
+  });
+
+  it('should relate a sheet to its comments and legacy drawing', () => {
+    expect(parseRels(sheetRelsXml(3))).toEqual([
+      { id: 'rId1', type: REL_TYPES.comments, target: '../comments3.xml' },
+      { id: 'rId2', type: REL_TYPES.vmlDrawing, target: '../drawings/vmlDrawing3.vml' },
+    ]);
+  });
+
+  it('should resolve relative and absolute relationship targets against the source part', () => {
+    expect(resolvePartPath('xl/worksheets/sheet1.xml', '../comments1.xml')).toBe('xl/comments1.xml');
+    expect(resolvePartPath('xl/workbook.xml', 'worksheets/sheet1.xml')).toBe('xl/worksheets/sheet1.xml');
+    expect(resolvePartPath('xl/workbook.xml', '/xl/styles.xml')).toBe('xl/styles.xml');
+    // The root `.rels` resolves against the package root, so the reader passes an empty base part.
+    expect(resolvePartPath('', 'xl/workbook.xml')).toBe('xl/workbook.xml');
+  });
+
+  it('should name the author and list the sheets in docProps', () => {
+    const core = coreXml('Handsontable', new Date('2026-01-02T03:04:05.678Z'));
+
+    expect(core).toContain('<dc:creator>Handsontable</dc:creator>');
+    expect(core).toContain('<cp:lastModifiedBy>Handsontable</cp:lastModifiedBy>');
+    expect(core).toContain('<dcterms:created xsi:type="dcterms:W3CDTF">2026-01-02T03:04:05Z</dcterms:created>');
+    expect(appXml(['Data', 'Other'])).toContain(
+      '<vt:vector size="2" baseType="lpstr">'
+      + '<vt:lpstr>Data</vt:lpstr><vt:lpstr>Other</vt:lpstr></vt:vector>',
+    );
+  });
+});
+
+describe('shared strings', () => {
+  it('should dedupe strings, count every reference and preserve edge whitespace', () => {
+    const table = new SharedStringTable();
+
+    expect(table.add('a')).toBe(0);
+    expect(table.add(' b ')).toBe(1);
+    expect(table.add('a')).toBe(0);
+    expect(table.count).toBe(3);
+    expect(table.uniqueCount).toBe(2);
+
+    const xml = table.toXml();
+
+    expect(xml).toContain(
+      '<sst '
+      + 'xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="3" uniqueCount="2">',
+    );
+    expect(xml).toContain('<si><t>a</t></si><si><t xml:space="preserve"> b </t></si>');
+  });
+
+  it('should parse plain and rich entries, joining runs and flagging the rich ones', () => {
+    const xml = '<sst xmlns="x" count="3" uniqueCount="3">'
+      + '<si><t>plain</t></si>'
+      + '<si><r><rPr><b/></rPr><t>bold</t></r><r><t xml:space="preserve"> plain</t></r></si>'
+      + '<si><t>a_x000D_b</t><phoneticPr fontId="1"/></si>'
+      + '</sst>';
+
+    expect(parseSharedStrings(xml)).toEqual({
+      strings: ['plain', 'bold plain', 'a\rb'],
+      rich: [false, true, false],
+    });
+  });
+
+  it('should ignore phonetic runs (rPh) so Japanese furigana does not leak into the value', () => {
+    const xml = '<sst><si><t>漢字</t><rPh sb="0" eb="2"><t>かんじ</t></rPh></si></sst>';
+
+    expect(parseSharedStrings(xml).strings).toEqual(['漢字']);
+  });
+
+  it('should refuse a shared-string table declaring more entries than a workbook can ever address', () => {
+    // Built programmatically: a workbook is already refused past MAX_WORKBOOK_CELLS cells, so no
+    // more distinct strings than that can ever be referenced by a `<c t="s"><v>` index.
+    const entries = new Array(MAX_WORKBOOK_CELLS + 1).fill('<si><t>x</t></si>');
+    const xml = `<sst>${entries.join('')}</sst>`;
+
+    expect(() => parseSharedStrings(xml))
+      .toThrow(/declares more than 10000000 entries, above the limit this reader accepts/);
+  });
+});
+
+describe('comments', () => {
+  const comments = [
+    { ref: 'B2', row: 1, col: 1, text: 'first note' },
+    { ref: 'D5', row: 4, col: 3, text: ' spaced <note> ' },
+  ];
+
+  it('should write one comment per cell under a single author', () => {
+    const xml = commentsXml(comments, 'Handsontable');
+
+    expect(xml).toContain('<authors><author>Handsontable</author></authors>');
+    expect(xml).toContain('<comment ref="B2" authorId="0"><text><r><t>first note</t></r></text></comment>');
+    expect(xml).toContain(
+      '<comment ref="D5" authorId="0"><text><r>'
+      + '<t xml:space="preserve"> spaced &lt;note&gt; </t></r></text></comment>',
+    );
+  });
+
+  it('should write the VML shape Excel needs to show the note, one per comment, 0-based anchors', () => {
+    const vml = vmlDrawingXml(comments, 1);
+
+    expect(vml).toContain('<v:shapetype id="_x0000_t202"');
+    expect(vml).toContain('<v:shape id="_x0000_s1025" type="#_x0000_t202"');
+    expect(vml).toContain('<v:shape id="_x0000_s1026"');
+    // `visible` would make LibreOffice show every note permanently.
+    expect(vml).toContain(
+      'style="position:absolute;margin-left:105.3pt;margin-top:10.5pt;'
+      + 'width:97.8pt;height:59.1pt;z-index:1;visibility:hidden"',
+    );
+    expect(vml).toContain('<x:ClientData ObjectType="Note">');
+    expect(vml).toContain('<x:Row>1</x:Row><x:Column>1</x:Column>');
+    expect(vml).toContain('<x:Row>4</x:Row><x:Column>3</x:Column>');
+    expect(vml).toContain('<x:Anchor>2, 6, 0, 14, 4, 2, 4, 16</x:Anchor>');
+  });
+
+  it('should parse comments back, joining runs and skipping phonetic runs', () => {
+    const parsed = parseComments(commentsXml(comments, 'x'));
+
+    expect(Array.from(parsed.entries())).toEqual([['B2', 'first note'], ['D5', ' spaced <note> ']]);
+
+    const excelLike = '<comments><authors><author>A</author></authors><commentList>'
+      + '<comment ref="A1" authorId="0"><text><r><rPr><b/></rPr><t>Author:</t>'
+      + '</r><r><t xml:space="preserve">\nbody_x000D_</t></r></text></comment>'
+      + '</commentList></comments>';
+
+    expect(parseComments(excelLike).get('A1')).toBe('Author:\nbody\r');
+  });
+});
+
+describe('dataValidationsXml', () => {
+  it('should return an empty string when no cell carries a validation', () => {
+    expect(dataValidationsXml([])).toBe('');
+  });
+
+  it('should coalesce identical validations into vertical runs on one sqref and keep others apart', () => {
+    const list = { type: 'list', formulae: ['\'_HotValidation\'!$A$1:$A$3'], allowBlank: true };
+    const inline = { type: 'list', formulae: ['"a,b"'], allowBlank: false };
+    const xml = dataValidationsXml([
+      { row: 1, col: 0, validation: list },
+      { row: 2, col: 0, validation: list },
+      { row: 3, col: 0, validation: list },
+      { row: 5, col: 0, validation: list },
+      { row: 1, col: 2, validation: list },
+      { row: 1, col: 1, validation: inline },
+    ]);
+
+    expect(xml).toContain('<dataValidations count="2">');
+    expect(xml).toContain(
+      '<dataValidation type="list" allowBlank="1" showErrorMessage="1" sqref="A2:A4 A6 C2">'
+      + '<formula1>&apos;_HotValidation&apos;!$A$1:$A$3</formula1></dataValidation>',
+    );
+    expect(xml).toContain(
+      '<dataValidation type="list" showErrorMessage="1" sqref="B2">'
+      + '<formula1>&quot;a,b&quot;</formula1></dataValidation>',
+    );
+  });
+});
+
+describe('conditional formatting', () => {
+  it('should write cellIs, expression and the containsText family with dxf styles and running priorities', () => {
+    const styles = new StyleTable();
+    const dropped = new DroppedFeatures();
+    const rules = [
+      { type: 'cellIs', operator: 'greaterThan', formulae: [100], style: { font: { bold: true } } },
+      { type: 'expression', formulae: ['MOD(ROW(),2)=0'], priority: 7 },
+      { type: 'containsText', operator: 'containsText', text: 'urgent' },
+      { type: 'containsText', operator: 'containsBlanks' },
+      { type: 'containsText', operator: 'notContainsBlanks' },
+      { type: 'containsText', operator: 'containsErrors' },
+      { type: 'containsText', operator: 'notContainsErrors' },
+    ];
+    const xml = conditionalFormattingXml('B2:D9', rules, styles, { next: 1 }, dropped);
+
+    expect(xml).toContain('<conditionalFormatting sqref="B2:D9">');
+    expect(xml).toContain(
+      '<cfRule type="cellIs" dxfId="0" priority="1" operator="greaterThan">'
+      + '<formula>100</formula></cfRule>',
+    );
+    expect(xml).toContain('<cfRule type="expression" priority="7"><formula>MOD(ROW(),2)=0</formula></cfRule>');
+    expect(xml).toContain(
+      '<cfRule type="containsText" priority="2" operator="containsText" text="urgent">'
+      + '<formula>NOT(ISERROR(SEARCH(&quot;urgent&quot;,B2)))</formula></cfRule>',
+    );
+    // `operator` is `ST_ConditionalFormattingOperator`, which has no `containsBlanks` value.
+    expect(xml).toContain(
+      '<cfRule type="containsBlanks" priority="3">'
+      + '<formula>LEN(TRIM(B2))=0</formula></cfRule>',
+    );
+    expect(xml).not.toMatch(/type="(?:not)?[Cc]ontains(?:Blanks|Errors)"[^>]*operator=/);
+    expect(xml).toContain(
+      '<cfRule type="notContainsBlanks" priority="4"><formula>LEN(TRIM(B2))&gt;0</formula></cfRule>',
+    );
+    expect(xml).toContain('<cfRule type="notContainsErrors" priority="6"><formula>NOT(ISERROR(B2))</formula></cfRule>');
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should write top10, aboveAverage and timePeriod rules with their own attributes', () => {
+    const styles = new StyleTable();
+    const dropped = new DroppedFeatures();
+    const xml = conditionalFormattingXml('B2:B9', [
+      { type: 'top10', rank: 5, percent: true, style: { font: { bold: true } } },
+      { type: 'top10' },
+      { type: 'top10', rank: 3, bottom: true },
+      { type: 'aboveAverage', aboveAverage: false },
+      { type: 'aboveAverage' },
+      { type: 'timePeriod', timePeriod: 'today', formulae: ['FLOOR(B2,1)=TODAY()'] },
+    ], styles, { next: 1 }, dropped);
+
+    expect(xml).toContain('<cfRule type="top10" dxfId="0" priority="1" rank="5" percent="1"/>');
+    // No rank given falls back to Excel's own default of 10; percent and bottom are omitted when off.
+    expect(xml).toContain('<cfRule type="top10" priority="2" rank="10"/>');
+    expect(xml).toContain('<cfRule type="top10" priority="3" rank="3" bottom="1"/>');
+    // `aboveAverage="0"` is how "below average" is written; the default is omitted.
+    expect(xml).toContain('<cfRule type="aboveAverage" priority="4" aboveAverage="0"/>');
+    expect(xml).toContain('<cfRule type="aboveAverage" priority="5"/>');
+    expect(xml).toContain(
+      '<cfRule type="timePeriod" priority="6" timePeriod="today">'
+      + '<formula>FLOOR(B2,1)=TODAY()</formula></cfRule>',
+    );
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should build the formula of a timePeriod rule that carries none, from the top-left cell of its range', () => {
+    // ExcelJS documents `{ type, timePeriod, style }` and builds the formula itself
+    // (`getTimePeriodFormula`); the native writer builds the same text.
+    const dropped = new DroppedFeatures();
+    const periods = [
+      ['today', 'FLOOR(C3,1)=TODAY()'],
+      ['yesterday', 'FLOOR(C3,1)=TODAY()-1'],
+      ['tomorrow', 'FLOOR(C3,1)=TODAY()+1'],
+      ['last7Days', 'AND(TODAY()-FLOOR(C3,1)&lt;=6,FLOOR(C3,1)&lt;=TODAY())'],
+      ['thisWeek', 'AND(TODAY()-ROUNDDOWN(C3,0)&lt;=WEEKDAY(TODAY())-1,'
+        + 'ROUNDDOWN(C3,0)-TODAY()&lt;=7-WEEKDAY(TODAY()))'],
+      ['lastWeek', 'AND(TODAY()-ROUNDDOWN(C3,0)&gt;=(WEEKDAY(TODAY())),'
+        + 'TODAY()-ROUNDDOWN(C3,0)&lt;(WEEKDAY(TODAY())+7))'],
+      ['nextWeek', 'AND(ROUNDDOWN(C3,0)-TODAY()&gt;(7-WEEKDAY(TODAY())),'
+        + 'ROUNDDOWN(C3,0)-TODAY()&lt;(15-WEEKDAY(TODAY())))'],
+      ['lastMonth', 'AND(MONTH(C3)=MONTH(EDATE(TODAY(),0-1)),YEAR(C3)=YEAR(EDATE(TODAY(),0-1)))'],
+      ['thisMonth', 'AND(MONTH(C3)=MONTH(TODAY()),YEAR(C3)=YEAR(TODAY()))'],
+      ['nextMonth', 'AND(MONTH(C3)=MONTH(EDATE(TODAY(),0+1)),YEAR(C3)=YEAR(EDATE(TODAY(),0+1)))'],
+    ];
+    const rules = periods.map(([timePeriod]) => ({ type: 'timePeriod', timePeriod }));
+    const xml = conditionalFormattingXml('$C$3:D9 F1', rules, new StyleTable(), { next: 1 }, dropped);
+
+    periods.forEach(([timePeriod, formula], index) => {
+      expect(xml).toContain(
+        `<cfRule type="timePeriod" priority="${index + 1}" timePeriod="${timePeriod}">`
+        + `<formula>${formula}</formula></cfRule>`,
+      );
+    });
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should drop a timePeriod rule that names no period, or no known one and no formula, and an expression rule with none', () => {
+    const dropped = new DroppedFeatures();
+
+    // An `expression` rule IS its formula — there is nothing left to write when `formulae` is empty
+    // or absent, so it is recorded under its own name rather than emitted as a `<cfRule>` with no
+    // `<formula>` child, which Excel opens with the "repair" dialog.
+    expect(conditionalFormattingXml('A1:A3', [
+      { type: 'timePeriod', timePeriod: 'nextYear' },
+      { type: 'timePeriod', formulae: ['TRUE()'] },
+      { type: 'expression', formulae: [] },
+      { type: 'expression' },
+    ], new StyleTable(), { next: 1 }, dropped)).toBe('');
+    expect(dropped.list()).toEqual(['conditionalFormatting:timePeriod', 'conditionalFormatting:expression']);
+  });
+
+  it('should drop the rule kinds the PoC does not write and skip the block when nothing is left', () => {
+    const dropped = new DroppedFeatures();
+    const xml = conditionalFormattingXml('A1:A3', [
+      { type: 'dataBar', cfvo: [{ type: 'min' }, { type: 'max' }] },
+      { type: 'iconSet' },
+      'not a rule',
+      null,
+    ], new StyleTable(), { next: 1 }, dropped);
+
+    expect(xml).toBe('');
+    expect(dropped.list()).toEqual([
+      'conditionalFormatting:dataBar', 'conditionalFormatting:iconSet', 'conditionalFormatting:invalid',
+    ]);
+    expect(dropped.count('conditionalFormatting:invalid')).toBe(2);
+  });
+
+  it('should continue priorities above the highest one any rule declares', () => {
+    expect(maxRulePriority([{ rules: [{ priority: 4 }, {}] }, { rules: [{ priority: 9 }] }])).toBe(9);
+    expect(maxRulePriority([{ rules: [{}] }])).toBe(0);
+  });
+
+  it('should rebuild ExcelJS-shaped rule objects from cfRule attributes', () => {
+    const dxfs = [{ font: { bold: true } }];
+
+    expect(cfRuleFromXml({ type: 'cellIs', operator: 'greaterThan', priority: '1', dxfId: '0' }, ['2'], dxfs))
+      .toEqual({
+        type: 'cellIs', operator: 'greaterThan', priority: 1, formulae: ['2'], style: { font: { bold: true } },
+      });
+    expect(cfRuleFromXml({ type: 'containsBlanks', priority: '2' }, ['LEN(TRIM(A1))=0'], dxfs))
+      .toEqual({ type: 'containsText', operator: 'containsBlanks', priority: 2, formulae: ['LEN(TRIM(A1))=0'] });
+    expect(cfRuleFromXml({ type: 'containsText', operator: 'containsText', text: 'x', priority: '3' }, [], dxfs))
+      .toEqual({ type: 'containsText', operator: 'containsText', text: 'x', priority: 3 });
+    expect(cfRuleFromXml({ type: 'top10', rank: '5', percent: '1', priority: '4' }, [], dxfs))
+      .toEqual({ type: 'top10', rank: 5, percent: true, bottom: false, priority: 4 });
+    expect(cfRuleFromXml({ type: 'aboveAverage', aboveAverage: '0', priority: '5' }, [], dxfs))
+      .toEqual({ type: 'aboveAverage', aboveAverage: false, priority: 5 });
+    expect(cfRuleFromXml({ type: 'duplicateValues', priority: '6', dxfId: '9' }, [], dxfs))
+      .toEqual({ type: 'duplicateValues', priority: 6 });
+    // LibreOffice spells every flag "true"/"false".
+    expect(cfRuleFromXml({ type: 'top10', rank: '5', percent: 'true', bottom: 'true', priority: '1' }, [], []))
+      .toEqual({ type: 'top10', rank: 5, percent: true, bottom: true, priority: 1 });
+    expect(cfRuleFromXml({ type: 'aboveAverage', aboveAverage: 'false', priority: '2' }, [], []))
+      .toEqual({ type: 'aboveAverage', aboveAverage: false, priority: 2 });
+  });
+
+  it.each(['NaN', 'Infinity', '1e999', '', '0x10', '2.5', 'abc'])(
+    'should drop a cfRule priority of "%s" rather than hand a non-integer to a re-export', (priority) => {
+      // `Number()` let `NaN` and `Infinity` into `ImportResult.conditionalFormatting`, and a
+      // re-export then wrote `priority="NaN"`.
+      expect(cfRuleFromXml({ type: 'cellIs', operator: 'equal', priority }, ['1'], []))
+        .toEqual({ type: 'cellIs', operator: 'equal', formulae: ['1'] });
+    });
+
+  it.each(['NaN', 'Infinity', '1e999', '', '0x10', '2.5', '0', '-3', 'abc'])(
+    'should read a top10 rank of "%s" as the default rank', (rank) => {
+      expect(cfRuleFromXml({ type: 'top10', rank, priority: '1' }, [], []))
+        .toEqual({ type: 'top10', rank: 10, percent: false, bottom: false, priority: 1 });
+    });
+
+  it.each(['colorScale', 'dataBar', 'iconSet'])(
+    'should leave a %s rule out of the import and record it, rather than rebuild a rule nothing writes', (type) => {
+      // The reader does not read the `<colorScale>`, `<dataBar>` or `<iconSet>` child, so the rule it
+      // rebuilt was a bare `{ type, priority }`: the ExcelJS export then threw on `cfvo.forEach`.
+      const dropped = new DroppedFeatures();
+
+      expect(readCfRule({ type, priority: '1' }, [], [], dropped)).toBeNull();
+      expect(dropped.list()).toEqual([`conditionalFormatting:${type}`]);
+    });
+
+  it('should rebuild every other kind through readCfRule, recording nothing', () => {
+    const dropped = new DroppedFeatures();
+
+    expect(readCfRule({ type: 'cellIs', operator: 'equal', priority: '1' }, ['1'], [], dropped))
+      .toEqual({ type: 'cellIs', operator: 'equal', priority: 1, formulae: ['1'] });
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should give two rules sharing a dxfId their own style object, not the same instance', () => {
+    const dxfs = [{ font: { bold: true } }];
+    const ruleA = cfRuleFromXml({ type: 'cellIs', operator: 'greaterThan', dxfId: '0' }, ['2'], dxfs);
+    const ruleB = cfRuleFromXml({ type: 'cellIs', operator: 'lessThan', dxfId: '0' }, ['1'], dxfs);
+
+    expect(ruleA.style).not.toBe(ruleB.style);
+    expect(ruleA.style).not.toBe(dxfs[0]);
+
+    // A shallow copy: reassigning a TOP-LEVEL property on one rule's style object must not reach
+    // the other rule's, or the parsed styles table's own entry.
+    ruleA.style.font = { bold: false };
+
+    expect(ruleB.style).toEqual({ font: { bold: true } });
+    expect(dxfs[0]).toEqual({ font: { bold: true } });
+  });
+});
+
+describe('hashSheetPassword', () => {
+  it('should produce the hash ExcelJS produces for the same salt and spin count', async() => {
+    const salt = new Uint8Array(16).map((_v, i) => i * 7);
+    const saltBase64 = Buffer.from(salt).toString('base64');
+    // 100 spins keep the test fast; production uses SHEET_PASSWORD_SPIN_COUNT and Excel accepts any count.
+    const hash = await hashSheetPassword('secret', salt, 100);
+
+    expect(hash).toEqual({
+      algorithmName: 'SHA-512',
+      saltValue: saltBase64,
+      spinCount: 100,
+      hashValue: Encryptor.convertPasswordToHash('secret', 'SHA512', saltBase64, 100),
+    });
+  });
+
+  it('should hash non-ASCII passwords as UTF-16LE, the way Excel does', async() => {
+    const salt = new Uint8Array(16);
+    const hash = await hashSheetPassword('zażółć', salt, 10);
+
+    expect(hash.hashValue).toBe(
+      Encryptor.convertPasswordToHash('zażółć', 'SHA512', Buffer.from(salt).toString('base64'), 10),
+    );
+  });
+
+  it('should default to 100000 spins and a fresh 16-byte salt per call', async() => {
+    const a = await hashSheetPassword('x', undefined, 1);
+    const b = await hashSheetPassword('x', undefined, 1);
+
+    expect(SHEET_PASSWORD_SPIN_COUNT).toBe(100000);
+    expect(a.saltValue).not.toBe(b.saltValue);
+    expect(Buffer.from(a.saltValue, 'base64').byteLength).toBe(16);
+  });
+
+  it('should spin SHEET_PASSWORD_SPIN_COUNT times when no count is passed', async() => {
+    // The digest is stubbed, so the default count is exercised without 100000 real SHA-512 rounds.
+    const digest = jest.spyOn(globalThis.crypto.subtle, 'digest')
+      .mockImplementation(async() => new ArrayBuffer(64));
+
+    try {
+      const hash = await hashSheetPassword('x', new Uint8Array(16));
+
+      expect(hash.spinCount).toBe(100000);
+      // One digest of salt + password, then one per spin.
+      expect(digest).toHaveBeenCalledTimes(100001);
+    } finally {
+      digest.mockRestore();
+    }
+  });
+
+  it('should name the secure-context requirement when crypto.subtle is missing', async() => {
+    // A page served over plain http (not localhost) has `crypto` but no `crypto.subtle`; the
+    // instance property shadows the prototype getter for the duration of the test.
+    Object.defineProperty(globalThis.crypto, 'subtle', { value: undefined, configurable: true });
+
+    try {
+      await expect(hashSheetPassword('x', new Uint8Array(16), 1))
+        .rejects.toThrow(/crypto\.subtle.*secure context \(https or localhost\)/);
+    } finally {
+      delete globalThis.crypto.subtle;
+    }
+
+    expect(globalThis.crypto.subtle).toBeDefined();
+  });
+});
+
+describe('XmlWriter buffering', () => {
+  it('should emit the same bytes as one flat join across the flush boundary', () => {
+    const w = new XmlWriter(false).open('root');
+    let expected = '<root>';
+
+    for (let i = 0; i < 10000; i++) {
+      w.leaf('c', { r: i }, String(i));
+      expected += `<c r="${i}">${i}</c>`;
+    }
+
+    w.close();
+    expected += '</root>';
+
+    expect(w.toString()).toBe(expected);
+  });
+
+  it('should still collapse an element opened and closed right after a flush, and close one opened before it', () => {
+    const w = new XmlWriter(false).open('outer');
+
+    for (let i = 0; i < 4096; i++) {
+      w.leaf('x');
+    }
+
+    w.open('empty').close();
+    w.open('inner');
+
+    for (let i = 0; i < 4096; i++) {
+      w.leaf('y');
+    }
+
+    w.close().close();
+
+    const xml = w.toString();
+
+    expect(xml.startsWith('<outer><x/>')).toBe(true);
+    expect(xml).toContain('<x/><empty/><inner><y/>');
+    expect(xml.endsWith('<y/></inner></outer>')).toBe(true);
+    expect(xml.length).toBe('<outer>'.length + (4096 * 4) + '<empty/>'.length + '<inner>'.length
+      + (4096 * 4) + '</inner>'.length + '</outer>'.length);
+  });
+});
+
+describe('escapes outside the XML character range', () => {
+  it('should encode U+FFFE and U+FFFF the _xHHHH_ way in text and strip them from attributes', () => {
+    // Both are outside XML 1.0's `Char` production; written raw they trigger Excel's repair dialog.
+    expect(escapeXmlText('a\uFFFEb\uFFFFc')).toBe('a_xFFFE_b_xFFFF_c');
+    expect(decodeOoxmlEscapes('a_xFFFE_b_xFFFF_c')).toBe('a\uFFFEb\uFFFFc');
+    expect(escapeXmlAttr('a\uFFFEb\uFFFFc')).toBe('abc');
+  });
+
+  it('should hand text back unchanged when nothing in it needs escaping', () => {
+    const plain = 'Plain text 123 ąę 日本';
+
+    expect(escapeXmlText(plain)).toBe(plain);
+    expect(escapeXmlAttr(plain)).toBe(plain);
+    // An underscore alone is not an escape; only a `_xHHHH_` run is.
+    expect(escapeXmlText('snake_case')).toBe('snake_case');
+    expect(escapeXmlText('FILE_x0041_TEST')).toBe('FILE_x005F_x0041_TEST');
+  });
+});
+
+/**
+ * Builds a sheet through the 1-based builder the export uses and serializes it.
+ * @param build
+ * @param passwordHash
+ */
+function writeSheet(build, passwordHash = null) {
+  const builder = new SheetBuilder('Sheet1');
+
+  build(builder);
+
+  const styles = new StyleTable();
+  const strings = new SharedStringTable();
+  const dropped = new DroppedFeatures();
+  const result = worksheetXml(builder.toSnapshot(), styles, strings, dropped, passwordHash);
+
+  return { ...result, styles, strings, dropped };
+}
+
+/**
+ * Lists the names of the root element's direct children, in document order.
+ * @param xml
+ */
+function topLevelChildren(xml) {
+  const names = [];
+  let depth = 0;
+
+  for (const [, close, name, , selfClose] of xml.matchAll(/<(\/?)([A-Za-z][\w:.-]*)([^>]*?)(\/?)>/g)) {
+    if (close) {
+      depth -= 1;
+    } else {
+      if (depth === 1) {
+        names.push(name);
+      }
+
+      depth += selfClose ? 0 : 1;
+    }
+  }
+
+  return names;
+}
+
+describe('worksheetXml', () => {
+  it('should write values by type, formulas with and without results, and an empty sheet', () => {
+    const { xml, strings, wroteFormula } = writeSheet((b) => {
+      b.cell(1, 1).value = 'text';
+      b.cell(1, 2).value = 42;
+      b.cell(1, 3).value = true;
+      b.cell(2, 1).formula = { text: 'SUM(B1:B1)' };
+      b.cell(2, 2).formula = { text: 'B1*2', result: 84 };
+      b.cell(2, 3).formula = { text: 'A1&"!"', result: 'text!' };
+      b.cell(2, 4).formula = { text: 'B1>0', result: true };
+    });
+
+    expect(xml).toContain('<dimension ref="A1:D2"/>');
+    expect(xml).toContain('<c r="A1" t="s"><v>0</v></c>');
+    expect(xml).toContain('<c r="B1"><v>42</v></c>');
+    expect(xml).toContain('<c r="C1" t="b"><v>1</v></c>');
+    expect(xml).toContain('<c r="A2"><f>SUM(B1:B1)</f></c>');
+    expect(xml).toContain('<c r="B2"><f>B1*2</f><v>84</v></c>');
+    // The writer escapes quotes inside element text too; Excel reads `&quot;` back as `"`.
+    expect(xml).toContain('<c r="C2" t="str"><f>A1&amp;&quot;!&quot;</f><v>text!</v></c>');
+    expect(xml).toContain('<c r="D2" t="b"><f>B1&gt;0</f><v>1</v></c>');
+    expect(strings.count).toBe(1);
+    expect(wroteFormula).toBe(true);
+
+    const empty = writeSheet(() => {});
+
+    expect(empty.xml).toContain('<dimension ref="A1"/>');
+    expect(empty.xml).toContain('<sheetData/>');
+    expect(empty.wroteFormula).toBe(false);
+  });
+
+  it('should write a number with every digit it has', () => {
+    const { xml } = writeSheet((b) => {
+      b.cell(6, 1).value = 0.1 + 0.2;
+      b.cell(6, 2).value = 123456789012345680;
+      b.cell(6, 3).value = 1e21;
+      b.cell(6, 4).value = 5e-324;
+      b.cell(6, 5).value = 12345678901.23;
+      b.cell(6, 6).value = 1.5e-10;
+    });
+
+    expect(xml).toContain('<c r="A6"><v>0.30000000000000004</v></c>');
+    expect(xml).toContain('<c r="B6"><v>123456789012345680</v></c>');
+    expect(xml).toContain('<c r="C6"><v>1e+21</v></c>');
+    expect(xml).toContain('<c r="D6"><v>5e-324</v></c>');
+    expect(xml).toContain('<c r="E6"><v>12345678901.23</v></c>');
+    expect(xml).toContain('<c r="F6"><v>1.5e-10</v></c>');
+  });
+
+  it('should write the style index, number format and a styled empty cell', () => {
+    const { xml } = writeSheet((b) => {
+      b.cell(1, 1).value = 45292;
+      b.cell(1, 1).numFmt = 'mm-dd-yy';
+      b.cell(1, 2).style = { alignment: null, font: { bold: true }, fill: null, border: null };
+    });
+
+    expect(xml).toContain('<c r="A1" s="1"><v>45292</v></c>');
+    expect(xml).toContain('<c r="B1" s="2"/>');
+  });
+
+  it('should write layout: widths, hidden columns, heights, hidden rows, freeze, rtl, merges', () => {
+    const { xml } = writeSheet((b) => {
+      b.cell(1, 1).value = 'a';
+      b.cell(1, 2).value = 'b';
+      b.setColWidth(1, 5);
+      b.setColWidth(2, 12.5);
+      b.hideCol(2);
+      b.hideCol(4);
+      b.setRowHeight(2, 30);
+      b.hideRow(3);
+      b.freeze(1, 2);
+      b.setRtl(true);
+      b.merge(1, 1, 1, 2);
+    });
+
+    expect(xml).toContain(
+      '<sheetView workbookViewId="0" rightToLeft="1">'
+      + '<pane xSplit="1" ySplit="2" topLeftCell="B3" activePane="bottomRight" state="frozen"/>'
+      + '<selection pane="bottomRight"/></sheetView>',
+    );
+    expect(xml).toContain(
+      '<cols><col min="1" max="1" width="5" customWidth="1"/>'
+      + '<col min="2" max="2" width="12.5" customWidth="1" hidden="1"/><col min="4" max="4" hidden="1"/></cols>',
+    );
+    expect(xml).toContain('<row r="2" ht="30" customHeight="1"/>');
+    expect(xml).toContain('<row r="3" hidden="1"/>');
+    expect(xml).toContain('<mergeCells count="1"><mergeCell ref="A1:B1"/></mergeCells>');
+    expect(xml.indexOf('<sheetData')).toBeLessThan(xml.indexOf('<mergeCells'));
+
+    // A single-axis split has only the pane on its own side of the split.
+    const rowsOnly = writeSheet((b) => {
+      b.cell(1, 1).value = 'h';
+      b.freeze(0, 1);
+    });
+    const colsOnly = writeSheet((b) => {
+      b.cell(1, 1).value = 'h';
+      b.freeze(2, 0);
+    });
+
+    expect(rowsOnly.xml).toContain(
+      '<pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft"/>',
+    );
+    expect(colsOnly.xml).toContain(
+      '<pane xSplit="2" topLeftCell="C1" activePane="topRight" state="frozen"/><selection pane="topRight"/>',
+    );
+  });
+
+  it('should keep the master value and drop a covered cell value inside a merge', () => {
+    const { xml } = writeSheet((b) => {
+      b.cell(1, 1).value = 'master';
+      b.cell(1, 2).value = 'covered';
+      b.merge(1, 1, 1, 2);
+    });
+
+    expect(xml).toContain('<c r="A1" t="s"><v>0</v></c>');
+    expect(xml).not.toContain('<c r="B1" t="s">');
+    expect(xml).toContain('<c r="B1"/>');
+  });
+
+  it('should write the covered cell of a vertical merge over an empty slot, so the next cell keeps its column', () => {
+    // Apple's parser (Quick Look, Numbers) places `e` in C2 when the `<c r="A2"/>` is missing.
+    const { xml } = writeSheet((b) => {
+      b.cell(1, 1).value = 'a';
+      b.cell(1, 2).value = 'b';
+      b.cell(2, 2).value = 'e';
+      b.merge(1, 1, 2, 1);
+    });
+
+    expect(xml).toContain('<row r="2"><c r="A2"/><c r="B2" t="s">');
+  });
+
+  it('should write the empty master of a vertical merge, so the cells after it keep their columns', () => {
+    // A `null` master slot was skipped: only covered cells were looked up. Quick Look then drew no
+    // merge and placed `b3` under column A.
+    const { xml } = writeSheet((b) => {
+      b.cell(1, 1).value = 'a1';
+      b.cell(1, 2).value = 'b1';
+      b.cell(2, 2).value = 'b2';
+      b.cell(3, 1).value = 'a3';
+      b.cell(3, 2).value = 'b3';
+      b.merge(2, 1, 3, 1); // A2:A3, master A2 is empty
+    });
+
+    expect(xml).toContain('<row r="2"><c r="A2"/><c r="B2"');
+  });
+
+  it('should write the empty master of a horizontal and of a 2 x 2 merge, and the master of a merge past the row end', () => {
+    const { xml } = writeSheet((b) => {
+      b.cell(1, 1).value = 'a1';
+      b.cell(2, 3).value = 'c2';
+      b.merge(2, 1, 2, 2); // A2:B2, empty master
+      b.cell(3, 1).value = 'a3';
+      b.cell(4, 3).value = 'c4';
+      b.merge(4, 1, 5, 2); // A4:B5, empty master
+      b.merge(1, 5, 1, 6); // E1:F1, past the last cell of row 1
+    });
+
+    expect(xml).toContain('<row r="1"><c r="A1" t="s"><v>0</v></c><c r="E1"/><c r="F1"/></row>');
+    expect(xml).toContain('<row r="2"><c r="A2"/><c r="B2"/><c r="C2"');
+    expect(xml).toContain('<row r="4"><c r="A4"/><c r="B4"/><c r="C4"');
+    expect(xml).toContain('<row r="5"><c r="A5"/><c r="B5"/></row>');
+  });
+
+  it('should not write an empty cell that is not a merge master', () => {
+    const { xml } = writeSheet((b) => {
+      b.cell(1, 1).value = 'a1';
+      b.cell(1, 2).value = null;
+      b.cell(1, 3).value = 'c1';
+    });
+
+    expect(xml).toContain('<row r="1"><c r="A1" t="s"><v>0</v></c><c r="C1"');
+  });
+
+  it('should write a covered row that holds no cell of its own', () => {
+    const { xml } = writeSheet((b) => {
+      b.cell(1, 1).value = 'a';
+      b.merge(1, 1, 3, 2);
+    });
+
+    expect(xml).toContain('<row r="1"><c r="A1" t="s"><v>0</v></c><c r="B1"/></row>');
+    expect(xml).toContain('<row r="2"><c r="A2"/><c r="B2"/></row>');
+    expect(xml).toContain('<row r="3"><c r="A3"/><c r="B3"/></row>');
+  });
+
+  it('should give an unstyled covered cell the master formatting, and a formatted one the master border and fill', () => {
+    const border = { top: { style: 'thin' }, bottom: { style: 'thin' } };
+    const fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+    const { xml, styles } = writeSheet((b) => {
+      b.cell(1, 1).value = 'm';
+      b.cell(1, 1).style = { alignment: null, font: { bold: true }, fill, border };
+      // An unlocked covered cell keeps its lock, or it imports read-only once unmerged.
+      b.cell(1, 3).locked = false;
+      // A covered cell of a numeric column carries a number format and an alignment of its own.
+      b.cell(1, 4).numFmt = '0.00';
+      b.cell(1, 4).style = { alignment: { horizontal: 'right' }, font: null, fill: null, border: null };
+      b.merge(1, 1, 1, 4);
+    });
+    const master = styles.xfIndex({
+      numFmt: null, style: { alignment: null, font: { bold: true }, fill, border }, locked: null,
+    });
+    const unlocked = styles.xfIndex({
+      numFmt: null, style: { alignment: null, font: null, fill, border }, locked: false,
+    });
+    const numeric = styles.xfIndex({
+      numFmt: '0.00', style: { alignment: { horizontal: 'right' }, font: null, fill, border }, locked: null,
+    });
+
+    expect(xml).toContain(`<c r="B1" s="${master}"/>`);
+    expect(xml).toContain(`<c r="C1" s="${unlocked}"/>`);
+    expect(xml).toContain(`<c r="D1" s="${numeric}"/>`);
+  });
+
+  it('should skip an overlapping merge and report it', () => {
+    const { xml, dropped } = writeSheet((b) => {
+      b.cell(1, 1).value = 'x';
+      b.merge(1, 1, 2, 2);
+      b.merge(2, 2, 3, 3);
+    });
+
+    expect(xml).toContain('<mergeCells count="1"><mergeCell ref="A1:B2"/></mergeCells>');
+    expect(dropped.list()).toEqual(['merge:overlap']);
+  });
+
+  it('should write protection with inverted allow flags and per-cell locks', () => {
+    const { xml, dropped } = writeSheet((b) => {
+      b.cell(1, 1).value = 'x';
+      b.cell(1, 1).locked = false;
+      b.cell(1, 2).value = 'y';
+      b.cell(1, 2).locked = true;
+      b.protect('', {
+        selectLockedCells: true, selectUnlockedCells: true, formatColumns: true, sort: true, autoFilter: true,
+      });
+    });
+
+    expect(xml).toContain(
+      '<sheetProtection sheet="1" formatColumns="0" '
+      + 'sort="0" autoFilter="0"/>',
+    );
+    expect(xml).toContain('<c r="A1" s="1" t="s">');
+    expect(xml).toContain('<c r="B1" t="s">');
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should write the password hash attributes the caller computed', () => {
+    const hash = { algorithmName: 'SHA-512', hashValue: 'AAA=', saltValue: 'BBB=', spinCount: 100000 };
+    const { xml } = writeSheet((b) => {
+      b.cell(1, 1).value = 'x';
+      b.protect('secret', {});
+    }, hash);
+
+    expect(xml).toContain(
+      '<sheetProtection sheet="1" '
+      + 'algorithmName="SHA-512" hashValue="AAA=" saltValue="BBB=" spinCount="100000"/>',
+    );
+  });
+
+  it('should write list validations, conditional formatting and the comments hook in schema order', () => {
+    const { xml, comments } = writeSheet((b) => {
+      b.cell(2, 1).value = 'Open';
+      b.cell(2, 1).validation = { type: 'list', formulae: ['"Open,Closed"'], allowBlank: true };
+      b.cell(2, 1).comment = 'note here';
+      b.addConditionalFormatting('A2:A2', [{ type: 'cellIs', operator: 'equal', formulae: ['"Open"'] }]);
+    });
+
+    expect(xml).toContain('<conditionalFormatting sqref="A2:A2">');
+    expect(xml).toContain('<dataValidations count="1">');
+    expect(xml).toContain('<legacyDrawing r:id="rId2"/>');
+    expect(xml.indexOf('<conditionalFormatting')).toBeLessThan(xml.indexOf('<dataValidations'));
+    expect(xml.indexOf('<dataValidations')).toBeLessThan(xml.indexOf('<pageMargins'));
+    expect(xml.indexOf('<pageMargins')).toBeLessThan(xml.indexOf('<legacyDrawing'));
+    expect(comments).toEqual([{ ref: 'A2', row: 1, col: 0, text: 'note here' }]);
+  });
+
+  it('should write the worksheet children in CT_Worksheet order', () => {
+    // A wrong order opens with Excel's repair dialog, while ExcelJS still reads such a sheet back.
+    const { xml } = writeSheet((b) => {
+      b.cell(1, 1).value = 'x';
+      b.cell(1, 1).validation = { type: 'list', formulae: ['"a,b"'], allowBlank: true };
+      b.cell(1, 1).comment = 'note';
+      b.setColWidth(1, 20);
+      b.merge(2, 1, 2, 2);
+      b.addConditionalFormatting('A1:A2', [{ type: 'cellIs', operator: 'equal', formulae: ['1'] }]);
+      b.protect('', { sort: true });
+    });
+
+    expect(topLevelChildren(xml)).toEqual([
+      'dimension', 'sheetViews', 'sheetFormatPr', 'cols', 'sheetData', 'sheetProtection',
+      'mergeCells', 'conditionalFormatting', 'dataValidations', 'pageMargins', 'legacyDrawing',
+    ]);
+  });
+
+  it('should not write a legacyDrawing when no cell has a comment', () => {
+    expect(writeSheet((b) => { b.cell(1, 1).value = 1; }).xml).not.toContain('legacyDrawing');
+  });
+
+  it('should serialize every cell shape byte-identically to the pinned part', () => {
+    // Captured from the writer BEFORE the per-cell hot path was flattened into one string per
+    // `<c>` and `XmlWriter` grew its bounded buffer; the refactor must not move a byte. Covers
+    // shared strings with markup, a number, both booleans, a non-finite number demoted to text,
+    // formulas with every cached-result type, a styled empty cell, a locked cell, a height-only
+    // row and a control character in a shared string.
+    const { xml, strings } = writeSheet((b) => {
+      b.cell(1, 1).value = 'a<b&"c"';
+      b.cell(1, 2).value = 42.5;
+      b.cell(1, 3).value = true;
+      b.cell(1, 4).value = false;
+      b.cell(1, 5).value = Infinity;
+      b.cell(2, 1).formula = { text: 'SUM(B1:B1)' };
+      b.cell(2, 2).formula = { text: 'B1*2', result: 85 };
+      b.cell(2, 3).formula = { text: 'A1&"!"', result: 'x!' };
+      b.cell(2, 4).formula = { text: 'B1>0', result: true };
+      b.cell(2, 5).formula = { text: '1/0', result: NaN };
+      b.cell(3, 1).value = 7;
+      b.cell(3, 1).numFmt = '0.00';
+      b.cell(3, 2).style = { alignment: null, font: { bold: true }, fill: null, border: null };
+      b.cell(3, 3).value = 'styled';
+      b.cell(3, 3).style = { alignment: { horizontal: 'center' }, font: null, fill: null, border: null };
+      b.cell(3, 3).locked = false;
+      b.cell(5, 2).value = 'tab\there\u0001x';
+      b.setRowHeight(4, 20);
+    });
+
+    expect(xml).toBe(
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+      + '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"'
+      + ' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+      + '<dimension ref="A1:E5"/><sheetViews><sheetView workbookViewId="0"/></sheetViews>'
+      + '<sheetFormatPr defaultRowHeight="15"/><sheetData>'
+      + '<row r="1"><c r="A1" t="s"><v>0</v></c><c r="B1"><v>42.5</v></c><c r="C1" t="b"><v>1</v></c>'
+      + '<c r="D1" t="b"><v>0</v></c><c r="E1" t="s"><v>1</v></c></row>'
+      + '<row r="2"><c r="A2"><f>SUM(B1:B1)</f></c><c r="B2"><f>B1*2</f><v>85</v></c>'
+      + '<c r="C2" t="str"><f>A1&amp;&quot;!&quot;</f><v>x!</v></c><c r="D2" t="b"><f>B1&gt;0</f><v>1</v></c>'
+      + '<c r="E2" t="str"><f>1/0</f><v>NaN</v></c></row>'
+      + '<row r="3"><c r="A3" s="1"><v>7</v></c><c r="B3" s="2"/><c r="C3" s="3" t="s"><v>2</v></c></row>'
+      + '<row r="4" ht="20" customHeight="1"/>'
+      + '<row r="5"><c r="B5" t="s"><v>3</v></c></row></sheetData>'
+      + '<pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/></worksheet>',
+    );
+    expect(strings.toXml()).toBe(
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+      + '<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="4" uniqueCount="4">'
+      + '<si><t>a&lt;b&amp;&quot;c&quot;</t></si><si><t>Infinity</t></si><si><t>styled</t></si>'
+      + '<si><t>tab\there_x0001_x</t></si></sst>',
+    );
+  });
+
+  it('should write every cell of a merge-free sheet and keep only the master value of a merge', () => {
+    // The covered-cell lookup is skipped entirely on a row no merge covers (no `${row}:${col}`
+    // key is allocated per cell); the merge path writes the covered members empty.
+    const plain = writeSheet((b) => {
+      b.cell(1, 1).value = 1;
+      b.cell(1, 2).value = 2;
+      b.cell(2, 1).value = 3;
+      b.cell(2, 2).value = 4;
+    });
+
+    expect(plain.xml).toContain(
+      '<row r="1"><c r="A1"><v>1</v></c><c r="B1"><v>2</v></c></row>'
+      + '<row r="2"><c r="A2"><v>3</v></c><c r="B2"><v>4</v></c></row>',
+    );
+
+    const merged = writeSheet((b) => {
+      b.cell(1, 1).value = 1;
+      b.cell(1, 2).value = 2;
+      b.cell(2, 1).value = 3;
+      b.cell(2, 2).value = 4;
+      b.merge(1, 1, 2, 2);
+    });
+
+    expect(merged.xml).toContain(
+      '<row r="1"><c r="A1"><v>1</v></c><c r="B1"/></row>'
+      + '<row r="2"><c r="A2"/><c r="B2"/></row>',
+    );
+  });
+});
+
+/**
+ * Parses one sheet with the given optional parts.
+ * @param xml
+ * @param root0
+ * @param root0.styles
+ * @param root0.strings
+ * @param root0.comments
+ * @param root0.date1904
+ */
+function readSheet(xml, {
+  styles = EMPTY_STYLES, strings = { strings: [], rich: [] }, comments = new Map(), date1904 = false,
+} = {}) {
+  const dropped = new DroppedFeatures();
+  const budget = { declaredCells: 0 };
+  const sheet = parseWorksheet(xml, {
+    name: 'Sheet1', state: 'visible', styles, sharedStrings: strings, comments, date1904, dropped, budget,
+  });
+
+  return { sheet, dropped, budget };
+}
+
+const NS = 'xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"';
+
+describe('parseWorksheet', () => {
+  it('should read values by type, shared strings, inline strings, errors and formulas', () => {
+    const strings = { strings: ['plain', 'rich'], rich: [false, true] };
+    const xml = `<worksheet ${NS}><dimension ref="A1:G2"/><sheetData>`
+      + '<row r="1"><c r="A1" t="s"><v>0</v></c><c r="B1"><v>4200.5</v></c><c r="C1" t="b"><v>1</v></c>'
+      + '<c r="D1" t="e"><v>#N/A</v></c><c r="E1" t="inlineStr"><is><t xml:space="preserve"> in </t></is></c>'
+      + '<c r="F1" t="str"><f>A1&amp;"!"</f><v>plain!</v></c><c r="G1"><f>SUM(B1)</f></c></row>'
+      + '<row r="2"><c r="A2" t="s"><v>1</v></c></row>'
+      + '</sheetData></worksheet>';
+    const { sheet, dropped } = readSheet(xml, { strings });
+    const row = sheet.rows[0];
+
+    expect(row.map(c => c && c.value)).toEqual(['plain', 4200.5, true, '#N/A', ' in ', null, null]);
+    expect(row[5].formula).toEqual({ text: 'A1&"!"', result: 'plain!' });
+    expect(row[6].formula).toEqual({ text: 'SUM(B1)' });
+    expect(sheet.rows[1][0].value).toBe('rich');
+    expect(sheet.rows[1].length).toBe(7);
+    expect(dropped.list()).toEqual(['richText']);
+  });
+
+  it('should translate shared formulas for every slave from the master text', () => {
+    const xml = `<worksheet ${NS}><sheetData>`
+      + '<row r="1"><c r="A1"><v>2</v></c><c r="C1"><f t="shared" ref="C1:C2" si="0">A1*2</f><v>4</v></c></row>'
+      + '<row r="2"><c r="A2"><v>3</v></c><c r="C2"><f t="shared" si="0"/><v>6</v></c></row>'
+      + '</sheetData></worksheet>';
+    const { sheet } = readSheet(xml);
+
+    expect(sheet.rows[0][2].formula).toEqual({ text: 'A1*2', result: 4 });
+    expect(sheet.rows[1][2].formula).toEqual({ text: 'A2*2', result: 6 });
+    expect(sheet.rows[1][2].value).toBeNull();
+  });
+
+  it('should resolve the style index into numFmt, style and locked, and drop an all-default cell', () => {
+    const styles = parseStyles('<styleSheet><fonts><font/><font><b/></font></fonts><cellXfs>'
+      + '<xf numFmtId="0" fontId="0"/>'
+      + '<xf numFmtId="14" fontId="1"><protection locked="0"/></xf></cellXfs></styleSheet>');
+    const xml = `<worksheet ${NS}><sheetData><row r="1"><c r="A1" s="1"><v>45292</v></c>`
+      + '<c r="B1" s="0"/><c r="C1" s="1"/></row></sheetData></worksheet>';
+    const { sheet } = readSheet(xml, { styles });
+
+    expect(sheet.rows[0][0]).toEqual({
+      value: 45292,
+      formula: null,
+      numFmt: 'mm-dd-yy',
+      style: { alignment: null, font: { bold: true }, fill: null, border: null },
+      validation: null,
+      locked: false,
+      comment: null,
+    });
+    expect(sheet.rows[0][1]).toBeNull();
+    expect(sheet.rows[0][2].value).toBeNull();
+    expect(sheet.rows[0][2].numFmt).toBe('mm-dd-yy');
+  });
+
+  it('should read layout: widths past the last cell, hidden, heights, merges, freeze, rtl, state', () => {
+    const xml = `<worksheet ${NS}><dimension ref="A1:D5"/>`
+      + '<sheetViews><sheetView rightToLeft="1" workbookViewId="0">'
+      + '<pane xSplit="1" ySplit="1" topLeftCell="B2" activePane="bottomRight" state="frozen"/>'
+      + '</sheetView></sheetViews>'
+      + '<cols><col min="1" max="1" width="5" customWidth="1"/><col min="2" max="2" width="20" customWidth="1"/>'
+      + '<col min="3" max="3" hidden="1"/><col min="6" max="6" width="15" customWidth="1"/>'
+      + '<col min="7" max="7" hidden="1"/></cols>'
+      + '<sheetData><row r="1"><c r="A1"><v>1</v></c><c r="B1"><v>2</v></c>'
+      + '</row><row r="2" ht="30" customHeight="1"><c r="A2"><v>3</v></c></row>'
+      + '<row r="3"><c r="C3"><v>9</v></c><c r="D3"><v>8</v></c></row>'
+      + '<row r="4" hidden="1"><c r="A4"><v>4</v></c><c r="D4"><v>7</v></c></row></sheetData>'
+      + '<mergeCells count="2"><mergeCell ref="A1:B1"/><mergeCell ref="C3:D4"/></mergeCells></worksheet>';
+    const { sheet } = readSheet(xml);
+
+    expect(sheet.colWidths).toEqual([5, 20, null, null, null, 15, null]);
+    expect(sheet.hiddenCols).toEqual([2, 6]);
+    expect(sheet.rowHeights).toEqual([null, 30, null, null]);
+    expect(sheet.hiddenRows).toEqual([3]);
+    expect(sheet.merges).toEqual([
+      { row: 0, col: 0, rowspan: 1, colspan: 2 }, { row: 2, col: 2, rowspan: 2, colspan: 2 },
+    ]);
+    expect(sheet.rows[0][1]).toBeNull();
+    expect(sheet.rows[3][3]).toBeNull();
+    expect(sheet.rows[2][2].value).toBe(9);
+    expect(sheet.freeze).toEqual({ rows: 1, cols: 1 });
+    expect(sheet.rtl).toBe(true);
+    // `<dimension>` bounds the caps only: the row count follows the last `<row>`, as ExcelJS's does.
+    expect(sheet.rows.length).toBe(4);
+  });
+
+  it('should read list validations onto their cells, drop other kinds, and clamp a whole-column sqref', () => {
+    const xml = `<worksheet ${NS}><dimension ref="A1:B3"/><sheetData>`
+      + '<row r="1"><c r="A1" t="str"><v>x</v></c><c r="B1" t="str"><v>y</v></c></row><row r="2"/><row r="3"/>'
+      + '</sheetData><dataValidations count="2">'
+      + '<dataValidation type="list" allowBlank="1" sqref="A1:A1048576 B2">'
+      + '<formula1>"a,b,c"</formula1></dataValidation>'
+      + '<dataValidation type="whole" operator="between" sqref="B1">'
+      + '<formula1>1</formula1><formula2>10</formula2></dataValidation></dataValidations></worksheet>';
+    const { sheet, dropped } = readSheet(xml);
+
+    expect(sheet.rows[0][0].validation).toEqual({ type: 'list', formulae: ['"a,b,c"'], allowBlank: true });
+    expect(sheet.rows[1][1].validation).toEqual({ type: 'list', formulae: ['"a,b,c"'], allowBlank: true });
+    expect(sheet.rows[2][0].validation).toEqual({ type: 'list', formulae: ['"a,b,c"'], allowBlank: true });
+    expect(sheet.rows.length).toBe(3);
+    expect(dropped.list()).toEqual(['dataValidation:whole']);
+  });
+
+  it('should read conditional formatting into ExcelJS-shaped rules with their dxf style', () => {
+    const styles = parseStyles('<styleSheet><dxfs><dxf><font><b/></font></dxf></dxfs></styleSheet>');
+    const xml = `<worksheet ${NS}><sheetData/>`
+      + '<conditionalFormatting sqref="A1:A3">'
+      + '<cfRule type="cellIs" dxfId="0" priority="1" operator="greaterThan">'
+      + '<formula>2</formula></cfRule></conditionalFormatting></worksheet>';
+    const { sheet } = readSheet(xml, { styles });
+
+    expect(sheet.conditionalFormatting).toEqual([{
+      ref: 'A1:A3',
+      rules: [{
+        type: 'cellIs', operator: 'greaterThan', priority: 1, formulae: ['2'], style: { font: { bold: true } },
+      }],
+    }]);
+  });
+
+  it('should attach comments by address and record features the model has no room for', () => {
+    const xml = `<worksheet ${NS}><sheetData><row r="1"><c r="A1"><v>1</v></c></row></sheetData>`
+      + '<autoFilter ref="A1:A1"/><hyperlinks><hyperlink ref="A1" r:id="rId9"/></hyperlinks><drawing r:id="rId3"/>'
+      + '<tableParts count="1"><tablePart r:id="rId4"/></tableParts><legacyDrawing r:id="rId2"/></worksheet>';
+    const { sheet, dropped } = readSheet(xml, { comments: new Map([['A1', 'a comment'], ['Z9', 'empty cell note']]) });
+
+    expect(sheet.rows[0][0].comment).toBe('a comment');
+    expect(sheet.rows[8][25].comment).toBe('empty cell note');
+    expect(dropped.list().sort()).toEqual(['autoFilter', 'hyperlink', 'images', 'tables']);
+  });
+
+  it('should read sheet protection, strip the hash and record the password', () => {
+    const xml = `<worksheet ${NS}><sheetData/>`
+      + '<sheetProtection algorithmName="SHA-512" hashValue="abc" saltValue="def" spinCount="100000"'
+      + ' sheet="1" formatColumns="0" sort="0"/></worksheet>';
+    const { sheet, dropped } = readSheet(xml);
+
+    // `formatColumns="0"` / `sort="0"` mean ALLOWED in the file, so they read back as `true` – the
+    // same inversion ExcelJS applies and the writer undoes, so a round trip keeps every permission.
+    expect(sheet.protection).toEqual({
+      enabled: true, password: null, options: { sheet: true, formatColumns: true, sort: true },
+    });
+    expect(dropped.list()).toEqual(['sheetProtection:password']);
+  });
+
+  it('should shift 1904-epoch serials on date-formatted cells only', () => {
+    const styles = parseStyles('<styleSheet><cellXfs><xf numFmtId="0"/><xf numFmtId="14"/></cellXfs></styleSheet>');
+    const xml = `<worksheet ${NS}><sheetData><row r="1"><c r="A1" s="1"><v>100</v></c>`
+      + '<c r="B1"><v>100</v></c></row></sheetData></worksheet>';
+    const { sheet } = readSheet(xml, { styles, date1904: true });
+
+    expect(sheet.rows[0][0].value).toBe(1562);
+    expect(sheet.rows[0][1].value).toBe(100);
+  });
+
+  it('should materialize a merge member that has no <c> element, up to the dimension', () => {
+    // `A1:B1` merged with only A1 written and no `<c>` for B1 at all, the shape a producer that
+    // leaves covered cells out writes (the native writer itself now emits `<c r="B1"/>`). The merge
+    // pass materializes it as an explicit `null` — what ExcelJS returns for the same file — instead
+    // of clamping the merge to the master and leaving the row a cell short.
+    const xml = `<worksheet ${NS}><dimension ref="A1:B1"/><sheetData>`
+      + '<row r="1"><c r="A1" t="s"><v>0</v></c></row></sheetData>'
+      + '<mergeCells count="1"><mergeCell ref="A1:B1"/></mergeCells></worksheet>';
+    const { sheet } = readSheet(xml, { strings: { strings: ['master'], rich: [false] } });
+
+    expect(sheet.rows[0]).toHaveLength(2);
+    expect(sheet.rows[0][0].value).toBe('master');
+    expect(sheet.rows[0][1]).toBeNull();
+    expect(sheet.merges).toEqual([{ row: 0, col: 0, rowspan: 1, colspan: 2 }]);
+  });
+
+  it('should clamp a merge that reaches past the dimension instead of widening the sheet', () => {
+    // The dimension is the bound: both the native writer and Excel include every merge in it, so a
+    // merge reaching past it is malformed and must not grow the sheet on the file's say-so.
+    const xml = `<worksheet ${NS}><dimension ref="A1:B1"/><sheetData>`
+      + '<row r="1"><c r="A1" t="s"><v>0</v></c></row></sheetData>'
+      + '<mergeCells count="1"><mergeCell ref="A1:E1"/></mergeCells></worksheet>';
+    const { sheet } = readSheet(xml, { strings: { strings: ['master'], rich: [false] } });
+
+    expect(sheet.rows[0]).toHaveLength(2);
+    expect(sheet.rows[0][1]).toBeNull();
+  });
+
+  it('should refuse a validation sqref that repeats a whole-column range', () => {
+    // One `<row r="1048576"/>` makes the sheet a million rows long and the sqref repeats one
+    // whole-column range, so a reader that walks every range does ~200M cell writes for a file of a
+    // few kilobytes.
+    const sqref = new Array(200).fill('A1:A1048576').join(' ');
+    const xml = `<worksheet ${NS}><dimension ref="A1:A1048576"/><sheetData><row r="1048576"/></sheetData>`
+      + `<dataValidations count="1"><dataValidation type="list" sqref="${sqref}">`
+      + '<formula1>&quot;a,b&quot;</formula1></dataValidation></dataValidations></worksheet>';
+
+    expect(() => readSheet(xml)).toThrow(/column and validation ranges covering more than/);
+  });
+
+  it('should refuse merges that repeat a whole-sheet range', () => {
+    // The third span kind alongside column and validation spans: a `<mergeCell>` is 32 bytes of XML
+    // and unbudgeted would cost a full sweep of a million-row sheet per occurrence — the unbudgeted
+    // reader spent ~6 s on this input, the budgeted one refuses it in a few milliseconds.
+    //
+    // The refusal itself is the assertion, deliberately: a wall-clock bound loose enough not to
+    // redden a loaded CI box (5 s against that ~6 s) is only a 1.2x margin, so a machine 20% faster
+    // than the one measured would let an unbudgeted reader through green. The span charge is what
+    // produces this refusal, and nothing else in the reader does, so the refusal proves the charge
+    // ran before the walk. Do not add a timing assertion back without measuring the unbudgeted cost
+    // again and setting the bound two orders of magnitude below it.
+    const mergeCells = new Array(4300).fill('<mergeCell ref="A1:XFD1048576"/>').join('');
+    const xml = `<worksheet ${NS}><dimension ref="A1:A1048576"/><sheetData><row r="1048576"/></sheetData>`
+      + `<mergeCells count="4300">${mergeCells}</mergeCells></worksheet>`;
+
+    expect(() => readSheet(xml)).toThrow(/column and validation ranges covering more than/);
+  });
+
+  it('should refuse a sheet the dimension declares above the caps before reading a row', () => {
+    expect(() => readSheet(`<worksheet ${NS}><dimension ref="A1:A1048577"/><sheetData/></worksheet>`))
+      .toThrow(/sheet "Sheet1" declares 1048577 rows, above the 1048576-row limit/);
+    expect(() => readSheet(`<worksheet ${NS}><dimension ref="A1:XFE1"/><sheetData/></worksheet>`))
+      .toThrow(/declares 16385 columns, above the 16384-column limit/);
+    expect(() => readSheet(`<worksheet ${NS}><dimension ref="A1:ALM5000"/><sheetData/></worksheet>`))
+      .toThrow(/declares 5000 × 1001 cells, above the 5000000-cell limit/);
+  });
+
+  it('should refuse a row past the cap when there is no dimension', () => {
+    const xml = `<worksheet ${NS}><sheetData><row r="1048577">`
+      + '<c r="A1048577"><v>1</v></c></row></sheetData></worksheet>';
+
+    expect(() => readSheet(xml)).toThrow(/declares 1048577 rows/);
+  });
+
+  it('should refuse a <row> past the cap at the row, before walking on', () => {
+    // Without the guard at the row, the walk reaches the second row and refuses its `A0` instead;
+    // a `<row r="20000000"/>` then allocated every row up to it (+780 MB heap) before the
+    // end-of-sheet check refused it.
+    expect(() => readSheet(`<worksheet ${NS}><sheetData><row r="1048577"/>`
+      + '<row r="1048578"><c r="A0"/></row></sheetData></worksheet>'))
+      .toThrow(/declares 1048577 rows/);
+  });
+
+  it('should refuse at the first column past the cap', () => {
+    expect(() => readSheet(`<worksheet ${NS}><sheetData><row r="1">${'<c/>'.repeat(16386)}</row>`
+      + '</sheetData></worksheet>'))
+      .toThrow(/declares 16385 columns/);
+  });
+
+  it('should refuse at the row that crosses the cell cap', () => {
+    expect(() => readSheet(`<worksheet ${NS}><sheetData><row r="1">${'<c/>'.repeat(16384)}</row>`
+      + '<row r="306"><c/></row><row r="400"><c/></row></sheetData></worksheet>'))
+      .toThrow(/declares 306 × 16384 cells/);
+  });
+
+  it('should count the column layout against the workbook budget without inflating the cell product', () => {
+    const cols = '<cols><col min="16384" max="16384" width="12" customWidth="1"/></cols>';
+    const xml = `<worksheet ${NS}><dimension ref="A1:A400"/>${cols}<sheetData>`
+      + '<row r="1"><c r="A1" t="str"><v>r1</v></c></row><row r="400"/></sheetData></worksheet>';
+    const { sheet, budget } = readSheet(xml);
+
+    expect(sheet.colWidths.length).toBe(16384);
+    expect(sheet.colWidths[16383]).toBe(12);
+    expect(sheet.rows.length).toBe(400);
+    expect(sheet.rows[0].length).toBe(1);
+    expect(budget.declaredCells).toBe((400 * 1) + 16384);
+  });
+});
+
+describe('assertSheetFits', () => {
+  it('should accumulate the workbook budget across sheets and refuse the one that overflows it', () => {
+    const budget = { declaredCells: 0 };
+
+    for (let i = 0; i < 10; i++) {
+      assertSheetFits(`S${i}`, 1_000_000, 1, 0, budget);
+    }
+
+    expect(() => assertSheetFits('Last', 1, 1, 0, budget))
+      .toThrow(/workbook declares 10000001 cells across its sheets, above the 10000000-cell limit/);
+    expect(MAX_SHEET_CELLS).toBe(5_000_000);
+  });
+});
+
+describe('writer hardening (review round on #13634)', () => {
+  it.each([NaN, Infinity, 2.5, 0, -1])(
+    'should hand a priority of %p no further than the running counter, never into the file', (priority) => {
+      // One non-integer priority made `maxRulePriority` answer `NaN`, and every rule without a
+      // priority of its own was then written as `priority="NaN"`, which Excel repairs.
+      const blocks = [{
+        rules: [{ type: 'expression', formulae: ['TRUE'], priority }, { type: 'expression', formulae: ['FALSE'] }],
+      }];
+      const counter = { next: maxRulePriority(blocks) + 1 };
+      const xml = conditionalFormattingXml('A1', blocks[0].rules, new StyleTable(), counter, new DroppedFeatures());
+
+      expect(maxRulePriority(blocks)).toBe(0);
+      expect(xml).toContain('<cfRule type="expression" priority="1"><formula>TRUE</formula></cfRule>');
+      expect(xml).toContain('<cfRule type="expression" priority="2"><formula>FALSE</formula></cfRule>');
+    });
+
+  it.each([NaN, Infinity, 2.5, 0, -3])('should write a top10 rank of %p as the default rank', (rank) => {
+    const xml = conditionalFormattingXml('A1:A9', [{ type: 'top10', rank }], new StyleTable(), { next: 1 },
+      new DroppedFeatures());
+
+    expect(xml).toContain('<cfRule type="top10" priority="1" rank="10"/>');
+  });
+
+  it.each(['', '1.5', '0x1', '1e0', '-1', ' 1'])('should resolve no style for a cfRule dxfId of "%s"', (dxfId) => {
+    // `Number('')` is 0 and `Number('1e0')` is 1, so a malformed id used to borrow another dxf.
+    const dxfs = [{ font: { bold: true } }, { font: { italic: true } }];
+
+    expect(cfRuleFromXml({ type: 'cellIs', operator: 'equal', dxfId }, ['1'], dxfs))
+      .toEqual({ type: 'cellIs', operator: 'equal', formulae: ['1'] });
+  });
+
+  it('should still resolve a well-formed cfRule dxfId', () => {
+    expect(cfRuleFromXml({ type: 'cellIs', operator: 'equal', dxfId: '1' }, ['1'], [{}, { font: { italic: true } }]))
+      .toEqual({ type: 'cellIs', operator: 'equal', formulae: ['1'], style: { font: { italic: true } } });
+  });
+
+  it('should escape every leading underscore of adjacent _xHHHH_ lookalikes, so they read back unchanged', () => {
+    // The lookalike pattern consumed the trailing underscore, so `_x0041_x0042_` was escaped once
+    // and read back as `_x0041B`.
+    ['_x0041_x0042_', 'a_x0041__x0042_b', '_x00e9_x00E9_', '__x0041_'].forEach((text) => {
+      expect(decodeOoxmlEscapes(escapeXmlText(text))).toBe(text);
+    });
+    expect(escapeXmlText('_x0041_x0042_')).toBe('_x005F_x0041_x005F_x0042_');
+  });
+
+  it('should write formula text with the markup escaped only, never with the _xHHHH_ convention', () => {
+    // `<f>`, `<formula>` and `<formula1>` are ST_Formula, which no reader decodes `_xHHHH_` in.
+    const { xml } = writeSheet((b) => {
+      b.cell(1, 1).formula = { text: '"_x0041_"&"a\u0001b"' };
+      b.cell(2, 1).validation = { type: 'list', formulae: ['"_x0041_,b\u0001"'], allowBlank: false };
+      b.addConditionalFormatting('A1', [{ type: 'expression', formulae: ['A1="_x0041_\u0002"'] }]);
+    });
+
+    expect(xml).toContain('<f>&quot;_x0041_&quot;&amp;&quot;ab&quot;</f>');
+    expect(xml).toContain('<formula1>&quot;_x0041_,b&quot;</formula1>');
+    expect(xml).toContain('<formula>A1=&quot;_x0041_&quot;</formula>');
+  });
+
+  it('should prefix a post-2007 function in a cell formula the way Excel stores it', () => {
+    const { xml } = writeSheet((b) => {
+      b.cell(1, 1).formula = { text: 'IFS(B1>1,"IFS(",TRUE,SORT(C1:C3))', result: 'x' };
+    });
+
+    expect(xml).toContain('<f>_xlfn.IFS(B1&gt;1,&quot;IFS(&quot;,TRUE,_xlfn._xlws.SORT(C1:C3))</f>');
+  });
+
+  it('should not write a single-cell merge', () => {
+    const { xml, dropped } = writeSheet((b) => {
+      b.cell(1, 1).value = 'a';
+      b.cell(1, 2).value = 'b';
+      b.merge(1, 1, 1, 1);
+      b.merge(2, 2, 2, 2);
+    });
+
+    expect(xml).not.toContain('mergeCell');
+    expect(xml).toContain('<c r="B1" t="s"><v>1</v></c>');
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should truncate a string longer than Excel\'s 32767-character cell limit and report it', () => {
+    const { strings, dropped } = writeSheet((b) => {
+      b.cell(1, 1).value = 'x'.repeat(40000);
+      b.cell(1, 2).value = 'y'.repeat(32767);
+      // An astral character straddling the cut is dropped whole rather than split in half.
+      b.cell(1, 3).value = `${'z'.repeat(32766)}\u{1F600}`;
+    });
+    const parsed = parseSharedStrings(strings.toXml());
+
+    expect(parsed.strings[0]).toBe('x'.repeat(32767));
+    expect(parsed.strings[1]).toBe('y'.repeat(32767));
+    expect(parsed.strings[2]).toBe('z'.repeat(32766));
+    expect(dropped.list()).toEqual(['cellText:truncated']);
+    expect(dropped.count('cellText:truncated')).toBe(2);
+  });
+
+  it('should clamp a column width and a row height to what Excel stores, and report each', () => {
+    const { xml, dropped } = writeSheet((b) => {
+      b.cell(1, 1).value = 'a';
+      b.setColWidth(1, 300);
+      b.setColWidth(2, 260);
+      b.setRowHeight(1, 500);
+      b.setRowHeight(2, 409.5);
+    });
+
+    expect(xml).toContain('<col min="1" max="1" width="260" customWidth="1"/>');
+    expect(xml).toContain('<col min="2" max="2" width="260" customWidth="1"/>');
+    expect(xml).toContain('<row r="1" ht="409.5" customHeight="1">');
+    expect(xml).toContain('<row r="2" ht="409.5" customHeight="1"/>');
+    expect(dropped.list()).toEqual(['columnWidth:clamped', 'rowHeight:clamped']);
+  });
+
+  it('should give every VML part its own idmap block and shape ids, unique across the workbook', () => {
+    const one = [{ ref: 'A1', row: 0, col: 0, text: 'a' }, { ref: 'A2', row: 1, col: 0, text: 'b' }];
+
+    expect(vmlDrawingXml(one, 1)).toContain('<o:idmap v:ext="edit" data="1"/>');
+    expect(vmlDrawingXml(one, 1)).toContain('id="_x0000_s1025"');
+    expect(vmlDrawingXml(one, 1)).toContain('id="_x0000_s1026"');
+    expect(vmlDrawingXml(one, 3)).toContain('<o:idmap v:ext="edit" data="3"/>');
+    expect(vmlDrawingXml(one, 3)).toContain('id="_x0000_s3073"');
+    expect(vmlDrawingXml(one, 3)).toContain('id="_x0000_s3074"');
+  });
+
+  it('should claim one more block for a VML part holding 1024 notes or more', () => {
+    const many = Array.from({ length: 1024 }, (_v, row) => ({ ref: `A${row + 1}`, row, col: 0, text: 'n' }));
+    const vml = vmlDrawingXml(many, 2);
+
+    expect(vmlBlockCount(1023)).toBe(1);
+    expect(vmlBlockCount(1024)).toBe(2);
+    expect(vml).toContain('<o:idmap v:ext="edit" data="2,3"/>');
+    expect(vml).toContain('id="_x0000_s2049"');
+    expect(vml).toContain('id="_x0000_s3072"');
+  });
+
+  it('should name the secure-context requirement when there is no crypto at all, even with no salt given', async() => {
+    // The salt default used to be a parameter initializer, which runs before the body: with no
+    // global `crypto` it threw a bare `ReferenceError` before the named refusal could run.
+    const { crypto } = globalThis;
+
+    Object.defineProperty(globalThis, 'crypto', { value: undefined, configurable: true, writable: true });
+
+    try {
+      await expect(hashSheetPassword('x')).rejects.toThrow(/crypto\.subtle.*secure context/);
+    } finally {
+      Object.defineProperty(globalThis, 'crypto', { value: crypto, configurable: true, writable: false });
+    }
+
+    expect(globalThis.crypto.subtle).toBeDefined();
+  });
+});

@@ -10,10 +10,24 @@ const here = dirname(fileURLToPath(import.meta.url));
 /**
  * Writes a workbook to `<name>.xlsx` beside this script.
  *
+ * The timestamps are pinned to the epoch first. ExcelJS stamps `docProps/core.xml` with `new Date()`
+ * at `Workbook` construction, and without this every regeneration changed that part for no reason.
+ * The pin does NOT make a regeneration byte-identical: JSZip stamps every ZIP entry with the current
+ * DOS time, and `lossy`'s `ws.protect('secret')` draws a random salt. To tell whether a case
+ * changed, unzip the old and the new file and diff the parts, ignoring `docProps/core.xml` and
+ * `lossy`'s `<sheetProtection>` hash and salt.
+ *
+ * The pin takes effect on the NEXT deliberate regeneration: the nine committed fixtures were not
+ * rewritten for it, because churning nine binaries for their timestamps is the exact cost it exists
+ * to avoid.
+ *
  * @param {string} name The fixture name, without extension.
  * @param {import('exceljs').Workbook} workbook The workbook to serialize.
  */
 async function save(name, workbook) {
+  workbook.created = new Date(0);
+  workbook.modified = new Date(0);
+
   writeFileSync(join(here, `${name}.xlsx`), Buffer.from(await workbook.xlsx.writeBuffer()));
 }
 
