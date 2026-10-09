@@ -557,11 +557,16 @@ export class Filters extends BasePlugin {
   /**
    * Tells the plugin that the rows pinned by `fixedRowsTop` and `fixedRowsBottom` changed without an
    * `updateSettings()` call (the freeze bar writes the counts straight on the table meta), so the
-   * next full render re-checks which rows `filterFixedRows: false` exempts.
+   * next full render re-checks which rows `filterFixedRows: false` exempts. Does nothing while this plugin is
+   * disabled. Internal; not public API.
    *
    * @private
    */
-  markPinnedRowsStale() {
+  _markPinnedRowsStale(): void {
+    if (!this.enabled) {
+      return;
+    }
+
     this.#markPinnedRowsStale(false);
   }
 

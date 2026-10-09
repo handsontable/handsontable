@@ -298,7 +298,7 @@ export class FreezeBar extends BasePlugin {
     // Filters decides which rows `filterFixedRows: false` exempts. A write on the table meta is not an update,
     // so the plugin is told directly instead of through `afterUpdateSettings`.
     if (edge === 'top' || edge === 'bottom') {
-      this.hot.getPlugin('filters')?.markPinnedRowsStale();
+      this.hot.getPlugin('filters')?._markPinnedRowsStale();
     }
 
     this.hot.render();
