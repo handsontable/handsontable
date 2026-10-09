@@ -1,4 +1,4 @@
-import { getCellCoordsFromMousePosition } from '../../../src/utils/pointerToCoords';
+import { getCellCoordsFromMousePosition, isPointerOutsideTable } from '../../../src/utils/pointerToCoords';
 import Settings from '../../../src/settings';
 
 /**
@@ -27,9 +27,11 @@ interface Merge {
  * @param {Merge[]} merges Merged areas, as the cell renders them: one element per area.
  * @param {object} [options] The scenario.
  * @param {number} [options.fixedRowsTop=0] Frozen top rows.
+ * @param {number} [options.firstRow] First partially visible row (defaults to the first row below the frozen ones).
+ * @param {number} [options.firstColumn=0] First partially visible column.
  * @returns {object}
  */
-function createScenario(merges: Merge[], { fixedRowsTop = 0 } = {}) {
+function createScenario(merges: Merge[], { fixedRowsTop = 0, firstRow = fixedRowsTop, firstColumn = 0 } = {}) {
   const cellOf = new Map<string, HTMLTableCellElement>();
   const boxOf = new Map<HTMLElement, { left: number, top: number, width: number, height: number }>();
 
@@ -87,9 +89,9 @@ function createScenario(merges: Merge[], { fixedRowsTop = 0 } = {}) {
   };
   const wot = {
     wtScroll: {
-      getFirstPartiallyVisibleRow: () => fixedRowsTop,
+      getFirstPartiallyVisibleRow: () => firstRow,
       getLastPartiallyVisibleRow: () => TOTAL_ROWS - 1,
-      getFirstPartiallyVisibleColumn: () => 0,
+      getFirstPartiallyVisibleColumn: () => firstColumn,
       getLastPartiallyVisibleColumn: () => TOTAL_COLUMNS - 1,
     },
     wtViewport: {
@@ -160,11 +162,44 @@ describe('getCellCoordsFromMousePosition over merged cells', () => {
     });
   });
 
+  describe('a walk that starts on a slave of a merge crossing every row or column', () => {
+    it('should not skip past the span left from the first visible column', () => {
+      // Every row merges columns 0-1, and the first visible column is 1: the span left of it is one column.
+      const merges = Array.from({ length: TOTAL_ROWS }, (unused, row) => ({ row, col: 0, colspan: 2 }));
+
+      expect(coordsAt(createScenario(merges, { firstColumn: 1 }), 100, 500).col).toBe(2);
+    });
+
+    it('should not skip past the span left from the first visible row', () => {
+      // Every column merges rows 0-1, and the first visible row is 1: the span left of it is one row.
+      const merges = Array.from({ length: TOTAL_COLUMNS }, (unused, col) => ({ row: 0, col, rowspan: 2 }));
+
+      expect(coordsAt(createScenario(merges, { firstRow: 1 }), 500, 50).row).toBe(2);
+    });
+  });
+
   describe('merges in both directions', () => {
     it('should resolve the row and the column together', () => {
       const merges = [{ row: 2, col: 0, rowspan: 6 }, { row: 0, col: 1, colspan: 2 }];
 
       expect(coordsAt(createScenario(merges), 130, 170)).toEqual({ row: 8, col: 3 });
+    });
+  });
+});
+
+describe('isPointerOutsideTable', () => {
+  it.each([
+    [100, 100, false], [0, 0, false], [160, 200, false],
+    [-1, 100, true], [100, -1, true], [161, 100, true], [100, 201, true],
+  ])('should tell for a pointer at (%i, %i) whether it is outside: %s', (x, y, outside) => {
+    expect(isPointerOutsideTable(createScenario([]), x, y)).toBe(outside);
+  });
+
+  it('should agree with the verdict of the full lookup', () => {
+    const deps = createScenario([]);
+
+    [[100, 100], [500, 100], [100, 500], [-5, -5]].forEach(([x, y]) => {
+      expect(isPointerOutsideTable(deps, x, y)).toBe(getCellCoordsFromMousePosition(deps, x, y).isOutside);
     });
   });
 });

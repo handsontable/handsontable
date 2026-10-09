@@ -22,6 +22,26 @@ interface MousePositionDeps {
 }
 
 /**
+ * Counts how much of a merge is left from the queried coordinate. A slave resolves to the anchor's element,
+ * whose span is the whole block, so the span is cut to the cells after the queried one that still resolve to
+ * that element.
+ *
+ * @param {number} span The span of the rendered element.
+ * @param {Function} getCellAt Returns the cell at an offset from the queried coordinate.
+ * @param {HTMLElement | null} cell The rendered element of the queried coordinate.
+ * @returns {number} The number of rows or columns left in the merge, counting the queried one.
+ */
+function spanLeft(span: number, getCellAt: (offset: number) => HTMLElement | null, cell: HTMLElement | null) {
+  let left = 1;
+
+  while (left < span && getCellAt(left) === cell) {
+    left += 1;
+  }
+
+  return left;
+}
+
+/**
  * Builds the measurer of a Walkontable instance. The lookups run in renderable indexes and read the
  * span of a merge from the rendered cell, because Walkontable holds no cell meta.
  *
@@ -31,16 +51,26 @@ interface MousePositionDeps {
 function createCellMeasurer(wotInstance: WalkontableInstance): CellMeasurer {
   const { geometryReader } = wotInstance.domBindings;
 
-  return {
-    getCell: (row, column) => {
-      const cell = wotInstance.getCell({ row, col: column }, true);
+  const getCell = (row: number, column: number) => {
+    const cell = wotInstance.getCell({ row, col: column }, true);
 
-      return isHTMLElement(cell) ? cell : null;
-    },
+    return isHTMLElement(cell) ? cell : null;
+  };
+
+  return {
+    getCell,
     getHeight: cell => geometryReader.offsetHeight(cell),
     getWidth: cell => geometryReader.offsetWidth(cell),
-    getRowspan: (row, column, cell) => (cell as HTMLTableCellElement | null)?.rowSpan,
-    getColspan: (row, column, cell) => (cell as HTMLTableCellElement | null)?.colSpan,
+    getRowspan: (row, column, cell) => {
+      const span = (cell as HTMLTableCellElement | null)?.rowSpan;
+
+      return span === undefined || span <= 1 ? span : spanLeft(span, offset => getCell(row + offset, column), cell);
+    },
+    getColspan: (row, column, cell) => {
+      const span = (cell as HTMLTableCellElement | null)?.colSpan;
+
+      return span === undefined || span <= 1 ? span : spanLeft(span, offset => getCell(row, column + offset), cell);
+    },
   };
 }
 
@@ -84,32 +114,14 @@ export function findEndColumnAtX(
 }
 
 /**
- * Returns the cell coordinates for the given mouse position and whether the mouse is
- * outside the visible viewport. When the mouse is outside, the nearest edge cell is returned.
+ * Returns the client rectangle the pointer is mapped inside. A pointer past it is outside the table.
  *
- * @param {MousePositionDeps} deps The layout/settings/geometry dependencies (satisfied by `Event`'s deps).
- * @param {number} mouseX Client X coordinate of the mouse.
- * @param {number} mouseY Client Y coordinate of the mouse.
- * @returns {{ coords: CellCoords, isOutside: boolean }}
+ * @param {MousePositionDeps} deps The layout/settings/geometry dependencies.
+ * @returns {{ left: number, top: number, right: number, bottom: number }}
  */
-export function getCellCoordsFromMousePosition(deps: MousePositionDeps, mouseX: number, mouseY: number) {
-  const isRtl = deps.wtSettings.getSetting<boolean>('rtlMode');
+function getTableViewportBounds(deps: MousePositionDeps) {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const wot = deps.facadeGetter();
-
-  const numberOfFixedColumnsStart = deps.wtSettings.getSetting<number>('fixedColumnsStart');
-  const numberOfFixedColumnsEnd = deps.wtSettings.getSetting<number>('fixedColumnsEnd');
-  const numberOfFixedRowsTop = deps.wtSettings.getSetting<number>('fixedRowsTop');
-  const numberOfFixedRowsBottom = deps.wtSettings.getSetting<number>('fixedRowsBottom');
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const firstPartiallyVisibleRow: number = wot.wtScroll.getFirstPartiallyVisibleRow();
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const lastPartiallyVisibleRow: number = wot.wtScroll.getLastPartiallyVisibleRow();
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const firstPartiallyVisibleColumn: number = wot.wtScroll.getFirstPartiallyVisibleColumn();
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const lastPartiallyVisibleColumn: number = wot.wtScroll.getLastPartiallyVisibleColumn();
   const tableOffset = deps.geometryReader.getBoundingClientRect(deps.wtTable.wtRootElement);
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -140,6 +152,59 @@ export function getCellCoordsFromMousePosition(deps: MousePositionDeps, mouseX: 
   const tableViewportBottom: number = wot.wtViewport.isVerticallyScrollableByWindow()
     ? rootWindow.innerHeight
     : tableOffset.top + wot.wtViewport.getViewportHeight() + columnHeaderHeight;
+
+  return {
+    left: tableViewportLeft,
+    top: tableViewportTop,
+    right: tableViewportRight,
+    bottom: tableViewportBottom,
+  };
+}
+
+/**
+ * Tells whether the pointer is outside the visible viewport of the table. It reads the bounds only, so it is
+ * cheap enough to run on every pointer move, unlike the lookup of the cell.
+ *
+ * @param {MousePositionDeps} deps The layout/settings/geometry dependencies (satisfied by `Event`'s deps).
+ * @param {number} mouseX Client X coordinate of the mouse.
+ * @param {number} mouseY Client Y coordinate of the mouse.
+ * @returns {boolean}
+ */
+export function isPointerOutsideTable(deps: MousePositionDeps, mouseX: number, mouseY: number): boolean {
+  const { left, top, right, bottom } = getTableViewportBounds(deps);
+
+  return mouseX < left || mouseX > right || mouseY < top || mouseY > bottom;
+}
+
+/**
+ * Returns the cell coordinates for the given mouse position and whether the mouse is
+ * outside the visible viewport. When the mouse is outside, the nearest edge cell is returned.
+ *
+ * @param {MousePositionDeps} deps The layout/settings/geometry dependencies (satisfied by `Event`'s deps).
+ * @param {number} mouseX Client X coordinate of the mouse.
+ * @param {number} mouseY Client Y coordinate of the mouse.
+ * @returns {{ coords: CellCoords, isOutside: boolean }}
+ */
+export function getCellCoordsFromMousePosition(deps: MousePositionDeps, mouseX: number, mouseY: number) {
+  const isRtl = deps.wtSettings.getSetting<boolean>('rtlMode');
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const wot = deps.facadeGetter();
+
+  const numberOfFixedColumnsStart = deps.wtSettings.getSetting<number>('fixedColumnsStart');
+  const numberOfFixedColumnsEnd = deps.wtSettings.getSetting<number>('fixedColumnsEnd');
+  const numberOfFixedRowsTop = deps.wtSettings.getSetting<number>('fixedRowsTop');
+  const numberOfFixedRowsBottom = deps.wtSettings.getSetting<number>('fixedRowsBottom');
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const firstPartiallyVisibleRow: number = wot.wtScroll.getFirstPartiallyVisibleRow();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const lastPartiallyVisibleRow: number = wot.wtScroll.getLastPartiallyVisibleRow();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const firstPartiallyVisibleColumn: number = wot.wtScroll.getFirstPartiallyVisibleColumn();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const lastPartiallyVisibleColumn: number = wot.wtScroll.getLastPartiallyVisibleColumn();
+  const { left: tableViewportLeft, top: tableViewportTop, right: tableViewportRight, bottom: tableViewportBottom } =
+    getTableViewportBounds(deps);
 
   const clampedX = clamp(mouseX, tableViewportLeft, tableViewportRight);
   const clampedY = clamp(mouseY, tableViewportTop, tableViewportBottom);

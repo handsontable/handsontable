@@ -932,6 +932,34 @@ describe('WalkontableEvent', () => {
       );
     });
 
+    it('should not look up cells while the pointer stays inside the viewport during a drag', async() => {
+      const onCellMouseOverOutside = jasmine.createSpy('onCellMouseOverOutside');
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        onCellMouseOverOutside,
+      });
+
+      wt.draw();
+
+      const $td = spec().$table.find('tbody tr:first td:first');
+      const holderRect = spec().$table.parents('.wtHolder')[0].getBoundingClientRect();
+
+      $td.simulate('mousedown');
+      spyOn(wt.wtScroll, 'getFirstPartiallyVisibleRow').and.callThrough();
+
+      $(document.body).simulate('mousemove', {
+        clientX: holderRect.left + 10,
+        clientY: holderRect.top + 10,
+      });
+      $(document.body).simulate('mouseup');
+
+      // The lookup walks the rendered cells, so a pointer that has not left the viewport must not run it.
+      expect(wt.wtScroll.getFirstPartiallyVisibleRow).not.toHaveBeenCalled();
+      expect(onCellMouseOverOutside).not.toHaveBeenCalled();
+    });
+
     it('should be called only once for repeated mousemoves that land on the same edge cell', async() => {
       const onCellMouseOverOutside = jasmine.createSpy('onCellMouseOverOutside');
       const wt = walkontable({
