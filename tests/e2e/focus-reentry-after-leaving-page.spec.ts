@@ -22,24 +22,17 @@ test.describe('Tab re-entry after the focus left the page', { tag: CROSS_BROWSER
   const getSelected = (page: GridPage['page']) =>
     page.evaluate(() => (window as Window & { hot: HandsontableFixture }).hot.getSelected());
 
-  /**
-   * Presses the key until the grid selects a cell. Where the first stop lands depends on the engine: Chromium
-   * starts from the blurred cell and reaches a focus catcher at once, WebKit starts from the top of the page
-   * and visits the button before the grid first.
-   */
-  const pressUntilSelected = async(page: GridPage['page'], key: string) => {
-    for (let attempt = 0; attempt < 3; attempt++) {
-      await page.keyboard.press(key);
-
-      if (await getSelected(page) !== undefined) {
-        return;
-      }
-    }
-  };
-
   test.beforeEach(async({ page, theme, bundle }) => {
     grid = new GridPage(page, theme, bundle);
     await grid.goto();
+
+    // Nothing else on the page may take the Tab: an engine that starts from the top of the page would stop on
+    // the button first, and that focus move deactivates the grid scope, so the grid would be entered afresh
+    // and the re-entry this spec is about would never run.
+    await page.getByTestId('add-row').evaluate((button: HTMLElement) => {
+      button.tabIndex = -1;
+    });
+
     await grid.selectCell(2, 1);
     await expect.poll(() => getSelected(grid.page)).toEqual([[2, 1, 2, 1]]);
 
@@ -57,7 +50,7 @@ test.describe('Tab re-entry after the focus left the page', { tag: CROSS_BROWSER
   });
 
   test('Tab selects the remembered cell again', async({ page }) => {
-    await pressUntilSelected(page, 'Tab');
+    await page.keyboard.press('Tab');
 
     await expect.poll(() => getSelected(grid.page)).toEqual([[2, 1, 2, 1]]);
 
@@ -68,7 +61,7 @@ test.describe('Tab re-entry after the focus left the page', { tag: CROSS_BROWSER
   });
 
   test('Shift+Tab selects the remembered cell again', async({ page }) => {
-    await pressUntilSelected(page, 'Shift+Tab');
+    await page.keyboard.press('Shift+Tab');
 
     await expect.poll(() => getSelected(grid.page)).toEqual([[2, 1, 2, 1]]);
 
