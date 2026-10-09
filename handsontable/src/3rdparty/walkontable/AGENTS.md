@@ -1019,17 +1019,12 @@ fields. Nine rules follow.
   deltas from being swapped twice. **macOS is excluded** (`!isMacOS()` at the call site): Chromium and
   Safari leave a Shift + trackpad swipe vertical there and the OS converts only mouse wheels, so the
   swap would change what a Mac trackpad does, and a frame with a pixel of `deltaX` noise would zigzag
-  between the axes. Mac users keep the vertical scroll they had. **Keep the exact-zero test.** A Windows
-  precision touchpad was measured with the grid's demo (Edge 154, 328 events over four straight vertical
-  swipes with Shift held, one of them with Shift pressed mid-inertia): `deltaX` was 0 on every event, so a
-  small nonzero `deltaX` beside a large `deltaY` does not occur on a straight swipe. A nonzero `deltaX`
-  only comes with a diagonal swipe and it scales with `deltaY` (1/2, 4/5, 27/32), so it is real diagonal
-  movement. Replacing the test with a dominance one (`|deltaX| < |deltaY|`) would be worse there: on a
-  diagonal swipe it swaps 28% of the events, so one gesture would flip between "columns only" and "both
-  axes" every few milliseconds, and equal magnitudes (1/1, 2/2) are common. The exact-zero test leaves a
-  diagonal swipe alone, and its one wart is a stray event with `deltaX` 0 inside a diagonal swipe, which
-  the swap moves to the columns. Not measured: Firefox, a Linux touchpad, a second Windows touchpad.
-  Pinned by `test/unit/overlay/resolveWheelDeltas.unit.ts` and
+  between the axes. Mac users keep the vertical scroll they had. **Keep the exact-zero test.** On a Windows
+  precision touchpad (Edge 154) `deltaX` was 0 on all 328 events of four straight vertical swipes with Shift
+  held, so the small-nonzero-`deltaX` hole did not occur. A nonzero `deltaX` came only with a diagonal swipe,
+  where a dominance test (`|deltaX| < |deltaY|`) flips the axis inside one gesture. The numbers, the two known
+  warts of the exact-zero test, the logger demo to re-run, and what is not measured (native Edge behavior,
+  Firefox, a Linux touchpad): `.ai/CONCERNS.md`, "Shift + wheel on a touchpad". Pinned by `test/unit/overlay/resolveWheelDeltas.unit.ts` and
   `tests/e2e/shift-wheel-scroll.spec.ts`, which needs real wheel input: a dispatched `WheelEvent` carries
   whatever deltas the test gives it and proves nothing about the browser.
 - **`preventOverflow` is an alias, not a mode.** `'horizontal'` forces the horizontal owner to the
