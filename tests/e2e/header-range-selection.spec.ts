@@ -225,6 +225,16 @@ test.describe('a header click and a Shift+click select the range between them', 
       selected: [[-1, 6, 29, 1]],
     },
     {
+      name: 'to the left, then to the right of a group header without navigableHeaders',
+      navigableHeaders: false,
+      clicks: [
+        { level: 0, column: 4, shift: false },
+        { level: 1, column: 1, shift: true },
+        { level: 1, column: 9, shift: true },
+      ],
+      selected: [[-1, 4, 29, 9]],
+    },
+    {
       name: 'from a cell',
       cell: [3, 2],
       clicks: [{ level: 1, column: 5, shift: true }],

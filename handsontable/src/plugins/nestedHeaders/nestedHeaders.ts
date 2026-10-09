@@ -1270,7 +1270,7 @@ export class NestedHeaders extends BasePlugin {
     }
 
     const { highlight, from } = currentSelection;
-    const source = highlight.row !== null && highlight.row < 0 ? highlight : from;
+    const source = highlight.row !== null && highlight.row < 0 ? highlight : this.#findRangeStartHeader(from) ?? from;
 
     if (source.row === null || source.col === null) {
       return null;
@@ -1284,6 +1284,28 @@ export class NestedHeaders extends BasePlugin {
     return this._getHeaderTreeNodeDataByCoords({ row: anchor.row, col: source.col }) ?
       { row: anchor.row, col: source.col, clone: () => anchor.clone() } :
       null;
+  };
+
+  /**
+   * Finds the header the current column range started from when the focus does not say (no `navigableHeaders`).
+   * That is the header `#focusInitialCoords` recorded, as long as the first corner of the range still sits
+   * under it: `selectColumns()` rebuilds that corner from the start column and the clicked level, so the corner
+   * alone cannot tell a group from one of its leaf headers.
+   */
+  #findRangeStartHeader = (from: CellCoords): CellCoords | null => {
+    const recorded = this.#focusInitialCoords;
+
+    if (!recorded || from.row === null || from.row >= 0 || from.col === null) {
+      return null;
+    }
+
+    const nodeData = this._getHeaderTreeNodeDataByCoords(recorded);
+
+    if (!nodeData || from.col < nodeData.columnIndex || from.col >= nodeData.columnIndex + nodeData.origColspan) {
+      return null;
+    }
+
+    return recorded.clone();
   };
 
   /**
