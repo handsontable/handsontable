@@ -9,9 +9,6 @@ import {
 } from 'handsontable/i18n';
 import plPL from 'handsontable/i18n/languages/pl-PL';
 import enUS from 'handsontable/i18n/languages/en-US';
-import srRS from 'handsontable/i18n/languages/sr-RS';
-import srSP from 'handsontable/i18n/languages/sr-SP';
-import { _resetDeprecationWarnings } from 'handsontable/helpers/console';
 
 describe('i18n registry', () => {
   it('should register automatically default language', () => {
@@ -119,43 +116,6 @@ describe('i18n registry', () => {
       getValidLanguageCode('aa-BB');
 
       expect(spy).toHaveBeenCalled();
-    });
-
-    describe('Serbian language codes', () => {
-      beforeAll(() => {
-        registerLanguageDictionary(srRS);
-        registerLanguageDictionary(srSP);
-      });
-
-      beforeEach(() => {
-        _resetDeprecationWarnings();
-      });
-
-      it('should resolve `sr-RS` without a warning', () => {
-        const spy = spyOn(console, 'warn');
-
-        expect(getValidLanguageCode('sr-RS')).toEqual('sr-RS');
-        expect(getValidLanguageCode('sr-rs')).toEqual('sr-RS');
-        expect(spy).not.toHaveBeenCalled();
-      });
-
-      it('should still resolve the deprecated `sr-SP` code and warn about it only once', () => {
-        const spy = spyOn(console, 'warn');
-
-        expect(getValidLanguageCode('sr-SP')).toEqual('sr-SP');
-        expect(getValidLanguageCode('sr-sp')).toEqual('sr-SP');
-
-        expect(spy).toHaveBeenCalledTimes(1);
-        expect(spy.calls.argsFor(0)[0]).toMatch(/^Deprecated: .*sr-SP.*sr-RS/);
-      });
-
-      it('should not warn when `sr-SP` is only registered', () => {
-        const spy = spyOn(console, 'warn');
-
-        registerLanguageDictionary(srSP);
-
-        expect(spy).not.toHaveBeenCalled();
-      });
     });
   });
 });

@@ -318,7 +318,6 @@ By default, Handsontable uses the **English - United States** language-country s
 | `pt-BR.js` | Portuguese - Brazil | `pt-BR` | |
 | `ru-RU.js` | Russian - Russia | `ru-RU` | |
 | `sr-RS.js` | Serbian (Latin) - Serbia | `sr-RS` | |
-| `sr-SP.js` | Serbian (Latin) - Serbia | `sr-SP` | Deprecated alias of `sr-RS`. It will be removed in 20.0. |
 | `zh-CN.js` | Chinese - China | `zh-CN` | Enable [`imeFastEdit`](@/api/options.md#imefastedit) for better editing experience |
 | `zh-TW.js` | Chinese - Taiwan | `zh-TW` | Enable [`imeFastEdit`](@/api/options.md#imefastedit) for better editing experience |
 

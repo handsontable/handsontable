@@ -19,7 +19,6 @@ import {
   ptBR,
   ruRU,
   srRS,
-  srSP,
   zhCN,
   zhTW,
 } from 'handsontable/i18n';
@@ -43,7 +42,6 @@ const plPLCode: string = plPL.languageCode;
 const ptBRCode: string = ptBR.languageCode;
 const ruRUCode: string = ruRU.languageCode;
 const srRSCode: string = srRS.languageCode;
-const srSPCode: string = srSP.languageCode;
 const zhCNCode: string = zhCN.languageCode;
 const zhTWCode: string = zhTW.languageCode;
 
@@ -66,6 +64,5 @@ registerLanguageDictionary(plPL);
 registerLanguageDictionary(ptBR);
 registerLanguageDictionary(ruRU);
 registerLanguageDictionary(srRS);
-registerLanguageDictionary(srSP);
 registerLanguageDictionary(zhCN);
 registerLanguageDictionary(zhTW);

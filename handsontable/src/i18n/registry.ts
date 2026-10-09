@@ -1,15 +1,12 @@
 import { isObject, deepClone } from '../helpers/object';
 import { isUndefined } from '../helpers/mixed';
 import { extendNotExistingKeys, normalizeLanguageCode, warnUserAboutLanguageRegistration } from './utils';
-import { deprecatedWarnOnce } from '../helpers/console';
 import { staticRegister } from '../utils/staticRegister';
 import { getPhraseFormatters } from './phraseFormatters';
 import DEFAULT_DICTIONARY from './languages/en-US';
 
 export * as dictionaryKeys from './constants';
 export const DEFAULT_LANGUAGE_CODE = DEFAULT_DICTIONARY.languageCode;
-
-const DEPRECATED_SERBIAN_LANGUAGE_CODE = 'sr-SP';
 
 const {
   register: registerGloballyLanguageDictionary,
@@ -166,12 +163,6 @@ export function getValidLanguageCode(languageCode: string) {
     normalizedLanguageCode = DEFAULT_LANGUAGE_CODE;
 
     warnUserAboutLanguageRegistration(languageCode);
-  } else if (normalizedLanguageCode === DEPRECATED_SERBIAN_LANGUAGE_CODE) {
-    deprecatedWarnOnce(
-      `language.${DEPRECATED_SERBIAN_LANGUAGE_CODE}`,
-      `The "${DEPRECATED_SERBIAN_LANGUAGE_CODE}" language code will be removed in 20.0.0. ` +
-      'Use the "sr-RS" language code instead.'
-    );
   }
 
   return normalizedLanguageCode;
