@@ -39,6 +39,54 @@ test.describe('the date editor and an incomplete date', { tag: CROSS_BROWSER_TAG
     await expect(grid.cell(0, 1)).toHaveText('6/10/24');
   });
 
+  test('keeps the cell\'s date when a typed letter opens the editor and another cell is clicked', async({ page }) => {
+    await grid.selectCell(0, 1);
+    await page.keyboard.press('a');
+    await expect.poll(() => grid.isEditorOpened()).toBe(true);
+
+    // The input cannot hold the letter, and unlike an unfinished date it reports no bad input.
+    await expect(grid.editorInput).toHaveValue('');
+    expect(await grid.editorInput.evaluate(input => (input as HTMLInputElement).validity.badInput)).toBe(false);
+
+    await grid.selectCell(1, 0);
+
+    await expect.poll(() => grid.isEditorOpened()).toBe(false);
+    expect(await grid.sourceAt(0, 1)).toBe('2024-06-10');
+    await expect(grid.cell(0, 1)).toHaveText('6/10/24');
+  });
+
+  test('keeps the cell\'s date when a typed letter opens the editor and Enter commits it', async({ page, browserName }) => {
+    await grid.selectCell(0, 1);
+    await page.keyboard.press('a');
+    await expect.poll(() => grid.isEditorOpened()).toBe(true);
+
+    if (browserName === 'chromium') {
+      // The picker is open and would take the Enter.
+      await page.keyboard.press('Escape');
+    }
+
+    await page.keyboard.press('Enter');
+
+    await expect.poll(() => grid.isEditorOpened()).toBe(false);
+    expect(await grid.sourceAt(0, 1)).toBe('2024-06-10');
+  });
+
+  test('keeps the cell\'s date when a typed letter opens the editor and Tab leaves it', async({ page, browserName }) => {
+    // Chromium's Tab moves between the segments of the open input and never leaves the editor, so there
+    // is no commit to check there. The Tab commit is Firefox and WebKit's.
+    if (browserName === 'chromium') {
+      return;
+    }
+
+    await grid.selectCell(0, 1);
+    await page.keyboard.press('a');
+    await expect.poll(() => grid.isEditorOpened()).toBe(true);
+    await page.keyboard.press('Tab');
+
+    await expect.poll(() => grid.isEditorOpened()).toBe(false);
+    expect(await grid.sourceAt(0, 1)).toBe('2024-06-10');
+  });
+
   test('keeps the cell\'s date after a typed digit and a switch to full edit mode, without badInput', async({ page, browserName }) => {
     await grid.selectCell(0, 1);
     await page.keyboard.press('1');
