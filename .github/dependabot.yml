@@ -9,10 +9,17 @@ updates:
   # fixes across all listed directories of one ecosystem, so every fix lands in
   # one PR.
   #
-  # Every `directories` entry must hold a committed lockfile: a directory
-  # without one makes Dependabot open manifest-only PRs that fail the
-  # frozen-lockfile install (PR #13152). `dependabot-coverage.test.mjs` pins
-  # both rules.
+  # Nothing here runs unless "Dependabot security updates" is on in the
+  # repository settings (admin-only); the block only groups and filters.
+  # `target-branch` is off-limits too: it drops the block's options from
+  # security updates.
+  #
+  # Every directory a `directories` entry matches must hold a committed
+  # lockfile: a directory without one makes Dependabot open manifest-only PRs
+  # that fail the frozen-lockfile install (PR #13152). Workspace globs in those
+  # manifests must be plain (`"*"`), because Dependabot does not expand extglobs
+  # like `@(!(node_modules))/` and would see only the root manifest.
+  # `dependabot-coverage.test.mjs` pins all of these rules.
   #
   # Playwright stays out of the group. The pnpm catalog version and the
   # mcr.microsoft.com/playwright tag in .github/workflows/e2e.yml move together

@@ -6,11 +6,14 @@ import path from 'node:path';
 import { repoRoot } from '../lib/repo-root.mjs';
 
 /**
- * Dependabot opens a security fix PR only for a lockfile that an `updates` block
- * covers, and `allow`/`ignore` filter security updates as well as version
- * updates. Alerts piled up for months while the only block allowed
- * `@playwright/test` alone. These tests pin the coverage so a new lockfile, or a
- * narrowing filter, fails here instead of going quiet in the alert list.
+ * Dependabot security updates run for every manifest in the dependency graph
+ * (once the repository setting is on), and an `updates` block only groups and
+ * filters them. `allow`, `ignore`, and `target-branch` change that: the first two
+ * filter security updates as well as version updates, and the third drops the
+ * block's options from security updates. Alerts piled up while the only block
+ * allowed `@playwright/test` alone. These tests pin which lockfiles get grouped
+ * and filtered fixes, so a new lockfile, or a narrowing option, fails here
+ * instead of going quiet in the alert list.
  *
  * Text-based, not YAML-parsed: no YAML parser is a dependency of the repo root.
  */
@@ -79,15 +82,27 @@ function matches(pattern, dir) {
   return regex.test(dir);
 }
 
+/**
+ * List the `/`-rooted directories holding a tracked file with one of the given names.
+ *
+ * @param {string[]} names File basenames.
+ * @returns {string[]}
+ */
+function trackedDirs(names) {
+  return execFileSync('git', ['ls-files', ...names.flatMap(name => [name, `**/${name}`])], {
+    cwd: root,
+    encoding: 'utf8',
+  })
+    .split('\n')
+    .filter(Boolean)
+    .map(file => `/${path.posix.dirname(file)}`.replace(/^\/\.$/, '/'));
+}
+
 const blocks = updateBlocks();
 const patterns = blocks.flatMap(directoriesOf);
-const lockfileDirs = execFileSync('git', ['ls-files', ...LOCKFILE_NAMES.flatMap(name => [name, `**/${name}`])], {
-  cwd: root,
-  encoding: 'utf8',
-})
-  .split('\n')
-  .filter(Boolean)
-  .map(file => `/${path.posix.dirname(file)}`.replace(/^\/\.$/, '/'));
+const lockfileDirs = trackedDirs(LOCKFILE_NAMES);
+const manifestDirs = trackedDirs(['package.json']);
+const coveredManifestDirs = manifestDirs.filter(dir => patterns.some(pattern => matches(pattern, dir)));
 
 test('the config declares at least one updates block', () => {
   assert.ok(blocks.length > 0, '.github/dependabot.yml has no updates blocks');
@@ -99,26 +114,47 @@ test('every committed lockfile is covered by an updates block', () => {
   assert.deepEqual(
     uncovered,
     [],
-    `lockfiles without a Dependabot block get no security fix PRs: ${uncovered.join(', ')}`
+    `lockfiles outside every block get ungrouped, unfiltered security PRs (one per package): ${uncovered.join(', ')}`
   );
 });
 
-test('every configured directory pattern resolves to a committed lockfile', () => {
-  const empty = patterns.filter(pattern => !lockfileDirs.some(dir => matches(pattern, dir)));
+test('every configured directory pattern matches at least one manifest', () => {
+  const empty = patterns.filter(pattern => !manifestDirs.some(dir => matches(pattern, dir)));
+
+  assert.deepEqual(empty, [], `directory patterns that match no package.json: ${empty.join(', ')}`);
+});
+
+test('every manifest directory a pattern matches holds a committed lockfile', () => {
+  const lockless = coveredManifestDirs.filter(dir => !lockfileDirs.includes(dir));
 
   assert.deepEqual(
-    empty,
+    lockless,
     [],
-    `a directory without a lockfile gets manifest-only PRs that fail the frozen-lockfile install: ${empty.join(', ')}`
+    `a directory without a lockfile gets manifest-only PRs that fail the frozen-lockfile install: ${lockless.join(', ')}`
   );
 });
 
-test('no block narrows security updates with allow or ignore', () => {
+test('every covered manifest declares workspaces Dependabot can expand', () => {
+  coveredManifestDirs.forEach((dir) => {
+    const manifest = JSON.parse(readFileSync(path.join(root, dir, 'package.json'), 'utf8'));
+    const workspaces = Array.isArray(manifest.workspaces) ? manifest.workspaces : manifest.workspaces?.packages ?? [];
+    const extglobs = workspaces.filter(entry => /[@!+?]\(/.test(entry));
+
+    assert.deepEqual(
+      extglobs,
+      [],
+      `${dir}/package.json: Dependabot does not expand extglob workspaces, so it sees only the root manifest and `
+        + 'writes a broken lockfile. Use a plain glob such as "*".'
+    );
+  });
+});
+
+test('no block narrows security updates with allow, ignore, or target-branch', () => {
   blocks.forEach((block) => {
     assert.doesNotMatch(
       block,
-      /^\s*(allow|ignore):/m,
-      `allow/ignore also filter security updates, which hides alerts from Dependabot:\n${block}`
+      /^\s*(allow|ignore|target-branch):/m,
+      `allow/ignore filter security updates, and target-branch drops the block's options from them:\n${block}`
     );
   });
 });
