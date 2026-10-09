@@ -290,11 +290,18 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
    */
   function activateScope(
     scope: ReturnType<typeof createFocusScope>, focusSource: string = FOCUS_SOURCES.UNKNOWN): void {
-    if (activeScope === scope) {
+    // A focus catcher is disarmed while the focus is inside the active scope, so a Tab source reaching
+    // the scope that is already active means the focus left the document with no `focusin` to say so
+    // (a Tab past the last element goes to the browser UI) and has now come back. The scope must take
+    // the entry again, or a keyboard user cannot get back in.
+    const isReentryThroughCatcher = focusSource === FOCUS_SOURCES.TAB_FROM_ABOVE ||
+      focusSource === FOCUS_SOURCES.TAB_FROM_BELOW;
+
+    if (activeScope === scope && !isReentryThroughCatcher) {
       return;
     }
 
-    if (activeScope !== null) {
+    if (activeScope !== null && activeScope !== scope) {
       deactivateScope(activeScope);
     }
 
