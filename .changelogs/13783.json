@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the React `HotColumn` props type so it no longer suggests hook callbacks such as `afterChange`, which only run from `HotTable`.",
+  "type": "fixed",
+  "issueOrPR": 13783,
+  "breaking": false,
+  "framework": "react"
+}
