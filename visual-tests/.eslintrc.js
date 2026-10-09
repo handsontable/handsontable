@@ -134,9 +134,9 @@ const DETERMINISM_RESTRICTIONS = [
 // four as unseen. A capture is the statement's own `screenshot()` call: awaited or not, kept in a `const`,
 // returned, or handed straight to `expect()` (the last three are in no spec today; the self-test pins them
 // too). A tracked `waitForTimeout()`
-// in between shields 7 captures in 3 specs: replacing such a sleep with the assertion it stands for clears
-// both lines, while deleting it with nothing in its place makes the capture fire, so the disable line moves
-// to the capture. Page helpers are deliberately not enumerated: a renamed helper would silently leave the
+// in between shields the capture too (none since DEV-3351 retired the last 7, in 3 specs): replacing such a
+// sleep with the assertion it stands for clears both lines, while deleting it with nothing in its place makes
+// the capture fire, so the disable line moves to the capture. Page helpers are deliberately not enumerated: a renamed helper would silently leave the
 // list, and the helpers that act with no `expect()` or wait (25 of the 48 exported from `src/page-helpers.ts`
 // on 2026-09-23, one of them the `tryToEscapeFromTheComponentsFocus` #13647 deleted with its callers, plus one that waits only with a fixed sleep, collapseNestedRow; resizeColumn and resizeRow went with the cross-browser resize specs in DEV-3257)
 // are their own follow-up, each ending on the state it produced.

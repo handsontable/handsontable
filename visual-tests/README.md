@@ -247,7 +247,7 @@ To run the visual tests locally:
    | `VISUAL_TIER=pr npm run build && VISUAL_TIER=pr npm run test` | Render what a pull request renders (the `pr` tier):<br>the vanilla JS tests on Chromium with the `main` and `main-dark` themes.<br>Skips the wrapper installs (Angular alone is about two minutes) and the other themes. |
    | `npm run test`                        | Run multi-framework visual tests on Chromium<br>for the tier the branch resolves to: everything on a feature branch (`full`),<br>vanilla JS copied into the wrappers on `develop` (`seed`). |
    | `npm run test:cross-browser`                        | Run cross-browser visual tests,<br>using vanilla JS framework,<br>for all the supported browsers. <br> You can pass the test name to run a single cross-browser test: `npm run test:cross-browser borders`|
-   | `npx playwright test {{ file name }}` | Run a specific test.<br><br>For example: `npx playwright test mouse-wheel`                         |
+   | `npx playwright test {{ file name }}` | Run a specific test.<br><br>For example: `npx playwright test column-selection`                         |
 
    The resulting screenshots are saved in `./visual-tests/screenshots/`.
 2. From the `./visual-tests/` directory, set the snapshot keys and run the comparison:

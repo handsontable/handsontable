@@ -128,11 +128,16 @@ visualTest(__filename, {
 - **The seed's wrapper copy follows the declarations, spec by spec.** `scripts/run-tests.mjs` reads every
   declaration from `npx playwright test --list --reporter=json` (collection cost, no browser), takes each
   spec's path from the enclosing file suite, and copies that spec's `<stem>-<N>.png` captures from the bare
-  js render into the wrappers it declares (`wrapperCopyPlan()` in `lib/wrapper-copy.mjs`), matched by exact
-  name so `undo-1` is never a capture of `undo-multiline-text`. It refuses a spec that declares wrappers and
+  js render into the wrappers it declares (`copyDeclaredWrapperCaptures()` in `lib/wrapper-copy.mjs`, the
+  one call the script makes), matched by exact name in the spec's own directory, so `undo-1` is never a
+  capture of `undo-multiline-text` and a same-named spec elsewhere (`focus-cell` exists twice under
+  `js-only/editors/dropdown/`) lends it nothing. It refuses a spec that declares wrappers and
   left no bare capture, because copying nothing would delete that spec's wrapper goldens on the seed while
   the `full` tier keeps rendering them. `lib/__tests__/wrapper-copy.test.mjs` pins the plan on the shape the
-  JSON reporter writes and end to end on a throwaway tree, and pins the script's wiring. A wholesale copy
+  JSON reporter writes and runs that same function end to end on a throwaway tree. The copy branch runs on
+  the seed tier only, so no pull request's CI reaches it; the test therefore also reads the script and
+  refuses any other copy there (an `fse` call other than `existsSync`, an `fs` import, a `cp`, or the plan
+  handed another root), so a directory copy cannot come back unseen until develop's nightly. A wholesale copy
   would write a wrapper golden for every spec in the directory, and the `full` tier, which skips a wrapper
   a spec does not declare, would report the extras deleted every night.
 - **The golden set is now the sum of the declarations intersected with the tier.**
@@ -191,8 +196,9 @@ webkit; a `pr`-tier render is 480 of them. Every count below that names a golden
 The consolidation lowers these family by family, and each trim lowers `visual-budget.json` in the same
 pull request, so that file has today's counts; the ones here stay the dated reference.
 Most js-only specs render five times (the bare chromium run — the "classic" delivery path, where the
-core inlines the main theme stylesheet — plus the four themes), every multi-framework spec eight
-times (js × 5 plus the three wrappers), and the cross-browser leg renders its specs on three browsers —
+core inlines the main theme stylesheet — plus the four themes), the multi-framework canary eight
+times (js × 5 plus the three wrappers; the family's other spec renders the five js variants alone), and
+the cross-browser leg renders its specs on three browsers —
 but that is what the checked-in declarations happen to say, not a property of the tier. What each spec
 renders is its [variant declaration](#variant-declaration): a new spec renders two themes by default, and
 most look checks of the menu and editor families render on `main` alone, so the js variants no longer
@@ -597,7 +603,9 @@ does for you):
   fold the two branches into one; either half regresses the other engine.
 - **No fixed delays.** `waitForTimeout()`, `sleep()`, the global `setTimeout()` (inside `page.evaluate`
   too) and `'networkidle'` are lint errors in `src/` and `tests/`. The 2024 import carried about forty
-  such sleeps (25 on 2026-10-05, 3 since DEV-3351, all in `tests/cross-browser/`); each wears `// eslint-disable-next-line no-restricted-syntax -- DEV-2797: <why>` so the
+  such sleeps (25 on 2026-10-05 and 20 when DEV-3351 started; 6 since then, counted per call: 5 in three
+  `tests/cross-browser/` specs, `auto-fill` 2, `scroll` 2 and `columns-freeze` 1, and 1 in the
+  `collapseNestedRow` page helper, which no spec calls today); each wears `// eslint-disable-next-line no-restricted-syntax -- DEV-2797: <why>` so the
   debt is counted and greppable while the consolidation replaces them with asserted states. A new sleep
   needs the same line naming its own task, or it does not land.
 - **`.only`, a bare or titled `.skip`, `test.fixme`, and `locator.screenshot()` are errors** too, and an
@@ -801,24 +809,36 @@ does for you):
   focus, what a copy and a paste left in a cell, what native undo and redo left in the open text editor and
   how tall it grew, a row moved by its header, a wheel scroll, a drag selection, the date editor, the grid
   under a CSS scale, and a merged cell under a column selection. Those states are assertions now, on all six
-  theme and bundle legs, on a fixture that rebuilds the grid (`tests/fixtures/demo/shared-demo-grid.html`):
+  theme and bundle legs, on a fixture that rebuilds the grid (`tests/fixtures/demo/shared-demo-grid.html`,
+  whose options `tests/lib/__tests__/shared-demo-fixture-drift.test.mjs` holds equal to the demo's, with
+  every intended difference named there, so a change to `/` fails until the fixture follows it):
   `tests/e2e/shared-demo-keyboard-navigation.spec.ts` (the corner, the header row and the exit, the last
   cell, its row header and the exit, and the inset ring a focused header draws),
   `merge-cells-header-selection.spec.ts`, `manual-row-move-drag.spec.ts`,
   `wheel-scroll-overlay-sync.spec.ts`, `drag-selection-range.spec.ts` and `css-transform-scale.spec.ts`,
-  all tagged `@cross-browser`; and, on the Chromium legs only, `text-editor-native-undo.spec.ts`,
-  `date-editor-native-input.spec.ts` and a case in `clipboard.spec.ts` (Linux WebKit maps no editing
-  command to a Ctrl shortcut, and the date picker's keyboard is each engine's own). Two captures never
+  all tagged `@cross-browser`; `text-editor-native-undo.spec.ts`, tagged `@cross-browser` and
+  `@clipboard-shortcut`, so it runs on Firefox and not on WebKit (Linux WebKit maps no editing command to a
+  Ctrl shortcut); and, on the Chromium legs only, `date-editor-native-input.spec.ts` (the date picker's
+  keyboard is each engine's own) and a case in `clipboard.spec.ts`. That case runs on the plain
+  `tests/fixtures/demo/grid.html`, not on the shared grid: copying a cell, overwriting it and pasting it
+  back needs no feature of `/`. Two captures never
   showed what their names said: the date editor's "manual edit" photographed the browser's picker over an
   unchanged value, because the picker takes the keys, and the CSS-transform spec scaled the page after the
   grid had laid out, so it never ran the code #10482 fixed (the e2e spec builds the grid under the scale).
   What stays is `mergeCells/column-selection`, the canary, on every js variant and under all three
   wrappers: chosen because it paints the most of the selection's look on `/` (the active column headers
-  and their menu buttons, three stacked column layers, the merged cell's full-selection overlay), and it
-  was byte-identical between the js render and all three real wrapper renders on the nightly of
-  2026-10-08 (88 of the family's 90 wrapper renders were; React's two `copy-cell-content` renders after the
-  edit and the paste differed within the gate). The wrappers have no browser-level functional tier, so
-  that one wrapper render is the only proof that a wrapper still builds and draws this grid like js. And
+  and their menu buttons, three column layers side by side with their borders, the merged cell's
+  full-selection overlay), and it was byte-identical between the js render and all three real wrapper
+  renders on the nightly of 2026-10-08 (88 of the family's 90 wrapper renders were; React's two
+  `copy-cell-content` renders after the edit and the paste differed within the gate). The column layers do
+  not overlap, so the deeper shade a cell under two layers takes is not painted here or anywhere else in
+  the suite. The wrappers have no browser-level functional tier, so that one wrapper render is the only
+  proof that a wrapper still builds and draws this grid like js. Dropping the wrapper renders of an edit
+  and a paste was a deliberate trade: on `/` both run the core's own text editor and `CopyPaste` plugin,
+  which the wrappers only hand their settings to, and React's were the two renders that differed, within
+  the gate, so they could not have reported a change. The cost is that no tier now renders a wrapper while
+  it edits or pastes, so a wrapper-only break on that path would go unseen here; the wrappers' own Jest
+  suites cover their editor components, not the built-in editors. And
   `change-rows-order`, a row selected by its header, on every js variant and no wrapper, because `horizon`
   defines the active row header its own way and no other every-variant capture selects a row by its
   header. The single range `select-few-cells-by-mouse` photographed, with its highlighted headers and fill
@@ -826,8 +846,11 @@ does for you):
   the open editor's chrome by `js-only/editors/dropdown/focus-cell`, so neither needed a capture here. Two
   defects the new assertions found are parked under `test.fixme`: Tab cannot bring the focus back into a
   grid it left at the edge of the page (the grid's focus scope is never deactivated when the focus leaves
-  the document, so the re-entry selects nothing), and the date editor commits an incomplete date as an
-  empty value and erases the cell.
+  the document, so the re-entry selects nothing; the parked case expects the header the walk left from, as
+  any other re-entry does), and the date editor commits an incomplete date as an empty value and erases
+  the cell. A `test.fixme` never runs and nothing checks that its task is still open, so a parked case
+  stays parked after its fix merges until someone removes the `test.fixme`; the fix's pull request does
+  that when the spec is already on its base branch.
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 

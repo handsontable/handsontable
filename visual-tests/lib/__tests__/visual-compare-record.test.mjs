@@ -74,7 +74,7 @@ test('the spec tree keeps the two properties the inverse relies on', () => {
 test('a sample of real golden paths maps to specs that exist', () => {
   // A trimmed copy of the live `base/develop/out.json`: one path per leg, and every cross-browser shape.
   const sample = [
-    'angular-wrapper/chromium/multi-frameworks/change-rows-order-1.png',
+    'angular-wrapper/chromium/multi-frameworks/mergeCells/column-selection-1.png',
     'vue3/chromium/multi-frameworks/mergeCells/column-selection-1.png',
     'js/chromium/js-only/complex-demo/manual-row-resize-1.png',
     'js/chromium-theme-horizon/js-only/context-menu/menus-position-1.png',
