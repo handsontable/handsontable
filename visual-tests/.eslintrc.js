@@ -111,7 +111,8 @@ const DETERMINISM_RESTRICTIONS = [
 // retired those six with their 15 lines, and its replacements assert every state they capture; the
 // submenu-placement trim (#13656) retired the menu family's 24 the same way, the editors trim that
 // family's 15, the resize-guide trim the complex demo's 2, the cross-browser trim that family's 8, and the
-// UI-state trim the dialog, empty-data-state, loading and sheets-bar specs' 17, so 19 remain.
+// UI-state trim the dialog, empty-data-state, loading and sheets-bar specs' 17, and the multi-frameworks
+// trim (DEV-3351) that family's 18, so 1 remains.
 //
 // esquery 1.7.0 (ESLint 8.57.1): `A + B` reports B when A is the statement right before it, so the message
 // lands on the capture line, which is where the disable line goes. Three traps, all measured. The relative

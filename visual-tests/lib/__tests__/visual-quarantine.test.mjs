@@ -32,8 +32,13 @@ const NOW = new Date('2026-09-23T12:00:00Z');
 // The capture behind the 10 ms condition timer, which is what WHY says flakes, and the one after it.
 const CAPTURE = 'js-only/filters/tab-navigation-through-condition-components-2';
 const NEXT_CAPTURE = 'js-only/filters/tab-navigation-through-condition-components-3';
-// A multi-framework spec renders on the five js variants and the three wrappers.
-const MULTI_FRAMEWORK_CAPTURES = ['multi-frameworks/tab-navigation-1', 'multi-frameworks/tab-navigation-2'];
+// Two captures of specs on the shared `/` grid, parked on all eight legs below. Only the canary renders on
+// the three wrappers since DEV-3351, but the validator checks that each item's spec exists, not what it
+// declares, so the second stands in for any capture an eight-leg cap case needs.
+const MULTI_FRAMEWORK_CAPTURES = [
+  'multi-frameworks/mergeCells/column-selection-1',
+  'multi-frameworks/change-rows-order-1',
+];
 const entry = overrides => ({
   taskId: 'DEV-1234',
   expires: '2026-10-10',

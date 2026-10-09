@@ -94,7 +94,7 @@ and reported back to the merged pull request. The tiers are `VISUAL_TIERS` in `v
 | Tier | When | Renders | Compared against | Writes the golden records? |
 |---|---|---|---|---|
 | `pr` | every pull request | vanilla JS on Chromium, `main` + `main-dark`; a wrapper only when the change touches that wrapper's own `wrappers/<pkg>/` tree | the matching subset of the target branch's golden records | no |
-| `seed` | a push to `develop` (`Visual seed`), `master`, or a release branch | vanilla JS in the classic delivery path and all four themes, the cross-browser tests, and the wrapper records copied from the JS render | the branch's previous golden records | yes — this is what a pull request compares against |
+| `seed` | a push to `develop` (`Visual seed`), `master`, or a release branch | vanilla JS in the classic delivery path and all four themes, the cross-browser tests, and the wrapper records: each spec's classic JS render copied into the wrappers that spec declares | the branch's previous golden records | yes — this is what a pull request compares against |
 | `full` | the weekday nightly on `develop` (`Visual nightly`); a pull request that touches `visual-tests/` or `examples/next/visual-tests/` | everything, with the wrappers rendered for real | the golden records of `develop` (nightly) or of the target branch (pull request) | never — the nightly publishes its report to `nightly/develop/` |
 
 Two things cover what a pull request does not render. The develop seed renders the classic path, all four
@@ -171,9 +171,10 @@ Two behaviors are worth reading off the diagram:
 
 Visual tests are divided into:
 
-   - multi-frameworks: tests run on Chromium against a Handsontable instance created in each framework the
-     tier renders (see [Tiers](#tiers) — a pull request renders vanilla JS with the `main` and `main-dark`
-     themes; the seed and the nightly render the classic delivery path and all four themes too):
+   - multi-frameworks: tests of the shared `/` grid, run on Chromium against a Handsontable instance created
+     in each framework the tier renders and the spec declares (see [Tiers](#tiers) — a pull request renders
+     vanilla JS with the `main` and `main-dark` themes; the seed and the nightly render the classic delivery
+     path and all four themes too; one spec, the parity canary, declares the three wrappers):
       - Vanilla JS
       - Angular
       - React
