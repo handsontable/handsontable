@@ -137,10 +137,15 @@ export class DateEditor extends TextEditor {
   #isIncomplete(ctrlDown?: boolean): boolean {
     const input = this.TEXTAREA as HTMLInputElement;
 
-    // An empty edited cell has no date to keep, except that a fill would write the empty value over the
-    // other selected cells, which do.
-    if (input.value !== '' || (isEmpty(this.originalValue) && !ctrlDown)) {
+    if (input.value !== '') {
       return false;
+    }
+
+    // An empty edited cell has no date to keep, and an untouched input there is just empty. Only a fill
+    // is at stake: Ctrl+Enter writes the empty value over the other selected cells, which hold dates, and
+    // that is wrong only when the input is flagged as incomplete.
+    if (isEmpty(this.originalValue)) {
+      return ctrlDown === true && input.validity.badInput;
     }
 
     // `allowEmpty: false` with `allowInvalid: false` keeps the editor open on the empty value. Without

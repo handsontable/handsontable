@@ -187,6 +187,20 @@ test.describe('the date editor and a segment cleared from the open input', () =>
     expect(await grid.sourceAt(1, 1)).toBe('2024-01-05');
   });
 
+  test('still fills the selection from an empty cell whose input was left untouched', async({ page }) => {
+    await grid.selectCell(2, 1);
+    await page.keyboard.press('Shift+ArrowUp');
+    await page.keyboard.press('F2');
+    await expect.poll(() => grid.isEditorOpened()).toBe(true);
+    await page.keyboard.press('Escape');
+    await expect(grid.editorInput).toHaveValue('');
+    await page.keyboard.press('ControlOrMeta+Enter');
+
+    await expect.poll(() => grid.isEditorOpened()).toBe(false);
+    expect(await grid.sourceAt(2, 1)).toBe('');
+    expect(await grid.sourceAt(1, 1)).toBe('');
+  });
+
   test('keeps the editor open in a column that rejects the empty value and the invalid one', async({ page }) => {
     await clearSegment(page, 0, 2);
     await page.keyboard.press('Enter');
