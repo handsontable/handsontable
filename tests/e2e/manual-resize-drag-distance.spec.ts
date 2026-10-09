@@ -93,6 +93,17 @@ test.describe('resizing by dragging a header handle', { tag: CROSS_BROWSER_TAG }
     expect((await grid.sizes(4, 2)).width).toBe(next + 60);
   });
 
+  test('auto-sizes a column beside a hidden column and keeps the room of its indicator', async() => {
+    await (await grid.columnHeader(3)).hover();
+    await expect(grid.grid.locator('.manualColumnResizer')).toBeAttached();
+    await grid.grid.locator('.manualColumnResizer').dblclick();
+
+    await expect.poll(async() => grid.manualColumnSize(3)).not.toBeNull();
+    const stored = await grid.manualColumnSize(3);
+
+    await expect.poll(async() => (await grid.sizes(3, 2)).width).toBe(stored! + 15);
+  });
+
   test('heightens a row by the distance its handle is dragged', async() => {
     const { height } = await grid.sizes(4, 2);
 

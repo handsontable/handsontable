@@ -52,7 +52,8 @@ export interface ResizeGestureOwner {
    * Returns how much wider (taller) a header renders than the size the owner stores for it, because
    * something else adds to the stored size on every render. The drag starts from the stored size, so
    * that what it stores is the pointer's travel on top of it. Optional: an owner whose headers render
-   * exactly their stored size leaves it out.
+   * exactly their stored size leaves it out. The resize hooks and the stored size then report the size
+   * without the overhead.
    */
   getRenderedOverhead?(index: number): number;
 }
