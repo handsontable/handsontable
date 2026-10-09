@@ -433,6 +433,37 @@ describe('dateTime datetime helpers', () => {
       expect(getDateTimeFormat('en-US', options)).toBe(formatter);
     });
 
+    it('builds a new formatter when the time zone changes to one with the same current offset', () => {
+      // Europe/London in summer and Africa/Lagos share the offset (-60) but not in winter, so a
+      // formatter built in London renders a Lagos midnight on the previous day.
+      const options = { year: '2-digit', month: 'narrow', day: 'numeric' };
+      let winterOffset = 0;
+
+      jest.spyOn(Date.prototype, 'getTimezoneOffset')
+        .mockImplementation(function() {
+          return this.getMonth() === 0 ? winterOffset : -60;
+        });
+
+      const formatter = getDateTimeFormat('en-US', options);
+
+      winterOffset = -60;
+
+      expect(getDateTimeFormat('en-US', options)).not.toBe(formatter);
+    });
+
+    it('reuses one formatter for array locales recreated on every call', () => {
+      const options = { year: 'numeric', month: 'short' };
+      const formatter = getDateTimeFormat(['ban', 'id'], options);
+      const constructorSpy = jest.spyOn(Intl, 'DateTimeFormat');
+
+      for (let i = 0; i < 100; i++) {
+        expect(getDateTimeFormat(['ban', 'id'], options)).toBe(formatter);
+      }
+
+      expect(constructorSpy).not.toHaveBeenCalled();
+      expect(getDateTimeFormat(['de', 'id'], options)).not.toBe(formatter);
+    });
+
     it('keeps rejecting a locale Intl rejects, whatever was formatted before', () => {
       const options = { year: 'numeric' };
 

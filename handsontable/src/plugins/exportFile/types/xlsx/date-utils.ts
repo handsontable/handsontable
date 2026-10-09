@@ -330,8 +330,9 @@ function buildLocalizedDatePattern(
  * it; an unspecified one is resolved from the locale the way `Intl` does, because that is what the
  * grid rendered — the time renderer formats with `getDateTimeFormat(locale, timeFormat)`, an
  * `Intl.DateTimeFormat` built from the same `locale` cell property, so
- * `{ hour: '2-digit', minute: '2-digit' }` under `en-US` shows `09:30 AM`. Assuming 24-hour there wrote `hh:mm`, which the import reads back
- * as `hour12: false`, and the target grid then rendered `09:30`.
+ * `{ hour: '2-digit', minute: '2-digit' }` under `en-US` shows `09:30 AM`. Assuming 24-hour there
+ * wrote `hh:mm`, which the import reads back as `hour12: false`, and the target grid then rendered
+ * `09:30`.
  *
  * A malformed locale tag makes `Intl.DateTimeFormat` throw, which is treated as a 24-hour clock —
  * the shape the export has always written.
