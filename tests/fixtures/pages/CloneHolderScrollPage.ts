@@ -202,6 +202,55 @@ export class CloneHolderScrollPage {
   }
 
   /**
+   * Wheels over the middle of a holder with a real input event, optionally with Shift held. The
+   * deltas are what the device reports: Shift does not change them here, so a browser that converts
+   * the gesture only as the default action of the event leaves `deltaX` at 0.
+   *
+   * @param {HolderName} name Which holder the pointer rests over.
+   * @param {number} deltaX The horizontal wheel delta.
+   * @param {number} deltaY The vertical wheel delta.
+   * @param {object} [options] The gesture options.
+   * @param {boolean} [options.shift] Whether Shift is held for the gesture.
+   */
+  async wheelOver(name: HolderName, deltaX: number, deltaY: number, options: { shift?: boolean } = {}): Promise<void> {
+    const rect = await this.holderRect(name);
+
+    await this.page.mouse.move(rect.x + (rect.width / 2), rect.y + (rect.height / 2));
+
+    if (options.shift) {
+      await this.page.keyboard.down('Shift');
+    }
+
+    try {
+      await this.page.mouse.wheel(deltaX, deltaY);
+    } finally {
+      if (options.shift) {
+        await this.page.keyboard.up('Shift');
+      }
+    }
+  }
+
+  /**
+   * Starts recording whether the grid consumed each wheel event. The listener sits on the window in
+   * the bubble phase, after the grid's own listeners, so `defaultPrevented` is the grid's verdict.
+   */
+  async startWheelLog(): Promise<void> {
+    await this.page.evaluate(() => {
+      const log: boolean[] = [];
+
+      (window as unknown as { wheelPrevented: boolean[] }).wheelPrevented = log;
+      window.addEventListener('wheel', (event) => log.push(event.defaultPrevented), { passive: true });
+    });
+  }
+
+  /**
+   * For each wheel event since `startWheelLog()`, whether the grid consumed it.
+   */
+  async wheelPrevented(): Promise<boolean[]> {
+    return this.page.evaluate(() => (window as unknown as { wheelPrevented: boolean[] }).wheelPrevented);
+  }
+
+  /**
    * Pans a finger over a holder: a touch press at its center, a run of moves by the given distance,
    * and a release. A negative distance drags the content up or start-wards, which scrolls the grid
    * down or towards its end. Trusted touch events through CDP, the way

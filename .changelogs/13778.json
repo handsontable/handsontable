@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed a bug where scrolling the mouse wheel while holding Shift moved the grid vertically instead of horizontally in browsers that apply the Shift conversion only as the default action of the wheel event.",
+  "title": "Fixed a bug where Shift + mouse wheel scrolled the rows instead of the columns.",
   "type": "fixed",
   "issueOrPR": 13778,
   "breaking": false,

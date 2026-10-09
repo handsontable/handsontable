@@ -969,7 +969,7 @@ the holder scrolls the columns inside the root's box, and the page scrolls the r
 The owners live on the overlays: the top and bottom overlays carry the vertical owner in
 `trimmingContainer`, the inline-start overlay the horizontal one, and
 `isVerticallyScrollableByWindow()` / `isHorizontallyScrollableByWindow()` read exactly those two
-fields. Eight rules follow.
+fields. Nine rules follow.
 
 - **A decision about the other axis goes through the viewport predicate, never `this.trimmingContainer`.**
   The width of the top and bottom clones is a horizontal question and the height of the inline-start
@@ -1010,9 +1010,9 @@ fields. Eight rules follow.
   horizontal-only gesture there still has to be preventable. Pinned by the two exact-distance wheel
   tests in `tests/e2e/width-window-scroll.spec.ts`; a "moved more than zero" assertion cannot see a
   doubling, which is how this survived a full review round.
-- **The grid converts Shift + wheel into a horizontal scroll itself.** Some browsers (Chrome on Windows)
-  leave `deltaX` at 0 on a Shift + wheel event and apply the Shift-to-horizontal conversion only as the
-  default action. The grid scrolls from the event and then consumes it, so that default action never
+- **The grid converts Shift + wheel into a horizontal scroll itself.** Chromium outside macOS (Windows,
+  Linux, ChromeOS, Android) and Firefox on every platform leave `deltaX` at 0 on a Shift + wheel event
+  and apply the Shift-to-horizontal conversion only as the default action. The grid scrolls from the event and then consumes it, so that default action never
   runs, and the gesture scrolled the rows (GitHub issue #13752). `resolveWheelDeltas`
   (`overlay/scroll/nativeScrollInput.ts`) moves a vertical delta onto the horizontal axis when `shiftKey`
   is set and `deltaX` is 0. The `deltaX === 0` guard is what keeps a browser that already rewrote the
