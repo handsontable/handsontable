@@ -30,6 +30,8 @@ export interface Box {
 }
 
 interface HotFixture {
+  addHookOnce(name: string, callback: () => void): void;
+  getFirstFullyVisibleColumn(): number;
   selectCell(row: number, col: number): boolean;
   getSelectedLast(): number[] | undefined;
   getCell(row: number, col: number, topmost: boolean): HTMLTableCellElement | null;
@@ -122,6 +124,53 @@ export class FixedColumnsEndPage {
   }
 
   /**
+   * Press an arrow key several times in one task, the way a page sees keys that queued up behind a long task:
+   * every press has run before the browser dispatches the first `scroll` event. A press that scrolls the grid
+   * queues a scroll of the browser window to its cell for the next `afterScroll`, so after the last press the
+   * queue holds one for each of them. This resolves once the grid has run them: the hook it waits on is added
+   * after the presses, so it runs after the queued scrolls.
+   *
+   * Returns the first column the grid shows whole once the presses have scrolled it. It is read before the queued
+   * scrolls run, so it does not depend on what they do to the grid.
+   *
+   * `page.keyboard.press()` cannot do this. Presses sent one by one land milliseconds apart, and how many of
+   * them share an animation frame depends on the machine, the bundle and the load.
+   *
+   * The grid has to scroll by its own holder, not by the window.
+   *
+   * @param {'ArrowLeft'|'ArrowRight'} key The arrow key to press.
+   * @param {number} times How many presses to send.
+   */
+  async pressInOneTask(key: 'ArrowLeft' | 'ArrowRight', times: number): Promise<{ firstVisibleColumn: number }> {
+    return this.page.evaluate(async ([name, count]) => {
+      const { hot } = window as unknown as HotWindow;
+      const holder = document.querySelector('.ht_master .wtHolder')!;
+      const scrollBefore = holder.scrollLeft;
+      const keyCode = name === 'ArrowLeft' ? 37 : 39;
+
+      for (let press = 0; press < count; press += 1) {
+        for (const type of ['keydown', 'keyup']) {
+          // Like a real key, an event goes to whatever has the focus when it arrives.
+          (document.activeElement ?? document.body).dispatchEvent(new KeyboardEvent(type, {
+            key: name, code: name, keyCode, bubbles: true, cancelable: true, composed: true,
+          }));
+        }
+      }
+
+      // Without a scroll there is no `afterScroll` to wait for.
+      if (holder.scrollLeft === scrollBefore) {
+        throw new Error(`Pressing ${name} ${count} times did not scroll the grid`);
+      }
+
+      const firstVisibleColumn = hot.getFirstFullyVisibleColumn();
+
+      await new Promise<void>(resolve => hot.addHookOnce('afterScroll', () => resolve()));
+
+      return { firstVisibleColumn };
+    }, [key, times] as const);
+  }
+
+  /**
    * The bounding box of the topmost rendered cell at the coordinates, in viewport coordinates.
    *
    * @param {number} row Visual row.
@@ -139,6 +188,31 @@ export class FixedColumnsEndPage {
 
       return { left, right, top, bottom };
     }, [row, col]);
+  }
+
+  /**
+   * How far a cell reaches under the end columns: the distance from the inline-start edge of the end clone to the
+   * cell's inline-end edge. A value of 0 or less means the cell ends beside the clone. A positive one is how far the
+   * cell's edge lies under it, which is more than the cell's width when the whole cell is. The cell and the clone
+   * are measured in one evaluation, so both rectangles describe the same frame.
+   *
+   * @param {number} row Visual row.
+   * @param {number} col Visual column.
+   * @param {boolean} rtl Whether the layout runs right to left, so the end columns sit on the left.
+   */
+  async endColumnsOverlap(row: number, col: number, rtl: boolean): Promise<number> {
+    return this.endOverlay.evaluate((clone, [r, c, isRtl]) => {
+      const td = (window as unknown as HotWindow).hot.getCell(r, c, true);
+
+      if (!td) {
+        throw new Error(`Cell ${r},${c} is not rendered`);
+      }
+
+      const cell = td.getBoundingClientRect();
+      const end = clone.getBoundingClientRect();
+
+      return isRtl ? end.right - cell.left : cell.right - end.left;
+    }, [row, col, rtl] as const);
   }
 
   /**
