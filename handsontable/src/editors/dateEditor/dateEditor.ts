@@ -59,9 +59,6 @@ export class DateEditor extends TextEditor {
           value: unknown, cellProperties: CellProperties): void {
     super.prepare(row, col, prop, td, value, cellProperties);
 
-    this.#inputEventFired = false;
-    this.#dateSeeded = false;
-
     if ((cellProperties as Record<string, unknown>).datePickerConfig !== undefined) {
       warnOnce(this.hot.rootElement, 'datePickerConfig',
         'The "datePickerConfig" option is not supported. The native date input is used instead of Pikaday.');
@@ -87,6 +84,25 @@ export class DateEditor extends TextEditor {
   }
 
   /**
+   * Begins editing, forgetting what the previous editing session did to the input.
+   *
+   * The state is reset here, not in `prepare()`: Escape closes the editor without moving the selection, so
+   * the next keystroke on the same cell opens a new session without preparing the editor again.
+   *
+   * @param {*} newInitialValue The initial editor value.
+   * @param {Event} event The keyboard event object.
+   */
+  beginEditing(newInitialValue?: unknown, event?: Event): void {
+    // Called again while the editor is open (F2), the base method returns early and the session goes on.
+    if (this.state === EDITOR_STATE.VIRGIN) {
+      this.#inputEventFired = false;
+      this.#dateSeeded = false;
+    }
+
+    super.beginEditing(newInitialValue, event);
+  }
+
+  /**
    * Finishes editing, keeping the cell's date when the native input holds an incomplete date.
    *
    * A native date input reports an empty value for an incomplete date, the same as for a cleared one.
@@ -99,7 +115,7 @@ export class DateEditor extends TextEditor {
    * @param {Function} callback The callback function, fired after editor closing.
    */
   finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: Function): void {
-    const keepCellDate = this.state === EDITOR_STATE.EDITING && this.#isIncomplete();
+    const keepCellDate = this.state === EDITOR_STATE.EDITING && this.#isIncomplete(ctrlDown);
 
     super.finishEditing(restoreOriginalValue || keepCellDate, ctrlDown, callback);
   }
@@ -112,14 +128,24 @@ export class DateEditor extends TextEditor {
    * cannot take) and that never fired an `input` event holds nothing the user entered. That holds after
    * a switch to full edit mode (F2) too, which does not seed the input.
    *
-   * A column with `allowEmpty: false` rejects the empty value on its own, so the validator answers there.
+   * A column with `allowEmpty: false` and `allowInvalid: false` refuses the empty value on its own, so the
+   * validator answers there.
    *
+   * @param {boolean} [ctrlDown] True when Ctrl/Meta+Enter finishes the editing, which fills the whole selection.
    * @returns {boolean}
    */
-  #isIncomplete(): boolean {
+  #isIncomplete(ctrlDown?: boolean): boolean {
     const input = this.TEXTAREA as HTMLInputElement;
 
-    if (input.value !== '' || isEmpty(this.originalValue) || this.cellProperties.allowEmpty === false) {
+    // An empty edited cell has no date to keep, except that a fill would write the empty value over the
+    // other selected cells, which do.
+    if (input.value !== '' || (isEmpty(this.originalValue) && !ctrlDown)) {
+      return false;
+    }
+
+    // `allowEmpty: false` with `allowInvalid: false` keeps the editor open on the empty value. Without
+    // `allowInvalid: false` the empty value would still be saved, and only marked invalid.
+    if (this.cellProperties.allowEmpty === false && this.cellProperties.allowInvalid === false) {
       return false;
     }
 

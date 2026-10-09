@@ -51,7 +51,7 @@ export class DateEditorPage {
   async openEditorWithEnter(row: number, col: number): Promise<void> {
     await this.selectCell(row, col);
     await this.page.keyboard.press('Enter');
-    await expect(this.editorInput).toBeVisible();
+    await expect.poll(() => this.isEditorOpened()).toBe(true);
   }
 
   /**

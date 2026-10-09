@@ -49,16 +49,17 @@
 
     window.hot = new Handsontable(container, {
       data: [
-        ['Conference', '2024-06-10', '2024-06-10'],
-        ['Kickoff', '2024-01-05', '2024-01-05'],
-        ['Review', '', ''],
+        ['Conference', '2024-06-10', '2024-06-10', '2024-06-10'],
+        ['Kickoff', '2024-01-05', '2024-01-05', '2024-01-05'],
+        ['Review', '', '', ''],
       ],
-      colHeaders: ['Event', 'Start', 'Required'],
+      colHeaders: ['Event', 'Start', 'Required', 'Required lenient'],
       rowHeaders: true,
       columns: [
         { type: 'text' },
         { type: 'date', locale: 'en-US', dateFormat: { dateStyle: 'short' }, allowInvalid: false },
         { type: 'date', locale: 'en-US', dateFormat: { dateStyle: 'short' }, allowInvalid: false, allowEmpty: false },
+        { type: 'date', locale: 'en-US', dateFormat: { dateStyle: 'short' }, allowEmpty: false },
       ],
       afterRenderer(td, row, col) {
         td.setAttribute('data-testid', `cell-${row}-${col}`);

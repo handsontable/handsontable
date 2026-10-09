@@ -7,8 +7,9 @@ import { DateEditorPage } from '../fixtures/pages/DateEditorPage';
  * `''` as a request to clear the cell: an incomplete entry keeps the cell's date, and only a
  * deliberate clear erases it.
  *
- * Column 1 of the fixture is a `date` column with `allowInvalid: false`; row 0 holds 2024-06-10 and
- * row 2 is empty. Column 2 adds `allowEmpty: false`.
+ * Columns of the fixture, all `date` columns: 1 has `allowInvalid: false`, 2 adds `allowEmpty: false`,
+ * and 3 has `allowEmpty: false` with the default `allowInvalid`. Row 0 holds 2024-06-10, row 1 holds
+ * 2024-01-05, and row 2 is empty.
  */
 test.describe('the date editor and an incomplete date', { tag: CROSS_BROWSER_TAG }, () => {
   let grid: DateEditorPage;
@@ -16,34 +17,6 @@ test.describe('the date editor and an incomplete date', { tag: CROSS_BROWSER_TAG
   test.beforeEach(async({ page, theme, bundle }) => {
     grid = new DateEditorPage(page, theme, bundle);
     await grid.goto();
-  });
-
-  test('keeps the cell\'s date when Enter commits a segment cleared from the open input', async({ page, browserName }) => {
-    if (browserName === 'firefox') {
-      // Headless Firefox does not clear a segment of the open input, so there is no incomplete date to commit.
-      return;
-    }
-
-    await grid.openEditorWithEnter(0, 1);
-
-    if (browserName === 'chromium') {
-      // Chromium shows the picker on open and the picker takes the keys. Escape closes it and leaves
-      // the editor open; in the other engines the same key would close the editor.
-      await page.keyboard.press('Escape');
-    }
-
-    await expect(grid.editorInput).toHaveValue('2024-06-10');
-
-    await page.keyboard.press('Backspace');
-
-    // A cleared segment makes the input report an empty value while the date is merely incomplete.
-    await expect(grid.editorInput).toHaveValue('');
-
-    await page.keyboard.press('Enter');
-
-    await expect.poll(() => grid.isEditorOpened()).toBe(false);
-    expect(await grid.sourceAt(0, 1)).toBe('2024-06-10');
-    await expect(grid.cell(0, 1)).toHaveText('6/10/24');
   });
 
   test('keeps the cell\'s date when a typed digit opens the editor and Enter commits it', async({ page, browserName }) => {
@@ -88,48 +61,30 @@ test.describe('the date editor and an incomplete date', { tag: CROSS_BROWSER_TAG
     await expect(grid.cell(0, 1)).toHaveText('6/10/24');
   });
 
-  test('keeps the cell\'s date when a segment cleared from the open input is left by clicking another cell', async({ page, browserName }) => {
-    if (browserName === 'firefox') {
-      // Headless Firefox does not clear a segment of the open input, so there is no incomplete date to commit.
-      return;
-    }
-
+  test('does not carry a seeded date into the next session on the same cell', async({ page, browserName }) => {
+    // Escape closes the editor without moving the selection, so the editor is not prepared again.
     await grid.openEditorWithEnter(0, 1);
 
     if (browserName === 'chromium') {
       await page.keyboard.press('Escape');
     }
 
-    await page.keyboard.press('Backspace');
-    await expect(grid.editorInput).toHaveValue('');
-
-    // Leaving the editor with a click commits it through the focusout path.
-    await grid.selectCell(1, 0);
-
+    await page.keyboard.press('ArrowUp');
+    await page.keyboard.press('Escape');
     await expect.poll(() => grid.isEditorOpened()).toBe(false);
-    expect(await grid.sourceAt(0, 1)).toBe('2024-06-10');
-    await expect(grid.cell(0, 1)).toHaveText('6/10/24');
-  });
 
-  test('leaves the validator to refuse an incomplete date in a column with allowEmpty: false', async({ page, browserName }) => {
-    if (browserName === 'firefox') {
-      // Headless Firefox does not clear a segment of the open input, so there is no incomplete date to commit.
-      return;
-    }
-
-    await grid.openEditorWithEnter(0, 2);
+    await page.keyboard.press('1');
+    await expect.poll(() => grid.isEditorOpened()).toBe(true);
+    await grid.hideBadInput();
 
     if (browserName === 'chromium') {
       await page.keyboard.press('Escape');
     }
 
-    await page.keyboard.press('Backspace');
-    await expect(grid.editorInput).toHaveValue('');
     await page.keyboard.press('Enter');
 
-    // allowInvalid: false keeps the editor open on the value the validator rejects.
-    await expect.poll(() => grid.isEditorOpened()).toBe(true);
-    expect(await grid.sourceAt(0, 2)).toBe('2024-06-10');
+    await expect.poll(() => grid.isEditorOpened()).toBe(false);
+    expect(await grid.sourceAt(0, 1)).toBe('2024-06-10');
   });
 
   test('still clears the cell when the input is cleared on purpose', async({ page, browserName }) => {
@@ -159,5 +114,95 @@ test.describe('the date editor and an incomplete date', { tag: CROSS_BROWSER_TAG
     await expect.poll(() => grid.isEditorOpened()).toBe(false);
     expect(await grid.sourceAt(0, 1)).toBe('2021-06-15');
     await expect(grid.cell(0, 1)).toHaveText('6/15/21');
+  });
+});
+
+/**
+ * Clearing one segment of the open input. Chromium only: the picker's keyboard is the engine's own, and
+ * headless Firefox does not clear a segment of the open input at all, so there is no incomplete date to
+ * commit there. In Chromium, Escape closes the picker and leaves the editor open.
+ */
+test.describe('the date editor and a segment cleared from the open input', () => {
+  let grid: DateEditorPage;
+
+  test.beforeEach(async({ page, theme, bundle }) => {
+    grid = new DateEditorPage(page, theme, bundle);
+    await grid.goto();
+  });
+
+  /**
+   * Opens the editor on a cell, closes the picker, and clears one segment of the date.
+   */
+  async function clearSegment(page: import('@playwright/test').Page, row: number, col: number): Promise<void> {
+    await grid.openEditorWithEnter(row, col);
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('Backspace');
+
+    // A cleared segment makes the input report an empty value while the date is merely incomplete.
+    await expect(grid.editorInput).toHaveValue('');
+  }
+
+  test('keeps the cell\'s date when Enter commits it', async({ page }) => {
+    await clearSegment(page, 0, 1);
+    await page.keyboard.press('Enter');
+
+    await expect.poll(() => grid.isEditorOpened()).toBe(false);
+    expect(await grid.sourceAt(0, 1)).toBe('2024-06-10');
+    await expect(grid.cell(0, 1)).toHaveText('6/10/24');
+  });
+
+  test('keeps the cell\'s date when another cell is clicked', async({ page }) => {
+    await clearSegment(page, 0, 1);
+
+    // The editor closes through the selection change that the click causes.
+    await grid.selectCell(1, 0);
+
+    await expect.poll(() => grid.isEditorOpened()).toBe(false);
+    expect(await grid.sourceAt(0, 1)).toBe('2024-06-10');
+    await expect(grid.cell(0, 1)).toHaveText('6/10/24');
+  });
+
+  test('keeps the cell\'s date when Tab leaves the editor', async({ page }) => {
+    await clearSegment(page, 0, 1);
+    await page.keyboard.press('Tab');
+
+    await expect.poll(() => grid.isEditorOpened()).toBe(false);
+    expect(await grid.sourceAt(0, 1)).toBe('2024-06-10');
+    await expect(grid.cell(0, 1)).toHaveText('6/10/24');
+  });
+
+  test('keeps every selected cell\'s date when Ctrl+Enter would fill the selection', async({ page }) => {
+    await grid.selectCell(0, 1);
+    await page.keyboard.press('Shift+ArrowDown');
+    // Enter moves the active cell inside a range, so F2 opens the editor.
+    await page.keyboard.press('F2');
+    await expect.poll(() => grid.isEditorOpened()).toBe(true);
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('Backspace');
+    await expect(grid.editorInput).toHaveValue('');
+    await page.keyboard.press('ControlOrMeta+Enter');
+
+    await expect.poll(() => grid.isEditorOpened()).toBe(false);
+    expect(await grid.sourceAt(0, 1)).toBe('2024-06-10');
+    expect(await grid.sourceAt(1, 1)).toBe('2024-01-05');
+  });
+
+  test('keeps the editor open in a column that rejects the empty value and the invalid one', async({ page }) => {
+    await clearSegment(page, 0, 2);
+    await page.keyboard.press('Enter');
+
+    // allowInvalid: false keeps the editor open on the value the validator rejects.
+    await expect.poll(() => grid.isEditorOpened()).toBe(true);
+    expect(await grid.sourceAt(0, 2)).toBe('2024-06-10');
+  });
+
+  test('keeps the cell\'s date in a column that rejects the empty value but allows the invalid one', async({ page }) => {
+    await clearSegment(page, 0, 3);
+    await page.keyboard.press('Enter');
+
+    // With the default allowInvalid the empty value would be saved and marked invalid, erasing the date.
+    await expect.poll(() => grid.isEditorOpened()).toBe(false);
+    expect(await grid.sourceAt(0, 3)).toBe('2024-06-10');
+    await expect(grid.cell(0, 3)).toHaveText('6/10/24');
   });
 });
