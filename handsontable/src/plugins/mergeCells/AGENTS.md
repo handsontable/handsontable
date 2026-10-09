@@ -571,10 +571,20 @@ Without the early return in the second, `expandCloneRange` absorbed every merge 
 column (or row) range crosses, so Shift+Arrow on a header selection jumped to the far edge of the
 farthest merge instead of adding one line, in all four directions. The result must equal the
 `mergeCells: false` one, and the header flag still skips the hidden columns through the core's own
-delta. Pinned by `tests/e2e/header-range-merge-keyboard.spec.ts`. Both hooks trust the header flags,
-so they inherit the `selection.clear()` TODO above: a flag it leaves set would stop the snapping of a
-later cell selection. A new selection (`selectCell()`, a click) resets them, and the spec's last case
-checks that a cell selection made after a header one still snaps.
+delta. Pinned by `tests/e2e/header-range-merge-keyboard.spec.ts`.
+
+Both hooks decide through `#isSelectedByHeader()`, and they ask about **different layers**.
+`#onBeforeSelectionHighlightSet` works on the last range, so it reads the last layer's flags (the
+default). `#onModifyTransformEnd` changes the range `getSelectedRangeActive()` returns, which Enter or Tab
+can move back to an earlier layer, so it passes `getActiveSelectionLayerIndex()`. Reading the last
+layer there made header, Ctrl+click a cell, Enter, Shift+ArrowRight jump to the merge edge again. Known
+limits: `isSelectedByCorner()` inside the flag getters still looks at the last layer, and the flags
+follow `selection.clear()` and the `removeLayers` plus `refresh()` path in `mouseEventHandler.ts`, which
+can leave them on a layer index they no longer describe. A flag is set only when a header is rendered,
+so Ctrl+A on a grid with column headers but no row headers sets one flag and is skipped by both hooks,
+while the same grid with no headers snaps. No spec pins the cell-layer side of this: the highlight hook
+snaps a cell range to the same result whether or not the transform hook runs, so only the header side
+can fail.
 
 ### An arrow-key horizontal exit is addressed by the merge's top row (DEV-102)
 

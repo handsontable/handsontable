@@ -2723,6 +2723,19 @@ export class MergeCells extends BasePlugin {
   };
 
   /**
+   * Tells whether a selection layer was made from a column or a row header. A header range is not snapped to
+   * merged cells. Without the argument it answers for the last layer, the one the highlight hook lays out.
+   *
+   * @param {number} [layerLevel] The selection layer to ask about.
+   * @returns {boolean}
+   */
+  #isSelectedByHeader(layerLevel?: number) {
+    const { selection } = this.hot;
+
+    return selection.isSelectedByColumnHeader(layerLevel) || selection.isSelectedByRowHeader(layerLevel);
+  }
+
+  /**
    * The hook allows to modify the delta transformation object necessary for correct selection end transformations.
    *
    * @param {{ row: number, col: number }} delta The transformation delta.
@@ -2737,7 +2750,7 @@ export class MergeCells extends BasePlugin {
     // A header range runs the whole length of the grid, so it crosses every merge in its columns (or
     // rows) and the clone below would grow to the edge of the farthest one. The range is not snapped
     // to merged cells either, see `#onBeforeSelectionHighlightSet`.
-    if (this.hot.selection.isSelectedByColumnHeader() || this.hot.selection.isSelectedByRowHeader()) {
+    if (this.#isSelectedByHeader(this.hot.selection.getActiveSelectionLayerIndex())) {
       return;
     }
 
@@ -2833,7 +2846,7 @@ export class MergeCells extends BasePlugin {
 
     const { highlight } = selectedRange;
 
-    if (this.hot.selection.isSelectedByColumnHeader() || this.hot.selection.isSelectedByRowHeader()) {
+    if (this.#isSelectedByHeader()) {
       this.#lastSelectedFocus = highlight.clone();
 
       return;

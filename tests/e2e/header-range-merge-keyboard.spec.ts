@@ -132,14 +132,15 @@ test.describe('Shift+Arrow on a header selection ignores the merged cells it cro
     expect(await grid.selected()).toEqual([[5, -1, 5, 149]]);
   });
 
-  test('still snaps a cell selection to the merge it reaches after a header selection', async({ page }) => {
-    await openLarge(MERGES);
+  test('extends a header layer by one column when Enter moved the focus back to it from a cell layer', async({ page }) => {
+    // The merge starts right after the extended column, so the range overlaps it once it grows.
+    await openLarge([{ row: 0, col: 4, rowspan: 1, colspan: 6 }]);
     await grid.clickColumnHeader(3);
-    await grid.selectCell(0, 3);
+    await grid.cell(10, 1).click({ modifiers: ['ControlOrMeta'] });
+    // Enter walks the focus on to the first layer, which is the header selection.
+    await page.keyboard.press('Enter');
     await page.keyboard.press('Shift+ArrowRight');
 
-    // The selection starts inside the merge over columns 0-9, so it takes the whole merge and then one
-    // more column.
-    expect(await grid.selected()).toEqual([[0, 0, 0, 10]]);
+    expect(await grid.selected()).toEqual([[-1, 3, 149, 4], [10, 1, 10, 1]]);
   });
 });
