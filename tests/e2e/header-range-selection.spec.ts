@@ -162,34 +162,86 @@ test.describe('a header click and a Shift+click select the range between them', 
     });
   }
 
-  // On a grid with nested headers and navigableHeaders, a Shift+click keeps the focus on the header
-  // the range started from, like a drag across the headers, Shift+ArrowRight, the nested-rows shape
-  // (navigableHeaders over a single header row) and this shape's row headers.
-  test('keeps the focus on the first column header of a range on the /nested-headers-demo shape', async() => {
-    await grid.goto('nested-headers');
+  // On a grid with nested headers and navigableHeaders, a Shift+click extends the range from the header
+  // (or the cell) it started from, and keeps the focus there, like a drag across the headers,
+  // Shift+ArrowRight, the nested-rows shape (navigableHeaders over a single header row) and this shape's
+  // row headers. The range and the focus come from the same anchor, so a later Shift+click that lands
+  // back past the start still measures from it. A header's `level` is its row: 0 is the group row
+  // (Product 0-3, Category 4-6, User 7-8, System 9-10), 1 is the leaf row.
+  type Click = { level: number, column: number, shift: boolean };
 
-    await grid.clickColumnHeader(2);
-    await grid.clickColumnHeader(5, ['Shift']);
+  const nestedFocusCases: Array<{
+    name: string,
+    cell?: [number, number],
+    clicks: Click[],
+    selected: number[][],
+    focus: { row: number, col: number },
+  }> = [
+    {
+      name: 'to the right of a leaf header',
+      clicks: [{ level: 1, column: 2, shift: false }, { level: 1, column: 5, shift: true }],
+      selected: [[-1, 2, 29, 5]],
+      focus: { row: -1, col: 2 },
+    },
+    {
+      name: 'to the left of a leaf header',
+      clicks: [{ level: 1, column: 5, shift: false }, { level: 1, column: 2, shift: true }],
+      selected: [[-1, 5, 29, 2]],
+      focus: { row: -1, col: 5 },
+    },
+    {
+      name: 'back past the start, then past the other side of it',
+      clicks: [
+        { level: 1, column: 5, shift: false },
+        { level: 1, column: 2, shift: true },
+        { level: 1, column: 7, shift: true },
+      ],
+      selected: [[-1, 5, 29, 7]],
+      focus: { row: -1, col: 5 },
+    },
+    {
+      name: 'to the right of a group header, then to the left of it',
+      clicks: [
+        { level: 0, column: 4, shift: false },
+        { level: 0, column: 7, shift: true },
+        { level: 0, column: 0, shift: true },
+      ],
+      selected: [[-2, 6, 29, 0]],
+      focus: { row: -2, col: 4 },
+    },
+    {
+      // A selection made at the group row takes in the whole of a group it touches (Product, 0-3).
+      name: 'onto a group header from a leaf header',
+      clicks: [{ level: 1, column: 2, shift: false }, { level: 0, column: 4, shift: true }],
+      selected: [[-2, 0, 29, 6]],
+      focus: { row: -1, col: 2 },
+    },
+    {
+      name: 'from a cell',
+      cell: [3, 2],
+      clicks: [{ level: 1, column: 5, shift: true }],
+      selected: [[-1, 2, 29, 5]],
+      focus: { row: -1, col: 2 },
+    },
+  ];
 
-    expect(await grid.focus()).toEqual({ row: -1, col: 2 });
-  });
+  for (const testCase of nestedFocusCases) {
+    test(`keeps the range and the focus on the anchor of a Shift+click ${testCase.name} on the /nested-headers-demo shape`, async() => {
+      await grid.goto('nested-headers');
 
-  test('keeps the focus on the first column header when the Shift+click lands to its left on the /nested-headers-demo shape', async() => {
-    await grid.goto('nested-headers');
+      if (testCase.cell) {
+        const [row, column] = testCase.cell;
 
-    await grid.clickColumnHeader(5);
-    await grid.clickColumnHeader(2, ['Shift']);
+        await grid.page.evaluate(([r, c]) => (window as unknown as { hot: { selectCell(r: number, c: number): void } })
+          .hot.selectCell(r, c), [row, column]);
+      }
 
-    expect(await grid.focus()).toEqual({ row: -1, col: 5 });
-  });
+      for (const click of testCase.clicks) {
+        await (await grid.columnHeader(click.column, click.level)).click({ modifiers: click.shift ? ['Shift'] : [] });
+      }
 
-  test('keeps the focus on the first column header after a second Shift+click on the /nested-headers-demo shape', async() => {
-    await grid.goto('nested-headers');
-
-    await grid.clickColumnHeader(2);
-    await grid.clickColumnHeader(5, ['Shift']);
-    await grid.clickColumnHeader(7, ['Shift']);
-
-    expect(await grid.focus()).toEqual({ row: -1, col: 2 });
-  });
+      expect(await grid.selected()).toEqual(testCase.selected);
+      expect(await grid.focus()).toEqual(testCase.focus);
+    });
+  }
 });

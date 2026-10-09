@@ -178,15 +178,23 @@ in `handsontable/src/selection/selection.ts`) will silently paint its class onto
 of the group cell until this hook is taught about it too (DEV-3012 added `COLUMN_TYPE` for
 `currentColClassName`).
 
-## A Shift+click must not overwrite the focus anchor (`#focusInitialCoords`)
+## A Shift+click measures the range and the focus from one anchor (`#focusInitialCoords`)
 
 `#onAfterOnCellMouseDown` records the pressed header in `#focusInitialCoords`, and with `navigableHeaders`
-`#onBeforeSelectionHighlightSet` moves the focus there. A Shift+click extends a range, so the focus has to
-stay on the header the range started from, as it does for a drag, Shift+ArrowRight and row headers.
-Recording the Shift-clicked header moved the focus to it. On a Shift+click the handler therefore keeps the
-current range's highlight as the anchor when that highlight sits in a header row, and falls back to the
-clicked header otherwise (the range started from a cell). The anchor is a snapshot, not the live highlight
-object, which the selection rewrites during the same click. Pinned by `tests/e2e/header-range-selection.spec.ts`.
+`#onBeforeSelectionHighlightSet` moves the focus there. A Shift+click extends a range, so both the focus and
+the far end of the range have to come from the header the range started from, as they do for a drag,
+Shift+ArrowRight and row headers. Recording the Shift-clicked header moved the focus to it, and building the
+range from the corners of the old range let a later Shift+click that landed back past the start drift away
+from the focus (5, Shift+2, Shift+7 selected 2..7 with the focus left on 5).
+
+`#resolveShiftClickAnchor()` therefore takes the focus of the current range as the anchor: its header when the
+focus sits in a header row, the bottom header of its column when the range started from a cell. The range then
+runs from the anchor's span to the span of the clicked header (`#getColumnsToSelectFromAnchor()`). When the
+range does not start under a nested header (a row header, the corner) there is no anchor, and the old corner
+based range and the clicked header as focus stay (`#getColumnsToSelectFromRange()`). The anchor is a snapshot
+of the focus, so it does not depend on what the selection layer does with the highlight object afterwards.
+Pinned by `tests/e2e/header-range-selection.spec.ts`, where the cases cover a leaf and a group anchor, both
+directions, a second Shift+click and a cell start.
 
 ## `fixedColumnsEnd`: a group that crosses the end line is drawn by the end clone
 
