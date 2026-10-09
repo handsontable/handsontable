@@ -1,4 +1,5 @@
 import type { CellProperties } from '../../settings';
+import { EDITOR_STATE } from '../baseEditor';
 import { TextEditor } from '../textEditor';
 import { isValidISODate } from '../../helpers/dateTime';
 import { warn, warnOnce } from '../../helpers/console';
@@ -12,6 +13,11 @@ export const EDITOR_TYPE = 'date';
  * @class DateEditor
  */
 export class DateEditor extends TextEditor {
+  /**
+   * Whether the native input fired an `input` event since the editor was prepared.
+   */
+  #inputEventFired = false;
+
   /**
    * Returns the unique editor type identifier for the date editor.
    */
@@ -48,6 +54,8 @@ export class DateEditor extends TextEditor {
           value: unknown, cellProperties: CellProperties): void {
     super.prepare(row, col, prop, td, value, cellProperties);
 
+    this.#inputEventFired = false;
+
     if ((cellProperties as Record<string, unknown>).datePickerConfig !== undefined) {
       warnOnce(this.hot.rootElement, 'datePickerConfig',
         'The "datePickerConfig" option is not supported. The native date input is used instead of Pikaday.');
@@ -67,6 +75,46 @@ export class DateEditor extends TextEditor {
     super.createElements('input');
 
     this.TEXTAREA.setAttribute('type', 'date');
+    this.eventManager.addEventListener(this.TEXTAREA, 'input', () => {
+      this.#inputEventFired = true;
+    });
+  }
+
+  /**
+   * Finishes editing, keeping the cell's date when the native input holds an incomplete date.
+   *
+   * A native date input reports an empty value for an incomplete date, the same as for a cleared one.
+   * Committing that empty value would erase the cell, so an incomplete entry restores the cell's date.
+   *
+   * @param {boolean} restoreOriginalValue If true, then closes editor without saving value from the editor into a cell.
+   * @param {boolean} ctrlDown If true, then saveValue will save editor's value to each cell in every selected range.
+   * @param {Function} callback The callback function, fired after editor closing.
+   */
+  finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: Function): void {
+    const keepCellDate = this.state === EDITOR_STATE.EDITING && this.#isIncomplete();
+
+    super.finishEditing(restoreOriginalValue || keepCellDate, ctrlDown, callback);
+  }
+
+  /**
+   * Checks whether the input is empty because its date is incomplete, not because the user cleared it.
+   *
+   * Chromium and WebKit flag a partly filled date with `validity.badInput`. Firefox does not. There, an
+   * input that was opened without the cell's date (the editor was opened by typing, which the date input
+   * cannot take) and that never fired an `input` event holds nothing the user entered.
+   *
+   * A column with `allowEmpty: false` rejects the empty value on its own, so the validator answers there.
+   *
+   * @returns {boolean}
+   */
+  #isIncomplete(): boolean {
+    const input = this.TEXTAREA as HTMLInputElement;
+
+    if (input.value !== '' || isEmpty(this.originalValue) || this.cellProperties.allowEmpty === false) {
+      return false;
+    }
+
+    return input.validity.badInput || (!this.isInFullEditMode() && !this.#inputEventFired);
   }
 
   /**
