@@ -297,3 +297,54 @@ describe('Xlsx default date and time formats', () => {
     expect(numFmts((await exportOneCell({}, timeMeta, '08:30')).cells)).toEqual(['hh:mm AM/PM']);
   });
 });
+
+describe('Xlsx validation list for object values (`sourceLabel`)', () => {
+  const countries = [
+    { key: 'US', value: { name: 'United States', currency: 'USD' } },
+    { key: 'PL', value: { name: 'Poland', currency: 'PLN' } },
+  ];
+
+  it('should list the labels `sourceLabel` derives, the same text the exported cell holds', async() => {
+    const { cells } = await exportOneCell({}, { type: 'dropdown', source: countries, sourceLabel: 'name' }, 'Poland');
+    const values = cells.map(cell => cell.value);
+
+    expect(values).toContain('United States');
+    expect(values).toContain('Poland');
+    // Without the label the list held `[object Object]` twice, which matched no exported cell.
+    expect(values).not.toContain('[object Object]');
+  });
+
+  it('should list the labels a `sourceLabel` function builds and link the cell to that list', async() => {
+    const { cells } = await exportOneCell({}, {
+      type: 'dropdown',
+      source: countries,
+      sourceLabel: value => `${value.name} (${value.currency})`,
+    }, 'Poland (PLN)');
+
+    expect(cells.map(cell => cell.value)).toEqual(expect.arrayContaining(['United States (USD)', 'Poland (PLN)']));
+    // The validation range is looked up by the same labels the list was built from, so a function -
+    // which no JSON key can carry - still finds it.
+    expect(cells.some(cell => cell.dataValidation?.type === 'list')).toBe(true);
+  });
+});
+
+describe('Xlsx validation list for a `sourceLabel` that resolves to nothing', () => {
+  it('should list an empty label, the text the exported cell holds, not the word "undefined"', async() => {
+    const airports = [
+      { key: 'CDG', value: { name: 'Charles de Gaulle Airport', location: { city: 'Paris' } } },
+      { key: 'XXX', value: { name: 'Unknown Field', location: null } },
+    ];
+    const { cells } = await exportOneCell({}, { type: 'dropdown', source: airports, sourceLabel: 'location.city' }, '');
+    const values = cells.map(cell => cell.value);
+
+    expect(values).toContain('Paris');
+    expect(values).not.toContain('undefined');
+  });
+
+  it('should keep writing a string source entry exactly as before', async() => {
+    // Not relabeled, so not touched: a `null` label still exports as it always did.
+    const { cells } = await exportOneCell({}, { type: 'dropdown', source: [{ key: '0', value: null }, 'red'] }, 'red');
+
+    expect(cells.map(cell => cell.value)).toEqual(expect.arrayContaining(['null', 'red']));
+  });
+});

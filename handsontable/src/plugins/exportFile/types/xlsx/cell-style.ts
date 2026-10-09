@@ -2,6 +2,7 @@ import { isDefined } from '../../../../helpers/mixed';
 import type { CellStyleSnapshot, CellValidationSnapshot } from '../../../../utils/xlsxEngine/model';
 import { normalizeClassNames } from '../../../../helpers/dom/element';
 import { READ_ONLY_FILL_ARGB, READ_ONLY_TEXT_ARGB } from '../../../../utils/xlsxEngine/readOnlyStyle';
+import type { SourceLabel } from '../../../../utils/cellSource';
 
 export interface CssStyle {
   fontBold: boolean;
@@ -23,6 +24,7 @@ export interface CellMeta {
   borders?: Record<string, { width: number; color: string }>;
   type?: string;
   source?: unknown[];
+  sourceLabel?: SourceLabel;
   comment?: { value?: unknown };
   numericFormat?: {
     pattern?: string;

@@ -1,4 +1,4 @@
-import { isKeyValueObject } from '../helpers/object';
+import { isKeyValueObject, isPlainObject } from '../helpers/object';
 import { stringify } from '../helpers/mixed';
 import { stripTags } from '../helpers/string';
 
@@ -10,6 +10,18 @@ export type KeyValueObject = {
   key: unknown;
   value: unknown;
 };
+
+/**
+ * How a cell derives the label of a key/value entry whose `value` is an object: a property path
+ * (`'name'`, `'address.city'`) or a function that receives the object and returns the label.
+ */
+// The function's parameter is deliberately `any`. Users type it with their own shape -
+// `(airport: Airport) => airport.name` - and under `strictFunctionTypes` any narrower declared type
+// rejects that: `Record<string, unknown>` is not assignable to an interface with required fields,
+// and `object` leaves an untyped `value => value.name` without a `name` to read. Handsontable only
+// ever calls it with the plain object found in `source`, which the user declared themselves.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type SourceLabel = string | ((value: any) => unknown);
 
 /**
  * Type-guard form of `isKeyValueObject()`, so a caller can read `key` and `value` without a cast.
@@ -30,15 +42,46 @@ export function isKeyValueEntry(value: unknown): value is KeyValueObject {
 }
 
 /**
+ * Derives the label of a key/value entry's `value` half, following the cell's `sourceLabel` option.
+ *
+ * Only an object `value` is relabeled. A primitive one is already a label and comes back as it is,
+ * so a source mixing string labels with object ones keeps its string labels. Without `sourceLabel`
+ * an object comes back unchanged too - the behavior from before the option existed.
+ *
+ * @param {*} value The `value` half of a key/value entry.
+ * @param {string|Function} [sourceLabel] A property path, or a function returning the label.
+ * @returns {*} The label to display for `value`.
+ */
+export function getChoiceLabel(value: unknown, sourceLabel?: SourceLabel): unknown {
+  if (!isPlainObject(value) || !sourceLabel) {
+    return value;
+  }
+
+  if (typeof sourceLabel === 'function') {
+    return sourceLabel(value);
+  }
+
+  // Not `getProperty()` from `helpers/object`: it indexes into whatever the previous segment held,
+  // so a `null` midway (`address.city` on `{ address: null }`) throws - and this runs on every render
+  // of the cell. A segment that is not an object ends the walk with `undefined` instead.
+  return sourceLabel.split('.').reduce<unknown>(
+    (current, segment) => (isPlainObject(current) ? current[segment] : undefined),
+    value,
+  );
+}
+
+/**
  * Reduces one choice to the text a cell displays for it: a key/value entry contributes its `value`
- * half, and tags are stripped unless the cell allows HTML.
+ * half (relabeled by `sourceLabel` when it is an object), and tags are stripped unless the cell
+ * allows HTML.
  *
  * @param {*} choice A single entry of a cell's resolved choices.
  * @param {boolean} allowHtml Whether the cell renders its choices as HTML.
+ * @param {string|Function} [sourceLabel] The cell's `sourceLabel` option.
  * @returns {string} The displayed text of the choice.
  */
-function toDisplayedText(choice: unknown, allowHtml: boolean): string {
-  const value = isKeyValueEntry(choice) ? choice.value : choice;
+function toDisplayedText(choice: unknown, allowHtml: boolean, sourceLabel?: SourceLabel): string {
+  const value = isKeyValueEntry(choice) ? getChoiceLabel(choice.value, sourceLabel) : choice;
   // `stringify()` first, then strip - never `String()`. `String(null)` is `'null'`, so a choice
   // carrying `value: null` would claim the displayed text `'null'`, matching a paste of that
   // literal word and never matching the empty text the cell actually shows for it. `stringify()`
@@ -85,14 +128,21 @@ export function hasKeyValueChoices(choices: unknown): boolean {
  *                    calling it.
  * @param {*} value The label to look up.
  * @param {boolean} [allowHtml] Whether the cell renders its choices as HTML.
+ * @param {string|Function} [sourceLabel] The cell's `sourceLabel` option, which labels an object
+ *                                         `value`.
  * @returns {*} The matching choice, or `undefined` when nothing matches.
  */
-export function findChoiceByDisplayedValue(choices: unknown, value: unknown, allowHtml: boolean = false): unknown {
+export function findChoiceByDisplayedValue(
+  choices: unknown,
+  value: unknown,
+  allowHtml: boolean = false,
+  sourceLabel?: SourceLabel,
+): unknown {
   if (!Array.isArray(choices)) {
     return undefined;
   }
 
   const label = stringify(value);
 
-  return choices.find(choice => toDisplayedText(choice, allowHtml) === label);
+  return choices.find(choice => toDisplayedText(choice, allowHtml, sourceLabel) === label);
 }
