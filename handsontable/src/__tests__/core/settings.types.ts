@@ -229,6 +229,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   preventWheel: true,
   readOnly: true,
   readOnlyCellClassName: 'foo',
+  readOnlyStyling: true,
   renderAllColumns: true,
   renderAllRows: true,
   renderMode: 'onChange',

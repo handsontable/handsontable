@@ -19,6 +19,29 @@ function canBeOverwritten(propertyName: string, metaObject: Record<string, unkno
 }
 
 /**
+ * Checks whether editing was switched off for the meta object, at its own level or at any level it
+ * inherits from.
+ *
+ * An `editor` of `false` names no editor - it disables editing - so it is a policy the user set,
+ * never a default a cell type supplied: no built-in type declares one. A `type` expansion therefore
+ * has no competing default to apply here, and supplying the type's editor would silently re-enable
+ * editing that was turned off one level up. `canBeOverwritten()` alone cannot see that, because a
+ * grid-level setting reaches a column through the PROTOTYPE CHAIN rather than as an own property,
+ * and `hasOwnProperty()` reports it as absent.
+ *
+ * A custom cell type MAY declare `editor: false`. One that did is recorded as automatically
+ * assigned, and such a value is the type's default rather than the user's policy, so it stays
+ * overwritable by the next type.
+ *
+ * @param {object} metaObject The meta object the type is being expanded into.
+ * @returns {boolean}
+ */
+function isEditingDisabled(metaObject: Record<string, unknown>) {
+  return metaObject.editor === false &&
+    !(metaObject._automaticallyAssignedMetaProps as Set<string> | undefined)?.has('editor');
+}
+
+/**
  * Expands "type" property of the meta object to single values. For example `type: 'numeric'` sets
  * "renderer", "editor", "validator" properties to specific functions designed for numeric values.
  * If "type" is passed as an object that object will be returned, excluding properties that
@@ -27,6 +50,10 @@ function canBeOverwritten(propertyName: string, metaObject: Record<string, unkno
  * The function utilizes `_automaticallyAssignedMetaProps` meta property that allows tracking what
  * properties are changed by the "type" expanding feature. That properties can be always overwritten by
  * the user.
+ *
+ * The one key a type never supplies is "editor" when editing is already disabled - see
+ * {@link isEditingDisabled}. Every other key of the type, "renderer" and "validator" included, is
+ * applied as usual, so a column keeps its type's formatting while staying non-editable.
  *
  * @param {object} metaObject The meta object.
  * @param {object} settings The settings object with the "type" setting.
@@ -54,8 +81,15 @@ export function extendByMetaType(
   }
 
   const expandedType: Record<string, unknown> = {};
+  // Resolved after the bookkeeping above, so a payload that sets "editor" itself has already
+  // cleared the automatically-assigned flag and is judged on the value it just wrote.
+  const keepEditingDisabled = isEditingDisabled(metaObject);
 
   objectEach(validType as Record<string, unknown>, (value: unknown, property: string) => {
+    if (property === 'editor' && keepEditingDisabled) {
+      return;
+    }
+
     if (canBeOverwritten(property, settingsToCompareWith)) {
       expandedType[property] = value;
       (metaObject._automaticallyAssignedMetaProps as Set<string> | undefined)?.add(property);

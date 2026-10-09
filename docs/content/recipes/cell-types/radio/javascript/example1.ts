@@ -8,6 +8,12 @@ import type { CellProperties } from 'handsontable/settings';
 // Register all Handsontable's modules.
 registerAllModules();
 
+type RadioOption = { value: string; label: string } | string;
+
+interface RadioCellProperties extends CellProperties {
+  options: RadioOption[];
+}
+
 /* start:skip-in-preview */
 const data = [
   { task: 'Refactor licensing app navigation', priority: 'high',   status: 'in-progress' },
@@ -17,12 +23,6 @@ const data = [
   { task: 'shadcn/ui integration recipe',      priority: 'medium', status: 'todo'        },
 ];
 /* end:skip-in-preview */
-
-type RadioOption = { value: string; label: string } | string;
-
-interface RadioCellProperties extends CellProperties {
-  options: RadioOption[];
-}
 
 // Minimal editor stub — all interaction is handled by the renderer.
 class RadioEditor extends BaseEditor {
@@ -47,7 +47,12 @@ const radioRenderer = rendererFactory(({ instance, td, row, column, value, cellP
 
   if (colHeader) wrapper.setAttribute('aria-label', String(colHeader));
 
-  const isReadOnly = !!cellProperties.readOnly;
+  // A cell with no editor cannot be changed by the user, so its radios are disabled the same
+  // way `readOnly` disables them. `editor: false` set at any configuration level reaches the
+  // cell through the cascade. Read the option directly: `getCellEditor()` throws on an editor
+  // name that isn't registered, and a renderer runs on every draw.
+  const isEditable = !cellProperties.readOnly &&
+    cellProperties.editor !== false && cellProperties.editor !== null;
 
   const hasChecked = options.some((opt) => {
     const v = typeof opt === 'object' ? opt.value : opt;
@@ -96,7 +101,7 @@ const radioRenderer = rendererFactory(({ instance, td, row, column, value, cellP
     input.checked = String(optValue) === String(value);
     // Roving tabindex: exactly one radio per group is tabbable.
     input.tabIndex = (input.checked || (!hasChecked && idx === 0)) ? 0 : -1;
-    input.disabled = isReadOnly;
+    input.disabled = !isEditable;
 
     const span = document.createElement('span');
 
@@ -128,8 +133,14 @@ const radioRenderer = rendererFactory(({ instance, td, row, column, value, cellP
       });
     });
 
-    // Stop mousedown so Handsontable doesn't hijack the click for cell selection.
-    label.addEventListener('mousedown', (e) => e.stopPropagation());
+    // Stop mousedown so Handsontable doesn't hijack the click for cell selection - but only
+    // while the radios are interactive. On a non-editable cell the click would otherwise do
+    // nothing at all, leaving no way to select the cell by clicking it.
+    label.addEventListener('mousedown', (e) => {
+      if (isEditable) {
+        e.stopPropagation();
+      }
+    });
 
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
