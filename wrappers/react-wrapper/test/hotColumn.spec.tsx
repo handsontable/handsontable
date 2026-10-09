@@ -1,6 +1,7 @@
 import React from 'react';
 import { act } from '@testing-library/react';
 import Handsontable from 'handsontable';
+import type { RemoveIndexSignature } from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { HotTable } from '../src/hotTable';
 import { HotColumn } from '../src/hotColumn';
@@ -22,7 +23,7 @@ import {
   OBSOLETE_HOTRENDERER_WARNING,
   UNEXPECTED_HOTCOLUMN_CHILDREN_WARNING
 } from '../src/helpers';
-import { HotTableProps, HotTableRef, HotRendererProps } from '../src/types';
+import { HotTableProps, HotColumnProps, HotTableRef, HotRendererProps } from '../src/types';
 
 // register Handsontable's modules
 registerAllModules();
@@ -1173,5 +1174,37 @@ describe('Passing children', () => {
     ));
 
     expect(console.warn).toHaveBeenCalledWith(UNEXPECTED_HOTCOLUMN_CHILDREN_WARNING);
+  });
+});
+
+describe('HotColumnProps typing', () => {
+  // The props carry a `[key: string]: any` hatch, which makes every name a key. Strip it to see the
+  // named props, which are what the IDE suggests.
+  type HasProp<T, K extends string> = K extends keyof RemoveIndexSignature<T> ? true : false;
+
+  it('should not offer the grid hooks as <HotColumn> props', () => {
+    const hooksOnColumn: [
+      HasProp<HotColumnProps, 'afterChange'>,
+      HasProp<HotColumnProps, 'beforeKeyDown'>,
+      HasProp<HotColumnProps, 'modifyData'>,
+    ] = [false, false, false];
+
+    expect(hooksOnColumn).toEqual([false, false, false]);
+  });
+
+  it('should keep offering the column options, including the function-valued ones', () => {
+    const optionsOnColumn: [
+      HasProp<HotColumnProps, 'readOnly'>,
+      HasProp<HotColumnProps, 'validator'>,
+      HasProp<HotColumnProps, 'renderer'>,
+    ] = [true, true, true];
+
+    expect(optionsOnColumn).toEqual([true, true, true]);
+  });
+
+  it('should keep the hook props on <HotTable>', () => {
+    const hooksOnTable: HasProp<HotTableProps, 'afterChange'> = true;
+
+    expect(hooksOnTable).toBe(true);
   });
 });

@@ -80,6 +80,32 @@ export type RemoveIndexSignature<T> = {
 };
 
 /**
+ * The names of the hook callbacks that `GridSettings` declares: every `before*`, `after*` and
+ * `modify*` option, plus the few hooks that do not follow that naming (`construct`, `init`,
+ * `hasExternalDataSource`, `dialogFocusNextElement`, `dialogFocusPreviousElement`).
+ *
+ * Derived from the keys rather than from the callback shape, because options such as `renderer`,
+ * `validator`, and `cells` are functions too but are not hooks. The `hookSettingKeys` unit test keeps
+ * this in step with `REGISTERED_HOOKS`.
+ */
+export type HookSettingKey = Extract<
+  keyof RemoveIndexSignature<GridSettings>,
+  `before${string}` | `after${string}` | `modify${string}` | 'construct' | 'init' | 'hasExternalDataSource' |
+  'dialogFocusNextElement' | 'dialogFocusPreviousElement'
+>;
+
+/**
+ * Removes the hook callbacks from a settings type. Hooks run from the grid-level settings only, so a
+ * column-level type must not offer them.
+ *
+ * Pass a type whose index signature is already stripped (see `RemoveIndexSignature`). Like that helper,
+ * it lives in core because the wrappers' declaration compiler predates the `as` key remapping.
+ */
+export type OmitHooks<T> = {
+  [K in keyof T as K extends HookSettingKey ? never : K]: T[K]
+};
+
+/**
  * Column settings inherit grid settings but overload the meaning of `data` to be specific to each column.
  *
  * The base type is `RemoveIndexSignature<GridSettings>`, not `GridSettings` itself: `Omit` over a type
