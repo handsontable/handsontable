@@ -933,7 +933,7 @@ class CollapsingUI extends BaseUI {
     // By ancestor, not by the target's own class: the button hosts a real icon element whose
     // markup a theme `icons` renderer may extend, and the press may then target that markup.
     if (eventTargetEl(event)!.closest(`.${HeadersUI.CSS_CLASSES.button}`) !== null) {
-      this.toggleCollapsedRows([row], this.areChildrenCollapsed(row) ? 'expand' : 'collapse');
+      this.plugin.toggleParentByUser(row, this.areChildrenCollapsed(row) ? 'expand' : 'collapse');
 
       stopImmediatePropagation(event);
     }
