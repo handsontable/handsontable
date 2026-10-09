@@ -126,7 +126,9 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
    *   - `unknown`: The scope is activated by an unknown source.<br/>
    *   - `click`: The scope is activated by a click event.<br/>
    *   - `tab_from_above`: The scope is activated by a tab key press.<br/>
-   *   - `tab_from_below`: The scope is activated by a shift+tab key press.
+   *   - `tab_from_below`: The scope is activated by a shift+tab key press.<br/>
+   * The callback runs again when the focus comes back into the scope that is already active through its focus
+   * catcher (a `tab_from_above` or `tab_from_below` source), so it must be safe to run more than once.
    * @param {function(): void} [options.onDeactivate] Callback function to be called when the scope is deactivated.
    *
    * @example
@@ -245,6 +247,10 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
   /**
    * Activates a focus scope by its ID.
    *
+   * Activating a scope that is already active does nothing, except for the `tab_from_above` and `tab_from_below`
+   * sources, which run its `onActivate` callback again: the focus came back into the scope through its focus
+   * catcher.
+   *
    * @memberof FocusScopeManager#
    * @alias FocusScopeManager#activateScope
    * @param {string} scopeId The ID of the scope to activate.
@@ -290,11 +296,21 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
    */
   function activateScope(
     scope: ReturnType<typeof createFocusScope>, focusSource: string = FOCUS_SOURCES.UNKNOWN): void {
-    if (activeScope === scope) {
+    // A focus catcher is disarmed while the focus is inside the active scope, so a Tab source reaching
+    // the scope that is already active normally means the focus left the document with no `focusin` to say
+    // so (a Tab past the last element goes to the browser UI) and has now come back. The scope must take
+    // the entry again, or a keyboard user cannot get back in. A caller that activates the scope with a Tab
+    // source on purpose (the notification region handing the focus on to the grid) gets the same re-run.
+    const isReentryThroughCatcher = focusSource === FOCUS_SOURCES.TAB_FROM_ABOVE ||
+      focusSource === FOCUS_SOURCES.TAB_FROM_BELOW;
+
+    const wasActive = activeScope === scope;
+
+    if (wasActive && !isReentryThroughCatcher) {
       return;
     }
 
-    if (activeScope !== null) {
+    if (activeScope !== null && activeScope !== scope) {
       deactivateScope(activeScope);
     }
 
@@ -316,13 +332,18 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
     // `editor` back to `grid`. The default is only for a scope that has nothing recorded at all.
     const currentContextName = shortcutManager.getActiveContextName();
 
-    if (currentContextName !== scope.getShortcutsContextName()) {
-      scope.setDisplacedShortcutsContextName(currentContextName);
-    } else if (scope.getDisplacedShortcutsContextName() === null) {
-      scope.setDisplacedShortcutsContextName(DEFAULT_SHORTCUTS_CONTEXT);
-    }
+    // A re-entry leaves the shortcuts context alone. The scope set it when it was first activated, and
+    // whatever holds it now took it over while the focus was away (an editor left open): that holder keeps
+    // its Enter and Escape, and rolling back to its context later would pin that state.
+    if (!wasActive) {
+      if (currentContextName !== scope.getShortcutsContextName()) {
+        scope.setDisplacedShortcutsContextName(currentContextName);
+      } else if (scope.getDisplacedShortcutsContextName() === null) {
+        scope.setDisplacedShortcutsContextName(DEFAULT_SHORTCUTS_CONTEXT);
+      }
 
-    shortcutManager.setActiveContextName(scope.getShortcutsContextName());
+      shortcutManager.setActiveContextName(scope.getShortcutsContextName());
+    }
 
     activeScope.activate(focusSource);
   }

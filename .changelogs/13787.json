@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where pressing Tab could not bring the focus back into a grid that the focus had left at the edge of the page.",
+  "type": "fixed",
+  "issueOrPR": 13787,
+  "breaking": false,
+  "framework": "none"
+}
