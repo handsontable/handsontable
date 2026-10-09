@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - filters date between input type</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document - no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back - a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    // Null-prototype maps, so an inherited key ('constructor', 'toString', ...) cannot pass as a value.
+    const htThemes = Object.assign(Object.create(null), { main: 'main', horizon: 'horizon', classic: 'classic' });
+    const htBundles = Object.assign(Object.create(null), { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' });
+
+    window.htTheme = htThemes[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = htBundles[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    E2E fixture for DEV-3278: the input type of "Is between" per column type. A date column shows
+    native date inputs, a numeric column keeps text inputs. Both columns share the condition key
+    `between`.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    var container = document.querySelector('[data-testid="grid"]');
+
+    container.className = 'ht-theme-' + window.htTheme;
+
+    window.FILTERS_AVAILABLE_CONDITIONS_DATA = [
+      ['2019-12-31', 5],
+      ['2020-01-15', 15],
+      ['2020-03-10', 25],
+      ['2020-06-30', 35],
+      ['2020-09-01', 45],
+    ];
+
+    window.initFiltersAvailableConditionsGrid = function(overrides) {
+      if (window.hot) {
+        window.hot.destroy();
+      }
+
+      window.hot = new Handsontable(container, Object.assign({
+        data: window.FILTERS_AVAILABLE_CONDITIONS_DATA.map(function(row) { return row.slice(); }),
+        colHeaders: ['Sell date', 'Qty'],
+        columns: [
+          { type: 'date', locale: 'en-US', dateFormat: { dateStyle: 'short' } },
+          { type: 'numeric' },
+        ],
+        rowHeaders: true,
+        dropdownMenu: true,
+        filters: {
+          availableConditions: {
+            numeric: { exclude: ['not_between'] },
+          },
+        },
+        afterRenderer: function(td, row, col) {
+          td.setAttribute('data-testid', 'cell-' + row + '-' + col);
+        },
+        width: 600,
+        height: 320,
+        licenseKey: 'non-commercial-and-evaluation',
+      }, overrides || {}));
+
+      return true;
+    };
+
+    // Fail loud: a constructor throw is stored where `goto()` can read it and rethrow it with its own
+    // message. Without this the first build failing reads as a `toBeVisible()` timeout on a cell,
+    // which points nowhere near the cause. `rebuild()` needs no such net - it runs through
+    // `page.evaluate`, which already rejects with the error.
+    try {
+      window.initFiltersAvailableConditionsGrid();
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+  </script>
+</body>
+</html>
