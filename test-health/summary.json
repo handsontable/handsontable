@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-09T13:31:04.785Z",
+  "generatedAt": "2026-10-09T13:51:56.269Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 375,
     "needsTicket": 20,
     "quarantined": 0,
-    "entries": 1940
+    "entries": 1941
   },
   "rows": [
     {
@@ -394,6 +394,39 @@
       "needsTicket": true
     },
     {
+      "key": "playwright|e2e/selection-viewport-scroll.spec.ts|viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
+      "tier": "playwright",
+      "file": "e2e/selection-viewport-scroll.spec.ts",
+      "line": 72,
+      "title": "viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
+      "count7": 4,
+      "count30": 4,
+      "countAll": 4,
+      "runs30": 2,
+      "flakyRuns30": 2,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "e2e-horizon-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-09T13:50:59Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37933022010/attempts/2",
+        "branch": "feature/DEV-3276_Hidden-column-neighbor-resize-overshoot",
+        "leg": "e2e-horizon-min",
+        "status": "flaky",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
       "key": "playwright|e2e/collapsible-indicator-dropdown-menu.spec.ts|collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
       "tier": "playwright",
       "file": "e2e/collapsible-indicator-dropdown-menu.spec.ts",
@@ -462,39 +495,6 @@
       "needsTicket": true
     },
     {
-      "key": "playwright|e2e/selection-viewport-scroll.spec.ts|viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
-      "tier": "playwright",
-      "file": "e2e/selection-viewport-scroll.spec.ts",
-      "line": 72,
-      "title": "viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
-      "count7": 3,
-      "count30": 3,
-      "countAll": 3,
-      "runs30": 2,
-      "flakyRuns30": 2,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "e2e-horizon-min"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-09T13:30:12Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37933022010",
-        "branch": "feature/DEV-3276_Hidden-column-neighbor-resize-overshoot",
-        "leg": "e2e-horizon-min",
-        "status": "flaky",
-        "error": "Error: expect(received).toBe(expected) // Object.is equality",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
       "key": "playwright|e2e/fixed-columns-end.spec.ts|fixedColumnsEnd keyboard navigation (rtl) › keeps the cell reached with the arrow key visible beside the end columns",
       "tier": "playwright",
       "file": "e2e/fixed-columns-end.spec.ts",
@@ -533,7 +533,7 @@
       "file": "e2e/walkontable/inline-end-overlay.spec.ts",
       "line": 74,
       "title": "walkontable inline-end overlay (ltr) › follows the vertical scroll of the grid row by row",
-      "count7": 3,
+      "count7": 1,
       "count30": 3,
       "countAll": 3,
       "runs30": 2,
@@ -1137,7 +1137,7 @@
       "file": "handsontable/src/__tests__/settings/tableClassName.spec.js",
       "line": null,
       "title": "settings tableClassName should add class name every table element inside handsontable wrapper element (as array, with overlays)",
-      "count7": 6,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 1,
@@ -1177,7 +1177,7 @@
       "file": "handsontable/src/__tests__/settings/tableClassName.spec.js",
       "line": null,
       "title": "settings tableClassName should add class name every table element inside handsontable wrapper element (as array, without overlays)",
-      "count7": 6,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 1,
@@ -1217,7 +1217,7 @@
       "file": "handsontable/src/__tests__/settings/tableClassName.spec.js",
       "line": null,
       "title": "settings tableClassName should add class name every table element inside handsontable wrapper element (as string with spaces, with overlays)",
-      "count7": 6,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 1,
@@ -1257,7 +1257,7 @@
       "file": "handsontable/src/__tests__/settings/tableClassName.spec.js",
       "line": null,
       "title": "settings tableClassName should add class name every table element inside handsontable wrapper element (as string with spaces, without overlays)",
-      "count7": 6,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 1,
@@ -1297,7 +1297,7 @@
       "file": "handsontable/src/__tests__/settings/tableClassName.spec.js",
       "line": null,
       "title": "settings tableClassName should add class name every table element inside handsontable wrapper element (as string, with overlays)",
-      "count7": 6,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 1,
@@ -1337,7 +1337,7 @@
       "file": "handsontable/src/__tests__/settings/tableClassName.spec.js",
       "line": null,
       "title": "settings tableClassName should add class name every table element inside handsontable wrapper element (as string, without overlays)",
-      "count7": 6,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 1,
@@ -13665,7 +13665,7 @@
       "file": "e2e/walkontable/inline-end-overlay.spec.ts",
       "line": 74,
       "title": "walkontable inline-end overlay (rtl) › follows the vertical scroll of the grid row by row",
-      "count7": 1,
+      "count7": 0,
       "count30": 1,
       "countAll": 1,
       "runs30": 1,
