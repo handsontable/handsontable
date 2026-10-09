@@ -20,19 +20,17 @@ test.describe('the mouse wheel over the grid body', { tag: CROSS_BROWSER_TAG }, 
     await grid.wheelOverBody(270);
 
     // The first capture: scrolled by the wheel's delta, with the row headers on the same offset and
-    // each row header level with its row.
-    await expect.poll(async() => (await grid.scrollState()).master).toBe(270);
-
-    const down = await grid.scrollState();
-
-    expect(down).toMatchObject({ master: 270, inlineStart: 270, top: 0, rowHeaderOffset: 0 });
-    expect(down.firstFullyVisibleRow).toBeGreaterThan(0);
+    // each row header level with its row. The whole state is polled, never the master's offset alone:
+    // an engine can move the master in the wheel's own task while the row headers follow on the next
+    // frame's `scroll` event, so a read right after the master moved can still see them behind.
+    await expect.poll(async() => grid.scrollState())
+      .toMatchObject({ master: 270, inlineStart: 270, top: 0, rowHeaderOffset: 0 });
+    expect((await grid.scrollState()).firstFullyVisibleRow).toBeGreaterThan(0);
 
     // The second capture: scrolled back to the first row.
     await grid.wheelOverBody(-270);
 
-    await expect.poll(async() => (await grid.scrollState()).master).toBe(0);
-    expect(await grid.scrollState())
+    await expect.poll(async() => grid.scrollState())
       .toEqual({ master: 0, inlineStart: 0, top: 0, firstFullyVisibleRow: 0, rowHeaderOffset: 0 });
   });
 });
