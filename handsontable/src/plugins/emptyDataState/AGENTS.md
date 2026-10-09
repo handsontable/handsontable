@@ -34,6 +34,17 @@ through the `cols === 0` case, and it is only ever true with `cols > 0`. It runs
 `afterRow/ColumnSequenceCacheUpdate` during a fetch's `loadData()`, so a resize there only buys a forced
 reflow per index update (measured: six per fetch) and a line no test can pin.
 
+## The overlay height is capped at the root's own box
+
+`computeEmptyDataStateHeight()` starts from `view.getWorkspaceHeight()` / `getViewportHeight()`, which the
+engine measures on the trimming container. With `height: 'auto'` inside a container that clips its overflow
+and holds more than the grid (a docs example: the padded preview, the `overflow: hidden` wrapper, the
+toolbar), that container is taller than the grid, and the overlay used to take its height and cover
+whatever sits below the grid. The result is therefore capped at `hot.getTableHeight()` (the root's
+`offsetHeight`) minus the header row the overlay starts under. A fixed pixel height is unaffected: the cap is not
+smaller than the value the engine returned there. A root with no box (hidden) is left uncapped. Pinned by `tests/e2e/empty-data-state-clipped-container.spec.ts`,
+which needs the clipping ancestor: a plain page lets the window own the axis and never takes this path.
+
 ## The `message` option accepts three shapes
 
 `string` | `function` | a record. `SETTINGS_VALIDATORS` accepts all three plus `undefined`, and the plugin
