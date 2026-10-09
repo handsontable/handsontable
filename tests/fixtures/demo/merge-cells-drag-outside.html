@@ -24,7 +24,9 @@
   </script>
 </head>
 <body>
-  <div id="grid" data-testid="grid"></div>
+  <!-- The page object drags to a point just past the grid's box, so the box is the grid's own width, not the page's:
+       a pointer outside the window gets no mouse events in Firefox. -->
+  <div id="grid" data-testid="grid" style="width: 500px"></div>
 
   <script>
     document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
