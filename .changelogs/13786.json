@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the focus of a column range selected with Shift+click on nested headers with `navigableHeaders`, so it stays on the header the range started from.",
+  "type": "fixed",
+  "issueOrPR": 13786,
+  "breaking": false,
+  "framework": "none"
+}
