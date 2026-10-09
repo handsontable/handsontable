@@ -167,6 +167,8 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nije moguće ukloniti retke',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Zahtjev nije uspio',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ponovno učitaj',
+  [C.FREEZE_BAR_ROWS]: 'Zamrznuti retci',
+  [C.FREEZE_BAR_COLUMNS]: 'Zamrznuti stupci',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Proširen redak [label], prikazani prošireni retci: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sažet redak [label]',
 };

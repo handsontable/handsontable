@@ -6,7 +6,9 @@ import { SheetsBarMenus } from './ui/menus';
 import { OverflowController } from './ui/overflow';
 import {
   captureViewState,
+  clearFrozenCountShadow,
   clearMergedCells,
+  FROZEN_COUNT_KEYS,
   keepSelectionOnPage,
   resetViewState,
   resetViewport,
@@ -536,6 +538,20 @@ export class SheetsBar extends BasePlugin {
    * @type {number|undefined}
    */
   #neutralFixedColumnsEnd: number | undefined;
+  /**
+   * The grid-level `fixedRowsTop` as it stood before any sheet was applied. It plays the same part as
+   * `#neutralFixedColumnsStart` for the frozen top rows.
+   *
+   * @type {number|undefined}
+   */
+  #neutralFixedRowsTop: number | undefined;
+  /**
+   * The grid-level `fixedRowsBottom` as it stood before any sheet was applied. It plays the same part as
+   * `#neutralFixedColumnsStart` for the frozen bottom rows.
+   *
+   * @type {number|undefined}
+   */
+  #neutralFixedRowsBottom: number | undefined;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings.
@@ -563,6 +579,8 @@ export class SheetsBar extends BasePlugin {
     if (this.#preservedState === null) {
       this.#neutralFixedColumnsStart = this.hot.getSettings().fixedColumnsStart as number | undefined;
       this.#neutralFixedColumnsEnd = this.hot.getSettings().fixedColumnsEnd as number | undefined;
+      this.#neutralFixedRowsTop = this.hot.getSettings().fixedRowsTop as number | undefined;
+      this.#neutralFixedRowsBottom = this.hot.getSettings().fixedRowsBottom as number | undefined;
     }
 
     this.#getDataProvider()?._setContextOwner(this.#contextOwner);
@@ -847,15 +865,22 @@ export class SheetsBar extends BasePlugin {
       }
     });
 
-    if (!('fixedColumnsStart' in restored)
-      && (this.hot.getSettings().fixedColumnsStart ?? 0) !== (this.#neutralFixedColumnsStart ?? 0)) {
-      restored.fixedColumnsStart = this.#neutralFixedColumnsStart ?? 0;
-    }
+    // Each frozen count goes back to the value the grid started with, unless a sheet's own settings already put
+    // it in the baseline.
+    const neutral = this.#getNeutralFrozenCounts();
 
-    if (!('fixedColumnsEnd' in restored)
-      && (this.hot.getSettings().fixedColumnsEnd ?? 0) !== (this.#neutralFixedColumnsEnd ?? 0)) {
-      restored.fixedColumnsEnd = this.#neutralFixedColumnsEnd ?? 0;
-    }
+    FROZEN_COUNT_KEYS.forEach((key) => {
+      if (!(key in restored) && (this.hot.getSettings()[key] ?? 0) !== (neutral[key] ?? 0)) {
+        restored[key] = neutral[key] ?? 0;
+      }
+    });
+
+    // A count written on the table meta (by the freeze bar, for example) would outlive the write below.
+    FROZEN_COUNT_KEYS.forEach((key) => {
+      if (key in restored) {
+        clearFrozenCountShadow(this.hot, key);
+      }
+    });
 
     if (Object.keys(restored).length === 0) {
       return;
@@ -873,6 +898,20 @@ export class SheetsBar extends BasePlugin {
     } finally {
       this.#isRestoringBaseline = false;
     }
+  }
+
+  /**
+   * The four frozen counts the grid had before any sheet was applied.
+   *
+   * @returns {object}
+   */
+  #getNeutralFrozenCounts() {
+    return {
+      fixedColumnsStart: this.#neutralFixedColumnsStart,
+      fixedColumnsEnd: this.#neutralFixedColumnsEnd,
+      fixedRowsTop: this.#neutralFixedRowsTop,
+      fixedRowsBottom: this.#neutralFixedRowsBottom,
+    };
   }
 
   /**
@@ -1456,7 +1495,7 @@ export class SheetsBar extends BasePlugin {
       // those declarations were wiped on the sheet's first activation and then captured as
       // its own empty state.
       if (!viewState) {
-        resetViewState(this.hot, this.#neutralFixedColumnsStart, this.#neutralFixedColumnsEnd);
+        resetViewState(this.hot, this.#getNeutralFrozenCounts());
       } else {
         clearMergedCells(this.hot);
       }
@@ -1537,9 +1576,7 @@ export class SheetsBar extends BasePlugin {
       // and be captured as its own state on the first switch away. The reset runs before the
       // sheet is applied, so the opening sheet's own declared `settings` stay in force.
       if (this.hot.view) {
-        this.#withoutUndoEntry(() => resetViewState(
-          this.hot, this.#neutralFixedColumnsStart, this.#neutralFixedColumnsEnd
-        ));
+        this.#withoutUndoEntry(() => resetViewState(this.hot, this.#getNeutralFrozenCounts()));
       }
 
       this.#applySheet(targetSheet, SOURCE_API);

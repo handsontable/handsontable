@@ -421,9 +421,21 @@ Tests: `__tests__/*.unit.js` (Jest), `tests/e2e/sheets-bar*.spec.ts` (Playwright
 `visual-tests/tests/js-only/sheetsBar/`. The unit suite drives the strip through DOM events and
 a captured `TabStrip` instance — the plugin exposes no test-only methods.
 
-## `fixedColumnsEnd` follows the same rules as `fixedColumnsStart`
+## The four frozen counts follow the same rules
 
-The per-sheet view state captures and restores `fixedColumnsEnd`, `#neutralFixedColumnsEnd` is the value a sheet
-with no captured state opens with, `resetViewState(hot, start, end)` takes both, and `#restoreBaselineToGrid()`
-puts a runtime end freeze back on teardown. A freeze set at runtime on one sheet therefore does not follow the
-user onto a sheet they never visited. Pinned in `__tests__/sheetsBar.unit.js`.
+The per-sheet view state captures and restores `fixedColumnsStart`, `fixedColumnsEnd`, `fixedRowsTop` and
+`fixedRowsBottom`. `#getNeutralFrozenCounts()` is the value a sheet with no captured state opens with (read once, when
+the workbook starts), `resetViewState(hot, neutral)` takes all four, and `#restoreBaselineToGrid()` puts a runtime
+freeze back on teardown. A freeze set at runtime on one sheet therefore does not follow the user onto a sheet they
+never visited. The rows were not tracked at first, so a frozen row carried over to every sheet.
+
+**A count can be a shadow on the table meta, and `updateSettings()` leaves a shadow alone.** The freeze bar,
+`ManualColumnFreeze`, `alter()` and undo write a frozen count as an own property of `getSettings()`, and
+`updateSettings()` drops it only when the new value differs from the previous GRID-level one. A sheet's count must win,
+so every write of a count goes through `setFrozenCount()` / `clearFrozenCountShadow()` in `viewState.ts`, which
+removes the shadow (and `_fixedColumnsStart`, the backing field of the start freeze) first. A new path that writes
+one of the four options must do the same, or the count a sheet left behind stays in force. Pinned in
+`__tests__/sheetsBar.unit.js`, "a freeze written on the table meta".
+
+The new `fixedRowsTop` and `fixedRowsBottom` fields of `SheetsBarViewState` are optional: the type is public, and a
+required field would break code that builds one.

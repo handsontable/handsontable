@@ -170,6 +170,10 @@ export const DATA_PROVIDER_ERRORS_REMOVE = `${DATA_PROVIDER_NAMESPACE}errors.rem
 export const DATA_PROVIDER_ERRORS_REQUEST_FAILED = `${DATA_PROVIDER_NAMESPACE}errors.requestFailed`;
 export const DATA_PROVIDER_BUTTONS_REFETCH = `${DATA_PROVIDER_NAMESPACE}buttons.refetch`;
 
+export const FREEZE_BAR_NAMESPACE = 'FreezeBar:';
+export const FREEZE_BAR_ROWS = `${FREEZE_BAR_NAMESPACE}rows`;
+export const FREEZE_BAR_COLUMNS = `${FREEZE_BAR_NAMESPACE}columns`;
+
 export const NESTED_ROWS_NAMESPACE = 'NestedRows:';
 export const NESTED_ROWS_ANNOUNCEMENT_EXPANDED = `${NESTED_ROWS_NAMESPACE}announcement.expanded`;
 export const NESTED_ROWS_ANNOUNCEMENT_COLLAPSED = `${NESTED_ROWS_NAMESPACE}announcement.collapsed`;

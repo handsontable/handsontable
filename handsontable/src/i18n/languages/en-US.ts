@@ -158,6 +158,8 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Could not remove rows',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Request failed',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Refetch',
+  [C.FREEZE_BAR_ROWS]: 'Frozen rows',
+  [C.FREEZE_BAR_COLUMNS]: 'Frozen columns',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Expanded row [label], expanded rows shown: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Collapsed row [label]',
 };

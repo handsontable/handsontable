@@ -1,0 +1,153 @@
+// Handsontable Freeze Bar
+
+@mixin output {
+  .handsontable {
+    .ht-freeze-bar {
+      position: absolute;
+      z-index: 215;
+      background: var(--ht-resize-indicator-color);
+      border-radius: var(--ht-border-radius);
+      touch-action: none;
+
+      // the bar turns to the accent color while it is held
+      &--active {
+        background: var(--ht-accent-color);
+      }
+
+      // the ring is on the bar, the focus itself is on the separator next to the grid
+      &--focused {
+        outline: var(--ht-sizing-size-0-5) solid var(--ht-accent-color);
+        outline-offset: var(--ht-sizing-size-0-5);
+      }
+
+      // A finger needs a larger target than the visible bar. It grows towards the frozen side only: the overlay that
+      // holds the bar cuts everything past its edge, and a tap just past the line must select a cell.
+      @media (pointer: coarse) {
+        &::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+        }
+
+        &.ht-freeze-bar--start::before {
+          inset-inline-start: -40px;
+        }
+
+        &.ht-freeze-bar--top::before {
+          inset-block-start: -40px;
+        }
+
+        &.ht-freeze-bar--end::before {
+          inset-inline-end: -40px;
+        }
+
+        &.ht-freeze-bar--bottom::before {
+          inset-block-end: -40px;
+        }
+      }
+
+      &--start {
+        top: 0;
+        bottom: 0;
+        inset-inline-end: 0;
+        width: var(--ht-sizing-size-1);
+        cursor: col-resize;
+      }
+
+      &--top {
+        inset-inline: 0;
+        bottom: 0;
+        height: var(--ht-sizing-size-1);
+        cursor: row-resize;
+      }
+
+      &--end {
+        top: 0;
+        bottom: 0;
+        inset-inline-start: 0;
+        width: var(--ht-sizing-size-1);
+        cursor: col-resize;
+      }
+
+      &--bottom {
+        inset-inline: 0;
+        top: 0;
+        height: var(--ht-sizing-size-1);
+        cursor: row-resize;
+      }
+
+      // The handle of an edge with nothing frozen, mounted in the root element. A wide one can be grabbed along
+      // the whole edge, but only a piece on the header corner is drawn.
+      &--empty {
+        // below the open editor (200), which an empty handle on the edge of a grid without headers would cover
+        z-index: 190;
+
+        &.ht-freeze-bar--start {
+          inset-inline-end: auto;
+        }
+
+        &.ht-freeze-bar--top {
+          bottom: auto;
+          inset-inline: 0;
+        }
+
+        &.ht-freeze-bar--end {
+          inset-inline-start: auto;
+        }
+
+        &.ht-freeze-bar--bottom {
+          top: auto;
+          inset-inline: 0;
+        }
+
+        &.ht-freeze-bar--wide {
+          background: transparent;
+
+          // the drawn piece is `::after`, so `::before` stays the larger hit area for a finger
+          &::after {
+            content: "";
+            position: absolute;
+            background: var(--ht-resize-indicator-color);
+            border-radius: var(--ht-border-radius);
+          }
+
+          &.ht-freeze-bar--active::after {
+            background: var(--ht-accent-color);
+          }
+
+          &.ht-freeze-bar--start::after {
+            inset-block-start: 0;
+            inset-inline: 0;
+            height: var(--ht-freeze-bar-corner);
+          }
+
+          &.ht-freeze-bar--top::after {
+            inset-block: 0;
+            inset-inline-start: 0;
+            width: var(--ht-freeze-bar-corner);
+          }
+
+          // A finger gets the larger target on the drawn piece only. A strip along the whole edge would lie over
+          // the headers and the first row or column, and take their taps and swipes.
+          @media (pointer: coarse) {
+            &.ht-freeze-bar--start::before {
+              inset: 0 -20px auto -20px;
+              height: var(--ht-freeze-bar-corner);
+            }
+
+            &.ht-freeze-bar--top::before {
+              inset-block: -20px;
+              inset-inline: 0 auto;
+              width: var(--ht-freeze-bar-corner);
+            }
+          }
+        }
+      }
+    }
+
+    .ht-freeze-bar-guide {
+      z-index: 216;
+      background: var(--ht-accent-color);
+    }
+  }
+}

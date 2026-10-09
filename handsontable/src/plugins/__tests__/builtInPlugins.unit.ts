@@ -45,6 +45,7 @@ describe('built-in plugins', () => {
       'Dialog',
       'EmptyDataState',
       'Notification',
+      'FreezeBar',
       'Pagination',
       'SheetsBar',
       'DataProvider',

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `freezeBar` plugin, which lets users change the number of frozen rows and columns by dragging a bar on the freeze line or with the keyboard, together with the `beforeFreezeChange` and `afterFreezeChange` hooks and the `getFreezeCount()` and `setFreezeCount()` methods. The sheets bar now keeps the frozen rows of each sheet apart, and a freeze set at runtime no longer follows the user onto a sheet they have not opened.",
+  "type": "added",
+  "issueOrPR": 13766,
+  "breaking": false,
+  "framework": "none"
+}

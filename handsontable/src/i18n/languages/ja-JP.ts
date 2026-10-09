@@ -157,6 +157,8 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: '行を削除できませんでした',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'リクエストに失敗しました',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: '再読み込み',
+  [C.FREEZE_BAR_ROWS]: '固定された行',
+  [C.FREEZE_BAR_COLUMNS]: '固定された列',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '行 [label] を展開しました。展開された行数: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '行 [label] を折りたたみました',
 };

@@ -17,6 +17,7 @@ import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from '../plug
 import type { DropdownMenu } from '../plugins/dropdownMenu';
 import type { SheetsBarSettings, SheetsBarViewState } from '../plugins/sheetsBar';
 import type { ManualColumnFreezeSettings } from '../plugins/manualColumnFreeze';
+import type { FreezeBarSettings, FreezeEdge, FreezeSource } from '../plugins/freezeBar';
 import type { ImportFileSettings, ImportResult } from '../plugins/importFile';
 import type { UndoRedoSettings } from '../plugins/undoRedo';
 import type { PasteClipboardData } from '../plugins/copyPaste';
@@ -302,6 +303,7 @@ export interface GridSettings {
   hiddenColumns?: boolean | object;
   hiddenRows?: boolean | object;
   loading?: boolean | object;
+  freezeBar?: boolean | FreezeBarSettings;
   manualColumnFreeze?: boolean | ManualColumnFreezeSettings;
   manualColumnMove?: boolean | number[];
   manualColumnResize?: boolean | number[];
@@ -402,6 +404,7 @@ export interface GridSettings {
   afterColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean, orderChanged: boolean) => void;
   afterColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void;
+  afterFreezeChange?: (edge: FreezeEdge, newCount: number, oldCount: number, source: FreezeSource) => void;
   afterColumnSequenceChange?: (source: ChangeSource) => void;
   afterCustomBordersUpdate?: () => void;
   afterColumnSequenceCacheUpdate?: (indexesChangesState: {
@@ -609,6 +612,7 @@ export interface GridSettings {
   beforeColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean) => void | boolean;
   beforeColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void | number | false;
+  beforeFreezeChange?: (edge: FreezeEdge, newCount: number, oldCount: number, source: FreezeSource) => void | boolean;
   beforeColumnSort?: (currentSortConfig: ColumnSortingConfig[],
     destinationSortConfigs: ColumnSortingConfig[], sortPossible: boolean) => void | boolean;
   beforeColumnUnfreeze?: (columnIndex: number, isUnfreezingPerformed: boolean, finalIndex: number) => void | boolean;

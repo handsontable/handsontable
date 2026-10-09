@@ -152,6 +152,8 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Řádky se nepodařilo odstranit',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Požadavek selhal',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Znovu načíst',
+  [C.FREEZE_BAR_ROWS]: 'Ukotvené řádky',
+  [C.FREEZE_BAR_COLUMNS]: 'Ukotvené sloupce',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rozbalen řádek [label], zobrazené rozbalené řádky: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sbalen řádek [label]',
 };

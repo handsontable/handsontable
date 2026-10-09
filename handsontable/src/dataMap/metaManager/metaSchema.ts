@@ -4822,6 +4822,55 @@ export default (): Record<string, unknown> => {
     notification: false,
 
     /**
+     * The `freezeBar` option configures the [`FreezeBar`](@/api/freezeBar.md) plugin.
+     *
+     * The plugin draws a bar on each edge of the frozen area. You drag the bar, or focus it and press the arrow keys,
+     * to change how many rows or columns are frozen. An edge with nothing frozen has a short handle on a corner of
+     * the headers, so users can start freezing from there.
+     *
+     * You can set the `freezeBar` option to one of the following:
+     *
+     * | Setting   | Description                                                                              |
+     * | --------- | ---------------------------------------------------------------------------------------- |
+     * | `true`    | Enable the [`FreezeBar`](@/api/freezeBar.md) plugin for rows and columns                  |
+     * | `false`   | Disable the [`FreezeBar`](@/api/freezeBar.md) plugin                                      |
+     * | An object | Enable the [`FreezeBar`](@/api/freezeBar.md) plugin and choose the axes                   |
+     *
+     * The object form accepts the following properties:
+     *
+     * | Property  | Type      | Default | Description                           |
+     * | --------- | --------- | ------- | ------------------------------------- |
+     * | `rows`    | `boolean` | `true`  | Show the bar for frozen rows          |
+     * | `columns` | `boolean` | `true`  | Show the bar for frozen columns       |
+     *
+     * The plugin changes the frozen counts on the grid only. It does not write them back to the settings you passed
+     * in, so an application that keeps the counts in its own state copies them in the
+     * [`afterFreezeChange`](@/api/hooks.md#afterfreezechange) hook.
+     *
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default undefined
+     * @category FreezeBar
+     * @configScope grid
+     * @since 19.0.0
+     *
+     * @example
+     * ```js
+     * // enable the `FreezeBar` plugin
+     * freezeBar: true,
+     *
+     * // enable the `FreezeBar` plugin for columns only
+     * freezeBar: {
+     *   rows: false,
+     * },
+     * ```
+     */
+    freezeBar: undefined,
+
+    /**
      * The `manualColumnFreeze` option configures the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin.
      *
      * You can set the `manualColumnFreeze` option to one of the following:
