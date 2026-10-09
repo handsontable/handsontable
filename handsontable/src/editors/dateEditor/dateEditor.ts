@@ -19,6 +19,11 @@ export class DateEditor extends TextEditor {
   #inputEventFired = false;
 
   /**
+   * Whether the native input was given a date since the editor was prepared.
+   */
+  #dateSeeded = false;
+
+  /**
    * Returns the unique editor type identifier for the date editor.
    */
   static get EDITOR_TYPE() {
@@ -55,6 +60,7 @@ export class DateEditor extends TextEditor {
     super.prepare(row, col, prop, td, value, cellProperties);
 
     this.#inputEventFired = false;
+    this.#dateSeeded = false;
 
     if ((cellProperties as Record<string, unknown>).datePickerConfig !== undefined) {
       warnOnce(this.hot.rootElement, 'datePickerConfig',
@@ -102,8 +108,9 @@ export class DateEditor extends TextEditor {
    * Checks whether the input is empty because its date is incomplete, not because the user cleared it.
    *
    * Chromium and WebKit flag a partly filled date with `validity.badInput`. Firefox does not. There, an
-   * input that was opened without the cell's date (the editor was opened by typing, which the date input
-   * cannot take) and that never fired an `input` event holds nothing the user entered.
+   * input that was never given the cell's date (the editor was opened by typing, which the date input
+   * cannot take) and that never fired an `input` event holds nothing the user entered. That holds after
+   * a switch to full edit mode (F2) too, which does not seed the input.
    *
    * A column with `allowEmpty: false` rejects the empty value on its own, so the validator answers there.
    *
@@ -116,7 +123,7 @@ export class DateEditor extends TextEditor {
       return false;
     }
 
-    return input.validity.badInput || (!this.isInFullEditMode() && !this.#inputEventFired);
+    return input.validity.badInput || (!this.#dateSeeded && !this.#inputEventFired);
   }
 
   /**
@@ -137,6 +144,7 @@ export class DateEditor extends TextEditor {
     }
 
     super.setValue(value);
+    this.#dateSeeded = true;
   }
 
   /**

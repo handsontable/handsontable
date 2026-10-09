@@ -66,6 +66,28 @@ test.describe('the date editor and an incomplete date', { tag: CROSS_BROWSER_TAG
     await expect(grid.cell(0, 1)).toHaveText('6/10/24');
   });
 
+  test('keeps the cell\'s date after a typed digit and a switch to full edit mode, without badInput', async({ page, browserName }) => {
+    await grid.selectCell(0, 1);
+    await page.keyboard.press('1');
+    await expect.poll(() => grid.isEditorOpened()).toBe(true);
+
+    if (browserName === 'chromium') {
+      await page.keyboard.press('Escape');
+    }
+
+    // Firefox does not flag the empty input as bad, so only the editor's own state can tell.
+    await grid.hideBadInput();
+    await expect(grid.editorInput).toHaveValue('');
+
+    // Full edit mode does not seed an input that was opened by typing.
+    await grid.enableFullEditMode();
+    await page.keyboard.press('Enter');
+
+    await expect.poll(() => grid.isEditorOpened()).toBe(false);
+    expect(await grid.sourceAt(0, 1)).toBe('2024-06-10');
+    await expect(grid.cell(0, 1)).toHaveText('6/10/24');
+  });
+
   test('keeps the cell\'s date when a segment cleared from the open input is left by clicking another cell', async({ page, browserName }) => {
     if (browserName === 'firefox') {
       // Headless Firefox does not clear a segment of the open input, so there is no incomplete date to commit.

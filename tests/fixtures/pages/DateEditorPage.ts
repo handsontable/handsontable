@@ -74,4 +74,26 @@ export class DateEditorPage {
         .hot.getActiveEditor().isOpened()
     );
   }
+
+  /**
+   * Makes the native input report `validity.badInput === false`, as Firefox does for an incomplete date,
+   * so a spec can show what the editor does without that signal.
+   */
+  async hideBadInput(): Promise<void> {
+    await this.editorInput.evaluate((input) => {
+      Object.defineProperty(input, 'validity', { get: () => ({ badInput: false }) });
+    });
+  }
+
+  /**
+   * Switches the open editor into full edit mode, as the `F2` shortcut does while an editor is open.
+   * The key press does not reach the grid's shortcut while the date input has the focus, so the editor is
+   * switched through its API.
+   */
+  async enableFullEditMode(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as unknown as { hot: { getActiveEditor: () => { enableFullEditMode: () => void } } })
+        .hot.getActiveEditor().enableFullEditMode();
+    });
+  }
 }
