@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-08T11:36:13.193Z",
+  "updatedAt": "2026-10-09T08:28:16.635Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-horizon-min",
+      "file": "e2e/selection-viewport-scroll.spec.ts",
+      "line": 72,
+      "title": "viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: expect(received).toBe(expected) // Object.is equality",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "37901401370",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37901401370",
+      "workflow": "Tests",
+      "branch": "feature/PRO-1337_Treegrid-a11y-nested-rows",
+      "headSha": "da97273caa1fcedb8ae18e75fed1901193278065",
+      "event": "pull_request",
+      "seenAt": "2026-10-09T08:27:30Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-horizon",
