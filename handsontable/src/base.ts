@@ -471,7 +471,7 @@ export {
 export type { GridSettings, Events, SanitizerContext, TextExtractorContext, PasteClipboardData } from './core/settings';
 export type {
   CellValue, CellChange, ColumnDataGetterSetterFunction, RowObject, SourceRowData, ChangeSource,
-  CellMeta, CellProperties, ColumnSettings, RemoveIndexSignature
+  CellMeta, CellProperties, ColumnSettings, RemoveIndexSignature, OmitHooks
 } from './settings';
 export type { RangeType, HotInstance } from './core/types';
 export type { OverlayType } from './3rdparty/walkontable/src/types';
