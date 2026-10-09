@@ -22,6 +22,21 @@ test.describe('Tab re-entry after the focus left the page', { tag: CROSS_BROWSER
   const getSelected = (page: GridPage['page']) =>
     page.evaluate(() => (window as Window & { hot: HandsontableFixture }).hot.getSelected());
 
+  /**
+   * Presses the key until the grid selects a cell. Where the first stop lands depends on the engine: Chromium
+   * starts from the blurred cell and reaches a focus catcher at once, WebKit starts from the top of the page
+   * and visits the button before the grid first.
+   */
+  const pressUntilSelected = async(page: GridPage['page'], key: string) => {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await page.keyboard.press(key);
+
+      if (await getSelected(page) !== undefined) {
+        return;
+      }
+    }
+  };
+
   test.beforeEach(async({ page, theme, bundle }) => {
     grid = new GridPage(page, theme, bundle);
     await grid.goto();
@@ -42,7 +57,7 @@ test.describe('Tab re-entry after the focus left the page', { tag: CROSS_BROWSER
   });
 
   test('Tab selects the remembered cell again', async({ page }) => {
-    await page.keyboard.press('Tab');
+    await pressUntilSelected(page, 'Tab');
 
     await expect.poll(() => getSelected(grid.page)).toEqual([[2, 1, 2, 1]]);
 
@@ -53,7 +68,7 @@ test.describe('Tab re-entry after the focus left the page', { tag: CROSS_BROWSER
   });
 
   test('Shift+Tab selects the remembered cell again', async({ page }) => {
-    await page.keyboard.press('Shift+Tab');
+    await pressUntilSelected(page, 'Shift+Tab');
 
     await expect.poll(() => getSelected(grid.page)).toEqual([[2, 1, 2, 1]]);
 
