@@ -154,6 +154,8 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: '无法删除行',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: '请求失败',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: '重新加载',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '已展开行 [label]，显示的展开行数：[count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '已折叠行 [label]',
 };
 
 export default dictionary;

@@ -17,7 +17,9 @@ Configure your grid's columns, using the props of the `HotColumn` component. Pas
 
 ## Declare column settings
 
-To declare column-specific settings, pass the settings as `HotColumn` props, exactly as you would with `HotTable`.
+To declare column-specific settings, pass the settings as `HotColumn` props, the same way you do with `HotTable`.
+
+Hooks, such as `afterChange`, run at the grid level only. Pass them to `HotTable`, not to `HotColumn`. Your IDE doesn't suggest hooks as `HotColumn` props, and a hook you pass to `HotColumn` doesn't run. For more information, see [Events and hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md).
 
 ::: example #example1 :react --js 1 --ts 2
 

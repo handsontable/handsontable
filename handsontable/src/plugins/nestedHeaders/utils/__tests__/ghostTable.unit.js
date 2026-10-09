@@ -104,6 +104,7 @@ describe('GhostTable', () => {
       getHeaderSettings: (row, column) => getHeaderSettings(row, column),
       getHeaderTreeNode: () => null,
     };
+    const invalidateColumnWidthCache = jest.fn();
     const hotMock = {
       rootDocument: document,
       rootWindow: window,
@@ -113,6 +114,7 @@ describe('GhostTable', () => {
       getSettings: () => ({ dropdownMenu: true }),
       view: {
         countRenderableColumns: () => 3,
+        invalidateColumnWidthCache,
       },
       columnIndexMapper: {
         createAndRegisterIndexMap: () => widthsMapMock,
@@ -130,6 +132,12 @@ describe('GhostTable', () => {
     expect(ghostTable.widthsMap.getValueAtIndex(0)).toBeDefined();
     expect(ghostTable.widthsMap.getValueAtIndex(1)).toBeDefined();
     expect(ghostTable.widthsMap.getValueAtIndex(2)).toBeDefined();
+    // The engine's column width cache compares only the column count, so the producer drops it.
+    expect(invalidateColumnWidthCache).toHaveBeenCalledTimes(1);
+
+    ghostTable.clear();
+
+    expect(invalidateColumnWidthCache).toHaveBeenCalledTimes(2);
   });
 
   it('should render the dropdown button in all header rows of the rendered ghost table', () => {
@@ -258,6 +266,7 @@ describe('GhostTable', () => {
           getSettings: () => ({ sanitizer }),
           view: {
             countRenderableColumns: () => 1,
+            invalidateColumnWidthCache: () => {},
           },
           columnIndexMapper: {
             createAndRegisterIndexMap: () => widthsMapMock,
@@ -374,6 +383,7 @@ describe('GhostTable', () => {
           }),
           view: {
             countRenderableColumns: () => 1,
+            invalidateColumnWidthCache: () => {},
           },
           columnIndexMapper: {
             createAndRegisterIndexMap: () => widthsMapMock,

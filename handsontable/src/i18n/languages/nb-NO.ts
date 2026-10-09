@@ -151,6 +151,8 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Kunne ikke fjerne rader',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Forespørselen mislyktes',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Hent på nytt',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Utvidet rad [label], viste utvidede rader: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Slått sammen rad [label]',
 };
 
 export default dictionary;

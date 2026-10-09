@@ -969,7 +969,7 @@ the holder scrolls the columns inside the root's box, and the page scrolls the r
 The owners live on the overlays: the top and bottom overlays carry the vertical owner in
 `trimmingContainer`, the inline-start overlay the horizontal one, and
 `isVerticallyScrollableByWindow()` / `isHorizontallyScrollableByWindow()` read exactly those two
-fields. Seven rules follow.
+fields. Nine rules follow.
 
 - **A decision about the other axis goes through the viewport predicate, never `this.trimmingContainer`.**
   The width of the top and bottom clones is a horizontal question and the height of the inline-start
@@ -1010,6 +1010,19 @@ fields. Seven rules follow.
   horizontal-only gesture there still has to be preventable. Pinned by the two exact-distance wheel
   tests in `tests/e2e/width-window-scroll.spec.ts`; a "moved more than zero" assertion cannot see a
   doubling, which is how this survived a full review round.
+- **The grid converts Shift + wheel into a horizontal scroll itself.** Chromium outside macOS (Windows,
+  Linux, ChromeOS, Android) and Firefox on every platform leave `deltaX` at 0 on a Shift + wheel event
+  and apply the Shift-to-horizontal conversion only as the default action. The grid scrolls from the event and then consumes it, so that default action never
+  runs, and the gesture scrolled the rows (GitHub issue #13752). `resolveWheelDeltas`
+  (`overlay/scroll/nativeScrollInput.ts`) moves a vertical delta onto the horizontal axis when `shiftKey`
+  is set and `deltaX` is 0. The `deltaX === 0` guard is what keeps a browser that already rewrote the
+  deltas from being swapped twice. **macOS is excluded** (`!isMacOS()` at the call site): Chromium and
+  Safari leave a Shift + trackpad swipe vertical there and the OS converts only mouse wheels, so the
+  swap would change what a Mac trackpad does, and a frame with a pixel of `deltaX` noise would zigzag
+  between the axes. Mac users keep the vertical scroll they had. A trackpad on Windows or Linux with
+  `deltaX` noise has the same hole, tracked as a follow-up. Pinned by `test/unit/overlay/resolveWheelDeltas.unit.ts` and
+  `tests/e2e/shift-wheel-scroll.spec.ts`, which needs real wheel input: a dispatched `WheelEvent` carries
+  whatever deltas the test gives it and proves nothing about the browser.
 - **`preventOverflow` is an alias, not a mode.** `'horizontal'` forces the horizontal owner to the
   root's parent and `'vertical'` the vertical one; everything the option used to switch by string
   comparison now follows from the owners. Its only remaining reads are the window-mode overflow
@@ -1645,7 +1658,7 @@ none of the deleted plugin paths ask for a resize on its fixture.
 - Batch scroll events with requestAnimationFrame
 - Never `arr.push(...largeArray)` with 10k+ elements
 - Reuse DOM elements, minimize layout thrashing
-- **Row-height sums go through `Viewport#sumRowHeights`** (prefix-sum `PositionCache`, O(1)) — never add a new per-row summation loop. Two constraints it encodes: (1) the first rendered visible row reports a +1px border-top compensation (`StylesHandler#getDefaultRowHeight`, AutoRowSize), so `sumRowHeights` re-reads the build-time and current first-rendered rows live (`PositionCache#onBuildFn` records the build-time row) — bypassing this breaks totals by exactly 1px (AutoRowSize/Pagination specs catch it). (2) **Column-width sums must stay live walks** (`sumCellSizes` in `inlineStartOverlay`, `sumColumnWidths` in `workspaceSize`): stretched widths (`stretchH`) derive from the workspace width, which derives from the column sum — caching would freeze that cycle inside a draw (Core_init display-none and StretchColumns window-mode specs catch it). Across draws the cache is kept honest by its producers: the three `modifyColWidth` producers that own a widths map — `StretchColumns`, `ManualColumnResize`, `AutoColumnSize` — call `view.invalidateColumnWidthCache()` when the map changes, `HiddenColumns` rides on the `hiddenIndexesChanged` invalidation, and `gatherLayoutInput` relies on that (`NestedHeaders` and a per-column cell-meta `width` are not covered — the DEV-2902 follow-up) when it reads `columnWidthCache.getTotalSize()` for the layout snapshot (DEV-2902: with the stretch producer missing, the snapshot predicted phantom scrollbars after every container resize and the top overlay clipped the last header).
+- **Row-height sums go through `Viewport#sumRowHeights`** (prefix-sum `PositionCache`, O(1)) — never add a new per-row summation loop. Two constraints it encodes: (1) the first rendered visible row reports a +1px border-top compensation (`StylesHandler#getDefaultRowHeight`, AutoRowSize), so `sumRowHeights` re-reads the build-time and current first-rendered rows live (`PositionCache#onBuildFn` records the build-time row) — bypassing this breaks totals by exactly 1px (AutoRowSize/Pagination specs catch it). (2) **Column-width sums must stay live walks** (`sumCellSizes` in `inlineStartOverlay`, `sumColumnWidths` in `workspaceSize`): stretched widths (`stretchH`) derive from the workspace width, which derives from the column sum — caching would freeze that cycle inside a draw (Core_init display-none and StretchColumns window-mode specs catch it). Across draws the cache is kept honest by its producers: the four `modifyColWidth` producers that own a widths map — `StretchColumns`, `ManualColumnResize`, `AutoColumnSize`, `NestedHeaders` (its ghost table, in `buildWidthsMap()` and `clear()`) — call `view.invalidateColumnWidthCache()` when the map changes, `HiddenColumns` rides on the `hiddenIndexesChanged` invalidation, and `gatherLayoutInput` relies on that (a per-column cell-meta `width` is not covered — the DEV-2902 follow-up) when it reads `columnWidthCache.getTotalSize()` for the layout snapshot (DEV-2902: with the stretch producer missing, the snapshot predicted phantom scrollbars after every container resize and the top overlay clipped the last header).
 
 ## Testing
 
