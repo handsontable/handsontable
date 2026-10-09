@@ -19,6 +19,11 @@ test.describe('the date editor and an incomplete date', { tag: CROSS_BROWSER_TAG
   });
 
   test('keeps the cell\'s date when Enter commits a segment cleared from the open input', async({ page, browserName }) => {
+    if (browserName === 'firefox') {
+      // Headless Firefox does not clear a segment of the open input, so there is no incomplete date to commit.
+      return;
+    }
+
     await grid.openEditorWithEnter(0, 1);
 
     if (browserName === 'chromium') {
@@ -46,6 +51,9 @@ test.describe('the date editor and an incomplete date', { tag: CROSS_BROWSER_TAG
     await page.keyboard.press('1');
     await expect.poll(() => grid.isEditorOpened()).toBe(true);
 
+    // The input cannot take the character, so it holds nothing.
+    await expect(grid.editorInput).toHaveValue('');
+
     if (browserName === 'chromium') {
       // The picker is open and would take the Enter.
       await page.keyboard.press('Escape');
@@ -55,9 +63,38 @@ test.describe('the date editor and an incomplete date', { tag: CROSS_BROWSER_TAG
 
     await expect.poll(() => grid.isEditorOpened()).toBe(false);
     expect(await grid.sourceAt(0, 1)).toBe('2024-06-10');
+    await expect(grid.cell(0, 1)).toHaveText('6/10/24');
+  });
+
+  test('keeps the cell\'s date when a segment cleared from the open input is left by clicking another cell', async({ page, browserName }) => {
+    if (browserName === 'firefox') {
+      // Headless Firefox does not clear a segment of the open input, so there is no incomplete date to commit.
+      return;
+    }
+
+    await grid.openEditorWithEnter(0, 1);
+
+    if (browserName === 'chromium') {
+      await page.keyboard.press('Escape');
+    }
+
+    await page.keyboard.press('Backspace');
+    await expect(grid.editorInput).toHaveValue('');
+
+    // Leaving the editor with a click commits it through the focusout path.
+    await grid.selectCell(1, 0);
+
+    await expect.poll(() => grid.isEditorOpened()).toBe(false);
+    expect(await grid.sourceAt(0, 1)).toBe('2024-06-10');
+    await expect(grid.cell(0, 1)).toHaveText('6/10/24');
   });
 
   test('leaves the validator to refuse an incomplete date in a column with allowEmpty: false', async({ page, browserName }) => {
+    if (browserName === 'firefox') {
+      // Headless Firefox does not clear a segment of the open input, so there is no incomplete date to commit.
+      return;
+    }
+
     await grid.openEditorWithEnter(0, 2);
 
     if (browserName === 'chromium') {

@@ -85,6 +85,8 @@ export class DateEditor extends TextEditor {
    *
    * A native date input reports an empty value for an incomplete date, the same as for a cleared one.
    * Committing that empty value would erase the cell, so an incomplete entry restores the cell's date.
+   * Every way out of the editor takes this path, so leaving it by a click, Tab, or Ctrl+Enter restores the
+   * date too, and a Ctrl+Enter fill then writes nothing.
    *
    * @param {boolean} restoreOriginalValue If true, then closes editor without saving value from the editor into a cell.
    * @param {boolean} ctrlDown If true, then saveValue will save editor's value to each cell in every selected range.
