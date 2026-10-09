@@ -3,19 +3,12 @@
  * Author: Ivan Zarkovic
  * Last updated: May 9, 2022
  *
- * Description: Deprecated alias of the Serbian - Republic of Serbia language. Use `sr-RS` instead.
+ * Description: Definition file for Serbian - Republic of Serbia language-country.
  */
 import * as C from '../constants';
 
-/**
- * The Serbian dictionary registered under the deprecated `sr-SP` language code. It has to stay a full
- * copy of `sr-RS`: each language file is also built as a standalone bundle that registers itself.
- *
- * @deprecated Since 19.0.0. The `SP` region subtag is deprecated by IANA. This language code will be
- * removed in 20.0.0. Use `srRS` (the `sr-RS` language code) instead.
- */
 const dictionary = {
-  languageCode: 'sr-SP',
+  languageCode: 'sr-RS',
 
   [C.OK]: 'U redu',
   [C.CANCEL]: 'Otkaži',

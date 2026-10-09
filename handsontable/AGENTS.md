@@ -14,6 +14,7 @@ This is the core data grid package. **TypeScript** - source files in `src/` are 
 - Cognitive complexity: keep each function at 15 or below
 - Optional chaining `?.` only when value is genuinely optional by design
 - No hardcoded user-visible strings in source - add constants to `src/i18n/constants.ts` and update all language files in `src/i18n/languages/`
+- Renaming a language code keeps the old language file as a deprecated alias: a full copy of the dictionary with the old `languageCode` (not an import of the new file, because every language file is also built as a standalone self-registering bundle), a `@deprecated` JSDoc, and a once-only warning in `getValidLanguageCode()` (`src/i18n/registry.ts`). Never warn on registration, because `languages/all.js` registers every language. `sr-SP` is the first case; `sr-RS` is canonical.
 - No direct cross-plugin imports - use hooks for inter-plugin communication, or `hot.getPlugin('Name')` if API access is required
 - Never use raw `setTimeout` - use `this.hot._registerTimeout(fn, delay)` instead; it auto-clears on `hot.destroy()`, preventing memory leaks
 - DRY: reuse existing helpers and mixins; if code repeats, extract a generic helper rather than duplicating

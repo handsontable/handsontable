@@ -4536,7 +4536,8 @@ export default (): Record<string, unknown> => {
      * | `'pl-PL'`           | Polish - Poland             |
      * | `'pt-BR'`           | Portuguese - Brazil         |
      * | `'ru-RU'`           | Russian - Russia            |
-     * | `'sr-SP'`           | Serbian (Latin) - Serbia    |
+     * | `'sr-RS'`           | Serbian (Latin) - Serbia    |
+     * | `'sr-SP'`           | Serbian (Latin) - Serbia (deprecated alias of `'sr-RS'`) |
      * | `'zh-CN'`           | Chinese - China             |
      * | `'zh-TW'`           | Chinese - Taiwan            |
      *

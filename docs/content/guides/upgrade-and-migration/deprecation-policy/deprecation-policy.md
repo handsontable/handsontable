@@ -107,6 +107,12 @@ The following APIs are deprecated. They keep working and print a one-time consol
 | ---------- | ------------- | ------- | ----------- | --------------- |
 | `columnHeaders` (export options of the `exportFile` plugin) | 17.1 | 19.0 | `colHeaders` -- rename the key; the value keeps its meaning. | [Export to CSV -> Available options](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md#available-options-in-the-export-configuration) |
 
+### Language codes
+
+| Deprecated | Deprecated in | Removal | Replacement | Migration guide |
+| ---------- | ------------- | ------- | ----------- | --------------- |
+| Language code `sr-SP` (`sr-SP.js`, `srSP`) | 19.0 | 20.0 | The `sr-RS` language code (`sr-RS.js`, `srRS`). The phrases are the same. | [Language](@/guides/internationalization/language/language.md) |
+
 ### TypeScript types
 
 Type aliases do not print console warnings. Your editor shows them as deprecated.
