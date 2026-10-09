@@ -8,7 +8,7 @@ import { JS_VARIANTS, WRAPPERS } from '../../src/config.mjs';
 import { VISUAL_VARIANTS_ANNOTATION } from '../visual-declarations.mjs';
 import {
   BARE_JS_DIRECTORY,
-  copyWrapperPlan,
+  copyDeclaredWrapperCaptures,
   declarationsFromListReport,
   listFiles,
   wrapperCopyPlan,
@@ -131,6 +131,10 @@ test('a spec\'s captures go into only the wrappers it declares', () => {
     'multi-frameworks/editors/textEditor/undo-2.png',
     // A longer stem that starts with `undo-`: matched by exact name, never by prefix.
     'multi-frameworks/editors/textEditor/undo-multiline-text-1.png',
+    // The same basename in another directory: the tree holds eight such pairs (`focus-cell` under
+    // `js-only/editors/dropdown/` and its `rtl/`, among them), so a capture is matched in its own directory.
+    'js-only/editors/textEditor/undo-1.png',
+    'multi-frameworks/editors/undo-1.png',
     'js-only/dialog/dialog-template-1.png',
   ];
   const plan = wrapperCopyPlan(declarations, rendered);
@@ -164,7 +168,7 @@ test('the plan refuses a declared spec the bare js render did not capture', () =
   ]), ['multi-frameworks/x-1.png']), /without the "classic" theme/);
 });
 
-test('a spec declaring one wrapper yields goldens in that wrapper\'s directory only', () => {
+test('the seed step writes each spec\'s bare captures into the wrappers it declares, and nothing else', () => {
   const root = mkdtempSync(join(tmpdir(), 'visual-wrapper-copy-'));
 
   try {
@@ -176,18 +180,24 @@ test('a spec declaring one wrapper yields goldens in that wrapper\'s directory o
     write(`${BARE_JS_DIRECTORY}/multi-frameworks/editors/textEditor/undo-1.png`, 'undo one');
     write(`${BARE_JS_DIRECTORY}/multi-frameworks/editors/textEditor/undo-multiline-text-1.png`, 'multiline');
     write(`${BARE_JS_DIRECTORY}/multi-frameworks/mouse-wheel-1.png`, 'wheel');
+    write(`${BARE_JS_DIRECTORY}/js-only/editors/textEditor/undo-1.png`, 'another spec of the same name');
     write('js/chromium-theme-main/multi-frameworks/editors/textEditor/undo-1.png', 'themed');
 
-    const declarations = declarationsFromListReport({
+    // `copyDeclaredWrapperCaptures()` is the one call `scripts/run-tests.mjs` makes, so this is the seed's
+    // own copy, run on a throwaway screenshots root.
+    const plan = copyDeclaredWrapperCaptures(root, {
       suites: [
         fileSuite('multi-frameworks/editors/textEditor/undo.spec.ts', REACT_ONLY),
         fileSuite('multi-frameworks/editors/textEditor/undo-multiline-text.spec.ts', TWO_THEMES),
         fileSuite('multi-frameworks/mouse-wheel.spec.ts', TWO_THEMES),
+        fileSuite('js-only/editors/textEditor/undo.spec.ts', TWO_THEMES),
       ],
+      errors: [],
     });
 
-    copyWrapperPlan(root, wrapperCopyPlan(declarations, listFiles(join(root, BARE_JS_DIRECTORY))));
-
+    assert.deepEqual(plan.map(entry => entry.target), [
+      'react-wrapper/chromium/multi-frameworks/editors/textEditor/undo-1.png',
+    ]);
     assert.deepEqual(listFiles(join(root, 'react-wrapper')), [
       'chromium/multi-frameworks/editors/textEditor/undo-1.png',
     ]);
@@ -201,18 +211,32 @@ test('a spec declaring one wrapper yields goldens in that wrapper\'s directory o
   }
 });
 
-test('run-tests.mjs copies through the plan, never a whole directory', () => {
-  // The script has no seam a unit test can call without rendering, so its wiring is pinned by reading it:
-  // the `scrollbar-proximity.test.mjs` precedent.
+test('run-tests.mjs copies through copyDeclaredWrapperCaptures() alone', () => {
+  // The script has no seam a unit test can call without rendering, and the copy branch runs on the seed tier
+  // only, so no pull request's CI ever reaches it: a regression there first shows on develop. Its wiring is
+  // pinned by reading it (the `scrollbar-proximity.test.mjs` precedent), and the copy itself is the
+  // function the test above runs end to end.
   const script = readFileSync(join(PACKAGE_ROOT, 'scripts', 'run-tests.mjs'), 'utf8');
   const copyBlock = script.slice(script.indexOf('if (tier.copyWrappers) {'));
 
   assert.notEqual(script.indexOf('if (tier.copyWrappers) {'), -1, 'run-tests.mjs must keep its seed copy.');
+  assert.match(script, /^\s*screenshots: '\.\/screenshots',$/m,
+    'The copy root is the screenshots root the renders write to.');
   assert.match(copyBlock, /npx playwright test --list --reporter=json/,
     'The declarations come from the --list report, which reports every declaration at collection cost.');
   assert.match(copyBlock,
-    /wrapperCopyPlan\(declarationsFromListReport\(JSON\.parse\(stdout\)\), listFiles\(bareJs\)\)/);
-  assert.match(copyBlock, /copyWrapperPlan\(/);
-  assert.doesNotMatch(script, /copySync\(/,
-    'A directory copy writes wrapper goldens for specs that declare no wrapper.');
+    /copyDeclaredWrapperCaptures\(path\.resolve\(dirs\.screenshots\), JSON\.parse\(stdout\)\)/,
+    'The seed copies from the screenshots root, never from a directory under it.');
+  // Any other copy would write wrapper goldens for specs that declare no wrapper, and the nightly, which
+  // renders the wrappers for real, would report them deleted every night. So the script may touch the file
+  // system through `fse.existsSync()` alone, imports nothing from `fs`, and shells out to no `cp`.
+  const fseCalls = new Set([...script.matchAll(/\bfse\.(\w+)/g)].map(match => match[1]));
+
+  assert.deepEqual([...fseCalls], ['existsSync'], 'run-tests.mjs may only check that a directory exists.');
+  assert.doesNotMatch(script, /from '(node:)?fs(\/promises)?'/, 'run-tests.mjs may not import the fs module.');
+  assert.doesNotMatch(script, /\b(copySync|cpSync|copyFileSync|copyFile|cp)\s*\(/,
+    'A copy outside lib/wrapper-copy.mjs bypasses the declarations.');
+  assert.doesNotMatch(script, /['"`]\s*(cp|rsync|xcopy|robocopy)\s/, 'A shell copy bypasses the declarations.');
+  assert.doesNotMatch(script, /\b(wrapperCopyPlan|copyWrapperPlan)\(/,
+    'The plan and its copy are one call, so the script cannot hand the copy another root or another plan.');
 });

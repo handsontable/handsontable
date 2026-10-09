@@ -15,8 +15,9 @@
  * `file`, never from a test's own `spec.file`: `visualTest()` registers every test, so Playwright records
  * `../src/test-runner.ts` as the location of all of them.
  *
- * The planning half is pure, so `__tests__/wrapper-copy.test.mjs` pins it without a browser; the two
- * file-system helpers are what `../scripts/run-tests.mjs` calls around it.
+ * The planning half is pure, so `__tests__/wrapper-copy.test.mjs` pins it without a browser.
+ * `copyDeclaredWrapperCaptures()` is the whole seed step `../scripts/run-tests.mjs` runs, so the test
+ * exercises the same function the seed does, end to end on a throwaway tree.
  */
 
 import { copyFileSync, mkdirSync, readdirSync } from 'node:fs';
@@ -237,4 +238,22 @@ export function copyWrapperPlan(screenshotsDirectory, plan) {
     mkdirSync(dirname(destination), { recursive: true });
     copyFileSync(join(screenshotsDirectory, ...source.split('/')), destination);
   });
+}
+
+/**
+ * The seed tier's wrapper step: reads the declarations out of the `--list` JSON report, plans the copy from
+ * the bare js render under `screenshotsDirectory`, and carries it out. `../scripts/run-tests.mjs` calls this
+ * and nothing else, so what the seed writes is what this function writes.
+ *
+ * @param {string} screenshotsDirectory The screenshots root (`visual-tests/screenshots`).
+ * @param {object} listReport The parsed JSON report of `npx playwright test --list --reporter=json`.
+ * @returns {{ source: string, target: string, spec: string, wrapper: string }[]} The copies made.
+ */
+export function copyDeclaredWrapperCaptures(screenshotsDirectory, listReport) {
+  const plan = wrapperCopyPlan(declarationsFromListReport(listReport),
+    listFiles(join(screenshotsDirectory, ...BARE_JS_DIRECTORY.split('/'))));
+
+  copyWrapperPlan(screenshotsDirectory, plan);
+
+  return plan;
 }

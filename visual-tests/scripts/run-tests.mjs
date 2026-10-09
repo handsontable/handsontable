@@ -16,13 +16,7 @@ import {
   REFERENCE_FRAMEWORK,
   EXAMPLES_SERVER_PORT
 } from '../src/config.mjs';
-import {
-  BARE_JS_DIRECTORY,
-  copyWrapperPlan,
-  declarationsFromListReport,
-  listFiles,
-  wrapperCopyPlan,
-} from '../lib/wrapper-copy.mjs';
+import { BARE_JS_DIRECTORY, copyDeclaredWrapperCaptures } from '../lib/wrapper-copy.mjs';
 
 const dirs = {
   examples: '../examples/next/visual-tests',
@@ -154,9 +148,7 @@ if (tier.copyWrappers) {
       HOT_FRAMEWORK: REFERENCE_FRAMEWORK
     },
   });
-  const plan = wrapperCopyPlan(declarationsFromListReport(JSON.parse(stdout)), listFiles(bareJs));
-
-  copyWrapperPlan(path.resolve(dirs.screenshots), plan);
+  const plan = copyDeclaredWrapperCaptures(path.resolve(dirs.screenshots), JSON.parse(stdout));
 
   WRAPPERS.forEach((wrapper) => {
     const copies = plan.filter(entry => entry.wrapper === wrapper);
