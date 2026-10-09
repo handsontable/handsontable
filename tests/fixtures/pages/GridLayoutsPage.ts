@@ -25,6 +25,7 @@ type GridLayoutsWindow = {
     getDataAtCell(row: number, column: number): unknown,
     countRows(): number,
     countCols(): number,
+    selectCell(row: number, column: number): void,
     getSettings(): { fixedColumnsStart?: number, nestedHeaders?: unknown[] },
   },
 };
@@ -158,6 +159,17 @@ export class GridLayoutsPage {
    */
   async selected(): Promise<SelectedRange[] | undefined> {
     return this.page.evaluate(() => (window as unknown as GridLayoutsWindow).hot.getSelected());
+  }
+
+  /**
+   * Selects one cell through the API, so no real click lands on it and opens its editor as a double click.
+   *
+   * @param {number} row The visual row of the cell.
+   * @param {number} column The visual column of the cell.
+   */
+  async selectCell(row: number, column: number): Promise<void> {
+    await this.page.evaluate(([r, c]) => (window as unknown as GridLayoutsWindow).hot.selectCell(r, c),
+      [row, column] as [number, number]);
   }
 
   /**

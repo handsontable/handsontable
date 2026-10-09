@@ -565,6 +565,17 @@ cleared and are not. E2E coverage is extensive; the unit-level highlight logic i
 **When changing selection logic, test all combinations of: merged cells, hidden rows/columns, frozen
 rows/columns, and navigable headers.** Run both the `selectAll` and `selectCells` suites.
 
+**A header selection is never snapped to merged cells, in both hooks.** `#onBeforeSelectionHighlightSet`
+and `#onModifyTransformEnd` return early when the selection is made from a column or row header.
+Without the early return in the second, `expandCloneRange` absorbed every merge that a full-length
+column (or row) range crosses, so Shift+Arrow on a header selection jumped to the far edge of the
+farthest merge instead of adding one line, in all four directions. The result must equal the
+`mergeCells: false` one, and the header flag still skips the hidden columns through the core's own
+delta. Pinned by `tests/e2e/header-range-merge-keyboard.spec.ts`. Both hooks trust the header flags,
+so they inherit the `selection.clear()` TODO above: a flag it leaves set would stop the snapping of a
+later cell selection. A new selection (`selectCell()`, a click) resets them, and the spec's last case
+checks that a cell selection made after a header one still snaps.
+
 ### An arrow-key horizontal exit is addressed by the merge's top row (DEV-102)
 
 `#onModifyTransformStart` snaps the highlight to the merge's top-left while stashing the entered cell

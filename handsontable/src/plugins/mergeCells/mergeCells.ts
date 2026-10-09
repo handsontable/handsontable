@@ -2734,6 +2734,13 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
+    // A header range runs the whole length of the grid, so it crosses every merge in its columns (or
+    // rows) and the clone below would grow to the edge of the farthest one. The range is not snapped
+    // to merged cells either, see `#onBeforeSelectionHighlightSet`.
+    if (this.hot.selection.isSelectedByColumnHeader() || this.hot.selection.isSelectedByRowHeader()) {
+      return;
+    }
+
     const cloneRange = selectedRange.clone();
     const { to } = selectedRange;
     const toRow = to.row ?? 0;
