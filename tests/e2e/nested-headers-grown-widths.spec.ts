@@ -2,7 +2,7 @@ import { test, expect } from '../fixtures/test';
 import { NestedHeadersGrownWidthsPage } from '../fixtures/pages/NestedHeadersGrownWidthsPage';
 
 /**
- * DEV-3275 (GitHub issue 13751). `NestedHeaders` grows a column to fit a header label wider than its
+ * `NestedHeaders` grows a column to fit a header label wider than its
  * data through its `modifyColWidth` hook, backed by a ghost-table widths map. The engine's column
  * width cache tests only the column COUNT, so it never saw that the widths moved: its totals kept the
  * narrow pre-growth widths while the scroll range used the grown ones. Scrolled to the right edge,

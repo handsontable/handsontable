@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a blank area at the end of the horizontal scroll when `NestedHeaders` grows the column widths to fit long header labels. [#13751](https://github.com/handsontable/handsontable/issues/13751)",
-  "type": "fixed",
-  "issueOrPR": 13779,
-  "breaking": false,
-  "framework": "none"
-}
