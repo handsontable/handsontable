@@ -249,6 +249,8 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
    * @alias FocusScopeManager#activateScope
    * @param {string} scopeId The ID of the scope to activate.
    * @param {'unknown' | 'click' | 'tab_from_above' | 'tab_from_below'} [focusSource='unknown'] Passed to the scope's `onActivate` callback (same values as document `htFocusSource`).
+   * Activating a scope that is already active does nothing, except for `tab_from_above` and `tab_from_below`,
+   * which run its `onActivate` callback again (the focus came back into the scope through its focus catcher).
    */
   function activateScopeById(scopeId: string, focusSource: string = FOCUS_SOURCES.UNKNOWN): void {
     if (!SCOPES.hasItem(scopeId)) {
@@ -297,7 +299,9 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
     const isReentryThroughCatcher = focusSource === FOCUS_SOURCES.TAB_FROM_ABOVE ||
       focusSource === FOCUS_SOURCES.TAB_FROM_BELOW;
 
-    if (activeScope === scope && !isReentryThroughCatcher) {
+    const wasActive = activeScope === scope;
+
+    if (wasActive && !isReentryThroughCatcher) {
       return;
     }
 
@@ -323,10 +327,14 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
     // `editor` back to `grid`. The default is only for a scope that has nothing recorded at all.
     const currentContextName = shortcutManager.getActiveContextName();
 
-    if (currentContextName !== scope.getShortcutsContextName()) {
-      scope.setDisplacedShortcutsContextName(currentContextName);
-    } else if (scope.getDisplacedShortcutsContextName() === null) {
-      scope.setDisplacedShortcutsContextName(DEFAULT_SHORTCUTS_CONTEXT);
+    // A re-entry keeps what was recorded: the context found now belongs to whatever took it over while the
+    // focus was away (an editor left open), and rolling back to it later would pin that state.
+    if (!wasActive) {
+      if (currentContextName !== scope.getShortcutsContextName()) {
+        scope.setDisplacedShortcutsContextName(currentContextName);
+      } else if (scope.getDisplacedShortcutsContextName() === null) {
+        scope.setDisplacedShortcutsContextName(DEFAULT_SHORTCUTS_CONTEXT);
+      }
     }
 
     shortcutManager.setActiveContextName(scope.getShortcutsContextName());
