@@ -1178,6 +1178,9 @@ describe('Passing children', () => {
 });
 
 describe('HotColumnProps typing', () => {
+  // Jest compiles this file with babel, which strips types, so the tuple annotations below are checked
+  // by `tsc` only (run it over this file with the wrapper's tsconfig), not by `npm run test`. The
+  // `expect` calls just keep the cases visible in the Jest report.
   // The props carry a `[key: string]: any` hatch, which makes every name a key. Strip it to see the
   // named props, which are what the IDE suggests.
   type HasProp<T, K extends string> = K extends keyof RemoveIndexSignature<T> ? true : false;
