@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `sr-RS` language code for Serbian and deprecated the `sr-SP` code, which will be removed in 20.0.",
+  "type": "deprecated",
+  "issueOrPR": 13782,
+  "breaking": false,
+  "framework": "none"
+}
