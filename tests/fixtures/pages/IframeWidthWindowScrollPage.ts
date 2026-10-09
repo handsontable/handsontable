@@ -146,6 +146,24 @@ export class IframeWidthWindowScrollPage {
     }, [x, y]);
   }
 
+  /**
+   * Waits for two frames of the IFRAME's rendering. A scroll write is answered a frame later: the
+   * browser dispatches the holder's `scroll` event at the start of the next frame, ahead of that
+   * frame's animation-frame callbacks, and the engine syncs the clones from that event. So once the
+   * first callback has run, the sync has too, and the second frame is the margin `scrollHolderBy`
+   * leaves as well. A wait on the holder's `scrollLeft` cannot stand in for it: a key press writes
+   * that synchronously, before the event.
+   */
+  async waitForFrames(): Promise<void> {
+    await this.page.evaluate(() => {
+      const win = (window as unknown as { frameWin: Window }).frameWin;
+
+      return new Promise(resolve => {
+        win.requestAnimationFrame(() => win.requestAnimationFrame(resolve));
+      });
+    });
+  }
+
   /** Clicks a master cell INSIDE the iframe — an input, so it goes through a `frameLocator`. */
   async clickMasterCell(row: number, col: number): Promise<void> {
     await this.page.frameLocator('#frame').locator('.ht_master').getByTestId(`cell-${row}-${col}`).click();
