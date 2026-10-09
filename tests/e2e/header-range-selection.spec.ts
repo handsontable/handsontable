@@ -162,19 +162,111 @@ test.describe('a header click and a Shift+click select the range between them', 
     });
   }
 
-  // On a grid with nested headers and navigableHeaders, NestedHeaders records the pressed header as
-  // the focus to restore on every mousedown, a Shift+click included (`#focusInitialCoords`, set in
-  // `#onAfterOnCellMouseDown`), and `#onBeforeSelectionHighlightSet` moves the focus there, so a
-  // Shift+click moves it to the clicked header. A drag across the headers and Shift+ArrowRight keep it
-  // on the first one. The nested-rows shape has navigableHeaders over a single header row and keeps
-  // the focus on the header the range started from, and so do this shape's row headers.
-  // eslint-disable-next-line no-restricted-syntax -- DEV-3261: a Shift+click on a nested column header moves the focus to the clicked header
-  test.fixme('keeps the focus on the first column header of a range on the /nested-headers-demo shape', async() => {
-    await grid.goto('nested-headers');
+  // On a grid with nested headers and navigableHeaders, a Shift+click extends the range from the header
+  // (or the cell) it started from, and keeps the focus there, like a drag across the headers,
+  // Shift+ArrowRight, the nested-rows shape (navigableHeaders over a single header row) and this shape's
+  // row headers. The range and the focus come from the same anchor, so a later Shift+click that lands
+  // back past the start still measures from it. A header's `level` is its row: 0 is the group row
+  // (Product 0-3, Category 4-6, User 7-8, System 9-10), 1 is the leaf row.
+  type Click = { level: number, column: number, shift: boolean };
 
-    await grid.clickColumnHeader(2);
-    await grid.clickColumnHeader(5, ['Shift']);
+  const nestedFocusCases: Array<{
+    name: string,
+    cell?: [number, number],
+    // Without `navigableHeaders` the focus is a cell, so the case asserts the range alone.
+    navigableHeaders?: false,
+    clicks: Click[],
+    selected: number[][],
+    focus?: { row: number, col: number },
+  }> = [
+    {
+      name: 'to the right of a leaf header',
+      clicks: [{ level: 1, column: 2, shift: false }, { level: 1, column: 5, shift: true }],
+      selected: [[-1, 2, 29, 5]],
+      focus: { row: -1, col: 2 },
+    },
+    {
+      name: 'to the left of a leaf header',
+      clicks: [{ level: 1, column: 5, shift: false }, { level: 1, column: 2, shift: true }],
+      selected: [[-1, 5, 29, 2]],
+      focus: { row: -1, col: 5 },
+    },
+    {
+      name: 'back past the start, then past the other side of it',
+      clicks: [
+        { level: 1, column: 5, shift: false },
+        { level: 1, column: 2, shift: true },
+        { level: 1, column: 7, shift: true },
+      ],
+      selected: [[-1, 5, 29, 7]],
+      focus: { row: -1, col: 5 },
+    },
+    {
+      name: 'to the right of a group header, then to the left of it',
+      clicks: [
+        { level: 0, column: 4, shift: false },
+        { level: 0, column: 7, shift: true },
+        { level: 0, column: 0, shift: true },
+      ],
+      selected: [[-2, 6, 29, 0]],
+      focus: { row: -2, col: 4 },
+    },
+    {
+      // A selection made at the group row takes in the whole of a group it touches (Product, 0-3).
+      name: 'onto a group header from a leaf header',
+      clicks: [{ level: 1, column: 2, shift: false }, { level: 0, column: 4, shift: true }],
+      selected: [[-2, 0, 29, 6]],
+      focus: { row: -1, col: 2 },
+    },
+    {
+      name: 'to the left of a group header without navigableHeaders',
+      navigableHeaders: false,
+      clicks: [{ level: 0, column: 4, shift: false }, { level: 1, column: 1, shift: true }],
+      selected: [[-1, 6, 29, 1]],
+    },
+    {
+      name: 'to the left, then to the right of a group header without navigableHeaders',
+      navigableHeaders: false,
+      clicks: [
+        { level: 0, column: 4, shift: false },
+        { level: 1, column: 1, shift: true },
+        { level: 1, column: 9, shift: true },
+      ],
+      selected: [[-1, 4, 29, 9]],
+    },
+    {
+      name: 'from a cell',
+      cell: [3, 2],
+      clicks: [{ level: 1, column: 5, shift: true }],
+      selected: [[-1, 2, 29, 5]],
+      focus: { row: -1, col: 2 },
+    },
+  ];
 
-    expect(await grid.focus()).toEqual({ row: -1, col: 2 });
-  });
+  for (const testCase of nestedFocusCases) {
+    test(`keeps the range and the focus on the anchor of a Shift+click ${testCase.name} on the /nested-headers-demo shape`, async() => {
+      await grid.goto('nested-headers');
+
+      if (testCase.navigableHeaders === false) {
+        await grid.page.evaluate(() => (window as unknown as { hot: { updateSettings(s: object): void } })
+          .hot.updateSettings({ navigableHeaders: false }));
+      }
+
+      if (testCase.cell) {
+        const [row, column] = testCase.cell;
+
+        await grid.page.evaluate(([r, c]) => (window as unknown as { hot: { selectCell(r: number, c: number): void } })
+          .hot.selectCell(r, c), [row, column]);
+      }
+
+      for (const click of testCase.clicks) {
+        await (await grid.columnHeader(click.column, click.level)).click({ modifiers: click.shift ? ['Shift'] : [] });
+      }
+
+      expect(await grid.selected()).toEqual(testCase.selected);
+      if (testCase.focus) {
+        expect(await grid.focus()).toEqual(testCase.focus);
+      }
+    });
+  }
 });
