@@ -497,6 +497,24 @@ is in
 - A negative assertion ("nothing fired") uses a bounded settle ONLY beside a
   positive control in the same test.
 
+**A scroll write is answered one frame later, and a read in between sees the
+grid half-moved.** A programmatic scroll – a `scrollLeft` write, or a key press
+the grid answers by scrolling – moves the master holder at once. The browser
+dispatches the holder's `scroll` event at the start of the next frame, and the
+engine syncs the frozen clones from that event, before the frame paints. A read
+that lands in between sees the master a whole column ahead of a clone that is
+about to follow it. Whether it does depends on where the read falls against the
+frame boundary, not on the grid: `iframe-cross-realm-scroll.spec.ts` failed 6 of
+150 runs that way, 25 on each of the six legs (`Expected: <= 2, Received: 64` on
+`classic`, DEV-3115). Wait for the frame before the read.
+`IframeWidthWindowScrollPage.waitForFrames()` awaits two animation frames of the
+iframe, and the first callback runs after that frame's `scroll` event has been
+handled. A wait on `scrollLeft` cannot do it, because the press has written it
+already. When the test is about what the engine does while a key is **held**,
+wait before `keyboard.up()`: released earlier, the event reaches an engine whose
+key is already up, and the guard under test never runs. With that guard broken,
+the old read failed 116 of 120 runs and the held-key wait failed 120 of 120.
+
 **A geometry read is two round trips, and the grid recycles its rows.**
 `locator.boundingBox()` and `locator.evaluate()` resolve the node in one round
 trip and act on it in another (`innerText()` and `getAttribute()` do both in one
