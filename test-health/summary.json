@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-09T14:28:33.021Z",
+  "generatedAt": "2026-10-10T02:28:50.053Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -569,7 +569,7 @@
       "file": "e2e/walkontable/inline-end-overlay.spec.ts",
       "line": 74,
       "title": "walkontable inline-end overlay (ltr) › follows the vertical scroll of the grid row by row",
-      "count7": 1,
+      "count7": 0,
       "count30": 3,
       "countAll": 3,
       "runs30": 2,
