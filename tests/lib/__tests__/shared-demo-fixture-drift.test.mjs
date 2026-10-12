@@ -23,9 +23,7 @@ const NOT_COMPARED = {
   layoutDirection: 'the demo reads the direction from the URL; the fixture is LTR only',
   language: 'the demo reads the direction from the URL; the fixture is LTR only',
   themeName: 'the fixture sets the theme as a class on its container, from the allowlisted ?theme=',
-  afterGetRowHeader: 'the demo draws a checkbox into every row header; the fixture stamps test ids',
-  afterOnCellMouseDown: 'the demo toggles that checkbox; the fixture has none',
-  beforeRenderer: 'the demo adds the row class that follows that checkbox; the fixture has none',
+  afterGetRowHeader: 'the fixture stamps test ids on the row headers',
   afterRenderer: 'the fixture stamps test ids on the cells',
   afterGetColHeader: 'the fixture stamps test ids on the headers',
 };
@@ -129,9 +127,6 @@ const DEMO_GLOBALS = {
   arAR: { languageCode: 'ar-AR' },
   progressBarRenderer: stub('progressBarRenderer'),
   starRenderer: stub('starRenderer'),
-  drawCheckboxInRowHeaders: stub('drawCheckboxInRowHeaders'),
-  changeCheckboxCell: stub('changeCheckboxCell'),
-  addClassesToRows: stub('addClassesToRows'),
 };
 
 test('the shared-demo fixture builds the grid the visual suite\'s / route builds', () => {
