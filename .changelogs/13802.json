@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed editor lists flipping the wrong way in a grid scrolled by the window inside a transformed ancestor, and the multiselect list overlapping its cell when it opens above it.",
+  "type": "fixed",
+  "issueOrPR": 13802,
+  "breaking": false,
+  "framework": "none"
+}
