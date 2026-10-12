@@ -11,13 +11,33 @@ description: >-
 
 inputs:
   hot-prebuilt:
-    description: 'The caller has extracted the shared UMD build into handsontable/dist and handsontable/styles — skip the internal build'
+    description: 'The caller has extracted the shared UMD build into handsontable/dist and handsontable/styles – skip the internal build'
     required: false
     default: 'false'
 
 runs:
   using: composite
   steps:
+    # With hot-prebuilt the caller has already extracted the shared build (see
+    # performance.yml, which runs this action even when that failed). Stop here
+    # with the reason rather than after the installs, in run.mjs, on a missing
+    # handsontable/dist. The always() steps below still put the reason in the
+    # job summary and the pull request comment.
+    - name: Check the prebuilt build
+      if: inputs.hot-prebuilt == 'true'
+      shell: bash
+      run: |
+        if [ ! -d handsontable/dist ] || [ ! -d handsontable/styles ]; then
+          mkdir -p performance-tests/output
+          {
+            echo '## Performance tests'
+            echo
+            echo 'The shared UMD build was not available: its download or extract failed, so no scenario ran. Check the job log.'
+          } > performance-tests/output/result.md
+          echo "::error::hot-prebuilt is set, but handsontable/dist and handsontable/styles were not extracted. The caller must download and extract the shared UMD build before this action."
+          exit 1
+        fi
+
     - name: Verify Git checkout
       shell: bash
       run: |
