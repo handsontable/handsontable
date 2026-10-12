@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-12T16:05:57.319Z",
+  "generatedAt": "2026-10-12T16:53:01.797Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -9,9 +9,9 @@
   "retentionDays": 90,
   "totals": {
     "tests": 392,
-    "needsTicket": 24,
+    "needsTicket": 25,
     "quarantined": 0,
-    "entries": 2046
+    "entries": 2047
   },
   "rows": [
     {
@@ -678,6 +678,39 @@
         "leg": "e2e-horizon-min",
         "status": "flaky",
         "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "playwright|e2e/fixed-columns-end-core.spec.ts|fixedColumnsEnd editor rectangle (rtl) › puts the editor on the cell in the end column, the top corner and the bottom corner",
+      "tier": "playwright",
+      "file": "e2e/fixed-columns-end-core.spec.ts",
+      "line": 60,
+      "title": "fixedColumnsEnd editor rectangle (rtl) › puts the editor on the cell in the end column, the top corner and the bottom corner",
+      "count7": 3,
+      "count30": 3,
+      "countAll": 3,
+      "runs30": 2,
+      "flakyRuns30": 2,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "e2e-horizon"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-12T16:52:19Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38277718636",
+        "branch": "feature/DEV-3382_Visual-consolidation-close-out",
+        "leg": "e2e-horizon",
+        "status": "flaky",
+        "error": "Error: inline_end 5,29: top edge",
         "source": "ci"
       },
       "needsTicket": true
@@ -12441,39 +12474,6 @@
         "leg": "e2e-horizon",
         "status": "flaky",
         "error": "Error: expect(received).toEqual(expected) // deep equality",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "playwright|e2e/fixed-columns-end-core.spec.ts|fixedColumnsEnd editor rectangle (rtl) › puts the editor on the cell in the end column, the top corner and the bottom corner",
-      "tier": "playwright",
-      "file": "e2e/fixed-columns-end-core.spec.ts",
-      "line": 60,
-      "title": "fixedColumnsEnd editor rectangle (rtl) › puts the editor on the cell in the end column, the top corner and the bottom corner",
-      "count7": 2,
-      "count30": 2,
-      "countAll": 2,
-      "runs30": 1,
-      "flakyRuns30": 1,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "e2e-horizon"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-08T11:35:28Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37764704286/attempts/2",
-        "branch": "feature/DEV-3222_Draggable-freeze-bar",
-        "leg": "e2e-horizon",
-        "status": "flaky",
-        "error": "Error: inline_end 5,29: top edge",
         "source": "ci"
       },
       "needsTicket": false
