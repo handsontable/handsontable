@@ -8,6 +8,17 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 - The bridge to core Handsontable is `src/tableView.ts` (TableView class)
 - Plugins must NEVER access Walkontable internals directly - always go through TableView
 - Do not import core Handsontable modules from Walkontable code
+- **The pointer-to-cell lookup is shared with the core.** `findRowAtY`, `findColumnAtX`, `findRowReferenceColumn`
+  and `findColumnReferenceRow` live in `helpers/dom/cellMeasure.ts` and reach the grid only through the
+  `CellMeasurer` seam. `utils/pointerToCoords.ts` (renderable indexes, spans read from the rendered cell's
+  `rowSpan`/`colSpan`, because Walkontable has no cell meta) and `helpers/dom/cellCoords.ts` (visual indexes, spans
+  read from the cell meta) each build their own measurer. Fix a merge-related lookup bug there once, not in either
+  caller. A slave of a merge resolves to the anchor's element, so measuring a merged column adds the band's full
+  height once per slave: each band is measured against a column (or row) no merge spans. The walks skip a cell
+  that resolves to the element they just measured, so a walk that starts inside a merge counts the block once; a
+  reported span is only a hint (above 1) for the reference scans, and a slave need not report it. `Event#onMouseMove` runs on every pointer move of a held drag, inside the table too, so it asks
+  `getTableViewportBounds` + `isPointerOutsideBounds` (bounds only) first, looks the cell up only for a pointer outside, and hands the bounds on to the lookup; keep the lookup off
+  that path.
 - `Core#getRowHeight` is the provided height only (`rowHeights` / ManualRowResize / AutoRowSize). Walkontable layout uses `max(provided, wtViewport.oversizedRows[renderable])`. Handsontable code that must match that measurement goes through `getRenderedRowHeight` in `src/core/viewportScroll/scrollStrategies/singleScroll.ts` (visual → renderable → `wtTable.getRowHeight`) — never `hot.view._wt.wtViewport.oversizedRows` (Law of Demeter) and never `Core#getRowHeight` alone. Content-tall rows without those plugins keep `getRowHeight` at `undefined`. Forced mouse start-snap on an oversized axis bypasses Walkontable's auto-snap frozen-row/column guard, so frozen start columns and frozen top/bottom rows must not count as oversized.
 
 ## Dependency injection & DOM reads (mandatory)
@@ -1840,10 +1851,20 @@ the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsE
   draws 2px. `tests/e2e/fixed-columns-end-line.spec.ts` measures all four states in LTR and RTL.
 - **RTL window scroll: read the inline-end edge from the table, not from the scroll position.**
   `InlineEndOverlay#getOverlayOffset` compares the scroll position with the table's offset from the page start,
-  which is the inline-start margin. In RTL that margin is on the right and `getTableParentOffset()` reports the
-  left one, so the sum was off by the right margin (a page with a margin on the inline-start side reported
-  "resting" up to that many pixels too early). The RTL branch measures where the hider's left edge really is
+  which is the inline-start margin. That margin is the one on the right in RTL, which
+  `InlineStartOverlay#getTableParentOffset` reports there (the next bullet); this method's LTR branch still adds
+  it. The RTL branch measures where the hider's left edge really is
   against the viewport's left edge (`documentElement.clientLeft` carries a left-hand scrollbar).
+- **`InlineStartOverlay#getTableParentOffset` is the inline-start margin, so in RTL it is the RIGHT one.** It feeds
+  `scrollTo`, the viewport's column calculator, and the overlay offsets. It used to return the holder's left offset in
+  both directions, which equals the right margin only when the grid fills the page width. A grid in a shrink-to-fit
+  wrapper (`display: inline-block`, a float, `max-content`) reaches far past the page's left edge (-3770 to 1280), and
+  the calculator then saw every column as off screen: Enter scrolled the window to 0, `selectCell()` moved it for a
+  visible cell, and a `position: fixed` editor (the multiselect) stayed off screen. The RTL branch takes
+  `Table#holderInlineStartMargin`, the `documentElement` client width minus the holder's right edge, measured in the
+  master draw next to `holderOffset` (a right edge stays put when a draw widens the table, a left one moves). It
+  does not depend on the scroll position, and it is `0` while the holder, not the window, scrolls the columns.
+  `tests/e2e/rtl-shrink-wrapped-grid-scroll.spec.ts` pins it; the RTL block layout alone cannot catch it.
 - **Ask the scroller, not the axis owner, whether the window holds the end clone.**
   `InlineEndOverlay#isScrolledByWindow` reads `mainTableScrollableElement`, and the end corners call it too.
   The horizontal axis owner (`trimmingContainer`) is the window in the reverse split (`preventOverflow:

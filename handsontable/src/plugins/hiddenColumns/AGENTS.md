@@ -172,6 +172,14 @@ the real-element section below for why the real `<i>` element keeps 10px on all 
 guards; do not assume the 15px is always there. That reservation and the 10px arrow hold each other up:
 moving the arrow to `--ht-icon-size` (16px) would not fit in 15px.
 
+The guards live in `getIndicatorExtraWidth()` (a `@private` method), and `#onModifyColWidth` and
+`ManualColumnResize` (through `getPlugin('hiddenColumns')`, no import) both call it. The 15px is added on top of **every** width, including a stored manual one, so
+a stored size describes the column without it. That is why a resize drag starts from the rendered width minus
+`getIndicatorExtraWidth()` (`getRenderedOverhead` in `../../utils/manualResize/AGENTS.md`); starting from the
+rendered width stored 15px too much and added another 15px per drag. Do not make the hook skip a manual width
+instead: that would change how every stored size, `manualColumnResize` array and persisted state renders, and
+double-click autosize relies on the room too. Pinned by `tests/e2e/manual-resize-drag-distance.spec.ts`.
+
 `stretchH` is only the easiest way to reach a flush table. Plain `colWidths` that happen to sum to the
 viewport do it too. And the RTL block mirrors the arrow to the other edge, which in RTL is the scrollable
 one — fix both blocks or RTL stays broken. Covered by

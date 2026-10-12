@@ -10,7 +10,12 @@ import {
   getParent,
 } from '../../../helpers/dom/element';
 import { partial } from '../../../helpers/function';
-import { getCellCoordsFromMousePosition } from './utils/pointerToCoords';
+import {
+  getCellCoordsFromMousePosition,
+  getTableViewportBounds,
+  isPointerOutsideBounds,
+  type TableViewportBounds,
+} from './utils/pointerToCoords';
 import { isTouchSupported } from '../../../helpers/feature';
 import { isMobileBrowser, isChromeWebKit, isFirefoxWebKit, isIOS } from '../../../helpers/browser';
 import { isDefined } from '../../../helpers/mixed';
@@ -489,37 +494,44 @@ class Event {
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const { coords, isOutside } = this.#getCellCoordsFromMousePosition(event.clientX, event.clientY);
+    // The cell is looked up only for a pointer outside the table: the lookup walks the rendered cells, and
+    // every pointer move of a held drag comes through here, inside the table too.
+    const bounds = getTableViewportBounds(this.#deps);
 
-    if (isOutside) {
-      const lastCoords = this.#mouseOverOutsideLastCoords;
-
-      if (!lastCoords || lastCoords.row !== coords.row || lastCoords.col !== coords.col) {
-        const TD = this.#deps.wtTable.getCell(coords);
-
-        if (TD instanceof HTMLElement) {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-          this.#mouseOverOutsideLastCoords = { row: coords.row, col: coords.col };
-          this.callListener('onCellMouseOverOutside', event, coords, TD);
-        }
-      }
-    } else {
+    if (!isPointerOutsideBounds(bounds, event.clientX, event.clientY)) {
       this.#mouseOverOutsideLastCoords = null;
+
+      return;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const coords = this.#getCellCoordsFromMousePosition(event.clientX, event.clientY, bounds);
+    const lastCoords = this.#mouseOverOutsideLastCoords;
+
+    if (!lastCoords || lastCoords.row !== coords.row || lastCoords.col !== coords.col) {
+      const TD = this.#deps.wtTable.getCell(coords);
+
+      if (TD instanceof HTMLElement) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        this.#mouseOverOutsideLastCoords = { row: coords.row, col: coords.col };
+        this.callListener('onCellMouseOverOutside', event, coords, TD);
+      }
     }
   }
 
   /**
-   * Returns the cell coordinates for the given mouse position and whether the mouse is
-   * outside the visible viewport. When the mouse is outside, the nearest edge cell is returned.
+   * Returns the cell coordinates for the given mouse position. A pointer outside the viewport maps to the
+   * nearest edge cell.
    *
    * @private
    * @param {number} mouseX Client X coordinate of the mouse.
    * @param {number} mouseY Client Y coordinate of the mouse.
-   * @returns {{ coords: CellCoords, isOutside: boolean }}
+   * @param {TableViewportBounds} bounds The bounds of the viewport the caller has read already.
+   * @returns {CellCoords}
    */
-  #getCellCoordsFromMousePosition(mouseX: number, mouseY: number) {
-    return getCellCoordsFromMousePosition(this.#deps, mouseX, mouseY);
+  #getCellCoordsFromMousePosition(mouseX: number, mouseY: number, bounds: TableViewportBounds) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return getCellCoordsFromMousePosition(this.#deps, mouseX, mouseY, bounds);
   }
 
   /**
