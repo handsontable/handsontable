@@ -306,3 +306,27 @@ test.describe('editor list position in a transformed container, with the page sc
     }
   }
 });
+
+// A list taller than the visible part of the box it is laid out in is pinned to that part's top, never to
+// the box's own top, which can lie above the viewport. In a sized grid inside a transformed container, in a
+// viewport shorter than the page, scrolling the window moves the cell past the viewport's top edge with the
+// list open: the page-scroll follow writes the top again, and the clamp keeps the list's first options on
+// screen.
+test.describe('editor list position when the cell scrolls out of the viewport', () => {
+  test('keeps the handsontable editor list pinned to the viewport top edge', async({ page, theme, bundle }) => {
+    const grid = new HandsontableEditorListPositionPage(page, theme, bundle, {
+      dir: 'ltr', layout: 'sized', type: 'handsontable', wrap: 'transform',
+    });
+
+    await page.setViewportSize({ width: 1280, height: 400 });
+    await grid.goto();
+
+    const coords = await grid.openEditorAt(120, 60);
+
+    await page.evaluate(() => window.scrollBy(0, 200));
+    await expect.poll(async() => (await grid.geometry(coords)).cell.bottom, { message: 'the cell leaves the viewport' })
+      .toBeLessThan(0);
+    await expect.poll(async() => (await grid.geometry(coords)).list.top, { message: 'the list stays on screen' })
+      .toBeCloseTo(0, 0);
+  });
+});
