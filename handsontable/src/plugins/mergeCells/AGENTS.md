@@ -493,8 +493,10 @@ Known limits of the content rule:
 - Under `renderMode: 'onChange'` the wrapper's width is not part of the paint identity, so the plugin marks
   the cells of the blocks that cross a freeze line as changed (`#onBeforeViewRender`) when the column widths
   epoch (`TableView#getColumnWidthEpoch`, advanced by every `invalidateColumnWidthCache()` call: ManualColumnResize,
-  AutoColumnSize, StretchColumns, an index mapper change) moved since the last draw. A width that changes without
-  dropping that cache (NestedHeaders, a per-column cell-meta `width`) is not seen, and the wrapper keeps its old
+  AutoColumnSize, StretchColumns, NestedHeaders' ghost table, an index mapper change) moved since the last draw. MergeCells (priority 150)
+  reads the epoch in `beforeViewRender` before NestedHeaders (280) bumps it there, so a ghost-table change lands one
+  draw later; nothing paints stale, because the triggers that rebuild the map already bump the epoch earlier. A
+  width that changes without dropping that cache (a per-column cell-meta `width`) is not seen, and the wrapper keeps its old
   width until the block repaints.
 - A hook that runs AFTER the plugin and appends to the cell (a `hot.addHook('afterRenderer', …)` registered after
   the grid was built, or the Formulas and AutoLink hooks) finds the content inside the block-level wrapper, so

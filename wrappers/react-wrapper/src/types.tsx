@@ -1,4 +1,4 @@
-import Handsontable, { RemoveIndexSignature } from 'handsontable/base';
+import Handsontable, { RemoveIndexSignature, OmitHooks } from 'handsontable/base';
 import React, {
   ComponentType,
   CSSProperties,
@@ -104,8 +104,13 @@ type ReplaceRenderersEditors<T> = Omit<RemoveIndexSignature<T>, 'renderer' | 'ed
  * `Omit`) plus the column-specific `data` type. `data` is taken from `ColumnSettings` — an explicit
  * member that resolves even though `ColumnSettings` itself carries the broad index signature — so the
  * column form (`string | number | getter/setter`) overrides the grid's whole-table `data` type.
+ *
+ * Hook callbacks (`afterChange`, `beforeKeyDown`, ...) are left out because hooks run from the
+ * grid-level settings only, so `<HotColumn>` must not suggest them. `OmitHooks` comes from core for
+ * the same reason as `RemoveIndexSignature`. A hook passed to a column still type-checks through the
+ * `[key: string]: any` hatch on `ReplaceRenderersEditors`; it just is not suggested.
  */
-type ColumnGridSettings = Omit<RemoveIndexSignature<Handsontable.GridSettings>, 'data'> & {
+type ColumnGridSettings = Omit<OmitHooks<RemoveIndexSignature<Handsontable.GridSettings>>, 'data'> & {
   data?: Handsontable.ColumnSettings['data'],
 }
 

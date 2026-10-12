@@ -16,8 +16,8 @@ const IDENTITY = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 test.describe('row and column move undo bookkeeping', () => {
   let grid: SelectionFeaturesPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new SelectionFeaturesPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new SelectionFeaturesPage(page, theme, bundle);
     await grid.goto();
     await grid.initGrid({ manualRowMove: true, manualColumnMove: true, undo: true });
   });

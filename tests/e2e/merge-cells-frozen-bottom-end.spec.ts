@@ -52,8 +52,8 @@ for (const direction of ['ltr', 'rtl'] as const) {
   test.describe(`merged cell across fixedRowsBottom and fixedColumnsEnd (${direction})`, () => {
     let grid: MergeCellsFrozenBottomEndPage;
 
-    test.beforeEach(async ({ page, theme }) => {
-      grid = new MergeCellsFrozenBottomEndPage(page, theme);
+    test.beforeEach(async ({ page, theme, bundle }) => {
+      grid = new MergeCellsFrozenBottomEndPage(page, theme, bundle);
       await grid.goto();
     });
 

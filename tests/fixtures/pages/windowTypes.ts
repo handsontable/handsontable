@@ -245,6 +245,8 @@ export interface FixtureHotInstance {
   selectColumns(fromCol: number, toCol: number): boolean;
   deselectCell(): void;
   getSelectedRangeLast(): FixtureCellRange;
+  /** The rendered element of a cell or header, the topmost overlay's with `topmost`, or `null` when none is rendered. */
+  getCell(row: number, column: number, topmost?: boolean): HTMLTableCellElement | null;
   getSelectedRange(): FixtureCellRange[];
   getSelectedRangeActive(): FixtureCellRange | undefined;
   getSelected(): number[][] | undefined;
@@ -370,6 +372,8 @@ declare global {
     initGrid(overrides?: Record<string, unknown>, containerWidth?: string): boolean;
     /** `afterScrollVertically` calls since the last rebuild (width-window-scroll fixture). */
     verticalScrollCount: number;
+    /** `afterScroll` calls since `SelectionViewportScrollPage#countAfterScroll()` started counting. */
+    afterScrollCount?: number;
     /**
      * Wheel events recorded by `WidthWindowScrollPage#watchWheelEvents()`, with the
      * `defaultPrevented` each one carried once the grid's own handler had run.

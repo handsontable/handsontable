@@ -206,7 +206,10 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   destructure. Miss one link and a leg silently tests the wrong build. The
   constructor default is what hides it: omit `bundle` in the spec's
   `test.beforeEach` and every leg loads plain UMD, so the `-min` legs go green
-  without ever touching the minified bundle.
+  without ever touching the minified bundle. The option is typed `Bundle`
+  (`fixtures/bundle.ts`); where another positional argument follows `bundle`,
+  type the parameter with it too, so a value in the wrong slot is a type error
+  rather than a bad `?bundle=` (`NumericGridPage`).
 - **A fixture's own `ready` flag does not prove the bundle loaded.** The
   `document.write`-injected bundle script and the block that installs the
   fixture helper are separate, so a page can report `ready` while
@@ -221,7 +224,10 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   test budget), with the interval in `BUNDLE_POLLING_MS` — see Determinism
   below for why the rAF default times out on a healthy page. Do not inline a
   copy: the lint catches a missing `{ polling }`, but only the helper keeps
-  the value from drifting between page objects.
+  the value from drifting between page objects. The helper also rethrows the
+  fixture's own `Unknown ?theme=`/`?bundle= value` error before it waits: that
+  throw happens in `<head>`, before the bundle script is written, so without
+  it a bad value ends as a bare 20s timeout in the wait.
 - The `umd` legs run the BASE bundle: **no HyperFormula** (a formulas fixture
   loads HF as an external script beside the bundle, or the plugin logs a
   warning and silently stays off) and **no languages pack** (an i18n fixture
@@ -273,11 +279,14 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   there (and the static server refuses it locally too, for CI parity). **Pin
   the exact version the owning package's lockfile carries** — an identical
   RANGE is not enough (both packages declared `^3.0.0` and still locked 3.3.0
-  vs 3.4.0, because pnpm resolves each importer at its own time). One
-  `hyperformula` entry in `pnpm-lock.yaml` is the invariant; two entries mean
-  the `umd` legs test a different engine than the one baked into `full.min`.
-  Moving the version into the pnpm catalog is the durable upgrade when the
-  core package can take that change.
+  vs 3.4.0, because pnpm resolves each importer at its own time). The
+  invariant is that the `handsontable` and `tests` importers in
+  `pnpm-lock.yaml` resolve the same `hyperformula`, and `tests/package.json`
+  pins it exactly; otherwise the `umd` legs test a different engine than the
+  one baked into `full.min`. Other importers do not count (`docs` resolves its
+  own). `lib/__tests__/hyperformula-pin.test.mjs` asserts it in the root
+  `test:tooling` gate on every pull request. Moving the version into the pnpm
+  catalog is the durable upgrade when the core package can take that change.
 - The green-run cache (`scripts/e2e-run-cache.mjs`) hashes BOTH bundles, the
   fixture-served HyperFormula artifact + `tests/package.json`, and every file
   under `fixtures/`; rebuilding a bundle or reinstalling the engine re-runs
@@ -488,6 +497,24 @@ is in
 - A negative assertion ("nothing fired") uses a bounded settle ONLY beside a
   positive control in the same test.
 
+**A scroll write is answered one frame later, and a read in between sees the
+grid half-moved.** A programmatic scroll – a `scrollLeft` write, or a key press
+the grid answers by scrolling – moves the master holder at once. The browser
+dispatches the holder's `scroll` event at the start of the next frame, and the
+engine syncs the frozen clones from that event, before the frame paints. A read
+that lands in between sees the master a whole column ahead of a clone that is
+about to follow it. Whether it does depends on where the read falls against the
+frame boundary, not on the grid: `iframe-cross-realm-scroll.spec.ts` failed 6 of
+150 runs that way, 25 on each of the six legs (`Expected: <= 2, Received: 64` on
+`classic`, DEV-3115). Wait for the frame before the read.
+`IframeWidthWindowScrollPage.waitForFrames()` awaits two animation frames of the
+iframe, and the first callback runs after that frame's `scroll` event has been
+handled. A wait on `scrollLeft` cannot do it, because the press has written it
+already. When the test is about what the engine does while a key is **held**,
+wait before `keyboard.up()`: released earlier, the event reaches an engine whose
+key is already up, and the guard under test never runs. With that guard broken,
+the old read failed 116 of 120 runs and the held-key wait failed 120 of 120.
+
 **A geometry read is two round trips, and the grid recycles its rows.**
 `locator.boundingBox()` and `locator.evaluate()` resolve the node in one round
 trip and act on it in another (`innerText()` and `getAttribute()` do both in one
@@ -502,6 +529,21 @@ recycled (the table's root, the grid), read every value a comparison needs in
 that same evaluation (`FrozenTallCellPage.rowHeights()`), and poll a pinned
 expected value rather than comparing two reads with each other — two reads
 that both landed before the draw agree with each other and prove nothing.
+
+**`keyboard.press()` cannot make several presses share one animation frame
+reliably.** Each press is its own round trip, so presses land a few milliseconds
+apart. How many of them fall between two frames depends on the machine, the
+bundle and the load. A race that needs several presses in one frame therefore
+fails now and then, and never on demand. The arrow-key test in
+`fixed-columns-end.spec.ts` failed that way on three pull requests in two days
+with `Expected: <= 2, Received: 4` (DEV-3345). A window scroll queued by each
+press ran after the grid had scrolled on, and pulled it back. Send the presses
+from one `page.evaluate` task instead, as synthetic `KeyboardEvent`s that carry
+their `keyCode`, and end on an `afterScroll` hook added after them, so it runs
+after whatever they queued (`FixedColumnsEndPage.pressInOneTask()`). Assert that
+the grid scrolled far enough for a queued scroll to have something to move, or
+the test passes on the bug when the fixture changes. Real presses still get the
+grid to its starting state.
 
 **Where a flake goes.** In CI the config adds a `json` reporter
 (`test-results/report.json`, shipped inside the `playwright-report-*` failure

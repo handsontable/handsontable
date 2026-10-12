@@ -27,8 +27,8 @@ test.describe('merged cell across the fixedRowsBottom line', () => {
     return mode === 'virtualized' ? { virtualized: true, cells: [block] } : [block];
   }
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new SelectionFeaturesPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new SelectionFeaturesPage(page, theme, bundle);
     await grid.goto();
   });
 
