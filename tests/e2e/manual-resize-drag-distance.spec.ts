@@ -79,6 +79,8 @@ test.describe('resizing by dragging a header handle', { tag: CROSS_BROWSER_TAG }
     await grid.dragColumnHandle(3, 60);
 
     await expect.poll(async() => (await grid.sizes(3, 2)).width).toBe(width);
+    // The cancel stores the size the drag started from; a column the drag never reached stores nothing.
+    expect(await grid.manualColumnSize(3)).toBe(90);
   });
 
   test('stores the dragged size for every selected column', async() => {
@@ -103,6 +105,31 @@ test.describe('resizing by dragging a header handle', { tag: CROSS_BROWSER_TAG }
 
     await expect.poll(async() => (await grid.sizes(3, 2)).width).toBe(stored! + 15);
   });
+
+  for (const stretchH of ['all', 'last'] as const) {
+    test(`widens a column beside a hidden column by the distance dragged under stretchH: '${stretchH}'`, async() => {
+      // Narrow columns, so the stretch has room to work on.
+      await grid.updateSettings({ stretchH, colWidths: 40 });
+      await expect.poll(async() => (await grid.sizes(3, 2)).width).toBeGreaterThan(0);
+      const { width } = await grid.sizes(3, 2);
+
+      await grid.dragColumnHandle(3, 60);
+
+      await expect.poll(async() => (await grid.sizes(3, 2)).width).toBe(width + 60);
+    });
+
+    test(`leaves a column beside a hidden column as wide as it was when the resize is cancelled under stretchH: '${stretchH}'`, async() => {
+      await grid.updateSettings({ stretchH, colWidths: 40 });
+      await expect.poll(async() => (await grid.sizes(3, 2)).width).toBeGreaterThan(0);
+      const { width } = await grid.sizes(3, 2);
+
+      await grid.cancelColumnResizes();
+      await grid.dragColumnHandle(3, 60);
+
+      await expect.poll(async() => grid.manualColumnSize(3)).not.toBeNull();
+      expect((await grid.sizes(3, 2)).width).toBe(width);
+    });
+  }
 
   test('heightens a row by the distance its handle is dragged', async() => {
     const { height } = await grid.sizes(4, 2);

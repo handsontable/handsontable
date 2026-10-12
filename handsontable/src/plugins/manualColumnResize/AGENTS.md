@@ -56,7 +56,9 @@ so the width floor has one home. A drag stores the width only on release - see "
 `HiddenColumns` adds 15px (the indicator) to a column next to a hidden one, after this plugin's `modifyColWidth`
 (order 1 against 2), so such a column renders 15px wider than `getManualSize()` says. `getRenderedOverhead` of the
 gesture owner reports that difference, so a drag stores the pointer travel on top of the stored width. A new plugin
-that pads a width the same way must be added to it, or its columns overshoot the drag (DEV-3276).
+that pads a width the same way must be added to it, or its columns overshoot the drag (DEV-3276). A column the
+`StretchColumns` plugin resizes (`stretchH: 'all'`, or the last column of `'last'`) renders the stretched width, which
+`modifyColWidth` order 10 puts in place of the padded one, so `#getRenderedOverhead` answers 0 for it.
 
 ## The width floor is derived from the theme, and only for grids with a menu button (DEV-158)
 

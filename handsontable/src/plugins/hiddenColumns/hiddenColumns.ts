@@ -468,11 +468,16 @@ export class HiddenColumns extends BasePlugin {
    * @returns {number}
    */
   getIndicatorExtraWidth(column: number): number {
-    if (!this.enabled || !this.getSetting('indicators') || !this.hot.hasColHeaders()) {
+    if (!this.enabled || !this.getSetting('indicators')) {
       return 0;
     }
 
-    return this.isHidden(column + 1) || this.isHidden(column - 1) ? INDICATOR_EXTRA_WIDTH : 0;
+    if (!this.isHidden(column + 1) && !this.isHidden(column - 1)) {
+      return 0;
+    }
+
+    // Checked last: with `colHeaders` left at its default, `hasColHeaders()` walks every column header.
+    return this.hot.hasColHeaders() ? INDICATOR_EXTRA_WIDTH : 0;
   }
 
   /**

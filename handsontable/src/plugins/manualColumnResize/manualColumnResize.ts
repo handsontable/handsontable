@@ -96,7 +96,7 @@ export class ManualColumnResize extends BasePlugin {
       isActive: () => this.enabled,
       clampSize: width => this.#clampSize(width),
       setManualSize: (column, width) => this.#setManualSize(column, width),
-      getRenderedOverhead: column => this.hot.getPlugin('hiddenColumns')?.getIndicatorExtraWidth(column) ?? 0,
+      getRenderedOverhead: column => this.#getRenderedOverhead(column),
     });
   }
 
@@ -299,6 +299,24 @@ export class ManualColumnResize extends BasePlugin {
     const width = this.hot.stylesHandler?.getResolvedLength(MIN_WIDTH_EXPRESSION);
 
     return typeof width === 'number' ? Math.max(FALLBACK_MIN_WIDTH, width) : FALLBACK_MIN_WIDTH;
+  }
+
+  /**
+   * Returns how much wider a column renders than the width stored for it: the room `HiddenColumns` adds
+   * for the indicator of a hidden neighbor. A column the stretching resizes renders the stretched width,
+   * which replaces that room (`StretchColumns` runs after `HiddenColumns` in `modifyColWidth`), so it has none.
+   *
+   * @param {number} column Visual column index.
+   * @returns {number}
+   */
+  #getRenderedOverhead(column: number): number {
+    const stretchColumns = this.hot.getPlugin('stretchColumns');
+
+    if (stretchColumns?.enabled && typeof stretchColumns.getColumnWidth(column) === 'number') {
+      return 0;
+    }
+
+    return this.hot.getPlugin('hiddenColumns')?.getIndicatorExtraWidth(column) ?? 0;
   }
 
   /**
