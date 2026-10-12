@@ -6,14 +6,14 @@
     "report": "node check.mjs --report"
   },
   "devDependencies": {
-    "@angular/common": "^19.2.20",
-    "@angular/compiler": "^19.2.20",
+    "@angular/common": "^21.2.20",
+    "@angular/compiler": "^21.2.19",
     "@angular/compiler-cli": "^19.2.20",
-    "@angular/core": "^19.2.20",
+    "@angular/core": "^21.2.20",
     "@angular/forms": "^19.2.20",
     "@angular/platform-browser": "^19.2.20",
     "@angular/platform-browser-dynamic": "^19.2.20",
-    "@angular/router": "^19.2.20",
+    "@angular/router": "^21.2.24",
     "@handsontable/angular-wrapper": "link:../../wrappers/angular-wrapper/dist/hot-table",
     "@lucide/angular": "^1.43.0",
     "@simonwep/pickr": "latest",
