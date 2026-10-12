@@ -10,7 +10,12 @@ import {
   getParent,
 } from '../../../helpers/dom/element';
 import { partial } from '../../../helpers/function';
-import { getCellCoordsFromMousePosition, isPointerOutsideTable } from './utils/pointerToCoords';
+import {
+  getCellCoordsFromMousePosition,
+  getTableViewportBounds,
+  isPointerOutsideBounds,
+  type TableViewportBounds,
+} from './utils/pointerToCoords';
 import { isTouchSupported } from '../../../helpers/feature';
 import { isMobileBrowser, isChromeWebKit, isFirefoxWebKit, isIOS } from '../../../helpers/browser';
 import { isDefined } from '../../../helpers/mixed';
@@ -491,14 +496,16 @@ class Event {
 
     // The cell is looked up only for a pointer outside the table: the lookup walks the rendered cells, and
     // every pointer move of a held drag comes through here, inside the table too.
-    if (!isPointerOutsideTable(this.#deps, event.clientX, event.clientY)) {
+    const bounds = getTableViewportBounds(this.#deps);
+
+    if (!isPointerOutsideBounds(bounds, event.clientX, event.clientY)) {
       this.#mouseOverOutsideLastCoords = null;
 
       return;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const { coords } = this.#getCellCoordsFromMousePosition(event.clientX, event.clientY);
+    const coords = this.#getCellCoordsFromMousePosition(event.clientX, event.clientY, bounds);
     const lastCoords = this.#mouseOverOutsideLastCoords;
 
     if (!lastCoords || lastCoords.row !== coords.row || lastCoords.col !== coords.col) {
@@ -513,16 +520,18 @@ class Event {
   }
 
   /**
-   * Returns the cell coordinates for the given mouse position and whether the mouse is
-   * outside the visible viewport. When the mouse is outside, the nearest edge cell is returned.
+   * Returns the cell coordinates for the given mouse position. A pointer outside the viewport maps to the
+   * nearest edge cell.
    *
    * @private
    * @param {number} mouseX Client X coordinate of the mouse.
    * @param {number} mouseY Client Y coordinate of the mouse.
-   * @returns {{ coords: CellCoords, isOutside: boolean }}
+   * @param {TableViewportBounds} bounds The bounds of the viewport the caller has read already.
+   * @returns {CellCoords}
    */
-  #getCellCoordsFromMousePosition(mouseX: number, mouseY: number) {
-    return getCellCoordsFromMousePosition(this.#deps, mouseX, mouseY);
+  #getCellCoordsFromMousePosition(mouseX: number, mouseY: number, bounds: TableViewportBounds) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return getCellCoordsFromMousePosition(this.#deps, mouseX, mouseY, bounds);
   }
 
   /**

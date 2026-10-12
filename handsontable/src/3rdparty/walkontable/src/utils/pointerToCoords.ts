@@ -12,6 +12,16 @@ import type { default as Settings } from '../settings';
 import type { GeometryReader } from '../domMeasure/geometryReader';
 import type { default as Table } from '../table/baseTable';
 
+/**
+ * The client rectangle a pointer is mapped inside.
+ */
+export interface TableViewportBounds {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
 // The subset of dependencies `getCellCoordsFromMousePosition` needs. `Event`'s deps satisfy it.
 interface MousePositionDeps {
   wtSettings: Settings;
@@ -117,9 +127,9 @@ export function findEndColumnAtX(
  * Returns the client rectangle the pointer is mapped inside. A pointer past it is outside the table.
  *
  * @param {MousePositionDeps} deps The layout/settings/geometry dependencies.
- * @returns {{ left: number, top: number, right: number, bottom: number }}
+ * @returns {TableViewportBounds}
  */
-function getTableViewportBounds(deps: MousePositionDeps) {
+export function getTableViewportBounds(deps: MousePositionDeps): TableViewportBounds {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const wot = deps.facadeGetter();
   const tableOffset = deps.geometryReader.getBoundingClientRect(deps.wtTable.wtRootElement);
@@ -162,30 +172,33 @@ function getTableViewportBounds(deps: MousePositionDeps) {
 }
 
 /**
- * Tells whether the pointer is outside the visible viewport of the table. It reads the bounds only, so it is
- * cheap enough to run on every pointer move, unlike the lookup of the cell.
+ * Tells whether the pointer is past the bounds of the table's visible viewport.
  *
- * @param {MousePositionDeps} deps The layout/settings/geometry dependencies (satisfied by `Event`'s deps).
+ * @param {TableViewportBounds} bounds The bounds from `getTableViewportBounds`.
  * @param {number} mouseX Client X coordinate of the mouse.
  * @param {number} mouseY Client Y coordinate of the mouse.
  * @returns {boolean}
  */
-export function isPointerOutsideTable(deps: MousePositionDeps, mouseX: number, mouseY: number): boolean {
-  const { left, top, right, bottom } = getTableViewportBounds(deps);
-
-  return mouseX < left || mouseX > right || mouseY < top || mouseY > bottom;
+export function isPointerOutsideBounds(bounds: TableViewportBounds, mouseX: number, mouseY: number): boolean {
+  return mouseX < bounds.left || mouseX > bounds.right || mouseY < bounds.top || mouseY > bounds.bottom;
 }
 
 /**
- * Returns the cell coordinates for the given mouse position and whether the mouse is
- * outside the visible viewport. When the mouse is outside, the nearest edge cell is returned.
+ * Returns the cell coordinates for the given mouse position. When the pointer is outside the visible viewport,
+ * the nearest edge cell is returned.
  *
  * @param {MousePositionDeps} deps The layout/settings/geometry dependencies (satisfied by `Event`'s deps).
  * @param {number} mouseX Client X coordinate of the mouse.
  * @param {number} mouseY Client Y coordinate of the mouse.
- * @returns {{ coords: CellCoords, isOutside: boolean }}
+ * @param {TableViewportBounds} [bounds] The bounds of the viewport, when the caller has read them already.
+ * @returns {CellCoords}
  */
-export function getCellCoordsFromMousePosition(deps: MousePositionDeps, mouseX: number, mouseY: number) {
+export function getCellCoordsFromMousePosition(
+  deps: MousePositionDeps,
+  mouseX: number,
+  mouseY: number,
+  bounds: TableViewportBounds = getTableViewportBounds(deps),
+) {
   const isRtl = deps.wtSettings.getSetting<boolean>('rtlMode');
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const wot = deps.facadeGetter();
@@ -204,7 +217,7 @@ export function getCellCoordsFromMousePosition(deps: MousePositionDeps, mouseX: 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const lastPartiallyVisibleColumn: number = wot.wtScroll.getLastPartiallyVisibleColumn();
   const { left: tableViewportLeft, top: tableViewportTop, right: tableViewportRight, bottom: tableViewportBottom } =
-    getTableViewportBounds(deps);
+    bounds;
 
   const clampedX = clamp(mouseX, tableViewportLeft, tableViewportRight);
   const clampedY = clamp(mouseY, tableViewportTop, tableViewportBottom);
@@ -340,12 +353,6 @@ export function getCellCoordsFromMousePosition(deps: MousePositionDeps, mouseX: 
     }
   }
 
-  return {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    coords: wot.createCellCoords(foundRow, foundColumn),
-    isOutside: mouseX < tableViewportLeft ||
-               mouseX > tableViewportRight ||
-               mouseY < tableViewportTop ||
-               mouseY > tableViewportBottom,
-  };
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return wot.createCellCoords(foundRow, foundColumn);
 }

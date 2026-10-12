@@ -1,4 +1,8 @@
-import { getCellCoordsFromMousePosition, isPointerOutsideTable } from '../../../src/utils/pointerToCoords';
+import {
+  getCellCoordsFromMousePosition,
+  getTableViewportBounds,
+  isPointerOutsideBounds,
+} from '../../../src/utils/pointerToCoords';
 import Settings from '../../../src/settings';
 
 /**
@@ -27,11 +31,21 @@ interface Merge {
  * @param {Merge[]} merges Merged areas, as the cell renders them: one element per area.
  * @param {object} [options] The scenario.
  * @param {number} [options.fixedRowsTop=0] Frozen top rows.
+ * @param {number} [options.fixedRowsBottom=0] Frozen bottom rows.
+ * @param {number} [options.fixedColumnsStart=0] Frozen start columns.
+ * @param {number} [options.fixedColumnsEnd=0] Frozen end columns.
  * @param {number} [options.firstRow] First partially visible row (defaults to the first row below the frozen ones).
  * @param {number} [options.firstColumn=0] First partially visible column.
  * @returns {object}
  */
-function createScenario(merges: Merge[], { fixedRowsTop = 0, firstRow = fixedRowsTop, firstColumn = 0 } = {}) {
+function createScenario(merges: Merge[], {
+  fixedRowsTop = 0,
+  fixedRowsBottom = 0,
+  fixedColumnsStart = 0,
+  fixedColumnsEnd = 0,
+  firstRow = fixedRowsTop,
+  firstColumn = fixedColumnsStart,
+} = {}) {
   const cellOf = new Map<string, HTMLTableCellElement>();
   const boxOf = new Map<HTMLElement, { left: number, top: number, width: number, height: number }>();
 
@@ -69,10 +83,10 @@ function createScenario(merges: Merge[], { fixedRowsTop = 0, firstRow = fixedRow
     totalRows: () => TOTAL_ROWS,
     totalColumns: () => TOTAL_COLUMNS,
     rtlMode: false,
-    fixedColumnsStart: () => 0,
-    fixedColumnsEnd: () => 0,
+    fixedColumnsStart: () => fixedColumnsStart,
+    fixedColumnsEnd: () => fixedColumnsEnd,
     fixedRowsTop: () => fixedRowsTop,
-    fixedRowsBottom: () => 0,
+    fixedRowsBottom: () => fixedRowsBottom,
     columnHeaders: [],
     rowHeaders: [],
   });
@@ -90,9 +104,9 @@ function createScenario(merges: Merge[], { fixedRowsTop = 0, firstRow = fixedRow
   const wot = {
     wtScroll: {
       getFirstPartiallyVisibleRow: () => firstRow,
-      getLastPartiallyVisibleRow: () => TOTAL_ROWS - 1,
+      getLastPartiallyVisibleRow: () => TOTAL_ROWS - fixedRowsBottom - 1,
       getFirstPartiallyVisibleColumn: () => firstColumn,
-      getLastPartiallyVisibleColumn: () => TOTAL_COLUMNS - 1,
+      getLastPartiallyVisibleColumn: () => TOTAL_COLUMNS - fixedColumnsEnd - 1,
     },
     wtViewport: {
       isHorizontallyScrollableByWindow: () => false,
@@ -118,7 +132,7 @@ function createScenario(merges: Merge[], { fixedRowsTop = 0, firstRow = fixedRow
 }
 
 const coordsAt = (deps: ReturnType<typeof createScenario>, x: number, y: number) => {
-  const { row, col } = getCellCoordsFromMousePosition(deps, x, y).coords;
+  const { row, col } = getCellCoordsFromMousePosition(deps, x, y);
 
   return { row, col };
 };
@@ -147,6 +161,36 @@ describe('getCellCoordsFromMousePosition over merged cells', () => {
       [5, 0], [30, 1], [50, 2],
     ])('should map y = %i to row %i for a pointer past the right edge', (y, row) => {
       const deps = createScenario([{ row: 0, col: 0, rowspan: 3 }], { fixedRowsTop: 3 });
+
+      expect(coordsAt(deps, 500, y).row).toBe(row);
+    });
+  });
+
+  describe('a horizontal merge inside the frozen start columns (columns 0-1)', () => {
+    it.each([
+      [30, 0], [60, 1],
+    ])('should map x = %i to column %i for a pointer past the bottom edge', (x, col) => {
+      const deps = createScenario([{ row: 0, col: 0, colspan: 2 }], { fixedColumnsStart: 2 });
+
+      expect(coordsAt(deps, x, 500).col).toBe(col);
+    });
+  });
+
+  describe('a horizontal merge inside the frozen end columns (columns 2-3)', () => {
+    it.each([
+      [90, 2], [130, 3],
+    ])('should map x = %i to column %i for a pointer past the bottom edge', (x, col) => {
+      const deps = createScenario([{ row: 0, col: 2, colspan: 2 }], { fixedColumnsEnd: 2 });
+
+      expect(coordsAt(deps, x, 500).col).toBe(col);
+    });
+  });
+
+  describe('a vertical merge inside the frozen bottom rows (rows 8-9)', () => {
+    it.each([
+      [170, 8], [190, 9],
+    ])('should map y = %i to row %i for a pointer past the right edge', (y, row) => {
+      const deps = createScenario([{ row: 8, col: 0, rowspan: 2 }], { fixedRowsBottom: 2 });
 
       expect(coordsAt(deps, 500, y).row).toBe(row);
     });
@@ -187,19 +231,29 @@ describe('getCellCoordsFromMousePosition over merged cells', () => {
   });
 });
 
-describe('isPointerOutsideTable', () => {
+describe('isPointerOutsideBounds', () => {
+  const bounds = { left: 0, top: 0, right: 160, bottom: 200 };
+
   it.each([
     [100, 100, false], [0, 0, false], [160, 200, false],
     [-1, 100, true], [100, -1, true], [161, 100, true], [100, 201, true],
   ])('should tell for a pointer at (%i, %i) whether it is outside: %s', (x, y, outside) => {
-    expect(isPointerOutsideTable(createScenario([]), x, y)).toBe(outside);
+    expect(isPointerOutsideBounds(bounds, x, y)).toBe(outside);
+  });
+});
+
+describe('getTableViewportBounds', () => {
+  it('should return the client rectangle of the table', () => {
+    expect(getTableViewportBounds(createScenario([]))).toEqual({
+      left: 0, top: 0, right: TOTAL_COLUMNS * COLUMN_WIDTH, bottom: TOTAL_ROWS * ROW_HEIGHT,
+    });
   });
 
-  it('should agree with the verdict of the full lookup', () => {
-    const deps = createScenario([]);
+  it('should give the lookup the same result with and without the bounds', () => {
+    const deps = createScenario([{ row: 2, col: 0, rowspan: 6 }]);
+    const bounds = getTableViewportBounds(deps);
 
-    [[100, 100], [500, 100], [100, 500], [-5, -5]].forEach(([x, y]) => {
-      expect(isPointerOutsideTable(deps, x, y)).toBe(getCellCoordsFromMousePosition(deps, x, y).isOutside);
-    });
+    expect(getCellCoordsFromMousePosition(deps, 500, 170, bounds))
+      .toEqual(getCellCoordsFromMousePosition(deps, 500, 170));
   });
 });

@@ -55,7 +55,12 @@
       licenseKey: 'non-commercial-and-evaluation',
     };
 
-    window.hot = new Handsontable(container, settings);
+    try {
+      window.hot = new Handsontable(container, settings);
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
 
   </script>
 </body>

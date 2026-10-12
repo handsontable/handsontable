@@ -31,7 +31,18 @@ export class MergeCellsDragOutsidePage {
     );
     // Wait against the test budget, not the `expect` timeout (see fixtures/bundle.ts).
     await awaitBundle(this.page);
-    await this.page.waitForFunction(() => 'hot' in window, undefined, { polling: BUNDLE_POLLING_MS });
+    await this.page.waitForFunction(
+      () => 'hot' in window || 'htBuildError' in window,
+      undefined,
+      { polling: BUNDLE_POLLING_MS },
+    );
+
+    const buildError = await this.page.evaluate(() => (window as { htBuildError?: string }).htBuildError ?? null);
+
+    if (buildError !== null) {
+      throw new Error(`Handsontable constructor threw in the fixture:\n${buildError}`);
+    }
+
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
@@ -63,6 +74,66 @@ export class MergeCellsDragOutsidePage {
 
       await this.page.mouse.move(target.x + target.width / 2, grid.y + grid.height + 80, { steps: 6 });
     }
+  }
+
+  /**
+   * Presses the mouse on a cell, then moves the pointer to the center of another cell of the grid.
+   */
+  async dragWithin(from: { row: number, col: number }, to: { row: number, col: number }): Promise<void> {
+    const start = (await this.cell(from.row, from.col).boundingBox())!;
+    const target = (await this.cell(to.row, to.col).boundingBox())!;
+
+    await this.page.mouse.move(start.x + start.width / 2, start.y + start.height / 2);
+    await this.page.mouse.down();
+    await this.page.mouse.move(target.x + target.width / 2, target.y + target.height / 2, { steps: 4 });
+  }
+
+  /**
+   * Starts counting the pointer-to-cell lookups of the table: the lookup reads the first partially visible row
+   * of the viewport, and nothing else on the pointer path does.
+   */
+  async countLookups(): Promise<void> {
+    await this.page.evaluate(() => {
+      const win = window as unknown as {
+        hot: { view: { _wt: { wtScroll: { getFirstPartiallyVisibleRow(): number } } } },
+        htLookups: number,
+      };
+      const { wtScroll } = win.hot.view._wt;
+      const original = wtScroll.getFirstPartiallyVisibleRow.bind(wtScroll);
+
+      win.htLookups = 0;
+      wtScroll.getFirstPartiallyVisibleRow = () => {
+        win.htLookups += 1;
+
+        return original();
+      };
+    });
+  }
+
+  /**
+   * The number of lookups since `countLookups()`.
+   */
+  async lookups(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as { htLookups: number }).htLookups);
+  }
+
+  /**
+   * Moves the held pointer to the center of a cell of the grid.
+   */
+  async moveTo(cell: { row: number, col: number }): Promise<void> {
+    const target = (await this.cell(cell.row, cell.col).boundingBox())!;
+
+    await this.page.mouse.move(target.x + target.width / 2, target.y + target.height / 2, { steps: 4 });
+  }
+
+  /**
+   * Moves the held pointer past the right edge of the grid, at the height of a row.
+   */
+  async moveOutRight(row: number): Promise<void> {
+    const grid = (await this.page.getByTestId('grid').boundingBox())!;
+    const target = (await this.cell(row, 4).boundingBox())!;
+
+    await this.page.mouse.move(grid.x + grid.width + 80, target.y + target.height / 2, { steps: 4 });
   }
 
   /**
