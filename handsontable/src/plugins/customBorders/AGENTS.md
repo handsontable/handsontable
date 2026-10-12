@@ -160,9 +160,28 @@ was set at, which by then held another record. Two defects drove it:
 Hidden rows (`hiddenRows`) keep their visual indexes, so `afterHideRows` needs no rebuild. Sorting and
 row moves are not covered by this rebuild. A progressive load still in flight is flushed first, so the
 rebuild (which cancels the load) cannot drop its pending batches. The trim plugin does not render after
-its hooks, so the trim path schedules a render; `filter()` renders right after `afterFilter`. Each
-rebuild walks every user-defined meta key, once per filter or trim. Pinned by the filter, trim and
-sort-plus-filter range-clear cases in `__tests__/clearBordersTrimmedRows.unit.js`.
+its hooks, so the trim path schedules a render; `filter()` renders right after `afterFilter`.
+
+**The rebuild is deferred and coalesced, never run from the hook.** It walks every user-defined meta
+key, and running it from each `afterTrimRow` made a loop of 100 `trimRow()` calls at 50,000 border
+entries take 6.3 s against about 50 ms before. The hooks only set `#isModelRebuildPending` (and advance
+the model version for UndoRedo); `#flushPendingModelRebuild()` runs the rebuild once, the first time
+anything touches the model. Every reader and writer must call it first: the `savedBorders` getter (which
+is why `savedBorders` is an accessor over `#savedBorders`), `spliceBorder()`, `checkSavedBorders()`,
+the render's `#syncViewportSelections` (the scheduled render is where it normally runs), the
+`afterSetCellMeta` / `afterRemoveCellMeta` listeners and **`#flushBeforeStructuralChange`**. The last one
+is load-bearing: the core shifts the meta before `afterCreateRow` / `afterRemoveRow`, so a rebuild first
+run from `#shiftBorders` would read the shifted meta and the shift would move every border twice.
+`captureState()` must **not** flush: UndoRedo calls it at the end of every `trimRow()` operation, which
+would undo the coalescing. The flush keeps the version the deferral set, so a later step does not record
+the change a second time.
+
+Pinned by `__tests__/trimmingRebuild.unit.js` (a border at row 8 reports row 7 right after
+`trimRow(0)` - kills a deleted `afterTrimRow` hook; the scheduled render paints it at row 7 with no
+explicit render - kills a deleted `#scheduleMetaSyncRender()`; a 100-call `trimRow()` burst walks the
+meta once; an insert right after a trim shifts once), and by the filter, untrim and sort-plus-filter
+cases in `__tests__/clearBordersTrimmedRows.unit.js`. That file's only trim case ends with `untrimAll()`,
+so it pins `afterUntrimRow`, not `afterTrimRow`.
 
 ## A progressive load is never an undo step
 

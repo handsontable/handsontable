@@ -187,12 +187,17 @@ export class CustomBorders extends BasePlugin {
   }
 
   /**
-   * Saved borders.
-   *
-   * @private
-   * @type {Array}
+   * The border model behind {@link CustomBorders#savedBorders}.
    */
-  savedBorders: BorderObject[] = [];
+  #savedBorders: BorderObject[] = [];
+
+  /**
+   * `true` when a trim or a filter changed the visible rows and the border model has not been rebuilt
+   * from the `borders` meta yet. The rebuild walks every user-defined meta key, so it runs once, the
+   * next time anything reads or writes the model (the render's viewport sync, `getBorders()`, a
+   * structural change), instead of once per `trimRow()` call.
+   */
+  #isModelRebuildPending: boolean = false;
 
   /**
    * Positions of the saved borders in the `savedBorders` array, keyed by the border id.
@@ -299,6 +304,27 @@ export class CustomBorders extends BasePlugin {
    * visual index mapping. `null` when no move is in progress.
    */
   #columnMoveSnapshot: (number | null)[] | null = null;
+
+  /**
+   * Saved borders. Reading them completes a model rebuild a trim or a filter deferred.
+   *
+   * @private
+   * @type {Array}
+   */
+  get savedBorders(): BorderObject[] {
+    this.#flushPendingModelRebuild();
+
+    return this.#savedBorders;
+  }
+
+  /**
+   * Replaces the saved borders.
+   *
+   * @private
+   */
+  set savedBorders(borders: BorderObject[]) {
+    this.#savedBorders = borders;
+  }
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -562,6 +588,7 @@ export class CustomBorders extends BasePlugin {
   #rebuildModelFromMeta(
     bordered: { physicalRow: number, physicalColumn: number, value: unknown }[] = this.#collectBorderedMetas(),
   ) {
+    this.#isModelRebuildPending = false;
     this.#cancelProgressiveApply();
     this.#destroyAllSelections();
     this.savedBorders = [];
@@ -1254,6 +1281,8 @@ export class CustomBorders extends BasePlugin {
    * Called on every view render (`beforeViewRender`), before the selection borders are drawn.
    */
   #syncViewportSelections() {
+    this.#flushPendingModelRebuild();
+
     if (this.#bordersByRowDirty) {
       this.#rebuildBordersByRow();
     }
@@ -1339,6 +1368,8 @@ export class CustomBorders extends BasePlugin {
    * @param {string} borderId Border id name as string.
    */
   spliceBorder(borderId: string) {
+    this.#flushPendingModelRebuild();
+
     const index = this.#savedBordersIndex.get(borderId) ?? -1;
 
     if (index > -1) {
@@ -1369,6 +1400,8 @@ export class CustomBorders extends BasePlugin {
    * @returns {boolean}
    */
   checkSavedBorders(border: BorderObject) {
+    this.#flushPendingModelRebuild();
+
     let check = false;
 
     const hideCount = this.countHide(border);
@@ -1833,17 +1866,17 @@ The border style will be ignored.`);
    * model keeps the visual coordinates a border was set at. Rebuilding from the `borders` meta
    * (stored by physical coordinates) moves every border back onto its record, and gives a border
    * that an undo restored onto a filtered-out record its model entry once the record is visible. The
-   * filter renders right after this hook.
+   * filter renders right after this hook, and the render's viewport sync runs the rebuild.
    */
   #onAfterFilter = () => {
-    this.#rebuildAfterIndexChange();
+    this.#deferRebuildAfterIndexChange();
   };
 
   /**
    * `afterTrimRow` and `afterUntrimRow` hook callback. Same reason as {@link CustomBorders#onAfterFilter}:
    * a trim changes the visual index of every record below it, and an untrim brings back a record
    * whose border an undo restored while it was trimmed. The trim does not render, so a render is
-   * scheduled.
+   * scheduled; its viewport sync runs the rebuild once for the whole burst of trim calls.
    *
    * @param {number[]} currentTrimConfig The physical rows trimmed before the change.
    * @param {number[]} destinationTrimConfig The physical rows trimmed after the change.
@@ -1860,17 +1893,46 @@ The border style will be ignored.`);
       return;
     }
 
-    this.#rebuildAfterIndexChange();
+    this.#deferRebuildAfterIndexChange();
     this.#scheduleMetaSyncRender();
   };
 
   /**
-   * Rebuilds the border model from the meta after the visible rows changed. A progressive load
-   * still in flight is completed first, so the rebuild cannot drop its pending batches.
+   * Marks the border model for a rebuild from the meta after the visible rows changed. A
+   * progressive load still in flight is completed first, while its coordinates still describe the
+   * rows it was configured for, so the rebuild (which cancels the load) cannot drop its pending
+   * batches.
+   *
+   * The rebuild itself is deferred: it walks every user-defined meta key, and a loop of `trimRow()`
+   * calls rebuilt the whole model once per call (6.3 s for 100 calls at 50,000 border entries). It
+   * runs once, from `#flushPendingModelRebuild()`, the next time the model is read or
+   * written.
    */
-  #rebuildAfterIndexChange() {
+  #deferRebuildAfterIndexChange() {
     this.#flushProgressiveApply();
+    this.#isModelRebuildPending = true;
+    // The model changes now, as far as UndoRedo is concerned; the deferred rebuild keeps this
+    // version, so a later step does not record the change again.
+    this.#modelVersion += 1;
+  }
+
+  /**
+   * Runs the model rebuild a trim or a filter deferred, if one is pending. Every reader and writer of
+   * the model calls it first: the `savedBorders` getter, the id-index helpers, the render's viewport
+   * sync, the external meta listeners and the `before*` structural hooks. `captureState()` does not:
+   * the deferral already advanced the model version, and the rebuild keeps it. The last
+   * one matters: the core shifts the meta before the `after*` hooks, so a rebuild from there would
+   * read the shifted meta and the shift would then move the borders a second time.
+   */
+  #flushPendingModelRebuild() {
+    if (!this.#isModelRebuildPending) {
+      return;
+    }
+
+    const version = this.#modelVersion;
+
     this.#rebuildModelFromMeta();
+    this.#modelVersion = version;
   }
 
   /**
@@ -1888,6 +1950,8 @@ The border style will be ignored.`);
     if (this.#isInternalMetaWrite || key !== 'borders' || !isRecord(value)) {
       return;
     }
+
+    this.#flushPendingModelRebuild();
 
     // The written value may be a complete plugin-shaped border object (UndoRedo restoring the meta
     // of an undone removal) or a partial user-authored one (e.g. `{ top: { width: 2 } }` passed to
@@ -1944,6 +2008,8 @@ The border style will be ignored.`);
       return;
     }
 
+    this.#flushPendingModelRebuild();
+
     const borderId = createId(row, column);
 
     this.spliceBorder(borderId);
@@ -1972,6 +2038,8 @@ The border style will be ignored.`);
    * @param {string} [source] Source that triggered the structural change.
    */
   #flushBeforeStructuralChange(source?: string) {
+    this.#flushPendingModelRebuild();
+
     if (source === 'auto') {
       return;
     }
@@ -2173,6 +2241,7 @@ The border style will be ignored.`);
     // Cancel any in-flight progressive load and release the border model / working-set graphs so a
     // destroyed instance does not retain them for the page lifetime.
     this.#cancelProgressiveApply();
+    this.#isModelRebuildPending = false;
     this.savedBorders = [];
     this.#savedBordersIndex.clear();
     this.#bordersByRow.clear();
