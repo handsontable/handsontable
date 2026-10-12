@@ -133,6 +133,21 @@ describe('shiftFormulaReferences', () => {
     expect(shiftFormulaReferences('LOG10(A1)', 1, 1)).toBe('LOG10(B2)');
   });
 
+  it('should not read a function or a name that starts like a cell as a reference', () => {
+    // `HEX2` is a valid cell (column HEX, row 2), and the letter after it used to be allowed, so a
+    // header shift rewrote `HEX2DEC(` to `HEX1DEC(` and the grid showed `#NAME?`.
+    expect(shiftFormulaReferences('HEX2DEC(A2)', -1, 0)).toBe('HEX2DEC(A1)');
+    expect(shiftFormulaReferences('DEC2BIN(A2)+BIN2DEC(A3)', -1, 0)).toBe('DEC2BIN(A1)+BIN2DEC(A2)');
+    expect(shiftFormulaReferences('OCT2HEX(C3,4)+D4', -1, 0)).toBe('OCT2HEX(C2,4)+D3');
+    expect(shiftFormulaReferences('Q1Sales*A2', -1, 0)).toBe('Q1Sales*A1');
+    expect(shiftFormulaReferences('FY2024Total+A2', -1, 0)).toBe('FY2024Total+A1');
+    expect(shiftFormulaReferences('A1Rate*A2', -1, 0)).toBe('A1Rate*A1');
+    expect(shiftFormulaReferences('A1_x+A2.y+A2', -1, 0)).toBe('A1_x+A2.y+A1');
+    // Real references keep shifting.
+    expect(shiftFormulaReferences('LOG10(A2)+SUM(A2:B3)+$A$2+Sheet1!A2', -1, 0))
+      .toBe('LOG10(A1)+SUM(A1:B2)+$A$1+Sheet1!A2');
+  });
+
   it('should return null when a shifted reference falls above row 1 or left of column A', () => {
     expect(shiftFormulaReferences('A1', -1, 0)).toBeNull();
     expect(shiftFormulaReferences('A1', 0, -1)).toBeNull();
@@ -253,6 +268,14 @@ describe('translateSharedFormula', () => {
   it('should return the formula unchanged for a zero offset', () => {
     expect(translateSharedFormula('A1', 0, 0)).toBe('A1');
   });
+
+  it('should not move a function or a name that starts like a cell', () => {
+    // A shared `HEX2DEC(A2)` copied down used to read `HEX3DEC(A3)`, `HEX4DEC(A4)`.
+    expect(translateSharedFormula('HEX2DEC(A2)', 1, 0)).toBe('HEX2DEC(A3)');
+    expect(translateSharedFormula('BIN2OCT(A1)*2', 2, 0)).toBe('BIN2OCT(A3)*2');
+    expect(translateSharedFormula('Q1Sales*A2', 1, 0)).toBe('Q1Sales*A3');
+    expect(translateSharedFormula('Data!A2+HEX2DEC(Data!B2)', 1, 0)).toBe('Data!A3+HEX2DEC(Data!B3)');
+  });
 });
 
 describe('rebaseImportedFormula', () => {
@@ -314,6 +337,22 @@ describe('rebaseImportedFormula', () => {
     expect(rebase('[1]Sheet1!A1', 0, 0)).toMatchObject({ unknownSheet: true });
     expect(rebase('SUM(Rates:Sheet1!A1)', 0, 0)).toMatchObject({ unknownSheet: true });
     expect(rebase('SUM(Sheet1:Rates!A1)', -1, 0)).toMatchObject({ unknownSheet: true });
+  });
+
+  it('should read a range that repeats its own qualifier after the colon as a range on that sheet', () => {
+    // `Sheet1!A1:Sheet1!A3` is not a 3D reference: both ends name one sheet, and HyperFormula
+    // evaluates the shape.
+    expect(rebase('SUM(Sheet1!A2:Sheet1!A4)', -1, 0))
+      .toEqual({ formula: 'SUM(A1:A3)', unknownSheet: false, asked: [] });
+    expect(rebase('SUM(Rates!A1:rates!A3)', -1, 0))
+      .toEqual({ formula: 'SUM(Rates!A1:rates!A3)', unknownSheet: false, asked: ['Rates', 'rates'] });
+    expect(rebase('SUM(\'My Rates\'!A1:\'My Rates\'!A3)', 0, 0, ['my rates'])).toMatchObject({ unknownSheet: false });
+    expect(rebase('SUM(Missing!A1:Missing!A3)', 0, 0)).toMatchObject({ unknownSheet: true });
+    // Two different sheets around the colon are still a 3D reference, and so is an unqualified start.
+    expect(rebase('SUM(Sheet1!A1:Rates!A3)', 0, 0)).toMatchObject({ unknownSheet: true });
+    expect(rebase('SUM(Rates!A1:Sheet1!A3)', 0, 0)).toMatchObject({ unknownSheet: true });
+    expect(rebase('SUM(A1:Sheet1!A3)', 0, 0)).toMatchObject({ unknownSheet: true });
+    expect(rebase('SUM(Rates!A1+B1:Rates!A3)', 0, 0)).toMatchObject({ unknownSheet: true });
   });
 
   it('should return the formula unchanged without a walk when nothing can change it', () => {

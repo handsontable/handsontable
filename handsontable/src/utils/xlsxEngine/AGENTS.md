@@ -107,12 +107,13 @@ directions.
   Without it the reader's `<c>`-derived width alone left the row a cell short and `importFile/mapper.ts` — which takes the used width from the widest row — then
   dropped the merge entirely from the native engine's own export/import round trip. The merge pass
   in `parts/worksheetReader.ts` pads every row of a merge's row range up to the merge's last column
-  (a covered cell becomes `createCoveredCellSnapshot()` – its own style and lock, no value – or `null`) and grows `width` to it (`#materializeMerges`). The clamp bound is the dimension's
-  column count when one is declared (`Math.max(this.#width, this.#declaredColumns, 1)`), so a merge
-  reaching past what the file declares stays clamped rather than widening the sheet on a hostile
-  file's say-so. With NO `<dimension>` (openpyxl write-only, ExcelJS streaming), the merge may widen
-  the sheet up to `MAX_SHEET_COLUMNS`, because clamping to the widest row cropped a merge whose
-  covered cells carry no `<c>`. The validation pass clamps BOTH axes to what the sheet uses (its rows
+  (a covered cell becomes `createCoveredCellSnapshot()` – its own style and lock, no value – or `null`) and grows `width` to it (`#materializeMerges`). **`<dimension>` does NOT
+  clamp a merge** (QA round 7): every merge grows the sheet to its own extent, rows and columns, as
+  ExcelJS does. The old clamp assumed every producer includes its merges in `<dimension>`, and
+  ClosedXML, Apache POI and LibreOffice files do not — a title merged wider than the data lost its
+  width, or the merge, with nothing reported. A whole-axis merge (`A1:XFD1`, `B1:B1048576`) therefore
+  grows the sheet to 16 384 columns or a million rows too; the span charge and `#finalize`'s
+  rectangle check are what bound it. The validation pass clamps BOTH axes to what the sheet uses (its rows
   and its widest row), never to `<dimension>`: a sparse sheet under a wide dimension had every slot
   of a validation's rectangle walked and then kept by the mapper (a GB-class heap from a 2 kB file),
   and the ExcelJS adapter reads a validation only on the cells it walks, so an empty dropdown column
@@ -120,8 +121,7 @@ directions.
   rows to the merge's last row, as ExcelJS does (Google Sheets writes no `<row>` for an empty row
   and no `<dimension>`, so clamping cut such a merge short and left the grid a row short); the
   growth is bounded by the span charge below and the sheet caps. Every `<mergeCell>` is charged one span
-  unit when it is collected (`#openMergeCell`). A merge that clamps to nothing is DROPPED from
-  `sheet.merges`. The area charge (`#chargeSpan`) stays **before** the walk (see the span-budget
+  unit when it is collected (`#openMergeCell`), and its area when it is materialized. The area charge (`#chargeSpan`) stays **before** the walk (see the span-budget
   trap below), and the padding costs nothing new because that span was already charged. `#finalize`
   re-checks the rectangle with the grown width, so a whole-sheet merge is still refused.
 - **`locked: null` means locked** (OOXML default). Only `<protection locked="0"/>` yields `false`.
@@ -370,7 +370,13 @@ directions.
   `asBufferSource()` copies only a view over a `SharedArrayBuffer` (which nothing here makes),
   because that is the one backing the writer's `BufferSource` type excludes — the reader's slice and
   the writer's `TextEncoder` buffer go in as they are, and a transform never mutates or detaches
-  its input.
+  its input. **The slices are for the INFLATE side only: `deflateRaw()` writes its input in one
+  call** (`sliceBytes = Infinity`). Compression cannot blow up its output, so the bound buys it
+  nothing, and every awaited slice ends a zone.js turn: under Angular a 50,000-row export ran 874
+  change detections, against one for ExcelJS. Do not route the deflate back through the slice size;
+  `nativeStreams.unit.js` pins that a deflate makes exactly one write. The read loop still costs one
+  turn per output chunk on both sides; a large import or export belongs in
+  `NgZone.runOutsideAngular` (the Angular sections of the guides say so).
 - **An ENCRYPTED entry is refused by name, from the central directory.** General-purpose flag bit 0
   (ZipCrypto) or bit 6 (strong encryption) means the region is ciphertext; the reader used to skip
   the flag word, so such an entry reached the inflater and failed as corrupt data or, stored, read
@@ -492,21 +498,56 @@ directions.
   `comments{N}.xml` took the whole import down. `#ensureRow` keeps one `rowIndex < 0 ||
   !Number.isInteger(rowIndex)` guard as belt and braces; no file reaches it, because every caller
   hands a whole, non-negative index.
-- **`<dimension>` is a cap check and an up-front budget charge, never an allocation.** The row
+- **`<dimension>` is a row/column cap check and a cut for trailing empty rows, nothing else** — never
+  an allocation, never a budget charge, never a cell-product refusal, never a merge clamp. The row
   count follows the last `<row>` or `<c>`, as ExcelJS's `rowCount` does. Pre-allocating the declared
   rows made three rows under `A1:B5000` a 5000-row grid, and turned a 1.7 kB archive (a
   million-row dimension, no rows, one list validation) into +646 MB of cell snapshots.
-  `#openDimension` runs `assertSheetRectangle` and settles the declared rectangle against the
-  workbook budget (`#settleWorkbookCharge`). `#finalize` re-settles at the real extent, which
-  replaces the declared charge rather than adding to it. `#reserveSlot` also refuses as soon as
-  rows × width outgrows the room the budget had left when the sheet started (`#workbookRoom`), so
-  `MAX_WORKBOOK_CELLS` refuses before the cells exist. A single `<row r="1048576"/>` still
-  allocates a million empty row arrays.
+  `#openDimension` refuses only a declared row or column count past `MAX_SHEET_ROWS`/`COLUMNS`. It
+  used to refuse the declared PRODUCT and charge it to the workbook budget up front, so a 3 x 5 sheet
+  under a hand-edited `A1:XFD1048576` was refused where ExcelJS read it (QA round 7). The budget is
+  now charged only at the real extent (`#finalize`), and `#reserveSlot` refuses as soon as rows ×
+  width outgrows the caps or the room the budget had left when the sheet started (`#workbookRoom`),
+  so `MAX_WORKBOOK_CELLS` still refuses before the cells exist. **A self-closing `<row>` past the
+  declared last row that sets nothing** (no `customHeight`/`hidden` = 1, no `outlineLevel` > 0, no
+  `customFormat` + `s`) adds no row and no height (`#isTrailingEmptyRow`): Hancom ends a 40-row sheet
+  with `<row r="1048576" ht="16.5"/>`. A row inside the dimension still counts (an export's trailing
+  blank rows round-trip), and with no `<dimension>` every row counts, so a single `<row r="1048576"/>`
+  there still allocates a million empty row arrays. ExcelJS counts the tail row; the divergence is
+  pinned in `enginesParity.unit.js`.
+- **A bare `<c>` does not widen the sheet** (`#finishEmptyCell`). A cell with no `<v>`, no `<is>`, no
+  `<f>` and either `s` absent/`0` or an xf carrying nothing only makes its row exist. Excel writes
+  `<c r="IU1"/><c r="IV1"/>` on formatted rows and LibreOffice `<c r="AMJ1" s="0"/>`, which grew the
+  sheet to 256 or 1,024 columns and got 5,000-row sheets refused by the cell cap. Two exceptions keep
+  the slot: a bare cell inside an `<f t="array" ref>` range (`#arrayRanges`; ClosedXML's
+  `ArrayFormula.xlsx` stays 2 x 2), and a cell whose `<v>` was THERE but decoded to nothing (an
+  impossible `t="d"`, an unresolved shared string, `<v>NaN</v>`) — keying on "value is null" alone
+  emptied those rows. Merge members are padded by `#materializeMerges` regardless.
+- **A `<pane>` is read only inside the FIRST `<sheetView>`** (`#inFirstSheetView`, cleared on
+  `</sheetView>`). Excel's legacy Custom Views keep their own `<pane>` in
+  `<customSheetViews><customSheetView>`, which froze an unfrozen sheet or overrode the real split.
+- **Reader-side dropped names added in QA round 7**: an error cell with value metadata
+  (`<c t="e" vm>`, an Excel 365 "Place in Cell" picture) records `images` and keeps its cached
+  `#VALUE!` (`vm` alone is not enough — OLAP cube cells carry it); an `<x14:cfRule>` inside `<extLst>`
+  records `conditionalFormatting:<type>` through `recordUnsupported`; `<f t="dataTable">` records
+  `formula:dataTable` and keeps the cached values; a `t="s"` index that resolves to nothing records
+  `cellValue:sharedString`. A `<conditionalFormatting>` block left with no rule is not pushed, so
+  `sheet.conditionalFormatting` holds no `{ rules: [] }` entry.
 - **The native reader reports `cellStyles` on fewer workbooks than ExcelJS, on purpose.** ExcelJS
   resolves a cell's default font and fill into a style object whenever the cell carries any format
   index; the native reader sees a cell whose xf points only at the bootstrap defaults as having no
   style. `importFile/mapper.ts` records the dropped feature merely on SEEING a non-null style, so
   the two engines legitimately produce different `result.dropped` lists. The import guide says so.
+  Two rules in `#closeXf` (`parts/styles.ts`) keep that difference to the defaults only. (1)
+  **Font 0 is the Normal style's font and reads as NO font**, whatever it holds: Excel for Mac and
+  LibreOffice 4.1 to 6.4 write it with `<color rgb="FF000000"/>`, and since a cell with no `s` uses
+  xf 0, reading it made every cell of an unformatted file styled (`cellStyles` reported, black text
+  imported onto a dark theme). (2) **Styling the model cannot carry still yields a style**, one with
+  every member `null`: a theme or indexed fill, a pattern other than `solid`/`none`/`gray125`, a
+  `<gradientFill>`, a theme or indexed font color other than font 0's own or theme 1 (`Text 1`), and
+  `wrapText`/`shrinkToFit`/`indent`/`textRotation` (their zeroed spellings excepted). Without it
+  such a file reported nothing where ExcelJS and 18.1 reported `cellStyles`; with `importStyles`
+  the blank style applies nothing. Pinned in `nativeStyles.unit.js` and `enginesParity.unit.js`.
 - **A self-closing `<cfRule/>` needs its own finish call.** The XML tokenizer fires no close event
   for a self-closed element, and `top10`, `aboveAverage` and `duplicateValues` need no `<formula>`
   child, so both engines' writers emit them self-closing — the rule was read as if it were not in
@@ -529,8 +570,12 @@ directions.
   WHOLE workbook with `the sheet "Chart1" has no part`. `NON_WORKSHEET_SHEET_TYPES` in `read.ts`
   maps those types to `DROPPED_FEATURES.chartSheets` / `dialogSheets` / `macroSheets`
   (`capabilities.ts`); the entry is dropped and the sheets around it keep their order. A `<sheet>`
-  whose relationship is missing, is of any OTHER type, or names a part the archive does not hold
-  is still refused as before. The three names need a row each in the import guide's dropped table.
+  whose relationship is of any OTHER type, or names a part the archive does not hold, is still
+  refused as before. **A `<sheet r:id="">`** (an EMPTY id, which Excel writes for a legacy module
+  sheet, with no relationship and no part; `idOf` also answers `''` for a missing attribute) is
+  skipped and recorded under `macroSheets` (`skippedSheetAs`, `read.ts`); a NON-empty id that
+  resolves to no relationship is still refused. The three names need a row each in the import
+  guide's dropped table.
 - **What the bytes ARE is decided before a byte of the main part is tokenized.** Acceptance used to
   be "a ZIP with a part at the officeDocument target (or `xl/workbook.xml`)", so an `.xlsb` — the
   same package layout with BIFF12 records in place of XML — tokenized to nothing and read back as a
@@ -619,7 +664,8 @@ directions.
   carry the position; `#resolveRowIndex`/`#resolveCellAddress` answer it, and both still go through
   `#ensureRow`/`#cellAt`, so every cap applies to an implicit address exactly as to an explicit
   one. A `<row r>` that is not a positive whole number is treated as ABSENT, so the row is placed
-  implicitly (next bullet); a `<c r>` that does not parse is still ignored. A `<c>` without `r`
+  implicitly (next bullet); so is a `<c r>` that does not parse (`r="B"`, `1A`, `""`), which used to
+  drop the cell silently. A well-shaped `A0` is still refused. A `<c>` without `r`
   outside any `<row>` has no row to land in and is ignored too — including one AFTER a `</row>`:
   `#currentRow` is cleared on row close (and a self-closing `<row/>` never sets it), while
   `#lastRow` keeps the index an implicit `<row>` counts from. Before, a stray cell between rows
@@ -698,9 +744,9 @@ directions.
   round trip. Border and alignment are
   compared unnormalized. If that test fails, the OOXML is the arbiter — read the fixture's raw XML
   before changing a reader, and never widen a normalization to make it pass.
-- **`<dimension>` bounds the caps, the budget and the merge column clamp** (not the validation
-  clamp, which follows the used width);
-  without it the caps run incrementally per row and cell. `<col max="16384">` widens `colWidths`
+- **`<dimension>` bounds the row and column caps and the trailing-empty-row cut only** (not the
+  budget, not merges, not the validation clamp, which follows the used width); the cell caps always
+  run incrementally per row and cell. `<col max="16384">` widens `colWidths`
   but never the cell product.
 - **List validations are also read from `<extLst>`** (`<x14:dataValidation>`, `<xm:f>`,
   `<xm:sqref>`, `EXT_VALIDATION_ELEMENTS`, matched by the name after any prefix while
@@ -716,6 +762,16 @@ directions.
   (`stripFunctionPrefixes`). `NETWORKDAYS.INTL`, `WORKDAY.INTL`, `ISO.CEILING` and `ECMA.CEILING`
   are NOT in the add list: Excel for the web re-saves them bare, and LibreOffice shows `#NAME?` for
   the prefixed form. The strip still removes a prefix on them, because Google Sheets writes one.
+- **A cached formula ERROR is written `t="e"`, and only when the snapshot says so** (QA round 7).
+  `CellFormula.resultIsError` (`model.ts`) marks `result` as an OOXML error code; the native writer
+  types the cell `e` (`formulaCellXml`) and the ExcelJS adapter hands `{ error: code }` to ExcelJS
+  (`formulaResultValue`), which writes `t="e"` too. Both also require the code to be one of
+  `OOXML_ERROR_CODES` (the seven ECMA-376 lists), so a flagged `#CYCLE!` or a hand-built snapshot
+  still goes out as `str`. NEVER infer the flag from the string: `="#N/A"` answers the text `#N/A`
+  and must stay `str`. Before this every error result was `t="str"`, so POI, ClosedXML, openpyxl and
+  SheetJS read text. The readers do not set the flag: both hand a `t="e"` result back as its code
+  text in `formula.result`, exactly as before, so the import is unchanged. Pinned by
+  `formulaErrorResult.unit.js`.
 - **The `_xHHHH_` lookalike escape is a LOOKAHEAD.** `escapeXmlText` rewrites the underscore of
   every `_(?=x[0-9A-Fa-f]{4}_)` as `_x005F_` (`OOXML_ESCAPE_LOOKALIKE`, `xml/escapes.ts`). A
   pattern that consumed the trailing underscore escaped only the first of `_x0041_x0042_`, which
@@ -740,7 +796,11 @@ directions.
   (the `<sheetProtection>` allow-list bullet above). `read()` refuses more than `MAX_WORKBOOK_SHEETS` worksheets right after `load`, through
   `throwLimitExceeded` with the native reader's sentence — ExcelJS has parsed every sheet by then,
   so this bounds the copy into the snapshot, not the parse. ExcelJS neither writes nor reads a
-  `containsText` rule's `text` attribute, pinned in `enginesParity.unit.js`.
+  `containsText` rule's `text` attribute, pinned in `enginesParity.unit.js`. A number ExcelJS turned
+  into an INVALID `Date` (LibreOffice's `[>=1000000]0.0,,\M;…` reaches it unescaped, the `M` reads as
+  a month, and a serial past 100 025 569 overflows a `Date`) is gone before the adapter sees it: the
+  cell reads `null` and `numFmt:<pattern>` is recorded (`hasInvalidDate`), pinned in
+  `enginesParityRound7.unit.js`. The native engine reads the number.
 - **Adapter tests run under `@jest-environment node`** (jsdom has no streams; the node environment gets them from `test/cryptoSetup.js`). ExcelJS stays a
   devDependency as the oracle: native write → ExcelJS read (`nativeWrite.unit.js`), ExcelJS
   fixtures → native read (`nativeRead.unit.js`, incl. a snapshot parity check on the unstyled
@@ -748,8 +808,9 @@ directions.
 - **An Excel 365 threaded comment is read as its thread, not as its legacy note.** Excel writes the
   thread to `xl/threadedComments/threadedComment{N}.xml` (authors in `xl/persons/person.xml`) and a
   fallback `<comment>` in `comments{N}.xml` whose text is `[Threaded comment]`, a fixed English
-  notice, `Comment:`, the comment, and one `Reply:` block per reply, every entry line indented by
-  four spaces. Read verbatim, the notice became the cell comment. Both readers pass every note
+  notice, `Comment:`, the comment, and one `Reply:` block per reply, the FIRST line of every entry
+  indented by four spaces (a tab from Google Sheets). `ENTRY_INDENT` has no `m` flag on purpose: a
+  continuation line the author indented keeps its indent. Read verbatim, the notice became the cell comment. Both readers pass every note
   through `noteToComment()` (`threadedComments.ts`), which keeps the entries (joined with `\n`) and
   records `DROPPED_FEATURES.threadedComments` ONCE per read, since authors and timestamps are lost.
   Never strip it in one adapter only. Only the English notice is recognized; a note that merely
@@ -804,6 +865,29 @@ directions.
   `partToTokenize` charges all planned repeats when the part is first read. Charged one at a time,
   64 sheets over one 6 MB part were refused only after about 20 full parses. The memo already
   prevented re-inflating; parsing was the cost.
+- **The tokenizer refuses markup that does not balance** (QA round 7). `tokenizeXml` keeps one stack
+  of open element names: an end tag must close the innermost one (names compared WITH their prefix),
+  and input that ends with an element open is refused, a part missing only its root close included
+  (SheetJS and calamine read that one; openpyxl and ExcelJS refuse it). The refusal is
+  `The XML part is truncated or malformed (unclosed <x>).` or `(mismatched </y>, expected </x>)` /
+  `(mismatched </y>, no element is open)`. A truncated or mis-nested part inside an intact ZIP used to
+  import with fewer rows or strings and nothing in `dropped`. The tokenizer does not know the part's
+  name, so the sentence names none. A self-closing tag is never pushed. `drawingHasAnchor`'s caller
+  still treats an unparsable drawing as holding a picture.
+- **An XML part may be UTF-16, and the decoder is picked from its first bytes** (`sniffXmlEncoding`,
+  `zip/streams.ts`): `FF FE` / `3C 00 3F 00` is UTF-16LE, `FE FF` / `00 3C 00 3F` UTF-16BE, anything
+  else UTF-8. BOTH decode paths use it: the streamed inflate through `XmlTextDecoder`, which holds
+  bytes back until four have arrived (a first chunk may be shorter), and the stored path in
+  `zip/reader.ts#entryText`. The `encoding` pseudo-attribute of the XML declaration is not read. The
+  budget needs nothing new: the string is still charged at two bytes a unit, which a UTF-16 part's
+  bytes already cost.
+- **An archive with no workbook part says what it holds.** `readCentralDirectory` rewrites `\` to `/`
+  in every entry name when NO name holds a `/` (`normalizeBackslashNames`; calamine `issue_530.xlsx`
+  and POI `49609.xlsx` store `xl\workbook.xml`), so such a file now reads. A mix of both is left as
+  written, and `refuseMissingWorkbook` (`read.ts`) appends `Its entry names use backslashes as path
+  separators (such as "…"), which the ZIP format does not allow.` A `mimetype` entry starting with
+  `application/vnd.oasis.opendocument.spreadsheet` is refused as
+  `the file is an OpenDocument spreadsheet (.ods), not an Excel workbook. Save it as .xlsx.`
 
 ## Testing
 

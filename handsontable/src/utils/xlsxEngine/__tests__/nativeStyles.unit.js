@@ -121,7 +121,7 @@ describe('StyleTable', () => {
     const xml = table.toXml();
 
     expect(xml).toContain('<numFmts count="1"><numFmt numFmtId="164" formatCode="mm-dd-yyyy"/></numFmts>');
-    expect(xml).toContain('<font><b/><u/><color rgb="FFFF0000"/><sz val="11"/><name val="Calibri"/></font>');
+    expect(xml).toContain('<font><b/><u/><sz val="11"/><color rgb="FFFF0000"/><name val="Calibri"/></font>');
     expect(xml).toContain(
       // No companion `<bgColor indexed="64"/>`: a solid pattern needs only its foreground color,
       // and ExcelJS's writer emits none either (see `enginesParity.unit.js`'s fill case).
@@ -354,8 +354,11 @@ describe('parseStyles', () => {
       locked: null,
     });
     expect(cellXfs[2]).toEqual({ numFmt: 'mm-dd-yy', style: null, locked: false });
-    // A theme color has no ARGB the model can carry; the font resolves to nothing.
-    expect(cellXfs[3]).toEqual({ numFmt: null, style: null, locked: null });
+    // A theme color has no ARGB the model can carry; the font resolves to nothing, but the xf still
+    // resolves to a (blank) style, so the import reports `cellStyles` for it.
+    expect(cellXfs[3]).toEqual({
+      numFmt: null, style: { alignment: null, font: null, fill: null, border: null }, locked: null,
+    });
     // `locked="1"` is the OOXML default and stays `null`, matching the ExcelJS adapter.
     expect(cellXfs[4]).toEqual({ numFmt: null, style: null, locked: null });
   });
@@ -541,5 +544,88 @@ describe('parseStyles: the number-format code cap', () => {
     expect(styles.dxfs[0].numFmt).toBeUndefined();
     expect(dropped.list()).toEqual([`numFmt:0.0${'"x"'.repeat(20)}…`, `numFmt:${'0'.repeat(63)}…`]);
     expect(dropped.count(dropped.list()[0])).toBe(1);
+  });
+});
+
+describe('parseStyles: the Normal style\'s font and the styling the model cannot carry', () => {
+  const FILLS = '<fills count="2"><fill><patternFill patternType="none"/></fill>'
+    + '<fill><patternFill patternType="gray125"/></fill></fills>';
+
+  it('should read font 0 with an explicit black color as no font, so an unformatted cell has no style', () => {
+    // Excel for Mac and LibreOffice 4.1 to 6.4 write the default font with `<color rgb="FF000000"/>`.
+    // A cell with no `s` uses xf 0, so every cell read as styled: the import reported `cellStyles`
+    // and `importStyles: true` painted black text on a dark theme.
+    const { cellXfs } = parseStyles('<styleSheet>'
+      + '<fonts count="2"><font><sz val="11"/><color rgb="FF000000"/><name val="Calibri"/></font>'
+      + '<font><b/><sz val="11"/><color rgb="FF000000"/><name val="Calibri"/></font></fonts>'
+      + `${FILLS}<cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>`
+      + '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"><protection locked="0"/></xf>'
+      + '<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0"/></cellXfs></styleSheet>');
+
+    expect(cellXfs[0]).toEqual({ numFmt: null, style: null, locked: null });
+    expect(cellXfs[1]).toEqual({ numFmt: null, style: null, locked: false });
+    // A font the cell points at on purpose is still read, color included.
+    expect(cellXfs[2].style.font).toEqual({ bold: true, color: { argb: 'FF000000' } });
+  });
+
+  it('should keep reading font 0 with the theme color Excel for Windows writes as no style', () => {
+    const { cellXfs } = parseStyles('<styleSheet>'
+      + '<fonts count="1"><font><sz val="11"/><color theme="1"/><name val="Calibri"/></font></fonts>'
+      + `${FILLS}<cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>`
+      + '<xf numFmtId="0" fontId="0" fillId="1" borderId="0" xfId="0"/></cellXfs></styleSheet>');
+
+    expect(cellXfs[0].style).toBeNull();
+    // The bootstrap `gray125` fill is not styling either.
+    expect(cellXfs[1].style).toBeNull();
+  });
+
+  it.each([
+    ['a theme-colored solid fill', '<patternFill patternType="solid"><fgColor theme="4"/>'
+      + '<bgColor indexed="64"/></patternFill>'],
+    ['an indexed solid fill', '<patternFill patternType="solid"><fgColor indexed="13"/></patternFill>'],
+    ['a non-solid pattern fill', '<patternFill patternType="darkVertical"><fgColor rgb="FFFF0000"/>'
+      + '<bgColor rgb="FF00FF00"/></patternFill>'],
+    ['a gradient fill', '<gradientFill degree="90"><stop position="0"><color theme="0"/></stop>'
+      + '<stop position="1"><color theme="4"/></stop></gradientFill>'],
+  ])('should resolve %s to a style with nothing in it, so the import still reports cellStyles', (_, fill) => {
+    // The model carries a solid rgb fill only. Resolving the rest to `style: null` hid the fill from
+    // the import's `cellStyles` report, which ExcelJS and the 18.1 engine both made.
+    const { cellXfs } = parseStyles('<styleSheet><fonts count="1"><font><sz val="11"/></font></fonts>'
+      + '<fills count="3"><fill><patternFill patternType="none"/></fill>'
+      + `<fill><patternFill patternType="gray125"/></fill><fill>${fill}</fill></fills>`
+      + '<cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+      + '<xf numFmtId="0" fontId="0" fillId="2" borderId="0" xfId="0" applyFill="1"/></cellXfs></styleSheet>');
+
+    expect(cellXfs[0].style).toBeNull();
+    expect(cellXfs[1].style).toEqual({ alignment: null, font: null, fill: null, border: null });
+  });
+
+  it('should resolve wrapped, indented, rotated or shrunk text to a style, and the zeroed defaults to none', () => {
+    const { cellXfs } = parseStyles(`<styleSheet>${FILLS}<cellXfs count="6">`
+      + '<xf><alignment wrapText="1"/></xf>'
+      + '<xf><alignment indent="2"/></xf>'
+      + '<xf><alignment textRotation="90"/></xf>'
+      + '<xf><alignment shrinkToFit="true"/></xf>'
+      + '<xf><alignment horizontal="general" vertical="bottom" textRotation="0" wrapText="false" indent="0"'
+      + ' shrinkToFit="false"/></xf>'
+      + '<xf><alignment horizontal="left" wrapText="1"/></xf>'
+      + '</cellXfs></styleSheet>');
+    const empty = { alignment: null, font: null, fill: null, border: null };
+
+    expect(cellXfs.slice(0, 4).map(xf => xf.style)).toEqual([empty, empty, empty, empty]);
+    expect(cellXfs[4].style).toBeNull();
+    expect(cellXfs[5].style).toEqual({ ...empty, alignment: { horizontal: 'left' } });
+  });
+
+  it('should resolve a theme font color other than the default text color to a style', () => {
+    const { cellXfs } = parseStyles('<styleSheet>'
+      + '<fonts count="3"><font><sz val="11"/><color theme="1"/></font>'
+      + '<font><sz val="14"/><color theme="1"/></font><font><color theme="5" tint="0.4"/></font></fonts>'
+      + `${FILLS}<cellXfs count="2"><xf fontId="1"/><xf fontId="2"/></cellXfs></styleSheet>`);
+
+    // Font 1 differs from the Normal font only by its size, which the model does not carry either,
+    // but its color is the default one: it is not reported for its color.
+    expect(cellXfs[0].style).toBeNull();
+    expect(cellXfs[1].style).toEqual({ alignment: null, font: null, fill: null, border: null });
   });
 });

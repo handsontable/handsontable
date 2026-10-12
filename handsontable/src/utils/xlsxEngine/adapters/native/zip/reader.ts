@@ -2,7 +2,7 @@ import { throwWithCause } from '../../../../../helpers/errors';
 import { MAX_INFLATED_ENTRY_BYTES, MAX_INFLATED_TOTAL_BYTES, throwLimitExceeded } from '../../../limits';
 import { crc32 } from './crc32';
 import { CENTRAL_HEADER_SIZE, END_RECORD_SIZE, LOCAL_HEADER_SIZE } from './layout';
-import { STREAM_FAILURE_PREFIX, inflateRawText } from './streams';
+import { STREAM_FAILURE_PREFIX, inflateRawText, sniffXmlEncoding } from './streams';
 
 /**
  * A read-only view of an opened archive. Entries are inflated on demand, one at a time, and each
@@ -16,8 +16,8 @@ import { STREAM_FAILURE_PREFIX, inflateRawText } from './streams';
  */
 export interface ZipArchive {
   /**
-   * The entry names in central-directory order. No production code calls it: the unit tests use it
-   * to walk an archive and to rewrite its parts.
+   * The entry names in central-directory order. The reader asks it only to explain an archive with
+   * no workbook part (`read.ts`); the unit tests use it to walk an archive and to rewrite its parts.
    */
   names(): string[];
   has(name: string): boolean;
@@ -178,6 +178,31 @@ function assertAcceptedEntry(
 }
 
 /**
+ * Rewrites every backslash in the entry names as a slash, when NO name uses a slash. The ZIP format
+ * separates path segments with `/` only, but some writers (calamine's `issue_530.xlsx`, Apache
+ * POI's `49609.xlsx`) store `xl\workbook.xml`, and the lookup then found no workbook part. Where
+ * no name holds a `/`, the backslash can only be a separator, and the mapping cannot make two names
+ * collide. An archive that mixes both is left as written, and `read.ts` names the problem.
+ */
+function normalizeBackslashNames(entries: Map<string, CentralEntry>): Map<string, CentralEntry> {
+  const names = Array.from(entries.values(), entry => entry.name);
+
+  if (names.some(name => name.includes('/')) || !names.some(name => name.includes('\\'))) {
+    return entries;
+  }
+
+  const normalized = new Map<string, CentralEntry>();
+
+  entries.forEach((entry) => {
+    const name = entry.name.replace(/\\/g, '/');
+
+    normalized.set(foldPartName(name), { ...entry, name });
+  });
+
+  return normalized;
+}
+
+/**
  * Reads every central-directory record into a map keyed by the FOLDED name (`foldPartName`).
  */
 function readCentralDirectory(bytes: Uint8Array, view: DataView): Map<string, CentralEntry> {
@@ -221,7 +246,7 @@ function readCentralDirectory(bytes: Uint8Array, view: DataView): Map<string, Ce
     offset += CENTRAL_HEADER_SIZE + nameLength + extraLength + commentLength;
   }
 
-  return entries;
+  return normalizeBackslashNames(entries);
 }
 
 /**
@@ -242,7 +267,6 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
   }
 
   const entries = readCentralDirectory(bytes, view);
-  const decoder = new TextDecoder('utf-8', { ignoreBOM: false });
   const texts = new Map<string, string>();
   let inflatedTotal = 0;
 
@@ -374,7 +398,12 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
       chargeInflated(name, data.byteLength);
       assertChecksum(entry, crc32(data));
 
-      return { text: decoder.decode(data), byteLength: data.byteLength };
+      // UTF-8 or UTF-16, picked from the part's first bytes like the streamed path does. The string
+      // is charged by `text()` as two bytes a unit either way, so a UTF-16 part's string costs no
+      // more than its bytes did.
+      const decoded = new TextDecoder(sniffXmlEncoding(data), { ignoreBOM: false }).decode(data);
+
+      return { text: decoded, byteLength: data.byteLength };
     }
 
     const { maxBytes, refuse } = inflateCeiling(name, entry);

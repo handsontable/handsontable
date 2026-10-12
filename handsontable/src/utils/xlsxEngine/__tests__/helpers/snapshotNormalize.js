@@ -54,6 +54,10 @@
  * - an empty-string cached formula result, which the ExcelJS reader loses;
  * - the LibreOffice attribute dialect (`"true"`/`"false"`), which the ExcelJS reader misses (a
  *   password-protected sheet excepted: its hash attributes survive, so both engines read it protected);
+ * - an empty self-closing `<row>` past the `<dimension>`, which the native reader leaves out and
+ *   ExcelJS (whose model has no dimension) counts;
+ * - a conditional-formatting block left with no rule, which the native reader leaves out and the
+ *   ExcelJS reader keeps empty (the `duplicateValues` block ExcelJS writes);
  * - a hidden column with no width of its own, which ExcelJS writes and reads as its default width 9
  *   while the native writer and reader leave it without one (the export always passes a width).
  *

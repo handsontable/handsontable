@@ -293,3 +293,61 @@ describe('tokenizeXml: end-of-line handling', () => {
     ]);
   });
 });
+
+describe('tokenizeXml: element balance', () => {
+  const ROWS = '<worksheet><sheetData><row r="1"><c r="A1"><v>1</v></c></row>'
+    + '<row r="2"><c r="A2"><v>2</v></c></row></sheetData></worksheet>';
+
+  it('should refuse input cut after a complete <row>, naming the innermost open element', () => {
+    const cut = ROWS.slice(0, ROWS.indexOf('<row r="2"'));
+
+    expect(() => events(cut))
+      .toThrow('The XML part is truncated or malformed (unclosed <sheetData>).');
+  });
+
+  it('should refuse input cut inside a cell', () => {
+    const cut = ROWS.slice(0, ROWS.indexOf('<v>2') + 4);
+
+    expect(() => events(cut)).toThrow('The XML part is truncated or malformed (unclosed <v>).');
+  });
+
+  it('should refuse a part that lacks only its root close', () => {
+    expect(() => events(ROWS.replace('</worksheet>', '')))
+      .toThrow('The XML part is truncated or malformed (unclosed <worksheet>).');
+  });
+
+  it('should refuse an end tag that does not close the innermost open element', () => {
+    expect(() => events('<c><is><t>row 4</t></c></is>'))
+      .toThrow('The XML part is truncated or malformed (mismatched </c>, expected </is>).');
+  });
+
+  it('should refuse an end tag with no element open', () => {
+    expect(() => events('<a/></b>'))
+      .toThrow('The XML part is truncated or malformed (mismatched </b>, no element is open).');
+  });
+
+  it('should compare names with their prefix, and accept whitespace before the end tag\'s ">"', () => {
+    expect(events('<x:a><x:b/></x:a >')).toEqual([
+      ['open', 'x:a', {}, false],
+      ['open', 'x:b', {}, true],
+      ['close', 'x:a'],
+    ]);
+    expect(() => events('<x:a></a>'))
+      .toThrow('The XML part is truncated or malformed (mismatched </a>, expected </x:a>).');
+  });
+
+  it('should keep accepting a balanced part with a prolog, comments, CDATA and a DOCTYPE', () => {
+    expect(() => events('<?xml version="1.0"?><!DOCTYPE a [<!ELEMENT a ANY>]><!-- c --><a>'
+      + '<b><![CDATA[</a>]]></b></a><!-- trailing -->')).not.toThrow();
+  });
+
+  it('should stay linear on a deep nesting', () => {
+    const depth = 200000;
+    const xml = `${'<a>'.repeat(depth)}${'</a>'.repeat(depth)}`;
+    const started = Date.now();
+
+    events(xml);
+
+    expect(Date.now() - started).toBeLessThan(2000);
+  });
+});

@@ -44,7 +44,7 @@ function asBufferSource(bytes: Uint8Array): Uint8Array<ArrayBuffer> {
  */
 export interface InflatedText {
   /**
-   * The whole output of the stream, decoded as UTF-8.
+   * The whole output of the stream, decoded as UTF-8 or UTF-16 by its first bytes (`sniffXmlEncoding`).
    */
   text: string;
   /**
@@ -64,19 +64,20 @@ function refuseAboveCeiling(maxBytes: number): () => never {
 }
 
 /**
- * Writes `bytes` to the transform one slice at a time, then closes the writable. Each write is
- * awaited before the next starts, so at most one slice is inside the transform at once; a cancel
- * from the read loop rejects the pending write, which the caller's `catch` absorbs.
+ * Writes `bytes` to the transform one slice of `sliceBytes` at a time, then closes the writable.
+ * Each write is awaited before the next starts, so at most one slice is inside the transform at
+ * once; a cancel from the read loop rejects the pending write, which the caller's `catch` absorbs.
  */
 async function writeSliced(
   writer: WritableStreamDefaultWriter<BufferSource>,
-  bytes: Uint8Array<ArrayBuffer>
+  bytes: Uint8Array<ArrayBuffer>,
+  sliceBytes: number
 ): Promise<void> {
-  for (let offset = 0; offset < bytes.byteLength; offset += STREAM_WRITE_CHUNK_BYTES) {
+  for (let offset = 0; offset < bytes.byteLength; offset += sliceBytes) {
     // The next slice must not be queued before this one has been taken: a transform inflates a
     // whole written chunk at once, so the queue would hold every slice's output at the same time.
     // eslint-disable-next-line no-await-in-loop -- one slice in flight at a time, by design.
-    await writer.write(bytes.subarray(offset, offset + STREAM_WRITE_CHUNK_BYTES));
+    await writer.write(bytes.subarray(offset, offset + sliceBytes));
   }
 
   await writer.close();
@@ -123,6 +124,12 @@ function describeStreamError(error: unknown): string {
  * honors its writable high-water mark, so Jest cannot observe the browser queue; the unit test pins
  * the shape of the writes instead.
  *
+ * `sliceBytes` is the slice size. An inflate passes `STREAM_WRITE_CHUNK_BYTES`; a deflate passes
+ * `Infinity`, which writes the input in one call. Compression output is never larger than its input
+ * by more than DEFLATE's stored-block overhead, so the bound buys a deflate nothing, and every
+ * awaited slice ends a zone.js turn: under Angular a sliced export ran one change detection per
+ * 16 KiB of XML, 874 of them at 50,000 rows against one for ExcelJS.
+ *
  * The caller decides what to do with a chunk: collecting them costs the whole output twice (the
  * chunk list and the joined copy), which a text reader avoids by decoding each chunk as it arrives.
  *
@@ -135,14 +142,15 @@ async function drain(
   transform: CompressionStream | DecompressionStream,
   maxBytes: number,
   onChunk: (chunk: Uint8Array) => void,
-  refuse: () => never
+  refuse: () => never,
+  sliceBytes: number = STREAM_WRITE_CHUNK_BYTES
 ): Promise<number> {
   const writer = transform.writable.getWriter();
   const reader = transform.readable.getReader();
   let total = 0;
   let writeError: unknown = null;
 
-  const writing = writeSliced(writer, asBufferSource(bytes))
+  const writing = writeSliced(writer, asBufferSource(bytes), sliceBytes)
     .catch((error: unknown) => {
       writeError = error;
     });
@@ -192,10 +200,13 @@ async function drain(
 async function pump(
   bytes: Uint8Array,
   transform: CompressionStream | DecompressionStream,
-  maxBytes: number
+  maxBytes: number,
+  sliceBytes: number = STREAM_WRITE_CHUNK_BYTES
 ): Promise<Uint8Array> {
   const chunks: Uint8Array[] = [];
-  const total = await drain(bytes, transform, maxBytes, chunk => chunks.push(chunk), refuseAboveCeiling(maxBytes));
+  const total = await drain(
+    bytes, transform, maxBytes, chunk => chunks.push(chunk), refuseAboveCeiling(maxBytes), sliceBytes,
+  );
   const out = new Uint8Array(total);
   let offset = 0;
 
@@ -255,12 +266,13 @@ function assertStreamAvailable(globalName: 'CompressionStream' | 'DecompressionS
 }
 
 /**
- * Compresses bytes with raw DEFLATE (no zlib header), the method ZIP entries use.
+ * Compresses bytes with raw DEFLATE (no zlib header), the method ZIP entries use. The input goes
+ * in as one write: the slice bound exists for the inflate side only (see `drain`).
  */
 export function deflateRaw(bytes: Uint8Array): Promise<Uint8Array> {
   assertStreamAvailable('CompressionStream');
 
-  return pump(bytes, new CompressionStream('deflate-raw'), Number.POSITIVE_INFINITY);
+  return pump(bytes, new CompressionStream('deflate-raw'), Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
 }
 
 /**
@@ -273,13 +285,107 @@ export function inflateRaw(bytes: Uint8Array, maxBytes: number): Promise<Uint8Ar
 }
 
 /**
+ * The encodings an XML part may be stored in. OPC (ECMA-376 Part 2) allows UTF-8 and UTF-16.
+ */
+export type XmlTextEncoding = 'utf-8' | 'utf-16le' | 'utf-16be';
+
+/**
+ * How many leading bytes `sniffXmlEncoding` needs to tell every encoding apart: a UTF-16 part
+ * without a byte-order mark is known by its `<?` spelled over four bytes.
+ */
+const ENCODING_SNIFF_BYTES = 4;
+
+/**
+ * The encoding of an XML part, from its first bytes (XML 1.0, appendix F): `FF FE` is UTF-16LE and
+ * `FE FF` is UTF-16BE, each with a byte-order mark; `3C 00 3F 00` and `00 3C 00 3F` are the same two
+ * without one (`<?`, the XML declaration every such part starts with). Anything else is UTF-8. Every
+ * part used to be decoded as UTF-8, so a UTF-16 workbook (the Windows Phone Office app saved them)
+ * was refused as "malformed at offset 2".
+ */
+export function sniffXmlEncoding(bytes: Uint8Array): XmlTextEncoding {
+  const [b0, b1, b2, b3] = bytes;
+
+  if ((b0 === 0xFF && b1 === 0xFE) || (b0 === 0x3C && b1 === 0x00 && b2 === 0x3F && b3 === 0x00)) {
+    return 'utf-16le';
+  }
+
+  if ((b0 === 0xFE && b1 === 0xFF) || (b0 === 0x00 && b1 === 0x3C && b2 === 0x00 && b3 === 0x3F)) {
+    return 'utf-16be';
+  }
+
+  return 'utf-8';
+}
+
+/**
+ * A streaming decoder for one XML part that picks its encoding from the part's first bytes. The
+ * first chunk of a stream may be shorter than the sniff needs, so bytes are held back until four
+ * have arrived (or the stream ends) and the decoder is created then. The byte-order mark is
+ * stripped either way, because the decoder still sees the part's first bytes first.
+ */
+export class XmlTextDecoder {
+  /**
+   * The decoder, once the encoding is known.
+   */
+  #decoder: TextDecoder | null = null;
+  /**
+   * The bytes held back while fewer than `ENCODING_SNIFF_BYTES` have arrived.
+   */
+  #pending: Uint8Array = new Uint8Array(0);
+
+  /**
+   * Decodes the next chunk of the part, returning the text it completes.
+   */
+  write(chunk: Uint8Array): string {
+    if (this.#decoder !== null) {
+      return this.#decoder.decode(chunk, { stream: true });
+    }
+
+    const joined = new Uint8Array(this.#pending.byteLength + chunk.byteLength);
+
+    joined.set(this.#pending);
+    joined.set(chunk, this.#pending.byteLength);
+
+    if (joined.byteLength < ENCODING_SNIFF_BYTES) {
+      this.#pending = joined;
+
+      return '';
+    }
+
+    this.#pending = new Uint8Array(0);
+
+    return this.#start(joined).decode(joined, { stream: true });
+  }
+
+  /**
+   * Ends the part, returning whatever text the held-back bytes still complete.
+   */
+  end(): string {
+    const decoder = this.#decoder ?? this.#start(this.#pending);
+    const tail = this.#pending;
+
+    this.#pending = new Uint8Array(0);
+
+    return decoder.decode(tail);
+  }
+
+  /**
+   * Creates the decoder the part's first bytes call for.
+   */
+  #start(firstBytes: Uint8Array): TextDecoder {
+    this.#decoder = new TextDecoder(sniffXmlEncoding(firstBytes), { ignoreBOM: false });
+
+    return this.#decoder;
+  }
+}
+
+/**
  * Decompresses raw DEFLATE bytes straight into text, refusing output above `maxBytes`.
  *
  * Every part this reader inflates is XML, and collecting the bytes first costs the whole part three
  * times over: the chunk list, the joined copy, and the decoded string. Decoding each chunk as it
  * arrives - through ONE decoder in `stream: true` mode, so a multi-byte character split across a
- * chunk boundary still decodes correctly - drops the first two of those. A byte-order mark is still
- * stripped, because the decoder sees the stream's first bytes first.
+ * chunk boundary still decodes correctly - drops the first two of those. The decoder is an
+ * `XmlTextDecoder`, so a UTF-16 part decodes as UTF-16 and its byte-order mark is stripped.
  *
  * `refuse` raises the overshoot. A caller whose ceiling is the smaller of several limits passes the
  * sentence of the limit it chose, so the refusal never quotes a number that is nobody's cap.
@@ -301,16 +407,16 @@ export async function inflateRawText(
 ): Promise<InflatedText> {
   assertStreamAvailable('DecompressionStream');
 
-  const decoder = new TextDecoder('utf-8', { ignoreBOM: false });
+  const decoder = new XmlTextDecoder();
   let text = '';
   const byteLength = await drain(bytes, new DecompressionStream('deflate-raw'), maxBytes, (chunk) => {
     observe(chunk);
-    text += decoder.decode(chunk, { stream: true });
+    text += decoder.write(chunk);
 
     if (textLimit !== undefined && text.length * 2 > textLimit.maxBytes) {
       textLimit.refuse(text.length * 2);
     }
   }, refuse);
 
-  return { text: text + decoder.decode(), byteLength };
+  return { text: text + decoder.end(), byteLength };
 }

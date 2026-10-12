@@ -188,6 +188,20 @@ describe('native zip streams: the input is written in bounded slices', () => {
     expect(Array.from(inflated)).toEqual(Array.from(input));
   });
 
+  it('should hand a deflate its whole input in one write, since compression cannot inflate', async() => {
+    // Each awaited slice ends a zone.js turn, so under Angular a sliced export ran one change
+    // detection per 16 KiB of XML (874 ticks at 50,000 rows). Deflate output is never larger than
+    // its input by more than the stored-block overhead, so the slice bound buys it nothing.
+    const input = incompressible(100 * 1024);
+    let deflated;
+    const lengths = await writtenChunkLengths(async() => {
+      deflated = await deflateRaw(input);
+    });
+
+    expect(lengths).toEqual([input.byteLength]);
+    expect(Array.from(await inflateRaw(deflated, input.byteLength))).toEqual(Array.from(input));
+  });
+
   it('should slice the text path the same way and decode across slice boundaries', async() => {
     // Three-byte characters chosen from incompressible bytes, so the compressed form spans several
     // slices and a character is bound to straddle a slice boundary.
@@ -266,6 +280,26 @@ describe('native zip streams: the input is written in bounded slices', () => {
     }
   });
 
+  it('should narrow the text limit by what earlier parts inflated', async() => {
+    // The first part reads with the budget untouched, so it cannot tell a limit that narrows from
+    // one that stays at the full budget for every part.
+    const spy = jest.spyOn(streams, 'inflateRawText');
+
+    try {
+      const archive = await readZip(loadFixture('values'));
+      const names = archive.names().filter(name => name.endsWith('.xml'));
+
+      await archive.text(names[0]);
+      await archive.text(names[1]);
+
+      expect(spy).toHaveBeenCalledTimes(2);
+      expect(spy.mock.calls[0][4].maxBytes).toBe(MAX_INFLATED_TOTAL_BYTES);
+      expect(spy.mock.calls[1][4].maxBytes).toBeLessThan(MAX_INFLATED_TOTAL_BYTES);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
   it('should still raise the caller\'s refusal when the output passes the cap mid-stream', async() => {
     const deflated = await deflateRaw(new Uint8Array(STREAM_WRITE_CHUNK_BYTES * 64));
     const refuse = jest.fn(() => {
@@ -297,5 +331,80 @@ describe('the Jest crypto setup', () => {
     } finally {
       Object.defineProperty(globalThis, 'crypto', saved);
     }
+  });
+});
+
+describe('native zip streams: the text encoding of an XML part', () => {
+  /**
+   * Encodes text as UTF-16 in the given byte order, with or without a byte-order mark.
+   *
+   * @param {string} text The text to encode.
+   * @param {boolean} bigEndian Whether to write the high byte first.
+   * @param {boolean} bom Whether to start with U+FEFF.
+   * @returns {Uint8Array}
+   */
+  function utf16(text, bigEndian, bom) {
+    const source = bom ? `\uFEFF${text}` : text;
+    const bytes = new Uint8Array(source.length * 2);
+    const view = new DataView(bytes.buffer);
+
+    for (let i = 0; i < source.length; i++) {
+      view.setUint16(i * 2, source.charCodeAt(i), !bigEndian);
+    }
+
+    return bytes;
+  }
+
+  const XML = '<?xml version="1.0" encoding="UTF-16"?><a b="\u00E9\u4E2D">\uD83D\uDE00</a>';
+
+  it('should pick the decoder from the first bytes of the part', () => {
+    expect(streams.sniffXmlEncoding(new Uint8Array([0xFF, 0xFE]))).toBe('utf-16le');
+    expect(streams.sniffXmlEncoding(new Uint8Array([0xFE, 0xFF]))).toBe('utf-16be');
+    expect(streams.sniffXmlEncoding(new Uint8Array([0x3C, 0x00, 0x3F, 0x00]))).toBe('utf-16le');
+    expect(streams.sniffXmlEncoding(new Uint8Array([0x00, 0x3C, 0x00, 0x3F]))).toBe('utf-16be');
+    expect(streams.sniffXmlEncoding(new Uint8Array([0xEF, 0xBB, 0xBF, 0x3C]))).toBe('utf-8');
+    expect(streams.sniffXmlEncoding(new Uint8Array([0x3C, 0x3F, 0x78, 0x6D]))).toBe('utf-8');
+    expect(streams.sniffXmlEncoding(new Uint8Array([0x3C, 0x00, 0x61, 0x00]))).toBe('utf-8');
+    expect(streams.sniffXmlEncoding(new Uint8Array([]))).toBe('utf-8');
+  });
+
+  it('should decode a part fed one byte at a time, deciding only once four bytes have arrived', () => {
+    [[false, true], [true, true], [false, false], [true, false]].forEach(([bigEndian, bom]) => {
+      const bytes = utf16(XML, bigEndian, bom);
+      const decoder = new streams.XmlTextDecoder();
+      let text = '';
+
+      bytes.forEach((byte) => {
+        text += decoder.write(new Uint8Array([byte]));
+      });
+
+      expect(text + decoder.end()).toBe(XML);
+    });
+  });
+
+  it('should decode a part shorter than four bytes at the end of the stream', () => {
+    const decoder = new streams.XmlTextDecoder();
+
+    expect(decoder.write(new TextEncoder().encode('ab'))).toBe('');
+    expect(decoder.end()).toBe('ab');
+  });
+
+  it('should inflate a UTF-16 part into text, counting its bytes and charging its string at two bytes a unit', async() => {
+    const body = `<a>${'x'.repeat(STREAM_WRITE_CHUNK_BYTES * 2)}</a>`;
+    const bytes = utf16(body, true, true);
+    const deflated = await deflateRaw(bytes);
+    const result = await inflateRawText(deflated, bytes.byteLength);
+
+    expect(result.text).toBe(body);
+    expect(result.byteLength).toBe(bytes.byteLength);
+
+    const refusal = (stringBytes) => { throw new Error(`text limit at ${stringBytes}`); };
+
+    await expect(inflateRawText(deflated, Number.MAX_SAFE_INTEGER, undefined, undefined, {
+      maxBytes: body.length, refuse: refusal,
+    })).rejects.toThrow(/text limit at \d+$/);
+    await expect(inflateRawText(deflated, Number.MAX_SAFE_INTEGER, undefined, undefined, {
+      maxBytes: body.length * 2, refuse: refusal,
+    })).resolves.toMatchObject({ text: body });
   });
 });

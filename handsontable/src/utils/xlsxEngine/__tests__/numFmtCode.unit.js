@@ -1,7 +1,10 @@
 import {
   captureCurrency,
   classifyTemporalFormat,
+  isGeneralFormatCode,
+  isNegativeSectionShowable,
   isTemporalFormatCode,
+  isZeroSectionShowable,
   positiveFormatSection,
   stripFormatDecorations,
 } from '../numFmtCode';
@@ -155,5 +158,120 @@ describe('captureCurrency (review round 5)', () => {
     expect(captureCurrency('[$\u00A5-804]#,##0').currency).toBe('CNY');
     expect(captureCurrency('[$kr-constructor]0').currency).toBe('SEK');
     expect(captureCurrency('[$constructor-414]0').currency).toBeNull();
+  });
+});
+
+describe('captureCurrency (review round 7)', () => {
+  it('should read a three-letter label that is no ISO 4217 code as a label, padded or not', () => {
+    expect(captureCurrency('#,##0" PCS"').currency).toBeNull();
+    expect(captureCurrency('0" DAY"').currency).toBeNull();
+    expect(captureCurrency('0.00"MPH"').currency).toBeNull();
+    expect(captureCurrency('"QTY "0').currency).toBeNull();
+    expect(captureCurrency('0 "RPM"').currency).toBeNull();
+    expect(captureCurrency('0.0"ABC"').currency).toBeNull();
+    expect(captureCurrency('#,##0.0\\ \\P\\C\\S').currency).toBeNull();
+    expect(captureCurrency('#,##0.0 PCS').currency).toBeNull();
+    expect(captureCurrency('#,##0.00"NIS"').currency).toBeNull();
+  });
+
+  it('should keep reading the codes, symbols and composites the export writes', () => {
+    expect(captureCurrency('"USD"#,##0.00')).toEqual({ currency: 'USD', rest: '#,##0.00' });
+    expect(captureCurrency('#,##0.00"CHF"')).toEqual({ currency: 'CHF', rest: '#,##0.00' });
+    expect(captureCurrency('#,##0.00"RON"')).toEqual({ currency: 'RON', rest: '#,##0.00' });
+    expect(captureCurrency('CHF#,##0.00').currency).toBe('CHF');
+    expect(captureCurrency('SEK#,##0').currency).toBe('SEK');
+    expect(captureCurrency('"CHF "#,##0').currency).toBe('CHF');
+    expect(captureCurrency('#,##0.00" kr"').currency).toBe('SEK');
+    expect(captureCurrency('#,##0" US$"').currency).toBe('USD');
+    // Padded real codes are currencies: Excel re-saves `#,##0.00 USD` escaped, LibreOffice pads RON.
+    expect(captureCurrency('#,##0.00\\ \\U\\S\\D').currency).toBe('USD');
+    expect(captureCurrency('#,##0.00" RON"').currency).toBe('RON');
+    expect(captureCurrency('#,##0.00 PLN').currency).toBe('PLN');
+    // A label that is also a real code stays ambiguous and reads as the currency (the Kyrgyz som).
+    expect(captureCurrency('0.0"KGS"').currency).toBe('KGS');
+    expect(captureCurrency('0.0" KGS"').currency).toBe('KGS');
+    expect(captureCurrency('#,##0.0\\ \\K\\G\\S').currency).toBe('KGS');
+  });
+
+  it('should map a dollar locale token by its LCID, and keep any other dollar token the US dollar', () => {
+    expect(captureCurrency('[$$-C09]#,##0.00')).toEqual({ currency: 'AUD', rest: '#,##0.00' });
+    expect(captureCurrency('[$$-1009]#,##0.00').currency).toBe('CAD');
+    expect(captureCurrency('#,##0.00[$$-C0C]').currency).toBe('CAD');
+    expect(captureCurrency('[$$-1409]#,##0.00').currency).toBe('NZD');
+    expect(captureCurrency('[$$-80A]#,##0.00').currency).toBe('MXN');
+    expect(captureCurrency('[$$-409]#,##0.00').currency).toBe('USD');
+    expect(captureCurrency('[$$-414]#,##0.00').currency).toBe('USD');
+    expect(captureCurrency('$#,##0.00').currency).toBe('USD');
+  });
+});
+
+describe('isNegativeSectionShowable (review round 7)', () => {
+  it('should read a negative section padded with an escaped space as a plain minus', () => {
+    // Excel writes `0.00_ ;\-0.00\ `: the `_ ` pads the positive section, `\ ` the negative one.
+    expect(isNegativeSectionShowable('0.00_ ;\\-0.00\\ ')).toBe(true);
+    expect(isNegativeSectionShowable('0.00;\\-0.00\\ ')).toBe(true);
+    expect(isNegativeSectionShowable('#,##0.00_ ;[Red]\\-#,##0.00\\ ')).toBe(true);
+    expect(isNegativeSectionShowable('[$$-409]#,##0_ ;[Red]\\-[$$-409]#,##0\\ ')).toBe(true);
+    expect(isNegativeSectionShowable('0.00;[Red]0.00')).toBe(false);
+  });
+});
+
+describe('isZeroSectionShowable', () => {
+  it('should answer false for a zero section that shows text or nothing', () => {
+    expect(isZeroSectionShowable('#,##0.00;-#,##0.00;"zero"')).toBe(false);
+    expect(isZeroSectionShowable('0;-0;;@')).toBe(false);
+    expect(isZeroSectionShowable('#,##0;-#,##0;"-"')).toBe(false);
+    expect(isZeroSectionShowable('0.0;-0.0;"n/a"')).toBe(false);
+    expect(isZeroSectionShowable('0;-0;\\-')).toBe(false);
+  });
+
+  it('should answer true for a code with no zero section or a zero section that shows digits', () => {
+    expect(isZeroSectionShowable('#,##0.00')).toBe(true);
+    expect(isZeroSectionShowable('#,##0;-#,##0')).toBe(true);
+    expect(isZeroSectionShowable('#,##0;-#,##0;0')).toBe(true);
+    expect(isZeroSectionShowable('[Blue]0.00;[Red]-0.00;[Green]0.00')).toBe(true);
+    expect(isZeroSectionShowable('0;-0;0;"text: "@')).toBe(true);
+  });
+});
+
+describe('isGeneralFormatCode', () => {
+  it('should read General in any case', () => {
+    expect(isGeneralFormatCode('General')).toBe(true);
+    expect(isGeneralFormatCode('GENERAL')).toBe(true);
+    expect(isGeneralFormatCode('general')).toBe(true);
+    expect(isGeneralFormatCode('General;-General')).toBe(false);
+    expect(isGeneralFormatCode('0')).toBe(false);
+    expect(isGeneralFormatCode(null)).toBe(false);
+  });
+});
+
+describe('stripFormatDecorations (review round 7)', () => {
+  it('should leave a separator where a literal was when asked, so the codes around it stay apart', () => {
+    // Deleted, `dddd\,\ d` fused into `ddddd`, one weekday run, and the day of the month was lost.
+    expect(stripFormatDecorations('dddd\\,\\ d\\ mmmm', { separateLiterals: true })).toBe('dddd  d mmmm');
+    expect(stripFormatDecorations('d"x"d[Red]d', { separateLiterals: true })).toBe('d d d');
+    expect(stripFormatDecorations('[h]:mm"x"', { keepElapsed: true, separateLiterals: true })).toBe('[h]:mm ');
+    expect(stripFormatDecorations('dddd\\,\\ d')).toBe('ddddd');
+  });
+});
+
+describe('captureCurrency without Intl.supportedValuesOf', () => {
+  it('should fall back to a built-in list of ISO 4217 codes', () => {
+    const original = Intl.supportedValuesOf;
+
+    Intl.supportedValuesOf = undefined;
+
+    try {
+      jest.isolateModules(() => {
+        // eslint-disable-next-line global-require
+        const { captureCurrency: isolated } = require('../numFmtCode');
+
+        expect(isolated('#,##0.00" RON"').currency).toBe('RON');
+        expect(isolated('"USD"#,##0.00').currency).toBe('USD');
+        expect(isolated('0" DAY"').currency).toBeNull();
+      });
+    } finally {
+      Intl.supportedValuesOf = original;
+    }
   });
 });

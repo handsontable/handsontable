@@ -209,6 +209,38 @@ function assertSpreadsheetMainPart(contentTypes: ContentTypes, workbookPath: str
 }
 
 /**
+ * The media type an OpenDocument spreadsheet stores in its `mimetype` entry. A template carries the
+ * same type with `-template` appended, so the comparison is by prefix.
+ */
+const OPENDOCUMENT_SPREADSHEET_TYPE = 'application/vnd.oasis.opendocument.spreadsheet';
+
+/**
+ * Refuses an archive with no workbook part, saying what the archive holds instead where that tells
+ * the user what to do. An OpenDocument spreadsheet saved under an Excel name is named by its
+ * `mimetype` entry. Entry names that use backslashes as separators are named too: `readZip`
+ * rewrites them only when no name holds a slash, so a mix of both reaches this sentence. Anything
+ * else keeps the plain sentence.
+ */
+async function refuseMissingWorkbook(archive: ZipArchive, workbookPath: string): Promise<never> {
+  const mimetype = archive.has('mimetype') ? localeLowerCase((await archive.text('mimetype')).trim()) : '';
+
+  if (mimetype.startsWith(OPENDOCUMENT_SPREADSHEET_TYPE)) {
+    throwWithCause('the file is an OpenDocument spreadsheet (.ods), not an Excel workbook. Save it as .xlsx.');
+  }
+
+  const backslashed = workbookPath.replace(/\//g, '\\');
+  const names = archive.names().filter(name => name.includes('\\'));
+  const example = names.find(name => foldPartName(name) === foldPartName(backslashed)) ?? names[0];
+
+  if (example !== undefined) {
+    throwWithCause(`The archive has no workbook part at "${workbookPath}". Its entry names use backslashes `
+      + `as path separators (such as "${example}"), which the ZIP format does not allow.`);
+  }
+
+  throwWithCause(`The archive has no workbook part at "${workbookPath}".`);
+}
+
+/**
  * Opens the archive and the workbook-level parts. Any failure here means the bytes are not a
  * workbook this reader understands.
  */
@@ -223,7 +255,7 @@ async function openPackage(buffer: ArrayBuffer, dropped: DroppedFeatures): Promi
   assertSpreadsheetMainPart(contentTypes, workbookPath);
 
   if (!archive.has(workbookPath)) {
-    throwWithCause(`The archive has no workbook part at "${workbookPath}".`);
+    await refuseMissingWorkbook(archive, workbookPath);
   }
 
   const { sheets, date1904, definedNames } = parseWorkbook(await archive.text(workbookPath), dropped);
@@ -424,9 +456,25 @@ async function readSheet(
 }
 
 /**
+ * The dropped name a `<sheet>` is skipped under, or `undefined` for a sheet to read. A chart, dialog
+ * or macro sheet is known by its relationship's type. A legacy module sheet has none at all: Excel
+ * writes it as `<sheet name="Module1" r:id=""/>`, with no relationship and no part, and refusing it
+ * refused the whole workbook (`the sheet "Module1" has no part`). It is a macro sheet, so it is
+ * recorded under `macroSheets`. A NON-empty `r:id` that resolves to nothing is still refused.
+ */
+function skippedSheetAs(entry: WorkbookSheetEntry, sheetRel: Relationship | undefined): DroppedFeatureName | undefined {
+  if (sheetRel === undefined) {
+    return entry.relId === '' ? DROPPED_FEATURES.macroSheets : undefined;
+  }
+
+  return NON_WORKSHEET_SHEET_TYPES.get(sheetRel.type);
+}
+
+/**
  * Reads every sheet the workbook declares, in order, into the snapshot. Sheets are read one at a
  * time so the cell caps can refuse a workbook before the next one is allocated. A sheet that is
- * not a worksheet (a chart, dialog or macro sheet) is skipped and recorded as dropped.
+ * not a worksheet (a chart, dialog, macro or legacy module sheet) is skipped and recorded as
+ * dropped.
  */
 async function readSheets(
   opened: OpenedPackage,
@@ -437,7 +485,7 @@ async function readSheets(
   const sheetRels = sheetRelationships(opened.sheets, opened.workbookRels);
   const sheets = opened.sheets.map((entry, index) => {
     const sheetRel = sheetRels[index];
-    const skippedAs = sheetRel === undefined ? undefined : NON_WORKSHEET_SHEET_TYPES.get(sheetRel.type);
+    const skippedAs = skippedSheetAs(entry, sheetRel);
 
     return { entry, sheetRel, skippedAs };
   });

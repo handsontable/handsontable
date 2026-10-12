@@ -327,6 +327,73 @@ describe('nativeAdapter.write', () => {
     await expect(nativeAdapter.write(duplicate, undefined, new DroppedFeatures())).rejects.toThrow(/duplicate/);
   });
 
+  it('should write xl/sharedStrings.xml after xl/styles.xml and before the worksheets', async() => {
+    // ExcelJS's streaming reader (`stream.xlsx.WorkbookReader`) reads the parts in archive order and
+    // returned `{ sharedString: n }` placeholders for every text cell of a small export while the
+    // table came after the sheets.
+    const snapshot = createWorkbookSnapshot();
+
+    ['First', 'Second'].forEach((name) => {
+      const builder = new SheetBuilder(name);
+
+      builder.cell(1, 1).value = `text of ${name}`;
+      snapshot.sheets.push(builder.toSnapshot());
+    });
+
+    const bytes = await nativeAdapter.write(snapshot, undefined, new DroppedFeatures());
+    const known = new Set((await readZip(toArrayBuffer(bytes))).names());
+    const order = [];
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+
+    // The local file headers, in the order they sit in the archive.
+    for (let offset = 0; offset + 30 <= bytes.byteLength; offset++) {
+      if (view.getUint32(offset, true) === 0x04034B50) {
+        const nameLength = view.getUint16(offset + 26, true);
+        const name = new TextDecoder().decode(bytes.subarray(offset + 30, offset + 30 + nameLength));
+
+        if (known.has(name) && !order.includes(name)) {
+          order.push(name);
+        }
+      }
+    }
+
+    const styles = order.indexOf('xl/styles.xml');
+    const strings = order.indexOf('xl/sharedStrings.xml');
+
+    expect(order.length).toBe(known.size);
+    expect(strings).toBe(styles + 1);
+    expect(order.indexOf('xl/worksheets/sheet1.xml')).toBe(strings + 1);
+    expect(order.indexOf('xl/worksheets/sheet2.xml')).toBe(strings + 2);
+  });
+
+  it('should refuse a sheet past Excel\'s 1,048,576 rows, as its own reader does', async() => {
+    // A hidden row index is the cheapest way to reach the extent: nothing else is materialized.
+    const snapshot = snapshotWith(b => b.hideRow(1048577), 'Tall');
+
+    await expect(nativeAdapter.write(snapshot, undefined, new DroppedFeatures())).rejects.toThrow(
+      'The sheet "Tall" has 1048577 rows, above the 1048576-row limit of an xlsx worksheet.'
+    );
+  });
+
+  it('should refuse a sheet past Excel\'s 16,384 columns, as its own reader does', async() => {
+    const snapshot = snapshotWith(b => b.hideCol(16385), 'Wide');
+
+    await expect(nativeAdapter.write(snapshot, undefined, new DroppedFeatures())).rejects.toThrow(
+      'The sheet "Wide" has 16385 columns, above the 16384-column limit of an xlsx worksheet.'
+    );
+  });
+
+  it('should write a sheet of exactly 1,048,576 rows and 16,384 columns', async() => {
+    const snapshot = snapshotWith((b) => {
+      b.hideRow(1048576);
+      b.hideCol(16384);
+    });
+    const bytes = await nativeAdapter.write(snapshot, undefined, new DroppedFeatures());
+    const archive = await readZip(toArrayBuffer(bytes));
+
+    expect(await archive.text('xl/worksheets/sheet1.xml')).toContain('<dimension ref="A1:XFD1048576"/>');
+  });
+
   it('should round-trip a workbook through its own reader unchanged', async() => {
     const snapshot = snapshotWith((b) => {
       b.cell(1, 1).value = 'Name';

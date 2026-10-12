@@ -53,6 +53,42 @@ describe('functionPrefixes', () => {
     expect(stripFunctionPrefixes('_xlfn._xlfnX')).toBe('_xlfnX');
   });
 
+  it('should strip a 400 000-character run of prefixes in work linear in its length', () => {
+    // The strip once lower-cased and sliced the rest of the token once per prefix, which is
+    // quadratic and returns the same result. Pinned by the characters the string methods are
+    // handed rather than by a clock: the linear strip reads the token a constant number of times,
+    // the quadratic one about n / 12 times.
+    const prefixes = '_xlfn.'.repeat(66667);
+    const formula = `${prefixes}SUM(A1)`;
+    const methods = ['slice', 'substring', 'substr', 'toLowerCase', 'toUpperCase', 'startsWith', 'replace',
+      'match', 'indexOf', 'search', 'split', 'trim', 'trimStart'];
+    const originals = methods.map(name => String.prototype[name]);
+    let charactersRead = 0;
+    let result;
+
+    methods.forEach((name, index) => {
+      // eslint-disable-next-line no-extend-native
+      String.prototype[name] = function(...args) {
+        charactersRead += this.length;
+
+        return originals[index].apply(this, args);
+      };
+    });
+
+    try {
+      result = stripFunctionPrefixes(formula);
+    } finally {
+      methods.forEach((name, index) => {
+        // eslint-disable-next-line no-extend-native
+        String.prototype[name] = originals[index];
+      });
+    }
+
+    expect(formula.length).toBeGreaterThan(400000);
+    expect(result).toBe('SUM(A1)');
+    expect(charactersRead).toBeLessThan(formula.length * 8);
+  });
+
   it('should not prefix a pre-2007 function, a name without a call, or text in a string', () => {
     expect(addFunctionPrefixes('SUM(A1)+CONCATENATE(A1,B1)')).toBe('SUM(A1)+CONCATENATE(A1,B1)');
     expect(addFunctionPrefixes('IFS+1')).toBe('IFS+1');

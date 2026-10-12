@@ -5,6 +5,7 @@ import {
   createCoveredCellSnapshot,
   createSheetSnapshot,
   createWorkbookSnapshot,
+  isOoxmlErrorCode,
   isProtectionOptionName,
   type CellFormula,
   type CellSnapshot,
@@ -39,8 +40,8 @@ export type ExcelCellValue =
   | null
   | undefined
   | Date
-  | { formula: string; result?: string | number | boolean | null }
-  | { sharedFormula: string; result?: string | number | boolean | null }
+  | { formula: string; result?: string | number | boolean | null | { error: string } }
+  | { sharedFormula: string; result?: string | number | boolean | null | { error: string } }
   | { richText: Array<{ text: string }> }
   | { text: string | { richText: Array<{ text: string }> }; hyperlink: string }
   | { error: string };
@@ -227,6 +228,17 @@ function toWriteOptions(compression: WorkbookSnapshot['compression']): object {
 }
 
 /**
+ * The cached result of a formula as ExcelJS takes it. A result the snapshot flags as an OOXML error
+ * is handed over as an error value (`{ error: '#DIV/0!' }`), which ExcelJS writes `t="e"`; a plain
+ * string would be written `t="str"`, the same as the text `="#N/A"` answers.
+ */
+function formulaResultValue(formula: CellFormula): CellValue | { error: string } | undefined {
+  const { result } = formula;
+
+  return formula.resultIsError === true && isOoxmlErrorCode(result) ? { error: result } : result;
+}
+
+/**
  * Copies one cell snapshot onto an ExcelJS cell. Only set fields are assigned, so ExcelJS never
  * initializes its style sentinels for cells the snapshot left untouched.
  *
@@ -239,7 +251,7 @@ function writeCell(target: ExcelJsCell, cell: CellSnapshot, dropped: DroppedFeat
   if (cell.formula) {
     const formula = addFunctionPrefixes(cell.formula.text);
 
-    target.value = 'result' in cell.formula ? { formula, result: cell.formula.result } : { formula };
+    target.value = 'result' in cell.formula ? { formula, result: formulaResultValue(cell.formula) } : { formula };
   } else {
     target.value = typeof cell.value === 'string' ? clampCellText(cell.value, dropped) : cell.value;
   }
@@ -495,6 +507,25 @@ function isDateValue(value: unknown): boolean {
 }
 
 /**
+ * Whether ExcelJS handed a value over as an INVALID `Date`. ExcelJS builds a `Date` for every number
+ * under a format it reads as a date, and past what a `Date` holds that `Date` is invalid: LibreOffice's
+ * `[>=1000000]0.0,,\M;...` reaches ExcelJS unescaped, its `M` reads as a month, and 2125551234
+ * arrived as `Invalid Date`. The number is gone by then, so the cell cannot keep it.
+ */
+function isInvalidDateValue(value: unknown): boolean {
+  return isDateValue(value) && Number.isNaN((value as Date).getTime());
+}
+
+/**
+ * Whether a cell's value, or its formula's cached result, reached the adapter as an invalid `Date`.
+ */
+function hasInvalidDate(raw: ExcelCellValue, cellResult: unknown): boolean {
+  const result = typeof raw === 'object' && raw !== null && 'result' in raw ? raw.result : cellResult;
+
+  return isInvalidDateValue(raw) || isInvalidDateValue(result);
+}
+
+/**
  * Takes the 1904 shift back off every time-formatted cell of a 1904 workbook. ExcelJS builds a
  * `Date` on the 1904 epoch for any date-like format, and `dateToSerial` turns it into a 1900
  * serial - right for a date, wrong for a time: a time of day or an elapsed `[h]:mm` value is a
@@ -565,7 +596,7 @@ function readValue(
   // workbook parsed there would then read its date cells back as `null`. The brand check answers
   // for every realm.
   if (Object.prototype.toString.call(raw) === '[object Date]') {
-    return { value: dateToSerial(raw as Date), formula: null };
+    return { value: isInvalidDateValue(raw) ? null : dateToSerial(raw as Date), formula: null };
   }
 
   if (typeof raw !== 'object') {
@@ -708,6 +739,12 @@ function readCell(source: ExcelJsCell, dropped: DroppedFeatures): CellSnapshot {
   cell.value = value;
   cell.formula = formula;
   cell.numFmt = readNumFmt(source);
+
+  // The value is lost inside ExcelJS, so the cell is empty; say which format did it rather than
+  // importing a silent `null`.
+  if (hasInvalidDate(source.value, source.result)) {
+    dropped.recordUnsupported('numFmt', cell.numFmt ?? '');
+  }
   cell.style = readStyle(source);
 
   if (source.dataValidation?.type === 'list') {

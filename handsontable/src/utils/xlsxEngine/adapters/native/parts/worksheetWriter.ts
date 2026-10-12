@@ -1,8 +1,12 @@
+import { throwWithCause } from '../../../../../helpers/errors';
 import { DROPPED_FEATURES, type DroppedFeatures } from '../../../capabilities';
 import { colIndexToLetter } from '../../../cellRef';
 import { addFunctionPrefixes } from '../../../functionPrefixes';
-import type { CellFormula, CellSnapshot, CellValue, MergeSnapshot, SheetSnapshot } from '../../../model';
+import {
+  isOoxmlErrorCode, type CellFormula, type CellSnapshot, type CellValue, type MergeSnapshot, type SheetSnapshot,
+} from '../../../model';
 import { coveredCellFormatting } from '../../../coveredCellFormatting';
+import { MAX_SHEET_COLUMNS, MAX_SHEET_ROWS } from '../../../limits';
 import { clampCellText, clampColumnWidth, clampRowHeight } from '../../../writeLimits';
 import { escapeXmlMarkup, escapeXmlText } from '../xml/escapes';
 import { type XmlAttributeMap, XmlWriter } from '../xml/writer';
@@ -141,9 +145,9 @@ function formulaResultText(result: CellValue | undefined): string {
 /**
  * The start tag of one `<c>`, without its `>`. The cell path is the writer's hot loop, so the tag
  * is built by hand rather than through `XmlWriter#open`: `ref` is an A1 address and `s` a number,
- * neither of which the attribute escaper could change, and `t` is one of three literals.
+ * neither of which the attribute escaper could change, and `t` is one of four literals.
  */
-function cellStartTag(ref: string, styleAttr: number | undefined, t: 'b' | 's' | 'str' | undefined): string {
+function cellStartTag(ref: string, styleAttr: number | undefined, t: 'b' | 'e' | 's' | 'str' | undefined): string {
   let tag = `<c r="${ref}"`;
 
   if (styleAttr !== undefined) {
@@ -162,7 +166,8 @@ function cellStartTag(ref: string, styleAttr: number | undefined, t: 'b' | 's' |
  * formula is `ST_Formula`, so it is escaped for markup only (no reader decodes `_xHHHH_` there) and
  * a post-2007 function gets the `_xlfn.` prefix Excel stores, or Excel shows `#NAME?` until the
  * cell is entered again. A string result is `<v>` text, which the readers DO decode, so it goes
- * through the text escaper.
+ * through the text escaper. A result the snapshot flags as an error (`resultIsError`) is typed `e`,
+ * so a reader that takes the cached value without recalculating sees an error, not the text.
  */
 function formulaCellXml(ref: string, styleAttr: number | undefined, formula: CellFormula): string {
   const { text } = formula;
@@ -171,9 +176,13 @@ function formulaCellXml(ref: string, styleAttr: number | undefined, formula: Cel
   // demoted to its text form here too and the cell is then typed `str`.
   const result = typeof cached === 'number' && !Number.isFinite(cached) ? String(cached) : cached;
   const hasResult = 'result' in formula && result !== undefined && result !== null;
-  let t: 'str' | 'b' | undefined;
+  let t: 'e' | 'str' | 'b' | undefined;
 
-  if (hasResult && typeof result === 'string') {
+  // An error result is typed `e` only when the snapshot flags it AND it is an OOXML code; the text
+  // `#N/A` of `="#N/A"` is unflagged and stays `str`.
+  if (formula.resultIsError === true && isOoxmlErrorCode(result)) {
+    t = 'e';
+  } else if (hasResult && typeof result === 'string') {
     t = 'str';
   } else if (hasResult && typeof result === 'boolean') {
     t = 'b';
@@ -334,6 +343,23 @@ function measureExtent(sheet: SheetSnapshot, merges: MergeSnapshot[]): SheetExte
   });
 
   return { rowCount, colCount };
+}
+
+/**
+ * Refuses a sheet larger than an xlsx worksheet can be. Excel's last cell is `XFD1048576`, and the
+ * file is refused rather than cut: a clamp would drop data without a word, this engine's own reader
+ * refuses the file it would write, and 18.1 (ExcelJS) already stopped at the column limit.
+ */
+function assertSheetExtent(name: string, { rowCount, colCount }: SheetExtent): void {
+  if (rowCount > MAX_SHEET_ROWS) {
+    throwWithCause(`The sheet "${name}" has ${rowCount} rows, `
+      + `above the ${MAX_SHEET_ROWS}-row limit of an xlsx worksheet.`);
+  }
+
+  if (colCount > MAX_SHEET_COLUMNS) {
+    throwWithCause(`The sheet "${name}" has ${colCount} columns, `
+      + `above the ${MAX_SHEET_COLUMNS}-column limit of an xlsx worksheet.`);
+  }
 }
 
 /**
@@ -577,7 +603,11 @@ export function worksheetXml(
   const {
     kept: merges, covered, masters, lastCoveredColByRow,
   } = resolveMerges(sheet.merges, dropped);
-  const { rowCount, colCount } = measureExtent(sheet, merges);
+  const extent = measureExtent(sheet, merges);
+
+  assertSheetExtent(sheet.name, extent);
+
+  const { rowCount, colCount } = extent;
   const hiddenRows = new Set(sheet.hiddenRows);
   const hiddenCols = new Set(sheet.hiddenCols);
 

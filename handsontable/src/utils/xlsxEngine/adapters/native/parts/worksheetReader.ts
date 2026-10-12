@@ -92,7 +92,7 @@ function assertSheetRectangle(
 
 /**
  * The rectangle check plus the running workbook budget, charged in one step. The worksheet parser
- * charges its sheet in two (the declared rectangle before a row exists, the real one at the end);
+ * checks its cells against the room left as they appear and charges the real extent at the end;
  * this is the single-step form for a caller that knows the final extent up front.
  */
 export function assertSheetFits(
@@ -394,14 +394,29 @@ class WorksheetParser {
   #layoutColCount = 0;
 
   /**
-   * The column count `<dimension>` declares, the bound the merge and validation passes clamp to.
-   */
-  #declaredColumns = 0;
-
-  /**
-   * The row count `<dimension>` declares, the bound a merge may grow the rows to.
+   * The row count `<dimension>` declares, or 0 without one. It is the producer's claim, not a bound:
+   * the only thing it decides is where an empty, unformatted trailing `<row>` stops counting
+   * (`#isTrailingEmptyRow`).
    */
   #declaredRows = 0;
+
+  /**
+   * The cell ranges the `<f t="array" ref>` formulas read so far cover. A bare `<c>` inside one is a
+   * covered cell of the array and still widens its row, unlike any other bare cell.
+   */
+  #arrayRanges: Array<{ startRow: number; startCol: number; endRow: number; endCol: number }> = [];
+
+  /**
+   * How many `<sheetView>` elements have opened. A `<pane>` is read only inside the first one.
+   */
+  #sheetViewCount = 0;
+
+  /**
+   * Whether the first `<sheetView>` is open, the only place a `<pane>` describes the sheet's own
+   * frozen panes. Excel's legacy Custom Views keep a `<pane>` of their own in
+   * `<customSheetViews><customSheetView>`, which must not freeze the sheet.
+   */
+  #inFirstSheetView = false;
 
   /**
    * Cells covered so far by declared column, merge and validation ranges. A `sqref` may repeat the
@@ -504,8 +519,8 @@ class WorksheetParser {
   #validationOnlyCells = new WeakSet<CellSnapshot>();
 
   /**
-   * How many units this sheet has charged the workbook budget so far: the declared rectangle once
-   * `<dimension>` is read, the real extent once the walk is done.
+   * How many units this sheet has charged the workbook budget so far: nothing during the walk (which
+   * `#reserveSlot` checks against `#workbookRoom` instead), the real extent once it is done.
    */
   #chargedCells = 0;
 
@@ -657,8 +672,7 @@ class WorksheetParser {
 
   /**
    * Settles this sheet's charge against the workbook budget at `units`, refusing the workbook when
-   * the total crosses the cap. A later call replaces an earlier one rather than adding to it, so the
-   * declared rectangle charged up front is given back when the real extent turns out smaller.
+   * the total crosses the cap. A later call replaces an earlier one rather than adding to it.
    */
   #settleWorkbookCharge(units: number): void {
     const { budget } = this.#ctx;
@@ -722,9 +736,11 @@ class WorksheetParser {
     if (name === 'dimension') {
       this.#openDimension(attrs);
     } else if (name === 'sheetView') {
-      this.#sheet.rtl = attrs.rightToLeft === '1' || attrs.rightToLeft === 'true';
+      this.#openSheetView(attrs, selfClosing);
     } else if (name === 'pane') {
-      this.#openPane(attrs);
+      if (this.#inFirstSheetView) {
+        this.#openPane(attrs);
+      }
     } else if (name === 'col') {
       this.#openCol(attrs);
     } else if (name === 'row') {
@@ -760,23 +776,39 @@ class WorksheetParser {
   }
 
   /**
+   * Opens a `<sheetView>`. Only the first one is the sheet's own view (`#inFirstSheetView`); a
+   * self-closing one holds no `<pane>`, so nothing is left open for it.
+   */
+  #openSheetView(attrs: XmlAttributes, selfClosing: boolean): void {
+    this.#sheetViewCount += 1;
+    this.#inFirstSheetView = this.#sheetViewCount === 1 && !selfClosing;
+    this.#sheet.rtl = attrs.rightToLeft === '1' || attrs.rightToLeft === 'true';
+  }
+
+  /**
    * Reads `<dimension>`, the sheet's declared rectangle.
    */
   #openDimension(attrs: XmlAttributes): void {
     const dimension = attrs.ref === undefined ? null : parseDimension(attrs.ref);
 
     if (dimension) {
-      // Refuse the declared rectangle before a single row exists, and charge it against the workbook
-      // budget now rather than once the cells are built. `<cols>` comes after `<dimension>` in the
-      // part, so the layout width is not known yet; the charge is settled at the real extent at the
-      // end, which gives back whatever the declaration overstated.
-      assertSheetRectangle(this.#ctx.name, dimension.endRow, dimension.endCol, dimension.endCol);
-      this.#settleWorkbookCharge(sheetBudgetUnits(dimension.endRow, dimension.endCol, dimension.endCol));
-      // The declaration bounds the merge and validation clamps, and allocates nothing: the row
-      // count follows the last `<row>` or `<c>`, as ExcelJS's does. Pre-allocating the declared
-      // rows made three rows under `A1:B5000` a 5000-row sheet, and a million-row declaration with
-      // no row at all a million empty arrays that a validation then filled with cells.
-      this.#declaredColumns = dimension.endCol;
+      // A row or column count past Excel's own limits is refused before a row exists. The cell
+      // PRODUCT is not, and nothing is charged to the workbook budget here: a hand-edited
+      // `A1:XFD1048576` over a 3 x 5 sheet was refused on the declared product, where ExcelJS reads
+      // the sheet. `#reserveSlot` refuses as soon as the cells really outgrow the caps or the
+      // budget, and `#finalize` charges the real extent.
+      if (dimension.endRow > MAX_SHEET_ROWS) {
+        throwRowLimit(this.#ctx.name, dimension.endRow);
+      }
+
+      if (dimension.endCol > MAX_SHEET_COLUMNS) {
+        throwColumnLimit(this.#ctx.name, dimension.endCol);
+      }
+
+      // The declaration allocates nothing: the row count follows the last `<row>` or `<c>`, as
+      // ExcelJS's does. Pre-allocating the declared rows made three rows under `A1:B5000` a
+      // 5000-row sheet, and a million-row declaration with no row at all a million empty arrays
+      // that a validation then filled with cells.
       this.#declaredRows = dimension.endRow;
     }
   }
@@ -861,6 +893,27 @@ class WorksheetParser {
   }
 
   /**
+   * Whether a self-closing `<row>` sits past the declared last row and sets nothing a row keeps:
+   * no `customHeight`, no `hidden`, no `outlineLevel` and no row format (`customFormat` with `s`).
+   * Such a row is not counted. Hancom Office ends a 40-row sheet with `<row r="1048576" ht="16.5"/>`
+   * and LibreOffice pads with default-only rows to 1048576, and each one grew the sheet to a million
+   * rows. A `ht` without `customHeight` is the height the producer measured, not one a user set. A
+   * row inside the dimension still counts, so an export's trailing blank rows survive a round trip,
+   * and with no `<dimension>` (Google Sheets) every row counts as before.
+   */
+  #isTrailingEmptyRow(rowIndex: number, attrs: XmlAttributes, selfClosing: boolean): boolean {
+    const isSet = (value: string | undefined) => value === '1' || value === 'true';
+
+    return selfClosing
+      && this.#declaredRows > 0
+      && rowIndex >= this.#declaredRows
+      && !isSet(attrs.customHeight)
+      && !isSet(attrs.hidden)
+      && (parseUnsignedIntAttr(attrs.outlineLevel) ?? 0) === 0
+      && !(isSet(attrs.customFormat) && attrs.s !== undefined);
+  }
+
+  /**
    * Reads one `<row>`'s own attributes. Its cells arrive as separate elements; a self-closing row
    * has none, so it is closed right here, because no close event will arrive for it.
    */
@@ -870,6 +923,11 @@ class WorksheetParser {
     this.#lastRow = rowIndex;
     this.#currentRow = selfClosing ? null : rowIndex;
     this.#nextCol = 0;
+
+    if (this.#isTrailingEmptyRow(rowIndex, attrs, selfClosing)) {
+      return;
+    }
+
     this.#ensureRow(rowIndex);
 
     const height = parseFiniteDoubleAttr(attrs.ht);
@@ -968,6 +1026,7 @@ class WorksheetParser {
     if (name === 'f') {
       cell.formulaAttrs = attrs;
       this.#inFormula = !selfClosing;
+      this.#noteArrayRange(attrs);
     } else if (name === 'v') {
       cell.valueText = '';
       this.#inValue = !selfClosing;
@@ -975,13 +1034,37 @@ class WorksheetParser {
   }
 
   /**
+   * Remembers the range an `<f t="array" ref>` covers, so the bare covered cells of the array keep
+   * widening their rows (`#finishCell`).
+   */
+  #noteArrayRange(attrs: XmlAttributes): void {
+    const range = attrs.t === 'array' && attrs.ref !== undefined ? parseRangeRef(attrs.ref) : null;
+
+    if (range) {
+      this.#arrayRanges.push(range);
+    }
+  }
+
+  /**
+   * Whether 0-based coordinates fall inside a range an array formula covers.
+   */
+  #isInArrayRange(row: number, col: number): boolean {
+    return this.#arrayRanges.some(range => row + 1 >= range.startRow && row + 1 <= range.endRow
+      && col + 1 >= range.startCol && col + 1 <= range.endCol);
+  }
+
+  /**
    * The 0-based coordinates a `<c>` declares: from its `r`, or the column after the previous cell
-   * of the current row when the file writes none. A `<c>` with no `r` outside any `<row>` has no
-   * row to land in and is ignored, like one whose `r` does not parse.
+   * of the current row when the file writes none or writes one that does not parse (`r="B"`, as in
+   * Apache POI's `invalid_cell_reference.xlsx`), the same way a `<row>` with a bad `r` is placed. A
+   * well-shaped `A0` is still refused by `decodeAddress`. A `<c>` placed implicitly outside any
+   * `<row>` has no row to land in and is ignored.
    */
   #resolveCellAddress(r: string | undefined): { row: number; col: number } | null {
-    if (r !== undefined) {
-      return decodeAddress(r);
+    const declared = r === undefined ? null : decodeAddress(r);
+
+    if (declared !== null) {
+      return declared;
     }
 
     return this.#currentRow === null ? null : { row: this.#currentRow, col: this.#nextCol };
@@ -996,6 +1079,13 @@ class WorksheetParser {
 
     if (address === null) {
       return;
+    }
+
+    // An Excel 365 "Place in Cell" picture: an error cell carrying value metadata, with the picture
+    // in `xl/richData`. The cached `#VALUE!` is kept, but the picture is lost, and it has no drawing
+    // part to report it through. `vm` alone is not enough: OLAP cube cells carry it too.
+    if (attrs.t === 'e' && attrs.vm !== undefined) {
+      this.#ctx.dropped.record(DROPPED_FEATURES.images);
     }
 
     const cell: CellState = {
@@ -1157,6 +1247,8 @@ class WorksheetParser {
     } else if (name === 'row') {
       // A `<c>` with no `r` after this belongs to no row, like one before the first.
       this.#currentRow = null;
+    } else if (name === 'sheetView') {
+      this.#inFirstSheetView = false;
     }
   }
 
@@ -1270,6 +1362,16 @@ class WorksheetParser {
 
     const local = afterPrefix(name);
 
+    // Excel 2010+ keeps some conditional-formatting rules ONLY here, as `<x14:cfRule>`: the 3
+    // Triangles, 3 Stars and 5 Boxes icon sets and a rule whose formula reaches another sheet. None
+    // is read, so each is reported by its kind, as a body rule of an unread kind is. A data bar's
+    // extension beside its body rule records the same name, which counts once.
+    if (local === 'cfRule') {
+      this.#ctx.dropped.recordUnsupported('conditionalFormatting', attrs.type ?? 'other');
+
+      return;
+    }
+
     if (!EXT_VALIDATION_ELEMENTS.has(local)) {
       return;
     }
@@ -1343,26 +1445,41 @@ class WorksheetParser {
 
   /**
    * Finishes the `<conditionalFormatting>` block being read. It too can arrive self-closing, when
-   * the writer that produced it recognized none of the block's rules.
+   * the writer that produced it recognized none of the block's rules. A block left with no rule (a
+   * lone color scale, data bar or icon set, each recorded as dropped) is left out, rather than
+   * returned as `{ ref, rules: [] }` as if a rule had arrived.
    */
   #finishConditionalFormatting(): void {
     const cf = this.#cf;
 
     if (cf) {
-      this.#sheet.conditionalFormatting.push(cf);
+      if (cf.rules.length > 0) {
+        this.#sheet.conditionalFormatting.push(cf);
+      }
+
       this.#cf = null;
     }
   }
 
   /**
-   * The shared string at an index, recording rich text as a dropped feature on the way.
+   * The shared string at an index, recording rich text as a dropped feature on the way. An index
+   * that resolves to nothing (past the table, no table at all, a table cut short) reads as an empty
+   * cell and records `DROPPED_FEATURES.cellValueSharedString`, so a lost text column is reported.
    */
   #sharedString(index: number): CellValue {
+    const text = this.#ctx.sharedStrings.strings[index];
+
+    if (text === undefined) {
+      this.#ctx.dropped.record(DROPPED_FEATURES.cellValueSharedString);
+
+      return null;
+    }
+
     if (this.#ctx.sharedStrings.rich[index]) {
       this.#ctx.dropped.record(DROPPED_FEATURES.richText);
     }
 
-    return this.#ctx.sharedStrings.strings[index] ?? null;
+    return text;
   }
 
   /**
@@ -1478,6 +1595,10 @@ class WorksheetParser {
 
     if (state.formulaTooLong) {
       this.#ctx.dropped.record(DROPPED_FEATURES.formulaTooLong);
+    } else if (state.formulaAttrs?.t === 'dataTable') {
+      // An Excel what-if data table: `<f t="dataTable" ref r1 .../>` has no text, and the cells keep
+      // only their cached values. The definition is lost, so the grid recalculates nothing.
+      this.#ctx.dropped.record(DROPPED_FEATURES.formulaDataTable);
     } else if (state.formulaAttrs !== null) {
       const text = this.#readFormula(state, state.formulaAttrs);
 
@@ -1487,14 +1608,26 @@ class WorksheetParser {
       }
     }
 
-    const isEmpty = value === null && formula === null && xf.numFmt === null && xf.style === null && xf.locked === null;
+    const hasNoFormat = xf.numFmt === null && xf.style === null && xf.locked === null;
 
-    if (isEmpty) {
-      // Still grow the width so the row is padded like a row with a real cell here would be.
-      this.#cellAt(state.row, state.col);
-      this.#rows[state.row][state.col] = null;
+    if (value === null && formula === null) {
+      // A BARE `<c>` (no `<v>`, no `<is>`, no `<f>`, no formatting of its own) does not widen the
+      // sheet. A cell whose value was there but decoded to nothing (an impossible date, an index past
+      // the shared strings, a non-finite `<v>`) keeps its slot, as before.
+      const isBare = rawText === null && state.formulaAttrs === null && (state.styleIndex === 0 || hasNoFormat);
 
-      return;
+      if (isBare) {
+        this.#finishEmptyCell(state);
+
+        return;
+      }
+
+      if (hasNoFormat) {
+        this.#cellAt(state.row, state.col);
+        this.#rows[state.row][state.col] = null;
+
+        return;
+      }
     }
 
     const target = this.#cellAt(state.row, state.col);
@@ -1507,6 +1640,23 @@ class WorksheetParser {
   }
 
   /**
+   * Finishes a `<c>` with no value, no formula and no formatting of its own: its row exists, but the
+   * cell does not widen the sheet. Excel writes `<c r="IU1"/><c r="IV1"/>` on a formatted row and
+   * LibreOffice `<c r="AMJ1" s="0"/>` (its xf 0 carries a font, hence `s="0"` counts as unformatted),
+   * and the reader grew the sheet to 256 or 1,024 columns, or refused it by the cell cap, where
+   * ExcelJS reads the data width. A later real cell pads the row on its own. The covered cells of an
+   * array formula still widen their row, as the array's own extent; a merge's are padded by
+   * `#materializeMerges`.
+   */
+  #finishEmptyCell(state: CellState): void {
+    if (this.#isInArrayRange(state.row, state.col)) {
+      this.#reserveSlot(state.row, state.col);
+    } else {
+      this.#ensureRow(state.row);
+    }
+  }
+
+  /**
    * Merges: the master keeps its content, every covered cell keeps only its own style and lock. A merge member with
    * no `<c>` element of its own is MATERIALIZED here as an explicit `null`, which is what ExcelJS
    * returns for the same file — without it a merge whose covered cells were never written left the
@@ -1516,28 +1666,16 @@ class WorksheetParser {
    * other producers that still leave covered cells out (Google Sheets, openpyxl, older exports).
    */
   #materializeMerges(): void {
-    // The dimension is the column bound: both the
-    // native writer and Excel include every merge in `<dimension>`, so a merge reaching past it is
-    // malformed and stays clamped rather than growing the sheet on a hostile file's say-so. A sheet
-    // that declares NO dimension (openpyxl's write-only mode, ExcelJS's streaming writer) has no
-    // such bound, and clamping to the widest row cropped a merge whose covered cells carry no `<c>`:
-    // there the merge widens the sheet, and the span charge below bounds a hostile one.
-    const colBound = this.#declaredColumns === 0 ? MAX_SHEET_COLUMNS : Math.max(this.#width, this.#declaredColumns, 1);
-    // Rows follow the same rule. Google Sheets writes a `<row>` only for a row that has a cell or a
-    // height, and no `<dimension>`, so the last row of a merge over empty cells has no `<row>`:
-    // clamping to the rows that exist cut `A6:B7` to one row and the grid to six rows, where
-    // ExcelJS grows the sheet to the merge. A declared dimension still bounds the growth.
-    const rowBound = this.#declaredRows === 0 ? MAX_SHEET_ROWS : Math.max(this.#rows.length, this.#declaredRows);
-
-    // A merge that clamps to nothing is DROPPED rather than kept: it covers no cell the sheet holds,
-    // and keeping it left any number of far-away merges on the snapshot of a one-cell sheet.
-    this.#sheet.merges = this.#sheet.merges.filter((merge) => {
-      const lastRow = Math.min(merge.row + merge.rowspan, rowBound);
-      const lastCol = Math.min(merge.col + merge.colspan, colBound);
-
-      if (lastRow <= merge.row || lastCol <= merge.col) {
-        return false;
-      }
+    // Every merge grows the sheet to its own extent, as ExcelJS does, whatever `<dimension>`
+    // declares. The dimension used to clamp it on the premise that every producer includes its
+    // merges there, which ClosedXML, Apache POI and LibreOffice files break: a title merged wider
+    // than the data, or a merge below the last `<row>` (Google Sheets writes neither a `<row>` for
+    // an empty row nor a `<dimension>`), lost its width or its rows with nothing reported. A merge
+    // is within the sheet caps by construction (`parseRangeRef` bounds it), and the span charge
+    // below plus `#finalize`'s rectangle check bound a hostile one.
+    this.#sheet.merges.forEach((merge) => {
+      const lastRow = merge.row + merge.rowspan;
+      const lastCol = merge.col + merge.colspan;
 
       // The third span kind, and the one the budget originally missed. Like the column and
       // validation spans it is measured before it is walked: `<mergeCell ref="A1:XFD1048576"/>` is
@@ -1551,8 +1689,6 @@ class WorksheetParser {
       this.#ensureRow(lastRow - 1);
 
       this.#padMergeMembers(merge.row, merge.col, lastRow, lastCol);
-
-      return true;
     });
   }
 
@@ -1706,9 +1842,9 @@ class WorksheetParser {
 
 /**
  * Parses `xl/worksheets/sheetN.xml` into a `SheetSnapshot`. Rows are allocated as they appear, so a
- * sheet with cells at row 1 and row 100000 costs two rows; a declared rectangle above the caps is
- * refused from `<dimension>` before any row is read, and a row past the cap is refused as it appears
- * when there is no dimension.
+ * sheet with cells at row 1 and row 100000 costs two rows; a `<dimension>` declaring more rows or
+ * columns than the caps is refused before any row is read, and the cells themselves are refused as
+ * soon as they outgrow a cap or the workbook budget.
  */
 export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSnapshot {
   return new WorksheetParser(ctx).parse(xml);

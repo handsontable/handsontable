@@ -220,12 +220,18 @@ function writeFont(w: XmlWriter, font: Font, withDefaults: boolean): void {
     w.leaf('u');
   }
 
+  // CT_Font is an `xsd:choice`, so any order is valid, but the Open XML SDK validator expects the
+  // sequence Excel writes (b, i, strike, condense, extend, outline, shadow, u, vertAlign, sz,
+  // color, name, family, charset, scheme) and flagged `sz` after `color`.
+  if (withDefaults) {
+    w.leaf('sz', { val: 11 });
+  }
+
   if (font.color) {
     w.leaf('color', { rgb: font.color.argb });
   }
 
   if (withDefaults) {
-    w.leaf('sz', { val: 11 });
     w.leaf('name', { val: 'Calibri' });
   }
 
@@ -660,7 +666,7 @@ const FONT_ELEMENTS = new Set(['font', 'b', 'i', 'u', 'color']);
 /**
  * The elements the fill state machine owns.
  */
-const FILL_ELEMENTS = new Set(['fill', 'patternFill', 'fgColor', 'bgColor']);
+const FILL_ELEMENTS = new Set(['fill', 'patternFill', 'gradientFill', 'fgColor', 'bgColor']);
 
 /**
  * The elements the cell-format state machine owns.
@@ -677,6 +683,10 @@ interface XfState {
   borderId: number;
   alignment: Alignment | null;
   locked: boolean | null;
+  /**
+   * Whether the `<alignment>` declared something the model cannot carry (wrapped text, say).
+   */
+  uncarried: boolean;
 }
 
 /**
@@ -724,6 +734,38 @@ function readAlignment(attrs: XmlAttributes): Alignment | null {
 }
 
 /**
+ * Whether an `<alignment>` declares something other than the two axes, which the model does not
+ * carry: wrapped or shrunk text, an indent, a rotation. The zeroed spellings LibreOffice writes on
+ * every `xf` (`wrapText="false" indent="0" textRotation="0"`) are the defaults, not styling.
+ */
+function alignmentUncarried(attrs: XmlAttributes): boolean {
+  const on = (value: string | undefined) => value !== undefined && value !== '0' && value !== 'false';
+
+  return on(attrs.wrapText) || on(attrs.shrinkToFit) || on(attrs.indent) || on(attrs.textRotation);
+}
+
+/**
+ * The text color of the Normal style in every Excel template: theme color 1 ("Text 1"), no tint.
+ */
+const DEFAULT_TEXT_COLOR_KEY = 'theme:1:';
+
+/**
+ * A key for a `<color>` the model cannot carry (a theme or an indexed one), or `null` for one it
+ * carries (`rgb`) or that means the default (`auto`, the system foreground `indexed="64"`).
+ */
+function uncarriedColorKey(attrs: XmlAttributes): string | null {
+  if (argbOf(attrs) !== undefined) {
+    return null;
+  }
+
+  if (attrs.theme !== undefined) {
+    return `theme:${attrs.theme}:${attrs.tint ?? ''}`;
+  }
+
+  return attrs.indexed !== undefined && attrs.indexed !== '64' ? `indexed:${attrs.indexed}` : null;
+}
+
+/**
  * The state machine behind `parseStyles`. One instance reads one `xl/styles.xml`: the tokenizer is
  * forward-only, so every table is assembled from an element's open event, its children and its
  * close event, and the fields below are that half-built state.
@@ -740,9 +782,21 @@ class StylesParser {
   #fonts: Array<Font | null> = [];
 
   /**
+   * Per font index, whether the font has a color the model cannot carry and that is not the
+   * Normal style's own.
+   */
+  #uncarriedFonts: boolean[] = [];
+
+  /**
    * The workbook's fills, by index.
    */
   #fills: Array<Fill | null> = [];
+
+  /**
+   * Per fill index, whether the fill paints something the model cannot carry: a theme or indexed
+   * color, a pattern other than solid, a gradient.
+   */
+  #uncarriedFills: boolean[] = [];
 
   /**
    * The workbook's borders, by index.
@@ -770,9 +824,24 @@ class StylesParser {
   #font: Font | null = null;
 
   /**
+   * The uncarried color key of the `<font>` being read (`uncarriedColorKey`).
+   */
+  #fontColorKey: string | null = null;
+
+  /**
+   * The uncarried color key of font 0, the Normal style's font, once it is read.
+   */
+  #normalFontColorKey: string | null = null;
+
+  /**
    * The `<fill>` being read, when it is one of the workbook's own.
    */
   #fill: Fill | null = null;
+
+  /**
+   * Whether the workbook `<fill>` being read paints something the model cannot carry.
+   */
+  #fillUncarried = false;
 
   /**
    * The `<border>` being read.
@@ -940,6 +1009,7 @@ class StylesParser {
   #openFontChild(name: string, attrs: XmlAttributes, parent: string | undefined): void {
     if (name === 'font') {
       this.#font = {};
+      this.#fontColorKey = null;
 
       return;
     }
@@ -958,6 +1028,7 @@ class StylesParser {
       font.underline = true;
     } else if (name === 'color' && parent === 'font') {
       applyFontColor(font, attrs);
+      this.#fontColorKey = uncarriedColorKey(attrs);
     }
   }
 
@@ -967,9 +1038,12 @@ class StylesParser {
   #openFillChild(name: string, attrs: XmlAttributes): void {
     if (name === 'fill') {
       this.#fill = null;
+      this.#fillUncarried = false;
       this.#dxfFill = this.#section() === 'dxfs' ? {} : null;
     } else if (name === 'patternFill') {
       this.#openPatternFill(attrs);
+    } else if (name === 'gradientFill') {
+      this.#fillUncarried = this.#section() === 'fills';
     } else if (name === 'fgColor') {
       this.#openFgColor(attrs);
     } else if (name === 'bgColor') {
@@ -979,17 +1053,28 @@ class StylesParser {
 
   /**
    * Opens a `<patternFill>`. Only a solid pattern of the workbook's own table becomes a fill; its
-   * color arrives with the `<fgColor>` child.
+   * color arrives with the `<fgColor>` child. Any other pattern but `none` and the bootstrap
+   * `gray125` paints the cell with something the model cannot carry.
    */
   #openPatternFill(attrs: XmlAttributes): void {
-    if (this.#section() === 'fills' && attrs.patternType === 'solid') {
+    if (this.#section() !== 'fills') {
+      return;
+    }
+
+    const { patternType } = attrs;
+
+    if (patternType === 'solid') {
       this.#fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF000000' } };
+    } else if (patternType !== undefined && patternType !== 'none' && patternType !== 'gray125') {
+      this.#fillUncarried = true;
     }
   }
 
   /**
    * Applies an `<fgColor>` to whichever fill is open. A workbook fill whose color the model cannot
-   * carry is dropped whole, because the fill is nothing but that color.
+   * carry is dropped whole, because the fill is nothing but that color, and noted as uncarried so
+   * the import still reports `cellStyles`. A `<dxf>` fill's theme or indexed color is lost with
+   * nothing recorded (`argbOf`); the import guide says conditional-format colors are read as rgb.
    */
   #openFgColor(attrs: XmlAttributes): void {
     const fill = this.#fill;
@@ -999,6 +1084,7 @@ class StylesParser {
       const color = argbOf(attrs);
 
       this.#fill = color ? { ...fill, fgColor: color } : null;
+      this.#fillUncarried = color === undefined;
     } else if (dxfFill) {
       const color = argbOf(attrs);
 
@@ -1063,6 +1149,7 @@ class StylesParser {
           borderId: parseUnsignedIntAttr(attrs.borderId) ?? 0,
           alignment: null,
           locked: null,
+          uncarried: false,
         };
       }
 
@@ -1077,6 +1164,7 @@ class StylesParser {
 
     if (name === 'alignment') {
       xf.alignment = readAlignment(attrs);
+      xf.uncarried = alignmentUncarried(attrs);
     } else if (name === 'protection' && (attrs.locked === '0' || attrs.locked === 'false')) {
       xf.locked = false;
     }
@@ -1123,10 +1211,18 @@ class StylesParser {
     if (this.#section() === 'dxfs' && this.#dxf) {
       this.#dxf.font = font ?? undefined;
     } else if (this.#section() === 'fonts') {
+      const key = this.#fontColorKey;
+
+      if (this.#fonts.length === 0) {
+        this.#normalFontColorKey = key;
+      }
+
+      this.#uncarriedFonts.push(key !== null && key !== this.#normalFontColorKey && key !== DEFAULT_TEXT_COLOR_KEY);
       this.#fonts.push(font);
     }
 
     this.#font = null;
+    this.#fontColorKey = null;
   }
 
   /**
@@ -1139,9 +1235,11 @@ class StylesParser {
       this.#dxf.fill = { type: 'pattern', pattern: 'solid', ...dxfFill };
     } else if (this.#section() === 'fills') {
       this.#fills.push(this.#fill);
+      this.#uncarriedFills.push(this.#fillUncarried);
     }
 
     this.#fill = null;
+    this.#fillUncarried = false;
     this.#dxfFill = null;
   }
 
@@ -1163,6 +1261,13 @@ class StylesParser {
   /**
    * Resolves a finished `<xf>` against the font, fill, border and number-format tables, which are
    * all complete by the time `<cellXfs>` is reached: the schema puts them before it.
+   *
+   * Font 0 is the Normal style's font, what every cell without a font of its own already shows, so
+   * it is no font: Excel for Mac and LibreOffice 4.1 to 6.4 write it with `<color rgb="FF000000"/>`,
+   * and read as a font it made every cell (a cell with no `s` uses xf 0) report `cellStyles` and
+   * import black text. An xf that points at styling the model cannot carry (`#uncarriedFills`,
+   * `#uncarriedFonts`, `alignmentUncarried`) resolves to a style with nothing in it, so the import
+   * still reports `cellStyles` for it, as ExcelJS does, and applies nothing.
    */
   #closeXf(): void {
     const xf = this.#xf;
@@ -1175,10 +1280,13 @@ class StylesParser {
       ? null
       : this.#customNumFmts.get(xf.numFmtId) ?? BUILT_IN_NUM_FMTS[xf.numFmtId]
         ?? LOCALE_NUM_FMTS[xf.numFmtId] ?? null;
-    const resolvedFont = this.#fonts[xf.fontId] ?? null;
+    const isNormalFont = xf.fontId === 0;
+    const resolvedFont = isNormalFont ? null : this.#fonts[xf.fontId] ?? null;
     const resolvedFill = this.#fills[xf.fillId] ?? null;
     const resolvedBorder = this.#borders[xf.borderId] ?? null;
-    const hasStyle = xf.alignment !== null || resolvedFont !== null
+    const uncarried = xf.uncarried || this.#uncarriedFills[xf.fillId] === true
+      || (!isNormalFont && this.#uncarriedFonts[xf.fontId] === true);
+    const hasStyle = uncarried || xf.alignment !== null || resolvedFont !== null
       || resolvedFill !== null || resolvedBorder !== null;
 
     this.#cellXfs.push({

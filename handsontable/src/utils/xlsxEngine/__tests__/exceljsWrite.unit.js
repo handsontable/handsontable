@@ -346,6 +346,13 @@ describe('excelJsAdapter.write', () => {
       [[{ type: 'colorScale', cfvo: [{ type: 'min' }, { type: 'max' }] }], 'conditionalFormatting:colorScale'],
       [[{ type: 'dataBar', priority: 1 }], 'conditionalFormatting:dataBar'],
       [[{ type: 'iconSet', priority: 1 }], 'conditionalFormatting:iconSet'],
+      // A `cfvo` list with a non-object entry: ExcelJS threw `Cannot read properties of null`.
+      [
+        [{ type: 'colorScale', priority: 1, cfvo: [null, null], color: [null, null] }],
+        'conditionalFormatting:colorScale',
+      ],
+      [[{ type: 'dataBar', priority: 1, cfvo: [null] }], 'conditionalFormatting:dataBar'],
+      [[{ type: 'iconSet', priority: 1, cfvo: [{ type: 'min' }, 7] }], 'conditionalFormatting:iconSet'],
     ];
 
     for (const [rules, name] of blocks) {

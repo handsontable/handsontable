@@ -83,8 +83,9 @@ function worksheetXml(rows) {
  * declare a sheet of any kind under any relationship namespace.
  *
  * @param {Array<{ name: string, kind: string, part: string, xml: string }>} sheets The sheets in
- * workbook order. `kind` is the relationship type's tail (`worksheet`, `chartsheet`, …); `part` is
- * the archive path; `xml` is the part text, or `null` for a sheet whose part must be missing.
+ * workbook order. `kind` is the relationship type's tail (`worksheet`, `chartsheet`, …), or `null`
+ * for a `<sheet r:id="">` with no relationship at all; `part` is the archive path; `xml` is the part
+ * text, or `null` for a sheet whose part must be missing.
  * @param {object} [options] Package-level knobs.
  * @param {string} [options.relNs] The relationship namespace to write every office relationship
  * under.
@@ -113,7 +114,7 @@ async function packWorkbook(sheets, {
   sheetOverrides = true,
   relTargetOf = part => part.replace(/^xl\//, ''),
 } = {}) {
-  const workbookRels = sheets.map((sheet, i) => (
+  const workbookRels = sheets.filter(sheet => sheet.kind !== null).map((sheet, i) => (
     `<Relationship Id="rId${i + 1}" Type="${relNs}/${sheet.kind}" Target="${relTargetOf(sheet.part)}"/>`
   )).concat(extraWorkbookRels);
   const overrides = sheets
@@ -156,8 +157,9 @@ async function packWorkbook(sheets, {
   entries.push({
     name: 'xl/workbook.xml',
     data: encoder.encode(`<workbook ${NS} xmlns:${relPrefix}="${relNs}"><sheets>${
-      sheets.map((sheet, i) => `<sheet name="${sheet.name}" sheetId="${i + 1}" ${relPrefix}:id="rId${i + 1}"/>`)
-        .join('')
+      sheets.map((sheet, i) => `<sheet name="${sheet.name}" sheetId="${i + 1}" ${relPrefix}:id="${
+        sheet.kind === null ? '' : `rId${sheets.slice(0, i + 1).filter(other => other.kind !== null).length}`
+      }"/>`).join('')
     }</sheets></workbook>`),
   });
   entries.push({
@@ -480,7 +482,7 @@ describe('native reader compatibility: implicit cell and row placement', () => {
   });
 
   it('should keep the column cap on implicitly placed cells', () => {
-    const xml = worksheetXml(`<row r="1">${'<c/>'.repeat(MAX_SHEET_COLUMNS + 1)}</row>`);
+    const xml = worksheetXml(`<row r="1">${'<c><v>1</v></c>'.repeat(MAX_SHEET_COLUMNS + 1)}</row>`);
 
     expect(() => readSheet(xml)).toThrow(`above the ${MAX_SHEET_COLUMNS}-column limit`);
   });
@@ -1072,14 +1074,18 @@ describe('native reader compatibility: a sheet\'s drawing part', () => {
   it.each(['twoCellAnchor', 'oneCellAnchor', 'absoluteAnchor'])(
     'should record images for a drawing part holding an <xdr:%s>', async(anchor) => {
       const { dropped } = await readWorkbook(await withDrawing(
-        `<xdr:wsDr xmlns:xdr="${XDR}"><xdr:${anchor}><xdr:pic/><xdr:clientData/></xdr:${anchor}></xdr:wsDr>`
+        // A shape, not a picture: `pic` is in the anchor set on its own, so an `<xdr:pic/>` here
+        // recorded `images` even with the anchor under test left out of it.
+        `<xdr:wsDr xmlns:xdr="${XDR}"><xdr:${anchor}><xdr:sp/><xdr:clientData/></xdr:${anchor}></xdr:wsDr>`
       ));
 
       expect(dropped.list()).toEqual([DROPPED_FEATURES.images]);
     });
 
   it('should record images for a drawing part that cannot be read, rather than guess it empty', async() => {
-    const { dropped } = await readWorkbook(await withDrawing(`<xdr:wsDr xmlns:xdr="${XDR}"><xdr:twoCellAnchor>`));
+    // A lone `<` the tokenizer refuses. An unclosed `<xdr:twoCellAnchor>` was read without an error
+    // and answered as anchored by the scan itself, so the fallback for an unreadable part never ran.
+    const { dropped } = await readWorkbook(await withDrawing(`<xdr:wsDr xmlns:xdr="${XDR}"><`));
 
     expect(dropped.list()).toEqual([DROPPED_FEATURES.images]);
   });
@@ -1154,20 +1160,25 @@ describe('native reader compatibility: merges outside the read extent', () => {
       + `<row r="1"><c r="A1"><v>1</v></c></row></sheetData><mergeCells>${merges}</mergeCells></worksheet>`;
   }
 
-  it('should drop a merge that clamps to nothing rather than keep it on the snapshot', () => {
-    // A merge wholly outside the sheet's extent was skipped by the materializing pass but left in
-    // `sheet.merges`, uncharged, so a tiny sheet could carry any number of them.
+  it('should grow the sheet to merges far past a declared <dimension>, as to any other merge', () => {
+    // The dimension used to clamp the merges, and one wholly past it was dropped. A `<dimension>`
+    // is the producer's claim, and other producers than Excel leave merges out of it, so a merge
+    // now grows the sheet like any other one, bounded by the span charge and the sheet caps.
     const { sheet } = readSheet(farMerges(40));
 
-    expect(sheet.merges).toEqual([]);
-    expect(sheet.rows.length).toBe(1);
+    expect(sheet.merges).toHaveLength(40);
+    expect(sheet.merges[39]).toEqual({ row: 1077, col: 25, rowspan: 2, colspan: 1 });
+    expect(sheet.rows.length).toBe(1079);
   });
 
-  it('should charge every <mergeCell> against the span budget as it is collected', () => {
+  it('should charge every <mergeCell> against the span budget as it is collected, and its area as it grows', () => {
     const left = MAX_SHEET_CELLS - (305 * 16384);
 
     expect(left).toBe(2880);
-    expect(() => readSheet(farMerges(left))).not.toThrow();
+    // One unit per merge when collected and two (its area) when it is materialized.
+    expect(() => readSheet(farMerges(left / 3))).not.toThrow();
+    expect(() => readSheet(farMerges((left / 3) + 1)))
+      .toThrow(new RegExp(`covering more than ${MAX_SHEET_CELLS} cells`));
     expect(() => readSheet(farMerges(left + 1))).toThrow(new RegExp(`covering more than ${MAX_SHEET_CELLS} cells`));
   });
 });
@@ -1256,11 +1267,15 @@ describe('native reader compatibility: list validations over cells that hold not
 describe('native reader compatibility: the workbook cell budget is charged before the cells exist', () => {
   // Each part ends malformed, so a refusal raised only once the whole part was read would surface as
   // the tokenizer's own error instead of as the budget's.
-  it('should refuse a sheet whose <dimension> crosses the workbook budget before reading a row', () => {
+  it('should not refuse a sheet whose <dimension> alone crosses the workbook budget', () => {
+    // The declared rectangle used to be charged up front, so a wrong `<dimension>` refused a sheet
+    // holding one cell. The budget is charged for the cells the sheet really holds instead.
     const budget = { declaredCells: MAX_WORKBOOK_CELLS - 100 };
-    const xml = `<worksheet ${NS}><dimension ref="A1:B100"/><sheetData><row r="1"><c r="A1"><v>1</v></c></row><`;
+    const xml = `<worksheet ${NS}><dimension ref="A1:B100"/><sheetData><row r="1"><c r="A1"><v>1</v></c></row>`
+      + '</sheetData></worksheet>';
 
-    expect(() => readSheet(xml, { budget })).toThrow(/^The workbook declares \d+ cells across its sheets/);
+    expect(readSheet(xml, { budget }).sheet.rows[0][0].value).toBe(1);
+    expect(budget.declaredCells).toBe(MAX_WORKBOOK_CELLS - 100 + 2);
   });
 
   it('should refuse cells crossing the remaining workbook budget as they are read, with no dimension', () => {
@@ -1295,16 +1310,18 @@ describe('native reader compatibility: the shared-formula translation budget, me
     // the `MAX_TRANSLATED_FORMULA_CHARS` comment in `limits.ts`. A wall-clock bound here flaked under
     // parallel Jest workers, so the guard is deterministic instead: the regex the figures were taken
     // with is pinned, and changing it (or the budget) fails here until the figures are re-measured
-    // and this pin is updated with them.
+    // and this pin is updated with them. Re-measured when the cell lookahead gained `\p{L}_.` (round
+    // 7, Q64): 0.26-0.29 us per character on dense references, never above the previous regex.
     expect(MAX_TRANSLATED_FORMULA_CHARS).toBe(32 * 1024 * 1024);
     expect(REFERENCE_REGEX.flags).toBe('giu');
     expect(REFERENCE_REGEX.source).toBe(
       String.raw`(?<literal>"(?:[^"]|"")*")`
       + String.raw`|(?<qualifier>(?:(?<!')'(?:[^']|''){0,255}'|(?<![\p{L}\p{N}_.])[\p{L}\p{N}_.]+)!)`
-      + String.raw`(?<qualified>\$?[A-Z]{1,3}\$?\d{1,7}(?![\d(])(?::\$?[A-Z]{1,3}\$?\d{1,7}(?![\d(]))?`
+      + String.raw`(?<qualified>\$?[A-Z]{1,3}\$?\d{1,7}(?![\d(\p{L}_.])`
+      + String.raw`(?::\$?[A-Z]{1,3}\$?\d{1,7}(?![\d(\p{L}_.]))?`
       + String.raw`|\$?[A-Z]{1,3}:\$?[A-Z]{1,3}(?![\p{L}\p{N}_(])|\$?\d{1,7}:\$?\d{1,7}(?![\d\p{L}]))`
       + String.raw`|(?<![\p{L}\p{N}_.$])(?<colAbs>\$?)(?<colLetters>[A-Z]{1,3})(?<rowAbs>\$?)`
-      + String.raw`(?<rowDigits>\d{1,7})(?![\d(])`
+      + String.raw`(?<rowDigits>\d{1,7})(?![\d(\p{L}_.])`
       + String.raw`|(?<![\p{L}\p{N}_.$])(?<c1Abs>\$?)(?<c1>[A-Z]{1,3}):(?<c2Abs>\$?)(?<c2>[A-Z]{1,3})(?![\p{L}\p{N}_(])`
       + String.raw`|(?<![\p{L}\p{N}_.$:])(?<r1Abs>\$?)(?<r1>\d{1,7}):(?<r2Abs>\$?)(?<r2>\d{1,7})(?![\d\p{L}])`
     );
@@ -1386,7 +1403,7 @@ describe('native reader compatibility: a merge with no <dimension> to bound it',
     expect(sheet.merges).toEqual([{ row: 5, col: 0, rowspan: 2, colspan: 2 }]);
   });
 
-  it('should grow the rows up to a declared <dimension> and no further', () => {
+  it('should grow the rows past a declared <dimension> to the merge, as with no dimension', () => {
     const rows = [1, 2, 3, 4, 5, 6, 7].map(r => `<row r="${r}"><c r="A${r}"><v>${r}</v></c></row>`).join('');
     const within = readSheet(`<worksheet ${NS}><dimension ref="A1:E8"/><sheetData>${rows}</sheetData>`
       + '<mergeCells count="1"><mergeCell ref="A7:B8"/></mergeCells></worksheet>').sheet;
@@ -1395,8 +1412,9 @@ describe('native reader compatibility: a merge with no <dimension> to bound it',
 
     expect(within.rows.length).toBe(8);
     expect(within.merges).toEqual([{ row: 6, col: 0, rowspan: 2, colspan: 2 }]);
-    expect(past.rows.length).toBe(7);
+    expect(past.rows.length).toBe(9);
     expect(past.rows[6]).toHaveLength(2);
+    expect(past.merges).toEqual([{ row: 6, col: 0, rowspan: 3, colspan: 2 }]);
   });
 });
 
@@ -1601,5 +1619,386 @@ describe('native reader compatibility: package names and declarations', () => {
     ], { relTargetOf: () => '/XL/Workbook.xml' });
 
     await expect(readWorkbook(buffer)).rejects.toThrow(/the sheet "Sheet1" has no worksheet part/);
+  });
+});
+
+describe('native reader compatibility: an indented continuation line of a threaded-comment entry', () => {
+  const notice = '[Threaded comment]\n Your version of Excel allows you to read this threaded comment; '
+    + 'however, any edits to it will get removed if the file is opened in a newer version of Excel.\n';
+
+  it('should strip the entry indent from the first line of each entry only', () => {
+    // The writer indents the first line of an entry. A continuation line the author started with
+    // four spaces or a tab is the author's text, and stripping it from every line lost it.
+    expect(unwrapThreadedComment(`${notice}Comment:\n\tSteps:\n    first step\n\tsecond step\n`))
+      .toBe('Steps:\n    first step\n\tsecond step');
+    expect(unwrapThreadedComment(`${notice}Comment:\n    Steps:\n    first step\nReply:\n    ok\n        indented\n`))
+      .toBe('Steps:\n    first step\nok\n        indented');
+  });
+});
+
+describe('native reader compatibility: a drawing part holding only a chart', () => {
+  const XDR = 'http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing';
+  const A = 'http://schemas.openxmlformats.org/drawingml/2006/main';
+  const C = 'http://schemas.openxmlformats.org/drawingml/2006/chart';
+
+  it('should record images for a chart, which the engine drops with the pictures and shapes', async() => {
+    // `images` covers every drawing anchor the engine cannot carry: a picture, a shape, or a chart
+    // (`graphicFrame`). The chart is lost on import, so the report fires under the same key.
+    const sheet = `<worksheet ${NS} xmlns:r="${TRANSITIONAL_REL}"><sheetData><row r="1"><c r="A1"><v>1</v></c></row>`
+      + '</sheetData><drawing r:id="rId1"/></worksheet>';
+    const rels = `<Relationships xmlns="${PACKAGE_REL}">`
+      + `<Relationship Id="rId1" Type="${TRANSITIONAL_REL}/drawing" Target="../drawings/drawing1.xml"/>`
+      + '</Relationships>';
+    const drawing = `<xdr:wsDr xmlns:xdr="${XDR}" xmlns:a="${A}" xmlns:r="${TRANSITIONAL_REL}" xmlns:c="${C}">`
+      + '<xdr:twoCellAnchor><xdr:from><xdr:col>3</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>0</xdr:row>'
+      + '<xdr:rowOff>0</xdr:rowOff></xdr:from><xdr:to><xdr:col>8</xdr:col><xdr:colOff>0</xdr:colOff>'
+      + '<xdr:row>10</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to><xdr:graphicFrame macro="">'
+      + '<xdr:nvGraphicFramePr><xdr:cNvPr id="2" name="Chart 1"/><xdr:cNvGraphicFramePr/></xdr:nvGraphicFramePr>'
+      + '<xdr:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/></xdr:xfrm><a:graphic>'
+      + `<a:graphicData uri="${C}"><c:chart r:id="rId1"/></a:graphicData></a:graphic></xdr:graphicFrame>`
+      + '<xdr:clientData/></xdr:twoCellAnchor></xdr:wsDr>';
+    const { snapshot, dropped } = await readWorkbook(await packWorkbook([
+      { name: 'Sheet1', kind: 'worksheet', part: 'xl/worksheets/sheet1.xml', xml: sheet },
+    ], {
+      extraEntries: [
+        { name: 'xl/worksheets/_rels/sheet1.xml.rels', data: encoder.encode(rels) },
+        { name: 'xl/drawings/drawing1.xml', data: encoder.encode(drawing) },
+      ],
+    }));
+
+    expect(snapshot.sheets[0].rows[0][0].value).toBe(1);
+    expect(dropped.list()).toEqual([DROPPED_FEATURES.images]);
+  });
+});
+
+describe('native reader compatibility: a legacy module sheet with an empty r:id', () => {
+  it('should skip a trailing <sheet r:id=""> as a macro sheet and read the worksheet before it', async() => {
+    // Excel writes `<sheet name="Module1" r:id=""/>` for a legacy module sheet, with no relationship
+    // and no part behind it, and the reader refused the whole workbook: `the sheet "Module" has no part`.
+    const { snapshot, dropped } = await readWorkbook(await packWorkbook([
+      { name: 'Sheet1', kind: 'worksheet', part: 'xl/worksheets/sheet1.xml', xml: oneCellSheet(1) },
+      { name: 'Module', kind: null, part: null, xml: null },
+    ]));
+
+    expect(snapshot.sheets.map(sheet => sheet.name)).toEqual(['Sheet1']);
+    expect(snapshot.sheets[0].rows[0][0].value).toBe(1);
+    expect(dropped.list()).toEqual([DROPPED_FEATURES.macroSheets]);
+  });
+
+  it('should keep the order of the worksheets around a module sheet in the middle', async() => {
+    const { snapshot, dropped } = await readWorkbook(await packWorkbook([
+      { name: 'Sheet1', kind: 'worksheet', part: 'xl/worksheets/sheet1.xml', xml: oneCellSheet(1) },
+      { name: 'Module', kind: null, part: null, xml: null },
+      { name: 'Third', kind: 'worksheet', part: 'xl/worksheets/sheet2.xml', xml: oneCellSheet(3) },
+    ]));
+
+    expect(snapshot.sheets.map(sheet => sheet.name)).toEqual(['Sheet1', 'Third']);
+    expect(snapshot.sheets[1].rows[0][0].value).toBe(3);
+    expect(dropped.list()).toEqual([DROPPED_FEATURES.macroSheets]);
+  });
+});
+
+describe('native reader compatibility: an Excel 365 picture placed in a cell', () => {
+  it('should record images for an error cell carrying value metadata, and keep its cached text', () => {
+    // A "Place in Cell" picture is `<c t="e" vm="1"><v>#VALUE!</v></c>` with the picture in
+    // `xl/richData`; it has no drawing part, so nothing reported that the picture was lost.
+    const { sheet, dropped } = readSheet(worksheetXml(
+      '<row r="1"><c r="A1" t="e" vm="1"><v>#VALUE!</v></c></row><row r="2"><c r="A2"><v>2</v></c></row>'
+    ));
+
+    expect(sheet.rows[0][0].value).toBe('#VALUE!');
+    expect(sheet.rows[1][0].value).toBe(2);
+    expect(dropped.list()).toEqual([DROPPED_FEATURES.images]);
+  });
+
+  it('should record nothing for a plain error cell, or for value metadata on a cell that is not an error', () => {
+    // `vm` alone is not a picture: OLAP cube cells carry it too.
+    const { dropped } = readSheet(worksheetXml(
+      '<row r="1"><c r="A1" t="e"><v>#N/A</v></c><c r="B1" vm="1"><v>5</v></c></row>'
+    ));
+
+    expect(dropped.list()).toEqual([]);
+  });
+});
+
+describe('native reader compatibility: a merge past a declared <dimension>', () => {
+  it('should widen the sheet to a merge reaching past the columns the dimension declares', () => {
+    // ClosedXML, Apache POI and LibreOffice 3.5 files declare a `<dimension>` a merge reaches past;
+    // the clamp cut such a merge short or dropped it with nothing reported, where ExcelJS keeps it.
+    const rows = [1, 2, 3].map(r => `<row r="${r}"><c r="A${r}" t="inlineStr"><is><t>row ${r}</t></is></c></row>`);
+    const { sheet, dropped } = readSheet(`<worksheet ${NS}><dimension ref="A1:A3"/><sheetData>${rows.join('')}`
+      + '</sheetData><mergeCells count="1"><mergeCell ref="A1:C1"/></mergeCells></worksheet>');
+
+    expect(sheet.merges).toEqual([{ row: 0, col: 0, rowspan: 1, colspan: 3 }]);
+    expect(sheet.rows[0]).toHaveLength(3);
+    expect(sheet.rows[2]).toHaveLength(3);
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should keep a merge inside the rows when the declared <dimension> is shorter than the rows', () => {
+    const rows = [1, 2, 3, 4, 5, 6, 7].map(r => `<row r="${r}"><c r="A${r}"><v>${r}</v></c></row>`).join('');
+    const { sheet } = readSheet(`<worksheet ${NS}><dimension ref="A1:E3"/><sheetData>${rows}</sheetData>`
+      + '<mergeCells count="1"><mergeCell ref="A5:B6"/></mergeCells></worksheet>');
+
+    expect(sheet.merges).toEqual([{ row: 4, col: 0, rowspan: 2, colspan: 2 }]);
+  });
+
+  it('should widen the sheet to a whole-row merge under a narrower dimension, as ExcelJS does', () => {
+    const { sheet } = readSheet(`<worksheet ${NS}><dimension ref="A1:C3"/><sheetData>`
+      + '<row r="1"><c r="A1"><v>1</v></c></row><row r="3"><c r="C3"><v>3</v></c></row></sheetData>'
+      + '<mergeCells count="1"><mergeCell ref="A1:XFD1"/></mergeCells></worksheet>');
+
+    expect(sheet.merges).toEqual([{ row: 0, col: 0, rowspan: 1, colspan: MAX_SHEET_COLUMNS }]);
+    expect(sheet.rows[0]).toHaveLength(MAX_SHEET_COLUMNS);
+  });
+});
+
+describe('native reader compatibility: a bare <c> with no value at the end of a row', () => {
+  it('should not widen the sheet for a bare trailing <c>', () => {
+    // Excel 12.0 writes `<c r="IU1"/><c r="IV1"/>` on every row that carries a row format, and the
+    // reader widened the sheet to 256 columns for them, where ExcelJS reads the data width.
+    const { sheet } = readSheet(worksheetXml('<row r="1"><c r="A1"><v>1</v></c><c r="B1"><v>2</v></c>'
+      + '<c r="IV1"/></row><row r="2"><c r="A2"><v>3</v></c></row>'));
+
+    expect(sheet.rows[0]).toHaveLength(2);
+    expect(sheet.rows[1]).toHaveLength(2);
+  });
+
+  it('should not widen the sheet for s="0" when the default xf carries formatting', () => {
+    // LibreOffice writes `<c r="ALQ1" s="0"/>` through `AMJ1`, and its xf 0 is not always bare, so
+    // the style test alone did not see the cell as empty. xf 0 is what a missing cell shows anyway.
+    const styles = parseStyles('<styleSheet><cellXfs count="1"><xf fontId="0"><alignment wrapText="1"/></xf>'
+      + '</cellXfs></styleSheet>');
+
+    expect(styles.cellXfs[0].style).not.toBeNull();
+
+    const { sheet } = readSheet(worksheetXml('<row r="1"><c r="A1"><v>1</v></c><c r="B1"><v>2</v></c>'
+      + '<c r="AMJ1" s="0"/></row>'), { styles });
+
+    expect(sheet.rows[0]).toHaveLength(2);
+  });
+
+  it('should read 5000 rows with a bare <c r="AMJ1"/> in the first one without the cell-cap refusal', () => {
+    let rows = '';
+
+    for (let r = 1; r <= 5000; r++) {
+      const bare = r === 1 ? '<c r="AMJ1"/>' : '';
+
+      rows += `<row r="${r}"><c r="A${r}"><v>${r}</v></c><c r="B${r}"><v>${r}</v></c>${bare}</row>`;
+    }
+
+    const { sheet } = readSheet(worksheetXml(rows));
+
+    expect(sheet.rows.length).toBe(5000);
+    expect(sheet.rows[0]).toHaveLength(2);
+  });
+
+  it('should still widen the sheet for the bare cells an array formula covers', () => {
+    // ClosedXML's ArrayFormula.xlsx: the covered cells of `<f t="array" ref="A1:B2">` are bare.
+    const { sheet } = readSheet(worksheetXml('<row r="1"><c r="A1"><f t="array" ref="A1:B2">C1:D2</f><v>1</v></c>'
+      + '<c r="B1"/></row><row r="2"><c r="A2"><v>3</v></c><c r="B2"/></row>'));
+
+    expect(sheet.rows[0]).toHaveLength(2);
+    expect(sheet.rows[1]).toHaveLength(2);
+  });
+
+  it('should keep a bare <c> that carries a style', () => {
+    const styles = parseStyles('<styleSheet><fonts count="2"><font/><font><b/></font></fonts>'
+      + '<cellXfs count="2"><xf fontId="0"/><xf fontId="1"/></cellXfs></styleSheet>');
+    const { sheet } = readSheet(worksheetXml('<row r="1"><c r="A1"><v>1</v></c><c r="D1" s="1"/></row>'), { styles });
+
+    expect(sheet.rows[0]).toHaveLength(4);
+    expect(sheet.rows[0][3].style).not.toBeNull();
+  });
+});
+
+describe('native reader compatibility: an empty <row> past the declared <dimension>', () => {
+  const DATA = '<row r="1"><c r="A1"><v>1</v></c><c r="B1"><v>2</v></c></row>'
+    + '<row r="2"><c r="A2"><v>3</v></c></row><row r="3"><c r="B3"><v>4</v></c></row>';
+  const sheetWith = (tail, dimension = '<dimension ref="A1:B3"/>') => (
+    `<worksheet ${NS}>${dimension}<sheetData>${DATA}${tail}</sheetData></worksheet>`
+  );
+
+  it('should not grow the sheet for a self-closing <row> past the dimension that sets nothing', () => {
+    // Hancom Office writes `<row r="1048576" ht="16.5"/>` under `A1:C40`, and the reader built a
+    // million-row grid out of a 40-row sheet (or refused a five-column one by the cell cap).
+    const { sheet } = readSheet(sheetWith('<row r="1048576" ht="16.5"/>'));
+
+    expect(sheet.rows.length).toBe(3);
+    expect(sheet.rowHeights.length).toBe(3);
+  });
+
+  it('should not grow it for LibreOffice\'s spelling of the defaults either', () => {
+    const { sheet } = readSheet(sheetWith(
+      '<row r="10" customHeight="false" hidden="false" outlineLevel="0" ht="12.8"/>'
+    ));
+
+    expect(sheet.rows.length).toBe(3);
+  });
+
+  it.each([
+    ['a custom height', '<row r="10" ht="30" customHeight="1"/>'],
+    ['a hidden flag', '<row r="10" hidden="1"/>'],
+    ['an outline level', '<row r="10" outlineLevel="1"/>'],
+    ['a row format', '<row r="10" s="2" customFormat="1"/>'],
+  ])('should keep such a row that carries %s', (_, tail) => {
+    expect(readSheet(sheetWith(tail)).sheet.rows.length).toBe(10);
+  });
+
+  it('should keep such a row inside the dimension, and with no dimension at all', () => {
+    expect(readSheet(sheetWith('<row r="5"/>', '<dimension ref="A1:B5"/>')).sheet.rows.length).toBe(5);
+    expect(readSheet(sheetWith('<row r="10" ht="16.5"/>', '')).sheet.rows.length).toBe(10);
+  });
+
+  it('should keep the trailing blank rows of an export through a round trip', async() => {
+    const snapshot = createWorkbookSnapshot();
+    const builder = new SheetBuilder('Sheet1');
+
+    builder.cell(1, 1).value = 'a';
+    builder.cell(1, 2).value = 'b';
+    builder.cell(2, 1).value = 'c';
+    builder.cell(5, 1).value = null;
+    snapshot.sheets.push(builder.toSnapshot());
+
+    const bytes = await nativeAdapter.write(snapshot, undefined, new DroppedFeatures());
+    const { snapshot: read } = await readWorkbook(toArrayBuffer(bytes));
+
+    expect(read.sheets[0].rows.length).toBe(5);
+  });
+});
+
+describe('native reader compatibility: <pane> inside a custom sheet view', () => {
+  const CUSTOM_VIEW = '<customSheetViews><customSheetView guid="{10BB9B0E-98EB-46E2-912E-6DC5CDA1598D}">'
+    + '<pane xSplit="3" ySplit="1" topLeftCell="D2" activePane="bottomRight" state="frozen"/>'
+    + '</customSheetView></customSheetViews>';
+
+  it('should not read the pane of a custom view as the sheet\'s frozen pane', () => {
+    // Excel's legacy Custom Views keep their own `<pane>`, and the reader froze a sheet whose own
+    // view has no pane at all.
+    const { sheet } = readSheet(`<worksheet ${NS}><sheetViews><sheetView workbookViewId="0"/></sheetViews>`
+      + `<sheetData><row r="1"><c r="A1"><v>1</v></c></row></sheetData>${CUSTOM_VIEW}</worksheet>`);
+
+    expect(sheet.freeze).toBeNull();
+  });
+
+  it('should keep the sheet view\'s own pane when a custom view stores another one', () => {
+    const { sheet } = readSheet(`<worksheet ${NS}><sheetViews><sheetView workbookViewId="0">`
+      + '<pane xSplit="1" ySplit="1" topLeftCell="B2" state="frozen"/></sheetView></sheetViews>'
+      + `<sheetData><row r="1"><c r="A1"><v>1</v></c></row></sheetData>${CUSTOM_VIEW}</worksheet>`);
+
+    expect(sheet.freeze).toEqual({ rows: 1, cols: 1 });
+  });
+
+  it('should read the pane of the first sheet view only', () => {
+    const { sheet } = readSheet(`<worksheet ${NS}><sheetViews>`
+      + '<sheetView workbookViewId="0"><pane ySplit="2" topLeftCell="A3" state="frozen"/></sheetView>'
+      + '<sheetView workbookViewId="1"><pane xSplit="4" topLeftCell="E1" state="frozen"/></sheetView>'
+      + '</sheetViews><sheetData><row r="1"><c r="A1"><v>1</v></c></row></sheetData></worksheet>');
+
+    expect(sheet.freeze).toEqual({ rows: 2, cols: 0 });
+  });
+});
+
+describe('native reader compatibility: a <dimension> far larger than the data', () => {
+  it('should read a 3 x 5 sheet under A1:XFD1048576 rather than refuse the declared product', () => {
+    let rows = '';
+
+    for (let r = 1; r <= 3; r++) {
+      const cells = ['A', 'B', 'C', 'D', 'E'].map(col => `<c r="${col}${r}"><v>${r}</v></c>`).join('');
+
+      rows += `<row r="${r}">${cells}</row>`;
+    }
+
+    const { sheet } = readSheet(`<worksheet ${NS}><dimension ref="A1:XFD1048576"/><sheetData>${rows}</sheetData>`
+      + '</worksheet>');
+
+    expect(sheet.rows.length).toBe(3);
+    expect(sheet.rows.every(row => row.length === 5)).toBe(true);
+  });
+
+  it('should still refuse the declared row or column count above Excel\'s own limits', () => {
+    expect(() => readSheet(`<worksheet ${NS}><dimension ref="A1:XFE1"/><sheetData/></worksheet>`))
+      .toThrow(/declares 16385 columns/);
+  });
+});
+
+describe('native reader compatibility: a shared-string index that does not resolve', () => {
+  it('should record cellValue:sharedString for an index past the table, and keep the other cells', () => {
+    // `strings[index] ?? null` turned the cell empty with nothing reported, so a whole text column
+    // could vanish from an import that said it dropped nothing.
+    const strings = parseSharedStrings(`<sst ${NS}><si><t>alpha</t></si><si><t>beta</t></si></sst>`);
+    const { sheet, dropped } = readSheet(worksheetXml(
+      '<row r="1"><c r="A1" t="s"><v>0</v></c><c r="B1" t="s"><v>1</v></c></row>'
+      + '<row r="2"><c r="A2" t="s"><v>5</v></c><c r="B2"><v>7</v></c></row>'), { strings });
+
+    expect(sheet.rows[0].map(cell => cell.value)).toEqual(['alpha', 'beta']);
+    expect(sheet.rows[1][0]).toBeNull();
+    expect(sheet.rows[1][1].value).toBe(7);
+    expect(dropped.list()).toEqual([DROPPED_FEATURES.cellValueSharedString]);
+  });
+
+  it('should record it for a workbook with no shared-string table at all', () => {
+    const { dropped } = readSheet(worksheetXml('<row r="1"><c r="A1" t="s"><v>0</v></c></row>'));
+
+    expect(dropped.list()).toEqual([DROPPED_FEATURES.cellValueSharedString]);
+  });
+});
+
+describe('native reader compatibility: a <c> whose r does not parse', () => {
+  it('should place the cell implicitly, after the previous cell of its row', () => {
+    // Apache POI's invalid_cell_reference.xlsx: `<c r="B">` lost its text, while a `<c>` with no `r`
+    // and a `<row>` with a bad `r` were both placed implicitly.
+    const { sheet, dropped } = readSheet(worksheetXml('<row r="1">'
+      + '<c r="A1" t="inlineStr"><is><t>x</t></is></c><c r="B" t="inlineStr"><is><t>y</t></is></c>'
+      + '<c r="C1" t="inlineStr"><is><t>z</t></is></c></row>'));
+
+    expect(sheet.rows[0].map(cell => cell.value)).toEqual(['x', 'y', 'z']);
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should still refuse a well-shaped A0', () => {
+    expect(() => readSheet(worksheetXml('<row r="1"><c r="A0"><v>1</v></c></row>')))
+      .toThrow(/rows and columns start at 1/);
+  });
+});
+
+describe('native reader compatibility: an Excel what-if data table', () => {
+  it('should keep the cached values of a data table and record formula:dataTable', () => {
+    // `<f t="dataTable" .../>` has no text, so the definition was lost with nothing reported.
+    const { sheet, dropped } = readSheet(worksheetXml(
+      '<row r="1"><c r="A1"><v>2</v></c><c r="B1"><f>A1*10</f><v>20</v></c></row>'
+      + '<row r="2"><c r="B2"><f>B1</f><v>20</v></c></row>'
+      + '<row r="3"><c r="A3"><v>1</v></c>'
+      + '<c r="B3"><f t="dataTable" ref="B3:B5" dt2D="0" dtr="0" r1="A1"/><v>10</v></c></row>'
+      + '<row r="4"><c r="A4"><v>2</v></c><c r="B4"><v>20</v></c></row>'
+      + '<row r="5"><c r="A5"><v>3</v></c><c r="B5"><v>30</v></c></row>'
+    ));
+
+    expect(sheet.rows[2][1].value).toBe(10);
+    expect(sheet.rows[2][1].formula).toBeNull();
+    expect(sheet.rows[4][1].value).toBe(30);
+    expect(sheet.rows[0][1].formula).toEqual({ text: 'A1*10', result: 20 });
+    expect(dropped.list()).toEqual([DROPPED_FEATURES.formulaDataTable]);
+  });
+});
+
+describe('native reader compatibility: a Normal font with an explicit black color', () => {
+  const stylesXml = color => '<styleSheet>'
+    + `<fonts count="1"><font><sz val="11"/>${color}<name val="Calibri"/></font></fonts>`
+    + '<fills count="2"><fill><patternFill patternType="none"/></fill>'
+    + '<fill><patternFill patternType="gray125"/></fill></fills>'
+    + '<cellXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/></cellXfs></styleSheet>';
+
+  it.each([
+    ['an explicit black rgb (Excel for Mac, LibreOffice 4.1 to 6.4)', '<color rgb="FF000000"/>'],
+    ['the theme color Excel for Windows writes', '<color theme="1"/>'],
+  ])('should read every cell of an unformatted sheet as unstyled when font 0 carries %s', (_, color) => {
+    // A cell with no `s` uses xf 0. Reading font 0 as styling made every cell styled, so the import
+    // reported `cellStyles` and `importStyles: true` set `color:#000000` on every cell.
+    const { sheet } = readSheet(worksheetXml('<row r="1"><c r="A1"><v>1</v></c><c r="B1"><v>2</v></c></row>'
+      + '<row r="2"><c r="A2" s="0"><v>3</v></c><c r="B2"><v>4</v></c></row>'),
+    { styles: parseStyles(stylesXml(color)) });
+
+    expect(sheet.rows.flat().map(cell => cell.style)).toEqual([null, null, null, null]);
   });
 });

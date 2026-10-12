@@ -5,8 +5,8 @@ import { DROPPED_FEATURES, type DroppedFeatures } from './capabilities';
  * lives in `xl/threadedComments/threadedComment{N}.xml` (authors in `xl/persons/person.xml`); the
  * note in `comments{N}.xml` is a fallback for readers that cannot read threads, and its text is
  * this line, a fixed English notice, then `Comment:` and the thread, every reply after a
- * `Reply:` line and every entry indented by four spaces. Google Sheets writes the same note with a
- * tab in place of the four spaces and a line feed after each entry.
+ * `Reply:` line and the first line of every entry indented by four spaces. Google Sheets writes
+ * the same note with a tab in place of the four spaces and a line feed after each entry.
  */
 const THREADED_COMMENT_HEADER = '[Threaded comment]';
 
@@ -21,9 +21,11 @@ const THREAD_START = '\nComment:\n';
 const REPLY_START = '\nReply:\n';
 
 /**
- * The indent in front of every line of an entry: four spaces from Excel, a tab from Google Sheets.
+ * The indent in front of the first line of an entry: four spaces from Excel, a tab from Google
+ * Sheets. Only the first line carries it (a Google export writes `\tLine one\nLine two`), so a
+ * continuation line the author indented keeps its indent. No `m` flag, on purpose.
  */
-const ENTRY_INDENT = /^(?: {4}|\t)/gm;
+const ENTRY_INDENT = /^(?: {4}|\t)/;
 
 /**
  * The line feed Google Sheets writes after each entry. One per entry is removed, so a blank line

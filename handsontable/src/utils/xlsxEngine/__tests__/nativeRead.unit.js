@@ -317,6 +317,28 @@ describe('nativeAdapter.read with namespace-prefixed parts', () => {
     expect(withExtension.sheets[0].conditionalFormatting).toEqual(plain.sheets[0].conditionalFormatting);
   });
 
+  it('should record a conditional-formatting rule stored only in <extLst> as dropped, by its kind', async() => {
+    // Excel 2010+ writes the 3 Triangles, 3 Stars and 5 Boxes icon sets (and a cross-sheet `cellIs`)
+    // ONLY as `<x14:cfRule>` in the sheet's extension list; the reader read nothing there but list
+    // validations, so the rule was lost with `dropped: []`.
+    const x14Block = '<extLst><ext uri="{78C0D931-6437-407d-A8EE-F0AAD7539E65}" '
+      + 'xmlns:x14="http://schemas.microsoft.com/office/spreadsheetml/2009/9/main" '
+      + 'xmlns:xm="http://schemas.microsoft.com/office/excel/2006/main">'
+      + '<x14:conditionalFormattings><x14:conditionalFormatting>'
+      + '<x14:cfRule type="iconSet" priority="1" id="{97EC5EB0-8983-415D-A3EF-7990E01C51DC}">'
+      + '<x14:iconSet iconSet="3Triangles"><x14:cfvo type="percent"><xm:f>0</xm:f></x14:cfvo>'
+      + '<x14:cfvo type="percent"><xm:f>33</xm:f></x14:cfvo><x14:cfvo type="percent"><xm:f>67</xm:f></x14:cfvo>'
+      + '</x14:iconSet></x14:cfRule><xm:sqref>A1:A3</xm:sqref>'
+      + '</x14:conditionalFormatting></x14:conditionalFormattings></ext></extLst>';
+    const dropped = new DroppedFeatures();
+
+    await nativeAdapter.read(await repack('values', (partName, text) => (
+      partName === 'xl/worksheets/sheet1.xml' ? text.replace('</worksheet>', `${x14Block}</worksheet>`) : text
+    )), undefined, dropped);
+
+    expect(dropped.list()).toEqual(['conditionalFormatting:iconSet']);
+  });
+
   it('should read a plain-text note on the native engine, and skip it on ExcelJS with comment:unreadable', async() => {
     // A note's `<text>` may hold a bare `<t>` instead of `<r>` runs. ExcelJS 4.4 reads the runs
     // only, so such a note reached the grid as an EMPTY comment, with nothing reported. The native
@@ -335,5 +357,107 @@ describe('nativeAdapter.read with namespace-prefixed parts', () => {
     expect(nativeDropped.list()).not.toContain('comment:unreadable');
     expect(exceljs.sheets[0].rows[0][4]?.comment ?? null).toBeNull();
     expect(exceljsDropped.list()).toContain('comment:unreadable');
+  });
+});
+
+describe('nativeAdapter.read: a truncated or mis-nested XML part inside an intact archive', () => {
+  const isSheetPart = name => /^xl\/worksheets\/sheet\d+\.xml$/.test(name);
+
+  it('should refuse a sheet part cut after its first </row>', async() => {
+    const bytes = await rewriteArchive(load('values'), (name, text) => (isSheetPart(name)
+      ? text.slice(0, text.indexOf('</row>') + '</row>'.length)
+      : text));
+
+    await expect(nativeAdapter.read(bytes, undefined, new DroppedFeatures())).rejects.toThrow(
+      'The workbook could not be parsed by the native engine: '
+      + 'The XML part is truncated or malformed (unclosed <sheetData>).'
+    );
+  });
+
+  it('should refuse a sheet part whose cell closes its elements in the wrong order', async() => {
+    const bytes = await rewriteArchive(load('values'), (name, text) => (isSheetPart(name)
+      ? text.replace(/<\/v><\/c>/, '</c></v>')
+      : text));
+
+    await expect(nativeAdapter.read(bytes, undefined, new DroppedFeatures()))
+      .rejects.toThrow(/truncated or malformed \(mismatched <\/c>, expected <\/v>\)/);
+  });
+
+  it('should refuse a shared-strings part cut between two entries', async() => {
+    const bytes = await rewriteArchive(load('values'), (name, text) => (name === 'xl/sharedStrings.xml'
+      ? text.slice(0, text.lastIndexOf('<si>'))
+      : text));
+
+    await expect(nativeAdapter.read(bytes, undefined, new DroppedFeatures()))
+      .rejects.toThrow(/truncated or malformed \(unclosed <sst>\)/);
+  });
+});
+
+describe('nativeAdapter.read: XML parts encoded as UTF-16', () => {
+  /**
+   * Encodes text as UTF-16 in the given byte order, with or without a byte-order mark.
+   *
+   * @param {string} text The text to encode.
+   * @param {boolean} bigEndian Whether to write the high byte first.
+   * @param {boolean} bom Whether to start with U+FEFF.
+   * @returns {Uint8Array}
+   */
+  function utf16(text, bigEndian, bom) {
+    const source = bom ? `\uFEFF${text}` : text;
+    const bytes = new Uint8Array(source.length * 2);
+    const view = new DataView(bytes.buffer);
+
+    for (let i = 0; i < source.length; i++) {
+      view.setUint16(i * 2, source.charCodeAt(i), !bigEndian);
+    }
+
+    return bytes;
+  }
+
+  /**
+   * Re-encodes every XML part of a fixture as UTF-16 and packs it again, stored or deflated.
+   *
+   * @param {string} name The fixture name.
+   * @param {boolean} bigEndian The byte order.
+   * @param {boolean} bom Whether each part starts with a byte-order mark.
+   * @param {boolean} compress Whether the entries are deflated.
+   * @returns {Promise<ArrayBuffer>}
+   */
+  async function asUtf16(name, bigEndian, bom, compress) {
+    const zip = await readZip(load(name));
+    const entries = [];
+
+    for (const partName of zip.names()) {
+      // eslint-disable-next-line no-await-in-loop -- one entry at a time, as the reader reads them.
+      const text = (await zip.text(partName)).replace('encoding="UTF-8"', 'encoding="UTF-16"');
+
+      entries.push({ name: partName, data: utf16(text, bigEndian, bom) });
+    }
+
+    return toArrayBuffer(await writeZip(entries, compress));
+  }
+
+  const CASES = [
+    ['UTF-16LE with a BOM', false, true],
+    ['UTF-16BE with a BOM', true, true],
+    ['UTF-16LE without a BOM', false, false],
+    ['UTF-16BE without a BOM', true, false],
+  ];
+
+  CASES.forEach(([label, bigEndian, bom]) => {
+    [true, false].forEach((compress) => {
+      it(`should read ${label} (${compress ? 'deflated' : 'stored'}) as the same snapshot as UTF-8`, async() => {
+        for (const name of ['values', 'styles', 'multi-sheet']) {
+          const expected = await nativeAdapter.read(load(name), undefined, new DroppedFeatures());
+          // eslint-disable-next-line no-await-in-loop -- one fixture at a time.
+          const bytes = await asUtf16(name, bigEndian, bom, compress);
+          const dropped = new DroppedFeatures();
+          // eslint-disable-next-line no-await-in-loop -- one fixture at a time.
+          const actual = await nativeAdapter.read(bytes, undefined, dropped);
+
+          expect(actual).toEqual(expected);
+        }
+      });
+    });
   });
 });

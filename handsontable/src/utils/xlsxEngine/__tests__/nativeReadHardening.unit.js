@@ -435,32 +435,25 @@ describe('native reader hardening: row and column zero', () => {
     await expect(read(bytes)).rejects.not.toThrow(/Cannot read properties of undefined/);
   });
 
-  it('should keep ignoring a reference that is not an address at all', async() => {
-    // The two cells sit in rows of their own past the fixture's data (A1:F4), so a reader that
-    // placed them anyway — implicitly, after the row's previous cell — would put them at A5 and A6,
-    // where nothing else can overwrite them.
+  it('should place a cell whose reference is not an address at all implicitly, like one with no r', async() => {
+    // The two cells sit in rows of their own past the fixture's data (A1:F4). An `r` that does not
+    // parse (`1A`, an empty one) used to drop the cell with nothing reported, while a cell with no
+    // `r` was placed after the row's previous cell; both now land at A5 and A6.
     const withRows = cells => repack('values', (part, text) => (
       part === 'xl/worksheets/sheet1.xml' ? text.replace('</sheetData>', `${cells}</sheetData>`) : text
     ));
     const { rows } = (await read(await withRows(
       '<row r="5"><c r="1A"><v>1</v></c></row><row r="6"><c r=""><v>2</v></c></row>'
     ))).sheets[0];
-
-    expect(rows[0].map(cell => cell.value)).toEqual(['Name', 'Amount', 'Active', 'Hired', 'Start', 'Ratio']);
-    expect(rows[3][0].value).toBe('Li Wei');
-    expect(rows[4]).toEqual([]);
-    expect(rows[5]).toEqual([]);
-    expect(rows.flat().filter(cell => cell && (cell.value === 1 || cell.value === 2))).toEqual([]);
-
-    // The control: the same rows with NO `r` place their cells implicitly, at exactly the slots
-    // inspected above — so the emptiness there is the reader ignoring the reference, not the
-    // probe looking in the wrong place.
     const { rows: placed } = (await read(await withRows(
       '<row r="5"><c><v>1</v></c></row><row r="6"><c><v>2</v></c></row>'
     ))).sheets[0];
 
-    expect(placed[4][0].value).toBe(1);
-    expect(placed[5][0].value).toBe(2);
+    expect(rows[0].map(cell => cell.value)).toEqual(['Name', 'Amount', 'Active', 'Hired', 'Start', 'Ratio']);
+    expect(rows[3][0].value).toBe('Li Wei');
+    expect(rows[4][0].value).toBe(1);
+    expect(rows[5][0].value).toBe(2);
+    expect(rows).toEqual(placed);
   });
 });
 
@@ -1066,5 +1059,80 @@ describe('native reader hardening: an absolute relationship target with ..', () 
     const snapshot = await read(bytes);
 
     expect(snapshot.sheets[0].rows[1][0].value).toBe('Ana Garc\u00EDa');
+  });
+});
+
+describe('native reader hardening: the defined-name cap through the whole read', () => {
+  it('should report definedNames:truncated when a read of the package crosses the cap', async() => {
+    // The cap was pinned on `parseWorkbook` alone, so dropping the `dropped` argument where the
+    // package is opened brought the silent truncation back with every test green.
+    const names = Array.from({ length: 65537 }, (_, i) => `<definedName name="N${i}">1</definedName>`).join('');
+    const bytes = await repack('values', (part, text) => (
+      part === 'xl/workbook.xml' ? text.replace('</sheets>', `</sheets><definedNames>${names}</definedNames>`) : text
+    ));
+    const dropped = new DroppedFeatures();
+
+    await nativeAdapter.read(toArrayBuffer(bytes), undefined, dropped);
+
+    expect(dropped.list()).toEqual(['definedNames:truncated']);
+  });
+});
+
+describe('native reader hardening: an archive with no workbook part says what it holds', () => {
+  /**
+   * Repacks a fixture with every entry renamed by `rename`.
+   *
+   * @param {string} name The fixture name.
+   * @param {Function} rename Receives an entry name, returns the name to write.
+   * @returns {Promise<Uint8Array>}
+   */
+  async function renamed(name, rename) {
+    const zip = await readZip(loadFixture(name));
+    const entries = [];
+
+    for (const partName of zip.names()) {
+      // eslint-disable-next-line no-await-in-loop -- one entry at a time, as the reader reads them.
+      entries.push({ name: rename(partName), data: encoder.encode(await zip.text(partName)) });
+    }
+
+    return writeZip(entries, true);
+  }
+
+  it('should read a package whose every entry name uses backslashes as if they were slashes', async() => {
+    const bytes = await renamed('values', partName => partName.replace(/\//g, '\\'));
+    const expected = await nativeAdapter.read(loadFixture('values'), undefined, new DroppedFeatures());
+
+    await expect(read(bytes)).resolves.toEqual(expected);
+  });
+
+  it('should name the backslashes when only some entry names use them', async() => {
+    const bytes = await renamed('values', partName => (partName.startsWith('xl/')
+      ? partName.replace(/\//g, '\\')
+      : partName));
+
+    await expect(read(bytes)).rejects.toThrow('The workbook could not be parsed by the native engine: '
+      + 'The archive has no workbook part at "xl/workbook.xml". Its entry names use backslashes as '
+      + 'path separators (such as "xl\\workbook.xml"), which the ZIP format does not allow.');
+  });
+
+  it('should name an OpenDocument spreadsheet by its mimetype entry', async() => {
+    const bytes = await writeZip([
+      { name: 'mimetype', data: encoder.encode('application/vnd.oasis.opendocument.spreadsheet') },
+      { name: 'content.xml', data: encoder.encode('<office:document-content/>') },
+      { name: 'META-INF/manifest.xml', data: encoder.encode('<manifest:manifest/>') },
+    ], false);
+
+    await expect(read(bytes)).rejects.toThrow('The workbook could not be parsed by the native engine: '
+      + 'the file is an OpenDocument spreadsheet (.ods), not an Excel workbook. Save it as .xlsx.');
+  });
+
+  it('should keep the plain sentence for an archive that is neither', async() => {
+    const bytes = await writeZip([
+      { name: 'mimetype', data: encoder.encode('application/epub+zip') },
+      { name: 'content.xml', data: encoder.encode('<a/>') },
+    ], false);
+
+    await expect(read(bytes)).rejects.toThrow('The workbook could not be parsed by the native engine: '
+      + 'The archive has no workbook part at "xl/workbook.xml".');
   });
 });

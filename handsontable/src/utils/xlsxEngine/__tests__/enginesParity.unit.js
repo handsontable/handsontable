@@ -738,9 +738,12 @@ describe('parity on the capabilities the matrix listed without a direct two-engi
     expect(styleOf(native, 0).font).toEqual({ bold: true });
     expect(styleOf(viaExcelJs, 0).font).toEqual({ bold: true, color: { theme: 1 } });
 
-    // A cell whose ONLY color is an indexed one resolves to no style at all on the native reader,
-    // and to a font/fill that `normalizeFont`/`normalizeFill` collapse to nothing on ExcelJS's.
-    expect(styleOf(native, 1)).toBeNull();
+    // A cell whose ONLY color is an indexed one resolves to a style with nothing in it on the native
+    // reader (so the import still reports `cellStyles`, as it does on ExcelJS), and to a font/fill
+    // that `normalizeFont`/`normalizeFill` collapse to nothing on ExcelJS's.
+    expect(styleOf(native, 1)).toEqual({ alignment: null, font: null, fill: null, border: null });
+    expect(normalizeStyle(styleOf(native, 1))).toBeNull();
+    expect(styleOf(viaExcelJs, 1)).not.toBeNull();
     expect(normalizeStyle(styleOf(viaExcelJs, 1))).toBeNull();
 
     // Finding, and one the parity matrix recorded the other way round ("both drop it, by design"):
@@ -975,15 +978,17 @@ describe('conditional formatting: every rule kind the export can produce, four w
     expect(cfShape(ee)[0].count).toBe(kind === 'duplicateValues' ? 0 : 1);
 
     if (kind === 'duplicateValues') {
-      expect(cfShape(en)).toEqual(cfShape(ee));
+      // The native reader leaves out a block that holds no rule, where ExcelJS keeps it empty.
+      expect(cfShape(en)).toEqual([]);
 
       return;
     }
 
     // A color scale, a data bar and an icon set live in child elements the native READER does not
     // read either: it leaves the rule out and records it, rather than import a bare
-    // `{ type, priority }` that the ExcelJS export then threw on. ExcelJS reads the whole rule.
-    expect(cfShape(en)).toEqual([{ ref: 'A1:A2', count: 0, rules: [] }]);
+    // `{ type, priority }` that the ExcelJS export then threw on, and leaves out the block that
+    // rule leaves empty. ExcelJS reads the whole rule.
+    expect(cfShape(en)).toEqual([]);
     expect(enDropped.list()).toEqual([`conditionalFormatting:${kind}`]);
     expect(ee.sheets[0].conditionalFormatting[0].rules[0].cfvo).toEqual(rules[0].cfvo);
   });
@@ -1348,5 +1353,95 @@ describe('the LibreOffice attribute dialect: what each reader makes of `"true"`/
     expect(exceljs.rtl).toBe(false);
     expect(exceljs.rows[1][1].locked).toBeNull();
     expect(exceljs.rows[1][2].value).toBe(43844);
+  });
+});
+
+describe('parity on the reader fixes of the #13634 QA round 7', () => {
+  /**
+   * An ExcelJS-written one-sheet workbook whose `<sheetData>` and `<dimension>` are replaced.
+   *
+   * @param {string} dimension The `<dimension>` element, or `''` for none.
+   * @param {string} sheetData The `<sheetData>` children.
+   * @returns {Promise<ArrayBuffer>}
+   */
+  async function withSheetData(dimension, sheetData) {
+    const workbook = new ExcelJS.Workbook();
+
+    workbook.addWorksheet('S').getCell('A1').value = 1;
+
+    return rewriteArchive(new Uint8Array(await workbook.xlsx.writeBuffer()), (part, text) => (
+      part === 'xl/worksheets/sheet1.xml'
+        ? text.replace(/<dimension[^>]*\/>/, dimension)
+          .replace(/<sheetData>.*<\/sheetData>/s, `<sheetData>${sheetData}</sheetData>`)
+        : text
+    ));
+  }
+
+  async function readBoth(bytes) {
+    return {
+      native: (await nativeAdapter.read(bytes, undefined, new DroppedFeatures())).sheets[0],
+      exceljs: (await excelJsAdapter.read(bytes, ExcelJS, new DroppedFeatures())).sheets[0],
+    };
+  }
+
+  const row = (r, cols) => `<row r="${r}">${cols.map(col => `<c r="${col}${r}"><v>${r}</v></c>`).join('')}</row>`;
+
+  it('reads a bare trailing <c> without widening the sheet on both readers', async() => {
+    const { native, exceljs } = await readBoth(await withSheetData('',
+      row(1, ['A', 'B']).replace('</row>', '<c r="IV1"/></row>') + row(2, ['A', 'B'])));
+
+    expect(native.rows.map(cells => cells.length)).toEqual([2, 2]);
+    expect(exceljs.rows.map(cells => cells.length)).toEqual([2, 2]);
+  });
+
+  it('reads a 3 x 5 sheet under a far larger <dimension> on both readers', async() => {
+    const cols = ['A', 'B', 'C', 'D', 'E'];
+    const { native, exceljs } = await readBoth(await withSheetData('<dimension ref="A1:XFD1048576"/>',
+      [1, 2, 3].map(r => row(r, cols)).join('')));
+
+    expect(native.rows.map(cells => cells.length)).toEqual([5, 5, 5]);
+    expect(exceljs.rows.map(cells => cells.length)).toEqual([5, 5, 5]);
+  });
+
+  it('pins an empty self-closing <row> past the <dimension>: the native reader cuts it, ExcelJS counts it', async() => {
+    // ExcelJS's model has no `<dimension>`, so it sizes the sheet by its last `<row>`; the native
+    // reader leaves out an empty, unformatted tail row past the declared last row (the Hancom shape).
+    const { native, exceljs } = await readBoth(await withSheetData('<dimension ref="A1:B3"/>',
+      `${[1, 2, 3].map(r => row(r, ['A', 'B'])).join('')}<row r="12" ht="16.5"/>`));
+
+    expect(native.rows.length).toBe(3);
+    expect(exceljs.rows.length).toBe(12);
+  });
+});
+
+describe('parity on the cellStyles report for styling the model cannot carry', () => {
+  it('reports a style on both engines for a theme fill, an indexed fill, a pattern fill and wrapped text', async() => {
+    // The native reader resolved these to `style: null`, so the import reported nothing where
+    // ExcelJS (and the 18.1 engine) reported `cellStyles`. Both now hand back a style; neither
+    // carries the fill or the wrap itself.
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Uncarried');
+
+    sheet.getCell('A1').value = 'theme';
+    sheet.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { theme: 4 } };
+    sheet.getCell('B1').value = 'indexed';
+    sheet.getCell('B1').fill = { type: 'pattern', pattern: 'solid', fgColor: { indexed: 13 } };
+    sheet.getCell('C1').value = 'pattern';
+    sheet.getCell('C1').fill = {
+      type: 'pattern', pattern: 'darkVertical', fgColor: { argb: 'FFFF0000' }, bgColor: { argb: 'FF00FF00' },
+    };
+    sheet.getCell('D1').value = 'wrap';
+    sheet.getCell('D1').alignment = { wrapText: true };
+    sheet.getCell('E1').value = 'plain';
+
+    const bytes = toArrayBuffer(new Uint8Array(await workbook.xlsx.writeBuffer()));
+    const native = await nativeAdapter.read(bytes, undefined, new DroppedFeatures());
+    const viaExcelJs = await excelJsAdapter.read(bytes, ExcelJS, new DroppedFeatures());
+    const styled = snapshot => snapshot.sheets[0].rows[0].map(cell => cell.style !== null);
+
+    expect(styled(native)).toEqual([true, true, true, true, false]);
+    expect(styled(viaExcelJs)).toEqual([true, true, true, true, false]);
+    expect(native.sheets[0].rows[0].slice(0, 4).map(cell => cell.style))
+      .toEqual(new Array(4).fill({ alignment: null, font: null, fill: null, border: null }));
   });
 });

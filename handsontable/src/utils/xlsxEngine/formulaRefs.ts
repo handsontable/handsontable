@@ -70,23 +70,27 @@ export interface MappedReference {
  * HyperFormula accepts `=sum(a1)` and the export hands the source string over as typed (the
  * rewritten reference comes back uppercase). The leading `(?<![\p{L}\p{N}_.$])` keeps it from
  * starting inside a number, a defined name (`TOTAL1` must not yield `AL1`) or a structured
- * reference (`TABLE1[Col]`). The trailing `(?![\d(])` keeps a function name from reading as a
- * reference: a bare `(?!\()` lets the digit run backtrack, so `LOG10(` matches `G1` and is
- * rewritten to `H2`, and rejecting a following digit as well is what closes that. A real row number
- * is never followed by a digit, because the run is greedy.
+ * reference (`TABLE1[Col]`). The trailing `(?![\d(\p{L}_.])` keeps a function or a name from
+ * reading as a reference: a bare `(?!\()` lets the digit run backtrack, so `LOG10(` matches `G1`
+ * and is rewritten to `H2`, and rejecting a following digit as well is what closes that. A letter,
+ * `_` or `.` is rejected too, because a name may continue past a cell-shaped start: `HEX2DEC(` holds
+ * `HEX2` and `Q1Sales` holds `Q1`, and a shared-formula copy or a header shift used to rewrite them
+ * to `HEX3DEC(` and `Q2Sales`. A real row number is never followed by a digit, because the run is
+ * greedy, and never by a name character.
  *
  * The last two alternatives are the open spans, `A:C` and `2:3`, each end its own reference with
  * `null` on the open axis. They come after the cell alternative so `A1:B2` is read as two cells,
  * never as a column span starting at `A`.
  */
 const MAX_QUALIFIER_LENGTH = 255;
-const CELL_PATTERN = String.raw`\$?[A-Z]{1,3}\$?\d{1,7}(?![\d(])`;
+const CELL_PATTERN = String.raw`\$?[A-Z]{1,3}\$?\d{1,7}(?![\d(\p{L}_.])`;
 const COLUMN_SPAN_PATTERN = String.raw`\$?[A-Z]{1,3}:\$?[A-Z]{1,3}(?![\p{L}\p{N}_(])`;
 const ROW_SPAN_PATTERN = String.raw`\$?\d{1,7}:\$?\d{1,7}(?![\d\p{L}])`;
 const QUOTED_QUALIFIER_PATTERN = String.raw`(?<!')'(?:[^']|''){0,${MAX_QUALIFIER_LENGTH}}'`;
 const BARE_QUALIFIER_PATTERN = String.raw`(?<![\p{L}\p{N}_.])[\p{L}\p{N}_.]+`;
 const UNQUALIFIED_PATTERN =
-  String.raw`(?<![\p{L}\p{N}_.$])(?<colAbs>\$?)(?<colLetters>[A-Z]{1,3})(?<rowAbs>\$?)(?<rowDigits>\d{1,7})(?![\d(])` +
+  String.raw`(?<![\p{L}\p{N}_.$])(?<colAbs>\$?)(?<colLetters>[A-Z]{1,3})(?<rowAbs>\$?)(?<rowDigits>\d{1,7})` +
+  String.raw`(?![\d(\p{L}_.])` +
   String.raw`|(?<![\p{L}\p{N}_.$])(?<c1Abs>\$?)(?<c1>[A-Z]{1,3}):(?<c2Abs>\$?)(?<c2>[A-Z]{1,3})(?![\p{L}\p{N}_(])` +
   String.raw`|(?<![\p{L}\p{N}_.$:])(?<r1Abs>\$?)(?<r1>\d{1,7}):(?<r2Abs>\$?)(?<r2>\d{1,7})(?![\d\p{L}])`;
 
@@ -277,7 +281,7 @@ export interface ImportedFormula {
   /**
    * Whether the formula names a sheet the engine does not hold, or one it cannot resolve at all: a
    * bare qualifier right after `]` (an external workbook, `[1]Sheet1!A1`) or after `:` (a 3D
-   * range, `Sheet1:Sheet3!A1`).
+   * range, `Sheet1:Sheet3!A1` or `Sheet1!A1:Rates!A3`; `Sheet1!A1:Sheet1!A3` is one sheet).
    */
   unknownSheet: boolean;
 }
@@ -292,6 +296,21 @@ function unquoteQualifier(qualifier: string): string {
 }
 
 /**
+ * Whether a qualifier names one sheet the way `Sheet!A1` does. A bare qualifier right after `]`
+ * names a sheet of another workbook (`[1]Sheet1!A1`), and one right after `:` closes a 3D range
+ * (`Sheet1:Sheet3!A1`, `Sheet1!A1:Rates!A3`) - unless the reference before the colon carries the
+ * same qualifier (`followedSheet`, lower-cased), which is the second end of a range on one sheet
+ * (`Sheet1!A1:Sheet1!A3`).
+ */
+function isPlainQualifier(before: string | undefined, sheet: string, followedSheet: string | null): boolean {
+  if (before === ']') {
+    return false;
+  }
+
+  return before !== ':' || followedSheet === sheet;
+}
+
+/**
  * Moves a formula read from a sheet into grid coordinates in ONE walk of `REFERENCE_REGEX`, which
  * the import charges once against `MAX_TRANSLATED_FORMULA_CHARS`:
  *
@@ -300,7 +319,9 @@ function unquoteQualifier(qualifier: string): string {
  * - a qualifier naming the formula's own sheet (`sheets.self`) is dropped, and its reference is
  * shifted like an unqualified one, because the band the shift accounts for is on that sheet;
  * - a qualifier naming any other sheet is kept with its reference as written, and checked with
- * `sheets.isKnown`; a bare qualifier right after `]` or `:` is never a sheet the engine can resolve.
+ * `sheets.isKnown`; a bare qualifier right after `]` or `:` is never a sheet the engine can resolve,
+ * except one after `:` that repeats the qualifier of the reference before the colon
+ * (`Sheet1!A1:Sheet1!A3`), which is judged like the first end.
  *
  * A formula with no `!` and a zero shift is returned as it is, without a walk.
  *
@@ -325,19 +346,30 @@ export function rebaseImportedFormula(
     return rowOut || colOut ? null : { row, col };
   };
 
+  // The end and the lower-cased qualifier of the previous match, so the second end of
+  // `Sheet1!A1:Sheet1!A3` can tell it repeats the first one's sheet.
+  let previousEnd = -1;
+  let previousSheet: string | null = null;
+
   const rebased = formula.replace(REFERENCE_REGEX, (match: string, ...args: unknown[]) => {
     const groups = args[args.length - 1] as ReferenceGroups;
     const offset = args[args.length - 3] as number;
+    const follows = previousEnd === offset - 1 ? previousSheet : null;
     let replacement: string | null = match;
+
+    previousEnd = offset + match.length;
+    previousSheet = null;
 
     if (groups.qualifier !== undefined) {
       const name = unquoteQualifier(groups.qualifier);
-      const before = formula[offset - 1];
+      const lowered = name.toLowerCase();
 
-      if (before === ']' || before === ':') {
+      previousSheet = lowered;
+
+      if (!isPlainQualifier(formula[offset - 1], lowered, follows)) {
         unknownSheet = true;
 
-      } else if (name.toLowerCase() === self) {
+      } else if (lowered === self) {
         // The reference part is a cell, a range or a span of at most a few dozen characters.
         replacement = rewriteReferences(groups.qualified ?? '', QUALIFIED_PART_REGEX, map, false);
 

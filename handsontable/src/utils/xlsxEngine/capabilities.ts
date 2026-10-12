@@ -69,7 +69,8 @@ export const DROPPED_FEATURES = {
   tables: 'tables',
   // Raised by the native reader only: a `<sheet>` whose relationship is not a worksheet. The
   // model holds worksheets and nothing else, so the sheet is skipped and the others keep their
-  // order — refusing the whole workbook over one chart tab is what this replaced.
+  // order — refusing the whole workbook over one chart tab is what this replaced. `macroSheets`
+  // also covers a legacy module sheet, which Excel writes as `<sheet r:id="">` with no part.
   chartSheets: 'chartSheets',
   dialogSheets: 'dialogSheets',
   macroSheets: 'macroSheets',
@@ -87,6 +88,12 @@ export const DROPPED_FEATURES = {
   // date-time with a `T`. Any other spelling would be read in the browser's time zone, so the
   // cell imports empty instead.
   cellValueDate: 'cellValue:date',
+  // Raised by the native reader only: a `t="s"` cell whose shared-string index resolves to nothing
+  // (past the end of the table, no table at all, a table cut short). The cell imports empty.
+  cellValueSharedString: 'cellValue:sharedString',
+  // Raised by the native reader only: an Excel what-if data table (`<f t="dataTable"/>`). Its cells
+  // keep their cached values; the table definition is lost, so nothing recalculates.
+  formulaDataTable: 'formula:dataTable',
   // Raised by both readers, once per read: an Excel 365 threaded comment. Its legacy note is read
   // without the fixed notice in front of the thread (`threadedComments.ts`), so the comment and its
   // replies import as text; the authors, timestamps, and resolved state of the thread are dropped.
@@ -116,6 +123,11 @@ export const DROPPED_FEATURES = {
   formulaOutOfRange: 'formula:outOfRange',
   formulaOtherSheet: 'formula:otherSheet',
   formulaDefinedName: 'formula:definedName',
+  // A formula imported as a value (no live formulas) whose file carries no cached `<v>`: the cell
+  // imports empty, and the formula is only in `result.formulas`.
+  formulaNoCachedValue: 'formula:noCachedValue',
+  // A note on a cell of the promoted header band: a column header cannot hold one.
+  commentHeader: 'comment:header',
   layoutDirection: 'layoutDirection',
   // Raised by `importFile` when the result carries the layout and the plugin that applies it is not
   // registered (a bundle that registers modules one by one): the setting is written, nothing reads it.

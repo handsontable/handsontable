@@ -232,6 +232,16 @@ function malformed(offset: number): never {
 }
 
 /**
+ * Throws the refusal for markup that does not balance: a part that ends with elements still open,
+ * or an end tag that does not close the innermost open element. A generator that dies mid-write
+ * and then closes the archive leaves exactly that inside an intact ZIP, and reading it leniently
+ * imported fewer rows or cells with nothing reported.
+ */
+function unbalanced(detail: string): never {
+  throwWithCause(`The XML part is truncated or malformed (${detail}).`);
+}
+
+/**
  * Whether a character code is XML whitespace (space, tab, newline, carriage return).
  */
 function isWhitespace(code: number): boolean {
@@ -347,17 +357,29 @@ function skipDoctype(xml: string, lt: number): number {
 }
 
 /**
- * Fires the close handler for an end tag, returning the offset past it.
+ * Fires the close handler for an end tag, returning the offset past it. The tag must close the
+ * innermost element still open, which is popped off `open` first.
  */
-function readEndTag(xml: string, lt: number, handlers: XmlHandlers): number {
+function readEndTag(xml: string, lt: number, handlers: XmlHandlers, open: string[]): number {
   const end = xml.indexOf('>', lt);
 
   if (end === -1) {
     malformed(lt);
   }
 
+  const name = xml.slice(lt + 2, end).trim();
+  const expected = open.pop();
+
+  if (expected === undefined) {
+    unbalanced(`mismatched </${name}>, no element is open`);
+  }
+
+  if (expected !== name) {
+    unbalanced(`mismatched </${name}>, expected </${expected}>`);
+  }
+
   if (handlers.close) {
-    handlers.close(xml.slice(lt + 2, end).trim());
+    handlers.close(name);
   }
 
   return end + 1;
@@ -465,7 +487,7 @@ function readStartTag(xml: string, lt: number): XmlStartTag {
  * returns the offset past it. The order of the tests is the order the prefixes disambiguate in:
  * `<!--` and `<![CDATA[` are both `<!`, so the DOCTYPE test has to come last of the three.
  */
-function readMarkup(xml: string, lt: number, handlers: XmlHandlers): number {
+function readMarkup(xml: string, lt: number, handlers: XmlHandlers, open: string[]): number {
   if (xml.startsWith('<?', lt)) {
     return skipProcessingInstruction(xml, lt);
   }
@@ -483,10 +505,14 @@ function readMarkup(xml: string, lt: number, handlers: XmlHandlers): number {
   }
 
   if (xml.startsWith('</', lt)) {
-    return readEndTag(xml, lt, handlers);
+    return readEndTag(xml, lt, handlers, open);
   }
 
   const { name, attrs, selfClosing, end } = readStartTag(xml, lt);
+
+  if (!selfClosing) {
+    open.push(name);
+  }
 
   if (handlers.open) {
     handlers.open(name, attrs, selfClosing);
@@ -499,11 +525,18 @@ function readMarkup(xml: string, lt: number, handlers: XmlHandlers): number {
  * Tokenizes an XML document forward-only, calling the handlers as it goes. No tree is built; the
  * caller keeps whatever state it needs. Names keep their namespace prefix (`x:ClientData`,
  * `r:id`); a reader of a main OOXML part normalizes an element's prefix with `createLocalName()`,
- * and an attribute name is always matched as written. The prolog, comments and a DOCTYPE are skipped without interpretation; CDATA is
- * delivered as text.
+ * and an attribute name is always matched as written. The prolog, comments and a DOCTYPE are skipped
+ * without interpretation; CDATA is delivered as text.
+ *
+ * The markup must balance. Every end tag must close the innermost element still open, and the
+ * input must not end with an element open, the root's own close included, which SheetJS and
+ * calamine forgive and openpyxl and ExcelJS refuse. A truncated or mis-nested part
+ * otherwise imported with fewer values and nothing reported. The open elements are one stack of
+ * names, pushed and popped once per tag, so the check stays linear.
  */
 export function tokenizeXml(xml: string, handlers: XmlHandlers): void {
   const { length } = xml;
+  const open: string[] = [];
   let i = 0;
 
   while (i < length) {
@@ -511,11 +544,14 @@ export function tokenizeXml(xml: string, handlers: XmlHandlers): void {
 
     if (lt === -1) {
       emitText(xml, i, length, handlers);
-
-      return;
+      break;
     }
 
     emitText(xml, i, lt, handlers);
-    i = readMarkup(xml, lt, handlers);
+    i = readMarkup(xml, lt, handlers, open);
+  }
+
+  if (open.length > 0) {
+    unbalanced(`unclosed <${open[open.length - 1]}>`);
   }
 }

@@ -46,6 +46,14 @@ export function timePeriodFormula(period: string, topLeft: string): string | und
 }
 
 /**
+ * Whether `cfvo` is a list whose every entry is an object, the shape both writers read a
+ * threshold from.
+ */
+function isCfvoList(cfvo: unknown): boolean {
+  return Array.isArray(cfvo) && cfvo.every(entry => typeof entry === 'object' && entry !== null);
+}
+
+/**
  * Whether a conditional formatting rule is one a writer can express, recording why when it is not.
  *
  * The rules are the export option's own, untrusted objects. The native writer judges every rule
@@ -61,8 +69,10 @@ export function timePeriodFormula(period: string, topLeft: string): string | und
  * - A `timePeriod` rule with no string period, or with no formula and a period `ST_TimePeriod`
  * does not list: `conditionalFormatting:timePeriod`. A known period needs no formula: both
  * writers build the one ExcelJS documents (`timePeriodFormula`).
- * - A `colorScale`, `dataBar` or `iconSet` rule with no `cfvo` list (a color scale also with no
- * `color` list): `conditionalFormatting:<type>`.
+ * - A `colorScale`, `dataBar` or `iconSet` rule with no `cfvo` list, or one with an entry that is
+ * not an object (a color scale also with no `color` list): `conditionalFormatting:<type>`. A
+ * `null` entry made ExcelJS throw `Cannot read properties of null`. The `color` entries need no
+ * check: a color scale with `null` colors exports fine.
  *
  * Every other rule passes, including the kinds only ExcelJS writes (data bars, color scales).
  *
@@ -102,7 +112,7 @@ export function isWritableConditionalRule(candidate: unknown, dropped: DroppedFe
     return false;
   }
 
-  if (CFVO_RULE_KINDS.has(type) && (!Array.isArray(cfvo) || (type === 'colorScale' && !Array.isArray(color)))) {
+  if (CFVO_RULE_KINDS.has(type) && (!isCfvoList(cfvo) || (type === 'colorScale' && !Array.isArray(color)))) {
     dropped.recordUnsupported('conditionalFormatting', type);
 
     return false;

@@ -4,13 +4,37 @@
 export type CellValue = string | number | boolean | null;
 
 /**
+ * The error values a cell can hold in OOXML (`ST_CellType` `e`, ECMA-376 18.18.11). A cached
+ * formula result is written as an error only when it is one of these: anything else in a `t="e"`
+ * cell is a file Excel repairs, and readers such as Apache POI refuse the code.
+ */
+export const OOXML_ERROR_CODES: ReadonlySet<string> = new Set([
+  '#NULL!', '#DIV/0!', '#VALUE!', '#REF!', '#NAME?', '#NUM!', '#N/A',
+]);
+
+/**
+ * Whether a value is one of the {@link OOXML_ERROR_CODES}.
+ */
+export function isOoxmlErrorCode(value: unknown): value is string {
+  return typeof value === 'string' && OOXML_ERROR_CODES.has(value);
+}
+
+/**
  * A formula cell. `text` carries the formula without the leading `=`; `result` is the cached value
  * and is optional so the two shapes the export produces (`{ formula }` and `{ formula, result }`)
  * round-trip unchanged.
+ *
+ * `resultIsError` says the cached result is an ERROR value, not text: `result` then holds the
+ * OOXML error code (`#DIV/0!`) and both writers type the cell `t="e"`. It is set by the export from
+ * the Formulas engine's own cell value, never from the text, because a formula may answer the text
+ * `#N/A` (`="#N/A"`), which is a string. A flagged result that is not one of the
+ * {@link OOXML_ERROR_CODES} is written as text. The readers do not set it: they hand an error result
+ * back as its code text, as before.
  */
 export interface CellFormula {
   text: string;
   result?: CellValue;
+  resultIsError?: boolean;
 }
 
 /**

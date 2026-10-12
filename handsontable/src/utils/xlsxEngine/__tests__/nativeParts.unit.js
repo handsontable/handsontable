@@ -688,6 +688,35 @@ function topLevelChildren(xml) {
   return names;
 }
 
+describe('StyleTable font children', () => {
+  it('should write a font\'s children in the CT_Font order Excel uses: b, i, u, sz, color, name', () => {
+    // The schema declares an `xsd:choice`, so Excel takes any order, but the Open XML SDK validator
+    // flags `sz` after `color`, and some .NET pipelines validate a file before they edit it.
+    const { styles } = writeSheet((b) => {
+      b.cell(1, 1).value = 'x';
+      b.cell(1, 1).style = {
+        alignment: null,
+        font: { bold: true, italic: true, underline: true, color: { argb: 'FFFF0000' } },
+        fill: null,
+        border: null,
+      };
+    });
+    const fonts = styles.toXml().match(/<fonts[^>]*>(.*?)<\/fonts>/)[1];
+
+    expect(fonts).toContain(
+      '<font><b/><i/><u/><sz val="11"/><color rgb="FFFF0000"/><name val="Calibri"/></font>'
+    );
+  });
+
+  it('should keep a differential font\'s children in the same order, without the defaults', () => {
+    const styles = new StyleTable();
+
+    styles.dxfIndex({ font: { bold: true, color: { argb: 'FF00FF00' } } });
+
+    expect(styles.toXml()).toContain('<dxf><font><b/><color rgb="FF00FF00"/></font>');
+  });
+});
+
 describe('worksheetXml', () => {
   it('should write values by type, formulas with and without results, and an empty sheet', () => {
     const { xml, strings, wroteFormula } = writeSheet((b) => {
@@ -1189,6 +1218,23 @@ describe('parseWorksheet', () => {
     expect(dropped.list()).toEqual(['dataValidation:whole']);
   });
 
+  it('should leave out a conditional-formatting block whose only rules were dropped', () => {
+    // A lone color scale was dropped from the block and the block came back as
+    // `{ ref, rules: [] }`, so an app testing `conditionalFormatting.length` saw rules arrive.
+    const xml = `<worksheet ${NS}><sheetData/>`
+      + '<conditionalFormatting sqref="A1:A3"><cfRule type="colorScale" priority="1"><colorScale>'
+      + '<cfvo type="min"/><cfvo type="max"/><color rgb="FFFFFFFF"/><color rgb="FF57BB8A"/></colorScale></cfRule>'
+      + '</conditionalFormatting><conditionalFormatting sqref="B1:B3">'
+      + '<cfRule type="dataBar" priority="2"/><cfRule type="cellIs" operator="equal" priority="3">'
+      + '<formula>1</formula></cfRule></conditionalFormatting></worksheet>';
+    const { sheet, dropped } = readSheet(xml);
+
+    expect(sheet.conditionalFormatting).toEqual([{
+      ref: 'B1:B3', rules: [{ type: 'cellIs', operator: 'equal', priority: 3, formulae: ['1'] }],
+    }]);
+    expect(dropped.list()).toEqual(['conditionalFormatting:colorScale', 'conditionalFormatting:dataBar']);
+  });
+
   it('should read conditional formatting into ExcelJS-shaped rules with their dxf style', () => {
     const styles = parseStyles('<styleSheet><dxfs><dxf><font><b/></font></dxf></dxfs></styleSheet>');
     const xml = `<worksheet ${NS}><sheetData/>`
@@ -1256,16 +1302,18 @@ describe('parseWorksheet', () => {
     expect(sheet.merges).toEqual([{ row: 0, col: 0, rowspan: 1, colspan: 2 }]);
   });
 
-  it('should clamp a merge that reaches past the dimension instead of widening the sheet', () => {
-    // The dimension is the bound: both the native writer and Excel include every merge in it, so a
-    // merge reaching past it is malformed and must not grow the sheet on the file's say-so.
+  it('should widen the sheet to a merge that reaches past the dimension, as ExcelJS does', () => {
+    // The dimension is the producer's claim, not a bound: ClosedXML, Apache POI and LibreOffice write
+    // files whose merges reach past it, and clamping cut such a merge short with nothing reported.
+    // The span charge and the sheet caps bound a hostile one.
     const xml = `<worksheet ${NS}><dimension ref="A1:B1"/><sheetData>`
       + '<row r="1"><c r="A1" t="s"><v>0</v></c></row></sheetData>'
       + '<mergeCells count="1"><mergeCell ref="A1:E1"/></mergeCells></worksheet>';
     const { sheet } = readSheet(xml, { strings: { strings: ['master'], rich: [false] } });
 
-    expect(sheet.rows[0]).toHaveLength(2);
-    expect(sheet.rows[0][1]).toBeNull();
+    expect(sheet.rows[0]).toHaveLength(5);
+    expect(sheet.rows[0][4]).toBeNull();
+    expect(sheet.merges).toEqual([{ row: 0, col: 0, rowspan: 1, colspan: 5 }]);
   });
 
   it('should refuse a validation sqref that repeats a whole-column range', () => {
@@ -1303,8 +1351,13 @@ describe('parseWorksheet', () => {
       .toThrow(/sheet "Sheet1" declares 1048577 rows, above the 1048576-row limit/);
     expect(() => readSheet(`<worksheet ${NS}><dimension ref="A1:XFE1"/><sheetData/></worksheet>`))
       .toThrow(/declares 16385 columns, above the 16384-column limit/);
-    expect(() => readSheet(`<worksheet ${NS}><dimension ref="A1:ALM5000"/><sheetData/></worksheet>`))
-      .toThrow(/declares 5000 × 1001 cells, above the 5000000-cell limit/);
+  });
+
+  it('should not refuse a sheet on the cell product its dimension declares, only on the cells it holds', () => {
+    // ExcelJS reads a 3 x 5 sheet under a hand-edited `A1:XFD1048576`; the declared product is not
+    // what the read materializes, and the cell walk still refuses as soon as the real extent does.
+    expect(readSheet(`<worksheet ${NS}><dimension ref="A1:ALM5000"/><sheetData/></worksheet>`).sheet.rows)
+      .toEqual([]);
   });
 
   it('should refuse a row past the cap when there is no dimension', () => {
@@ -1324,14 +1377,15 @@ describe('parseWorksheet', () => {
   });
 
   it('should refuse at the first column past the cap', () => {
-    expect(() => readSheet(`<worksheet ${NS}><sheetData><row r="1">${'<c/>'.repeat(16386)}</row>`
+    // Cells with a value: a bare `<c/>` does not widen the sheet.
+    expect(() => readSheet(`<worksheet ${NS}><sheetData><row r="1">${'<c><v>1</v></c>'.repeat(16386)}</row>`
       + '</sheetData></worksheet>'))
       .toThrow(/declares 16385 columns/);
   });
 
   it('should refuse at the row that crosses the cell cap', () => {
-    expect(() => readSheet(`<worksheet ${NS}><sheetData><row r="1">${'<c/>'.repeat(16384)}</row>`
-      + '<row r="306"><c/></row><row r="400"><c/></row></sheetData></worksheet>'))
+    expect(() => readSheet(`<worksheet ${NS}><sheetData><row r="1">${'<c><v>1</v></c>'.repeat(16384)}</row>`
+      + '<row r="306"><c><v>1</v></c></row><row r="400"><c><v>1</v></c></row></sheetData></worksheet>'))
       .toThrow(/declares 306 × 16384 cells/);
   });
 

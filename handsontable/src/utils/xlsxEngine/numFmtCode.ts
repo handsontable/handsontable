@@ -44,18 +44,47 @@ const CURRENCY_SYMBOL_TO_CODE: Record<string, string> = {
  * Excel's locale token `[$<symbol>-<LCID>]`. `intlNumFormatToExcelNumFmt` writes the token with the
  * currency's home LCID for exactly these symbols, so `kr` comes back as the krone it was and not as
  * the first krone the symbol table names. Keyed by symbol so an LCID never reassigns another symbol
- * (`[$$-414]` stays the dollar). The writer reads the LCID back out with `currencyLcid`.
+ * (`[$kr-C09]` stays a krona). The writer reads the LCID back out with `sharedSymbolLcid`.
+ *
+ * DKK is written `[$kr.-406]`, with the period, because that is Excel's own spelling of the Danish
+ * krone. macOS Quick Look misreads that token as `PLN` (it reads `[$kr-406]` correctly); Excel and
+ * LibreOffice do not, and the previewer is the outlier, so the export keeps Excel's form. The reader
+ * maps both spellings.
+ *
+ * The dollar sign is shared by the US dollar and every other dollar currency that `Intl` renders as
+ * a bare `$` in its home locale (`en-AU` AUD, `en-CA` CAD, `es-MX` MXN). Those are written with their
+ * home LCID (`[$$-C09]`), which is also Excel's own token for them; an LCID this table does not hold
+ * (`[$$-409]`, `[$$-414]`) reads as the US dollar, and so does a bare `$`.
  */
 const SHARED_SYMBOL_LCID_TO_CODE: Record<string, Record<number, string>> = {
   kr: { 0x414: 'NOK', 0x814: 'NOK', 0x41D: 'SEK', 0x81D: 'SEK', 0x406: 'DKK', 0x40F: 'ISK' },
   // eslint-disable-next-line quote-props
   'kr.': { 0x414: 'NOK', 0x814: 'NOK', 0x41D: 'SEK', 0x81D: 'SEK', 0x406: 'DKK', 0x40F: 'ISK' },
   '\u00A5': { 0x411: 'JPY', 0x804: 'CNY' },
+  $: {
+    0xC09: 'AUD',
+    0x1009: 'CAD',
+    0xC0C: 'CAD',
+    0x1409: 'NZD',
+    0x80A: 'MXN',
+    0x2C0A: 'ARS',
+    0x340A: 'CLP',
+    0x240A: 'COP',
+    0x4809: 'SGD',
+    0x404: 'TWD',
+    0xC04: 'HKD',
+    0x380A: 'UYU',
+    0x2009: 'JMD',
+    0x2C09: 'TTD',
+    0x2809: 'BZD',
+    0x83E: 'BND',
+  },
 };
 
 /**
  * The home LCID of each currency whose symbol another currency shares, the inverse of
- * `SHARED_SYMBOL_LCID_TO_CODE`.
+ * `SHARED_SYMBOL_LCID_TO_CODE` (CAD takes `en-CA`'s 0x1009, not `fr-CA`'s 0xC0C). The US dollar has
+ * none: it is the one a bare `$` means.
  */
 const SHARED_SYMBOL_CURRENCY_LCID: Record<string, number> = {
   NOK: 0x414,
@@ -64,12 +93,28 @@ const SHARED_SYMBOL_CURRENCY_LCID: Record<string, number> = {
   ISK: 0x40F,
   JPY: 0x411,
   CNY: 0x804,
+  AUD: 0xC09,
+  CAD: 0x1009,
+  NZD: 0x1409,
+  MXN: 0x80A,
+  ARS: 0x2C0A,
+  CLP: 0x340A,
+  COP: 0x240A,
+  SGD: 0x4809,
+  TWD: 0x404,
+  HKD: 0xC04,
+  UYU: 0x380A,
+  JMD: 0x2009,
+  TTD: 0x2C09,
+  BZD: 0x2809,
+  BND: 0x83E,
 };
 
 /**
  * The LCID `intlNumFormatToExcelNumFmt` writes into a locale token for a symbol several currencies
- * share (`kr`, `kr.`, the yen sign), or `null` when the symbol belongs to one currency only and can
- * be written as it is. Both lookups are own-property checks: the currency code comes from the
+ * share (`kr`, `kr.`, the yen sign, and the dollar sign of a currency other than the US dollar), or
+ * `null` when the symbol belongs to one currency only (or is the US dollar's `$`) and can be written
+ * as it is. Both lookups are own-property checks: the currency code comes from the
  * column's settings.
  *
  * @param {string} symbol The symbol `Intl.NumberFormat` renders for the currency.
@@ -160,8 +205,50 @@ const DOLLAR_COMPOSITE_TO_CODE: Record<string, string> = {
 const BARE_CURRENCY_REGEX = /^([A-Z]{1,3}\$|[A-Z]{3}) ?(?=[#0])|(?<=[#0%]) ?([A-Z]{1,3}\$|[A-Z]{3})$/;
 
 /**
- * Maps a bare currency marker to its ISO code: a three-letter code is its own code, a dollar
- * composite is looked up, anything else is unknown.
+ * The ISO 4217 codes a bare three-letter marker may be, used where `Intl.supportedValuesOf` is
+ * missing: the active codes as of 2024.
+ */
+const FALLBACK_CURRENCY_CODES = 'AED AFN ALL AMD ANG AOA ARS AUD AWG AZN BAM BBD BDT BGN BHD BIF BMD BND BOB BRL '
+  + 'BSD BTN BWP BYN BZD CAD CDF CHF CLP CNY COP CRC CUC CUP CVE CZK DJF DKK DOP DZD EGP ERN ETB EUR FJD FKP '
+  + 'GBP GEL GHS GIP GMD GNF GTQ GYD HKD HNL HRK HTG HUF IDR ILS INR IQD IRR ISK JMD JOD JPY KES KGS KHR KMF '
+  + 'KPW KRW KWD KYD KZT LAK LBP LKR LRD LSL LYD MAD MDL MGA MKD MMK MNT MOP MRU MUR MVR MWK MXN MYR MZN NAD '
+  + 'NGN NIO NOK NPR NZD OMR PAB PEN PGK PHP PKR PLN PYG QAR RON RSD RUB RWF SAR SBD SCR SDG SEK SGD SHP SLE '
+  + 'SLL SOS SRD SSP STN SVC SYP SZL THB TJS TMT TND TOP TRY TTD TWD TZS UAH UGX USD UYU UZS VES VND VUV WST '
+  + 'XAF XCD XOF XPF YER ZAR ZMW ZWL';
+
+/**
+ * The ISO 4217 codes `Intl` knows (or `FALLBACK_CURRENCY_CODES`), built on first use. A bare
+ * three-letter marker - quoted, escaped or unquoted, padded or not - is a currency only when it is
+ * one of them: `0.00"MPH"`, `0" DAY"` or `#,##0" PCS"` is a unit label, and reading every three
+ * capital letters as a code imported such columns as made-up currencies. A unit label that is also a
+ * real code stays ambiguous and reads as the currency: `0.0" KGS"` is the Kyrgyz som. Padding is no
+ * signal, because Excel re-saves `#,##0.00 USD` as `#,##0.00\ \U\S\D` and LibreOffice writes
+ * `#,##0.00" RON"`. The `Intl` list differs a little by browser (historic codes such as `ATS`),
+ * which is accepted.
+ */
+let knownCurrencyCodes: Set<string> | null = null;
+
+/**
+ * Whether `code` is an ISO 4217 code `Intl` knows.
+ *
+ * @param {string} code Three capital letters.
+ * @returns {boolean}
+ */
+function isKnownCurrencyCode(code: string): boolean {
+  if (knownCurrencyCodes === null) {
+    const supported = typeof Intl.supportedValuesOf === 'function'
+      ? Intl.supportedValuesOf('currency')
+      : FALLBACK_CURRENCY_CODES.split(' ');
+
+    knownCurrencyCodes = new Set(supported);
+  }
+
+  return knownCurrencyCodes.has(code);
+}
+
+/**
+ * Maps a bare currency marker to its ISO code: a three-letter code `Intl` knows is its own code, a
+ * dollar composite is looked up, anything else is unknown.
  *
  * @param {string} marker The marker as written in the format code.
  * @returns {string|null}
@@ -171,7 +258,7 @@ function bareMarkerToCode(marker: string): string | null {
     return Object.hasOwn(DOLLAR_COMPOSITE_TO_CODE, marker) ? DOLLAR_COMPOSITE_TO_CODE[marker] : null;
   }
 
-  return marker;
+  return isKnownCurrencyCode(marker) ? marker : null;
 }
 
 /**
@@ -400,10 +487,22 @@ export function hasConditionalSection(numFmt: string): boolean {
 const NON_CURRENCY_BRACKET_SECTION_REGEX = /\[(?!\$)[^[\]]*\]/g;
 
 /**
+ * A section as the grid compares it: without its colors and conditions, with an escaped space read
+ * as the space it stands for (Excel pads a negative section with `\ ` where the positive one has
+ * `_ `), trimmed.
+ *
+ * @param {string} section One section of a number format, layout codes removed.
+ * @returns {string}
+ */
+function comparableSection(section: string): string {
+  return section.replace(NON_CURRENCY_BRACKET_SECTION_REGEX, '').replaceAll('\\ ', ' ').trim();
+}
+
+/**
  * Whether the grid shows a code's negative values the way its second section asks. `Intl` writes a
  * negative number as its positive form behind a minus sign, so only a second section that is the
- * first one with a leading `-` (or LibreOffice's `\-`), give or take a color, reads the same. A
- * parenthesized `(#,##0)`, or a section without the minus, shows differently, and the caller
+ * first one with a leading `-` (or LibreOffice's `\-`), give or take a color and padding, reads the
+ * same. A parenthesized `(#,##0)`, or a section without the minus, shows differently, and the caller
  * reports the code. A code with one section has nothing to differ.
  *
  * @param {string} numFmt The number format code.
@@ -416,9 +515,35 @@ export function isNegativeSectionShowable(numFmt: string): boolean {
     return true;
   }
 
-  const [positive, negative] = sections.map(section => section.replace(NON_CURRENCY_BRACKET_SECTION_REGEX, '').trim());
+  const [positive, negative] = sections.map(comparableSection);
 
   return negative === `-${positive}` || negative === `\\-${positive}`;
+}
+
+/**
+ * Whether the grid shows a code's zero the way its third section asks. The grid formats zero with the
+ * first section, so a zero section that shows digits is close enough, and one that shows text or
+ * nothing (`;;`, `"-"`, `"zero"`, finance sheets' hide-zero codes) is not: the caller reports the
+ * code. A code with fewer than three sections has no zero section.
+ *
+ * @param {string} numFmt The number format code.
+ * @returns {boolean}
+ */
+export function isZeroSectionShowable(numFmt: string): boolean {
+  const sections = splitFormatSections(numFmt, 3);
+
+  return sections.length < 3 || /[#0]/.test(stripFormatDecorations(sections[2]));
+}
+
+/**
+ * Whether a number format is `General`, which Excel reads in any case: LibreOffice 3.3 to 5.1 and
+ * Apache POI write `GENERAL`, and a case-sensitive test typed such a text column from its format.
+ *
+ * @param {string|null} numFmt The number format code, or `null` for a cell without one.
+ * @returns {boolean}
+ */
+export function isGeneralFormatCode(numFmt: string | null): boolean {
+  return numFmt !== null && /^general$/i.test(numFmt);
 }
 
 /**
@@ -476,8 +601,13 @@ export function captureCurrency(numFmt: string): CurrencyCapture {
 
   const bare = trimmed.match(BARE_CURRENCY_REGEX);
 
+  // A marker that is no currency is read like a quoted label: dropped from the pattern, which is
+  // what the built-in engine does with the same code's escaped form (ExcelJS unescapes it).
   if (bare) {
-    return { currency: bareMarkerToCode(bare[1] ?? bare[2]), rest: trimmed.replace(BARE_CURRENCY_REGEX, '') };
+    return {
+      currency: bareMarkerToCode(bare[1] ?? bare[2]),
+      rest: trimmed.replace(BARE_CURRENCY_REGEX, ''),
+    };
   }
 
   return { currency: null, rest: numFmt };
@@ -511,6 +641,12 @@ export interface StripFormatDecorationsOptions {
    * which component it stands for. Every other bracket section is dropped either way.
    */
   keepElapsed?: boolean;
+  /**
+   * Leave a space where each bracket section, quoted literal and escaped character was, instead of
+   * nothing, so the codes on either side stay apart for a tokenizer: deleted, the escapes of
+   * `dddd\,\ d` fused the weekday and the day into one `ddddd` run.
+   */
+  separateLiterals?: boolean;
 }
 
 /**
@@ -520,13 +656,15 @@ export interface StripFormatDecorationsOptions {
  * decoration here.
  *
  * @param {string} numFmt The number format code.
- * @param {StripFormatDecorationsOptions} [options] Whether to keep elapsed-time sections.
+ * @param {StripFormatDecorationsOptions} [options] Whether to keep elapsed-time sections, and whether
+ * to leave a space in place of each literal.
  * @returns {string}
  */
 export function stripFormatDecorations(numFmt: string, options: StripFormatDecorationsOptions = {}): string {
   const brackets = options.keepElapsed === true ? NON_ELAPSED_BRACKET_SECTION_REGEX : BRACKET_SECTION_REGEX;
+  const separator = options.separateLiterals === true ? ' ' : '';
 
-  return numFmt.replace(brackets, '').replace(/"[^"]*"/g, '').replace(/\\./g, '');
+  return numFmt.replace(brackets, separator).replace(/"[^"]*"/g, separator).replace(/\\./g, separator);
 }
 
 /**

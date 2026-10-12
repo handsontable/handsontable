@@ -151,11 +151,12 @@ export async function writeWorkbook(snapshot: WorkbookSnapshot, dropped: Dropped
     { name: 'xl/workbook.xml', data: encoder.encode(workbookXml(packageSheets, sheetRelIds, wroteFormula)) },
     { name: 'xl/_rels/workbook.xml.rels', data: encoder.encode(workbookRels) },
     { name: 'xl/styles.xml', data: encoder.encode(styles.toXml()) },
+    // The table is complete once every sheet is rendered, and it goes in front of the sheets: a
+    // streaming reader reads the parts in archive order, and ExcelJS's `WorkbookReader` returned
+    // `{ sharedString: n }` placeholders instead of the text of a small export while the table came
+    // after them. Most Excel-written files put it there too.
+    ...(hasSharedStrings ? [{ name: 'xl/sharedStrings.xml', data: encoder.encode(strings.toXml()) }] : []),
   );
-
-  if (hasSharedStrings) {
-    entries.push({ name: 'xl/sharedStrings.xml', data: encoder.encode(strings.toXml()) });
-  }
 
   return writeZip(entries, snapshot.compression !== false);
 }
