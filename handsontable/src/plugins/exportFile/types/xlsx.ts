@@ -1,5 +1,5 @@
 import { isDefined, stringify } from '../../../helpers/mixed';
-import { getChoiceLabel, isKeyValueEntry } from '../../../utils/cellSource';
+import { getChoiceLabel, isKeyValueEntry, isListableLabel } from '../../../utils/cellSource';
 import type { SourceLabel } from '../../../utils/cellSource';
 import DataProvider from '../dataProvider';
 import BaseType from './_base';
@@ -139,18 +139,28 @@ function toPrimitiveResult(value: unknown): CellValue {
  * @returns {string[]}
  */
 function getSourceLabels(source: unknown[], sourceLabel: SourceLabel | undefined): string[] {
-  return source.map((item) => {
+  const labels: string[] = [];
+
+  source.forEach((item) => {
     if (!isKeyValueEntry(item)) {
-      return String(item);
+      labels.push(String(item));
+
+      return;
     }
 
     const label = getChoiceLabel(item.value, sourceLabel);
 
-    // A label `sourceLabel` derived goes through `stringify()`, so a path that resolves to nothing
-    // lists as empty - the text the exported cell holds - rather than the word `undefined`. A value
-    // that was not relabeled keeps the `String()` it was always written with.
-    return label === item.value ? String(label) : stringify(label);
+    // The same entries the editor's list offers: one whose `sourceLabel` resolves to nothing would
+    // be a blank Excel option the grid never shows, and a value picked from it matches no entry later.
+    if (!isListableLabel(item, sourceLabel, label)) {
+      return;
+    }
+
+    // A value that was not relabeled keeps the `String()` it was always written with.
+    labels.push(label === item.value ? String(label) : stringify(label));
   });
+
+  return labels;
 }
 
 /**

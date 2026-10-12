@@ -75,8 +75,10 @@
     ];
 
     // A mixed source: a plain string beside key/value entries. Every option still lists by its
-    // label - the mixed branch of the list used to show `[object Object]` for the entries.
-    const MIXED = ['Other', COUNTRIES[1], COUNTRIES[2]];
+    // label - the mixed branch of the list used to show `[object Object]` for the entries. The last
+    // entry has a string `value`, which `sourceLabel` hands back unchanged: it must list as its text
+    // too, not as the whole entry stringified.
+    const MIXED = ['Other', COUNTRIES[1], COUNTRIES[2], { key: 'FR', value: 'France' }];
 
     let hot;
 

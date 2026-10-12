@@ -254,7 +254,7 @@ The lookup compares the text the cell displays, so a numeric `value` matches its
 
 The `value` property can be an object, for example a record from your API. Use the [`sourceLabel`](@/api/options.md#sourcelabel) option to tell the cell which text to display for it:
 
-- A string reads a property of the object. Use dot notation for a nested property, for example `'address.city'`.
+- A string reads a property of the object. Use dot notation for a nested property or an array item, for example `'address.city'` or `'aliases.0'`.
 - A function receives the object and returns the text.
 
 In the example below, the `name` property of each airport is displayed.
@@ -272,7 +272,7 @@ columns: [{
 
 The cell, the list of options, the filter of typed text, and pasted text all use that label. The cell itself stores the whole `source` entry, so [`getSourceDataAtCell()`](@/api/core.md#getsourcedataatcell) returns the object with every property.
 
-The cell and `source` can share the same entry object. If you change a property of that object, the change shows in the list of options and in every cell that holds the entry. To change one cell only, replace its entry instead of editing the object in place.
+To change an entry, replace it in `source` and in the cells that hold it. Don't change the entry object in place. Depending on how the value was written, a cell holds either the `source` entry itself or a copy of it: picking an option for an empty cell and pasting store the entry, while picking an option for a cell that already holds a value, undo, and redo store a copy. A copy is a plain object, even when the entry is an instance of a class.
 
 Each entry needs a unique label. If two entries display the same label, picking or pasting that label stores the first of them. An entry whose label resolves to nothing, for example a missing property, isn't listed as an option.
 

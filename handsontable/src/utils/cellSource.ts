@@ -70,11 +70,50 @@ export function getChoiceLabel(value: unknown, sourceLabel?: SourceLabel): unkno
 
   // Not `getProperty()` from `helpers/object`: it indexes into whatever the previous segment held,
   // so a `null` midway (`address.city` on `{ address: null }`) throws - and this runs on every render
-  // of the cell. A segment that is not an object ends the walk with `undefined` instead.
+  // of the cell. A segment that is not an object or an array ends the walk with `undefined` instead.
+  // Arrays are walked by index, so `'aliases.0'` and `'addresses.0.city'` work as dot notation reads.
   return sourceLabel.split('.').reduce<unknown>(
-    (current, segment) => (isPlainObject(current) ? current[segment] : undefined),
+    (current, segment) => (isPlainObject(current) || Array.isArray(current)
+      ? (current as Record<string, unknown>)[segment]
+      : undefined),
     value,
   );
+}
+
+/**
+ * Reports whether a list of choices offers the choice at all. Under `sourceLabel`, a key/value entry
+ * whose object `value` labels as nothing - a missing property, or a function returning `null` - is
+ * left out: it would list as a blank option that a pick could never store. Every other choice is
+ * listed. The editor's option list and the exported XLSX validation list both use it, so the two
+ * offer the same options.
+ *
+ * @param {*} choice A single entry of a cell's resolved choices.
+ * @param {string|Function} [sourceLabel] The cell's `sourceLabel` option.
+ * @returns {boolean}
+ */
+export function isListableChoice(choice: unknown, sourceLabel?: SourceLabel): boolean {
+  if (!sourceLabel || !isKeyValueEntry(choice) || !isPlainObject(choice.value)) {
+    return true;
+  }
+
+  return isListableLabel(choice, sourceLabel, getChoiceLabel(choice.value, sourceLabel));
+}
+
+/**
+ * {@link isListableChoice} for a caller that already resolved the choice's label, so a `sourceLabel`
+ * function runs once per entry rather than twice.
+ *
+ * @param {*} choice A single entry of a cell's resolved choices.
+ * @param {string|Function|undefined} sourceLabel The cell's `sourceLabel` option.
+ * @param {*} label What `getChoiceLabel()` returned for the choice's `value`.
+ * @returns {boolean}
+ */
+export function isListableLabel(choice: unknown, sourceLabel: SourceLabel | undefined, label: unknown): boolean {
+  if (!sourceLabel || !isKeyValueEntry(choice) || !isPlainObject(choice.value)) {
+    return true;
+  }
+
+  return stringify(label) !== '';
 }
 
 /**

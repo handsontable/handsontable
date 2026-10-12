@@ -7399,12 +7399,13 @@ export default (): Record<string, unknown> => {
      * | Setting            | Description                                                                         |
      * | ------------------ | ----------------------------------------------------------------------------------- |
      * | `undefined`        | (Default) Display the `value` as it is                                              |
-     * | A string           | Display the property of the `value` object at that path, for example `'name'` or `'address.city'` |
+     * | A string           | Display the property of the `value` object at that path, for example `'name'`, `'address.city'`, or `'aliases.0'` |
      * | A function         | Display what the function returns. The function receives the `value` object         |
      *
      * The label is used everywhere the cell shows text: in the cell, in the list of options, when you type to filter
      * the options, and when you paste. The cell itself stores the whole `source` entry, including the `value` object.
-     * The cell and `source` can share that entry object, so changing a property of the object changes every cell that holds it.
+     * To change an entry, replace it in `source` and in the cells that hold it, instead of changing the object in place:
+     * depending on how the value was written, a cell holds either the `source` entry itself or a plain-object copy of it.
      *
      * Each entry needs a unique label: if two entries display the same label, picking or pasting that label stores the first of them.
      * An entry whose label resolves to nothing, for example a missing property, isn't listed as an option.

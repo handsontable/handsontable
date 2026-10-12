@@ -329,6 +329,24 @@ describe('Xlsx validation list for object values (`sourceLabel`)', () => {
     // which no JSON key can carry - still finds it.
     expect(cells.some(cell => cell.dataValidation?.type === 'list')).toBe(true);
   });
+
+  // The editor does not offer an entry whose label resolves to nothing, so the Excel list must not
+  // either: a blank Excel option would match no entry once the file is imported again.
+  it('should leave out an entry whose label resolves to nothing, as the editor does', async() => {
+    const airports = [
+      { key: 'CDG', value: { name: 'Charles de Gaulle', location: { city: 'Paris' } } },
+      { key: 'XXX', value: { name: 'Unknown', location: null } },
+    ];
+    const { cells } = await exportOneCell({}, {
+      type: 'dropdown',
+      source: airports,
+      sourceLabel: 'location.city',
+    }, 'Paris');
+    const values = cells.map(cell => cell.value);
+
+    expect(values).toContain('Paris');
+    expect(values).not.toContain('');
+  });
 });
 
 describe('Xlsx validation list labels for a column', () => {

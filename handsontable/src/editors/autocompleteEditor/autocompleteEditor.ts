@@ -3,7 +3,7 @@ import type { CellProperties } from '../../settings';
 import { EDITOR_STATE } from '../baseEditor';
 import { HandsontableEditor } from '../handsontableEditor';
 import { pivot } from '../../helpers/array';
-import { findChoiceByDisplayedValue, getChoiceLabel, isKeyValueEntry } from '../../utils/cellSource';
+import { findChoiceByDisplayedValue, getChoiceLabel, isKeyValueEntry, isListableChoice } from '../../utils/cellSource';
 import {
   addClass,
   fastInnerHTML,
@@ -954,12 +954,14 @@ export class AutocompleteEditor extends HandsontableEditor {
     }
 
     // A mixed list - plain values beside key/value entries - lists each entry as its label text.
-    // Without `sourceLabel` that stays `String()` of the whole entry, as it always was.
+    // Without `sourceLabel` that stays `String()` of the whole entry, as it always was. With it, an
+    // entry lists as its label even when its `value` is a string, which `getChoiceLabel()` returns
+    // unchanged: that is the text the cell shows, and the one the label lookup and the XLSX list use.
     return values.map((value) => {
       if (isKeyValueEntry(value)) {
         const label = getChoiceLabel(value.value, sourceLabel);
 
-        if (label !== value.value) {
+        if (sourceLabel || label !== value.value) {
           return processValue(stringify(label));
         }
       }
@@ -999,8 +1001,7 @@ export class AutocompleteEditor extends HandsontableEditor {
       return choices;
     }
 
-    return choices.filter(choice => !isKeyValueEntry(choice) || !isPlainObject(choice.value) ||
-      stringify(getChoiceLabel(choice.value, sourceLabel)) !== '');
+    return choices.filter(choice => isListableChoice(choice, sourceLabel));
   }
 
   /**

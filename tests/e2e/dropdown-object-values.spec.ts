@@ -130,12 +130,22 @@ test.describe('key/value source with object values (sourceLabel)', () => {
     // entry as `[object Object]`.
     await grid.openEditor(0, 5);
 
-    await expect(grid.options()).toHaveText(['Other', 'Poland', 'Japan']);
+    await expect(grid.options()).toHaveText(['Other', 'Poland', 'Japan', 'France']);
 
     await grid.pickOption('Japan');
 
     await expect.poll(() => grid.storedEntryAt(0, 5)).toBe('entry:JP');
     await expect.poll(() => grid.cellLabel(0, 5)).toBe('Japan');
+  });
+
+  test('lists a string-valued entry of a mixed source by its text and stores the entry', async() => {
+    // `getChoiceLabel()` hands a string `value` back unchanged, so the editor could not tell it was
+    // relabeled: it listed `[object Object]`, and picking it stored that literal text.
+    await grid.openEditor(1, 5);
+    await grid.pickOption('France');
+
+    await expect.poll(() => grid.storedEntryAt(1, 5)).toBe('other:{"key":"FR","value":"France"}');
+    await expect.poll(() => grid.cellLabel(1, 5)).toBe('France');
   });
 
   test('keeps the source order of an alphabetical string key/value list under `sourceLabel`', async() => {

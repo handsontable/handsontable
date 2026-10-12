@@ -1,4 +1,4 @@
-import { findChoiceByDisplayedValue, getChoiceLabel, hasKeyValueChoices } from '../cellSource';
+import { findChoiceByDisplayedValue, getChoiceLabel, hasKeyValueChoices, isListableChoice } from '../cellSource';
 
 describe('cellSource helpers', () => {
   describe('findChoiceByDisplayedValue', () => {
@@ -156,6 +156,38 @@ describe('cellSource helpers', () => {
     it('should resolve a path through a `null` segment to `undefined` instead of throwing', () => {
       // It runs on every render of the cell, so a gap in the data must not break the grid.
       expect(getChoiceLabel({ address: null }, 'address.city')).toBeUndefined();
+    });
+
+    // Dot notation reads array items by index too. Stopping at an array labeled every entry as
+    // nothing, so the list hid every option and every cell rendered blank.
+    it('should walk into an array by index', () => {
+      const person = { aliases: ['Ada', 'Countess'], addresses: [{ city: 'London' }] };
+
+      expect(getChoiceLabel(person, 'aliases.0')).toBe('Ada');
+      expect(getChoiceLabel(person, 'addresses.0.city')).toBe('London');
+      expect(getChoiceLabel(person, 'aliases.5')).toBeUndefined();
+    });
+  });
+
+  describe('isListableChoice', () => {
+    it('should list every choice when `sourceLabel` is not set', () => {
+      expect(isListableChoice({ key: 'X', value: { name: '' } })).toBe(true);
+      expect(isListableChoice('plain')).toBe(true);
+    });
+
+    it('should leave out a key/value entry whose object `value` labels as nothing', () => {
+      expect(isListableChoice({ key: 'X', value: { location: null } }, 'location.city')).toBe(false);
+      expect(isListableChoice({ key: 'X', value: { name: 'Paris' } }, () => null)).toBe(false);
+    });
+
+    it('should keep an entry whose `value` is not an object, and a plain choice', () => {
+      expect(isListableChoice({ key: 'X', value: null }, 'name')).toBe(true);
+      expect(isListableChoice({ key: 'X', value: 'Poland' }, 'name')).toBe(true);
+      expect(isListableChoice('Other', 'name')).toBe(true);
+    });
+
+    it('should keep an entry whose object `value` has a label', () => {
+      expect(isListableChoice({ key: 'X', value: { name: 'Paris' } }, 'name')).toBe(true);
     });
   });
 
