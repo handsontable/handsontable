@@ -205,7 +205,11 @@ export function measureWorkspaceWidth(viewport: Viewport): number {
 
     width = geometryReader.offsetWidth(viewport.wtTable.holder);
 
-    if (viewport.getRowHeaderWidth() + viewport.sumColumnWidths(0, totalColumns) > width) {
+    // The page is the workspace only while the window scrolls the columns. When the holder does (an
+    // ancestor clips the vertical axis only), the page is wider than the holder by the offset in front of it.
+    const windowScrolls = viewport.deps.getInlineStartOverlay().mainTableScrollableElement === rootWindow;
+
+    if (windowScrolls && viewport.getRowHeaderWidth() + viewport.sumColumnWidths(0, totalColumns) > width) {
       width = geometryReader.clientWidth(rootDocument.documentElement);
     }
 

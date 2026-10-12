@@ -1,0 +1,113 @@
+import { test, expect } from '../fixtures/test';
+import { PageOffsetReverseSplitPage, type PageOffsetLayout } from '../fixtures/pages/PageOffsetReverseSplitPage';
+
+/**
+ * A grid with no size inside an ancestor that clips only the vertical axis (`overflow-y: clip`) scrolls
+ * its columns in its own holder while the window owns the rows: the reverse split. The page offset in
+ * front of the grid is then not part of the holder's scroll position, so a grid offset by it must lay
+ * out and scroll exactly like the same grid with no offset and the same holder width. Each case compares
+ * the offset layout (a 1000px viewport, a 200px margin: an 800px holder) with its twin (an 800px viewport,
+ * no margin).
+ */
+const MARGIN = 200;
+
+/**
+ * Pairs a layout with the twin that has the same holder width and no offset.
+ *
+ * @param {PageOffsetLayout} layout The layout with the offset.
+ * @returns {PageOffsetLayout[]} The offset layout and its twin.
+ */
+function withTwin(layout: PageOffsetLayout): [PageOffsetLayout, PageOffsetLayout] {
+  return [
+    { ...layout, margin: MARGIN, viewportWidth: 1000 },
+    { ...layout, margin: 0, viewportWidth: 1000 - MARGIN },
+  ];
+}
+
+test.describe('grid offset from the page edge inside a vertically clipping ancestor', () => {
+  let grid: PageOffsetReverseSplitPage;
+
+  test.beforeEach(async({ page, theme, bundle }) => {
+    grid = new PageOffsetReverseSplitPage(page, theme, bundle);
+  });
+
+  /**
+   * Measures a layout and its twin.
+   *
+   * @param {PageOffsetLayout} layout The layout with the offset.
+   * @returns {Promise<object>} The two measurements.
+   */
+  async function measureBoth(layout: PageOffsetLayout) {
+    const [offsetLayout, twinLayout] = withTwin(layout);
+
+    await grid.goto(offsetLayout);
+    const offset = await grid.measure();
+
+    await grid.goto(twinLayout);
+    const twin = await grid.measure();
+
+    return { offset, twin };
+  }
+
+  test('lays out and scrolls like the same grid with no offset (LTR)', async() => {
+    const { offset, twin } = await measureBoth({ overflowY: 'clip' });
+
+    expect(twin.holderWidth).toBe(800);
+    expect(offset).toEqual(twin);
+    // The selected cell clears the row header, and every keyboard step does.
+    expect(offset.selectedCellInset).toBeGreaterThanOrEqual(offset.rowHeaderWidth - 1);
+    expect(offset.stepsUnderHeader).toBe(0);
+  });
+
+  test('keeps the frozen columns in step with the scroll position (fixedColumnsStart)', async() => {
+    const { offset, twin } = await measureBoth({ overflowY: 'clip', fixedColumnsStart: 2 });
+
+    expect(offset).toEqual(twin);
+    expect(offset.stepsUnderHeader).toBe(0);
+    expect(offset.cloneInset).toBe(0);
+  });
+
+  test('lays out and scrolls like the same grid with no offset (RTL)', async() => {
+    const { offset, twin } = await measureBoth({ overflowY: 'clip', dir: 'rtl' });
+
+    expect(offset).toEqual(twin);
+    expect(offset.stepsUnderHeader).toBe(0);
+  });
+
+  test('renders the columns an owner-sized holder needs, not the ones of a wider workspace', async() => {
+    const { offset } = await measureBoth({ overflowY: 'clip' });
+    const hidden = await (async() => {
+      await grid.goto({ overflowY: 'hidden', margin: MARGIN });
+
+      return grid.measure();
+    })();
+
+    expect(offset.renderedColumns).toBe(hidden.renderedColumns);
+    expect(offset.lastFullyVisible).toBe(hidden.lastFullyVisible);
+  });
+
+  for (const layout of [
+    { name: '`preventOverflow: vertical`', layout: { preventOverflow: 'vertical' } },
+    { name: 'an `overflow-y: hidden` ancestor', layout: { overflowY: 'hidden' } },
+    { name: 'an `overflow-y: auto` ancestor', layout: { overflowY: 'auto' } },
+  ] as { name: string, layout: PageOffsetLayout }[]) {
+    test(`lays out like its no-offset twin with ${layout.name}`, async() => {
+      const { offset, twin } = await measureBoth(layout.layout);
+
+      expect(offset).toEqual(twin);
+    });
+  }
+
+  test('keeps the page offset in the scroll position on a page the window scrolls', async() => {
+    // No clipping ancestor: the window owns both axes, and the table starts MARGIN px into the page, so
+    // the same window scroll shows columns MARGIN px earlier than on the page with no offset.
+    await grid.goto({ overflowY: 'visible', margin: MARGIN });
+    const offset = await grid.measure();
+
+    await grid.goto({ overflowY: 'visible', margin: 0 });
+    const flush = await grid.measure();
+
+    expect(flush.firstFullyVisible - offset.firstFullyVisible).toBe(MARGIN / 100);
+    expect(offset.stepsUnderHeader).toBe(0);
+  });
+});

@@ -1865,6 +1865,15 @@ the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsE
   master draw next to `holderOffset` (a right edge stays put when a draw widens the table, a left one moves). It
   does not depend on the scroll position, and it is `0` while the holder, not the window, scrolls the columns.
   `tests/e2e/rtl-shrink-wrapped-grid-scroll.spec.ts` pins it; the RTL block layout alone cannot catch it.
+- **The page offset counts only while the window scrolls the columns, in LTR too.** In the reverse split (an
+  ancestor with `overflow-y: clip`, or `preventOverflow: 'vertical'`) `trimmingContainer` is the window but the
+  holder scrolls, and the margin in front of the grid is not part of `holder.scrollLeft`. `getTableParentOffset`
+  therefore returns `0` unless `mainTableScrollableElement` is the window, as `TopOverlay` and `BottomOverlay`
+  already did for the vertical axis. The same split decides `measureWorkspaceWidth`: it takes
+  `documentElement.clientWidth` only while the window scrolls the columns, otherwise the holder's own width, or a
+  grid offset by `margin-left: 200px` rendered two columns too many and reported the wrong last visible column.
+  `tests/e2e/page-offset-reverse-split.spec.ts` pins both, each offset layout against its no-offset twin of the
+  same holder width.
 - **Ask the scroller, not the axis owner, whether the window holds the end clone.**
   `InlineEndOverlay#isScrolledByWindow` reads `mainTableScrollableElement`, and the end corners call it too.
   The horizontal axis owner (`trimmingContainer`) is the window in the reverse split (`preventOverflow:

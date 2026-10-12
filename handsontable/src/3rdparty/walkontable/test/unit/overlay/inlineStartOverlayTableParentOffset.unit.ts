@@ -48,6 +48,10 @@ describe('InlineStartOverlay#getTableParentOffset', () => {
     expect(offsetOf(createStub({ isRtl: false, left: 40 }))).toBe(40);
   });
 
+  it('should return 0 in LTR while the holder, not the window, scrolls the columns', () => {
+    expect(offsetOf(createStub({ isRtl: false, left: 200, windowScrolls: false }))).toBe(0);
+  });
+
   it('should return the right-hand margin the draw measured in RTL, and not the left offset', () => {
     expect(offsetOf(createStub({ isRtl: true, left: -3770, margin: 0 }))).toBe(0);
     expect(offsetOf(createStub({ isRtl: true, left: 0, margin: 600 }))).toBe(600);

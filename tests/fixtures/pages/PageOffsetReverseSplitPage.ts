@@ -1,0 +1,187 @@
+import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle, awaitFixtureBuilt } from '../bundle';
+
+/**
+ * The layout the fixture builds: the wrapper's `overflow-y`, the grid's `preventOverflow`, the page
+ * offset on the inline-start side, the frozen columns, and the page's direction.
+ */
+export interface PageOffsetLayout {
+  dir?: 'ltr' | 'rtl';
+  overflowY?: 'clip' | 'hidden' | 'auto' | 'visible';
+  preventOverflow?: 'vertical';
+  margin?: number;
+  fixedColumnsStart?: number;
+  /**
+   * The viewport width; the offset layout and its twin share a holder width when this differs by the margin.
+   */
+  viewportWidth?: number;
+}
+
+/**
+ * What the grid reports after the scenario, in the units a reader sees on screen.
+ */
+export interface PageOffsetMetrics {
+  holderWidth: number;
+  renderedColumns: number;
+  firstFullyVisible: number;
+  lastFullyVisible: number;
+  /**
+   * The inline-start edge of the cell `selectCell` scrolled in from far away, measured from the holder's.
+   */
+  selectedCellInset: number;
+  /**
+   * The row header's width: the least a cell can sit from the holder's inline-start edge, plus the frozen columns.
+   */
+  rowHeaderWidth: number;
+  /**
+   * How many of the keyboard steps left the selected cell partly under the row header or frozen columns.
+   */
+  stepsUnderHeader: number;
+  /**
+   * The frozen clone's inline-start edge, measured from the holder's.
+   */
+  cloneInset: number | null;
+}
+
+interface FixtureHot {
+  selectCell(row: number, col: number): void;
+  getFirstFullyVisibleColumn(): number;
+  getLastFullyVisibleColumn(): number;
+  getCell(row: number, col: number): HTMLElement | null;
+  view: { _wt: {
+    wtTable: { holder: HTMLElement, getRenderedColumnsCount(): number },
+    wtOverlays: { inlineStartOverlay: { mainTableScrollableElement: unknown } },
+  } };
+}
+
+/**
+ * Page Object for the fixture that puts a grid in a wrapper clipping the vertical axis only, offset from
+ * the page's inline-start edge.
+ */
+export class PageOffsetReverseSplitPage {
+  readonly page: Page;
+  readonly theme: string;
+  readonly bundle: string;
+  readonly grid: Locator;
+  private frozenWidth = 0;
+
+  constructor(page: Page, theme = 'main', bundle = 'umd') {
+    this.page = page;
+    this.theme = theme;
+    this.bundle = bundle;
+    this.grid = page.getByTestId('grid');
+  }
+
+  /**
+   * Navigates to the fixture in the given layout and waits for the first cell.
+   */
+  async goto(layout: PageOffsetLayout = {}): Promise<void> {
+    const { viewportWidth = 1000, fixedColumnsStart = 0 } = layout;
+
+    this.frozenWidth = fixedColumnsStart * 100;
+    const params = new URLSearchParams({ theme: this.theme, bundle: this.bundle });
+
+    for (const [key, value] of Object.entries(layout)) {
+      if (key !== 'viewportWidth' && value !== undefined) {
+        params.set(key, String(value));
+      }
+    }
+
+    await this.page.setViewportSize({ width: viewportWidth, height: 700 });
+    await this.page.goto(`/tests/fixtures/demo/page-offset-reverse-split.html?${params.toString()}`);
+    await awaitBundle(this.page);
+    await awaitFixtureBuilt(this.page);
+    await expect(this.grid.getByTestId('cell-0-0').first()).toBeVisible();
+  }
+
+  /**
+   * Lets two animation frames pass: scroll handlers and the draws they trigger run on later frames.
+   */
+  async settle(): Promise<void> {
+    await this.page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  }
+
+  /**
+   * Runs the scenario: reads the columns rendered at init, scrolls the holder (or, on a page the window
+   * scrolls, the window) a long way in, reads the visible columns, selects a cell from far away, then walks
+   * the selection back with the keyboard.
+   */
+  async measure(): Promise<PageOffsetMetrics> {
+    const initial = await this.read();
+
+    await this.page.evaluate(() => {
+      const hot = (window as unknown as { hot: FixtureHot }).hot;
+      const dir = document.documentElement.dir;
+      const holder = hot.view._wt.wtTable.holder;
+      const x = dir === 'rtl' ? -3000 : 3000;
+
+      if (hot.view._wt.wtOverlays.inlineStartOverlay.mainTableScrollableElement === window) {
+        window.scrollTo(x, 0);
+      } else {
+        holder.scrollLeft = x;
+      }
+    });
+    await this.settle();
+
+    const visible = await this.read();
+
+    await this.page.evaluate(() => (window as unknown as { hot: FixtureHot }).hot.selectCell(0, 60));
+    await this.settle();
+    await this.page.evaluate(() => (window as unknown as { hot: FixtureHot }).hot.selectCell(0, 5));
+    await this.settle();
+
+    const selected = await this.read();
+
+    await this.page.evaluate(() => (window as unknown as { hot: FixtureHot }).hot.selectCell(0, 40));
+    await this.settle();
+
+    let stepsUnderHeader = 0;
+
+    for (let step = 0; step < 25; step++) {
+      await this.page.keyboard.press(selected.dir === 'rtl' ? 'ArrowRight' : 'ArrowLeft');
+      await this.settle();
+
+      if ((await this.read()).selectedInset < selected.rowHeaderWidth + this.frozenWidth - 1) {
+        stepsUnderHeader += 1;
+      }
+    }
+
+    return {
+      holderWidth: initial.holderWidth,
+      renderedColumns: initial.renderedColumns,
+      firstFullyVisible: visible.firstFullyVisible,
+      lastFullyVisible: visible.lastFullyVisible,
+      selectedCellInset: selected.selectedInset,
+      rowHeaderWidth: selected.rowHeaderWidth,
+      stepsUnderHeader,
+      cloneInset: selected.cloneInset,
+    };
+  }
+
+  /**
+   * Reads the grid's geometry once.
+   */
+  private async read() {
+    return this.page.evaluate(() => {
+      const hot = (window as unknown as { hot: FixtureHot }).hot;
+      const rtl = document.documentElement.dir === 'rtl';
+      const holder = hot.view._wt.wtTable.holder;
+      const holderBox = holder.getBoundingClientRect();
+      const selected = document.querySelector('.ht_master td.current');
+      const header = document.querySelector('.ht_master tbody th');
+      const clone = document.querySelector('.ht_clone_inline_start');
+      const inset = (box: DOMRect) => (rtl ? holderBox.right - box.right : box.left - holderBox.left);
+
+      return {
+        dir: document.documentElement.dir,
+        holderWidth: holder.clientWidth,
+        renderedColumns: hot.view._wt.wtTable.getRenderedColumnsCount(),
+        firstFullyVisible: hot.getFirstFullyVisibleColumn(),
+        lastFullyVisible: hot.getLastFullyVisibleColumn(),
+        selectedInset: selected ? inset(selected.getBoundingClientRect()) : NaN,
+        rowHeaderWidth: header ? header.getBoundingClientRect().width : 0,
+        cloneInset: clone ? inset(clone.getBoundingClientRect()) : null,
+      };
+    });
+  }
+}
