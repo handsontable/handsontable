@@ -402,16 +402,17 @@ export class InlineStartOverlay extends Overlay {
     if (!preventOverflow && this.trimmingContainer === this.deps.rootWindow) {
       const wtTable = this.deps.getWtTable();
 
-      offset = (wtTable.holderOffset as { top: number; left: number }).left;
+      if (!this.isRtl()) {
+        offset = (wtTable.holderOffset as { top: number; left: number }).left;
 
-      if (this.isRtl()) {
+      } else if (this.mainTableScrollableElement === this.deps.rootWindow) {
         // The holder's left edge is not where the table starts in RTL: a grid in a shrink-to-fit wrapper
         // reaches far past the page's left edge, and a grid with a margin on the right does not start
-        // at the page's right edge. Measure from the right edge, the one the page scrolls from.
-        const { geometryReader, rootDocument } = this.deps;
-        const docClientWidth = geometryReader.clientWidth(rootDocument.documentElement);
-
-        offset = docClientWidth - (offset + geometryReader.offsetWidth(wtTable.holder));
+        // at the page's right edge. Take the margin measured with the draw's `holderOffset`, so a draw
+        // that widens the table does not leave the two out of step. It counts only when the window
+        // scrolls the columns: in the reverse split the holder does, and the page margin is not part
+        // of its scroll position.
+        offset = wtTable.holderInlineStartMargin;
       }
     }
 

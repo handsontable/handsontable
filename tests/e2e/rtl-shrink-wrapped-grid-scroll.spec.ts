@@ -33,6 +33,16 @@ async function wrapGridInInlineBlock(page: Page) {
 }
 
 /**
+ * Lets two animation frames pass: a scroll the grid triggers runs on a later frame than the call that
+ * asked for it, so a read right after the call would pass on the old code.
+ *
+ * @param {Page} page The page.
+ */
+async function settleFrames(page: Page) {
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+}
+
+/**
  * Asserts the layout under test: the grid root is as wide as the table, far wider than the viewport.
  *
  * @param {Page} page The page.
@@ -91,6 +101,7 @@ for (const type of ['multiselect', 'handsontable'] as EditorType[]) {
 
       await page.keyboard.press('Enter');
       await expect.poll(() => page.evaluate(() => (window as any).hot.getActiveEditor().isOpened())).toBe(true);
+      await settleFrames(page);
 
       expect(await page.evaluate(() => window.scrollX)).toBe(-PAGE_SCROLL);
 
@@ -108,8 +119,7 @@ for (const type of ['multiselect', 'handsontable'] as EditorType[]) {
       const { row, col } = await scrollAndPickCell(page, 'rtl');
 
       await page.evaluate(([r, c]) => (window as any).hot.selectCell(r, c), [row, col]);
-      // The scroll the selection triggers runs on a later frame, so let one pass before reading.
-      await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      await settleFrames(page);
 
       expect(await page.evaluate(() => window.scrollX)).toBe(-PAGE_SCROLL);
     });
@@ -134,6 +144,7 @@ test.describe('RTL page, grid started 600 px from the page inline-start edge', {
     await page.evaluate(([r, c]) => (window as any).hot.selectCell(r, c, r, c, false), [row, col]);
     await page.keyboard.press('Enter');
     await expect.poll(() => page.evaluate(() => (window as any).hot.getActiveEditor().isOpened())).toBe(true);
+    await settleFrames(page);
 
     expect(await page.evaluate(() => window.scrollX)).toBe(-PAGE_SCROLL);
   });
@@ -155,6 +166,7 @@ test.describe('LTR page, grid in an inline-block wrapper', { tag: '@core' }, () 
     await page.evaluate(([r, c]) => (window as any).hot.selectCell(r, c, r, c, false), [row, col]);
     await page.keyboard.press('Enter');
     await expect.poll(() => page.evaluate(() => (window as any).hot.getActiveEditor().isOpened())).toBe(true);
+    await settleFrames(page);
 
     expect(await page.evaluate(() => window.scrollX)).toBe(PAGE_SCROLL);
   });

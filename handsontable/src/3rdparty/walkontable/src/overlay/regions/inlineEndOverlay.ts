@@ -457,7 +457,8 @@ export class InlineEndOverlay extends Overlay {
   }
 
   /**
-   * Gets table parent left position - the same answer as the inline-start overlay's, which owns the axis.
+   * Gets the distance between the page's inline-start edge and the table's - the same answer as the
+   * inline-start overlay's, which owns the axis: a left offset in LTR, the right-hand page margin in RTL.
    *
    * @returns {number}
    */

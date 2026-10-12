@@ -1840,17 +1840,19 @@ the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsE
   draws 2px. `tests/e2e/fixed-columns-end-line.spec.ts` measures all four states in LTR and RTL.
 - **RTL window scroll: read the inline-end edge from the table, not from the scroll position.**
   `InlineEndOverlay#getOverlayOffset` compares the scroll position with the table's offset from the page start,
-  which is the inline-start margin. In RTL that margin is on the right and `getTableParentOffset()` reports the
-  left one, so the sum was off by the right margin (a page with a margin on the inline-start side reported
-  "resting" up to that many pixels too early). The RTL branch measures where the hider's left edge really is
+  which is the inline-start margin. That margin is the one on the right in RTL, which
+  `InlineStartOverlay#getTableParentOffset` reports there (the next bullet); this method's LTR branch still adds
+  it. The RTL branch measures where the hider's left edge really is
   against the viewport's left edge (`documentElement.clientLeft` carries a left-hand scrollbar).
 - **`InlineStartOverlay#getTableParentOffset` is the inline-start margin, so in RTL it is the RIGHT one.** It feeds
   `scrollTo`, the viewport's column calculator, and the overlay offsets. It used to return the holder's left offset in
   both directions, which equals the right margin only when the grid fills the page width. A grid in a shrink-to-fit
   wrapper (`display: inline-block`, a float, `max-content`) reaches far past the page's left edge (-3770 to 1280), and
   the calculator then saw every column as off screen: Enter scrolled the window to 0, `selectCell()` moved it for a
-  visible cell, and a `position: fixed` editor (the multiselect) stayed off screen. The RTL branch reads
-  `documentElement` client width minus the holder's right edge, which does not depend on the scroll position.
+  visible cell, and a `position: fixed` editor (the multiselect) stayed off screen. The RTL branch takes
+  `Table#holderInlineStartMargin`, the `documentElement` client width minus the holder's right edge, measured in the
+  master draw next to `holderOffset` (a right edge stays put when a draw widens the table, a left one moves). It
+  does not depend on the scroll position, and it is `0` while the holder, not the window, scrolls the columns.
   `tests/e2e/rtl-shrink-wrapped-grid-scroll.spec.ts` pins it; the RTL block layout alone cannot catch it.
 - **Ask the scroller, not the axis owner, whether the window holds the end clone.**
   `InlineEndOverlay#isScrolledByWindow` reads `mainTableScrollableElement`, and the end corners call it too.
