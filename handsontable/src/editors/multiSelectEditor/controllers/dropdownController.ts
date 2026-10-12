@@ -388,6 +388,7 @@ export class DropdownController {
     if (this.#containerElement) {
       this.#containerElement.style.position = '';
       this.#containerElement.style.top = '';
+      this.#containerElement.style.bottom = '';
       this.#containerElement.style.height = '';
       this.#containerElement.scrollTop = 0;
     }
@@ -493,6 +494,9 @@ export class DropdownController {
 
   /**
    * Applies or removes the absolute positioning that renders the dropdown above the edited cell.
+   *
+   * Anchored by its bottom edge, 1 px above the cell, so the list ends there whatever height it renders at.
+   * Its offset parent, the editor container, sits flush with the cell's bottom and has no height of its own.
    */
   #toggleVerticalFlip(availableSpace: { cellHeight: number }): void {
     if (!this.#containerElement) {
@@ -503,10 +507,12 @@ export class DropdownController {
 
     if (flipNeeded) {
       this.#containerElement.style.position = 'absolute';
-      this.#containerElement.style.top = `${-this.getHeight(false, true) - cellHeight - 2}px`;
+      this.#containerElement.style.top = 'auto';
+      this.#containerElement.style.bottom = `${cellHeight + 1}px`;
     } else {
       this.#containerElement.style.position = '';
       this.#containerElement.style.top = '';
+      this.#containerElement.style.bottom = '';
     }
   }
 

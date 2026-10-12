@@ -22,10 +22,8 @@ import { HandsontableEditorListPositionPage, type Layout, type Variant } from '.
  *
  * The `multiselect` editor places its list with its own code (`MultiSelectEditor#refreshDimensions`,
  * `handsontable/src/editors/multiSelectEditor/multiSelectEditor.ts`) and the same horizontal rule. Its
- * list is 177–202 px wide, narrower than the `handsontable` one, so it has points of its own. Only the
- * top row is used: below the cell its list starts flush with the cell's bottom, but flipped above, the
- * offset `DropdownController` computes overlaps the cell by 4–10 px depending on the theme. That is a
- * known vertical defect, tracked on its own, and not what these tests are about.
+ * list is 177–202 px wide, narrower than the `handsontable` one, so it has points of its own. Flipped
+ * above, its bottom edge is 1 px above the cell, like the other lists'.
  *
  * The two layouts reach different branches of the horizontal flip. On a page the window scrolls, the
  * room is measured from the viewport, through `view.isHorizontallyScrollableByWindow()`. It is measured
@@ -110,20 +108,27 @@ const NARROW_LIST_POINTS: Record<'ltr' | 'rtl', Point[]> = {
   ],
 };
 
-// The multiselect takes the top row only (see the docblock above).
-const MULTISELECT_POINTS: Record<'ltr' | 'rtl', Point[]> = {
-  ltr: NARROW_LIST_POINTS.ltr.filter(({ name }) => name.startsWith('top')),
-  rtl: NARROW_LIST_POINTS.rtl.filter(({ name }) => name.startsWith('top')),
-};
+// The multiselect list is as narrow as the untrimmed autocomplete's, so it takes the same points.
+const MULTISELECT_POINTS = NARROW_LIST_POINTS;
 
 /**
  * Opens the editor from every point and asserts the placement each one forces.
  *
  * @param {HandsontableEditorListPositionPage} grid The page object.
  * @param {Point[]} points The points and what each forces.
+ * @param {'end' | 'partway'} [scroll] Where the window is scrolled to first: its end, or partway back up
+ * from it (window layout only).
  */
-async function expectEveryPoint(grid: HandsontableEditorListPositionPage, points: Point[]): Promise<void> {
-  await grid.scrollToEnd();
+async function expectEveryPoint(
+  grid: HandsontableEditorListPositionPage,
+  points: Point[],
+  scroll: 'end' | 'partway' = 'end'
+): Promise<void> {
+  if (scroll === 'partway') {
+    await grid.scrollPartway();
+  } else {
+    await grid.scrollToEnd();
+  }
 
   for (const point of points) {
     const coords = await grid.openEditorAt(point.x, point.y);
@@ -163,6 +168,12 @@ const CASES: { title: string; variant: Omit<Variant, 'type'> }[] = [
   {
     title: `${LAYOUT_NAMES.window}, in a transformed container (RTL)`,
     variant: { dir: 'rtl', layout: 'window', wrap: 'transform' },
+  },
+  // LTR only: an RTL page cannot be scrolled toward its inline-start side, where a translate toward the
+  // inline end would put the overflow.
+  {
+    title: `${LAYOUT_NAMES.window}, in a translated container (LTR)`,
+    variant: { dir: 'ltr', layout: 'window', wrap: 'translate' },
   },
   { title: `${LAYOUT_NAMES.sized} (LTR)`, variant: { dir: 'ltr', layout: 'sized' } },
   { title: `${LAYOUT_NAMES.sized} (RTL)`, variant: { dir: 'rtl', layout: 'sized' } },
@@ -252,6 +263,34 @@ test.describe('editor list position while the page scrolls', () => {
 
         await expect.poll(() => grid.listPlacement(coords), { message: 'scrolled back' })
           .toEqual({ aligned: opening, side: 'below', inViewport: 'yes' });
+      });
+    }
+  }
+});
+
+// At the end of the page, the bottom of a transformed container is the viewport's bottom. Partway up, that
+// bottom is below the viewport, so room measured from the container opens a list below its cell into space
+// the user cannot see: the vertical side is decided against the viewport.
+const BOTTOM_POINTS = (points: Point[]) => points.filter(({ name }) => name.startsWith('bottom'));
+const PARTWAY_POINTS: Record<EditorType, Record<'ltr' | 'rtl', Point[]>> = {
+  handsontable: { ltr: BOTTOM_POINTS(POINTS), rtl: BOTTOM_POINTS(POINTS) },
+  dropdown: { ltr: BOTTOM_POINTS(DROPDOWN_POINTS), rtl: BOTTOM_POINTS(DROPDOWN_POINTS) },
+  autocomplete: { ltr: BOTTOM_POINTS(NARROW_LIST_POINTS.ltr), rtl: BOTTOM_POINTS(NARROW_LIST_POINTS.rtl) },
+  multiselect: { ltr: BOTTOM_POINTS(MULTISELECT_POINTS.ltr), rtl: BOTTOM_POINTS(MULTISELECT_POINTS.rtl) },
+};
+
+test.describe('editor list position in a transformed container, with the page scrolled partway', () => {
+  for (const type of ['handsontable', 'dropdown', 'autocomplete', 'multiselect'] as const) {
+    for (const dir of ['ltr', 'rtl'] as const) {
+      test(`the ${type} editor's list opens above a cell near the viewport's bottom (${dir.toUpperCase()})`, async({
+        page, theme, bundle,
+      }) => {
+        const grid = new HandsontableEditorListPositionPage(page, theme, bundle, {
+          dir, layout: 'window', type, wrap: 'transform',
+        });
+
+        await grid.goto();
+        await expectEveryPoint(grid, PARTWAY_POINTS[type][dir], 'partway');
       });
     }
   }

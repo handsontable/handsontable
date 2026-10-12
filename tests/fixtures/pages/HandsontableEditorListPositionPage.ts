@@ -54,9 +54,10 @@ export interface Variant {
   inset?: 'none' | 'start';
   /**
    * `transform` makes the grid's container the containing block of the `fixed` list, a box that
-   * scrolls with the page; `none` when omitted.
+   * scrolls with the page; `translate` does the same and also moves the container 200 px toward
+   * the inline end, which the `offsetLeft` chain does not report; `none` when omitted.
    */
-  wrap?: 'none' | 'transform';
+  wrap?: 'none' | 'transform' | 'translate';
 }
 
 /**
@@ -188,7 +189,7 @@ export class HandsontableEditorListPositionPage {
   readonly layout: Layout;
   readonly type: EditorType;
   readonly inset: 'none' | 'start';
-  readonly wrap: 'none' | 'transform';
+  readonly wrap: 'none' | 'transform' | 'translate';
   readonly grid: Locator;
   readonly list: Locator;
 
@@ -273,6 +274,31 @@ export class HandsontableEditorListPositionPage {
     }
 
     await expect(this.cell(99, 49)).toBeVisible();
+  }
+
+  /**
+   * Scrolls the page to its end, then back up by `distance` px, and waits until a cell is rendered
+   * under the lower part of the viewport, where the vertical flip's points sit. The page's scroll
+   * position is then partway, so the bottom of a transformed container is not the viewport's bottom.
+   * Window layout only.
+   *
+   * @param {number} [distance] How far to scroll back up, in px.
+   */
+  async scrollPartway(distance = 700): Promise<void> {
+    await this.scrollToEnd();
+
+    const target = await this.page.evaluate((dy) => {
+      window.scrollBy(0, -dy);
+
+      return window.scrollY;
+    }, distance);
+
+    await expect.poll(() => this.page.evaluate(() => window.scrollY), { message: 'the page settles' }).toBe(target);
+    await expect.poll(() => this.page.evaluate(() => {
+      const { clientWidth, clientHeight } = document.documentElement;
+
+      return Boolean(document.elementFromPoint(clientWidth / 2, clientHeight - 110)?.closest('.ht_master td'));
+    }), { message: 'the grid renders at the new scroll position' }).toBe(true);
   }
 
   /**
