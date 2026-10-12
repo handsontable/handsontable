@@ -2,6 +2,7 @@ import {
   excelDateFmtToIntlOptions,
   excelNumFmtToIntlOptions,
   inferCellType,
+  isValueOutsideFormat,
   serialToIsoDate,
   serialToTimeString,
   serialToIsoDateTime,
@@ -851,15 +852,40 @@ describe('inferCellType - hostile number formats', () => {
   it('should parse a 100 000-character bracket run in linear time even past the length cap', () => {
     // The cap keeps `inferCellType` away from such a format, but the parsers are exported and must
     // not depend on it: each bracket regex excludes `[` from its body, so no match rescans the tail.
+    // Pinned by the shape of every regex the parsers run on the input rather than by a clock, which
+    // flaked on an oversubscribed runner: a negated class that runs to the closing `]` without also
+    // stopping at `[` (`\[[^\]]*\]`) is the quadratic shape this guards against.
     const brackets = `${'['.repeat(LONG)}0`;
     const currencies = `${'[$'.repeat(LONG / 2)}0`;
-    const start = performance.now();
+    const sources = new Set();
+    const wrapped = [Symbol.replace, Symbol.match, Symbol.matchAll, Symbol.split, Symbol.search, 'exec', 'test'];
+    const originals = wrapped.map(key => RegExp.prototype[key]);
 
-    expect(excelNumFmtToIntlOptions(brackets)).toBeNull();
-    expect(excelNumFmtToIntlOptions(currencies)).toBeNull();
-    expect(excelDateFmtToIntlOptions(brackets)).toEqual({});
+    wrapped.forEach((key, index) => {
+      // eslint-disable-next-line no-extend-native
+      RegExp.prototype[key] = function(...args) {
+        sources.add(this.source);
 
-    expect(performance.now() - start).toBeLessThan(200);
+        return originals[index].apply(this, args);
+      };
+    });
+
+    try {
+      expect(excelNumFmtToIntlOptions(brackets)).toBeNull();
+      expect(excelNumFmtToIntlOptions(currencies)).toBeNull();
+      expect(excelDateFmtToIntlOptions(brackets)).toEqual({});
+    } finally {
+      wrapped.forEach((key, index) => {
+        // eslint-disable-next-line no-extend-native
+        RegExp.prototype[key] = originals[index];
+      });
+    }
+
+    const runsToCloseOnly = source => [...source.matchAll(/\[\^((?:\\.|[^\]])*)\]/g)]
+      .some(([, body]) => body.includes('\\]') && !body.includes('['));
+
+    expect(sources.size).toBeGreaterThan(0);
+    expect([...sources].filter(runsToCloseOnly)).toEqual([]);
   });
 
   it('should treat a format longer than Excel\'s 255-character limit as unsupported, whatever it reads as', () => {
@@ -1025,5 +1051,136 @@ describe('inferCellType - Excel BOOLEAN format on a number', () => {
   it('should leave other quoted three-section formats alone', () => {
     expect(inferCellType(cell({ value: 1, numFmt: '"Yes";"Yes";"No"' })).type).not.toBe('checkbox');
     expect(inferCellType(cell({ value: 1, numFmt: '"TRUE";"FALSE";"TRUE"' })).type).not.toBe('checkbox');
+  });
+});
+
+describe('inferCellType (review round 7)', () => {
+  const integer = { minimumFractionDigits: 0, maximumFractionDigits: 0, useGrouping: true };
+
+  it('should import a number under a unit label that is no ISO code as a plain number, not as a currency', () => {
+    expect(inferCellType(cell({ value: 12.5, numFmt: '0.0" PCS"' }))).toEqual({
+      type: 'numeric', numericFormat: { minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: false },
+    });
+    // `KGS` IS an ISO code (the Kyrgyz som), so a weight label under it stays ambiguous.
+    expect(inferCellType(cell({ value: 12.5, numFmt: '0.0" KGS"' })).numericFormat.currency).toBe('KGS');
+    expect(inferCellType(cell({ value: 12.5, numFmt: '#,##0.00"NIS"' })).numericFormat.style).toBeUndefined();
+    expect(inferCellType(cell({ value: 12.5, numFmt: '0" DAY"' })).numericFormat.style).toBeUndefined();
+    expect(inferCellType(cell({ value: 12.5, numFmt: '#,##0" PCS"' }))).toEqual({
+      type: 'numeric', numericFormat: integer,
+    });
+    expect(inferCellType(cell({ value: 12.5, numFmt: '0.00"MPH"' })).numericFormat.style).toBeUndefined();
+    expect(inferCellType(cell({ value: 12.5, numFmt: '#,##0.0\\ \\P\\C\\S' })).numericFormat.style).toBeUndefined();
+    // The export's own quoted codes still read back as their currencies.
+    expect(inferCellType(cell({ value: 1234.5, numFmt: '"USD"#,##0.00' })).numericFormat.currency).toBe('USD');
+    expect(inferCellType(cell({ value: 1234.5, numFmt: '#,##0.00"CHF"' })).numericFormat.currency).toBe('CHF');
+  });
+
+  it('should round-trip a non-USD dollar currency through the export\'s locale token', () => {
+    const options = { style: 'currency', minimumFractionDigits: 2 };
+
+    [['AUD', 'en-AU'], ['CAD', 'en-CA'], ['CAD', 'fr-CA'], ['NZD', 'en-NZ'], ['MXN', 'es-MX'], ['ARS', 'es-AR'],
+      ['SGD', 'en-SG'], ['TWD', 'zh-TW'], ['USD', 'en-US']].forEach(([currency, locale]) => {
+      const numFmt = intlNumFormatToExcelNumFmt({ ...options, currency }, locale);
+
+      expect(inferCellType(cell({ value: 1234.5, numFmt })).numericFormat.currency).toBe(currency);
+    });
+  });
+
+  it('should report a zero section that shows text or nothing, and keep the positive section', () => {
+    ['#,##0;-#,##0;"-"', '#,##0;-#,##0;"zero"', '#,##0;-#,##0;;@', '#,##0;-#,##0;"n/a"'].forEach((numFmt) => {
+      expect(inferCellType(cell({ value: 0, numFmt }))).toEqual({
+        type: 'numeric', numericFormat: integer, unsupportedNumFmt: numFmt,
+      });
+    });
+    expect(inferCellType(cell({ value: 0, numFmt: '#,##0;-#,##0;0' }))).toEqual({
+      type: 'numeric', numericFormat: integer,
+    });
+  });
+
+  it('should read an escaped-space-padded negative section as a plain minus, without a report', () => {
+    const decimals = { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: false };
+
+    expect(inferCellType(cell({ value: -2.25, numFmt: '0.00_ ;[Red]\\-0.00\\ ' }))).toEqual({
+      type: 'numeric', numericFormat: decimals,
+    });
+    expect(inferCellType(cell({ value: -2.25, numFmt: '0.00_ ;\\-0.00\\ ' }))).toEqual({
+      type: 'numeric', numericFormat: decimals,
+    });
+    expect(inferCellType(cell({ value: -2, numFmt: '[$$-409]#,##0_ ;[Red]\\-[$$-409]#,##0\\ ' }))).toEqual({
+      type: 'numeric', numericFormat: { ...integer, style: 'currency', currency: 'USD' },
+    });
+    expect(inferCellType(cell({ value: -2.25, numFmt: '0.00;[Red]0.00' })).unsupportedNumFmt).toBe('0.00;[Red]0.00');
+  });
+
+  it('should keep the day of the month when an escaped literal separates it from the weekday', () => {
+    const long = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+
+    [
+      ['dddd\\,\\ d\\ mmmm\\ yyyy', long],
+      ['[$-C09]dddd\\,\\ d\\ mmmm\\ yyyy;@', long],
+      ['dddd\\,\\ dd\\ mmmm\\ yyyy', { ...long, day: '2-digit' }],
+      ['dddd\\ d\\ mmmm\\ yyyy', long],
+      ['dddd\\,\\ d\\.\\ mmmm\\ yyyy', long],
+      ['dddd\\,\\ d\\ \\d\\e\\ mmmm\\ \\d\\e\\ yyyy', long],
+      ['ddd\\ d\\ mmm', { weekday: 'short', day: 'numeric', month: 'short' }],
+      ['d\\ dddd', { day: 'numeric', weekday: 'long' }],
+      ['dddd"x"d', { weekday: 'long', day: 'numeric' }],
+    ].forEach(([numFmt, dateFormat]) => {
+      expect(inferCellType(cell({ value: 43486, numFmt }))).toEqual({ type: 'date', dateFormat });
+    });
+    expect(excelDateFmtToIntlOptions('hh\\h\\ mm')).toEqual({ hour: '2-digit', minute: '2-digit', hour12: false });
+  });
+
+  it('should report a fractional-second format, and keep the time it imports', () => {
+    const source = cell({ value: 0.500005787037037, numFmt: 'hh:mm:ss.000' });
+    const inferred = inferCellType(source);
+
+    expect(inferred).toEqual({
+      type: 'time',
+      timeFormat: { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false },
+      unsupportedNumFmt: 'hh:mm:ss.000',
+    });
+    // 12:00:00.500 rounds to the next whole second, which is the loss being reported.
+    expect(toGridValue(source, inferred)).toBe('12:00:01');
+    expect(inferCellType(cell({ value: 0.0001, numFmt: 'mm:ss.0' })).unsupportedNumFmt).toBe('mm:ss.0');
+    expect(inferCellType(cell({ value: 45000.5000057870, numFmt: 'yyyy-mm-dd hh:mm:ss.000' }))).toEqual(
+      expect.objectContaining({ type: 'intl-datetime', unsupportedNumFmt: 'yyyy-mm-dd hh:mm:ss.000' })
+    );
+    // A whole-second format, or a quoted `.0`, reports nothing.
+    expect(inferCellType(cell({ value: 0.5, numFmt: 'hh:mm:ss' })).unsupportedNumFmt).toBeUndefined();
+    expect(inferCellType(cell({ value: 0.5, numFmt: 'hh:mm:ss".0"' })).unsupportedNumFmt).toBeUndefined();
+  });
+
+  it('should read GENERAL in any case as no format at all', () => {
+    expect(inferCellType(cell({ value: 'banana', numFmt: 'GENERAL' }))).toEqual({ type: 'text' });
+    expect(inferCellType(cell({ value: 'banana', numFmt: 'general' }))).toEqual({ type: 'text' });
+    expect(inferCellType(cell({ value: 3, numFmt: 'GENERAL' }))).toEqual({ type: 'numeric' });
+  });
+
+  it('should keep a serial outside the range of Excel dates a number and report the format', () => {
+    [1e20, 2958466, -5, Infinity, NaN].forEach((value) => {
+      const source = cell({ value, numFmt: 'yyyy\\-mm\\-dd' });
+      const inferred = inferCellType(source);
+
+      expect(inferred).toEqual({ type: 'numeric', unsupportedNumFmt: 'yyyy\\-mm\\-dd' });
+      expect(toGridValue(source, inferred)).toBe(value);
+    });
+
+    const dateTime = cell({ value: 2958466.5, numFmt: 'yyyy-mm-dd hh:mm:ss' });
+
+    expect(inferCellType(dateTime)).toEqual({ type: 'numeric', unsupportedNumFmt: 'yyyy-mm-dd hh:mm:ss' });
+    // The last Excel date, and the first, still import as dates.
+    expect(toGridValue(cell({ value: 2958465, numFmt: 'yyyy\\-mm\\-dd' }),
+      inferCellType(cell({ value: 2958465, numFmt: 'yyyy\\-mm\\-dd' })))).toBe('9999-12-31');
+    expect(inferCellType(cell({ value: 0, numFmt: 'yyyy\\-mm\\-dd' })).type).toBe('date');
+  });
+
+  it('should answer whether a value falls outside what its format can show', () => {
+    expect(isValueOutsideFormat('yyyy-mm-dd', 2958466)).toBe(true);
+    expect(isValueOutsideFormat('yyyy-mm-dd', 45000)).toBe(false);
+    expect(isValueOutsideFormat('#,##0', 1e20)).toBe(false);
+    expect(isValueOutsideFormat('[h]:mm', 1.5)).toBe(true);
+    expect(isValueOutsideFormat(null, 1e20)).toBe(false);
+    expect(isValueOutsideFormat('yyyy-mm-dd', 'text')).toBe(false);
   });
 });

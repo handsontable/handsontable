@@ -6,7 +6,9 @@ import {
   captureCurrency,
   classifyTemporalFormat,
   hasConditionalSection,
+  isGeneralFormatCode,
   isNegativeSectionShowable,
+  isZeroSectionShowable,
   positiveFormatSection,
   stripFormatDecorations,
 } from '../../utils/xlsxEngine/numFmtCode';
@@ -21,14 +23,16 @@ import type {
 /**
  * A cell type derived from a cell's number format and value. A `numeric` cell carries
  * `numericFormat` only when its Excel number format could be inverted into `Intl.NumberFormat`
- * options, and `unsupportedNumFmt` (the raw pattern) when it could not, or when its negative section
- * shows differently from what the grid draws.
+ * options, and `unsupportedNumFmt` (the raw pattern) when it could not, or when its negative or zero
+ * section shows differently from what the grid draws. A `time` or `intl-datetime` cell carries
+ * `unsupportedNumFmt` when its format shows fractions of a second, which the grid's whole-second
+ * value cannot hold.
  */
 export type InferredType =
   | { type: 'numeric'; numericFormat?: Intl.NumberFormatOptions; unsupportedNumFmt?: string }
   | { type: 'date'; dateFormat: Intl.DateTimeFormatOptions }
-  | { type: 'intl-datetime'; dateTimeFormat: Intl.DateTimeFormatOptions }
-  | { type: 'time'; timeFormat: Intl.DateTimeFormatOptions }
+  | { type: 'intl-datetime'; dateTimeFormat: Intl.DateTimeFormatOptions; unsupportedNumFmt?: string }
+  | { type: 'time'; timeFormat: Intl.DateTimeFormatOptions; unsupportedNumFmt?: string }
   | { type: 'checkbox' }
   | { type: 'text' };
 
@@ -174,7 +178,10 @@ function applyFormatToken(options: Intl.DateTimeFormatOptions, tokens: string[],
  * format does not pin a clock it says nothing about.
  */
 export function excelDateFmtToIntlOptions(numFmt: string): Intl.DateTimeFormatOptions {
-  const tokens = stripFormatDecorations(numFmt, { keepElapsed: true }).toLowerCase().match(FORMAT_TOKEN_REGEX) ?? [];
+  // Every literal leaves a space behind, so `dddd\,\ d` stays a weekday run and a day run.
+  const tokens = stripFormatDecorations(numFmt, { keepElapsed: true, separateLiterals: true })
+    .toLowerCase()
+    .match(FORMAT_TOKEN_REGEX) ?? [];
   const options: Intl.DateTimeFormatOptions = {};
 
   tokens.forEach((token, index) => applyFormatToken(options, tokens, index));
@@ -285,8 +292,9 @@ export function excelNumFmtToIntlOptions(numFmt: string): Intl.NumberFormatOptio
 /**
  * Turns a non-temporal number format into a numeric inferred type: with `numericFormat` when the
  * format inverts, and with the raw pattern under `unsupportedNumFmt` when it does not. A format
- * whose positive section inverts but whose negative section the grid cannot show (`(#,##0)`)
- * carries both: the column keeps the positive section, and the code is still reported.
+ * whose positive section inverts but whose negative or zero section the grid cannot show
+ * (`(#,##0)`, `#,##0;-#,##0;"-"`) carries both: the column keeps the positive section, and the code
+ * is still reported.
  */
 function toNumericType(numFmt: string): InferredType {
   const numericFormat = excelNumFmtToIntlOptions(numFmt);
@@ -295,14 +303,31 @@ function toNumericType(numFmt: string): InferredType {
     return { type: 'numeric', unsupportedNumFmt: numFmt };
   }
 
-  return isNegativeSectionShowable(numFmt)
+  return isNegativeSectionShowable(numFmt) && isZeroSectionShowable(numFmt)
     ? { type: 'numeric', numericFormat }
     : { type: 'numeric', numericFormat, unsupportedNumFmt: numFmt };
 }
 
 /**
- * Derives a cell type from a non-empty number format alone. Returns `null` for `General`, which
- * says nothing about the type, so the caller falls back to the cell's value.
+ * A seconds code followed by a decimal point and zeros (`ss.000`, built-in id 47's `mm:ss.0`): the
+ * format shows fractions of a second. Read on a decoration-stripped code, so a quoted `".0"` is text.
+ */
+const FRACTIONAL_SECONDS_REGEX = /s\]?\.0/i;
+
+/**
+ * Adds the raw pattern to a time or date-time type whose format shows fractions of a second. The grid
+ * value is a whole-second `HH:mm:ss` string, so the fraction is lost (and the second rounded), and the
+ * code is reported rather than dropped silently. Keeping the fraction is a follow-up.
+ */
+function withFractionalSecondsReport<T extends InferredType>(inferred: T, numFmt: string): T {
+  return FRACTIONAL_SECONDS_REGEX.test(stripFormatDecorations(numFmt, { keepElapsed: true }))
+    ? { ...inferred, unsupportedNumFmt: numFmt }
+    : inferred;
+}
+
+/**
+ * Derives a cell type from a non-empty number format alone. Returns `null` for `General` (in any
+ * case), which says nothing about the type, so the caller falls back to the cell's value.
  */
 function inferFromNumberFormat(numFmt: string): InferredType | null {
   if (numFmt === '@') {
@@ -321,20 +346,22 @@ function inferFromNumberFormat(numFmt: string): InferredType | null {
   const temporal = classifyTemporalFormat(numFmt);
 
   if (temporal === 'time') {
-    return { type: 'time', timeFormat: excelDateFmtToIntlOptions(numFmt) };
+    return withFractionalSecondsReport({ type: 'time', timeFormat: excelDateFmtToIntlOptions(numFmt) }, numFmt);
   }
 
   // A date-time pattern is an `intl-datetime` cell, the type the export writes one from: a `date`
   // cell accepts a date-only ISO value, so a date-time value rendered `#bad-value#` there.
   if (temporal === 'datetime') {
-    return { type: 'intl-datetime', dateTimeFormat: excelDateFmtToIntlOptions(numFmt) };
+    return withFractionalSecondsReport(
+      { type: 'intl-datetime', dateTimeFormat: excelDateFmtToIntlOptions(numFmt) }, numFmt
+    );
   }
 
   if (temporal === 'date') {
     return { type: 'date', dateFormat: excelDateFmtToIntlOptions(numFmt) };
   }
 
-  return numFmt === 'General' ? null : toNumericType(numFmt);
+  return isGeneralFormatCode(numFmt) ? null : toNumericType(numFmt);
 }
 
 /**
@@ -379,6 +406,41 @@ export function exceedsElapsedFormat(numFmt: string | null, value: CellValue): b
 }
 
 /**
+ * The largest serial that is an Excel date: 2958465 is 9999-12-31. A serial past it, a negative one,
+ * or a non-finite one names no date, and converting it anyway wrote `0NaN-NaN-NaN`, `10000-01-01` or
+ * `1899-12-25` in place of the number.
+ */
+const MAX_EXCEL_DATE_SERIAL = 2958465;
+
+/**
+ * Whether a number under a date or date-time format lies outside the range of Excel dates. Such a
+ * cell stays a number, and its format is reported.
+ */
+function isSerialOutsideDateRange(numFmt: string, value: number): boolean {
+  if (Number.isFinite(value) && value >= 0 && value < MAX_EXCEL_DATE_SERIAL + 1) {
+    return false;
+  }
+
+  const temporal = classifyTemporalFormat(numFmt);
+
+  return temporal === 'date' || temporal === 'datetime';
+}
+
+/**
+ * Whether a value is one its number format cannot carry into the grid, so the cell keeps the number
+ * and the format is reported: a duration past its elapsed format (`exceedsElapsedFormat`), or a
+ * serial outside the range of Excel dates under a date or date-time format. `inferCellType`'s answer
+ * depends on it, so it is part of the import's inference cache key.
+ */
+export function isValueOutsideFormat(numFmt: string | null, value: CellValue): boolean {
+  if (typeof value !== 'number' || !numFmt || numFmt.length > MAX_NUMBER_FORMAT_LENGTH) {
+    return false;
+  }
+
+  return exceedsElapsedFormat(numFmt, value) || isSerialOutsideDateRange(numFmt, value);
+}
+
+/**
  * The BOOLEAN number format both Excel and LibreOffice write: `"TRUE";"TRUE";"FALSE"`, a quoted TRUE
  * for the positive and negative sections and a quoted FALSE for zero. Matched case-insensitively.
  */
@@ -413,7 +475,9 @@ export function inferCellType(cell: CellSnapshot): InferredType | null {
 
   const fromFormat = numFmt ? inferFromNumberFormat(numFmt) : null;
 
-  if (fromFormat?.type === 'time' && exceedsElapsedFormat(numFmt, cellDisplayValue(cell))) {
+  const isTemporal = fromFormat?.type === 'time' || fromFormat?.type === 'date' || fromFormat?.type === 'intl-datetime';
+
+  if (isTemporal && isValueOutsideFormat(numFmt, cellDisplayValue(cell))) {
     return { type: 'numeric', unsupportedNumFmt: numFmt as string };
   }
 

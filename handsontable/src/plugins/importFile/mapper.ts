@@ -13,8 +13,8 @@ import {
 import {
   excelWidthToPx,
   cellDisplayValue,
-  exceedsElapsedFormat,
   inferCellType,
+  isValueOutsideFormat,
   pointsToPx,
   resolveListSource,
   toDisplayText,
@@ -48,6 +48,13 @@ export interface MapperContext {
    * instead. Absent means the engine holds none.
    */
   formulaSheetNames?: ReadonlySet<string>;
+  /**
+   * The name the Formulas plugin's engine gives the grid's own sheet - the sheet the import
+   * replaces. A qualifier spelled like it that also names ANOTHER sheet of the workbook means that
+   * sheet, not the grid's, so it is treated as a sheet the engine does not hold. Absent means no
+   * name is special.
+   */
+  formulaSheetName?: string;
   /**
    * The names the Formulas plugin's engine defines (named expressions), lower-cased. A live formula
    * that uses a name the WORKBOOK defines and the engine does not shows `#NAME?` in the grid, so its
@@ -177,8 +184,21 @@ function isHelperSheet(sheet: SheetSnapshot): boolean {
  * Selects the sheet to import. A number indexes the sheets that are not very hidden and are not the
  * export's hidden `_HotValidation` helper (helper sheets never get picked by accident); a string
  * matches any sheet by name.
+ *
+ * A workbook with no worksheet at all is refused with its own sentence, which also says when the
+ * read skipped chart sheets (`dropped` holds `chartSheets`): listing no available sheet explained
+ * nothing.
  */
-export function selectSheet(workbook: WorkbookSnapshot, selector: string | number): SheetSnapshot {
+export function selectSheet(
+  workbook: WorkbookSnapshot, selector: string | number, dropped?: DroppedFeatures
+): SheetSnapshot {
+  if (workbook.sheets.length === 0) {
+    const chartsOnly = dropped?.list().includes(DROPPED_FEATURES.chartSheets) === true;
+
+    throwWithCause(`The workbook has no worksheets.${
+      chartsOnly ? ' It holds only chart sheets, which the import skips.' : ''}`);
+  }
+
   const names = workbook.sheets.map(sheet => sheet.name).join(', ');
   const sheet = typeof selector === 'number'
     ? workbook.sheets.filter(candidate => !isHelperSheet(candidate))[selector]
@@ -517,7 +537,17 @@ function readFormulaText(text: string, scope: CollectContext): string {
  * carries the value it evaluated to.
  */
 function isSheetKnown(name: string, scope: CollectContext): boolean {
-  return scope.context.formulaSheetNames?.has(name.toLowerCase()) === true;
+  const lowered = name.toLowerCase();
+
+  // The import replaces the grid's own sheet with the imported one, so a qualifier spelled like the
+  // grid's sheet that the workbook also uses for another sheet points at that sheet's cells, which
+  // the engine never receives. The imported sheet's own name never reaches here: it is rewritten as
+  // an unqualified reference first.
+  if (lowered === scope.ownSheetName && scope.workbookSheetNames.has(lowered)) {
+    return false;
+  }
+
+  return scope.context.formulaSheetNames?.has(lowered) === true;
 }
 
 /**
@@ -614,7 +644,11 @@ function pushCellValue(
   if (formula !== null) {
     pass.formulas.push({ row, col, formula });
 
-    if (otherSheet) {
+    if (shift === null && cell.formula?.result === undefined) {
+      // Not imported live, and the file carries no cached value (openpyxl writes none): the cell
+      // imports empty, which the warning has to explain.
+      dropped.record(DROPPED_FEATURES.formulaNoCachedValue);
+    } else if (otherSheet) {
       dropped.record(DROPPED_FEATURES.formulaOtherSheet);
     } else if (unknownName) {
       dropped.record(DROPPED_FEATURES.formulaDefinedName);
@@ -794,6 +828,14 @@ interface CollectContext {
    * strip, reference walk and defined-name scan, against `MAX_TRANSLATED_FORMULA_CHARS`.
    */
   walkedFormulaChars: number;
+  /**
+   * The engine's name for the grid's own sheet, lower-cased, or `null` when none is known.
+   */
+  ownSheetName: string | null;
+  /**
+   * Every sheet name of the workbook, lower-cased.
+   */
+  workbookSheetNames: ReadonlySet<string>;
 }
 
 /**
@@ -811,9 +853,9 @@ interface InferredMeta {
  */
 function inferForCell(cell: CellSnapshot, scope: CollectContext): InferredMeta {
   const value = cellDisplayValue(cell);
-  // An elapsed-time format infers differently past the duration it can show, so that is part of
-  // the key too.
-  const key = `${cell.numFmt ?? ''}\u0000${typeof value}\u0000${exceedsElapsedFormat(cell.numFmt, value)}`;
+  // An elapsed-time format infers differently past the duration it can show, and a date format
+  // past the range of Excel dates, so that is part of the key too.
+  const key = `${cell.numFmt ?? ''}\u0000${typeof value}\u0000${isValueOutsideFormat(cell.numFmt, value)}`;
   const cached = scope.inferredByFormat.get(key);
 
   if (cached) {
@@ -825,7 +867,8 @@ function inferForCell(cell: CellSnapshot, scope: CollectContext): InferredMeta {
 
   // Reported on the cache miss only: `recordUnsupported` bounds and copies the whole format string,
   // so once per cell cost one walk of a file-sized string per cell for a name it records once.
-  if (inferred?.type === 'numeric' && inferred.unsupportedNumFmt) {
+  // A time or date-time cell carries one too, for a fraction of a second the grid value cannot hold.
+  if (inferred && 'unsupportedNumFmt' in inferred && inferred.unsupportedNumFmt) {
     scope.dropped.recordUnsupported('numFmt', inferred.unsupportedNumFmt);
   }
 
@@ -945,6 +988,8 @@ function collectCells(
       : new Set(),
     inferredByFormat: new Map(),
     walkedFormulaChars: 0,
+    ownSheetName: context.formulaSheetName?.toLowerCase() ?? null,
+    workbookSheetNames: new Set(workbook.sheets.map(candidate => candidate.name.toLowerCase())),
   };
 
   for (let row = window.firstRow; row <= window.lastRow; row++) {
@@ -1396,6 +1441,30 @@ function mapHeaders(sheet: SheetSnapshot, window: SheetWindow, options: Resolved
 }
 
 /**
+ * Whether a cell of the promoted header band, inside the window's columns, carries a note. The band
+ * becomes `colHeaders` or `nestedHeaders`, and a column header cannot hold a note, so it is lost
+ * whether or not the Comments plugin is on. Bounded like `mapNestedHeaders`: the band's height
+ * (already clamped to the sheet) times the window's width.
+ */
+function hasHeaderBandComment(sheet: SheetSnapshot, window: SheetWindow, options: ResolvedImportOptions): boolean {
+  if (options.colHeaders !== 'firstRow') {
+    return false;
+  }
+
+  for (let row = window.firstRow - options.headerRows; row < window.firstRow; row++) {
+    const cells = sheet.rows[row] ?? [];
+
+    for (let col = window.firstCol; col <= window.lastCol; col++) {
+      if ((cells[col]?.comment ?? null) !== null) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
  * Every merge that covers a cell of the header band, keyed by the `"row:col"` of each covered cell,
  * so one lookup answers both "is this header cell inside a merge" and "which merge". The map is
  * bounded by the band's height times the window's width, which is what keeps the header walk linear
@@ -1507,7 +1576,7 @@ function stripUndefined<T extends object>(result: T): T {
 export function mapWorkbook(
   workbook: WorkbookSnapshot, requestedOptions: ResolvedImportOptions, context: MapperContext, dropped: DroppedFeatures
 ): MappedResult {
-  const sheet = selectSheet(workbook, requestedOptions.sheet);
+  const sheet = selectSheet(workbook, requestedOptions.sheet, dropped);
   const options = clampToSheet(sheet, requestedOptions);
   const window = computeWindow(sheet, options);
   const colCount = Math.max(window.lastCol - window.firstCol + 1, 0);
@@ -1523,6 +1592,10 @@ export function mapWorkbook(
 
   if (pass.droppedComments) {
     dropped.record(DROPPED_FEATURES.comments);
+  }
+
+  if (hasHeaderBandComment(sheet, window, options)) {
+    dropped.record(DROPPED_FEATURES.commentHeader);
   }
 
   const result: MappedResult = {

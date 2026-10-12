@@ -434,6 +434,11 @@ describe('ImportFile overlapping imports', () => {
 
     await expect(plugin.importFromBlob('csv', slow.blob)).rejects.toThrow(/cannot import "csv"/);
     await expect(plugin.importFromArrayBuffer('csv', fixture('values'))).rejects.toThrow(/cannot import "csv"/);
+    // An invalid option is refused before the read too, so it must not take the newest ticket.
+    await expect(plugin.importFromBlob('xlsx', slow.blob, { headerRows: 0, colHeaders: 'firstRow' }))
+      .rejects.toThrow(/"headerRows"/);
+    await expect(plugin.importFromArrayBuffer('xlsx', fixture('values'), { range: [0, 0] }))
+      .rejects.toThrow(/"range"/);
 
     slow.release();
 
@@ -1024,6 +1029,28 @@ describe('ImportFile lifecycle guards around beforeImport', () => {
     expect(calls.map(call => call[0])).toEqual(['beforeImport']);
   });
 
+  it('should say the grid was destroyed before the import was applied, not during the read', async() => {
+    // The read has finished when `beforeImport` runs, so "while the workbook was being read" named
+    // the wrong step.
+    const { plugin, hooks } = pluginWithFakeHot(true);
+
+    hooks.beforeImport = () => {
+      plugin.destroy();
+    };
+
+    await expect(plugin.importFromArrayBuffer('xlsx', fixture('values'))).rejects
+      .toThrow('ImportFile: the Handsontable instance was destroyed before the import was applied.');
+
+    const fromBlob = pluginWithFakeHot(true);
+
+    fromBlob.hooks.beforeImport = () => {
+      fromBlob.plugin.destroy();
+    };
+
+    await expect(fromBlob.plugin.importFromBlob('xlsx', new Blob([fixture('values')]))).rejects
+      .toThrow('ImportFile: the Handsontable instance was destroyed before the import was applied.');
+  });
+
   it('should say the instance is destroyed, not that the plugin is disabled, for an import after destroy()', async() => {
     // A destroyed plugin is also not `enabled`, so the call used to blame `importFile: false`.
     const { plugin } = pluginWithFakeHot(true);
@@ -1042,9 +1069,13 @@ describe('ImportFile#importFromArrayBuffer on an ArrayBuffer view', () => {
   it('should read a Uint8Array subarray of a larger buffer through the built-in engine', async() => {
     const { plugin } = pluginWithFakeHot(true);
     const bytes = new Uint8Array(fixture('values'));
-    const padded = new Uint8Array(bytes.byteLength + 16);
+    // Another workbook follows the view, so a view read past its own end opens that one instead:
+    // zero padding would hide it, because the ZIP reader tolerates trailing zeros.
+    const trailing = new Uint8Array(fixture('layout'));
+    const padded = new Uint8Array(8 + bytes.byteLength + trailing.byteLength);
 
     padded.set(bytes, 8);
+    padded.set(trailing, 8 + bytes.byteLength);
 
     const view = padded.subarray(8, 8 + bytes.byteLength);
     const result = await plugin.importFromArrayBuffer('xlsx', view, { apply: false });
@@ -1108,6 +1139,37 @@ describe('ImportFile and the Formulas engine\'s named expressions', () => {
     expect(result.data[1][3]).toBe('=SUM(Sales)');
     expect(result.data[2][3]).toBe(7);
     expect(result.dropped).toContain('formula:definedName');
+  });
+});
+
+describe('ImportFile and the Formulas engine\'s own sheet', () => {
+  it('should import the cached value of a formula naming another workbook sheet spelled like the grid\'s', async() => {
+    // The import replaces the engine's `Sheet1` with `Sheet2`'s cells, so a live `Sheet1!A1*2`
+    // read the grid's A1 (7), not the workbook's `Sheet1` (100).
+    const wb = new ExcelJS.Workbook();
+
+    wb.addWorksheet('Sheet1').getCell('A1').value = 100;
+
+    const second = wb.addWorksheet('Sheet2');
+
+    second.getCell('A1').value = 7;
+    second.getCell('B1').value = { formula: 'Sheet1!A1*2', result: 200 };
+
+    const bytes = toArrayBuffer(new Uint8Array(await wb.xlsx.writeBuffer()));
+    const { plugin, hot } = pluginWithFakeHot(true);
+
+    hot.getPlugin = name => ({
+      formulas: {
+        isEnabled: () => true,
+        sheetName: 'Sheet1',
+        engine: { getSheetNames: () => ['Sheet1'], listNamedExpressions: () => [] },
+      },
+    })[name];
+
+    const result = await plugin.importFromArrayBuffer('xlsx', bytes, { sheet: 'Sheet2', apply: false });
+
+    expect(result.data).toEqual([[7, 200]]);
+    expect(result.dropped).toContain('formula:otherSheet');
   });
 });
 

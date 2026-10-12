@@ -106,6 +106,20 @@ describe('mapWorkbook formula walk budget', () => {
       .toBe(true);
   });
 
+  it('should charge a formula once when it is both prefix-stripped and walked', () => {
+    // The prefix strip and the qualifier walk share one charge; charged apart, `fits` of them were
+    // refused at twice their length.
+    const prefixed = formulaOf('_xlfn.IFS(Rates!A1>1,A2,1)');
+
+    expect(prefixed).toHaveLength(100);
+    expect(mapFormulas(prefixed, fits).data).toHaveLength(fits);
+
+    const refusal = refusalOf(() => mapFormulas(prefixed, fits + 1));
+
+    expect(isLimitError(refusal)).toBe(true);
+    expect(refusal.message).toMatch(/rewrite to more than 10000 characters/);
+  });
+
   it('should import a header and qualified formulas within the budget live', () => {
     const result = mapFormulas(formulaOf('Rates!A1+A2'), fits, { header: true });
 

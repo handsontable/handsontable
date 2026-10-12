@@ -204,6 +204,16 @@ describe('mapWorkbook per-cell meta budget', () => {
       .toHaveLength(1000);
   });
 
+  it('should refuse one bordered empty cell past the floor', () => {
+    const boxed = Object.assign(createCellSnapshot(), { style: THIN_BOX });
+    const column = count => Array.from({ length: count }, () => [boxed]);
+    const context = { customBordersEnabled: true };
+
+    expect(mapRows(column(1000), {}, { importStyles: true }, context).customBorders).toHaveLength(1000);
+    expect(refusalOf(column(1001), {}, { importStyles: true }, context)?.message)
+      .toMatch(/expand to more than 1000 cells/);
+  });
+
   it('should map a styled, bordered sheet of real data larger than the floor', () => {
     // Banded rows, every cell boxed and holding a value: 3 000 class-name cells and 3 000 borders, all
     // carried by the sheet's own data.

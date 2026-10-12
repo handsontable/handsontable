@@ -5,7 +5,7 @@ import {
   detectXlsxEngine, resolveEngineOverride, tryDetectXlsxEngine, type DetectedXlsxEngine,
 } from '../../utils/xlsxEngine/detect';
 import { DROPPED_FEATURES, DroppedFeatures, type XlsxEngineKind } from '../../utils/xlsxEngine/capabilities';
-import { mapWorkbook, resolveImportOptions, type MappedResult } from './mapper';
+import { mapWorkbook, resolveImportOptions, type MappedResult, type ResolvedImportOptions } from './mapper';
 import { applyImportResult, removeImportedStyles } from './applier';
 import { hasCellType } from '../../cellTypes/registry';
 import type { ImportedBorder } from './styles';
@@ -579,8 +579,11 @@ export class ImportFile extends BasePlugin {
     this.#assertEnabled();
 
     const detected = requireEngine(this.hot, format, options.engine);
+    // Validated before the ticket is taken, so a call refused for an option never cancels an import
+    // in flight.
+    const resolved = resolveImportOptions(options);
 
-    return this.#importBuffer(format, buffer, options, detected, this.#takeApplyTicket(options));
+    return this.#importBuffer(format, buffer, resolved, detected, this.#takeApplyTicket(resolved));
   }
 
   /**
@@ -595,17 +598,19 @@ export class ImportFile extends BasePlugin {
   async importFromBlob(format: string, blob: Blob, options: ImportOptions = {}): Promise<ImportResult> {
     this.#assertEnabled();
 
-    // Detected and ticketed before the first `await`, so a call refused for its format or engine
-    // never cancels an import in flight, and the order of the tickets is the order of the calls.
+    // Detected, validated and ticketed before the first `await`, so a call refused for its format,
+    // its engine or an option never cancels an import in flight, and the order of the tickets is the
+    // order of the calls.
     const detected = requireEngine(this.hot, format, options.engine);
-    const ticket = this.#takeApplyTicket(options);
+    const resolved = resolveImportOptions(options);
+    const ticket = this.#takeApplyTicket(resolved);
     const buffer = await blob.arrayBuffer();
 
     if (!this.hot) {
       throwWithCause('ImportFile: the Handsontable instance was destroyed while the file was being read.');
     }
 
-    return this.#importBuffer(format, buffer, options, detected, ticket);
+    return this.#importBuffer(format, buffer, resolved, detected, ticket);
   }
 
   /**
@@ -615,17 +620,16 @@ export class ImportFile extends BasePlugin {
   async #importBuffer(
     format: string,
     buffer: ArrayBuffer | ArrayBufferView,
-    options: ImportOptions,
+    resolved: ResolvedImportOptions,
     detected: DetectedXlsxEngine,
     ticket: number | null,
   ): Promise<ImportResult> {
-    const resolved = resolveImportOptions(options);
     const dropped = new DroppedFeatures();
     const workbook = await detected.adapter.read(toArrayBuffer(buffer), detected.module, dropped);
 
     // The read is the one async boundary: `BasePlugin#destroy` deletes `hot`, so a grid torn down
     // while the file was being parsed has nothing left to apply the result to.
-    this.#assertAlive();
+    this.#assertAlive('while the workbook was being read');
     this.#assertLatest(ticket);
 
     const formulasPlugin = this.hot.getPlugin('formulas');
@@ -637,6 +641,7 @@ export class ImportFile extends BasePlugin {
       commentsEnabled: commentsPlugin?.isEnabled() === true,
       customBordersEnabled: customBordersPlugin?.isEnabled() === true,
       formulaSheetNames: formulasEnabled ? engineSheetNames(formulasPlugin?.engine) : undefined,
+      formulaSheetName: formulasEnabled ? formulasPlugin?.sheetName ?? undefined : undefined,
       formulaNamedExpressions: formulasEnabled ? engineNamedExpressions(formulasPlugin?.engine) : undefined,
     }, dropped);
 
@@ -662,14 +667,14 @@ export class ImportFile extends BasePlugin {
     // `updateSettings({ importFile: false })` during the read disables the plugin without deleting
     // `hot`, and a late apply would put the imported stylesheet back on a disabled plugin.
     this.#assertEnabled();
-    this.#assertAlive();
+    this.#assertAlive('before the import was applied');
 
     if (this.hot.runHooks<boolean | void>('beforeImport', result, format) === false) {
       return result;
     }
 
     // A `beforeImport` handler may destroy the grid, or start a newer import.
-    this.#assertAlive();
+    this.#assertAlive('before the import was applied');
     this.#assertLatest(ticket);
 
     applyImportResult(this.hot, result, { importLayout: resolved.importLayout });
@@ -698,8 +703,8 @@ export class ImportFile extends BasePlugin {
    * Takes the next apply ticket for an import that applies its result, or `null` for an
    * `apply: false` import. Must run before the call's first `await`.
    */
-  #takeApplyTicket(options: ImportOptions): number | null {
-    if (options.apply === false) {
+  #takeApplyTicket(options: ResolvedImportOptions): number | null {
+    if (!options.apply) {
       return null;
     }
 
@@ -720,11 +725,13 @@ export class ImportFile extends BasePlugin {
 
   /**
    * Rejects a call whose grid was destroyed across an `await` or by a hook: `BasePlugin#destroy`
-   * deletes `hot`, so continuing would surface as a raw `TypeError`.
+   * deletes `hot`, so continuing would surface as a raw `TypeError`. `phase` names the step the
+   * destroy happened in: during the read, or after it and before the result was applied (a
+   * `beforeImport` handler).
    */
-  #assertAlive(): void {
+  #assertAlive(phase: 'while the workbook was being read' | 'before the import was applied'): void {
     if (!this.hot) {
-      throwWithCause('ImportFile: the Handsontable instance was destroyed while the workbook was being read.');
+      throwWithCause(`ImportFile: the Handsontable instance was destroyed ${phase}.`);
     }
   }
 

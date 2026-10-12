@@ -75,6 +75,25 @@ describe('selectSheet', () => {
     expect(() => selectSheet(wb, 'Missing')).toThrow(/Missing.*Data/);
     expect(() => selectSheet(wb, 3)).toThrow(/Data/);
   });
+
+  it('should say the workbook has no worksheets instead of listing none', () => {
+    // An empty `<sheets>` used to be refused with "Available sheets: ." and no reason.
+    expect(() => map(workbook())).toThrow('The workbook has no worksheets.');
+    expect(() => map(workbook())).not.toThrow(/Available sheets/);
+    expect(() => map(workbook(), { sheet: 'Chart1' })).toThrow('The workbook has no worksheets.');
+  });
+
+  it('should say a chart-only workbook holds only chart sheets, which the import skips', () => {
+    // The built-in reader skips every chart sheet and records `chartSheets`, so the workbook it
+    // hands over is empty.
+    const dropped = new DroppedFeatures();
+
+    dropped.record('chartSheets');
+
+    expect(() => mapWorkbook(workbook(), resolveImportOptions({}), {
+      formulasEnabled: false, commentsEnabled: false, customBordersEnabled: false,
+    }, dropped)).toThrow('The workbook has no worksheets. It holds only chart sheets, which the import skips.');
+  });
 });
 
 describe('mapWorkbook', () => {
@@ -491,6 +510,76 @@ describe('mapWorkbook', () => {
     expect(dropped.list()).not.toContain('formula:otherSheet');
   });
 
+  describe('a qualifier spelled like the grid\'s own engine sheet', () => {
+    /**
+     * Maps the second sheet of a workbook whose first sheet is `firstName`, into a grid whose
+     * Formulas engine holds `engineSheets` and calls the grid's own sheet `ownSheet`.
+     *
+     * @param {string} firstName The name of the workbook's first sheet.
+     * @param {string} formula The formula on the imported sheet's B1.
+     * @param {object} engine What the Formulas engine holds.
+     * @param {string[]} engine.engineSheets The engine's sheet names, lower-cased.
+     * @param {string} engine.ownSheet The engine's name for the grid's own sheet.
+     * @returns {object}
+     */
+    function mapSecondSheet(firstName, formula, { engineSheets, ownSheet }) {
+      const first = createSheetSnapshot(firstName);
+      const second = createSheetSnapshot('Sheet2');
+
+      first.rows = [[cell({ value: 100 })]];
+      second.rows = [[cell({ value: 7 }), cell({ value: null, formula: { text: formula, result: 200 } })]];
+
+      return map(workbook(first, second), { sheet: 'Sheet2' }, {
+        formulasEnabled: true,
+        commentsEnabled: false,
+        formulaSheetNames: new Set(engineSheets),
+        formulaSheetName: ownSheet,
+      });
+    }
+
+    it('should import the cached value when it names another sheet of the workbook (default Sheet1)', () => {
+      // The import replaces the engine's `Sheet1` with `Sheet2`'s cells, so a live `Sheet1!A1*2`
+      // read the grid's own A1 (7) and showed 14 where the file says 200.
+      const { result, dropped } = mapSecondSheet('Sheet1', 'Sheet1!A1*2', {
+        engineSheets: ['sheet1'], ownSheet: 'Sheet1',
+      });
+
+      expect(result.data[0]).toEqual([7, 200]);
+      expect(result.formulas).toEqual([{ row: 0, col: 1, formula: 'Sheet1!A1*2' }]);
+      expect(dropped.list()).toContain('formula:otherSheet');
+    });
+
+    it('should import the cached value when it names another sheet of the workbook (custom sheetName)', () => {
+      const { result, dropped } = mapSecondSheet('Data', 'data!A1*2', {
+        engineSheets: ['data'], ownSheet: 'Data',
+      });
+
+      expect(result.data[0]).toEqual([7, 200]);
+      expect(dropped.list()).toContain('formula:otherSheet');
+    });
+
+    it('should keep live a sheet another grid holds in a shared engine', () => {
+      // This grid is the engine's `Sheet2`; `Data` belongs to another grid, so it really is the
+      // sheet the formula reads.
+      const { result, dropped } = mapSecondSheet('Data', 'Data!A1*2', {
+        engineSheets: ['data', 'sheet2'], ownSheet: 'Sheet2',
+      });
+
+      expect(result.data[0]).toEqual([7, '=Data!A1*2']);
+      expect(dropped.list()).not.toContain('formula:otherSheet');
+    });
+
+    it('should keep live a reference to the grid\'s own sheet the workbook does not hold', () => {
+      // No sheet of the workbook carries the name, so it cannot mean one of them.
+      const { result, dropped } = mapSecondSheet('Rates', 'Sheet1!A1*2', {
+        engineSheets: ['sheet1'], ownSheet: 'Sheet1',
+      });
+
+      expect(result.data[0]).toEqual([7, '=Sheet1!A1*2']);
+      expect(dropped.list()).not.toContain('formula:otherSheet');
+    });
+  });
+
   it('should import the cached value of an external-workbook or unquoted 3D reference', () => {
     // The match for the qualifier starts after `[1]` and after `Sheet1:`, so `Sheet1` and `Sheet3`
     // read as sheets the engine holds; live, HyperFormula showed `#ERROR!` and `#NAME?`.
@@ -561,6 +650,40 @@ describe('mapWorkbook', () => {
 
       expect(dropped.list()).not.toContain('formula:otherSheet');
     });
+  });
+
+  it('should report a formula imported as a value that carries no cached value', () => {
+    // openpyxl writes formulas without `<v>`. With the Formulas plugin off the cell imports empty,
+    // so the warning has to say why.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [
+      [cell({ value: 5 }), cell({ value: null, formula: { text: 'A1>3' } })],
+      [cell({ value: null, formula: { text: 'A1+1', result: 6 } }), null],
+    ];
+
+    const off = map(workbook(sheet));
+
+    expect(off.result.data).toEqual([[5, null], [6, null]]);
+    expect(off.result.formulas).toEqual([{ row: 0, col: 1, formula: 'A1>3' }, { row: 1, col: 0, formula: 'A1+1' }]);
+    expect(off.dropped.list()).toEqual(['formula:noCachedValue']);
+
+    const values = map(workbook(sheet), { importFormulas: false }, { formulasEnabled: true, commentsEnabled: false });
+
+    expect(values.dropped.list()).toEqual(['formula:noCachedValue']);
+
+    const live = map(workbook(sheet), {}, { formulasEnabled: true, commentsEnabled: false });
+
+    expect(live.result.data[0][1]).toBe('=A1>3');
+    expect(live.dropped.list()).toEqual([]);
+  });
+
+  it('should not report a formula with a cached value imported as a value', () => {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[cell({ value: null, formula: { text: 'A1+1', result: 0 } })]];
+
+    expect(map(workbook(sheet)).dropped.list()).toEqual([]);
   });
 
   it('should strip the _xlfn., _xlws. and _xlpm. prefixes Excel stores, from live and recorded formulas', () => {
@@ -780,6 +903,45 @@ describe('mapWorkbook', () => {
     expect(result.cellsMeta ?? []).toEqual([]);
   });
 
+  it('should keep a function or a name that starts like a cell intact in a shared formula read by the built-in engine', () => {
+    // `HEX2` is a cell, so the copies of a shared `HEX2DEC(A2)` read `HEX3DEC(A3)` and
+    // `HEX4DEC(A4)`, and the header shift turned the master into `HEX1DEC(A1)`.
+    const ns = 'xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"';
+    const shared = (formula, cached) => `<c r="B2"><f t="shared" ref="B2:B4" si="0">${formula}</f><v>${cached}</v></c>`;
+    const copy = (ref, cached) => `<c r="${ref}"><f t="shared" si="0"/><v>${cached}</v></c>`;
+    const label = (ref, value) => `<c r="${ref}" t="inlineStr"><is><t>${value}</t></is></c>`;
+    const read = master => parseWorksheet(`<worksheet ${ns}><sheetData>`
+      + `<row r="1">${label('A1', 'Hex')}${label('B1', 'Dec')}</row>`
+      + `<row r="2"><c r="A2"><v>12</v></c>${shared(master, 18)}</row>`
+      + `<row r="3"><c r="A3"><v>13</v></c>${copy('B3', 19)}</row>`
+      + `<row r="4"><c r="A4"><v>14</v></c>${copy('B4', 20)}</row>`
+      + '</sheetData></worksheet>', {
+      name: 'Sheet1',
+      state: 'visible',
+      styles: EMPTY_STYLES,
+      sharedStrings: { strings: [], rich: [] },
+      comments: new Map(),
+      date1904: false,
+      dropped: new DroppedFeatures(),
+      budget: { declaredCells: 0 },
+    });
+    const context = { formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['sheet1']) };
+
+    const hex = map(workbook(read('HEX2DEC(A2)')), { colHeaders: 'firstRow' }, context);
+
+    expect(hex.result.data.map(row => row[1])).toEqual(['=HEX2DEC(A1)', '=HEX2DEC(A2)', '=HEX2DEC(A3)']);
+
+    const namedWorkbook = workbook(read('Q1Sales*A2'));
+
+    namedWorkbook.definedNames = ['Q1Sales'];
+
+    const named = map(namedWorkbook, { colHeaders: 'firstRow' }, context);
+
+    expect(named.result.data.map(row => row[1])).toEqual([18, 19, 20]);
+    expect(named.result.formulas.map(({ formula }) => formula)).toEqual(['Q1Sales*A2', 'Q1Sales*A3', 'Q1Sales*A4']);
+    expect(named.dropped.list()).toContain('formula:definedName');
+  });
+
   it('should resolve one list formula once per pass and share the dropdown meta across its cells', () => {
     const data = createSheetSnapshot('Data');
     const helper = createSheetSnapshot('_HotValidation');
@@ -830,6 +992,77 @@ describe('mapWorkbook', () => {
     expect(dropped.list()).toEqual(['cellStyles']);
     expect(result.cellsMeta).toBeUndefined();
     expect(result.conditionalFormatting).toEqual([{ rows: [0, 0], cols: [0, 0], rules: [] }]);
+  });
+
+  describe('a note on the promoted header band', () => {
+    const commentsOn = { formulasEnabled: false, commentsEnabled: true, customBordersEnabled: false };
+
+    it('should report a note on a promoted header cell, which a column header cannot hold', () => {
+      const sheet = createSheetSnapshot('Data');
+
+      sheet.rows = [
+        [cell({ value: 'Name', comment: 'header note' }), text('Qty')],
+        [text('x'), cell({ value: 1, comment: 'data note' })],
+      ];
+
+      const { result, dropped } = map(workbook(sheet), { colHeaders: 'firstRow' }, commentsOn);
+
+      expect(result.colHeaders).toEqual(['Name', 'Qty']);
+      expect(result.comments).toEqual([{ row: 0, col: 1, value: 'data note' }]);
+      expect(dropped.list()).toEqual(['comment:header']);
+    });
+
+    it('should report a note on any row of a nested header band, with the Comments plugin off too', () => {
+      const sheet = createSheetSnapshot('Data');
+
+      sheet.rows = [
+        [text('Group'), text('')],
+        [text('Name'), cell({ value: 'Qty', comment: 'second header row' })],
+        [text('x'), cell({ value: 1 })],
+      ];
+
+      const on = map(workbook(sheet), { colHeaders: 'firstRow', headerRows: 2 }, commentsOn);
+      const off = map(workbook(sheet), { colHeaders: 'firstRow', headerRows: 2 });
+
+      expect(on.dropped.list()).toEqual(['comment:header']);
+      expect(off.dropped.list()).toEqual(['comment:header']);
+    });
+
+    it('should not report a note outside the band: on the first data row, or on row 0 without promotion', () => {
+      const sheet = createSheetSnapshot('Data');
+
+      sheet.rows = [
+        [text('Name'), text('Qty')],
+        [cell({ value: 'x', comment: 'data note' }), cell({ value: 1 })],
+      ];
+
+      const promoted = map(workbook(sheet), { colHeaders: 'firstRow' }, commentsOn);
+
+      expect(promoted.result.comments).toEqual([{ row: 0, col: 0, value: 'data note' }]);
+      expect(promoted.dropped.list()).toEqual([]);
+
+      const headerNote = createSheetSnapshot('Data');
+
+      headerNote.rows = [[cell({ value: 'Name', comment: 'row 0 note' })], [text('x')]];
+
+      const plain = map(workbook(headerNote), {}, commentsOn);
+
+      expect(plain.result.comments).toEqual([{ row: 0, col: 0, value: 'row 0 note' }]);
+      expect(plain.dropped.list()).toEqual([]);
+    });
+
+    it('should not report a header note outside the imported columns', () => {
+      const sheet = createSheetSnapshot('Data');
+
+      sheet.rows = [
+        [cell({ value: '#', comment: 'row-header column' }), text('Name')],
+        [text('1'), text('x')],
+      ];
+
+      const { dropped } = map(workbook(sheet), { colHeaders: 'firstRow', rowHeaders: true }, commentsOn);
+
+      expect(dropped.list()).toEqual([]);
+    });
   });
 
   it('should map locked cells to readOnly only under sheet protection, and comments when the plugin is on', () => {

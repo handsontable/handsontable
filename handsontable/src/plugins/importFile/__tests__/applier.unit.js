@@ -49,7 +49,7 @@ describe('applyImportResult', () => {
     document.querySelectorAll(STYLE_SELECTOR).forEach(element => element.remove());
   });
 
-  it('should apply the column types, then the data, then only the other settings the result carries, in one batch', () => {
+  it('should apply the column types, then the data, then the other settings the result carries, columns included, in one batch', () => {
     const hot = fakeHot();
 
     applyImportResult(hot, {
