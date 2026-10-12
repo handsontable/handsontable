@@ -1869,9 +1869,11 @@ the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsE
   ancestor with `overflow-y: clip`, or `preventOverflow: 'vertical'`) `trimmingContainer` is the window but the
   holder scrolls, and the margin in front of the grid is not part of `holder.scrollLeft`. `getTableParentOffset`
   therefore returns `0` unless `mainTableScrollableElement` is the window, as `TopOverlay` and `BottomOverlay`
-  already did for the vertical axis. The same split decides `measureWorkspaceWidth`: it takes
-  `documentElement.clientWidth` only while the window scrolls the columns, otherwise the holder's own width, or a
-  grid offset by `margin-left: 200px` rendered two columns too many and reported the wrong last visible column.
+  already did for the vertical axis (`preventOverflow` already returned `0`). The same split decides
+  `measureWorkspaceWidth`: it takes `documentElement.clientWidth` only while the window scrolls the columns,
+  otherwise the holder's own width. Without that, a grid offset from the page edge rendered columns for a
+  workspace as wide as the page (two more, for a 200px offset and 100px columns), reported the wrong last visible
+  column. That half also applies to `preventOverflow: 'vertical'`.
   `tests/e2e/page-offset-reverse-split.spec.ts` pins both, each offset layout against its no-offset twin of the
   same holder width.
 - **Ask the scroller, not the axis owner, whether the window holds the end clone.**

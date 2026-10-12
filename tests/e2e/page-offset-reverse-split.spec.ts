@@ -90,13 +90,21 @@ test.describe('grid offset from the page edge inside a vertically clipping ances
       .toBe(Math.floor((offset.holderWidth - offset.rowHeaderWidth) / 100) - 1);
   });
 
-  for (const layout of [
-    { name: '`preventOverflow: vertical`', layout: { preventOverflow: 'vertical' } },
-    { name: 'an `overflow-y: hidden` ancestor', layout: { overflowY: 'hidden' } },
-    { name: 'an `overflow-y: auto` ancestor', layout: { overflowY: 'auto' } },
+  for (const { name, layout } of [
+    { name: '`preventOverflow: vertical` on a page the window scrolls', layout: { preventOverflow: 'vertical', overflowY: 'visible' } },
   ] as { name: string, layout: PageOffsetLayout }[]) {
-    test(`lays out like its no-offset twin with ${layout.name}`, async() => {
-      const { offset, twin } = await measureBoth(layout.layout);
+    test(`lays out like its no-offset twin with ${name}`, async() => {
+      const { offset, twin } = await measureBoth(layout);
+
+      expect(offset).toEqual(twin);
+    });
+  }
+
+  // Controls: the wrapper owns both axes here, so the changed code does not run and these pass with and without
+  // the fix. They pin that the offset stays out of the layout when the grid is not in the reverse split.
+  for (const overflowY of ['hidden', 'auto'] as const) {
+    test(`control: an \`overflow-y: ${overflowY}\` ancestor lays out like its no-offset twin`, async() => {
+      const { offset, twin } = await measureBoth({ overflowY });
 
       expect(offset).toEqual(twin);
     });
@@ -112,6 +120,11 @@ test.describe('grid offset from the page edge inside a vertically clipping ances
     const flush = await grid.measure();
 
     expect(flush.firstFullyVisible - offset.firstFullyVisible).toBe(MARGIN / 100);
+    expect(flush.lastFullyVisible - offset.lastFullyVisible).toBe(MARGIN / 100);
+    // The page, not the holder, is the workspace here: the holder is narrower by the margin, yet the same
+    // columns are rendered.
+    expect(offset.holderWidth).toBe(flush.holderWidth - MARGIN);
+    expect(offset.renderedColumns).toBe(flush.renderedColumns);
     expect(offset.stepsUnderHeader).toBe(0);
   });
 });
