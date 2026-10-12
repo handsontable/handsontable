@@ -31,7 +31,7 @@ In this tutorial, you will let an AI agent describe a grid in [A2UI](https://a2u
   sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
 ></iframe>
 
-[**View the code**](https://demos.handsontable.com/share/34326g6e4v) · [**Open in the demo runner**](https://demos.handsontable.com/edit/34326g6e4v)
+[**Open in the demo runner**](https://demos.handsontable.com/share/34326g6e4v)
 
 The grid above is not hand-coded in the page. An agent described it in A2UI JSON: a `HotGrid` component from a custom catalog, bound to `/rows` in the surface data model. `HotGrid` renders it with Handsontable and evaluates the `=` cells with HyperFormula, in the browser. Edit a cell and click **Send to agent**: the action carries both the formulas (`rows`) and the computed numbers (`values`) back to the agent, and the agent answers with new messages. Here it adds a volume-discount line to the rows you sent, so your edits stay, and every reply is appended to the list under the grid. The two panels below the grid show the agent-to-client message stream and the client-to-agent actions.
 
@@ -222,7 +222,7 @@ It reads the rows from the action, so the user's edits survive, inserts a volume
   sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
 ></iframe>
 
-[**View the code**](https://demos.handsontable.com/share/04w5t294ua) · [**Open in the demo runner**](https://demos.handsontable.com/edit/04w5t294ua)
+[**Open in the demo runner**](https://demos.handsontable.com/share/04w5t294ua)
 
 Here the agent renders a reorder plan, then keeps editing it. Watch the message stream under the grid: after the first three messages the agent sends only partial `updateDataModel` messages. One targets a single cell (`/rows/2/2`), one replaces the row list to add a SKU. The grid applies each one with `updateData()`, so it is never rebuilt, and HyperFormula recomputes the order quantities and totals. Edit any number and click **Approve plan** or **Ask for changes**: the action carries the formulas and the computed values to the agent, which appends its answer to the list.
 
