@@ -137,6 +137,18 @@ describe('cellSource helpers', () => {
       expect(getChoiceLabel(poland, '')).toBe(poland);
     });
 
+    it('should hand back an object `value` unchanged when `sourceLabel` is neither a string nor a function', () => {
+      // Settings are not type-checked at runtime, and this runs on every render of the cell.
+      const value = { address: { city: 'Paris' } };
+
+      // @ts-expect-error A plain JS user can pass any value.
+      expect(getChoiceLabel(value, true)).toBe(value);
+      // @ts-expect-error A plain JS user can pass any value.
+      expect(getChoiceLabel(value, ['address', 'city'])).toBe(value);
+      // @ts-expect-error A plain JS user can pass any value.
+      expect(getChoiceLabel(value, 42)).toBe(value);
+    });
+
     it('should resolve a missing path to `undefined`', () => {
       expect(getChoiceLabel(poland, 'missing.deeper')).toBeUndefined();
     });

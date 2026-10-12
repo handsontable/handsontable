@@ -13,6 +13,9 @@ interface FixtureWindow {
   htPastePlainText(row: number, col: number, text: string): void;
   htSelectCell(row: number, col: number): void;
   htValidState(row: number, col: number): string;
+  htFormulaValueAt(row: number, col: number): unknown;
+  htCopyableData(row: number, col: number): string;
+  htExportedCsvRow(row: number): string;
 }
 
 /**
@@ -122,6 +125,33 @@ export class DropdownObjectValuesPage {
       ([r, c]) => (window as unknown as FixtureWindow).htStoredEntryAt(r, c),
       [row, col],
     );
+  }
+
+  /**
+   * The value a cell of the second, Formulas-enabled grid calculates.
+   */
+  async formulaValueAt(row: number, col: number): Promise<unknown> {
+    return this.page.evaluate(
+      ([r, c]) => (window as unknown as FixtureWindow).htFormulaValueAt(r, c),
+      [row, col],
+    );
+  }
+
+  /**
+   * The text a copy of the cell puts on the clipboard (`getCopyableData()`, which CopyPaste uses).
+   */
+  async copyableData(row: number, col: number): Promise<string> {
+    return this.page.evaluate(
+      ([r, c]) => (window as unknown as FixtureWindow).htCopyableData(r, c),
+      [row, col],
+    );
+  }
+
+  /**
+   * One row of the first three columns exported as CSV through the ExportFile plugin.
+   */
+  async exportedCsvRow(row: number): Promise<string> {
+    return this.page.evaluate(r => (window as unknown as FixtureWindow).htExportedCsvRow(r), row);
   }
 
   /**

@@ -102,13 +102,47 @@ test.describe('key/value source with object values (sourceLabel)', () => {
     await expect(grid.options()).toHaveText(['United States', 'Poland', 'Japan']);
   });
 
-  test('lists an entry whose label resolves to nothing as empty, never as `undefined`', async() => {
-    // `location.city` on `{ location: null }` resolves to nothing. The list showed the word
-    // `undefined` for it, and picking that option stored the bare string `'undefined'`, because
-    // the lookup compares against the empty text the cell displays.
+  test('copies the label `sourceLabel` derives, not `[object Object]`', async() => {
+    await expect.poll(() => grid.copyableData(2, 0)).toBe('Poland');
+    await expect.poll(() => grid.copyableData(2, 1)).toBe('Poland (PLN)');
+  });
+
+  test('exports the label `sourceLabel` derives as the cell value', async() => {
+    await expect.poll(() => grid.exportedCsvRow(2)).toBe('Poland,Poland (PLN),Poland');
+  });
+
+  test('hands the formula engine the label `sourceLabel` derives', async() => {
+    await expect.poll(() => grid.formulaValueAt(0, 1)).toBe('Poland');
+    await expect.poll(() => grid.formulaValueAt(1, 1)).toBe('JAPAN');
+  });
+
+  test('leaves out an entry whose label resolves to nothing', async() => {
+    // `location.city` on `{ location: null }` resolves to nothing. The list first showed the word
+    // `undefined` for it, then a blank option - and picking a blank option cannot store the entry:
+    // the editor holds empty text, which `getValue()` keeps empty, so the pick cleared the cell.
     await grid.openEditor(0, 4);
 
-    await expect(grid.options()).toHaveText(['Paris', '']);
+    await expect(grid.options()).toHaveText(['Paris']);
+  });
+
+  test('lists key/value entries of a mixed source by their labels and stores the one picked', async() => {
+    // A plain string beside the entries sent the list down its mixed branch, which showed every
+    // entry as `[object Object]`.
+    await grid.openEditor(0, 5);
+
+    await expect(grid.options()).toHaveText(['Other', 'Poland', 'Japan']);
+
+    await grid.pickOption('Japan');
+
+    await expect.poll(() => grid.storedEntryAt(0, 5)).toBe('entry:JP');
+    await expect.poll(() => grid.cellLabel(0, 5)).toBe('Japan');
+  });
+
+  test('keeps the source order of an alphabetical string key/value list under `sourceLabel`', async() => {
+    // `sourceLabel` has no object value to label here - as when a grid-level option cascades to a
+    // column of string entries - so the list must sort exactly as it did without the option.
+    await grid.openEditor(0, 6);
+
+    await expect(grid.options()).toHaveText(['United States', 'Poland', 'Japan']);
   });
 });
-

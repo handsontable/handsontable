@@ -7391,8 +7391,13 @@ export default (): Record<string, unknown> => {
      *
      * The label is used everywhere the cell shows text: in the cell, in the list of options, when you type to filter
      * the options, and when you paste. The cell itself stores the whole `source` entry, including the `value` object.
+     * The cell and `source` can share that entry object, so changing a property of the object changes every cell that holds it.
+     *
+     * Each entry needs a unique label: if two entries display the same label, picking or pasting that label stores the first of them.
+     * An entry whose label resolves to nothing, for example a missing property, isn't listed as an option.
      *
      * The `sourceLabel` option affects only a `value` that is an object. A string or number `value` is displayed as it is.
+     * With [`sortByRelevance`](#sortByRelevance) set to `false`, a `source` that holds an object `value` is sorted by the labels.
      *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)

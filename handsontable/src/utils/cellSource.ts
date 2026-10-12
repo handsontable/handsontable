@@ -61,6 +61,13 @@ export function getChoiceLabel(value: unknown, sourceLabel?: SourceLabel): unkno
     return sourceLabel(value);
   }
 
+  // The settings are not type-checked at runtime, so a plain JS `sourceLabel: true` or
+  // `['address', 'city']` reaches here too. This runs on every render, sort, filter, and export of
+  // the cell, so an unusable option leaves the value as it is rather than throwing on `.split()`.
+  if (typeof sourceLabel !== 'string') {
+    return value;
+  }
+
   // Not `getProperty()` from `helpers/object`: it indexes into whatever the previous segment held,
   // so a `null` midway (`address.city` on `{ address: null }`) throws - and this runs on every render
   // of the cell. A segment that is not an object ends the walk with `undefined` instead.
@@ -117,6 +124,8 @@ export function hasKeyValueChoices(choices: unknown): boolean {
  * not, which is what let a pasted label store a bare string among key/value objects (DEV-57).
  *
  * Comparison is textual, matching what the user sees, so a numeric choice matches its string label.
+ * When several entries display the same text, the first one in `source` order wins: the label is
+ * all a pick or a paste carries, so the entries behind it cannot be told apart.
  *
  * The result is deliberately not memoized. A `source` array can be mutated in place by the host
  * application, and a cached displayed-text map would then resolve a label to an option that is no

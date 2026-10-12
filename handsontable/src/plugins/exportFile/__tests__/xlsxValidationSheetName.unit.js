@@ -23,7 +23,7 @@ jest.mock('../dataProvider', () => ({
     }
 
     getCellElements() {
-      return [[null]];
+      return mockCellsMeta.map(row => row.map(() => null));
     }
 
     getColumnHeaders() {
@@ -304,7 +304,10 @@ describe('Xlsx validation list for object values (`sourceLabel`)', () => {
     { key: 'PL', value: { name: 'Poland', currency: 'PLN' } },
   ];
 
-  it('should list the labels `sourceLabel` derives, the same text the exported cell holds', async() => {
+  // The data provider is mocked, so the cell value below is the text the grid's `valueGetter` would
+  // hand the export - these cases cover the validation list only. That the export reads the label
+  // through the getter is proven against a real grid in `tests/e2e/dropdown-object-values.spec.ts`.
+  it('should list the labels `sourceLabel` derives in the validation list', async() => {
     const { cells } = await exportOneCell({}, { type: 'dropdown', source: countries, sourceLabel: 'name' }, 'Poland');
     const values = cells.map(cell => cell.value);
 
@@ -325,6 +328,34 @@ describe('Xlsx validation list for object values (`sourceLabel`)', () => {
     // The validation range is looked up by the same labels the list was built from, so a function -
     // which no JSON key can carry - still finds it.
     expect(cells.some(cell => cell.dataValidation?.type === 'list')).toBe(true);
+  });
+});
+
+describe('Xlsx validation list labels for a column', () => {
+  it('should derive the labels once per `source` and `sourceLabel`, not once per cell', async() => {
+    const countries = [
+      { key: 'US', value: { name: 'United States' } },
+      { key: 'PL', value: { name: 'Poland' } },
+    ];
+    const sourceLabel = jest.fn(value => value.name);
+    const rows = 50;
+    const instance = { rootDocument: document, rootWindow: window };
+    const { engine, cells } = createRecordingEngine();
+
+    mockData = Array.from({ length: rows }, () => ['Poland']);
+    // Separate meta objects per cell, as the grid hands them out, sharing one `source` array.
+    mockCellsMeta = Array.from({ length: rows }, () => [{ type: 'dropdown', source: countries, sourceLabel }]);
+
+    try {
+      await new Xlsx(new DataProvider(instance), { engine, sheets: [{ instance, name: 'Data' }] }).export();
+    } finally {
+      mockData = [[null]];
+      mockCellsMeta = [[{ type: 'dropdown', source: ['a', 'b'] }]];
+    }
+
+    // One call per entry. Per cell it was one per entry per cell, twice over (list, then link).
+    expect(sourceLabel).toHaveBeenCalledTimes(countries.length);
+    expect(cells.filter(entry => entry.cell.dataValidation?.type === 'list')).toHaveLength(rows);
   });
 });
 

@@ -270,7 +270,11 @@ columns: [{
 }],
 ```
 
-The cell, the list of options, the filter of typed text, and pasted text all use that label. The cell itself stores the whole `source` entry, so [`getSourceDataAtCell()`](@/api/core.md#getsourcedataatcell) returns the object with every property. The cell stores a copy of the entry, not the same object reference.
+The cell, the list of options, the filter of typed text, and pasted text all use that label. The cell itself stores the whole `source` entry, so [`getSourceDataAtCell()`](@/api/core.md#getsourcedataatcell) returns the object with every property.
+
+The cell and `source` can share the same entry object. If you change a property of that object, the change shows in the list of options and in every cell that holds the entry. To change one cell only, replace its entry instead of editing the object in place.
+
+Each entry needs a unique label. If two entries display the same label, picking or pasting that label stores the first of them. An entry whose label resolves to nothing, for example a missing property, isn't listed as an option.
 
 The `sourceLabel` option changes only how an object `value` is displayed. A string or number `value` is displayed as it is, and a `source` without the option works exactly as before.
 

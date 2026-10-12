@@ -38,6 +38,7 @@ import {
   A11Y_TEXT,
 } from '../../helpers/a11y';
 import { debounce } from '../../helpers/function';
+import { isPlainObject } from '../../helpers/object';
 
 export const EDITOR_TYPE = 'autocomplete';
 
@@ -408,16 +409,18 @@ export class AutocompleteEditor extends HandsontableEditor {
   /**
    * Returns the comparator the list is sorted with when `sortByRelevance` is `false`.
    *
-   * With `sourceLabel` set, a key/value entry is compared by the label it displays - the choices
-   * reaching here are already stripped, so its `value` half holds that label. Without the option
-   * the comparison stays as it always was: `stringify()` of the whole choice, which for a
-   * key/value entry is `[object Object]`, so such a list keeps its source order. Comparing labels
-   * there too would reorder lists of existing configurations, so it stays gated on the option.
+   * When `sourceLabel` relabels an object `value` in `source`, a key/value entry is compared by
+   * the label it displays - the choices reaching here are already stripped, so its `value` half
+   * holds that label. Otherwise the comparison stays as it always was: `stringify()` of the whole
+   * choice, which for a key/value entry is `[object Object]`, so such a list keeps its source order.
+   * Comparing labels there too would reorder lists of existing configurations - and `sourceLabel`
+   * set at grid level cascades to columns whose entries hold string values - so it stays gated on
+   * the option having an object `value` to label.
    *
    * @returns {Function}
    */
   #getChoiceComparator(): (a: unknown, b: unknown) => number {
-    if (!this.cellProperties.sourceLabel) {
+    if (!this.#hasLabeledObjectValues()) {
       return (a, b) => stringify(a).localeCompare(stringify(b));
     }
 
@@ -670,12 +673,12 @@ export class AutocompleteEditor extends HandsontableEditor {
         }
 
         this.rawChoices = choices;
-        this.updateChoicesList(this.stripValuesIfNeeded(choices));
+        this.updateChoicesList(this.stripValuesIfNeeded(this.#listableChoices(choices)));
       });
 
     } else if (Array.isArray(source)) {
       this.rawChoices = source;
-      this.updateChoicesList(this.stripValuesIfNeeded(source));
+      this.updateChoicesList(this.stripValuesIfNeeded(this.#listableChoices(source)));
 
     } else {
       this.updateChoicesList([]);
@@ -950,7 +953,54 @@ export class AutocompleteEditor extends HandsontableEditor {
       });
     }
 
-    return values.map(value => processValue(value));
+    // A mixed list - plain values beside key/value entries - lists each entry as its label text.
+    // Without `sourceLabel` that stays `String()` of the whole entry, as it always was.
+    return values.map((value) => {
+      if (isKeyValueEntry(value)) {
+        const label = getChoiceLabel(value.value, sourceLabel);
+
+        if (label !== value.value) {
+          return processValue(stringify(label));
+        }
+      }
+
+      return processValue(value);
+    });
+  }
+
+  /**
+   * Reports whether `sourceLabel` has an object `value` in the raw choices to label. Only then do
+   * labels replace the `[object Object]` a key/value entry compares by in the alphabetical sort.
+   *
+   * @returns {boolean}
+   */
+  #hasLabeledObjectValues(): boolean {
+    return Boolean(this.cellProperties.sourceLabel) &&
+      this.rawChoices.some(choice => isKeyValueEntry(choice) && isPlainObject(choice.value));
+  }
+
+  /**
+   * Leaves out the choices the list cannot offer: a key/value entry whose `sourceLabel` resolves
+   * to nothing - a missing property, or a function returning `null`.
+   *
+   * Such an entry would list as a blank option, and picking it could never store it: the editor
+   * then holds empty text, and `getValue()` keeps an emptied editor empty before any lookup runs,
+   * so the pick would clear the cell instead (and fail validation under `allowEmpty: false`). An
+   * entry whose `value` is not an object is never relabeled, so a blank `{ key, value: null }`
+   * option stays listed as it always was.
+   *
+   * @param {Array} choices The raw choices.
+   * @returns {Array}
+   */
+  #listableChoices(choices: unknown[]): unknown[] {
+    const { sourceLabel } = this.cellProperties;
+
+    if (!sourceLabel) {
+      return choices;
+    }
+
+    return choices.filter(choice => !isKeyValueEntry(choice) || !isPlainObject(choice.value) ||
+      stringify(getChoiceLabel(choice.value, sourceLabel)) !== '');
   }
 
   /**

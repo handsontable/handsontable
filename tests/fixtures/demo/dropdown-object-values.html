@@ -28,7 +28,15 @@
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
+  <div id="formulas-grid" data-testid="formulas-grid"></div>
 
+  <script>
+    // HyperFormula for the second grid, from this package's own node_modules. Loaded only on the
+    // base-bundle legs: handsontable.full.min.js carries its own engine.
+    if (window.htBundle === 'handsontable.js') {
+      document.write('<scr' + 'ipt src="/tests/node_modules/hyperformula/dist/hyperformula.full.min.js"></scr' + 'ipt>');
+    }
+  </script>
   <script>
     document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
   </script>
@@ -59,12 +67,16 @@
       { key: 'JP', value: 'Japan' },
     ];
 
-    // A path that reaches a `null` midway for one entry: its label resolves to nothing, which the
-    // list must show as empty - the text the cell shows - and never as the word `undefined`.
+    // A path that reaches a `null` midway for one entry: its label resolves to nothing. A blank
+    // option could never be stored - picking it clears the cell - so the list leaves it out.
     const AIRPORTS = [
       { key: 'CDG', value: { name: 'Charles de Gaulle Airport', location: { city: 'Paris' } } },
       { key: 'XXX', value: { name: 'Unknown Field', location: null } },
     ];
+
+    // A mixed source: a plain string beside key/value entries. Every option still lists by its
+    // label - the mixed branch of the list used to show `[object Object]` for the entries.
+    const MIXED = ['Other', COUNTRIES[1], COUNTRIES[2]];
 
     let hot;
 
@@ -72,12 +84,12 @@
       hot = new Handsontable(container, {
         data: [
           // Row 0: both cells hold the FIRST entry - the one a broken lookup would fall back to.
-          [COUNTRIES[0], COUNTRIES[0], COUNTRIES[0], COUNTRIES_TEXT[0], AIRPORTS[0]],
+          [COUNTRIES[0], COUNTRIES[0], COUNTRIES[0], COUNTRIES_TEXT[0], AIRPORTS[0], 'Other', COUNTRIES_TEXT[0]],
           // Row 1: empty cells, the state a paste into a fresh cell starts from.
-          [null, null, null, null, null],
+          [null, null, null, null, null, null, null],
           // Rows 2-3: the remaining entries, so sorting and filtering have distinct labels to order.
-          [COUNTRIES[1], COUNTRIES[1], COUNTRIES[1], COUNTRIES_TEXT[1], AIRPORTS[0]],
-          [COUNTRIES[2], COUNTRIES[2], COUNTRIES[2], COUNTRIES_TEXT[2], AIRPORTS[0]],
+          [COUNTRIES[1], COUNTRIES[1], COUNTRIES[1], COUNTRIES_TEXT[1], AIRPORTS[0], 'Other', COUNTRIES_TEXT[1]],
+          [COUNTRIES[2], COUNTRIES[2], COUNTRIES[2], COUNTRIES_TEXT[2], AIRPORTS[0], 'Other', COUNTRIES_TEXT[2]],
         ],
         columns: [
           // Dropdown (strict by default) labeled by a property path.
@@ -104,6 +116,18 @@
           { type: 'dropdown', source: COUNTRIES_TEXT, sortByRelevance: false, width: 200, renderer: testIdRenderer },
           // A path label that resolves to nothing for one entry.
           { type: 'dropdown', source: AIRPORTS, sourceLabel: 'location.city', width: 200, renderer: testIdRenderer },
+          // A plain string beside key/value entries with object values.
+          { type: 'dropdown', source: MIXED, sourceLabel: 'name', width: 200, renderer: testIdRenderer },
+          // String key/value entries under a `sourceLabel` (as a grid-level option would cascade to
+          // them): with no object value to label, the alphabetical list keeps its source order.
+          {
+            type: 'dropdown',
+            source: COUNTRIES_TEXT,
+            sourceLabel: 'name',
+            sortByRelevance: false,
+            width: 200,
+            renderer: testIdRenderer,
+          },
         ],
         colHeaders: [
           'Country (dropdown, path)',
@@ -111,6 +135,8 @@
           'Country (alphabetical)',
           'Country (text, control)',
           'Airport (null path)',
+          'Country (mixed)',
+          'Country (text, sourceLabel)',
         ],
         rowHeaders: true,
         columnSorting: true,
@@ -128,10 +154,40 @@
 
     window.hot = hot;
 
+    // A second grid with the Formulas plugin: column A holds object entries labeled by `sourceLabel`,
+    // column B references them, so the engine must receive the label rather than an object.
+    const formulasHot = new Handsontable(document.querySelector('[data-testid="formulas-grid"]'), {
+      data: [
+        [COUNTRIES[1], '=A1'],
+        [COUNTRIES[2], '=UPPER(A2)'],
+      ],
+      columns: [
+        { type: 'dropdown', source: COUNTRIES, sourceLabel: 'name' },
+        {},
+      ],
+      formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    /** The value a formula cell of the Formulas grid calculates. */
+    window.htFormulaValueAt = function(row, col) {
+      return formulasHot.getDataAtCell(row, col);
+    };
+
+    /** The text a copy of a cell puts on the clipboard. */
+    window.htCopyableData = function(row, col) {
+      return hot.getCopyableData(row, col);
+    };
+
+    /** One row of the grid exported as CSV, through the ExportFile plugin. */
+    window.htExportedCsvRow = function(row) {
+      return hot.getPlugin('exportFile').exportAsString('csv', { range: [row, 0, row, 2], bom: false });
+    };
+
     /**
      * Reports which `COUNTRIES` entry the DATA SOURCE holds at a cell: `entry:<key>` only when the
-     * stored object equals that entry in full, nested `value` included. The grid stores a copy of
-     * the entry, so this compares structure, not identity - but a flattened pair
+     * stored object equals that entry in full, nested `value` included. It compares structure, not
+     * identity, so it holds whether or not the cell shares the entry object - but a flattened pair
      * (`{ key: 'Poland', value: 'Poland' }`) or the wrong entry never passes. Anything else is
      * described with its type.
      */
