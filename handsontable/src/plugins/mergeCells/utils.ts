@@ -158,3 +158,60 @@ export function getLastRenderedColumnOfOverlay(hotInstance: HotInstance, overlay
 
   return hotInstance.getLastRenderedVisibleColumn() as number;
 }
+
+/**
+ * Returns the renderable columns of the frozen band the overlay renders, as `[first, last]`, or `null` for an
+ * overlay that does not render a frozen column band. The inline-start overlays render the `fixedColumnsStart`
+ * columns, the inline-end overlays the columns from the first `fixedColumnsEnd` column to the last one.
+ *
+ * @param {Core} hotInstance The Handsontable instance.
+ * @param {string} overlayName The Walkontable overlay name.
+ * @returns {Array<number>|null}
+ */
+export function getFrozenColumnBandOfOverlay(
+  hotInstance: HotInstance,
+  overlayName: string
+): [number, number] | null {
+  if (START_COLUMN_OVERLAYS.includes(overlayName)) {
+    return [0, hotInstance.view.countNotHiddenFixedColumnsStart() - 1];
+  }
+
+  if (END_COLUMN_OVERLAYS.includes(overlayName)) {
+    const firstColumn = hotInstance.columnIndexMapper
+      .getRenderableFromVisualIndex(getFirstRenderedColumnOfOverlay(hotInstance, overlayName));
+
+    return firstColumn === null ? null : [firstColumn, Infinity];
+  }
+
+  return null;
+}
+
+/**
+ * Sums the widths of the columns of a merged block that lie outside a column band, separately for the
+ * columns before the band and after it.
+ *
+ * @param {number} blockStart The first renderable column of the block.
+ * @param {number} blockEnd The last renderable column of the block.
+ * @param {Array<number>} band The first and the last renderable column of the band.
+ * @param {Function} getWidth Returns the width of a renderable column.
+ * @returns {{ before: number, after: number }}
+ */
+export function sumBlockWidthsOutsideBand(
+  blockStart: number,
+  blockEnd: number,
+  [bandStart, bandEnd]: [number, number],
+  getWidth: (renderableColumn: number) => number,
+): { before: number, after: number } {
+  let before = 0;
+  let after = 0;
+
+  for (let column = blockStart; column <= Math.min(blockEnd, bandStart - 1); column++) {
+    before += getWidth(column);
+  }
+
+  for (let column = Math.max(blockStart, bandEnd + 1); column <= blockEnd; column++) {
+    after += getWidth(column);
+  }
+
+  return { before, after };
+}

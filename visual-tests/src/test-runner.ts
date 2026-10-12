@@ -163,10 +163,10 @@ async function awaitScrollbarClearance(page: Page): Promise<'closed' | 'pinned' 
 
   // The slow path is about to spend up to another SETTLE_TIMEOUT - FADE_ALLOWANCE, so buy that budget
   // here rather than from the config. A flat per-test bump only helps a test that still has room left:
-  // `js-only/pagination/auto-page-size-table-with-defined-size.spec.ts` takes nine captures, so a
-  // band stuck on a late one would die on "Test timeout of 15000ms exceeded" and the message naming
-  // the cause — the whole point of failing loudly — would never be printed. Granting it here makes the
-  // diagnosis win on whichever capture hits it.
+  // a spec takes up to four captures (`captureCap` in `visual-budget.json`), so a band stuck on a late
+  // one would die on "Test timeout of 15000ms exceeded" and the message naming the cause — the whole
+  // point of failing loudly — would never be printed. Granting it here makes the diagnosis win on
+  // whichever capture hits it.
   baseTest.info().setTimeout(baseTest.info().timeout + SETTLE_TIMEOUT);
 
   // Still open after the fade: a pointer resting beside an OPEN band's scrollbar holds exactly that
@@ -246,8 +246,10 @@ async function settleScrollbarClearanceForCapture(page: Page) {
  *
  * For a spec that is about to CLICK where the band is, "pinned" is not good enough — the strip belongs
  * to the scrollbar while it is up, so the click is swallowed and the spec goes on with a selection it
- * never made (`copy-paste.spec.ts` copies one cell instead of the range, and its assertions still
- * pass, so it surfaces only as a changed screenshot). That is why this is a separate export from the
+ * never made (`copy-paste.spec.ts` copied one cell instead of the range, and its assertions still
+ * passed, so it surfaced only as a changed screenshot; that range is asserted by
+ * `tests/e2e/clipboard-scrolled-range.spec.ts` since DEV-3257, and no visual spec clicks into the band
+ * today). That is why this is a separate export from the
  * capture policy: the capture may proceed on a pinned band, a click may not, and one function cannot
  * promise both.
  *
@@ -312,9 +314,10 @@ async function clearNativeTextSelection(page: Page) {
   // Only WebKit paints a selection the API no longer reports (see the docblock); the reset under a
   // focused text control costs Chromium a re-rasterized grid, so it is engine-gated. Read from the
   // browser that is actually running, never from the project's name or its `use`: a renamed project or
-  // a second WebKit project for another theme would silently stop resetting and let `columns-filter-2`
-  // poison the baseline again, and `use.browserName` is undefined here anyway — the cross-browser
-  // config builds its projects from `devices['Desktop Safari']`, which carries `defaultBrowserType`.
+  // a second WebKit project for another theme would silently stop resetting under a focused text control
+  // (the cross-browser `comment-1` captures in that state), and `use.browserName` is undefined here
+  // anyway – the cross-browser config builds its projects from `devices['Desktop Safari']`, which
+  // carries `defaultBrowserType`.
   const resetUnderTextControl = page.context().browser()?.browserType().name() === 'webkit';
 
   // The callback runs in the browser, where `window` and `document` are the right globals to use.
@@ -680,7 +683,8 @@ type VisualTestBody = Parameters<typeof test>[2];
  * can be empty, so a variant either declaration asked for on its own can stop rendering entirely
  * (measured: `main`-only and `horizon`-only declarations in one file render nothing under `HOT_THEME=main`).
  * The static sweep in `lib/__tests__/visual-declarations.test.mjs` enforces the one-declaration rule;
- * `tests/cross-browser/copy-paste.spec.ts` is the only file with several tests today and all five agree.
+ * `tests/cross-browser/selection.spec.ts` is the only file with two call sites today, a looped one and a
+ * plain one, and both declare the same variants.
  *
  * The framework and theme axis uses the boolean form, which Playwright resolves at collection and never
  * dispatches to a worker: measured, the 69 js-only skips added nothing to the 3.5 s collection, while the
@@ -702,7 +706,7 @@ type VisualTestBody = Parameters<typeof test>[2];
  */
 export function visualTest(title: string, variants: VisualDeclaration, body: VisualTestBody) {
   // The title doubles as the label a validation failure carries: it is `__filename` for every spec but
-  // the five looped cross-browser ones, and their plain titles are unique too, so whichever a spec used
+  // the two looped cross-browser ones, and their plain titles are unique too, so whichever a spec used
   // is enough to find it. Without it the message states the rule and leaves the author guessing which of
   // the 112 specs broke it.
   const declaration = normalizeDeclaration(variants, title);

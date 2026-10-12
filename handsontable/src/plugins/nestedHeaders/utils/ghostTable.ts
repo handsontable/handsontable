@@ -174,6 +174,10 @@ class GhostTable {
 
     this.container.remove();
     this.container = null;
+
+    // The widths map feeds `modifyColWidth`. The engine's column width cache compares only the
+    // column count, so a width-only change stays invisible to it unless it is dropped here.
+    this.hot.view?.invalidateColumnWidthCache();
   }
 
   /**
@@ -340,6 +344,7 @@ class GhostTable {
   clear() {
     this.widthsMap.clear();
     this.container = null;
+    this.hot.view?.invalidateColumnWidthCache();
   }
 }
 

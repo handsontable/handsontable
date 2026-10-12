@@ -215,7 +215,7 @@ export { IndexMapper } from './translations';
 export type { GridSettings, Events, SanitizerContext, TextExtractorContext, PasteClipboardData } from './core/settings';
 export type {
   CellValue, CellChange, ColumnDataGetterSetterFunction, RowObject, ChangeSource,
-  CellMeta, CellProperties, ColumnSettings, SourceRowData, RemoveIndexSignature
+  CellMeta, CellProperties, ColumnSettings, SourceRowData, RemoveIndexSignature, OmitHooks
 } from './settings';
 export type { RangeType, HotInstance } from './core/types';
 export type { OverlayType } from './3rdparty/walkontable/src/types';

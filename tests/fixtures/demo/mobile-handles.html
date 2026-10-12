@@ -51,6 +51,12 @@
       throw new Error('Unknown ?rows= value: ' + JSON.stringify(params.get('rows')));
     }
 
+    // A wide data set gives the grid room to scroll horizontally, past the frozen column.
+    window.htCols = ({ short: 5, wide: 20 })[params.get('cols') ?? 'short'];
+    if (window.htCols === undefined) {
+      throw new Error('Unknown ?cols= value: ' + JSON.stringify(params.get('cols')));
+    }
+
     // Written into <head> so the themed stylesheet is present before first render.
     document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
   </script>
@@ -80,7 +86,7 @@
 
     window.hot = new Handsontable(container, {
       data: Array.from({ length: window.htRows }, (_, row) => (
-        ['A', 'B', 'C', 'D', 'E'].map(column => column + (row + 1))
+        Array.from({ length: window.htCols }, (_, col) => String.fromCharCode(65 + col) + (row + 1))
       )),
       width: 350,
       height: 300,

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — complex demo states</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme, bundle and the fixture's own options come from query params, each mapped through a fixed
+    // allowlist to LITERALS so a crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default so the fixture stays browsable by hand; an unknown value THROWS
+    // instead of falling back — a typo in a spec must be one red test, never a silently mislabeled green
+    // one.
+    const htParams = new URLSearchParams(location.search);
+    const htPick = (name, allowed, fallback) => {
+      const value = allowed[htParams.get(name) ?? fallback];
+
+      if (value === undefined) {
+        throw new Error(`Unknown ?${name}= value: ${JSON.stringify(htParams.get(name))}`);
+      }
+
+      return value;
+    };
+
+    window.htTheme = htPick('theme', { main: 'main', horizon: 'horizon', classic: 'classic' }, 'main');
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min = handsontable.full.min.js).
+    window.htBundle = htPick('bundle', { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, 'umd');
+    window.htDirection = htPick('dir', { ltr: 'ltr', rtl: 'rtl' }, 'ltr');
+  </script>
+</head>
+<body>
+  <!--
+    E2E fixture for the states the visual suite photographed on its `/complex-demo` route: the same
+    settings and the same 38 rows (one with nested children). Four levels of nested column headers with
+    collapsible groups, a merged cell, nested rows, a frozen row at each end and a frozen column, filters,
+    the dropdown and context menus, hidden-column and hidden-row indicators, a comment, multi-column
+    sorting, the manual move and resize plugins, navigable headers, and the checkbox, password, numeric,
+    select, handsontable, autocomplete, dropdown, date and time cell types. `dir=rtl` builds it RTL, as the
+    demo's `direction=rtl` does. The page is 1920 x 1080, as the demo's specs set it.
+  -->
+  <div data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const complexData = [{"isActive":true,"name":"John Doe","password":"mysecretpassword","age":30,"interest":"Electronics","country":"USA","city":"New York","lastLoginDate":"2023-08-25","lastLoginTime":"08:30","favoriteProduct":"iPhone 13 Pro"},
+        {"isActive":false,"name":"Jane Smith","password":"anotherpassword","age":28,"interest":"Fashion","country":"Canada","city":"Toronto","lastLoginDate":"2023-09-01","lastLoginTime":"14:15","favoriteProduct":"MacBook Air"},
+        {"isActive":true,"name":"Robert Johnson","password":"secure123","age":35,"interest":"Tech Gadgets","country":"UK","city":"London","lastLoginDate":"2023-08-30","lastLoginTime":"20:45","favoriteProduct":"Apple Watch Series 7"},
+        {"isActive":true,"name":"Emily Wilson","password":"password123","age":27,"interest":"Home Decor","country":"Australia","city":"Sydney","lastLoginDate":"2023-09-02","lastLoginTime":"12:00","favoriteProduct":"iPad Pro"},
+        {"isActive":false,"name":"Michael Brown","password":"michael123","age":42,"interest":"Sports & Fitness","country":"USA","city":"Los Angeles","lastLoginDate":"2023-08-22","lastLoginTime":"10:20","favoriteProduct":"Fitness Tracker","__children":[{"isActive":true,"name":"Robert Johnson","password":"secure123","age":35,"interest":"Tech Gadgets","country":"UK","city":"London","lastLoginDate":"2023-08-30","lastLoginTime":"20:45","favoriteProduct":"Apple Watch Series 7"},
+        {"isActive":true,"name":"Emily Wilson","password":"password123","age":27,"interest":"Home Decor","country":"Australia","city":"Sydney","lastLoginDate":"2023-09-02","lastLoginTime":"12:00","favoriteProduct":"iPad Pro"},
+        {"isActive":false,"name":"Michael Brown","password":"michael123","age":42,"interest":"Sports & Fitness","country":"USA","city":"Los Angeles","lastLoginDate":"2023-08-22","lastLoginTime":"10:20","favoriteProduct":"Fitness Tracker"},
+        {"isActive":true,"name":"Maria Garcia","password":"maria456","age":33,"interest":"Books & Literature","country":"Spain","city":"Barcelona","lastLoginDate":"2023-09-05","lastLoginTime":"16:45","favoriteProduct":"Kindle Paperwhite"}]},
+        {"isActive":true,"name":"Maria Garcia","password":"maria456","age":33,"interest":"Books & Literature","country":"Spain","city":"Barcelona","lastLoginDate":"2023-09-05","lastLoginTime":"16:45","favoriteProduct":"Kindle Paperwhite"},
+        {"isActive":false,"name":"Hiroshi Tanaka","password":"hiroshi789","age":29,"interest":"Tech Gadgets","country":"Japan","city":"Tokyo","lastLoginDate":"2023-08-27","lastLoginTime":"15:10","favoriteProduct":"Nintendo Switch"},
+        {"isActive":true,"name":"Emma Johnson","password":"emma123","age":24,"interest":"Beauty & Personal Care","country":"UK","city":"Manchester","lastLoginDate":"2023-09-03","lastLoginTime":"09:50","favoriteProduct":"Makeup Set"},
+        {"isActive":true,"name":"Lucas Oliveira","password":"lucas456","age":38,"interest":"Food & Cooking","country":"Brazil","city":"Sao Paulo","lastLoginDate":"2023-08-29","lastLoginTime":"13:30","favoriteProduct":"Chef's Knife Set"},
+        {"isActive":false,"name":"Ava Smith","password":"ava789","age":22,"interest":"Travel & Adventure","country":"USA","city":"Miami","lastLoginDate":"2023-09-04","lastLoginTime":"17:55","favoriteProduct":"Travel Backpack"},
+        {"isActive":true,"name":"Miguel Rodriguez","password":"miguel123","age":45,"interest":"Art & Collectibles","country":"Spain","city":"Madrid","lastLoginDate":"2023-08-28","lastLoginTime":"19:25","favoriteProduct":"Oil Painting"},
+        {"isActive":true,"name":"Sophia Kim","password":"sophia456","age":31,"interest":"Electronics","country":"South Korea","city":"Seoul","lastLoginDate":"2023-08-26","lastLoginTime":"11:10","favoriteProduct":"Smartphone"},
+        {"isActive":false,"name":"Liam Chen","password":"liam789","age":26,"interest":"Fashion","country":"Canada","city":"Vancouver","lastLoginDate":"2023-08-31","lastLoginTime":"18:40","favoriteProduct":"Designer Handbag"},
+        {"isActive":true,"name":"Elena Fernandez","password":"elena123","age":29,"interest":"Tech Gadgets","country":"Spain","city":"Valencia","lastLoginDate":"2023-09-01","lastLoginTime":"10:15","favoriteProduct":"Wireless Earbuds"},
+        {"isActive":true,"name":"Oliver Johnson","password":"oliver456","age":34,"interest":"Home Decor","country":"USA","city":"Chicago","lastLoginDate":"2023-08-30","lastLoginTime":"15:40","favoriteProduct":"Home Lighting"},
+        {"isActive":false,"name":"Luna Martinez","password":"luna789","age":23,"interest":"Sports & Fitness","country":"Mexico","city":"Mexico City","lastLoginDate":"2023-09-02","lastLoginTime":"14:05","favoriteProduct":"Yoga Mat"},
+        {"isActive":true,"name":"Ethan Wang","password":"ethan123","age":27,"interest":"Books & Literature","country":"Canada","city":"Toronto","lastLoginDate":"2023-08-29","lastLoginTime":"12:20","favoriteProduct":"Bestseller Novel"},
+        {"isActive":true,"name":"Isabella Davis","password":"isabella456","age":32,"interest":"Beauty & Personal Care","country":"USA","city":"Houston","lastLoginDate":"2023-08-27","lastLoginTime":"08:55","favoriteProduct":"Skincare Set"},
+        {"isActive":false,"name":"Liam Chen","password":"liam789","age":26,"interest":"Travel & Adventure","country":"Canada","city":"Vancouver","lastLoginDate":"2023-08-31","lastLoginTime":"18:40","favoriteProduct":"Travel Backpack"},
+        {"isActive":true,"name":"John Doe","password":"mysecretpassword","age":30,"interest":"Electronics","country":"USA","city":"New York","lastLoginDate":"2023-08-25","lastLoginTime":"08:30","favoriteProduct":"iPhone 13 Pro"},
+        {"isActive":false,"name":"Jane Smith","password":"anotherpassword","age":28,"interest":"Fashion","country":"Canada","city":"Toronto","lastLoginDate":"2023-09-01","lastLoginTime":"14:15","favoriteProduct":"MacBook Air"},
+        {"isActive":true,"name":"Robert Johnson","password":"secure123","age":35,"interest":"Tech Gadgets","country":"UK","city":"London","lastLoginDate":"2023-08-30","lastLoginTime":"20:45","favoriteProduct":"Apple Watch Series 7"},
+        {"isActive":true,"name":"Emily Wilson","password":"password123","age":27,"interest":"Home Decor","country":"Australia","city":"Sydney","lastLoginDate":"2023-09-02","lastLoginTime":"12:00","favoriteProduct":"iPad Pro"},
+        {"isActive":false,"name":"Michael Brown","password":"michael123","age":42,"interest":"Sports & Fitness","country":"USA","city":"Los Angeles","lastLoginDate":"2023-08-22","lastLoginTime":"10:20","favoriteProduct":"Fitness Tracker"},
+        {"isActive":true,"name":"Maria Garcia","password":"maria456","age":33,"interest":"Books & Literature","country":"Spain","city":"Barcelona","lastLoginDate":"2023-09-05","lastLoginTime":"16:45","favoriteProduct":"Kindle Paperwhite"},
+        {"isActive":false,"name":"Hiroshi Tanaka","password":"hiroshi789","age":29,"interest":"Tech Gadgets","country":"Japan","city":"Tokyo","lastLoginDate":"2023-08-27","lastLoginTime":"15:10","favoriteProduct":"Nintendo Switch"},
+        {"isActive":true,"name":"Emma Johnson","password":"emma123","age":24,"interest":"Beauty & Personal Care","country":"UK","city":"Manchester","lastLoginDate":"2023-09-03","lastLoginTime":"09:50","favoriteProduct":"Makeup Set"},
+        {"isActive":true,"name":"Lucas Oliveira","password":"lucas456","age":38,"interest":"Food & Cooking","country":"Brazil","city":"Sao Paulo","lastLoginDate":"2023-08-29","lastLoginTime":"13:30","favoriteProduct":"Chef's Knife Set"},
+        {"isActive":false,"name":"Ava Smith","password":"ava789","age":22,"interest":"Travel & Adventure","country":"USA","city":"Miami","lastLoginDate":"2023-09-04","lastLoginTime":"17:55","favoriteProduct":"Travel Backpack"},
+        {"isActive":true,"name":"Miguel Rodriguez","password":"miguel123","age":45,"interest":"Art & Collectibles","country":"Spain","city":"Madrid","lastLoginDate":"2023-08-28","lastLoginTime":"19:25","favoriteProduct":"Oil Painting"},
+        {"isActive":true,"name":"Sophia Kim","password":"sophia456","age":31,"interest":"Electronics","country":"South Korea","city":"Seoul","lastLoginDate":"2023-08-26","lastLoginTime":"11:10","favoriteProduct":"Smartphone"},
+        {"isActive":false,"name":"Liam Chen","password":"liam789","age":26,"interest":"Fashion","country":"Canada","city":"Vancouver","lastLoginDate":"2023-08-31","lastLoginTime":"18:40","favoriteProduct":"Designer Handbag"},
+        {"isActive":true,"name":"Elena Fernandez","password":"elena123","age":29,"interest":"Tech Gadgets","country":"Spain","city":"Valencia","lastLoginDate":"2023-09-01","lastLoginTime":"10:15","favoriteProduct":"Wireless Earbuds"},
+        {"isActive":true,"name":"Oliver Johnson","password":"oliver456","age":34,"interest":"Home Decor","country":"USA","city":"Chicago","lastLoginDate":"2023-08-30","lastLoginTime":"15:40","favoriteProduct":"Home Lighting"},
+        {"isActive":false,"name":"Luna Martinez","password":"luna789","age":23,"interest":"Sports & Fitness","country":"Mexico","city":"Mexico City","lastLoginDate":"2023-09-02","lastLoginTime":"14:05","favoriteProduct":"Yoga Mat"},
+        {"isActive":true,"name":"Ethan Wang","password":"ethan123","age":27,"interest":"Books & Literature","country":"Canada","city":"Toronto","lastLoginDate":"2023-08-29","lastLoginTime":"12:20","favoriteProduct":"Bestseller Novel"},
+        {"isActive":true,"name":"Isabella Davis","password":"isabella456","age":32,"interest":"Beauty & Personal Care","country":"USA","city":"Houston","lastLoginDate":"2023-08-27","lastLoginTime":"08:55","favoriteProduct":"Skincare Set"},
+        {"isActive":false,"name":"Liam Chen","password":"liam789","age":26,"interest":"Travel & Adventure","country":"Canada","city":"Vancouver","lastLoginDate":"2023-08-31","lastLoginTime":"18:40","favoriteProduct":"Travel Backpack"}];
+
+    // Fail loud: a constructor that throws must not leave the page looking like a grid that simply
+    // has not rendered yet. `awaitFixtureBuilt()` rethrows the captured message.
+    try {
+      window.hot = new Handsontable(container, {
+        data: complexData,
+        layoutDirection: window.htDirection,
+        columns: [
+          {
+            data: 'isActive',
+            type: 'checkbox',
+            label: {
+              position: 'after',
+              property: 'isActive',
+            },
+          },
+          { data: 'name' },
+          { data: 'password', type: 'password' },
+          { data: 'age', type: 'numeric' },
+          {
+            data: 'interest',
+            editor: 'select',
+            selectOptions: [
+              'Electronics',
+              'Fashion',
+              'Tech Gadgets',
+              'Home Decor',
+              'Sports & Fitness',
+              'Books & Literature',
+              'Beauty & Personal Care',
+              'Food & Cooking',
+              'Travel & Adventure',
+              'Art & Collectibles',
+            ],
+          },
+          {
+            data: 'favoriteProduct',
+            type: 'handsontable',
+            handsontable: {
+              colHeaders: ['Name', 'Category', 'Price'],
+              autoColumnSize: true,
+              data: [
+                ['iPhone 13 Pro', 'Smartphone', 999.99],
+                ['MacBook Air', 'Laptop', 1099.99],
+                ['Apple Watch Series 7', 'Smartwatch', 399.99],
+                ['iPad Pro', 'Tablet', 799.99],
+                ['Fitbit Charge 5', 'Fitness Tracker', 149.95],
+                ['Urban Decay Makeup Set', 'Makeup Set', 49.0],
+                ['Osprey Farpoint 40 Travel Backpack', 'Travel Backpack', 160.0],
+                ['Starry Night by Vincent van Gogh Reproduction', 'Artwork', 120.0],
+                ['Samsung Galaxy S21', 'Smartphone', 799.99],
+                ['Louis Vuitton MM Monogram Canvas', 'Handbag', 1490.0],
+                ['Apple AirPods Pro', 'Wireless Earbuds', 249.0],
+                ['Philips Hue Smart Bulb', 'Smart Home', 149.99],
+                ['Manduka PRO Yoga Mat', 'Yoga Accessories', 120.0],
+                ['Estée Lauder Skincare Set', 'Skincare Set', 99.0],
+                ['The Great Gatsby by F. Scott Fitzgerald', 'Book', 9.99],
+              ],
+              getValue() {
+                const selection = this.getSelectedLast();
+
+                // Get the manufacturer name of the clicked row and ignore header
+                // coordinates (negative values)
+                return this.getDataAtCell(selection[0], selection[1]);
+              },
+            },
+          },
+          {
+            data: 'country',
+            type: 'autocomplete',
+            source: [
+              'USA',
+              'Canada',
+              'UK',
+              'Australia',
+              'Spain',
+              'Japan',
+              'Brazil',
+              'South Korea',
+              'Mexico',
+            ],
+            strict: true,
+            allowInvalid: true,
+          },
+          {
+            data: 'city',
+            type: 'dropdown',
+            source: [
+              'New York',
+              'Toronto',
+              'London',
+              'Sydney',
+              'Los Angeles',
+              'Barcelona',
+              'Tokyo',
+              'Manchester',
+              'Sao Paulo',
+              'Miami',
+              'Madrid',
+              'Seoul',
+              'Vancouver',
+              'Valencia',
+              'Chicago',
+              'Mexico City',
+              'Houston',
+            ],
+          },
+          {
+            data: 'lastLoginDate',
+            type: 'date',
+            dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' },
+          },
+          { data: 'lastLoginTime', type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit' } },
+          {},
+        ],
+        colHeaders: true,
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          [
+            'H',
+            { label: 'I', colspan: 2 },
+            { label: 'J', colspan: 2 },
+            { label: 'K', colspan: 2 },
+            { label: 'L', colspan: 2 },
+            'M',
+          ],
+          [
+            'Active',
+            'Name',
+            'Password',
+            'Age',
+            'Interest',
+            'Favorite Product',
+            'Country',
+            'City',
+            'Last Login (date)',
+            'Last Login (time)',
+            '(empty)',
+          ],
+        ],
+        mergeCells: [{ row: 1, col: 4, rowspan: 2, colspan: 2 }],
+        nestedRows: true,
+        fixedRowsTop: 1,
+        fixedRowsBottom: 1,
+        fixedColumnsStart: 1,
+        collapsibleColumns: true,
+        filters: true,
+        dropdownMenu: true,
+        contextMenu: true,
+        hiddenColumns: {
+          indicators: true,
+        },
+        hiddenRows: {
+          indicators: true,
+        },
+        comments: true,
+        cell: [{ row: 1, col: 1, comment: { value: 'Hello world!' } }],
+        multiColumnSorting: true,
+        manualColumnMove: true,
+        manualColumnResize: true,
+        manualRowMove: true,
+        manualRowResize: true,
+        autoWrapRow: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      window.htBuildError = String(error && error.stack || error);
+    }
+  </script>
+</body>
+</html>

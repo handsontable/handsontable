@@ -10,7 +10,7 @@ import { clampFixedColumnsEnd } from '../../3rdparty/walkontable/src/settings/fi
  * @param {number} fixedColumnsStart The number of frozen start columns to clamp against.
  * @returns {number} Zero without `fixedColumnsEnd`.
  */
-function getEndBandCount(hot: HotInstance, fixedColumnsStart: number): number {
+export function getEndBandCount(hot: HotInstance, fixedColumnsStart: number): number {
   return clampFixedColumnsEnd(hot.getSettings().fixedColumnsEnd, fixedColumnsStart, hot.countCols());
 }
 

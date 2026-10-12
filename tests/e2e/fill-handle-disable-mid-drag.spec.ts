@@ -13,8 +13,8 @@ test.describe('fill handle disabled mid-drag', () => {
 
   const DATA = Array.from({ length: 8 }, (_, row) => [`A${row + 1}`, null, null, null]);
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new SelectionFeaturesPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new SelectionFeaturesPage(page, theme, bundle);
     await grid.goto();
     await grid.initGrid({ data: DATA });
   });

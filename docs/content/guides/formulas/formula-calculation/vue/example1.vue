@@ -24,12 +24,13 @@ const data2 = [
   ['Number of sheets in this workbook', '=SHEETS()'],
 ];
 
-// create an external HyperFormula instance, initialized with the
-// `'internal-use-in-handsontable'` license key, and shared by both grids.
+// create an external HyperFormula instance shared by both grids.
 // `markRaw` prevents Vue from wrapping the instance in a reactive proxy.
 const hyperformulaInstance = markRaw(
   HyperFormula.buildEmpty({
-    licenseKey: 'internal-use-in-handsontable',
+    // this demo uses the GPLv3 key,
+    // use your own HyperFormula license key in your app
+    licenseKey: 'gpl-v3',
   })
 );
 

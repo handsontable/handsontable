@@ -37,7 +37,7 @@ An assertion weakened or deleted with a race as the reason ("held 15/15 locally"
 
 ### "Passes on retry" and "passes in isolation" are not determinism evidence
 
-- Before calling a test deterministic, run it focused across every leg: `cd tests && npx playwright test e2e/<spec>.spec.ts --repeat-each 20` (no `--project` filter, so all six theme × bundle legs run). The hidden-init migration needed ~700 such runs to expose three rAF-starvation timeouts.
+- Before calling a test deterministic, run it focused across every leg: `cd tests && npx playwright test e2e/<spec>.spec.ts --repeat-each 20` (no `--project` filter, so all six theme × bundle legs run). For a test tagged `@cross-browser`, repeat it on the engine legs too: `npx playwright test --config playwright-engines.config.ts e2e/<spec>.spec.ts --repeat-each 20`. The hidden-init migration needed ~700 such runs to expose three rAF-starvation timeouts.
 - A test failing about half the time under that load on unchanged develop reports a product race: file a product ticket and keep the assertion.
 
 ## Bug fixes: failing test first

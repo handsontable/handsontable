@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the column range and the focus of a Shift+click on nested headers, so both are measured from the header or cell the range started from.",
+  "type": "fixed",
+  "issueOrPR": 13786,
+  "breaking": false,
+  "framework": "none"
+}

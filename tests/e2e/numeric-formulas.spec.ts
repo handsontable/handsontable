@@ -12,8 +12,8 @@ import { NumericGridPage } from '../fixtures/pages/NumericGridPage';
 test.describe('numeric preserved literal with formulas', () => {
   let grid: NumericGridPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new NumericGridPage(page, theme, 'numeric-formulas');
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new NumericGridPage(page, theme, bundle, 'numeric-formulas');
     await grid.goto();
   });
 

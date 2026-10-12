@@ -292,13 +292,20 @@ const licenseKey = `This is a Handsontable license key for Acme Corp, issued on 
 
 Keys issued in the 25-character format keep working without any change.
 
-The checksum protects the whole key: the text and the bracketed block. If you edit the text, remove
-it, or paste the bracketed block alone, the key is invalid. The checksum ignores spaces and line
-breaks in the text, so you can rewrap it, paste it through an email client, or put the whole key on
-one line, and the key still works. Line breaks saved as the characters `\n`, as some `.env` files
-and CI secret fields store them, work too. Keep the block itself on one line, and end the key
-there - only whitespace, or line breaks saved as `\n`, may follow the block. Space and line
-breaks around the whole key are trimmed for you, so a key pasted with a trailing newline still works.
+Pass the key unchanged. A newer key protects its text as well as the bracketed block, so editing
+the text, removing it, pasting the bracketed block alone, or adding text after the block makes it
+invalid. Keys issued earlier keep working the way they did in Handsontable 18.1.
+Spaces and line breaks are ignored, in the text and inside the block, so you can rewrap the key,
+paste it out of an email that broke the block across lines, or put the whole key on one line, and the
+key still works. Line breaks saved as the characters `\n`, as some `.env` files and CI secret fields
+store them, work too. End the key with the block - only whitespace, or line breaks saved as `\n`,
+may follow it. Space and line breaks around the whole key are trimmed for you, so a key pasted with a
+trailing newline still works.
+
+Handsontable 18.1 does not ignore line breaks inside the block. If you use 18.1, make sure the block
+is on one line, with no spaces in it. Later versions check newer keys more strictly than 18.1, so
+before you upgrade from 18.1, make sure you pass the whole key, exactly as you received it - not
+only the bracketed block, and with nothing after it.
 
 When you store the key in an environment variable, a `.env` file, or a CI secret, put it on one
 line. In a `.env` file, also wrap the key in single quotes (`'...'`), or in backticks if the key text

@@ -55,8 +55,8 @@ test.describe('selection of a merged cell across the frozen panes', () => {
     expect(Math.abs(fillHandles[0].dy)).toBeLessThanOrEqual(CORNER_TOLERANCE);
   }
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new SelectionFeaturesPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new SelectionFeaturesPage(page, theme, bundle);
     await grid.goto();
   });
 

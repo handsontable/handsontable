@@ -168,6 +168,25 @@ test.describe('iPadOS frozen-top corner reserve', () => {
 
     await expect.poll(() => grid.topOverlayHolderOverhang()).toBe(0);
   });
+
+  test('keeps a frozen-row bottom handle while its column is on screen, and only then', async () => {
+    // The top overlay draws a frozen-row selection's handles only for a column the viewport shows.
+    // Its bottom handle must survive that gate while the column is on screen, and stop being
+    // reachable once the column scrolls behind the frozen pane.
+    await grid.goto({ frozen: true, cols: 'wide' });
+    await grid.selectRange(0, 1, 0, 1);
+
+    await expect.poll(() => grid.reachableBottomHandles()).toEqual(['ht_clone_top', 'ht_master']);
+
+    await grid.scrollColumnEndUnderFrozenPane(1);
+
+    await expect.poll(() => grid.reachableBottomHandles()).toEqual([]);
+
+    // Back on screen, so a stale visible-range snapshot would keep the handle hidden.
+    await grid.scrollColumnIntoView(1);
+
+    await expect.poll(() => grid.reachableBottomHandles()).toEqual(['ht_clone_top', 'ht_master']);
+  });
 });
 
 test.describe('iPadOS range handles on a merged cell across the freeze lines', () => {

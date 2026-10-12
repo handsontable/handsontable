@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - column moves across the freeze line</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document. An ABSENT param
+    // keeps the default (main / plain UMD); an unknown value THROWS instead of
+    // falling back, so a typo in the project config is a red leg.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+    .grid { margin-bottom: 2rem; }
+  </style>
+</head>
+<body>
+  <!--
+    Fixture for moving columns across the freeze line set by ManualColumnFreeze, and for
+    `manualColumnFreeze: { restoreColumnPosition: true }`.
+
+    Every grid is wide enough to show all eight columns, so a header is always rendered and
+    a drag never has to scroll. Headers carry data-testid="header-<name>" so a spec can
+    address a column by name whichever overlay draws it.
+
+      default      manualColumnFreeze: true (the shipped default behavior)
+      restore      manualColumnFreeze: { restoreColumnPosition: true }
+      restore-end  the same, with fixedColumnsEnd: 1, and col1 moved into that end band at init, so the band
+                   holds a column that comes before every other column in data order
+      window       manualColumnFreeze: true in a grid the PAGE scrolls sideways (no width, columns wider than the
+                   viewport) and that sits 60px from the page edge, the case where the scroll arithmetic and the
+                   grid's offset in the page meet
+  -->
+  <div class="grid" data-testid="window" style="margin-left: 60px"></div>
+  <div class="grid" data-testid="default"></div>
+  <div class="grid" data-testid="restore"></div>
+  <div class="grid" data-testid="restore-end"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const headers = ['col1', 'col2', 'col3', 'col4', 'col5', 'col6', 'col7', 'col8'];
+    const configs = {
+      default: { manualColumnFreeze: true },
+      restore: { manualColumnFreeze: { restoreColumnPosition: true } },
+      window: { manualColumnFreeze: true, width: undefined, colWidths: 260 },
+      'restore-end': {
+        manualColumnFreeze: { restoreColumnPosition: true },
+        fixedColumnsEnd: 1,
+      },
+    };
+
+    window.hots = {};
+
+    Object.entries(configs).forEach(([id, config]) => {
+      const container = document.querySelector(`[data-testid="${id}"]`);
+
+      container.className = `grid ht-theme-${window.htTheme}`;
+
+      try {
+        window.hots[id] = new Handsontable(container, {
+          data: Handsontable.helper.createSpreadsheetData(4, headers.length),
+          colHeaders: headers,
+          rowHeaders: true,
+          colWidths: 80,
+          width: 760,
+          height: 'auto',
+          contextMenu: true,
+          manualColumnMove: true,
+          undo: true,
+          afterGetColHeader(col, TH) {
+            if (col >= 0) {
+              TH.setAttribute('data-testid', `header-${this.getColHeader(col)}`);
+            }
+          },
+          licenseKey: 'non-commercial-and-evaluation',
+          ...config,
+        });
+      } catch (error) {
+        container.setAttribute('data-init-error', String(error));
+      }
+    });
+
+    // Put col1 into the end band of `restore-end`.
+    if (window.hots['restore-end']) {
+      window.hots['restore-end'].columnIndexMapper.setIndexesSequence([1, 2, 3, 4, 5, 6, 7, 0]);
+      window.hots['restore-end'].render();
+    }
+  </script>
+</body>
+</html>

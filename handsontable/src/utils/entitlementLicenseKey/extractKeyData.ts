@@ -1,12 +1,11 @@
 import type { EntitlementKeyData, ProductEntitlement } from './types';
-import { CHECKSUM_LENGTH, DATE_FIELDS } from './constants';
+import { CHECKSUM_LENGTH, DATE_FIELDS, PROSE_DIGEST_LENGTH } from './constants';
 import { sha512 } from './sha512';
 import { base64ToString, stringToUtf8Bytes, parseIsoDateToTimestamp } from './encoding';
 
 /**
- * The alphabet of the encoded payload - URL-safe base64 without padding. The
- * checksum (lowercase hex) is a subset of it, which is what lets the two be
- * split by a fixed length from the right.
+ * The alphabets of the two parts of the machine-readable block. The second
+ * part has a fixed length, so the two are split from the right.
  *
  * @type {RegExp}
  */
@@ -14,10 +13,11 @@ const ENCODED_PAYLOAD = /^[A-Za-z0-9\-_]+$/;
 const CHECKSUM = /^[0-9a-f]+$/;
 
 /**
- * The whitespace removed from the prose before it is checksummed: TAB, LF, VT,
- * FF, CR, SPACE, NO-BREAK SPACE, OGHAM SPACE MARK, the U+2000-U+200A spaces,
- * LINE SEPARATOR, PARAGRAPH SEPARATOR, NARROW NO-BREAK SPACE, MEDIUM
- * MATHEMATICAL SPACE, IDEOGRAPHIC SPACE, and the BOM.
+ * The whitespace the reader ignores, in the text and inside the block: TAB,
+ * LF, VT, FF, CR, SPACE, NO-BREAK SPACE,
+ * OGHAM SPACE MARK, the U+2000-U+200A spaces, LINE SEPARATOR, PARAGRAPH
+ * SEPARATOR, NARROW NO-BREAK SPACE, MEDIUM MATHEMATICAL SPACE, IDEOGRAPHIC
+ * SPACE, and the BOM.
  *
  * Listed explicitly instead of `\s`, whose set has changed between JavaScript
  * engines (U+180E) and differs in other languages (U+0085), so it matches the
@@ -29,7 +29,7 @@ const PROSE_WHITESPACE = /[\t\n\v\f\r \u00a0\u1680\u2000-\u200a\u2028\u2029\u202
 
 /**
  * A line break or tab that was saved as text - a backslash followed by "n",
- * "r", or "t" - also removed before the prose is checksummed.
+ * "r", or "t" - also ignored.
  *
  * Several places a key is stored keep a line break that way rather than as a
  * real one: a single-quoted or unquoted `.env` value, Docker's `--env-file`,
@@ -43,9 +43,23 @@ const PROSE_WHITESPACE = /[\t\n\v\f\r \u00a0\u1680\u2000-\u200a\u2028\u2029\u202
 const ESCAPED_WHITESPACE = /\\[nrt]/g;
 
 /**
- * Brings the human-readable text of a key to the form the checksum covers:
- * every escaped line break or tab (`\n`, `\r`, `\t` saved as text) and every
- * whitespace character removed, then Unicode NFC.
+ * Removes every escaped line break or tab (`\n`, `\r`, `\t` saved as text) and
+ * then every whitespace character, in that order.
+ *
+ * The block is one long word, so a mail client or an editor that wraps the key
+ * can break it across lines, and a `.env` file can save that line break as the
+ * text `\n`. The block's alphabet has neither, so removing them cannot change
+ * a genuine block.
+ *
+ * @param {string} text The text to remove the whitespace from.
+ * @returns {string}
+ */
+function removeWhitespace(text: string): string {
+  return text.replace(ESCAPED_WHITESPACE, '').replace(PROSE_WHITESPACE, '');
+}
+
+/**
+ * Brings the human-readable text of a key to the form the key protects.
  *
  * Only the whitespace, its escaped forms, and the Unicode composition are
  * ignored. A mail client that rewraps the text (also between two CJK
@@ -61,21 +75,30 @@ const ESCAPED_WHITESPACE = /\\[nrt]/g;
 export function canonicalizeProse(prose: string): string {
   // NFC runs last: a line break between a letter and its combining mark (an
   // NFD copy rewrapped there) has to be gone before the two can compose.
-  return prose.replace(ESCAPED_WHITESPACE, '').replace(PROSE_WHITESPACE, '').normalize('NFC');
+  return removeWhitespace(prose).normalize('NFC');
 }
 
 /**
- * Computes the checksum of an entitlement key: the SHA-512 (lowercase hex) of
- * the UTF-8 bytes of the canonical prose, a single "\n" and the encoded
- * payload. The "\n" cannot occur in either part, so the boundary between the
- * two is unambiguous. Exported for the test key builder.
+ * Computes the checksum that closes the block. It must match the canonical
+ * reader in every key format, so Handsontable 18.1 keeps reading newer keys.
+ * Exported for the test key builder.
  *
- * @param {string} canonicalProse The prose, already passed through `canonicalizeProse`.
- * @param {string} encodedPayload The base64url payload.
+ * @param {string} encodedPayload The encoded payload.
  * @returns {string}
  */
-export function computeChecksum(canonicalProse: string, encodedPayload: string): string {
-  return sha512(stringToUtf8Bytes(`${canonicalProse}\n${encodedPayload}`));
+export function computePayloadChecksum(encodedPayload: string): string {
+  return sha512(stringToUtf8Bytes(encodedPayload));
+}
+
+/**
+ * Computes the value a current key stores for its text. Exported for the test
+ * key builder.
+ *
+ * @param {string} canonicalProse The text, already passed through `canonicalizeProse`.
+ * @returns {string}
+ */
+export function computeProseDigest(canonicalProse: string): string {
+  return sha512(stringToUtf8Bytes(canonicalProse)).slice(0, PROSE_DIGEST_LENGTH);
 }
 
 /**
@@ -120,6 +143,44 @@ function isNonNegativeInteger(value: unknown): value is number {
  */
 function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every(item => typeof item === 'string');
+}
+
+/**
+ * Freezes the value and everything nested in it. The read result is shared
+ * between callers (see the memo below), so a caller that sorted or pushed into
+ * it would silently rewrite what the next caller reads.
+ *
+ * It walks with an explicit stack, not by recursion. An unknown extra field is
+ * kept as it is, and a key can nest one thousands of levels deep - recursion
+ * would then overflow the call stack and throw out of the reader, where a key
+ * is only ever allowed to read as data or as `null`.
+ *
+ * @param {*} value The value to freeze.
+ * @returns {*}
+ */
+function deepFreeze<T>(value: T): T {
+  const pending: unknown[] = [value];
+
+  while (pending.length > 0) {
+    const current = pending.pop();
+
+    if (isFreezable(current)) {
+      Object.freeze(current);
+      Object.keys(current).forEach(key => pending.push(current[key]));
+    }
+  }
+
+  return value;
+}
+
+/**
+ * Narrows an unknown value to an object (or array) that is not frozen yet.
+ *
+ * @param {*} value The value to check.
+ * @returns {boolean}
+ */
+function isFreezable(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Object.isFrozen(value);
 }
 
 /**
@@ -207,6 +268,49 @@ function normalizeProductEntry(entry: unknown): ProductEntitlement | null {
 }
 
 /**
+ * Reads the format version of a payload. Returns `null` for a value no
+ * generator writes. A version newer than this reader knows is accepted, so a
+ * build already in the field keeps reading newer keys.
+ *
+ * @param {object} payload The decoded payload.
+ * @returns {number|null}
+ */
+function readFormatVersion(payload: Record<string, unknown>): number | null {
+  // Own properties only, so a value another script put on `Object.prototype`
+  // cannot change how a key is read.
+  if (!hasOwn(payload, 'v')) {
+    return 1;
+  }
+  if (!isNonNegativeInteger(payload.v) || payload.v < 2) {
+    return null;
+  }
+
+  return payload.v;
+}
+
+/**
+ * Checks that the text of a current key is intact and that nothing but
+ * whitespace follows its block. A key always states its terms, so the bare
+ * block is rejected. A key in the earlier format is read the way Handsontable
+ * 18.1 reads it.
+ *
+ * @param {object} payload The decoded payload.
+ * @param {string} prose The text in front of the block.
+ * @param {string} textAfterBlock The text after the block.
+ * @returns {boolean}
+ */
+function coversItsText(payload: Record<string, unknown>, prose: string, textAfterBlock: string): boolean {
+  if (canonicalizeProse(textAfterBlock) !== '') {
+    return false;
+  }
+
+  const canonicalProse = canonicalizeProse(prose);
+
+  return canonicalProse !== '' && hasOwn(payload, 'prose') && typeof payload.prose === 'string' &&
+    computeProseDigest(canonicalProse) === payload.prose;
+}
+
+/**
  * Reads and verifies one key. Split out from the memoized public entry point so
  * the memo can wrap every exit path uniformly.
  *
@@ -228,22 +332,7 @@ function readEntitlementKeyData(licenseKey: string): EntitlementKeyData | null {
     return null;
   }
 
-  // The block closes the key. Text after it would be words the checksum does
-  // not cover, so only whitespace may follow - judged by the same rule as the
-  // prose, so a trailing line break saved as text ("\n") is allowed too.
-  if (canonicalizeProse(licenseKey.slice(blockEnd + 1)) !== '') {
-    return null;
-  }
-
-  const canonicalProse = canonicalizeProse(licenseKey.slice(0, blockStart));
-
-  // A key always states its terms. Without this check, a bare block whose
-  // checksum was computed over empty prose would read as valid.
-  if (canonicalProse === '') {
-    return null;
-  }
-
-  const content = licenseKey.slice(blockStart + 1, blockEnd);
+  const content = removeWhitespace(licenseKey.slice(blockStart + 1, blockEnd));
 
   if (content.length <= CHECKSUM_LENGTH) {
     return null;
@@ -255,7 +344,7 @@ function readEntitlementKeyData(licenseKey: string): EntitlementKeyData | null {
   if (!ENCODED_PAYLOAD.test(encodedPayload) || !CHECKSUM.test(checksum)) {
     return null;
   }
-  if (computeChecksum(canonicalProse, encodedPayload) !== checksum) {
+  if (computePayloadChecksum(encodedPayload) !== checksum) {
     return null;
   }
 
@@ -274,6 +363,15 @@ function readEntitlementKeyData(licenseKey: string): EntitlementKeyData | null {
   }
 
   if (!isPlainObject(payload) || !isPlainObject(payload.products)) {
+    return null;
+  }
+
+  const version = readFormatVersion(payload);
+
+  if (version === null) {
+    return null;
+  }
+  if (version >= 2 && !coversItsText(payload, licenseKey.slice(0, blockStart), licenseKey.slice(blockEnd + 1))) {
     return null;
   }
 
@@ -297,13 +395,13 @@ function readEntitlementKeyData(licenseKey: string): EntitlementKeyData | null {
     return null;
   }
 
-  return { products };
+  return deepFreeze({ version, products });
 }
 
 // The license key is read twice per grid init - the bottom bar
 // (`initLicenseNotification`) and the branding UI (`initLicenseBranding`) each resolve the license
-// state - and reading runs the full SHA-512 + base64 + JSON parse. A one-entry memo on the key makes
-// the second read free. The returned data is treated as read-only by every caller, so sharing one
+// state - and reading runs the full verification and decoding. A one-entry memo on the key makes
+// the second read free. The returned data is frozen, as in the canonical reader, so sharing one
 // object is safe.
 let memoizedKey: string | null = null;
 let memoizedData: EntitlementKeyData | null = null;
@@ -311,21 +409,25 @@ let memoizedData: EntitlementKeyData | null = null;
 /**
  * Extracts the machine-readable data from an entitlement license key.
  *
- * The checksum is verified first, so the returned data is guaranteed to belong
- * to an intact key. A malformed or tampered key reads as `null` - reporting an
+ * The key is verified first, so the returned data is guaranteed to belong to
+ * an intact key. A malformed or tampered key reads as `null` - reporting an
  * invalid key is the caller's job, not this function's.
  *
- * The checksum covers the prose in front of the block as well as the block, so
- * the caller has to pass the whole key. A key whose prose was edited or removed
- * (the bare `[...]` block) reads as `null`, and so does one with anything but
- * whitespace after the block. The prose is still never parsed, and its
+ * A current key protects its text as well: edited or removed text (the bare
+ * `[...]` block), or anything but whitespace after the block, reads as `null`.
+ * A key in the earlier format reads the way Handsontable 18.1 reads it. The
+ * verification rules are those of the canonical reader in the private
+ * `license-key` repository.
+ *
+ * The caller passes the whole key. The text is never parsed, and its
  * whitespace and Unicode composition are ignored, so rewrapped or re-pasted
- * prose still validates. The block itself has to be intact: its alphabet has
- * no whitespace, so a newline inside it makes the key unreadable, exactly as it
- * does for the key generator.
+ * text still validates. Whitespace inside the block is ignored too, so a
+ * block wrapped by a mail client still validates.
  *
  * Unknown products, capability tokens and flags are all tolerated, so nothing
  * about reading a key depends on the commercial vocabulary.
+ *
+ * The result is frozen. Copy an array before sorting or changing it.
  *
  * @param {string} licenseKey The license key to extract the data from.
  * @returns {EntitlementKeyData|null}

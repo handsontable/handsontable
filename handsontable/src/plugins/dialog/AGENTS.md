@@ -152,6 +152,11 @@ its container was not.)
 ## Testing
 
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='dialog'`
+- `npm --prefix tests run test:e2e -- e2e/dialog-states.spec.ts`: the states the visual suite's
+  `/dialog-demo` photographed, from DOM rects on every theme and bundle (the dialog over the grid's root,
+  the solid and semi-transparent backdrops, the content box's fill, the confirm template's slots and
+  OK button, the focus moves around a dialog holding inputs, RTL). Two captures of the dialog's look
+  stay under `visual-tests/tests/js-only/dialog/`, with an RTL look check.
 
 `__tests__/` splits into `hooks/`, `methods/`, `options/`, `keyboardShortcuts/`, `plugins/` and a separate
 `editor.spec.js` — a dialog change usually touches the keyboard and editor specs too.

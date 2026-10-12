@@ -34,3 +34,13 @@ Current recipes:
 - [Agent-driven grid with A2UI](@/recipes/real-time/a2ui-agent-grid/a2ui-agent-grid.md)
 
 </div>
+
+::: only-for javascript
+
+<div class="boxes-list">
+
+- [Add AI-classified columns with Jev](@/recipes/real-time/ai-columns-jev/ai-columns-jev.md)
+
+</div>
+
+:::

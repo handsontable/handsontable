@@ -8,7 +8,9 @@ registerAllModules();
 
 // One engine, shared by every sheet of the workbook.
 const engine = HyperFormula.buildEmpty({
-  licenseKey: 'internal-use-in-handsontable',
+  // this demo uses the GPLv3 key,
+  // use your own HyperFormula license key in your app
+  licenseKey: 'gpl-v3',
 });
 
 const ratesData = [

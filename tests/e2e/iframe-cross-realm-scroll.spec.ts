@@ -97,6 +97,13 @@ test.describe('cross-realm width-only grid: the engine must agree with itself ab
   // cross-realm holder failed that, so the sync was skipped for the whole key press and the top
   // clone kept the band it had before the scroll. The key is released before the read, because
   // nothing re-syncs on keyup: the misalignment is what the user is left with.
+  //
+  // The press moves the holder at once, but the browser dispatches the holder's `scroll` event, and
+  // the engine syncs the clones from it, at the start of the next frame. The key therefore stays
+  // down for two frames: released earlier, the event reaches an engine whose key is already up, and
+  // the guard this test is about never runs. And the read comes after them: one made in between
+  // sees the master a column ahead of a clone that is about to follow it (64px on `classic`),
+  // which failed 6 of 150 runs, 25 on each of the six legs, when the test read right after the press.
   test('keeps the top clone aligned while an arrow key scrolls the holder', async () => {
     const columns = (await grid.renderedColumns()).master;
     const row = (await grid.masterRowBand()).first + 3;
@@ -104,8 +111,13 @@ test.describe('cross-realm width-only grid: the engine must agree with itself ab
     // The last-but-one rendered column: one step right lands on a partly visible column, and
     // bringing it fully into view is what scrolls the holder.
     await grid.clickMasterCell(row, columns[columns.length - 2]);
+
+    // The click can leave the holder scrolled already, so the press has to move it past this.
+    const before = (await grid.holderState()).scrollLeft;
+
     await grid.page.keyboard.down('ArrowRight');
-    await expect.poll(async () => (await grid.holderState()).scrollLeft).toBeGreaterThan(0);
+    await grid.waitForFrames();
+    await expect.poll(async () => (await grid.holderState()).scrollLeft).toBeGreaterThan(before);
     await grid.page.keyboard.up('ArrowRight');
 
     const alignment = await grid.columnAlignment();
