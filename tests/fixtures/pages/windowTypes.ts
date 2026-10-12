@@ -242,6 +242,7 @@ export interface FixtureHotInstance {
   getColWidth(col: number): number;
   scrollViewportTo(options: { row?: number, col?: number, verticalSnap?: string, horizontalSnap?: string }): boolean;
   selectCells(ranges: number[][]): boolean;
+  selectRows(fromRow: number, toRow: number): boolean;
   selectColumns(fromCol: number, toCol: number): boolean;
   deselectCell(): void;
   getSelectedRangeLast(): FixtureCellRange;

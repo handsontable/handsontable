@@ -1,6 +1,6 @@
 import ExcelJS from 'exceljs';
 import { test, expect } from '../fixtures/test';
-import { awaitBundle } from '../fixtures/bundle';
+import { XlsxExportMenuPage } from '../fixtures/pages/XlsxExportMenuPage';
 
 /**
  * Export > To Excel, driven through the real context menu. The item shows on every grid that sets
@@ -12,34 +12,21 @@ for (const engine of ['exceljs', 'native'] as const) {
     test('downloads the selected rows as a workbook with the header row and the frozen pane', async ({
       page, theme, bundle,
     }) => {
-      await page.goto(`/tests/fixtures/demo/xlsx-export-menu.html?theme=${theme}&bundle=${bundle}&engine=${engine}`);
-      await awaitBundle(page);
+      const exportMenu = new XlsxExportMenuPage(page, theme, bundle, engine);
 
+      await exportMenu.goto();
       // The page loads ExcelJS on both legs, so count the worksheets it creates: the file below is
       // read back the same way whichever engine wrote it, and only this tells the legs apart.
-      await page.evaluate(() => {
-        const { prototype } = (window as any).ExcelJS.Workbook;
-        const addWorksheet = prototype.addWorksheet;
+      await exportMenu.countExcelJsWorksheets();
+      await exportMenu.selectRows(0, 1);
 
-        (window as any).addWorksheetCalls = 0;
-        prototype.addWorksheet = function(...args: unknown[]) {
-          (window as any).addWorksheetCalls += 1;
-
-          return addWorksheet.apply(this, args);
-        };
-      });
-      await page.evaluate(() => (window as any).hot.selectRows(0, 1));
       // Inside the selection, or the right-click replaces it. Row 1 is frozen, so the cell the user
       // sees is the one in the top overlay clone.
-      await page.locator('.ht_clone_top').getByTestId('cell-1-1').click({ button: 'right' });
-      await page.locator('.htContextMenu td', { hasText: 'Export' }).hover();
-
-      const toExcel = page.locator('.htContextMenuSub_Export td', { hasText: 'To Excel' });
-      const [download] = await Promise.all([page.waitForEvent('download'), toExcel.click()]);
+      const download = await exportMenu.exportToExcelFromFrozenCell(1, 1);
 
       expect(download.suggestedFilename()).toMatch(/\.xlsx$/);
 
-      const addWorksheetCalls = await page.evaluate(() => (window as any).addWorksheetCalls);
+      const addWorksheetCalls = await exportMenu.addWorksheetCalls();
 
       if (engine === 'exceljs') {
         expect(addWorksheetCalls).toBeGreaterThan(0);

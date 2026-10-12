@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures/test';
-import { awaitBundle } from '../fixtures/bundle';
+import { FormulasValidatedWritePage } from '../fixtures/pages/FormulasValidatedWritePage';
 
 /**
  * A formula typed into a validated column while a hook updates the settings in the same task. The
@@ -10,17 +10,12 @@ import { awaitBundle } from '../fixtures/bundle';
  */
 test.describe('Formulas: a validated write across a settings update', () => {
   test('shows the result of a formula typed in the editor, not its raw text', async ({ page, theme, bundle }) => {
-    await page.goto(`/tests/fixtures/demo/formulas-validated-write.html?theme=${theme}&bundle=${bundle}`);
-    await awaitBundle(page);
+    const grid = new FormulasValidatedWritePage(page, theme, bundle);
 
-    const cell = page.locator('.ht_master').getByTestId('cell-2-0');
+    await grid.goto();
+    await grid.typeInEditor(2, 0, '=SUM(A1:A2)');
 
-    await cell.click();
-    await page.keyboard.press('Enter');
-    await page.keyboard.type('=SUM(A1:A2)');
-    await page.keyboard.press('Enter');
-
-    await expect(cell).toHaveText('3');
-    expect(await page.evaluate(() => (window as any).hot.getSourceDataAtCell(2, 0))).toBe('=SUM(A1:A2)');
+    await expect(grid.cell(2, 0)).toHaveText('3');
+    expect(await grid.sourceDataAtCell(2, 0)).toBe('=SUM(A1:A2)');
   });
 });
