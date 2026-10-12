@@ -823,6 +823,15 @@ describe('MetaManager', () => {
         .toBe(getCellType('numeric').editor);
     });
 
+    it('should let a grid-level "type" supply its editor when `editor: true` comes with it', () => {
+      const metaManager = new MetaManager(null, { editor: false });
+
+      metaManager.updateGlobalMeta({ type: 'numeric', editor: true });
+
+      expect(metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 }).editor)
+        .toBe(getCellType('numeric').editor);
+    });
+
     // A grid-level custom type that declares `editor: false` supplies a DEFAULT, not the user's
     // policy, so a column's own type still replaces it - the same as it does one layer down.
     it('should let a column "type" replace an `editor: false` that a grid-level "type" supplied', () => {
@@ -841,14 +850,6 @@ describe('MetaManager', () => {
       const metaManager = new MetaManager(null, { type: { renderer: () => {}, editor: 'text' }, editor: false });
 
       metaManager.updateColumnMeta(0, { type: 'numeric' });
-
-      expect(metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 }).editor).toBe(false);
-    });
-
-    it('should keep editing disabled for a "type" declared on a single cell', () => {
-      const metaManager = new MetaManager(null, { editor: false });
-
-      metaManager.setCellMeta(0, 0, 'type', 'numeric');
 
       expect(metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 }).editor).toBe(false);
     });

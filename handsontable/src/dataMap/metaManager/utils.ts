@@ -29,6 +29,14 @@ function canBeOverwritten(propertyName: string, metaObject: Record<string, unkno
 const TYPE_ASSIGNED_EDITOR = new WeakMap<object, unknown>();
 
 /**
+ * The cell meta key that records an `editor: true` written through `setCellMeta()` or the `cell` option.
+ * Those paths store keys one at a time and drop the `true` itself (it names no editor), while the cell's
+ * `type` is expanded later, from `{ type }` alone. The marker is an ordinary recorded key, so it survives
+ * the cache resets that replay user-defined and `cell`-option writes.
+ */
+export const TYPE_EDITOR_REQUESTED_KEY = '_typeEditorRequested';
+
+/**
  * Finds the object in the prototype chain of the meta object that owns the given property.
  *
  * @param {object} metaObject The meta object to start from.
@@ -133,7 +141,9 @@ export function extendByMetaType(
   // An `editor: true` in the same payload asks for the type's editor explicitly, so it opts the meta
   // object back in. `normalizeEditorSetting()` has already dropped that `true` from `settings`, which
   // is why the caller passes it on separately.
-  const keepEditingDisabled = !typeEditorRequested && isEditingDisabled(metaObject);
+  const isTypeEditorRequested = typeEditorRequested ||
+    (hasOwnProperty(metaObject, TYPE_EDITOR_REQUESTED_KEY) && metaObject[TYPE_EDITOR_REQUESTED_KEY] === true);
+  const keepEditingDisabled = !isTypeEditorRequested && isEditingDisabled(metaObject);
 
   objectEach(validType as Record<string, unknown>, (value: unknown, property: string) => {
     if (property === 'editor' && keepEditingDisabled) {

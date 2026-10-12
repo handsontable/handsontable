@@ -1,4 +1,4 @@
-import { extendByMetaType, assert, normalizeEditorSetting } from '../utils';
+import { extendByMetaType, assert, normalizeEditorSetting, TYPE_EDITOR_REQUESTED_KEY } from '../utils';
 import LazyFactoryMap from '../lazyFactoryMap';
 import { extend, hasOwnProperty, objectEach } from '../../../helpers/object';
 import { isDefined } from '../../../helpers/mixed';
@@ -437,13 +437,24 @@ export default class CellMeta {
     // `getEditorInstance()` and, by clearing the key from `_automaticallyAssignedMetaProps`, would
     // also stop `extendByMetaType()` from supplying the type's editor. The bookkeeping entries are
     // cleared too, so an earlier real write does not keep the cell pinned against meta eviction.
+    //
+    // The request itself is kept, though, as a separate recorded key: it is what lets the cell's `type`
+    // supply its editor under a higher-level `editor: false`, and the type is expanded later from
+    // `{ type }` alone, after this `true` is gone. Written through `setMeta`, it lands in the same origin
+    // bucket as this write, so a cache reset replays it.
     if (key === 'editor' && value === true) {
       delete cellMeta[key];
       (cellMeta._persistedMetaProps as Set<string> | undefined)?.delete(key);
       (cellMeta._userDefinedMetaProps as Set<string> | undefined)?.delete(key);
       (cellMeta._cellOptionMetaProps as Set<string> | undefined)?.delete(key);
+      this.setMeta(physicalRow, physicalColumn, TYPE_EDITOR_REQUESTED_KEY, true);
 
       return;
+    }
+
+    // Any other `editor` value replaces an earlier `editor: true`, so its request goes with it.
+    if (key === 'editor') {
+      this.removeMeta(physicalRow, physicalColumn, TYPE_EDITOR_REQUESTED_KEY);
     }
 
     (cellMeta._automaticallyAssignedMetaProps as Set<string> | undefined)?.delete(key);
@@ -519,6 +530,13 @@ export default class CellMeta {
     (cellMeta._cellOptionMetaProps as Set<string> | undefined)?.delete(key);
     (cellMeta._persistedMetaProps as Set<string> | undefined)?.delete(key);
     markCellMetaChanged(cellMeta);
+
+    // Removing `editor` removes an `editor: true` request too (see `setMeta`). The editor the `type`
+    // supplied because of it was deleted above, so the next read expands the type as if it was never
+    // requested.
+    if (key === 'editor') {
+      this.removeMeta(physicalRow, physicalColumn, TYPE_EDITOR_REQUESTED_KEY);
+    }
   }
 
   /**

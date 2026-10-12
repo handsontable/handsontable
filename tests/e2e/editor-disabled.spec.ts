@@ -199,6 +199,76 @@ test.describe('editor: false', () => {
     });
   }
 
+  // The checkbox shortcut consumes Delete for the whole selection, so it must clear the other cells
+  // itself, even when the only checkbox in the selection has no editor and does not change.
+  test('Delete clears the text cells of a selection that holds a checkbox with no editor', async({ page, theme, bundle }) => {
+    const grid = new EditorDisabledPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.selectCell('typed', 0, 0);
+    await grid.call('typed', 'selectCell', 0, 0, 0, 2);
+    await page.keyboard.press('Delete');
+
+    expect(await grid.dataAtCell('typed', 0, 0)).toBeNull();
+    expect(await grid.dataAtCell('typed', 0, 1)).toBeNull();
+    expect(await grid.dataAtCell('typed', 0, 2)).toBe(true);
+  });
+
+  test('a "type" set on a single cell does not re-enable editing disabled at grid level', async({ page, theme, bundle }) => {
+    const grid = new EditorDisabledPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.call('typed', 'setCellMeta', 0, 0, 'type', 'numeric');
+    await grid.call('typed', 'render');
+    await grid.cell('typed', 0, 0).dblclick();
+
+    await grid.expectNoEditor('typed');
+  });
+
+  // `setCellMeta()` stores one key at a time and drops the `true` itself, while the cell's `type` is
+  // expanded later. The request must survive that, and go away again with the `editor` key.
+  test('a single cell opts back in with `editor: true` through setCellMeta()', async({ page, theme, bundle }) => {
+    const grid = new EditorDisabledPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.call('typed', 'setCellMeta', 0, 0, 'type', 'numeric');
+    await grid.call('typed', 'setCellMeta', 0, 0, 'editor', true);
+    await grid.call('typed', 'render');
+    await grid.cell('typed', 0, 0).dblclick();
+
+    await grid.expectEditorOpen('typed');
+
+    await page.keyboard.press('Escape');
+    await grid.call('typed', 'removeCellMeta', 0, 0, 'editor');
+    await grid.call('typed', 'render');
+    await grid.cell('typed', 0, 0).dblclick();
+
+    await grid.expectNoEditor('typed');
+  });
+
+  // The `cell` option goes through the same store, and a later `updateSettings()` that restates
+  // `columns` clears the cell meta cache and replays the `cell` entries.
+  test('a `cell` entry opts back in with `editor: true`, also after a cache reset', async({ page, theme, bundle }) => {
+    const grid = new EditorDisabledPage(page, theme, bundle);
+    const columns = [
+      { data: 'label', type: 'text' },
+      { data: 'amount', type: 'numeric' },
+      { data: 'done', type: 'checkbox' },
+    ];
+
+    await grid.goto();
+    await grid.updateSettings('typed', { cell: [{ row: 0, col: 0, type: 'numeric', editor: true }] });
+    await grid.cell('typed', 0, 0).dblclick();
+
+    await grid.expectEditorOpen('typed');
+
+    await page.keyboard.press('Escape');
+    await grid.updateSettings('typed', { columns });
+    await grid.cell('typed', 0, 0).dblclick();
+
+    await grid.expectEditorOpen('typed');
+  });
+
   // `editor: true` asks for the editor the column's type provides. It must opt a typed column back
   // in under a grid-level `editor: false`, the same way a named editor does.
   test('a column with `editor: true` stays editable under a grid-level editor: false', async({ page, theme, bundle }) => {

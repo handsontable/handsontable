@@ -166,6 +166,17 @@ export class EditorDisabledPage {
     });
   }
 
+  /**
+   * Call a method of a grid's Handsontable instance with serializable arguments, and return its
+   * serializable result. For the API paths a spec exercises directly (`setCellMeta()`, `selectCell()`).
+   */
+  async call(grid: GridName, method: string, ...args: unknown[]): Promise<unknown> {
+    return this.page.evaluate(
+      ({ name, method: m, args: a }) => (window as any)[name][m](...a),
+      { name: INSTANCES[grid], method, args },
+    );
+  }
+
   /** Call `updateSettings()` on a grid of the fixture. */
   async updateSettings(grid: GridName, settings: Record<string, unknown>): Promise<void> {
     await this.page.evaluate(
