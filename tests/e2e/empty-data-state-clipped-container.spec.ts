@@ -37,6 +37,18 @@ test.describe('empty data state in a container that clips its overflow', () => {
     });
   }
 
+  test('with `height: auto` the overlay leaves the pagination bar uncovered', async({ page, theme, bundle }) => {
+    const edsPage = new EmptyDataStateClippedContainerPage(page, theme, bundle);
+
+    await edsPage.goto({ columns: true, pagination: true, height: 'auto' });
+
+    const geometry = await edsPage.geometry();
+
+    expect(geometry.paginationTop, 'the pagination bar is rendered').not.toBeNull();
+    expect(geometry.overlayBottom, 'overlay bottom vs the pagination top')
+      .toBeLessThanOrEqual((geometry.paginationTop as number) + EDGE_TOLERANCE_PX);
+  });
+
   for (const [name, options] of shapes) {
     test(`with a fixed height the overlay still fills the grid body ${name}`, async({ page, theme, bundle }) => {
       const edsPage = new EmptyDataStateClippedContainerPage(page, theme, bundle);

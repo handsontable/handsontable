@@ -13,6 +13,14 @@ export interface ClippedContainerOptions {
    * Declares three columns with no rows. The grid has no columns at all when omitted.
    */
   columns?: boolean;
+  /**
+   * A 400 px wide grid with 30 columns, so it scrolls horizontally. Needs `columns`.
+   */
+  wide?: boolean;
+  /**
+   * Turns pagination on, which adds a bar under the grid.
+   */
+  pagination?: boolean;
 }
 
 /**
@@ -24,6 +32,14 @@ export interface OverlayGeometry {
   rootTop: number;
   rootBottom: number;
   toolbarTop: number;
+  /**
+   * Bottom of the master holder's client area, above a horizontal scrollbar track when there is one.
+   */
+  holderClientBottom: number;
+  /**
+   * Top of the pagination bar, or `null` without one.
+   */
+  paginationTop: number | null;
 }
 
 /**
@@ -56,6 +72,13 @@ export class EmptyDataStateClippedContainerPage {
       params.set('columns', options.columns ? '1' : '0');
     }
 
+    if (options.wide !== undefined) {
+      params.set('wide', options.wide ? '1' : '0');
+    }
+    if (options.pagination !== undefined) {
+      params.set('pagination', options.pagination ? '1' : '0');
+    }
+
     await this.page.goto(`/tests/fixtures/demo/empty-data-state-clipped-container.html?${params}`);
     await awaitBundle(this.page);
     await awaitFixtureBuilt(this.page);
@@ -73,6 +96,8 @@ export class EmptyDataStateClippedContainerPage {
       const root = (window as unknown as { hot: { rootElement: HTMLElement } }).hot.rootElement
         .getBoundingClientRect();
       const toolbar = document.querySelector('[data-testid="toolbar"]')!.getBoundingClientRect();
+      const holder = document.querySelector('.ht_master .wtHolder') as HTMLElement;
+      const pagination = document.querySelector('.ht-pagination');
 
       return {
         overlayTop: overlay.top,
@@ -80,6 +105,8 @@ export class EmptyDataStateClippedContainerPage {
         rootTop: root.top,
         rootBottom: root.bottom,
         toolbarTop: toolbar.top,
+        holderClientBottom: holder.getBoundingClientRect().top + holder.clientHeight,
+        paginationTop: pagination ? pagination.getBoundingClientRect().top : null,
       };
     });
   }

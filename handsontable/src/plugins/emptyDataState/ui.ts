@@ -157,7 +157,10 @@ function computeEmptyDataStateHeight(view: ViewInstance, cols: number, headerCol
     height = measured - scrollbarSize;
 
     if (rootHeight > 0) {
-      height = Math.min(height, Math.max(0, rootHeight - (cols > 0 ? view.getColumnHeaderHeight() : 0)));
+      const headerHeight = cols > 0 ? view.getColumnHeaderHeight() : 0;
+
+      // The root's box includes a horizontal scrollbar, which the overlay must leave uncovered.
+      height = Math.min(height, Math.max(0, rootHeight - headerHeight - scrollbarSize));
     }
   }
 

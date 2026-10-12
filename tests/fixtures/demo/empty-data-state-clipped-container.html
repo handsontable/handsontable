@@ -30,6 +30,9 @@
     window.htHeight = htPick('height', { auto: 'auto', 300: 300 }, 'auto');
     // `1` declares three columns with no rows; `0` leaves the grid with no columns at all.
     window.htColumns = htPick('columns', { 0: false, 1: true }, '0');
+    // `1` gives the grid a 400 px width and 30 columns, so it scrolls horizontally.
+    window.htWide = htPick('wide', { 0: false, 1: true }, '0');
+    window.htPagination = htPick('pagination', { 0: false, 1: true }, '0');
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
 </head>
@@ -64,8 +67,10 @@
         data: [],
         height: window.htHeight,
         rowHeaders: true,
-        colHeaders: window.htColumns ? ['A', 'B', 'C'] : true,
-        ...(window.htColumns ? { columns: [{}, {}, {}] } : {}),
+        colHeaders: window.htColumns && !window.htWide ? ['A', 'B', 'C'] : true,
+        ...(window.htColumns ? { columns: Array.from({ length: window.htWide ? 30 : 3 }, () => ({})) } : {}),
+        ...(window.htWide ? { width: 400 } : {}),
+        pagination: window.htPagination,
         dropdownMenu: true,
         filters: true,
         navigableHeaders: true,
