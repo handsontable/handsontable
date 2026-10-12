@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-12T10:10:32.537Z",
+  "generatedAt": "2026-10-12T10:41:31.594Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 379,
     "needsTicket": 21,
     "quarantined": 0,
-    "entries": 1969
+    "entries": 1970
   },
   "rows": [
     {
@@ -395,6 +395,40 @@
       "needsTicket": true
     },
     {
+      "key": "playwright|e2e/selection-viewport-scroll.spec.ts|viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
+      "tier": "playwright",
+      "file": "e2e/selection-viewport-scroll.spec.ts",
+      "line": 72,
+      "title": "viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 4,
+      "flakyRuns30": 4,
+      "branches30": 4,
+      "nightlyRuns30": 0,
+      "openBranches30": 4,
+      "legs": [
+        "e2e-horizon",
+        "e2e-horizon-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-12T10:40:43Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38233981000",
+        "branch": "feature/DEV-3207_RTL-comment-editor-flip-viewport-left",
+        "leg": "e2e-horizon",
+        "status": "flaky",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
       "key": "jasmine|handsontable/src/plugins/manualRowResize/__tests__/manualRowResize.spec.js|manualRowResize should autosize selected rows after double click on handler and move mouse to the next row",
       "tier": "jasmine",
       "file": "handsontable/src/plugins/manualRowResize/__tests__/manualRowResize.spec.js",
@@ -429,40 +463,6 @@
         "leg": "UMD.min (theme: classic)",
         "status": "failed",
         "error": "Expected 100 to be around 26 (between 25",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "playwright|e2e/selection-viewport-scroll.spec.ts|viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
-      "tier": "playwright",
-      "file": "e2e/selection-viewport-scroll.spec.ts",
-      "line": 72,
-      "title": "viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
-      "count7": 5,
-      "count30": 5,
-      "countAll": 5,
-      "runs30": 3,
-      "flakyRuns30": 3,
-      "branches30": 3,
-      "nightlyRuns30": 0,
-      "openBranches30": 3,
-      "legs": [
-        "e2e-horizon",
-        "e2e-horizon-min"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-12T07:40:05Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38216315746",
-        "branch": "develop",
-        "leg": "e2e-horizon",
-        "status": "flaky",
-        "error": "Error: expect(received).toBe(expected) // Object.is equality",
         "source": "ci"
       },
       "needsTicket": true
