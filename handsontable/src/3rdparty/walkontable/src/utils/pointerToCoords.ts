@@ -32,26 +32,6 @@ interface MousePositionDeps {
 }
 
 /**
- * Counts how much of a merge is left from the queried coordinate. A slave resolves to the anchor's element,
- * whose span is the whole block, so the span is cut to the cells after the queried one that still resolve to
- * that element.
- *
- * @param {number} span The span of the rendered element.
- * @param {Function} getCellAt Returns the cell at an offset from the queried coordinate.
- * @param {HTMLElement | null} cell The rendered element of the queried coordinate.
- * @returns {number} The number of rows or columns left in the merge, counting the queried one.
- */
-function spanLeft(span: number, getCellAt: (offset: number) => HTMLElement | null, cell: HTMLElement | null) {
-  let left = 1;
-
-  while (left < span && getCellAt(left) === cell) {
-    left += 1;
-  }
-
-  return left;
-}
-
-/**
  * Builds the measurer of a Walkontable instance. The lookups run in renderable indexes and read the
  * span of a merge from the rendered cell, because Walkontable holds no cell meta.
  *
@@ -61,26 +41,16 @@ function spanLeft(span: number, getCellAt: (offset: number) => HTMLElement | nul
 function createCellMeasurer(wotInstance: WalkontableInstance): CellMeasurer {
   const { geometryReader } = wotInstance.domBindings;
 
-  const getCell = (row: number, column: number) => {
-    const cell = wotInstance.getCell({ row, col: column }, true);
-
-    return isHTMLElement(cell) ? cell : null;
-  };
-
   return {
-    getCell,
+    getCell: (row, column) => {
+      const cell = wotInstance.getCell({ row, col: column }, true);
+
+      return isHTMLElement(cell) ? cell : null;
+    },
     getHeight: cell => geometryReader.offsetHeight(cell),
     getWidth: cell => geometryReader.offsetWidth(cell),
-    getRowspan: (row, column, cell) => {
-      const span = (cell as HTMLTableCellElement | null)?.rowSpan;
-
-      return span === undefined || span <= 1 ? span : spanLeft(span, offset => getCell(row + offset, column), cell);
-    },
-    getColspan: (row, column, cell) => {
-      const span = (cell as HTMLTableCellElement | null)?.colSpan;
-
-      return span === undefined || span <= 1 ? span : spanLeft(span, offset => getCell(row, column + offset), cell);
-    },
+    getRowspan: (row, column, cell) => (cell as HTMLTableCellElement | null)?.rowSpan,
+    getColspan: (row, column, cell) => (cell as HTMLTableCellElement | null)?.colSpan,
   };
 }
 

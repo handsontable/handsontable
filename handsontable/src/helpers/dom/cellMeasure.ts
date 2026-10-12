@@ -18,13 +18,15 @@ export interface CellMeasurer {
    */
   getWidth(cell: HTMLElement): number;
   /**
-   * Returns the number of rows the cell spans, or `undefined` when it is not merged vertically.
-   * The anchor of a merge reports it; its slaves do not.
+   * Returns the number of rows the cell spans. A value above 1 marks the cell as part of a vertical merge;
+   * `undefined` or 1 means it is not known to be. The anchor reports it, a slave may not, so the scans never
+   * rely on a slave reporting it.
    */
   getRowspan(row: number, column: number, cell: HTMLElement | null): number | undefined;
   /**
-   * Returns the number of columns the cell spans, or `undefined` when it is not merged horizontally.
-   * The anchor of a merge reports it; its slaves do not.
+   * Returns the number of columns the cell spans. A value above 1 marks the cell as part of a horizontal merge;
+   * `undefined` or 1 means it is not known to be. The anchor reports it, a slave may not, so the scans never
+   * rely on a slave reporting it.
    */
   getColspan(row: number, column: number, cell: HTMLElement | null): number | undefined;
 }
@@ -47,11 +49,14 @@ export function findColumnAtX(
   relativeX: number,
 ): number | null {
   let accumulatedX = 0;
+  let measuredElement: HTMLElement | null = null;
 
   for (let column = startColumn; column <= endColumn; column++) {
     const cellElement = measurer.getCell(row, column);
 
-    if (!cellElement) {
+    // Every column inside a horizontal merge resolves to the same rendered element, which is measured once, at
+    // the first column of the walk that reaches it.
+    if (!cellElement || cellElement === measuredElement) {
       // eslint-disable-next-line no-continue
       continue;
     }
@@ -63,12 +68,7 @@ export function findColumnAtX(
     }
 
     accumulatedX += width;
-
-    const colspan = measurer.getColspan(row, column, cellElement);
-
-    if (colspan !== undefined && colspan > 1) {
-      column += colspan - 1;
-    }
+    measuredElement = cellElement;
   }
 
   return null;
@@ -92,11 +92,14 @@ export function findRowAtY(
   relativeY: number,
 ): number | null {
   let accumulatedY = 0;
+  let measuredElement: HTMLElement | null = null;
 
   for (let row = startRow; row <= endRow; row++) {
     const cellElement = measurer.getCell(row, column);
 
-    if (!cellElement) {
+    // Every row inside a vertical merge resolves to the same rendered element, which is measured once, at the
+    // first row of the walk that reaches it.
+    if (!cellElement || cellElement === measuredElement) {
       // eslint-disable-next-line no-continue
       continue;
     }
@@ -108,12 +111,7 @@ export function findRowAtY(
     }
 
     accumulatedY += height;
-
-    const rowspan = measurer.getRowspan(row, column, cellElement);
-
-    if (rowspan !== undefined && rowspan > 1) {
-      row += rowspan - 1;
-    }
+    measuredElement = cellElement;
   }
 
   return null;
@@ -156,7 +154,7 @@ export function findRowReferenceColumn(
       const cell = measurer.getCell(row, column);
       const rowspan = measurer.getRowspan(row, column, cell);
 
-      // A vertically merged cell reports `rowspan > 1` on its anchor and resolves to the same
+      // A vertically merged cell reports a row span above 1 on its anchor and resolves to the same
       // rendered element for every row it covers; either signal marks the column as distorting.
       if ((rowspan !== undefined && rowspan > 1) || (cell !== null && cell === previousCell)) {
         spansMultipleRows = true;
@@ -221,7 +219,7 @@ export function findColumnReferenceRow(
       const cell = measurer.getCell(row, column);
       const colspan = measurer.getColspan(row, column, cell);
 
-      // A horizontally merged cell reports `colspan > 1` on its anchor and resolves to the same
+      // A horizontally merged cell reports a column span above 1 on its anchor and resolves to the same
       // rendered element for every column it covers; either signal marks the row as distorting.
       if ((colspan !== undefined && colspan > 1) || (cell !== null && cell === previousCell)) {
         spansMultipleColumns = true;

@@ -14,9 +14,9 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
   `rowSpan`/`colSpan`, because Walkontable has no cell meta) and `helpers/dom/cellCoords.ts` (visual indexes, spans
   read from the cell meta) each build their own measurer. Fix a merge-related lookup bug there once, not in either
   caller. A slave of a merge resolves to the anchor's element, so measuring a merged column adds the band's full
-  height once per slave: each band is measured against a column (or row) no merge spans. The Walkontable measurer
-  cuts a slave's span to what is left from the queried coordinate, so a walk that starts inside a merge does not
-  jump past it. `Event#onMouseMove` runs on every pointer move of a held drag, inside the table too, so it asks
+  height once per slave: each band is measured against a column (or row) no merge spans. The walks skip a cell
+  that resolves to the element they just measured, so a walk that starts inside a merge counts the block once; a
+  reported span is only a hint (above 1) for the reference scans, and a slave need not report it. `Event#onMouseMove` runs on every pointer move of a held drag, inside the table too, so it asks
   `getTableViewportBounds` + `isPointerOutsideBounds` (bounds only) first, looks the cell up only for a pointer outside, and hands the bounds on to the lookup; keep the lookup off
   that path.
 - `Core#getRowHeight` is the provided height only (`rowHeights` / ManualRowResize / AutoRowSize). Walkontable layout uses `max(provided, wtViewport.oversizedRows[renderable])`. Handsontable code that must match that measurement goes through `getRenderedRowHeight` in `src/core/viewportScroll/scrollStrategies/singleScroll.ts` (visual → renderable → `wtTable.getRowHeight`) — never `hot.view._wt.wtViewport.oversizedRows` (Law of Demeter) and never `Core#getRowHeight` alone. Content-tall rows without those plugins keep `getRowHeight` at `undefined`. Forced mouse start-snap on an oversized axis bypasses Walkontable's auto-snap frozen-row/column guard, so frozen start columns and frozen top/bottom rows must not count as oversized.
