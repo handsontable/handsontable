@@ -459,8 +459,11 @@ export function checkboxRenderer(
         for (let visualColumn = topLeft.col; visualColumn <= bottomRight.col; visualColumn++) {
           const cellMeta = hotInstance.getCellMetaTransient(visualRow, visualColumn);
 
+          // A checkbox with no editor still counts: the shortcut must consume the key for it, or
+          // Delete and Backspace would fall through to `emptySelectedCells()` and write `null` into
+          // a cell that `changeSelectedCheckboxesState()` deliberately leaves alone.
           /* eslint-disable no-continue */
-          if (cellMeta.readOnly || !isCheckboxToggleable(cellMeta)) {
+          if (cellMeta.readOnly) {
             continue;
           }
 

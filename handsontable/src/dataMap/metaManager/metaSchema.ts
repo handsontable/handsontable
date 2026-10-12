@@ -2934,6 +2934,13 @@ export default (): Record<string, unknown> => {
      * ]
      * ```
      *
+     * To keep the editor that the column's [`type`](#type) provides, without naming it, set
+     * `editor: true` instead, for example `{ type: 'numeric', editor: true }`.
+     *
+     * A custom cell type that declares `editor: false` supplies a default, not a setting of yours.
+     * If you set such a [`type`](#type) on the whole grid, a column with a `type` of its own still
+     * gets that type's editor.
+     *
      * A named editor behaves differently: a [`type`](#type) set at a lower configuration level
      * does override it, because both name an editor and the more specific level wins.
      *

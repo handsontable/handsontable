@@ -365,6 +365,10 @@ columns: [
 ]
 ```
 
+To keep the editor that the column's `type` provides, without naming it, set `editor: true`, for example `{ type: 'numeric', editor: true }`.
+
+A custom cell type that declares `editor: false` supplies a default, not a setting of yours. If you set such a type on the whole grid, a column with a `type` of its own still gets that type's editor.
+
 If you switch editing off at runtime, pass [`columns`](@/api/options.md#columns) in the same [`updateSettings()`](@/api/core.md#updatesettings) call. A column's `type` writes its editor onto that column when the column is built, so `editor: false` passed without `columns` doesn't reach a typed column:
 
 ```js

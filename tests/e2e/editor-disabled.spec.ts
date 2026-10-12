@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { EditorDisabledPage } from '../fixtures/pages/EditorDisabledPage';
 
 /**
@@ -184,6 +184,39 @@ test.describe('editor: false', () => {
     await grid.expectCellClass('updated', 0, 1, 'htNumeric');
   });
 
+  // Delete and Backspace uncheck a checkbox through the renderer's own shortcut. With no editor that
+  // shortcut must still CONSUME the key: otherwise it falls through to the grid's "empty the cell"
+  // action, which writes `null` into a boolean column.
+  for (const key of ['Delete', 'Backspace']) {
+    test(`${key} leaves a checkbox with no editor unchanged`, async({ page, theme, bundle }) => {
+      const grid = new EditorDisabledPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.selectCell('typed', 0, 2);
+      await page.keyboard.press(key);
+
+      expect(await grid.dataAtCell('typed', 0, 2)).toBe(true);
+    });
+  }
+
+  // `editor: true` asks for the editor the column's type provides. It must opt a typed column back
+  // in under a grid-level `editor: false`, the same way a named editor does.
+  test('a column with `editor: true` stays editable under a grid-level editor: false', async({ page, theme, bundle }) => {
+    const grid = new EditorDisabledPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.updateSettings('typed', {
+      columns: [
+        { data: 'label', type: 'text' },
+        { data: 'amount', type: 'numeric', editor: true },
+        { data: 'done', type: 'checkbox' },
+      ],
+    });
+    await grid.cell('typed', 0, 1).dblclick();
+
+    await grid.expectEditorOpen('typed');
+  });
+
   // Typing is the other way into an editor, and it must stay closed off.
   test('typing does not start an edit on a cell with no editor', async({ page, theme, bundle }) => {
     const grid = new EditorDisabledPage(page, theme, bundle);
@@ -194,5 +227,23 @@ test.describe('editor: false', () => {
 
     await grid.expectNoEditor('global');
     await grid.expectCell('global', 2, 2, 'C3');
+  });
+});
+
+// Whether a press on a disabled control reaches its ancestors has differed between engines, so this
+// runs on Firefox and WebKit as well.
+test.describe('editor: false – disabled checkbox', { tag: CROSS_BROWSER_TAG }, () => {
+  // The box covers the middle of its cell, and three guide pages promise that clicking it still
+  // selects the cell. The checkbox stylesheet lets the click through a disabled box.
+  test('clicking a disabled checkbox selects its cell', async({ page, theme, bundle }) => {
+    const grid = new EditorDisabledPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.selectCell('typed', 1, 0);
+    await expect(grid.checkbox('typed', 0, 2)).toBeDisabled();
+    await grid.checkbox('typed', 0, 2).click({ force: true });
+
+    await grid.expectSelection('typed', 0, 2);
+    expect(await grid.dataAtCell('typed', 0, 2)).toBe(true);
   });
 });

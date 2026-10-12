@@ -1702,14 +1702,17 @@ columns: [
 
 ### How to migrate
 
-To keep a typed column editable under a grid-level `editor: false`, give the column an `editor` of its own, at the same configuration level as its `type`:
+To keep a typed column editable under a grid-level `editor: false`, give the column an `editor` of its own, at the same configuration level as its `type`. Set `editor: true` to keep the editor the `type` provides, or name an editor:
 
 ```js
 editor: false,
 columns: [
   { type: 'text' },
+  { type: 'numeric', editor: true },
   { type: 'numeric', editor: 'numeric' }
 ]
 ```
 
-To keep a checkbox column toggleable, remove `editor: false` from it, or set `editor: 'checkbox'` on the column. Under a grid-level `editor: false`, setting `editor: 'checkbox'` on the column is the only option. To make it non-toggleable, prefer [`readOnly`](@/api/options.md#readonly), which also announces the cell as read-only to screen readers.
+A custom cell type that declares `editor: false` isn't affected. Its `editor: false` is the type's default, so a column with a `type` of its own still replaces it, as in 18.1.
+
+To keep a checkbox column toggleable, remove `editor: false` from it, or set `editor: true` or `editor: 'checkbox'` on the column. Under a grid-level `editor: false`, setting one of those on the column is the only option. To make it non-toggleable, prefer [`readOnly`](@/api/options.md#readonly), which also announces the cell as read-only to screen readers.

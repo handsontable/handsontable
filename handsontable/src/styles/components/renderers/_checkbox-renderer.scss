@@ -105,11 +105,11 @@
       &:disabled {
         cursor: initial;
 
-        // A disabled control swallows pointer events, and the box covers the middle of its cell -
-        // so without this the click never reaches the TD and the cell cannot be SELECTED by
-        // clicking it, only by clicking the padding around the box. The input is already
-        // non-interactive, so letting the click through costs nothing and keeps the cell
-        // reachable with the mouse.
+        // The box covers the middle of its cell, and clicking it must still SELECT the cell.
+        // Current Chromium, Firefox, and WebKit already pass a press on a disabled control on to
+        // its ancestors (verified by the cross-browser E2E case), but disabled controls have
+        // historically swallowed pointer events. The input is non-interactive anyway, so letting
+        // the click through costs nothing and does not depend on that engine behavior.
         pointer-events: none;
 
         // Box

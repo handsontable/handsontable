@@ -293,7 +293,7 @@ export default class CellMeta {
     });
 
     extend(meta, normalizedSettings);
-    extendByMetaType(meta, normalizedSettings);
+    extendByMetaType(meta, normalizedSettings, meta, settings.editor === true);
 
     if (changed) {
       markCellMetaChanged(meta);

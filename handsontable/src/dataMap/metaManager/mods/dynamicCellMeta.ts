@@ -149,8 +149,10 @@ export class DynamicCellMetaMod {
    */
   extendTransientCellMeta(cellMeta: Record<string, unknown>) {
     this.#runMetaExtension(cellMeta, (cellSettings) => {
-      extend(cellMeta, cellSettings);
-      extendByMetaType(cellMeta, cellSettings);
+      const normalizedSettings = normalizeEditorSetting(cellSettings);
+
+      extend(cellMeta, normalizedSettings);
+      extendByMetaType(cellMeta, normalizedSettings, cellMeta, cellSettings.editor === true);
     });
   }
 
@@ -197,7 +199,9 @@ export class DynamicCellMetaMod {
     }
 
     if (cellSettings) {
-      applyCellSettings(normalizeEditorSetting(cellSettings));
+      // Passed on unnormalized: each applier normalizes `editor` itself, because an `editor: true` it
+      // would otherwise lose still has to reach `extendByMetaType()` as an explicit opt-in.
+      applyCellSettings(cellSettings);
     }
 
     hot.runHooks('afterGetCellMeta', visualRow, visualCol, cellMeta);

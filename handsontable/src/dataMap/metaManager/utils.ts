@@ -19,6 +19,33 @@ function canBeOverwritten(propertyName: string, metaObject: Record<string, unkno
 }
 
 /**
+ * The `editor` value a `type` expansion wrote onto a meta object. It complements
+ * `_automaticallyAssignedMetaProps`, which the global layer does not keep: the global meta is compared
+ * against the incoming settings rather than against itself, so it never gets that set, yet a grid-level
+ * `type` still writes its `editor` onto it. The VALUE is kept, not just the fact: `updateSettings()`
+ * writes options onto the global meta directly, without passing through `extendByMetaType()`, so a later
+ * user value is recognized by no longer matching what the type wrote.
+ */
+const TYPE_ASSIGNED_EDITOR = new WeakMap<object, unknown>();
+
+/**
+ * Finds the object in the prototype chain of the meta object that owns the given property.
+ *
+ * @param {object} metaObject The meta object to start from.
+ * @param {string} propertyName The property name.
+ * @returns {object|null}
+ */
+function findPropertyOwner(metaObject: Record<string, unknown>, propertyName: string) {
+  let owner: Record<string, unknown> | null = metaObject;
+
+  while (owner && !hasOwnProperty(owner, propertyName)) {
+    owner = Object.getPrototypeOf(owner) as Record<string, unknown> | null;
+  }
+
+  return owner;
+}
+
+/**
  * Checks whether editing was switched off for the meta object, at its own level or at any level it
  * inherits from.
  *
@@ -29,16 +56,31 @@ function canBeOverwritten(propertyName: string, metaObject: Record<string, unkno
  * grid-level setting reaches a column through the PROTOTYPE CHAIN rather than as an own property,
  * and `hasOwnProperty()` reports it as absent.
  *
- * A custom cell type MAY declare `editor: false`. One that did is recorded as automatically
- * assigned, and such a value is the type's default rather than the user's policy, so it stays
- * overwritable by the next type.
+ * A custom cell type MAY declare `editor: false`. Such a value is the type's default rather than the
+ * user's policy, so it stays overwritable by the next type. That is judged on the layer that OWNS the
+ * value, not on the meta object being expanded: a grid-level custom type writes its `editor: false`
+ * onto the global meta, and a typed column below it must still receive its own type's editor.
  *
  * @param {object} metaObject The meta object the type is being expanded into.
  * @returns {boolean}
  */
 function isEditingDisabled(metaObject: Record<string, unknown>) {
-  return metaObject.editor === false &&
-    !(metaObject._automaticallyAssignedMetaProps as Set<string> | undefined)?.has('editor');
+  if (metaObject.editor !== false) {
+    return false;
+  }
+
+  const owner = findPropertyOwner(metaObject, 'editor');
+
+  if (owner === null) {
+    return false;
+  }
+
+  if (TYPE_ASSIGNED_EDITOR.has(owner) && TYPE_ASSIGNED_EDITOR.get(owner) === owner.editor) {
+    return false;
+  }
+
+  return !(hasOwnProperty(owner, '_automaticallyAssignedMetaProps') &&
+    (owner._automaticallyAssignedMetaProps as Set<string> | undefined)?.has('editor'));
 }
 
 /**
@@ -58,11 +100,14 @@ function isEditingDisabled(metaObject: Record<string, unknown>) {
  * @param {object} metaObject The meta object.
  * @param {object} settings The settings object with the "type" setting.
  * @param {object} settingsToCompareWith The object to compare which properties need to be updated.
+ * @param {boolean} [typeEditorRequested=false] Whether the settings carried `editor: true`, which
+ * `normalizeEditorSetting()` removes. It asks for the type's editor even when editing is disabled.
  */
 export function extendByMetaType(
   metaObject: Record<string, unknown>,
   settings: Record<string, unknown>,
-  settingsToCompareWith: Record<string, unknown> = metaObject
+  settingsToCompareWith: Record<string, unknown> = metaObject,
+  typeEditorRequested = false,
 ) {
   const validType = typeof settings.type === 'string' ? getCellType(settings.type) : settings.type;
 
@@ -70,6 +115,10 @@ export function extendByMetaType(
     objectEach(settings, (_value: unknown, key: string) => {
       (metaObject._automaticallyAssignedMetaProps as Set<string>).delete(key);
     });
+  }
+
+  if (hasOwnProperty(settings, 'editor')) {
+    TYPE_ASSIGNED_EDITOR.delete(metaObject);
   }
 
   if (!isObject(validType)) {
@@ -81,9 +130,10 @@ export function extendByMetaType(
   }
 
   const expandedType: Record<string, unknown> = {};
-  // Resolved after the bookkeeping above, so a payload that sets "editor" itself has already
-  // cleared the automatically-assigned flag and is judged on the value it just wrote.
-  const keepEditingDisabled = isEditingDisabled(metaObject);
+  // An `editor: true` in the same payload asks for the type's editor explicitly, so it opts the meta
+  // object back in. `normalizeEditorSetting()` has already dropped that `true` from `settings`, which
+  // is why the caller passes it on separately.
+  const keepEditingDisabled = !typeEditorRequested && isEditingDisabled(metaObject);
 
   objectEach(validType as Record<string, unknown>, (value: unknown, property: string) => {
     if (property === 'editor' && keepEditingDisabled) {
@@ -93,6 +143,10 @@ export function extendByMetaType(
     if (canBeOverwritten(property, settingsToCompareWith)) {
       expandedType[property] = value;
       (metaObject._automaticallyAssignedMetaProps as Set<string> | undefined)?.add(property);
+
+      if (property === 'editor') {
+        TYPE_ASSIGNED_EDITOR.set(metaObject, value);
+      }
     }
   });
 

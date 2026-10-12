@@ -803,6 +803,48 @@ describe('MetaManager', () => {
       expect(metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 }).editor).toBe('text');
     });
 
+    // `editor: true` names no editor of its own, but it asks for the one the type provides. It is the
+    // opt-in users reach for first, so it must work like a named editor does.
+    it('should let a column opt back in with `editor: true`', () => {
+      const metaManager = new MetaManager(null, { editor: false });
+
+      metaManager.updateColumnMeta(0, { type: 'numeric', editor: true });
+
+      expect(metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 }).editor)
+        .toBe(getCellType('numeric').editor);
+    });
+
+    it('should let a single cell opt back in with `editor: true`', () => {
+      const metaManager = new MetaManager(null, { editor: false });
+
+      metaManager.extendCellMeta(0, 0, { type: 'numeric', editor: true });
+
+      expect(metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 }).editor)
+        .toBe(getCellType('numeric').editor);
+    });
+
+    // A grid-level custom type that declares `editor: false` supplies a DEFAULT, not the user's
+    // policy, so a column's own type still replaces it - the same as it does one layer down.
+    it('should let a column "type" replace an `editor: false` that a grid-level "type" supplied', () => {
+      const metaManager = new MetaManager(null, { type: { renderer: () => {}, editor: false } });
+
+      metaManager.updateColumnMeta(0, { type: 'numeric' });
+      metaManager.updateColumnMeta(1, { type: 'checkbox' });
+
+      expect(metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 }).editor)
+        .toBe(getCellType('numeric').editor);
+      expect(metaManager.getCellMeta(0, 1, { visualRow: 0, visualColumn: 1 }).editor)
+        .toBe(getCellType('checkbox').editor);
+    });
+
+    it('should keep a grid-level `editor: false` the user set next to a grid-level "type"', () => {
+      const metaManager = new MetaManager(null, { type: { renderer: () => {}, editor: 'text' }, editor: false });
+
+      metaManager.updateColumnMeta(0, { type: 'numeric' });
+
+      expect(metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 }).editor).toBe(false);
+    });
+
     it('should keep editing disabled for a "type" declared on a single cell', () => {
       const metaManager = new MetaManager(null, { editor: false });
 
@@ -830,6 +872,18 @@ describe('MetaManager', () => {
       metaManager.updateColumnMeta(0, { type: 'numeric' });
       metaManager.updateGlobalMeta({ editor: false });
       metaManager.clearCache();
+      metaManager.updateColumnMeta(0, { type: 'numeric' });
+
+      expect(metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 }).editor).toBe(false);
+    });
+
+    // `updateSettings()` writes options onto the global meta directly, not through `updateMeta()`. The
+    // grid-level default type has already written its own editor there, so a later `editor: false`
+    // must be recognized as the user's value rather than as that type's default.
+    it('should keep editing disabled when `editor: false` is written onto the global meta directly', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.getGlobalMeta().editor = false;
       metaManager.updateColumnMeta(0, { type: 'numeric' });
 
       expect(metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 }).editor).toBe(false);

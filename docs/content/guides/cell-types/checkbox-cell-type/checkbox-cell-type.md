@@ -266,14 +266,14 @@ After configuring the checkbox cell type, cells display an interactive checkbox.
 
 A checkbox has no separate editing gesture: clicking the box is the edit. So a checkbox cell with [`editor`](@/api/options.md#editor) set to `false` or `null` renders a disabled checkbox. Neither a click nor the keyboard shortcuts below change its value, but you can still select the cell.
 
-This applies to an `editor: false` set on any configuration level, including the grid level. To keep one checkbox column toggleable in a grid that has `editor: false`, give that column an editor of its own:
+This applies to an `editor: false` set on any configuration level, including the grid level. To keep one checkbox column toggleable in a grid that has `editor: false`, set `editor: true` on that column, which keeps the editor the `checkbox` type provides. Naming it with `editor: 'checkbox'` works too:
 
 ```js
 editor: false,
 columns: [
   { data: 'name' },
   // toggleable, despite the grid-level `editor: false`
-  { data: 'selected', type: 'checkbox', editor: 'checkbox' }
+  { data: 'selected', type: 'checkbox', editor: true }
 ]
 ```
 

@@ -268,12 +268,28 @@ describe('MetaManager utils', () => {
       expect(metaObject.editor).toBe(getCellType('numeric').editor);
     });
 
-    it('should let the same settings payload re-enable editing the meta object had disabled', () => {
-      const metaObject: Record<string, unknown> = { editor: 'text' };
+    it('should supply the type\'s editor despite disabled editing when the payload asked for it', () => {
+      // `editor: true` is dropped by `normalizeEditorSetting()` before it gets here, so the caller
+      // passes it on as `typeEditorRequested`. It opts the meta object back in.
+      const metaObject: Record<string, unknown> = Object.create({ editor: false });
 
-      extendByMetaType(metaObject, { type: 'numeric', editor: 'text' }, { editor: 'text' });
+      extendByMetaType(metaObject, { type: 'numeric' }, metaObject, true);
 
-      expect(metaObject.editor).toBe('text');
+      expect(metaObject.editor).toBe(getCellType('numeric').editor);
+    });
+
+    it('should let a type replace an `editor: false` that a type supplied on a PROTOTYPE', () => {
+      // A grid-level custom type writes its `editor: false` onto the global meta, which keeps no
+      // `_automaticallyAssignedMetaProps`. It is still the type's default, not the user's policy.
+      const prototype: Record<string, unknown> = {};
+
+      extendByMetaType(prototype, { type: { editor: false } }, {});
+
+      const metaObject: Record<string, unknown> = Object.create(prototype);
+
+      extendByMetaType(metaObject, { type: 'numeric' });
+
+      expect(metaObject.editor).toBe(getCellType('numeric').editor);
     });
   });
 
