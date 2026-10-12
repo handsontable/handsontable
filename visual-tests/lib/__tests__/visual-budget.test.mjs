@@ -295,9 +295,9 @@ test('the goldens are judged on the prefixes the build compared, and a bootstrap
 
 test('goldens that moved on after the merge ref was built: merge and push, never a marker', () => {
   // Run 36392712913: the merge ref was built on a base at 1676, a trim to 1225 merged two minutes later,
-  // and its seed had rewritten the goldens by the time Compare ran. Here the base trims 25 on one prefix;
+  // and its seed had rewritten the goldens by the time Compare ran. Here the base trims 10 on one prefix;
   // the pull request never touched its budget file, so the checkout's file is the built-on one.
-  const trimmed = changedBy(-25);
+  const trimmed = changedBy(-10);
   const stale = evaluateBudget({
     report: reportWith(atBudget(), { expectedItems: goldensOf(trimmed) }),
     budget: BUDGET,
@@ -310,7 +310,7 @@ test('goldens that moved on after the merge ref was built: merge and push, never
   assert.equal(stale.pass, false, 'a stale comparison must not reach the approval');
   assert.equal(stale.stale, true);
   assert.match(text, new RegExp('not the set the base it was built on describes \\(`js/chromium/` '
-    + `${BUDGET.prefixes['js/chromium/'] - 25} compared, ${BUDGET.prefixes['js/chromium/']} budgeted\\)`));
+    + `${BUDGET.prefixes['js/chromium/'] - 10} compared, ${BUDGET.prefixes['js/chromium/']} budgeted\\)`));
   assert.ok(text.includes('They match the base branch as it is now: the base changed its golden set after this '
     + 'run\'s merge ref was built. Merge the base branch into this branch and push. Re-running the job replays the '
     + 'same merge ref'));
@@ -334,7 +334,7 @@ test('a base change whose seed has not landed yet leaves the comparison fresh, i
   // The fifteen minutes between a merge that moves the golden set and its seed: the tip's file has moved,
   // the goldens have not, and they are the set this build's specs describe. The first version of this check
   // compared the two budget files and failed every run in that window; the old check had failed only a trim.
-  [-25, +25].forEach((by) => {
+  [-10, +10].forEach((by) => {
     const verdict = evaluateBudget({
       report: reportWith(atBudget(), { expectedItems: goldensOf(BUDGET) }),
       budget: BUDGET,
@@ -367,7 +367,7 @@ test('goldens older than the base the run was built on: re-run once the seed has
   // The reverse window: a trim merged before this run started, so the merge ref, the built-on base and the
   // tip all have the trimmed budget, but the seed has not rewritten the goldens yet. Budget files alone
   // cannot see it; the goldens can.
-  const trimmed = changedBy(-25);
+  const trimmed = changedBy(-10);
   const verdict = evaluateBudget({
     report: reportWith(trimmed.prefixes, { expectedItems: goldensOf(BUDGET) }),
     budget: trimmed,
@@ -390,7 +390,7 @@ test('goldens that match neither base, or an unreadable tip, get both remedies i
     report: reportWith(atBudget(), { expectedItems: goldensOf(changedBy(-7)) }),
     budget: BUDGET,
     builtOnBudget: BUDGET,
-    baseBudget: changedBy(-25),
+    baseBudget: changedBy(-10),
   });
 
   assert.equal(neither.stale, true);
@@ -412,7 +412,7 @@ test('goldens that match neither base, or an unreadable tip, get both remedies i
 });
 
 test('a stale comparison with problems of its own keeps the usual heading, and is listed first', () => {
-  const trimmed = changedBy(-25);
+  const trimmed = changedBy(-10);
   const verdict = evaluateBudget({
     report: reportWith({ ...atBudget(), 'js/chromium/': BUDGET.prefixes['js/chromium/'] + 2 },
       { expectedItems: goldensOf(trimmed) }),
@@ -760,12 +760,12 @@ test('the wrapper judges growth against the built-on file, and says so when it c
   const baseFile = join(dir, 'base.json');
   const builtOnFile = join(dir, 'built-on.json');
 
-  writeFileSync(baseFile, JSON.stringify(baseSmallerBy(25)));
+  writeFileSync(baseFile, JSON.stringify(baseSmallerBy(10)));
   writeFileSync(builtOnFile, JSON.stringify(BUDGET));
 
   // The race: the goldens compared are the tip's trimmed set, and the render is the built-on one.
   const stale = runBudgetCli({
-    report: reportWith(atBudget(), { expectedItems: goldensOf(baseSmallerBy(25)) }),
+    report: reportWith(atBudget(), { expectedItems: goldensOf(baseSmallerBy(10)) }),
     comment: '## Visual tests\n',
     env: { VISUAL_BUDGET_BASE_FILE: baseFile, VISUAL_BUDGET_BUILT_ON_FILE: builtOnFile },
   });

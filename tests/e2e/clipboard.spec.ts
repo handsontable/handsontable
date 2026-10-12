@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { test, expect } from '../fixtures/test';
 import { GridPage } from '../fixtures/pages/GridPage';
 
@@ -51,6 +52,42 @@ test.describe('clipboard', () => {
 
     await expect.poll(() => grid.clipboardText()).toBe('B2');
     await grid.expectCell(1, 1, '');
+  });
+
+  /**
+   * The `copy-cell-content` visual spec's flow: copy a cell, clear it and type a new value, clear the
+   * cell below, and paste the copy back. Its three captures, each taken right after an action with
+   * nothing asserted, were this flow's only check until DEV-3351. The copied value is unique to the run,
+   * because the clipboard outlives a test (`tests/AGENTS.md`): a copy that wrote nothing could not pass
+   * by pasting an earlier run's value.
+   */
+  test('pastes a copied cell back over the value that replaced it', async ({ page }) => {
+    const copied = `copied-${randomUUID()}`;
+
+    await grid.editCell(2, 1, copied);
+    // The commit moved the selection down; come back to the cell with the keyboard rather than a
+    // second click on it, which could land inside the double-click interval.
+    await page.keyboard.press('ArrowUp');
+    await expect.poll(() => grid.selected()).toEqual([[2, 1, 2, 1]]);
+    await page.keyboard.press('ControlOrMeta+c');
+
+    await expect.poll(() => grid.clipboardText()).toBe(copied);
+
+    // The second capture: the cell cleared and given a new value, and the cell below cleared.
+    await page.keyboard.press('Delete');
+    await grid.expectCell(2, 1, '');
+    await grid.typeIntoSelected('-test');
+    await grid.expectCell(2, 1, '-test');
+    await page.keyboard.press('Delete');
+    await grid.expectCell(3, 1, '');
+
+    // The third capture: the copy pasted back over the new value, and nowhere else.
+    await page.keyboard.press('ArrowUp');
+    await expect.poll(() => grid.selected()).toEqual([[2, 1, 2, 1]]);
+    await page.keyboard.press('ControlOrMeta+v');
+
+    await grid.expectCell(2, 1, copied);
+    await grid.expectCell(3, 1, '');
   });
 
   /**
