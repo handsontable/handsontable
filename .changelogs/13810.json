@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the visible-column API and the selection scroll for a grid offset from the page's left edge inside an ancestor with `overflow-y: clip`, which reported the first and last visible columns shifted by the offset, rendered extra columns, and left a selected cell under the row header.",
+  "type": "fixed",
+  "issueOrPR": 13810,
+  "breaking": false,
+  "framework": "none"
+}
