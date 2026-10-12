@@ -491,7 +491,7 @@ describe('ResizeGesture', () => {
     });
 
     it('should keep the handle on the rendered edge of the header', () => {
-      const { th, handle } = createPadded();
+      const { th, handle, guide, gesture } = createPadded();
 
       mouse('mouseover', th);
 
@@ -502,6 +502,9 @@ describe('ResizeGesture', () => {
       mouse('mousemove', window, { pageX: 130 });
 
       expect(handle().style.left).toBe('154px');
+      // The guide follows the handle, and the size the pointer describes is the rendered one.
+      expect(guide().style.left).toBe('154px');
+      expect(gesture.getCurrentSize()).toBe(110);
     });
 
     it('should store nothing when the pointer does not move', () => {
