@@ -189,6 +189,12 @@ The shortcut context is a third case: `ShortcutManager` can create a context but
 - **Reset the editor position to (0, 0) before measuring**, or the previous position influences the
   opening-direction calculation.
 - The editor flips left/right when it would leave the browser viewport.
+- **The RTL flip compares against the viewport, not the document extent.** In RTL `scrollX` is zero or
+  negative, and the viewport's left edge in document coordinates is `rootWindow.scrollX`. The document's
+  leftmost x (`-(scrollWidth - clientWidth)`) matches it only when the page is scrolled all the way to
+  its inline end, so a partial scroll missed the flip and `clampPositionToViewport` put the editor on
+  the cell. Chrome and Firefox put an RTL page's vertical scrollbar on the left, which neither the flip
+  nor the clamp accounts for yet.
 - **A hidden row is positioned against the previous row's coords.** There is a standing
   `// TODO: Probably using hot.getCell would be the best` on this, with the note that showing an editor for
   a hidden cell might be removable altogether — a spec currently passes for it, so it stays.
