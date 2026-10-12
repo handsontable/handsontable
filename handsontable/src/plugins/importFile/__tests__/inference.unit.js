@@ -881,7 +881,7 @@ describe('inferCellType - hostile number formats', () => {
       });
     }
 
-    const runsToCloseOnly = source => [...source.matchAll(/\[\^((?:\\.|[^\]])*)\]/g)]
+    const runsToCloseOnly = source => [...source.matchAll(/\[\^((?:\\.|[^\]\\])*)\]/g)]
       .some(([, body]) => body.includes('\\]') && !body.includes('['));
 
     expect(sources.size).toBeGreaterThan(0);
