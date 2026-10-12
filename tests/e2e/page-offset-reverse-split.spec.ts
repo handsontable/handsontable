@@ -110,6 +110,21 @@ test.describe('grid offset from the page edge inside a vertically clipping ances
     });
   }
 
+  test('stretches the columns to the holder width, not the page width', async() => {
+    // 50px header plus 8 x 100px columns is wider than the 800px holder and narrower than the 1000px page: the
+    // page width would stretch them to 118.75px each, past the holder's edge. The holder width leaves them at 100.
+    const [offsetLayout, twinLayout] = withTwin({ overflowY: 'clip', stretchH: 'all', columns: 8 });
+
+    await grid.goto(offsetLayout);
+    const offset = await grid.firstCellWidth();
+
+    await grid.goto(twinLayout);
+    const twin = await grid.firstCellWidth();
+
+    expect(offset).toBeCloseTo(100, 0);
+    expect(offset).toBeCloseTo(twin, 0);
+  });
+
   test('keeps the page offset in the scroll position on a page the window scrolls', async() => {
     // No clipping ancestor: the window owns both axes, and the table starts MARGIN px into the page, so
     // the same window scroll shows columns MARGIN px earlier than on the page with no offset.

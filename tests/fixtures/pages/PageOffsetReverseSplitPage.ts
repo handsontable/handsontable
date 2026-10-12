@@ -11,6 +11,11 @@ export interface PageOffsetLayout {
   preventOverflow?: 'vertical';
   margin?: number;
   fixedColumnsStart?: number;
+  stretchH?: 'all';
+  /**
+   * How many 100px columns the grid has; 100 when omitted.
+   */
+  columns?: number;
   /**
    * The viewport width; the offset layout and its twin share a holder width when this differs by the margin.
    */
@@ -159,6 +164,14 @@ export class PageOffsetReverseSplitPage {
       stepsUnderHeader,
       cloneInset: selected.cloneInset,
     };
+  }
+
+  /**
+   * The rendered width of the first data cell of the first row, in pixels.
+   */
+  async firstCellWidth(): Promise<number> {
+    return this.page.evaluate(
+      () => document.querySelector('.ht_master tbody tr:first-child td')!.getBoundingClientRect().width);
   }
 
   /**

@@ -26,9 +26,11 @@
       overflowY: ({ clip: 'clip', hidden: 'hidden', auto: 'auto', visible: 'visible' })[htParams.get('overflowY') ?? 'clip'],
       preventOverflow: ({ none: undefined, vertical: 'vertical' })[htParams.get('preventOverflow') ?? 'none'],
       margin: Math.min(Math.max(parseInt(htParams.get('margin') ?? '0', 10) || 0, 0), 1000),
+      stretchH: ({ none: 'none', all: 'all' })[htParams.get('stretchH') ?? 'none'],
+      columns: Math.min(Math.max(parseInt(htParams.get('columns') ?? '100', 10) || 100, 1), 100),
       fixedColumnsStart: Math.min(Math.max(parseInt(htParams.get('fixedColumnsStart') ?? '0', 10) || 0, 0), 5),
     };
-    if (!window.htLayout.dir || !window.htLayout.overflowY) {
+    if (!window.htLayout.dir || !window.htLayout.overflowY || !window.htLayout.stretchH) {
       throw new Error('Unknown layout param: ' + location.search);
     }
     document.documentElement.dir = window.htLayout.dir;
@@ -51,7 +53,7 @@
     document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
   </script>
   <script>
-    const { dir, overflowY, preventOverflow, margin, fixedColumnsStart } = window.htLayout;
+    const { dir, overflowY, preventOverflow, margin, fixedColumnsStart, stretchH, columns } = window.htLayout;
     const wrap = document.getElementById('wrap');
     const container = document.getElementById('grid');
 
@@ -67,11 +69,12 @@
 
     try {
       window.hot = new Handsontable(container, {
-        data: Array.from({ length: 60 }, (_, r) => Array.from({ length: 100 }, (_, c) => `${r}-${c}`)),
+        data: Array.from({ length: 60 }, (_, r) => Array.from({ length: columns }, (_, c) => `${r}-${c}`)),
         colWidths: 100,
         rowHeaders: true,
         colHeaders: true,
         fixedColumnsStart,
+        stretchH,
         preventOverflow,
         layoutDirection: dir,
         renderer: testIdRenderer,
