@@ -343,6 +343,8 @@ The `focusSource` argument can be one of the following values:
 - `tab_from_above`: The scope is activated by a <kbd>Tab</kbd> key press.
 - `tab_from_below`: The scope is activated by a <kbd>Shift</kbd>+<kbd>Tab</kbd> key press.
 
+The `onActivate` callback also runs when the focus comes back into a scope that is already active through its focus catcher (a `tab_from_above` or `tab_from_below` source). For example, the focus returns to the page after a <kbd>Tab</kbd> key press moved it to the browser UI. Write the callback so that it is safe to run more than once.
+
 ```js
 const focusScopeManager = hot.getFocusScopeManager();
 
