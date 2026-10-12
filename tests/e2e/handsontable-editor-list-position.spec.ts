@@ -238,6 +238,52 @@ test.describe('multiselect editor list position', () => {
   }
 });
 
+// The multiselect decides whether its list fits, and so whether to cap or flip it, from a height that must
+// count the list's own padding and border. A cell whose room falls within that margin of the list's height
+// left the list uncapped, hanging past the viewport's bottom, or flipped above a cell with less room above
+// than the list needs, so its top, and the search field, sat above the viewport. The cell is moved through
+// every position in a range that spans both thresholds, with the page scrolled to put it there.
+test.describe('multiselect editor list stays in the viewport at every cell position', () => {
+  for (const dir of ['ltr', 'rtl'] as const) {
+    test(`keeps the whole list on screen as the cell moves down the viewport (${dir.toUpperCase()})`, async({
+      page, theme, bundle,
+    }) => {
+      const grid = new HandsontableEditorListPositionPage(page, theme, bundle, {
+        dir, layout: 'window', type: 'multiselect',
+      });
+
+      await page.setViewportSize({ width: 1000, height: 600 });
+      await grid.goto();
+
+      // Opens on a cell about 345 px down a 600 px viewport. The page scrolls up to 280 px from there, which
+      // takes the cell's top through the room the list needs below it and above it on every theme.
+      const coords = await grid.openEditorAt('center', 345);
+      const { cell, viewport } = await grid.geometry(coords);
+      const startTop = cell.top;
+      const outside: string[] = [];
+
+      for (let top = startTop; top >= startTop - 280; top -= 4) {
+        await page.evaluate(y => window.scrollTo(window.scrollX, y), startTop - top);
+        await expect.poll(async() => (await grid.geometry(coords)).cell.top, { message: `the cell reaches ${top}` })
+          .toBeCloseTo(top, 0);
+
+        // The list follows the cell from the page's `scroll` listener, a frame after the cell has moved.
+        await page.evaluate(() => new Promise(resolve => {
+          requestAnimationFrame(() => requestAnimationFrame(resolve));
+        }));
+
+        const { list } = await grid.geometry(coords);
+
+        if (list.top < 0 || list.bottom > viewport.height) {
+          outside.push(`cell top ${top}: list ${list.top}-${list.bottom} of ${viewport.height}`);
+        }
+      }
+
+      expect(outside).toEqual([]);
+    });
+  }
+});
+
 // The side an open list takes is decided again on every page scroll (`HandsontableEditor`'s document
 // `scroll` listener, the multiselect's scroll follow), so the window branch runs again there too. Both
 // lists are wider than the cell, so scrolling the cell to the viewport's inline-end edge leaves them no
