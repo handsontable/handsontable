@@ -59,6 +59,12 @@ import {
  * The `multiselect` list is 320–475 px tall and fits below the
  * top row by 154 px or more (`horizon`, on a page the window scrolls). Its flipping points leave 101 px
  * of room, 76 px short of its narrowest width (177 px), and its other points leave 500 px or more.
+ * The bottom points leave 74–104 px below the cell (`horizon` the least, `classic` the most) and 590 px or
+ * more above it. That misses the multiselect's 320 px or taller list below by 216 px or more and clears it
+ * above by 115 px or more, and it misses the `handsontable` list (190 px or taller) below by 86 px or more
+ * and clears its 273 px maximum above by 317 px or more. The partway points are the bottom points with the
+ * page scrolled 700 px back up from its end in a transformed container, so the room is the viewport's and
+ * those margins are the same.
  */
 
 /**

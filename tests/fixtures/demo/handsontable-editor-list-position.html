@@ -95,6 +95,8 @@
     `?inset=start` starts the grid 600 px from the page's inline-start edge, so the root is narrower
     than the viewport. `?wrap=transform` makes the grid's container the containing block of the `fixed`
     list, a box that scrolls with the page, so the viewport and that box part ways once the page scrolls.
+    `?wrap=translate` does the same and also moves the container 200 px toward the inline end (`translateX`),
+    which the `offsetLeft` chain does not report, so a list measured from it overflows the viewport.
 
     `sized`: the grid is 1000 x 700, narrower than the 1280 px viewport, and scrolls its own holder.
     The flip then measures the grid's own workspace, on purpose (the comment above that branch says
