@@ -389,7 +389,9 @@ export class InlineStartOverlay extends Overlay {
   }
 
   /**
-   * Gets table parent left position.
+   * Gets the distance between the page's inline-start edge and the table's: the table's left edge in LTR, and
+   * its right edge, measured from the page's right edge, in RTL. The RTL value is the page margin on the right
+   * and does not depend on how far the page is scrolled.
    *
    * @returns {number}
    */
@@ -398,7 +400,19 @@ export class InlineStartOverlay extends Overlay {
     let offset = 0;
 
     if (!preventOverflow && this.trimmingContainer === this.deps.rootWindow) {
-      offset = (this.deps.getWtTable().holderOffset as { top: number; left: number }).left;
+      const wtTable = this.deps.getWtTable();
+
+      offset = (wtTable.holderOffset as { top: number; left: number }).left;
+
+      if (this.isRtl()) {
+        // The holder's left edge is not where the table starts in RTL: a grid in a shrink-to-fit wrapper
+        // reaches far past the page's left edge, and a grid with a margin on the right does not start
+        // at the page's right edge. Measure from the right edge, the one the page scrolls from.
+        const { geometryReader, rootDocument } = this.deps;
+        const docClientWidth = geometryReader.clientWidth(rootDocument.documentElement);
+
+        offset = docClientWidth - (offset + geometryReader.offsetWidth(wtTable.holder));
+      }
     }
 
     return offset;

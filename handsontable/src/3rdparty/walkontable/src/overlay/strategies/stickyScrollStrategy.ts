@@ -259,8 +259,8 @@ export class StickyScrollStrategy {
     const inlineStartOverlay = this.#deps.getInlineStartOverlay();
 
     // For RTL window scrolling, scrollX increases as the user scrolls left (away from
-    // the right-edge origin). getTableParentOffset() returns the left-edge offset which
-    // doesn't apply to the RTL coordinate system, so skip it and return scrollX directly.
+    // the right-edge origin). Hider coordinates here run from that origin too, so return
+    // scrollX directly instead of subtracting the table's inline-start margin.
     if (this.#isRtl() && this.#isWindowScroll()) {
       return Math.abs(inlineStartOverlay.getScrollPosition());
     }
