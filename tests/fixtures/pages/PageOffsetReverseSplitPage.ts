@@ -141,7 +141,10 @@ export class PageOffsetReverseSplitPage {
       await this.page.keyboard.press(selected.dir === 'rtl' ? 'ArrowRight' : 'ArrowLeft');
       await this.settle();
 
-      if ((await this.read()).selectedInset < selected.rowHeaderWidth + this.frozenWidth - 1) {
+      const { selectedInset } = await this.read();
+
+      // A selected cell that is not rendered counts as a failed step, not as a pass.
+      if (!(selectedInset >= selected.rowHeaderWidth + this.frozenWidth - 1)) {
         stepsUnderHeader += 1;
       }
     }

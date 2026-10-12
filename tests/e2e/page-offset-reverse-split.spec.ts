@@ -55,6 +55,7 @@ test.describe('grid offset from the page edge inside a vertically clipping ances
     expect(twin.holderWidth).toBe(800);
     expect(offset).toEqual(twin);
     // The selected cell clears the row header, and every keyboard step does.
+    expect(Number.isFinite(offset.selectedCellInset)).toBe(true);
     expect(offset.selectedCellInset).toBeGreaterThanOrEqual(offset.rowHeaderWidth - 1);
     expect(offset.stepsUnderHeader).toBe(0);
   });
@@ -75,15 +76,18 @@ test.describe('grid offset from the page edge inside a vertically clipping ances
   });
 
   test('renders the columns an owner-sized holder needs, not the ones of a wider workspace', async() => {
-    const { offset } = await measureBoth({ overflowY: 'clip' });
-    const hidden = await (async() => {
-      await grid.goto({ overflowY: 'hidden', margin: MARGIN });
+    await grid.goto({ overflowY: 'clip', margin: MARGIN });
+    const offset = await grid.measure();
 
-      return grid.measure();
-    })();
+    await grid.goto({ overflowY: 'hidden', margin: MARGIN });
+    const hidden = await grid.measure();
 
     expect(offset.renderedColumns).toBe(hidden.renderedColumns);
     expect(offset.lastFullyVisible).toBe(hidden.lastFullyVisible);
+    // The absolute value too, so two layouts that break the same way cannot agree: the columns that fit
+    // the holder after the row header, counted from the first fully visible one (100px columns).
+    expect(offset.lastFullyVisible - offset.firstFullyVisible)
+      .toBe(Math.floor((offset.holderWidth - offset.rowHeaderWidth) / 100) - 1);
   });
 
   for (const layout of [

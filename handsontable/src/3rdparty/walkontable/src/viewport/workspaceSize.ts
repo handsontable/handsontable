@@ -197,7 +197,8 @@ export function measureWorkspaceHeight(viewport: Viewport): number {
  */
 export function measureWorkspaceWidth(viewport: Viewport): number {
   const { rootDocument, rootWindow, geometryReader } = viewport.deps;
-  const trimmingContainer = viewport.deps.getInlineStartOverlay().trimmingContainer;
+  const inlineStartOverlay = viewport.deps.getInlineStartOverlay();
+  const trimmingContainer = inlineStartOverlay.trimmingContainer;
   let width;
 
   if (trimmingContainer === rootWindow) {
@@ -207,7 +208,7 @@ export function measureWorkspaceWidth(viewport: Viewport): number {
 
     // The page is the workspace only while the window scrolls the columns. When the holder does (an
     // ancestor clips the vertical axis only), the page is wider than the holder by the offset in front of it.
-    const windowScrolls = viewport.deps.getInlineStartOverlay().mainTableScrollableElement === rootWindow;
+    const windowScrolls = inlineStartOverlay.mainTableScrollableElement === rootWindow;
 
     if (windowScrolls && viewport.getRowHeaderWidth() + viewport.sumColumnWidths(0, totalColumns) > width) {
       width = geometryReader.clientWidth(rootDocument.documentElement);
