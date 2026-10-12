@@ -214,6 +214,28 @@ test.describe('editor: false', () => {
     expect(await grid.dataAtCell('typed', 0, 2)).toBe(true);
   });
 
+  // The other side of the same shortcut: with no checkbox in the selection it does not consume the
+  // key, and the grid clears the cells itself. They must be written once - one `afterChange`, one undo
+  // step - not once by each.
+  test('Delete writes a checkbox-free selection once in a grid with a checkbox column', async({ page, theme, bundle }) => {
+    const grid = new EditorDisabledPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.selectCell('typed', 0, 0);
+    await grid.call('typed', 'selectCell', 0, 0, 0, 1);
+    await grid.countChanges('typed');
+    await page.keyboard.press('Delete');
+
+    expect(await grid.dataAtCell('typed', 0, 0)).toBeNull();
+    expect(await grid.dataAtCell('typed', 0, 1)).toBeNull();
+    expect(await grid.changeCount('typed')).toBe(1);
+
+    await page.keyboard.press('ControlOrMeta+z');
+
+    expect(await grid.dataAtCell('typed', 0, 0)).toBe('Alpha');
+    expect(await grid.dataAtCell('typed', 0, 1)).toBe(1234.5);
+  });
+
   test('a "type" set on a single cell does not re-enable editing disabled at grid level', async({ page, theme, bundle }) => {
     const grid = new EditorDisabledPage(page, theme, bundle);
 

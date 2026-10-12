@@ -177,6 +177,28 @@ export class EditorDisabledPage {
     );
   }
 
+  /**
+   * Start counting the `afterChange` calls of a grid, ignoring the ones a data load fires. Read the
+   * count with `changeCount()`.
+   */
+  async countChanges(grid: GridName): Promise<void> {
+    await this.page.evaluate((name) => {
+      const hot = (window as any)[name];
+
+      hot.__changeCount = 0;
+      hot.addHook('afterChange', (_changes: unknown, source: string) => {
+        if (source !== 'loadData') {
+          hot.__changeCount += 1;
+        }
+      });
+    }, INSTANCES[grid]);
+  }
+
+  /** The number of `afterChange` calls since `countChanges()`. */
+  async changeCount(grid: GridName): Promise<number> {
+    return this.page.evaluate(name => (window as any)[name].__changeCount, INSTANCES[grid]);
+  }
+
   /** Call `updateSettings()` on a grid of the fixture. */
   async updateSettings(grid: GridName, settings: Record<string, unknown>): Promise<void> {
     await this.page.evaluate(

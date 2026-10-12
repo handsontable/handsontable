@@ -391,10 +391,13 @@ export function checkboxRenderer(
       changes = changes.map(([visualRow, visualColumn, cellValue]) => [visualRow, visualColumn, cellValue]);
     }
 
-    // The non-checkbox cells are cleared even when no checkbox changed. `areSelectedCheckboxCells()`
-    // counts a checkbox with no editor, so the shortcut consumes Delete and Backspace for the whole
-    // selection, and nothing else would clear the text cells next to it.
-    if (changes.length > 0 || nonCheckboxChanges.size > 0) {
+    // The non-checkbox cells are cleared even when no checkbox changed, but only when the shortcut
+    // consumes the key - the condition its callback returns. `areSelectedCheckboxCells()` counts a
+    // checkbox with no editor, so the key is consumed for a selection that holds one, and nothing else
+    // would clear the text cells next to it. When the selection holds no such checkbox, the key falls
+    // through to `emptySelectedCells()`, which clears them itself; writing them here too would fire
+    // `afterChange` twice and record two undo steps.
+    if (changes.length > 0 || (nonCheckboxChanges.size > 0 && areSelectedCheckboxCells())) {
       // TODO: This is workaround for handsontable/dev-handsontable#1747 not being a breaking change.
       // Technically, the changes don't need to be split into chunks when sent to `setDataAtCell`.
       const changesChunks: ChangeEntry[][] = [];
