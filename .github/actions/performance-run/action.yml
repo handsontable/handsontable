@@ -4,11 +4,14 @@ description: >-
   the PR Tests pipeline; the standalone performance-tests.yml keeps its own copy
   for the trunk push (golden baseline) until the higher pipelines are reworked.
   Requires checkout first. PERF_MODE is derived from the event (push → golden,
-  otherwise compare), matching the standalone workflow.
+  otherwise compare), matching the standalone workflow. With hot-prebuilt, the
+  caller downloads and extracts the shared UMD build artifact first (see
+  performance.yml): a composite step cannot take timeout-minutes, and that
+  download once hung for the whole job timeout.
 
 inputs:
   hot-prebuilt:
-    description: 'A shared UMD build artifact from the calling run is available — skip the internal build'
+    description: 'The caller has extracted the shared UMD build into handsontable/dist and handsontable/styles — skip the internal build'
     required: false
     default: 'false'
 
@@ -34,19 +37,6 @@ runs:
         node-version-file: '.nvmrc'
         cache: 'pnpm'
         registry-url: https://registry.npmjs.org/
-
-    # PR pipeline: reuse the shared UMD build artifact instead of rebuilding
-    # (one of the 5→2 build de-duplications). Trunk pushes still self-build.
-    - name: Download the Handsontable UMD build artifact
-      if: inputs.hot-prebuilt == 'true'
-      uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
-      with:
-        name: handsontable-build-umd
-
-    - name: Extract the prebuilt dist
-      if: inputs.hot-prebuilt == 'true'
-      shell: bash
-      run: tar -zxf dist.tar.gz ./handsontable/dist ./handsontable/styles && rm dist.tar.gz
 
     - name: Fetch golden snapshots from GitHub Pages
       if: ${{ (github.event_name == 'push' && 'golden' || 'compare') == 'compare' }}
