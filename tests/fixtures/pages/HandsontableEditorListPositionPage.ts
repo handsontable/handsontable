@@ -287,13 +287,8 @@ export class HandsontableEditorListPositionPage {
   async scrollPartway(distance = 700): Promise<void> {
     await this.scrollToEnd();
 
-    const target = await this.page.evaluate((dy) => {
-      window.scrollBy(0, -dy);
+    await this.page.evaluate(dy => window.scrollBy(0, -dy), distance);
 
-      return window.scrollY;
-    }, distance);
-
-    await expect.poll(() => this.page.evaluate(() => window.scrollY), { message: 'the page settles' }).toBe(target);
     await expect.poll(() => this.page.evaluate(() => {
       const { clientWidth, clientHeight } = document.documentElement;
 

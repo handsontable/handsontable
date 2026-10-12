@@ -6,19 +6,25 @@ import {
 
 /**
  * A grid instance reduced to the DOM measurements the helper reads, so each case can state the layout it
- * measures: the viewport's width and the grid root's box.
+ * measures: the viewport's width and the grid root's box. The `offsetLeft` chain and the scroll are there
+ * too, so a helper that reads them gives a wrong value instead of throwing.
  *
  * @param {object} layout The measurements.
  * @param {boolean} layout.rtl Whether the grid's layout direction is RTL.
  * @param {number} layout.clientWidth The viewport's width (`documentElement.clientWidth`).
  * @param {object} layout.rootRect The grid root's box in viewport coordinates.
+ * @param {number} [layout.tableOffsetLeft] The holder's left edge in document coordinates.
+ * @param {number} [layout.scrollX] The page's horizontal scroll.
  * @returns {object} The stand-in instance.
  */
-function createHot({ rtl, clientWidth, rootRect }) {
+function createHot({ rtl, clientWidth, rootRect, tableOffsetLeft = 600, scrollX = 3770 }) {
   return {
     isRtl: () => rtl,
     rootDocument: { documentElement: { clientWidth } },
     rootElement: { getBoundingClientRect: () => rootRect },
+    // What the LTR branch read before it used the root's box: the `offsetLeft` chain and the page's scroll.
+    view: { getTableOffset: () => ({ left: tableOffsetLeft, top: 0 }) },
+    rootWindow: { scrollX },
   };
 }
 

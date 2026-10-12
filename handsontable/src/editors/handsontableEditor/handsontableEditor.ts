@@ -3,7 +3,7 @@ import type { CellProperties } from '../../settings';
 import { TextEditor } from '../textEditor';
 import { setCaretPosition, getFixedContainingBlockRect, isHTMLElement } from '../../helpers/dom/element';
 import { getWindowScrollInlineMetrics } from '../utils/windowScrollInlineMetrics';
-import { getVisibleVerticalRange } from '../utils/visibleVerticalRange';
+import { getVerticalRoom, getVisibleVerticalRange } from '../utils/visibleVerticalRange';
 import {
   stopImmediatePropagation,
 } from '../../helpers/dom/event';
@@ -442,9 +442,11 @@ export class HandsontableEditor extends TextEditor {
     //
     // Only the part of that box the viewport shows counts: a transformed ancestor scrolls with the
     // page, so its bottom can lie below the viewport's.
-    const visible = this.#visibleVerticalRange();
-    const spaceAbove = Math.max(cellRect.top - visible.top, 0);
-    const spaceBelow = Math.max(visible.bottom - cellRect.bottom, 0);
+    const { spaceAbove, spaceBelow } = getVerticalRoom(
+      cellRect,
+      this.#containingBlockRect(),
+      this.hot.rootDocument.documentElement.clientHeight
+    );
     const dropdownTargetHeight = this.getDropdownHeight();
     const flipNeeded = dropdownTargetHeight > spaceBelow && spaceAbove > spaceBelow + cellRect.height;
 
@@ -664,7 +666,7 @@ export class HandsontableEditor extends TextEditor {
   #writeDropdownTop(viewportTop: number): void {
     const dropdownStyle = this.htEditor.rootElement.style;
     const block = this.#containingBlockRect();
-    const visible = this.#visibleVerticalRange();
+    const visible = getVisibleVerticalRange(block, this.hot.rootDocument.documentElement.clientHeight);
     const height = this.getDropdownHeight();
     // A list taller than the visible part of the box pins to its top: showing the first options
     // beats showing the middle of the list.
@@ -673,19 +675,6 @@ export class HandsontableEditor extends TextEditor {
 
     dropdownStyle.position = 'fixed';
     dropdownStyle.top = `${clamped - block.top}px`;
-  }
-
-  /**
-   * The part of `#containingBlockRect()` the viewport shows, as top and bottom edges in viewport
-   * coordinates. The room for the list is measured here; the block stays the origin of its `top`.
-   *
-   * @returns {{ top: number, bottom: number }}
-   */
-  #visibleVerticalRange(): { top: number, bottom: number } {
-    return getVisibleVerticalRange(
-      this.#containingBlockRect(),
-      this.hot.rootDocument.documentElement.clientHeight
-    );
   }
 
   /**

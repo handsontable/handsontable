@@ -495,8 +495,10 @@ export class DropdownController {
   /**
    * Applies or removes the absolute positioning that renders the dropdown above the edited cell.
    *
-   * Anchored by its bottom edge, 1 px above the cell, so the list ends there whatever height it renders at.
-   * Its offset parent, the editor container, sits flush with the cell's bottom and has no height of its own.
+   * Anchored by its bottom edge, so the list ends flush with the top of the editor container, which is 1 px
+   * above the cell, whatever height the list renders at. That container sits at the cell's bottom and has no
+   * height of its own. For the first row under the column headers and the first `fixedRowsBottom` row,
+   * `getEditedCellRect()` adds 1 px to the container's top, so the list ends flush with the cell's top there.
    */
   #toggleVerticalFlip(availableSpace: { cellHeight: number }): void {
     if (!this.#containerElement) {

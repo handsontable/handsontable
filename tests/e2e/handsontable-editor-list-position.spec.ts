@@ -1,5 +1,10 @@
 import { test, expect } from '../fixtures/test';
-import { HandsontableEditorListPositionPage, type Layout, type Variant } from '../fixtures/pages/HandsontableEditorListPositionPage';
+import {
+  HandsontableEditorListPositionPage,
+  type EditorType,
+  type Layout,
+  type Variant,
+} from '../fixtures/pages/HandsontableEditorListPositionPage';
 
 /**
  * Where the `handsontable`, `dropdown`, `autocomplete`, and `multiselect` editors' lists open, relative to

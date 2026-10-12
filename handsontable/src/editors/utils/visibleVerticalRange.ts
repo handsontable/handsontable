@@ -15,8 +15,8 @@ export type VisibleVerticalRange = {
  * measure is what is both inside the box (an ancestor that clips its content cuts the list there) and
  * inside the viewport.
  *
- * A box wholly outside the viewport collapses to a zero-height range, so no list flips and the clamp pins it
- * to the range's top.
+ * A box wholly above the viewport collapses to a zero-height range at the viewport's top, so no list flips there.
+ * A box wholly below it collapses at its own top, so a cell inside it still measures room above.
  *
  * @param {{ top: number, height: number }} block The box the `fixed` list is laid out in
  * (`getFixedContainingBlockRect()`).
@@ -32,5 +32,29 @@ export function getVisibleVerticalRange(
   return {
     top,
     bottom: Math.max(Math.min(block.top + block.height, viewportHeight), top),
+  };
+}
+
+/**
+ * Measures the room above and below an edited cell for the editor's `fixed` list: the cell's distance to
+ * the top and bottom edges of `getVisibleVerticalRange()`. Both editors that flip their list vertically
+ * read it here, so the two cannot drift apart.
+ *
+ * @param {{ top: number, bottom: number }} cellRect The edited cell's box in viewport coordinates.
+ * @param {{ top: number, height: number }} block The box the `fixed` list is laid out in
+ * (`getFixedContainingBlockRect()`).
+ * @param {number} viewportHeight The viewport's height (`documentElement.clientHeight`).
+ * @returns {{ spaceAbove: number, spaceBelow: number }} The room above and below the cell, never negative.
+ */
+export function getVerticalRoom(
+  cellRect: { top: number, bottom: number },
+  block: { top: number, height: number },
+  viewportHeight: number
+): { spaceAbove: number, spaceBelow: number } {
+  const visible = getVisibleVerticalRange(block, viewportHeight);
+
+  return {
+    spaceAbove: Math.max(cellRect.top - visible.top, 0),
+    spaceBelow: Math.max(visible.bottom - cellRect.bottom, 0),
   };
 }
