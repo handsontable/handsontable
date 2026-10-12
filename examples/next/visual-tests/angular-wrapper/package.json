@@ -6,7 +6,7 @@
     "postinstall": "cd ../../.. && npm run link-packages -- --f angular-wrapper --examples-version next"
   },
   "workspaces": [
-    "@(!(node_modules))/"
+    "*"
   ],
   "overrides": {
     "webpack-dev-middleware@8": "^8.3.0",

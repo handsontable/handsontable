@@ -242,7 +242,7 @@ Other rules:
   separator to a space (`mmmm yyyy`), and a weekday with no month, day or year is written on its own
   (`dddd`), which the import's `applyDayOrWeekday` reads straight back as `weekday`. **An unspecified
   `hour12` is resolved from the cell's `locale`, not assumed to be 24-hour.** `Intl` defaults the clock
-  from the locale and so does the grid — `timeRenderer` builds `new Intl.DateTimeFormat(locale,
+  from the locale and so does the grid — `timeRenderer` formats with `getDateTimeFormat(locale,
   timeFormat)` — so a cell with `{ hour: '2-digit', minute: '2-digit' }` under the default `en-US`
   renders `09:30 AM` while the export used to write `hh:mm`, which the import read as `hour12: false`
   and the target grid rendered as `09:30`. `resolveHour12` asks `Intl.DateTimeFormat(locale,
@@ -301,13 +301,13 @@ Other rules:
   `undefined`, `''`) that matches neither — the renderer's `noValue` state — and `false` for anything
   else. Checking `uncheckedTemplate` first is what keeps `uncheckedTemplate: ''` exporting `false`.
   Before this, an empty checkbox wrote `<c t="b"><v>0</v></c>` and re-imported as unchecked.
-  Pinned by `xlsxCheckboxValue.unit.js`; the user-facing note is in section 30 of the 18.1 → 19.0
+  Pinned by `xlsxCheckboxValue.unit.js`; the user-facing note is in section 32 of the 18.1 → 19.0
   migration guide, together with the frozen-pane change above.
 - **The `_HotValidation` helper sheet is `hidden`, NOT `veryHidden`.** Apple Numbers discards a very
   hidden sheet on open together with every validation that points at it, so every dropdown of a
   native or ExcelJS export was lost there (18.1 wrote it `veryHidden` too). `hidden` keeps them in
   Numbers; the cost is that Excel lists the sheet under Unhide. Inlining short lists (255 characters)
-  was the alternative and stays open. Named in the export guide's cell-type table and in section 30
+  was the alternative and stays open. Named in the export guide's cell-type table and in section 32
   of the migration guide.
 - **Every currency symbol except a lone `$` is QUOTED in the `numFmt`** (a lone `€`/`£` too: Numbers
   and Quick Look misread it bare, `#,##0.00€` showed 1235 for 1234.5 in Numbers) (`numeric-utils.ts`,

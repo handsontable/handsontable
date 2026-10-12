@@ -77,7 +77,7 @@ To reproduce a verdict locally, re-run one file alone against the same dump: `np
 
 **Test Environment:**
 - Unit tests: jsdom (JavaScript DOM implementation)
-- New E2E: Playwright (real Chromium; `tests/` package)
+- New E2E: Playwright (real Chromium, plus Firefox and WebKit for tests tagged `@cross-browser`; `tests/` package)
 - Legacy E2E: Puppeteer with real headless Chrome
 - Default legacy-Jasmine timeout: 15000ms (set in `test/bootstrap.js`)
 

@@ -16,8 +16,8 @@ import { NestedRowsPage } from '../fixtures/pages/NestedRowsPage';
 const ALL_ROWS = ['Root A', 'A-1', 'A-2', 'A-2-a', 'A-2-b', 'A-3', 'Root B', 'B-1', 'B-2'];
 
 test.describe('NestedRows public collapse/expand API', () => {
-  test('collapseParent hides the children of one parent, expandParent brings them back', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('collapseParent hides the children of one parent, expandParent brings them back', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
     await expect(await nestedRows.visibleNames()).toEqual(ALL_ROWS);
@@ -29,8 +29,8 @@ test.describe('NestedRows public collapse/expand API', () => {
     expect(await nestedRows.visibleNames()).toEqual(ALL_ROWS);
   });
 
-  test('collapseAll leaves only the top-level rows, expandAll restores every level', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('collapseAll leaves only the top-level rows, expandAll restores every level', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -41,8 +41,8 @@ test.describe('NestedRows public collapse/expand API', () => {
     expect(await nestedRows.visibleNames()).toEqual(ALL_ROWS);
   });
 
-  test('expandAll also expands a parent that was collapsed inside another collapsed parent', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('expandAll also expands a parent that was collapsed inside another collapsed parent', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -59,8 +59,8 @@ test.describe('NestedRows public collapse/expand API', () => {
     expect(await nestedRows.visibleNames()).toEqual(ALL_ROWS);
   });
 
-  test('toggleParent matches what the row header button does', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('toggleParent matches what the row header button does', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -72,8 +72,8 @@ test.describe('NestedRows public collapse/expand API', () => {
     expect(await nestedRows.visibleNames()).toEqual(ALL_ROWS);
   });
 
-  test('getCollapsedParents reports a trimmed parent that has no visual index', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('getCollapsedParents reports a trimmed parent that has no visual index', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -88,8 +88,8 @@ test.describe('NestedRows public collapse/expand API', () => {
     expect(await nestedRows.collapsedParents()).toContain(2);
   });
 
-  test('expandToRow reveals a row hidden inside a collapsed branch', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('expandToRow reveals a row hidden inside a collapsed branch', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -101,8 +101,8 @@ test.describe('NestedRows public collapse/expand API', () => {
     expect(await nestedRows.visibleNames()).toContain('A-2-a');
   });
 
-  test('expandToLevel shows only rows down to the given nesting level', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('expandToLevel shows only rows down to the given nesting level', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -113,8 +113,8 @@ test.describe('NestedRows public collapse/expand API', () => {
     expect(await nestedRows.visibleNames()).toEqual(['Root A', 'A-1', 'A-2', 'A-3', 'Root B', 'B-1', 'B-2']);
   });
 
-  test('the structure reads describe the tree', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('the structure reads describe the tree', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -128,8 +128,8 @@ test.describe('NestedRows public collapse/expand API', () => {
     expect(await nestedRows.callPlugin('countChildren', 0, true)).toBe(5);
   });
 
-  test('a row without children is never reported as collapsed', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('a row without children is never reported as collapsed', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -145,8 +145,8 @@ test.describe('NestedRows public collapse/expand API', () => {
 });
 
 test.describe('NestedRows collapse/expand hooks', () => {
-  test('fires the collapse hooks with the documented arguments', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('fires the collapse hooks with the documented arguments', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
     await nestedRows.resetHookLog();
@@ -159,8 +159,8 @@ test.describe('NestedRows collapse/expand hooks', () => {
     ]);
   });
 
-  test('fires the expand hooks with the documented arguments', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('fires the expand hooks with the documented arguments', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
     await nestedRows.callPlugin('collapseParent', 0);
@@ -174,8 +174,8 @@ test.describe('NestedRows collapse/expand hooks', () => {
     ]);
   });
 
-  test('reports collapsePossible as false for a row that has no children', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('reports collapsePossible as false for a row that has no children', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
     await nestedRows.resetHookLog();
@@ -189,8 +189,8 @@ test.describe('NestedRows collapse/expand hooks', () => {
     ]);
   });
 
-  test('fires the same hooks when the user clicks the row header button', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('fires the same hooks when the user clicks the row header button', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
     await nestedRows.resetHookLog();
@@ -203,8 +203,8 @@ test.describe('NestedRows collapse/expand hooks', () => {
     ]);
   });
 
-  test('fires the same hooks when the user presses Enter on a row header', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('fires the same hooks when the user presses Enter on a row header', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
     await nestedRows.resetHookLog();
@@ -218,8 +218,8 @@ test.describe('NestedRows collapse/expand hooks', () => {
   });
 
   test('returning false from beforeRowCollapse blocks the collapse and fires no afterRowCollapse',
-    async({ page, theme }) => {
-      const nestedRows = new NestedRowsPage(page, theme);
+    async({ page, theme, bundle }) => {
+      const nestedRows = new NestedRowsPage(page, theme, bundle);
 
       await nestedRows.goto({ block: 'rowCollapse' });
       await nestedRows.resetHookLog();
@@ -232,8 +232,8 @@ test.describe('NestedRows collapse/expand hooks', () => {
     });
 
   test('returning false from beforeRowExpand blocks the expand and fires no afterRowExpand',
-    async({ page, theme }) => {
-      const nestedRows = new NestedRowsPage(page, theme);
+    async({ page, theme, bundle }) => {
+      const nestedRows = new NestedRowsPage(page, theme, bundle);
 
       await nestedRows.goto({ block: 'rowExpand' });
 
@@ -249,8 +249,8 @@ test.describe('NestedRows collapse/expand hooks', () => {
 });
 
 test.describe('NestedRows collapsed state stability', () => {
-  test('the methods are safe to call right after loadData, with no retry', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('the methods are safe to call right after loadData, with no retry', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -274,8 +274,8 @@ test.describe('NestedRows collapsed state stability', () => {
     expect(await nestedRows.visibleNames()).toEqual(['New Root']);
   });
 
-  test('the collapsed rows survive an updateSettings call', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('the collapsed rows survive an updateSettings call', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -290,8 +290,8 @@ test.describe('NestedRows collapsed state stability', () => {
     expect(await nestedRows.visibleNames()).toEqual(['Root A', 'Root B', 'B-1', 'B-2']);
   });
 
-  test('restoring the collapsed rows after updateSettings fires no hooks', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('restoring the collapsed rows after updateSettings fires no hooks', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -306,8 +306,8 @@ test.describe('NestedRows collapsed state stability', () => {
     expect(await nestedRows.collapsedParents()).toEqual([0]);
   });
 
-  test('a blocked expand cancels the whole expandToLevel call', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('a blocked expand cancels the whole expandToLevel call', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto({ block: 'rowExpand' });
 
@@ -325,8 +325,8 @@ test.describe('NestedRows collapsed state stability', () => {
     expect(await nestedRows.hookNames()).toEqual(['beforeRowExpand']);
   });
 
-  test('expandToLevel still collapses when there is nothing left to expand', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('expandToLevel still collapses when there is nothing left to expand', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -337,8 +337,8 @@ test.describe('NestedRows collapsed state stability', () => {
     expect(await nestedRows.visibleNames()).toEqual(['Root A', 'A-1', 'A-2', 'A-3', 'Root B', 'B-1', 'B-2']);
   });
 
-  test('the public methods do nothing once the plugin is disabled', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('the public methods do nothing once the plugin is disabled', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
     await page.evaluate(() => window.hot.updateSettings({ nestedRows: false }));
@@ -361,8 +361,8 @@ test.describe('NestedRows collapsed state stability', () => {
     expect(await nestedRows.hookLog()).toEqual([]);
   });
 
-  test('disabling the plugin removes the collapse buttons and the indent spacers from the row headers', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('disabling the plugin removes the collapse buttons and the indent spacers from the row headers', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -375,14 +375,14 @@ test.describe('NestedRows collapsed state stability', () => {
     await expect(nestedRows.collapseButton(0)).toHaveCount(0);
   });
 
-  test('the master hider is tall enough for the table on initial display', async({ page, theme }) => {
+  test('the master hider is tall enough for the table on initial display', async({ page, theme, bundle }) => {
     // NestedRows used to force an overlay resize in a `requestAnimationFrame` after its first
     // render, because the hider came out too short on initial display. That call was removed with
     // the other 29 in DEV-19: Walkontable now notices for itself that the geometry it would write
     // differs from the geometry it last wrote. Nothing else pinned the behaviour the removed hook
     // was fixing, so this does - a hider shorter than the table clips the last rows and stops the
     // scrollbar early.
-    const nestedRows = new NestedRowsPage(page, theme);
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 

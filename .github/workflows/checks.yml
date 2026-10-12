@@ -214,6 +214,11 @@ jobs:
             # bump from any other dependency bump, and a full render on every
             # Dependabot pull request is the cost this tier exists to remove.
             # A browser bump is proven by the next seed and nightly instead.
+            # One exception, accepted on purpose: the visual demo lockfiles
+            # (`examples/next/visual-tests/*/package-lock.json`) sit under
+            # `visual-sources`, so the grouped Dependabot security PR
+            # (.github/dependabot.yml) renders the full tier whenever it fixes
+            # an alert in one of those trees.
             visual-full:
               - *visual-sources
             # Per wrapper, the wrapper's own tree ONLY — never `*hot-shared`.

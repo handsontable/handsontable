@@ -47,8 +47,8 @@ By default, <kbd>Tab</kbd> moves the active cell one column to the right and <kb
 | <kbd>**Ctrl**</kbd>+<kbd>**Backspace**</kbd> | <kbd>⌘</kbd>+<kbd>**Backspace**</kbd> | Scroll the viewport to show the focused cell or header                                          | &cross; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**↑**</kbd>         | <kbd>⌘</kbd>+<kbd>**↑**</kbd>         | Move to the first cell of the current column                                                    | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**↓**</kbd>         | <kbd>⌘</kbd>+<kbd>**↓**</kbd>         | Move to the last cell of the current column                                                     | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**←**</kbd>         | <kbd>⌘</kbd>+<kbd>**←**</kbd>         | Move to the leftmost cell of the current row                                                    | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**→**</kbd>         | <kbd>⌘</kbd>+<kbd>**→**</kbd>         | Move to the rightmost cell of the current row                                                   | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**←**</kbd>         | <kbd>⌘</kbd>+<kbd>**←**</kbd>         | Move to the leftmost cell of the current row<sup>\*\*</sup>                                    | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**→**</kbd>         | <kbd>⌘</kbd>+<kbd>**→**</kbd>         | Move to the rightmost cell of the current row<sup>\*\*</sup>                                   | &check; | &check; |
 | <kbd>**F2**</kbd>                            | <kbd>**F2**</kbd>                           | Enter the editing mode of the active cell                                                       | &check; | &check; |
 | <kbd>**Enter**</kbd>                         | <kbd>**Enter**</kbd>                        | Enter the editing mode of the active cell                                                       | &cross; | &check; |
 | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>    | <kbd>⇧</kbd>+<kbd>**Enter**</kbd>   | Enter the editing mode of the active cell                                                       | &cross; | &check; |
@@ -64,7 +64,8 @@ By default, <kbd>Tab</kbd> moves the active cell one column to the right and <kb
 | <kbd>**Page Down**</kbd>                     | <kbd>**Page Down**</kbd>                    | Move one screen down                                                                            | &check; | &check; |
 | <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>      | <kbd>⌥</kbd>+<kbd>**Enter**</kbd>     | Open the link of the selected cell (when the cell renders a link, for example through `autoLink` or `formulas.hyperlinks`) | &cross; | &cross; |
 
-<sup>\*</sup> This action depends on your layout direction.
+<sup>\*</sup> This action depends on your layout direction.<br>
+<sup>\*\*</sup> On a row header of a grid with [row groups](#row-parent-child-keyboard-shortcuts), this shortcut works as a row group key instead.
 
 ## Selection keyboard shortcuts
 
@@ -245,11 +246,15 @@ The <kbd>**Enter**</kbd> shortcut works only when a collapsible column group hea
 
 These keyboard shortcuts work in [row groups](@/guides/rows/row-parent-child/row-parent-child.md), also known as "nested rows". To activate them, enable the [`NestedRows`](@/api/nestedRows.md) plugin.
 
-The <kbd>**Enter**</kbd> shortcut works only when a row header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+These shortcuts work only when a row header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
 
-| Windows              | macOS                | Action                           |  Excel  | Sheets  |
-| -------------------- | -------------------- | -------------------------------- | :-----: | :-----: |
-| <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Collapse or expand the row group | &cross; | &cross; |
+| Windows              | macOS                | Action                                                                                                 |
+| -------------------- | -------------------- | ------------------------------------------------------------------------------------------------------ |
+| <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Collapse or expand the row group                                                                       |
+| <kbd>**Ctrl**</kbd>+<kbd>**→**</kbd> | <kbd>⌘</kbd>+<kbd>**→**</kbd> | Expand a collapsed parent row                                                                 |
+| <kbd>**Ctrl**</kbd>+<kbd>**←**</kbd> | <kbd>⌘</kbd>+<kbd>**←**</kbd> | Collapse an expanded parent row. Otherwise, move the focus to the header of the parent row, if any |
+
+In a right-to-left layout ([`layoutDirection: 'rtl'`](@/api/options.md#layoutdirection)), the <kbd>**←**</kbd> and <kbd>**→**</kbd> keys swap their actions. The arrow keys without a modifier move the selection, as they do in every grid. On a row header, <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**←**</kbd> and <kbd>**→**</kbd> don't jump to the first or last cell of the row. To move along the row from a row header, use <kbd>**→**</kbd> or <kbd>**End**</kbd>.
 
 ### Rows sorting keyboard shortcuts
 

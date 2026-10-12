@@ -7,6 +7,18 @@ import { type Page } from '@playwright/test';
 export const BUNDLE_POLLING_MS = 100;
 
 /**
+ * The bundle a leg runs, as the `bundle` option and every fixture's `?bundle=` allowlist spell it:
+ * `umd` is `dist/handsontable.js`, `full-min` is `dist/handsontable.full.min.js`.
+ */
+export type Bundle = 'umd' | 'full-min';
+
+/**
+ * What the fixture contract's `?theme=`/`?bundle=` block (copied from `demo/grid.html`) throws for a
+ * value outside its allowlist.
+ */
+const FIXTURE_PARAM_ERROR = /^Unknown \?(theme|bundle)= value: /;
+
+/**
  * Waits for the Handsontable bundle under test to have evaluated. Every page object's `goto()` calls
  * this right after `page.goto()`, before it asserts on anything the fixture rendered.
  *
@@ -14,6 +26,11 @@ export const BUNDLE_POLLING_MS = 100;
  * block that builds the grid are separate, so a page can report ready while `Handsontable` is still
  * undefined. The spec then fails inside its first `page.evaluate()` with a bare
  * `Handsontable is not defined` – far from the cause, and only on a cold or busy server.
+ *
+ * A fixture that rejected its `?theme=` or `?bundle=` threw in `<head>` before it wrote the bundle
+ * script, so the bundle never arrives. That throw happened during `page.goto()`, and this rethrows it
+ * up front: otherwise a page object passing a bad value (a fixture name in the bundle slot) ends as a
+ * bare test timeout inside the wait below, with nothing pointing at the cause.
  *
  * Two choices in here are deliberate. `waitForFunction` rather than `expect`: `dist/handsontable.js`
  * is ~6 MB uncompressed and every worker pulls its own copy, so a cold or busy server outlasts the
@@ -25,6 +42,13 @@ export const BUNDLE_POLLING_MS = 100;
  * @param {Page} page The page the fixture is open on.
  */
 export async function awaitBundle(page: Page): Promise<void> {
+  const paramError = (await page.pageErrors({ filter: 'since-navigation' }))
+    .find(error => FIXTURE_PARAM_ERROR.test(error.message));
+
+  if (paramError) {
+    throw new Error(`The fixture rejected its query params, so no bundle loads (${page.url()}):\n${paramError.message}`);
+  }
+
   await page.waitForFunction(() => 'Handsontable' in window, undefined, { polling: BUNDLE_POLLING_MS });
 }
 
