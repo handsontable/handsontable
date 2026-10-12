@@ -2177,6 +2177,94 @@ describe('DomElement helper', () => {
       parent.remove();
     });
 
+    describe('with a root scrollbar drawn on the inline-start side', () => {
+      const html = document.documentElement;
+      let child: HTMLElement;
+      let initialStyle: string | null;
+
+      /**
+       * Stubs `documentElement.clientLeft`, which is 0 in jsdom.
+       *
+       * @param {number} value The value to report.
+       */
+      function stubClientLeft(value) {
+        Object.defineProperty(html, 'clientLeft', { configurable: true, get: () => value });
+      }
+
+      /**
+       * Gives the `<html>` element a left border.
+       *
+       * @param {number} width The border width in pixels.
+       */
+      function setHtmlBorder(width) {
+        html.style.borderLeftStyle = 'solid';
+        html.style.borderLeftWidth = `${width}px`;
+      }
+
+      beforeEach(() => {
+        initialStyle = html.getAttribute('style');
+        child = document.createElement('div');
+        document.body.appendChild(child);
+      });
+
+      afterEach(() => {
+        child.remove();
+        Reflect.deleteProperty(html, 'clientLeft');
+        Reflect.deleteProperty(html, 'clientWidth');
+
+        if (initialStyle === null) {
+          html.removeAttribute('style');
+        } else {
+          html.setAttribute('style', initialStyle);
+        }
+      });
+
+      it('should start the fallback box after the scrollbar gutter', () => {
+        Object.defineProperty(html, 'clientWidth', { configurable: true, get: () => 1265 });
+        stubClientLeft(15);
+
+        const rect = getFixedContainingBlockRect(child);
+
+        expect(rect.left).toBe(15);
+        expect(rect.width).toBe(1265);
+      });
+
+      it('should ignore the gutter when an ancestor establishes the containing block', () => {
+        const ancestor = document.createElement('div');
+
+        ancestor.style.transform = 'translate(-50%, -50%)';
+        ancestor.appendChild(child);
+        document.body.appendChild(ancestor);
+        stubRect(ancestor, { top: 100, left: 200, width: 400, height: 300 });
+        stubClientLeft(15);
+
+        expect(getFixedContainingBlockRect(child).left).toBe(200);
+
+        ancestor.remove();
+      });
+
+      it('should not count a border of the html element as part of the gutter', () => {
+        setHtmlBorder(4);
+        stubClientLeft(19);
+
+        expect(getFixedContainingBlockRect(child).left).toBe(15);
+      });
+
+      it('should report no gutter when `clientLeft` is only the html border', () => {
+        setHtmlBorder(4);
+        stubClientLeft(4);
+
+        expect(getFixedContainingBlockRect(child).left).toBe(0);
+      });
+
+      it('should never report a negative start when the border is wider than `clientLeft`', () => {
+        setHtmlBorder(4);
+        stubClientLeft(2);
+
+        expect(getFixedContainingBlockRect(child).left).toBe(0);
+      });
+    });
+
     // Only the properties jsdom carries through to `getComputedStyle`. It drops `perspective` and
     // `backdrop-filter` from the cascade entirely (the inline value is kept, the computed one comes
     // back empty), so those two cannot be exercised here even though every browser honours them and

@@ -1242,10 +1242,11 @@ function establishesFixedContainingBlock(style: CSSStyleDeclaration): boolean {
  * viewport coordinate into the value the element must be given, and use `width`/`height` as the
  * bounds the element has to stay inside.
  *
- * Falls back to the viewport, so a caller can use the result unconditionally. The viewport's own
- * size is read from `documentElement.clientWidth`/`clientHeight`, which is what a fixed box is
- * laid out in - `innerWidth`/`innerHeight` include the classic scrollbar gutters and, on mobile,
- * the area under collapsible browser chrome.
+ * Falls back to the viewport, so a caller can use the result unconditionally. A root scrollbar
+ * drawn on the left leaves a gutter the fixed box does not cover, so the fallback starts after it.
+ * The viewport's own size is read from `documentElement.clientWidth`/`clientHeight`, which is
+ * what a fixed box is laid out in - `innerWidth`/`innerHeight` include the classic scrollbar
+ * gutters and, on mobile, the area under collapsible browser chrome.
  *
  * @param {HTMLElement} base The `position: fixed` element, or any element in its subtree.
  * @returns {{ top: number, left: number, width: number, height: number }}
@@ -1306,6 +1307,19 @@ export function getFixedContainingBlockRect(
     }
 
     node = el.parentNode;
+  }
+
+  // A root scrollbar drawn on the inline-start side (a right-to-left browser UI, Firefox's
+  // `layout.scrollbar.side`) leaves a gutter at the left edge, and the fixed box starts after it.
+  // `clientLeft` is that gutter plus the `border-left` of `<html>`, which is not part of it.
+  // Read only here: an establishing ancestor above has already returned its own box.
+  const { documentElement } = rootDocument;
+  const gutter = documentElement.clientLeft;
+
+  if (gutter > 0) {
+    const htmlBorder = parseFloat(rootWindow.getComputedStyle(documentElement).borderLeftWidth) || 0;
+
+    viewport.left = Math.max(gutter - htmlBorder, 0);
   }
 
   return viewport;
