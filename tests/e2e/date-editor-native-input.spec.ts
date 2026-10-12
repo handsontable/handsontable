@@ -69,6 +69,7 @@ test.describe('the native date editor', () => {
 
     await page.keyboard.press('Enter');
 
+    expect((await grid.editorState()).opened).toBe(false);
     expect(await grid.sourceAt(1, 2)).toBe(iso);
   });
 });

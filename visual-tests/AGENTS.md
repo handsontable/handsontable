@@ -845,12 +845,16 @@ does for you):
   handle, is painted on every variant by `js-only/selection-handles/selection-handles-visible-on-hover`, and
   the open editor's chrome by `js-only/editors/dropdown/focus-cell`, so neither needed a capture here. The
   new assertions found two defects, fixed by #13787 and #13794 and asserted in the two specs above: Tab
-  brought the focus back into a grid it had left at the edge of the page without selecting anything (the
-  grid's focus scope was never deactivated when the focus left the document), and the date editor
-  committed an incomplete date as an empty value and erased the cell. Both cases sat under `test.fixme`
-  until DEV-3373: a `test.fixme` never runs and nothing checks that its task is still open, so a parked
-  case stays parked after its fix merges until someone removes the `test.fixme`.
-- **The `/` grid draws only the grid's own look, in all four demos.** Until DEV-3373 every demo built it
+  brought the focus back into a grid it had left at the edge of the page without selecting anything (no
+  `focusin` reaches the page while the focus is away, so the grid's scope is still active when the Tab
+  returns, and activating an already active scope returned early; the fix re-runs the entry), and the date
+  editor committed an incomplete date as an empty value and erased the cell. Both cases sat under
+  `test.fixme` until DEV-3373. A `test.fixme` never runs and nothing checks that its task is still open, so
+  whichever of the two pull requests merges second removes it: the fix's, when the parked spec is already
+  on its base branch, or the one that parks the case, when the fix merged first (check before parking).
+  Both fixes here merged an hour before the pull request that parked their cases.
+- **The `/` grid carries no row tint and no row-header checkbox, in all four demos.** Until DEV-3373 every
+  demo built it
   with three hooks of demo code: `afterGetRowHeader` drew a checkbox into each row header,
   `afterOnCellMouseDown` toggled it, and `beforeRenderer` gave a checked row the `selected` class, which
   the demo's stylesheet painted `#edf3fd` with `!important`. Every capture of `/` carried them: pale rows
@@ -858,12 +862,16 @@ does for you):
   so a regression in those rows' colors or in the selection fill on them could not show. The hooks, the
   rule and the hook files left the js, React, Angular and Vue demos together (the
   [mirroring rule](#golden-snapshots-js-copied-baselines-critical-gotcha)), so the row headers show their
-  numbers and every row draws the theme's own colors. Nothing else moved: the row header is 50 px wide with
-  or without the checkbox and the rows keep their heights on every theme, so the 73 goldens of the 10
-  specs on `/` changed only in the row-header column and on the rows that were tinted, and the other 164
-  rendered byte-identical. No route took the checkbox over: it was demo code, the themed checkbox is still
-  painted on `/` by the "In stock" column, and `/web-component-demo`, which no spec photographs, keeps its
-  own copy of the hooks.
+  numbers and every row draws the theme's own colors. The two other copies of the rule, in the Angular and
+  Vue scenario grids, which nothing gave the class, went too, and so did the hooks of
+  `/web-component-demo`, which no spec photographs and whose tint came from the same removed rule. The
+  progress-bar and star columns still paint the demo's own colors. Nothing else moved: the row header is
+  50 px wide with or without the checkbox and the rows keep their heights on every theme. Measured on
+  local renders of all 237 goldens before and after (macOS): the 73 of the 10 specs on `/` changed in the
+  row-header column and on the formerly tinted rows, plus at most 63 anti-aliased pixels within a few color
+  levels in some filters captures; of the other 164, 162 rendered byte-identical and two moved by 7 and 38
+  pixels of render noise, under the gate. No route took the checkbox over: it was demo code, and the
+  themed checkbox is still painted on `/` by the "In stock" column.
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 

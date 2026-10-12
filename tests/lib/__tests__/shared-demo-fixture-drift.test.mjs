@@ -17,7 +17,8 @@ const DEMO = 'examples/next/visual-tests/js/demo/src/demos/default/index.js';
 const FIXTURE = 'tests/fixtures/demo/shared-demo-grid.html';
 
 // Options either side sets that the other does not reproduce, each with the reason. Everything else
-// must be equal.
+// must be equal. A hook is compared by its presence, not its code: a function becomes the string
+// `[Function]` before the comparison, so a hook the demo gains fails it.
 const NOT_COMPARED = {
   data: 'the fixture builds synthetic rows in the demo\'s shape, with ISO dates the native date editor needs',
   layoutDirection: 'the demo reads the direction from the URL; the fixture is LTR only',
@@ -27,6 +28,10 @@ const NOT_COMPARED = {
   afterRenderer: 'the fixture stamps test ids on the cells',
   afterGetColHeader: 'the fixture stamps test ids on the headers',
 };
+
+// The hooks only the fixture may set: it stamps test ids with them. The demo setting one would be demo
+// code on the `/` grid that the comparison skips, so the demo must set none of them.
+const FIXTURE_ONLY_HOOKS = ['afterGetRowHeader', 'afterRenderer', 'afterGetColHeader'];
 
 // Per column: the demo's progress-bar and star renderers are demo code, and so is the `star` class only
 // the star renderer's stylesheet reads. The fixture keeps those columns' `editor: false` and `readOnly`.
@@ -113,8 +118,9 @@ function comparable(options) {
   });
 
   // Through JSON, so both sides are plain objects of this realm: a strict comparison would otherwise
-  // tell the two contexts' `Object.prototype` apart.
-  return JSON.parse(JSON.stringify(kept));
+  // tell the two contexts' `Object.prototype` apart. A function would vanish there, so it is kept as a
+  // marker of its presence.
+  return JSON.parse(JSON.stringify(kept, (key, value) => (typeof value === 'function' ? '[Function]' : value)));
 }
 
 const stub = name => Object.defineProperty(() => {}, 'name', { value: name });
@@ -138,6 +144,15 @@ test('the shared-demo fixture builds the grid the visual suite\'s / route builds
   assert.deepEqual(comparable(fixture), comparable(demo),
     `${FIXTURE} no longer builds the grid ${DEMO} builds. Mirror the change in the fixture, or, when the `
     + 'difference is intended, name it in NOT_COMPARED with the reason.');
+});
+
+test('the demo sets none of the hooks only the fixture may set', () => {
+  // The comparison skips these keys, so a demo hook under one of them would be demo code it cannot see.
+  const demo = evaluate(objectLiteralAfter(DEMO, 'new Handsontable(example, '), DEMO_GLOBALS, DEMO);
+
+  assert.deepEqual(FIXTURE_ONLY_HOOKS.filter(key => key in demo), [],
+    `${DEMO} sets a hook the drift comparison skips, so the fixture cannot follow it. Move what it does out `
+    + 'of the shared / grid, or compare that hook.');
 });
 
 test('every option the comparison skips is still set by one of the two files', () => {
@@ -164,4 +179,26 @@ test('the comparison catches a changed option, column or plugin on one side', ()
     assert.notEqual(changed, literal, 'The control must change the literal.');
     assert.notDeepEqual(comparable(evaluate(changed, { sourceRow: () => [] }, FIXTURE)), demo);
   });
+});
+
+test('the comparison catches a hook the demo gains, inline or under a skipped key', () => {
+  // The guard's control for hooks: the shape the row-header checkbox had on the `/` grid, written inline
+  // so no unstubbed import gives it away.
+  const literal = objectLiteralAfter(DEMO, 'new Handsontable(example, ');
+  const fixture = comparable(evaluate(objectLiteralAfter(FIXTURE, 'window.hot = new Handsontable(container, '), {
+    sourceRow: () => [],
+  }, FIXTURE));
+  const withHook = hook => literal.replace('licenseKey:', `${hook}() {},\n    licenseKey:`);
+
+  ['beforeRenderer', 'afterOnCellMouseDown'].forEach((hook) => {
+    const changed = withHook(hook);
+
+    assert.notEqual(changed, literal, 'The control must change the literal.');
+    assert.notDeepEqual(comparable(evaluate(changed, DEMO_GLOBALS, DEMO)), fixture);
+  });
+
+  const skipped = evaluate(withHook('afterGetRowHeader'), DEMO_GLOBALS, DEMO);
+
+  assert.ok(FIXTURE_ONLY_HOOKS.filter(key => key in skipped).includes('afterGetRowHeader'),
+    'A fixture-only hook on the demo must be reported.');
 });

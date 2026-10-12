@@ -121,10 +121,12 @@ test.describe('keyboard focus on the shared demo grid', { tag: CROSS_BROWSER_TAG
  * Coming back with Tab into a grid that Tab left at the edge of the page. The exit above takes the focus
  * out of the document; the next Tab brings it back to the grid's first focus catcher, which selects the
  * header the walk left from: the grid's focus scope re-selects the last highlighted cell on any re-entry,
- * the first entry being the only one that starts at the corner. Until #13787 the scope was never
- * deactivated when the focus left the document, so the re-entry selected nothing. Untagged: headless
- * Firefox has no browser UI to move the focus to, so the focus never leaves its document and this case
- * has no Firefox counterpart.
+ * the first entry being the only one that starts at the corner. No `focusin` reaches the page while the
+ * focus is outside the document, so the scope is still the active one when the Tab comes back; until
+ * #13787 activating an already active scope returned early, and the re-entry selected nothing. The fix
+ * re-runs the entry for a Tab that comes in through the focus catcher. Untagged: headless Firefox has no
+ * browser UI to move the focus to, so the focus never leaves its document and this case has no Firefox
+ * counterpart.
  */
 test.describe('keyboard focus returning to the shared demo grid', () => {
   test('Tab brings the focus back into the grid it left at the edge of the page', async({
