@@ -19,6 +19,11 @@
     if (!window.htDir) {
       throw new Error('Unknown ?dir= value: ' + JSON.stringify(htParams.get('dir')));
     }
+    // The direction of the document, apart from the grid's: an RTL grid can sit on an LTR page.
+    window.htPageDir = ({ ltr: 'ltr', rtl: 'rtl' })[htParams.get('pageDir') ?? window.htDir];
+    if (!window.htPageDir) {
+      throw new Error('Unknown ?pageDir= value: ' + JSON.stringify(htParams.get('pageDir')));
+    }
     window.htPage = ({ plain: 'plain', inset: 'inset' })[htParams.get('page') ?? 'plain'];
     if (!window.htPage) {
       throw new Error('Unknown ?page= value: ' + JSON.stringify(htParams.get('page')));
@@ -39,7 +44,7 @@
   <div id="grid" data-testid="grid"></div>
 
   <script>
-    document.documentElement.dir = window.htDir;
+    document.documentElement.dir = window.htPageDir;
     document.body.className = window.htPage;
     document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
   </script>

@@ -3,6 +3,7 @@ import { awaitBundle } from '../bundle';
 
 interface PageOptions {
   dir?: 'ltr' | 'rtl';
+  pageDir?: 'ltr' | 'rtl';
   page?: 'plain' | 'inset';
 }
 
@@ -15,6 +16,7 @@ export class EditorFactoryPortalPage {
   readonly theme: string;
   readonly bundle: string;
   readonly dir: string;
+  readonly pageDir: string;
   readonly pageLayout: string;
   readonly editorContainer: Locator;
 
@@ -23,6 +25,7 @@ export class EditorFactoryPortalPage {
     this.theme = theme;
     this.bundle = bundle;
     this.dir = options.dir ?? 'ltr';
+    this.pageDir = options.pageDir ?? this.dir;
     this.pageLayout = options.page ?? 'plain';
     this.editorContainer = page.getByTestId('editor-container');
   }
@@ -31,7 +34,7 @@ export class EditorFactoryPortalPage {
    * Opens the fixture and waits for the first data cell to render.
    */
   async goto(): Promise<void> {
-    const query = `theme=${this.theme}&bundle=${this.bundle}&dir=${this.dir}&page=${this.pageLayout}`;
+    const query = `theme=${this.theme}&bundle=${this.bundle}&dir=${this.dir}&pageDir=${this.pageDir}&page=${this.pageLayout}`;
 
     await this.page.goto(`/tests/fixtures/demo/editor-factory-portal.html?${query}`);
     await awaitBundle(this.page);
@@ -49,7 +52,7 @@ export class EditorFactoryPortalPage {
    * Scrolls the page horizontally towards its inline end, which is a negative offset under RTL.
    */
   async scrollPageTowardsInlineEnd(pixels: number): Promise<void> {
-    const offset = this.dir === 'rtl' ? -pixels : pixels;
+    const offset = this.pageDir === 'rtl' ? -pixels : pixels;
 
     await this.page.evaluate(x => window.scrollTo(x, 0), offset);
     await expect.poll(() => this.page.evaluate(() => window.pageXOffset)).toBe(offset);
@@ -69,21 +72,21 @@ export class EditorFactoryPortalPage {
   }
 
   /**
-   * Returns the horizontal edges of the edited cell and of the editor container, in viewport
-   * coordinates.
+   * Returns the edges of the edited cell and of the editor container, in viewport coordinates, read
+   * in one round trip.
    */
-  async edges(row: number, col: number): Promise<{ cell: { left: number, right: number },
-    editor: { left: number, right: number } }> {
-    const cell = await this.cell(row, col).boundingBox();
-    const editor = await this.editorContainer.boundingBox();
+  async edges(row: number, col: number): Promise<{
+    cell: { top: number, left: number, right: number },
+    editor: { top: number, left: number, right: number },
+  }> {
+    return this.page.evaluate(([r, c]) => {
+      const cell = document.querySelector(`[data-testid="cell-${r}-${c}"]`)!.getBoundingClientRect();
+      const editor = document.querySelector('[data-testid="editor-container"]')!.getBoundingClientRect();
 
-    if (!cell || !editor) {
-      throw new Error('The cell or the editor container is not rendered');
-    }
-
-    return {
-      cell: { left: cell.x, right: cell.x + cell.width },
-      editor: { left: editor.x, right: editor.x + editor.width },
-    };
+      return {
+        cell: { top: cell.top, left: cell.left, right: cell.right },
+        editor: { top: editor.top, left: editor.left, right: editor.right },
+      };
+    }, [row, col]);
   }
 }

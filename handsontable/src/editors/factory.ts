@@ -220,25 +220,26 @@ export const editorFactory = <TProperties, TMethods = Record<string, unknown>>(
       containerStyle.position = 'absolute';
 
       if (position === 'portal') {
-        const _offset = editor.TD.getBoundingClientRect();
+        const cellRect = editor.TD.getBoundingClientRect();
+        const isRtl = editor.hot.isRtl();
 
-        containerStyle.top = `${editor.hot.rootWindow.pageYOffset + _offset.top}px`;
+        // `top`, `left` and `right` are measured from the container's containing block, which is
+        // not the viewport: a scrolled page, a scrollbar gutter, or a positioned `body` all move
+        // it. Park the container on the block's origin edges, read where they sit in the
+        // viewport, then offset from there. The container's own margin is cancelled the same way
+        // under both directions. The probe costs one extra layout per call.
+        containerStyle.top = '0px';
+        containerStyle.left = isRtl ? '' : '0px';
+        containerStyle.right = isRtl ? '0px' : '';
 
-        if (editor.hot.isRtl()) {
-          // `right` is measured from the right edge of the container's containing block, which is
-          // neither the viewport's right edge nor the scroll origin: a scrolled page, a scrollbar
-          // gutter, or a positioned `body` all move it. Read where that edge is instead of
-          // assuming it, then offset from it. The probe costs one extra
-          // layout per call, and assumes the container has no horizontal margin.
-          containerStyle.left = '';
-          containerStyle.right = '0px';
+        const originRect = editor.container!.getBoundingClientRect();
 
-          const containingBlockRight = editor.container!.getBoundingClientRect().right;
+        containerStyle.top = `${cellRect.top - originRect.top}px`;
 
-          containerStyle.right = `${containingBlockRight - _offset.right}px`;
+        if (isRtl) {
+          containerStyle.right = `${originRect.right - cellRect.right}px`;
         } else {
-          containerStyle.right = '';
-          containerStyle.left = `${editor.hot.rootWindow.pageXOffset + _offset.left}px`;
+          containerStyle.left = `${cellRect.left - originRect.left}px`;
         }
       } else {
         const rect = editor.getEditedCellRect();
