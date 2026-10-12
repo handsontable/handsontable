@@ -256,3 +256,21 @@ test.describe('editor list position while the page scrolls', () => {
     }
   }
 });
+
+// A left border on `<html>` shifts `documentElement.clientLeft` in Chromium (not in Firefox) without
+// moving the box a `fixed` list is laid out in, so no list may move with it.
+test.describe('editor list position with a left border on the html element', () => {
+  for (const layout of ['window', 'sized'] as const) {
+    for (const dir of ['ltr', 'rtl'] as const) {
+      test(`keeps the list on its cell, ${LAYOUT_NAMES[layout]} (${dir.toUpperCase()})`, async({
+        page, theme, bundle,
+      }) => {
+        const grid = new HandsontableEditorListPositionPage(page, theme, bundle, { dir, layout });
+
+        await grid.goto();
+        await page.addStyleTag({ content: 'html { border-left: 4px solid transparent; }' });
+        await expectEveryPoint(grid, POINTS);
+      });
+    }
+  }
+});

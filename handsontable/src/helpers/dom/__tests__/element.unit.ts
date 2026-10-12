@@ -2177,55 +2177,102 @@ describe('DomElement helper', () => {
       parent.remove();
     });
 
-    describe('with a root scrollbar drawn on the inline-start side', () => {
+    describe('with a gutter at the inline-start edge of the viewport', () => {
       const html = document.documentElement;
       let child: HTMLElement;
-      let initialStyle: string | null;
+      let probeBox: { left: number, width: number };
+      let rectSpy: jest.SpyInstance;
 
       /**
-       * Stubs `documentElement.clientLeft`, which is 0 in jsdom.
+       * Stubs a `documentElement` size, which is 0 in jsdom.
        *
+       * @param {string} property The property to stub.
        * @param {number} value The value to report.
        */
-      function stubClientLeft(value) {
-        Object.defineProperty(html, 'clientLeft', { configurable: true, get: () => value });
-      }
-
-      /**
-       * Gives the `<html>` element a left border.
-       *
-       * @param {number} width The border width in pixels.
-       */
-      function setHtmlBorder(width) {
-        html.style.borderLeftStyle = 'solid';
-        html.style.borderLeftWidth = `${width}px`;
+      function stubHtml(property, value) {
+        Object.defineProperty(html, property, { configurable: true, get: () => value });
       }
 
       beforeEach(() => {
-        initialStyle = html.getAttribute('style');
         child = document.createElement('div');
         document.body.appendChild(child);
+        // jsdom lays nothing out, so the fixed probe reports the box a browser would: the viewport
+        // minus the gutter. Any other element keeps jsdom's all-zero rect.
+        probeBox = { left: 15, width: 1265 };
+        rectSpy = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function() {
+          const isProbe = this.style.position === 'fixed';
+
+          return {
+            left: isProbe ? probeBox.left : 0,
+            width: isProbe ? probeBox.width : 0,
+            top: 0,
+            height: 0,
+            right: 0,
+            bottom: 0,
+            x: 0,
+            y: 0,
+            toJSON() {},
+          };
+        });
+        // A window wider than the viewport is what tells the helper that a gutter may exist.
+        stubHtml('clientWidth', 1265);
+        Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1280 });
       });
 
       afterEach(() => {
+        rectSpy.mockRestore();
         child.remove();
-        Reflect.deleteProperty(html, 'clientLeft');
         Reflect.deleteProperty(html, 'clientWidth');
-
-        if (initialStyle === null) {
-          html.removeAttribute('style');
-        } else {
-          html.setAttribute('style', initialStyle);
-        }
+        Reflect.deleteProperty(window, 'innerWidth');
+        html.style.removeProperty('border-left');
       });
 
-      it('should start the fallback box after the scrollbar gutter', () => {
-        Object.defineProperty(html, 'clientWidth', { configurable: true, get: () => 1265 });
-        stubClientLeft(15);
+      it('should start the fallback box where the fixed probe starts', () => {
+        const rect = getFixedContainingBlockRect(child);
+
+        expect(rect.left).toBe(15);
+        expect(rect.width).toBe(1265);
+      });
+
+      it('should take the width of the probe too, so a reserved gutter on both edges is excluded', () => {
+        probeBox = { left: 15, width: 1250 };
 
         const rect = getFixedContainingBlockRect(child);
 
         expect(rect.left).toBe(15);
+        expect(rect.width).toBe(1250);
+      });
+
+      it('should not adjust the probe by a border of the html element', () => {
+        // Firefox reports `clientLeft` 0 for such a border and Chromium 4, so the probe is the only
+        // answer that holds in both.
+        html.style.borderLeft = '4px solid';
+
+        expect(getFixedContainingBlockRect(child).left).toBe(15);
+      });
+
+      it('should leave no probe in the document', () => {
+        getFixedContainingBlockRect(child);
+
+        expect(html.querySelector('[style*="position: fixed"]')).toBeNull();
+      });
+
+      it('should not probe when the window is no wider than the viewport', () => {
+        Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1265 });
+
+        const rect = getFixedContainingBlockRect(child);
+
+        expect(rect.left).toBe(0);
+        expect(rect.width).toBe(1265);
+        expect(rectSpy).not.toHaveBeenCalled();
+      });
+
+      it('should fall back to the viewport when the probe measures nothing', () => {
+        probeBox = { left: 0, width: 0 };
+
+        const rect = getFixedContainingBlockRect(child);
+
+        expect(rect.left).toBe(0);
         expect(rect.width).toBe(1265);
       });
 
@@ -2236,32 +2283,12 @@ describe('DomElement helper', () => {
         ancestor.appendChild(child);
         document.body.appendChild(ancestor);
         stubRect(ancestor, { top: 100, left: 200, width: 400, height: 300 });
-        stubClientLeft(15);
 
-        expect(getFixedContainingBlockRect(child).left).toBe(200);
-
-        ancestor.remove();
-      });
-
-      it('should not count a border of the html element as part of the gutter', () => {
-        setHtmlBorder(4);
-        stubClientLeft(19);
-
-        expect(getFixedContainingBlockRect(child).left).toBe(15);
-      });
-
-      it('should report no gutter when `clientLeft` is only the html border', () => {
-        setHtmlBorder(4);
-        stubClientLeft(4);
-
-        expect(getFixedContainingBlockRect(child).left).toBe(0);
-      });
-
-      it('should never report a negative start when the border is wider than `clientLeft`', () => {
-        setHtmlBorder(4);
-        stubClientLeft(2);
-
-        expect(getFixedContainingBlockRect(child).left).toBe(0);
+        try {
+          expect(getFixedContainingBlockRect(child).left).toBe(200);
+        } finally {
+          ancestor.remove();
+        }
       });
     });
 

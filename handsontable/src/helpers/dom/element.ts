@@ -1228,6 +1228,47 @@ function establishesFixedContainingBlock(style: CSSStyleDeclaration): boolean {
 }
 
 /**
+ * Measures the box a `position: fixed` element is laid out in when no ancestor establishes a
+ * containing block for it, as an empty `left: 0; right: 0` probe reports it.
+ *
+ * A root scrollbar drawn on the inline-start side (a right-to-left browser UI, Firefox's
+ * `layout.scrollbar.side`) or a `scrollbar-gutter: stable both-edges` leaves a gutter at the left
+ * edge, and the fixed box starts after it. No property answers that portably: `clientLeft` also
+ * counts the `border-left` of `<html>` in Chromium but not in Firefox, and reads 0 for a reserved
+ * `scrollbar-gutter`. The probe reads what the engine laid out. It is only run when the window is
+ * wider than the viewport, which is the sign of a gutter on some side, and falls back to the given
+ * viewport when it measures nothing.
+ *
+ * @param {Document} rootDocument The document of the grid.
+ * @param {Window} rootWindow The window of the grid.
+ * @param {{ top: number, left: number, width: number, height: number }} viewport The fallback.
+ * @returns {{ top: number, left: number, width: number, height: number }}
+ */
+function measureViewportFixedBox(
+  rootDocument: Document,
+  rootWindow: Window,
+  viewport: { top: number, left: number, width: number, height: number }
+): { top: number, left: number, width: number, height: number } {
+  const { documentElement } = rootDocument;
+
+  if (rootWindow.innerWidth <= documentElement.clientWidth) {
+    return viewport;
+  }
+
+  const probe = rootDocument.createElement('div');
+
+  probe.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; height: 0; visibility: hidden; '
+    + 'pointer-events: none; margin: 0; padding: 0; border: 0;';
+  documentElement.appendChild(probe);
+
+  const { left, width } = probe.getBoundingClientRect();
+
+  probe.remove();
+
+  return width > 0 ? { ...viewport, left, width } : viewport;
+}
+
+/**
  * Returns the box a `position: fixed` descendant of `base` is actually laid out in, in viewport
  * coordinates.
  *
@@ -1243,7 +1284,8 @@ function establishesFixedContainingBlock(style: CSSStyleDeclaration): boolean {
  * bounds the element has to stay inside.
  *
  * Falls back to the viewport, so a caller can use the result unconditionally. A root scrollbar
- * drawn on the left leaves a gutter the fixed box does not cover, so the fallback starts after it.
+ * drawn on the left leaves a gutter the fixed box does not cover, so the fallback is measured with a
+ * probe where one can exist (see `measureViewportFixedBox()`).
  * The viewport's own size is read from `documentElement.clientWidth`/`clientHeight`, which is
  * what a fixed box is laid out in - `innerWidth`/`innerHeight` include the classic scrollbar
  * gutters and, on mobile, the area under collapsible browser chrome.
@@ -1309,20 +1351,7 @@ export function getFixedContainingBlockRect(
     node = el.parentNode;
   }
 
-  // A root scrollbar drawn on the inline-start side (a right-to-left browser UI, Firefox's
-  // `layout.scrollbar.side`) leaves a gutter at the left edge, and the fixed box starts after it.
-  // `clientLeft` is that gutter plus the `border-left` of `<html>`, which is not part of it.
-  // Read only here: an establishing ancestor above has already returned its own box.
-  const { documentElement } = rootDocument;
-  const gutter = documentElement.clientLeft;
-
-  if (gutter > 0) {
-    const htmlBorder = parseFloat(rootWindow.getComputedStyle(documentElement).borderLeftWidth) || 0;
-
-    viewport.left = Math.max(gutter - htmlBorder, 0);
-  }
-
-  return viewport;
+  return measureViewportFixedBox(rootDocument, rootWindow, viewport);
 }
 
 /**
