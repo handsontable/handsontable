@@ -34,6 +34,9 @@ export class AppComponent {
     ['Tom Bakker',    'Support',     'Support Specialist',  58900, true, '2019-05-30'],
   ];
 
+  // One stable object that nothing replaces. The wrapper passes every key of a new `[settings]`
+  // object to `updateSettings`, so a settings object you bind after an import must leave out
+  // `colHeaders` and `columns`, or the sample headers and column types replace the imported ones.
   readonly hotSettings: GridSettings = {
     colHeaders: ['Name', 'Department', 'Job title', 'Salary ($)', 'Active', 'Hire date'],
     columns: [

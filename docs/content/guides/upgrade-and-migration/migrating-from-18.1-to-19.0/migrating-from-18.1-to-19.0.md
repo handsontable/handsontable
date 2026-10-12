@@ -1711,6 +1711,19 @@ because Excel stores them without one.
 
 What to do: nothing, unless a tool reads the raw `<f>` text. Such a tool sees the prefix now.
 
+#### A formula error is stored as an error cell
+
+What changed: with `exportFormulas: true`, a formula whose result is an error (`#DIV/0!`, `#N/A`, `#NAME?`,
+`#NUM!`, `#REF!`, or `#VALUE!`) now stores that result as an Excel error cell. In 18.1, it was stored as
+text, so an application that does not recalculate, such as Apache POI, openpyxl, or SheetJS, read a string.
+The error is stored under Excel's English code even when a HyperFormula `language` translates what the
+grid shows: with `plPL` the grid shows `#DZIEL/0!` and the file stores `#DIV/0!`, where 18.1 stored the
+translated text. A formula that returns the text `"#N/A"` stays a text cell. A HyperFormula error that
+Excel has no code for (`#CYCLE!`, `#ERROR!`, `#LIC!`, or `#SPILL!`) is still stored as the text the grid
+shows. This applies to both engines. Without `exportFormulas`, nothing changed.
+
+What to do: nothing, unless a tool reads the cached results as text. Such a tool now gets an error value.
+
 #### Values past Excel's limits are written at Excel's maximum
 
 What changed: a column wider than Excel stores is written 260 units wide, a row taller than Excel
@@ -1757,10 +1770,23 @@ is now quoted too, as `#,##0.00"€"`, because Apple Numbers and Quick Look misr
 is written as before. A symbol that several currencies share, such as `kr` or `¥`, is now written as an
 Excel locale token that names the currency's home locale, such as `#,##0.00[$kr-41D]` for the Swedish
 krona or `[$¥-411]#,##0.00` for the yen. In 18.1, a Norwegian krone column came back from its own export
-as the Swedish krona. A `minimumIntegerDigits` value is now written as that many zeros, such as `00000`.
+as the Swedish krona. A currency other than the US dollar that shows as `$`, such as the Australian,
+Canadian, or New Zealand dollar or the Mexican peso, is now written with the token of its home locale,
+such as `[$$-C09]#,##0.00` for the Australian dollar. In 18.1, it was written as a bare `$` and came back
+from its own export as the US dollar. A `minimumIntegerDigits` value is now written as that many zeros, such as `00000`.
 In 18.1, it was dropped and the zeros were lost. This applies to both engines.
 
 What to do: nothing, unless a tool reads the raw number format. Such a tool sees the quotes now.
+
+#### A date Excel cannot store exports as text
+
+What changed: a `date` cell before 1900, which an Excel date serial cannot hold, or a date that does not
+exist, such as `2023-02-29` or `2024-04-31`, is now written as a text cell with the value the cell holds.
+In 18.1, such a cell was written as a wrong date serial, so the file showed another date. This applies to
+both engines.
+
+What to do: nothing, unless a consumer of the file expects a date serial in every `date` cell. Correct
+the values in your data before you export.
 
 #### The dropdown list sheet is hidden instead of very hidden
 
@@ -1788,6 +1814,19 @@ thresholds (or a `colorScale` with no `color`) made the export reject with a `Ty
 report it in the console warning about dropped features, and write the rest of the file.
 
 What to do: nothing. To keep the rule, fix its shape.
+
+#### A carriage return is stored as `_x000D_`
+
+What changed: the built-in engine stores a carriage return (`\r`) in a text cell as `_x000D_`, the
+escape Excel itself writes, so the character survives the file. In 18.1, ExcelJS wrote the raw
+character, and an XML parser turns a raw carriage return into a line feed (`\n`), so a `\r\n` pair
+came back as `\n`. Excel and Handsontable's import, on either engine, read `_x000D_` back as a
+carriage return. openpyxl, and pandas with its
+default `openpyxl` engine, show it as the literal text `_x000D_`.
+
+What to do: if a Python tool reads the file, read it with `pandas.read_excel(..., engine='calamine')`,
+or replace the escape after you read it, with `.str.replace('_x000D_', '\r')`. To keep the 18.1 output,
+replace `\r\n` and `\r` with `\n` in your data before you export, or keep ExcelJS as the engine.
 
 ### Who is affected
 

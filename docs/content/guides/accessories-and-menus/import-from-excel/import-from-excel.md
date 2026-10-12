@@ -34,9 +34,9 @@ Load an Excel (`.xlsx`) workbook into your grid. The `ImportFile` plugin reads t
 
 ### Requirements
 
-The built-in engine needs four globals: `CompressionStream`, `DecompressionStream`, `TextEncoder`, and `TextDecoder`. Every browser Handsontable supports provides them. A test environment can lack them - a jsdom environment (in Jest or Vitest), or Jest 27's `node` environment. The import then rejects with a message that names the missing globals. Jest's `node` environment provides all four from Jest 28 on.
+The built-in engine needs four globals: `CompressionStream`, `DecompressionStream`, `TextEncoder`, and `TextDecoder`. Every browser Handsontable supports provides them. Jest's jsdom environment (`jest-environment-jsdom`) and Jest 27's `node` environment lack them. The import then rejects with a message that names the missing globals. Jest's `node` environment provides all four from Jest 28 on. Vitest's jsdom and happy-dom environments provide them.
 
-To run the built-in engine in such an environment, assign the four globals from Node.js before the test runs, for example in a Jest `setupFiles` module:
+To run the built-in engine in Jest's jsdom environment, assign the four globals from Node.js before the test runs, in a Jest `setupFiles` module:
 
 ```javascript
 const { CompressionStream, DecompressionStream } = require('node:stream/web');
@@ -45,7 +45,21 @@ const { TextEncoder, TextDecoder } = require('node:util');
 Object.assign(globalThis, { CompressionStream, DecompressionStream, TextEncoder, TextDecoder });
 ```
 
-jsdom's `Blob` has no `arrayBuffer()` method, so `importFromBlob()` fails in a jsdom test with any engine. Read the file into an `ArrayBuffer` and call `importFromArrayBuffer()` instead.
+In jsdom before 28.1, `Blob` has no `arrayBuffer()` method, so `importFromBlob()` fails with any engine. Jest 30 uses jsdom 26.1.0. Read the file into an `ArrayBuffer` and call `importFromArrayBuffer()` instead, or add the method in the same `setupFiles` module:
+
+```javascript
+if (typeof Blob.prototype.arrayBuffer !== 'function') {
+  Blob.prototype.arrayBuffer = function arrayBuffer() {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsArrayBuffer(this);
+    });
+  };
+}
+```
 
 You can also inject ExcelJS through the `engines` option. On Jest 29 with `jest-environment-jsdom`, loading ExcelJS fails with `SyntaxError: Unexpected token 'export'`, because that environment resolves the `browser` export condition. Set `testEnvironmentOptions: { customExportConditions: ['node', 'node-addons'] }` in your Jest configuration to load it.
 
@@ -64,7 +78,9 @@ Read files saved by LibreOffice or SheetJS with the built-in engine. ExcelJS 4.4
 
 The built-in engine reads a `t="d"` date cell only when its value is an ISO 8601 date, such as `2024-01-15` or `2024-01-15T12:00:00`. It imports any other value as an empty cell rather than guess its time zone, and reports it as `cellValue:date`.
 
-Three more differences come from ExcelJS itself, whatever wrote the file. A formula whose cached result is an empty string imports with no value when the Formulas plugin is off. A number format with an escaped percent sign, such as `0.0\%` (a literal `%`, shown as `12.5%` in Excel), reads as a percentage, so a cell holding `12.5` shows `1250.0%`; the built-in engine shows `12.5`. A cell that uses one of the built-in currency or accounting formats (ids 5-8 and 41-44) without a custom number format entry imports with no number format. For example, `1234.5678` under id 7 shows as `1234.5678`, where the built-in engine shows `$1,234.57`.
+Four more differences come from ExcelJS itself, whatever wrote the file. A formula whose cached result is an empty string imports with no value when the Formulas plugin is off. A number format with an escaped percent sign, such as `0.0\%` (a literal `%`, shown as `12.5%` in Excel), reads as a percentage, so a cell holding `12.5` shows `1250.0%`; the built-in engine shows `12.5`. A number that ExcelJS reads as a date it cannot represent, such as a large number under LibreOffice's `[>=1000000]0.0,,\M` format, imports as an empty cell and is reported as `numFmt:<pattern>`. A cell that uses one of the built-in currency or accounting formats (ids 5-8 and 41-44) without a custom number format entry imports with no number format. For example, `1234.5678` under id 7 shows as `1234.5678`, where the built-in engine shows `$1,234.57`.
+
+ExcelJS 4.4 also refuses a workbook that openpyxl saved with a cell comment, because it looks for comments only under `xl/comments<N>.xml`. The built-in engine reads it.
 
 ## Steps
 
@@ -158,7 +174,7 @@ The plugin also reports every dropped feature in one console warning per import 
 The "native" xlsx engine dropped features it cannot write or read: cellStyles.
 ```
 
-Expect `cellStyles` on almost any real workbook read through the ExcelJS engine: ExcelJS resolves a cell's default font and fill into a style object whenever the cell carries any format index at all, so it reports styling even on cells you never formatted yourself. The built-in engine reports `cellStyles` only when a cell carries styling that is actually there. It reads the default alignment LibreOffice writes on every cell (`horizontal="general"` with `vertical="bottom"`) as no styling, so a plain LibreOffice-saved file reports no `cellStyles` either.
+Expect `cellStyles` on almost any real workbook read through the ExcelJS engine: ExcelJS resolves a cell's default font and fill into a style object whenever the cell carries any format index at all, so it reports styling even on cells you never formatted yourself. The built-in engine reports `cellStyles` only when a cell carries styling that is actually there. It reads the default alignment LibreOffice writes on every cell (`horizontal="general"` with `vertical="bottom"`) as no styling, so a plain LibreOffice-saved file reports no `cellStyles` either. It reads the workbook's default font as no styling too, so a file saved by Excel for Mac or an older LibreOffice, which writes a black color on that font, reports no `cellStyles`. Styling the grid cannot carry, such as a theme fill, a gradient, a theme font color, or wrapped or rotated text, is still reported as `cellStyles`, and with `importStyles: true` it applies nothing.
 
 Three keys on the result carry features that need more than a cell value. Each row says whether the grid applies it:
 
@@ -172,8 +188,11 @@ These are the keys the import can report, beyond `cellStyles`:
 
 | Key | What it means |
 |---|---|
-| `images` | The sheet carries embedded images. The grid has no cell-level home for them. The built-in engine reports it only when the sheet's drawing holds a picture or a shape, so the empty drawing Google Sheets writes into every sheet is not reported. |
+| `images` | The sheet carries embedded images. The grid has no cell-level home for them. The built-in engine reports it only when the sheet's drawing holds a picture, a shape, or a chart, so the empty drawing Google Sheets writes into every sheet is not reported. It also reports an Excel 365 picture placed in a cell (**Place in Cell**). That cell keeps the text Excel cached for it. |
 | `cellValue:date` | Built-in engine only: a date cell stored as `t="d"` whose value is not an ISO 8601 date. The cell imports empty. |
+| `cellValue:sharedString` | Built-in engine only: a text cell that points at a shared string the workbook does not hold. The cell imports empty. |
+| `formula:dataTable` | Built-in engine only: an Excel what-if data table. Its cells keep their cached values, but the table is not imported, so nothing recalculates. |
+| `formula:noCachedValue` | A formula imported as a value - the Formulas plugin is off or `importFormulas` is `false` - that has no cached result in the file. The cell imports empty, and the formula is listed in `result.formulas`. openpyxl writes every formula this way. |
 | `definedNames:truncated` | Built-in engine only: the workbook defines more than 65,536 names. The names past that limit are not read, so a formula that uses one of them can show `#NAME?`. |
 | `tables` | The sheet defines one or more Excel tables. Their cell values are imported; the table definition is not. |
 | `autoFilter` | The sheet carries an auto-filter range. Configure the [Filters](@/guides/columns/column-filter/column-filter.md) plugin on the target grid instead. |
@@ -183,26 +202,29 @@ These are the keys the import can report, beyond `cellStyles`:
 | `merge:overlap` | Two merged ranges overlap. The later one is skipped. |
 | `cellStyles:borders` | The workbook carries borders and the `CustomBorders` plugin is not enabled on the target grid. |
 | `comments` | The workbook carries cell comments and the `Comments` plugin is not enabled on the target grid. Set `comments: true` on the grid to import them. |
-| `threadedComments` | The workbook carries threaded comments (Excel 365). Each thread is imported as a cell comment holding the comment and its replies, one per line, without the notice Excel writes in front of it for older applications. Who wrote each entry, and when, is not imported. |
+| `comment:header` | A cell comment on a row that the import promotes to column headers. A column header cannot hold a comment, so it is not imported. |
+| `threadedComments` | The workbook carries threaded comments (Excel 365). Each thread is imported as a cell comment holding the comment and its replies, one per line, without the notice Excel writes in front of it for older applications. The indentation in front of each entry is removed, and the lines after an entry's first keep their own indentation. Who wrote each entry, and when, is not imported. |
 | `comment:unreadable` | ExcelJS engine only: a cell comment stored as plain text, not as formatted text runs. ExcelJS 4.4 reads only the runs, so the comment has no text and is not imported. The built-in engine reads it. |
 | `layoutDirection` | The sheet's layout direction disagrees with the grid's. Handsontable resolves [`layoutDirection`](@/api/options.md#layoutdirection) at initialization and ignores it afterwards, so construct the grid with `layoutDirection: 'rtl'` to follow a right-to-left workbook. The direction is on `result.layoutDirection` either way. |
 | `dataValidation:<type>` | A non-list data validation, which has no grid equivalent. |
 | `chartSheets` | The workbook holds a chart sheet. It is skipped; the other sheets keep their relative order, so a numeric `sheet` index counts worksheets only. |
 | `dialogSheets` | The workbook holds a dialog sheet. It is skipped; the other sheets keep their relative order, so a numeric `sheet` index counts worksheets only. |
-| `macroSheets` | The workbook holds a macro sheet. It is skipped; the other sheets keep their relative order, so a numeric `sheet` index counts worksheets only. |
+| `macroSheets` | The workbook holds a macro sheet, or a sheet entry with an empty relationship id, which Excel writes for a legacy module sheet. It is skipped; the other sheets keep their relative order, so a numeric `sheet` index counts worksheets only. |
 | `vbaProject` | The workbook carries macros (a VBA project, as in an `.xlsm` file). The cell data is imported; the macros are never read or run. |
 | `conditionalFormatting:unparsedRef` | A conditional formatting range the plugin could not parse. The rule's other ranges still apply. |
 | `dataValidation:unresolvedList` | A list validation whose source cannot be read - a formula such as `INDIRECT()`, or a range on a sheet the workbook does not contain. An inline list and a range on the same or another sheet become a `dropdown` column. |
 | `numFmt:<pattern>` | A number format with no `Intl.NumberFormat` equivalent - scientific notation, a fraction, more than the 100 fraction digits `Intl.NumberFormat` accepts, an elapsed-time value past what a `time` cell can show, or a format longer than Excel's 255-character limit. Only the first section of a number format and its unquoted tokens are read. A format whose negative section shows something other than a minus sign, such as the parentheses of `#,##0;(#,##0)` or Excel's built-in currency and accounting formats, keeps its positive formatting and is also reported here, because negative numbers show with a minus sign. A format with a condition section, such as `[>=1000]0.0,"K";0`, and a format that scales by a trailing comma, such as `#,##0,`, are not applied: the raw number shows. A condition section is never read as a date, even when the reader drops the escape in front of a letter, as ExcelJS does with LibreOffice's `\M`. A zero-padded format, such as `00000` for a ZIP code, keeps its leading zeros. Quoted text inside a date format, such as `"of"` in `d "of" mmmm yyyy`, is not shown and not reported. |
 | `formula:outOfRange` | A formula referencing a cell outside the imported window. Its cached value is imported instead. |
-| `formula:otherSheet` | A formula referencing a sheet the Formulas plugin's engine does not hold, such as `Rates!A1`, another workbook (`[1]Sheet1!A1`), or a range of sheets (`Sheet1:Sheet3!A1`). HyperFormula would show `#REF!` for it, so its cached value is imported instead and the formula is listed in `result.formulas`. A reference to a sheet the engine holds stays a live formula. A reference that names the imported sheet itself, such as `=Sheet1!B2*2` in `Sheet1`, is read as a reference to the grid's own cells. |
+| `formula:otherSheet` | A formula referencing a sheet the Formulas plugin's engine does not hold, such as `Rates!A1`, another workbook (`[1]Sheet1!A1`), or a range of sheets (`Sheet1:Sheet3!A1`). HyperFormula would show `#REF!` for it, so its cached value is imported instead and the formula is listed in `result.formulas`. A reference to a sheet the engine holds stays a live formula. A reference that names the imported sheet itself, such as `=Sheet1!B2*2` in `Sheet1`, is read as a reference to the grid's own cells. When the Formulas plugin's sheet for the grid has the name of another sheet in the workbook, such as `Sheet1` while you import `Sheet2`, a reference to `Sheet1` points at that other sheet, so its cached value is imported and the formula is reported here. A range whose both ends name the same sheet, such as `Sheet1!A1:Sheet1!A3`, stays live. |
 | `formula:definedName` | A formula using a name the workbook defines, such as `=SUM(Sales)`, that the Formulas plugin's engine does not define. HyperFormula would show `#NAME?` for it, so its cached value is imported instead. To keep the formula live, add the name to the engine before the import. A name over a range, such as `Sales`, goes on a pre-built HyperFormula instance (see [named expressions](@/guides/formulas/formula-calculation/formula-calculation.md#named-expressions)), because the `namedExpressions` setting runs before the sheet exists and gives `#REF!`. Use `namedExpressions` for plain values only, such as `{ name: 'Rate', expression: 0.07 }`. The ExcelJS engine reports only names that point at a range: ExcelJS does not read a name that holds a constant, such as `TaxRate` = `0.07`, so a formula over it stays live and shows `#NAME?`. The built-in engine reads both kinds. |
 | `cellType:<name>` | A column or cell the import gave a cell type that is not registered, such as `cellType:intl-datetime` when you register modules one by one. The cells import as `text`. Register the cell type to keep it. |
 | `mergeCells` | The workbook carries merged cells and the `MergeCells` plugin is not registered. |
 | `hiddenRows` | The workbook hides rows and the `HiddenRows` plugin is not registered. |
 | `hiddenColumns` | The workbook hides columns and the `HiddenColumns` plugin is not registered. |
-| `conditionalFormatting:<kind>` | Built-in engine only: a `colorScale`, `dataBar`, or `iconSet` rule. The built-in engine does not read the thresholds these rules need, so it leaves the rule out of `result.conditionalFormatting` rather than return a rule that an export cannot write. The ExcelJS engine reads such rules complete. |
+| `conditionalFormatting:<kind>` | Built-in engine only: a `colorScale`, `dataBar`, or `iconSet` rule. The built-in engine does not read the thresholds these rules need, so it leaves the rule out of `result.conditionalFormatting` rather than return a rule that an export cannot write. The ExcelJS engine reads such rules complete. The built-in engine also reports a rule stored in Excel's extension block (an `x14` rule, such as a data bar with a negative axis) under its kind. |
 | `formula:tooLong` | A cell's formula is longer than 32,768 characters. The cell keeps its last calculated value; the formula is not imported. |
+
+Some features are lost with no entry in `result.dropped`, on either engine: pivot tables, outline groups, sparklines, and scenarios. The ExcelJS engine does not report what-if data tables either. A list validation whose range holds no cell is dropped without an entry too.
 
 The two keys that end in a value the file wrote - `dataValidation:<type>` and `numFmt:<pattern>` - are bounded, because the workbook is untrusted input. The value is cut to 64 characters and its control characters are replaced, and after 32 distinct values in one import the rest are reported as `dataValidation:other` or `numFmt:other`. The counts stay complete either way.
 
@@ -250,12 +272,12 @@ Click **Import XLSX** and pick a `.xlsx` file to load it into the grid below.
 
 ### Keep the imported sheet through a re-render
 
-`HotTable` calls `updateSettings` with its props on every render. A re-render of the component that renders `HotTable` sends your original `data` and `colHeaders` back to the grid, which replaces the imported sheet. It also clears the merged cells and hidden rows the import set. Any parent state, context, or prop change can cause such a re-render.
+`HotTable` calls `updateSettings` with its props on every render. A re-render of the component that renders `HotTable` makes the wrapper send your original `data` and `colHeaders` to `updateSettings` again, which replaces the imported sheet. It also clears the merged cells and hidden rows the import set. React Compiler can hide this in one component and not in the next, so do not rely on it.
 
 To keep the imported sheet:
 
 - Keep import state, such as a status text, out of the component that renders `HotTable`. The example above keeps it in its own `ImportControls` component.
-- Render `HotTable` inside a `React.memo` component with stable props, so a re-render of a parent does not reach it:
+- Render `HotTable` inside a `React.memo` component with stable props, so a re-render of a parent does not reach it. This covers only re-renders that start in the grid's own parent:
 
   ```jsx
   const hotData = [['Ana García', 'Engineering', 98000]];
@@ -270,7 +292,48 @@ To keep the imported sheet:
   ));
   ```
 
+- Do not let a grid fed by a prop from the server follow that prop after the first render. In a Next.js app, `router.refresh()`, a search-param navigation, or a Server Action that calls `revalidatePath` sends the Server Component's rows again as a new array, so "stable props" cannot hold, and the server rows replace the imported sheet. Keep the first value in state and give the grid that copy:
+
+  ```jsx
+  const [firstRows] = useState(rows);
+
+  return <Grid rows={firstRows} hotRef={hotRef} />;
+  ```
+
 Keeping only `data` in state is not enough. The next render then shows the file's rows under your original `colHeaders`, so every key the import writes would have to move into state too.
+
+The imported sheet lives in the grid instance. Unmounting the grid, or hiding it with `<Activity mode="hidden">`, destroys the instance and discards the sheet: the grid comes back with your original `data`. To keep the sheet across that, keep the file in state and import it again when the grid is back.
+
+:::
+
+::: only-for angular
+
+### Keep the imported sheet through a settings change
+
+The `hot-table` component passes every key of the `[settings]` object to `updateSettings` when you bind a new object. If that object still holds your original `colHeaders` and `columns`, they replace the imported headers and column types. Keep the settings in one object that nothing replaces, as the example above does. A settings object you bind after an import must leave out `colHeaders` and `columns`.
+
+### Import a large file outside the Angular zone
+
+The built-in engine reads the archive in slices, and each slice ends a Zone.js turn, so Angular runs change detection once per slice. For a large file, start the import outside the Angular zone, and set your status through a signal, as the example above does:
+
+```typescript
+private readonly zone = inject(NgZone);
+
+importLargeFile(file: File): void {
+  this.zone.runOutsideAngular(async() => {
+    const importPlugin = this.hotTable.hotInstance!.getPlugin('importFile');
+
+    try {
+      const result = await importPlugin.importFromBlob('xlsx', file, { colHeaders: 'firstRow' });
+
+      this.status.set(`Imported ${file.name}`);
+      console.log('Dropped features:', result.dropped);
+    } catch (error) {
+      this.status.set((error as Error).message);
+    }
+  });
+}
+```
 
 :::
 
@@ -293,16 +356,16 @@ Pass these options as the third argument to `importFromArrayBuffer(format, buffe
 | `headerRows` | `number` | `1` | How many rows the header band spans, with `colHeaders: 'firstRow'`. Above `1`, those rows become [nested headers](@/guides/columns/column-groups/column-groups.md) instead of `colHeaders`, and the data starts after them. Has to be an integer of at least `1` - an invalid value is rejected even when `colHeaders` is not `'firstRow'`. Otherwise ignored unless `colHeaders` is `'firstRow'`. |
 | `rowHeaders` | `boolean` | `false` | Drop the first column and enable generated row headers. |
 | `range` | `number[]` | whole sheet | `[startRow, startColumn, endRow, endColumn]` in sheet coordinates. |
-| `inferCellTypes` | `boolean` | `true` | Derive `numeric`, `date`, `intl-datetime`, `time`, `checkbox`, and `dropdown` types. A `numeric` type carries `Intl.NumberFormat` options, and a `date`, `intl-datetime`, or `time` type carries `Intl.DateTimeFormatOptions` in `dateFormat`, `dateTimeFormat`, or `timeFormat`, all derived from the cell's number format. A number format with both a date and a time part becomes an `intl-datetime` cell whose value is a `YYYY-MM-DD HH:mm:ss` string. An elapsed-time format, such as `[h]:mm` or `[mm]:ss`, becomes a `time` cell when the value fits what a clock shows: under 24 hours for `[h]`, under an hour for `[m]`, and under a minute for `[s]`. A longer or negative duration, such as `25:30` under `[h]:mm` or 90 minutes under `[mm]:ss`, stays a `numeric` cell holding the Excel serial, with the format reported as `numFmt:<pattern>` in `result.dropped`, because a `time` cell would lose the whole days or hours from the data. A currency symbol in quotes, such as `"$"#,##0.00`, is kept in the `numeric` format. A number under the BOOLEAN format `"TRUE";"TRUE";"FALSE"`, which Excel writes for a cell formatted as TRUE or FALSE, becomes a `checkbox` cell, checked for any value other than 0. The type most cells of a column share becomes the column's type in `columns`; the cells that differ get their own entry in `cellsMeta`. Passing `columns` to the grid replaces any `columns` setting it had and fixes its column count, so the plugin omits it when no column carries a type, a `readOnly` flag, or a class name. When the grid already has a `columns` setting in that case, the plugin sends one empty column setting per imported column instead, so the previous file's types do not survive. |
-| `importFormulas` | `boolean` | `true` | Put formulas into the data when the `Formulas` plugin is enabled. Excel stores a function added after Excel 2007 with a prefix, such as `_xlfn.STDEV.S(A1:A3)`. The plugin removes the `_xlfn.`, `_xlws.`, and `_xlpm.` prefixes, so the formula reads `=STDEV.S(A1:A3)`, as in Excel's formula bar. The entries in `result.formulas` carry no prefix either. |
-| `importLayout` | `boolean` | `true` | Merges, hidden rows and columns, frozen panes, widths, and heights. An import describes the whole sheet: merges, hidden rows and columns, frozen panes, custom borders, column widths, and row heights that a previous import left on the grid and this workbook does not carry are reset. The imported lists are merged into an existing `hiddenRows`, `hiddenColumns`, or `mergeCells` options object, so options such as `indicators` survive. |
+| `inferCellTypes` | `boolean` | `true` | Derive `numeric`, `date`, `intl-datetime`, `time`, `checkbox`, and `dropdown` types. A `numeric` type carries `Intl.NumberFormat` options, and a `date`, `intl-datetime`, or `time` type carries `Intl.DateTimeFormatOptions` in `dateFormat`, `dateTimeFormat`, or `timeFormat`, all derived from the cell's number format. A number format with both a date and a time part becomes an `intl-datetime` cell whose value is a `YYYY-MM-DD HH:mm:ss` string. An elapsed-time format, such as `[h]:mm` or `[mm]:ss`, becomes a `time` cell when the value fits what a clock shows: under 24 hours for `[h]`, under an hour for `[m]`, and under a minute for `[s]`. A longer or negative duration, such as `25:30` under `[h]:mm` or 90 minutes under `[mm]:ss`, stays a `numeric` cell holding the Excel serial, with the format reported as `numFmt:<pattern>` in `result.dropped`, because a `time` cell would lose the whole days or hours from the data. A currency symbol in quotes, such as `"$"#,##0.00`, is kept in the `numeric` format. Three capital letters next to the number read as a currency only when they are an ISO 4217 code, such as `"USD"` or `" PLN"`: a unit such as `0.0" PCS"`, `0" DAY"`, or `0.00"MPH"` imports as a plain number. A `$` in an Excel locale token, such as `[$$-C09]`, reads as the currency of that locale (here the Australian dollar), so an export of a non-USD dollar currency imports back as the same currency. A number under the BOOLEAN format `"TRUE";"TRUE";"FALSE"`, which Excel writes for a cell formatted as TRUE or FALSE, becomes a `checkbox` cell, checked for any value other than 0. The type most cells of a column share becomes the column's type in `columns`; the cells that differ get their own entry in `cellsMeta`. Passing `columns` to the grid replaces any `columns` setting it had and fixes its column count, so the plugin omits it when no column carries a type, a `readOnly` flag, or a class name. When the grid already has a `columns` setting in that case, the plugin sends one empty column setting per imported column instead, so the previous file's types do not survive. |
+| `importFormulas` | `boolean` | `true` | Put formulas into the data when the `Formulas` plugin is enabled. Excel stores a function added after Excel 2007 with a prefix, such as `_xlfn.STDEV.S(A1:A3)`. The plugin removes the `_xlfn.`, `_xlws.`, and `_xlpm.` prefixes, so the formula reads `=STDEV.S(A1:A3)`, as in Excel's formula bar. The entries in `result.formulas` carry no prefix either. A formula that HyperFormula cannot evaluate imports live and shows an error: an Excel 365 function such as `SORT`, `UNIQUE`, `LET`, or `SEQUENCE`, a structured table reference, or a spilled array. Set `importFormulas: false` to import the cached values instead, or expect the error. |
+| `importLayout` | `boolean` | `true` | Merges, hidden rows and columns, frozen panes, widths, and heights. The frozen pane comes from the sheet's first view, so a custom view saved in the workbook does not change it. An import describes the whole sheet: merges, hidden rows and columns, frozen panes, custom borders, column widths, and row heights that a previous import left on the grid and this workbook does not carry are reset. The imported lists are merged into an existing `hiddenRows`, `hiddenColumns`, or `mergeCells` options object, so options such as `indicators` survive. |
 | `apply` | `boolean` | `true` | Apply the result to the grid. |
 | `engine` | `object \| null` | - | Per-call engine override. `null` or an absent key means no override: the import uses the `engines` entry, or the built-in engine when there is none. |
 | `importStyles` | `boolean` | `false` | Apply alignment, font, fill, and borders from the workbook. |
 
 ### Several imports at once
 
-When you start a new import before the previous one finishes, the import you started last wins. The earlier call is not applied: its promise rejects with `a newer import started before this one finished`, and `afterImport` does not fire for it. This holds even when the earlier file finishes reading first, so the grid never shows a file you already replaced. An import with `apply: false` never touches the grid, so it neither cancels another import nor is cancelled by one. A call that is refused before it reads the file, for example for an unsupported format, does not cancel anything either.
+When you start a new import before the previous one finishes, the import you started last wins. The earlier call is not applied: its promise rejects with `a newer import started before this one finished`, and `afterImport` does not fire for it. This holds even when the earlier file finishes reading first, so the grid never shows a file you already replaced. An import with `apply: false` never touches the grid, so it neither cancels another import nor is cancelled by one. A call that is refused before it reads the file, for example for an unsupported format or an invalid option such as `headerRows: 0`, does not cancel anything either.
 
 ### Re-importing an export
 
@@ -353,7 +416,7 @@ The plugin installs `result.styles` for you: it writes one `<style>` element, ow
 - An import that carries any border **replaces** the target grid's existing borders. `updateSettings` restarts the `CustomBorders` plugin with the new setting, so borders you configured before the import are gone.
 - A workbook with no borders at all leaves the target grid's borders untouched, because the result then carries no `customBorders` key for `updateSettings` to apply.
 
-Font size and font name aren't imported: the model doesn't carry them today. Conditional formatting is read into `result.conditionalFormatting` and never applied.
+Font size and font name aren't imported: the model doesn't carry them today. Conditional formatting is read into `result.conditionalFormatting` and never applied. The built-in engine reads a conditional format's colors only when the file writes them as a hex RGB value. A theme or indexed color is lost with no entry in `result.dropped`, so the rule comes back with no style, and a re-export writes it without one.
 
 ## Security
 
@@ -366,10 +429,11 @@ The workbook is untrusted input, and the plugin treats it that way:
 - **Colors are validated before they reach a stylesheet.** A color that is not a plain hex value is skipped rather than turned into a CSS declaration. The generated stylesheet accepts only the bold, italic, underline, text color, and fill declarations the plugin writes.
 - **Layout values are bounded.** A column width that is not a positive number, or that goes beyond 260 width units (Excel's 255-character maximum plus its padding), is skipped. So is a row height that is not a positive number or goes beyond 409.5 points. A frozen pane count is rounded down to a whole number, and a hidden row or column index that is not a whole number is skipped on its own, so the other hidden rows and columns stay hidden.
 - **Overlong number formats are not parsed.** A number format longer than 255 characters, Excel's own limit, is reported as `numFmt:<pattern>` in `result.dropped`, and its cells get the `numeric` type with no number format.
-- **Only spreadsheet workbooks are read.** The built-in engine reads `.xlsx`, `.xlsm`, `.xltx`, `.xltm`, and `.xlam` files. A macro-enabled file is read like an `.xlsx` file: its macros are never opened or run, and they are reported as `vbaProject` in `result.dropped`. A package that declares its main part as anything else is refused. An Excel Binary Workbook (`.xlsb`) is refused with a message that tells you to save it as `.xlsx`. A legacy Excel 97-2003 file (`.xls`) and a password-protected workbook are refused too, because both are stored in a different container format. Hyperlink targets, external links, and embedded objects are not read.
-- **Oversized input is refused.** A file above 128 MiB is rejected before the engine parses it. After the parse, a sheet declaring more than 1,048,576 rows, 16,384 columns, or 5,000,000 cells is refused before the plugin allocates anything for it. A workbook whose sheets together declare more than 10,000,000 cells is refused too. A file can declare a size it does not hold, and reading it at face value exhausts the tab. The built-in engine also bounds its own parse. It stops inflating the archive past 256 MiB in total or 512 MiB for one entry, it refuses a workbook that declares more than 2,048 sheets, and it caps the work it spends translating shared formulas. Because of the 256 MiB total, a re-import of the built-in engine's own export tops out at about 3,000,000 cells, below the cell caps. When you inject ExcelJS through the `engines` option, ExcelJS runs its own parse, so only the byte cap bounds it. ExcelJS 4.4.0 can also be made to change `Object.prototype` in your page by a crafted workbook, such as one with a sheet named `__proto__` and a defined name that points at it. Read files from untrusted sources with the built-in engine. The caps are security bounds, not a promise of comfort: a sheet near the 5,000,000-cell cap takes tens of seconds to read and map and several gigabytes of memory, which is more than a browser tab is usually given. Keep imports well below the cap, or split the workbook.
+- **Only spreadsheet workbooks are read.** The built-in engine reads `.xlsx`, `.xlsm`, `.xltx`, `.xltm`, and `.xlam` files. A macro-enabled file is read like an `.xlsx` file: its macros are never opened or run, and they are reported as `vbaProject` in `result.dropped`. A package that declares its main part as anything else is refused. An Excel Binary Workbook (`.xlsb`) is refused with a message that tells you to save it as `.xlsx`. A legacy Excel 97-2003 file (`.xls`) and a password-protected workbook are refused too, because both are stored in a different container format. An OpenDocument spreadsheet (`.ods`) saved under an Excel name is refused with a message that tells you to save it as `.xlsx`. A part with truncated or mis-nested XML is refused with a message that names the element, such as `The XML part is truncated or malformed (unclosed <row>).` The built-in engine reads parts encoded as UTF-16, and an archive whose entry names all use backslashes as path separators. An archive that mixes both separators is refused with a message that says so. Hyperlink targets, external links, and embedded objects are not read.
+- **Oversized input is refused.** A file above 128 MiB is rejected before the engine parses it. A sheet that declares more than 1,048,576 rows or 16,384 columns is refused. A sheet whose cells reach past 5,000,000, or a workbook whose sheets together reach past 10,000,000, is refused as soon as the read gets there, before the cells are allocated. The size a sheet declares is not taken at face value, because a file can declare a size it does not hold: a few rows under a declared `A1:XFD1048576` import as those few rows. The built-in engine also bounds its own parse. It stops inflating the archive past 256 MiB in total or 512 MiB for one entry, it refuses a workbook that declares more than 2,048 sheets, and it caps the work it spends translating shared formulas. Because of the 256 MiB total, a re-import of the built-in engine's own export tops out at about 3,000,000 cells, below the cell caps. When you inject ExcelJS through the `engines` option, ExcelJS runs its own parse, so only the byte cap bounds it. ExcelJS 4.4.0 can also be made to change `Object.prototype` in your page by a crafted workbook, such as one with a sheet named `__proto__` and a defined name that points at it. Read files from untrusted sources with the built-in engine. The caps are security bounds, not a promise of comfort: a sheet near the 5,000,000-cell cap takes tens of seconds to read and map and several gigabytes of memory, which is more than a browser tab is usually given. Keep imports well below the cap, or split the workbook.
+- **A formula range is not bounded.** A 2 KB file can hold a formula over a range far larger than the sheet, such as `SUM(A1:XFD1048576)`. When the [Formulas](@/guides/formulas/formula-calculation/formula-calculation.md) plugin is enabled, HyperFormula evaluates it and can crash the tab. Import files you do not trust with the Formulas plugin off, or with `importFormulas: false`. You can also read the file with `apply: false` first, check the formulas in `result.data` and `result.formulas`, and apply it only when they pass.
 - **Per-cell settings are bounded.** The plugin applies a setting a whole column shares once, to the column, and gives a cell its own setting only where it differs. A sheet whose per-cell settings would cover more than 1,000,000 cells, or more cells than hold data when that is higher, is refused while it is being read. The bound covers per-cell meta, the style class names a column cannot share, and borders (one `customBorders` entry per bordered cell). Only a file with little data under its settings reaches it: two list validations with different lists that split a million empty rows, or a small file that styles or borders a million empty cells, for example.
-- **References are bounded.** A list validation or conditional formatting range that reaches past the sheet limits is not read, and one that spans a whole column or row is clamped to the cells the sheet holds.
+- **References are bounded.** A list validation or conditional formatting range that reaches past the sheet limits is not read, and one that spans a whole column or row is clamped to the cells the sheet holds. A merged range is not clamped: it grows the sheet to its own extent, as ExcelJS does, so a merge over whole columns or rows counts against the cell caps above.
 - **A sheet part must be a worksheet part.** The built-in engine reads a sheet from a part the package's `[Content_Types].xml` types as a worksheet, through an `<Override>` for that part or a worksheet `<Default>` for its extension. It also reads a part typed only by the generic `<Default Extension="xml" ContentType="application/xml"/>`, which some third-party generators write. A sheet whose part is typed as anything else, or that points at the workbook, styles, or shared strings part, is refused with `the sheet "<name>" has no worksheet part.`
 
 ## Hooks
