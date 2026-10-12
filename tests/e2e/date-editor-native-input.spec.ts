@@ -3,8 +3,10 @@ import { SharedDemoGridPage } from '../fixtures/pages/SharedDemoGridPage';
 
 /**
  * The date editor on the shared `/` grid's short `en-US` date column: Enter opens a native
- * `<input type="date">` on the cell's ISO date and asks the browser for its picker, and a date entered
- * into the input is committed and rendered in the column's format.
+ * `<input type="date">` on the cell's ISO date and asks the browser for its picker, a date entered into
+ * the input is committed and rendered in the column's format, and a date left incomplete keeps the cell's
+ * date. The input reports an empty value for an incomplete date, which the editor committed and erased the
+ * cell with until #13794.
  *
  * The `editors/dateEditor/manually-value-edit` visual spec was meant to check a value edited by hand.
  * It pressed Backspace in the open editor and captured, on every js variant and the three wrappers; but
@@ -54,8 +56,7 @@ test.describe('the native date editor', () => {
     await expect.poll(() => grid.shownAt(1, 2)).toBe('6/15/21');
   });
 
-  // eslint-disable-next-line no-restricted-syntax -- DEV-3355: the editor commits the empty value a native date input reports for an incomplete date, erasing the cell
-  test.fixme('keeps the cell\'s date when Enter commits a date left incomplete', async({ page }) => {
+  test('keeps the cell\'s date when Enter commits a date left incomplete', async({ page }) => {
     const iso = await grid.sourceAt(1, 2);
 
     await grid.openEditor(1, 2);
@@ -68,6 +69,7 @@ test.describe('the native date editor', () => {
 
     await page.keyboard.press('Enter');
 
+    expect((await grid.editorState()).opened).toBe(false);
     expect(await grid.sourceAt(1, 2)).toBe(iso);
   });
 });

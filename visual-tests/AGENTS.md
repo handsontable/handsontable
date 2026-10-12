@@ -843,14 +843,21 @@ does for you):
   defines the active row header its own way and no other every-variant capture selects a row by its
   header. The single range `select-few-cells-by-mouse` photographed, with its highlighted headers and fill
   handle, is painted on every variant by `js-only/selection-handles/selection-handles-visible-on-hover`, and
-  the open editor's chrome by `js-only/editors/dropdown/focus-cell`, so neither needed a capture here. Two
-  defects the new assertions found are parked under `test.fixme`: Tab cannot bring the focus back into a
-  grid it left at the edge of the page (the grid's focus scope is never deactivated when the focus leaves
-  the document, so the re-entry selects nothing; the parked case expects the header the walk left from, as
-  any other re-entry does), and the date editor commits an incomplete date as an empty value and erases
-  the cell. A `test.fixme` never runs and nothing checks that its task is still open, so a parked case
-  stays parked after its fix merges until someone removes the `test.fixme`; the fix's pull request does
-  that when the spec is already on its base branch.
+  the open editor's chrome by `js-only/editors/dropdown/focus-cell`, so neither needed a capture here. The
+  Tab re-entry and the incomplete date in those two specs are fixed defects (the causes are in
+  `handsontable/AGENTS.md`).
+- **A parked `test.fixme` is removed by whichever pull request merges second.** A `test.fixme` never runs
+  and nothing checks that its task is still open, so it outlives its fix unless someone lifts it: the
+  fix's pull request when the parked spec is already on its base branch, and the pull request that parks
+  a case when the fix has merged first. Check before parking.
+- **The `/` grid draws its rows, headers and selection with the theme alone, in all four demos together.**
+  No hook draws into its headers and no demo stylesheet rule paints its rows; the progress-bar and star
+  renderers are the only demo code in its cells. A row-header checkbox and an `!important` row tint did
+  both until DEV-3373, and every capture of `/` hid the dark themes' row colors and the selection fill on
+  the tinted rows behind them. Code like that re-captures every spec on `/` and must change the js,
+  React, Angular and Vue demos together (the
+  [mirroring rule](#golden-snapshots-js-copied-baselines-critical-gotcha)); a feature that needs it gets
+  a route of its own. The themed checkbox stays covered on `/` by the "In stock" column.
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 
