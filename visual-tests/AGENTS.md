@@ -844,34 +844,20 @@ does for you):
   header. The single range `select-few-cells-by-mouse` photographed, with its highlighted headers and fill
   handle, is painted on every variant by `js-only/selection-handles/selection-handles-visible-on-hover`, and
   the open editor's chrome by `js-only/editors/dropdown/focus-cell`, so neither needed a capture here. The
-  new assertions found two defects, fixed by #13787 and #13794 and asserted in the two specs above: Tab
-  brought the focus back into a grid it had left at the edge of the page without selecting anything (no
-  `focusin` reaches the page while the focus is away, so the grid's scope is still active when the Tab
-  returns, and activating an already active scope returned early; the fix re-runs the entry), and the date
-  editor committed an incomplete date as an empty value and erased the cell. Both cases sat under
-  `test.fixme` until DEV-3373. A `test.fixme` never runs and nothing checks that its task is still open, so
-  whichever of the two pull requests merges second removes it: the fix's, when the parked spec is already
-  on its base branch, or the one that parks the case, when the fix merged first (check before parking).
-  Both fixes here merged an hour before the pull request that parked their cases.
-- **The `/` grid carries no row tint and no row-header checkbox, in all four demos.** Until DEV-3373 every
-  demo built it
-  with three hooks of demo code: `afterGetRowHeader` drew a checkbox into each row header,
-  `afterOnCellMouseDown` toggled it, and `beforeRenderer` gave a checked row the `selected` class, which
-  the demo's stylesheet painted `#edf3fd` with `!important`. Every capture of `/` carried them: pale rows
-  in the dark themes too, under the theme's light text, and a deeper shade where a selection crossed one,
-  so a regression in those rows' colors or in the selection fill on them could not show. The hooks, the
-  rule and the hook files left the js, React, Angular and Vue demos together (the
-  [mirroring rule](#golden-snapshots-js-copied-baselines-critical-gotcha)), so the row headers show their
-  numbers and every row draws the theme's own colors. The two other copies of the rule, in the Angular and
-  Vue scenario grids, which nothing gave the class, went too, and so did the hooks of
-  `/web-component-demo`, which no spec photographs and whose tint came from the same removed rule. The
-  progress-bar and star columns still paint the demo's own colors. Nothing else moved: the row header is
-  50 px wide with or without the checkbox and the rows keep their heights on every theme. Measured on
-  local renders of all 237 goldens before and after (macOS): the 73 of the 10 specs on `/` changed in the
-  row-header column and on the formerly tinted rows, plus at most 63 anti-aliased pixels within a few color
-  levels in some filters captures; of the other 164, 162 rendered byte-identical and two moved by 7 and 38
-  pixels of render noise, under the gate. No route took the checkbox over: it was demo code, and the
-  themed checkbox is still painted on `/` by the "In stock" column.
+  Tab re-entry and the incomplete date in those two specs are fixed defects (the causes are in
+  `handsontable/AGENTS.md`).
+- **A parked `test.fixme` is removed by whichever pull request merges second.** A `test.fixme` never runs
+  and nothing checks that its task is still open, so it outlives its fix unless someone lifts it: the
+  fix's pull request when the parked spec is already on its base branch, and the pull request that parks
+  a case when the fix has merged first. Check before parking.
+- **The `/` grid draws its rows, headers and selection with the theme alone, in all four demos together.**
+  No hook draws into its headers and no demo stylesheet rule paints its rows; the progress-bar and star
+  renderers are the only demo code in its cells. A row-header checkbox and an `!important` row tint did
+  both until DEV-3373, and every capture of `/` hid the dark themes' row colors and the selection fill on
+  the tinted rows behind them. Code like that re-captures every spec on `/` and must change the js,
+  React, Angular and Vue demos together (the
+  [mirroring rule](#golden-snapshots-js-copied-baselines-critical-gotcha)); a feature that needs it gets
+  a route of its own. The themed checkbox stays covered on `/` by the "In stock" column.
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 

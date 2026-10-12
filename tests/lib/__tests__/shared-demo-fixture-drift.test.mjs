@@ -33,6 +33,17 @@ const NOT_COMPARED = {
 // code on the `/` grid that the comparison skips, so the demo must set none of them.
 const FIXTURE_ONLY_HOOKS = ['afterGetRowHeader', 'afterRenderer', 'afterGetColHeader'];
 
+/**
+ * The fixture-only hooks an evaluated options object sets. The real test and its control both call this,
+ * so a broken check fails them together.
+ *
+ * @param {object} options The evaluated options.
+ * @returns {string[]} The `FIXTURE_ONLY_HOOKS` keys the options set.
+ */
+function fixtureOnlyHooksIn(options) {
+  return FIXTURE_ONLY_HOOKS.filter(key => key in options);
+}
+
 // Per column: the demo's progress-bar and star renderers are demo code, and so is the `star` class only
 // the star renderer's stylesheet reads. The fixture keeps those columns' `editor: false` and `readOnly`.
 const NOT_COMPARED_PER_COLUMN = ['renderer'];
@@ -150,7 +161,7 @@ test('the demo sets none of the hooks only the fixture may set', () => {
   // The comparison skips these keys, so a demo hook under one of them would be demo code it cannot see.
   const demo = evaluate(objectLiteralAfter(DEMO, 'new Handsontable(example, '), DEMO_GLOBALS, DEMO);
 
-  assert.deepEqual(FIXTURE_ONLY_HOOKS.filter(key => key in demo), [],
+  assert.deepEqual(fixtureOnlyHooksIn(demo), [],
     `${DEMO} sets a hook the drift comparison skips, so the fixture cannot follow it. Move what it does out `
     + 'of the shared / grid, or compare that hook.');
 });
@@ -199,6 +210,6 @@ test('the comparison catches a hook the demo gains, inline or under a skipped ke
 
   const skipped = evaluate(withHook('afterGetRowHeader'), DEMO_GLOBALS, DEMO);
 
-  assert.ok(FIXTURE_ONLY_HOOKS.filter(key => key in skipped).includes('afterGetRowHeader'),
+  assert.ok(fixtureOnlyHooksIn(skipped).includes('afterGetRowHeader'),
     'A fixture-only hook on the demo must be reported.');
 });
