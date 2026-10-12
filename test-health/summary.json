@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-12T08:38:48.589Z",
+  "generatedAt": "2026-10-12T09:21:45.334Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -473,7 +473,7 @@
       "file": "handsontable/src/editors/textEditor/__tests__/textEditor.spec.js",
       "line": null,
       "title": "TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
-      "count7": 3,
+      "count7": 2,
       "count30": 4,
       "countAll": 4,
       "runs30": 3,
