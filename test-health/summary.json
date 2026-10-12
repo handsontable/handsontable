@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-12T10:52:16.009Z",
+  "generatedAt": "2026-10-12T11:03:42.003Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 379,
     "needsTicket": 21,
     "quarantined": 0,
-    "entries": 1970
+    "entries": 1971
   },
   "rows": [
     {
@@ -400,9 +400,9 @@
       "file": "e2e/selection-viewport-scroll.spec.ts",
       "line": 72,
       "title": "viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
-      "count7": 6,
-      "count30": 6,
-      "countAll": 6,
+      "count7": 7,
+      "count30": 7,
+      "countAll": 7,
       "runs30": 4,
       "flakyRuns30": 4,
       "branches30": 4,
@@ -418,8 +418,8 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-10-12T10:40:43Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38233981000",
+        "seenAt": "2026-10-12T11:02:55Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38233981000/attempts/2",
         "branch": "feature/DEV-3207_RTL-comment-editor-flip-viewport-left",
         "leg": "e2e-horizon",
         "status": "flaky",
