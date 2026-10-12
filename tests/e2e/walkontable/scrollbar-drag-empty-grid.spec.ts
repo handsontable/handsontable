@@ -86,28 +86,30 @@ test.describe('Scrollbar drag on a grid with an empty axis', () => {
     expectOnTrack(await grid.rowHeaderPlacements(), 'after release');
   });
 
-  test('keeps the page scroll on release of a window-scrolled grid with no rows', async({ page, theme, bundle }) => {
-    const grid = new ScrollbarDragEmptyGridPage(page, theme, bundle);
+  for (const dir of ['ltr', 'rtl'] as const) {
+    test(`keeps the page scroll on release of a window-scrolled grid with no rows (${dir})`, async({ page, theme, bundle }) => {
+      const grid = new ScrollbarDragEmptyGridPage(page, theme, bundle);
 
-    await grid.goto({ mode: 'window' });
+      await grid.goto({ mode: 'window', dir });
 
-    const maxScroll = await grid.maxWindowScrollLeft();
+      const maxScroll = await grid.maxWindowScrollLeft();
 
-    // The premise: the page must be wide enough to drag past the first step at all.
-    expect(maxScroll, 'horizontal page scroll range').toBeGreaterThan(120);
+      // The premise: the page must be wide enough to drag past the first step at all.
+      expect(maxScroll, 'horizontal page scroll range').toBeGreaterThan(120);
 
-    await grid.pressScrollbar();
+      await grid.pressScrollbar();
 
-    for (const distance of [10, 120, maxScroll]) {
-      await grid.dragScrollbarTo('horizontal', distance);
+      for (const distance of [10, 120, maxScroll]) {
+        await grid.dragScrollbarTo('horizontal', distance);
 
-      expect(await grid.spreaderPosition(), `spreader position at ${distance}px`).toBe('sticky');
-      expectOnTrack(await grid.columnHeaderPlacements(), `at ${distance}px`);
-    }
+        expect(await grid.spreaderPosition(), `spreader position at ${distance}px`).toBe('sticky');
+        expectOnTrack(await grid.columnHeaderPlacements(), `at ${distance}px`);
+      }
 
-    await grid.releaseScrollbar();
+      await grid.releaseScrollbar();
 
-    await expect.poll(() => grid.scrollDistance('horizontal')).toBe(maxScroll);
-    expect(await grid.spreaderPosition(), 'spreader position after release').toBe('relative');
-  });
+      await expect.poll(() => grid.scrollDistance('horizontal')).toBe(maxScroll);
+      expect(await grid.spreaderPosition(), 'spreader position after release').toBe('relative');
+    });
+  }
 });

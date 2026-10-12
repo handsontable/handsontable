@@ -355,6 +355,11 @@ Five rules follow, and the first is the one that bites.
   `Overlays#isStickyScrollOwningClones()` is true - suspend them on the master's flag and the
   frozen columns freeze for the length of a page-scrollbar drag. `#activate` reads its starting
   offset from the record, not from `style.top`, which is empty now.
+- **`StickyScrollStrategy#setScrollPosition` hands `window.scrollTo` a negative x in RTL.** A page
+  that the window scrolls horizontally in RTL has a negative `scrollX`, so a positive x clamps to the
+  origin and the release of a scrollbar drag throws the page back to its start. The hider-coordinate
+  magnitude is negated, as the element branch does for `scrollLeft`; the drag path never hits this
+  because it reads positions through `Math.abs`.
 - **`StickyScrollStrategy#syncOffsets` resolves each axis on its own.** An axis with nothing
   rendered (no rows, or every row hidden, trimmed or filtered out; likewise for columns) has a
   `null` render-calculator `startPosition`, and it takes offset 0 on that sync, the same value the

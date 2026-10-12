@@ -272,11 +272,12 @@ export class StickyScrollStrategy {
     if (this.#isWindowScroll()) {
       const { rootWindow } = this.#deps;
       // Hider coordinates run from the table's inline-start edge: add back the page's offset to it
-      // (the left one in LTR, the right margin in RTL), the one `#getScrollLeft` took off.
+      // (the left one in LTR, the right margin in RTL), the one `#getScrollLeft` took off. An RTL page
+      // scrolls into negative `scrollX`, so the magnitude is negated, as the element branch does.
       const absoluteLeft = left + this.#deps.getInlineStartOverlay().getTableParentOffset();
 
       rootWindow.scrollTo(
-        absoluteLeft,
+        this.#isRtl() ? -absoluteLeft : absoluteLeft,
         top + this.#deps.getTopOverlay().getTableParentOffset()
       );
     } else {
