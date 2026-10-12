@@ -223,8 +223,23 @@ export const editorFactory = <TProperties, TMethods = Record<string, unknown>>(
         const _offset = editor.TD.getBoundingClientRect();
 
         containerStyle.top = `${editor.hot.rootWindow.pageYOffset + _offset.top}px`;
-        containerStyle[editor.hot.isRtl() ? 'right' : 'left'] =
-          `${editor.hot.rootWindow.pageXOffset + _offset[editor.hot.isRtl() ? 'right' : 'left']}px`;
+
+        if (editor.hot.isRtl()) {
+          // `right` is measured from the right edge of the container's containing block, which is
+          // neither the viewport's right edge nor the scroll origin: a scrolled page, a scrollbar
+          // gutter, or a positioned `body` all move it. Read where that edge is instead of
+          // assuming it, then offset from it. The probe costs one extra
+          // layout per call, and assumes the container has no horizontal margin.
+          containerStyle.left = '';
+          containerStyle.right = '0px';
+
+          const containingBlockRight = editor.container!.getBoundingClientRect().right;
+
+          containerStyle.right = `${containingBlockRight - _offset.right}px`;
+        } else {
+          containerStyle.right = '';
+          containerStyle.left = `${editor.hot.rootWindow.pageXOffset + _offset.left}px`;
+        }
       } else {
         const rect = editor.getEditedCellRect();
 
