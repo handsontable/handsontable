@@ -328,6 +328,36 @@ export class GridLayoutsPage {
   }
 
   /**
+   * The width `ManualColumnResize` stores for a column, `null` while the column was never resized.
+   *
+   * @param {number} column The visual column index.
+   * @returns {Promise<number | null>}
+   */
+  async manualColumnSize(column: number): Promise<number | null> {
+    return this.page.evaluate((c) => {
+      const { hot } = window as unknown as {
+        hot: { getPlugin(name: string): { getManualSize(column: number): number | null } },
+      };
+
+      return hot.getPlugin('manualColumnResize').getManualSize(c);
+    }, column);
+  }
+
+  /**
+   * Makes every column resize end without a change, the way a `beforeColumnResize` callback that
+   * returns `false` does.
+   */
+  async cancelColumnResizes(): Promise<void> {
+    await this.page.evaluate(() => {
+      const { hot } = window as unknown as {
+        hot: { addHook(name: string, callback: () => boolean): void },
+      };
+
+      hot.addHook('beforeColumnResize', () => false);
+    });
+  }
+
+  /**
    * Every value of the grid, in visual order, as `getData()` returns it.
    *
    * @returns {Promise<unknown[][]>}
