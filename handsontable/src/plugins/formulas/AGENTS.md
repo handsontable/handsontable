@@ -469,13 +469,17 @@ again. Five rules:
 - **The restore escapes a text old value like any engine-bound write** (`#escapeEngineBoundValue`): written
   back raw, a preserved text `'007'` came back as the number 7, and a non-ISO string in a `date` column
   as a serial number. Pinned by `puts a preserved text value back as text in the switched-away sheet`.
-- **The restore keeps two guards that cover each other on purpose.** The removed-sheet check
-  (`getSheetName(sheetId) === undefined`) skips the whole batch for a sheet removed while the change was
-  validated; `isItPossibleToSetCellContents` guards each cell against the engine's own limits. Deleting
-  either one alone keeps the suite green, because the other one then absorbs a removed sheet; deleting
-  both throws. Keep both: the first states the intent and avoids an empty engine batch, the second is the
-  per-cell bound no sheet-level check gives. Pinned together by `leaves a switched-away sheet alone when
-  it was removed from the engine before the change was applied`.
+- **The restore keeps two guards, and only one of them is covered by the other.** The removed-sheet
+  check (`getSheetName(sheetId) === undefined`) skips the whole batch for a sheet removed while the change
+  was validated; `isItPossibleToSetCellContents` guards each cell against the engine's own limits.
+  Deleting the removed-sheet check alone keeps the suite green, because the per-cell guard then absorbs a
+  removed sheet. The per-cell guard is covered by nothing: `writtenCells` records a cell even when the
+  engine refused its FIRST write (`syncChangeWithEngine` past `maxRows`), so on a live switched-away sheet
+  only that guard stops `setCellContents` from throwing `SheetSizeLimitExceededError`. Keep both: the
+  first states the intent and avoids an empty engine batch, the second is the per-cell bound no
+  sheet-level check gives. Pinned by `leaves a switched-away sheet alone when it was removed from the
+  engine before the change was applied` (the removed-sheet case, which throws only with both deleted) and
+  `does not put back a cell the engine refused the first write of` (the per-cell guard alone).
 - **The write-back writes the whole set once, and the out-of-bounds write stands aside.** A change past
   the last row or column is not written from `afterSetDataAtCell` but from a one-off `afterChange`
   listener, after the Core created the row. By `beforeChangeRender` that row exists, so the write-back
@@ -491,6 +495,17 @@ again. Five rules:
   already right. Pinned by `repaints another sheet's grid that reads the written-back cell`.
 - **The write-back validates the dependents it recalculated**, like the `afterSetDataAtCell` path. The
   first validation ran against the settings the update replaced (a swapped validator, for one).
+
+**Overlapping async sets on one cell across a switch restore a stale old value (DEV-3308, open).** With
+an async validator, a second set on the same cell, written while the first is still validating, records
+the same old value as the first. When the first set applies on sheet A, the grid switches, and the second
+set applies on the other sheet, `#restoreSwitchedAwaySheet` writes that old value into A over the first
+set's applied value. **Compare-and-restore does NOT fix it** – skipping the restore when a later write
+owns the cell was checked by the reviewer against a patched bundle, and A still ends with the old value,
+because the second set IS the last writer of the cell, so its guard passes. The fix is to refresh the
+recorded old value of the other pending sets that wrote the same cell when a set applies on its own sheet:
+a per-cell list of pending sets beside the `WeakMap`, cleared when a set applies or is dropped. The base
+build also ends with a wrong value here, so this is pre-existing.
 
 A validator's rejection needs no guard **in the write-back**: `validateChanges()` splices a rejected change
 out of the very array `beforeChangeRender` receives, so the write-back never sees it. Keep the write-back

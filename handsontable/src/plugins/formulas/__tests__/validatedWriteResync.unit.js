@@ -250,6 +250,32 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     expect(hot.getDataAtCell(2, 0)).toBe(30);
   });
 
+  it('does not put back a cell the engine refused the first write of', async() => {
+    // `writtenCells` records a cell even when the engine refused the first write (here past
+    // `maxRows`), so on a live switched-away sheet only the per-cell `isItPossibleToSetCellContents`
+    // guard keeps the restore from throwing `SheetSizeLimitExceededError`.
+    const warnings = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable', maxRows: 2 });
+
+    hot = new Handsontable(container, {
+      data: [[1, 'a'], [2, 'b'], [3, 'c']],
+      columns: [{ validator: (value, callback) => callback(true) }, {}],
+      formulas: { engine },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const first = hot.getPlugin('formulas').sheetId;
+    const other = engine.getSheetId(engine.addSheet('Other'));
+
+    engine.setSheetContent(other, [[10, 'x'], [20, 'y']]);
+    hot.setDataAtCell(2, 0, '=1+1');
+    hot.updateSettings({ formulas: { engine, sheetName: 'Other' } });
+    await waitForValidation();
+
+    expect(engine.getSheetSerialized(first)).toEqual([]);
+    warnings.mockRestore();
+  });
+
   it('restores the cell the first write reached, even when the switched-to sheet has fewer rows', async() => {
     // The restore reads the cells the first write recorded rather than mapping the change through
     // the grid again after the Core applied it, when the grid's indexes describe the switched-to
