@@ -296,7 +296,7 @@ Three limits to keep in mind:
 
 ## Next steps
 
-- [Spreadsheet Enricher](https://jev-sheet.handsontable-sandbox.workers.dev/): a live demo of this pattern with file upload, a column builder, confidence shading, and CSV or Excel export. Nothing you upload is stored.
+- [JevSheet](https://demos.handsontable.com/d/2g6f4hc3b2/): a live demo of this pattern with file upload, a column builder, confidence shading, and CSV or Excel export. Nothing you upload is stored.
 - [Agent-driven grid with A2UI](@/recipes/real-time/a2ui-agent-grid/a2ui-agent-grid.md): an agent describes the grid itself.
 - [Real-time cell updates via WebSocket](@/recipes/real-time/websocket-updates/websocket-updates.md): the same `setDataAtRowProp()` pattern for streaming data.
 - [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md): everything a custom renderer can do.
