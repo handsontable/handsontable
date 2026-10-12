@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-12T06:34:00.881Z",
+  "generatedAt": "2026-10-12T06:42:05.049Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 375,
+    "tests": 378,
     "needsTicket": 20,
     "quarantined": 0,
-    "entries": 1942
+    "entries": 1958
   },
   "rows": [
     {
@@ -20,7 +20,7 @@
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
-      "count7": 3,
+      "count7": 2,
       "count30": 28,
       "countAll": 28,
       "runs30": 16,
@@ -394,6 +394,42 @@
       "needsTicket": true
     },
     {
+      "key": "jasmine|handsontable/src/editors/textEditor/__tests__/textEditor.spec.js|TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
+      "tier": "jasmine",
+      "file": "handsontable/src/editors/textEditor/__tests__/textEditor.spec.js",
+      "line": null,
+      "title": "TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
+      "count7": 3,
+      "count30": 4,
+      "countAll": 4,
+      "runs30": 3,
+      "flakyRuns30": 0,
+      "branches30": 3,
+      "nightlyRuns30": 0,
+      "openBranches30": 3,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD.min (theme: horizon)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-12T06:41:24Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37933865537/attempts/2",
+        "branch": "feature/DEV-3278_Date-between-filter-date-inputs",
+        "leg": "UMD.min (theme: horizon)",
+        "status": "failed",
+        "error": "Error: Timeout - Async function did not complete within 15000ms (set by jasmine.DEFAULT_TIMEOUT_INTERVAL)",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
       "key": "playwright|e2e/selection-viewport-scroll.spec.ts|viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
       "tier": "playwright",
       "file": "e2e/selection-viewport-scroll.spec.ts",
@@ -490,42 +526,6 @@
         "leg": "e2e-horizon-min",
         "status": "flaky",
         "error": "Error: expect(received).toBe(expected) // Object.is equality",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "jasmine|handsontable/src/editors/textEditor/__tests__/textEditor.spec.js|TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
-      "tier": "jasmine",
-      "file": "handsontable/src/editors/textEditor/__tests__/textEditor.spec.js",
-      "line": null,
-      "title": "TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
-      "count7": 2,
-      "count30": 3,
-      "countAll": 3,
-      "runs30": 3,
-      "flakyRuns30": 0,
-      "branches30": 3,
-      "nightlyRuns30": 0,
-      "openBranches30": 3,
-      "legs": [
-        "UMD (theme: classic)",
-        "UMD.min (theme: horizon)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "passes alone"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-09T13:52:24Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37933865537",
-        "branch": "feature/DEV-3278_Date-between-filter-date-inputs",
-        "leg": "UMD.min (theme: horizon)",
-        "status": "failed",
-        "error": "Error: Timeout - Async function did not complete within 15000ms (set by jasmine.DEFAULT_TIMEOUT_INTERVAL)",
         "source": "ci"
       },
       "needsTicket": true
@@ -10638,6 +10638,117 @@
         "leg": "UMD (theme: classic)",
         "status": "failed",
         "error": "Expected 0 to be greater than 0.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "visual|visual-tests/tests/js-only/filters/tab-navigation-through-condition-components.spec.ts|js-only/filters/tab-navigation-through-condition-components-2",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/filters/tab-navigation-through-condition-components.spec.ts",
+      "line": null,
+      "title": "js-only/filters/tab-navigation-through-condition-components-2",
+      "count7": 5,
+      "count30": 5,
+      "countAll": 5,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "js/chromium",
+        "js/chromium-theme-horizon",
+        "js/chromium-theme-horizon-dark",
+        "js/chromium-theme-main",
+        "js/chromium-theme-main-dark"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-12T06:41:24Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37933865537/attempts/2",
+        "branch": "feature/DEV-3278_Date-between-filter-date-inputs",
+        "leg": "js/chromium-theme-horizon-dark",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 3184d5f9eb41",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "visual|visual-tests/tests/js-only/filters/tab-navigation-through-condition-components.spec.ts|js-only/filters/tab-navigation-through-condition-components-3",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/filters/tab-navigation-through-condition-components.spec.ts",
+      "line": null,
+      "title": "js-only/filters/tab-navigation-through-condition-components-3",
+      "count7": 5,
+      "count30": 5,
+      "countAll": 5,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "js/chromium",
+        "js/chromium-theme-horizon",
+        "js/chromium-theme-horizon-dark",
+        "js/chromium-theme-main",
+        "js/chromium-theme-main-dark"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-12T06:41:24Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37933865537/attempts/2",
+        "branch": "feature/DEV-3278_Date-between-filter-date-inputs",
+        "leg": "js/chromium-theme-horizon-dark",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 c0622a2fa670",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "visual|visual-tests/tests/js-only/filters/tab-navigation-through-condition-components.spec.ts|js-only/filters/tab-navigation-through-condition-components-4",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/filters/tab-navigation-through-condition-components.spec.ts",
+      "line": null,
+      "title": "js-only/filters/tab-navigation-through-condition-components-4",
+      "count7": 5,
+      "count30": 5,
+      "countAll": 5,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "js/chromium",
+        "js/chromium-theme-horizon",
+        "js/chromium-theme-horizon-dark",
+        "js/chromium-theme-main",
+        "js/chromium-theme-main-dark"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-12T06:41:24Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37933865537/attempts/2",
+        "branch": "feature/DEV-3278_Date-between-filter-date-inputs",
+        "leg": "js/chromium-theme-horizon-dark",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 35b40196aa6e",
         "source": "ci"
       },
       "needsTicket": false
