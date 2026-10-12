@@ -17,6 +17,7 @@ interface ConditionDescriptor {
   name?: string;
   inputsCount?: number;
   inputType?: string;
+  inputTypeByColumnType?: Record<string, string>;
   [key: string]: unknown;
 }
 
@@ -36,6 +37,10 @@ export class ConditionComponent extends BaseComponent {
    * @type {string}
    */
   name: string | (() => string) = '';
+  /**
+   * The data type of the column the menu is open for, computed once by `reset()`.
+   */
+  #columnType: string | undefined;
   /**
    * @type {boolean}
    */
@@ -98,6 +103,8 @@ export class ConditionComponent extends BaseComponent {
     }
 
     this.getSelectElement().setValue(copyOfCommand);
+    const inputType = this.#getInputType(copyOfCommand);
+
     arrayEach(value.args, (arg, index) => {
       if (index > (copyOfCommand.inputsCount ?? 0) - 1) {
         return false;
@@ -105,7 +112,7 @@ export class ConditionComponent extends BaseComponent {
 
       const element = this.getInputElement(index);
 
-      element.setType(copyOfCommand.inputType ?? 'text');
+      element.setType(inputType);
       element.setValue(arg);
       element[(copyOfCommand.inputsCount ?? 0) > index ? 'show' : 'hide']();
 
@@ -242,11 +249,14 @@ export class ConditionComponent extends BaseComponent {
     // A copy, because `setItems()` translates the names in place and the descriptor is shared.
     let items = [{ ...getConditionDescriptor(CONDITION_NONE) }];
 
+    this.#columnType = undefined;
+
     if (selectedColumn !== null && this.hot) {
       const { visualIndex } = selectedColumn;
 
+      this.#columnType = this.#getColumnDataType(visualIndex);
       items = getOptionsList(
-        this.hot.getDataType(0, visualIndex, this.hot.countRows(), visualIndex) ?? 'text',
+        this.#columnType ?? 'text',
         this.hot.getPlugin('filters')._getAvailableConditions(visualIndex),
       );
     }
@@ -259,13 +269,45 @@ export class ConditionComponent extends BaseComponent {
   }
 
   /**
+   * Gets the native type of the argument inputs for the given condition. A condition shared by
+   * several column types can declare a different type per column type, which takes precedence over
+   * its own `inputType`.
+   *
+   * @param {object} command The condition descriptor.
+   * @returns {string}
+   */
+  #getInputType(command: ConditionDescriptor): string {
+    if (command.inputTypeByColumnType) {
+      const inputType = this.#columnType ? command.inputTypeByColumnType[this.#columnType] : undefined;
+
+      if (inputType) {
+        return inputType;
+      }
+    }
+
+    return command.inputType ?? 'text';
+  }
+
+  /**
+   * Gets the data type of the whole column.
+   *
+   * @param {number} visualIndex The visual column index.
+   * @returns {string | undefined}
+   */
+  #getColumnDataType(visualIndex: number): string | undefined {
+    return this.hot?.getDataType(0, visualIndex, Math.max(this.hot.countRows() - 1, 0), visualIndex);
+  }
+
+  /**
    * On condition select listener.
    *
    * @param {object} command Menu item object (command).
    */
   #onConditionSelect(command: ConditionDescriptor) {
+    const inputType = this.#getInputType(command);
+
     arrayEach(this.getInputElements(), (element, index) => {
-      element.setType(command.inputType ?? 'text');
+      element.setType(inputType);
       element[(command.inputsCount ?? 0) > index ? 'show' : 'hide']();
 
       if (index === 0) {

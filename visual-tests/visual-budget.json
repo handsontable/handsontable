@@ -16,14 +16,14 @@
     "same change that deletes the records."
   ],
   "prefixes": {
-    "js/chromium/": 51,
-    "js/chromium-theme-main/": 79,
-    "js/chromium-theme-main-dark/": 64,
-    "js/chromium-theme-horizon/": 51,
-    "js/chromium-theme-horizon-dark/": 51,
-    "angular-wrapper/chromium/": 30,
-    "react-wrapper/chromium/": 30,
-    "vue3/chromium/": 30,
+    "js/chromium/": 23,
+    "js/chromium-theme-main/": 51,
+    "js/chromium-theme-main-dark/": 36,
+    "js/chromium-theme-horizon/": 23,
+    "js/chromium-theme-horizon-dark/": 23,
+    "angular-wrapper/chromium/": 1,
+    "react-wrapper/chromium/": 1,
+    "vue3/chromium/": 1,
     "cross-browser/chromium/": 26,
     "cross-browser/firefox/": 26,
     "cross-browser/webkit/": 26
