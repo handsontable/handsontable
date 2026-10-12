@@ -843,14 +843,27 @@ does for you):
   defines the active row header its own way and no other every-variant capture selects a row by its
   header. The single range `select-few-cells-by-mouse` photographed, with its highlighted headers and fill
   handle, is painted on every variant by `js-only/selection-handles/selection-handles-visible-on-hover`, and
-  the open editor's chrome by `js-only/editors/dropdown/focus-cell`, so neither needed a capture here. Two
-  defects the new assertions found are parked under `test.fixme`: Tab cannot bring the focus back into a
-  grid it left at the edge of the page (the grid's focus scope is never deactivated when the focus leaves
-  the document, so the re-entry selects nothing; the parked case expects the header the walk left from, as
-  any other re-entry does), and the date editor commits an incomplete date as an empty value and erases
-  the cell. A `test.fixme` never runs and nothing checks that its task is still open, so a parked case
-  stays parked after its fix merges until someone removes the `test.fixme`; the fix's pull request does
-  that when the spec is already on its base branch.
+  the open editor's chrome by `js-only/editors/dropdown/focus-cell`, so neither needed a capture here. The
+  new assertions found two defects, fixed by #13787 and #13794 and asserted in the two specs above: Tab
+  brought the focus back into a grid it had left at the edge of the page without selecting anything (the
+  grid's focus scope was never deactivated when the focus left the document), and the date editor
+  committed an incomplete date as an empty value and erased the cell. Both cases sat under `test.fixme`
+  until DEV-3373: a `test.fixme` never runs and nothing checks that its task is still open, so a parked
+  case stays parked after its fix merges until someone removes the `test.fixme`.
+- **The `/` grid draws only the grid's own look, in all four demos.** Until DEV-3373 every demo built it
+  with three hooks of demo code: `afterGetRowHeader` drew a checkbox into each row header,
+  `afterOnCellMouseDown` toggled it, and `beforeRenderer` gave a checked row the `selected` class, which
+  the demo's stylesheet painted `#edf3fd` with `!important`. Every capture of `/` carried them: pale rows
+  in the dark themes too, under the theme's light text, and a deeper shade where a selection crossed one,
+  so a regression in those rows' colors or in the selection fill on them could not show. The hooks, the
+  rule and the hook files left the js, React, Angular and Vue demos together (the
+  [mirroring rule](#golden-snapshots-js-copied-baselines-critical-gotcha)), so the row headers show their
+  numbers and every row draws the theme's own colors. Nothing else moved: the row header is 50 px wide with
+  or without the checkbox and the rows keep their heights on every theme, so the 73 goldens of the 10
+  specs on `/` changed only in the row-header column and on the rows that were tinted, and the other 164
+  rendered byte-identical. No route took the checkbox over: it was demo code, the themed checkbox is still
+  painted on `/` by the "In stock" column, and `/web-component-demo`, which no spec photographs, keeps its
+  own copy of the hooks.
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 
