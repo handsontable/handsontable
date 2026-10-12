@@ -36,6 +36,8 @@ interface Merge {
  * @param {number} [options.fixedColumnsEnd=0] Frozen end columns.
  * @param {number} [options.firstRow] First partially visible row (defaults to the first row below the frozen ones).
  * @param {number} [options.firstColumn=0] First partially visible column.
+ * @param {string[]} [options.notRendered] Cells (`row,col`) the engine does not render, e.g. the part of a merge that
+ * crosses into the frozen end columns, which the end overlay does not draw.
  * @returns {object}
  */
 function createScenario(merges: Merge[], {
@@ -45,6 +47,7 @@ function createScenario(merges: Merge[], {
   fixedColumnsEnd = 0,
   firstRow = fixedRowsTop,
   firstColumn = fixedColumnsStart,
+  notRendered = [] as string[],
 } = {}) {
   const cellOf = new Map<string, HTMLTableCellElement>();
   const boxOf = new Map<HTMLElement, { left: number, top: number, width: number, height: number }>();
@@ -116,7 +119,8 @@ function createScenario(merges: Merge[], {
       getColumnHeaderHeight: () => 0,
       getRowHeaderWidth: () => 0,
     },
-    getCell: ({ row, col }: { row: number, col: number }) => cellOf.get(`${row},${col}`),
+    getCell: ({ row, col }: { row: number, col: number }) =>
+      (notRendered.includes(`${row},${col}`) ? null : cellOf.get(`${row},${col}`)),
     createCellCoords: (row: number, col: number) => ({ row, col }),
     domBindings: { geometryReader },
   };
@@ -186,6 +190,24 @@ describe('getCellCoordsFromMousePosition over merged cells', () => {
     });
   });
 
+  describe('a merge that crosses from the scrolling columns into the frozen end columns', () => {
+    // Row 0 merges the end columns (2-3). Row 1 merges columns 1-2, so its cell in the end band, column 2, is not
+    // rendered by the end overlay, while its column 3 cell is a plain one.
+    const merges = [{ row: 0, col: 2, colspan: 2 }, { row: 1, col: 1, colspan: 2 }];
+
+    it('should not measure the end band against a row that does not render its first cell', () => {
+      const deps = createScenario(merges, { fixedColumnsEnd: 2, notRendered: ['1,2'] });
+
+      expect(coordsAt(deps, 130, 500).col).toBe(3);
+    });
+
+    it('should not measure the frozen start band against a row that does not render its first cell', () => {
+      const deps = createScenario([{ row: 0, col: 0, colspan: 2 }], { fixedColumnsStart: 2, notRendered: ['1,0'] });
+
+      expect(coordsAt(deps, 60, 500).col).toBe(1);
+    });
+  });
+
   describe('a vertical merge inside the frozen bottom rows (rows 8-9)', () => {
     it.each([
       [170, 8], [190, 9],
@@ -207,15 +229,15 @@ describe('getCellCoordsFromMousePosition over merged cells', () => {
   });
 
   describe('a walk that starts on a slave of a merge crossing every row or column', () => {
-    it('should not skip past the span left from the first visible column', () => {
-      // Every row merges columns 0-1, and the first visible column is 1: the span left of it is one column.
+    it('should count the merge once when the first visible column is a slave', () => {
+      // Every row merges columns 0-1, and the first visible column is 1: the walk starts on a slave of every block.
       const merges = Array.from({ length: TOTAL_ROWS }, (unused, row) => ({ row, col: 0, colspan: 2 }));
 
       expect(coordsAt(createScenario(merges, { firstColumn: 1 }), 100, 500).col).toBe(2);
     });
 
-    it('should not skip past the span left from the first visible row', () => {
-      // Every column merges rows 0-1, and the first visible row is 1: the span left of it is one row.
+    it('should count the merge once when the first visible row is a slave', () => {
+      // Every column merges rows 0-1, and the first visible row is 1: the walk starts on a slave of every block.
       const merges = Array.from({ length: TOTAL_COLUMNS }, (unused, col) => ({ row: 0, col, rowspan: 2 }));
 
       expect(coordsAt(createScenario(merges, { firstRow: 1 }), 500, 50).row).toBe(2);

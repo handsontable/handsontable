@@ -24,6 +24,8 @@ test.describe('the pointer lookup of a held drag', () => {
     await grid.countLookups();
 
     await grid.moveTo({ row: 6, col: 3 });
+    // The handler ran for the inside move: the selection follows the pointer to the cell under it.
+    await expect.poll(() => grid.selected()).toEqual([9, 1, 6, 3]);
     expect(await grid.lookups()).toBe(0);
 
     await grid.moveOutRight(5);

@@ -78,6 +78,15 @@ describe('findRowAtY', () => {
   it('should skip the rows that render no cell', () => {
     expect(findRowAtY(createMeasurer([], { hiddenRows: [0, 1] }), 0, 0, 9, 5)).toBe(2);
   });
+
+  it('should measure a merge once when the walk starts on a slave', () => {
+    // The anchor (row 1, five rows, 100px) is above the walk, which starts on its slave at row 3. Only the anchor
+    // reports the span, so the slaves are skipped because they resolve to the element just measured.
+    const measurer = createMeasurer([{ row: 1, col: 0, rowspan: 5 }]);
+
+    expect(findRowAtY(measurer, 0, 3, 9, 50)).toBe(3);
+    expect(findRowAtY(measurer, 0, 3, 9, 105)).toBe(6);
+  });
 });
 
 describe('findColumnAtX', () => {
@@ -90,6 +99,14 @@ describe('findColumnAtX', () => {
 
     expect(findColumnAtX(measurer, 0, 0, 9, 100)).toBe(1);
     expect(findColumnAtX(measurer, 0, 0, 9, 170)).toBe(4);
+  });
+
+  it('should measure a merge once when the walk starts on a slave', () => {
+    // The anchor (column 1, five columns, 200px) is left of the walk, which starts on its slave at column 3.
+    const measurer = createMeasurer([{ row: 0, col: 1, colspan: 5 }]);
+
+    expect(findColumnAtX(measurer, 0, 3, 9, 100)).toBe(3);
+    expect(findColumnAtX(measurer, 0, 3, 9, 205)).toBe(6);
   });
 });
 
@@ -116,6 +133,15 @@ describe('findRowReferenceColumn', () => {
       .toBe(2);
   });
 
+  it('should skip a column that does not render the cell at the first scanned row', () => {
+    const measurer = createMeasurer();
+    const rendered = measurer.getCell;
+
+    measurer.getCell = (row, col) => (row === 0 && col === 0 ? null : rendered(row, col));
+
+    expect(findRowReferenceColumn(measurer, 0, 3, 0, 9)).toBe(1);
+  });
+
   it('should fall back to the first column when every column is merged', () => {
     const merges = [0, 1].map(col => ({ row: 2, col, rowspan: 3 }));
 
@@ -138,6 +164,15 @@ describe('findColumnReferenceRow', () => {
 
   it('should keep a row crossed by a vertical merge only', () => {
     expect(findColumnReferenceRow(createMeasurer([{ row: 0, col: 2, rowspan: 3 }]), 0, 3, 0, 9)).toBe(0);
+  });
+
+  it('should skip a row that does not render the cell at the first scanned column', () => {
+    const measurer = createMeasurer();
+    const rendered = measurer.getCell;
+
+    measurer.getCell = (row, col) => (row === 0 && col === 0 ? null : rendered(row, col));
+
+    expect(findColumnReferenceRow(measurer, 0, 3, 0, 9)).toBe(1);
   });
 
   it('should skip a row that renders no cell', () => {

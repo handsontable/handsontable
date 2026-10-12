@@ -146,6 +146,13 @@ export function findRowReferenceColumn(
   endRow: number,
 ): number {
   for (let column = startColumn; column <= endColumn; column++) {
+    // The caller measures from the cell at the first row of the range, so a column that does not render it
+    // (a hidden column, or the part of a merge that an overlay does not draw) cannot be the reference.
+    if (measurer.getCell(startRow, column) === null) {
+      // eslint-disable-next-line no-continue
+      continue;
+    }
+
     let spansMultipleRows = false;
     let hasRenderableCell = false;
     let previousCell: HTMLElement | null = null;
@@ -211,6 +218,13 @@ export function findColumnReferenceRow(
   endColumn: number,
 ): number {
   for (let row = startRow; row <= endRow; row++) {
+    // The caller measures from the cell at the first column of the range, so a row that does not render it
+    // (a hidden row, or the part of a merge that an overlay does not draw) cannot be the reference.
+    if (measurer.getCell(row, startColumn) === null) {
+      // eslint-disable-next-line no-continue
+      continue;
+    }
+
     let spansMultipleColumns = false;
     let hasRenderableCell = false;
     let previousCell: HTMLElement | null = null;
