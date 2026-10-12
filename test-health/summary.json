@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-12T10:41:31.594Z",
+  "generatedAt": "2026-10-12T10:52:16.009Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -543,7 +543,7 @@
       "file": "e2e/max-length.spec.ts",
       "line": 348,
       "title": "maxLength › list editors that share the text editor input › caps typing in a dropdown cell and marks a long option picked from it as invalid",
-      "count7": 1,
+      "count7": 0,
       "count30": 4,
       "countAll": 4,
       "runs30": 4,
