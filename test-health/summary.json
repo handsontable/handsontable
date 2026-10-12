@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-12T06:42:05.049Z",
+  "generatedAt": "2026-10-12T07:40:43.400Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 378,
     "needsTicket": 20,
     "quarantined": 0,
-    "entries": 1958
+    "entries": 1959
   },
   "rows": [
     {
@@ -20,7 +20,7 @@
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
-      "count7": 2,
+      "count7": 1,
       "count30": 28,
       "countAll": 28,
       "runs30": 16,
@@ -287,7 +287,7 @@
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
-      "count7": 1,
+      "count7": 0,
       "count30": 11,
       "countAll": 11,
       "runs30": 9,
@@ -394,6 +394,40 @@
       "needsTicket": true
     },
     {
+      "key": "playwright|e2e/selection-viewport-scroll.spec.ts|viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
+      "tier": "playwright",
+      "file": "e2e/selection-viewport-scroll.spec.ts",
+      "line": 72,
+      "title": "viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
+      "count7": 5,
+      "count30": 5,
+      "countAll": 5,
+      "runs30": 3,
+      "flakyRuns30": 3,
+      "branches30": 3,
+      "nightlyRuns30": 0,
+      "openBranches30": 3,
+      "legs": [
+        "e2e-horizon",
+        "e2e-horizon-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-12T07:40:05Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38216315746",
+        "branch": "develop",
+        "leg": "e2e-horizon",
+        "status": "flaky",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
       "key": "jasmine|handsontable/src/editors/textEditor/__tests__/textEditor.spec.js|TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
       "tier": "jasmine",
       "file": "handsontable/src/editors/textEditor/__tests__/textEditor.spec.js",
@@ -425,39 +459,6 @@
         "leg": "UMD.min (theme: horizon)",
         "status": "failed",
         "error": "Error: Timeout - Async function did not complete within 15000ms (set by jasmine.DEFAULT_TIMEOUT_INTERVAL)",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "playwright|e2e/selection-viewport-scroll.spec.ts|viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
-      "tier": "playwright",
-      "file": "e2e/selection-viewport-scroll.spec.ts",
-      "line": 72,
-      "title": "viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
-      "count7": 4,
-      "count30": 4,
-      "countAll": 4,
-      "runs30": 2,
-      "flakyRuns30": 2,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "e2e-horizon-min"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-09T13:50:59Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37933022010/attempts/2",
-        "branch": "feature/DEV-3276_Hidden-column-neighbor-resize-overshoot",
-        "leg": "e2e-horizon-min",
-        "status": "flaky",
-        "error": "Error: expect(received).toBe(expected) // Object.is equality",
         "source": "ci"
       },
       "needsTicket": true
@@ -502,7 +503,7 @@
       "file": "e2e/max-length.spec.ts",
       "line": 348,
       "title": "maxLength › list editors that share the text editor input › caps typing in a dropdown cell and marks a long option picked from it as invalid",
-      "count7": 3,
+      "count7": 2,
       "count30": 4,
       "countAll": 4,
       "runs30": 4,
