@@ -205,3 +205,37 @@ export function normalizeFormula(
 
   return formula;
 }
+
+/**
+ * HyperFormula's error types (`DetailedCellError#type`) that have an OOXML error code. The rest have
+ * none: `CYCLE` (Excel reports a circular reference as a warning and shows `0`), `ERROR` (a formula
+ * HyperFormula could not parse) and `LIC`. `SPILL` is left out too: `#SPILL!` is not one of the
+ * seven codes ECMA-376 lists, and Apache POI's `FormulaError` refuses it in a `t="e"` cell. Those
+ * results keep being cached as the text the grid shows.
+ */
+const HF_ERROR_TYPE_TO_OOXML_CODE = new Map<string, string>([
+  ['DIV_BY_ZERO', '#DIV/0!'],
+  ['NA', '#N/A'],
+  ['NAME', '#NAME?'],
+  ['NUM', '#NUM!'],
+  ['REF', '#REF!'],
+  ['VALUE', '#VALUE!'],
+]);
+
+/**
+ * Returns the OOXML error code of a HyperFormula cell value that is an error (a
+ * `DetailedCellError`, recognized by shape because HyperFormula is an optional dependency), or
+ * `null` for any other value and for an error type with no OOXML code.
+ *
+ * The code comes from the error's `type`, never from its `value`: `value` is translated by the
+ * engine's language (`#DZIEL/0!` under `plPL`), and a formula may answer the text `#N/A`.
+ */
+export function toOoxmlErrorCode(cellValue: unknown): string | null {
+  if (typeof cellValue !== 'object' || cellValue === null) {
+    return null;
+  }
+
+  const { type } = cellValue as { type?: unknown };
+
+  return typeof type === 'string' ? HF_ERROR_TYPE_TO_OOXML_CODE.get(type) ?? null : null;
+}

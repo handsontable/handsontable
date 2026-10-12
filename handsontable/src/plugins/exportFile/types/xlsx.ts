@@ -60,7 +60,7 @@ import type { HotInstance } from '../../../core/types';
 const FALLBACK_SHEET_NAME = 'Sheet';
 
 /**
- * The base name of the very hidden helper sheet carrying the dropdown source lists.
+ * The base name of the hidden helper sheet carrying the dropdown source lists.
  */
 const VALIDATION_SHEET_NAME = '_HotValidation';
 
@@ -111,10 +111,11 @@ function truncateSheetName(name: string, maxLength: number): string {
  * branch.
  */
 function toPrimitiveResult(value: unknown): CellValue {
-  // A non-finite number is not a legal `<v>` content. HyperFormula reports its own errors as
-  // objects (which fall through to `null` below), but a ColumnSummary destination takes its cached
+  // A non-finite number is not a legal `<v>` content. A ColumnSummary destination takes its cached
   // result straight from the displayed value, so a `sum` over a source holding `Infinity` reaches
   // this as `Infinity`, and a `custom` function can answer `NaN`. Both are cached as text instead.
+  // A HyperFormula error reaches this as its display STRING (`#DIV/0!`), not as an object; the
+  // formula branch of `#resolveCellValue` flags it from the engine's own value before this runs.
   if (typeof value === 'number') {
     return Number.isFinite(value) ? value : stringify(value);
   }
@@ -211,6 +212,7 @@ interface SheetContext {
   excludedHiddenCols: Set<number> | null;
   summaryMap: Map<string, ColumnSummaryDescriptor>;
   sourceData: unknown[][] | null;
+  formulaErrorCodes: (string | null)[][] | null;
   hasRowHeaders: boolean;
   headerFill: HeaderFill | null;
   headerBorder: HeaderBorder | null;
@@ -437,6 +439,7 @@ class Xlsx extends BaseType {
     });
 
     const sourceData = exportFormulas ? dataProvider.getSourceData() : null;
+    const formulaErrorCodes = exportFormulas ? dataProvider.getFormulaErrorCodes() : null;
     const formulasSeparator = exportFormulas ? dataProvider.getFormulasSeparator() : ',';
     const hasColumnHeaders = columnHeaders.length > 0;
     const hasRowHeaders = rowHeaders.length > 0;
@@ -507,6 +510,7 @@ class Xlsx extends BaseType {
       excludedHiddenCols,
       summaryMap,
       sourceData,
+      formulaErrorCodes,
       hasRowHeaders,
       headerFill,
       headerBorder,
@@ -621,7 +625,10 @@ class Xlsx extends BaseType {
       const meta = context.cellsMeta[rowIndex][colIndex];
       const summary = context.summaryMap.get(`${rowIndex}:${colIndex}`);
       const sourceValue = context.sourceData?.[rowIndex][colIndex];
-      const { value, formula, numFmt } = this.#resolveCellValue(cellValue, meta, sourceValue, summary, context);
+      const errorCode = context.formulaErrorCodes?.[rowIndex][colIndex] ?? null;
+      const { value, formula, numFmt } = this.#resolveCellValue(
+        cellValue, meta, sourceValue, errorCode, summary, context
+      );
 
       cell.value = value;
       cell.formula = formula;
@@ -695,6 +702,8 @@ class Xlsx extends BaseType {
    * @param {*} cellValue Pre-calculated display value from `getData()`.
    * @param {object} meta Cell meta object.
    * @param {*} sourceValue Raw source value from `getSourceDataAtCell()` (may be a formula string).
+   * @param {string|null} errorCode The OOXML error code of the Formulas engine's value for the cell
+   *   (`DataProvider#getFormulaErrorCodes`), or `null` when it is not an error.
    * @param {object|undefined} summary ColumnSummary descriptor, or `undefined` for non-summary cells.
    * @param {object} context Sheet-level context passed through from `#populateWorksheet`.
    * @returns {{ value: *, formula: object|null, numFmt: string|null }}
@@ -703,6 +712,7 @@ class Xlsx extends BaseType {
     cellValue: unknown,
     meta: CellMeta,
     sourceValue: unknown,
+    errorCode: string | null,
     summary: ColumnSummaryDescriptor | undefined,
     context: SheetContext
   ): { value: CellValue; formula: CellFormula | null; numFmt: string | null } {
@@ -721,15 +731,18 @@ class Xlsx extends BaseType {
     }
 
     if (exportFormulas && isFormulaValue(sourceValue)) {
+      const text = normalizeFormula(
+        sourceValue, formulasSeparator, dataRowOffset - 1, dataColOffset - 1,
+        excludedHiddenRows ?? undefined, excludedHiddenCols ?? undefined
+      );
+
       return {
         value: null,
-        formula: {
-          text: normalizeFormula(
-            sourceValue, formulasSeparator, dataRowOffset - 1, dataColOffset - 1,
-            excludedHiddenRows ?? undefined, excludedHiddenCols ?? undefined
-          ),
-          result: toPrimitiveResult(cellValue),
-        },
+        // An error result is cached as its OOXML code, which the engine's language does not
+        // translate, and flagged so both writers type it `t="e"`.
+        formula: errorCode === null
+          ? { text, result: toPrimitiveResult(cellValue) }
+          : { text, result: errorCode, resultIsError: true },
         numFmt: resolveMetaNumFmt(meta),
       };
     }

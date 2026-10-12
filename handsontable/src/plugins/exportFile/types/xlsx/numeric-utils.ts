@@ -113,9 +113,11 @@ export function intlNumFormatToExcelNumFmt(
     // (`#,##0.00\u20AC` showed 1235 in Numbers for 1234.5).
     // The import reads the quoted form back (`captureCurrency` in `utils/xlsxEngine/numFmtCode.ts`).
     // A symbol several currencies share (`kr` for four kronor, the yen sign for the yen and the
-    // yuan) is written as Excel's locale token with the currency's home LCID (`[$kr-414]`): Excel
-    // shows the symbol, and the import reads the LCID back to the right currency
-    // (`captureCurrency`).
+    // yuan, and a bare `$` for a dollar currency other than the US dollar) is written as Excel's
+    // locale token with the currency's home LCID (`[$kr-414]`, `[$$-C09]` for AUD): Excel shows the
+    // symbol, and the import reads the LCID back to the right currency (`captureCurrency`). A bare
+    // `$` reads back as the US dollar, so writing it for AUD changed the column's currency. A dollar
+    // currency `sharedSymbolLcid` has no LCID for still writes the bare `$`.
     const lcid = sharedSymbolLcid(rawSymbol, currency);
     let symbol = rawSymbol === '$' ? rawSymbol : `"${rawSymbol.replaceAll('"', '')}"`;
 

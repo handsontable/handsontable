@@ -276,6 +276,16 @@ Other rules:
   inferred `text`, and a column rendering `840.10` came back as `840.1`. The formula also carries
   `result: toPrimitiveResult(cellValue)`, the way the ColumnSummary branch already did, so Excel,
   LibreOffice and non-formula readers see the computed value.
+- **A formula whose result is an error caches the OOXML CODE, flagged, never the displayed text.**
+  `getData()` gives the Formulas plugin's display string, which cannot tell the error `#N/A` from
+  the text `="#N/A"` answers, and which the engine's `language` translates (`#DZIEL/0!` under
+  `plPL`). `DataProvider#getFormulaErrorCodes()` therefore reads the engine's own value per cell and
+  `toOoxmlErrorCode()` (`types/xlsx/formula-utils.ts`) maps the `DetailedCellError#type`, recognized
+  by shape, to a code; the formula branch of `#resolveCellValue` then writes
+  `{ result: code, resultIsError: true }`. `CYCLE`, `ERROR`, `LIC` and `SPILL` have no code (POI
+  refuses `#SPILL!` in a `t="e"` cell) and keep the display text, typed `str`. The three
+  DataProvider mocks of the `xlsx*.unit.js` suites carry the method; a new mock used with
+  `exportFormulas` needs it too. Pinned by `xlsxFormulaErrorResult.unit.js`.
 - `headerStyle: null` exports headers with no styling; `headerStyle.border: null` suppresses only the border.
 - **The frozen pane counts EXPORTED indexes, not the raw `fixedColumnsStart`/`fixedRowsTop`.**
   `DataProvider#getFrozenColumns()`/`getFrozenRows()` count the visual indexes of the frozen band
@@ -310,6 +320,14 @@ Other rules:
   (en-US JPY must not get 409, or yen and yuan read the same): `[$kr-414]` NOK, `[$kr-41D]` SEK,
   `[$kr.-406]` DKK, `[$kr.-40F]` ISK, `[$¥-411]` JPY, `[$¥-804]` CNY. The reader maps the LCID per
   symbol (`SHARED_SYMBOL_LCID_TO_CODE`), so an LCID never reassigns another symbol (`[$$-414]` stays USD).
+  **The bare `$` is a shared symbol too** (review round 7): a dollar currency other than USD that
+  `Intl` renders as `$` (en-AU AUD, en-CA/fr-CA CAD, en-NZ NZD, es-MX MXN, and the other entries of
+  `SHARED_SYMBOL_CURRENCY_LCID`) is written `[$$-C09]`, `[$$-1009]`, … — Excel's own tokens — because a
+  bare `$` reads back as USD. USD stays bare; a dollar currency the table has no LCID for still writes
+  the bare `$` and re-imports as USD. This changed the string 18.1 wrote for those currencies.
+  **DKK keeps Excel's `[$kr.-406]`, period included**, although macOS Quick Look renders that token as
+  `PLN` (`[$kr-406]` renders correctly there): Quick Look is the outlier, not Excel. Do not "fix" it
+  without checking Numbers and Excel; the reader maps both spellings.
 - **`minimumIntegerDigits: n` is written as n zeros** in the integer part (`00000`, `000.00`, `#,#00`),
   and the import sets it from a zero-padded code, so a ZIP-code column keeps its zeros both ways.
 - **The exported sheet direction follows the RENDERED direction** (`hot.isRtl()`), not the raw

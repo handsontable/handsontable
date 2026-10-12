@@ -1,6 +1,7 @@
 import type { HotInstance } from '../../core/types';
 import { extractText } from '../../utils/textExtractor';
 import { normalizeExportOptions, expandNestedHeaderLayers } from './utils';
+import { toOoxmlErrorCode } from './types/xlsx/formula-utils';
 import type { SummaryEndpoint } from '../columnSummary/columnSummary';
 
 interface MergeCellDescriptor {
@@ -213,6 +214,33 @@ class DataProvider {
    */
   getSourceData() {
     return this._extractDataMatrix((row, col) => this.hot.getSourceDataAtCell(row, col));
+  }
+
+  /**
+   * Gets, for every cell of the export range, the OOXML error code of the value the Formulas
+   * plugin's engine holds for it (`#DIV/0!` for `=1/0`), or `null` when the value is not an error
+   * with such a code. Every entry is `null` when the Formulas plugin is absent or disabled.
+   *
+   * The answer comes from the engine's own cell value, not from the displayed text, which cannot
+   * tell the error `#N/A` from the text a formula such as `="#N/A"` answers, and which the
+   * engine's language translates.
+   *
+   * @returns {Array[]}
+   */
+  getFormulaErrorCodes(): (string | null)[][] {
+    const formulasPlugin = this.hot.getPlugin('formulas');
+    const engine = formulasPlugin?.isEnabled() ? formulasPlugin.engine : null;
+    const { sheetId, rowAxisSyncer, columnAxisSyncer } = formulasPlugin ?? {};
+
+    if (!engine || sheetId === null || sheetId === undefined || !rowAxisSyncer || !columnAxisSyncer) {
+      return this._extractDataMatrix(() => null);
+    }
+
+    return this._extractDataMatrix((row, col) => toOoxmlErrorCode(engine.getCellValue({
+      sheet: sheetId,
+      row: rowAxisSyncer.getHfIndexFromVisualIndex(row),
+      col: columnAxisSyncer.getHfIndexFromVisualIndex(col),
+    })));
   }
 
   /**

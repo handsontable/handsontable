@@ -115,6 +115,23 @@ describe('intlNumFormatToExcelNumFmt', () => {
       expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'JPY' }, 'ja-JP')).toBe('"\uFFE5"#,##0.00');
     });
 
+    it('should write a dollar currency other than the US dollar as a locale token with its home LCID', () => {
+      // A bare `$` reads back as the US dollar, so an AUD, CAD, NZD or MXN column changed currency on
+      // its first round trip. Excel's own tokens for them carry the currency's home LCID.
+      const options = { style: 'currency', minimumFractionDigits: 2 };
+
+      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'AUD' }, 'en-AU')).toBe('[$$-C09]#,##0.00');
+      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'CAD' }, 'en-CA')).toBe('[$$-1009]#,##0.00');
+      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'CAD' }, 'fr-CA')).toBe('#,##0.00[$$-1009]');
+      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'NZD' }, 'en-NZ')).toBe('[$$-1409]#,##0.00');
+      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'MXN' }, 'es-MX')).toBe('[$$-80A]#,##0.00');
+      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'ARS' }, 'es-AR')).toBe('[$$-2C0A]#,##0.00');
+      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'SGD' }, 'en-SG')).toBe('[$$-4809]#,##0.00');
+      // The US dollar keeps Excel's bare form, and a dollar composite keeps its quotes.
+      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'USD' }, 'en-US')).toBe('$#,##0.00');
+      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'AUD' }, 'en-US')).toBe('"A$"#,##0.00');
+    });
+
     it('should ignore style: currency when no currency code is provided', () => {
       expect(intlNumFormatToExcelNumFmt({ style: 'currency' })).toBe('#,##0');
     });
