@@ -27,7 +27,10 @@
     const htInsets = Object.assign(Object.create(null), { none: '', start: '600px' });
     // `transform` gives the grid's container `transform: translateZ(0)`, which makes it the containing
     // block of the `fixed` list: a box that scrolls with the page instead of staying on the viewport.
-    const htWraps = Object.assign(Object.create(null), { none: '', transform: 'translateZ(0)' });
+    // `translate` also moves the grid 200 px toward the inline end, which an `offsetLeft` chain does not see.
+    const htWraps = Object.assign(Object.create(null), {
+      none: '', transform: 'translateZ(0)', translate: 'translateX(200px)',
+    });
 
     window.htTheme = htThemes[htParams.get('theme') ?? 'main'];
     if (!window.htTheme) {
@@ -92,6 +95,8 @@
     `?inset=start` starts the grid 600 px from the page's inline-start edge, so the root is narrower
     than the viewport. `?wrap=transform` makes the grid's container the containing block of the `fixed`
     list, a box that scrolls with the page, so the viewport and that box part ways once the page scrolls.
+    `?wrap=translate` does the same and also moves the container 200 px toward the inline end (`translateX`),
+    which the `offsetLeft` chain does not report, so a list measured from it overflows the viewport.
 
     `sized`: the grid is 1000 x 700, narrower than the 1280 px viewport, and scrolls its own holder.
     The flip then measures the grid's own workspace, on purpose (the comment above that branch says

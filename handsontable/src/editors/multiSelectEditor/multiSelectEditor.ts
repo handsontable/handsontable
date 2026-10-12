@@ -26,6 +26,7 @@ import {
 } from './controllers/positioning';
 import type { CellInlineBox } from './controllers/positioning';
 import { getWindowScrollInlineMetrics } from '../utils/windowScrollInlineMetrics';
+import { getVerticalRoom } from '../utils/visibleVerticalRange';
 
 export const EDITOR_TYPE = 'multiselect';
 
@@ -572,11 +573,17 @@ export class MultiSelectEditor extends BaseEditor {
     // browser chrome and the software keyboard, which is up precisely because a text editor has
     // focus.
     const cellRect = this.getEditedCell()!.getBoundingClientRect();
-    const block = getFixedContainingBlockRect(this.#editorContainer!);
+    // Only the part of that box the viewport shows counts: a transformed ancestor scrolls with the
+    // page, so its bottom can lie below the viewport's.
+    const { spaceAbove, spaceBelow } = getVerticalRoom(
+      cellRect,
+      getFixedContainingBlockRect(this.#editorContainer!),
+      this.hot.rootDocument.documentElement.clientHeight
+    );
 
     return {
-      spaceAbove: Math.max(cellRect.top - block.top, 0),
-      spaceBelow: Math.max((block.top + block.height) - cellRect.bottom, 0),
+      spaceAbove,
+      spaceBelow,
       cellHeight: cellRect.height,
     };
   }
