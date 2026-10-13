@@ -1,5 +1,10 @@
 import { test, expect } from '../fixtures/test';
-import { HandsontableEditorListPositionPage, type Layout, type Variant } from '../fixtures/pages/HandsontableEditorListPositionPage';
+import {
+  HandsontableEditorListPositionPage,
+  type EditorType,
+  type Layout,
+  type Variant,
+} from '../fixtures/pages/HandsontableEditorListPositionPage';
 
 /**
  * Where the `handsontable`, `dropdown`, `autocomplete`, and `multiselect` editors' lists open, relative to
@@ -22,10 +27,8 @@ import { HandsontableEditorListPositionPage, type Layout, type Variant } from '.
  *
  * The `multiselect` editor places its list with its own code (`MultiSelectEditor#refreshDimensions`,
  * `handsontable/src/editors/multiSelectEditor/multiSelectEditor.ts`) and the same horizontal rule. Its
- * list is 177–202 px wide, narrower than the `handsontable` one, so it has points of its own. Only the
- * top row is used: below the cell its list starts flush with the cell's bottom, but flipped above, the
- * offset `DropdownController` computes overlaps the cell by 4–10 px depending on the theme. That is a
- * known vertical defect, tracked on its own, and not what these tests are about.
+ * list is 177–202 px wide, narrower than the `handsontable` one, so it has points of its own. Flipped
+ * above, its bottom edge is 1 px above the cell, like the other lists'.
  *
  * The two layouts reach different branches of the horizontal flip. On a page the window scrolls, the
  * room is measured from the viewport, through `view.isHorizontallyScrollableByWindow()`. It is measured
@@ -56,6 +59,12 @@ import { HandsontableEditorListPositionPage, type Layout, type Variant } from '.
  * The `multiselect` list is 320–475 px tall and fits below the
  * top row by 154 px or more (`horizon`, on a page the window scrolls). Its flipping points leave 101 px
  * of room, 76 px short of its narrowest width (177 px), and its other points leave 500 px or more.
+ * The bottom points leave 74–104 px below the cell (`horizon` the least, `classic` the most) and 590 px or
+ * more above it. That misses the multiselect's 320 px or taller list below by 216 px or more and clears it
+ * above by 115 px or more, and it misses the `handsontable` list (190 px or taller) below by 86 px or more
+ * and clears its 273 px maximum above by 317 px or more. The partway points are the bottom points with the
+ * page scrolled 700 px back up from its end in a transformed container, so the room is the viewport's and
+ * those margins are the same.
  */
 
 /**
@@ -110,20 +119,27 @@ const NARROW_LIST_POINTS: Record<'ltr' | 'rtl', Point[]> = {
   ],
 };
 
-// The multiselect takes the top row only (see the docblock above).
-const MULTISELECT_POINTS: Record<'ltr' | 'rtl', Point[]> = {
-  ltr: NARROW_LIST_POINTS.ltr.filter(({ name }) => name.startsWith('top')),
-  rtl: NARROW_LIST_POINTS.rtl.filter(({ name }) => name.startsWith('top')),
-};
+// The multiselect list is as narrow as the untrimmed autocomplete's, so it takes the same points.
+const MULTISELECT_POINTS = NARROW_LIST_POINTS;
 
 /**
  * Opens the editor from every point and asserts the placement each one forces.
  *
  * @param {HandsontableEditorListPositionPage} grid The page object.
  * @param {Point[]} points The points and what each forces.
+ * @param {'end' | 'partway'} [scroll] Where the window is scrolled to first: its end, or partway back up
+ * from it (window layout only).
  */
-async function expectEveryPoint(grid: HandsontableEditorListPositionPage, points: Point[]): Promise<void> {
-  await grid.scrollToEnd();
+async function expectEveryPoint(
+  grid: HandsontableEditorListPositionPage,
+  points: Point[],
+  scroll: 'end' | 'partway' = 'end'
+): Promise<void> {
+  if (scroll === 'partway') {
+    await grid.scrollPartway();
+  } else {
+    await grid.scrollToEnd();
+  }
 
   for (const point of points) {
     const coords = await grid.openEditorAt(point.x, point.y);
@@ -163,6 +179,12 @@ const CASES: { title: string; variant: Omit<Variant, 'type'> }[] = [
   {
     title: `${LAYOUT_NAMES.window}, in a transformed container (RTL)`,
     variant: { dir: 'rtl', layout: 'window', wrap: 'transform' },
+  },
+  // LTR only: an RTL page cannot be scrolled toward its inline-start side, where a translate toward the
+  // inline end would put the overflow.
+  {
+    title: `${LAYOUT_NAMES.window}, in a translated container (LTR)`,
+    variant: { dir: 'ltr', layout: 'window', wrap: 'translate' },
   },
   { title: `${LAYOUT_NAMES.sized} (LTR)`, variant: { dir: 'ltr', layout: 'sized' } },
   { title: `${LAYOUT_NAMES.sized} (RTL)`, variant: { dir: 'rtl', layout: 'sized' } },
@@ -257,6 +279,34 @@ test.describe('editor list position while the page scrolls', () => {
   }
 });
 
+// At the end of the page, the bottom of a transformed container is the viewport's bottom. Partway up, that
+// bottom is below the viewport, so room measured from the container opens a list below its cell into space
+// the user cannot see: the vertical side is decided against the viewport.
+const BOTTOM_POINTS = (points: Point[]) => points.filter(({ name }) => name.startsWith('bottom'));
+const PARTWAY_POINTS: Record<EditorType, Record<'ltr' | 'rtl', Point[]>> = {
+  handsontable: { ltr: BOTTOM_POINTS(POINTS), rtl: BOTTOM_POINTS(POINTS) },
+  dropdown: { ltr: BOTTOM_POINTS(DROPDOWN_POINTS), rtl: BOTTOM_POINTS(DROPDOWN_POINTS) },
+  autocomplete: { ltr: BOTTOM_POINTS(NARROW_LIST_POINTS.ltr), rtl: BOTTOM_POINTS(NARROW_LIST_POINTS.rtl) },
+  multiselect: { ltr: BOTTOM_POINTS(MULTISELECT_POINTS.ltr), rtl: BOTTOM_POINTS(MULTISELECT_POINTS.rtl) },
+};
+
+test.describe('editor list position in a transformed container, with the page scrolled partway', () => {
+  for (const type of ['handsontable', 'dropdown', 'autocomplete', 'multiselect'] as const) {
+    for (const dir of ['ltr', 'rtl'] as const) {
+      test(`the ${type} editor's list opens above a cell near the viewport's bottom (${dir.toUpperCase()})`, async({
+        page, theme, bundle,
+      }) => {
+        const grid = new HandsontableEditorListPositionPage(page, theme, bundle, {
+          dir, layout: 'window', type, wrap: 'transform',
+        });
+
+        await grid.goto();
+        await expectEveryPoint(grid, PARTWAY_POINTS[type][dir], 'partway');
+      });
+    }
+  }
+});
+
 // A left border on `<html>` shifts `documentElement.clientLeft` in Chromium (not in Firefox) without
 // moving the box a `fixed` list is laid out in, so no list may move with it.
 test.describe('editor list position with a left border on the html element', () => {
@@ -273,4 +323,28 @@ test.describe('editor list position with a left border on the html element', () 
       });
     }
   }
+});
+
+// A list taller than the visible part of the box it is laid out in is pinned to that part's top, never to
+// the box's own top, which can lie above the viewport. In a sized grid inside a transformed container, in a
+// viewport shorter than the page, scrolling the window moves the cell past the viewport's top edge with the
+// list open: the page-scroll follow writes the top again, and the clamp keeps the list's first options on
+// screen.
+test.describe('editor list position when the cell scrolls out of the viewport', () => {
+  test('keeps the handsontable editor list pinned to the viewport top edge', async({ page, theme, bundle }) => {
+    const grid = new HandsontableEditorListPositionPage(page, theme, bundle, {
+      dir: 'ltr', layout: 'sized', type: 'handsontable', wrap: 'transform',
+    });
+
+    await page.setViewportSize({ width: 1280, height: 400 });
+    await grid.goto();
+
+    const coords = await grid.openEditorAt(120, 60);
+
+    await page.evaluate(() => window.scrollBy(0, 200));
+    await expect.poll(async() => (await grid.geometry(coords)).cell.bottom, { message: 'the cell leaves the viewport' })
+      .toBeLessThan(0);
+    await expect.poll(async() => (await grid.geometry(coords)).list.top, { message: 'the list stays on screen' })
+      .toBeCloseTo(0, 0);
+  });
 });

@@ -49,10 +49,9 @@
     `visual-tests/tests/multi-frameworks/` photographed on every js variant and copied into the
     three wrapper baselines: nine columns over 100 rows (text, text, a short `en-US` date, a
     checkbox, a number, two read-only rendered columns, text, text), 450 px high, with the same
-    plugins and options. What it leaves out is demo code, not grid behavior: the checkbox the demo
-    draws into every row header and the hook that toggles it, the row class that follows it, and the
-    progress-bar and star renderers (their columns keep `editor: false` and `readOnly`). The data is
-    synthetic in the demo's shape, and dates are ISO strings, as the native date editor needs.
+    plugins and options. What it leaves out is demo code, not grid behavior: the progress-bar and star
+    renderers (their columns keep `editor: false` and `readOnly`). The data is synthetic in the demo's
+    shape, and dates are ISO strings, as the native date editor needs.
     `tests/lib/__tests__/shared-demo-fixture-drift.test.mjs` compares these options with the demo's
     and names each of those differences, so a change to the demo fails it until this file follows.
 

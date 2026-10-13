@@ -32,6 +32,10 @@ export interface ScrollbarDragGridOptions {
    * `element`: the grid's holder scrolls. `window`: the grid is unsized and the page scrolls.
    */
   mode?: 'element' | 'window';
+  /**
+   * `ltr`: keep the document LTR under an RTL grid. Only meaningful in window mode.
+   */
+  pageDir?: 'auto' | 'ltr';
 }
 
 /**
@@ -63,8 +67,8 @@ export class ScrollbarDragEmptyGridPage {
    * @param {ScrollbarDragGridOptions} options The fixture variant.
    */
   async goto(options: ScrollbarDragGridOptions = {}): Promise<void> {
-    const { dir = 'ltr', rowHeaders = 'off', shape = 'no-rows', mode = 'element' } = options;
-    const params = new URLSearchParams({ theme: this.theme, bundle: this.bundle, dir, rowHeaders, shape, mode });
+    const { dir = 'ltr', rowHeaders = 'off', shape = 'no-rows', mode = 'element', pageDir = 'auto' } = options;
+    const params = new URLSearchParams({ theme: this.theme, bundle: this.bundle, dir, rowHeaders, shape, mode, pageDir });
 
     this.mode = mode;
 
@@ -122,7 +126,9 @@ export class ScrollbarDragEmptyGridPage {
         throw new Error('No master holder');
       }
 
-      const isRtl = getComputedStyle(holder).direction === 'rtl';
+      // The page's direction signs `scrollX`; the holder's signs `scrollLeft`.
+      const signSource = mode === 'window' ? root.ownerDocument.documentElement : holder;
+      const isRtl = getComputedStyle(signSource).direction === 'rtl';
       const inline = isRtl ? -value : value;
 
       if (mode === 'window') {
