@@ -55,6 +55,24 @@ test.describe('the native picker of the picker editors', () => {
       expect(await grid.openInput.evaluate(input => input.matches(':open'))).toBe(false);
     });
 
+    test(`${name}: F2 does not show the picker`, async({ page }) => {
+      await grid.selectCell(0, col);
+      await page.keyboard.press('F2');
+      await expect.poll(() => grid.isEditorOpened()).toBe(true);
+      await expect(grid.openInput).toBeFocused();
+
+      expect(await grid.openInput.evaluate(input => input.matches(':open'))).toBe(false);
+    });
+
+    test(`${name}: typing does not show the picker`, async({ page }) => {
+      await grid.selectCell(0, col);
+      await page.keyboard.press('1');
+      await expect.poll(() => grid.isEditorOpened()).toBe(true);
+      await expect(grid.openInput).toBeFocused();
+
+      expect(await grid.openInput.evaluate(input => input.matches(':open'))).toBe(false);
+    });
+
     test(`${name}: Alt+ArrowDown shows the picker`, async({ page }) => {
       await grid.openEditorWithEnter(0, col);
       await expect(grid.openInput).toBeFocused();

@@ -75,6 +75,7 @@ export class TimeEditor extends TextEditor {
 
   /**
    * Opens the editor and shows the native picker, unless a key opened the editor.
+   * A keyboard open leaves the picker closed so Tab and Escape keep reaching the grid.
    *
    * @param {Event} [event] The event that opened the editor.
    */
