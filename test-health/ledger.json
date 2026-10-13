@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-13T11:15:02.458Z",
+  "updatedAt": "2026-10-13T12:00:40.816Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-horizon-min",
+      "file": "e2e/selection-viewport-scroll.spec.ts",
+      "line": 72,
+      "title": "viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: expect(received).toBe(expected) // Object.is equality",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "38387855635",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38387855635",
+      "workflow": "Tests",
+      "branch": "feature/DEV-3287_Notification-anchor-to-grid",
+      "headSha": "ee8daabdf05dc0e2d8c3f329653779ea24930e04",
+      "event": "pull_request",
+      "seenAt": "2026-10-13T11:59:47Z"
+    },
     {
       "tier": "jasmine",
       "leg": "UMD.min (theme: horizon)",
