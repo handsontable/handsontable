@@ -21,8 +21,9 @@ jobs:
           # Full history so the coverage-floor step can diff against the PR base.
           fetch-depth: 0
       - uses: ./.github/actions/setup-workspace
-      # Coverage is PR-only: it feeds only the changed-line floor below, and Babel
-      # instrumentation of all of src slows the jsdom-heavy suites down noticeably.
+      # Coverage is PR-only: it feeds only the changed-line floor below. Skipping it
+      # on push runs saves the instrumentation work, which is small next to jsdom's
+      # style resolution (the speedup lives in test/jsdomComputedStyleSpeed.js).
       - name: Test
         if: ${{ !inputs.is-pr }}
         run: |
