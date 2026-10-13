@@ -14,10 +14,10 @@ import { NotificationStatesPage, type Box, type Corner } from '../fixtures/pages
  * matches position"); nothing asserted where that stack is drawn. The captures that stay under
  * `visual-tests/tests/js-only/notification/` are of how each variant looks.
  *
- * The root-relative placement is parked for the end corners, and for a bottom corner over the pager: the
- * notification layer spans the root wrapper, which is as wide as the container and as tall as the grid
- * plus its bottom slot, so a toast in an end corner of a 400 px grid lands at the container's far edge,
- * about 850 px from the grid, and a bottom-corner toast covers the pager.
+ * The root-relative placement follows the grid, not the wider root wrapper: an end-corner toast of a 400 px
+ * grid sits in the grid's corner and not at the container's far edge, and a bottom-corner toast sits above
+ * the pager and below a top slot's bottom edge, not over them. A grid that follows its content keeps its
+ * bottom toast inside the container.
  */
 
 const CORNER_INSET_PX = 20;
@@ -153,18 +153,63 @@ test.describe('notification placement', () => {
     await expect.poll(() => notificationPage.selected()).toEqual([[2, 1, 2, 1]]);
   });
 
-  test('a bottom-start toast in a grid with a pager sits in the grid\'s corner, above the pager', async({
+  for (const dir of ['ltr', 'rtl'] as const) {
+    test(`a bottom-start toast in a ${dir.toUpperCase()} grid with a pager sits in the grid's corner, above the pager`, async({
+      page, theme, bundle,
+    }) => {
+      const notificationPage = new NotificationStatesPage(page, theme, bundle);
+
+      await notificationPage.goto('bottom-start', dir, { pager: true });
+
+      const { toast, root, pager } = await notificationPage.geometry('warning');
+
+      expect(pager).not.toBeNull();
+      expect(toast.bottom).toBeLessThanOrEqual(pager!.top);
+      expectInCorner(toast, root, 'bottom-start', dir, 'grid root');
+    });
+
+    test(`a top-start toast in a ${dir.toUpperCase()} grid under a top slot sits in the grid's corner`, async({
+      page, theme, bundle,
+    }) => {
+      const notificationPage = new NotificationStatesPage(page, theme, bundle);
+
+      await notificationPage.goto('top-start', dir);
+      await page.evaluate(() => {
+        const slot = document.createElement('div');
+
+        slot.style.height = '60px';
+        (window as unknown as { hot: { getLayoutManager(): { register(k: string, e: HTMLElement, o: object): void } } })
+          .hot.getLayoutManager().register('dev-top-slot', slot, { side: 'top' });
+      });
+
+      await expect.poll(async() => {
+        const { toast, root } = await notificationPage.geometry('info');
+
+        return Math.round(toast.top - root.top);
+      }).toBe(CORNER_INSET_PX);
+    });
+  }
+
+  test('a bottom-end toast of a grid that follows its content stays inside the container', async({
     page, theme, bundle,
   }) => {
     const notificationPage = new NotificationStatesPage(page, theme, bundle);
 
-    await notificationPage.goto('bottom-start', 'ltr', { pager: true });
+    await notificationPage.goto('bottom-end', 'ltr');
+    await page.evaluate(() => {
+      const hot = (window as unknown as { hot: { rootContainer: HTMLElement; updateSettings(s: object): void } }).hot;
 
-    const { toast, root, pager } = await notificationPage.geometry('warning');
+      hot.rootContainer.style.height = '300px';
+      hot.updateSettings({ height: 'auto', data: Array.from({ length: 100 }, (_, row) => [row, row, row, row]) });
+    });
 
-    expect(pager).not.toBeNull();
-    expect(toast.bottom).toBeLessThanOrEqual(pager!.top);
-    expectInCorner(toast, root, 'bottom-start', 'ltr', 'grid root');
+    await expect.poll(async() => {
+      const { toast, root } = await notificationPage.geometry('error');
+      const container = await page.evaluate(() => (window as unknown as { hot: { rootContainer: HTMLElement } })
+        .hot.rootContainer.getBoundingClientRect().bottom);
+
+      return { insideContainer: toast.bottom <= container, tall: root.bottom - root.top > 300 };
+    }).toEqual({ insideContainer: true, tall: true });
   });
 
   test('an end-corner toast follows the grid when its width changes', async({ page, theme, bundle }) => {

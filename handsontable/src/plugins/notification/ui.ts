@@ -156,7 +156,8 @@ export class NotificationUI {
       left: `${left}px`,
       top: `${top}px`,
       width: `${gridRoot.offsetWidth}px`,
-      height: `${gridRoot.offsetHeight}px`,
+      // A grid that follows its content is taller than the wrapper, which stays at the container's height.
+      height: `${Math.max(0, Math.min(gridRoot.offsetHeight, (container as HTMLElement).offsetHeight - top))}px`,
     };
 
     if (

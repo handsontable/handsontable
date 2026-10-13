@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed notification toasts anchoring to the root wrapper instead of the grid, so end-corner toasts sit at the grid's edge and bottom-corner toasts no longer cover the pagination bar. A toast stack's maximum width and height now follow the grid, so a small grid shows smaller toasts.",
+  "title": "Fixed notification toasts appearing at the container's far edge instead of the grid's in the end corners, and bottom-corner toasts covering the pagination bar. A toast stack's maximum width and height now follow the grid, so a small grid shows smaller toasts, and inline styles now override a custom `top`, `left`, `width` or `height` set on `.ht-notification`.",
   "type": "fixed",
   "issueOrPR": 13825,
   "breaking": false,
