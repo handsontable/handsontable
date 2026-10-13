@@ -197,8 +197,11 @@ describe('RowSelection with NestedRows', () => {
       const { hot, plugin, destroy } = createGrid();
 
       hot.selectCell(5, 0, 6, 0);
-      hot.getShortcutManager().getContext('grid')!.getShortcuts([' '])[0]
-        .callback(new KeyboardEvent('keydown', { key: ' ' }));
+      // Through the shortcut manager's keyboard path, so the shortcuts' `runOnlyIf` guards decide.
+      hot.listen();
+      hot.rootDocument.documentElement.dispatchEvent(new KeyboardEvent('keydown', {
+        key: ' ', code: 'Space', keyCode: 32, which: 32, bubbles: true, cancelable: true,
+      }));
 
       expect(plugin.getSelectedRows()).toEqual([5, 6]);
 

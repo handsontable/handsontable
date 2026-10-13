@@ -58,6 +58,16 @@ export class RowIdSelection {
   }
 
   /**
+   * Forgets the row with the id, for a row that no longer exists (the server removed it). The row
+   * neither counts as selected nor as deselected any more, under either model.
+   *
+   * @param {*} rowId The row id.
+   */
+  forget(rowId: unknown) {
+    this.#toggledRowIds.delete(rowId);
+  }
+
+  /**
    * Selects every row, or clears the selection.
    *
    * @param {boolean} selected `true` to select every row, `false` to clear the selection.
@@ -101,7 +111,8 @@ export class RowIdSelection {
   }
 
   /**
-   * Exports the selection.
+   * Exports the selection. `toggledRowIds` lists the ids oldest first: a `Set` keeps the order they
+   * were toggled in.
    *
    * @returns {ServerRowSelection}
    */

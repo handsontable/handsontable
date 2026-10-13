@@ -144,6 +144,19 @@ export function computeHeaderCheckboxState(
     }
   }
 
+  return summarizeHeaderCheckbox(selected, total);
+}
+
+/**
+ * Builds the "select all" checkbox summary from the counts of selected and selectable rows in the
+ * scope. A caller that keeps the counts up to date itself uses it instead of
+ * {@link computeHeaderCheckboxState}, which counts them anew.
+ *
+ * @param {number} selected The number of selected rows in the scope.
+ * @param {number} total The number of selectable rows in the scope.
+ * @returns {HeaderCheckboxSummary}
+ */
+export function summarizeHeaderCheckbox(selected: number, total: number): HeaderCheckboxSummary {
   let state: HeaderCheckboxState = 'mixed';
 
   if (total === 0) {

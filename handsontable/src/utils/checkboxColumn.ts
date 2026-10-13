@@ -53,10 +53,41 @@ export function isCheckedValue(value: unknown, meta: CheckboxMeta): boolean {
 }
 
 /**
+ * Returns the cell meta of a checkbox column's cell in a physical row, with the dynamic extension
+ * applied (the `cells` function, `setCellMeta()` values, the `beforeGetCellMeta` and
+ * `afterGetCellMeta` hooks). It resolves the row by its physical index, so a row the Filters plugin
+ * filtered out (it has no visual index) still gets its own meta, not the column's: a read-only cell
+ * stays read-only while it is filtered out. Nothing is stored for a cell that has no meta of its own.
+ *
+ * For a row without a visual index the hooks get the physical row index in the `visualRow` slot, the
+ * way the Filters plugin stamps the cells it reads.
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @param {number} physicalRow Physical row index.
+ * @param {number} column Visual column index.
+ * @returns {object}
+ */
+export function getCheckboxCellMeta(hot: HotInstance, physicalRow: number, column: number): CheckboxMeta {
+  const visualRow = hot.toVisualRow(physicalRow);
+
+  if (visualRow !== null) {
+    return hot.getCellMetaTransient(visualRow, column) as CheckboxMeta;
+  }
+
+  const physicalColumn = hot.toPhysicalColumn(column) ?? column;
+
+  return hot._getMetaManager().getCellMetaTransient(physicalRow, physicalColumn, {
+    visualRow: physicalRow,
+    visualColumn: column,
+  }) as CheckboxMeta;
+}
+
+/**
  * Writes the checked or unchecked template into a checkbox column, for the given physical rows.
  * Rows with a visual index go through `setDataAtCell()` (validated, one `afterChange`); rows the
  * Filters plugin filtered out have no visual index and go through `setSourceDataAtCell()`. Cells that
- * are read-only, are not checkboxes, or already hold the value are skipped.
+ * are read-only, are not checkboxes, or already hold the value are skipped; each row's own cell meta
+ * decides that, filtered-out rows included (see {@link getCheckboxCellMeta}).
  *
  * Run it inside one operation (`runOperation()` or `batch()`) so it is one undo step.
  *
@@ -75,13 +106,12 @@ export function writeCheckboxColumn(
   source: string,
 ): number {
   const prop = hot.colToProp(column) ?? column;
-  const columnMeta = hot.getColumnMeta(column) as CheckboxMeta;
   const visibleChanges: Array<[number, number, unknown]> = [];
   const hiddenChanges: Array<[number, unknown]> = [];
 
   physicalRows.forEach((physicalRow) => {
     const visualRow = hot.toVisualRow(physicalRow);
-    const meta = (visualRow === null ? columnMeta : hot.getCellMetaTransient(visualRow, column)) as CheckboxMeta;
+    const meta = getCheckboxCellMeta(hot, physicalRow, column);
 
     if (meta.readOnly || !isCheckboxMeta(meta)) {
       return;

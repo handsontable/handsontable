@@ -36,7 +36,9 @@
     }
 
     // Keeps the row's layout when a row shows no checkbox through `checkboxes` or
-    // `hideDisabledCheckboxes`, so the column does not jump between rows.
+    // `hideDisabledCheckboxes`: in the first column location the plugin renders a hidden, disabled
+    // placeholder, so the values do not shift between rows. (The row header location renders none:
+    // its width is fixed.)
     .htRowSelectionCheckbox.htRowSelectionCheckboxHidden,
     .htRowSelectionCheckbox.htRowSelectionCheckboxHidden + .ht-icon {
       visibility: hidden;

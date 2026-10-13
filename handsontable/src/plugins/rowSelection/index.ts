@@ -7,7 +7,10 @@ export type {
   RowSelectionSettings,
   RowSelectionSource,
   RowSelectionClickMode,
+  RowSelectionBoundColumn,
+  RowSelectionGroupSelects,
 } from './rowSelection';
+export type { ServerRowSelection } from './rowIdSelection';
 export type {
   SelectAllScope,
   HeaderCheckboxState,

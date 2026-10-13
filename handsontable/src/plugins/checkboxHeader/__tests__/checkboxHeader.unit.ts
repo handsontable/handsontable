@@ -157,6 +157,196 @@ describe('CheckboxHeader', () => {
     destroy();
   });
 
+  it('should keep a read-only cell of a row the filters removed out of the "all" scope (`cells` option)', () => {
+    const { hot, plugin, done, destroy } = createGrid({
+      filters: true,
+      // Physical row 5 (unchecked, status 'odd') is read-only, and the filter below removes it.
+      cells(row: number, column: number) {
+        return row === 5 && column === 1 ? { readOnly: true } : {};
+      },
+    }, { headerCheckbox: { scope: 'all' } });
+    const filters = hot.getPlugin('filters');
+
+    filters.addCondition(2, 'eq', ['even']);
+    filters.filter();
+
+    expect(hot.toVisualRow(5)).toBe(null);
+    expect(plugin.getHeaderCheckboxState(1)).toEqual({ state: 'mixed', selected: 2, total: 5 });
+
+    plugin.setColumnChecked(1, true);
+
+    expect(done()).toEqual([true, true, true, true, true, false]);
+    expect(plugin.getHeaderCheckboxState(1).state).toBe('checked');
+
+    destroy();
+  });
+
+  it('should keep a read-only cell of a row the filters removed out of the "all" scope (`setCellMeta()`)', () => {
+    const { hot, plugin, done, destroy } = createGrid({ filters: true }, { headerCheckbox: { scope: 'all' } });
+    const filters = hot.getPlugin('filters');
+
+    hot.setCellMeta(5, 1, 'readOnly', true);
+    filters.addCondition(2, 'eq', ['even']);
+    filters.filter();
+
+    expect(hot.toVisualRow(5)).toBe(null);
+    expect(plugin.getHeaderCheckboxState(1)).toEqual({ state: 'mixed', selected: 2, total: 5 });
+
+    plugin.setColumnChecked(1, true);
+
+    expect(done()).toEqual([true, true, true, true, true, false]);
+
+    destroy();
+  });
+
+  it('should toggle the column on a tap on the header checkbox (a touch event has no `button`)', () => {
+    const { hot, done, destroy } = createGrid();
+    const input = hot.rootElement.querySelector('.htCheckboxHeaderInput')!;
+    // Walkontable hands the deferred `touchend` to `beforeOnCellMouseDown`; the event only needs a
+    // target, so it is dispatched under a type no grid listener handles.
+    const tap = new TouchEvent('checkbox-header-test-tap', { bubbles: true, cancelable: true });
+
+    input.dispatchEvent(tap);
+
+    expect((tap as unknown as MouseEvent).button).toBe(undefined);
+
+    hot.runHooks('beforeOnCellMouseDown', tap, hot._createCellCoords(-1, 1), input.closest('th'));
+
+    expect(done()).toEqual([true, true, true, true, true, true]);
+    expect(tap.defaultPrevented).toBe(true);
+
+    destroy();
+  });
+
+  it('should ignore a press with a button other than the main one', () => {
+    const { hot, done, destroy } = createGrid();
+    const input = hot.rootElement.querySelector('.htCheckboxHeaderInput')!;
+    const press = new MouseEvent('checkbox-header-test-press', { bubbles: true, button: 2 });
+
+    input.dispatchEvent(press);
+    hot.runHooks('beforeOnCellMouseDown', press, hot._createCellCoords(-1, 1), input.closest('th'));
+
+    expect(done()).toEqual([false, true, false, true, false, false]);
+
+    destroy();
+  });
+
+  it('should re-read only the edited rows after an edit, not the whole column', () => {
+    const readRows = new Set<number>();
+    const { hot, plugin, destroy } = createGrid({
+      data: Array.from({ length: 200 }, (_, index) => ({ name: `Task ${index}`, done: false, status: 'even' })),
+      cells(row: number, column: number) {
+        if (column === 1) {
+          readRows.add(row);
+        }
+
+        return {};
+      },
+    });
+
+    expect(plugin.getHeaderCheckboxState(1)).toEqual({ state: 'unchecked', selected: 0, total: 200 });
+    expect(readRows.size).toBe(200);
+
+    // The render is suspended so that only the header's own reads are counted, not the cell renders.
+    hot.suspendRender();
+
+    // An edit in another column re-reads that row only (its meta can follow the row's values).
+    readRows.clear();
+    hot.setDataAtCell(150, 0, 'Renamed');
+
+    expect(plugin.getHeaderCheckboxState(1)).toEqual({ state: 'unchecked', selected: 0, total: 200 });
+    expect([...readRows]).toEqual([150]);
+
+    // An edit in the column moves the counts without a rescan.
+    readRows.clear();
+    hot.setDataAtCell(120, 1, true);
+
+    expect(plugin.getHeaderCheckboxState(1)).toEqual({ state: 'mixed', selected: 1, total: 200 });
+    expect([...readRows]).toEqual([120]);
+
+    hot.resumeRender();
+    destroy();
+  });
+
+  it('should follow a `cells` function that makes a checkbox read-only by another column\'s value', () => {
+    const { hot, plugin, destroy } = createGrid({
+      cells(this: { instance: Handsontable }, row: number, column: number) {
+        const status = (this.instance.getSourceDataAtRow(row) as Task).status;
+
+        return column === 1 && status === 'locked' ? { readOnly: true } : {};
+      },
+    });
+
+    expect(plugin.getHeaderCheckboxState(1)).toEqual({ state: 'mixed', selected: 2, total: 6 });
+
+    hot.setDataAtCell(1, 2, 'locked');
+
+    expect(plugin.getHeaderCheckboxState(1)).toEqual({ state: 'mixed', selected: 1, total: 5 });
+
+    destroy();
+  });
+
+  it('should update the header state after `setCellMeta()` and `removeCellMeta()`', () => {
+    const { hot, plugin, destroy } = createGrid();
+
+    expect(plugin.getHeaderCheckboxState(1)).toEqual({ state: 'mixed', selected: 2, total: 6 });
+
+    hot.setCellMeta(1, 1, 'readOnly', true);
+
+    expect(plugin.getHeaderCheckboxState(1)).toEqual({ state: 'mixed', selected: 1, total: 5 });
+
+    hot.removeCellMeta(1, 1, 'readOnly');
+
+    expect(plugin.getHeaderCheckboxState(1)).toEqual({ state: 'mixed', selected: 2, total: 6 });
+
+    destroy();
+  });
+
+  it('should update the header after an undo and a redo of a cell meta change', () => {
+    const { hot, plugin, destroy } = createGrid({ undoRedo: true });
+    const input = () => hot.rootElement.querySelector<HTMLInputElement>('.htCheckboxHeaderInput')!;
+
+    hot.setDataAtCell([[0, 1, true], [2, 1, true], [4, 1, true], [5, 1, true]]);
+    hot.setCellMeta(1, 1, 'readOnly', true);
+    hot.setDataAtCell(1, 1, false, 'test');
+
+    expect(plugin.getHeaderCheckboxState(1)).toEqual({ state: 'checked', selected: 5, total: 5 });
+
+    hot.removeCellMeta(1, 1, 'readOnly');
+
+    expect(plugin.getHeaderCheckboxState(1)).toEqual({ state: 'mixed', selected: 5, total: 6 });
+
+    hot.getPlugin('undoRedo').undo();
+
+    expect(hot.getCellMeta(1, 1).readOnly).toBe(true);
+    expect(plugin.getHeaderCheckboxState(1)).toEqual({ state: 'checked', selected: 5, total: 5 });
+    expect(input().checked).toBe(true);
+
+    hot.getPlugin('undoRedo').redo();
+
+    expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
+    expect(plugin.getHeaderCheckboxState(1)).toEqual({ state: 'mixed', selected: 5, total: 6 });
+    expect(input().indeterminate).toBe(true);
+
+    destroy();
+  });
+
+  it('should not re-enter its own read when a meta hook calls `setCellMeta()`', () => {
+    const { hot, plugin, destroy } = createGrid({
+      afterGetCellMeta(this: Handsontable, row: number, column: number) {
+        if (column === 1) {
+          this.setCellMeta(row, column, 'checkedByHook', true);
+        }
+      },
+    });
+
+    hot.setDataAtCell(0, 1, true);
+
+    expect(plugin.getHeaderCheckboxState(1)).toEqual({ state: 'mixed', selected: 3, total: 6 });
+
+    destroy();
+  });
+
   it('should undo a "check all" in one step', () => {
     const { hot, plugin, done, destroy } = createGrid({ undoRedo: true });
 

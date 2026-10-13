@@ -19,7 +19,7 @@ vue:
 searchCategory: Guides
 category: Rows
 menuTag: new
-addedIn: "18.2.0"
+addedIn: "19.0.0"
 ---
 Let users select rows with checkboxes, and select or clear every row at once with a "select all" checkbox.
 
@@ -269,9 +269,9 @@ The column's values are then the selection:
 
 | Option | Possible settings | Default | Description |
 | --- | --- | --- | --- |
-| `mode` | `'multiRow'` \| `'singleRow'` | `'multiRow'` | `'singleRow'` keeps at most one row selected and hides the "select all" checkbox. |
-| `checkboxes` | `true` \| `false` \| a function | `true` | Shows the row checkboxes. A function `(rowData, physicalRow) => boolean` decides per row. |
-| `headerCheckbox` | `true` \| `false` | `true` | Shows the "select all" checkbox. |
+| `mode` | `'multiRow'` \| `'singleRow'` | `'multiRow'` | `'singleRow'` keeps at most one row selected and removes the "select all" checkbox. Switching to `'singleRow'` with [`updateSettings()`](@/api/core.md#updatesettings) keeps only the last toggled row selected. |
+| `checkboxes` | `true` \| `false` \| a function | `true` | Shows the row checkboxes. A function `(rowData, physicalRow) => boolean` decides per row. A row without a checkbox can't be toggled from its row header, but <kbd>**Space**</kbd> on its data cells still toggles it. |
+| `headerCheckbox` | `true` \| `false` | `true` | Shows the "select all" checkbox. With `false`, the corner works as a plain corner: a click on it selects every cell. |
 | `selectAll` | `'all'` \| `'filtered'` \| `'currentPage'` | `'all'` | The rows the "select all" checkbox acts on. See [Choose what "select all" selects](#choose-what-select-all-selects). |
 | `enableClickSelection` | `false` \| `true` \| `'enableSelection'` \| `'enableDeselection'` | `false` | Lets a click on a cell select its row. |
 | `isRowSelectable` | A function | - | `(rowData, physicalRow) => boolean`. A row that returns `false` can't be selected. |
@@ -367,8 +367,6 @@ rowSelection: {
 
 The `'singleRow'` mode and a [checkbox column of your data](#in-a-checkbox-column-of-your-data) use `'self'` in place of `'descendants'`, because a single row or a checkbox cell can't show a mixed state.
 
-If you know AG Grid's row grouping: `'self'` matches AG Grid's default, and `'descendants'` matches its `groupSelects: 'descendants'` setting.
-
 ## Read the selection
 
 Use the plugin's methods to read and change the selection:
@@ -390,7 +388,16 @@ rowSelection.selectAll();
 rowSelection.deselectAll();
 ```
 
-To react to changes, use the [`afterRowSelectionChange`](@/api/hooks.md#afterrowselectionchange) hook. To stop a change, return `false` from the [`beforeRowSelectionChange`](@/api/hooks.md#beforerowselectionchange) hook. Both hooks receive the physical indexes of the rows that change, and the source of the change (`'checkbox'`, `'headerCheckbox'`, `'click'`, `'keyboard'`, or `'api'`).
+To react to changes, use the [`afterRowSelectionChange`](@/api/hooks.md#afterrowselectionchange) hook. To stop a change, return `false` from the [`beforeRowSelectionChange`](@/api/hooks.md#beforerowselectionchange) hook. Both hooks receive the physical indexes of the rows that change, and the source of the change (`'checkbox'`, `'headerCheckbox'`, `'click'`, `'keyboard'`, `'api'`, or `'dataChange'`). The `'dataChange'` source means a write to a [checkbox column of your data](#in-a-checkbox-column-of-your-data) that didn't come from editing the cell, for example a paste, an autofill, or a `setDataAtCell()` call.
+
+## Act on the selected rows from the context menu
+
+With the [`ContextMenu`](@/api/contextMenu.md) plugin enabled, the default context menu gets two items while at least one row is selected:
+
+- **Remove selected rows (n)** removes the selected rows that the grid shows. `n` is the number of rows it removes: selected rows that the filters hide are kept, and the count leaves them out. The item is disabled when no shown row is selected, or when [`allowRemoveRow`](@/api/options.md#allowremoverow) is `false`.
+- **Clear row selection** deselects every row.
+
+Both items are hidden while no row is selected.
 
 ## Keyboard shortcuts
 
@@ -398,7 +405,7 @@ To react to changes, use the [`afterRowSelectionChange`](@/api/hooks.md#afterrow
 | --- | --- | --- |
 | <kbd>**Space**</kbd> | <kbd>**Space**</kbd> | On a data cell: toggle the cell's row. With a range of cells selected: select every row of the range, or deselect them when all are already selected. |
 | <kbd>**Space**</kbd> | <kbd>**Space**</kbd> | On a row checkbox: toggle the row. On the "select all" checkbox: toggle every row in scope. |
-| <kbd>**Shift**</kbd>+click | <kbd>**Shift**</kbd>+click | Select every row from the last toggled row to the clicked row. |
+| <kbd>**Shift**</kbd>+click | <kbd>**Shift**</kbd>+click | Select every row from the last toggled row to the clicked row. Rows hidden with the `HiddenRows` plugin or trimmed with the `TrimRows` plugin are skipped. With pagination, the rows on the pages between the two rows are selected too. |
 
 To reach the checkboxes with the arrow keys, enable the [`navigableHeaders`](@/api/options.md#navigableheaders) option, as the examples on this page do. Without it, use <kbd>**Space**</kbd> on a data cell.
 

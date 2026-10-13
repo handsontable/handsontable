@@ -3888,14 +3888,19 @@ export const REGISTERED_HOOKS = [
    * Fired by the {@link RowSelection} plugin before the row selection changes. Fired only if the
    * {@link Options#rowSelection} option is enabled. Returning `false` in the callback cancels the change.
    *
-   * The lists hold only the rows whose state really changes.
+   * The lists hold only the rows whose state really changes. With a server-backed grid (the
+   * {@link DataProvider} plugin), the lists hold only the loaded rows: a change that affects only rows
+   * on other pages (for example, "select all" while the loaded page is already selected) runs the hook
+   * with two empty lists. To read the full selection, call `getServerSelection()`.
    *
-   * @since 18.2.0
+   * @since 19.0.0
    * @event Hooks#beforeRowSelectionChange
    * @param {number[]} rowsToSelect Physical indexes of the rows about to be selected.
    * @param {number[]} rowsToDeselect Physical indexes of the rows about to be deselected.
    * @param {string} source What changed the selection: `'checkbox'`, `'headerCheckbox'`, `'click'`,
-   * `'keyboard'`, or `'api'`.
+   * `'keyboard'`, `'api'`, or `'dataChange'`. `'dataChange'` means a write to the bound checkbox column
+   * (see {@link Options#rowSelection}) that did not come from editing the cell – for example a paste,
+   * an autofill, or a `setDataAtCell()` call.
    * @returns {undefined|boolean} If the callback returns `false`, the selection does not change.
    */
   'beforeRowSelectionChange',
@@ -3904,12 +3909,18 @@ export const REGISTERED_HOOKS = [
    * Fired by the {@link RowSelection} plugin after the row selection changes. Fired only if the
    * {@link Options#rowSelection} option is enabled.
    *
-   * @since 18.2.0
+   * With a server-backed grid (the {@link DataProvider} plugin), the lists hold only the loaded rows: a
+   * change that affects only rows on other pages runs the hook with two empty lists. To read the full
+   * selection, call `getServerSelection()`.
+   *
+   * @since 19.0.0
    * @event Hooks#afterRowSelectionChange
    * @param {number[]} selectedRows Physical indexes of the rows that were selected.
    * @param {number[]} deselectedRows Physical indexes of the rows that were deselected.
    * @param {string} source What changed the selection: `'checkbox'`, `'headerCheckbox'`, `'click'`,
-   * `'keyboard'`, or `'api'`.
+   * `'keyboard'`, `'api'`, or `'dataChange'`. `'dataChange'` means a write to the bound checkbox column
+   * (see {@link Options#rowSelection}) that did not come from editing the cell – for example a paste,
+   * an autofill, or a `setDataAtCell()` call.
    */
   'afterRowSelectionChange',
 

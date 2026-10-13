@@ -3,32 +3,29 @@ import { registerAllModules } from 'handsontable/registry';
 
 registerAllModules();
 
-const flush = () => new Promise(resolve => queueMicrotask(() => resolve(undefined)));
-
-/**
- * Lets the fetch chains (request, response, load) run to their end.
- */
-async function settle() {
-  for (let i = 0; i < 20; i++) {
-    await flush();
-  }
-}
-
 interface ServerRow {
   id: number;
   status: string;
 }
 
 /**
- * Builds a grid backed by an in-memory "server" of 25 rows, 10 per page. Rows with an id divisible
- * by 5 are archived.
+ * Builds a grid backed by an in-memory "server" of `rowsCount` rows (25 by default), 10 per page.
+ * Rows with an id divisible by 5 are archived. `onRowsRemove` removes the rows from the server.
+ *
+ * The tests wait for real events, not for a number of microtask hops: `nextFetch()` resolves on the
+ * next `afterDataProviderFetch`, which DataProvider runs after it loaded the response into the grid.
  */
-async function createServerGrid(rowSelection: Record<string, unknown> | boolean = true) {
-  const serverRows: ServerRow[] = Array.from({ length: 25 }, (_, index) => ({
+async function createServerGrid(rowSelection: Record<string, unknown> | boolean = true, rowsCount = 25) {
+  let serverRows: ServerRow[] = Array.from({ length: rowsCount }, (_, index) => ({
     id: index + 1,
     status: (index + 1) % 5 === 0 ? 'archived' : 'active',
   }));
   const container = document.createElement('div');
+  let resolveFetch: (() => void) | null = null;
+  const nextFetch = () => new Promise<void>((resolve) => {
+    resolveFetch = resolve;
+  });
+  const firstFetch = nextFetch();
 
   document.body.appendChild(container);
 
@@ -46,12 +43,20 @@ async function createServerGrid(rowSelection: Record<string, unknown> | boolean 
       }),
       onRowsCreate: async() => {},
       onRowsUpdate: async() => {},
-      onRowsRemove: async() => {},
+      onRowsRemove: async(rowIds: unknown[]) => {
+        serverRows = serverRows.filter(row => !rowIds.includes(row.id));
+      },
+    },
+    afterDataProviderFetch() {
+      const resolve = resolveFetch;
+
+      resolveFetch = null;
+      resolve?.();
     },
     licenseKey: 'non-commercial-and-evaluation',
   });
 
-  await settle();
+  await firstFetch;
 
   const plugin = hot.getPlugin('rowSelection');
   const dataProvider = hot.getPlugin('dataProvider');
@@ -59,9 +64,10 @@ async function createServerGrid(rowSelection: Record<string, unknown> | boolean 
   return {
     hot,
     plugin,
+    nextFetch,
     async goToPage(page: number) {
+      // `fetchData()` settles once the response is loaded into the grid.
       await dataProvider.fetchData({ page });
-      await settle();
     },
     loadedIds: () => (plugin.getSelectedRowsData() as ServerRow[]).map(row => row.id),
     destroy() {
@@ -203,6 +209,114 @@ describe('RowSelection with DataProvider', () => {
 
     // Row id 5 and 10 are archived.
     expect(grid.loadedIds()).toEqual([1, 2, 3, 4, 6, 7, 8, 9]);
+
+    grid.destroy();
+  });
+
+  it('should forget the rows the server removed', async() => {
+    const grid = await createServerGrid();
+
+    grid.plugin.selectRows([0, 1, 2]);
+    await grid.goToPage(2);
+    grid.plugin.selectRows([0]);
+    await grid.goToPage(1);
+
+    const refetched = grid.nextFetch();
+
+    expect(grid.plugin.removeSelectedRows()).toBe(true);
+    await refetched;
+
+    // Row id 11 (page 2) stays selected; the removed ids 1, 2, and 3 are gone from every count.
+    expect(grid.plugin.getServerSelection()).toEqual({ selectAll: false, toggledRowIds: [11] });
+    expect(grid.plugin.getSelectedCount()).toBe(1);
+    expect(grid.plugin.getHeaderCheckboxState()).toEqual({ state: 'mixed', selected: 1, total: 22 });
+    // Page 1 now holds ids 4 to 13, so the selected id 11 is loaded and shown as selected.
+    expect(grid.loadedIds()).toEqual([11]);
+
+    grid.destroy();
+  });
+
+  it('should forget a removed row that was deselected after "select all"', async() => {
+    const grid = await createServerGrid();
+
+    grid.plugin.selectAll();
+    grid.plugin.deselectRows([0]);
+
+    const refetched = grid.nextFetch();
+
+    grid.hot.alter('remove_row', 0);
+    await refetched;
+
+    // Row id 1 is gone: nothing is excluded any more, and every remaining row is selected.
+    expect(grid.plugin.getServerSelection()).toEqual({ selectAll: true, toggledRowIds: [] });
+    expect(grid.plugin.getHeaderCheckboxState()).toEqual({ state: 'checked', selected: 24, total: 24 });
+
+    grid.destroy();
+  });
+
+  it('should start with no selection after the plugin is disabled and enabled again', async() => {
+    const grid = await createServerGrid();
+
+    grid.plugin.selectRows([0, 1]);
+    grid.hot.updateSettings({ rowSelection: false });
+    grid.hot.updateSettings({ rowSelection: true });
+
+    expect(grid.plugin.getServerSelection()).toEqual({ selectAll: false, toggledRowIds: [] });
+    expect(grid.plugin.getSelectedCount()).toBe(0);
+
+    grid.destroy();
+  });
+
+  it('should keep the selection by row id across a settings update', async() => {
+    const grid = await createServerGrid();
+
+    grid.plugin.selectRows([0, 1]);
+    grid.hot.updateSettings({ rowSelection: { selectAll: 'filtered' } });
+
+    expect(grid.plugin.getServerSelection()).toEqual({ selectAll: false, toggledRowIds: [1, 2] });
+    expect(grid.plugin.getSelectedRows()).toEqual([0, 1]);
+
+    grid.destroy();
+  });
+
+  it('should keep the row id toggled last when switching to "singleRow" with no selected row loaded', async() => {
+    const grid = await createServerGrid();
+
+    grid.plugin.selectRows([0]);
+    await grid.goToPage(2);
+    grid.plugin.selectRows([3]);
+    await grid.goToPage(3);
+    grid.hot.updateSettings({ rowSelection: { mode: 'singleRow' } });
+
+    expect(grid.plugin.getServerSelection()).toEqual({ selectAll: false, toggledRowIds: [14] });
+
+    grid.destroy();
+  });
+
+  it('should run no hook when "select all" changes no row because every row is loaded', async() => {
+    const afterChange = jest.fn();
+    const grid = await createServerGrid(true, 8);
+
+    grid.plugin.selectRows([0, 1, 2, 3, 4, 5, 6, 7]);
+    grid.hot.addHook('afterRowSelectionChange', afterChange);
+
+    expect(grid.plugin.selectAll()).toBe(false);
+    expect(afterChange).not.toHaveBeenCalled();
+    expect(grid.plugin.getServerSelection()).toEqual({ selectAll: true, toggledRowIds: [] });
+
+    grid.destroy();
+  });
+
+  it('should run the hooks with empty lists when "select all" changes only rows on other pages', async() => {
+    const afterChange = jest.fn();
+    const grid = await createServerGrid();
+
+    grid.plugin.selectRows([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    grid.hot.addHook('afterRowSelectionChange', afterChange);
+
+    expect(grid.plugin.selectAll()).toBe(true);
+    expect(afterChange).toHaveBeenCalledWith([], [], 'api');
+    expect(grid.plugin.getSelectedCount()).toBe(25);
 
     grid.destroy();
   });

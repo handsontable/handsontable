@@ -12,6 +12,7 @@ import {
   removeAttribute,
   setAttribute,
 } from '../../helpers/dom/element';
+import { isLeftClick, isTouchEvent } from '../../helpers/dom/event';
 import { A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
 import {
@@ -37,7 +38,13 @@ import {
   type SelectAllScope,
 } from '../../utils/rowScope';
 import { RowIdSelection, type ServerRowSelection } from './rowIdSelection';
-import { isCheckboxMeta, isCheckedValue, writeCheckboxColumn, type CheckboxMeta } from '../../utils/checkboxColumn';
+import {
+  getCheckboxCellMeta,
+  isCheckboxMeta,
+  isCheckedValue,
+  writeCheckboxColumn,
+  type CheckboxMeta,
+} from '../../utils/checkboxColumn';
 import { warn } from '../../helpers/console';
 import { syncIcon } from '../../themes/engine/icons';
 import type { PhysicalIndexToValueMap } from '../../translations';
@@ -243,12 +250,21 @@ function resolveGroupState(total: number, selected: number): number {
  * | `isRowSelectable` | No | Function | - | `(rowData, physicalRow) => boolean`. A row that returns `false` cannot be selected |
  * | `hideDisabledCheckboxes` | No | Boolean | `false` | Hides the checkboxes of the rows that cannot be selected, instead of disabling them |
  * | `checkboxLocation` | No | String \| Object | `'rowHeader'` | `'rowHeader'`, `'firstColumn'`, or `{ column }`: a checkbox column whose values are the selection |
+ * | `groupSelects` | No | String | `'descendants'` | How the rows of a [`NestedRows`](@/api/nestedRows.md) tree are selected: `'descendants'`, `'self'`, or `'topLevel'` |
  *
  * The "select all" checkbox always describes the rows a click on it acts on. When some of them are
  * selected, it shows the mixed state, and a click selects all of them. Rows hidden by the
  * [`HiddenRows`](@/api/hiddenRows.md) plugin and rows trimmed by the [`TrimRows`](@/api/trimRows.md)
- * plugin are never in its scope. With the [`NestedRows`](@/api/nestedRows.md) plugin, only the
- * top-level rows can be selected.
+ * plugin are never in its scope, nor in a Shift+click range or a range toggled with Space. With
+ * `headerCheckbox: false` or the `'singleRow'` mode, the corner shows no checkbox and a click on it
+ * selects nothing.
+ *
+ * With the [`NestedRows`](@/api/nestedRows.md) plugin, `groupSelects` sets how the rows of the tree
+ * are selected. With `'descendants'` (the default), selecting a parent row selects every row under
+ * it, and a parent shows a mixed state while only some of the rows under it are selected. With
+ * `'self'`, every row is selected on its own. With `'topLevel'`, only the top-level rows can be
+ * selected. The `'singleRow'` mode and a bound checkbox column (`checkboxLocation: { column }`) use
+ * `'self'` in place of `'descendants'`.
  *
  * @example
  *
@@ -419,6 +435,19 @@ export class RowSelection extends BasePlugin {
   #groupTree: GroupTree | null = null;
 
   /**
+   * The resolved bound column (`checkboxLocation: { column }`): `undefined` until resolved. Resolving
+   * it costs a `propToCol()` and a column meta read, and the render path asks for it for every painted
+   * cell, so it is kept until the settings, the data, or the columns change.
+   */
+  #boundColumnCache: number | null | undefined = undefined;
+
+  /**
+   * The rows a write of the plugin's own to the bound column really changed, collected from
+   * `afterChange` while the write runs, and the selection source to report them with.
+   */
+  #boundWrite: { source: RowSelectionSource; selected: number[]; deselected: number[]; open: boolean } | null = null;
+
+  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link RowSelection#enablePlugin} method is called.
    *
@@ -441,6 +470,8 @@ export class RowSelection extends BasePlugin {
       .createAndRegisterIndexMap(this.pluginName!, 'physicalIndexToValue', false);
     this.#selectedRowsMap.addLocalHook('change', this.#onMapChange);
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
+    this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#invalidateBoundColumn);
+    this.#boundColumnCache = undefined;
 
     this.addHook('afterGetRowHeaderRenderers', this.#onAfterGetRowHeaderRenderers);
     this.addHook('afterGetColHeader', this.#onAfterGetColHeader);
@@ -452,8 +483,11 @@ export class RowSelection extends BasePlugin {
     this.addHook('afterOnCellMouseDown', this.#onAfterOnCellMouseDown);
     this.addHook('beforeChange', this.#onBeforeChange);
     this.addHook('afterChange', this.#onAfterChange);
-    // An edit renders before `afterChange` runs; the header state must be dropped before that render.
-    this.addHook('beforeChangeRender', this.#invalidateHeaderSummary);
+    // An edit renders before `afterChange` runs; the header state must be dropped, and the bound
+    // column's rows marked, before that render.
+    this.addHook('beforeChangeRender', this.#onBeforeChangeRender);
+    this.addHook('afterUpdateSettings', this.#invalidateBoundColumn);
+    this.addHook('afterRowsMutation', this.#onAfterRowsMutation);
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('afterUpdateData', this.#onAfterLoadData);
     this.addHook('afterPageChange', this.#invalidateHeaderSummary);
@@ -461,6 +495,7 @@ export class RowSelection extends BasePlugin {
     this.addHook('afterLanguageChange', this.#onAfterLanguageChange);
     this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
 
+    this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', this.#onRootMouseDown);
     this.eventManager.addEventListener(this.hot.rootElement, 'click', this.#onRootClick);
     this.#registerShortcuts();
 
@@ -475,17 +510,28 @@ export class RowSelection extends BasePlugin {
    */
   updatePlugin() {
     // The selection survives a settings update: only the configuration changes. Disabling the
-    // plugin unregisters the map, so its values are carried over by hand.
+    // plugin unregisters the map and drops the selection by row id, so both are carried over by hand.
     const selectedValues = this.#selectedRowsMap ? this.#selectedRowsMap.getValues().slice() : null;
+    const rowIdSelection = this.#rowIdSelection;
+    const serverTotalRows = this.#serverTotalRows;
+    const anchorPhysicalRow = this.#anchorPhysicalRow;
 
     this.disablePlugin();
     this.enablePlugin();
+
+    this.#rowIdSelection = rowIdSelection;
+    this.#serverTotalRows = serverTotalRows;
+    this.#anchorPhysicalRow = anchorPhysicalRow;
 
     if (this.#isServerMode()) {
       this.#hydrateFromRowIds();
 
     } else if (selectedValues && selectedValues.length === this.hot.rowIndexMapper.getNumberOfIndexes()) {
       this.#writeSilently(() => this.#selectedRowsMap!.setValues(selectedValues));
+    }
+
+    if (this.#getSettings().mode === 'singleRow') {
+      this.#reduceToSingleRow();
     }
 
     super.updatePlugin();
@@ -499,6 +545,7 @@ export class RowSelection extends BasePlugin {
 
     this.hot.getShortcutManager().getContext('grid')?.removeShortcutsByGroup(SHORTCUTS_GROUP);
     this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
+    this.hot.columnIndexMapper.removeLocalHook('cacheUpdated', this.#invalidateBoundColumn);
     this.hot.rowIndexMapper.unregisterMap(this.pluginName!);
 
     this.#selectedRowsMap = null;
@@ -507,6 +554,12 @@ export class RowSelection extends BasePlugin {
     this.#anchorPhysicalRow = null;
     this.#headerSummaryCache = null;
     this.#groupTree = null;
+    this.#boundColumnCache = undefined;
+    this.#boundWrite = null;
+    // A disabled plugin has no selection: re-enabling it must not bring back a server selection the
+    // client grid no longer shows. `updatePlugin()` carries both over by hand.
+    this.#rowIdSelection = new RowIdSelection();
+    this.#serverTotalRows = 0;
   }
 
   /**
@@ -521,8 +574,9 @@ export class RowSelection extends BasePlugin {
 
   /**
    * Checks whether the row can be selected. A row cannot be selected when the `isRowSelectable`
-   * function returns `false` for it, or when it is a nested row of the
-   * [`NestedRows`](@/api/nestedRows.md) plugin.
+   * function returns `false` for it or for a parent above it, when it is a nested row and
+   * `groupSelects` is `'topLevel'`, when it is a parent with no selectable row under it
+   * (`groupSelects: 'descendants'`), or when its cell in a bound checkbox column is read-only.
    *
    * @param {number} row Visual row index.
    * @returns {boolean}
@@ -739,9 +793,23 @@ export class RowSelection extends BasePlugin {
    * @returns {boolean}
    */
   #canRemoveSelectedRows(): boolean {
-    return this.hot.getSettings().allowRemoveRow !== false &&
-      !(this.#isServerMode() && this.#rowIdSelection.export().selectAll) &&
-      this.getSelectedRows().length > 0;
+    return this.#countRemovableRows() > 0;
+  }
+
+  /**
+   * Counts the rows {@link RowSelection#removeSelectedRows} removes: the selected rows with a visual
+   * index, or none when the grid does not allow removing rows or the selection covers rows the client
+   * never loaded.
+   *
+   * @returns {number}
+   */
+  #countRemovableRows(): number {
+    if (this.hot.getSettings().allowRemoveRow === false ||
+      (this.#isServerMode() && this.#rowIdSelection.export().selectAll)) {
+      return 0;
+    }
+
+    return this.getSelectedRows().length;
   }
 
   /**
@@ -751,6 +819,26 @@ export class RowSelection extends BasePlugin {
    * @returns {number|null}
    */
   getBoundColumn(): number | null {
+    if (this.#boundColumnCache === undefined || !this.enabled) {
+      const boundColumn = this.#resolveBoundColumn();
+
+      if (!this.enabled) {
+        return boundColumn;
+      }
+
+      this.#boundColumnCache = boundColumn;
+    }
+
+    return this.#boundColumnCache;
+  }
+
+  /**
+   * Resolves the bound column (`checkboxLocation: { column }`). {@link RowSelection#getBoundColumn}
+   * keeps the result until the settings, the data, or the columns change.
+   *
+   * @returns {number|null}
+   */
+  #resolveBoundColumn(): number | null {
     const location = this.#getSettings().checkboxLocation;
 
     if (!isPlainObject(location)) {
@@ -911,7 +999,57 @@ export class RowSelection extends BasePlugin {
   }
 
   /**
-   * Toggles one row.
+   * Keeps at most one row selected after a switch to the `'singleRow'` mode. It keeps the anchor (the
+   * row the user last toggled or clicked) when that row is selected, and otherwise the last selected
+   * row in visual order (the row `selectRows()` keeps in that mode). With a server-backed grid and no
+   * selected row loaded, it keeps the row id toggled last, and clears a "select all", which names no
+   * single row. A bound checkbox column keeps its values: they are the user's data, and the next
+   * selection in the `'singleRow'` mode clears the other rows anyway.
+   */
+  #reduceToSingleRow() {
+    if (this.getBoundColumn() !== null || this.getSelectedCount() <= 1) {
+      return;
+    }
+
+    const { isSelected } = this.#createRowChecks();
+    const anchor = this.#anchorPhysicalRow;
+    const selectedVisualRows = this.getSelectedRows();
+    const lastVisualRow = selectedVisualRows[selectedVisualRows.length - 1];
+    let keep: number | null = null;
+
+    if (anchor !== null && this.hot.toVisualRow(anchor) !== null && isSelected(anchor)) {
+      keep = anchor;
+    } else if (lastVisualRow !== undefined) {
+      keep = this.hot.toPhysicalRow(lastVisualRow);
+    }
+
+    if (keep !== null) {
+      this.#selectOnly(keep, 'api');
+
+      return;
+    }
+
+    if (this.#isServerMode()) {
+      const { selectAll, toggledRowIds } = this.#rowIdSelection.export();
+      const next = new RowIdSelection();
+
+      if (!selectAll && toggledRowIds.length > 0) {
+        next.set(toggledRowIds[toggledRowIds.length - 1], true);
+      }
+
+      this.#replaceServerSelection(next, 'api');
+
+      return;
+    }
+
+    // Every selected row is filtered out, so none has a visual index: keep the last physical one.
+    const selectedPhysicalRows = this.getSelectedPhysicalRows();
+
+    this.#selectOnly(selectedPhysicalRows[selectedPhysicalRows.length - 1], 'api');
+  }
+
+  /**
+   * Toggles one row. The row becomes the anchor of a Shift+click range only when the change happens.
    *
    * @param {number} row Visual row index.
    * @param {RowSelectionSource} source The source of the change.
@@ -924,13 +1062,14 @@ export class RowSelection extends BasePlugin {
       return false;
     }
 
-    this.#anchorPhysicalRow = physicalRow;
+    const changed = this.#isPhysicalRowSelected(physicalRow) ?
+      this.#applyChange([], [physicalRow], source) : this.#select([physicalRow], source);
 
-    if (this.#isPhysicalRowSelected(physicalRow)) {
-      return this.#applyChange([], [physicalRow], source);
+    if (changed) {
+      this.#anchorPhysicalRow = physicalRow;
     }
 
-    return this.#select([physicalRow], source);
+    return changed;
   }
 
   /**
@@ -955,7 +1094,26 @@ export class RowSelection extends BasePlugin {
       rows.push(visualRow);
     }
 
-    return this.#applyChange(this.#toPhysicalRows(rows), [], source);
+    // The range is the visual rows between the anchor and the row, on every page they span: the user
+    // picked both ends, so the rows of a page in between are part of what they asked for. Rows the
+    // HiddenRows or TrimRows plugin excludes are out of every scope, and stay out of the range too.
+    return this.#applyChange(this.#toPhysicalRows(rows).filter(this.#createScopeFilter()), [], source);
+  }
+
+  /**
+   * Returns a check that tells whether a physical row can be in any scope: it is not hidden by the
+   * HiddenRows plugin and not trimmed by the TrimRows plugin. The maps are read by name, as
+   * `#getRowsInScope()` reads them: Pagination is a hiding map too, and a row on another page is not
+   * out of scope.
+   *
+   * @returns {Function}
+   */
+  #createScopeFilter(): (physicalRow: number) => boolean {
+    const trimRowsMap = this.#getFlagMap('trimRows');
+    const hiddenRowsMap = this.#getFlagMap('HiddenRows');
+
+    return physicalRow => trimRowsMap?.getValueAtIndex(physicalRow) !== true &&
+      hiddenRowsMap?.getValueAtIndex(physicalRow) !== true;
   }
 
   /**
@@ -965,7 +1123,8 @@ export class RowSelection extends BasePlugin {
    * @returns {boolean}
    */
   #toggleAll(source: RowSelectionSource): boolean {
-    if (this.#getSettings().mode === 'singleRow') {
+    if (this.#getSettings().mode === 'singleRow' ||
+      ((source === 'headerCheckbox' || source === 'keyboard') && !this.#hasHeaderCheckbox())) {
       return false;
     }
 
@@ -1018,18 +1177,7 @@ export class RowSelection extends BasePlugin {
     const boundColumn = this.getBoundColumn();
 
     if (boundColumn !== null) {
-      // The selection lives in the bound column, so it is written there: a data change, with one undo
-      // step for the whole change, like any edit.
-      this.runOperation('row_selection_change', () => {
-        writeCheckboxColumn(this.hot, boundColumn, rowsToSelect, true, BOUND_WRITE_SOURCE);
-        writeCheckboxColumn(this.hot, boundColumn, rowsToDeselect, false, BOUND_WRITE_SOURCE);
-      });
-      this.#headerSummaryCache = null;
-      this.#groupTree = null;
-      this.#notifyChange(rowsToSelect, rowsToDeselect, source);
-      this.#refreshView();
-
-      return true;
+      return this.#writeBoundColumn(boundColumn, rowsToSelect, rowsToDeselect, source);
     }
 
     this.#writeSilently(() => {
@@ -1057,6 +1205,60 @@ export class RowSelection extends BasePlugin {
 
     this.#notifyChange(rowsToSelect, rowsToDeselect, source);
     this.#refreshView();
+
+    return true;
+  }
+
+  /**
+   * Writes a selection change into the bound column: a data change, with one undo step for the whole
+   * change, like any edit. The write can be rejected on the way (a `beforeChange` listener that
+   * cancels or nulls it, a validator with `allowInvalid: false`), so `afterRowSelectionChange` reports
+   * only the rows whose value really changed: the rows the `afterChange` of the write lists, and the
+   * rows with no visual index (written through `setSourceDataAtCell()`, which fires no `afterChange`)
+   * whose value now reads differently. A write held by an asynchronous validator is reported when it
+   * lands (see `#onAfterChange`).
+   *
+   * @param {number} boundColumn Visual index of the bound column.
+   * @param {number[]} rowsToSelect Physical rows to select.
+   * @param {number[]} rowsToDeselect Physical rows to deselect.
+   * @param {RowSelectionSource} source The source of the change.
+   * @returns {boolean} `true` if the selection changed.
+   */
+  #writeBoundColumn(
+    boundColumn: number,
+    rowsToSelect: number[],
+    rowsToDeselect: number[],
+    source: RowSelectionSource,
+  ): boolean {
+    const write = { source, selected: [] as number[], deselected: [] as number[], open: true };
+
+    this.#boundWrite = write;
+
+    try {
+      this.runOperation('row_selection_change', () => {
+        writeCheckboxColumn(this.hot, boundColumn, rowsToSelect, true, BOUND_WRITE_SOURCE);
+        writeCheckboxColumn(this.hot, boundColumn, rowsToDeselect, false, BOUND_WRITE_SOURCE);
+      });
+    } finally {
+      write.open = false;
+    }
+
+    this.#headerSummaryCache = null;
+    this.#groupTree = null;
+
+    // The rows with no visual index skip `afterChange`: read their value back.
+    const { isSelected } = this.#createRowChecks();
+    const isUnlisted = (physicalRow: number) => this.hot.toVisualRow(physicalRow) === null;
+    const selected = write.selected.concat(rowsToSelect.filter(row => isUnlisted(row) && isSelected(row)));
+    const deselected = write.deselected.concat(rowsToDeselect.filter(row => isUnlisted(row) && !isSelected(row)));
+
+    this.#refreshView();
+
+    if (selected.length === 0 && deselected.length === 0) {
+      return false;
+    }
+
+    this.#notifyChange(selected, deselected, source);
 
     return true;
   }
@@ -1194,6 +1396,14 @@ export class RowSelection extends BasePlugin {
    * Replaces the selection by row id. The hooks receive the loaded rows whose state changes; the
    * rows on other pages have no index to report.
    *
+   * A change that leaves every loaded row as it was is still a change when rows on other pages
+   * change with it (a "select all" while the loaded page is already selected): the hooks run with two
+   * empty lists, so `beforeRowSelectionChange` can still veto it and `afterRowSelectionChange` still
+   * tells the application that `getSelectedCount()` and `getServerSelection()` moved. When every row
+   * matching the query is loaded, no other row exists, so such a change is a no-op: the new model is
+   * adopted without the hooks (it can still move the "select all" state, which counts rows that
+   * `isRowSelectable` rejects) and the method returns `false`.
+   *
    * @param {RowIdSelection} next The new selection.
    * @param {RowSelectionSource} source The source of the change.
    * @returns {boolean} `true` if the selection changed.
@@ -1224,6 +1434,15 @@ export class RowSelection extends BasePlugin {
         (isSelected ? rowsToSelect : rowsToDeselect).push(physicalRow);
       }
     });
+
+    if (rowsToSelect.length === 0 && rowsToDeselect.length === 0 &&
+      this.#serverTotalRows <= this.hot.rowIndexMapper.getNumberOfIndexes()) {
+      this.#rowIdSelection = next;
+      this.#invalidateHeaderSummary();
+      this.#refreshView();
+
+      return false;
+    }
 
     if (this.hot.runHooks('beforeRowSelectionChange', rowsToSelect, rowsToDeselect, source) === false) {
       return false;
@@ -1555,17 +1774,15 @@ export class RowSelection extends BasePlugin {
   }
 
   /**
-   * The cell meta of a row in the bound column (the column meta for a row the filters removed).
+   * The cell meta of a row in the bound column, resolved by the physical row, so a row the filters
+   * removed still gets its own meta (a `cells` callback or `setCellMeta()` read-only flag included).
    *
    * @param {number} physicalRow Physical row index.
    * @param {number} boundColumn Visual index of the bound column.
    * @returns {object}
    */
   #getBoundMeta(physicalRow: number, boundColumn: number): CheckboxMeta {
-    const visualRow = this.hot.toVisualRow(physicalRow);
-
-    return (visualRow === null ?
-      this.hot.getColumnMeta(boundColumn) : this.hot.getCellMetaTransient(visualRow, boundColumn)) as CheckboxMeta;
+    return getCheckboxCellMeta(this.hot, physicalRow, boundColumn);
   }
 
   /**
@@ -1704,28 +1921,57 @@ export class RowSelection extends BasePlugin {
   }
 
   /**
-   * The state the checkbox of a row shows.
+   * The state the checkbox of a row shows. A row that shows no checkbox (`checkboxes` returns
+   * `false` for it, or `hideDisabledCheckboxes` hides it) gets `hidden: true`: in the first column
+   * location a hidden placeholder keeps the cell values from shifting between rows. A hidden checkbox
+   * is also disabled, and a press on it toggles nothing.
    *
    * @param {number} visualRow Visual row index.
-   * @returns {object|null} `null` when the row shows no checkbox.
+   * @returns {object|null} `null` when the row does not exist.
    */
   #getRowCheckboxState(visualRow: number) {
     const physicalRow = this.hot.toPhysicalRow(visualRow);
 
-    if (physicalRow === null || !this.#hasRowCheckbox(physicalRow)) {
+    if (physicalRow === null) {
       return null;
     }
 
     const checks = this.#createRowChecks();
+    const hidden = !this.#hasRowCheckbox(physicalRow);
 
     return {
-      checked: checks.isSelected(physicalRow),
+      checked: !hidden && checks.isSelected(physicalRow),
       // a parent with only some of its rows selected (`groupSelects: 'descendants'`)
-      indeterminate: checks.isMixed(physicalRow),
-      disabled: !checks.isSelectable(physicalRow),
-      hidden: false,
+      indeterminate: !hidden && checks.isMixed(physicalRow),
+      disabled: hidden || !checks.isSelectable(physicalRow),
+      hidden,
       label: this.hot.getTranslatedPhrase(ROW_SELECTION_SELECT_ROW, { row: visualRow + 1 }) as string,
     };
+  }
+
+  /**
+   * Tells whether the row shows a checkbox the user can see (and so press).
+   *
+   * @param {number} visualRow Visual row index.
+   * @returns {boolean}
+   */
+  #hasVisibleRowCheckbox(visualRow: number): boolean {
+    const physicalRow = this.hot.toPhysicalRow(visualRow);
+
+    return physicalRow !== null && this.#hasRowCheckbox(physicalRow);
+  }
+
+  /**
+   * Tells whether the "select all" checkbox is shown: `headerCheckbox` is on, in the `'multiRow'`
+   * mode. Without it the corner (or the first column's header) is a plain header: no checkbox, no
+   * pointer cursor, and a press on it selects nothing.
+   *
+   * @returns {boolean}
+   */
+  #hasHeaderCheckbox(): boolean {
+    const { mode, headerCheckbox } = this.#getSettings();
+
+    return mode !== 'singleRow' && headerCheckbox;
   }
 
   /**
@@ -1735,13 +1981,12 @@ export class RowSelection extends BasePlugin {
    */
   #getHeaderCheckboxRenderState() {
     const { state, selected, total } = this.getHeaderCheckboxState();
-    const hidden = this.#getSettings().mode === 'singleRow' || !this.#getSettings().headerCheckbox;
 
     return {
       checked: state === 'checked',
       indeterminate: state === 'mixed',
       disabled: state === 'disabled',
-      hidden,
+      hidden: false,
       label: this.hot.getTranslatedPhrase(ROW_SELECTION_SELECT_ALL, { selected, total }) as string,
     };
   }
@@ -1773,7 +2018,7 @@ export class RowSelection extends BasePlugin {
       group: SHORTCUTS_GROUP,
     });
 
-    // As in AG Grid: Space on any data cell toggles its row, or every row of the selected ranges.
+    // Space on any data cell toggles its row, or every row of the selected ranges.
     // Shift+Space (select the row's cells) and Ctrl+Space (select the column) keep their meaning.
     this.hot.getShortcutManager().getContext('grid')?.addShortcut({
       keys: [['Space']],
@@ -1824,9 +2069,11 @@ export class RowSelection extends BasePlugin {
       }
     });
 
+    // A range drawn over hidden rows (HiddenRows) still lists them; they are out of every scope.
     const { isSelected, isSelectable } = this.#createRowChecks();
+    const isInScope = this.#createScopeFilter();
     const physicalRows = this.#toPhysicalRows(Array.from(visualRows).sort((a, b) => a - b))
-      .filter(isSelectable);
+      .filter(physicalRow => isInScope(physicalRow) && isSelectable(physicalRow));
 
     if (physicalRows.length === 0) {
       return;
@@ -1904,9 +2151,14 @@ export class RowSelection extends BasePlugin {
     }
 
     // In a bound column the cell is a checkbox cell: its own Space shortcut writes it, and the
-    // change reaches the selection through `beforeChange`/`afterChange`.
+    // change reaches the selection through `beforeChange`/`afterChange`. A row whose checkbox is
+    // not shown has nothing to press.
     if (highlight.row >= 0) {
-      return this.getBoundColumn() === null;
+      return this.getBoundColumn() === null && this.#hasVisibleRowCheckbox(highlight.row);
+    }
+
+    if (!this.#hasHeaderCheckbox()) {
+      return false;
     }
 
     const headerElement = this.hot.getCell(highlight.row, highlight.col, true);
@@ -1925,16 +2177,25 @@ export class RowSelection extends BasePlugin {
   #onBeforeOnCellMouseDown = (event: MouseEvent, coords: { row: number; col: number }, TD: HTMLElement) => {
     const target = eventTargetEl(event);
 
-    if (!target || event.button !== 0) {
+    // On a touch device Walkontable runs this with the deferred `touchstart` (`event.ts`, `onTouchEnd`),
+    // which has no `button`, so a tap counts as a left click.
+    if (!target || !(isLeftClick(event) || isTouchEvent(event))) {
       return;
     }
 
     // With the row header location the whole header cell is the hit area; with the first column
-    // location only the checkbox is, because the rest of the cell holds data.
+    // location only the checkbox is, because the rest of the cell holds data. The classes are only
+    // on a cell that shows a checkbox: a row with no checkbox, and a corner with no "select all"
+    // checkbox, are plain headers.
     const isOwnHeaderCell = hasClass(TD, ROW_CELL_CLASS) || hasClass(TD, HEADER_CELL_CLASS);
-    const isOwnCheckbox = hasClass(target, CHECKBOX_CLASS);
+    const isOwnCheckbox = hasClass(target, CHECKBOX_CLASS) && !hasClass(target, HIDDEN_CHECKBOX_CLASS);
 
     if (!isOwnCheckbox && !(isOwnHeaderCell && this.#getSettings().checkboxLocation === 'rowHeader')) {
+      return;
+    }
+
+    // The DOM can be one render behind the settings: ask the state, not only the classes.
+    if (coords.row < 0 ? !this.#hasHeaderCheckbox() : !this.#hasVisibleRowCheckbox(coords.row)) {
       return;
     }
 
@@ -1967,8 +2228,8 @@ export class RowSelection extends BasePlugin {
   #onAfterOnCellMouseDown = (event: MouseEvent, coords: { row: number; col: number }) => {
     const { enableClickSelection } = this.#getSettings();
 
-    if (enableClickSelection === false || event.button !== 0 || coords.row < 0 || coords.col < 0 ||
-      coords.col === this.getBoundColumn()) {
+    if (enableClickSelection === false || !(isLeftClick(event) || isTouchEvent(event)) ||
+      coords.row < 0 || coords.col < 0 || coords.col === this.getBoundColumn()) {
       return;
     }
 
@@ -1990,8 +2251,29 @@ export class RowSelection extends BasePlugin {
       this.#selectRangeTo(coords.row, 'click');
 
     } else if (canSelect) {
-      this.#anchorPhysicalRow = physicalRow;
       this.#selectOnly(physicalRow, 'click');
+
+      // The anchor moves only to a row the click left selected (a veto leaves it where it was).
+      if (this.#isPhysicalRowSelected(physicalRow)) {
+        this.#anchorPhysicalRow = physicalRow;
+      }
+    }
+  };
+
+  /**
+   * Keeps the browser focus off the checkbox on every press. On a touch device Walkontable drops the
+   * browser's own `mousedown` that follows a tap (it already ran the press from `touchend`), so the
+   * plugin's hook never sees it and its default action would focus the input. A focused input is
+   * then skipped by Walkontable's "press on the focused element" guard, and a second tap on the same
+   * checkbox would do nothing.
+   *
+   * @param {MouseEvent} event The `mousedown` event.
+   */
+  #onRootMouseDown = (event: MouseEvent) => {
+    const target = eventTargetEl(event);
+
+    if (target && hasClass(target, CHECKBOX_CLASS)) {
+      event.preventDefault();
     }
   };
 
@@ -2048,15 +2330,22 @@ export class RowSelection extends BasePlugin {
       TH.appendChild(container);
     }
 
-    addClass(TH, ROW_CELL_CLASS);
-
     const state = visualRow === null || visualRow < 0 ? null : this.#getRowCheckboxState(visualRow);
 
-    if (!state) {
+    // A row with no checkbox gets a plain header cell: no checkbox, no pointer cursor, and no hit
+    // area (the class is what `#onBeforeOnCellMouseDown` and the stylesheet key on). The cell's width
+    // is fixed by `modifyRowHeaderWidth`, so nothing shifts without a placeholder.
+    if (!state || state.hidden) {
       this.#removeCheckbox(container);
+
+      if (visualRow !== null && visualRow >= 0 && this.isRowSelected(visualRow)) {
+        addClass(TH, SELECTED_ROW_CLASS);
+      }
 
       return;
     }
+
+    addClass(TH, ROW_CELL_CLASS);
 
     if (state.checked) {
       addClass(TH, SELECTED_ROW_CLASS);
@@ -2080,7 +2369,9 @@ export class RowSelection extends BasePlugin {
       return;
     }
 
-    if (column !== checkboxColumn || !isBottomMostColumnHeader(TH)) {
+    // Without the "select all" checkbox the header stays a plain one: no class, so no pointer
+    // cursor and no hit area.
+    if (column !== checkboxColumn || !isBottomMostColumnHeader(TH) || !this.#hasHeaderCheckbox()) {
       this.#removeCheckbox(container);
 
       return;
@@ -2128,6 +2419,8 @@ export class RowSelection extends BasePlugin {
       return;
     }
 
+    // A row with no checkbox renders a hidden placeholder (`htRowSelectionCheckboxHidden`, which
+    // the stylesheet makes `visibility: hidden`), so the cell values stay aligned across rows.
     const state = this.#getRowCheckboxState(row);
     const contentRoot = getCellContentRoot(TD);
 
@@ -2214,7 +2507,12 @@ export class RowSelection extends BasePlugin {
    * @param {string} source The change source.
    */
   #onBeforeChange = (changes: Array<unknown[] | null>, source: string) => {
-    const flips = this.#collectBoundFlips(changes, source, true);
+    // The plugin's own writes already ran the hooks in `#applyChange()`.
+    if (source === BOUND_WRITE_SOURCE) {
+      return;
+    }
+
+    const flips = this.#collectBoundFlips(changes, true);
 
     if (!flips) {
       return;
@@ -2237,12 +2535,23 @@ export class RowSelection extends BasePlugin {
    * @param {string} source The change source.
    */
   #onAfterChange = (changes: Array<unknown[] | null> | null, source: string) => {
-    this.#headerSummaryCache = null;
-    this.#groupTree = null;
+    if (!changes) {
+      return;
+    }
 
-    const flips = changes ? this.#collectBoundFlips(changes, source, false) : null;
+    if (this.#affectsSelectionState(changes)) {
+      this.#invalidateHeaderSummary();
+    }
+
+    const flips = this.#collectBoundFlips(changes, false);
 
     if (!flips) {
+      return;
+    }
+
+    if (source === BOUND_WRITE_SOURCE) {
+      this.#collectOwnBoundWrite(flips);
+
       return;
     }
 
@@ -2251,19 +2560,90 @@ export class RowSelection extends BasePlugin {
   };
 
   /**
-   * Finds the changes to the bound column that flip a row's checked state. The plugin's own writes
-   * are skipped: `#applyChange()` already ran the hooks for them.
+   * Records the rows a write of the plugin's own to the bound column really changed. While the write
+   * runs, `#writeBoundColumn()` collects them and reports them once; a write an asynchronous validator
+   * held lands later, and is reported here with the source of the change that started it.
+   *
+   * @param {object} flips The rows that got selected and deselected.
+   * @param {number[]} flips.selected Physical rows that got selected.
+   * @param {number[]} flips.deselected Physical rows that got deselected.
+   */
+  #collectOwnBoundWrite(flips: { selected: number[]; deselected: number[] }) {
+    const write = this.#boundWrite;
+
+    if (write?.open) {
+      // `concat`, not a spread `push()`: a paste can flip more rows than the call stack takes arguments.
+      write.selected = write.selected.concat(flips.selected);
+      write.deselected = write.deselected.concat(flips.deselected);
+
+      return;
+    }
+
+    this.#notifyChange(flips.selected, flips.deselected, write?.source ?? 'api');
+  }
+
+  /**
+   * Drops the "select all" state before the render an edit runs ahead of `afterChange`, and, when the
+   * edit writes the bound column, marks the cells: under `renderMode: 'onChange'` the row tint
+   * (`htRowSelected`) is state of this plugin's own, and an unmarked row would keep the tint of the
+   * previous render until the next change.
+   *
+   * @param {Array|null} changes The changes, `[row, prop, oldValue, newValue]`.
+   */
+  #onBeforeChangeRender = (changes: Array<unknown[] | null> | null) => {
+    if (!Array.isArray(changes) || !this.#affectsSelectionState(changes)) {
+      return;
+    }
+
+    this.#invalidateHeaderSummary();
+
+    if (this.#touchesBoundColumn(changes)) {
+      this.hot.markAllCellsChanged();
+    }
+  };
+
+  /**
+   * Tells whether an edit can change which rows are selected or selectable: it writes the bound
+   * column, or an `isRowSelectable` function is set (it may read any value of the row). An edit of
+   * any other column keeps the cached "select all" state, which on a large grid is a full scan.
    *
    * @param {Array} changes The changes, `[row, prop, oldValue, newValue]`.
-   * @param {string} source The change source.
+   * @returns {boolean}
+   */
+  #affectsSelectionState(changes: Array<unknown[] | null>): boolean {
+    return isFunction(this.#getSettings().isRowSelectable) || this.#touchesBoundColumn(changes);
+  }
+
+  /**
+   * Tells whether any of the changes writes the bound column.
+   *
+   * @param {Array} changes The changes, `[row, prop, oldValue, newValue]`.
+   * @returns {boolean}
+   */
+  #touchesBoundColumn(changes: Array<unknown[] | null>): boolean {
+    const boundColumn = this.getBoundColumn();
+
+    if (boundColumn === null) {
+      return false;
+    }
+
+    const boundProp = this.hot.colToProp(boundColumn);
+
+    return changes.some(change => Array.isArray(change) && change[1] === boundProp);
+  }
+
+  /**
+   * Finds the changes to the bound column that flip a row's checked state.
+   *
+   * @param {Array} changes The changes, `[row, prop, oldValue, newValue]`.
    * @param {boolean} compareWithData `true` in `beforeChange`, where the data still holds the value
    * before the change; `false` in `afterChange`, where the change's own old value is used.
    * @returns {object|null} The physical rows that get selected and deselected, and the change indexes.
    */
-  #collectBoundFlips(changes: Array<unknown[] | null>, source: string, compareWithData: boolean) {
+  #collectBoundFlips(changes: Array<unknown[] | null>, compareWithData: boolean) {
     const boundColumn = this.getBoundColumn();
 
-    if (boundColumn === null || source === BOUND_WRITE_SOURCE || !Array.isArray(changes)) {
+    if (boundColumn === null || !Array.isArray(changes)) {
       return null;
     }
 
@@ -2325,11 +2705,40 @@ export class RowSelection extends BasePlugin {
   };
 
   /**
-   * Drops the "select all" state. `isRowSelectable` may read the data, so an edit can change it.
+   * Drops the "select all" state.
    */
   #invalidateHeaderSummary = () => {
     this.#headerSummaryCache = null;
     this.#groupTree = null;
+  };
+
+  /**
+   * Drops the resolved bound column: the columns, their settings, or the data changed.
+   */
+  #invalidateBoundColumn = () => {
+    this.#boundColumnCache = undefined;
+    this.#headerSummaryCache = null;
+    this.#groupTree = null;
+  };
+
+  /**
+   * Forgets the row ids the server removed. A removed row would otherwise stay in the selection by row
+   * id: counted in the "select all" state and the menu, and exported by `getServerSelection()`.
+   * `afterRowsMutation` runs after a successful `onRowsRemove` and before the refetch, which then
+   * re-reads the loaded rows' state from the pruned selection.
+   *
+   * @param {string} operation The mutation kind.
+   * @param {object} payload The mutation payload.
+   */
+  #onAfterRowsMutation = (operation: string, payload: unknown) => {
+    const rowIds = (payload as { rowsRemove?: unknown } | null)?.rowsRemove;
+
+    if (operation !== 'remove' || !Array.isArray(rowIds) || !this.#isServerMode()) {
+      return;
+    }
+
+    rowIds.forEach(rowId => this.#rowIdSelection.forget(rowId));
+    this.#invalidateHeaderSummary();
   };
 
   /**
@@ -2339,6 +2748,8 @@ export class RowSelection extends BasePlugin {
     this.#anchorPhysicalRow = null;
     this.#headerSummaryCache = null;
     this.#groupTree = null;
+    // New data can change the props the bound column is resolved from.
+    this.#boundColumnCache = undefined;
 
     // A server-backed grid loads every page: the selection lives on by row id. Any other grid starts
     // over (the index mapper rebuilt the map with its default value).
@@ -2376,13 +2787,15 @@ export class RowSelection extends BasePlugin {
       { name: SEPARATOR },
       {
         key: 'row_selection_remove',
+        // The count is what the action removes: the selected rows with a visual index. A selected
+        // row the filters removed, or (with a server-backed grid) a row on another page, stays.
         name(this: HotInstance) {
-          return this.getTranslatedPhrase(ROW_SELECTION_MENU_REMOVE, { count: plugin.getSelectedCount() }) as string;
+          return this.getTranslatedPhrase(ROW_SELECTION_MENU_REMOVE, { count: plugin.#countRemovableRows() }) as string;
         },
         callback() {
           plugin.removeSelectedRows();
         },
-        disabled: () => !plugin.#canRemoveSelectedRows(),
+        disabled: () => plugin.#countRemovableRows() === 0,
         hidden: () => plugin.getSelectedCount() === 0,
       },
       {

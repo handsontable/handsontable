@@ -89,4 +89,21 @@ describe('RowIdSelection', () => {
 
     expect(selection.isEmpty()).toBe(true);
   });
+
+  it('should forget a removed row under either model', () => {
+    const selection = new RowIdSelection();
+
+    selection.set(1, true);
+    selection.set(2, true);
+    selection.forget(1);
+
+    expect(selection.export()).toEqual({ selectAll: false, toggledRowIds: [2] });
+
+    selection.setAll(true);
+    selection.set(3, false);
+    selection.forget(3);
+
+    // A forgotten row is no longer excluded, so "select all" covers every remaining row again.
+    expect(selection.export()).toEqual({ selectAll: true, toggledRowIds: [] });
+  });
 });

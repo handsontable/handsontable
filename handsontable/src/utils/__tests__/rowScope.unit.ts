@@ -3,6 +3,7 @@ import {
   computeHeaderCheckboxState,
   isSelectAllScope,
   resolveHeaderToggleTarget,
+  summarizeHeaderCheckbox,
   type ScopeHost,
 } from '../rowScope';
 
@@ -102,6 +103,15 @@ describe('rowScope', () => {
     it('should report "disabled" when the scope holds no selectable row', () => {
       expect(computeHeaderCheckboxState([], () => true))
         .toEqual({ state: 'disabled', selected: 0, total: 0 });
+    });
+  });
+
+  describe('summarizeHeaderCheckbox', () => {
+    it('should derive the state from counts kept by the caller', () => {
+      expect(summarizeHeaderCheckbox(0, 0)).toEqual({ state: 'disabled', selected: 0, total: 0 });
+      expect(summarizeHeaderCheckbox(0, 3)).toEqual({ state: 'unchecked', selected: 0, total: 3 });
+      expect(summarizeHeaderCheckbox(2, 3)).toEqual({ state: 'mixed', selected: 2, total: 3 });
+      expect(summarizeHeaderCheckbox(3, 3)).toEqual({ state: 'checked', selected: 3, total: 3 });
     });
   });
 

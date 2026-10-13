@@ -309,6 +309,30 @@ These keyboard shortcuts work with [comments](@/guides/cell-features/comments/co
 | <kbd>**Tab**</kbd>                                      | <kbd>**Tab**</kbd>                                         | Save and exit the current comment, move the selection to the next cell     | &cross; | &cross; |
 | <kbd>**Shift + Tab**</kbd>                              | <kbd>**Shift + Tab**</kbd>                                 | Save and exit the current comment, move the selection to the previous cell | &cross; | &cross; |
 
+### Row selection keyboard shortcuts
+
+These keyboard shortcuts work with [row selection](@/guides/rows/row-selection/row-selection.md). To activate them, enable the [`RowSelection`](@/api/rowSelection.md) plugin.
+
+The shortcuts on a row checkbox and on the "select all" checkbox work only when that header or cell is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+
+| Windows              | macOS                | Action                                                                                                                                       |  Excel  | Sheets  |
+| -------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | :-----: | :-----: |
+| <kbd>**Space**</kbd> | <kbd>**Space**</kbd> | On a data cell, toggle the cell's row instead of opening the editor. With a range of cells selected, select every row of the range, or deselect them when all are already selected. | &cross; | &cross; |
+| <kbd>**Space**</kbd> | <kbd>**Space**</kbd> | On a row checkbox, toggle the row                                                                                                            | &cross; | &cross; |
+| <kbd>**Space**</kbd> | <kbd>**Space**</kbd> | On the "select all" checkbox, select every row in scope, or deselect them when all are already selected                                     | &cross; | &cross; |
+
+On a [`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) cell, <kbd>**Space**</kbd> keeps checking the cell. To edit a cell while row selection is enabled, use <kbd>**Enter**</kbd> or <kbd>**F2**</kbd>.
+
+### Column header checkbox keyboard shortcuts
+
+These keyboard shortcuts work with the "check all" checkbox in the header of a [`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md#check-all-in-the-column-header) column. To activate them, enable the [`CheckboxHeader`](@/api/checkboxHeader.md) plugin with the [`headerCheckbox`](@/api/options.md#headercheckbox) option.
+
+These shortcuts work only when a column header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+
+| Windows              | macOS                | Action                                                                                         |  Excel  | Sheets  |
+| -------------------- | -------------------- | ---------------------------------------------------------------------------------------------- | :-----: | :-----: |
+| <kbd>**Space**</kbd> | <kbd>**Space**</kbd> | Check every checkbox in the column, or uncheck them when all of them are already checked      | &cross; | &cross; |
+
 ### Formulas keyboard shortcuts
 
 These keyboard shortcuts work when the [`Formulas`](@/api/formulas.md) plugin is enabled.

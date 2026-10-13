@@ -455,6 +455,12 @@ declare namespace Handsontable {
     export type Notification = import('./plugins/notification').Notification;
     export type Pagination = import('./plugins/pagination').Pagination;
     export type RowSelection = import('./plugins/rowSelection').RowSelection;
+    export namespace RowSelection {
+      export type Settings = import('./plugins/rowSelection').RowSelectionSettings;
+      export type BoundColumn = import('./plugins/rowSelection').RowSelectionBoundColumn;
+      export type GroupSelects = import('./plugins/rowSelection').RowSelectionGroupSelects;
+      export type ServerSelection = import('./plugins/rowSelection').ServerRowSelection;
+    }
     export type CheckboxHeader = import('./plugins/checkboxHeader').CheckboxHeader;
     export type Search = import('./plugins/search').Search;
     export type SelectionHandles = import('./plugins/selectionHandles').SelectionHandles;

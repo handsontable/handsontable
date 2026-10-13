@@ -19,7 +19,7 @@ vue:
 searchCategory: Guides
 category: Server-side data
 menuTag: new
-addedIn: "18.2.0"
+addedIn: "19.0.0"
 ---
 Select rows across pages of server-side data, and send the selection to your server, even when it covers rows the grid never loaded.
 
@@ -146,6 +146,7 @@ The selection then lists each row id explicitly, and [`getServerSelection()`](@/
 - The grid evaluates `isRowSelectable` only for the rows it loaded. After a "select all", apply the same rule on your server.
 - After a "select all", the count assumes every deselected row still matches the query.
 - The `beforeRowSelectionChange` and `afterRowSelectionChange` hooks list only the loaded rows whose state changes. Rows on other pages have no index to report.
+- After a "select all", the **Remove selected rows** item of the [context menu](@/guides/rows/row-selection/row-selection.md#act-on-the-selected-rows-from-the-context-menu) is disabled, because the grid can't remove rows it never loaded. Send the selection to your server instead.
 
 ## Related API reference
 

@@ -4103,7 +4103,7 @@ export default (): Record<string, unknown> => {
      *
      * | Setting                  | Description                                                                    |
      * | ------------------------ | ------------------------------------------------------------------------------ |
-     * | `false` (default)        | No header checkbox                                                             |
+     * | `false` or unset (default) | No header checkbox                                                           |
      * | `true`                   | A header checkbox that writes to the rows that pass the filters (all pages)    |
      * | `{ scope: 'filtered' }`  | The same as `true`                                                             |
      * | `{ scope: 'all' }`       | Also writes to the rows the filters hide                                       |
@@ -4121,7 +4121,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean|object}
      * @default undefined
      * @category CheckboxHeader
-     * @since 18.2.0
+     * @since 19.0.0
      * @configScope grid columns
      *
      * @example
@@ -6948,6 +6948,8 @@ export default (): Record<string, unknown> => {
      * selects its row.
      *
      * Read more:
+     * - [Row selection](@/guides/rows/row-selection/row-selection.md)
+     * - [Server-side row selection](@/guides/getting-started/server-side-data-row-selection/server-side-data-row-selection.md)
      * - [Plugins: `RowSelection`](@/api/rowSelection.md)
      *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
@@ -6957,7 +6959,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean|object}
      * @default undefined
      * @category RowSelection
-     * @since 18.2.0
+     * @since 19.0.0
      * @configScope grid
      *
      * @example

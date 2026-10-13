@@ -8,30 +8,85 @@ import {
   removeAttribute,
   setAttribute,
 } from '../../helpers/dom/element';
+import { isLeftClick, isTouchEvent } from '../../helpers/dom/event';
 import { A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
 import { CHECKBOX_HEADER_CHECK_ALL } from '../../i18n/constants';
 import { syncIcon } from '../../themes/engine/icons';
 import {
   collectRowsInScope,
-  computeHeaderCheckboxState,
   isSelectAllScope,
   resolveHeaderToggleTarget,
+  summarizeHeaderCheckbox,
   type HeaderCheckboxSummary,
   type ScopeHost,
   type SelectAllScope,
 } from '../../utils/rowScope';
-import { isCheckboxMeta, isCheckedValue, writeCheckboxColumn, type CheckboxMeta } from '../../utils/checkboxColumn';
+import {
+  getCheckboxCellMeta,
+  isCheckboxMeta,
+  isCheckedValue,
+  writeCheckboxColumn,
+  type CheckboxMeta,
+} from '../../utils/checkboxColumn';
 
 export const PLUGIN_KEY = 'checkboxHeader';
 export const PLUGIN_PRIORITY = 390;
 
 const SHORTCUTS_GROUP = PLUGIN_KEY;
+
+/**
+ * Tells whether a change source is an undo or redo replay.
+ *
+ * @param {string} [source] The change source.
+ * @returns {boolean}
+ */
+function isUndoRedoSource(source: string | undefined): boolean {
+  return source === 'UndoRedo.undo' || source === 'UndoRedo.redo';
+}
 const CHECKBOX_CLASS = 'htCheckboxHeaderInput';
 const CHECKBOX_BOX_CLASS = 'htCheckboxHeaderBox';
 const CHECKBOX_ICON_CLASS = 'htCheckboxHeaderIcon';
 const HEADER_CELL_CLASS = 'htCheckboxHeader';
 const DEFAULT_SCOPE: SelectAllScope = 'filtered';
+
+/**
+ * A physical row outside the column's scope. A change to it cannot change the header.
+ */
+const ROW_OUT_OF_SCOPE = 0;
+/**
+ * A row in the scope whose cell is read-only or not a checkbox: neither written nor counted.
+ */
+const ROW_NOT_COUNTED = 1;
+/**
+ * A row in the scope whose editable checkbox is unchecked.
+ */
+const ROW_UNCHECKED = 2;
+/**
+ * A row in the scope whose editable checkbox is checked.
+ */
+const ROW_CHECKED = 3;
+
+type RowState = typeof ROW_OUT_OF_SCOPE | typeof ROW_NOT_COUNTED | typeof ROW_UNCHECKED | typeof ROW_CHECKED;
+
+/**
+ * The memoized header state of one column, kept per physical row so a data or meta change re-reads
+ * only the rows it touched.
+ */
+interface ColumnSummary {
+  /**
+   * The state of every physical row, indexed by the physical row index.
+   */
+  rowStates: Uint8Array;
+  /**
+   * The number of checked editable checkboxes in the scope.
+   */
+  selected: number;
+  /**
+   * The number of editable checkboxes in the scope.
+   */
+  total: number;
+}
 
 /**
  * The `headerCheckbox` column option's object form.
@@ -122,9 +177,16 @@ export class CheckboxHeader extends BasePlugin {
   }
 
   /**
-   * The memoized header state per visual column. Dropped on every change that can affect it.
+   * The memoized header state per visual column. A data or meta change re-reads only the rows it
+   * touched; a change to the scope (indexes, pages, settings, a data load) drops the whole cache.
    */
-  #summaryCache = new Map<number, HeaderCheckboxSummary>();
+  #summaryCache = new Map<number, ColumnSummary>();
+
+  /**
+   * `true` while the plugin reads cell meta. A `beforeGetCellMeta`/`afterGetCellMeta` listener that
+   * calls `setCellMeta()` would otherwise re-enter the read it is part of, without end.
+   */
+  #isReadingMeta = false;
 
   /**
    * Checks if the plugin is enabled. It always is: a column opts in through its own
@@ -146,18 +208,27 @@ export class CheckboxHeader extends BasePlugin {
 
     this.addHook('afterGetColHeader', this.#onAfterGetColHeader);
     this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
-    // `beforeChangeRender`, not `afterChange`: an edit renders before `afterChange` runs, so a cache
-    // dropped there would leave the header one change behind.
-    this.addHook('beforeChangeRender', this.#invalidate);
-    this.addHook('afterChange', this.#invalidate);
-    this.addHook('afterSetSourceDataAtCell', this.#invalidate);
+    // `beforeChangeRender`: an edit renders before `afterChange` runs, so a cache updated only there
+    // would leave the header one change behind. `afterChange` is still needed for the changes that
+    // fire nothing else (an undo, a data replace); re-reading a row twice is harmless.
+    this.addHook('beforeChangeRender', this.#onDataChange);
+    this.addHook('afterChange', this.#onDataChange);
+    this.addHook('afterSetSourceDataAtCell', this.#onSourceDataChange);
+    this.addHook('afterSetCellMeta', this.#onCellMetaChange);
+    this.addHook('afterRemoveCellMeta', this.#onCellMetaChange);
+    // An undo or redo puts cell meta back without `afterSetCellMeta`, and renders before it ends, so
+    // the cache is dropped before the restore (for its render) and after it (for the API).
+    this.addHook('beforeUndo', this.#invalidate);
+    this.addHook('beforeRedo', this.#invalidate);
+    this.addHook('afterUndo', this.#invalidate);
+    this.addHook('afterRedo', this.#invalidate);
     this.addHook('afterLoadData', this.#invalidate);
     this.addHook('afterUpdateData', this.#invalidate);
     this.addHook('afterUpdateSettings', this.#invalidate);
     this.addHook('afterPageChange', this.#invalidate);
-    this.addHook('afterSetCellMeta', this.#invalidate);
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#invalidate);
     this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#invalidate);
+    this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', this.#onRootMouseDown);
     this.eventManager.addEventListener(this.hot.rootElement, 'click', this.#onRootClick);
     this.#registerShortcuts();
 
@@ -209,17 +280,11 @@ export class CheckboxHeader extends BasePlugin {
     let summary = this.#summaryCache.get(column);
 
     if (!summary) {
-      const meta = this.hot.getColumnMeta(column) as CheckboxMeta;
-      const prop = this.hot.colToProp(column) ?? column;
-
-      summary = computeHeaderCheckboxState(
-        collectRowsInScope(this.#createScopeHost(column), this.#getScope(column)),
-        physicalRow => isCheckedValue(this.hot.getSourceDataAtCell(physicalRow, prop), meta),
-      );
+      summary = this.#scanColumn(column);
       this.#summaryCache.set(column, summary);
     }
 
-    return { ...summary };
+    return summarizeHeaderCheckbox(summary.selected, summary.total);
   }
 
   /**
@@ -266,6 +331,110 @@ export class CheckboxHeader extends BasePlugin {
   }
 
   /**
+   * Reads the state of every row in the column's scope. It is the only full pass over the rows;
+   * later data and meta changes go through `#refreshRows()`.
+   *
+   * @param {number} column Visual column index.
+   * @returns {object}
+   */
+  #scanColumn(column: number): ColumnSummary {
+    const summary: ColumnSummary = {
+      rowStates: new Uint8Array(this.hot.rowIndexMapper.getNumberOfIndexes()),
+      selected: 0,
+      total: 0,
+    };
+    // Every row in the scope, whatever its cell: a row whose cell turns editable later must be
+    // re-read on that change, so the scope is recorded apart from what the cell holds.
+    const rowsInScope = collectRowsInScope({
+      ...this.#createScopeHost(column),
+      isRowSelectable: () => true,
+    }, this.#getScope(column));
+
+    rowsInScope.forEach((physicalRow) => {
+      this.#setRowState(summary, physicalRow, this.#readRowState(column, physicalRow));
+    });
+
+    return summary;
+  }
+
+  /**
+   * Reads what a row in the scope contributes to the column's header.
+   *
+   * @param {number} column Visual column index.
+   * @param {number} physicalRow Physical row index.
+   * @returns {number}
+   */
+  #readRowState(column: number, physicalRow: number): RowState {
+    const wasReadingMeta = this.#isReadingMeta;
+
+    this.#isReadingMeta = true;
+
+    let meta: CheckboxMeta;
+
+    try {
+      meta = getCheckboxCellMeta(this.hot, physicalRow, column);
+    } finally {
+      this.#isReadingMeta = wasReadingMeta;
+    }
+
+    if (meta.readOnly || !isCheckboxMeta(meta)) {
+      return ROW_NOT_COUNTED;
+    }
+
+    const value = this.hot.getSourceDataAtCell(physicalRow, this.hot.colToProp(column) ?? column);
+
+    return isCheckedValue(value, meta) ? ROW_CHECKED : ROW_UNCHECKED;
+  }
+
+  /**
+   * Stores a row's state and moves the counts by the difference from its previous one.
+   *
+   * @param {object} summary The column's memoized state.
+   * @param {number} physicalRow Physical row index.
+   * @param {number} state The row's new state.
+   */
+  #setRowState(summary: ColumnSummary, physicalRow: number, state: RowState) {
+    const previous = summary.rowStates[physicalRow];
+
+    summary.total += Number(state >= ROW_UNCHECKED) - Number(previous >= ROW_UNCHECKED);
+    summary.selected += Number(state === ROW_CHECKED) - Number(previous === ROW_CHECKED);
+    summary.rowStates[physicalRow] = state;
+  }
+
+  /**
+   * Re-reads the given rows of every memoized column. A row outside a column's scope is skipped, as
+   * a change to it cannot move that header. The cost is the number of rows times the number of
+   * memoized columns, never the number of rows in the grid.
+   *
+   * Every column is re-read, not only the changed one: a cell's meta can follow the other values of
+   * its row (a `cells` function that makes a checkbox read-only by another column's value).
+   *
+   * @param {Iterable<number|null>} physicalRows Physical row indexes.
+   */
+  #refreshRows(physicalRows: Iterable<number | null>) {
+    if (this.#summaryCache.size === 0) {
+      return;
+    }
+
+    const rows = new Set(physicalRows);
+
+    this.#summaryCache.forEach((summary, column) => {
+      for (const physicalRow of rows) {
+        if (physicalRow === null || physicalRow < 0 || physicalRow >= summary.rowStates.length) {
+          // A row the scan did not see: read the whole column again.
+          this.#summaryCache.delete(column);
+
+          return;
+        }
+
+        if (summary.rowStates[physicalRow] !== ROW_OUT_OF_SCOPE) {
+          this.#setRowState(summary, physicalRow, this.#readRowState(column, physicalRow));
+        }
+      }
+    });
+  }
+
+  /**
    * The scope set on the column, or the default.
    *
    * @param {number} column Visual column index.
@@ -293,7 +462,6 @@ export class CheckboxHeader extends BasePlugin {
 
       return map?.getValueAtIndex(physicalRow) === true;
     };
-    const columnMeta = this.hot.getColumnMeta(column) as CheckboxMeta;
 
     return {
       countPhysicalRows: () => rowIndexMapper.getNumberOfIndexes(),
@@ -312,10 +480,10 @@ export class CheckboxHeader extends BasePlugin {
       },
       isExcludedByTrimRows: physicalRow => isFlaggedBy('trimRows', physicalRow),
       isExcludedByHiddenRows: physicalRow => isFlaggedBy('HiddenRows', physicalRow),
+      // Resolved by the physical row, so a row the filters removed keeps its own meta (a read-only
+      // cell stays read-only while it is filtered out).
       isRowSelectable: (physicalRow) => {
-        const visualRow = this.hot.toVisualRow(physicalRow);
-        const meta = (visualRow === null ?
-          columnMeta : this.hot.getCellMetaTransient(visualRow, column)) as CheckboxMeta;
+        const meta = getCheckboxCellMeta(this.hot, physicalRow, column);
 
         return !meta.readOnly && isCheckboxMeta(meta);
       },
@@ -417,13 +585,16 @@ export class CheckboxHeader extends BasePlugin {
    * Toggles the column on a press on its header checkbox, and keeps the press from selecting the
    * column or sorting it.
    *
-   * @param {MouseEvent} event The `mousedown` event.
+   * On a touch device Walkontable calls this with the `touchend` event, which has no `button`, and
+   * the browser's own `mousedown` that follows a tap never reaches it, so a touch counts as a press.
+   *
+   * @param {MouseEvent|TouchEvent} event The `mousedown` event, or the `touchend` event of a tap.
    * @param {CellCoords} coords The coordinates of the pressed header.
    */
   #onBeforeOnCellMouseDown = (event: MouseEvent, coords: { row: number; col: number }) => {
     const target = eventTargetEl(event);
 
-    if (!target || event.button !== 0 || !hasClass(target, CHECKBOX_CLASS)) {
+    if (!target || !(isLeftClick(event) || isTouchEvent(event)) || !hasClass(target, CHECKBOX_CLASS)) {
       return;
     }
 
@@ -434,6 +605,23 @@ export class CheckboxHeader extends BasePlugin {
     // Keeps the browser focus off the checkbox, so the keyboard stays with the grid.
     event.preventDefault();
     this.eventManager.fireEvent(target, 'mouseup');
+  };
+
+  /**
+   * Keeps the browser focus off the checkbox on every press. On a touch device Walkontable drops the
+   * browser's own `mousedown` that follows a tap (it already ran the press from `touchend`), so the
+   * plugin's hook never sees it and its default action would focus the input. A focused input is
+   * then skipped by Walkontable's "press on the focused element" guard, and a second tap on the same
+   * checkbox would do nothing.
+   *
+   * @param {MouseEvent} event The `mousedown` event.
+   */
+  #onRootMouseDown = (event: MouseEvent) => {
+    const target = eventTargetEl(event);
+
+    if (target && hasClass(target, CHECKBOX_CLASS)) {
+      event.preventDefault();
+    }
   };
 
   /**
@@ -448,6 +636,54 @@ export class CheckboxHeader extends BasePlugin {
     if (target && hasClass(target, CHECKBOX_CLASS)) {
       event.preventDefault();
     }
+  };
+
+  /**
+   * Re-reads the rows a `setDataAtCell()`-style change wrote (visual rows). A change without a list
+   * (a data replace) and an undo or redo drop the whole cache: an undo restores cell meta without
+   * `afterSetCellMeta`, so its changes do not name every cell it touched.
+   *
+   * @param {Array|null} changes The changes, `[visualRow, prop, oldValue, newValue]` each.
+   * @param {string} source The change source.
+   */
+  #onDataChange = (changes: Array<[number, ...unknown[]]> | null, source?: string) => {
+    if (!changes || isUndoRedoSource(source)) {
+      this.#invalidate();
+
+      return;
+    }
+
+    this.#refreshRows(changes.map(([visualRow]) => this.hot.toPhysicalRow(visualRow)));
+  };
+
+  /**
+   * Re-reads the rows a `setSourceDataAtCell()` change wrote (physical rows).
+   *
+   * @param {Array} changes The changes, `[physicalRow, prop, oldValue, newValue]` each.
+   * @param {string} source The change source.
+   */
+  #onSourceDataChange = (changes: Array<[number, ...unknown[]]>, source?: string) => {
+    if (isUndoRedoSource(source)) {
+      this.#invalidate();
+
+      return;
+    }
+
+    this.#refreshRows(changes.map(([physicalRow]) => physicalRow));
+  };
+
+  /**
+   * Re-reads the row whose cell meta `setCellMeta()` or `removeCellMeta()` changed (a `readOnly` or
+   * `type` change moves the cell in or out of the count).
+   *
+   * @param {number} visualRow Visual row index.
+   */
+  #onCellMetaChange = (visualRow: number) => {
+    if (this.#isReadingMeta) {
+      return;
+    }
+
+    this.#refreshRows([this.hot.toPhysicalRow(visualRow)]);
   };
 
   /**

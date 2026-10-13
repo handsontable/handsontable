@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
+import { injectRealCoreStyles, removeRealCoreStyles } from '../../../../test/helpers/realCoreStyles';
 
 registerAllModules();
 
@@ -32,7 +33,46 @@ function createGrid(settings: Record<string, unknown> = {}, rows = 6) {
   };
 }
 
+/**
+ * The corner above the plugin's row header column (the column coordinate `-1`).
+ */
+function cornerOf(hot: Handsontable) {
+  return hot.getCell(-1, -1, true) as HTMLElement;
+}
+
+/**
+ * Presses the left mouse button on an element, as Walkontable receives it.
+ */
+function mouseDown(element: Element, init: MouseEventInit = {}) {
+  element.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, button: 0, ...init }));
+  element.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, button: 0, ...init }));
+}
+
+/**
+ * Presses the left mouse button on a data cell.
+ */
+function cellMouseDown(hot: Handsontable, row: number, column: number, init: MouseEventInit = {}) {
+  mouseDown(hot.getCell(row, column)!, init);
+}
+
+/**
+ * Presses Space through the shortcut manager's real keyboard path, so the shortcuts' `runOnlyIf`
+ * guards run.
+ */
+function pressSpace(hot: Handsontable) {
+  const { documentElement } = hot.rootDocument;
+  const init = { key: ' ', code: 'Space', keyCode: 32, which: 32, bubbles: true, cancelable: true };
+
+  hot.listen();
+  documentElement.dispatchEvent(new KeyboardEvent('keydown', init));
+  documentElement.dispatchEvent(new KeyboardEvent('keyup', init));
+}
+
 describe('RowSelection', () => {
+  afterEach(() => {
+    removeRealCoreStyles();
+  });
+
   it('should select and deselect rows through the API without touching the data', () => {
     const { hot, plugin, destroy } = createGrid();
     const dataBefore = JSON.stringify(hot.getSourceData());
@@ -424,8 +464,252 @@ describe('RowSelection', () => {
     expect(Array.isArray(widths)).toBe(true);
     expect(widths).toHaveLength(2);
     expect(widths[0]).toBe(50);
-    expect(widths[1]).toBeGreaterThan(0);
-    expect(widths[1]).not.toBe(50);
+    // jsdom loads no theme, so the column takes the fallbacks: a 16px checkbox, 8px of padding on
+    // each side, and the 1px cell border.
+    expect(widths[1]).toBe(33);
+
+    destroy();
+  });
+
+  describe('the corner without the "select all" checkbox', () => {
+    it.each([
+      ['headerCheckbox: false', { headerCheckbox: false }],
+      ['the "singleRow" mode', { mode: 'singleRow' }],
+    ])('should render a plain corner that selects the grid with %s', (_, rowSelection) => {
+      const { hot, plugin, destroy } = createGrid({ rowSelection });
+      const corner = cornerOf(hot);
+
+      expect(corner.querySelector('.htRowSelectionCheckbox')).toBeNull();
+      expect(corner.classList.contains('htRowSelectionHeader')).toBe(false);
+      expect(corner.classList.contains('htRowSelectionCorner')).toBe(false);
+
+      mouseDown(corner);
+
+      expect(plugin.getSelectedRows()).toEqual([]);
+      // The press is not swallowed: the corner selects the whole grid, from the first row header
+      // column, as a corner without the plugin does.
+      expect(hot.getSelectedLast()).toEqual([-1, -2, 5, 1]);
+
+      destroy();
+    });
+
+    it('should not toggle every row with Space on a corner without the "select all" checkbox', () => {
+      const { hot, plugin, destroy } = createGrid({ rowSelection: { headerCheckbox: false }, navigableHeaders: true });
+
+      hot.selectCell(-1, -1);
+      pressSpace(hot);
+
+      expect(plugin.getSelectedRows()).toEqual([]);
+
+      destroy();
+    });
+
+    it('should select every row from the corner with the "select all" checkbox on', () => {
+      const { hot, plugin, destroy } = createGrid();
+
+      mouseDown(cornerOf(hot));
+
+      expect(plugin.getSelectedRows()).toEqual([0, 1, 2, 3, 4, 5]);
+
+      destroy();
+    });
+  });
+
+  describe('a row with no checkbox', () => {
+    const checkboxes = (_rowData: unknown, physicalRow: number) => physicalRow !== 1;
+
+    it('should not toggle the row from its row header cell, by click or by Space', () => {
+      const { hot, plugin, destroy } = createGrid({ rowSelection: { checkboxes }, navigableHeaders: true });
+      const header = hot.getCell(1, -1, true) as HTMLElement;
+
+      expect(header.querySelector('.htRowSelectionCheckbox')).toBeNull();
+      expect(header.classList.contains('htRowSelectionCell')).toBe(false);
+
+      mouseDown(header);
+
+      expect(plugin.getSelectedRows()).toEqual([]);
+
+      hot.selectCell(1, -1);
+      pressSpace(hot);
+
+      expect(plugin.getSelectedRows()).toEqual([]);
+
+      // a row with a checkbox, for contrast
+      mouseDown(hot.getCell(0, -1, true) as HTMLElement);
+
+      expect(plugin.getSelectedRows()).toEqual([0]);
+
+      destroy();
+    });
+
+    it.each([
+      ['`checkboxes` returns false', { checkboxes }],
+      ['`hideDisabledCheckboxes` hides it', {
+        hideDisabledCheckboxes: true,
+        isRowSelectable: (_rowData: unknown, physicalRow: number) => physicalRow !== 1,
+      }],
+    ])('should keep a hidden placeholder in the first column when %s, and not toggle the row', (_, settings) => {
+      const { hot, plugin, destroy } = createGrid({
+        rowSelection: { checkboxLocation: 'firstColumn', ...settings },
+      });
+      const placeholder = hot.getCell(1, 0)!.querySelector<HTMLInputElement>('.htRowSelectionCheckbox')!;
+
+      // The placeholder keeps the values of every row at the same offset.
+      expect(placeholder).not.toBeNull();
+      expect(placeholder.classList.contains('htRowSelectionCheckboxHidden')).toBe(true);
+      expect(placeholder.disabled).toBe(true);
+      expect(hot.getCell(0, 0)!.querySelector('.htRowSelectionCheckboxHidden')).toBeNull();
+
+      mouseDown(placeholder);
+
+      expect(plugin.getSelectedPhysicalRows()).toEqual([]);
+
+      destroy();
+    });
+  });
+
+  describe('rows out of every scope', () => {
+    it('should leave the rows HiddenRows hides out of a Shift+click range', () => {
+      // Rows past the second are outside the jsdom viewport under the Jest core styles stub.
+      injectRealCoreStyles();
+
+      const { hot, plugin, destroy } = createGrid({
+        hiddenRows: { rows: [2] },
+        rowSelection: { enableClickSelection: true },
+      });
+
+      cellMouseDown(hot, 0, 0);
+      cellMouseDown(hot, 4, 0, { shiftKey: true });
+
+      expect(plugin.getSelectedPhysicalRows()).toEqual([0, 1, 3, 4]);
+
+      destroy();
+    });
+
+    it('should select the rows of other pages that a Shift+click range spans', () => {
+      // Rows past the second are outside the jsdom viewport under the Jest core styles stub.
+      injectRealCoreStyles();
+
+      const { hot, plugin, destroy } = createGrid({
+        pagination: { pageSize: 2 },
+        rowSelection: { enableClickSelection: true },
+      });
+
+      cellMouseDown(hot, 1, 0);
+      hot.getPlugin('pagination').setPage(3);
+      cellMouseDown(hot, 4, 0, { shiftKey: true });
+
+      expect(plugin.getSelectedPhysicalRows()).toEqual([1, 2, 3, 4]);
+
+      destroy();
+    });
+
+    it('should leave the rows HiddenRows hides out of a range toggled with Space', () => {
+      const { hot, plugin, destroy } = createGrid({ hiddenRows: { rows: [2] } });
+
+      hot.selectCell(0, 1, 4, 1);
+      pressSpace(hot);
+
+      expect(plugin.getSelectedPhysicalRows()).toEqual([0, 1, 3, 4]);
+
+      destroy();
+    });
+  });
+
+  it('should count in the remove menu item only the rows the action removes', () => {
+    const { hot, plugin, destroy } = createGrid({ filters: true });
+    const options = { items: [] as Array<{ key: string; name: (this: unknown) => string; disabled: () => boolean;
+      hidden: () => boolean; callback: (this: unknown) => void; }> };
+
+    hot.runHooks('afterContextMenuDefaultOptions', options);
+
+    const remove = options.items.find(item => item.key === 'row_selection_remove')!;
+    const filters = hot.getPlugin('filters');
+
+    plugin.selectAll();
+    filters.addCondition(1, 'eq', ['even']);
+    filters.filter();
+
+    // Six rows are selected, but the three filtered out are not removed.
+    expect(plugin.getSelectedCount()).toBe(6);
+    expect(remove.name.call(hot)).toBe('Remove selected rows (3)');
+
+    remove.callback.call(hot);
+
+    expect((hot.getSourceData() as Array<{ id: number }>).map(row => row.id)).toEqual([1, 3, 5]);
+
+    // Only filtered-out rows are selected now: nothing to remove.
+    filters.clearConditions();
+    filters.addCondition(1, 'eq', ['none']);
+    filters.filter();
+
+    expect(remove.hidden()).toBe(false);
+    expect(remove.name.call(hot)).toBe('Remove selected rows (0)');
+    expect(remove.disabled()).toBe(true);
+
+    destroy();
+  });
+
+  it('should keep only the anchor row selected after switching to the "singleRow" mode', () => {
+    // Rows past the second are outside the jsdom viewport under the Jest core styles stub.
+    injectRealCoreStyles();
+
+    const { hot, plugin, destroy } = createGrid({ rowSelection: { enableClickSelection: true } });
+
+    plugin.selectRows([0, 4]);
+    cellMouseDown(hot, 2, 0, { ctrlKey: true });
+
+    expect(plugin.getSelectedRows()).toEqual([0, 2, 4]);
+
+    hot.updateSettings({ rowSelection: { mode: 'singleRow', enableClickSelection: true } });
+
+    expect(plugin.getSelectedRows()).toEqual([2]);
+
+    destroy();
+  });
+
+  it('should keep the last selected row after switching to the "singleRow" mode with no anchor', () => {
+    const { hot, plugin, destroy } = createGrid();
+
+    plugin.selectRows([0, 4, 3]);
+    hot.updateSettings({ rowSelection: { mode: 'singleRow' } });
+
+    expect(plugin.getSelectedRows()).toEqual([4]);
+
+    destroy();
+  });
+
+  it('should not move the Shift+click anchor to a row whose toggle was vetoed', () => {
+    // Rows past the second are outside the jsdom viewport under the Jest core styles stub.
+    injectRealCoreStyles();
+
+    const { hot, plugin, destroy } = createGrid({
+      rowSelection: { enableClickSelection: true },
+      beforeRowSelectionChange: (rowsToSelect: number[]) => !(rowsToSelect.length === 1 && rowsToSelect[0] === 1),
+    });
+
+    cellMouseDown(hot, 1, 0, { ctrlKey: true });
+
+    expect(plugin.getSelectedRows()).toEqual([]);
+
+    cellMouseDown(hot, 3, 0, { shiftKey: true });
+
+    // With no anchor, a Shift+click toggles its own row only.
+    expect(plugin.getSelectedRows()).toEqual([3]);
+
+    destroy();
+  });
+
+  it('should toggle a row on a tap: the deferred `touchstart` Walkontable passes has no mouse button', () => {
+    const { hot, plugin, destroy } = createGrid();
+    const header = hot.getCell(1, -1, true) as HTMLElement;
+    const checkbox = header.querySelector('.htRowSelectionCheckbox')!;
+    const touchEvent = new TouchEvent('touchstart', { bubbles: true, cancelable: true });
+
+    Object.defineProperty(touchEvent, 'target', { value: checkbox });
+    hot.runHooks('beforeOnCellMouseDown', touchEvent, { row: 1, col: -1 }, header);
+
+    expect(plugin.getSelectedRows()).toEqual([1]);
 
     destroy();
   });

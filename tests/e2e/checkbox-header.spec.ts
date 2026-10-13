@@ -49,6 +49,79 @@ test.describe('Checkbox column header', () => {
     await expect(header).toHaveAccessibleName('Check all (0 of 5 checked)');
   });
 
+  test('undoes a "check all" in one step with the keyboard shortcut', async({ page, theme, bundle }) => {
+    const grid = new CheckboxHeaderPage(page, theme, bundle);
+    const header = grid.headerCheckbox();
+
+    await grid.goto();
+    await header.click();
+    await expect.poll(() => grid.doneValues()).toEqual([true, true, false, true, true, true]);
+
+    await grid.undoWithKeyboard();
+
+    // One step back is the state before the press: only row 1 checked.
+    await expect.poll(() => grid.doneValues()).toEqual([false, true, false, false, false, false]);
+    await expect(header).toHaveAccessibleName('Check all (1 of 5 checked)');
+    await expect(header).toHaveAttribute('aria-checked', 'mixed');
+  });
+
+  test('toggles the column with Space on its focused header', async({ page, theme, bundle }) => {
+    const grid = new CheckboxHeaderPage(page, theme, bundle);
+    const header = grid.headerCheckbox();
+
+    await grid.goto();
+    await grid.cell(0, 0).click();
+    await page.keyboard.press('ArrowUp');
+    await page.keyboard.press('ArrowRight');
+
+    await expect.poll(() => grid.focusedCell()).toEqual({ row: -1, col: 1 });
+
+    await page.keyboard.press('Space');
+
+    await expect.poll(() => grid.doneValues()).toEqual([true, true, false, true, true, true]);
+    await expect(header).toBeChecked();
+
+    await page.keyboard.press('Space');
+
+    await expect.poll(() => grid.doneValues()).toEqual([false, false, false, false, false, false]);
+    await expect(header).not.toBeChecked();
+    // The key toggled the column and left the focus on its header.
+    expect(await grid.focusedCell()).toEqual({ row: -1, col: 1 });
+  });
+
+  test.describe('on a touch screen', () => {
+    test.use({ hasTouch: true });
+
+    test('a tap on the header checkbox checks the column', async({ page, theme, bundle }) => {
+      const grid = new CheckboxHeaderPage(page, theme, bundle);
+      const header = grid.headerCheckbox();
+
+      await grid.goto();
+      await header.tap();
+
+      await expect.poll(() => grid.doneValues()).toEqual([true, true, false, true, true, true]);
+      await expect(header).toBeChecked();
+      expect(await grid.sortConfig()).toEqual([]);
+    });
+
+    test('a second tap on the header checkbox unchecks the column', async({ page, theme, bundle }) => {
+      const grid = new CheckboxHeaderPage(page, theme, bundle);
+      const header = grid.headerCheckbox();
+
+      await grid.goto();
+      await header.tap();
+      await expect.poll(() => grid.doneValues()).toEqual([true, true, false, true, true, true]);
+
+      // Walkontable ignores a press on the focused element (#3555), so the tap must not focus the input.
+      expect(await page.evaluate(() => document.activeElement?.tagName)).not.toBe('INPUT');
+
+      await header.tap();
+
+      await expect.poll(() => grid.doneValues()).toEqual([false, false, false, false, false, false]);
+      await expect(header).not.toBeChecked();
+    });
+  });
+
   test('centers the header checkbox vertically', async({ page, theme, bundle }) => {
     const grid = new CheckboxHeaderPage(page, theme, bundle);
 

@@ -148,4 +148,176 @@ describe('RowSelection bound to a checkbox column', () => {
     warnSpy.mockRestore();
     destroy();
   });
+
+  it('should paint the row tint on the render an edit runs, under `renderMode: \'onChange\'`', () => {
+    const { hot, destroy } = createGrid({ renderMode: 'onChange' });
+
+    hot.setDataAtCell(1, 1, true);
+
+    // The render runs before `afterChange`: an unmarked row would keep the previous paint.
+    expect(hot.getCell(1, 0)!.classList.contains('htRowSelected')).toBe(true);
+
+    hot.setDataAtCell(1, 1, false);
+
+    expect(hot.getCell(1, 0)!.classList.contains('htRowSelected')).toBe(false);
+
+    destroy();
+  });
+
+  it('should report no change when a `beforeChange` listener cancels the write', () => {
+    const afterChange = jest.fn();
+    const { plugin, selectedValues, destroy } = createGrid({
+      beforeChange: () => false,
+      afterRowSelectionChange: afterChange,
+    });
+
+    expect(plugin.selectRows([0])).toBe(false);
+    expect(selectedValues()).toEqual([false, false, true, false, false]);
+    expect(afterChange).not.toHaveBeenCalled();
+
+    destroy();
+  });
+
+  it('should report only the rows a `beforeChange` listener lets through', () => {
+    const afterChange = jest.fn();
+    const { plugin, selectedValues, destroy } = createGrid({
+      beforeChange(changes: Array<unknown[] | null>) {
+        changes.forEach((change, index) => {
+          if (change && change[0] === 0) {
+            changes[index] = null;
+          }
+        });
+      },
+      afterRowSelectionChange: afterChange,
+    });
+
+    expect(plugin.selectRows([0, 1])).toBe(true);
+    expect(selectedValues()).toEqual([false, true, true, false, false]);
+    expect(afterChange).toHaveBeenCalledTimes(1);
+    expect(afterChange).toHaveBeenCalledWith([1], [], 'api');
+
+    destroy();
+  });
+
+  it('should report no change when a validator rejects the write with `allowInvalid: false`', () => {
+    const afterChange = jest.fn();
+    const { plugin, selectedValues, destroy } = createGrid({
+      columns: [
+        { data: 'id' },
+        {
+          data: 'selected',
+          type: 'checkbox',
+          allowInvalid: false,
+          validator: (_value: unknown, callback: (valid: boolean) => void) => callback(false),
+        },
+      ],
+      afterRowSelectionChange: afterChange,
+    });
+
+    expect(plugin.selectRows([0])).toBe(false);
+    expect(selectedValues()).toEqual([false, false, true, false, false]);
+    expect(afterChange).not.toHaveBeenCalled();
+
+    destroy();
+  });
+
+  it('should report a write an asynchronous validator holds once it lands', async() => {
+    const afterChange = jest.fn();
+    const { plugin, selectedValues, destroy } = createGrid({
+      columns: [
+        { data: 'id' },
+        {
+          data: 'selected',
+          type: 'checkbox',
+          validator: (_value: unknown, callback: (valid: boolean) => void) => {
+            Promise.resolve().then(() => callback(true));
+          },
+        },
+      ],
+      afterRowSelectionChange: afterChange,
+    });
+
+    plugin.selectRows([0]);
+
+    expect(afterChange).not.toHaveBeenCalled();
+
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(selectedValues()).toEqual([true, false, true, false, false]);
+    expect(afterChange).toHaveBeenCalledTimes(1);
+    expect(afterChange).toHaveBeenCalledWith([0], [], 'api');
+
+    destroy();
+  });
+
+  it('should resolve the bound column once, not for every painted cell', () => {
+    const { hot, plugin, destroy } = createGrid();
+    const propToCol = jest.spyOn(hot, 'propToCol');
+
+    hot.markAllCellsChanged();
+    hot.render();
+
+    expect(propToCol).not.toHaveBeenCalled();
+    expect(plugin.getBoundColumn()).toBe(1);
+
+    destroy();
+  });
+
+  it('should follow the bound column when the columns move or change', () => {
+    const { hot, plugin, destroy } = createGrid({ manualColumnMove: true });
+
+    hot.getPlugin('manualColumnMove').moveColumn(1, 0);
+
+    expect(plugin.getBoundColumn()).toBe(0);
+    expect(plugin.getSelectedRows()).toEqual([2]);
+
+    hot.updateSettings({ columns: [{ data: 'id' }, { data: 'id' }, { data: 'selected', type: 'checkbox' }] });
+
+    expect(plugin.getBoundColumn()).toBe(2);
+
+    destroy();
+  });
+
+  it('should keep the cached "select all" state across an edit of another column', () => {
+    const { hot, plugin, destroy } = createGrid();
+
+    plugin.getHeaderCheckboxState();
+    hot.setDataAtCell(0, 0, 99);
+
+    const getSourceDataAtCell = jest.spyOn(hot, 'getSourceDataAtCell');
+
+    expect(plugin.getHeaderCheckboxState()).toEqual({ state: 'mixed', selected: 1, total: 5 });
+    expect(getSourceDataAtCell).not.toHaveBeenCalled();
+
+    // An edit of the bound column drops it.
+    hot.setDataAtCell(0, 1, true);
+
+    expect(plugin.getHeaderCheckboxState()).toEqual({ state: 'mixed', selected: 2, total: 5 });
+
+    destroy();
+  });
+
+  it('should read the own cell meta of a row the filters removed', () => {
+    const { hot, plugin, selectedValues, destroy } = createGrid({
+      filters: true,
+      cells(row: number, column: number) {
+        return row === 3 && column === 1 ? { readOnly: true } : {};
+      },
+    });
+    const filters = hot.getPlugin('filters');
+
+    filters.addCondition(0, 'neq', [3]);
+    filters.filter();
+
+    expect(hot.countRows()).toBe(4);
+    // The read-only row is out of the count while filtered out, as it is while shown.
+    expect(plugin.getHeaderCheckboxState()).toEqual({ state: 'mixed', selected: 1, total: 4 });
+
+    plugin.selectAll();
+
+    expect(selectedValues()).toEqual([true, true, true, false, true]);
+    expect(plugin.getHeaderCheckboxState()).toEqual({ state: 'checked', selected: 4, total: 4 });
+
+    destroy();
+  });
 });

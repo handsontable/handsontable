@@ -29,7 +29,9 @@
   <!--
     The RowSelection plugin (PRO-87): row checkboxes in an extra row header column (or in the first
     column with ?location=firstColumn), and a "select all" checkbox above them. Rows whose status is
-    "archived" cannot be selected. ?scope= picks the "select all" scope.
+    "archived" cannot be selected. ?scope= picks the "select all" scope; ?click=, ?checkboxes= (`even`
+    is the function form), ?hideDisabled=, ?headerCheckbox=, and ?mode= set the options of the same
+    names. `window.vetoSelection = true` makes `beforeRowSelectionChange` veto every change.
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -43,13 +45,27 @@
     const checkboxLocation = ({ rowHeader: 'rowHeader', firstColumn: 'firstColumn' })[htParams.get('location') ?? 'rowHeader'];
     const scope = ({ all: 'all', filtered: 'filtered' })[htParams.get('scope') ?? 'all'];
     const rowHeaders = ({ true: true, false: false })[htParams.get('rowHeaders') ?? 'true'];
+    const enableClickSelection = ({
+      false: false, true: true, enableSelection: 'enableSelection', enableDeselection: 'enableDeselection',
+    })[htParams.get('click') ?? 'false'];
+    // `even` is the function form: only the rows at even physical indexes show a checkbox.
+    const checkboxes = ({
+      true: true, false: false, even: (rowData, physicalRow) => physicalRow % 2 === 0,
+    })[htParams.get('checkboxes') ?? 'true'];
+    const hideDisabledCheckboxes = ({ true: true, false: false })[htParams.get('hideDisabled') ?? 'false'];
+    const headerCheckbox = ({ true: true, false: false })[htParams.get('headerCheckbox') ?? 'true'];
+    const mode = ({ multiRow: 'multiRow', singleRow: 'singleRow' })[htParams.get('mode') ?? 'multiRow'];
 
-    if (!checkboxLocation || !scope || rowHeaders === undefined) {
-      throw new Error('Unknown ?location=, ?scope=, or ?rowHeaders= value');
+    if (!checkboxLocation || !scope || rowHeaders === undefined || enableClickSelection === undefined ||
+      checkboxes === undefined || hideDisabledCheckboxes === undefined || headerCheckbox === undefined || !mode) {
+      throw new Error('Unknown ?location=, ?scope=, ?rowHeaders=, ?click=, ?checkboxes=, ?hideDisabled=, ' +
+        '?headerCheckbox=, or ?mode= value');
     }
 
     container.className = `ht-theme-${window.htTheme}`;
     window.rowSelectionEvents = [];
+    // A spec sets it to make `beforeRowSelectionChange` veto every change.
+    window.vetoSelection = false;
 
     window.hot = new Handsontable(container, {
       data: Array.from({ length: 8 }, (_, index) => ({
@@ -61,12 +77,21 @@
       rowHeaders,
       navigableHeaders: true,
       filters: true,
+      contextMenu: true,
       height: 'auto',
       width: 400,
       rowSelection: {
         checkboxLocation,
         selectAll: scope,
         isRowSelectable: rowData => rowData.status !== 'archived',
+        enableClickSelection,
+        checkboxes,
+        hideDisabledCheckboxes,
+        headerCheckbox,
+        mode,
+      },
+      beforeRowSelectionChange() {
+        return !window.vetoSelection;
       },
       afterRowSelectionChange(selected, deselected, source) {
         window.rowSelectionEvents.push({ selected, deselected, source });

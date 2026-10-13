@@ -1,17 +1,16 @@
 import { type Locator, type Page, expect } from '@playwright/test';
 import { awaitBundle } from '../bundle';
+import { cellSelection, rowSelectionSources, selectedRows, verticalOffsetInHeader } from '../rowSelection';
 
 // Deliberately not `extends Window`: `windowTypes.ts` already declares `hot` globally with the
 // full instance type, and narrowing it here would be a TS2430 conflict. Every access is cast.
 interface FixtureWindow {
   hot: {
     getSourceData(): Array<{ done: unknown }>;
-    getSelected(): number[][] | undefined;
     getPlugin(name: 'columnSorting'): { getSortConfig(): unknown[] };
     getPlugin(name: 'undoRedo'): { undo(): void };
-    getPlugin(name: 'rowSelection'): { getSelectedRows(): number[] };
+    getSelectedRangeLast(): { highlight: { row: number; col: number } } | undefined;
   };
-  rowSelectionEvents: Array<{ selected: number[]; deselected: number[]; source: string }>;
 }
 
 /**
@@ -32,11 +31,12 @@ export class CheckboxHeaderPage {
 
   /**
    * Opens the fixture in the "header" mode (CheckboxHeader alone) or the "bound" mode (RowSelection
-   * uses the column).
+   * uses the column), optionally with `enableClickSelection: true` (bound mode only).
    */
-  async goto(mode: 'header' | 'bound' = 'header'): Promise<void> {
+  async goto(mode: 'header' | 'bound' = 'header', { click = false } = {}): Promise<void> {
     await this.page.goto(
-      `/tests/fixtures/demo/checkbox-header.html?theme=${this.theme}&bundle=${this.bundle}&mode=${mode}`
+      `/tests/fixtures/demo/checkbox-header.html?theme=${this.theme}&bundle=${this.bundle}&mode=${mode}` +
+      `&click=${click}`
     );
 
     await awaitBundle(this.page);
@@ -75,7 +75,7 @@ export class CheckboxHeaderPage {
    * The cell selection, which a header checkbox press must leave alone.
    */
   async cellSelection(): Promise<number[][] | undefined> {
-    return this.page.evaluate(() => (window as unknown as FixtureWindow).hot.getSelected());
+    return cellSelection(this.page);
   }
 
   /**
@@ -94,30 +94,43 @@ export class CheckboxHeaderPage {
   }
 
   /**
+   * Undoes the last action with the keyboard shortcut, the way a user does: the grid must be
+   * listening, so a cell of the name column is clicked first.
+   */
+  async undoWithKeyboard(): Promise<void> {
+    await this.cell(4, 0).click();
+    await this.page.keyboard.press('ControlOrMeta+z');
+  }
+
+  /**
+   * The focused cell or header (the highlight of the last selection range), or `null`.
+   */
+  async focusedCell(): Promise<{ row: number; col: number } | null> {
+    return this.page.evaluate(() => {
+      const range = (window as unknown as FixtureWindow).hot.getSelectedRangeLast();
+
+      return range ? { row: range.highlight.row, col: range.highlight.col } : null;
+    });
+  }
+
+  /**
    * The rows the RowSelection plugin reports as selected (bound mode).
    */
   async selectedRows(): Promise<number[]> {
-    return this.page.evaluate(() => (window as unknown as FixtureWindow).hot
-      .getPlugin('rowSelection').getSelectedRows());
+    return selectedRows(this.page);
   }
 
   /**
    * The sources of the `afterRowSelectionChange` calls so far (bound mode).
    */
   async selectionSources(): Promise<string[]> {
-    return this.page.evaluate(() => (window as unknown as FixtureWindow).rowSelectionEvents
-      .map(event => event.source));
+    return rowSelectionSources(this.page);
   }
 
   /**
    * How far the header checkbox's vertical center sits from its header cell's, in pixels.
    */
   async headerVerticalOffset(): Promise<number> {
-    return this.headerCheckbox().evaluate((element) => {
-      const input = element.getBoundingClientRect();
-      const cell = element.closest('th')!.getBoundingClientRect();
-
-      return (input.top + (input.height / 2)) - (cell.top + (cell.height / 2));
-    });
+    return verticalOffsetInHeader(this.headerCheckbox());
   }
 }

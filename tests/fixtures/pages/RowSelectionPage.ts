@@ -1,5 +1,6 @@
 import { type Locator, type Page, expect } from '@playwright/test';
 import { awaitBundle } from '../bundle';
+import { cellSelection, rowSelectionSources, selectedRows, verticalOffsetInHeader } from '../rowSelection';
 
 // Deliberately not `extends Window`: `windowTypes.ts` already declares `hot` globally with the
 // full instance type, and narrowing it here would be a TS2430 conflict. Every access is cast.
@@ -14,17 +15,27 @@ interface FixtureWindow {
       addCondition(column: number, name: string, args: unknown[]): void;
       filter(): void;
     };
-    getSelected(): number[][] | undefined;
     getSettings(): { rowSelection: Record<string, unknown> };
     updateSettings(settings: Record<string, unknown>): void;
     selectCell(row: number, col: number, endRow?: number, endCol?: number): void;
     getActiveEditor(): { isOpened(): boolean } | undefined;
+    getSelectedRangeLast(): {
+      getTopStartCorner(): { row: number; col: number };
+      getBottomEndCorner(): { row: number; col: number };
+    } | undefined;
     getDataAtCell(row: number, col: number): unknown;
     countRows(): number;
+    getSourceData(): Array<{ name: string }>;
   };
   rowSelectionEvents: Array<{ selected: number[]; deselected: number[]; source: string }>;
   fetchCount: number;
+  vetoSelection: boolean;
 }
+
+/**
+ * The `enableClickSelection` forms.
+ */
+export type ClickMode = boolean | 'enableSelection' | 'enableDeselection';
 
 /**
  * Page Object for the RowSelection fixture (PRO-87). The checkboxes are found by their accessible
@@ -43,12 +54,24 @@ export class RowSelectionPage {
   }
 
   /**
-   * Opens the fixture with the checkbox location, the "select all" scope, and the row numbers on or off.
+   * Opens the fixture with the checkbox location, the "select all" scope, the row numbers on or off,
+   * and the plugin options of the same names (`checkboxes: 'even'` is the function form, which shows
+   * a checkbox on the even rows only).
    */
-  async goto({ location = 'rowHeader', scope = 'all', rowHeaders = true } = {}): Promise<void> {
+  async goto({
+    location = 'rowHeader',
+    scope = 'all',
+    rowHeaders = true,
+    click = false as ClickMode,
+    checkboxes = true as boolean | 'even',
+    hideDisabled = false,
+    headerCheckbox = true,
+    mode = 'multiRow' as 'multiRow' | 'singleRow',
+  } = {}): Promise<void> {
     await this.page.goto(
       `/tests/fixtures/demo/row-selection.html?theme=${this.theme}&bundle=${this.bundle}` +
-      `&location=${location}&scope=${scope}&rowHeaders=${rowHeaders}`
+      `&location=${location}&scope=${scope}&rowHeaders=${rowHeaders}&click=${click}` +
+      `&checkboxes=${checkboxes}&hideDisabled=${hideDisabled}&headerCheckbox=${headerCheckbox}&mode=${mode}`
     );
 
     await awaitBundle(this.page);
@@ -133,20 +156,14 @@ export class RowSelectionPage {
    * evaluation, so a re-render cannot land between the two reads.
    */
   async verticalOffsetInHeader(checkbox: Locator): Promise<number> {
-    return checkbox.evaluate((element) => {
-      const input = element.getBoundingClientRect();
-      const cell = element.closest('th')!.getBoundingClientRect();
-
-      return (input.top + (input.height / 2)) - (cell.top + (cell.height / 2));
-    });
+    return verticalOffsetInHeader(checkbox);
   }
 
   /**
    * The selected rows, in visual indexes.
    */
   async selectedRows(): Promise<number[]> {
-    return this.page.evaluate(() => (window as unknown as FixtureWindow).hot
-      .getPlugin('rowSelection').getSelectedRows());
+    return selectedRows(this.page);
   }
 
   /**
@@ -161,15 +178,14 @@ export class RowSelectionPage {
    * The cell selection, which a checkbox press must leave alone.
    */
   async cellSelection(): Promise<number[][] | undefined> {
-    return this.page.evaluate(() => (window as unknown as FixtureWindow).hot.getSelected());
+    return cellSelection(this.page);
   }
 
   /**
    * The sources of the `afterRowSelectionChange` calls so far.
    */
   async eventSources(): Promise<string[]> {
-    return this.page.evaluate(() => (window as unknown as FixtureWindow).rowSelectionEvents
-      .map(event => event.source));
+    return rowSelectionSources(this.page);
   }
 
   /**
@@ -234,9 +250,141 @@ export class RowSelectionPage {
   }
 
   /**
+   * The names of every row in the source data, filtered-out rows included.
+   */
+  async names(): Promise<string[]> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).hot.getSourceData().map(row => row.name));
+  }
+
+  /**
    * The number of rows the grid shows.
    */
   async countRows(): Promise<number> {
     return this.page.evaluate(() => (window as unknown as FixtureWindow).hot.countRows());
+  }
+
+  /**
+   * Returns the plugin's cell in the row header column: the header cell next to the data (the
+   * plugin pushes its column last), in the inline-start clone.
+   */
+  rowHeaderCell(row: number): Locator {
+    return this.page.locator('.ht_clone_inline_start tbody tr').nth(row).locator('th').last();
+  }
+
+  /**
+   * Returns the corner cell above the plugin's row header column.
+   */
+  cornerCell(): Locator {
+    return this.page.locator('.ht_clone_top_inline_start_corner thead th').last();
+  }
+
+  /**
+   * Returns every row checkbox the inline-start clone shows, by accessible name.
+   */
+  rowCheckboxesInHeader(): Locator {
+    return this.page.locator('.ht_clone_inline_start').getByRole('checkbox', { name: /^Select row \d+$/ });
+  }
+
+  /**
+   * Returns the checkbox input a first column cell holds, visible or the hidden placeholder. Found
+   * by class, because a placeholder is hidden from the accessibility tree.
+   */
+  firstColumnCheckboxInput(row: number): Locator {
+    return this.cell(row, 0).locator('input.htRowSelectionCheckbox');
+  }
+
+  /**
+   * The x coordinate where a cell's text starts, in pixels from the viewport's left edge. Measured
+   * on the text node itself, in one evaluation.
+   */
+  async valueTextX(row: number, col: number): Promise<number> {
+    return this.cell(row, col).evaluate((td) => {
+      const walker = td.ownerDocument.createTreeWalker(td, NodeFilter.SHOW_TEXT);
+      let node = walker.nextNode();
+
+      while (node && !node.textContent?.trim()) {
+        node = walker.nextNode();
+      }
+
+      if (!node) {
+        throw new Error('The cell has no text.');
+      }
+
+      const range = td.ownerDocument.createRange();
+
+      range.selectNodeContents(node);
+
+      return range.getBoundingClientRect().left;
+    });
+  }
+
+  /**
+   * Presses the mouse at the center of an element's layout box, whatever is painted there. A
+   * `visibility: hidden` element is not hit-tested, so the press lands on what is underneath it.
+   */
+  async pressAtBoxOf(locator: Locator): Promise<void> {
+    const box = await locator.boundingBox();
+
+    if (!box) {
+      throw new Error('The element has no layout box.');
+    }
+
+    await this.page.mouse.click(box.x + (box.width / 2), box.y + (box.height / 2));
+  }
+
+  /**
+   * The cursor the element shows.
+   */
+  async cursorOf(locator: Locator): Promise<string> {
+    return locator.evaluate(element => getComputedStyle(element).cursor);
+  }
+
+  /**
+   * The corners of the last cell selection range, or `null` with no cell selection.
+   */
+  async lastSelectedRange(): Promise<{ from: { row: number; col: number }; to: { row: number; col: number } } | null> {
+    return this.page.evaluate(() => {
+      const range = (window as unknown as FixtureWindow).hot.getSelectedRangeLast();
+
+      if (!range) {
+        return null;
+      }
+
+      const from = range.getTopStartCorner();
+      const to = range.getBottomEndCorner();
+
+      return { from: { row: from.row, col: from.col }, to: { row: to.row, col: to.col } };
+    });
+  }
+
+  /**
+   * Makes `beforeRowSelectionChange` veto every change, or stop vetoing.
+   */
+  async setVeto(veto: boolean): Promise<void> {
+    await this.page.evaluate((value) => {
+      (window as unknown as FixtureWindow).vetoSelection = value;
+    }, veto);
+  }
+
+  /**
+   * Opens the context menu with a right-click on a data cell, and returns it once it is on screen.
+   */
+  async openContextMenu(row: number, col: number): Promise<Locator> {
+    await this.cell(row, col).click({ button: 'right' });
+
+    const menu = this.page.locator('.htContextMenu:visible').last();
+
+    await expect(menu).toBeVisible();
+
+    return menu;
+  }
+
+  /**
+   * Returns a context menu item by its label (a string matches the whole label).
+   */
+  menuItem(menu: Locator, label: string | RegExp): Locator {
+    const pattern = typeof label === 'string' ? new RegExp(`^${label.replace(/[()]/g, '\\$&')}$`) : label;
+
+    return menu.locator('.ht_master td').filter({ hasText: pattern });
   }
 }
