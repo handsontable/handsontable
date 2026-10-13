@@ -117,9 +117,11 @@ export class IntlDatetimeEditor extends TextEditor {
   }
 
   /**
-   * Selects all text in the input element when the editor receives focus.
+   * Focuses the native input and selects its text. Firefox does not move the focus on `select()`
+   * for this input type.
    */
   focus(): void {
+    this.TEXTAREA.focus({ preventScroll: true });
     this.TEXTAREA.select();
   }
 
