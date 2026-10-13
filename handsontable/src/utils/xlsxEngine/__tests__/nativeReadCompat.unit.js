@@ -1767,22 +1767,36 @@ describe('native reader compatibility: a bare <c> with no value at the end of a 
 
   it('should not scan the array formulas of other rows for every bare cell', () => {
     // Each bare `<c>` was checked against every `<f t="array" ref>` range of the sheet, and bare
-    // cells reserve no slot, so 20,000 array formulas and 400,000 bare cells cost eight billion
-    // comparisons (about 7 s; minutes at the byte budget). The ranges are now indexed by row.
-    let rows = '';
+    // cells reserve no slot, so 20,000 array formulas and 100,000 bare cells cost two billion
+    // comparisons (seconds; minutes at the byte budget). The ranges are now indexed by row. An
+    // absolute time bound flaked on a loaded CI runner, so the read is timed against the same sheet
+    // with plain cells in place of the array formulas: indexed, the two cost about the same; scanned,
+    // the array sheet took more than 20 times as long.
+    const sheetOf = (cell) => {
+      let rows = '';
 
-    for (let r = 1; r <= 20000; r++) {
-      rows += `<row r="${r}"><c r="A${r}"><f t="array" ref="A${r}">1</f><v>1</v></c></row>`;
-    }
+      for (let r = 1; r <= 20000; r++) {
+        rows += `<row r="${r}">${cell(r)}</row>`;
+      }
 
-    rows += `<row r="20001">${'<c r="B20001"/>'.repeat(400000)}</row>`;
+      return worksheetXml(`${rows}<row r="20001">${'<c r="B20001"/>'.repeat(100000)}</row>`);
+    };
+    const timeRead = (xml) => {
+      const start = performance.now();
+      const { sheet } = readSheet(xml);
 
-    const start = Date.now();
-    const { sheet } = readSheet(worksheetXml(rows));
+      expect(sheet.rows).toHaveLength(20001);
+      expect(sheet.rows[20000]).toHaveLength(0);
 
-    expect(sheet.rows).toHaveLength(20001);
-    expect(sheet.rows[20000]).toHaveLength(0);
-    expect(Date.now() - start).toBeLessThan(2000);
+      return performance.now() - start;
+    };
+    const plain = sheetOf(r => `<c r="A${r}"><v>1</v></c>`);
+    const arrays = sheetOf(r => `<c r="A${r}"><f t="array" ref="A${r}">1</f><v>1</v></c>`);
+
+    timeRead(plain);
+    timeRead(arrays);
+
+    expect(timeRead(arrays)).toBeLessThan((timeRead(plain) * 5) + 100);
   });
 
   it('should refuse a row whose array formulas every bare cell must be checked against, as a limit', () => {
