@@ -980,7 +980,9 @@ test('renderPage draws the "Where the time goes" section from the inlined durati
   assert.ok(html.includes('fix/x\\u003c!--\\u003cscript>y'), 'nor can a branch open a comment in it');
   assert.equal((html.match(/<\/script>/g) ?? []).length, 3);
 
-  const data = html.match(/<script id="durations" type="application\/json">([\s\S]*?)<\/script>/)[1];
+  const dataOpen = '<script id="durations" type="application/json">';
+  const dataStart = html.indexOf(dataOpen) + dataOpen.length;
+  const data = html.slice(dataStart, html.indexOf('</script>', dataStart));
 
   assert.ok(!data.includes('<'), 'no `<` reaches the data element');
   assert.deepEqual(JSON.parse(data), JSON.parse(JSON.stringify(view)));
@@ -991,7 +993,7 @@ test('renderPage draws the "Where the time goes" section from the inlined durati
     'a page rendered before any durations exist still parses');
 
   // The page's own code must at least compile: a syntax error would blank the whole page, ledger included.
-  const code = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(match => match[1]);
+  const code = html.split('<script>').slice(1).map(part => part.slice(0, part.indexOf('</script>')));
 
   assert.equal(code.length, 1);
   assert.doesNotThrow(() => new vm.Script(code[0]));

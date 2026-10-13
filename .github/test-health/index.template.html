@@ -325,6 +325,12 @@
     return withHour ? label + ' ' + new Date(ms).toISOString().slice(11, 13) + 'h' : label;
   }
   function when(iso) { return iso ? iso.replace('T', ' ').replace(/:\d\d(\.\d+)?Z$/, 'Z') : '?'; }
+  // A link only ever leads to a GitHub page. The URL is data from the page itself, and data must never become a
+  // `javascript:` link, so the scheme and host come from a constant and only the path from the data.
+  function githubPage(url) {
+    var prefix = 'https://github.com/';
+    return typeof url === 'string' && url.indexOf(prefix) === 0 ? prefix + url.slice(prefix.length) : null;
+  }
   function attemptUrl(url, attempt) { return attempt > 1 && url ? url + '/attempts/' + attempt : url; }
 
   // A marker per run kind: shape AND color, so the kind never rests on color alone.
@@ -464,7 +470,7 @@
         hit.addEventListener('mousemove', function(event) { showTip(event, point); });
         hit.addEventListener('mouseleave', function() { tip.hidden = true; });
         hit.addEventListener('click', function() {
-          var url = attemptUrl(view.runs[point[0]][3], point[5]);
+          var url = githubPage(attemptUrl(view.runs[point[0]][3], point[5]));
           if (url) { window.open(url, '_blank', 'noopener'); }
         });
       });
@@ -509,8 +515,9 @@
   view.sources.forEach(function(source, index) {
     if (index) { sources.appendChild(document.createTextNode('; ')); }
     var link = document.createElement('a');
+    var href = githubPage(source.runUrl);
     // Already the attempt's page: the reducer adds /attempts/N when the rows came from a re-run.
-    link.href = source.runUrl;
+    if (href) { link.href = href; }
     link.textContent = source.leg + ' — ' + source.branch + ' ' + source.headSha.slice(0, 10);
     sources.appendChild(link);
     sources.appendChild(document.createTextNode(' (' + minutes(source.wallMs) + ' min, ' + source.tests + ' tests)'));
