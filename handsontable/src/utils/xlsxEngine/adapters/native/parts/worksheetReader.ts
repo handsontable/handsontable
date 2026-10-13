@@ -401,10 +401,12 @@ class WorksheetParser {
   #declaredRows = 0;
 
   /**
-   * The cell ranges the `<f t="array" ref>` formulas read so far cover. A bare `<c>` inside one is a
-   * covered cell of the array and still widens its row, unlike any other bare cell.
+   * The column spans the `<f t="array" ref>` formulas read so far cover, by 0-based row. A bare `<c>`
+   * inside one is a covered cell of the array and still widens its row, unlike any other bare cell.
+   * Indexed by row because bare cells reserve no slot: one list of every range, scanned per bare
+   * cell, cost ranges x bare cells from a small file.
    */
-  #arrayRanges: Array<{ startRow: number; startCol: number; endRow: number; endCol: number }> = [];
+  #arrayColsByRow = new Map<number, Array<{ startCol: number; endCol: number }>>();
 
   /**
    * How many `<sheetView>` elements have opened. A `<pane>` is read only inside the first one.
@@ -592,8 +594,8 @@ class WorksheetParser {
     this.#spanCells += cells;
 
     if (this.#spanCells > MAX_SHEET_CELLS) {
-      throwLimitExceeded(`The sheet "${this.#ctx.name}" declares column and validation ranges covering more than `
-        + `${MAX_SHEET_CELLS} cells, above the limit this reader accepts.`);
+      throwLimitExceeded(`The sheet "${this.#ctx.name}" declares column, validation, merge and array formula ranges `
+        + `covering more than ${MAX_SHEET_CELLS} cells, above the limit this reader accepts.`);
     }
   }
 
@@ -1040,17 +1042,41 @@ class WorksheetParser {
   #noteArrayRange(attrs: XmlAttributes): void {
     const range = attrs.t === 'array' && attrs.ref !== undefined ? parseRangeRef(attrs.ref) : null;
 
-    if (range) {
-      this.#arrayRanges.push(range);
+    if (!range) {
+      return;
+    }
+
+    // Charged before it is walked, one unit per row the index entry is added to, like the other spans.
+    this.#chargeSpan(range.endRow - range.startRow + 1);
+
+    const cols = { startCol: range.startCol, endCol: range.endCol };
+
+    for (let row = range.startRow - 1; row < range.endRow; row++) {
+      const spans = this.#arrayColsByRow.get(row);
+
+      if (spans) {
+        spans.push(cols);
+      } else {
+        this.#arrayColsByRow.set(row, [cols]);
+      }
     }
   }
 
   /**
-   * Whether 0-based coordinates fall inside a range an array formula covers.
+   * Whether 0-based coordinates fall inside a range an array formula covers. Only the row's own
+   * spans are scanned, and that scan is charged: many array formulas on one row, each checked by
+   * many bare cells beside them, would otherwise still multiply.
    */
   #isInArrayRange(row: number, col: number): boolean {
-    return this.#arrayRanges.some(range => row + 1 >= range.startRow && row + 1 <= range.endRow
-      && col + 1 >= range.startCol && col + 1 <= range.endCol);
+    const spans = this.#arrayColsByRow.get(row);
+
+    if (!spans) {
+      return false;
+    }
+
+    this.#chargeSpan(spans.length);
+
+    return spans.some(span => col + 1 >= span.startCol && col + 1 <= span.endCol);
   }
 
   /**

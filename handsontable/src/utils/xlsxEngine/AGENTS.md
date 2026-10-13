@@ -523,10 +523,14 @@ directions.
   `<f>` and either `s` absent/`0` or an xf carrying nothing only makes its row exist. Excel writes
   `<c r="IU1"/><c r="IV1"/>` on formatted rows and LibreOffice `<c r="AMJ1" s="0"/>`, which grew the
   sheet to 256 or 1,024 columns and got 5,000-row sheets refused by the cell cap. Two exceptions keep
-  the slot: a bare cell inside an `<f t="array" ref>` range (`#arrayRanges`; ClosedXML's
+  the slot: a bare cell inside an `<f t="array" ref>` range (`#arrayColsByRow`; ClosedXML's
   `ArrayFormula.xlsx` stays 2 x 2), and a cell whose `<v>` was THERE but decoded to nothing (an
   impossible `t="d"`, an unresolved shared string, `<v>NaN</v>`) — keying on "value is null" alone
-  emptied those rows. Merge members are padded by `#materializeMerges` regardless.
+  emptied those rows. Merge members are padded by `#materializeMerges` regardless. **The array lookup
+  is indexed by row and charged**: bare cells reserve no slot, so one flat list of array ranges
+  scanned per bare cell cost ranges x bare cells (20,000 formulas x 400,000 bare cells took 9.8 s).
+  Indexing charges each range's row count to `#chargeSpan`, and each lookup charges its row's span
+  count (`nativeReadCompat.unit.js`).
 - **A `<pane>` is read only inside the FIRST `<sheetView>`** (`#inFirstSheetView`, cleared on
   `</sheetView>`). Excel's legacy Custom Views keep their own `<pane>` in
   `<customSheetViews><customSheetView>`, which froze an unfrozen sheet or overrode the real split.

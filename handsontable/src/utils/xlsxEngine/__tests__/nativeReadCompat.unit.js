@@ -8,6 +8,7 @@ import {
   MAX_FORMULA_LENGTH, MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_TRANSLATED_FORMULA_CHARS, MAX_WORKBOOK_CELLS,
   isLimitError,
 } from '../limits';
+import { colIndexToLetter } from '../cellRef';
 import { mapFormulaReferences, REFERENCE_REGEX } from '../formulaRefs';
 import { createWorkbookSnapshot } from '../model';
 import { SheetBuilder } from '../builder';
@@ -1762,6 +1763,36 @@ describe('native reader compatibility: a bare <c> with no value at the end of a 
 
     expect(sheet.rows[0]).toHaveLength(2);
     expect(sheet.rows[1]).toHaveLength(2);
+  });
+
+  it('should not scan the array formulas of other rows for every bare cell', () => {
+    // Each bare `<c>` was checked against every `<f t="array" ref>` range of the sheet, and bare
+    // cells reserve no slot, so 20,000 array formulas and 400,000 bare cells cost eight billion
+    // comparisons (about 7 s; minutes at the byte budget). The ranges are now indexed by row.
+    let rows = '';
+
+    for (let r = 1; r <= 20000; r++) {
+      rows += `<row r="${r}"><c r="A${r}"><f t="array" ref="A${r}">1</f><v>1</v></c></row>`;
+    }
+
+    rows += `<row r="20001">${'<c r="B20001"/>'.repeat(400000)}</row>`;
+
+    const start = Date.now();
+    const { sheet } = readSheet(worksheetXml(rows));
+
+    expect(sheet.rows).toHaveLength(20001);
+    expect(sheet.rows[20000]).toHaveLength(0);
+    expect(Date.now() - start).toBeLessThan(2000);
+  });
+
+  it('should refuse a row whose array formulas every bare cell must be checked against, as a limit', () => {
+    // On one row the scan cannot be skipped, so it is charged against the sheet's span budget:
+    // 3,000 array formulas and 2,000 bare cells beside them is six million checks.
+    const arrays = Array.from({ length: 3000 }, (_, i) => `<c r="${colIndexToLetter(i + 1)}1"><f t="array" `
+      + `ref="${colIndexToLetter(i + 1)}1">1</f><v>1</v></c>`).join('');
+    const xml = worksheetXml(`<row r="1">${arrays}${'<c r="ZZZ1"/>'.repeat(2000)}</row>`);
+
+    expect(() => readSheet(xml)).toThrow(/array formula ranges covering more than 5000000 cells/);
   });
 
   it('should not widen the sheet for s="0" when the default xf carries formatting', () => {

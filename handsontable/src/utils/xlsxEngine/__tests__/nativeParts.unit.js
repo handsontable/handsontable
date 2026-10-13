@@ -1325,7 +1325,7 @@ describe('parseWorksheet', () => {
       + `<dataValidations count="1"><dataValidation type="list" sqref="${sqref}">`
       + '<formula1>&quot;a,b&quot;</formula1></dataValidation></dataValidations></worksheet>';
 
-    expect(() => readSheet(xml)).toThrow(/column and validation ranges covering more than/);
+    expect(() => readSheet(xml)).toThrow(/column, validation, merge and array formula ranges covering more than/);
   });
 
   it('should refuse merges that repeat a whole-sheet range', () => {
@@ -1343,7 +1343,7 @@ describe('parseWorksheet', () => {
     const xml = `<worksheet ${NS}><dimension ref="A1:A1048576"/><sheetData><row r="1048576"/></sheetData>`
       + `<mergeCells count="4300">${mergeCells}</mergeCells></worksheet>`;
 
-    expect(() => readSheet(xml)).toThrow(/column and validation ranges covering more than/);
+    expect(() => readSheet(xml)).toThrow(/column, validation, merge and array formula ranges covering more than/);
   });
 
   it('should refuse a sheet the dimension declares above the caps before reading a row', () => {
