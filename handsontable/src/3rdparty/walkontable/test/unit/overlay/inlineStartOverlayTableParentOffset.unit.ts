@@ -30,9 +30,9 @@ describe('InlineStartOverlay#getTableParentOffset', () => {
 
     return {
       trimmingContainer: windowOwnsAxis ? rootWindow : {},
-      mainTableScrollableElement: windowScrolls ? rootWindow : {},
       wtSettings: { getSetting: () => preventOverflow },
       isRtl: () => isRtl,
+      isScrolledByWindow: () => windowScrolls,
       deps: {
         rootWindow,
         getWtTable: () => ({ holderOffset: { left, top: 0 }, holderInlineStartMargin: margin }),

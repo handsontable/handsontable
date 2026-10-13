@@ -56,7 +56,7 @@ test.describe('grid offset from the page edge inside a vertically clipping ances
     expect(offset).toEqual(twin);
     // The selected cell clears the row header, and every keyboard step does.
     expect(Number.isFinite(offset.selectedCellInset)).toBe(true);
-    expect(offset.selectedCellInset).toBeGreaterThanOrEqual(offset.rowHeaderWidth - 1);
+    expect(offset.selectedCellInset).toBeGreaterThanOrEqual(-1);
     expect(offset.stepsUnderHeader).toBe(0);
   });
 
@@ -66,6 +66,16 @@ test.describe('grid offset from the page edge inside a vertically clipping ances
     expect(offset).toEqual(twin);
     expect(offset.stepsUnderHeader).toBe(0);
     expect(offset.cloneInset).toBe(0);
+  });
+
+  test('places the inline-start overlay offset at the holder scroll position (frozen columns)', async() => {
+    // The backlight of a column move reads this offset. The page offset is not part of the holder's scroll
+    // position, so the two are equal; before, the offset was short by the margin.
+    await grid.goto({ overflowY: 'clip', margin: MARGIN, fixedColumnsStart: 2 });
+    const { overlayOffset, holderScroll } = await grid.overlayOffset();
+
+    expect(holderScroll).toBeGreaterThan(0);
+    expect(overlayOffset).toBe(holderScroll);
   });
 
   test('lays out and scrolls like the same grid with no offset (RTL)', async() => {

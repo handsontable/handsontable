@@ -183,7 +183,7 @@ describe('measureWorkspaceWidth', () => {
         },
         getInlineStartOverlay: () => ({
           trimmingContainer: window,
-          mainTableScrollableElement: windowScrolls ? window : holder,
+          isScrolledByWindow: () => windowScrolls,
         }),
       },
       wtTable: { holder },

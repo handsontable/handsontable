@@ -403,7 +403,7 @@ export class InlineStartOverlay extends Overlay {
     if (
       !preventOverflow &&
       this.trimmingContainer === this.deps.rootWindow &&
-      this.mainTableScrollableElement === this.deps.rootWindow
+      this.isScrolledByWindow()
     ) {
       const wtTable = this.deps.getWtTable();
 

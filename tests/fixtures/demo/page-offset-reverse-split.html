@@ -20,20 +20,31 @@
       throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
     }
 
-    // The layout knobs, each mapped to a literal or a clamped integer.
-    window.htLayout = {
-      dir: ({ ltr: 'ltr', rtl: 'rtl' })[htParams.get('dir') ?? 'ltr'],
-      overflowY: ({ clip: 'clip', hidden: 'hidden', auto: 'auto', visible: 'visible' })[htParams.get('overflowY') ?? 'clip'],
-      preventOverflow: ({ none: undefined, vertical: 'vertical' })[htParams.get('preventOverflow') ?? 'none'],
-      margin: Math.min(Math.max(parseInt(htParams.get('margin') ?? '0', 10) || 0, 0), 1000),
-      stretchH: ({ none: 'none', all: 'all' })[htParams.get('stretchH') ?? 'none'],
-      columns: Math.min(Math.max(parseInt(htParams.get('columns') ?? '100', 10) || 100, 1), 100),
-      fixedColumnsStart: Math.min(Math.max(parseInt(htParams.get('fixedColumnsStart') ?? '0', 10) || 0, 0), 5),
+    // The layout knobs, each mapped to a literal or a clamped integer. A value outside its allowlist
+    // is recorded as a build error, which `awaitFixtureBuilt` rethrows, so a typo fails the test instead
+    // of running a different layout.
+    const pick = (name, allowed, fallback) => {
+      const value = htParams.get(name) ?? fallback;
+
+      if (!Object.hasOwn(allowed, value)) {
+        window.htBuildError = 'Unknown ?' + name + '= value: ' + JSON.stringify(value);
+      }
+
+      return allowed[value];
     };
-    if (!window.htLayout.dir || !window.htLayout.overflowY || !window.htLayout.stretchH) {
-      throw new Error('Unknown layout param: ' + location.search);
-    }
-    document.documentElement.dir = window.htLayout.dir;
+    const clamp = (name, max, fallback) =>
+      Math.min(Math.max(parseInt(htParams.get(name) ?? fallback, 10) || 0, 0), max);
+
+    window.htLayout = {
+      dir: pick('dir', { ltr: 'ltr', rtl: 'rtl' }, 'ltr'),
+      overflowY: pick('overflowY', { clip: 'clip', hidden: 'hidden', auto: 'auto', visible: 'visible' }, 'clip'),
+      preventOverflow: pick('preventOverflow', { none: undefined, vertical: 'vertical' }, 'none'),
+      stretchH: pick('stretchH', { none: 'none', all: 'all' }, 'none'),
+      columns: Math.max(clamp('columns', 100, '100'), 1),
+      margin: clamp('margin', 1000, '0'),
+      fixedColumnsStart: clamp('fixedColumnsStart', 5, '0'),
+    };
+    document.documentElement.dir = window.htLayout.dir ?? 'ltr';
   </script>
   <style> body { font-family: sans-serif; margin: 0; } </style>
 </head>
@@ -68,6 +79,10 @@
     };
 
     try {
+      if (window.htBuildError) {
+        throw new Error(window.htBuildError);
+      }
+
       window.hot = new Handsontable(container, {
         data: Array.from({ length: 60 }, (_, r) => Array.from({ length: columns }, (_, c) => `${r}-${c}`)),
         colWidths: 100,

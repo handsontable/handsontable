@@ -31,11 +31,12 @@ export interface PageOffsetMetrics {
   firstFullyVisible: number;
   lastFullyVisible: number;
   /**
-   * The inline-start edge of the cell `selectCell` scrolled in from far away, measured from the holder's.
+   * How far the cell `selectCell` scrolled in from far away sits past the row header and frozen columns
+   * (negative: under them).
    */
   selectedCellInset: number;
   /**
-   * The row header's width: the least a cell can sit from the holder's inline-start edge, plus the frozen columns.
+   * The row header's width.
    */
   rowHeaderWidth: number;
   /**
@@ -55,7 +56,7 @@ interface FixtureHot {
   getCell(row: number, col: number): HTMLElement | null;
   view: { _wt: {
     wtTable: { holder: HTMLElement, getRenderedColumnsCount(): number },
-    wtOverlays: { inlineStartOverlay: { mainTableScrollableElement: unknown } },
+    wtOverlays: { inlineStartOverlay: { mainTableScrollableElement: unknown, getOverlayOffset(): number } },
   } };
 }
 
@@ -68,7 +69,6 @@ export class PageOffsetReverseSplitPage {
   readonly theme: string;
   readonly bundle: string;
   readonly grid: Locator;
-  private frozenWidth = 0;
 
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
@@ -81,9 +81,8 @@ export class PageOffsetReverseSplitPage {
    * Navigates to the fixture in the given layout and waits for the first cell.
    */
   async goto(layout: PageOffsetLayout = {}): Promise<void> {
-    const { viewportWidth = 1000, fixedColumnsStart = 0 } = layout;
+    const { viewportWidth = 1000 } = layout;
 
-    this.frozenWidth = fixedColumnsStart * 100;
     const params = new URLSearchParams({ theme: this.theme, bundle: this.bundle });
 
     for (const [key, value] of Object.entries(layout)) {
@@ -137,6 +136,8 @@ export class PageOffsetReverseSplitPage {
 
     const selected = await this.read();
 
+    expect(Number.isFinite(selected.selectedInset), 'the selected cell is rendered').toBe(true);
+
     await this.page.evaluate(() => (window as unknown as { hot: FixtureHot }).hot.selectCell(0, 40));
     await this.settle();
 
@@ -149,7 +150,7 @@ export class PageOffsetReverseSplitPage {
       const { selectedInset } = await this.read();
 
       // A selected cell that is not rendered counts as a failed step, not as a pass.
-      if (!(selectedInset >= selected.rowHeaderWidth + this.frozenWidth - 1)) {
+      if (!(selectedInset >= -1)) {
         stepsUnderHeader += 1;
       }
     }
@@ -164,6 +165,27 @@ export class PageOffsetReverseSplitPage {
       stepsUnderHeader,
       cloneInset: selected.cloneInset,
     };
+  }
+
+  /**
+   * Scrolls to a far column and back, and reads the inline-start overlay's offset (where the scrolling
+   * master sits relative to the frozen clones) next to the holder's scroll position.
+   */
+  async overlayOffset(): Promise<{ overlayOffset: number, holderScroll: number }> {
+    await this.page.evaluate(() => (window as unknown as { hot: FixtureHot }).hot.selectCell(0, 60));
+    await this.settle();
+    await this.page.evaluate(() => (window as unknown as { hot: FixtureHot }).hot.selectCell(0, 20));
+    await this.settle();
+
+    return this.page.evaluate(() => {
+      const hot = (window as unknown as { hot: FixtureHot }).hot;
+      const wt = hot.view._wt;
+
+      return {
+        overlayOffset: wt.wtOverlays.inlineStartOverlay.getOverlayOffset(),
+        holderScroll: Math.abs(wt.wtTable.holder.scrollLeft),
+      };
+    });
   }
 
   /**
@@ -187,6 +209,17 @@ export class PageOffsetReverseSplitPage {
       const header = document.querySelector('.ht_master tbody th');
       const clone = document.querySelector('.ht_clone_inline_start');
       const inset = (box: DOMRect) => (rtl ? holderBox.right - box.right : box.left - holderBox.left);
+      // How far the cell sits past the row header and the frozen columns, which cover the holder's
+      // inline-start edge (and are pinned to the viewport while the window scrolls). Negative: under them.
+      const coverInset = (box: DOMRect) => {
+        const cover = clone?.getBoundingClientRect();
+
+        if (!cover) {
+          return NaN;
+        }
+
+        return rtl ? cover.left - box.right : box.left - cover.right;
+      };
 
       return {
         dir: document.documentElement.dir,
@@ -194,7 +227,7 @@ export class PageOffsetReverseSplitPage {
         renderedColumns: hot.view._wt.wtTable.getRenderedColumnsCount(),
         firstFullyVisible: hot.getFirstFullyVisibleColumn(),
         lastFullyVisible: hot.getLastFullyVisibleColumn(),
-        selectedInset: selected ? inset(selected.getBoundingClientRect()) : NaN,
+        selectedInset: selected ? coverInset(selected.getBoundingClientRect()) : NaN,
         rowHeaderWidth: header ? header.getBoundingClientRect().width : 0,
         cloneInset: clone ? inset(clone.getBoundingClientRect()) : null,
       };

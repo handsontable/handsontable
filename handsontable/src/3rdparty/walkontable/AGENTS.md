@@ -1882,6 +1882,12 @@ the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsE
   workspace as wide as the page (two more, for a 200px offset and 100px columns), reported the wrong last visible
   column, and `stretchH` spread the columns over the page width when the header plus the columns sat between
   the holder width and the page width. That half also applies to `preventOverflow: 'vertical'`.
+  The same offset feeds `getOverlayOffset()`, which `manualColumnMove` reads to place the column-move backlight:
+  in the reverse split it is the raw holder scroll position (the backlight lives in the scrolling master), not that
+  minus the page offset. Ask `Overlay#isScrolledByWindow()` for "does the window scroll the columns"; do not compare
+  `trimmingContainer` or repeat the `mainTableScrollableElement` check. `measureHasHorizontalScroll` and
+  `InlineStartOverlay#adjustRootElementSize` still go through `isHorizontallyScrollableByWindow()`, which asks the axis
+  owner.
   `tests/e2e/page-offset-reverse-split.spec.ts` pins both, each offset layout against its no-offset twin of the
   same holder width.
 - **Ask the scroller, not the axis owner, whether the window holds the end clone.**
