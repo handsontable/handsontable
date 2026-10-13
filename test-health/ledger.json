@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-13T14:04:09.668Z",
+  "updatedAt": "2026-10-13T15:33:31.029Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-horizon",
+      "file": "e2e/selection-viewport-scroll.spec.ts",
+      "line": 72,
+      "title": "viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: expect(received).toBe(expected) // Object.is equality",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "38418818419",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38418818419",
+      "workflow": "Tests",
+      "branch": "feature/PRO-1340_Animate-sheet-switching",
+      "headSha": "6d86bf00c15ab219f5469617219acd2330e983a8",
+      "event": "pull_request",
+      "seenAt": "2026-10-13T15:32:40Z"
+    },
     {
       "tier": "visual",
       "leg": "js/chromium-theme-main-dark",
