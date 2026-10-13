@@ -49,8 +49,7 @@ overrides:
   colord: ^2.9.4
   compression: ^1.8.2
   dompurify: ^3.4.16
-  esbuild@0.27: ^0.28.1
-  esbuild@0.28: ^0.28.1
+  esbuild@0.28.0: ^0.28.1
   fast-uri: ^3.1.6
   http-proxy-middleware@2: ^2.0.10
   http-proxy-middleware@3: ^3.0.7
@@ -62,8 +61,7 @@ overrides:
   pacote: ^21.5.1
   piscina@4: ^4.9.3
   postcss: ^8.5.23
-  postcss-selector-parser@6: ^7.1.6
-  postcss-selector-parser@7: ^7.1.6
+  postcss-selector-parser: ^7.1.6
   proxy-addr: ^2.0.8
   qs: ^6.16.0
   sharp: ^0.35.5
@@ -326,7 +324,7 @@ importers:
         version: 1.29.2
       starlight-page-actions:
         specifier: ^0.6.2
-        version: 0.6.2(@astrojs/starlight@0.41.3(@astrojs/markdown-remark@7.2.0)(astro@7.2.10(@astrojs/markdown-remark@7.2.0)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(sass@1.100.0)(terser@5.48.0))(typescript@5.8.3))(astro@7.2.10(@astrojs/markdown-remark@7.2.0)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(sass@1.100.0)(terser@5.48.0))(vite@7.3.5(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0))
+        version: 0.6.2(@astrojs/starlight@0.41.3(@astrojs/markdown-remark@7.2.0)(astro@7.2.10(@astrojs/markdown-remark@7.2.0)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(sass@1.100.0)(terser@5.48.0))(typescript@5.8.3))(astro@7.2.10(@astrojs/markdown-remark@7.2.0)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(sass@1.100.0)(terser@5.48.0))(vite@7.3.7(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0))
       starlight-theme-rapide:
         specifier: ^0.5.2
         version: 0.5.2(@astrojs/starlight@0.41.3(@astrojs/markdown-remark@7.2.0)(astro@7.2.10(@astrojs/markdown-remark@7.2.0)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(sass@1.100.0)(terser@5.48.0))(typescript@5.8.3))
@@ -357,7 +355,7 @@ importers:
         version: 18.3.7(@types/react@18.3.31)
       '@vitejs/plugin-vue':
         specifier: ^6.0.7
-        version: 6.0.7(vite@7.3.5(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0))(vue@3.5.43(typescript@5.8.3))
+        version: 6.0.7(vite@7.3.7(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0))(vue@3.5.43(typescript@5.8.3))
       '@vue/compiler-sfc':
         specifier: ^3.5.35
         version: 3.5.35
@@ -401,8 +399,8 @@ importers:
         specifier: ^5.4.0
         version: 5.8.3
       vite:
-        specifier: ^7.3.2
-        version: 7.3.5(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0)
+        specifier: ^7.3.6
+        version: 7.3.7(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0)
 
   docs/angular-type-check:
     devDependencies:
@@ -13363,8 +13361,8 @@ packages:
       yaml:
         optional: true
 
-  vite@7.3.5:
-    resolution: {integrity: sha512-KuOaNhcnGFN2zIPGA7wRmzF+lJA1sea7rHq17aiJ++9lzY1WWG6Jpwqwe1KNbRVPIqHmr8GLYx7jbrQcN/7/ww==}
+  vite@7.3.7:
+    resolution: {integrity: sha512-AHEzTORMbi7/7aXp7w7KZ5+DCUdSeLsJz0grY8xHpc9DHdYb0vQu6DqJfm2tOw3gDExNgPgnJTXxM6syYFHaCA==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
     peerDependencies:
@@ -20113,10 +20111,10 @@ snapshots:
     dependencies:
       vite: 6.4.3(@types/node@20.19.42)(jiti@1.21.7)(less@4.2.2)(lightningcss@1.32.0)(sass@1.85.0)(terser@5.39.0)
 
-  '@vitejs/plugin-vue@6.0.7(vite@7.3.5(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0))(vue@3.5.43(typescript@5.8.3))':
+  '@vitejs/plugin-vue@6.0.7(vite@7.3.7(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0))(vue@3.5.43(typescript@5.8.3))':
     dependencies:
       '@rolldown/pluginutils': 1.0.1
-      vite: 7.3.5(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0)
+      vite: 7.3.7(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0)
       vue: 3.5.43(typescript@5.8.3)
 
   '@volar/language-core@2.4.28':
@@ -28245,12 +28243,12 @@ snapshots:
   stackblur-canvas@2.7.0:
     optional: true
 
-  starlight-page-actions@0.6.2(@astrojs/starlight@0.41.3(@astrojs/markdown-remark@7.2.0)(astro@7.2.10(@astrojs/markdown-remark@7.2.0)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(sass@1.100.0)(terser@5.48.0))(typescript@5.8.3))(astro@7.2.10(@astrojs/markdown-remark@7.2.0)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(sass@1.100.0)(terser@5.48.0))(vite@7.3.5(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0)):
+  starlight-page-actions@0.6.2(@astrojs/starlight@0.41.3(@astrojs/markdown-remark@7.2.0)(astro@7.2.10(@astrojs/markdown-remark@7.2.0)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(sass@1.100.0)(terser@5.48.0))(typescript@5.8.3))(astro@7.2.10(@astrojs/markdown-remark@7.2.0)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(sass@1.100.0)(terser@5.48.0))(vite@7.3.7(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0)):
     dependencies:
       '@astrojs/starlight': 0.41.3(@astrojs/markdown-remark@7.2.0)(astro@7.2.10(@astrojs/markdown-remark@7.2.0)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(sass@1.100.0)(terser@5.48.0))(typescript@5.8.3)
       astro: 7.2.10(@astrojs/markdown-remark@7.2.0)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(sass@1.100.0)(terser@5.48.0)
-      vite-plugin-static-copy: 4.1.1(vite@7.3.5(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0))
-      vite-plugin-virtual: 0.5.0(vite@7.3.5(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0))
+      vite-plugin-static-copy: 4.1.1(vite@7.3.7(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0))
+      vite-plugin-virtual: 0.5.0(vite@7.3.7(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0))
     transitivePeerDependencies:
       - vite
 
@@ -29138,17 +29136,17 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vite-plugin-static-copy@4.1.1(vite@7.3.5(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0)):
+  vite-plugin-static-copy@4.1.1(vite@7.3.7(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0)):
     dependencies:
       chokidar: 3.6.0
       p-map: 7.0.4
       picocolors: 1.1.1
       tinyglobby: 0.2.17
-      vite: 7.3.5(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0)
+      vite: 7.3.7(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0)
 
-  vite-plugin-virtual@0.5.0(vite@7.3.5(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0)):
+  vite-plugin-virtual@0.5.0(vite@7.3.7(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0)):
     dependencies:
-      vite: 7.3.5(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0)
+      vite: 7.3.7(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0)
 
   vite@6.4.3(@types/node@20.19.42)(jiti@1.21.7)(less@4.2.2)(lightningcss@1.32.0)(sass@1.85.0)(terser@5.39.0):
     dependencies:
@@ -29167,7 +29165,7 @@ snapshots:
       sass: 1.85.0
       terser: 5.39.0
 
-  vite@7.3.5(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0):
+  vite@7.3.7(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0):
     dependencies:
       esbuild: 0.28.2
       fdir: 6.5.0(picomatch@4.0.4)
