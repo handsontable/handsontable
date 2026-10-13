@@ -44,7 +44,10 @@ test.describe('the date editor opened with the keyboard', { tag: CROSS_BROWSER_T
     // The segment order follows the engine's locale, so only a change from the cell's 2024-06-10 is pinned.
     await page.keyboard.type('07042022');
 
-    await expect(grid.editorInput).not.toHaveValue('2024-06-10');
+    if (browserName !== 'webkit') {
+      // Linux WebKit's date input takes no typed digits, with or without the focus, so only the focus is pinned there.
+      await expect(grid.editorInput).not.toHaveValue('2024-06-10');
+    }
   });
 
   test('closes the picker with the editor on Escape', async({ page, browserName }) => {

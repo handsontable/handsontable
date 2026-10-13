@@ -190,6 +190,25 @@ export class DateEditor extends TextEditor {
   }
 
   /**
+   * Closes the editor and the native date picker it opened.
+   *
+   * There is no API to hide the picker, and Firefox keeps it open after the editor closes. Blurring the
+   * input dismisses it. The blur comes after the base `close()`, which hands the keyboard back to the grid
+   * while the input still has the focus.
+   */
+  close(): void {
+    super.close();
+
+    try {
+      if (this.TEXTAREA.matches(':open')) {
+        this.TEXTAREA.blur();
+      }
+    } catch {
+      // Engines without the `:open` pseudo-class (WebKit) throw on the selector
+    }
+  }
+
+  /**
    * Opens the editor and programmatically invokes the native date picker via showPicker().
    */
   open(): void {
