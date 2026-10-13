@@ -307,12 +307,23 @@ export class PageOffsetReverseSplitPage {
   }
 
   /**
-   * Presses the mouse on a cell, then moves the held pointer through the points inside the page offset gap
-   * (x measured from the inline-start edge of the page) and reads the selection's end cell after each move.
+   * Presses the mouse on a cell, then moves the held pointer through the given points and reads the selection's
+   * end cell after each move. Each point is a column offset from the inline-start edge of the page (the page
+   * offset gap is the first `margin` pixels) and the row whose vertical center the pointer moves to, so the
+   * path does not depend on the theme's row height.
    */
   async dragThroughGap(points: [number, number][]): Promise<string[]> {
     const rtl = await this.page.evaluate(() => document.documentElement.dir === 'rtl');
     const viewportWidth = this.page.viewportSize()?.width ?? 0;
+    const centers: number[] = [];
+
+    for (const [, row] of points) {
+      const rowBox = await this.page.getByTestId(`cell-${row}-1`).first().boundingBox();
+
+      expect(rowBox, `row ${row} is rendered`).not.toBeNull();
+      centers.push((rowBox?.y ?? 0) + (rowBox?.height ?? 0) / 2);
+    }
+
     const box = await this.page.getByTestId('cell-2-1').first().boundingBox();
 
     expect(box, 'the start cell is rendered').not.toBeNull();
@@ -321,8 +332,8 @@ export class PageOffsetReverseSplitPage {
 
     const ends: string[] = [];
 
-    for (const [x, y] of points) {
-      await this.page.mouse.move(rtl ? viewportWidth - x : x, y, { steps: 3 });
+    for (const [index, [x]] of points.entries()) {
+      await this.page.mouse.move(rtl ? viewportWidth - x : x, centers[index], { steps: 3 });
       await this.settle();
       ends.push(await this.page.evaluate(() => {
         const range = (window as unknown as { hot: FixtureHot }).hot.getSelectedLast();

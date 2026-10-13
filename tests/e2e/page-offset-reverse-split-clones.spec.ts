@@ -17,7 +17,8 @@ test.use({
  * grid inside an ancestor clipping both axes (`overflow-y: hidden`), the twin of every case here.
  */
 const MARGIN = 200;
-const DRAG_POINTS: [number, number][] = [[210, 135], [100, 193], [100, 251]];
+// Column offset from the page edge and the row the pointer moves to: first over the row header, then inside the gap.
+const DRAG_POINTS: [number, number][] = [[210, 3], [100, 4], [100, 5]];
 
 const reverseSplits: { name: string, layout: PageOffsetLayout }[] = [
   { name: '`overflow-y: clip` ancestor', layout: { overflowY: 'clip' } },
@@ -66,7 +67,7 @@ test.describe('clones, page scroll range and pointer bounds in the reverse split
       await grid.goto({ overflowY: 'hidden', margin: MARGIN, dir });
       const twin = await grid.dragThroughGap(DRAG_POINTS);
 
-      expect(twin).toEqual(['3,0', '5,0', '7,0']);
+      expect(twin).toEqual(['3,0', '4,0', '5,0']);
       expect(offset).toEqual(twin);
     });
   }
