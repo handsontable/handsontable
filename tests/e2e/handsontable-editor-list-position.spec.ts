@@ -336,7 +336,7 @@ test.describe('multiselect editor list side does not depend on the source length
 
           await page.evaluate(y => window.scrollTo(window.scrollX, y), scrollY);
           await expect.poll(() => cellTop(row), { message: `the cell reaches ${top}` })
-            .toBeCloseTo(rowTop - scrollY, 0);
+            .toBeCloseTo(rowTop - scrollY, 1);
 
           const sides: string[] = [];
 
