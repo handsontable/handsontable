@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-13T09:10:16.650Z",
+  "generatedAt": "2026-10-13T09:29:33.555Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 395,
-    "needsTicket": 25,
+    "tests": 397,
+    "needsTicket": 26,
     "quarantined": 0,
-    "entries": 2058
+    "entries": 2061
   },
   "rows": [
     {
@@ -98,7 +98,7 @@
       "file": "e2e/iframe-cross-realm-scroll.spec.ts",
       "line": 100,
       "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
-      "count7": 5,
+      "count7": 4,
       "count30": 13,
       "countAll": 14,
       "runs30": 9,
@@ -882,6 +882,39 @@
         "leg": "e2e-classic",
         "status": "flaky",
         "error": "Error: expect(received).toEqual(expected) // deep equality",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "playwright|e2e/date-editor-keyboard-focus.spec.ts|the date editor opened with the keyboard › takes the digits typed after Enter",
+      "tier": "playwright",
+      "file": "e2e/date-editor-keyboard-focus.spec.ts",
+      "line": 25,
+      "title": "the date editor opened with the keyboard › takes the digits typed after Enter",
+      "count7": 2,
+      "count30": 2,
+      "countAll": 2,
+      "runs30": 2,
+      "flakyRuns30": 0,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "e2e-webkit"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-13T09:28:46Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38372709918",
+        "branch": "feature/DEV-3367_Date-editor-tab-with-picker",
+        "leg": "e2e-webkit",
+        "status": "failed",
+        "error": "Error: expect(locator).not.toHaveValue(expected) failed",
         "source": "ci"
       },
       "needsTicket": true
@@ -13166,6 +13199,72 @@
       "needsTicket": false
     },
     {
+      "key": "playwright|e2e/native-picker-editor-keyboard.spec.ts|the native picker editors opened with the keyboard › intl-datetime: Shift+Tab after Enter commits and moves the selection",
+      "tier": "playwright",
+      "file": "e2e/native-picker-editor-keyboard.spec.ts",
+      "line": 26,
+      "title": "the native picker editors opened with the keyboard › intl-datetime: Shift+Tab after Enter commits and moves the selection",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-firefox"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-13T09:28:46Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38372709918",
+        "branch": "feature/DEV-3367_Date-editor-tab-with-picker",
+        "leg": "e2e-firefox",
+        "status": "failed",
+        "error": "Error: expect(locator).toBeFocused() failed",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/native-picker-editor-keyboard.spec.ts|the native picker editors opened with the keyboard › time: Tab after Enter commits and moves the selection",
+      "tier": "playwright",
+      "file": "e2e/native-picker-editor-keyboard.spec.ts",
+      "line": 26,
+      "title": "the native picker editors opened with the keyboard › time: Tab after Enter commits and moves the selection",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-firefox"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-13T09:28:46Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38372709918",
+        "branch": "feature/DEV-3367_Date-editor-tab-with-picker",
+        "leg": "e2e-firefox",
+        "status": "failed",
+        "error": "Error: expect(locator).toBeFocused() failed",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
       "key": "playwright|e2e/date-editor-keyboard-focus.spec.ts|the date editor opened with the keyboard › closes the picker with the editor on Escape",
       "tier": "playwright",
       "file": "e2e/date-editor-keyboard-focus.spec.ts",
@@ -13194,39 +13293,6 @@
         "leg": "e2e-firefox",
         "status": "failed",
         "error": "Error: expect(received).toBe(expected) // Object.is equality",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "playwright|e2e/date-editor-keyboard-focus.spec.ts|the date editor opened with the keyboard › takes the digits typed after Enter",
-      "tier": "playwright",
-      "file": "e2e/date-editor-keyboard-focus.spec.ts",
-      "line": 35,
-      "title": "the date editor opened with the keyboard › takes the digits typed after Enter",
-      "count7": 1,
-      "count30": 1,
-      "countAll": 1,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "e2e-webkit"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-13T09:00:46Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38368512727",
-        "branch": "feature/DEV-3366_Date-editor-firefox-focus",
-        "leg": "e2e-webkit",
-        "status": "failed",
-        "error": "Error: expect(locator).not.toHaveValue(expected) failed",
         "source": "ci"
       },
       "needsTicket": false
