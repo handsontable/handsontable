@@ -242,6 +242,18 @@ describe('native xml numeric attributes', () => {
     expect([undefined, '', ' 1', '0x10', 'NaN', 'INF', 'Infinity', '1e999', '.', '1e']
       .map(parseFiniteDoubleAttr)).toEqual(Array(10).fill(null));
   });
+
+  it('should answer a long run of digits ending in a stray character in linear time', () => {
+    // `\d+\.?\d*` split a dot-less run of digits every possible way before failing, so the time
+    // grew with the square of the length: 40,000 digits took 0.7 s, 200,000 about 18 s, a million minutes,
+    // from an `xSplit`, `ht` or `width` attribute a few hundred bytes deflated. Linear, it is
+    // milliseconds; the bound leaves room for a slow runner.
+    const start = Date.now();
+
+    expect(parseFiniteDoubleAttr(`${'1'.repeat(200000)}x`)).toBeNull();
+    expect(parseFiniteDoubleAttr(`${'1'.repeat(200000)}.${'1'.repeat(200000)}e`)).toBeNull();
+    expect(Date.now() - start).toBeLessThan(1000);
+  });
 });
 
 describe('decodeXmlEntities: the decode loop', () => {

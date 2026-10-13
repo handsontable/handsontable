@@ -113,3 +113,47 @@ describe('nativeAdapter.read: the sheet relationship lookup', () => {
     }
   });
 });
+
+describe('parseWorkbook: the relationships namespace scope', () => {
+  const relNs = packageParts.R_NS;
+
+  it('should not carry a self-closing element\'s declaration over to the elements after it', () => {
+    // A declaration is scoped to the element carrying it. One on a self-closing element replaced
+    // the scope and was never undone, so a later sibling's `q:id` was read under it.
+    const { sheets } = packageParts.parseWorkbook(`<workbook xmlns:r="${relNs}"><sheets>`
+      + `<ext xmlns:q="${relNs}"/><sheet name="A" q:id="rId9" r:id="rId1"/></sheets></workbook>`);
+
+    expect(sheets.map(sheet => sheet.relId)).toEqual(['rId1']);
+  });
+
+  it('should read the id under a declaration on the self-closing element itself', () => {
+    const { sheets } = packageParts.parseWorkbook('<workbook><sheets>'
+      + `<sheet name="A" xmlns:q="${relNs}" q:id="rId2"/></sheets></workbook>`);
+
+    expect(sheets.map(sheet => sheet.relId)).toEqual(['rId2']);
+  });
+
+  it('should prefer the innermost declaration, and drop a declaration once its element closes', () => {
+    const { sheets } = packageParts.parseWorkbook(`<workbook xmlns:a="${relNs}"><sheets xmlns:b="${relNs}">`
+      + '<sheet name="A" a:id="rId1" b:id="rId2"/></sheets>'
+      + '<sheets><sheet name="B" a:id="rId3" b:id="rId4"/></sheets></workbook>');
+
+    expect(sheets.map(sheet => sheet.relId)).toEqual(['rId2', 'rId3']);
+  });
+
+  it('should keep the scope linear in the number of declarations', () => {
+    // Every declaring element copied the whole list of prefixes in scope: 20,000 nested elements
+    // reached about 2 GB, and a million self-closing siblings (278 kB deflated) about six minutes.
+    // Before the fix this case took tens of seconds; the bound leaves room for a slow runner.
+    const nested = 20000;
+    const siblings = 100000;
+    const xml = `<workbook xmlns:r="${relNs}">${`<x xmlns:p="${relNs}">`.repeat(nested)}<sheets>`
+      + `${`<y xmlns:p="${relNs}"/>`.repeat(siblings)}<sheet name="A" r:id="rId1"/></sheets>`
+      + `${'</x>'.repeat(nested)}</workbook>`;
+    const start = Date.now();
+    const { sheets } = packageParts.parseWorkbook(xml);
+
+    expect(sheets.map(sheet => sheet.relId)).toEqual(['rId1']);
+    expect(Date.now() - start).toBeLessThan(3000);
+  });
+});

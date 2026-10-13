@@ -11,7 +11,10 @@ const UNSIGNED_INT = /^\+?\d{1,15}$/;
 
 // `xsd:double` without `INF`/`NaN` (no attribute this adapter reads may be non-finite): an
 // optional sign, digits with an optional point (or a point and digits), an optional exponent.
-const FINITE_DOUBLE = /^[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?$/;
+// The fraction hangs off the point (`\d+(?:\.\d*)?`), never `\d+\.?\d*`: with the point optional,
+// a dot-less run of digits followed by a stray character splits between the two `\d` runs every
+// possible way before failing, so the time grows with the square of an attribute the file controls.
+const FINITE_DOUBLE = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
 
 /**
  * Reads an `xsd:unsignedInt` attribute, or answers `null` when the text is not one. Leading zeros

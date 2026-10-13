@@ -427,27 +427,69 @@ interface RelationshipIdReader {
  * is how a file that omits the declaration has always read.
  */
 function createRelationshipIdReader(): RelationshipIdReader {
+  // The open elements that bind each prefix, as their depths, innermost last. Only the new
+  // declarations are recorded: copying the whole list of prefixes in scope for every declaring
+  // element made the scope quadratic in the number of declarations.
+  const bindings = new Map<string, number[]>();
+  // What each open element declared, so `close` can unbind exactly that.
   const scopes: string[][] = [];
-  let current: string[] = [];
+  // What the element just opened declared. A self-closing element has no `close`, so its
+  // declarations live here only and never reach `bindings`: kept in scope, they leaked to the
+  // elements after it.
+  let own = new Set<string>();
 
   return {
     open(attrs, selfClosing) {
       const declared = declaredRelationshipPrefixes(attrs);
 
-      current = declared.length === 0 ? current : declared.concat(current);
+      own = new Set(declared);
 
       if (!selfClosing) {
-        scopes.push(current);
+        own.forEach((prefix) => {
+          const depths = bindings.get(prefix);
+
+          if (depths) {
+            depths.push(scopes.length);
+          } else {
+            bindings.set(prefix, [scopes.length]);
+          }
+        });
+        scopes.push([...own]);
       }
     },
     close() {
-      scopes.pop();
-      current = scopes.length === 0 ? [] : scopes[scopes.length - 1];
+      scopes.pop()?.forEach((prefix) => {
+        const depths = bindings.get(prefix);
+
+        depths?.pop();
+
+        if (depths?.length === 0) {
+          bindings.delete(prefix);
+        }
+      });
+      own = new Set();
     },
     idOf(attrs) {
-      const prefix = current.find(candidate => attrs[`${candidate}:id`] !== undefined);
+      let id: string | undefined;
+      let idDepth = -1;
 
-      return prefix === undefined ? attrs['r:id'] ?? '' : attrs[`${prefix}:id`];
+      // The element's own `*:id` attributes are few; the innermost binding among their prefixes wins.
+      Object.keys(attrs).forEach((key) => {
+        if (!key.endsWith(':id')) {
+          return;
+        }
+
+        const prefix = key.slice(0, -':id'.length);
+        const depths = bindings.get(prefix);
+        const depth = own.has(prefix) ? Infinity : (depths?.[depths.length - 1] ?? -1);
+
+        if (depth > idDepth) {
+          id = attrs[key];
+          idDepth = depth;
+        }
+      });
+
+      return id ?? attrs['r:id'] ?? '';
     },
   };
 }

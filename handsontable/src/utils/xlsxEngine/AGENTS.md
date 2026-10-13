@@ -169,7 +169,11 @@ directions.
   what resolves a sheet to its part, so the normalizer is never applied to an attribute key. The
   workbook's sheet id is resolved by namespace, not by the literal `r:`:
   `createRelationshipIdReader` (`parts/package.ts`) tracks the in-scope `xmlns:*` bindings to the
-  transitional or strict relationships namespace and falls back to `r:id`. The `<extLst>` list
+  transitional or strict relationships namespace and falls back to `r:id`. **It records only the new
+  declarations** (a prefix-to-depths map plus one list per open element), never a copy of the whole
+  scope per declaring element: the copy made 20,000 nested declarations cost about 2 GB, and a
+  self-closing declaration (no `close` event) replaced the scope without restoring it, leaking to its
+  siblings. Pinned in `nativeRelationshipLookup.unit.js`. The `<extLst>` list
   validations (`<x14:dataValidation>`, below) do not break the root-prefix rule: the worksheet
   reader matches them explicitly, by the name after any prefix, only while `#extDepth > 0`. And
   **VML is the other side**: the tokenizer delivers names with their prefix because `x:ClientData`
@@ -677,7 +681,10 @@ directions.
   the plugins as `hiddenRows: [0.5, 1]` (which HiddenRows rejects whole, un-hiding a real hidden
   row), `fixedRowsTop: 0.5` and `colWidths: [Infinity, -350, 7e15]`. `xml/numbers.ts` holds the two
   parsers: `parseUnsignedIntAttr` (`xsd:unsignedInt`: digits and an optional `+`, at most 15) and
-  `parseFiniteDoubleAttr` (a finite `xsd:double`, no hex, no `INF`/`NaN`, no whitespace). The rules,
+  `parseFiniteDoubleAttr` (a finite `xsd:double`, no hex, no `INF`/`NaN`, no whitespace). **Keep
+  every regex over file text unambiguous**: `FINITE_DOUBLE` once read `\d+\.?\d*`, and a run of
+  digits ending in a stray character backtracked quadratically (200,000 digits in an `xSplit` took
+  37 s); the fraction now hangs off the point, `\d+(?:\.\d*)?` (`nativeXml.unit.js`). The rules,
   all pinned in `nativeReadCompat.unit.js`: a `<row r>` that is not a positive whole number reads
   as absent (implicit placement — it used to drop the row for `0`/`-1`/`NaN`/`''`); a `<col>` whose
   `min` or `max` is not a positive whole number, or whose `min` is past its `max`, is ignored
