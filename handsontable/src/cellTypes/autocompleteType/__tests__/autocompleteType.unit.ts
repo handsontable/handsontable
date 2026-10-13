@@ -207,4 +207,60 @@ describe('AutocompleteCellType', () => {
       expect(resolved).toEqual({ key: '1', value: 'BMW' });
     });
   });
+
+  describe('object values (`sourceLabel`)', () => {
+    const countries = [
+      { key: 'US', value: { name: 'United States', currency: 'USD' } },
+      { key: 'PL', value: { name: 'Poland', currency: 'PLN' } },
+    ];
+    const meta = { source: countries, sourceLabel: 'name' };
+
+    it('should display the label `sourceLabel` derives from an object `value`', () => {
+      expect(AutocompleteCellType.valueGetter(countries[1], 0, 0, meta)).toBe('Poland');
+      expect(AutocompleteCellType.valueGetter(countries[1], 0, 0, {
+        sourceLabel: (value: Record<string, unknown>) => `${value.name} (${value.currency})`,
+      })).toBe('Poland (PLN)');
+    });
+
+    it('should display a string `value` as before when `sourceLabel` is set', () => {
+      expect(AutocompleteCellType.valueGetter({ key: '1', value: 'BMW' }, 0, 0, meta)).toBe('BMW');
+    });
+
+    it('should display the object `value` itself when `sourceLabel` is not set', () => {
+      // Unchanged from before the option existed: the getter hands back the `value` half.
+      expect(AutocompleteCellType.valueGetter(countries[1], 0, 0, { source: countries }))
+        .toBe(countries[1].value);
+    });
+
+    it('should hand back anything that is not an entry with a `value` unchanged', () => {
+      // A plain label, a blank cell, and an object without a `value` half are not relabeled.
+      const noValue = { key: 'US' };
+
+      expect(AutocompleteCellType.valueGetter('BMW', 0, 0, meta)).toBe('BMW');
+      expect(AutocompleteCellType.valueGetter(null, 0, 0, meta)).toBe(null);
+      expect(AutocompleteCellType.valueGetter(noValue, 0, 0, meta)).toBe(noValue);
+    });
+
+    it('should display the `value` half when the getter is called without cell meta', () => {
+      expect(AutocompleteCellType.valueGetter(countries[1])).toBe(countries[1].value);
+    });
+
+    it('should share the getter with the dropdown cell type, cell meta included', () => {
+      // The dropdown getter used to forward only `value`, which would drop `sourceLabel`.
+      expect(DropdownCellType.valueGetter).toBe(AutocompleteCellType.valueGetter);
+    });
+
+    it('should resolve a typed or pasted label to the very source entry, nested object intact', () => {
+      const stored = AutocompleteCellType.valueSetter.call(contextHolding(null), 'Poland', 0, 0, meta);
+
+      // The same reference, not a copy: nothing in the object is flattened or rebuilt.
+      expect(stored).toBe(countries[1]);
+    });
+
+    it('should resolve a label even when the cell already holds another object entry', () => {
+      const stored = AutocompleteCellType.valueSetter.call(contextHolding(countries[0]), 'Poland', 0, 0, meta);
+
+      expect(stored).toBe(countries[1]);
+    });
+  });
 });

@@ -1,4 +1,4 @@
-import { findChoiceByDisplayedValue, hasKeyValueChoices } from '../cellSource';
+import { findChoiceByDisplayedValue, getChoiceLabel, hasKeyValueChoices, isListableChoice } from '../cellSource';
 
 describe('cellSource helpers', () => {
   describe('findChoiceByDisplayedValue', () => {
@@ -105,6 +105,107 @@ describe('cellSource helpers', () => {
       expect(hasKeyValueChoices(null)).toBe(false);
       expect(hasKeyValueChoices(() => [])).toBe(false);
       expect(hasKeyValueChoices([])).toBe(false);
+    });
+  });
+
+  describe('getChoiceLabel', () => {
+    const poland = { name: 'Poland', currency: 'PLN', meta: { flag: 'PL' } };
+
+    it('should read a property of an object `value` when `sourceLabel` is a string', () => {
+      expect(getChoiceLabel(poland, 'name')).toBe('Poland');
+    });
+
+    it('should read a nested property when `sourceLabel` is a dot path', () => {
+      expect(getChoiceLabel(poland, 'meta.flag')).toBe('PL');
+    });
+
+    it('should call `sourceLabel` with the object `value` when it is a function', () => {
+      expect(getChoiceLabel(poland, value => `${value.name} (${value.currency})`)).toBe('Poland (PLN)');
+    });
+
+    it('should hand back a primitive `value` unchanged, whatever `sourceLabel` says', () => {
+      // `sourceLabel` describes how to label an OBJECT. A source mixing string labels with object
+      // ones keeps its string labels as they are, so the option never rewrites a working label.
+      expect(getChoiceLabel('BMW', 'name')).toBe('BMW');
+      expect(getChoiceLabel(2017, value => `x${value}`)).toBe(2017);
+      expect(getChoiceLabel(null, 'name')).toBe(null);
+    });
+
+    it('should hand back an object `value` unchanged when `sourceLabel` is not set', () => {
+      // The pre-option behavior: no label rule, so the value goes through as it is.
+      expect(getChoiceLabel(poland, undefined)).toBe(poland);
+      expect(getChoiceLabel(poland, '')).toBe(poland);
+    });
+
+    it('should hand back an object `value` unchanged when `sourceLabel` is neither a string nor a function', () => {
+      // Settings are not type-checked at runtime, and this runs on every render of the cell.
+      const value = { address: { city: 'Paris' } };
+
+      // @ts-expect-error A plain JS user can pass any value.
+      expect(getChoiceLabel(value, true)).toBe(value);
+      // @ts-expect-error A plain JS user can pass any value.
+      expect(getChoiceLabel(value, ['address', 'city'])).toBe(value);
+      // @ts-expect-error A plain JS user can pass any value.
+      expect(getChoiceLabel(value, 42)).toBe(value);
+    });
+
+    it('should resolve a missing path to `undefined`', () => {
+      expect(getChoiceLabel(poland, 'missing.deeper')).toBeUndefined();
+    });
+
+    it('should resolve a path through a `null` segment to `undefined` instead of throwing', () => {
+      // It runs on every render of the cell, so a gap in the data must not break the grid.
+      expect(getChoiceLabel({ address: null }, 'address.city')).toBeUndefined();
+    });
+
+    // Dot notation reads array items by index too. Stopping at an array labeled every entry as
+    // nothing, so the list hid every option and every cell rendered blank.
+    it('should walk into an array by index', () => {
+      const person = { aliases: ['Ada', 'Countess'], addresses: [{ city: 'London' }] };
+
+      expect(getChoiceLabel(person, 'aliases.0')).toBe('Ada');
+      expect(getChoiceLabel(person, 'addresses.0.city')).toBe('London');
+      expect(getChoiceLabel(person, 'aliases.5')).toBeUndefined();
+    });
+  });
+
+  describe('isListableChoice', () => {
+    it('should list every choice when `sourceLabel` is not set', () => {
+      expect(isListableChoice({ key: 'X', value: { name: '' } })).toBe(true);
+      expect(isListableChoice('plain')).toBe(true);
+    });
+
+    it('should leave out a key/value entry whose object `value` labels as nothing', () => {
+      expect(isListableChoice({ key: 'X', value: { location: null } }, 'location.city')).toBe(false);
+      expect(isListableChoice({ key: 'X', value: { name: 'Paris' } }, () => null)).toBe(false);
+    });
+
+    it('should keep an entry whose `value` is not an object, and a plain choice', () => {
+      expect(isListableChoice({ key: 'X', value: null }, 'name')).toBe(true);
+      expect(isListableChoice({ key: 'X', value: 'Poland' }, 'name')).toBe(true);
+      expect(isListableChoice('Other', 'name')).toBe(true);
+    });
+
+    it('should keep an entry whose object `value` has a label', () => {
+      expect(isListableChoice({ key: 'X', value: { name: 'Paris' } }, 'name')).toBe(true);
+    });
+  });
+
+  describe('findChoiceByDisplayedValue with object values', () => {
+    const source = [
+      { key: 'US', value: { name: 'United States', currency: 'USD' } },
+      { key: 'PL', value: { name: 'Poland', currency: 'PLN' } },
+    ];
+
+    it('should match the label `sourceLabel` derives and return the whole source entry', () => {
+      expect(findChoiceByDisplayedValue(source, 'Poland', false, 'name')).toBe(source[1]);
+      expect(findChoiceByDisplayedValue(source, 'Poland (PLN)', false, value => `${value.name} (${value.currency})`))
+        .toBe(source[1]);
+    });
+
+    it('should leave matching as it was when `sourceLabel` is not set', () => {
+      // No label rule, no new behavior: an object `value` is not matched by any of its fields.
+      expect(findChoiceByDisplayedValue(source, 'Poland')).toBeUndefined();
     });
   });
 });

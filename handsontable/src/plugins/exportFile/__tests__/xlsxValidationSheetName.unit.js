@@ -23,7 +23,7 @@ jest.mock('../dataProvider', () => ({
     }
 
     getCellElements() {
-      return [[null]];
+      return mockCellsMeta.map(row => row.map(() => null));
     }
 
     getColumnHeaders() {
@@ -323,5 +323,105 @@ describe('Xlsx default date and time formats', () => {
 
     expect(numFmts((await exportOneCell({}, dateMeta, '2024-01-15')).cells)).toEqual(['mm/dd/yyyy']);
     expect(numFmts((await exportOneCell({}, timeMeta, '08:30')).cells)).toEqual(['hh:mm AM/PM']);
+  });
+});
+
+describe('Xlsx validation list for object values (`sourceLabel`)', () => {
+  const countries = [
+    { key: 'US', value: { name: 'United States', currency: 'USD' } },
+    { key: 'PL', value: { name: 'Poland', currency: 'PLN' } },
+  ];
+
+  // The data provider is mocked, so the cell value below is the text the grid's `valueGetter` would
+  // hand the export - these cases cover the validation list only. That the export reads the label
+  // through the getter is proven against a real grid in `tests/e2e/dropdown-object-values.spec.ts`.
+  it('should list the labels `sourceLabel` derives in the validation list', async() => {
+    const { cells } = await exportOneCell({}, { type: 'dropdown', source: countries, sourceLabel: 'name' }, 'Poland');
+    const values = cells.map(cell => cell.value);
+
+    expect(values).toContain('United States');
+    expect(values).toContain('Poland');
+    // Without the label the list held `[object Object]` twice, which matched no exported cell.
+    expect(values).not.toContain('[object Object]');
+  });
+
+  it('should list the labels a `sourceLabel` function builds and link the cell to that list', async() => {
+    const { cells } = await exportOneCell({}, {
+      type: 'dropdown',
+      source: countries,
+      sourceLabel: value => `${value.name} (${value.currency})`,
+    }, 'Poland (PLN)');
+
+    expect(cells.map(cell => cell.value)).toEqual(expect.arrayContaining(['United States (USD)', 'Poland (PLN)']));
+    // The validation range is looked up by the same labels the list was built from, so a function -
+    // which no JSON key can carry - still finds it.
+    expect(cells.some(cell => cell.dataValidation?.type === 'list')).toBe(true);
+  });
+
+  // The editor does not offer an entry whose label resolves to nothing, so the Excel list must not
+  // either: a blank Excel option would match no entry once the file is imported again.
+  it('should leave out an entry whose label resolves to nothing, as the editor does', async() => {
+    const airports = [
+      { key: 'CDG', value: { name: 'Charles de Gaulle', location: { city: 'Paris' } } },
+      { key: 'XXX', value: { name: 'Unknown', location: null } },
+    ];
+    const { cells } = await exportOneCell({}, {
+      type: 'dropdown',
+      source: airports,
+      sourceLabel: 'location.city',
+    }, 'Paris');
+    const values = cells.map(cell => cell.value);
+
+    expect(values).toContain('Paris');
+    expect(values).not.toContain('');
+  });
+});
+
+describe('Xlsx validation list labels for a column', () => {
+  it('should derive the labels once per `source` and `sourceLabel`, not once per cell', async() => {
+    const countries = [
+      { key: 'US', value: { name: 'United States' } },
+      { key: 'PL', value: { name: 'Poland' } },
+    ];
+    const sourceLabel = jest.fn(value => value.name);
+    const rows = 50;
+    const instance = { rootDocument: document, rootWindow: window };
+    const { engine, cells } = createRecordingEngine();
+
+    mockData = Array.from({ length: rows }, () => ['Poland']);
+    // Separate meta objects per cell, as the grid hands them out, sharing one `source` array.
+    mockCellsMeta = Array.from({ length: rows }, () => [{ type: 'dropdown', source: countries, sourceLabel }]);
+
+    try {
+      await new Xlsx(new DataProvider(instance), { engine, sheets: [{ instance, name: 'Data' }] }).export();
+    } finally {
+      mockData = [[null]];
+      mockCellsMeta = [[{ type: 'dropdown', source: ['a', 'b'] }]];
+    }
+
+    // One call per entry. Per cell it was one per entry per cell, twice over (list, then link).
+    expect(sourceLabel).toHaveBeenCalledTimes(countries.length);
+    expect(cells.filter(entry => entry.cell.dataValidation?.type === 'list')).toHaveLength(rows);
+  });
+});
+
+describe('Xlsx validation list for a `sourceLabel` that resolves to nothing', () => {
+  it('should list an empty label, the text the exported cell holds, not the word "undefined"', async() => {
+    const airports = [
+      { key: 'CDG', value: { name: 'Charles de Gaulle Airport', location: { city: 'Paris' } } },
+      { key: 'XXX', value: { name: 'Unknown Field', location: null } },
+    ];
+    const { cells } = await exportOneCell({}, { type: 'dropdown', source: airports, sourceLabel: 'location.city' }, '');
+    const values = cells.map(cell => cell.value);
+
+    expect(values).toContain('Paris');
+    expect(values).not.toContain('undefined');
+  });
+
+  it('should keep writing a string source entry exactly as before', async() => {
+    // Not relabeled, so not touched: a `null` label still exports as it always did.
+    const { cells } = await exportOneCell({}, { type: 'dropdown', source: [{ key: '0', value: null }, 'red'] }, 'red');
+
+    expect(cells.map(cell => cell.value)).toEqual(expect.arrayContaining(['null', 'red']));
   });
 });

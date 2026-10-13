@@ -248,6 +248,9 @@ function applyAxis(instance: HotInstance, axis: RootSizeAxis, rawValue: unknown,
  * - A sized height (a length, `%`, viewport units) clips both axes: the grid scrolls inside its box.
  * - A free height (unset or `auto`) with a definite width clips the horizontal axis only: the root
  *   scrolls the columns, the page scrolls the rows.
+ * - A free height with `preventOverflow: 'horizontal'` clips the horizontal axis the same way, regardless
+ *   of the width: the option keeps the columns inside the root, so the scroll spacer and the overlay rails
+ *   must not reach through it and widen the page.
  * - A free height with a free or container-driven width clips nothing: the page scrolls both axes,
  *   and a wider-than-page grid gives the page a horizontal scrollbar rather than hiding columns.
  *
@@ -265,8 +268,14 @@ function applyAxis(instance: HotInstance, axis: RootSizeAxis, rawValue: unknown,
  * @param {boolean} widthWritten `true` when the payload wrote a width. It still clips the horizontal
  * axis beside a restored sized height, as it would in a call of its own; only the vertical overflow
  * is the restore's to bring back.
+ * @param {boolean} clipHorizontally `true` when `preventOverflow` is `'horizontal'` on a root instance.
  */
-function applyOverflow(rootElement: HTMLElement, heightRestored: boolean, widthWritten: boolean): void {
+function applyOverflow(
+  rootElement: HTMLElement,
+  heightRestored: boolean,
+  widthWritten: boolean,
+  clipHorizontally: boolean,
+): void {
   const { style } = rootElement;
   const heightState = classifyInlineSize(style.height);
   const widthState = classifyInlineSize(style.width);
@@ -287,7 +296,7 @@ function applyOverflow(rootElement: HTMLElement, heightRestored: boolean, widthW
   }
 
   if (isOwnedOverflow(inlineOverflow(style, 'overflowX'))) {
-    style.overflowX = widthState === 'definite' ? 'clip' : '';
+    style.overflowX = widthState === 'definite' || clipHorizontally ? 'clip' : '';
   }
 }
 
@@ -318,8 +327,9 @@ function hasScrollOwnerChanged(before: RootSizeSnapshot, after: RootSizeSnapshot
 }
 
 /**
- * Applies the `height` and `width` options to the grid's root element. This is the only writer of
- * the root's inline `height`, `width`, and `overflow*`.
+ * Applies the `height` and `width` options to the grid's root element, and re-writes its overflow when
+ * either one, or `preventOverflow`, is in the payload. This is the only writer of the root's inline
+ * `height`, `width`, and `overflow*`.
  *
  * @param {HotInstance} instance The grid instance.
  * @param {Partial<GridSettings>} settings The `updateSettings` payload.
@@ -343,8 +353,19 @@ export function applyRootSize(instance: HotInstance, settings: Partial<GridSetti
   const widthOutcome = applyAxis(instance, 'width', settings.width, 'beforeWidthChange');
   const ignoredAxes: RootSizeAxis[] = [];
 
-  if (settings.height !== undefined || settings.width !== undefined) {
-    applyOverflow(rootElement, heightOutcome === 'reset', widthOutcome === 'written');
+  // The root's overflow follows `preventOverflow` only on a root instance: a nested grid's `rootElement`
+  // is the container the host handed it, and the option is not this module's to act on there. The
+  // payload is merged into the stored settings by now, so an `undefined` sent to switch the option off
+  // reads back as off.
+  const optionMoved = isRootInstance(instance) && Object.prototype.hasOwnProperty.call(settings, 'preventOverflow');
+
+  if (settings.height !== undefined || settings.width !== undefined || optionMoved) {
+    applyOverflow(
+      rootElement,
+      heightOutcome === 'reset',
+      widthOutcome === 'written',
+      isRootInstance(instance) && instance.getSettings().preventOverflow === 'horizontal',
+    );
   }
 
   if (heightOutcome === 'ignored') {

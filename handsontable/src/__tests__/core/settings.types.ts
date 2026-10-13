@@ -12,6 +12,10 @@ declare const true_or_false: true | false;
 // This can be replaced once `as const` context is shipped: https://github.com/Microsoft/TypeScript/pull/29510
 enum DisableVisualSelection { current = 'current', area = 'area', header = 'header' }
 
+// An interface, not a type alias: interfaces have no implicit index signature, so this is the shape
+// a `sourceLabel` parameter typed as `Record<string, unknown>` would wrongly reject.
+interface SourceLabelAirport { name: string; city: string; }
+
 const numericIntlFormatOptions: Intl.NumberFormatOptions = {
   style: 'currency',
   currency: 'USD',
@@ -283,6 +287,14 @@ const allSettings: Required<Handsontable.GridSettings> = {
     (query: string, callback: (item: string[]) => void) => callback(['A', 'B', 'C', 'D'])
   ) as any),
   sourceDataValidator: oneOf((value: any, cellMeta: CellProperties) => true),
+  sourceLabel: oneOf(
+    'name',
+    'address.city',
+    (value: Record<string, unknown>) => `${value.name} (${value.currency})`,
+    (value: Record<string, unknown>) => value.name,
+    (airport: { name: string, city: string }) => `${airport.city} - ${airport.name}`,
+    (airport: SourceLabelAirport) => airport.name,
+  ),
   sourceDataWarningMessage: oneOf('The source data is invalid.'),
   startCols: 123,
   startRows: 123,

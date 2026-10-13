@@ -30,8 +30,9 @@ const WAIT_FOR_FUNCTION_POLLING_RESTRICTIONS = [
 // before a capture photographs whichever half of a transition the runner reached; the two flake shapes
 // DEV-2797 measured in CI (a scrollbar-clearance band created on the frame after a click, a filters
 // input focused on a 10 ms timer) are exactly that. The 2024 import carried fixed sleeps at 40-odd
-// sites (25 on 2026-10-05); each one now wears an eslint-disable line naming the task, the convention `tests/AGENTS.md`
-// uses for `test.fixme`, so the debt is counted and greppable while it is paid down. `.skip` is banned
+// sites, and the consolidation replaced each with the state it stood for. A new one carries an
+// eslint-disable line naming an open task, the convention `tests/AGENTS.md` uses for `test.fixme`, so
+// the debt is counted and greppable. `.skip` is banned
 // in its bare and titled forms only: the two-argument conditional form (`test.skip(condition, why)`) is
 // what `visualTest()` in `src/test-runner.ts` emits from a spec's variant declaration, so it stays legal
 // here. A spec no longer writes one itself — see SPEC_DECLARATION_RESTRICTIONS below.
@@ -134,12 +135,11 @@ const DETERMINISM_RESTRICTIONS = [
 // four as unseen. A capture is the statement's own `screenshot()` call: awaited or not, kept in a `const`,
 // returned, or handed straight to `expect()` (the last three are in no spec today; the self-test pins them
 // too). A tracked `waitForTimeout()`
-// in between shields the capture too (none since DEV-3351 retired the last 7, in 3 specs): replacing such a
-// sleep with the assertion it stands for clears both lines, while deleting it with nothing in its place makes
-// the capture fire, so the disable line moves to the capture. Page helpers are deliberately not enumerated: a renamed helper would silently leave the
-// list, and the helpers that act with no `expect()` or wait (25 of the 48 exported from `src/page-helpers.ts`
-// on 2026-09-23, one of them the `tryToEscapeFromTheComponentsFocus` #13647 deleted with its callers, plus one that waits only with a fixed sleep, collapseNestedRow; resizeColumn and resizeRow went with the cross-browser resize specs in DEV-3257)
-// are their own follow-up, each ending on the state it produced.
+// in between shields the capture too (no spec has one): replacing such a sleep with the assertion it stands
+// for clears both lines, while deleting it with nothing in its place makes the capture fire, so the disable
+// line moves to the capture. Page helpers are deliberately not enumerated: a renamed helper would silently
+// leave the list, and the helpers that act with no `expect()` or wait (25 of the 48 exported from
+// `src/page-helpers.ts` on 2026-09-23) are their own follow-up, each ending on the state it produced.
 //
 // Primitives only: the pointer, keyboard, and focus methods a spec calls on a locator or a page, plus any
 // call on `page.mouse`, `page.keyboard` or `page.touchscreen`. The names past the seven the spec listed
@@ -188,8 +188,7 @@ const CAPTURE_RESTRICTIONS = [
 // declaration replaces, and the two together would fight — a file-scope modifier applies to every test in
 // the file, so a hand-written skip beside a declaration COMBINES with the one `visualTest()` emits: the
 // file renders only what both allow, which can be nothing, and the declaration stops describing what
-// renders. `tests/cross-browser/merging.spec.ts` is the one exception: it parks a
-// test that renders nothing and already carries its own disable line.
+// renders.
 const SPEC_DECLARATION_RESTRICTIONS = [
   {
     selector: 'CallExpression[callee.type="Identifier"][callee.name="test"]',

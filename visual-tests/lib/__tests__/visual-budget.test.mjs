@@ -566,7 +566,7 @@ test('a spec over the cap fails unless a ticketed exception already covers it', 
 
   const listed = evaluateBudget({
     report: overCap,
-    budget: { ...BUDGET, capExceptions: { 'js-only/demo/busy': { captures: 6, ticket: 'DEV-2981' } } },
+    budget: { ...BUDGET, capExceptions: { 'js-only/demo/busy': { captures: 6, ticket: 'DEV-1234' } } },
   });
 
   assert.equal(listed.pass, true, listed.violations.join('\n'));
@@ -581,7 +581,7 @@ test('a spec over the cap fails unless a ticketed exception already covers it', 
 
   const grown = evaluateBudget({
     report: overCap,
-    budget: { ...BUDGET, capExceptions: { 'js-only/demo/busy': { captures: 5, ticket: 'DEV-2981' } } },
+    budget: { ...BUDGET, capExceptions: { 'js-only/demo/busy': { captures: 5, ticket: 'DEV-1234' } } },
   });
 
   assert.equal(grown.pass, false, 'an exception is a ceiling on what is there, not a licence to add');

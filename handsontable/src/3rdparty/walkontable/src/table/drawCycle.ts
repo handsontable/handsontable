@@ -18,6 +18,7 @@ import {
   syncOversizedColumnHeadersWithFrozenOverlays,
   syncOversizedRowsWithFrozenOverlays,
 } from '../axisSizing/oversizedRows';
+import { measureHolderInlineStartMargin } from './holderInlineStartMargin';
 import type Table from './baseTable';
 import type { default as Overlays } from '../overlay/overlays';
 import type Viewport from '../viewport/viewport';
@@ -129,6 +130,10 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
 
   wtOverlays.beforeDraw();
   table.holderOffset = table.deps.geometryReader.offset(table.holder);
+  table.holderInlineStartMargin = wtSettings.getSetting('rtlMode')
+    ? measureHolderInlineStartMargin(
+      table.deps.geometryReader, table.deps.rootDocument, table.holder, table.holderOffset.left)
+    : 0;
 
   wtViewport.rowHeightCache.ensureBuilt();
   wtViewport.columnWidthCache.ensureBuilt();

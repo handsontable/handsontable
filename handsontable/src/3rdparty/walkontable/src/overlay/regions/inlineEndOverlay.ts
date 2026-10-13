@@ -130,20 +130,6 @@ export class InlineEndOverlay extends Overlay {
   }
 
   /**
-   * Whether the window scrolls the columns, so the clone has to be held at the viewport's inline-end
-   * edge. It reads the element that really scrolls them (`mainTableScrollableElement`), never the
-   * horizontal axis owner (`trimmingContainer`): with `preventOverflow: 'vertical'` (or an ancestor that
-   * clips the vertical axis only) the window owns the horizontal axis while the holder scrolls the
-   * columns, and a clone pinned to the viewport there would stand outside a grid narrower than the page.
-   * The end corners ask this same question.
-   *
-   * @returns {boolean}
-   */
-  isScrolledByWindow(): boolean {
-    return this.mainTableScrollableElement === this.deps.rootWindow;
-  }
-
-  /**
    * How far the clone's inline-end edge sits inside the holder's inline-end edge, for a grid whose
    * columns an element scrolls (the inline-end counterpart of the bottom inset in
    * `BottomOverlay#repositionOverlay`). The end corners are placed with the same number.
@@ -457,7 +443,8 @@ export class InlineEndOverlay extends Overlay {
   }
 
   /**
-   * Gets table parent left position - the same answer as the inline-start overlay's, which owns the axis.
+   * Gets the distance between the page's inline-start edge and the table's - the same answer as the
+   * inline-start overlay's, which owns the axis: a left offset in LTR, the right-hand page margin in RTL.
    *
    * @returns {number}
    */

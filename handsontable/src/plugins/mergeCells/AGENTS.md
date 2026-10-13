@@ -14,6 +14,15 @@ The DOM attributes only describe cells that are currently rendered. The meta is 
 viewport state. This is the single most repeated rule about this plugin, and it is in the root
 `../../../AGENTS.md` for that reason.
 
+The one reader that may use the DOM is Walkontable's pointer-to-cell measurer
+(`3rdparty/walkontable/src/utils/pointerToCoords.ts`). It walks the rendered cells only, and Walkontable has no cell
+meta, so it reads the rendered cell's `rowSpan` and `colSpan`. The shared scans in `helpers/dom/cellMeasure.ts` read no
+DOM, and the core side takes the span from the cell meta. Both sides follow one contract: a span above 1 is a hint
+that the cell is part of a merge (a slave need not report it), and the real signal is that every slave resolves to the
+anchor's element. So the walks skip a cell that resolves to the element they just measured, and never measure a merged
+band once per slave. The reference scans measure against a column or row that no merge spans
+(`findRowReferenceColumn`, `findColumnReferenceRow`).
+
 ## The lookup matrix is the authority on visibility — not the merge list
 
 `cellsCollection.ts` keeps two structures, and they can disagree on purpose:

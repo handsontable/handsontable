@@ -255,6 +255,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="source" data-levels="grid columns cells cell"></span>[`source`](@/api/options.md#source) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="sourceDataValidator" data-levels="grid columns cells cell"></span>[`sourceDataValidator`](@/api/options.md#sourcedatavalidator) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="sourceDataWarningMessage" data-levels="grid columns cells cell"></span>[`sourceDataWarningMessage`](@/api/options.md#sourcedatawarningmessage) | Yes | Yes | Yes | Yes | Core |  |
+| <span data-option="sourceLabel" data-levels="grid columns cells cell"></span>[`sourceLabel`](@/api/options.md#sourcelabel) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="sourceSortFunction" data-levels="grid columns cells cell"></span>[`sourceSortFunction`](@/api/options.md#sourcesortfunction) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="startCols" data-levels="grid"></span>[`startCols`](@/api/options.md#startcols) | Yes | No | No | No | Core |  |
 | <span data-option="startRows" data-levels="grid"></span>[`startRows`](@/api/options.md#startrows) | Yes | No | No | No | Core |  |
