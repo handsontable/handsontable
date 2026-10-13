@@ -5,6 +5,7 @@ import { isValidISODate } from '../../helpers/dateTime';
 import { warn, warnOnce } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { isEmpty } from '../../helpers/mixed';
+import { showNativePicker } from '../utils/showNativePicker';
 
 export const EDITOR_TYPE = 'date';
 
@@ -190,15 +191,13 @@ export class DateEditor extends TextEditor {
   }
 
   /**
-   * Opens the editor and programmatically invokes the native date picker via showPicker().
+   * Opens the editor and shows the native picker, unless a key opened the editor.
+   *
+   * @param {Event} [event] The event that opened the editor.
    */
-  open(): void {
-    super.open();
+  open(event?: Event): void {
+    super.open(event);
 
-    try {
-      (this.TEXTAREA as HTMLInputElement).showPicker();
-    } catch {
-      // Prevents showPicker() user-gesture errors in tests
-    }
+    showNativePicker(this.TEXTAREA as HTMLInputElement, event);
   }
 }
