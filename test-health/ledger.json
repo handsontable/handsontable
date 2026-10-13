@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-13T11:04:45.126Z",
+  "updatedAt": "2026-10-13T11:04:47.345Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "visual",
+      "leg": "cross-browser/webkit",
+      "file": "visual-tests/tests/cross-browser/columns-filter.spec.ts",
+      "line": null,
+      "title": "columns-filter-1",
+      "status": "failed",
+      "attempts": 1,
+      "error": "differs from base/develop (full tier); render sha256 ce84cbd1ce93",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "38377891890",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38377891890",
+      "workflow": "Tests",
+      "branch": "feature/DEV-3365_Column-0-header-seam-accent",
+      "headSha": "e83464b63b8fba66d91db6a1e698adfd1cf4ebd5",
+      "event": "pull_request",
+      "seenAt": "2026-10-13T11:04:09Z"
+    },
     {
       "tier": "jasmine",
       "leg": "UMD.min (theme: horizon)",

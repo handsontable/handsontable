@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-13T11:04:45.126Z",
+  "generatedAt": "2026-10-13T11:04:47.345Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -9,9 +9,9 @@
   "retentionDays": 90,
   "totals": {
     "tests": 399,
-    "needsTicket": 26,
+    "needsTicket": 27,
     "quarantined": 0,
-    "entries": 2072
+    "entries": 2073
   },
   "rows": [
     {
@@ -644,6 +644,41 @@
         "leg": "e2e-horizon",
         "status": "flaky",
         "error": "Error: inline_end 5,29: top edge",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "visual|visual-tests/tests/cross-browser/columns-filter.spec.ts|columns-filter-1",
+      "tier": "visual",
+      "file": "visual-tests/tests/cross-browser/columns-filter.spec.ts",
+      "line": null,
+      "title": "columns-filter-1",
+      "count7": 4,
+      "count30": 4,
+      "countAll": 4,
+      "runs30": 2,
+      "flakyRuns30": 0,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "cross-browser/chromium",
+        "cross-browser/firefox",
+        "cross-browser/webkit"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-13T11:04:09Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38377891890",
+        "branch": "feature/DEV-3365_Column-0-header-seam-accent",
+        "leg": "cross-browser/webkit",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 ce84cbd1ce93",
         "source": "ci"
       },
       "needsTicket": true
@@ -12447,41 +12482,6 @@
         "leg": "cross-browser/chromium",
         "status": "failed",
         "error": "differs from base/develop (full tier); render sha256 02b9d8fdfaf7",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "visual|visual-tests/tests/cross-browser/columns-filter.spec.ts|columns-filter-1",
-      "tier": "visual",
-      "file": "visual-tests/tests/cross-browser/columns-filter.spec.ts",
-      "line": null,
-      "title": "columns-filter-1",
-      "count7": 3,
-      "count30": 3,
-      "countAll": 3,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "cross-browser/chromium",
-        "cross-browser/firefox",
-        "cross-browser/webkit"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-12T15:28:37Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38251302094/attempts/2",
-        "branch": "feature/DEV-3373_Row-header-checkbox-off-shared-demo",
-        "leg": "cross-browser/chromium",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 dd6d03fd7ec1",
         "source": "ci"
       },
       "needsTicket": false
