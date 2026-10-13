@@ -6134,9 +6134,15 @@ export default function Core(
       changeRow: number, changeProp: string | number | ColumnDataGetterSetterFunction, changeValue: unknown,
     ) => (isReplay ? changeValue : getValueSetterValue(changeValue, getCellProperties(changeRow, changeProp), source));
 
+    // The `valueSetter` runs once per change: its results feed both the hook's payload and the write,
+    // so a listener never makes a non-idempotent setter apply twice.
+    const storedValues = input.map(([changeRow, changeProp, changeValue]) => toStoredValue(
+      changeRow, changeProp, changeValue
+    ));
+
     if (isThereAnySetSourceListener) {
-      arrayEach(input, ([changeRow, changeProp, changeValue]) => {
-        const newValue = toStoredValue(changeRow, changeProp, changeValue);
+      arrayEach(input, ([changeRow, changeProp], index) => {
+        const newValue = storedValues[index];
 
         changesForHook.push([
           changeRow,
@@ -6148,8 +6154,8 @@ export default function Core(
       });
     }
 
-    arrayEach(input, ([changeRow, changeProp, changeValue]) => {
-      const newValue = toStoredValue(changeRow, changeProp, changeValue);
+    arrayEach(input, ([changeRow, changeProp], index) => {
+      const newValue = storedValues[index];
 
       if (isReplay || runSourceDataValidator(newValue, getCellProperties(changeRow, changeProp),
         source ?? 'setSourceDataAtCell')) {

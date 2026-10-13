@@ -263,6 +263,46 @@ describe('RowSelection bound to a checkbox column', () => {
     destroy();
   });
 
+  it('should refresh the "select all" state when an edit of another column makes a bound cell read-only', () => {
+    // The `id` column decides, through `cells`, whether the row's bound cell can be written.
+    const { hot, plugin, destroy } = createGrid({
+      cells(physicalRow: number, physicalColumn: number) {
+        const id = this.instance.getSourceDataAtCell(physicalRow, 'id');
+
+        return physicalColumn === 1 && id === 'locked' ? { readOnly: true } : {};
+      },
+    });
+
+    expect(plugin.getHeaderCheckboxState()).toEqual({ state: 'mixed', selected: 1, total: 5 });
+
+    hot.setDataAtCell(0, 0, 'locked');
+
+    expect(plugin.getHeaderCheckboxState()).toEqual({ state: 'mixed', selected: 1, total: 4 });
+
+    // A header press acts on the fresh state: the locked row stays unchecked.
+    plugin.toggleAll();
+
+    expect(plugin.getSelectedRows()).toEqual([1, 2, 3, 4]);
+
+    destroy();
+  });
+
+  it('should refresh the "select all" state when `setCellMeta()` makes a bound cell read-only', () => {
+    const { hot, plugin, destroy } = createGrid();
+
+    expect(plugin.getHeaderCheckboxState()).toEqual({ state: 'mixed', selected: 1, total: 5 });
+
+    hot.setCellMeta(0, 1, 'readOnly', true);
+
+    expect(plugin.getHeaderCheckboxState()).toEqual({ state: 'mixed', selected: 1, total: 4 });
+
+    hot.removeCellMeta(0, 1, 'readOnly');
+
+    expect(plugin.getHeaderCheckboxState()).toEqual({ state: 'mixed', selected: 1, total: 5 });
+
+    destroy();
+  });
+
   it('should follow the bound column when the columns move or change', () => {
     const { hot, plugin, destroy } = createGrid({ manualColumnMove: true });
 

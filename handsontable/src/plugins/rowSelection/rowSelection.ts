@@ -491,6 +491,8 @@ export class RowSelection extends BasePlugin {
     // An edit renders before `afterChange` runs; the header state must be dropped, and the bound
     // column's rows marked, before that render.
     this.addHook('beforeChangeRender', this.#onBeforeChangeRender);
+    this.addHook('afterSetCellMeta', this.#onCellMetaChange);
+    this.addHook('afterRemoveCellMeta', this.#onCellMetaChange);
     this.addHook('afterUpdateSettings', this.#invalidateBoundColumn);
     this.addHook('afterRowsMutation', this.#onAfterRowsMutation);
     this.addHook('afterLoadData', this.#onAfterLoadData);
@@ -2644,15 +2646,41 @@ export class RowSelection extends BasePlugin {
 
   /**
    * Tells whether an edit can change which rows are selected or selectable: it writes the bound
-   * column, or an `isRowSelectable` function is set (it may read any value of the row). An edit of
-   * any other column keeps the cached "select all" state, which on a large grid is a full scan.
+   * column, an `isRowSelectable` function is set (it may read any value of the row), or a bound cell's
+   * meta may read the row's values (see `#boundMetaMayReadData()`). Any other edit keeps the cached
+   * "select all" state, which on a large grid is a full scan.
    *
    * @param {Array} changes The changes, `[row, prop, oldValue, newValue]`.
    * @returns {boolean}
    */
   #affectsSelectionState(changes: Array<unknown[] | null>): boolean {
-    return isFunction(this.#getSettings().isRowSelectable) || this.#touchesBoundColumn(changes);
+    return isFunction(this.#getSettings().isRowSelectable) || this.#touchesBoundColumn(changes) ||
+      (this.getBoundColumn() !== null && this.#boundMetaMayReadData());
   }
+
+  /**
+   * Tells whether the meta of a bound cell can depend on the data: a `cells` or `columns` function, or
+   * a `beforeGetCellMeta`/`afterGetCellMeta` listener, may make the cell read-only (or not a checkbox)
+   * from another column of its row, and a read-only bound cell is not selectable.
+   *
+   * @returns {boolean}
+   */
+  #boundMetaMayReadData(): boolean {
+    const { cells, columns } = this.hot.getSettings();
+
+    return isFunction(cells) || isFunction(columns) ||
+      this.hot.hasHook('beforeGetCellMeta') || this.hot.hasHook('afterGetCellMeta');
+  }
+
+  /**
+   * Drops the "select all" state when `setCellMeta()` or `removeCellMeta()` changes a cell's meta in
+   * bound mode: a bound cell's `readOnly` and `type` decide whether its row is selectable.
+   */
+  #onCellMetaChange = () => {
+    if (this.getBoundColumn() !== null) {
+      this.#invalidateHeaderSummary();
+    }
+  };
 
   /**
    * Tells whether any of the changes writes the bound column.

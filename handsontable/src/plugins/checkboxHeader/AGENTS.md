@@ -49,6 +49,14 @@ pressed. Read this before touching `checkboxHeader.ts`, `../../utils/checkboxCol
   `../../3rdparty/walkontable/src/event.ts`), which has no `button`; the browser's synthesized
   `mousedown` never reaches the hook and `#onRootClick` cancels the click. A `button !== 0` gate made a
   tap on the header checkbox do nothing on iPad. Same gate as `../collapsibleColumns/`.
+- **The `afterSetSourceDataAtCell` listener exists only while a header state is cached**
+  (`#syncSourceDataListener()`). The plugin is on in every grid, and any listener on that hook makes
+  `setSourceDataAtCell()` build the hook's payload; registered unconditionally, it turned every grid's
+  source writes into that path (and, before core computed the stored value once, ran the
+  `valueSetter` twice – `src/__tests__/core/valueSetter.spec.js`). It goes through `hot.addHook()` /
+  `hot.removeHook()`, not the tracked `addHook()`, which keeps every callback it ever registered.
+  `destroy()` can run it after the instance is detached (index mapper `cacheUpdated`), hence the
+  `this.hot` guard.
 - **A tap must not leave the input focused.** Walkontable drops the browser's own `mousedown` that
   follows a tap, so its default action would focus the input, and Walkontable's "press on the focused
   element" guard would then swallow the next tap on it. `#onRootMouseDown` cancels every `mousedown` on

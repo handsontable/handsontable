@@ -83,6 +83,37 @@ describe('CheckboxHeader', () => {
     destroy();
   });
 
+  it('should listen to source data writes only while a column shows a "check all" checkbox', () => {
+    // AutoColumnSize listens to the same hook; with it off, the plugin's listener is the only one.
+    const { hot, destroy } = createGrid({ autoColumnSize: false }, { headerCheckbox: false });
+
+    // The plugin is on in every grid: without a header checkbox it must not make
+    // `setSourceDataAtCell()` build the hook's payload (and run the `valueSetter` for it).
+    expect(hot.hasHook('afterSetSourceDataAtCell')).toBe(false);
+
+    hot.updateSettings({ columns: [{ data: 'name' }, { data: 'done', type: 'checkbox', headerCheckbox: true }] });
+
+    expect(hot.hasHook('afterSetSourceDataAtCell')).toBe(true);
+
+    hot.updateSettings({ columns: [{ data: 'name' }, { data: 'done', type: 'checkbox' }] });
+
+    expect(hot.hasHook('afterSetSourceDataAtCell')).toBe(false);
+
+    destroy();
+  });
+
+  it('should follow a source data write in the header state', () => {
+    const { hot, plugin, destroy } = createGrid();
+
+    expect(plugin.getHeaderCheckboxState(1)).toEqual({ state: 'mixed', selected: 2, total: 6 });
+
+    hot.setSourceDataAtCell(0, 'done', true);
+
+    expect(plugin.getHeaderCheckboxState(1)).toEqual({ state: 'mixed', selected: 3, total: 6 });
+
+    destroy();
+  });
+
   it('should check every cell from the mixed state, and uncheck every cell from the checked state', () => {
     const { plugin, done, destroy } = createGrid();
 

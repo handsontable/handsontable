@@ -417,7 +417,8 @@ export class RowSelectionPage {
    * Returns a context menu item by its label (a string matches the whole label).
    */
   menuItem(menu: Locator, label: string | RegExp): Locator {
-    const pattern = typeof label === 'string' ? new RegExp(`^${label.replace(/[()]/g, '\\$&')}$`) : label;
+    // Every RegExp special character is escaped, backslash included, so a label is matched literally.
+    const pattern = typeof label === 'string' ? new RegExp(`^${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`) : label;
 
     return menu.locator('.ht_master td').filter({ hasText: pattern });
   }

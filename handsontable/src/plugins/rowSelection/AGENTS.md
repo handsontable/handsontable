@@ -83,6 +83,13 @@ from a "select all" checkbox (PRO-87, modeled on AG Grid's `rowSelection`). Read
   checkbox sits in a data cell, and the editor manager opens the cell editor on any printable key the
   shortcut leaves unmarked: Space toggled the row and opened the editor. Pinned by
   `__tests__/rowSelection.unit.ts` and the "Space on a first column checkbox" Playwright test.
+- **A bound cell's meta can depend on other columns.** In bound mode a read-only (or non-checkbox)
+  bound cell is not selectable, and `cells`/`columns` functions or `beforeGetCellMeta`/`afterGetCellMeta`
+  listeners can derive that from any value of the row. `#affectsSelectionState()` therefore drops the
+  "select all" cache on every edit while one of those exists (`#boundMetaMayReadData()`), and
+  `afterSetCellMeta`/`afterRemoveCellMeta` drop it in bound mode. Without them an edit of another
+  column left the header total stale and a header press acted on it. Pinned by
+  `__tests__/boundColumn.unit.ts`.
 - **The rendering hooks share one `RowChecks` per draw** (`#getDrawRowChecks()`). Scroll draws run no
   render hook, so the shared checks live until the end of the task (`queueMicrotask`) and are dropped
   sooner on `beforeRender`, in `#applyChange()` / `#replaceServerSelection()` once a change passes the

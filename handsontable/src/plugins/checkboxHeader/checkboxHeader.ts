@@ -189,6 +189,11 @@ export class CheckboxHeader extends BasePlugin {
   #isReadingMeta = false;
 
   /**
+   * `true` while the `afterSetSourceDataAtCell` listener is registered (`#syncSourceDataListener()`).
+   */
+  #hasSourceDataListener = false;
+
+  /**
    * Checks if the plugin is enabled. It always is: a column opts in through its own
    * `headerCheckbox` option.
    *
@@ -213,7 +218,6 @@ export class CheckboxHeader extends BasePlugin {
     // fire nothing else (an undo, a data replace); re-reading a row twice is harmless.
     this.addHook('beforeChangeRender', this.#onDataChange);
     this.addHook('afterChange', this.#onDataChange);
-    this.addHook('afterSetSourceDataAtCell', this.#onSourceDataChange);
     this.addHook('afterSetCellMeta', this.#onCellMetaChange);
     this.addHook('afterRemoveCellMeta', this.#onCellMetaChange);
     // An undo or redo puts cell meta back without `afterSetCellMeta`, and renders before it ends, so
@@ -245,6 +249,7 @@ export class CheckboxHeader extends BasePlugin {
     this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#invalidate);
     this.hot.columnIndexMapper.removeLocalHook('cacheUpdated', this.#invalidate);
     this.#summaryCache.clear();
+    this.#syncSourceDataListener();
   }
 
   /**
@@ -282,6 +287,7 @@ export class CheckboxHeader extends BasePlugin {
     if (!summary) {
       summary = this.#scanColumn(column);
       this.#summaryCache.set(column, summary);
+      this.#syncSourceDataListener();
     }
 
     return summarizeHeaderCheckbox(summary.selected, summary.total);
@@ -423,6 +429,7 @@ export class CheckboxHeader extends BasePlugin {
         if (physicalRow === null || physicalRow < 0 || physicalRow >= summary.rowStates.length) {
           // A row the scan did not see: read the whole column again.
           this.#summaryCache.delete(column);
+          this.#syncSourceDataListener();
 
           return;
         }
@@ -691,13 +698,46 @@ export class CheckboxHeader extends BasePlugin {
    */
   #invalidate = () => {
     this.#summaryCache.clear();
+    this.#syncSourceDataListener();
   };
+
+  /**
+   * Registers the `afterSetSourceDataAtCell` listener only while a column's header state is cached.
+   * The listener only re-reads cached columns, and the plugin is on in every grid: a listener on a
+   * grid with no "check all" checkbox would cost every `setSourceDataAtCell()` call the hook's payload
+   * for nothing. Not through the tracked `addHook()`, which keeps every callback it ever registered;
+   * `disablePlugin()` and `destroy()` drop the cache, which removes it.
+   */
+  #syncSourceDataListener() {
+    // The index mappers' `cacheUpdated` can run after `destroy()` has detached the instance; its
+    // hooks are gone with it.
+    if (!this.hot) {
+      this.#hasSourceDataListener = false;
+
+      return;
+    }
+
+    const isNeeded = this.enabled && this.#summaryCache.size > 0;
+
+    if (isNeeded === this.#hasSourceDataListener) {
+      return;
+    }
+
+    if (isNeeded) {
+      this.hot.addHook('afterSetSourceDataAtCell', this.#onSourceDataChange);
+    } else {
+      this.hot.removeHook('afterSetSourceDataAtCell', this.#onSourceDataChange);
+    }
+
+    this.#hasSourceDataListener = isNeeded;
+  }
 
   /**
    * Destroys the plugin instance.
    */
   destroy() {
     this.#summaryCache.clear();
+    this.#syncSourceDataListener();
 
     super.destroy();
   }
