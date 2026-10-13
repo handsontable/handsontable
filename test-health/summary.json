@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-13T11:04:47.345Z",
+  "generatedAt": "2026-10-13T11:15:02.458Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 399,
     "needsTicket": 27,
     "quarantined": 0,
-    "entries": 2073
+    "entries": 2074
   },
   "rows": [
     {
@@ -469,6 +469,43 @@
       "needsTicket": true
     },
     {
+      "key": "jasmine|handsontable/src/editors/textEditor/__tests__/textEditor.spec.js|TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
+      "tier": "jasmine",
+      "file": "handsontable/src/editors/textEditor/__tests__/textEditor.spec.js",
+      "line": null,
+      "title": "TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
+      "count7": 6,
+      "count30": 8,
+      "countAll": 8,
+      "runs30": 5,
+      "flakyRuns30": 0,
+      "branches30": 5,
+      "nightlyRuns30": 0,
+      "openBranches30": 5,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD (theme: main)",
+        "UMD.min (theme: horizon)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-13T11:14:07Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38384517117/attempts/2",
+        "branch": "feature/DEV-3402_Speed-up-jsdom-unit-tests",
+        "leg": "UMD.min (theme: horizon)",
+        "status": "failed",
+        "error": "Error: Timeout - Async function did not complete within 15000ms (set by jasmine.DEFAULT_TIMEOUT_INTERVAL)",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
       "key": "playwright|e2e/selection-viewport-scroll.spec.ts|viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
       "tier": "playwright",
       "file": "e2e/selection-viewport-scroll.spec.ts",
@@ -535,43 +572,6 @@
         "leg": "UMD.min (theme: classic)",
         "status": "failed",
         "error": "Expected '' to equal 'cyan'.",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "jasmine|handsontable/src/editors/textEditor/__tests__/textEditor.spec.js|TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
-      "tier": "jasmine",
-      "file": "handsontable/src/editors/textEditor/__tests__/textEditor.spec.js",
-      "line": null,
-      "title": "TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
-      "count7": 5,
-      "count30": 7,
-      "countAll": 7,
-      "runs30": 5,
-      "flakyRuns30": 0,
-      "branches30": 5,
-      "nightlyRuns30": 0,
-      "openBranches30": 5,
-      "legs": [
-        "UMD (theme: classic)",
-        "UMD (theme: main)",
-        "UMD.min (theme: horizon)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "passes alone"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-13T11:03:53Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38384517117",
-        "branch": "feature/DEV-3402_Speed-up-jsdom-unit-tests",
-        "leg": "UMD.min (theme: horizon)",
-        "status": "failed",
-        "error": "Error: Timeout - Async function did not complete within 15000ms (set by jasmine.DEFAULT_TIMEOUT_INTERVAL)",
         "source": "ci"
       },
       "needsTicket": true
