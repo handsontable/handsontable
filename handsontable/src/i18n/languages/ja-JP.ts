@@ -165,6 +165,8 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[total] 行中 [selected] 行を選択中',
   [C.ROW_SELECTION_MENU_REMOVE]: '選択した行を削除 ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: '行の選択を解除',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '行 [label] を展開しました。展開された行数: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '行 [label] を折りたたみました',
 };
 
 export default dictionary;

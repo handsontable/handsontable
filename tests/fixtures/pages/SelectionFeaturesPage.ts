@@ -1,6 +1,7 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import type { CellValue, MoveCellsHookRecord } from './windowTypes';
 import { dragFillHandle } from '../gestures';
+import { awaitBundle } from '../bundle';
 
 type Box = { x: number, y: number, width: number, height: number };
 
@@ -35,11 +36,13 @@ function overlayClass(overlay: OverlayName): string {
 export class SelectionFeaturesPage {
   readonly page: Page;
   readonly theme: string;
+  readonly bundle: string;
   readonly grid: Locator;
 
-  constructor(page: Page, theme = 'main') {
+  constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
+    this.bundle = bundle;
     this.grid = page.getByTestId('grid');
   }
 
@@ -48,7 +51,8 @@ export class SelectionFeaturesPage {
    * a real DOM condition).
    */
   async goto(): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/selection-features.html?theme=${this.theme}`);
+    await this.page.goto(`/tests/fixtures/demo/selection-features.html?theme=${this.theme}&bundle=${this.bundle}`);
+    await awaitBundle(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
@@ -980,6 +984,95 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * How far (in px) the cell a clone renders for `row`/`col` sits from the left edge of its column
+   * header, or `null` while that cell is not rendered. Both reads share one evaluation, because the
+   * grid recycles its nodes between draws. `0` means the cell is under its own header.
+   */
+  async cellOffsetFromColumnHeader(overlay: OverlayName, row: number, col: number): Promise<number | null> {
+    return this.page.evaluate(([name, targetRow, targetCol]) => {
+      const cell = document.querySelector(`.${name} [data-testid="cell-${targetRow}-${targetCol}"]`);
+      const header = window.hot.getCell(-1, targetCol as number, true);
+
+      if (!cell || !header || getComputedStyle(cell).display === 'none') {
+        return null;
+      }
+
+      return Math.round(cell.getBoundingClientRect().left - header.getBoundingClientRect().left);
+    }, [overlayClass(overlay), row, col] as const);
+  }
+
+  /**
+   * What an overlay renders for `row`/`col`: whether the cell is displayed, its `rowspan`, its text and its
+   * classes. `null` when the overlay holds no such cell. All read in one evaluation, because the grid
+   * recycles its nodes between draws.
+   */
+  async overlayCellState(overlay: OverlayName, row: number, col: number): Promise<{
+    displayed: boolean, rowspan: string | null, text: string, className: string,
+  } | null> {
+    return this.page.evaluate(([name, targetRow, targetCol]) => {
+      const cell = document.querySelector(`.${name} [data-testid="cell-${targetRow}-${targetCol}"]`);
+
+      if (!cell) {
+        return null;
+      }
+
+      return {
+        displayed: getComputedStyle(cell).display !== 'none',
+        rowspan: cell.getAttribute('rowspan'),
+        text: cell.textContent ?? '',
+        className: cell.className,
+      };
+    }, [overlayClass(overlay), row, col] as const);
+  }
+
+  /**
+   * The height (in px) of the `<tr>` that holds `cell-<row>-<col>` in the given overlay, or `null` while
+   * that overlay renders no such row.
+   */
+  async rowHeightInOverlay(overlay: OverlayName, row: number, col: number): Promise<number | null> {
+    return this.page.evaluate(([name, targetRow, targetCol]) => {
+      const cell = document.querySelector(`.${name} [data-testid="cell-${targetRow}-${targetCol}"]`);
+
+      return cell ? cell.closest('tr')!.getBoundingClientRect().height : null;
+    }, [overlayClass(overlay), row, col] as const);
+  }
+
+  /**
+   * Presses the mouse on the current-selection outline that the given overlay draws (its left edge, the
+   * middle of it) and reports what `beforeOnCellMouseDown` received as the cell element: `'element'` for a
+   * real cell, otherwise what it was. `null` when the overlay draws no such outline.
+   */
+  async pressOutlineOf(overlay: OverlayName): Promise<string | null> {
+    await this.page.evaluate(() => {
+      window.hot.addHook('beforeOnCellMouseDown', (_event, _coords, TD) => {
+        (window as unknown as { lastMouseDownCell: string }).lastMouseDownCell =
+          TD instanceof HTMLElement ? 'element' : String(TD);
+      });
+    });
+
+    const outline = this.page.locator(`.${overlayClass(overlay)} .wtBorder.current:visible`).first();
+    const box = await outline.boundingBox();
+
+    if (!box) {
+      return null;
+    }
+
+    // The outline's left edge is a thin vertical box: aim at its middle.
+    await this.page.mouse.move(box.x + 1, box.y + box.height / 2);
+    await this.page.mouse.down();
+    await this.page.mouse.up();
+
+    return this.page.evaluate(() => (window as unknown as { lastMouseDownCell: string }).lastMouseDownCell ?? null);
+  }
+
+  /**
+   * Whether `hot.getCell(row, col, true)`, asked outside any draw, resolves to a cell.
+   */
+  async topmostCellResolves(row: number, col: number): Promise<boolean> {
+    return this.page.evaluate(([targetRow, targetCol]) => !!window.hot.getCell(targetRow, targetCol, true), [row, col] as const);
+  }
+
+  /**
    * Scroll the viewport so that the given column is at the inline start, right after the frozen
    * columns.
    */
@@ -1079,6 +1172,16 @@ export class SelectionFeaturesPage {
 
       return { cell: toBox(cell), handles };
     }, [overlayClass(overlay), row, col] as const);
+  }
+
+  /**
+   * The visible border lines of the master's current and area selections (all edges and the corner).
+   * Walkontable hides the edges it does not need, so a drawn selection shows only some of them.
+   *
+   * @returns {Locator}
+   */
+  visibleSelectionBorders(): Locator {
+    return this.page.locator('.ht_master .wtBorder.area:visible, .ht_master .wtBorder.current:visible');
   }
 
   /** The currently visible move-zone bands in the master overlay. */
@@ -1261,28 +1364,25 @@ export class SelectionFeaturesPage {
    * and leaves nothing to assert on.
    */
   async scrollCellBehindFrozenPane(row: number, col: number, pane: 'columns' | 'rows'): Promise<void> {
+    if (pane === 'columns') {
+      await this.scrollCellEndUnderInlinePane(row, col, 'start');
+
+      return;
+    }
+
     const paneInset = 8;
 
-    await this.page.evaluate(({ targetRow, targetCol, targetPane, inset }) => {
+    await this.page.evaluate(({ targetRow, targetCol, inset }) => {
       const holder = document.querySelector('.ht_master .wtHolder');
       const cell = document.querySelector(`.ht_master [data-testid="cell-${targetRow}-${targetCol}"]`);
-      const paneElement = document.querySelector(
-        targetPane === 'columns' ? '.ht_clone_inline_start' : '.ht_clone_bottom'
-      );
+      const paneElement = document.querySelector('.ht_clone_bottom');
 
       if (!holder || !cell || !paneElement) {
         throw new Error('The master viewport, the target cell or the frozen pane is not rendered.');
       }
 
-      const cellRect = cell.getBoundingClientRect();
-      const paneRect = paneElement.getBoundingClientRect();
-
-      if (targetPane === 'columns') {
-        holder.scrollLeft += cellRect.right - (paneRect.right - inset);
-      } else {
-        holder.scrollTop += cellRect.bottom - (paneRect.top + inset);
-      }
-    }, { targetRow: row, targetCol: col, targetPane: pane, inset: paneInset });
+      holder.scrollTop += cell.getBoundingClientRect().bottom - (paneElement.getBoundingClientRect().top + inset);
+    }, { targetRow: row, targetCol: col, inset: paneInset });
   }
 
   /**
@@ -1311,6 +1411,148 @@ export class SelectionFeaturesPage {
 
       return `${overlayName}/${element.className}`;
     }, { x: handleBox.x + (handleBox.width / 2), y: handleBox.y + (handleBox.height / 2) });
+  }
+
+  /**
+   * Scroll the master viewport until the given cell's inline-end edge, where its fill handle is
+   * drawn, sits a few pixels inside an inline frozen pane: the inline-start pane (row headers and
+   * `fixedColumnsStart`) or the inline-end pane (`fixedColumnsEnd`). Works in both layout
+   * directions. Ends once the redraw reports the column off screen on that side.
+   */
+  async scrollCellEndUnderInlinePane(row: number, col: number, pane: 'start' | 'end'): Promise<void> {
+    const paneInset = 8;
+
+    await this.page.evaluate(({ targetRow, targetCol, targetPane, inset }) => {
+      const holder = document.querySelector('.ht_master .wtHolder');
+      const cell = document.querySelector(`.ht_master [data-testid="cell-${targetRow}-${targetCol}"]`);
+      const paneElement = document.querySelector(`.ht_clone_inline_${targetPane}`);
+
+      if (!holder || !cell || !paneElement) {
+        throw new Error('The master viewport, the target cell or the inline pane is not rendered.');
+      }
+
+      const isRtl = window.hot.isRtl();
+      const cellRect = cell.getBoundingClientRect();
+      const paneRect = paneElement.getBoundingClientRect();
+      // The cell's inline-end edge, and the point inside the pane it has to reach.
+      const cellEnd = isRtl ? cellRect.left : cellRect.right;
+      const paneTarget = (targetPane === 'start') === isRtl ? paneRect.left + inset : paneRect.right - inset;
+
+      // A growing `scrollLeft` moves the content toward the physical left in both directions (RTL
+      // scrolls from 0 into negative values), so one formula covers both.
+      holder.scrollLeft += cellEnd - paneTarget;
+    }, { targetRow: row, targetCol: col, targetPane: pane, inset: paneInset });
+
+    // The redraw is rAF-batched and lands after the scroll offset settles, so wait for the
+    // viewport calculators, which exclude the frozen panes, to stop counting the column.
+    await expect.poll(() => this.page.evaluate(([column, side]) => (side === 'start'
+      ? window.hot.getFirstPartiallyVisibleColumn() > column
+      : window.hot.getLastFullyVisibleColumn() < column), [col, pane] as const)).toBe(true);
+  }
+
+  /**
+   * The last column whose cell in the given row ends at least `margin` pixels before the inline-end
+   * frozen pane (`fixedColumnsEnd`), read from the master's rendered cells. Picked from the DOM, not
+   * hardcoded, because each theme sizes the columns differently. Works in both layout directions: the
+   * pane is on the physical right in LTR and on the physical left in RTL.
+   */
+  async lastColumnClearOfInlineEndPane(row: number, margin = 16): Promise<number> {
+    return this.page.evaluate(({ targetRow, gap }) => {
+      const pane = document.querySelector('.ht_clone_inline_end');
+
+      if (!pane) {
+        throw new Error('The inline-end pane is not rendered.');
+      }
+
+      const isRtl = window.hot.isRtl();
+      const paneRect = pane.getBoundingClientRect();
+      let found = -1;
+
+      document.querySelectorAll(`.ht_master [data-testid^="cell-${targetRow}-"]`).forEach((cell) => {
+        const col = Number(cell.getAttribute('data-testid')!.split('-')[2]);
+        const rect = cell.getBoundingClientRect();
+        const isClear = isRtl ? rect.left >= paneRect.right + gap : rect.right <= paneRect.left - gap;
+
+        if (isClear && col > found) {
+          found = col;
+        }
+      });
+
+      if (found < 0) {
+        throw new Error('No rendered column ends clear of the inline-end pane.');
+      }
+
+      return found;
+    }, { targetRow: row, gap: margin });
+  }
+
+  /**
+   * Scroll the master viewport to the end of its horizontal range, in either layout direction. Ends
+   * once the offset has arrived; the redraw it triggers is rAF-batched, so a caller asserts on what
+   * the redraw draws through `expect.poll`.
+   */
+  async scrollHolderToInlineEnd(): Promise<void> {
+    await this.page.evaluate(() => {
+      const holder = document.querySelector('.ht_master .wtHolder') as HTMLElement;
+      const max = holder.scrollWidth - holder.clientWidth;
+
+      holder.scrollLeft = window.hot.isRtl() ? -max : max;
+    });
+    await expect.poll(() => this.page.evaluate(() => {
+      const holder = document.querySelector('.ht_master .wtHolder') as HTMLElement;
+
+      return holder.scrollWidth - holder.clientWidth - Math.abs(holder.scrollLeft) < 1;
+    })).toBe(true);
+  }
+
+  /**
+   * Hit-tests the row of pixels just below the frozen top rows, across the whole grid, and reports
+   * every place a fill handle (`.wtBorder.corner`) is the topmost element there, as
+   * `<overlay>@<region>`: the overlay that drew it (`top`, `top_inline_start_corner`, ...) and what it
+   * lies over (`inline_start` pane, `inline_end` pane, or the scrollable part, `main`). The `top`
+   * overlay's holder reaches a few pixels below its table so the handle can hang past the frozen rows
+   * (#6937), and that overlay paints above both inline panes, so a handle it draws over a pane covers
+   * that pane's cells or row headers. Only the fill handle is matched: the selection's own edges end
+   * inside the frozen rows, and their thickness differs per theme.
+   */
+  async fillHandlesBelowFrozenRows(): Promise<string[]> {
+    return this.page.evaluate(() => {
+      const root = document.querySelector('[data-testid="grid"]');
+      const topTable = document.querySelector('.ht_clone_top table.htCore');
+
+      if (!root || !topTable) {
+        throw new Error('The grid or the top overlay is not rendered.');
+      }
+
+      const paneRange = (name: string): [number, number] | null => {
+        const pane = document.querySelector(`.ht_clone_${name}`);
+        const rect = pane?.getBoundingClientRect();
+
+        return rect && rect.width > 0 ? [rect.left, rect.right] : null;
+      };
+      const panes: Array<[string, [number, number] | null]> = [
+        ['inline_start', paneRange('inline_start')],
+        ['inline_end', paneRange('inline_end')],
+      ];
+      const rootRect = root.getBoundingClientRect();
+      const y = topTable.getBoundingClientRect().bottom + 1.5;
+      const hits = new Set<string>();
+
+      for (let x = Math.ceil(rootRect.left) + 0.5; x < rootRect.right; x += 1) {
+        const element = document.elementFromPoint(x, y);
+        const overlay = element?.closest('[class*="ht_clone_"]');
+
+        if (element?.matches('.wtBorder.corner') && overlay) {
+          const overlayName = Array.from(overlay.classList)
+            .find(name => name.startsWith('ht_clone_'))!.replace('ht_clone_', '');
+          const [region] = panes.find(([, range]) => range && x >= range[0] && x <= range[1]) ?? ['main'];
+
+          hits.add(`${overlayName}@${region}`);
+        }
+      }
+
+      return Array.from(hits).sort();
+    });
   }
 
   /**

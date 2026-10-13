@@ -159,6 +159,13 @@ outside, do not assume each call rebuilds the matrix.
   is consumed** in the cacheUpdated handler, not unconditionally — a CollapsibleColumns auto-expand fires
   a synchronous hidden-only `cacheUpdated` *before* `moveIndexes`, and clearing eagerly dropped the
   pending move.
+- The header renderer strips `beforeHiddenColumn` / `afterHiddenColumn` from every header that does not
+  reach the cells (`reachesCells`). It runs *after* HiddenColumns' `afterGetColHeader` hook, which — since
+  icons became elements — also appends a real `<i class="ht-icon …">` caret into `.relative`. Stripping the class does
+  not remove that element, so HiddenColumns now withholds it with the same `isBottomMostColumnHeader(TH)`
+  test, and its SCSS hides any stray caret under `th:not(.beforeHiddenColumn)`. If you change what
+  `reachesCells` means, change `../hiddenColumns/hiddenColumns.ts` to match, or the two disagree about
+  which level shows the caret (`../hiddenColumns/AGENTS.md`, "With NestedHeaders…").
 
 ## Header-highlight redirect must list every selection type that can reach a group level
 
@@ -171,6 +178,58 @@ in `handsontable/src/selection/selection.ts`) will silently paint its class onto
 of the group cell until this hook is taught about it too (DEV-3012 added `COLUMN_TYPE` for
 `currentColClassName`).
 
+## A Shift+click measures the range and the focus from one anchor (`#focusInitialCoords`)
+
+`#onAfterOnCellMouseDown` records the pressed header in `#focusInitialCoords`, and with `navigableHeaders`
+`#onBeforeSelectionHighlightSet` moves the focus there. A Shift+click extends a range, so both the focus and
+the far end of the range have to come from the header the range started from, as they do for a drag,
+Shift+ArrowRight and row headers. Recording the Shift-clicked header moved the focus to it, and building the
+range from the corners of the old range let a later Shift+click that landed back past the start drift away
+from the focus (5, Shift+2, Shift+7 selected 2..7 with the focus left on 5).
+
+`#resolveShiftClickAnchor()` therefore takes the focus of the current range as the anchor: its header when the
+focus sits in a header row, the bottom header of its column when the range started from a cell. The range then
+runs from the anchor's span to the span of the clicked header (`#getColumnsToSelectFromAnchor()`). When the
+range does not start under a nested header (a row header, the corner) there is no anchor, and the old corner
+based range and the clicked header as focus stay (`#getColumnsToSelectFromRange()`). Without `navigableHeaders` the
+focus is a cell and says nothing about the header, so `#findRangeStartHeader()` takes the recorded `#focusInitialCoords`
+while the first corner of the range still sits under it (`selectColumns()` rebuilds that corner from the start column,
+so it cannot tell a group from one of its leaf headers). The anchor is a snapshot
+of the focus, so it does not depend on what the selection layer does with the highlight object afterwards.
+Pinned by `tests/e2e/header-range-selection.spec.ts`, where the cases cover a leaf and a group anchor, both
+directions, a second Shift+click and a cell start.
+
+## `fixedColumnsEnd`: a group that crosses the end line is drawn by the end clone
+
+The inline-end clone and the top inline-end corner render only the LAST `fixedColumnsEnd` columns, so their
+header cells do not line up by position with the master's, and a group that starts before the band has no
+header cell of its own there: its covered columns are placeholders. This is the mirror of a group that starts in
+the `fixedColumnsStart` band and reaches past it, and it follows the same rule: **the fixed band shows the label**.
+
+- `headerRendererFactory` turns the placeholder at the FIRST end column (`renderedColumnIndex ===
+  totalColumns - fixedColumnsEnd`, read from the Walkontable settings, so they are the clamped values) into a
+  continuation: `#renderEndGroupContinuation` finds the group's origin with `findLeftMostColumnIndex`, sets a
+  `colspan` of the columns left in the band and renders the origin's label. The cell is a continuation only when
+  `#isEndOverlayHeader(TH)` says it sits in an end clone, so the master and the top clone are untouched.
+- The label comes from the ORIGIN column, but the cell is rendered FOR the column it sits on: the renderer calls
+  `appendColHeader` with that column and a label callback that reads the origin's value. Passing the origin column
+  itself looks natural and works on the first draw, but `TableView#updateCellHeader` maps the column to a rendered
+  index of the CLONE, and the origin is not in the end clone, so every later draw of the same `<th>` (a scroll
+  that does not rebuild it) wrote an empty label. Pinned by the scrolled case in `fixed-columns-end-headers.spec.ts`.
+  `afterGetColHeader` listeners therefore see the placeholder column, not the origin.
+- The top clone's `<th>` of a group that reaches into the band gets `hiddenHeaderText`, like a group that starts in the
+  start band. Without it the label would be painted twice, half of it under the end corner.
+- The cells of the end clones are NOT index-aligned with the master's `<th>` list. `clearColspans()` therefore walks
+  `getEndOverlayHeaders(this.hot)` (shared with collapsibleColumns, in `src/utils/endOverlayHeaders.ts`; plugins must not
+  import each other) on their own instead of reusing the loop index `j`.
+- A continuation cell is still a placeholder in the state, so the renderer draws it from the ORIGIN group's settings:
+  `headerClassName` of the group is applied to it, and `reachesCells` (hidden-column indicators) and the rowspan read
+  the group's `rowspan`, not the placeholder's. Reading the placeholder's own settings drops the class and the
+  indicators of a group with `rowspan > 1`.
+- With `fixedColumnsEnd: 0` none of this runs (`firstEndColumn` is `Infinity`).
+- Pinned by `tests/e2e/fixed-columns-end-headers.spec.ts` (LTR and RTL). Toggle `#renderEndGroupContinuation` off to
+  see the end band header lose the label of a crossing group.
+
 ## TypeScript notes
 
 - `utils/dataStructures/tree.ts` `TreeNode<T>` is generic with a permissive default; nestedHeaders
@@ -179,10 +238,25 @@ of the group cell until this hook is taught about it too (DEV-3012 added `COLUMN
 - `ColumnDropMode` is declared in `stateManager/utils.ts` and re-used across the pipeline; import the
   type, don't inline `'adopt' | 'split'` string unions.
 
+## Ghost-table widths drop the engine's column-width cache
+
+`GhostTable#buildWidthsMap()` and `GhostTable#clear()` end with `hot.view?.invalidateColumnWidthCache()`.
+The widths map feeds `modifyColWidth`, and the engine's column `PositionCache` tests only the column
+COUNT, so a width-only change is invisible to it. Left stale, the cache kept the narrow pre-growth sums
+while the scroll range used the grown widths, and a grid scrolled to the right edge showed a blank area
+instead of its last columns. A second writer of the widths map must call it too.
+
 ## Testing
 
 - E2E: `npm run test:e2e --prefix handsontable -- --testPathPattern='nestedHeaders'`
 - Unit: `npm run test:unit --prefix handsontable -- --testPathPattern='nestedHeaders'`
+- A collapsible group whose label is longer than the group:
+  `npm --prefix tests run test:e2e -- e2e/nested-headers-long-label.spec.ts` (Shift+Tab reaching the group,
+  Enter collapsing it, and the label cut with an ellipsis before the collapse icon, measured against the
+  icon element `.collapsibleIndicator__icon`, not the indicator's wider hit area, on every theme).
+- Ghost-table growth and the column-width cache:
+  `npm --prefix tests run test:e2e -- e2e/nested-headers-grown-widths.spec.ts` (scrolled to the right edge,
+  the last column's cell must lie inside the holder's visible area).
 - Move/reparent behavior: `__tests__/plugins/manualColumnMove/` — `general.spec.js` (cooperation:
   follow-data, collapse coordination, insert/remove, freeze) plus one file per `columnDropMode`
   strategy (`adopt.spec.js`, `split.spec.js`). **Add a new drop strategy's tests in its own

@@ -159,6 +159,8 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[total]개 행 중 [selected]개 선택됨',
   [C.ROW_SELECTION_MENU_REMOVE]: '선택한 행 삭제 ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: '행 선택 해제',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '[label]행 펼침, 펼쳐진 행: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '[label]행 접음',
 };
 
 export default dictionary;

@@ -1,17 +1,20 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
+
 // Register all Handsontable's modules.
 registerAllModules();
+
 let lastChange = null;
 const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
   data: [
-    ['Tesla', 2017, 'black', 'black'],
-    ['Nissan', 2018, 'blue', 'blue'],
-    ['Chrysler', 2019, 'yellow', 'black'],
-    ['Volvo', 2020, 'yellow', 'gray'],
+    ['SKU-4821', 'Stainless Steel Water Bottle', 'Drinkware', 'Seattle'],
+    ['SKU-0093', 'Wireless Mouse', 'Electronics', 'Denver'],
+    ['SKU-1170', 'Ergonomic Office Chair', 'Furniture', 'Portland'],
+    ['SKU-2208', 'USB-C Charging Cable', 'Electronics', 'Austin'],
+    ['SKU-3341', 'Aluminum Water Filter', 'Drinkware', 'Minneapolis'],
   ],
-  colHeaders: true,
+  colHeaders: ['SKU', 'Product', 'Category', 'Warehouse'],
   rowHeaders: true,
   height: 'auto',
   minSpareRows: 1,
@@ -22,28 +25,38 @@ const hot = new Handsontable(container, {
   autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
+
 hot.updateSettings({
   beforeKeyDown(e) {
     const selected = hot.getSelected();
-    if (!selected)
-      return;
+
+    if (!selected) return;
+
     const selection = selected[0];
+
     // Ignore header and corner selections (row or column index < 0)
-    if (selection[0] < 0 || selection[1] < 0)
-      return;
+    if (selection[0] < 0 || selection[1] < 0) return;
+
     console.log(selection);
+
     // BACKSPACE or DELETE
     if (e.keyCode === 8 || e.keyCode === 46) {
       // remove data at cell, shift the cells below it up
       const column = hot.getDataAtCol(selection[1]);
       const shiftedUp = column.slice(selection[0] + 1);
       shiftedUp.push(null);
-      hot.populateFromArray(selection[0], selection[1], shiftedUp.map(value => [value]));
+      hot.populateFromArray(
+        selection[0],
+        selection[1],
+        shiftedUp.map((value) => [value]),
+      );
       e.preventDefault();
       lastChange = null;
+
       // block the default deletion behavior
       return false;
     }
+
     // ENTER
     if (e.keyCode === 13) {
       // if last change affected a single cell and did not change it's values
@@ -51,15 +64,21 @@ hot.updateSettings({
         // insert an empty cell, shift the cells below it down
         const column = hot.getDataAtCol(selection[1]);
         const shiftedDown = ['', ...column.slice(selection[0])];
-        hot.populateFromArray(selection[0], selection[1], shiftedDown.map(value => [value]));
+        hot.populateFromArray(
+          selection[0],
+          selection[1],
+          shiftedDown.map((value) => [value]),
+        );
         // add new cell
         hot.selectCell(selection[0], selection[1]);
         // select new cell
         lastChange = null;
+
         // block the default Enter behavior
         return false;
       }
     }
+
     lastChange = null;
   },
 });

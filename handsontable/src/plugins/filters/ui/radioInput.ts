@@ -2,6 +2,9 @@ import type { HotInstance } from '../../../core/types';
 import { clone, extend } from '../../../helpers/object';
 import type { BaseUIOptions } from './_base';
 import { BaseUI } from './_base';
+import { createIcon, syncIcon } from '../../../themes/engine/icons';
+
+const DOT_ICON_CLASS_NAME = 'htUIRadioIcon';
 
 /**
  * @private
@@ -59,9 +62,27 @@ export class RadioInputUI extends BaseUI {
     this.#input = this._element.firstChild as HTMLInputElement;
     this.#input.checked = this.options.checked as boolean;
 
+    // The dot is a real element, not the input's own `::after` - an `<input>` can hold no
+    // children, so it is inserted as the input's next sibling instead. `.ht-icon` carries
+    // `pointer-events: none`, so a click still reaches the input underneath it.
+    // Carries the slot class so `refreshIcons()` finds THIS element and re-applies the mapping in
+    // place - `syncIcon()`'s own create path would append a second dot at the end of the wrapper.
+    this.#input.insertAdjacentElement('afterend', createIcon(this.hot, 'radio', { className: DOT_ICON_CLASS_NAME }));
+
     this._element.appendChild(label);
 
     this.update();
+  }
+
+  /**
+   * Re-applies the theme's current icon mapping to the dot. The input is built once and reused for
+   * the life of the plugin, so this is what lets a runtime `icons` remap reach it (called on every
+   * menu show). A no-op unless the theme's icons revision moved.
+   */
+  refreshIcons() {
+    if (this.hot && this._element) {
+      syncIcon(this.hot, this._element, DOT_ICON_CLASS_NAME, 'radio');
+    }
   }
 
   /**

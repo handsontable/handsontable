@@ -26,6 +26,7 @@ import {
 } from './controllers/positioning';
 import type { CellInlineBox } from './controllers/positioning';
 import { getWindowScrollInlineMetrics } from '../utils/windowScrollInlineMetrics';
+import { getVerticalRoom } from '../utils/visibleVerticalRange';
 
 export const EDITOR_TYPE = 'multiselect';
 
@@ -124,7 +125,7 @@ export class MultiSelectEditor extends BaseEditor {
     this.#editorContainer.appendChild(this.dropdownContainerElement);
     this.hot.rootElement.appendChild(this.#editorContainer);
 
-    this.dropdownController = new DropdownController(this.dropdownContainerElement, this.hot.guid);
+    this.dropdownController = new DropdownController(this.dropdownContainerElement, this.hot.guid, this.hot);
   }
 
   /**
@@ -157,6 +158,9 @@ export class MultiSelectEditor extends BaseEditor {
     this.dropdownController!.fillDropdown(this.#getSource(), valuesIntersection);
     this.dropdownController!.setVisibleRowsNumberSetting(this.#getEditorSetting<number>('visibleRows'));
     this.dropdownController!.setSearchInputVisibility(this.#getEditorSetting<boolean>('searchInput'));
+    // The dropdown is built once and reused, so the search icon picks up a runtime `icons` remap or
+    // theme switch here. A no-op unless the theme's icons revision moved.
+    this.dropdownController!.refreshIcons();
 
     if (cellProperties.maxSelections !== undefined) {
       this.#selectedItems.setMaxSelectionCount(this.#getEditorSetting<number>('maxSelections'));
@@ -569,11 +573,17 @@ export class MultiSelectEditor extends BaseEditor {
     // browser chrome and the software keyboard, which is up precisely because a text editor has
     // focus.
     const cellRect = this.getEditedCell()!.getBoundingClientRect();
-    const block = getFixedContainingBlockRect(this.#editorContainer!);
+    // Only the part of that box the viewport shows counts: a transformed ancestor scrolls with the
+    // page, so its bottom can lie below the viewport's.
+    const { spaceAbove, spaceBelow } = getVerticalRoom(
+      cellRect,
+      getFixedContainingBlockRect(this.#editorContainer!),
+      this.hot.rootDocument.documentElement.clientHeight
+    );
 
     return {
-      spaceAbove: Math.max(cellRect.top - block.top, 0),
-      spaceBelow: Math.max((block.top + block.height) - cellRect.bottom, 0),
+      spaceAbove,
+      spaceBelow,
       cellHeight: cellRect.height,
     };
   }

@@ -194,8 +194,11 @@ export function base64ToString(base64: string): string | null {
  * @param {string} isoDate The date to parse.
  * @returns {number|null}
  */
-export function parseIsoDateToTimestamp(isoDate: string): number | null {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(`${isoDate}`);
+export function parseIsoDateToTimestamp(isoDate: unknown): number | null {
+  // Only a string is a date. Checked before the text test on purpose: an array
+  // like `['2027-08-12']` stringifies to a valid date and would otherwise pass,
+  // and an object whose `toString` is not a function would throw.
+  const match = typeof isoDate === 'string' ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate) : null;
 
   if (match === null) {
     return null;

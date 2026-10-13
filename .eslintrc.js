@@ -96,7 +96,7 @@ module.exports = {
         classes: false
       }
     ],
-    'no-void': 'off',
+    'no-void': ['error', { allowAsStatement: true }],
     'padded-blocks': 'off',
     quotes: ['error', 'single'],
     'space-before-function-paren': ['error', 'never'],

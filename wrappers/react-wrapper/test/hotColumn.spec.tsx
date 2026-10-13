@@ -43,7 +43,7 @@ describe('Passing column settings using HotColumn', () => {
     expect((hotInstance.getSettings().columns as Handsontable.ColumnSettings[])[0].title).toEqual('test title');
     expect(hotInstance.getCellMeta(0, 0).readOnly).toEqual(false);
 
-    expect((hotInstance.getSettings().columns as Handsontable.ColumnSettings[])[1].title).toEqual(void 0);
+    expect((hotInstance.getSettings().columns as Handsontable.ColumnSettings[])[1].title).toEqual(undefined);
     expect(hotInstance.getCellMeta(0, 1).readOnly).toEqual(true);
 
     expect(hotInstance.getSettings().licenseKey).toEqual('non-commercial-and-evaluation');
@@ -777,7 +777,7 @@ describe('Dynamic HotColumn configuration changes', () => {
     });
 
     expect((hotInstance.getSettings().columns as Handsontable.ColumnSettings[])[1].title).toEqual('test title 2');
-    expect((hotInstance.getSettings().columns as Handsontable.ColumnSettings[])[1].className).toEqual(void 0);
+    expect((hotInstance.getSettings().columns as Handsontable.ColumnSettings[])[1].className).toEqual(undefined);
     expect(hotInstance.getCell(0, 1)!.innerHTML).toEqual('<div>r2: B1</div>');
     expect(hotInstance.getCell(1, 1)!.innerHTML).toEqual('<div>r2: B2</div>');
     hotInstance.selectCell(0, 1);
@@ -799,7 +799,7 @@ describe('Dynamic HotColumn configuration changes', () => {
     editorElement = document.querySelector('#editorComponentContainer') as HTMLElement;
 
     expect((hotInstance.getSettings().columns as Handsontable.ColumnSettings[])[0].title).toEqual('test title 2');
-    expect((hotInstance.getSettings().columns as Handsontable.ColumnSettings[])[0].className).toEqual(void 0);
+    expect((hotInstance.getSettings().columns as Handsontable.ColumnSettings[])[0].className).toEqual(undefined);
     expect(hotInstance.getCell(0, 0)!.innerHTML).toEqual('<div>r2: A1</div>');
     expect(hotInstance.getCell(1, 0)!.innerHTML).toEqual('<div>r2: A2</div>');
 

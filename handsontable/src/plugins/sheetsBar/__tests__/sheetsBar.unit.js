@@ -4,6 +4,7 @@ import { registerLanguageDictionary } from '../../../i18n/registry';
 import plPL from '../../../i18n/languages/pl-PL';
 import { registerPlugin } from '../../registry';
 import { SheetsBar } from '../sheetsBar';
+import { syncIcon } from '../../../themes/engine/icons';
 import { ManualRowResize } from '../../manualRowResize/manualRowResize';
 import { Comments } from '../../comments/comments';
 import { AutoColumnSize } from '../../autoColumnSize/autoColumnSize';
@@ -26,6 +27,11 @@ import { SheetsBarUI } from '../ui/bar';
 import { TabStrip } from '../ui/tabStrip';
 import { TabDrag } from '../ui/tabDrag';
 import EventManager from '../../../eventManager';
+
+// No `themeManager` on the stub `hot` - `syncIcon()` falls back to plain glyph classes, exactly
+// like a grid built without a `theme` config object (the common case).
+const stubSyncIcon = (container, slotClass, name, options) =>
+  syncIcon({ rootDocument: document, themeManager: null }, container, slotClass, name, options);
 
 /**
  * Intercepts the tab menu's `SheetsBarMenus#openTabMenu` call for the given sheet and returns
@@ -87,6 +93,7 @@ function buildTabStrip(sheets) {
     translate: key => key,
     ariaTags: true,
     isRtl: false,
+    syncIcon: stubSyncIcon,
   });
 
   strip.render(sheets);
@@ -1598,7 +1605,10 @@ describe('SheetsBar plugin', () => {
     expect(rows[0].getAttribute('aria-checked')).toBe('true');
     expect(rows[0].getAttribute('aria-label')).toBe('A');
     expect(rows[1].getAttribute('aria-checked')).toBe('false');
-    expect(rows[0].querySelector('.htItemWrapper').dir).toBe('auto');
+    // The name carries its own `dir="auto"`; the wrapper keeps the menu's direction, so the
+    // check mark stays at the menu's inline end whatever script the sheet name uses.
+    expect(rows[0].querySelector('.htItemWrapper').dir).toBe('');
+    expect(rows[0].querySelector('.htItemWrapper .ht-sheets-bar__menu-item-name').dir).toBe('auto');
   });
 
   it('advertises the menu on the active tab only, and nothing when ariaTags is off', () => {
@@ -3146,6 +3156,28 @@ describe('SheetsBar plugin', () => {
     expect(hot.getSettings().fixedColumnsStart).toBe(2);
   });
 
+  it('does not carry a runtime end freeze onto a sheet that was never visited, and brings it back to its own sheet', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'A', data: [['a', 'b', 'c']] },
+          { name: 'B', data: [['x', 'y', 'z']] },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    hot.updateSettings({ fixedColumnsEnd: 2 });
+    sheetsBar.setActiveSheet('B');
+
+    expect(hot.getSettings().fixedColumnsEnd).toBe(0);
+
+    sheetsBar.setActiveSheet('A');
+
+    expect(hot.getSettings().fixedColumnsEnd).toBe(2);
+  });
+
   it('keeps the freeze a never-visited sheet declares in its own settings', () => {
     hot = new Handsontable(container, {
       sheetsBar: {
@@ -3160,6 +3192,32 @@ describe('SheetsBar plugin', () => {
     hot.getPlugin('sheetsBar').setActiveSheet('B');
 
     expect(hot.getSettings().fixedColumnsStart).toBe(1);
+  });
+
+  it('keeps the end freeze a never-visited sheet declares in its own settings', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'A', data: [['a', 'b', 'c']] },
+          { name: 'B', data: [['x', 'y', 'z']], settings: { fixedColumnsEnd: 1 } },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    sheetsBar.setActiveSheet('B');
+
+    expect(hot.getSettings().fixedColumnsEnd).toBe(1);
+
+    // Back and forth: the visited sheet restores its own captured state, the other one stays unfrozen.
+    sheetsBar.setActiveSheet('A');
+
+    expect(hot.getSettings().fixedColumnsEnd).toBe(0);
+
+    sheetsBar.setActiveSheet('B');
+
+    expect(hot.getSettings().fixedColumnsEnd).toBe(1);
   });
 
   it('keeps the view collections a never-visited sheet declares in its own settings', () => {
@@ -3587,11 +3645,15 @@ describe('SheetsBar plugin', () => {
     // through `innerHTML`.
     expect(returned).toBe(wrapper);
     // The row of the active sheet also carries the mark, whose own character sits before the
-    // name — the name itself still arrives as text and builds no elements.
+    // name — the name itself still arrives as text and builds no elements. The only elements in
+    // the wrapper are the mark span, the icon element it carries, and the name span - none of
+    // them comes from the sheet name string, so a hostile name still builds nothing.
     expect(wrapper.textContent.endsWith(hostile)).toBe(true);
     expect(wrapper.querySelector('img')).toBe(null);
-    expect(wrapper.querySelectorAll('*')).toHaveLength(1);
+    expect(wrapper.querySelectorAll('*')).toHaveLength(3);
+    expect(wrapper.querySelector('.ht-sheets-bar__menu-item-name').textContent).toBe(hostile);
     expect(wrapper.querySelector('.selected')).not.toBe(null);
+    expect(wrapper.querySelector('.selected > .ht-icon')).not.toBe(null);
   });
 
   it('switches to the sheet the add button just created', () => {
@@ -4967,6 +5029,7 @@ describe('SheetsBar plugin', () => {
       themeName: undefined,
       phraseTranslator: () => '',
       a11yAnnouncer: () => {},
+      syncIcon: stubSyncIcon,
     });
 
     ui.destroy();

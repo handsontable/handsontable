@@ -2244,7 +2244,7 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#modifyRowHeightByOverlayName
    * @param {number} height Row height.
    * @param {number} row Visual row index.
-   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|'master'} overlayName Overlay name.
+   * @param {'inline_start'|'inline_end'|'top'|'top_inline_start_corner'|'top_inline_end_corner'|'bottom'|'bottom_inline_start_corner'|'bottom_inline_end_corner'|'master'} overlayName Overlay name.
    */
   'modifyRowHeightByOverlayName',
 
@@ -2934,6 +2934,7 @@ export const REGISTERED_HOOKS = [
    * @since 12.1.0
    * @param {number} column The visual index of the column that is going to unfreeze.
    * @param {boolean} unfreezePerformed If `true`: the column is going to unfreeze. If `false`: the column is not going to unfreeze (which might happen if the column is already unfrozen).
+   * @param {number} finalIndex The visual index the column is going to be moved to (available since 19.0.0). It depends on the `restoreColumnPosition` setting of the [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) option. Equal to `column` when `unfreezePerformed` is `false`.
    * @returns {boolean|undefined} If `false`: the column is not going to unfreeze, and the `afterColumnUnfreeze` hook won't fire.
    */
   'beforeColumnUnfreeze',
@@ -2945,6 +2946,7 @@ export const REGISTERED_HOOKS = [
    * @since 12.1.0
    * @param {number} column The visual index of the unfrozen column.
    * @param {boolean} unfreezePerformed If `true`: the column got successfully unfrozen. If `false`: the column didn't get unfrozen.
+   * @param {number} finalIndex The visual index the column was moved to (available since 19.0.0). Equal to `column` when `unfreezePerformed` is `false`.
    */
   'afterColumnUnfreeze',
 
@@ -3049,7 +3051,9 @@ export const REGISTERED_HOOKS = [
    * fired when {@link Options#manualColumnResize} option is enabled.
    *
    * @event Hooks#beforeColumnResize
-   * @param {number} newSize Calculated new column width.
+   * @param {number} newSize Calculated new column width. It excludes the room that the hidden-column
+   *                         indicator adds to a column next to a hidden column, as the width taken by
+   *                         [`setManualSize()`](@/api/manualColumnResize.md#setmanualsize) does.
    * @param {number} column Visual index of the resized column.
    * @param {boolean} isDoubleClick Flag that determines whether there was a double-click.
    * @returns {number|false|undefined} Returns a new column size, `false` to cancel the resize, or `undefined` to keep the size set by the drag or auto-calculation.
@@ -3061,7 +3065,9 @@ export const REGISTERED_HOOKS = [
    * fired when {@link Options#manualColumnResize} option is enabled.
    *
    * @event Hooks#afterColumnResize
-   * @param {number} newSize Calculated new column width.
+   * @param {number} newSize Calculated new column width. It excludes the room that the hidden-column
+   *                         indicator adds to a column next to a hidden column, as the width taken by
+   *                         [`setManualSize()`](@/api/manualColumnResize.md#setmanualsize) does.
    * @param {number} column Visual index of the resized column.
    * @param {boolean} isDoubleClick Flag that determines whether there was a double-click.
    */
@@ -4287,6 +4293,10 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by {@link MergeCells} plugin before cell merging. This hook is fired when {@link Options#mergeCells}
    * option is enabled.
+   *
+   * The hook is fired only for a merge that the plugin applies. A merge that the plugin refuses – for example,
+   * one that overlaps an existing merged cell – doesn't fire it. The plugin checks for the overlap before it
+   * fires the hook, so a listener can't make room for a merge by unmerging the merged cell it overlaps.
    *
    * @event Hooks#beforeMergeCells
    * @param {CellRange} cellRange Selection cell range.

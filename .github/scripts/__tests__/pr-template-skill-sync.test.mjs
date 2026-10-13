@@ -61,9 +61,9 @@ test('the MANUAL QA NEEDED line keeps the exact matcher the Checks scope router 
   );
   // The template and the skill both carry the line UNTICKED, so the matcher stays dormant until a
   // human ticks it. The matcher requires `[xX]`; the unticked `[ ]` here must not match it.
-  assert.match(template, /^- \[ \] MANUAL QA NEEDED — /m);
-  assert.match(skillBody, /^- \[ \] MANUAL QA NEEDED — /m,
+  assert.match(template, /^- \[ \] MANUAL QA NEEDED – /m);
+  assert.match(skillBody, /^- \[ \] MANUAL QA NEEDED – /m,
     'the skill body template must show the line unticked, ready to be ticked');
-  assert.doesNotMatch('- [ ] MANUAL QA NEEDED — x', /^\s*-\s*\[[xX]\]\s+MANUAL QA NEEDED/m,
+  assert.doesNotMatch('- [ ] MANUAL QA NEEDED – x', /^\s*-\s*\[[xX]\]\s+MANUAL QA NEEDED/m,
     'sanity: the matcher only fires on a ticked box');
 });

@@ -110,3 +110,58 @@ describe('NestedRows DataManager', () => {
     });
   });
 });
+
+describe('DataManager#getRowSetPosition', () => {
+  it('should report each row\'s 1-based position among its siblings and the number of siblings', () => {
+    const dataManager = dataManagerWith(sampleTree());
+    const positions = [0, 1, 2, 3, 4, 5, 6].map(row => dataManager.getRowSetPosition(row));
+
+    expect(positions).toEqual([
+      { position: 1, setSize: 2 },
+      { position: 1, setSize: 2 },
+      { position: 2, setSize: 2 },
+      { position: 1, setSize: 2 },
+      { position: 2, setSize: 2 },
+      { position: 2, setSize: 2 },
+      { position: 1, setSize: 1 },
+    ]);
+  });
+
+  it('should follow the tree after the cache is rebuilt', () => {
+    const data = sampleTree();
+    const dataManager = dataManagerWith(data);
+
+    data[1].__children.push({ id: 'B-2' });
+    dataManager.rewriteCache();
+
+    expect(dataManager.getRowSetPosition(6)).toEqual({ position: 1, setSize: 2 });
+    expect(dataManager.getRowSetPosition(7)).toEqual({ position: 2, setSize: 2 });
+  });
+
+  it('should count only the object entries among the siblings', () => {
+    const dataManager = dataManagerWith([
+      { id: 'A', __children: [{ id: 'A-1' }, null, { id: 'A-2' }] },
+      { id: 'B' },
+    ]);
+
+    expect(dataManager.getRowSetPosition(1)).toEqual({ position: 1, setSize: 2 });
+    expect(dataManager.getRowSetPosition(2)).toEqual({ position: 2, setSize: 2 });
+    expect(dataManager.getRowSetPosition(3)).toEqual({ position: 2, setSize: 2 });
+  });
+
+  it('should keep loading a row whose `__children` is not an array', () => {
+    const dataManager = dataManagerWith([
+      { id: 'A', __children: 'abc' },
+      { id: 'B' },
+    ]);
+
+    expect(dataManager.getRowSetPosition(0)).toEqual({ position: 1, setSize: 2 });
+    expect(dataManager.getRowSetPosition(1)).toEqual({ position: 2, setSize: 2 });
+  });
+
+  it('should return `null` for a row the cache does not know', () => {
+    const dataManager = dataManagerWith(sampleTree());
+
+    expect(dataManager.getRowSetPosition(99)).toBeNull();
+  });
+});

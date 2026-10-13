@@ -4,6 +4,7 @@ import { getDocumentOffsetByElement } from '../../contextMenu/utils';
 import { setAttribute, getDeepActiveElement } from '../../../helpers/dom/element';
 import { A11Y_LABEL } from '../../../helpers/a11y';
 import * as C from '../../../i18n/constants';
+import { createIcon } from '../../../themes/engine/icons';
 import type { HotInstance } from '../../../core/types';
 import type { SheetDescriptor } from '../sheetModel';
 
@@ -371,8 +372,12 @@ export class SheetsBarMenus {
    * the shared `Menu` falls back to `innerHTML` for plain string items whenever the grid has
    * no `sanitizer` configured, which is the default.
    *
-   * The name lands inside the wrapper the menu already created rather than in an element of
-   * its own beside it, so the row carries the same structure as a plain string item.
+   * The name lands inside the wrapper the menu already created rather than beside it, so the row
+   * keeps the structure of a plain string item. It sits in a `<span dir="auto">` of its own:
+   * a sheet name can be in a script of the other direction (a Hebrew name in an LTR grid), and
+   * only the name may follow it. The wrapper keeps the menu's direction, so the active-sheet
+   * mark - a child of the wrapper, positioned with `inset-inline-end` - and the wrapper's
+   * reserved end padding stay on the menu's inline end instead of flipping with the name.
    *
    * @param {HTMLElement} wrapper The row's `.htItemWrapper`, supplied by the menu renderer.
    * @param {string} name The sheet name to display.
@@ -380,8 +385,12 @@ export class SheetsBarMenus {
    * @returns {HTMLElement} The wrapper, which the menu re-appends to the row.
    */
   #renderSheetName(wrapper: HTMLElement, name: string, isActive: boolean): HTMLElement {
-    wrapper.textContent = name;
-    wrapper.dir = 'auto';
+    const label = wrapper.ownerDocument.createElement('span');
+
+    label.className = 'ht-sheets-bar__menu-item-name';
+    label.dir = 'auto';
+    label.textContent = name;
+    wrapper.replaceChildren(label);
 
     if (!isActive) {
       return wrapper;
@@ -395,6 +404,7 @@ export class SheetsBarMenus {
 
     mark.className = 'selected';
     mark.textContent = String.fromCharCode(10003);
+    mark.appendChild(createIcon(this.#hot, 'check'));
     setAttribute(mark, [['aria-hidden', 'true']]);
     wrapper.insertBefore(mark, wrapper.firstChild);
 

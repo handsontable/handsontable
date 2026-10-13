@@ -114,11 +114,29 @@ export class MaxLengthPage {
    * matches first.
    */
   async pickWithKeyboard(steps: number): Promise<void> {
+    // The list highlights an option a moment after the typing: the dropdown preselects the option that matches
+    // the typed text, and the autocomplete highlights its first one once the list is built. An Enter sent before
+    // that commits the typed text instead of an option (seen on a slow CI runner as a value stuck at the capped
+    // text), and the arrow keys do not move a highlight that is not there yet. So wait for it first.
+    await expect.poll(() => this.highlightedOption()).not.toBeNull();
+
     for (let step = 0; step < steps; step++) {
       await this.page.keyboard.press('ArrowDown');
     }
 
     await this.page.keyboard.press('Enter');
+  }
+
+  /** The row of the open list that the keyboard highlight is on, or `null` while nothing is highlighted. */
+  async highlightedOption(): Promise<number | null> {
+    return this.page.evaluate(() => {
+      const editor = window.hot.getActiveEditor() as unknown as {
+        htEditor?: { getSelectedLast(): number[] | undefined }
+      } | undefined;
+      const selected = editor?.htEditor?.getSelectedLast();
+
+      return selected ? selected[0] : null;
+    });
   }
 
   /** The editor's caret, as the UTF-16 offsets of the selection. */

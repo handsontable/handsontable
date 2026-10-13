@@ -149,7 +149,7 @@ function hasChildElementOfType(children: ReactNode, type: 'hot-renderer' | 'hot-
   const childrenArray: ReactNode[] = React.Children.toArray(children);
 
   return childrenArray.some((child) => {
-    return (child as React.ReactElement).props[type] !== void 0;
+    return (child as React.ReactElement).props[type] !== undefined;
   });
 }
 

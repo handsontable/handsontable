@@ -145,6 +145,22 @@ describe('GridStateTracker', () => {
     expect(plugin.restored.length).toBe(1);
   });
 
+  it('should restore the frozen end column count that removing end columns lowered', () => {
+    createGrid({ fixedColumnsEnd: 3 });
+
+    const before = tracker.capture();
+
+    hot.alter('remove_col', 3, 2);
+
+    expect(hot.getSettings().fixedColumnsEnd).toBe(1);
+    expect(tracker.capture().settings.fixedColumnsEnd).toBe(1);
+
+    hot.alter('insert_col_start', 3, 2);
+    tracker.restore(before);
+
+    expect(hot.getSettings().fixedColumnsEnd).toBe(3);
+  });
+
   it('should refill an array `colHeaders` in place', () => {
     const colHeaders = ['A', 'B', 'C', 'D', 'E'];
 

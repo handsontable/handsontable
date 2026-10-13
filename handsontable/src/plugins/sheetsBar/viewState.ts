@@ -36,6 +36,7 @@ export interface ViewState {
   filterConditions: unknown[] | null;
   mergedCells: MergeAreaGeometry[];
   fixedColumnsStart: number | undefined;
+  fixedColumnsEnd: number | undefined;
   customBorders: Array<Record<string, unknown>>;
   cellMeta: TrackedCellMeta[];
   pagination: PaginationState | null;
@@ -501,6 +502,7 @@ export function captureViewState(hot: HotInstance, trackedCellMeta: TrackedCellM
     filterConditions: captureFilterConditions(hot),
     mergedCells: captureMergedCells(hot),
     fixedColumnsStart: hot.getSettings().fixedColumnsStart as number | undefined,
+    fixedColumnsEnd: hot.getSettings().fixedColumnsEnd as number | undefined,
     customBorders: captureCustomBorders(hot),
     cellMeta: trackedCellMeta.slice(),
     pagination: capturePagination(hot),
@@ -822,6 +824,11 @@ export function restoreViewState(hot: HotInstance, state: ViewState): void {
       hot.updateSettings({ fixedColumnsStart: state.fixedColumnsStart ?? 0 });
     }
 
+    // The frozen end columns follow the same rule as the start ones.
+    if ((state.fixedColumnsEnd ?? 0) !== (hot.getSettings().fixedColumnsEnd ?? 0)) {
+      hot.updateSettings({ fixedColumnsEnd: state.fixedColumnsEnd ?? 0 });
+    }
+
     restoreCustomBorders(hot, state);
   });
 
@@ -975,6 +982,7 @@ function createNeutralViewState(): ViewState {
     filterConditions: [],
     mergedCells: [],
     fixedColumnsStart: undefined,
+    fixedColumnsEnd: undefined,
     customBorders: [],
     cellMeta: [],
     pagination: null,
@@ -991,7 +999,7 @@ function createNeutralViewState(): ViewState {
  * carries the value the grid started with): `loadData` resets the index mappers and
  * ColumnSorting clears itself on `afterLoadData`, but every other collection survives it.
  */
-export function resetViewState(hot: HotInstance, fixedColumnsStart?: number): void {
+export function resetViewState(hot: HotInstance, fixedColumnsStart?: number, fixedColumnsEnd?: number): void {
   const state = createNeutralViewState();
 
   safeBatch(hot, () => {
@@ -1001,6 +1009,12 @@ export function resetViewState(hot: HotInstance, fixedColumnsStart?: number): vo
 
     if ((hot.getSettings().fixedColumnsStart ?? 0) !== targetFreeze) {
       hot.updateSettings({ fixedColumnsStart: targetFreeze });
+    }
+
+    const targetFreezeEnd = fixedColumnsEnd ?? 0;
+
+    if ((hot.getSettings().fixedColumnsEnd ?? 0) !== targetFreezeEnd) {
+      hot.updateSettings({ fixedColumnsEnd: targetFreezeEnd });
     }
 
     getSortingPlugin(hot)?.sort([]);

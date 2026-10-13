@@ -9,22 +9,33 @@ test/dist/
 src/3rdparty/walkontable/test/SpecRunner.html
 src/3rdparty/walkontable/test/dist/
 src/3rdparty/walkontable/dist/
-dev*.html
-dev*.js
-dev*.ts
+# The dev pages here and the output directories below exist at the package root only, so their rules
+# start with a slash. Git applies a rule with no slash, or only a trailing one, at every depth, where
+# these would also match sources such as `src/i18n/languages/xx-XX.ts` or a new `src/i18n/es/`
+# directory and keep them out of `git status`. The outputs below the root have rules of their own
+# above, and `node_modules/` matches at every depth on purpose, since no source has that name. No
+# build has ever written `es/` or `commonjs/` here: the ES and CJS builds moved to `tmp/` in January
+# 2021, while the repository root was the package root, but `clean` still removes both. Pinned by
+# the repository's scripts/__tests__/gitignore-scope.test.mjs.
+/dev*.html
+/dev*.js
+/dev*.ts
 npm-debug.log
 
-dist/
-languages/
+/dist/
+/languages/
 node_modules/
-commonjs/
-es/
-coverage/
-tmp/
-tmp_styles/
+/commonjs/
+/es/
+/coverage/
+/tmp/
+/tmp_styles/
 /styles/
 src/styles/handsontableStyles.js
 src/styles/handsontableStyles.ts
+# The reports of a mutation run: `evals/score.mjs --mutate` runs Stryker from this directory, and the
+# root's `reports/mutation/` matches the repository root only.
+/reports/mutation/
 
 # Figma "Design Tokens" plugin export consumed by scripts/themes/figma (user-provided)
 scripts/themes/figma/tokens.json

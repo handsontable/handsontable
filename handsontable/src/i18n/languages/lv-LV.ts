@@ -163,6 +163,8 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'Atlasītas [selected] no [total] rindām',
   [C.ROW_SELECTION_MENU_REMOVE]: 'Noņemt atlasītās rindas ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: 'Notīrīt rindu atlasi',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Izvērsta rinda [label], parādītās izvērstās rindas: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sakļauta rinda [label]',
 };
 
 export default dictionary;

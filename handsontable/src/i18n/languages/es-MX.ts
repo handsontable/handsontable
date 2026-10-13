@@ -165,6 +165,8 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] de [total] filas seleccionadas',
   [C.ROW_SELECTION_MENU_REMOVE]: 'Eliminar filas seleccionadas ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: 'Borrar selección de filas',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Se expandió la fila [label], filas expandidas mostradas: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Se contrajo la fila [label]',
 };
 
 export default dictionary;

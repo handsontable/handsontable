@@ -31,6 +31,17 @@ test.describe('entitlement license key branding', () => {
       await expect(license.lock).toHaveCount(0);
     });
 
+    test('reads a trial key license-key 4.x issued exactly like a current one', async () => {
+      // The trial keys already in the field are in the earlier format. They must keep reading as a
+      // running trial, not as an unreadable key that blocks the grid.
+      await license.goto(INSTANT.duringTrial, { key: 'trial-v1' });
+
+      await expect(license.badge).toBeAttached();
+      await expect(license.popoverTitle).toHaveText('Handsontable Trial');
+      await expect(license.bar).toHaveCount(0);
+      await expect(license.lock).toHaveCount(0);
+    });
+
     test('paints the glyph inside the corner header cell, never overflowing it', async ({ page }) => {
       await license.goto(INSTANT.duringTrial);
 
@@ -260,6 +271,10 @@ test.describe('entitlement license key branding', () => {
     // sentences moved out of the bottom bar and into the modal, so the bar must be gone.
     const FAULTS = [
       { key: 'tampered', title: 'The license key for Handsontable is invalid.' },
+      // A current key protects its text, so the block alone, or a key whose text was edited, is an
+      // unreadable key as well.
+      { key: 'bare-block', title: 'The license key for Handsontable is invalid.' },
+      { key: 'edited-prose', title: 'The license key for Handsontable is invalid.' },
       { key: 'missing', title: 'The license key for Handsontable is missing.' },
     ] as const;
 
@@ -344,7 +359,11 @@ test.describe('entitlement license key branding', () => {
   test.describe('a subscription past its grace period', () => {
     // A hard-stopped subscription is developer-facing only, however the key was issued: a console
     // error and no front-end surface at all. 18.1 never blocks a paying customer.
-    for (const key of ['subscription', 'subscription-external'] as const) {
+    // `subscription-pasted` is the same key with its whitespace turned into CRLF line breaks and a
+    // trailing "\n" saved as text, and `subscription-wrapped` the same key with its block broken
+    // into lines as a mail client wraps it - both must read exactly like the original, or a
+    // pasting customer's grid would block.
+    for (const key of ['subscription', 'subscription-external', 'subscription-pasted', 'subscription-wrapped'] as const) {
       test(`stays console-only for a "${key}" key: no lock, no bar, no badge`, async () => {
         await license.goto(INSTANT.subscriptionHardStop, { key });
 

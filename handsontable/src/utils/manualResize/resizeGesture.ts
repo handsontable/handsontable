@@ -48,6 +48,14 @@ export interface ResizeGestureOwner {
    * own undo step, so this must not open one.
    */
   setManualSize(index: number, size: number): number;
+  /**
+   * Returns how much wider (taller) a header renders than the size the owner stores for it, because
+   * something else adds to the stored size on every render. The drag starts from the stored size, so
+   * that what it stores is the pointer's travel on top of it. Optional: an owner whose headers render
+   * exactly their stored size leaves it out. The resize hooks and the stored size then report the size
+   * without the overhead.
+   */
+  getRenderedOverhead?(index: number): number;
 }
 
 /**
@@ -119,9 +127,19 @@ export class ResizeGesture {
    */
   #startPointer: number | null = null;
   /**
-   * The header's size when the handle was positioned.
+   * The size the owner stores for the header when the handle was positioned: the rendered size
+   * without the owner's overhead. The release stores the drag from here.
    */
   #startSize: number | null = null;
+  /**
+   * The size the header rendered at when the handle was positioned. The handle and the guide sit
+   * on the rendered edge.
+   */
+  #startRenderedSize: number | null = null;
+  /**
+   * How much wider the header renders than its stored size when the handle was positioned.
+   */
+  #startOverhead = 0;
   /**
    * The header's offset, along the resized axis, when the handle was positioned.
    */
@@ -130,6 +148,12 @@ export class ResizeGesture {
    * The CSS scale applied to the header along the resized axis.
    */
   #scaleFactor = 1;
+  /**
+   * Whether the header is anchored to the inline-end edge of the grid (the frozen end columns). Its
+   * inline-end edge never moves when the column is resized, the inline-start edge does. So the handle
+   * sits on the inline-start edge, and dragging towards the inline start makes the column wider.
+   */
+  #anchoredAtInlineEnd = false;
   /**
    * The draggable resize handle.
    */
@@ -195,7 +219,8 @@ export class ResizeGesture {
   }
 
   /**
-   * Returns the size the pointer described last, or `null` before the first drag.
+   * Returns the rendered size the pointer described last (the owner's overhead included), or `null`
+   * before the first drag.
    *
    * @returns {number|null}
    */
@@ -472,11 +497,16 @@ export class ResizeGesture {
     const alongOffset = this.#isVertical() ? headerPosition.top : headerPosition.start;
     const acrossOffset = this.#isVertical() ? headerPosition.start : headerPosition.top;
 
-    this.#startOffset = alongOffset - 6;
-    this.#startSize = this.#measureAlong(TH);
+    this.#anchoredAtInlineEnd = this.#axis.isAnchoredAtInlineEnd?.(this.#hot, TH) === true;
+    this.#startRenderedSize = this.#measureAlong(TH);
+    this.#startOverhead = this.#owner.getRenderedOverhead?.(this.#currentIndex) ?? 0;
+    this.#startSize = this.#startRenderedSize - this.#startOverhead;
+    // The handle sits on the edge that moves: the inline-end one, or the inline-start one for a
+    // header anchored to the inline end of the grid.
+    this.#startOffset = alongOffset - 6 - (this.#anchoredAtInlineEnd ? this.#startRenderedSize : 0);
     this.#scaleFactor = getElementScaleFactor(TH, this.#axis.orientation);
 
-    this.#handle.style[this.#alongProp()] = `${this.#startOffset + this.#startSize}px`;
+    this.#handle.style[this.#alongProp()] = `${this.#startOffset + this.#startRenderedSize}px`;
     this.#handle.style[this.#acrossProp()] = `${acrossOffset}px`;
     this.#handle.style[this.#acrossExtentProp()] = `${headerAcrossSize}px`;
     this.#hot.rootElement.appendChild(this.#handle);
@@ -521,7 +551,12 @@ export class ResizeGesture {
    * Moves the resize handle to the size the pointer describes.
    */
   #refreshHandlePosition() {
-    this.#handle.style[this.#alongProp()] = `${(this.#startOffset ?? 0) + (this.#currentSize ?? 0)}px`;
+    const startSize = this.#startRenderedSize ?? 0;
+    const currentSize = this.#currentSize ?? 0;
+    // A header anchored to the inline end grows towards the inline start, so its handle moves that way.
+    const handleSize = this.#anchoredAtInlineEnd ? (2 * startSize) - currentSize : currentSize;
+
+    this.#handle.style[this.#alongProp()] = `${(this.#startOffset ?? 0) + handleSize}px`;
   }
 
   /**
@@ -635,10 +670,11 @@ export class ResizeGesture {
     const pointerChange = this.#readPointer(event) - (this.#startPointer ?? 0);
     // The inline axis runs the other way under RTL; the block axis never does.
     const visualChange = this.#isVertical() ? pointerChange : pointerChange * this.#hot.getDirectionFactor();
-    const change = normalizeVisualDelta(visualChange, this.#scaleFactor);
+    const change = normalizeVisualDelta(this.#anchoredAtInlineEnd ? -visualChange : visualChange, this.#scaleFactor);
 
-    this.#currentSize = (this.#startSize ?? 0) + change;
-    this.#newSize = this.#owner.clampSize(this.#currentSize);
+    // The handle follows the rendered size, and the release stores the size without the overhead.
+    this.#currentSize = (this.#startRenderedSize ?? 0) + change;
+    this.#newSize = this.#owner.clampSize(this.#currentSize - this.#startOverhead);
 
     this.#refreshHandlePosition();
     this.#refreshGuidePosition();

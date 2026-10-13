@@ -144,6 +144,9 @@ This example is more typical of data grids than spreadsheets. Calculations are p
 The `formulas` option accepts either the `HyperFormula` class or an already-created HyperFormula
 instance. Choose the pattern that matches your use case.
 
+HyperFormula is licensed separately from Handsontable. For how to set a HyperFormula license key,
+see [License HyperFormula](@/guides/formulas/installation/installation.md#license-hyperformula).
+
 All patterns require importing HyperFormula:
 
 ```js
@@ -153,18 +156,11 @@ import { HyperFormula } from 'hyperformula';
 See [HyperFormula's installation docs](https://handsontable.github.io/hyperformula/guide/client-side-installation.html)
 for alternative installation methods (CDN, UMD, etc.).
 
-::: tip HyperFormula instance
-
-To use the [`Formulas`](@/api/formulas.md) plugin with an external HyperFormula instance, initialize
-HyperFormula with the `'internal-use-in-handsontable'` license key:
-
-:::
-
 ```js
 // create an external HyperFormula instance
 const hyperformulaInstance = HyperFormula.buildEmpty({
-  // initialize it with the `'internal-use-in-handsontable'` license key
-  licenseKey: 'internal-use-in-handsontable',
+  // replace with your HyperFormula license key
+  licenseKey: 'your-hyperformula-license-key',
 });
 ```
 
@@ -222,7 +218,7 @@ const hotSettings = ref({
 
 :::
 
-Or pass a configuration object to customize the engine. For all available options, see the [HyperFormula `ConfigParams` reference](https://hyperformula.handsontable.com/api/interfaces/configparams.html).
+Pass a configuration object to customize the engine. For all available options, see the [HyperFormula `ConfigParams` reference](https://hyperformula.handsontable.com/api/interfaces/configparams.html).
 
 ::: only-for javascript
 
@@ -298,9 +294,8 @@ const hotSettings = ref({
 
 ```js
 const hyperformulaInstance = HyperFormula.buildEmpty({
-  // to use an external HyperFormula instance,
-  // initialize it with the `'internal-use-in-handsontable'` license key
-  licenseKey: 'internal-use-in-handsontable',
+  // replace with your HyperFormula license key
+  licenseKey: 'your-hyperformula-license-key',
 });
 
 {
@@ -317,9 +312,8 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 ```jsx
 const ExampleComponent = () => {
   const hyperformulaInstance = HyperFormula.buildEmpty({
-    // to use an external HyperFormula instance,
-    // initialize it with the `'internal-use-in-handsontable'` license key
-    licenseKey: 'internal-use-in-handsontable',
+    // replace with your HyperFormula license key
+    licenseKey: 'your-hyperformula-license-key',
   });
 
   return (
@@ -341,9 +335,8 @@ import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 import {HyperFormula} from 'hyperformula';
 
 const hyperformulaInstance = HyperFormula.buildEmpty({
-  // to use an external HyperFormula instance,
-  // initialize it with the `'internal-use-in-handsontable'` license key
-  licenseKey: 'internal-use-in-handsontable',
+  // replace with your HyperFormula license key
+  licenseKey: 'your-hyperformula-license-key',
 });
 
 const configurationOptions: GridSettings = {
@@ -364,9 +357,8 @@ const configurationOptions: GridSettings = {
 ```js
 const hyperformulaInstance = markRaw(
   HyperFormula.buildEmpty({
-    // to use an external HyperFormula instance,
-    // initialize it with the `'internal-use-in-handsontable'` license key
-    licenseKey: 'internal-use-in-handsontable',
+    // replace with your HyperFormula license key
+    licenseKey: 'your-hyperformula-license-key',
   })
 );
 
@@ -513,9 +505,8 @@ const hotSettings2 = ref({
 
 ```js
 const hyperformulaInstance = HyperFormula.buildEmpty({
-  // to use an external HyperFormula instance,
-  // initialize it with the `'internal-use-in-handsontable'` license key
-  licenseKey: 'internal-use-in-handsontable',
+  // replace with your HyperFormula license key
+  licenseKey: 'your-hyperformula-license-key',
 });
 
 // Instance 1
@@ -544,9 +535,8 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 ```jsx
 const ExampleComponent = () => {
   const hyperformulaInstance = HyperFormula.buildEmpty({
-    // to use an external HyperFormula instance,
-    // initialize it with the `'internal-use-in-handsontable'` license key
-    licenseKey: 'internal-use-in-handsontable',
+    // replace with your HyperFormula license key
+    licenseKey: 'your-hyperformula-license-key',
   });
 
   return (
@@ -576,9 +566,8 @@ const ExampleComponent = () => {
 
 ```ts
 const hyperformulaInstance = HyperFormula.buildEmpty({
-  // to use an external HyperFormula instance,
-  // initialize it with the `'internal-use-in-handsontable'` license key
-  licenseKey: 'internal-use-in-handsontable',
+  // replace with your HyperFormula license key
+  licenseKey: 'your-hyperformula-license-key',
 });
 
 // Instance 1
@@ -607,9 +596,8 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 ```js
 const hyperformulaInstance = markRaw(
   HyperFormula.buildEmpty({
-    // to use an external HyperFormula instance,
-    // initialize it with the `'internal-use-in-handsontable'` license key
-    licenseKey: 'internal-use-in-handsontable',
+    // replace with your HyperFormula license key
+    licenseKey: 'your-hyperformula-license-key',
   })
 );
 
@@ -907,7 +895,7 @@ initialization sequence:
 
 ```js
 const hfInstance = HyperFormula.buildEmpty({
-  licenseKey: 'internal-use-in-handsontable',
+  licenseKey: 'your-hyperformula-license-key',
 });
 
 hfInstance.addSheet('Sheet1');
@@ -1331,17 +1319,6 @@ To find out which HyperFormula version to use, see the table below:
 | [`14.x.x`](https://github.com/handsontable/handsontable/releases/tag/14.0.0)            | [`^2.4.0`](https://github.com/handsontable/hyperformula/releases/tag/2.4.0) |
 | [`14.3.x - 15.0.x`](https://github.com/handsontable/handsontable/releases/tag/14.3.0)   | [`^2.6.2`](https://github.com/handsontable/hyperformula/releases/tag/2.6.2) |
 | [`15.1.x`](https://github.com/handsontable/handsontable/releases/tag/15.1.0) and higher | [`^3.0.0`](https://github.com/handsontable/hyperformula/releases/tag/3.0.0) |
-
-::: tip
-
-You can use the `'internal-use-in-handsontable'` license key only in those HyperFormula instances
-that are connected to a Handsontable instance.
-
-To use HyperFormula outside of a Handsontable instance (e.g., on a server), you need a dedicated
-[HyperFormula license key](https://hyperformula.handsontable.com/guide/license-key.html). For
-details, [contact our Sales Team](https://handsontable.com/get-a-quote).
-
-:::
 
 ## Result
 

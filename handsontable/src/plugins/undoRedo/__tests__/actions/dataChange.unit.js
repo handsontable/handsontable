@@ -1,12 +1,14 @@
 import Handsontable from 'handsontable/base';
 import {
   registerPlugin,
+  NestedRows,
   TrimRows,
   UndoRedo,
 } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
 
 registerAllCellTypes();
+registerPlugin(NestedRows);
 registerPlugin(TrimRows);
 registerPlugin(UndoRedo);
 
@@ -582,6 +584,62 @@ describe('UndoRedo -> DataChange action', () => {
 
       // A trimmed row is written to the source data. `colToPropOrIndex(2)` answers `2` there too.
       expect(data[1]).toEqual({ id: 2, name: 'Frank Honest', address: 'Elm St' });
+    });
+  });
+
+  describe('the rows of collapsed NestedRows parents', () => {
+    const SOURCE = 'ContextMenu.clearColumn';
+    const nestedData = () => [
+      { name: 'P1', value: 'p1', __children: [{ name: 'C1', value: 'c1' }, { name: 'C2', value: 'c2' }] },
+      { name: 'L2', value: 'l2' },
+    ];
+    const values = data => [
+      data[0].value, data[0].__children[0].value, data[0].__children[1].value, data[1].value,
+    ];
+    const clearValueColumn = () => {
+      hot.getPlugin('nestedRows').clearCollapsedRows(1, 1, 1, SOURCE, () => {
+        hot.populateFromArray(0, 1, [[null]], 1, 1, SOURCE);
+      });
+    };
+
+    it('should undo and redo the hidden rows in the same step as the visible ones', () => {
+      const data = nestedData();
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data,
+        columns: [{ data: 'name' }, { data: 'value' }],
+        nestedRows: true,
+        undo: true,
+      });
+      hot.getPlugin('nestedRows').collapseParent(0);
+
+      const undoRedo = hot.getPlugin('undoRedo');
+      const stepsBefore = undoRedo.doneActions.length;
+
+      clearValueColumn();
+
+      expect(values(data)).toEqual([null, null, null, null]);
+      expect(undoRedo.doneActions.length).toBe(stepsBefore + 1);
+
+      const step = undoRedo.doneActions[undoRedo.doneActions.length - 1];
+
+      expect(step.actionType).toBe('change');
+      expect(step.source).toBe(SOURCE);
+      // The hidden rows have no visual index, so the step reports them with a `null` row.
+      expect(step.changes).toEqual(expect.arrayContaining([
+        [null, 1, 'c1', null],
+        [null, 1, 'c2', null],
+      ]));
+
+      undoRedo.undo();
+
+      expect(values(data)).toEqual(['p1', 'c1', 'c2', 'l2']);
+      expect(hot.getPlugin('nestedRows').getCollapsedParents()).toEqual([0]);
+
+      undoRedo.redo();
+
+      expect(values(data)).toEqual([null, null, null, null]);
     });
   });
 });

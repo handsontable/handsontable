@@ -62,8 +62,8 @@ export interface WalkontableInstance {
 /**
  * Overlay type names used by Walkontable.
  */
-export type OverlayType = 'inline_start' | 'top' | 'top_inline_start_corner' | 'bottom' |
-  'bottom_inline_start_corner' | 'master';
+export type OverlayType = 'inline_start' | 'inline_end' | 'top' | 'top_inline_start_corner' |
+  'top_inline_end_corner' | 'bottom' | 'bottom_inline_start_corner' | 'bottom_inline_end_corner' | 'master';
 
 /**
  * Minimal interface for the StylesHandler used inside Walkontable.

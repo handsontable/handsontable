@@ -6,19 +6,19 @@ registerAllModules();
 
 const config: Handsontable.GridSettings = {
   data: [
-    ['', 'Tesla', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'],
-    ['2017', 0, 2941, 4303, 354, 5814],
-    ['2018', 3, 2905, 2867, 412, 5284],
-    ['2019', 4, 2517, 4822, 552, 6127],
-    ['2020', 2, 2422, 5399, 776, 4151],
+    ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods', 'Drinkware', 'Seattle'],
+    ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.', 'Electronics', 'Denver'],
+    ['SKU-1170', 'Ergonomic Office Chair', 'Cascade Distributors', 'Furniture', 'Portland'],
+    ['SKU-2208', 'USB-C Charging Cable', 'Summit Trading', 'Electronics', 'Austin'],
+    ['SKU-3341', 'Aluminum Water Filter', 'Northgate Wholesale', 'Drinkware', 'Minneapolis'],
   ],
   minRows: 5,
-  minCols: 6,
+  minCols: 5,
   height: 'auto',
   stretchH: 'all',
   minSpareRows: 1,
   autoWrapRow: true,
-  colHeaders: true,
+  colHeaders: ['SKU', 'Product', 'Supplier', 'Category', 'Warehouse'],
   contextMenu: true,
   autoWrapCol: true,
   dropdownMenu: true,
@@ -78,7 +78,7 @@ function log_events(event, data) {
         str = data[d].toString();
       }
 
-      if (str === void 0) {
+      if (str === undefined) {
         continue;
       }
 

@@ -162,6 +162,8 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] di [total] righe selezionate',
   [C.ROW_SELECTION_MENU_REMOVE]: 'Rimuovi righe selezionate ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: 'Cancella selezione righe',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Riga [label] espansa, righe espanse visualizzate: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Riga [label] compressa',
 };
 
 export default dictionary;

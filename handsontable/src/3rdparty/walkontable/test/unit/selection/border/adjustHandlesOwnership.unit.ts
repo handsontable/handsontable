@@ -51,6 +51,9 @@ describe('getOverlaySegment', () => {
     ['inline_start', 'main', 'start'],
     ['top_inline_start_corner', 'start', 'start'],
     ['bottom_inline_start_corner', 'end', 'start'],
+    ['inline_end', 'main', 'end'],
+    ['top_inline_end_corner', 'start', 'end'],
+    ['bottom_inline_end_corner', 'end', 'end'],
   ])('should map the %s overlay to the %s row segment and the %s column segment', (name, row, column) => {
     expect(getOverlaySegment(name, 'row')).toBe(row);
     expect(getOverlaySegment(name, 'column')).toBe(column);
@@ -374,5 +377,79 @@ describe('getHandlesSpan', () => {
     const axis = axisLayout({ fixedStart: 1, partial: [10, 12], full: [10, 12] });
 
     expect(getHandlesSpan(axis, 0, 5)).toEqual([1, 5]);
+  });
+});
+
+describe('a selection crossing the inline-end freeze line (fixedColumnsEnd: 2)', () => {
+  // 10 columns, the last two frozen at the inline end; a selection over columns 5-9 and rows 3-6, in a grid
+  // with no frozen rows.
+  const axes = { row: { total: 20 }, column: { total: 10, fixedEnd: 2 } };
+  const corners = [3, 5, 6, 9];
+
+  /**
+   * Resolves the layout of one overlay.
+   *
+   * @param {string} overlayName The overlay (table) name.
+   * @returns {object}
+   */
+  function layoutOf(overlayName: string) {
+    return {
+      row: axisLayout({ ...axes.row, overlaySegment: getOverlaySegment(overlayName, 'row') }),
+      column: axisLayout({ ...axes.column, overlaySegment: getOverlaySegment(overlayName, 'column') }),
+    };
+  }
+
+  it('should give the scrollable part the start edge and the end overlay the end edge of the handles', () => {
+    expect(getHandleOwnership(layoutOf('master'), corners, [3, 5, 6, 7]))
+      .toEqual({ top: true, bottom: true, start: true, end: false });
+    expect(getHandleOwnership(layoutOf('inline_end'), corners, [3, 8, 6, 9]))
+      .toEqual({ top: false, bottom: false, start: false, end: true });
+  });
+
+  it('should hand each handle to exactly one overlay', () => {
+    const slices: [string, number[]][] = [['master', [3, 5, 6, 7]], ['inline_end', [3, 8, 6, 9]]];
+    const counts = { top: 0, bottom: 0, start: 0, end: 0 };
+
+    slices.forEach(([overlayName, clamped]) => {
+      const owned = getHandleOwnership(layoutOf(overlayName), corners, clamped);
+
+      (Object.keys(counts) as (keyof typeof counts)[]).forEach((edge) => {
+        counts[edge] += owned[edge] ? 1 : 0;
+      });
+    });
+
+    expect(counts).toEqual({ top: 1, bottom: 1, start: 1, end: 1 });
+  });
+
+  it('should draw the move bands of the crossing edges in the overlays they pass through', () => {
+    expect(getMoveZoneOwnership(layoutOf('master'), corners, [3, 5, 6, 7]))
+      .toEqual({ top: true, bottom: true, start: true, end: false });
+    expect(getMoveZoneOwnership(layoutOf('inline_end'), corners, [3, 8, 6, 9]))
+      .toEqual({ top: true, bottom: true, start: false, end: true });
+  });
+
+  it('should leave the frozen end tracks unowned by the master, which renders them behind the end overlay', () => {
+    // Scrolled to the end, the master renders columns 8-9 too, unclamped, behind the end overlay.
+    expect(getHandleOwnership(layoutOf('master'), corners, [3, 5, 6, 9]).end).toBe(false);
+    expect(getMoveZoneOwnership(layoutOf('master'), corners, [3, 5, 6, 9]).end).toBe(false);
+  });
+
+  it('should hand the end overlay the whole selection when it lies in the end columns only', () => {
+    expect(getHandleOwnership(layoutOf('inline_end'), [3, 8, 6, 9], [3, 8, 6, 9]))
+      .toEqual({ top: true, bottom: true, start: true, end: true });
+  });
+
+  it('should split the end corners on the row axis the way the start corners are split', () => {
+    const rowAxes = { row: { total: 20, fixedStart: 2, fixedEnd: 2 }, column: { total: 10, fixedEnd: 2 } };
+    const layout = (overlayName: string) => ({
+      row: axisLayout({ ...rowAxes.row, overlaySegment: getOverlaySegment(overlayName, 'row') }),
+      column: axisLayout({ ...rowAxes.column, overlaySegment: getOverlaySegment(overlayName, 'column') }),
+    });
+    const crossing = [0, 8, 19, 9];
+
+    expect(getHandleOwnership(layout('top_inline_end_corner'), crossing, [0, 8, 1, 9]).top).toBe(true);
+    expect(getHandleOwnership(layout('top_inline_end_corner'), crossing, [0, 8, 1, 9]).bottom).toBe(false);
+    expect(getHandleOwnership(layout('bottom_inline_end_corner'), crossing, [18, 8, 19, 9]).bottom).toBe(true);
+    expect(getHandleOwnership(layout('bottom_inline_end_corner'), crossing, [18, 8, 19, 9]).top).toBe(false);
   });
 });

@@ -167,6 +167,8 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] از [total] ردیف انتخاب شده',
   [C.ROW_SELECTION_MENU_REMOVE]: 'حذف ردیف های انتخاب شده ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: 'پاک کردن انتخاب ردیف ها',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'ردیف [label] باز شد، ردیف‌های بازشدهٔ نمایش داده‌شده: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'ردیف [label] بسته شد',
 };
 
 export default dictionary;

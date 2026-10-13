@@ -200,6 +200,7 @@ export function addressesChangedColumn(hot: HotInstance, record: StepRecord, isC
     changesColumnMaps(before.columns, after.columns, isChanged) ||
     (structural && (forcesColumnOrder(before.columns, isChanged) || forcesColumnOrder(after.columns, isChanged))) ||
     before.settings.fixedColumnsStart !== after.settings.fixedColumnsStart ||
+    before.settings.fixedColumnsEnd !== after.settings.fixedColumnsEnd ||
     // A settings snapshot is a new object whenever any of its settings changed, headers included.
     JSON.stringify(before.settings.colHeaders) !== JSON.stringify(after.settings.colHeaders)
   ) {

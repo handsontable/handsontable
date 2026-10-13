@@ -159,6 +159,8 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] lignes sélectionnées sur [total]',
   [C.ROW_SELECTION_MENU_REMOVE]: 'Supprimer les lignes sélectionnées ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: 'Effacer la sélection de lignes',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Ligne [label] développée, lignes développées affichées : [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Ligne [label] réduite',
 };
 
 export default dictionary;

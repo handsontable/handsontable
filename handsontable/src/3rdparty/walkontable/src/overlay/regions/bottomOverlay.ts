@@ -142,16 +142,14 @@ export class BottomOverlay extends Overlay {
   }
 
   /**
-   * Updates the bottom overlay position.
+   * How far the clone's bottom edge sits above the holder's bottom edge, for a grid whose rows an
+   * element scrolls. The bottom-inline-end corner is placed with the same number.
+   *
+   * @returns {number}
    */
-  repositionOverlay() {
-    if (!this.clone) {
-      return;
-    }
-
+  getBottomInset(): number {
     const wtTable = this.deps.getWtTable();
     const wtViewport = this.deps.getWtViewport();
-    const cloneRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     let bottomOffset = 0;
 
     if (!wtViewport.hasVerticalScroll()) {
@@ -167,7 +165,20 @@ export class BottomOverlay extends Overlay {
       bottomOffset += reservedScrollbarSpace(this.deps.geometryReader, wtTable.holder, 'horizontal');
     }
 
-    cloneRoot.style.bottom = `${bottomOffset}px`;
+    return bottomOffset;
+  }
+
+  /**
+   * Updates the bottom overlay position.
+   */
+  repositionOverlay() {
+    if (!this.clone) {
+      return;
+    }
+
+    const cloneRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
+
+    cloneRoot.style.bottom = `${this.getBottomInset()}px`;
   }
 
   /**

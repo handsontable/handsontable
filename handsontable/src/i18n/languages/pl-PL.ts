@@ -169,6 +169,8 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'Zaznaczono [selected] z [total] wierszy',
   [C.ROW_SELECTION_MENU_REMOVE]: 'Usuń zaznaczone wiersze ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: 'Wyczyść zaznaczenie wierszy',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rozwinięto wiersz [label], widoczne rozwinięte wiersze: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Zwinięto wiersz [label]',
 };
 
 export default dictionary;

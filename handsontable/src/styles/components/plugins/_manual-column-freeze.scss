@@ -4,7 +4,8 @@
 
 @mixin output {
   .handsontable {
-    .ht_clone_top_inline_start_corner {
+    .ht_clone_top_inline_start_corner,
+    .ht_clone_top_inline_end_corner {
       th {
         &.ht__active_highlight {
           box-shadow: none;

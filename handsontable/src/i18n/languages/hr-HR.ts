@@ -175,6 +175,8 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'Odabrano [selected] od [total] redaka',
   [C.ROW_SELECTION_MENU_REMOVE]: 'Ukloni odabrane retke ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: 'Poništi odabir redaka',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Proširen redak [label], prikazani prošireni retci: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sažet redak [label]',
 };
 
 export default dictionary;

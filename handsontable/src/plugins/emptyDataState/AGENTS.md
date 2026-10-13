@@ -34,6 +34,25 @@ through the `cols === 0` case, and it is only ever true with `cols > 0`. It runs
 `afterRow/ColumnSequenceCacheUpdate` during a fetch's `loadData()`, so a resize there only buys a forced
 reflow per index update (measured: six per fetch) and a line no test can pin.
 
+## The overlay height is capped at the root's own box
+
+`computeEmptyDataStateHeight()` starts from `view.getWorkspaceHeight()` / `getViewportHeight()`, which the
+engine measures on the trimming container. With `height: 'auto'` inside a container that clips its
+overflow and holds more than the grid (a docs example: the padded preview, the `overflow: hidden`
+wrapper, the toolbar), that container is taller than the grid, and the overlay used to take its height
+and cover whatever sits below the grid.
+
+The result is therefore capped at `hot.getTableHeight()` (the root's `offsetHeight`) minus the header row
+the overlay starts under **and minus `scrollbarSize`**. The root's box includes a horizontal scrollbar, so
+without that term the cap covers the scrollbar and the user cannot scroll the columns of an empty grid.
+A fixed pixel height is unaffected, because the cap is not smaller than the value the engine returned
+there. A root with no box (hidden) is left uncapped.
+
+Pinned by `tests/e2e/empty-data-state-clipped-container.spec.ts`, which needs the clipping ancestor (a
+plain page lets the window own the axis and never takes this path), and by
+`empty-data-state-clipped-container-scrollbar.spec.ts`, which drops `--hide-scrollbars` because a
+zero-width scrollbar cannot show the defect.
+
 ## The `message` option accepts three shapes
 
 `string` | `function` | a record. `SETTINGS_VALIDATORS` accepts all three plus `undefined`, and the plugin
@@ -163,6 +182,11 @@ Either way, `afterEmptyDataStateHide` fires last.
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='emptyDataState'`
 - `npm run test:unit --prefix handsontable -- --testPathPattern='emptyDataState'`
 - `npm --prefix tests run test:e2e -- e2e/empty-data-state-shortcuts.spec.ts`
+- `npm --prefix tests run test:e2e -- e2e/empty-data-state-layout.spec.ts`: where the panel sits against
+  the headers and the root for a fixed height, `height: 'auto'`, no height, no columns and RTL, and the
+  keyboard path to the no-results state. The buttons row is a sibling of `__content`, so the spec centers
+  the title's text, the description's text and the Reset filters button one by one, and the panel's
+  content vertically on the union of the two rows.
 
 `__tests__/` splits into `hooks/`, `methods/`, `options/`, `keyboardShortcuts/`, `plugins/` plus
 `ui.unit.js`.

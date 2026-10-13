@@ -12,7 +12,7 @@ global helpers, mocking, fixtures, custom matchers), see
 | Pipeline | Framework | File pattern | Run command | Deep reference |
 |---|---|---|---|---|
 | Core unit | Jest (jsdom, `jest-jasmine2` runner) | `*.unit.js`, `*.unit.ts` (Walkontable's `test/unit/` included) | `npm --prefix handsontable run test:unit` | [`handsontable/.ai/TESTING.md`](../handsontable/.ai/TESTING.md) |
-| E2E (new — the paradigm) | Playwright (real Chromium) | `tests/e2e/*.spec.ts` | `cd tests && npm test` | skill `handsontable-playwright-e2e` |
+| E2E (new – the paradigm) | Playwright (real Chromium; Firefox and WebKit too for tests tagged `@cross-browser`) | `tests/e2e/*.spec.ts` | `cd tests && npm test` | skill `handsontable-playwright-e2e` |
 | E2E (legacy — frozen) | Jasmine + Puppeteer (headless Chrome) | `*.spec.js` | `npm --prefix handsontable run test:e2e` | [`handsontable/.ai/TESTING.md`](../handsontable/.ai/TESTING.md); skill `handsontable-e2e-testing` |
 | Type tests | `tsc` only | `*.types.ts` | `npm --prefix handsontable run test:types` | [`handsontable/.ai/TESTING.md`](../handsontable/.ai/TESTING.md) |
 | Walkontable | Separate runner (`SpecRunner.html`) | `test/spec/**/*.spec.js` | `npm --prefix handsontable run test:walkontable` | `handsontable/src/3rdparty/walkontable/AGENTS.md`; skills `walkontable-testing`, `walkontable-dev` |

@@ -54,7 +54,7 @@ describe('Core', () => {
 
   describe('updateData', () => {
     it('should advance the render epoch even when the dataset keeps its size', () => {
-      const core = new Core(container, { data: [['a', 'b'], ['c', 'd']] });
+      const core = new Core(container, { theme: 'ht-theme-main', data: [['a', 'b'], ['c', 'd']] });
 
       core.init();
 
@@ -172,7 +172,7 @@ describe('Core', () => {
     ])('%s should resume after the wrapped operations throw, and rethrow', (method, probe, resumed) => {
       // Host hooks run inside the callback (`beforeLoadData`, `afterUpdateSettings`), so a throw
       // there used to leave the instance suspended for the rest of its life: it never painted again.
-      const core = new Core(container, { data: [['a']] });
+      const core = new Core(container, { theme: 'ht-theme-main', data: [['a']] });
 
       core.init();
 
@@ -188,7 +188,7 @@ describe('Core', () => {
     it('should still resume rendering when resuming execution itself throws', () => {
       // `resumeExecution` fires hooks on the flush; a throw there used to replace the callback's
       // error and skip `resumeRender`, the permanent suspension through a narrower door.
-      const core = new Core(container, { data: [['a']] });
+      const core = new Core(container, { theme: 'ht-theme-main', data: [['a']] });
 
       core.init();
 
@@ -208,7 +208,7 @@ describe('Core', () => {
     });
 
     it('should not force a flush when the batchExecution callback throws', () => {
-      const core = new Core(container, { data: [['a']] });
+      const core = new Core(container, { theme: 'ht-theme-main', data: [['a']] });
 
       core.init();
 
@@ -233,7 +233,7 @@ describe('Core', () => {
     });
 
     it('should return the callback result when it does not throw', () => {
-      const core = new Core(container, { data: [['a']] });
+      const core = new Core(container, { theme: 'ht-theme-main', data: [['a']] });
 
       core.init();
 
@@ -247,7 +247,7 @@ describe('Core', () => {
 
   describe('markCellChanged', () => {
     it('should advance the render version of a stored cell meta and create none for an unstored one', () => {
-      const core = new Core(container, { data: [['a', 'b'], ['c', 'd']] });
+      const core = new Core(container, { theme: 'ht-theme-main', data: [['a', 'b'], ['c', 'd']] });
 
       core.init();
 
@@ -270,6 +270,7 @@ describe('Core', () => {
 
   it('should reset cache only once after initialization with an Array of Arrays data source', () => {
     const core = new Core(container, {
+      theme: 'ht-theme-main',
       data: [['a'], ['b'], ['c']],
       autoRowSize: true,
       autoColumnSize: true,
@@ -296,6 +297,7 @@ describe('Core', () => {
 
   it('should reset cache only once after initialization with an Array of Objects data source', () => {
     const core = new Core(container, {
+      theme: 'ht-theme-main',
       data: [
         { test: 'a1', foo: 'b1' },
         { test: 'a2', foo: 'b2' }
@@ -337,6 +339,7 @@ describe('Core', () => {
 
   it('should clear the DI container collection after destroy', () => {
     const core = new Core(container, {
+      theme: 'ht-theme-main',
       data: [['a'], ['b'], ['c']],
     });
 
@@ -359,6 +362,7 @@ describe('Core', () => {
     const afterRowSequenceCacheUpdate = jasmine.createSpy('afterRowSequenceCacheUpdate');
     const afterColumnSequenceCacheUpdate = jasmine.createSpy('afterColumnSequenceCacheUpdate');
     const core = new Core(container, {
+      theme: 'ht-theme-main',
       data: [['a', 'b'], ['c', 'd']],
       afterRowSequenceCacheUpdate,
       afterColumnSequenceCacheUpdate,
@@ -383,7 +387,7 @@ describe('Core', () => {
 
   describe('getDataAtProp', () => {
     it('should return the values of the column the property names', () => {
-      const core = new Core(container, { data: [['a', 'b', 'c'], ['d', 'e', 'f']] });
+      const core = new Core(container, { theme: 'ht-theme-main', data: [['a', 'b', 'c'], ['d', 'e', 'f']] });
 
       core.init();
 
@@ -393,7 +397,7 @@ describe('Core', () => {
     });
 
     it('should return an empty array for an index past the last column', () => {
-      const core = new Core(container, { data: [['a', 'b', 'c'], ['d', 'e', 'f']] });
+      const core = new Core(container, { theme: 'ht-theme-main', data: [['a', 'b', 'c'], ['d', 'e', 'f']] });
 
       core.init();
 
@@ -404,7 +408,7 @@ describe('Core', () => {
     });
 
     it('should return an empty array for a property name the data set does not use', () => {
-      const core = new Core(container, { data: [{ id: 1, name: 'x' }, { id: 2, name: 'y' }] });
+      const core = new Core(container, { theme: 'ht-theme-main', data: [{ id: 1, name: 'x' }, { id: 2, name: 'y' }] });
 
       core.init();
 
@@ -420,6 +424,7 @@ describe('Core', () => {
 
   describe('an unbound column (`{ data: null }`)', () => {
     const settings = () => ({
+      theme: 'ht-theme-main',
       data: [{ a: 'a0', b: 'b0', c: 'c0' }, { a: 'a1', b: 'b1', c: 'c1' }],
       columns: [{ data: 'a' }, { data: null }, { data: 'b' }],
     });

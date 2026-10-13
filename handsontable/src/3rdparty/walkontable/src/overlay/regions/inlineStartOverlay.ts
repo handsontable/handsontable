@@ -359,11 +359,15 @@ export class InlineStartOverlay extends Overlay {
     let newX = this.getTableParentOffset();
     let scrollbarCompensation = 0;
 
+    // The end columns cover the inline-end edge of the viewport (as the bottom rows cover the bottom one).
+    const inlineEndBandWidth = this.deps.getWtOverlays().inlineEndOverlay.getBandWidth();
+    const viewportWidth = this.deps.getWtViewport().getViewportWidth();
+
     if (beyondRendered) {
       const columnWidth = this.deps.getWtTable().getColumnWidth(sourceCol);
-      const viewportWidth = this.deps.getWtViewport().getViewportWidth();
 
-      if (columnWidth > viewportWidth) {
+      // A column wider than the room the end band leaves cannot be aligned to the inline-end edge.
+      if (columnWidth > viewportWidth - inlineEndBandWidth) {
         beyondRendered = false;
       }
     }
@@ -373,7 +377,7 @@ export class InlineStartOverlay extends Overlay {
     }
     if (beyondRendered) {
       newX += this.sumCellSizes(0, sourceCol + 1);
-      newX -= this.deps.getWtViewport().getViewportWidth();
+      newX -= viewportWidth - inlineEndBandWidth;
 
     } else {
       newX += this.sumCellSizes(this.wtSettings.getSetting<number>('fixedColumnsStart'), sourceCol);
@@ -385,7 +389,9 @@ export class InlineStartOverlay extends Overlay {
   }
 
   /**
-   * Gets table parent left position.
+   * Gets the distance between the page's inline-start edge and the table's: the table's left edge in LTR, and
+   * its right edge, measured from the page's right edge, in RTL. The RTL value is the page margin on the right
+   * and does not depend on how far the page is scrolled.
    *
    * @returns {number}
    */
@@ -394,7 +400,20 @@ export class InlineStartOverlay extends Overlay {
     let offset = 0;
 
     if (!preventOverflow && this.trimmingContainer === this.deps.rootWindow) {
-      offset = (this.deps.getWtTable().holderOffset as { top: number; left: number }).left;
+      const wtTable = this.deps.getWtTable();
+
+      if (!this.isRtl()) {
+        offset = (wtTable.holderOffset as { top: number; left: number }).left;
+
+      } else if (this.mainTableScrollableElement === this.deps.rootWindow) {
+        // The holder's left edge is not where the table starts in RTL: a grid in a shrink-to-fit wrapper
+        // reaches far past the page's left edge, and a grid with a margin on the right does not start
+        // at the page's right edge. Take the margin measured with the draw's `holderOffset`, so a draw
+        // that widens the table does not leave the two out of step. It counts only when the window
+        // scrolls the columns: in the reverse split the holder does, and the page margin is not part
+        // of its scroll position.
+        offset = wtTable.holderInlineStartMargin;
+      }
     }
 
     return offset;

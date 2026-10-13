@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where a column `width` equal to the grid `width` was ignored, and a `null` column `width` rendered at the default width instead of falling back to `colWidths`.",
+  "type": "fixed",
+  "issueOrPR": 13741,
+  "breaking": false,
+  "framework": "none"
+}

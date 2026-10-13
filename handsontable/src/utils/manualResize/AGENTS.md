@@ -28,8 +28,8 @@ row plugin also keeps `getLastDesiredRowHeight()`, and the column plugin keeps i
 plugin passes in: `isActive()`, `clampSize()` and `setManualSize()`. The last two are the plugin's
 **private** bodies (`#clampSize`, `#setManualSize`), not the public `setManualSize()`: the public method opens
 an undo step of its own, and the gesture records its own step. The gesture still never writes a size map
-itself, and `setManualSize()` clamps through `clampSize()`, so the clamping rules (the 20px column floor, the
-theme's default row height) stay in one place.
+itself, and `setManualSize()` clamps through `clampSize()`, so the clamping rules (the theme-derived column floor,
+the theme's default row height) stay in one place.
 
 ## One press, one undo step - and nothing stored before the release
 
@@ -46,6 +46,16 @@ width. `tests/e2e/undo-plugin-state.spec.ts` pins it ("an edit made while a colu
   reports `max(dragged, wtTable.getRowHeight())`, and that height is read back from the size map (every
   write clears the row-height cache). Firing the hooks before the write reports the old height, and a
   manually tall row could no longer be reported smaller.
+- **Two start sizes, two spaces.** `#startRenderedSize` is what the header rendered at, and the handle and the guide
+  (and `#currentSize`, the pointer's rendered size) live there, including the anchored `2 * start - current` math.
+  `#startSize` is the size the owner stores: the rendered size minus `owner.getRenderedOverhead(index)`, which is
+  what something else adds on every render (the hidden-column indicator's 15px). `#newSize`, the hook sizes, what
+  the release stores and the "did it move?" tests all use the stored space, and `mousemove` clamps
+  `#currentSize - #startOverhead`. An owner without the optional method has an overhead of 0 and both are equal. A multi-selection stores one size
+  for every column, measured from the dragged one, so a selected column without the overhead renders narrower or wider
+  than the dragged one by it.
+  Starting a drag from the rendered size stored the overhead into the size, so the column ended up wider than the
+  drag by it, and by it again on every further drag.
 - **`#newSize` is still updated on every mousemove**, even though nothing is stored: the double-click timer's
   "still hold or drag?" test (`#newSize === #startSize`) and the release's "did it move?" test read it.
 - **The press holds the step** (`#openStep()` on `mousedown`, `#closeStep()` on `mouseup`), so the autosize a
@@ -287,3 +297,23 @@ stylesheet needs both bundles rebuilt (`build:umd` and `build:umd.min`, or the f
 Playwright legs see it: the bundles inline the base stylesheet and their copy wins the cascade over the
 linked one, and each pair of legs loads one of them (`../../../AGENTS.md`, Build; `tests/AGENTS.md`, The
 matrix).
+
+## The frozen end columns anchor to the inline-end edge
+
+A column header rendered by the top inline-end corner overlay (`fixedColumnsEnd`) keeps its inline-end edge
+when it is resized: the band stands at the grid's edge, so a wider column grows towards the inline start.
+`ResizeAxis#isAnchoredAtInlineEnd` (optional; only `COLUMN_RESIZE_AXIS` implements it, by checking whether the
+header sits in `topInlineEndCornerOverlay` AND `wtViewport.hasHorizontalScroll()`) tells the gesture. Without a
+horizontal scroll the columns do not fill the holder, the end clone rests against the last column instead of the
+edge, so the header is not anchored (anchoring it put its handle on the previous column's handle and inverted the
+drag). When it is anchored:
+
+- the handle sits on the header's inline-START edge, not the inline-end one;
+- the pointer delta is inverted (dragging towards the inline start widens, in RTL too, because the direction
+  factor is applied first);
+- the handle moves with the growing edge (`2 * startSize - currentSize`).
+
+`isHeaderElement` includes the end corner's `THEAD`, and `getHeaderPosition` resolves against that corner (the
+overlay's `getRelativeCellPosition` already adds the clone's own inline start). The row axis has no end headers
+and leaves the hook out. Pinned by `__tests__/axis.unit.js`, `__tests__/resizeGesture.unit.js` and
+`tests/e2e/fixed-columns-end-plugins.spec.ts`.

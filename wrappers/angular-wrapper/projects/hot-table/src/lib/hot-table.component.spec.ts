@@ -275,7 +275,7 @@ describe('HotTableComponent', () => {
 
       const passedSettings = updateSettingsSpy.mock.calls[0][0];
 
-      expect(passedSettings.renderAllRows).toBe(void 0);
+      expect(passedSettings.renderAllRows).toBe(undefined);
       expect(passedSettings.width).toBe(500);
     });
 
@@ -307,8 +307,8 @@ describe('HotTableComponent', () => {
 
       const passedSettings = updateSettingsSpy.mock.calls[0][0];
 
-      expect(passedSettings.rowHeights).toBe(void 0);
-      expect(passedSettings.colWidths).toBe(void 0);
+      expect(passedSettings.rowHeights).toBe(undefined);
+      expect(passedSettings.colWidths).toBe(undefined);
       expect(passedSettings.width).toBe(500);
     });
 

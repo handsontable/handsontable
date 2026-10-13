@@ -159,6 +159,8 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] av [total] rader valgt',
   [C.ROW_SELECTION_MENU_REMOVE]: 'Fjern valgte rader ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: 'Fjern radvalg',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Utvidet rad [label], viste utvidede rader: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Slått sammen rad [label]',
 };
 
 export default dictionary;

@@ -284,6 +284,96 @@ describe('StylesHandler', () => {
     });
   });
 
+  describe('getResolvedLength', () => {
+    const EXPRESSION = 'calc(var(--ht-icon-size) + 2 * var(--ht-cell-horizontal-padding))';
+    let rootElement;
+    let handler;
+    let offsetWidth;
+
+    beforeEach(() => {
+      rootElement = document.createElement('div');
+      document.body.appendChild(rootElement);
+
+      handler = new StylesHandler({
+        hot: createMockHot(),
+        rootElement,
+        rootDocument: document,
+      });
+
+      // jsdom has no layout: every width is 0, so the browser's answer is stubbed.
+      offsetWidth = jest.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(32);
+    });
+
+    afterEach(() => {
+      offsetWidth.mockRestore();
+      rootElement.remove();
+    });
+
+    it('should return the width the browser resolves the expression to', () => {
+      expect(handler.getResolvedLength(EXPRESSION)).toBe(32);
+    });
+
+    it('should measure with a hidden element inside the root element and remove it again', () => {
+      const appendChild = jest.spyOn(rootElement, 'appendChild');
+
+      handler.getResolvedLength(EXPRESSION);
+
+      const probe = appendChild.mock.calls[0][0];
+
+      // Inside the root element, because that is where the theme tokens are defined.
+      expect(probe.tagName).toBe('DIV');
+      expect(probe.style.visibility).toBe('hidden');
+      expect(probe.style.position).toBe('absolute');
+      expect(rootElement.contains(probe)).toBe(false);
+      expect(rootElement.childElementCount).toBe(0);
+    });
+
+    it('should cache the answer', () => {
+      handler.getResolvedLength(EXPRESSION);
+      handler.getResolvedLength(EXPRESSION);
+
+      expect(offsetWidth).toHaveBeenCalledTimes(1);
+    });
+
+    it('should cache each expression on its own', () => {
+      offsetWidth.mockReturnValueOnce(32).mockReturnValueOnce(8);
+
+      expect(handler.getResolvedLength(EXPRESSION)).toBe(32);
+      expect(handler.getResolvedLength('calc(var(--ht-gap-size) * 2)')).toBe(8);
+      expect(handler.getResolvedLength(EXPRESSION)).toBe(32);
+    });
+
+    it('should answer null for an unusable measurement, and not cache it', () => {
+      // A grid inside a hidden tab, or a token the theme does not declare, measures 0. Neither key
+      // moves once the grid is revealed or the theme arrives, so a cached 0 would stick.
+      offsetWidth.mockReturnValue(0);
+
+      expect(handler.getResolvedLength(EXPRESSION)).toBeNull();
+
+      offsetWidth.mockReturnValue(32);
+
+      expect(handler.getResolvedLength(EXPRESSION)).toBe(32);
+    });
+
+    it('should measure again after a theme change', () => {
+      expect(handler.getResolvedLength(EXPRESSION)).toBe(32);
+
+      offsetWidth.mockReturnValue(40);
+      handler.useTheme('ht-theme-horizon');
+
+      expect(handler.getResolvedLength(EXPRESSION)).toBe(40);
+    });
+
+    it('should measure again after the cache is cleared', () => {
+      expect(handler.getResolvedLength(EXPRESSION)).toBe(32);
+
+      offsetWidth.mockReturnValue(24);
+      handler.clearCache();
+
+      expect(handler.getResolvedLength(EXPRESSION)).toBe(24);
+    });
+  });
+
   describe('getStyleForTD', () => {
     it('should return undefined when no computed styles are cached', () => {
       const handler = new StylesHandler({

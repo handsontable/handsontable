@@ -50,19 +50,22 @@ The two former god-objects — `Table` and `Overlays` — are thin shells; their
 - **Collaborator class** — for **stateful** concerns. The owner constructs the collaborator, which holds its own `#`-private state and is wired through a co-located `createXxxDeps(ctx[, owner])` factory (inferred `XxxDeps` type, `#deps` field) — the same shape as `stickyScrollStrategy.ts`. The collaborator reaches back into the owner only through **callbacks in its deps** and **type-only** imports (never a runtime import of the owner → no cycle). `Overlays` owns `ResizeMonitor`, `SpreaderSize`, `ScrollSync`, `NativeScrollInput` this way and keeps thin public delegates for the methods that are public API (`adjustElementsSize`, `registerListeners`, `syncScrollPositions`, `scrollVertically`, …) plus get/set accessors for the state the draw cycle and whitebox tests touch (`scrollableElement`, `verticalScrolling`, …). A collaborator that runs during the owner's constructor must resolve the owner's own fields (e.g. `overlays.topOverlay`), not `wot.wtOverlays`, which is assigned only after the constructor returns.
 - **Runtime mixin** — for **stateless** method groups (pure reads of public fields / other methods / the `deps` getter, no `#`-private access — a mixin function cannot see another class's `#` fields). Applied once with `mixin(Owner, group)` + a declaration-merge `interface Owner extends Group`, so the methods land on the owner's type. `Table` composes `cellAccess`, `domScaffold`, `rowRangeQuery`/`columnRangeQuery` + `viewportPredicates`, `sizeGetters`, and `oversizedRows` this way; sticky and range-query groups are applied per subclass. `#`-private deps are reached through the base class's read-only `get deps()` getter.
 
-## The 6-Overlay System
+## The 8-Overlay System
 
-Walkontable renders frozen (fixed) rows and columns as separate **overlay clone tables** layered over the master table and kept scroll-synchronized. The system is framed as 6 overlays = **5 concrete overlay subclasses plus a shared base class** (`overlay/regions/_base.ts`):
+Walkontable renders frozen (fixed) rows and columns as separate **overlay clone tables** layered over the master table and kept scroll-synchronized. The system is framed as 8 overlays = **8 concrete overlay subclasses plus a shared base class** (`overlay/regions/_base.ts`) – one per frozen edge and one per frozen corner:
 
 | Overlay | File | Frozen region |
 |---|---|---|
 | Top | `overlay/regions/topOverlay.ts` | `fixedRowsTop` |
 | Bottom | `overlay/regions/bottomOverlay.ts` | `fixedRowsBottom` |
 | Inline start | `overlay/regions/inlineStartOverlay.ts` | `fixedColumnsStart` (left in LTR, right in RTL) |
+| Inline end | `overlay/regions/inlineEndOverlay.ts` | `fixedColumnsEnd` (right in LTR, left in RTL) – the LAST columns |
 | Top inline-start corner | `overlay/regions/topInlineStartCornerOverlay.ts` | Intersection of top + inline-start |
 | Bottom inline-start corner | `overlay/regions/bottomInlineStartCornerOverlay.ts` | Intersection of bottom + inline-start |
+| Top inline-end corner | `overlay/regions/topInlineEndCornerOverlay.ts` | Intersection of top + inline-end |
+| Bottom inline-end corner | `overlay/regions/bottomInlineEndCornerOverlay.ts` | Intersection of bottom + inline-end |
 
-Each overlay is backed by a Walkontable clone (`core/clone.ts`) rendering the matching table subclass under `table/regions/`. Corner overlays are created lazily. `overlay/overlays.ts` coordinates them and keeps their scroll positions aligned with the master. The overlay class family mirrors the table family: `overlay/regions/*Overlay.ts` (positioning half) pairs with `table/regions/*Table.ts` (DOM half).
+Each overlay is backed by a Walkontable clone (`core/clone.ts`) rendering the matching table subclass under `table/regions/`. All eight clones are constructed eagerly in `Overlays#initOverlays()`, the three end ones included even with `fixedColumnsEnd` at 0; an idle clone is only hidden and skipped by the draw. They are added to the DOM after the five clones that existed before `fixedColumnsEnd`, so those keep their positions. The inline-end overlay is gated by `fixedColumnsEnd > 0` (`shouldRenderInlineEndOverlay`, no row-header term), and the `fixedColumnsEnd` value is clamped once in the Settings accessor (`settings/fixedColumnsEnd.ts`, start has priority). The end clone is positioned like the bottom one (inline-end inset in element mode, `position: sticky` in a rail with `inlineEdge: 'end'` in window mode), and `ScrollSync` mirrors vertical scroll to both the start and the end holders. `overlay/overlays.ts` coordinates them and keeps their scroll positions aligned with the master. The overlay class family mirrors the table family: `overlay/regions/*Overlay.ts` (positioning half) pairs with `table/regions/*Table.ts` (DOM half).
 
 Each overlay is pinned against one scroll axis and carries that axis's **owner** in `trimmingContainer` — the top and bottom overlays the vertical owner, the inline-start overlay the horizontal one — resolved per axis by `overlay/axisOwner.ts`. The two can differ: the grid `width`/`height` options map to per-axis overflow on the root (`overflow: clip` for a sized height, `overflow-x: clip` alone for a definite width with no sized height, nothing otherwise), so a definite width with an auto height scrolls horizontally inside the root and vertically with the window. The master table lays the holder out from the same two owners. Rules and traps: `AGENTS.md`, "Per-axis trimming containers".
 
@@ -115,7 +118,7 @@ These are the shared vocabulary for selection, viewport, and overlay logic.
 3. Walkontable recalculates the visible viewport using `ViewportRowsCalculator` and `ViewportColumnsCalculator`.
 4. Visual indexes are mapped to renderable indexes; hidden rows/columns are excluded.
 5. The renderers iterate the visible rows/columns, reusing DOM nodes, and call the cell renderer functions for each cell.
-6. Each overlay clone (top, bottom, inline-start, and the two corners) renders its own table, scroll-synchronized with the master.
+6. Each overlay clone (top, bottom, inline-start, inline-end, and the four corners) renders its own table, scroll-synchronized with the master.
 7. Selection highlights are rendered via the engine's `selection/` system.
 
 ### Rendering Pipeline (block diagram)

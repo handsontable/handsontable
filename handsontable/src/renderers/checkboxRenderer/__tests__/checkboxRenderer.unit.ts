@@ -49,9 +49,11 @@ describe('checkboxRenderer', () => {
 
       checkboxRenderer(instance, TD, 0, 0, undefined, null, cellMeta);
 
+      // The checkbox tick is a real `<i class="ht-icon ht-icon-checkbox">` element, not a CSS
+      // pseudo-element, and it shares a `span.htCheckboxRendererBox` wrapper with the input.
       expect(TD.outerHTML).toMatchHTML([
-        '<td><input class="htCheckboxRendererInput noValue" type="checkbox" ',
-        'tabindex="-1" data-row="0" data-col="0"></td>'
+        '<td><span class="htCheckboxRendererBox"><input class="htCheckboxRendererInput noValue" type="checkbox" ',
+        'tabindex="-1" data-row="0" data-col="0"><i class="ht-icon ht-icon-checkbox"></i></span></td>'
       ].join(''), toMatchHTMLConfig);
     });
 
@@ -63,8 +65,8 @@ describe('checkboxRenderer', () => {
       checkboxRenderer(instance, TD, 100, 50, undefined, null, cellMeta);
 
       expect(TD.outerHTML).toMatchHTML([
-        '<td><input class="htCheckboxRendererInput noValue" type="checkbox" ',
-        'tabindex="-1" data-row="100" data-col="50"></td>'
+        '<td><span class="htCheckboxRendererBox"><input class="htCheckboxRendererInput noValue" type="checkbox" ',
+        'tabindex="-1" data-row="100" data-col="50"><i class="ht-icon ht-icon-checkbox"></i></span></td>'
       ].join(''), toMatchHTMLConfig);
     });
 
@@ -79,6 +81,60 @@ describe('checkboxRenderer', () => {
         '<td><input class="htCheckboxRendererInput htBadValue" type="checkbox" ',
         'tabindex="-1" style="display: none;" data-row="100" data-col="50">#bad-value#</td>'
       ].join(''), toMatchHTMLConfig);
+    });
+
+    it('should put the input and its tick inside one wrapper in every label arrangement', () => {
+      const instance = getInstance();
+      const arrangements = [
+        { position: 'before', value: 'L' },
+        { position: 'after', value: 'L' },
+        { position: 'before', value: 'L', separated: true },
+        { position: 'after', value: 'L', separated: true },
+      ];
+
+      arrangements.forEach((label) => {
+        const TD = document.createElement('td');
+
+        checkboxRenderer(instance, TD, 0, 0, undefined, true, { label });
+
+        const boxes = TD.querySelectorAll('.htCheckboxRendererBox');
+
+        expect(boxes.length).toBe(1);
+        expect(Array.from(boxes[0].children).map(child => child.className))
+          .toEqual(['htCheckboxRendererInput', 'ht-icon ht-icon-checkbox']);
+
+        // The wrapper takes the bare input's 18.1 place: the label's first or last element
+        // child, or the cell's when the label is separated.
+        const labelElement = TD.querySelector('label')!;
+        const host = labelElement.contains(boxes[0]) ? labelElement : TD;
+        const expectedIndex = label.position === 'before' ? host.children.length - 1 : 0;
+
+        expect(host.children[expectedIndex]).toBe(boxes[0]);
+      });
+    });
+
+    it('should not stack wrappers or icons when the renderer runs again on the same cell', () => {
+      const TD = document.createElement('td');
+      const instance = getInstance();
+
+      checkboxRenderer(instance, TD, 0, 0, undefined, true, {});
+      checkboxRenderer(instance, TD, 0, 0, undefined, false, {});
+      checkboxRenderer(instance, TD, 0, 0, undefined, null, {});
+
+      expect(TD.querySelectorAll('.htCheckboxRendererBox').length).toBe(1);
+      expect(TD.querySelectorAll('.ht-icon').length).toBe(1);
+      expect(TD.querySelectorAll('input').length).toBe(1);
+    });
+
+    it('should render no wrapper and no tick for a bad value with a separated label', () => {
+      const TD = document.createElement('td');
+      const instance = getInstance();
+
+      checkboxRenderer(instance, TD, 0, 0, undefined, 'yes', { label: { value: 'L', separated: true } });
+
+      expect(TD.querySelector('.htCheckboxRendererBox')).toBeNull();
+      expect(TD.querySelector('.ht-icon')).toBeNull();
+      expect(TD.textContent).toBe('#bad-value#');
     });
 
     it('should reflect the checked state as the `checked` HTML attribute so it survives ' +

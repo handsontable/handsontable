@@ -28,6 +28,6 @@ export default class ClipboardData {
    * Returns the clipboard data stored under the given MIME type key, or `undefined` if absent.
    */
   getData(type: string) {
-    return this.data[type] || void 0;
+    return this.data[type] || undefined;
   }
 }

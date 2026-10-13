@@ -108,6 +108,7 @@ export class BaseTransformation {
       const { row, col } = this.#visualToZeroBasedCoords(visualCoords);
 
       const fixedRowsBottom = this.tableApi.fixedRowsBottom();
+      const fixedColumnsEnd = this.tableApi.fixedColumnsEnd();
       const minSpareRows = this.tableApi.minSpareRows();
       const minSpareCols = this.tableApi.minSpareCols();
       const autoWrapRow = this.tableApi.autoWrapRow();
@@ -189,7 +190,7 @@ export class BaseTransformation {
 
       if ((zeroBasedCoords.col ?? 0) >= width) {
         const isActionInterrupted = createObjectPropListener(
-          createMissingRecords && minSpareCols > 0
+          createMissingRecords && minSpareCols > 0 && fixedColumnsEnd === 0
         );
         const nextRow = (zeroBasedCoords.row ?? 0) + 1;
         const isRowOutOfRange = nextRow >= height;

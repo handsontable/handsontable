@@ -1,5 +1,6 @@
 import { HyperFormula } from 'hyperformula';
 import Handsontable from 'handsontable';
+import { injectRealCoreStyles, removeRealCoreStyles } from '../../../test/helpers/realCoreStyles';
 
 /**
  * Lowering `minRows`, `minSpareRows`, `minCols` or `minSpareCols` through `updateSettings()` gives back the empty
@@ -18,6 +19,7 @@ describe('Core#updateSettings lowering the minimum sizes', () => {
   afterEach(() => {
     hot?.destroy();
     container.remove();
+    removeRealCoreStyles();
   });
 
   /**
@@ -183,6 +185,8 @@ describe('Core#updateSettings lowering the minimum sizes', () => {
     });
 
     it('should keep an open edit when a `beforeRemoveRow` listener cancels the removal', () => {
+      // Without the real stylesheet jsdom renders two rows only, so row 4 has no cell and no editor.
+      injectRealCoreStyles();
       createGrid({ data: [['A1']], minRows: 5 });
 
       hot.addHook('beforeRemoveRow', () => false);
@@ -377,6 +381,8 @@ describe('Core#updateSettings lowering the minimum sizes', () => {
     });
 
     it('should close an editor opened on a removed row without saving it', () => {
+      // Without the real stylesheet jsdom renders two rows only, so row 4 has no cell and no editor.
+      injectRealCoreStyles();
       createGrid({ data: [['A1']], minRows: 5 });
 
       hot.selectCell(4, 0);

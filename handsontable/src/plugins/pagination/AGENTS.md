@@ -162,6 +162,24 @@ CSS. The select's `:disabled` background was dropped: it is safe only because `s
 in `ui.ts` sets `pageSizeSelect.disabled` *only* while it hides the section (`display: none`), so a disabled
 select is never rendered. That coupling is pinned by `__tests__/ui.unit.js` — keep it.
 
+## Icons are built once, not per render
+
+`ui.ts`'s next/prev/first/last buttons and the page-size select arrow are real `<i class="ht-icon
+ht-icon-<name>">` elements kept through an injected `syncIcon()` (bound to the grid in `pagination.ts`)
+with the `ht-page-icon` slot class, built when the UI is constructed, not rebuilt on every draw. A theme
+change doesn't go through `updateSettings()` (`useTheme()` bypasses it), so `#onAfterSetTheme` explicitly
+calls `this.#ui?.refreshIcons()` — forgetting that hook leaves the pager showing the previous theme's icons
+after a `useTheme()` switch. The refresh updates the same elements in place and does nothing unless the
+theme's icons revision moved, so a color-scheme or density switch rebuilds nothing.
+
+**Do not center the button icon with flexbox.** `_pagination.scss` makes the `.ht-icon` inside a
+navigation button `display: block`, which sizes the button's content box to the icon exactly (what the
+18.1 `::before { display: block }` glyph did) with no line box adding strut height. A
+`display: inline-flex` button gives the same box, but under `forced-colors: active` Chromium kept
+painting the disabled `GrayText` border on first/prev after they were re-enabled - the computed
+`border-color` was already right, only the paint was stale. `tests/e2e/icon-elements-misc.spec.ts`
+compares the button's paint after a page change with a fresh paint of it.
+
 ## Styling: the label spans declare their own text metrics
 
 `ht-page-size-section__label` and `ht-page-navigation-section__label` are `<span>`s. They declare
@@ -199,7 +217,18 @@ DataProvider calls the internal `_resetDataProviderTotal()` (`@private`, not API
 
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='pagination'`
 - `npm run test:unit --prefix handsontable -- --testPathPattern='pagination'`
+- `npm --prefix tests run test:e2e -- e2e/pagination-pager-states.spec.ts`: the pager on the visual
+  suite's `/pagination-demo` data, on every theme and bundle: the buttons, the counter, the disabled
+  states and the focus hand-off, the RTL mirror, a page size changed on a filtered, sorted grid, and the
+  auto page size filling each page of a 450 px grid and of a grid the window scrolls.
 
 `__tests__/conflictingOptions.spec.js` pins the hard-conflict behavior, and `__tests__/strategies/`
 covers the two page-size strategies. There are also `hooks/`, `methods/`, `options/`,
 `keyboardShortcuts/`, `plugins/`, `selection.spec.js` and `ui.spec.js`.
+
+**Measure "the next row would not fit" on the next page, not with `getRowHeight()`.** The auto strategy
+starts a new page once a row's height would bring the page's total to the viewport's height
+(`autoPageSize.ts`). Read back after paging, `hot.getRowHeight()` of a row the plugin hides reports the
+theme's default row height (29 px on `main`) rather than the height the strategy used, so a "page is
+full" check built on it passes or fails by accident. The Playwright spec pages forward and takes the
+first rendered row's height instead.

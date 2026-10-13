@@ -57,6 +57,7 @@ describe('ScrollSync#resolveProvisionalLayout', () => {
       getDestroyed: () => false,
       getTopOverlay: () => overlay,
       getInlineStartOverlay: () => overlay,
+      getInlineEndOverlay: () => overlay,
       getBottomOverlay: () => overlay,
       getWtViewport: () => ({
         resetAllOversizedRows: () => {
@@ -263,6 +264,7 @@ describe('ScrollSync#resyncScrollableElementsWithOwners', () => {
       getDestroyed: () => false,
       getTopOverlay: () => topOverlay,
       getInlineStartOverlay: () => inlineStartOverlay,
+      getInlineEndOverlay: () => createOverlay(),
       getBottomOverlay: () => createOverlay(),
       getWtViewport: () => ({
         resetAllOversizedRows: () => {},
@@ -355,6 +357,7 @@ describe('ScrollSync#syncScrollWithMaster', () => {
     const topOverlay = createOverlay(owners.vertical);
     const bottomOverlay = createOverlay(owners.vertical);
     const inlineStartOverlay = createOverlay(owners.horizontal);
+    const inlineEndOverlay = createOverlay(owners.horizontal);
     const deps = {
       rootWindow,
       wtTable: {
@@ -372,6 +375,7 @@ describe('ScrollSync#syncScrollWithMaster', () => {
       getDestroyed: () => false,
       getTopOverlay: () => topOverlay,
       getInlineStartOverlay: () => inlineStartOverlay,
+      getInlineEndOverlay: () => inlineEndOverlay,
       getBottomOverlay: () => bottomOverlay,
       getWtViewport: () => ({
         resetAllOversizedRows: () => {},
@@ -387,6 +391,7 @@ describe('ScrollSync#syncScrollWithMaster', () => {
       topHolder: topOverlay.clone.wtTable.holder,
       bottomHolder: bottomOverlay.clone.wtTable.holder,
       inlineStartHolder: inlineStartOverlay.clone.wtTable.holder,
+      inlineEndHolder: inlineEndOverlay.clone.wtTable.holder,
     };
   };
 
@@ -426,7 +431,7 @@ describe('ScrollSync#syncScrollWithMaster', () => {
   it('should carry the vertical scroll to the column clone when the window owns the horizontal axis', () => {
     // The reverse split, and the mirror of the case above.
     const holder = scrolledHolder();
-    const { scrollSync, topHolder, inlineStartHolder } = createScrollSync({
+    const { scrollSync, topHolder, inlineStartHolder, inlineEndHolder } = createScrollSync({
       horizontal: window,
       vertical: holder,
     });
@@ -434,12 +439,14 @@ describe('ScrollSync#syncScrollWithMaster', () => {
     scrollSync.syncScrollWithMaster();
 
     expect(inlineStartHolder.scrollTop).toBe(250);
+    // The end columns hold the same rows as the start ones, so they take the same vertical offset.
+    expect(inlineEndHolder.scrollTop).toBe(250);
     expect(topHolder.scrollLeft).toBe(0);
   });
 
   it('should carry both axes when one element scrolls the whole grid', () => {
     const holder = scrolledHolder();
-    const { scrollSync, topHolder, bottomHolder, inlineStartHolder } = createScrollSync({
+    const { scrollSync, topHolder, bottomHolder, inlineStartHolder, inlineEndHolder } = createScrollSync({
       horizontal: holder,
       vertical: holder,
     });
@@ -449,10 +456,13 @@ describe('ScrollSync#syncScrollWithMaster', () => {
     expect(topHolder.scrollLeft).toBe(400);
     expect(bottomHolder.scrollLeft).toBe(400);
     expect(inlineStartHolder.scrollTop).toBe(250);
+    expect(inlineEndHolder.scrollTop).toBe(250);
+    // The end columns never scroll sideways.
+    expect(inlineEndHolder.scrollLeft).toBe(0);
   });
 
   it('should write nothing when the window owns both axes', () => {
-    const { scrollSync, topHolder, inlineStartHolder } = createScrollSync({
+    const { scrollSync, topHolder, inlineStartHolder, inlineEndHolder } = createScrollSync({
       horizontal: window,
       vertical: window,
     });
@@ -461,5 +471,6 @@ describe('ScrollSync#syncScrollWithMaster', () => {
 
     expect(topHolder.scrollLeft).toBe(0);
     expect(inlineStartHolder.scrollTop).toBe(0);
+    expect(inlineEndHolder.scrollTop).toBe(0);
   });
 });

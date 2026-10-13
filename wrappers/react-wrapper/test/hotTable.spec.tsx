@@ -42,7 +42,7 @@ describe('Handsontable initialization', () => {
     )).hotInstance!;
 
     expect(hotInstance as any).not.toBe(null);
-    expect(hotInstance as any).not.toBe(void 0);
+    expect(hotInstance as any).not.toBe(undefined);
 
     expect(hotInstance.rootContainer.id).toEqual('test-hot');
   });
@@ -128,7 +128,7 @@ describe('Updating the Handsontable settings', () => {
     const hotTableRef = renderHotTableWithProps(hotSettings, false);
     const hotInstance = hotTableRef.current!.hotInstance!;
 
-    expect(hotInstance.getSettings().contextMenu).toEqual(void 0);
+    expect(hotInstance.getSettings().contextMenu).toEqual(undefined);
     expect(hotInstance.getSettings().readOnly).toEqual(false);
     expect(JSON.stringify(hotInstance.getSettings().data)).toEqual(
       '[[null,null,null,null,null],[null,null,null,null,null],[null,null,null,null,null],' +

@@ -1059,7 +1059,7 @@ export class CopyPaste extends BasePlugin {
       pastedData = parse(pastedData);
     }
 
-    if (pastedData === void 0 || Array.isArray(pastedData) && pastedData.length === 0) {
+    if (pastedData === undefined || Array.isArray(pastedData) && pastedData.length === 0) {
       return;
     }
 

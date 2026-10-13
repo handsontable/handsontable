@@ -1362,10 +1362,12 @@ To see how it works, try out the following demo:
 
 ## Add custom sort icons
 
-The default sort icons (↑↓) are rendered using CSS `-webkit-mask-image`. Override the following pseudo-elements to replace them:
+Handsontable renders the sort direction as an icon element: `<i class="ht-icon ht-icon-arrow-narrow-up">` for ascending order, and `<i class="ht-icon ht-icon-arrow-narrow-down">` for descending order. Each icon's glyph comes from a CSS variable, `--ht-icon-arrow-narrow-up` and `--ht-icon-arrow-narrow-down`. Override those variables to swap in a custom icon, while keeping the built-in size, color, and positioning:
 
-- `.columnSorting.sortAction.ascending::before`
-- `.columnSorting.sortAction.descending::before`
+- `--ht-icon-arrow-narrow-up`
+- `--ht-icon-arrow-narrow-down`
+
+To restyle the icon element itself instead (for example, to change its size or add a background), target the `.ht-icon-arrow-narrow-up` and `.ht-icon-arrow-narrow-down` classes.
 
 ::: only-for javascript
 

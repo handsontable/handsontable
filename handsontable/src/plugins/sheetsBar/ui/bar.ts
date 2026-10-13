@@ -6,6 +6,15 @@ import { addClass, setAttribute } from '../../../helpers/dom/element';
 import { A11Y_GROUP, A11Y_LABEL } from '../../../helpers/a11y';
 import { isKeyboardActivation } from './activation';
 import { DISABLED_CLASS } from './overflow';
+import type { IconKey } from '../../../themes/types';
+import type { IconOptions, IconSlotSync } from '../../../themes/engine/icons';
+
+/**
+ * The `syncIcon()` slot class of the one icon inside each of the bar's buttons.
+ *
+ * @type {string}
+ */
+const BUTTON_ICON_SLOT_CLASS = 'ht-sheets-bar__button-icon';
 
 const TEMPLATE: TemplateSpec = {
   tag: 'div',
@@ -122,12 +131,19 @@ export class SheetsBarUI {
    * Whether the grid emits ARIA attributes.
    */
   readonly #ariaTags: boolean;
+  /**
+   * Keeps one icon slot of a container in step with the theme (`syncIcon()` bound to the grid).
+   * Injected so the UI stays decoupled from the theme engine.
+   *
+   * @type {Function}
+   */
+  readonly #syncIcon: IconSlotSync;
 
   /**
    * Creates the UI and installs it (into `uiContainer` when provided; otherwise the
    * container stays detached for the layout slot to place).
    */
-  constructor({ rootDocument, uiContainer, isRtl, themeName, phraseTranslator, a11yAnnouncer, ariaTags }:
+  constructor({ rootDocument, uiContainer, isRtl, themeName, phraseTranslator, a11yAnnouncer, ariaTags, syncIcon }:
     Record<string, unknown>) {
     this.#rootDocument = rootDocument as Document;
     this.#uiContainer = uiContainer as HTMLElement | null;
@@ -136,6 +152,7 @@ export class SheetsBarUI {
     this.#themeName = themeName as string | undefined;
     this.#phraseTranslator = phraseTranslator as (...args: unknown[]) => string;
     this.#a11yAnnouncer = a11yAnnouncer as (message: unknown) => void;
+    this.#syncIcon = syncIcon as IconSlotSync;
 
     this.#install();
   }
@@ -211,6 +228,17 @@ export class SheetsBarUI {
   }
 
   /**
+   * Brings the add, all-sheets and paging-arrow icons in step with the theme after a theme
+   * change. An icon whose mapping did not move is left alone (`syncIcon()` checks the theme's
+   * icons revision), so a color-scheme or density switch rebuilds nothing.
+   */
+  refreshIcons(): void {
+    if (this.#refs) {
+      this.#installIcons();
+    }
+  }
+
+  /**
    * Swaps the theme class on the container.
    */
   updateTheme(themeName?: string): void {
@@ -270,10 +298,31 @@ export class SheetsBarUI {
     addButton.addEventListener('click', () => this.runLocalHooks('addSheetClick'));
     allButton.addEventListener('click', event => this.runLocalHooks('allSheetsClick', isKeyboardActivation(event)));
 
+    this.#installIcons();
+
     if (this.#uiContainer) {
       this.#uiContainer.appendChild(elements.fragment);
       addClass(container, [this.#themeName ?? '', 'handsontable']);
     }
+  }
+
+  /**
+   * Installs the icon elements into the add, all-sheets and paging buttons, or re-applies the
+   * theme's mapping to the ones already there. Safe to call repeatedly: `syncIcon()` keeps
+   * exactly one icon per button.
+   */
+  #installIcons(): void {
+    const { addButton, allButton, pagePrev, pageNext } = this.#refs as SheetsBarRefs;
+    const map: Array<[HTMLElement, IconKey, IconOptions?]> = [
+      [addButton, 'plus'],
+      [allButton, 'menuList'],
+      [pagePrev, 'arrowLeft', { flipInRtl: true }],
+      [pageNext, 'arrowRight', { flipInRtl: true }],
+    ];
+
+    map.forEach(([button, name, options]) => {
+      this.#syncIcon(button, BUTTON_ICON_SLOT_CLASS, name, options);
+    });
   }
 }
 

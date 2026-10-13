@@ -21,6 +21,8 @@ menuTag: updated
 ---
 Lock the position of specified rows, keeping them visible when scrolling.
 
+You can combine frozen rows with frozen columns on both sides of the grid. To freeze all four edges, see [Column freezing](@/guides/columns/column-freezing/column-freezing.md#freeze-all-four-edges).
+
 [[toc]]
 
 ## Overview

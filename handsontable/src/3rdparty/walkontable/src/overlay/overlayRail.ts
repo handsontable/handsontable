@@ -30,6 +30,13 @@ export type RailPlacement = {
   inline: boolean;
   /** Where the clone sits on the block axis. */
   block: RailBlockPlacement;
+  /**
+   * Which edge of the rail the clone stands against on the inline axis: the inline-start edge (the
+   * default) or the inline-end one. While the clone travels the inline axis (`inline`), the browser
+   * holds it against that edge of the viewport. While it does not, the rail spans the box the clone
+   * lives in (`width`), and the clone stands at that box's edge.
+   */
+  inlineEdge?: 'start' | 'end';
 };
 
 /**
@@ -149,7 +156,7 @@ export class OverlayRail {
    * @param {RailPlacement} placement What the rail spans and which axes the clone travels.
    */
   pin(placement: RailPlacement): void {
-    const { isRtl, width, height, inline, block } = placement;
+    const { isRtl, width, height, inline, block, inlineEdge = 'start' } = placement;
 
     if (!inline && !block.pinned) {
       // Nothing to hold the clone with; it belongs back where the clone factory put it.
@@ -172,14 +179,15 @@ export class OverlayRail {
     const [start, end] = isRtl ? ['right', 'left'] as const : ['left', 'right'] as const;
     const railStyle = rail.style;
     const cloneStyle = clone.style;
+    const atInlineEnd = inlineEdge === 'end';
 
     railStyle.width = `${width}px`;
     railStyle[start] = '0';
     railStyle[end] = '';
     // An inset on the axis the clone travels is its sticky constraint; on the other axis it would be
     // one too, so the rail carries that axis's place itself.
-    cloneStyle[start] = inline ? '0' : '';
-    cloneStyle[end] = '';
+    cloneStyle[start] = inline && !atInlineEnd ? '0' : '';
+    cloneStyle[end] = inline && atInlineEnd ? '0' : '';
     cloneStyle.top = '';
     cloneStyle.bottom = '';
 
@@ -188,28 +196,24 @@ export class OverlayRail {
       railStyle.bottom = '';
       railStyle.height = `${height}px`;
       cloneStyle[block.edge] = '0';
-      // A sticky box only shifts from where it would otherwise stand, and inside the rail that is the
-      // rail's top. A `bottom` inset engages only once the clone's own place is the rail's BOTTOM, so
-      // the rail pushes it there. `flex-start` keeps the clone at its own width: a stretched clone
-      // would take the rail's full table width.
-      railStyle.display = block.edge === 'bottom' ? 'flex' : '';
-      railStyle.flexDirection = block.edge === 'bottom' ? 'column' : '';
-      railStyle.alignItems = block.edge === 'bottom' ? 'flex-start' : '';
-      cloneStyle.marginTop = block.edge === 'bottom' ? 'auto' : '';
 
     } else if (block.edge === 'top') {
       railStyle.top = '0';
       railStyle.bottom = '';
       railStyle.height = '0';
-      this.#clearBottomFlow(railStyle, cloneStyle);
 
     } else {
       // The rail has no height, so its bottom edge is also the line the clone's top hangs from.
       railStyle.top = '';
       railStyle.bottom = `${block.offset + block.height}px`;
       railStyle.height = '0';
-      this.#clearBottomFlow(railStyle, cloneStyle);
     }
+
+    this.#applyFlow(railStyle, cloneStyle, {
+      atBottom: block.pinned && block.edge === 'bottom',
+      atInlineEnd,
+      start,
+    });
 
     this.#pinsInline = inline;
     this.#pinsBlock = block.pinned;
@@ -241,19 +245,45 @@ export class OverlayRail {
     cloneStyle.bottom = '';
     cloneStyle.pointerEvents = '';
     cloneStyle.marginTop = '';
+    cloneStyle.removeProperty('margin-left');
+    cloneStyle.removeProperty('margin-right');
   }
 
   /**
-   * Puts a rail that no longer hangs its clone from the bottom back into ordinary flow.
+   * Decides where the clone STANDS inside the rail, which is where a sticky inset engages from.
+   *
+   * A sticky box only shifts from where it would otherwise stand, and inside the rail that is the
+   * rail's top-start corner. An inset on the far side engages only once the clone's own place is
+   * that far side, so the rail pushes it there: a `bottom` inset needs the clone at the rail's BOTTOM
+   * (`margin-top: auto` in a column flex box), an inline-end inset needs it at the rail's inline END
+   * (an auto margin on the clone's physical start side). `flex-start` keeps the clone at its own
+   * size: a stretched clone would take the rail's full table width or height. A clone that stands at
+   * the top-start corner needs none of it, so the rail goes back into ordinary flow.
    *
    * @param {CSSStyleDeclaration} railStyle The rail's style.
    * @param {CSSStyleDeclaration} cloneStyle The clone's style.
+   * @param {object} where Where the clone stands.
+   * @param {boolean} where.atBottom Whether the clone stands at the rail's bottom.
+   * @param {boolean} where.atInlineEnd Whether the clone stands at the rail's inline end.
+   * @param {'left' | 'right'} where.start The physical side of the inline start.
    */
-  #clearBottomFlow(railStyle: CSSStyleDeclaration, cloneStyle: CSSStyleDeclaration): void {
-    railStyle.display = '';
-    railStyle.flexDirection = '';
-    railStyle.alignItems = '';
-    cloneStyle.marginTop = '';
+  #applyFlow(
+    railStyle: CSSStyleDeclaration,
+    cloneStyle: CSSStyleDeclaration,
+    { atBottom, atInlineEnd, start }: { atBottom: boolean, atInlineEnd: boolean, start: 'left' | 'right' }
+  ): void {
+    const flows = atBottom || atInlineEnd;
+
+    railStyle.display = flows ? 'flex' : '';
+    railStyle.flexDirection = atBottom ? 'column' : '';
+    railStyle.alignItems = flows ? 'flex-start' : '';
+    cloneStyle.marginTop = atBottom ? 'auto' : '';
+    cloneStyle.removeProperty('margin-left');
+    cloneStyle.removeProperty('margin-right');
+
+    if (atInlineEnd) {
+      cloneStyle[start === 'left' ? 'marginLeft' : 'marginRight'] = 'auto';
+    }
   }
 
   /**

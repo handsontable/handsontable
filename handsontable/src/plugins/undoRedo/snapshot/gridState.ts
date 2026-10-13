@@ -15,6 +15,7 @@ export interface GridSettingsSnapshot {
   readonly fixedRowsTop: number;
   readonly fixedRowsBottom: number;
   readonly fixedColumnsStart: number;
+  readonly fixedColumnsEnd: number;
   readonly colHeaders: readonly string[] | null;
 }
 
@@ -48,6 +49,7 @@ function areSettingsEqual(left: GridSettingsSnapshot, right: GridSettingsSnapsho
   return left.fixedRowsTop === right.fixedRowsTop &&
     left.fixedRowsBottom === right.fixedRowsBottom &&
     left.fixedColumnsStart === right.fixedColumnsStart &&
+    left.fixedColumnsEnd === right.fixedColumnsEnd &&
     areHeadersEqual(left.colHeaders, right.colHeaders);
 }
 
@@ -84,6 +86,7 @@ function mergeChangedSettings(
     fixedRowsBottom: target.fixedRowsBottom === other.fixedRowsBottom ? base.fixedRowsBottom : target.fixedRowsBottom,
     fixedColumnsStart: target.fixedColumnsStart === other.fixedColumnsStart ?
       base.fixedColumnsStart : target.fixedColumnsStart,
+    fixedColumnsEnd: target.fixedColumnsEnd === other.fixedColumnsEnd ? base.fixedColumnsEnd : target.fixedColumnsEnd,
     colHeaders: areHeadersEqual(target.colHeaders, other.colHeaders) ? base.colHeaders : target.colHeaders,
   };
 }
@@ -335,6 +338,7 @@ export class GridStateTracker {
       fixedRowsTop: tableMeta.fixedRowsTop ?? 0,
       fixedRowsBottom: tableMeta.fixedRowsBottom ?? 0,
       fixedColumnsStart: tableMeta.fixedColumnsStart ?? 0,
+      fixedColumnsEnd: tableMeta.fixedColumnsEnd ?? 0,
       colHeaders: Array.isArray(tableMeta.colHeaders) ? tableMeta.colHeaders.slice() : null,
     };
 
@@ -353,6 +357,7 @@ export class GridStateTracker {
 
     tableMeta.fixedRowsTop = settings.fixedRowsTop;
     tableMeta.fixedRowsBottom = settings.fixedRowsBottom;
+    tableMeta.fixedColumnsEnd = settings.fixedColumnsEnd;
 
     if ((tableMeta.fixedColumnsStart ?? 0) !== settings.fixedColumnsStart) {
       // `fixedColumnsStart` reads back `_fixedColumnsStart`, the internal property `alter()` and

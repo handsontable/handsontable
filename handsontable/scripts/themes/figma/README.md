@@ -41,7 +41,7 @@ For every theme in `tokens.json`:
 - `src/themes/static/css/theme/ht-theme-<name>.css` (with icons) and `ht-theme-<name>-no-icons.css` (without).
 - `src/themes/static/variables/tokens/<name>.ts` and `colors/<name>.ts`.
 
-Plus shared artifacts: `variables/sizing.ts`, `density.ts`, `icons/<name>.ts`, `helpers/iconsMap.ts`, and `css/icons/ht-icons-<name>.css`.
+Plus shared artifacts: `variables/sizing.ts`, `density.ts`, `icons/<name>.ts`, `helpers/iconStyles.ts`, and `css/icons/ht-icons-<name>.css`.
 
 The variable modules are typed (they import from `src/themes/types.ts`) and consumed by the `handsontable` `registerTheme` API; the CSS files back the `theme` class-name option.
 
@@ -51,7 +51,7 @@ The variable modules are typed (they import from `src/themes/types.ts`) and cons
 node --test scripts/themes/figma/__tests__/*.test.mjs
 ```
 
-Covers the typed-module emitter and the iconsMap drift guard. See `.ai/` for architecture, conventions, and known concerns.
+Covers the typed-module emitter and the iconStyles drift guard. See `.ai/` for architecture, conventions, and known concerns.
 
 ---
 

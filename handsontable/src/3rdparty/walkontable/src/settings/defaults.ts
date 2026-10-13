@@ -153,6 +153,9 @@ export function getDefaults(settings: SettingsPort): Record<string, unknown> {
     data: undefined,
     // Number of renderable columns for the left overlay.
     fixedColumnsStart: 0,
+    // Number of renderable columns for the inline end overlay (right for LTR and left for RTL document
+    // mode). Read it through `Settings#getSetting`, which clamps it against `fixedColumnsStart`.
+    fixedColumnsEnd: 0,
     // Number of renderable rows for the top overlay.
     fixedRowsTop: 0,
     // Number of renderable rows for the bottom overlay.
@@ -160,6 +163,11 @@ export function getDefaults(settings: SettingsPort): Record<string, unknown> {
     // Enable the inline start overlay when conditions are met (left for LTR and right for RTL document mode).
     shouldRenderInlineStartOverlay: () => {
       return settings.getSetting('fixedColumnsStart') > 0 || settings.getSetting('rowHeaders').length > 0;
+    },
+    // Enable the inline end overlay when conditions are met (right for LTR and left for RTL document mode).
+    // Reads the clamped `fixedColumnsEnd`, so an end band that the start band fully covers renders nothing.
+    shouldRenderInlineEndOverlay: () => {
+      return settings.getSetting('fixedColumnsEnd') > 0;
     },
     // Enable the top overlay when conditions are met.
     shouldRenderTopOverlay: () => {

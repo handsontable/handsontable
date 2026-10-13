@@ -166,6 +166,8 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] of [total] rows selected',
   [C.ROW_SELECTION_MENU_REMOVE]: 'Remove selected rows ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: 'Clear row selection',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Expanded row [label], expanded rows shown: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Collapsed row [label]',
 };
 
 export default dictionary;

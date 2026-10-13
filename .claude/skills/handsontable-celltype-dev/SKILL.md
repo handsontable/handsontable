@@ -8,7 +8,7 @@ description: Use when creating or modifying a Handsontable cell type that compos
 
 ## Structure
 
-Cell types are **composition objects**, not classes. They bundle an editor, renderer, and validator under a single name:
+A cell type is a composition object bundling editor, renderer, and validator under one name:
 
 ```js
 export const MyCellType = {
@@ -24,56 +24,32 @@ export const MyCellType = {
 };
 ```
 
-When a column or cell sets `type: 'myType'`, Handsontable applies all composed components automatically.
-
-## File structure
-
-```
-src/cellTypes/{typeName}/
-  {typeName}.ts    # Cell type object
-  index.ts         # Re-exports
-```
-
-Registry: `src/cellTypes/registry.ts`.
+Files: `src/cellTypes/{typeName}/{typeName}.ts` (the object) and `index.ts` (re-exports). Registry: `src/cellTypes/registry.ts`.
 
 ## Registration
 
-```js
-import { registerCellType } from '../../cellTypes/registry';
-registerCellType(MyCellType);
-```
-
-Also export from `src/cellTypes/index.ts` so the type is available in the full bundle.
-
-## Integration with metaSchema
-
-New cell types must be added to `src/dataMap/metaManager/metaSchema.ts` so Handsontable recognizes the type name in configuration. Add the type string to the `type` option's accepted values.
+1. `registerCellType(MyCellType)` (import from `../../cellTypes/registry`).
+2. Export from `src/cellTypes/index.ts` so the full bundle has it.
+3. Add the type string to the `type` option's accepted values in `src/dataMap/metaManager/metaSchema.ts`.
 
 ## Key rules
 
-- **Think of cell types as pre-configured bundles.** They exist for convenience - users set one `type` instead of specifying `editor`, `renderer`, and `validator` separately.
-- **All components are optional.** A cell type can omit `validator` if no validation is needed, or omit `editor` for read-only display types.
-- **Individual overrides win.** If a user sets both `type: 'myType'` and `renderer: customRenderer`, the explicit `renderer` takes precedence over the one from the cell type.
-- **`valueSetter` is the ONLY place a type may normalize an incoming value — never the editor alone, and never a plugin.** A value reaches a cell by many routes, and the editor is only one of them: a paste, `setDataAtCell()`, `populateFromArray()`, autofill and undo all bypass it. `valueSetter` runs on every one of those, so a type whose stored shape differs from what the user writes (a key/value `source`, a complex-format type) must resolve it there. Two rules come with that, both learned from DEV-57, where the autocomplete editor resolved a typed label against `source` while nothing else did — a pasted label was stored as a bare string among key/value objects, and a `strict` `dropdown` then marked the cell invalid:
-  - **Share the rule with the editor, do not copy it.** The single implementation is `findChoiceByDisplayedValue()` (`utils/cellSource.ts`), called by both `autocompleteEditor#getValue()` and the autocomplete `valueSetter`. Two copies of one matching rule is exactly what let those paths drift.
-  - **Anything exported from `src/helpers/**` is public API forever, types included.** `index.ts` spreads those modules onto `Handsontable.helper` and `base.ts` types the namespace as `typeof import('./helpers/object')`, so a new export there is a permanent maintenance commitment and a narrowed signature is a break. That is why `utils/cellSource.ts` holds the whole key/value rule — including `isKeyValueEntry()`, the narrowing form of the public `isKeyValueObject()`. It **delegates** to the public function rather than repeating the shape test, so the two cannot disagree, and `helpers/object.ts` keeps a zero diff. Reach for `src/utils/` for anything a cell type needs.
-  - **`valueSetter` takes five arguments: `(value, visualRow, visualCol, cellMeta, source)`.** `utils/valueAccessors.ts` passes all five, so `cellMeta.source`, `cellMeta.allowHtml` and the change source need no plumbing. Type the meta parameter as a `Pick<CellProperties, …>` of the fields you read, so a unit test need not build a whole meta object; read anything else through `this.getCellMetaTransient`, never `this.getCellMeta` (see the core `AGENTS.md`). The `source` parameter is declared **optional** on the public type on purpose — a required fifth parameter would raise the option's minimum call arity and break a consumer that reads the option back out and calls it with four (`.ai/BREAKING-CHANGES.md`).
-  - **Never write a delegating setter by hand — re-export.** `dropdownType/accessors/valueSetter.ts` used to be a hand-written delegate, and it dropped `cellMeta`, which left the strict column — the one where the bug is visible — unfixed while the non-strict one worked. It is now `export { valueSetter } from '../../autocompleteType/accessors';`: a re-export has no argument list to keep in sync, so that class of mistake is gone rather than documented. A unit test pins the identity (`DropdownCellType.valueSetter` is `AutocompleteCellType.valueSetter`).
-  - **Skip every transformation on `UndoRedo.*`.** `utils/valueAccessors.ts` states the invariant — undo and redo restore what the cell held before, verbatim — and honors it for `emptyValue`. The autocomplete setter did not: it wrapped a restored plain label as `{ key: <label>, value: <label> }` whenever the cell happened to hold an entry, so undoing a column loaded with plain labels produced a fabricated pair a `strict` column then rejected. Return `newValue` untouched when `source` starts with `'UndoRedo.'`.
-  - **Guard an empty write.** `isEmpty(newValue)` must skip any resolution, or a `source` entry carrying an empty label stands in for "no value" and `allowEmpty` stops meaning what it says.
-  - **Gate the expensive part on a cheap shape check.** The setter runs once per changed cell, so a paste of thousands of rows multiplies whatever it does. `hasKeyValueChoices()` reads only the entries' shape — no string work — so a column whose `source` holds plain strings never pays for a label scan it could not use. Do not memoize the scan itself: a `source` array can be mutated in place by the host application, and a stale displayed-text map would resolve a label to an option no longer offered.
-  - **The gate bounds who pays, not how much.** A column that *does* hold key/value entries still runs `findChoiceByDisplayedValue()` per changed cell, and that is a linear scan which calls `stringify()` and `stripTags()` on every choice it walks — `stripTags()` reads the label character by character. Cost is therefore `changed cells × source size`. At realistic dropdown sizes (10–100 options) a 10k-row paste stays in single-digit milliseconds, but a source in the hundreds-to-thousands turns the same paste into roughly a second of scanning. That is the accepted price of never serving a stale option; if a source that large ever needs to be fast, the fix is a map invalidated by identity, not a plain cache.
+- All components are optional (omit `validator` for no validation, `editor` for read-only types).
+- An explicit `renderer`/`editor`/`validator` set beside `type: 'myType'` overrides the one from the type.
+- Import existing editor/renderer/validator logic instead of duplicating it.
+- **`valueSetter` is the only place a type may normalize an incoming value (not the editor alone, not a plugin).** Paste, `setDataAtCell()`, `populateFromArray()`, autofill and undo bypass the editor, and `valueSetter` runs on all of them. A type whose stored shape differs from what the user writes (key/value `source`, complex format) resolves it there. Learned from DEV-57: the autocomplete editor resolved a typed label against `source`, nothing else did, a pasted label was stored as a bare string among key/value objects, and a `strict` `dropdown` marked the cell invalid. Rules:
+  - **Share the rule with the editor.** `findChoiceByDisplayedValue()` (`utils/cellSource.ts`) is called by both `autocompleteEditor#getValue()` and the autocomplete `valueSetter`.
+  - **Anything exported from `src/helpers/**` is public API forever, types included.** `index.ts` spreads those modules onto `Handsontable.helper` and `base.ts` types the namespace as `typeof import('./helpers/object')`, so a new export is a permanent commitment and a narrowed signature is a break. Put cell-type helpers in `src/utils/`. `utils/cellSource.ts` holds the key/value rule, including `isKeyValueEntry()`, which delegates to the public `isKeyValueObject()` so the two cannot disagree; `helpers/object.ts` keeps a zero diff.
+  - **`valueSetter` takes five arguments: `(value, visualRow, visualCol, cellMeta, source)`.** `utils/valueAccessors.ts` passes all five. Type the meta parameter as a `Pick<CellProperties, …>` of the fields you read; read anything else through `this.getCellMetaTransient` (see the core `AGENTS.md`). `source` is declared optional on the public type: a required fifth parameter raises the option's minimum call arity and breaks a consumer that calls it with four (`.ai/BREAKING-CHANGES.md`).
+  - **Re-export a delegating setter.** `dropdownType/accessors/valueSetter.ts` is `export { valueSetter } from '../../autocompleteType/accessors';`. A hand-written delegate dropped `cellMeta` and left the strict column unfixed. A unit test pins the identity (`DropdownCellType.valueSetter` is `AutocompleteCellType.valueSetter`).
+  - **Return `newValue` untouched when `source` starts with `'UndoRedo.'`.** Undo and redo restore the prior value verbatim (`utils/valueAccessors.ts` states the invariant). The autocomplete setter once wrapped a restored plain label as `{ key: <label>, value: <label> }`, which a `strict` column then rejected.
+  - **Guard an empty write.** `isEmpty(newValue)` skips any resolution, or a `source` entry with an empty label stands in for "no value" and `allowEmpty` changes meaning.
+  - **Gate the expensive part on a cheap shape check.** The setter runs once per changed cell. `hasKeyValueChoices()` reads only the entries' shape, so a plain-string `source` never pays for a label scan. Skip memoizing the scan itself: the host can mutate a `source` array in place and a stale displayed-text map would resolve a label to an option no longer offered.
+  - **The gate bounds who pays, not how much.** A key/value column runs `findChoiceByDisplayedValue()` per changed cell, a linear scan calling `stringify()` and `stripTags()` per choice: cost is `changed cells × source size`. At 10–100 options a 10k-row paste takes single-digit milliseconds; a source of hundreds to thousands takes about a second. If that ever needs to be fast, use a map invalidated by identity, not a plain cache.
 
 ## Reference implementations
 
-- `src/cellTypes/numericType/numericType.ts` - Composes numeric editor, renderer, and validator.
-- `src/cellTypes/textType/textType.ts` - Simplest type, good starting template.
-- `src/cellTypes/dateType/dateType.ts` - Date handling with format options.
-- `src/cellTypes/checkboxType/checkboxType.ts` - Boolean toggle pattern.
-
-## Common mistakes
-
-- Forgetting to register the cell type in `src/cellTypes/registry.ts`.
-- Not adding the type to `metaSchema.ts`, causing Handsontable to ignore the type name.
-- Duplicating editor/renderer/validator logic instead of importing existing components.
-- Not exporting from `src/cellTypes/index.ts` for the full bundle.
+- `src/cellTypes/numericType/numericType.ts`
+- `src/cellTypes/textType/textType.ts` (simplest, good template)
+- `src/cellTypes/dateType/dateType.ts`
+- `src/cellTypes/checkboxType/checkboxType.ts`

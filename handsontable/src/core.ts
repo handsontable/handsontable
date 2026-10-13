@@ -33,7 +33,12 @@ import { spreadsheetColumnLabel, hasChangeForCell } from './helpers/data';
 import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
 import { DEFAULT_COLUMN_WIDTH } from './3rdparty/walkontable/src';
-import { hasLanguageDictionary, getValidLanguageCode, getTranslatedPhrase } from './i18n/registry';
+import {
+  hasLanguageDictionary,
+  getValidLanguageCode,
+  getTranslatedPhrase,
+  warnAboutDeprecatedLanguageCode,
+} from './i18n/registry';
 import { warnUserAboutLanguageRegistration, normalizeLanguageCode } from './i18n/utils';
 import { Selection } from './selection';
 import {
@@ -68,7 +73,7 @@ import { createShortcutManager } from './shortcuts';
 import type { ShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcuts/contexts';
 import { getThemeClassName } from './helpers/themes';
-import { StylesHandler } from './utils/stylesHandler';
+import { StylesHandler, isValidThemeName } from './utils/stylesHandler';
 import { warn, warnOnce, removedWarnOnce, deprecatedWarnOnce } from './helpers/console';
 import { throwWithCause } from './helpers/errors';
 import { isSkippedPastLastColumn } from './utils/pastLastColumn';
@@ -303,6 +308,18 @@ interface CoreInternals {
   _validateCells(callback?: (valid: boolean) => void, rows?: number[], columns?: number[]): void;
   selectAll(includeRowHeaders?: boolean, includeColumnHeaders?: boolean, options?: Record<string, unknown>): void;
 }
+
+/**
+ * Options holding a frozen row or column count. `alter()` and some plugins lower them directly on the
+ * table meta, which `updateSettings()` has to be able to override afterwards.
+ */
+const FROZEN_COUNT_OPTIONS = new Set([
+  'fixedRowsTop',
+  'fixedRowsBottom',
+  'fixedColumnsStart',
+  'fixedColumnsLeft',
+  'fixedColumnsEnd',
+]);
 
 /**
  * Handsontable constructor.
@@ -709,6 +726,7 @@ export default function Core(
     fixedRowsTop: number;
     fixedRowsBottom: number;
     fixedColumnsStart: number;
+    fixedColumnsEnd: number;
     maxRows: number;
     maxCols: number;
     minRows: number;
@@ -913,8 +931,10 @@ export default function Core(
    *
    * It has to happen here: `IndexMapper#updateCache()` rebuilds every cache before it fires
    * `cacheUpdated`, so by then the pre-update visual space is gone and the records the selection
-   * was laid on cannot be recovered. `Selection` takes the snapshot only while an editor is open -
-   * a selection with no editor is repaired by `repairSelection()` below, on a different rule.
+   * was laid on cannot be recovered. `Selection` takes the physical snapshot only while an editor is
+   * open - a selection with no editor is repaired by `repairSelection()` below, on a different rule.
+   * The grid-tracking coverage the DEV-152 grow reads is recorded on every trimming update, editor or
+   * not, because that grow belongs to the no-editor repair.
    *
    * @param {object} indexesChangesState The state object of the index mapper's cache update.
    * @param {'row'|'column'} axis The mapper axis that is about to be updated.
@@ -927,7 +947,8 @@ export default function Core(
     // that `afterCacheUpdate` pops. `updateCache()` can nest - a `hidingChangesObservable` consumer
     // that writes a trimming map runs a whole inner update inside this one's window - and only a
     // balanced push/pop keeps the inner update from discarding the entry this one will read.
-    this.selection.capturePhysicalSelection(axis, shouldRestoreSelection(indexesChangesState));
+    this.selection.capturePhysicalSelection(
+      axis, shouldRestoreSelection(indexesChangesState), indexesChangesState.trimmedIndexesChanged);
   };
 
   /**
@@ -1062,11 +1083,14 @@ export default function Core(
    * @param {object} indexesChangesState The state object of the index mapper's cache update.
    * @param {boolean} indexesChangesState.trimmedIndexesChanged Whether the trimmed indexes changed.
    * @param {boolean} indexesChangesState.indexesSequenceChanged Whether the indexes sequence changed.
+   * @param {boolean} hadOpenEditor Whether an editor was open when the update landed.
+   * @param {'row'|'column'} axis The mapper axis that was updated.
    */
   const repairSelection = (
     isStructuralChange: boolean,
     { trimmedIndexesChanged, indexesSequenceChanged }: IndexesChangesState,
-    hadOpenEditor: boolean
+    hadOpenEditor: boolean,
+    axis: IndexAxis,
   ) => {
     if (!this.selection.isSelected()) {
       return;
@@ -1099,11 +1123,23 @@ export default function Core(
     if (editorManager?.isEditorOpened()) {
       this.selection.recaptureHighlightRecord();
 
+      // The editor-open restore re-pins a grid-tracking layer itself, but it accepts a pure trim
+      // only. An untrim batched with a sort skips it, and a whole column is still a whole column
+      // after a sort, so the grow runs here for that shape (it commits without the selection hooks
+      // while the editor is open).
+      if (indexesSequenceChanged) {
+        this.selection.fitGridTrackingExtents(axis);
+      }
+
       return;
     }
 
     if (!this.selection.deselectIfHighlightStranded({ unresolvableOnly: hadOpenEditor })) {
       this.selection.recaptureHighlightRecord();
+      // The test above repairs a SHRINK only - it fires on a corner left past the last index. An
+      // untrim leaves every corner in range, so a full-column selection or a select-all is grown
+      // back to the whole axis here instead (DEV-152).
+      this.selection.fitGridTrackingExtents(axis);
     }
   };
 
@@ -1159,7 +1195,7 @@ export default function Core(
       this.selection.notifyDeferredDeselect('column');
     }
 
-    repairSelection(isStructuralChange, indexesChangesState, hadOpenEditor);
+    repairSelection(isStructuralChange, indexesChangesState, hadOpenEditor, 'column');
   });
 
   this.rowIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: IndexesChangesState) => {
@@ -1185,7 +1221,7 @@ export default function Core(
       this.selection.notifyDeferredDeselect('row');
     }
 
-    repairSelection(isStructuralChange, indexesChangesState, hadOpenEditor);
+    repairSelection(isStructuralChange, indexesChangesState, hadOpenEditor, 'row');
   });
 
   /**
@@ -1265,7 +1301,11 @@ export default function Core(
       editorManager.closeEditor();
     }
 
-    if (!['refresh', 'loadData', 'updateData', 'deselect'].includes(selectionSource)) {
+    // A `shift` re-lay (`alter()`'s shifts, the trim clamp and the DEV-152 grow) replays every layer
+    // through `setRangeEnd()`, so it renders once, on the last layer, instead of once per layer.
+    const isIntermediateShiftLayer = selectionSource === 'shift' && !isLastSelectionLayer;
+
+    if (!['refresh', 'loadData', 'updateData', 'deselect'].includes(selectionSource) && !isIntermediateShiftLayer) {
       instance.view.render();
       editorManager.prepareEditor();
     }
@@ -1573,6 +1613,11 @@ export default function Core(
           case 'insert_col_end':
             // "start" is a default behavior for creating new columns
 
+            // Unlike `remove_col`, an insert does not touch `fixedColumnsEnd`. A column inserted inside the end band
+            // or after it takes a band slot (the band is always the LAST `fixedColumnsEnd` columns), the same as a
+            // row inserted with `fixedRowsBottom`, which `insert_row_*` does not move either. A caller that wants the
+            // same columns to stay frozen raises `fixedColumnsEnd` in `afterCreateCol`. Only the spare and the minimum
+            // columns are guarded (see `adjustRowsAndCols`).
             const insertColumnMode = action === 'insert_col_end' ? 'end' : 'start';
 
             // Calling the `insert_col_start` action adds a new column to the left of the data set.
@@ -1746,6 +1791,8 @@ export default function Core(
                   groupIndex = Math.max(groupIndex - offset, 0);
                 }
 
+                const totalColumnsBefore = instance.countCols();
+
                 // TODO: for datamap.removeCol index should be passed as it is (with undefined and null values). If not, the logic
                 // inside the datamap.removeCol breaks the removing functionality.
                 const wasRemoved = datamap.removeCol(groupIndex, groupAmount, source);
@@ -1796,6 +1843,31 @@ export default function Core(
                   // to bypass the validation.
                   (tableMeta as unknown as { _fixedColumnsStart: number })._fixedColumnsStart -=
                     Math.min(groupAmount, fixedColumnsStart - calcIndex);
+                }
+
+                const fixedColumnsEnd = tableMeta.fixedColumnsEnd;
+
+                if (fixedColumnsEnd) {
+                  // Count how many of the removed columns belonged to the end fixed columns. Those columns
+                  // occupied the `[totalColumnsBefore - fixedColumnsEnd, totalColumnsBefore - 1]` range, so the
+                  // boundary has to be compared with the column count from *before* the removal. Columns
+                  // removed before that range keep the setting untouched.
+                  const removedColumnsCount = totalColumnsBefore - totalColumns;
+                  // With no index passed, `datamap.removeCol` takes the columns from the end, so the removal
+                  // starts that many columns before the last one. `calcIndex` points at the last column then,
+                  // not at the first removed one.
+                  const firstRemovedColumnIndex = Number.isInteger(groupIndex)
+                    ? calcIndex
+                    : Math.max(totalColumnsBefore - removedColumnsCount, 0);
+                  const firstFixedColumnIndex = totalColumnsBefore - fixedColumnsEnd;
+                  const lastRemovedColumnIndex =
+                    Math.min(firstRemovedColumnIndex + removedColumnsCount - 1, totalColumnsBefore - 1);
+                  const removedFixedColumnsCount =
+                    lastRemovedColumnIndex - Math.max(firstRemovedColumnIndex, firstFixedColumnIndex) + 1;
+
+                  if (removedFixedColumnsCount > 0) {
+                    tableMeta.fixedColumnsEnd -= Math.min(removedFixedColumnsCount, fixedColumnsEnd);
+                  }
                 }
 
                 if (Array.isArray(tableMeta.colHeaders)) {
@@ -1877,7 +1949,16 @@ export default function Core(
         }
         {
           let emptyCols = 0;
-          const canCreateSpareCols = minSpareCols > 0 && !tableMeta.columns && instance.dataType === 'array';
+          // Appending a column after the last end column would move the frozen band onto the new column
+          // and silently unfreeze the column that held the data, so no spare column is created while
+          // `fixedColumnsEnd` is set. The same holds for the `minCols` filler columns below. Creating them before
+          // the band instead is not safe: the filler bookkeeping (`DataMap#isTrailingFillerColumn`) tracks a
+          // trailing run only, and an `auto` insert skips the cell meta shift, so the meta of the end columns
+          // would stay behind. The keyboard navigation guard (`transformation/_base.ts`) follows the same rule.
+          // Floored like the band the renderer draws: a fraction below 1 or a negative number freezes no column.
+          const hasEndColumns = Math.floor(Number(tableMeta.fixedColumnsEnd)) > 0;
+          const canCreateSpareCols = minSpareCols > 0 && !tableMeta.columns && instance.dataType === 'array' &&
+            !hasEndColumns;
 
           // Count trailing empty columns, but only when the `minSpareCols` branch below can consume
           // the result, and never beyond `minSpareCols` itself. Verifying that a column is empty
@@ -1901,7 +1982,7 @@ export default function Core(
           let nrOfColumns = instance.countCols();
 
           // should I add empty cols to meet minCols?
-          if (minCols && !tableMeta.columns && nrOfColumns < minCols) {
+          if (minCols && !tableMeta.columns && !hasEndColumns && nrOfColumns < minCols) {
             // The synchronization with cell meta is not desired here. For `minCols` option,
             // we don't want to touch/shift cell meta objects.
             const colsToCreate = minCols - nrOfColumns;
@@ -2275,6 +2356,8 @@ export default function Core(
     const normalizedLanguageCode = normalizeLanguageCode(languageCode);
 
     if (hasLanguageDictionary(normalizedLanguageCode)) {
+      warnAboutDeprecatedLanguageCode(normalizedLanguageCode);
+
       instance.runHooks('beforeLanguageChange', normalizedLanguageCode);
 
       globalMeta.language = normalizedLanguageCode;
@@ -4554,7 +4637,7 @@ export default function Core(
    * @param {string} source The source of the call.
    */
   function applyUpdateData(data: unknown[][][] | object[], source: string) {
-    replaceData(
+    runWithGridTrackingFitsSuspended(() => replaceData(
       data,
       (newDataMap: DataMapInstance) => {
         datamap = newDataMap;
@@ -4603,7 +4686,30 @@ export default function Core(
         source,
         metaManager,
         firstRun
-      });
+      }));
+  }
+
+  /**
+   * Runs a data replacement with the selection's grid-tracking grow postponed until it ends.
+   * `replaceData()` destroys the `DataMap` before `beforeLoadData`/`beforeUpdateData`, and a trimming
+   * map changed from those hooks (a NestedRows parent expanded) would otherwise grow the selection
+   * and commit its highlights through the destroyed `DataMap` (DEV-152 review). A replacement that
+   * throws drops the postponed grows, because applying them runs the selection hooks.
+   *
+   * @private
+   * @param {Function} action The data replacement to run.
+   */
+  function runWithGridTrackingFitsSuspended(action: () => void) {
+    let isCompleted = false;
+
+    selection.suspendGridTrackingFits();
+
+    try {
+      action();
+      isCompleted = true;
+    } finally {
+      selection.resumeGridTrackingFits(isCompleted);
+    }
   }
 
   /**
@@ -4642,7 +4748,7 @@ export default function Core(
    * @param {string} source The source of the call.
    */
   function applyLoadData(data: unknown[][][] | object[], source: string) {
-    replaceData(
+    runWithGridTrackingFitsSuspended(() => replaceData(
       data,
       (newDataMap: DataMapInstance) => {
         datamap = newDataMap;
@@ -4672,7 +4778,7 @@ export default function Core(
         source,
         metaManager,
         firstRun
-      });
+      }));
   }
 
   /**
@@ -5001,7 +5107,24 @@ export default function Core(
         const isUnusableCell = i === 'cell' && !Array.isArray(settings[i]);
 
         if (!isUnpassedEditor && !isUnusableCell) {
+          const previousValue = globalMeta[i];
+
           globalMeta[i] = settings[i];
+
+          // `alter()`, ManualColumnFreeze and UndoRedo change a frozen count directly on the table meta.
+          // That creates an own property which shadows the global value written above, so a later
+          // `updateSettings()` would be ignored. Drop the shadow when the value really changes. A wrapper
+          // re-sends every prop on each commit, and an unchanged value must not undo the state kept there.
+          // Only the frozen counts are handled: other own table-meta values (the Loading plugin's `dialog`,
+          // the theme options) are shadows kept on purpose.
+          if (FROZEN_COUNT_OPTIONS.has(i) && settings[i] !== previousValue) {
+            Reflect.deleteProperty(tableMeta, i);
+
+            // The two column names share the `_fixedColumnsStart` backing field.
+            if (i === 'fixedColumnsStart' || i === 'fixedColumnsLeft') {
+              Reflect.deleteProperty(tableMeta, '_fixedColumnsStart');
+            }
+          }
         }
       }
     }
@@ -7027,9 +7150,7 @@ export default function Core(
       width = cellProperties.width;
     }
 
-    if (width === undefined || width === tableMeta.width) {
-      width = tableMeta.colWidths;
-    }
+    width ??= tableMeta.colWidths;
 
     if (width !== undefined && width !== null) {
       switch (typeof width) {
@@ -7855,6 +7976,10 @@ export default function Core(
     instance._clearMicrotasks();
     // A transaction held by a pending validator must not settle on a destroyed instance.
     operationScope.destroy();
+    // Never resumed: the teardown below unregisters every trimming map, and each untrim would grow a
+    // whole-column selection through `refresh()`, whose hooks reach an already destroyed
+    // `EditorManager` and `DataSource` (DEV-152 review).
+    selection?.suspendGridTrackingFits();
 
     // Drop the hidden-init visibility observer before the teardown below nulls the instance. Otherwise a
     // delivery queued while the table was becoming visible runs its callback on a destroyed instance.
@@ -7873,7 +7998,7 @@ export default function Core(
     dataSource = null!;
 
     if (isRootInstance(this)) {
-      uninstallAccessibilityAnnouncer();
+      uninstallAccessibilityAnnouncer(instance.rootPortalElement);
       this.getFocusScopeManager().destroy();
       layoutManager?.destroy();
 
@@ -8333,6 +8458,12 @@ export default function Core(
   /**
    * Use the theme specified by the provided name.
    *
+   * When the grid runs a theme object (the `theme` option set to a theme config or a `ThemeBuilder`
+   * instance) and you pass a different valid theme name, the grid stops using the theme object: its
+   * injected styles and icon mapping are removed, and later changes to the theme object no longer
+   * affect the grid. A value that is not a valid theme name (`ht-theme-<theme-name>`) is rejected
+   * with a warning, and the grid keeps its current theme, theme object included.
+   *
    * @memberof Core#
    * @function useTheme
    * @since 15.0.0
@@ -8340,6 +8471,22 @@ export default function Core(
    */
   this.useTheme = (themeName: string | null) => {
     const isFirstRun = !!firstRun;
+
+    // Switching away from a theme object tears its manager down, the same way
+    // `updateSettings({ theme: '<class name>' })` does. Left alive, the manager keeps its `<style>`
+    // node and its subscription to the shared theme object, so a later `theme.params()` re-injects
+    // the old styles and fires `afterSetTheme` with the old class name. `destroy()` also clears
+    // `instance.themeManager`, so the icon helpers rebuild the manager's external icons as plain
+    // glyphs on the `afterSetTheme` below. The internal callers pass the manager's own class name,
+    // which keeps it. A name `stylesHandler.useTheme()` rejects keeps it too: the grid stays on its
+    // current theme, so its theme object must stay as well.
+    if (
+      instance.themeManager &&
+      isValidThemeName(themeName) &&
+      instance.themeManager.getClassName() !== themeName
+    ) {
+      instance.themeManager.destroy();
+    }
 
     this.stylesHandler.useTheme(themeName ?? undefined);
 

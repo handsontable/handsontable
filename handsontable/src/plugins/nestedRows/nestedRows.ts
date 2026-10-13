@@ -1,4 +1,5 @@
 import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
+import type { GridSettings } from '../../core/settings';
 import { BasePlugin } from '../base';
 import DataManager, { isNestedRowsShape, type RowObject } from './data/dataManager';
 import CollapsingUI from './ui/collapsing';
@@ -7,8 +8,14 @@ import ContextMenuUI from './ui/contextMenu';
 import { isValidDataSource } from './utils/isValidDataSource';
 import { error } from '../../helpers/console';
 import type { TrimmingMap } from '../../translations';
-import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
+import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR, GRID_GROUP } from '../../shortcuts/contexts';
 import RowMoveController from './utils/rowMoveController';
+import { announce } from '../../utils/a11yAnnouncer';
+import { isGridBodyCovered } from '../../shortcuts/guards';
+import {
+  NESTED_ROWS_ANNOUNCEMENT_COLLAPSED,
+  NESTED_ROWS_ANNOUNCEMENT_EXPANDED,
+} from '../../i18n/constants';
 
 export const PLUGIN_KEY = 'nestedRows';
 export const PLUGIN_PRIORITY = 300;
@@ -19,6 +26,14 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  */
 const WRONG_DATA_TYPE_ERROR = 'The Nested Rows plugin requires an Array of Objects as a dataset to be' +
   ' provided. The plugin has been disabled.';
+
+/**
+ * A cell in a row that a collapsed parent hides, as `NestedRows#clearCollapsedRows()` reads it.
+ */
+interface CollapsedRowCell {
+  rowObject: RowObject | null | undefined;
+  prop: string | number;
+}
 
 /**
  * The parents the user collapsed, as `NestedRows#captureState()` records them.
@@ -131,6 +146,15 @@ export class NestedRows extends BasePlugin {
   #stashedParentPaths: number[][] | null = null;
 
   /**
+   * `true` while `updatePlugin()` tears the plugin down only to build it again. The treegrid row
+   * attributes stay on the rows then: the next draw writes only the values that changed, so a
+   * rebuild of an unchanged tree - every re-render in React - touches none of them.
+   *
+   * @type {boolean}
+   */
+  #isRebuilding = false;
+
+  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link NestedRows#enablePlugin} method is called.
    *
@@ -182,6 +206,7 @@ export class NestedRows extends BasePlugin {
     this.addHook('beforeLoadData', this.#onBeforeLoadData, 1);
     this.addHook('beforeUpdateData', this.#onBeforeUpdateData);
     this.addHook('afterUpdateData', this.#onAfterUpdateData);
+    this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
 
     this.registerShortcuts();
     super.enablePlugin();
@@ -203,7 +228,17 @@ export class NestedRows extends BasePlugin {
     this.unregisterShortcuts();
     super.disablePlugin();
 
+    // A stash still open here is never applied: a fresh CollapsingUI replaces this one, and the expand
+    // it made stays in place. The grow it held is applied now, so a whole-column selection covers the
+    // rows that expand brought back. Only AFTER the hooks are gone: a removal's stash window also
+    // skips renders (`#skipRender`), and the grow renders.
+    this.collapsingUI?.releaseGridTrackingFits(true);
+
     this.headersUI!.removeRenderedLevelIndicators();
+
+    if (!this.#isRebuilding) {
+      this.headersUI!.removeRenderedRowAttributes();
+    }
   }
 
   /**
@@ -223,7 +258,9 @@ export class NestedRows extends BasePlugin {
     // which, in React, is every parent re-render.
     const collapsedParents = this.collapsingUI?.getCollapsedParents() ?? [];
 
+    this.#isRebuilding = true;
     this.disablePlugin();
+    this.#isRebuilding = false;
 
     // We store a state of the data manager.
     let currentSourceData = this.dataManager!.getData();
@@ -236,6 +273,8 @@ export class NestedRows extends BasePlugin {
       // ran inside `BasePlugin#onUpdateSettings`, so this only skips the rebuild, not the whole
       // build-up.
       if (!this.#acceptsData(currentSourceData)) {
+        this.headersUI!.removeRenderedRowAttributes();
+
         return;
       }
     }
@@ -322,39 +361,78 @@ export class NestedRows extends BasePlugin {
    * @private
    */
   registerShortcuts() {
-    this.hot.getShortcutManager()
-      .getContext('grid')
-      ?.addShortcut({
-        keys: [['Enter']],
-        callback: () => {
-          const activeRange = this.hot.getSelectedRangeActive();
+    const context = this.hot.getShortcutManager().getContext('grid');
 
-          if (!activeRange) {
-            return false;
-          }
+    context?.addShortcut({
+      keys: [['Enter']],
+      callback: () => {
+        const row = this.collapsingUI!.translateTrimmedRow(this.#getFocusedRowHeader()!);
 
-          const { highlight } = activeRange;
-          const row = this.collapsingUI!.translateTrimmedRow(highlight.row ?? 0);
+        this.toggleParentByUser(row, this.collapsingUI!.areChildrenCollapsed(row) ? 'expand' : 'collapse');
 
-          this.collapsingUI!.toggleCollapsedRows(
-            [row],
-            this.collapsingUI!.areChildrenCollapsed(row) ? 'expand' : 'collapse'
-          );
+        // prevent default Enter behavior (move to the next row within a selection range)
+        return false;
+      },
+      runOnlyIf: () => this.#getFocusedRowHeader() !== null,
+      group: SHORTCUTS_GROUP,
+      relativeToGroup: SHORTCUTS_GROUP_EDITOR,
+      position: 'before',
+    });
 
-          // prevent default Enter behavior (move to the next row within a selection range)
-          return false;
-        },
-        runOnlyIf: () => {
-          const highlight = this.hot.getSelectedRangeActive()?.highlight;
+    context?.addShortcuts([{
+      keys: [['ArrowRight', 'Control/Meta']],
+      callback: () => this.#runTreeArrowCommand('ArrowRight'),
+      runOnlyIf: () => this.#getFocusedRowHeaderRow() !== null,
+    }, {
+      keys: [['ArrowLeft', 'Control/Meta']],
+      callback: () => this.#runTreeArrowCommand('ArrowLeft'),
+      runOnlyIf: () => this.#getFocusedRowHeaderRow() !== null,
+    }], {
+      captureCtrl: true,
+      group: SHORTCUTS_GROUP,
+      relativeToGroup: GRID_GROUP,
+      position: 'before',
+    });
+  }
 
-          return !!(highlight && this.hot.getSelectedRangeActive()?.isSingle() &&
-            this.hot.selection.isCellVisible(highlight) && highlight.col === -1 &&
-            highlight.row !== null && highlight.row >= 0);
-        },
-        group: SHORTCUTS_GROUP,
-        relativeToGroup: SHORTCUTS_GROUP_EDITOR,
-        position: 'before',
-      });
+  /**
+   * Collapses or expands a parent row in answer to a user gesture - the row header button, or a key
+   * pressed on a focused row header - and announces the result to assistive technologies through a
+   * polite live region.
+   *
+   * The public methods do not announce: an app calling them knows what it changed and can tell the
+   * user itself, and `collapseAll()` would otherwise queue one message per parent.
+   *
+   * The <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow keys reach this method too. On a focused row header they
+   * replace the grid's own jump to the row's edge outright - with nothing to expand, collapse, or walk
+   * up to, they do nothing - so the chord means one thing on a tree row's header. From a cell the jump
+   * is untouched. The plain arrows are left to the grid's navigation, which is the WAI-ARIA treegrid
+   * pattern's cell-focus mode: there the arrows only move the focus. The number of rows shown counts
+   * rendered rows, so rows the `HiddenRows` plugin hides are left out.
+   *
+   * @private
+   * @param {number} physicalRow Physical index of the parent row.
+   * @param {'collapse'|'expand'} action The change to make.
+   * @returns {boolean} `true` when the state changed.
+   */
+  toggleParentByUser(physicalRow: number, action: 'collapse' | 'expand'): boolean {
+    const { rowIndexMapper } = this.hot;
+    const rowsBefore = rowIndexMapper.getRenderableIndexesLength();
+    const performed = this.collapsingUI!.toggleCollapsedRows([physicalRow], action);
+
+    if (performed && this.hot.getSettings().ariaTags) {
+      const label = this.#getRowLabel(physicalRow);
+      const message = action === 'expand' ?
+        this.hot.getTranslatedPhrase(NESTED_ROWS_ANNOUNCEMENT_EXPANDED, {
+          label,
+          count: rowIndexMapper.getRenderableIndexesLength() - rowsBefore,
+        }) :
+        this.hot.getTranslatedPhrase(NESTED_ROWS_ANNOUNCEMENT_COLLAPSED, { label });
+
+      announce(String(message ?? ''), 'polite');
+    }
+
+    return performed;
   }
 
   /**
@@ -674,6 +752,165 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
+   * Clears a column range, including the rows that collapsed parents hide.
+   *
+   * A collapsed parent's descendants are trimmed, so they have no visual index, and a clear that
+   * walks the visual rows of a column - the predefined "Clear column" menu item - never reaches them
+   * (DEV-150). `clearVisibleRows` clears the visual rows exactly as it would without this plugin,
+   * with its validators, its `beforeChange`/`afterChange` hooks, and its selection untouched. The
+   * rows hidden under a collapsed parent that is visible at or above `endRow` are then cleared in the
+   * source data, by row object, so a listener that restructures the tree during the visible clear
+   * cannot redirect the write. They report through `afterSetSourceDataAtCell`, not `afterChange`,
+   * and are not validated, as every `setSourceDataAtCell()` write. Read-only cells and rows trimmed
+   * by another plugin (TrimRows) are skipped, as the visible clear skips them.
+   *
+   * Both writes run in one `change` operation, so UndoRedo records them as one undo step.
+   *
+   * @private
+   * @param {number} endRow The last visual row the clear reaches.
+   * @param {number} startColumn The first visual column to clear.
+   * @param {number} endColumn The last visual column to clear.
+   * @param {string} source The change source both writes carry.
+   * @param {Function} clearVisibleRows Clears the visual rows.
+   */
+  clearCollapsedRows(
+    endRow: number, startColumn: number, endColumn: number, source: string, clearVisibleRows: () => void
+  ): void {
+    const cells: CollapsedRowCell[] = [];
+
+    if (this.#isOperational()) {
+      this.#eachCollapsedRowCell(endRow, startColumn, endColumn, (cell) => {
+        cells.push(cell);
+      });
+    }
+
+    if (cells.length === 0) {
+      clearVisibleRows();
+
+      return;
+    }
+
+    this.runOperation('change', () => {
+      clearVisibleRows();
+
+      const writes: [number, string | number, null][] = [];
+
+      cells.forEach(({ rowObject, prop }) => {
+        const physicalRow = this.dataManager!.getRowIndex(rowObject);
+
+        if (physicalRow !== null) {
+          writes.push([physicalRow, prop, null]);
+        }
+      });
+
+      if (writes.length > 0) {
+        this.hot.setSourceDataAtCell(writes, undefined, undefined, source);
+      }
+    }, undefined, source);
+  }
+
+  /**
+   * Tells whether a column range holds an editable cell in a row that a collapsed parent hides.
+   * The "Clear column" item reads it to stay enabled when every visible cell is read-only.
+   *
+   * @private
+   * @param {number} endRow The last visual row to look under.
+   * @param {number} startColumn The first visual column.
+   * @param {number} endColumn The last visual column.
+   * @returns {boolean}
+   */
+  hasEditableCollapsedRowCell(endRow: number, startColumn: number, endColumn: number): boolean {
+    let found = false;
+
+    if (this.#isOperational()) {
+      this.#eachCollapsedRowCell(endRow, startColumn, endColumn, () => {
+        found = true;
+
+        return false;
+      });
+    }
+
+    return found;
+  }
+
+  /**
+   * Calls back for every editable cell, in a column range, of the rows hidden under a collapsed
+   * parent that is visible at or above `endRow`. A parent collapsed inside a collapsed parent is not
+   * visible, and its rows are reached through the outer parent's subtree, so no row is visited twice.
+   *
+   * @param {number} endRow The last visual row to look under.
+   * @param {number} startColumn The first visual column.
+   * @param {number} endColumn The last visual column.
+   * @param {Function} callback Receives the cell. Returning `false` stops the walk.
+   */
+  #eachCollapsedRowCell(
+    endRow: number, startColumn: number, endColumn: number, callback: (cell: CollapsedRowCell) => void | boolean
+  ): void {
+    const descendants = new Set<number>();
+
+    this.collapsingUI!.getCollapsedParents().forEach((physicalParent) => {
+      const visualParent = this.hot.toVisualRow(physicalParent);
+
+      if (visualParent !== null && visualParent <= endRow) {
+        this.#collectDescendants(this.dataManager!.getDataObject(physicalParent), descendants);
+      }
+    });
+
+    for (const physicalRow of descendants) {
+      if (!this.#isTrimmedByAnotherMap(physicalRow) &&
+          this.#eachEditableCellInRow(physicalRow, startColumn, endColumn, callback) === false) {
+        return;
+      }
+    }
+  }
+
+  /**
+   * Calls back for every editable cell of one physical row in a column range. The cell meta is read
+   * by physical coordinates: the row is trimmed, so a visual read would resolve to another row.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} startColumn The first visual column.
+   * @param {number} endColumn The last visual column.
+   * @param {Function} callback Receives the cell. Returning `false` stops the walk.
+   * @returns {boolean} `false` when the callback stopped the walk.
+   */
+  #eachEditableCellInRow(
+    physicalRow: number, startColumn: number, endColumn: number,
+    callback: (cell: CollapsedRowCell) => void | boolean
+  ): boolean {
+    const metaManager = this.hot._getMetaManager();
+    const rowObject = this.dataManager!.getDataObject(physicalRow);
+
+    // A range anchored in the row header starts at column -1, which names no cell.
+    for (let visualColumn = Math.max(startColumn, 0); visualColumn <= endColumn; visualColumn++) {
+      const physicalColumn = this.hot.toPhysicalColumn(visualColumn) ?? visualColumn;
+      const { readOnly } = metaManager.getCellMetaTransient(
+        physicalRow, physicalColumn, { visualRow: physicalRow, visualColumn },
+      );
+
+      const prop = this.hot.colToProp(visualColumn);
+
+      if (!readOnly && prop !== null && callback({ rowObject, prop }) === false) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Tells whether a row is trimmed by a map other than this plugin's own, which is how TrimRows
+   * keeps a row out of the grid.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @returns {boolean}
+   */
+  #isTrimmedByAnotherMap(physicalRow: number): boolean {
+    return this.hot.rowIndexMapper.trimmingMapsCollection.get()
+      .some(map => map !== this.collapsedRowsMap && map.getValueAtIndex(physicalRow) === true);
+  }
+
+  /**
    * Walks the nested structure depth-first and calls back for every row that has children.
    *
    * @param {Array} nodes Row objects to walk.
@@ -957,6 +1194,140 @@ export class NestedRows extends BasePlugin {
     type DefaultOptions = { items: { key: string; [k: string]: unknown }[]; [key: string]: unknown };
 
     return this.contextMenuUI!.appendOptions(defaultOptions as DefaultOptions);
+  };
+
+  /**
+   * Returns the visual row of the row header that holds the focus, or `null` when the focus is
+   * anywhere else - on a cell, on a column header, or on a selection of several rows.
+   *
+   * A click on a row header selects the whole row: the highlight sits on the header, and the range
+   * runs to the last column. That still counts as a focused row header, so the keys answer the same
+   * way whether the header was reached by a click or by the keyboard.
+   *
+   * The Ctrl/Cmd+arrow chords claim the key whenever this answers a row, even while an overlay
+   * covers the grid body, so they never fall through to the grid's jump to the row's edge: that
+   * jump moved the selection onto a covered cell, fired the selection hooks, and was only then put
+   * back on the header.
+   *
+   * @returns {number|null}
+   */
+  #getFocusedRowHeaderRow(): number | null {
+    const activeRange = this.hot.getSelectedRangeActive();
+    const highlight = activeRange?.highlight;
+
+    if (!highlight || !this.hot.selection.isCellVisible(highlight) ||
+        highlight.col !== -1 || highlight.row === null || highlight.row < 0 ||
+        activeRange.from.row !== highlight.row || activeRange.to.row !== highlight.row) {
+      return null;
+    }
+
+    return highlight.row;
+  }
+
+  /**
+   * Returns the visual row of the focused row header that a tree key may act on: the one
+   * `#getFocusedRowHeaderRow()` answers, or `null` while an overlay covers the grid
+   * body, where a collapse would change rows the user cannot see.
+   *
+   * @returns {number|null}
+   */
+  #getFocusedRowHeader(): number | null {
+    return isGridBodyCovered(this.hot) ? null : this.#getFocusedRowHeaderRow();
+  }
+
+  /**
+   * Resolves what a <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow chord pressed on a focused row header does,
+   * or `null` when it does nothing. The chord is claimed either way, so it never reaches the grid's
+   * jump to the row's edge from a row header.
+   *
+   * The inline-end chord (`ArrowRight`, or `ArrowLeft` in RTL) expands a collapsed parent. The
+   * inline-start chord collapses an expanded parent, and otherwise moves the focus to the parent
+   * row's header. An expanded parent's or a leaf's inline-end chord and a top-level row's
+   * inline-start chord do nothing. So does the walk to a parent that is not rendered (trimmed by
+   * another plugin, or hidden), because a focus moved there would leave the keyboard user with no
+   * visible position.
+   *
+   * @param {'ArrowLeft'|'ArrowRight'} key The arrow of the pressed chord.
+   * @returns {Function|null}
+   */
+  #getTreeArrowCommand(key: 'ArrowLeft' | 'ArrowRight'): (() => void) | null {
+    const visualRow = this.#getFocusedRowHeader();
+
+    if (visualRow === null) {
+      return null;
+    }
+
+    const physicalRow = this.collapsingUI!.translateTrimmedRow(visualRow);
+    const isParent = this.dataManager!.isParent(physicalRow);
+    const isCollapsed = isParent && this.collapsingUI!.areChildrenCollapsed(physicalRow);
+    const isInlineEnd = (key === 'ArrowRight') !== this.hot.isRtl();
+
+    if (isInlineEnd) {
+      return isCollapsed ? () => this.toggleParentByUser(physicalRow, 'expand') : null;
+    }
+
+    if (isParent && !isCollapsed) {
+      return () => this.toggleParentByUser(physicalRow, 'collapse');
+    }
+
+    const parent = this.dataManager!.getRowParent(physicalRow);
+    const parentPhysicalRow = parent ? this.dataManager!.getRowIndex(parent) : null;
+    const parentVisualRow = parentPhysicalRow === null ? null : this.hot.toVisualRow(parentPhysicalRow);
+
+    if (parentVisualRow === null || this.hot.rowIndexMapper.isHidden(parentPhysicalRow!)) {
+      return null;
+    }
+
+    return () => this.hot.selectCell(parentVisualRow, -1);
+  }
+
+  /**
+   * Runs the treegrid command of a <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow chord, and claims the chord so
+   * the grid does not also move the selection.
+   *
+   * @param {'ArrowLeft'|'ArrowRight'} key The arrow of the pressed chord.
+   * @returns {boolean} Always `false`, which stops the other shortcuts bound to the key.
+   */
+  #runTreeArrowCommand(key: 'ArrowLeft' | 'ArrowRight'): boolean {
+    this.#getTreeArrowCommand(key)?.();
+
+    return false;
+  }
+
+  /**
+   * Returns the text that names a row in an announcement: the text its row header shows, or its
+   * 1-based row number when the header shows nothing. No column is guessed to hold a name - the first
+   * one may as well be an ID, a price, or a checkbox. The text is read from the rendered header
+   * rather than from `rowHeaders`, because a header configured as HTML would otherwise be announced
+   * with its markup. Every announcing gesture starts on the row's header, so it is rendered.
+   *
+   * @param {number} physicalRow Physical row index.
+   * @returns {string}
+   */
+  #getRowLabel(physicalRow: number): string {
+    const visualRow = this.hot.toVisualRow(physicalRow);
+
+    if (visualRow === null) {
+      return '';
+    }
+
+    const rowHeader = this.hot.getCell(visualRow, -1, true)?.querySelector('.rowHeader')?.textContent ?? '';
+
+    return rowHeader.trim() === '' ? `${visualRow + 1}` : rowHeader.trim();
+  }
+
+  /**
+   * `afterUpdateSettings` hook callback. The treegrid row attributes are written from
+   * `afterGetRowHeader`, which stops firing once `rowHeaders` is switched off, so the rows rendered
+   * until then are cleared here. Only a call that names `rowHeaders` can switch them off, so any
+   * other call skips the walk.
+   *
+   * @param {object} newSettings The settings object passed to `updateSettings()`.
+   */
+  #onAfterUpdateSettings = (newSettings: Partial<GridSettings>) => {
+    if ('rowHeaders' in newSettings && !this.hot.hasRowHeaders()) {
+      this.headersUI!.removeRenderedRowAttributes();
+    }
   };
 
   /**

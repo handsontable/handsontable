@@ -14,6 +14,7 @@ export function createSpreaderSizeDeps(ctx: EngineContext) {
     getWtViewport: ctx.getWtViewport,
     getTopOverlay: ctx.getTopOverlay,
     getInlineStartOverlay: ctx.getInlineStartOverlay,
+    getInlineEndOverlay: ctx.getInlineEndOverlay,
     getBottomOverlay: ctx.getBottomOverlay,
   };
 }
@@ -115,6 +116,7 @@ export class SpreaderSize {
 
     this.#deps.getTopOverlay().adjustElementsSize();
     this.#deps.getInlineStartOverlay().adjustElementsSize();
+    this.#deps.getInlineEndOverlay().adjustElementsSize();
     this.#deps.getBottomOverlay().adjustElementsSize();
 
     return size;

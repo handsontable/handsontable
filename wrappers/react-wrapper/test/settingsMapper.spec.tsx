@@ -89,8 +89,8 @@ describe('Settings mapper unit tests', () => {
         isInit: false,
       });
 
-      expect(result.dataSchema).toBe(void 0);
-      expect(result.columns).toBe(void 0);
+      expect(result.dataSchema).toBe(undefined);
+      expect(result.columns).toBe(undefined);
       expect(result.readOnly).toBe(false);
     });
 
@@ -288,10 +288,10 @@ describe('Settings mapper unit tests', () => {
         initOnlySettingKeys: ['renderAllRows', 'renderAllColumns', 'layoutDirection', 'ariaTags'] as any,
       });
 
-      expect(result.renderAllRows).toBe(void 0);
-      expect(result.renderAllColumns).toBe(void 0);
-      expect(result.layoutDirection).toBe(void 0);
-      expect(result.ariaTags).toBe(void 0);
+      expect(result.renderAllRows).toBe(undefined);
+      expect(result.renderAllColumns).toBe(undefined);
+      expect(result.layoutDirection).toBe(undefined);
+      expect(result.ariaTags).toBe(undefined);
       expect(result.width).toBe(500);
     });
 

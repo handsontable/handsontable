@@ -1,6 +1,6 @@
 import type { HotInstance } from '../../types';
 import type { default as CellCoords } from '../../../3rdparty/walkontable/src/cell/coords';
-import { scrollWindowToCell } from '../utils';
+import { scrollViewportThenWindow } from '../utils';
 
 /**
  * Axes `scrollViewportTo` should receive for a mouse single-cell selection.
@@ -143,7 +143,8 @@ export function getRenderedRowHeight(hot: HotInstance, visualRow: number): numbe
 /**
  * Returns `true` when a mouse click on this column should force a start snap.
  *
- * Frozen start columns (`col < fixedColumnsStart`) never count as oversized.
+ * Frozen start columns (`col < fixedColumnsStart`) and frozen end columns (the last
+ * `fixedColumnsEnd` columns, after the start band takes its share) never count as oversized.
  * Forced `horizontalSnap: 'start'` bypasses Walkontable's auto-snap guard
  * (`autoSnapping && column < fixedColumnsStart` returns false) and jumps the
  * main viewport to scroll 0. A frozen cell cannot have a clipped start, so
@@ -159,9 +160,12 @@ export function getRenderedRowHeight(hot: HotInstance, visualRow: number): numbe
  * @returns {boolean}
  */
 export function isColumnOversized(hot: HotInstance, col: number): boolean {
-  const fixedColumnsStart = hot.getSettings().fixedColumnsStart ?? 0;
+  const settings = hot.getSettings();
+  const fixedColumnsStart = settings.fixedColumnsStart ?? 0;
+  const totalColumns = hot.countCols();
+  const fixedColumnsEnd = hot.view.countFixedColumnsEnd();
 
-  if (col < fixedColumnsStart) {
+  if (col < fixedColumnsStart || col >= totalColumns - fixedColumnsEnd) {
     return false;
   }
 
@@ -215,19 +219,17 @@ export function singleScrollStrategy(hot: HotInstance) {
       return;
     }
 
-    const scrollWindow = () => {
-      scrollWindowToCell(hot.getCell(row, col, true));
-    };
+    const getSelectedCell = () => hot.getCell(row, col, true);
 
     // navigating through the column headers (when `navigableHeaders` is enabled)
     // scrolls the viewport horizontally only
     if (row < 0 && col >= 0) {
-      hot.scrollViewportTo({ col }, scrollWindow);
+      scrollViewportThenWindow(hot, { col }, getSelectedCell);
 
     // navigating through the row headers (when `navigableHeaders` is enabled)
     // scrolls the viewport vertically only
     } else if (col < 0 && row >= 0) {
-      hot.scrollViewportTo({ row }, scrollWindow);
+      scrollViewportThenWindow(hot, { row }, getSelectedCell);
 
     // navigating through the cells
     } else {
@@ -253,7 +255,7 @@ export function singleScrollStrategy(hot: HotInstance) {
       // `scrollIntoView` on a last-partial cell would move the skipped axis.
       const skippedAnAxis = target.row === undefined || target.col === undefined;
 
-      hot.scrollViewportTo(target, skippedAnAxis ? undefined : scrollWindow);
+      scrollViewportThenWindow(hot, target, skippedAnAxis ? undefined : getSelectedCell);
     }
   };
 }

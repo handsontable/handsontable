@@ -159,6 +159,8 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] de [total] linhas selecionadas',
   [C.ROW_SELECTION_MENU_REMOVE]: 'Remover linhas selecionadas ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: 'Limpar seleção de linhas',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Linha [label] expandida, linhas expandidas exibidas: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Linha [label] recolhida',
 };
 
 export default dictionary;

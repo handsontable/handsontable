@@ -24,9 +24,9 @@ const ExampleComponent = () => {
 
   //  create an external HyperFormula instance
   const hyperformulaInstance = HyperFormula.buildEmpty({
-    // to use an external HyperFormula instance,
-    // initialize it with the `'internal-use-in-handsontable'` license key
-    licenseKey: 'internal-use-in-handsontable',
+    // this demo uses the GPLv3 key,
+    // use your own HyperFormula license key in your app
+    licenseKey: 'gpl-v3',
   });
 
   return (

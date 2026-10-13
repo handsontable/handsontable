@@ -1,0 +1,33 @@
+:root {
+  /* Follows the OS by default; theme.ts forces one side via the inline
+     `color-scheme` on <html> when the embedding page or ?theme= says so. */
+  color-scheme: light dark;
+  --bg: light-dark(#ffffff, #15171c);
+  --fg: light-dark(#1a1a1a, #e8e8ea);
+  --muted: light-dark(#666666, #9aa0ab);
+  --border: light-dark(#e3e3e3, #353a44);
+  --panel: light-dark(#f7f7f7, #1e2127);
+  --code-bg: light-dark(#f4f4f4, #272b33);
+  --pill-bg: light-dark(#eeeeff, #2b3150);
+  --pill-fg: light-dark(#333355, #c9cff5);
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  color: var(--fg);
+  background: var(--bg);
+}
+body { margin: 0; }
+.demo { max-width: 960px; margin: 0 auto; padding: 24px 16px 48px; }
+/* Reserve the surface's height so the page does not jump while the agent's
+   messages arrive and the grid mounts. */
+.surface-host { padding: 16px; border: 1px solid var(--border); border-radius: 8px; min-height: 460px; box-sizing: border-box; }
+.surface-host [class*="ht-theme-"] { margin: 8px 0; }
+.muted { color: var(--muted); }
+code { font-size: 0.9em; background: var(--code-bg); padding: 1px 4px; border-radius: 3px; }
+.panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+@media (max-width: 720px) { .panels { grid-template-columns: 1fr; } }
+.panel { border: 1px solid var(--border); border-radius: 8px; padding: 12px; min-width: 0; height: 420px; overflow: auto; box-sizing: border-box; }
+.panel h3 { font-size: 0.95rem; margin: 0 0 8px; display: flex; align-items: center; gap: 8px; }
+.panel p { margin: 6px 0; }
+.pill { font-weight: normal; font-size: 0.75rem; background: var(--pill-bg); color: var(--pill-fg); padding: 2px 8px; border-radius: 999px; }
+.stream { padding-left: 18px; margin: 0; }
+.stream summary { cursor: pointer; font-family: ui-monospace, monospace; font-size: 0.85rem; }
+pre { background: var(--panel); padding: 8px; border-radius: 6px; font-size: 0.75rem; overflow: auto; margin: 6px 0; }

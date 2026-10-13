@@ -35,6 +35,11 @@ export interface ProductEntitlement {
  * known ones.
  */
 export interface EntitlementKeyData {
+  /**
+   * The format version of the key; 1 for the keys issued before versions
+   * existed.
+   */
+  version: number;
   products: { [productName: string]: ProductEntitlement };
 }
 

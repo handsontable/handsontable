@@ -2,6 +2,7 @@ import { isObject } from '../../../helpers/object';
 import { warn } from '../../../helpers/console';
 import { throwWithCause } from '../../../helpers/errors';
 import type { ThemeColorScheme, DensityType } from '../../types';
+import { ICON_NAMES } from './icons';
 
 /**
  * Valid parameters keys.
@@ -33,32 +34,12 @@ const VALID_COLOR_SCHEMES = new Set(['light', 'dark', 'auto']);
 const VALID_DENSITY_TYPES = new Set(['default', 'compact', 'comfortable']);
 
 /**
- * Valid icon key values.
+ * Valid icon key values. Derived from `ICON_NAMES`, never listed by hand - the two drifted once
+ * (`plus`, `menuList`), and a test can only catch the next drift, not prevent it.
  *
  * @type {Set<string>}
  */
-export const VALID_ICON_KEYS = new Set([
-  'arrowRight',
-  'arrowRightWithBar',
-  'arrowLeft',
-  'arrowLeftWithBar',
-  'arrowDown',
-  'menu',
-  'selectArrow',
-  'arrowNarrowUp',
-  'arrowNarrowDown',
-  'check',
-  'checkbox',
-  'caretHiddenLeft',
-  'caretHiddenRight',
-  'caretHiddenUp',
-  'caretHiddenDown',
-  'collapseOff',
-  'collapseOn',
-  'radio',
-  'chipClose',
-  'search',
-]);
+export const VALID_ICON_KEYS = new Set<string>(ICON_NAMES);
 
 /**
  * Valid token key values.

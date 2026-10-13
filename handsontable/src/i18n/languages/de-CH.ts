@@ -159,6 +159,8 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] von [total] Zeilen ausgewählt',
   [C.ROW_SELECTION_MENU_REMOVE]: 'Ausgewählte Zeilen entfernen ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: 'Zeilenauswahl aufheben',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Zeile [label] aufgeklappt, angezeigte aufgeklappte Zeilen: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Zeile [label] zugeklappt',
 };
 
 export default dictionary;

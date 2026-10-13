@@ -165,6 +165,8 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] van [total] rijen geselecteerd',
   [C.ROW_SELECTION_MENU_REMOVE]: 'Geselecteerde rijen verwijderen ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: 'Rijselectie wissen',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rij [label] uitgevouwen, getoonde uitgevouwen rijen: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Rij [label] samengevouwen',
 };
 
 export default dictionary;

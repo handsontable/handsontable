@@ -645,3 +645,21 @@ needs more than `formulas.spec.js`, and `memoryLeak.spec.js` is the one people f
 ## `HYPERLINK` cells and `renderMode: 'onChange'`
 
 A `HYPERLINK` whose URL argument lives in another cell keeps its label when that cell changes, so the engine exports no value change for it and an incremental render would keep the stale `href`. `#onAfterRenderer` records every cell it wrapped in `#hyperlinkCells` (physical coordinates) and `#onEngineValuesUpdated` calls `hot.markCellChanged()` for each of them, so any engine update rebuilds the anchors on the next render. A cell that BECOMES a `HYPERLINK` while keeping the label it already showed is not in the set yet and changes nothing the paint compares, so `#onEngineValuesUpdated` also walks the engine's change list and marks every updated cell whose `#getHyperlinkHref` is non-null (`#markCellsThatBecameHyperlinks`). `markCellChanged()` touches stored meta only, so a recorded cell that scrolled out and was evicted costs nothing. The set is cleared in `disablePlugin`, at the top of `#onAfterLoadData`, and in the four create/remove row/column handlers: physical keys drift after a removal, and every one of those paths repaints all rendered cells, which re-registers them. Plain dependents need nothing: the render compares the formatted value, which HyperFormula already changed.
+
+## Unfreezing: the target comes from the hook
+
+`beforeColumnUnfreeze` stores the move from its third argument, `finalIndex`, which ManualColumnFreeze resolves
+before the move. Do not derive it from `fixedColumnsStart`: with `restoreColumnPosition` the column does not land
+at the freeze line, and an engine told otherwise reads and writes the wrong columns from then on, with no error
+(`__tests__/manualColumnFreezeRestore.unit.js`; assert right after the unfreeze, because an undo resyncs the whole
+order and hides it).
+
+## Frozen end columns need nothing here
+
+The freeze hooks (`beforeColumnFreeze` and friends) belong to `ManualColumnFreeze`, which only moves the start
+freeze line. `ManualColumnFreeze` does not freeze or move columns that are in the end band, and
+`ManualColumnMove` refuses a move across the end line, so the engine never sees a column leave or enter the
+band. `fixedColumnsEnd` and the spare or minimum columns: `core.ts` (`adjustRowsAndCols`) creates no
+`minSpareCols` or `minCols` column while `fixedColumnsEnd` is set, because a column appended after the last one
+would take over the frozen position. So no spare column ever lands inside the band and the plugin has nothing
+to work around. (`fixedRowsBottom` with `minSpareRows` still has the cosmetic quirk, which is not worked around.)

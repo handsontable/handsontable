@@ -47,6 +47,7 @@ export function createViewportDeps(ctx: EngineContext) {
     wtTable: ctx.getWtTable(),
     getTopOverlay: ctx.getTopOverlay,
     getInlineStartOverlay: ctx.getInlineStartOverlay,
+    getInlineEndOverlay: ctx.getInlineEndOverlay,
     getBottomOverlay: ctx.getBottomOverlay,
   };
 }

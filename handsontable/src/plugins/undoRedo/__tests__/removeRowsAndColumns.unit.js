@@ -66,6 +66,39 @@ describe('UndoRedo – removing rows and columns', () => {
     expect(undoRedo.isUndoAvailable()).toBe(false);
   });
 
+  // `alter('remove_col')` lowers `fixedColumnsEnd` for the removed end columns. The undo has to give the
+  // count back, or the restored columns come back as scrolling ones.
+  it('should restore `fixedColumnsEnd` when it undoes the removal of end columns, and drop it again on redo', () => {
+    const hot = grid.create({ data: spreadsheet(3, 6), fixedColumnsEnd: 3 });
+    const undoRedo = hot.getPlugin('undoRedo');
+
+    hot.alter('remove_col', 4, 2);
+
+    expect(hot.countCols()).toBe(4);
+    expect(hot.getSettings().fixedColumnsEnd).toBe(1);
+
+    undoRedo.undo();
+
+    expect(hot.countCols()).toBe(6);
+    expect(hot.getSettings().fixedColumnsEnd).toBe(3);
+
+    undoRedo.redo();
+
+    expect(hot.countCols()).toBe(4);
+    expect(hot.getSettings().fixedColumnsEnd).toBe(1);
+  });
+
+  it('should keep a `fixedColumnsEnd` count set outside any step when it undoes a removal of columns before the band', () => {
+    const hot = grid.create({ data: spreadsheet(3, 6), fixedColumnsEnd: 2 });
+
+    hot.alter('remove_col', 0, 1);
+    hot.updateSettings({ fixedColumnsEnd: 3 });
+    hot.getPlugin('undoRedo').undo();
+
+    expect(hot.countCols()).toBe(6);
+    expect(hot.getSettings().fixedColumnsEnd).toBe(3);
+  });
+
   // The edit is recorded after the removal, so it addresses the rows as the removal left them: row 1
   // is `A3`. Replayed in the wrong order, the undo writes `A3` back onto the restored `A2` row.
   it('should record a `runOperation()` that removes a row and edits a cell as one step', () => {

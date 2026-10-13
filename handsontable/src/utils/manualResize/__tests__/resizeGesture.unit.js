@@ -368,6 +368,82 @@ describe('ResizeGesture', () => {
       expect(horizontal.owner.setManualSize).toHaveBeenLastCalledWith(3, 30);
     });
 
+    describe('a header anchored to the inline end (the frozen end columns)', () => {
+      // The header is 80px wide and starts 50px from the inline start. Its inline-end edge cannot move.
+      function createAnchored({ rtl }) {
+        const grid = createGesture({
+          orientation: 'horizontal',
+          rtl,
+          axis: { isAnchoredAtInlineEnd: () => true },
+        });
+
+        Object.defineProperty(grid.th, 'offsetWidth', { value: 80 });
+
+        return grid;
+      }
+
+      it('should put the handle on the inline-start edge of the header', () => {
+        const { th, handle } = createAnchored({ rtl: false });
+
+        mouse('mouseover', th);
+
+        // The header starts at 50, the handle is centered on that edge (6px before it).
+        expect(handle().style.left).toBe('44px');
+      });
+
+      it('should widen the column when the pointer moves towards the inline start, and move the handle with it', () => {
+        const { th, handle, owner } = createAnchored({ rtl: false });
+
+        mouse('mouseover', th);
+        mouse('mousedown', handle(), { pageX: 100 });
+        mouse('mousemove', window, { pageX: 70 });
+
+        expect(owner.clampSize).toHaveBeenLastCalledWith(110);
+        expect(handle().style.left).toBe('14px');
+
+        mouse('mouseup', window);
+
+        expect(owner.setManualSize).toHaveBeenLastCalledWith(3, 110);
+      });
+
+      it('should narrow the column when the pointer moves towards the inline end', () => {
+        const { th, handle, owner } = createAnchored({ rtl: false });
+
+        mouse('mouseover', th);
+        mouse('mousedown', handle(), { pageX: 100 });
+        mouse('mousemove', window, { pageX: 130 });
+        mouse('mouseup', window);
+
+        expect(owner.setManualSize).toHaveBeenLastCalledWith(3, 50);
+      });
+
+      it('should widen the column when the pointer moves towards the inline start under RTL (to the right)', () => {
+        const { th, handle, owner } = createAnchored({ rtl: true });
+
+        mouse('mouseover', th);
+
+        expect(handle().style.right).toBe('44px');
+
+        mouse('mousedown', handle(), { pageX: 100 });
+        mouse('mousemove', window, { pageX: 130 });
+
+        expect(handle().style.right).toBe('14px');
+
+        mouse('mouseup', window);
+
+        expect(owner.setManualSize).toHaveBeenLastCalledWith(3, 110);
+      });
+
+      it('should leave a header that is not anchored on its inline-end edge', () => {
+        const { th, handle } = createGesture({ orientation: 'horizontal' });
+
+        Object.defineProperty(th, 'offsetWidth', { value: 80 });
+        mouse('mouseover', th);
+
+        expect(handle().style.left).toBe('124px');
+      });
+    });
+
     it('should not flip the pointer delta under RTL for a vertical axis', () => {
       const vertical = createGesture({ orientation: 'vertical', rtl: true });
 
@@ -377,6 +453,106 @@ describe('ResizeGesture', () => {
       mouse('mouseup', window);
 
       expect(vertical.owner.setManualSize).toHaveBeenLastCalledWith(2, 30);
+    });
+  });
+
+  describe('a header that renders wider than the size the owner stores for it', () => {
+    // The header renders 80px wide, 15px of which the owner adds on every render, so it stores 65.
+    function createPadded(options) {
+      const grid = createGesture({ orientation: 'horizontal', ...options });
+
+      grid.owner.getRenderedOverhead = jest.fn(() => 15);
+      Object.defineProperty(grid.th, 'offsetWidth', { value: 80 });
+
+      return grid;
+    }
+
+    it('should ask the owner for the overhead of the header being resized', () => {
+      const { th, owner } = createPadded();
+
+      mouse('mouseover', th);
+
+      expect(owner.getRenderedOverhead).toHaveBeenCalledWith(3);
+    });
+
+    it('should store the pointer travel on top of the size without the overhead', () => {
+      const { th, handle, owner, hot } = createPadded();
+
+      mouse('mouseover', th);
+      mouse('mousedown', handle(), { pageX: 100 });
+      mouse('mousemove', window, { pageX: 130 });
+
+      expect(owner.clampSize).toHaveBeenLastCalledWith(95);
+
+      mouse('mouseup', window);
+
+      expect(owner.setManualSize).toHaveBeenLastCalledWith(3, 95);
+      expect(hot.runHooks).toHaveBeenCalledWith('afterTestResize', 95, 3, false);
+    });
+
+    it('should keep the handle on the rendered edge of the header', () => {
+      const { th, handle, guide, gesture } = createPadded();
+
+      mouse('mouseover', th);
+
+      // The header starts at 50 and renders 80px wide: its end is 130, the handle is 6px before it.
+      expect(handle().style.left).toBe('124px');
+
+      mouse('mousedown', handle(), { pageX: 100 });
+      mouse('mousemove', window, { pageX: 130 });
+
+      expect(handle().style.left).toBe('154px');
+      // The guide follows the handle, and the size the pointer describes is the rendered one.
+      expect(guide().style.left).toBe('154px');
+      expect(gesture.getCurrentSize()).toBe(110);
+    });
+
+    it('should store nothing when the pointer does not move', () => {
+      const { th, handle, owner } = createPadded();
+
+      mouse('mouseover', th);
+      mouse('mousedown', handle(), { pageX: 100 });
+      mouse('mouseup', window);
+
+      expect(owner.setManualSize).not.toHaveBeenCalled();
+    });
+
+    it('should store the pointer travel on top of the size without the overhead for a header anchored to the inline end', () => {
+      const { th, handle, owner } = createPadded({ axis: { isAnchoredAtInlineEnd: () => true } });
+
+      mouse('mouseover', th);
+      mouse('mousedown', handle(), { pageX: 100 });
+      mouse('mousemove', window, { pageX: 70 });
+
+      // The handle stays on the inline-start edge, which moves with the pointer.
+      expect(handle().style.left).toBe('14px');
+
+      mouse('mouseup', window);
+
+      expect(owner.setManualSize).toHaveBeenLastCalledWith(3, 95);
+    });
+
+    it('should store the pointer travel on top of the size without the overhead under RTL', () => {
+      const { th, handle, owner } = createPadded({ rtl: true });
+
+      mouse('mouseover', th);
+      mouse('mousedown', handle(), { pageX: 100 });
+      mouse('mousemove', window, { pageX: 70 });
+      mouse('mouseup', window);
+
+      expect(owner.setManualSize).toHaveBeenLastCalledWith(3, 95);
+    });
+
+    it('should restore the size without the overhead when a before-resize hook cancels the drag', () => {
+      const { th, handle, owner, hot } = createPadded();
+
+      hot.runHooks.mockImplementation(hookName => (hookName === 'beforeTestResize' ? false : undefined));
+      mouse('mouseover', th);
+      mouse('mousedown', handle(), { pageX: 100 });
+      mouse('mousemove', window, { pageX: 130 });
+      mouse('mouseup', window);
+
+      expect(owner.setManualSize).toHaveBeenLastCalledWith(3, 65);
     });
   });
 

@@ -27,6 +27,7 @@ import {
 import EventManager from './eventManager';
 import { CellPainter } from './core/incrementalRender/cellPainter';
 import { RenderSizeProbe } from './renderSizeProbe';
+import { getRenderedRowHeight } from './core/viewportScroll/scrollStrategies/singleScroll';
 import {
   isImmediatePropagationStopped,
   isRightClick,
@@ -35,6 +36,7 @@ import {
 } from './helpers/dom/event';
 import { getMouseEventTouchOrigin, TOUCH_SYNTHESIZED_MOUSE_WINDOW } from './helpers/dom/inputOrigin';
 import Walkontable from './3rdparty/walkontable/src';
+import { clampFixedColumnsEnd } from './3rdparty/walkontable/src/settings/fixedColumnsEnd';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
 import { getSanitizer } from './utils/sanitizer';
@@ -49,6 +51,16 @@ import {
 import { parsePixelSize } from './utils/pixelSize';
 import { describeValue } from './utils/describeValue';
 import { warnOnce } from './helpers/console';
+
+/**
+ * The most redraws `TableView#onCellContentSettled` requests for one row inside one window.
+ */
+const CONTENT_SETTLED_MAX_REDRAWS = 5;
+
+/**
+ * The window, in milliseconds, that `CONTENT_SETTLED_MAX_REDRAWS` is counted over.
+ */
+const CONTENT_SETTLED_WINDOW_MS = 5000;
 
 /**
  * Checks whether a size setting (`rowHeights`, `minRowHeights`, or `colWidths`) guarantees a uniform
@@ -242,6 +254,16 @@ class TableView {
    * @type {boolean}
    */
   #sizesMeasuredWithoutStylesPending = false;
+
+  /**
+   * Counts how many times the column widths were invalidated. Every producer of column widths (the
+   * `manualColumnResize`, `autoColumnSize` and `stretchColumns` plugins, an index mapper change) drops the
+   * widths cache when a width changes, so a plugin that keeps something derived from the widths can compare
+   * this number between renders to know when to refresh it.
+   *
+   * @type {number}
+   */
+  #columnWidthEpoch = 0;
   /**
    * Defines if the text should be selected during mousemove.
    *
@@ -285,6 +307,15 @@ class TableView {
    * @type {number}
    */
   #lastHeight = 0;
+  /**
+   * The animation frame of the redraw requested by `#onCellContentSettled`, or `null` when none is queued.
+   */
+  #contentSettledFrame: number | null = null;
+  /**
+   * The redraws `#onCellContentSettled` requested per physical row inside the current time window.
+   */
+  #contentSettledRedraws = new Map<number, { since: number, count: number }>();
+
   /**
    * The layout-slot height reserved inside the vertical axis owner, memoized for one render (see
    * `#getReservedSlotHeight`).
@@ -744,6 +775,129 @@ class TableView {
       // Prevent text from being selected when performing drag down.
       event.preventDefault();
     });
+
+    // `load` and `error` do not bubble, so they are caught on the capture phase.
+    this.eventManager.addEventListener(rootElement, 'load', this.#onCellContentSettled, true);
+    this.eventManager.addEventListener(rootElement, 'error', this.#onCellContentSettled, true);
+  }
+
+  /**
+   * Redraws when asynchronously loading cell content (such as an `<img>` written by a renderer) changes
+   * the height of its row after the draw measured it. Without the redraw, the frozen overlays keep the row
+   * height from the draw while the master has already grown, and they stay misaligned until the next
+   * render. A row whose live height matches the height of the last draw is left alone, which stops a
+   * renderer that recreates its content on every render from redrawing in a loop. That check cannot see a
+   * height that never settles (an image that fails to load again on every render, say), so a row is also
+   * redrawn at most `CONTENT_SETTLED_MAX_REDRAWS` times per `CONTENT_SETTLED_WINDOW_MS`. Loads that settle
+   * within one frame share a single redraw.
+   *
+   * @param {Event} event The `load` or `error` event of a descendant element.
+   */
+  #onCellContentSettled = (event: Event): void => {
+    const { target } = event;
+
+    if (!isHTMLElement(target) || this.#contentSettledFrame !== null) {
+      return;
+    }
+
+    const found = this.#findGridCell(target);
+
+    if (found === null) {
+      return;
+    }
+
+    const { cell, row: visualRow } = found;
+    const rowElement = cell.parentElement;
+
+    // A row with no provided or recorded height was drawn at the default height.
+    const drawnHeight = getRenderedRowHeight(this.hot, visualRow) ??
+      this.hot.stylesHandler.getDefaultRowHeight(visualRow);
+
+    // `offsetHeight` is a layout height, so a CSS transform or zoom on an ancestor does not skew it
+    // against the layout heights Walkontable recorded.
+    if (
+      !rowElement ||
+      drawnHeight === undefined ||
+      drawnHeight === null ||
+      Math.abs(rowElement.offsetHeight - drawnHeight) < 1 ||
+      !this.#takeContentSettledRedraw(visualRow)
+    ) {
+      return;
+    }
+
+    this.#contentSettledFrame = this.hot.rootWindow.requestAnimationFrame(() => {
+      this.#contentSettledFrame = null;
+      this.hot.render();
+    });
+  };
+
+  /**
+   * Resolves the cell of this grid that holds a loaded element, in the master or in any overlay. Walks up
+   * the cells that contain the element, because a renderer may nest a table in a cell and the innermost
+   * cell then belongs to no grid.
+   *
+   * @param {HTMLElement} element The element that fired `load` or `error`.
+   * @returns {{ cell: HTMLTableCellElement, row: number } | null} The cell and its visual row, or `null`.
+   */
+  #findGridCell(element: HTMLElement): { cell: HTMLTableCellElement, row: number } | null {
+    let candidate = element.closest('td');
+
+    while (candidate) {
+      const coords = this.hot.getCoords(candidate);
+      const row = coords?.row ?? -1;
+      const column = coords?.col ?? -1;
+
+      if (row >= 0 && column >= 0 && this.hot.getCell(row, column, true) === candidate) {
+        return { cell: candidate, row };
+      }
+
+      candidate = candidate.parentElement?.closest('td') ?? null;
+    }
+
+    return null;
+  }
+
+  /**
+   * Spends one redraw of the per-row budget that bounds `#onCellContentSettled`. The budget belongs to the
+   * physical row, so a sort or a row move does not charge it to another record.
+   *
+   * @param {number} visualRow The visual row that asks for a redraw.
+   * @returns {boolean} `false` when the row used up its budget for the current window.
+   */
+  #takeContentSettledRedraw(visualRow: number): boolean {
+    const now = this.hot.rootWindow.performance.now();
+    const row = this.hot.toPhysicalRow(visualRow) ?? visualRow;
+    const entry = this.#contentSettledRedraws.get(row);
+
+    if (entry === undefined || now - entry.since > CONTENT_SETTLED_WINDOW_MS) {
+      // A new window starts: this is the moment to drop the windows that have expired, so the map only
+      // holds the rows that redrew recently.
+      this.#contentSettledRedraws.forEach((other, key) => {
+        if (now - other.since > CONTENT_SETTLED_WINDOW_MS) {
+          this.#contentSettledRedraws.delete(key);
+        }
+      });
+      this.#contentSettledRedraws.set(row, { since: now, count: 1 });
+
+      return true;
+    }
+
+    if (entry.count >= CONTENT_SETTLED_MAX_REDRAWS) {
+      return false;
+    }
+
+    entry.count += 1;
+
+    return true;
+  }
+
+  /**
+   * Returns the number of times the column widths were invalidated (see `#columnWidthEpoch`).
+   *
+   * @returns {number}
+   */
+  getColumnWidthEpoch() {
+    return this.#columnWidthEpoch;
   }
 
   /**
@@ -752,6 +906,7 @@ class TableView {
   invalidateIndexSizesCache() {
     this._wt.wtViewport.invalidateRowHeightCache();
     this._wt.wtViewport.invalidateColumnWidthCache();
+    this.#columnWidthEpoch += 1;
   }
 
   /**
@@ -759,6 +914,7 @@ class TableView {
    */
   invalidateColumnWidthCache() {
     this._wt.wtViewport.invalidateColumnWidthCache();
+    this.#columnWidthEpoch += 1;
   }
 
   /**
@@ -917,6 +1073,60 @@ class TableView {
   }
 
   /**
+   * The function returns the number of not hidden column indexes that fit between the first and
+   * last fixed column in the right (or left in RTL mode) overlay.
+   *
+   * The count is the requested one. Walkontable cuts it down against `fixedColumnsStart`
+   * (`Settings#getSetting('fixedColumnsEnd')`), so the two bands never overlap.
+   *
+   * @returns {number}
+   */
+  countNotHiddenFixedColumnsEnd() {
+    // Walkontable reads this setting many times per draw and per mouse move. Most grids freeze no end
+    // columns, so answer before `countCols()` and the not-hidden lookup run.
+    if (!this.settings.fixedColumnsEnd) {
+      return 0;
+    }
+
+    // Floor the requested count the way `countFixedColumnsEnd()` does (through `clampFixedColumnsEnd`).
+    // A fractional count would give a fractional visual index below and no band would be drawn, while
+    // the rest of the grid (End, Ctrl+End, editors) would still treat the floored count as frozen.
+    const requestedColumnsEnd = Math.floor(Number(this.settings.fixedColumnsEnd));
+
+    if (!(requestedColumnsEnd > 0)) {
+      return 0;
+    }
+
+    const countCols = this.hot.countCols();
+    const visualFixedColumnsEnd = Math.max(countCols - requestedColumnsEnd, 0);
+
+    return this.countNotHiddenColumnIndexes(visualFixedColumnsEnd, 1);
+  }
+
+  /**
+   * Returns how many of the LAST visual columns form the inline-end band, hidden columns included.
+   *
+   * It is the single source of the band size for everything outside Walkontable (editors, scrolling,
+   * shortcuts, plugins). The total is `hot.countCols()`: the same one `countNotHiddenFixedColumnsEnd()` and so
+   * the renderer count the band from, which is the not trimmed columns capped by `maxCols`. Reading any other
+   * total (for example the uncapped source column count) puts the band on columns the grid never draws.
+   * The band is cut down by `fixedColumnsStart`, which has priority.
+   *
+   * The difference from `countNotHiddenFixedColumnsEnd()`: this count is visual and keeps hidden columns
+   * in the band, so `hot.countCols() - this` is the first band column. The not-hidden variant is the number of
+   * columns Walkontable draws in the end overlay.
+   *
+   * @returns {number} A non-negative integer; `0` when the option is not set.
+   */
+  countFixedColumnsEnd() {
+    if (!this.settings.fixedColumnsEnd) {
+      return 0;
+    }
+
+    return clampFixedColumnsEnd(this.settings.fixedColumnsEnd, this.settings.fixedColumnsStart, this.hot.countCols());
+  }
+
+  /**
    * The function returns the number of not hidden row indexes that fit between the first and
    * last fixed row in the top overlay.
    *
@@ -981,16 +1191,33 @@ class TableView {
   }
 
   /**
-   * Checks if at least one cell than belongs to the main table is not covered by the top, left or
-   * bottom overlay.
+   * Checks if at least one cell than belongs to the main table is not covered by the top, bottom,
+   * inline-start or inline-end overlay.
+   *
+   * The inline-end band is counted the way Walkontable renders it: cut down by the inline-start band,
+   * which has priority, so the two never count the same column twice.
+   *
+   * Unlike the start band, the end columns are not always among the columns the main table renders: it
+   * draws them (under the inline-end overlay) only once the grid is scrolled close enough to its end. So
+   * the end columns are taken off the rendered count only when they are in it. Adding the end band to the
+   * fixed columns unconditionally reports a grid as covered while a column still scrolls beside the bands.
    *
    * @returns {boolean}
    */
   isMainTableNotFullyCoveredByOverlays() {
     const fixedAllRows = this.countNotHiddenFixedRowsTop() + this.countNotHiddenFixedRowsBottom();
-    const fixedAllColumns = this.countNotHiddenFixedColumnsStart();
+    const fixedColumnsStart = this.countNotHiddenFixedColumnsStart();
+    const totalColumns = this.countRenderableColumns();
+    const fixedColumnsEnd = clampFixedColumnsEnd(
+      this.countNotHiddenFixedColumnsEnd(),
+      fixedColumnsStart,
+      totalColumns
+    );
+    const lastRenderedColumn = fixedColumnsEnd > 0 ? this._wt.wtTable.getLastRenderedColumn() : -1;
+    const renderedFixedColumnsEnd = Math.max(lastRenderedColumn - (totalColumns - fixedColumnsEnd) + 1, 0);
+    const renderedMainColumns = this.hot.countRenderedCols() - renderedFixedColumnsEnd;
 
-    return this.hot.countRenderedRows() > fixedAllRows && this.hot.countRenderedCols() > fixedAllColumns;
+    return this.hot.countRenderedRows() > fixedAllRows && renderedMainColumns > fixedColumnsStart;
   }
 
   /**
@@ -1038,6 +1265,10 @@ class TableView {
       totalColumns: () => this.countRenderableColumns(),
       // Number of renderable columns for the left overlay.
       fixedColumnsStart: () => this.countNotHiddenFixedColumnsStart(),
+      // Number of renderable columns for the right (or left in RTL mode) overlay. The engine cuts it down
+      // against `fixedColumnsStart`, and enables the inline end overlay from that clamped number
+      // (its default `shouldRenderInlineEndOverlay`), so an end band the start band fully covers renders nothing.
+      fixedColumnsEnd: () => this.countNotHiddenFixedColumnsEnd(),
       // Number of renderable rows for the top overlay.
       fixedRowsTop: () => this.countNotHiddenFixedRowsTop(),
       // Number of renderable rows for the bottom overlay.
@@ -2572,7 +2803,7 @@ class TableView {
    * Checks to what overlay the provided element belongs.
    *
    * @param {HTMLElement} element The DOM element to check.
-   * @returns {'master'|'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'}
+   * @returns {'master'|'inline_start'|'inline_end'|'top'|'top_inline_start_corner'|'top_inline_end_corner'|'bottom'|'bottom_inline_start_corner'|'bottom_inline_end_corner'}
    */
   getElementOverlayName(element: HTMLElement) {
     return this.#getOwningWt(element).wtTable.name;
@@ -2581,7 +2812,7 @@ class TableView {
   /**
    * Gets the overlay instance by its name.
    *
-   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'} overlayName The overlay name.
+   * @param {'inline_start'|'inline_end'|'top'|'top_inline_start_corner'|'top_inline_end_corner'|'bottom'|'bottom_inline_start_corner'|'bottom_inline_end_corner'} overlayName The overlay name.
    * @returns {Overlay | null}
    */
   getOverlayByName(overlayName: string) {
@@ -2870,6 +3101,11 @@ class TableView {
    * @private
    */
   destroy() {
+    if (this.#contentSettledFrame !== null) {
+      this.hot.rootWindow.cancelAnimationFrame(this.#contentSettledFrame);
+      this.#contentSettledFrame = null;
+    }
+
     this._wt.destroy();
     this.eventManager.destroy();
   }

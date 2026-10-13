@@ -106,6 +106,125 @@ describe('OverlayRail', () => {
     expect(railElement.style.left).toBe('');
   });
 
+  describe('a clone held at the inline-end edge', () => {
+    it('should pin to the right edge, and stand at the rail\'s right end, in LTR', () => {
+      // A sticky box only shifts from where it would otherwise stand, so a `right` inset needs the clone to
+      // stand at the rail's inline END: an auto margin on the physical start side pushes it there.
+      const rail = new OverlayRail(clone, document);
+
+      rail.pin({
+        isRtl: false,
+        width: 900,
+        height: 4000,
+        inline: true,
+        inlineEdge: 'end',
+        block: { pinned: false, edge: 'top' },
+      });
+
+      const railElement = clone.parentElement!;
+
+      expect(clone.style.position).toBe('sticky');
+      expect(clone.style.right).toBe('0px');
+      expect(clone.style.left).toBe('');
+      expect(clone.style.marginLeft).toBe('auto');
+      expect(clone.style.marginRight).toBe('');
+      expect(railElement.style.display).toBe('flex');
+      expect(railElement.style.alignItems).toBe('flex-start');
+      // The rail is anchored at the inline start and spans the table, like the start clone's rail.
+      expect(railElement.style.left).toBe('0px');
+      expect(railElement.style.width).toBe('900px');
+    });
+
+    it('should pin to the left edge, and stand at the rail\'s left end, in RTL', () => {
+      const rail = new OverlayRail(clone, document);
+
+      rail.pin({
+        isRtl: true,
+        width: 900,
+        height: 4000,
+        inline: true,
+        inlineEdge: 'end',
+        block: { pinned: false, edge: 'top' },
+      });
+
+      const railElement = clone.parentElement!;
+
+      expect(clone.style.left).toBe('0px');
+      expect(clone.style.right).toBe('');
+      expect(clone.style.marginRight).toBe('auto');
+      expect(clone.style.marginLeft).toBe('');
+      expect(railElement.style.right).toBe('0px');
+    });
+
+    it('should stand at the end of a box the holder shows, without a sticky inset, when the page does not scroll sideways', () => {
+      const rail = new OverlayRail(clone, document);
+
+      rail.pin({
+        isRtl: false,
+        width: 480,
+        height: 4000,
+        inline: false,
+        inlineEdge: 'end',
+        block: { pinned: true, edge: 'top' },
+      });
+
+      expect(rail.pinsInline()).toBe(false);
+      expect(rail.pinsBlock()).toBe(true);
+      expect(clone.style.right).toBe('');
+      expect(clone.style.left).toBe('');
+      expect(clone.style.marginLeft).toBe('auto');
+      expect(clone.parentElement!.style.width).toBe('480px');
+    });
+
+    it('should combine the end edge with a bottom-anchored clone in one column flex box', () => {
+      const rail = new OverlayRail(clone, document);
+
+      rail.pin({
+        isRtl: false,
+        width: 900,
+        height: 4000,
+        inline: true,
+        inlineEdge: 'end',
+        block: { pinned: true, edge: 'bottom' },
+      });
+
+      expect(clone.style.right).toBe('0px');
+      expect(clone.style.bottom).toBe('0px');
+      expect(clone.style.marginLeft).toBe('auto');
+      expect(clone.style.marginTop).toBe('auto');
+      expect(clone.parentElement!.style.flexDirection).toBe('column');
+    });
+
+    it('should clear the end-edge placement when the rail is released', () => {
+      const rail = new OverlayRail(clone, document);
+
+      rail.pin({
+        isRtl: false,
+        width: 900,
+        height: 4000,
+        inline: true,
+        inlineEdge: 'end',
+        block: { pinned: false, edge: 'top' },
+      });
+      rail.release();
+
+      expect(rail.isPinned()).toBe(false);
+      expect(clone.style.position).toBe('absolute');
+      expect(clone.style.marginLeft).toBe('');
+      expect(clone.style.marginRight).toBe('');
+    });
+
+    it('should leave a start-edge rail exactly as it was (no auto margins, no flex box)', () => {
+      const rail = new OverlayRail(clone, document);
+
+      rail.pin({ isRtl: false, width: 900, height: 4000, inline: true, block: { pinned: false, edge: 'top' } });
+
+      expect(clone.style.marginLeft).toBe('');
+      expect(clone.style.marginRight).toBe('');
+      expect(clone.parentElement!.style.display).toBe('');
+    });
+  });
+
   it('should hang a bottom-anchored clone so that its bottom edge lands at the offset', () => {
     // The rail has no height, so its bottom edge is the line the clone's TOP hangs from: the clone
     // ends `height` below it, which must be `offset` above the wrapper's bottom.

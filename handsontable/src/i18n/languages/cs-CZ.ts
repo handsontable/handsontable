@@ -160,6 +160,8 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'Vybráno [selected] z [total] řádků',
   [C.ROW_SELECTION_MENU_REMOVE]: 'Odstranit vybrané řádky ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: 'Zrušit výběr řádků',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rozbalen řádek [label], zobrazené rozbalené řádky: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sbalen řádek [label]',
 };
 
 export default dictionary;

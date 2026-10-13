@@ -16,6 +16,17 @@ interface NodeInfo {
   parent: RowObject | null;
   row: number;
   level: number;
+  position: number;
+  setSize: number;
+}
+
+/**
+ * Where a row sits among its siblings, 1-based, as the `aria-posinset` and `aria-setsize`
+ * attributes need it.
+ */
+export interface RowSetPosition {
+  position: number;
+  setSize: number;
 }
 
 /**
@@ -278,9 +289,7 @@ class DataManager {
       nodeInfo: new WeakMap<object, NodeInfo>()
     };
 
-    rangeEach(0, this.data!.length - 1, (i: number) => {
-      this.cacheNode(this.data![i], 0, null);
-    });
+    this.#cacheSiblings(this.data!, 0, null);
   }
 
   /**
@@ -290,8 +299,10 @@ class DataManager {
    * @param {object} node Node to cache.
    * @param {number} level Level of the node.
    * @param {object} parent Parent of the node.
+   * @param {number} [index=0] Position of the node among its siblings, 0-based.
+   * @param {number} [setSize=1] Number of siblings, the node included.
    */
-  cacheNode(node: RowObject, level: number, parent: RowObject | null) {
+  cacheNode(node: RowObject, level: number, parent: RowObject | null, index = 0, setSize = 1) {
     if (!node || typeof node !== 'object') {
       return;
     }
@@ -304,14 +315,34 @@ class DataManager {
     this.cache.nodeInfo.set(node, {
       parent,
       row: this.cache.rows.length - 1,
-      level
+      level,
+      position: index + 1,
+      setSize,
     });
 
     if (this.hasChildren(node) && node.__children) {
-      arrayEach(node.__children, (elem: RowObject) => {
-        this.cacheNode(elem, level + 1, node);
-      });
+      this.#cacheSiblings(node.__children, level + 1, node);
     }
+  }
+
+  /**
+   * Caches a list of sibling nodes. Only object entries become rows, so only those count towards a
+   * node's position and the size of its set - a `null` among the children would otherwise make the
+   * last row report a position past the number of rows. A string or an array-like `__children` goes
+   * through `Array.from()` first, as `arrayEach()` did, so it keeps loading instead of throwing; an
+   * array is filtered without that extra copy.
+   *
+   * @param {Array} siblings The nodes to cache.
+   * @param {number} level Level of the nodes.
+   * @param {object} parent Parent of the nodes.
+   */
+  #cacheSiblings(siblings: RowObject[], level: number, parent: RowObject | null) {
+    const list = Array.isArray(siblings) ? siblings : Array.from<RowObject>(siblings);
+    const rows = list.filter(node => node !== null && typeof node === 'object');
+
+    arrayEach(rows, (node: RowObject, index: number) => {
+      this.cacheNode(node, level, parent, index, rows.length);
+    });
   }
 
   /**
@@ -631,6 +662,21 @@ class DataManager {
     const nodeInfo = this.cache.nodeInfo.get(rowObject);
 
     return nodeInfo ? nodeInfo.level : null;
+  }
+
+  /**
+   * Gets where the row with the provided physical index sits among its siblings.
+   *
+   * @private
+   * @param {number} row Physical row index.
+   * @returns {RowSetPosition|null} The 1-based position and the number of siblings, or `null` for a
+   * row the cache does not know.
+   */
+  getRowSetPosition(row: number): RowSetPosition | null {
+    const rowObject = this.getDataObject(row);
+    const nodeInfo = rowObject ? this.cache.nodeInfo.get(rowObject) : undefined;
+
+    return nodeInfo ? { position: nodeInfo.position, setSize: nodeInfo.setSize } : null;
   }
 
   /**

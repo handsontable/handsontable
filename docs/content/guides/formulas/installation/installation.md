@@ -78,31 +78,30 @@ import { HyperFormula } from 'hyperformula';
 
 ## License HyperFormula
 
-HyperFormula requires a license key. When HyperFormula runs inside Handsontable, use the
-`'internal-use-in-handsontable'` key. This key is free and covers any HyperFormula instance that is
-connected to a Handsontable instance.
+HyperFormula is licensed separately from Handsontable. For details, see the
+[HyperFormula license key](https://hyperformula.handsontable.com/guide/license-key.html) guide or
+[contact our Sales Team](https://handsontable.com/get-a-quote).
 
-How you apply the key depends on how you create the engine:
+Handsontable sets a license key on a HyperFormula engine that has none. To use your own key, set
+the `licenseKey` option in the HyperFormula configuration. How you do that depends on how you connect
+the engine:
 
-- If you pass the `HyperFormula` class to the `formulas.engine` option, Handsontable builds the
-  engine and applies the `'internal-use-in-handsontable'` key for you.
-- If you build the engine yourself with `HyperFormula.buildEmpty()`, set the key in the
-  configuration:
+- If you pass the `HyperFormula` class to the `formulas.engine` option, use the engine configuration
+  object and set `licenseKey` next to the `hyperformula` field.
+- If you build the engine yourself with `HyperFormula.buildEmpty()`, set `licenseKey` in the
+  configuration you pass to `buildEmpty()`.
 
 ```js
 const hyperformulaInstance = HyperFormula.buildEmpty({
-  licenseKey: 'internal-use-in-handsontable',
+  // replace with your HyperFormula license key
+  licenseKey: 'your-hyperformula-license-key',
 });
 ```
 
-To run HyperFormula on its own, outside a Handsontable instance (for example, on a server), you
-need a dedicated [HyperFormula license key](https://hyperformula.handsontable.com/guide/license-key.html).
-For details, [contact our Sales Team](https://handsontable.com/get-a-quote).
-
 ## Enable the Formulas plugin
 
-Pass the `HyperFormula` class to the `formulas.engine` option. Handsontable builds the engine and
-applies the license key for you.
+Pass the `HyperFormula` class to the `formulas.engine` option. Handsontable builds the engine for
+you.
 
 ```js
 import Handsontable from 'handsontable';
@@ -136,9 +135,8 @@ object. Choose the approach that fits your setup.
 
 ### Pass the `HyperFormula` class
 This is the shortest path, shown above. You import the class and
-pass it to `formulas.engine`. Handsontable builds the engine, applies the
-`'internal-use-in-handsontable'` license key, and manages the engine's lifecycle for you. Use this
-for a single grid, or for grids that each work on their own data.
+pass it to `formulas.engine`. Handsontable builds the engine and manages the engine's lifecycle for
+you. Use this for a single grid, or for grids that each work on their own data.
 
 ```js
 import { HyperFormula } from 'hyperformula';
@@ -153,7 +151,7 @@ const hot = new Handsontable(container, {
 
 ### Build a `HyperFormula` instance first, then pass it
 Create the engine yourself with
-`HyperFormula.buildEmpty()`, set the license key, and pass the instance to `formulas.engine`. This
+`HyperFormula.buildEmpty()` and pass the instance to `formulas.engine`. This
 gives you direct access to the engine's API. It also lets several Handsontable instances share one
 engine, so formulas can reference cells across grids with cross-sheet references.
 
@@ -161,7 +159,8 @@ engine, so formulas can reference cells across grids with cross-sheet references
 import { HyperFormula } from 'hyperformula';
 
 const hyperformulaInstance = HyperFormula.buildEmpty({
-  licenseKey: 'internal-use-in-handsontable',
+  // replace with your HyperFormula license key
+  licenseKey: 'your-hyperformula-license-key',
 });
 
 const hot = new Handsontable(container, {

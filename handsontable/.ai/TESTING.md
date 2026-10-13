@@ -77,7 +77,7 @@ To reproduce a verdict locally, re-run one file alone against the same dump: `np
 
 **Test Environment:**
 - Unit tests: jsdom (JavaScript DOM implementation)
-- New E2E: Playwright (real Chromium; `tests/` package)
+- New E2E: Playwright (real Chromium, plus Firefox and WebKit for tests tagged `@cross-browser`; `tests/` package)
 - Legacy E2E: Puppeteer with real headless Chrome
 - Default legacy-Jasmine timeout: 15000ms (set in `test/bootstrap.js`)
 
@@ -555,6 +555,7 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 **Unit Tests (`*.unit.js`, `*.unit.ts`):**
 - Framework: Jest with jsdom (`jest-jasmine2` runner)
 - Location: mostly `src/**/__tests__/`; also `test/__tests__/` and `test/helpers/__tests__/`, Walkontable's `src/3rdparty/walkontable/test/unit/`, and `src/3rdparty/SheetClip/test/`
+- CI: the `Unit` job runs on a pull request only when `test-handsontable-unit` in `.github/workflows/checks.yml` matches a changed file. A pin that reads a file outside that route belongs in the root tooling suite (see the root `.ai/CI.md`).
 - Scope: Individual functions and classes in isolation
 - Synchronous (no async/await required)
 - Explicit imports needed

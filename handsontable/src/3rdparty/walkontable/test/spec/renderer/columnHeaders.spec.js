@@ -26,6 +26,14 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     getAriaColumnHeaderIdPrefix() {
       return '';
     }
+
+    getFirstFixedEndColumn() {
+      return Infinity;
+    }
+
+    getAriaColumnHeaderIndex(visibleColumnIndex) {
+      return visibleColumnIndex + 1;
+    }
   }
 
   function createRenderer() {

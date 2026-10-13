@@ -10,6 +10,17 @@ import handsontableStyles from '../styles/handsontableStyles';
 const CORE_STYLES_ID = 'handsontable-core-styles';
 
 /**
+ * Checks whether a value has the format of a theme class name (`ht-theme-<theme-name>`), the only
+ * format `StylesHandler#useTheme()` accepts.
+ *
+ * @param {unknown} themeName The value to check.
+ * @returns {boolean}
+ */
+export function isValidThemeName(themeName: unknown): themeName is string {
+  return typeof themeName === 'string' && /ht-theme-.*/.test(themeName);
+}
+
+/**
  * Handles the theme-related style operations.
  */
 export class StylesHandler {
@@ -64,6 +75,13 @@ export class StylesHandler {
    * @type {object}
    */
   #cssVars: Record<string, unknown> = {};
+
+  /**
+   * Lengths resolved by `getResolvedLength()`, in pixels, by the expression they were resolved from.
+   *
+   * @type {object}
+   */
+  #resolvedLengths: Record<string, number> = {};
 
   /**
    * Stores the computed styles for various elements.
@@ -135,6 +153,48 @@ export class StylesHandler {
 
       return acquiredValue;
     }
+  }
+
+  /**
+   * Resolves a CSS length expression to pixels in the browser, so a theme token declared in `rem`, `em`
+   * or `calc()` counts the same as one declared in `px` (`getCSSVariableValue()` reads such a token as a
+   * bare number or a string).
+   *
+   * The expression is set as the width of a hidden element inside the root element, where the theme
+   * tokens are defined, and read back as the rendered width. The answer is cached until the theme
+   * changes. An unusable measurement is never cached and answers `null`: a grid built into a hidden tab
+   * measures `0`, and so does an expression that names a token the theme does not declare. Neither key
+   * would move once the grid is revealed or the theme arrives, so a cached zero would stick for good.
+   *
+   * @param {string} expression - The CSS length expression, such as `calc(var(--ht-icon-size) + 8px)`.
+   * @returns {number|null} The length in pixels, or `null` when it can't be measured.
+   */
+  getResolvedLength(expression: string): number | null {
+    if (expression in this.#resolvedLengths) {
+      return this.#resolvedLengths[expression];
+    }
+
+    const probe = this.#rootDocument.createElement('div');
+
+    probe.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;box-sizing:content-box;' +
+      'height:0;margin:0;padding:0;border:0;';
+    probe.style.width = expression;
+
+    this.#rootElement.appendChild(probe);
+
+    // `offsetWidth`, not `getBoundingClientRect()`: CSS `zoom` on an ancestor scales the second one and
+    // not the first, and a token is a length in the grid's own CSS pixels.
+    const width = probe.offsetWidth;
+
+    this.#rootElement.removeChild(probe);
+
+    if (!(width > 0)) {
+      return null;
+    }
+
+    this.#resolvedLengths[expression] = width;
+
+    return width;
   }
 
   /**
@@ -218,7 +278,7 @@ export class StylesHandler {
    * @param {string|undefined|boolean} [themeName] - The name of the theme to apply.
    */
   useTheme(themeName: string | undefined | boolean) {
-    if (typeof themeName !== 'string' || !/ht-theme-.*/.test(themeName)) {
+    if (!isValidThemeName(themeName)) {
       warn(`${themeName} isn't a valid theme name. Please ensure it follows the format ht-theme-<theme-name>.`);
 
       return;
@@ -533,6 +593,7 @@ export class StylesHandler {
   #clearCachedValues() {
     this.#computedStyles = {};
     this.#cssVars = {};
+    this.#resolvedLengths = {};
     this.#renderedCellHeight = null;
   }
 

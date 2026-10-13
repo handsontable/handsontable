@@ -367,9 +367,15 @@ export class DragToScroll extends BasePlugin {
     } else {
       const boundaries = (scrollHandler as HTMLElement).getBoundingClientRect();
 
+      // The row headers sit on the inline start side: the left edge in LTR, the right edge in RTL.
+      // Reserving their width on the wrong side makes a pointer over the columns next to that edge (the
+      // `fixedColumnsEnd` columns, in RTL) look like it is past the viewport.
+      const rowHeaderWidth = this.hot.view.getRowHeaderWidth();
+      const isRtl = this.hot.isRtl();
+
       this.setBoundaries({
-        left: boundaries.left + this.hot.view.getRowHeaderWidth(),
-        right: boundaries.right,
+        left: boundaries.left + (isRtl ? 0 : rowHeaderWidth),
+        right: boundaries.right - (isRtl ? rowHeaderWidth : 0),
         top: boundaries.top + this.hot.view.getColumnHeaderHeight(),
         bottom: boundaries.bottom,
       });

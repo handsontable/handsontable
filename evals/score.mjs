@@ -6,14 +6,16 @@
 // test, not sufficient ones — the sufficiency half (mutation kill rate via
 // StrykerJS) is dependency-gated and reported through the `mutation` field.
 //
-// Usage: node evals/score.mjs <test-file> [--diff <diff-file>]
+// Usage: node evals/score.mjs <test-file> [--diff <diff-file>] [--mutate <src,src…>]
 // Output: a single JSON score object on stdout.
 
 import { execSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import {
+  existsSync, mkdirSync, readFileSync, realpathSync, rmSync, rmdirSync, writeFileSync,
+} from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
-import { resolve, dirname } from 'node:path';
+import { resolve, dirname, relative } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import {
   TEST_CALL_RE, countAssertions, countSkipFocus, countTableRows, matcherHistogram, matcherKind,
@@ -1298,17 +1300,250 @@ export function parseMutationReport(report) {
   };
 }
 
+// Stryker 9 prints its own log lines to stdout as `HH:MM:SS (pid) LEVEL Category message`,
+// colored even when the output is piped.
+const STRYKER_LOG_LINE = /^\d{2}:\d{2}:\d{2} \(\d+\) ([A-Z]+) (.+)$/;
+// eslint-disable-next-line no-control-regex
+const ANSI_ESCAPE = /\u001b\[[0-9;]*m/g;
+// Node reports an uncaught error on a line that starts with its name (`TypeError: boom`),
+// below an indented excerpt of the line that threw it.
+const NODE_ERROR_LINE = /^\w*Error: /;
+const STDERR_ERROR_LINE = /\b(?:error|not found|denied)\b/i;
+// The most a run may print. Past it, `execSync` kills the run and reports `ENOBUFS`.
+const OUTPUT_LIMIT_MB = 64;
+// A `--mutate` pattern without these characters is a plain path. It may end in a mutation
+// range (`src/a.ts:10-20`), which names lines of that one file.
+const GLOB_CHARACTERS = /[*?[\]{}!]/;
+const MUTATION_RANGE = /:\d+(?::\d+)?-\d+(?::\d+)?$/;
+
 /**
- * Run StrykerJS scoped to the given source files and return the kill-rate
- * summary. ALWAYS scope with `--mutate` (never whole-tree — that is minutes per
- * file). Slow (~40s+/file) and requires `build:styles` once per clone, so it is
- * opt-in, never on the default fast static path.
+ * Quote a value for a POSIX shell command line.
  *
- * @param {string[]} sourceFiles Source paths to mutate (relative to the handsontable package).
- * @param {{cwd?: string, run?: Function, readReport?: Function}} [deps] Injectable IO for tests.
+ * @param {string} value The value.
+ * @returns {string} The value in single quotes, each single quote inside it escaped.
+ */
+export function shellQuote(value) {
+  return `'${String(value).replace(/'/g, String.raw`'\''`)}'`;
+}
+
+/**
+ * Stryker's log lines of the given levels, without their time, process id, and level,
+ * each with the raw line printed after it.
+ *
+ * @param {string|undefined} output What Stryker printed to stdout.
+ * @param {string[]} levels The levels to keep, such as `ERROR`.
+ * @returns {{message: string, next: string}[]} The matching lines, in order.
+ */
+function strykerLogLines(output, levels) {
+  const lines = String(output ?? '').replace(ANSI_ESCAPE, '').split('\n');
+
+  return lines.flatMap((line, index) => {
+    const [, level, message] = line.match(STRYKER_LOG_LINE) ?? [];
+
+    return levels.includes(level) ? [{ message, next: lines[index + 1] ?? '' }] : [];
+  });
+}
+
+/**
+ * Explain why a Stryker run failed, in Stryker's own words. The first line of an
+ * `execSync` error message is only `Command failed: <the command>`. Stryker gives its
+ * reason in ERROR and FATAL log lines on stdout (`Initial test run timed out!`, a broken
+ * config); a test that failed in the initial run is named on the tab-indented line after
+ * its ERROR line. When Stryker logged no such line, the reason comes from stderr: Node's
+ * report of an uncaught error (`Error: Unable to locate env file …` from env-cmd), else the
+ * first error-like line (the shell's `env-cmd: command not found`), else the first line
+ * (`Detecting unexpected exit, …` after a SIGTERM). A run that `execSync` killed for printing
+ * past its buffer says so, rather than reading as a SIGTERM from outside.
+ *
+ * @param {{message?: string, code?: string, stdout?: string, stderr?: string, status?: number|null,
+ *   signal?: string|null}} error The error `execSync` threw, or any other error.
+ * @returns {string} The `mutation.reason`, with the exit code or signal when there is one.
+ */
+function strykerFailureReason(error) {
+  const logged = strykerLogLines(error.stdout, ['ERROR', 'FATAL']).map(({ message, next }) => {
+    const named = next.match(/^\t(.+)$/)?.[1];
+
+    return named ? `${message.replace(/:$/, '')}: ${named}` : message;
+  });
+  const stderr = String(error.stderr ?? '').replace(ANSI_ESCAPE, '').split('\n')
+    .map(line => line.trim())
+    .filter(Boolean);
+  const reason = logged.slice(0, 3).join(' | ')
+    || stderr.find(line => NODE_ERROR_LINE.test(line))
+    || stderr.find(line => STDERR_ERROR_LINE.test(line))
+    || stderr[0]
+    || String(error.message ?? error).split('\n')[0];
+  const exit = error.code === 'ENOBUFS'
+    ? `its output passed ${OUTPUT_LIMIT_MB} MB`
+    : error.signal ?? (Number.isInteger(error.status) ? `exit ${error.status}` : '');
+
+  return `stryker run failed${exit ? ` (${exit})` : ''}: ${reason}`;
+}
+
+/**
+ * Why the mutation layer cannot measure these tests against these sources, if it cannot,
+ * checked before Stryker starts, because Stryker rewrites the mutated sources in place.
+ * Test files go through `handsontable/jest.stryker.testFiles.js`, the resolver the Stryker
+ * Jest config uses too, so the two checks cannot drift apart. A plain `--mutate` path must
+ * exist: for one that matches nothing, Stryker only prints an English warning, which a later
+ * version may reword. Each list reaches Stryker as one comma-separated value, so no path may
+ * contain a comma.
+ *
+ * @param {string[]} sourceFiles Source paths or globs to mutate.
+ * @param {string[]} testFiles Unit test paths.
+ * @param {string} cwd The handsontable package directory.
+ * @returns {string|null} The reason, or null when the scope can run.
+ */
+function scopeProblem(sourceFiles, testFiles, cwd) {
+  const withComma = [...sourceFiles, ...testFiles].find(file => file.includes(','));
+
+  if (withComma) {
+    return `a path passed to Stryker cannot contain a comma: ${withComma}`;
+  }
+
+  const { resolveTestFile } = createRequire(import.meta.url)(resolve(cwd, 'jest.stryker.testFiles.js'));
+  const testProblem = testFiles.map(file => resolveTestFile(file).problem).find(Boolean);
+
+  if (testProblem) {
+    return testProblem;
+  }
+
+  const missing = sourceFiles
+    .filter(pattern => !GLOB_CHARACTERS.test(pattern))
+    .filter(pattern => !existsSync(resolve(cwd, pattern.replace(MUTATION_RANGE, ''))));
+
+  return missing.length > 0
+    ? `--mutate matched no file (paths are relative to handsontable/): ${missing.join(', ')}`
+    : null;
+}
+
+/**
+ * Is a process with this id running? A process the user may not signal still counts.
+ *
+ * @param {number} pid The process id.
+ * @returns {boolean} True while it runs.
+ */
+function isRunning(pid) {
+  if (!Number.isInteger(pid) || pid <= 0) {
+    return false;
+  }
+
+  try {
+    process.kill(pid, 0);
+
+    return true;
+  } catch (error) {
+    return error.code === 'EPERM';
+  }
+}
+
+/**
+ * Take this checkout's mutation lock, or name the process that holds it. Stryker rewrites the
+ * mutated sources in place, and every run shares `.stryker-tmp/` and the report, so two runs
+ * in one checkout would load each other's mutants or read each other's report. The lock file
+ * holds its owner's process id, so a lock left by a run that died is taken over.
+ *
+ * @param {string} lockFile The lock file's path.
+ * @returns {{release: Function}|{holder: number|string}} A release function, or the holder.
+ */
+function acquireMutationLock(lockFile) {
+  mkdirSync(dirname(lockFile), { recursive: true });
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      writeFileSync(lockFile, String(process.pid), { flag: 'wx' });
+
+      return {
+        release: () => {
+          rmSync(lockFile, { force: true });
+
+          // Stryker keeps an emptied temp directory after a failed run; remove it if empty.
+          try {
+            rmdirSync(dirname(lockFile));
+          } catch {
+            // Not empty (another run's backup, say) or already gone: leave it.
+          }
+        },
+      };
+    } catch (error) {
+      if (error.code !== 'EEXIST') {
+        throw error;
+      }
+    }
+
+    let holder = Number.NaN;
+
+    try {
+      holder = Number(readFileSync(lockFile, 'utf8'));
+    } catch {
+      // Released between the two calls: the next attempt takes it.
+    }
+
+    if (isRunning(holder)) {
+      return { holder };
+    }
+
+    rmSync(lockFile, { force: true });
+  }
+
+  return { holder: 'unknown' };
+}
+
+/**
+ * Why a run that finished still did not measure what was asked: a `--mutate` pattern that
+ * matched no file (Stryker only warns, then mutates the rest), or no valid mutant at all.
+ *
+ * @param {string|undefined} output What Stryker printed to stdout.
+ * @param {string[]} sourceFiles The `--mutate` patterns.
+ * @param {{total: number}} summary The parsed report.
+ * @returns {string|null} The reason, or null when every pattern was measured.
+ */
+function incompleteRunReason(output, sourceFiles, summary) {
+  const unmatched = strykerLogLines(output, ['WARN'])
+    .map(({ message }) => message.match(/Glob pattern "(.+)" did not result in any files/)?.[1])
+    .filter(Boolean);
+
+  if (unmatched.length > 0) {
+    return `--mutate matched no file (paths are relative to handsontable/): ${unmatched.join(', ')}`;
+  }
+
+  return summary.total === 0 ? `stryker reported no valid mutant in ${sourceFiles.join(', ')}` : null;
+}
+
+/**
+ * Express a file the caller named (relative to `cwd`, or absolute) relative to the
+ * handsontable package, which is how Stryker and the mutation Jest config address it.
+ * Both ends are real paths in the case the file system stores, so a file reached through
+ * a symlinked directory, or typed in another case, still counts as inside the package.
+ *
+ * @param {string} file The path the caller passed. The file must exist.
+ * @param {string} [cwd] The directory a relative `file` is resolved against.
+ * @returns {string} The path relative to `handsontable/`, starting with `..` when outside it.
+ */
+export function toPackagePath(file, cwd = process.cwd()) {
+  return relative(realpathSync.native(HOT_DIR), realpathSync.native(resolve(cwd, file)));
+}
+
+/**
+ * Run StrykerJS on the given source files and return the kill rate of the given unit
+ * tests: the initial run and every mutant run execute those tests and nothing else.
+ * `handsontable/jest.stryker.config.js` reads them from `HOT_MUTATION_TEST_FILES` and
+ * refuses to start without them. ALWAYS scope with `--mutate` (never whole-tree). A run
+ * takes seconds for a helper (`src/helpers/errors.ts`: 3 mutants in about 6s), but it
+ * starts Stryker, so it is opt-in, never on the default fast static path.
+ *
+ * `reason` is set whenever the run did not measure what was asked: a scope the layer
+ * cannot run, another run holding the checkout, a failed run, an unreadable report, a
+ * `--mutate` pattern that matched no file, or no valid mutant. Both lists are relative
+ * to the handsontable package.
+ *
+ * @param {string[]} sourceFiles Source paths or globs to mutate.
+ * @param {string[]} testFiles Unit test paths whose kill rate is measured.
+ * @param {{cwd?: string, run?: Function, readReport?: Function, status?: object, lockFile?: string}} [deps]
+ *   Injectable IO for tests.
  * @returns {{available: boolean, reason?: string} & Partial<ReturnType<parseMutationReport>>} The result.
  */
-export function runMutation(sourceFiles, deps = {}) {
+export function runMutation(sourceFiles, testFiles, deps = {}) {
   const status = deps.status ?? getMutationStatus();
 
   if (!status.available) {
@@ -1319,23 +1554,75 @@ export function runMutation(sourceFiles, deps = {}) {
     return { available: true, reason: 'no source files passed to --mutate' };
   }
 
+  if (!testFiles || testFiles.length === 0) {
+    return { available: true, reason: 'no unit test to measure the mutants against' };
+  }
+
   const cwd = deps.cwd ?? HOT_DIR;
+  const problem = scopeProblem(sourceFiles, testFiles, cwd);
+
+  if (problem) {
+    return { available: true, reason: problem };
+  }
+
+  const lockFile = deps.lockFile ?? resolve(cwd, '.stryker-tmp', 'mutation.lock');
+  const lock = acquireMutationLock(lockFile);
+
+  if (!lock.release) {
+    return {
+      available: true,
+      reason: `another mutation run (process ${lock.holder}) is using this checkout: wait for it, `
+        + `or delete ${lockFile} if no run is active`,
+    };
+  }
+
+  try {
+    return runStryker(sourceFiles, testFiles, cwd, deps);
+  } finally {
+    lock.release();
+  }
+}
+
+/**
+ * Run Stryker for `runMutation()`, which has checked the scope and holds the lock, and
+ * read its report.
+ *
+ * @param {string[]} sourceFiles Source paths or globs to mutate.
+ * @param {string[]} testFiles Unit test paths whose kill rate is measured.
+ * @param {string} cwd The handsontable package directory.
+ * @param {{run?: Function, readReport?: Function}} deps Injectable IO for tests.
+ * @returns {{available: boolean, reason?: string} & Partial<ReturnType<parseMutationReport>>} The result.
+ */
+function runStryker(sourceFiles, testFiles, cwd, deps) {
   const run = deps.run ?? (cmd => execSync(cmd, {
-    cwd, shell: '/bin/bash', stdio: 'pipe', encoding: 'utf8', maxBuffer: 64 * 1024 * 1024,
+    cwd, shell: '/bin/bash', stdio: 'pipe', encoding: 'utf8', maxBuffer: OUTPUT_LIMIT_MB * 1024 * 1024,
   }));
   const readReport = deps.readReport
     ?? (() => JSON.parse(readFileSync(resolve(cwd, 'reports/mutation/mutation.json'), 'utf8')));
+  let output;
+  let summary;
 
   try {
     // Pinned Babel transform + commonjs env — Stryker's worker cwd breaks
     // cwd-relative Babel discovery (see handsontable/jest.stryker.config.js).
-    run(`BABEL_ENV=commonjs npx env-cmd -f ../hot.config.js npx stryker run --mutate ${
-      sourceFiles.map(f => `'${f}'`).join(' ')} --reporters json`);
-
-    return { available: true, ...parseMutationReport(readReport()) };
+    // `--mutate` takes ONE comma-separated value: a second word would be read as
+    // Stryker's config file.
+    output = run(`HOT_MUTATION_TEST_FILES=${shellQuote(testFiles.join(','))} BABEL_ENV=commonjs `
+      + 'npx env-cmd -f ../hot.config.js npx stryker run '
+      + `--mutate ${shellQuote(sourceFiles.join(','))} --reporters json`);
   } catch (error) {
-    return { available: true, reason: `stryker run failed: ${error.message.split('\n')[0]}` };
+    return { available: true, reason: strykerFailureReason(error) };
   }
+
+  try {
+    summary = parseMutationReport(readReport());
+  } catch (error) {
+    return { available: true, reason: `stryker report unreadable: ${error.message.split('\n')[0]}` };
+  }
+
+  const reason = incompleteRunReason(output, sourceFiles, summary);
+
+  return reason ? { available: true, ...summary, reason } : { available: true, ...summary };
 }
 
 /**
@@ -1465,17 +1752,23 @@ export function scoreTestSource(src, options = {}) {
 }
 
 /**
- * Score a test file from disk, optionally against a source-diff file.
+ * Score a test file from disk, optionally against a source-diff file, and with
+ * `mutate` also measure the test's kill rate on those source files.
  *
- * @param {string} filePath Path to the test file.
- * @param {{diffPath?: string}} [options={}] Optional path to a unified-diff file.
+ * @param {string} filePath Path to the test file, relative to the working directory or absolute.
+ * @param {{diffPath?: string, mutate?: string[]}} [options={}] Optional path to a unified-diff
+ *   file, and source paths to mutate (relative to the handsontable package).
+ * @param {object} [deps] Injectable IO for `runMutation`, for tests.
  * @returns {Promise<object>} The score object, with the file path attached.
  */
-export async function scoreTestFile(filePath, options = {}) {
+export async function scoreTestFile(filePath, options = {}, deps = {}) {
   const src = await readFile(filePath, 'utf8');
   const diff = options.diffPath ? await readFile(options.diffPath, 'utf8') : undefined;
-  // Live mutation is opt-in (slow): only when --mutate names source files.
-  const mutation = options.mutate?.length ? runMutation(options.mutate) : undefined;
+  // Live mutation is opt-in (it runs Stryker): only when --mutate names source files.
+  // The mutants are checked against this test file only, addressed from the package.
+  const mutation = options.mutate?.length
+    ? runMutation(options.mutate, [toPackagePath(filePath)], deps)
+    : undefined;
 
   return { file: filePath, ...scoreTestSource(src, { diff, mutation }) };
 }

@@ -26,10 +26,12 @@ import { CUSTOM_SELECTION_TYPE } from '../constants';
 import { getSpreaderOffset } from '../../overlay/spreaderOffset';
 import {
   ADJUST_HANDLE_EDGES,
+  getAxisSegment,
   getHandleOwnership,
   getHandlesSpan,
   getMoveZoneOwnership,
   getOverlaySegment,
+  isTrackEdgeVisible,
 } from './adjustHandlesOwnership';
 import type {
   AdjustHandleEdge,
@@ -937,6 +939,41 @@ class Border {
   }
 
   /**
+   * Inline-end mirror of {@link Border#isFrozenBottomBoundaryEdge}: tells whether the selection's
+   * inline-end edge lands exactly on the `fixedColumnsEnd` boundary (the line between the last
+   * scrollable column and the first end column), and is therefore owned by the end overlay.
+   *
+   * @private
+   * @param {number} toIndex The selection's inline-end corner column index.
+   * @returns {boolean}
+   */
+  isFrozenEndBoundaryEdge(toIndex: number): boolean {
+    const fixedColumnsEnd = this.wot.getSetting('fixedColumnsEnd') as number;
+
+    // The column count is read only when there is an end band: most grids have none.
+    return fixedColumnsEnd > 0 &&
+      toIndex === (this.wot.getSetting('totalColumns') as number) - fixedColumnsEnd - 1;
+  }
+
+  /**
+   * Inline-end mirror of {@link Border#isFrozenBottomBoundaryOppositeEdge}: tells whether the
+   * selection's inline-start edge lands exactly on the `fixedColumnsEnd` boundary (the selection starts
+   * at the first end column), so the start handle sits on the freeze line and must be suppressed there
+   * like every other frozen-seam edge.
+   *
+   * @private
+   * @param {number} fromIndex The selection's inline-start corner column index.
+   * @returns {boolean}
+   */
+  isFrozenEndBoundaryOppositeEdge(fromIndex: number): boolean {
+    const fixedColumnsEnd = this.wot.getSetting('fixedColumnsEnd') as number;
+
+    // The column count is read only when there is an end band: most grids have none.
+    return fixedColumnsEnd > 0 &&
+      fromIndex === (this.wot.getSetting('totalColumns') as number) - fixedColumnsEnd;
+  }
+
+  /**
    * Mirror of {@link Border#isBoundaryCornerScrolledOut} for the bottom freeze line: tells whether the
    * selection's bottom boundary cell has scrolled behind the bottom frozen pane in the master viewport
    * (it then drops below the last visible master row), so the edge must not be drawn.
@@ -1398,8 +1435,10 @@ class Border {
 
   /**
    * Tells whether the fill handle must be pulled back inside the selection's inline-end edge instead
-   * of straddling it. Only the grid's last column needs that, where the overhang would spill out of
-   * the trimming container and force a scrollbar. A selection ending on the last frozen-start column
+   * of straddling it. Two columns need that: the grid's last column, where the overhang would spill out
+   * of the trimming container and force a scrollbar, and the last scrollable column before the
+   * `fixedColumnsEnd` columns, where the end overlay is painted above the master and would cover the
+   * overhang. A selection ending on the last frozen-start column
    * does not: the frozen overlay draws that handle itself and already lands it flush against its own
    * edge, which `border.spec.js` pins to the pixel — lifting it there moves it off that line.
    *
@@ -1418,6 +1457,12 @@ class Border {
     trimmingContainer: HTMLElement | Window,
     isRtl: boolean,
   ): boolean {
+    // The end overlay is painted above the master, so it would cover the half of the handle that hangs
+    // past a selection ending on the line before the `fixedColumnsEnd` columns.
+    if (this.isFrozenEndBoundaryEdge(toColumn)) {
+      return true;
+    }
+
     if (toColumn !== (this.wot.getSetting('totalColumns') as number) - 1) {
       return false;
     }
@@ -1467,6 +1512,68 @@ class Border {
 
     return anchorTop + geometryReader.outerHeight(TD) + cornerHalfHeight
       >= geometryReader.innerHeight(trimmingContainer);
+  }
+
+  /**
+   * Tells whether this overlay may draw the fill handle (and the mobile bottom handle) of a selection
+   * whose bottom-end corner is on the given cell. Only the `top` overlay is restricted. Its holder
+   * reaches a few pixels below the frozen rows so the handle can hang past them (#6937), and that
+   * strip paints above both inline frozen panes, which the corner overlays cover down to the frozen
+   * rows' bottom edge only. The `top` overlay renders the same column band as the master, frozen and
+   * off-screen columns included, so a handle it drew for a column the viewport does not show landed
+   * in that strip over the row headers or a frozen column.
+   *
+   * So the `top` overlay draws the handle only for a scrollable column whose inline-end edge, where
+   * the handle is centered, is on screen. A frozen column's handle is drawn by its corner overlay, and
+   * a column whose inline-end edge is past the holder's edge gets no handle (it was clipped there
+   * anyway). The test is by column, like the adjust handles': when the edge is on screen but closer
+   * than half a handle to a pane, the handle can still overlap the pane by that much. The grid's last
+   * column is the exception to "fully visible": the visible range reports it only when it is whole,
+   * and a column wider than the viewport never is, so there the edge is read off the cell itself.
+   *
+   * @private
+   * @param {number} row The renderable row of the selection's bottom-end corner.
+   * @param {number} column The renderable column of the selection's bottom-end corner.
+   * @returns {boolean}
+   */
+  canOverlayDrawFillCorner(row: number, column: number): boolean {
+    if (this.wot.wtTable.name !== 'top') {
+      return true;
+    }
+
+    const layout = this.getAdjustHandlesAxisLayout('column');
+
+    if (getAxisSegment(layout, column) !== 'main') {
+      return false;
+    }
+
+    return isTrackEdgeVisible(layout.visible, column, 'end') ||
+      column === layout.total - 1 && this.isCellEndWithinHolder(row, column);
+  }
+
+  /**
+   * Tells whether the inline-end edge of a cell lies within a pixel of this overlay's holder edge or
+   * inside it. A fractional position (browser zoom) at the end of the scroll range reads as arrived.
+   *
+   * @private
+   * @param {number} row The renderable row of the cell.
+   * @param {number} column The renderable column of the cell.
+   * @returns {boolean}
+   */
+  isCellEndWithinHolder(row: number, column: number): boolean {
+    const { wtTable, wtSettings } = this.wot;
+    const cell = wtTable.getCell(this.wot.createCellCoords(row, column));
+
+    if (!isHTMLElement(cell)) {
+      return false;
+    }
+
+    const { geometryReader } = this.wot.domBindings;
+    const cellRect = geometryReader.getBoundingClientRect(cell);
+    const holderRect = geometryReader.getBoundingClientRect(wtTable.holder);
+
+    return wtSettings.getSetting('rtlMode') ?
+      cellRect.left >= holderRect.left - 1 : cellRect.right <= holderRect.right + 1;
   }
 
   /**
@@ -1793,6 +1900,14 @@ class Border {
         (wtTable.isMaster || overlayName === 'top' || overlayName === 'bottom')) {
       this.startStyle!.display = 'none';
     }
+    // The inline-end mirror of the rule above: a selection starting at the first `fixedColumnsEnd` column has
+    // its start edge drawn by the end overlay (and its corners). The master and the top/bottom overlays render
+    // that column too, under the end overlay, but their copy sits one pixel off the freeze line and shows
+    // beside the end overlay's, thickening the edge.
+    if (this.isFrozenEndBoundaryOppositeEdge(originalFromColumn) &&
+        (wtTable.isMaster || overlayName === 'top' || overlayName === 'bottom')) {
+      this.startStyle!.display = 'none';
+    }
     // The bottom-freeze edge straddles its seam: the master draws the half above the freeze line and
     // the `bottom` overlay the half below it (on top of the opaque bottom pane), so together they show
     // the full thickness in both selection and edit modes. Hide the master only when the whole
@@ -1815,7 +1930,10 @@ class Border {
     // The hook can move the corner onto a merged block's bottom-end, which an overlay rendering only
     // part of the block does not render. Only the overlay that does draws the handle; the others
     // would put one on the freeze line inside the block (DEV-143).
-    const rendersFillCorner = checkRow <= lastRenderedRow && checkCol <= lastRenderedColumn;
+    // The `top` overlay also skips a corner on a column the viewport does not show. That check is
+    // asked last, and only when this border draws a corner handle at all.
+    const rendersFillCorner = checkRow <= lastRenderedRow && checkCol <= lastRenderedColumn &&
+      Boolean(cornerVisibleSetting || this.selectionHandles) && this.canOverlayDrawFillCorner(checkRow, checkCol);
 
     if (
       isMobileOrIpadOS() ||
@@ -2132,9 +2250,9 @@ class Border {
     const [fromRow, fromColumn, toRow, toColumn] = corners;
     const onSeam = {
       top: this.isFrozenBoundaryEdge('row', fromRow) || this.isFrozenBottomBoundaryOppositeEdge(fromRow),
-      start: this.isFrozenBoundaryEdge('column', fromColumn),
+      start: this.isFrozenBoundaryEdge('column', fromColumn) || this.isFrozenEndBoundaryOppositeEdge(fromColumn),
       bottom: this.isFrozenStartBoundaryOppositeEdge('row', toRow) || this.isFrozenBottomBoundaryEdge(toRow),
-      end: this.isFrozenStartBoundaryOppositeEdge('column', toColumn),
+      end: this.isFrozenStartBoundaryOppositeEdge('column', toColumn) || this.isFrozenEndBoundaryEdge(toColumn),
     };
 
     ADJUST_HANDLE_EDGES.forEach((edge) => {
@@ -2198,7 +2316,7 @@ class Border {
     const isRow = axis === 'row';
     const total = this.wot.getSetting(isRow ? 'totalRows' : 'totalColumns') as number;
     const fixedStart = this.wot.getSetting(isRow ? 'fixedRowsTop' : 'fixedColumnsStart') as number;
-    const fixedEnd = isRow ? this.wot.getSetting('fixedRowsBottom') as number : 0;
+    const fixedEnd = this.wot.getSetting(isRow ? 'fixedRowsBottom' : 'fixedColumnsEnd') as number;
     const master = this.wot.cloneSource ?? this.wot;
     const snapshot = master.wtOverlays.selectionVisibleRange;
 

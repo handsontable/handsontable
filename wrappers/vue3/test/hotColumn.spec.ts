@@ -45,7 +45,7 @@ describe('createColumnSettings', () => {
     const { columnSettings, hotInstance } = hotTableComponent;
 
     expect(columnSettings[0].title).toBe('test-title');
-    expect(columnSettings[1].title).toBe(void 0);
+    expect(columnSettings[1].title).toBe(undefined);
     expect(columnSettings[1].readOnly).toBe(true);
     expect(columnSettings[1].type).toBe('numeric');
     expect(columnSettings[1].renderer()).toBe('test-value2');
@@ -54,7 +54,7 @@ describe('createColumnSettings', () => {
     expect(columnSettings[2].renderer()).toBe('test-value3');
 
     expect(hotInstance.getSettings().columns[0].title).toBe('test-title');
-    expect(hotInstance.getSettings().columns[1].title).toBe(void 0);
+    expect(hotInstance.getSettings().columns[1].title).toBe(undefined);
     expect(hotInstance.getSettings().columns[1].readOnly).toBe(true);
     expect(hotInstance.getSettings().columns[1].type).toBe('numeric');
     expect(hotInstance.getSettings().columns[1].renderer()).toBe('test-value2');

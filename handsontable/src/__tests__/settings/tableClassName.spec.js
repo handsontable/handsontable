@@ -20,8 +20,8 @@ describe('settings', () => {
         tableClassName: 'foo'
       });
 
-      // all overlays is created anyway
-      expect(hot.rootElement.querySelectorAll('table.foo').length).toEqual(6);
+      // all overlays are created anyway: the master table and the 8 overlays (3 of them are the idle end clones)
+      expect(hot.rootElement.querySelectorAll('table.foo').length).toEqual(9);
     });
 
     it('should add class name every table element inside handsontable wrapper element (as string, with overlays)', async() => {
@@ -31,7 +31,7 @@ describe('settings', () => {
         tableClassName: 'foo'
       });
 
-      expect(hot.rootElement.querySelectorAll('table.foo').length).toEqual(6);
+      expect(hot.rootElement.querySelectorAll('table.foo').length).toEqual(9);
     });
 
     it('should add class name every table element inside handsontable wrapper element (as string with spaces, without overlays)', async() => {
@@ -41,9 +41,9 @@ describe('settings', () => {
         tableClassName: 'foo bar'
       });
 
-      // all overlays is created anyway
-      expect(hot.rootElement.querySelectorAll('table.foo').length).toEqual(6);
-      expect(hot.rootElement.querySelectorAll('table.bar').length).toEqual(6);
+      // all overlays are created anyway: the master table and the 8 overlays (3 of them are the idle end clones)
+      expect(hot.rootElement.querySelectorAll('table.foo').length).toEqual(9);
+      expect(hot.rootElement.querySelectorAll('table.bar').length).toEqual(9);
     });
 
     it('should add class name every table element inside handsontable wrapper element (as string with spaces, with overlays)', async() => {
@@ -53,8 +53,8 @@ describe('settings', () => {
         tableClassName: 'foo bar'
       });
 
-      expect(hot.rootElement.querySelectorAll('table.foo').length).toEqual(6);
-      expect(hot.rootElement.querySelectorAll('table.bar').length).toEqual(6);
+      expect(hot.rootElement.querySelectorAll('table.foo').length).toEqual(9);
+      expect(hot.rootElement.querySelectorAll('table.bar').length).toEqual(9);
     });
 
     it('should add class name every table element inside handsontable wrapper element (as array, without overlays)', async() => {
@@ -64,9 +64,9 @@ describe('settings', () => {
         tableClassName: ['foo', 'bar', 'baz']
       });
 
-      expect(hot.rootElement.querySelectorAll('table.foo').length).toEqual(6);
-      expect(hot.rootElement.querySelectorAll('table.bar').length).toEqual(6);
-      expect(hot.rootElement.querySelectorAll('table.baz').length).toEqual(6);
+      expect(hot.rootElement.querySelectorAll('table.foo').length).toEqual(9);
+      expect(hot.rootElement.querySelectorAll('table.bar').length).toEqual(9);
+      expect(hot.rootElement.querySelectorAll('table.baz').length).toEqual(9);
     });
 
     it('should add class name every table element inside handsontable wrapper element (as array, with overlays)', async() => {
@@ -76,9 +76,9 @@ describe('settings', () => {
         tableClassName: ['foo', 'bar', 'baz']
       });
 
-      expect(hot.rootElement.querySelectorAll('table.foo').length).toEqual(6);
-      expect(hot.rootElement.querySelectorAll('table.bar').length).toEqual(6);
-      expect(hot.rootElement.querySelectorAll('table.baz').length).toEqual(6);
+      expect(hot.rootElement.querySelectorAll('table.foo').length).toEqual(9);
+      expect(hot.rootElement.querySelectorAll('table.bar').length).toEqual(9);
+      expect(hot.rootElement.querySelectorAll('table.baz').length).toEqual(9);
     });
 
     it('should update tableClassName in all tables accordingly', async() => {

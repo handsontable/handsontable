@@ -6,28 +6,26 @@ description: Use when creating or modifying a Handsontable cell validator - asyn
 
 # Handsontable Validator Development
 
-## Function signature
-
-Validators use the **callback pattern** and must always invoke the callback:
+## Signature
 
 ```js
 function myValidator(value, callback) {
   // `this` is bound to the cell's cellProperties object
-  if (this.allowEmpty && (value === null || value === void 0 || value === '')) {
+  if (this.allowEmpty && (value === null || value === undefined || value === '')) {
     return callback(true);
   }
   callback(isValid(value)); // true = valid, false = invalid
 }
 ```
 
-## Key rules
+## Rules
 
-- **Always call the callback.** Forgetting to call `callback` hangs the validation pipeline.
-- **Context-aware.** `this` is the cell's `cellProperties` object. Use `this.allowEmpty`, `this.instance` (the Handsontable instance), and other cell meta properties.
-- **Single responsibility.** Validators only determine validity. Never modify data, DOM, or cell state.
-- **Async-compatible.** The callback can be called after async operations (API calls, timeouts). The editor enters WAITING state until the callback resolves.
+- Call the callback on every path; a missed call hangs the validation pipeline and silently blocks editing.
+- `this` is `cellProperties`: use `this.allowEmpty`, `this.instance`, other cell meta. Use a `function` body, not an arrow function (arrows break the `this` binding).
+- Validators only determine validity; data, DOM, and cell state stay untouched.
+- The callback may run after async work; the editor stays in WAITING state until it resolves.
 
-## File structure
+## Files
 
 ```
 src/validators/{validatorName}/
@@ -37,39 +35,33 @@ src/validators/{validatorName}/
 
 Registry: `src/validators/registry.ts`.
 
-## Registration
-
 ```js
 import { registerValidator } from '../../validators/registry';
 registerValidator('myValidator', myValidator);
 ```
 
-## How validators are triggered
+## Triggers
 
-- Automatically by the editor system during `finishEditing()`.
-- Programmatically via `validateCells()`, `validateRows()`, or `validateColumns()` API methods.
-- Invalid cells receive the `htInvalid` CSS class (applied by the renderer pipeline, not the validator).
+- The editor system during `finishEditing()`.
+- `validateCells()`, `validateRows()`, `validateColumns()`.
+- Invalid cells get the `htInvalid` class from the renderer pipeline, not the validator.
 
 ## Reference implementations
 
-- `src/validators/numericValidator/numericValidator.ts` - Numeric validation with `allowEmpty` support.
-- `src/validators/dateValidator/dateValidator.ts` - Date format validation.
-- `src/validators/autocompleteValidator/autocompleteValidator.ts` - Validates against a list of allowed values.
+- `src/validators/numericValidator/numericValidator.ts` - `allowEmpty` support.
+- `src/validators/dateValidator/dateValidator.ts`
+- `src/validators/autocompleteValidator/autocompleteValidator.ts` - list of allowed values.
 
 ## Correcting cell values inside a validator
 
-Validators may correct a cell's value before passing it to the callback. If your validator calls `setDataAtCell` to write a corrected value, **pass a source string that ends with `'Validator'`** (e.g. `'myCustomValidator'`):
+When a validator writes a corrected value with `setDataAtCell`, pass a source string ending in `'Validator'`:
 
 ```js
 this.instance.setDataAtCell(row, col, correctedValue, 'myCustomValidator');
 ```
 
-This is required so that `validateChanges()` in `core.js` can track the correction and prevent it from being overwritten when an async validator in the same batch resolves later. Without the suffix, the correction is silently lost when the batch includes columns with async `source` callbacks (e.g. async autocomplete with `strict: true`).
+`validateChanges()` in `core.js` uses the suffix to track the correction. Without it, the correction is lost when the batch includes columns with async `source` callbacks (e.g. async autocomplete with `strict: true`) that resolve later.
 
 ## Common mistakes
 
-- Forgetting to call `callback`, which silently blocks editing and validation.
-- Not respecting `this.allowEmpty` for empty values.
-- Calling `setDataAtCell` inside a validator without a source ending in `'Validator'` - the correction will be overwritten when the batch contains async validators (see above).
-- Using arrow functions for the validator body (breaks `this` binding to cellProperties).
-- Reading a meta flag that an editor forces in `prepare()`. `DropdownEditor.prepare()` writes `strict = true` onto the one cell it prepares, and only when that cell is selected. A validator that reads `this.strict` therefore sees the column's own `strict: false` on every cell the user never clicked - a paste, `setDataAtCell()`, `validateCells()`, and any `updateSettings()` that rebuilds the cell meta. That made a `strict: false` dropdown strict only in clicked cells (DEV-2911). When a cell type has a fixed behavior, pass it to the shared logic explicitly - `dropdownValidator` calls `validateAgainstSource(this, value, callback, true)` - and never infer it from the meta. A test for this must write to a cell that was never selected: selecting it first hides the bug.
+- Reading a meta flag that an editor forces in `prepare()`. `DropdownEditor.prepare()` writes `strict = true` onto the one cell it prepares, only while selected. A validator reading `this.strict` sees the column's own `strict: false` on every cell never clicked (paste, `setDataAtCell()`, `validateCells()`, any `updateSettings()` that rebuilds cell meta), which made a `strict: false` dropdown strict only in clicked cells (DEV-2911). For fixed cell-type behavior, pass it to the shared logic explicitly: `dropdownValidator` calls `validateAgainstSource(this, value, callback, true)`. Test by writing to a cell that was never selected; selecting it first hides the bug.

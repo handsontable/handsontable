@@ -161,6 +161,8 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'تم تحديد [selected] من [total] صفوف',
   [C.ROW_SELECTION_MENU_REMOVE]: 'إزالة الصفوف المحددة ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: 'مسح تحديد الصفوف',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'تم توسيع الصف [label]، الصفوف الموسّعة المعروضة: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'تم طي الصف [label]',
 };
 
 export default dictionary;

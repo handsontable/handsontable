@@ -21,7 +21,8 @@ const GLOB_MAP = {
   'handsontable-validator-dev': ['handsontable/src/validators/**'],
   'handsontable-celltype-dev': ['handsontable/src/cellTypes/**'],
   'handsontable-unit-testing': [
-    'handsontable/src/**/*.unit.js', 'handsontable/src/**/*.unit.ts', 'handsontable/test/unit/**',
+    'handsontable/src/**/*.unit.js', 'handsontable/src/**/*.unit.ts',
+    'handsontable/test/**/*.unit.js', 'handsontable/test/**/*.unit.ts',
   ],
   'handsontable-e2e-testing': ['handsontable/src/**/*.spec.js', 'handsontable/test/e2e/**'],
   'handsontable-playwright-e2e': ['tests/e2e/**', 'tests/fixtures/**'],

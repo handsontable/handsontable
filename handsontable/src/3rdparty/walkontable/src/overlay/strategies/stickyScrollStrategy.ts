@@ -25,6 +25,7 @@ export function createStickyScrollStrategyDeps(ctx: EngineContext, overlays: Ove
     getTopOverlay: ctx.getTopOverlay,
     getBottomOverlay: ctx.getBottomOverlay,
     getInlineStartOverlay: ctx.getInlineStartOverlay,
+    getInlineEndOverlay: ctx.getInlineEndOverlay,
     getScrollableElement: () => overlays.scrollableElement,
     refreshAll: () => overlays.refreshAll(),
     applyToDOM: () => overlays.applyToDOM(),
@@ -257,13 +258,6 @@ export class StickyScrollStrategy {
   #getScrollLeft() {
     const inlineStartOverlay = this.#deps.getInlineStartOverlay();
 
-    // For RTL window scrolling, scrollX increases as the user scrolls left (away from
-    // the right-edge origin). getTableParentOffset() returns the left-edge offset which
-    // doesn't apply to the RTL coordinate system, so skip it and return scrollX directly.
-    if (this.#isRtl() && this.#isWindowScroll()) {
-      return Math.abs(inlineStartOverlay.getScrollPosition());
-    }
-
     return Math.abs(inlineStartOverlay.getScrollPosition())
       - inlineStartOverlay.getTableParentOffset();
   }
@@ -277,11 +271,9 @@ export class StickyScrollStrategy {
   #setScrollPosition(top: number, left: number): void {
     if (this.#isWindowScroll()) {
       const { rootWindow } = this.#deps;
-      // RTL + window-scroll: left is in scrollX coordinates (distance from the right-edge
-      // origin), so pass it directly. LTR: add back the table's left page offset.
-      const absoluteLeft = this.#isRtl()
-        ? left
-        : left + this.#deps.getInlineStartOverlay().getTableParentOffset();
+      // Hider coordinates run from the table's inline-start edge: add back the page's offset to it
+      // (the left one in LTR, the right margin in RTL), the one `#getScrollLeft` took off.
+      const absoluteLeft = left + this.#deps.getInlineStartOverlay().getTableParentOffset();
 
       rootWindow.scrollTo(
         absoluteLeft,
@@ -344,6 +336,8 @@ export class StickyScrollStrategy {
     }
 
     this.#applyCloneSpreaderStyles(this.#deps.getInlineStartOverlay(), position, isSticky, stickyTop, null, isRtl);
+    // The end clone holds the same rows as the inline-start one, so it follows the same vertical offset.
+    this.#applyCloneSpreaderStyles(this.#deps.getInlineEndOverlay(), position, isSticky, stickyTop, null, isRtl);
     this.#applyCloneSpreaderStyles(this.#deps.getTopOverlay(), position, isSticky, null, stickyLeft, isRtl);
     this.#applyCloneSpreaderStyles(this.#deps.getBottomOverlay(), position, isSticky, null, stickyLeft, isRtl);
   }

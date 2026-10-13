@@ -72,7 +72,7 @@ test.describe('walkontable exact row heights', { tag: '@walkontable' }, () => {
 
     test('keeps the checkbox and the autocomplete arrow inside the clipping wrapper', async () => {
       // In-flow content outside the wrapper would grow the row back to its content height.
-      await expect(wt.cell(2, CHECKBOX_COLUMN).locator('.htCellClip > .htCheckboxRendererInput')).toHaveCount(1);
+      await expect(wt.cell(2, CHECKBOX_COLUMN).locator('.htCellClip > .htCheckboxRendererBox > .htCheckboxRendererInput')).toHaveCount(1);
       await expect(wt.cell(2, AUTOCOMPLETE_COLUMN).locator('.htCellClip > .htAutocompleteArrow')).toHaveCount(1);
       expect(await wt.rowHeight(wt.master, 2)).toBe(ROW_HEIGHT);
     });

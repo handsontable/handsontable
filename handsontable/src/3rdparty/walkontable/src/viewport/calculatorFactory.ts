@@ -283,6 +283,7 @@ export const calculatorFactory: CalculatorFactory = {
   ): ViewportColumnsCalculator {
     const { wtSettings, wtTable } = this;
     const inlineStartOverlay = this.deps.getInlineStartOverlay();
+    const inlineEndOverlay = this.deps.getInlineEndOverlay();
     const totalColumns = wtSettings.getSetting<number>('totalColumns');
     const useSnapshot = this.usesLayoutSnapshotForCalculators();
 
@@ -313,6 +314,15 @@ export const calculatorFactory: CalculatorFactory = {
 
       pos += fixedColumnsWidth;
       width -= fixedColumnsWidth;
+    }
+
+    // The end columns cover the inline-end edge of the viewport, like the bottom rows cover the bottom
+    // one: the scroll offset is unchanged and the room the scrollable columns have shrinks. The setting
+    // is already clamped against `fixedColumnsStart`, so the two bands never overlap.
+    const fixedColumnsEnd = wtSettings.getSetting<number>('fixedColumnsEnd');
+
+    if (fixedColumnsEnd && inlineEndOverlay.clone) {
+      width -= inlineEndOverlay.sumCellSizes(totalColumns - fixedColumnsEnd, totalColumns);
     }
 
     if (!useSnapshot) {

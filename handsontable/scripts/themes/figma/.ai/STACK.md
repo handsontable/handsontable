@@ -17,7 +17,7 @@ Run from the `handsontable/` package root:
 | Command | What it does |
 |---|---|
 | `npm run generate:themes` | Runs `node scripts/themes/figma/index.mjs` via the task runner — the whole build. Wipes `src/themes/static/` and regenerates it. |
-| `node --test scripts/themes/figma/__tests__/` | Runs the generator's own unit tests (emitter + iconsMap drift guard). |
+| `node --test scripts/themes/figma/__tests__/` | Runs the generator's own unit tests (emitter + iconStyles drift guard). |
 
 The task is registered as `generate:themes-static` in `scripts/tasks.json`. It is **not** part of the default build graph — it is on-demand codegen.
 

@@ -4,6 +4,7 @@ import type { StylesHandler } from '../types';
 import type { SettingsPort } from '../ports';
 import type { RowHeightMode } from '../axisSizing/axisSizeSource';
 import { getDefaults } from './defaults';
+import { clampFixedColumnsEnd } from './fixedColumnsEnd';
 
 /**
  * @class Settings
@@ -83,6 +84,7 @@ export default class Settings implements SettingsPort {
   getSetting(key: 'guid'): string;
   getSetting(key: 'isDataViewInstance'): boolean;
   getSetting(key: 'fixedColumnsStart'): number;
+  getSetting(key: 'fixedColumnsEnd'): number;
   getSetting(key: 'fixedRowsTop'): number;
   getSetting(key: 'fixedRowsBottom'): number;
   getSetting(key: 'totalRows'): number | undefined;
@@ -98,6 +100,24 @@ export default class Settings implements SettingsPort {
   getSetting<T = any>(key: string, param1?: any, param2?: unknown, param3?: unknown, param4?: unknown): T;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getSetting(key: string, param1?: any, param2?: unknown, param3?: unknown, param4?: unknown): unknown {
+    if (key === 'fixedColumnsEnd') {
+      // The one place the end band is cut down by the start band (the start band has priority).
+      const requestedSetting = this.settings[key];
+      const requested = (typeof requestedSetting === 'function' ? requestedSetting() : requestedSetting) as number;
+
+      // Most grids request none. Return before reading `fixedColumnsStart` (a thunk that walks the index
+      // mapper) and `totalColumns`, because this getter runs many times per draw and per mouse move.
+      if (!(Math.floor(Number(requested)) > 0)) {
+        return 0;
+      }
+
+      return clampFixedColumnsEnd(
+        requested,
+        this.getSetting('fixedColumnsStart'),
+        this.getSetting('totalColumns')
+      );
+    }
+
     if (typeof this.settings[key] === 'function') {
       return (this.settings[key] as (...args: unknown[]) => unknown)(param1, param2, param3, param4);
 

@@ -192,7 +192,7 @@ Other rules:
   separator to a space (`mmmm yyyy`), and a weekday with no month, day or year is written on its own
   (`dddd`), which the import's `applyDayOrWeekday` reads straight back as `weekday`. **An unspecified
   `hour12` is resolved from the cell's `locale`, not assumed to be 24-hour.** `Intl` defaults the clock
-  from the locale and so does the grid — `timeRenderer` builds `new Intl.DateTimeFormat(locale,
+  from the locale and so does the grid — `timeRenderer` formats with `getDateTimeFormat(locale,
   timeFormat)` — so a cell with `{ hour: '2-digit', minute: '2-digit' }` under the default `en-US`
   renders `09:30 AM` while the export used to write `hh:mm`, which the import read as `hour12: false`
   and the target grid rendered as `09:30`. `resolveHour12` asks `Intl.DateTimeFormat(locale,
@@ -260,3 +260,9 @@ Other rules:
 
 Unit coverage is deliberately fine-grained — `cell-style`, `date-utils`, `datetimeExport`, `formula-utils`,
 `numeric-utils`, plus `types/`. A format change belongs in one of those, not only in the E2E spec.
+
+## `fixedColumnsEnd` is not exported
+
+`getFrozenColumns()` reads `fixedColumnsStart` only. A worksheet has one freeze pane, anchored at the top left, so
+the end columns have no representation in XLSX and are left out on purpose. Nothing else in the export depends on
+the frozen counts.

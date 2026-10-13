@@ -1,7 +1,6 @@
 /* eslint no-console: off */
 import {
   SUBSCRIPTION_KEY,
-  SUBSCRIPTION_KEY_WITH_PROSE,
   SUBSCRIPTION_EXTERNAL_KEY,
   NO_CONSOLE_WARNS_KEY,
   NO_UI_WARNS_KEY,
@@ -12,6 +11,7 @@ import {
   PERPETUAL_NO_UI_WARNS_KEY,
   HF_ONLY_KEY,
 } from '../../utils/entitlementLicenseKey/__tests__/fixtures';
+import { blockOf } from '../../utils/entitlementLicenseKey/__tests__/buildTestKey';
 
 const LICENSE_INFO_CLASS = 'hot-display-license-info';
 // Reference instants inside each window of the fixtures, so no test ever touches the real clock.
@@ -161,13 +161,19 @@ describe('entitlement license notification (via _injectProductInfo)', () => {
       expect(node).toBe(null);
     });
 
-    it('should read the complete artifact exactly as the block on its own', () => {
-      inject(SUBSCRIPTION_KEY_WITH_PROSE, { now: SUBSCRIPTION_NOTICE });
+    [
+      ['on one line', SUBSCRIPTION_KEY.replace(/\s+/g, ' ')],
+      ['with Windows line endings and surrounding whitespace', `\n  ${SUBSCRIPTION_KEY.replace(/\n/g, '\r\n')}\r\n`],
+      ['with its line breaks saved as text ("\\n")', `${SUBSCRIPTION_KEY.replace(/\n/g, '\\n')}\n`],
+    ].forEach(([form, key]) => {
+      it(`should read the key pasted ${form}`, () => {
+        inject(key, { now: SUBSCRIPTION_NOTICE });
 
-      expect(console.warn).toHaveBeenCalledWith(
-        'Your Handsontable subscription license expires on 2027-08-12 (UTC). ' +
-        'To renew your license, contact sales@handsontable.com.'
-      );
+        expect(console.warn).toHaveBeenCalledWith(
+          'Your Handsontable subscription license expires on 2027-08-12 (UTC). ' +
+          'To renew your license, contact sales@handsontable.com.'
+        );
+      });
     });
   });
 
@@ -283,6 +289,21 @@ describe('entitlement license notification (via _injectProductInfo)', () => {
         'support@handsontable.com.'
       );
       expect(node).toBe(null);
+    });
+
+    [
+      ['the bare block, without the prose', blockOf(SUBSCRIPTION_KEY)],
+      ['a key whose prose was edited', SUBSCRIPTION_KEY.replace('valid until 2027-08-12', 'valid until 2099-08-12')],
+      ['a key with text after the block', `${SUBSCRIPTION_KEY} extra`],
+    ].forEach(([form, key]) => {
+      it(`should treat ${form} as invalid`, () => {
+        inject(key, { now: SUBSCRIPTION_RUNNING });
+
+        expect(console.warn).toHaveBeenCalledWith(
+          'The license key for Handsontable is invalid. If you need any help, contact us at ' +
+          'support@handsontable.com.'
+        );
+      });
     });
   });
 

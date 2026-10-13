@@ -1,9 +1,10 @@
 import type { HotInstance } from '../../../../core/types';
+import { getLastScrollableColumn } from '../getLastScrollableColumn';
 
 export const command = {
   name: 'extendCellsSelectionToMostInlineEnd',
   callback(hot: HotInstance) {
-    const { selection, columnIndexMapper } = hot;
+    const { selection } = hot;
     const activeRange = hot.getSelectedRangeActive();
 
     if (!activeRange) {
@@ -17,7 +18,13 @@ export const command = {
       !selection.isSelectedByCorner() &&
       highlight.isCell()
     ) {
-      const column = columnIndexMapper.getNearestNotHiddenIndex(hot.countCols() - 1, -1);
+      const column = getLastScrollableColumn(hot);
+
+      // The start and end columns cover the grid, so there is no column to extend the selection to.
+      if (column === null && (hot.getSettings().fixedColumnsEnd ?? 0) > 0) {
+        return;
+      }
+
       const newFrom = from.clone();
 
       newFrom.col = highlight.col;

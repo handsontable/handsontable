@@ -48,7 +48,7 @@ function renderDropdownIndicator(
   const contentRoot = getCellContentRoot(TD);
 
   contentRoot.insertBefore(
-    createDropdownIndicator(hotInstance.rootDocument, isAriaEnabled, row, col),
+    createDropdownIndicator(hotInstance.rootDocument, isAriaEnabled, row, col, hotInstance),
     contentRoot.firstChild
   );
 
@@ -105,7 +105,7 @@ export function multiSelectRenderer(
   chipsContainer.className = CHIPS_CONTAINER_CLASS;
 
   values.forEach((item) => {
-    const chip = createChipElement(rootDocument, item, isAriaEnabled, row, col, prop);
+    const chip = createChipElement(rootDocument, item, isAriaEnabled, row, col, prop, hotInstance);
 
     chipsContainer.appendChild(chip);
   });

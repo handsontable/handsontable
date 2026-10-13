@@ -184,7 +184,7 @@ const gridContext = hot.getShortcutManager().getContext('grid');
 gridContext.addShortcut({
   group: 'group_ID', // a string value; the user can decide on its name. 
      // Each shortcut should be assigned to the group.
-  runOnlyIf: () => hot.getSelected() !== void 0,
+  runOnlyIf: () => hot.getSelected() !== undefined,
   keys: [['enter']],
   callback: () => {},
 });
@@ -203,9 +203,7 @@ gridContext.addShortcut({
   group: 'customNumericEditor',
   position: 'before',
   relativeToGroup: 'editorManager.handlingEditor',
-  runOnlyIf: () => {
-    hot.getSelected() !== void 0;
-  },
+  runOnlyIf: () => hot.getSelected() !== undefined,
   keys: [['F2']],
   callback: () => {
     if (hot.getActiveEditor().cellProperties.type === 'numeric') {

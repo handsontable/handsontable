@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>fixedColumnsEnd review fixture (ManualColumnFreeze, NestedHeaders group cells)</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright projects, mapped
+    // through fixed allowlists to LITERALS so a crafted param is never reflected into the document. An
+    // unknown value THROWS instead of falling back, so a typo is one red leg, not a mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    Review follow-ups for `fixedColumnsEnd`. Query params: scenario=freeze|group, rtl=1, fixedColumnsStart,
+    fixedColumnsEnd (default 2), hiddenColumn (a visual column to hide, group scenario only).
+    The grid has 12 columns, 72 px wide, in a 500 x 300 px viewport, with row and column headers.
+
+    freeze: ManualColumnFreeze with the context menu, 10 columns (c0 to c9), so with the default band of 2 the end
+      band holds columns 8 and 9.
+    group: nested headers with a group that reaches into the end band. Level 0: A (0-4), Q1 (5-10, class htRight),
+      Z (11); level 1: the column labels. Add groupRowspan=2 to give Q1 a rowspan of 2 (the cells under it are
+      empty placeholders). With fixedColumnsEnd=4 the band holds 8 to 11, so Q1 is continued on the end clone
+      over columns 8 to 10.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    try {
+    const container = document.querySelector('[data-testid="grid"]');
+    const number = (name, fallback) => {
+      const value = Number(htParams.get(name) ?? fallback);
+
+      if (!Number.isInteger(value) || value < 0) {
+        throw new Error('Invalid ?' + name + '= value: ' + JSON.stringify(htParams.get(name)));
+      }
+
+      return value;
+    };
+    const scenario = htParams.get('scenario') ?? 'freeze';
+    const cols = scenario === 'freeze' ? 10 : 12;
+    const data = Array.from({ length: 12 }, (_, r) => Array.from({ length: cols }, (_, c) => `R${r + 1}C${c + 1}`));
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    if (htParams.get('rtl') === '1') {
+      document.documentElement.setAttribute('dir', 'rtl');
+    }
+
+    const columnLabels = Array.from({ length: cols }, (_, c) => `c${c}`);
+    const settings = {
+      data,
+      colWidths: 72,
+      width: 500,
+      height: 300,
+      fixedColumnsStart: number('fixedColumnsStart', 0),
+      fixedColumnsEnd: number('fixedColumnsEnd', 2),
+      rowHeaders: true,
+      colHeaders: true,
+      renderer: testIdRenderer,
+      licenseKey: 'non-commercial-and-evaluation',
+    };
+
+    if (scenario === 'freeze') {
+      settings.manualColumnFreeze = true;
+      settings.contextMenu = true;
+    } else if (scenario === 'group') {
+      const rowspan = number('groupRowspan', 1);
+      const group = { label: 'Q1', colspan: 6, headerClassName: 'htRight' };
+
+      if (rowspan > 1) {
+        group.rowspan = rowspan;
+      }
+
+      settings.nestedHeaders = [
+        [{ label: 'A', colspan: 5 }, group, 'Z'],
+        rowspan > 1 ? columnLabels.map((label, c) => (c >= 5 && c <= 10 ? '' : label)) : columnLabels,
+      ];
+
+      if (htParams.has('hiddenColumn')) {
+        settings.hiddenColumns = { columns: [number('hiddenColumn', 0)], indicators: true };
+      }
+    } else {
+      throw new Error('Unknown ?scenario= value: ' + JSON.stringify(scenario));
+    }
+
+    window.hot = new Handsontable(container, settings);
+    } catch (error) {
+      // A build failure is reported by the page object's goto(), not as a mute timeout.
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+  </script>
+</body>
+</html>

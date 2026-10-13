@@ -18,6 +18,7 @@ import type { DropdownMenu } from '../plugins/dropdownMenu';
 import type { RowSelectionSettings, RowSelectionSource } from '../plugins/rowSelection';
 import type { HeaderCheckboxSettings } from '../plugins/checkboxHeader';
 import type { SheetsBarSettings, SheetsBarViewState } from '../plugins/sheetsBar';
+import type { ManualColumnFreezeSettings } from '../plugins/manualColumnFreeze';
 import type { ImportFileSettings, ImportResult } from '../plugins/importFile';
 import type { UndoRedoSettings } from '../plugins/undoRedo';
 import type { PasteClipboardData } from '../plugins/copyPaste';
@@ -254,6 +255,7 @@ export interface GridSettings {
   autoWrapRow?: boolean;
 
   // Fixed / frozen
+  fixedColumnsEnd?: number;
   fixedColumnsLeft?: number;
   fixedColumnsStart?: number;
   fixedRowsBottom?: number;
@@ -302,7 +304,7 @@ export interface GridSettings {
   hiddenColumns?: boolean | object;
   hiddenRows?: boolean | object;
   loading?: boolean | object;
-  manualColumnFreeze?: boolean;
+  manualColumnFreeze?: boolean | ManualColumnFreezeSettings;
   manualColumnMove?: boolean | number[];
   manualColumnResize?: boolean | number[];
   manualRowMove?: boolean | number[];
@@ -412,7 +414,7 @@ export interface GridSettings {
   }) => void;
   afterColumnSort?: (currentSortConfig: ColumnSortingConfig[], destinationSortConfigs: ColumnSortingConfig[],
     sortPossible: boolean) => void;
-  afterColumnUnfreeze?: (columnIndex: number, isFreezingPerformed: boolean) => void;
+  afterColumnUnfreeze?: (columnIndex: number, isFreezingPerformed: boolean, finalIndex: number) => void;
   afterContextMenuDefaultOptions?: (predefinedItems: Array<PredefinedMenuItemKey | MenuItemConfig>)
     => void;
   afterContextMenuHide?: (context: ContextMenu) => void;
@@ -614,7 +616,7 @@ export interface GridSettings {
   beforeColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void | number | false;
   beforeColumnSort?: (currentSortConfig: ColumnSortingConfig[],
     destinationSortConfigs: ColumnSortingConfig[], sortPossible: boolean) => void | boolean;
-  beforeColumnUnfreeze?: (columnIndex: number, isUnfreezingPerformed: boolean) => void | boolean;
+  beforeColumnUnfreeze?: (columnIndex: number, isUnfreezingPerformed: boolean, finalIndex: number) => void | boolean;
   beforeColumnWrap?: (isActionInterrupted: { value: boolean }, newCoords: WalkontableCellCoords,
     isColumnFlipped: boolean) => void;
   beforeCompositionStart?: (event: CompositionEvent) => void;

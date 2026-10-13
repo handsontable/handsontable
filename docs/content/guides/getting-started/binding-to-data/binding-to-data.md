@@ -33,8 +33,8 @@ Array of arrays is a good choice for the more grid-like scenarios where you need
 
 ::: example #example1 --js 1 --ts 2
 
-@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example1.js)
-@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example1.ts)
+@[code collapse={9-13}](@/content/guides/getting-started/binding-to-data/javascript/example1.js)
+@[code collapse={9-13}](@/content/guides/getting-started/binding-to-data/javascript/example1.ts)
 
 :::
 
@@ -78,14 +78,14 @@ Array of arrays is a good choice for the more grid-like scenarios where you need
 
 ### Array of arrays with a selective display of columns
 
-The following example shows how you would use the array of arrays with a selective display of columns. This scenario uses the same data source as in the previous example, this time omitting the `Tesla` column from the grid.
+The following example shows how you would use the array of arrays with a selective display of columns. This scenario uses the same data source as in the previous example, this time omitting the `Supplier` column from the grid.
 
 ::: only-for javascript
 
 ::: example #example2 --js 1 --ts 2
 
-@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example2.js)
-@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example2.ts)
+@[code collapse={9-13}](@/content/guides/getting-started/binding-to-data/javascript/example2.js)
+@[code collapse={9-13}](@/content/guides/getting-started/binding-to-data/javascript/example2.ts)
 
 :::
 
@@ -562,8 +562,8 @@ the [`setDataAtCell()`](@/api/core.md#setdataatcell) method.
 
 ::: example #example10 --js 1 --ts 2
 
-@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example10.js)
-@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example10.ts)
+@[code collapse={9-13}](@/content/guides/getting-started/binding-to-data/javascript/example10.js)
+@[code collapse={9-13}](@/content/guides/getting-started/binding-to-data/javascript/example10.ts)
 
 :::
 
@@ -973,8 +973,8 @@ When working with a copy of data for Handsontable, it is best practice is to clo
 
 ::: example #example11 --js 1 --ts 2
 
-@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example11.js)
-@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example11.ts)
+@[code collapse={9-13}](@/content/guides/getting-started/binding-to-data/javascript/example11.js)
+@[code collapse={9-13}](@/content/guides/getting-started/binding-to-data/javascript/example11.ts)
 
 :::
 

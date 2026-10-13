@@ -839,7 +839,6 @@ export class Comments extends BasePlugin {
     } = this.#editor.getSize();
 
     const { innerWidth, innerHeight } = this.hot.rootWindow;
-    const documentElement = this.hot.rootDocument.documentElement;
     const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
     const verticalScrollbarWidth = hasVerticalScrollbar(this.hot.rootWindow) ? scrollbarWidth : 0;
     const horizontalScrollbarWidth = hasHorizontalScrollbar(this.hot.rootWindow) ? scrollbarWidth : 0;
@@ -855,7 +854,7 @@ export class Comments extends BasePlugin {
     if (this.hot.isLtr() && left + cellWidth + editorWidth > innerWidth - verticalScrollbarWidth) {
       x = left + rootWindow.scrollX - editorWidth - 1;
 
-    } else if (this.hot.isRtl() && x < -(documentElement.scrollWidth - documentElement.clientWidth)) {
+    } else if (this.hot.isRtl() && x < rootWindow.scrollX) {
       x = left + rootWindow.scrollX + lastColWidth + 1;
     }
 

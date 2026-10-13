@@ -15,6 +15,7 @@
 import { isHTMLElement } from '../../../../helpers/dom/element';
 import { CLONE_BOTTOM } from '../overlay';
 import { applyRowHeight } from '../render/exactRowHeight';
+import { firstRowDrawsTopBorder } from './boxModel';
 import type { default as Table } from '../table/baseTable';
 
 /**
@@ -92,15 +93,22 @@ export function adjustColumnHeaderHeights(table: Table): void {
  * corner's natural (content-driven) height and only adjusting the master/top side keeps the
  * synchronization stable and lets the header shrink again when the content allows.
  *
+ * With frozen columns on both sides the shorter corner (and the clone beside it) is raised to the
+ * taller one, which does write onto corner cells. That cannot ratchet: a full draw re-renders those
+ * cells and clears the written height, and a fast draw measures a value this function wrote itself,
+ * which is the maximum already. Nothing here feeds the render-size probe, which reads the master's THEAD.
+ *
  * @param {Table} table The master table.
  */
 export function syncOversizedColumnHeadersWithFrozenOverlays(table: Table): void {
   const wtOverlays = table.deps.getWtOverlays();
-  // Cheapest possible bail-out first: with no frozen columns the corner overlay is not cloned,
+  // Cheapest possible bail-out first: with no frozen columns the corner overlays are not cloned,
   // so the overwhelmingly common (non-frozen) grids pay only a couple of property reads per draw.
-  const cornerClone = wtOverlays.topInlineStartCornerOverlay?.clone;
+  const startCornerThead = wtOverlays.topInlineStartCornerOverlay?.clone?.wtTable?.THEAD;
+  const endCornerThead = wtOverlays.topInlineEndCornerOverlay?.needFullRender ?
+    wtOverlays.topInlineEndCornerOverlay.clone?.wtTable?.THEAD : undefined;
 
-  if (!cornerClone?.wtTable?.THEAD) {
+  if (!startCornerThead && !endCornerThead) {
     return;
   }
 
@@ -110,21 +118,37 @@ export function syncOversizedColumnHeadersWithFrozenOverlays(table: Table): void
     return;
   }
 
-  const cornerChildren = cornerClone.wtTable.THEAD.childNodes;
-  const topClone = wtOverlays.topOverlay?.clone;
-  const targetTheads = [table.THEAD, topClone?.wtTable?.THEAD];
+  const cornerTheads = [startCornerThead, endCornerThead];
+  // The master and the top overlay never render the frozen columns' headers.
+  const targetTheads = [table.THEAD, wtOverlays.topOverlay?.clone?.wtTable?.THEAD];
+
+  if (endCornerThead && startCornerThead && wtOverlays.topInlineStartCornerOverlay.needFullRender) {
+    // Two frozen sides: the shorter side is brought up to the taller one as well - both its corner and
+    // the clone beside it, which render the same headers and so have the same natural height.
+    targetTheads.push(
+      startCornerThead,
+      wtOverlays.inlineStartOverlay?.clone?.wtTable?.THEAD,
+      endCornerThead,
+      wtOverlays.inlineEndOverlay?.clone?.wtTable?.THEAD
+    );
+  }
+
+  const { geometryReader } = table.deps;
   // Sub-pixel tolerance to avoid rewriting heights on floating-point jitter while still
   // catching the fractional gaps (e.g. ~0.33px at 75% zoom) that read as a 1px shift.
   const epsilon = 0.1;
 
   for (let i = 0, len = columnHeaders.length; i < len; i++) {
-    const cornerChild = cornerChildren[i];
+    const cornerRowHeight = cornerTheads.reduce((tallest, thead) => {
+      const cornerChild = thead?.childNodes[i];
 
-    if (!isHTMLElement(cornerChild)) {
+      return isHTMLElement(cornerChild) ?
+        Math.max(tallest, geometryReader.getBoundingClientRect(cornerChild).height) : tallest;
+    }, 0);
+
+    if (cornerRowHeight === 0) {
       continue;
     }
-
-    const cornerRowHeight = table.deps.geometryReader.getBoundingClientRect(cornerChild).height;
 
     targetTheads.forEach((thead) => {
       const targetRow = thead?.childNodes[i];
@@ -139,7 +163,7 @@ export function syncOversizedColumnHeadersWithFrozenOverlays(table: Table): void
         return;
       }
 
-      const targetRowHeight = table.deps.geometryReader.getBoundingClientRect(targetRow).height;
+      const targetRowHeight = geometryReader.getBoundingClientRect(targetRow).height;
 
       if (Math.abs(targetRowHeight - cornerRowHeight) > epsilon) {
         firstChild.style.height = `${cornerRowHeight}px`;
@@ -165,6 +189,7 @@ function applyRowHeightsToRenderedRows(table: Table): void {
   }
 
   const borderBoxSizing = table.wtSettings.getSetting('stylesHandler').areCellsBorderBox();
+  const firstRowTopBorder = firstRowDrawsTopBorder(table.THEAD);
   const renderedRows = TBODY.childNodes;
   // Once per call rather than once per row (see `RowUtils#mayHaveExactRows`).
   const mayHaveExactRows = table.rowUtils.mayHaveExactRows();
@@ -184,6 +209,9 @@ function applyRowHeightsToRenderedRows(table: Table): void {
       table.rowUtils.getHeightByOverlayName(sourceRowIndex, table.name, isExact),
       isExact,
       borderBoxSizing,
+      table.rowUtils,
+      sourceRowIndex,
+      renderedRowIndex === 0 && firstRowTopBorder,
     );
   }
 }
@@ -209,8 +237,33 @@ export function shouldSyncOversizedRowsWithFrozenOverlays(table: Table): boolean
   const { wtSettings } = table;
 
   return !wtSettings.getSetting('externalRowCalculator') &&
-    !!wtSettings.getSetting<number>('fixedColumnsStart') &&
-    table.getFirstRenderedColumn() > 0;
+    isFrozenColumnBandOutsideMasterBand(
+      wtSettings, table.getFirstRenderedColumn(), table.getLastRenderedColumn()
+    );
+}
+
+/**
+ * Whether a frozen column (an inline-start one, or one of the last `fixedColumnsEnd` columns) lies
+ * outside the master's rendered column band, so only a frozen overlay renders it. The start band is
+ * out of the master's band as soon as that band starts past column 0, the end band as soon as it
+ * stops short of the last column.
+ *
+ * @param {Settings} wtSettings The Walkontable settings.
+ * @param {number} firstRenderedColumn The master's first rendered column.
+ * @param {number} lastRenderedColumn The master's last rendered column.
+ * @returns {boolean}
+ */
+export function isFrozenColumnBandOutsideMasterBand(
+  wtSettings: Table['wtSettings'],
+  firstRenderedColumn: number,
+  lastRenderedColumn: number
+): boolean {
+  if (wtSettings.getSetting<number>('fixedColumnsStart') && firstRenderedColumn > 0) {
+    return true;
+  }
+
+  return !!wtSettings.getSetting<number>('fixedColumnsEnd') &&
+    lastRenderedColumn < wtSettings.getSetting<number>('totalColumns') - 1;
 }
 
 /**
@@ -259,6 +312,9 @@ export function syncOversizedRowsWithFrozenOverlays(
     wtOverlays.inlineStartOverlay,
     wtOverlays.topInlineStartCornerOverlay,
     wtOverlays.bottomInlineStartCornerOverlay,
+    wtOverlays.inlineEndOverlay,
+    wtOverlays.topInlineEndCornerOverlay,
+    wtOverlays.bottomInlineEndCornerOverlay,
   ]
     .filter(overlay => overlay?.needFullRender)
     .map(overlay => overlay?.clone?.wtTable)
@@ -602,15 +658,8 @@ export function markOversizedRows(
   const isExactBand = mayHaveExactRows && rowCount > 0 &&
     table.deps.rowSizeSource.isUniform() && table.deps.rowSizeSource.isModeUniform() &&
     rowUtils.isExact(table.rowFilter!.renderedToSource(0));
-  // Whether THIS table's first rendered `<tr>` draws its own 1px `border-top`, which makes it render
-  // one pixel taller than the rest of the band. It does only when the table renders no head row: the
-  // `thead:not(:empty) + tbody > tr:first-child` rule in `styles/base/_base.scss` hands the seam
-  // under a column header to the header's own `border-bottom` (DEV-2786), so a body row abutting one
-  // has no top border to account for. Per TABLE, not per grid, and it has to be: the bottom clone
-  // renders no head row, so its first row keeps the border — there it is the bottom-freeze seam.
-  // `StylesHandler#firstRenderedRowDrawsTopBorder` is the grid-level form of the same question, for
-  // the master's own row heights.
-  const drawsFirstRowTopBorder = !table.THEAD?.hasChildNodes();
+  // Whether THIS table's first rendered `<tr>` draws its own 1px `border-top` (see `firstRowDrawsTopBorder`).
+  const drawsFirstRowTopBorder = firstRowDrawsTopBorder(table.THEAD);
   const expectedTableHeight = rowCount * stylesHandler.getDefaultRowHeight();
   const borderBoxSizing = stylesHandler.areCellsBorderBox();
   const rowHeightFn = borderBoxSizing

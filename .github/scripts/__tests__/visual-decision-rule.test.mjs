@@ -240,7 +240,7 @@ test('the PR template and the pr-creation copy carry the visual test-evidence bu
     // means "nothing written", free text means an answer. The visual bullet must stay a sibling AFTER
     // it, never a line the detector would read as the bug-fix answer.
     assert.ok(bulletAt > bugFixAt, `${name}: the visual bullet must follow the bug-fix line (redSpecFieldMissing reads the next sibling)`);
-    assert.ok(text.includes(`${bullet}, only for pixels no DOM probe can express — ${MARKER} the E2E above):`),
+    assert.ok(text.includes(`${bullet}, only for pixels no DOM probe can express – ${MARKER} the E2E above):`),
       `${name}: the visual bullet's wording drifted from the template's`);
   }
 

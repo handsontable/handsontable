@@ -159,6 +159,8 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'Выбрано [selected] из [total] строк',
   [C.ROW_SELECTION_MENU_REMOVE]: 'Удалить выбранные строки ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: 'Снять выбор строк',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Развёрнута строка [label], показано развёрнутых строк: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Свёрнута строка [label]',
 };
 
 export default dictionary;
