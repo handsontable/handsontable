@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-13T06:42:52.244Z",
+  "generatedAt": "2026-10-13T06:55:04.373Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 392,
     "needsTicket": 25,
     "quarantined": 0,
-    "entries": 2048
+    "entries": 2049
   },
   "rows": [
     {
@@ -540,6 +540,43 @@
       "needsTicket": true
     },
     {
+      "key": "jasmine|handsontable/src/editors/textEditor/__tests__/textEditor.spec.js|TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
+      "tier": "jasmine",
+      "file": "handsontable/src/editors/textEditor/__tests__/textEditor.spec.js",
+      "line": null,
+      "title": "TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
+      "count7": 4,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 4,
+      "flakyRuns30": 0,
+      "branches30": 4,
+      "nightlyRuns30": 0,
+      "openBranches30": 4,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD (theme: main)",
+        "UMD.min (theme: horizon)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-13T06:54:12Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38354795158/attempts/2",
+        "branch": "feature/DEV-3378_RTL-window-scrollbar-release-keeps-position",
+        "leg": "UMD (theme: main)",
+        "status": "failed",
+        "error": "Error: Timeout - Async function did not complete within 15000ms (set by jasmine.DEFAULT_TIMEOUT_INTERVAL)",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
       "key": "jasmine|handsontable/src/plugins/manualRowResize/__tests__/manualRowResize.spec.js|manualRowResize should autosize selected rows after double click on handler and move mouse to the next row",
       "tier": "jasmine",
       "file": "handsontable/src/plugins/manualRowResize/__tests__/manualRowResize.spec.js",
@@ -579,49 +616,12 @@
       "needsTicket": true
     },
     {
-      "key": "jasmine|handsontable/src/editors/textEditor/__tests__/textEditor.spec.js|TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
-      "tier": "jasmine",
-      "file": "handsontable/src/editors/textEditor/__tests__/textEditor.spec.js",
-      "line": null,
-      "title": "TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
-      "count7": 3,
-      "count30": 5,
-      "countAll": 5,
-      "runs30": 4,
-      "flakyRuns30": 0,
-      "branches30": 4,
-      "nightlyRuns30": 0,
-      "openBranches30": 4,
-      "legs": [
-        "UMD (theme: classic)",
-        "UMD (theme: main)",
-        "UMD.min (theme: horizon)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "passes alone"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-13T06:42:08Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38354795158",
-        "branch": "feature/DEV-3378_RTL-window-scrollbar-release-keeps-position",
-        "leg": "UMD (theme: main)",
-        "status": "failed",
-        "error": "Error: Timeout - Async function did not complete within 15000ms (set by jasmine.DEFAULT_TIMEOUT_INTERVAL)",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
       "key": "playwright|e2e/collapsible-indicator-dropdown-menu.spec.ts|collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
       "tier": "playwright",
       "file": "e2e/collapsible-indicator-dropdown-menu.spec.ts",
       "line": 87,
       "title": "collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
-      "count7": 1,
+      "count7": 0,
       "count30": 4,
       "countAll": 4,
       "runs30": 2,
@@ -722,7 +722,7 @@
       "file": "e2e/fixed-columns-end.spec.ts",
       "line": 224,
       "title": "fixedColumnsEnd keyboard navigation (rtl) › keeps the cell reached with the arrow key visible beside the end columns",
-      "count7": 2,
+      "count7": 1,
       "count30": 3,
       "countAll": 3,
       "runs30": 2,
