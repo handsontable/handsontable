@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-12T18:11:46.307Z",
+  "generatedAt": "2026-10-13T06:42:52.244Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 392,
     "needsTicket": 25,
     "quarantined": 0,
-    "entries": 2047
+    "entries": 2048
   },
   "rows": [
     {
@@ -584,16 +584,17 @@
       "file": "handsontable/src/editors/textEditor/__tests__/textEditor.spec.js",
       "line": null,
       "title": "TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
-      "count7": 2,
-      "count30": 4,
-      "countAll": 4,
-      "runs30": 3,
+      "count7": 3,
+      "count30": 5,
+      "countAll": 5,
+      "runs30": 4,
       "flakyRuns30": 0,
-      "branches30": 3,
+      "branches30": 4,
       "nightlyRuns30": 0,
-      "openBranches30": 3,
+      "openBranches30": 4,
       "legs": [
         "UMD (theme: classic)",
+        "UMD (theme: main)",
         "UMD.min (theme: horizon)"
       ],
       "statuses": [
@@ -604,10 +605,10 @@
       ],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-10-12T06:41:24Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37933865537/attempts/2",
-        "branch": "feature/DEV-3278_Date-between-filter-date-inputs",
-        "leg": "UMD.min (theme: horizon)",
+        "seenAt": "2026-10-13T06:42:08Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38354795158",
+        "branch": "feature/DEV-3378_RTL-window-scrollbar-release-keeps-position",
+        "leg": "UMD (theme: main)",
         "status": "failed",
         "error": "Error: Timeout - Async function did not complete within 15000ms (set by jasmine.DEFAULT_TIMEOUT_INTERVAL)",
         "source": "ci"
