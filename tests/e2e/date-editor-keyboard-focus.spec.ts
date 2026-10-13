@@ -16,9 +16,14 @@ test.describe('the date editor opened with the keyboard', { tag: CROSS_BROWSER_T
     await grid.goto();
   });
 
-  test('focuses its input and shows the picker', async({ browserName }) => {
+  test('focuses its input', async() => {
     await grid.openEditorWithEnter(0, 1);
 
+    await expect(grid.editorInput).toBeFocused();
+  });
+
+  test('keeps the picker shown while the input has the focus', async({ browserName }) => {
+    await grid.openEditorWithEnter(0, 1);
     await expect(grid.editorInput).toBeFocused();
 
     if (browserName !== 'webkit') {
