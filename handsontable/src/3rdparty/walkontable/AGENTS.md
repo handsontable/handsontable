@@ -936,8 +936,9 @@ Consequences worth knowing:
   in one table) stamps it. Without frozen columns that pass only reaches the top clone's hidden corner
   `th`, which the visible `ht_clone_top_inline_start_corner` paints over, so
   `#markCornerColumnSeamHeader` stamps the visible corner's last cell when column 0 is active and
-  still rendered (the master's overscan keeps it so for a small sideways scroll). Assert
-  the CLASS on the visible corner, not its colour: `classic` maps the accent and the cell border to
+  is the first column the viewport shows (`getFirstPartiallyVisibleColumn()`, not the render band,
+  which overscans) and the host highlights that header level (`onBeforeHighlightingColumnHeader`, so
+  nested headers tag only the active levels). Assert the CLASS on the visible corner, not its color: `classic` maps the accent and the cell border to
   the same value.
 - **A grid can carry more than one row header column**, and then the seam to column 0 is the LAST
   one's `border-inline-end`. `afterGetRowHeaderRenderers` is a documented hook that appends

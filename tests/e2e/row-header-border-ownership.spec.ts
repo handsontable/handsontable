@@ -245,8 +245,8 @@ test.describe('Row header border ownership', () => {
   });
 
   test('draws the active accent on the seam between the corner and an active column 0 header', async () => {
-    // The class is asserted, not only the colour: `classic` maps the accent and the cell-border
-    // color to the same value, so a colour check cannot fail there.
+    // The class is asserted, not only the color: `classic` maps the accent and the cell-border
+    // color to the same value, so a color check cannot fail there.
     const prev = /(^|\s)ht__active_highlight-prev(\s|$)/;
 
     for (const [name, testId] of [
@@ -279,6 +279,30 @@ test.describe('Row header border ownership', () => {
     await grid.selectColumn('frozen', 0);
 
     await expect(grid.lastCornerHeaderCell('frozen')).toHaveClass(prev);
+  });
+
+  test('keeps the corner seam accent to column 0 at the viewport start, a selection starting there, and the active levels', async () => {
+    const prev = /(^|\s)ht__active_highlight-prev(\s|$)/;
+    const lastCorner = grid.lastCornerHeaderCell('row-headers');
+
+    // A range that ends on column 0 still starts there.
+    await grid.selectColumn('rowHeaders', 2, 0);
+
+    await expect(lastCorner).toHaveClass(prev);
+
+    // Column 0 off the viewport start: the header next to the corner is another column's.
+    // Selecting it scrolls it into view, so scroll away after the selection.
+    await grid.selectColumn('rowHeaders', 0);
+    await expect(lastCorner).toHaveClass(prev);
+    await grid.scrollHorizontallyTo('rowHeaders', 'row-headers', 1);
+
+    await expect(lastCorner).not.toHaveClass(prev);
+
+    // Nested headers: only the level the selection activates draws the accent.
+    await grid.selectColumn('nested', 0);
+
+    await expect(grid.lastCornerHeaderCell('nested', 1)).toHaveClass(prev);
+    await expect(grid.lastCornerHeaderCell('nested', 0)).not.toHaveClass(prev);
   });
 
   test('keeps the active accent on the seam an active row header owns', async () => {

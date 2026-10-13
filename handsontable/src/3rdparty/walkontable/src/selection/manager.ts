@@ -786,10 +786,10 @@ export class SelectionManager {
    * visible corner clone's cell that is painted over it. With frozen columns column 0's header
    * renders in this overlay and that pass already tags the cell.
    *
-   * The seam is only drawn for column 0, and while that column is still rendered: the engine renders
-   * a column or two past the viewport edge, so a small sideways scroll keeps the accent, as the hidden
-   * top-clone corner did before. Only the head rows the selection
-   * covers are tagged, so nested headers keep the accent to the active levels.
+   * The seam is only drawn for column 0, and only while that column is the first one the viewport
+   * shows: once the grid scrolls sideways the header next to the corner is another column's. Only the
+   * head rows the selection covers, and the levels the host highlights, are tagged, so nested headers
+   * keep the accent to the active levels.
    *
    * No-op unless this overlay is the top inline-start corner and `fixedColumnsStart` is 0.
    *
@@ -816,23 +816,38 @@ export class SelectionManager {
       return;
     }
 
-    // The selection has to start on column 0, and that column has to be the first one the grid renders.
-    if (Math.min(corners[1], corners[3]) !== 0 || wot.cloneSource!.wtTable.getFirstRenderedColumn() !== 0) {
+    // The selection has to start on column 0 (the corners are already ordered), and that column has to
+    // be the first one the viewport shows.
+    if (corners[1] !== 0 || wot.cloneSource!.wtTable.getFirstPartiallyVisibleColumn() !== 0) {
       return;
     }
 
-    const topRow = Math.min(corners[0], corners[2]);
-    const bottomRow = Math.max(corners[0], corners[2]);
+    const [topRow, , bottomRow] = corners;
+    const selectionWidth = corners[3] + 1;
 
     for (let level = 0; level < headRows.length; level++) {
       const row = level - headRows.length;
 
-      if (row >= topRow && row <= bottomRow) {
-        const th = headRows[level].children[rowHeadersCount - 1];
+      if (row < topRow || row > bottomRow) {
+        continue; // eslint-disable-line no-continue
+      }
 
-        if (isHTMLElement(th) && th.nodeName === 'TH') {
-          this.#tagSeamClass(classNamesMap, th, `${activeHeaderClassName}-prev`);
-        }
+      // Ask the host which header it highlights at this level, as the header scan does: a plugin
+      // (nested headers) answers `null` for a level it leaves inactive.
+      const highlighted = wot.getSetting('onBeforeHighlightingColumnHeader', 0, level, {
+        selectionType: ACTIVE_HEADER_TYPE,
+        columnCursor: 0,
+        selectionWidth,
+      });
+
+      if (highlighted === null) {
+        continue; // eslint-disable-line no-continue
+      }
+
+      const th = headRows[level].children[rowHeadersCount - 1];
+
+      if (isHTMLElement(th) && th.nodeName === 'TH') {
+        this.#tagSeamClass(classNamesMap, th, `${activeHeaderClassName}-prev`);
       }
     }
   }

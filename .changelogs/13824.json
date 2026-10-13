@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed the missing active accent on the seam between the corner header and an active first column header.",
+  "title": "Fixed the missing highlighted border between the corner and the first column header when the first column is selected.",
   "type": "fixed",
   "issueOrPR": 13824,
   "breaking": false,

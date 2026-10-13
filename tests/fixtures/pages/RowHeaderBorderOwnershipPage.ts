@@ -145,12 +145,12 @@ export class RowHeaderBorderOwnershipPage {
    * @param {string} name The grid's key in `window.grids`.
    * @param {number} column The visual column index.
    */
-  async selectColumn(name: string, column: number): Promise<void> {
+  async selectColumn(name: string, column: number, endColumn = column): Promise<void> {
     await this.page.evaluate(
-      ([gridName, c]) => (window as unknown as {
-        grids: Record<string, { selectColumns: (column: number) => void }>
-      }).grids[gridName as string].selectColumns(c as number),
-      [name, column]
+      ([gridName, from, to]) => (window as unknown as {
+        grids: Record<string, { selectColumns: (from: number, to: number) => void }>
+      }).grids[gridName as string].selectColumns(from as number, to as number),
+      [name, column, endColumn]
     );
   }
 
