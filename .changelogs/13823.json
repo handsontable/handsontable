@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `multiselect` editor's list opening above a cell that had room for it below when the source had more entries than `visibleRows`. The list now flips at the same point as a short source with the same `visibleRows`, which moves the flip threshold for long-source `multiselect` columns.",
+  "type": "fixed",
+  "issueOrPR": 13823,
+  "breaking": false,
+  "framework": "none"
+}
