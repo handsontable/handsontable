@@ -935,7 +935,8 @@ Consequences worth knowing:
   column 0's header itself, so the neighbor pass (`#markActiveHeaderNeighbor`, `previousElementSibling`
   in one table) stamps it. Without frozen columns that pass only reaches the top clone's hidden corner
   `th`, which the visible `ht_clone_top_inline_start_corner` paints over, so
-  `#markCornerColumnSeamHeader` stamps the visible corner's last cell when column 0 is active. Assert
+  `#markCornerColumnSeamHeader` stamps the visible corner's last cell when column 0 is active and
+  still rendered (the master's overscan keeps it so for a small sideways scroll). Assert
   the CLASS on the visible corner, not its colour: `classic` maps the accent and the cell border to
   the same value.
 - **A grid can carry more than one row header column**, and then the seam to column 0 is the LAST

@@ -786,8 +786,9 @@ export class SelectionManager {
    * visible corner clone's cell that is painted over it. With frozen columns column 0's header
    * renders in this overlay and that pass already tags the cell.
    *
-   * The seam is only drawn for column 0: once the grid scrolls sideways the header next to the corner
-   * is a clipped one, and the accent would say nothing about it. Only the head rows the selection
+   * The seam is only drawn for column 0, and while that column is still rendered: the engine renders
+   * a column or two past the viewport edge, so a small sideways scroll keeps the accent, as the hidden
+   * top-clone corner did before. Only the head rows the selection
    * covers are tagged, so nested headers keep the accent to the active levels.
    *
    * No-op unless this overlay is the top inline-start corner and `fixedColumnsStart` is 0.
