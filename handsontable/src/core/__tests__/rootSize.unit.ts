@@ -439,6 +439,20 @@ describe('root size options', () => {
       expect(inlineSize(buildGrid({ preventOverflow: 'vertical' })).overflowX).toBe('');
     });
 
+    it('should clip beside a definite width', () => {
+      const grid = buildGrid({ preventOverflow: 'horizontal', width: 200 });
+
+      expect(inlineSize(grid).overflowX).toBe('clip');
+    });
+
+    it('should leave a definite width clipped when the option is switched off', () => {
+      const grid = buildGrid({ preventOverflow: 'horizontal', width: 200 });
+
+      grid.updateSettings({ preventOverflow: false });
+
+      expect(inlineSize(grid).overflowX).toBe('clip');
+    });
+
     it('should clip both axes beside a sized height, as it does without the option', () => {
       const grid = buildGrid({ preventOverflow: 'horizontal', height: 300 });
 

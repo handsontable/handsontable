@@ -248,8 +248,8 @@ function applyAxis(instance: HotInstance, axis: RootSizeAxis, rawValue: unknown,
  * - A sized height (a length, `%`, viewport units) clips both axes: the grid scrolls inside its box.
  * - A free height (unset or `auto`) with a definite width clips the horizontal axis only: the root
  *   scrolls the columns, the page scrolls the rows.
- * - A free height with `preventOverflow: 'horizontal'` clips the horizontal axis the same way, whatever
- *   the width: the option keeps the columns inside the root, so the scroll spacer and the overlay rails
+ * - A free height with `preventOverflow: 'horizontal'` clips the horizontal axis the same way, regardless
+ *   of the width: the option keeps the columns inside the root, so the scroll spacer and the overlay rails
  *   must not reach through it and widen the page.
  * - A free height with a free or container-driven width clips nothing: the page scrolls both axes,
  *   and a wider-than-page grid gives the page a horizontal scrollbar rather than hiding columns.
@@ -353,6 +353,7 @@ export function applyRootSize(instance: HotInstance, settings: Partial<GridSetti
   const ignoredAxes: RootSizeAxis[] = [];
 
   if (settings.height !== undefined || settings.width !== undefined || settings.preventOverflow !== undefined) {
+    // A payload without the option keeps the stored one, so a `width` or `height` change cannot drop the clip.
     const preventOverflow = settings.preventOverflow ?? instance.getSettings().preventOverflow;
 
     applyOverflow(
