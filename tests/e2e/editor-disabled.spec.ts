@@ -309,6 +309,167 @@ test.describe('editor: false', () => {
     await grid.expectEditorOpen('typed');
   });
 
+  // A cell meta reaches its column's `_automaticallyAssignedMetaProps` through the prototype. One cell
+  // opting in through `cells()` must not turn the column's own `editor: false` into a type default
+  // for the cells of that column expanded after it.
+  test('a `cells()` opt-in on one cell leaves the other cells of a column with `editor: false` disabled', async({ page, theme, bundle }) => {
+    const grid = new EditorDisabledPage(page, theme, bundle);
+
+    await grid.goto();
+    await page.evaluate(() => {
+      (window as any).hotTyped.updateSettings({
+        columns: [
+          { data: 'label', type: 'text' },
+          { data: 'amount', type: 'numeric', editor: false },
+          { data: 'done', type: 'checkbox' },
+        ],
+        // Every cell of the column expands the type itself, so the opted-in cell's write into the shared
+        // set is read by the cells after it.
+        cells(row: number, col: number) {
+          if (col !== 1) {
+            return {};
+          }
+
+          return row === 0 ? { type: 'numeric', editor: true } : { type: 'numeric' };
+        },
+      });
+    });
+    await grid.cell('typed', 0, 1).dblclick();
+
+    await grid.expectEditorOpen('typed');
+
+    await page.keyboard.press('Escape');
+    await grid.cell('typed', 1, 1).dblclick();
+
+    await grid.expectNoEditor('typed');
+  });
+
+  // `editor: true` written through `setCellMeta()` is stored as a request of its own, which the undo
+  // step must carry, or Ctrl+Z leaves the cell editable.
+  test('undo takes back an `editor: true` opt-in made through setCellMeta()', async({ page, theme, bundle }) => {
+    const grid = new EditorDisabledPage(page, theme, bundle);
+
+    await grid.goto();
+    // The `type` comes from the `cell` option, which is not an undo step, so the undo below can only
+    // take back the opt-in.
+    await grid.updateSettings('typed', { cell: [{ row: 0, col: 0, type: 'numeric' }] });
+    await grid.call('typed', 'setCellMeta', 0, 0, 'editor', true);
+    await page.evaluate(() => (window as any).hotTyped.getPlugin('undoRedo').undo());
+    await grid.call('typed', 'render');
+    await grid.cell('typed', 0, 0).dblclick();
+
+    await grid.expectNoEditor('typed');
+
+    await page.evaluate(() => (window as any).hotTyped.getPlugin('undoRedo').redo());
+    await grid.call('typed', 'render');
+    await grid.cell('typed', 0, 0).dblclick();
+
+    await grid.expectEditorOpen('typed');
+  });
+
+  // The reverse: naming an editor drops the request, and undoing that must bring the request back.
+  test('undo of an `editor` write brings back an earlier `editor: true` opt-in', async({ page, theme, bundle }) => {
+    const grid = new EditorDisabledPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.call('typed', 'setCellMeta', 0, 0, 'type', 'numeric');
+    await grid.call('typed', 'setCellMeta', 0, 0, 'editor', true);
+    await grid.call('typed', 'setCellMeta', 0, 0, 'editor', false);
+    await grid.call('typed', 'render');
+    await grid.cell('typed', 0, 0).dblclick();
+
+    await grid.expectNoEditor('typed');
+
+    await page.evaluate(() => (window as any).hotTyped.getPlugin('undoRedo').undo());
+    await grid.call('typed', 'render');
+    await grid.cell('typed', 0, 0).dblclick();
+
+    await grid.expectEditorOpen('typed');
+  });
+
+  // The dynamic extension expands only a `type` the cell owns, so a request on a cell whose type
+  // comes from its column has to be honored on its own.
+  test('setCellMeta() `editor: true` opts in a cell whose `type` comes from its column', async({ page, theme, bundle }) => {
+    const grid = new EditorDisabledPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.call('typed', 'setCellMeta', 0, 1, 'editor', true);
+    await grid.call('typed', 'render');
+    await grid.cell('typed', 0, 1).dblclick();
+
+    await grid.expectEditorOpen('typed');
+
+    await page.keyboard.press('Escape');
+    await grid.call('typed', 'removeCellMeta', 0, 1, 'editor');
+    await grid.call('typed', 'render');
+    await grid.cell('typed', 0, 1).dblclick();
+
+    await grid.expectNoEditor('typed');
+  });
+
+  // `renderMode: 'onChange'` repaints a cell only when its meta version moved. A `cells()` result that
+  // starts asking for the type's editor changes the editor without changing any key it returns.
+  test('a checkbox repaints as enabled under renderMode "onChange" once `cells()` opts it in', async({ page, theme, bundle }) => {
+    const grid = new EditorDisabledPage(page, theme, bundle);
+
+    await grid.goto();
+    await page.evaluate(() => {
+      (window as any).hotTyped.updateSettings({
+        renderMode: 'onChange',
+        cells(_row: number, col: number) {
+          if (col !== 2) {
+            return {};
+          }
+
+          return (window as any).checkboxOptIn ? { type: 'checkbox', editor: true } : { type: 'checkbox' };
+        },
+      });
+    });
+
+    await expect(grid.checkbox('typed', 0, 2)).toBeDisabled();
+
+    await page.evaluate(() => {
+      (window as any).checkboxOptIn = true;
+      (window as any).hotTyped.render();
+    });
+
+    await expect(grid.checkbox('typed', 0, 2)).toBeEnabled();
+  });
+
+  // The checkbox shortcut finds the checkboxes of a selection. A checkbox column scrolled out of view
+  // has no rendered cell, and it must still consume Delete, or the grid writes `null` into it.
+  test('Delete leaves a checkbox with no editor unchanged while its column is not rendered', async({ page, theme, bundle }) => {
+    const grid = new EditorDisabledPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.updateSettings('typed', { width: 200, colWidths: 400, viewportColumnRenderingOffset: 0 });
+    await grid.selectCell('typed', 0, 0);
+    await grid.call('typed', 'selectRows', 0);
+
+    expect(await grid.call('typed', 'getCell', 0, 2)).toBeNull();
+
+    await page.keyboard.press('Delete');
+
+    expect(await grid.dataAtCell('typed', 0, 0)).toBeNull();
+    expect(await grid.dataAtCell('typed', 0, 2)).toBe(true);
+  });
+
+  // `readOnlyStyling: false` keeps a read-only checkbox looking editable, and a checkbox with no
+  // editor must look the same way, while still refusing the toggle.
+  test('readOnlyStyling: false renders a checkbox with no editor enabled, and a click still changes nothing', async({ page, theme, bundle }) => {
+    const grid = new EditorDisabledPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.updateSettings('typed', { readOnlyStyling: false });
+
+    await expect(grid.checkbox('typed', 0, 2)).toBeEnabled();
+
+    await grid.checkbox('typed', 0, 2).click();
+
+    await expect(grid.checkbox('typed', 0, 2)).toBeChecked();
+    expect(await grid.dataAtCell('typed', 0, 2)).toBe(true);
+  });
+
   // Typing is the other way into an editor, and it must stay closed off.
   test('typing does not start an edit on a cell with no editor', async({ page, theme, bundle }) => {
     const grid = new EditorDisabledPage(page, theme, bundle);

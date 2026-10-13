@@ -292,8 +292,17 @@ export default class CellMeta {
       }
     });
 
+    // An `editor: true` is gone from `normalizedSettings`, yet it can still change the editor: it asks
+    // the type expansion for the type's editor under a higher-level `editor: false`. A checkbox paints
+    // from it (disabled or not), so that change has to count as well.
+    const editorBefore = meta.editor;
+
     extend(meta, normalizedSettings);
     extendByMetaType(meta, normalizedSettings, meta, settings.editor === true);
+
+    if (meta.editor !== editorBefore) {
+      changed = true;
+    }
 
     if (changed) {
       markCellMetaChanged(meta);
@@ -536,6 +545,17 @@ export default class CellMeta {
     // requested.
     if (key === 'editor') {
       this.removeMeta(physicalRow, physicalColumn, TYPE_EDITOR_REQUESTED_KEY);
+    }
+
+    // Removing the request removes the editor the `type` supplied because of it (an undo of the
+    // `editor: true` write lands here). That editor was not stored, so the next read expands the type
+    // again and keeps a higher-level `editor: false`. An editor the user stored stays.
+    if (
+      key === TYPE_EDITOR_REQUESTED_KEY &&
+      hasOwnProperty(cellMeta, 'editor') &&
+      !getKeySet(cellMeta, '_persistedMetaProps')?.has('editor')
+    ) {
+      delete cellMeta.editor;
     }
   }
 

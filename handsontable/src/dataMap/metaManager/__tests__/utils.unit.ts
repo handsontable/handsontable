@@ -4,7 +4,10 @@ import {
   assert,
   isNullish,
   normalizeEditorSetting,
+  applyRequestedTypeEditor,
+  TYPE_EDITOR_REQUESTED_KEY,
 } from '../utils';
+import { hasOwnProperty } from '../../../helpers/object';
 import { registerAllCellTypes, getCellType } from '../../../cellTypes';
 
 registerAllCellTypes();
@@ -290,6 +293,61 @@ describe('MetaManager utils', () => {
       extendByMetaType(metaObject, { type: 'numeric' });
 
       expect(metaObject.editor).toBe(getCellType('numeric').editor);
+    });
+
+    it('should keep a column\'s own `editor: false` for every cell after one cell opted in', () => {
+      // A cell meta keeps no `_automaticallyAssignedMetaProps` of its own: it reaches the column's set
+      // through the prototype, so the opted-in cell records `'editor'` in the COLUMN's set. That must
+      // not turn the column's own `false` into a type default for the cells expanded after it.
+      const column: Record<string, unknown> = { editor: false };
+
+      extendByMetaType(column, { type: 'numeric', editor: false });
+
+      const optedIn: Record<string, unknown> = Object.create(column);
+      const other: Record<string, unknown> = Object.create(column);
+
+      extendByMetaType(optedIn, { type: 'numeric' }, optedIn, true);
+
+      expect(optedIn.editor).toBe(getCellType('numeric').editor);
+      expect(column._automaticallyAssignedMetaProps).toContain('editor');
+
+      extendByMetaType(other, { type: 'numeric' });
+
+      expect(other.editor).toBe(false);
+    });
+  });
+
+  describe('applyRequestedTypeEditor', () => {
+    it('should supply the editor of an inherited type to a cell that asked for it', () => {
+      const column = { type: 'numeric', editor: false, renderer: 'my-renderer' };
+      const cell: Record<string, unknown> = Object.create(column);
+
+      cell[TYPE_EDITOR_REQUESTED_KEY] = true;
+
+      expect(applyRequestedTypeEditor(cell)).toBe(true);
+      expect(cell.editor).toBe(getCellType('numeric').editor);
+      // Only the editor is applied: the column's own options next to its `type` stay in force.
+      expect(hasOwnProperty(cell, 'renderer')).toBe(false);
+      expect(cell.renderer).toBe('my-renderer');
+    });
+
+    it('should do nothing without the request, with an own `type`, or with an own `editor`', () => {
+      const column = { type: 'numeric', editor: false };
+      const notRequested: Record<string, unknown> = Object.create(column);
+      const ownType: Record<string, unknown> = Object.create(column);
+      const ownEditor: Record<string, unknown> = Object.create(column);
+
+      ownType[TYPE_EDITOR_REQUESTED_KEY] = true;
+      ownType.type = 'text';
+      ownEditor[TYPE_EDITOR_REQUESTED_KEY] = true;
+      ownEditor.editor = 'password';
+
+      expect(applyRequestedTypeEditor(notRequested)).toBe(false);
+      expect(notRequested.editor).toBe(false);
+      expect(applyRequestedTypeEditor(ownType)).toBe(false);
+      expect(hasOwnProperty(ownType, 'editor')).toBe(false);
+      expect(applyRequestedTypeEditor(ownEditor)).toBe(false);
+      expect(ownEditor.editor).toBe('password');
     });
   });
 

@@ -279,6 +279,8 @@ columns: [
 
 To make a checkbox non-toggleable and also announce it as read-only to screen readers, use [`readOnly`](@/api/options.md#readonly) instead.
 
+With [`readOnlyStyling`](@/api/options.md#readonlystyling) set to `false`, a checkbox with no editor is not rendered disabled. It looks like a toggleable one, the same way a read-only checkbox does under that setting, and a click still doesn't change its value.
+
 ## Related keyboard shortcuts
 
 | Windows                  | macOS                    | Action                        |  Excel  | Sheets  |

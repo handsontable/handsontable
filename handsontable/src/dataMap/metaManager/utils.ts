@@ -69,6 +69,11 @@ function findPropertyOwner(metaObject: Record<string, unknown>, propertyName: st
  * value, not on the meta object being expanded: a grid-level custom type writes its `editor: false`
  * onto the global meta, and a typed column below it must still receive its own type's editor.
  *
+ * Only `TYPE_ASSIGNED_EDITOR` answers whether a type wrote the value, never
+ * `_automaticallyAssignedMetaProps`. A cell meta keeps no set of its own and reaches its column's set
+ * through the prototype, so a cell whose type supplied its editor adds `'editor'` to the COLUMN's set,
+ * and the column's own `editor: false` would then read as a type default for every other cell of it.
+ *
  * @param {object} metaObject The meta object the type is being expanded into.
  * @returns {boolean}
  */
@@ -83,12 +88,7 @@ function isEditingDisabled(metaObject: Record<string, unknown>) {
     return false;
   }
 
-  if (TYPE_ASSIGNED_EDITOR.has(owner) && TYPE_ASSIGNED_EDITOR.get(owner) === owner.editor) {
-    return false;
-  }
-
-  return !(hasOwnProperty(owner, '_automaticallyAssignedMetaProps') &&
-    (owner._automaticallyAssignedMetaProps as Set<string> | undefined)?.has('editor'));
+  return !(TYPE_ASSIGNED_EDITOR.has(owner) && TYPE_ASSIGNED_EDITOR.get(owner) === owner.editor);
 }
 
 /**
@@ -161,6 +161,52 @@ export function extendByMetaType(
   });
 
   extend(metaObject, expandedType);
+}
+
+/**
+ * Narrows a resolved `type` value to a cell type definition object.
+ *
+ * @param {*} value The resolved `type` value.
+ * @returns {boolean}
+ */
+function isTypeDefinition(value: unknown): value is Record<string, unknown> {
+  return isObject(value);
+}
+
+/**
+ * Supplies the editor of an INHERITED `type` to a cell meta object that asked for it with
+ * `editor: true` (the `TYPE_EDITOR_REQUESTED_KEY` marker). The dynamic extension expands only a `type`
+ * the cell owns, so a cell whose `type` comes from its column would otherwise keep the column's
+ * `editor: false` despite the request. Only the editor is applied: expanding the whole inherited type
+ * onto the cell would shadow the options the column sets next to its `type` (a custom `renderer`, for
+ * example). The value is recorded in `TYPE_ASSIGNED_EDITOR` and is not a stored key, so removing the
+ * marker removes it too (see `CellMeta#removeMeta`).
+ *
+ * @param {object} metaObject The cell meta object.
+ * @returns {boolean} `true` when the editor was applied.
+ */
+export function applyRequestedTypeEditor(metaObject: Record<string, unknown>): boolean {
+  if (
+    metaObject[TYPE_EDITOR_REQUESTED_KEY] !== true ||
+    !hasOwnProperty(metaObject, TYPE_EDITOR_REQUESTED_KEY) ||
+    hasOwnProperty(metaObject, 'type') ||
+    hasOwnProperty(metaObject, 'editor')
+  ) {
+    return false;
+  }
+
+  const validType = typeof metaObject.type === 'string' ? getCellType(metaObject.type) : metaObject.type;
+
+  if (!isTypeDefinition(validType) || !hasOwnProperty(validType, 'editor')) {
+    return false;
+  }
+
+  const editor = validType.editor;
+
+  metaObject.editor = editor;
+  TYPE_ASSIGNED_EDITOR.set(metaObject, editor);
+
+  return true;
 }
 
 /**

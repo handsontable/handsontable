@@ -160,7 +160,11 @@ export function checkboxRenderer(
     // clicks. The native attribute is what carries it: the browser blocks the click and the label
     // click, keeps the box out of the tab order, and announces it as disabled - none of which a
     // class alone would do. It also matches `input:disabled` for theming.
-    if (!isCheckboxToggleable(cellProperties)) {
+    //
+    // `readOnlyStyling: false` withholds it, the same way it withholds the read-only look from a
+    // `readOnly` checkbox: the box then looks like an editable one, and the `click` and `change`
+    // listeners still refuse the toggle.
+    if (!isCheckboxToggleable(cellProperties) && cellProperties.readOnlyStyling !== false) {
       input.disabled = true;
     }
 
@@ -274,9 +278,12 @@ export function checkboxRenderer(
     }, {
       keys: [['delete'], ['backspace']],
       callback: () => {
-        changeSelectedCheckboxesState(true);
+        // Read once: the answer decides both what the toggle writes and whether the key is consumed.
+        const hasCheckboxCells = areSelectedCheckboxCells();
 
-        return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
+        changeSelectedCheckboxesState(true, hasCheckboxCells);
+
+        return !hasCheckboxCells; // False blocks next action associated with the keyboard shortcut.
       },
       runOnlyIf: (): boolean => canAccessCellContent(hotInstance) &&
         !!(hotInstance.getSelectedRangeActive()?.highlight.isCell()),
@@ -288,8 +295,10 @@ export function checkboxRenderer(
    *
    * @private
    * @param {boolean} [uncheckCheckbox=false] The new "checked" state for the checkbox elements.
+   * @param {boolean} [consumesKey=false] Whether the shortcut consumes the key (the selection holds a
+   * checkbox cell), so the non-checkbox cells are cleared here rather than by `emptySelectedCells()`.
    */
-  function changeSelectedCheckboxesState(uncheckCheckbox = false) {
+  function changeSelectedCheckboxesState(uncheckCheckbox = false, consumesKey = false) {
     type CellTemplates = { checkedTemplate: unknown; uncheckedTemplate: unknown };
     type ChangeEntry = [number, number, unknown, CellTemplates?];
 
@@ -392,12 +401,12 @@ export function checkboxRenderer(
     }
 
     // The non-checkbox cells are cleared even when no checkbox changed, but only when the shortcut
-    // consumes the key - the condition its callback returns. `areSelectedCheckboxCells()` counts a
+    // consumes the key (`consumesKey`, what its callback returns). `areSelectedCheckboxCells()` counts a
     // checkbox with no editor, so the key is consumed for a selection that holds one, and nothing else
     // would clear the text cells next to it. When the selection holds no such checkbox, the key falls
     // through to `emptySelectedCells()`, which clears them itself; writing them here too would fire
     // `afterChange` twice and record two undo steps.
-    if (changes.length > 0 || (nonCheckboxChanges.size > 0 && areSelectedCheckboxCells())) {
+    if (changes.length > 0 || (nonCheckboxChanges.size > 0 && consumesKey)) {
       // TODO: This is workaround for handsontable/dev-handsontable#1747 not being a breaking change.
       // Technically, the changes don't need to be split into chunks when sent to `setDataAtCell`.
       const changesChunks: ChangeEntry[][] = [];
@@ -471,6 +480,12 @@ export function checkboxRenderer(
           /* eslint-disable no-continue */
           if (cellMeta.readOnly) {
             continue;
+          }
+
+          // The meta answers for a cell that is not rendered, where `getCell()` returns `null` - a
+          // checkbox column scrolled out of view must still consume the key.
+          if (cellMeta.type === 'checkbox') {
+            return true;
           }
 
           const cell = hotInstance.getCell(visualRow, visualColumn);

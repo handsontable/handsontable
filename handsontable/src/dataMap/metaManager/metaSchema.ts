@@ -887,7 +887,7 @@ export default (): Record<string, unknown> => {
      * The `cell` option persists across [`updateSettings()`](@/api/core.md#updatesettings) calls that do not
      * mention it. Passing `cell` again replaces every previously declared entry, so `cell: []` removes them
      * all. An entry follows its row through sorting and row moves, and a later
-     * [`setCellMeta()`](@/api/core.md#setcellmeta) call on the same property wins over the declared value -
+     * [`setCellMeta()`](@/api/core.md#setCellMeta) call on the same property wins over the declared value -
      * until the next call restates `cell`, which wins over everything.
      *
      * A value that is not an array is ignored, and reported in the console. It does not reach
@@ -2902,9 +2902,13 @@ export default (): Record<string, unknown> => {
      * | `Delete` / `Backspace`                  | Clear the contents of the selected cells                    |
      * | `Ctrl` + `Enter` / `Cmd` + `Enter`      | Fill selected cells with the value of the active cell       |
      *
-     * Setting the `editor` option to `true` names no editor, so Handsontable treats it as if the
-     * option was not set at all. The cell keeps the editor that its [`type`](#type) provides, or the
-     * editor inherited from a higher configuration level.
+     * A [`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) cell with no editor
+     * is the exception: `Delete` and `Backspace` leave it unchanged.
+     *
+     * Setting the `editor` option to `true` names no editor. It keeps the editor that the cell's
+     * [`type`](#type) provides, or the editor inherited from a higher configuration level. Unlike leaving
+     * the option out, it also asks for the [`type`](#type)'s editor when `editor: false` is set at a
+     * higher configuration level, so the cell stays editable (see below).
      *
      * An `editor` of `false` is not overridden by a [`type`](#type) set at a lower configuration
      * level. A [`type`](#type) normally supplies its own editor, but it never re-enables editing
@@ -2935,7 +2939,9 @@ export default (): Record<string, unknown> => {
      * ```
      *
      * To keep the editor that the column's [`type`](#type) provides, without naming it, set
-     * `editor: true` instead, for example `{ type: 'numeric', editor: true }`.
+     * `editor: true` instead, for example `{ type: 'numeric', editor: true }`. A single cell opts back in
+     * the same way, through the [`cell`](#cell) option or
+     * [`setCellMeta()`](@/api/core.md#setCellMeta), also when its [`type`](#type) comes from its column.
      *
      * A custom cell type that declares `editor: false` supplies a default, not a setting of yours.
      * If you set such a [`type`](#type) on the whole grid, a column with a `type` of its own still
@@ -6336,6 +6342,10 @@ export default (): Record<string, unknown> => {
      * When `readOnlyStyling` is `false`, no [`readOnlyCellClassName`](#readOnlyCellClassName) class
      * is added at all, so setting both options means `readOnlyStyling` wins.
      *
+     * The same applies to a [`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md)
+     * cell with no [`editor`](#editor): when `readOnlyStyling` is `false`, its checkbox is not rendered
+     * disabled, but a click still doesn't change its value.
+     *
      * Read more:
      * - [`readOnly`](#readOnly)
      * - [`readOnlyCellClassName`](#readOnlyCellClassName)
@@ -6405,7 +6415,7 @@ export default (): Record<string, unknown> => {
      * | Setting              | Description                                                                                                                                                                                                   |
      * | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
      * | `'always'` (default) | The cell is painted on every render.                                                                                                                                                                          |
-     * | `'onChange'`         | The cell is painted only when the element it lands in showed something else after its last paint: another cell, another value, another renderer, a changed cell meta (through [`setCellMeta()`](@/api/core.md#setcellmeta) or the [`cells`](#cells) function), or a structural change of the grid. |
+     * | `'onChange'`         | The cell is painted only when the element it lands in showed something else after its last paint: another cell, another value, another renderer, a changed cell meta (through [`setCellMeta()`](@/api/core.md#setCellMeta) or the [`cells`](#cells) function), or a structural change of the grid. |
      *
      * Under `'onChange'`, a render skips the cells whose paint would produce the same result as their
      * last paint. A vertical scroll keeps the elements of the rows that stay rendered, so it paints
@@ -8410,7 +8420,7 @@ export default (): Record<string, unknown> => {
      * __Limitation:__ source-data validation only sees a `sourceDataValidator` (and a validating cell
      * [`type`](@/api/options.md#type)) that you define in the global settings, the
      * [`columns`](@/api/options.md#columns) option, the [`cell`](@/api/options.md#cell) option, or with
-     * [`setCellMeta()`](@/api/core.md#setcellmeta). It does __not__ run the [`cells`](@/api/options.md#cells)
+     * [`setCellMeta()`](@/api/core.md#setCellMeta). It does __not__ run the [`cells`](@/api/options.md#cells)
      * function or the [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta) /
      * [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta) hooks, so a validator that you add only through those
      * is skipped. Define the validator in one of the supported places to validate the source data.
