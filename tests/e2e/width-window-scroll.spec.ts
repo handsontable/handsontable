@@ -432,8 +432,7 @@ test.describe('width-only grid: holder scrolls columns, window scrolls rows', ()
     expect(await grid.verticalScrollCount()).toBeGreaterThan(countBefore);
   });
 
-  // eslint-disable-next-line no-restricted-syntax -- DEV-3290: the scroll spacer and overlay rails are not clipped under preventOverflow, so they widen the page
-  test.fixme('the legacy `preventOverflow: "horizontal"` alias leaves the page without a horizontal scroll range', async () => {
+  test('the legacy `preventOverflow: "horizontal"` alias leaves the page without a horizontal scroll range', async () => {
     await grid.rebuild({ width: undefined, preventOverflow: 'horizontal' }, '500px');
 
     const extents = await grid.scrollExtents();

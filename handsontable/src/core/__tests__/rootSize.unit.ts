@@ -395,4 +395,65 @@ describe('root size options', () => {
       });
     });
   });
+
+  describe('`preventOverflow: \'horizontal\'`', () => {
+    it('should clip the horizontal axis of a root that has no width', () => {
+      const grid = buildGrid({ preventOverflow: 'horizontal' });
+
+      expect(inlineSize(grid)).toEqual({
+        height: '', width: '', overflowX: 'clip', overflowY: '',
+      });
+    });
+
+    it('should clip the horizontal axis when the option is switched on later', () => {
+      const grid = buildGrid({});
+
+      expect(inlineSize(grid).overflowX).toBe('');
+
+      grid.updateSettings({ preventOverflow: 'horizontal' });
+
+      expect(inlineSize(grid).overflowX).toBe('clip');
+    });
+
+    it('should release the horizontal axis when the option is switched off', () => {
+      const grid = buildGrid({ preventOverflow: 'horizontal' });
+
+      grid.updateSettings({ preventOverflow: false });
+
+      expect(inlineSize(grid).overflowX).toBe('');
+    });
+
+    it('should keep the clip when only the height changes', () => {
+      const grid = buildGrid({ preventOverflow: 'horizontal' });
+
+      grid.updateSettings({ height: 'auto' });
+
+      expect(inlineSize(grid).overflowX).toBe('clip');
+    });
+
+    it('should not clip for `true`', () => {
+      expect(inlineSize(buildGrid({ preventOverflow: true })).overflowX).toBe('');
+    });
+
+    it('should not clip for `\'vertical\'`', () => {
+      expect(inlineSize(buildGrid({ preventOverflow: 'vertical' })).overflowX).toBe('');
+    });
+
+    it('should clip both axes beside a sized height, as it does without the option', () => {
+      const grid = buildGrid({ preventOverflow: 'horizontal', height: 300 });
+
+      expect(inlineSize(grid)).toEqual({
+        height: '300px', width: '', overflowX: 'clip', overflowY: 'clip',
+      });
+    });
+
+    it('should leave an overflow the user set on the root alone', () => {
+      const grid = buildGrid({});
+
+      grid.rootElement.style.overflowX = 'hidden';
+      grid.updateSettings({ preventOverflow: 'horizontal' });
+
+      expect(inlineSize(grid).overflowX).toBe('hidden');
+    });
+  });
 });
