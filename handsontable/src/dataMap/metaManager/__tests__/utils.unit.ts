@@ -349,6 +349,21 @@ describe('MetaManager utils', () => {
       expect(applyRequestedTypeEditor(ownEditor)).toBe(false);
       expect(ownEditor.editor).toBe('password');
     });
+
+    it('should keep an inherited editor that does not disable editing', () => {
+      const namedEditor: Record<string, unknown> = Object.create({ type: 'text', editor: 'password' });
+      const typeDefault: Record<string, unknown> = Object.create({ type: 'dropdown', editor: 'autocomplete' });
+
+      namedEditor[TYPE_EDITOR_REQUESTED_KEY] = true;
+      typeDefault[TYPE_EDITOR_REQUESTED_KEY] = true;
+
+      expect(applyRequestedTypeEditor(namedEditor)).toBe(false);
+      expect(hasOwnProperty(namedEditor, 'editor')).toBe(false);
+      expect(namedEditor.editor).toBe('password');
+      expect(applyRequestedTypeEditor(typeDefault)).toBe(false);
+      expect(hasOwnProperty(typeDefault, 'editor')).toBe(false);
+      expect(typeDefault.editor).toBe('autocomplete');
+    });
   });
 
   describe('columnFactory', () => {

@@ -199,6 +199,18 @@ export class EditorDisabledPage {
     return this.page.evaluate(name => (window as any)[name].__changeCount, INSTANCES[grid]);
   }
 
+  /**
+   * Whether the grid's active editor is an instance of one of the built-in editor classes
+   * (`Handsontable.editors[name]`), so a spec can tell a password editor from a plain text one.
+   */
+  async activeEditorIs(grid: GridName, name: string): Promise<boolean> {
+    return this.page.evaluate(
+      ({ instance, editorName }) => (window as any)[instance].getActiveEditor() instanceof
+        (window as any).Handsontable.editors[editorName],
+      { instance: INSTANCES[grid], editorName: name },
+    );
+  }
+
   /** Call `updateSettings()` on a grid of the fixture. */
   async updateSettings(grid: GridName, settings: Record<string, unknown>): Promise<void> {
     await this.page.evaluate(

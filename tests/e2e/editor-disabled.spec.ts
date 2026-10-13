@@ -407,6 +407,26 @@ test.describe('editor: false', () => {
     await grid.expectNoEditor('typed');
   });
 
+  // The request asks for the type's editor only in place of an inherited `editor: false`. Under a
+  // named column editor it keeps that editor, so a password column does not open in plain text.
+  test('setCellMeta() `editor: true` keeps a named editor the cell inherits from its column', async({ page, theme, bundle }) => {
+    const grid = new EditorDisabledPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.updateSettings('updated', {
+      columns: [
+        { data: 'label', editor: 'password' },
+        { data: 'amount', type: 'numeric' },
+      ],
+    });
+    await grid.call('updated', 'setCellMeta', 0, 0, 'editor', true);
+    await grid.call('updated', 'render');
+    await grid.cell('updated', 0, 0).dblclick();
+
+    await grid.expectEditorOpen('updated');
+    expect(await grid.activeEditorIs('updated', 'PasswordEditor')).toBe(true);
+  });
+
   // `renderMode: 'onChange'` repaints a cell only when its meta version moved. A `cells()` result that
   // starts asking for the type's editor changes the editor without changing any key it returns.
   test('a checkbox repaints as enabled under renderMode "onChange" once `cells()` opts it in', async({ page, theme, bundle }) => {

@@ -177,9 +177,10 @@ function isTypeDefinition(value: unknown): value is Record<string, unknown> {
  * Supplies the editor of an INHERITED `type` to a cell meta object that asked for it with
  * `editor: true` (the `TYPE_EDITOR_REQUESTED_KEY` marker). The dynamic extension expands only a `type`
  * the cell owns, so a cell whose `type` comes from its column would otherwise keep the column's
- * `editor: false` despite the request. Only the editor is applied: expanding the whole inherited type
- * onto the cell would shadow the options the column sets next to its `type` (a custom `renderer`, for
- * example). The value is recorded in `TYPE_ASSIGNED_EDITOR` and is not a stored key, so removing the
+ * `editor: false` despite the request. It acts only while the cell resolves `editor` to `false`: an
+ * inherited named editor is already the editor the request asks to keep. Only the editor is applied:
+ * expanding the whole inherited type onto the cell would shadow the options the column sets next to
+ * its `type` (a custom `renderer`, for example). The value is recorded in `TYPE_ASSIGNED_EDITOR` and is not a stored key, so removing the
  * marker removes it too (see `CellMeta#removeMeta`).
  *
  * @param {object} metaObject The cell meta object.
@@ -190,7 +191,10 @@ export function applyRequestedTypeEditor(metaObject: Record<string, unknown>): b
     metaObject[TYPE_EDITOR_REQUESTED_KEY] !== true ||
     !hasOwnProperty(metaObject, TYPE_EDITOR_REQUESTED_KEY) ||
     hasOwnProperty(metaObject, 'type') ||
-    hasOwnProperty(metaObject, 'editor')
+    hasOwnProperty(metaObject, 'editor') ||
+    // Only an inherited `false` stands between the cell and its type's editor. A named editor (a column's
+    // `editor: 'password'`, or the `'autocomplete'` a column sets next to `type: 'dropdown'`) is kept.
+    metaObject.editor !== false
   ) {
     return false;
   }
