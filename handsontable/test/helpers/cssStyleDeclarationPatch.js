@@ -28,8 +28,11 @@ function hashSource(fn) {
 function patchCssStyleDeclaration(CSSStyleDeclaration) {
   const proto = CSSStyleDeclaration && CSSStyleDeclaration.prototype;
 
-  if (!proto || typeof proto._setProperty !== 'function' || proto._setProperty.__htFast ||
-      hashSource(proto._setProperty) !== SUPPORTED_SOURCE_HASH) {
+  if (!proto || typeof proto._setProperty !== 'function' || proto._setProperty.__htFast) {
+    return false;
+  }
+
+  if (hashSource(proto._setProperty) !== SUPPORTED_SOURCE_HASH) {
     return false;
   }
 
