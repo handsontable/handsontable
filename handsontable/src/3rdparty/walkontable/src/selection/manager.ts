@@ -294,6 +294,7 @@ export class SelectionManager {
         this.#markFrozenTopRowSeamHeader(corners, className as string, classNamesMap);
         this.#markFrozenBottomRowSeamHeader(corners, className as string, classNamesMap);
         this.#markColumnHeaderRowSeamHeader(corners, className as string, classNamesMap);
+        this.#markCornerColumnSeamHeader(corners, className as string, classNamesMap);
       }
 
       wot.getSetting('onBeforeDrawBorders', corners, selectionType);
@@ -773,6 +774,80 @@ export class SelectionManager {
 
       if (isHTMLElement(th) && th.nodeName === 'TH') {
         this.#tagSeamClass(classNamesMap, th, seamClassName);
+      }
+    }
+  }
+
+  /**
+   * Tags the corner cell that borders an active column-0 header, so the seam between them gets the
+   * same inline-start accent every other active header has. Without frozen columns, column 0's header
+   * renders in the top clone and the corner cell beside it lives in the top clone's own (hidden)
+   * corner, so the neighbor pass in {@link SelectionManager#markActiveHeaderNeighbor} never reaches the
+   * visible corner clone's cell that is painted over it. With frozen columns column 0's header
+   * renders in this overlay and that pass already tags the cell.
+   *
+   * The seam is only drawn for column 0, and only while that column is the first one the viewport
+   * shows: once the grid scrolls sideways the header next to the corner is another column's. Only the
+   * head rows the selection covers, and the levels the host highlights, are tagged, so nested headers
+   * keep the accent to the active levels.
+   *
+   * No-op unless this overlay is the top inline-start corner and `fixedColumnsStart` is 0.
+   *
+   * @param {number[]} corners The active-header selection corners `[fromRow, fromColumn, toRow, toColumn]`.
+   * @param {string} activeHeaderClassName The active header class name (the `-prev` class derives from it).
+   * @param {Map} classNamesMap The render cycle's element→classNames map (applied and cleaned up later).
+   */
+  #markCornerColumnSeamHeader(
+    corners: number[],
+    activeHeaderClassName: string,
+    classNamesMap: Map<HTMLElement, Map<string, number>>
+  ) {
+    const wot = this.#activeOverlaysWot!;
+    const { wtTable } = wot;
+
+    if (!wtTable.is(CLONE_TOP_INLINE_START_CORNER) || (wot.getSetting('fixedColumnsStart') as number) > 0) {
+      return;
+    }
+
+    const rowHeadersCount = wtTable.getRowHeadersCount();
+    const headRows = wtTable.THEAD?.children;
+
+    if (rowHeadersCount === 0 || headRows === undefined) {
+      return;
+    }
+
+    // The selection has to start on column 0 (the corners are already ordered), and that column has to
+    // be the first one the viewport shows.
+    if (corners[1] !== 0 || wot.cloneSource!.wtTable.getFirstPartiallyVisibleColumn() !== 0) {
+      return;
+    }
+
+    const [topRow, , bottomRow] = corners;
+    const selectionWidth = corners[3] + 1;
+
+    for (let level = 0; level < headRows.length; level++) {
+      const row = level - headRows.length;
+
+      if (row < topRow || row > bottomRow) {
+        continue; // eslint-disable-line no-continue
+      }
+
+      // Ask the host which header it highlights at this level, as the header scan does: a plugin
+      // (nested headers) answers `null` for a level it leaves inactive.
+      const highlighted = wot.getSetting('onBeforeHighlightingColumnHeader', 0, level, {
+        selectionType: ACTIVE_HEADER_TYPE,
+        columnCursor: 0,
+        selectionWidth,
+      });
+
+      if (highlighted === null) {
+        continue; // eslint-disable-line no-continue
+      }
+
+      const th = headRows[level].children[rowHeadersCount - 1];
+
+      if (isHTMLElement(th) && th.nodeName === 'TH') {
+        this.#tagSeamClass(classNamesMap, th, `${activeHeaderClassName}-prev`);
       }
     }
   }

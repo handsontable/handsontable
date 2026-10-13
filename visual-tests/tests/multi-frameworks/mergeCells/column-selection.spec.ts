@@ -17,8 +17,8 @@ import {
  * renders on every js variant and under all three wrappers. The dragged range stays the first layer and
  * covers the merged cell by itself; that the column layers alone cover it whole, the merge, and the partial
  * cover #10559 fixed are asserted on every theme in `tests/e2e/merge-cells-header-selection.spec.ts`. The
- * column-0 header's seam with the corner draws no active accent today (a filed defect), so these goldens
- * change when that is fixed. Added in #10559 and trimmed to this one capture by DEV-3351, which owns it.
+ * column-0 header's seam with the corner draws the active accent, like every other active header's seam.
+ * Added in #10559 and trimmed to this one capture by DEV-3351, which owns it.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,

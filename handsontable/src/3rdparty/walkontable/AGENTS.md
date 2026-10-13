@@ -929,6 +929,15 @@ Consequences worth knowing:
   inline-start accent (that pixel moved to the corner); and `ht__active_highlight`, because the seam
   is the active row header's own inline-end and the accent has to win there. The grid managed that
   last one only when scrolled before, since the border was 0px at horizontal offset 0.
+  The corner's `-prev` class has two sources. With `fixedColumnsStart` the corner clone renders
+  column 0's header itself, so the neighbor pass (`#markActiveHeaderNeighbor`, `previousElementSibling`
+  in one table) stamps it. Without frozen columns that pass only reaches the top clone's hidden corner
+  `th`, which the visible `ht_clone_top_inline_start_corner` paints over, so
+  `#markCornerColumnSeamHeader` stamps the visible corner's last cell when column 0 is active and
+  is the first column the viewport shows (`getFirstPartiallyVisibleColumn()`, not the render band,
+  which overscans) and the host highlights that header level (`onBeforeHighlightingColumnHeader`, so
+  nested headers tag only the active levels). Assert the CLASS on the visible corner, not its color: `classic` maps the accent and the cell border to
+  the same value.
 - **A grid can carry more than one row header column**, and then the seam to column 0 is the LAST
   one's `border-inline-end`. `afterGetRowHeaderRenderers` is a documented hook that appends
   renderers, and `autoRowHeaderSize` measures each of them, so this is a supported shape rather than
