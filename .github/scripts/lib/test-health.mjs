@@ -332,9 +332,9 @@ export function parseVisualRecord(record, run) {
  *
  * A durations artifact is not a source of entries: its one file is checked and returned in
  * `durations`, named after the artifact's leg (GitHub keeps artifact names unique within a run, so two
- * legs can never land on one record). Only that family is read for it. A red leg's report artifact
- * carries the same file, because the failure upload ships all of `tests/test-results`, and reading it
- * there would count the leg twice.
+ * legs can never land on one record). Only that family is read for it: the summarizer runs after the
+ * report upload, so a report artifact does not hold the file today, but the failure upload ships all of
+ * `tests/test-results`, and if the steps were ever reordered, reading it there would count the leg twice.
  *
  * @param {Array<{artifact: string, path: string, text: string}>} files Each file with the artifact it came from
  * and its path inside that artifact.
@@ -714,8 +714,10 @@ export function renderStepSummary({ run, added, notes, summary, pageUrl, duratio
  * @returns {string} The HTML.
  */
 export function renderPage(template, summary, durations = null) {
-  // `</script>` inside a JSON string would end the script element early.
-  const inline = value => JSON.stringify(value ?? null).replace(/<\//g, '<\\/');
+  // No `<` reaches the script element at all: `</script>` would end it early, and `<!--` followed by
+  // `<script` puts the tokenizer in a state where the template's own `</script>` no longer closes it,
+  // which blanks the whole page. A branch name is enough for that. `\u003c` reads back as `<`.
+  const inline = value => JSON.stringify(value ?? null).replace(/</g, '\\u003c');
   const values = {
     __SUMMARY_JSON__: inline(summary),
     __DURATIONS_JSON__: inline(durations),

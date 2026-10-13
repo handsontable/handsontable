@@ -379,7 +379,8 @@ test('renderPage inlines the summary and survives a `</script>` inside a title',
 
   assert.ok(!html.includes('__SUMMARY_JSON__') && !html.includes('__GENERATED_AT__'), 'placeholders filled');
   assert.ok(html.includes(`Generated ${NOW.toISOString()}`));
-  assert.ok(html.includes('renders <\\/script><b>bold<\\/b> safely'), 'every closing tag is escaped inside the JSON');
+  assert.ok(html.includes('renders \\u003c/script>\\u003cb>bold\\u003c/b> safely'),
+    'every `<` is escaped inside the JSON');
   assert.equal((html.match(/<\/script>/g) ?? []).length, 3,
     'only the template\'s own three script elements close (the summary, the durations, the code)');
 });
@@ -770,8 +771,8 @@ test('collectArtifactFiles routes a durations file to the durations, never to th
     file('playwright-durations-main', 'playwright-durations.json', JSON.stringify(durationsOf('main-min'))),
     file('playwright-durations-horizon', 'playwright-durations.json', '{"version":1,'),
     file('playwright-durations-horizon-min', 'notes.txt', 'nothing here'),
-    // The failure upload ships all of tests/test-results, so a red leg's report artifact carries the
-    // durations file too. Reading it there would count the leg twice.
+    // The failure upload ships all of tests/test-results. The summarizer runs after it, so a report
+    // artifact holds no durations file today; if the steps were reordered, reading it would count the leg twice.
     file('playwright-report-classic', PLAYWRIGHT_DURATIONS_FILE, JSON.stringify(classic)),
     file('playwright-report-classic', PLAYWRIGHT_JSON_REPORT, JSON.stringify(PLAYWRIGHT_REPORT)),
   ], run);
@@ -965,17 +966,23 @@ test('renderPage draws the "Where the time goes" section from the inlined durati
 
   legs[1].files[0].cases[0].title = 'stalls </script><b>bold</b> forever';
 
-  const { doc } = mergeDurations(null, legs, runContextFromRun(RUN), { now: NOW });
+  // A branch name is pull-request input. `<!--` then `<script` would leave the data element open past
+  // the template's own `</script>`, so the code never runs and the page, ledger included, stays blank.
+  const run = runContextFromRun({ ...RUN, head_branch: 'fix/x<!--<script>y', updated_at: '2026-10-13T10:45:00Z' });
+  const { doc } = mergeDurations(null, legs, run, { now: new Date('2026-10-13T12:00:00Z') });
   const view = durationsView(doc);
   const html = renderPage(template, aggregate(emptyLedger(), { now: NOW }), view);
 
   assert.ok(!html.includes('__DURATIONS_JSON__'), 'placeholder filled');
   assert.match(html, /<h2 id="time">Where the time goes<\/h2>/);
-  assert.ok(html.includes('stalls <\\/script><b>bold<\\/b> forever'), 'a title cannot close the data element');
+  assert.ok(html.includes('stalls \\u003c/script>\\u003cb>bold\\u003c/b> forever'),
+    'a title cannot close the data element');
+  assert.ok(html.includes('fix/x\\u003c!--\\u003cscript>y'), 'nor can a branch open a comment in it');
   assert.equal((html.match(/<\/script>/g) ?? []).length, 3);
 
   const data = html.match(/<script id="durations" type="application\/json">([\s\S]*?)<\/script>/)[1];
 
+  assert.ok(!data.includes('<'), 'no `<` reaches the data element');
   assert.deepEqual(JSON.parse(data), JSON.parse(JSON.stringify(view)));
 
   const empty = renderPage(template, aggregate(emptyLedger(), { now: NOW }));

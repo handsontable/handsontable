@@ -7,6 +7,7 @@ import {
   DURATIONS_RETENTION_DAYS,
   DURATIONS_VERSION,
   HEAVIEST_FILES,
+  MAX_LEGS_PER_RUN,
   PLAYWRIGHT_DURATIONS_FILE,
   SLOW_TEST_MS,
   durationsView,
@@ -43,7 +44,8 @@ const RUN = {
   head_branch: 'feature/X-1_Some-branch',
   head_sha: '146c1ba4cb84d529c6f26f87823b4d4d6c8bea9a',
   event: 'pull_request',
-  updated_at: '2026-10-13T10:45:00Z',
+  // When the run ended: after every leg these tests start, the latest at NOW.
+  updated_at: '2026-10-13T12:30:00Z',
 };
 
 /**
@@ -340,8 +342,9 @@ test('mergeDurations prunes past the retention window, oldest first, and the lat
 test('mergeDurations holds the file under its cap by dropping the oldest runs, never the newest', () => {
   let doc = null;
 
-  for (let index = 0; index < 12; index += 1) {
-    const startTime = new Date(NOW.getTime() - ((12 - index) * 3600000)).toISOString();
+  // Forty runs, so the run history outweighs the rows: the rows' half of the cap is not what binds here.
+  for (let index = 0; index < 40; index += 1) {
+    const startTime = new Date(NOW.getTime() - ((40 - index) * 3600000)).toISOString();
 
     doc = mergeDurations(doc, [legSummary({ leg: 'classic', startTime })], runOf({ id: 1000 + index }),
       { now: NOW }).doc;
@@ -359,13 +362,31 @@ test('mergeDurations holds the file under its cap by dropping the oldest runs, n
   assert.ok(!capped.doc.runs.some(run => run.runId === '1000'), 'the oldest run went first');
   assert.deepEqual(capped.doc.runs.map(run => run.runId),
     [...capped.doc.runs.map(run => run.runId)].sort().reverse(), 'still newest first');
-  assert.equal(capped.doc.latest.sources.length, 1, 'the per-test rows are never what the cap drops');
+  assert.equal(capped.doc.latest.sources.length, 1, 'rows inside their half of the cap stay');
 
   const again = mergeDurations(capped.doc, [legSummary({ leg: 'classic', startTime: NOW.toISOString() })],
     runOf({ id: 2000 }), { now: NOW, capBytes });
 
   assert.equal(again.changed, false, 'a capped file re-collected is still a no-op');
   assert.equal(DURATIONS_CAP_BYTES, 2 * 1024 * 1024);
+});
+
+test('the per-test rows get at most half the cap, pull-request rows shed first, so the history keeps the rest', () => {
+  const pr = legSummary({ leg: 'classic', startTime: '2026-10-13T11:00:00.000Z' });
+  const develop = legSummary({ leg: 'main', startTime: '2026-10-13T10:00:00.000Z' });
+  const both = mergeDurations(mergeDurations(null, [pr], runOf({ id: 1 }), { now: NOW }).doc, [develop],
+    developRun({ id: 2 }), { now: NOW }).doc;
+  const oneLegRows = Buffer.byteLength(JSON.stringify(mergeDurations(null, [develop], developRun({ id: 2 }),
+    { now: NOW }).doc.latest));
+  // Room for one leg's rows in half the cap, not for two.
+  const capBytes = (oneLegRows * 2) + 200;
+  const shed = mergeDurations(both, [], runOf({ id: 2 }), { now: NOW, capBytes });
+
+  assert.deepEqual(shed.doc.latest.sources.map(source => source.leg), ['main'],
+    'the pull request\'s rows went, the develop push\'s stayed, though the pull request is newer');
+  assert.match(shed.notes.join('\n'), /dropped the rows of classic/);
+  assert.equal(shed.doc.runs.length, 2, 'the run history is untouched');
+  assert.ok(Buffer.byteLength(serializeDurations(shed.doc)) <= capBytes);
 });
 
 test('the per-test rows follow the latest develop run of each leg, and a pull request only fills a gap', () => {
@@ -396,6 +417,65 @@ test('the per-test rows follow the latest develop run of each leg, and a pull re
   assert.equal(latest.files['e2e/notification-placement.spec.ts'].length, 13, 'a skipped test has no row');
   assert.ok(!latest.files['e2e/notification-placement.spec.ts']
     .some(entry => entry[0] === 'notification placement › a top-end toast sits in that corner of a LTR grid'));
+  assert.equal(latest.files['e2e/page-offset-reverse-split-clones.spec.ts'].length, 9,
+    'the two tests that failed both attempts have no row: their time is a timeout and a retry');
+  assert.ok(!latest.files['e2e/page-offset-reverse-split-clones.spec.ts'].some(entry => entry[0] === RED_TITLE));
+});
+
+test('a flaky test has no cell either, and a leg that ran no test keeps the rows it had', () => {
+  const flaky = legSummary({ leg: 'classic', unexpected: 0 });
+  const amd = flaky.files.find(file => file.file === 'e2e/amd-loader.spec.ts');
+
+  amd.cases[0] = { ...amd.cases[0], status: 'flaky', retries: 1 };
+
+  const { doc } = mergeDurations(null, [flaky], developRun({ id: 1 }), { now: NOW });
+
+  assert.equal(doc.latest.files['e2e/amd-loader.spec.ts'], undefined, 'its only test was flaky');
+
+  // The Playwright JSON reporter still writes a report when the web server never starts or a filter
+  // matches nothing: no suites, zero tests.
+  const dead = summarizePlaywrightReport({
+    suites: [],
+    stats: { startTime: '2026-10-13T11:00:00.000Z', duration: 63 },
+    config: { workers: 2 },
+  }, { leg: 'classic' });
+  const after = mergeDurations(doc, [dead], developRun({ id: 2 }), { now: NOW });
+
+  assert.equal(after.doc.latest.sources[0].runId, '1', 'the newer, empty develop leg did not take over');
+  assert.equal(Object.keys(after.doc.latest.files).length, 4);
+  assert.deepEqual(after.doc.runs.map(run => [run.runId, run.legs[0].tests]), [['2', 0], ['1', 45]],
+    'the empty leg is still a record');
+  assert.equal(after.doc.budget.legs.classic.excluded, 1, 'and stays out of the budget');
+  assert.equal(durationsView(after.doc).points[0][6], 1, 'and is drawn like a failed leg, not as a clean zero');
+});
+
+test('mergeDurations skips what a fork could forge: odd leg names, too many legs, a start after the run ended', () => {
+  const ended = runOf({ id: 3, updated_at: '2026-10-13T11:00:00Z' });
+  const forged = [
+    legSummary({ leg: '../../escape' }),
+    legSummary({ leg: 'classic', startTime: '2999-01-01T00:00:00.000Z' }),
+    ...Array.from({ length: MAX_LEGS_PER_RUN + 2 },
+      (_, index) => legSummary({ leg: `fake-${String(index).padStart(2, '0')}` })),
+  ];
+  const result = mergeDurations(null, forged, ended, { now: NOW });
+  const notes = result.notes.join('\n');
+
+  assert.match(notes, /leg "\.\.\/\.\.\/escape": not a leg name, skipped/);
+  assert.match(notes, /leg classic: starts at 2999-01-01T00:00:00\.000Z, after run 3 ended, skipped/);
+  assert.match(notes, new RegExp(`leg fake-${MAX_LEGS_PER_RUN}: past the ${MAX_LEGS_PER_RUN} legs one run may record`));
+  assert.equal(result.doc.runs[0].legs.length, MAX_LEGS_PER_RUN);
+  assert.ok(!result.doc.runs[0].legs.some(leg => leg.leg === 'classic'), 'nothing is pinned past the window');
+  assert.ok(result.doc.budget.to <= '2026-10-13T12:00:00.000Z');
+});
+
+test('an expired develop source never outranks the run that arrives after it', () => {
+  const old = mergeDurations(null, [legSummary({ leg: 'classic', startTime: '2026-09-12T11:00:00.000Z' })],
+    developRun({ id: 1 }), { now: new Date('2026-09-12T12:00:00Z') });
+  const pr = mergeDurations(old.doc, [legSummary({ leg: 'classic', startTime: '2026-10-12T11:00:00.000Z' })],
+    runOf({ id: 2 }), { now: new Date('2026-10-12T12:00:00Z') });
+
+  assert.deepEqual(pr.doc.latest.sources.map(source => source.runId), ['2'],
+    'the September develop source is past 30 days: the pull request fills the gap at once');
 });
 
 test('the per-test rows hold one column per leg and project, null where a test did not run', () => {
@@ -436,11 +516,19 @@ test('the budget input is P50 and P90 per leg over clean runs, develop separatel
 
   doc = mergeDurations(doc, [red], runOf({ id: 600 }), { now: NOW }).doc;
 
-  const { classic } = doc.budget.legs;
+  // A leg with only a flaky test counts: one retry is noise next to the run-to-run spread.
+  const flaky = legSummary({ leg: 'main', startTime: NOW.toISOString(), wallMs: 700, unexpected: 0 });
+
+  flaky.counts.flaky = 1;
+  doc = mergeDurations(doc, [flaky], runOf({ id: 601 }), { now: NOW }).doc;
+
+  const { classic, main } = doc.budget.legs;
 
   assert.deepEqual(classic.all, { runs: 10, wallMs: { p50: 500, p90: 900 }, tests: { p50: 45, p90: 45 } });
   assert.deepEqual(classic.develop, { runs: 4, wallMs: { p50: 200, p90: 400 }, tests: { p50: 45, p90: 45 } });
   assert.equal(classic.excluded, 1, 'the red leg is counted as excluded, not hidden');
+  assert.deepEqual(main.all, { runs: 1, wallMs: { p50: 700, p90: 700 }, tests: { p50: 45, p90: 45 } });
+  assert.equal(main.excluded, 0);
   assert.equal(doc.budget.windowDays, DURATIONS_RETENTION_DAYS);
   assert.ok(doc.budget.from < doc.budget.to);
 });
@@ -486,17 +574,14 @@ test('durationsView ranks the heaviest spec files, lists the slow tests, and tel
     executions: 14,
     legs: [['main', 40020], ['classic', 20010]],
   });
-  assert.deepEqual(view.slowTests.map(entry => [entry.title, entry.ms]), [
-    [SLOW_TITLE, 19714],
-    [RED_TITLE, 9734],
-    ['clones, page scroll range and pointer bounds in the reverse split › tracks a drag that moves inside the '
-      + 'page offset gap like the hidden twin (rtl)', 9648],
-    // Under 3 s on classic, over on main (scaled twice): listed for main only.
-    ...view.slowTests.slice(3).map(entry => [entry.title, entry.ms]),
-  ]);
+  // The two tests that failed both attempts are not listed: their time is a timeout and a retry.
+  assert.equal(view.slowTests[0].title, SLOW_TITLE);
+  assert.ok(!view.slowTests.some(entry => entry.title === RED_TITLE));
   assert.deepEqual(view.slowTests[0].legs, [['main', 19714], ['classic', 9857]]);
+  assert.ok(view.slowTests.length > 1);
   assert.ok(view.slowTests.every(entry => entry.ms > SLOW_TEST_MS));
-  assert.ok(view.slowTests.slice(3).every(entry => entry.legs.length === 1 && entry.legs[0][0] === 'main'));
+  assert.ok(view.slowTests.slice(1).every(entry => entry.legs.length === 1 && entry.legs[0][0] === 'main'),
+    'under 3 s on classic, over on main (scaled twice): listed for main only');
   assert.equal(view.sources.length, 2);
   assert.equal(durationsView(emptyDurations()), null, 'nothing collected yet: the page says so');
 });

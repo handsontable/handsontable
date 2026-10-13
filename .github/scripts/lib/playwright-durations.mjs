@@ -13,17 +13,19 @@
  * - The leg summary (`summarizePlaywrightReport`), which the leg writes. It holds every test, so a
  *   later reader can rank spec files and tests without the multi-megabyte report.
  * - The stored document (`mergeDurations`), which keeps, for 30 days, one record per run and leg
- *   (wall-clock, workers, counts) and, for the latest run of each leg, the per-test milliseconds.
+ *   (wall-clock, workers, counts) and, for the latest run of each leg, the per-test milliseconds of
+ *   every test that passed on its first attempt.
  *   Per-file totals for every run would not fit: at roughly 30 completed runs a day and seven legs a
  *   run, 270 files each, a month is tens of megabytes. The per-test rows of the latest run give every
  *   per-file total that the page and the later phases read. A develop push supplies those rows
  *   whenever one is in the window, because develop is what every pull request is measured against;
  *   until one arrives, the newest run of any branch does, so the section is never empty.
  *
- * The stored document also carries the budget input: per leg, the P50 and P90 of the wall-clock and
- * of the test count over the window, from every run and from develop pushes alone. A red leg (one
- * with an unexpected failure) is left out of those numbers: its time includes the retries and
- * timeouts of the failing tests.
+ * The stored document also carries the budget input a later e2e budget is derived from: per leg, the
+ * P50 and P90 of the wall-clock and of the test count over the window, from every run and from develop
+ * pushes alone. A leg with a test that failed every attempt (`unexpected`), or with no test at all, is
+ * left out of those numbers: its time includes the failing tests' retries and timeouts. A leg with only
+ * flaky tests counts; one retry is noise next to the run-to-run spread.
  *
  * No I/O in here. `scripts/playwright-durations.mjs` writes a leg's summary; `scripts/test-health-collect.mjs`
  * reads the artifacts and writes the stored document.
@@ -44,8 +46,9 @@ export const PLAYWRIGHT_DURATIONS_FILE = 'test-results/playwright-durations.json
 export const DURATIONS_RETENTION_DAYS = 30;
 
 /**
- * The most the stored document may weigh. Past it, the oldest runs go first; the per-test rows of the
- * latest runs never do.
+ * The most the stored document may weigh. The per-test rows get at most half of it (past that, the rows
+ * of pull-request sources go first, then the oldest legs'), so the run history always keeps the other
+ * half; past the cap, the oldest runs go first.
  */
 export const DURATIONS_CAP_BYTES = 2 * 1024 * 1024;
 
@@ -59,7 +62,20 @@ export const SLOW_TEST_MS = 3000;
  */
 export const HEAVIEST_FILES = 30;
 
+/**
+ * What a leg name may look like: the artifact suffix `e2e.yml` writes (`main`, `classic-min`, `engines`).
+ * The collector runs on every pull request's artifacts, a fork's included, so a name outside this shape is
+ * noted and skipped rather than stored.
+ */
+export const DURATIONS_LEG_PATTERN = /^[a-z0-9][a-z0-9-]{0,39}$/;
+
+/**
+ * The most legs one run may record. The matrix has seven; the rest of a run's artifacts are skipped.
+ */
+export const MAX_LEGS_PER_RUN = 16;
+
 const DAY_MS = 24 * 60 * 60 * 1000;
+const HOUR_MS = 60 * 60 * 1000;
 const TITLE_SEPARATOR = ' › ';
 const COUNT_KEYS = ['tests', 'skipped', 'flaky', 'unexpected'];
 
@@ -535,9 +551,15 @@ export function serializeDurations(doc) {
  *   collection reads them again. Keyed by their own attempt, they replace themselves.
  * - The per-test rows of a leg come from its latest develop push; a newer develop push replaces them,
  *   a pull request run never does. With no develop push in the window, the newest run of any branch
- *   supplies them until one arrives.
- * - Records older than the retention window go, and so do a leg's rows. Past the size cap, the oldest
- *   runs go first, whole; the rows never do.
+ *   supplies them until one arrives. A leg that ran no test supplies none. Only a test that passed on
+ *   its first attempt gets a cell: a failed or flaky test's time is its retries and timeouts (the flake
+ *   ledger tracks those), and a skipped one never ran.
+ * - The summaries are untrusted: a fork's pull request runs its own `e2e.yml`. A leg outside
+ *   `DURATIONS_LEG_PATTERN`, the legs past `MAX_LEGS_PER_RUN`, and a leg that claims to start after the
+ *   run ended are noted and skipped, so nothing can pin a record past the retention window.
+ * - Records older than the retention window go, and so do a leg's rows. The rows get at most half the
+ *   cap: past it, the rows of pull-request sources go first, then the oldest legs'. Past the cap, the
+ *   oldest runs go first, whole.
  * - `updatedAt` moves only when the stored text changed, so a collection that adds nothing leaves
  *   the published file byte-identical, like the flake ledger.
  *
@@ -550,7 +572,7 @@ export function serializeDurations(doc) {
  * @param {number} [options.capBytes] Override of `DURATIONS_CAP_BYTES`.
  * @returns {{doc: object, changed: boolean, added: number, pruned: number, capped: number, notes: string[]}}
  * The new document; whether its text changed; how many leg records were new, and how many fell out of
- * the window; how many runs the cap dropped; notes for the step summary.
+ * the window; how many runs the cap dropped; notes for the step summary (skipped legs, dropped rows and runs).
  */
 export function mergeDurations(previous, summaries, run, {
   now,
@@ -591,11 +613,39 @@ export function mergeDurations(previous, summaries, run, {
     runUrl: baseUrl,
   };
   const latest = decodeLatest(stored.latest);
+  const pruneSources = () => {
+    for (const [leg, source] of [...latest.sources]) {
+      if (!(Date.parse(source.at) >= cutoff)) {
+        removeLeg(latest, leg);
+      }
+    }
+  };
+  const seenAt = Date.parse(run.seenAt);
+  // A leg cannot start after its run ended; an hour of slack covers clock skew between the runner and the API.
+  const latestStart = (Number.isNaN(seenAt) ? now.getTime() : seenAt) + HOUR_MS;
   let added = 0;
+  let accepted = 0;
 
   headers.set(run.runId, header);
+  // An expired source never ranks: drop it before an incoming run is compared with it.
+  pruneSources();
 
   for (const summary of summaries) {
+    if (!DURATIONS_LEG_PATTERN.test(summary.leg)) {
+      notes.push(`leg ${JSON.stringify(summary.leg.slice(0, 60))}: not a leg name, skipped`);
+      continue;
+    }
+    if (accepted >= MAX_LEGS_PER_RUN) {
+      notes.push(`leg ${summary.leg}: past the ${MAX_LEGS_PER_RUN} legs one run may record, skipped`);
+      continue;
+    }
+    if (!(Date.parse(summary.startTime) <= latestStart)) {
+      notes.push(`leg ${summary.leg}: starts at ${summary.startTime}, after run ${run.runId} ended, skipped`);
+      continue;
+    }
+
+    accepted += 1;
+
     const ownRun = summary.runId === null || summary.runId === run.runId;
 
     if (!ownRun) {
@@ -624,6 +674,12 @@ export function mergeDurations(previous, summaries, run, {
         unexpected: summary.counts.unexpected,
       },
     });
+
+    // A leg that ran no test (its web server never started, a filter matched nothing) has no rows to give,
+    // and must not wipe the rows of the leg's last run that had some.
+    if (summary.counts.tests === 0) {
+      continue;
+    }
 
     const source = {
       leg: summary.leg,
@@ -660,7 +716,8 @@ export function mergeDurations(previous, summaries, run, {
         const titles = latest.cells.get(file.file);
 
         for (const entry of file.cases) {
-          if (entry.status === 'skipped') {
+          // Passed on the first attempt: no status. A failed or flaky test's time is retries and timeouts.
+          if (entry.status !== undefined) {
             continue;
           }
           if (!titles.has(entry.title)) {
@@ -680,10 +737,26 @@ export function mergeDurations(previous, summaries, run, {
       pruned += 1;
     }
   }
-  for (const [leg, source] of [...latest.sources]) {
-    if (!(Date.parse(source.at) >= cutoff)) {
-      removeLeg(latest, leg);
-    }
+  pruneSources();
+
+  // The rows get at most half the cap, so the run history (the trend and the budget input) always keeps
+  // the other half. Past it, pull-request sources go first, then the oldest legs.
+  const rowsBudget = Math.floor(capBytes / 2);
+  const shed = [];
+  let encodedLatest = encodeLatest(latest);
+
+  while (latest.sources.size > 0 && Buffer.byteLength(JSON.stringify(encodedLatest)) > rowsBudget) {
+    const [victim] = [...latest.sources.values()].sort((a, b) => Number(isDevelop(a)) - Number(isDevelop(b))
+      || Date.parse(a.at) - Date.parse(b.at)
+      || a.leg.localeCompare(b.leg));
+
+    removeLeg(latest, victim.leg);
+    shed.push(victim.leg);
+    encodedLatest = encodeLatest(latest);
+  }
+
+  if (shed.length > 0) {
+    notes.push(`durations.json: the per-test rows passed ${rowsBudget} bytes; dropped the rows of ${shed.join(', ')}`);
   }
 
   const grouped = new Map();
@@ -702,7 +775,6 @@ export function mergeDurations(previous, summaries, run, {
       legs: legs.sort((a, b) => a.leg.localeCompare(b.leg) || a.runAttempt - b.runAttempt),
     }))
     .sort((a, b) => newest(b.legs) - newest(a.legs) || b.runId.localeCompare(a.runId, 'en', { numeric: true }));
-  const encodedLatest = encodeLatest(latest);
   const assemble = (updatedAt, keptRuns) => ({
     version: DURATIONS_VERSION,
     updatedAt,
@@ -736,7 +808,7 @@ export function mergeDurations(previous, summaries, run, {
     notes.push(`durations.json: dropped the ${capped} oldest run(s) to stay under ${capBytes} bytes`);
   }
   if (size > capBytes) {
-    notes.push(`durations.json: the per-test rows alone are ${size} bytes, over the ${capBytes}-byte cap`);
+    notes.push(`durations.json: ${size} bytes even without runs, over the ${capBytes}-byte cap`);
   }
 
   const changed = prior === null
@@ -833,7 +905,8 @@ export function durationsView(doc) {
     slowTestMs,
     legs,
     runs: doc.runs.map(run => [run.runId, runKind(run), run.branch, run.runUrl, run.headSha.slice(0, 10)]),
-    // [run index, leg index, start time (ms since epoch), wall-clock ms, tests that ran, attempt, red (1) or not (0)]
+    // [run index, leg index, start time (ms since epoch), wall-clock ms, tests that ran, attempt, left out of the
+    // budget (1: a test failed every attempt, or none ran) or not (0)]
     points: doc.runs.flatMap((run, runIndex) => run.legs.map(leg => [
       runIndex,
       legs.indexOf(leg.leg),
@@ -841,7 +914,7 @@ export function durationsView(doc) {
       leg.wallMs,
       leg.tests,
       leg.runAttempt,
-      leg.unexpected > 0 ? 1 : 0,
+      leg.unexpected > 0 || leg.tests === 0 ? 1 : 0,
     ])),
     budget: doc.budget,
     heaviestFiles: heaviestFiles.slice(0, HEAVIEST_FILES),
@@ -890,8 +963,10 @@ export function renderDurationsLine(summaries) {
   }
 
   const [heaviest] = [...perFile].sort((a, b) => b[1].ms - a[1].ms || a[0].localeCompare(b[0]));
+  // A file path from a pull request's artifact: a backtick in it would end the code span early.
+  const heaviestFile = heaviest ? heaviest[0].replace(/`/g, '\'') : '';
   const heaviestText = heaviest
-    ? `; heaviest file: \`${heaviest[0]}\` (${minutes(heaviest[1].ms)} min summed over ${heaviest[1].legs.size} `
+    ? `; heaviest file: \`${heaviestFile}\` (${minutes(heaviest[1].ms)} min summed over ${heaviest[1].legs.size} `
       + `leg${heaviest[1].legs.size === 1 ? '' : 's'})`
     : '';
 

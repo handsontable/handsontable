@@ -18,7 +18,8 @@
 # (`playwright-durations-*`, e2e.yml's post-steps). Those go to
 # `test-health/durations.json` instead of the ledger: per run and leg the
 # wall-clock, workers and counts for 30 days, the per-test milliseconds of each
-# leg's latest run, and per leg the P50 and P90 the e2e budget is derived from.
+# leg's latest run, and per leg the P50 and P90 a later e2e budget is derived
+# from (no gate reads them yet).
 # The page's "Where the time goes" section draws them. Every run with Playwright
 # legs now changes that file, so most collections commit to `gh-pages`.
 #
@@ -68,8 +69,9 @@ jobs:
     runs-on: ubuntu-latest
     # A canceled run's artifacts are incomplete by definition. Every other run
     # is worth a look: a red one for its failures, a green one for a flaky test
-    # under quarantine, which keeps its leg green but still uploads its report.
-    # A run with no test artifacts costs one API call and changes nothing.
+    # under quarantine, which keeps its leg green but still uploads its report,
+    # and any run with Playwright legs for their durations. A run with no test
+    # artifacts costs one API call and changes nothing.
     if: >-
       github.event_name == 'workflow_dispatch'
       || (github.event.workflow_run.conclusion != 'cancelled'
