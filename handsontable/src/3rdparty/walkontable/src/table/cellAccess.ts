@@ -27,6 +27,7 @@ import {
   CLONE_BOTTOM_INLINE_START_CORNER,
   CLONE_TOP_INLINE_END_CORNER,
   CLONE_BOTTOM_INLINE_END_CORNER,
+  INLINE_END_CLONE_TYPES,
 } from '../overlay';
 import type { default as Table } from './baseTable';
 import type CellCoords from '../cell/coords';
@@ -98,11 +99,7 @@ const cellAccess = {
       // cell that stands for the block there is the overlay's first rendered column. The start overlays hold
       // the first columns and never miss the block's origin.
       if (
-        (
-          this.is(CLONE_INLINE_END) ||
-          this.is(CLONE_TOP_INLINE_END_CORNER) ||
-          this.is(CLONE_BOTTOM_INLINE_END_CORNER)
-        ) &&
+        INLINE_END_CLONE_TYPES.includes(this.name) &&
         typeof lastColumn === 'number' &&
         column >= 0 &&
         this.isColumnBeforeRenderedColumns(column) &&

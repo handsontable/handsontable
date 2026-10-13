@@ -23,7 +23,7 @@ import {
 } from './utils';
 import type { InteriorEdges, RenderedBand } from './utils';
 import { CUSTOM_SELECTION_TYPE } from '../constants';
-import { CLONE_INLINE_END, CLONE_TOP_INLINE_END_CORNER, CLONE_BOTTOM_INLINE_END_CORNER } from '../../overlay';
+import { INLINE_END_CLONE_TYPES } from '../../overlay/constants';
 import { getSpreaderOffset } from '../../overlay/spreaderOffset';
 import {
   ADJUST_HANDLE_EDGES,
@@ -1612,11 +1612,7 @@ class Border {
     // With `mergeCells.virtualized` the `'render'` answer clamps the block's first column to the overlay's first
     // rendered one, which hides that the block starts before an end overlay's band. The block's own first column
     // tells it, so the start edge on the freeze line is seen as interior.
-    if (
-      wtTable.is(CLONE_INLINE_END) ||
-      wtTable.is(CLONE_TOP_INLINE_END_CORNER) ||
-      wtTable.is(CLONE_BOTTOM_INLINE_END_CORNER)
-    ) {
+    if (INLINE_END_CLONE_TYPES.includes(wtTable.name)) {
       const ownExtent = resolveBlockExtent(
         this.wot.getSetting('onModifyGetCellCoords', toRow, toColumn, false, 'meta')
       );

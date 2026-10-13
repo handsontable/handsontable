@@ -282,7 +282,7 @@ test.describe('selection of a merged cell that reaches into the end frozen colum
           await init(BLOCKS[0].block);
           await grid.scrollToColumn(0);
 
-          expect(await page.evaluate(() => window.hot.getCell(1, 9, true)?.closest('.ht_clone_inline_end') !== null))
+          expect(await page.evaluate(() => !!window.hot.getCell(1, 9, true)?.closest('.ht_clone_inline_end')))
             .toBe(true);
           expect(await page.evaluate(() => window.hot.getCell(1, 9, true)?.textContent)).toBe('R2C9');
         });
