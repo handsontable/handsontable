@@ -94,9 +94,18 @@ export class ValueComponent extends BaseComponent {
       .addLocalHook('keydown', (event: KeyboardEvent) => this.#onInputKeyDown(event))
       .addLocalHook('listTabKeydown', (event: Event) => this.runLocalHooks('listTabKeydown', event));
 
-    this.hot?.addHook('modifyFiltersMultiSelectValue',
-      (value: string, meta: Record<string, unknown>, itemValue?: unknown) =>
-        this.#onModifyDisplayedValue(value, meta, itemValue));
+    this.hot?.addHook('modifyFiltersMultiSelectValue', this.#onModifyDisplayedValue);
+  }
+
+  /**
+   * Destroy the component and take its `modifyFiltersMultiSelectValue` listener off the grid.
+   *
+   * The plugin builds a new component on every enable, so a listener left behind would run
+   * the formatter once more on the label the next one already formatted.
+   */
+  destroy() {
+    this.hot?.removeHook('modifyFiltersMultiSelectValue', this.#onModifyDisplayedValue);
+    super.destroy();
   }
 
   /**
@@ -449,7 +458,7 @@ export class ValueComponent extends BaseComponent {
    * @param {*} [itemValue] The list item's source `value` (not `visualValue`).
    * @returns {*} Returns the modified value.
    */
-  #onModifyDisplayedValue(value: unknown, meta: Record<string, unknown>, itemValue?: unknown) {
+  #onModifyDisplayedValue = (value: unknown, meta: Record<string, unknown>, itemValue?: unknown) => {
     if (isBlankFilterListValue(itemValue)) {
       return value;
     }
@@ -459,7 +468,7 @@ export class ValueComponent extends BaseComponent {
     }
 
     return value;
-  }
+  };
 
   /**
    * Gets the values the list is built from for the currently selected column. The plugin decides
