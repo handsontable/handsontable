@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `sourceLabel` option, which lets the `value` of a key/value `source` entry in the `dropdown` and `autocomplete` cell types be an object, labeled by a property path or a function.",
+  "type": "added",
+  "issueOrPR": 13765,
+  "breaking": false,
+  "framework": "none"
+}

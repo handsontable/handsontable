@@ -6,10 +6,10 @@
     "cells",
     "cell"
   ],
-  "total": 179,
+  "total": 180,
   "counts": {
     "grid": 109,
-    "grid columns cells cell": 62,
+    "grid columns cells cell": 63,
     "grid columns": 7,
     "columns": 1
   },
@@ -1480,6 +1480,18 @@
         "cell"
       ],
       "since": "17.0.0",
+      "note": null
+    },
+    {
+      "name": "sourceLabel",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "19.0.0",
       "note": null
     },
     {

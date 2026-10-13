@@ -321,7 +321,7 @@ frame and the page's CLS grows without bound — 10.4 after 25 wheel steps, wher
 transform moves pixels without moving layout and is exempt. Measured on the same build with and
 without it: CLS 10.44 → 0.004, forced layouts per scroll run 154 → 106, everything else within noise.
 
-Five rules follow, and the first is the one that bites.
+Six rules follow, and the first is the one that bites.
 
 - **`offsetTop`/`offsetLeft` and the `offset()` helper walk the layout chain, so they no longer see
   this distance.** Any code that compares a cell's document position against an element OUTSIDE the
@@ -355,6 +355,13 @@ Five rules follow, and the first is the one that bites.
   `Overlays#isStickyScrollOwningClones()` is true - suspend them on the master's flag and the
   frozen columns freeze for the length of a page-scrollbar drag. `#activate` reads its starting
   offset from the record, not from `style.top`, which is empty now.
+- **`StickyScrollStrategy#setScrollPosition` hands `window.scrollTo` a negative x on an RTL page.** A
+  page that the window scrolls horizontally in RTL has a negative `scrollX`, so a positive x clamps to
+  the origin and the release of a scrollbar drag throws the page back to its start. The hider-coordinate
+  magnitude is negated, as the element branch does for `scrollLeft`. The sign comes from the PAGE's
+  direction (`#isPageRtl`, read from the sign of `scrollX`), not the grid's `rtlMode`: an RTL grid on an LTR page scrolls into positive
+  `scrollX`, and negating there drops the page to 0. The drag is safe because `deactivate` is the only
+  caller of `#setScrollPosition`, and `#getScrollLeft` reads through `Math.abs`.
 - **`StickyScrollStrategy#syncOffsets` resolves each axis on its own.** An axis with nothing
   rendered (no rows, or every row hidden, trimmed or filtered out; likewise for columns) has a
   `null` render-calculator `startPosition`, and it takes offset 0 on that sync, the same value the
@@ -1865,6 +1872,24 @@ the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsE
   master draw next to `holderOffset` (a right edge stays put when a draw widens the table, a left one moves). It
   does not depend on the scroll position, and it is `0` while the holder, not the window, scrolls the columns.
   `tests/e2e/rtl-shrink-wrapped-grid-scroll.spec.ts` pins it; the RTL block layout alone cannot catch it.
+- **The page offset counts only while the window scrolls the columns, in LTR too.** In the reverse split (an
+  ancestor with `overflow-y: clip`, or `preventOverflow: 'vertical'`) `trimmingContainer` is the window but the
+  holder scrolls, and the margin in front of the grid is not part of `holder.scrollLeft`. `getTableParentOffset`
+  therefore returns `0` unless `mainTableScrollableElement` is the window, as `TopOverlay` and `BottomOverlay`
+  already did for the vertical axis (`preventOverflow` already returned `0`). The same split decides
+  `measureWorkspaceWidth`: it takes `documentElement.clientWidth` only while the window scrolls the columns,
+  otherwise the holder's own width. Without that, a grid offset from the page edge rendered columns for a
+  workspace as wide as the page (two more, for a 200px offset and 100px columns), reported the wrong last visible
+  column, and `stretchH` spread the columns over the page width when the header plus the columns sat between
+  the holder width and the page width. That half also applies to `preventOverflow: 'vertical'`.
+  The same offset feeds `getOverlayOffset()`, which `manualColumnMove` reads to place the column-move backlight:
+  in the reverse split it is the raw holder scroll position (the backlight lives in the scrolling master), not that
+  minus the page offset. Ask `Overlay#isScrolledByWindow()` for "does the window scroll the columns"; do not compare
+  `trimmingContainer` or repeat the `mainTableScrollableElement` check. `measureHasHorizontalScroll` and
+  `InlineStartOverlay#adjustRootElementSize` still go through `isHorizontallyScrollableByWindow()`, which asks the axis
+  owner.
+  `tests/e2e/page-offset-reverse-split.spec.ts` pins both, each offset layout against its no-offset twin of the
+  same holder width.
 - **Ask the scroller, not the axis owner, whether the window holds the end clone.**
   `InlineEndOverlay#isScrolledByWindow` reads `mainTableScrollableElement`, and the end corners call it too.
   The horizontal axis owner (`trimmingContainer`) is the window in the reverse split (`preventOverflow:
