@@ -5,6 +5,7 @@ import { isValidISODate } from '../../helpers/dateTime';
 import { warn, warnOnce } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { isEmpty } from '../../helpers/mixed';
+import { getDeepActiveElement } from '../../helpers/dom/element';
 
 export const EDITOR_TYPE = 'date';
 
@@ -194,17 +195,15 @@ export class DateEditor extends TextEditor {
    *
    * There is no API to hide the picker, and Firefox keeps it open after the editor closes. Blurring the
    * input dismisses it. The blur comes after the base `close()`, which hands the keyboard back to the grid
-   * while the input still has the focus.
+   * while the input still has the focus. A blur leaves the focus on the page body, so the focus goes back
+   * to the highlighted cell.
    */
   close(): void {
     super.close();
 
-    try {
-      if (this.TEXTAREA.matches(':open')) {
-        this.TEXTAREA.blur();
-      }
-    } catch {
-      // Engines without the `:open` pseudo-class (WebKit) throw on the selector
+    if (getDeepActiveElement(this.hot.rootDocument) === this.TEXTAREA && this.#isPickerOpen()) {
+      this.TEXTAREA.blur();
+      this.hot.getFocusManager().focusOnHighlightedCell();
     }
   }
 
@@ -218,6 +217,22 @@ export class DateEditor extends TextEditor {
       (this.TEXTAREA as HTMLInputElement).showPicker();
     } catch {
       // Prevents showPicker() user-gesture errors in tests
+    }
+  }
+
+  /**
+   * Checks whether the native date picker is shown.
+   *
+   * Engines without the `:open` pseudo-class (Firefox before 136, Chrome before 133) throw on the selector.
+   * There the picker is assumed to be shown, so a blur dismisses it.
+   *
+   * @returns {boolean}
+   */
+  #isPickerOpen(): boolean {
+    try {
+      return this.TEXTAREA.matches(':open');
+    } catch {
+      return true;
     }
   }
 }
