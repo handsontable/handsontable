@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-13T10:27:12.489Z",
+  "generatedAt": "2026-10-13T10:42:05.379Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 397,
+    "tests": 399,
     "needsTicket": 26,
     "quarantined": 0,
-    "entries": 2063
+    "entries": 2071
   },
   "rows": [
     {
@@ -11156,6 +11156,78 @@
         "leg": "js/chromium-theme-horizon-dark",
         "status": "failed",
         "error": "differs from base/develop (full tier); render sha256 1c519dd0f68a",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/page-offset-reverse-split-clones.spec.ts|clones, page scroll range and pointer bounds in the reverse split › tracks a drag that moves inside the page offset gap like the hidden twin (ltr)",
+      "tier": "playwright",
+      "file": "e2e/page-offset-reverse-split-clones.spec.ts",
+      "line": 62,
+      "title": "clones, page scroll range and pointer bounds in the reverse split › tracks a drag that moves inside the page offset gap like the hidden twin (ltr)",
+      "count7": 4,
+      "count30": 4,
+      "countAll": 4,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-13T10:41:16Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38380730524",
+        "branch": "feature/DEV-3396_Reverse-split-window-scroll-predicate",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toEqual(expected) // deep equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/page-offset-reverse-split-clones.spec.ts|clones, page scroll range and pointer bounds in the reverse split › tracks a drag that moves inside the page offset gap like the hidden twin (rtl)",
+      "tier": "playwright",
+      "file": "e2e/page-offset-reverse-split-clones.spec.ts",
+      "line": 62,
+      "title": "clones, page scroll range and pointer bounds in the reverse split › tracks a drag that moves inside the page offset gap like the hidden twin (rtl)",
+      "count7": 4,
+      "count30": 4,
+      "countAll": 4,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-13T10:41:16Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38380730524",
+        "branch": "feature/DEV-3396_Reverse-split-window-scroll-predicate",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toEqual(expected) // deep equality",
         "source": "ci"
       },
       "needsTicket": false
