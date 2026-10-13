@@ -575,13 +575,18 @@ export class DropdownController {
   }
 
   /**
-   * Returns the pixel height occupied by the list items, using either the actual rendered count or the full entry count when calculating the maximum.
+   * Returns the pixel height occupied by the list items. With `maxRowsCalculation`, it is the height of the
+   * most rows the list can show, which is the entry count capped to `visibleRows`, as the list is a scrollable
+   * container that never grows past that. Without it, it is the height of the rows rendered now.
    */
   #getListHeight(maxRowsCalculation: boolean): number {
-    const maxRenderedItems = this.#cache.entriesCount;
+    const { entriesCount, visibleRowsNumberSetting } = this.#cache;
+    const maxRenderedItems = visibleRowsNumberSetting
+      ? Math.min(entriesCount, visibleRowsNumberSetting)
+      : entriesCount;
     const actualRenderedItems = maxRowsCalculation
       ? maxRenderedItems
-      : this.#cache.actualRenderedItemsCount ?? maxRenderedItems;
+      : this.#cache.actualRenderedItemsCount ?? entriesCount;
     const entryHeight = this.#getEntryHeight();
 
     return actualRenderedItems * entryHeight;

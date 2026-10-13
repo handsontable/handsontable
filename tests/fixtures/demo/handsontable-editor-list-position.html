@@ -70,6 +70,10 @@
     if (window.htInset === undefined) {
       throw new Error('Unknown ?inset= value: ' + JSON.stringify(htParams.get('inset')));
     }
+    // `?pairRows=N` (multiselect only) replaces the single column with two: column 0 with a 30-entry source
+    // and column 1 with an N-entry source, both with `visibleRows: N`, so a cell in column 0 and one in
+    // column 1 of the same row share their top and differ only in the source's length.
+    window.htPairRows = Number(htParams.get('pairRows')) || 0;
     window.htWrap = htWraps[htParams.get('wrap') ?? 'none'];
     if (window.htWrap === undefined) {
       throw new Error('Unknown ?wrap= value: ' + JSON.stringify(htParams.get('wrap')));
@@ -159,6 +163,15 @@
         },
       },
     };
+
+    if (window.htType === 'multiselect' && window.htPairRows) {
+      const entries = count => Array.from({ length: count }, (_, index) => `Option number ${index + 1}`);
+      const pairColumn = count => ({
+        type: 'multiselect', source: entries(count), visibleRows: window.htPairRows, renderer: testIdRenderer,
+      });
+
+      editorSettings.multiselect = { columns: [pairColumn(30), pairColumn(window.htPairRows)] };
+    }
 
     // Fail loud: a constructor that throws must not leave the page looking like a grid that simply
     // has not rendered yet. The message is stamped on the container and the page object rethrows it,
