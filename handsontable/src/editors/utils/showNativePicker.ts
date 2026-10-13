@@ -1,3 +1,6 @@
+import type { HotInstance } from '../../core/types';
+import { getDeepActiveElement } from '../../helpers/dom/element';
+
 /**
  * Shows the native picker of a date, time, or datetime-local input, unless the editor was opened with the keyboard.
  *
@@ -23,19 +26,34 @@ export function showNativePicker(input: HTMLInputElement, event?: Event): void {
 }
 
 /**
+ * Checks whether the native picker of the input is shown.
+ *
+ * Engines without the `:open` pseudo-class (Firefox before 136, Chrome before 133) throw on the selector.
+ * There the picker is assumed to be shown, so a blur dismisses it.
+ *
+ * @param {HTMLInputElement} input The editor's native input.
+ * @returns {boolean}
+ */
+function isPickerOpen(input: HTMLInputElement): boolean {
+  try {
+    return input.matches(':open');
+  } catch {
+    return true;
+  }
+}
+
+/**
  * Dismisses the native picker of a date, time, or datetime-local input that is still shown.
  *
  * There is no API to hide the picker, and Firefox keeps it open after the editor closes. Blurring the
- * input dismisses it.
+ * input dismisses it, but leaves the focus on the page body, so the focus goes back to the highlighted cell.
  *
+ * @param {Handsontable} hot The Handsontable instance.
  * @param {HTMLInputElement} input The editor's native input.
  */
-export function hideNativePicker(input: HTMLInputElement): void {
-  try {
-    if (input.matches(':open')) {
-      input.blur();
-    }
-  } catch {
-    // Engines without the `:open` pseudo-class (WebKit) throw on the selector
+export function hideNativePicker(hot: HotInstance, input: HTMLInputElement): void {
+  if (getDeepActiveElement(hot.rootDocument) === input && isPickerOpen(input)) {
+    input.blur();
+    hot.getFocusManager().focusOnHighlightedCell();
   }
 }

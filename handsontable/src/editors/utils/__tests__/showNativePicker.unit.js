@@ -53,35 +53,65 @@ describe('showNativePicker', () => {
 });
 
 describe('hideNativePicker', () => {
-  it('blurs the input while its picker is open', () => {
+  const makeSetup = (matches) => {
     const input = document.createElement('input');
+    const focusOnHighlightedCell = jest.fn();
+    const hot = {
+      rootDocument: document,
+      getFocusManager: () => ({ focusOnHighlightedCell }),
+    };
 
-    input.matches = jest.fn(() => true);
+    document.body.appendChild(input);
+    input.focus();
+    input.matches = jest.fn(matches);
     input.blur = jest.fn();
 
-    hideNativePicker(input);
+    return { input, hot, focusOnHighlightedCell };
+  };
+
+  afterEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  it('blurs the focused input while its picker is open and refocuses the highlighted cell', () => {
+    const { input, hot, focusOnHighlightedCell } = makeSetup(() => true);
+
+    hideNativePicker(hot, input);
 
     expect(input.blur).toHaveBeenCalledTimes(1);
+    expect(focusOnHighlightedCell).toHaveBeenCalledTimes(1);
   });
 
   it('leaves the input alone when no picker is open', () => {
-    const input = document.createElement('input');
+    const { input, hot, focusOnHighlightedCell } = makeSetup(() => false);
 
-    input.matches = jest.fn(() => false);
-    input.blur = jest.fn();
-
-    hideNativePicker(input);
+    hideNativePicker(hot, input);
 
     expect(input.blur).not.toHaveBeenCalled();
+    expect(focusOnHighlightedCell).not.toHaveBeenCalled();
   });
 
-  it('swallows the error of an engine without the `:open` selector', () => {
-    const input = document.createElement('input');
+  it('leaves the input alone when it does not hold the focus', () => {
+    const { hot, focusOnHighlightedCell } = makeSetup(() => true);
+    const other = document.createElement('input');
 
-    input.matches = jest.fn(() => {
+    other.matches = jest.fn(() => true);
+    other.blur = jest.fn();
+    document.body.appendChild(other);
+
+    hideNativePicker(hot, other);
+
+    expect(other.blur).not.toHaveBeenCalled();
+    expect(focusOnHighlightedCell).not.toHaveBeenCalled();
+  });
+
+  it('assumes the picker is open in an engine without the `:open` selector', () => {
+    const { input, hot } = makeSetup(() => {
       throw new SyntaxError('not a valid selector');
     });
 
-    expect(() => hideNativePicker(input)).not.toThrow();
+    hideNativePicker(hot, input);
+
+    expect(input.blur).toHaveBeenCalledTimes(1);
   });
 });

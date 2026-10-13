@@ -43,4 +43,23 @@ test.describe('the date editor opened with the keyboard', { tag: CROSS_BROWSER_T
 
     await expect.poll(() => grid.isEditorOpened()).toBe(false);
   });
+
+  test('closes the picker and keeps the focus on the page when Enter commits', async({ page, browserName }) => {
+    // A double-click shows the picker; a keyboard open leaves it closed.
+    await grid.cell(0, 1).dblclick();
+    await expect(grid.editorInput).toBeFocused();
+
+    // Chromium's picker takes the first Enter, so press until the editor is gone.
+    await expect(async() => {
+      await page.keyboard.press('Enter');
+      expect(await grid.isEditorOpened()).toBe(false);
+    }).toPass();
+
+    if (browserName !== 'webkit') {
+      expect(await grid.editorInput.evaluate(input => input.matches(':open'))).toBe(false);
+    }
+
+    // The blur that closes the picker must not leave the focus on the page body.
+    expect(await page.evaluate(() => document.activeElement === document.body)).toBe(false);
+  });
 });

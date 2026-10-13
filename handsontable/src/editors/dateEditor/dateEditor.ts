@@ -195,12 +195,13 @@ export class DateEditor extends TextEditor {
    *
    * There is no API to hide the picker, and Firefox keeps it open after the editor closes. Blurring the
    * input dismisses it. The blur comes after the base `close()`, which hands the keyboard back to the grid
-   * while the input still has the focus.
+   * while the input still has the focus. A blur leaves the focus on the page body, so the focus goes back
+   * to the highlighted cell.
    */
   close(): void {
     super.close();
 
-    hideNativePicker(this.TEXTAREA as HTMLInputElement);
+    hideNativePicker(this.hot, this.TEXTAREA as HTMLInputElement);
   }
 
   /**

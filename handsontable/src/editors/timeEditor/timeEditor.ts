@@ -84,7 +84,7 @@ export class TimeEditor extends TextEditor {
   close(): void {
     super.close();
 
-    hideNativePicker(this.TEXTAREA as HTMLInputElement);
+    hideNativePicker(this.hot, this.TEXTAREA as HTMLInputElement);
   }
 
   /**
