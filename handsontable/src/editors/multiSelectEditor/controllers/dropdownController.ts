@@ -256,7 +256,10 @@ export class DropdownController {
     const entryHeight = this.#getEntryHeight();
     const chromeHeight = this.#getContainerChromeHeight();
     const requiresFlippingVertically = this.#requiresFlippingVertically(availableSpace, chromeHeight);
-    const availableHeight = requiresFlippingVertically ? availableSpace.spaceAbove : availableSpace.spaceBelow;
+    // The side the list is drawn on: the stored one when the flip is kept, so the room it is capped to is
+    // the room on that side.
+    const flipped = noFlip ? this.#cache.flippedVertically : requiresFlippingVertically;
+    const availableHeight = flipped ? availableSpace.spaceAbove : availableSpace.spaceBelow;
 
     // Decided both ways: a scroll that follows the cell calls this again, and a flip that could
     // only be set would keep the list above a cell that has room below it again. `prepare()`
@@ -266,10 +269,11 @@ export class DropdownController {
     }
 
     if (this.#cache.entriesCount > 0 && availableHeight < this.getHeight(true) + chromeHeight) {
-      // The `- 1` leaves a row of slack, which is what absorbs the padding and border of the container
-      // when the list is trimmed to the room: they are smaller than one row on every built-in theme.
+      // The `- 1` leaves a row of slack that absorbs the chrome up to one row, which covers the built-in
+      // themes. A theme with more chrome than that takes the excess off the room.
+      const chromeBeyondSlack = Math.max(chromeHeight - entryHeight, 0);
       const maxRenderableItems = Math.max(
-        Math.floor((availableHeight - this.#getSearchInputWrapperHeight()) / entryHeight) - 1,
+        Math.floor((availableHeight - chromeBeyondSlack - this.#getSearchInputWrapperHeight()) / entryHeight) - 1,
         1
       );
 

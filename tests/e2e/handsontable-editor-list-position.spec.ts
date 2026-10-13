@@ -256,14 +256,16 @@ test.describe('multiselect editor list stays in the viewport at every cell posit
       await page.setViewportSize({ width: 1000, height: 600 });
       await grid.goto();
 
-      // Opens on a cell about 345 px down a 600 px viewport. The page scrolls up to 280 px from there, which
-      // takes the cell's top through the room the list needs below it and above it on every theme.
-      const coords = await grid.openEditorAt('center', 345);
+      // Opens on a cell about 480 px down a 600 px viewport. The page scrolls up to 380 px from there, which
+      // takes the cell's top through the room the list needs below it, and then above it, on every theme.
+      const coords = await grid.openEditorAt('center', 480);
       const { cell } = await grid.geometry(coords);
       const startTop = cell.top;
       const outside: string[] = [];
+      const seen = { flipped: false, capped: false };
+      let tallest = 0;
 
-      for (let top = startTop; top >= startTop - 280; top -= 8) {
+      for (let top = startTop; top >= startTop - 380; top -= 8) {
         await page.evaluate(y => window.scrollTo(window.scrollX, y), startTop - top);
         await expect.poll(async() => (await grid.geometry(coords)).cell.top, { message: `the cell reaches ${top}` })
           .toBeCloseTo(top, 0);
@@ -273,7 +275,13 @@ test.describe('multiselect editor list stays in the viewport at every cell posit
           requestAnimationFrame(() => requestAnimationFrame(resolve));
         }));
 
-        const { inViewport } = placementOf(await grid.geometry(coords), dir);
+        const geometry = await grid.geometry(coords);
+        const { inViewport, side } = placementOf(geometry, dir);
+        const height = geometry.list.bottom - geometry.list.top;
+
+        tallest = Math.max(tallest, height);
+        seen.flipped ||= side === 'above';
+        seen.capped ||= height < tallest - 1;
 
         if (inViewport !== 'yes') {
           outside.push(`cell top ${top}: ${inViewport}`);
@@ -281,6 +289,8 @@ test.describe('multiselect editor list stays in the viewport at every cell posit
       }
 
       expect(outside).toEqual([]);
+      // Without both cases in the sweep, a list that stays on screen proves nothing about either threshold.
+      expect(seen).toEqual({ flipped: true, capped: true });
     });
   }
 });
