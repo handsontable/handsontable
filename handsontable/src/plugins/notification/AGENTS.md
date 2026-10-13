@@ -90,14 +90,13 @@ teardown, or a hidden toast keeps its listeners.
   the inline end, no focus taken, and its placement. A toast sits 20 px in from its corner's edges: the
   stack's 10 px offset plus its 10 px padding.
 
-**The layer spans the root wrapper, not the grid.** The host is `inset: 0` inside
-`hot.rootOverlaysElement`, which is as wide as `.ht-root-wrapper`, so a grid narrower than its container
-(`width: 400` in a full-width page) shows its end-corner toasts at the container's far edge, hundreds of
-pixels from the grid. The start corners only look right because the grid starts where the container
-does. The block axis has the same mismatch: the wrapper also holds the bottom slots, so with a pager (or
-any bottom slot) under the grid a bottom-corner toast sits 20 px above the wrapper's bottom, on top of
-the pager, and covers its controls. The dialog solved the inline axis by pinning its width to the
-workspace on `afterViewRender`; a fix here has to size the layer to the grid on both axes. The
-root-relative placement of the end corners, and of a bottom corner over a pager, are `test.fixme` in the
-Playwright spec until the layer follows the grid (the content of every corner is asserted live), and the
-visual suite's end-corner captures show the toast at the far edge until then.
+**The layer is fitted to the grid root, not to the root wrapper.** `.ht-notification` is `inset: 0` inside
+`hot.rootOverlaysElement`, which spans the whole `.ht-root-wrapper`: as wide as the container and as tall as
+the grid plus its slots. `NotificationUI#fitToGrid()` therefore writes physical `left/top/width/height` on
+the host from `hot.rootElement` (on install, when a toast mounts, and on `afterViewRender` while a toast is open; the write is skipped when nothing changed),
+so a corner toast sits 20 px in from the grid's own edge, and a bottom corner stays above a pager or any
+other bottom slot. It resets `right` and `bottom` to `auto`, because the stylesheet's `inset: 0` would
+overconstrain the box and RTL would silently keep the wrapper's edge. The box is measured against
+`host.offsetParent` and divided by its scale, so a transformed ancestor does not skew it. A hidden root
+(zero size) leaves the host as it was. The stacks' percentage `max-width`/`max-height` now resolve against
+the grid, so a small grid gets smaller stacks. The Playwright spec pins both axes in both directions and a grid resize with a toast open.

@@ -239,6 +239,7 @@ export class Notification extends BasePlugin {
     }
 
     this.#ui.install();
+    this.#ui.fitToGrid(this.hot.rootElement);
     this.#registerFocusScope();
     this.#registerNotificationShortcuts();
 
@@ -251,6 +252,7 @@ export class Notification extends BasePlugin {
 
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
     this.addHook('afterSetTheme', this.#onAfterSetTheme);
+    this.addHook('afterViewRender', this.#onAfterViewRender);
     this.eventManager.addEventListener(this.hot.rootDocument, 'visibilitychange', () => {
       if (this.#hasActiveCountdowns()) {
         this.#queueTick();
@@ -486,6 +488,16 @@ export class Notification extends BasePlugin {
   };
 
   /**
+   * Keeps the toast layer fitted to the grid root as the view renders.
+   */
+  readonly #onAfterViewRender = () => {
+    // Layout is read only while a toast is on screen; `#mountToast` fits the layer for the next one.
+    if (this.#toasts.size > 0) {
+      this.#ui?.fitToGrid(this.hot.rootElement);
+    }
+  };
+
+  /**
    * Rebuilds the close icon of every currently-open toast after a theme change. A toast built
    * before the change keeps showing its close control - only the icon inside it needs to catch
    * up, the same way pagination and the sheets bar refresh their persistent icons.
@@ -558,6 +570,8 @@ export class Notification extends BasePlugin {
    * @param {object} normalized Validated toast options including `id` and `position`.
    */
   #mountToast(normalized: NotificationNormalizedOptions): void {
+    this.#ui!.fitToGrid(this.hot.rootElement);
+
     const closeLabel = this.hot.getTranslatedPhrase(C.NOTIFICATION_BUTTONS_CLOSE);
     const animation = this.getSetting<boolean>('animation');
     const { element } = this.#ui!.createToastElement(normalized, closeLabel, animation);

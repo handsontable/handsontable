@@ -110,6 +110,48 @@ export class NotificationUI {
   }
 
   /**
+   * Fits the host to the grid root, so the corner stacks anchor to the grid and not to the wider
+   * root wrapper (which also holds the top and bottom slots). Physical offsets are written with
+   * `right` and `bottom` reset, because the stylesheet's `inset: 0` would overconstrain the box.
+   *
+   * @param {HTMLElement} gridRoot The grid root element the toasts are anchored to.
+   */
+  fitToGrid(gridRoot: HTMLElement): void {
+    const host = this.#host;
+    const container = host?.offsetParent;
+
+    if (!host || !container || !gridRoot.offsetWidth || !gridRoot.offsetHeight) {
+      return;
+    }
+
+    const rootRect = gridRoot.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    // Rects are scaled by a transformed ancestor, inline pixels are not.
+    const scaleX = (containerRect.width / (container as HTMLElement).offsetWidth) || 1;
+    const scaleY = (containerRect.height / (container as HTMLElement).offsetHeight) || 1;
+    const left = Math.round(((rootRect.left - containerRect.left) / scaleX) - container.clientLeft);
+    const top = Math.round(((rootRect.top - containerRect.top) / scaleY) - container.clientTop);
+    const { style } = host;
+    const next = {
+      left: `${left}px`,
+      top: `${top}px`,
+      width: `${gridRoot.offsetWidth}px`,
+      height: `${gridRoot.offsetHeight}px`,
+    };
+
+    if (
+      style.left === next.left &&
+      style.top === next.top &&
+      style.width === next.width &&
+      style.height === next.height
+    ) {
+      return;
+    }
+
+    Object.assign(style, next, { right: 'auto', bottom: 'auto' });
+  }
+
+  /**
    * @returns {HTMLElement | null}
    */
   getHost(): HTMLElement | null {

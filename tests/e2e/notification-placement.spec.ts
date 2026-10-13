@@ -130,12 +130,7 @@ test.describe('notification placement', () => {
         expectInCorner(toast, root, corner, dir, 'grid root');
       };
 
-      if (corner.endsWith('-end')) {
-        // eslint-disable-next-line no-restricted-syntax -- DEV-3287: the notification layer spans the root wrapper, so an end-corner toast lands at the container's far edge, not the grid's
-        test.fixme(placementTitle, placement);
-      } else {
-        test(placementTitle, placement);
-      }
+      test(placementTitle, placement);
     }
   }
 
@@ -158,8 +153,7 @@ test.describe('notification placement', () => {
     await expect.poll(() => notificationPage.selected()).toEqual([[2, 1, 2, 1]]);
   });
 
-  // eslint-disable-next-line no-restricted-syntax -- DEV-3287: the notification layer spans the root wrapper on the block axis too, so a bottom-corner toast covers the pager instead of sitting above it
-  test.fixme('a bottom-start toast in a grid with a pager sits in the grid\'s corner, above the pager', async({
+  test('a bottom-start toast in a grid with a pager sits in the grid\'s corner, above the pager', async({
     page, theme, bundle,
   }) => {
     const notificationPage = new NotificationStatesPage(page, theme, bundle);
@@ -171,5 +165,20 @@ test.describe('notification placement', () => {
     expect(pager).not.toBeNull();
     expect(toast.bottom).toBeLessThanOrEqual(pager!.top);
     expectInCorner(toast, root, 'bottom-start', 'ltr', 'grid root');
+  });
+
+  test('an end-corner toast follows the grid when its width changes', async({ page, theme, bundle }) => {
+    const notificationPage = new NotificationStatesPage(page, theme, bundle);
+
+    await notificationPage.goto('top-end', 'ltr');
+    await page.evaluate(() => {
+      (window as unknown as { hot: { updateSettings(s: object): void } }).hot.updateSettings({ width: 260 });
+    });
+
+    await expect.poll(async() => {
+      const { toast, root } = await notificationPage.geometry('success');
+
+      return Math.round(root.right - toast.right);
+    }).toBe(20);
   });
 });
