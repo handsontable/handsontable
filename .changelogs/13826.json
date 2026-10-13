@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the layout of a grid that scrolls its columns in its own box while the window scrolls the rows (an ancestor with `overflow-y: clip` or `preventOverflow: 'vertical'`): the row-header and column-header overlays no longer run past the holder's scrollbars, the page no longer gets a horizontal scroll range, and a drag that moves inside the page offset keeps extending the selection.",
+  "type": "fixed",
+  "issueOrPR": 13826,
+  "breaking": false,
+  "framework": "none"
+}
