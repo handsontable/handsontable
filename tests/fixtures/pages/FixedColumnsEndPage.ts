@@ -247,6 +247,39 @@ export class FixedColumnsEndPage {
   }
 
   /**
+   * The open editor's box and the edited cell's box, read in one evaluation, and whether that frame is settled.
+   * Opening the editor, or selecting the cell, can scroll the master holder. The editor is placed from the master at
+   * once, while a clone that draws the cell follows on the next frame's `scroll` event, so a read in between
+   * measures the editor against a cell one scroll behind it. `inSync` is true once the holder that draws the cell
+   * matches the master's offset on every axis it scrolls on; poll the comparison until it is.
+   *
+   * @param {number} row Visual row.
+   * @param {number} col Visual column.
+   */
+  async editorAndCellBoxes(row: number, col: number): Promise<{ editor: Box; cell: Box; inSync: boolean }> {
+    return this.grid.evaluate((root, [r, c]) => {
+      const box = (element: Element): Box => {
+        const { left, right, top, bottom } = element.getBoundingClientRect();
+
+        return { left, right, top, bottom };
+      };
+      const td = (window as unknown as HotWindow).hot.getCell(r, c, true);
+      const editor = root.querySelector('textarea.handsontableInput');
+      const master = root.querySelector('.ht_master .wtHolder');
+      const holder = td?.closest('.wtHolder');
+
+      if (!td || !editor || !master || !holder) {
+        throw new Error(`Cell ${r},${c} or the editor is not rendered`);
+      }
+
+      const inSync = (holder.scrollHeight <= holder.clientHeight || holder.scrollTop === master.scrollTop)
+        && (holder.scrollWidth <= holder.clientWidth || holder.scrollLeft === master.scrollLeft);
+
+      return { editor: box(editor), cell: box(td), inSync };
+    }, [row, col] as const);
+  }
+
+  /**
    * The clone a cell is rendered in, by its structural class (`master` for none).
    *
    * @param {number} row Visual row.

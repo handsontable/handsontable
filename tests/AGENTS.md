@@ -541,6 +541,16 @@ full object). Never poll one field and then read the rest once: the field you
 polled can come from a clone that is already drawn
 (`merge-cells-frozen-bottom.spec.ts`, the outline test).
 
+**An open editor follows the master, and its cell follows a clone.** Enter
+scrolls a cell that a frozen pane mostly covers into view, as a selection can.
+The editor is placed from the master's new offset at once, and the clone that
+draws the cell catches up a frame later, so the two boxes disagree by the
+whole scroll in between (DEV-3399). Read the editor and the cell in one
+evaluation together with whether that clone has caught up, and retry the whole
+comparison until it has (`FixedColumnsEndPage.editorAndCellBoxes()`).
+Requiring the catch-up, not only a match, keeps an editor misplaced by exactly
+the scroll from passing on the stale frame.
+
 **A geometry read is two round trips, and the grid recycles its rows.**
 `locator.boundingBox()` and `locator.evaluate()` resolve the node in one round
 trip and act on it in another (`innerText()` and `getAttribute()` do both in one

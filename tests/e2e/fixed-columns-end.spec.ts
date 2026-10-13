@@ -39,6 +39,25 @@ function expectEditorOnCell(editor: Box, cell: Box, rtl: boolean) {
     .toBeGreaterThanOrEqual(-(TOLERANCE + 1));
 }
 
+/**
+ * Asserts the open editor covers the cell it edits, reading both in one evaluation and retrying until the clone that
+ * draws the cell has caught up with the master. Selecting a cell, or opening its editor, can scroll the master
+ * holder; the editor follows the master at once, and the clone one frame later (DEV-3399).
+ *
+ * @param {FixedColumnsEndPage} grid The page object.
+ * @param {number} row Visual row.
+ * @param {number} col Visual column.
+ * @param {boolean} rtl Whether the layout runs right to left.
+ */
+async function expectEditorOnCellSettled(grid: FixedColumnsEndPage, row: number, col: number, rtl: boolean) {
+  await expect(async () => {
+    const { editor, cell, inSync } = await grid.editorAndCellBoxes(row, col);
+
+    expect(inSync, `${row},${col}: the clone has caught up with the master`).toBe(true);
+    expectEditorOnCell(editor, cell, rtl);
+  }).toPass({ timeout: 10_000 });
+}
+
 for (const direction of ['ltr', 'rtl'] as const) {
   const rtl = direction === 'rtl';
   // The key that moves the selection towards the inline end (physical right in LTR, left in RTL).
@@ -68,7 +87,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
         expect(await grid.overlayOf(row, col), `overlay of ${row},${col}`).toBe(overlay);
       }
 
-      expectEditorOnCell(await grid.editorBox(), await grid.cellBox(row, col), rtl);
+      await expectEditorOnCellSettled(grid, row, col, rtl);
       // Painted, not only positioned: the editor is the topmost thing at its own center, so no clone covers it.
       expect(await grid.isEditorOnTop(), 'editor is painted above the overlays').toBe(true);
       await grid.press('Escape');
@@ -440,6 +459,6 @@ test.describe('fixedColumnsEnd settings changes', { tag: '@core' }, () => {
     await grid.selectCell(5, COLS - 1);
     await grid.press('Enter');
     await expect.poll(() => grid.isEditorOpened()).toBe(true);
-    expectEditorOnCell(await grid.editorBox(), await grid.cellBox(5, COLS - 1), false);
+    await expectEditorOnCellSettled(grid, 5, COLS - 1, false);
   });
 });
