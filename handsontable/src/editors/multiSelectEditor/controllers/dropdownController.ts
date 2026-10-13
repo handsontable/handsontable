@@ -581,7 +581,8 @@ export class DropdownController {
    */
   #getListHeight(maxRowsCalculation: boolean): number {
     const { entriesCount, visibleRowsNumberSetting } = this.#cache;
-    const maxRenderedItems = visibleRowsNumberSetting
+    // A `visibleRows` of 0 or less leaves the list unsized (see `updateDimensions()`), so it shows every entry.
+    const maxRenderedItems = visibleRowsNumberSetting && visibleRowsNumberSetting > 0
       ? Math.min(entriesCount, visibleRowsNumberSetting)
       : entriesCount;
     const actualRenderedItems = maxRowsCalculation

@@ -73,7 +73,10 @@
     // `?pairRows=N` (multiselect only) replaces the single column with two: column 0 with a 30-entry source
     // and column 1 with an N-entry source, both with `visibleRows: N`, so a cell in column 0 and one in
     // column 1 of the same row share their top and differ only in the source's length.
-    window.htPairRows = Number(htParams.get('pairRows')) || 0;
+    window.htPairRows = Number(htParams.get('pairRows') ?? 0);
+    if (!Number.isInteger(window.htPairRows) || window.htPairRows < 0) {
+      throw new Error('Unknown ?pairRows= value: ' + JSON.stringify(htParams.get('pairRows')));
+    }
     if (window.htPairRows && window.htType !== 'multiselect') {
       throw new Error('?pairRows= needs ?type=multiselect');
     }

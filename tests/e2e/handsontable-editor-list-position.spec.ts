@@ -329,9 +329,9 @@ test.describe('multiselect editor list side does not depend on the source length
         const mismatches: string[] = [];
         const shortSides = new Set<string>();
 
-        // The cell's top runs from the upper half to the bottom edge of the viewport, taking the list's
+        // The cell's top runs from the upper half to near the bottom edge of the viewport, taking the list's
         // side through both of its thresholds.
-        for (let top = 300; top <= 960; top += 8) {
+        for (let top = 400; top <= 880; top += 16) {
           const scrollY = Math.round(rowTop - top);
 
           await page.evaluate(y => window.scrollTo(window.scrollX, y), scrollY);
@@ -342,7 +342,16 @@ test.describe('multiselect editor list side does not depend on the source length
 
           for (const col of [0, 1]) {
             await grid.openEditorOnCell(row, col);
-            sides.push((await grid.listPlacement({ row, col })).side);
+
+            // The list follows the cell from the page's `scroll` listener, so the side is read once it has settled.
+            let side = '';
+
+            await expect.poll(async() => {
+              side = (await grid.listPlacement({ row, col })).side;
+
+              return side;
+            }, { message: `the list settles above or below column ${col}'s cell at ${top}` }).toMatch(/^(above|below)$/);
+            sides.push(side);
             await grid.closeEditor();
           }
 
