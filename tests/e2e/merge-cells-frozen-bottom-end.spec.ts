@@ -25,10 +25,6 @@ interface Shape {
    * The first end column of the block, where the inline-end clone draws the continuation.
    */
   endClone: { col: number, colspan: string, text: string };
-  /**
-   * Whether the end clones draw the selection outline of the block. They do for a block anchored in the band.
-   */
-  drawsOutlineInEndClones: boolean;
 }
 
 const SHAPES: Shape[] = [
@@ -37,14 +33,12 @@ const SHAPES: Shape[] = [
     block: { row: 6, col: 8, rowspan: 4, colspan: 2 },
     carrier: { col: 8, colspan: '2' },
     endClone: { col: 8, colspan: '2', text: 'R7C9' },
-    drawsOutlineInEndClones: true,
   },
   {
     name: 'from the master columns into the end columns',
     block: { row: 6, col: 5, rowspan: 4, colspan: 3 },
     carrier: { col: 7, colspan: '1' },
     endClone: { col: 7, colspan: '1', text: 'R7C6' },
-    drawsOutlineInEndClones: false,
   },
 ];
 
@@ -134,8 +128,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
             }
           });
 
-          // A block anchored in the master gets no outline from the end clones (a separate limit, see AGENTS.md).
-          if (shape.drawsOutlineInEndClones) {
+          {
             test('draws one outline, with no edge on the freeze lines, for the selected block', async () => {
               await init();
               await grid.selectCells(block.row, block.col, block.row, block.col);

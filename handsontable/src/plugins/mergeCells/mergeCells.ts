@@ -2920,11 +2920,14 @@ export class MergeCells extends BasePlugin {
       return [
         clamp(firstRenderedRow, topStartRow, bottomEndRow),
         clamp(firstRenderedColumn, topStartColumn, bottomEndColumn),
-        // A clone's cell lookup (`topmost`) needs the block's real last row: the bottom overlay renders rows
-        // below the master's rendered range, and `Table#getCell` resolves the block to a clone's first row
-        // only when the extent reaches it. The lookup reads the first row and column of the answer only.
+        // A clone's cell lookup (`topmost`) needs the block's real last row and last column: the bottom overlay
+        // renders rows below the master's rendered range, and `Table#getCell` resolves the block to a clone's
+        // first row or column only when the extent reaches it. A lookup made outside a draw also reports the
+        // master as the active overlay, so a clamp to that overlay's columns would end before the end band.
         topmost ? bottomEndRow : clamp(this.hot.getLastRenderedVisibleRow(), topStartRow, bottomEndRow),
-        clamp(getLastRenderedColumnOfOverlay(this.hot, overlayName), topStartColumn, bottomEndColumn),
+        topmost ?
+          bottomEndColumn :
+          clamp(getLastRenderedColumnOfOverlay(this.hot, overlayName), topStartColumn, bottomEndColumn),
       ];
     }
 

@@ -114,8 +114,13 @@ export class SelectionFeaturesPage {
   }
 
   /** Select a cell range through the instance API. */
-  async selectCells(fromRow: number, fromCol: number, toRow: number, toCol: number): Promise<void> {
-    await this.page.evaluate(range => window.hot.selectCells([range]), [fromRow, fromCol, toRow, toCol]);
+  async selectCells(
+    fromRow: number, fromCol: number, toRow: number, toCol: number, scrollToCell = true,
+  ): Promise<void> {
+    await this.page.evaluate(
+      ([range, scroll]) => window.hot.selectCells([range as number[]], scroll as boolean),
+      [[fromRow, fromCol, toRow, toCol], scrollToCell] as const,
+    );
   }
 
   /** Clear the selection through the instance API. */
@@ -1643,7 +1648,8 @@ export class SelectionFeaturesPage {
     return this.page.evaluate(([targetRow, targetCol]) => {
       const { hot } = window;
       const OVERLAYS = ['ht_master', 'ht_clone_top_inline_start_corner', 'ht_clone_bottom_inline_start_corner',
-        'ht_clone_inline_start', 'ht_clone_top', 'ht_clone_bottom'];
+        'ht_clone_inline_start', 'ht_clone_top', 'ht_clone_bottom', 'ht_clone_inline_end',
+        'ht_clone_top_inline_end_corner', 'ht_clone_bottom_inline_end_corner'];
       const overlayOf = (element: Element) => OVERLAYS.find(name => element.closest(`.${name}`)) ?? 'none';
       const isDisplayed = (element: Element) => {
         const rect = element.getBoundingClientRect();
