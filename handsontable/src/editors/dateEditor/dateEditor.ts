@@ -5,6 +5,7 @@ import { isValidISODate } from '../../helpers/dateTime';
 import { warn, warnOnce } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { isEmpty } from '../../helpers/mixed';
+import { getDeepActiveElement } from '../../helpers/dom/element';
 
 export const EDITOR_TYPE = 'date';
 
@@ -179,10 +180,31 @@ export class DateEditor extends TextEditor {
   }
 
   /**
-   * Selects all text in the date input element when the editor receives focus.
+   * Focuses the date input element when the editor opens.
+   *
+   * Firefox does not move the focus on `select()` for a date input, so the focus is set explicitly.
+   * `preventScroll` keeps the page from jumping to the input.
    */
   focus(): void {
+    this.TEXTAREA.focus({ preventScroll: true });
     this.TEXTAREA.select();
+  }
+
+  /**
+   * Closes the editor and the native date picker it opened.
+   *
+   * There is no API to hide the picker, and Firefox keeps it open after the editor closes. Blurring the
+   * input dismisses it. The blur comes after the base `close()`, which hands the keyboard back to the grid
+   * while the input still has the focus. A blur leaves the focus on the page body, so the focus goes back
+   * to the highlighted cell.
+   */
+  close(): void {
+    super.close();
+
+    if (getDeepActiveElement(this.hot.rootDocument) === this.TEXTAREA && this.#isPickerOpen()) {
+      this.TEXTAREA.blur();
+      this.hot.getFocusManager().focusOnHighlightedCell();
+    }
   }
 
   /**
@@ -195,6 +217,22 @@ export class DateEditor extends TextEditor {
       (this.TEXTAREA as HTMLInputElement).showPicker();
     } catch {
       // Prevents showPicker() user-gesture errors in tests
+    }
+  }
+
+  /**
+   * Checks whether the native date picker is shown.
+   *
+   * Engines without the `:open` pseudo-class (Firefox before 136, Chrome before 133) throw on the selector.
+   * There the picker is assumed to be shown, so a blur dismisses it.
+   *
+   * @returns {boolean}
+   */
+  #isPickerOpen(): boolean {
+    try {
+      return this.TEXTAREA.matches(':open');
+    } catch {
+      return true;
     }
   }
 }
