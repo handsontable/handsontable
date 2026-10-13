@@ -42,14 +42,24 @@ test.describe('clones, page scroll range and pointer bounds in the reverse split
           // The holder, not the page, scrolls the columns: no horizontal scroll range on the page, headers as
           // wide as the holder, and the clones follow the holder's vertical scroll position.
           expect(offset.documentScrollWidth).toBe(offset.documentClientWidth);
-          // The 1000px viewport minus the offset, minus the 15px vertical scrollbar of the holder (clip) or the page.
-          expect(offset.topCloneWidth).toBe(1000 - MARGIN - 15);
+          // The column header is as wide as the holder's scrollport, which is narrower than the page by the offset.
+          expect(offset.topCloneWidth).toBe(offset.holderClientWidth);
+          expect(offset.holderClientWidth).toBeLessThan(offset.documentClientWidth - MARGIN + 1);
           expect(offset.bottomCloneWidth).toBe(offset.topCloneWidth);
           expect(offset.inlineStartCloneScrollTop).toBe(offset.holderScrollTop);
           expect(offset.markedAsWindowScrolled).toBe(false);
 
           // `preventOverflow: vertical` has no hidden twin: the window keeps the rows, so only the absolute values
           // above describe it. An `overflow-y: clip` ancestor is compared with the same grid in a hidden one.
+          // The frozen clones sit at the holder's inline-start edge, whatever the scroll position.
+          const edge = (box: number[] | null | undefined) => (box ? (dir === 'rtl' ? box[0] + box[2] : box[0]) : NaN);
+          const holderEdge = edge(offset.holderBox);
+
+          expect(edge(offset.inlineStartClone)).toBe(holderEdge);
+          expect(edge(offset.topCorner)).toBe(holderEdge);
+          expect(offset.topCorner?.[2]).toBe(offset.inlineStartClone?.[2]);
+          expect(edge(offset.bottomCorner)).toBe(holderEdge);
+
           if (!layout.preventOverflow) {
             await grid.goto({ ...layout, overflowY: 'hidden', dir, fixedColumnsStart, fixedRowsBottom: 2, margin: MARGIN });
             expect(offset).toEqual(await grid.cloneGeometry());
@@ -90,6 +100,19 @@ test.describe('clones, page scroll range and pointer bounds in the reverse split
 
     expect(await grid.dragThroughGap(DRAG_POINTS)).toEqual(['3,0', '4,0', '5,0']);
   });
+
+  for (const dir of ['ltr', 'rtl'] as const) {
+    test(`opens the editor of a frozen cell over that cell after a sideways scroll, like the hidden twin (${dir})`, async() => {
+      await grid.goto({ overflowY: 'clip', margin: MARGIN, fixedColumnsStart: 2, dir });
+      const offset = await grid.editorShift();
+
+      await grid.goto({ overflowY: 'hidden', margin: MARGIN, fixedColumnsStart: 2, dir });
+      const twin = await grid.editorShift();
+
+      expect(Math.abs(twin)).toBeLessThanOrEqual(2);
+      expect(offset).toBe(twin);
+    });
+  }
 
   // Control: the window scrolls both axes here, so none of the reverse-split branches run. These pin the layout
   // the change must leave alone, and they pass with and without it.

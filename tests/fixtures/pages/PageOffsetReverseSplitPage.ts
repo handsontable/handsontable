@@ -80,6 +80,11 @@ export interface CloneGeometry {
    * Whether the grid carries the class that marks a window scrolling the columns.
    */
   markedAsWindowScrolled: boolean;
+  /**
+   * The holder's box (left, top, width, height) and its client width, which excludes its vertical scrollbar.
+   */
+  holderBox: number[];
+  holderClientWidth: number;
 }
 
 interface FixtureHot {
@@ -277,7 +282,9 @@ export class PageOffsetReverseSplitPage {
     await this.page.evaluate(() => {
       const hot = (window as unknown as { hot: FixtureHot }).hot;
 
+      // The holder scrolls the rows in a clipping ancestor; with `preventOverflow: 'vertical'` the window does.
       hot.view._wt.wtTable.holder.scrollTop = 1e6;
+      window.scrollTo(0, 1e6);
       hot.view._wt.wtTable.holder.scrollLeft = document.documentElement.dir === 'rtl' ? -500 : 500;
     });
     await this.settle();
@@ -304,6 +311,8 @@ export class PageOffsetReverseSplitPage {
         topCorner: rect('.ht_clone_top_inline_start_corner'),
         inlineStartClone: rect('.ht_clone_inline_start'),
         markedAsWindowScrolled: !!document.querySelector('.htHorizontallyScrollableByWindow'),
+        holderBox: rect('.ht_master .wtHolder') ?? [],
+        holderClientWidth: hot.view._wt.wtTable.holder.clientWidth,
       };
     });
   }
@@ -377,5 +386,34 @@ export class PageOffsetReverseSplitPage {
     }
 
     return reads;
+  }
+
+  /**
+   * Scrolls the holder 300px along the columns, opens the editor of a cell in a frozen column and reads how far the
+   * editor's left edge sits from the edge of the cell it edits (the same on both sides of the page, so the sign
+   * follows the direction: positive when the editor lies further to the inline-end).
+   */
+  async editorShift(): Promise<number> {
+    await this.page.evaluate(() => {
+      const holder = (window as unknown as { hot: FixtureHot }).hot.view._wt.wtTable.holder;
+
+      holder.scrollLeft = document.documentElement.dir === 'rtl' ? -300 : 300;
+    });
+    await this.settle();
+    await this.page.evaluate(() => (window as unknown as { hot: FixtureHot }).hot.selectCell(3, 1));
+    await this.page.keyboard.press('Enter');
+    await this.settle();
+
+    const editor = this.page.locator('.handsontableInputHolder textarea').first();
+
+    await expect(editor).toBeVisible();
+
+    const editorBox = await editor.boundingBox();
+    const cellBox = await this.page.locator('.ht_clone_inline_start').getByTestId('cell-3-1').first().boundingBox();
+
+    expect(editorBox, 'the editor is open').not.toBeNull();
+    expect(cellBox, 'the frozen cell is rendered').not.toBeNull();
+
+    return Math.round((editorBox?.x ?? 0) - (cellBox?.x ?? 0));
   }
 }

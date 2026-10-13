@@ -460,6 +460,17 @@ export class InlineStartOverlay extends Overlay {
   }
 
   /**
+   * The part of the overlay offset that the layout does not already carry. While the holder scrolls the columns
+   * (the reverse split), the clone sits in the holder's own box and nothing moves it, so there is nothing to add,
+   * whereas {@link InlineStartOverlay#getOverlayOffset} stays the raw holder scroll position.
+   *
+   * @returns {number}
+   */
+  getOverlayTransformOffset(): number {
+    return this.isScrolledByWindow() ? super.getOverlayTransformOffset() : 0;
+  }
+
+  /**
    * Stamps the `innerBorderInlineStart` / `innerBorderLeft` / `emptyRows` classes on the master.
    *
    * Always reports `false`: the row header carries its inline-end border at every scroll position

@@ -1891,7 +1891,9 @@ the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsE
   it too (owner is the window **and** the window scrolls the columns), so `measureHasHorizontalScroll`,
   `InlineStartOverlay#adjustRootElementSize`, `InlineStartOverlay#resetFixedPosition`, the top-start and
   bottom-start corners' `inlineOnWindow`, and the pointer bounds (`pointerToCoords.ts`, `helpers/dom/cellCoords.ts`)
-  all follow the holder in the reverse split. A new inline-start reader of "the window scrolls the columns" goes
+  all follow the holder in the reverse split. `InlineStartOverlay#getOverlayTransformOffset()` is `0` there (the clone sits in the holder's box and no rail
+  moves it), while `getOverlayOffset()` stays the raw holder scroll position for the column-move backlight; the editor
+  position adds the transform offset, so returning the raw value put a frozen cell's editor a scroll length away. A new inline-start reader of "the window scrolls the columns" goes
   through one of those two, never `trimmingContainer === rootWindow` alone.
   `tests/e2e/page-offset-reverse-split.spec.ts` pins the offset, each offset layout against its no-offset twin of
   the same holder width; `tests/e2e/page-offset-reverse-split-clones.spec.ts` pins the clone sizes, the page's
