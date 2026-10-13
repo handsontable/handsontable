@@ -5,7 +5,7 @@ import { isValidISODate } from '../../helpers/dateTime';
 import { warn, warnOnce } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { isEmpty } from '../../helpers/mixed';
-import { getDeepActiveElement } from '../../helpers/dom/element';
+import { hideNativePicker, showNativePicker } from '../utils/showNativePicker';
 
 export const EDITOR_TYPE = 'date';
 
@@ -201,38 +201,18 @@ export class DateEditor extends TextEditor {
   close(): void {
     super.close();
 
-    if (getDeepActiveElement(this.hot.rootDocument) === this.TEXTAREA && this.#isPickerOpen()) {
-      this.TEXTAREA.blur();
-      this.hot.getFocusManager().focusOnHighlightedCell();
-    }
+    hideNativePicker(this.hot, this.TEXTAREA as HTMLInputElement);
   }
 
   /**
-   * Opens the editor and programmatically invokes the native date picker via showPicker().
-   */
-  open(): void {
-    super.open();
-
-    try {
-      (this.TEXTAREA as HTMLInputElement).showPicker();
-    } catch {
-      // Prevents showPicker() user-gesture errors in tests
-    }
-  }
-
-  /**
-   * Checks whether the native date picker is shown.
+   * Opens the editor and shows the native picker, unless a key opened the editor.
+   * A keyboard open leaves the picker closed so Tab and Escape keep reaching the grid.
    *
-   * Engines without the `:open` pseudo-class (Firefox before 136, Chrome before 133) throw on the selector.
-   * There the picker is assumed to be shown, so a blur dismisses it.
-   *
-   * @returns {boolean}
+   * @param {Event} [event] The event that opened the editor.
    */
-  #isPickerOpen(): boolean {
-    try {
-      return this.TEXTAREA.matches(':open');
-    } catch {
-      return true;
-    }
+  open(event?: Event): void {
+    super.open(event);
+
+    showNativePicker(this.TEXTAREA as HTMLInputElement, event);
   }
 }
