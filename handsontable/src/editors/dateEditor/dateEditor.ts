@@ -179,9 +179,13 @@ export class DateEditor extends TextEditor {
   }
 
   /**
-   * Selects all text in the date input element when the editor receives focus.
+   * Focuses the date input element when the editor opens.
+   *
+   * Firefox does not move the focus on `select()` for a date input, so the focus is set explicitly.
+   * `preventScroll` keeps the page from jumping to the input.
    */
   focus(): void {
+    this.TEXTAREA.focus({ preventScroll: true });
     this.TEXTAREA.select();
   }
 
