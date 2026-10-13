@@ -14,8 +14,10 @@ import { getExportOptions } from './utils';
  * containing "To CSV" and "To Excel" sub-items.
  *
  * The parent item is hidden when `exportFile` is not explicitly configured
- * in the Handsontable settings.
- * The "To Excel" sub-item is hidden when no XLSX engine is configured.
+ * in the Handsontable settings. The "To Excel" sub-item is hidden when
+ * {@link ExportFile#supportsExportFormat} answers `false` for `'xlsx'`, which happens only
+ * when `engines.xlsx` holds a module that is not a recognized engine. The default setup
+ * exports through the built-in engine, so the sub-item shows there.
  *
  * @param {ExportFile} exportFilePlugin The plugin instance.
  * @returns {object}
@@ -46,15 +48,15 @@ export default function exportItem(exportFilePlugin: ExportFile): object {
           name(this: HotInstance): string {
             return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX);
           },
+          hidden() {
+            return !exportFilePlugin.supportsExportFormat('xlsx');
+          },
           callback(this: HotInstance) {
             exportFilePlugin.downloadFileAsync(
               'xlsx', getExportOptions(this) as Record<string, unknown>
             ).catch((err) => {
               error('ExportFile: XLSX export failed.', err);
             });
-          },
-          hidden() {
-            return !exportFilePlugin.supportsExportFormat('xlsx');
           },
         },
       ],

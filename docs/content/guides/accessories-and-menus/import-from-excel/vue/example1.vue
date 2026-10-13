@@ -2,12 +2,12 @@
 import { ref, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
-import ExcelJS from 'exceljs';
 import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
 
 const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
+const status = ref('');
 
 const hotData = [
   ['Ana García', 'Engineering', 'Senior Engineer', 98000, true, '2022-03-14'],
@@ -17,6 +17,9 @@ const hotData = [
   ['Tom Bakker', 'Support', 'Support Specialist', 58900, true, '2019-05-30'],
 ];
 
+// `hotSettings` stays one stable `ref` that nothing changes after an import. A new settings object,
+// or a change to one of its keys, makes the wrapper send `data`, `colHeaders`, and `columns` to
+// `updateSettings` again, which would replace the imported sheet with the sample rows.
 const hotSettings = ref<GridSettings>({
   data: hotData,
   colHeaders: ['Name', 'Department', 'Job title', 'Salary ($)', 'Active', 'Hire date'],
@@ -32,7 +35,7 @@ const hotSettings = ref<GridSettings>({
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
-  importFile: { engines: { xlsx: ExcelJS } },
+  importFile: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 
@@ -45,13 +48,22 @@ async function importFile(event: Event): Promise<void> {
   }
 
   const importPlugin = hotRef.value?.hotInstance?.getPlugin('importFile');
-  const result = await importPlugin?.importFromBlob('xlsx', file, {
-    colHeaders: 'firstRow',
-  });
 
-  console.log('Dropped features:', result?.dropped);
+  try {
+    const result = await importPlugin?.importFromBlob('xlsx', file, {
+      colHeaders: 'firstRow',
+    });
 
-  input.value = '';
+    status.value = `Imported ${file.name}`;
+    console.log('Dropped features:', result?.dropped);
+  } catch (error) {
+    // A file the engine refuses (an .xls, a password-protected or damaged workbook) rejects with a
+    // message that says what to do; the grid keeps its data.
+    status.value = (error as Error).message;
+  } finally {
+    // Cleared either way, so picking the same file again fires `change` again.
+    input.value = '';
+  }
 }
 </script>
 
@@ -61,6 +73,7 @@ async function importFile(event: Event): Promise<void> {
       <div class="controls">
         <label for="import-file">Import XLSX</label>
         <input type="file" id="import-file" accept=".xlsx" @change="importFile">
+        <output role="status">{{ status }}</output>
       </div>
     </div>
     <HotTable ref="hotRef" :settings="hotSettings" />

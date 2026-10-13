@@ -1518,3 +1518,54 @@ test.describe('CustomBorders row index maintenance', () => {
     expect(await lab.borderCoords()).toEqual([{ row: 1, col: 1 }]);
   });
 });
+
+test.describe('CustomBorders cleared while rows are sorted and filtered', () => {
+  test('does not paint a cleared border again on an unrelated undo', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({
+      data: Array.from({ length: 10 }, (_, row) => [row, `r${row}`]),
+      colHeaders: true,
+      filters: true,
+      columnSorting: true,
+      customBorders: true,
+      undo: true,
+    });
+
+    // The model kept the visual coordinates the border was set at, so clearing it under a filter
+    // that hid its row removed the meta from no record: the grid stopped painting the border, and
+    // the next undo (which rebuilds the model from the meta) painted it again.
+    await page.evaluate(() => {
+      const hot = (window as any).hot;
+
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+      hot.getPlugin('customBorders').setBorders([[7, 0, 7, 0]], { top: { width: 2, color: '#FF0000' } });
+    });
+
+    // Positive control: the red border is painted, so its absence at the end is the clear's doing.
+    expect(await lab.visibleBorderColors()).toContain('rgb(255, 0, 0)');
+
+    await page.evaluate(() => {
+      const hot = (window as any).hot;
+      const borders = hot.getPlugin('customBorders');
+      const filters = hot.getPlugin('filters');
+
+      filters.addCondition(0, 'gt', [6]);
+      filters.filter();
+      borders.clearBorders();
+      filters.clearConditions();
+      filters.filter();
+      borders.setBorders([[0, 1, 0, 1]], { bottom: { width: 2, color: '#0000FF' } });
+    });
+
+    // Positive control: the unrelated blue border is painted before the undo removes it.
+    expect(await lab.visibleBorderColors()).toContain('rgb(0, 0, 255)');
+
+    await page.evaluate(() => (window as any).hot.getPlugin('undoRedo').undo());
+
+    expect(await lab.visibleBorderColors()).not.toContain('rgb(255, 0, 0)');
+    expect(await lab.visibleBorderColors()).not.toContain('rgb(0, 0, 255)');
+    expect(await page.evaluate(() => (window as any).hot.getCellMeta(7, 0).borders ?? null)).toBeNull();
+    expect(await lab.borderCoords()).toEqual([]);
+  });
+});

@@ -70,6 +70,8 @@ describe('ExportFile', () => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           contextMenu: true,
+          // The setup every 18.1 XLSX user has. With `exportFile: true` this case was a copy of the
+          // next one, and no test checked the item with ExcelJS configured.
           exportFile: { engines: { xlsx: ExcelJS } },
         });
 
@@ -86,7 +88,7 @@ describe('ExportFile', () => {
         expect(submenuItems).toContain('To Excel');
       });
 
-      it('should hide "To Excel" in the Export submenu when no engine is configured', async() => {
+      it('should show "To Excel" in the Export submenu with no engine configured', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           contextMenu: true,
@@ -103,7 +105,8 @@ describe('ExportFile', () => {
         }).get();
 
         expect(submenuItems).toContain('To CSV');
-        expect(submenuItems).not.toContain('To Excel');
+        // The built-in engine needs no configuration, so the item is no longer conditional.
+        expect(submenuItems).toContain('To Excel');
       });
     });
 

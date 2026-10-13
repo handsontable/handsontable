@@ -90,6 +90,16 @@ element and clears `#refs` without unbinding them. A transition still running at
 suite one uncaught page error aborts the whole run. Any new listener on the container needs the same guard.
 Pinned by `__tests__/ui.unit.js`.
 
+## Content may come from another realm
+
+A grid inside an iframe builds its nodes from `hot.rootDocument`, the iframe's document, so the export
+progress fragment (`buildExportDialogContent`) and any node an app builds there fail
+`instanceof DocumentFragment` / `instanceof HTMLElement` against the top window's constructors. The
+`content` validator and `DialogUI#updateDialog` therefore use `isHTMLElement()` and `isDocumentFragment()`
+(`helpers/dom/element.ts`), which also test against the node's own realm. A bare `instanceof` there made the
+overlay render empty with `"content" option is not valid and it will be ignored`. Pinned by
+`__tests__/crossRealmContent.unit.js`.
+
 ## The license lock screen is NOT this plugin
 
 Core's `utils/licenseBranding/lockScreen.ts` **reuses this plugin's CSS by wearing its class names**

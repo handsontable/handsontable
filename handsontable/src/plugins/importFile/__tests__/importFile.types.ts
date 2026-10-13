@@ -11,6 +11,20 @@ new Handsontable(document.createElement('div'), { importFile: true });
 new Handsontable(document.createElement('div'), { importFile: false });
 
 const settings: ImportFileSettings = { engines: { xlsx: {} } };
+// A `null` entry selects the built-in engine (e.g. `xlsx: useExcelJs ? ExcelJS : null`).
+const nullEngineSettings: ImportFileSettings = { engines: { xlsx: null } };
+
+new Handsontable(document.createElement('div'), { importFile: nullEngineSettings });
+
+// `undefined` is read like `null` at runtime, so an optional engine (`xlsx: props.engine`) compiles.
+const optionalEngine: object | undefined = Math.random() > 0.5 ? {} : undefined;
+const undefinedEngineSettings: ImportFileSettings = { engines: { xlsx: optionalEngine } };
+
+new Handsontable(document.createElement('div'), { importFile: { engines: { xlsx: undefined } } });
+new Handsontable(document.createElement('div'), { importFile: undefinedEngineSettings });
+// @ts-expect-error a typo of `engines` is still refused
+new Handsontable(document.createElement('div'), { importFile: { engine: {} } });
+
 const hot = new Handsontable(document.createElement('div'), {});
 const plugin = hot.getPlugin('importFile');
 
@@ -28,6 +42,9 @@ const options: ImportOptions = {
   importStyles: true,
 };
 
+// A `null` override means "no override", as an absent key does.
+const nullEngineOptions: ImportOptions = { engine: null };
+
 const supported: boolean = plugin.supportsImportFormat('xlsx');
 
 /**
@@ -37,16 +54,26 @@ const supported: boolean = plugin.supportsImportFormat('xlsx');
 async function run(buffer: ArrayBuffer, blob: Blob) {
   const fromBuffer: ImportResult = await plugin.importFromArrayBuffer('xlsx', buffer, options);
   const fromBlob: ImportResult = await plugin.importFromBlob('xlsx', blob);
+  const fromNullEngine: ImportResult = await plugin.importFromArrayBuffer('xlsx', buffer, { engine: null });
+  // A view onto a buffer (a `Uint8Array`, a subarray, a `DataView`) is accepted as well.
+  const fromView: ImportResult = await plugin.importFromArrayBuffer('xlsx', new Uint8Array(buffer).subarray(1));
+  const fromDataView: ImportResult = await plugin.importFromArrayBuffer('xlsx', new DataView(buffer));
 
   const data: unknown[][] = fromBuffer.data;
   const headers: string[] | undefined = fromBlob.colHeaders;
   const dropped: string[] = fromBuffer.dropped;
-  const kind: 'exceljs' = fromBuffer.engine.kind;
+  const kind: 'exceljs' | 'native' = fromBuffer.engine.kind;
+  // Fails on a dropped member (TS2353) and on an added one (TS2741), which the assignment above misses.
+  const everyKind: Record<ImportResult['engine']['kind'], true> = { exceljs: true, native: true };
+  const dateTimeFormat: Intl.DateTimeFormatOptions | undefined = fromBuffer.columns?.[0]?.dateTimeFormat;
   const styles: Record<string, string> | undefined = fromBuffer.styles;
   const borders: ImportedBorder[] | undefined = fromBuffer.customBorders;
   const direction: 'rtl' | 'ltr' | undefined = fromBuffer.layoutDirection;
   const nested: ImportedNestedHeader[][] | undefined = fromBuffer.nestedHeaders;
   const conditional: ImportedConditionalFormatting[] | undefined = fromBuffer.conditionalFormatting;
+
+  void fromView;
+  void fromDataView;
 
   return { data, headers, dropped, kind, supported, settings, styles, borders, direction, nested, conditional };
 }

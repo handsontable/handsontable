@@ -1219,9 +1219,14 @@ export class MergeCells extends BasePlugin {
     }
 
     const columns: { visual: number, physical: number }[] = [];
+    const columnCount = this.hot.countCols();
 
     rangeEach(leftColumn, leftColumn + mergedCell.colspan - 1, (visual) => {
-      const physical = this.hot.toPhysicalColumn(visual);
+      // A shrinking `loadData`/`updateData` leaves the merge on columns the grid no longer has, and
+      // `toPhysicalColumn()` answers `null` for them. Such an index is its own physical index - the
+      // rule `Core#setCellMeta` writes by and `Core#removeCellMeta` reads by - so the meta the merge
+      // left there (kept by `updateData`) is still cleared.
+      const physical = visual < columnCount ? this.hot.toPhysicalColumn(visual) : visual;
 
       if (physical !== null) {
         columns.push({ visual, physical });

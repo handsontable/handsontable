@@ -1,6 +1,7 @@
 import type { HotInstance } from '../../core/types';
 import { extractText } from '../../utils/textExtractor';
 import { normalizeExportOptions, expandNestedHeaderLayers } from './utils';
+import { toOoxmlErrorCode } from './types/xlsx/formula-utils';
 import type { SummaryEndpoint } from '../columnSummary/columnSummary';
 
 interface MergeCellDescriptor {
@@ -213,6 +214,33 @@ class DataProvider {
    */
   getSourceData() {
     return this._extractDataMatrix((row, col) => this.hot.getSourceDataAtCell(row, col));
+  }
+
+  /**
+   * Gets, for every cell of the export range, the OOXML error code of the value the Formulas
+   * plugin's engine holds for it (`#DIV/0!` for `=1/0`), or `null` when the value is not an error
+   * with such a code. Every entry is `null` when the Formulas plugin is absent or disabled.
+   *
+   * The answer comes from the engine's own cell value, not from the displayed text, which cannot
+   * tell the error `#N/A` from the text a formula such as `="#N/A"` answers, and which the
+   * engine's language translates.
+   *
+   * @returns {Array[]}
+   */
+  getFormulaErrorCodes(): (string | null)[][] {
+    const formulasPlugin = this.hot.getPlugin('formulas');
+    const engine = formulasPlugin?.isEnabled() ? formulasPlugin.engine : null;
+    const { sheetId, rowAxisSyncer, columnAxisSyncer } = formulasPlugin ?? {};
+
+    if (!engine || sheetId === null || sheetId === undefined || !rowAxisSyncer || !columnAxisSyncer) {
+      return this._extractDataMatrix(() => null);
+    }
+
+    return this._extractDataMatrix((row, col) => toOoxmlErrorCode(engine.getCellValue({
+      sheet: sheetId,
+      row: rowAxisSyncer.getHfIndexFromVisualIndex(row),
+      col: columnAxisSyncer.getHfIndexFromVisualIndex(col),
+    })));
   }
 
   /**
@@ -514,21 +542,65 @@ class DataProvider {
   }
 
   /**
-   * Gets the number of frozen rows (`fixedRowsTop` setting).
+   * Gets the number of exported rows that sit in the frozen band (`fixedRowsTop` setting).
+   *
+   * Counts only the rows among the first `fixedRowsTop` visual rows that the export writes:
+   * rows outside the `range` option are skipped, and so are hidden rows when
+   * `exportHiddenRows` is `false`. This keeps the sheet's frozen pane on the same rows
+   * that are frozen on screen.
    *
    * @returns {number}
    */
   getFrozenRows() {
-    return this.hot.getSettings().fixedRowsTop || 0;
+    const { startRow, endRow } = this._getDataRange();
+
+    return this.#countExportedInFrozenBand(
+      this.hot.getSettings().fixedRowsTop || 0, startRow, endRow,
+      (row: number) => this.options.exportHiddenRows !== false || !this._isHiddenRow(row)
+    );
   }
 
   /**
-   * Gets the number of frozen columns (`fixedColumnsStart` setting).
+   * Gets the number of exported columns that sit in the frozen band (`fixedColumnsStart` setting).
+   *
+   * Counts only the columns among the first `fixedColumnsStart` visual columns that the export
+   * writes: columns outside the `range` option are skipped, and so are hidden columns when
+   * `exportHiddenColumns` is `false`. This keeps the sheet's frozen pane on the same columns
+   * that are frozen on screen.
    *
    * @returns {number}
    */
   getFrozenColumns() {
-    return this.hot.getSettings().fixedColumnsStart || 0;
+    const { startCol, endCol } = this._getDataRange();
+
+    return this.#countExportedInFrozenBand(
+      this.hot.getSettings().fixedColumnsStart || 0, startCol, endCol,
+      (column: number) => this.options.exportHiddenColumns !== false || !this._isHiddenColumn(column)
+    );
+  }
+
+  /**
+   * Counts the exported indexes inside a frozen band that starts at visual index 0.
+   *
+   * @param {number} frozenCount Size of the frozen band, in visual indexes.
+   * @param {number} start First visual index of the export range.
+   * @param {number} end Last visual index of the export range.
+   * @param {Function} isExported Returns `true` when the visual index is written to the file.
+   * @returns {number}
+   */
+  #countExportedInFrozenBand(
+    frozenCount: number, start: number, end: number, isExported: (index: number) => boolean
+  ): number {
+    const bandEnd = Math.min(frozenCount - 1, end);
+    let count = 0;
+
+    for (let index = start; index <= bandEnd; index++) {
+      if (isExported(index)) {
+        count += 1;
+      }
+    }
+
+    return count;
   }
 
   /**
@@ -749,12 +821,14 @@ class DataProvider {
   }
 
   /**
-   * Gets the layout direction of the Handsontable instance.
+   * Gets the layout direction the Handsontable instance renders in. `isRtl()` resolves
+   * `layoutDirection: 'inherit'` against the page, so a grid on a right-to-left page exports a
+   * right-to-left sheet, and the import compares against the same answer.
    *
    * @returns {'ltr'|'rtl'}
    */
   getLayoutDirection() {
-    return this.hot.getSettings().layoutDirection === 'rtl' ? 'rtl' : 'ltr';
+    return this.hot.isRtl() ? 'rtl' : 'ltr';
   }
 
   /**

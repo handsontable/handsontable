@@ -2,7 +2,7 @@ import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import { DialogUI } from './ui';
 import { isObject, isPlainObject } from '../../helpers/object';
-import { isHTMLElement } from '../../helpers/dom/element';
+import { isHTMLElement, isDocumentFragment } from '../../helpers/dom/element';
 import { isButtonType } from '../../helpers/uiButton';
 import { getSanitizer } from '../../utils/sanitizer';
 import { isRootInstance } from '../../utils/rootInstance';
@@ -217,7 +217,8 @@ export class Dialog extends BasePlugin {
           )),
       content: (value: unknown) => typeof value === 'string' ||
         isHTMLElement(value) ||
-        (typeof DocumentFragment !== 'undefined' && value instanceof DocumentFragment),
+        // Realm-safe: a grid inside an iframe builds its nodes from the iframe's document.
+        isDocumentFragment(value),
       customClassName: (value: unknown) => typeof value === 'string',
       background: (value: unknown) => typeof value === 'string' && ['solid', 'semi-transparent'].includes(value),
       contentBackground: (value: unknown) => typeof value === 'boolean',

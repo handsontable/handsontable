@@ -44,7 +44,11 @@ Queues are per position (`POSITION_SET` from `NOTIFICATION_POSITIONS`), not glob
 ## `showMessage()` validates by throwing, and normalizes before the hook
 
 `#normalizeOptions` throws (`throwWithCause`) unless it gets an object whose `message` is a string or an
-`HTMLElement`. It then assigns an id (`htn-<random>`) and resolves variant and position.
+`HTMLElement`. It then assigns an id (`htn-<random>`) and resolves variant and position. The element test
+is `isHTMLElement()` from `helpers/dom/element.ts`, which checks against the node's OWN realm: a grid inside
+an iframe builds its nodes from `hot.rootDocument`, and a bare `instanceof HTMLElement` against the top
+window rejected a valid element from there (`__tests__/crossRealmMessage.unit.js`, same trap as Dialog's
+content check in `../dialog/AGENTS.md`).
 
 **Normalization happens before `beforeNotificationShow`**, so a listener sees the resolved options and a
 veto (`return false`) costs nothing. The method returns `''` on a veto and the id otherwise — do not change
