@@ -181,4 +181,51 @@ test.describe('notification placement', () => {
       return Math.round(root.right - toast.right);
     }).toBe(20);
   });
+
+  test('an end-corner toast stays in the grid corner under a scaled container', async({ page, theme, bundle }) => {
+    const notificationPage = new NotificationStatesPage(page, theme, bundle);
+
+    await notificationPage.goto('top-end', 'rtl');
+    await page.evaluate(() => {
+      document.body.style.transform = 'scale(0.5)';
+      document.body.style.transformOrigin = '0 0';
+      (window as unknown as { hot: { updateSettings(s: object): void } }).hot.updateSettings({ width: 260 });
+    });
+
+    await expect.poll(async() => {
+      const { toast, root } = await notificationPage.geometry('success');
+
+      return Math.round(toast.left - root.left);
+    }).toBe(10);
+  });
+
+  test('a toast shown while the grid is hidden lands in the grid corner once it is revealed', async({
+    page, theme, bundle,
+  }) => {
+    const notificationPage = new NotificationStatesPage(page, theme, bundle);
+
+    await notificationPage.goto('top-start', 'ltr');
+    await page.evaluate(() => {
+      // Clear the toast shown on load so the measured one is the only toast.
+      (window as unknown as { hot: { getPlugin(name: string): { hideAll(): void } } })
+        .hot.getPlugin('notification').hideAll();
+    });
+    await expect(page.locator('.ht-notification__toast')).toHaveCount(0);
+    await page.evaluate(() => {
+      document.body.style.display = 'none';
+    });
+    await notificationPage.showToast('top-end', 'success');
+    await page.evaluate(() => {
+      document.body.style.display = '';
+      (window as unknown as { hot: { refreshDimensions(): void } }).hot.refreshDimensions();
+    });
+
+    await expect.poll(() => page.evaluate(() => {
+      const toast = document.querySelector('.ht-notification__toast')!.getBoundingClientRect();
+      const root = (window as unknown as { hot: { rootElement: HTMLElement } }).hot.rootElement
+        .getBoundingClientRect();
+
+      return Math.round(root.right - toast.right);
+    })).toBe(20);
+  });
 });

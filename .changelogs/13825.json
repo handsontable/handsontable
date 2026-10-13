@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed notification toasts anchoring to the root wrapper instead of the grid, so end-corner toasts sit at the grid's edge and bottom-corner toasts no longer cover the pagination bar.",
+  "title": "Fixed notification toasts anchoring to the root wrapper instead of the grid, so end-corner toasts sit at the grid's edge and bottom-corner toasts no longer cover the pagination bar. A toast stack's maximum width and height now follow the grid, so a small grid shows smaller toasts.",
   "type": "fixed",
   "issueOrPR": 13825,
   "breaking": false,

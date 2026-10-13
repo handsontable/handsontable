@@ -51,6 +51,14 @@ export class NotificationUI {
   #stacks: Map<string, HTMLElement> = new Map();
 
   /**
+   * Layout signature of the grid root the host was last fitted to. A render that moves or resizes
+   * nothing leaves it unchanged, so only the offset reads run, not the rect measurements.
+   *
+   * @type {string}
+   */
+  #fitSignature: string = '';
+
+  /**
    * Keeps one icon slot of a container in step with the theme (`syncIcon()` bound to the grid).
    * Injected so the UI stays decoupled from the theme engine.
    *
@@ -107,6 +115,7 @@ export class NotificationUI {
 
     this.#overlayElement.appendChild(host);
     this.#host = host;
+    this.#fitSignature = '';
   }
 
   /**
@@ -123,6 +132,17 @@ export class NotificationUI {
     if (!host || !container || !gridRoot.offsetWidth || !gridRoot.offsetHeight) {
       return;
     }
+
+    const signature = [
+      gridRoot.offsetLeft, gridRoot.offsetTop, gridRoot.offsetWidth, gridRoot.offsetHeight,
+      (container as HTMLElement).offsetWidth, (container as HTMLElement).offsetHeight,
+    ].join(',');
+
+    if (signature === this.#fitSignature) {
+      return;
+    }
+
+    this.#fitSignature = signature;
 
     const rootRect = gridRoot.getBoundingClientRect();
     const containerRect = container.getBoundingClientRect();

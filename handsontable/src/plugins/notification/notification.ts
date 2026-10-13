@@ -239,7 +239,6 @@ export class Notification extends BasePlugin {
     }
 
     this.#ui.install();
-    this.#ui.fitToGrid(this.hot.rootElement);
     this.#registerFocusScope();
     this.#registerNotificationShortcuts();
 
@@ -253,6 +252,7 @@ export class Notification extends BasePlugin {
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
     this.addHook('afterSetTheme', this.#onAfterSetTheme);
     this.addHook('afterViewRender', this.#onAfterViewRender);
+    this.addHook('afterRefreshDimensions', this.#onAfterViewRender);
     this.eventManager.addEventListener(this.hot.rootDocument, 'visibilitychange', () => {
       if (this.#hasActiveCountdowns()) {
         this.#queueTick();
@@ -488,10 +488,11 @@ export class Notification extends BasePlugin {
   };
 
   /**
-   * Keeps the toast layer fitted to the grid root as the view renders.
+   * Keeps the toast layer fitted to the grid root after a render or a dimensions refresh, the latter
+   * covering a grid that moves inside the wrapper without changing size.
    */
   readonly #onAfterViewRender = () => {
-    // Layout is read only while a toast is on screen; `#mountToast` fits the layer for the next one.
+    // Read only while a toast is on screen; `#mountToast` fits the layer for the next one.
     if (this.#toasts.size > 0) {
       this.#ui?.fitToGrid(this.hot.rootElement);
     }

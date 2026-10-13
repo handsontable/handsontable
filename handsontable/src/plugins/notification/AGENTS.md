@@ -93,7 +93,7 @@ teardown, or a hidden toast keeps its listeners.
 **The layer is fitted to the grid root, not to the root wrapper.** `.ht-notification` is `inset: 0` inside
 `hot.rootOverlaysElement`, which spans the whole `.ht-root-wrapper`: as wide as the container and as tall as
 the grid plus its slots. `NotificationUI#fitToGrid()` therefore writes physical `left/top/width/height` on
-the host from `hot.rootElement` (on install, when a toast mounts, and on `afterViewRender` while a toast is open; the write is skipped when nothing changed),
+the host from `hot.rootElement` (when a toast mounts, and on `afterViewRender` and `afterRefreshDimensions` while a toast is open; a render that moved or resized nothing costs only a few offset reads),
 so a corner toast sits 20 px in from the grid's own edge, and a bottom corner stays above a pager or any
 other bottom slot. It resets `right` and `bottom` to `auto`, because the stylesheet's `inset: 0` would
 overconstrain the box and RTL would silently keep the wrapper's edge. The box is measured against
