@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the missing active accent on the seam between the corner header and an active first column header.",
+  "type": "fixed",
+  "issueOrPR": 13824,
+  "breaking": false,
+  "framework": "none"
+}
