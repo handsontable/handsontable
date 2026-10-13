@@ -108,6 +108,27 @@ describe('RowSelection', () => {
     destroy();
   });
 
+  it('should draw the tick of every checkbox as an icon next to it, and a dash for the mixed state', () => {
+    const { hot, plugin, destroy } = createGrid({}, 3);
+    const iconOf = (selector: string) => hot.rootElement
+      .querySelector(`${selector} .htRowSelectionCheckbox`)?.nextElementSibling;
+
+    expect(iconOf('.htRowSelectionCell')?.classList.contains('ht-icon-checkbox')).toBe(true);
+    expect(iconOf('.htRowSelectionHeader')?.classList.contains('ht-icon-checkbox')).toBe(true);
+
+    plugin.selectRows([0]);
+
+    expect(iconOf('.htRowSelectionHeader')?.classList.contains('ht-icon-collapse-off')).toBe(true);
+
+    plugin.selectRows([1, 2]);
+
+    expect(iconOf('.htRowSelectionHeader')?.classList.contains('ht-icon-checkbox')).toBe(true);
+    expect(hot.rootElement.querySelectorAll('.htRowSelectionCheckboxBox > .ht-icon').length)
+      .toBe(hot.rootElement.querySelectorAll('.htRowSelectionCheckboxBox > .htRowSelectionCheckbox').length);
+
+    destroy();
+  });
+
   it('should select everything from the mixed state and deselect everything from the checked state', () => {
     const { plugin, destroy } = createGrid({}, 3);
 

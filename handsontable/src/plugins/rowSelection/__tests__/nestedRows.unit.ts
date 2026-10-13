@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
+import { injectRealCoreStyles, removeRealCoreStyles } from '../../../../test/helpers/realCoreStyles';
 
 registerAllModules();
 
@@ -70,8 +71,15 @@ function createGrid(rowSelection: Record<string, unknown> | boolean = true, sett
 }
 
 describe('RowSelection with NestedRows', () => {
+  afterEach(() => {
+    removeRealCoreStyles();
+  });
+
   describe('groupSelects: \'descendants\' (default)', () => {
     it('should show a parent as mixed on every level above a selected leaf', () => {
+      // The row 5 assertion reads a checkbox the Jest core styles stub keeps out of the jsdom viewport.
+      injectRealCoreStyles();
+
       const { plugin, checkboxState, destroy } = createGrid();
 
       plugin.selectRows([2]);

@@ -11,6 +11,7 @@ import {
 import { A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
 import { CHECKBOX_HEADER_CHECK_ALL } from '../../i18n/constants';
+import { syncIcon } from '../../themes/engine/icons';
 import {
   collectRowsInScope,
   computeHeaderCheckboxState,
@@ -27,6 +28,8 @@ export const PLUGIN_PRIORITY = 390;
 
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 const CHECKBOX_CLASS = 'htCheckboxHeaderInput';
+const CHECKBOX_BOX_CLASS = 'htCheckboxHeaderBox';
+const CHECKBOX_ICON_CLASS = 'htCheckboxHeaderIcon';
 const HEADER_CELL_CLASS = 'htCheckboxHeader';
 const DEFAULT_SCOPE: SelectAllScope = 'filtered';
 
@@ -367,23 +370,33 @@ export class CheckboxHeader extends BasePlugin {
       return;
     }
 
-    let input = container.querySelector<HTMLInputElement>(`:scope > .${CHECKBOX_CLASS}`);
+    let box = container.querySelector<HTMLElement>(`:scope > .${CHECKBOX_BOX_CLASS}`);
+    let input = box?.querySelector<HTMLInputElement>(`:scope > .${CHECKBOX_CLASS}`) ?? null;
 
     if (!this.hasHeaderCheckbox(column) || !isBottomMostColumnHeader(TH)) {
-      input?.remove();
+      box?.remove();
 
       return;
     }
 
-    if (!input) {
+    // The tick is an `<i class="ht-icon">` sibling of the input (an `<input>` holds no children),
+    // so the input and the icon share the checkbox renderer's `span.htCheckboxRendererBox` wrapper,
+    // which lays the icon over the input's box.
+    if (!box || !input) {
+      box?.remove();
+      box = this.hot.rootDocument.createElement('span');
+      box.className = `htCheckboxRendererBox ${CHECKBOX_BOX_CLASS}`;
       input = this.hot.rootDocument.createElement('input');
       input.type = 'checkbox';
       input.tabIndex = -1;
       input.className = `htCheckboxRendererInput ${CHECKBOX_CLASS}`;
-      container.insertBefore(input, container.firstChild);
+      box.appendChild(input);
+      container.insertBefore(box, container.firstChild);
     }
 
     const { state, selected, total } = this.getHeaderCheckboxState(column);
+
+    syncIcon(this.hot, box, CHECKBOX_ICON_CLASS, state === 'mixed' ? 'collapseOff' : 'checkbox');
 
     addClass(TH, HEADER_CELL_CLASS);
     input.checked = state === 'checked';

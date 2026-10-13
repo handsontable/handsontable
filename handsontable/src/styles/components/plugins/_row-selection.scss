@@ -8,14 +8,14 @@
       cursor: pointer;
     }
 
-    th.htRowSelectionCell .htRowSelectionCheckbox,
-    th.htRowSelectionHeader .htRowSelectionCheckbox {
+    th.htRowSelectionCell .htRowSelectionCheckboxBox,
+    th.htRowSelectionHeader .htRowSelectionCheckboxBox {
       margin-inline: 0;
     }
 
-    // The checkbox rule's `margin-top: -2px` lifts an inline checkbox onto a text baseline. In a
+    // The checkbox wrapper's `margin-top: -2px` lifts an inline checkbox onto a text baseline. In a
     // header the flex container centers it instead, and the margin only pushes it off center.
-    th.htRowSelectionHeader .htRowSelectionCheckbox {
+    th.htRowSelectionHeader .htRowSelectionCheckboxBox {
       margin-block: 0;
     }
 
@@ -37,7 +37,8 @@
 
     // Keeps the row's layout when a row shows no checkbox through `checkboxes` or
     // `hideDisabledCheckboxes`, so the column does not jump between rows.
-    .htRowSelectionCheckbox.htRowSelectionCheckboxHidden {
+    .htRowSelectionCheckbox.htRowSelectionCheckboxHidden,
+    .htRowSelectionCheckbox.htRowSelectionCheckboxHidden + .ht-icon {
       visibility: hidden;
     }
 

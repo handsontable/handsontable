@@ -202,10 +202,11 @@ export class RowSelectionPage {
   }
 
   /**
-   * The live region the grid announces changes through.
+   * The live region the grid announces row selection changes through. The grid also mounts a
+   * polite region; the plugin announces through the default, assertive one.
    */
   announcer(): Locator {
-    return this.page.getByRole('status');
+    return this.page.locator('[role="status"][aria-live="assertive"]');
   }
 
   /**

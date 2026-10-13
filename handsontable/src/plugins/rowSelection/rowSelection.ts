@@ -39,6 +39,7 @@ import {
 import { RowIdSelection, type ServerRowSelection } from './rowIdSelection';
 import { isCheckboxMeta, isCheckedValue, writeCheckboxColumn, type CheckboxMeta } from '../../utils/checkboxColumn';
 import { warn } from '../../helpers/console';
+import { syncIcon } from '../../themes/engine/icons';
 import type { PhysicalIndexToValueMap } from '../../translations';
 
 Hooks.getSingleton().register('beforeRowSelectionChange');
@@ -49,6 +50,8 @@ export const PLUGIN_PRIORITY = 380;
 
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 const CHECKBOX_CLASS = 'htRowSelectionCheckbox';
+const CHECKBOX_BOX_CLASS = 'htRowSelectionCheckboxBox';
+const CHECKBOX_ICON_CLASS = 'htRowSelectionCheckboxIcon';
 const ROW_CELL_CLASS = 'htRowSelectionCell';
 const HEADER_CELL_CLASS = 'htRowSelectionHeader';
 const CORNER_CELL_CLASS = 'htRowSelectionCorner';
@@ -1656,15 +1659,25 @@ export class RowSelection extends BasePlugin {
     state: { checked: boolean; indeterminate: boolean; disabled: boolean; hidden: boolean; label: string },
     before: Node | null = container.firstChild,
   ) {
-    let input = container.querySelector<HTMLInputElement>(`:scope > .${CHECKBOX_CLASS}`);
+    let box = container.querySelector<HTMLElement>(`:scope > .${CHECKBOX_BOX_CLASS}`);
+    let input = box?.querySelector<HTMLInputElement>(`:scope > .${CHECKBOX_CLASS}`) ?? null;
 
-    if (!input) {
+    // The tick is an `<i class="ht-icon">` sibling of the input (an `<input>` holds no children),
+    // so the input and the icon share the checkbox renderer's `span.htCheckboxRendererBox` wrapper,
+    // which lays the icon over the input's box.
+    if (!box || !input) {
+      box?.remove();
+      box = this.hot.rootDocument.createElement('span');
+      box.className = `htCheckboxRendererBox ${CHECKBOX_BOX_CLASS}`;
       input = this.hot.rootDocument.createElement('input');
       input.type = 'checkbox';
       input.tabIndex = -1;
       input.className = `htCheckboxRendererInput ${CHECKBOX_CLASS}`;
-      container.insertBefore(input, before);
+      box.appendChild(input);
+      container.insertBefore(box, before);
     }
+
+    syncIcon(this.hot, box, CHECKBOX_ICON_CLASS, state.indeterminate ? 'collapseOff' : 'checkbox');
 
     input.checked = state.checked;
     input.indeterminate = state.indeterminate;
@@ -1687,7 +1700,7 @@ export class RowSelection extends BasePlugin {
    * @param {HTMLElement|null} container The element to clean.
    */
   #removeCheckbox(container: HTMLElement | null) {
-    container?.querySelector(`:scope > .${CHECKBOX_CLASS}`)?.remove();
+    container?.querySelector(`:scope > .${CHECKBOX_BOX_CLASS}`)?.remove();
   }
 
   /**

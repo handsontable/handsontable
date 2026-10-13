@@ -70,6 +70,19 @@ describe('CheckboxHeader', () => {
     destroy();
   });
 
+  it('should draw the tick of the header checkbox as an icon next to it, and a dash for the mixed state', () => {
+    const { hot, plugin, destroy } = createGrid();
+    const icon = () => hot.rootElement.querySelector('.htCheckboxHeaderInput')?.nextElementSibling;
+
+    expect(icon()?.classList.contains('ht-icon-collapse-off')).toBe(true);
+
+    plugin.toggleColumn(1);
+
+    expect(icon()?.classList.contains('ht-icon-checkbox')).toBe(true);
+
+    destroy();
+  });
+
   it('should check every cell from the mixed state, and uncheck every cell from the checked state', () => {
     const { plugin, done, destroy } = createGrid();
 

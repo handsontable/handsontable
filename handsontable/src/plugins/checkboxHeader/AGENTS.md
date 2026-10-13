@@ -30,6 +30,11 @@ pressed. Read this before touching `checkboxHeader.ts`, `../../utils/checkboxCol
 - **One click is one undo step**: `setColumnChecked()` runs `writeCheckboxColumn()` inside
   `runOperation()`. Visible rows go through one `setDataAtCell()` call (validated, one `afterChange`);
   filtered-out rows go through one `setSourceDataAtCell()` call.
+- **The tick is an icon element, not the input's `::after`.** Since DEV-3003 a checkbox tick is an
+  `<i class="ht-icon">` sibling of the input, laid over it by the checkbox renderer's
+  `span.htCheckboxRendererBox` wrapper. The header checkbox lives in such a wrapper
+  (`htCheckboxHeaderBox`), and `syncIcon()` swaps its icon between `checkbox` and `collapseOff` (the
+  mixed state's dash). Pinned by `__tests__/checkboxHeader.unit.ts`.
 - **The press is handled on `mousedown` and the `click` is cancelled**, like RowSelection: the
   header is re-rendered on `mousedown`, and the browser's own toggle on `click` would flip it back.
   `isImmediatePropagationEnabled = false` keeps the press from selecting or sorting the column.

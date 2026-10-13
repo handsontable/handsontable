@@ -20,6 +20,12 @@ from a "select all" checkbox (PRO-87, modeled on AG Grid's `rowSelection`). Read
   `#getRowsInScope()` → `collectRowsInScope()`. A header computed over one row set and a click acting on
   another is the most-reported defect in other grids (AG Grid and MUI issues on filtered and paged
   scopes). Do not add a second way to compute either.
+- **The tick is an icon element, not the input's `::after`.** Since DEV-3003 a checkbox tick is an
+  `<i class="ht-icon">` sibling of the input (an `<input>` holds no children), laid over the input by the
+  checkbox renderer's `span.htCheckboxRendererBox` wrapper. `#renderCheckbox()` builds that wrapper
+  (`htRowSelectionCheckboxBox`) and keeps its icon in step through `syncIcon()`: `checkbox`, or
+  `collapseOff` (the dash) for the mixed state. A bare input shows an empty box, and margin overrides go
+  on the wrapper, not the input. Pinned by `__tests__/rowSelection.unit.ts`.
 - **Mixed → select all.** `resolveHeaderToggleTarget()` follows the checkbox cell type's Space rule
   (`changeSelectedCheckboxesState`). MUI deselects from mixed and its users asked for the opposite.
 - **HiddenRows and TrimRows rows are out of every scope, Filters rows are not out of `'all'`.** The map
