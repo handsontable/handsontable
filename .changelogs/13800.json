@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug where a custom editor with the `portal` position opened far from its cell in a grid with the right-to-left layout direction.",
+  "type": "fixed",
+  "issueOrPR": 13800,
+  "breaking": false,
+  "framework": "none"
+}

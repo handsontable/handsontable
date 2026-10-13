@@ -254,8 +254,12 @@ export class DropdownController {
   updateDimensions(
     availableSpace: { spaceAbove: number; spaceBelow: number; cellHeight: number }, noFlip = false): void {
     const entryHeight = this.#getEntryHeight();
-    const requiresFlippingVertically = this.#requiresFlippingVertically(availableSpace);
-    const availableHeight = requiresFlippingVertically ? availableSpace.spaceAbove : availableSpace.spaceBelow;
+    const chromeHeight = this.#getContainerChromeHeight();
+    const requiresFlippingVertically = this.#requiresFlippingVertically(availableSpace, chromeHeight);
+    // The side the list is drawn on: the stored one when the flip is kept, so the room it is capped to is
+    // the room on that side.
+    const flipped = noFlip ? this.#cache.flippedVertically : requiresFlippingVertically;
+    const availableHeight = flipped ? availableSpace.spaceAbove : availableSpace.spaceBelow;
 
     // Decided both ways: a scroll that follows the cell calls this again, and a flip that could
     // only be set would keep the list above a cell that has room below it again. `prepare()`
@@ -264,9 +268,12 @@ export class DropdownController {
       this.#cache.flippedVertically = requiresFlippingVertically;
     }
 
-    if (this.#cache.entriesCount > 0 && availableHeight < this.getHeight(true)) {
+    if (this.#cache.entriesCount > 0 && availableHeight < this.getHeight(true) + chromeHeight) {
+      // The `- 1` leaves a row of slack that absorbs the chrome up to one row, which covers the built-in
+      // themes. A theme with more chrome than that takes the excess off the room.
+      const chromeBeyondSlack = Math.max(chromeHeight - entryHeight, 0);
       const maxRenderableItems = Math.max(
-        Math.floor((availableHeight - this.#getSearchInputWrapperHeight()) / entryHeight) - 1,
+        Math.floor((availableHeight - chromeBeyondSlack - this.#getSearchInputWrapperHeight()) / entryHeight) - 1,
         1
       );
 
@@ -388,6 +395,7 @@ export class DropdownController {
     if (this.#containerElement) {
       this.#containerElement.style.position = '';
       this.#containerElement.style.top = '';
+      this.#containerElement.style.bottom = '';
       this.#containerElement.style.height = '';
       this.#containerElement.scrollTop = 0;
     }
@@ -485,14 +493,23 @@ export class DropdownController {
   /**
    * Returns true when the dropdown is taller than the space below the cell and there is more space above.
    */
-  #requiresFlippingVertically(availableSpace: { spaceAbove: number; spaceBelow: number; cellHeight: number }): boolean {
+  #requiresFlippingVertically(
+    availableSpace: { spaceAbove: number; spaceBelow: number; cellHeight: number },
+    chromeHeight: number
+  ): boolean {
     const { spaceAbove, spaceBelow, cellHeight } = availableSpace;
 
-    return this.getHeight(true) > spaceBelow && spaceAbove > spaceBelow + cellHeight;
+    return this.getHeight(true) + chromeHeight > spaceBelow &&
+      spaceAbove > spaceBelow + cellHeight;
   }
 
   /**
    * Applies or removes the absolute positioning that renders the dropdown above the edited cell.
+   *
+   * Anchored by its bottom edge, so the list ends flush with the top of the editor container, which is 1 px
+   * above the cell, whatever height the list renders at. That container sits at the cell's bottom and has no
+   * height of its own. For the first row under the column headers and the first `fixedRowsBottom` row,
+   * `getEditedCellRect()` adds 1 px to the container's top, so the list ends flush with the cell's top there.
    */
   #toggleVerticalFlip(availableSpace: { cellHeight: number }): void {
     if (!this.#containerElement) {
@@ -503,10 +520,12 @@ export class DropdownController {
 
     if (flipNeeded) {
       this.#containerElement.style.position = 'absolute';
-      this.#containerElement.style.top = `${-this.getHeight(false, true) - cellHeight - 2}px`;
+      this.#containerElement.style.top = 'auto';
+      this.#containerElement.style.bottom = `${cellHeight + 1}px`;
     } else {
       this.#containerElement.style.position = '';
       this.#containerElement.style.top = '';
+      this.#containerElement.style.bottom = '';
     }
   }
 
@@ -523,6 +542,36 @@ export class DropdownController {
       (2 * parseInt(computedStyle.getPropertyValue('--ht-menu-item-vertical-padding'), 10)) +
       parseInt(computedStyle.getPropertyValue('--ht-line-height'), 10)
     );
+  }
+
+  /**
+   * Returns the vertical space the container's padding and border, and the list's padding and margin, take
+   * around the rows.
+   *
+   * The container is `content-box`, so `getHeight()` and the inline `height` it receives describe the
+   * content only, and the rows are counted without the list's own padding. The room the list needs on
+   * screen is that height plus this value, which depends on the theme (or on a custom stylesheet), so it
+   * is read from the computed style.
+   */
+  #getContainerChromeHeight(): number {
+    if (!this.#rootDocument || !this.#containerElement) {
+      return 0;
+    }
+    const { defaultView } = this.#rootDocument;
+    const sum = (element: Element, properties: string[]) => {
+      const style = defaultView!.getComputedStyle(element);
+
+      return properties.reduce((total, property) => total + (parseFloat(style.getPropertyValue(property)) || 0), 0);
+    };
+    let height = sum(this.#containerElement, [
+      'padding-top', 'padding-bottom', 'border-top-width', 'border-bottom-width',
+    ]);
+
+    if (this.#dropdownListElement) {
+      height += sum(this.#dropdownListElement, ['padding-top', 'padding-bottom', 'margin-top', 'margin-bottom']);
+    }
+
+    return height;
   }
 
   /**

@@ -527,6 +527,20 @@ wait before `keyboard.up()`: released earlier, the event reaches an engine whose
 key is already up, and the guard under test never runs. With that guard broken,
 the old read failed 116 of 120 runs and the held-key wait failed 120 of 120.
 
+**A selection can scroll the grid even when its cell is on screen.**
+When the viewport has nothing to scroll, `selectCell()` and `selectCells()` still
+run `scrollWindowToCell()`, in a microtask, so it has run by the time the
+`evaluate` returns. It calls `scrollIntoView({ block: 'nearest' })` on the cell,
+and a cell taller than the part of the holder that shows it (a merged block a
+frozen pane covers) scrolls the master holder by a few pixels. The clones follow
+one frame later, as above, so a read in between measures the master against
+stale row headers, although the test wrote no scroll. The row heights decide
+whether the holder has room to move, so it can happen on one theme only. After a
+selection, poll the whole geometry read in one `expect.poll` (`toEqual` on the
+full object). Never poll one field and then read the rest once: the field you
+polled can come from a clone that is already drawn
+(`merge-cells-frozen-bottom.spec.ts`, the outline test).
+
 **A geometry read is two round trips, and the grid recycles its rows.**
 `locator.boundingBox()` and `locator.evaluate()` resolve the node in one round
 trip and act on it in another (`innerText()` and `getAttribute()` do both in one

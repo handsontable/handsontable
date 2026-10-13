@@ -389,7 +389,10 @@ export class InlineStartOverlay extends Overlay {
   }
 
   /**
-   * Gets table parent left position.
+   * Gets the distance between the page's inline-start edge and the table's: the table's left edge in LTR, and
+   * its right edge, measured from the page's right edge, in RTL. The RTL value is the page margin on the right
+   * and does not depend on how far the page is scrolled. It is `0` while the holder, not the window, scrolls
+   * the columns: the page offset is not part of the holder's scroll position.
    *
    * @returns {number}
    */
@@ -397,8 +400,23 @@ export class InlineStartOverlay extends Overlay {
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
     let offset = 0;
 
-    if (!preventOverflow && this.trimmingContainer === this.deps.rootWindow) {
-      offset = (this.deps.getWtTable().holderOffset as { top: number; left: number }).left;
+    if (
+      !preventOverflow &&
+      this.trimmingContainer === this.deps.rootWindow &&
+      this.isScrolledByWindow()
+    ) {
+      const wtTable = this.deps.getWtTable();
+
+      if (!this.isRtl()) {
+        offset = (wtTable.holderOffset as { top: number; left: number }).left;
+
+      } else {
+        // The holder's left edge is not where the table starts in RTL: a grid in a shrink-to-fit wrapper
+        // reaches far past the page's left edge, and a grid with a margin on the right does not start
+        // at the page's right edge. Take the margin measured with the draw's `holderOffset`, so a draw
+        // that widens the table does not leave the two out of step.
+        offset = wtTable.holderInlineStartMargin;
+      }
     }
 
     return offset;

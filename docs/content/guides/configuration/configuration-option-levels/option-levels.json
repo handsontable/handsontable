@@ -1476,6 +1476,18 @@
       "note": null
     },
     {
+      "name": "sourceLabel",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "19.0.0",
+      "note": null
+    },
+    {
       "name": "sourceSortFunction",
       "category": "Core",
       "levels": [

@@ -4,6 +4,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { repoRoot } from '../lib/repo-root.mjs';
+import { job, steps } from '../lib/workflow-text.mjs';
 
 // docs/tests/paths.js is CommonJS, and this file is ESM.
 const require = createRequire(import.meta.url);
@@ -50,32 +51,6 @@ const cleanup = read('.github/workflows/pr-cleanup.yml');
 
 const GUARD_SAME_REPO = /github\.event\.pull_request\.head\.repo\.full_name == github\.repository/;
 const GUARD_DEPENDABOT = /github\.actor != 'dependabot\[bot\]'/;
-
-/**
- * One job's block, by the two-space indent that starts each job.
- *
- * @param {string} source The workflow file's contents.
- * @param {string} id The job id.
- * @returns {string} The job's text.
- */
-function job(source, id) {
-  const [, jobsBlock = ''] = source.split(/^jobs:$/m);
-  const blocks = jobsBlock.split(/^ {2}(?=[A-Za-z0-9_-]+:$)/m);
-
-  return blocks.find(block => block.startsWith(`${id}:`)) ?? '';
-}
-
-/**
- * A workflow job's steps, split on the six-space `- ` that starts each one.
- *
- * @param {string} jobBody One job's text, from `job()`.
- * @returns {string[]} One entry per step.
- */
-function steps(jobBody) {
-  const [, stepsBlock = ''] = jobBody.split(/^ {4}steps:$/m);
-
-  return stepsBlock.split(/^ {6}(?=- )/m).filter(block => block.trim());
-}
 
 /**
  * The composite action's steps, split on the four-space `- ` that starts each
