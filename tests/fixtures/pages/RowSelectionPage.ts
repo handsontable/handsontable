@@ -79,6 +79,40 @@ export class RowSelectionPage {
   }
 
   /**
+   * Opens the NestedRows fixture (Europe > Poland > Krakow, Warsaw; Europe > France; Asia > Japan)
+   * with the `groupSelects` mode.
+   */
+  async gotoNested(groupSelects: 'descendants' | 'self' | 'topLevel' = 'descendants'): Promise<void> {
+    await this.page.goto(
+      `/tests/fixtures/demo/row-selection-nested.html?theme=${this.theme}&bundle=${this.bundle}` +
+      `&groupSelects=${groupSelects}`
+    );
+
+    await awaitBundle(this.page);
+    await expect(this.cell(6, 0)).toContainText('Japan');
+  }
+
+  /**
+   * The `checked`/`indeterminate`/`disabled` state of every row checkbox, by visual row, as one
+   * string per row (`x` checked, `-` mixed, ` ` unchecked, followed by `d` when disabled).
+   */
+  async checkboxStates(rows: number): Promise<string[]> {
+    const states: string[] = [];
+
+    for (let row = 0; row < rows; row++) {
+      // eslint-disable-next-line no-await-in-loop
+      states.push(await this.rowCheckbox(row).evaluate((element) => {
+        const input = element as HTMLInputElement;
+        const mark = input.indeterminate ? '-' : (input.checked ? 'x' : ' ');
+
+        return `${mark}${input.disabled ? 'd' : ''}`;
+      }));
+    }
+
+    return states;
+  }
+
+  /**
    * Opens the fixture backed by an in-page server (12 rows, 5 per page) and waits for the first page.
    */
   async gotoServerBacked(): Promise<void> {

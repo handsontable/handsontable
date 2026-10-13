@@ -568,6 +568,58 @@ describe('RowSelection', () => {
     });
   });
 
+  it('should toggle the row with Space on a first column checkbox without opening the editor', () => {
+    const { hot, plugin, destroy } = createGrid({ rowSelection: { checkboxLocation: 'firstColumn' } });
+
+    hot.selectCell(1, 0);
+    hot.listen();
+    hot.rootDocument.documentElement.dispatchEvent(new KeyboardEvent('keydown', {
+      key: ' ', code: 'Space', keyCode: 32, which: 32, bubbles: true, cancelable: true,
+    }));
+
+    expect(plugin.getSelectedPhysicalRows()).toEqual([1]);
+    expect(hot.getActiveEditor()?.isOpened()).toBe(false);
+
+    destroy();
+  });
+
+  it('should resolve the row checks once per draw, not once per painted cell', () => {
+    injectRealCoreStyles();
+
+    const countDuringRender = (rowSelection: boolean) => {
+      const { hot, destroy } = createGrid({ rowSelection }, 6);
+      const getNumberOfIndexes = jest.spyOn(hot.rowIndexMapper, 'getNumberOfIndexes');
+
+      hot.render();
+
+      const calls = getNumberOfIndexes.mock.calls.length;
+
+      destroy();
+
+      return calls;
+    };
+    const withoutPlugin = countDuringRender(false);
+    const withPlugin = countDuringRender(true);
+
+    // Six rows of two cells and a row header each: a per-cell build would add over a dozen calls.
+    expect(withPlugin - withoutPlugin).toBeLessThanOrEqual(2);
+  });
+
+  it('should paint a selection made in the same task as an earlier draw', () => {
+    const { hot, plugin, destroy } = createGrid({}, 3);
+
+    hot.render();
+    plugin.selectRows([1]);
+
+    expect(hot.getCell(1, 0)?.classList.contains('htRowSelected')).toBe(true);
+
+    plugin.deselectRows([1]);
+
+    expect(hot.getCell(1, 0)?.classList.contains('htRowSelected')).toBe(false);
+
+    destroy();
+  });
+
   describe('rows out of every scope', () => {
     it('should leave the rows HiddenRows hides out of a Shift+click range', () => {
       // Rows past the second are outside the jsdom viewport under the Jest core styles stub.

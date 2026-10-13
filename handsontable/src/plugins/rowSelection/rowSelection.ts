@@ -427,6 +427,10 @@ export class RowSelection extends BasePlugin {
    * The NestedRows plugin instance (`null` when it is not registered), see `#getNestedRowsPlugin()`.
    */
   #nestedRowsPlugin: PluginTypeMap['nestedRows'] | null | undefined = undefined;
+  /**
+   * The row checks one draw shares (`#getDrawRowChecks()`), or `null` when the next draw builds them.
+   */
+  #drawRowChecks: RowChecks | null = null;
 
   /**
    * The cached state of a NestedRows tree with `groupSelects: 'descendants'`, dropped together with
@@ -476,6 +480,7 @@ export class RowSelection extends BasePlugin {
     this.addHook('afterGetRowHeaderRenderers', this.#onAfterGetRowHeaderRenderers);
     this.addHook('afterGetColHeader', this.#onAfterGetColHeader);
     this.addHook('afterGetRowHeader', this.#onAfterGetRowHeader);
+    this.addHook('beforeRender', this.#dropDrawRowChecks);
     this.addHook('afterRenderer', this.#onAfterRenderer);
     this.addHook('modifyRowHeaderWidth', this.#onModifyRowHeaderWidth);
     this.addHook('modifyColWidth', this.#onModifyColWidth);
@@ -553,6 +558,7 @@ export class RowSelection extends BasePlugin {
     this.#rowHeaderRendererIndex = -1;
     this.#anchorPhysicalRow = null;
     this.#headerSummaryCache = null;
+    this.#drawRowChecks = null;
     this.#groupTree = null;
     this.#boundColumnCache = undefined;
     this.#boundWrite = null;
@@ -1173,6 +1179,8 @@ export class RowSelection extends BasePlugin {
       return false;
     }
 
+    this.#drawRowChecks = null;
+
     const map = this.#selectedRowsMap;
     const boundColumn = this.getBoundColumn();
 
@@ -1448,6 +1456,8 @@ export class RowSelection extends BasePlugin {
       return false;
     }
 
+    this.#drawRowChecks = null;
+
     this.#rowIdSelection = next;
     this.#writeSilently(() => this.#selectedRowsMap!.setValues(nextValues));
     this.#headerSummaryCache = null;
@@ -1567,6 +1577,31 @@ export class RowSelection extends BasePlugin {
 
     return this.#nestedRowsPlugin ?? undefined;
   }
+
+  /**
+   * Returns the row checks shared by every cell and header one draw paints, so a draw resolves the
+   * bound column, the NestedRows plugin and the settings once instead of once per cell. Scroll draws
+   * run no render hook, so the checks live until the end of the current task, and every change of the
+   * selection, the data that the checks read, the settings, or the row indexes drops them sooner.
+   * Only the rendering hooks read them; the public API builds fresh checks.
+   *
+   * @returns {RowChecks}
+   */
+  #getDrawRowChecks(): RowChecks {
+    if (!this.#drawRowChecks) {
+      this.#drawRowChecks = this.#createRowChecks();
+      queueMicrotask(this.#dropDrawRowChecks);
+    }
+
+    return this.#drawRowChecks;
+  }
+
+  /**
+   * Drops the row checks shared by one draw.
+   */
+  #dropDrawRowChecks = () => {
+    this.#drawRowChecks = null;
+  };
 
   /**
    * Resolves what the per-row checks need once, and returns the checks.
@@ -1936,7 +1971,7 @@ export class RowSelection extends BasePlugin {
       return null;
     }
 
-    const checks = this.#createRowChecks();
+    const checks = this.#getDrawRowChecks();
     const hidden = !this.#hasRowCheckbox(physicalRow);
 
     return {
@@ -1997,7 +2032,7 @@ export class RowSelection extends BasePlugin {
   #registerShortcuts() {
     this.hot.getShortcutManager().getContext('grid')?.addShortcut({
       keys: [['Space']],
-      callback: () => {
+      callback: (event: KeyboardEvent) => {
         const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
         if (!highlight || highlight.row === null) {
@@ -2009,6 +2044,10 @@ export class RowSelection extends BasePlugin {
         } else {
           this.#toggleRow(highlight.row, 'keyboard');
         }
+
+        // With `checkboxLocation: 'firstColumn'` the checkbox sits in a data cell, and the editor
+        // manager opens an editor on any printable key unless the event is marked handled.
+        (event as KeyboardEvent & { isImmediatePropagationEnabled: boolean }).isImmediatePropagationEnabled = false;
 
         return false;
       },
@@ -2338,7 +2377,8 @@ export class RowSelection extends BasePlugin {
     if (!state || state.hidden) {
       this.#removeCheckbox(container);
 
-      if (visualRow !== null && visualRow >= 0 && this.isRowSelected(visualRow)) {
+      if (visualRow !== null && visualRow >= 0 &&
+        this.#getDrawRowChecks().isSelected(this.hot.toPhysicalRow(visualRow))) {
         addClass(TH, SELECTED_ROW_CLASS);
       }
 
@@ -2396,7 +2436,7 @@ export class RowSelection extends BasePlugin {
    * @param {HTMLTableCellElement} TH The row header cell.
    */
   #onAfterGetRowHeader = (row: number, TH: HTMLTableCellElement) => {
-    if (row >= 0 && this.isRowSelected(row)) {
+    if (row >= 0 && this.#getDrawRowChecks().isSelected(this.hot.toPhysicalRow(row))) {
       addClass(TH, SELECTED_ROW_CLASS);
     }
   };
@@ -2410,7 +2450,7 @@ export class RowSelection extends BasePlugin {
    * @param {number} column Visual column index.
    */
   #onAfterRenderer = (TD: HTMLTableCellElement, row: number, column: number) => {
-    if (this.isRowSelected(row)) {
+    if (this.#getDrawRowChecks().isSelected(this.hot.toPhysicalRow(row))) {
       addClass(TD, SELECTED_ROW_CLASS);
     }
 
@@ -2702,6 +2742,7 @@ export class RowSelection extends BasePlugin {
   #onRowIndexCacheUpdated = () => {
     this.#headerSummaryCache = null;
     this.#groupTree = null;
+    this.#drawRowChecks = null;
   };
 
   /**
@@ -2710,6 +2751,7 @@ export class RowSelection extends BasePlugin {
   #invalidateHeaderSummary = () => {
     this.#headerSummaryCache = null;
     this.#groupTree = null;
+    this.#drawRowChecks = null;
   };
 
   /**
@@ -2719,6 +2761,7 @@ export class RowSelection extends BasePlugin {
     this.#boundColumnCache = undefined;
     this.#headerSummaryCache = null;
     this.#groupTree = null;
+    this.#drawRowChecks = null;
   };
 
   /**

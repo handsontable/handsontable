@@ -78,6 +78,17 @@ from a "select all" checkbox (PRO-87, modeled on AG Grid's `rowSelection`). Read
   `isLeftClick(event) || isTouchEvent(event)`. A bare `button !== 0` check made every tap a no-op on iPad.
   The unit test calls the hook with a `TouchEvent`; `tests/e2e/row-selection.spec.ts` ("on a touch screen")
   taps for real.
+- **Space on a checkbox must be marked handled.** Both Space shortcuts set
+  `isImmediatePropagationEnabled = false` on the event. With `checkboxLocation: 'firstColumn'` the
+  checkbox sits in a data cell, and the editor manager opens the cell editor on any printable key the
+  shortcut leaves unmarked: Space toggled the row and opened the editor. Pinned by
+  `__tests__/rowSelection.unit.ts` and the "Space on a first column checkbox" Playwright test.
+- **The rendering hooks share one `RowChecks` per draw** (`#getDrawRowChecks()`). Scroll draws run no
+  render hook, so the shared checks live until the end of the task (`queueMicrotask`) and are dropped
+  sooner on `beforeRender`, in `#applyChange()` / `#replaceServerSelection()` once a change passes the
+  veto, and wherever the header summary is invalidated (data, settings, row indexes). The public API
+  (`isRowSelected()` and the rest) always builds fresh checks. A new path that changes what the checks
+  read must drop them too, or a draw in the same task paints the old state.
 - **A tap must not leave the input focused.** Walkontable drops the browser's own `mousedown` that follows
   a tap, so the hook's `preventDefault()` never reaches it and its default action focuses the input. The
   next tap on the same input then hits Walkontable's "press on the focused element" guard and does

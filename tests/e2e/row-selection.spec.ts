@@ -231,6 +231,27 @@ test.describe('Row selection checkboxes', () => {
   });
 });
 
+test.describe('Row selection with Space on a first column checkbox', () => {
+  test('toggles the row and does not open the editor of the cell that holds the checkbox',
+    async({ page, theme, bundle }) => {
+      const grid = new RowSelectionPage(page, theme, bundle);
+
+      await grid.goto({ location: 'firstColumn' });
+      await grid.focusCell(1, 0);
+      await page.keyboard.press('Space');
+
+      await expect.poll(() => grid.selectedRows()).toEqual([1]);
+      await expect(grid.rowCheckbox(1, 'firstColumn')).toBeChecked();
+      expect(await grid.isEditorOpened()).toBe(false);
+      await expect(grid.cell(1, 0)).toContainText('Item 1');
+
+      await page.keyboard.press('Space');
+
+      await expect.poll(() => grid.selectedRows()).toEqual([]);
+      expect(await grid.isEditorOpened()).toBe(false);
+    });
+});
+
 test.describe('Row selection on a click (enableClickSelection)', () => {
   test('`true`: a click selects only its row, Ctrl/Cmd+click toggles, and Shift+click selects a range',
     async({ page, theme, bundle }) => {
@@ -664,5 +685,72 @@ test.describe('Row selection on a server-backed grid', () => {
 
     await expect.poll(() => grid.serverSelection()).toEqual({ selectAll: true, toggledRowIds: [12] });
     await expect(header).toHaveAccessibleName('Select all rows (11 of 12 selected)');
+  });
+});
+
+/**
+ * The RowSelection plugin over the NestedRows plugin (`groupSelects`). The fixture's tree, by visual
+ * row: 0 Europe, 1 Poland, 2 Krakow, 3 Warsaw, 4 France, 5 Asia, 6 Japan.
+ */
+test.describe('Row selection over nested rows', () => {
+  test('`\'descendants\'`: a parent selects every row under it, and its ancestors show the mixed state',
+    async({ page, theme, bundle }) => {
+      const grid = new RowSelectionPage(page, theme, bundle);
+
+      await grid.gotoNested('descendants');
+      await grid.rowCheckbox(1).click();
+
+      await expect.poll(() => grid.checkboxStates(7)).toEqual(['-', 'x', 'x', 'x', ' ', ' ', ' ']);
+      await expect.poll(() => grid.isIndeterminate(grid.headerCheckbox())).toBe(true);
+
+      // A leaf of the selected parent deselected: the parent turns mixed too.
+      await grid.rowCheckbox(3).click();
+
+      await expect.poll(() => grid.checkboxStates(7)).toEqual(['-', '-', 'x', ' ', ' ', ' ', ' ']);
+
+      // The mixed top-level parent selects its whole subtree.
+      await grid.rowCheckbox(0).click();
+
+      await expect.poll(() => grid.checkboxStates(7)).toEqual(['x', 'x', 'x', 'x', 'x', ' ', ' ']);
+      await expect.poll(() => grid.eventSources()).toEqual(['checkbox', 'checkbox', 'checkbox']);
+    });
+
+  test('`\'descendants\'`: Space on a parent row\'s data cell selects its subtree', async({ page, theme, bundle }) => {
+    const grid = new RowSelectionPage(page, theme, bundle);
+
+    await grid.gotoNested('descendants');
+    await grid.focusCell(5, 0);
+    await page.keyboard.press('Space');
+
+    await expect.poll(() => grid.checkboxStates(7)).toEqual([' ', ' ', ' ', ' ', ' ', 'x', 'x']);
+    expect(await grid.isEditorOpened()).toBe(false);
+  });
+
+  test('`\'self\'`: every row is selected on its own', async({ page, theme, bundle }) => {
+    const grid = new RowSelectionPage(page, theme, bundle);
+
+    await grid.gotoNested('self');
+    await grid.rowCheckbox(1).click();
+
+    await expect.poll(() => grid.checkboxStates(7)).toEqual([' ', 'x', ' ', ' ', ' ', ' ', ' ']);
+
+    await grid.rowCheckbox(2).click();
+
+    await expect.poll(() => grid.checkboxStates(7)).toEqual([' ', 'x', 'x', ' ', ' ', ' ', ' ']);
+    await expect.poll(() => grid.selectedRows()).toEqual([1, 2]);
+  });
+
+  test('`\'topLevel\'`: only the top-level rows can be selected', async({ page, theme, bundle }) => {
+    const grid = new RowSelectionPage(page, theme, bundle);
+
+    await grid.gotoNested('topLevel');
+
+    await expect.poll(() => grid.checkboxStates(7)).toEqual([' ', ' d', ' d', ' d', ' d', ' ', ' d']);
+
+    await grid.rowCheckbox(5).click();
+    await grid.headerCheckbox().click();
+
+    await expect.poll(() => grid.selectedRows()).toEqual([0, 5]);
+    await expect.poll(() => grid.checkboxStates(7)).toEqual(['x', ' d', ' d', ' d', ' d', 'x', ' d']);
   });
 });

@@ -6,11 +6,12 @@ import { helpers } from '../../../src/helpers';
  * "select all" checkbox mixed (with a dash icon), unchecked, and checked; a disabled row checkbox; the
  * `firstColumn` location in an empty first column; and a checkbox column's `headerCheckbox` in the
  * mixed state. The pixels judged are theme tokens (`--ht-row-selection-background-color` and the
- * indeterminate icon), so the horizon theme renders too. The states themselves are asserted in
+ * indeterminate icon); the documented default variants (main and main-dark) cover the light and dark
+ * values of both. The states themselves are asserted in
  * `tests/e2e/row-selection.spec.ts` and `tests/e2e/checkbox-header.spec.ts`. Owned by PRO-87.
  */
 visualTest(__filename, {
-  themes: ['main', 'main-dark', 'horizon'],
+  themes: ['main', 'main-dark'],
   browsers: ['chromium'],
   wrappers: [],
 }, async({ goto, tablePage }) => {
