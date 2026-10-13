@@ -375,7 +375,8 @@ stack hook pair, and with no `afterUndo`/`afterRedo`.
   freezing, resizing - the drag and the double-click included -, collapsing, borders, comments, pages),
   plus the per-feature `*-undo.spec.ts` files.
 - More unit files by topic: `removeRowsAndColumns.unit.js`, `indexTransformations.unit.js` and
-  `pluginState.unit.js` (their shared setup is `__tests__/helpers/grid.js`), plus
+  `pluginState.unit.js` (their shared setup is `__tests__/grid.js` - keep it out of a `helpers/`
+  folder, which the E2E bundle loads onto `window`), plus
   `../formulas/__tests__/undoRedo.unit.js`. More browser specs by topic: `tests/e2e/column-summary-undo.spec.ts`
   and `tests/e2e/autofill-merge-undo.spec.ts`.
 - **A closed undo bug gets its case in the file for what it tests**, with the task id in a comment above

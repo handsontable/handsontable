@@ -18,6 +18,7 @@ Favor E2E: a unit test that needs a mocked module becomes an E2E test, because m
 
 - File naming: `*.unit.js` or `*.unit.ts` (`testRegex` in `handsontable/jest.config.js`).
 - Location: `src/**/__tests__/` beside the source (e.g. `src/plugins/filters/__tests__/dataFilter.unit.ts`).
+- A helper only unit tests use goes straight in `__tests__/` (e.g. `undoRedo/__tests__/grid.js`), never in a `helpers/` folder. `test/helpers/index.js` bundles every `.js` under `src/{plugins,editors}/**/helpers/` into the E2E build and puts its exports on `window`. A `handsontable/...` import there breaks the Integration / ESM and CJS jobs, whose E2E build aliases `handsontable` to the single file `dist/handsontable.js`.
 - Framework: Jest, `jsdom`, `jest-jasmine2` runner. Import everything explicitly.
 - Aliases: `'handsontable'` and `'handsontable/...'` resolve to `src/`; `'walkontable'` and `'walkontable/...'` to `src/3rdparty/walkontable/src/`; CSS/SCSS to `test/__mocks__/styleMock.js`.
 - `test/bootstrap.js` provides `ResizeObserver` (`test/__mocks__/resizeObserverMock.js`) and `IntersectionObserver` (`test/__mocks__/intersectionObserverMock.js`) mocks. Other mocking: `jest.fn()`, `jest.spyOn(object, 'method')`.
