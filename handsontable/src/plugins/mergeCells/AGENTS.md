@@ -664,11 +664,13 @@ starting on its first column, is anchored in the clone and needs nothing.
 - The continuation cell is the covered cell of the FIRST end column of the merge's first row, with the `colspan` the
   renderer already computes from that column (`min(origColspan, columns left)`), so it never reaches past the band.
   Its text is the merge anchor's, because covered cells resolve to the anchor through `modifyGetCellCoords`.
-- **`Core#getCell(row, endColumn, true)` on a covered end column answers the continuation cell.** The hook resolves
-  the covered coordinates to the anchor, and the end clone's `Table#getCell` maps a block that starts before its band
-  to its first rendered column (see the bullet on selection below). The master cell is returned only for coordinates
-  the clone does not render. Editors and selection of such a merge still go through the anchor, as they do for every
-  merge.
+- **`Core#getCell(row, endColumn, true)` on a covered end column answers the continuation cell.** The topmost lookup
+  of an end column always goes to the end clone and never falls back to the master. The hook resolves the covered
+  coordinates to the anchor and reports the block's real last row and column for a topmost lookup (outside a draw the
+  active overlay is the master, so a clamped extent would end before the band), and the clone's `Table#getCell` maps a
+  block that starts before its band to its first rendered column (see the bullet on selection below). The cell is the
+  clone's FIRST rendered column, not necessarily the requested one. The call returns `null` when the clone does not
+  render the row. Editors and selection of such a merge still go through the anchor, as they do for every merge.
 - `#onModifyRowHeightByOverlayName` treats `top_inline_end_corner` like the top corners and
   `bottom_inline_end_corner` like the bottom ones (no height inflation there).
 - **A block that crosses `fixedRowsBottom` inside the end columns works the same as on the start side.** The bottom end

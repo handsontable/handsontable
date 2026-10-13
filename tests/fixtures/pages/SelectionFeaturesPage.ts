@@ -114,8 +114,13 @@ export class SelectionFeaturesPage {
   }
 
   /** Select a cell range through the instance API. */
-  async selectCells(fromRow: number, fromCol: number, toRow: number, toCol: number): Promise<void> {
-    await this.page.evaluate(range => window.hot.selectCells([range]), [fromRow, fromCol, toRow, toCol]);
+  async selectCells(
+    fromRow: number, fromCol: number, toRow: number, toCol: number, scrollToCell = true,
+  ): Promise<void> {
+    await this.page.evaluate(
+      ([range, scroll]) => window.hot.selectCells([range as number[]], scroll as boolean),
+      [[fromRow, fromCol, toRow, toCol], scrollToCell] as const,
+    );
   }
 
   /** Clear the selection through the instance API. */
