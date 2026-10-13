@@ -187,3 +187,113 @@ test.describe('selection of a merged cell across the frozen panes', () => {
     ]);
   });
 });
+
+/**
+ * A block anchored in the scrolling columns that reaches into `fixedColumnsEnd` is drawn in the
+ * inline-end clone from the clone's first column on. The clone resolves the block to its first
+ * rendered column, so it fills and outlines its part like the master does.
+ */
+test.describe('selection of a merged cell that reaches into the end frozen columns', () => {
+  let grid: SelectionFeaturesPage;
+
+  const BLOCK = { row: 1, col: 8, rowspan: 1, colspan: 3 };
+  const wideData = () => Array.from({ length: 6 }, (_, r) =>
+    Array.from({ length: 12 }, (_, c) => `R${r + 1}C${c + 1}`));
+
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new SelectionFeaturesPage(page, theme, bundle);
+    await grid.goto();
+  });
+
+  for (const direction of ['ltr', 'rtl']) {
+    for (const virtualized of [false, true]) {
+      test.describe(`${direction}, virtualized ${virtualized}`, () => {
+        test.beforeEach(async () => {
+          await grid.initGrid({
+            data: wideData(),
+            width: 360,
+            layoutDirection: direction,
+            fixedColumnsEnd: 3,
+            mergeCells: { virtualized, cells: [BLOCK] },
+          });
+          await grid.scrollToColumn(8);
+        });
+
+        test('fills the part of the block in the end clone', async ({ page }) => {
+          await grid.selectCells(1, 8, 2, 10);
+
+          await expect.poll(() => page.evaluate(() => {
+            const cell = document.querySelector('.ht_clone_inline_end tbody tr:nth-child(2) td');
+
+            return !!cell && (cell.classList.contains('area') || cell.classList.contains('current'));
+          })).toBe(true);
+
+          // The row above the block is outside the selection.
+          expect(await page.evaluate(() => document.querySelector('.ht_clone_inline_end tbody tr:nth-child(1) td')
+            ?.classList.contains('area'))).toBe(false);
+        });
+
+        test('fills the part of the block in the end clone while the anchor is scrolled out of view', async ({ page }) => {
+          await grid.scrollToColumn(0);
+          await grid.selectCells(1, 8, 1, 8);
+
+          await expect.poll(() => page.evaluate(() => {
+            const cell = document.querySelector('.ht_clone_inline_end tbody tr:nth-child(2) td');
+
+            return !!cell && (cell.classList.contains('area') || cell.classList.contains('current'));
+          })).toBe(true);
+        });
+
+        test('draws one outline and one fill handle around the whole block, none through it', async () => {
+          await grid.selectCells(1, 8, 1, 8);
+
+          await expect.poll(async () => (await grid.mergedBlockSelection(1, 8)).fillHandles.length).toBe(1);
+
+          const { edgesInside, outline, fillHandles } = await grid.mergedBlockSelection(1, 8);
+
+          expect(edgesInside).toEqual([]);
+          expect(outline.top).toEqual([true, true, true]);
+          expect(outline.bottom).toEqual([true, true, true]);
+          expect(fillHandles[0].overlay).toBe('ht_clone_inline_end');
+        });
+      });
+    }
+  }
+
+  const OTHER_BLOCKS = [
+    { name: 'a taller block', block: { row: 1, col: 8, rowspan: 2, colspan: 3 }, extra: {} },
+    { name: 'a block in the top end corner', block: { row: 0, col: 8, rowspan: 1, colspan: 3 },
+      extra: { fixedRowsTop: 2 } },
+    { name: 'a block in the bottom end corner', block: { row: 4, col: 8, rowspan: 1, colspan: 3 },
+      extra: { fixedRowsBottom: 2 } },
+    { name: 'a block that starts on the first end column', block: { row: 1, col: 9, rowspan: 1, colspan: 2 },
+      extra: {} },
+  ];
+
+  for (const { name, block, extra } of OTHER_BLOCKS) {
+    test(`draws one outline and one fill handle around ${name}`, async () => {
+      await grid.initGrid({
+        data: wideData(),
+        width: 360,
+        fixedColumnsEnd: 3,
+        mergeCells: [block],
+        ...extra,
+      });
+      await grid.scrollToColumn(8);
+      await grid.selectCells(block.row, block.col, block.row, block.col);
+
+      await expect.poll(async () => (await grid.mergedBlockSelection(block.row, block.col)).fillHandles.length)
+        .toBe(1);
+
+      const { edgesInside, outline } = await grid.mergedBlockSelection(block.row, block.col);
+
+      expect(edgesInside).toEqual([]);
+      expect(outline).toEqual({
+        top: Array(block.colspan).fill(true),
+        bottom: Array(block.colspan).fill(true),
+        left: Array(block.rowspan).fill(true),
+        right: Array(block.rowspan).fill(true),
+      });
+    });
+  }
+});

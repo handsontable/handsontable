@@ -1643,7 +1643,8 @@ export class SelectionFeaturesPage {
     return this.page.evaluate(([targetRow, targetCol]) => {
       const { hot } = window;
       const OVERLAYS = ['ht_master', 'ht_clone_top_inline_start_corner', 'ht_clone_bottom_inline_start_corner',
-        'ht_clone_inline_start', 'ht_clone_top', 'ht_clone_bottom'];
+        'ht_clone_inline_start', 'ht_clone_top', 'ht_clone_bottom', 'ht_clone_inline_end',
+        'ht_clone_top_inline_end_corner', 'ht_clone_bottom_inline_end_corner'];
       const overlayOf = (element: Element) => OVERLAYS.find(name => element.closest(`.${name}`)) ?? 'none';
       const isDisplayed = (element: Element) => {
         const rect = element.getBoundingClientRect();
