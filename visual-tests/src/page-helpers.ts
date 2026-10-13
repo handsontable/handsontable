@@ -548,7 +548,7 @@ export async function rowsCount() {
  * @param {string | number} columnNameOrIndex Column name or index.
  */
 export async function clearColumn(columnNameOrIndex: string | number) {
-  openHeaderDropdownMenu(columnNameOrIndex);
+  await openHeaderDropdownMenu(columnNameOrIndex);
 
   await getPageInstance().getByText('Clear column').click();
 }
@@ -710,17 +710,6 @@ export async function collapseNestedColumn(columnName:string, table = getDefault
 }
 
 /**
- * @param {string} rowNumber The row number.
- * @param {Locator} table The locator of the table.
- */
-export async function collapseNestedRow(rowNumber:number, table = getDefaultTableInstance()) {
-  await table.getByRole('rowheader', { name: rowNumber.toString() }).locator('div').nth(1).click();
-  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
-  await getPageInstance().waitForTimeout(500);
-
-}
-
-/**
  * Undo the last action.
  */
 export async function undo() {
@@ -815,6 +804,34 @@ export async function doubleClickRelativeToViewport(
   await getPageInstance().mouse.dblclick(x, y, {
     button,
   });
+}
+
+/**
+ * Waits until a wheel scroll has moved the grid and come to rest. `mouse.wheel()` returns before the
+ * browser scrolls, and an engine that animates a wheel scroll moves the holder over several frames, so
+ * the master holder's offsets are read until two animation frames in a row leave both where they were,
+ * with `offset` moved off zero (in either direction, so a right-to-left grid's negative `scrollLeft`
+ * counts). The capture's scrollbar-clearance settle cannot stand in for this: it waits for a band that
+ * only overlay scrollbars open.
+ *
+ * @param {'scrollTop' | 'scrollLeft'} offset The offset the wheel scroll must have moved.
+ * @param {Locator} table The locator of the table.
+ */
+export async function waitForWheelScrollToSettle(
+  offset: 'scrollTop' | 'scrollLeft',
+  table = getDefaultTableInstance(),
+) {
+  const holder = table.locator('.ht_master .wtHolder');
+
+  await expect.poll(async() => holder.evaluate((element, axis) => new Promise<number>((resolve) => {
+    const before = [element.scrollTop, element.scrollLeft];
+
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const settled = element.scrollTop === before[0] && element.scrollLeft === before[1];
+
+      resolve(settled ? Math.abs(element[axis]) : 0);
+    }));
+  }), offset), { message: `the wheel scroll never moved ${offset} and came to rest` }).toBeGreaterThan(0);
 }
 
 /**

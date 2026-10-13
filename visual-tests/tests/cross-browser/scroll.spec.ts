@@ -1,6 +1,6 @@
 import { visualTest, expect, CLASSIC, CROSS_BROWSERS } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
-import { selectCell } from '../../src/page-helpers';
+import { selectCell, waitForWheelScrollToSettle } from '../../src/page-helpers';
 
 const urls = [
   '/cell-types-demo',
@@ -36,15 +36,8 @@ urls.forEach((url) => {
 
     await cell.click();
     await expect(cell).toHaveClass(/(^|\s)current(\s|$)/);
-    // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
-    await tablePage.waitForTimeout(500);
-
     await tablePage.mouse.wheel(500, 1000);
-    // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
-    await tablePage.waitForTimeout(500);
-
-    await expect.poll(async() => table.locator('.ht_master .wtHolder').evaluate(holder => holder.scrollTop))
-      .toBeGreaterThan(0);
+    await waitForWheelScrollToSettle('scrollTop', table);
 
     await tablePage.screenshot({ path: helpers.screenshotPath() });
   });

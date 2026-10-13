@@ -1050,12 +1050,12 @@ fields. Nine rules follow.
   comparison now follows from the owners. Its only remaining reads are the window-mode overflow
   reset in `MasterTable` (`true` still suppresses it), `InlineStartOverlay#getTableParentOffset`, and
   the two header-border suppressions, which are visual rules pinned by
-  `src/__tests__/settings/preventOverflow.spec.js`. The option stays forever, without a warning. One
-  thing does not follow from the owners yet: a grid given a `width` gets `overflow-x: clip` on its root,
-  and the alias does not, so under `preventOverflow: 'horizontal'` with no `width` the scroll spacer and
-  the overlay rails reach through the root's visible parent and widen the page (measured on `main`: a
-  500 px parent, a 2287 px document). The last case of `tests/e2e/width-window-scroll.spec.ts` is parked
-  under `test.fixme` on it.
+  `src/__tests__/settings/preventOverflow.spec.js`. The option stays forever, without a warning. The
+  one thing the owners do not give is a clip: `core/rootSize.ts` (core, not the engine) writes
+  `overflow-x: clip` inline on the root of a root instance under `'horizontal'`, the same clip a definite
+  `width` gets, so the scroll spacer and the overlay rails cannot reach through the root and widen the
+  page. It only reads and writes the inline style, so an inline `overflow` on the root is left alone and
+  a stylesheet `overflow-x` on `.handsontable` is overridden. Pinned by the last case of `tests/e2e/width-window-scroll.spec.ts`.
 - **Never ask `instanceof HTMLElement` whether an axis owner is an element — use `isHTMLElement()`.**
   `resolveAxisOwner` takes its realm from `ownerDocument`, so it correctly hands back an iframe's
   element to a parent-realm caller; `instanceof` then fails to recognize it against the parent's
