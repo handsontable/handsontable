@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures/test';
 import {
   HandsontableEditorListPositionPage,
+  placementOf,
   type EditorType,
   type Layout,
   type Variant,
@@ -234,6 +235,62 @@ test.describe('multiselect editor list position', () => {
 
       await grid.goto();
       await expectEveryPoint(grid, MULTISELECT_POINTS[variant.dir]);
+    });
+  }
+});
+
+// The multiselect decides whether its list fits, and so whether to cap or flip it, from a height that must
+// count the list's own padding and border. A cell whose room falls within that margin of the list's height
+// left the list uncapped, hanging past the viewport's bottom, or flipped above a cell with less room above
+// than the list needs, so its top, and the search field, sat above the viewport. The cell is moved through
+// every position in a range that spans both thresholds, with the page scrolled to put it there.
+test.describe('multiselect editor list stays in the viewport at every cell position', () => {
+  for (const dir of ['ltr', 'rtl'] as const) {
+    test(`keeps the whole list on screen as the cell moves down the viewport (${dir.toUpperCase()})`, async({
+      page, theme, bundle,
+    }) => {
+      const grid = new HandsontableEditorListPositionPage(page, theme, bundle, {
+        dir, layout: 'window', type: 'multiselect',
+      });
+
+      await page.setViewportSize({ width: 1000, height: 600 });
+      await grid.goto();
+
+      // Opens on a cell about 480 px down a 600 px viewport. The page scrolls up to 380 px from there, which
+      // takes the cell's top through the room the list needs below it, and then above it, on every theme.
+      const coords = await grid.openEditorAt('center', 480);
+      const { cell } = await grid.geometry(coords);
+      const startTop = cell.top;
+      const outside: string[] = [];
+      const seen = { flipped: false, capped: false };
+      let tallest = 0;
+
+      for (let top = startTop; top >= startTop - 380; top -= 8) {
+        await page.evaluate(y => window.scrollTo(window.scrollX, y), startTop - top);
+        await expect.poll(async() => (await grid.geometry(coords)).cell.top, { message: `the cell reaches ${top}` })
+          .toBeCloseTo(top, 0);
+
+        // The list follows the cell from the page's `scroll` listener, a frame after the cell has moved.
+        await page.evaluate(() => new Promise(resolve => {
+          requestAnimationFrame(() => requestAnimationFrame(resolve));
+        }));
+
+        const geometry = await grid.geometry(coords);
+        const { inViewport, side } = placementOf(geometry, dir);
+        const height = geometry.list.bottom - geometry.list.top;
+
+        tallest = Math.max(tallest, height);
+        seen.flipped ||= side === 'above';
+        seen.capped ||= height < tallest - 1;
+
+        if (inViewport !== 'yes') {
+          outside.push(`cell top ${top}: ${inViewport}`);
+        }
+      }
+
+      expect(outside).toEqual([]);
+      // Without both cases in the sweep, a list that stays on screen proves nothing about either threshold.
+      expect(seen).toEqual({ flipped: true, capped: true });
     });
   }
 });
