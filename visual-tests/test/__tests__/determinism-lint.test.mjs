@@ -269,7 +269,7 @@ test('the ticket a docblock names is a real id, not anything shaped like one', a
   const passes = async ticket => docblockFindings(await lint(`/**\n * Checks something. ${ticket}\n */\n${call}\n`))
     .length === 0;
   const accepted = ['Owned by DEV-1234.', 'Added in #13409 (PRO-370).', 'See SU-833.', '(#1234)',
-    'Owned by\n * DEV-2981.'];
+    'Owned by\n * DEV-1234.'];
   const rejected = ['Owned by DEV-0.', 'See #1234ab.', 'Owned by XDEV-12.', 'Owned by QA-1234.', 'See #123.',
     'See a##1234.', 'Owned by dev-1234.'];
 
