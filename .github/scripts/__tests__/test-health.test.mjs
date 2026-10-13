@@ -1,8 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
+import vm from 'node:vm';
 import {
+  DURATIONS_ARTIFACT_PREFIX,
   JASMINE_ARTIFACT_PREFIX,
   LEDGER_VERSION,
   PLAYWRIGHT_ARTIFACT_PREFIX,
@@ -26,7 +30,14 @@ import {
   stableGeneratedAt,
   testKey,
 } from '../lib/test-health.mjs';
+import {
+  PLAYWRIGHT_DURATIONS_FILE,
+  durationsView,
+  mergeDurations,
+  summarizePlaywrightReport,
+} from '../lib/playwright-durations.mjs';
 import { repoRoot } from '../lib/repo-root.mjs';
+import { job, steps } from '../lib/workflow-text.mjs';
 
 const NOW = new Date('2026-09-08T12:00:00Z');
 const TALL_FROZEN_TITLE = 'walkontable exact row heights › in the `exact` mode › '
@@ -161,7 +172,7 @@ test('runContextFromRun keeps the run fields the ledger needs and links a re-run
   );
 });
 
-test('classifyArtifact recognizes the three artifact families and nothing else', () => {
+test('classifyArtifact recognizes the artifact families and nothing else', () => {
   assert.equal(classifyArtifact('playwright-report-classic-min'), 'playwright');
   assert.equal(classifyArtifact('puppeteer-failed-specs-UMD.min-horizon'), 'jasmine');
   assert.equal(classifyArtifact('visual-compare-full'), 'visual');
@@ -369,7 +380,8 @@ test('renderPage inlines the summary and survives a `</script>` inside a title',
   assert.ok(!html.includes('__SUMMARY_JSON__') && !html.includes('__GENERATED_AT__'), 'placeholders filled');
   assert.ok(html.includes(`Generated ${NOW.toISOString()}`));
   assert.ok(html.includes('renders <\\/script><b>bold<\\/b> safely'), 'every closing tag is escaped inside the JSON');
-  assert.equal((html.match(/<\/script>/g) ?? []).length, 2, 'only the template\'s own two script elements close');
+  assert.equal((html.match(/<\/script>/g) ?? []).length, 3,
+    'only the template\'s own three script elements close (the summary, the durations, the code)');
 });
 
 // The three places that must agree on where the Playwright JSON report is and
@@ -727,9 +739,253 @@ test('the Compare job uploads its record under the prefix the collector classifi
 
   assert.ok(upload.includes(`\n          name: ${VISUAL_ARTIFACT_PREFIX}\${{ inputs.tier }}\n`),
     'visual.yml must upload the record under the prefix the collector classifies by');
-  const families = /test\("\^\(playwright-report-\|puppeteer-failed-specs-\|visual-compare-\)"\)/;
+  const families = new RegExp('test\\("\\^\\(playwright-report-\\|playwright-durations-\\|'
+    + 'puppeteer-failed-specs-\\|visual-compare-\\)"\\)');
 
   assert.match(download, new RegExp(`\\n\\s+--jq '[^'\\n]*${families.source}`),
     'test-health.yml must download the visual records');
   assert.ok(download.includes(`|${VISUAL_ARTIFACT_PREFIX})`));
+});
+
+// The fourth family: every Playwright leg's durations, green or red (`lib/playwright-durations.mjs`).
+const DURATIONS_FIXTURE = path.join(import.meta.dirname, 'fixtures/playwright-report-classic.json');
+const durationsOf = (leg, extra = {}) => summarizePlaywrightReport(
+  JSON.parse(readFileSync(DURATIONS_FIXTURE, 'utf8')), { leg, runId: String(RUN.id), runAttempt: 1, ...extra }
+);
+
+test('classifyArtifact recognizes the durations family beside the three flake families', () => {
+  assert.equal(DURATIONS_ARTIFACT_PREFIX, 'playwright-durations-');
+  assert.equal(classifyArtifact('playwright-durations-classic-min'), 'durations');
+  assert.equal(classifyArtifact('playwright-durations-engines'), 'durations');
+  assert.equal(classifyArtifact('playwright-report-classic-min'), 'playwright', 'the report family is unchanged');
+  assert.equal(classifyArtifact('playwright-trace'), null);
+});
+
+test('collectArtifactFiles routes a durations file to the durations, never to the flake entries', () => {
+  const run = runContextFromRun(RUN);
+  const file = (artifact, filePath, text) => ({ artifact, path: filePath, text });
+  const classic = durationsOf('classic');
+  const { entries, notes, durations } = collectArtifactFiles([
+    file('playwright-durations-classic', 'playwright-durations.json', JSON.stringify(classic)),
+    file('playwright-durations-main', 'playwright-durations.json', JSON.stringify(durationsOf('main-min'))),
+    file('playwright-durations-horizon', 'playwright-durations.json', '{"version":1,'),
+    file('playwright-durations-horizon-min', 'notes.txt', 'nothing here'),
+    // The failure upload ships all of tests/test-results, so a red leg's report artifact carries the
+    // durations file too. Reading it there would count the leg twice.
+    file('playwright-report-classic', PLAYWRIGHT_DURATIONS_FILE, JSON.stringify(classic)),
+    file('playwright-report-classic', PLAYWRIGHT_JSON_REPORT, JSON.stringify(PLAYWRIGHT_REPORT)),
+  ], run);
+
+  assert.deepEqual(entries.map(entry => entry.title), [TALL_FROZEN_TITLE, 'selects a range'],
+    'the flake entries come from the report alone');
+  assert.deepEqual(durations.map(summary => summary.leg), ['classic', 'main'],
+    'a leg is named by its artifact, which GitHub keeps unique within a run');
+  assert.deepEqual(durations[0], classic);
+  assert.equal(notes.length, 3, notes.join('\n'));
+  assert.match(notes[0], /^playwright-durations-main: the file names leg main-min; recorded as main$/);
+  assert.match(notes[1], /^playwright-durations-horizon\/playwright-durations\.json: could not be read/);
+  assert.match(notes[2], /^playwright-durations-horizon-min: no playwright-durations\.json in the artifact/);
+});
+
+test('the E2E workflow summarizes and uploads every leg\'s durations, red or green', () => {
+  // The post-steps run on `!cancelled()`: a bare `if:` would get `success()` ANDed on and skip every red
+  // leg, and `failure()` alone would skip every green one. Both must reach the page.
+  const e2e = readFileSync(path.join(repoRoot(), '.github/workflows/e2e.yml'), 'utf8');
+  // The GitHub expression the matrix job names its leg with, as text.
+  // eslint-disable-next-line no-template-curly-in-string
+  const legs = [['playwright', '${{ matrix.theme }}${{ matrix.bundle.suffix }}'], ['playwright-engines', 'engines']];
+
+  for (const [jobId, leg] of legs) {
+    const jobSteps = steps(job(e2e, jobId));
+    const at = name => jobSteps.findIndex(step => step.startsWith(`- name: ${name}\n`));
+    const run = jobSteps.findIndex(step => /^ {8}id: playwright$/m.test(step));
+    const report = jobSteps.findIndex(step => /^ {10}name: playwright-report-/m.test(step));
+    const summarize = at('Summarize the Playwright durations');
+    const upload = at('Upload the Playwright durations');
+
+    assert.ok(run !== -1 && report !== -1, `${jobId}: lost the run step or the report upload`);
+    assert.ok(summarize > report && upload === summarize + 1,
+      `${jobId}: summarize, then upload, after the report upload (whose failure() must not see these steps)`);
+
+    const summarizeStep = jobSteps[summarize];
+    const uploadStep = jobSteps[upload];
+    const reportPin = jobSteps[report].match(/uses: (actions\/upload-artifact@[0-9a-f]{40})/)[1];
+
+    assert.match(summarizeStep, /^ {8}if: \$\{\{ !cancelled\(\) \}\}$/m, `${jobId}: summarize on !cancelled()`);
+    assert.ok(summarizeStep.includes(`\n        run: node .github/scripts/playwright-durations.mjs --leg ${leg}\n`),
+      `${jobId}: the summarizer names the leg the artifact is named after`);
+    assert.match(uploadStep, /^ {8}if: \$\{\{ !cancelled\(\) \}\}$/m, `${jobId}: upload on !cancelled()`);
+    assert.ok(uploadStep.includes(`uses: ${reportPin} `), `${jobId}: the same pinned upload action as the report`);
+    assert.ok(uploadStep.includes(`\n          name: ${DURATIONS_ARTIFACT_PREFIX}${leg}\n`),
+      `${jobId}: the artifact keeps the prefix the collector classifies by`);
+    assert.ok(uploadStep.includes(`\n          path: tests/${PLAYWRIGHT_DURATIONS_FILE}\n`),
+      `${jobId}: one JSON file, not the HTML report`);
+    assert.match(uploadStep, /^ {10}if-no-files-found: ignore$/m,
+      `${jobId}: a leg that crashed before its report is a notice from the summarizer, not a second warning`);
+    assert.match(uploadStep, /^ {10}retention-days: 3$/m);
+    assert.match(uploadStep, /^ {10}overwrite: true$/m, `${jobId}: a re-run attempt replaces the file`);
+  }
+
+  const health = readFileSync(path.join(repoRoot(), '.github/workflows/test-health.yml'), 'utf8');
+
+  assert.ok(health.includes(`|${DURATIONS_ARTIFACT_PREFIX}|`), 'test-health.yml must download the durations');
+});
+
+/**
+ * Runs a script in a child process.
+ *
+ * @param {string} script The script, relative to the repository root.
+ * @param {string[]} args Its arguments.
+ * @param {object} [options] Options.
+ * @param {string} [options.cwd] The working directory (the repository root by default).
+ * @param {object} [options.env] Extra environment; the GitHub run variables are cleared otherwise.
+ * @returns {{status: number, stdout: string, stderr: string}} The outcome.
+ */
+function runScript(script, args, { cwd = repoRoot(), env = {} } = {}) {
+  const result = spawnSync(process.execPath, [path.join(repoRoot(), script), ...args], {
+    cwd,
+    encoding: 'utf8',
+    env: { ...process.env, GITHUB_RUN_ID: '', GITHUB_RUN_ATTEMPT: '', ...env },
+  });
+
+  return { status: result.status, stdout: result.stdout, stderr: result.stderr };
+}
+
+test('the summarizer CLI writes the leg\'s durations next to the report, and never fails a leg over it', () => {
+  const dir = mkdtempSync(path.join(tmpdir(), 'durations-cli-'));
+
+  try {
+    const results = path.join(dir, 'tests/test-results');
+
+    mkdirSync(results, { recursive: true });
+
+    const missing = runScript('.github/scripts/playwright-durations.mjs', ['--leg', 'classic'], { cwd: dir });
+
+    assert.equal(missing.status, 0, 'a leg whose run step died before the report must not go red here');
+    assert.match(missing.stdout, /^::notice title=Playwright durations::No tests\/test-results\/report\.json/m);
+    assert.ok(!existsSync(path.join(dir, 'tests', PLAYWRIGHT_DURATIONS_FILE)));
+
+    writeFileSync(path.join(results, 'report.json'), '{"suites": [');
+
+    const broken = runScript('.github/scripts/playwright-durations.mjs', ['--leg', 'classic'], { cwd: dir });
+
+    assert.equal(broken.status, 0);
+    assert.match(broken.stdout, /^::warning title=Playwright durations::Could not summarize/m);
+    assert.ok(!existsSync(path.join(dir, 'tests', PLAYWRIGHT_DURATIONS_FILE)));
+
+    writeFileSync(path.join(results, 'report.json'), readFileSync(DURATIONS_FIXTURE));
+
+    const written = runScript('.github/scripts/playwright-durations.mjs', ['--leg', 'classic'],
+      { cwd: dir, env: { GITHUB_RUN_ID: String(RUN.id), GITHUB_RUN_ATTEMPT: '1' } });
+
+    assert.equal(written.status, 0, written.stderr);
+    assert.deepEqual(JSON.parse(readFileSync(path.join(dir, 'tests', PLAYWRIGHT_DURATIONS_FILE), 'utf8')),
+      durationsOf('classic'));
+    assert.match(written.stdout, /45 tests in 5 spec files: 18\.2 min wall-clock, 0\.9 min summed over 2 workers/);
+
+    const noLeg = runScript('.github/scripts/playwright-durations.mjs', [], { cwd: dir });
+
+    assert.equal(noLeg.status, 2, 'a missing --leg is the workflow\'s own bug and stays loud');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('the collector writes durations.json beside the ledger, and a second collection is a no-op', () => {
+  const dir = mkdtempSync(path.join(tmpdir(), 'durations-collect-'));
+
+  try {
+    const artifacts = path.join(dir, 'artifacts');
+    const ledgerDir = path.join(dir, 'gh-pages/test-health');
+    const put = (relative, text) => {
+      mkdirSync(path.dirname(path.join(artifacts, relative)), { recursive: true });
+      writeFileSync(path.join(artifacts, relative), text);
+    };
+
+    put('playwright-durations-classic/playwright-durations.json', JSON.stringify(durationsOf('classic')));
+    put('playwright-durations-main/playwright-durations.json', JSON.stringify(durationsOf('main')));
+    put(`playwright-report-classic/${PLAYWRIGHT_JSON_REPORT}`, JSON.stringify(PLAYWRIGHT_REPORT));
+    writeFileSync(path.join(dir, 'run.json'), JSON.stringify({ ...RUN, updated_at: '2026-10-13T10:45:00Z' }));
+
+    const collect = now => runScript('.github/scripts/test-health-collect.mjs', [
+      '--run', path.join(dir, 'run.json'),
+      '--artifacts', artifacts,
+      '--ledger-dir', ledgerDir,
+      '--template', path.join(repoRoot(), '.github/test-health/index.template.html'),
+      '--now', now,
+    ]);
+    const files = ['ledger.json', 'summary.json', 'durations.json', 'index.html'];
+    const snapshot = () => Object.fromEntries(files
+      .map(name => [name, readFileSync(path.join(ledgerDir, name), 'utf8')]));
+
+    const first = collect('2026-10-13T12:00:00Z');
+
+    assert.equal(first.status, 0, first.stderr);
+    assert.match(first.stdout,
+      /^Playwright wall-clock: classic 18\.2 min, main 18\.2 min \(2 workers\); heaviest file: /m);
+
+    const before = snapshot();
+    const durations = JSON.parse(before['durations.json']);
+
+    assert.deepEqual(durations.runs.map(run => [run.runId, run.legs.map(leg => leg.leg)]),
+      [[String(RUN.id), ['classic', 'main']]]);
+    assert.equal(JSON.parse(before['ledger.json']).entries.length, 2, 'the flake ledger is untouched by the durations');
+    assert.ok(before['index.html'].includes('Where the time goes'));
+
+    const second = collect('2026-10-13T13:00:00Z');
+
+    assert.equal(second.status, 0, second.stderr);
+    assert.deepEqual(snapshot(), before, 'the same artifacts an hour later change no published byte');
+
+    const future = collect('2026-12-31T00:00:00Z');
+
+    assert.equal(future.status, 0, future.stderr);
+    assert.deepEqual(JSON.parse(readFileSync(path.join(ledgerDir, 'durations.json'), 'utf8')).runs, [],
+      'past 30 days the run is pruned');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('renderStepSummary adds the leg wall-clocks and the heaviest file when the run left durations', () => {
+  const run = runContextFromRun(RUN);
+  const summary = aggregate(emptyLedger(), { now: NOW });
+  const markdown = renderStepSummary({
+    run, added: [], notes: [], summary, pageUrl: 'x', durations: [durationsOf('classic')],
+  });
+
+  assert.ok(markdown.includes('\nPlaywright wall-clock: classic 18.2 min (2 workers); heaviest file: '
+    + '`e2e/submenu-hover-delay.spec.ts` (0.3 min summed over 1 leg).\n'));
+  assert.ok(markdown.indexOf('Playwright wall-clock') < markdown.indexOf('Ledger: x'));
+});
+
+test('renderPage draws the "Where the time goes" section from the inlined durations, escaped and runnable', () => {
+  const template = readFileSync(path.join(repoRoot(), '.github/test-health/index.template.html'), 'utf8');
+  const legs = [durationsOf('classic'), durationsOf('main')];
+
+  legs[1].files[0].cases[0].title = 'stalls </script><b>bold</b> forever';
+
+  const { doc } = mergeDurations(null, legs, runContextFromRun(RUN), { now: NOW });
+  const view = durationsView(doc);
+  const html = renderPage(template, aggregate(emptyLedger(), { now: NOW }), view);
+
+  assert.ok(!html.includes('__DURATIONS_JSON__'), 'placeholder filled');
+  assert.match(html, /<h2 id="time">Where the time goes<\/h2>/);
+  assert.ok(html.includes('stalls <\\/script><b>bold<\\/b> forever'), 'a title cannot close the data element');
+  assert.equal((html.match(/<\/script>/g) ?? []).length, 3);
+
+  const data = html.match(/<script id="durations" type="application\/json">([\s\S]*?)<\/script>/)[1];
+
+  assert.deepEqual(JSON.parse(data), JSON.parse(JSON.stringify(view)));
+
+  const empty = renderPage(template, aggregate(emptyLedger(), { now: NOW }));
+
+  assert.ok(empty.includes('<script id="durations" type="application/json">null</script>'),
+    'a page rendered before any durations exist still parses');
+
+  // The page's own code must at least compile: a syntax error would blank the whole page, ledger included.
+  const code = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(match => match[1]);
+
+  assert.equal(code.length, 1);
+  assert.doesNotThrow(() => new vm.Script(code[0]));
 });

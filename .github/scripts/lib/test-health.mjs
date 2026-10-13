@@ -16,6 +16,11 @@
  * splits each path into its leg (the variant) and its capture, and a capture
  * that differs on two themes in one run is one recurrence.
  *
+ * A fourth family is not about flakes: every Playwright leg, green or red, uploads its durations
+ * (`playwright-durations-*`, written by `scripts/playwright-durations.mjs`). `collectArtifactFiles`
+ * hands those to the caller separately; `./playwright-durations.mjs` merges them into their own
+ * document (`test-health/durations.json`, 30 days, a different shape), never into the ledger.
+ *
  * These helpers turn those artifacts into ledger entries, merge them into the
  * ledger that lives on `gh-pages` (`test-health/ledger.json`), prune it, and
  * aggregate it per test into the summary the page renders: how often a test
@@ -26,6 +31,8 @@
  * No I/O in here. `scripts/test-health-collect.mjs` reads the artifacts and
  * writes the files; `.github/workflows/test-health.yml` runs it.
  */
+
+import { PLAYWRIGHT_DURATIONS_FILE, parseDurationSummary, renderDurationsLine } from './playwright-durations.mjs';
 
 export const LEDGER_VERSION = 1;
 
@@ -56,6 +63,11 @@ export const PLAYWRIGHT_JSON_REPORT = 'test-results/report.json';
 export const PLAYWRIGHT_ARTIFACT_PREFIX = 'playwright-report-';
 export const JASMINE_ARTIFACT_PREFIX = 'puppeteer-failed-specs-';
 export const VISUAL_ARTIFACT_PREFIX = 'visual-compare-';
+/**
+ * Every Playwright leg's durations (`e2e.yml`, both Playwright jobs, on `!cancelled()`). The suffix is the
+ * leg: `main`, `classic-min`, `engines`.
+ */
+export const DURATIONS_ARTIFACT_PREFIX = 'playwright-durations-';
 
 /**
  * The workflow whose runs count as nights for a visual capture's ticket line. It equals the `name:` of
@@ -124,11 +136,15 @@ export function runContextFromRun(run) {
  * Which kind of evidence an artifact holds, by its name.
  *
  * @param {string} name The artifact name.
- * @returns {'playwright'|'jasmine'|'visual'|null} The tier, or `null` for an unrelated artifact.
+ * @returns {'playwright'|'jasmine'|'visual'|'durations'|null} The tier (`durations` is a leg's timing, not a
+ * tier of the flake ledger), or `null` for an unrelated artifact.
  */
 export function classifyArtifact(name) {
   if (name.startsWith(PLAYWRIGHT_ARTIFACT_PREFIX)) {
     return 'playwright';
+  }
+  if (name.startsWith(DURATIONS_ARTIFACT_PREFIX)) {
+    return 'durations';
   }
   if (name.startsWith(JASMINE_ARTIFACT_PREFIX)) {
     return 'jasmine';
@@ -314,28 +330,51 @@ export function parseVisualRecord(record, run) {
  * do not parse are reported as notes and skipped: a broken report must never
  * stop the rest of the run from being recorded.
  *
+ * A durations artifact is not a source of entries: its one file is checked and returned in
+ * `durations`, named after the artifact's leg (GitHub keeps artifact names unique within a run, so two
+ * legs can never land on one record). Only that family is read for it. A red leg's report artifact
+ * carries the same file, because the failure upload ships all of `tests/test-results`, and reading it
+ * there would count the leg twice.
+ *
  * @param {Array<{artifact: string, path: string, text: string}>} files Each file with the artifact it came from
  * and its path inside that artifact.
  * @param {RunContext} run The run the artifacts belong to.
- * @returns {{entries: Entry[], notes: string[]}} The entries and one note per skipped file or empty artifact.
+ * @returns {{entries: Entry[], notes: string[], durations: import('./playwright-durations.mjs').LegSummary[]}}
+ * The entries, one note per skipped file or empty artifact, and the leg summaries.
  */
 export function collectArtifactFiles(files, run) {
   const entries = [];
   const notes = [];
+  const durations = [];
   const seenArtifacts = new Set(files.map(file => file.artifact));
+  const durationsFile = PLAYWRIGHT_DURATIONS_FILE.split('/').pop();
+  const isDurationsFile = filePath => filePath === durationsFile || filePath.endsWith(`/${durationsFile}`);
 
   for (const file of files) {
     const tier = classifyArtifact(file.artifact);
     const isReport = tier === 'playwright' && file.path.endsWith(PLAYWRIGHT_JSON_REPORT);
     const isRecord = tier === 'jasmine' && /(^|\/)failed-specs-[^/]*\.json$/.test(file.path);
     const isVisualRecord = tier === 'visual' && /(^|\/)visual-compare-[^/]*\.json$/.test(file.path);
+    const isDurations = tier === 'durations' && isDurationsFile(file.path);
 
-    if (!isReport && !isRecord && !isVisualRecord) {
+    if (!isReport && !isRecord && !isVisualRecord && !isDurations) {
       continue;
     }
 
     try {
       const parsed = JSON.parse(file.text);
+
+      if (isDurations) {
+        const summary = parseDurationSummary(parsed);
+        const leg = file.artifact.slice(DURATIONS_ARTIFACT_PREFIX.length);
+
+        if (summary.leg !== leg) {
+          notes.push(`${file.artifact}: the file names leg ${summary.leg}; recorded as ${leg}`);
+        }
+        durations.push({ ...summary, leg });
+        continue;
+      }
+
       let parser = parseJasmineRecord;
 
       if (isReport) {
@@ -367,9 +406,13 @@ export function collectArtifactFiles(files, run) {
       notes.push(`${artifact}: no ${PLAYWRIGHT_JSON_REPORT} in the artifact `
         + '(a report from before the JSON reporter was configured), nothing recorded');
     }
+    if (classifyArtifact(artifact) === 'durations'
+      && !files.some(file => file.artifact === artifact && isDurationsFile(file.path))) {
+      notes.push(`${artifact}: no ${durationsFile} in the artifact, nothing recorded for that leg`);
+    }
   }
 
-  return { entries, notes };
+  return { entries, notes, durations };
 }
 
 /**
@@ -607,9 +650,11 @@ export function stableGeneratedAt(previousSummary, summary, now) {
  * @param {string[]} input.notes Notes from the collection (skipped files, empty artifacts).
  * @param {object} input.summary The aggregate.
  * @param {string} input.pageUrl Where the page is published.
+ * @param {import('./playwright-durations.mjs').LegSummary[]} [input.durations] The run's leg durations. When
+ * given (the collector always gives them), one line names each leg's wall-clock and the heaviest spec file.
  * @returns {string} The Markdown.
  */
-export function renderStepSummary({ run, added, notes, summary, pageUrl }) {
+export function renderStepSummary({ run, added, notes, summary, pageUrl, durations }) {
   const lines = [`## Test health — run ${run.runId} (attempt ${run.runAttempt}, \`${run.branch}\`)`, ''];
 
   if (added.length === 0) {
@@ -642,6 +687,10 @@ export function renderStepSummary({ run, added, notes, summary, pageUrl }) {
     }
   }
 
+  if (Array.isArray(durations)) {
+    lines.push('', renderDurationsLine(durations));
+  }
+
   if (notes.length > 0) {
     lines.push('', 'Notes:', '', ...notes.map(note => `- ${note}`));
   }
@@ -652,19 +701,27 @@ export function renderStepSummary({ run, added, notes, summary, pageUrl }) {
 }
 
 /**
- * The published page, from the template with the summary inlined. Inlining
- * keeps the page self-contained (it renders from a file as well as from
- * GitHub Pages) and spares it a fetch that a viewer's blocker could stop.
+ * The published page, from the template with the summary and the durations
+ * view inlined. Inlining keeps the page self-contained (it renders from a file
+ * as well as from GitHub Pages) and spares it a fetch that a viewer's blocker
+ * could stop.
  *
- * @param {string} template The template with `__SUMMARY_JSON__` and `__GENERATED_AT__` placeholders.
+ * @param {string} template The template with `__SUMMARY_JSON__`, `__DURATIONS_JSON__` and `__GENERATED_AT__`
+ * placeholders.
  * @param {object} summary The aggregate.
+ * @param {object|null} [durations] The durations view (`durationsView` in `./playwright-durations.mjs`), or
+ * `null` before any was collected.
  * @returns {string} The HTML.
  */
-export function renderPage(template, summary) {
+export function renderPage(template, summary, durations = null) {
   // `</script>` inside a JSON string would end the script element early.
-  const json = JSON.stringify(summary).replace(/<\//g, '<\\/');
+  const inline = value => JSON.stringify(value ?? null).replace(/<\//g, '<\\/');
+  const values = {
+    __SUMMARY_JSON__: inline(summary),
+    __DURATIONS_JSON__: inline(durations),
+    __GENERATED_AT__: summary.generatedAt,
+  };
 
-  return template
-    .replace('__SUMMARY_JSON__', () => json)
-    .replace(/__GENERATED_AT__/g, summary.generatedAt);
+  // One pass: a placeholder spelled inside a test title must stay text, not be filled by a later pass.
+  return template.replace(/__SUMMARY_JSON__|__DURATIONS_JSON__|__GENERATED_AT__/g, token => values[token]);
 }

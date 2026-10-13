@@ -130,6 +130,26 @@ jobs:
           # A re-run attempt that fails again replaces the report; without this
           # the upload 409s on the name and the newer report is lost.
           overwrite: true
+      # Every leg, red or green, leaves its durations for the test-health page's
+      # "Where the time goes" section: one small JSON file with the leg's
+      # wall-clock, counts, and the milliseconds of every spec file and test
+      # (.github/scripts/lib/playwright-durations.mjs), never the HTML report.
+      # `!cancelled()` replaces the implicit `success()` that would skip every red
+      # leg. A leg whose run step died before the JSON reporter wrote its report
+      # ends with a notice from the summarizer and uploads nothing. Both steps sit
+      # after the report upload, so its `failure()` never sees them.
+      - name: Summarize the Playwright durations
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/playwright-durations.mjs --leg ${{ matrix.theme }}${{ matrix.bundle.suffix }}
+      - name: Upload the Playwright durations
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: playwright-durations-${{ matrix.theme }}${{ matrix.bundle.suffix }}
+          path: tests/test-results/playwright-durations.json
+          if-no-files-found: ignore
+          retention-days: 3
+          overwrite: true
 
   # The engine legs: the specs tagged @cross-browser (`CROSS_BROWSER_TAG` in tests/fixtures/test.ts)
   # on Firefox and WebKit, on the main theme and the plain UMD bundle. They are the projects
@@ -181,5 +201,19 @@ jobs:
           path: |
             tests/playwright-report
             tests/test-results
+          retention-days: 3
+          overwrite: true
+      # The same durations post-steps as the Chromium legs; both engines' projects
+      # share one file, split per project inside it.
+      - name: Summarize the Playwright durations
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/playwright-durations.mjs --leg engines
+      - name: Upload the Playwright durations
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: playwright-durations-engines
+          path: tests/test-results/playwright-durations.json
+          if-no-files-found: ignore
           retention-days: 3
           overwrite: true

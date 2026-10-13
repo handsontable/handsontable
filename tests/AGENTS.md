@@ -597,6 +597,21 @@ is pinned by `.github/scripts/lib/test-health.mjs` and asserted in
 `.github/scripts/__tests__/test-health.test.mjs`, so moving it means changing
 all three places.
 
+**Where the time goes.** Every leg, red or green, also uploads
+`playwright-durations-<leg>`: one JSON file that
+`.github/scripts/playwright-durations.mjs` writes from the same
+`test-results/report.json` after the run step (the leg's wall-clock, workers,
+counts, and the milliseconds of every spec file and test, retries included).
+`test-health.yml` collects it into `test-health/durations.json`, and the "Where
+the time goes" section of the same page shows each leg's wall-clock and test
+count over 30 days (develop pushes and pull requests apart), the 30 heaviest spec
+files, and every test over 3 s. Read it before a change to workers, shards or
+the leg matrix, and measure the change against its per-leg P50 and P90: that is
+the number the e2e budget is derived from. The JSON reporter feeds both
+sections, so it stays in the CI reporter list with its output path; the
+durations file path and artifact name are pinned in
+`.github/scripts/__tests__/test-health.test.mjs`.
+
 ## Quarantine
 
 `failOnFlakyTests` stays on: a test that passes only on retry fails the leg, and

@@ -36,11 +36,32 @@
   .empty { padding: 32px; text-align: center; color: #6b7280; }
   footer { margin-top: 24px; color: #6b7280; font-size: 12px; }
   a { color: inherit; }
+  nav.sections { display: flex; gap: 16px; flex-wrap: wrap; margin: -12px 0 20px; }
+  h2 { font-size: 18px; margin: 40px 0 4px; }
+  h3 { font-size: 15px; margin: 28px 0 8px; }
+  /* The trend charts' three run kinds: the reference palette's first three categorical slots, validated
+     all-pairs for small multiples in both modes. Aqua sits under 3:1 on the light surface, so every
+     kind also has its own marker shape and the budget table is the chart's table view. */
+  .viz { --series-develop: #2a78d6; --series-pr: #eb6834; --series-other: #1baf7a; --grid: #e5e7eb; --axis: #6b7280; }
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; font-size: 12px; margin: 8px 0 12px; }
+  .legend span { display: inline-flex; gap: 6px; align-items: center; }
+  .multiples { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+  .multiple { border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px 10px 4px; }
+  .multiple h4 { margin: 0; font-size: 13px; }
+  .multiple .stat { font-size: 12px; color: #6b7280; }
+  .multiple svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .multiple svg text { fill: var(--axis); font-size: 10px; }
+  .multiple .hit { fill: transparent; cursor: pointer; }
+  .tip { position: fixed; pointer-events: none; background: Canvas; color: CanvasText; border: 1px solid #d1d5db; border-radius: 6px;
+    padding: 6px 8px; font-size: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); z-index: 10; max-width: 340px; }
   @media (prefers-color-scheme: dark) {
     .totals div { border-color: #374151; }
     th, td { border-color: #374151; }
     .badge.tier { background: #374151; color: #e5e7eb; }
     .legs, .error { color: #9ca3af; }
+    .viz { --series-develop: #3987e5; --series-pr: #d95926; --series-other: #199e70; --grid: #374151; --axis: #9ca3af; }
+    .multiple, .tip { border-color: #374151; }
+    .multiple .stat { color: #9ca3af; }
   }
 </style>
 </head>
@@ -48,8 +69,10 @@
 <h1>Test health</h1>
 <div class="meta">
   Flaky and failed tests collected from every <code>Tests</code>, <code>Develop</code>, <code>Publish</code>, and <code>Visual nightly</code> run, per test, across runs.
-  Generated __GENERATED_AT__. Data: <a href="summary.json">summary.json</a>, <a href="ledger.json">ledger.json</a>.
+  Generated __GENERATED_AT__. Data: <a href="summary.json">summary.json</a>, <a href="ledger.json">ledger.json</a>, <a href="durations.json">durations.json</a>.
 </div>
+<nav class="sections" aria-label="Sections"><a href="#flakes">Flaky and failed tests</a><a href="#time">Where the time goes</a></nav>
+<h2 id="flakes" style="margin-top: 0">Flaky and failed tests</h2>
 <div class="totals" id="totals"></div>
 <div class="controls">
   <input type="search" id="filter" placeholder="Filter by title, file, leg, branch…" aria-label="Filter rows">
@@ -74,6 +97,48 @@
   </table>
   <div class="empty" id="empty" hidden>No flaky or failed test recorded in the retention window.</div>
 </div>
+<section class="viz" aria-labelledby="time">
+  <h2 id="time">Where the time goes</h2>
+  <div class="meta" id="time-meta">
+    Every Playwright E2E leg, green or red, from the <code>playwright-durations-*</code> artifact each leg uploads.
+  </div>
+  <div class="empty" id="time-empty" hidden>No Playwright durations collected yet.</div>
+  <div id="time-body">
+    <h3>Wall-clock and tests per leg</h3>
+    <div class="controls" role="radiogroup" aria-label="Measure">
+      <label><input type="radio" name="measure" value="wall" checked> Wall-clock (minutes)</label>
+      <label><input type="radio" name="measure" value="tests"> Tests that ran</label>
+    </div>
+    <div class="legend" id="time-legend"></div>
+    <div class="multiples" id="time-multiples"></div>
+    <h3>Budget input: per leg over the window</h3>
+    <div class="meta">
+      Nearest-rank P50 and P90 of every leg run without a failed test (a red leg's time includes the failing tests' retries and timeouts), and of develop pushes alone. This table is also the charts' data in figures.
+    </div>
+    <div class="wrap">
+      <table id="time-budget">
+        <thead><tr><th>Leg</th><th class="num">Runs</th><th class="num">Wall P50</th><th class="num">Wall P90</th><th class="num">Tests P50</th><th class="num">Tests P90</th><th class="num">Develop wall P50 / P90</th><th class="num">Red runs left out</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <h3 id="time-files-title">The heaviest spec files</h3>
+    <div class="meta" id="time-sources"></div>
+    <div class="wrap">
+      <table id="time-files">
+        <thead><tr><th class="num">#</th><th>Spec file</th><th class="num">Minutes</th><th class="num">Tests</th><th class="num">s per test</th><th>Minutes per leg, heaviest first</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <h3 id="time-slow-title">Every test over 3 s</h3>
+    <div class="wrap">
+      <table id="time-slow">
+        <thead><tr><th>Test</th><th class="num">Slowest</th><th>Legs over the line</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="tip" id="time-tip" hidden></div>
+</section>
 <footer>
   A test <b>needs a ticket</b> once it flaked in <span id="threshold"></span>+ distinct runs within 30 days (the flakiness playbook's rule).
   <em>flaky</em> = failed, then passed on retry (Playwright; still fails the leg under <code>failOnFlakyTests</code>);
@@ -81,8 +146,10 @@
   A <em>quarantined</em> Playwright test still runs and reports; its flaky verdict does not fail the leg until the entry's expiry (<code>tests/AGENTS.md</code>, Quarantine).
   A <em>visual</em> row is a screenshot capture: the file is its spec, the legs are the variants it differed on, and <em>failed</em> means it differed from its golden record beyond <code>regconfig.json</code>'s tolerances. It needs a ticket once it differed on <span id="visual-threshold"></span>+ <code>Visual nightly</code> runs, or on that many distinct branches (the nightly counts as develop): nothing in that tier is ever flaky, and a pull request's own intended change, recorded before approval, stays on one branch however often it is pushed. A quarantined capture is listed in <code>visual-tests/visual-quarantine.json</code> (<code>visual-tests/AGENTS.md</code>, Guardrails); an entry names the legs it covers, so a row shows its most recent entry and only the legs outside it count toward the ticket.
   Entries older than <span id="retention"></span> days drop off. Source: <code>.github/workflows/test-health.yml</code>.
+  <br>Where the time goes: a leg's milliseconds add up every attempt of every test, retries included, because that is what the leg paid. Runs stay 30 days; the per-test rows come from each leg's latest develop push (the newest run of any branch until one exists). Pull request runs and develop pushes share the charts so a branch that adds minutes shows against the line it merges into.
 </footer>
 <script id="summary" type="application/json">__SUMMARY_JSON__</script>
+<script id="durations" type="application/json">__DURATIONS_JSON__</script>
 <script>
 (function() {
   var summary = JSON.parse(document.getElementById('summary').textContent);
@@ -219,6 +286,251 @@
   document.getElementById('filter').addEventListener('input', render);
   document.getElementById('onlyTicket').addEventListener('change', render);
   render();
+}());
+(function() {
+  var view = JSON.parse(document.getElementById('durations').textContent);
+  var body = document.getElementById('time-body');
+
+  if (!view) {
+    document.getElementById('time-empty').hidden = false;
+    body.hidden = true;
+    return;
+  }
+
+  var DAY = 86400000;
+  var NS = 'http://www.w3.org/2000/svg';
+  var KINDS = [['develop', 'develop push'], ['pr', 'pull request'], ['other', 'other (master, release, manual)']];
+  var tip = document.getElementById('time-tip');
+
+  function text(tag, content, className) {
+    var el = document.createElement(tag);
+    if (className) { el.className = className; }
+    el.textContent = content == null ? '' : String(content);
+    return el;
+  }
+
+  function svg(tag, attrs, parent) {
+    var el = document.createElementNS(NS, tag);
+    Object.keys(attrs).forEach(function(key) { el.setAttribute(key, attrs[key]); });
+    if (parent) { parent.appendChild(el); }
+    return el;
+  }
+
+  function minutes(ms) { return ms == null ? '–' : (ms / 60000).toFixed(1); }
+  function seconds(ms) { return (ms / 1000).toFixed(1); }
+  function date(ms, withHour) {
+    var label = new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+    return withHour ? label + ' ' + new Date(ms).toISOString().slice(11, 13) + 'h' : label;
+  }
+  function when(iso) { return iso ? iso.replace('T', ' ').replace(/:\d\d(\.\d+)?Z$/, 'Z') : '?'; }
+  function attemptUrl(url, attempt) { return attempt > 1 && url ? url + '/attempts/' + attempt : url; }
+
+  // A marker per run kind: shape AND color, so the kind never rests on color alone.
+  function marker(group, kind, x, y, red) {
+    var color = 'var(--series-' + kind + ')';
+    var style = red ? { fill: 'Canvas', stroke: color, 'stroke-width': 2 } : { fill: color, stroke: 'Canvas', 'stroke-width': 1 };
+    var attrs;
+    if (kind === 'other') {
+      attrs = { x: x - 4, y: y - 4, width: 8, height: 8, transform: 'rotate(45 ' + x + ' ' + y + ')' };
+      Object.keys(style).forEach(function(key) { attrs[key] = style[key]; });
+      return svg('rect', attrs, group);
+    }
+    if (kind === 'pr') {
+      attrs = { x: x - 4, y: y - 4, width: 8, height: 8, rx: 1 };
+      Object.keys(style).forEach(function(key) { attrs[key] = style[key]; });
+      return svg('rect', attrs, group);
+    }
+    attrs = { cx: x, cy: y, r: 4 };
+    Object.keys(style).forEach(function(key) { attrs[key] = style[key]; });
+    return svg('circle', attrs, group);
+  }
+
+  var meta = document.getElementById('time-meta');
+  var budget = view.budget || { legs: {} };
+  meta.appendChild(document.createTextNode(' Updated ' + when(view.updatedAt) + '. Window ' + when(budget.from) + ' to '
+    + when(budget.to) + ' (runs stay ' + view.retentionDays + ' days, fewer when the file reaches its size cap). '
+    + view.runs.length + ' run(s), ' + view.points.length + ' leg run(s).'));
+
+  var legend = document.getElementById('time-legend');
+  KINDS.forEach(function(kind) {
+    var item = document.createElement('span');
+    var icon = svg('svg', { width: 12, height: 12, viewBox: '0 0 12 12', 'aria-hidden': 'true' });
+    marker(icon, kind[0], 6, 6, false);
+    item.appendChild(icon);
+    item.appendChild(document.createTextNode(kind[1] + (kind[0] === 'develop' ? ' (joined by a line)' : '')));
+    legend.appendChild(item);
+  });
+  var hollow = document.createElement('span');
+  var hollowIcon = svg('svg', { width: 12, height: 12, viewBox: '0 0 12 12', 'aria-hidden': 'true' });
+  marker(hollowIcon, 'develop', 6, 6, true);
+  hollow.appendChild(hollowIcon);
+  hollow.appendChild(document.createTextNode('hollow: the leg had a failed test'));
+  legend.appendChild(hollow);
+
+  // The axis spans the runs the file holds: the full window once it has filled, at least a day before.
+  var to = view.points.reduce(function(max, point) { return Math.max(max, point[2]); }, 0);
+  var oldest = view.points.reduce(function(min, point) { return Math.min(min, point[2]); }, to);
+  var from = Math.min(oldest, to - DAY);
+  var hourly = to - from < 3 * DAY;
+  var W = 300;
+  var H = 150;
+  var PAD = { left: 34, right: 8, top: 8, bottom: 20 };
+
+  function niceMax(value) {
+    if (value <= 0) { return 1; }
+    var step = Math.pow(10, Math.floor(Math.log10(value)));
+    var candidates = [1, 2, 2.5, 5, 10];
+    for (var i = 0; i < candidates.length; i += 1) {
+      if (candidates[i] * step >= value) { return candidates[i] * step; }
+    }
+    return 10 * step;
+  }
+
+  function showTip(event, point) {
+    var run = view.runs[point[0]];
+    var lines = [
+      run[2] + ' · ' + (KINDS.filter(function(kind) { return kind[0] === run[1]; })[0] || [0, run[1]])[1],
+      view.legs[point[1]] + ': ' + minutes(point[3]) + ' min wall-clock, ' + point[4] + ' tests',
+      'run ' + run[0] + (point[5] > 1 ? ' attempt ' + point[5] : '') + ' · ' + run[4] + ' · ' + when(new Date(point[2]).toISOString())
+    ];
+    if (point[6]) { lines.push('the leg had a failed test: left out of the budget'); }
+    tip.textContent = '';
+    lines.forEach(function(line) { tip.appendChild(text('div', line)); });
+    tip.hidden = false;
+    var x = Math.min(event.clientX + 12, window.innerWidth - tip.offsetWidth - 8);
+    tip.style.left = Math.max(8, x) + 'px';
+    tip.style.top = (event.clientY + 12) + 'px';
+  }
+
+  function drawMultiples(measure) {
+    var container = document.getElementById('time-multiples');
+    var value = function(point) { return measure === 'wall' ? point[3] / 60000 : point[4]; };
+    var top = niceMax(view.points.reduce(function(max, point) { return Math.max(max, value(point)); }, 0));
+    var x = function(ms) { return PAD.left + ((ms - from) / (to - from || 1)) * (W - PAD.left - PAD.right); };
+    var y = function(v) { return H - PAD.bottom - (v / top) * (H - PAD.top - PAD.bottom); };
+
+    container.textContent = '';
+    view.legs.forEach(function(leg, legIndex) {
+      var points = view.points.filter(function(point) { return point[1] === legIndex; })
+        .sort(function(a, b) { return a[2] - b[2]; });
+      var stats = budget.legs[leg] && budget.legs[leg].all;
+      var box = document.createElement('div');
+      box.className = 'multiple';
+      box.appendChild(text('h4', leg));
+      box.appendChild(text('div', stats
+        ? (measure === 'wall'
+          ? 'P50 ' + minutes(stats.wallMs.p50) + ' min · P90 ' + minutes(stats.wallMs.p90) + ' min'
+          : 'P50 ' + stats.tests.p50 + ' · P90 ' + stats.tests.p90 + ' tests') + ' · ' + stats.runs + ' clean run(s)'
+        : 'no clean run in the window', 'stat'));
+
+      var chart = svg('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img',
+        'aria-label': leg + ': ' + points.length + ' leg run(s); figures in the budget table below' });
+      for (var tick = 0; tick <= 4; tick += 1) {
+        var v = (top / 4) * tick;
+        svg('line', { x1: PAD.left, x2: W - PAD.right, y1: y(v), y2: y(v), stroke: 'var(--grid)', 'stroke-width': 1 }, chart);
+        svg('text', { x: PAD.left - 4, y: y(v) + 3, 'text-anchor': 'end' }, chart).textContent = String(Math.round(v * 10) / 10);
+      }
+      for (var step = 0; step <= 3; step += 1) {
+        var at = from + ((to - from) * step) / 3;
+        svg('text', { x: x(at), y: H - 6, 'text-anchor': ['start', 'middle', 'middle', 'end'][step] }, chart)
+          .textContent = date(at, hourly);
+      }
+
+      var develop = points.filter(function(point) { return view.runs[point[0]][1] === 'develop'; });
+      if (develop.length > 1) {
+        svg('path', {
+          d: develop.map(function(point, i) { return (i ? 'L' : 'M') + x(point[2]).toFixed(1) + ' ' + y(value(point)).toFixed(1); }).join(''),
+          fill: 'none', stroke: 'var(--series-develop)', 'stroke-width': 2, 'stroke-linejoin': 'round'
+        }, chart);
+      }
+      // Pull requests first, develop on top: the line it is measured against stays visible.
+      var order = { other: 0, pr: 1, develop: 2 };
+      points.slice().sort(function(a, b) { return order[view.runs[a[0]][1]] - order[view.runs[b[0]][1]]; }).forEach(function(point) {
+        var px = x(point[2]);
+        var py = y(value(point));
+        marker(chart, view.runs[point[0]][1], px, py, point[6] === 1);
+        var hit = svg('circle', { cx: px, cy: py, r: 9, class: 'hit' }, chart);
+        hit.addEventListener('mouseenter', function(event) { showTip(event, point); });
+        hit.addEventListener('mousemove', function(event) { showTip(event, point); });
+        hit.addEventListener('mouseleave', function() { tip.hidden = true; });
+        hit.addEventListener('click', function() {
+          var url = attemptUrl(view.runs[point[0]][3], point[5]);
+          if (url) { window.open(url, '_blank', 'noopener'); }
+        });
+      });
+      box.appendChild(chart);
+      container.appendChild(box);
+    });
+  }
+
+  document.querySelectorAll('input[name="measure"]').forEach(function(input) {
+    input.addEventListener('change', function() { drawMultiples(input.value); });
+  });
+  drawMultiples('wall');
+
+  var budgetBody = document.querySelector('#time-budget tbody');
+  Object.keys(budget.legs).forEach(function(leg) {
+    var row = budget.legs[leg];
+    var all = row.all;
+    var tr = document.createElement('tr');
+    tr.appendChild(text('td', leg));
+    tr.appendChild(text('td', all ? all.runs : 0, 'num'));
+    tr.appendChild(text('td', all ? minutes(all.wallMs.p50) + ' min' : '–', 'num'));
+    tr.appendChild(text('td', all ? minutes(all.wallMs.p90) + ' min' : '–', 'num'));
+    tr.appendChild(text('td', all ? all.tests.p50 : '–', 'num'));
+    tr.appendChild(text('td', all ? all.tests.p90 : '–', 'num'));
+    tr.appendChild(text('td', row.develop
+      ? minutes(row.develop.wallMs.p50) + ' / ' + minutes(row.develop.wallMs.p90) + ' min (' + row.develop.runs + ')' : '–', 'num'));
+    tr.appendChild(text('td', row.excluded, 'num'));
+    budgetBody.appendChild(tr);
+  });
+
+  var sources = document.getElementById('time-sources');
+  sources.appendChild(document.createTextNode('From the per-test rows of each leg\'s latest run (develop pushes first): '));
+  view.sources.forEach(function(source, index) {
+    if (index) { sources.appendChild(document.createTextNode('; ')); }
+    var link = document.createElement('a');
+    link.href = attemptUrl(source.runUrl, source.runAttempt);
+    link.textContent = source.leg + ' — ' + source.branch + ' ' + source.headSha.slice(0, 10);
+    sources.appendChild(link);
+    sources.appendChild(document.createTextNode(' (' + minutes(source.wallMs) + ' min, ' + source.tests + ' tests)'));
+  });
+  sources.appendChild(document.createTextNode('. Minutes add up every leg a file runs on.'));
+
+  var filesBody = document.querySelector('#time-files tbody');
+  document.getElementById('time-files-title').textContent = 'The ' + view.heaviestFiles.length + ' heaviest spec files';
+  view.heaviestFiles.forEach(function(file, index) {
+    var tr = document.createElement('tr');
+    tr.appendChild(text('td', index + 1, 'num'));
+    tr.appendChild(text('td', file.file, 'file'));
+    tr.appendChild(text('td', minutes(file.ms), 'num'));
+    tr.appendChild(text('td', file.tests, 'num'));
+    tr.appendChild(text('td', seconds(file.ms / Math.max(1, file.executions)), 'num'));
+    tr.appendChild(text('td', file.legs.map(function(leg) { return leg[0] + ' ' + minutes(leg[1]); }).join(' · '), 'legs'));
+    filesBody.appendChild(tr);
+  });
+
+  var slowBody = document.querySelector('#time-slow tbody');
+  document.getElementById('time-slow-title').textContent = 'Every test over ' + seconds(view.slowTestMs) + ' s ('
+    + view.slowTests.length + ')';
+  view.slowTests.forEach(function(entry) {
+    var tr = document.createElement('tr');
+    var title = document.createElement('td');
+    title.className = 'title';
+    title.appendChild(text('div', entry.title));
+    title.appendChild(text('div', entry.file, 'file'));
+    tr.appendChild(title);
+    tr.appendChild(text('td', seconds(entry.ms) + ' s', 'num'));
+    tr.appendChild(text('td', entry.legs.map(function(leg) { return leg[0] + ' ' + seconds(leg[1]) + ' s'; }).join(' · '), 'legs'));
+    slowBody.appendChild(tr);
+  });
+  if (!view.slowTests.length) {
+    var none = document.createElement('tr');
+    var cell = text('td', 'None in the latest runs.');
+    cell.colSpan = 3;
+    none.appendChild(cell);
+    slowBody.appendChild(none);
+  }
 }());
 </script>
 </body>
