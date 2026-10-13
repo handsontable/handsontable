@@ -94,7 +94,10 @@ export class ValueComponent extends BaseComponent {
       .addLocalHook('keydown', (event: KeyboardEvent) => this.#onInputKeyDown(event))
       .addLocalHook('listTabKeydown', (event: Event) => this.runLocalHooks('listTabKeydown', event));
 
-    this.hot?.addHook('modifyFiltersMultiSelectValue', this.#onModifyDisplayedValue);
+    // A negative order index keeps the formatter ahead of the application's own listeners, which expect
+    // the formatted label. The component is rebuilt on every enable, so without it a rebuilt listener
+    // would land after them and format the label they already changed.
+    this.hot?.addHook('modifyFiltersMultiSelectValue', this.#onModifyDisplayedValue, -1);
   }
 
   /**

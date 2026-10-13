@@ -39,18 +39,42 @@ test.describe('Filters — date Filter-by-value display after a settings update'
     expect(await grid.listedValues()).toEqual(FORMATTED_DATES);
   });
 
-  test('keeps the formatted dates after the locale changes', async({ page, theme, bundle }) => {
-    const grid = new FiltersValueListPage(page, theme, bundle, DATE_FIXTURE);
+  test('keeps an application listener running after the formatter once the filters option is re-sent',
+    async({ page, theme, bundle }) => {
+      const grid = new FiltersValueListPage(page, theme, bundle, DATE_FIXTURE);
 
-    await grid.goto();
-    await grid.updateSettings('{ filters: true }');
-    await grid.setLocale('de-DE');
-    await grid.openMenu('Date');
+      await grid.goto();
+      await page.evaluate(() => {
+        window.hot.addHook('modifyFiltersMultiSelectValue', (value: string) => `Pre ${value}`);
+      });
+      await grid.openMenu('Date');
 
-    expect(await grid.listedValues()).toEqual([
-      { checked: true, label: '15.06.2002' },
-      { checked: true, label: '12.11.2004' },
-      { checked: true, label: '01.01.2005' },
-    ]);
-  });
+      const before = await grid.listedValues();
+
+      expect(before.map(item => item.label)).toEqual(['Pre 06/15/2002', 'Pre 11/12/2004', 'Pre 01/01/2005']);
+
+      await grid.escapeMenu();
+      await grid.updateSettings('{ filters: true }');
+      await grid.openMenu('Date');
+
+      expect(await grid.listedValues()).toEqual(before);
+    });
+
+  // `locale` alone never reaches `updatePlugin()`: the `filters` re-send on the first line is what
+  // rebuilds the component, and the locale change on the second checks the labels still follow it.
+  test('keeps the formatted dates when the locale changes after the filters option is re-sent',
+    async({ page, theme, bundle }) => {
+      const grid = new FiltersValueListPage(page, theme, bundle, DATE_FIXTURE);
+
+      await grid.goto();
+      await grid.updateSettings('{ filters: true }');
+      await grid.setLocale('de-DE');
+      await grid.openMenu('Date');
+
+      expect(await grid.listedValues()).toEqual([
+        { checked: true, label: '15.06.2002' },
+        { checked: true, label: '12.11.2004' },
+        { checked: true, label: '01.01.2005' },
+      ]);
+    });
 });
