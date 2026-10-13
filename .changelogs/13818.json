@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a date editor opened with the keyboard not focusing its input in Firefox.",
+  "type": "fixed",
+  "issueOrPR": 13818,
+  "breaking": false,
+  "framework": "none"
+}
