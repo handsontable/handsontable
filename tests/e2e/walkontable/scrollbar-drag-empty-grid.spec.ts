@@ -112,4 +112,28 @@ test.describe('Scrollbar drag on a grid with an empty axis', () => {
       expect(await grid.spreaderPosition(), 'spreader position after release').toBe('relative');
     });
   }
+
+  test('keeps the page scroll on release of an RTL grid on an LTR page that the window scrolls', async({
+    page,
+    theme,
+    bundle,
+  }) => {
+    const grid = new ScrollbarDragEmptyGridPage(page, theme, bundle);
+
+    await grid.goto({ mode: 'window', dir: 'rtl', pageDir: 'ltr' });
+
+    const maxScroll = await grid.maxWindowScrollLeft();
+
+    expect(maxScroll, 'horizontal page scroll range').toBeGreaterThan(120);
+
+    await grid.pressScrollbar();
+    await grid.dragScrollbarTo('horizontal', 120);
+
+    expect(await grid.spreaderPosition(), 'spreader position during the drag').toBe('sticky');
+
+    await grid.releaseScrollbar();
+
+    await expect.poll(() => grid.scrollDistance('horizontal')).toBe(120);
+    expect(await grid.spreaderPosition(), 'spreader position after release').toBe('relative');
+  });
 });

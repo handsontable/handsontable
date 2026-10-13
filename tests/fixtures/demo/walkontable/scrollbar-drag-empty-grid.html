@@ -45,7 +45,13 @@
     }
     // A window-scrolled RTL page is an RTL document: its `scrollX` runs into negative values, and
     // without the document direction the page has no horizontal range at all.
-    if (window.htMode === 'window' && window.htDirection === 'rtl') {
+    // `?pageDir=ltr` keeps the document LTR under an RTL grid (a grid with `layoutDirection: 'rtl'`
+    // inside an LTR page), where `scrollX` stays positive.
+    window.htPageDirection = ({ auto: window.htDirection, ltr: 'ltr' })[htParams.get('pageDir') ?? 'auto'];
+    if (!window.htPageDirection) {
+      throw new Error('Unknown ?pageDir= value: ' + JSON.stringify(htParams.get('pageDir')));
+    }
+    if (window.htMode === 'window' && window.htPageDirection === 'rtl') {
       document.documentElement.dir = 'rtl';
     }
   </script>
@@ -70,6 +76,11 @@
   </script>
   <script>
     const container = document.querySelector('[data-testid="grid"]');
+
+    if (window.htPageDirection === 'ltr' && window.htDirection === 'rtl' && window.htMode === 'window') {
+      // Wide enough for the LTR page to scroll sideways under the RTL grid.
+      container.style.width = '3000px';
+    }
 
     container.className = `ht-theme-${window.htTheme}`;
 
