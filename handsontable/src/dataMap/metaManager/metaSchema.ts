@@ -7328,6 +7328,9 @@ export default (): Record<string, unknown> => {
      * Note: When defining the `source` option as an array of objects with `key` and `value` properties, the data format for that cell
      * needs to be an object with `key` and `value` properties as well.
      *
+     * Note: The `value` property can be an object. Use the [`sourceLabel`](#sourceLabel) option to tell the cell which text to display
+     * for it. The cell then stores the whole `source` entry, so the object reaches your data unchanged.
+     *
      * Note: When `source` is a function, Handsontable ignores a response that arrives after the editor closed - including
      * a close you may not notice, such as scrolling the edited cell out of view - and it ignores a response that a newer
      * query has superseded, which happens as you type. Call the callback whenever the request completes, even late.
@@ -7339,6 +7342,7 @@ export default (): Record<string, unknown> => {
      * - [`allowHtml`](#allowHtml)
      * - [`filter`](#filter)
      * - [`sortByRelevance`](#sortByRelevance)
+     * - [`sourceLabel`](#sourceLabel)
      *
      * @memberof Options#
      * @type {Array|Function}
@@ -7384,6 +7388,67 @@ export default (): Record<string, unknown> => {
      * ```
      */
     source: undefined,
+
+    /**
+     * The `sourceLabel` option sets the text that [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
+     * and [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cells display for a [`source`](#source) entry
+     * whose `value` is an object.
+     *
+     * You can set the `sourceLabel` option to one of the following:
+     *
+     * | Setting            | Description                                                                         |
+     * | ------------------ | ----------------------------------------------------------------------------------- |
+     * | `undefined`        | (Default) Display the `value` as it is                                              |
+     * | A string           | Display the property of the `value` object at that path, for example `'name'`, `'address.city'`, or `'aliases.0'` |
+     * | A function         | Display what the function returns. The function receives the `value` object         |
+     *
+     * The label is used everywhere the cell shows text: in the cell, in the list of options, when you type to filter
+     * the options, and when you paste. The cell itself stores the whole `source` entry, including the `value` object.
+     * To change an entry, replace it in `source` and in the cells that hold it, instead of changing the object in place:
+     * depending on how the value was written, a cell holds either the `source` entry itself or a plain-object copy of it.
+     *
+     * Each entry needs a unique label: if two entries display the same label, picking or pasting that label stores the first of them.
+     * An entry whose label resolves to nothing, for example a missing property, isn't listed as an option.
+     *
+     * The `sourceLabel` option affects only a `value` that is an object. A string or number `value` is displayed as it is.
+     * With [`sortByRelevance`](#sortByRelevance) set to `false`, a `source` that holds an object `value` is sorted by the labels.
+     *
+     * Read more:
+     * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
+     * - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)
+     * - [`source`](#source)
+     *
+     * @memberof Options#
+     * @type {string|Function}
+     * @default undefined
+     * @category Core
+     * @since 19.0.0
+     * @configScope grid columns cells cell
+     *
+     * @example
+     * ```js
+     * columns: [{
+     *   type: 'dropdown',
+     *   source: [
+     *     { key: 'US', value: { name: 'United States', currency: 'USD' } },
+     *     { key: 'PL', value: { name: 'Poland', currency: 'PLN' } },
+     *   ],
+     *   // display the `name` property of each `value` object
+     *   sourceLabel: 'name',
+     * }],
+     *
+     * columns: [{
+     *   type: 'dropdown',
+     *   source: [
+     *     { key: 'US', value: { name: 'United States', currency: 'USD' } },
+     *     { key: 'PL', value: { name: 'Poland', currency: 'PLN' } },
+     *   ],
+     *   // build the label from several properties
+     *   sourceLabel: value => `${value.name} (${value.currency})`,
+     * }],
+     * ```
+     */
+    sourceLabel: undefined,
 
     /**
      * @description

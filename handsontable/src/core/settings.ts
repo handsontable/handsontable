@@ -33,6 +33,7 @@ import type {
 import type { RangeType, HotInstance } from './types';
 import type { ThemeColorScheme, DensityType } from '../themes/types';
 import type { IndexesChangeSource } from '../translations/indexMapper';
+import type { SourceLabel } from '../utils/cellSource';
 
 export type { PasteClipboardData };
 
@@ -179,6 +180,11 @@ export interface GridSettings {
   cell?: object[];
   cells?: (row: number, column: number, prop: string | number) => object;
   source?: unknown[] | ((query: string, callback: (items: unknown[]) => void) => void);
+  /**
+   * How an `autocomplete` or `dropdown` cell labels a `source` entry whose `value` is an object:
+   * a property path, or a function that returns the label.
+   */
+  sourceLabel?: SourceLabel;
   type?: string;
   /**
    * Configuration of the nested grid used by the `handsontable` cell type.
