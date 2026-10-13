@@ -440,6 +440,8 @@ export class InlineStartOverlay extends Overlay {
     const { rootWindow } = this.deps;
     let overlayOffset = 0;
 
+    // Gated on the axis owner alone, not on `isScrolledByWindow()`: in the reverse split the page offset is 0
+    // (`getTableParentOffset()`), so this is the raw holder scroll position, which the column-move backlight reads.
     if (this.trimmingContainer === rootWindow) {
       if (this.isRtl()) {
         overlayOffset = Math.abs(Math.min(this.getTableParentOffset() - this.getScrollPosition(), 0));

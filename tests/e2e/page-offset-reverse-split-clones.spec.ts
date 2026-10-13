@@ -35,30 +35,23 @@ test.describe('clones, page scroll range and pointer bounds in the reverse split
     for (const fixedColumnsStart of [0, 2]) {
       for (const { name, layout } of reverseSplits) {
         test(`sizes the clones and the page like the hidden twin: ${name}, ${dir}, ${fixedColumnsStart} frozen columns`, async() => {
-          // `preventOverflow: vertical` lets the window scroll the rows, so its twin keeps that axis on the window.
-          const twinOverflowY = layout.preventOverflow ? 'visible' : 'hidden';
-
           await grid.goto({ ...layout, dir, fixedColumnsStart, fixedRowsBottom: 2, margin: MARGIN });
           const offset = await grid.cloneGeometry();
 
-          await grid.goto({
-            ...layout, overflowY: twinOverflowY, preventOverflow: layout.preventOverflow, dir, fixedColumnsStart,
-            fixedRowsBottom: 2, margin: MARGIN,
-          });
-          const twin = await grid.cloneGeometry();
-
-          // The twin of `preventOverflow: vertical` still has a window that owns the horizontal axis, so the
-          // absolute values pin it down instead: no horizontal scroll range, headers as wide as the holder.
+          // The holder, not the page, scrolls the columns: no horizontal scroll range on the page, headers as
+          // wide as the holder, and the clones follow the holder's vertical scroll position.
           expect(offset.documentScrollWidth).toBe(offset.documentClientWidth);
-          expect(offset.topCloneWidth).toBeLessThan(offset.documentClientWidth - MARGIN + 1);
+          // The 1000px viewport minus the offset, minus the 15px vertical scrollbar of the holder (clip) or the page.
+          expect(offset.topCloneWidth).toBe(1000 - MARGIN - 15);
           expect(offset.bottomCloneWidth).toBe(offset.topCloneWidth);
           expect(offset.inlineStartCloneScrollTop).toBe(offset.holderScrollTop);
+          expect(offset.markedAsWindowScrolled).toBe(false);
 
+          // `preventOverflow: vertical` has no hidden twin: the window keeps the rows, so only the absolute values
+          // above describe it. An `overflow-y: clip` ancestor is compared with the same grid in a hidden one.
           if (!layout.preventOverflow) {
-            expect(offset).toEqual(twin);
-          } else {
-            expect(offset.documentScrollWidth).toBe(twin.documentScrollWidth);
-            expect(offset.topCloneWidth).toBe(twin.topCloneWidth);
+            await grid.goto({ ...layout, overflowY: 'hidden', dir, fixedColumnsStart, fixedRowsBottom: 2, margin: MARGIN });
+            expect(offset).toEqual(await grid.cloneGeometry());
           }
         });
       }

@@ -842,9 +842,9 @@ Consequences worth knowing:
   applies the class before the cells render and the post-render toggle then finds it already in place.
   Those two gates line up exactly, which is worth knowing before you assume a window-scrolled grid slips
   between them: `usesLayoutSnapshotForCalculators()` requires `!isHorizontallyScrollableByWindow()`,
-  that predicate was `inlineStartOverlay.trimmingContainer === rootWindow` (it now also needs the window to scroll the columns, so the reverse split joins the element-scrolled grids on that path), and `prepareHeaderBorders`
-  bails on the same test against the same overlay — so anything passing the single-pass gate is
-  element-scrolled and never bails. `preventOverflow` does not enter into it; it changes how
+  that predicate is true only while the window owns the horizontal axis and `isScrolledByWindow()`, so the reverse
+  split takes the single-pass path like any element-scrolled grid, and `prepareHeaderBorders`
+  bailed on the owner test against the same overlay, so anything passing the single-pass gate never bailed. `preventOverflow` does not enter into it; it changes how
   `resetFixedPosition` uses the trimming container, not what the container is. The cost therefore
   landed on the grids that drop off that path, and there are TWO ways to do that, both of which paid:
   breaking the uniform-size requirement (`colWidths` as an array, or an active `manualColumnResize`),
@@ -987,8 +987,7 @@ the holder scrolls the columns inside the root's box, and the page scrolls the r
 The owners live on the overlays: the top and bottom overlays carry the vertical owner in
 `trimmingContainer`, the inline-start overlay the horizontal one, and
 `isVerticallyScrollableByWindow()` reads the top overlay's field. `isHorizontallyScrollableByWindow()`
-reads the inline-start overlay's owner **and** `isScrolledByWindow()` (see the end of that section's page-offset
-rule): it is `false` in the reverse split, where the window owns the axis but the holder scrolls the columns.
+reads the inline-start overlay's owner **and** `isScrolledByWindow()` (see the page-offset rule below): it is `false` in the reverse split, where the window owns the axis but the holder scrolls the columns.
 Nine rules follow.
 
 - **A decision about the other axis goes through the viewport predicate, never `this.trimmingContainer`.**
@@ -1241,8 +1240,7 @@ column 0. `isHorizontallyScrollableByWindow()` therefore answers `false` in that
 is the window: it asks "does the window scroll the columns", which is the owner being the window **and**
 `Overlay#isScrolledByWindow()`. The clone sizing, the rails, the scroll range of the page and the pointer
 bounds all read it, and they must treat the holder as the scroller, exactly as for a grid inside an ancestor
-that clips both axes. (Earlier it answered `true` here and the clones came out 15px too tall, the column header
-ran 9000px wide under the holder's scrollbar, and the page got a bogus horizontal scroll range.)
+that clips both axes.
 
 The same mode has a second trap, and it is about **how much the table overhangs its holder.** That
 measurement (`masterTableRect.bottom - masterHolderRect.bottom`) is the fractional-zoom rounding

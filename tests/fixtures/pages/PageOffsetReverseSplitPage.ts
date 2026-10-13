@@ -68,6 +68,18 @@ export interface CloneGeometry {
    * The bottom inline-start corner's box (left, top, width, height), or null when it does not render.
    */
   bottomCorner: number[] | null;
+  /**
+   * The top-start corner's box (left, top, width, height), or null when it does not render.
+   */
+  topCorner: number[] | null;
+  /**
+   * The inline-start clone's box (left, top, width, height).
+   */
+  inlineStartClone: number[] | null;
+  /**
+   * Whether the grid carries the class that marks a window scrolling the columns.
+   */
+  markedAsWindowScrolled: boolean;
 }
 
 interface FixtureHot {
@@ -257,20 +269,25 @@ export class PageOffsetReverseSplitPage {
   }
 
   /**
-   * Scrolls the holder to the bottom, lets the draws settle, and reads the clone geometry.
+   * Scrolls the holder to the bottom and 500px along the columns, lets the draws settle, and reads the clone geometry.
    */
   async cloneGeometry(): Promise<CloneGeometry> {
     await this.page.evaluate(() => {
       const hot = (window as unknown as { hot: FixtureHot }).hot;
 
       hot.view._wt.wtTable.holder.scrollTop = 1e6;
+      hot.view._wt.wtTable.holder.scrollLeft = document.documentElement.dir === 'rtl' ? -500 : 500;
     });
     await this.settle();
 
     return this.page.evaluate(() => {
       const hot = (window as unknown as { hot: FixtureHot }).hot;
       const box = (selector: string) => document.querySelector<HTMLElement>(selector);
-      const corner = box('.ht_clone_bottom_inline_start_corner')?.getBoundingClientRect();
+      const rect = (selector: string) => {
+        const bounds = box(selector)?.getBoundingClientRect();
+
+        return bounds ? [bounds.left, bounds.top, bounds.width, bounds.height].map(Math.round) : null;
+      };
       const bottom = box('.ht_clone_bottom');
 
       return {
@@ -281,7 +298,10 @@ export class PageOffsetReverseSplitPage {
         inlineStartCloneScrollTop: box('.ht_clone_inline_start .wtHolder')?.scrollTop ?? NaN,
         documentScrollWidth: document.documentElement.scrollWidth,
         documentClientWidth: document.documentElement.clientWidth,
-        bottomCorner: corner ? [corner.left, corner.top, corner.width, corner.height].map(Math.round) : null,
+        bottomCorner: rect('.ht_clone_bottom_inline_start_corner'),
+        topCorner: rect('.ht_clone_top_inline_start_corner'),
+        inlineStartClone: rect('.ht_clone_inline_start'),
+        markedAsWindowScrolled: !!document.querySelector('.htHorizontallyScrollableByWindow'),
       };
     });
   }
