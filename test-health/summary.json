@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-13T08:10:13.707Z",
+  "generatedAt": "2026-10-13T09:01:35.039Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 393,
+    "tests": 395,
     "needsTicket": 25,
     "quarantined": 0,
-    "entries": 2055
+    "entries": 2057
   },
   "rows": [
     {
@@ -13161,6 +13161,72 @@
         "leg": "UMD.min (theme: horizon)",
         "status": "failed",
         "error": "Expected '' to equal 'yellow'.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/date-editor-keyboard-focus.spec.ts|the date editor opened with the keyboard › closes the picker with the editor on Escape",
+      "tier": "playwright",
+      "file": "e2e/date-editor-keyboard-focus.spec.ts",
+      "line": 50,
+      "title": "the date editor opened with the keyboard › closes the picker with the editor on Escape",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-firefox"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-13T09:00:46Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38368512727",
+        "branch": "feature/DEV-3366_Date-editor-firefox-focus",
+        "leg": "e2e-firefox",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/date-editor-keyboard-focus.spec.ts|the date editor opened with the keyboard › takes the digits typed after Enter",
+      "tier": "playwright",
+      "file": "e2e/date-editor-keyboard-focus.spec.ts",
+      "line": 35,
+      "title": "the date editor opened with the keyboard › takes the digits typed after Enter",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-webkit"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-13T09:00:46Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38368512727",
+        "branch": "feature/DEV-3366_Date-editor-firefox-focus",
+        "leg": "e2e-webkit",
+        "status": "failed",
+        "error": "Error: expect(locator).not.toHaveValue(expected) failed",
         "source": "ci"
       },
       "needsTicket": false
