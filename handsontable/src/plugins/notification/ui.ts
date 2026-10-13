@@ -51,6 +51,14 @@ export class NotificationUI {
   #stacks: Map<string, HTMLElement> = new Map();
 
   /**
+   * Layout signature of the grid root the host was last fitted to. A render that moves or resizes
+   * nothing leaves it unchanged, so only the offset reads run, not the rect measurements.
+   *
+   * @type {string}
+   */
+  #fitSignature: string = '';
+
+  /**
    * Keeps one icon slot of a container in step with the theme (`syncIcon()` bound to the grid).
    * Injected so the UI stays decoupled from the theme engine.
    *
@@ -107,6 +115,61 @@ export class NotificationUI {
 
     this.#overlayElement.appendChild(host);
     this.#host = host;
+    this.#fitSignature = '';
+  }
+
+  /**
+   * Fits the host to the grid root, so the corner stacks anchor to the grid and not to the wider
+   * root wrapper (which also holds the top and bottom slots). Physical offsets are written with
+   * `right` and `bottom` reset, because the stylesheet's `inset: 0` would overconstrain the box.
+   *
+   * @param {HTMLElement} gridRoot The grid root element the toasts are anchored to.
+   */
+  fitToGrid(gridRoot: HTMLElement): void {
+    const host = this.#host;
+    const container = host?.offsetParent;
+
+    if (!host || !container || !gridRoot.offsetWidth || !gridRoot.offsetHeight) {
+      return;
+    }
+
+    const signature = [
+      gridRoot.offsetLeft, gridRoot.offsetTop, gridRoot.offsetWidth, gridRoot.offsetHeight,
+      (container as HTMLElement).offsetWidth, (container as HTMLElement).offsetHeight,
+    ].join(',');
+
+    if (signature === this.#fitSignature) {
+      return;
+    }
+
+    this.#fitSignature = signature;
+
+    const rootRect = gridRoot.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    // Rects are scaled by a transformed ancestor, inline pixels are not.
+    const scaleX = (containerRect.width / (container as HTMLElement).offsetWidth) || 1;
+    const scaleY = (containerRect.height / (container as HTMLElement).offsetHeight) || 1;
+    const left = Math.round(((rootRect.left - containerRect.left) / scaleX) - container.clientLeft);
+    const top = Math.round(((rootRect.top - containerRect.top) / scaleY) - container.clientTop);
+    const { style } = host;
+    const next = {
+      left: `${left}px`,
+      top: `${top}px`,
+      width: `${gridRoot.offsetWidth}px`,
+      // A grid that follows its content is taller than the wrapper, which stays at the container's height.
+      height: `${Math.max(0, Math.min(gridRoot.offsetHeight, (container as HTMLElement).offsetHeight - top))}px`,
+    };
+
+    if (
+      style.left === next.left &&
+      style.top === next.top &&
+      style.width === next.width &&
+      style.height === next.height
+    ) {
+      return;
+    }
+
+    Object.assign(style, next, { right: 'auto', bottom: 'auto' });
   }
 
   /**
