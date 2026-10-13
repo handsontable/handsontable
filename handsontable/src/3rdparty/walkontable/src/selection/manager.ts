@@ -294,6 +294,7 @@ export class SelectionManager {
         this.#markFrozenTopRowSeamHeader(corners, className as string, classNamesMap);
         this.#markFrozenBottomRowSeamHeader(corners, className as string, classNamesMap);
         this.#markColumnHeaderRowSeamHeader(corners, className as string, classNamesMap);
+        this.#markCornerColumnSeamHeader(corners, className as string, classNamesMap);
       }
 
       wot.getSetting('onBeforeDrawBorders', corners, selectionType);
@@ -773,6 +774,64 @@ export class SelectionManager {
 
       if (isHTMLElement(th) && th.nodeName === 'TH') {
         this.#tagSeamClass(classNamesMap, th, seamClassName);
+      }
+    }
+  }
+
+  /**
+   * Tags the corner cell that borders an active column-0 header, so the seam between them gets the
+   * same inline-start accent every other active header has. Without frozen columns, column 0's header
+   * renders in the top clone and the corner cell beside it lives in the top clone's own (hidden)
+   * corner, so the neighbor pass in {@link SelectionManager#markActiveHeaderNeighbor} never reaches the
+   * visible corner clone's cell that is painted over it. With frozen columns column 0's header
+   * renders in this overlay and that pass already tags the cell.
+   *
+   * The seam is only drawn for column 0: once the grid scrolls sideways the header next to the corner
+   * is a clipped one, and the accent would say nothing about it. Only the head rows the selection
+   * covers are tagged, so nested headers keep the accent to the active levels.
+   *
+   * No-op unless this overlay is the top inline-start corner and `fixedColumnsStart` is 0.
+   *
+   * @param {number[]} corners The active-header selection corners `[fromRow, fromColumn, toRow, toColumn]`.
+   * @param {string} activeHeaderClassName The active header class name (the `-prev` class derives from it).
+   * @param {Map} classNamesMap The render cycle's element→classNames map (applied and cleaned up later).
+   */
+  #markCornerColumnSeamHeader(
+    corners: number[],
+    activeHeaderClassName: string,
+    classNamesMap: Map<HTMLElement, Map<string, number>>
+  ) {
+    const wot = this.#activeOverlaysWot!;
+    const { wtTable } = wot;
+
+    if (!wtTable.is(CLONE_TOP_INLINE_START_CORNER) || (wot.getSetting('fixedColumnsStart') as number) > 0) {
+      return;
+    }
+
+    const rowHeadersCount = wtTable.getRowHeadersCount();
+    const headRows = wtTable.THEAD?.children;
+
+    if (rowHeadersCount === 0 || headRows === undefined) {
+      return;
+    }
+
+    // The selection has to start on column 0, and that column has to be the first one the grid renders.
+    if (Math.min(corners[1], corners[3]) !== 0 || wot.cloneSource!.wtTable.getFirstRenderedColumn() !== 0) {
+      return;
+    }
+
+    const topRow = Math.min(corners[0], corners[2]);
+    const bottomRow = Math.max(corners[0], corners[2]);
+
+    for (let level = 0; level < headRows.length; level++) {
+      const row = level - headRows.length;
+
+      if (row >= topRow && row <= bottomRow) {
+        const th = headRows[level].children[rowHeadersCount - 1];
+
+        if (isHTMLElement(th) && th.nodeName === 'TH') {
+          this.#tagSeamClass(classNamesMap, th, `${activeHeaderClassName}-prev`);
+        }
       }
     }
   }
