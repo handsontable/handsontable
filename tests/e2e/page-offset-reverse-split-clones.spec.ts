@@ -72,6 +72,25 @@ test.describe('clones, page scroll range and pointer bounds in the reverse split
     });
   }
 
+  test('draws the same rows and columns as the hidden twin while the holder scrolls through bands', async() => {
+    // The reverse split takes the single-pass layout and row recycling paths of an element-scrolled grid.
+    await grid.goto({ overflowY: 'clip', margin: MARGIN, fixedColumnsStart: 2, fixedRowsBottom: 2 });
+    const offset = await grid.scrollThroughBands();
+
+    await grid.goto({ overflowY: 'hidden', margin: MARGIN, fixedColumnsStart: 2, fixedRowsBottom: 2 });
+    const twin = await grid.scrollThroughBands();
+
+    expect(offset.every(read => read.endsWith('/true'))).toBe(true);
+    expect(offset).toEqual(twin);
+  });
+
+  test('tracks a drag that moves inside the page offset gap with `preventOverflow: vertical`', async() => {
+    // No hidden twin (the window keeps the rows), so the expected cells are the ones under the pointer.
+    await grid.goto({ overflowY: 'visible', preventOverflow: 'vertical', margin: MARGIN });
+
+    expect(await grid.dragThroughGap(DRAG_POINTS)).toEqual(['3,0', '4,0', '5,0']);
+  });
+
   // Control: the window scrolls both axes here, so none of the reverse-split branches run. These pin the layout
   // the change must leave alone, and they pass with and without it.
   test('control: a page the window scrolls on both axes keeps its page-wide clones and scroll range', async() => {

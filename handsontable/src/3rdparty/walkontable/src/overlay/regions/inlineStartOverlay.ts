@@ -81,12 +81,11 @@ export class InlineStartOverlay extends Overlay {
       return false;
     }
 
-    const { rootWindow } = this.deps;
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     const rail = this.getRail();
     let overlayPosition = 0;
 
-    if (this.trimmingContainer === rootWindow && this.isScrolledByWindow()) {
+    if (this.deps.getWtViewport().isHorizontallyScrollableByWindow()) {
       overlayPosition = this.getOverlayOffset() * (this.isRtl() ? -1 : 1);
       // Held at the viewport's inline-start edge by the browser, never by this listener (DEV-127).
       // The block axis is the page's: this clone mirrors the master's rows and scrolls with them.

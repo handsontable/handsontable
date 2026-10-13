@@ -840,13 +840,11 @@ Consequences worth knowing:
   every scroll crossing horizontal offset 0 ran `refreshAll()`: a nested `wot.draw(true)` over the
   master and every clone. Grids on the single-pass path did not pay it, because `prepareHeaderBorders`
   applies the class before the cells render and the post-render toggle then finds it already in place.
-  Those two gates line up exactly, which is worth knowing before you assume a window-scrolled grid slips
-  between them: `usesLayoutSnapshotForCalculators()` requires `!isHorizontallyScrollableByWindow()`,
-  that predicate is true only while the window owns the horizontal axis and `isScrolledByWindow()`, so the reverse
-  split takes the single-pass path like any element-scrolled grid, and `prepareHeaderBorders`
-  bailed on the owner test against the same overlay, so anything passing the single-pass gate never bailed. `preventOverflow` does not enter into it; it changes how
-  `resetFixedPosition` uses the trimming container, not what the container is. The cost therefore
-  landed on the grids that drop off that path, and there are TWO ways to do that, both of which paid:
+  `usesLayoutSnapshotForCalculators()` requires `!isHorizontallyScrollableByWindow()`, which is true only while
+  the window owns the horizontal axis **and** `isScrolledByWindow()`. So a grid whose holder scrolls the columns,
+  the reverse split (`preventOverflow: 'vertical'` or an ancestor clipping the vertical axis alone) included,
+  takes the single-pass path like any element-scrolled grid; `preventOverflow` matters only through that answer.
+  The cost therefore landed on the grids that drop off that path, and there are TWO ways to do that, both of which paid:
   breaking the uniform-size requirement (`colWidths` as an array, or an active `manualColumnResize`),
   and breaking the element-mode requirement (a window-scrolled grid, i.e. no `width`/`height`). The
   window shape is the harsher one, since `prepareHeaderBorders` bails on it outright and so could

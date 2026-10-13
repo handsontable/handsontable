@@ -85,6 +85,8 @@ export interface CloneGeometry {
 interface FixtureHot {
   getSelectedLast(): number[] | undefined;
   selectCell(row: number, col: number): void;
+  getFirstFullyVisibleRow(): number;
+  getLastFullyVisibleRow(): number;
   getFirstFullyVisibleColumn(): number;
   getLastFullyVisibleColumn(): number;
   getCell(row: number, col: number): HTMLElement | null;
@@ -345,5 +347,35 @@ export class PageOffsetReverseSplitPage {
     await this.page.mouse.up();
 
     return ends;
+  }
+
+  /**
+   * Scrolls the holder through a few bands (down the rows, then along the columns) and, at each stop, reads the
+   * visible rows and columns and whether the cells at both ends of each range are rendered.
+   */
+  async scrollThroughBands(): Promise<string[]> {
+    const stops: [number, number][] = [[400, 0], [1485, 0], [1485, 2500], [0, 2500], [0, 0]];
+    const reads: string[] = [];
+
+    for (const [top, left] of stops) {
+      await this.page.evaluate(([scrollTop, scrollLeft]) => {
+        const holder = (window as unknown as { hot: FixtureHot }).hot.view._wt.wtTable.holder;
+        const rtl = document.documentElement.dir === 'rtl';
+
+        holder.scrollTop = scrollTop;
+        holder.scrollLeft = rtl ? -scrollLeft : scrollLeft;
+      }, [top, left]);
+      await this.settle();
+      reads.push(await this.page.evaluate(() => {
+        const hot = (window as unknown as { hot: FixtureHot }).hot;
+        const rows = [hot.getFirstFullyVisibleRow(), hot.getLastFullyVisibleRow()];
+        const columns = [hot.getFirstFullyVisibleColumn(), hot.getLastFullyVisibleColumn()];
+        const rendered = rows.every(row => columns.every(column => hot.getCell(row, column) !== null));
+
+        return `${rows.join('-')}/${columns.join('-')}/${rendered}`;
+      }));
+    }
+
+    return reads;
   }
 }

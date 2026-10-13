@@ -134,8 +134,7 @@ export class TopInlineStartCornerOverlay extends Overlay {
     const { rootWindow } = this.deps;
     const wtTable = this.deps.getWtTable();
     const rail = this.getRail();
-    const inlineOnWindow = this.inlineStartOverlay.trimmingContainer === rootWindow &&
-      this.inlineStartOverlay.isScrolledByWindow();
+    const inlineOnWindow = this.deps.getWtViewport().isHorizontallyScrollableByWindow();
     const blockOnWindow = this.topOverlay.trimmingContainer === rootWindow;
     // This corner sits where the row headers and the column headers meet, so it travels on both axes
     // the window owns (DEV-127 sideways, DEV-126 up and down). A corner that does not render stays
