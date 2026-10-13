@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug where a grid with `preventOverflow: 'horizontal'` and no `width` widened the page, which gained a horizontal scrollbar into empty space.",
+  "type": "fixed",
+  "issueOrPR": 13820,
+  "breaking": false,
+  "framework": "none"
+}
