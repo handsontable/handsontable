@@ -439,5 +439,7 @@ test.describe('width-only grid: holder scrolls columns, window scrolls rows', ()
 
     // As with `width: 500` above: the columns overflow the root, never the page.
     expect(extents.documentScrollWidth).toBeLessThanOrEqual(extents.documentClientWidth);
+    // The clip must not hide the columns: the holder still scrolls them.
+    expect(extents.holderScrollWidth).toBeGreaterThan(extents.holderClientWidth);
   });
 });

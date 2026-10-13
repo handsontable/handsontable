@@ -1,4 +1,5 @@
 import Handsontable from '../../index';
+import Core from '../../core';
 
 /**
  * The root's inline `height`, `width` and `overflow*` are written by `core/rootSize.ts` only.
@@ -437,6 +438,41 @@ describe('root size options', () => {
 
     it('should not clip for `\'vertical\'`', () => {
       expect(inlineSize(buildGrid({ preventOverflow: 'vertical' })).overflowX).toBe('');
+    });
+
+    it('should leave the element of a nested (non-root) instance alone', () => {
+      // A nested grid's `rootElement` is the container the host handed it, so only a root instance
+      // gets the clip. A `Core` built without the root symbol is how the editors' inner grids are made.
+      const nested = new Core(document.createElement('div'), {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [[1, 2], [3, 4]],
+        preventOverflow: 'horizontal',
+      });
+
+      nested.init();
+
+      expect(nested.rootElement.style.overflowX).toBe('');
+
+      nested.destroy();
+    });
+
+    it('should release the horizontal axis when the option is switched off with `undefined`', () => {
+      // The React wrapper sends `undefined` for a prop that went away.
+      const grid = buildGrid({ preventOverflow: 'horizontal' });
+
+      grid.updateSettings({ preventOverflow: undefined });
+
+      expect(inlineSize(grid).overflowX).toBe('');
+    });
+
+    it('should not re-clip the vertical axis that a `height: null` restored', () => {
+      const grid = buildGrid({ preventOverflow: 'horizontal', height: 300 });
+
+      grid.rootElement.dataset.initialstyle = 'height: 50px; overflow-y: scroll';
+      grid.updateSettings({ height: null });
+      grid.updateSettings({ preventOverflow: 'horizontal' });
+
+      expect(inlineSize(grid).overflowY).toBe('scroll');
     });
 
     it('should clip beside a definite width', () => {

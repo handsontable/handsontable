@@ -327,8 +327,9 @@ function hasScrollOwnerChanged(before: RootSizeSnapshot, after: RootSizeSnapshot
 }
 
 /**
- * Applies the `height` and `width` options to the grid's root element. This is the only writer of
- * the root's inline `height`, `width`, and `overflow*`.
+ * Applies the `height` and `width` options to the grid's root element, and re-writes its overflow when
+ * either one, or `preventOverflow`, is in the payload. This is the only writer of the root's inline
+ * `height`, `width`, and `overflow*`.
  *
  * @param {HotInstance} instance The grid instance.
  * @param {Partial<GridSettings>} settings The `updateSettings` payload.
@@ -352,15 +353,18 @@ export function applyRootSize(instance: HotInstance, settings: Partial<GridSetti
   const widthOutcome = applyAxis(instance, 'width', settings.width, 'beforeWidthChange');
   const ignoredAxes: RootSizeAxis[] = [];
 
-  if (settings.height !== undefined || settings.width !== undefined || settings.preventOverflow !== undefined) {
-    // A payload without the option keeps the stored one, so a `width` or `height` change cannot drop the clip.
-    const preventOverflow = settings.preventOverflow ?? instance.getSettings().preventOverflow;
+  // The root's overflow follows `preventOverflow` only on a root instance: a nested grid's `rootElement`
+  // is the container the host handed it, and the option is not this module's to act on there. The
+  // payload is merged into the stored settings by now, so an `undefined` sent to switch the option off
+  // reads back as off.
+  const optionMoved = isRootInstance(instance) && Object.prototype.hasOwnProperty.call(settings, 'preventOverflow');
 
+  if (settings.height !== undefined || settings.width !== undefined || optionMoved) {
     applyOverflow(
       rootElement,
       heightOutcome === 'reset',
       widthOutcome === 'written',
-      preventOverflow === 'horizontal' && isRootInstance(instance),
+      isRootInstance(instance) && instance.getSettings().preventOverflow === 'horizontal',
     );
   }
 

@@ -1051,10 +1051,11 @@ fields. Nine rules follow.
   reset in `MasterTable` (`true` still suppresses it), `InlineStartOverlay#getTableParentOffset`, and
   the two header-border suppressions, which are visual rules pinned by
   `src/__tests__/settings/preventOverflow.spec.js`. The option stays forever, without a warning. The
-  clip is the exception: `core/rootSize.ts` writes `overflow-x: clip` on the root of a root instance
-  under `'horizontal'` (the same clip a definite `width` gets), so the scroll spacer and the overlay
-  rails cannot reach through the root and widen the page. It writes only the longhands it owns, so a
-  host's own `overflow` is left alone. Pinned by the last case of `tests/e2e/width-window-scroll.spec.ts`.
+  one thing the owners do not give is a clip: `core/rootSize.ts` (core, not the engine) writes
+  `overflow-x: clip` inline on the root of a root instance under `'horizontal'`, the same clip a definite
+  `width` gets, so the scroll spacer and the overlay rails cannot reach through the root and widen the
+  page. It only reads and writes the inline style, so an inline `overflow` on the root is left alone and
+  a stylesheet `overflow-x` on `.handsontable` is overridden. Pinned by the last case of `tests/e2e/width-window-scroll.spec.ts`.
 - **Never ask `instanceof HTMLElement` whether an axis owner is an element — use `isHTMLElement()`.**
   `resolveAxisOwner` takes its realm from `ownerDocument`, so it correctly hands back an iframe's
   element to a parent-realm caller; `instanceof` then fails to recognize it against the parent's
