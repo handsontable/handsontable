@@ -81,12 +81,11 @@ export class InlineStartOverlay extends Overlay {
       return false;
     }
 
-    const { rootWindow } = this.deps;
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     const rail = this.getRail();
     let overlayPosition = 0;
 
-    if (this.trimmingContainer === rootWindow) {
+    if (this.deps.getWtViewport().isHorizontallyScrollableByWindow()) {
       overlayPosition = this.getOverlayOffset() * (this.isRtl() ? -1 : 1);
       // Held at the viewport's inline-start edge by the browser, never by this listener (DEV-127).
       // The block axis is the page's: this clone mirrors the master's rows and scrolls with them.
@@ -440,6 +439,8 @@ export class InlineStartOverlay extends Overlay {
     const { rootWindow } = this.deps;
     let overlayOffset = 0;
 
+    // Gated on the axis owner alone, not on `isScrolledByWindow()`: in the reverse split the page offset is 0
+    // (`getTableParentOffset()`), so this is the raw holder scroll position, which the column-move backlight reads.
     if (this.trimmingContainer === rootWindow) {
       if (this.isRtl()) {
         overlayOffset = Math.abs(Math.min(this.getTableParentOffset() - this.getScrollPosition(), 0));
@@ -456,6 +457,17 @@ export class InlineStartOverlay extends Overlay {
     }
 
     return overlayOffset;
+  }
+
+  /**
+   * The part of the overlay offset that the layout does not already carry. While the holder scrolls the columns
+   * (the reverse split), the clone sits in the holder's own box and nothing moves it, so there is nothing to add,
+   * whereas {@link InlineStartOverlay#getOverlayOffset} stays the raw holder scroll position.
+   *
+   * @returns {number}
+   */
+  getOverlayTransformOffset(): number {
+    return this.isScrolledByWindow() ? super.getOverlayTransformOffset() : 0;
   }
 
   /**

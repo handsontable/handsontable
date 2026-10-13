@@ -406,14 +406,15 @@ test.describe('overlay scrollbar clearance', () => {
       const root = document.querySelector('#reverse-split-grid')!;
       const holder = root.querySelector('.ht_master .wtHolder') as HTMLElement;
       const hot = (window as unknown as {
-        reverseSplitHot: { view: { isHorizontallyScrollableByWindow(): boolean } },
+        reverseSplitHot: { view: { _wt: { wtOverlays: { inlineStartOverlay: { trimmingContainer: unknown } } } } },
       }).reverseSplitHot;
 
       holder.addEventListener('scroll', () => {
         requestAnimationFrame(() => requestAnimationFrame(() => resolve({
           gutterX: holder.offsetWidth - holder.clientWidth,
           gutterY: holder.offsetHeight - holder.clientHeight,
-          windowOwnsColumns: hot.view.isHorizontallyScrollableByWindow(),
+          // The axis owner, not `isHorizontallyScrollableByWindow()`: that one is false while the holder scrolls.
+          windowOwnsColumns: hot.view._wt.wtOverlays.inlineStartOverlay.trimmingContainer === window,
           holderScrolledColumns: holder.scrollLeft > 0,
           edges: [...root.querySelectorAll('.htScrollbarClearanceFiller')]
             .map(el => el.getAttribute('data-ht-clearance-edge') || '?'),

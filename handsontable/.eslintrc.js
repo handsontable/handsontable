@@ -326,6 +326,26 @@ module.exports = {
         'brace-style': ['error', '1tbs', { allowSingleLine: true }],
       }
     },
+    // Files the E2E bundle loads: every spec, and every file under a plugin's or an editor's
+    // `helpers/` folder (`test/helpers/index.js` puts their exports on `window`). The ESM/CJS E2E
+    // build aliases `handsontable` to the single file `dist/handsontable.js`, so a subpath import
+    // cannot resolve there. Those jobs run on trunk only, so nothing else catches it on a PR.
+    {
+      files: [
+        '*.spec.js',
+        'src/plugins/**/helpers/**/*.js',
+        'src/editors/**/helpers/**/*.js',
+      ],
+      rules: {
+        'no-restricted-imports': ['error', {
+          patterns: [{
+            group: ['handsontable/*'],
+            message: 'The E2E bundle loads this file, and its ESM/CJS build cannot resolve a "handsontable/..." '
+              + 'subpath. Use a relative path, or move a helper used only by unit tests out of `helpers/`.',
+          }],
+        }],
+      }
+    },
     // TypeScript type-test files — intentionally use `document`, `new X()`, and
     // expression-only statements to verify type inference without side effects.
     {
