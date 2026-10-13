@@ -33,7 +33,8 @@ The row selection is separate from the [cell selection](@/guides/cell-features/s
 
 - Selecting a row doesn't select its cells, and selecting cells doesn't select rows.
 - By default, the plugin doesn't write anything into your data. To keep the selection in your data, see [In a checkbox column of your data](#in-a-checkbox-column-of-your-data).
-- The selection follows its rows when you sort, filter, move, add, or remove rows. Loading new data clears it.
+- The selection follows its rows when you sort, filter, move, add, or remove rows.
+- [`loadData()`](@/api/core.md#loaddata) clears the selection. [`updateData()`](@/api/core.md#updatedata) keeps it by row position: the row at each selected position stays selected, whatever record the new data puts there. The React, Angular, and Vue wrappers call `updateData()` when you pass new `data`, so the selection survives an update that replaces the array. To start over, call [`deselectAll()`](@/api/rowSelection.md#deselectall). A selection kept [in a checkbox column of your data](#in-a-checkbox-column-of-your-data) is read from the new data instead.
 
 ## Enable row selection
 

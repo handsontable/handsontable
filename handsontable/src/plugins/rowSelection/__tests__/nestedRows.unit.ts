@@ -283,4 +283,24 @@ describe('RowSelection with NestedRows', () => {
 
     destroy();
   });
+
+  it('should paint a parent from the current tree after a write to the map from outside the plugin', () => {
+    const { hot, checkboxState, destroy } = createGrid();
+
+    hot.render();
+
+    // UndoRedo restoring a removed row's flag writes the map the same way. Physical 2 and 3 are a1x, a1y.
+    const map = hot.rowIndexMapper.variousMapsCollection.get('RowSelection')!;
+
+    map.setValueAtIndex(2, true);
+    map.setValueAtIndex(3, true);
+
+    // A draw in the same task that runs no render hook, as a scroll does.
+    hot.view._wt.draw(false);
+
+    expect(checkboxState(1)).toEqual({ checked: true, indeterminate: false });
+    expect(checkboxState(0)).toEqual({ checked: false, indeterminate: true });
+
+    destroy();
+  });
 });

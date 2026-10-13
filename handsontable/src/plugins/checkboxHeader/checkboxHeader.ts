@@ -11,6 +11,7 @@ import {
 import { isLeftClick, isTouchEvent } from '../../helpers/dom/event';
 import { A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
+import { canAccessCellContent } from '../../shortcuts/guards';
 import { CHECKBOX_HEADER_CHECK_ALL } from '../../i18n/constants';
 import { syncIcon } from '../../themes/engine/icons';
 import {
@@ -513,6 +514,11 @@ export class CheckboxHeader extends BasePlugin {
         return false;
       },
       runOnlyIf: () => {
+        // Space rewrites the whole column: not while the cells are hidden or covered by an overlay.
+        if (!canAccessCellContent(this.hot)) {
+          return false;
+        }
+
         const range = this.hot.getSelectedRangeActive();
         const highlight = range?.highlight;
 
@@ -657,6 +663,12 @@ export class CheckboxHeader extends BasePlugin {
     if (!changes || isUndoRedoSource(source)) {
       this.#invalidate();
 
+      return;
+    }
+
+    // This runs twice per edit in every grid; with no header checkbox there is nothing to re-read, so
+    // a large paste skips mapping every change.
+    if (this.#summaryCache.size === 0) {
       return;
     }
 

@@ -410,4 +410,54 @@ describe('CheckboxHeader', () => {
 
     destroy();
   });
+
+  it('should not toggle the column with Space while an overlay covers the grid body', () => {
+    const { hot, done, destroy } = createGrid({ navigableHeaders: true });
+    const cover = document.createElement('div');
+    const pressSpace = () => {
+      const init = { key: ' ', code: 'Space', keyCode: 32, which: 32, bubbles: true, cancelable: true };
+
+      hot.listen();
+      hot.rootDocument.documentElement.dispatchEvent(new KeyboardEvent('keydown', init));
+      hot.rootDocument.documentElement.dispatchEvent(new KeyboardEvent('keyup', init));
+    };
+
+    hot.rootElement.appendChild(cover);
+    hot.getFocusScopeManager().registerScope('testCover', cover, { coversGridBody: true });
+    hot.selectCell(-1, 1);
+    pressSpace();
+
+    expect(done()).toEqual([false, true, false, true, false, false]);
+
+    hot.getFocusScopeManager().unregisterScope('testCover');
+    hot.selectCell(-1, 1);
+    pressSpace();
+
+    expect(done()).toEqual([true, true, true, true, true, true]);
+
+    destroy();
+  });
+
+  it('should not map the changed rows of an edit when no column shows a "check all" checkbox', () => {
+    const countRowMappings = (pluginEnabled: boolean) => {
+      const { hot, plugin, destroy } = createGrid({}, { headerCheckbox: false });
+
+      if (!pluginEnabled) {
+        plugin.disablePlugin();
+      }
+
+      const toPhysicalRow = jest.spyOn(hot, 'toPhysicalRow');
+
+      hot.setDataAtCell([[0, 0, 'a'], [1, 0, 'b'], [2, 0, 'c']]);
+
+      const calls = toPhysicalRow.mock.calls.length;
+
+      destroy();
+
+      return calls;
+    };
+
+    // The plugin adds no mapping of its own to what core does for the edit.
+    expect(countRowMappings(true)).toBe(countRowMappings(false));
+  });
 });

@@ -47,6 +47,17 @@ from a "select all" checkbox (PRO-87, modeled on AG Grid's `rowSelection`). Read
 - **`updatePlugin()` carries the selection over.** `disablePlugin()` unregisters the map, so the
   values are copied before and written back after. A wrapper re-sending unchanged settings would
   otherwise clear the selection on every render.
+- **`updateData()` keeps the selection, `loadData()` clears it.** `loadData()` re-creates the map;
+  `updateData()` (and `updateSettings({ data })`, which every wrapper sends a new `data` prop through)
+  only `fitToLength()`s it, so the flags stay on the same physical rows. That is deliberate: clearing it
+  there wiped the selection on every edit of an app that replaces its data array immutably. The class
+  JSDoc and the guide document it. Pinned by `__tests__/rowSelection.unit.ts`.
+- **`disablePlugin()` removes the header checkbox from the DOM** (`#removeHeaderCheckboxes()`). Core's
+  `appendColHeader()` reuses a header's `.relative` container and only refreshes `.colHeader`, and a
+  disabled plugin runs no `afterGetColHeader`, so a `firstColumn` or corner checkbox stayed in the header
+  with no listener behind it.
+- **Every Space shortcut requires `canAccessCellContent()`** (both here and in `CheckboxHeader`). In bound
+  mode Space writes data, and the header stays focusable under the `emptyDataState` loading overlay.
 - **`afterRenderer` runs for every painted cell**, so the resolved settings are cached
   (`#settings`, re-resolved on enable). Do not call `#resolveSettings()` on the render path.
 - **Under `renderMode: 'onChange'` a cell is repainted only when marked.** The selected-row class is
@@ -177,6 +188,12 @@ location. While bound, the selection IS the column's values:
   (`#collectBoundFlips()`), mapped to the `'checkbox'` source for `'edit'` and `'dataChange'` for the rest.
   `beforeRowSelectionChange` returning `false` nulls every flipping change of that batch. The plugin's own
   source is skipped there, or its writes would be reported twice.
+- **`setSourceDataAtCell()` fires neither of those**, so bound mode also listens to
+  `afterSetSourceDataAtCell` (physical rows; added only in bound mode, because any listener makes core read
+  every source write's old value). UndoRedo restores data through that method, so an undo of a bound
+  selection change is reported as `'dataChange'` too. It cannot be vetoed: the value is already written.
+  The plugin's own source is skipped here as well: `writeCheckboxColumn()` writes filtered-out rows
+  through `setSourceDataAtCell()`.
 - **The header cache must drop on `beforeChangeRender`**, not only `afterChange`: an edit renders before
   `afterChange` runs, and the header would stay one change behind (measured in the Playwright spec). It
   drops only when the edit writes the bound column or `isRowSelectable` is set (it may read any value):

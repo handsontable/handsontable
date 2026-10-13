@@ -765,4 +765,95 @@ describe('RowSelection', () => {
 
     destroy();
   });
+
+  it('should remove the "select all" checkbox from the headers when the plugin is disabled', () => {
+    ['firstColumn', 'rowHeader'].forEach((checkboxLocation) => {
+      const { hot, destroy } = createGrid({ rowSelection: { checkboxLocation } });
+      const headerCheckboxes = () => hot.rootElement
+        .querySelectorAll('th .htRowSelectionCheckboxBox, th.htRowSelectionHeader, th.htRowSelectionCorner');
+
+      expect(headerCheckboxes().length).toBeGreaterThan(0);
+
+      hot.updateSettings({ rowSelection: false });
+
+      expect(headerCheckboxes().length).toBe(0);
+
+      destroy();
+    });
+  });
+
+  it('should keep the selection by row position on `updateData()`, and clear it on `loadData()`', () => {
+    const { hot, plugin, destroy } = createGrid();
+    const afterRowSelectionChange = jest.fn();
+    const otherRecords = () => Array.from({ length: 6 }, (_, index) => ({ id: index + 10, status: 'new' }));
+
+    plugin.selectRows([0, 2]);
+    hot.addHook('afterRowSelectionChange', afterRowSelectionChange);
+    hot.updateData(otherRecords());
+
+    expect(plugin.getSelectedPhysicalRows()).toEqual([0, 2]);
+    expect(afterRowSelectionChange).not.toHaveBeenCalled();
+
+    hot.loadData(otherRecords());
+
+    expect(plugin.getSelectedPhysicalRows()).toEqual([]);
+
+    destroy();
+  });
+
+  it('should not toggle rows with Space while an overlay covers the grid body', () => {
+    const { hot, plugin, destroy } = createGrid({
+      navigableHeaders: true,
+      rowSelection: { checkboxLocation: 'firstColumn' },
+    });
+    const cover = document.createElement('div');
+
+    hot.rootElement.appendChild(cover);
+    hot.getFocusScopeManager().registerScope('testCover', cover, { coversGridBody: true });
+
+    hot.selectCell(1, 0); // A first column checkbox.
+    pressSpace(hot);
+    hot.selectCell(2, 1); // A data cell.
+    pressSpace(hot);
+    hot.selectCell(-1, 0); // The "select all" checkbox.
+    pressSpace(hot);
+
+    expect(plugin.getSelectedPhysicalRows()).toEqual([]);
+
+    hot.getFocusScopeManager().unregisterScope('testCover');
+    hot.selectCell(2, 1);
+    pressSpace(hot);
+
+    expect(plugin.getSelectedPhysicalRows()).toEqual([2]);
+
+    hot.selectCell(-1, 0);
+    pressSpace(hot);
+
+    expect(plugin.getSelectedPhysicalRows()).toEqual([0, 1, 2, 3, 4, 5]);
+
+    destroy();
+  });
+
+  it('should announce the count, not a row number, when the only changed row has no visual index', () => {
+    const { hot, plugin, destroy } = createGrid({ filters: true });
+    const filters = hot.getPlugin('filters');
+
+    plugin.selectRows([0, 2, 3, 4, 5]);
+    filters.addCondition(1, 'eq', ['even']);
+    filters.filter();
+
+    const getTranslatedPhrase = jest.spyOn(hot, 'getTranslatedPhrase');
+
+    // Mixed in the "all" scope: the header press selects the one row left, physical 1, filtered out.
+    mouseDown(cornerOf(hot).querySelector('.htRowSelectionCheckbox')!);
+
+    expect(plugin.getSelectedPhysicalRows()).toEqual([0, 1, 2, 3, 4, 5]);
+
+    const phrases = getTranslatedPhrase.mock.calls.map(([key]) => key);
+
+    expect(phrases).toContain('RowSelection:announce.count');
+    expect(phrases).not.toContain('RowSelection:announce.rowSelected');
+
+    destroy();
+  });
 });

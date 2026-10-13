@@ -10,10 +10,12 @@ import {
   hasClass,
   isBottomMostColumnHeader,
   removeAttribute,
+  removeClass,
   setAttribute,
 } from '../../helpers/dom/element';
 import { isLeftClick, isTouchEvent } from '../../helpers/dom/event';
 import { A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
+import { canAccessCellContent } from '../../shortcuts/guards';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
 import {
   ROW_SELECTION_ANNOUNCE_COUNT,
@@ -235,8 +237,12 @@ function resolveGroupState(total: number, selected: number): number {
  * checkbox in the corner above it. Set `checkboxLocation` to `'firstColumn'` to render them in the
  * first visible column instead.
  *
- * The selection follows its rows when you sort, filter, move, add, or remove rows. Loading new data
- * clears it.
+ * The selection follows its rows when you sort, filter, move, add, or remove rows.
+ * {@link Core#loadData} clears it. {@link Core#updateData} keeps it by row position: the row at each
+ * selected position stays selected, whatever record the new data puts there. The framework wrappers
+ * call `updateData()` when you pass new `data`, so the selection survives an update that replaces the
+ * array. To start over after an update, call {@link RowSelection#deselectAll}. A selection kept in a
+ * checkbox column of the data (`checkboxLocation: { column }`) is read from the new data instead.
  *
  * You can set the following configuration options:
  *
@@ -491,6 +497,12 @@ export class RowSelection extends BasePlugin {
     // An edit renders before `afterChange` runs; the header state must be dropped, and the bound
     // column's rows marked, before that render.
     this.addHook('beforeChangeRender', this.#onBeforeChangeRender);
+
+    // `setSourceDataAtCell()`, which UndoRedo restores through, fires no `afterChange`. A listener
+    // makes core read the old value of every source write, so only a bound column adds one.
+    if (isPlainObject(this.#settings.checkboxLocation)) {
+      this.addHook('afterSetSourceDataAtCell', this.#onAfterSetSourceDataAtCell);
+    }
     this.addHook('afterSetCellMeta', this.#onCellMetaChange);
     this.addHook('afterRemoveCellMeta', this.#onCellMetaChange);
     // UndoRedo restores cell meta through the meta manager, which fires no `afterSetCellMeta`.
@@ -559,6 +571,7 @@ export class RowSelection extends BasePlugin {
     this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
     this.hot.columnIndexMapper.removeLocalHook('cacheUpdated', this.#invalidateBoundColumn);
     this.hot.rowIndexMapper.unregisterMap(this.pluginName!);
+    this.#removeHeaderCheckboxes();
 
     this.#selectedRowsMap = null;
     this.#settings = null;
@@ -1963,6 +1976,18 @@ export class RowSelection extends BasePlugin {
   }
 
   /**
+   * Removes the "select all" checkbox, and the classes that come with it, from every column header
+   * (overlays included). Core keeps a header's content on the next render and a disabled plugin runs
+   * no `afterGetColHeader`, so the checkbox would otherwise stay in the header with nothing behind it.
+   */
+  #removeHeaderCheckboxes() {
+    this.hot.rootElement.querySelectorAll<HTMLTableCellElement>(`th.${HEADER_CELL_CLASS}`).forEach((TH) => {
+      removeClass(TH, [HEADER_CELL_CLASS, CORNER_CELL_CLASS, CHECKBOX_ONLY_CELL_CLASS]);
+      this.#removeCheckbox(TH.firstChild as HTMLElement | null);
+    });
+  }
+
+  /**
    * The state the checkbox of a row shows. A row that shows no checkbox (`checkboxes` returns
    * `false` for it, or `hideDisabledCheckboxes` hides it) gets `hidden: true`: in the first column
    * location a hidden placeholder keeps the cell values from shifting between rows. A hidden checkbox
@@ -2058,7 +2083,7 @@ export class RowSelection extends BasePlugin {
 
         return false;
       },
-      runOnlyIf: () => this.#isHighlightOnCheckbox(),
+      runOnlyIf: () => canAccessCellContent(this.hot) && this.#isHighlightOnCheckbox(),
       relativeToGroup: SHORTCUTS_GROUP_EDITOR,
       position: 'before',
       group: SHORTCUTS_GROUP,
@@ -2075,7 +2100,7 @@ export class RowSelection extends BasePlugin {
 
         return false;
       },
-      runOnlyIf: () => this.#isHighlightOnDataCell(),
+      runOnlyIf: () => canAccessCellContent(this.hot) && this.#isHighlightOnDataCell(),
       relativeToGroup: SHORTCUTS_GROUP_EDITOR,
       position: 'before',
       group: SHORTCUTS_GROUP,
@@ -2158,12 +2183,14 @@ export class RowSelection extends BasePlugin {
     const changed = selected.length + deselected.length;
     let message: unknown;
 
-    if (changed === 1) {
-      const visualRow = this.hot.toVisualRow(selected[0] ?? deselected[0]);
+    // A row with no visual index (filtered out, picked up by `selectAll: 'all'`) cannot be named:
+    // the count is announced instead.
+    const visualRow = changed === 1 ? this.hot.toVisualRow(selected[0] ?? deselected[0]) : null;
 
+    if (visualRow !== null) {
       message = this.hot.getTranslatedPhrase(
         selected.length === 1 ? ROW_SELECTION_ANNOUNCE_ROW_SELECTED : ROW_SELECTION_ANNOUNCE_ROW_DESELECTED,
-        { row: (visualRow ?? 0) + 1 },
+        { row: visualRow + 1 },
       );
     } else {
       this.#headerSummaryCache = null;
@@ -2713,9 +2740,15 @@ export class RowSelection extends BasePlugin {
    * @param {Array} changes The changes, `[row, prop, oldValue, newValue]`.
    * @param {boolean} compareWithData `true` in `beforeChange`, where the data still holds the value
    * before the change; `false` in `afterChange`, where the change's own old value is used.
+   * @param {Function} [toPhysicalRow] Resolves a change's row to a physical row. Defaults to the visual
+   * to physical translation; source-data changes already carry physical rows.
    * @returns {object|null} The physical rows that get selected and deselected, and the change indexes.
    */
-  #collectBoundFlips(changes: Array<unknown[] | null>, compareWithData: boolean) {
+  #collectBoundFlips(
+    changes: Array<unknown[] | null>,
+    compareWithData: boolean,
+    toPhysicalRow: (row: number) => number | null = row => this.hot.toPhysicalRow(row),
+  ) {
     const boundColumn = this.getBoundColumn();
 
     if (boundColumn === null || !Array.isArray(changes)) {
@@ -2732,7 +2765,7 @@ export class RowSelection extends BasePlugin {
         return;
       }
 
-      const physicalRow = this.hot.toPhysicalRow(change[0] as number);
+      const physicalRow = toPhysicalRow(change[0] as number);
 
       if (physicalRow === null) {
         return;
@@ -2753,6 +2786,36 @@ export class RowSelection extends BasePlugin {
   }
 
   /**
+   * Reports a `setSourceDataAtCell()` write to the bound column, an undo or redo of a bound selection
+   * change included, as a selection change. It runs before the write's render.
+   *
+   * @param {Array} changes The changes, `[physicalRow, prop, oldValue, newValue]` each.
+   * @param {string} [source] The change source.
+   */
+  #onAfterSetSourceDataAtCell = (changes: Array<unknown[] | null>, source?: string) => {
+    if (!Array.isArray(changes) || !this.#affectsSelectionState(changes)) {
+      return;
+    }
+
+    this.#invalidateHeaderSummary();
+    this.hot.markAllCellsChanged();
+
+    // The plugin's own write reaches the filtered-out rows this way; `#writeBoundColumn()` reports them.
+    if (source === BOUND_WRITE_SOURCE) {
+      return;
+    }
+
+    const rowsCount = this.hot.rowIndexMapper.getNumberOfIndexes();
+    const flips = this.#collectBoundFlips(changes, false, row => (
+      Number.isInteger(row) && row >= 0 && row < rowsCount ? row : null
+    ));
+
+    if (flips) {
+      this.#notifyChange(flips.selected, flips.deselected, 'dataChange');
+    }
+  };
+
+  /**
    * Maps a change source to the row selection source the hooks report.
    *
    * @param {string} source The change source.
@@ -2769,6 +2832,7 @@ export class RowSelection extends BasePlugin {
   #onMapChange = () => {
     this.#headerSummaryCache = null;
     this.#groupTree = null;
+    this.#drawRowChecks = null;
   };
 
   /**
@@ -2820,7 +2884,10 @@ export class RowSelection extends BasePlugin {
   };
 
   /**
-   * A new dataset starts with no selection: the index mapper rebuilds the map with its default value.
+   * `loadData()` starts with no selection: the index mapper rebuilds the map with its default value.
+   * `updateData()` keeps it, flag by physical row: the index mapper only fits the map to the new length,
+   * as it keeps the hidden and trimmed rows. The wrappers send every new `data` prop through
+   * `updateData()`, so an application that replaces the array on every edit keeps its selection.
    */
   #onAfterLoadData = () => {
     this.#anchorPhysicalRow = null;
@@ -2829,8 +2896,8 @@ export class RowSelection extends BasePlugin {
     // New data can change the props the bound column is resolved from.
     this.#boundColumnCache = undefined;
 
-    // A server-backed grid loads every page: the selection lives on by row id. Any other grid starts
-    // over (the index mapper rebuilt the map with its default value).
+    // A server-backed grid loads every page: the selection lives on by row id. Any other grid keeps
+    // what the index mapper left in the map (nothing after `loadData()`, the same rows after `updateData()`).
     if (this.#isServerMode()) {
       this.#hydrateFromRowIds();
     } else {

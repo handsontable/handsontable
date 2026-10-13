@@ -390,4 +390,38 @@ describe('RowSelection bound to a checkbox column', () => {
 
     destroy();
   });
+
+  it('should report a `setSourceDataAtCell()` write to the column, and refresh the "select all" state', () => {
+    const afterRowSelectionChange = jest.fn();
+    const { hot, plugin, destroy } = createGrid({ afterRowSelectionChange });
+
+    expect(plugin.getHeaderCheckboxState()).toEqual({ state: 'mixed', selected: 1, total: 5 });
+
+    hot.setSourceDataAtCell(0, 'selected', true);
+
+    expect(plugin.getSelectedRows()).toEqual([0, 2]);
+    expect(plugin.getHeaderCheckboxState()).toEqual({ state: 'mixed', selected: 2, total: 5 });
+    expect(afterRowSelectionChange).toHaveBeenLastCalledWith([0], [], 'dataChange');
+
+    hot.setSourceDataAtCell(1, 'id', 100);
+
+    expect(afterRowSelectionChange).toHaveBeenCalledTimes(1);
+
+    destroy();
+  });
+
+  it('should report a filtered-out row its own write reaches through the source data only once', () => {
+    const afterRowSelectionChange = jest.fn();
+    const { hot, plugin, destroy } = createGrid({ afterRowSelectionChange, filters: true });
+    const filters = hot.getPlugin('filters');
+
+    filters.addCondition(0, 'lt', [2]);
+    filters.filter();
+    plugin.selectAll();
+
+    expect(afterRowSelectionChange).toHaveBeenCalledTimes(1);
+    expect(afterRowSelectionChange.mock.calls[0][0].sort()).toEqual([0, 1, 3, 4]);
+
+    destroy();
+  });
 });
