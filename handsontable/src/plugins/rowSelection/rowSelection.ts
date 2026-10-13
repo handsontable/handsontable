@@ -493,6 +493,11 @@ export class RowSelection extends BasePlugin {
     this.addHook('beforeChangeRender', this.#onBeforeChangeRender);
     this.addHook('afterSetCellMeta', this.#onCellMetaChange);
     this.addHook('afterRemoveCellMeta', this.#onCellMetaChange);
+    // UndoRedo restores cell meta through the meta manager, which fires no `afterSetCellMeta`.
+    this.addHook('beforeUndo', this.#onCellMetaChange);
+    this.addHook('beforeRedo', this.#onCellMetaChange);
+    this.addHook('afterUndo', this.#onCellMetaChange);
+    this.addHook('afterRedo', this.#onCellMetaChange);
     this.addHook('afterUpdateSettings', this.#invalidateBoundColumn);
     this.addHook('afterRowsMutation', this.#onAfterRowsMutation);
     this.addHook('afterLoadData', this.#onAfterLoadData);
@@ -2674,7 +2679,9 @@ export class RowSelection extends BasePlugin {
 
   /**
    * Drops the "select all" state when `setCellMeta()` or `removeCellMeta()` changes a cell's meta in
-   * bound mode: a bound cell's `readOnly` and `type` decide whether its row is selectable.
+   * bound mode, or an undo or a redo may have restored one: a bound cell's `readOnly` and `type` decide
+   * whether its row is selectable. Both sides of the undo are covered, as in CheckboxHeader: the render
+   * inside the undo runs between them.
    */
   #onCellMetaChange = () => {
     if (this.getBoundColumn() !== null) {

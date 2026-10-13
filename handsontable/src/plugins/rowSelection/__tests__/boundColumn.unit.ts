@@ -303,6 +303,36 @@ describe('RowSelection bound to a checkbox column', () => {
     destroy();
   });
 
+  it('should refresh the "select all" state on an undo and a redo of the Read only menu item', () => {
+    const { hot, plugin, destroy } = createGrid({ contextMenu: true, undoRedo: true });
+
+    expect(plugin.getHeaderCheckboxState()).toEqual({ state: 'mixed', selected: 1, total: 5 });
+
+    hot.selectCell(0, 1);
+    hot.getPlugin('contextMenu').executeCommand('make_read_only');
+
+    expect(hot.getCellMeta(0, 1).readOnly).toBe(true);
+    expect(plugin.getHeaderCheckboxState()).toEqual({ state: 'mixed', selected: 1, total: 4 });
+
+    // UndoRedo restores the meta through the meta manager, which fires no `afterSetCellMeta`.
+    hot.getPlugin('undoRedo').undo();
+
+    expect(hot.getCellMeta(0, 1).readOnly).toBeFalsy();
+    expect(plugin.getHeaderCheckboxState()).toEqual({ state: 'mixed', selected: 1, total: 5 });
+
+    hot.getPlugin('undoRedo').redo();
+
+    expect(hot.getCellMeta(0, 1).readOnly).toBe(true);
+    expect(plugin.getHeaderCheckboxState()).toEqual({ state: 'mixed', selected: 1, total: 4 });
+
+    // A header press acts on the fresh state: the read-only row stays unchecked.
+    plugin.toggleAll();
+
+    expect(plugin.getSelectedRows()).toEqual([1, 2, 3, 4]);
+
+    destroy();
+  });
+
   it('should follow the bound column when the columns move or change', () => {
     const { hot, plugin, destroy } = createGrid({ manualColumnMove: true });
 

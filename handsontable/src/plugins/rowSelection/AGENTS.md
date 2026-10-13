@@ -87,7 +87,9 @@ from a "select all" checkbox (PRO-87, modeled on AG Grid's `rowSelection`). Read
   bound cell is not selectable, and `cells`/`columns` functions or `beforeGetCellMeta`/`afterGetCellMeta`
   listeners can derive that from any value of the row. `#affectsSelectionState()` therefore drops the
   "select all" cache on every edit while one of those exists (`#boundMetaMayReadData()`), and
-  `afterSetCellMeta`/`afterRemoveCellMeta` drop it in bound mode. Without them an edit of another
+  `afterSetCellMeta`/`afterRemoveCellMeta` drop it in bound mode, and so do `beforeUndo`/`afterUndo`/
+  `beforeRedo`/`afterRedo`: UndoRedo restores cell meta through the meta manager, which fires no
+  `afterSetCellMeta` (an undone Read only menu item kept the old total). Without them an edit of another
   column left the header total stale and a header press acted on it. Pinned by
   `__tests__/boundColumn.unit.ts`.
 - **The rendering hooks share one `RowChecks` per draw** (`#getDrawRowChecks()`). Scroll draws run no
