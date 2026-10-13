@@ -30,9 +30,9 @@ describe('InlineStartOverlay#getTableParentOffset', () => {
 
     return {
       trimmingContainer: windowOwnsAxis ? rootWindow : {},
-      mainTableScrollableElement: windowScrolls ? rootWindow : {},
       wtSettings: { getSetting: () => preventOverflow },
       isRtl: () => isRtl,
+      isScrolledByWindow: () => windowScrolls,
       deps: {
         rootWindow,
         getWtTable: () => ({ holderOffset: { left, top: 0 }, holderInlineStartMargin: margin }),
@@ -46,6 +46,10 @@ describe('InlineStartOverlay#getTableParentOffset', () => {
 
   it('should return the left offset in LTR', () => {
     expect(offsetOf(createStub({ isRtl: false, left: 40 }))).toBe(40);
+  });
+
+  it('should return 0 in LTR while the holder, not the window, scrolls the columns', () => {
+    expect(offsetOf(createStub({ isRtl: false, left: 200, windowScrolls: false }))).toBe(0);
   });
 
   it('should return the right-hand margin the draw measured in RTL, and not the left offset', () => {

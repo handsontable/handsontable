@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the layout of a grid that scrolls its columns in its own box while the page offsets it from the inline-start edge (an ancestor with `overflow-y: clip` or `preventOverflow: 'vertical'`, in left-to-right and right-to-left pages): the first visible column, the rendered columns, the stretched column widths, and the scroll position of a selected cell no longer include the offset.",
+  "type": "fixed",
+  "issueOrPR": 13810,
+  "breaking": false,
+  "framework": "none"
+}

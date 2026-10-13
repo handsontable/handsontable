@@ -1872,6 +1872,24 @@ the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsE
   master draw next to `holderOffset` (a right edge stays put when a draw widens the table, a left one moves). It
   does not depend on the scroll position, and it is `0` while the holder, not the window, scrolls the columns.
   `tests/e2e/rtl-shrink-wrapped-grid-scroll.spec.ts` pins it; the RTL block layout alone cannot catch it.
+- **The page offset counts only while the window scrolls the columns, in LTR too.** In the reverse split (an
+  ancestor with `overflow-y: clip`, or `preventOverflow: 'vertical'`) `trimmingContainer` is the window but the
+  holder scrolls, and the margin in front of the grid is not part of `holder.scrollLeft`. `getTableParentOffset`
+  therefore returns `0` unless `mainTableScrollableElement` is the window, as `TopOverlay` and `BottomOverlay`
+  already did for the vertical axis (`preventOverflow` already returned `0`). The same split decides
+  `measureWorkspaceWidth`: it takes `documentElement.clientWidth` only while the window scrolls the columns,
+  otherwise the holder's own width. Without that, a grid offset from the page edge rendered columns for a
+  workspace as wide as the page (two more, for a 200px offset and 100px columns), reported the wrong last visible
+  column, and `stretchH` spread the columns over the page width when the header plus the columns sat between
+  the holder width and the page width. That half also applies to `preventOverflow: 'vertical'`.
+  The same offset feeds `getOverlayOffset()`, which `manualColumnMove` reads to place the column-move backlight:
+  in the reverse split it is the raw holder scroll position (the backlight lives in the scrolling master), not that
+  minus the page offset. Ask `Overlay#isScrolledByWindow()` for "does the window scroll the columns"; do not compare
+  `trimmingContainer` or repeat the `mainTableScrollableElement` check. `measureHasHorizontalScroll` and
+  `InlineStartOverlay#adjustRootElementSize` still go through `isHorizontallyScrollableByWindow()`, which asks the axis
+  owner.
+  `tests/e2e/page-offset-reverse-split.spec.ts` pins both, each offset layout against its no-offset twin of the
+  same holder width.
 - **Ask the scroller, not the axis owner, whether the window holds the end clone.**
   `InlineEndOverlay#isScrolledByWindow` reads `mainTableScrollableElement`, and the end corners call it too.
   The horizontal axis owner (`trimmingContainer`) is the window in the reverse split (`preventOverflow:
