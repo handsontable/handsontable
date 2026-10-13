@@ -86,7 +86,7 @@ export class InlineStartOverlay extends Overlay {
     const rail = this.getRail();
     let overlayPosition = 0;
 
-    if (this.trimmingContainer === rootWindow) {
+    if (this.trimmingContainer === rootWindow && this.isScrolledByWindow()) {
       overlayPosition = this.getOverlayOffset() * (this.isRtl() ? -1 : 1);
       // Held at the viewport's inline-start edge by the browser, never by this listener (DEV-127).
       // The block axis is the page's: this clone mirrors the master's rows and scrolls with them.

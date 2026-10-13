@@ -11,6 +11,7 @@ export interface PageOffsetLayout {
   preventOverflow?: 'vertical';
   margin?: number;
   fixedColumnsStart?: number;
+  fixedRowsBottom?: number;
   stretchH?: 'all';
   /**
    * How many 100px columns the grid has; 100 when omitted.
@@ -49,7 +50,28 @@ export interface PageOffsetMetrics {
   cloneInset: number | null;
 }
 
+/**
+ * The sizes and scroll positions of the clones and of the page, read after the holder scrolled to the bottom.
+ */
+export interface CloneGeometry {
+  inlineStartCloneHeight: number;
+  topCloneWidth: number;
+  /**
+   * The bottom clone's width, or null when the grid has no frozen bottom rows.
+   */
+  bottomCloneWidth: number | null;
+  holderScrollTop: number;
+  inlineStartCloneScrollTop: number;
+  documentScrollWidth: number;
+  documentClientWidth: number;
+  /**
+   * The bottom inline-start corner's box (left, top, width, height), or null when it does not render.
+   */
+  bottomCorner: number[] | null;
+}
+
 interface FixtureHot {
+  getSelectedLast(): number[] | undefined;
   selectCell(row: number, col: number): void;
   getFirstFullyVisibleColumn(): number;
   getLastFullyVisibleColumn(): number;
@@ -232,5 +254,65 @@ export class PageOffsetReverseSplitPage {
         cloneInset: clone ? inset(clone.getBoundingClientRect()) : null,
       };
     });
+  }
+
+  /**
+   * Scrolls the holder to the bottom, lets the draws settle, and reads the clone geometry.
+   */
+  async cloneGeometry(): Promise<CloneGeometry> {
+    await this.page.evaluate(() => {
+      const hot = (window as unknown as { hot: FixtureHot }).hot;
+
+      hot.view._wt.wtTable.holder.scrollTop = 1e6;
+    });
+    await this.settle();
+
+    return this.page.evaluate(() => {
+      const hot = (window as unknown as { hot: FixtureHot }).hot;
+      const box = (selector: string) => document.querySelector<HTMLElement>(selector);
+      const corner = box('.ht_clone_bottom_inline_start_corner')?.getBoundingClientRect();
+      const bottom = box('.ht_clone_bottom');
+
+      return {
+        inlineStartCloneHeight: box('.ht_clone_inline_start')?.offsetHeight ?? NaN,
+        topCloneWidth: box('.ht_clone_top')?.offsetWidth ?? NaN,
+        bottomCloneWidth: bottom ? bottom.offsetWidth : null,
+        holderScrollTop: hot.view._wt.wtTable.holder.scrollTop,
+        inlineStartCloneScrollTop: box('.ht_clone_inline_start .wtHolder')?.scrollTop ?? NaN,
+        documentScrollWidth: document.documentElement.scrollWidth,
+        documentClientWidth: document.documentElement.clientWidth,
+        bottomCorner: corner ? [corner.left, corner.top, corner.width, corner.height].map(Math.round) : null,
+      };
+    });
+  }
+
+  /**
+   * Presses the mouse on a cell, then moves the held pointer through the points inside the page offset gap
+   * (x measured from the inline-start edge of the page) and reads the selection's end cell after each move.
+   */
+  async dragThroughGap(points: [number, number][]): Promise<string[]> {
+    const rtl = await this.page.evaluate(() => document.documentElement.dir === 'rtl');
+    const viewportWidth = this.page.viewportSize()?.width ?? 0;
+    const box = await this.page.getByTestId('cell-2-1').first().boundingBox();
+
+    expect(box, 'the start cell is rendered').not.toBeNull();
+    await this.page.mouse.move((box?.x ?? 0) + 5, (box?.y ?? 0) + 5);
+    await this.page.mouse.down();
+
+    const ends: string[] = [];
+
+    for (const [x, y] of points) {
+      await this.page.mouse.move(rtl ? viewportWidth - x : x, y, { steps: 3 });
+      await this.settle();
+      ends.push(await this.page.evaluate(() => {
+        const range = (window as unknown as { hot: FixtureHot }).hot.getSelectedLast();
+
+        return range ? `${range[2]},${range[3]}` : 'none';
+      }));
+    }
+
+    await this.page.mouse.up();
+
+    return ends;
   }
 }

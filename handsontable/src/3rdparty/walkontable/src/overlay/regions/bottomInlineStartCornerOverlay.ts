@@ -91,7 +91,8 @@ export class BottomInlineStartCornerOverlay extends Overlay {
 
     const overlayRoot = clone.wtTable.holder.parentNode as HTMLElement;
     const rail = this.getRail();
-    const inlineOnWindow = this.inlineStartOverlay.trimmingContainer === rootWindow;
+    const inlineOnWindow = this.inlineStartOverlay.trimmingContainer === rootWindow &&
+      this.inlineStartOverlay.isScrolledByWindow();
     const blockOnWindow = this.bottomOverlay.trimmingContainer === rootWindow;
     // This corner travels on both axes the window owns (DEV-127 sideways, DEV-126 up and down). A
     // corner that does not render stays out of the rail, as `reset()` left it, and keeps the insets
