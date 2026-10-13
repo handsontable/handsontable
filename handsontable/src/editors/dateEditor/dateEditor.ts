@@ -5,7 +5,7 @@ import { isValidISODate } from '../../helpers/dateTime';
 import { warn, warnOnce } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { isEmpty } from '../../helpers/mixed';
-import { showNativePicker } from '../utils/showNativePicker';
+import { hideNativePicker, showNativePicker } from '../utils/showNativePicker';
 
 export const EDITOR_TYPE = 'date';
 
@@ -200,13 +200,7 @@ export class DateEditor extends TextEditor {
   close(): void {
     super.close();
 
-    try {
-      if (this.TEXTAREA.matches(':open')) {
-        this.TEXTAREA.blur();
-      }
-    } catch {
-      // Engines without the `:open` pseudo-class (WebKit) throw on the selector
-    }
+    hideNativePicker(this.TEXTAREA as HTMLInputElement);
   }
 
   /**

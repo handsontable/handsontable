@@ -21,3 +21,21 @@ export function showNativePicker(input: HTMLInputElement, event?: Event): void {
     // `showPicker()` throws without a user gesture, for example in tests.
   }
 }
+
+/**
+ * Dismisses the native picker of a date, time, or datetime-local input that is still shown.
+ *
+ * There is no API to hide the picker, and Firefox keeps it open after the editor closes. Blurring the
+ * input dismisses it.
+ *
+ * @param {HTMLInputElement} input The editor's native input.
+ */
+export function hideNativePicker(input: HTMLInputElement): void {
+  try {
+    if (input.matches(':open')) {
+      input.blur();
+    }
+  } catch {
+    // Engines without the `:open` pseudo-class (WebKit) throw on the selector
+  }
+}

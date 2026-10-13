@@ -1,4 +1,4 @@
-import { showNativePicker } from '../showNativePicker';
+import { showNativePicker, hideNativePicker } from '../showNativePicker';
 
 describe('showNativePicker', () => {
   const makeInput = () => {
@@ -49,5 +49,39 @@ describe('showNativePicker', () => {
     });
 
     expect(() => showNativePicker(input, new MouseEvent('dblclick'))).not.toThrow();
+  });
+});
+
+describe('hideNativePicker', () => {
+  it('blurs the input while its picker is open', () => {
+    const input = document.createElement('input');
+
+    input.matches = jest.fn(() => true);
+    input.blur = jest.fn();
+
+    hideNativePicker(input);
+
+    expect(input.blur).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves the input alone when no picker is open', () => {
+    const input = document.createElement('input');
+
+    input.matches = jest.fn(() => false);
+    input.blur = jest.fn();
+
+    hideNativePicker(input);
+
+    expect(input.blur).not.toHaveBeenCalled();
+  });
+
+  it('swallows the error of an engine without the `:open` selector', () => {
+    const input = document.createElement('input');
+
+    input.matches = jest.fn(() => {
+      throw new SyntaxError('not a valid selector');
+    });
+
+    expect(() => hideNativePicker(input)).not.toThrow();
   });
 });

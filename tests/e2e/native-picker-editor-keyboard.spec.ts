@@ -14,7 +14,7 @@ const EDITORS = [
   { name: 'intl-datetime', col: 5, key: 'Shift+Tab', expectedCol: 4 },
 ];
 
-test.describe('the native picker editors opened with the keyboard', { tag: CROSS_BROWSER_TAG }, () => {
+test.describe('the native picker editors', { tag: CROSS_BROWSER_TAG }, () => {
   let grid: DateEditorPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {
@@ -23,6 +23,22 @@ test.describe('the native picker editors opened with the keyboard', { tag: CROSS
   });
 
   for (const { name, col, key, expectedCol } of EDITORS) {
+    test(`${name}: Escape after a double-click closes the editor and its picker`, async({ page, browserName }) => {
+      await grid.cell(0, col).dblclick();
+      await expect(grid.openInput).toBeFocused();
+
+      // Chromium's first Escape closes only the picker, so press until the editor is gone.
+      await expect(async() => {
+        await page.keyboard.press('Escape');
+        expect(await grid.isEditorOpened()).toBe(false);
+      }).toPass();
+
+      if (browserName !== 'webkit') {
+        // WebKit does not match `:open` for a native picker.
+        await expect(page.locator('input.handsontableInput:open')).toHaveCount(0);
+      }
+    });
+
     test(`${name}: ${key} after Enter commits and moves the selection`, async({ page }) => {
       await grid.openEditorWithEnter(0, col);
       await expect(grid.openInput).toBeFocused();

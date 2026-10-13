@@ -2,7 +2,7 @@ import { TextEditor } from '../textEditor';
 import { isValidTime } from '../../helpers/dateTime';
 import { warn } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
-import { showNativePicker } from '../utils/showNativePicker';
+import { hideNativePicker, showNativePicker } from '../utils/showNativePicker';
 
 export const EDITOR_TYPE = 'time';
 
@@ -73,6 +73,18 @@ export class TimeEditor extends TextEditor {
   focus(): void {
     this.TEXTAREA.focus({ preventScroll: true });
     this.TEXTAREA.select();
+  }
+
+  /**
+   * Closes the editor and the native picker it showed.
+   *
+   * The blur comes after the base `close()`, which hands the keyboard back to the grid while the input
+   * still has the focus.
+   */
+  close(): void {
+    super.close();
+
+    hideNativePicker(this.TEXTAREA as HTMLInputElement);
   }
 
   /**
