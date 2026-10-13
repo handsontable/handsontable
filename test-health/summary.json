@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-13T10:42:05.379Z",
+  "generatedAt": "2026-10-13T11:04:45.126Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 399,
     "needsTicket": 26,
     "quarantined": 0,
-    "entries": 2071
+    "entries": 2072
   },
   "rows": [
     {
@@ -545,14 +545,14 @@
       "file": "handsontable/src/editors/textEditor/__tests__/textEditor.spec.js",
       "line": null,
       "title": "TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
-      "count7": 4,
-      "count30": 6,
-      "countAll": 6,
-      "runs30": 4,
+      "count7": 5,
+      "count30": 7,
+      "countAll": 7,
+      "runs30": 5,
       "flakyRuns30": 0,
-      "branches30": 4,
+      "branches30": 5,
       "nightlyRuns30": 0,
-      "openBranches30": 4,
+      "openBranches30": 5,
       "legs": [
         "UMD (theme: classic)",
         "UMD (theme: main)",
@@ -566,10 +566,10 @@
       ],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-10-13T06:54:12Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38354795158/attempts/2",
-        "branch": "feature/DEV-3378_RTL-window-scrollbar-release-keeps-position",
-        "leg": "UMD (theme: main)",
+        "seenAt": "2026-10-13T11:03:53Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38384517117",
+        "branch": "feature/DEV-3402_Speed-up-jsdom-unit-tests",
+        "leg": "UMD.min (theme: horizon)",
         "status": "failed",
         "error": "Error: Timeout - Async function did not complete within 15000ms (set by jasmine.DEFAULT_TIMEOUT_INTERVAL)",
         "source": "ci"
