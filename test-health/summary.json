@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-13T09:01:35.039Z",
+  "generatedAt": "2026-10-13T09:10:16.650Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 395,
     "needsTicket": 25,
     "quarantined": 0,
-    "entries": 2057
+    "entries": 2058
   },
   "rows": [
     {
@@ -616,6 +616,39 @@
       "needsTicket": true
     },
     {
+      "key": "playwright|e2e/fixed-columns-end-core.spec.ts|fixedColumnsEnd editor rectangle (rtl) › puts the editor on the cell in the end column, the top corner and the bottom corner",
+      "tier": "playwright",
+      "file": "e2e/fixed-columns-end-core.spec.ts",
+      "line": 60,
+      "title": "fixedColumnsEnd editor rectangle (rtl) › puts the editor on the cell in the end column, the top corner and the bottom corner",
+      "count7": 4,
+      "count30": 4,
+      "countAll": 4,
+      "runs30": 2,
+      "flakyRuns30": 2,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "e2e-horizon"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-13T09:09:23Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38277718636/attempts/2",
+        "branch": "feature/DEV-3382_Visual-consolidation-close-out",
+        "leg": "e2e-horizon",
+        "status": "flaky",
+        "error": "Error: inline_end 5,29: top edge",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
       "key": "playwright|e2e/collapsible-indicator-dropdown-menu.spec.ts|collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
       "tier": "playwright",
       "file": "e2e/collapsible-indicator-dropdown-menu.spec.ts",
@@ -679,39 +712,6 @@
         "leg": "e2e-horizon-min",
         "status": "flaky",
         "error": "Error: expect(received).toBe(expected) // Object.is equality",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "playwright|e2e/fixed-columns-end-core.spec.ts|fixedColumnsEnd editor rectangle (rtl) › puts the editor on the cell in the end column, the top corner and the bottom corner",
-      "tier": "playwright",
-      "file": "e2e/fixed-columns-end-core.spec.ts",
-      "line": 60,
-      "title": "fixedColumnsEnd editor rectangle (rtl) › puts the editor on the cell in the end column, the top corner and the bottom corner",
-      "count7": 3,
-      "count30": 3,
-      "countAll": 3,
-      "runs30": 2,
-      "flakyRuns30": 2,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "e2e-horizon"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-12T16:52:19Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38277718636",
-        "branch": "feature/DEV-3382_Visual-consolidation-close-out",
-        "leg": "e2e-horizon",
-        "status": "flaky",
-        "error": "Error: inline_end 5,29: top edge",
         "source": "ci"
       },
       "needsTicket": true

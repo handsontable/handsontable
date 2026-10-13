@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-13T09:01:35.039Z",
+  "updatedAt": "2026-10-13T09:10:16.650Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-horizon",
+      "file": "e2e/fixed-columns-end-core.spec.ts",
+      "line": 60,
+      "title": "fixedColumnsEnd editor rectangle (rtl) › puts the editor on the cell in the end column, the top corner and the bottom corner",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: inline_end 5,29: top edge",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "38277718636",
+      "runAttempt": 2,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38277718636/attempts/2",
+      "workflow": "Tests",
+      "branch": "feature/DEV-3382_Visual-consolidation-close-out",
+      "headSha": "ef19f504662d6e624ecb0d82e2384cd7c3c241e1",
+      "event": "pull_request",
+      "seenAt": "2026-10-13T09:09:23Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-firefox",
