@@ -5,6 +5,7 @@ import { isValidISODate } from '../../helpers/dateTime';
 import { warn, warnOnce } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { isEmpty } from '../../helpers/mixed';
+import { hideNativePicker, showNativePicker } from '../utils/showNativePicker';
 
 export const EDITOR_TYPE = 'date';
 
@@ -179,22 +180,39 @@ export class DateEditor extends TextEditor {
   }
 
   /**
-   * Selects all text in the date input element when the editor receives focus.
+   * Focuses the date input element when the editor opens.
+   *
+   * Firefox does not move the focus on `select()` for a date input, so the focus is set explicitly.
+   * `preventScroll` keeps the page from jumping to the input.
    */
   focus(): void {
+    this.TEXTAREA.focus({ preventScroll: true });
     this.TEXTAREA.select();
   }
 
   /**
-   * Opens the editor and programmatically invokes the native date picker via showPicker().
+   * Closes the editor and the native date picker it opened.
+   *
+   * There is no API to hide the picker, and Firefox keeps it open after the editor closes. Blurring the
+   * input dismisses it. The blur comes after the base `close()`, which hands the keyboard back to the grid
+   * while the input still has the focus. A blur leaves the focus on the page body, so the focus goes back
+   * to the highlighted cell.
    */
-  open(): void {
-    super.open();
+  close(): void {
+    super.close();
 
-    try {
-      (this.TEXTAREA as HTMLInputElement).showPicker();
-    } catch {
-      // Prevents showPicker() user-gesture errors in tests
-    }
+    hideNativePicker(this.hot, this.TEXTAREA as HTMLInputElement);
+  }
+
+  /**
+   * Opens the editor and shows the native picker, unless a key opened the editor.
+   * A keyboard open leaves the picker closed so Tab and Escape keep reaching the grid.
+   *
+   * @param {Event} [event] The event that opened the editor.
+   */
+  open(event?: Event): void {
+    super.open(event);
+
+    showNativePicker(this.TEXTAREA as HTMLInputElement, event);
   }
 }

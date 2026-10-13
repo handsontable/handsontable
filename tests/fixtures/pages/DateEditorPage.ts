@@ -14,12 +14,17 @@ export class DateEditorPage {
   readonly theme: string;
   readonly bundle: string;
   readonly editorInput: Locator;
+  /**
+   * The visible native input of whichever editor is open, whatever its type (date, time, datetime-local).
+   */
+  readonly openInput: Locator;
 
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
     this.editorInput = page.locator('input[type="date"].handsontableInput');
+    this.openInput = page.locator('input.handsontableInput').filter({ visible: true });
   }
 
   /**
@@ -63,6 +68,17 @@ export class DateEditorPage {
         .hot.getSourceDataAtCell(r, c),
       [row, col]
     );
+  }
+
+  /**
+   * The `[row, col]` of the last selected cell.
+   */
+  async selectedCell(): Promise<number[]> {
+    return this.page.evaluate(() => {
+      const [row, col] = (window as unknown as { hot: { getSelectedLast: () => number[] } }).hot.getSelectedLast();
+
+      return [row, col];
+    });
   }
 
   /**

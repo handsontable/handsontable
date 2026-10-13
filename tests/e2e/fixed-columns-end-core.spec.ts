@@ -52,7 +52,14 @@ for (const direction of ['ltr', 'rtl'] as const) {
       await grid.press('Enter');
       await expect.poll(() => grid.isEditorOpened()).toBe(true);
       expect(await grid.overlayOf(row, col), `overlay of ${row},${col}`).toBe(overlay);
-      expectEditorOnCell(await grid.editorBox(), await grid.cellBox(row, col), rtl, `${overlay} ${row},${col}`);
+      // The editor and the cell in one read, polled until the clone that draws the cell has caught up with the
+      // master: opening the editor scrolls row 5 out from under the bottom rows on horizon (DEV-3399).
+      await expect(async () => {
+        const { editor, cell, inSync } = await grid.editorAndCellBoxes(row, col);
+
+        expect(inSync, `${overlay} ${row},${col}: the clone has caught up with the master`).toBe(true);
+        expectEditorOnCell(editor, cell, rtl, `${overlay} ${row},${col}`);
+      }).toPass({ timeout: 10_000 });
       await grid.press('Escape');
       await expect.poll(() => grid.isEditorOpened()).toBe(false);
     };

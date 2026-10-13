@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the selection of a merged cell that reaches into `fixedColumnsEnd`, so the frozen part is filled and outlined and shows the fill handle. `getCell(row, column, true)` now returns the cell of the frozen part for such a block instead of `null`.",
+  "type": "fixed",
+  "issueOrPR": 13819,
+  "breaking": false,
+  "framework": "none"
+}

@@ -91,6 +91,6 @@ export default class GlobalMeta {
     extendByMetaType(this.meta, {
       ...normalizedSettings,
       type: normalizedSettings.type ?? this.meta.type,
-    }, normalizedSettings);
+    }, normalizedSettings, settings.editor === true);
   }
 }

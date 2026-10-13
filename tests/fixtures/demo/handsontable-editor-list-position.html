@@ -70,6 +70,16 @@
     if (window.htInset === undefined) {
       throw new Error('Unknown ?inset= value: ' + JSON.stringify(htParams.get('inset')));
     }
+    // `?pairRows=N` (multiselect only) replaces the single column with two: column 0 with a 30-entry source
+    // and column 1 with an N-entry source, both with `visibleRows: N`, so a cell in column 0 and one in
+    // column 1 of the same row share their top and differ only in the source's length.
+    window.htPairRows = Number(htParams.get('pairRows') ?? 0);
+    if (!Number.isInteger(window.htPairRows) || window.htPairRows < 0) {
+      throw new Error('Unknown ?pairRows= value: ' + JSON.stringify(htParams.get('pairRows')));
+    }
+    if (window.htPairRows && window.htType !== 'multiselect') {
+      throw new Error('?pairRows= needs ?type=multiselect');
+    }
     window.htWrap = htWraps[htParams.get('wrap') ?? 'none'];
     if (window.htWrap === undefined) {
       throw new Error('Unknown ?wrap= value: ' + JSON.stringify(htParams.get('wrap')));
@@ -87,6 +97,8 @@
     `?type=autocomplete` opens the `autocomplete` editor with `trimDropdown: false`, so its list is
     wider than the cell. `?type=multiselect` opens the `multiselect` editor, which places its list with its own code
     (`MultiSelectEditor#refreshDimensions`) but applies the same horizontal rule in both layouts.
+    `?type=multiselect&pairRows=N` builds two columns instead, one with a 30-entry source and one with an
+    N-entry source (both `visibleRows: N`), to compare the side the list takes for a long and a short source.
 
     `window`: the grid has no width or height, so it is as large as its 100 x 50 cells and the PAGE
     scrolls both ways. The flip then measures the free space from the viewport, through
@@ -159,6 +171,15 @@
         },
       },
     };
+
+    if (window.htType === 'multiselect' && window.htPairRows) {
+      const entries = count => Array.from({ length: count }, (_, index) => `Option number ${index + 1}`);
+      const pairColumn = count => ({
+        type: 'multiselect', source: entries(count), visibleRows: window.htPairRows, renderer: testIdRenderer,
+      });
+
+      editorSettings.multiselect = { columns: [pairColumn(30), pairColumn(window.htPairRows)] };
+    }
 
     // Fail loud: a constructor that throws must not leave the page looking like a grid that simply
     // has not rendered yet. The message is stamped on the container and the page object rethrows it,

@@ -19,18 +19,13 @@ test.describe('the date editor and an incomplete date', { tag: CROSS_BROWSER_TAG
     await grid.goto();
   });
 
-  test('keeps the cell\'s date when a typed digit opens the editor and Enter commits it', async({ page, browserName }) => {
+  test('keeps the cell\'s date when a typed digit opens the editor and Enter commits it', async({ page }) => {
     await grid.selectCell(0, 1);
     await page.keyboard.press('1');
     await expect.poll(() => grid.isEditorOpened()).toBe(true);
 
     // The input cannot take the character, so it holds nothing.
     await expect(grid.editorInput).toHaveValue('');
-
-    if (browserName === 'chromium') {
-      // The picker is open and would take the Enter.
-      await page.keyboard.press('Escape');
-    }
 
     await page.keyboard.press('Enter');
 
@@ -55,15 +50,10 @@ test.describe('the date editor and an incomplete date', { tag: CROSS_BROWSER_TAG
     await expect(grid.cell(0, 1)).toHaveText('6/10/24');
   });
 
-  test('keeps the cell\'s date when a typed letter opens the editor and Enter commits it', async({ page, browserName }) => {
+  test('keeps the cell\'s date when a typed letter opens the editor and Enter commits it', async({ page }) => {
     await grid.selectCell(0, 1);
     await page.keyboard.press('a');
     await expect.poll(() => grid.isEditorOpened()).toBe(true);
-
-    if (browserName === 'chromium') {
-      // The picker is open and would take the Enter.
-      await page.keyboard.press('Escape');
-    }
 
     await page.keyboard.press('Enter');
 
@@ -71,13 +61,7 @@ test.describe('the date editor and an incomplete date', { tag: CROSS_BROWSER_TAG
     expect(await grid.sourceAt(0, 1)).toBe('2024-06-10');
   });
 
-  test('keeps the cell\'s date when a typed letter opens the editor and Tab leaves it', async({ page, browserName }) => {
-    // Chromium's Tab moves between the segments of the open input and never leaves the editor, so there
-    // is no commit to check there. The Tab commit is Firefox and WebKit's.
-    if (browserName === 'chromium') {
-      return;
-    }
-
+  test('keeps the cell\'s date when a typed letter opens the editor and Tab leaves it', async({ page }) => {
     await grid.selectCell(0, 1);
     await page.keyboard.press('a');
     await expect.poll(() => grid.isEditorOpened()).toBe(true);
@@ -87,14 +71,10 @@ test.describe('the date editor and an incomplete date', { tag: CROSS_BROWSER_TAG
     expect(await grid.sourceAt(0, 1)).toBe('2024-06-10');
   });
 
-  test('keeps the cell\'s date after a typed digit and a switch to full edit mode, without badInput', async({ page, browserName }) => {
+  test('keeps the cell\'s date after a typed digit and a switch to full edit mode, without badInput', async({ page }) => {
     await grid.selectCell(0, 1);
     await page.keyboard.press('1');
     await expect.poll(() => grid.isEditorOpened()).toBe(true);
-
-    if (browserName === 'chromium') {
-      await page.keyboard.press('Escape');
-    }
 
     // Firefox does not flag the empty input as bad, so only the editor's own state can tell.
     await grid.hideBadInput();
@@ -109,13 +89,9 @@ test.describe('the date editor and an incomplete date', { tag: CROSS_BROWSER_TAG
     await expect(grid.cell(0, 1)).toHaveText('6/10/24');
   });
 
-  test('does not carry a seeded date into the next session on the same cell', async({ page, browserName }) => {
+  test('does not carry a seeded date into the next session on the same cell', async({ page }) => {
     // Escape closes the editor without moving the selection, so the editor is not prepared again.
     await grid.openEditorWithEnter(0, 1);
-
-    if (browserName === 'chromium') {
-      await page.keyboard.press('Escape');
-    }
 
     await page.keyboard.press('ArrowUp');
     await page.keyboard.press('Escape');
@@ -125,22 +101,14 @@ test.describe('the date editor and an incomplete date', { tag: CROSS_BROWSER_TAG
     await expect.poll(() => grid.isEditorOpened()).toBe(true);
     await grid.hideBadInput();
 
-    if (browserName === 'chromium') {
-      await page.keyboard.press('Escape');
-    }
-
     await page.keyboard.press('Enter');
 
     await expect.poll(() => grid.isEditorOpened()).toBe(false);
     expect(await grid.sourceAt(0, 1)).toBe('2024-06-10');
   });
 
-  test('still clears the cell when the input is cleared on purpose', async({ page, browserName }) => {
+  test('still clears the cell when the input is cleared on purpose', async({ page }) => {
     await grid.openEditorWithEnter(0, 1);
-
-    if (browserName === 'chromium') {
-      await page.keyboard.press('Escape');
-    }
 
     await grid.editorInput.fill('');
     await page.keyboard.press('Enter');
@@ -149,12 +117,8 @@ test.describe('the date editor and an incomplete date', { tag: CROSS_BROWSER_TAG
     expect(await grid.sourceAt(0, 1)).toBe('');
   });
 
-  test('still commits a complete date entered into the input', async({ page, browserName }) => {
+  test('still commits a complete date entered into the input', async({ page }) => {
     await grid.openEditorWithEnter(0, 1);
-
-    if (browserName === 'chromium') {
-      await page.keyboard.press('Escape');
-    }
 
     await grid.editorInput.fill('2021-06-15');
     await page.keyboard.press('Enter');
@@ -166,9 +130,8 @@ test.describe('the date editor and an incomplete date', { tag: CROSS_BROWSER_TAG
 });
 
 /**
- * Clearing one segment of the open input. Chromium only: the picker's keyboard is the engine's own, and
- * headless Firefox does not clear a segment of the open input at all, so there is no incomplete date to
- * commit there. In Chromium, Escape closes the picker and leaves the editor open.
+ * Clearing one segment of the open input. Chromium only: headless Firefox does not clear a segment of the
+ * open input at all, so there is no incomplete date to commit there.
  */
 test.describe('the date editor and a segment cleared from the open input', () => {
   let grid: DateEditorPage;
@@ -179,11 +142,10 @@ test.describe('the date editor and a segment cleared from the open input', () =>
   });
 
   /**
-   * Opens the editor on a cell, closes the picker, and clears one segment of the date.
+   * Opens the editor on a cell and clears one segment of the date.
    */
   async function clearSegment(page: import('@playwright/test').Page, row: number, col: number): Promise<void> {
     await grid.openEditorWithEnter(row, col);
-    await page.keyboard.press('Escape');
     await page.keyboard.press('Backspace');
 
     // A cleared segment makes the input report an empty value while the date is merely incomplete.
@@ -225,7 +187,6 @@ test.describe('the date editor and a segment cleared from the open input', () =>
     // Enter moves the active cell inside a range, so F2 opens the editor.
     await page.keyboard.press('F2');
     await expect.poll(() => grid.isEditorOpened()).toBe(true);
-    await page.keyboard.press('Escape');
     await page.keyboard.press('Backspace');
     await expect(grid.editorInput).toHaveValue('');
     await page.keyboard.press('ControlOrMeta+Enter');
@@ -240,7 +201,6 @@ test.describe('the date editor and a segment cleared from the open input', () =>
     await page.keyboard.press('Shift+ArrowUp');
     await page.keyboard.press('F2');
     await expect.poll(() => grid.isEditorOpened()).toBe(true);
-    await page.keyboard.press('Escape');
     await expect(grid.editorInput).toHaveValue('');
     await page.keyboard.press('ControlOrMeta+Enter');
 
@@ -254,7 +214,6 @@ test.describe('the date editor and a segment cleared from the open input', () =>
     await page.keyboard.press('Shift+ArrowUp');
     await page.keyboard.press('F2');
     await expect.poll(() => grid.isEditorOpened()).toBe(true);
-    await page.keyboard.press('Escape');
 
     // A typed digit starts a date, so the input is empty and incomplete.
     await page.keyboard.press('1');
