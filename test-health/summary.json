@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-14T10:07:45.055Z",
+  "generatedAt": "2026-10-14T10:18:26.949Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 402,
     "needsTicket": 30,
     "quarantined": 0,
-    "entries": 2090
+    "entries": 2091
   },
   "rows": [
     {
@@ -169,7 +169,7 @@
       "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
       "line": null,
       "title": "js-only/sheetsBar/tabs-1",
-      "count7": 2,
+      "count7": 0,
       "count30": 12,
       "countAll": 12,
       "runs30": 3,
@@ -206,7 +206,7 @@
       "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
       "line": null,
       "title": "js-only/sheetsBar/tabs-2",
-      "count7": 2,
+      "count7": 0,
       "count30": 12,
       "countAll": 12,
       "runs30": 3,
@@ -617,7 +617,7 @@
       "file": "handsontable/src/plugins/manualRowResize/__tests__/manualRowResize.spec.js",
       "line": null,
       "title": "manualRowResize should autosize selected rows after double click on handler and move mouse to the next row",
-      "count7": 1,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 2,
@@ -816,6 +816,42 @@
         "leg": "e2e-horizon-min",
         "status": "flaky",
         "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "jasmine|handsontable/src/editors/intlDateEditor/__tests__/intlDateEditor.spec.js|IntlDateEditor should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)",
+      "tier": "jasmine",
+      "file": "handsontable/src/editors/intlDateEditor/__tests__/intlDateEditor.spec.js",
+      "line": null,
+      "title": "IntlDateEditor should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)",
+      "count7": 2,
+      "count30": 3,
+      "countAll": 3,
+      "runs30": 3,
+      "flakyRuns30": 0,
+      "branches30": 3,
+      "nightlyRuns30": 0,
+      "openBranches30": 3,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-14T10:17:38Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38545271560",
+        "branch": "develop",
+        "leg": "UMD (theme: classic)",
+        "status": "failed",
+        "error": "Expected <td class=\"current\" role=\"gridcell\" tabindex=\"-1\" aria-colindex=\"1\" aria-selected=\"true\">...</td> to be <input data-hot-input tabindex=\"-1\" class=\"handsontableInput\" type=\"date\" style=\"width: 86px; height: 27px; overflow-y: visible; font-size: 13px; font-family: sans-serif;\">. Tip: To ch...",
         "source": "ci"
       },
       "needsTicket": true
@@ -1052,42 +1088,6 @@
         "leg": "e2e-webkit",
         "status": "failed",
         "error": "Error: expect(locator).not.toHaveValue(expected) failed",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "jasmine|handsontable/src/editors/intlDateEditor/__tests__/intlDateEditor.spec.js|IntlDateEditor should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)",
-      "tier": "jasmine",
-      "file": "handsontable/src/editors/intlDateEditor/__tests__/intlDateEditor.spec.js",
-      "line": null,
-      "title": "IntlDateEditor should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)",
-      "count7": 1,
-      "count30": 2,
-      "countAll": 2,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "UMD (theme: classic)",
-        "UMD (theme: main)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "passes alone"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-09T10:16:07Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37913372976",
-        "branch": "feature/DEV-680_HotColumn-props-exclude-hooks",
-        "leg": "UMD (theme: classic)",
-        "status": "failed",
-        "error": "Expected <td class=\"current\" role=\"gridcell\" tabindex=\"-1\" aria-colindex=\"1\" aria-selected=\"true\">...</td> to be <input data-hot-input tabindex=\"-1\" class=\"handsontableInput\" type=\"date\" style=\"width: 86px; height: 27px; overflow-y: visible; font-size: 13px; font-family: sans-serif;\">. Tip: To ch...",
         "source": "ci"
       },
       "needsTicket": true
