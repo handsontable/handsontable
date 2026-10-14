@@ -2,7 +2,7 @@
 type: how-to
 title: Export to CSV
 metaTitle: Export to CSV - JavaScript Data Grid | Handsontable
-description: Export your grid's raw data to the CSV format, as a downloadable file, a blob, or a string. Customize your export using Handsontable's configuration options.
+description: Export your grid's values to a CSV file, a Blob, or a string, with options for headers, hidden rows and columns, delimiters, and value sanitization.
 permalink: /export-to-csv
 canonicalUrl: /export-to-csv
 tags:
@@ -15,27 +15,24 @@ angular:
 vue:
   metaTitle: Export to CSV - Vue Data Grid | Handsontable
 searchCategory: Guides
-category: Accessories and menus
+category: Data management
 menuTag: updated
 ---
-Export your grid's raw data to the CSV format, as a downloadable file, a blob, or a string. Customize your export using Handsontable's configuration options.
+
+Export your grid's values to the CSV format, as a downloadable file, a Blob, or a string. CSV holds values only: no formulas, styling, or number formatting, so a formula cell exports its computed result.
 
 [[toc]]
 
 ## Prerequisites
 
-- You configured Handsontable in your project.
-- You registered the `ExportFile` plugin (the examples use `registerAllModules()`).
+- Register the `ExportFile` plugin (it is part of `registerAllModules()`). The export methods work without any `exportFile` setting; set `exportFile: true` to add the **Export** item to the [context menu](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md#context-menu).
+- The examples hide rows and columns `1`, `3`, and `5`, with indicators on, so you can see which export includes them.
 
-## Examples
+## Steps
 
-Mind that CSV exports contain only raw data, and don't include formulas, styling, or formatting information.
+### 1. Download a file
 
-Examples 1-3 use hidden rows and hidden columns with indicators turned on. The indicators show where hidden data exists in the grid, and each example explains whether the export includes or skips that hidden data.
-
-### Export to file
-
-This example exports all rows and columns, including hidden ones, by setting both `exportHiddenRows` and `exportHiddenColumns` to `true`.
+`downloadFile('csv', options)` builds the file and starts the download. This example includes the hidden rows and columns.
 
 ::: only-for javascript
 ::: example #example1 --html 1 --js 2 --ts 3
@@ -73,10 +70,9 @@ This example exports all rows and columns, including hidden ones, by setting bot
 :::
 :::
 
-### Export as a JavaScript Blob object
+### 2. Export as a Blob or a string
 
-Open a console in browser developer tools to see the result for the below example.
-This example keeps hidden indicators in the grid, but exports only visible rows and columns by setting `exportHiddenRows` and `exportHiddenColumns` to `false`.
+`exportAsBlob('csv', options)` returns a `Blob`, for example to upload; `exportAsString('csv', options)` returns the text. This example leaves the hidden rows and columns out. Open the browser console to see the result.
 
 ::: only-for javascript
 ::: example #example2 --html 1 --js 2 --ts 3
@@ -114,11 +110,9 @@ This example keeps hidden indicators in the grid, but exports only visible rows 
 :::
 :::
 
-### Prevent CSV injection attack
+### 3. Prevent CSV injection
 
-"CSV Injection, also known as Formula Injection, occurs when websites embed untrusted input inside CSV files. When a spreadsheet program such as Microsoft Excel or LibreOffice Calc is used to open a CSV, any cells starting with = will be interpreted by the software as a formula." (from [OWASP website](https://owasp.org/www-community/attacks/CSV_Injection))
-
-To prevent this attack, set the [`sanitizeValues` option](#sanitizevalues-boolean|regexp|function) when exporting your data in CSV format.
+A spreadsheet application reads a CSV cell that starts with `=`, `+`, `-`, or `@` as a formula ([OWASP: CSV injection](https://owasp.org/www-community/attacks/CSV_Injection)). Set the [`sanitizeValues`](#options) option when the data comes from users. This example shows the four modes.
 
 ::: only-for javascript
 ::: example #example3 --html 1 --js 2 --ts 3
@@ -139,7 +133,6 @@ To prevent this attack, set the [`sanitizeValues` option](#sanitizevalues-boolea
 :::
 :::
 
-
 ::: only-for angular
 ::: example #example3 :angular --ts 1 --html 2
 
@@ -157,11 +150,33 @@ To prevent this attack, set the [`sanitizeValues` option](#sanitizevalues-boolea
 :::
 :::
 
-### Export nested headers
+## Result
 
-With the [`nestedHeaders`](@/api/options.md#nestedheaders) option, `colHeaders: true` exports every header layer, not only the bottom one. Each layer becomes one header line, and a group label repeats across every column it spans, so a spreadsheet that opens the file shows the group above each of its columns.
+You can export the grid as a file, a Blob, or a string, choose what the file holds, and keep user-provided values from running as formulas.
 
-```js
+## Options
+
+Pass these options as the second argument of any export method.
+
+| Option | Type, default | Description |
+|---|---|---|
+| `bom` | `boolean`, `true` | Prepend the UTF-8 byte order mark (`EF BB BF`). It is prepended to the string `exportAsString()` returns too. |
+| `colHeaders` | `boolean`, `false` | Include the column headers. With [nested headers](@/api/nestedHeaders.md), every layer becomes one header line. See [Nested headers](#nested-headers). |
+| `rowHeaders` | `boolean`, `false` | Include the row headers as the first column. |
+| `exportHiddenColumns`, `exportHiddenRows` | `boolean`, `false` | Include hidden columns or rows. `'hide'`, which the XLSX export accepts, counts as `false` here. |
+| `range` | `number[]`, whole grid | `[startRow, startColumn, endRow, endColumn]` in visual indexes. |
+| `columnDelimiter` | `string`, `','` | Column delimiter. A value that holds it is quoted. |
+| `rowDelimiter` | `string`, `'\r\n'` | Row delimiter. |
+| `filename` | `string`, `'Handsontable [YYYY]-[MM]-[DD]'` | File name without the extension. The placeholders become the current date. Used by `downloadFile()` and `downloadFileAsync()`. |
+| `fileExtension` | `string`, `'csv'` | File extension, used by the same two methods. |
+| `mimeType` | `string`, `'text/csv'` | MIME type of the file and the Blob. |
+| `sanitizeValues` | `boolean \| RegExp \| Function`, `false` | `true` prefixes a value that starts with `=`, `+`, `-`, `@`, a tab, or a carriage return with `'`, following the [OWASP](https://owasp.org/www-community/attacks/CSV_Injection) rules. A `RegExp` prefixes the values it matches. A function receives the value and returns the replacement. Any of the three also quotes every non-empty cell. |
+
+## Nested headers
+
+With the [`nestedHeaders`](@/api/options.md#nestedheaders) option, `colHeaders: true` exports every header layer. Each layer becomes one header line, and a group label repeats across every column it spans, so a spreadsheet shows the group above each of its columns.
+
+```javascript
 const hot = new Handsontable(container, {
   data: [[1, 2, 3, 4]],
   colHeaders: true,
@@ -178,15 +193,13 @@ hot.getPlugin('exportFile').downloadFile('csv', { colHeaders: true });
 // 1,2,3,4
 ```
 
-Hidden columns follow the `exportHiddenColumns` option: a group shrinks to the columns the export includes. A `range` that starts inside a group leaves that group's cells empty on the parent line, so every header line keeps the same column count as the data. When the first columns of a group are hidden, the group starts at its first visible column, as it does in the grid. A `range` that starts on that column writes the group label.
+A group shrinks to the columns the export includes, so hidden columns follow `exportHiddenColumns`. A `range` that starts inside a group leaves that group's cells empty on the parent line, so every header line keeps the data's column count.
 
-### Export headers as plain text
+## Headers as plain text
 
-A column header setting is also its display string. A header of `'<b>Total</b>'` renders as **Total** in the grid, but the export writes the value it was given, so the file receives the literal `<b>Total</b>`.
+A column header is also its display string. A header of `'<b>Total</b>'` renders as **Total**, but the export writes the value it was given, so the file receives the literal `<b>Total</b>`. Set the grid's [`textExtractor`](@/api/options.md#textextractor) option to `true` to export the displayed text instead:
 
-To export headers as the text the grid displays, set the [`textExtractor`](@/api/options.md#textextractor) option to `true`:
-
-```js
+```javascript
 const hot = new Handsontable(container, {
   data: [[1, 2]],
   colHeaders: ['<b>Total</b>', 'Count'],
@@ -194,97 +207,39 @@ const hot = new Handsontable(container, {
 });
 
 hot.getPlugin('exportFile').downloadFile('csv', { colHeaders: true });
-// The file receives: Total,Count
+// The file receives: "Total","Count"
 ```
 
-`textExtractor` is a grid option, not an export configuration option, so you set it alongside `colHeaders` rather than passing it to `downloadFile()`. In an export it applies to column headers, row headers, and [nested headers](@/api/nestedHeaders.md), in both CSV and Excel. Copying to the clipboard uses it for column headers, which are the only headers a copy carries.
+`textExtractor` is a grid option, not an export option. It applies to column, row, and nested headers, in CSV and in Excel. Cell values are left alone: a value such as `a<b` reaches the file unchanged.
 
-Cell data is left alone. A cell exports its value, never its rendered markup, so a value such as `a<b` reaches the file unchanged.
+Extraction turns HTML entities back into characters, so a header stored as `&#61;SUM(A1)` reaches the file as `=SUM(A1)`, which a spreadsheet reads as a formula. Set [`sanitizeValues`](#options) when you export headers from untrusted sources. Pass a function instead of `true` for different rules per surface; the `source` argument is `'ExportFile.rowHeader'` for a row header.
 
-One thing to know before you enable it: extraction turns HTML entities back into the characters they stand for. A header stored as `&#61;SUM(A1)` displays as `=SUM(A1)`, and once extracted it reaches the file as `=SUM(A1)` too, which a spreadsheet reads as a formula. Set [`sanitizeValues`](#sanitizevalues-boolean|regexp|function) to `true` when you export headers that come from untrusted sources.
+## Methods
 
-Pass a function instead of `true` when you need different rules per surface:
+Each method takes the format first, `'csv'` or `'xlsx'`, and an options object second.
 
-```js
-textExtractor: (content, source) => {
-  if (source === 'ExportFile.rowHeader') {
-    return content;
-  }
-
-  return stripMarkup(content);
-},
-```
-
-## Result
-
-After completing this guide, you can export grid data as a downloadable CSV file, a JavaScript Blob, or a string. You can customize delimiters, ranges, headers, and value sanitization through the export configuration.
-
-## Available methods
+- [`downloadFile(format, options)`](@/api/exportFile.md#downloadfile) - starts a download. Synchronous, CSV only.
+- [`downloadFileAsync(format, options)`](@/api/exportFile.md#downloadfileasync) - starts a download and returns a `Promise`. CSV and XLSX.
+- [`exportAsBlob(format, options)`](@/api/exportFile.md#exportasblob) - returns a `Blob`. CSV only; it throws for `'xlsx'`.
+- [`exportAsBlobAsync(format, options)`](@/api/exportFile.md#exportasblobasync) - returns a `Promise` of a `Blob`. CSV and XLSX.
+- [`exportAsString(format, options)`](@/api/exportFile.md#exportasstring) - returns the text. CSV only.
+- [`supportsExportFormat(format)`](@/api/exportFile.md#supportsexportformat) - `true` when the format can be written.
 
 ::: only-for react
 
-::: tip
-
-To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
-
-For more information, see the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page.
+Get the plugin from the `hotInstance` of your `HotTable` ref: `hotRef.current?.hotInstance?.getPlugin('exportFile')`. See [Instance methods](@/guides/getting-started/react-methods/react-methods.md).
 
 :::
 
-:::
+::: only-for vue
 
-:::: only-for vue
-
-::: tip
-
-To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
-
-For more information, see the [Instance methods](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md) page.
+Get the plugin from the `hotInstance` of your `HotTable` template ref: `hotRef.value?.hotInstance?.getPlugin('exportFile')`. See [Referencing the Handsontable instance](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md).
 
 :::
 
-::::
+## Related
 
-The plugin exposes the following methods to export data.
-
-- [`downloadFile(format, options)`](@/api/exportFile.md#downloadfile) - generates a downloadable file directly in the browser. Synchronous; supports text-based formats only (e.g. CSV). For XLSX, use [`downloadFileAsync`](@/api/exportFile.md#downloadfileasync).
-- [`downloadFileAsync(format, options)`](@/api/exportFile.md#downloadfileasync) - generates a downloadable file and returns a `Promise`. Supports all formats including XLSX.
-- [`exportAsBlob(format, options)`](@/api/exportFile.md#exportasblob) - allows you to export a JavaScript Blob object.
-- [`exportAsString(format, options)`](@/api/exportFile.md#exportasstring) - allows you to export data as a string. Supports text-based formats only (e.g. CSV).
-
-Each method takes two parameters. The first, `format`, is required. The second, `options`, is an optional object that overrides or extends the default export configuration. The table below lists all supported options for CSV export.
-
-## Available options in the export configuration
-
-| Property               | Type / Default                          | Description |
-| ---------------------- | --------------------------------------- | ----------- |
-| `bom`                  | `Boolean`, default `true`               | Prepend output with BOM (UTF-8). Browser uses _EF BB BF_. |
-| `colHeaders`           | `Boolean`, default `false`              | Include column headers. With the [NestedHeaders](@/api/nestedHeaders.md) plugin, writes one header line per layer, repeating a group label across every column it spans. |
-| `columnDelimiter`      | `String`, default `','`                | Column delimiter. |
-| `exportHiddenColumns`  | `Boolean`, default `false`              | Include hidden columns. |
-| `exportHiddenRows`    | `Boolean`, default `false`              | Include hidden rows. |
-| `fileExtension`       | `String`, default `'csv'`               | File extension. Used by `downloadFile()`. |
-| `filename`             | `String`, default `'Handsontable [YYYY]-[MM]-[DD]'` | File name. Placeholders `[YYYY]`, `[MM]`, `[DD]` are replaced with the current date. Used by `downloadFile()`. |
-| `mimeType`             | `String`, default `'text/csv'`          | MIME type. Used by `downloadFile()` and `exportAsBlob()`. |
-| `range`                | `Array`, default `[]`                   | Cell range to export: `[startRow, startColumn, endRow, endColumn]` (visual indexes). |
-| `rowDelimiter`         | `String`, default `'\r\n'`              | Row delimiter. |
-| `rowHeaders`           | `Boolean`, default `false`              | Include row headers. |
-| `sanitizeValues`       | `Boolean` \| `RegExp` \| `Function`, default `false` | Value sanitization. `true` = [OWASP CSV injection](https://owasp.org/www-community/attacks/CSV_Injection) rules; `RegExp` = escape matching values; `Function` = replace with return value. |
-
-## Related blog articles
-
-<div class="boxes-list gray">
-
+- [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md), including the [context menu](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md#context-menu) item that exports both formats
+- [Excel import and export reference](@/guides/accessories-and-menus/excel-import-export-reference/excel-import-export-reference.md)
+- [`ExportFile` plugin API](@/api/exportFile.md)
 - [Handsontable 15.3.0: CSV sanitization, accessibility updates, and 30+ fixes](https://handsontable.com/blog/handsontable-15.3.0-csv-sanitization-accessibility-updates-and-30-fixes)
-
-</div>
-
-## Related API reference
-
-**Plugins**
-
-<div class="boxes-list">
-
-- [ExportFile](@/api/exportFile.md)
-
-</div>
