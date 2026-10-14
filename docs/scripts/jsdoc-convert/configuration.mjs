@@ -243,8 +243,8 @@ export default {
     },
     'ExportFile.md': {
       id: '4j5eqkhw',
-      metaTitle: 'DropdownMenu - JavaScript Data Grid | Handsontable',
-      description: 'Export your grid\'s data to the CSV format, as a downloadable file, a blob, or a string. Customize your export using Handsontable\'s configuration options.',
+      metaTitle: 'ExportFile - JavaScript Data Grid | Handsontable',
+      description: 'Use the ExportFile plugin with its API options, members, and methods to export grid data to a CSV or an Excel (.xlsx) file, as a download, a Blob, or a string.',
       react: {
         id: 'qsmpym52',
         metaTitle: 'ExportFile - React Data Grid | Handsontable',
@@ -309,7 +309,7 @@ export default {
     'ImportFile.md': {
       id: 'k7xq2m4d',
       metaTitle: 'ImportFile - JavaScript Data Grid | Handsontable',
-      description: 'Use the ImportFile plugin with its API options, members, and methods to load an Excel workbook into your grid through an engine you provide.',
+      description: 'Use the ImportFile plugin with its API options, members, and methods to load an Excel workbook into your grid with the built-in engine, or an engine you provide.',
       react: {
         id: 'r3vn8p1s',
         metaTitle: 'ImportFile - React Data Grid | Handsontable',

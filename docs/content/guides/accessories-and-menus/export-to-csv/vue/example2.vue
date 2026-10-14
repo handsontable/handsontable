@@ -30,20 +30,24 @@ const hotSettings = ref<GridSettings>({
   licenseKey: 'non-commercial-and-evaluation',
 });
 
+// Hidden rows and columns stay out of both exports.
+const exportOptions = {
+  colHeaders: true,
+  rowHeaders: true,
+  exportHiddenColumns: false,
+  exportHiddenRows: false,
+};
+
 function exportBlob(): void {
   const exportPlugin = hotRef.value?.hotInstance?.getPlugin('exportFile');
-  const exportedBlob = exportPlugin?.exportAsBlob('csv', {
-    bom: false,
-    columnDelimiter: ',',
-    colHeaders: false,
-    exportHiddenColumns: false,
-    exportHiddenRows: false,
-    mimeType: 'text/csv',
-    rowDelimiter: '\r\n',
-    rowHeaders: true,
-  });
 
-  console.log(exportedBlob);
+  console.log(exportPlugin?.exportAsBlob('csv', exportOptions));
+}
+
+function exportString(): void {
+  const exportPlugin = hotRef.value?.hotInstance?.getPlugin('exportFile');
+
+  console.log(exportPlugin?.exportAsString('csv', exportOptions));
 }
 </script>
 
@@ -53,6 +57,9 @@ function exportBlob(): void {
       <div class="controls">
         <button id="export-blob" type="button" @click="exportBlob">
           Export as a Blob
+        </button>
+        <button id="export-string" type="button" @click="exportString">
+          Export as a string
         </button>
       </div>
     </div>

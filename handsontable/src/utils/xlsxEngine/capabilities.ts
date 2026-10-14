@@ -58,8 +58,9 @@ export const CAPABILITIES: Record<XlsxEngineKind, XlsxEngineCapabilities> = {
  * with nothing to catch it — so every site names a member of this object rather than a literal.
  */
 export const DROPPED_FEATURES = {
-  // Raised by both adapters, on either direction: the four read names come from the native
-  // reader's `DROPPED_ON_OPEN` and from the ExcelJS adapter's own scan of the same parts.
+  // Raised by both adapters. `merge:overlap` is raised on export only, by both writers. The other
+  // six are raised on import only, by both readers: from the native reader's `DROPPED_ON_OPEN` and
+  // from the ExcelJS adapter's own scan of the same parts.
   autoFilter: 'autoFilter',
   hyperlink: 'hyperlink',
   images: 'images',
@@ -102,9 +103,11 @@ export const DROPPED_FEATURES = {
   // so a note stored as a plain `<text><t>` (no run) loads with no text. The comment is skipped
   // rather than imported empty; the native engine reads such a note.
   commentUnreadable: 'comment:unreadable',
-  // Raised by the native writer only: ExcelJS honors a compression level, and it hands its own
-  // conditional-formatting descriptors straight to its writer without judging them.
+  // Raised by the native writer only: ExcelJS honors a compression level.
   compressionLevel: 'compressionLevel',
+  // Raised by BOTH writers: a conditional-formatting entry that is not a rule object with a string
+  // `type`, an `expression` rule with no `formulae`, or a `timePeriod` rule the writer cannot build
+  // a formula for. Each engine skips the rule and reports it.
   conditionalFormattingInvalid: 'conditionalFormatting:invalid',
   conditionalFormattingExpression: 'conditionalFormatting:expression',
   conditionalFormattingTimePeriod: 'conditionalFormatting:timePeriod',

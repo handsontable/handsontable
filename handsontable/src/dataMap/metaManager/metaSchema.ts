@@ -3234,10 +3234,12 @@ export default (): Record<string, unknown> => {
      *
      * Read more:
      * - [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md)
+     * - [Export to CSV](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md)
+     * - [XLSX engine](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md)
      * - [Plugins: `ExportFile`](@/api/exportFile.md)
      *
      * @memberof Options#
-     * @type {object}
+     * @type {boolean|object}
      * @default undefined
      * @since 17.1.0
      * @category ExportFile
@@ -3276,14 +3278,15 @@ export default (): Record<string, unknown> => {
      * | --------- | -------- | ------- | ----------------------------------------------------------------------------------- |
      * | `engines` | `Object` | –       | Optional. A map of format keys to engine modules. Pass `{ xlsx: ExcelJS }` to import through ExcelJS instead of the built-in engine. |
      *
-     * `false` disables the plugin. `true` or an object enables it.
+     * `false` disables the plugin. Any other value, including leaving the option out, enables it.
      *
      * Read more:
      * - [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md)
+     * - [XLSX engine](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md)
      * - [Plugins: `ImportFile`](@/api/importFile.md)
      *
      * @memberof Options#
-     * @type {object}
+     * @type {boolean|object}
      * @default undefined
      * @since 19.0.0
      * @category ImportFile

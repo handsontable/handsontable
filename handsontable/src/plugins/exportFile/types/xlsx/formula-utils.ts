@@ -44,7 +44,7 @@ export function isFormulaValue(value: unknown): value is string {
  * type so the caller can fall back to the pre-calculated static value.
  *
  * @private
- * @param {object} summary Summary descriptor from {@link DataProvider#getColumnSummaries}.
+ * @param {object} summary Summary descriptor from {@link ExportDataProvider#getColumnSummaries}.
  * @param {number} dataRowOffset 1-based Excel row where data row 0 starts.
  * @param {number} dataColOffset 1-based Excel column where data column 0 starts.
  * @returns {{ formula: string }|null}

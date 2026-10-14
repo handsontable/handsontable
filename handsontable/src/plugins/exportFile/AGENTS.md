@@ -45,7 +45,7 @@ the main thread. A single rAF shows nothing.
 
 ## CSV specifics
 
-- **Column header lines come from `DataProvider#getColumnHeaderRows()`, never `getColumnHeaders()`
+- **Column header lines come from `ExportDataProvider#getColumnHeaderRows()`, never `getColumnHeaders()`
   alone.** With the NestedHeaders plugin on, that method expands `getNestedColumnHeaders()` through
   `expandNestedHeaderLayers()` (`utils.ts`), one line per layer, a group label repeated across its
   colspan. The bottom-layer-only CSV was a bug (DEV-3033): XLSX and `copyPaste`'s
@@ -201,8 +201,10 @@ Other rules:
   renderer leaving an object or an array in the cell is all it takes.
 - **An overlapping merge is dropped, not thrown.** The adapter catches ExcelJS's
   `Cannot merge already merged cells`, records `merge:overlap` and skips that range.
-- **Every dropped-feature name the export can report is a row in the export guide's dropped-features
-  table**, the same rule `importFile/AGENTS.md` states for the import direction: add to both or neither.
+- **Every dropped-feature name the export can report is a row in the "Dropped features on export" table
+  of the XLSX engine page**
+  (`docs/content/guides/accessories-and-menus/xlsx-engine/`), the same rule
+  `importFile/AGENTS.md` states for the import direction's table on the same page: add to both or neither.
   The names themselves are declared once, in `DROPPED_FEATURES` (`utils/xlsxEngine/capabilities.ts`), and
   `DroppedFeatureName` narrows `DroppedFeatures#record()` to exactly those members — they are public
   output, so a typo at one site would otherwise produce a different key for the same condition with
@@ -212,7 +214,7 @@ Other rules:
   hand-written `conditionalFormatting:unparsedRefs` no longer type-checks.
   The write direction owns `compressionLevel`, `merge:overlap`, the `conditionalFormatting:*`
   names, and `cellText:truncated`, `columnWidth:clamped` and `rowHeight:clamped` (the last three raised by
-  BOTH engines); the read direction's are in the import guide.
+  BOTH engines); the read direction's are in the XLSX engine page's import table, never in this one.
 - **On a rendered cell the exported font color is the cell's OWN computed color, diffed against an
   alignment-only baseline probe mounted in the cell's `.ht-root-wrapper`.** The probe inherits everything the
   cell inherits (a container-scoped CSS variable included), so it differs from the cell only by what a rule
@@ -279,16 +281,16 @@ Other rules:
 - **A formula whose result is an error caches the OOXML CODE, flagged, never the displayed text.**
   `getData()` gives the Formulas plugin's display string, which cannot tell the error `#N/A` from
   the text `="#N/A"` answers, and which the engine's `language` translates (`#DZIEL/0!` under
-  `plPL`). `DataProvider#getFormulaErrorCodes()` therefore reads the engine's own value per cell and
+  `plPL`). `ExportDataProvider#getFormulaErrorCodes()` therefore reads the engine's own value per cell and
   `toOoxmlErrorCode()` (`types/xlsx/formula-utils.ts`) maps the `DetailedCellError#type`, recognized
   by shape, to a code; the formula branch of `#resolveCellValue` then writes
   `{ result: code, resultIsError: true }`. `CYCLE`, `ERROR`, `LIC` and `SPILL` have no code (POI
   refuses `#SPILL!` in a `t="e"` cell) and keep the display text, typed `str`. The three
-  DataProvider mocks of the `xlsx*.unit.js` suites carry the method; a new mock used with
+  ExportDataProvider mocks of the `xlsx*.unit.js` suites carry the method; a new mock used with
   `exportFormulas` needs it too. Pinned by `xlsxFormulaErrorResult.unit.js`.
 - `headerStyle: null` exports headers with no styling; `headerStyle.border: null` suppresses only the border.
 - **The frozen pane counts EXPORTED indexes, not the raw `fixedColumnsStart`/`fixedRowsTop`.**
-  `DataProvider#getFrozenColumns()`/`getFrozenRows()` count the visual indexes of the frozen band
+  `ExportDataProvider#getFrozenColumns()`/`getFrozenRows()` count the visual indexes of the frozen band
   (`0 … fixed - 1`) that fall inside the `range` option and are written to the file: a hidden index is
   skipped when `exportHiddenColumns`/`exportHiddenRows` is `false`, and kept for `true` and `'hide'`
   (it is still a column of the sheet). Returning the raw setting froze one column too many for every
