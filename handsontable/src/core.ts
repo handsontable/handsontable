@@ -1635,8 +1635,10 @@ export default function Core(
             } = datamap.createCol(colIndex, amount, { source, mode: insertColumnMode });
 
             if (colDelta) {
+              // `getColHeader()` reads the array by the physical index, so the empty entries go in at the
+              // physical index the created column takes, the same as `colWidths` below.
               if (Array.isArray(tableMeta.colHeaders)) {
-                const spliceArray = [instance.toVisualColumn(startColumnPhysicalIndex!), 0];
+                const spliceArray = [startColumnPhysicalIndex!, 0];
 
                 spliceArray.length += colDelta as number; // inserts empty (undefined) elements at the end of an array
                 Array.prototype.splice.apply(tableMeta.colHeaders, spliceArray as [number, number]); // inserts empty (undefined) elements into the colHeader array
