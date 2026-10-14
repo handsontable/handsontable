@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-14T09:47:57.218Z",
+  "generatedAt": "2026-10-14T10:07:45.055Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -169,7 +169,7 @@
       "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
       "line": null,
       "title": "js-only/sheetsBar/tabs-1",
-      "count7": 7,
+      "count7": 2,
       "count30": 12,
       "countAll": 12,
       "runs30": 3,
@@ -206,7 +206,7 @@
       "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
       "line": null,
       "title": "js-only/sheetsBar/tabs-2",
-      "count7": 7,
+      "count7": 2,
       "count30": 12,
       "countAll": 12,
       "runs30": 3,
@@ -243,7 +243,7 @@
       "file": "handsontable/src/plugins/mergeCells/__tests__/scrolling.spec.js",
       "line": null,
       "title": "MergeCells scrolling should scroll viewport vertically to the beginning of the merged cell when it's clicked (virtualized is on)",
-      "count7": 6,
+      "count7": 0,
       "count30": 12,
       "countAll": 12,
       "runs30": 2,
@@ -1216,7 +1216,7 @@
       "file": "e2e/filters-menu-focus-order.spec.ts",
       "line": 279,
       "title": "filters menu — keyboard focus order › a value the list shows only in part scrolls fully into view when the focus reaches it",
-      "count7": 6,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 1,
@@ -10999,46 +10999,6 @@
       "needsTicket": false
     },
     {
-      "key": "jasmine|handsontable/src/plugins/columnSorting/__tests__/columnSorting.spec.js|ColumnSorting compatibility with options should not break virtual rendering if preventOverflow is used",
-      "tier": "jasmine",
-      "file": "handsontable/src/plugins/columnSorting/__tests__/columnSorting.spec.js",
-      "line": null,
-      "title": "ColumnSorting compatibility with options should not break virtual rendering if preventOverflow is used",
-      "count7": 0,
-      "count30": 6,
-      "countAll": 6,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "UMD (theme: classic)",
-        "UMD (theme: horizon)",
-        "UMD (theme: main)",
-        "UMD.min (theme: classic)",
-        "UMD.min (theme: horizon)",
-        "UMD.min (theme: main)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "fails alone (1 failed)"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-09-14T10:06:55Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34829867159",
-        "branch": "feature/DEV-2912_Spreader-transform-no-layout-shift",
-        "leg": "UMD (theme: classic)",
-        "status": "failed",
-        "error": "Expected 0 to be greater than 0.",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
       "key": "visual|visual-tests/tests/js-only/filters/tab-navigation-through-action-buttons.spec.ts|js-only/filters/tab-navigation-through-action-buttons-1",
       "tier": "visual",
       "file": "visual-tests/tests/js-only/filters/tab-navigation-through-action-buttons.spec.ts",
@@ -13338,41 +13298,6 @@
       "needsTicket": false
     },
     {
-      "key": "jasmine|handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js|AutocompleteEditor choices should sort alphabetically the choices list, when the `sortByRelevance` option is set to `false`",
-      "tier": "jasmine",
-      "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
-      "line": null,
-      "title": "AutocompleteEditor choices should sort alphabetically the choices list, when the `sortByRelevance` option is set to `false`",
-      "count7": 0,
-      "count30": 2,
-      "countAll": 2,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "UMD.min (theme: horizon)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "passes alone"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-09-14T10:27:24Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34828239175/attempts/3",
-        "branch": "feature/DEV-2906_Pnpm-overrides-for-medium-lockfile-alerts",
-        "leg": "UMD.min (theme: horizon)",
-        "status": "failed",
-        "error": "Expected '' to equal 'yellow'.",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
       "key": "playwright|e2e/native-picker-editor-keyboard.spec.ts|the native picker editors opened with the keyboard › intl-datetime: Shift+Tab after Enter commits and moves the selection",
       "tier": "playwright",
       "file": "e2e/native-picker-editor-keyboard.spec.ts",
@@ -14756,6 +14681,81 @@
         "leg": "e2e-classic",
         "status": "flaky",
         "error": "Error: expect(received).toEqual(expected) // deep equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js|AutocompleteEditor choices should sort alphabetically the choices list, when the `sortByRelevance` option is set to `false`",
+      "tier": "jasmine",
+      "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
+      "line": null,
+      "title": "AutocompleteEditor choices should sort alphabetically the choices list, when the `sortByRelevance` option is set to `false`",
+      "count7": 0,
+      "count30": 1,
+      "countAll": 2,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD.min (theme: horizon)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-14T10:27:24Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34828239175/attempts/3",
+        "branch": "feature/DEV-2906_Pnpm-overrides-for-medium-lockfile-alerts",
+        "leg": "UMD.min (theme: horizon)",
+        "status": "failed",
+        "error": "Expected '' to equal 'yellow'.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/plugins/columnSorting/__tests__/columnSorting.spec.js|ColumnSorting compatibility with options should not break virtual rendering if preventOverflow is used",
+      "tier": "jasmine",
+      "file": "handsontable/src/plugins/columnSorting/__tests__/columnSorting.spec.js",
+      "line": null,
+      "title": "ColumnSorting compatibility with options should not break virtual rendering if preventOverflow is used",
+      "count7": 0,
+      "count30": 0,
+      "countAll": 6,
+      "runs30": 0,
+      "flakyRuns30": 0,
+      "branches30": 0,
+      "nightlyRuns30": 0,
+      "openBranches30": 0,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD (theme: horizon)",
+        "UMD (theme: main)",
+        "UMD.min (theme: classic)",
+        "UMD.min (theme: horizon)",
+        "UMD.min (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (1 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-14T10:06:55Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34829867159",
+        "branch": "feature/DEV-2912_Spreader-transform-no-layout-shift",
+        "leg": "UMD (theme: classic)",
+        "status": "failed",
+        "error": "Expected 0 to be greater than 0.",
         "source": "ci"
       },
       "needsTicket": false
