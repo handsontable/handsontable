@@ -81,49 +81,27 @@ const hotSettings = ref({
 
 ### 2. Download a file
 
-::: only-for javascript
-
 ```javascript
 const exportPlugin = hot.getPlugin('exportFile');
 
 await exportPlugin.downloadFileAsync('xlsx', { filename: 'Q1-sales', colHeaders: true, rowHeaders: true });
 ```
 
-:::
-
 ::: only-for react
 
-```jsx
-const exportPlugin = hotRef.current?.hotInstance?.getPlugin('exportFile');
-
-await exportPlugin?.downloadFileAsync('xlsx', { filename: 'Q1-sales', colHeaders: true, rowHeaders: true });
-```
-
-The `hotInstance` property of a `HotTable` ref gives you the Handsontable instance. See [Instance methods](@/guides/getting-started/react-methods/react-methods.md).
+`hot` is the `hotInstance` of your `HotTable` ref. See [Instance methods](@/guides/getting-started/react-methods/react-methods.md).
 
 :::
 
 ::: only-for angular
 
-```typescript
-async exportFile(): Promise<void> {
-  const exportPlugin = this.hotTable.hotInstance!.getPlugin('exportFile');
-
-  await exportPlugin.downloadFileAsync('xlsx', { filename: 'Q1-sales', colHeaders: true, rowHeaders: true });
-}
-```
+`hot` is `this.hotTable.hotInstance` of your `HotTableComponent` view child.
 
 :::
 
 ::: only-for vue
 
-```javascript
-const exportPlugin = hotRef.value?.hotInstance?.getPlugin('exportFile');
-
-await exportPlugin?.downloadFileAsync('xlsx', { filename: 'Q1-sales', colHeaders: true, rowHeaders: true });
-```
-
-The `hotInstance` property of a `HotTable` template ref gives you the Handsontable instance. See [Referencing the Handsontable instance](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md).
+`hot` is the `hotInstance` of your `HotTable` template ref. See [Referencing the Handsontable instance](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md).
 
 :::
 
