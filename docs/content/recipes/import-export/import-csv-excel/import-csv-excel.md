@@ -272,6 +272,75 @@ function parseCsvText(text, PapaRef) {
 - PapaParse's synchronous `parse(string, opts)` overload is used here (no `complete` callback needed).
 - Used when the user clicks **Load sample data** to parse a CSV string embedded in the script and feed it into the grid.
 
+## Step 3: Parse Excel with the ImportFile plugin
+
+### Read the workbook without a library
+
+The built-in [`ImportFile`](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md) plugin reads `.xlsx` files, so Excel needs no parser of its own. The plugin runs on a grid, so the parser creates a throwaway one in a hidden element and destroys it afterwards:
+
+```javascript
+async function parseXlsxFile(file) {
+  const host = document.createElement('div');
+
+  host.hidden = true;
+  document.body.appendChild(host);
+
+  const parser = new Handsontable(host, {
+    data: [[]],
+    importFile: true,
+    licenseKey: 'non-commercial-and-evaluation',
+  });
+
+  try {
+    const result = await parser.getPlugin('importFile').importFromBlob('xlsx', file, {
+      colHeaders: 'firstRow',
+      apply: false,
+    });
+    const headers = (result.colHeaders ?? []).map((cell, i) => {
+      const text = String(cell ?? '').trim();
+
+      return text === '' ? `Column ${i + 1}` : text;
+    });
+
+    if (headers.length === 0) {
+      throw new Error('No header row found in the Excel sheet.');
+    }
+
+    const rows = [];
+
+    for (const line of result.data) {
+      const obj = {};
+      let allEmpty = true;
+
+      headers.forEach((key, c) => {
+        obj[key] = normalizeCellValue(line[c]);
+        allEmpty = allEmpty && obj[key] === null;
+      });
+
+      if (!allEmpty) {
+        rows.push(obj);
+      }
+    }
+
+    if (rows.length === 0) {
+      throw new Error('No data rows after the header.');
+    }
+
+    return { headers, rows };
+  } finally {
+    parser.destroy();
+    host.remove();
+  }
+}
+```
+
+**What's happening:**
+1. `importFromBlob('xlsx', file, { colHeaders: 'firstRow', apply: false })` reads the first sheet and returns the mapped result without touching the grid: `result.colHeaders` holds the promoted header row and `result.data` the rows below it.
+2. A refused file (an `.xls`, a password-protected workbook, a damaged archive) rejects with a message that says what to do, and `handleFile` shows it as it is.
+3. Empty header cells get a fallback name (`Column 1`, `Column 2`, ...), and rows that are entirely empty are skipped, so both parsers return the same `{ headers, rows }` shape.
+4. `normalizeCellValue` keeps numbers and booleans, keeps the `YYYY-MM-DD` strings the plugin derives for date cells, trims other text, and turns blank cells into `null`.
+5. The throwaway grid is destroyed in `finally`, so a rejected file does not leak it. To import straight into a visible grid, with cell types, merges, and formulas, call the same method on that grid without `apply: false`.
+
 ### Route to the right parser
 
 ```javascript
@@ -423,9 +492,7 @@ function clearError(el) {
 | CSV has parse errors | First error message from PapaParse |
 | CSV has no header row | `"No header row found in the CSV."` |
 | CSV has no data rows | `"No data rows after the header."` |
-| Excel file is corrupted | `"Could not read the Excel workbook. The file may be corrupted."` |
-| Excel workbook has no sheets | `"The workbook has no sheets."` |
-| Excel sheet is empty | `"The sheet is empty."` |
+| Excel workbook refused (an `.xls`, a password-protected or damaged file, a workbook past the import limits) | The `ImportFile` plugin's own message, which says what to do |
 | Excel header row is blank | `"No header row found in the Excel sheet."` |
 | Excel has no data rows | `"No data rows after the header."` |
 

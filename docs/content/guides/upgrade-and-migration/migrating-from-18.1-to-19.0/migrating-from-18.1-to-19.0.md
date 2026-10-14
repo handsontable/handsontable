@@ -1993,7 +1993,7 @@ To detect a failed export, match on the current message or read `error.cause`. D
 
 The built-in engine needs the [Compression Streams API](https://developer.mozilla.org/en-US/docs/Web/API/Compression_Streams_API),
 which every browser Handsontable supports provides. See the
-[export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md#engines) guide for what
+[export to Excel](@/guides/accessories-and-menus/excel-import-export-reference/excel-import-export-reference.md#engines) guide for what
 each engine writes.
 
 ## 34. `removeCellMeta()` accepts an index past the grid's range

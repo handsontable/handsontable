@@ -243,3 +243,9 @@ Get the plugin from the `hotInstance` of your `HotTable` template ref: `hotRef.v
 - [Excel import and export reference](@/guides/accessories-and-menus/excel-import-export-reference/excel-import-export-reference.md)
 - [`ExportFile` plugin API](@/api/exportFile.md)
 - [Handsontable 15.3.0: CSV sanitization, accessibility updates, and 30+ fixes](https://handsontable.com/blog/handsontable-15.3.0-csv-sanitization-accessibility-updates-and-30-fixes)
+
+---
+
+::: tip Trademark notice
+Microsoft® and Excel® are registered trademarks of Microsoft Corporation.
+:::

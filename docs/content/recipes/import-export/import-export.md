@@ -31,3 +31,9 @@ The built-in plugins cover Excel and CSV without a library: [Export to Excel](@/
 - [Import from CSV or Excel](@/recipes/import-export/import-csv-excel/import-csv-excel.md)
 
 </div>
+
+---
+
+::: tip Trademark notice
+Microsoft® and Excel® are registered trademarks of Microsoft Corporation.
+:::
