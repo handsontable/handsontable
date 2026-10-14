@@ -7142,12 +7142,23 @@ export default function Core(
   };
 
   /**
+   * Translates a visual column index to the index that the `colWidths` array and function use.
+   * Headers (negative indexes) and columns outside the index mapper have no physical index,
+   * so they keep the index they were given.
+   *
+   * @param {number} col Visual col index.
+   * @returns {number}
+   */
+  const toPhysicalWidthIndex = (col: number): number => (col >= 0 ? instance.toPhysicalColumn(col) : null) ?? col;
+
+  /**
    * Return column width from settings (no guessing). Private use intended.
    *
    * @private
    * @memberof Core#
    * @function _getColWidthFromSettings
-   * @param {number} col Visual col index.
+   * @param {number} col Visual col index. The `colWidths` array and function are read by the
+   * matching physical index.
    * @returns {number}
    */
   this._getColWidthFromSettings = function(col: number) {
@@ -7164,12 +7175,12 @@ export default function Core(
 
     if (width !== undefined && width !== null) {
       switch (typeof width) {
-        case 'object': // array
-          width = (width as Record<number, unknown>)[col];
+        case 'object': // array, addressed by the physical column index
+          width = (width as Record<number, unknown>)[toPhysicalWidthIndex(col)];
           break;
 
-        case 'function':
-          width = (width as (col: number) => unknown)(col);
+        case 'function': // called with the physical column index
+          width = (width as (col: number) => unknown)(toPhysicalWidthIndex(col));
           break;
         default:
           break;

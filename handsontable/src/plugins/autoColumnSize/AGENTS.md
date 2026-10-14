@@ -171,6 +171,8 @@ caveat is in the class JSDoc — keep it there.
   `../../../AGENTS.md`.
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.
 
+- **`hot._getColWidthFromSettings()` takes a VISUAL index.** It translates the index to the physical one itself for the `colWidths` array and function (`colWidths` is addressed by physical index), and it reads `getCellMeta(0, col)`, which also takes a visual index. Pass the visual column at every call site; passing the physical one translates twice and reads another column's width once columns are moved.
+
 ## Testing
 
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='autoColumnSize'`

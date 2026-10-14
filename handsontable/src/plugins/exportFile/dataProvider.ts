@@ -1002,10 +1002,13 @@ class DataProvider {
     const { colWidths, defaultColumnWidth } = settings;
     const fallback: number = (defaultColumnWidth as number | undefined) ?? 50;
 
+    // The array and the function address columns by the physical index
+    const physicalColumn = this.hot.toPhysicalColumn(colIndex) ?? colIndex;
+
     if (Array.isArray(colWidths)) {
-      return (colWidths[colIndex] as number | undefined) ?? fallback;
+      return (colWidths[physicalColumn] as number | undefined) ?? fallback;
     } else if (typeof colWidths === 'function') {
-      return (colWidths(colIndex) as number | undefined) ?? fallback;
+      return (colWidths(physicalColumn) as number | undefined) ?? fallback;
     } else if (typeof colWidths === 'number') {
       return colWidths;
     }
