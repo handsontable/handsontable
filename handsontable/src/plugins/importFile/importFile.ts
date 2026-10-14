@@ -66,7 +66,9 @@ export interface ImportOptions {
    */
   importFormulas?: boolean;
   /**
-   * Import merges, hidden rows and columns, frozen panes, column widths and row heights. Defaults to `true`.
+   * Import merges, hidden rows and columns, frozen panes, column widths and row heights. Each of these, and
+   * `customBorders`, that the grid has and the result does not carry is reset. Borders come from
+   * `importStyles`, so with `importStyles` off an import clears the grid's custom borders. Defaults to `true`.
    */
   importLayout?: boolean;
   /**
