@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-14T10:18:26.949Z",
+  "generatedAt": "2026-10-14T10:42:21.415Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -14692,13 +14692,13 @@
       "line": null,
       "title": "AutocompleteEditor choices should sort alphabetically the choices list, when the `sortByRelevance` option is set to `false`",
       "count7": 0,
-      "count30": 1,
+      "count30": 0,
       "countAll": 2,
-      "runs30": 1,
+      "runs30": 0,
       "flakyRuns30": 0,
-      "branches30": 1,
+      "branches30": 0,
       "nightlyRuns30": 0,
-      "openBranches30": 1,
+      "openBranches30": 0,
       "legs": [
         "UMD.min (theme: horizon)"
       ],
