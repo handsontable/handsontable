@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-14T12:41:47.061Z",
+  "generatedAt": "2026-10-14T13:15:55.229Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -12624,7 +12624,7 @@
       "file": "e2e/fixed-columns-end.spec.ts",
       "line": 224,
       "title": "fixedColumnsEnd keyboard navigation (ltr) › keeps the cell reached with the arrow key visible beside the end columns",
-      "count7": 1,
+      "count7": 0,
       "count30": 2,
       "countAll": 2,
       "runs30": 1,
@@ -13225,74 +13225,6 @@
         "leg": "e2e-classic",
         "status": "flaky",
         "error": "Error: expect(received).toEqual(expected) // deep equality",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "playwright|e2e/walkontable/spreader-layout-shift.spec.ts|walkontable spreader layout shift › right-to-left, with frozen rows and columns › the editor opens over its cell after a scroll on both axes",
-      "tier": "playwright",
-      "file": "e2e/walkontable/spreader-layout-shift.spec.ts",
-      "line": 258,
-      "title": "walkontable spreader layout shift › right-to-left, with frozen rows and columns › the editor opens over its cell after a scroll on both axes",
-      "count7": 0,
-      "count30": 2,
-      "countAll": 4,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "e2e-horizon",
-        "e2e-horizon-min"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-09-14T12:43:39Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34842569625/attempts/2",
-        "branch": "feature/DEV-2912_Spreader-transform-no-layout-shift",
-        "leg": "e2e-horizon",
-        "status": "failed",
-        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "playwright|e2e/walkontable/spreader-layout-shift.spec.ts|walkontable spreader layout shift › without frozen panes › the editor opens over its cell after a scroll on both axes",
-      "tier": "playwright",
-      "file": "e2e/walkontable/spreader-layout-shift.spec.ts",
-      "line": 144,
-      "title": "walkontable spreader layout shift › without frozen panes › the editor opens over its cell after a scroll on both axes",
-      "count7": 0,
-      "count30": 2,
-      "countAll": 4,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "e2e-horizon",
-        "e2e-horizon-min"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-09-14T12:43:39Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34842569625/attempts/2",
-        "branch": "feature/DEV-2912_Spreader-transform-no-layout-shift",
-        "leg": "e2e-horizon",
-        "status": "failed",
-        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": false
@@ -14681,6 +14613,74 @@
         "leg": "e2e-classic",
         "status": "flaky",
         "error": "Error: expect(received).toEqual(expected) // deep equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/walkontable/spreader-layout-shift.spec.ts|walkontable spreader layout shift › right-to-left, with frozen rows and columns › the editor opens over its cell after a scroll on both axes",
+      "tier": "playwright",
+      "file": "e2e/walkontable/spreader-layout-shift.spec.ts",
+      "line": 258,
+      "title": "walkontable spreader layout shift › right-to-left, with frozen rows and columns › the editor opens over its cell after a scroll on both axes",
+      "count7": 0,
+      "count30": 0,
+      "countAll": 4,
+      "runs30": 0,
+      "flakyRuns30": 0,
+      "branches30": 0,
+      "nightlyRuns30": 0,
+      "openBranches30": 0,
+      "legs": [
+        "e2e-horizon",
+        "e2e-horizon-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-14T12:43:39Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34842569625/attempts/2",
+        "branch": "feature/DEV-2912_Spreader-transform-no-layout-shift",
+        "leg": "e2e-horizon",
+        "status": "failed",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/walkontable/spreader-layout-shift.spec.ts|walkontable spreader layout shift › without frozen panes › the editor opens over its cell after a scroll on both axes",
+      "tier": "playwright",
+      "file": "e2e/walkontable/spreader-layout-shift.spec.ts",
+      "line": 144,
+      "title": "walkontable spreader layout shift › without frozen panes › the editor opens over its cell after a scroll on both axes",
+      "count7": 0,
+      "count30": 0,
+      "countAll": 4,
+      "runs30": 0,
+      "flakyRuns30": 0,
+      "branches30": 0,
+      "nightlyRuns30": 0,
+      "openBranches30": 0,
+      "legs": [
+        "e2e-horizon",
+        "e2e-horizon-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-14T12:43:39Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34842569625/attempts/2",
+        "branch": "feature/DEV-2912_Spreader-transform-no-layout-shift",
+        "leg": "e2e-horizon",
+        "status": "failed",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": false
