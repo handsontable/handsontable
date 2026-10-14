@@ -57,17 +57,17 @@ Both engines write a sheet synchronously. A very large grid blocks the tab for a
 |---|---|---|
 | File size (import) | 128 MiB | Refused before parsing. |
 | Sheet dimensions | 1,048,576 rows by 16,384 columns | The import refuses the sheet. The built-in export refuses with a message that names the sheet; ExcelJS refuses too many columns but writes too many rows without a warning. |
-| Cells per sheet (import) | 5,000,000 | Refused while reading, before the cells are allocated. A declared size is not taken at face value: a few rows under a declared `A1:XFD1048576` import as those few rows. |
+| Cells per sheet (import) | 5,000,000 | Refused before the grid copy of the sheet is built: while reading on the built-in engine, right after its own parse on ExcelJS. A declared size is not taken at face value: a few rows under a declared `A1:XFD1048576` import as those few rows. |
 | Cells per workbook (import) | 10,000,000 | Same. |
 | Sheets per workbook (import) | 2,048 | Refused, on both engines. |
-| Inflated archive size (built-in import) | 256 MiB in total | Reading stops. A re-import of the built-in engine's own export tops out near 3,000,000 cells because of this. |
+| Inflated archive size (built-in import) | 256 MiB in total | Reading stops. A file the built-in export wrote inflates to about 40-65 bytes per cell, so this cap leaves room for 4-6.5 million such cells; long text cells use more of it. |
 | Per-cell settings (import) | 1,000,000 cells, or the number of data cells when that is higher | Refused while reading. Only a file with little data under its settings reaches it, such as two list validations with different lists split over a million empty rows. |
-| Formula length (import) | 32,768 characters | `formula:tooLong`; the cell keeps its cached value. |
+| Formula length (built-in import) | 32,768 characters | `formula:tooLong`; the cell keeps its cached value. |
 | Defined names (built-in import) | 65,536 | `definedNames:truncated`; a formula over a later name can show `#NAME?`. |
 | Text per cell (export) | 32,767 characters | `cellText:truncated`; the text is cut. |
 | Column width | 260 width units (about 1,820 pixels) | Clamped on export, reported as `columnWidth:clamped`; skipped on import. |
 | Row height | 409.5 points (546 pixels) | Clamped on export, reported as `rowHeight:clamped`; skipped on import. |
-| Number format length | 255 characters | `numFmt:<pattern>`; the cells get the `numeric` type with no format. |
+| Number format length | 255 characters | `numFmt:<pattern>`; the cells import with no number format. |
 
 Both engines read every sheet even when you import one, so the workbook-wide caps apply to the whole file. The caps are security bounds, not a comfort promise: a sheet near the 5,000,000-cell cap takes tens of seconds and several gigabytes of memory. Keep imports well below it, or split the workbook.
 
@@ -140,7 +140,7 @@ The workbook is untrusted input, and the plugins treat it that way.
 - **Colors are validated before they reach a stylesheet.** A font or fill color that is not plain hex is skipped. A border color that is not plain hex falls back to black, and a border style other than thin, medium, or thick becomes 1 px.
 - **Layout values are bounded.** A column width or row height that is not a positive number, or is above the limits in the table above, is skipped. A frozen pane count is rounded down, and a hidden index that is not a whole number is skipped on its own.
 - **Only spreadsheet workbooks are read.** The built-in engine reads `.xlsx`, `.xlsm`, `.xltx`, `.xltm`, and `.xlam` files; a macro-enabled file imports like an `.xlsx` file and its macros are never run. An `.xlsb`, an `.xls`, an `.ods` saved under an Excel name, a password-protected workbook, and an archive with truncated or mis-nested XML are refused with a message that says what to do. Hyperlink targets, external links, and embedded objects are not read.
-- **Oversized input is refused** at the limits in the table above, before the cells are allocated. ExcelJS runs its own parse, after which the plugin enforces the sheet, row, column, and cell caps; the inflate caps apply to the built-in engine only. ExcelJS 4.4.0 can also be made to change `Object.prototype` by a crafted workbook, such as one with a sheet named `__proto__` and a defined name pointing at it. Read files from untrusted sources with the built-in engine.
+- **Oversized input is refused** at the limits in the table above. ExcelJS runs its own parse, after which the plugin enforces the sheet, row, column, and cell caps; the inflate caps apply to the built-in engine only. ExcelJS 4.4.0 can also be made to change `Object.prototype` by a crafted workbook, such as one with a sheet named `__proto__` and a defined name pointing at it. Read files from untrusted sources with the built-in engine.
 - **A formula range is not bounded.** A 2 KB file can hold `SUM(A1:XFD1048576)`, which HyperFormula evaluates and which can crash the tab. Import files you do not trust with the Formulas plugin off, with `importFormulas: false`, or with `apply: false` first, and check `result.formulas` before you apply.
 - **Per-cell settings are bounded** at the limit in the table above. The plugin applies a setting a whole column shares once, to the column, and gives a cell its own setting only where it differs.
 - **References are bounded.** A list validation or conditional formatting range past the sheet limits is not read, and one over a whole column or row is clamped to the cells the sheet holds. A merged range is not clamped and counts against the cell caps.
