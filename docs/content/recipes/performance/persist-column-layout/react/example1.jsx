@@ -4,7 +4,7 @@ import { registerAllModules } from 'handsontable/registry';
 
 registerAllModules();
 
-const STORAGE_KEY = 'ht-column-layout-v1';
+const STORAGE_KEY = 'ht-column-layout-v2';
 
 /* start:skip-in-preview */
 const data = [

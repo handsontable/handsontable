@@ -5,7 +5,7 @@ import type { ColumnSettings } from 'handsontable/settings';
 
 registerAllModules();
 
-const STORAGE_KEY = 'ht-column-layout-v1';
+const STORAGE_KEY = 'ht-column-layout-v2';
 
 /* start:skip-in-preview */
 type ProductRow = {

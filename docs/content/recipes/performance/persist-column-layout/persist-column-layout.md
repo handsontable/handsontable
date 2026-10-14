@@ -88,7 +88,7 @@ You should be familiar with:
 ## Step 1 -- Define defaults and a storage key
 
 ```javascript
-const STORAGE_KEY = 'ht-column-layout-v1';
+const STORAGE_KEY = 'ht-column-layout-v2';
 
 const DEFAULT_COL_WIDTHS = [90, 200, 120, 90, 70, 110];
 const DEFAULT_COL_ORDER = [0, 1, 2, 3, 4, 5];
@@ -278,6 +278,6 @@ document.querySelector('#reset-layout-btn').addEventListener('click', () => {
 ## Next steps
 
 - Extend the recipe to also persist `colHeaders` label overrides or hidden column state.
-- If your page has multiple grids, give each grid its own storage key (e.g., `ht-column-layout-v1-products`, `ht-column-layout-v1-orders`).
+- If your page has multiple grids, give each grid its own storage key (e.g., `ht-column-layout-v2-products`, `ht-column-layout-v2-orders`).
 - Replace `localStorage` with a server-side API call to sync layout preferences across devices and browsers.
 - Combine this recipe with [Build a dynamic column visibility toggle](@/recipes/column-management/column-visibility/column-visibility.md) to let users both hide columns and remember their visibility state.

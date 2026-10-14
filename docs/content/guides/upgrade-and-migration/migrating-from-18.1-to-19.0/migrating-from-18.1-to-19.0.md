@@ -1719,7 +1719,7 @@ To keep a checkbox column toggleable, remove `editor: false` from it, or set `ed
 
 ## 33. `colWidths` addresses columns by physical index
 
-Handsontable 19.0 applies the array and the function form of [`colWidths`](@/api/options.md#colwidths) by the physical column index. In 18.1, they used the visual column index, so a width stayed at its screen position when the user moved a column with [`manualColumnMove`](@/api/options.md#manualcolumnmove). In 19.0, a width moves with its column, the same way it does in Google Sheets.
+Handsontable 19.0 applies the array and the function form of [`colWidths`](@/api/options.md#colwidths) by the physical column index. In 18.1, they used the visual column index, so a width stayed at its screen position when the user moved a column with [`manualColumnMove`](@/api/options.md#manualcolumnmove). In 19.0, a width moves with its column.
 
 A number or a string `colWidths` applies one width to every column, so it isn't affected.
 
@@ -1744,7 +1744,7 @@ colWidths(physicalColumnIndex) {
 },
 ```
 
-The physical index of a column doesn't change when the user moves, sorts, or hides columns. It does change when you insert or remove a column in the middle of the grid: the columns after it get new physical indexes, and an array no longer lines up with them. The widths that a user sets by dragging a column border aren't affected, because [`ManualColumnResize`](@/api/manualColumnResize.md) already stores them by physical index.
+The physical index of a column doesn't change when the user moves or hides columns. It does change when you insert or remove a column in the middle of the grid: the columns after it get new physical indexes, and an array no longer lines up with them. The widths that a user sets by dragging a column border aren't affected, because [`ManualColumnResize`](@/api/manualColumnResize.md) already stores them by physical index.
 
 The [`exportFile`](@/api/exportFile.md) plugin and [`autoColumnSize`](@/api/autoColumnSize.md) read `colWidths` the same way. The [`modifyColWidth`](@/api/hooks.md#modifycolwidth) hook and [`getColWidth()`](@/api/core.md#getcolwidth) still take a visual column index.
 
@@ -1774,6 +1774,22 @@ hot = new Handsontable(container, {
 });
 ```
 
-To adopt the new behavior, list the widths in the order of the columns in your `data` or [`columns`](@/api/options.md#columns) option, not the order you expect on the screen. If you build the array from a saved column order, drop the conversion.
+This snippet follows the moves that the user makes after the grid initializes. While the constructor runs, `hot` is still `undefined`, so the first render uses the physical index as it is. If you start the grid from a saved column order, for example `manualColumnMove: savedOrder`, convert the widths to physical order once, instead of reading `hot`:
+
+```js
+// `savedOrder[visualIndex]` is the physical index of the column at that position
+const widthsByPhysicalIndex = [];
+
+savedOrder.forEach((physicalIndex, visualIndex) => {
+  widthsByPhysicalIndex[physicalIndex] = widthsByPosition[visualIndex];
+});
+
+const hot = new Handsontable(container, {
+  manualColumnMove: savedOrder,
+  colWidths: widthsByPhysicalIndex,
+});
+```
+
+To adopt the new behavior, list the widths in the order of the columns in your `data` or [`columns`](@/api/options.md#columns) option, not the order you expect on the screen.
 
 To fix the width of a single column and keep it independent of the column order, you can also set `width` in the [`columns`](@/api/options.md#columns) option.
