@@ -125,10 +125,10 @@ In RTL mode, Handsontable moves the selection along the reading direction of the
 | <kbd>**Tab**</kbd>                                                   | Moves to the next column, one cell to the right.                          | Moves to the next column, one cell to the left.                           |
 | <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>                              | Moves to the previous column, one cell to the left.                       | Moves to the previous column, one cell to the right.                      |
 | <kbd>**Home**</kbd>                                                  | Moves to the first non-frozen cell of the current row, at the left-hand side.      | Moves to the first non-frozen cell of the current row, at the right-hand side.     |
-| <kbd>**End**</kbd>                                                   | Moves to the last cell of the current row, at the right-hand edge.      | Moves to the last cell of the current row, at the left-hand edge.       |
+| <kbd>**End**</kbd>                                                   | Moves to the last non-frozen cell of the current row, at the right-hand side.      | Moves to the last non-frozen cell of the current row, at the left-hand side.       |
 | <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**Home**</kbd>           | Moves to the top-left non-frozen cell of the grid.                                   | Moves to the top-right non-frozen cell of the grid.                                  |
-| <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**End**</kbd>            | Moves to the bottom-right cell of the grid.                               | Moves to the bottom-left cell of the grid.                                |
-| <kbd>**Shift**</kbd>+<kbd>**Home**</kbd> / <kbd>**Shift**</kbd>+<kbd>**End**</kbd> | Extends the selection to the left-hand / right-hand end of the current row. | Extends the selection to the right-hand / left-hand end of the current row. |
+| <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**End**</kbd>            | Moves to the bottom-right non-frozen cell of the grid.                               | Moves to the bottom-left non-frozen cell of the grid.                                |
+| <kbd>**Shift**</kbd>+<kbd>**Home**</kbd> / <kbd>**Shift**</kbd>+<kbd>**End**</kbd> | Extends the selection to the first / last non-frozen cell of the current row, at the left-hand / right-hand side. | Extends the selection to the first / last non-frozen cell of the current row, at the right-hand / left-hand side. |
 
 With the default [`tabMoves`](@/api/options.md#tabmoves) value of `{ row: 0, col: 1 }`, <kbd>**Tab**</kbd> moves to the next column in both directions.
 
@@ -138,7 +138,7 @@ The arrow keys always move the selection in the direction they point on the scre
 
 ::: tip
 
-This behavior is intentional. Handsontable navigates by the logical start and end of a row, so a user reads and navigates the grid in the same direction. The shortcuts are not swapped.
+This behavior is intentional. The key bindings stay the same; only the screen direction follows the layout.
 
 For all default shortcuts, see the [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md) guide.
 
