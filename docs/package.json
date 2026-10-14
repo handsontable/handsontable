@@ -64,7 +64,6 @@
     "react-dom": "^18.3.1",
     "react-markdown": "^9.1.0",
     "react-redux": "^9.2.0",
-    "read-excel-file": "^9.3.10",
     "redux": "^5.0.1",
     "remark-gfm": "^4.0.0",
     "shiki": "^1.22.0",

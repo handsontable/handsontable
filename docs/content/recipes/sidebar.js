@@ -85,7 +85,7 @@ const importExportItems = [
     title: 'Export to PDF',
     onlyFor: ['javascript', 'angular', 'react', 'vue'],
   },
-  { path: 'import-export/import-csv-excel/import-csv-excel', title: 'Import from CSV or Excel', onlyFor: ['javascript', 'angular', 'react'] },
+  { path: 'import-export/import-csv-excel/import-csv-excel', title: 'Import from CSV or Excel', onlyFor: ['javascript', 'angular', 'react', 'vue'] },
 ];
 
 const filteringAndSearchItems = [

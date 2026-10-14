@@ -516,6 +516,7 @@ import {
   Formulas,
   HiddenColumns,
   HiddenRows,
+  ImportFile,
   ManualColumnFreeze,
   ManualColumnMove,
   ManualColumnResize,
@@ -560,6 +561,7 @@ Each plugin module contains a different plugin:
 | `Formulas`                 | [`Formulas`](@/api/formulas.md)                       |
 | `HiddenColumns`            | [`HiddenColumns`](@/api/hiddenColumns.md)             |
 | `HiddenRows`               | [`HiddenRows`](@/api/hiddenRows.md)                   |
+| `ImportFile`               | [`ImportFile`](@/api/importFile.md)                   |
 | `ManualColumnFreeze`       | [`ManualColumnFreeze`](@/api/manualColumnFreeze.md)   |
 | `ManualColumnMove`         | [`ManualColumnMove`](@/api/manualColumnMove.md)       |
 | `ManualColumnResize`       | [`ManualColumnResize`](@/api/manualColumnResize.md)   |
@@ -748,21 +750,21 @@ The table below lists all of Handsontable's modules:
 | [Cell renderers](@/guides/cell-functions/cell-renderer/cell-renderer.md)   | `baseRenderer`<br>`autocompleteRenderer`<br>`checkboxRenderer`<br>`dateRenderer`<br>`dropdownRenderer`<br>`handsontableRenderer`<br>`htmlRenderer`<br>`numericRenderer`<br>`passwordRenderer`<br>`selectRenderer`<br>`textRenderer`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Optional            |
 | [Cell editors](@/guides/cell-functions/cell-editor/cell-editor.md)       | `AutocompleteEditor`<br>`BaseEditor`<br>`CheckboxEditor`<br>`DateEditor`<br>`DropdownEditor`<br>`HandsontableEditor`<br>`NumericEditor`<br>`PasswordEditor`<br>`SelectEditor`<br>`TextEditor`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Optional            |
 | [Cell validators](@/guides/cell-functions/cell-validator/cell-validator.md) | `autocompleteValidator`<br>`dateValidator`<br>`dropdownValidator`<br>`numericValidator`<br>`timeValidator`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Optional            |
-| [Plugins](@/api/plugins.md)                                  | [`AutoColumnSize`](@/api/autoColumnSize.md)<br>[`Autofill`](@/api/autofill.md)<br>[`AutoRowHeaderSize`](@/api/autoRowHeaderSize.md)<br>[`AutoRowSize`](@/api/autoRowSize.md)<br>[`BasePlugin`](@/api/basePlugin.md)<br>[`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)<br>[`CollapsibleColumns`](@/api/collapsibleColumns.md)<br>[`ColumnSorting`](@/api/columnSorting.md)<br>[`ColumnSummary`](@/api/columnSummary.md)<br>[`Comments`](@/api/comments.md)<br>[`ContextMenu`](@/api/contextMenu.md)<br>[`CopyPaste`](@/api/copyPaste.md)<br>[`CustomBorders`](@/api/customBorders.md)<br>[`DragToScroll`](@/api/dragToScroll.md)<br>[`DropdownMenu`](@/api/dropdownMenu.md)<br>[`ExportFile`](@/api/exportFile.md)<br>[`Filters`](@/api/filters.md)<br>[`Formulas`](@/api/formulas.md)<br>[`HiddenColumns`](@/api/hiddenColumns.md)<br>[`HiddenRows`](@/api/hiddenRows.md)<br>[`ManualColumnFreeze`](@/api/manualColumnFreeze.md)<br>[`ManualColumnMove`](@/api/manualColumnMove.md)<br>[`ManualColumnResize`](@/api/manualColumnResize.md)<br>[`ManualRowMove`](@/api/manualRowMove.md)<br>[`ManualRowResize`](@/api/manualRowResize.md)<br>[`MergeCells`](@/api/mergeCells.md)<br>[`MultiColumnSorting`](@/api/multiColumnSorting.md)<br>`MultipleSelectionHandles`<br>[`NestedHeaders`](@/api/nestedHeaders.md)<br>[`NestedRows`](@/api/nestedRows.md)<br>[`Search`](@/api/search.md)<br>[`StretchColumns`](@/api/stretchColumns.md)<br>`TouchScroll`<br>[`TrimRows`](@/api/trimRows.md)<br>[`UndoRedo`](@/api/undoRedo.md) | Optional            || [Translations](@/guides/internationalization/language/language.md)    | `arAR` `csCZ` `deCH` `deDE` `enUS` `esMX`<br>`frFR` `faIR` `hrHR` `itIT` `jaJP` `koKR`<br>`lvLV` `nbNO` `nlNL` `plPL`<br>`ptBR` `ruRU` `srLatnRS` `srSP` `zhCN` `zhTW`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Optional            |
+| [Plugins](@/api/plugins.md)                                  | [`AutoColumnSize`](@/api/autoColumnSize.md)<br>[`Autofill`](@/api/autofill.md)<br>[`AutoRowHeaderSize`](@/api/autoRowHeaderSize.md)<br>[`AutoRowSize`](@/api/autoRowSize.md)<br>[`BasePlugin`](@/api/basePlugin.md)<br>[`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)<br>[`CollapsibleColumns`](@/api/collapsibleColumns.md)<br>[`ColumnSorting`](@/api/columnSorting.md)<br>[`ColumnSummary`](@/api/columnSummary.md)<br>[`Comments`](@/api/comments.md)<br>[`ContextMenu`](@/api/contextMenu.md)<br>[`CopyPaste`](@/api/copyPaste.md)<br>[`CustomBorders`](@/api/customBorders.md)<br>[`DragToScroll`](@/api/dragToScroll.md)<br>[`DropdownMenu`](@/api/dropdownMenu.md)<br>[`ExportFile`](@/api/exportFile.md)<br>[`Filters`](@/api/filters.md)<br>[`Formulas`](@/api/formulas.md)<br>[`HiddenColumns`](@/api/hiddenColumns.md)<br>[`HiddenRows`](@/api/hiddenRows.md)<br>[`ImportFile`](@/api/importFile.md)<br>[`ManualColumnFreeze`](@/api/manualColumnFreeze.md)<br>[`ManualColumnMove`](@/api/manualColumnMove.md)<br>[`ManualColumnResize`](@/api/manualColumnResize.md)<br>[`ManualRowMove`](@/api/manualRowMove.md)<br>[`ManualRowResize`](@/api/manualRowResize.md)<br>[`MergeCells`](@/api/mergeCells.md)<br>[`MultiColumnSorting`](@/api/multiColumnSorting.md)<br>`MultipleSelectionHandles`<br>[`NestedHeaders`](@/api/nestedHeaders.md)<br>[`NestedRows`](@/api/nestedRows.md)<br>[`Search`](@/api/search.md)<br>[`StretchColumns`](@/api/stretchColumns.md)<br>`TouchScroll`<br>[`TrimRows`](@/api/trimRows.md)<br>[`UndoRedo`](@/api/undoRedo.md) | Optional            || [Translations](@/guides/internationalization/language/language.md)    | `arAR` `csCZ` `deCH` `deDE` `enUS` `esMX`<br>`frFR` `faIR` `hrHR` `itIT` `jaJP` `koKR`<br>`lvLV` `nbNO` `nlNL` `plPL`<br>`ptBR` `ruRU` `srLatnRS` `srSP` `zhCN` `zhTW`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Optional            |
 
 ## Build weight
 
 The tables below show the minified and gzip sizes of each module when bundled on top of the base module. The **gzip** column represents the size after gzip compression - the most relevant metric for network transfer.
 
 <!-- module-sizes:start -->
-Measurements were made with esbuild using minification, against **Handsontable 17.1.0** (2026-06-24).
+Measurements were made with esbuild using minification, against **Handsontable 18.1.2** (2026-10-14).
 
 **Base module sizes:**
 
 | Package | Minified | Gzip |
 | ------- | -------- | ---- |
-| `handsontable` (full, no tree shaking) | 1160.6 kB | 278.8 kB |
-| `handsontable/base` | 629.1 kB | 138.8 kB |
+| `handsontable` (full, no tree shaking) | 1699.8 kB | 457.6 kB |
+| `handsontable/base` | 883.2 kB | 210.6 kB |
 
 **Size added by each optional module (on top of `handsontable/base`):**
 
@@ -770,19 +772,20 @@ Measurements were made with esbuild using minification, against **Handsontable 1
 
 | Module | Minified | Gzip |
 | ------ | -------- | ---- |
-| `AutocompleteCellType` | +15.5 kB | +4.4 kB |
-| `CheckboxCellType` | +6.2 kB | +2.0 kB |
-| `DateCellType` | +2.3 kB | +0.9 kB |
-| `DropdownCellType` | +16.1 kB | +4.6 kB |
-| `HandsontableCellType` | +6.4 kB | +1.6 kB |
-| `IntlDateCellType` | +2.6 kB | +1.0 kB |
-| `IntlTimeCellType` | +2.3 kB | +1.0 kB |
-| `MultiSelectCellType` | +24.5 kB | +6.4 kB |
-| `NumericCellType` | +2.6 kB | +0.9 kB |
-| `PasswordCellType` | +4.7 kB | +1.1 kB |
-| `SelectCellType` | +3.4 kB | +0.7 kB |
+| `AutocompleteCellType` | +23.9 kB | +6.5 kB |
+| `CheckboxCellType` | +7.0 kB | +2.4 kB |
+| `DateCellType` | +4.5 kB | +1.5 kB |
+| `DropdownCellType` | +24.4 kB | +6.7 kB |
+| `HandsontableCellType` | +11.9 kB | +3.0 kB |
+| `IntlDateCellType` | +4.8 kB | +1.6 kB |
+| `IntlDatetimeCellType` | +3.6 kB | +1.5 kB |
+| `IntlTimeCellType` | +3.0 kB | +1.3 kB |
+| `MultiSelectCellType` | +31.1 kB | +8.3 kB |
+| `NumericCellType` | +3.4 kB | +1.3 kB |
+| `PasswordCellType` | +4.7 kB | +1.0 kB |
+| `SelectCellType` | +4.5 kB | +1.1 kB |
 | `TextCellType` | included in base | included in base |
-| `TimeCellType` | +2.0 kB | +0.9 kB |
+| `TimeCellType` | +2.7 kB | +1.2 kB |
 
 :::
 
@@ -790,45 +793,50 @@ Measurements were made with esbuild using minification, against **Handsontable 1
 
 | Module | Minified | Gzip |
 | ------ | -------- | ---- |
-| `AutoColumnSize` | +20.6 kB | +5.7 kB |
-| `AutoRowHeaderSize` | +24.4 kB | +6.7 kB |
-| `AutoRowSize` | +20.9 kB | +5.7 kB |
-| `Autofill` | +19.5 kB | +5.7 kB |
-| `BindRowsWithHeaders` | +8.5 kB | +2.5 kB |
-| `CollapsibleColumns` | +15.3 kB | +4.4 kB |
-| `ColumnSorting` | +21.4 kB | +6.3 kB |
-| `ColumnSummary` | +19.4 kB | +5.3 kB |
-| `Comments` | +34.3 kB | +8.4 kB |
-| `ContextMenu` | +40.5 kB | +10.7 kB |
-| `CopyPaste` | +27.8 kB | +7.8 kB |
-| `CustomBorders` | +16.3 kB | +4.8 kB |
-| `Dialog` | +19.9 kB | +5.6 kB |
-| `DragToScroll` | +17.5 kB | +4.7 kB |
-| `DropdownMenu` | +43.7 kB | +11.7 kB |
-| `EmptyDataState` | +18.4 kB | +5.2 kB |
-| `ExportFile` | +38.8 kB | +12.5 kB |
-| `Filters` | +90.9 kB | +23.0 kB |
-| `Formulas` | +34.5 kB | +9.1 kB |
-| `HiddenColumns` | +23.6 kB | +5.9 kB |
-| `HiddenRows` | +23.2 kB | +5.8 kB |
-| `Loading` | +9.8 kB | +3.0 kB |
-| `ManualColumnFreeze` | +9.7 kB | +2.8 kB |
-| `ManualColumnMove` | +16.7 kB | +4.8 kB |
-| `ManualColumnResize` | +16.4 kB | +4.5 kB |
-| `ManualRowMove` | +15.6 kB | +4.4 kB |
-| `ManualRowResize` | +16.3 kB | +4.4 kB |
-| `MergeCells` | +51.9 kB | +13.2 kB |
-| `MultiColumnSorting` | +23.7 kB | +6.7 kB |
-| `MultipleSelectionHandles` | +10.4 kB | +2.9 kB |
-| `NestedHeaders` | +42.7 kB | +12.1 kB |
-| `NestedRows` | +31.0 kB | +7.9 kB |
-| `Notification` | +25.0 kB | +6.8 kB |
-| `Pagination` | +27.4 kB | +7.3 kB |
-| `Search` | +9.5 kB | +2.8 kB |
-| `StretchColumns` | +13.4 kB | +3.7 kB |
-| `TouchScroll` | +9.0 kB | +2.6 kB |
-| `TrimRows` | +9.1 kB | +2.6 kB |
-| `UndoRedo` | +22.5 kB | +5.8 kB |
+| `AutoColumnSize` | +28.2 kB | +7.4 kB |
+| `AutoLink` | +22.9 kB | +9.7 kB |
+| `AutoRowHeaderSize` | +25.0 kB | +6.5 kB |
+| `AutoRowSize` | +24.8 kB | +6.4 kB |
+| `Autofill` | +20.1 kB | +5.8 kB |
+| `BindRowsWithHeaders` | +8.6 kB | +2.4 kB |
+| `CollapsibleColumns` | +19.0 kB | +5.4 kB |
+| `ColumnSorting` | +28.9 kB | +8.7 kB |
+| `ColumnSummary` | +23.0 kB | +6.0 kB |
+| `Comments` | +38.7 kB | +9.8 kB |
+| `ContextMenu` | +48.9 kB | +13.4 kB |
+| `CopyPaste` | +33.7 kB | +9.5 kB |
+| `CustomBorders` | +28.3 kB | +7.6 kB |
+| `Dialog` | +19.8 kB | +5.5 kB |
+| `DragToScroll` | +19.7 kB | +5.2 kB |
+| `DropdownMenu` | +53.0 kB | +14.6 kB |
+| `EmptyDataState` | +19.5 kB | +5.3 kB |
+| `ExportFile` | +158.1 kB | +51.2 kB |
+| `Filters` | +118.1 kB | +30.6 kB |
+| `Formulas` | +65.3 kB | +17.5 kB |
+| `HiddenColumns` | +27.0 kB | +7.3 kB |
+| `HiddenRows` | +26.2 kB | +7.1 kB |
+| `ImportFile` | +145.4 kB | +48.0 kB |
+| `Loading` | +10.4 kB | +3.0 kB |
+| `ManualColumnFreeze` | +21.8 kB | +5.7 kB |
+| `ManualColumnMove` | +19.5 kB | +5.4 kB |
+| `ManualColumnResize` | +23.7 kB | +6.2 kB |
+| `ManualRowMove` | +15.9 kB | +4.4 kB |
+| `ManualRowResize` | +22.7 kB | +5.9 kB |
+| `MergeCells` | +76.7 kB | +20.2 kB |
+| `MoveCells` | +19.2 kB | +5.5 kB |
+| `MultiColumnSorting` | +31.3 kB | +9.3 kB |
+| `MultipleSelectionHandles` | +15.7 kB | +4.3 kB |
+| `NestedHeaders` | +54.0 kB | +15.0 kB |
+| `NestedRows` | +50.6 kB | +12.6 kB |
+| `Notification` | +26.7 kB | +7.2 kB |
+| `Pagination` | +29.7 kB | +7.9 kB |
+| `Search` | +10.1 kB | +2.9 kB |
+| `SelectionHandles` | +14.7 kB | +4.0 kB |
+| `SheetsBar` | +109.5 kB | +29.8 kB |
+| `StretchColumns` | +13.9 kB | +3.7 kB |
+| `TouchScroll` | +9.6 kB | +2.6 kB |
+| `TrimRows` | +9.7 kB | +2.7 kB |
+| `UndoRedo` | +46.5 kB | +12.5 kB |
 
 :::
 
@@ -926,6 +934,7 @@ import {
   Formulas,
   HiddenColumns,
   HiddenRows,
+  ImportFile,
   ManualColumnFreeze,
   ManualColumnMove,
   ManualColumnResize,
@@ -1114,6 +1123,7 @@ import {
   Formulas,
   HiddenColumns,
   HiddenRows,
+  ImportFile,
   ManualColumnFreeze,
   ManualColumnMove,
   ManualColumnResize,
@@ -1216,6 +1226,7 @@ registerPlugin(Filters);
 registerPlugin(Formulas);
 registerPlugin(HiddenColumns);
 registerPlugin(HiddenRows);
+registerPlugin(ImportFile);
 registerPlugin(ManualColumnFreeze);
 registerPlugin(ManualColumnMove);
 registerPlugin(ManualColumnResize);
@@ -1326,6 +1337,7 @@ import { ExportFile } from 'handsontable/plugins/exportFile';
 import { Filters } from 'handsontable/plugins/filters';
 import { HiddenColumns } from 'handsontable/plugins/hiddenColumns';
 import { HiddenRows } from 'handsontable/plugins/hiddenRows';
+import { ImportFile } from 'handsontable/plugins/importFile';
 import { ManualColumnFreeze } from 'handsontable/plugins/manualColumnFreeze';
 import { ManualColumnMove } from 'handsontable/plugins/manualColumnMove';
 import { ManualColumnResize } from 'handsontable/plugins/manualColumnResize';
