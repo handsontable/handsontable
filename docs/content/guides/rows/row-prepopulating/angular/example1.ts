@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable/base';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
@@ -12,7 +12,7 @@ import { textRenderer } from 'handsontable/renderers/textRenderer';
   standalone: true,
   imports: [HotTableModule],
 })
-export class AppComponent implements AfterViewInit {
+export class AppComponent implements OnInit {
   @ViewChild(HotTableComponent, {static: false}) hotTable!: HotTableComponent;
 
   hotSettings: GridSettings = {};
@@ -24,15 +24,8 @@ export class AppComponent implements AfterViewInit {
     ['Boron', 'B', 5, 10.81, 15],
   ];
 
-  ngAfterViewInit() {
+  ngOnInit() {
     const templateValues = ['one', 'two', 'three'];
-    const data = [
-      ['Hydrogen', 'H', 1, 1.008, 7],
-      ['Helium', 'He', 2, 4.003, 9],
-      ['Lithium', 'Li', 3, 6.94, 9],
-      ['Beryllium', 'Be', 4, 9.012, 11],
-      ['Boron', 'B', 5, 10.81, 15],
-    ];
 
     function isEmptyRow(instance: Handsontable, row: number) {
       const rowData = instance.getDataAtRow(row);
@@ -73,8 +66,6 @@ export class AppComponent implements AfterViewInit {
       );
     };
 
-    const hot = this.hotTable.hotInstance!;
-
     this.hotSettings = {
       startRows: 8,
       startCols: 5,
@@ -86,8 +77,8 @@ export class AppComponent implements AfterViewInit {
       cells() {
         return { renderer: defaultValueRenderer };
       },
-      beforeChange: function (changes: (Handsontable.CellChange | null)[]) {
-        const instance = hot;
+      beforeChange: (changes: (Handsontable.CellChange | null)[]) => {
+        const instance = this.hotTable.hotInstance!;
         const columns = instance.countCols();
         const rowColumnSeen: Record<string, boolean> = {};
         const rowsToFill: Record<string, boolean> = {};
@@ -122,8 +113,6 @@ export class AppComponent implements AfterViewInit {
       autoWrapRow: true,
       autoWrapCol: true,
     }
-
-    this.hotTable.hotInstance!.loadData(data);
   }
 
 
