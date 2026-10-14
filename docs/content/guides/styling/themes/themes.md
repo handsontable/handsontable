@@ -431,28 +431,19 @@ If you used the `--ht-wrapper-border-width` and `--ht-wrapper-border-color` vari
 
 ### Start from a preset
 
-Import the `tokens`, `colors`, and `icons` of a preset from `handsontable/themes/static/variables`. Then pass them to `registerTheme()` with a name for your theme:
+Pass a built-in theme object to `registerTheme()` with a name for your theme. `registerTheme()` clones the preset and renames it, so the built-in theme stays unchanged:
 
 ```js
-import tokens from 'handsontable/themes/static/variables/tokens/main';
-import colors from 'handsontable/themes/static/variables/colors/main';
-import icons from 'handsontable/themes/static/variables/icons/main';
-import { registerTheme } from 'handsontable/themes';
+import { mainTheme, registerTheme } from 'handsontable/themes';
 
-const customTheme = registerTheme('custom-theme', {
-  tokens,
-  colors,
-  icons,
-  density: 'default',
-  colorScheme: 'auto',
-});
+const customTheme = registerTheme('custom-theme', mainTheme);
 ```
 
-To base your theme on the `horizon` preset, import the `horizon` files instead of the `main` ones. The `classic` preset has `tokens` and `colors` files, and it uses the `main` icons.
+To start from another preset, import `classicTheme` or `horizonTheme` instead. Your theme keeps the density and icons of the preset: `main` uses the `'default'` density, `classic` uses `'compact'`, and `horizon` uses `'comfortable'`.
 
 ### Override values with `params()`
 
-Call `params()` to override only the colors and tokens you need. The values you pass are merged into the preset. `params()` returns the theme, so you can chain `setColorScheme()` and `setDensityType()` after it:
+Call `params()` to override only the colors and tokens you need. The values you pass are merged into your theme. `params()` returns the theme, so you can chain `setColorScheme()` and `setDensityType()` after it:
 
 ```js
 customTheme
@@ -472,9 +463,30 @@ customTheme
   .setDensityType('compact');
 ```
 
+### Take full control with the static variables
+
+To mix parts of different presets, for example the `horizon` tokens with the `main` icons, import the `tokens`, `colors`, and `icons` files from `handsontable/themes/static/variables`. Then pass them to `registerTheme()`:
+
+```js
+import tokens from 'handsontable/themes/static/variables/tokens/horizon';
+import colors from 'handsontable/themes/static/variables/colors/horizon';
+import icons from 'handsontable/themes/static/variables/icons/main';
+import { registerTheme } from 'handsontable/themes';
+
+const customTheme = registerTheme('custom-theme', {
+  tokens,
+  colors,
+  icons,
+  density: 'comfortable',
+  colorScheme: 'auto',
+});
+```
+
+These files hold only `tokens`, `colors`, and `icons`, so set `density` yourself. If you leave it out, your theme uses the `'default'` density, even when the files come from `classic` or `horizon`. The `classic` preset has `tokens` and `colors` files, and it uses the `main` icons.
+
 ### Config keys
 
-The configuration object that you pass to `registerTheme()` uses these keys:
+A theme configuration object uses these keys. The built-in theme objects already contain all the required ones:
 
 | Key           | Required | Description                                                                                                  |
 | ------------- | -------- | ------------------------------------------------------------------------------------------------------------ |
