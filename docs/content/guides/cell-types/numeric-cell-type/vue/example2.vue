@@ -46,6 +46,6 @@ const hotSettings: GridSettings = {
       <HotColumn type="numeric" />
       <HotColumn type="numeric" :preserveNumericLiteral="true" />
     </HotTable>
-    <p id="example2-readout">{{ readout }}</p>
+    <p id="example2-readout" aria-live="polite">{{ readout }}</p>
   </div>
 </template>

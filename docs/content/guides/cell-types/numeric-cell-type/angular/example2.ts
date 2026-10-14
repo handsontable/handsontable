@@ -10,7 +10,7 @@ import Handsontable from 'handsontable/base';
   template: `
     <div>
       <hot-table #hotTable [data]="data" [settings]="gridSettings"></hot-table>
-      <p id="example2-readout">{{ readout }}</p>
+      <p id="example2-readout" aria-live="polite">{{ readout }}</p>
     </div>
   `,
 })

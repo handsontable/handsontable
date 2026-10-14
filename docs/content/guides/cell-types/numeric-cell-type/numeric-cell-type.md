@@ -449,7 +449,7 @@ you edit a numeric cell:
 
 The following demo has two numeric columns with the same data. **Default** uses no extra options.
 **preserveNumericLiteral: true** sets the [`preserveNumericLiteral`](@/api/options.md#preservenumericliteral)
-option for that column, which shows how the option cascades from the column level.
+option at the column level, so it applies to every cell in that column.
 
 To compare them:
 
