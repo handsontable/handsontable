@@ -67,4 +67,17 @@ describe('DataProvider#_getNaturalColWidth', () => {
 
     expect(provider._getNaturalColWidth(0)).toBe(70);
   });
+
+  it('should keep a `columns[].width` with its column after the move', () => {
+    const provider = createProvider({ columns: [{ width: 200 }, {}, {}] });
+
+    expect(provider._getNaturalColWidth(2)).toBe(200);
+    expect(provider._getNaturalColWidth(0)).toBe(50);
+  });
+
+  it('should fall back to the default column width for a `colWidths` that is not a number', () => {
+    const provider = createProvider({ colWidths: 'auto', defaultColumnWidth: 70 });
+
+    expect(provider._getNaturalColWidth(0)).toBe(70);
+  });
 });

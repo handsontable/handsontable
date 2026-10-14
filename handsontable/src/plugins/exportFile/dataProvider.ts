@@ -985,23 +985,18 @@ class DataProvider {
    *
    * `getColWidth()` returns 0 for hidden columns because the HiddenColumns plugin
    * overrides the `modifyColWidth` hook. This method reads the configured width
-   * from column meta or the `colWidths` setting, bypassing that hook.
+   * from the cell meta or the `colWidths` setting, bypassing that hook.
    *
    * @private
    * @param {number} colIndex Visual column index.
    * @returns {number}
    */
   _getNaturalColWidth(colIndex: number): number {
-    const metaWidth = this.hot.getColumnMeta(colIndex).width;
-
-    if (metaWidth !== null && metaWidth !== undefined) {
-      return metaWidth as number;
-    }
-
     const { defaultColumnWidth } = this.hot.getSettings();
     const fallback: number = (defaultColumnWidth as number | undefined) ?? 50;
+    const width = this.hot._getColWidthFromSettings(colIndex);
 
-    return this.hot._getColWidthFromSettings(colIndex) ?? fallback;
+    return Number.isFinite(width) ? width as number : fallback;
   }
 
   /**

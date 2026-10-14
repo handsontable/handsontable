@@ -77,6 +77,51 @@ describe('colWidths addressed by physical column index', () => {
     expect(hot._getColWidthFromSettings(3)).toBeUndefined();
   });
 
+  it('should keep the widths with their columns when a column is appended after a move', () => {
+    createGrid({ colWidths: [100, 120, 140] });
+
+    hot.columnIndexMapper.moveIndexes([0], 2);
+    // appended after the last visible column, which takes a physical index in the middle
+    hot.alter('insert_col_end', 2);
+
+    // visual order is [B, C, A, new]
+    expect(hot.getColWidth(0)).toBe(120);
+    expect(hot.getColWidth(1)).toBe(140);
+    expect(hot.getColWidth(2)).toBe(100);
+    expect(hot.getColWidth(3)).toBe(50);
+  });
+
+  it('should keep the widths with their columns when a column is inserted in the middle', () => {
+    createGrid({ colWidths: [100, 120, 140] });
+
+    hot.alter('insert_col_start', 1);
+
+    expect(hot.getColWidth(0)).toBe(100);
+    expect(hot.getColWidth(1)).toBe(50);
+    expect(hot.getColWidth(2)).toBe(120);
+    expect(hot.getColWidth(3)).toBe(140);
+  });
+
+  it('should drop the width of a removed column after a move', () => {
+    createGrid({ colWidths: [100, 120, 140] });
+
+    hot.columnIndexMapper.moveIndexes([0], 2);
+    hot.alter('remove_col', 0);
+
+    // visual order was [B, C, A], so B is gone
+    expect(hot.getColWidth(0)).toBe(140);
+    expect(hot.getColWidth(1)).toBe(100);
+  });
+
+  it('should drop the widths of columns removed from the end', () => {
+    createGrid({ colWidths: [100, 120, 140] });
+
+    hot.alter('remove_col', undefined, 2);
+
+    expect(hot.countCols()).toBe(1);
+    expect(hot.getColWidth(0)).toBe(100);
+  });
+
   it('should leave the width untouched when no column is moved', () => {
     createGrid({ colWidths: [100, 120, 140] });
 
