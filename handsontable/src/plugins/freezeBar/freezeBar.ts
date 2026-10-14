@@ -144,6 +144,11 @@ export class FreezeBar extends BasePlugin {
    * The shadow of the bar that follows the pointer while a bar is dragged.
    */
   #ghost: HTMLElement | null = null;
+
+  /**
+   * The edge whose bar the pointer is over, so a render can place the hovered part over the headers again.
+   */
+  #hoveredEdge: FreezeEdge | null = null;
   /**
    * The state of the drag in progress.
    */
@@ -443,6 +448,11 @@ export class FreezeBar extends BasePlugin {
     // the stylesheet keeps the resize handles clear of the bars on the axes that have them
     this.hot.rootElement.classList.toggle('ht-freeze-bar-columns', this.#isEdgeAvailable('start'));
     this.hot.rootElement.classList.toggle('ht-freeze-bar-rows', this.#isEdgeAvailable('top'));
+
+    // the headers may have changed size under a pointer that did not move, and the pointer events do not fire again
+    if (this.#hoveredEdge) {
+      this.#setHover(this.#hoveredEdge, true);
+    }
   };
 
   /**
@@ -1315,6 +1325,8 @@ export class FreezeBar extends BasePlugin {
     const pieces = [this.#bars[edge], ...(this.#segments[edge]?.values() ?? [])]
       .filter((piece): piece is HTMLElement => !!piece);
 
+    this.#hoveredEdge = hovered ? edge : null;
+
     if (!hovered || this.#drag) {
       pieces.forEach(piece => piece.classList.remove('ht-freeze-bar--hover'));
 
@@ -1536,6 +1548,7 @@ export class FreezeBar extends BasePlugin {
     this.#abortDrag?.();
     this.#hideGuide();
     this.#drag = null;
+    this.#hoveredEdge = null;
     Object.values(this.#bars).forEach(bar => bar?.remove());
     Object.values(this.#separators).forEach(separator => separator?.remove());
     Object.values(this.#segments).forEach(pieces => pieces?.forEach(piece => piece.remove()));

@@ -367,6 +367,25 @@ test.describe('freezeBar', () => {
       await expect(grid.page.locator('.ht-freeze-bar--hover')).toHaveCount(0);
     });
 
+    test('a hovered bar follows the column headers when their height changes under the pointer', async() => {
+      await grid.goto();
+
+      const bar = await barRect('start');
+
+      await grid.page.mouse.move((bar.left + bar.right) / 2, bar.top + 150);
+      await grid.page.evaluate(() => window.hot.updateSettings({ columnHeaderHeight: 70 }));
+
+      const pieces = await startPieces();
+
+      expect(await grid.page.evaluate(() => window.hot.view.getColumnHeaderHeight())).toBeGreaterThan(60);
+      expect(pieces.length).toBeGreaterThan(1);
+      pieces.forEach((piece) => {
+        expect(piece.hovered).toBe(true);
+        expect(Math.abs(piece.from - piece.headerTop)).toBeLessThan(1);
+        expect(Math.abs(piece.to - piece.headerBottom)).toBeLessThan(1);
+      });
+    });
+
     test('a pressed bar takes the highlight color over the column headers, and its plain color once it is dragged',
       async() => {
         await grid.goto();
