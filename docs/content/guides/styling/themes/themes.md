@@ -476,13 +476,14 @@ customTheme
 
 The configuration object that you pass to `registerTheme()` uses these keys:
 
-| Key           | Required | Description                                                                |
-| ------------- | -------- | -------------------------------------------------------------------------- |
-| `tokens`      | Yes      | Design tokens for visual properties.                                       |
-| `colors`      | Yes      | Color palette with nested color values.                                    |
-| `icons`       | Yes      | Icon definitions.                                                          |
-| `density`     | No       | `'default'`, `'compact'`, or `'comfortable'`. The default is `'default'`.  |
-| `colorScheme` | No       | `'light'`, `'dark'`, or `'auto'`. The default is `'auto'`.                 |
+| Key           | Required | Description                                                                                                  |
+| ------------- | -------- | ------------------------------------------------------------------------------------------------------------ |
+| `tokens`      | Yes      | Design tokens for visual properties.                                                                         |
+| `colors`      | Yes      | Color palette with nested color values.                                                                      |
+| `icons`       | Yes      | Icon definitions.                                                                                            |
+| `sizing`      | No       | Size scale values (`size_0` through `size_10`).                                                              |
+| `density`     | No       | `'default'`, `'compact'`, `'comfortable'`, or a density configuration object. The default is `'default'`.   |
+| `colorScheme` | No       | `'light'`, `'dark'`, or `'auto'`. The default is `'auto'`.                                                   |
 
 The `name` is required too. When you call `registerTheme('custom-theme', config)`, the first argument sets it. You can set the name only at registration, not with `params()`. If you omit `tokens`, `colors`, or `icons`, `registerTheme()` throws a validation error. If a theme with the same name is already registered, `registerTheme()` logs a warning and returns the existing theme.
 
