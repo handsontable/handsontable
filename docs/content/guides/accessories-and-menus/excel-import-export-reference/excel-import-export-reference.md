@@ -220,5 +220,5 @@ To inject ExcelJS under Jest 29 with `jest-environment-jsdom`, set `testEnvironm
 ---
 
 ::: tip Trademark notice
-Microsoft and Excel are registered trademarks of Microsoft Corporation. Google Sheets is a trademark of Google LLC.
+Microsoft® and Excel® are registered trademarks of Microsoft Corporation.
 :::
