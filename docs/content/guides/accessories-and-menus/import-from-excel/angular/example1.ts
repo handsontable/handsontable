@@ -1,6 +1,7 @@
 /* file: app.component.ts */
-import { Component, ViewChild, signal } from '@angular/core';
+import { Component, NgZone, ViewChild, inject, signal } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
+import { HyperFormula } from 'hyperformula';
 
 @Component({
   standalone: true,
@@ -9,6 +10,7 @@ import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/a
   template: `
     <div class="example-controls-container">
       <div class="controls">
+        <button (click)="loadSample()">Load sample</button>
         <label for="import-file">Import XLSX</label>
         <input type="file" id="import-file" accept=".xlsx" (change)="importFile($event)">
         <output role="status">{{ status() }}</output>
@@ -22,8 +24,11 @@ import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/a
 export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) hotTable!: HotTableComponent;
 
-  // A signal, not a plain field: `importFromBlob()` returns a native promise, so the code after
-  // `await` can run outside any Zone.js task, and in a zoneless app nothing else schedules a check.
+  private readonly zone = inject(NgZone);
+  private readonly sampleUrl = '/docs/scripts/xlsx/employees.xlsx';
+
+  // A signal, not a plain field: the import runs outside the Angular zone (see below), so nothing
+  // else schedules a change detection run when the status changes.
   readonly status = signal('');
 
   readonly hotData = [
@@ -48,36 +53,62 @@ export class AppComponent {
       { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
     ],
     rowHeaders: true,
+    formulas: { engine: HyperFormula },
+    comments: true,
+    mergeCells: true,
+    hiddenColumns: true,
+    customBorders: true,
     height: 'auto',
     autoWrapRow: true,
     autoWrapCol: true,
     importFile: true,
   };
 
-  async importFile(event: Event): Promise<void> {
+  loadSample(): void {
+    this.zone.runOutsideAngular(async() => {
+      const response = await fetch(this.sampleUrl);
+
+      await this.importWorkbook(await response.blob(), 'employees.xlsx');
+    });
+  }
+
+  importFile(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
 
-    if (!file) {
+    this.zone.runOutsideAngular(async() => {
+      if (file) {
+        await this.importWorkbook(file, file.name);
+      }
+
+      // Cleared either way, so picking the same file again fires `change` again.
+      input.value = '';
+    });
+  }
+
+  // The built-in engine awaits once per archive slice, and each await would end a Zone.js turn
+  // and run change detection, so the import runs outside the zone.
+  private async importWorkbook(blob: Blob, name: string): Promise<void> {
+    const importPlugin = this.hotTable?.hotInstance?.getPlugin('importFile');
+
+    if (!importPlugin) {
+      this.status.set('The grid is not ready.');
+
       return;
     }
 
-    const importPlugin = this.hotTable.hotInstance!.getPlugin('importFile');
-
     try {
-      const result = await importPlugin.importFromBlob('xlsx', file, {
+      const result = await importPlugin.importFromBlob('xlsx', blob, {
         colHeaders: 'firstRow',
+        importStyles: true,
       });
 
-      this.status.set(`Imported ${file.name}`);
+      this.status.set(`Imported ${name}`);
       console.log('Dropped features:', result.dropped);
     } catch (error) {
-      // A file the engine refuses (an .xls, a password-protected or damaged workbook) rejects with a
-      // message that says what to do; the grid keeps its data.
+      // A refused file (an .xls, a password-protected or damaged workbook) rejects with a message
+      // that says what to do; the grid keeps its data.
       this.status.set((error as Error).message);
-    } finally {
-      // Cleared either way, so picking the same file again fires `change` again.
-      input.value = '';
     }
   }
 }
