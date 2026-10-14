@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-14T08:49:45.020Z",
+  "generatedAt": "2026-10-14T08:57:49.819Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -582,7 +582,7 @@
       "file": "handsontable/src/plugins/manualRowResize/__tests__/manualRowResize.spec.js",
       "line": null,
       "title": "manualRowResize should autosize selected rows after double click on handler and move mouse to the next row",
-      "count7": 2,
+      "count7": 1,
       "count30": 6,
       "countAll": 6,
       "runs30": 2,
