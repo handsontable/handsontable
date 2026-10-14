@@ -692,7 +692,7 @@ With `hyperlinks` enabled, `=HYPERLINK("https://handsontable.com", "Handsontable
 `Handsontable` as a link that points to `https://handsontable.com`. When you omit the second
 argument, the URL becomes the label.
 
-The example below renders a column of company websites as links:
+The example below renders a column of company websites as links. Click a link, or select its cell and press <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>, to open it in a new tab:
 
 ::: only-for javascript
 
