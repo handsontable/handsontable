@@ -1003,13 +1003,12 @@ the same way – that is how the spec was proven red on the #13381 deploy and gr
 `.github/scripts/__tests__/docs-visual-baseline.test.mjs` pins the contract above against the config, the
 spec, the action, and the workflows.
 
-
 ## 2.19 Plugin API pages link to their guide
 
 `content/api/*.md` is generated (gitignored) by `npm run docs:api`, so a hand edit there is lost. A plugin API page opens with one line, right after `[[toc]]`: `See the [<guide title>](@/guides/...md) guide for examples and configuration details.` The renderer (`scripts/jsdoc-convert/renderer/renderer.mjs`) adds it from the `apiGuideLinks` map in `scripts/jsdoc-convert/apiGuideLinks.mjs`, and reads the title from the guide's frontmatter (DEV-2809).
 
 - **Add or change a link** by editing that map: `'<pluginName>.md': 'guides/<section>/<page>/<page>.md'`. A new plugin with a guide needs an entry; one without a guide gets none. One primary guide per page.
-- **Plugins only.** `Core`, `Hooks`, `Options`, and the editors are not mapped.
+- **Plugins only.** `Core`, `Hooks`, `Options`, and the editors are not mapped. A plugin with no guide goes in `unmappedPlugins` (same module), so every plugin directory is either mapped or listed on purpose.
 - **The guide must be framework-neutral.** One API page serves every framework, so a guide that the sidebar gates with `onlyFor` would be a dead link elsewhere.
-- **The gate is `npm run docs:validate-api-guide-links`** (part of `npm run build`; unit tests in `scripts/__tests__/validate-api-guide-links.test.mjs`, run by `docs:test:plugins`). It fails on a missing or untitled guide, a guide missing from the sidebar, an `onlyFor` guide, and a key that is not a plugin directory.
+- **The gate is `npm run docs:validate-api-guide-links`** (part of `npm run build`; unit tests in `scripts/__tests__/validate-api-guide-links.test.mjs`, run by `docs:test:plugins`). It fails on a missing or untitled guide, a guide missing from the sidebar, an `onlyFor` guide, a key that is not a plugin directory, and a plugin directory that is neither mapped nor listed. It reads the sources and `content/guides` only, so it does not need `docs:api` first. The test that checks the generated `content/api/*.md` skips until `docs:api` has run.
 - **Tooling, not content.** The map and the renderer are outside `docs/content/**`, so the docs sync does not port them to `prod-docs/*`. The line reaches the live site at the next prod-docs cut, or through a hand cherry-pick.

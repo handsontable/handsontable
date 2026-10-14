@@ -1,9 +1,15 @@
 import { existsSync, readdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join, resolve } from 'node:path';
-import { apiGuideLinks, readGuideTitle } from './jsdoc-convert/apiGuideLinks.mjs';
+import { pathToFileURL } from 'node:url';
+import { apiGuideLinks, readGuideTitle, unmappedPlugins } from './jsdoc-convert/apiGuideLinks.mjs';
 
 const require = createRequire(import.meta.url);
+
+/**
+ * Directories of `handsontable/src/plugins` that are not plugins with an API page.
+ */
+const NON_PLUGIN_DIRS = ['base', '__tests__'];
 
 /**
  * Validates the map that adds a "See the guide" line to the generated API pages (DEV-2809).
@@ -57,10 +63,28 @@ export function collectSidebarGuides(sidebar) {
  * @param {string} options.contentDir Absolute path to `docs/content`.
  * @param {string[]} options.pluginNames Plugin directory names from `handsontable/src/plugins`.
  * @param {{ all: Set<string>, gated: Set<string> }} options.sidebar From `collectSidebarGuides()`.
+ * @param {string[]} [options.unmapped] Plugins that deliberately have no guide link.
  * @returns {string[]} One message per problem; empty when all entries pass.
  */
-export function validateApiGuideLinks({ links, contentDir, pluginNames, sidebar }) {
+export function validateApiGuideLinks({ links, contentDir, pluginNames, sidebar, unmapped = unmappedPlugins }) {
   const errors = [];
+
+  for (const name of pluginNames) {
+    if (NON_PLUGIN_DIRS.includes(name)) {
+      continue;
+    }
+
+    const isMapped = Object.hasOwn(links, `${name}.md`);
+    const isUnmapped = unmapped.includes(name);
+
+    if (!isMapped && !isUnmapped) {
+      errors.push(`${name}: plugin has no guide link. Add it to apiGuideLinks, or list it in unmappedPlugins.`);
+    }
+
+    if (isMapped && isUnmapped) {
+      errors.push(`${name}: plugin is both mapped and listed in unmappedPlugins.`);
+    }
+  }
 
   for (const [apiFile, guidePath] of Object.entries(links)) {
     const name = apiFile.replace(/\.md$/, '');
@@ -97,9 +121,12 @@ export function validateApiGuideLinks({ links, contentDir, pluginNames, sidebar 
   return errors;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
-  const contentDir = resolve(process.cwd(), 'content');
-  const pluginsDir = resolve(process.cwd(), '../handsontable/src/plugins');
+// process.argv[1] may be relative, so compare it as a file URL the way Node resolves import.meta.url.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  // Resolve from this file, not the working directory, so the script runs from any directory.
+  const docsDir = resolve(import.meta.dirname, '..');
+  const contentDir = join(docsDir, 'content');
+  const pluginsDir = resolve(docsDir, '../handsontable/src/plugins');
   const pluginNames = readdirSync(pluginsDir, { withFileTypes: true })
     .filter(entry => entry.isDirectory())
     .map(entry => entry.name);
