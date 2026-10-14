@@ -79,9 +79,9 @@ The example below handles data by using `fetch`. Note that this is just a mockup
 
 Do not call data-writing methods, such as [`setDataAtCell()`](@/api/core.md#setdataatcell), from inside a `renderer` function. A renderer controls how a cell looks. It must not change the cell's data.
 
-Every accepted change re-renders the visible cells. A data write from a renderer can trigger the same renderer again and cause an infinite loop.
+A data write re-renders the grid. A write from a renderer can therefore run the same renderer again. Without a guard, the recursion never ends and fails with a stack overflow error.
 
-To react to changes and save them, use the [`afterChange`](@/api/hooks.md#afterchange) hook. For more information, see the [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md) guide.
+To react to changes and save them, use the [`afterChange`](@/api/hooks.md#afterchange) hook. To learn how renderers work, see the [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md) guide.
 
 :::
 
