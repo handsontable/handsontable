@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-14T08:12:19.709Z",
+  "updatedAt": "2026-10-14T08:49:45.020Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-horizon-min",
+      "file": "e2e/collapsible-indicator-dropdown-menu.spec.ts",
+      "line": 87,
+      "title": "collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: expect(received).toBe(expected) // Object.is equality",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "38534050426",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38534050426",
+      "workflow": "Tests",
+      "branch": "feature/DEV-918_colWidths-physical-indexes",
+      "headSha": "d36db3378b41fe7955287fae1524dedd7cf27f2a",
+      "event": "pull_request",
+      "seenAt": "2026-10-14T08:48:35Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-horizon",
