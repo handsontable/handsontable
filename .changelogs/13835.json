@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed the Angular wrapper to build with Angular 22, which replaces the per-file type declarations with a single bundled types file and sets the package type to module, while the supported range stays Angular 16 to 22.",
+  "type": "changed",
+  "issueOrPR": 13835,
+  "breaking": false,
+  "framework": "angular"
+}
