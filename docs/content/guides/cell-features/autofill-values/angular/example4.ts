@@ -24,10 +24,11 @@ export class AppComponent {
     [8, 12.25, null, null, null],
     [20, 3.8, null, null, null],
     [5, 29.99, null, null, null],
+    [15, 7.2, null, null, null],
   ];
 
   readonly gridSettings: GridSettings = {
-    colHeaders: ['Quantity', 'Unit price', 'Total', 'Total with tax', 'Tax rate'],
+    colHeaders: ['Quantity', 'Unit price', 'Total', 'Total with tax', 'Tax rate (E1 only)'],
     rowHeaders: true,
     stretchH: 'all',
     fillHandle: true,

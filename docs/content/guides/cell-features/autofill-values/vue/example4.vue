@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, markRaw } from 'vue';
+import { markRaw } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import { HyperFormula } from 'hyperformula';
@@ -13,6 +13,7 @@ const data: (string | number | null)[][] = [
   [8, 12.25, null, null, null],
   [20, 3.8, null, null, null],
   [5, 29.99, null, null, null],
+  [15, 7.2, null, null, null],
 ];
 
 // create an external HyperFormula instance.
@@ -25,9 +26,9 @@ const hyperformulaInstance = markRaw(
   })
 );
 
-const hotSettings = ref<GridSettings>({
+const hotSettings: GridSettings = {
   data,
-  colHeaders: ['Quantity', 'Unit price', 'Total', 'Total with tax', 'Tax rate'],
+  colHeaders: ['Quantity', 'Unit price', 'Total', 'Total with tax', 'Tax rate (E1 only)'],
   rowHeaders: true,
   stretchH: 'all',
   fillHandle: true,
@@ -39,7 +40,7 @@ const hotSettings = ref<GridSettings>({
   autoWrapRow: true,
   autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
-});
+};
 </script>
 
 <template>

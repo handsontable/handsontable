@@ -196,9 +196,9 @@ With the [`Formulas`](@/guides/formulas/formula-calculation/formula-calculation.
 
 - **Relative references adjust per target cell.** Filling `=A1+B1` down from row 1 to row 2 produces `=A2+B2` in the new cell, the same way a spreadsheet application adjusts formulas on fill.
 - **Absolute references stay fixed.** Filling `=$A$1+B1` down keeps `$A$1` unchanged in every filled cell, while the relative `B1` part still adjusts.
-- **The fill is canceled** if the engine reports that the target cells can't be written to (for example, because they're part of another formula's dependency chain), leaving the target range unchanged.
+- **The fill is canceled** if the engine reports that the target cells can't be written to (for example, because the target range includes part of an array formula, or extends past the sheet size limits), leaving the target range unchanged.
 
-In the example below, the **Total** column holds `=A1*B1`, and the **Total with tax** column holds `=C1*(1+$E$1)`, where `$E$1` is an absolute reference to the tax rate. Select the cells from **Total** to **Total with tax** in row 1 and drag the fill handle down. The row references adjust in each new row (`=A2*B2`, `=C2*(1+$E$1)`), and `$E$1` stays fixed. Select a filled cell to see its formula.
+In the example below, the **Total** column holds `=A1*B1`, and the **Total with tax** column holds `=C1*(1+$E$1)`, where `$E$1` is an absolute reference to the tax rate, stored once in cell `E1` of the **Tax rate** column. Select the cells from **Total** to **Total with tax** in row 1 and drag the fill handle down. The row references adjust in each new row (`=A2*B2`, `=C2*(1+$E$1)`), and `$E$1` stays fixed. Double-click a filled cell, or press <kbd>Enter</kbd>, to see its formula.
 
 ::: only-for vue
 
