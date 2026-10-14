@@ -238,6 +238,10 @@ Other rules:
   before merging, so a merged range keeps its master value" is the row-before-merge regression test —
   run it before reordering `writeColumnLayout`/`writeRows`/`writeSheetFeatures` in `exceljs.ts`.
 
+## Column widths come from `_getColWidthFromSettings()`
+
+`DataProvider#_getNaturalColWidth()` reads a column's configured width through `hot._getColWidthFromSettings(visualColumn)`, which takes a VISUAL index and reads the `colWidths` array and function by the physical one. Do not copy that translation or index `colWidths` yourself. A width that is not a finite number falls back to `defaultColumnWidth`. See `../autoColumnSize/AGENTS.md`, "Known concerns".
+
 ## Where to look next
 
 - `../importFile/AGENTS.md` for the read direction — same adapters, same `_HotValidation` sheet, and the

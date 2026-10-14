@@ -61,6 +61,7 @@ import {
   isSizeLowered,
   type MinimumSizes,
 } from './core/minimumSizes';
+import { insertColWidths, removeColWidths } from './core/colWidthsSplice';
 import { isSameColumnLayout, type ColumnLayout } from './core/columnLayout';
 import type { HookCallback } from './core/hooks/bucket';
 import type { GridSettings } from './core/settings';
@@ -1641,6 +1642,13 @@ export default function Core(
                 Array.prototype.splice.apply(tableMeta.colHeaders, spliceArray as [number, number]); // inserts empty (undefined) elements into the colHeader array
               }
 
+              // `colWidths` is addressed by the physical index, which a created column takes in the middle of
+              // the physical order after any column move, so the widths after it shift with their columns.
+              if (Array.isArray(tableMeta.colWidths)) {
+                tableMeta.colWidths =
+                  insertColWidths(tableMeta.colWidths, startColumnPhysicalIndex!, colDelta as number);
+              }
+
               selection.shiftColumns(instance.toVisualColumn(startColumnPhysicalIndex!), colDelta as number);
             }
             break;
@@ -1795,6 +1803,22 @@ export default function Core(
 
                 const totalColumnsBefore = instance.countCols();
 
+                // The physical indexes of the columns the removal takes, read before it renumbers them.
+                const removedPhysicalColumns: number[] = [];
+
+                if (Array.isArray(tableMeta.colWidths)) {
+                  const firstRemovedVisualColumn = isEmpty(groupIndex) ?
+                    Math.max(totalColumnsBefore - groupAmount, 0) : calcIndex;
+
+                  rangeEach(firstRemovedVisualColumn, firstRemovedVisualColumn + groupAmount - 1, (visualColumn) => {
+                    const removedPhysicalColumn = instance.toPhysicalColumn(visualColumn);
+
+                    if (removedPhysicalColumn !== null) {
+                      removedPhysicalColumns.push(removedPhysicalColumn);
+                    }
+                  });
+                }
+
                 // TODO: for datamap.removeCol index should be passed as it is (with undefined and null values). If not, the logic
                 // inside the datamap.removeCol breaks the removing functionality.
                 const wasRemoved = datamap.removeCol(groupIndex, groupAmount, source);
@@ -1877,6 +1901,10 @@ export default function Core(
                     physicalColumnIndex = -1;
                   }
                   tableMeta.colHeaders.splice(physicalColumnIndex!, groupAmount);
+                }
+
+                if (Array.isArray(tableMeta.colWidths)) {
+                  tableMeta.colWidths = removeColWidths(tableMeta.colWidths, removedPhysicalColumns);
                 }
 
                 offset += groupAmount;
@@ -7192,12 +7220,23 @@ export default function Core(
   };
 
   /**
+   * Translates a visual column index to the index that the `colWidths` array and function use.
+   * Headers (negative indexes) and columns outside the index mapper have no physical index,
+   * so they keep the index they were given.
+   *
+   * @param {number} col Visual col index.
+   * @returns {number}
+   */
+  const toPhysicalWidthIndex = (col: number): number => (col >= 0 ? instance.toPhysicalColumn(col) : null) ?? col;
+
+  /**
    * Return column width from settings (no guessing). Private use intended.
    *
    * @private
    * @memberof Core#
    * @function _getColWidthFromSettings
-   * @param {number} col Visual col index.
+   * @param {number} col Visual col index. The `colWidths` array and function are read by the
+   * matching physical index.
    * @returns {number}
    */
   this._getColWidthFromSettings = function(col: number) {
@@ -7214,12 +7253,12 @@ export default function Core(
 
     if (width !== undefined && width !== null) {
       switch (typeof width) {
-        case 'object': // array
-          width = (width as Record<number, unknown>)[col];
+        case 'object': // array, addressed by the physical column index
+          width = (width as Record<number, unknown>)[toPhysicalWidthIndex(col)];
           break;
 
-        case 'function':
-          width = (width as (col: number) => unknown)(col);
+        case 'function': // called with the physical column index
+          width = (width as (col: number) => unknown)(toPhysicalWidthIndex(col));
           break;
         default:
           break;

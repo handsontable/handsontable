@@ -158,7 +158,7 @@ export interface GridSettings {
   // Dimensions
   width?: number | 'auto' | (string & {}) | null | (() => number | string | null);
   height?: number | 'auto' | (string & {}) | null | (() => number | string | null);
-  colWidths?: number | number[] | string | ((column: number) => number | string) | Array<number | string>;
+  colWidths?: number | number[] | string | ((physicalColumn: number) => number | string) | Array<number | string>;
   rowHeights?: number | number[] | string | ((row: number) => number | string) | Array<number | string>;
   rowHeaderWidth?: number | number[] | string | Array<number | string>;
   columnHeaderHeight?: number | number[] | string | Array<number | string>;
