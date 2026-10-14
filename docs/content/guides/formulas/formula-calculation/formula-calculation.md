@@ -149,7 +149,7 @@ see [License HyperFormula](@/guides/formulas/installation/installation.md#licens
 
 ::: tip
 
-Since Handsontable 18.0, HyperFormula is not bundled with the `handsontable` npm package. Install it separately, and pass it in the `formulas` option. For details, see [Install HyperFormula separately](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#install-hyperformula-separately).
+Since Handsontable 18.0, HyperFormula is no longer installed with the `handsontable` npm package. Install it separately, and pass it to the `formulas.engine` option. For details, see [Install HyperFormula separately](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#install-hyperformula-separately).
 
 :::
 
