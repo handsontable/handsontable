@@ -269,6 +269,14 @@ Clicking anywhere on the sheets bar keeps the grid's selection, whatever [`outsi
 
 The [`afterSheetTabStateCapture`](@/api/hooks.md#aftersheettabstatecapture) and [`afterSheetTabStateRestore`](@/api/hooks.md#aftersheettabstaterestore) hooks fire after each capture and restore. The page goes back through the Pagination API, so a switch that changes the page also fires [`beforePageChange`](@/api/hooks.md#beforepagechange) and [`afterPageChange`](@/api/hooks.md#afterpagechange), and the page size hooks when the size differs. If a [`beforePageSizeChange`](@/api/hooks.md#beforepagesizechange) listener cancels the page size, the sheet keeps the current size and opens on the page that holds its selection. If a `beforePageChange` listener cancels the page change, the sheet stays on the page it opened on, and a selection that page does not show is cleared. With a server-side [`dataProvider`](@/api/options.md#dataprovider), the page is not captured or restored, because a page change there fetches rows from the server.
 
+## Tab animations
+
+When you switch sheets, the active tab marker slides from the old tab to the new one. A tab you create or duplicate slides into the strip. When you move a sheet with the tab menu or the API, the tabs slide to their new places. A tab you delete fades out, and the tabs after it slide over to close the gap. When you hover a tab, its text color fades in and out. The grid itself switches at once.
+
+The timing follows the theme's [`--ht-table-transition`](@/guides/styling/theme-customization/theme-customization.md) token. The `main` and `horizon` themes animate the tabs. The `classic` theme sets the token to `0s`, so its tabs change instantly. If the user's system sets `prefers-reduced-motion: reduce`, the tabs change instantly in every theme. Switches, moves, deletions, and new tabs made while the grid initializes are instant, until the grid has been on screen for one frame.
+
+The animations are visual only. They don't change the data, the selection, or the order of the hooks.
+
 ## Server-backed sheets
 
 Give one or more sheets their own `dataProvider` to load rows from a server, while other sheets keep local data:

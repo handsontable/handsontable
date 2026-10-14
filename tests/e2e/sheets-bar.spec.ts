@@ -1379,10 +1379,12 @@ test.describe('sheets bar', () => {
 
     await expect(page.locator('body')).not.toHaveClass(/ht-sheets-bar-dragging/);
     await expect(bar.tab(0)).toHaveCSS('pointer-events', 'auto');
-    await expect(bar.tab(0)).toHaveCSS('transition-duration', '0.15s');
+    await expect.poll(() => bar.tab(0).evaluate(
+      element => getComputedStyle(element).transitionDuration.split(',')[0].trim(),
+    )).toBe('0.15s');
   });
 
-  test('a dragged tab keeps the hover surface it was picked up with', async ({ page, theme, bundle }) => {
+  test('a dragged tab keeps its opaque resting surface', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 
     await bar.goto();
@@ -1391,17 +1393,20 @@ test.describe('sheets bar', () => {
       element => getComputedStyle(element).backgroundColor,
     );
 
-    // A plain tab is the proving case: its resting surface differs from its hover surface, so
-    // a dragged tab that dropped to its resting look — pointer events are off for the whole
-    // gesture, so `:hover` never matches it — would be caught. The active tab cannot prove
-    // this any more: by design its resting, hover, and dragged surfaces are one solid color.
-    const resting = await surfaceOf(bar.tab(1));
+    const tokenSurface = await bar.tab(1).evaluate((element) => {
+      const probe = element.ownerDocument.createElement('span');
 
-    await bar.tab(1).hover();
+      probe.style.backgroundColor = 'var(--ht-sheets-bar-tab-background-color)';
+      element.appendChild(probe);
 
-    const hovered = await surfaceOf(bar.tab(1));
+      const color = getComputedStyle(probe).backgroundColor;
 
-    expect(hovered).not.toEqual(resting);
+      probe.remove();
+
+      return color;
+    });
+
+    expect(tokenSurface).not.toMatch(/rgba\(.*,\s*0\)$|transparent/);
 
     const box = (await bar.tab(1).boundingBox())!;
     const middle = box.y + (box.height / 2);
@@ -1412,7 +1417,9 @@ test.describe('sheets bar', () => {
 
     await expect.poll(
       () => surfaceOf(page.locator('.ht-sheets-bar__tab--dragging')),
-    ).toEqual(hovered);
+    ).toEqual(tokenSurface);
+
+    expect(await surfaceOf(page.locator('.ht-sheets-bar__tab--dragging'))).not.toEqual('rgba(0, 0, 0, 0)');
 
     await page.mouse.up();
   });

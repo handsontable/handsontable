@@ -416,6 +416,85 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `inset-inline-end`) and the wrapper's reserved end padding moved to the left, under the text. The
   span is an `inline-block` with its own ellipsis (`_dropdown-menu.scss`), so a long name still
   truncates at its own logical end. Pinned by `tests/e2e/icon-elements-misc.spec.ts`.
+- **The bar's motion (`ui/tabStrip.ts`, `ui/motionGate.ts`, `ui/switchTiming.ts`) is the tab
+  strip's only: a switch slides the tab marker and nothing else. The grid switches at once.** The
+  rules below look optional and are not.
+  - Nothing moves while the grid loads. `#switchTransition()` answers `0` until the motion gate
+    (`ui/motionGate.ts`) opens, so a tab entrance, a tab slide, or a marker slide made before then
+    is exactly the instant path, with no DOM read. The first `afterRender` after a genuine enable
+    (init, `sheetsBar` turned on later, a workbook rebuild) arms it with one
+    `rootWindow.requestAnimationFrame`, and the gate opens in that frame. A host that calls
+    `setActiveSheet()` or `addSheet()` in the constructor's task therefore animates nothing.
+    `#releaseState()` shuts the gate and cancels the frame on a genuine teardown only: a
+    workbook-preserving round trip (every wrapper re-render) must keep it open, or the wrappers
+    would never animate. Pinned by `tests/e2e/sheets-bar-switch-animation-load.spec.ts` and
+    `__tests__/motionGate.unit.js`.
+  - The marker's start box is read inside the commit callback, before `#switchTo()`, and the slide
+    starts only after `#commit()` returns, which is after `afterSheetTabChange`. A listener there
+    may switch again: that later switch slides the marker itself, so the outer one starts nothing
+    once `#switchCount` moved on or the plugin is off (`#ownsMarkerSlide()`).
+  - Cleanup is timer-based, through `hot._registerTimeout()` (the marker, tab entrances, tab
+    slides, and the leaving copy), never `animationend`/`transitionend`. The visual-test runner
+    disables CSS animations and reduced motion turns them off, so those events never fire there,
+    and the grid's destroy clears registered timeouts.
+  - Never move the tab marker by transforming a tab element: the drag FLIP owns each tab's inline
+    `transform`. The marker is a separate `aria-hidden` element, and `TabStrip.render()` clears the
+    host, so while a slide runs it puts the element back and restarts the slide from the marker's
+    on-screen box to the active tab's new box, over the time left (inline `transition-duration`).
+    Removing the active tab switches before the model drops it, so the slide's first target is
+    stale until that repaint. A newly created tab does animate its own
+    `transform` (the `ht-sheets-bar-tab-enter` keyframes). Every render rebuilds it, so
+    `#applyEntrance()` re-applies the class with a negative `animation-delay` to resume at the
+    elapsed point. A drag start finishes entrances and the marker, and `TabDrag` measures the grab
+    offset from the tab's resting edge, without its in-flight translation.
+  - A sheet moved from the tab menu or the API slides the tabs (`TabStrip.slideTabs()`): the plugin
+    records each tab's `offsetLeft` before the model moves (`captureTabPositions()`, plus the
+    in-flight translation only while a slide already runs), and after the repaint each tab starts
+    at its old place through an inline `translateX` and transitions to its new one. The duration
+    is `tabSlideDurationMs()` (the marker's `2.25 × T`), written on the strip as
+    `--ht-private-tab-slide-duration`, which the tabs' one `transform` transition reads (the drag
+    keeps its `150ms` fallback). The moved active tab carries its own marker (background and
+    underline are its own styles), so no indicator element runs. A drag commit skips the slide
+    (the drag already placed the tab); a drag start, a rename, and `destroy()` finish it; a
+    repaint and a preserved rebuild continue it from the on-screen positions over the time left.
+  - A removed sheet's tab leaves through a copy (`captureLeavingTab()` before the model drops it,
+    `slideTabOut()` after the repaint): a `div.ht-sheets-bar__tab-ghost` at the tab's old layout box,
+    `inert`, `aria-hidden`, `pointer-events: none`, holding clones of the label and chevron. It must
+    never carry the `ht-sheets-bar__tab` class or `--active`: every tab query (`#tabs()`, the drag,
+    `#activeTabBox()`, the focusable list in `bar.ts`, the fixtures' test-id stamping) would count it.
+    It fades out toward the inline start over `T` (`ht-sheets-bar-tab-leave`, the entrance offset
+    reversed) and is removed by a registered timeout, while the tabs after it close the gap through
+    the move slide. `render()` clears the strip, so it re-inserts each copy first in the strip, under
+    the tabs and the marker, with a negative `animation-delay`; a drag start, a rename, and
+    `destroy()` remove it, and a preserved rebuild hands it over in `releaseMotion()`.
+  - A workbook-preserving `updatePlugin()` keeps the motion running. The tab strip is rebuilt on
+    that round trip, so `#releaseState()` takes its motion first (`TabStrip.releaseMotion()`, while
+    the old strip is still laid out) and `enablePlugin()` hands it to the new strip after the first
+    render (`resumeMotion()`).
+  - The tab's one `transition` list carries `transform` (drag and move slides) and `color` over
+    `T`; reduced motion drops both. A hovered tab changes its text color only
+    (`--ht-sheets-bar-tab-hover-foreground-color`) and keeps its resting background: no tab paints
+    the hover background token. A dragged tab keeps its resting surface too, and it must stay
+    opaque, because the passing tabs travel behind it. Never put `background-color` in the tab's
+    transition list: the marker slide switches the tabs it uncovers from transparent back to their
+    surface the moment it ends, and a fade there flashes the bar color through an opaque custom tab
+    color.
+  - The tab marker slides under the tabs. Only the tabs it passes over (between its start and end
+    boxes, marked `ht-sheets-bar__tab--indicator-path`) and the active tab drop their background
+    while it moves, so a theme whose inactive tab background differs from the strip keeps it on
+    every other tab. The strip's `::before` repaints the inactive tab surface under the marker
+    across the marked span (`--ht-private-tab-indicator-path-x`/`-width`), so an opaque custom tab color
+    does not flash to the bar color.
+  - `#revealActiveTab()` measures `offsetLeft`/`offsetWidth` against `scrollLeft`/`clientWidth`,
+    never `getBoundingClientRect()`: a new tab is still translated by its entrance when the strip
+    reveals it, and the rect under-scrolls it.
+  - Every internal custom property the bar writes or reads is `--ht-private-…`, never plain
+    `--ht-…`, which is the public theme token namespace. The timing factors live in
+    `switchTiming.ts` only: the marker's duration is its inline `transition-duration`, and a
+    factor of one stays `var(--ht-table-transition)` in CSS.
+  - The token is parsed from `getComputedStyle()` (`resolveTransition()`), never
+    `stylesHandler.getCSSVariableValue()`, which runs numeric values through `Math.ceil` and turns
+    `0.15s` into `1`.
 
 Tests: `__tests__/*.unit.js` (Jest), `tests/e2e/sheets-bar*.spec.ts` (Playwright),
 `visual-tests/tests/js-only/sheetsBar/`. The unit suite drives the strip through DOM events and

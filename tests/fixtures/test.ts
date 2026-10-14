@@ -48,6 +48,14 @@ export const CROSS_BROWSER_TAG = '@cross-browser';
  */
 export const CLIPBOARD_SHORTCUT_TAG = '@clipboard-shortcut';
 
+/**
+ * The tag for a test that checks a motion the classic theme never runs, because the theme sets
+ * `--ht-table-transition` to `0s`. The `e2e-classic` projects leave these tests out, so the classic
+ * legs do not repeat them on another theme. Check the classic theme's instant switch in an untagged
+ * test instead: `test.describe('…', { tag: MOTION_TAG }, () => { … })`.
+ */
+export const MOTION_TAG = '@motion';
+
 export const test = base.extend<TestOptions>({
   theme: ['main', { option: true }],
   bundle: ['umd', { option: true }],

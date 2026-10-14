@@ -273,7 +273,7 @@ const mainTokens: ThemeTokensConfig = {
   sheetsBarBackgroundColor: 'tokens.barBackgroundColor',
   sheetsBarTabHorizontalPadding: 'sizing.size_3',
   sheetsBarTabVerticalPadding: 'sizing.size_2',
-  sheetsBarTabForegroundColor: 'tokens.barForegroundColor',
+  sheetsBarTabForegroundColor: 'tokens.foregroundSecondaryColor',
   sheetsBarTabBackgroundColor: 'tokens.barBackgroundColor',
   sheetsBarTabHoverForegroundColor: ['colors.palette.950', 'colors.white'],
   sheetsBarTabHoverBackgroundColor: ['colors.palette.100', 'colors.palette.700'],

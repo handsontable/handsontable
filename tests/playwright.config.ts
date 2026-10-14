@@ -1,5 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
-import type { TestOptions } from './fixtures/test';
+import { MOTION_TAG, type TestOptions } from './fixtures/test';
 
 // `reuseExistingServer` attaches to whatever already listens on this port. Two
 // checkouts (a worktree and the main clone) on the default port therefore share
@@ -136,6 +136,7 @@ export default defineConfig<TestOptions>({
       name: `e2e-${theme}${suffix}`,
       testDir: 'e2e',
       use: { ...devices['Desktop Chrome'], theme, bundle },
+      ...(theme === 'classic' ? { grepInvert: new RegExp(MOTION_TAG) } : {}),
     }))),
     // Visual regression project — destination for the visual suite (milestone 2/3).
     // {

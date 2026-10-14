@@ -133,6 +133,16 @@ export class SelectionViewportScrollPage extends SelectionFeaturesPage {
   }
 
   /**
+   * Wait until the browser window has scrolled down to a selected cell below the fold. The selection queues
+   * that window scroll, and when the selection also scrolled the grid's viewport (taller rows, as on the
+   * horizon theme) it runs only on the next `afterScroll`, a frame later. A window scroll back to the top made
+   * before then is undone by it, so wait for it first.
+   */
+  async waitForWindowScrolledToSelection(): Promise<void> {
+    await expect.poll(() => this.page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+  }
+
+  /**
    * Scroll the browser window back to its top.
    */
   async scrollWindowToTop(): Promise<void> {

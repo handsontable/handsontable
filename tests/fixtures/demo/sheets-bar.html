@@ -78,6 +78,12 @@
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
+    const sheets = [
+      { name: 'Alpha', data: [['A1', 'A2'], ['A3', 'A4']] },
+      { name: 'Beta', data: [['B1', 'B2'], ['B3', 'B4']] },
+      { name: 'Gamma', data: [['G1', 'G2'], ['G3', 'G4']] },
+    ];
+
     const hot = new Handsontable(container, {
       colHeaders: true,
       rowHeaders: true,
@@ -86,13 +92,7 @@
       // below the fold — the paging controls then cannot be reached. A real application gives
       // the grid a viewport for the same reason.
       height: 320,
-      sheetsBar: {
-        sheets: [
-          { name: 'Alpha', data: [['A1', 'A2'], ['A3', 'A4']] },
-          { name: 'Beta', data: [['B1', 'B2'], ['B3', 'B4']] },
-          { name: 'Gamma', data: [['G1', 'G2'], ['G3', 'G4']] },
-        ],
-      },
+      sheetsBar: htParams.has('barOff') ? false : { sheets },
       manualColumnResize: true,
       columnSorting: true,
       filters: htParams.has('filters'),
@@ -108,6 +108,16 @@
     });
 
     window.hot = hot;
+    window.htSheets = sheets;
+
+    if (htParams.has('loadSwitches')) {
+      const sheetsBar = hot.getPlugin('sheetsBar');
+
+      sheetsBar.setActiveSheet('Beta');
+      sheetsBar.addSheet('Delta');
+      sheetsBar.duplicateSheet(sheetsBar.getSheets()[0].id);
+      sheetsBar.setActiveSheet('Gamma');
+    }
 
     // Every lookup is guarded and nothing here throws. The grid defers its whole init when the
     // container has no layout yet, so the bar can be absent at this point; the previous version

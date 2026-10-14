@@ -12,6 +12,17 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
 - Every spec runs on all six legs automatically. Author against
   `fixtures/test.ts` (`import { test, expect } from '../fixtures/test'`),
   destructure `{ page, theme, bundle }`, and pass both to the page object.
+- **A test of a motion the classic theme never runs carries `MOTION_TAG`**
+  (`fixtures/test.ts`), and the two `e2e-classic` projects leave it out
+  (`grepInvert` in `playwright.config.ts`). `.skip` is banned, and remapping the
+  classic legs to another theme only repeats that theme's runs. Prove the
+  classic theme's instant behavior in an untagged test.
+- **`page.clock` does not drive CSS transitions or animations: they run on real
+  time.** A transition read a few round trips after it started can be over on a
+  slow run, and a finished transition is gone from `getAnimations()`. Pause it
+  the moment it starts (a `MutationObserver` whose callback calls
+  `getAnimations()` and pauses, as `SheetsBarPage.holdTransitions()` does), then
+  seek it. A CSS animation with `fill-mode: both` stays listed after it ends.
 - **Local gates run `e2e-main` (plain UMD) only** — pre-push, the Claude Stop
   hook, and `npm run test:e2e` are pinned there; the `-min` legs are CI-only.
   (`e2e-main` used to load `full.min` — never assume the hooks cover min.)
