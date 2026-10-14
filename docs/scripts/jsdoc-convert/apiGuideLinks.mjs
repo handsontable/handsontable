@@ -13,8 +13,9 @@ const contentDir = path.resolve(__dirname, '../../content');
  * Rules for an entry:
  * - Plugins only. `Core`, `Hooks`, `Options`, and the editors are not covered.
  * - One primary guide per page. A page that two guides share points at the one that owns the feature.
- * - The guide must exist and must not be framework-gated, because one API page serves every
- *   framework. `scripts/validate-api-guide-links.mjs` enforces both.
+ * - The guide must exist, have a `permalink` (the loader skips pages without one, so the link would
+ *   404), and not be framework-gated, because one API page serves every framework.
+ *   `scripts/validate-api-guide-links.mjs` enforces all three.
  * - A plugin with no guide of its own has no entry and is listed in `unmappedPlugins` instead.
  *
  * Values are paths relative to `docs/content/`.
@@ -58,7 +59,9 @@ export const apiGuideLinks = {
   'notification.md': 'guides/dialog/notification/notification.md',
   'pagination.md': 'guides/rows/rows-pagination/rows-pagination.md',
   'search.md': 'guides/navigation/searching-values/searching-values.md',
+  'selectionHandles.md': 'guides/cell-features/selection/selection.md',
   'sheetsBar.md': 'guides/accessories-and-menus/sheets-bar/sheets-bar.md',
+  'stretchColumns.md': 'guides/columns/column-width/column-width.md',
   'trimRows.md': 'guides/rows/row-trimming/row-trimming.md',
   'undoRedo.md': 'guides/accessories-and-menus/undo-redo/undo-redo.md',
 };
@@ -69,11 +72,20 @@ export const apiGuideLinks = {
  * guide link, or list the plugin here.
  */
 export const unmappedPlugins = [
-  'stretchColumns',
   'touchScroll',
-  'selectionHandles',
   'multipleSelectionHandles',
 ];
+
+/**
+ * Reads the frontmatter of a guide.
+ *
+ * @param {string} guidePath Path relative to `docs/content/`.
+ * @param {string} [baseDir] Content directory, overridable for tests.
+ * @returns {Record<string, unknown>} The parsed frontmatter.
+ */
+export const readGuideFrontmatter = (guidePath, baseDir = contentDir) => {
+  return matter(fs.readFileSync(path.join(baseDir, guidePath), 'utf8')).data;
+};
 
 /**
  * Reads the `title` of a guide from its frontmatter.
@@ -83,7 +95,7 @@ export const unmappedPlugins = [
  * @returns {string} The guide title.
  */
 export const readGuideTitle = (guidePath, baseDir = contentDir) => {
-  const { data } = matter(fs.readFileSync(path.join(baseDir, guidePath), 'utf8'));
+  const data = readGuideFrontmatter(guidePath, baseDir);
 
   if (typeof data.title !== 'string' || !data.title) {
     throw new Error(`The guide "${guidePath}" has no title in its frontmatter.`);
