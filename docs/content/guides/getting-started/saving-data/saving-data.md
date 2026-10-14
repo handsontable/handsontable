@@ -75,6 +75,16 @@ The example below handles data by using `fetch`. Note that this is just a mockup
 
 :::
 
+::: warning
+
+Do not call data-writing methods, such as [`setDataAtCell()`](@/api/core.md#setdataatcell), from inside a `renderer` function. A renderer controls how a cell looks. It must not change the cell's data.
+
+Every accepted change re-renders the visible cells. A data write from a renderer can trigger the same renderer again and cause an infinite loop.
+
+To react to changes and save them, use the [`afterChange`](@/api/hooks.md#afterchange) hook. For more information, see the [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md) guide.
+
+:::
+
 ## Save data locally
 
 To persist table state (e.g. column order, column widths, row order) across page reloads, use the browser's [`localStorage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) API or [`sessionStorage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage) in your application. Listen to the appropriate hooks (e.g. [`afterColumnMove`](@/api/hooks.md#aftercolumnmove), [`afterRowMove`](@/api/hooks.md#afterrowmove), [`afterColumnResize`](@/api/hooks.md#aftercolumnresize)) and save or restore state as needed.
