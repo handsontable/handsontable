@@ -22,6 +22,8 @@ type HotWindow = Window & {
     };
   };
   buildGrid(extraSettings?: Record<string, unknown>): void;
+  updateWithFunctionSchema(keys: string[]): void;
+  clearSchema(): void;
   htBuildError?: string;
 };
 
@@ -68,6 +70,22 @@ export class DataSchemaUpdatePage {
       hot.getPlugin('manualColumnMove').moveColumn(0, 2);
       hot.render();
     });
+  }
+
+  /**
+   * Sends a new function as the schema, which returns an object with the given keys.
+   *
+   * @param {string[]} keys The property names the function returns.
+   */
+  async updateWithFunctionSchema(keys: string[]): Promise<void> {
+    await this.page.evaluate((names) => (window as unknown as HotWindow).updateWithFunctionSchema(names), keys);
+  }
+
+  /**
+   * Sends `dataSchema: undefined`.
+   */
+  async clearSchema(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as HotWindow).clearSchema());
   }
 
   /**

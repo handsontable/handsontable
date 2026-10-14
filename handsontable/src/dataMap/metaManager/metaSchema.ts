@@ -2253,10 +2253,11 @@ export default (): Record<string, unknown> => {
      * - A function
      *
      * If you don't set the [`columns`](#columns) option, `dataSchema` also defines the columns of the grid.
-     * When you change it with [`updateSettings()`](@/api/core.md#updatesettings), Handsontable resets the
-     * column and row index state, as it does for a new [`data`](#data) or [`columns`](#columns) value.
-     * Sorting, filtering, and columns that users moved, hid, or resized start over. Options you declare in your settings apply again. Sending an equal object again changes
-     * nothing, but a new function always counts as a change.
+     * When you change it with [`updateSettings()`](@/api/core.md#updatesettings) and the columns it defines change,
+     * Handsontable resets the column and row index state, as it does for a new [`columns`](#columns) value.
+     * Sorting, filtering, and columns that users moved, hid, or resized start over. Options you declare in your
+     * settings apply again. A change that only affects the default values of new rows resets nothing.
+     * A new [`data`](#data) value alone doesn't reset the index state.
      *
      * Read more:
      * - [Binding to data: Array of objects with custom data schema](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects-with-custom-data-schema)

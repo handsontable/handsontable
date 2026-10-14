@@ -5,6 +5,10 @@ const NARROW_SCHEMA = { a: null, b: null, c: null };
 const WIDE_SCHEMA = { a: null, b: null, c: null, d: null, e: null };
 const REORDERED_SCHEMA = { c: null, b: null, a: null };
 const RENAMED_SCHEMA = { x: null, y: null, z: null };
+const NEW_DATA = [
+  { a: 'n0', b: 'm0', c: 'k0', d: 'j0', e: 'i0' },
+  { a: 'n1', b: 'm1', c: 'k1', d: 'j1', e: 'i1' },
+];
 
 /**
  * A grid whose column count comes from `dataSchema` (no `columns` option) sized its index mappers
@@ -124,6 +128,69 @@ test.describe('Data schema update through updateSettings()', () => {
     await grid.updateSettings({ dataSchema: WIDE_SCHEMA });
 
     expect(await grid.countRows()).toBe(3);
+  });
+
+  test('resets the column order when the schema is cleared and the data decides the columns', async() => {
+    await grid.moveFirstColumnToThirdPosition();
+    await grid.clearSchema();
+
+    // The data holds five properties, which the grid reads once the schema no longer limits it to three.
+    expect(await grid.countCols()).toBe(5);
+    await expect.poll(() => grid.firstRowTexts()).toEqual(['a0', 'b0', 'c0', 'd0', 'e0']);
+    expect(await grid.firstPhysicalColumn()).toBe(0);
+  });
+
+  test('keeps the column order when only the default value of a property changes', async() => {
+    await grid.rebuild({ dataSchema: { a: null, b: null, c: null, d: 'new' } });
+    await grid.moveFirstColumnToThirdPosition();
+    await grid.updateSettings({ dataSchema: { a: null, b: null, c: null, d: 'open' } });
+
+    expect(await grid.firstPhysicalColumn()).toBe(1);
+  });
+
+  test('keeps the column order when a new function returns the same columns', async() => {
+    await grid.updateWithFunctionSchema(['a', 'b', 'c']);
+    await grid.moveFirstColumnToThirdPosition();
+
+    // A new function on every call, which is what an inline function in a component does on every render.
+    await grid.updateWithFunctionSchema(['a', 'b', 'c']);
+
+    expect(await grid.firstPhysicalColumn()).toBe(1);
+    await expect.poll(() => grid.firstRowTexts()).toEqual(['b0', 'c0', 'a0']);
+  });
+
+  test('resets the column order when a new function returns other columns', async() => {
+    await grid.updateWithFunctionSchema(['a', 'b', 'c']);
+    await grid.moveFirstColumnToThirdPosition();
+    await grid.updateWithFunctionSchema(['c', 'b', 'a', 'd']);
+
+    expect(await grid.countCols()).toBe(4);
+    await expect.poll(() => grid.firstRowTexts()).toEqual(['c0', 'b0', 'a0', 'd0']);
+    expect(await grid.firstPhysicalColumn()).toBe(0);
+  });
+
+  test('resets the column order when data and a schema with other columns arrive together', async() => {
+    await grid.moveFirstColumnToThirdPosition();
+    await grid.updateSettings({ data: NEW_DATA, dataSchema: WIDE_SCHEMA });
+
+    expect(await grid.countCols()).toBe(5);
+    await expect.poll(() => grid.firstRowTexts()).toEqual(['n0', 'm0', 'k0', 'j0', 'i0']);
+    expect(await grid.firstPhysicalColumn()).toBe(0);
+  });
+
+  test('keeps the column order when data and an equal schema arrive together', async() => {
+    await grid.moveFirstColumnToThirdPosition();
+    await grid.updateSettings({ data: NEW_DATA, dataSchema: { ...NARROW_SCHEMA } });
+
+    expect(await grid.firstPhysicalColumn()).toBe(1);
+    await expect.poll(() => grid.firstRowTexts()).toEqual(['m0', 'k0', 'n0']);
+  });
+
+  test('keeps the column order when new data arrives without a schema', async() => {
+    await grid.moveFirstColumnToThirdPosition();
+    await grid.updateSettings({ data: NEW_DATA });
+
+    expect(await grid.firstPhysicalColumn()).toBe(1);
   });
 
   test('keeps the column order when an equal schema is sent again', async() => {

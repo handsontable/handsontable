@@ -1721,7 +1721,7 @@ To keep a checkbox column toggleable, remove `editor: false` from it, or set `ed
 
 If you don't set [`columns`](@/api/options.md#columns), the [`dataSchema`](@/api/options.md#dataschema) option decides how many columns the grid has and which property each one reads. In 18.1, an [`updateSettings()`](@/api/core.md#updatesettings) call that changed `dataSchema` and carried no [`data`](@/api/options.md#data) and no `columns` didn't update either of them. The grid kept the old column count and the old column-to-property mapping.
 
-In 19.0, such a call re-creates the data map and re-initializes the row and column index mappers, the same way [`loadData()`](@/api/core.md#loaddata) and a changed `columns` option already do. The grid then resolves the column count and the properties from the new schema.
+In 19.0, such a call compares the columns the new schema defines with the columns the grid has. If the number of columns or the property of any column differs, the grid re-creates the data map and re-initializes the row and column index mappers, the way a changed `columns` option already does. The grid then resolves the column count and the properties from the new schema.
 
 Re-initializing the index mappers resets everything that is stored per index:
 
@@ -1734,17 +1734,17 @@ Options that you declare in your settings, such as `hiddenColumns: { columns: [1
 
 ### What counts as a change
 
-- An object or an array is compared by content. Sending an equal `dataSchema` again, for example a new object literal with the same keys on every render, changes nothing.
-- A function is compared by reference. A new function always counts as a change.
-- A call that sends `dataSchema` together with `columns` or `data` behaves as before.
-- A grid with a `columns` option behaves as before, because `columns` decides its column count.
+- A schema with another number of columns, other property names, or the same names in another order is a change. The columns follow the key order of the schema.
+- A schema that only changes the default value of a property, such as `status: 'new'` to `status: 'open'`, isn't a change.
+- A function is called to read the columns it returns, so a new function that returns the same columns isn't a change.
+- Setting `dataSchema` to `undefined` makes the grid read its columns from the data, which is a change when those columns differ.
+- A call that sends `dataSchema` together with `data` resets the state in the same way, when the columns changed. A call that sends `data` alone keeps the state, as in 18.1.
+- A call that sends `dataSchema` together with `columns`, and a grid that has a `columns` option, behave as before.
 
 ### Who is affected
 
-You are affected only if you change `dataSchema` after the grid is created, you don't set `columns`, and your users or your code rely on index state, such as a sort order or a moved column, surviving that change.
+You are affected only if you change the columns that `dataSchema` defines after the grid is created, you don't set `columns`, and your users or your code rely on index state, such as a sort order or a moved column, surviving that change.
 
 ### How to migrate
 
 If you need the state to survive, read it before the update and apply it again after it. For example, store the sort configuration with [`getSortConfig()`](@/api/columnSorting.md#getsortconfig) and pass it back to [`sort()`](@/api/columnSorting.md#sort) once `updateSettings()` returns.
-
-If you pass a function as `dataSchema` from a component that re-renders, keep the function reference stable, for example by defining it outside the component. A new function on every render resets the state on every render.

@@ -85,6 +85,26 @@
       }
     };
 
+    /**
+     * Sends a NEW function as the schema on every call, the way a component that writes
+     * `dataSchema={() => ...}` inline does on every render.
+     *
+     * @param {string[]} keys The property names the function returns, each with a `null` value.
+     */
+    window.updateWithFunctionSchema = function(keys) {
+      window.hot.updateSettings({
+        dataSchema: () => Object.fromEntries(keys.map(key => [key, null])),
+      });
+    };
+
+    /**
+     * Sends `dataSchema: undefined`, which falls back to the schema read off the data. The call is made
+     * here because the value would not survive being passed in from the test.
+     */
+    window.clearSchema = function() {
+      window.hot.updateSettings({ dataSchema: undefined });
+    };
+
     window.buildGrid();
   </script>
 </body>
