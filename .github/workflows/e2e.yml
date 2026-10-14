@@ -136,9 +136,9 @@ jobs:
       # (.github/scripts/lib/playwright-durations.mjs), never the HTML report.
       # `!cancelled()` replaces the implicit `success()` that would skip every red
       # leg. The steps are an instrument and must never turn a leg red:
-      # `continue-on-error` covers an upload-artifact hiccup, and a leg whose run
-      # step died before the JSON reporter wrote its report ends with a notice
-      # from the summarizer and uploads nothing. Both steps sit after the report
+      # `continue-on-error` covers an upload-artifact hiccup, and a leg without a
+      # report (Playwright never ran, or did not finish writing it) ends with a
+      # notice from the summarizer and uploads nothing. Both steps sit after the report
       # upload, so its `failure()` never sees them. The test-health page records
       # develop pushes' files only (a pull request's stay here for 3 days), and
       # only the legs on DURATIONS_LEGS in that file: a new leg goes there too.

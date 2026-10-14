@@ -103,9 +103,13 @@ jobs:
           fi
           RUN_ID=$(node -p 'JSON.parse(require("fs").readFileSync("run.json", "utf8")).id')
           echo "RUN_ID=${RUN_ID}" >> "$GITHUB_ENV"
+          # Only develop pushes have their Playwright durations recorded; the lib owns that rule.
+          DEVELOP_PUSH=$(node --input-type=module -e "import { readFileSync } from 'node:fs'; import { isDevelopPush } from './.github/scripts/lib/playwright-durations.mjs'; import { runContextFromRun } from './.github/scripts/lib/test-health.mjs'; console.log(isDevelopPush(runContextFromRun(JSON.parse(readFileSync('run.json', 'utf8')))));")
+          echo "DEVELOP_PUSH=${DEVELOP_PUSH}" >> "$GITHUB_ENV"
           echo "Collecting run ${RUN_ID} ($(node -p 'const r = JSON.parse(require("fs").readFileSync("run.json", "utf8")); `${r.name} · ${r.head_branch} · attempt ${r.run_attempt} · ${r.conclusion}`'))"
 
-      # Only the four artifact families the collector reads, one directory each.
+      # Only the four artifact families the collector reads, one directory each,
+      # and the durations family only for a develop push, the one run it records.
       # An expired or vanished artifact is a warning, never a failure: the other
       # legs of the run still get recorded.
       - name: Download the run's test artifacts
@@ -114,7 +118,7 @@ jobs:
         run: |
           mkdir -p artifacts
           gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/artifacts?per_page=100" \
-            --jq '.artifacts[] | select(.expired == false) | select(.name | test("^(playwright-report-|playwright-durations-|puppeteer-failed-specs-|visual-compare-)")) | .name' \
+            --jq '.artifacts[] | select(.expired == false) | select(.name | test("^(playwright-report-|playwright-durations-|puppeteer-failed-specs-|visual-compare-)")) | select((.name | startswith("playwright-durations-") | not) or env.DEVELOP_PUSH == "true") | .name' \
             > artifact-names.txt
           if [ ! -s artifact-names.txt ]; then
             echo "No test artifacts on run ${RUN_ID}: nothing flaky or failed to record."

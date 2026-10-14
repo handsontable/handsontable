@@ -4,10 +4,10 @@
  * Every Playwright leg of `.github/workflows/e2e.yml`, green or red, summarizes its JSON report into
  * one small file (`playwright-durations.json`, uploaded as `playwright-durations-<leg>`): the leg's
  * wall-clock, worker count and test counts, and the milliseconds of every spec file and every test.
- * `test-health.yml` collects those files from every completed run into `test-health/durations.json`
- * on `gh-pages`, beside the flake ledger, from develop pushes only (a pull request's files stay in its
- * own run for 3 days, so its run commits to `gh-pages` only for a flake), and the test-health page draws
- * its "Where the time goes" section from it.
+ * `test-health.yml` records the files of develop pushes, and only those, into `test-health/durations.json`
+ * on `gh-pages`, beside the flake ledger (a pull request's files stay in its own run for 3 days, so its
+ * run commits to `gh-pages` only for a flake), and the test-health page draws its "Where the time goes"
+ * section from it.
  *
  * Two shapes live here:
  *
@@ -16,17 +16,16 @@
  * - The stored document (`mergeDurations`), which keeps, for 30 days, one record per run and leg
  *   (wall-clock, workers, counts) and, for the latest run of each leg, the per-test milliseconds (a
  *   test that failed or was flaky in that run keeps its time from the last run it passed first time in).
- *   Per-file totals for every run would not fit: at roughly 30 completed runs a day and seven legs a
- *   run, 270 files each, a month is tens of megabytes. The per-test rows of the latest run give every
- *   per-file total that the page and the later phases read. A develop push supplies those rows
- *   whenever one is in the window, because develop is what every pull request is measured against;
- *   until one arrives, the newest run of any branch does, so the section is never empty.
+ *   Per-file totals for every run would not fit: at a few develop pushes a day, seven legs a push and
+ *   270 files a leg, a month is megabytes. The per-test rows of the latest push give every per-file
+ *   total that the page and the later phases read.
  *
  * The stored document also carries the budget input a later e2e budget is derived from: per leg, the
- * P50 and P90 of the wall-clock and of the test count over the window, from every stored run and from
- * develop pushes alone. The gate reads the develop numbers. A leg with a test that failed every attempt (`unexpected`), or with no test at all, is
- * left out of those numbers: its time includes the failing tests' retries and timeouts. A leg with only
- * flaky tests counts; one retry is noise next to the run-to-run spread.
+ * P50 and P90 of the wall-clock and of the test count over the window, one vote per push (a re-run
+ * attempt replaces the leg's earlier attempt). A leg with a test that failed every attempt
+ * (`unexpected`), or with no test at all, is left out of those numbers: its time includes the failing
+ * tests' retries and timeouts. A leg with only flaky tests counts; one retry is noise next to the
+ * run-to-run spread.
  *
  * No I/O in here. `scripts/playwright-durations.mjs` writes a leg's summary; `scripts/test-health-collect.mjs`
  * reads the artifacts and writes the stored document.
@@ -392,14 +391,15 @@ export function percentile(values, p) {
 }
 
 /**
- * Whether a run is a push to develop, the line every pull request is measured against. The collector
- * records durations from these runs only: a pull request's leg files stay in its own run's artifacts.
+ * Whether a run is a push to develop, the line every pull request is measured against. Only these runs
+ * are recorded: a pull request's leg files stay in its own run's artifacts, and a manual run on develop
+ * (`workflow_dispatch`) is not a commit landing.
  *
  * @param {{branch: string, event: string}} run The run or source.
  * @returns {boolean} The verdict.
  */
 export function isDevelopPush(run) {
-  return run.branch === 'develop' && run.event !== 'pull_request';
+  return run.branch === 'develop' && run.event === 'push';
 }
 
 /**
@@ -417,13 +417,10 @@ function attemptUrl(baseUrl, runAttempt) {
  * The P50 and P90 of a leg's samples.
  *
  * @param {Array<{wallMs: number, tests: number}>} samples The samples.
- * @returns {object|null} The statistics, or `null` without samples.
+ * @returns {{runs: number, wallMs: {p50: number|null, p90: number|null}, tests: {p50: number|null, p90: number|null}}}
+ * The statistics; the percentiles are `null` without samples.
  */
 function legStatistics(samples) {
-  if (samples.length === 0) {
-    return null;
-  }
-
   const walls = samples.map(sample => sample.wallMs);
   const tests = samples.map(sample => sample.tests);
 
@@ -435,7 +432,8 @@ function legStatistics(samples) {
 }
 
 /**
- * The budget input: per leg, P50 and P90 of the wall-clock and the test count over the stored runs.
+ * The budget input: per leg, P50 and P90 of the wall-clock and the test count over the stored pushes, one
+ * vote per push, and how many pushes were left out (a test failed every attempt, or none ran).
  *
  * @param {object[]} runs The stored runs.
  * @param {number} windowDays The retention window.
@@ -447,25 +445,29 @@ function budgetOf(runs, windowDays) {
   let to = null;
 
   for (const run of runs) {
+    // One vote per push: a "Re-run failed jobs" attempt records the leg again, and only its last attempt counts.
+    const last = new Map();
+
     for (const leg of run.legs) {
+      from = from === null || Date.parse(leg.at) < Date.parse(from) ? leg.at : from;
+      to = to === null || Date.parse(leg.at) > Date.parse(to) ? leg.at : to;
+
+      if (!last.has(leg.leg) || leg.runAttempt > last.get(leg.leg).runAttempt) {
+        last.set(leg.leg, leg);
+      }
+    }
+
+    for (const leg of last.values()) {
       if (!legs.has(leg.leg)) {
-        legs.set(leg.leg, { all: [], develop: [], excluded: 0 });
+        legs.set(leg.leg, { samples: [], excluded: 0 });
       }
 
       const bucket = legs.get(leg.leg);
 
-      from = from === null || Date.parse(leg.at) < Date.parse(from) ? leg.at : from;
-      to = to === null || Date.parse(leg.at) > Date.parse(to) ? leg.at : to;
-
       if (leg.unexpected > 0 || leg.tests === 0) {
         bucket.excluded += 1;
-        continue;
-      }
-
-      bucket.all.push(leg);
-
-      if (isDevelopPush(run)) {
-        bucket.develop.push(leg);
+      } else {
+        bucket.samples.push(leg);
       }
     }
   }
@@ -475,8 +477,7 @@ function budgetOf(runs, windowDays) {
     from,
     to,
     legs: Object.fromEntries([...legs.keys()].sort().map(name => [name, {
-      all: legStatistics(legs.get(name).all),
-      develop: legStatistics(legs.get(name).develop),
+      ...legStatistics(legs.get(name).samples),
       excluded: legs.get(name).excluded,
     }])),
   };
@@ -618,9 +619,9 @@ export function serializeDurations(doc) {
  *   (`GITHUB_RUN_ATTEMPT` of the job that wrote it), not the collected run's: a "Re-run failed jobs"
  *   attempt re-runs one leg, the other legs' artifacts of attempt 1 stay on the run, and its
  *   collection reads them again. Keyed by their own attempt, they replace themselves.
- * - The per-test rows of a leg come from its latest develop push (by run id, then attempt); a later develop
- *   push replaces them, a pull request run never does. With no develop push in the window, the newest run of any branch
- *   supplies them until one arrives. A leg that ran no test supplies none. A cell holds a test's time
+ * - Only develop pushes are recorded (`isDevelopPush`); any other run throws, because the collector never
+ *   passes one. The per-test rows of a leg come from its latest push (by run id, then attempt), so a late
+ *   re-run of an older push never replaces a newer commit's rows. A leg that ran no test supplies none. A cell holds a test's time
  *   from a run where it passed on its first attempt: a test that failed or was flaky in the incoming run
  *   keeps the time the rows last had for it (its own time is retries and timeouts, which the flake ledger
  *   tracks), and a skipped or removed test has no cell.
@@ -628,9 +629,7 @@ export function serializeDurations(doc) {
  *   `DURATIONS_LEGS` and a leg that claims to start after the run ended are noted and skipped, so nothing
  *   can invent a leg or pin a record past the retention window.
  * - Records older than the retention window go, and so do a leg's rows. The rows get at most half the
- *   cap: past it, the rows of pull-request sources go first, then the oldest legs'. Past the cap, runs go
- *   whole: the ones that are not develop pushes first, then the oldest develop pushes, so the budget
- *   input is the last thing the cap touches.
+ *   cap: past it, the rows of the oldest legs go first. Past the cap, the oldest runs go first, whole.
  * - `updatedAt` moves only when the stored text changed, so a collection that adds nothing leaves
  *   the published file byte-identical, like the flake ledger.
  *
@@ -658,6 +657,10 @@ export function mergeDurations(previous, summaries, run, {
   const prior = previous ?? null;
 
   assertDurationsVersion(prior);
+
+  if (!isDevelopPush(run)) {
+    throw new Error(`run ${run.runId} is a ${run.event} run on ${run.branch}; only develop pushes are recorded`);
+  }
 
   const stored = prior ?? emptyDurations({ retentionDays, capBytes });
   const cutoff = now.getTime() - (retentionDays * DAY_MS);
@@ -699,8 +702,6 @@ export function mergeDurations(previous, summaries, run, {
   let added = 0;
 
   headers.set(run.runId, header);
-  // An expired source never ranks: drop it before an incoming run is compared with it.
-  pruneSources();
 
   for (const summary of summaries) {
     if (!DURATIONS_LEGS.includes(summary.leg)) {
@@ -765,11 +766,10 @@ export function mergeDurations(previous, summaries, run, {
       tests: summary.counts.tests,
     };
     const current = latest.sources.get(summary.leg);
-    // Develop first, then the later run by id, then the later attempt: run ids follow commit order, so a
-    // "Re-run failed jobs" on an older develop push, days later, never replaces a newer commit's rows. An
-    // equal rank is the same execution collected again: the incoming copy wins, which keeps that a no-op.
-    const outranked = current !== undefined && (Number(isDevelopPush(current)) - Number(isDevelopPush(source))
-      || Number(current.runId) - Number(source.runId)
+    // The later run by id, then the later attempt: run ids follow commit order, so a "Re-run failed jobs"
+    // on an older push, days later, never replaces a newer commit's rows. An equal rank is the same
+    // execution collected again: the incoming copy wins, which keeps that a no-op.
+    const outranked = current !== undefined && (Number(current.runId) - Number(source.runId)
       || current.runAttempt - source.runAttempt) > 0;
 
     if (!outranked) {
@@ -817,14 +817,14 @@ export function mergeDurations(previous, summaries, run, {
   pruneSources();
 
   // The rows get at most half the cap, so the run history (the trend and the budget input) always keeps
-  // the other half. Past it, pull-request sources go first, then the oldest legs.
+  // the other half. Past it, the oldest legs' rows go first.
   const rowsBudget = Math.floor(capBytes / 2);
   const shed = [];
   let encodedLatest = encodeLatest(latest);
 
   while (latest.sources.size > 0 && Buffer.byteLength(JSON.stringify(encodedLatest)) > rowsBudget) {
-    const [victim] = [...latest.sources.values()].sort((a, b) => Number(isDevelopPush(a)) - Number(isDevelopPush(b))
-      || Date.parse(a.at) - Date.parse(b.at)
+    const [victim] = [...latest.sources.values()].sort((a, b) => Number(a.runId) - Number(b.runId)
+      || a.runAttempt - b.runAttempt
       || a.leg.localeCompare(b.leg));
 
     removeLeg(latest, victim.leg);
@@ -867,10 +867,8 @@ export function mergeDurations(previous, summaries, run, {
   let kept = runs;
   let doc = assemble(null, kept);
   let size = Buffer.byteLength(serializeDurations(doc));
-  // What the cap drops first: runs that are not develop pushes, oldest first, then the oldest develop pushes.
-  const eviction = [...runs].sort((a, b) => Number(isDevelopPush(a)) - Number(isDevelopPush(b))
-    || newest(a.legs) - newest(b.legs)
-    || a.runId.localeCompare(b.runId, 'en', { numeric: true }));
+  // What the cap drops first: the oldest runs (`runs` is newest first).
+  const eviction = [...runs].reverse();
 
   // Drop runs until the text fits. The budget block shrinks or grows by a few bytes with the runs it
   // summarizes, so measure again after each round instead of trusting the estimate.
@@ -904,20 +902,6 @@ export function mergeDurations(previous, summaries, run, {
   doc.updatedAt = changed ? now.toISOString() : (prior.updatedAt ?? now.toISOString());
 
   return { doc, changed, added, pruned, capped, recorded, notes };
-}
-
-/**
- * What kind of run a record came from, for the page's colors.
- *
- * @param {{branch: string, event: string}} run The run.
- * @returns {'develop'|'pr'|'other'} A develop push, a pull request, or anything else (master, a release).
- */
-function runKind(run) {
-  if (isDevelopPush(run)) {
-    return 'develop';
-  }
-
-  return run.event === 'pull_request' ? 'pr' : 'other';
 }
 
 /**
@@ -991,18 +975,26 @@ export function durationsView(doc) {
     retentionDays: doc.retentionDays,
     slowTestMs,
     legs,
-    runs: doc.runs.map(run => [run.runId, runKind(run), run.branch, run.runUrl, run.headSha.slice(0, 10)]),
-    // [run index, leg index, start time (ms since epoch), wall-clock ms, tests that ran, attempt, left out of the
-    // budget (1: a test failed every attempt, or none ran) or not (0)]
-    points: doc.runs.flatMap((run, runIndex) => run.legs.map(leg => [
-      runIndex,
-      legs.indexOf(leg.leg),
-      Date.parse(leg.at),
-      leg.wallMs,
-      leg.tests,
-      leg.runAttempt,
-      leg.unexpected > 0 || leg.tests === 0 ? 1 : 0,
-    ])),
+    runs: doc.runs.map(run => [run.runId, run.headSha.slice(0, 10)]),
+    // [run index, leg index, start time (ms since epoch), wall-clock ms, tests that ran, attempt, left out of
+    // the budget: 0 counted, 1 a test failed every attempt or none ran, 2 a later attempt re-ran the leg]
+    points: doc.runs.flatMap((run, runIndex) => {
+      const lastAttempt = new Map();
+
+      run.legs.forEach(leg => lastAttempt.set(leg.leg, Math.max(lastAttempt.get(leg.leg) ?? 0, leg.runAttempt)));
+
+      return run.legs.map((leg) => {
+        let leftOut = 0;
+
+        if (leg.unexpected > 0 || leg.tests === 0) {
+          leftOut = 1;
+        } else if (leg.runAttempt < lastAttempt.get(leg.leg)) {
+          leftOut = 2;
+        }
+
+        return [runIndex, legs.indexOf(leg.leg), Date.parse(leg.at), leg.wallMs, leg.tests, leg.runAttempt, leftOut];
+      });
+    }),
     budget: doc.budget,
     heaviestFiles: heaviestFiles.slice(0, HEAVIEST_FILES),
     // Capped like the files: a slow CI day, or a forged source full of 3.1 s tests, must not grow the page.

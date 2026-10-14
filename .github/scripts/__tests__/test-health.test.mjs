@@ -872,6 +872,8 @@ test('the summarizer CLI writes the leg\'s durations next to the report, and nev
 
     assert.equal(missing.status, 0, 'a leg whose run step died before the report must not go red here');
     assert.match(missing.stdout, /^::notice title=Playwright durations::No tests\/test-results\/report\.json/m);
+    assert.match(missing.stdout, /did not finish writing it, or never ran/,
+      'the step also runs when the build download or the install failed: the notice must not blame the run step');
     assert.ok(!existsSync(path.join(dir, 'tests', PLAYWRIGHT_DURATIONS_FILE)));
 
     writeFileSync(path.join(results, 'report.json'), '{"suites": [');
@@ -1093,12 +1095,16 @@ test('renderPage draws the "Where the time goes" section from the inlined durati
 
   legs[1].files[0].cases[0].title = 'stalls </script><b>bold</b> forever';
 
-  // A branch name is pull-request input. `<!--` then `<script` would leave the data element open past
-  // the template's own `</script>`, so the code never runs and the page, ledger included, stays blank.
-  const run = runContextFromRun({ ...RUN, head_branch: 'fix/x<!--<script>y', updated_at: '2026-10-13T10:45:00Z' });
-  const { doc } = mergeDurations(null, legs, run, { now: new Date('2026-10-13T12:00:00Z') });
+  const { doc } = mergeDurations(null, legs, runContextFromRun(DEVELOP_PUSH),
+    { now: new Date('2026-10-13T12:00:00Z') });
   const view = durationsView(doc);
-  const html = renderPage(template, aggregate(emptyLedger(), { now: NOW }), view);
+  // A pull request's branch name still reaches the page through the flake summary. `<!--` then `<script`
+  // would leave a data element open past the template's own `</script>`, so the code never runs and the
+  // page, ledger included, stays blank.
+  const pullRequest = runContextFromRun({ ...RUN, head_branch: 'fix/x<!--<script>y' });
+  const [flaky] = parsePlaywrightReport(PLAYWRIGHT_REPORT, pullRequest);
+  const summary = aggregate({ ...emptyLedger(), entries: [flaky] }, { now: NOW });
+  const html = renderPage(template, summary, view);
 
   assert.ok(!html.includes('__DURATIONS_JSON__'), 'placeholder filled');
   assert.match(html, /<h2 id="time">Where the time goes<\/h2>/);
@@ -1107,12 +1113,16 @@ test('renderPage draws the "Where the time goes" section from the inlined durati
   assert.ok(html.includes('fix/x\\u003c!--\\u003cscript>y'), 'nor can a branch open a comment in it');
   assert.equal((html.match(/<\/script>/g) ?? []).length, 3);
 
-  const dataOpen = '<script id="durations" type="application/json">';
-  const dataStart = html.indexOf(dataOpen) + dataOpen.length;
-  const data = html.slice(dataStart, html.indexOf('</script>', dataStart));
+  const dataOf = (id) => {
+    const open = `<script id="${id}" type="application/json">`;
+    const start = html.indexOf(open) + open.length;
 
-  assert.ok(!data.includes('<'), 'no `<` reaches the data element');
-  assert.deepEqual(JSON.parse(data), JSON.parse(JSON.stringify(view)));
+    return html.slice(start, html.indexOf('</script>', start));
+  };
+
+  assert.ok(!dataOf('durations').includes('<') && !dataOf('summary').includes('<'), 'no `<` reaches a data element');
+  assert.deepEqual(JSON.parse(dataOf('durations')), JSON.parse(JSON.stringify(view)));
+  assert.equal(JSON.parse(dataOf('summary')).rows[0].lastSeen.branch, 'fix/x<!--<script>y', 'and it reads back intact');
 
   const empty = renderPage(template, aggregate(emptyLedger(), { now: NOW }));
 
@@ -1151,3 +1161,20 @@ test('the page builds a run link from the run number alone, never from its data'
   assert.ok(!/\.href = (?!href;)/.test(template.slice(template.indexOf('function runPage'))),
     'every link the durations section sets comes from runPage');
 });
+
+test('test-health.yml downloads the durations family only for a develop push, by the lib\'s own rule', () => {
+  // A pull request's run would download seven files only for the collector to drop them; the rule that
+  // decides is `isDevelopPush`, so the workflow asks the lib instead of restating it in shell.
+  const health = readFileSync(path.join(repoRoot(), '.github/workflows/test-health.yml'), 'utf8');
+  const collect = steps(job(health, 'collect'));
+  const describe = collect.find(step => step.startsWith('- name: Describe the run\n'));
+  const download = collect.find(step => step.startsWith('- name: Download the run\'s test artifacts\n'));
+
+  assert.ok(describe && download, 'lost the describe or the download step');
+  assert.ok(describe.includes('import { isDevelopPush } from \'./.github/scripts/lib/playwright-durations.mjs\';'));
+  // eslint-disable-next-line no-template-curly-in-string
+  assert.ok(describe.includes('echo "DEVELOP_PUSH=${DEVELOP_PUSH}" >> "$GITHUB_ENV"'));
+  assert.ok(download.includes(`select((.name | startswith("${DURATIONS_ARTIFACT_PREFIX}") | not) `
+    + 'or env.DEVELOP_PUSH == "true")'), 'the durations family is filtered on the flag');
+});
+

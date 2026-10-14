@@ -6,7 +6,7 @@
  * Playwright leg, red or green, and uploads the file as `playwright-durations-<leg>`; the test-health
  * collector draws the "Where the time goes" section of its page from those files.
  *
- * Never fails a leg. A leg whose run step died before the JSON reporter wrote its report ends with a
+ * Never fails a leg. A leg without a report (Playwright never ran, or did not finish writing it) ends with a
  * `::notice`, a report that cannot be read with a `::warning`, and both exit 0 without a file (the
  * upload step ignores the missing file). Only the caller's own mistake, a missing `--leg`, exits 2.
  *
@@ -59,8 +59,8 @@ if (!options.leg) {
 }
 
 if (!existsSync(options.report)) {
-  process.stdout.write(`::notice title=${TITLE}::${commandData(`No ${options.report}: the run step ended before `
-    + `the JSON reporter wrote it, so leg ${options.leg} has no durations to upload.`)}\n`);
+  process.stdout.write(`::notice title=${TITLE}::${commandData(`No ${options.report}: Playwright did not finish `
+    + `writing it, or never ran, so leg ${options.leg} has no durations to upload.`)}\n`);
 } else {
   try {
     const report = JSON.parse(readFileSync(options.report, 'utf8'));

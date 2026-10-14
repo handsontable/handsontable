@@ -13,6 +13,7 @@ import {
   SLOW_TEST_MS,
   durationsView,
   emptyDurations,
+  isDevelopPush,
   mergeDurations,
   parseDurationSummary,
   percentile,
@@ -39,14 +40,15 @@ const SLOW_TITLE = 'context menu submenu hover delay › keeps the submenu open 
 const RED_TITLE = 'clones, page scroll range and pointer bounds in the reverse split › tracks a drag that moves '
   + 'inside the page offset gap like the hidden twin (ltr)';
 
+// A develop push: the only run the reducer records.
 const RUN = {
   id: 38380730524,
   run_attempt: 1,
   html_url: 'https://github.com/handsontable/handsontable/actions/runs/38380730524',
-  name: 'Tests',
-  head_branch: 'feature/X-1_Some-branch',
+  name: 'Develop',
+  head_branch: 'develop',
   head_sha: '146c1ba4cb84d529c6f26f87823b4d4d6c8bea9a',
-  event: 'pull_request',
+  event: 'push',
   // When the run ended: after every leg these tests start, the latest at NOW.
   updated_at: '2026-10-13T12:30:00Z',
 };
@@ -106,7 +108,7 @@ const runOf = overrides => runContextFromRun({
   html_url: `${RUNS_URL}/${overrides?.id ?? RUN.id}`,
   ...overrides,
 });
-const developRun = overrides => runOf({ name: 'Develop', head_branch: 'develop', event: 'push', ...overrides });
+const developRun = runOf;
 
 test('summarizePlaywrightReport reproduces the fixture\'s numbers: wall-clock, counts, per-file totals', () => {
   const summary = summarizePlaywrightReport(readFixture(), { leg: 'classic', runId: '38380730524', runAttempt: 1 });
@@ -296,9 +298,9 @@ test('mergeDurations records a run per leg and freezes updatedAt on a true no-op
     { ...stored, legs: undefined },
     {
       runId: '38380730524',
-      workflow: 'Tests',
-      event: 'pull_request',
-      branch: 'feature/X-1_Some-branch',
+      workflow: 'Develop',
+      event: 'push',
+      branch: 'develop',
       headSha: '146c1ba4cb84d529c6f26f87823b4d4d6c8bea9a',
       runUrl: 'https://github.com/handsontable/handsontable/actions/runs/38380730524',
       legs: undefined,
@@ -404,66 +406,29 @@ test('mergeDurations holds the file under its cap by dropping the oldest runs, n
   assert.equal(DURATIONS_CAP_BYTES, 2 * 1024 * 1024);
 });
 
-test('the per-test rows get at most half the cap, pull-request rows shed first, so the history keeps the rest', () => {
-  const pr = legSummary({ leg: 'classic', startTime: '2026-10-13T11:00:00.000Z' });
-  const develop = legSummary({ leg: 'main', startTime: '2026-10-13T10:00:00.000Z' });
-  const both = mergeDurations(mergeDurations(null, [pr], runOf({ id: 1 }), { now: NOW }).doc, [develop],
-    developRun({ id: 2 }), { now: NOW }).doc;
-  const oneLegRows = Buffer.byteLength(JSON.stringify(mergeDurations(null, [develop], developRun({ id: 2 }),
+test('the per-test rows get at most half the cap, the oldest legs\' rows first, so the history keeps the rest', () => {
+  const older = legSummary({ leg: 'classic', startTime: '2026-10-13T10:00:00.000Z' });
+  const newer = legSummary({ leg: 'main', startTime: '2026-10-13T11:00:00.000Z' });
+  const both = mergeDurations(mergeDurations(null, [older], runOf({ id: 1 }), { now: NOW }).doc, [newer],
+    runOf({ id: 2 }), { now: NOW }).doc;
+  const oneLegRows = Buffer.byteLength(JSON.stringify(mergeDurations(null, [newer], runOf({ id: 2 }),
     { now: NOW }).doc.latest));
   // Room for one leg's rows in half the cap, not for two.
   const capBytes = (oneLegRows * 2) + 200;
   const shed = mergeDurations(both, [], runOf({ id: 2 }), { now: NOW, capBytes });
 
-  assert.deepEqual(shed.doc.latest.sources.map(source => source.leg), ['main'],
-    'the pull request\'s rows went, the develop push\'s stayed, though the pull request is newer');
+  assert.deepEqual(shed.doc.latest.sources.map(source => source.leg), ['main'], 'the older push\'s rows went');
   assert.match(shed.notes.join('\n'), /dropped the rows of classic/);
   assert.equal(shed.doc.runs.length, 2, 'the run history is untouched');
   assert.ok(Buffer.byteLength(serializeDurations(shed.doc)) <= capBytes);
 });
 
-test('past the cap, runs that are not develop pushes go before any develop push', () => {
-  let doc = null;
-
-  // Thirty develop pushes, then thirty pull request runs, all newer than the develop pushes. Enough runs
-  // that the history outweighs the rows, so the run cap binds, not the rows' half of it.
-  for (let index = 0; index < 60; index += 1) {
-    const startTime = new Date(NOW.getTime() - ((60 - index) * 600000)).toISOString();
-    const run = index < 30 ? developRun({ id: 3000 + index }) : runOf({ id: 3000 + index });
-
-    doc = mergeDurations(doc, [legSummary({ leg: 'classic', startTime, unexpected: 0 })], run, { now: NOW }).doc;
-  }
-
-  const capBytes = Buffer.byteLength(serializeDurations(doc)) - 1500;
-  const capped = mergeDurations(doc, [], runOf({ id: 3059 }), { now: NOW, capBytes });
-  const kept = capped.doc.runs.map(run => Number(run.runId));
-
-  assert.ok(capped.capped > 0 && capped.doc.latest.sources.length === 1, 'the run cap bound, not the rows budget');
-  assert.equal(kept.filter(id => id < 3030).length, 30, 'every develop push stayed');
-  assert.ok(!kept.includes(3030), 'the oldest pull request run went first');
-  assert.equal(capped.doc.budget.legs.classic.develop.runs, 30, 'the budget input is whole');
-});
-
-test('the per-test rows follow the latest develop run of each leg, and a pull request only fills a gap', () => {
-  const prSummary = legSummary({ leg: 'classic', startTime: '2026-10-12T10:00:00.000Z' });
-  const bootstrap = mergeDurations(null, [prSummary], runOf({ id: 1 }), { now: NOW });
-
-  assert.equal(bootstrap.doc.latest.sources[0].branch, 'feature/X-1_Some-branch',
-    'before any develop run, the newest run of any branch supplies the rows');
-
-  const olderDevelop = legSummary({ leg: 'classic', startTime: '2026-10-12T09:00:00.000Z', scale: 2 });
-  const develop = mergeDurations(bootstrap.doc, [olderDevelop], developRun({ id: 2 }), { now: NOW });
-
-  assert.equal(develop.doc.latest.sources[0].runId, '2', 'a develop run replaces it, even an older one');
-
-  const newerPr = mergeDurations(develop.doc, [legSummary({ leg: 'classic', startTime: '2026-10-13T09:00:00.000Z' })],
-    runOf({ id: 3 }), { now: NOW });
-
-  assert.equal(newerPr.doc.latest.sources[0].runId, '2', 'a newer pull request never displaces develop');
-
-  const newerDevelop = mergeDurations(newerPr.doc,
-    [legSummary({ leg: 'classic', startTime: '2026-10-13T10:00:00.000Z' })], developRun({ id: 4 }), { now: NOW });
-  const { latest } = newerDevelop.doc;
+test('the per-test rows follow each leg\'s latest push, and nothing but a develop push is recorded', () => {
+  const first = mergeDurations(null, [legSummary({ leg: 'classic', startTime: '2026-10-12T10:00:00.000Z', scale: 2 })],
+    runOf({ id: 2 }), { now: NOW });
+  const later = mergeDurations(first.doc, [legSummary({ leg: 'classic', startTime: '2026-10-13T10:00:00.000Z' })],
+    runOf({ id: 4 }), { now: NOW });
+  const { latest } = later.doc;
 
   assert.equal(latest.sources[0].runId, '4');
   assert.deepEqual(latest.columns, [{ leg: 'classic', project: 'e2e-classic' }]);
@@ -475,6 +440,21 @@ test('the per-test rows follow the latest develop run of each leg, and a pull re
   assert.equal(latest.files['e2e/page-offset-reverse-split-clones.spec.ts'].length, 9,
     'the two tests that failed both attempts have no row: their time is a timeout and a retry');
   assert.ok(!latest.files['e2e/page-offset-reverse-split-clones.spec.ts'].some(entry => entry[0] === RED_TITLE));
+
+  // The collector passes develop pushes only; anything else reaching the reducer is a bug, not data.
+  const others = [
+    ['a pull request', { name: 'Tests', head_branch: 'feature/x', event: 'pull_request' }],
+    ['a manual run on develop', { event: 'workflow_dispatch' }],
+    ['the visual nightly on develop', { name: 'Visual nightly', event: 'schedule' }],
+    ['a release push', { name: 'Publish', head_branch: 'release/18.2.0' }],
+  ];
+
+  for (const [label, overrides] of others) {
+    assert.throws(() => mergeDurations(later.doc, [legSummary()], runOf({ id: 5, ...overrides }), { now: NOW }),
+      /only develop pushes are recorded/, label);
+    assert.equal(isDevelopPush(runOf(overrides)), false, label);
+  }
+  assert.equal(isDevelopPush(runOf()), true);
 });
 
 test('a re-run of an older develop push, days later, never replaces a newer commit\'s rows', () => {
@@ -556,16 +536,6 @@ test('the leg allowlist is exactly the legs e2e.yml runs', () => {
     [...themes.flatMap(theme => suffixes.map(suffix => `${theme}${suffix}`)), engines].sort());
 });
 
-test('an expired develop source never outranks the run that arrives after it', () => {
-  const old = mergeDurations(null, [legSummary({ leg: 'classic', startTime: '2026-09-12T11:00:00.000Z' })],
-    developRun({ id: 1 }), { now: new Date('2026-09-12T12:00:00Z') });
-  const pr = mergeDurations(old.doc, [legSummary({ leg: 'classic', startTime: '2026-10-12T11:00:00.000Z' })],
-    runOf({ id: 2 }), { now: new Date('2026-10-12T12:00:00Z') });
-
-  assert.deepEqual(pr.doc.latest.sources.map(source => source.runId), ['2'],
-    'the September develop source is past 30 days: the pull request fills the gap at once');
-});
-
 test('the per-test rows hold one column per leg and project, null where a test did not run', () => {
   const legs = [
     legSummary({ leg: 'classic' }),
@@ -588,16 +558,15 @@ test('the per-test rows hold one column per leg and project, null where a test d
     [SLOW_TITLE, null, 19714], 'a test the newer classic run no longer has keeps only its main cell');
 });
 
-test('the budget input is P50 and P90 per leg over clean runs, develop separately', () => {
+test('the budget input is P50 and P90 per leg, one vote per push, without failed or empty legs', () => {
   let doc = null;
   const walls = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000];
 
   walls.forEach((wallMs, index) => {
     const startTime = new Date(NOW.getTime() - ((index + 1) * 3600000)).toISOString();
-    const run = index < 4 ? developRun({ id: 500 + index }) : runOf({ id: 500 + index });
 
-    doc = mergeDurations(doc, [legSummary({ leg: 'classic', startTime, wallMs, unexpected: 0 })], run,
-      { now: NOW }).doc;
+    doc = mergeDurations(doc, [legSummary({ leg: 'classic', startTime, wallMs, unexpected: 0 })],
+      runOf({ id: 500 + index }), { now: NOW }).doc;
   });
 
   // A red leg's time includes retries of failing tests; it is not what the budget should learn from.
@@ -611,15 +580,38 @@ test('the budget input is P50 and P90 per leg over clean runs, develop separatel
   flaky.counts.flaky = 1;
   doc = mergeDurations(doc, [flaky], runOf({ id: 601 }), { now: NOW }).doc;
 
+  // "Re-run failed jobs": run 602's classic leg went red on a flake, and attempt 2 passed. One push, one vote.
+  const attemptOf = (runAttempt, startTime, wallMs) => legSummary({
+    leg: 'classic',
+    startTime,
+    wallMs,
+    unexpected: 0,
+    runId: '602',
+    runAttempt,
+  });
+  const firstTry = attemptOf(1, '2026-10-13T11:40:00.000Z', 5000);
+  const secondTry = attemptOf(2, '2026-10-13T11:50:00.000Z', 1100);
+
+  firstTry.counts.flaky = 1;
+  doc = mergeDurations(doc, [firstTry], runOf({ id: 602 }), { now: NOW }).doc;
+  doc = mergeDurations(doc, [secondTry], runOf({ id: 602, run_attempt: 2 }), { now: NOW }).doc;
+
   const { classic, main } = doc.budget.legs;
 
-  assert.deepEqual(classic.all, { runs: 10, wallMs: { p50: 500, p90: 900 }, tests: { p50: 45, p90: 45 } });
-  assert.deepEqual(classic.develop, { runs: 4, wallMs: { p50: 200, p90: 400 }, tests: { p50: 45, p90: 45 } });
-  assert.equal(classic.excluded, 1, 'the red leg is counted as excluded, not hidden');
-  assert.deepEqual(main.all, { runs: 1, wallMs: { p50: 700, p90: 700 }, tests: { p50: 45, p90: 45 } });
-  assert.equal(main.excluded, 0);
+  // classic: the ten pushes and attempt 2 of run 602, nearest rank over 11 values.
+  assert.deepEqual(classic, { runs: 11, wallMs: { p50: 600, p90: 1000 }, tests: { p50: 45, p90: 45 }, excluded: 1 });
+  assert.deepEqual(main, { runs: 1, wallMs: { p50: 700, p90: 700 }, tests: { p50: 45, p90: 45 }, excluded: 0 });
   assert.equal(doc.budget.windowDays, DURATIONS_RETENTION_DAYS);
   assert.ok(doc.budget.from < doc.budget.to);
+
+  // The page marks what the budget left out, and why: 1 failed or empty, 2 replaced by a later attempt.
+  const view = durationsView(doc);
+  const pointsOf = runId => view.points.filter(point => view.runs[point[0]][0] === runId)
+    .map(point => [point[5], point[6]]);
+
+  assert.deepEqual(pointsOf('602'), [[1, 2], [2, 0]]);
+  assert.deepEqual(pointsOf('600'), [[1, 1]]);
+  assert.deepEqual(pointsOf('501'), [[1, 0]]);
 });
 
 test('mergeDurations refuses a stored file of another version instead of rebuilding it from one run', () => {
@@ -695,19 +687,19 @@ test('a two-project leg labels its slow tests by engine in parentheses', () => {
   assert.deepEqual(view.slowTests[0].legs.map(([label]) => label), ['engines (firefox)', 'engines (webkit)']);
 });
 
-test('durationsView ranks the heaviest spec files, lists the slow tests, and tells develop from pull requests', () => {
+test('durationsView ranks the heaviest spec files, lists the slow tests, and names each push by run and commit', () => {
   let doc = mergeDurations(null, [legSummary({ leg: 'classic' }), legSummary({ leg: 'main', scale: 2 })],
     developRun({ id: 7 }), { now: NOW }).doc;
 
   doc = mergeDurations(doc, [legSummary({ leg: 'classic', startTime: '2026-10-13T11:00:00.000Z' })],
     runOf({ id: 8 }), { now: NOW }).doc;
   doc = mergeDurations(doc, [legSummary({ leg: 'classic', startTime: '2026-10-13T11:30:00.000Z' })],
-    runOf({ id: 9, name: 'Publish', head_branch: 'release/18.2.0', event: 'workflow_dispatch' }), { now: NOW }).doc;
+    runOf({ id: 9 }), { now: NOW }).doc;
 
   const view = durationsView(doc);
 
   assert.deepEqual(view.legs, ['classic', 'main']);
-  assert.deepEqual(view.runs.map(([runId, kind]) => `${runId}:${kind}`), ['9:other', '8:pr', '7:develop']);
+  assert.deepEqual(view.runs, [['9', '146c1ba4cb'], ['8', '146c1ba4cb'], ['7', '146c1ba4cb']], 'newest first');
   assert.equal(view.points.length, 4, 'one point per leg and attempt');
   assert.equal(view.heaviestFiles.length, 5, `at most ${HEAVIEST_FILES}, here every file`);
   assert.deepEqual(view.heaviestFiles[0], {
