@@ -103,6 +103,8 @@ When run in CI (`GITHUB_ACTIONS=true`) the script adds, on top of the exit code:
 | `handsontable` runtime (peer dep) | `handsontable/tmp` (pnpm `link:`, requires core to be built) |
 | `@angular/*`, `rxjs`, `zone.js` | `node_modules/` (managed by pnpm workspace) |
 
+`tsconfig.json` sets `preserveSymlinks: true`. The wrapper dist is a `link:`, so without the flag TypeScript follows it to the wrapper package and resolves the wrapper's `@angular/core` from that package's own `node_modules`. The wrapper builds on a different Angular major than this project, so the two copies of `@angular/core` clash (`TemplateRef<...> is missing the following properties from type 'TemplateRef<any>'`). With the flag, the wrapper types resolve `@angular/*` from this project, the way a real consumer app does.
+
 ## Adding a new third-party library to an example
 
 This package is a pnpm workspace member. Its dependencies are managed alongside the rest of the monorepo in the root `pnpm-lock.yaml`.

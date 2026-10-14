@@ -11,6 +11,7 @@
     "noEmit": true,
     "experimentalDecorators": true,
     "skipLibCheck": true,
+    "preserveSymlinks": true,
     "types": ["node"],
     "target": "ES2022",
     "module": "ES2022",
