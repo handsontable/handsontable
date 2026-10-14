@@ -436,8 +436,10 @@ you edit a numeric cell:
   [Preserve the typed literal](#preserve-the-typed-literal)). Then, only
   when converting your entry to a JavaScript number would lose information -- a trailing decimal
   zero such as `9.0`, or a value whose magnitude exceeds the safe-integer limit
-  (`9007199254740991`) -- Handsontable keeps the literal you typed, so both the editor and the cell
-  show it exactly. See [Numbers beyond the safe-integer limit](#numbers-beyond-the-safe-integer-limit).
+  (`9007199254740991`) -- Handsontable keeps the literal you typed, so the editor shows it exactly. The
+  cell still applies its number format, so `9.0` displays as `9` unless your
+  [`numericFormat`](@/api/options.md#numericformat) says otherwise. Only a value beyond the
+  safe-integer limit also renders exactly. See [Numbers beyond the safe-integer limit](#numbers-beyond-the-safe-integer-limit).
   Values that convert without loss (such as `9.5`) are still stored as numbers, so sorting,
   filtering, and formulas are unaffected. A preserved literal still behaves like a number in those
   features: sorting and filter conditions compare it numerically, and the formulas engine parses it
@@ -453,10 +455,10 @@ option at the column level, so it applies to every cell in that column.
 
 To compare them:
 
-1. Type `1.50` in a cell of the **Default** column, and press <kbd>Enter</kbd>. Then, open the cell
-   again. The editor shows `1.5`, and the stored value is the number `1.5`.
+1. Type `1.50` in a cell of the **Default** column, and press <kbd>Enter</kbd>. Then, select the
+   cell again and press <kbd>F2</kbd>. The editor shows `1.5`, and the stored value is the number `1.5`.
 2. Type `1.50` in a cell of the **preserveNumericLiteral: true** column, and press
-   <kbd>Enter</kbd>. Then, open the cell again. The editor shows `1.50`, and the stored value is the
+   <kbd>Enter</kbd>. Then, select the cell again and press <kbd>F2</kbd>. The editor shows `1.50`, and the stored value is the
    string `"1.50"`.
 3. Type `9.5` in either column. Both columns store the number `9.5`, because converting it to a
    number loses nothing.
