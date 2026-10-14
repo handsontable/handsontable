@@ -35,33 +35,38 @@ describe('setSourceDataAtCell with an `afterSetSourceDataAtCell` listener', () =
     container.remove();
   });
 
-  it('should run each `valueSetter` right before its own write when no listener is registered', () => {
-    const container = document.createElement('div');
+  it('should run each `valueSetter` right before its own write, with a listener or without one', () => {
+    // AutoColumnSize, on by default, registers a listener in almost every grid.
+    [{ autoColumnSize: false }, { autoColumnSize: true, afterSetSourceDataAtCell: jest.fn() }].forEach((extra) => {
+      const container = document.createElement('div');
 
-    document.body.appendChild(container);
+      document.body.appendChild(container);
 
-    let hot;
-    const hotSettings = {
-      data: [['old', '']],
-      columns: [
-        {},
-        // Reads the value the same call wrote to the first column a step earlier.
-        { valueSetter: value => `${value}+${hot.getSourceDataAtCell(0, 0)}` },
-      ],
-      autoRowSize: false,
-      autoColumnSize: false,
-      licenseKey: 'non-commercial-and-evaluation',
-    };
+      const hot = new Handsontable(container, {
+        data: [['old', '']],
+        columns: [
+          {},
+          // Reads the value the same call wrote to the first column a step earlier.
+          { valueSetter: value => `${value}+${hot.getSourceDataAtCell(0, 0)}` },
+        ],
+        autoRowSize: false,
+        licenseKey: 'non-commercial-and-evaluation',
+        ...extra,
+      });
 
-    hot = new Handsontable(container, hotSettings);
+      expect(hot.hasHook('afterSetSourceDataAtCell')).toBe(extra.autoColumnSize);
 
-    expect(hot.hasHook('afterSetSourceDataAtCell')).toBe(false);
+      hot.setSourceDataAtCell([[0, 0, 'new'], [0, 1, 'x']]);
 
-    hot.setSourceDataAtCell([[0, 0, 'new'], [0, 1, 'x']]);
+      expect(hot.getSourceDataAtCell(0, 1)).toBe('x+new');
 
-    expect(hot.getSourceDataAtCell(0, 1)).toBe('x+new');
+      if (extra.afterSetSourceDataAtCell) {
+        // The payload carries the value the write stored.
+        expect(extra.afterSetSourceDataAtCell.mock.calls[0][0]).toEqual([[0, 0, 'old', 'new'], [0, 1, '', 'x+new']]);
+      }
 
-    hot.destroy();
-    container.remove();
+      hot.destroy();
+      container.remove();
+    });
   });
 });
