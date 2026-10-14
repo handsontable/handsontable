@@ -20,7 +20,7 @@ import {
   serializeDurations,
   summarizePlaywrightReport,
 } from '../lib/playwright-durations.mjs';
-import { runContextFromRun } from '../lib/test-health.mjs';
+import { PLAYWRIGHT_JSON_REPORT, runContextFromRun } from '../lib/test-health.mjs';
 import { repoRoot } from '../lib/repo-root.mjs';
 import { job } from '../lib/workflow-text.mjs';
 
@@ -238,6 +238,36 @@ test('parseDurationSummary accepts what the summarizer writes and rejects anythi
   }), /files\[0\]\.cases\[0\]\.ms/);
 });
 
+test('parseDurationSummary takes only a UTC ISO start, a numeric run id, and bounded strings', () => {
+  const summary = JSON.parse(JSON.stringify(legSummary()));
+  const withCase = entry => ({ ...summary, files: [{ ...summary.files[0], cases: [entry] }] });
+
+  // `Date.parse` reads this, comment and all; a fork could make the comment megabytes long.
+  assert.ok(!Number.isNaN(Date.parse(`Tue Oct 13 2026 10:20:47 GMT+0000 (${'x'.repeat(5000)})`)));
+  assert.throws(() => parseDurationSummary({
+    ...summary, startTime: `Tue Oct 13 2026 10:20:47 GMT+0000 (${'x'.repeat(5000)})`,
+  }), /startTime must be an ISO time in UTC/);
+  assert.throws(() => parseDurationSummary({ ...summary, startTime: '2026-10-13T12:20:47+02:00' }), /startTime/);
+  assert.throws(() => parseDurationSummary({ ...summary, runId: '1 [link](https://example.com)' }), /runId/);
+  assert.throws(() => parseDurationSummary({ ...summary, projects: ['p'.repeat(101)] }), /projects/);
+  assert.throws(() => parseDurationSummary({ ...summary, files: [{ ...summary.files[0], file: 'a'.repeat(501) }] }),
+    /files\[0\]\.file must be a path of 1 to 500 characters/);
+  assert.throws(() => parseDurationSummary(withCase({ title: 't'.repeat(2001), ms: 1 })), /title/);
+  assert.throws(() => parseDurationSummary(withCase({ title: 't', ms: 1, status: 'passed' })), /status/);
+  assert.throws(() => parseDurationSummary(withCase({ title: 't', ms: 1, retries: 0 })), /retries/);
+  assert.throws(() => parseDurationSummary({
+    ...summary,
+    files: [{ ...summary.files[0], cases: Array.from({ length: 50001 }, () => ({ title: 't', ms: 1 })) }],
+  }), /more than 50000 tests/);
+});
+
+test('summarizePlaywrightReport writes its start time in the one form the summary check accepts', () => {
+  const report = readFixture();
+
+  report.stats.startTime = 'Tue, 13 Oct 2026 10:20:47 GMT';
+  assert.equal(summarizePlaywrightReport(report, { leg: 'classic' }).startTime, '2026-10-13T10:20:47.000Z');
+});
+
 test('percentile is nearest-rank and never interpolates', () => {
   const values = [10, 1, 9, 2, 8, 3, 7, 4, 6, 5];
 
@@ -392,6 +422,28 @@ test('the per-test rows get at most half the cap, pull-request rows shed first, 
   assert.ok(Buffer.byteLength(serializeDurations(shed.doc)) <= capBytes);
 });
 
+test('past the cap, runs that are not develop pushes go before any develop push', () => {
+  let doc = null;
+
+  // Thirty develop pushes, then thirty pull request runs, all newer than the develop pushes. Enough runs
+  // that the history outweighs the rows, so the run cap binds, not the rows' half of it.
+  for (let index = 0; index < 60; index += 1) {
+    const startTime = new Date(NOW.getTime() - ((60 - index) * 600000)).toISOString();
+    const run = index < 30 ? developRun({ id: 3000 + index }) : runOf({ id: 3000 + index });
+
+    doc = mergeDurations(doc, [legSummary({ leg: 'classic', startTime, unexpected: 0 })], run, { now: NOW }).doc;
+  }
+
+  const capBytes = Buffer.byteLength(serializeDurations(doc)) - 1500;
+  const capped = mergeDurations(doc, [], runOf({ id: 3059 }), { now: NOW, capBytes });
+  const kept = capped.doc.runs.map(run => Number(run.runId));
+
+  assert.ok(capped.capped > 0 && capped.doc.latest.sources.length === 1, 'the run cap bound, not the rows budget');
+  assert.equal(kept.filter(id => id < 3030).length, 30, 'every develop push stayed');
+  assert.ok(!kept.includes(3030), 'the oldest pull request run went first');
+  assert.equal(capped.doc.budget.legs.classic.develop.runs, 30, 'the budget input is whole');
+});
+
 test('the per-test rows follow the latest develop run of each leg, and a pull request only fills a gap', () => {
   const prSummary = legSummary({ leg: 'classic', startTime: '2026-10-12T10:00:00.000Z' });
   const bootstrap = mergeDurations(null, [prSummary], runOf({ id: 1 }), { now: NOW });
@@ -423,6 +475,24 @@ test('the per-test rows follow the latest develop run of each leg, and a pull re
   assert.equal(latest.files['e2e/page-offset-reverse-split-clones.spec.ts'].length, 9,
     'the two tests that failed both attempts have no row: their time is a timeout and a retry');
   assert.ok(!latest.files['e2e/page-offset-reverse-split-clones.spec.ts'].some(entry => entry[0] === RED_TITLE));
+});
+
+test('a re-run of an older develop push, days later, never replaces a newer commit\'s rows', () => {
+  const newer = mergeDurations(null, [legSummary({ leg: 'classic', startTime: '2026-10-12T10:00:00.000Z' })],
+    developRun({ id: 2000 }), { now: NOW }).doc;
+  // "Re-run failed jobs" on develop run 1000, a day later: its legs start after run 2000's did.
+  const rerun = legSummary({
+    leg: 'classic',
+    startTime: '2026-10-13T11:00:00.000Z',
+    scale: 2,
+    runId: '1000',
+    runAttempt: 2,
+  });
+  const after = mergeDurations(newer, [rerun], developRun({ id: 1000, run_attempt: 2 }), { now: NOW }).doc;
+
+  assert.deepEqual(after.latest.sources.map(source => [source.runId, source.runAttempt]), [['2000', 1]],
+    'run ids follow commit order; start times do not');
+  assert.equal(after.runs.length, 2, 'the re-run is still a record of its own');
 });
 
 test('a flaky test has no cell either, and a leg that ran no test keeps the rows it had', () => {
@@ -511,7 +581,8 @@ test('the per-test rows hold one column per leg and project, null where a test d
   assert.deepEqual(row, [SLOW_TITLE, 9857, 19714]);
 
   const withoutSubmenu = { ...legs[0], files: legs[0].files.filter(file => !file.file.includes('submenu')) };
-  const onlyMain = mergeDurations(doc, [withoutSubmenu], developRun({ id: 9 }), { now: NOW }).doc;
+  // A later develop push: its run id is higher than the first one's.
+  const onlyMain = mergeDurations(doc, [withoutSubmenu], developRun({ id: 38380730600 }), { now: NOW }).doc;
 
   assert.deepEqual(onlyMain.latest.files['e2e/submenu-hover-delay.spec.ts'].find(entry => entry[0] === SLOW_TITLE),
     [SLOW_TITLE, null, 19714], 'a test the newer classic run no longer has keeps only its main cell');
@@ -598,6 +669,32 @@ test('serializeDurations writes one run and one spec file per line, and round-tr
   assert.deepEqual(JSON.parse(serializeDurations(emptyDurations())), emptyDurations());
 });
 
+test('a spec file named __proto__ is a row like any other', () => {
+  const odd = legSummary({ leg: 'classic', unexpected: 0 });
+
+  odd.files[0] = { ...odd.files[0], file: '__proto__' };
+
+  const { doc } = mergeDurations(null, [odd], developRun(), { now: NOW });
+
+  const own = files => Object.getOwnPropertyDescriptor(files, '__proto__')?.value;
+
+  assert.ok(Object.hasOwn(doc.latest.files, '__proto__'));
+  assert.deepEqual(own(JSON.parse(serializeDurations(doc)).latest.files), own(doc.latest.files));
+  assert.ok(durationsView(doc).heaviestFiles.some(file => file.file === '__proto__'));
+});
+
+test('a two-project leg labels its slow tests by engine in parentheses', () => {
+  const engines = legSummary({ leg: 'engines' });
+
+  engines.projects = ['e2e-firefox', 'e2e-webkit'];
+  engines.files = engines.files
+    .flatMap(file => [{ ...file, project: 'e2e-firefox' }, { ...file, project: 'e2e-webkit' }]);
+
+  const view = durationsView(mergeDurations(null, [engines], developRun(), { now: NOW }).doc);
+
+  assert.deepEqual(view.slowTests[0].legs.map(([label]) => label), ['engines (firefox)', 'engines (webkit)']);
+});
+
 test('durationsView ranks the heaviest spec files, lists the slow tests, and tells develop from pull requests', () => {
   let doc = mergeDurations(null, [legSummary({ leg: 'classic' }), legSummary({ leg: 'main', scale: 2 })],
     developRun({ id: 7 }), { now: NOW }).doc;
@@ -672,6 +769,9 @@ test('renderDurationsLine names each leg\'s wall-clock and the heaviest file of 
   assert.ok(escaped.includes('`e2e/x\'y # heading [link](https://example.com).spec.ts`'));
 });
 
-test('the summary file path sits in the reporter\'s output directory', () => {
-  assert.equal(PLAYWRIGHT_DURATIONS_FILE, 'test-results/playwright-durations.json');
+test('the summary file sits beside the JSON report it is made from', () => {
+  // The same directory: the summarizer writes next to the reporter's file, Playwright clears it at the start
+  // of a run (so a stale summary never survives a crashed leg), and the failure upload ships all of it.
+  assert.equal(path.posix.dirname(PLAYWRIGHT_DURATIONS_FILE), path.posix.dirname(PLAYWRIGHT_JSON_REPORT));
+  assert.notEqual(PLAYWRIGHT_DURATIONS_FILE, PLAYWRIGHT_JSON_REPORT);
 });

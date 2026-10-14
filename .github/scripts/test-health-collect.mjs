@@ -10,10 +10,11 @@
  * ledger checked out from `gh-pages`,
  * and writes the ledger, the per-test summary and the page next to it. The
  * fourth artifact family, `playwright-durations-*` (every Playwright leg, green
- * or red), goes to `durations.json` instead: per run and leg the wall-clock,
- * workers and counts for 30 days, and the per-test milliseconds of each leg's
- * latest run, which the page's "Where the time goes" section draws. Prints
- * the step-summary Markdown to stdout.
+ * or red), goes to `durations.json` instead, from develop pushes only: per run
+ * and leg the wall-clock, workers and counts for 30 days, and the per-test
+ * milliseconds of each leg's latest run, which the page's "Where the time goes"
+ * section draws. A durations.json it cannot read is left as it is, with a
+ * warning, and never stops the ledger. Prints the step-summary Markdown to stdout.
  *
  * Never fails the job over its input: an artifact that does not parse is noted
  * and skipped, and a run with nothing to record still rewrites the summary and
@@ -36,7 +37,13 @@
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { durationsView, mergeDurations, serializeDurations } from './lib/playwright-durations.mjs';
+import {
+  assertDurationsVersion,
+  durationsView,
+  isDevelopPush,
+  mergeDurations,
+  serializeDurations,
+} from './lib/playwright-durations.mjs';
 import {
   aggregate,
   collectArtifactFiles,
@@ -182,12 +189,43 @@ if (existsSync(summaryPath)) {
 }
 
 const durationsPath = path.join(options['ledger-dir'], 'durations.json');
-// No try/catch, like the ledger: a durations.json this collector cannot parse is a bug to look at, and
-// silently starting over would discard the month of history the page and the budget read.
-const previousDurations = existsSync(durationsPath) ? JSON.parse(readFileSync(durationsPath, 'utf8')) : null;
-const timing = mergeDurations(previousDurations, durations, run, { now });
+let durationsText = null;
+let durationsPage = null;
+let recorded = [];
 
-notes.push(...timing.notes);
+// The durations half never stops the flake ledger and never overwrites a file it cannot read. On any error
+// durations.json stays as it is (a month of history is not rebuilt from one run), the page and the step
+// summary name the error, and a warning flags the run; the ledger is recorded either way.
+try {
+  const previousDurations = existsSync(durationsPath) ? JSON.parse(readFileSync(durationsPath, 'utf8')) : null;
+
+  if (isDevelopPush(run)) {
+    const timing = mergeDurations(previousDurations, durations, run, { now });
+
+    notes.push(...timing.notes);
+    recorded = timing.recorded;
+    durationsText = serializeDurations(timing.doc);
+    durationsPage = durationsView(timing.doc);
+  } else {
+    // Only develop pushes are recorded: they are what the budget and the page measure against, and a pull
+    // request's run then commits to gh-pages only when it records a flake, as before the durations existed.
+    assertDurationsVersion(previousDurations);
+    durationsPage = durationsView(previousDurations);
+
+    if (durations.length > 0) {
+      notes.push(`${durations.length} Playwright durations artifact(s) not recorded: only develop pushes are, `
+        + 'and this run keeps its own for 3 days');
+    }
+  }
+} catch (error) {
+  const reason = String(error.message).replace(/\s+/g, ' ');
+
+  durationsText = null;
+  durationsPage = { error: reason };
+  recorded = [];
+  notes.push(`durations.json was left as it is: ${reason}`);
+  process.stderr.write(`::warning title=Test health::durations.json was left as it is: ${reason}\n`);
+}
 
 const aggregated = aggregate(ledger, { now });
 const summary = { ...aggregated, generatedAt: stableGeneratedAt(previousSummary, aggregated, now) };
@@ -196,13 +234,15 @@ const pageUrl = options['page-url'] ?? DEFAULT_PAGE_URL;
 mkdirSync(options['ledger-dir'], { recursive: true });
 writeFileSync(ledgerPath, `${JSON.stringify(ledger, null, 2)}\n`);
 writeFileSync(summaryPath, `${JSON.stringify(summary, null, 2)}\n`);
-writeFileSync(durationsPath, serializeDurations(timing.doc));
+
+if (durationsText !== null) {
+  writeFileSync(durationsPath, durationsText);
+}
 
 if (options.template) {
   const template = readFileSync(options.template, 'utf8');
 
-  writeFileSync(path.join(options['ledger-dir'], 'index.html'),
-    renderPage(template, summary, durationsView(timing.doc)));
+  writeFileSync(path.join(options['ledger-dir'], 'index.html'), renderPage(template, summary, durationsPage));
 }
 
 // Seed entries are not "this run's" additions; keep the step summary about the run.
@@ -210,5 +250,5 @@ const addedFromRun = added.filter(entry => entry.source === 'ci');
 
 // The legs the reducer recorded, not every artifact: a skipped leg must not show its minutes here.
 process.stdout.write(renderStepSummary({
-  run, added: addedFromRun, notes, summary, pageUrl, durations: timing.recorded,
+  run, added: addedFromRun, notes, summary, pageUrl, durations: recorded,
 }));

@@ -330,7 +330,7 @@ export function parseVisualRecord(record, run) {
  * do not parse are reported as notes and skipped: a broken report must never
  * stop the rest of the run from being recorded.
  *
- * A durations artifact is not a source of entries: its one file is checked and returned in
+ * A durations artifact is not a source of entries: its one file, at the artifact's root, is checked and returned in
  * `durations`, named after the artifact's leg (GitHub keeps artifact names unique within a run, so two
  * legs can never land on one record). Only that family is read for it: the summarizer runs after the
  * report upload, so a report artifact does not hold the file today, but the failure upload ships all of
@@ -348,7 +348,9 @@ export function collectArtifactFiles(files, run) {
   const durations = [];
   const seenArtifacts = new Set(files.map(file => file.artifact));
   const durationsFile = PLAYWRIGHT_DURATIONS_FILE.split('/').pop();
-  const isDurationsFile = filePath => filePath === durationsFile || filePath.endsWith(`/${durationsFile}`);
+  // Only the file at the artifact's root: the upload names one file, so that is where it lands, and a
+  // nested copy would add a second record for the same leg.
+  const isDurationsFile = filePath => filePath === durationsFile;
 
   for (const file of files) {
     const tier = classifyArtifact(file.artifact);
@@ -641,6 +643,18 @@ export function stableGeneratedAt(previousSummary, summary, now) {
 }
 
 /**
+ * Text as one Markdown code span: line breaks collapsed and backticks swapped, so a value that came from a
+ * pull request's artifact (a file path, a leg, an error message) renders as literal text, never as a
+ * heading, a list or a link, in the summary of a workflow that runs with the base repository's token.
+ *
+ * @param {unknown} value The text.
+ * @returns {string} The code span.
+ */
+export function inlineCode(value) {
+  return `\`${String(value).replace(/`/g, '\'').replace(/\s+/g, ' ').trim()}\``;
+}
+
+/**
  * The Markdown block for the collecting job's step summary: what this run
  * added, which tests now need a ticket, and where the page is.
  *
@@ -693,7 +707,8 @@ export function renderStepSummary({ run, added, notes, summary, pageUrl, duratio
   }
 
   if (notes.length > 0) {
-    lines.push('', 'Notes:', '', ...notes.map(note => `- ${note}`));
+    // A note quotes artifact names, paths and error messages: code spans keep them literal.
+    lines.push('', 'Notes:', '', ...notes.map(note => `- ${inlineCode(note)}`));
   }
 
   lines.push('', `Ledger: ${pageUrl}`);
@@ -710,8 +725,8 @@ export function renderStepSummary({ run, added, notes, summary, pageUrl, duratio
  * @param {string} template The template with `__SUMMARY_JSON__`, `__DURATIONS_JSON__` and `__GENERATED_AT__`
  * placeholders.
  * @param {object} summary The aggregate.
- * @param {object|null} [durations] The durations view (`durationsView` in `./playwright-durations.mjs`), or
- * `null` before any was collected.
+ * @param {object|null} [durations] The durations view (`durationsView` in `./playwright-durations.mjs`),
+ * `null` before any was collected, or `{ error }` when the stored file could not be read.
  * @returns {string} The HTML.
  */
 export function renderPage(template, summary, durations = null) {

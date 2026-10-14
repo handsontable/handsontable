@@ -15,13 +15,16 @@
 # "needs a ticket" line (2+ distinct runs in 30 days).
 #
 # A fourth family is every Playwright leg's durations, green or red
-# (`playwright-durations-*`, e2e.yml's post-steps). Those go to
-# `test-health/durations.json` instead of the ledger: per run and leg the
+# (`playwright-durations-*`, e2e.yml's post-steps). Those of develop pushes go
+# to `test-health/durations.json` instead of the ledger: per run and leg the
 # wall-clock, workers and counts for 30 days, the per-test milliseconds of each
 # leg's latest run, and per leg the P50 and P90 a later e2e budget is derived
-# from (no gate reads them yet).
-# The page's "Where the time goes" section draws them. Every run with Playwright
-# legs now changes that file, so most collections commit to `gh-pages`.
+# from (no gate reads them yet). The page's "Where the time goes" section draws
+# them. Only develop pushes are recorded, so a pull request's run still commits
+# to `gh-pages` only when it records a flake: every push starts a Pages build,
+# and the legacy builder's soft limit is about 10 an hour. A `durations.json`
+# the collector cannot read is left as it is, with a warning, and never stops
+# the ledger.
 #
 # `workflow_run` on purpose, not a step inside `Tests`: this workflow runs in the
 # BASE repository's context with a write token whatever started the run, so a
@@ -70,7 +73,7 @@ jobs:
     # A canceled run's artifacts are incomplete by definition. Every other run
     # is worth a look: a red one for its failures, a green one for a flaky test
     # under quarantine, which keeps its leg green but still uploads its report,
-    # and any run with Playwright legs for their durations. A run with no test
+    # and a develop push for its Playwright durations. A run with no test
     # artifacts costs one API call and changes nothing.
     if: >-
       github.event_name == 'workflow_dispatch'

@@ -102,7 +102,7 @@
 <section class="viz" aria-labelledby="time">
   <h2 id="time">Where the time goes</h2>
   <div class="meta" id="time-meta">
-    Every Playwright E2E leg, green or red, from the <code>playwright-durations-*</code> artifact each leg uploads.
+    Every Playwright E2E leg of every develop push, green or red, from the <code>playwright-durations-*</code> artifact each leg uploads (a pull request's stay in its own run for 3 days).
   </div>
   <div class="empty" id="time-empty" hidden>No Playwright durations collected yet.</div>
   <div id="time-body">
@@ -115,7 +115,7 @@
     <div class="multiples" id="time-multiples"></div>
     <h3>Budget input: per leg over the window</h3>
     <div class="meta">
-      Nearest-rank P50 and P90 of every leg run without a test that failed every attempt and with at least one test (a failing test's time is its retries and timeouts; a flaky-only leg counts), and of develop pushes alone. The input a later e2e budget is derived from; every plotted run is in <a href="durations.json">durations.json</a>.
+      Nearest-rank P50 and P90 of every leg run without a test that failed every attempt and with at least one test (a failing test's time is its retries and timeouts; a flaky-only leg counts), and of develop pushes alone. The input a later e2e budget is derived from (its gate reads the develop numbers); every plotted run is in <a href="durations.json">durations.json</a>.
     </div>
     <div class="wrap">
       <table id="time-budget">
@@ -127,7 +127,7 @@
     <div class="meta" id="time-sources"></div>
     <div class="wrap">
       <table id="time-files">
-        <thead><tr><th class="num">#</th><th>Spec file</th><th class="num">Minutes</th><th class="num">Tests</th><th class="num">s per test</th><th>Minutes per leg, heaviest first</th></tr></thead>
+        <thead><tr><th class="num">#</th><th>Spec file</th><th class="num">Minutes, all legs</th><th class="num">Tests</th><th class="num">s per test per leg</th><th>Minutes per leg, heaviest first</th></tr></thead>
         <tbody></tbody>
       </table>
     </div>
@@ -148,7 +148,7 @@
   A <em>quarantined</em> Playwright test still runs and reports; its flaky verdict does not fail the leg until the entry's expiry (<code>tests/AGENTS.md</code>, Quarantine).
   A <em>visual</em> row is a screenshot capture: the file is its spec, the legs are the variants it differed on, and <em>failed</em> means it differed from its golden record beyond <code>regconfig.json</code>'s tolerances. It needs a ticket once it differed on <span id="visual-threshold"></span>+ <code>Visual nightly</code> runs, or on that many distinct branches (the nightly counts as develop): nothing in that tier is ever flaky, and a pull request's own intended change, recorded before approval, stays on one branch however often it is pushed. A quarantined capture is listed in <code>visual-tests/visual-quarantine.json</code> (<code>visual-tests/AGENTS.md</code>, Guardrails); an entry names the legs it covers, so a row shows its most recent entry and only the legs outside it count toward the ticket.
   Entries older than <span id="retention"></span> days drop off. Source: <code>.github/workflows/test-health.yml</code>.
-  <br>Where the time goes: a leg's wall-clock is what the leg paid, retries included. Runs stay 30 days. The per-test rows come from each leg's latest develop push (the newest run of any branch until one exists) and give each test its time from a run where it passed on its first attempt: a test that failed or was flaky in the latest run keeps its time from the run before, because its own time is retries and timeouts, which the table above tracks. Pull request runs and develop pushes share the charts so a branch that adds minutes shows against the line it merges into.
+  <br>Where the time goes: a leg's wall-clock is what the leg paid, retries included. Runs stay 30 days. The per-test rows come from each leg's latest develop push (the newest run of any branch until one exists) and give each test its time from a run where it passed on its first attempt: a test that failed or was flaky in the latest run keeps its time from the run before, because its own time is retries and timeouts, which the table above tracks. Only develop pushes are recorded: a pull request's leg files stay in its own run's artifacts for 3 days.
 </footer>
 <script id="summary" type="application/json">__SUMMARY_JSON__</script>
 <script id="durations" type="application/json">__DURATIONS_JSON__</script>
@@ -293,8 +293,12 @@
   var view = JSON.parse(document.getElementById('durations').textContent);
   var body = document.getElementById('time-body');
 
-  if (!view) {
-    document.getElementById('time-empty').hidden = false;
+  if (!view || view.error) {
+    var empty = document.getElementById('time-empty');
+    if (view && view.error) {
+      empty.textContent = 'durations.json could not be read, so it was left as it is: ' + view.error;
+    }
+    empty.hidden = false;
     body.hidden = true;
     return;
   }
@@ -325,13 +329,15 @@
     return withHour ? label + ' ' + new Date(ms).toISOString().slice(11, 13) + 'h' : label;
   }
   function when(iso) { return iso ? iso.replace('T', ' ').replace(/:\d\d(\.\d+)?Z$/, 'Z') : '?'; }
-  // A link only ever leads to a GitHub page. The URL is data from the page itself, and data must never become a
-  // `javascript:` link, so the scheme and host come from a constant and only the path from the data.
-  function githubPage(url) {
-    var prefix = 'https://github.com/';
-    return typeof url === 'string' && url.indexOf(prefix) === 0 ? prefix + url.slice(prefix.length) : null;
+  // A run's page, built from its numbers alone: no URL from the page's data ever becomes a link, so nothing a
+  // pull request's artifact carries can turn into a `javascript:` URL. The page belongs to this repository.
+  function runPage(runId, attempt) {
+    var id = Number(runId);
+    var n = Number(attempt);
+    if (!(id > 0 && id === Math.floor(id))) { return null; }
+    return 'https://github.com/handsontable/handsontable/actions/runs/' + id
+      + (n > 1 && n === Math.floor(n) ? '/attempts/' + n : '');
   }
-  function attemptUrl(url, attempt) { return attempt > 1 && url ? url + '/attempts/' + attempt : url; }
 
   // A marker per run kind: shape AND color, so the kind never rests on color alone.
   function marker(group, kind, x, y, red) {
@@ -361,7 +367,9 @@
     + view.runs.length + ' run(s), ' + view.points.length + ' leg run(s).'));
 
   var legend = document.getElementById('time-legend');
-  KINDS.forEach(function(kind) {
+  var present = {};
+  view.runs.forEach(function(run) { present[run[1]] = true; });
+  KINDS.filter(function(kind) { return present[kind[0]]; }).forEach(function(kind) {
     var item = document.createElement('span');
     var icon = svg('svg', { width: 12, height: 12, viewBox: '0 0 12 12', 'aria-hidden': 'true' });
     marker(icon, kind[0], 6, 6, false);
@@ -385,14 +393,11 @@
   var H = 150;
   var PAD = { left: 34, right: 8, top: 8, bottom: 20 };
 
-  function niceMax(value) {
-    if (value <= 0) { return 1; }
-    var step = Math.pow(10, Math.floor(Math.log10(value)));
-    var candidates = [1, 2, 2.5, 5, 10];
-    for (var i = 0; i < candidates.length; i += 1) {
-      if (candidates[i] * step >= value) { return candidates[i] * step; }
-    }
-    return 10 * step;
+  // A tick step of 1, 2 or 5 times a power of ten, so the axis reads 5, 10, 15 and never 12.5.
+  function niceStep(raw) {
+    var power = Math.pow(10, Math.floor(Math.log10(raw)));
+    var mantissa = raw / power;
+    return (mantissa <= 1 ? 1 : mantissa <= 2 ? 2 : mantissa <= 5 ? 5 : 10) * power;
   }
 
   function describe(point) {
@@ -420,9 +425,14 @@
   function drawMultiples(measure) {
     var container = document.getElementById('time-multiples');
     var value = function(point) { return measure === 'wall' ? point[3] / 60000 : point[4]; };
-    var top = niceMax(view.points.reduce(function(max, point) { return Math.max(max, value(point)); }, 0));
+    // The scale follows the runs the budget counts: a red or empty leg would stretch every chart, so it is
+    // drawn at the top edge instead, and its tooltip still gives the real number.
+    var counted = view.points.filter(function(point) { return point[6] === 0; });
+    var highest = (counted.length ? counted : view.points).reduce(function(max, point) { return Math.max(max, value(point)); }, 0);
+    var step = highest > 0 ? niceStep(highest / 4) : 1;
+    var top = Math.max(step, Math.ceil(highest / step) * step);
     var x = function(ms) { return PAD.left + ((ms - from) / (to - from || 1)) * (W - PAD.left - PAD.right); };
-    var y = function(v) { return H - PAD.bottom - (v / top) * (H - PAD.top - PAD.bottom); };
+    var y = function(v) { return H - PAD.bottom - (Math.min(v, top) / top) * (H - PAD.top - PAD.bottom); };
 
     container.textContent = '';
     view.legs.forEach(function(leg, legIndex) {
@@ -440,18 +450,19 @@
 
       var chart = svg('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img',
         'aria-label': leg + ': ' + points.length + ' leg run(s); P50 and P90 in the budget table below' });
-      for (var tick = 0; tick <= 4; tick += 1) {
-        var v = (top / 4) * tick;
+      for (var v = 0; v <= top + (step / 1000); v += step) {
         svg('line', { x1: PAD.left, x2: W - PAD.right, y1: y(v), y2: y(v), stroke: 'var(--grid)', 'stroke-width': 1 }, chart);
-        svg('text', { x: PAD.left - 4, y: y(v) + 3, 'text-anchor': 'end' }, chart).textContent = String(Math.round(v * 10) / 10);
+        svg('text', { x: PAD.left - 4, y: y(v) + 3, 'text-anchor': 'end' }, chart).textContent = String(Math.round(v * 100) / 100);
       }
-      for (var step = 0; step <= 3; step += 1) {
-        var at = from + ((to - from) * step) / 3;
-        svg('text', { x: x(at), y: H - 6, 'text-anchor': ['start', 'middle', 'middle', 'end'][step] }, chart)
+      // `slot`, not `step`: a `var` here would be hoisted over the tick step above and leave the y axis empty.
+      for (var slot = 0; slot <= 3; slot += 1) {
+        var at = from + ((to - from) * slot) / 3;
+        svg('text', { x: x(at), y: H - 6, 'text-anchor': ['start', 'middle', 'middle', 'end'][slot] }, chart)
           .textContent = date(at, hourly);
       }
 
-      var develop = points.filter(function(point) { return view.runs[point[0]][1] === 'develop'; });
+      // The line joins the develop pushes the budget counts; a red or empty one stays a hollow marker off it.
+      var develop = points.filter(function(point) { return view.runs[point[0]][1] === 'develop' && point[6] === 0; });
       if (develop.length > 1) {
         svg('path', {
           d: develop.map(function(point, i) { return (i ? 'L' : 'M') + x(point[2]).toFixed(1) + ' ' + y(value(point)).toFixed(1); }).join(''),
@@ -470,7 +481,7 @@
         hit.addEventListener('mousemove', function(event) { showTip(event, point); });
         hit.addEventListener('mouseleave', function() { tip.hidden = true; });
         hit.addEventListener('click', function() {
-          var url = githubPage(attemptUrl(view.runs[point[0]][3], point[5]));
+          var url = runPage(view.runs[point[0]][0], point[5]);
           if (url) { window.open(url, '_blank', 'noopener'); }
         });
       });
@@ -515,8 +526,7 @@
   view.sources.forEach(function(source, index) {
     if (index) { sources.appendChild(document.createTextNode('; ')); }
     var link = document.createElement('a');
-    var href = githubPage(source.runUrl);
-    // Already the attempt's page: the reducer adds /attempts/N when the rows came from a re-run.
+    var href = runPage(source.runId, source.runAttempt);
     if (href) { link.href = href; }
     link.textContent = source.leg + ' — ' + source.branch + ' ' + source.headSha.slice(0, 10);
     sources.appendChild(link);

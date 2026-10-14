@@ -135,15 +135,20 @@ jobs:
       # wall-clock, counts, and the milliseconds of every spec file and test
       # (.github/scripts/lib/playwright-durations.mjs), never the HTML report.
       # `!cancelled()` replaces the implicit `success()` that would skip every red
-      # leg. A leg whose run step died before the JSON reporter wrote its report
-      # ends with a notice from the summarizer and uploads nothing. Both steps sit
-      # after the report upload, so its `failure()` never sees them. The collector
-      # records only the legs on DURATIONS_LEGS in that file: a new leg goes there too.
+      # leg. The steps are an instrument and must never turn a leg red:
+      # `continue-on-error` covers an upload-artifact hiccup, and a leg whose run
+      # step died before the JSON reporter wrote its report ends with a notice
+      # from the summarizer and uploads nothing. Both steps sit after the report
+      # upload, so its `failure()` never sees them. The test-health page records
+      # develop pushes' files only (a pull request's stay here for 3 days), and
+      # only the legs on DURATIONS_LEGS in that file: a new leg goes there too.
       - name: Summarize the Playwright durations
         if: ${{ !cancelled() }}
+        continue-on-error: true
         run: node .github/scripts/playwright-durations.mjs --leg ${{ matrix.theme }}${{ matrix.bundle.suffix }}
       - name: Upload the Playwright durations
         if: ${{ !cancelled() }}
+        continue-on-error: true
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
         with:
           name: playwright-durations-${{ matrix.theme }}${{ matrix.bundle.suffix }}
@@ -208,9 +213,11 @@ jobs:
       # share one file, split per project inside it.
       - name: Summarize the Playwright durations
         if: ${{ !cancelled() }}
+        continue-on-error: true
         run: node .github/scripts/playwright-durations.mjs --leg engines
       - name: Upload the Playwright durations
         if: ${{ !cancelled() }}
+        continue-on-error: true
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
         with:
           name: playwright-durations-engines

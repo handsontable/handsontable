@@ -5,8 +5,9 @@
  * one small file (`playwright-durations.json`, uploaded as `playwright-durations-<leg>`): the leg's
  * wall-clock, worker count and test counts, and the milliseconds of every spec file and every test.
  * `test-health.yml` collects those files from every completed run into `test-health/durations.json`
- * on `gh-pages`, beside the flake ledger, and the test-health page draws its "Where the time goes"
- * section from it.
+ * on `gh-pages`, beside the flake ledger, from develop pushes only (a pull request's files stay in its
+ * own run for 3 days, so its run commits to `gh-pages` only for a flake), and the test-health page draws
+ * its "Where the time goes" section from it.
  *
  * Two shapes live here:
  *
@@ -22,8 +23,8 @@
  *   until one arrives, the newest run of any branch does, so the section is never empty.
  *
  * The stored document also carries the budget input a later e2e budget is derived from: per leg, the
- * P50 and P90 of the wall-clock and of the test count over the window, from every run and from develop
- * pushes alone. A leg with a test that failed every attempt (`unexpected`), or with no test at all, is
+ * P50 and P90 of the wall-clock and of the test count over the window, from every stored run and from
+ * develop pushes alone. The gate reads the develop numbers. A leg with a test that failed every attempt (`unexpected`), or with no test at all, is
  * left out of those numbers: its time includes the failing tests' retries and timeouts. A leg with only
  * flaky tests counts; one retry is noise next to the run-to-run spread.
  *
@@ -77,6 +78,14 @@ export const DURATIONS_LEGS = Object.freeze([
  */
 export const SLOW_TESTS_SHOWN = 200;
 
+/**
+ * The most a leg summary may hold, so a forged or broken artifact cannot grow the stored document or the
+ * page without bound: well above the suite today (about 270 spec files, 3,100 tests, titles under 250
+ * characters).
+ */
+const LIMITS = Object.freeze({ projects: 16, name: 100, files: 5000, path: 500, cases: 50000, title: 2000 });
+const ISO_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/;
+const CASE_STATUSES = ['unexpected', 'flaky', 'skipped'];
 const DAY_MS = 24 * 60 * 60 * 1000;
 const HOUR_MS = 60 * 60 * 1000;
 const TITLE_SEPARATOR = ' › ';
@@ -118,13 +127,14 @@ function isAmount(value) {
 }
 
 /**
- * Whether a value is an ISO time `Date.parse` reads.
+ * Whether a value is a UTC time in the form `Date#toISOString` writes. `Date.parse` alone is not enough:
+ * it also reads legacy forms with an arbitrarily long `( ... )` comment.
  *
  * @param {unknown} value The value.
  * @returns {boolean} The verdict.
  */
-function isTime(value) {
-  return typeof value === 'string' && !Number.isNaN(Date.parse(value));
+function isIsoTime(value) {
+  return typeof value === 'string' && ISO_TIME.test(value) && !Number.isNaN(Date.parse(value));
 }
 
 /**
@@ -155,7 +165,9 @@ export function summarizePlaywrightReport(report, { leg, runId = null, runAttemp
   if (!isAmount(duration)) {
     throw new Error('the report has no stats.duration, so the leg has no wall-clock');
   }
-  if (!isTime(startTime)) {
+  const started = typeof startTime === 'string' ? Date.parse(startTime) : NaN;
+
+  if (Number.isNaN(started)) {
     throw new Error('the report has no stats.startTime');
   }
 
@@ -222,7 +234,7 @@ export function summarizePlaywrightReport(report, { leg, runId = null, runAttemp
     runId: runId ? String(runId) : null,
     runAttempt: Number.isInteger(attempt) && attempt > 0 ? attempt : null,
     workers: isAmount(workers) ? workers : null,
-    startTime,
+    startTime: new Date(started).toISOString(),
     wallMs: Math.round(duration),
     summedMs: files.reduce((sum, file) => sum + file.ms, 0),
     counts,
@@ -251,11 +263,12 @@ export function parseDurationSummary(value) {
   if (typeof value.leg !== 'string' || value.leg === '') {
     fail('leg must be a non-empty string');
   }
-  if (!Array.isArray(value.projects) || value.projects.some(project => typeof project !== 'string')) {
-    fail('projects must be a list of names');
+  if (!Array.isArray(value.projects) || value.projects.length > LIMITS.projects
+    || value.projects.some(project => typeof project !== 'string' || project.length > LIMITS.name)) {
+    fail(`projects must be a list of at most ${LIMITS.projects} names`);
   }
-  if (value.runId !== null && typeof value.runId !== 'string') {
-    fail('runId must be a string or null');
+  if (value.runId !== null && !(typeof value.runId === 'string' && /^\d{1,20}$/.test(value.runId))) {
+    fail('runId must be a run id (digits) or null');
   }
   if (value.runAttempt !== null && !(Number.isInteger(value.runAttempt) && value.runAttempt > 0)) {
     fail('runAttempt must be a positive integer or null');
@@ -263,8 +276,8 @@ export function parseDurationSummary(value) {
   if (value.workers !== null && !isAmount(value.workers)) {
     fail('workers must be a number or null');
   }
-  if (!isTime(value.startTime)) {
-    fail('startTime must be an ISO time');
+  if (!isIsoTime(value.startTime)) {
+    fail('startTime must be an ISO time in UTC (YYYY-MM-DDTHH:MM:SS.sssZ)');
   }
 
   for (const key of ['wallMs', 'summedMs']) {
@@ -277,18 +290,20 @@ export function parseDurationSummary(value) {
       fail(`counts.${key} must be a non-negative integer`);
     }
   }
-  if (!Array.isArray(value.files)) {
-    fail('files must be a list');
+  if (!Array.isArray(value.files) || value.files.length > LIMITS.files) {
+    fail(`files must be a list of at most ${LIMITS.files} entries`);
   }
+
+  let cases = 0;
 
   value.files.forEach((file, index) => {
     const at = `files[${index}]`;
 
-    if (typeof file?.file !== 'string' || file.file === '') {
-      fail(`${at}.file must be a non-empty string`);
+    if (typeof file?.file !== 'string' || file.file === '' || file.file.length > LIMITS.path) {
+      fail(`${at}.file must be a path of 1 to ${LIMITS.path} characters`);
     }
-    if (typeof file.project !== 'string') {
-      fail(`${at}.project must be a string`);
+    if (typeof file.project !== 'string' || file.project.length > LIMITS.name) {
+      fail(`${at}.project must be a name of at most ${LIMITS.name} characters`);
     }
     if (!isAmount(file.tests) || !isAmount(file.ms)) {
       fail(`${at}.tests and ${at}.ms must be non-negative numbers`);
@@ -297,12 +312,24 @@ export function parseDurationSummary(value) {
       fail(`${at}.cases must be a list`);
     }
 
+    cases += file.cases.length;
+
+    if (cases > LIMITS.cases) {
+      fail(`more than ${LIMITS.cases} tests`);
+    }
+
     file.cases.forEach((entry, caseIndex) => {
-      if (typeof entry?.title !== 'string') {
-        fail(`${at}.cases[${caseIndex}].title must be a string`);
+      if (typeof entry?.title !== 'string' || entry.title.length > LIMITS.title) {
+        fail(`${at}.cases[${caseIndex}].title must be a string of at most ${LIMITS.title} characters`);
       }
       if (!isAmount(entry.ms)) {
         fail(`${at}.cases[${caseIndex}].ms must be a non-negative number`);
+      }
+      if (entry.status !== undefined && !CASE_STATUSES.includes(entry.status)) {
+        fail(`${at}.cases[${caseIndex}].status must be one of ${CASE_STATUSES.join(', ')}`);
+      }
+      if (entry.retries !== undefined && !(Number.isInteger(entry.retries) && entry.retries > 0)) {
+        fail(`${at}.cases[${caseIndex}].retries must be a positive integer`);
       }
     });
   });
@@ -332,6 +359,19 @@ export function emptyDurations({ retentionDays = DURATIONS_RETENTION_DAYS, capBy
 }
 
 /**
+ * Throws unless a stored document is absent or of this code's version, older or newer alike: a version bump
+ * ships its own migration, and reverting the collector after one must not drop the month of history either.
+ *
+ * @param {object|null} doc The document as read from `gh-pages`, or `null`.
+ */
+export function assertDurationsVersion(doc) {
+  if (doc !== null && doc?.version !== DURATIONS_VERSION) {
+    throw new Error(`durations.json has version ${doc?.version}, and this collector reads and writes version `
+      + `${DURATIONS_VERSION}; a version bump ships its own migration instead of rebuilding a month of history`);
+  }
+}
+
+/**
  * The nearest-rank percentile: the smallest value with at least `p` percent of the values at or
  * below it. Always one of the values, never an interpolation, so a budget derived from it is a
  * duration some run really took.
@@ -352,12 +392,13 @@ export function percentile(values, p) {
 }
 
 /**
- * Whether a run is a push to develop, the line every pull request is measured against.
+ * Whether a run is a push to develop, the line every pull request is measured against. The collector
+ * records durations from these runs only: a pull request's leg files stay in its own run's artifacts.
  *
  * @param {{branch: string, event: string}} run The run or source.
  * @returns {boolean} The verdict.
  */
-function isDevelop(run) {
+export function isDevelopPush(run) {
   return run.branch === 'develop' && run.event !== 'pull_request';
 }
 
@@ -423,7 +464,7 @@ function budgetOf(runs, windowDays) {
 
       bucket.all.push(leg);
 
-      if (isDevelop(run)) {
+      if (isDevelopPush(run)) {
         bucket.develop.push(leg);
       }
     }
@@ -535,7 +576,7 @@ function encodeLatest(latest) {
   const legs = [...latest.sources.keys()].sort();
   const columns = legs.flatMap(leg => [...latest.sources.get(leg).projects].sort().map(project => ({ leg, project })));
   const keys = columns.map(column => `${column.leg}\u0000${column.project}`);
-  const files = {};
+  const files = [];
 
   for (const file of [...latest.cells.keys()].sort()) {
     const rows = [...latest.cells.get(file).entries()]
@@ -544,11 +585,12 @@ function encodeLatest(latest) {
       .filter(row => row.slice(1).some(value => value !== null));
 
     if (rows.length > 0) {
-      files[file] = rows;
+      files.push([file, rows]);
     }
   }
 
-  return { sources: legs.map(leg => latest.sources.get(leg)), columns, files };
+  // `fromEntries` defines own properties, so a spec file named `__proto__` is a row like any other.
+  return { sources: legs.map(leg => latest.sources.get(leg)), columns, files: Object.fromEntries(files) };
 }
 
 /**
@@ -576,8 +618,8 @@ export function serializeDurations(doc) {
  *   (`GITHUB_RUN_ATTEMPT` of the job that wrote it), not the collected run's: a "Re-run failed jobs"
  *   attempt re-runs one leg, the other legs' artifacts of attempt 1 stay on the run, and its
  *   collection reads them again. Keyed by their own attempt, they replace themselves.
- * - The per-test rows of a leg come from its latest develop push; a newer develop push replaces them,
- *   a pull request run never does. With no develop push in the window, the newest run of any branch
+ * - The per-test rows of a leg come from its latest develop push (by run id, then attempt); a later develop
+ *   push replaces them, a pull request run never does. With no develop push in the window, the newest run of any branch
  *   supplies them until one arrives. A leg that ran no test supplies none. A cell holds a test's time
  *   from a run where it passed on its first attempt: a test that failed or was flaky in the incoming run
  *   keeps the time the rows last had for it (its own time is retries and timeouts, which the flake ledger
@@ -586,8 +628,9 @@ export function serializeDurations(doc) {
  *   `DURATIONS_LEGS` and a leg that claims to start after the run ended are noted and skipped, so nothing
  *   can invent a leg or pin a record past the retention window.
  * - Records older than the retention window go, and so do a leg's rows. The rows get at most half the
- *   cap: past it, the rows of pull-request sources go first, then the oldest legs'. Past the cap, the
- *   oldest runs go first, whole.
+ *   cap: past it, the rows of pull-request sources go first, then the oldest legs'. Past the cap, runs go
+ *   whole: the ones that are not develop pushes first, then the oldest develop pushes, so the budget
+ *   input is the last thing the cap touches.
  * - `updatedAt` moves only when the stored text changed, so a collection that adds nothing leaves
  *   the published file byte-identical, like the flake ledger.
  *
@@ -614,10 +657,7 @@ export function mergeDurations(previous, summaries, run, {
   const notes = [];
   const prior = previous ?? null;
 
-  if (prior !== null && prior?.version !== DURATIONS_VERSION) {
-    throw new Error(`durations.json has version ${prior?.version}, and this collector reads and writes version `
-      + `${DURATIONS_VERSION}; a version bump ships its own migration instead of rebuilding a month of history`);
-  }
+  assertDurationsVersion(prior);
 
   const stored = prior ?? emptyDurations({ retentionDays, capBytes });
   const cutoff = now.getTime() - (retentionDays * DAY_MS);
@@ -725,10 +765,12 @@ export function mergeDurations(previous, summaries, run, {
       tests: summary.counts.tests,
     };
     const current = latest.sources.get(summary.leg);
-    // Develop first, then the newer run. An equal rank is the same execution collected again, or a
-    // tie no order could settle better: the incoming copy wins, which keeps a re-collection a no-op.
-    const outranked = current !== undefined && (Number(isDevelop(current)) - Number(isDevelop(source))
-      || Date.parse(current.at) - Date.parse(source.at)) > 0;
+    // Develop first, then the later run by id, then the later attempt: run ids follow commit order, so a
+    // "Re-run failed jobs" on an older develop push, days later, never replaces a newer commit's rows. An
+    // equal rank is the same execution collected again: the incoming copy wins, which keeps that a no-op.
+    const outranked = current !== undefined && (Number(isDevelopPush(current)) - Number(isDevelopPush(source))
+      || Number(current.runId) - Number(source.runId)
+      || current.runAttempt - source.runAttempt) > 0;
 
     if (!outranked) {
       // A test that failed or was flaky here keeps the time the rows last had for it; every other cell of
@@ -781,7 +823,7 @@ export function mergeDurations(previous, summaries, run, {
   let encodedLatest = encodeLatest(latest);
 
   while (latest.sources.size > 0 && Buffer.byteLength(JSON.stringify(encodedLatest)) > rowsBudget) {
-    const [victim] = [...latest.sources.values()].sort((a, b) => Number(isDevelop(a)) - Number(isDevelop(b))
+    const [victim] = [...latest.sources.values()].sort((a, b) => Number(isDevelopPush(a)) - Number(isDevelopPush(b))
       || Date.parse(a.at) - Date.parse(b.at)
       || a.leg.localeCompare(b.leg));
 
@@ -822,20 +864,30 @@ export function mergeDurations(previous, summaries, run, {
   });
 
   let capped = 0;
-  let doc = assemble(null, runs);
+  let kept = runs;
+  let doc = assemble(null, kept);
   let size = Buffer.byteLength(serializeDurations(doc));
+  // What the cap drops first: runs that are not develop pushes, oldest first, then the oldest develop pushes.
+  const eviction = [...runs].sort((a, b) => Number(isDevelopPush(a)) - Number(isDevelopPush(b))
+    || newest(a.legs) - newest(b.legs)
+    || a.runId.localeCompare(b.runId, 'en', { numeric: true }));
 
-  // Drop the oldest runs until the text fits. The budget block shrinks or grows by a few bytes with
-  // the runs it summarizes, so measure again after each round instead of trusting the estimate.
-  while (size > capBytes && runs.length > 0) {
+  // Drop runs until the text fits. The budget block shrinks or grows by a few bytes with the runs it
+  // summarizes, so measure again after each round instead of trusting the estimate.
+  while (size > capBytes && eviction.length > 0) {
+    const dropped = new Set();
     let freed = 0;
 
-    while (runs.length > 0 && freed < size - capBytes) {
-      freed += Buffer.byteLength(JSON.stringify(runs.pop())) + 2;
+    while (eviction.length > 0 && freed < size - capBytes) {
+      const victim = eviction.shift();
+
+      dropped.add(victim);
+      freed += Buffer.byteLength(JSON.stringify(victim)) + 2;
       capped += 1;
     }
 
-    doc = assemble(null, runs);
+    kept = kept.filter(entry => !dropped.has(entry));
+    doc = assemble(null, kept);
     size = Buffer.byteLength(serializeDurations(doc));
   }
 
@@ -861,7 +913,7 @@ export function mergeDurations(previous, summaries, run, {
  * @returns {'develop'|'pr'|'other'} A develop push, a pull request, or anything else (master, a release).
  */
 function runKind(run) {
-  if (isDevelop(run)) {
+  if (isDevelopPush(run)) {
     return 'develop';
   }
 
@@ -886,7 +938,7 @@ export function durationsView(doc) {
   ])].sort();
   const projectsPerLeg = new Map(doc.latest.sources.map(source => [source.leg, source.projects.length]));
   const labels = doc.latest.columns.map(column => (projectsPerLeg.get(column.leg) > 1
-    ? `${column.leg} · ${column.project.replace(/^e2e-/, '')}`
+    ? `${column.leg} (${column.project.replace(/^e2e-/, '')})`
     : column.leg));
   const slowTestMs = doc.slowTestMs ?? SLOW_TEST_MS;
   const heaviestFiles = [];
