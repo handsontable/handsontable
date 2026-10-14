@@ -98,7 +98,7 @@ const DEFAULT_COL_ORDER = [0, 1, 2, 3, 4, 5];
 
 `DEFAULT_COL_WIDTHS` lists the pixel width for each column, by physical column index. `DEFAULT_COL_ORDER` is an array of physical column indices -- `[0, 1, 2, 3, 4, 5]` means the visual order matches the source order. Both are used when no saved layout exists and when the user clicks **Reset layout**.
 
-**Why include a version suffix (`-v1`) in the key?** When you change the column count or column schema, old saved data becomes incompatible. Bumping the version suffix (`-v2`, `-v3`, ...) means the next page load finds nothing under the new key, falls back to defaults, and starts fresh. Old data under the previous key is left to expire naturally.
+**Why include a version suffix (`-v2`) in the key?** When you change the column count, the column schema, or the meaning of the saved data, old saved data becomes incompatible. This recipe uses `-v2` because the widths are now saved in physical column order, where `-v1` saved them in visual order. Bumping the version suffix (`-v3`, `-v4`, ...) means the next page load finds nothing under the new key, falls back to defaults, and starts fresh. Old data under the previous key is left to expire naturally.
 
 ## Step 2 -- Read and validate the saved layout
 

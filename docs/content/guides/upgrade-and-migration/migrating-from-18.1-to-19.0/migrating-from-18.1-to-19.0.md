@@ -1776,51 +1776,42 @@ colWidths(physicalColumnIndex) {
 },
 ```
 
-The physical index of a column doesn't change when the user moves or hides columns. It does change when you insert or remove a column in the middle of the grid: the columns after it get new physical indexes, and an array no longer lines up with them. The widths that a user sets by dragging a column border aren't affected, because [`ManualColumnResize`](@/api/manualColumnResize.md) already stores them by physical index.
+The physical index of a column doesn't change when the user moves or hides columns. When you insert or remove a column with [`alter()`](@/api/core.md#alter), Handsontable updates an array `colWidths` to match, so the other widths stay with their columns. If you change the number of columns another way, for example by loading data with more columns, update the array yourself. The widths that a user sets by dragging a column border aren't affected, because [`ManualColumnResize`](@/api/manualColumnResize.md) already stores them by physical index.
 
-The [`exportFile`](@/api/exportFile.md) plugin and [`autoColumnSize`](@/api/autoColumnSize.md) read `colWidths` the same way. The [`modifyColWidth`](@/api/hooks.md#modifycolwidth) hook and [`getColWidth()`](@/api/core.md#getcolwidth) still take a visual column index.
+The [`exportFile`](@/api/exportFile.md) plugin and [`autoColumnSize`](@/api/autoColumnSize.md) read `colWidths` the same way. The [`modifyColWidth`](@/api/hooks.md#modifycolwidth) hook and [`getColWidth()`](@/api/core.md#getcolwidth) still take a visual column index, and so does the [`rowHeights`](@/api/options.md#rowheights) option, which isn't part of this change.
 
 ### Who is affected
 
 - You set `colWidths` to an array or a function, and you enable [`manualColumnMove`](@/api/options.md#manualcolumnmove), call [`moveColumn()`](@/api/columnMoving.md#movecolumn), or load a saved column order. The widths now follow the columns.
-- Your `colWidths` function reads the index as a position on the screen, for example to give the first visible column a wider width.
+- You call [`freezeColumn()`](@/api/manualColumnFreeze.md#freezecolumn) or [`unfreezeColumn()`](@/api/manualColumnFreeze.md#unfreezecolumn), which move the column. Its width now goes with it.
+- Your `colWidths` function reads the index as a position on the screen, for example to give the first visible column a wider width, or it looks the column up through a visual-index API such as `hot.getColHeader(index)`. It now receives a physical index, so it widens another column, with no error.
 - You work around the old behavior with an [`afterColumnMove`](@/api/hooks.md#aftercolumnmove) hook that rebuilds the `colWidths` array. After the migration, that code applies the order twice, so remove it.
 
 If your columns are never moved, nothing changes: before any move, the visual and physical indexes are the same.
 
 ### How to migrate
 
-To keep the 18.1 behavior, where a width belongs to a screen position, read the visual index in a function:
+To keep the 18.1 behavior, where a width belongs to a screen position, translate the physical index to the visual one in a function:
 
 ```js
 const widthsByPosition = [100, 120, 60];
+// the physical index of the column at each visual position, for example a saved column order
+const initialOrder = [0, 1, 2];
 let hot;
 
 hot = new Handsontable(container, {
-  manualColumnMove: true,
+  manualColumnMove: initialOrder,
   colWidths(physicalColumnIndex) {
-    const visualColumnIndex = hot ? hot.toVisualColumn(physicalColumnIndex) : physicalColumnIndex;
+    // while the constructor runs, `hot` isn't assigned yet and the columns are in their initial order
+    const visualColumnIndex = hot ?
+      hot.toVisualColumn(physicalColumnIndex) : initialOrder.indexOf(physicalColumnIndex);
 
     return widthsByPosition[visualColumnIndex];
   },
 });
 ```
 
-This snippet follows the moves that the user makes after the grid initializes. While the constructor runs, `hot` is still `undefined`, so the first render uses the physical index as it is. If you start the grid from a saved column order, for example `manualColumnMove: savedOrder`, convert the widths to physical order once, instead of reading `hot`:
-
-```js
-// `savedOrder[visualIndex]` is the physical index of the column at that position
-const widthsByPhysicalIndex = [];
-
-savedOrder.forEach((physicalIndex, visualIndex) => {
-  widthsByPhysicalIndex[physicalIndex] = widthsByPosition[visualIndex];
-});
-
-const hot = new Handsontable(container, {
-  manualColumnMove: savedOrder,
-  colWidths: widthsByPhysicalIndex,
-});
-```
+In the React, Angular, and Vue wrappers, get the instance from the component instead of a variable: `hotRef.current?.hotInstance` in React, the `hotInstance` property of the `HotTableComponent` in Angular, and `hotTable.value?.hotInstance` in Vue. The callback gets no `this`.
 
 To adopt the new behavior, list the widths in the order of the columns in your `data` or [`columns`](@/api/options.md#columns) option, not the order you expect on the screen.
 
