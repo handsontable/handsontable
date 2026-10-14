@@ -511,7 +511,7 @@ If your project doesn't use formulas, you don't need to change anything.
 
 If you upgrade without installing HyperFormula, your `hyperformula` import fails with a "module not found" error from your bundler or runtime.
 
-The UMD bundle `handsontable.full.js` (and its minified `handsontable.full.min.js`) still includes HyperFormula in 18.0. Section 8 doesn't apply if you load that file.
+The UMD bundle `handsontable.full.js` (and its minified `handsontable.full.min.js`) still includes HyperFormula in 18.0. This step doesn't apply if you load that file.
 
 ### How to migrate
 
