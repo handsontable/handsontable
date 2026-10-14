@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-14T08:57:49.819Z",
+  "generatedAt": "2026-10-14T09:11:23.860Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 402,
     "needsTicket": 30,
     "quarantined": 0,
-    "entries": 2089
+    "entries": 2090
   },
   "rows": [
     {
@@ -577,6 +577,41 @@
       "needsTicket": true
     },
     {
+      "key": "playwright|e2e/collapsible-indicator-dropdown-menu.spec.ts|collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
+      "tier": "playwright",
+      "file": "e2e/collapsible-indicator-dropdown-menu.spec.ts",
+      "line": 87,
+      "title": "collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
+      "count7": 2,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 3,
+      "flakyRuns30": 3,
+      "branches30": 3,
+      "nightlyRuns30": 0,
+      "openBranches30": 3,
+      "legs": [
+        "e2e-classic-min",
+        "e2e-horizon-min",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-14T09:10:38Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38534050426/attempts/2",
+        "branch": "feature/DEV-918_colWidths-physical-indexes",
+        "leg": "e2e-horizon-min",
+        "status": "flaky",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
       "key": "jasmine|handsontable/src/plugins/manualRowResize/__tests__/manualRowResize.spec.js|manualRowResize should autosize selected rows after double click on handler and move mouse to the next row",
       "tier": "jasmine",
       "file": "handsontable/src/plugins/manualRowResize/__tests__/manualRowResize.spec.js",
@@ -611,41 +646,6 @@
         "leg": "UMD.min (theme: classic)",
         "status": "failed",
         "error": "Expected 100 to be around 26 (between 25",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "playwright|e2e/collapsible-indicator-dropdown-menu.spec.ts|collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
-      "tier": "playwright",
-      "file": "e2e/collapsible-indicator-dropdown-menu.spec.ts",
-      "line": 87,
-      "title": "collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
-      "count7": 1,
-      "count30": 5,
-      "countAll": 5,
-      "runs30": 3,
-      "flakyRuns30": 3,
-      "branches30": 3,
-      "nightlyRuns30": 0,
-      "openBranches30": 3,
-      "legs": [
-        "e2e-classic-min",
-        "e2e-horizon-min",
-        "e2e-main-min"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-14T08:48:35Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38534050426",
-        "branch": "feature/DEV-918_colWidths-physical-indexes",
-        "leg": "e2e-horizon-min",
-        "status": "flaky",
-        "error": "Error: expect(received).toBe(expected) // Object.is equality",
         "source": "ci"
       },
       "needsTicket": true
