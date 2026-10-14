@@ -109,6 +109,29 @@ describe('alter("insert_col_*") and an array `colHeaders` after a column move', 
     expect(show()).toBe('C:C1 D:D1 A:A1');
   });
 
+  it('should remove the headers of every removed column when the removed columns are not contiguous physically', () => {
+    createMovedGrid(0, 3);
+    core.alter('remove_col', 2, 2);
+
+    expect(show()).toBe('B:B1 C:C1');
+  });
+
+  it('should remove the headers of the right columns when several groups are removed after a move', () => {
+    createMovedGrid(0, 3);
+    core.alter('remove_col', [[0, 1], [3, 1]]);
+
+    expect(show()).toBe('C:C1 D:D1');
+  });
+
+  it('should show the default label on the new column and the stored header on the moved one', () => {
+    createMovedGrid(3, 0);
+    core.alter('insert_col_start', 1);
+
+    // The new column has no entry in the array, so it falls back to the spreadsheet label of its position.
+    expect(Array.from({ length: core.countCols() }, (_, column) => core.getColHeader(column)))
+      .toEqual(['D', 'B', 'A', 'B', 'C']);
+  });
+
   it('should keep the headers on their columns after an undo and a redo of an insert', () => {
     createMovedGrid(0, 3);
     core.alter('insert_col_end', 3);
