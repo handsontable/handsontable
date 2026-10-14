@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-13T15:33:31.029Z",
+  "generatedAt": "2026-10-14T07:53:15.599Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 402,
     "needsTicket": 30,
     "quarantined": 0,
-    "entries": 2086
+    "entries": 2087
   },
   "rows": [
     {
@@ -135,7 +135,7 @@
       "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
       "line": null,
       "title": "js-only/sheetsBar/tabs-1",
-      "count7": 12,
+      "count7": 7,
       "count30": 12,
       "countAll": 12,
       "runs30": 3,
@@ -172,7 +172,7 @@
       "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
       "line": null,
       "title": "js-only/sheetsBar/tabs-2",
-      "count7": 12,
+      "count7": 7,
       "count30": 12,
       "countAll": 12,
       "runs30": 3,
@@ -322,6 +322,40 @@
       "needsTicket": true
     },
     {
+      "key": "playwright|e2e/selection-viewport-scroll.spec.ts|viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
+      "tier": "playwright",
+      "file": "e2e/selection-viewport-scroll.spec.ts",
+      "line": 72,
+      "title": "viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
+      "count7": 11,
+      "count30": 11,
+      "countAll": 11,
+      "runs30": 8,
+      "flakyRuns30": 8,
+      "branches30": 7,
+      "nightlyRuns30": 0,
+      "openBranches30": 7,
+      "legs": [
+        "e2e-horizon",
+        "e2e-horizon-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-14T07:52:19Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38527954565",
+        "branch": "feature/DEV-166_Reset-index-mappers-on-dataSchema-update",
+        "leg": "e2e-horizon",
+        "status": "flaky",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
       "key": "playwright|e2e/unlaid-out-init-scroll-sync.spec.ts|grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
       "tier": "playwright",
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
@@ -353,40 +387,6 @@
         "leg": "e2e-horizon-min",
         "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "playwright|e2e/selection-viewport-scroll.spec.ts|viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
-      "tier": "playwright",
-      "file": "e2e/selection-viewport-scroll.spec.ts",
-      "line": 72,
-      "title": "viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
-      "count7": 10,
-      "count30": 10,
-      "countAll": 10,
-      "runs30": 7,
-      "flakyRuns30": 7,
-      "branches30": 6,
-      "nightlyRuns30": 0,
-      "openBranches30": 6,
-      "legs": [
-        "e2e-horizon",
-        "e2e-horizon-min"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-13T15:32:40Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38418818419",
-        "branch": "feature/PRO-1340_Animate-sheet-switching",
-        "leg": "e2e-horizon",
-        "status": "flaky",
-        "error": "Error: expect(received).toBe(expected) // Object.is equality",
         "source": "ci"
       },
       "needsTicket": true
@@ -1253,7 +1253,7 @@
       "file": "visual-tests/tests/cross-browser/selection.spec.ts",
       "line": null,
       "title": "selection-cell-types-demo-1",
-      "count7": 3,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 2,
@@ -1288,7 +1288,7 @@
       "file": "visual-tests/tests/cross-browser/selection.spec.ts",
       "line": null,
       "title": "selection-cell-types-demo-2",
-      "count7": 3,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 2,
@@ -1323,7 +1323,7 @@
       "file": "visual-tests/tests/cross-browser/selection.spec.ts",
       "line": null,
       "title": "selection-merged-cells-demo-1",
-      "count7": 3,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 2,
@@ -1358,7 +1358,7 @@
       "file": "visual-tests/tests/cross-browser/selection.spec.ts",
       "line": null,
       "title": "selection-merged-cells-demo-2",
-      "count7": 3,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 2,
@@ -1393,7 +1393,7 @@
       "file": "visual-tests/tests/cross-browser/selection.spec.ts",
       "line": null,
       "title": "selection-nested-headers-demo-1",
-      "count7": 3,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 2,
@@ -1428,7 +1428,7 @@
       "file": "visual-tests/tests/cross-browser/selection.spec.ts",
       "line": null,
       "title": "selection-nested-headers-demo-2",
-      "count7": 3,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 2,
@@ -1463,7 +1463,7 @@
       "file": "visual-tests/tests/cross-browser/selection.spec.ts",
       "line": null,
       "title": "selection-nested-rows-demo-1",
-      "count7": 3,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 2,
@@ -1498,7 +1498,7 @@
       "file": "visual-tests/tests/cross-browser/selection.spec.ts",
       "line": null,
       "title": "selection-nested-rows-demo-2",
-      "count7": 3,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 2,
