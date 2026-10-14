@@ -1,14 +1,20 @@
 #!/usr/bin/env node
 
 /**
- * Collects one workflow run's flaky and failed tests into the cross-run ledger.
+ * Collects one workflow run's flaky and failed tests into the cross-run ledger,
+ * and its Playwright legs' durations into the durations document beside it.
  *
  * Reads the run's downloaded artifacts (one directory per artifact), extracts
  * every flaky or failed test from the Playwright JSON reports, the Puppeteer
  * failed-specs records, and the visual compare records, merges them into the
  * ledger checked out from `gh-pages`,
- * and writes the ledger, the per-test summary and the page next to it. Prints
- * the step-summary Markdown to stdout.
+ * and writes the ledger, the per-test summary and the page next to it. The
+ * fourth artifact family, `playwright-durations-*` (every Playwright leg, green
+ * or red), goes to `durations.json` instead, from develop pushes only: per run
+ * and leg the wall-clock, workers and counts for 30 days, and the per-test
+ * milliseconds of each leg's latest run, which the page's "Where the time goes"
+ * section draws. A durations.json it cannot read is left as it is, with a
+ * warning, and never stops the ledger. Prints the step-summary Markdown to stdout.
  *
  * Never fails the job over its input: an artifact that does not parse is noted
  * and skipped, and a run with nothing to record still rewrites the summary and
@@ -22,7 +28,7 @@
  *   node .github/scripts/test-health-collect.mjs \
  *     --run run.json            # the workflow_run payload or the runs API response
  *     --artifacts artifacts     # <dir>/<artifact name>/... as `gh run download` lays them out
- *     --ledger-dir <gh-pages worktree>/test-health
+ *     --ledger-dir <gh-pages worktree>/test-health   # ledger.json, summary.json, durations.json, index.html
  *     [--seed .github/test-health/seed.json]
  *     [--template .github/test-health/index.template.html]
  *     [--page-url https://handsontable.github.io/handsontable/test-health/]
@@ -31,6 +37,13 @@
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import {
+  assertDurationsVersion,
+  durationsView,
+  isDevelopPush,
+  mergeDurations,
+  serializeDurations,
+} from './lib/playwright-durations.mjs';
 import {
   aggregate,
   collectArtifactFiles,
@@ -158,7 +171,7 @@ const now = options.now ? new Date(options.now) : new Date();
 const run = runContextFromRun(JSON.parse(readFileSync(options.run, 'utf8')));
 const ledgerPath = path.join(options['ledger-dir'], 'ledger.json');
 const existing = existsSync(ledgerPath) ? JSON.parse(readFileSync(ledgerPath, 'utf8')) : emptyLedger();
-const { entries, notes } = collectArtifactFiles(readArtifactFiles(options.artifacts), run);
+const { entries, notes, durations } = collectArtifactFiles(readArtifactFiles(options.artifacts), run);
 // A seed the ledger already holds must not overwrite the richer CI observation with its own
 // `error: null`, `source: 'seed'` copy — merge only the seeds that are new.
 const existingKeys = new Set((existing.entries ?? []).map(entryKey));
@@ -175,6 +188,45 @@ if (existsSync(summaryPath)) {
   }
 }
 
+const durationsPath = path.join(options['ledger-dir'], 'durations.json');
+let durationsText = null;
+let durationsPage = null;
+let recorded = [];
+
+// The durations half never stops the flake ledger and never overwrites a file it cannot read. On any error
+// durations.json stays as it is (a month of history is not rebuilt from one run), the page and the step
+// summary name the error, and a warning flags the run; the ledger is recorded either way.
+try {
+  const previousDurations = existsSync(durationsPath) ? JSON.parse(readFileSync(durationsPath, 'utf8')) : null;
+
+  if (isDevelopPush(run)) {
+    const timing = mergeDurations(previousDurations, durations, run, { now });
+
+    notes.push(...timing.notes);
+    recorded = timing.recorded;
+    durationsText = serializeDurations(timing.doc);
+    durationsPage = durationsView(timing.doc);
+  } else {
+    // Only develop pushes are recorded: they are what the budget and the page measure against, and a pull
+    // request's run then commits to gh-pages only when it records a flake, as before the durations existed.
+    assertDurationsVersion(previousDurations);
+    durationsPage = durationsView(previousDurations);
+
+    if (durations.length > 0) {
+      notes.push(`${durations.length} Playwright durations artifact(s) not recorded: only develop pushes are, `
+        + 'and this run keeps its own for 3 days');
+    }
+  }
+} catch (error) {
+  const reason = String(error.message).replace(/\s+/g, ' ');
+
+  durationsText = null;
+  durationsPage = { error: reason };
+  recorded = [];
+  notes.push(`durations.json was left as it is: ${reason}`);
+  process.stderr.write(`::warning title=Test health::durations.json was left as it is: ${reason}\n`);
+}
+
 const aggregated = aggregate(ledger, { now });
 const summary = { ...aggregated, generatedAt: stableGeneratedAt(previousSummary, aggregated, now) };
 const pageUrl = options['page-url'] ?? DEFAULT_PAGE_URL;
@@ -183,13 +235,20 @@ mkdirSync(options['ledger-dir'], { recursive: true });
 writeFileSync(ledgerPath, `${JSON.stringify(ledger, null, 2)}\n`);
 writeFileSync(summaryPath, `${JSON.stringify(summary, null, 2)}\n`);
 
+if (durationsText !== null) {
+  writeFileSync(durationsPath, durationsText);
+}
+
 if (options.template) {
   const template = readFileSync(options.template, 'utf8');
 
-  writeFileSync(path.join(options['ledger-dir'], 'index.html'), renderPage(template, summary));
+  writeFileSync(path.join(options['ledger-dir'], 'index.html'), renderPage(template, summary, durationsPage));
 }
 
 // Seed entries are not "this run's" additions; keep the step summary about the run.
 const addedFromRun = added.filter(entry => entry.source === 'ci');
 
-process.stdout.write(renderStepSummary({ run, added: addedFromRun, notes, summary, pageUrl }));
+// The legs the reducer recorded, not every artifact: a skipped leg must not show its minutes here.
+process.stdout.write(renderStepSummary({
+  run, added: addedFromRun, notes, summary, pageUrl, durations: recorded,
+}));

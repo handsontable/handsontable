@@ -1,4 +1,4 @@
-# The cross-run flake ledger.
+# The cross-run flake ledger, and where the Playwright E2E time goes.
 #
 # Runs after every completed `Tests`, `Develop`, `Publish`, or `Visual nightly` run
 # and collects every flaky or failed test it left behind as artifacts — the
@@ -13,6 +13,18 @@
 # The page shows, per test, how often it flaked in the last 7 and 30 days, on
 # which legs, when it was last seen, and whether it has crossed the playbook's
 # "needs a ticket" line (2+ distinct runs in 30 days).
+#
+# A fourth family is every Playwright leg's durations, green or red
+# (`playwright-durations-*`, e2e.yml's post-steps). Those of develop pushes go
+# to `test-health/durations.json` instead of the ledger: per run and leg the
+# wall-clock, workers and counts for 30 days, the per-test milliseconds of each
+# leg's latest run, and per leg the P50 and P90 a later e2e budget is derived
+# from (no gate reads them yet). The page's "Where the time goes" section draws
+# them. Only develop pushes are recorded, so a pull request's run still commits
+# to `gh-pages` only when it records a flake: every push starts a Pages build,
+# and the legacy builder's soft limit is about 10 an hour. A `durations.json`
+# the collector cannot read is left as it is, with a warning, and never stops
+# the ledger.
 #
 # `workflow_run` on purpose, not a step inside `Tests`: this workflow runs in the
 # BASE repository's context with a write token whatever started the run, so a
@@ -60,8 +72,9 @@ jobs:
     runs-on: ubuntu-latest
     # A canceled run's artifacts are incomplete by definition. Every other run
     # is worth a look: a red one for its failures, a green one for a flaky test
-    # under quarantine, which keeps its leg green but still uploads its report.
-    # A run with no test artifacts costs one API call and changes nothing.
+    # under quarantine, which keeps its leg green but still uploads its report,
+    # and a develop push for its Playwright durations. A run with no test
+    # artifacts costs one API call and changes nothing.
     if: >-
       github.event_name == 'workflow_dispatch'
       || (github.event.workflow_run.conclusion != 'cancelled'
@@ -90,10 +103,14 @@ jobs:
           fi
           RUN_ID=$(node -p 'JSON.parse(require("fs").readFileSync("run.json", "utf8")).id')
           echo "RUN_ID=${RUN_ID}" >> "$GITHUB_ENV"
+          # Only develop pushes have their Playwright durations recorded; the lib owns that rule.
+          DEVELOP_PUSH=$(node --input-type=module -e "import { readFileSync } from 'node:fs'; import { isDevelopPush } from './.github/scripts/lib/playwright-durations.mjs'; import { runContextFromRun } from './.github/scripts/lib/test-health.mjs'; console.log(isDevelopPush(runContextFromRun(JSON.parse(readFileSync('run.json', 'utf8')))));")
+          echo "DEVELOP_PUSH=${DEVELOP_PUSH}" >> "$GITHUB_ENV"
           echo "Collecting run ${RUN_ID} ($(node -p 'const r = JSON.parse(require("fs").readFileSync("run.json", "utf8")); `${r.name} · ${r.head_branch} · attempt ${r.run_attempt} · ${r.conclusion}`'))"
 
-      # Only the three artifact families the ledger reads, one directory each. An
-      # expired or vanished artifact is a warning, never a failure: the other
+      # Only the four artifact families the collector reads, one directory each,
+      # and the durations family only for a develop push, the one run it records.
+      # An expired or vanished artifact is a warning, never a failure: the other
       # legs of the run still get recorded.
       - name: Download the run's test artifacts
         env:
@@ -101,7 +118,7 @@ jobs:
         run: |
           mkdir -p artifacts
           gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/artifacts?per_page=100" \
-            --jq '.artifacts[] | select(.expired == false) | select(.name | test("^(playwright-report-|puppeteer-failed-specs-|visual-compare-)")) | .name' \
+            --jq '.artifacts[] | select(.expired == false) | select(.name | test("^(playwright-report-|playwright-durations-|puppeteer-failed-specs-|visual-compare-)")) | select((.name | startswith("playwright-durations-") | not) or env.DEVELOP_PUSH == "true") | .name' \
             > artifact-names.txt
           if [ ! -s artifact-names.txt ]; then
             echo "No test artifacts on run ${RUN_ID}: nothing flaky or failed to record."
