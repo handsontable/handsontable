@@ -905,6 +905,8 @@ test('the collector writes durations.json beside the ledger, and a second collec
 
     put('playwright-durations-classic/playwright-durations.json', JSON.stringify(durationsOf('classic')));
     put('playwright-durations-main/playwright-durations.json', JSON.stringify(durationsOf('main')));
+    // A leg e2e.yml never runs, as a fork's pull request could upload one: skipped, and not in the step summary.
+    put('playwright-durations-zzz/playwright-durations.json', JSON.stringify(durationsOf('zzz')));
     put(`playwright-report-classic/${PLAYWRIGHT_JSON_REPORT}`, JSON.stringify(PLAYWRIGHT_REPORT));
     writeFileSync(path.join(dir, 'run.json'), JSON.stringify({ ...RUN, updated_at: '2026-10-13T10:45:00Z' }));
 
@@ -924,6 +926,7 @@ test('the collector writes durations.json beside the ledger, and a second collec
     assert.equal(first.status, 0, first.stderr);
     assert.match(first.stdout,
       /^Playwright wall-clock: classic 18\.2 min, main 18\.2 min \(2 workers\); heaviest file: /m);
+    assert.match(first.stdout, /^- leg "zzz": not a leg e2e\.yml runs, skipped$/m);
 
     const before = snapshot();
     const durations = JSON.parse(before['durations.json']);
@@ -958,6 +961,11 @@ test('renderStepSummary adds the leg wall-clocks and the heaviest file when the 
   assert.ok(markdown.includes('\nPlaywright wall-clock: classic 18.2 min (2 workers); heaviest file: '
     + '`e2e/submenu-hover-delay.spec.ts` (0.3 min summed over 1 leg).\n'));
   assert.ok(markdown.indexOf('Playwright wall-clock') < markdown.indexOf('Ledger: x'));
+
+  // A run without Playwright legs (Visual nightly) records none, and says nothing about them.
+  const quiet = renderStepSummary({ run, added: [], notes: [], summary, pageUrl: 'x', durations: [] });
+
+  assert.ok(!quiet.includes('Playwright wall-clock'));
 });
 
 test('renderPage draws the "Where the time goes" section from the inlined durations, escaped and runnable', () => {

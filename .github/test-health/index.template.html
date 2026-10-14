@@ -148,7 +148,7 @@
   A <em>quarantined</em> Playwright test still runs and reports; its flaky verdict does not fail the leg until the entry's expiry (<code>tests/AGENTS.md</code>, Quarantine).
   A <em>visual</em> row is a screenshot capture: the file is its spec, the legs are the variants it differed on, and <em>failed</em> means it differed from its golden record beyond <code>regconfig.json</code>'s tolerances. It needs a ticket once it differed on <span id="visual-threshold"></span>+ <code>Visual nightly</code> runs, or on that many distinct branches (the nightly counts as develop): nothing in that tier is ever flaky, and a pull request's own intended change, recorded before approval, stays on one branch however often it is pushed. A quarantined capture is listed in <code>visual-tests/visual-quarantine.json</code> (<code>visual-tests/AGENTS.md</code>, Guardrails); an entry names the legs it covers, so a row shows its most recent entry and only the legs outside it count toward the ticket.
   Entries older than <span id="retention"></span> days drop off. Source: <code>.github/workflows/test-health.yml</code>.
-  <br>Where the time goes: a leg's wall-clock is what the leg paid, retries included. Runs stay 30 days. The per-test rows come from each leg's latest develop push (the newest run of any branch until one exists) and hold only tests that passed on their first attempt: a failed or flaky test's time is its retries and timeouts, which the table above tracks. Pull request runs and develop pushes share the charts so a branch that adds minutes shows against the line it merges into.
+  <br>Where the time goes: a leg's wall-clock is what the leg paid, retries included. Runs stay 30 days. The per-test rows come from each leg's latest develop push (the newest run of any branch until one exists) and give each test its time from a run where it passed on its first attempt: a test that failed or was flaky in the latest run keeps its time from the run before, because its own time is retries and timeouts, which the table above tracks. Pull request runs and develop pushes share the charts so a branch that adds minutes shows against the line it merges into.
 </footer>
 <script id="summary" type="application/json">__SUMMARY_JSON__</script>
 <script id="durations" type="application/json">__DURATIONS_JSON__</script>
@@ -539,8 +539,10 @@
   });
 
   var slowBody = document.querySelector('#time-slow tbody');
-  document.getElementById('time-slow-title').textContent = 'Every test over ' + seconds(view.slowTestMs) + ' s ('
-    + view.slowTests.length + ')';
+  var slowCount = view.slowTestCount == null ? view.slowTests.length : view.slowTestCount;
+  document.getElementById('time-slow-title').textContent = slowCount > view.slowTests.length
+    ? 'The ' + view.slowTests.length + ' slowest of ' + slowCount + ' tests over ' + seconds(view.slowTestMs) + ' s'
+    : 'Every test over ' + seconds(view.slowTestMs) + ' s (' + slowCount + ')';
   view.slowTests.forEach(function(entry) {
     var tr = document.createElement('tr');
     var title = document.createElement('td');

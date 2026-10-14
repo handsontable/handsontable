@@ -208,4 +208,7 @@ if (options.template) {
 // Seed entries are not "this run's" additions; keep the step summary about the run.
 const addedFromRun = added.filter(entry => entry.source === 'ci');
 
-process.stdout.write(renderStepSummary({ run, added: addedFromRun, notes, summary, pageUrl, durations }));
+// The legs the reducer recorded, not every artifact: a skipped leg must not show its minutes here.
+process.stdout.write(renderStepSummary({
+  run, added: addedFromRun, notes, summary, pageUrl, durations: timing.recorded,
+}));

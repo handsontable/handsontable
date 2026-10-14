@@ -137,7 +137,8 @@ jobs:
       # `!cancelled()` replaces the implicit `success()` that would skip every red
       # leg. A leg whose run step died before the JSON reporter wrote its report
       # ends with a notice from the summarizer and uploads nothing. Both steps sit
-      # after the report upload, so its `failure()` never sees them.
+      # after the report upload, so its `failure()` never sees them. The collector
+      # records only the legs on DURATIONS_LEGS in that file: a new leg goes there too.
       - name: Summarize the Playwright durations
         if: ${{ !cancelled() }}
         run: node .github/scripts/playwright-durations.mjs --leg ${{ matrix.theme }}${{ matrix.bundle.suffix }}

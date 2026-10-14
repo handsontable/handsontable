@@ -650,8 +650,9 @@ export function stableGeneratedAt(previousSummary, summary, now) {
  * @param {string[]} input.notes Notes from the collection (skipped files, empty artifacts).
  * @param {object} input.summary The aggregate.
  * @param {string} input.pageUrl Where the page is published.
- * @param {import('./playwright-durations.mjs').LegSummary[]} [input.durations] The run's leg durations. When
- * given (the collector always gives them), one line names each leg's wall-clock and the heaviest spec file.
+ * @param {import('./playwright-durations.mjs').LegSummary[]} [input.durations] The leg durations the run
+ * recorded (`recorded` from `mergeDurations`, so a skipped leg is not counted). When there are any, one line
+ * names each leg's wall-clock and the heaviest spec file; a run without Playwright legs gets no line.
  * @returns {string} The Markdown.
  */
 export function renderStepSummary({ run, added, notes, summary, pageUrl, durations }) {
@@ -687,7 +688,7 @@ export function renderStepSummary({ run, added, notes, summary, pageUrl, duratio
     }
   }
 
-  if (Array.isArray(durations)) {
+  if (Array.isArray(durations) && durations.length > 0) {
     lines.push('', renderDurationsLine(durations));
   }
 

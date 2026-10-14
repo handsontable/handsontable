@@ -7,8 +7,9 @@ import {
   DURATIONS_RETENTION_DAYS,
   DURATIONS_VERSION,
   HEAVIEST_FILES,
-  MAX_LEGS_PER_RUN,
+  DURATIONS_LEGS,
   PLAYWRIGHT_DURATIONS_FILE,
+  SLOW_TESTS_SHOWN,
   SLOW_TEST_MS,
   durationsView,
   emptyDurations,
@@ -20,6 +21,8 @@ import {
   summarizePlaywrightReport,
 } from '../lib/playwright-durations.mjs';
 import { runContextFromRun } from '../lib/test-health.mjs';
+import { repoRoot } from '../lib/repo-root.mjs';
+import { job } from '../lib/workflow-text.mjs';
 
 // A trimmed real report: five whole spec files of the classic leg of run 38380730524 (artifact
 // 11805081390), with the run's real wall-clock, start time and worker count. Result payloads are cut
@@ -449,23 +452,38 @@ test('a flaky test has no cell either, and a leg that ran no test keeps the rows
   assert.equal(durationsView(after.doc).points[0][6], 1, 'and is drawn like a failed leg, not as a clean zero');
 });
 
-test('mergeDurations skips what a fork could forge: odd leg names, too many legs, a start after the run ended', () => {
+test('mergeDurations records only the legs e2e.yml runs, and none that starts after its run ended', () => {
   const ended = runOf({ id: 3, updated_at: '2026-10-13T11:00:00Z' });
   const forged = [
     legSummary({ leg: '../../escape' }),
+    // A fork's pull request can name its artifact anything; no develop push would ever replace this leg.
+    legSummary({ leg: 'zzz' }),
     legSummary({ leg: 'classic', startTime: '2999-01-01T00:00:00.000Z' }),
-    ...Array.from({ length: MAX_LEGS_PER_RUN + 2 },
-      (_, index) => legSummary({ leg: `fake-${String(index).padStart(2, '0')}` })),
+    legSummary({ leg: 'main' }),
   ];
   const result = mergeDurations(null, forged, ended, { now: NOW });
   const notes = result.notes.join('\n');
 
-  assert.match(notes, /leg "\.\.\/\.\.\/escape": not a leg name, skipped/);
+  assert.match(notes, /leg "\.\.\/\.\.\/escape": not a leg e2e\.yml runs, skipped/);
+  assert.match(notes, /leg "zzz": not a leg e2e\.yml runs, skipped/);
   assert.match(notes, /leg classic: starts at 2999-01-01T00:00:00\.000Z, after run 3 ended, skipped/);
-  assert.match(notes, new RegExp(`leg fake-${MAX_LEGS_PER_RUN}: past the ${MAX_LEGS_PER_RUN} legs one run may record`));
-  assert.equal(result.doc.runs[0].legs.length, MAX_LEGS_PER_RUN);
-  assert.ok(!result.doc.runs[0].legs.some(leg => leg.leg === 'classic'), 'nothing is pinned past the window');
-  assert.ok(result.doc.budget.to <= '2026-10-13T12:00:00.000Z');
+  assert.deepEqual(result.doc.runs[0].legs.map(leg => leg.leg), ['main']);
+  assert.deepEqual(result.doc.latest.sources.map(source => source.leg), ['main']);
+  assert.deepEqual(result.recorded.map(summary => summary.leg), ['main'], 'only what was stored is reported');
+  assert.ok(result.doc.budget.to <= '2026-10-13T12:00:00.000Z', 'nothing is pinned past the window');
+});
+
+test('the leg allowlist is exactly the legs e2e.yml runs', () => {
+  // The matrix-collapse work will change the legs; this fails until DURATIONS_LEGS follows the workflow.
+  const e2e = readFileSync(path.join(repoRoot(), '.github/workflows/e2e.yml'), 'utf8');
+  const matrix = job(e2e, 'playwright');
+  const themes = matrix.match(/^ {8}theme: \[([^\]]+)\]$/m)[1].split(',').map(theme => theme.trim());
+  const suffixes = [...matrix.matchAll(/suffix: '([^']*)'/g)].map(([, suffix]) => suffix);
+  const engines = job(e2e, 'playwright-engines').match(/playwright-durations\.mjs --leg (\S+)$/m)[1];
+
+  assert.ok(themes.length > 0 && suffixes.length > 0, 'read the theme and bundle axes of the matrix');
+  assert.deepEqual([...DURATIONS_LEGS].sort(),
+    [...themes.flatMap(theme => suffixes.map(suffix => `${theme}${suffix}`)), engines].sort());
 });
 
 test('an expired develop source never outranks the run that arrives after it', () => {
@@ -533,12 +551,40 @@ test('the budget input is P50 and P90 per leg over clean runs, develop separatel
   assert.ok(doc.budget.from < doc.budget.to);
 });
 
-test('mergeDurations rebuilds from empty, with a note, when the stored file has another version', () => {
-  const result = mergeDurations({ version: 0, runs: 'whatever' }, [legSummary()], runOf(), { now: NOW });
-
-  assert.equal(result.doc.runs.length, 1);
-  assert.match(result.notes.join('\n'), /durations\.json had version 0/);
+test('mergeDurations refuses a stored file of another version instead of rebuilding it from one run', () => {
+  // The collector has no try/catch around it, like a durations.json it cannot parse: the job fails and the
+  // month of history stays on gh-pages until a migration ships with the version bump.
+  assert.throws(() => mergeDurations({ version: 0, runs: 'whatever' }, [legSummary()], runOf(), { now: NOW }),
+    /durations\.json has version 0, and this collector reads and writes version 1/);
+  assert.throws(() => mergeDurations({ version: 2 }, [], runOf(), { now: NOW }), /has version 2/);
   assert.deepEqual(mergeDurations(emptyDurations(), [], runOf(), { now: NOW }).notes, []);
+});
+
+test('a test that fails or flakes in a newer run keeps its last good time; a removed test loses its row', () => {
+  const amdTitle = 'bundle on a page with an AMD loader › loads and renders while a global define.amd is present';
+  const first = mergeDurations(null, [legSummary({ leg: 'classic' })], developRun({ id: 1 }), { now: NOW }).doc;
+  const later = legSummary({ leg: 'classic', startTime: '2026-10-13T11:00:00.000Z', scale: 2 });
+  const submenu = later.files.find(file => file.file === 'e2e/submenu-hover-delay.spec.ts');
+  const amd = later.files.find(file => file.file === 'e2e/amd-loader.spec.ts');
+  const notifications = later.files.find(file => file.file === 'e2e/notification-placement.spec.ts');
+  const removed = notifications.cases.find(entry => !entry.status).title;
+
+  submenu.cases = submenu.cases.map(entry => (entry.title === SLOW_TITLE
+    ? { ...entry, ms: 40000, status: 'unexpected', retries: 1 } : entry));
+  amd.cases = amd.cases.map(entry => ({ ...entry, ms: 5000, status: 'flaky', retries: 1 }));
+  notifications.cases = notifications.cases.filter(entry => entry.title !== removed);
+
+  const { latest } = mergeDurations(first, [later], developRun({ id: 2 }), { now: NOW }).doc;
+  const cell = (file, title) => latest.files[file]?.find(row => row[0] === title)?.[1];
+
+  assert.equal(latest.sources[0].runId, '2', 'the red develop push is the newer source');
+  assert.equal(cell('e2e/submenu-hover-delay.spec.ts', SLOW_TITLE), 9857, 'the failed test keeps its time from run 1');
+  assert.equal(cell('e2e/amd-loader.spec.ts', amdTitle), 507, 'the flaky test keeps its time from run 1');
+  assert.equal(cell('e2e/notification-placement.spec.ts', removed), undefined, 'a test gone from the leg is gone');
+  // Every test that passed first time takes the new run's time, which the scale doubled.
+  const inline = 'e2e/walkontable/inline-start-border-refresh.spec.ts';
+
+  assert.deepEqual(latest.files[inline], first.latest.files[inline].map(([title, ms]) => [title, ms * 2]));
 });
 
 test('serializeDurations writes one run and one spec file per line, and round-trips', () => {
@@ -583,7 +629,28 @@ test('durationsView ranks the heaviest spec files, lists the slow tests, and tel
   assert.ok(view.slowTests.slice(1).every(entry => entry.legs.length === 1 && entry.legs[0][0] === 'main'),
     'under 3 s on classic, over on main (scaled twice): listed for main only');
   assert.equal(view.sources.length, 2);
+  assert.equal(view.slowTestCount, view.slowTests.length, 'under the cap, every slow test is listed');
   assert.equal(durationsView(emptyDurations()), null, 'nothing collected yet: the page says so');
+});
+
+test('the page lists at most SLOW_TESTS_SHOWN slow tests, slowest first, and counts them all', () => {
+  const many = legSummary({ leg: 'classic' });
+
+  many.files.push({
+    file: 'e2e/many-slow.spec.ts',
+    project: 'e2e-classic',
+    tests: 250,
+    ms: 0,
+    cases: Array.from({ length: 250 },
+      (_, index) => ({ title: `slow ${String(index).padStart(3, '0')}`, ms: 3100 + index })),
+  });
+
+  const view = durationsView(mergeDurations(null, [many], developRun(), { now: NOW }).doc);
+
+  assert.equal(view.slowTests.length, SLOW_TESTS_SHOWN);
+  assert.equal(view.slowTestCount, 251, 'the 250 above and the fixture\'s own slow test');
+  assert.equal(view.slowTests[0].title, SLOW_TITLE);
+  assert.equal(view.slowTests[1].title, 'slow 249');
 });
 
 test('renderDurationsLine names each leg\'s wall-clock and the heaviest file of the run', () => {
@@ -592,6 +659,17 @@ test('renderDurationsLine names each leg\'s wall-clock and the heaviest file of 
   assert.equal(line, 'Playwright wall-clock: classic 18.2 min, main 18.2 min (2 workers); heaviest file: '
     + '`e2e/submenu-hover-delay.spec.ts` (1.0 min summed over 2 legs).');
   assert.equal(renderDurationsLine([]), 'Playwright wall-clock: no `playwright-durations-*` artifact on this run.');
+
+  // The path comes from a pull request's artifact: a line break must not end the code span and let the
+  // rest render as Markdown in the base repository's step summary.
+  const forged = legSummary({ leg: 'main' });
+
+  forged.files[0].file = 'e2e/x`y\n\n# heading\n[link](https://example.com).spec.ts';
+
+  const escaped = renderDurationsLine([forged]);
+
+  assert.ok(!escaped.includes('\n'), 'one line');
+  assert.ok(escaped.includes('`e2e/x\'y # heading [link](https://example.com).spec.ts`'));
 });
 
 test('the summary file path sits in the reporter\'s output directory', () => {

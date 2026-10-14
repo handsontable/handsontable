@@ -605,12 +605,16 @@ counts, and the milliseconds of every spec file and test, retries included).
 `test-health.yml` collects it into `test-health/durations.json`, and the "Where
 the time goes" section of the same page shows each leg's wall-clock and test
 count over 30 days (develop pushes and pull requests apart), the 30 heaviest
-spec files, and every test over 3 s that passed on its first attempt. Read it
-before a change to workers, shards or the leg matrix, and measure the change
-against its per-leg P50 and P90, the input a later e2e budget is derived from
-(no gate reads it yet). The JSON reporter feeds both sections, so it stays in
-the CI reporter list with its output path; the durations file path and artifact
-name are pinned in `.github/scripts/__tests__/test-health.test.mjs`.
+spec files, and every test over 3 s. Read it before a change to workers, shards
+or the leg matrix, and measure the change against its per-leg P50 and P90, the
+input a later e2e budget is derived from (no gate reads it yet). The JSON
+reporter feeds both sections, so it stays in the CI reporter list with its
+output path; the durations file path and artifact name are pinned in
+`.github/scripts/__tests__/test-health.test.mjs`. A change to the leg matrix
+also changes `DURATIONS_LEGS` in `.github/scripts/lib/playwright-durations.mjs`:
+the collector records only the legs on that list, and
+`.github/scripts/__tests__/playwright-durations.test.mjs` fails until it matches
+`e2e.yml`.
 
 ## Quarantine
 
