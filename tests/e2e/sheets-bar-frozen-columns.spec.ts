@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SheetsBarFrozenColumnsPage } from '../fixtures/pages/SheetsBarFrozenColumnsPage';
 
 /**
@@ -8,7 +8,7 @@ import { SheetsBarFrozenColumnsPage } from '../fixtures/pages/SheetsBarFrozenCol
  * overlay before that overlay had drawn the arriving sheet, and the switch threw
  * "TD or TH was expected to be rendered but is not", leaving the stored selection unrestored.
  */
-test.describe('SheetsBar switching onto a sheet with frozen columns', () => {
+test.describe('SheetsBar switching onto a sheet with frozen columns', { tag: THEMES_TAG }, () => {
   let grid: SheetsBarFrozenColumnsPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

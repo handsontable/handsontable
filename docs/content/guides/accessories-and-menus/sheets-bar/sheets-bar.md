@@ -122,6 +122,8 @@ const configurationOptions = {
     // (optional). When omitted, the bar renders in the layout slot
     // the `position` option names.
     uiContainer: null,
+    // Turn the tab animations on or off, all at once or one by one
+    animation: true,
   }
 };
 ```
@@ -270,6 +272,44 @@ Every switch clears the selection before the arriving sheet loads, so [`afterDes
 Clicking anywhere on the sheets bar keeps the grid's selection, whatever [`outsideClickDeselects`](@/api/options.md#outsideclickdeselects) is set to, and saves a cell you are editing.
 
 The [`afterSheetTabStateCapture`](@/api/hooks.md#aftersheettabstatecapture) and [`afterSheetTabStateRestore`](@/api/hooks.md#aftersheettabstaterestore) hooks fire after each capture and restore. The page goes back through the Pagination API, so a switch that changes the page also fires [`beforePageChange`](@/api/hooks.md#beforepagechange) and [`afterPageChange`](@/api/hooks.md#afterpagechange), and the page size hooks when the size differs. If a [`beforePageSizeChange`](@/api/hooks.md#beforepagesizechange) listener cancels the page size, the sheet keeps the current size and opens on the page that holds its selection. If a `beforePageChange` listener cancels the page change, the sheet stays on the page it opened on, and a selection that page does not show is cleared. With a server-side [`dataProvider`](@/api/options.md#dataprovider), the page is not captured or restored, because a page change there fetches rows from the server.
+
+## Tab animations
+
+When you switch sheets, the active tab marker slides from the old tab to the new one. A tab you create or duplicate slides into the strip. When you move a sheet with the tab menu or the API, the tabs slide to their new places. A tab you delete fades out, and the tabs after it slide over to close the gap. When you hover a tab, its text color fades in and out. The grid itself switches at once.
+
+The timing follows the theme's [`--ht-table-transition`](@/guides/styling/theme-customization/theme-customization.md) token. The `main` and `horizon` themes animate the tabs. The `classic` theme sets the token to `0s`, so its tabs change instantly. If the user's system sets `prefers-reduced-motion: reduce`, the tabs change instantly in every theme. Switches, moves, deletions, and new tabs made while the grid initializes are instant, until the grid has been on screen for one frame.
+
+The animations are visual only. They don't change the data, the selection, or the order of the hooks.
+
+### Turn tab animations off
+
+Use the `animation` option to turn the tab animations off. Set it to `false` to make every tab change instant:
+
+```javascript
+sheetsBar: {
+  animation: false,
+},
+```
+
+To turn off only some animations, pass an object. Each key controls one animation, and a key you leave out stays on:
+
+- `switch`: the active tab marker's slide when you switch sheets
+- `add`: the entrance of a tab you create or duplicate
+- `remove`: the fade-out of a deleted tab, and the slide of the tabs that close the gap
+- `move`: the slide of the tabs to their new places after a move from the tab menu or the API
+
+```javascript
+sheetsBar: {
+  // Keep every animation except the slide after a move
+  animation: { switch: true, add: true, remove: true, move: false },
+},
+```
+
+You can change the option later through [`updateSettings()`](@/api/core.md#updatesettings). The workbook stays as it is, and the new value applies from the next tab change. An animation that is running when you turn it off jumps to its end.
+
+The option can only turn animations off. With `prefers-reduced-motion: reduce`, or with a theme that sets `--ht-table-transition` to `0s` (like `classic`), every tab change is instant, whatever the option says.
+
+The hover color fade is CSS only, so the `animation` option doesn't affect it. To remove it, set `--ht-table-transition: 0s` on the grid, or `transition: none` on `.ht-sheets-bar__tab`.
 
 ## Server-backed sheets
 

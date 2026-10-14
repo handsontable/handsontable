@@ -754,4 +754,13 @@ export class DataProviderSheetsBarPage {
   toast(): Locator {
     return this.page.locator('.ht-notification__toast');
   }
+
+  /**
+   * The temporary marker that slides between the tabs on a sheet switch.
+   *
+   * @returns {Locator} The marker locator.
+   */
+  tabIndicator(): Locator {
+    return this.grid.locator('.ht-sheets-bar__tab-indicator');
+  }
 }

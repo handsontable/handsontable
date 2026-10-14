@@ -61,6 +61,14 @@ export const CLIPBOARD_SHORTCUT_TAG = '@clipboard-shortcut';
  */
 export { THEMES_TAG, BUNDLES_TAG } from '../lib/leg-declarations.mjs';
 
+/**
+ * The tag for a test that checks a motion the classic theme never runs, because the theme sets
+ * `--ht-table-transition` to `0s`. The `e2e-classic` projects leave these tests out, so the classic
+ * legs do not repeat them on another theme. Check the classic theme's instant switch in a test
+ * without it: `test.describe('…', { tag: [THEMES_TAG, MOTION_TAG] }, () => { … })`.
+ */
+export const MOTION_TAG = '@motion';
+
 export const test = base.extend<TestOptions>({
   theme: ['main', { option: true }],
   bundle: ['umd', { option: true }],

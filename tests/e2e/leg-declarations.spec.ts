@@ -35,6 +35,7 @@ const PROJECTS_BY_DECLARATION: Record<string, string[]> = {
   'themes+bundles': ALL_PROJECTS,
 };
 const LEG_TAGS = ['themes', 'bundles'];
+const CLASSIC_PROJECTS = ['e2e-classic', 'e2e-classic-min'];
 
 type ListedTest = { file: string, title: string, tags: string[], projects: string[] };
 
@@ -90,6 +91,14 @@ function listedTests(json: string): ListedTest[] {
 
 const declarationOf = (tags: string[]) => LEG_TAGS.filter(tag => tags.includes(tag)).join('+');
 
+/**
+ * The projects a test runs on, given the projects its legs allow: a `motion` test checks a motion the
+ * classic theme never runs, so both classic projects leave it out, on the full matrix too.
+ */
+const withoutMotionOnClassic = (tags: string[], projects: string[]) => [...projects]
+  .filter(project => !tags.includes('motion') || !CLASSIC_PROJECTS.includes(project))
+  .sort();
+
 test.describe('leg declarations', () => {
   // The declared list is spawned once per file, in `beforeAll`: serial mode keeps the four tests in one
   // worker, so the three tests that read it share one child of about 3 s instead of spawning their own.
@@ -112,7 +121,8 @@ test.describe('leg declarations', () => {
     expect(tests.length).toBeGreaterThan(2000);
 
     const wrong = tests
-      .filter(entry => JSON.stringify(entry.projects) !== JSON.stringify([...PROJECTS_BY_DECLARATION[declarationOf(entry.tags)]].sort()))
+      .filter(entry => JSON.stringify(entry.projects) !==
+        JSON.stringify(withoutMotionOnClassic(entry.tags, PROJECTS_BY_DECLARATION[declarationOf(entry.tags)])))
       .map(entry => `${entry.file} › ${entry.title}: tags [${entry.tags.join(', ')}] but projects [${entry.projects.join(', ')}]`);
 
     expect(wrong, wrong.slice(0, 10).join('\n')).toEqual([]);
@@ -125,7 +135,7 @@ test.describe('leg declarations', () => {
     expect(tests.some(entry => declarationOf(entry.tags) === ''), 'the default (e2e-main only) is in use').toBe(true);
   });
 
-  test('the full matrix runs every test on all six projects and loses no test', async() => {
+  test('the full matrix runs every test on every project its tags allow and loses no test', async() => {
     const full = listRun({ HOT_E2E_FULL_MATRIX: '1' });
 
     expect(full.status, full.stderr).toBe(0);
@@ -135,9 +145,10 @@ test.describe('leg declarations', () => {
     const key = (entry: ListedTest) => `${entry.file}|${entry.title}`;
 
     expect(new Set(fullTests.map(key))).toEqual(new Set(declaredTests.map(key)));
-    const partial = fullTests.filter(entry => JSON.stringify(entry.projects) !== JSON.stringify([...ALL_PROJECTS].sort()));
+    const partial = fullTests
+      .filter(entry => JSON.stringify(entry.projects) !== JSON.stringify(withoutMotionOnClassic(entry.tags, ALL_PROJECTS)));
 
-    expect(partial.map(entry => `${entry.file} › ${entry.title}`), 'every test on every project').toEqual([]);
+    expect(partial.map(entry => `${entry.file} › ${entry.title}`), 'every test on every project its tags allow').toEqual([]);
   });
 
   test('the tags Playwright sees are the tags written in the source, so a misspelled constant cannot drop a spec off its legs', async() => {
