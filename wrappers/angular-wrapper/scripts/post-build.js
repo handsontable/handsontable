@@ -12,6 +12,15 @@ delete PACKAGE.dependencies;
 
 fse.writeJsonSync(PACKAGE_PATH, PACKAGE);
 
+// The bundled declarations must import packages by name. A baseUrl-relative specifier such as
+// `import("node_modules/handsontable")` resolves in this repo and nowhere else.
+const TYPES_PATH = path.resolve(`${DIST_PATH}/types/handsontable-angular-wrapper.d.ts`);
+const LEAKED_SPECIFIER = /(?:from|import\()\s*["'][^"']*node_modules\//;
+
+if (LEAKED_SPECIFIER.test(fse.readFileSync(TYPES_PATH, { encoding: 'utf-8' }))) {
+  throw new Error(`${TYPES_PATH} imports a path inside node_modules; check "baseUrl" and "paths" in tsconfig.json.`);
+}
+
 let licenseBody = fse.readFileSync(path.resolve('./LICENSE.txt'), { encoding: 'utf-8' });
 
 licenseBody += `\nVersion: ${PACKAGE.version} (built at ${new Date().toString()})`;

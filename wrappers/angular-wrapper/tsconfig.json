@@ -3,12 +3,11 @@
   "compileOnSave": false,
   "compilerOptions": {
     "noUnusedLocals": true,
-    "baseUrl": "./",
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
     "noImplicitReturns": true,
     "paths": {
-      "@handsontable/angular-wrapper": ["dist/hot-table"]
+      "@handsontable/angular-wrapper": ["./dist/hot-table"]
     },
     "noFallthroughCasesInSwitch": true,
     "sourceMap": true,
