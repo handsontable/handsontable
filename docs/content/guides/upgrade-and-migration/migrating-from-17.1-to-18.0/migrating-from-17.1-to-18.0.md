@@ -2,7 +2,7 @@
 type: how-to
 title: Migrating from 17.1 to 18.0
 metaTitle: Migrating from 17.1 to 18.0 - JavaScript Data Grid | Handsontable
-description: Migrate from Handsontable 17.1 to Handsontable 18.0 -- remove Moment.js, Pikaday, Numbro.js, and DOMPurify dependencies, and update TypeScript imports.
+description: Migrate from Handsontable 17.1 to Handsontable 18.0 -- remove Moment.js, Pikaday, Numbro.js, and DOMPurify dependencies, install HyperFormula separately, and update TypeScript imports.
 permalink: /migration-from-17.1-to-18.0
 canonicalUrl: /migration-from-17.1-to-18.0
 pageClass: migration-guide
@@ -497,6 +497,66 @@ const grid = wrapper.querySelector('.ht-wrapper.handsontable');
 
 Use class-based selectors instead of positional ones, so future layout slot additions do not break your code.
 
+## 8. Install HyperFormula separately
+
+Starting with Handsontable 18.0, the `handsontable` npm package does not include HyperFormula. In 17.1 and earlier, installing Handsontable also installed HyperFormula as a dependency. Now you install it yourself and pass it to the [`Formulas`](@/api/formulas.md) plugin. Version 17.0 deprecated bundling HyperFormula, and version 18.0 completes the removal.
+
+This change keeps HyperFormula, which is licensed separately, out of projects that don't use formulas. You also choose the HyperFormula version that fits your project.
+
+### Who is affected
+
+You are affected if both of the following apply:
+
+- You install Handsontable from npm and import it as an ES or CommonJS module.
+- Your configuration enables the `Formulas` plugin, for example with `formulas: { engine: HyperFormula }`, or with `formulas: true`.
+
+If your project doesn't use formulas, you don't need to change anything.
+
+If you upgrade without installing HyperFormula, the `Formulas` plugin has no engine to use. The plugin logs a console warning (`Missing the required engine key in the Formulas settings`) and doesn't start, so cells that begin with `=` are not calculated. If your code imports `hyperformula` without installing it, your bundler reports that the module can't be resolved.
+
+### How to migrate
+
+1. Install HyperFormula:
+
+   ```bash
+   npm install hyperformula
+   ```
+
+   Pick the HyperFormula version that matches your Handsontable version. For the compatible versions, see [HyperFormula version support](@/guides/formulas/formula-calculation/formula-calculation.md#hyperformula-version-support).
+
+2. Import the `HyperFormula` class, and pass it to the `formulas.engine` option.
+
+   **Before (17.1):**
+
+   ```javascript
+   import Handsontable from 'handsontable';
+
+   const hot = new Handsontable(container, {
+     data: [['=1+2']],
+     formulas: true,
+     licenseKey: 'non-commercial-and-evaluation',
+   });
+   ```
+
+   **After (18.0):**
+
+   ```javascript
+   import Handsontable from 'handsontable';
+   import { HyperFormula } from 'hyperformula';
+
+   const hot = new Handsontable(container, {
+     data: [['=1+2']],
+     formulas: {
+       engine: HyperFormula,
+     },
+     licenseKey: 'non-commercial-and-evaluation',
+   });
+   ```
+
+3. Check the HyperFormula license. HyperFormula is licensed separately from Handsontable. To set your own HyperFormula license key, see [License HyperFormula](@/guides/formulas/installation/installation.md#license-hyperformula).
+
+For other ways to connect the engine, such as a pre-built instance shared between grids, see [Initialization methods](@/guides/formulas/formula-calculation/formula-calculation.md#initialization-methods).
+
 ## Summary of breaking changes
 
 | Change | Who is affected | Action required |
@@ -509,6 +569,7 @@ Use class-based selectors instead of positional ones, so future layout slot addi
 | `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, `loadManualRowHeights()` now no-op | Any project calling these methods | Remove calls; implement custom persistence if needed |
 | `--ht-wrapper-border-radius` renamed to `--ht-border-radius`; `--ht-wrapper-border-width` and `--ht-wrapper-border-color` removed | Projects overriding these theme variables or passing the matching JS tokens | Rename to `--ht-border-radius` / `borderRadius`; recreate a wrapper border with `box-shadow` if needed |
 | Wrapper DOM structure changed -- new `.ht-grid-content`, `.ht-slot-top`, `.ht-slot-bottom`, and `.ht-overlay` elements | Projects with CSS selectors or DOM queries targeting Handsontable's wrapper elements by position | Update selectors to be class-based; account for the new `.ht-grid-content` wrapper and sibling slot containers |
+| HyperFormula no longer bundled with the `handsontable` npm package | Projects that use the `Formulas` plugin and install Handsontable from npm | Run `npm install hyperformula`, import `HyperFormula`, and pass it with `formulas: { engine: HyperFormula }` |
 
 ## Result
 
@@ -522,3 +583,5 @@ Your application now runs on Handsontable 18.0.
 - [Date cell type](@/guides/cell-types/date-cell-type/date-cell-type.md)
 - [Time cell type](@/guides/cell-types/time-cell-type/time-cell-type.md)
 - [Security](@/guides/security/security/security.md)
+- [Install HyperFormula](@/guides/formulas/installation/installation.md)
+- [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
