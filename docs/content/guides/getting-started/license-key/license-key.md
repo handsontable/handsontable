@@ -359,6 +359,20 @@ If your license key is missing, invalid, or expired, Handsontable displays a not
 
 A **missing or invalid key** blocks the grid. Handsontable covers it with a modal that cannot be closed, and repeats the message in the console. Set a valid key to remove it. The grid is not usable until you do.
 
+<span class="img-light">
+
+![The blocking modal for a missing license key, light theme](/img/pages/license-key/missing-license-key-light.png)
+
+</span>
+
+<span class="img-dark">
+
+![The blocking modal for a missing license key, dark theme](/img/pages/license-key/missing-license-key-dark.png)
+
+</span>
+
+The modal covers only the grid. The rest of your page keeps working. The modal does not appear on this site, so this page shows it as an image.
+
 An **expired key** does not block anything. Its message appears below the table and in the console, and every feature keeps working.
 
 The messages are as follows:
@@ -397,11 +411,14 @@ There's no built-in method to update all existing instances automatically. You h
   Handsontable.defaults.licenseKey = 'your-new-key';
   ```
 
-- **For instances that already exist:** call [`updateSettings()`](@/api/core.md#updatesettings) on each one, looping through them manually.
+- **For instances that already exist:** Handsontable reads the license key once, when it creates an instance. [`updateSettings()`](@/api/core.md#updatesettings) does not apply a new key to a running grid. Destroy each instance and create it again with the new key, looping through them manually. Re-creating an instance resets its state, so reload its data afterwards.
 
   ```js
-  hot1.updateSettings({ licenseKey: 'your-new-key' });
-  hot2.updateSettings({ licenseKey: 'your-new-key' });
+  hot1.destroy();
+  hot1 = new Handsontable(container1, { ...settings1, licenseKey: 'your-new-key' });
+
+  hot2.destroy();
+  hot2 = new Handsontable(container2, { ...settings2, licenseKey: 'your-new-key' });
   ```
 
 ### What happens if I keep using a stale (expired) license key?
