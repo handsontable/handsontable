@@ -239,9 +239,10 @@ directions.
   `ReferenceError: TextEncoder is not defined`. Both adapter entry points therefore check all four
   globals (`CompressionStream`, `DecompressionStream`, `TextEncoder`, `TextDecoder`) up front, and
   the message names the missing ones and how to supply them (assign them from `node:stream/web` and
-  `node:util`, as `test/cryptoSetup.js` does, or inject ExcelJS through `engines`). jsdom and
-  Vitest's jsdom environment lack them, which is why both guides carry a Requirements note with the
-  snippet. The guard throws SYNCHRONOUSLY; inside the async zip writer that surfaces as a
+  `node:util`, as `test/cryptoSetup.js` does, or inject ExcelJS through `engines`). Jest's jsdom
+  environment lacks all four (Jest 27's node environment lacks the two streams), which is why both
+  guides carry a Requirements note with the snippet. Vitest's `jsdom` and `happy-dom` environments
+  provide them in the default `forks` and `threads` pools, but not in `vmThreads` or `vmForks`. The guard throws SYNCHRONOUSLY; inside the async zip writer that surfaces as a
   rejection.
 - **A sheet password is hashed exactly as ExcelJS hashes it** (`parts/protection.ts`: SHA-512 spin
   hash, 100000 rounds, UTF-16LE password, 16-byte salt) so Excel prompts for it on unprotect. The

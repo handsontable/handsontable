@@ -15,6 +15,9 @@ export const PLUGIN_KEY = 'exportFile';
 
 /**
  * Options for a single worksheet in a multi-sheet export (XLSX only).
+ *
+ * `headerStyle` and `conditionalFormatting` also work per sheet, although this type does not declare
+ * them yet.
  */
 export interface SheetOptions {
   /**
@@ -67,7 +70,8 @@ export interface HeaderStyleBorder {
    */
   style?: string;
   /**
-   * Border color in hex (e.g. `'#000000'`).
+   * Not read by the exporter. The border color is read from a `color` key instead, as a CSS hex
+   * string (e.g. `'#000000'`).
    */
   argb?: string;
 }
@@ -81,7 +85,7 @@ export interface HeaderStyle {
    */
   backgroundColor?: string;
   /**
-   * Font color in hex.
+   * Not applied: header cells are written with the default font.
    */
   fontColor?: string;
   /**
@@ -95,7 +99,9 @@ export interface HeaderStyle {
  */
 export interface ConditionalFormattingRule {
   /**
-   * Rule type (e.g. `'cellIs'`, `'colorScale'`, `'dataBar'`, `'iconSet'`).
+   * Rule type: `'cellIs'`, `'expression'`, `'containsText'`, `'top10'`, `'aboveAverage'`, or
+   * `'timePeriod'`. Other ExcelJS kinds, such as `'colorScale'`, are written only by the ExcelJS
+   * engine; the built-in engine reports them as dropped.
    */
   type: string;
   /**
@@ -107,7 +113,8 @@ export interface ConditionalFormattingRule {
    */
   formulae?: Array<string | number>;
   /**
-   * ExcelJS format descriptor (color, icon set, etc.) applied when the rule matches.
+   * Ignored by both engines. They read the rule's `style` key instead (an ExcelJS style: font, fill,
+   * border, number format).
    */
   format?: Record<string, unknown>;
   /**
@@ -208,7 +215,9 @@ export interface ExportOptions {
    */
   sanitizeValues?: boolean | RegExp | ((val: string) => string);
   /**
-   * Apply DEFLATE compression. `true` uses level 6; a number 1–9 sets a specific level (XLSX only).
+   * DEFLATE compression (XLSX only). Unset, `null`, or `true` compresses at level 6; `false` stores the
+   * entries uncompressed. A number 1–9 sets the level on the ExcelJS engine; the built-in engine uses
+   * the platform's default level and reports any other level as `compressionLevel`.
    */
   compression?: boolean | number;
   /**
@@ -290,7 +299,8 @@ function isThenable(value: unknown): value is PromiseLike<unknown> {
  *   one is passed through the `engines` option, e.g. [ExcelJS](https://github.com/exceljs/exceljs).
  *   Features the engine cannot write are reported in one console warning per export.
  *
- * See [the export file demo](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md) for examples.
+ * See [Export to CSV](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md) and
+ * [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md) for examples.
  *
  * @example
  * ::: only-for javascript
@@ -502,8 +512,8 @@ export class ExportFile extends BasePlugin {
    * @param {string} [options.rowDelimiter='\r\n'] Row delimiter (CSV only).
    * @param {boolean} [options.colHeaders=false] Include column headers in the exported file.
    * @param {boolean} [options.rowHeaders=false] Include row headers in the exported file.
-   * @param {boolean|string} [options.exportHiddenColumns=false] Controls how hidden columns are handled. `true` exports them as normal visible columns. `false` omits them entirely. `'hide'` exports them and marks them as hidden in Excel (XLSX only).
-   * @param {boolean|string} [options.exportHiddenRows=false] Controls how hidden rows are handled. `true` exports them as normal visible rows. `false` omits them entirely. `'hide'` exports them and marks them as hidden in Excel (XLSX only).
+   * @param {boolean|string} [options.exportHiddenColumns=false] Controls how hidden columns are handled. `true` or `'hide'` exports them as normal columns, `false` omits them.
+   * @param {boolean|string} [options.exportHiddenRows=false] Controls how hidden rows are handled. `true` or `'hide'` exports them as normal rows, `false` omits them.
    * @param {number[]} [options.range=[]] Cell range to export: `[startRow, startColumn, endRow, endColumn]` (visual indexes).
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Controls the sanitization of cell values (CSV only).
    * @returns {string}

@@ -3278,7 +3278,7 @@ export default (): Record<string, unknown> => {
      * | --------- | -------- | ------- | ----------------------------------------------------------------------------------- |
      * | `engines` | `Object` | –       | Optional. A map of format keys to engine modules. Pass `{ xlsx: ExcelJS }` to import through ExcelJS instead of the built-in engine. |
      *
-     * `false` disables the plugin. `true` or an object enables it.
+     * `false` disables the plugin. Any other value, including leaving the option out, enables it.
      *
      * Read more:
      * - [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md)

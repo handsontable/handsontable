@@ -37,7 +37,8 @@ export interface ImportOptions {
    */
   sheet?: string | number;
   /**
-   * `'firstRow'` promotes the first sheet row to column headers. Defaults to `false`.
+   * `'firstRow'` promotes the first row of the imported range (the sheet's first row without
+   * `range`) to column headers. `true` behaves like `false`. Defaults to `false`.
    */
   colHeaders?: boolean | 'firstRow';
   /**
@@ -129,8 +130,9 @@ export interface ImportColumn {
    */
   source?: string[];
   /**
-   * Set when every cell of the column is locked under sheet protection. A column that only partly
-   * agrees carries the flag per cell in `cellsMeta` instead.
+   * Set when more than half the rows of the column are locked under sheet protection. The unlocked
+   * rows of such a column carry `readOnly: false` in `cellsMeta`. A column locked on half its rows
+   * or fewer carries `readOnly: true` per locked cell in `cellsMeta` instead.
    */
   readOnly?: boolean;
   /**
@@ -184,7 +186,8 @@ export interface ImportResult {
    */
   nestedHeaders?: ImportedNestedHeader[][];
   /**
-   * Whether row headers were derived from the sheet's first column.
+   * `true` when the `rowHeaders` import option dropped the sheet's first column. The column's
+   * values are discarded; the grid generates its own row headers.
    */
   rowHeaders?: boolean;
   /**
@@ -232,11 +235,14 @@ export interface ImportResult {
    */
   layoutDirection?: 'rtl' | 'ltr';
   /**
-   * Cell formulas read from the workbook.
+   * Formulas that were not imported live, because the Formulas plugin is off, `importFormulas` is
+   * `false`, or the formula cannot resolve in the grid. Their cells hold the cached value in `data`.
+   * Live formulas are in `data` as `=` strings.
    */
   formulas?: Array<{ row: number; col: number; formula: string }>;
   /**
-   * Cell comments read from the workbook.
+   * Cell comments read from the workbook, present only when the `Comments` plugin is enabled.
+   * Otherwise `comments` is listed in `dropped`.
    */
   comments?: Array<{ row: number; col: number; value: string }>;
   /**
@@ -492,7 +498,8 @@ function toArrayBuffer(buffer: ArrayBuffer | ArrayBufferView): ArrayBuffer {
  *
  * XLSX import works out of the box through the built-in engine. Pass an engine module through the
  * `engines` option to read through [ExcelJS](https://github.com/exceljs/exceljs) instead. The plugin
- * reports, in one console warning, anything the engine could not recover from the file.
+ * reports, in one console warning per import, what the file carried and the grid did not take:
+ * what the engine could not read, and what the plugin could not apply.
  *
  * @example
  * ::: only-for javascript

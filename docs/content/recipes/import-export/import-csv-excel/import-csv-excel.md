@@ -120,9 +120,9 @@ Use `accept` on the file input and check `file.name` to route `.csv` and `.xlsx`
 
 **What's happening:**
 - The `accept` attribute restricts the system file picker to `.csv` and `.xlsx`. This is a hint to the browser only -- you must validate the extension in JavaScript as well.
-- The real `<input>` is visually hidden (positioned off-screen with `opacity: 0`) and activated via the wrapping `<label>`. Clicking **Choose file** triggers the file picker without requiring a separate button.
+- The real `<input>` is visually hidden (a 1 px, absolutely positioned element with `opacity: 0`) and activated via the wrapping `<label>`. Clicking **Choose file** triggers the file picker without requiring a separate button.
 - **Load sample data** parses a bundled CSV string so users can try the grid without having to upload a file first.
-- The drop zone has `tabindex="0"` and `role="button"` so keyboard users can focus and activate it.
+- The drop zone has `tabindex="0"` and `role="button"`, so keyboard users can focus it. It has no key handler; keyboard users open the file picker with **Choose file**.
 
 ### Extension detection
 
@@ -213,7 +213,7 @@ async function ensurePapa() {
 1. `loadScript` injects a `<script>` tag and returns a `Promise` that resolves on load and rejects on error.
 2. A `Map` keyed by URL caches the promise so the script is only injected once even if `loadScript` is called multiple times concurrently.
 3. It checks for a pre-existing `<script data-cdn="...">` element -- this handles the case where the tag was already added (e.g., in the docs preview runner).
-4. `ensurePapa` first checks `window.Papa` (already available when using a bundler or a CDN `<script>` tag in your own HTML), and only loads the CDN script when it is absent.
+4. `ensurePapa` first checks `window.Papa` (set when your page loads PapaParse with a `<script>` tag), and only loads the CDN script when it is absent.
 
 **Why lazy-load?**
 - Avoids loading a parser the user might never need.
@@ -336,10 +336,10 @@ async function parseXlsxFile(file) {
 
 **What's happening:**
 1. `importFromBlob('xlsx', file, { colHeaders: 'firstRow', apply: false })` reads the first sheet and returns the mapped result without touching the grid: `result.colHeaders` holds the promoted header row and `result.data` the rows below it.
-2. A refused file (an `.xls`, a password-protected workbook, a damaged archive) rejects with a message that says what to do, and `handleFile` shows it as it is.
+2. A refused file (an `.xls`, a password-protected workbook, a damaged archive) rejects with the plugin's own message, and `handleFile` shows it as it is. For an `.xls` or a password-protected file, the message says to save it as an unprotected `.xlsx`.
 3. Empty header cells get a fallback name (`Column 1`, `Column 2`, ...), and rows that are entirely empty are skipped, so both parsers return the same `{ headers, rows }` shape.
 4. `normalizeCellValue` keeps numbers and booleans, keeps the `YYYY-MM-DD` strings the plugin derives for date cells, trims other text, and turns blank cells into `null`.
-5. The throwaway grid is destroyed in `finally`, so a rejected file does not leak it. To import straight into a visible grid, with cell types, merges, and formulas, call the same method on that grid without `apply: false`.
+5. The throwaway grid is destroyed in `finally`, so a rejected file does not leak it. To import straight into a visible grid, with cell types, merges, and formulas (formulas need the `Formulas` plugin), call the same method on that grid without `apply: false`.
 
 ### Route to the right parser
 
@@ -492,8 +492,8 @@ function clearError(el) {
 | CSV has parse errors | First error message from PapaParse |
 | CSV has no header row | `"No header row found in the CSV."` |
 | CSV has no data rows | `"No data rows after the header."` |
-| Excel workbook refused (an `.xls`, a password-protected or damaged file, a workbook past the import limits) | The `ImportFile` plugin's own message, which says what to do |
-| Excel header row is blank | `"No header row found in the Excel sheet."` |
+| Excel workbook refused (an `.xls`, a password-protected or damaged file, a workbook past the import limits) | The `ImportFile` plugin's own message |
+| Excel sheet is empty | `"No header row found in the Excel sheet."` |
 | Excel has no data rows | `"No data rows after the header."` |
 
 The `handleFile` async function is the single place where all parse errors are caught and forwarded to `showError`:
@@ -529,7 +529,7 @@ Click **Load sample data** in the example to populate the grid from the bundled 
 
 1. **User picks or drops a file (or clicks Load sample data)** -- the `change`, `drop`, or sample button event fires and reaches `handleFile` / the sample handler.
 2. **File size check** -- zero-byte files are rejected immediately (file path only).
-3. **Extension routing** -- `parseFile` reads the extension and loads the right parser library on demand. The sample path always uses PapaParse via `parseCsvText`.
+3. **Extension routing** -- `parseFile` reads the extension, loads PapaParse on demand for `.csv`, and sends `.xlsx` to the `ImportFile` plugin. The sample path always uses PapaParse via `parseCsvText`.
 4. **Parsing** -- CSV goes through PapaParse with `header: true`; Excel goes through the built-in `ImportFile` plugin with `apply: false`, which returns the promoted header row and the rows below it.
 5. **Normalization** -- empty cells become `null`, and native numbers/booleans are preserved for CSV and Excel.
 6. **Grid population** -- `loadIntoGrid` creates the Handsontable instance on the first call (hiding the empty-state panel) or updates `colHeaders`, `columns`, and data on subsequent calls.

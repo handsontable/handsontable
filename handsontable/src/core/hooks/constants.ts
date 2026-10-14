@@ -1722,7 +1722,8 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by the {@link ImportFile} plugin after a workbook was read and mapped, and before the
    * result is applied to the grid. Mutating `result` changes what gets applied. Not fired for an
-   * import with `apply: false`. The dropped-features warning is already printed by then.
+   * import with `apply: false`, or for one that a newer import replaced. The dropped-features
+   * warning is already printed by then.
    *
    * @event Hooks#beforeImport
    * @since 19.0.0

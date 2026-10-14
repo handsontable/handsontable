@@ -25,8 +25,8 @@ Export your grid's values to the CSV format, as a downloadable file, a Blob, or 
 
 ## Prerequisites
 
-- Register the `ExportFile` plugin (it is part of `registerAllModules()`). The export methods work without any `exportFile` setting; set `exportFile: true` to add the **Export** item to the [context menu](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md#context-menu).
-- The examples hide rows and columns `1`, `3`, and `5`, with indicators on, so you can see which export includes them.
+- Register the `ExportFile` plugin (it is part of `registerAllModules()`). The export methods work without any `exportFile` setting; set `exportFile` to any value, for example `exportFile: true`, to add the **Export** item to the default [context menu](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md#context-menu); with a custom `contextMenu` item list, include `'export_file'`.
+- The first two examples hide rows and columns `1`, `3`, and `5`, with indicators on, so you can see which export includes them.
 
 ## Steps
 
@@ -161,15 +161,16 @@ Pass these options as the second argument of any export method.
 | Option | Type, default | Description |
 |---|---|---|
 | `bom` | `boolean`, `true` | Prepend the UTF-8 byte order mark (`EF BB BF`). It is prepended to the string `exportAsString()` returns too. |
-| `colHeaders` | `boolean`, `false` | Include the column headers. With [nested headers](@/api/nestedHeaders.md), every layer becomes one header line. See [Nested headers](#nested-headers). |
+| `colHeaders` | `boolean`, `false` | Include the column headers. With [nested headers](@/api/nestedHeaders.md), every layer becomes one header line. Column headers are always quoted. See [Nested headers](#nested-headers). |
 | `rowHeaders` | `boolean`, `false` | Include the row headers as the first column. |
 | `exportHiddenColumns`, `exportHiddenRows` | `boolean`, `false` | Include hidden columns or rows. `'hide'`, which the XLSX export accepts, counts as `false` here. |
 | `range` | `number[]`, whole grid | `[startRow, startColumn, endRow, endColumn]` in visual indexes. |
-| `columnDelimiter` | `string`, `','` | Column delimiter. A value that holds it is quoted. |
+| `columnDelimiter` | `string`, `','` | Column delimiter. A value that holds it, a double quote, or a line break is quoted. |
 | `rowDelimiter` | `string`, `'\r\n'` | Row delimiter. |
 | `filename` | `string`, `'Handsontable [YYYY]-[MM]-[DD]'` | File name without the extension. The placeholders become the current date. Used by `downloadFile()` and `downloadFileAsync()`. |
 | `fileExtension` | `string`, `'csv'` | File extension, used by the same two methods. |
-| `mimeType` | `string`, `'text/csv'` | MIME type of the file and the Blob. |
+| `mimeType` | `string`, `'text/csv'` | MIME type of the Blob. The Blob's type also carries `;charset=` and the `encoding` option, `text/csv;charset=utf-8` by default. |
+| `encoding` | `string`, `'utf-8'` | Charset label of the Blob and the download. The content is always UTF-8. |
 | `sanitizeValues` | `boolean \| RegExp \| Function`, `false` | `true` prefixes a value that starts with `=`, `+`, `-`, `@`, a tab, or a carriage return with `'`, following the [OWASP](https://owasp.org/www-community/attacks/CSV_Injection) rules. A `RegExp` prefixes the values it matches. A function receives the value and returns the replacement. Any of the three also quotes every non-empty cell. |
 
 ## Nested headers
@@ -207,16 +208,18 @@ const hot = new Handsontable(container, {
 });
 
 hot.getPlugin('exportFile').downloadFile('csv', { colHeaders: true });
-// The file receives: "Total","Count"
+// The file receives:
+// "Total","Count"
+// 1,2
 ```
 
 `textExtractor` is a grid option, not an export option. It applies to column, row, and nested headers, in CSV and in Excel. Cell values are left alone: a value such as `a<b` reaches the file unchanged.
 
-Extraction turns HTML entities back into characters, so a header stored as `&#61;SUM(A1)` reaches the file as `=SUM(A1)`, which a spreadsheet reads as a formula. Set [`sanitizeValues`](#options) when you export headers from untrusted sources. To extract headers differently per surface, pass `textExtractor` a function `(content, source)` instead of `true`; `source` is `'ExportFile.rowHeader'` for a row header and `'ExportFile.columnHeader'` for a column header.
+Extraction turns HTML entities back into characters, so a header stored as `&#61;SUM(A1)` reaches the file as `=SUM(A1)`, which a spreadsheet reads as a formula. Set [`sanitizeValues`](#options) when you export headers from untrusted sources. To extract headers differently per surface, pass `textExtractor` a function `(content, source)` instead of `true`; `source` is `'ExportFile.rowHeader'` for a row header and `'ExportFile.columnHeader'` for a column header in an export, and `'CopyPaste.columnHeader'` when headers are copied. Return `content` for any other `source`.
 
 ## Methods
 
-Each method takes the format first, `'csv'` or `'xlsx'`, and an options object second.
+Each export method takes the format first, `'csv'` or `'xlsx'`, and an options object second.
 
 - [`downloadFile(format, options)`](@/api/exportFile.md#downloadfile) - starts a download. Synchronous, CSV only.
 - [`downloadFileAsync(format, options)`](@/api/exportFile.md#downloadfileasync) - starts a download and returns a `Promise`. CSV and XLSX.

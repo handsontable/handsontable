@@ -29,8 +29,8 @@ Load an Excel (`.xlsx`) workbook into your grid. The `ImportFile` plugin reads t
 ## Prerequisites
 
 - The `ImportFile` plugin is part of `registerAllModules()` and is on unless you set `importFile: false`. No other library is needed.
-- When you register modules one by one, register the cell types the import derives: `numeric`, `date`, `intl-datetime`, `time`, `checkbox`, and `dropdown`. An unregistered type imports as `text` and is reported as `cellType:<name>`.
-- Enable the plugins for what you want applied: [`MergeCells`](@/api/mergeCells.md), [`HiddenRows`](@/api/hiddenRows.md), [`HiddenColumns`](@/api/hiddenColumns.md), [`CustomBorders`](@/api/customBorders.md), [`Comments`](@/api/comments.md), and [`Formulas`](@/api/formulas.md). A missing plugin is reported under its name in `result.dropped`.
+- When you register modules one by one, register the `ImportFile` plugin itself (`registerPlugin(ImportFile)`), the plugins listed below, and the cell types the import derives: `numeric`, `date`, `intl-datetime`, `time`, `checkbox`, and `dropdown`. An unregistered type is applied as `text` and reported as `cellType:<name>`. A preview with `apply: false` returns the type the file asked for.
+- Enable the plugins for what you want applied: [`CustomBorders`](@/api/customBorders.md), [`Comments`](@/api/comments.md), and [`Formulas`](@/api/formulas.md). [`MergeCells`](@/api/mergeCells.md), [`HiddenRows`](@/api/hiddenRows.md), and [`HiddenColumns`](@/api/hiddenColumns.md) only need to be registered, because the import turns them on. A missing `Comments` plugin is reported as `comments`, a missing `CustomBorders` plugin as `cellStyles:borders` (with `importStyles: true`), and an unregistered `MergeCells`, `HiddenRows`, or `HiddenColumns` plugin under its own name. Without `Formulas`, formulas import as their cached values and are listed in `result.formulas`, not in `result.dropped`. A formula with no cached value imports empty and is reported as `formula:noCachedValue`.
 
 ## Steps
 
@@ -118,7 +118,7 @@ if (preview.data.length <= 10000) {
 
 ## Result
 
-The grid shows the workbook's data with headers, cell types, dropdown lists, merged cells, hidden rows and columns, frozen panes, formulas, and comments. Styling is read but applied only with [`importStyles: true`](#styles); otherwise it is reported as `cellStyles`.
+The grid shows the workbook's data with headers, cell types, dropdown lists, merged cells, hidden columns, a formula, and a comment. The demo passes [`importStyles: true`](#styles), so it also applies the workbook's alignment, fills, and borders. Without it, styling is reported as `cellStyles`. A workbook with hidden rows or frozen panes gets those applied the same way.
 
 Click **Load sample** to import a workbook the export plugin wrote, or **Import XLSX** to pick your own.
 
@@ -170,12 +170,12 @@ Pass these options as the third argument of `importFromArrayBuffer(format, buffe
 | `colHeaders` | `boolean \| 'firstRow'` | `false` | `'firstRow'` promotes the first row to column headers. `true` behaves like `false`: the grid keeps its current `colHeaders`. |
 | `headerRows` | `number` | `1` | How many rows the header band spans, with `colHeaders: 'firstRow'`. Above `1`, those rows become [nested headers](@/guides/columns/column-groups/column-groups.md) and the data starts after them. Has to be an integer of at least `1`. |
 | `rowHeaders` | `boolean` | `false` | Drop the first column and turn generated row headers on. |
-| `range` | `number[]` | whole sheet | `[startRow, startColumn, endRow, endColumn]` in sheet coordinates. An end past the sheet is clamped. |
+| `range` | `number[]` | whole sheet | `[startRow, startColumn, endRow, endColumn]` in 0-based sheet coordinates, each start at or before its end. An end past the sheet is clamped; a start past the sheet rejects the call. |
 | `inferCellTypes` | `boolean` | `true` | Derive `numeric`, `date`, `intl-datetime`, `time`, `checkbox`, and `dropdown` types from the cells' number formats and values. The type most cells of a column share becomes the column's type in `result.columns`; cells that differ get their own `result.cellsMeta` entry. `false` turns dropdowns off too, and dates import as raw serials. Details: [number formats](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#dates-times-and-number-formats). |
 | `importFormulas` | `boolean` | `true` | Put formulas into the data when the `Formulas` plugin is on. The `_xlfn.` prefixes Excel writes are removed. A function HyperFormula lacks, such as `SORT` or `LET`, imports live and shows an error; set `importFormulas: false` to import the cached values instead. |
-| `importLayout` | `boolean` | `true` | Apply merges, hidden rows and columns, frozen panes, column widths, and row heights. An import describes the whole sheet: each of these, and `customBorders`, that the grid has and the result does not carry is reset, including one you set yourself. Borders themselves come from `importStyles`, so with `importStyles` off an import clears the grid's custom borders. The lists merge into an existing `hiddenRows`, `hiddenColumns`, or `mergeCells` options object, so options such as `indicators` survive. |
+| `importLayout` | `boolean` | `true` | Apply merges, hidden rows and columns, frozen panes, column widths, and row heights. An import describes the whole sheet: each of these, and `customBorders`, that the grid has and the result does not carry is reset, including one you set yourself. Borders themselves come from `importStyles`, so with `importStyles` off an import clears the grid's custom borders. The lists merge into an existing `hiddenRows`, `hiddenColumns`, or `mergeCells` options object, so options such as `indicators` survive. Independently of `importLayout`, a grid that already has a `columns` setting gets one empty column setting per imported column when the result carries no `columns`, so the previous file's column types do not survive. |
 | `importStyles` | `boolean` | `false` | Apply alignment, font, fill, and borders from the workbook. See [Styles](#styles). |
-| `apply` | `boolean` | `true` | Apply the result to the grid. With `false`, the result comes back and nothing changes, and neither hook fires. |
+| `apply` | `boolean` | `true` | Apply the result to the grid. With `false`, the result comes back and nothing changes, neither hook fires, and the dropped-features warning still prints. Its `dropped` leaves out the names that come from applying (`cellType:<name>`, `mergeCells`, `hiddenRows`, `hiddenColumns`, and `layoutDirection`), so a preview's list can be shorter than the real import's. |
 | `engine` | `object \| null` | - | Engine for this call only. `null`, or no key, means the engine from the `engines` setting, or the built-in one. See the [reference](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#engines). |
 
 ## Styles
@@ -210,7 +210,7 @@ await hot.getPlugin('importFile').importFromBlob('xlsx', file, {
 });
 ```
 
-A grid with a [`columnSummary`](@/guides/columns/column-summary/column-summary.md) exports the computed total, and the import loads that total back as data, so a summary over the whole column then shows double. Set the summary's `ranges` to stop above the summary row, and pass your endpoints to `updateSettings()` again after an import with more rows.
+A grid with a [`columnSummary`](@/guides/columns/column-summary/column-summary.md) exports the computed total, and the import loads that total back as data, so a summary over the whole column then shows double. Set the summary's `ranges` to stop above the summary row. Before an import with more rows, turn the summary off with `updateSettings({ columnSummary: false })`, and pass your endpoints again after the import. Otherwise the summary keeps writing to the row it computed for the previous data, over an imported value.
 
 Imported headers are HTML-escaped, so `R&D` is stored as `R&amp;D`. Set the grid's [`textExtractor`](@/api/options.md#textextractor) option to `true` to re-export them as the text the workbook held.
 
@@ -218,7 +218,7 @@ Imported headers are HTML-escaped, so `R&D` is stored as `R&amp;D`. Set the grid
 
 ## Keep the imported sheet through a re-render
 
-`HotTable` calls `updateSettings` with its props on every render. A re-render of the component that renders `HotTable` sends your original `data` and `colHeaders` again, which replaces the imported sheet and clears its merges and hidden rows. React Compiler can hide this in one component and not in the next, so do not rely on it.
+`HotTable` calls `updateSettings` with its props on every render. A re-render of the component that renders `HotTable` sends every prop again. Your original `data` and `colHeaders` replace the imported sheet, and props such as `mergeCells={true}` and `hiddenColumns={true}` clear its merges and hidden columns. React Compiler can hide this in one component and not in the next, so do not rely on it.
 
 - Keep import state, such as a status text, in a sibling component, as the demo's `ImportControls` does.
 - Render `HotTable` in a `React.memo` component with stable props, so a parent's re-render does not reach it:
@@ -239,7 +239,7 @@ Unmounting the grid, or hiding it with `<Activity mode="hidden">`, destroys the 
 
 ## Keep the imported sheet through a settings change
 
-The `hot-table` component passes every key of a new `[settings]` object to `updateSettings`. Keep the settings in one object that nothing replaces, as the demo does. A settings object you bind after an import must leave out `colHeaders` and `columns`, or they replace the imported headers and column types.
+The `hot-table` component passes every key of a new `[settings]` object to `updateSettings`. Keep the settings in one object that nothing replaces, as the demo does. A settings object you bind after an import must leave out `colHeaders`, `columns`, and the layout options the import set (`mergeCells`, `hiddenRows`, `hiddenColumns`, `customBorders`, `fixedRowsTop`, `fixedColumnsStart`, `colWidths`, `rowHeights`). Otherwise they replace the imported headers, column types, and layout.
 
 ## Import outside the Angular zone
 
@@ -269,7 +269,7 @@ importFile(file: File): void {
 
 ## Keep the imported sheet through a settings change
 
-The `HotTable` component watches the settings you pass to it. A later change sends the keys that differ to `updateSettings` again. The imported rows stay, because array `data` is not resent, but your original `colHeaders` and `columns` come back over them. Keep the settings in one stable `ref`, as the demo does, and do not change them after an import.
+The `HotTable` component watches the settings you pass to it. A later change sends the keys that differ to `updateSettings` again. The imported rows stay, because array-of-arrays `data` is not resent. Your original `colHeaders`, `columns`, and layout options such as `mergeCells: true` and `hiddenColumns: true` do come back, over the imported headers, types, merges, and hidden columns. Keep the settings in one stable `ref`, as the demo does, and do not change them after an import.
 
 :::
 

@@ -2,7 +2,7 @@
 type: how-to
 title: Export to Excel
 metaTitle: Export to Excel - JavaScript Data Grid | Handsontable
-description: Export your grid to an Excel (.xlsx) file with the built-in engine - cell types, styling, formulas, merged cells, comments, and frozen panes go with the data. No extra library is needed.
+description: Export your grid to an Excel (.xlsx) file with the built-in engine - cell types, styling, merged cells, comments, and frozen panes go with the data, and formulas too with exportFormulas.
 permalink: /export-to-excel
 canonicalUrl: /export-to-excel
 tags:
@@ -22,14 +22,14 @@ menuTag: updated
 addedIn: "17.1.0"
 ---
 
-Export your grid to an Excel (`.xlsx`) file. The `ExportFile` plugin writes the file with its built-in engine: cell types, styling, formulas, merged cells, comments, and frozen panes go with the data.
+Export your grid to an Excel (`.xlsx`) file. The `ExportFile` plugin writes the file with its built-in engine: cell types, styling, merged cells, comments, and frozen panes go with the data, and formulas too with `exportFormulas`.
 
 [[toc]]
 
 ## Prerequisites
 
 - Register the `ExportFile` plugin (it is part of `registerAllModules()`). No other library is needed.
-- Set `exportFile: true` to add the **Export** item to the context menu. The export methods work whatever the value.
+- Set `exportFile` to any value, for example `exportFile: true`, and turn on the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) to add the **Export** item to it. With a custom `contextMenu` item list, include `'export_file'`. The export methods work whatever the value, unset included.
 
 ## Steps
 
@@ -163,19 +163,19 @@ Pass these options as the second argument of `downloadFileAsync('xlsx', options)
 |---|---|---|
 | `filename` | `string`, `'Handsontable [YYYY]-[MM]-[DD]'` | File name without the extension. The placeholders become the current date. |
 | `colHeaders` | `boolean`, `false` | Write the column headers, every layer of [nested headers](@/api/nestedHeaders.md) included. Headers are written as stored; set [`textExtractor`](@/api/options.md#textextractor) to write the displayed text. |
-| `rowHeaders` | `boolean`, `false` | Write the row headers as the first column. The column is frozen only when the grid has `fixedRowsTop` or `fixedColumnsStart`. |
+| `rowHeaders` | `boolean`, `false` | Write the row headers as the first column. The column is frozen only when the export includes a row from `fixedRowsTop` or a column from `fixedColumnsStart`. |
 | `exportHiddenRows`, `exportHiddenColumns` | `boolean \| 'hide'`, `false` | `false` leaves hidden rows or columns out, `true` writes them visible, `'hide'` writes them hidden in the sheet. |
 | `range` | `number[]`, whole grid | `[startRow, startColumn, endRow, endColumn]` in visual indexes. |
-| `exportFormulas` | `boolean`, `false` | Write [Formulas](@/guides/formulas/formula-calculation/formula-calculation.md) cells and [ColumnSummary](@/guides/columns/column-summary/column-summary.md) destination cells as live Excel formulas instead of their values. Give the columns they read `type: 'numeric'`: a number in a `text` column is written as text and sums to `0`. Without the Formulas plugin, any text that starts with `=` becomes a live formula, so keep this off for a grid that holds text you did not write. Error cells, array formulas, and named expressions: see the [reference](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#dates-times-and-number-formats). |
-| `sheets` | `object[]`, none | Export several grids into one workbook: `[{ instance, name, ...options }]`. Only the listed grids are written, and each entry takes every option in this table. See [Multi-sheet export](#multi-sheet-export). |
-| `headerStyle` | `object \| null`, `{ backgroundColor: '#F2F2F2', border: { style: 'thin' } }` | Fill and border of the header cells. An object replaces the whole default, so pass both keys to keep one; `null` writes unstyled headers. |
-| `conditionalFormatting` | `object[]`, `[]` | `[{ rows: [first, last], cols: [first, last], rules }]`. `rows` and `cols` are offsets into the exported data, after `range` and hidden-row or hidden-column exclusion, and `rules` are ExcelJS-compatible rule objects ([shape](https://github.com/exceljs/exceljs#conditional-formatting)). The built-in engine writes `cellIs`, `expression`, `containsText`, `top10`, `aboveAverage`, and `timePeriod`; other kinds are reported as dropped. |
-| `compression` | `boolean \| 1-9`, `true` | `false` stores the entries uncompressed. The built-in engine uses the platform's DEFLATE level and reports any other numeric level as `compressionLevel`. |
+| `exportFormulas` | `boolean`, `false` | Write [Formulas](@/guides/formulas/formula-calculation/formula-calculation.md) cells and [ColumnSummary](@/guides/columns/column-summary/column-summary.md) destination cells (every summary type except `custom`, which is written as its value) as live Excel formulas instead of their values. A `range` that does not start at row 0 and column 0 makes references point at the wrong cells. Give the columns they read `type: 'numeric'`: a number in a `text` column is written as text and sums to `0`. Without the Formulas plugin, any text that starts with `=` becomes a live formula, so keep this off for a grid that holds text you did not write. Error cells, array formulas, and named expressions: see the [reference](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#dates-times-and-number-formats). |
+| `sheets` | `object[]`, none | Export several grids into one workbook: `[{ instance, name, ...options }]`. Only the listed grids are written, and each entry inherits the top-level options and can override `colHeaders`, `rowHeaders`, `exportHiddenRows`, `exportHiddenColumns`, `range`, `exportFormulas`, `headerStyle`, and `conditionalFormatting`. `filename`, `compression`, and `engine` apply to the whole workbook. See [Multi-sheet export](#multi-sheet-export). |
+| `headerStyle` | `object \| null`, `{ backgroundColor: '#F2F2F2', border: { style: 'thin' } }` | Fill and border of the header cells. An object replaces the whole default, so pass both keys to keep one; `null` writes unstyled headers. Set a border color with `border: { color: '#RRGGBB' }`; `fontColor` and `border.argb` are not applied. `headerStyle` also styles the row headers and the corner cell. |
+| `conditionalFormatting` | `object[]`, `[]` | `[{ rows: [first, last], cols: [first, last], rules }]`. `rows` and `cols` are offsets into the exported data, after `range` and hidden-row or hidden-column exclusion, and `rules` are ExcelJS-compatible rule objects ([shape](https://github.com/exceljs/exceljs#conditional-formatting)). Put a rule's formatting in its `style` key; a `format` key is ignored. The built-in engine writes `cellIs`, `expression`, `containsText`, `top10`, `aboveAverage`, and `timePeriod`; other kinds are reported as dropped. |
+| `compression` | `boolean \| 1-9`, compressed | Unset or `true` compresses the entries with DEFLATE; `false` stores them uncompressed. A number from 1 to 9 sets the DEFLATE level on the ExcelJS engine. The built-in engine always uses the platform's DEFLATE level and reports a level other than 6 as `compressionLevel`. |
 | `engine` | `object \| null`, none | Engine for this call only. See the [reference](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#engines). |
 
 ## Multi-sheet export
 
-Pass the `sheets` option to write several grids into one workbook, one per entry, each with its `instance` and the `name` of its tab. A sheet name is cut to 31 characters and stripped of the characters Excel forbids. With `exportFormulas`, a formula that names another sheet in the same export is written as typed and is not shifted by that sheet's header row and row-header column, so it points one row up and one column left of the intended cell; same-sheet references are shifted correctly.
+Pass the `sheets` option to write several grids into one workbook, one per entry, each with its `instance` and the `name` of its tab. A sheet name is cut to 31 characters and stripped of the characters Excel forbids. With `exportFormulas`, a same-sheet reference is shifted by the header rows and the row-header column, but not by the start of `range`: with a `range` that does not start at row 0 and column 0, references point at the wrong cells. A formula that names another sheet in the same export is written as typed, so it points as many rows up as that sheet has header rows, and one column left when that sheet has row headers.
 
 ::: only-for javascript
 ::: example #example2 :hot-excel --html 1 --js 2 --ts 3
@@ -263,8 +263,8 @@ The export covers the selected range, or the whole grid when a single cell is se
 
 | Handsontable type | In the file |
 |---|---|
-| `numeric` | A number, with a number format built from `numericFormat`: currency symbols in quotes, `minimumIntegerDigits` as leading zeros. |
-| `date`, `intl-date` | A date serial, with a format built from `dateFormat` and the cell's [`locale`](@/api/options.md#locale). A date before 1900 and a date that does not exist are written as text. |
+| `numeric` | A number, with a number format built from `numericFormat`: currency symbols in quotes (a lone `$` as it is, and a symbol several currencies share as an Excel locale token such as `[$kr-414]`), `minimumIntegerDigits` as leading zeros. |
+| `date`, `intl-date` | A date serial, with a format built from `dateFormat` and the cell's [`locale`](@/api/options.md#locale). A date before 1900, a date that does not exist, and a value that is not an ISO 8601 `YYYY-MM-DD` string are written as text. |
 | `time`, `intl-time` | A time serial. The clock follows `hour12`, or the locale when `hour12` is not set. |
 | `intl-datetime` | A date-time serial, with a format built from `dateTimeFormat`. |
 | `checkbox` | `TRUE` or `FALSE`. An empty value stays empty. |
@@ -272,9 +272,9 @@ The export covers the selected range, or the whole grid when a single cell is se
 | `multiselect` | The values joined with `, `. |
 | Everything else | Text. A number in a `text` column is text too. |
 
-Styling comes from the rendered cell: bold, italic, underline, font color, and background. Alignment comes from the `htLeft`, `htCenter`, `htRight`, `htJustify`, `htTop`, `htMiddle`, and `htBottom` classes, and borders from the [`CustomBorders`](@/api/customBorders.md) plugin (1 px thin, 2 px medium, 3 px and up thick). Font size and family are not written. A font color is written only when it differs from what a plain cell in the same grid shows, so a color the cell inherits from its container is not.
+Bold, italic, and underline come from the rendered cell. Font color and background are written only for a cell whose `className` holds a class other than the alignment classes. The font color is the rendered cell's own, written when it differs from what a plain cell in the same grid shows, so a color the cell inherits from its container is not. The background comes from the CSS rules that match the class on a `.handsontable td`, so a background a renderer sets inline, or one from a rule scoped to an element outside the grid (such as `#orders td.overdue`), is not written. Alignment comes from the `htLeft`, `htCenter`, `htRight`, `htJustify`, `htTop`, `htMiddle`, and `htBottom` classes, and borders from the [`CustomBorders`](@/api/customBorders.md) plugin (1 px thin, 2 px medium, 3 px and up thick). Font size and family are not written.
 
-Read-only cells get a gray fill and gray text, the sheet is protected without a password, and only read-only cells are locked - unless the grid has a `columnSummary`, which needs an unprotected sheet. The grid's `readOnlyStyling` option does not change the file.
+Read-only cells get a gray fill and gray text, unless their class sets a background or font color. The sheet is protected without a password and only read-only cells are locked, unless the export includes a `columnSummary` destination cell: then the sheet is not protected, because those cells are read-only only to stop edits in the grid. The grid's `readOnlyStyling` option does not change the file.
 
 Frozen panes: `fixedRowsTop` and `fixedColumnsStart` are written; `fixedRowsBottom` and `fixedColumnsEnd` are not. A right-to-left grid, through [`layoutDirection`](@/api/options.md#layoutdirection) or a right-to-left page, exports a right-to-left sheet. Comments are written from each cell's `comment` meta. `password` cells are written as text.
 
