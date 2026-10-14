@@ -3,7 +3,7 @@ import { Component, ViewChild, ViewEncapsulation } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 
 @Component({
-  selector: 'app-example4',
+  selector: 'app-example3',
   standalone: true,
   imports: [HotTableModule],
   template: `

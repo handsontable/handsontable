@@ -5,7 +5,7 @@ import { ExportFile } from 'handsontable/plugins';
 // Register all Handsontable's modules.
 registerAllModules();
 
-const container = document.querySelector('#example4')!;
+const container = document.querySelector('#example3')!;
 
 const hot = new Handsontable(container, {
   data: [

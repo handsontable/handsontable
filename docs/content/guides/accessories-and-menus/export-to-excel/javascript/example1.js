@@ -55,7 +55,8 @@ const hot = new Handsontable(container, {
   ],
   fixedColumnsStart: 1,
   rowHeaders: true,
-  colHeaders: false,
+  comments: true,
+  colHeaders: true,
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
@@ -64,7 +65,7 @@ const hot = new Handsontable(container, {
 });
 
 // Add a comment to Alice's notes cell.
-hot.setCellMeta(0, 4, 'comment', { value: 'Top sales rep — review for promotion.' });
+hot.setCellMeta(0, 4, 'comment', { value: 'Top sales rep - review for promotion.' });
 hot.render();
 
 const exportPlugin = hot.getPlugin('exportFile');

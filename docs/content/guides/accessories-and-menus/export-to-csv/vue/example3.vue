@@ -65,7 +65,7 @@ function downloadWithFunctionSanitization(): void {
 </script>
 
 <template>
-  <div id="example4">
+  <div id="example3">
     <div class="example-controls-container">
       <div class="controls">
         <button type="button" @click="downloadWithNoSanitization">

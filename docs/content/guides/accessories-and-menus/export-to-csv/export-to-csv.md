@@ -114,10 +114,11 @@ This example keeps hidden indicators in the grid, but exports only visible rows 
 :::
 :::
 
-### Export as a string
+### Prevent CSV injection attack
 
-Open a console in browser developer tools to see the result for the below example.
-Like the Blob example, this export uses only visible data and skips hidden rows and columns.
+"CSV Injection, also known as Formula Injection, occurs when websites embed untrusted input inside CSV files. When a spreadsheet program such as Microsoft Excel or LibreOffice Calc is used to open a CSV, any cells starting with = will be interpreted by the software as a formula." (from [OWASP website](https://owasp.org/www-community/attacks/CSV_Injection))
+
+To prevent this attack, set the [`sanitizeValues` option](#sanitizevalues-boolean|regexp|function) when exporting your data in CSV format.
 
 ::: only-for javascript
 ::: example #example3 --html 1 --js 2 --ts 3
@@ -138,6 +139,7 @@ Like the Blob example, this export uses only visible data and skips hidden rows 
 :::
 :::
 
+
 ::: only-for angular
 ::: example #example3 :angular --ts 1 --html 2
 
@@ -151,49 +153,6 @@ Like the Blob example, this export uses only visible data and skips hidden rows 
 ::: example #example3 :vue3
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/vue/example3.vue)
-
-:::
-:::
-
-### Prevent CSV injection attack
-
-"CSV Injection, also known as Formula Injection, occurs when websites embed untrusted input inside CSV files. When a spreadsheet program such as Microsoft Excel or LibreOffice Calc is used to open a CSV, any cells starting with = will be interpreted by the software as a formula." (from [OWASP website](https://owasp.org/www-community/attacks/CSV_Injection))
-
-To prevent this attack, set the [`sanitizeValues` option](#sanitizevalues-boolean|regexp|function) when exporting your data in CSV format.
-
-::: only-for javascript
-::: example #example4 --html 1 --js 2 --ts 3
-
-@[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example4.html)
-@[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example4.js)
-@[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example4.ts)
-
-:::
-:::
-
-::: only-for react
-::: example #example4 :react --js 1 --ts 2
-
-@[code](@/content/guides/accessories-and-menus/export-to-csv/react/example4.jsx)
-@[code](@/content/guides/accessories-and-menus/export-to-csv/react/example4.tsx)
-
-:::
-:::
-
-
-::: only-for angular
-::: example #example4 :angular --ts 1 --html 2
-
-@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example4.ts)
-@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example4.html)
-
-:::
-:::
-
-::: only-for vue
-::: example #example4 :vue3
-
-@[code](@/content/guides/accessories-and-menus/export-to-csv/vue/example4.vue)
 
 :::
 :::
