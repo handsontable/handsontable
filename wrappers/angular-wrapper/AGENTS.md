@@ -24,7 +24,7 @@
 
 ## Build & Test
 
-- Build: ng-packagr 22 (Angular 22, TypeScript 6, Node >= 22.22.3)
+- Build: ng-packagr 22 (Angular 22, TypeScript 6; Angular 22 documents Node ^22.22.3 or ^24.15.0 or ^26, and the wrapper sets no `engines` because that field would be published)
 - Test: `npm run test --prefix wrappers/angular-wrapper` (Jest 30 + jest-preset-angular 17)
 - Lint: `npm run lint --prefix wrappers/angular-wrapper` (ESLint 9 flat config in `eslint.config.js`; the monorepo root stays on ESLint 8)
 - Gotcha: Tests use `NODE_OPTIONS=--openssl-legacy-provider`
