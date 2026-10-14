@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-14T10:42:21.415Z",
+  "generatedAt": "2026-10-14T11:18:20.392Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -98,7 +98,7 @@
       "file": "e2e/iframe-cross-realm-scroll.spec.ts",
       "line": 100,
       "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
-      "count7": 3,
+      "count7": 2,
       "count30": 13,
       "countAll": 14,
       "runs30": 9,
@@ -12793,7 +12793,7 @@
       "file": "e2e/read-only-styling.spec.ts",
       "line": 18,
       "title": "readOnlyStyling › a read-only cell is still dimmed by default",
-      "count7": 2,
+      "count7": 0,
       "count30": 2,
       "countAll": 2,
       "runs30": 1,
