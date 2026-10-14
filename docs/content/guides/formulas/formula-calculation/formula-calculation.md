@@ -692,7 +692,7 @@ With `hyperlinks` enabled, `=HYPERLINK("https://handsontable.com", "Handsontable
 `Handsontable` as a link that points to `https://handsontable.com`. When you omit the second
 argument, the URL becomes the label.
 
-The example below renders a column of company websites as links. Click a link, or select its cell and press <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>, to open it in a new tab:
+The example below renders a column of company websites as links. Click a link, or select its cell and press <kbd>**Alt**</kbd>/<kbd>⌥</kbd>+<kbd>**Enter**</kbd>, to open it in a new tab:
 
 ::: only-for javascript
 
@@ -768,7 +768,7 @@ the URL that the formula produces, so a URL that comes from cell data is checked
 ### Keyboard access
 
 A link inside a cell stays out of the tab order, so tabbing still moves between cells. To open the
-link of the selected cell, press <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>. Links open where the `target` setting says, a new browser tab by default.
+link of the selected cell, press <kbd>**Alt**</kbd>/<kbd>⌥</kbd>+<kbd>**Enter**</kbd>. Links open where the `target` setting says, a new browser tab by default.
 
 ### Styling
 

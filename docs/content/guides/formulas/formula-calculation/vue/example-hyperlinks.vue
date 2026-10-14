@@ -9,16 +9,16 @@ import type { GridSettings } from 'handsontable/settings';
 registerAllModules();
 
 const data: string[][] = [
-  ['Company', 'Website'],
   ['Acme Corp', '=HYPERLINK("https://example.com/acme", "acme.example.com")'],
   ['Vertex Industries', '=HYPERLINK("https://example.com/vertex", "vertex.example.com")'],
   ['Harbor Goods', '=HYPERLINK("https://example.com/harbor", "harbor.example.com")'],
   ['Alpine Supply Co.', '=HYPERLINK("https://example.com/alpine", "alpine.example.com")'],
+  ['Summit Logistics', '=HYPERLINK("https://example.com/summit", "summit.example.com")'],
 ];
 
 const hotSettings = ref<GridSettings>({
   data,
-  colHeaders: true,
+  colHeaders: ['Company', 'Website'],
   rowHeaders: true,
   height: 'auto',
   colWidths: [180, 220],
