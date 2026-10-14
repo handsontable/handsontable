@@ -176,6 +176,9 @@ export type TokenKey =
   | 'cellSelectionHandleBackgroundColor'
   // Resize/Move indicators
   | 'resizeIndicatorColor'
+  | 'freezeBarColor'
+  | 'freezeBarHoverColor'
+  | 'freezeBarHighlightColor'
   | 'moveBacklightColor'
   | 'moveBacklightOpacity'
   | 'moveIndicatorColor'

@@ -137,9 +137,13 @@ export class FreezeBar extends BasePlugin {
    */
   #separators: Partial<Record<FreezeEdge, HTMLElement>> = {};
   /**
-   * The guide that shows the snapped position while a bar is dragged.
+   * The guide that shows, while a bar is dragged, where it lands: a shadow of the bar at the snapped position.
    */
   #guide: HTMLElement | null = null;
+  /**
+   * The shadow of the bar that follows the pointer while a bar is dragged.
+   */
+  #ghost: HTMLElement | null = null;
   /**
    * The state of the drag in progress.
    */
@@ -436,6 +440,9 @@ export class FreezeBar extends BasePlugin {
     this.#frame = EDGES.some(edge => this.#isEdgeAvailable(edge)) ? this.#measureFrame() : null;
     EDGES.forEach(edge => this.#syncBar(edge));
     this.#frame = null;
+    // the stylesheet keeps the resize handles clear of the bars on the axes that have them
+    this.hot.rootElement.classList.toggle('ht-freeze-bar-columns', this.#isEdgeAvailable('start'));
+    this.hot.rootElement.classList.toggle('ht-freeze-bar-rows', this.#isEdgeAvailable('top'));
   };
 
   /**
@@ -638,6 +645,8 @@ export class FreezeBar extends BasePlugin {
         segment.setAttribute('aria-hidden', 'true');
         segment.addEventListener('wheel', this.#onWheel, { passive: false });
         segment.addEventListener('pointerdown', event => this.#onPointerDown(edge, event));
+        segment.addEventListener('pointerenter', () => this.#setHover(edge, true));
+        segment.addEventListener('pointerleave', () => this.#setHover(edge, false));
         pieces.set(name, segment);
       }
 
@@ -816,6 +825,8 @@ export class FreezeBar extends BasePlugin {
     bar.setAttribute('aria-hidden', 'true');
     bar.addEventListener('pointerdown', event => this.#onPointerDown(edge, event));
     bar.addEventListener('wheel', this.#onWheel, { passive: false });
+    bar.addEventListener('pointerenter', () => this.#setHover(edge, true));
+    bar.addEventListener('pointerleave', () => this.#setHover(edge, false));
 
     return bar;
   }
@@ -912,6 +923,8 @@ export class FreezeBar extends BasePlugin {
     // show what the drag will freeze. The grid scrolls to that edge when the pointer starts to move, not when it
     // is pressed: a click that only focuses the bar, or a drag cancelled at once, leaves the grid where it was.
     const begin = () => {
+      // the drag shows its own indicators, and the bar goes back to its plain color until it is released
+      this.#setHover(edge, false);
       this.#scrollToEdge(edge);
 
       const rootRect = this.hot.rootElement.getBoundingClientRect();
@@ -947,7 +960,14 @@ export class FreezeBar extends BasePlugin {
       const distance = normalizeVisualDelta(pointer, scale) - headerSize;
 
       this.#drag!.count = resolveFreezeCount({ distance, trackSizes, maxCount });
-      this.#showGuide(edge, trackSizes, this.#drag!.count, headerSize, rootRect, visibleRect);
+      this.#showGuide(edge, {
+        trackSizes,
+        count: this.#drag!.count,
+        pointer: normalizeVisualDelta(pointer, scale),
+        headerSize,
+        rootRect,
+        visibleRect,
+      });
     };
     const finish = (commit: boolean) => {
       const drag = this.#drag;
@@ -1179,33 +1199,88 @@ export class FreezeBar extends BasePlugin {
   }
 
   /**
-   * Shows the guide at the snapped position.
+   * Shows where a dragged bar lands, the way a spreadsheet does: a shadow of the bar at the snapped position (the
+   * guide) and a shadow that follows the pointer (the ghost). Both are drawn in the accent color over the headers.
    *
    * @param {string} edge The edge.
-   * @param {number[]} trackSizes The track sizes.
-   * @param {number} count The snapped count.
-   * @param {number} headerSize The size of the headers before the first track.
-   * @param {DOMRect} rootRect The bounding rectangle of the root element.
-   * @param {object} visibleRect The part of the root element the bands are pinned to.
+   * @param {object} drag The state of the drag.
+   * @param {number[]} drag.trackSizes The track sizes.
+   * @param {number} drag.count The snapped count.
+   * @param {number} drag.pointer The distance of the pointer from the visible edge, headers included.
+   * @param {number} drag.headerSize The size of the headers before the first track.
+   * @param {DOMRect} drag.rootRect The bounding rectangle of the root element.
+   * @param {object} drag.visibleRect The part of the root element the bands are pinned to.
    */
-  #showGuide(
-    edge: FreezeEdge,
+  #showGuide(edge: FreezeEdge, drag: {
     trackSizes: number[],
     count: number,
+    pointer: number,
     headerSize: number,
     rootRect: DOMRect,
     visibleRect: Rect,
-  ) {
-    const columns = isColumnEdge(edge);
+  }) {
+    const { trackSizes, count, pointer, headerSize, rootRect, visibleRect } = drag;
     const offset = headerSize + trackSizes.slice(0, count).reduce((sum, size) => sum + size, 0);
+    const length = isColumnEdge(edge) ? visibleRect.right - visibleRect.left : visibleRect.bottom - visibleRect.top;
 
-    if (!this.#guide) {
-      this.#guide = this.hot.rootDocument.createElement('div');
-      this.#guide.className = 'ht-freeze-bar-guide';
-      this.hot.rootElement.appendChild(this.#guide);
+    this.#guide = this.#placeIndicator(this.#guide, 'ht-freeze-bar-guide', edge, rootRect, visibleRect, offset);
+    // the pointer is kept inside the tracks, so the shadow never lies over the headers before them
+    this.#ghost = this.#placeIndicator(this.#ghost, 'ht-freeze-bar-ghost', edge, rootRect, visibleRect,
+      Math.min(Math.max(pointer, headerSize), length));
+  }
+
+  /**
+   * Creates an indicator of a drag, or reuses it, and places it along the axis of the edge: a line as thick as the
+   * bar, centered on the position. The size of the header strip it crosses (the column headers for the column edges,
+   * the row headers for the row edges) is passed to the stylesheet, which draws that part in the accent color.
+   *
+   * @param {HTMLElement | null} element The indicator, or `null` to create it.
+   * @param {string} className The class of the indicator.
+   * @param {string} edge The edge.
+   * @param {DOMRect} rootRect The bounding rectangle of the root element.
+   * @param {object} visibleRect The part of the root element the bands are pinned to.
+   * @param {number} position The position along the axis, measured from the visible edge the band grows from.
+   * @returns {HTMLElement}
+   */
+  #placeIndicator(
+    element: HTMLElement | null,
+    className: string,
+    edge: FreezeEdge,
+    rootRect: DOMRect,
+    visibleRect: Rect,
+    position: number,
+  ): HTMLElement {
+    const columns = isColumnEdge(edge);
+    const view = this.hot.view;
+    const indicator = element ?? this.hot.rootDocument.createElement('div');
+
+    if (!element) {
+      indicator.className = `${className} ${className}--${columns ? 'columns' : 'rows'}`;
+      this.hot.rootElement.appendChild(indicator);
     }
 
-    const style = this.#guide.style;
+    const style = indicator.style;
+    const headerStrip = columns ? view.getColumnHeaderHeight() : view.getRowHeaderWidth();
+    // the offset is measured from the visible edge, the indicator is placed from the root element's edge
+    const shift = {
+      left: visibleRect.left - rootRect.left,
+      right: rootRect.right - visibleRect.right,
+      top: visibleRect.top - rootRect.top,
+      bottom: rootRect.bottom - visibleRect.bottom,
+    };
+    let along: 'left' | 'right' | 'top' | 'bottom';
+    let across: 'left' | 'right' | 'top';
+
+    if (columns) {
+      along = growsFromStart(edge) !== this.hot.isRtl() ? 'left' : 'right';
+      across = 'top';
+    } else {
+      along = growsFromStart(edge) ? 'top' : 'bottom';
+      across = this.hot.isRtl() ? 'right' : 'left';
+    }
+
+    const thickness = columns ? 'width' : 'height';
+    const crossSize = columns ? 'height' : 'width';
 
     style.position = 'absolute';
     style.pointerEvents = 'none';
@@ -1213,32 +1288,65 @@ export class FreezeBar extends BasePlugin {
     style.right = 'auto';
     style.top = 'auto';
     style.bottom = 'auto';
+    style.margin = '0';
+    style[along] = `${position + shift[along]}px`;
+    style[across] = `${shift[across]}px`;
+    style.setProperty('--ht-freeze-bar-header', `${headerStrip}px`);
 
-    // the offset is measured from the visible edge, the guide is placed from the root element's edge
-    const fromLeft = growsFromStart(edge) !== this.hot.isRtl();
-    const shift = {
-      left: visibleRect.left - rootRect.left,
-      right: rootRect.right - visibleRect.right,
-      top: visibleRect.top - rootRect.top,
-      bottom: rootRect.bottom - visibleRect.bottom,
-    };
+    style[thickness] = 'var(--ht-sizing-size-1)';
+    // centered on the position
+    style[`margin${along[0].toUpperCase()}${along.slice(1)}` as 'marginLeft'] = 'calc(var(--ht-sizing-size-1) / -2)';
+    style[crossSize] = `${columns ? visibleRect.bottom - visibleRect.top : visibleRect.right - visibleRect.left}px`;
 
-    if (columns) {
-      style[fromLeft ? 'left' : 'right'] = `${offset + shift[fromLeft ? 'left' : 'right']}px`;
-      style.top = `${shift.top}px`;
-      style.width = 'var(--ht-sizing-size-0-5)';
-      style.height = `${visibleRect.bottom - visibleRect.top}px`;
-    } else {
-      style[growsFromStart(edge) ? 'top' : 'bottom'] =
-        `${offset + shift[growsFromStart(edge) ? 'top' : 'bottom']}px`;
-      style.left = `${shift.left}px`;
-      style.height = 'var(--ht-sizing-size-0-5)';
-      style.width = `${visibleRect.right - visibleRect.left}px`;
-    }
+    return indicator;
   }
 
   /**
-   * Marks the bar of an edge as held, which draws it in the accent color, or clears the mark.
+   * Marks the bar of an edge as hovered, which draws the part of the bar and its pieces that lies over the headers
+   * in the hover color (in the highlight color while the bar is pressed, `ht-freeze-bar--active`), or clears the
+   * mark. The part is given to each piece in its own coordinates (`--ht-freeze-bar-header-from` and
+   * `--ht-freeze-bar-header-to`), because the pieces start in different overlays. A drag clears the mark once the
+   * pointer moves, and its indicators take over, so a hover that starts during one is ignored.
+   *
+   * @param {string} edge The edge.
+   * @param {boolean} hovered `true` while the pointer is over the bar.
+   */
+  #setHover(edge: FreezeEdge, hovered: boolean) {
+    const pieces = [this.#bars[edge], ...(this.#segments[edge]?.values() ?? [])]
+      .filter((piece): piece is HTMLElement => !!piece);
+
+    if (!hovered || this.#drag) {
+      pieces.forEach(piece => piece.classList.remove('ht-freeze-bar--hover'));
+
+      return;
+    }
+
+    const columns = isColumnEdge(edge);
+    const view = this.hot.view;
+    const visible = this.#measureFrame(this.hot.rootElement.getBoundingClientRect()).rendered;
+    const rowHeaderWidth = view.getRowHeaderWidth();
+    // the header strip the bar crosses: the column headers for a column bar, the row headers for a row bar
+    const strip = columns
+      ? { from: visible.top, to: visible.top + view.getColumnHeaderHeight() }
+      : {
+        from: this.hot.isRtl() ? visible.right - rowHeaderWidth : visible.left,
+        to: this.hot.isRtl() ? visible.right : visible.left + rowHeaderWidth,
+      };
+
+    pieces.forEach((piece) => {
+      const rect = piece.getBoundingClientRect();
+      const origin = columns ? rect.top : rect.left;
+
+      piece.style.setProperty('--ht-freeze-bar-header-from', `${strip.from - origin}px`);
+      piece.style.setProperty('--ht-freeze-bar-header-to', `${strip.to - origin}px`);
+      piece.classList.add('ht-freeze-bar--hover');
+    });
+  }
+
+  /**
+   * Marks the bar of an edge as held, which closes the hand of the cursor, or clears the mark. The root element is
+   * marked too, so the closed hand stays over the cells: the pointer capture is not guaranteed to hold for the
+   * whole drag, and without it the cursor is the one of the element under the pointer.
    *
    * @param {string} edge The edge.
    * @param {boolean} active `true` while the bar is held.
@@ -1247,14 +1355,17 @@ export class FreezeBar extends BasePlugin {
     [this.#bars[edge], ...(this.#segments[edge]?.values() ?? [])].forEach((piece) => {
       piece?.classList.toggle('ht-freeze-bar--active', active);
     });
+    this.hot.rootElement.classList.toggle('ht-freeze-bar-dragging', active);
   }
 
   /**
-   * Removes the guide.
+   * Removes the guide and the ghost of a drag.
    */
   #hideGuide() {
     this.#guide?.remove();
+    this.#ghost?.remove();
     this.#guide = null;
+    this.#ghost = null;
   }
 
   /**
@@ -1433,5 +1544,6 @@ export class FreezeBar extends BasePlugin {
     this.#bars = {};
     this.#separators = {};
     this.#segments = {};
+    this.hot.rootElement?.classList.remove('ht-freeze-bar-columns', 'ht-freeze-bar-rows');
   }
 }

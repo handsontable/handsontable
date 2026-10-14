@@ -91,7 +91,7 @@ export class FreezeBarPage {
    * Every element the plugin added to the page.
    */
   get allBars(): Locator {
-    return this.page.locator('.ht-freeze-bar, .ht-freeze-bar-guide, .ht-freeze-bar-separator');
+    return this.page.locator('.ht-freeze-bar, .ht-freeze-bar-guide, .ht-freeze-bar-ghost, .ht-freeze-bar-separator');
   }
 
   /**

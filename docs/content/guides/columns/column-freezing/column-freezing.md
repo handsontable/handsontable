@@ -94,7 +94,8 @@ To let users change the number of frozen columns and rows by dragging, enable th
 - When a drag starts, the grid scrolls to the start of that axis (to the end for the bottom and end bars), so the rows or columns that get frozen are the ones on screen.
 - The bar never moves a column. It changes how many of the first (or last) columns are frozen.
 - An edge with nothing frozen has a handle on a corner of the headers, and it stays in place while the grid scrolls. The empty start and top edges can be grabbed along their whole length, so users can start freezing from there, but only the short piece on the corner is drawn. The empty end and bottom edges have only that short piece.
-- The bar is gray, and turns to the accent color while it is held.
+- The bar is gray, and the cursor over it is an open hand that closes while you drag. When you hover the bar, its part over the headers takes the accent color. To change the colors, set the `--ht-freeze-bar-color` and `--ht-freeze-bar-highlight-color` CSS variables (see [Theme customization](@/guides/styling/theme-customization/theme-customization.md)).
+- During a drag, a light shadow of the bar follows the pointer, and a gray shadow shows where the bar lands. Both shadows are drawn in the accent color over the headers. The bar stays where it is until you release it.
 - Press <kbd>**Escape**</kbd> during a drag to cancel it.
 - To use the keyboard, press <kbd>**F6**</kbd> in the grid to focus the first bar, and <kbd>**F6**</kbd> again (or <kbd>**Shift**</kbd>+<kbd>**F6**</kbd>) to move to the next (or the previous) bar. Then press the <kbd>**Arrow**</kbd> keys to change the count by one, <kbd>**Home**</kbd> to unfreeze, or <kbd>**End**</kbd> to freeze as many as fit. Each bar is a `separator` with the `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes.
 - When the [`Pagination`](@/api/pagination.md) plugin is on, the bars for rows are hidden, because Pagination doesn't support frozen rows.

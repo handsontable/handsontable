@@ -324,6 +324,11 @@ const tokensKeys = [
   // Resize Indicator Variables
   'resize-indicator-color',
 
+  // Freeze Bar Variables
+  'freeze-bar-color',
+  'freeze-bar-hover-color',
+  'freeze-bar-highlight-color',
+
   // Hidden Indicator Variables
   'hidden-indicator-color',
 
