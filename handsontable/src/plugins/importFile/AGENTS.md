@@ -108,8 +108,8 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   kept, the per-run formatting is not), `images`, `tables`,
   `autoFilter`, `sheetProtection:password` (the file carries a salted hash, never a password — it is
   deliberately NOT modelled, so a re-export cannot claim one; `readOnly` is still derived from the
-  protection). They are listed in the reference page's "Dropped features on import" table
-  (`docs/content/guides/accessories-and-menus/excel-import-export-reference/`); add to both or neither.
+  protection). They are listed in the XLSX engine page's "Dropped features on import" table
+  (`docs/content/guides/accessories-and-menus/xlsx-engine/`); add to both or neither.
   `merge:overlap` is a WRITE-direction name and belongs in the export table only - it sat in the import
   table until DEV-3414 because of an over-literal reading of this rule.
 - **A number index in `sheet` skips very-hidden sheets AND a hidden sheet named `_HotValidation<n>`**

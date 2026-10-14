@@ -102,7 +102,7 @@ fileInput.addEventListener('change', async () => {
 
 ### 3. Read what was dropped
 
-`result.dropped` lists what the file carried and the grid did not take, and the plugin prints the same list in one console warning per import. The [reference](@/guides/accessories-and-menus/excel-import-export-reference/excel-import-export-reference.md#dropped-features-on-import) explains every key.
+`result.dropped` lists what the file carried and the grid did not take, and the plugin prints the same list in one console warning per import. The [reference](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#dropped-features-on-import) explains every key.
 
 ### 4. Preview before you apply
 
@@ -171,12 +171,12 @@ Pass these options as the third argument of `importFromArrayBuffer(format, buffe
 | `headerRows` | `number` | `1` | How many rows the header band spans, with `colHeaders: 'firstRow'`. Above `1`, those rows become [nested headers](@/guides/columns/column-groups/column-groups.md) and the data starts after them. Has to be an integer of at least `1`. |
 | `rowHeaders` | `boolean` | `false` | Drop the first column and turn generated row headers on. |
 | `range` | `number[]` | whole sheet | `[startRow, startColumn, endRow, endColumn]` in sheet coordinates. An end past the sheet is clamped. |
-| `inferCellTypes` | `boolean` | `true` | Derive `numeric`, `date`, `intl-datetime`, `time`, `checkbox`, and `dropdown` types from the cells' number formats and values. The type most cells of a column share becomes the column's type in `result.columns`; cells that differ get their own `result.cellsMeta` entry. `false` turns dropdowns off too, and dates import as raw serials. Details: [number formats](@/guides/accessories-and-menus/excel-import-export-reference/excel-import-export-reference.md#dates-times-and-number-formats). |
+| `inferCellTypes` | `boolean` | `true` | Derive `numeric`, `date`, `intl-datetime`, `time`, `checkbox`, and `dropdown` types from the cells' number formats and values. The type most cells of a column share becomes the column's type in `result.columns`; cells that differ get their own `result.cellsMeta` entry. `false` turns dropdowns off too, and dates import as raw serials. Details: [number formats](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#dates-times-and-number-formats). |
 | `importFormulas` | `boolean` | `true` | Put formulas into the data when the `Formulas` plugin is on. The `_xlfn.` prefixes Excel writes are removed. A function HyperFormula lacks, such as `SORT` or `LET`, imports live and shows an error; set `importFormulas: false` to import the cached values instead. |
 | `importLayout` | `boolean` | `true` | Apply merges, hidden rows and columns, frozen panes, column widths, row heights, and borders. An import describes the whole sheet: a layout setting the grid has and the workbook does not carry is reset, including one you set yourself. The lists merge into an existing `hiddenRows`, `hiddenColumns`, or `mergeCells` options object, so options such as `indicators` survive. |
 | `importStyles` | `boolean` | `false` | Apply alignment, font, fill, and borders from the workbook. See [Styles](#styles). |
 | `apply` | `boolean` | `true` | Apply the result to the grid. With `false`, the result comes back and nothing changes, and neither hook fires. |
-| `engine` | `object \| null` | - | Engine for this call only. `null`, or no key, means the engine from the `engines` setting, or the built-in one. See the [reference](@/guides/accessories-and-menus/excel-import-export-reference/excel-import-export-reference.md#engines). |
+| `engine` | `object \| null` | - | Engine for this call only. `null`, or no key, means the engine from the `engines` setting, or the built-in one. See the [reference](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#engines). |
 
 ## Styles
 
@@ -277,7 +277,7 @@ The `HotTable` component watches the settings you pass to it. A later change sen
 
 - [`beforeImport(result, format)`](@/api/hooks.md#beforeimport) runs after mapping and before applying. Return `false` to leave the grid untouched; the promise still resolves with the result. Mutate `result` to change what is applied. The dropped-features warning is already printed by then.
 - [`afterImport(result, format)`](@/api/hooks.md#afterimport) runs after the grid was updated.
-- Neither hook runs for `apply: false`, or for an import that a newer import replaced (see [Concurrent imports](@/guides/accessories-and-menus/excel-import-export-reference/excel-import-export-reference.md#concurrent-imports)).
+- Neither hook runs for `apply: false`, or for an import that a newer import replaced (see [Concurrent imports](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#concurrent-imports)).
 
 ## Related articles
 
@@ -287,7 +287,7 @@ The `HotTable` component watches the settings you pass to it. A later change sen
 
 - [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md)
 - [Export to CSV](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md)
-- [Excel import and export reference](@/guides/accessories-and-menus/excel-import-export-reference/excel-import-export-reference.md)
+- [XLSX engine](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md)
 - [Import from CSV or Excel](@/recipes/import-export/import-csv-excel/import-csv-excel.md)
 
 </div>

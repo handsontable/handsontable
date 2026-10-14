@@ -245,7 +245,7 @@ Get the plugin from the `hotInstance` of your `HotTable` template ref: `hotRef.v
 
 - [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md)
 - [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md)
-- [Excel import and export reference](@/guides/accessories-and-menus/excel-import-export-reference/excel-import-export-reference.md)
+- [XLSX engine](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md)
 
 </div>
 

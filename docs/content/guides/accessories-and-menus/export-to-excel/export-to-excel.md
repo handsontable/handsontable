@@ -166,12 +166,12 @@ Pass these options as the second argument of `downloadFileAsync('xlsx', options)
 | `rowHeaders` | `boolean`, `false` | Write the row headers as the first column. The column is frozen only when the grid has `fixedRowsTop` or `fixedColumnsStart`. |
 | `exportHiddenRows`, `exportHiddenColumns` | `boolean \| 'hide'`, `false` | `false` leaves hidden rows or columns out, `true` writes them visible, `'hide'` writes them hidden in the sheet. |
 | `range` | `number[]`, whole grid | `[startRow, startColumn, endRow, endColumn]` in visual indexes. |
-| `exportFormulas` | `boolean`, `false` | Write [Formulas](@/guides/formulas/formula-calculation/formula-calculation.md) cells and [ColumnSummary](@/guides/columns/column-summary/column-summary.md) destination cells as live Excel formulas instead of their values. Give the columns they read `type: 'numeric'`: a number in a `text` column is written as text and sums to `0`. Without the Formulas plugin, any text that starts with `=` becomes a live formula, so keep this off for a grid that holds text you did not write. Error cells, array formulas, and named expressions: see the [reference](@/guides/accessories-and-menus/excel-import-export-reference/excel-import-export-reference.md#dates-times-and-number-formats). |
+| `exportFormulas` | `boolean`, `false` | Write [Formulas](@/guides/formulas/formula-calculation/formula-calculation.md) cells and [ColumnSummary](@/guides/columns/column-summary/column-summary.md) destination cells as live Excel formulas instead of their values. Give the columns they read `type: 'numeric'`: a number in a `text` column is written as text and sums to `0`. Without the Formulas plugin, any text that starts with `=` becomes a live formula, so keep this off for a grid that holds text you did not write. Error cells, array formulas, and named expressions: see the [reference](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#dates-times-and-number-formats). |
 | `sheets` | `object[]`, none | Export several grids into one workbook: `[{ instance, name, ...options }]`. Only the listed grids are written, and each entry takes every option in this table. See [Multi-sheet export](#multi-sheet-export). |
 | `headerStyle` | `object \| null`, `{ backgroundColor: '#F2F2F2', border: { style: 'thin' } }` | Fill and border of the header cells. An object replaces the whole default, so pass both keys to keep one; `null` writes unstyled headers. |
 | `conditionalFormatting` | `object[]`, `[]` | `[{ rows: [first, last], cols: [first, last], rules }]`. `rows` and `cols` are offsets into the exported data, after `range` and hidden-row or hidden-column exclusion, and `rules` are ExcelJS-compatible rule objects ([shape](https://github.com/exceljs/exceljs#conditional-formatting)). The built-in engine writes `cellIs`, `expression`, `containsText`, `top10`, `aboveAverage`, and `timePeriod`; other kinds are reported as dropped. |
 | `compression` | `boolean \| 1-9`, `true` | `false` stores the entries uncompressed. The built-in engine uses the platform's DEFLATE level and reports any other numeric level as `compressionLevel`. |
-| `engine` | `object \| null`, none | Engine for this call only. See the [reference](@/guides/accessories-and-menus/excel-import-export-reference/excel-import-export-reference.md#engines). |
+| `engine` | `object \| null`, none | Engine for this call only. See the [reference](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#engines). |
 
 ## Multi-sheet export
 
@@ -278,7 +278,7 @@ Read-only cells get a gray fill and gray text, the sheet is protected without a 
 
 Frozen panes: `fixedRowsTop` and `fixedColumnsStart` are written; `fixedRowsBottom` and `fixedColumnsEnd` are not. A right-to-left grid, through [`layoutDirection`](@/api/options.md#layoutdirection) or a right-to-left page, exports a right-to-left sheet. Comments are written from each cell's `comment` meta. `password` cells are written as text.
 
-Details on number formats, dates, error cells, and what each engine writes: the [reference](@/guides/accessories-and-menus/excel-import-export-reference/excel-import-export-reference.md).
+Details on number formats, dates, error cells, and what each engine writes: the [reference](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md).
 
 ## Related articles
 
@@ -288,7 +288,7 @@ Details on number formats, dates, error cells, and what each engine writes: the 
 
 - [Export to CSV](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md)
 - [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md)
-- [Excel import and export reference](@/guides/accessories-and-menus/excel-import-export-reference/excel-import-export-reference.md)
+- [XLSX engine](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md)
 
 </div>
 

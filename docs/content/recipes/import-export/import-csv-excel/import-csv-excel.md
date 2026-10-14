@@ -551,7 +551,7 @@ Click **Load sample data** in the example to populate the grid from the bundled 
 ## Related guides
 
 - [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md) - Import straight into a grid, with cell types, merges, formulas, and comments from the file.
-- [Excel import and export reference](@/guides/accessories-and-menus/excel-import-export-reference/excel-import-export-reference.md) - Limits and dropped-feature keys of the built-in engine.
+- [XLSX engine](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md) - Limits and dropped-feature keys of the built-in engine.
 - [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md) - Export from Handsontable to `.xlsx` with the `ExportFile` plugin.
 
 ---

@@ -50,7 +50,7 @@ const dataManagementItems = [
   { path: 'guides/accessories-and-menus/export-to-excel/export-to-excel' },
   { path: 'guides/accessories-and-menus/import-from-excel/import-from-excel' },
   { path: 'guides/accessories-and-menus/export-to-csv/export-to-csv' },
-  { path: 'guides/accessories-and-menus/excel-import-export-reference/excel-import-export-reference' },
+  { path: 'guides/accessories-and-menus/xlsx-engine/xlsx-engine' },
   { path: 'guides/cell-features/clipboard/clipboard' },
   { path: 'guides/data-management/collaboration/collaboration' },
 ];

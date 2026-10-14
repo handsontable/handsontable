@@ -202,8 +202,8 @@ Other rules:
 - **An overlapping merge is dropped, not thrown.** The adapter catches ExcelJS's
   `Cannot merge already merged cells`, records `merge:overlap` and skips that range.
 - **Every dropped-feature name the export can report is a row in the "Dropped features on export" table
-  of the Excel import and export reference page**
-  (`docs/content/guides/accessories-and-menus/excel-import-export-reference/`), the same rule
+  of the XLSX engine page**
+  (`docs/content/guides/accessories-and-menus/xlsx-engine/`), the same rule
   `importFile/AGENTS.md` states for the import direction's table on the same page: add to both or neither.
   The names themselves are declared once, in `DROPPED_FEATURES` (`utils/xlsxEngine/capabilities.ts`), and
   `DroppedFeatureName` narrows `DroppedFeatures#record()` to exactly those members — they are public
@@ -214,7 +214,7 @@ Other rules:
   hand-written `conditionalFormatting:unparsedRefs` no longer type-checks.
   The write direction owns `compressionLevel`, `merge:overlap`, the `conditionalFormatting:*`
   names, and `cellText:truncated`, `columnWidth:clamped` and `rowHeight:clamped` (the last three raised by
-  BOTH engines); the read direction's are in the reference page's import table, never in this one.
+  BOTH engines); the read direction's are in the XLSX engine page's import table, never in this one.
 - **On a rendered cell the exported font color is the cell's OWN computed color, diffed against an
   alignment-only baseline probe mounted in the cell's `.ht-root-wrapper`.** The probe inherits everything the
   cell inherits (a container-scoped CSS variable included), so it differs from the cell only by what a rule

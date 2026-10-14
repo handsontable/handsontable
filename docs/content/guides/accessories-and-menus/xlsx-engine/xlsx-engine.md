@@ -1,28 +1,28 @@
 ---
 type: reference
-title: Excel import and export reference
-metaTitle: Excel import and export reference - JavaScript Data Grid | Handsontable
-description: Engines, limits, dropped-feature keys, security bounds, and test-environment notes for the XLSX support of the ImportFile and ExportFile plugins.
-permalink: /excel-import-export-reference
-canonicalUrl: /excel-import-export-reference
+title: XLSX engine
+metaTitle: XLSX engine - JavaScript Data Grid | Handsontable
+description: The built-in XLSX engine behind the ImportFile and ExportFile plugins - when to use ExcelJS instead, limits, dropped-feature keys, security bounds, number formats, and test-environment setup.
+permalink: /xlsx-engine
+canonicalUrl: /xlsx-engine
 tags:
   - xlsx
   - excel
   - import from file
   - export to file
 react:
-  metaTitle: Excel import and export reference - React Data Grid | Handsontable
+  metaTitle: XLSX engine - React Data Grid | Handsontable
 angular:
-  metaTitle: Excel import and export reference - Angular Data Grid | Handsontable
+  metaTitle: XLSX engine - Angular Data Grid | Handsontable
 vue:
-  metaTitle: Excel import and export reference - Vue Data Grid | Handsontable
+  metaTitle: XLSX engine - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Data management
 menuTag: new
 addedIn: "19.0.0"
 ---
 
-The facts behind [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md) and [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md): which engine does what, what the plugins refuse, what they drop and under which key, and how to run them in a test runner.
+Handsontable reads and writes `.xlsx` files with its own engine, shared by [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md) and [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md). No library is needed. This page covers when to use ExcelJS instead, what the engine refuses, what it drops and under which key, and how to run it in a test runner.
 
 [[toc]]
 

@@ -21,7 +21,7 @@ vue:
 
 This section collects recipes for exporting grid data to common formats and for integrating import workflows. Each recipe includes runnable examples you can adapt to your app.
 
-The built-in plugins cover Excel and CSV without a library: [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md), [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md), and [Export to CSV](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md). The [Excel import and export reference](@/guides/accessories-and-menus/excel-import-export-reference/excel-import-export-reference.md) lists their limits.
+The built-in plugins cover Excel and CSV without a library: [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md), [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md), and [Export to CSV](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md). The [XLSX engine](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md) page lists their limits.
 
 ## Available Recipes
 
