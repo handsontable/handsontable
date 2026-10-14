@@ -61,6 +61,7 @@ import {
   isSizeLowered,
   type MinimumSizes,
 } from './core/minimumSizes';
+import { isSameColumnLayout, type ColumnLayout } from './core/columnLayout';
 import type { HookCallback } from './core/hooks/bucket';
 import type { GridSettings } from './core/settings';
 import {
@@ -5030,6 +5031,33 @@ export default function Core(
   };
 
   /**
+   * Reads what decides the columns of a grid without a `columns` option: the number of columns the schema or the
+   * data resolves to, and the property each one reads.
+   *
+   * @private
+   * @returns {ColumnLayout}
+   */
+  function readColumnLayout(): ColumnLayout {
+    return {
+      count: instance.getInitialColumnCount(),
+      props: datamap.colToPropCache.slice(),
+    };
+  }
+
+  /**
+   * Checks whether a settings update changed the columns the grid resolves, comparing them with the layout read
+   * before the update. A grid with a `columns` option has its columns decided by that option, not by the schema.
+   *
+   * @private
+   * @param {ColumnLayout|null} previousLayout The layout read before the update, `null` when the update could not
+   * change it.
+   * @returns {boolean}
+   */
+  function hasColumnLayoutChanged(previousLayout: ColumnLayout | null): boolean {
+    return previousLayout !== null && !tableMeta.columns && !isSameColumnLayout(previousLayout, readColumnLayout());
+  }
+
+  /**
    * The body of `updateSettings()`, run with recording suppressed. It is called directly, not through
    * the instance, so a spy on `updateSettings()` sees each call once.
    *
@@ -5065,6 +5093,13 @@ export default function Core(
       minCols: tableMeta.minCols,
       minSpareCols: tableMeta.minSpareCols,
     };
+
+    // Read for the same reason: a call that carries `dataSchema` may change the columns the grid resolves, and the
+    // data phase below can only tell by comparing them with the ones the grid has now. Without `columns`, the
+    // schema decides both the number of columns and the property each one reads. The key counts even when its value
+    // is `undefined`, which falls back to the schema read off the data.
+    const previousColumnLayout: ColumnLayout | null = !firstRun && !tableMeta.columns &&
+      hasOwnProperty(settings, 'dataSchema') ? readColumnLayout() : null;
 
     if (isDefined(settings.rowHeights) && isDefined(settings.minRowHeights)) {
       warn('Both `rowHeights` and `minRowHeights` are defined in your configuration. ' +
@@ -5367,11 +5402,26 @@ export default function Core(
     } else if (settings.data !== undefined) {
       dataUpdateFunction(settings.data, 'updateSettings'); // data source given as option
 
+      // `updateData()` keeps the index state, which would now apply to the properties of a new schema.
+      if (hasColumnLayoutChanged(previousColumnLayout)) {
+        instance.initIndexMappers();
+      }
+
     } else if (settings.columns !== undefined) {
       datamap.createMap();
 
       // The `column` property has changed - dataset may be expanded or narrowed down. The `loadData` do the same.
       instance.initIndexMappers();
+
+    } else if (previousColumnLayout !== null && !tableMeta.columns) {
+      // Without `columns`, a new `dataSchema` can change the number of columns and the property each one reads.
+      // The index mappers and the column-to-property map start over when it did, as for `columns`. A schema that
+      // only changes the default values of new rows leaves the grid as it is.
+      datamap.createMap();
+
+      if (hasColumnLayoutChanged(previousColumnLayout)) {
+        instance.initIndexMappers();
+      }
     }
 
     if (!firstRun && settings.language) {
