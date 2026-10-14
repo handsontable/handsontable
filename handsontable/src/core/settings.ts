@@ -151,6 +151,7 @@ export interface GridSettings {
   noWordWrapClassName?: string;
   placeholderCellClassName?: string;
   readOnlyCellClassName?: string;
+  readOnlyStyling?: boolean;
   tableClassName?: string | string[];
   themeName?: string;
   colorScheme?: ThemeColorScheme;

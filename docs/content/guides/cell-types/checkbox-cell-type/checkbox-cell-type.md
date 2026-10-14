@@ -332,6 +332,25 @@ Register the renderer, or pass it as the column's [`renderer`](@/api/options.md#
 
 After configuring the checkbox cell type, cells display an interactive checkbox. Clicking the checkbox or pressing <kbd>**Space**</kbd> or <kbd>**Enter**</kbd> toggles its state. The underlying data source stores the boolean value (or your custom `checkedTemplate`/`uncheckedTemplate` values).
 
+## Non-toggleable checkboxes
+
+A checkbox has no separate editing gesture: clicking the box is the edit. So a checkbox cell with [`editor`](@/api/options.md#editor) set to `false` or `null` renders a disabled checkbox. Neither a click nor the keyboard shortcuts below change its value, but you can still select the cell.
+
+This applies to an `editor: false` set on any configuration level, including the grid level. To keep one checkbox column toggleable in a grid that has `editor: false`, set `editor: true` on that column, which keeps the editor the `checkbox` type provides. Naming it with `editor: 'checkbox'` works too:
+
+```js
+editor: false,
+columns: [
+  { data: 'name' },
+  // toggleable, despite the grid-level `editor: false`
+  { data: 'selected', type: 'checkbox', editor: true }
+]
+```
+
+To make a checkbox non-toggleable and also announce it as read-only to screen readers, use [`readOnly`](@/api/options.md#readonly) instead.
+
+With [`readOnlyStyling`](@/api/options.md#readonlystyling) set to `false`, a checkbox with no editor is not rendered disabled. It looks like a toggleable one, the same way a read-only checkbox does under that setting, and a click still doesn't change its value.
+
 ## Related keyboard shortcuts
 
 | Windows                  | macOS                    | Action                        |  Excel  | Sheets  |
@@ -340,6 +359,8 @@ After configuring the checkbox cell type, cells display an interactive checkbox.
 | <kbd>**Enter**</kbd>     | <kbd>**Enter**</kbd>     | Check or uncheck the checkbox | &cross; | &check; |
 | <kbd>**Delete**</kbd>    | <kbd>**Delete**</kbd>    | Uncheck the checkbox          | &cross; | &check; |
 | <kbd>**Backspace**</kbd> | <kbd>**Backspace**</kbd> | Uncheck the checkbox          | &cross; | &check; |
+
+These shortcuts don't change a cell that is [`readOnly`](@/api/options.md#readonly) or has no editor.
 
 For the full list of default keyboard shortcuts, see [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#checkbox-editor-keyboard-shortcuts).
 

@@ -111,6 +111,7 @@ import {
   type ReversedCellRun,
 } from './dataMap/dataJournal';
 import DataMap from './dataMap/dataMap';
+import { TYPE_EDITOR_REQUESTED_KEY } from './dataMap/metaManager/utils';
 import { colToPropOrIndex } from './helpers/columnProp';
 
 let activeGuid: string | null = null;
@@ -6383,17 +6384,26 @@ export default function Core(
       return;
     }
 
-    const before = metaManager.getCellMetaKeyState(physicalRow, physicalColumn, key);
+    // An `editor` write also adds or drops the `editor: true` request the meta layer keeps under its
+    // own key, so that key is journaled with it, and FIRST: an undo replays the entries in reverse, and
+    // restoring an absent `editor` removes the request as well, so the request must be put back after it.
+    const keys = key === 'editor' ? [TYPE_EDITOR_REQUESTED_KEY, key] : [key];
+    const before = keys.map(journaledKey => metaManager.getCellMetaKeyState(physicalRow, physicalColumn, journaledKey));
 
     write();
 
-    const after = metaManager.getCellMetaKeyState(physicalRow, physicalColumn, key);
+    keys.forEach((journaledKey, index) => {
+      const after = metaManager.getCellMetaKeyState(physicalRow, physicalColumn, journaledKey);
+      const previous = before[index];
 
-    if (before.hadOwn === after.hadOwn && before.value === after.value && before.origin === after.origin) {
-      return;
-    }
+      if (previous.hadOwn === after.hadOwn && previous.value === after.value && previous.origin === after.origin) {
+        return;
+      }
 
-    operationScope.record({ type: 'meta', physicalRow, physicalColumn, key, before, after });
+      operationScope.record({
+        type: 'meta', physicalRow, physicalColumn, key: journaledKey, before: previous, after,
+      });
+    });
   }
 
   /**

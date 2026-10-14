@@ -14,7 +14,9 @@ module.exports = {
     '<rootDir>/test/jsdomThemeVars.js',
     // Jest only, for the same reason as above.
     '<rootDir>/test/jsdomThemeCssFilter.js',
-    '<rootDir>/test/jsdomWindowScroll.js'
+    '<rootDir>/test/jsdomWindowScroll.js',
+    // Jest only, for the same reason as above.
+    '<rootDir>/test/jsdomComputedStyleSpeed.js'
   ],
   testRegex: '\\.(unit\\.js|unit\\.ts)$',
   testPathIgnorePatterns: [

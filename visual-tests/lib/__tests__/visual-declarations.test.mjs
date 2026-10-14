@@ -42,18 +42,15 @@ const TESTS_ROOT = join(PACKAGE_ROOT, 'tests');
 const LIVE_GOLDENS = JSON.parse(
   readFileSync(join(PACKAGE_ROOT, 'visual-budget.json'), 'utf8')).prefixes;
 
-// The one spec that declares nothing: it parks a test behind `test.skip('Test merging', fn)`, renders
-// no capture, and carries its own eslint-disable line naming the task that owns it.
-const PARKED_SPEC = 'cross-browser/merging.spec.ts';
-
 // How many live specs the sweep expects to read a declaration out of: 112 files on 2026-09-18, one of
 // them parked. The filters consolidation (#13647) deleted nine multi-framework specs and added three
 // js-only ones, the submenu-placement trim deleted four scrolled-viewport menu specs, the editors
 // trim deleted six editor specs, and the cross-browser trim (DEV-3257) deleted six whose states
 // moved to tests/e2e, which left 90 files. The UI-state trim deleted 24 and added one (the complex
 // demo's RTL dropdown under a new name), which left 67 files. The multi-frameworks trim (DEV-3351)
-// deleted 12 of that family's 14 specs, whose states moved to tests/e2e, which leaves 55 files, one of
-// them parked, so 54 live. The row selection spec (PRO-87) adds one, so 55 live.
+// deleted 12 of that family's 14 specs, whose states moved to tests/e2e, which left 55 files, one of
+// them parked. The close-out deleted the parked one, which had rendered nothing since 2025-01-14, so
+// every one of the 54 files left is live. The row selection spec (PRO-87) adds one, so 55 live.
 // Adding or deleting a spec moves this number, and moves a number in LIVE_GOLDENS too – the pair is
 // the review a description cannot give, so update both in the pull request that adds the spec.
 const LIVE_SPEC_COUNT = 55;
@@ -833,10 +830,6 @@ test('every live spec declares its variants through visualTest', () => {
   // variant the tier launches while contributing nothing to the derived count below. Read over
   // comment-free source, so a spec cannot pass on a sentence that merely names the helper.
   const missing = specPaths().filter((relativePath) => {
-    if (relativePath === PARKED_SPEC) {
-      return false;
-    }
-
     const source = readFileSync(join(TESTS_ROOT, relativePath), 'utf8');
 
     return visualTestCallOffsets(stripComments(source, relativePath)).length === 0;
@@ -848,22 +841,12 @@ test('every live spec declares its variants through visualTest', () => {
 
 test('no spec scopes itself with a bare test() or a hand-written test.skip()', () => {
   // The lint override in `.eslintrc.js` is the live gate; this is the same rule stated where the rest of
-  // the declaration rules live, so a future change to that override cannot quietly drop it. The parked
-  // spec is the one exception and it must keep the disable line that makes it one.
+  // the declaration rules live, so a future change to that override cannot quietly drop it.
   //
-  // Comments are stripped before the scan, and the disable line is checked on the raw source for the same
-  // reason: prose about a bare `test(` is prose, and the line that makes the parked spec legal IS a
-  // comment. Without the strip, the consolidation's ~91 docblocks would each be a candidate offender.
+  // Comments are stripped before the scan: prose about a bare `test(` is prose. Without the strip, the
+  // consolidation's ~91 docblocks would each be a candidate offender.
   const offenders = specPaths().filter((relativePath) => {
     const source = readFileSync(join(TESTS_ROOT, relativePath), 'utf8');
-
-    if (relativePath === PARKED_SPEC) {
-      assert.match(source, /eslint-disable-next-line no-restricted-syntax -- \S+: /,
-        `${PARKED_SPEC} keeps its own disable line, which is what makes its test.skip() legal.`);
-
-      return false;
-    }
-
     const clean = stripComments(source, relativePath);
 
     return /(?<![.\w])test\(/.test(clean) || /(?<![.\w])test\.skip\(/.test(clean);
@@ -882,10 +865,6 @@ test('every spec holds one declaration, and its leg can render it', () => {
   let specsChecked = 0;
 
   specPaths().forEach((relativePath) => {
-    if (relativePath === PARKED_SPEC) {
-      return;
-    }
-
     const source = readFileSync(join(TESTS_ROOT, relativePath), 'utf8');
     const declarations = readDeclarations(source, relativePath);
     const callCount = visualTestCallOffsets(stripComments(source, relativePath)).length;
@@ -919,9 +898,9 @@ test('every spec holds one declaration, and its leg can render it', () => {
     specsChecked += 1;
   });
 
-  assert.equal(specsChecked, LIVE_SPEC_COUNT, 'The spec tree held 112 files on 2026-09-18, one of them '
-    + 'parked. Adding or deleting a spec moves this count: update LIVE_SPEC_COUNT in this file, and '
-    + 'expect LIVE_GOLDENS to move with it. A moved number is the review this pin exists for, not a bug.');
+  assert.equal(specsChecked, LIVE_SPEC_COUNT, 'Adding or deleting a spec moves this count: update '
+    + 'LIVE_SPEC_COUNT in this file, and expect LIVE_GOLDENS to move with it. A moved number is the review '
+    + 'this pin exists for, not a bug.');
 });
 
 test('every spec declares a shape its own directory can host', () => {
@@ -983,10 +962,6 @@ test('every spec declares a shape its own directory can host', () => {
   };
 
   specPaths().forEach((relativePath) => {
-    if (relativePath === PARKED_SPEC) {
-      return;
-    }
-
     const [first] = readDeclarations(readFileSync(join(TESTS_ROOT, relativePath), 'utf8'), relativePath);
 
     assert.ok(first, `${relativePath} declares no variants; every live spec calls visualTest().`);
@@ -1022,10 +997,6 @@ test('a single-theme spec names the functional test that asserts its behavior', 
   const functionalTest = new RegExp('`(tests/e2e/[\\w.-]+\\.spec\\.ts'
     + '|handsontable/src/[\\w./-]+/__tests__/[\\w./-]+\\.spec\\.js)`', 'g');
   const singleTheme = specPaths().filter((relativePath) => {
-    if (relativePath === PARKED_SPEC) {
-      return false;
-    }
-
     const [first] = readDeclarations(readFileSync(join(TESTS_ROOT, relativePath), 'utf8'), relativePath);
 
     return JSON.stringify(normalizeDeclaration(first.declaration, relativePath).themes) === '["main"]';
@@ -1063,10 +1034,6 @@ test('every capture-cap exception matches what the spec actually takes', () => {
   const capturesPerStem = new Map();
 
   specPaths().forEach((relativePath) => {
-    if (relativePath === PARKED_SPEC) {
-      return;
-    }
-
     const source = readFileSync(join(TESTS_ROOT, relativePath), 'utf8');
 
     capturesPerStem.set(relativePath.replace(/\.spec\.ts$/, ''),
@@ -1106,10 +1073,6 @@ test('the declarations derive exactly the live golden set', () => {
   let total = 0;
 
   specPaths().forEach((relativePath) => {
-    if (relativePath === PARKED_SPEC) {
-      return;
-    }
-
     const source = readFileSync(join(TESTS_ROOT, relativePath), 'utf8');
     const [first] = readDeclarations(source, relativePath);
 

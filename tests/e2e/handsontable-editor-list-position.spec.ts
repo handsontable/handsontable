@@ -295,6 +295,81 @@ test.describe('multiselect editor list stays in the viewport at every cell posit
   }
 });
 
+// The side the multiselect's list opens on must not depend on how many entries its source has: the list
+// shows at most `visibleRows` of them, so a 30-entry source needs the room a 5-entry one does. Column 0 holds
+// a 30-entry source and column 1 a source of `visibleRows` entries, so a cell in each of them, in one row,
+// has the same top. The page is scrolled to take that cell's top down the viewport, and the editor is opened
+// on both at every step.
+test.describe('multiselect editor list side does not depend on the source length', () => {
+  for (const dir of ['ltr', 'rtl'] as const) {
+    for (const pairRows of [5, 10]) {
+      test(`opens a long source where a short one opens, visibleRows ${pairRows} (${dir.toUpperCase()})`, async({
+        page, theme, bundle,
+      }) => {
+        const grid = new HandsontableEditorListPositionPage(page, theme, bundle, {
+          dir, layout: 'window', type: 'multiselect', pairRows,
+        });
+        const row = 40;
+
+        await page.setViewportSize({ width: 1000, height: 1000 });
+        await grid.goto();
+
+        const cellTop = (r: number) => page.evaluate(y => {
+          const td = (window as unknown as { hot: { getCell(row: number, col: number): HTMLElement | null } })
+            .hot.getCell(y, 0);
+
+          return td ? td.getBoundingClientRect().top : null;
+        }, r);
+
+        // The row is not rendered at scroll 0, so its page position is read once the page has scrolled to it.
+        await page.evaluate(() => window.scrollTo(0, 600));
+        await expect.poll(() => cellTop(row), { message: 'the row renders' }).not.toBeNull();
+
+        const rowTop = (await cellTop(row))! + await page.evaluate(() => window.scrollY);
+        const mismatches: string[] = [];
+        const shortSides = new Set<string>();
+
+        // The cell's top runs from the upper half to near the bottom edge of the viewport, taking the list's
+        // side through both of its thresholds.
+        for (let top = 400; top <= 880; top += 16) {
+          const scrollY = Math.round(rowTop - top);
+
+          await page.evaluate(y => window.scrollTo(window.scrollX, y), scrollY);
+          await expect.poll(() => cellTop(row), { message: `the cell reaches ${top}` })
+            .toBeCloseTo(rowTop - scrollY, 1);
+
+          const sides: string[] = [];
+
+          for (const col of [0, 1]) {
+            await grid.openEditorOnCell(row, col);
+
+            // The list follows the cell from the page's `scroll` listener, so the side is read once it has settled.
+            let side = '';
+
+            await expect.poll(async() => {
+              side = (await grid.listPlacement({ row, col })).side;
+
+              return side;
+            }, { message: `the list settles above or below column ${col}'s cell at ${top}` }).toMatch(/^(above|below)$/);
+            sides.push(side);
+            await grid.closeEditor();
+          }
+
+          shortSides.add(sides[1]);
+
+          if (sides[0] !== sides[1]) {
+            mismatches.push(`cell top ${top}: 30 entries ${sides[0]}, ${pairRows} entries ${sides[1]}`);
+          }
+        }
+
+        expect(mismatches).toEqual([]);
+        // Without both sides in the sweep, equal sides prove nothing about the threshold.
+        expect([...shortSides].sort()).toEqual(['above', 'below']);
+      });
+    }
+  }
+});
+
 // The side an open list takes is decided again on every page scroll (`HandsontableEditor`'s document
 // `scroll` listener, the multiselect's scroll follow), so the window branch runs again there too. Both
 // lists are wider than the cell, so scrolling the cell to the viewport's inline-end edge leaves them no

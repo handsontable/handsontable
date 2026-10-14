@@ -384,14 +384,20 @@ export const workspaceSize: WorkspaceSize = {
   },
 
   /**
-   * Checks if the window owns the horizontal axis: no ancestor of the table traps it horizontally,
-   * so the page scrolls the columns. The inline-start overlay carries the horizontal owner.
+   * Checks if the window scrolls the columns: no ancestor of the table traps the horizontal axis, so
+   * the page owns it, and the page, not the holder, does the scrolling. The inline-start overlay
+   * carries the horizontal owner and the element that scrolls the columns. They differ in the reverse
+   * split (an ancestor that clips only the vertical axis, or `preventOverflow: 'vertical'`): the window
+   * owns the axis while the holder scrolls the columns, and the answer is `false`, as it is for any
+   * grid whose holder scrolls them.
    *
    * @this Viewport
    * @returns {boolean}
    */
   isHorizontallyScrollableByWindow(this: Viewport): boolean {
-    return this.deps.getInlineStartOverlay().trimmingContainer === this.deps.rootWindow;
+    const inlineStartOverlay = this.deps.getInlineStartOverlay();
+
+    return inlineStartOverlay.trimmingContainer === this.deps.rootWindow && inlineStartOverlay.isScrolledByWindow();
   },
 
   /**

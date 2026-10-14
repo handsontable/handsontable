@@ -43,6 +43,7 @@
       columns: Math.max(clamp('columns', 100, '100'), 1),
       margin: clamp('margin', 1000, '0'),
       fixedColumnsStart: clamp('fixedColumnsStart', 5, '0'),
+      fixedRowsBottom: clamp('fixedRowsBottom', 5, '0'),
     };
     document.documentElement.dir = window.htLayout.dir ?? 'ltr';
   </script>
@@ -64,7 +65,7 @@
     document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
   </script>
   <script>
-    const { dir, overflowY, preventOverflow, margin, fixedColumnsStart, stretchH, columns } = window.htLayout;
+    const { dir, overflowY, preventOverflow, margin, fixedColumnsStart, fixedRowsBottom, stretchH, columns } = window.htLayout;
     const wrap = document.getElementById('wrap');
     const container = document.getElementById('grid');
 
@@ -89,6 +90,7 @@
         rowHeaders: true,
         colHeaders: true,
         fixedColumnsStart,
+        fixedRowsBottom,
         stretchH,
         preventOverflow,
         layoutDirection: dir,

@@ -1,5 +1,5 @@
 import { visualTest, expect, CLASSIC, CROSS_BROWSERS } from '../../src/test-runner';
-import { openEditor, selectCell, selectEditor, clearColumn } from '../../src/page-helpers';
+import { selectCell, selectEditor, clearColumn } from '../../src/page-helpers';
 import { helpers } from '../../src/helpers';
 
 /**
@@ -26,8 +26,17 @@ visualTest('Test autofill for: /cell-types-demo', {
   await clearColumn(3);
 
   const cell = await selectCell(0, 2, table);
+  // Walkontable pairs two clicks on one cell's TD into a double click when the second comes within
+  // 500 ms of the first one's release, and a click on the fill handle counts as a click on the cell it
+  // belongs to. So no click lands on this cell before the handle's double click: the click goes to the
+  // cell below it, and the keyboard does the rest, which arms no double-click window.
+  const cellBelow = await selectCell(1, 2, table);
 
-  await openEditor(cell);
+  await cellBelow.click();
+  await expect(cellBelow).toHaveClass(/(^|\s)current(\s|$)/);
+  await tablePage.keyboard.press('ArrowUp');
+  await expect(cell).toHaveClass(/(^|\s)current(\s|$)/);
+  await tablePage.keyboard.press('Enter');
 
   const cellEditor = await selectEditor();
 
@@ -35,18 +44,9 @@ visualTest('Test autofill for: /cell-types-demo', {
   await tablePage.keyboard.press('Enter');
   // The column is a currency column, so the committed value renders formatted.
   await expect(cell).toHaveText('$1,100.00');
-  // The click below goes to the cell the editor was opened on, and Walkontable reads a second click on
-  // a cell within 500 ms of the first one's release as a double click, which would open the editor again.
-  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: Walkontable's 500 ms double-click window between two clicks on one cell; no state marks it closed
-  await tablePage.waitForTimeout(500);
-
-  await cell.click();
+  // Enter committed the value and moved the selection down a row; move it back.
+  await tablePage.keyboard.press('ArrowUp');
   await expect(cell).toHaveClass(/(^|\s)current(\s|$)/);
-  // The fill handle's double click below would land inside the window this click's release opens.
-  // Measured without this wait: the column still fills, but the filled range is not selected, so the
-  // capture shows a different selection.
-  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: the same 500 ms double-click window, between the click on the cell and the fill handle's double click
-  await tablePage.waitForTimeout(500);
 
   const cornerDiv = table.locator('div.wtBorder.current.corner').first();
 

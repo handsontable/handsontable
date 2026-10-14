@@ -61,10 +61,10 @@ spec-side `test.skip(` are both lint errors. The axes, the default, and the two 
 
 A screenshot asserts pixels no DOM or API probe can express: theme tokens, geometry, compositing. Focus order, DOM state, selection, data, and "the menu opened" are Playwright assertions in `tests/e2e`, in addition to, never instead of. One capture per distinct visual state. New features get their own demo route, never the shared `/` demo.
 
-Three measured facts behind the rule (2026-09-18, `visual-tests/tests`):
+Three facts behind the rule:
 
-- **112 specs hold 273 captures, and 57 specs hold more than one.** A second capture is a second visual state — a menu open, a filter applied — never a second angle on the same one. The presence gate counts a `.spec.ts` under `visual-tests/` as coverage, so "in addition to" is what the reviewer checks and what the PR template's test-evidence bullet asks for, not something a gate enforces.
-- **29 specs photograph the shared `/` demo, and the 23 multi-frameworks specs among them never navigate** (0 `goto(` calls). `/` is the frozen multi-feature grid (`initDefaultDemo()` in `examples/next/visual-tests/js/demo/src/index.js`); a feature added there re-captures every one of those specs on every variant it renders — js × 5 plus the three wrappers for the 23 multi-frameworks specs, three browsers for the 6 cross-browser ones. The other 83 specs call `goto(` to one of the 27 named `/<name>-demo` routes on that Navigo router (`grep -c "'/.*-demo'"` over the file), which is where a new feature goes: a `src/demos/<feature>/` module and one route.
+- **A second capture is a second visual state** — a menu open, a filter applied — never a second angle on the same one. The presence gate counts a `.spec.ts` under `visual-tests/` as coverage, so "in addition to" is what the reviewer checks and what the PR template's test-evidence bullet asks for, not something a gate enforces.
+- **Every spec that photographs the shared `/` demo re-captures when `/` changes.** `/` is the frozen multi-feature grid (`initDefaultDemo()` in `examples/next/visual-tests/js/demo/src/index.js`), and a spec that never calls `goto(` photographs it: the multi-frameworks specs, on every variant and wrapper they declare, and specs in the js-only and cross-browser families too. A feature added there costs a capture on every variant of each of them. The other specs call `goto(` to a named `/<name>-demo` route on that Navigo router (`grep -c "'/.*-demo'"` over the file counts them), which is where a new feature goes: a `src/demos/<feature>/` module and one route.
 - **A feature on its own route is js-only by construction.** The react and angular demos serve `/` and `/scenario-grid` (`react-wrapper/demo/src/index.tsx`, `angular-wrapper/demo/src/app/app.config.ts`); the vue3 demo has no router and serves `/` only — so a spec on `/<feature>-demo` renders no wrapper and declares none. Wrapper parity for a *new* feature is therefore a trade-off to state in the pull request, not a default: either extend `/` under a `[visual budget: N – reason]` marker (every spec on `/` re-captures, and the demo config must stay identical across all four frameworks — the js-copied baseline gotcha below), or add the route to the react-router routes, the Angular routes, and the Vue demo — a per-framework change, not a Navigo edit. Neither is "mirror the route in all four demos": no multi-frameworks spec uses a route today, and the copied baseline only ever compares what a wrapper actually renders.
 
 This section is the one source of the rule; every other surface (`handsontable/.ai/TESTING.md`, the root `AGENTS.md`, the `visual-testing` and `creating-visual-test-examples` skills, the PR template, the `pr-creation` and `handsontable-code-review` skills, `.ai/LOCAL-ENFORCEMENT.md`) carries one sentence and a link here. `.github/scripts/__tests__/visual-decision-rule.test.mjs` pins the paragraph to this file and the link to each surface.
@@ -485,25 +485,14 @@ does for you):
   runner reached, and `CAPTURE_RESTRICTIONS` in `.eslintrc.js` reports it on the capture line. A capture is
   the statement's own `screenshot()` call, awaited or not, kept in a `const`, returned, or handed straight
   to `expect()`. The names are matched on any
-  object, so a same-named call that is no Playwright action (`Set#clear()`) counts too. When it landed
-  (2026-09-23) it found 128 such captures in 50 specs. The 28 in three filters specs (`escaping-the-menu`,
-  `entering-and-escaping-by-value-lists`, `accepting-by-enter`, all three retired since by #13647) were
-  repaired — each asserted the focused component, the hidden menu, or the ticked value first, and all 28
-  captures rendered byte-identical to the unrepaired ones. In those three specs the actions settle inside the keydown
-  handler (Tab, Shift+Tab and Escape focus or close synchronously, and no repaired capture follows the
-  condition input's 10 ms focus timer), so there the assertions make a wrong state fail loudly rather than
-  close a race; they are the shape every later repair takes. The other 100, among them 15 in the
-  directory's other six filters specs, got
-  `// eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted <action>; …`
-  directly above the capture, so the debt is counted. The filters consolidation (#13647) retired those
-  six specs with their 15 lines, and its replacements assert every state they capture; the
-  submenu-placement trim (#13656) retired the menu family's 24 the same way, the editors trim that
-  family's 15, the resize-guide trim the complex demo's 2, and the cross-browser trim (DEV-3257) that
-  family's 8; the UI-state trim retired the dialog, empty-data-state, loading and sheets-bar specs' 17,
-  and the multi-frameworks trim (DEV-3351) that family's 18. So 1 remains
-  (`git grep -c 'DEV-2981: capture after' -- visual-tests/tests` counts it), in
-  `js-only/filters/apply-active-class-name-nested-header`. `test/__tests__/determinism-lint.test.mjs` fails
-  when one of those lines sits anywhere but on a capture, or no longer excuses anything. What a capture is
+  object, so a same-named call that is no Playwright action (`Set#clear()`) counts too. Assert even when
+  the action settles inside its keydown handler (Tab, Shift+Tab and Escape focus or close synchronously):
+  there the assertion makes a wrong state fail loudly rather than close a race. No capture in the tree is
+  excused today. One that cannot assert its state carries
+  `// eslint-disable-next-line no-restricted-syntax -- DEV-<number>: capture after an unasserted <action>; …`
+  directly above it, naming an open task, so the debt is counted (`git grep -c 'capture after an unasserted'
+  -- visual-tests/tests`); `test/__tests__/determinism-lint.test.mjs` fails when such a line sits anywhere
+  but on a capture, or no longer excuses anything. What a capture is
   *for* is the [decision rule](#decision-rule) above; this section keeps the state it photographs stable.
 - **What the capture rule cannot see.** It judges the one statement before the capture, and only when that
   statement is an expression or a declaration. A comment in between does not hide an action. A neutral
@@ -511,15 +500,11 @@ does for you):
   the capture, or a capture that opens a block — neither of the last two is in the tree today, and the
   self-test pins all four as unseen, so a rule that starts seeing one fails loudly until this bullet is
   updated. A tracked
-  `waitForTimeout()` in between hides the action too: no capture sits behind a sleep since DEV-3351 retired
-  the last 7, in the `mouse-wheel` and the two multiline text-editor specs.
-  Replacing such a sleep with the assertion it stands for clears both lines; deleting it with nothing in
-  its place makes the capture fire, so the disable line moves to the capture. A page helper in between
-  silences the rule whether or not the helper asserts: 25 of the 48 exported helpers in
-  `src/page-helpers.ts` acted with no `expect()` or wait at all on 2026-09-23 (one of them the
-  `tryToEscapeFromTheComponentsFocus` #13647 deleted with its callers), and one more (`collapseNestedRow`)
-  waits only with a fixed sleep (`resizeColumn` and `resizeRow`, two more, went with the cross-browser
-  resize specs in DEV-3257). Making each one end on the state it produced
+  `waitForTimeout()` in between hides the action too; replacing such a sleep with the assertion it stands
+  for clears both lines, while deleting it with nothing in its place makes the capture fire, so the
+  disable line moves to the capture. A page helper in between silences the rule whether or not the helper
+  asserts, and many helpers in `src/page-helpers.ts` act with no `expect()` or wait at all, so a spec that
+  calls one asserts the state itself before it captures. Making each helper end on the state it produced
   is its own follow-up, proven by `Visual stability`, since a corrected selector can move pixels. Helper
   names are deliberately not in the selector — a renamed helper would drop out of it silently.
 - **The selector has three esquery traps, all measured** (ESLint 8.57.1, esquery 1.7.0), which is why the
@@ -532,22 +517,21 @@ does for you):
   `no-restricted-syntax` is one rule id, so this selector cannot be `warn` while the sleep bans are
   `error`, and a disable line on a capture silences every selector on that line.
 - **Every test call carries a docblock that says what its capture proves and names its owner.**
-  `jsdoc/require-jsdoc`, `jsdoc/require-description` and `jsdoc/match-description` in the
-  `tests/**/*.spec.ts` override require a block directly above each `visualTest()` call — one per inner
-  call in a looped spec — whose main description names a ClickUp ticket (`DEV-`, `PRO-` or `SU-`, never
-  numbered 0) or a GitHub issue of four or more digits (`#12345`). An empty block, or one holding only a
-  tag, fails `require-description`, because `match-description` skips a block with no main description.
-  `require-jsdoc` has its fixer off, so `eslint --fix` (the pre-commit and agent hooks) never writes an
-  empty stub. The legacy specs name DEV-2981, the consolidation that pays their debt, as a **placeholder
-  owner**: closing DEV-2981 means first giving every block and every tracked disable line a real owner,
-  or no golden has one. Where a spec came with a feature, its block also names the pull request that
-  added it (`Added in #12299`), which is where that owner starts. When it landed, 91 of the 115 calls had no block, the
-  24 that had one named no ticket, and six were copies of one filters spec's sentence pasted onto specs
-  about something else. The context names `visualTest`, not only `test`: after the variant declaration
-  renamed every call, a `callee.name="test"` context matched nothing and the rule was silently off. The
-  template (`tests/multi-frameworks/.empty-test-template.ts`) carries a `DEV-<number>` placeholder the
-  lint rejects, so a copy fails until it names a real owner; ESLint never lints the dotfile itself, so the
-  self-test lints its source as a spec.
+  `jsdoc/require-jsdoc`, `jsdoc/require-description` and `jsdoc/match-description` in the `tests/**/*.spec.ts`
+  override require a block directly above each `visualTest()` call — one per inner call in a looped spec —
+  whose main description names a ClickUp ticket (`DEV-`, `PRO-` or `SU-`, never numbered 0) or a GitHub issue
+  of four or more digits (`#12345`). An empty block, or one holding only a tag, fails `require-description`,
+  because `match-description` skips a block with no main description. `require-jsdoc` has its fixer off, so
+  `eslint --fix` (the pre-commit and agent hooks) never writes an empty stub. The owner is the task that last
+  reshaped the spec – for most specs, the consolidation step that rewrote its family – and where a spec came
+  with a feature, its block also names the pull request that added it (`Added in #12299`), which is where a
+  reviewer of a changed golden starts. A task that only stands in for an owner is not one: the consolidation's
+  parent task held that place on every legacy spec until its close-out gave each block a real owner. The
+  context names `visualTest`, not only `test`: after the variant declaration renamed every call, a
+  `callee.name="test"` context matched nothing and the rule was silently off. The template
+  (`tests/multi-frameworks/.empty-test-template.ts`) carries a `DEV-<number>` placeholder the lint rejects, so
+  a copy fails until it names a real owner; ESLint never lints the dotfile itself, so the self-test lints its
+  source as a spec.
 - **The filters menu moves focus on a timer.** Choosing a condition focuses that condition's first
   input 10 ms later (`handsontable/src/plugins/filters/component/condition.ts`), so a capture or a key
   press straight after the choice lands on either side of the hand-off; `filterByCondition()` and the
@@ -602,19 +586,27 @@ does for you):
   clear ran unconditionally — so on Chromium and Firefox a focused text control is left alone. Do not
   fold the two branches into one; either half regresses the other engine.
 - **No fixed delays.** `waitForTimeout()`, `sleep()`, the global `setTimeout()` (inside `page.evaluate`
-  too) and `'networkidle'` are lint errors in `src/` and `tests/`. The 2024 import carried about forty
-  such sleeps (25 on 2026-10-05 and 20 when DEV-3351 started; 6 since then, counted per call: 5 in three
-  `tests/cross-browser/` specs, `auto-fill` 2, `scroll` 2 and `columns-freeze` 1, and 1 in the
-  `collapseNestedRow` page helper, which no spec calls today); each wears `// eslint-disable-next-line no-restricted-syntax -- DEV-2797: <why>` so the
-  debt is counted and greppable while the consolidation replaces them with asserted states. A new sleep
-  needs the same line naming its own task, or it does not land.
+  too) and `'networkidle'` are lint errors in `src/` and `tests/`, and none is left in the tree: the
+  consolidation replaced each sleep the 2024 import carried with the state it stood for, or removed it
+  with its spec. A new one needs `// eslint-disable-next-line no-restricted-syntax -- DEV-<number>: <why>`
+  naming an open task, or it does not land. Two waits that look unavoidable are not:
+  - **Walkontable's double-click window.** A second click on the same cell's `TD` within 500 ms of the
+    first one's release is a double click (`DBLCLICK_MOUSEUP_TIMEOUT` in
+    `handsontable/src/3rdparty/walkontable/src/event.ts`), and a click on the fill handle counts as a
+    click on the cell it belongs to. Nothing marks the window closed, so do not wait it out: click a
+    different cell and reach the one you need with the keyboard, which arms nothing, as
+    `cross-browser/auto-fill` does.
+  - **A wheel scroll.** `mouse.wheel()` returns before the browser scrolls, and an engine that animates
+    the scroll moves the holder over several frames. `waitForWheelScrollToSettle()` in
+    `src/page-helpers.ts` waits until the offset has moved and two frames in a row leave it where it was.
+    Do not lean on the capture's scrollbar-clearance settle for this: it waits for a band that only
+    overlay scrollbars open.
 - **`.only`, a bare or titled `.skip`, `test.fixme`, and `locator.screenshot()` are errors** too, and an
   element capture is a clipped `tablePage.screenshot()` so the settle still runs. Under
   `tests/**/*.spec.ts` two more shapes are errors: a bare `test(`, and any `test.skip(` at all. A spec
   names its variants in its [declaration](#variant-declaration) and `visualTest()` emits the skip; a
   hand-written one applies at file scope too, so the two would combine and the declaration would stop
-  describing what renders. `tests/cross-browser/merging.spec.ts` parks a test behind its own disable line
-  and is the one exception.
+  describing what renders.
 - **The fixture refuses to photograph a grid whose stylesheet never arrived.** The js demo loads its
   theme and each route's CSS as `<link class="dynamic-css">` and waits for `load` before it builds the
   grid, but `load` is not proof of a stylesheet: vite's preview server answers an unknown path with
@@ -894,8 +886,7 @@ which of these run locally and which only in CI.
   [Variant declaration](#variant-declaration) above; `lib/visual-declarations.mjs` validates them at load,
   `lib/__tests__/visual-declarations.test.mjs` sweeps the spec tree and derives the eleven per-prefix
   totals from what is checked in, and `.eslintrc.js` bans a bare `test(` and a spec-side `test.skip(`. The
-  codemod that landed it wrote today's rendered set out on all 111 live specs — every one but the parked
-  `cross-browser/merging.spec.ts` — so no golden record moved; the
+  codemod that landed it wrote the rendered set out on every live spec, so no golden record moved; the
   multi-framework specs shared a placeholder `wrappersReason` (23 then) until DEV-3351 gave the one spec that
   keeps its wrappers a reason of its own and the others none, and the seed's wrapper copy has followed the
   declarations, spec by spec, since then.
@@ -955,12 +946,8 @@ which of these run locally and which only in CI.
   `visual-tests/.eslintrc.js`), and every test call carries a docblock that says what its capture proves
   and names the ticket that owns it (`jsdoc/require-jsdoc` + `jsdoc/match-description` in the
   `tests/**/*.spec.ts` override, with `jsdoc/require-description`). The 28 sites in three filters specs
-  were repaired (assert the state, then capture); the other 100 wore
-  `// eslint-disable-next-line no-restricted-syntax -- DEV-2981: …` above the capture, so the debt is
-  counted and greppable (1 since #13647, #13656, the editors trim, the resize-guide trim, the
-  cross-browser trim, the UI-state trim, and the multi-frameworks trim retired the filters family's 15,
-  the menu family's 24, the editors family's 15, the complex demo's 2, the cross-browser family's 8, the
-  UI-state family's 17, and the multi-frameworks family's 18). The
+  were repaired (assert the state, then capture); the other 100 wore a tracked disable line above the
+  capture until the consolidation repaired or retired each one, so none is excused today. The
   rules, what they cannot see, and their three
   esquery traps are the first four bullets of [Determinism](#determinism).
   `test/__tests__/determinism-lint.test.mjs` proves them on fixtures — it imports ESLint, so it runs from

@@ -887,7 +887,7 @@ export default (): Record<string, unknown> => {
      * The `cell` option persists across [`updateSettings()`](@/api/core.md#updatesettings) calls that do not
      * mention it. Passing `cell` again replaces every previously declared entry, so `cell: []` removes them
      * all. An entry follows its row through sorting and row moves, and a later
-     * [`setCellMeta()`](@/api/core.md#setcellmeta) call on the same property wins over the declared value -
+     * [`setCellMeta()`](@/api/core.md#setCellMeta) call on the same property wins over the declared value -
      * until the next call restates `cell`, which wins over everything.
      *
      * A value that is not an array is ignored, and reported in the console. It does not reach
@@ -2902,9 +2902,70 @@ export default (): Record<string, unknown> => {
      * | `Delete` / `Backspace`                  | Clear the contents of the selected cells                    |
      * | `Ctrl` + `Enter` / `Cmd` + `Enter`      | Fill selected cells with the value of the active cell       |
      *
-     * Setting the `editor` option to `true` names no editor, so Handsontable treats it as if the
-     * option was not set at all. The cell keeps the editor that its [`type`](#type) provides, or the
-     * editor inherited from a higher configuration level.
+     * A [`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) cell with no editor
+     * is the exception: `Delete` and `Backspace` leave it unchanged.
+     *
+     * Setting the `editor` option to `true` names no editor. It keeps the editor that the cell's
+     * [`type`](#type) provides, or the editor inherited from a higher configuration level. Unlike leaving
+     * the option out, it also asks for the [`type`](#type)'s editor when `editor: false` is set at a
+     * higher configuration level, so the cell stays editable (see below).
+     *
+     * An `editor` of `false` is not overridden by a [`type`](#type) set at a lower configuration
+     * level. A [`type`](#type) normally supplies its own editor, but it never re-enables editing
+     * that you disabled higher up, so `editor: false` for the whole grid keeps a typed column
+     * non-editable. Everything else the [`type`](#type) provides still applies, so such a column
+     * keeps its renderer and its validator:
+     *
+     * ```js
+     * // no cell in this grid can be edited, and the second column still
+     * // renders and validates as numeric
+     * editor: false,
+     * columns: [
+     *   { type: 'text' },
+     *   { type: 'numeric' }
+     * ]
+     * ```
+     *
+     * To let one column opt back in, give it an `editor` of its own, at the same configuration
+     * level as its [`type`](#type):
+     *
+     * ```js
+     * editor: false,
+     * columns: [
+     *   { type: 'text' },
+     *   // editable, despite the grid-level `editor: false`
+     *   { type: 'numeric', editor: 'numeric' }
+     * ]
+     * ```
+     *
+     * To keep the editor that the column's [`type`](#type) provides, without naming it, set
+     * `editor: true` instead, for example `{ type: 'numeric', editor: true }`. A single cell opts back in
+     * the same way, through the [`cell`](#cell) option or
+     * [`setCellMeta()`](@/api/core.md#setCellMeta), also when its [`type`](#type) comes from its column.
+     *
+     * A custom cell type that declares `editor: false` supplies a default, not a setting of yours.
+     * If you set such a [`type`](#type) on the whole grid, a column with a `type` of its own still
+     * gets that type's editor.
+     *
+     * A named editor behaves differently: a [`type`](#type) set at a lower configuration level
+     * does override it, because both name an editor and the more specific level wins.
+     *
+     * Only `false` is kept this way. An `editor` of `null` set at a higher configuration level is
+     * replaced by the editor of a lower-level [`type`](#type), like a named editor.
+     *
+     * One limitation applies when you switch editing off at runtime. A column's [`type`](#type)
+     * writes its editor onto that column when the column is built, so an
+     * [`updateSettings()`](@/api/core.md#updatesettings) call that passes `editor: false` without
+     * also passing [`columns`](#columns) does not reach a column that declares a
+     * [`type`](#type). Pass [`columns`](#columns) in the same call to rebuild those columns:
+     *
+     * ```js
+     * // the numeric column stays editable
+     * hot.updateSettings({ editor: false });
+     *
+     * // the numeric column becomes non-editable too
+     * hot.updateSettings({ editor: false, columns: [{ type: 'text' }, { type: 'numeric' }] });
+     * ```
      *
      * To set the [`editor`](#editor), [`renderer`](#renderer), and [`validator`](#validator)
      * options all at once, use the [`type`](#type) option.
@@ -6308,6 +6369,57 @@ export default (): Record<string, unknown> => {
     readOnlyCellClassName: 'htDimmed',
 
     /**
+     * The `readOnlyStyling` option controls whether [read-only](#readOnly) cells look different from
+     * editable ones.
+     *
+     * You can set the `readOnlyStyling` option to one of the following:
+     *
+     * | Setting          | Description                                                                                      |
+     * | ---------------- | ------------------------------------------------------------------------------------------------ |
+     * | `true` (default) | Read-only cells are dimmed, through the [`readOnlyCellClassName`](#readOnlyCellClassName) CSS class |
+     * | `false`          | Read-only cells look exactly like editable ones                                                    |
+     *
+     * Set `readOnlyStyling` to `false` to make a grid non-editable without the cells looking
+     * different. Only the appearance changes: read-only cells still reject edits, pasting, and
+     * autofill, and are still announced as read-only by screen readers.
+     *
+     * When `readOnlyStyling` is `false`, no [`readOnlyCellClassName`](#readOnlyCellClassName) class
+     * is added at all, so setting both options means `readOnlyStyling` wins.
+     *
+     * The same applies to a [`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md)
+     * cell with no [`editor`](#editor): when `readOnlyStyling` is `false`, its checkbox is not rendered
+     * disabled, but a click still doesn't change its value.
+     *
+     * Read more:
+     * - [`readOnly`](#readOnly)
+     * - [`readOnlyCellClassName`](#readOnlyCellClassName)
+     *
+     * @memberof Options#
+     * @type {boolean}
+     * @default true
+     * @since 19.0.0
+     * @category Core
+     * @configScope grid columns cells cell
+     *
+     * @example
+     * ```js
+     * // make the whole grid read-only, but keep it looking like a normal table
+     * readOnly: true,
+     * readOnlyStyling: false,
+     *
+     * // apply the option to individual columns
+     * columns: [
+     *   {
+     *     readOnly: true,
+     *     // this column is read-only, and is not dimmed
+     *     readOnlyStyling: false
+     *   }
+     * ]
+     * ```
+     */
+    readOnlyStyling: true,
+
+    /**
      * The `renderAllRows` option controls Handsontable's [row virtualization](@/guides/rows/row-virtualization/row-virtualization.md).
      * You can configure it as follows:
      *
@@ -6347,7 +6459,7 @@ export default (): Record<string, unknown> => {
      * | Setting              | Description                                                                                                                                                                                                   |
      * | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
      * | `'always'` (default) | The cell is painted on every render.                                                                                                                                                                          |
-     * | `'onChange'`         | The cell is painted only when the element it lands in showed something else after its last paint: another cell, another value, another renderer, a changed cell meta (through [`setCellMeta()`](@/api/core.md#setcellmeta) or the [`cells`](#cells) function), or a structural change of the grid. |
+     * | `'onChange'`         | The cell is painted only when the element it lands in showed something else after its last paint: another cell, another value, another renderer, a changed cell meta (through [`setCellMeta()`](@/api/core.md#setCellMeta) or the [`cells`](#cells) function), or a structural change of the grid. |
      *
      * Under `'onChange'`, a render skips the cells whose paint would produce the same result as their
      * last paint. A vertical scroll keeps the elements of the rows that stay rendered, so it paints
@@ -8486,7 +8598,7 @@ export default (): Record<string, unknown> => {
      * __Limitation:__ source-data validation only sees a `sourceDataValidator` (and a validating cell
      * [`type`](@/api/options.md#type)) that you define in the global settings, the
      * [`columns`](@/api/options.md#columns) option, the [`cell`](@/api/options.md#cell) option, or with
-     * [`setCellMeta()`](@/api/core.md#setcellmeta). It does __not__ run the [`cells`](@/api/options.md#cells)
+     * [`setCellMeta()`](@/api/core.md#setCellMeta). It does __not__ run the [`cells`](@/api/options.md#cells)
      * function or the [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta) /
      * [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta) hooks, so a validator that you add only through those
      * is skipped. Define the validator in one of the supported places to validate the source data.
