@@ -101,10 +101,10 @@ These are the only external libraries bundled or referenced at runtime:
 - Selection state preservation via `selection.exportSelection()` / `selection.importSelection()` during `updateSettings()`
 
 **Angular (`wrappers/angular-wrapper/`):**
-- Peer dependency: `handsontable` ^17.0.0, `@angular/core` >=16.0.0
-- Build tool: ng-packagr 16
+- Peer dependency: `handsontable` ^18.0.0, `@angular/core` >=16.0.0 <23.0.0
+- Build tool: ng-packagr 22
 - Core component: `wrappers/angular-wrapper/projects/hot-table/src/lib/`
-- Runtime deps: `rxjs` ^7.8.1, `tslib` ^2.3.0, `zone.js` ~0.13.0
+- Runtime deps: `rxjs` ^7.8.1, `tslib` ^2.3.0, `zone.js` ~0.15.1
 - Tests require `NODE_OPTIONS=--openssl-legacy-provider`
 - **Modern pattern (required for all examples):** Components use `standalone: true` with `imports: [HotTableModule]`. Use `app.config.ts` (`ApplicationConfig` + `provideZoneChangeDetection`) instead of `AppModule`. License is set globally via `HOT_GLOBAL_CONFIG` -- no per-table `licenseKey`. Templates use `@if`/`@for` control flow, not `*ngIf`/`*ngFor`. Row data typed as `RowObject[]` from `handsontable`.
 
