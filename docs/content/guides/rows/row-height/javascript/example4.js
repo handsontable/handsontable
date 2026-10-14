@@ -24,7 +24,7 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-// Demonstrates ManualRowResize#clearManualSizes(): drag a row header
+// Demonstrates ManualRowResize#clearManualSizes(): drag the bottom edge of a row header
 // to resize a row, then click this button to drop the dragged heights.
 const clearSizesButton = document.querySelector('#example4-clearSizes');
 clearSizesButton.addEventListener('click', () => {
