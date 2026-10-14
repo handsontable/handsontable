@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-14T11:18:20.392Z",
+  "generatedAt": "2026-10-14T12:06:36.716Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -20,7 +20,7 @@
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
-      "count7": 1,
+      "count7": 0,
       "count30": 28,
       "countAll": 28,
       "runs30": 16,
@@ -12725,7 +12725,7 @@
       "file": "e2e/limit-fixed-to-viewport.spec.ts",
       "line": 46,
       "title": "limitFixedToViewport › a frozen area bigger than the grid › frozen top rows leave a strip, and the last row is reachable",
-      "count7": 2,
+      "count7": 0,
       "count30": 2,
       "countAll": 2,
       "runs30": 1,
@@ -12759,7 +12759,7 @@
       "file": "e2e/limit-fixed-to-viewport.spec.ts",
       "line": 226,
       "title": "limitFixedToViewport › frozen rows taller than the default height › are counted at the height they are drawn at, not the default one",
-      "count7": 2,
+      "count7": 0,
       "count30": 2,
       "countAll": 2,
       "runs30": 1,
