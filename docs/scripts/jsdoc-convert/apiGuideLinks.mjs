@@ -15,8 +15,7 @@ const contentDir = path.resolve(__dirname, '../../content');
  * - One primary guide per page. A page that two guides share points at the one that owns the feature.
  * - The guide must exist and must not be framework-gated, because one API page serves every
  *   framework. `scripts/validate-api-guide-links.mjs` enforces both.
- * - A plugin with no guide of its own has no entry (`stretchColumns`, `touchScroll`,
- *   `selectionHandles`, `multipleSelectionHandles`).
+ * - A plugin with no guide of its own has no entry and is listed in `unmappedPlugins` instead.
  *
  * Values are paths relative to `docs/content/`.
  */
@@ -63,6 +62,18 @@ export const apiGuideLinks = {
   'trimRows.md': 'guides/rows/row-trimming/row-trimming.md',
   'undoRedo.md': 'guides/accessories-and-menus/undo-redo/undo-redo.md',
 };
+
+/**
+ * Plugins that have no guide of their own, so they have no entry in `apiGuideLinks`. The validator
+ * fails on a plugin directory that is in neither place, so a new plugin forces a decision: add a
+ * guide link, or list the plugin here.
+ */
+export const unmappedPlugins = [
+  'stretchColumns',
+  'touchScroll',
+  'selectionHandles',
+  'multipleSelectionHandles',
+];
 
 /**
  * Reads the `title` of a guide from its frontmatter.
