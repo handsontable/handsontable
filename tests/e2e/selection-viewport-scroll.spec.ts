@@ -76,6 +76,7 @@ test.describe('viewport scroll of a selection', () => {
     await grid.initGrid({ data: TALL_DATA, colWidths: 60 });
     await grid.placeGridAcrossTheFold();
     await grid.selectCells(10, 0, 10, 0);
+    await grid.waitForWindowScrolledToSelection();
     await grid.scrollWindowToTop();
 
     // The command keeps the range end as many rows below the first visible row as row 10 is now, and row 10 is

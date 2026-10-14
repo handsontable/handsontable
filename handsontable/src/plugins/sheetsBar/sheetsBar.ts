@@ -1,7 +1,10 @@
 import { BasePlugin } from '../base';
 import { SheetModel, clampSheetName, type Sheet, type SheetDescriptor } from './sheetModel';
 import { SheetsBarUI } from './ui/bar';
-import { TabStrip } from './ui/tabStrip';
+import { TabStrip, type TabBox, type TabStripMotion } from './ui/tabStrip';
+import { resolveSwitchTransition, pillDurationMs, tabSlideDurationMs } from './ui/switchTiming';
+import { SheetSwitchAnimation, type SwitchSnapshot } from './ui/switchAnimation/switchAnimation';
+import { MotionGate } from './ui/motionGate';
 import { SheetsBarMenus } from './ui/menus';
 import { OverflowController } from './ui/overflow';
 import {
@@ -34,6 +37,11 @@ import type {
 export const PLUGIN_KEY = 'sheetsBar';
 export const PLUGIN_PRIORITY = 910;
 const LAYOUT_WEIGHT = 50;
+
+/**
+ * The source DataProvider loads a fetched page of rows into the grid with.
+ */
+const DATA_PROVIDER_LOAD_SOURCE = 'dataProvider';
 const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
@@ -327,6 +335,24 @@ export class SheetsBar extends BasePlugin {
    */
   #isSwitching = false;
   /**
+   * Swaps the visible cell content when the active sheet changes, or `null` before the first
+   * enable.
+   */
+  #switchAnimation: SheetSwitchAnimation | null = null;
+  /**
+   * Holds every switch animation, tab entrance, and marker slide back until the grid has been on
+   * screen for a frame. Shut on a genuine teardown, never on a workbook-preserving round trip, and
+   * armed by the first render after it.
+   */
+  #motionGate = new MotionGate();
+  /**
+   * Counts the switches that changed the active sheet, so a switch can tell whether a later one
+   * ran inside its own `afterSheetTabChange` and owns the animation now.
+   *
+   * @type {number}
+   */
+  #switchCount = 0;
+  /**
    * The grid-level value of every setting any sheet has overridden, captured the first time
    * that setting is applied. Switching to a sheet that does not declare a key restores the
    * value from here, so one sheet's `columns` or `nestedHeaders` cannot follow the user onto
@@ -383,6 +409,7 @@ export class SheetsBar extends BasePlugin {
 
       if (sheet) {
         this.#storeServerResult(sheet, result);
+        this.#switchAnimation?.rowsLanded(context);
       }
     },
     getContextResult: (context) => {
@@ -426,6 +453,13 @@ export class SheetsBar extends BasePlugin {
    * @type {TabStrip | null}
    */
   #tabStrip: TabStrip | null = null;
+  /**
+   * The marker slide and tab entrances a workbook-preserving `updatePlugin` carries from the
+   * strip it tears down to the strip it builds. `null` outside that window.
+   *
+   * @type {object|null}
+   */
+  #tabStripMotion: TabStripMotion | null = null;
   /**
    * Explicit `setCellMeta` writes made while the active sheet is applied, kept so they survive
    * a switch round trip. One bucket per physical cell, one slot per property inside it, so a
@@ -630,6 +664,7 @@ export class SheetsBar extends BasePlugin {
         ariaTags: this.hot.getSettings().ariaTags !== false,
         isRtl: this.hot.isRtl(),
         syncIcon: syncIconForHot,
+        registerTimeout: (callback: () => void, delay: number) => this.hot._registerTimeout(callback, delay),
       });
       this.#tabStrip
         .addLocalHook('tabClick', (id: number) => this.setActiveSheet(id, SOURCE_UI))
@@ -664,7 +699,7 @@ export class SheetsBar extends BasePlugin {
           }
         })
         .addLocalHook('tabDragCommit', (id: number, toIndex: number) => {
-          if (!this.#moveSheetToIndex(id, toIndex, SOURCE_UI)) {
+          if (!this.#moveSheetToIndex(id, toIndex, SOURCE_UI, false)) {
             this.#refreshUI();
           }
         });
@@ -712,8 +747,14 @@ export class SheetsBar extends BasePlugin {
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings, -1);
     this.addHook('afterDocumentKeyDown', this.#onKeyDownWithinBar, -1);
     this.addHook('beforeCompositionStart', this.#onKeyDownWithinBar, -1);
+    this.#registerSwitchAnimationHooks();
 
     this.#refreshUI();
+
+    if (this.#tabStripMotion !== null) {
+      this.#tabStrip?.resumeMotion(this.#tabStripMotion);
+      this.#tabStripMotion = null;
+    }
 
     super.enablePlugin();
   }
@@ -756,6 +797,7 @@ export class SheetsBar extends BasePlugin {
       this.enablePlugin();
     } finally {
       this.#preservedState = null;
+      this.#tabStripMotion = null;
       this.#retainActiveName = null;
       this.#rebuildGridDataProvider = null;
     }
@@ -914,9 +956,15 @@ export class SheetsBar extends BasePlugin {
    * Drops the model, the UI modules, the layout slot, and the runtime state. Shared by
    * `disablePlugin` and `destroy`; every handle is optional-chained so the second teardown is
    * a no-op. The settings baseline goes too: it describes the grid as it was before this
-   * workbook, and a workbook configured later starts from the grid as it is then.
+   * workbook, and a workbook configured later starts from the grid as it is then. A
+   * workbook-preserving round trip first takes the strip's running marker slide and tab
+   * entrances, while the strip is still laid out, for the rebuilt strip to continue.
    */
   #releaseState() {
+    if (this.#preservedState !== null) {
+      this.#tabStripMotion = this.#tabStrip?.releaseMotion() ?? null;
+    }
+
     if (isRootInstance(this.hot)) {
       if (this.#registeredSide) {
         this.hot.getLayoutManager().unregister(PLUGIN_KEY, this.#registeredSide);
@@ -938,6 +986,12 @@ export class SheetsBar extends BasePlugin {
     this.#lastBuiltSheets = undefined;
     this.#isSwitching = false;
     this.#isInitializing = false;
+
+    if (this.#preservedState === null) {
+      this.#switchAnimation?.release();
+      this.#motionGate.close();
+    }
+
     this.#tabStrip?.destroy();
     this.#tabStrip = null;
     this.#menus?.destroy();
@@ -1021,42 +1075,71 @@ export class SheetsBar extends BasePlugin {
       return false;
     }
 
-    const switched = this.#commit(
-      'beforeSheetTabChange',
-      [oldId, newId],
-      () => {
-        const oldSheet = oldId === null ? null : model.getSheetById(oldId);
+    let transitionMs = 0;
+    let markerFrom: TabBox | null = null;
+    let snapshot: SwitchSnapshot | null = null;
+    let awaitedRows: object | null = null;
+    let switchNumber = 0;
+    let isHandedOver = false;
 
-        if (oldSheet) {
-          if (this.hot.getActiveEditor()?.isOpened()) {
-            this.hot.destroyEditor(false, false);
+    try {
+      const switched = this.#commit(
+        'beforeSheetTabChange',
+        [oldId, newId],
+        () => {
+          this.#switchCount += 1;
+          switchNumber = this.#switchCount;
+          this.#switchAnimation?.finish();
+          transitionMs = this.#switchTransition();
+          markerFrom = transitionMs > 0 ? (this.#tabStrip?.captureActiveTabBox() ?? null) : null;
+
+          const oldSheet = oldId === null ? null : model.getSheetById(oldId);
+
+          if (oldSheet) {
+            if (this.hot.getActiveEditor()?.isOpened()) {
+              this.hot.destroyEditor(false, false);
+            }
+
+            this.#syncActiveSheetData();
+            oldSheet.viewState = captureViewState(this.hot, this.#flattenTrackedCellMeta()) as
+              unknown as Record<string, unknown>;
+            this.hot.runHooks('afterSheetTabStateCapture', oldId, oldSheet.viewState, source);
           }
 
-          this.#syncActiveSheetData();
-          oldSheet.viewState = captureViewState(this.hot, this.#flattenTrackedCellMeta()) as
-            unknown as Record<string, unknown>;
-          this.hot.runHooks('afterSheetTabStateCapture', oldId, oldSheet.viewState, source);
-        }
+          snapshot = this.#switchAnimation?.prepare(transitionMs) ?? null;
 
-        try {
-          this.#isSwitching = true;
-          this.#withoutFetching(() => this.#switchTo(model, newId, source));
-        } finally {
-          this.#isSwitching = false;
-        }
+          try {
+            this.#isSwitching = true;
+            this.#withoutFetching(() => this.#switchTo(model, newId, source));
+          } finally {
+            this.#isSwitching = false;
+          }
 
-        this.#refreshUI();
-        this.#showServerSheet();
+          this.#refreshUI();
+          this.#showServerSheet();
+          awaitedRows = this.#fetchingContext();
 
-        return true;
-      },
-      'afterSheetTabChange',
-      () => [oldId, newId],
-      source,
-    );
+          return true;
+        },
+        'afterSheetTabChange',
+        () => [oldId, newId],
+        source,
+      );
 
-    if (switched === false) {
-      return false;
+      if (switched === false) {
+        return false;
+      }
+
+      if (this.#ownsSwitchAnimation(switchNumber)) {
+        this.#slideActiveTabMarker(markerFrom, transitionMs);
+        this.#startSwitchAnimation(snapshot, awaitedRows, transitionMs);
+      }
+
+      isHandedOver = true;
+    } finally {
+      if (!isHandedOver && snapshot !== null && this.#ownsSwitchAnimation(switchNumber)) {
+        this.#switchAnimation?.finish();
+      }
     }
 
     // Announced for the bar's own gestures only. A switch made through the API is the host
@@ -1067,6 +1150,142 @@ export class SheetsBar extends BasePlugin {
     }
 
     return true;
+  }
+
+  /**
+   * Tells whether a switch still owns the animation: the plugin is enabled, and no later switch
+   * ran since, as one an `afterSheetTabChange` listener starts. A later switch took its own
+   * snapshot and started its own animation, which this one must neither replace nor end; and a
+   * listener that disabled the plugin ended the animation already.
+   */
+  #ownsSwitchAnimation(switchNumber: number): boolean {
+    return this.enabled && switchNumber === this.#switchCount;
+  }
+
+  /**
+   * Starts the animation of a committed switch: the content swap, or, for a sheet whose rows
+   * are still being fetched, the wait for them.
+   */
+  #startSwitchAnimation(snapshot: SwitchSnapshot | null, awaitedRows: object | null, transitionMs: number): void {
+    if (awaitedRows === null) {
+      this.#switchAnimation?.play(snapshot);
+    } else {
+      this.#switchAnimation?.awaitRows(awaitedRows, transitionMs);
+    }
+  }
+
+  /**
+   * Returns the DataProvider context of the sheet the grid shows while that sheet's rows are
+   * still being fetched behind the loading state, or `null` when the grid shows its rows.
+   */
+  #fetchingContext(): object | null {
+    const sheet = this.#activeSheetRecord();
+
+    return sheet && this.#getDataProvider()?.isFetching() ? this.#contextOf(sheet) : null;
+  }
+
+  /**
+   * Slides a newly created sheet's tab into the strip. Nothing slides when the switch would not
+   * animate: no theme transition, a user who prefers reduced motion, or a grid still loading.
+   */
+  #markTabEntering(id: number): void {
+    if (this.#tabStrip === null) {
+      return;
+    }
+
+    this.#tabStrip.markEntering(id, this.#switchTransition());
+  }
+
+  /**
+   * Returns the transition the bar's motion runs with, or `0` while the grid loads: until the
+   * motion gate opens, a switch, a tab entrance, and a marker slide are instant, and read nothing
+   * from the DOM.
+   */
+  #switchTransition(): number {
+    return this.#motionGate.isOpen() ? resolveSwitchTransition(this.hot) : 0;
+  }
+
+  /**
+   * Records where every tab stands before a change that moves tabs, with the transition the
+   * slide will run with, or answers `null` when the bar's motion is instant: no theme transition,
+   * a user who prefers reduced motion, or a grid still loading.
+   */
+  #captureTabMotion(): { from: Map<number, number>, transitionMs: number } | null {
+    const transitionMs = this.#tabStrip === null ? 0 : this.#switchTransition();
+
+    if (transitionMs <= 0) {
+      return null;
+    }
+
+    return { from: this.#tabStrip!.captureTabPositions(), transitionMs };
+  }
+
+  /**
+   * Slides the tabs from the places `#captureTabMotion()` recorded to the places the repaint
+   * gave them, led by the tab of `leadId`.
+   */
+  #playTabMotion(motion: { from: Map<number, number>, transitionMs: number } | null, leadId: number): void {
+    if (motion === null) {
+      return;
+    }
+
+    this.#tabStrip?.slideTabs(motion.from, tabSlideDurationMs(motion.transitionMs), leadId);
+  }
+
+  /**
+   * Slides the active tab marker from the box the previous sheet's tab held to the new active
+   * tab. A switch that does not animate ends a slide still running instead.
+   */
+  #slideActiveTabMarker(from: TabBox | null, transitionMs: number): void {
+    if (this.#tabStrip === null) {
+      return;
+    }
+
+    if (from === null || transitionMs <= 0) {
+      this.#tabStrip.finishIndicator();
+
+      return;
+    }
+
+    this.#tabStrip.slideIndicator(from, pillDurationMs(transitionMs));
+  }
+
+  /**
+   * Registers the listeners that end a running content swap: a data or structure change, a
+   * pointer press or a key press in the grid, an editor opening, a theme change, a scroll away
+   * from the switched viewport, and a resize. A settings update alone does not end it: the
+   * wrappers re-send their settings on every render, and the switch an `activeSheet` setting
+   * asks for runs inside `afterUpdateSettings` itself. A settings change that moves the layout
+   * ends it through the resize check, the data load, or the structure hooks. Also the listeners
+   * that fade an arriving server sheet's rows in once they are painted, or drop that fade when
+   * its fetch fails.
+   */
+  #registerSwitchAnimationHooks(): void {
+    if (this.#switchAnimation === null) {
+      this.#switchAnimation = new SheetSwitchAnimation(this.hot);
+    }
+
+    const interruptions = [
+      'afterCreateRow',
+      'afterCreateCol',
+      'afterRemoveRow',
+      'afterRemoveCol',
+      'afterColumnSort',
+      'afterFilter',
+      'beforeOnCellMouseDown',
+      'beforeKeyDown',
+      'afterBeginEditing',
+      'afterSetTheme',
+    ] as const;
+
+    interruptions.forEach(hookName => this.addHook(hookName, this.#onSwitchAnimationInterrupted));
+    this.addHook('afterChange', this.#onAfterChangeDuringSwitchAnimation);
+    this.addHook('afterLoadData', this.#onAfterLoadDataDuringSwitchAnimation);
+    this.addHook('afterDataProviderFetchError', this.#onAfterFetchSettledDuringSwitchAnimation);
+    this.addHook('afterDataProviderFetchAbort', this.#onAfterFetchSettledDuringSwitchAnimation);
+    this.addHook('afterScroll', this.#onAfterScrollDuringSwitchAnimation);
+    this.addHook('afterRender', this.#onAfterRenderDuringSwitchAnimation);
+    this.addHook('afterRender', this.#onAfterRenderArmMotionGate);
   }
 
   /**
@@ -1126,6 +1345,7 @@ export class SheetsBar extends BasePlugin {
         }
 
         this.#registerFormulaSheet(added);
+        this.#markTabEntering(added.id);
         this.#refreshUI();
 
         return added;
@@ -1825,6 +2045,8 @@ export class SheetsBar extends BasePlugin {
    * Removes a sheet. When it is the currently active one, first activates the
    * neighbor the model will pick (so the grid runs its normal view-state
    * capture/restore switch) before removing it. Refuses to remove the last sheet.
+   * Unless the bar's motion is instant, a copy of the removed tab fades out toward the inline
+   * start while the tabs after it slide to close the gap.
    */
   #removeSheet(id: number, source: string = SOURCE_UI): boolean {
     const model = this.#model as SheetModel;
@@ -1849,6 +2071,8 @@ export class SheetsBar extends BasePlugin {
         }
 
         const removedSheet = model.getSheetById(id);
+        const tabMotion = this.#captureTabMotion();
+        const leavingTab = tabMotion === null ? null : (this.#tabStrip?.captureLeavingTab(id) ?? null);
 
         if (!model.removeSheet(id)) {
           return false;
@@ -1861,6 +2085,11 @@ export class SheetsBar extends BasePlugin {
 
         this.#pruneDeclaredSheet(id);
         this.#refreshUI();
+        this.#playTabMotion(tabMotion, -1);
+
+        if (leavingTab !== null && tabMotion !== null) {
+          this.#tabStrip?.slideTabOut(leavingTab, tabMotion.transitionMs);
+        }
 
         return true;
       },
@@ -1930,12 +2159,16 @@ export class SheetsBar extends BasePlugin {
   /**
    * Moves a sheet to an absolute index through the cancellable hook pair.
    *
+   * Unless the move comes from a drag, which already put the tab in its place, the tabs slide
+   * from their old places to the new ones, and the strip reveals the moved tab.
+   *
    * @param {number} id The sheet id.
    * @param {number} to The target index.
    * @param {string} source The operation source reported to the hooks.
+   * @param {boolean} [slide=true] Whether the tabs slide to their new places.
    * @returns {boolean} `true` when the sheet moved.
    */
-  #moveSheetToIndex(id: number, to: number, source: string): boolean {
+  #moveSheetToIndex(id: number, to: number, source: string, slide: boolean = true): boolean {
     const model = this.#model as SheetModel;
     const order = model.getSheets();
     const from = order.findIndex(sheet => sheet.id === id);
@@ -1948,11 +2181,18 @@ export class SheetsBar extends BasePlugin {
       'beforeSheetTabMove',
       [id, to],
       () => {
+        const tabMotion = slide ? this.#captureTabMotion() : null;
+
         if (!model.moveSheet(id, to)) {
           return false;
         }
 
         this.#refreshUI();
+        this.#playTabMotion(tabMotion, id);
+
+        if (slide) {
+          this.#tabStrip?.revealTab(id);
+        }
 
         return true;
       },
@@ -2004,6 +2244,7 @@ export class SheetsBar extends BasePlugin {
           this.#registerFormulaSheet(sheet);
         }
 
+        this.#markTabEntering(sheet.id);
         this.#refreshUI();
 
         return sheet;
@@ -2436,6 +2677,73 @@ export class SheetsBar extends BasePlugin {
    */
   #onBeforeAutoCreate = (index: number, amount: number, source?: string) => {
     return this.#blockAutoPadding && source === 'auto' ? false : undefined;
+  };
+
+  /**
+   * Ends a running content swap. The switch's own loads, settings updates, and restores run
+   * while `#isSwitching` is set and leave it alone.
+   */
+  #onSwitchAnimationInterrupted = (): void => {
+    if (!this.#isSwitching) {
+      this.#switchAnimation?.finish();
+    }
+  };
+
+  /**
+   * Ends a running content swap once the viewport scrolled away from where the switch left it.
+   */
+  #onAfterScrollDuringSwitchAnimation = (): void => {
+    this.#switchAnimation?.finishIfScrolled();
+  };
+
+  /**
+   * Arms the motion gate after a render, so the bar's motion starts in the next animation frame,
+   * once the grid is on screen. A no-op once the gate is open or its frame is pending.
+   */
+  #onAfterRenderArmMotionGate = (): void => {
+    this.#motionGate.arm(this.hot.rootWindow, () => this.enabled && !this.hot.isDestroyed);
+  };
+
+  /**
+   * Ends a running content swap once the grid was resized.
+   */
+  #onAfterRenderDuringSwitchAnimation = (): void => {
+    this.#switchAnimation?.finishIfResized();
+    this.#switchAnimation?.fadeInLandedRows();
+  };
+
+  /**
+   * Ends a running content swap when the grid's data is replaced. While a switch waits for its
+   * server sheet's rows, the DataProvider load is how they arrive, so it is left to fade them
+   * in. Any other load, a host's `loadData()` included, ends the wait.
+   */
+  #onAfterLoadDataDuringSwitchAnimation = (data: unknown, initialLoad: boolean, source?: string): void => {
+    if (source === DATA_PROVIDER_LOAD_SOURCE && this.#switchAnimation?.isAwaitingRows()) {
+      this.#switchAnimation.rowsArriving();
+    } else {
+      this.#onSwitchAnimationInterrupted();
+    }
+  };
+
+  /**
+   * Ends a running content swap when the grid's data changes. The change a load reports is
+   * left to the `afterLoadData` listener, which knows the load's source.
+   */
+  #onAfterChangeDuringSwitchAnimation = (changes: unknown, source?: string): void => {
+    if (source !== 'loadData') {
+      this.#onSwitchAnimationInterrupted();
+    }
+  };
+
+  /**
+   * Drops the fade a switch waits for once the visible sheet's fetch failed or was aborted with
+   * no other fetch taking its place: no rows arrive, so the selection is shown at once. A fetch
+   * that settles for a sheet the grid does not show leaves the visible one fetching.
+   */
+  #onAfterFetchSettledDuringSwitchAnimation = (): void => {
+    if (this.#switchAnimation?.isAwaitingRows() && !this.#getDataProvider()?.isFetching()) {
+      this.#switchAnimation.finish();
+    }
   };
 
   /**
