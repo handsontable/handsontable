@@ -4,7 +4,7 @@ import { isObject } from '../../helpers/object';
 import { LOADING_CLASS_NAME } from '../../helpers/constants';
 import { EXPORT_FILE_DIALOG_TITLE } from '../../i18n/constants';
 import { resolveEngineOverride, tryDetectXlsxEngine } from '../../utils/xlsxEngine/detect';
-import DataProvider from './dataProvider';
+import ExportDataProvider from './dataProvider';
 import typeFactory, { EXPORT_TYPES } from './typeFactory';
 import exportItem from './contextMenuItem/exportItem';
 import { buildExportDialogContent } from './utils';
@@ -121,11 +121,13 @@ export interface ConditionalFormattingRule {
  */
 export interface ConditionalFormattingDescriptor {
   /**
-   * Row range `[startRow, endRow]` (visual indexes). Defaults to the full exported range.
+   * Row range `[startRow, endRow]`, as 0-based offsets into the exported data: after `range` is
+   * applied and excluded hidden rows are left out. Defaults to the full exported range.
    */
   rows?: [number, number];
   /**
-   * Column range `[startCol, endCol]` (visual indexes). Defaults to the full exported range.
+   * Column range `[startCol, endCol]`, as 0-based offsets into the exported data: after `range` is
+   * applied and excluded hidden columns are left out. Defaults to the full exported range.
    */
   cols?: [number, number];
   /**
@@ -494,7 +496,7 @@ export class ExportFile extends BasePlugin {
    * @param {string} [options.mimeType] MIME type (e.g. `'text/csv'` for CSV). Default depends on format.
    * @param {string} [options.fileExtension] File extension (e.g. `'csv'`). Default depends on format.
    * @param {string} [options.filename='Handsontable [YYYY]-[MM]-[DD]'] File name. Placeholders `[YYYY]`, `[MM]`, `[DD]` are replaced with the current date.
-   * @param {string} [options.encoding='utf-8'] Character encoding.
+   * @param {string} [options.encoding='utf-8'] Charset label of the Blob; the content is always UTF-8.
    * @param {boolean} [options.bom] Include BOM signature. Default depends on format (e.g. `true` for CSV).
    * @param {string} [options.columnDelimiter=','] Column delimiter (CSV only).
    * @param {string} [options.rowDelimiter='\r\n'] Row delimiter (CSV only).
@@ -528,7 +530,7 @@ export class ExportFile extends BasePlugin {
    * @param {string} [options.mimeType] MIME type. Default depends on format.
    * @param {string} [options.fileExtension] File extension. Default depends on format.
    * @param {string} [options.filename='Handsontable [YYYY]-[MM]-[DD]'] File name.
-   * @param {string} [options.encoding='utf-8'] Character encoding.
+   * @param {string} [options.encoding='utf-8'] Charset label of the Blob; the content is always UTF-8.
    * @param {boolean} [options.bom] Include BOM signature. Default depends on format (e.g. `true` for CSV).
    * @param {string} [options.columnDelimiter=','] Column delimiter (CSV only).
    * @param {string} [options.rowDelimiter='\r\n'] Row delimiter (CSV only).
@@ -565,20 +567,22 @@ export class ExportFile extends BasePlugin {
    * @param {string} [options.mimeType] MIME type. Default depends on format.
    * @param {string} [options.fileExtension] File extension. Default depends on format.
    * @param {string} [options.filename='Handsontable [YYYY]-[MM]-[DD]'] File name.
-   * @param {string} [options.encoding='utf-8'] Character encoding (text formats only).
+   * @param {string} [options.encoding='utf-8'] Charset label of the Blob and the download; the content is always UTF-8 (text formats only).
    * @param {boolean} [options.bom] Include BOM signature (text formats only).
    * @param {string} [options.columnDelimiter=','] Column delimiter (CSV only).
    * @param {string} [options.rowDelimiter='\r\n'] Row delimiter (CSV only).
    * @param {boolean} [options.colHeaders=false] Include column headers.
    * @param {boolean} [options.rowHeaders=false] Include row headers.
-   * @param {boolean} [options.exportHiddenColumns=false] Include hidden columns.
-   * @param {boolean} [options.exportHiddenRows=false] Include hidden rows.
+   * @param {boolean|string} [options.exportHiddenColumns=false] Hidden columns: `true` exports them visible, `false` leaves them out, `'hide'` writes them hidden in the sheet (XLSX only).
+   * @param {boolean|string} [options.exportHiddenRows=false] Hidden rows: `true` exports them visible, `false` leaves them out, `'hide'` writes them hidden in the sheet (XLSX only).
    * @param {number[]} [options.range=[]] Cell range: `[startRow, startColumn, endRow, endColumn]`.
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
    * @param {boolean} [options.exportFormulas=false] Export cell formulas instead of their computed values (XLSX only).
    * @param {boolean|number} [options.compression] DEFLATE compression (XLSX only). Omitted, `null`, `true` or any value other than `false` and a number 1–9 compresses at level 6. A number 1–9 sets the level on the ExcelJS engine; the built-in engine always uses the platform's default level. `false` stores the entries uncompressed.
    * @param {ConditionalFormattingDescriptor[]} [options.conditionalFormatting=[]] Conditional formatting rules to apply to the exported file (XLSX only).
    * @param {SheetOptions[]} [options.sheets=[]] Configuration for multi-sheet export. Each entry defines one worksheet (XLSX only).
+   * @param {HeaderStyle|null} [options.headerStyle] Fill and border of the header cells (XLSX only). Defaults to a light-gray fill with a thin border; an object replaces the whole default, `null` writes unstyled headers.
+   * @param {object|null} [options.engine] Engine for this call only (XLSX only). `null` or an absent key keeps the engine from the `engines` setting, or the built-in one.
    * @returns {Promise<Blob>}
    * @since 17.1.0
    */
@@ -597,7 +601,7 @@ export class ExportFile extends BasePlugin {
    * @param {string} [options.mimeType] MIME type. Default depends on format.
    * @param {string} [options.fileExtension] File extension. Default depends on format.
    * @param {string} [options.filename='Handsontable [YYYY]-[MM]-[DD]'] File name.
-   * @param {string} [options.encoding='utf-8'] Character encoding.
+   * @param {string} [options.encoding='utf-8'] Charset label of the Blob; the content is always UTF-8.
    * @param {boolean} [options.bom] Include BOM signature. Default depends on format.
    * @param {string} [options.columnDelimiter=','] Column delimiter (CSV only).
    * @param {string} [options.rowDelimiter='\r\n'] Row delimiter (CSV only).
@@ -637,20 +641,22 @@ export class ExportFile extends BasePlugin {
    * @param {string} [options.mimeType] MIME type. Default depends on format.
    * @param {string} [options.fileExtension] File extension. Default depends on format.
    * @param {string} [options.filename='Handsontable [YYYY]-[MM]-[DD]'] File name.
-   * @param {string} [options.encoding='utf-8'] Character encoding (text formats only).
+   * @param {string} [options.encoding='utf-8'] Charset label of the Blob and the download; the content is always UTF-8 (text formats only).
    * @param {boolean} [options.bom] Include BOM signature (text formats only).
    * @param {string} [options.columnDelimiter=','] Column delimiter (CSV only).
    * @param {string} [options.rowDelimiter='\r\n'] Row delimiter (CSV only).
    * @param {boolean} [options.colHeaders=false] Include column headers.
    * @param {boolean} [options.rowHeaders=false] Include row headers.
-   * @param {boolean} [options.exportHiddenColumns=false] Include hidden columns.
-   * @param {boolean} [options.exportHiddenRows=false] Include hidden rows.
+   * @param {boolean|string} [options.exportHiddenColumns=false] Hidden columns: `true` exports them visible, `false` leaves them out, `'hide'` writes them hidden in the sheet (XLSX only).
+   * @param {boolean|string} [options.exportHiddenRows=false] Hidden rows: `true` exports them visible, `false` leaves them out, `'hide'` writes them hidden in the sheet (XLSX only).
    * @param {number[]} [options.range=[]] Cell range: `[startRow, startColumn, endRow, endColumn]`.
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
    * @param {boolean} [options.exportFormulas=false] Export cell formulas instead of their computed values (XLSX only).
    * @param {boolean|number} [options.compression] DEFLATE compression (XLSX only). Omitted, `null`, `true` or any value other than `false` and a number 1–9 compresses at level 6. A number 1–9 sets the level on the ExcelJS engine; the built-in engine always uses the platform's default level. `false` stores the entries uncompressed.
    * @param {ConditionalFormattingDescriptor[]} [options.conditionalFormatting=[]] Conditional formatting rules to apply to the exported file (XLSX only).
    * @param {SheetOptions[]} [options.sheets=[]] Configuration for multi-sheet export. Each entry defines one worksheet (XLSX only).
+   * @param {HeaderStyle|null} [options.headerStyle] Fill and border of the header cells (XLSX only). Defaults to a light-gray fill with a thin border; an object replaces the whole default, `null` writes unstyled headers.
+   * @param {object|null} [options.engine] Engine for this call only (XLSX only). `null` or an absent key keeps the engine from the `engines` setting, or the built-in one.
    * @returns {Promise<void>}
    * @since 17.1.0
    */
@@ -796,7 +802,7 @@ export class ExportFile extends BasePlugin {
     const mergedOptions: Record<string, unknown> = engine !== undefined
       ? { ...options, engine }
       : options as Record<string, unknown>;
-    const formatter = typeFactory(format, new DataProvider(this.hot), mergedOptions);
+    const formatter = typeFactory(format, new ExportDataProvider(this.hot), mergedOptions);
 
     if (formatter === null) {
       throwWithCause(`Export format type "${format}" is not supported.`);

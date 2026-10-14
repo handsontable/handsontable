@@ -485,11 +485,12 @@ export const REGISTERED_HOOKS = [
   'afterGetRowHeader',
 
   /**
-   * Fired by the {@link ImportFile} plugin after the imported result was applied to the grid.
+   * Fired by the {@link ImportFile} plugin after the imported result was applied to the grid. Not
+   * fired for an import with `apply: false`, or for one that a newer import replaced.
    *
    * @event Hooks#afterImport
    * @since 19.0.0
-   * @param {object} result The applied {@link ImportFile} result.
+   * @param {ImportResult} result The applied {@link ImportFile} result.
    * @param {string} format The import format, e.g. `'xlsx'`.
    */
   'afterImport',
@@ -1720,11 +1721,12 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by the {@link ImportFile} plugin after a workbook was read and mapped, and before the
-   * result is applied to the grid. Mutating `result` changes what gets applied.
+   * result is applied to the grid. Mutating `result` changes what gets applied. Not fired for an
+   * import with `apply: false`. The dropped-features warning is already printed by then.
    *
    * @event Hooks#beforeImport
    * @since 19.0.0
-   * @param {object} result The {@link ImportFile} result about to be applied.
+   * @param {ImportResult} result The {@link ImportFile} result about to be applied.
    * @param {string} format The import format, e.g. `'xlsx'`.
    * @returns {boolean|undefined} If `false`, the result is not applied. The import promise still resolves with it.
    */

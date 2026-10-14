@@ -3234,10 +3234,12 @@ export default (): Record<string, unknown> => {
      *
      * Read more:
      * - [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md)
+     * - [Export to CSV](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md)
+     * - [Excel import and export reference](@/guides/accessories-and-menus/excel-import-export-reference/excel-import-export-reference.md)
      * - [Plugins: `ExportFile`](@/api/exportFile.md)
      *
      * @memberof Options#
-     * @type {object}
+     * @type {boolean|object}
      * @default undefined
      * @since 17.1.0
      * @category ExportFile
@@ -3280,10 +3282,11 @@ export default (): Record<string, unknown> => {
      *
      * Read more:
      * - [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md)
+     * - [Excel import and export reference](@/guides/accessories-and-menus/excel-import-export-reference/excel-import-export-reference.md)
      * - [Plugins: `ImportFile`](@/api/importFile.md)
      *
      * @memberof Options#
-     * @type {object}
+     * @type {boolean|object}
      * @default undefined
      * @since 19.0.0
      * @category ImportFile
