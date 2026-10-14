@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-14T12:38:19.449Z",
+  "generatedAt": "2026-10-14T12:41:47.061Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -12624,7 +12624,7 @@
       "file": "e2e/fixed-columns-end.spec.ts",
       "line": 224,
       "title": "fixedColumnsEnd keyboard navigation (ltr) › keeps the cell reached with the arrow key visible beside the end columns",
-      "count7": 2,
+      "count7": 1,
       "count30": 2,
       "countAll": 2,
       "runs30": 1,
