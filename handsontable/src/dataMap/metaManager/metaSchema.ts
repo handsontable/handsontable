@@ -1466,7 +1466,7 @@ export default (): Record<string, unknown> => {
      * | `undefined` | Used by the [modifyColWidth](@/api/hooks.md#modifyColWidth) hook,<br>to detect column width changes. | `colWidths: undefined`                                            |
      *
      * The array and the function address a column by its physical index, so a width stays with its column
-     * when the user moves the column. The physical index doesn't change when columns are moved, sorted,
+     * when the user moves the column. The physical index doesn't change when columns are moved
      * or hidden. Inserting or removing a column in the middle of the grid shifts the physical indexes
      * of the columns after it.
      *

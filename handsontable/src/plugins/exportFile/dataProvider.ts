@@ -992,28 +992,16 @@ class DataProvider {
    * @returns {number}
    */
   _getNaturalColWidth(colIndex: number): number {
-    const settings = this.hot.getSettings();
     const metaWidth = this.hot.getColumnMeta(colIndex).width;
 
     if (metaWidth !== null && metaWidth !== undefined) {
       return metaWidth as number;
     }
 
-    const { colWidths, defaultColumnWidth } = settings;
+    const { defaultColumnWidth } = this.hot.getSettings();
     const fallback: number = (defaultColumnWidth as number | undefined) ?? 50;
 
-    // The array and the function address columns by the physical index
-    const physicalColumn = this.hot.toPhysicalColumn(colIndex) ?? colIndex;
-
-    if (Array.isArray(colWidths)) {
-      return (colWidths[physicalColumn] as number | undefined) ?? fallback;
-    } else if (typeof colWidths === 'function') {
-      return (colWidths(physicalColumn) as number | undefined) ?? fallback;
-    } else if (typeof colWidths === 'number') {
-      return colWidths;
-    }
-
-    return fallback;
+    return this.hot._getColWidthFromSettings(colIndex) ?? fallback;
   }
 
   /**

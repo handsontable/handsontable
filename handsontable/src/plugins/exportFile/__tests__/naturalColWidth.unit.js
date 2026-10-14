@@ -1,34 +1,70 @@
+import Core from 'handsontable/core';
+import { registerCellType, TextCellType } from 'handsontable/cellTypes';
+import { registerRenderer, baseRenderer, textRenderer } from 'handsontable/renderers';
 import DataProvider from '../dataProvider';
 
+registerCellType(TextCellType);
+registerRenderer(baseRenderer);
+registerRenderer(textRenderer);
+
 describe('DataProvider#_getNaturalColWidth', () => {
+  let container;
+  let hot;
+
   /**
-   * Builds a data provider on a fake instance whose visual order is [2, 0, 1].
+   * Builds a three-column grid whose first column is moved to the end.
    *
    * @param {object} settings The grid settings.
    * @returns {DataProvider}
    */
   function createProvider(settings) {
-    const physical = [2, 0, 1];
-
-    return new DataProvider({
-      getSettings: () => settings,
-      getColumnMeta: () => ({}),
-      toPhysicalColumn: visual => physical[visual],
+    hot = new Core(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [['a', 'b', 'c']],
+      autoColumnSize: false,
+      ...settings,
     });
+    hot.init();
+    hot.columnIndexMapper.moveIndexes([0], 2);
+
+    return new DataProvider(hot);
   }
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    hot?.destroy();
+    hot = null;
+    container.remove();
+  });
 
   it('should read an array `colWidths` by the physical column index', () => {
     const provider = createProvider({ colWidths: [100, 120, 140] });
 
-    expect(provider._getNaturalColWidth(0)).toBe(140);
-    expect(provider._getNaturalColWidth(1)).toBe(100);
-    expect(provider._getNaturalColWidth(2)).toBe(120);
+    expect(provider._getNaturalColWidth(0)).toBe(120);
+    expect(provider._getNaturalColWidth(1)).toBe(140);
+    expect(provider._getNaturalColWidth(2)).toBe(100);
   });
 
   it('should call a `colWidths` function with the physical column index', () => {
     const provider = createProvider({ colWidths: physical => (physical + 1) * 10 });
 
-    expect(provider._getNaturalColWidth(0)).toBe(30);
-    expect(provider._getNaturalColWidth(1)).toBe(10);
+    expect(provider._getNaturalColWidth(0)).toBe(20);
+    expect(provider._getNaturalColWidth(2)).toBe(10);
+  });
+
+  it('should read a string `colWidths`', () => {
+    const provider = createProvider({ colWidths: '120px' });
+
+    expect(provider._getNaturalColWidth(1)).toBe(120);
+  });
+
+  it('should fall back to the default column width when `colWidths` has no entry', () => {
+    const provider = createProvider({ colWidths: [100], defaultColumnWidth: 70 });
+
+    expect(provider._getNaturalColWidth(0)).toBe(70);
   });
 });
