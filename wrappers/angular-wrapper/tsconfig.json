@@ -3,19 +3,18 @@
   "compileOnSave": false,
   "compilerOptions": {
     "noUnusedLocals": true,
-    "baseUrl": "./",
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
     "noImplicitReturns": true,
     "paths": {
-      "@handsontable/angular-wrapper": ["dist/hot-table"]
+      "@handsontable/angular-wrapper": ["./dist/hot-table"]
     },
     "noFallthroughCasesInSwitch": true,
     "sourceMap": true,
     "declaration": false,
-    "downlevelIteration": true,
     "experimentalDecorators": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
+    "strict": false,
     "importHelpers": true,
     "target": "es2017",
     "module": "es2020",
