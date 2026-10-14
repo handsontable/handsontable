@@ -246,13 +246,16 @@ export class FreezeBarPage {
     const info = await this.page.evaluate(() => ({
       root: window.hot.rootElement.getBoundingClientRect().toJSON() as { x: number, y: number, width: number, height: number },
       rtl: window.hot.isRtl(),
+      // a grid in a scaled box: the sizes the grid reports are layout pixels, the pointer works in client pixels
+      scale: window.hot.rootElement.getBoundingClientRect().width / window.hot.rootElement.offsetWidth,
       rowHeader: window.hot.view.getRowHeaderWidth(),
       colHeader: window.hot.view.getColumnHeaderHeight(),
       content: (() => {
         const root = window.hot.rootElement.getBoundingClientRect();
         const rtl = window.hot.isRtl();
-        const w = window.hot.view.getTotalTableWidth();
-        const h = window.hot.view.getTotalTableHeight();
+        const scale = root.width / window.hot.rootElement.offsetWidth;
+        const w = window.hot.view.getTotalTableWidth() * scale;
+        const h = window.hot.view.getTotalTableHeight() * scale;
 
         return { left: rtl ? root.right - w : root.left, right: rtl ? root.right : root.left + w, bottom: root.top + h };
       })(),
@@ -284,10 +287,12 @@ export class FreezeBarPage {
       }, [edge === 'start', count] as [boolean, number]);
 
       if (edge === 'top') {
-        return pinned.top + info.colHeader + pinned.sum;
+        return pinned.top + ((info.colHeader + pinned.sum) * info.scale);
       }
 
-      return startSideLeft ? pinned.left + info.rowHeader + pinned.sum : pinned.right - info.rowHeader - pinned.sum;
+      return startSideLeft ?
+        pinned.left + ((info.rowHeader + pinned.sum) * info.scale) :
+        pinned.right - ((info.rowHeader + pinned.sum) * info.scale);
     }
 
     if (count === 0) {
@@ -310,10 +315,10 @@ export class FreezeBarPage {
     }, [edge === 'end', count] as [boolean, number]);
 
     if (edge === 'end') {
-      return startSideLeft ? endEdgeX - sizes : endEdgeX + sizes;
+      return startSideLeft ? endEdgeX - (sizes * info.scale) : endEdgeX + (sizes * info.scale);
     }
 
-    return bottomEdgeY - sizes;
+    return bottomEdgeY - (sizes * info.scale);
   }
 
   /**

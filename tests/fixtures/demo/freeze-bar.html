@@ -110,6 +110,16 @@
       settings.height = 'auto';
     }
 
+    if (htParams.has('scale')) {
+      // the grid sits in a scaled box, so the distances read from the client rectangles are scaled
+      const scaler = document.createElement('div');
+
+      scaler.setAttribute('data-testid', 'scaler');
+      scaler.style.cssText = `transform: scale(${htParams.get('scale')}); transform-origin: 0 0; width: 500px;`;
+      container.parentNode.insertBefore(scaler, container);
+      scaler.appendChild(container);
+    }
+
     if (flag('narrow', false)) {
       settings.data = Handsontable.helper.createSpreadsheetData(8, 5);
     }

@@ -3193,6 +3193,37 @@ describe('SheetsBar plugin', () => {
       return hot.getPlugin('sheetsBar');
     };
 
+    it('keeps a count restored on its sheet when the app sends its own value again, as a wrapper does on each render', () => {
+      hot = new Handsontable(container, {
+        fixedRowsTop: 1,
+        sheetsBar: {
+          sheets: [
+            { name: 'A', data: [['a', 'b', 'c'], ['d', 'e', 'f'], ['g', 'h', 'i']] },
+            { name: 'B', data: [['x', 'y', 'z'], ['u', 'v', 'w'], ['p', 'q', 'r']] },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const sheetsBar = hot.getPlugin('sheetsBar');
+
+      // a drag on sheet A, then a visit to sheet B and back
+      hot.getSettings().fixedRowsTop = 3;
+      hot.render();
+      sheetsBar.setActiveSheet('B');
+
+      expect(hot.getSettings().fixedRowsTop).toBe(1);
+
+      sheetsBar.setActiveSheet('A');
+
+      expect(hot.getSettings().fixedRowsTop).toBe(3);
+
+      // the app sends the value it was configured with, which equals the grid-level one
+      hot.updateSettings({ fixedRowsTop: 1 });
+
+      expect(hot.getSettings().fixedRowsTop).toBe(3);
+    });
+
     it('does not carry a start freeze onto a sheet that was never visited, and brings it back to its own sheet', () => {
       const sheetsBar = createWorkbook();
 

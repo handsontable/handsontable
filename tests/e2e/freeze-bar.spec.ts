@@ -141,9 +141,27 @@ test.describe('freezeBar', () => {
       await grid.dragByPixels('start', 5000);
 
       const count = await grid.count('start');
+      const { strip, widest } = await grid.page.evaluate((frozen) => {
+        const hot = window.hot;
+        const viewport = hot.view.getWorkspaceWidth() - hot.view.getRowHeaderWidth();
+        let frozenWidth = 0;
+        let widestColumn = 0;
+
+        for (let column = 0; column < hot.countCols(); column += 1) {
+          widestColumn = Math.max(widestColumn, hot.getColWidth(column));
+
+          if (column < frozen) {
+            frozenWidth += hot.getColWidth(column);
+          }
+        }
+
+        return { strip: viewport - frozenWidth, widest: widestColumn };
+      }, count);
 
       expect(count).toBeGreaterThan(2);
-      expect(count).toBeLessThan(14);
+      // the master keeps a scrollable strip, and the clamp stops within a column or two of the viewport
+      expect(strip).toBeGreaterThan(0);
+      expect(strip).toBeLessThan(widest * 2);
     });
   });
 
@@ -1444,5 +1462,217 @@ test.describe('freezeBar', () => {
 
       await expect(grid.allBars).toHaveCount(0);
     });
+  });
+});
+
+test.describe('freezeBar and the rest of the page', () => {
+  let grid: FreezeBarPage;
+
+  test.beforeEach(({ page, theme, bundle }) => {
+    grid = new FreezeBarPage(page, theme, bundle);
+  });
+
+  test.afterEach(() => {
+    expect(grid.pageErrors).toEqual([]);
+  });
+
+  test('a press on a bar saves the editor that is open', async() => {
+    await grid.goto();
+    await grid.page.evaluate(() => window.hot.selectCell(5, 5));
+    await grid.page.keyboard.type('typed');
+
+    const bar = await grid.bar('start').boundingBox();
+
+    await grid.page.mouse.move(bar!.x + (bar!.width / 2), bar!.y + 150);
+    await grid.page.mouse.down();
+    await grid.page.mouse.up();
+
+    expect(await grid.page.evaluate(() => window.hot.getDataAtCell(5, 5))).toBe('typed');
+    expect(await grid.page.evaluate(() => window.hot.getActiveEditor()?.isOpened())).toBe(false);
+  });
+
+  test('Escape on a bar reached with the focus alone gives the keys back to the grid', async() => {
+    await grid.goto();
+    await grid.page.evaluate(() => {
+      window.hot.selectCell(5, 5);
+      // a bar reached with Tab has an unknown focus source, and the grid does not listen to the keys then
+      window.hot.unlisten();
+    });
+    await grid.separator('start').focus();
+    await grid.page.keyboard.press('Escape');
+    await grid.page.keyboard.press('ArrowRight');
+
+    expect(await grid.page.evaluate(() => window.hot.getSelectedLast())).toEqual([5, 6, 5, 6]);
+  });
+
+  test('only one bar is a Tab stop, and F6 reaches the others', async() => {
+    await grid.goto({ bottom: 1, end: 1 });
+
+    const stops = await grid.page.evaluate(() => {
+      return [...document.querySelectorAll<HTMLElement>('[data-ht-freeze-separator]')]
+        .filter(separator => separator.tabIndex === 0).length;
+    });
+
+    expect(stops).toBe(1);
+  });
+
+  test('the focus goes back to the grid when the bar that holds it is removed', async() => {
+    await grid.goto();
+    await grid.page.evaluate(() => window.hot.selectCell(5, 5));
+    await grid.page.keyboard.press('F6');
+    await grid.page.keyboard.press('F6');
+    await expect(grid.separator('top')).toBeFocused();
+    await grid.page.evaluate(() => window.hot.updateSettings({ freezeBar: false }));
+
+    expect(await grid.page.evaluate(() => document.activeElement === document.body)).toBe(false);
+    expect(await grid.page.evaluate(() => window.hot.rootElement.contains(document.activeElement))).toBe(true);
+  });
+
+  test('an undo puts a frozen row back under the filter', async() => {
+    await grid.goto({ filters: 1, rows: 1, undo: 1 });
+    await grid.page.evaluate(() => {
+      const filters = window.hot.getPlugin('filters');
+
+      filters.addCondition(0, 'begins_with', ['A1']);
+      filters.filter();
+    });
+
+    const state = () => grid.page.evaluate(() => ({
+      rows: window.hot.countRows(),
+      first: [0, 1, 2, 3].map(row => window.hot.getDataAtCell(row, 0)).join(','),
+    }));
+
+    await grid.page.evaluate(() => window.hot.getPlugin('freezeBar').setFreezeCount('top', 3));
+
+    expect(await state()).toEqual({ rows: 13, first: 'A1,A2,A3,A10' });
+
+    await grid.page.evaluate(() => window.hot.getPlugin('undoRedo').undo());
+
+    // the rows frozen by the undone drag are filtered again
+    expect(await state()).toEqual({ rows: 11, first: 'A1,A10,A11,A12' });
+
+    await grid.page.evaluate(() => window.hot.getPlugin('undoRedo').redo());
+
+    expect(await state()).toEqual({ rows: 13, first: 'A1,A2,A3,A10' });
+  });
+
+  test('the hover does not stay on a bar that moved to another host', async() => {
+    await grid.goto({ cols: 0 });
+
+    // the pointer events are sent by hand: the browser may send its own `pointerleave` after the bar moved
+    await grid.page.evaluate(() => {
+      document.querySelector('.ht-freeze-bar--start')!.dispatchEvent(new PointerEvent('pointerenter'));
+    });
+    await expect(grid.page.locator('.ht-freeze-bar--hover')).not.toHaveCount(0);
+    // the handle goes from the root element to the overlay, and no pointer event follows
+    await grid.page.evaluate(() => window.hot.getPlugin('freezeBar').setFreezeCount('start', 1));
+
+    await expect(grid.page.locator('.ht-freeze-bar--hover')).toHaveCount(0);
+  });
+
+  test('a keyboard step does not stop on a hidden column before the opposite band', async() => {
+    await grid.goto();
+    await grid.page.evaluate(() => window.hot.updateSettings({
+      data: window.Handsontable.helper.createSpreadsheetData(20, 6),
+      fixedColumnsStart: 3,
+      fixedColumnsEnd: 2,
+      hiddenColumns: { columns: [3] },
+    }));
+
+    expect(await grid.count('start')).toBe(3);
+
+    await grid.separator('start').focus();
+    await grid.page.keyboard.press('ArrowRight');
+
+    expect(await grid.count('start')).toBe(3);
+    expect(await grid.log()).toEqual([]);
+    await expect(grid.separator('start')).toHaveAttribute('aria-valuemax', '3');
+  });
+
+  test('the counts follow the visual rows when rows are trimmed', async() => {
+    await grid.goto();
+    await grid.page.evaluate(() => {
+      window.hot.updateSettings({ trimRows: true });
+      window.hot.getPlugin('trimRows').trimRow(1);
+      window.hot.getPlugin('trimRows').trimRow(2);
+    });
+    await grid.page.evaluate(() => window.hot.getPlugin('freezeBar').setFreezeCount('top', 3));
+
+    const frozen = await grid.page.evaluate(() => ({
+      count: window.hot.getPlugin('freezeBar').getFreezeCount('top'),
+      shown: window.hot.countRows(),
+      // the visual rows the top overlay draws
+      rows: [...document.querySelectorAll('.ht_clone_top tbody tr')]
+        .map(row => window.hot.getCoords(row.querySelector('td')!)?.row),
+    }));
+
+    expect(frozen.count).toBe(3);
+    expect(frozen.shown).toBe(48);
+    // the frozen rows are the first three that are shown
+    expect(frozen.rows).toEqual([0, 1, 2]);
+  });
+
+  test('the bars stay inside the layout when the grid is scaled', async() => {
+    await grid.goto({ scale: 0.5, cols: 0, rows: 0, end: 0, bottom: 0 });
+
+    const placement = await grid.page.evaluate(() => {
+      const root = window.hot.rootElement.getBoundingClientRect();
+      const rect = (edge: string) => {
+        const box = document.querySelector(`.ht-freeze-bar--${edge}:not(.ht-freeze-bar--segment)`)!
+          .getBoundingClientRect();
+
+        return { left: box.left - root.left, right: box.right - root.left, top: box.top - root.top, bottom: box.bottom - root.top };
+      };
+
+      return { root: { width: root.width, height: root.height }, end: rect('end'), bottom: rect('bottom') };
+    });
+
+    // the end handle is at the end edge of the grid, and the bottom handle at its bottom edge, not in the middle
+    expect(placement.end.right).toBeGreaterThan(placement.root.width - 12);
+    expect(placement.end.right).toBeLessThanOrEqual(placement.root.width + 1);
+    expect(placement.bottom.bottom).toBeGreaterThan(placement.root.height - 12);
+    expect(placement.bottom.bottom).toBeLessThanOrEqual(placement.root.height + 1);
+  });
+
+  test('the guide of a drag lies on the new freeze line when the grid is scaled', async() => {
+    await grid.goto({ scale: 0.5 });
+    await grid.dragTo('start', 4);
+
+    const gap = await grid.page.evaluate(() => {
+      const guide = document.querySelector('.ht-freeze-bar-guide')!.getBoundingClientRect();
+      const header = document.querySelector('[data-testid="colheader-4"]')!.getBoundingClientRect();
+
+      return Math.abs((guide.left + (guide.width / 2)) - header.left);
+    });
+
+    expect(gap).toBeLessThan(2);
+
+    await grid.release();
+  });
+
+  test('a bar sits above the selection borders and below the fill handle', async() => {
+    await grid.goto();
+
+    const zIndex = await grid.page.evaluate(() => {
+      return Number(getComputedStyle(document.querySelector('.ht-freeze-bar--start:not(.ht-freeze-bar--segment)')!)
+        .zIndex);
+    });
+
+    expect(zIndex).toBeGreaterThan(10);
+    expect(zIndex).toBeLessThan(110);
+  });
+
+  test('the ring of a focused bar is drawn inside the bar', async() => {
+    await grid.goto();
+    await grid.page.evaluate(() => window.hot.selectCell(5, 5));
+    await grid.page.keyboard.press('F6');
+    await expect(grid.separator('start')).toBeFocused();
+
+    const offset = await grid.page.evaluate(() => {
+      return parseFloat(getComputedStyle(document.querySelector('.ht-freeze-bar--start.ht-freeze-bar--focused')!)
+        .outlineOffset);
+    });
+
+    expect(offset).toBeLessThan(0);
   });
 });

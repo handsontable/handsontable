@@ -433,7 +433,11 @@ never visited. The rows were not tracked at first, so a frozen row carried over 
 `ManualColumnFreeze`, `alter()` and undo write a frozen count as an own property of `getSettings()`, and
 `updateSettings()` drops it only when the new value differs from the previous GRID-level one. A sheet's count must win,
 so every write of a count goes through `setFrozenCount()` / `clearFrozenCountShadow()` in `viewState.ts`, which
-removes the shadow (and `_fixedColumnsStart`, the backing field of the start freeze) first. A new path that writes
+removes the shadow (and `_fixedColumnsStart`, the backing field of the start freeze) first, and then writes the count
+as a shadow of its own when it differs from the grid-level value. It does not call `updateSettings()`: that would make
+the sheet's count the grid-level one, and a wrapper re-sends the app's own value on each render, which differs from it
+and reverts the sheet to the app's count (pinned by "keeps a count restored on its sheet when the app sends its own value
+again"). A new path that writes
 one of the four options must do the same, or the count a sheet left behind stays in force. Pinned in
 `__tests__/sheetsBar.unit.js`, "a freeze written on the table meta".
 

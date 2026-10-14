@@ -325,6 +325,8 @@ const tokensKeys = [
   'resize-indicator-color',
 
   // Freeze Bar Variables
+  // These three are not in the Figma design system yet. Regenerating the themes from a Figma export that lacks them
+  // drops them from the generated files, so add them to the Figma file first.
   'freeze-bar-color',
   'freeze-bar-hover-color',
   'freeze-bar-highlight-color',

@@ -429,7 +429,14 @@ export class FreezeBar extends BasePlugin {
       minScrollableSize: MIN_SCROLLABLE_SIZE,
     });
 
-    return Math.min(fit, total - oppositeCount);
+    let max = Math.min(fit, total - oppositeCount);
+
+    // the cap can end on a hidden track just before the opposite band, which would freeze nothing more on screen
+    while (max > 0 && trackSizes[max - 1] === 0) {
+      max -= 1;
+    }
+
+    return max;
   }
 
   /**
@@ -445,6 +452,10 @@ export class FreezeBar extends BasePlugin {
     this.#frame = EDGES.some(edge => this.#isEdgeAvailable(edge)) ? this.#measureFrame() : null;
     EDGES.forEach(edge => this.#syncBar(edge));
     this.#frame = null;
+    // one Tab stop for the four bars: F6 is the way to move between them
+    EDGES.filter(edge => this.#separators[edge]).forEach((edge, index) => {
+      this.#separators[edge]!.tabIndex = index === 0 ? 0 : -1;
+    });
     // the stylesheet keeps the resize handles clear of the bars on the axes that have them
     this.hot.rootElement.classList.toggle('ht-freeze-bar-columns', this.#isEdgeAvailable('start'));
     this.hot.rootElement.classList.toggle('ht-freeze-bar-rows', this.#isEdgeAvailable('top'));
@@ -550,10 +561,10 @@ export class FreezeBar extends BasePlugin {
     let bar = this.#bars[edge];
 
     if (!host) {
+      this.#clearHover(edge);
       bar?.remove();
       delete this.#bars[edge];
-      this.#separators[edge]?.remove();
-      delete this.#separators[edge];
+      this.#removeSeparator(edge);
       this.#syncSegments(edge, false);
 
       return;
@@ -565,6 +576,8 @@ export class FreezeBar extends BasePlugin {
     }
 
     if (bar.parentNode !== host) {
+      // moving the bar between the overlay and the root element fires no `pointerleave`
+      this.#clearHover(edge);
       host.appendChild(bar);
     }
 
@@ -576,6 +589,51 @@ export class FreezeBar extends BasePlugin {
     this.#positionEmptyHandle(bar, edge, empty, frame);
     this.#syncSegments(edge, !empty);
     this.#syncSeparator(edge, count);
+  }
+
+  /**
+   * Removes the separator of an edge. A separator that holds the focus hands it back to the grid first, because the
+   * focus would drop to the page otherwise.
+   *
+   * @param {string} edge The edge.
+   */
+  #removeSeparator(edge: FreezeEdge) {
+    const separator = this.#separators[edge];
+
+    if (!separator) {
+      return;
+    }
+
+    if (!this.hot.isDestroyed && getDeepActiveElement(this.hot.rootDocument) === separator) {
+      this.hot.getFocusManager().focusOnHighlightedCell();
+    }
+
+    separator.remove();
+    delete this.#separators[edge];
+  }
+
+  /**
+   * Gets the scale a CSS transform puts on the root element, per axis. The distances measured with
+   * `getBoundingClientRect()` are scaled, and the inline styles written inside the root element are not.
+   *
+   * @returns {{x: number, y: number}}
+   */
+  #getScale(): { x: number, y: number } {
+    return {
+      x: getElementScaleFactor(this.hot.rootElement, 'horizontal'),
+      y: getElementScaleFactor(this.hot.rootElement, 'vertical'),
+    };
+  }
+
+  /**
+   * Clears the hover of an edge when its bar moves or goes away, because no `pointerleave` follows then.
+   *
+   * @param {string} edge The edge.
+   */
+  #clearHover(edge: FreezeEdge) {
+    if (this.#hoveredEdge === edge) {
+      this.#setHover(edge, false);
+    }
   }
 
   /**
@@ -727,10 +785,11 @@ export class FreezeBar extends BasePlugin {
     const rowHeaderWidth = Math.max(view.getRowHeaderWidth(), MIN_HANDLE_LENGTH);
     const columnHeaderHeight = Math.max(view.getColumnHeaderHeight(), MIN_HANDLE_LENGTH);
     const wide = edge === 'start' || edge === 'top';
-    const fromLeft = rendered.left - rootRect.left;
-    const fromRight = rootRect.right - rendered.right;
-    const fromTop = rendered.top - rootRect.top;
-    const fromBottom = rootRect.bottom - rendered.bottom;
+    const scale = this.#getScale();
+    const fromLeft = (rendered.left - rootRect.left) / scale.x;
+    const fromRight = (rootRect.right - rendered.right) / scale.x;
+    const fromTop = (rendered.top - rootRect.top) / scale.y;
+    const fromBottom = (rootRect.bottom - rendered.bottom) / scale.y;
     // The column and row resizers sit on the last column and row of the headers. A handle on the end or bottom edge
     // would lie on top of them and take the grab, so it keeps its distance from the edge when they are there.
     const clearance = (columns ? this.hot.getPlugin('manualColumnResize') : this.hot.getPlugin('manualRowResize'))
@@ -745,9 +804,9 @@ export class FreezeBar extends BasePlugin {
 
     if (columns) {
       styles.top = `${fromTop}px`;
-      styles.height = `${wide ? rendered.bottom - rendered.top : columnHeaderHeight}px`;
+      styles.height = `${wide ? (rendered.bottom - rendered.top) / scale.y : columnHeaderHeight}px`;
     } else {
-      styles.width = `${wide ? rendered.right - rendered.left : rowHeaderWidth}px`;
+      styles.width = `${wide ? (rendered.right - rendered.left) / scale.x : rowHeaderWidth}px`;
     }
 
     if (edge === 'start') {
@@ -759,7 +818,7 @@ export class FreezeBar extends BasePlugin {
       // inside the end edge of the rendered area, not past it
       styles.left = rtl ?
         `${fromLeft + clearance}px` :
-        `calc(${rendered.right - rootRect.left - clearance}px - var(--ht-sizing-size-1))`;
+        `calc(${((rendered.right - rootRect.left) / scale.x) - clearance}px - var(--ht-sizing-size-1))`;
     } else if (edge === 'top') {
       // on the line between the column headers and the first row, inside the corner
       styles.top = `max(0px, calc(${fromTop + view.getColumnHeaderHeight()}px - var(--ht-sizing-size-1)))`;
@@ -893,6 +952,11 @@ export class FreezeBar extends BasePlugin {
 
     event.preventDefault();
     event.stopPropagation();
+
+    // The press does not reach the grid (`preventDefault()` also drops the compatibility `mousedown`), so an open
+    // editor is saved here, the way a press outside the grid saves it. Otherwise the focus would move to the bar and
+    // `Escape` would cancel what was typed.
+    this.hot.getActiveEditor()?.finishEditing(false);
 
     const doc = this.hot.rootDocument;
     const columns = isColumnEdge(edge);
@@ -1272,11 +1336,12 @@ export class FreezeBar extends BasePlugin {
     const style = indicator.style;
     const headerStrip = columns ? view.getColumnHeaderHeight() : view.getRowHeaderWidth();
     // the offset is measured from the visible edge, the indicator is placed from the root element's edge
+    const scale = this.#getScale();
     const shift = {
-      left: visibleRect.left - rootRect.left,
-      right: rootRect.right - visibleRect.right,
-      top: visibleRect.top - rootRect.top,
-      bottom: rootRect.bottom - visibleRect.bottom,
+      left: (visibleRect.left - rootRect.left) / scale.x,
+      right: (rootRect.right - visibleRect.right) / scale.x,
+      top: (visibleRect.top - rootRect.top) / scale.y,
+      bottom: (rootRect.bottom - visibleRect.bottom) / scale.y,
     };
     let along: 'left' | 'right' | 'top' | 'bottom';
     let across: 'left' | 'right' | 'top';
@@ -1306,7 +1371,8 @@ export class FreezeBar extends BasePlugin {
     style[thickness] = 'var(--ht-sizing-size-1)';
     // centered on the position
     style[`margin${along[0].toUpperCase()}${along.slice(1)}` as 'marginLeft'] = 'calc(var(--ht-sizing-size-1) / -2)';
-    style[crossSize] = `${columns ? visibleRect.bottom - visibleRect.top : visibleRect.right - visibleRect.left}px`;
+    style[crossSize] = `${columns ? (visibleRect.bottom - visibleRect.top) / scale.y :
+      (visibleRect.right - visibleRect.left) / scale.x}px`;
 
     return indicator;
   }
@@ -1336,21 +1402,31 @@ export class FreezeBar extends BasePlugin {
     const columns = isColumnEdge(edge);
     const view = this.hot.view;
     const visible = this.#measureFrame(this.hot.rootElement.getBoundingClientRect()).rendered;
+    const scale = this.#getScale();
+    const rtl = this.hot.isRtl();
     const rowHeaderWidth = view.getRowHeaderWidth();
-    // the header strip the bar crosses: the column headers for a column bar, the row headers for a row bar
-    const strip = columns
-      ? { from: visible.top, to: visible.top + view.getColumnHeaderHeight() }
-      : {
-        from: this.hot.isRtl() ? visible.right - rowHeaderWidth : visible.left,
-        to: this.hot.isRtl() ? visible.right : visible.left + rowHeaderWidth,
-      };
+    const columnHeaderHeight = view.getColumnHeaderHeight();
 
     pieces.forEach((piece) => {
       const rect = piece.getBoundingClientRect();
-      const origin = columns ? rect.top : rect.left;
+      // The header strip the bar crosses (the column headers for a column bar, the row headers for a row bar), in
+      // the coordinates of the piece: the distance to its edge is scaled, the size of the headers is not.
+      let from: number;
+      let to: number;
 
-      piece.style.setProperty('--ht-freeze-bar-header-from', `${strip.from - origin}px`);
-      piece.style.setProperty('--ht-freeze-bar-header-to', `${strip.to - origin}px`);
+      if (columns) {
+        from = (visible.top - rect.top) / scale.y;
+        to = from + columnHeaderHeight;
+      } else if (rtl) {
+        to = (visible.right - rect.left) / scale.x;
+        from = to - rowHeaderWidth;
+      } else {
+        from = (visible.left - rect.left) / scale.x;
+        to = from + rowHeaderWidth;
+      }
+
+      piece.style.setProperty('--ht-freeze-bar-header-from', `${from}px`);
+      piece.style.setProperty('--ht-freeze-bar-header-to', `${to}px`);
       piece.classList.add('ht-freeze-bar--hover');
     });
   }
@@ -1389,6 +1465,8 @@ export class FreezeBar extends BasePlugin {
   #onKeyDown(edge: FreezeEdge, event: KeyboardEvent) {
     // Escape gives the focus back to the grid and goes on to the page, so a modal around the grid still closes on it
     if (event.key === 'Escape') {
+      // a bar reached with Tab has an unknown focus source, so the grid does not listen yet
+      this.hot.listen();
       this.hot.getFocusManager().focusOnHighlightedCell();
 
       return;
@@ -1550,7 +1628,7 @@ export class FreezeBar extends BasePlugin {
     this.#drag = null;
     this.#hoveredEdge = null;
     Object.values(this.#bars).forEach(bar => bar?.remove());
-    Object.values(this.#separators).forEach(separator => separator?.remove());
+    EDGES.forEach(edge => this.#removeSeparator(edge));
     Object.values(this.#segments).forEach(pieces => pieces?.forEach(piece => piece.remove()));
     this.#scrollAncestors.forEach(element => element.removeEventListener('scroll', this.#onScroll));
     this.#scrollAncestors.clear();
