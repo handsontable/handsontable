@@ -1,5 +1,5 @@
 import Xlsx from '../types/xlsx';
-import DataProvider from '../dataProvider';
+import ExportDataProvider from '../dataProvider';
 
 const mockProviderState = {
   data: [[null]],
@@ -170,7 +170,7 @@ async function exportRow(data, sourceData, cellsMeta, options = {}) {
   mockProviderState.sourceData = sourceData;
   mockProviderState.cellsMeta = cellsMeta;
 
-  const xlsx = new Xlsx(new DataProvider(instance), { engine, ...options });
+  const xlsx = new Xlsx(new ExportDataProvider(instance), { engine, ...options });
 
   await xlsx.export();
 

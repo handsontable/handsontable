@@ -1,5 +1,5 @@
 import Xlsx from '../types/xlsx';
-import DataProvider from '../dataProvider';
+import ExportDataProvider from '../dataProvider';
 
 // Read lazily by the mock below (jest hoists the factory above these, so they must be `mock`-prefixed).
 let mockData = [[null]];
@@ -178,7 +178,9 @@ async function exportOneCell(typeOptions, meta = { type: 'text' }, value = 'x') 
   mockCellsMeta = [[meta]];
 
   try {
-    const xlsx = new Xlsx(new DataProvider(instance), { engine, sheets: [{ instance, name: 'Data' }], ...typeOptions });
+    const xlsx = new Xlsx(new ExportDataProvider(instance), {
+      engine, sheets: [{ instance, name: 'Data' }], ...typeOptions,
+    });
 
     await xlsx.export();
   } finally {
@@ -199,7 +201,7 @@ async function exportOneCell(typeOptions, meta = { type: 'text' }, value = 'x') 
 async function exportSheetsNamed(...names) {
   const instance = { rootDocument: document, rootWindow: window };
   const { engine, sheetNames } = createRecordingEngine();
-  const xlsx = new Xlsx(new DataProvider(instance), {
+  const xlsx = new Xlsx(new ExportDataProvider(instance), {
     engine,
     sheets: names.map(name => ({ instance, name })),
   });
@@ -231,7 +233,7 @@ describe('Xlsx validation helper sheet state', () => {
     // points at it, so every dropdown exported from an array `source` lost its list there.
     const instance = { rootDocument: document, rootWindow: window };
     const { engine, worksheets } = createRecordingEngine();
-    const xlsx = new Xlsx(new DataProvider(instance), { engine, sheets: [{ instance, name: 'Data' }] });
+    const xlsx = new Xlsx(new ExportDataProvider(instance), { engine, sheets: [{ instance, name: 'Data' }] });
 
     await xlsx.export();
 
@@ -393,7 +395,7 @@ describe('Xlsx validation list labels for a column', () => {
     mockCellsMeta = Array.from({ length: rows }, () => [{ type: 'dropdown', source: countries, sourceLabel }]);
 
     try {
-      await new Xlsx(new DataProvider(instance), { engine, sheets: [{ instance, name: 'Data' }] }).export();
+      await new Xlsx(new ExportDataProvider(instance), { engine, sheets: [{ instance, name: 'Data' }] }).export();
     } finally {
       mockData = [[null]];
       mockCellsMeta = [[{ type: 'dropdown', source: ['a', 'b'] }]];

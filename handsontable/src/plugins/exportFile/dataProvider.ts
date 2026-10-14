@@ -36,7 +36,7 @@ type NestedHeadersPluginWithSettings = {
 /**
  * @private
  */
-class DataProvider {
+class ExportDataProvider {
   /**
    * Handsontable instance.
    *
@@ -161,9 +161,9 @@ class DataProvider {
    *
    * With the NestedHeaders plugin enabled, every header layer becomes one row and a group label is
    * repeated once per column it spans, so the rows have the same column count as the data. Without
-   * the plugin the single row is the bottom-most header list from {@link DataProvider#getColumnHeaders}.
+   * the plugin the single row is the bottom-most header list from {@link ExportDataProvider#getColumnHeaders}.
    *
-   * Hidden-column and range handling follow {@link DataProvider#getNestedColumnHeaders}: a group
+   * Hidden-column and range handling follow {@link ExportDataProvider#getNestedColumnHeaders}: a group
    * shrinks to its exported columns, and a column whose group root lies before the range start gets
    * an empty label on that layer.
    *
@@ -206,7 +206,7 @@ class DataProvider {
   /**
    * Get raw source data (formulas) based on provided settings to the class constructor.
    *
-   * Mirrors {@link DataProvider#getData} but uses `getSourceDataAtCell` so that cells
+   * Mirrors {@link ExportDataProvider#getData} but uses `getSourceDataAtCell` so that cells
    * containing HyperFormula formulas return the raw formula string (e.g. `'=SUM(A1:A3)'`)
    * rather than the calculated value.
    *
@@ -384,7 +384,7 @@ class DataProvider {
   /**
    * Gets cell meta for all cells in the export range.
    *
-   * Returns a 2D array of cell meta objects with the same structure as {@link DataProvider#getData}.
+   * Returns a 2D array of cell meta objects with the same structure as {@link ExportDataProvider#getData}.
    * Each entry corresponds to the cell at the same position in the data array.
    *
    * @returns {Array}
@@ -403,7 +403,7 @@ class DataProvider {
    * Gets rendered DOM elements for all cells in the export range.
    *
    * Returns a 2D array of `HTMLElement | null` values with the same structure as
-   * {@link DataProvider#getCellsMeta}. An entry is `null` when the cell is outside
+   * {@link ExportDataProvider#getCellsMeta}. An entry is `null` when the cell is outside
    * the rendered viewport (virtualised grid).
    *
    * @returns {Array}
@@ -416,7 +416,7 @@ class DataProvider {
    * Gets the merged cells configuration filtered to the current export range.
    *
    * Returned coordinates are 0-based data-array indices (matching the same coordinate
-   * space as {@link DataProvider#getData}). Hidden rows/columns excluded from the export
+   * space as {@link ExportDataProvider#getData}). Hidden rows/columns excluded from the export
    * are accounted for: the row/col offsets are compressed and the rowspan/colspan values
    * are reduced to cover only the exported cells within the merge span.
    *
@@ -482,7 +482,7 @@ class DataProvider {
   /**
    * Gets widths (in pixels) for all visible columns in the export range.
    *
-   * Returns values in the same column order as {@link DataProvider#getData}.
+   * Returns values in the same column order as {@link ExportDataProvider#getData}.
    *
    * @returns {Array}
    */
@@ -513,7 +513,7 @@ class DataProvider {
   /**
    * Gets heights (in pixels) for all visible rows in the export range.
    *
-   * Returns values in the same row order as {@link DataProvider#getData}.
+   * Returns values in the same row order as {@link ExportDataProvider#getData}.
    *
    * @returns {Array}
    */
@@ -785,7 +785,7 @@ class DataProvider {
   /**
    * Gets `headerClassName` values for all visible column headers in the export range.
    *
-   * Returns values in the same column order as {@link DataProvider#getColumnHeaders}.
+   * Returns values in the same column order as {@link ExportDataProvider#getColumnHeaders}.
    * An empty string is returned for columns that have no `headerClassName` configured.
    *
    * @returns {string[]}
@@ -976,8 +976,8 @@ class DataProvider {
   /**
    * Counts the number of indices in `[start, end)` for which `isIncluded` returns `true`.
    *
-   * Used by {@link DataProvider#_physicalRowToDataIndex} and
-   * {@link DataProvider#_physicalColToDataIndex} to compute the 0-based data-array
+   * Used by {@link ExportDataProvider#_physicalRowToDataIndex} and
+   * {@link ExportDataProvider#_physicalColToDataIndex} to compute the 0-based data-array
    * position of a visual index by counting the visible indices that precede it.
    *
    * @private
@@ -1137,4 +1137,4 @@ class DataProvider {
   }
 }
 
-export default DataProvider;
+export default ExportDataProvider;

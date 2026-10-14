@@ -1,7 +1,7 @@
 import { isDefined, isEmpty, stringify } from '../../../helpers/mixed';
 import { getChoiceLabel, isKeyValueEntry, isListableLabel } from '../../../utils/cellSource';
 import type { SourceLabel } from '../../../utils/cellSource';
-import DataProvider from '../dataProvider';
+import ExportDataProvider from '../dataProvider';
 import BaseType from './_base';
 import { normalizeExportOptions } from '../utils';
 import {
@@ -274,7 +274,7 @@ interface ConditionalFormattingDescriptor {
 }
 
 /**
- * An entry in a nested-header layer returned by DataProvider#getNestedColumnHeaders.
+ * An entry in a nested-header layer returned by ExportDataProvider#getNestedColumnHeaders.
  */
 interface NestedHeaderEntry {
   label: string | null;
@@ -390,7 +390,7 @@ class Xlsx extends BaseType {
    *
    * When the `sheets` option is provided the workbook contains one worksheet per entry,
    * each driven by its own Handsontable instance. Otherwise a single worksheet named
-   * `'Sheet1'` is produced from the primary DataProvider.
+   * `'Sheet1'` is produced from the primary ExportDataProvider.
    *
    * @returns {Promise<Uint8Array>}
    */
@@ -421,7 +421,7 @@ class Xlsx extends BaseType {
     if (sheets && sheets.length > 0) {
       // multi-sheet mode
       sheets.forEach((sheetConfig) => {
-        const dp = new DataProvider(sheetConfig.instance);
+        const dp = new ExportDataProvider(sheetConfig.instance);
         // Promote the deprecated `columnHeaders` alias on the per-sheet config before it is merged
         // with the already-normalized top-level options, which carry `colHeaders` either way.
         const sheetOptions = { ...this.options, ...normalizeExportOptions(sheetConfig) };
@@ -475,7 +475,7 @@ class Xlsx extends BaseType {
   }
 
   /**
-   * Populates a single worksheet snapshot from the given DataProvider and pushes it into
+   * Populates a single worksheet snapshot from the given ExportDataProvider and pushes it into
    * the workbook snapshot, followed by its dropdown-source helper sheet.
    *
    * Extracts the data writing logic shared between single-sheet and multi-sheet exports.
@@ -485,12 +485,12 @@ class Xlsx extends BaseType {
    *
    * @param {object} workbook The neutral workbook snapshot.
    * @param {string} name The worksheet name.
-   * @param {DataProvider} dataProvider DataProvider configured for this sheet.
+   * @param {ExportDataProvider} dataProvider ExportDataProvider configured for this sheet.
    * @param {object} options Merged options for this sheet.
    * @returns {number} Number of data rows written.
    */
   #populateWorksheet(
-    workbook: WorkbookSnapshot, name: string, dataProvider: DataProvider,
+    workbook: WorkbookSnapshot, name: string, dataProvider: ExportDataProvider,
     options: XlsxOptions, usedSheetNames: Set<string>
   ): number {
     const sheet = new SheetBuilder(name);
@@ -668,7 +668,7 @@ class Xlsx extends BaseType {
    * Delegates per-cell writing to {@link Xlsx##writeRowCells}.
    *
    * @param {object} sheet The sheet builder.
-   * @param {Array[]} data 2D data array from DataProvider.
+   * @param {Array[]} data 2D data array from ExportDataProvider.
    * @param {object} context Sheet-level context passed through from `#populateWorksheet`.
    */
   #writeDataRows(sheet: SheetBuilder, data: unknown[][], context: SheetContext): void {
@@ -790,7 +790,7 @@ class Xlsx extends BaseType {
    * @param {object} meta Cell meta object.
    * @param {*} sourceValue Raw source value from `getSourceDataAtCell()` (may be a formula string).
    * @param {string|null} errorCode The OOXML error code of the Formulas engine's value for the cell
-   *   (`DataProvider#getFormulaErrorCodes`), or `null` when it is not an error.
+   *   (`ExportDataProvider#getFormulaErrorCodes`), or `null` when it is not an error.
    * @param {object|undefined} summary ColumnSummary descriptor, or `undefined` for non-summary cells.
    * @param {object} context Sheet-level context passed through from `#populateWorksheet`.
    * @returns {{ value: *, formula: object|null, numFmt: string|null }}
@@ -1185,7 +1185,7 @@ class Xlsx extends BaseType {
    * from each header's `className` where configured, and optional background fill and border.
    *
    * @param {object} sheet The sheet builder.
-   * @param {Array[]} nestedColumnHeaders Layers returned by DataProvider#getNestedColumnHeaders.
+   * @param {Array[]} nestedColumnHeaders Layers returned by ExportDataProvider#getNestedColumnHeaders.
    * @param {boolean} hasRowHeaders Whether a row-header column is prepended.
    * @param {number} dataColOffset 1-based column number where data columns begin.
    * @param {object|null} headerFill Fill object for header cells, or `null` for no fill.
@@ -1226,7 +1226,7 @@ class Xlsx extends BaseType {
    * Merges spanning cells in nested header rows.
    *
    * @param {object} sheet The sheet builder.
-   * @param {Array[]} nestedColumnHeaders Layers returned by DataProvider#getNestedColumnHeaders.
+   * @param {Array[]} nestedColumnHeaders Layers returned by ExportDataProvider#getNestedColumnHeaders.
    * @param {boolean} hasRowHeaders Whether a row-header column is prepended.
    * @param {number} dataColOffset 1-based column number where data columns begin.
    */

@@ -1,4 +1,4 @@
-import DataProvider from '../dataProvider';
+import ExportDataProvider from '../dataProvider';
 import BaseType from '../types/_base';
 
 /**
@@ -30,10 +30,10 @@ function createHot({ rows, cols, fixedRowsTop = 0, fixedColumnsStart = 0, hidden
  *
  * @param {object} hotConfig See {@link createHot}.
  * @param {object} [options] Export options.
- * @returns {DataProvider}
+ * @returns {ExportDataProvider}
  */
 function createProvider(hotConfig, options = {}) {
-  const dataProvider = new DataProvider(createHot(hotConfig));
+  const dataProvider = new ExportDataProvider(createHot(hotConfig));
 
   // The export types always merge their defaults (`range: []`, `exportHiddenRows: false`, ...)
   // before handing the options to the data provider.
@@ -42,7 +42,7 @@ function createProvider(hotConfig, options = {}) {
   return dataProvider;
 }
 
-describe('DataProvider#getFrozenColumns', () => {
+describe('ExportDataProvider#getFrozenColumns', () => {
   it('should return `fixedColumnsStart` when no column is hidden and no range is set', () => {
     const dataProvider = createProvider({ rows: 3, cols: 5, fixedColumnsStart: 2 });
 
@@ -117,7 +117,7 @@ describe('DataProvider#getFrozenColumns', () => {
   });
 });
 
-describe('DataProvider#getFrozenRows', () => {
+describe('ExportDataProvider#getFrozenRows', () => {
   it('should return `fixedRowsTop` when no row is hidden and no range is set', () => {
     const dataProvider = createProvider({ rows: 5, cols: 3, fixedRowsTop: 2 });
 
