@@ -1635,8 +1635,11 @@ export default function Core(
             } = datamap.createCol(colIndex, amount, { source, mode: insertColumnMode });
 
             if (colDelta) {
+              // `getColHeader()` reads the array by the physical index, so the empty entries go in at the
+              // physical index the created column takes, the same as `colWidths` below. The array is changed
+              // in place, because the user holds it and UndoRedo refills it in place.
               if (Array.isArray(tableMeta.colHeaders)) {
-                const spliceArray = [instance.toVisualColumn(startColumnPhysicalIndex!), 0];
+                const spliceArray = [startColumnPhysicalIndex!, 0];
 
                 spliceArray.length += colDelta as number; // inserts empty (undefined) elements at the end of an array
                 Array.prototype.splice.apply(tableMeta.colHeaders, spliceArray as [number, number]); // inserts empty (undefined) elements into the colHeader array
@@ -1793,8 +1796,6 @@ export default function Core(
 
                 const calcIndex = isEmpty(groupIndex) ? instance.countCols() - 1 : Math.max(groupIndex - offset, 0);
 
-                let physicalColumnIndex = instance.toPhysicalColumn(calcIndex);
-
                 // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
                 // compatible with datamap.removeCol method.
                 if (Number.isInteger(groupIndex)) {
@@ -1806,7 +1807,7 @@ export default function Core(
                 // The physical indexes of the columns the removal takes, read before it renumbers them.
                 const removedPhysicalColumns: number[] = [];
 
-                if (Array.isArray(tableMeta.colWidths)) {
+                if (Array.isArray(tableMeta.colWidths) || Array.isArray(tableMeta.colHeaders)) {
                   const firstRemovedVisualColumn = isEmpty(groupIndex) ?
                     Math.max(totalColumnsBefore - groupAmount, 0) : calcIndex;
 
@@ -1897,10 +1898,13 @@ export default function Core(
                 }
 
                 if (Array.isArray(tableMeta.colHeaders)) {
-                  if (typeof physicalColumnIndex === 'undefined') {
-                    physicalColumnIndex = -1;
-                  }
-                  tableMeta.colHeaders.splice(physicalColumnIndex!, groupAmount);
+                  const colHeaders = tableMeta.colHeaders;
+
+                  // The removed columns are not always next to each other physically, so each entry goes on its
+                  // own, from the last one, which keeps the lower indexes valid.
+                  [...removedPhysicalColumns].sort((a, b) => b - a).forEach((removedPhysicalColumn) => {
+                    colHeaders.splice(removedPhysicalColumn, 1);
+                  });
                 }
 
                 if (Array.isArray(tableMeta.colWidths)) {

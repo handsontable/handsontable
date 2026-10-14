@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed an issue where column headers no longer matched their columns after inserting a column into a moved column order.",
+  "type": "fixed",
+  "issueOrPR": 10028,
+  "breaking": false,
+  "framework": "none"
+}
