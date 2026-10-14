@@ -192,6 +192,9 @@ location. While bound, the selection IS the column's values:
   `afterSetSourceDataAtCell` (physical rows; added only in bound mode, because any listener makes core read
   every source write's old value). UndoRedo restores data through that method, so an undo of a bound
   selection change is reported as `'dataChange'` too. It cannot be vetoed: the value is already written.
+  UndoRedo then repeats the visible restored cells in an `afterChange` with the same source, so
+  `#onAfterChange()` skips `isUndoRedoSource()` (`../../utils/undoRedoSource.ts`), or every undo and redo
+  was reported twice.
   The plugin's own source is skipped here as well: `writeCheckboxColumn()` writes filtered-out rows
   through `setSourceDataAtCell()`.
 - **The header cache must drop on `beforeChangeRender`**, not only `afterChange`: an edit renders before

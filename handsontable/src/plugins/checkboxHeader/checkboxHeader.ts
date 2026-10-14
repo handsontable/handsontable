@@ -12,6 +12,7 @@ import { isLeftClick, isTouchEvent } from '../../helpers/dom/event';
 import { A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
 import { canAccessCellContent } from '../../shortcuts/guards';
+import { isUndoRedoSource } from '../../utils/undoRedoSource';
 import { CHECKBOX_HEADER_CHECK_ALL } from '../../i18n/constants';
 import { syncIcon } from '../../themes/engine/icons';
 import {
@@ -36,15 +37,6 @@ export const PLUGIN_PRIORITY = 390;
 
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
-/**
- * Tells whether a change source is an undo or redo replay.
- *
- * @param {string} [source] The change source.
- * @returns {boolean}
- */
-function isUndoRedoSource(source: string | undefined): boolean {
-  return source === 'UndoRedo.undo' || source === 'UndoRedo.redo';
-}
 const CHECKBOX_CLASS = 'htCheckboxHeaderInput';
 const CHECKBOX_BOX_CLASS = 'htCheckboxHeaderBox';
 const CHECKBOX_ICON_CLASS = 'htCheckboxHeaderIcon';

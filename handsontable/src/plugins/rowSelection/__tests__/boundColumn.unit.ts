@@ -424,4 +424,28 @@ describe('RowSelection bound to a checkbox column', () => {
 
     destroy();
   });
+
+  it('should report an undo and a redo of a checkbox click once each', () => {
+    const afterRowSelectionChange = jest.fn();
+    const { hot, plugin, destroy } = createGrid({ afterRowSelectionChange, undoRedo: true });
+    const undoRedo = hot.getPlugin('undoRedo');
+
+    hot.setDataAtCell(0, 1, true, 'edit');
+
+    expect(afterRowSelectionChange).toHaveBeenCalledTimes(1);
+
+    undoRedo.undo();
+
+    expect(plugin.getSelectedRows()).toEqual([2]);
+    expect(afterRowSelectionChange).toHaveBeenCalledTimes(2);
+    expect(afterRowSelectionChange).toHaveBeenLastCalledWith([], [0], 'dataChange');
+
+    undoRedo.redo();
+
+    expect(plugin.getSelectedRows()).toEqual([0, 2]);
+    expect(afterRowSelectionChange).toHaveBeenCalledTimes(3);
+    expect(afterRowSelectionChange).toHaveBeenLastCalledWith([0], [], 'dataChange');
+
+    destroy();
+  });
 });

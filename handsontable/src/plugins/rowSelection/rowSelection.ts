@@ -16,6 +16,7 @@ import {
 import { isLeftClick, isTouchEvent } from '../../helpers/dom/event';
 import { A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
 import { canAccessCellContent } from '../../shortcuts/guards';
+import { isUndoRedoSource } from '../../utils/undoRedoSource';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
 import {
   ROW_SELECTION_ANNOUNCE_COUNT,
@@ -2626,6 +2627,13 @@ export class RowSelection extends BasePlugin {
     if (source === BOUND_WRITE_SOURCE) {
       this.#collectOwnBoundWrite(flips);
 
+      return;
+    }
+
+    // An undo or redo restores the data through `setSourceDataAtCell()`, which
+    // `#onAfterSetSourceDataAtCell()` already reported (filtered-out rows included); UndoRedo repeats
+    // the visible cells here.
+    if (isUndoRedoSource(source)) {
       return;
     }
 
