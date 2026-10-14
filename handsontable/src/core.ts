@@ -61,6 +61,7 @@ import {
   isSizeLowered,
   type MinimumSizes,
 } from './core/minimumSizes';
+import { isDataSchemaChanged } from './core/dataSchema';
 import type { HookCallback } from './core/hooks/bucket';
 import type { GridSettings } from './core/settings';
 import {
@@ -5066,6 +5067,9 @@ export default function Core(
       minSpareCols: tableMeta.minSpareCols,
     };
 
+    // Read for the same reason: the data phase has to know whether this call replaces the schema.
+    const previousDataSchema = tableMeta.dataSchema;
+
     if (isDefined(settings.rowHeights) && isDefined(settings.minRowHeights)) {
       warn('Both `rowHeights` and `minRowHeights` are defined in your configuration. ' +
         'As one is the alias of the other, only one of them can be used at a time. ' +
@@ -5371,6 +5375,13 @@ export default function Core(
       datamap.createMap();
 
       // The `column` property has changed - dataset may be expanded or narrowed down. The `loadData` do the same.
+      instance.initIndexMappers();
+
+    } else if (isDataSchemaChanged(previousDataSchema, settings.dataSchema) && !tableMeta.columns) {
+      // Without `columns`, the schema decides the number of columns and the property each one reads, so a new
+      // schema is a new column layout. The index mappers and the column-to-property map start over, as for
+      // `columns` and `data`.
+      datamap.createMap();
       instance.initIndexMappers();
     }
 

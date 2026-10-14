@@ -2252,6 +2252,12 @@ export default (): Record<string, unknown> => {
      * - An object
      * - A function
      *
+     * If you don't set the [`columns`](#columns) option, `dataSchema` also defines the columns of the grid.
+     * When you change it with [`updateSettings()`](@/api/core.md#updatesettings), Handsontable resets the
+     * column and row index state, as it does for a new [`data`](#data) or [`columns`](#columns) value.
+     * Sorting, filtering, and columns that users moved, hid, or resized start over. Options you declare in your settings apply again. Sending an equal object again changes
+     * nothing, but a new function always counts as a change.
+     *
      * Read more:
      * - [Binding to data: Array of objects with custom data schema](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects-with-custom-data-schema)
      * - [Binding to data: Function data source and schema](@/guides/getting-started/binding-to-data/binding-to-data.md#function-data-source-and-schema)
