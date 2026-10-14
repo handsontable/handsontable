@@ -11,13 +11,11 @@
     "noEmit": true,
     "experimentalDecorators": true,
     "skipLibCheck": true,
-    "preserveSymlinks": true,
     "types": ["node"],
     "target": "ES2022",
     "module": "ES2022",
     "moduleResolution": "bundler",
     "lib": ["ES2022", "dom"],
-    "baseUrl": ".",
     "paths": {
       "handsontable": ["../../handsontable/tmp"],
       "handsontable/*": ["../../handsontable/tmp/*"]
