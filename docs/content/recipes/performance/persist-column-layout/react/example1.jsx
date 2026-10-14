@@ -83,7 +83,7 @@ const ExampleComponent = () => {
     const widths = [];
 
     for (let i = 0; i < count; i++) {
-      widths.push(hot.getColWidth(i));
+      widths.push(hot.getColWidth(hot.toVisualColumn(i)));
     }
 
     return widths;
@@ -93,7 +93,7 @@ const ExampleComponent = () => {
     const hot = hotRef.current?.hotInstance;
 
     if (!hot) return;
-    const widths = hot.getColHeader().map((_, visualIndex) => hot.getColWidth(visualIndex));
+    const widths = hot.getColHeader().map((_, physicalIndex) => hot.getColWidth(hot.toVisualColumn(physicalIndex)));
 
     saveLayout(widths, getCurrentOrder());
   }, [getCurrentOrder]);
