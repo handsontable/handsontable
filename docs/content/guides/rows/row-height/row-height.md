@@ -223,8 +223,11 @@ hot.render();
 
 ::: only-for javascript
 
-::: example #example4 --js 1 --ts 2
+Try it in the demo below: drag a row header to resize a row, then select **Clear manual sizes**, which runs the snippet above.
 
+::: example #example4 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/rows/row-height/javascript/example4.html)
 @[code](@/content/guides/rows/row-height/javascript/example4.js)
 @[code](@/content/guides/rows/row-height/javascript/example4.ts)
 
