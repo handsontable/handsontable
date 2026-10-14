@@ -258,13 +258,6 @@ export class StickyScrollStrategy {
   #getScrollLeft() {
     const inlineStartOverlay = this.#deps.getInlineStartOverlay();
 
-    // For RTL window scrolling, scrollX increases as the user scrolls left (away from
-    // the right-edge origin). getTableParentOffset() returns the left-edge offset which
-    // doesn't apply to the RTL coordinate system, so skip it and return scrollX directly.
-    if (this.#isRtl() && this.#isWindowScroll()) {
-      return Math.abs(inlineStartOverlay.getScrollPosition());
-    }
-
     return Math.abs(inlineStartOverlay.getScrollPosition())
       - inlineStartOverlay.getTableParentOffset();
   }
@@ -278,14 +271,14 @@ export class StickyScrollStrategy {
   #setScrollPosition(top: number, left: number): void {
     if (this.#isWindowScroll()) {
       const { rootWindow } = this.#deps;
-      // RTL + window-scroll: left is in scrollX coordinates (distance from the right-edge
-      // origin), so pass it directly. LTR: add back the table's left page offset.
-      const absoluteLeft = this.#isRtl()
-        ? left
-        : left + this.#deps.getInlineStartOverlay().getTableParentOffset();
+      // Hider coordinates run from the table's inline-start edge: add back the page's offset to it
+      // (the left one in LTR, the right margin in RTL), the one `#getScrollLeft` took off. The page's
+      // own direction sets the sign of `scrollX` (negative on an RTL page), not the grid's: an RTL grid
+      // on an LTR page scrolls into positive values.
+      const absoluteLeft = left + this.#deps.getInlineStartOverlay().getTableParentOffset();
 
       rootWindow.scrollTo(
-        absoluteLeft,
+        this.#isPageRtl() ? -absoluteLeft : absoluteLeft,
         top + this.#deps.getTopOverlay().getTableParentOffset()
       );
     } else {
@@ -422,6 +415,17 @@ export class StickyScrollStrategy {
    */
   #isWindowScroll() {
     return this.#deps.getScrollableElement() === this.#deps.rootWindow;
+  }
+
+  /**
+   * Returns whether the page is scrolled into negative `window.scrollX`, which is what a page laid out
+   * right to left does. It can differ from the grid's own direction. A page at `scrollX` 0 reads as LTR,
+   * which is harmless: the scroll it gets back is 0 either way.
+   *
+   * @returns {boolean}
+   */
+  #isPageRtl(): boolean {
+    return this.#deps.rootWindow.scrollX < 0;
   }
 
   /**

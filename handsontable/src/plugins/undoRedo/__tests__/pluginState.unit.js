@@ -2,7 +2,7 @@ import {
   CollapsibleColumns, Comments, CustomBorders, HiddenColumns, ManualColumnFreeze, ManualColumnMove, NestedHeaders,
   Pagination, registerPlugin, UndoRedo,
 } from 'handsontable/plugins';
-import { setUpUndoGrid, spreadsheet } from './helpers/grid';
+import { setUpUndoGrid, spreadsheet } from './grid';
 
 registerPlugin(UndoRedo);
 registerPlugin(Comments);

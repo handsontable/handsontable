@@ -192,7 +192,7 @@ Other rules:
   separator to a space (`mmmm yyyy`), and a weekday with no month, day or year is written on its own
   (`dddd`), which the import's `applyDayOrWeekday` reads straight back as `weekday`. **An unspecified
   `hour12` is resolved from the cell's `locale`, not assumed to be 24-hour.** `Intl` defaults the clock
-  from the locale and so does the grid — `timeRenderer` builds `new Intl.DateTimeFormat(locale,
+  from the locale and so does the grid — `timeRenderer` formats with `getDateTimeFormat(locale,
   timeFormat)` — so a cell with `{ hour: '2-digit', minute: '2-digit' }` under the default `en-US`
   renders `09:30 AM` while the export used to write `hh:mm`, which the import read as `hour12: false`
   and the target grid rendered as `09:30`. `resolveHour12` asks `Intl.DateTimeFormat(locale,
@@ -237,6 +237,10 @@ Other rules:
   `workbook.worksheets[1].state === 'veryHidden'` for the validation sheet, and "should write the rows
   before merging, so a merged range keeps its master value" is the row-before-merge regression test —
   run it before reordering `writeColumnLayout`/`writeRows`/`writeSheetFeatures` in `exceljs.ts`.
+
+## Column widths come from `_getColWidthFromSettings()`
+
+`DataProvider#_getNaturalColWidth()` reads a column's configured width through `hot._getColWidthFromSettings(visualColumn)`, which takes a VISUAL index and reads the `colWidths` array and function by the physical one. Do not copy that translation or index `colWidths` yourself. A width that is not a finite number falls back to `defaultColumnWidth`. See `../autoColumnSize/AGENTS.md`, "Known concerns".
 
 ## Where to look next
 

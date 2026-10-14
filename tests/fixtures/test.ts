@@ -39,11 +39,12 @@ export type TestOptions = {
 export const CROSS_BROWSER_TAG = '@cross-browser';
 
 /**
- * The tag for a test that copies, cuts or pastes with a real Ctrl/Cmd+C, X or V. The `e2e-webkit`
- * project leaves these tests out. Playwright's WebKit takes the editing command for a shortcut
- * from the macOS key map alone, so on the Linux runner the key press reaches the page and nothing
- * is copied, cut or pasted (all three such tests failed there, on Playwright 1.62.1). Tag it beside
- * `CROSS_BROWSER_TAG`: `{ tag: [CROSS_BROWSER_TAG, CLIPBOARD_SHORTCUT_TAG] }`.
+ * The tag for a test that runs a text field's editing command on a real shortcut: copies, cuts or
+ * pastes with Ctrl/Cmd+C, X or V, or undoes and redoes inside an open editor with Ctrl/Cmd+Z. The
+ * `e2e-webkit` project leaves these tests out. Playwright's WebKit takes the editing command for a
+ * shortcut from the macOS key map alone, so on the Linux runner the key press reaches the page and
+ * nothing is copied, cut, pasted or undone (all three clipboard tests failed there, on Playwright
+ * 1.62.1). Tag it beside `CROSS_BROWSER_TAG`: `{ tag: [CROSS_BROWSER_TAG, CLIPBOARD_SHORTCUT_TAG] }`.
  */
 export const CLIPBOARD_SHORTCUT_TAG = '@clipboard-shortcut';
 

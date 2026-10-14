@@ -3,7 +3,7 @@ import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 import type Handsontable from 'handsontable/base';
 
-const STORAGE_KEY = 'ht-column-layout-v1';
+const STORAGE_KEY = 'ht-column-layout-v2';
 
 /* start:skip-in-preview */
 const data: Handsontable.RowObject[] = [
@@ -97,7 +97,7 @@ export class AppComponent {
 
       if (!hot) return;
       const widths = (hot.getColHeader() as string[]).map(
-        (_, visualIndex) => hot.getColWidth(visualIndex) as number
+        (_, physicalIndex) => hot.getColWidth(hot.toVisualColumn(physicalIndex)!) as number
       );
 
       saveLayout(widths, this.getCurrentOrder());
@@ -150,7 +150,7 @@ export class AppComponent {
     const widths: number[] = [];
 
     for (let i = 0; i < count; i++) {
-      widths.push(hot.getColWidth(i) as number);
+      widths.push(hot.getColWidth(hot.toVisualColumn(i)!) as number);
     }
 
     return widths;

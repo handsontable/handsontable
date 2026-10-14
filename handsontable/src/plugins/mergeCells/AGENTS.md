@@ -14,6 +14,15 @@ The DOM attributes only describe cells that are currently rendered. The meta is 
 viewport state. This is the single most repeated rule about this plugin, and it is in the root
 `../../../AGENTS.md` for that reason.
 
+The one reader that may use the DOM is Walkontable's pointer-to-cell measurer
+(`3rdparty/walkontable/src/utils/pointerToCoords.ts`). It walks the rendered cells only, and Walkontable has no cell
+meta, so it reads the rendered cell's `rowSpan` and `colSpan`. The shared scans in `helpers/dom/cellMeasure.ts` read no
+DOM, and the core side takes the span from the cell meta. Both sides follow one contract: a span above 1 is a hint
+that the cell is part of a merge (a slave need not report it), and the real signal is that every slave resolves to the
+anchor's element. So the walks skip a cell that resolves to the element they just measured, and never measure a merged
+band once per slave. The reference scans measure against a column or row that no merge spans
+(`findRowReferenceColumn`, `findColumnReferenceRow`).
+
 ## The lookup matrix is the authority on visibility — not the merge list
 
 `cellsCollection.ts` keeps two structures, and they can disagree on purpose:
@@ -565,6 +574,27 @@ cleared and are not. E2E coverage is extensive; the unit-level highlight logic i
 **When changing selection logic, test all combinations of: merged cells, hidden rows/columns, frozen
 rows/columns, and navigable headers.** Run both the `selectAll` and `selectCells` suites.
 
+**A header selection is never snapped to merged cells, in both hooks.** `#onBeforeSelectionHighlightSet`
+and `#onModifyTransformEnd` return early when the selection is made from a column or row header.
+Without the early return in the second, `expandCloneRange` absorbed every merge that a full-length
+column (or row) range crosses, so Shift+Arrow on a header selection jumped to the far edge of the
+farthest merge instead of adding one line, in all four directions. The result must equal the
+`mergeCells: false` one, and the header flag still skips the hidden columns through the core's own
+delta. Pinned by `tests/e2e/header-range-merge-keyboard.spec.ts`.
+
+Both hooks decide through `#isSelectedByHeader()`, and they ask about **different layers**.
+`#onBeforeSelectionHighlightSet` works on the last range, so it reads the last layer's flags (the
+default). `#onModifyTransformEnd` changes the range `getSelectedRangeActive()` returns, which Enter or Tab
+can move back to an earlier layer, so it passes `getActiveSelectionLayerIndex()`. Reading the last
+layer there made header, Ctrl+click a cell, Enter, Shift+ArrowRight jump to the merge edge again. Known
+limits: `isSelectedByCorner()` inside the flag getters still looks at the last layer, and the flags
+follow `selection.clear()` and the `removeLayers` plus `refresh()` path in `mouseEventHandler.ts`, which
+can leave them on a layer index they no longer describe. A flag is set only when a header is rendered,
+so Ctrl+A on a grid with column headers but no row headers sets one flag and is skipped by both hooks,
+while the same grid with no headers snaps. No spec pins the cell-layer side of this: the highlight hook
+snaps a cell range to the same result whether or not the transform hook runs, so only the header side
+can fail.
+
 ### An arrow-key horizontal exit is addressed by the merge's top row (DEV-102)
 
 `#onModifyTransformStart` snaps the highlight to the merge's top-left while stashing the entered cell
@@ -634,10 +664,13 @@ starting on its first column, is anchored in the clone and needs nothing.
 - The continuation cell is the covered cell of the FIRST end column of the merge's first row, with the `colspan` the
   renderer already computes from that column (`min(origColspan, columns left)`), so it never reaches past the band.
   Its text is the merge anchor's, because covered cells resolve to the anchor through `modifyGetCellCoords`.
-- **That same hook is why `Core#getCell(row, endColumn, true)` does not return the continuation.** It resolves the
-  covered coordinates to the anchor, which is a master cell (and is not rendered at all while the master is scrolled
-  away from it). Tests that need the end clone's cell read the clone's DOM. Editors and selection of such a merge go
-  through the anchor, as they do for every merge.
+- **`Core#getCell(row, endColumn, true)` on a covered end column answers the continuation cell.** The topmost lookup
+  of an end column always goes to the end clone and never falls back to the master. The hook resolves the covered
+  coordinates to the anchor and reports the block's real last row and column for a topmost lookup (outside a draw the
+  active overlay is the master, so a clamped extent would end before the band), and the clone's `Table#getCell` maps a
+  block that starts before its band to its first rendered column (see the bullet on selection below). The cell is the
+  clone's FIRST rendered column, not necessarily the requested one. The call returns `null` when the clone does not
+  render the row. Editors and selection of such a merge still go through the anchor, as they do for every merge.
 - `#onModifyRowHeightByOverlayName` treats `top_inline_end_corner` like the top corners and
   `bottom_inline_end_corner` like the bottom ones (no height inflation there).
 - **A block that crosses `fixedRowsBottom` inside the end columns works the same as on the start side.** The bottom end
@@ -646,18 +679,19 @@ starting on its first column, is anchored in the clone and needs nothing.
   and with `virtualized` on and off: a block anchored in the band that crosses the bottom line (outline and fill
   handle included), and a block anchored in the master that reaches into the band and into the bottom rows (its cells
   render correctly in every clone). Pinned by `tests/e2e/merge-cells-frozen-bottom-end.spec.ts`.
+- **A block anchored in the master that reaches into the band is selected like any other block.** `Table#getCell`
+  resolves it to an END overlay's first rendered column, the column-side twin of the first-rendered-row rule. The gate
+  is the three end overlays: the start overlays hold the first columns and never miss a block's origin. The end clone
+  fills its part and draws the outline and the fill handle. With `virtualized` the hook clamps the block's first
+  column to the band, so `Border#resolveMergedBlockEdges` asks for the block's own first column (`'meta'` source) to
+  keep the start edge off the freeze line. Pinned by `tests/e2e/merge-cells-frozen-selection.spec.ts` (LTR, RTL,
+  `virtualized` on and off).
 - **Still NOT supported (measured without `fixedRowsBottom` too, in the default mode, so the bottom rows do not cause them):**
   - A block that covers EVERY column of an end clone (for example `fixedColumnsEnd: 2` and a block over both columns).
     The rows below its first have no displayed cell in that clone, a table row with none has no height, and the
     block's cell is one row tall (`rowspan="4"`, 29 px) in the inline-end clone and in the bottom end corner. The row
     headers keep the rows tall in the master and in the start clones; the end clones have none. Keep one band column
     that no block covers.
-  - The selection outline of a block anchored in the master that reaches into the band. In the default mode
-    `Table#getCell` resolves the block to a clone's first rendered ROW but not to its first rendered COLUMN
-    (the hook answers the real anchor column), so the end clones draw no outline and no fill handle, and the
-    master's end edge and handle lie under the clone. With `virtualized` the hook clamps the column, the clones draw,
-    but the box has a start edge on the freeze line, through the block. The row-side rule in `Table#getCell` is the
-    model for a column-side one.
 - Pinned by `tests/e2e/fixed-columns-end-headers.spec.ts` (LTR and RTL, `virtualized` on and off) and
   `__tests__/overlayBounds.unit.ts`.
 

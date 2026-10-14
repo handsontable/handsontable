@@ -23,6 +23,7 @@ import {
 } from './utils';
 import type { InteriorEdges, RenderedBand } from './utils';
 import { CUSTOM_SELECTION_TYPE } from '../constants';
+import { INLINE_END_CLONE_TYPES } from '../../overlay/constants';
 import { getSpreaderOffset } from '../../overlay/spreaderOffset';
 import {
   ADJUST_HANDLE_EDGES,
@@ -1586,7 +1587,9 @@ class Border {
    * `onModifyGetCellCoords` setting reports the block's extent, and every edge the block reaches past
    * this overlay's band is interior: the overlay that renders the block's outline there draws it.
    * The same answer moves the fill-handle check onto the block's bottom-end corner. Not a layout
-   * read, so `appear()` may ask it before its style writes. See {@link resolveBlockExtent} for what
+   * read, so `appear()` may ask it before its style writes. On an end overlay a second `'meta'`-sourced
+   * hook call supplies the block's own first column, because the `'render'` answer of a virtualized
+   * merge clamps it to the overlay's band. See {@link resolveBlockExtent} for what
    * counts as a usable extent - a plain cell must not lose its handle to an unrelated hook.
    *
    * @param {number} toRow The box's bottom row, clamped to this overlay's band.
@@ -1598,10 +1601,25 @@ class Border {
    */
   resolveMergedBlockEdges(toRow: number, toColumn: number, isMultiple: boolean, band: RenderedBand) {
     const hookResult = this.wot.getSetting('onModifyGetCellCoords', toRow, toColumn, false, 'render');
-    const blockExtent = resolveBlockExtent(hookResult);
+    let blockExtent = resolveBlockExtent(hookResult);
 
     if (!blockExtent) {
       return { checkRow: toRow, checkCol: toColumn, interiorEdges: null };
+    }
+
+    const { wtTable } = this.wot;
+
+    // With `mergeCells.virtualized` the `'render'` answer clamps the block's first column to the overlay's first
+    // rendered one, which hides that the block starts before an end overlay's band. The block's own first column
+    // tells it, so the start edge on the freeze line is seen as interior.
+    if (INLINE_END_CLONE_TYPES.includes(wtTable.name)) {
+      const ownExtent = resolveBlockExtent(
+        this.wot.getSetting('onModifyGetCellCoords', toRow, toColumn, false, 'meta')
+      );
+
+      if (ownExtent) {
+        blockExtent = [blockExtent[0], Math.min(blockExtent[1], ownExtent[1]), blockExtent[2], blockExtent[3]];
+      }
     }
 
     return {

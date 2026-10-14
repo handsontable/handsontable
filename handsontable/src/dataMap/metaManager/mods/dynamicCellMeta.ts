@@ -4,7 +4,8 @@ import type { CellProperties } from '../../../settings';
 import { Hooks } from '../../../core/hooks';
 import { hasOwnProperty, extend } from '../../../helpers/object';
 import { isFunction } from '../../../helpers/function';
-import { extendByMetaType, normalizeEditorSetting } from '../utils';
+import { applyRequestedTypeEditor, extendByMetaType, normalizeEditorSetting } from '../utils';
+import { markCellMetaChanged } from '../../../core/incrementalRender/renderChangeTracker';
 import { colToPropOrIndex } from '../../../helpers/columnProp';
 
 /**
@@ -149,8 +150,10 @@ export class DynamicCellMetaMod {
    */
   extendTransientCellMeta(cellMeta: Record<string, unknown>) {
     this.#runMetaExtension(cellMeta, (cellSettings) => {
-      extend(cellMeta, cellSettings);
-      extendByMetaType(cellMeta, cellSettings);
+      const normalizedSettings = normalizeEditorSetting(cellSettings);
+
+      extend(cellMeta, normalizedSettings);
+      extendByMetaType(cellMeta, normalizedSettings, cellMeta, cellSettings.editor === true);
     });
   }
 
@@ -197,7 +200,15 @@ export class DynamicCellMetaMod {
     }
 
     if (cellSettings) {
-      applyCellSettings(normalizeEditorSetting(cellSettings));
+      // Passed on unnormalized: each applier normalizes `editor` itself, because an `editor: true` it
+      // would otherwise lose still has to reach `extendByMetaType()` as an explicit opt-in.
+      applyCellSettings(cellSettings);
+    }
+
+    // A cell that asked for its type's editor through `setCellMeta()` or the `cell` option, while the
+    // type itself comes from the column, has nothing expanded above, so it gets that editor here.
+    if (!cellSettings?.type && applyRequestedTypeEditor(cellMeta)) {
+      markCellMetaChanged(cellMeta);
     }
 
     hot.runHooks('afterGetCellMeta', visualRow, visualCol, cellMeta);

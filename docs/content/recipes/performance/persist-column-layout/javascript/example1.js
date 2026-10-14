@@ -3,7 +3,7 @@ import { registerAllModules } from 'handsontable/registry';
 
 registerAllModules();
 
-const STORAGE_KEY = 'ht-column-layout-v1';
+const STORAGE_KEY = 'ht-column-layout-v2';
 
 /* start:skip-in-preview */
 const data = [
@@ -79,8 +79,8 @@ const hot = new Handsontable(container, {
 
   // Capture the new width array after every column resize and persist it.
   afterColumnResize() {
-    const widths = hot.getColHeader().map((_, visualIndex) =>
-      hot.getColWidth(visualIndex)
+    const widths = hot.getColHeader().map((_, physicalIndex) =>
+      hot.getColWidth(hot.toVisualColumn(physicalIndex))
     );
 
     saveLayout(widths, getCurrentOrder());
@@ -105,13 +105,13 @@ function getCurrentOrder() {
   return order;
 }
 
-/** Returns the current column widths in visual order. */
+/** Returns the current column widths in physical order, as `colWidths` expects them. */
 function getCurrentWidths() {
   const count = hot.countCols();
   const widths = [];
 
-  for (let visualIndex = 0; visualIndex < count; visualIndex++) {
-    widths.push(hot.getColWidth(visualIndex));
+  for (let physicalIndex = 0; physicalIndex < count; physicalIndex++) {
+    widths.push(hot.getColWidth(hot.toVisualColumn(physicalIndex)));
   }
 
   return widths;

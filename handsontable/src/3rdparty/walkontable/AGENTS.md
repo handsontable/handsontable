@@ -8,6 +8,17 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 - The bridge to core Handsontable is `src/tableView.ts` (TableView class)
 - Plugins must NEVER access Walkontable internals directly - always go through TableView
 - Do not import core Handsontable modules from Walkontable code
+- **The pointer-to-cell lookup is shared with the core.** `findRowAtY`, `findColumnAtX`, `findRowReferenceColumn`
+  and `findColumnReferenceRow` live in `helpers/dom/cellMeasure.ts` and reach the grid only through the
+  `CellMeasurer` seam. `utils/pointerToCoords.ts` (renderable indexes, spans read from the rendered cell's
+  `rowSpan`/`colSpan`, because Walkontable has no cell meta) and `helpers/dom/cellCoords.ts` (visual indexes, spans
+  read from the cell meta) each build their own measurer. Fix a merge-related lookup bug there once, not in either
+  caller. A slave of a merge resolves to the anchor's element, so measuring a merged column adds the band's full
+  height once per slave: each band is measured against a column (or row) no merge spans. The walks skip a cell
+  that resolves to the element they just measured, so a walk that starts inside a merge counts the block once; a
+  reported span is only a hint (above 1) for the reference scans, and a slave need not report it. `Event#onMouseMove` runs on every pointer move of a held drag, inside the table too, so it asks
+  `getTableViewportBounds` + `isPointerOutsideBounds` (bounds only) first, looks the cell up only for a pointer outside, and hands the bounds on to the lookup; keep the lookup off
+  that path.
 - `Core#getRowHeight` is the provided height only (`rowHeights` / ManualRowResize / AutoRowSize). Walkontable layout uses `max(provided, wtViewport.oversizedRows[renderable])`. Handsontable code that must match that measurement goes through `getRenderedRowHeight` in `src/core/viewportScroll/scrollStrategies/singleScroll.ts` (visual → renderable → `wtTable.getRowHeight`) — never `hot.view._wt.wtViewport.oversizedRows` (Law of Demeter) and never `Core#getRowHeight` alone. Content-tall rows without those plugins keep `getRowHeight` at `undefined`. Forced mouse start-snap on an oversized axis bypasses Walkontable's auto-snap frozen-row/column guard, so frozen start columns and frozen top/bottom rows must not count as oversized.
 
 ## Dependency injection & DOM reads (mandatory)
@@ -310,7 +321,7 @@ frame and the page's CLS grows without bound — 10.4 after 25 wheel steps, wher
 transform moves pixels without moving layout and is exempt. Measured on the same build with and
 without it: CLS 10.44 → 0.004, forced layouts per scroll run 154 → 106, everything else within noise.
 
-Five rules follow, and the first is the one that bites.
+Six rules follow, and the first is the one that bites.
 
 - **`offsetTop`/`offsetLeft` and the `offset()` helper walk the layout chain, so they no longer see
   this distance.** Any code that compares a cell's document position against an element OUTSIDE the
@@ -344,6 +355,13 @@ Five rules follow, and the first is the one that bites.
   `Overlays#isStickyScrollOwningClones()` is true - suspend them on the master's flag and the
   frozen columns freeze for the length of a page-scrollbar drag. `#activate` reads its starting
   offset from the record, not from `style.top`, which is empty now.
+- **`StickyScrollStrategy#setScrollPosition` hands `window.scrollTo` a negative x on an RTL page.** A
+  page that the window scrolls horizontally in RTL has a negative `scrollX`, so a positive x clamps to
+  the origin and the release of a scrollbar drag throws the page back to its start. The hider-coordinate
+  magnitude is negated, as the element branch does for `scrollLeft`. The sign comes from the PAGE's
+  direction (`#isPageRtl`, read from the sign of `scrollX`), not the grid's `rtlMode`: an RTL grid on an LTR page scrolls into positive
+  `scrollX`, and negating there drops the page to 0. The drag is safe because `deactivate` is the only
+  caller of `#setScrollPosition`, and `#getScrollLeft` reads through `Math.abs`.
 - **`StickyScrollStrategy#syncOffsets` resolves each axis on its own.** An axis with nothing
   rendered (no rows, or every row hidden, trimmed or filtered out; likewise for columns) has a
   `null` render-calculator `startPosition`, and it takes offset 0 on that sync, the same value the
@@ -822,13 +840,11 @@ Consequences worth knowing:
   every scroll crossing horizontal offset 0 ran `refreshAll()`: a nested `wot.draw(true)` over the
   master and every clone. Grids on the single-pass path did not pay it, because `prepareHeaderBorders`
   applies the class before the cells render and the post-render toggle then finds it already in place.
-  Those two gates line up exactly, which is worth knowing before you assume a window-scrolled grid slips
-  between them: `usesLayoutSnapshotForCalculators()` requires `!isHorizontallyScrollableByWindow()`,
-  that predicate IS `inlineStartOverlay.trimmingContainer === rootWindow`, and `prepareHeaderBorders`
-  bails on the same test against the same overlay — so anything passing the single-pass gate is
-  element-scrolled and never bails. `preventOverflow` does not enter into it; it changes how
-  `resetFixedPosition` uses the trimming container, not what the container is. The cost therefore
-  landed on the grids that drop off that path, and there are TWO ways to do that, both of which paid:
+  `usesLayoutSnapshotForCalculators()` requires `!isHorizontallyScrollableByWindow()`, which is true only while
+  the window owns the horizontal axis **and** `isScrolledByWindow()`. So a grid whose holder scrolls the columns,
+  the reverse split (`preventOverflow: 'vertical'` or an ancestor clipping the vertical axis alone) included,
+  takes the single-pass path like any element-scrolled grid; `preventOverflow` matters only through that answer.
+  The cost therefore landed on the grids that drop off that path, and there are TWO ways to do that, both of which paid:
   breaking the uniform-size requirement (`colWidths` as an array, or an active `manualColumnResize`),
   and breaking the element-mode requirement (a window-scrolled grid, i.e. no `width`/`height`). The
   window shape is the harsher one, since `prepareHeaderBorders` bails on it outright and so could
@@ -913,6 +929,15 @@ Consequences worth knowing:
   inline-start accent (that pixel moved to the corner); and `ht__active_highlight`, because the seam
   is the active row header's own inline-end and the accent has to win there. The grid managed that
   last one only when scrolled before, since the border was 0px at horizontal offset 0.
+  The corner's `-prev` class has two sources. With `fixedColumnsStart` the corner clone renders
+  column 0's header itself, so the neighbor pass (`#markActiveHeaderNeighbor`, `previousElementSibling`
+  in one table) stamps it. Without frozen columns that pass only reaches the top clone's hidden corner
+  `th`, which the visible `ht_clone_top_inline_start_corner` paints over, so
+  `#markCornerColumnSeamHeader` stamps the visible corner's last cell when column 0 is active and
+  is the first column the viewport shows (`getFirstPartiallyVisibleColumn()`, not the render band,
+  which overscans) and the host highlights that header level (`onBeforeHighlightingColumnHeader`, so
+  nested headers tag only the active levels). Assert the CLASS on the visible corner, not its color: `classic` maps the accent and the cell border to
+  the same value.
 - **A grid can carry more than one row header column**, and then the seam to column 0 is the LAST
   one's `border-inline-end`. `afterGetRowHeaderRenderers` is a documented hook that appends
   renderers, and `autoRowHeaderSize` measures each of them, so this is a supported shape rather than
@@ -968,8 +993,9 @@ the holder scrolls the columns inside the root's box, and the page scrolls the r
 
 The owners live on the overlays: the top and bottom overlays carry the vertical owner in
 `trimmingContainer`, the inline-start overlay the horizontal one, and
-`isVerticallyScrollableByWindow()` / `isHorizontallyScrollableByWindow()` read exactly those two
-fields. Nine rules follow.
+`isVerticallyScrollableByWindow()` reads the top overlay's field. `isHorizontallyScrollableByWindow()`
+reads the inline-start overlay's owner **and** `isScrolledByWindow()` (see the page-offset rule below): it is `false` in the reverse split, where the window owns the axis but the holder scrolls the columns.
+Nine rules follow.
 
 - **A decision about the other axis goes through the viewport predicate, never `this.trimmingContainer`.**
   The width of the top and bottom clones is a horizontal question and the height of the inline-start
@@ -1019,8 +1045,12 @@ fields. Nine rules follow.
   deltas from being swapped twice. **macOS is excluded** (`!isMacOS()` at the call site): Chromium and
   Safari leave a Shift + trackpad swipe vertical there and the OS converts only mouse wheels, so the
   swap would change what a Mac trackpad does, and a frame with a pixel of `deltaX` noise would zigzag
-  between the axes. Mac users keep the vertical scroll they had. A trackpad on Windows or Linux with
-  `deltaX` noise has the same hole, tracked as a follow-up. Pinned by `test/unit/overlay/resolveWheelDeltas.unit.ts` and
+  between the axes. Mac users keep the vertical scroll they had. **Keep the exact-zero test.** On a Windows
+  precision touchpad (Edge 154) `deltaX` was 0 on all 328 events of four straight vertical swipes with Shift
+  held, so the small-nonzero-`deltaX` hole did not occur. A nonzero `deltaX` came only with a diagonal swipe,
+  where a dominance test (`|deltaX| < |deltaY|`) flips the axis inside one gesture. The numbers, the two known
+  warts of the exact-zero test, the logger demo to re-run, and what is not measured (native Edge behavior,
+  Firefox, a Linux touchpad): `.ai/CONCERNS.md`, "Shift + wheel on a touchpad". Pinned by `test/unit/overlay/resolveWheelDeltas.unit.ts` and
   `tests/e2e/shift-wheel-scroll.spec.ts`, which needs real wheel input: a dispatched `WheelEvent` carries
   whatever deltas the test gives it and proves nothing about the browser.
 - **`preventOverflow` is an alias, not a mode.** `'horizontal'` forces the horizontal owner to the
@@ -1028,12 +1058,12 @@ fields. Nine rules follow.
   comparison now follows from the owners. Its only remaining reads are the window-mode overflow
   reset in `MasterTable` (`true` still suppresses it), `InlineStartOverlay#getTableParentOffset`, and
   the two header-border suppressions, which are visual rules pinned by
-  `src/__tests__/settings/preventOverflow.spec.js`. The option stays forever, without a warning. One
-  thing does not follow from the owners yet: a grid given a `width` gets `overflow-x: clip` on its root,
-  and the alias does not, so under `preventOverflow: 'horizontal'` with no `width` the scroll spacer and
-  the overlay rails reach through the root's visible parent and widen the page (measured on `main`: a
-  500 px parent, a 2287 px document). The last case of `tests/e2e/width-window-scroll.spec.ts` is parked
-  under `test.fixme` on it.
+  `src/__tests__/settings/preventOverflow.spec.js`. The option stays forever, without a warning. The
+  one thing the owners do not give is a clip: `core/rootSize.ts` (core, not the engine) writes
+  `overflow-x: clip` inline on the root of a root instance under `'horizontal'`, the same clip a definite
+  `width` gets, so the scroll spacer and the overlay rails cannot reach through the root and widen the
+  page. It only reads and writes the inline style, so an inline `overflow` on the root is left alone and
+  a stylesheet `overflow-x` on `.handsontable` is overridden. Pinned by the last case of `tests/e2e/width-window-scroll.spec.ts`.
 - **Never ask `instanceof HTMLElement` whether an axis owner is an element — use `isHTMLElement()`.**
   `resolveAxisOwner` takes its realm from `ownerDocument`, so it correctly hands back an iframe's
   element to a parent-realm caller; `instanceof` then fails to recognize it against the parent's
@@ -1213,8 +1243,11 @@ resolves to the window, a window-owned **horizontal** one only while the vertica
 window-owned too (window mode, where the holder is unsized on both axes and `MasterTable` clears its
 overflow). Without it the horizontal listener bound to the window while the holder did the
 scrolling, and `syncScrollPositions` read `window.scrollX` forever — the column band stayed pinned at
-column 0. Leave `isHorizontallyScrollableByWindow()` alone in that mode: the owner really is the
-window, and the clone sizing that reads it must keep matching it.
+column 0. `isHorizontallyScrollableByWindow()` therefore answers `false` in that mode even though the owner
+is the window: it asks "does the window scroll the columns", which is the owner being the window **and**
+`Overlay#isScrolledByWindow()`. The clone sizing, the rails, the scroll range of the page and the pointer
+bounds all read it, and they must treat the holder as the scroller, exactly as for a grid inside an ancestor
+that clips both axes.
 
 The same mode has a second trap, and it is about **how much the table overhangs its holder.** That
 measurement (`masterTableRect.bottom - masterHolderRect.bottom`) is the fractional-zoom rounding
@@ -1836,10 +1869,44 @@ the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsE
   draws 2px. `tests/e2e/fixed-columns-end-line.spec.ts` measures all four states in LTR and RTL.
 - **RTL window scroll: read the inline-end edge from the table, not from the scroll position.**
   `InlineEndOverlay#getOverlayOffset` compares the scroll position with the table's offset from the page start,
-  which is the inline-start margin. In RTL that margin is on the right and `getTableParentOffset()` reports the
-  left one, so the sum was off by the right margin (a page with a margin on the inline-start side reported
-  "resting" up to that many pixels too early). The RTL branch measures where the hider's left edge really is
+  which is the inline-start margin. That margin is the one on the right in RTL, which
+  `InlineStartOverlay#getTableParentOffset` reports there (the next bullet); this method's LTR branch still adds
+  it. The RTL branch measures where the hider's left edge really is
   against the viewport's left edge (`documentElement.clientLeft` carries a left-hand scrollbar).
+- **`InlineStartOverlay#getTableParentOffset` is the inline-start margin, so in RTL it is the RIGHT one.** It feeds
+  `scrollTo`, the viewport's column calculator, and the overlay offsets. It used to return the holder's left offset in
+  both directions, which equals the right margin only when the grid fills the page width. A grid in a shrink-to-fit
+  wrapper (`display: inline-block`, a float, `max-content`) reaches far past the page's left edge (-3770 to 1280), and
+  the calculator then saw every column as off screen: Enter scrolled the window to 0, `selectCell()` moved it for a
+  visible cell, and a `position: fixed` editor (the multiselect) stayed off screen. The RTL branch takes
+  `Table#holderInlineStartMargin`, the `documentElement` client width minus the holder's right edge, measured in the
+  master draw next to `holderOffset` (a right edge stays put when a draw widens the table, a left one moves). It
+  does not depend on the scroll position, and it is `0` while the holder, not the window, scrolls the columns.
+  `tests/e2e/rtl-shrink-wrapped-grid-scroll.spec.ts` pins it; the RTL block layout alone cannot catch it.
+- **The page offset counts only while the window scrolls the columns, in LTR too.** In the reverse split (an
+  ancestor with `overflow-y: clip`, or `preventOverflow: 'vertical'`) `trimmingContainer` is the window but the
+  holder scrolls, and the margin in front of the grid is not part of `holder.scrollLeft`. `getTableParentOffset`
+  therefore returns `0` unless `mainTableScrollableElement` is the window, as `TopOverlay` and `BottomOverlay`
+  already did for the vertical axis (`preventOverflow` already returned `0`). The same split decides
+  `measureWorkspaceWidth`: it takes `documentElement.clientWidth` only while the window scrolls the columns,
+  otherwise the holder's own width. Without that, a grid offset from the page edge rendered columns for a
+  workspace as wide as the page (two more, for a 200px offset and 100px columns), reported the wrong last visible
+  column, and `stretchH` spread the columns over the page width when the header plus the columns sat between
+  the holder width and the page width. That half also applies to `preventOverflow: 'vertical'`.
+  The same offset feeds `getOverlayOffset()`, which `manualColumnMove` reads to place the column-move backlight:
+  in the reverse split it is the raw holder scroll position (the backlight lives in the scrolling master), not that
+  minus the page offset. Ask `Overlay#isScrolledByWindow()` for "does the window scroll the columns"; do not compare
+  `trimmingContainer` or repeat the `mainTableScrollableElement` check. `isHorizontallyScrollableByWindow()` now asks
+  it too (owner is the window **and** the window scrolls the columns), so `measureHasHorizontalScroll`,
+  `InlineStartOverlay#adjustRootElementSize`, `InlineStartOverlay#resetFixedPosition`, the top-start and
+  bottom-start corners' `inlineOnWindow`, and the pointer bounds (`pointerToCoords.ts`, `helpers/dom/cellCoords.ts`)
+  all follow the holder in the reverse split. `InlineStartOverlay#getOverlayTransformOffset()` is `0` there (the clone sits in the holder's box and no rail
+  moves it), while `getOverlayOffset()` stays the raw holder scroll position for the column-move backlight; the editor
+  position adds the transform offset, so returning the raw value put a frozen cell's editor a scroll length away. A new inline-start reader of "the window scrolls the columns" goes
+  through one of those two, never `trimmingContainer === rootWindow` alone.
+  `tests/e2e/page-offset-reverse-split.spec.ts` pins the offset, each offset layout against its no-offset twin of
+  the same holder width; `tests/e2e/page-offset-reverse-split-clones.spec.ts` pins the clone sizes, the page's
+  scroll range and the drag in the offset gap against the `overflow-y: hidden` twin.
 - **Ask the scroller, not the axis owner, whether the window holds the end clone.**
   `InlineEndOverlay#isScrolledByWindow` reads `mainTableScrollableElement`, and the end corners call it too.
   The horizontal axis owner (`trimmingContainer`) is the window in the reverse split (`preventOverflow:

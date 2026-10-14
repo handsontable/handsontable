@@ -3079,7 +3079,9 @@ export const REGISTERED_HOOKS = [
    * fired when {@link Options#manualColumnResize} option is enabled.
    *
    * @event Hooks#beforeColumnResize
-   * @param {number} newSize Calculated new column width.
+   * @param {number} newSize Calculated new column width. It excludes the room that the hidden-column
+   *                         indicator adds to a column next to a hidden column, as the width taken by
+   *                         [`setManualSize()`](@/api/manualColumnResize.md#setmanualsize) does.
    * @param {number} column Visual index of the resized column.
    * @param {boolean} isDoubleClick Flag that determines whether there was a double-click.
    * @returns {number|false|undefined} Returns a new column size, `false` to cancel the resize, or `undefined` to keep the size set by the drag or auto-calculation.
@@ -3091,7 +3093,9 @@ export const REGISTERED_HOOKS = [
    * fired when {@link Options#manualColumnResize} option is enabled.
    *
    * @event Hooks#afterColumnResize
-   * @param {number} newSize Calculated new column width.
+   * @param {number} newSize Calculated new column width. It excludes the room that the hidden-column
+   *                         indicator adds to a column next to a hidden column, as the width taken by
+   *                         [`setManualSize()`](@/api/manualColumnResize.md#setmanualsize) does.
    * @param {number} column Visual index of the resized column.
    * @param {boolean} isDoubleClick Flag that determines whether there was a double-click.
    */

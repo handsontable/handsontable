@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the row and column that a drag selection reaches when the pointer leaves the grid past a merged cell, which could land several rows or columns off. Autofill, drag-to-scroll, move cells, and the selection handles now agree with it when every visible column is merged.",
+  "type": "fixed",
+  "issueOrPR": 13793,
+  "breaking": false,
+  "framework": "none"
+}

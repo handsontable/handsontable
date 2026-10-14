@@ -8,7 +8,6 @@ import { tierPrefixes } from '../visual-tiers.mjs';
 import {
   DEFAULT_DECLARATION,
   VISUAL_VARIANTS_ANNOTATION,
-  WRAPPERS_REASON_UNAUDITED,
   assertDeclarationFitsLeg,
   declaredPrefixes,
   isDeclared,
@@ -43,25 +42,18 @@ const TESTS_ROOT = join(PACKAGE_ROOT, 'tests');
 const LIVE_GOLDENS = JSON.parse(
   readFileSync(join(PACKAGE_ROOT, 'visual-budget.json'), 'utf8')).prefixes;
 
-// The one spec that declares nothing: it parks a test behind `test.skip('Test merging', fn)`, renders
-// no capture, and carries its own eslint-disable line naming the task that owns it.
-const PARKED_SPEC = 'cross-browser/merging.spec.ts';
-
 // How many live specs the sweep expects to read a declaration out of: 112 files on 2026-09-18, one of
 // them parked. The filters consolidation (#13647) deleted nine multi-framework specs and added three
 // js-only ones, the submenu-placement trim deleted four scrolled-viewport menu specs, the editors
 // trim deleted six editor specs, and the cross-browser trim (DEV-3257) deleted six whose states
 // moved to tests/e2e, which left 90 files. The UI-state trim deleted 24 and added one (the complex
-// demo's RTL dropdown under a new name), which leaves 67 files, one of them parked, so 66 live.
+// demo's RTL dropdown under a new name), which left 67 files. The multi-frameworks trim (DEV-3351)
+// deleted 12 of that family's 14 specs, whose states moved to tests/e2e, which left 55 files, one of
+// them parked. The close-out deleted the parked one, which had rendered nothing since 2025-01-14, so
+// every one of the 54 files left is live.
 // Adding or deleting a spec moves this number, and moves a number in LIVE_GOLDENS too – the pair is
 // the review a description cannot give, so update both in the pull request that adds the spec.
-const LIVE_SPEC_COUNT = 66;
-
-// How many of the specs under `tests/multi-frameworks/` (23 on 2026-09-18, 14 since the filters
-// consolidation retired that family's nine) still carry the shared unaudited reason.
-// The consolidation audit replaces it with a per-spec reason one spec at a time, so this number falls as
-// the debt is paid; it must never rise.
-const UNAUDITED_WRAPPER_SPECS = 14;
+const LIVE_SPEC_COUNT = 54;
 
 /**
  * Every `.spec.ts` under `tests/`, as paths relative to `tests/`, sorted.
@@ -90,7 +82,7 @@ function specPaths() {
 // without a TypeScript parser — the `scrollbar-proximity.test.mjs` precedent, where a constant in a `.ts`
 // file is pinned by reading the file and matching it. Anything else in a declaration is a string literal.
 const VOCABULARY = {
-  CLASSIC, CROSS_BROWSERS, JS_VARIANTS, WRAPPERS, WRAPPERS_REASON_UNAUDITED,
+  CLASSIC, CROSS_BROWSERS, JS_VARIANTS, WRAPPERS,
 };
 
 // What opens a string in a spec. The backtick is in the set because the two looped cross-browser specs
@@ -571,8 +563,8 @@ test('normalizeDeclaration rejects an empty axis', () => {
 });
 
 test('normalizeDeclaration rejects wrappers without the classic theme', () => {
-  // A wrapper run never sets HOT_THEME, and on the seed tier the wrapper goldens are the bare js render
-  // copied wholesale — the spec-level twin of the `copyWrappers` guard in scripts/run-tests.mjs.
+  // A wrapper run never sets HOT_THEME, and on the seed tier the wrapper goldens are the spec's bare js
+  // render copied — the spec-level twin of the refusal in `wrapperCopyPlan()` (lib/wrapper-copy.mjs).
   assert.throws(
     () => normalizeDeclaration({ themes: ['main'], wrappers: WRAPPERS, wrappersReason: 'why' }),
     /must include the "classic" theme/,
@@ -838,10 +830,6 @@ test('every live spec declares its variants through visualTest', () => {
   // variant the tier launches while contributing nothing to the derived count below. Read over
   // comment-free source, so a spec cannot pass on a sentence that merely names the helper.
   const missing = specPaths().filter((relativePath) => {
-    if (relativePath === PARKED_SPEC) {
-      return false;
-    }
-
     const source = readFileSync(join(TESTS_ROOT, relativePath), 'utf8');
 
     return visualTestCallOffsets(stripComments(source, relativePath)).length === 0;
@@ -853,22 +841,12 @@ test('every live spec declares its variants through visualTest', () => {
 
 test('no spec scopes itself with a bare test() or a hand-written test.skip()', () => {
   // The lint override in `.eslintrc.js` is the live gate; this is the same rule stated where the rest of
-  // the declaration rules live, so a future change to that override cannot quietly drop it. The parked
-  // spec is the one exception and it must keep the disable line that makes it one.
+  // the declaration rules live, so a future change to that override cannot quietly drop it.
   //
-  // Comments are stripped before the scan, and the disable line is checked on the raw source for the same
-  // reason: prose about a bare `test(` is prose, and the line that makes the parked spec legal IS a
-  // comment. Without the strip, the consolidation's ~91 docblocks would each be a candidate offender.
+  // Comments are stripped before the scan: prose about a bare `test(` is prose. Without the strip, the
+  // consolidation's ~91 docblocks would each be a candidate offender.
   const offenders = specPaths().filter((relativePath) => {
     const source = readFileSync(join(TESTS_ROOT, relativePath), 'utf8');
-
-    if (relativePath === PARKED_SPEC) {
-      assert.match(source, /eslint-disable-next-line no-restricted-syntax -- \S+: /,
-        `${PARKED_SPEC} keeps its own disable line, which is what makes its test.skip() legal.`);
-
-      return false;
-    }
-
     const clean = stripComments(source, relativePath);
 
     return /(?<![.\w])test\(/.test(clean) || /(?<![.\w])test\.skip\(/.test(clean);
@@ -887,10 +865,6 @@ test('every spec holds one declaration, and its leg can render it', () => {
   let specsChecked = 0;
 
   specPaths().forEach((relativePath) => {
-    if (relativePath === PARKED_SPEC) {
-      return;
-    }
-
     const source = readFileSync(join(TESTS_ROOT, relativePath), 'utf8');
     const declarations = readDeclarations(source, relativePath);
     const callCount = visualTestCallOffsets(stripComments(source, relativePath)).length;
@@ -924,27 +898,29 @@ test('every spec holds one declaration, and its leg can render it', () => {
     specsChecked += 1;
   });
 
-  assert.equal(specsChecked, LIVE_SPEC_COUNT, 'The spec tree held 112 files on 2026-09-18, one of them '
-    + 'parked. Adding or deleting a spec moves this count: update LIVE_SPEC_COUNT in this file, and '
-    + 'expect LIVE_GOLDENS to move with it. A moved number is the review this pin exists for, not a bug.');
+  assert.equal(specsChecked, LIVE_SPEC_COUNT, 'Adding or deleting a spec moves this count: update '
+    + 'LIVE_SPEC_COUNT in this file, and expect LIVE_GOLDENS to move with it. A moved number is the review '
+    + 'this pin exists for, not a bug.');
 });
 
 test('every spec declares a shape its own directory can host', () => {
   // The codemod wrote the rendered set every directory already had, so no golden record moved: five js
-  // variants everywhere, all three wrappers on the multi-framework specs the seed copies wholesale, and
-  // all three browsers on the cross-browser leg except the clipboard specs Chromium alone can run.
+  // variants everywhere, all three wrappers on the multi-framework specs, and all three browsers on the
+  // cross-browser leg except the clipboard specs Chromium alone could run.
   //
   // This pin is NOT "one shape per directory". The guardrail's whole point is that a new spec takes the
   // two-theme default, and a pin that rejected the default would block the behavior the default exists to
-  // encourage — the first new js-only spec would have failed with a bare diff of two JSON strings. What is
-  // load-bearing per directory is narrower, and it is the seed's wholesale copy: every multi-framework
-  // spec must declare all three wrappers, because `scripts/run-tests.mjs` copies the whole
-  // `js/chromium/multi-frameworks` directory into the three wrapper baselines. A spec there that declares
-  // fewer gets wrapper goldens the `full` tier then never renders, and the nightly reports them deleted
-  // every night until the per-spec copy lands.
+  // encourage — the first new js-only spec would have failed with a bare diff of two JSON strings.
   //
-  // The reason string is deliberately not part of the shape: the audit's job is to replace the shared
-  // constant with a per-spec reason, and the count that tracks it is the next test.
+  // Until DEV-3351 the multi-framework specs could take one shape only, all three wrappers, because the
+  // seed copied the whole `js/chromium/multi-frameworks` directory into the three wrapper baselines and a
+  // spec declaring fewer would have left wrapper goldens the `full` tier never renders. The seed now
+  // copies each spec's captures into the wrappers that spec declares (`lib/wrapper-copy.mjs`), so the
+  // directory hosts what the trimmed family uses: the canary on every variant and all three wrappers, the
+  // five js variants with no wrapper, and the default for a new spec.
+  //
+  // The reason string is deliberately not part of the shape; `normalizeDeclaration()` requires one for
+  // any wrapper.
   const shapeOf = declaration => JSON.stringify({
     themes: declaration.themes,
     browsers: declaration.browsers,
@@ -963,6 +939,8 @@ test('every spec declares a shape its own directory can host', () => {
     ],
     'multi-frameworks': [
       { themes: JS_VARIANTS, browsers: ['chromium'], wrappers: WRAPPERS, wrappersReason: 'any' },
+      { themes: JS_VARIANTS, browsers: ['chromium'], wrappers: [] },
+      { ...DEFAULT_DECLARATION },
     ],
     'cross-browser': [
       { themes: [CLASSIC], browsers: ['chromium'], wrappers: [] },
@@ -974,20 +952,16 @@ test('every spec declares a shape its own directory can host', () => {
       + 'default { themes: [\'main\', \'main-dark\'], browsers: [\'chromium\'], wrappers: [] }, or '
       + '[\'main\'] alone for a look check whose behavior a functional test (tests/e2e or Jasmine) '
       + 'asserts, named in its docblock.',
-    'multi-frameworks': 'Every spec here declares all three wrappers, because the seed copies the whole '
-      + 'js/chromium/multi-frameworks directory into the three wrapper baselines (scripts/run-tests.mjs). '
-      + 'A spec that needs no wrapper belongs in tests/js-only/; trimming a wrapper here needs the '
-      + 'per-spec seed copy first, or the nightly reports the orphaned goldens deleted every night.',
+    'multi-frameworks': 'A spec on the shared / grid renders the five js variants under all three '
+      + 'wrappers (the parity canary, with a wrappersReason), the five js variants with no wrapper, or the '
+      + 'documented default. A wrapper subset is legal for the seed copy (lib/wrapper-copy.mjs) but no spec '
+      + 'uses one; add it here when one does.',
     'cross-browser': 'The cross-browser leg sets no HOT_THEME and no HOT_FRAMEWORK, so themes is '
       + '[\'classic\'] and wrappers is empty; browsers is all three. Chromium alone is allowed for a spec '
       + 'only Chromium can run (a clipboard check), though no spec takes that shape since DEV-3257.',
   };
 
   specPaths().forEach((relativePath) => {
-    if (relativePath === PARKED_SPEC) {
-      return;
-    }
-
     const [first] = readDeclarations(readFileSync(join(TESTS_ROOT, relativePath), 'utf8'), relativePath);
 
     assert.ok(first, `${relativePath} declares no variants; every live spec calls visualTest().`);
@@ -996,7 +970,7 @@ test('every spec declares a shape its own directory can host', () => {
 
     // A spec under a new top-level directory would otherwise die on `undefined.map` — an opaque
     // TypeError in a file whose whole design is loud, self-explaining failure. The directory decides
-    // which shapes are legal (the seed copies `multi-frameworks` wholesale; the cross-browser leg
+    // which shapes are legal (the wrappers render only the shared `/` grid's specs; the cross-browser leg
     // renders bare), so a new one is a decision, not an oversight: it has to be registered here.
     assert.ok(allowedShapes[directory],
       `${relativePath}: the directory "${directory}" has no allowed declaration shapes. Register it in `
@@ -1023,10 +997,6 @@ test('a single-theme spec names the functional test that asserts its behavior', 
   const functionalTest = new RegExp('`(tests/e2e/[\\w.-]+\\.spec\\.ts'
     + '|handsontable/src/[\\w./-]+/__tests__/[\\w./-]+\\.spec\\.js)`', 'g');
   const singleTheme = specPaths().filter((relativePath) => {
-    if (relativePath === PARKED_SPEC) {
-      return false;
-    }
-
     const [first] = readDeclarations(readFileSync(join(TESTS_ROOT, relativePath), 'utf8'), relativePath);
 
     return JSON.stringify(normalizeDeclaration(first.declaration, relativePath).themes) === '["main"]';
@@ -1051,25 +1021,6 @@ test('a single-theme spec names the functional test that asserts its behavior', 
   });
 });
 
-test('the multi-framework specs still carry the shared unaudited wrappers reason', () => {
-  // The audit that trims those 69 wrapper goldens greps for this constant, so the constant has to be the
-  // literal every one of those specs names. A per-spec reason replaces it one spec at a time, so this
-  // count falls as the debt is paid and must never rise.
-  const multiFrameworkSpecs = specPaths().filter(relativePath => relativePath.startsWith('multi-frameworks/'));
-  const carrying = multiFrameworkSpecs.filter((relativePath) => {
-    const [first] = readDeclarations(readFileSync(join(TESTS_ROOT, relativePath), 'utf8'), relativePath);
-
-    return first.declaration.wrappersReason === WRAPPERS_REASON_UNAUDITED;
-  });
-
-  assert.equal(carrying.length, UNAUDITED_WRAPPER_SPECS,
-    'WRAPPERS_REASON_UNAUDITED marks a wrapper declaration nobody has argued for yet. A FALLING count is '
-    + 'the consolidation audit paying that debt one spec at a time: lower UNAUDITED_WRAPPER_SPECS in this '
-    + 'file by the number of specs that gained a real reason. A RISING count is a new spec under '
-    + 'tests/multi-frameworks/ that copied the placeholder instead of saying what its wrapper render '
-    + 'proves that the js render does not.');
-});
-
 test('every capture-cap exception matches what the spec actually takes', () => {
   // The exception counts in visual-budget.json are a second statement of a fact the spec tree
   // already makes, so derive it rather than trusting the file.
@@ -1083,10 +1034,6 @@ test('every capture-cap exception matches what the spec actually takes', () => {
   const capturesPerStem = new Map();
 
   specPaths().forEach((relativePath) => {
-    if (relativePath === PARKED_SPEC) {
-      return;
-    }
-
     const source = readFileSync(join(TESTS_ROOT, relativePath), 'utf8');
 
     capturesPerStem.set(relativePath.replace(/\.spec\.ts$/, ''),
@@ -1126,10 +1073,6 @@ test('the declarations derive exactly the live golden set', () => {
   let total = 0;
 
   specPaths().forEach((relativePath) => {
-    if (relativePath === PARKED_SPEC) {
-      return;
-    }
-
     const source = readFileSync(join(TESTS_ROOT, relativePath), 'utf8');
     const [first] = readDeclarations(source, relativePath);
 

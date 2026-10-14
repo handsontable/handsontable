@@ -6,10 +6,10 @@
     "cells",
     "cell"
   ],
-  "total": 178,
+  "total": 180,
   "counts": {
     "grid": 109,
-    "grid columns cells cell": 62,
+    "grid columns cells cell": 64,
     "grid columns": 6,
     "columns": 1
   },
@@ -1260,6 +1260,18 @@
       "note": null
     },
     {
+      "name": "readOnlyStyling",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "19.0.0",
+      "note": null
+    },
+    {
       "name": "renderAllColumns",
       "category": "Core",
       "levels": [
@@ -1470,6 +1482,18 @@
         "cell"
       ],
       "since": "17.0.0",
+      "note": null
+    },
+    {
+      "name": "sourceLabel",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "19.0.0",
       "note": null
     },
     {

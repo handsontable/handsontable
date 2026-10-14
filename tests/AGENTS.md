@@ -192,6 +192,18 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   that writes nothing still pastes whatever an earlier test, or an earlier repeat of the same test,
   left there. Copy a value no earlier run copied: both clipboard specs write a run-unique value into
   the source cells first (`randomUUID()`), which proves the copy on every engine, read-back or not.
+- **A native undo or redo in a text field has the clipboard's trap, and the native date input has its
+  own.** Ctrl+Z and Ctrl+Shift+Z inside the open text editor are the textarea's own undo, which Linux
+  WebKit never runs on a real shortcut, so `text-editor-native-undo.spec.ts` carries
+  `CLIPBOARD_SHORTCUT_TAG` beside `CROSS_BROWSER_TAG`: Firefox runs it and WebKit does not. The date
+  editor's picker takes the keys while it is shown, and Escape closes the picker and leaves the editor
+  open in Chromium but closes the editor in Firefox and WebKit, so `date-editor-native-input.spec.ts`
+  carries no tag and runs on the six Chromium legs only.
+- **Tab past a page's last focusable element leaves the document in Chromium and WebKit, and goes nowhere
+  in headless Firefox.** There `document.hasFocus()` turns false; headless Firefox has no browser UI to
+  move the focus to, so it stays on the cell. Assert what the grid draws after the exit (no selection, no
+  highlighted cell or header), which every engine agrees on, rather than where the focus went
+  (`shared-demo-keyboard-navigation.spec.ts`).
 
 ## Fixture contract (never get these wrong)
 
@@ -497,6 +509,48 @@ is in
 - A negative assertion ("nothing fired") uses a bounded settle ONLY beside a
   positive control in the same test.
 
+**A scroll write is answered one frame later, and a read in between sees the
+grid half-moved.** A programmatic scroll – a `scrollLeft` write, or a key press
+the grid answers by scrolling – moves the master holder at once. The browser
+dispatches the holder's `scroll` event at the start of the next frame, and the
+engine syncs the frozen clones from that event, before the frame paints. A read
+that lands in between sees the master a whole column ahead of a clone that is
+about to follow it. Whether it does depends on where the read falls against the
+frame boundary, not on the grid: `iframe-cross-realm-scroll.spec.ts` failed 6 of
+150 runs that way, 25 on each of the six legs (`Expected: <= 2, Received: 64` on
+`classic`, DEV-3115). Wait for the frame before the read.
+`IframeWidthWindowScrollPage.waitForFrames()` awaits two animation frames of the
+iframe, and the first callback runs after that frame's `scroll` event has been
+handled. A wait on `scrollLeft` cannot do it, because the press has written it
+already. When the test is about what the engine does while a key is **held**,
+wait before `keyboard.up()`: released earlier, the event reaches an engine whose
+key is already up, and the guard under test never runs. With that guard broken,
+the old read failed 116 of 120 runs and the held-key wait failed 120 of 120.
+
+**A selection can scroll the grid even when its cell is on screen.**
+When the viewport has nothing to scroll, `selectCell()` and `selectCells()` still
+run `scrollWindowToCell()`, in a microtask, so it has run by the time the
+`evaluate` returns. It calls `scrollIntoView({ block: 'nearest' })` on the cell,
+and a cell taller than the part of the holder that shows it (a merged block a
+frozen pane covers) scrolls the master holder by a few pixels. The clones follow
+one frame later, as above, so a read in between measures the master against
+stale row headers, although the test wrote no scroll. The row heights decide
+whether the holder has room to move, so it can happen on one theme only. After a
+selection, poll the whole geometry read in one `expect.poll` (`toEqual` on the
+full object). Never poll one field and then read the rest once: the field you
+polled can come from a clone that is already drawn
+(`merge-cells-frozen-bottom.spec.ts`, the outline test).
+
+**An open editor follows the master, and its cell follows a clone.** Enter
+scrolls a cell that a frozen pane mostly covers into view, as a selection can.
+The editor is placed from the master's new offset at once, and the clone that
+draws the cell catches up a frame later, so the two boxes disagree by the
+whole scroll in between (DEV-3399). Read the editor and the cell in one
+evaluation together with whether that clone has caught up, and retry the whole
+comparison until it has (`FixedColumnsEndPage.editorAndCellBoxes()`).
+Requiring the catch-up, not only a match, keeps an editor misplaced by exactly
+the scroll from passing on the stale frame.
+
 **A geometry read is two round trips, and the grid recycles its rows.**
 `locator.boundingBox()` and `locator.evaluate()` resolve the node in one round
 trip and act on it in another (`innerText()` and `getAttribute()` do both in one
@@ -511,6 +565,21 @@ recycled (the table's root, the grid), read every value a comparison needs in
 that same evaluation (`FrozenTallCellPage.rowHeights()`), and poll a pinned
 expected value rather than comparing two reads with each other — two reads
 that both landed before the draw agree with each other and prove nothing.
+
+**`keyboard.press()` cannot make several presses share one animation frame
+reliably.** Each press is its own round trip, so presses land a few milliseconds
+apart. How many of them fall between two frames depends on the machine, the
+bundle and the load. A race that needs several presses in one frame therefore
+fails now and then, and never on demand. The arrow-key test in
+`fixed-columns-end.spec.ts` failed that way on three pull requests in two days
+with `Expected: <= 2, Received: 4` (DEV-3345). A window scroll queued by each
+press ran after the grid had scrolled on, and pulled it back. Send the presses
+from one `page.evaluate` task instead, as synthetic `KeyboardEvent`s that carry
+their `keyCode`, and end on an `afterScroll` hook added after them, so it runs
+after whatever they queued (`FixedColumnsEndPage.pressInOneTask()`). Assert that
+the grid scrolled far enough for a queued scroll to have something to move, or
+the test passes on the bug when the fixture changes. Real presses still get the
+grid to its starting state.
 
 **Where a flake goes.** In CI the config adds a `json` reporter
 (`test-results/report.json`, shipped inside the `playwright-report-*` failure

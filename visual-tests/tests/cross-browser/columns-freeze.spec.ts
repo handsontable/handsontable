@@ -3,6 +3,7 @@ import { helpers } from '../../src/helpers';
 import {
   selectColumnHeaderByNameAndOpenMenu,
   selectFromContextMenu,
+  waitForWheelScrollToSettle,
 } from '../../src/page-helpers';
 
 /**
@@ -26,11 +27,7 @@ visualTest('Test freezing', {
   await expect(table.locator('.ht_clone_top_inline_start_corner thead tr:last-child th').last()).toHaveText('Cost');
 
   await tablePage.mouse.wheel(500, 0);
-  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
-  await tablePage.waitForTimeout(500);
-
-  await expect.poll(async() => table.locator('.ht_master .wtHolder').evaluate(holder => holder.scrollLeft))
-    .toBeGreaterThan(0);
+  await waitForWheelScrollToSettle('scrollLeft', table);
 
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

@@ -6,21 +6,23 @@ import {
 
 /**
  * A grid instance reduced to the DOM measurements the helper reads, so each case can state the layout it
- * measures: the viewport's width, the grid root's box, the holder's document offset, and the page's scroll.
+ * measures: the viewport's width and the grid root's box. The `offsetLeft` chain and the scroll are there
+ * too, so a helper that reads them gives a wrong value instead of throwing.
  *
  * @param {object} layout The measurements.
  * @param {boolean} layout.rtl Whether the grid's layout direction is RTL.
  * @param {number} layout.clientWidth The viewport's width (`documentElement.clientWidth`).
  * @param {object} layout.rootRect The grid root's box in viewport coordinates.
- * @param {number} layout.tableOffsetLeft The holder's left edge in document coordinates.
- * @param {number} layout.scrollX The page's horizontal scroll.
+ * @param {number} [layout.tableOffsetLeft] The holder's left edge in document coordinates.
+ * @param {number} [layout.scrollX] The page's horizontal scroll.
  * @returns {object} The stand-in instance.
  */
-function createHot({ rtl, clientWidth, rootRect, tableOffsetLeft, scrollX }) {
+function createHot({ rtl, clientWidth, rootRect, tableOffsetLeft = 600, scrollX = 3770 }) {
   return {
     isRtl: () => rtl,
     rootDocument: { documentElement: { clientWidth } },
     rootElement: { getBoundingClientRect: () => rootRect },
+    // What the LTR branch read before it used the root's box: the `offsetLeft` chain and the page's scroll.
     view: { getTableOffset: () => ({ left: tableOffsetLeft, top: 0 }) },
     rootWindow: { scrollX },
   };
@@ -35,8 +37,6 @@ describe('getWindowScrollInlineMetrics', () => {
       rtl: true,
       clientWidth: 1280,
       rootRect: { left: 3770, right: 4450, width: 680 },
-      tableOffsetLeft: 0,
-      scrollX: -3770,
     });
 
     expect(getWindowScrollInlineMetrics(hot)).toEqual({ inlineStartOffset: -3170, viewportWidth: 1280 });
@@ -48,11 +48,21 @@ describe('getWindowScrollInlineMetrics', () => {
       rtl: false,
       clientWidth: 1280,
       rootRect: { left: -3170, right: -2490, width: 680 },
-      tableOffsetLeft: 600,
-      scrollX: 3770,
     });
 
     expect(getWindowScrollInlineMetrics(hot)).toEqual({ inlineStartOffset: -3170, viewportWidth: 1280 });
+  });
+
+  it('reads an LTR grid\'s left edge from its box, so a translating ancestor is counted', () => {
+    // The same page inside `transform: translateX(40px)`: the root is drawn 40 px to the right of where the
+    // `offsetLeft` chain (600) minus the scroll (3770) puts it.
+    const hot = createHot({
+      rtl: false,
+      clientWidth: 1280,
+      rootRect: { left: -3130, right: -2450, width: 680 },
+    });
+
+    expect(getWindowScrollInlineMetrics(hot)).toEqual({ inlineStartOffset: -3130, viewportWidth: 1280 });
   });
 
   it('keeps a list near the viewport\'s right edge on an RTL page from flipping off screen (the reported case)', () => {
@@ -63,8 +73,6 @@ describe('getWindowScrollInlineMetrics', () => {
       rtl: true,
       clientWidth: 1280,
       rootRect: { left: 3770, right: 5050, width: 1280 },
-      tableOffsetLeft: 0,
-      scrollX: -3770,
     });
     const metrics = getWindowScrollInlineMetrics(hot);
     const listWidth = 366;

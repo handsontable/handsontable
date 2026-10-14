@@ -54,9 +54,15 @@ export interface Variant {
   inset?: 'none' | 'start';
   /**
    * `transform` makes the grid's container the containing block of the `fixed` list, a box that
-   * scrolls with the page; `none` when omitted.
+   * scrolls with the page; `translate` does the same and also moves the container 200 px toward
+   * the inline end, which the `offsetLeft` chain does not report; `none` when omitted.
    */
-  wrap?: 'none' | 'transform';
+  wrap?: 'none' | 'transform' | 'translate';
+  /**
+   * `multiselect` only: builds two columns, column 0 with a 30-entry source and column 1 with a source of
+   * this many entries, both with `visibleRows` set to it; no pair when omitted.
+   */
+  pairRows?: number;
 }
 
 /**
@@ -188,7 +194,8 @@ export class HandsontableEditorListPositionPage {
   readonly layout: Layout;
   readonly type: EditorType;
   readonly inset: 'none' | 'start';
-  readonly wrap: 'none' | 'transform';
+  readonly wrap: 'none' | 'transform' | 'translate';
+  readonly pairRows: number;
   readonly grid: Locator;
   readonly list: Locator;
 
@@ -211,6 +218,7 @@ export class HandsontableEditorListPositionPage {
     this.type = variant.type ?? 'handsontable';
     this.inset = variant.inset ?? 'none';
     this.wrap = variant.wrap ?? 'none';
+    this.pairRows = variant.pairRows ?? 0;
     this.grid = page.getByTestId('grid');
     // The element that is the list: the container of the nested grid, or the multiselect's list.
     this.list = page.locator(LIST_SELECTORS[this.type]);
@@ -224,7 +232,7 @@ export class HandsontableEditorListPositionPage {
   async goto(): Promise<void> {
     await this.page.goto('/tests/fixtures/demo/handsontable-editor-list-position.html'
       + `?theme=${this.theme}&bundle=${this.bundle}&dir=${this.dir}&doc=${this.doc}`
-      + `&layout=${this.layout}&type=${this.type}&inset=${this.inset}&wrap=${this.wrap}`);
+      + `&layout=${this.layout}&type=${this.type}&inset=${this.inset}&wrap=${this.wrap}&pairRows=${this.pairRows}`);
     // The bundle first, or a slow leg fails pointing at a missing cell instead of the real cause.
     await awaitBundle(this.page);
 
@@ -273,6 +281,26 @@ export class HandsontableEditorListPositionPage {
     }
 
     await expect(this.cell(99, 49)).toBeVisible();
+  }
+
+  /**
+   * Scrolls the page to its end, then back up by `distance` px, and waits until a cell is rendered
+   * under the lower part of the viewport, where the vertical flip's points sit. The page's scroll
+   * position is then partway, so the bottom of a transformed container is not the viewport's bottom.
+   * Window layout only.
+   *
+   * @param {number} [distance] How far to scroll back up, in px.
+   */
+  async scrollPartway(distance = 700): Promise<void> {
+    await this.scrollToEnd();
+
+    await this.page.evaluate(dy => window.scrollBy(0, -dy), distance);
+
+    await expect.poll(() => this.page.evaluate(() => {
+      const { clientWidth, clientHeight } = document.documentElement;
+
+      return Boolean(document.elementFromPoint(clientWidth / 2, clientHeight - 110)?.closest('.ht_master td'));
+    }), { message: 'the grid renders at the new scroll position' }).toBe(true);
   }
 
   /**
@@ -325,6 +353,21 @@ export class HandsontableEditorListPositionPage {
     await expect(this.list).toBeVisible();
 
     return coords;
+  }
+
+  /**
+   * Opens the editor on a given cell, with the page at its current scroll position, and waits until the
+   * list is visible.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   */
+  async openEditorOnCell(row: number, col: number): Promise<void> {
+    await this.page.evaluate(([r, c]) => {
+      (window as unknown as { hot: { selectCell(row: number, col: number): boolean } }).hot.selectCell(r, c);
+    }, [row, col] as const);
+    await this.page.keyboard.press('Enter');
+    await expect(this.list).toBeVisible();
   }
 
   /**

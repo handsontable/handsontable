@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug where a grid with `preventOverflow: 'horizontal'` and no `width` widened the page, which gained a horizontal scrollbar into empty space. The grid now clips its content at its own edges, as it does with a set `width`; the resize guide of the last column is hidden past the grid edge, and the resize still works.",
+  "type": "fixed",
+  "issueOrPR": 13820,
+  "breaking": false,
+  "framework": "none"
+}

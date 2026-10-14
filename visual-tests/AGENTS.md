@@ -61,10 +61,10 @@ spec-side `test.skip(` are both lint errors. The axes, the default, and the two 
 
 A screenshot asserts pixels no DOM or API probe can express: theme tokens, geometry, compositing. Focus order, DOM state, selection, data, and "the menu opened" are Playwright assertions in `tests/e2e`, in addition to, never instead of. One capture per distinct visual state. New features get their own demo route, never the shared `/` demo.
 
-Three measured facts behind the rule (2026-09-18, `visual-tests/tests`):
+Three facts behind the rule:
 
-- **112 specs hold 273 captures, and 57 specs hold more than one.** A second capture is a second visual state — a menu open, a filter applied — never a second angle on the same one. The presence gate counts a `.spec.ts` under `visual-tests/` as coverage, so "in addition to" is what the reviewer checks and what the PR template's test-evidence bullet asks for, not something a gate enforces.
-- **29 specs photograph the shared `/` demo, and the 23 multi-frameworks specs among them never navigate** (0 `goto(` calls). `/` is the frozen multi-feature grid (`initDefaultDemo()` in `examples/next/visual-tests/js/demo/src/index.js`); a feature added there re-captures every one of those specs on every variant it renders — js × 5 plus the three wrappers for the 23 multi-frameworks specs, three browsers for the 6 cross-browser ones. The other 83 specs call `goto(` to one of the 27 named `/<name>-demo` routes on that Navigo router (`grep -c "'/.*-demo'"` over the file), which is where a new feature goes: a `src/demos/<feature>/` module and one route.
+- **A second capture is a second visual state** — a menu open, a filter applied — never a second angle on the same one. The presence gate counts a `.spec.ts` under `visual-tests/` as coverage, so "in addition to" is what the reviewer checks and what the PR template's test-evidence bullet asks for, not something a gate enforces.
+- **Every spec that photographs the shared `/` demo re-captures when `/` changes.** `/` is the frozen multi-feature grid (`initDefaultDemo()` in `examples/next/visual-tests/js/demo/src/index.js`), and a spec that never calls `goto(` photographs it: the multi-frameworks specs, on every variant and wrapper they declare, and specs in the js-only and cross-browser families too. A feature added there costs a capture on every variant of each of them. The other specs call `goto(` to a named `/<name>-demo` route on that Navigo router (`grep -c "'/.*-demo'"` over the file counts them), which is where a new feature goes: a `src/demos/<feature>/` module and one route.
 - **A feature on its own route is js-only by construction.** The react and angular demos serve `/` and `/scenario-grid` (`react-wrapper/demo/src/index.tsx`, `angular-wrapper/demo/src/app/app.config.ts`); the vue3 demo has no router and serves `/` only — so a spec on `/<feature>-demo` renders no wrapper and declares none. Wrapper parity for a *new* feature is therefore a trade-off to state in the pull request, not a default: either extend `/` under a `[visual budget: N – reason]` marker (every spec on `/` re-captures, and the demo config must stay identical across all four frameworks — the js-copied baseline gotcha below), or add the route to the react-router routes, the Angular routes, and the Vue demo — a per-framework change, not a Navigo edit. Neither is "mirror the route in all four demos": no multi-frameworks spec uses a route today, and the copied baseline only ever compares what a wrapper actually renders.
 
 This section is the one source of the rule; every other surface (`handsontable/.ai/TESTING.md`, the root `AGENTS.md`, the `visual-testing` and `creating-visual-test-examples` skills, the PR template, the `pr-creation` and `handsontable-code-review` skills, `.ai/LOCAL-ENFORCEMENT.md`) carries one sentence and a link here. `.github/scripts/__tests__/visual-decision-rule.test.mjs` pins the paragraph to this file and the link to each surface.
@@ -79,12 +79,12 @@ visualTest(__filename, {
   themes: JS_VARIANTS,                            // 'classic' plus any of main, main-dark, horizon, horizon-dark
   browsers: ['chromium'],                         // more than chromium only under tests/cross-browser/
   wrappers: WRAPPERS,                             // angular-wrapper, react-wrapper, vue3
-  wrappersReason: WRAPPERS_REASON_UNAUDITED,      // mandatory whenever wrappers is not empty
+  wrappersReason: 'What the wrapper render proves', // mandatory whenever wrappers is not empty
 }, async({ tablePage }) => { … });
 ```
 
 - **The default for a new spec is `{ themes: ['main', 'main-dark'], browsers: ['chromium'], wrappers: [] }`** —
-  two goldens per capture, not five, and eight under `tests/multi-frameworks/`. Add `classic` when the spec
+  two goldens per capture, not five or eight, under `tests/multi-frameworks/` too. Add `classic` when the spec
   is about the bare delivery path, a horizon theme when the pixels being judged are theme tokens rather
   than geometry, and a wrapper only when its render proves something the js render does not.
 - **`['main']` alone is the look-check shape, for a js-only spec whose behavior a functional test
@@ -116,13 +116,30 @@ visualTest(__filename, {
   renders nothing extra and inflates every derived count from then on.
   `lib/__tests__/visual-declarations.test.mjs` rejects both shapes.
 - **The declaration codemod wrote today's behavior out, so no golden moved.** js-only declares the five js
-  variants; multi-frameworks declares those five plus all three wrappers, the only value that keeps the
-  seed's wholesale copy equal to the declarations; cross-browser specs declare `classic`, and the
-  cross-browser projects they actually need – `copy-paste.spec.ts` named chromium alone, which is what
-  it rendered before the declaration existed (its checks moved to `tests/e2e` in DEV-3257, so no spec takes
-  that shape today). The multi-framework specs (23 when the codemod landed, 14 since
-  the filters consolidation retired that family's nine) share `WRAPPERS_REASON_UNAUDITED` — none of those
-  wrapper declarations has been argued for yet, and the constant's name is the grep the audit runs.
+  variants; multi-frameworks declared those five plus all three wrappers, the only value that kept the
+  seed's wholesale copy of that directory equal to the declarations; cross-browser specs declare `classic`,
+  and the cross-browser projects they actually need – `copy-paste.spec.ts` named chromium alone, which is
+  what it rendered before the declaration existed (its checks moved to `tests/e2e` in DEV-3257, so no spec
+  takes that shape today). The multi-framework specs (23 when the codemod landed) shared a placeholder
+  reason, `WRAPPERS_REASON_UNAUDITED`, until each was argued for. DEV-3351 did that for the last 14: the
+  seed now copies each spec's captures into the wrappers that spec declares (`lib/wrapper-copy.mjs`), one
+  spec keeps all three wrappers with a reason of its own, the others declare none, and the constant is
+  gone.
+- **The seed's wrapper copy follows the declarations, spec by spec.** `scripts/run-tests.mjs` reads every
+  declaration from `npx playwright test --list --reporter=json` (collection cost, no browser), takes each
+  spec's path from the enclosing file suite, and copies that spec's `<stem>-<N>.png` captures from the bare
+  js render into the wrappers it declares (`copyDeclaredWrapperCaptures()` in `lib/wrapper-copy.mjs`, the
+  one call the script makes), matched by exact name in the spec's own directory, so `undo-1` is never a
+  capture of `undo-multiline-text` and a same-named spec elsewhere (`focus-cell` exists twice under
+  `js-only/editors/dropdown/`) lends it nothing. It refuses a spec that declares wrappers and
+  left no bare capture, because copying nothing would delete that spec's wrapper goldens on the seed while
+  the `full` tier keeps rendering them. `lib/__tests__/wrapper-copy.test.mjs` pins the plan on the shape the
+  JSON reporter writes and runs that same function end to end on a throwaway tree. The copy branch runs on
+  the seed tier only, so no pull request's CI reaches it; the test therefore also reads the script and
+  refuses any other copy there (an `fse` call other than `existsSync`, an `fs` import, a `cp`, or the plan
+  handed another root), so a directory copy cannot come back unseen until develop's nightly. A wholesale copy
+  would write a wrapper golden for every spec in the directory, and the `full` tier, which skips a wrapper
+  a spec does not declare, would report the extras deleted every night.
 - **The golden set is now the sum of the declarations intersected with the tier.**
   `lib/__tests__/visual-declarations.test.mjs` derives it from the checked-in specs and asserts the eleven
   per-prefix totals against `visual-budget.json`, printing the implied total. The file held the live
@@ -153,7 +170,7 @@ visualTest(__filename, {
 
 The reference (golden) baseline and the builds compared against it are generated **differently**, and this asymmetry is a recurring source of false-positive diffs. Which build renders what is the tier table in `src/config.mjs` (`VISUAL_TIERS`, see [Tiers](#tiers) below); the asymmetry itself is this:
 
-- **`seed` tier (a push to a base branch — `develop` through `visual-seed.yml`, `master` and `release/*` through `test.yml`)** — `scripts/run-tests.mjs` renders **only the `js` framework** (bare plus the four themes), then **copies** the js `multi-frameworks` screenshots into the `react-wrapper` / `vue3` / `angular-wrapper` baselines (`copyWrappers: true`). The wrapper screenshots in the golden set are therefore **identical to the js render** — the wrappers are never actually rendered on a base branch.
+- **`seed` tier (a push to a base branch — `develop` through `visual-seed.yml`, `master` and `release/*` through `test.yml`)** — `scripts/run-tests.mjs` renders **only the `js` framework** (bare plus the four themes), then **copies** each spec's bare js screenshots into the `react-wrapper` / `vue3` / `angular-wrapper` baselines that spec declares (`copyWrappers: true`, per spec since DEV-3351 — see [Variant declaration](#variant-declaration)). The wrapper screenshots in the golden set are therefore **identical to the js render** — the wrappers are never actually rendered on a base branch.
 - **`pr` tier (every pull request)** — renders `js × {main, main-dark}` on chromium: no bare render, no cross-browser leg, and a wrapper **only when `VISUAL_WRAPPERS` names it**. `test.yml` passes the scope router's `visual-wrappers` output (`checks.yml`): the wrappers whose own `wrappers/<pkg>/**` tree changed, and nothing else — deliberately not the Integration matrix, which lights all three on any core change because each wrapper's test scope includes the core's. A core-only pull request renders no wrapper at all; each wrapper that does render is compared against the copied js baseline.
 - **`full` tier (the weekday nightly, `visual-nightly.yml`, and any pull request the scope router flags `visual-full` — `visual-tests/**` or `examples/next/visual-tests/**`; deliberately not the lockfiles that `test-visual` also carries, so a dependency bump renders the `pr` tier and a browser bump is proven by the next seed and nightly)** — everything, with **every wrapper rendered for real** from its own visual-test example and compared against the copied js baseline.
 
@@ -179,8 +196,9 @@ webkit; a `pr`-tier render is 480 of them. Every count below that names a golden
 The consolidation lowers these family by family, and each trim lowers `visual-budget.json` in the same
 pull request, so that file has today's counts; the ones here stay the dated reference.
 Most js-only specs render five times (the bare chromium run — the "classic" delivery path, where the
-core inlines the main theme stylesheet — plus the four themes), every multi-framework spec eight
-times (js × 5 plus the three wrappers), and the cross-browser leg renders its specs on three browsers —
+core inlines the main theme stylesheet — plus the four themes), the multi-framework canary eight
+times (js × 5 plus the three wrappers; the family's other spec renders the five js variants alone), and
+the cross-browser leg renders its specs on three browsers —
 but that is what the checked-in declarations happen to say, not a property of the tier. What each spec
 renders is its [variant declaration](#variant-declaration): a new spec renders two themes by default, and
 most look checks of the menu and editor families render on `main` alone, so the js variants no longer
@@ -196,7 +214,7 @@ changed on the merged pull request; and the nightly renders what the seed only c
 | Tier | When | Renders | Golden records compared | Writes `base/`? |
 |---|---|---|---|---|
 | `pr` | every pull request (`test.yml`) | js on chromium, `main` + `main-dark`; a wrapper only when `VISUAL_WRAPPERS` names it (the scope router's `visual-wrappers`: the wrappers whose own tree changed); no bare run, no cross-browser leg | the matching subset of `base/<target>` | no — `pr-<number>/<sha>/` |
-| `seed` | a push to a base branch: `develop` through `visual-seed.yml`, `master` and `release/*` through `test.yml` (the RC path included) | js bare + 4 themes, the cross-browser leg, the wrappers **copied** from the js bare render | all of `base/<branch>` (the previous seed) | yes — `base/<branch>` is expected and actual |
+| `seed` | a push to a base branch: `develop` through `visual-seed.yml`, `master` and `release/*` through `test.yml` (the RC path included) | js bare + 4 themes, the cross-browser leg, the wrappers **copied** from the js bare render of each spec that declares them | all of `base/<branch>` (the previous seed) | yes — `base/<branch>` is expected and actual |
 | `full` | the weekday nightly on develop (`visual-nightly.yml`); a pull request the scope router flags `visual-full` | everything: js bare + 4 themes, the three wrappers **rendered for real**, the cross-browser leg | all of `base/develop` (nightly) or `base/<target>` (pull request) | never reconciled — the nightly publishes to `nightly/<branch>/`, a pull request to `pr-<number>/<sha>/` (the bootstrap of a branch with no goldens is the one write, see below) |
 
 The table is `VISUAL_TIERS` in `src/config.mjs` — one object per tier (`frameworks`, `classic`, `themes`,
@@ -467,25 +485,14 @@ does for you):
   runner reached, and `CAPTURE_RESTRICTIONS` in `.eslintrc.js` reports it on the capture line. A capture is
   the statement's own `screenshot()` call, awaited or not, kept in a `const`, returned, or handed straight
   to `expect()`. The names are matched on any
-  object, so a same-named call that is no Playwright action (`Set#clear()`) counts too. When it landed
-  (2026-09-23) it found 128 such captures in 50 specs. The 28 in three filters specs (`escaping-the-menu`,
-  `entering-and-escaping-by-value-lists`, `accepting-by-enter`, all three retired since by #13647) were
-  repaired — each asserted the focused component, the hidden menu, or the ticked value first, and all 28
-  captures rendered byte-identical to the unrepaired ones. In those three specs the actions settle inside the keydown
-  handler (Tab, Shift+Tab and Escape focus or close synchronously, and no repaired capture follows the
-  condition input's 10 ms focus timer), so there the assertions make a wrong state fail loudly rather than
-  close a race; they are the shape every later repair takes. The other 100, among them 15 in the
-  directory's other six filters specs, got
-  `// eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted <action>; …`
-  directly above the capture, so the debt is counted. The filters consolidation (#13647) retired those
-  six specs with their 15 lines, and its replacements assert every state they capture; the
-  submenu-placement trim (#13656) retired the menu family's 24 the same way, the editors trim that
-  family's 15, the resize-guide trim the complex demo's 2, and the cross-browser trim (DEV-3257) that
-  family's 8; the UI-state trim retired the dialog, empty-data-state, loading and sheets-bar specs' 17.
-  So 19 remain, in 10 specs
-  (`git grep -c 'DEV-2981: capture after' -- visual-tests/tests` counts them);
-  `js-only/filters/apply-active-class-name-nested-header` still carries one. `test/__tests__/determinism-lint.test.mjs` fails
-  when one of those lines sits anywhere but on a capture, or no longer excuses anything. What a capture is
+  object, so a same-named call that is no Playwright action (`Set#clear()`) counts too. Assert even when
+  the action settles inside its keydown handler (Tab, Shift+Tab and Escape focus or close synchronously):
+  there the assertion makes a wrong state fail loudly rather than close a race. No capture in the tree is
+  excused today. One that cannot assert its state carries
+  `// eslint-disable-next-line no-restricted-syntax -- DEV-<number>: capture after an unasserted <action>; …`
+  directly above it, naming an open task, so the debt is counted (`git grep -c 'capture after an unasserted'
+  -- visual-tests/tests`); `test/__tests__/determinism-lint.test.mjs` fails when such a line sits anywhere
+  but on a capture, or no longer excuses anything. What a capture is
   *for* is the [decision rule](#decision-rule) above; this section keeps the state it photographs stable.
 - **What the capture rule cannot see.** It judges the one statement before the capture, and only when that
   statement is an expression or a declaration. A comment in between does not hide an action. A neutral
@@ -493,14 +500,11 @@ does for you):
   the capture, or a capture that opens a block — neither of the last two is in the tree today, and the
   self-test pins all four as unseen, so a rule that starts seeing one fails loudly until this bullet is
   updated. A tracked
-  `waitForTimeout()` in between hides the action too: 7 captures in 3 specs sit behind a sleep today.
-  Replacing such a sleep with the assertion it stands for clears both lines; deleting it with nothing in
-  its place makes the capture fire, so the disable line moves to the capture. A page helper in between
-  silences the rule whether or not the helper asserts: 25 of the 48 exported helpers in
-  `src/page-helpers.ts` acted with no `expect()` or wait at all on 2026-09-23 (one of them the
-  `tryToEscapeFromTheComponentsFocus` #13647 deleted with its callers), and one more (`collapseNestedRow`)
-  waits only with a fixed sleep (`resizeColumn` and `resizeRow`, two more, went with the cross-browser
-  resize specs in DEV-3257). Making each one end on the state it produced
+  `waitForTimeout()` in between hides the action too; replacing such a sleep with the assertion it stands
+  for clears both lines, while deleting it with nothing in its place makes the capture fire, so the
+  disable line moves to the capture. A page helper in between silences the rule whether or not the helper
+  asserts, and many helpers in `src/page-helpers.ts` act with no `expect()` or wait at all, so a spec that
+  calls one asserts the state itself before it captures. Making each helper end on the state it produced
   is its own follow-up, proven by `Visual stability`, since a corrected selector can move pixels. Helper
   names are deliberately not in the selector — a renamed helper would drop out of it silently.
 - **The selector has three esquery traps, all measured** (ESLint 8.57.1, esquery 1.7.0), which is why the
@@ -513,22 +517,21 @@ does for you):
   `no-restricted-syntax` is one rule id, so this selector cannot be `warn` while the sleep bans are
   `error`, and a disable line on a capture silences every selector on that line.
 - **Every test call carries a docblock that says what its capture proves and names its owner.**
-  `jsdoc/require-jsdoc`, `jsdoc/require-description` and `jsdoc/match-description` in the
-  `tests/**/*.spec.ts` override require a block directly above each `visualTest()` call — one per inner
-  call in a looped spec — whose main description names a ClickUp ticket (`DEV-`, `PRO-` or `SU-`, never
-  numbered 0) or a GitHub issue of four or more digits (`#12345`). An empty block, or one holding only a
-  tag, fails `require-description`, because `match-description` skips a block with no main description.
-  `require-jsdoc` has its fixer off, so `eslint --fix` (the pre-commit and agent hooks) never writes an
-  empty stub. The legacy specs name DEV-2981, the consolidation that pays their debt, as a **placeholder
-  owner**: closing DEV-2981 means first giving every block and every tracked disable line a real owner,
-  or no golden has one. Where a spec came with a feature, its block also names the pull request that
-  added it (`Added in #12299`), which is where that owner starts. When it landed, 91 of the 115 calls had no block, the
-  24 that had one named no ticket, and six were copies of one filters spec's sentence pasted onto specs
-  about something else. The context names `visualTest`, not only `test`: after the variant declaration
-  renamed every call, a `callee.name="test"` context matched nothing and the rule was silently off. The
-  template (`tests/multi-frameworks/.empty-test-template.ts`) carries a `DEV-<number>` placeholder the
-  lint rejects, so a copy fails until it names a real owner; ESLint never lints the dotfile itself, so the
-  self-test lints its source as a spec.
+  `jsdoc/require-jsdoc`, `jsdoc/require-description` and `jsdoc/match-description` in the `tests/**/*.spec.ts`
+  override require a block directly above each `visualTest()` call — one per inner call in a looped spec —
+  whose main description names a ClickUp ticket (`DEV-`, `PRO-` or `SU-`, never numbered 0) or a GitHub issue
+  of four or more digits (`#12345`). An empty block, or one holding only a tag, fails `require-description`,
+  because `match-description` skips a block with no main description. `require-jsdoc` has its fixer off, so
+  `eslint --fix` (the pre-commit and agent hooks) never writes an empty stub. The owner is the task that last
+  reshaped the spec – for most specs, the consolidation step that rewrote its family – and where a spec came
+  with a feature, its block also names the pull request that added it (`Added in #12299`), which is where a
+  reviewer of a changed golden starts. A task that only stands in for an owner is not one: the consolidation's
+  parent task held that place on every legacy spec until its close-out gave each block a real owner. The
+  context names `visualTest`, not only `test`: after the variant declaration renamed every call, a
+  `callee.name="test"` context matched nothing and the rule was silently off. The template
+  (`tests/multi-frameworks/.empty-test-template.ts`) carries a `DEV-<number>` placeholder the lint rejects, so
+  a copy fails until it names a real owner; ESLint never lints the dotfile itself, so the self-test lints its
+  source as a spec.
 - **The filters menu moves focus on a timer.** Choosing a condition focuses that condition's first
   input 10 ms later (`handsontable/src/plugins/filters/component/condition.ts`), so a capture or a key
   press straight after the choice lands on either side of the hand-off; `filterByCondition()` and the
@@ -583,17 +586,27 @@ does for you):
   clear ran unconditionally — so on Chromium and Firefox a focused text control is left alone. Do not
   fold the two branches into one; either half regresses the other engine.
 - **No fixed delays.** `waitForTimeout()`, `sleep()`, the global `setTimeout()` (inside `page.evaluate`
-  too) and `'networkidle'` are lint errors in `src/` and `tests/`. The 2024 import carried about forty
-  such sleeps (25 on 2026-10-05); each wears `// eslint-disable-next-line no-restricted-syntax -- DEV-2797: <why>` so the
-  debt is counted and greppable while the consolidation replaces them with asserted states. A new sleep
-  needs the same line naming its own task, or it does not land.
+  too) and `'networkidle'` are lint errors in `src/` and `tests/`, and none is left in the tree: the
+  consolidation replaced each sleep the 2024 import carried with the state it stood for, or removed it
+  with its spec. A new one needs `// eslint-disable-next-line no-restricted-syntax -- DEV-<number>: <why>`
+  naming an open task, or it does not land. Two waits that look unavoidable are not:
+  - **Walkontable's double-click window.** A second click on the same cell's `TD` within 500 ms of the
+    first one's release is a double click (`DBLCLICK_MOUSEUP_TIMEOUT` in
+    `handsontable/src/3rdparty/walkontable/src/event.ts`), and a click on the fill handle counts as a
+    click on the cell it belongs to. Nothing marks the window closed, so do not wait it out: click a
+    different cell and reach the one you need with the keyboard, which arms nothing, as
+    `cross-browser/auto-fill` does.
+  - **A wheel scroll.** `mouse.wheel()` returns before the browser scrolls, and an engine that animates
+    the scroll moves the holder over several frames. `waitForWheelScrollToSettle()` in
+    `src/page-helpers.ts` waits until the offset has moved and two frames in a row leave it where it was.
+    Do not lean on the capture's scrollbar-clearance settle for this: it waits for a band that only
+    overlay scrollbars open.
 - **`.only`, a bare or titled `.skip`, `test.fixme`, and `locator.screenshot()` are errors** too, and an
   element capture is a clipped `tablePage.screenshot()` so the settle still runs. Under
   `tests/**/*.spec.ts` two more shapes are errors: a bare `test(`, and any `test.skip(` at all. A spec
   names its variants in its [declaration](#variant-declaration) and `visualTest()` emits the skip; a
   hand-written one applies at file scope too, so the two would combine and the declaration would stop
-  describing what renders. `tests/cross-browser/merging.spec.ts` parks a test behind its own disable line
-  and is the one exception.
+  describing what renders.
 - **The fixture refuses to photograph a grid whose stylesheet never arrived.** The js demo loads its
   theme and each route's CSS as `<link class="dynamic-css">` and waits for `load` before it builds the
   grid, but `load` is not proof of a stylesheet: vite's preview server answers an unknown path with
@@ -781,6 +794,62 @@ does for you):
   `nodata`, the empty-data-state panel's `height` and `noColumns`, the pager's `pageSize`,
   `ignoreTableSize` and `hideInputs`); no spec passes them now, and the e2e fixtures under
   `tests/fixtures/demo/` reproduce those shapes, so a demo cleanup can drop them without losing a state.
+- **The shared `/` grid's family keeps two captures: the theme and wrapper canary, and the one look no
+  other capture paints.** Until DEV-3351 the 14 specs under `tests/multi-frameworks/` photographed `/` 30
+  times on every js variant and copied every capture into the three wrappers (240 goldens), most of them
+  right after a key press or a gesture with nothing asserted: where Tab, Shift+Tab and the arrows put the
+  focus, what a copy and a paste left in a cell, what native undo and redo left in the open text editor and
+  how tall it grew, a row moved by its header, a wheel scroll, a drag selection, the date editor, the grid
+  under a CSS scale, and a merged cell under a column selection. Those states are assertions now, on all six
+  theme and bundle legs, on a fixture that rebuilds the grid (`tests/fixtures/demo/shared-demo-grid.html`,
+  whose options `tests/lib/__tests__/shared-demo-fixture-drift.test.mjs` holds equal to the demo's, with
+  every intended difference named there, so a change to `/` fails until the fixture follows it):
+  `tests/e2e/shared-demo-keyboard-navigation.spec.ts` (the corner, the header row and the exit, the last
+  cell, its row header and the exit, and the inset ring a focused header draws),
+  `merge-cells-header-selection.spec.ts`, `manual-row-move-drag.spec.ts`,
+  `wheel-scroll-overlay-sync.spec.ts`, `drag-selection-range.spec.ts` and `css-transform-scale.spec.ts`,
+  all tagged `@cross-browser`; `text-editor-native-undo.spec.ts`, tagged `@cross-browser` and
+  `@clipboard-shortcut`, so it runs on Firefox and not on WebKit (Linux WebKit maps no editing command to a
+  Ctrl shortcut); and, on the Chromium legs only, `date-editor-native-input.spec.ts` (the date picker's
+  keyboard is each engine's own) and a case in `clipboard.spec.ts`. That case runs on the plain
+  `tests/fixtures/demo/grid.html`, not on the shared grid: copying a cell, overwriting it and pasting it
+  back needs no feature of `/`. Two captures never
+  showed what their names said: the date editor's "manual edit" photographed the browser's picker over an
+  unchanged value, because the picker takes the keys, and the CSS-transform spec scaled the page after the
+  grid had laid out, so it never ran the code #10482 fixed (the e2e spec builds the grid under the scale).
+  What stays is `mergeCells/column-selection`, the canary, on every js variant and under all three
+  wrappers: chosen because it paints the most of the selection's look on `/` (the active column headers
+  and their menu buttons, three column layers side by side with their borders, the merged cell's
+  full-selection overlay), and it was byte-identical between the js render and all three real wrapper
+  renders on the nightly of 2026-10-08 (88 of the family's 90 wrapper renders were; React's two
+  `copy-cell-content` renders after the edit and the paste differed within the gate). The column layers do
+  not overlap, so the deeper shade a cell under two layers takes is not painted here or anywhere else in
+  the suite. The wrappers have no browser-level functional tier, so that one wrapper render is the only
+  proof that a wrapper still builds and draws this grid like js. Dropping the wrapper renders of an edit
+  and a paste was a deliberate trade: on `/` both run the core's own text editor and `CopyPaste` plugin,
+  which the wrappers only hand their settings to, and React's were the two renders that differed, within
+  the gate, so they could not have reported a change. The cost is that no tier now renders a wrapper while
+  it edits or pastes, so a wrapper-only break on that path would go unseen here; the wrappers' own Jest
+  suites cover their editor components, not the built-in editors. And
+  `change-rows-order`, a row selected by its header, on every js variant and no wrapper, because `horizon`
+  defines the active row header its own way and no other every-variant capture selects a row by its
+  header. The single range `select-few-cells-by-mouse` photographed, with its highlighted headers and fill
+  handle, is painted on every variant by `js-only/selection-handles/selection-handles-visible-on-hover`, and
+  the open editor's chrome by `js-only/editors/dropdown/focus-cell`, so neither needed a capture here. The
+  Tab re-entry and the incomplete date in those two specs are fixed defects (the causes are in
+  `handsontable/AGENTS.md`).
+- **A parked `test.fixme` is removed by whichever pull request merges second.** A `test.fixme` never runs
+  and nothing checks that its task is still open, so it outlives its fix unless someone lifts it: the
+  fix's pull request when the parked spec is already on its base branch, and the pull request that parks
+  a case when the fix has merged first. Check before parking.
+- **The `/` grid draws its rows, headers and selection with the theme alone, in all four demos together.**
+  No hook draws into its headers and no demo stylesheet rule paints its rows; the progress-bar and star
+  renderers are the only demo code in its cells. A row-header checkbox and an `!important` row tint did
+  both until DEV-3373, and every capture of `/` hid the dark themes' row colors and the selection fill on
+  the tinted rows behind them. Code like that re-captures every spec on `/` and must change the js,
+  React, Angular and Vue demos together (the
+  [mirroring rule](#golden-snapshots-js-copied-baselines-critical-gotcha)); a feature that needs it gets
+  a route of its own. The themed checkbox stays covered on `/` by the "In stock" column.
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 
@@ -817,10 +886,10 @@ which of these run locally and which only in CI.
   [Variant declaration](#variant-declaration) above; `lib/visual-declarations.mjs` validates them at load,
   `lib/__tests__/visual-declarations.test.mjs` sweeps the spec tree and derives the eleven per-prefix
   totals from what is checked in, and `.eslintrc.js` bans a bare `test(` and a spec-side `test.skip(`. The
-  codemod that landed it wrote today's rendered set out on all 111 live specs — every one but the parked
-  `cross-browser/merging.spec.ts` — so no golden record moved; the
-  multi-framework specs share `WRAPPERS_REASON_UNAUDITED` (23 then, 14 since the filters consolidation)
-  until the consolidation audit gives each one a reason of its own.
+  codemod that landed it wrote the rendered set out on every live spec, so no golden record moved; the
+  multi-framework specs shared a placeholder `wrappersReason` (23 then) until DEV-3351 gave the one spec that
+  keeps its wrappers a reason of its own and the others none, and the seed's wrapper copy has followed the
+  declarations, spec by spec, since then.
 - **G3 · The golden budget** — landed. `visual-tests/visual-budget.json` holds one count per golden
   prefix (the eleven keys the prune uses) and a per-spec capture cap of 4 keyed by reg-suit stem, each
   exception carrying the ticket that will bring it down (none today: the UI-state trim retired the
@@ -877,12 +946,8 @@ which of these run locally and which only in CI.
   `visual-tests/.eslintrc.js`), and every test call carries a docblock that says what its capture proves
   and names the ticket that owns it (`jsdoc/require-jsdoc` + `jsdoc/match-description` in the
   `tests/**/*.spec.ts` override, with `jsdoc/require-description`). The 28 sites in three filters specs
-  were repaired (assert the state, then capture); the other 100 wore
-  `// eslint-disable-next-line no-restricted-syntax -- DEV-2981: …` above the capture, so the debt is
-  counted and greppable (19 since #13647, #13656, the editors trim, the resize-guide trim, the
-  cross-browser trim, and the UI-state trim retired the filters family's 15, the menu family's 24,
-  the editors family's 15, the complex demo's 2, the cross-browser family's 8, and the UI-state
-  family's 17). The
+  were repaired (assert the state, then capture); the other 100 wore a tracked disable line above the
+  capture until the consolidation repaired or retired each one, so none is excused today. The
   rules, what they cannot see, and their three
   esquery traps are the first four bullets of [Determinism](#determinism).
   `test/__tests__/determinism-lint.test.mjs` proves them on fixtures — it imports ESLint, so it runs from

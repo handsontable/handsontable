@@ -1,5 +1,5 @@
 import { textRenderer } from '../textRenderer';
-import { parseToLocalDate } from '../../helpers/dateTime';
+import { getDateTimeFormat, parseToLocalDate } from '../../helpers/dateTime';
 import { isEmpty } from '../../helpers/mixed';
 import { isObject } from '../../helpers/object';
 import { BAD_VALUE_TEXT } from '../../helpers/constants';
@@ -51,7 +51,7 @@ export function valueFormatter(value: unknown, cellProperties: CellProperties): 
 
   const intlFormat = isObject(dateFormat) ? dateFormat as Intl.DateTimeFormatOptions : DEFAULT_INTL_FORMAT;
 
-  return new Intl.DateTimeFormat(locale, intlFormat).format(date);
+  return getDateTimeFormat(locale, intlFormat).format(date);
 }
 
 type HotInstance = Record<string, unknown>;

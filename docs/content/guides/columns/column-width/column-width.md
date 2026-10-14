@@ -89,6 +89,8 @@ In this example, each of the ten columns gets its own width, from `70px` for the
 
 Setting `colWidths` for even one column disables the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin for the entire grid. Any column left out of the array does **not** auto-adjust to its content -- it falls back to the default `50px` column width, which can cut off longer content. For this reason, if you use `colWidths`, set a width for every column.
 
+The `colWidths` array and function address columns by their physical index, so a width stays with its column when the user moves it with [`manualColumnMove`](@/api/options.md#manualcolumnmove). The physical index doesn't change when columns are moved or hidden. To read the physical index of a column on the screen, use [`toPhysicalColumn()`](@/api/core.md#tophysicalcolumn).
+
 :::
 
 ::: only-for javascript

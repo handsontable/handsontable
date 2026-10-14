@@ -259,8 +259,10 @@ export class TextEditor extends BaseEditor {
 
   /**
    * Opens the editor and adjust its size.
+   *
+   * @param {Event} [_event] The event that opened the editor. Subclasses read it.
    */
-  open(): void {
+  open(_event?: Event): void {
     this._opened = true;
     this.#hiddenByScroll = false;
     this.#contentBeforeChange = null;

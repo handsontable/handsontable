@@ -1,7 +1,7 @@
 import type Handsontable from 'handsontable';
 import HyperFormula from 'hyperformula';
 import type {
-  CellProperties, CellCoords, RangeType, RemoveIndexSignature, Events, HotInstance, CellChange, ChangeSource,
+  CellProperties, CellCoords, RangeType, RemoveIndexSignature, OmitHooks, Events, HotInstance, CellChange, ChangeSource,
 } from 'handsontable';
 
 // Helpers to verify multiple different settings and prevent TS control-flow from eliminating unreachable values
@@ -11,6 +11,10 @@ declare const true_or_false: true | false;
 // Enums prevent type widening of literals -- for use with objects inside oneOf(), not required by users
 // This can be replaced once `as const` context is shipped: https://github.com/Microsoft/TypeScript/pull/29510
 enum DisableVisualSelection { current = 'current', area = 'area', header = 'header' }
+
+// An interface, not a type alias: interfaces have no implicit index signature, so this is the shape
+// a `sourceLabel` parameter typed as `Record<string, unknown>` would wrongly reject.
+interface SourceLabelAirport { name: string; city: string; }
 
 const numericIntlFormatOptions: Intl.NumberFormatOptions = {
   style: 'currency',
@@ -230,6 +234,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   preventWheel: true,
   readOnly: true,
   readOnlyCellClassName: 'foo',
+  readOnlyStyling: true,
   renderAllColumns: true,
   renderAllRows: true,
   renderMode: 'onChange',
@@ -284,6 +289,14 @@ const allSettings: Required<Handsontable.GridSettings> = {
     (query: string, callback: (item: string[]) => void) => callback(['A', 'B', 'C', 'D'])
   ) as any),
   sourceDataValidator: oneOf((value: any, cellMeta: CellProperties) => true),
+  sourceLabel: oneOf(
+    'name',
+    'address.city',
+    (value: Record<string, unknown>) => `${value.name} (${value.currency})`,
+    (value: Record<string, unknown>) => value.name,
+    (airport: { name: string, city: string }) => `${airport.city} - ${airport.name}`,
+    (airport: SourceLabelAirport) => airport.name,
+  ),
   sourceDataWarningMessage: oneOf('The source data is invalid.'),
   startCols: 123,
   startRows: 123,
@@ -994,6 +1007,28 @@ const _strippedTypedConfig: _StrippedGridSettings = {
   readOnly: true,
   className: 'foo',
 };
+
+// `OmitHooks<T>` drops the hook callbacks (`afterChange`, `beforeKeyDown`, `modifyData`, ...) from a
+// settings type, keeping the options that merely hold a function (`renderer`, `validator`, `cells`).
+// The React wrapper builds `HotColumnProps` with it, because hooks never fire from a column.
+type _NoHooks = OmitHooks<RemoveIndexSignature<Handsontable.GridSettings>>;
+type _HasKey<T, K extends string> = K extends keyof T ? true : false;
+const _afterChangeDropped: _HasKey<_NoHooks, 'afterChange'> = false;
+const _beforeKeyDownDropped: _HasKey<_NoHooks, 'beforeKeyDown'> = false;
+const _modifyDataDropped: _HasKey<_NoHooks, 'modifyData'> = false;
+const _initDropped: _HasKey<_NoHooks, 'init'> = false;
+const _afterChangesObservedDropped: _HasKey<_NoHooks, 'afterChangesObserved'> = false;
+const _constructDropped: _HasKey<_NoHooks, 'construct'> = false;
+const _hasExternalDataSourceDropped: _HasKey<_NoHooks, 'hasExternalDataSource'> = false;
+const _dialogFocusNextElementDropped: _HasKey<_NoHooks, 'dialogFocusNextElement'> = false;
+const _dialogFocusPreviousElementDropped: _HasKey<_NoHooks, 'dialogFocusPreviousElement'> = false;
+const _rendererKept: _HasKey<_NoHooks, 'renderer'> = true;
+const _validatorKept: _HasKey<_NoHooks, 'validator'> = true;
+const _cellsKept: _HasKey<_NoHooks, 'cells'> = true;
+const _readOnlyKept: _HasKey<_NoHooks, 'readOnly'> = true;
+// Kept options keep their real types.
+// @ts-expect-error `readOnly` is `boolean`, not `string`.
+const _omitHooksReadOnlyTyped: _NoHooks = { readOnly: 'nope' };
 
 // DEV-2056 regression: `ColumnSettings` derives from `Omit<RemoveIndexSignature<GridSettings>, 'data'>`
 // (NOT from `GridSettings` directly), so named options keep their real declared types through

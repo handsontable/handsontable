@@ -12,6 +12,7 @@ import {
   displayErrorMessage,
   displayWarningMessage
 } from '../../scripts/utils/index.mjs';
+import { expandWorkspaceDirs } from './workspace-dirs.mjs';
 import examplesPackageJson from '../package.json' with { type: 'json' };
 import mainPackageJson from '../../package.json' with { type: 'json' };
 
@@ -124,7 +125,7 @@ exampleFrameworkSubdirs.forEach((packagesLocation) => {
         const workspacesList = angularPackageJson?.workspaces.packages || angularPackageJson?.workspaces;
 
         workspacesList.forEach((angularPackagesLocation) => {
-          const angularPackageDirs = glob.sync(`${packageLocation}/${angularPackagesLocation}`);
+          const angularPackageDirs = expandWorkspaceDirs(packageLocation, angularPackagesLocation);
 
           angularPackageDirs.forEach((angularPackageLocation) => {
             packagesToLink.forEach((packageName) => {
