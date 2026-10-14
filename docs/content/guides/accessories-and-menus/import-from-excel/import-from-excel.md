@@ -279,13 +279,45 @@ The `HotTable` component watches the settings you pass to it. A later change sen
 - [`afterImport(result, format)`](@/api/hooks.md#afterimport) runs after the grid was updated.
 - Neither hook runs for `apply: false`, or for an import that a newer import replaced (see [Concurrent imports](@/guides/accessories-and-menus/excel-import-export-reference/excel-import-export-reference.md#concurrent-imports)).
 
-## Related
+## Related articles
+
+**Related guides**
+
+<div class="boxes-list">
 
 - [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md)
 - [Export to CSV](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md)
-- [Excel import and export reference](@/guides/accessories-and-menus/excel-import-export-reference/excel-import-export-reference.md) - engines, limits, dropped-feature keys, security, test environments
-- [Import from CSV or Excel](@/recipes/import-export/import-csv-excel/import-csv-excel.md) - a drop zone that routes CSV and XLSX files
-- [`ImportFile` plugin API](@/api/importFile.md), [`beforeImport`](@/api/hooks.md#beforeimport), [`afterImport`](@/api/hooks.md#afterimport)
+- [Excel import and export reference](@/guides/accessories-and-menus/excel-import-export-reference/excel-import-export-reference.md)
+- [Import from CSV or Excel](@/recipes/import-export/import-csv-excel/import-csv-excel.md)
+
+</div>
+
+## Related API reference
+
+**Configuration options**
+
+<div class="boxes-list">
+
+- [importFile](@/api/options.md#importfile)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [ImportFile](@/api/importFile.md)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [beforeImport](@/api/hooks.md#beforeimport)
+- [afterImport](@/api/hooks.md#afterimport)
+
+</div>
 
 ---
 

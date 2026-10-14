@@ -237,12 +237,43 @@ Get the plugin from the `hotInstance` of your `HotTable` template ref: `hotRef.v
 
 :::
 
-## Related
+## Related articles
 
-- [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md), including the [context menu](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md#context-menu) item that exports both formats
+**Related guides**
+
+<div class="boxes-list">
+
+- [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md)
+- [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md)
 - [Excel import and export reference](@/guides/accessories-and-menus/excel-import-export-reference/excel-import-export-reference.md)
-- [`ExportFile` plugin API](@/api/exportFile.md)
+
+</div>
+
+**Related blog articles**
+
+<div class="boxes-list gray">
+
 - [Handsontable 15.3.0: CSV sanitization, accessibility updates, and 30+ fixes](https://handsontable.com/blog/handsontable-15.3.0-csv-sanitization-accessibility-updates-and-30-fixes)
+
+</div>
+
+## Related API reference
+
+**Configuration options**
+
+<div class="boxes-list">
+
+- [exportFile](@/api/options.md#exportfile)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [ExportFile](@/api/exportFile.md)
+
+</div>
 
 ---
 

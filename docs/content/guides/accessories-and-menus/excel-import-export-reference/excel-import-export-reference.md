@@ -210,12 +210,46 @@ Keep the grids you export under jsdom or happy-dom to a few hundred rows and giv
 
 To inject ExcelJS under Jest 29 with `jest-environment-jsdom`, set `testEnvironmentOptions: { customExportConditions: ['node', 'node-addons'] }`, or loading it fails with `SyntaxError: Unexpected token 'export'`.
 
-## Related
+## Related articles
+
+**Related guides**
+
+<div class="boxes-list">
 
 - [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md)
 - [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md)
 - [Export to CSV](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md)
-- [`ImportFile`](@/api/importFile.md) and [`ExportFile`](@/api/exportFile.md) API reference
+
+</div>
+
+## Related API reference
+
+**Configuration options**
+
+<div class="boxes-list">
+
+- [importFile](@/api/options.md#importfile)
+- [exportFile](@/api/options.md#exportfile)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [ImportFile](@/api/importFile.md)
+- [ExportFile](@/api/exportFile.md)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [beforeImport](@/api/hooks.md#beforeimport)
+- [afterImport](@/api/hooks.md#afterimport)
+
+</div>
 
 ---
 

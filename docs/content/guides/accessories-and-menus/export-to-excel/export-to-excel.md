@@ -280,12 +280,35 @@ Frozen panes: `fixedRowsTop` and `fixedColumnsStart` are written; `fixedRowsBott
 
 Details on number formats, dates, error cells, and what each engine writes: the [reference](@/guides/accessories-and-menus/excel-import-export-reference/excel-import-export-reference.md).
 
-## Related
+## Related articles
+
+**Related guides**
+
+<div class="boxes-list">
 
 - [Export to CSV](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md)
 - [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md)
-- [Excel import and export reference](@/guides/accessories-and-menus/excel-import-export-reference/excel-import-export-reference.md) - engines, limits, dropped-feature keys, security, test environments
-- [`ExportFile` plugin API](@/api/exportFile.md)
+- [Excel import and export reference](@/guides/accessories-and-menus/excel-import-export-reference/excel-import-export-reference.md)
+
+</div>
+
+## Related API reference
+
+**Configuration options**
+
+<div class="boxes-list">
+
+- [exportFile](@/api/options.md#exportfile)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [ExportFile](@/api/exportFile.md)
+
+</div>
 
 ---
 
