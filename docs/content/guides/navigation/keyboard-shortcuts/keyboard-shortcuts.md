@@ -39,7 +39,7 @@ To register these keys with [`addShortcut()`](@/api/shortcutContext.md#addshortc
 
 These keyboard shortcuts work when you navigate the grid. They come from Handsontable's [`Core`](@/api/core.md), so they work out of the box, with no need for additional plugins.
 
-By default, <kbd>Tab</kbd> moves the active cell one column to the right and <kbd>Shift</kbd>+<kbd>Tab</kbd> moves it one column to the left — matching standard spreadsheet navigation in Excel and Google Sheets. This behavior is controlled by the [`tabMoves`](@/api/options.md#tabmoves) option (default: `{ row: 0, col: 1 }`) and can be customized.
+By default, <kbd>Tab</kbd> moves the active cell one column to the right and <kbd>Shift</kbd>+<kbd>Tab</kbd> moves it one column to the left - matching standard spreadsheet navigation in Excel and Google Sheets. This behavior is controlled by the [`tabMoves`](@/api/options.md#tabmoves) option (default: `{ row: 0, col: 1 }`) and can be customized. In a right-to-left layout, <kbd>Tab</kbd> moves the active cell to the next column, which is one cell to the left. For more details, see [Keyboard navigation in RTL mode](@/guides/internationalization/layout-direction/layout-direction.md#keyboard-navigation-in-rtl-mode).
 
 | Windows                                      | macOS                                       | Action                                                                                          |  Excel  | Sheets  |
 | -------------------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------- | :-----: | :-----: |

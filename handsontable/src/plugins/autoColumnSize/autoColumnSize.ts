@@ -562,7 +562,7 @@ export class AutoColumnSize extends BasePlugin {
       }
 
       if (overwriteCache || (this.columnWidthsMap.getValueAtIndex(physicalColumn) === null &&
-          !this.hot._getColWidthFromSettings(physicalColumn))) {
+          !this.hot._getColWidthFromSettings(visualColumn))) {
         const cachedSamples = overwriteCache ? this.#columnSamplesCache.get(physicalColumn) : undefined;
 
         // A re-measure (cache overwrite) with an intact samples cache re-renders the previously
@@ -611,7 +611,7 @@ export class AutoColumnSize extends BasePlugin {
       }
 
       return overwriteCache || (this.columnWidthsMap.getValueAtIndex(physicalColumn) === null &&
-          !this.hot._getColWidthFromSettings(physicalColumn));
+          !this.hot._getColWidthFromSettings(visualColumn));
     };
 
     /**
@@ -737,7 +737,7 @@ export class AutoColumnSize extends BasePlugin {
     queue.forEach((cells, visualColumn) => {
       const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
-      if (physicalColumn === null || this.hot._getColWidthFromSettings(physicalColumn)) {
+      if (physicalColumn === null || this.hot._getColWidthFromSettings(visualColumn)) {
         return;
       }
 

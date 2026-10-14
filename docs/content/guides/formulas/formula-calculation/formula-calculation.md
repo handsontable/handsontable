@@ -692,6 +692,52 @@ With `hyperlinks` enabled, `=HYPERLINK("https://handsontable.com", "Handsontable
 `Handsontable` as a link that points to `https://handsontable.com`. When you omit the second
 argument, the URL becomes the label.
 
+The example below renders a column of company websites as links. Click a link, or select its cell and press <kbd>**Alt**</kbd>/<kbd>⌥</kbd>+<kbd>**Enter**</kbd>, to open it in a new tab:
+
+::: only-for javascript
+
+::: example #example-hyperlinks --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/formulas/formula-calculation/javascript/example-hyperlinks.html)
+@[code](@/content/guides/formulas/formula-calculation/javascript/example-hyperlinks.js)
+@[code](@/content/guides/formulas/formula-calculation/javascript/example-hyperlinks.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example-hyperlinks :react --js 1 --ts 2
+
+@[code](@/content/guides/formulas/formula-calculation/react/example-hyperlinks.jsx)
+@[code](@/content/guides/formulas/formula-calculation/react/example-hyperlinks.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example-hyperlinks :angular --ts 1 --html 2
+
+@[code](@/content/guides/formulas/formula-calculation/angular/example-hyperlinks.ts)
+@[code](@/content/guides/formulas/formula-calculation/angular/example-hyperlinks.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example-hyperlinks :vue3
+
+@[code](@/content/guides/formulas/formula-calculation/vue/example-hyperlinks.vue)
+
+:::
+
+:::
+
 The cell keeps its own renderer. Handsontable wraps whatever the renderer produced in a link element,
 so a custom renderer, a [cell type](@/guides/cell-types/cell-type/cell-type.md), and the cell's
 configuration all keep working.
@@ -722,7 +768,7 @@ the URL that the formula produces, so a URL that comes from cell data is checked
 ### Keyboard access
 
 A link inside a cell stays out of the tab order, so tabbing still moves between cells. To open the
-link of the selected cell, press <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>. Links open where the `target` setting says, a new browser tab by default.
+link of the selected cell, press <kbd>**Alt**</kbd>/<kbd>⌥</kbd>+<kbd>**Enter**</kbd>. Links open where the `target` setting says, a new browser tab by default.
 
 ### Styling
 

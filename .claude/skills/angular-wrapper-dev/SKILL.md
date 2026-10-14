@@ -19,7 +19,7 @@ Package: `wrappers/angular-wrapper/`; library source in `projects/hot-table/src/
 
 Services: **HotSettingsResolver** merges component inputs with the aggregate settings object (priority between them); **HotGlobalConfig** supplies global defaults for all instances. `HotTableModule` declares and exports the component.
 
-Build: ng-packagr 16. Tests: Jest with `jest-preset-angular` and `NODE_OPTIONS=--openssl-legacy-provider` (already in the script). Wrappers consume `handsontable/tmp/`, not `dist/`; run `npm run test --prefix wrappers/angular-wrapper` after `npm run build --prefix handsontable`.
+Build: ng-packagr 22. Tests: Jest with `jest-preset-angular` and `NODE_OPTIONS=--openssl-legacy-provider` (already in the script). Wrappers consume `handsontable/tmp/`, not `dist/`; run `npm run test --prefix wrappers/angular-wrapper` after `npm run build --prefix handsontable`.
 
 | File | Purpose |
 |---|---|

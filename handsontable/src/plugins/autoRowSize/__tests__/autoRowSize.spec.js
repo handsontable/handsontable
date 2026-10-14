@@ -507,9 +507,15 @@ describe('AutoRowSize', () => {
   });
 
   it('should recalculate heights after column moved', async() => {
+    const widthsByPosition = [250, 50];
+
+    // `colWidths` addresses a column by its physical index, so the widths are read by the visual
+    // position here to keep each width on its screen position while the columns move
     handsontable({
       data: arrayOfObjects2(),
-      colWidths: [250, 50],
+      colWidths(physicalColumn) {
+        return widthsByPosition[hot()?.toVisualColumn(physicalColumn) ?? physicalColumn];
+      },
       manualColumnMove: true,
       autoRowSize: true,
       rowHeaders: true,
