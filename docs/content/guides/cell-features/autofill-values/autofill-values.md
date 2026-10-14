@@ -27,17 +27,17 @@ Copy a cell's value into multiple other cells, using the "fill handle" UI elemen
 
 [[toc]]
 
-Autofill lets users drag the fill handle to copy or extend values across adjacent cells. Use it to speed up repetitive data entry.
+Autofill lets users drag the fill handle to copy values across adjacent cells. Use it to speed up repetitive data entry.
 
 ## Autofill in all directions
 
-Using the tiny square known as the 'fill handle' in the corner of the selected cell, you can drag it to repeat or extend values across adjacent cells.
+Using the tiny square known as the 'fill handle' in the corner of the selected cell, you can drag it to copy and repeat the selected values across adjacent cells.
 
 You can also **double-click the fill handle** to autofill downward without dragging. Select the four cells from Symbol to Known Isotopes in the `Lithium` row (row header 3) and double-click the fill handle to see this in action.
 
 ### How double-click autofill determines the range
 
-Handsontable scans the rows below your selection and fills down to the last row where the column immediately to the left or right of your selection contains a value. In the example below, the Name column acts as the guide -- the rows with row headers 4 and 5 have values there, so the fill extends through both rows.
+Handsontable scans the rows below your selection and fills down to the last row where the column immediately to the left or right of your selection contains a value. In the example below, the Name column acts as the guide -- the rows with row headers 4 and 5 have values there, so the fill copies the selected values through both rows.
 
 Two conditions must be met for the fill to happen:
 
@@ -198,9 +198,69 @@ With the [`Formulas`](@/guides/formulas/formula-calculation/formula-calculation.
 - **Absolute references stay fixed.** Filling `=$A$1+B1` down keeps `$A$1` unchanged in every filled cell, while the relative `B1` part still adjusts.
 - **The fill is canceled** if the engine reports that the target cells can't be written to (for example, because they're part of another formula's dependency chain), leaving the target range unchanged.
 
+In the example below, the **Total** column holds `=A1*B1`, and the **Total with tax** column holds `=C1*(1+$E$1)`, where `$E$1` is an absolute reference to the tax rate. Select the cells from **Total** to **Total with tax** in row 1 and drag the fill handle down. The row references adjust in each new row (`=A2*B2`, `=C2*(1+$E$1)`), and `$E$1` stays fixed. Select a filled cell to see its formula.
+
+::: only-for vue
+
+::: tip
+
+When using HyperFormula with Vue 3, always wrap HyperFormula instances with `markRaw()`. Vue's reactivity proxy interferes with the engine's internal state, which leads to subtle bugs and degraded performance. The example below uses `markRaw()` for this reason.
+
+:::
+
+:::
+
+::: only-for javascript
+
+::: example #example4 --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/autofill-values/javascript/example4.js)
+@[code](@/content/guides/cell-features/autofill-values/javascript/example4.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example4 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/autofill-values/react/example4.jsx)
+@[code](@/content/guides/cell-features/autofill-values/react/example4.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/autofill-values/angular/example4.ts)
+@[code](@/content/guides/cell-features/autofill-values/angular/example4.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/cell-features/autofill-values/vue/example4.vue)
+
+:::
+
+:::
+
 ## Result
 
-The fill handle appears on the selected cell. Dragging it copies or extends values into adjacent cells in the configured direction.
+The fill handle appears on the selected cell. Autofill copies the selected values into the adjacent cells, and repeats them to fill a larger range.
+
+- **Dragging the fill handle** copies the selected values into the cells you drag across, in the direction allowed by the [`fillHandle`](@/api/options.md#fillhandle) option. If the target range is larger than the selection, the selected values repeat.
+- **Double-clicking the fill handle** copies the selected values down only, to the last row determined by the adjacent column, as described in [How double-click autofill determines the range](#how-double-click-autofill-determines-the-range).
+
+Use the [`beforeAutofill`](@/api/hooks.md#beforeautofill) hook to change the values before they're written, and the [`afterAutofill`](@/api/hooks.md#afterautofill) hook to react once the fill completes. With the [`Formulas`](@/guides/formulas/formula-calculation/formula-calculation.md) plugin enabled, relative references in copied formulas adjust to each target cell.
 
 ## Related API reference
 
