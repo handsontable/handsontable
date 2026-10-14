@@ -176,7 +176,9 @@ Use the [`cells`](@/api/options.md#cells) option only if the above alternatives 
 
 By default, Handsontable builds the whole [`customBorders`](@/api/options.md#customborders) configuration before the first render. A very large configuration can delay the initial paint.
 
-If your initial configuration defines thousands of border entries or more, set [`customBordersProgressive`](@/api/options.md#custombordersprogressive) to `true`. The grid renders first, without the borders, and the borders are applied in background batches. This applies when the `customBorders` array is set at initialization or replaced with `updateSettings()`. The option is opt-in (the default is `false`) and available since 18.1.0.
+If your initial configuration borders thousands of cells or more, set [`customBordersProgressive`](@/api/options.md#custombordersprogressive) to `true`. The grid renders first, without the borders, and the borders are applied in background batches. This applies when the `customBorders` array is set at initialization or replaced with `updateSettings()`. The option is opt-in (the default is `false`) and available since 18.1.0.
+
+Progressive application splits the work by `customBorders` entry, but the cost depends on the number of bordered cells. An entry with a `range` is applied in one batch, so a single very large range is not split and can still block rendering.
 
 ::: only-for javascript
 
@@ -231,7 +233,7 @@ const hotSettings = ref({
 
 :::
 
-To change the number of `customBorders` entries applied per batch, pass an object. The default batch size is `5000` entries:
+To change the number of `customBorders` entries applied per batch, pass an object. The unit is entries, not cells, and the default is `5000`:
 
 ```js
 customBordersProgressive: { chunkSize: 5000 },
@@ -240,13 +242,9 @@ customBordersProgressive: { chunkSize: 5000 },
 With progressive application, [`getBorders()`](@/api/customBorders.md#getborders) and the border cell meta may be incomplete until the [`afterCustomBordersUpdate`](@/api/hooks.md#aftercustombordersupdate) hook fires. The hook also fires once, synchronously, when progressive application is off.
 
 ```js
-const hot = new Handsontable(obj, {
-  customBorders: largeBorderConfig,
-  customBordersProgressive: true,
-  afterCustomBordersUpdate() {
-    // every custom border is now applied
-  },
-});
+afterCustomBordersUpdate() {
+  // every custom border is now applied
+},
 ```
 
 Read more:
