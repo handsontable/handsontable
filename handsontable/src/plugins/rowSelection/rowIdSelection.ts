@@ -1,4 +1,4 @@
-import type { HeaderCheckboxSummary } from '../../utils/rowScope';
+import { summarizeHeaderCheckbox, type HeaderCheckboxSummary } from '../../utils/rowScope';
 
 /**
  * The row selection of a server-backed grid, in a form a server can apply: either "these rows" or
@@ -97,17 +97,8 @@ export class RowIdSelection {
     const total = Math.max(0, totalRows);
     const selected = this.#selectAll ?
       Math.max(0, total - this.#toggledRowIds.size) : Math.min(total, this.#toggledRowIds.size);
-    let state: HeaderCheckboxSummary['state'] = 'mixed';
 
-    if (total === 0) {
-      state = 'disabled';
-    } else if (selected === 0) {
-      state = 'unchecked';
-    } else if (selected === total) {
-      state = 'checked';
-    }
-
-    return { state, selected, total };
+    return summarizeHeaderCheckbox(selected, total);
   }
 
   /**

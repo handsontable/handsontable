@@ -162,6 +162,8 @@ To give the checkboxes a column of their own, as in the following example, make 
 
 This layout fits a grid without row headers. With `rowHeaders: true` it works as well, and the row numbers stay.
 
+Don't render the checkboxes into a checkbox column: each cell would show two checkboxes. To use the values of a checkbox column as the selection, see [In a checkbox column of your data](#in-a-checkbox-column-of-your-data).
+
 ::: only-for javascript
 
 ::: example #example3 --js 1 --ts 2
@@ -222,6 +224,7 @@ The column's values are then the selection:
 - Every change is a data change. It goes through [`afterChange`](@/api/hooks.md#afterchange) and [undo and redo](@/guides/accessories-and-menus/undo-redo/undo-redo.md), and a server-backed grid saves it.
 - Changes that come from edits, such as a paste, also reach the [`beforeRowSelectionChange`](@/api/hooks.md#beforerowselectionchange) hook. Return `false` to cancel them.
 - A read-only cell can't be selected.
+- When [`isRowSelectable`](#configuration-options) returns `false` for a row, checking its cell doesn't select it -- the edit is canceled. Unchecking the cell still works.
 
 ::: only-for javascript
 

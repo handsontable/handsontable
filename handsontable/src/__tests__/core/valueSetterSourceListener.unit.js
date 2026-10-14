@@ -34,4 +34,34 @@ describe('setSourceDataAtCell with an `afterSetSourceDataAtCell` listener', () =
     hot.destroy();
     container.remove();
   });
+
+  it('should run each `valueSetter` right before its own write when no listener is registered', () => {
+    const container = document.createElement('div');
+
+    document.body.appendChild(container);
+
+    let hot;
+    const hotSettings = {
+      data: [['old', '']],
+      columns: [
+        {},
+        // Reads the value the same call wrote to the first column a step earlier.
+        { valueSetter: value => `${value}+${hot.getSourceDataAtCell(0, 0)}` },
+      ],
+      autoRowSize: false,
+      autoColumnSize: false,
+      licenseKey: 'non-commercial-and-evaluation',
+    };
+
+    hot = new Handsontable(container, hotSettings);
+
+    expect(hot.hasHook('afterSetSourceDataAtCell')).toBe(false);
+
+    hot.setSourceDataAtCell([[0, 0, 'new'], [0, 1, 'x']]);
+
+    expect(hot.getSourceDataAtCell(0, 1)).toBe('x+new');
+
+    hot.destroy();
+    container.remove();
+  });
 });

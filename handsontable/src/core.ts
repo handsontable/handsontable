@@ -6135,13 +6135,15 @@ export default function Core(
       changeRow: number, changeProp: string | number | ColumnDataGetterSetterFunction, changeValue: unknown,
     ) => (isReplay ? changeValue : getValueSetterValue(changeValue, getCellProperties(changeRow, changeProp), source));
 
-    // The `valueSetter` runs once per change: its results feed both the hook's payload and the write,
-    // so a listener never makes a non-idempotent setter apply twice.
-    const storedValues = input.map(([changeRow, changeProp, changeValue]) => toStoredValue(
-      changeRow, changeProp, changeValue
-    ));
+    // The `valueSetter` runs once per change. With a listener its results are computed up front, as the
+    // hook's payload needs them, and feed the write too, so a non-idempotent setter never applies twice.
+    // Without one, each setter runs right before its own write, so it can read a value written earlier
+    // in the same call.
+    const storedValues = isThereAnySetSourceListener ?
+      input.map(([changeRow, changeProp, changeValue]) => toStoredValue(changeRow, changeProp, changeValue)) :
+      null;
 
-    if (isThereAnySetSourceListener) {
+    if (storedValues) {
       arrayEach(input, ([changeRow, changeProp], index) => {
         const newValue = storedValues[index];
 
@@ -6155,8 +6157,8 @@ export default function Core(
       });
     }
 
-    arrayEach(input, ([changeRow, changeProp], index) => {
-      const newValue = storedValues[index];
+    arrayEach(input, ([changeRow, changeProp, changeValue], index) => {
+      const newValue = storedValues ? storedValues[index] : toStoredValue(changeRow, changeProp, changeValue);
 
       if (isReplay || runSourceDataValidator(newValue, getCellProperties(changeRow, changeProp),
         source ?? 'setSourceDataAtCell')) {

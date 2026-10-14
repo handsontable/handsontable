@@ -586,7 +586,7 @@ describe('RowSelection', () => {
   it('should resolve the row checks once per draw, not once per painted cell', () => {
     injectRealCoreStyles();
 
-    const countDuringRender = (rowSelection: boolean) => {
+    const countDuringRender = (rowSelection: boolean | Record<string, unknown>) => {
       const { hot, destroy } = createGrid({ rowSelection }, 6);
       const getNumberOfIndexes = jest.spyOn(hot.rowIndexMapper, 'getNumberOfIndexes');
 
@@ -603,6 +603,8 @@ describe('RowSelection', () => {
 
     // Six rows of two cells and a row header each: a per-cell build would add over a dozen calls.
     expect(withPlugin - withoutPlugin).toBeLessThanOrEqual(2);
+    // `hideDisabledCheckboxes` asks every painted row whether it can be selected.
+    expect(countDuringRender({ hideDisabledCheckboxes: true }) - withoutPlugin).toBeLessThanOrEqual(2);
   });
 
   it('should paint a selection made in the same task as an earlier draw', () => {

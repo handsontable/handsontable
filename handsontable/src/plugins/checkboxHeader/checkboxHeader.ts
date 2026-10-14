@@ -247,8 +247,9 @@ export class CheckboxHeader extends BasePlugin {
 
   /**
    * Tells whether the column shows a "check all" checkbox: it is a checkbox column with the
-   * `headerCheckbox` option, and the [`RowSelection`](@/api/rowSelection.md) plugin does not use it
-   * as its selection column (then that plugin owns the header).
+   * `headerCheckbox` option, and the [`RowSelection`](@/api/rowSelection.md) plugin does not render
+   * its checkboxes in it (its bound column, or the first column with `checkboxLocation: 'firstColumn'`;
+   * then that plugin owns the header).
    *
    * @param {number} column Visual column index.
    * @returns {boolean}
@@ -264,7 +265,32 @@ export class CheckboxHeader extends BasePlugin {
       return false;
     }
 
-    return this.hot.getPlugin('rowSelection')?.getBoundColumn?.() !== column;
+    return !this.#isRowSelectionColumn(column);
+  }
+
+  /**
+   * Tells whether the [`RowSelection`](@/api/rowSelection.md) plugin renders its checkboxes in the
+   * column: its bound column, or the first visible column with `checkboxLocation: 'firstColumn'`. That
+   * plugin owns the column's header then.
+   *
+   * @param {number} column Visual column index.
+   * @returns {boolean}
+   */
+  #isRowSelectionColumn(column: number): boolean {
+    const rowSelection = this.hot.getPlugin('rowSelection');
+
+    if (!rowSelection?.enabled) {
+      return false;
+    }
+
+    if (rowSelection.getBoundColumn() === column) {
+      return true;
+    }
+
+    const settings = this.hot.getSettings().rowSelection;
+
+    return isPlainObject(settings) && settings.checkboxLocation === 'firstColumn' &&
+      this.hot.columnIndexMapper.getVisualFromRenderableIndex(0) === column;
   }
 
   /**

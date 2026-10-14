@@ -118,6 +118,13 @@ from a "select all" checkbox (PRO-87, modeled on AG Grid's `rowSelection`). Read
   `updatePlugin()`): the anchor when it is selected, else the last selected row in visual order. With a
   server-backed grid and no selected row loaded it keeps the row id toggled last (`Set` insertion order)
   and clears a "select all". A bound column is left alone: its values are the user's data.
+- **A parent is removed only when every row under it is selected** (`#getRemovableRows()`). With
+  `'descendants'` a parent counts as selected once its SELECTABLE leaves are, but `alter('remove_row')` on
+  a parent takes its whole subtree, which would delete a leaf `isRowSelectable` rejects. Such a parent
+  stays, and its selected rows are removed one by one.
+- **`firstColumn` on a checkbox column is a configuration mistake, warned once** (`#warnIfFirstColumnIsCheckboxColumn()`):
+  each cell shows two checkboxes and Space toggles the row, not the value. `CheckboxHeader` steps aside for
+  that header as it does for the bound column, so it shows only "select all".
 - **The remove menu item counts what the action removes** (`#countRemovableRows()`): the selected rows
   with a visual index, `0` (and disabled) when rows cannot be removed or a server-side "select all" is
   active. `getSelectedCount()` would count filtered-out rows and rows on other pages, which stay.
@@ -205,6 +212,13 @@ location. While bound, the selection IS the column's values:
   aside for its cells (the checkbox cell type's own Space writes them), `enableClickSelection` ignores it,
   and the `CheckboxHeader` plugin (`../checkboxHeader/`) skips its header, which this plugin renders.
 - A read-only or non-checkbox cell in the column cannot be selected.
+- **An edit that would check a row `isRowSelectable` rejects is cancelled** in `#onBeforeChange()` (the
+  change is nulled, as a vetoed one is), so a click on the cell and `selectRows()` agree. Unchecking is
+  allowed, and a read-only cell is deliberately not part of this rule: the user cannot edit it, and an API
+  write to it is a write to the data.
+- **The fallback is real.** A `{ column }` that does not resolve to a checkbox column warns and draws the
+  checkboxes in the row header (`#isRowHeaderLocation()`); every check for the row header location goes
+  through that helper, never `checkboxLocation === 'rowHeader'`, or the fallback draws nothing.
 
 ## A server-backed grid (DataProvider)
 

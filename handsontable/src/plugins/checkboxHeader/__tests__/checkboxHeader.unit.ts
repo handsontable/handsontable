@@ -460,4 +460,34 @@ describe('CheckboxHeader', () => {
     // The plugin adds no mapping of its own to what core does for the edit.
     expect(countRowMappings(true)).toBe(countRowMappings(false));
   });
+
+  it('should leave the header of the column RowSelection draws into with `checkboxLocation: \'firstColumn\'`', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const { hot, plugin, destroy } = createGrid({
+      columns: [
+        { data: 'done', type: 'checkbox', headerCheckbox: true },
+        { data: 'name' },
+      ],
+      rowSelection: { checkboxLocation: 'firstColumn' },
+    });
+    const headerCheckboxes = () => hot.getCell(-1, 0)!.querySelectorAll('input[type="checkbox"]');
+
+    expect(plugin.hasHeaderCheckbox(0)).toBe(false);
+    // Only the "select all" checkbox of RowSelection.
+    expect(headerCheckboxes()).toHaveLength(1);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('draws the row checkboxes into a checkbox column'));
+
+    hot.render();
+
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+
+    hot.updateSettings({ rowSelection: false });
+
+    expect(plugin.hasHeaderCheckbox(0)).toBe(true);
+    expect(headerCheckboxes()).toHaveLength(1);
+
+    warnSpy.mockRestore();
+    destroy();
+  });
 });

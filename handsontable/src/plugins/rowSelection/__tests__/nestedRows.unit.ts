@@ -228,6 +228,24 @@ describe('RowSelection with NestedRows', () => {
 
       destroy();
     });
+
+    it('should keep a parent, and a row under it that `isRowSelectable` rejects, when removing its selected rows', () => {
+      const { hot, plugin, destroy } = createGrid({
+        isRowSelectable: (rowData: { id: string }) => rowData.id !== 'a1y',
+      });
+
+      plugin.selectRows([2]); // a1x: its parent a1 counts as selected, as a1y cannot be selected
+
+      expect(plugin.getSelectedRows()).toEqual([1, 2]);
+      expect(plugin.removeSelectedRows()).toBe(true);
+      expect(hot.getPlugin('nestedRows').dataManager!.getData()).toEqual([
+        { id: 'a', __children: [{ id: 'a1', __children: [{ id: 'a1y' }] }, { id: 'a2' }] },
+        { id: 'b', __children: [{ id: 'b1' }] },
+        { id: 'c' },
+      ]);
+
+      destroy();
+    });
   });
 
   it('should remove a selected collapsed parent with its hidden rows, and the selected rows below it', () => {

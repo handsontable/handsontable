@@ -136,9 +136,12 @@ describe('RowSelection bound to a checkbox column', () => {
 
   it('should fall back to the row header location, with a warning, when the column is not a checkbox column', () => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    const { plugin, destroy } = createGrid({ rowSelection: { checkboxLocation: { column: 'id' } } });
+    const { hot, plugin, destroy } = createGrid({ rowSelection: { checkboxLocation: { column: 'id' } } });
 
     expect(plugin.getBoundColumn()).toBeNull();
+    // The checkboxes are drawn in the row header, and the "select all" checkbox above them.
+    expect(hot.getCell(0, -1)?.querySelector('.htRowSelectionCheckbox')).not.toBeNull();
+    expect(hot.rootElement.querySelector('th.htRowSelectionCorner .htRowSelectionCheckbox')).not.toBeNull();
 
     plugin.selectRows([1]);
 
@@ -447,5 +450,50 @@ describe('RowSelection bound to a checkbox column', () => {
     expect(afterRowSelectionChange).toHaveBeenLastCalledWith([0], [], 'dataChange');
 
     destroy();
+  });
+
+  it('should not select a row `isRowSelectable` rejects through an edit of its cell, and still let it be unchecked', () => {
+    const afterRowSelectionChange = jest.fn();
+    const { hot, plugin, selectedValues, destroy } = createGrid({
+      afterRowSelectionChange,
+      rowSelection: {
+        checkboxLocation: { column: 'selected' },
+        isRowSelectable: (rowData: Order) => rowData.id !== 2 && rowData.id !== 3,
+      },
+    });
+
+    hot.setDataAtCell(3, 1, true, 'edit');
+
+    expect(selectedValues()).toEqual([false, false, true, false, false]);
+    expect(plugin.getSelectedRows()).toEqual([2]);
+    expect(afterRowSelectionChange).not.toHaveBeenCalled();
+
+    // Row 2 starts checked in the data: unchecking it is allowed.
+    hot.setDataAtCell(2, 1, false, 'edit');
+
+    expect(selectedValues()).toEqual([false, false, false, false, false]);
+    expect(afterRowSelectionChange).toHaveBeenCalledWith([], [2], 'checkbox');
+
+    destroy();
+  });
+
+  it('should resolve the row checks once for a paste into the column, not once per row', () => {
+    // Every `RowChecks` build asks for the bound column, so the count must not grow with the rows.
+    const countBoundColumnLookups = (rows: number[]) => {
+      const { hot, plugin, destroy } = createGrid();
+      const getBoundColumn = jest.spyOn(plugin, 'getBoundColumn');
+
+      hot.setDataAtCell(rows.map(row => [row, 1, true]), 'CopyPaste.paste');
+
+      expect(plugin.getSelectedRows()).toEqual([...rows, 2].sort());
+
+      const calls = getBoundColumn.mock.calls.length;
+
+      destroy();
+
+      return calls;
+    };
+
+    expect(countBoundColumnLookups([0, 1, 3, 4])).toBe(countBoundColumnLookups([0]));
   });
 });

@@ -431,6 +431,12 @@ export class RowSelection extends BasePlugin {
   #boundColumnWarningShown = false;
 
   /**
+   * Whether the warning about `checkboxLocation: 'firstColumn'` landing on a checkbox column was
+   * already shown.
+   */
+  #firstColumnWarningShown = false;
+
+  /**
    * The NestedRows plugin instance (`null` when it is not registered), see `#getNestedRowsPlugin()`.
    */
   #nestedRowsPlugin: PluginTypeMap['nestedRows'] | null | undefined = undefined;
@@ -793,7 +799,7 @@ export class RowSelection extends BasePlugin {
       return false;
     }
 
-    const rows = this.getSelectedRows();
+    const rows = this.#getRemovableRows();
 
     // Groups of consecutive visual rows, as `alter()` takes them: `[[index, amount], ...]`.
     const groups: Array<[number, number]> = [];
@@ -836,7 +842,45 @@ export class RowSelection extends BasePlugin {
       return 0;
     }
 
-    return this.getSelectedRows().length;
+    return this.#getRemovableRows().length;
+  }
+
+  /**
+   * The visual rows {@link RowSelection#removeSelectedRows} removes: the selected rows, except a
+   * parent (`groupSelects: 'descendants'`) with a row under it that is not selected. Such a parent
+   * counts as selected once every SELECTABLE row under it is, but removing it takes its whole subtree,
+   * so a row `isRowSelectable` rejects would go with it. Its selected rows are removed one by one.
+   *
+   * @returns {number[]}
+   */
+  #getRemovableRows(): number[] {
+    const rows = this.getSelectedRows();
+    const checks = this.#createRowChecks();
+
+    if (!checks.groupMode) {
+      return rows;
+    }
+
+    const dataManager = this.#getNestedRowsPlugin()!.dataManager!;
+
+    return rows.filter((row) => {
+      const physicalRow = this.hot.toPhysicalRow(row);
+
+      if (physicalRow === null || !checks.isGroup(physicalRow)) {
+        return true;
+      }
+
+      // A parent's descendants are the rows right after it, in tree order.
+      const last = physicalRow + dataManager.countChildren(physicalRow);
+
+      for (let descendant = physicalRow + 1; descendant <= last; descendant++) {
+        if (!checks.isGroup(descendant) && !checks.isSelected(descendant)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
   }
 
   /**
@@ -1845,12 +1889,14 @@ export class RowSelection extends BasePlugin {
    * Checks whether the row shows a checkbox at all.
    *
    * @param {number} physicalRow Physical row index.
+   * @param {RowChecks} [checks] The checks to ask. The render path passes the per-draw ones, which keeps
+   * `hideDisabledCheckboxes` from building new checks for every painted cell.
    * @returns {boolean}
    */
-  #hasRowCheckbox(physicalRow: number): boolean {
+  #hasRowCheckbox(physicalRow: number, checks?: RowChecks): boolean {
     const { checkboxes, hideDisabledCheckboxes } = this.#getSettings();
 
-    if (hideDisabledCheckboxes && !this.#isPhysicalRowSelectable(physicalRow)) {
+    if (hideDisabledCheckboxes && !(checks ?? this.#createRowChecks()).isSelectable(physicalRow)) {
       return false;
     }
 
@@ -1899,6 +1945,36 @@ export class RowSelection extends BasePlugin {
     }
 
     return this.hot.columnIndexMapper.getVisualFromRenderableIndex(0);
+  }
+
+  /**
+   * Warns once when `checkboxLocation: 'firstColumn'` draws the row checkboxes into a checkbox column:
+   * every cell then shows two checkboxes, and Space toggles the row selection, not the cell value.
+   *
+   * @param {number} column Visual column index of the column the checkboxes are drawn in.
+   */
+  #warnIfFirstColumnIsCheckboxColumn(column: number) {
+    if (this.#firstColumnWarningShown || column < 0 || this.#getSettings().checkboxLocation !== 'firstColumn' ||
+      !isCheckboxMeta(this.hot.getColumnMeta(column) as CheckboxMeta)) {
+      return;
+    }
+
+    this.#firstColumnWarningShown = true;
+    warn('RowSelection: `checkboxLocation: \'firstColumn\'` draws the row checkboxes into a checkbox column ' +
+      `(${column}). To use that column's values as the selection, set \`checkboxLocation: { column }\`.`);
+  }
+
+  /**
+   * Tells whether the checkboxes are drawn in the plugin's row header column: with
+   * `checkboxLocation: 'rowHeader'`, and as the fallback of a bound column that does not resolve to a
+   * checkbox column (`getBoundColumn()` warns about it once).
+   *
+   * @returns {boolean}
+   */
+  #isRowHeaderLocation(): boolean {
+    const { checkboxLocation } = this.#getSettings();
+
+    return checkboxLocation === 'rowHeader' || (isPlainObject(checkboxLocation) && this.getBoundColumn() === null);
   }
 
   /**
@@ -2005,7 +2081,7 @@ export class RowSelection extends BasePlugin {
     }
 
     const checks = this.#getDrawRowChecks();
-    const hidden = !this.#hasRowCheckbox(physicalRow);
+    const hidden = !this.#hasRowCheckbox(physicalRow, checks);
 
     return {
       checked: !hidden && checks.isSelected(physicalRow),
@@ -2264,7 +2340,7 @@ export class RowSelection extends BasePlugin {
     const isOwnHeaderCell = hasClass(TD, ROW_CELL_CLASS) || hasClass(TD, HEADER_CELL_CLASS);
     const isOwnCheckbox = hasClass(target, CHECKBOX_CLASS) && !hasClass(target, HIDDEN_CHECKBOX_CLASS);
 
-    if (!isOwnCheckbox && !(isOwnHeaderCell && this.#getSettings().checkboxLocation === 'rowHeader')) {
+    if (!isOwnCheckbox && !(isOwnHeaderCell && this.#isRowHeaderLocation())) {
       return;
     }
 
@@ -2371,7 +2447,7 @@ export class RowSelection extends BasePlugin {
    * @param {Function[]} renderers The row header renderers.
    */
   #onAfterGetRowHeaderRenderers = (renderers: Array<(...args: unknown[]) => unknown>) => {
-    if (this.#getSettings().checkboxLocation !== 'rowHeader') {
+    if (!this.#isRowHeaderLocation()) {
       this.#rowHeaderRendererIndex = -1;
 
       return;
@@ -2442,6 +2518,10 @@ export class RowSelection extends BasePlugin {
 
     if (!container) {
       return;
+    }
+
+    if (column === checkboxColumn) {
+      this.#warnIfFirstColumnIsCheckboxColumn(column);
     }
 
     // Without the "select all" checkbox the header stays a plain one: no class, so no pointer
@@ -2587,9 +2667,25 @@ export class RowSelection extends BasePlugin {
       return;
     }
 
-    const flips = this.#collectBoundFlips(changes, true);
+    if (!Array.isArray(changes) || !this.#touchesBoundColumn(changes)) {
+      return;
+    }
+
+    // One set of checks for the whole batch: a paste into the bound column can carry every row.
+    const flips = this.#collectBoundFlips(changes, this.#createRowChecks());
 
     if (!flips) {
+      return;
+    }
+
+    // A row `isRowSelectable` rejects is not selected by an edit of its cell either, the same way
+    // `selectRows()` refuses it. Unchecking such a row stays allowed. A read-only cell is not rejected
+    // here: the user cannot edit it, and an API write to it is a write to the data.
+    flips.rejected.forEach((index) => {
+      changes[index] = null;
+    });
+
+    if (flips.indexes.length === 0) {
       return;
     }
 
@@ -2618,9 +2714,9 @@ export class RowSelection extends BasePlugin {
       this.#invalidateHeaderSummary();
     }
 
-    const flips = this.#collectBoundFlips(changes, false);
+    const flips = this.#collectBoundFlips(changes, null);
 
-    if (!flips) {
+    if (!flips || flips.indexes.length === 0) {
       return;
     }
 
@@ -2746,15 +2842,18 @@ export class RowSelection extends BasePlugin {
    * Finds the changes to the bound column that flip a row's checked state.
    *
    * @param {Array} changes The changes, `[row, prop, oldValue, newValue]`.
-   * @param {boolean} compareWithData `true` in `beforeChange`, where the data still holds the value
-   * before the change; `false` in `afterChange`, where the change's own old value is used.
+   * @param {RowChecks|null} checksBeforeChange The checks to read the state before the change from, in
+   * `beforeChange`, where the data still holds it; there the changes that would select a row
+   * `isRowSelectable` rejects are marked too. `null` after the change, where the change's own old value
+   * is used.
    * @param {Function} [toPhysicalRow] Resolves a change's row to a physical row. Defaults to the visual
    * to physical translation; source-data changes already carry physical rows.
-   * @returns {object|null} The physical rows that get selected and deselected, and the change indexes.
+   * @returns {object|null} The physical rows that get selected and deselected, the indexes of those
+   * changes, and the indexes of the changes that would select a row `isRowSelectable` rejects.
    */
   #collectBoundFlips(
     changes: Array<unknown[] | null>,
-    compareWithData: boolean,
+    checksBeforeChange: RowChecks | null,
     toPhysicalRow: (row: number) => number | null = row => this.hot.toPhysicalRow(row),
   ) {
     const boundColumn = this.getBoundColumn();
@@ -2767,6 +2866,7 @@ export class RowSelection extends BasePlugin {
     const selected: number[] = [];
     const deselected: number[] = [];
     const indexes: number[] = [];
+    const rejected: number[] = [];
 
     changes.forEach((change, index) => {
       if (!change || change[1] !== boundProp) {
@@ -2780,17 +2880,35 @@ export class RowSelection extends BasePlugin {
       }
 
       const meta = this.#getBoundMeta(physicalRow, boundColumn);
-      const before = compareWithData ?
-        this.#isPhysicalRowSelected(physicalRow) : isCheckedValue(change[2], meta);
+      const before = checksBeforeChange ?
+        checksBeforeChange.isSelected(physicalRow) : isCheckedValue(change[2], meta);
       const after = isCheckedValue(change[3], meta);
 
-      if (before !== after) {
+      if (before === after) {
+        return;
+      }
+
+      if (after && checksBeforeChange && this.#isRejectedByIsRowSelectable(physicalRow)) {
+        rejected.push(index);
+      } else {
         (after ? selected : deselected).push(physicalRow);
         indexes.push(index);
       }
     });
 
-    return indexes.length > 0 ? { selected, deselected, indexes } : null;
+    return indexes.length > 0 || rejected.length > 0 ? { selected, deselected, indexes, rejected } : null;
+  }
+
+  /**
+   * Tells whether the `isRowSelectable` option rejects the row.
+   *
+   * @param {number} physicalRow Physical row index.
+   * @returns {boolean}
+   */
+  #isRejectedByIsRowSelectable(physicalRow: number): boolean {
+    const { isRowSelectable } = this.#getSettings();
+
+    return !!isRowSelectable && isRowSelectable(this.hot.getSourceDataAtRow(physicalRow), physicalRow) === false;
   }
 
   /**
@@ -2814,11 +2932,11 @@ export class RowSelection extends BasePlugin {
     }
 
     const rowsCount = this.hot.rowIndexMapper.getNumberOfIndexes();
-    const flips = this.#collectBoundFlips(changes, false, row => (
+    const flips = this.#collectBoundFlips(changes, null, row => (
       Number.isInteger(row) && row >= 0 && row < rowsCount ? row : null
     ));
 
-    if (flips) {
+    if (flips && flips.indexes.length > 0) {
       this.#notifyChange(flips.selected, flips.deselected, 'dataChange');
     }
   };
