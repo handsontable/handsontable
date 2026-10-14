@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import test, { after } from 'node:test';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { createRequire } from 'node:module';
@@ -16,9 +16,24 @@ const realPlugins = readdirSync(resolve(import.meta.dirname, '../../../handsonta
   .map(entry => entry.name);
 const guide = 'guides/a/b/b.md';
 const emptySidebar = { all: new Set(), gated: new Set() };
+const tempDirs = [];
+
+function makeTempDir(prefix) {
+  const dir = mkdtempSync(join(tmpdir(), prefix));
+
+  tempDirs.push(dir);
+
+  return dir;
+}
+
+after(() => {
+  for (const dir of tempDirs) {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
 
 function makeContentDir(pages) {
-  const dir = mkdtempSync(join(tmpdir(), 'api-guide-links-'));
+  const dir = makeTempDir('api-guide-links-');
 
   for (const [file, frontmatter] of Object.entries(pages)) {
     mkdirSync(join(dir, file, '..'), { recursive: true });
@@ -28,10 +43,12 @@ function makeContentDir(pages) {
   return dir;
 }
 
+const emptyContentDir = makeContentDir({});
+
 function validate(overrides) {
   return validateApiGuideLinks({
     links: {},
-    contentDir: makeContentDir({}),
+    contentDir: emptyContentDir,
     pluginNames: [],
     sidebar: emptySidebar,
     unmapped: [],
@@ -64,7 +81,7 @@ test('buildGuideLinkLine accepts the capitalized name the renderer passes', () =
 
 test('buildGuideLinkLine returns an empty string for an unmapped page, including inherited keys', () => {
   assert.equal(buildGuideLinkLine('core.md'), '');
-  assert.equal(buildGuideLinkLine('stretchColumns.md'), '');
+  assert.equal(buildGuideLinkLine('touchScroll.md'), '');
   assert.equal(buildGuideLinkLine('constructor'), '');
 });
 
@@ -81,13 +98,25 @@ test('reports a missing guide', () => {
 test('reports a guide with no title', () => {
   const errors = validate({
     links: { 'search.md': guide },
-    contentDir: makeContentDir({ [guide]: 'description: No title here' }),
+    contentDir: makeContentDir({ [guide]: 'permalink: /b' }),
     pluginNames: ['search'],
     sidebar: { all: new Set([guide]), gated: new Set() },
   });
 
   assert.equal(errors.length, 1);
   assert.match(errors[0], /has no title in its frontmatter/);
+});
+
+test('reports a guide with no permalink', () => {
+  const errors = validate({
+    links: { 'search.md': guide },
+    contentDir: makeContentDir({ [guide]: 'title: B' }),
+    pluginNames: ['search'],
+    sidebar: { all: new Set([guide]), gated: new Set() },
+  });
+
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /has no permalink/);
 });
 
 test('reports a guide path that does not start with guides/ or end with .md', () => {
@@ -102,7 +131,7 @@ test('reports a guide path that does not start with guides/ or end with .md', ()
 test('reports a key that is not a plugin API page', () => {
   const errors = validate({
     links: { 'core.md': guide },
-    contentDir: makeContentDir({ [guide]: 'title: B' }),
+    contentDir: makeContentDir({ [guide]: 'title: B\npermalink: /b' }),
     pluginNames: ['search'],
     sidebar: { all: new Set([guide]), gated: new Set() },
     unmapped: ['search'],
@@ -115,7 +144,7 @@ test('reports a key that is not a plugin API page', () => {
 test('reports a guide that is not registered in the sidebar', () => {
   const errors = validate({
     links: { 'search.md': guide },
-    contentDir: makeContentDir({ [guide]: 'title: B' }),
+    contentDir: makeContentDir({ [guide]: 'title: B\npermalink: /b' }),
     pluginNames: ['search'],
   });
 
@@ -126,7 +155,7 @@ test('reports a guide that is not registered in the sidebar', () => {
 test('reports a framework-gated guide', () => {
   const errors = validate({
     links: { 'search.md': guide },
-    contentDir: makeContentDir({ [guide]: 'title: B' }),
+    contentDir: makeContentDir({ [guide]: 'title: B\npermalink: /b' }),
     pluginNames: ['search'],
     sidebar: { all: new Set([guide]), gated: new Set([guide]) },
   });
@@ -149,7 +178,7 @@ test('ignores the base and test directories, and accepts a listed unmapped plugi
 test('reports a plugin that is both mapped and listed as unmapped', () => {
   const errors = validate({
     links: { 'search.md': guide },
-    contentDir: makeContentDir({ [guide]: 'title: B' }),
+    contentDir: makeContentDir({ [guide]: 'title: B\npermalink: /b' }),
     pluginNames: ['search'],
     sidebar: { all: new Set([guide]), gated: new Set() },
     unmapped: ['search'],
@@ -163,6 +192,25 @@ test('the unmapped list names only real plugins', () => {
   for (const name of unmappedPlugins) {
     assert.ok(realPlugins.includes(name), `${name} is not a plugin directory`);
   }
+});
+
+test('reports an unmapped name that is not a plugin directory', () => {
+  const errors = validate({ pluginNames: ['search'], unmapped: ['search', 'oldName'] });
+
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /oldName: listed in unmappedPlugins but is not a plugin directory/);
+});
+
+test('collectSidebarGuides treats onlyFor as gating whether it is an array or a string', () => {
+  const { gated } = collectSidebarGuides({
+    guides: [
+      { path: 'guides/x/a/a', onlyFor: 'react' },
+      { path: 'guides/x/b/b', onlyFor: ['vue'] },
+      { path: 'guides/x/c/c' },
+    ],
+  });
+
+  assert.deepEqual([...gated].sort(), ['guides/x/a/a.md', 'guides/x/b/b.md']);
 });
 
 test('collectSidebarGuides flattens nested children and records onlyFor pages', () => {
@@ -180,7 +228,7 @@ test('collectSidebarGuides flattens nested children and records onlyFor pages', 
 });
 
 test('the renderer writes the guide line for every mapped key, under the name it really receives', () => {
-  const dist = mkdtempSync(join(tmpdir(), 'api-guide-render-'));
+  const dist = makeTempDir('api-guide-render-');
   const logger = { info() {}, log() {} };
   const render = buildRenderer({
     dist: file => join(dist, file.replace(/^[A-Z]/, upper => upper.toLowerCase())),
@@ -204,12 +252,21 @@ test('the renderer writes the guide line for every mapped key, under the name it
   assert.doesNotMatch(readFileSync(join(dist, 'core.md'), 'utf8'), /See the \[/);
 });
 
-// Needs `npm run docs:api` first (content/api is generated and gitignored), so it skips on a clean checkout.
+// Needs `npm run docs:api` first (content/api is generated and gitignored). `core.md` is always
+// generated, so its absence means "not generated yet" and the test skips. Once the pages exist,
+// a mapped key whose page is missing fails here instead of skipping.
 const generatedApiDir = join(realContentDir, 'api');
-const hasGeneratedApi = Object.keys(apiGuideLinks).every(key => existsSync(join(generatedApiDir, key)));
+const hasGeneratedApi = existsSync(join(generatedApiDir, 'core.md'));
 
 test('generated API pages carry the guide line', { skip: !hasGeneratedApi && 'run npm run docs:api first' }, () => {
   for (const key of Object.keys(apiGuideLinks)) {
-    assert.match(readFileSync(join(generatedApiDir, key), 'utf8'), /^See the \[/m, key);
+    const file = join(generatedApiDir, key);
+
+    assert.ok(existsSync(file), `${key}: page was not generated, re-run npm run docs:api`);
+    assert.match(
+      readFileSync(file, 'utf8'),
+      /^See the \[/m,
+      `${key}: no guide line, content/api may be stale, re-run npm run docs:api`
+    );
   }
 });

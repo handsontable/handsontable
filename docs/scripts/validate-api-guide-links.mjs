@@ -2,7 +2,7 @@ import { existsSync, readdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { apiGuideLinks, readGuideTitle, unmappedPlugins } from './jsdoc-convert/apiGuideLinks.mjs';
+import { apiGuideLinks, readGuideFrontmatter, unmappedPlugins } from './jsdoc-convert/apiGuideLinks.mjs';
 
 const require = createRequire(import.meta.url);
 
@@ -14,8 +14,9 @@ const NON_PLUGIN_DIRS = ['base', '__tests__'];
 /**
  * Validates the map that adds a "See the guide" line to the generated API pages (DEV-2809).
  *
- * A mapped guide that is missing, untitled, or hidden from some frameworks would ship a dead
- * link (the API page is rendered for every framework), so this script is the gate. It runs in
+ * A mapped guide that is missing, untitled, or without a `permalink` would ship a dead link
+ * (the content loader skips a page with no permalink). One that the sidebar limits to some
+ * frameworks would link readers to a page missing from their navigation. This script is the gate. It runs in
  * `npm run build` before `astro build`.
  */
 
@@ -37,7 +38,8 @@ export function collectSidebarGuides(sidebar) {
 
         all.add(file);
 
-        if (Array.isArray(item.onlyFor) && item.onlyFor.length > 0) {
+        // `onlyFor` is an array or a plain string, as in src/sidebar.mjs.
+        if (item.onlyFor && [].concat(item.onlyFor).length > 0) {
           gated.add(file);
         }
       }
@@ -68,6 +70,12 @@ export function collectSidebarGuides(sidebar) {
  */
 export function validateApiGuideLinks({ links, contentDir, pluginNames, sidebar, unmapped = unmappedPlugins }) {
   const errors = [];
+
+  for (const name of unmapped) {
+    if (!pluginNames.includes(name)) {
+      errors.push(`${name}: listed in unmappedPlugins but is not a plugin directory.`);
+    }
+  }
 
   for (const name of pluginNames) {
     if (NON_PLUGIN_DIRS.includes(name)) {
@@ -103,10 +111,14 @@ export function validateApiGuideLinks({ links, contentDir, pluginNames, sidebar,
       continue;
     }
 
-    try {
-      readGuideTitle(guidePath, contentDir);
-    } catch (error) {
-      errors.push(`${apiFile}: ${error.message}`);
+    const frontmatter = readGuideFrontmatter(guidePath, contentDir);
+
+    if (typeof frontmatter.title !== 'string' || !frontmatter.title) {
+      errors.push(`${apiFile}: the guide "${guidePath}" has no title in its frontmatter.`);
+    }
+
+    if (typeof frontmatter.permalink !== 'string' || !frontmatter.permalink) {
+      errors.push(`${apiFile}: the guide "${guidePath}" has no permalink, so the link would 404.`);
     }
 
     if (!sidebar.all.has(guidePath)) {
@@ -114,7 +126,7 @@ export function validateApiGuideLinks({ links, contentDir, pluginNames, sidebar,
     }
 
     if (sidebar.gated.has(guidePath)) {
-      errors.push(`${apiFile}: the guide "${guidePath}" is framework-specific (onlyFor), so the link would be dead in other frameworks.`);
+      errors.push(`${apiFile}: the guide "${guidePath}" is framework-specific (onlyFor), so other frameworks would link to a page missing from their navigation.`);
     }
   }
 
