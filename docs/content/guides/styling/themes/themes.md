@@ -423,6 +423,136 @@ const hotSettings = ref({
 
 :::
 
+## Create your own theme
+
+Create your own theme when the built-in `main`, `classic`, and `horizon` themes do not match your design system. A custom theme starts from a built-in preset, so you override only the values that differ.
+
+If you used the `--ht-wrapper-border-width` and `--ht-wrapper-border-color` variables, note that Handsontable 18.0 removed them, together with the `wrapperBorderWidth` and `wrapperBorderColor` tokens. The grid no longer reads them, and a custom token with the same name has no effect. To keep a wrapper border, draw it in your own CSS. For details, see [Update theme wrapper border variables](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#update-theme-wrapper-border-variables).
+
+### Start from a preset
+
+Import the `tokens`, `colors`, and `icons` of a preset from `handsontable/themes/static/variables`. Then pass them to `registerTheme()` with a name for your theme:
+
+```js
+import tokens from 'handsontable/themes/static/variables/tokens/main';
+import colors from 'handsontable/themes/static/variables/colors/main';
+import icons from 'handsontable/themes/static/variables/icons/main';
+import { registerTheme } from 'handsontable/themes';
+
+const customTheme = registerTheme('custom-theme', {
+  tokens,
+  colors,
+  icons,
+  density: 'default',
+  colorScheme: 'auto',
+});
+```
+
+To base your theme on the `horizon` preset, import the `horizon` files instead of the `main` ones. The `classic` preset has `tokens` and `colors` files, and it uses the `main` icons.
+
+### Override values with `params()`
+
+Call `params()` to override only the colors and tokens you need. The values you pass are merged into the preset. `params()` returns the theme, so you can chain `setColorScheme()` and `setDensityType()` after it:
+
+```js
+customTheme
+  .params({
+    colors: {
+      primary: {
+        500: '#9333ea',
+        600: '#7e22ce',
+      },
+    },
+    tokens: {
+      fontSize: '13px',
+      borderRadius: 'sizing.size_2',
+    },
+  })
+  .setColorScheme('light')
+  .setDensityType('compact');
+```
+
+### Config keys
+
+The configuration object that you pass to `registerTheme()` uses these keys:
+
+| Key           | Required | Description                                                                |
+| ------------- | -------- | -------------------------------------------------------------------------- |
+| `tokens`      | Yes      | Design tokens for visual properties.                                       |
+| `colors`      | Yes      | Color palette with nested color values.                                    |
+| `icons`       | Yes      | Icon definitions.                                                          |
+| `density`     | No       | `'default'`, `'compact'`, or `'comfortable'`. The default is `'default'`.  |
+| `colorScheme` | No       | `'light'`, `'dark'`, or `'auto'`. The default is `'auto'`.                 |
+
+The `name` is required too. When you call `registerTheme('custom-theme', config)`, the first argument sets it. You can set the name only at registration, not with `params()`. If you omit `tokens`, `colors`, or `icons`, `registerTheme()` throws a validation error. If a theme with the same name is already registered, `registerTheme()` logs a warning and returns the existing theme.
+
+For all keys, see [Theme API parameters](#theme-api-parameters). To reference other values in a token, see [Token value references](#token-value-references).
+
+### Generate a starting point
+
+Instead of writing the configuration by hand, you can design a theme in the [Theme Builder](https://handsontable.com/theme-builder). Choose your values, then copy the code from **Generated code**, in the **JavaScript** tab, into your project.
+
+To learn more about registering and tuning a theme, see [Register a custom theme](@/guides/styling/theme-customization/theme-customization.md#register-a-custom-theme).
+
+::: only-for javascript react angular
+
+For a full integration with a design system, see the [Handsontable with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md) recipe.
+
+:::
+
+### Use your registered theme
+
+Pass the theme that `registerTheme()` returns to the `theme` option. The registration step is the same in every framework. Only the way you pass the theme differs. For the full setup, see [Step 2. Configure the theme](#configure-the-theme).
+
+::: only-for javascript
+
+```js
+const hot = new Handsontable(container, {
+  theme: customTheme,
+  // ... other options
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  theme={customTheme}
+  // ... other options
+/>
+```
+
+:::
+
+::: only-for angular
+
+```ts
+hotSettings = {
+  theme: customTheme,
+  // ... other options
+};
+```
+
+:::
+
+::: only-for vue
+
+Wrap the theme in `markRaw()` before you pass it to the settings:
+
+```ts
+import { markRaw, ref } from 'vue';
+
+const hotSettings = ref({
+  theme: markRaw(customTheme),
+  // ... other options
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+:::
+
 ## Switch between CSS-file themes at runtime
 
 Switch a grid to another CSS-file theme by giving it a different theme class name, either through [`useTheme()`](@/api/core.md#usetheme) or through the `theme` option. Both take a class name string such as `ht-theme-main-dark`, never a theme config object or a `ThemeBuilder` instance.
