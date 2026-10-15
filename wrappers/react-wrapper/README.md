@@ -166,9 +166,9 @@ To stay aligned with design, you can rely on the:
 
 <br>
 
-## 🤔 Is Handsontable a Data Grid or a Spreadsheet?
+## 🤔 Is Handsontable DataGrid a data grid or a spreadsheet?
 
-Handsontable is a data grid component written in JavaScript, not a spreadsheet. However, it brings in many features typically found in spreadsheet software. We designed it this way because spreadsheet-like patterns are often the most user-friendly when it comes to data entry and management.
+Handsontable DataGrid is a data grid component written in JavaScript, not a spreadsheet. However, it brings in many features typically found in spreadsheet software. We designed it this way because spreadsheet-like patterns are often the most user-friendly when it comes to data entry and management.
 
 ### Spreadsheet-like features in Handsontable:
 
@@ -188,7 +188,7 @@ At first glance, it might seem that a data table, spreadsheet, and data grid are
 
 ## 🤖 AI & agent resources
 
-Working with an AI assistant or coding agent? Handsontable and HyperFormula ship first-party agent resources:
+Working with an AI assistant or coding agent? Handsontable DataGrid and HyperFormula ship first-party agent resources:
 
 - **Agent Skills** — install in Claude Code with `/plugin marketplace add handsontable/handsontable-skills` → [github.com/handsontable/handsontable-skills](https://github.com/handsontable/handsontable-skills)
 - **Docs MCP server** — live semantic search over the docs, API reference, release notes, and GitHub issues: `claude mcp add --transport http handsontable-docs https://docs-assistant.handsontable.com/mcp` → [guide](https://handsontable.com/docs/react-data-grid/docs-mcp-server/)
@@ -209,7 +209,7 @@ If you have a commercial license, feel free to contact us directly at [support@h
 
 ## 📖 Licenses
 
-Handsontable is available under two licensing options, allowing you to choose the one that best fits your needs. Each license comes with its own terms and conditions, as outlined below:
+Handsontable DataGrid is available under two licensing options, allowing you to choose the one that best fits your needs. Each license comes with its own terms and conditions, as outlined below:
 
 ### ① Free license for non-commercial use, and evaluation purposes
 This license is available for non-commercial purposes such as teaching, academic research, or evaluation. It allows you to use Handsontable free of charge under the terms specified in the non-commercial license agreement.

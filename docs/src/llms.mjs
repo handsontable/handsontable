@@ -137,7 +137,7 @@ export function buildLlmsIndex(pageMeta, sections) {
   const lines = [
     '# Handsontable',
     '',
-    '> Handsontable is a JavaScript data grid component with spreadsheet-like UX, available for React, Angular, Vue, and vanilla JavaScript. It ships editing, sorting, filtering, validation, and Excel-compatible formulas (via HyperFormula) as one embeddable component.',
+    '> Handsontable DataGrid is a JavaScript component with spreadsheet-like UX, available for React, Angular, Vue, and vanilla JavaScript. It ships editing, sorting, filtering, validation, and Excel-compatible formulas (via HyperFormula) as one embeddable component.',
     '',
     'Handsontable is developed by Handsoncode. The documentation below covers the JavaScript data grid and its framework wrappers. Guides exist in a JavaScript, React, Angular, and Vue variant at the same slug; to switch, swap the framework segment of a URL. Framework-specific guides are listed under their own framework prefix.',
     '',

@@ -723,7 +723,7 @@ export default defineConfig({
     starlight({
       title: 'Handsontable',
       description:
-        'Handsontable is a JavaScript/TypeScript data grid component for React, Angular, and Vue 3.',
+        'Handsontable DataGrid is a JavaScript/TypeScript component for building data grids in React, Angular, and Vue 3.',
 
       logo: {
         light: './src/assets/logo.svg',
