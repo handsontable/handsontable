@@ -303,6 +303,10 @@ Three limits to keep in mind:
 
 ## Related
 
-- [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell)
-- [`updateSettings()`](@/api/core.md#updatesettings)
-- [`columnSorting`](@/api/options.md#columnsorting)
+<div class="boxes-list">
+
+- [setSourceDataAtCell()](@/api/core.md#setsourcedataatcell)
+- [updateSettings()](@/api/core.md#updatesettings)
+- [columnSorting](@/api/options.md#columnsorting)
+
+</div>

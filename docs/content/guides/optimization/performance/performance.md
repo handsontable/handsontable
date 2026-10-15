@@ -172,6 +172,86 @@ Prefer lighter alternatives when they meet your needs:
 
 Use the [`cells`](@/api/options.md#cells) option only if the above alternatives can't express the logic you need.
 
+## Apply large custom borders progressively
+
+By default, Handsontable builds the whole [`customBorders`](@/api/options.md#customborders) configuration before the first render. A very large configuration can delay the initial paint.
+
+If your initial configuration borders thousands of cells or more, set [`customBordersProgressive`](@/api/options.md#custombordersprogressive) to `true`. The grid renders first, without the borders, and the borders are applied in background batches. This applies when the `customBorders` array is set at initialization or replaced with `updateSettings()`. The option is opt-in (the default is `false`) and available since 18.1.0.
+
+Progressive application splits the work by `customBorders` entry, but the cost depends on the number of bordered cells. An entry with a `range` is applied in one batch, so a single very large range is not split and can still block rendering.
+
+::: only-for javascript
+
+```js
+const hot = new Handsontable(obj, {
+  customBorders: largeBorderConfig,
+  customBordersProgressive: true,
+});
+```
+
+:::
+
+::: only-for react
+
+```js
+<HotTable
+  customBorders={largeBorderConfig}
+  customBordersProgressive={true}
+/>
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings = {
+  customBorders: largeBorderConfig,
+  customBordersProgressive: true,
+};
+```
+
+```html
+<hot-table [settings]="settings"></hot-table>
+```
+
+:::
+
+::: only-for vue
+
+```js
+const hotSettings = ref({
+  customBorders: largeBorderConfig,
+  customBordersProgressive: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
+To change the number of `customBorders` entries applied per batch, pass an object. The unit is entries, not cells, and the default is `5000`:
+
+```js
+customBordersProgressive: { chunkSize: 5000 },
+```
+
+With progressive application, [`getBorders()`](@/api/customBorders.md#getborders) and the border cell meta may be incomplete until the [`afterCustomBordersUpdate`](@/api/hooks.md#aftercustombordersupdate) hook fires. The hook also fires once, synchronously, when progressive application is off.
+
+```js
+afterCustomBordersUpdate() {
+  // every custom border is now applied
+},
+```
+
+Read more:
+
+- [`customBordersProgressive`](@/api/options.md#custombordersprogressive)
+- [Apply borders progressively for large configurations](@/guides/cell-features/formatting-cells/formatting-cells.md#apply-borders-progressively-for-large-configurations)
+
 ## Suspend rendering
 
 By default, Handsontable will call the render after each CRUD operation. Usually, this is expected behavior, but you may find it slightly excessive in some use cases. By using one of the batching methods, you can suspend rendering and call it just once at the end. For example:
@@ -272,6 +352,8 @@ For more information, see our [Pagination guide](@/guides/rows/rows-pagination/r
 - [`cells`](@/api/options.md#cells)
 - [`colWidths`](@/api/options.md#colwidths)
 - [`columns`](@/api/options.md#columns)
+- [`customBorders`](@/api/options.md#customborders)
+- [`customBordersProgressive`](@/api/options.md#custombordersprogressive)
 - [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
 - [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)
 

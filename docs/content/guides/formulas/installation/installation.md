@@ -24,9 +24,10 @@ The [`Formulas`](@/api/formulas.md) plugin runs on [HyperFormula](https://hyperf
 a calculation engine that you install separately. This guide shows how to install, license, and
 import HyperFormula so you can enable the plugin.
 
-Starting with Handsontable 18.0, HyperFormula is not bundled with Handsontable. You add it to your
-project yourself. In earlier versions, HyperFormula shipped as a Handsontable dependency and
-required no separate installation.
+Starting with Handsontable 18.0, the `handsontable` npm package no longer installs HyperFormula. If
+you import Handsontable as an ES or CommonJS module, you add HyperFormula to your project yourself.
+In earlier versions, HyperFormula was an optional dependency of the package and required no separate
+installation. The UMD bundle `handsontable.full.js` still includes HyperFormula.
 
 [[toc]]
 
