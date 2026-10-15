@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { TextEllipsisLineClampPage, type CellMeasure } from '../fixtures/pages/TextEllipsisLineClampPage';
 
 /**
@@ -32,7 +32,7 @@ const expectClamped = (m: CellMeasure, lines: number): void => {
   expect(m.wrapperScrollHeight as number).toBeGreaterThan(m.wrapperClientHeight as number);
 };
 
-test.describe('textEllipsis line clamp', () => {
+test.describe('textEllipsis line clamp', { tag: THEMES_TAG }, () => {
   test('clamps to n lines and keeps the full text, and the row is shorter than an unclamped row', async({ page, theme, bundle }) => {
     const grid = new TextEllipsisLineClampPage(page, theme, bundle);
 

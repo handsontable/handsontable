@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
 
 /**
@@ -8,7 +8,7 @@ import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
  * Walkontable's synthesized double-click and the plugin's own `mouseup` cleanup are driven by the
  * same native event (GitHub #13370).
  */
-test.describe('fill handle double-click', () => {
+test.describe('fill handle double-click', { tag: THEMES_TAG }, () => {
   let grid: SelectionFeaturesPage;
 
   // Column A filled all the way down, column B filled in rows 0–2 only: the copy-down from B3

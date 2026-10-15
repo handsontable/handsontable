@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { FormulasHyperlinkPage } from '../fixtures/pages/FormulasHyperlinkPage';
 
 /**
@@ -8,7 +8,7 @@ import { FormulasHyperlinkPage } from '../fixtures/pages/FormulasHyperlinkPage';
  * pin the two regressions that sank the original proposal (#10314): a swapped
  * renderer and an unsanitized `href`.
  */
-test.describe('formulas: HYPERLINK rendering', () => {
+test.describe('formulas: HYPERLINK rendering', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   test('renders an anchor with the label as text and the URL as href', async({ page, theme, bundle }) => {
     const grid = new FormulasHyperlinkPage(page, theme, bundle);
 

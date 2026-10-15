@@ -1,5 +1,5 @@
 import { type Page } from '@playwright/test';
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { NotificationStatesPage, type Box, type Corner } from '../fixtures/pages/NotificationStatesPage';
 
 /**
@@ -63,7 +63,7 @@ function expectInCorner(toast: Box, frame: Box, corner: Corner, dir: 'ltr' | 'rt
   expect(onLeft ? gapRight : gapLeft, `far ${onLeft ? 'right' : 'left'} gap`).toBeGreaterThan(CORNER_INSET_PX);
 }
 
-test.describe('notification placement', () => {
+test.describe('notification placement', { tag: THEMES_TAG }, () => {
   for (const dir of ['ltr', 'rtl'] as const) {
     for (const corner of CORNERS) {
       const variant = VARIANTS[corner];

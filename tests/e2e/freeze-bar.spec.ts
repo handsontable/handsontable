@@ -1,11 +1,11 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { FreezeBarPage } from '../fixtures/pages/FreezeBarPage';
 
 /**
  * The freezeBar plugin: a bar on the freeze line that changes the frozen rows and columns by dragging or with
  * the keyboard. The grid starts with 2 frozen columns and 2 frozen top rows.
  */
-test.describe('freezeBar', () => {
+test.describe('freezeBar', { tag: THEMES_TAG }, () => {
   let grid: FreezeBarPage;
 
   test.beforeEach(({ page, theme, bundle }) => {
@@ -1467,7 +1467,7 @@ test.describe('freezeBar', () => {
   });
 });
 
-test.describe('freezeBar and the rest of the page', () => {
+test.describe('freezeBar and the rest of the page', { tag: THEMES_TAG }, () => {
   let grid: FreezeBarPage;
 
   test.beforeEach(({ page, theme, bundle }) => {

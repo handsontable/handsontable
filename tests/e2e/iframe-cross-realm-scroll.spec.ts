@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { IframeWidthWindowScrollPage } from '../fixtures/pages/IframeWidthWindowScrollPage';
 
 /**
@@ -9,7 +9,7 @@ import { IframeWidthWindowScrollPage } from '../fixtures/pages/IframeWidthWindow
  * hazard: the engine can know an element owns an axis and still lay the holder out as if the window
  * did. `walkontable/AGENTS.md` records the same trap for `alignOverlaysWithTrimmingContainer`.
  */
-test.describe('cross-realm width-only grid: the engine must agree with itself about the owner', () => {
+test.describe('cross-realm width-only grid: the engine must agree with itself about the owner', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   let grid: IframeWidthWindowScrollPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

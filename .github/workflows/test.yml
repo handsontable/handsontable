@@ -138,6 +138,11 @@ jobs:
       run-e2e: ${{ needs.checks.outputs.test-handsontable-e2e == 'true' }}
       run-e2e-min: ${{ needs.checks.outputs.test-handsontable-e2e-min == 'true' }}
       run-playwright: ${{ needs.checks.outputs.build-handsontable-umd == 'true' }}
+      # The full theme × bundle matrix (every Playwright spec on every leg) on the rc/stable path,
+      # which publish.yml reaches with test-all: true, and on a master push, which has no nightly of
+      # its own. A pull request runs the shape each spec declares (tests/AGENTS.md, "Declaring the
+      # legs"); develop's push keeps that shape too, and the E2E nightly runs the matrix there.
+      full-matrix: ${{ inputs.test-all || github.ref_name == 'master' }}
     secrets: inherit
 
   integration:

@@ -26,6 +26,10 @@ on:
         description: 'UMD.min Puppeteer legs'
         type: boolean
         default: false
+      full-matrix:
+        description: 'Run every Playwright spec on every leg (HOT_E2E_FULL_MATRIX=1), whatever it declares'
+        type: boolean
+        default: false
       run-playwright:
         description: 'Playwright legs (build-umd scope — includes tests/**)'
         type: boolean
@@ -114,6 +118,9 @@ jobs:
         run: pnpm install --filter handsontable-tests
       - name: Run Playwright E2E
         id: playwright
+        # "1" drops every leg's grep (tests/AGENTS.md, "Declaring the legs"); "" keeps the declared shape.
+        env:
+          HOT_E2E_FULL_MATRIX: ${{ inputs.full-matrix && '1' || '' }}
         run: cd tests && npx playwright test --project=e2e-${{ matrix.theme }}${{ matrix.bundle.suffix }}
       # Also when the leg stayed green only because a flaky test was under
       # quarantine (the quarantine reporter sets the output): the ledger still

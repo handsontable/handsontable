@@ -1,5 +1,5 @@
 import { devices } from '@playwright/test';
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SheetsBarPage } from '../fixtures/pages/SheetsBarPage';
 
 /**
@@ -16,7 +16,7 @@ test.use({
   browserName: 'chromium',
 });
 
-test.describe('sheets bar touch drag', () => {
+test.describe('sheets bar touch drag', { tag: THEMES_TAG }, () => {
   test('dragging a tab past its neighbour by touch reorders the strip', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 

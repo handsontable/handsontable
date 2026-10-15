@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { BeforeAutofillPrecedencePage } from '../fixtures/pages/BeforeAutofillPrecedencePage';
 
 /**
@@ -21,7 +21,7 @@ const USER_DATA = [['USER']];
 const SELECTION_UNCHANGED = [0, 0, 0, 1];
 const SELECTION_FILLED = [0, 0, 1, 1];
 
-test.describe('beforeAutofill precedence with the Formulas plugin', () => {
+test.describe('beforeAutofill precedence with the Formulas plugin', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   test('baseline: Formulas alone fills with shifted formulas', async({ page, theme, bundle }) => {
     const grid = new BeforeAutofillPrecedencePage(page, theme, bundle);
 

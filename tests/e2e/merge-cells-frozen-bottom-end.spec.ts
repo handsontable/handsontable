@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { MergeCellsFrozenBottomEndPage } from '../fixtures/pages/MergeCellsFrozenBottomEndPage';
 
 /**
@@ -43,7 +43,7 @@ const SHAPES: Shape[] = [
 ];
 
 for (const direction of ['ltr', 'rtl'] as const) {
-  test.describe(`merged cell across fixedRowsBottom and fixedColumnsEnd (${direction})`, () => {
+  test.describe(`merged cell across fixedRowsBottom and fixedColumnsEnd (${direction})`, { tag: THEMES_TAG }, () => {
     let grid: MergeCellsFrozenBottomEndPage;
 
     test.beforeEach(async ({ page, theme, bundle }) => {

@@ -1,4 +1,4 @@
-import { test, expect } from '../../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../../fixtures/test';
 import { ExactRowHeightsPage } from '../../fixtures/pages/walkontable/ExactRowHeightsPage';
 
 /**
@@ -7,7 +7,7 @@ import { ExactRowHeightsPage } from '../../fixtures/pages/walkontable/ExactRowHe
  * height back after every draw and kept the larger value. In the `exact` mode the row renders
  * at exactly the provided height, on every cell, with the content clipped.
  */
-test.describe('walkontable exact row heights', { tag: '@walkontable' }, () => {
+test.describe('walkontable exact row heights', { tag: ['@walkontable', THEMES_TAG, BUNDLES_TAG] }, () => {
   const {
     ROW_HEIGHT, MULTILINE_ROW, MULTILINE_COLUMN, TALL_FROZEN_ROW, CHECKBOX_COLUMN, AUTOCOMPLETE_COLUMN,
   } = ExactRowHeightsPage;

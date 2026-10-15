@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SubmenuPositionPage, type Layout } from '../fixtures/pages/SubmenuPositionPage';
 
 /**
@@ -74,7 +74,7 @@ const LAYOUTS: Layout[] = [
 ];
 
 for (const layout of LAYOUTS) {
-  test.describe(`submenu placement (grid ${layout.grid}, document ${layout.doc})`, () => {
+  test.describe(`submenu placement (grid ${layout.grid}, document ${layout.doc})`, { tag: THEMES_TAG }, () => {
     for (const scrolled of [false, true]) {
       // The grid's own holder scrolls here, so its scroll offset must not reach the submenu's position.
       const where = scrolled ? ', with the grid scrolled to its bottom and inline end' : '';

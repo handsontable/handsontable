@@ -68,6 +68,14 @@ test('the engines config runs only tagged tests on Firefox and WebKit, inheritin
     `e2e-webkit must leave out the tests tagged @clipboard-shortcut. ${DOC}`);
   assert.match(config, /theme: 'main', bundle: 'umd'/, `the engine projects run one theme and one bundle. ${DOC}`);
 
+  // The leg declarations (tests/lib/leg-declarations.mjs) decide which theme × bundle legs a spec runs
+  // on; the engine legs run every tagged spec on main/umd regardless. The base config keeps its greps
+  // per project, never top-level, so nothing leaks through the spread; this keeps the engines config
+  // from reading the declarations itself.
+  assert.doesNotMatch(config, /legGrep|THEMES_TAG|BUNDLES_TAG|FULL_MATRIX/,
+    `${ENGINES_CONFIG} must not read the leg declarations: the engine legs run every @cross-browser spec whatever `
+    + `its theme and bundle tags say. ${DOC}`);
+
   // The CI flake settings and the reporters (the quarantine reporter decides the exit status) come
   // from the base config; an override here would decide the engine legs alone, unpinned.
   ['retries', 'failOnFlakyTests', 'forbidOnly', 'reporter', 'webServer'].forEach((key) => {

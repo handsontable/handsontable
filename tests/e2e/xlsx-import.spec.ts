@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { XlsxImportPage } from '../fixtures/pages/XlsxImportPage';
 
 /**
@@ -6,7 +6,7 @@ import { XlsxImportPage } from '../fixtures/pages/XlsxImportPage';
  * XLSX and imported into an empty grid in the same page. Asserts the reader-visible outcome (headers,
  * values, hidden column, merge) and the cell types the import inferred.
  */
-test.describe('xlsx import (ExcelJS)', () => {
+test.describe('xlsx import (ExcelJS)', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   let grids: XlsxImportPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
