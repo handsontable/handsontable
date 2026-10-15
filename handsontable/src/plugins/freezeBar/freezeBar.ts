@@ -2,8 +2,8 @@ import { BasePlugin } from '../base';
 import { A11Y_LABEL } from '../../helpers/a11y';
 import * as C from '../../i18n/constants';
 import { getDeepActiveElement, getTrimmingContainer, setAttribute } from '../../helpers/dom/element';
-import { getRenderedRowHeight } from '../../core/viewportScroll/scrollStrategies/singleScroll';
-import { getMaxFittingFrozenCount } from '../../utils/frozenAreaFit';
+import { clampFixedColumnsEnd } from '../../3rdparty/walkontable/src/settings/fixedColumnsEnd';
+import { getMaxFittingFrozenCount, MIN_SCROLLABLE_SIZE } from '../../utils/frozenAreaFit';
 import { getElementScaleFactor, normalizeVisualDelta } from '../../utils/manualResize/utils';
 import { resolveFreezeCount } from './snapResolver';
 import type { FreezeBarSettings, FreezeEdge, FreezeSource } from './types';
@@ -41,10 +41,6 @@ const CORNER_OVERLAYS: Record<FreezeEdge, string[]> = {
   end: ['topInlineEndCornerOverlay', 'bottomInlineEndCornerOverlay'],
 };
 
-/**
- * The size that always stays scrollable, in pixels. The frozen area never grows into it.
- */
-const MIN_SCROLLABLE_SIZE = 40;
 const EDGES: readonly FreezeEdge[] = ['start', 'top', 'end', 'bottom'];
 
 interface Rect {
@@ -152,7 +148,7 @@ export class FreezeBar extends BasePlugin {
   /**
    * The state of the drag in progress.
    */
-  #drag: { edge: FreezeEdge, count: number } | null = null;
+  #drag: { edge: FreezeEdge, count: number, startCount: number } | null = null;
   /**
    * Ends the drag in progress without storing anything.
    */
@@ -215,7 +211,10 @@ export class FreezeBar extends BasePlugin {
   }
 
   /**
-   * Gets the number of frozen rows or columns on the given edge.
+   * Gets the number of frozen rows or columns on the given edge, as configured. It is the count an app saves and the
+   * count the hooks report. The start band has priority over the end band, so the end band is the part of it that
+   * remains. With `limitFixedToViewport` the grid may draw fewer tracks than this: the bar and its ARIA value follow
+   * the drawn count, and there is no public method that returns it.
    *
    * @param {string} edge The edge: `top`, `bottom`, `start` or `end`.
    * @returns {number}
@@ -227,9 +226,8 @@ export class FreezeBar extends BasePlugin {
 
     const settings = this.hot.getSettings();
 
-    // the start band has priority, so the end band is the part of it that remains
     if (edge === 'end') {
-      return this.hot.view.countFixedColumnsEnd();
+      return clampFixedColumnsEnd(settings.fixedColumnsEnd, settings.fixedColumnsStart, this.hot.countCols());
     }
 
     const count = {
@@ -239,6 +237,25 @@ export class FreezeBar extends BasePlugin {
     }[edge];
 
     return Math.max(0, Math.floor(Number(count) || 0));
+  }
+
+  /**
+   * Gets the number of frozen rows or columns the grid draws on the given edge. It equals the configured count
+   * unless `limitFixedToViewport` cut the band down to what fits.
+   *
+   * @param {string} edge The edge.
+   * @returns {number}
+   */
+  #getDrawnCount(edge: FreezeEdge): number {
+    const view = this.hot.view;
+    const count = {
+      top: view.countFixedRowsTop(),
+      bottom: view.countFixedRowsBottom(),
+      start: view.countFixedColumnsStart(),
+      end: view.countFixedColumnsEnd(),
+    }[edge];
+
+    return Math.max(0, Math.floor(count));
   }
 
   /**
@@ -378,30 +395,9 @@ export class FreezeBar extends BasePlugin {
   #getEdgeTrackSize(edge: FreezeEdge, indexFromEdge: number): number {
     const columns = isColumnEdge(edge);
     const total = columns ? this.hot.countCols() : this.hot.countRows();
+    const visual = growsFromStart(edge) ? indexFromEdge : total - 1 - indexFromEdge;
 
-    return this.#getTrackSize(columns, growsFromStart(edge) ? indexFromEdge : total - 1 - indexFromEdge);
-  }
-
-  /**
-   * Gets the size of one track.
-   *
-   * @param {boolean} column `true` for a column, `false` for a row.
-   * @param {number} visualIndex The visual index.
-   * @returns {number}
-   */
-  #getTrackSize(column: boolean, visualIndex: number): number {
-    const mapper = column ? this.hot.columnIndexMapper : this.hot.rowIndexMapper;
-    const physical = column ? this.hot.toPhysicalColumn(visualIndex) : this.hot.toPhysicalRow(visualIndex);
-
-    if (physical === null || mapper.isHidden(physical)) {
-      return 0;
-    }
-
-    if (column) {
-      return this.hot.getColWidth(visualIndex);
-    }
-
-    return getRenderedRowHeight(this.hot, visualIndex) ?? this.hot.stylesHandler.getDefaultRowHeight(visualIndex) ?? 0;
+    return this.hot.view.getFrozenTrackSize(columns, visual, true);
   }
 
   /**
@@ -416,13 +412,14 @@ export class FreezeBar extends BasePlugin {
     const opposite: FreezeEdge = { start: 'end', end: 'start', top: 'bottom', bottom: 'top' }[edge] as FreezeEdge;
     const view = this.hot.view;
     const total = columns ? this.hot.countCols() : this.hot.countRows();
-    const viewportSize = columns ?
-      view.getWorkspaceWidth() - view.getRowHeaderWidth() :
-      view.getWorkspaceHeight() - view.getColumnHeaderHeight();
-    const oppositeCount = Math.min(this.getFreezeCount(opposite), total);
+    const viewportSize = view.getFrozenViewportSize(columns);
+    const oppositeDrawn = Math.min(this.#getDrawnCount(opposite), total);
     // The band on the other edge takes its room first, so the two bands together never fill the viewport.
-    const oppositeBandSize = this.#getTrackSizes(opposite, { maxTracks: oppositeCount })
+    const oppositeBandSize = this.#getTrackSizes(opposite, { maxTracks: oppositeDrawn })
       .reduce((sum, size) => sum + size, 0);
+    // The tracks that remain are counted after the CONFIGURED opposite band, as `resolveFittingFrozenCounts` does:
+    // a count the bar commits above that is cut by the grid, and the hook would report more than is drawn.
+    const oppositeConfigured = Math.min(this.getFreezeCount(opposite), total);
     // tracks past the viewport can not fit, so the walk stops there
     const trackSizes = this.#getTrackSizes(edge, { sizeBudget: viewportSize });
     const fit = getMaxFittingFrozenCount({
@@ -432,7 +429,7 @@ export class FreezeBar extends BasePlugin {
       minScrollableSize: MIN_SCROLLABLE_SIZE,
     });
 
-    let max = Math.min(fit, total - oppositeCount);
+    let max = Math.min(fit, total - oppositeConfigured);
 
     // the cap can end on a hidden track just before the opposite band, which would freeze nothing more on screen
     while (max > 0 && trackSizes[max - 1] === 0) {
@@ -562,7 +559,7 @@ export class FreezeBar extends BasePlugin {
    */
   #syncBar(edge: FreezeEdge) {
     const available = this.#isEdgeAvailable(edge);
-    const count = available ? this.getFreezeCount(edge) : 0;
+    const count = available ? this.#getDrawnCount(edge) : 0;
     // A bar sits in the overlay that holds the frozen tracks. With nothing frozen there is no overlay to
     // hold it, so the handle of an empty edge sits in the root element, on a header corner.
     const host = available ? this.#getHost(edge, count) : null;
@@ -980,7 +977,9 @@ export class FreezeBar extends BasePlugin {
       fromLeft: boolean,
     } | null = null;
 
-    this.#drag = { edge, count: this.getFreezeCount(edge) };
+    const startCount = this.#getDrawnCount(edge);
+
+    this.#drag = { edge, count: startCount, startCount };
     this.#setActive(edge, true);
 
     const separator = this.#separators[edge];
@@ -1011,7 +1010,7 @@ export class FreezeBar extends BasePlugin {
 
       const rootRect = this.hot.rootElement.getBoundingClientRect();
       // A count above what fits keeps its room, so a wobble of the pointer cannot lower a count the user did not touch.
-      const maxCount = Math.max(this.#getMaxCount(edge), this.getFreezeCount(edge));
+      const maxCount = Math.max(this.#getMaxCount(edge), this.#getDrawnCount(edge));
 
       session = {
         scale: getElementScaleFactor(this.hot.rootElement, columns ? 'horizontal' : 'vertical'),
@@ -1064,8 +1063,9 @@ export class FreezeBar extends BasePlugin {
       this.#abortDrag = null;
 
       // a release that never passed the threshold is a click, and writes nothing (the count may have changed since
-      // the press, by an undo for example)
-      if (commit && drag && session) {
+      // the press, by an undo for example). A gesture that ends where it began changes nothing either, so it must not
+      // replace a configured count the grid draws fewer tracks of.
+      if (commit && drag && session && drag.count !== drag.startCount) {
         this.#applyCount(edge, drag.count, 'drag');
       }
     };
@@ -1104,10 +1104,10 @@ export class FreezeBar extends BasePlugin {
     const columns = isColumnEdge(edge);
     const total = columns ? this.hot.countCols() : this.hot.countRows();
     const opposite: FreezeEdge = { start: 'end', end: 'start', top: 'bottom', bottom: 'top' }[edge] as FreezeEdge;
-    const frozenHere = this.getFreezeCount(edge);
+    const frozenHere = this.#getDrawnCount(edge);
 
     // every track is frozen, so nothing scrolls
-    if (total <= frozenHere + this.getFreezeCount(opposite)) {
+    if (total <= frozenHere + this.#getDrawnCount(opposite)) {
       return;
     }
 
@@ -1512,7 +1512,7 @@ export class FreezeBar extends BasePlugin {
     const backwardKey = columns ? 'ArrowLeft' : 'ArrowUp';
     const forward = growsFromStart(edge) ? forwardKey : backwardKey;
     const backward = growsFromStart(edge) ? backwardKey : forwardKey;
-    const current = this.getFreezeCount(edge);
+    const current = this.#getDrawnCount(edge);
     const flip = columns && rtl ? -1 : 1;
     let target: number | null = null;
 
@@ -1534,7 +1534,18 @@ export class FreezeBar extends BasePlugin {
     event.preventDefault();
 
     // hidden tracks have no size, so a step over them would change nothing visible
-    this.#applyCount(edge, this.#stepOverHidden(edge, current, target), 'keyboard');
+    const steppedOverHidden = this.#stepOverHidden(edge, current, target);
+    // A grow is cut down to what fits, as `End` is. Without it a step from the drawn count would ask for one more
+    // track that does not fit, and below a larger configured count that reads as a shrink.
+    const stepped = steppedOverHidden > current ?
+      Math.min(steppedOverHidden, Math.max(this.#getMaxCount(edge), current)) :
+      steppedOverHidden;
+
+    // a step that lands on the drawn count (`End` when the band already fills the viewport, a grow that cannot
+    // fit) changes nothing visible, so it must not replace a configured count that is larger than what is drawn
+    if (stepped !== current) {
+      this.#applyCount(edge, stepped, 'keyboard');
+    }
   }
 
   /**

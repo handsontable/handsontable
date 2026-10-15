@@ -65,6 +65,9 @@ describe('ResizeGesture', () => {
         getTableWidth: () => 400,
         getTableHeight: () => 300,
         countFixedColumnsEnd: () => frozen.fixedColumnsEnd ?? 0,
+        countFixedColumnsStart: () => frozen.fixedColumnsStart ?? 0,
+        countFixedRowsTop: () => frozen.fixedRowsTop ?? 0,
+        countFixedRowsBottom: () => frozen.fixedRowsBottom ?? 0,
       },
     };
 

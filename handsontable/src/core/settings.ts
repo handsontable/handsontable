@@ -268,6 +268,7 @@ export interface GridSettings {
   fixedColumnsStart?: number;
   fixedRowsBottom?: number;
   fixedRowsTop?: number;
+  limitFixedToViewport?: boolean;
 
   // Headers
   colHeaders?: boolean | string[] | ((column: number) => string);

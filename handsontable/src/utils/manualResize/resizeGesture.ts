@@ -527,8 +527,10 @@ export class ResizeGesture {
     // the number of tracks before the edge the handle sits on
     const tracksBefore = this.#anchoredAtInlineEnd ? visualIndex : visualIndex + 1;
     const total = vertical ? hot.countRows() : hot.countCols();
-    const before = vertical ? hot.getSettings().fixedRowsTop : hot.getSettings().fixedColumnsStart;
-    const after = vertical ? hot.getSettings().fixedRowsBottom : hot.view.countFixedColumnsEnd();
+    // The bands the grid DRAWS: with `limitFixedToViewport` they can be smaller than the configured counts, and a
+    // freeze bar sits on the drawn line.
+    const before = vertical ? hot.view.countFixedRowsTop() : hot.view.countFixedColumnsStart();
+    const after = vertical ? hot.view.countFixedRowsBottom() : hot.view.countFixedColumnsEnd();
 
     this.#handle.classList.toggle('ht-resize-handle--freeze-before', !!before && tracksBefore === before);
     this.#handle.classList.toggle('ht-resize-handle--freeze-after', !!after && tracksBefore === total - after);

@@ -34,7 +34,14 @@ function createHot({ totalColumns = 10, fixedColumnsStart = 0, fixedColumnsEnd =
   };
 
   // The real TableView counter, so the stub cannot drift from the band size the renderer uses.
-  hot.view = { countFixedColumnsEnd: () => TableView.prototype.countFixedColumnsEnd.call({ settings, hot }) };
+  const viewLike = { settings, hot };
+
+  hot.view = {
+    countFixedColumnsEnd: () => TableView.prototype.countFixedColumnsEnd.call(viewLike),
+    countFixedColumnsStart: () => TableView.prototype.countFixedColumnsStart.call(viewLike),
+    countFixedRowsTop: () => TableView.prototype.countFixedRowsTop.call(viewLike),
+    countFixedRowsBottom: () => TableView.prototype.countFixedRowsBottom.call(viewLike),
+  };
 
   return hot;
 }

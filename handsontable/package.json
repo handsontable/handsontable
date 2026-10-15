@@ -193,6 +193,7 @@
       "./dist/**/*.+(js|css)",
       "./styles/**/*.+(css)",
       "./themes/+(index|registry)*",
+      "./themes/types.*",
       "./themes/static/variables/**/*",
       {
         ".": {

@@ -4622,6 +4622,8 @@ export default function Core(
     if (isSizeChanged || view._wt.wtOverlays.scrollableElement === instance.rootWindow) {
       view.setLastSize(width, height);
       instance.render();
+    } else {
+      view.renderWhenWindowResizeMovedFixed();
     }
 
     instance.runHooks(
