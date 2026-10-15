@@ -3,9 +3,11 @@
  * `nodenext`, resolving `handsontable` through the real `exports` map (a `node_modules` link to
  * `tmp/`, never a tsconfig `paths` map, which bypasses `exports` and proves nothing).
  *
- * This is the check that catches a `.d.mts` whose default export is typed wrong. `attw` and the
- * `.d.ts` type-check both pass for a `.d.mts` wrapper that re-exports a CommonJS-typed default
- * (DEV-3421), because the wrapper itself is well formed and only a default import shows the damage.
+ * This is the check that catches a `.d.mts` whose default export is typed wrong, for a theme preset or language
+ * dictionary (`theme-presets.ts`) and for the `handsontable` and `handsontable/base` entry points
+ * (`entry-points.ts`). `attw` and the `.d.ts` type-check both pass for a `.d.mts` wrapper that re-exports a
+ * CommonJS-typed default (DEV-3421, DEV-3430), because the wrapper itself is well formed and only a default
+ * import shows the damage.
  *
  * Needs the composed package: run `postbuild` (or `postbuild:partial`) first.
  * Set `TSC` to pick a compiler, e.g. the TS 5.1 the Emitted Types workflow installs.
@@ -22,8 +24,10 @@ import { fileURLToPath } from 'node:url';
 
 const projectRoot = fileURLToPath(new URL('..', import.meta.url));
 const packageDir = path.join(projectRoot, 'tmp');
-const fixture = path.join(projectRoot, '.config', 'emitted-types', 'theme-presets.ts');
-const reexportFixture = path.join(projectRoot, '.config', 'emitted-types', 'theme-presets-reexport.ts');
+const fixtureDir = path.join(projectRoot, '.config', 'emitted-types');
+const fixture = path.join(fixtureDir, 'theme-presets.ts');
+const reexportFixture = path.join(fixtureDir, 'theme-presets-reexport.ts');
+const entryPointsFixture = path.join(fixtureDir, 'entry-points.ts');
 const tscFromEnv = process.env.TSC;
 const tscCli = path.join(projectRoot, 'node_modules', 'typescript', 'bin', 'tsc');
 // A `TSC` override is an executable (a `.bin` shim); the local fallback is the JS entry, which runs
@@ -70,6 +74,45 @@ function listPresetSpecifiers() {
     .filter(file => file.endsWith('.d.mts') && /\bexport\s+default\b/.test(readFileSync(path.join(root, file), 'utf8')))
     .map(file => `handsontable/themes/static/variables/${file.replace(/\.d\.mts$/, '')}`)
     .sort();
+}
+
+/**
+ * List the public `import` declarations whose `.d.ts` has a default export but whose `.d.mts` is still a thin
+ * `export { default } from './x.js'` wrapper. Under `node16` such a default import is the CommonJS module namespace
+ * (DEV-3421, DEV-3430). The list comes from the `exports` map, so a new default-exporting entry cannot be missed.
+ *
+ * @returns {string[]} The `exports` keys paired with the wrapper declaration they resolve to.
+ */
+function listNamespaceTypedDefaults() {
+  const { exports: exportsMap = {} } = JSON.parse(readFileSync(path.join(packageDir, 'package.json'), 'utf8'));
+  const found = [];
+
+  Object.entries(exportsMap).forEach(([key, conditions]) => {
+    const mtsFile = conditions?.import?.types;
+
+    if (typeof mtsFile !== 'string' || !mtsFile.endsWith('.d.mts')) {
+      return;
+    }
+
+    const dtsPath = path.join(packageDir, mtsFile.replace(/\.d\.mts$/, '.d.ts'));
+    const mtsPath = path.join(packageDir, mtsFile);
+
+    if (existsSync(dtsPath) && existsSync(mtsPath)
+      && /\bexport\s+default\b/.test(readFileSync(dtsPath, 'utf8'))
+      && /\bexport\s*\{\s*default\s*\}\s*from\b/.test(readFileSync(mtsPath, 'utf8'))) {
+      found.push(`${key} -> ${mtsFile}`);
+    }
+  });
+
+  return found;
+}
+
+const namespaceTypedDefaults = listNamespaceTypedDefaults();
+
+if (namespaceTypedDefaults.length > 0) {
+  reportError('These entry points default-export a class or object, but their .d.mts is a thin wrapper, so a default '
+    + `import is typed as the module namespace under node16:\n${namespaceTypedDefaults.join('\n')}`);
+  process.exit(1);
 }
 
 const fixtureSource = readFileSync(fixture, 'utf8');
@@ -123,6 +166,7 @@ try {
   writeFileSync(path.join(workDir, 'package.json'), JSON.stringify(manifest));
   cpSync(fixture, path.join(workDir, 'index.ts'));
   cpSync(reexportFixture, path.join(workDir, 'reexport.ts'));
+  cpSync(entryPointsFixture, path.join(workDir, 'entry-points.ts'));
   mkdirSync(path.join(workDir, 'node_modules'));
   symlinkSync(packageDir, path.join(workDir, 'node_modules', 'handsontable'), 'junction');
 
@@ -131,6 +175,7 @@ try {
   const PROGRAMS = [
     { file: 'index.ts', label: '', emitDeclarations: false },
     { file: 'reexport.ts', label: ', declaration emit', emitDeclarations: true },
+    { file: 'entry-points.ts', label: ', entry points', emitDeclarations: false },
   ];
 
   MODES.flatMap(mode => PROGRAMS.map(program => ({ mode, program }))).forEach(({ mode, program }) => {

@@ -6,6 +6,9 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import {
   SELF_CONTAINED_MTS_DIRS,
+  ENTRY_SHIM_SUFFIX,
+  listEntryShimTargets,
+  toEntryShim,
   toExplicitEsmSpecifiers,
   toMtsDeclaration,
 } from '../../../scripts/utils/explicit-esm-specifiers.mjs';
@@ -151,6 +154,48 @@ test('the packaging step writes a self-contained copy for a preset and a languag
     assert.equal(
       toMtsDeclaration(root, 'core.d.ts'),
       'export * from \'./core.js\';\nexport { default } from \'./core.js\';\n'
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('the entry points re-export their default through an entry shim, only at the package root', () => {
+  const root = mkdtempSync(path.join(tmpdir(), 'hot-mts-entry-'));
+  const write = (file, content) => {
+    mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
+    writeFileSync(path.join(root, file), content);
+  };
+
+  try {
+    write('core/index.d.ts', 'export declare const core: number;\n');
+    write('base.d.ts', 'declare const Handsontable: { a: 1 };\nexport default Handsontable;\n');
+    write('index.d.ts', 'import Handsontable from \'./base\';\nexport default Handsontable;\n');
+    write('themes/index.d.ts', 'declare const themes: number;\nexport default themes;\n');
+
+    assert.equal(ENTRY_SHIM_SUFFIX, '.entry.d.ts');
+    // The default comes from a NAMED import of the shim: a default import of the CommonJS `.d.ts` is typed as the
+    // module namespace under `node16` (DEV-3430), and a copy of the declaration would split its identity.
+    assert.equal(
+      toMtsDeclaration(root, 'base.d.ts'),
+      'export * from \'./base.js\';\nimport { Handsontable } from \'./base.entry.js\';\nexport default Handsontable;\n'
+    );
+    assert.equal(
+      toMtsDeclaration(root, 'index.d.ts'),
+      'export * from \'./index.js\';\nimport { Handsontable } from \'./index.entry.js\';\nexport default Handsontable;\n'
+    );
+    assert.equal(toEntryShim('base.d.ts'), 'import Handsontable from \'./base\';\nexport { Handsontable };\n');
+    assert.equal(toEntryShim('index.d.ts'), 'import Handsontable from \'./index\';\nexport { Handsontable };\n');
+    // Only the entry declarations the tree holds, with a default export, get a shim.
+    assert.deepEqual(listEntryShimTargets(root), ['index.d.ts', 'base.d.ts']);
+    write('index.d.ts', 'export declare const named: number;\n');
+    assert.deepEqual(listEntryShimTargets(root), ['base.d.ts']);
+    assert.deepEqual(listEntryShimTargets(path.join(root, 'core')), []);
+    // A same-named file in a subdirectory, with or without a default export, keeps the wrapper.
+    assert.equal(toMtsDeclaration(root, 'core/index.d.ts'), 'export * from \'./index.js\';\n');
+    assert.equal(
+      toMtsDeclaration(root, 'themes/index.d.ts'),
+      'export * from \'./index.js\';\nexport { default } from \'./index.js\';\n'
     );
   } finally {
     rmSync(root, { recursive: true, force: true });
