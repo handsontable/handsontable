@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-15T07:17:42.665Z",
+  "generatedAt": "2026-10-15T07:48:31.839Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -21,10 +21,10 @@
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
       "count7": 0,
-      "count30": 28,
+      "count30": 26,
       "countAll": 28,
-      "runs30": 16,
-      "flakyRuns30": 16,
+      "runs30": 15,
+      "flakyRuns30": 15,
       "branches30": 14,
       "nightlyRuns30": 0,
       "openBranches30": 14,
@@ -93,43 +93,6 @@
       "needsTicket": true
     },
     {
-      "key": "playwright|e2e/iframe-cross-realm-scroll.spec.ts|cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
-      "tier": "playwright",
-      "file": "e2e/iframe-cross-realm-scroll.spec.ts",
-      "line": 100,
-      "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
-      "count7": 2,
-      "count30": 13,
-      "countAll": 14,
-      "runs30": 9,
-      "flakyRuns30": 9,
-      "branches30": 8,
-      "nightlyRuns30": 0,
-      "openBranches30": 8,
-      "legs": [
-        "e2e-classic",
-        "e2e-classic-min",
-        "e2e-horizon",
-        "e2e-horizon-min",
-        "e2e-main-min"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-09T10:09:36Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37910350952/attempts/2",
-        "branch": "feature/DEV-3345_Test-arrow-key-burst-beside-end-columns",
-        "leg": "e2e-classic",
-        "status": "flaky",
-        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
       "key": "playwright|e2e/selection-viewport-scroll.spec.ts|viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
       "tier": "playwright",
       "file": "e2e/selection-viewport-scroll.spec.ts",
@@ -159,6 +122,43 @@
         "leg": "e2e-horizon",
         "status": "flaky",
         "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "playwright|e2e/iframe-cross-realm-scroll.spec.ts|cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
+      "tier": "playwright",
+      "file": "e2e/iframe-cross-realm-scroll.spec.ts",
+      "line": 100,
+      "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
+      "count7": 2,
+      "count30": 12,
+      "countAll": 14,
+      "runs30": 8,
+      "flakyRuns30": 8,
+      "branches30": 8,
+      "nightlyRuns30": 0,
+      "openBranches30": 8,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-09T10:09:36Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37910350952/attempts/2",
+        "branch": "feature/DEV-3345_Test-arrow-key-burst-beside-end-columns",
+        "leg": "e2e-classic",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": true
