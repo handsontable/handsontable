@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import { SummaryEndpoint } from 'handsontable/plugins/columnSummary';
+import type { SummaryEndpoint } from 'handsontable/plugins/columnSummary';
 
 // Register all Handsontable's modules.
 registerAllModules();

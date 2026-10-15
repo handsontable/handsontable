@@ -31,7 +31,7 @@ const hotSettings = ref<GridSettings>({
   rowHeaders: true,
   colHeaders: ['sum', 'min', 'max', 'count', 'average'],
   columnSummary: function () {
-    const configArray = [];
+    const configArray: SummaryEndpoint[] = [];
     const summaryTypes = ['sum', 'min', 'max', 'count', 'average'];
 
     for (let i = 0; i < this.hot.countCols(); i++) {
@@ -49,7 +49,7 @@ const hotSettings = ref<GridSettings>({
       });
     }
 
-    return configArray as SummaryEndpoint[];
+    return configArray;
   },
 });
 </script>

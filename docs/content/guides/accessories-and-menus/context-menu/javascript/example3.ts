@@ -38,7 +38,7 @@ const sanitizeMenuLabel = (html: string): string => {
 };
 
 const contextMenuSettings = {
-  callback(key: string, selection: unknown[], clickEvent: MouseEvent) {
+  callback(key: string, selection: unknown[], clickEvent?: Event) {
     // Common callback for all options
     console.log(key, selection, clickEvent);
   },
