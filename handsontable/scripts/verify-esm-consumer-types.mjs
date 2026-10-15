@@ -75,6 +75,45 @@ function listPresetSpecifiers() {
     .sort();
 }
 
+/**
+ * List the public `import` declarations whose `.d.ts` has a default export but whose `.d.mts` is still a thin
+ * `export { default } from './x.js'` wrapper. Under `node16` such a default import is the CommonJS module namespace
+ * (DEV-3421, DEV-3430). The list comes from the `exports` map, so a new default-exporting entry cannot be missed.
+ *
+ * @returns {string[]} The `exports` keys paired with the wrapper declaration they resolve to.
+ */
+function listNamespaceTypedDefaults() {
+  const { exports: exportsMap = {} } = JSON.parse(readFileSync(path.join(packageDir, 'package.json'), 'utf8'));
+  const found = [];
+
+  Object.entries(exportsMap).forEach(([key, conditions]) => {
+    const mtsFile = conditions?.import?.types;
+
+    if (typeof mtsFile !== 'string' || !mtsFile.endsWith('.d.mts')) {
+      return;
+    }
+
+    const dtsPath = path.join(packageDir, mtsFile.replace(/\.d\.mts$/, '.d.ts'));
+    const mtsPath = path.join(packageDir, mtsFile);
+
+    if (existsSync(dtsPath) && existsSync(mtsPath)
+      && /\bexport\s+default\b/.test(readFileSync(dtsPath, 'utf8'))
+      && /\bexport\s*\{\s*default\s*\}\s*from\b/.test(readFileSync(mtsPath, 'utf8'))) {
+      found.push(`${key} -> ${mtsFile}`);
+    }
+  });
+
+  return found;
+}
+
+const namespaceTypedDefaults = listNamespaceTypedDefaults();
+
+if (namespaceTypedDefaults.length > 0) {
+  reportError('These entry points default-export a class or object, but their .d.mts is a thin wrapper, so a default '
+    + `import is typed as the module namespace under node16:\n${namespaceTypedDefaults.join('\n')}`);
+  process.exit(1);
+}
+
 const fixtureSource = readFileSync(presetsFixture, 'utf8');
 const unimported = listPresetSpecifiers().filter(specifier => !fixtureSource.includes(`from '${specifier}'`));
 

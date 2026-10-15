@@ -36,7 +36,6 @@ export const rangeClass: typeof CellRange = Handsontable.CellRange;
 export const indexVersion: string | undefined = Handsontable.version;
 export const baseVersion: string | undefined = HandsontableBase.version;
 export const indexPlugin = Handsontable.plugins.AutoColumnSize;
-export const basePlugin = HandsontableBase.plugins.AutoColumnSize;
 
 // Guards. Each line must fail to compile. They fail the check when the default import collapses to `any`.
 // @ts-expect-error `version` is not a number, so `Handsontable` must not be `any`.

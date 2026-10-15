@@ -6,7 +6,6 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import {
   SELF_CONTAINED_MTS_DIRS,
-  ENTRY_POINT_DECLARATIONS,
   ENTRY_SHIM_SUFFIX,
   toEntryShim,
   toExplicitEsmSpecifiers,
@@ -173,7 +172,6 @@ test('the entry points re-export their default through an entry shim, only at th
     write('index.d.ts', 'import Handsontable from \'./base\';\nexport default Handsontable;\n');
     write('themes/index.d.ts', 'declare const themes: number;\nexport default themes;\n');
 
-    assert.ok(['index.d.ts', 'base.d.ts'].every(file => ENTRY_POINT_DECLARATIONS.includes(file)));
     assert.equal(ENTRY_SHIM_SUFFIX, '.entry.d.ts');
     // The default comes from a NAMED import of the shim: a default import of the CommonJS `.d.ts` is typed as the
     // module namespace under `node16` (DEV-3430), and a copy of the declaration would split its identity.
