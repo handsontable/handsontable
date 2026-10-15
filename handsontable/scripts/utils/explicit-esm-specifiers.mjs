@@ -125,6 +125,22 @@ export function toMtsDeclaration(targetDir, dtsFile) {
 }
 
 /**
+ * List the entry-point declarations that need an entry shim: the ones the composed package holds and that
+ * default-export. A tree without them (a partial composition, a fixture) gets no shim, so the shim never
+ * stands in for a declaration the package lacks.
+ *
+ * @param {string} targetDir The composed package directory.
+ * @returns {string[]} The entry-point `.d.ts` paths relative to `targetDir`.
+ */
+export function listEntryShimTargets(targetDir) {
+  return ENTRY_POINT_DECLARATIONS.filter((dtsFile) => {
+    const dtsPath = path.resolve(targetDir, dtsFile);
+
+    return existsSync(dtsPath) && /\bexport\s+default\b/.test(readFileSync(dtsPath, 'utf8'));
+  });
+}
+
+/**
  * Build the entry shim that sits next to an entry-point declaration: a `.d.ts` that re-exports the default as the
  * named export `Handsontable`. A named import from a CommonJS module keeps every meaning of the symbol (value,
  * type, namespace) and its identity, which a default import under `node16` does not.

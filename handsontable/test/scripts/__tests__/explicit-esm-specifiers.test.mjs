@@ -7,6 +7,7 @@ import path from 'node:path';
 import {
   SELF_CONTAINED_MTS_DIRS,
   ENTRY_SHIM_SUFFIX,
+  listEntryShimTargets,
   toEntryShim,
   toExplicitEsmSpecifiers,
   toMtsDeclaration,
@@ -185,6 +186,11 @@ test('the entry points re-export their default through an entry shim, only at th
     );
     assert.equal(toEntryShim('base.d.ts'), 'import Handsontable from \'./base\';\nexport { Handsontable };\n');
     assert.equal(toEntryShim('index.d.ts'), 'import Handsontable from \'./index\';\nexport { Handsontable };\n');
+    // Only the entry declarations the tree holds, with a default export, get a shim.
+    assert.deepEqual(listEntryShimTargets(root), ['index.d.ts', 'base.d.ts']);
+    write('index.d.ts', 'export declare const named: number;\n');
+    assert.deepEqual(listEntryShimTargets(root), ['base.d.ts']);
+    assert.deepEqual(listEntryShimTargets(path.join(root, 'core')), []);
     // A same-named file in a subdirectory, with or without a default export, keeps the wrapper.
     assert.equal(toMtsDeclaration(root, 'core/index.d.ts'), 'export * from \'./index.js\';\n');
     assert.equal(

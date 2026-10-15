@@ -2,8 +2,8 @@ import path from 'path';
 import fse from 'fs-extra';
 import glob from 'glob';
 import {
-  ENTRY_POINT_DECLARATIONS,
   ENTRY_SHIM_SUFFIX,
+  listEntryShimTargets,
   toEntryShim,
   toMtsDeclaration,
 } from './utils/explicit-esm-specifiers.mjs';
@@ -81,7 +81,7 @@ glob.sync('./**/*.d.ts', { cwd: TARGET_PATH, nodir: true }).forEach((dtsFile) =>
   fse.outputFileSync(mtsPath, toMtsDeclaration(TARGET_PATH, dtsFile));
 });
 
-ENTRY_POINT_DECLARATIONS.forEach((dtsFile) => {
+listEntryShimTargets(TARGET_PATH).forEach((dtsFile) => {
   fse.outputFileSync(path.resolve(TARGET_PATH, dtsFile.replace(/\.d\.ts$/, ENTRY_SHIM_SUFFIX)), toEntryShim(dtsFile));
 });
 
