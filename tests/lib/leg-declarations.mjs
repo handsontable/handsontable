@@ -767,7 +767,9 @@ export function findMarkerHits(code, scope, file) {
 export function scanFixtureHtml(source, where = 'fixture') {
   const withoutComments = source.replace(/<!--[\s\S]*?-->/g, comment => comment.replace(/[^\n]/g, ' '));
 
-  return withoutComments.replace(/(<script\b[^>]*>)([\s\S]*?)(<\/script>)/gi,
+  // `</script >` closes a script too (whitespace before the `>` is legal), and a body the regex failed
+  // to close would run the comment stripper over the markup after it.
+  return withoutComments.replace(/(<script\b[^>]*>)([\s\S]*?)(<\/script\s*>)/gi,
     (whole, open, body, close) => `${open}${scanSource(body, where).code}${close}`);
 }
 

@@ -5,6 +5,7 @@ import {
   assessTest,
   groupEvidence,
   legRequirement,
+  markdownCell,
   projectsFromAssumption,
   projectsFromList,
   renderReplay,
@@ -270,6 +271,25 @@ test('replay against a declared tree catches what the tree runs and names every 
   assert.match(markdown, /\| `e2e\/a\.spec\.ts` \| suite › case \| strong \| 2 \| e2e-horizon, e2e-horizon-min \| THEMES_TAG \+ BUNDLES_TAG \| 1\/2 caught \|/);
   assert.match(markdown, /\| `e2e\/g\.spec\.ts` \| g › old title \| weak \| 1 \| e2e-classic \| THEMES_TAG \| 1\/1 caught \(title-drift\) \|/);
   assert.match(markdown, /- `e2e\/d\.spec\.ts` › d › case: red on e2e-classic in run 6, and the declared tree does not run it on e2e-classic/);
+});
+
+test('a title with a pipe, a backslash or a line break is one well-formed Markdown cell', () => {
+  // A title is pull-request input (the ledger copies it from the report). Backslashes go first, so a
+  // title holding `\\|` cannot read back as an unescaped pipe once the pipe is escaped (CodeQL, incomplete
+  // string escaping).
+  assert.equal(markdownCell('a | b'), 'a \\| b');
+  assert.equal(markdownCell('a \\ b'), 'a \\\\ b');
+  assert.equal(markdownCell('a \\| b'), 'a \\\\\\| b');
+  assert.equal(markdownCell('two\n  lines'), 'two lines');
+
+  const result = replay({
+    entries: [{ ...LEDGER[0], title: 'suite › pipes | and \\ slashes' }],
+    declared: projectsFromAssumption({ 'e2e/a.spec.ts': { themes: true, bundles: false } }),
+  });
+  const row = renderReplay(result).split('\n').find(line => line.includes('pipes'));
+
+  assert.ok(row.includes('| suite › pipes \\| and \\\\ slashes |'), row);
+  assert.equal(row.split(/(?<!\\)\|/).length, 9, 'split on the unescaped pipes, the row still has seven cells');
 });
 
 test('a classification that tags every need replays with zero misses', () => {

@@ -399,6 +399,13 @@ test('scanFixtureHtml blanks HTML comments and script comments, and keeps styles
   assert.ok(code.includes('elementFromPoint in a string'), 'a script string is read');
   assert.ok(code.includes('hyperformula.full.min.js'), 'markup is read');
   assert.equal(code.split('\n').length, html.split('\n').length);
+
+  // A closing tag with whitespace before its `>` still closes the script: otherwise the body would run on
+  // into the markup below and a comment there would hide the markup's markers (CodeQL, bad HTML filtering).
+  const spaced = scanFixtureHtml('<script>\n  // getComputedStyle( in a comment\n</script >\n<style>.y { --ht-x: 1px; }</style>\n');
+
+  assert.ok(!spaced.includes('in a comment'));
+  assert.ok(spaced.includes('--ht-x'), 'the style block after a `</script >` is still read');
 });
 
 test('a marker without the tag is a violation, and the tag covers it: themes', () => {

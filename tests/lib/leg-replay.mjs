@@ -333,6 +333,17 @@ export function tagsLabel({ themes, bundles }) {
 }
 
 /**
+ * A test title or file as one Markdown table cell: backslashes escaped first (so an escaped pipe
+ * cannot be read back as a bare one), then pipes, and line breaks flattened.
+ *
+ * @param {string} text The text.
+ * @returns {string} The cell.
+ */
+export function markdownCell(text) {
+  return String(text).replace(/\\/g, '\\\\').replace(/\|/g, '\\|').replace(/\s*\n\s*/g, ' ');
+}
+
+/**
  * A Markdown report: the summary, then one row per test with off-main evidence.
  *
  * @param {ReturnType<typeof replay>} result The replay.
@@ -366,14 +377,14 @@ export function renderReplay(result, { heading = 'Ledger replay' } = {}) {
         ? '–'
         : `${test.runs.filter(run => run.covered).length}/${test.runs.length} caught${test.note ? ` (${test.note})` : ''}`;
 
-    lines.push(`| \`${test.file}\` | ${test.title.replace(/\|/g, '\\|')} | ${test.verdict} | ${test.runs.length} | ${legs} `
+    lines.push(`| \`${markdownCell(test.file)}\` | ${markdownCell(test.title)} | ${test.verdict} | ${test.runs.length} | ${legs} `
       + `| ${tagsLabel(test.required)} | ${outcome} |`);
   });
 
   if (result.misses.length > 0) {
     lines.push('', 'Misses:');
     result.misses.forEach((miss) => {
-      lines.push(`- \`${miss.file}\` › ${miss.title}: red on ${miss.legs.join(', ')} in run ${miss.runId}, `
+      lines.push(`- \`${markdownCell(miss.file)}\` › ${markdownCell(miss.title)}: red on ${miss.legs.join(', ')} in run ${miss.runId}, `
         + `and the declared tree does not run it on ${miss.missing.join(', ')} (${miss.runUrl})`);
     });
   }
