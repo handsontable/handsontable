@@ -73,8 +73,8 @@ export class AppComponent {
         // `getData()` returns only the rows that pass the current filters
         // `getSourceData()` always returns every row, filtered or not
         this.rowCountInfo = `Showing ${hotInstance.getData().length} of ${hotInstance.getSourceData().length} rows.`;
-        // Nothing marks the OnPush-by-default component dirty here, so render the new text.
-        this.cdr.detectChanges();
+        // Nothing marks the OnPush-by-default component dirty here, so mark it.
+        this.cdr.markForCheck();
       }, 0);
     };
 

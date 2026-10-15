@@ -43,11 +43,6 @@ export class AppComponent {
   // order, so this example cycles ascending -> descending -> unsorted manually.
   private activeSort: { column: number; sortOrder: 'asc' | 'desc' } | null = null;
 
-  // Nothing marks the OnPush-by-default component dirty in the hook, so render once it returns.
-  private renderSoon(): void {
-    setTimeout(() => this.cdr.detectChanges(), 0);
-  }
-
   private getNextSortOrder(column: number): 'asc' | 'desc' | null {
     if (!this.activeSort || this.activeSort.column !== column) {
       return 'asc';
@@ -108,7 +103,8 @@ export class AppComponent {
         // the sorting was cleared programmatically, restore the original row order
         this.activeSort = null;
         this.data = originalData;
-        this.renderSoon();
+        // Nothing marks the OnPush-by-default component dirty in the hook, so mark it.
+        this.cdr.markForCheck();
 
         return false;
       }
@@ -119,19 +115,19 @@ export class AppComponent {
         this.activeSort = null;
         this.status = 'Cleared the sort.';
         this.data = originalData;
-        this.renderSoon();
+        this.cdr.markForCheck();
 
         return false;
       }
 
       this.activeSort = { column: requestedSort.column, sortOrder: nextOrder };
       this.status = 'Sorting on the server...';
-      this.renderSoon();
+      this.cdr.markForCheck();
 
       this.sortOnServer(columnDataKeys[requestedSort.column], nextOrder).then((sortedData) => {
         this.data = sortedData;
         this.status = 'Sorted on the server.';
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       });
 
       // return `false` to cancel Handsontable's own front-end sort

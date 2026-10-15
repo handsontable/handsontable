@@ -109,8 +109,8 @@ export class AppComponent implements AfterViewInit {
       this.hasError = true;
       this.status = 'Failed to load users. Try again.';
     } finally {
-      // Nothing marks the OnPush-by-default component dirty after an `await`, so render the new state.
-      this.cdr.detectChanges();
+      // Nothing marks the OnPush-by-default component dirty after an `await`, so mark it.
+      this.cdr.markForCheck();
     }
   }
 
@@ -132,8 +132,8 @@ export class AppComponent implements AfterViewInit {
       this.hasError = true;
       this.status = 'Failed to load users. Try again.';
     } finally {
-      // Nothing marks the OnPush-by-default component dirty after an `await`, so render the new state.
-      this.cdr.detectChanges();
+      // Nothing marks the OnPush-by-default component dirty after an `await`, so mark it.
+      this.cdr.markForCheck();
     }
   }
 

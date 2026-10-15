@@ -246,8 +246,8 @@ export class AppComponent implements AfterViewInit {
     this.firstVisibleRow = firstVisibleRowIndex + 1;
     this.lastVisibleRow = lastVisibleRowIndex + 1;
     this.totalRows = this.hotTable.hotInstance?.countRows() ?? 0;
-    // Nothing marks the OnPush-by-default component dirty here, so render the new state.
-    this.cdr.detectChanges();
+    // Nothing marks the OnPush-by-default component dirty here, so mark it.
+    this.cdr.markForCheck();
   }
 
   goToFirstPage() {

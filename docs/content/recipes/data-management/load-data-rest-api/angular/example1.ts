@@ -79,7 +79,7 @@ export class AppComponent implements AfterViewInit {
     setTimeout(() => {
       this.statusMessage = message;
       this.hasError = hasError;
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
     }, 0);
   }
 
@@ -110,7 +110,7 @@ export class AppComponent implements AfterViewInit {
       this.setStatus(STATUS_ERROR, true);
     } finally {
       this.loading = false;
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
     }
   }
 

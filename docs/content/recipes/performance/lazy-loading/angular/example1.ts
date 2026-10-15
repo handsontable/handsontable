@@ -136,14 +136,14 @@ export class AppComponent implements OnInit {
       this.statusText = 'Failed to load more tasks. Scroll down to retry.';
       this.isLoading = false;
       this.hotTable?.hotInstance?.getPlugin('loading').hide();
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
 
       return;
     }
 
     this.isLoading = false;
     this.hotTable?.hotInstance?.getPlugin('loading').hide();
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 }
 /* end-file */

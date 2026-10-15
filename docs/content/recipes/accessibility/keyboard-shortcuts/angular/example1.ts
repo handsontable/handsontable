@@ -103,7 +103,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         hot.populateFromArray(row + 1, 0, [Object.values(rowData)]);
 
         this.lastShortcut = 'Ctrl+D -- row duplicated';
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
 
@@ -122,7 +122,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
         this.lastShortcut = 'Ctrl+Enter -- data submitted';
         this.lastSubmission = `[${timestamp}] Submitted ${rowCount} rows -- columns: ${headers.join(', ')}`;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }

@@ -258,7 +258,7 @@ Service Pack,Services,true,0`;
     } catch (e) {
       this.errorMessage = e instanceof Error ? e.message : String(e);
     } finally {
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
     }
   }
 

@@ -73,7 +73,7 @@ This recipe shows a small UI with:
 
 :::
 
-In Angular, call `detectChanges()` on an injected `ChangeDetectorRef` after you apply the parsed rows, as `handleFile` does. Angular 22 components are `OnPush` by default, and nothing marks the component dirty after the `await`. Without the call, the grid does not update until the next DOM event.
+In Angular, call `markForCheck()` on an injected `ChangeDetectorRef` after you apply the parsed rows, as `handleFile` does. Angular 22 components are `OnPush` by default, and nothing marks the component dirty after the `await`. Without the call, the grid does not update until the next DOM event.
 
 :::
 

@@ -81,7 +81,7 @@ export class AppComponent {
         this.output = `Autosaved (${change?.length} cell${
           (change?.length || 0) > 1 ? 's' : ''
         })`;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
         console.log('The POST request is only used here for the demo purposes');
       });
     }
@@ -108,7 +108,7 @@ export class AppComponent {
           hot?.loadData(data.data);
           // or, use `updateData()` to replace `data` without resetting states
           this.output = 'Data loaded';
-          this.cdr.detectChanges();
+          this.cdr.markForCheck();
         });
       }
     );
@@ -127,7 +127,7 @@ export class AppComponent {
       body: JSON.stringify({ data: hot?.getData() }),
     }).then(() => {
       this.output = 'Data saved';
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       console.log('The POST request is only used here for the demo purposes');
     });
   }

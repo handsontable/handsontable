@@ -217,7 +217,7 @@ const ExampleComponent = () => {
 
 Keep the rows in a component property, and bind it through the `[data]` input.
 
-The grid is created outside Angular's zone, so the hook also runs outside it. Angular 22 components are `OnPush` by default, so assigning to a bound property there does not mark the component dirty, and the `[data]` input never sees the new array. Write the property, call `markForCheck()` on an injected `ChangeDetectorRef`, and re-enter the zone so a tick follows. Defer it with `setTimeout` so a synchronous write inside the hook can't trigger `NG0100`:
+The grid is created outside Angular's zone, so the hook also runs outside it. Angular 22 components are `OnPush` by default, so assigning to a bound property there does not mark the component dirty, and the `[data]` input never sees the new array. Write the property and call `markForCheck()` on an injected `ChangeDetectorRef`, which schedules its own tick outside the zone. Defer it with `setTimeout` so a synchronous write inside the hook can't trigger `NG0100`:
 
 ```ts
 @Component({
@@ -227,7 +227,6 @@ The grid is created outside Angular's zone, so the hook also runs outside it. An
   imports: [HotTableModule],
 })
 export class AppComponent {
-  private readonly ngZone = inject(NgZone);
   private readonly cdr = inject(ChangeDetectorRef);
 
   rows = initialRows;
@@ -240,10 +239,8 @@ export class AppComponent {
       }
 
       setTimeout(() => {
-        this.ngZone.run(() => {
-          this.rows = reorderRows(this.rows, movedRows, finalIndex);
-          this.cdr.markForCheck();
-        });
+        this.rows = reorderRows(this.rows, movedRows, finalIndex);
+        this.cdr.markForCheck();
       }, 0);
 
       // cancel the grid's own move -- the assignment above applies it instead

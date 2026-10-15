@@ -302,7 +302,7 @@ export class AppComponent {
   private setFetchStatus(message: string): void {
     setTimeout(() => {
       this.fetchStatus = message;
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
     }, 0);
   }
 

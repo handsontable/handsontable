@@ -210,11 +210,11 @@ export class AppComponent implements AfterViewInit {
       setTimeout(() => {
         loadingPlugin.hide();
         this.isLoading = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }, 2000);
     } finally {
-      // Nothing marks the OnPush-by-default component dirty after an `await`, so render the new state.
-      this.cdr.detectChanges();
+      // Nothing marks the OnPush-by-default component dirty after an `await`, so mark it.
+      this.cdr.markForCheck();
     }
   }
 }

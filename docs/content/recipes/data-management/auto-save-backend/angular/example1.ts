@@ -40,10 +40,10 @@ export class AppComponent {
 
   saveStatus: SaveStatus = 'idle';
 
-  /** Nothing marks the OnPush-by-default component dirty here, so render the new status. */
+  /** Nothing marks the OnPush-by-default component dirty here, so mark it. */
   private setSaveStatus(status: SaveStatus): void {
     this.saveStatus = status;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   get statusLabel(): string {

@@ -42,7 +42,7 @@ export class AppComponent {
     setTimeout(() => {
       this.statusMessage = message;
       this.statusIsError = isError;
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
     }, 0);
   }
 
