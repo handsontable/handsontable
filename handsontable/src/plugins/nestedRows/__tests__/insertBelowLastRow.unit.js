@@ -2,6 +2,7 @@ import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { NestedRows } from '../nestedRows';
 import { TrimRows } from '../../trimRows/trimRows';
+import { HiddenRows } from '../../hiddenRows/hiddenRows';
 
 /**
  * DEV-139: a row inserted below the last row of the tree joins the parent of the row it continues,
@@ -36,6 +37,7 @@ describe('NestedRows – inserting below the last row', () => {
   beforeAll(() => {
     registerPlugin(NestedRows);
     registerPlugin(TrimRows);
+    registerPlugin(HiddenRows);
   });
 
   beforeEach(() => {
@@ -137,6 +139,43 @@ describe('NestedRows – inserting below the last row', () => {
     expect(childItems(0)).toEqual(['x']);
   });
 
+  it('continues the level of the last rendered row when the last row is hidden', () => {
+    // HiddenRows keeps "c3" in `countRows()`, but the last row the user sees is the top-level P2.
+    createGrid({
+      data: [
+        { item: 'P1', __children: [{ item: 'c1' }, { item: 'c2' }] },
+        { item: 'P2', __children: [{ item: 'c3' }] },
+      ],
+      hiddenRows: { rows: [4] },
+    });
+
+    hot.alter('insert_row_below', undefined, 1, 'Autofill.fill');
+
+    expect(topLevelItems()).toEqual(['P1', 'P2', null]);
+    expect(childItems(1)).toEqual(['c3']);
+  });
+
+  it('appends a top-level row when a hidden last row belongs to another branch than the last rendered one', () => {
+    // "b" is hidden, so the last rendered row is "deep", whose subtree does not end the tree.
+    createGrid({ hiddenRows: { rows: [5] } });
+
+    hot.alter('insert_row_below', undefined, 1, 'Autofill.fill');
+
+    expect(topLevelItems()).toEqual(['P1', 'P2', null]);
+    expect(childItems(1)).toEqual(['a', 'b']);
+  });
+
+  it('ignores a hidden row above the last row', () => {
+    createGrid({ hiddenRows: { rows: [1] } });
+
+    hot.alter('insert_row_below', undefined, 1, 'Autofill.fill');
+
+    expect(topLevelItems()).toEqual(['P1', 'P2']);
+    expect(childItems(1)).toEqual(['a', 'b', null]);
+  });
+
+  // The anchor is replaced on every `beforeCreateRow`, and every Core insert runs that hook before it
+  // splices. This fails when the listener keeps an earlier anchor for an insert that names no row.
   it('does not reuse the row of a vetoed insert for the next one', () => {
     createGrid();
 

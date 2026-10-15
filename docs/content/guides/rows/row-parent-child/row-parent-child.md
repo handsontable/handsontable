@@ -426,14 +426,15 @@ When the `NestedRows` plugin is enabled, the `ManualRowMove` plugin's [`moveRows
 ### Rows added below the last row
 
 When [`fillHandle.autoInsertRow`](@/api/options.md#fillhandle) is enabled, dragging the fill handle
-past the last row adds new rows. The new rows continue the level of the last visible row. If that row
-is a child, the new rows are added to the same parent. If it's a top-level row, or a collapsed parent
-at the top level, the new rows are top-level rows.
+past the last row adds new rows. The new rows continue the level of the last row you can see. If that
+row is a child, the new rows are added to the same parent. If it's a top-level row, or a collapsed
+parent at the top level, the new rows are top-level rows.
 
-The same applies when you call [`alter('insert_row_below', index)`](@/api/core.md#alter) with the index
-of the last row. A call without an index, a row added by
-[`minSpareRows`](@/api/options.md#minsparerows), and a paste or an edit past the last row still add
-top-level rows.
+When you call [`alter('insert_row_below', index)`](@/api/core.md#alter) with the index of the last row,
+and that row is not a collapsed parent, the new row is added to the same parent as the last row.
+Inserting a row by index below a collapsed parent isn't supported: expand the parent first. A call
+without an index, a row added by [`minSpareRows`](@/api/options.md#minsparerows), and a paste or an edit
+past the last row still add top-level rows.
 
 ### Row header width with custom labels
 

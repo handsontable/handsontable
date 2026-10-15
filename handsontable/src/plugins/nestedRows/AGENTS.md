@@ -236,11 +236,15 @@ They are written in different places and can drift. Keep this in mind:
   that one case is handled (DEV-139).** The splice index of an append is the flattened row count, and
   `isRowHighestLevel()` reads "no row there" as top-level, so the fill handle's `autoInsertRow` rows
   used to become new parents whatever row the drag started from. `#onBeforeCreateRow` records an
-  anchor row object, `onBeforeDataSplice()` consumes it (and always clears it, so a vetoed insert
-  leaves nothing behind for the next one), and `DataManager#appendSiblings()` pushes the rows into the
-  anchor's parent. Four rules ride along. (1) **Only two inserts name an anchor**: one with a row index
+  anchor row object (`#findInsertAnchor()`), `onBeforeDataSplice()` consumes it, and
+  `DataManager#appendSiblings()` pushes the rows into the anchor's parent. What keeps a vetoed
+  insert's anchor from reaching the next one is that the listener REPLACES the anchor on every call
+  and every Core insert runs `beforeCreateRow` before it splices; the clear in `onBeforeDataSplice()`
+  is defensive only, and a test that removes it stays green (the veto test pins the replacement). Four rules ride along. (1) **Only two inserts name an anchor**: one with a row index
   inside the grid, and the fill handle's, recognized by its source `'Autofill.fill'` and anchored on
-  the last visible row. Every other insert with no index - `minSpareRows`/`minRows` (`auto`), a paste
+  the last RENDERED row (`getRenderableIndexesLength()`), never `countRows() - 1`: HiddenRows keeps a
+  hidden row in the visual space, and anchoring on a hidden last child put the rows under a parent the
+  user saw as top-level. Every other insert with no index - `minSpareRows`/`minRows` (`auto`), a paste
   or an edit past the last row, a host's bare `alter('insert_row_below')` - still appends a top-level
   row, because an app may rely on that to add a new parent. (2) **Autofill must keep passing no index.**
   An explicit `alter('insert_row_below', X)` makes the Core move row X's index map values (a hidden
@@ -255,7 +259,11 @@ They are written in different places and can drift. Keep this in mind:
   sibling, never its child, so nothing lands inside a collapsed subtree. Pinned by
   `__tests__/insertBelowLastRow.unit.js` and `tests/e2e/nested-rows-autofill.spec.ts`. An insert
   anchored on any row other than the last still goes through the broken path described in the
-  previous bullet.
+  previous bullet, and so does `alter('insert_row_below', <index of a collapsed last parent>)`: the
+  Core splices at the parent's first hidden child, not at the end, so the row lands INSIDE the
+  collapsed parent (as an array, the re-wrap above), on 18.1.2 as well. Moving it to the end here
+  would desync it from the index maps and the cell meta the Core inserted at that index, so the
+  guide documents the case as unsupported instead (found in review on #13868).
 - **The hand-built tree operations have to shift the cell meta themselves.** `MetaManager` is kept in
   step only by `DataMap#createRow`/`removeRow`, and `addChild`, `addChildAtIndex`,
   `detachFromParent` and the row-move path reach neither — they splice `__children` and fire the row
@@ -786,7 +794,7 @@ row semantics. Six things look simpler than they are.
 | `tests/e2e/nested-rows-runtime-enable.spec.ts` | Playwright: the plugin switched on and off with `updateSettings()`, including the header cleanup on disable (frozen-row copies, an inner grid in a cell left alone) and a `loadData()` with invalid data while it is on |
 | `tests/e2e/nested-rows-remove-parent.spec.ts` | Playwright: removing a parent takes its whole subtree, on a **four-level** tree |
 | `tests/e2e/nested-rows-undo.spec.ts` | Playwright: undo restores a removed parent and its descendants |
-| `__tests__/insertBelowLastRow.unit.js` | Which inserts below the last row join the last row's parent and which stay top-level (DEV-139) |
+| `__tests__/insertBelowLastRow.unit.js` | Which inserts below the last row join the last row's parent and which stay top-level, including hidden last rows (DEV-139) |
 | `tests/e2e/nested-rows-autofill.spec.ts` | Playwright: the fill handle dragged past the last row adds children to the dragged row's parent, undo, and a collapsed top-level parent |
 | `tests/e2e/nested-rows-collapse-selection.spec.ts` | Playwright: where the selection lands when a collapse trims the row holding it |
 | `tests/e2e/nested-rows-treegrid-a11y.spec.ts` | Playwright: the treegrid row attributes on a three-level tree (also across `TR` recycling, a data replacement, and the plugin switched off), the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow chords and <kbd>Enter</kbd> on a row header (LTR and RTL, never the grid's jump there, Enter with every column hidden), plain arrows left to navigation, the cleanup when `rowHeaders` is switched off, the HiddenRows cases (a hidden parent, rendered-row counting), and the polite announcements (gestures only, never the API or an `ariaTags: false` grid; named by the header's rendered text, HTML included) |

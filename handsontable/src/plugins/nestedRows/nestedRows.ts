@@ -1171,6 +1171,7 @@ export class NestedRows extends BasePlugin {
   onBeforeDataSplice(index: number, amount: number, element: Record<string, unknown>) {
     const anchor = this.#insertAnchor;
 
+    // Defensive: `#onBeforeCreateRow` replaces the anchor before every Core insert anyway.
     this.#insertAnchor = null;
 
     if (this.#skipCoreAPIModifiers) {
@@ -1586,41 +1587,54 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
-   * `beforeCreateRow` hook callback. Records the row an insert is anchored on, so that
-   * `onBeforeDataSplice()` can tell "below the last row" from a plain append.
+   * Returns the row object an insert is anchored on, or `null` for an insert that names no row.
    *
    * Two inserts name a row: one with a row index, and the fill handle's, which appends past the
-   * last row while it continues the rows the user drags from, so it is anchored on the last visible
-   * row. The fill handle passes no index on purpose: an explicit one would make the Core move the
-   * last row's index map values (a hidden row, a manual height) onto the new row. Any other insert
-   * with no row index (`minSpareRows`, `minRows`, a paste or an edit past the last row,
-   * `alter('insert_row_below')`) keeps appending a top-level row. The plugin's own hand-built
-   * inserts never reach the Core splice.
+   * last row while it continues the rows the user drags from, so it is anchored on the last row the
+   * user sees. That is the last RENDERED row, not `countRows() - 1`: HiddenRows keeps a hidden row in
+   * the visual space, so the last visual row can be one the user cannot see. The fill handle passes
+   * no index on purpose: an explicit one would make the Core move the last row's index map values (a
+   * hidden row, a manual height) onto the new row. Any other insert with no row index
+   * (`minSpareRows`, `minRows`, a paste or an edit past the last row, `alter('insert_row_below')`)
+   * keeps appending a top-level row. The plugin's own hand-built inserts never reach the Core splice.
+   *
+   * @param {number} index The visual index of the row the insert is anchored on.
+   * @param {string} [source] The source of the call.
+   * @returns {object|null}
+   */
+  #findInsertAnchor(index: number, source?: string): RowObject | null {
+    if (typeof source === 'string' && source.startsWith('NestedRows.')) {
+      return null;
+    }
+
+    let anchorRow: number | null = null;
+
+    if (Number.isInteger(index) && index >= 0 && index < this.hot.countRows()) {
+      anchorRow = index;
+
+    } else if (source === AUTOFILL_INSERT_SOURCE) {
+      const renderableRows = this.hot.rowIndexMapper.getRenderableIndexesLength();
+
+      anchorRow = renderableRows > 0 ? this.hot.rowIndexMapper.getVisualFromRenderableIndex(renderableRows - 1) : null;
+    }
+
+    const physicalRow = anchorRow === null ? null : this.hot.toPhysicalRow(anchorRow);
+
+    return physicalRow === null ? null : (this.dataManager!.getDataObject(physicalRow) ?? null);
+  }
+
+  /**
+   * `beforeCreateRow` hook callback. Records the row an insert is anchored on (see
+   * `#findInsertAnchor()`), so that `onBeforeDataSplice()` can tell "below the last row" from a
+   * plain append. Every Core insert runs this hook before it splices, and the anchor is replaced on
+   * every call, so the anchor of an insert a listener vetoed never reaches the next one.
    *
    * @param {number} index The visual index of the row the insert is anchored on.
    * @param {number} amount The number of rows to insert.
    * @param {string} [source] The source of the call.
    */
   #onBeforeCreateRow = (index: number, amount: number, source?: string) => {
-    this.#insertAnchor = null;
-
-    if (typeof source === 'string' && source.startsWith('NestedRows.')) {
-      return;
-    }
-
-    const rowCount = this.hot.countRows();
-    let anchorRow: number | null = null;
-
-    if (Number.isInteger(index) && index >= 0 && index < rowCount) {
-      anchorRow = index;
-
-    } else if (source === AUTOFILL_INSERT_SOURCE && rowCount > 0) {
-      anchorRow = rowCount - 1;
-    }
-
-    const physicalRow = anchorRow === null ? null : this.hot.toPhysicalRow(anchorRow);
-
-    this.#insertAnchor = physicalRow === null ? null : (this.dataManager!.getDataObject(physicalRow) ?? null);
+    this.#insertAnchor = this.#findInsertAnchor(index, source);
   };
 
   /**
