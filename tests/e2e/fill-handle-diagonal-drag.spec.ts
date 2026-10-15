@@ -313,6 +313,7 @@ test.describe('fill handle drag direction (DEV-140)', { tag: CROSS_BROWSER_TAG }
       expect(await grid.gridValues()).toEqual([['A1', 'B1', 'C1'], ['A2', 'B2', 'C2'], ['A3', 'B3', 'C3']]);
 
       // Positive control: a real drag below the grid from the same cell inserts, and fills, a row.
+      await grid.scrollPageToTop();
       await grid.selectCells(2, 1);
 
       const controlStart = await grid.pressFillHandle();
@@ -344,6 +345,45 @@ test.describe('fill handle drag direction (DEV-140)', { tag: CROSS_BROWSER_TAG }
       await grid.releasePointer();
 
       expect(await grid.cellValue(8, 0)).toBe('A8');
+    });
+
+    // A long grid with a fixed height renders a few rows past its viewport, so the table element ends
+    // there, not at the end of the data. A pointer below that edge is not below the last row: the fill
+    // must stop at the rendered rows, not run on to the end of the data.
+    test('stops the fill at the rendered rows of a long fixed-height grid', async() => {
+      await grid.initLabelledGrid(1000, 5, { height: 300, dragToScroll: false, fillHandle: { autoInsertRow: true } });
+      await grid.selectCells(2, 2);
+
+      const start = await grid.pressFillHandle();
+      const lastRenderedRow = await grid.lastRenderedRow();
+
+      await grid.movePointerBelowGridRoot(start, 120);
+
+      expect(lastRenderedRow).toBeLessThan(30);
+      expect((await grid.fillPreviewCorners())?.[2]).toBeLessThanOrEqual(lastRenderedRow as number);
+
+      await grid.releasePointer();
+
+      const column = await grid.columnValues(2);
+
+      expect(column.filter(value => value === 'C3').length).toBeLessThanOrEqual(lastRenderedRow as number);
+      expect(column[999]).toBe('C1000');
+      expect(await grid.countRows()).toBe(1000);
+    });
+
+    test('inserts no row at the end of a long fixed-height grid while its last row is not rendered', async() => {
+      await grid.initLabelledGrid(1000, 5, { height: 300, dragToScroll: false, fillHandle: { autoInsertRow: true } });
+      await grid.selectCells(2, 2);
+
+      const start = await grid.pressFillHandle();
+
+      await grid.movePointerBelowGridRoot(start, 120);
+      await grid.runRowInsertionTimer();
+
+      expect(await grid.createdRowCount()).toBe(0);
+      expect(await grid.countRows()).toBe(1000);
+
+      await grid.releasePointer();
     });
 
     // Not a regression test for the ticket: it passes before the fix too, which never inserted a row

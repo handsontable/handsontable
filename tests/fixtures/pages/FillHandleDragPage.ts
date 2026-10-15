@@ -166,6 +166,15 @@ export class FillHandleDragPage {
   }
 
   /**
+   * Scroll the page back to its top and wait until it is there, so the next gesture measures the
+   * grid where it will stay (a wheel scroll can still be settling, notably in WebKit).
+   */
+  async scrollPageToTop(): Promise<void> {
+    await this.page.evaluate(() => window.scrollTo(0, 0));
+    await expect.poll(() => this.page.evaluate(() => window.scrollY)).toBe(0);
+  }
+
+  /**
    * Scroll the page with the mouse wheel, leaving the pointer where it is, and wait until the
    * page has scrolled.
    */
@@ -189,6 +198,11 @@ export class FillHandleDragPage {
   /** The values of a column, by visual index. */
   async columnValues(col: number): Promise<CellValue[]> {
     return this.page.evaluate(c => window.hot.getDataAtCol(c), col);
+  }
+
+  /** The visual index of the last row the grid renders (past its viewport included). */
+  async lastRenderedRow(): Promise<number | null> {
+    return this.page.evaluate(() => window.hot.getLastRenderedVisibleRow());
   }
 
   /** The values of every cell, by visual coordinates. */

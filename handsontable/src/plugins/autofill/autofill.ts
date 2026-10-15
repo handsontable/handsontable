@@ -812,8 +812,11 @@ export class Autofill extends BasePlugin {
     const { bottom: tableBottom } = this.hot.table.getBoundingClientRect();
 
     // The drag direction already weighs how far below and beside the table the pointer is (see
-    // `#followPointer()`), so a new row is due exactly when a vertical drag reaches below the table.
-    return event.clientY > tableBottom && this.#currentDragDirection === DIRECTIONS.vertical;
+    // `#followPointer()`), so a new row is due exactly when a vertical drag reaches below the table –
+    // the end of the data, which the table's edge is only while the last row is rendered.
+    return event.clientY > tableBottom &&
+      this.#currentDragDirection === DIRECTIONS.vertical &&
+      this.#isLastRowRendered();
   }
 
   /**
@@ -1039,19 +1042,44 @@ export class Autofill extends BasePlugin {
    */
   #countCellsPastTable(clientX: number, clientY: number) {
     const { bottom, left, right } = this.hot.table.getBoundingClientRect();
-    const { rowIndexMapper, columnIndexMapper, stylesHandler } = this.hot;
-    const lastRow = rowIndexMapper.getNearestNotHiddenIndex(this.hot.countRows() - 1, -1);
-    const lastColumn = columnIndexMapper.getNearestNotHiddenIndex(this.hot.countCols() - 1, -1);
+    const lastRow = this.#getLastNotHiddenRow();
+    const lastColumn = this.hot.columnIndexMapper.getNearestNotHiddenIndex(this.hot.countCols() - 1, -1);
     const rowHeight = lastRow === null ?
-      0 : this.hot.getRowHeight(lastRow) ?? stylesHandler.getDefaultRowHeight(lastRow);
+      0 : this.hot.getRowHeight(lastRow) ?? this.hot.stylesHandler.getDefaultRowHeight(lastRow);
     const columnWidth = lastColumn === null ? 0 : this.hot.getColWidth(lastColumn);
     const pixelsPastInlineEnd = this.hot.isRtl() ? left - clientX : clientX - right;
 
+    // The table element holds only the rendered rows and columns. A long grid with a fixed height
+    // renders a few rows past its viewport and stops there, so the table's edge is the data's edge
+    // only while the last row (or column) is rendered. Past any other edge, nothing is counted.
+    const isLastColumnRendered = lastColumn !== null && lastColumn === this.hot.getLastRenderedVisibleColumn();
+
     return {
-      rows: countCellsPastEdge(clientY - bottom, rowHeight),
-      columns: countCellsPastEdge(pixelsPastInlineEnd, columnWidth),
+      rows: this.#isLastRowRendered() ? countCellsPastEdge(clientY - bottom, rowHeight) : 0,
+      columns: isLastColumnRendered ? countCellsPastEdge(pixelsPastInlineEnd, columnWidth) : 0,
       lastRow,
     };
+  }
+
+  /**
+   * The visual index of the last row that is not hidden, or `null` when there is none.
+   *
+   * @returns {number|null}
+   */
+  #getLastNotHiddenRow(): number | null {
+    return this.hot.rowIndexMapper.getNearestNotHiddenIndex(this.hot.countRows() - 1, -1);
+  }
+
+  /**
+   * Whether the last row that is not hidden is rendered, which makes the bottom edge of the table
+   * element the end of the data.
+   *
+   * @returns {boolean}
+   */
+  #isLastRowRendered(): boolean {
+    const lastRow = this.#getLastNotHiddenRow();
+
+    return lastRow !== null && lastRow === this.hot.getLastRenderedVisibleRow();
   }
 
   /**

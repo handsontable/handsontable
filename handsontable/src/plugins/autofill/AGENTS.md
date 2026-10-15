@@ -218,8 +218,19 @@ The rules for the row insertion, each a DEV-140 defect:
   with a fixed height, the row the drag inserts lands below the visible part, where the clamp to the
   viewport cannot reach it, so without this the fill stopped one row short and the new row stayed empty
   (the Formulas `cooperate properly with trimmed rows` spec, in a 130 px grid, on every theme but
-  `classic`). It only applies once the pointer is past the table's own bottom edge, which in a scrolled
-  grid means its end is in view, so a long drag below a grid's viewport still extends row by row.
+  `classic`).
+- **"Below the table" requires the last row to be rendered.** `hot.table` holds only the RENDERED
+  rows: a long grid with a fixed height renders a few rows past its viewport (the
+  `viewportRowRenderingOffset`) and stops there, so the table element's bottom edge is the end of the
+  data only while the last row that is not hidden is rendered (`#isLastRowRendered()`, through
+  `hot.getLastRenderedVisibleRow()`). Without that check, a pointer some 80 px below a 1000-row grid
+  scrolled to the top counted as below the last row: the last-row targeting above sent the fill to row
+  1000 and overwrote every row on the way (caught in review), and the insertion appended rows at the
+  end of the data, far from the drag (that half predates DEV-140). So the cells past the bottom edge,
+  the last-row targeting and `getIfMouseWasDraggedOutside()` all apply only while the last row is
+  rendered, and the cells past the inline-end edge only while the last column is. Until then, a drag
+  below such a grid extends row by row through DragToScroll, as it always did. Pinned by the two
+  `long fixed-height grid` cases in `tests/e2e/fill-handle-diagonal-drag.spec.ts`.
 
 ## Read cell meta transiently
 
