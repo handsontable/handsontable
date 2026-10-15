@@ -203,15 +203,21 @@ class DataSource {
 
       if (!getAllProps || toArray) {
         const rangeStart = 0;
-        const rangeEnd = this.countFirstRowKeys() - 1;
+        // `columns` can declare more columns than the first row has keys (nested paths such as
+        // `list.7` read one key each), so the count of keys alone would cut the declared ones off.
+        const rangeEnd = Math.max(this.countFirstRowKeys(), this.countCachedColumns?.() ?? 0) - 1;
 
         rangeEach(rangeStart, rangeEnd, (column: number) => {
           // An index that names no column comes back as the index, which the integer test below
           // rejects. An unbound column (`{ data: null }`) keeps its `null` property, so it keeps its
-          // slot and the columns after it stay in place.
+          // slot and the columns after it stay in place. A column declared without a `data` option
+          // resolves to its own index instead, so in the array form the existence of the column
+          // decides whether it keeps its slot.
           const prop = colToPropOrIndex(this.#columnResolver, column);
+          const keepsSlot = !Number.isInteger(prop) ||
+            (toArray && this.hot!.toPhysicalColumn(column) !== null);
 
-          if (column >= (startColumn || rangeStart) && column <= (endColumn || rangeEnd) && !Number.isInteger(prop)) {
+          if (column >= (startColumn || rangeStart) && column <= (endColumn || rangeEnd) && keepsSlot) {
             const cellValue = this.getAtPhysicalCell(row, prop as string | number | DataAccessorFn, dataRow);
 
             if (toArray) {

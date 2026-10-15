@@ -461,6 +461,51 @@ describe('Core', () => {
       core.destroy();
     });
   });
+
+  describe('`getSourceDataArray()` of object rows read through `columns`', () => {
+    it('should keep the slot of a declared column that has no `data`, so no other column moves', () => {
+      const core = new Core(container, {
+        theme: 'ht-theme-main',
+        data: [{ a: 'a0', b: 'b0', c: 'c0' }, { a: 'a1', b: 'b1', c: 'c1' }],
+        columns: [{ data: 'a' }, { title: 'no data' }, { data: 'b' }, { data: 'c' }],
+      });
+
+      core.init();
+
+      expect(core.getSourceDataArray()).toEqual([['a0', undefined, 'b0', 'c0'], ['a1', undefined, 'b1', 'c1']]);
+
+      core.destroy();
+    });
+
+    it('should cover every declared column, even past the number of keys in the first row', () => {
+      const core = new Core(container, {
+        theme: 'ht-theme-main',
+        data: [{ list: [10, 20, 30, 40, 50] }, { list: [11, 21, 31, 41, 51] }],
+        columns: [{ data: 'list.0' }, { data: 'list.1' }, { data: 'list.2' }, { data: 'list.3' }, { data: 'list.4' }],
+      });
+
+      core.init();
+
+      expect(core.countCols()).toBe(5);
+      expect(core.getSourceDataArray()).toEqual([[10, 20, 30, 40, 50], [11, 21, 31, 41, 51]]);
+
+      core.destroy();
+    });
+
+    it('should not add a slot for an index that names no column', () => {
+      const core = new Core(container, {
+        theme: 'ht-theme-main',
+        data: [{ a: 'a0', b: 'b0', c: 'c0' }, { a: 'a1', b: 'b1', c: 'c1' }],
+        columns: [{ data: 'a' }, { data: 'c' }],
+      });
+
+      core.init();
+
+      expect(core.getSourceDataArray()).toEqual([['a0', 'c0'], ['a1', 'c1']]);
+
+      core.destroy();
+    });
+  });
 });
 
 describe('Core.setDataAtCell past the last column', () => {
