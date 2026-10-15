@@ -10,6 +10,15 @@ import path from 'node:path';
 export const SELF_CONTAINED_MTS_DIRS = ['themes/static/variables/', 'i18n/languages/'];
 
 /**
+ * Entry-point declarations (relative to the package root) that get the same self-contained `.d.mts`. They are the
+ * `.` and `./base` default exports, `import Handsontable from 'handsontable'`: a wrapper would type that default
+ * as the CommonJS module namespace under `node16`/`nodenext` (DEV-3430). The copy declares only the factory
+ * interface and the namespace; everything else it imports goes through `.mjs` wrappers that re-export named
+ * symbols from the `.d.ts` graph, so those types keep a single identity.
+ */
+export const SELF_CONTAINED_MTS_FILES = ['index.d.ts', 'base.d.ts'];
+
+/**
  * Replace every comment with spaces of the same length (newlines are kept), so a pattern run over the result
  * reports offsets that are valid in the original. A `//` only starts a comment at the start of a line or after
  * whitespace, which keeps `'http://...'` strings intact.
@@ -33,8 +42,8 @@ function maskComments(source) {
  * The explicit specifier ends in `.mjs`, not `.js`. From a `.d.mts` file a `.js` specifier resolves to the
  * CommonJS-format `.d.ts`, so a default import through it would be typed as the module namespace again, while
  * `.mjs` resolves to the sibling `.d.mts` (every `.d.ts` has one). A default import of a file outside the
- * self-contained directories still gets the namespace, because that `.d.mts` is a thin wrapper: such an import
- * does not exist in the declarations today.
+ * self-contained directories and files still gets the namespace, because that `.d.mts` is a thin wrapper: such an
+ * import does not exist in the declarations today.
  *
  * A specifier with a trailing slash, and the bare `.` and `..`, are directories and go to their `index`.
  *
@@ -88,7 +97,9 @@ export function toMtsDeclaration(targetDir, dtsFile) {
   const hasDefault = /\bexport\s+default\b/.test(dtsContent);
   const normalized = path.posix.normalize(dtsFile.split(path.sep).join('/'));
 
-  if (hasDefault && SELF_CONTAINED_MTS_DIRS.some(dir => normalized.startsWith(dir))) {
+  if (hasDefault && (
+    SELF_CONTAINED_MTS_FILES.includes(normalized) || SELF_CONTAINED_MTS_DIRS.some(dir => normalized.startsWith(dir))
+  )) {
     return toExplicitEsmSpecifiers(dtsContent, dtsPath);
   }
 

@@ -3,9 +3,11 @@
  * `nodenext`, resolving `handsontable` through the real `exports` map (a `node_modules` link to
  * `tmp/`, never a tsconfig `paths` map, which bypasses `exports` and proves nothing).
  *
- * This is the check that catches a `.d.mts` whose default export is typed wrong. `attw` and the
- * `.d.ts` type-check both pass for a `.d.mts` wrapper that re-exports a CommonJS-typed default
- * (DEV-3421), because the wrapper itself is well formed and only a default import shows the damage.
+ * This is the check that catches a `.d.mts` whose default export is typed wrong, for a theme preset or language
+ * dictionary (`theme-presets.ts`) and for the `handsontable` and `handsontable/base` entry points
+ * (`entry-points.ts`). `attw` and the `.d.ts` type-check both pass for a `.d.mts` wrapper that re-exports a
+ * CommonJS-typed default (DEV-3421, DEV-3430), because the wrapper itself is well formed and only a default
+ * import shows the damage.
  *
  * Needs the composed package: run `postbuild` (or `postbuild:partial`) first.
  * Set `TSC` to pick a compiler, e.g. the TS 5.1 the Emitted Types workflow installs.
@@ -22,7 +24,9 @@ import { fileURLToPath } from 'node:url';
 
 const projectRoot = fileURLToPath(new URL('..', import.meta.url));
 const packageDir = path.join(projectRoot, 'tmp');
-const fixture = path.join(projectRoot, '.config', 'emitted-types', 'theme-presets.ts');
+const fixtureDir = path.join(projectRoot, '.config', 'emitted-types');
+const presetsFixture = path.join(fixtureDir, 'theme-presets.ts');
+const entryPointsFixture = path.join(fixtureDir, 'entry-points.ts');
 const tscFromEnv = process.env.TSC;
 const tscCli = path.join(projectRoot, 'node_modules', 'typescript', 'bin', 'tsc');
 // A `TSC` override is an executable (a `.bin` shim); the local fallback is the JS entry, which runs
@@ -71,7 +75,7 @@ function listPresetSpecifiers() {
     .sort();
 }
 
-const fixtureSource = readFileSync(fixture, 'utf8');
+const fixtureSource = readFileSync(presetsFixture, 'utf8');
 const unimported = listPresetSpecifiers().filter(specifier => !fixtureSource.includes(`from '${specifier}'`));
 
 if (unimported.length > 0) {
@@ -87,7 +91,8 @@ try {
   const manifest = { name: 'esm-consumer', private: true, type: 'module' };
 
   writeFileSync(path.join(workDir, 'package.json'), JSON.stringify(manifest));
-  cpSync(fixture, path.join(workDir, 'index.ts'));
+  cpSync(presetsFixture, path.join(workDir, 'index.ts'));
+  cpSync(entryPointsFixture, path.join(workDir, 'entry-points.ts'));
   mkdirSync(path.join(workDir, 'node_modules'));
   symlinkSync(packageDir, path.join(workDir, 'node_modules', 'handsontable'), 'junction');
 
@@ -108,7 +113,7 @@ try {
         skipLibCheck: true,
         types: [],
       },
-      files: ['index.ts'],
+      files: ['index.ts', 'entry-points.ts'],
     }));
 
     const result = spawnSync(command, [...baseArgs, '-p', config], {

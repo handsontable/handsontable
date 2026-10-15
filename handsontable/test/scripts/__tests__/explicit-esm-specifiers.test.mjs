@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import {
   SELF_CONTAINED_MTS_DIRS,
+  SELF_CONTAINED_MTS_FILES,
   toExplicitEsmSpecifiers,
   toMtsDeclaration,
 } from '../../../scripts/utils/explicit-esm-specifiers.mjs';
@@ -151,6 +152,40 @@ test('the packaging step writes a self-contained copy for a preset and a languag
     assert.equal(
       toMtsDeclaration(root, 'core.d.ts'),
       'export * from \'./core.js\';\nexport { default } from \'./core.js\';\n'
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('the packaging step writes a self-contained copy for the index and base entry points only at the package root', () => {
+  const root = mkdtempSync(path.join(tmpdir(), 'hot-mts-entry-'));
+  const write = (file, content) => {
+    mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
+    writeFileSync(path.join(root, file), content);
+  };
+
+  try {
+    write('core/index.d.ts', 'export declare const core: number;\n');
+    write('base.d.ts', 'import { core } from \'./core\';\ndeclare const Handsontable: { core: typeof core };\nexport default Handsontable;\n');
+    write('index.d.ts', 'import Handsontable from \'./base\';\nexport default Handsontable;\n');
+    write('themes/index.d.ts', 'declare const themes: number;\nexport default themes;\n');
+
+    assert.ok(['index.d.ts', 'base.d.ts'].every(file => SELF_CONTAINED_MTS_FILES.includes(file)));
+    // `.js` would resolve to the CommonJS `.d.ts` and type the default import as the module namespace (DEV-3430).
+    assert.equal(
+      toMtsDeclaration(root, 'base.d.ts'),
+      'import { core } from \'./core/index.mjs\';\ndeclare const Handsontable: { core: typeof core };\nexport default Handsontable;\n'
+    );
+    assert.equal(
+      toMtsDeclaration(root, 'index.d.ts'),
+      'import Handsontable from \'./base.mjs\';\nexport default Handsontable;\n'
+    );
+    // A same-named file in a subdirectory, with or without a default export, keeps the wrapper.
+    assert.equal(toMtsDeclaration(root, 'core/index.d.ts'), 'export * from \'./index.js\';\n');
+    assert.equal(
+      toMtsDeclaration(root, 'themes/index.d.ts'),
+      'export * from \'./index.js\';\nexport { default } from \'./index.js\';\n'
     );
   } finally {
     rmSync(root, { recursive: true, force: true });

@@ -62,7 +62,8 @@ function reportIncompleteness(message) {
  * `.github/scripts/__tests__/partial-packaging.test.mjs` pins), so this step always reads downleveled `.d.ts` files.
  *
  * Exception: a default-exporting declaration under `SELF_CONTAINED_MTS_DIRS` (theme presets, language
- * dictionaries) is a self-contained copy, not a wrapper. The reason and the rules are in
+ * dictionaries), or one of the `SELF_CONTAINED_MTS_FILES` (the `index` and `base` entry points) is a
+ * self-contained copy, not a wrapper. The reason and the rules are in
  * `scripts/utils/explicit-esm-specifiers.mjs`, which is unit tested.
  */
 glob.sync('./**/*.d.ts', { cwd: TARGET_PATH, nodir: true }).forEach((dtsFile) => {
