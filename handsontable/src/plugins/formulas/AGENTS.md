@@ -460,7 +460,12 @@ Formulas, because the grid reads cells through `getDataAtCell()`:
   "before Jan 2025": every value there was 0.
 
 A declared column keeps its slot (`undefined` when nothing binds it), the same as a `{ data: null }`
-column. The test for "names no column" is `toPhysicalColumn()`, not the integer prop. Do not work
+column. The test for "names no column" is `toPhysicalColumn()`, not the integer prop, and "declared"
+means a place in the `columns` array below `maxCols`: a column `minCols` or `minSpareCols` appends has
+no declaration and no slot. The loop's end is counted from that array, not from `countCachedColumns()`,
+because the property cache only reaches the last column that has a `data` option, so a trailing
+`Total` column would fall off the sheet. A `columns` function has no length to read, so a trailing
+column without `data` still drops out there. Do not work
 around either defect inside this plugin with a `getDataAtCell()` loop, because that would bypass the
 `modifySourceData` hook and the value getters the sheet relies on.
 Pinned by `src/__tests__/core/core.unit.js` and `tests/e2e/formulas-object-columns.spec.ts`.

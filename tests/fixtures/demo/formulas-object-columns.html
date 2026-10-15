@@ -34,8 +34,8 @@
     A Formulas grid over OBJECT rows whose `columns` read nested paths and declare one column with no
     `data` (the shape of GitHub #13852). The engine sheet is built from `getSourceDataArray()`, so it
     only lines up with the grid when that array keeps a slot for every declared column. The row holds
-    two keys, `name` and the `extra` array, while the grid declares 32 columns: past the number of keys
-    in the row the array used to end, and a column with no `data` used to drop out of it, which moved
+    two keys, `name` and the `extra` array, while the grid declares 33 columns: past the number of keys
+    in the row the array used to end, and a column with no `data` used to drop out of it (a trailing one never entered it), which moved
     every later column one place to the left.
     Every leg runs exactly ONE engine: the `umd` legs load HyperFormula as an external script (the base
     bundle ships none); the `full-min` legs use the engine baked into the bundle.
@@ -71,6 +71,8 @@
           type: 'numeric',
           width: 36,
         })),
+        // And one after the last path, where the property cache of the grid does not reach.
+        { title: 'Sum', width: 60, readOnly: true },
       ],
       formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
       fillHandle: { autoInsertRow: false },

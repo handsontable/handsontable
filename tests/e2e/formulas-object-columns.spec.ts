@@ -20,12 +20,14 @@ test.describe('Formulas: fill handle over object rows read through `columns`', (
     const columns = await grid.countCols();
     const [firstRow] = await grid.sourceDataArray();
 
-    expect(columns).toBe(32);
+    expect(columns).toBe(33);
     expect(firstRow).toHaveLength(columns);
     // The column without `data` keeps its slot (empty), so `extra.0` stays at visual column 2.
     expect(firstRow[0]).toBe('Row 1');
     expect(firstRow[1] ?? null).toBeNull();
     expect(firstRow.slice(2, 4)).toEqual([200, 201]);
+    // The trailing column without `data` keeps its slot as well.
+    expect(firstRow[columns - 1] ?? null).toBeNull();
   });
 
   test('fills the value of the source cell, not of its neighbor, when the source sits just after the column without data', async() => {

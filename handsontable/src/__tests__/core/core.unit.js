@@ -492,6 +492,51 @@ describe('Core', () => {
       core.destroy();
     });
 
+    it('should keep the slot of a trailing declared column that has no `data`', () => {
+      const core = new Core(container, {
+        theme: 'ht-theme-main',
+        data: [{ a: 1 }, { a: 2 }],
+        columns: [{ data: 'a' }, { title: 'Total', readOnly: true }],
+      });
+
+      core.init();
+
+      expect(core.countCols()).toBe(2);
+      expect(core.getSourceDataArray()).toEqual([[1, undefined], [2, undefined]]);
+
+      core.destroy();
+    });
+
+    it('should not add a slot for a declared column that `maxCols` cuts off', () => {
+      const core = new Core(container, {
+        theme: 'ht-theme-main',
+        data: [{ a: 'a0', b: 'b0', c: 'c0' }, { a: 'a1', b: 'b1', c: 'c1' }],
+        columns: [{ data: 'a' }, { data: 'b' }, { title: 'cut off' }],
+        maxCols: 2,
+      });
+
+      core.init();
+
+      expect(core.getSourceDataArray()).toEqual([['a0', 'b0'], ['a1', 'b1']]);
+
+      core.destroy();
+    });
+
+    it('should not add a slot for a column that `minCols` appends past the declared ones', () => {
+      const core = new Core(container, {
+        theme: 'ht-theme-main',
+        data: [{ a: 'a0', b: 'b0', c: 'c0' }, { a: 'a1', b: 'b1', c: 'c1' }],
+        columns: [{ data: 'a' }],
+        minCols: 5,
+      });
+
+      core.init();
+
+      expect(core.getSourceDataArray()).toEqual([['a0'], ['a1']]);
+
+      core.destroy();
+    });
+
     it('should not add a slot for an index that names no column', () => {
       const core = new Core(container, {
         theme: 'ht-theme-main',
