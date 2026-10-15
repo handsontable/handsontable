@@ -43,6 +43,8 @@ import type { NestedHeaders } from './nestedHeaders';
 import type { NestedRows } from './nestedRows';
 import type { Notification } from './notification';
 import type { Pagination } from './pagination';
+import type { RowSelection } from './rowSelection';
+import type { CheckboxHeader } from './checkboxHeader';
 import type { Search } from './search';
 import type { SelectionHandles } from './selectionHandles';
 import type { StretchColumns } from './stretchColumns';
@@ -93,6 +95,8 @@ export interface PluginTypeMap {
   nestedRows: NestedRows;
   notification: Notification;
   pagination: Pagination;
+  rowSelection: RowSelection;
+  checkboxHeader: CheckboxHeader;
   search: Search;
   selectionHandles: SelectionHandles;
   stretchColumns: StretchColumns;
