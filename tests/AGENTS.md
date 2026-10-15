@@ -9,9 +9,12 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
 - `theme` (main / horizon / classic) × `bundle` (`umd` = `dist/handsontable.js`,
   `full-min` = `dist/handsontable.full.min.js`) → projects `e2e-<theme>` and
   `e2e-<theme>-min`, 1:1 with the Puppeteer legs (`test:e2e` / `test:production`).
-- Every spec runs on all six legs automatically. Author against
-  `fixtures/test.ts` (`import { test, expect } from '../fixtures/test'`),
-  destructure `{ page, theme, bundle }`, and pass both to the page object.
+- A spec runs on `e2e-main` only unless its top-level blocks declare the
+  axes it is sensitive to (`THEMES_TAG`, `BUNDLES_TAG`; "Declaring the legs"
+  below). Author against `fixtures/test.ts` (`import { test, expect } from
+  '../fixtures/test'`), destructure `{ page, theme, bundle }`, and pass both
+  to the page object: a spec is parametrized by the project that runs it,
+  and the tags say which projects do.
 - **Local gates run `e2e-main` (plain UMD) only** — pre-push, the Claude Stop
   hook, and `npm run test:e2e` are pinned there; the `-min` legs are CI-only.
   (`e2e-main` used to load `full.min` — never assume the hooks cover min.)
@@ -141,6 +144,76 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   the grid's `overflow: clip` when the list stays left-aligned with the
   last cell.
 
+## Declaring the legs
+
+A spec runs on `e2e-main` (the main theme, plain UMD) only, unless its top-level blocks say
+otherwise. Most specs assert DOM or API facts that cannot differ by theme or bundle, so the six
+legs used to run the same tests six times for one answer. A spec declares the axes it is
+sensitive to with a tag on EVERY top-level `test.describe()` and every bare top-level `test()`:
+
+```ts
+import { test, expect, THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG } from '../fixtures/test';
+
+test.describe('the editor follows its cell', { tag: THEMES_TAG }, () => { … }); // + e2e-horizon, e2e-classic
+test.describe('formulas move with cells', { tag: BUNDLES_TAG }, () => { … }); // + e2e-main-min
+test.describe(`drag (${direction})`, { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => { … }); // all six
+test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) => { … });
+```
+
+- **Every top-level block of a file carries the same leg tags.** A spec is declared as a whole:
+  its page objects and fixtures are scanned as a whole, and a tag on one describe of three would
+  run the other two on one leg while the file claims otherwise. A leg tag on a nested block is an
+  error. A top-level `test(title, quarantined(…), body)` cannot carry a leg tag (the helper
+  returns the details object): put it inside a describe that carries the file's tags.
+- **Only the constants, never the strings.** `{ tag: '@themes' }` is one typo from a spec that
+  silently runs on one leg: Playwright accepts any string as a tag, and `{ tag: undefined }` from
+  a misspelled or missing import too. `.eslintrc.cjs` bans the bare string and its template twin,
+  and the sweep below refuses an identifier it cannot resolve. `@core`, `@walkontable`,
+  `CROSS_BROWSER_TAG` and `CLIPBOARD_SHORTCUT_TAG` stay free-form and sit in the same array, on
+  one line (the engines pin reads that line).
+- **What needs `THEMES_TAG`:** anything the theme stylesheet decides – a computed style, a design
+  token (`--ht-*`), a branch on the theme, the theme class, a hit test (`elementFromPoint`: what
+  sits under a point depends on paddings and sizes), a pixel assertion in the spec
+  (`boundingBox()`, `getBoundingClientRect()`, `offsetWidth`, `toHaveCSS()` compared to a value),
+  and every trap the matrix section above describes (band edges, which side a popup opens on, a
+  short fixed-height fixture). **What needs `BUNDLES_TAG`:** HyperFormula and the Formulas plugin
+  (the plain UMD loads the engine as an external script, `full.min` bakes it in), a branch on the
+  bundle, and the load surface the minified full bundle changes (an AMD loader, Trusted Types, a
+  shadow root, an iframe, DOMPurify, the license bar). Both bundles build from the same
+  `src/index.ts`: `full.min` adds the HyperFormula global, minification and the vendored
+  `regexp-to-ast` wrapper, and neither ships numbro, moment, pikaday or a language pack.
+- **The sweep enforces the explicit markers.** `lib/__tests__/leg-declarations.test.mjs` (root
+  `test:tooling`; pre-push runs it when a spec, a page object, a fixture or the lib changed) reads
+  every spec, the page objects it imports transitively, and the fixture HTML those name, and fails
+  a spec that hits a marker without the tag: `theme-compare`, `computed-style`, `css-token`,
+  `theme-class` (spec and page objects only; a fixture's own param block builds the class),
+  `hit-test`, `geometry` (spec text only, or one base page object's `boundingBox()` helper would
+  force the axis on everything that imports it), `formulas`, `hyperformula`, `bundle-compare`. A
+  marker that does not mean sensitivity here is opted out in the SPEC file, never in a shared page
+  object: `// leg-declarations: ignore <marker-id> -- <why>`, with ten or more characters of why; a
+  stale, redundant or misnamed ignore fails the sweep. `e2e/color-scheme-density.spec.ts` is the
+  example: its fixture pins `ht-theme-main` on every leg and the engine builds its CSS at runtime,
+  so `BUNDLES_TAG` alone and `ignore computed-style`. Declaring an axis anyway is always legal, and
+  a spec the markers miss but the matrix traps describe declares it all the same.
+  `e2e/leg-declarations.spec.ts` (no browser) proves on every pull request that the projects
+  Playwright lists for each test are the ones its tags say, and that the tags Playwright sees are
+  the ones written in the source.
+- **The nightly is the safety net, and a nightly-only red means an undeclared axis.** `E2E nightly`
+  (`.github/workflows/e2e-nightly.yml`, weeknights on develop; the rc/stable publish path and a
+  master push do the same) runs every spec on all six legs with `HOT_E2E_FULL_MATRIX=1`. A test red
+  there and green on pull requests runs on a leg its spec did not declare: declare the axis, never
+  quarantine it. The flake ledger records the nightly's tests with `branch: develop`, and
+  `node scripts/leg-replay.mjs --list test-results/list.json` (after
+  `npx playwright test --list --reporter=json > test-results/list.json`) replays the ledger against
+  the declared tree, names the declaration every off-main red asks for, and exits 1 on a miss.
+- **Locally:** `npx playwright test` runs the declared shape;
+  `HOT_E2E_FULL_MATRIX=1 npx playwright test e2e/<spec>.spec.ts` runs one spec on all six legs;
+  `--project=e2e-horizon` on an undeclared spec says "No tests found", by design – there is no
+  `--pass-with-no-tests` anywhere, so an empty leg is a red job, never a green one that ran
+  nothing, and the sweep keeps every declaration shape in use so no leg is ever empty. The engine
+  legs ignore the declarations: every `@cross-browser` spec runs on Firefox and WebKit whatever its
+  leg tags say.
+
 ## The engine legs (Firefox, WebKit)
 
 - The six projects above are Chromium. Tests tagged `@cross-browser` run on Firefox and WebKit as
@@ -159,8 +232,8 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   captures' photographed states (DEV-3257) are tagged, and
   `.github/scripts/__tests__/playwright-engines.test.mjs` keeps them tagged and keeps the config
   filtering by the tag and inheriting the base config's CI flake settings and reporters.
-- A separate config, so that `npx playwright test` without `--project` (all six legs) never needs the
-  engines installed. To run a tagged spec on them locally, install them once for this package's
+- A separate config, so that `npx playwright test` without `--project` (the six legs, as declared)
+  never needs the engines installed. To run a tagged spec on them locally, install them once for this package's
   Playwright and name the config:
 
   ```bash
@@ -171,7 +244,8 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
 
   The local gates (pre-push, the Stop hook) run `e2e-main` only, so an engine failure first shows in
   CI unless you run it. Before calling a tagged test deterministic, repeat it on the engines as well
-  as on the six legs (`--config playwright-engines.config.ts --repeat-each 20`). A pass on macOS
+  as on the six legs (`--config playwright-engines.config.ts --repeat-each 20`, and
+  `HOT_E2E_FULL_MATRIX=1` for the six, since a spec runs only the legs it declares otherwise). A pass on macOS
   does not prove a keyboard shortcut on the Linux runner: `ControlOrMeta` is Meta on macOS and
   Control in CI, and WebKit handles the two differently (the clipboard bullet below).
 - **Firefox cannot start in the job's container without `HOME=/root`.** The container runs as root,
@@ -198,7 +272,7 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   `CLIPBOARD_SHORTCUT_TAG` beside `CROSS_BROWSER_TAG`: Firefox runs it and WebKit does not. The date
   editor's picker takes the keys while it is shown, and Escape closes the picker and leaves the editor
   open in Chromium but closes the editor in Firefox and WebKit, so `date-editor-native-input.spec.ts`
-  carries no tag and runs on the six Chromium legs only.
+  carries no engine tag and runs on the Chromium legs its leg tags declare only.
 - **Tab past a page's last focusable element leaves the document in Chromium and WebKit, and goes nowhere
   in headless Firefox.** There `document.hasFocus()` turns false; headless Firefox has no browser UI to
   move the focus to, so it stays on the cell. Assert what the grid draws after the exit (no selection, no
@@ -608,7 +682,11 @@ and the "Where the time goes" section of the same page shows each leg's
 wall-clock and test count over 30 days, the 30 heaviest spec files, and every
 test over 3 s. Read it before a change to workers, shards or the leg matrix, and
 measure the change against its per-leg P50 and P90, the input a later e2e budget
-is derived from (no gate reads it yet). The JSON reporter feeds both sections,
+is derived from (no gate reads it yet). The legs no longer run the same tests
+("Declaring the legs" above), so each leg's count and wall-clock compare with
+that leg's own history only, never with another leg's, and not across the merge
+that introduced the declarations. The nightly's full-matrix files upload like
+every leg's and are never recorded: a schedule is not a develop push. The JSON reporter feeds both sections,
 so it stays in the CI reporter list with its output path; the durations file
 path and artifact name are pinned in
 `.github/scripts/__tests__/test-health.test.mjs`. A change to the leg matrix
@@ -652,7 +730,7 @@ here instead.
   the flaky verdict fails the leg again, and the tag on a passing test raises a
   warning asking to be removed.
 - **Cap: 6 quarantined tests at once**, counted as distinct tests (one test
-  across six projects is one). The entry after the cap fails the run even when
+  across every project it runs on is one). The entry after the cap fails the run even when
   every test passes; fix one before parking another.
 - **Visible.** The ledger at <https://handsontable.github.io/handsontable/test-health/>
   shows quarantined tests with their entry, so nothing is parked silently.
