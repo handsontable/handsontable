@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the fill handle adding new top-level parents instead of child rows when dragged past the last row of a nested grid.",
+  "type": "fixed",
+  "issueOrPR": 13868,
+  "breaking": false,
+  "framework": "none"
+}
