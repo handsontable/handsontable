@@ -138,7 +138,97 @@ test('reports a key that is not a plugin API page', () => {
   });
 
   assert.equal(errors.length, 1);
-  assert.match(errors[0], /core\.md: not a plugin API page/);
+  assert.match(errors[0], /core\.md: not a plugin, hooks, or baseEditor API page/);
+});
+
+test('buildGuideLinkLine writes one sentence per guide for an array entry', () => {
+  const line = buildGuideLinkLine('exportFile.md');
+
+  assert.equal(line.match(/ guide for examples and configuration details\./g).length, 2);
+  assert.match(line, /^See the \[Export to CSV\]\(@\/guides\/accessories-and-menus\/export-to-csv\/export-to-csv\.md\) guide for examples and configuration details\. See the \[Export to Excel\]/);
+});
+
+test('buildGuideLinkLine keeps a one-element array identical to a plain string', () => {
+  const links = { 'search.md': 'guides/navigation/searching-values/searching-values.md' };
+  const asArray = { 'search.md': [links['search.md']] };
+
+  assert.equal(buildGuideLinkLine('search.md', { links: asArray }), buildGuideLinkLine('search.md', { links }));
+});
+
+test('buildGuideLinkLine covers the Hooks and BaseEditor pages under the names the renderer passes', () => {
+  assert.match(buildGuideLinkLine('Hooks.md'), /^See the \[[^\]]+\]\(@\/guides\/getting-started\/events-and-hooks\/events-and-hooks\.md\) guide for /);
+  assert.match(buildGuideLinkLine('BaseEditor.md'), /^See the \[[^\]]+\]\(@\/guides\/cell-functions\/cell-editor\/cell-editor\.md\) guide for /);
+});
+
+test('buildGuideLinkLine returns an empty string for an empty array', () => {
+  assert.equal(buildGuideLinkLine('search.md', { links: { 'search.md': [] } }), '');
+});
+
+test('accepts the hooks and baseEditor pages although they are not plugin directories', () => {
+  const errors = validate({
+    links: { 'hooks.md': guide, 'baseEditor.md': guide },
+    contentDir: makeContentDir({ [guide]: 'title: B\npermalink: /b' }),
+    pluginNames: [],
+    sidebar: { all: new Set([guide]), gated: new Set() },
+    unmapped: [],
+  });
+
+  assert.deepEqual(errors, []);
+});
+
+test('still rejects core.md and options.md', () => {
+  for (const key of ['core.md', 'options.md']) {
+    const errors = validate({
+      links: { [key]: guide },
+      contentDir: makeContentDir({ [guide]: 'title: B\npermalink: /b' }),
+      pluginNames: [],
+      sidebar: { all: new Set([guide]), gated: new Set() },
+      unmapped: [],
+    });
+
+    assert.equal(errors.length, 1, key);
+    assert.match(errors[0], /not a plugin, hooks, or baseEditor API page/, key);
+  }
+});
+
+test('accepts an array of valid guides', () => {
+  const other = 'guides/a/c/c.md';
+  const errors = validate({
+    links: { 'search.md': [guide, other] },
+    contentDir: makeContentDir({ [guide]: 'title: B\npermalink: /b', [other]: 'title: C\npermalink: /c' }),
+    pluginNames: ['search'],
+    sidebar: { all: new Set([guide, other]), gated: new Set() },
+    unmapped: [],
+  });
+
+  assert.deepEqual(errors, []);
+});
+
+test('reports only the bad guide of an array', () => {
+  const other = 'guides/a/c/c.md';
+  const errors = validate({
+    links: { 'search.md': [guide, other] },
+    contentDir: makeContentDir({ [guide]: 'title: B\npermalink: /b', [other]: 'title: C\npermalink: /c' }),
+    pluginNames: ['search'],
+    sidebar: { all: new Set([guide]), gated: new Set() },
+    unmapped: [],
+  });
+
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /search\.md: the guide "guides\/a\/c\/c\.md" is not registered in the sidebar/);
+});
+
+test('reports an empty guide array', () => {
+  const errors = validate({
+    links: { 'search.md': [] },
+    contentDir: makeContentDir({}),
+    pluginNames: ['search'],
+    sidebar: { all: new Set(), gated: new Set() },
+    unmapped: [],
+  });
+
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /search\.md: the guide list is empty/);
 });
 
 test('reports a guide that is not registered in the sidebar', () => {

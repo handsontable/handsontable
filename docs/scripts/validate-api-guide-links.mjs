@@ -12,6 +12,12 @@ const require = createRequire(import.meta.url);
 const NON_PLUGIN_DIRS = ['base', '__tests__'];
 
 /**
+ * API pages that are not plugins but still link to a guide. `Options` already links its guides from the
+ * text of each option, and `Core` is skipped, so neither is listed.
+ */
+const NON_PLUGIN_API_PAGES = ['hooks.md', 'baseEditor.md'];
+
+/**
  * Validates the map that adds a "See the guide" line to the generated API pages (DEV-2809).
  *
  * A mapped guide that is missing, untitled, or without a `permalink` would ship a dead link
@@ -60,8 +66,49 @@ export function collectSidebarGuides(sidebar) {
 }
 
 /**
+ * Checks one guide path of a map entry.
+ *
+ * @param {string} apiFile The API page file name, used in the messages.
+ * @param {unknown} guidePath The guide path relative to `docs/content/`.
+ * @param {string} contentDir Absolute path to `docs/content`.
+ * @param {{ all: Set<string>, gated: Set<string> }} sidebar From `collectSidebarGuides()`.
+ * @returns {string[]} One message per problem.
+ */
+function validateGuide(apiFile, guidePath, contentDir, sidebar) {
+  const errors = [];
+
+  if (typeof guidePath !== 'string' || !guidePath.startsWith('guides/') || !guidePath.endsWith('.md')) {
+    return [`${apiFile}: "${guidePath}" must be a path like guides/<section>/<page>/<page>.md.`];
+  }
+
+  if (!existsSync(join(contentDir, guidePath))) {
+    return [`${apiFile}: the guide "${guidePath}" does not exist.`];
+  }
+
+  const frontmatter = readGuideFrontmatter(guidePath, contentDir);
+
+  if (typeof frontmatter.title !== 'string' || !frontmatter.title) {
+    errors.push(`${apiFile}: the guide "${guidePath}" has no title in its frontmatter.`);
+  }
+
+  if (typeof frontmatter.permalink !== 'string' || !frontmatter.permalink) {
+    errors.push(`${apiFile}: the guide "${guidePath}" has no permalink, so the link would 404.`);
+  }
+
+  if (!sidebar.all.has(guidePath)) {
+    errors.push(`${apiFile}: the guide "${guidePath}" is not registered in the sidebar.`);
+  }
+
+  if (sidebar.gated.has(guidePath)) {
+    errors.push(`${apiFile}: the guide "${guidePath}" is framework-specific (onlyFor), so other frameworks would link to a page missing from their navigation.`);
+  }
+
+  return errors;
+}
+
+/**
  * @param {object} options
- * @param {Record<string, string>} options.links The map to check.
+ * @param {Record<string, string | string[]>} options.links The map to check. A value is one guide path or an array of them.
  * @param {string} options.contentDir Absolute path to `docs/content`.
  * @param {string[]} options.pluginNames Plugin directory names from `handsontable/src/plugins`.
  * @param {{ all: Set<string>, gated: Set<string> }} options.sidebar From `collectSidebarGuides()`.
@@ -94,39 +141,21 @@ export function validateApiGuideLinks({ links, contentDir, pluginNames, sidebar,
     }
   }
 
-  for (const [apiFile, guidePath] of Object.entries(links)) {
+  for (const [apiFile, value] of Object.entries(links)) {
     const name = apiFile.replace(/\.md$/, '');
 
-    if (!apiFile.endsWith('.md') || !pluginNames.includes(name)) {
-      errors.push(`${apiFile}: not a plugin API page (the map covers plugins only).`);
+    if (!apiFile.endsWith('.md') || (!pluginNames.includes(name) && !NON_PLUGIN_API_PAGES.includes(apiFile))) {
+      errors.push(`${apiFile}: not a plugin, hooks, or baseEditor API page (the map covers those only).`);
     }
 
-    if (!guidePath.startsWith('guides/') || !guidePath.endsWith('.md')) {
-      errors.push(`${apiFile}: "${guidePath}" must be a path like guides/<section>/<page>/<page>.md.`);
-      continue;
+    const guidePaths = [].concat(value);
+
+    if (guidePaths.length === 0) {
+      errors.push(`${apiFile}: the guide list is empty. Remove the entry or add a guide.`);
     }
 
-    if (!existsSync(join(contentDir, guidePath))) {
-      errors.push(`${apiFile}: the guide "${guidePath}" does not exist.`);
-      continue;
-    }
-
-    const frontmatter = readGuideFrontmatter(guidePath, contentDir);
-
-    if (typeof frontmatter.title !== 'string' || !frontmatter.title) {
-      errors.push(`${apiFile}: the guide "${guidePath}" has no title in its frontmatter.`);
-    }
-
-    if (typeof frontmatter.permalink !== 'string' || !frontmatter.permalink) {
-      errors.push(`${apiFile}: the guide "${guidePath}" has no permalink, so the link would 404.`);
-    }
-
-    if (!sidebar.all.has(guidePath)) {
-      errors.push(`${apiFile}: the guide "${guidePath}" is not registered in the sidebar.`);
-    }
-
-    if (sidebar.gated.has(guidePath)) {
-      errors.push(`${apiFile}: the guide "${guidePath}" is framework-specific (onlyFor), so other frameworks would link to a page missing from their navigation.`);
+    for (const guidePath of guidePaths) {
+      errors.push(...validateGuide(apiFile, guidePath, contentDir, sidebar));
     }
   }
 
