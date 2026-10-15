@@ -40,7 +40,7 @@ export class AppComponent {
 
   saveStatus: SaveStatus = 'idle';
 
-  /** Writes made outside a template event trigger no change-detection pass, so render the new status. */
+  /** Nothing marks the OnPush-by-default component dirty here, so render the new status. */
   private setSaveStatus(status: SaveStatus): void {
     this.saveStatus = status;
     this.cdr.detectChanges();

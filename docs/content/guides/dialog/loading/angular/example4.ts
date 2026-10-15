@@ -213,7 +213,7 @@ export class AppComponent implements AfterViewInit {
         this.cdr.detectChanges();
       }, 2000);
     } finally {
-      // Writes after an `await` trigger no change-detection pass, so render the new state.
+      // Nothing marks the OnPush-by-default component dirty after an `await`, so render the new state.
       this.cdr.detectChanges();
     }
   }

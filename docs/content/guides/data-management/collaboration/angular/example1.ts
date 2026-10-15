@@ -81,7 +81,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     hot?.setDataAtCell(row, column, value, REMOTE_SOURCE);
     this.statusText = 'A collaborator marked "Update onboarding flow" as Done.';
-    // A timer callback triggers no change-detection pass, so render the new text.
+    // Nothing marks the OnPush-by-default component dirty in a timer callback, so render the new text.
     this.cdr.detectChanges();
   }
 }

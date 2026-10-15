@@ -1371,7 +1371,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     this.selectedTheme = currentTheme;
     this.setTheme(currentTheme);
-    // Angular runs no change detection after ngAfterViewInit, so refresh selectedTheme and the menu label.
+    // Nothing marks the OnPush-by-default component dirty after ngAfterViewInit, so refresh selectedTheme and the menu label.
     this.changeDetectorRef.detectChanges();
   }
 

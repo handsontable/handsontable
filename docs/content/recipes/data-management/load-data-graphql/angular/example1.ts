@@ -97,7 +97,7 @@ export class AppComponent implements OnInit {
       this.hasError = true;
       this.status = 'Failed to load users. Try again.';
     } finally {
-      // Writes after an `await` trigger no change-detection pass, so render the new state.
+      // Nothing marks the OnPush-by-default component dirty after an `await`, so render the new state.
       this.cdr.detectChanges();
     }
   }
