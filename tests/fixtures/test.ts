@@ -4,16 +4,17 @@ import type { Bundle } from './bundle';
 /**
  * Shared test fixture for the functional E2E suite.
  *
- * Declares the `theme` and `bundle` options so every spec runs across the
+ * Declares the `theme` and `bundle` options so a spec can run across the
  * same matrix the Puppeteer e2e suite covers: themes (main/horizon/classic)
  * × bundles (`umd` = dist/handsontable.js, `full-min` =
  * dist/handsontable.full.min.js — the same Handsontable builds the Puppeteer
  * `test:e2e` and `test:production` legs load; Puppeteer additionally loads
  * dist/languages/all.js, so an i18n spec's fixture must include that script
  * explicitly), via the projects in playwright.config.ts. A spec authored
- * against this `test` needs no theme or bundle awareness: it is parametrized
- * automatically by the active project, and the page objects append both to
- * the fixture URL.
+ * against this `test` is parametrized by the active project, and the page
+ * objects append both to the fixture URL; WHICH projects run it is what its
+ * leg tags declare (`THEMES_TAG` / `BUNDLES_TAG` below): none means
+ * `e2e-main` only.
  *
  * Formulas specs: the `umd` legs run the base bundle, which ships NO
  * HyperFormula — the plugin logs a warning and silently stays off. A formulas

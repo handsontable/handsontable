@@ -4,10 +4,12 @@ import { CROSS_BROWSER_TAG, CLIPBOARD_SHORTCUT_TAG, type TestOptions } from './f
 
 /**
  * The engine legs: the specs tagged `@cross-browser` (`CROSS_BROWSER_TAG` in `fixtures/test.ts`) on
- * Firefox and WebKit. The six projects of `playwright.config.ts` run every spec on Chromium, under three
- * themes and two bundles; the engines run only the tagged ones, under the main theme and the plain UMD
- * bundle, because what a tagged spec asserts is the same under every theme and either bundle, and an
- * engine difference shows on one of each.
+ * Firefox and WebKit. The six projects of `playwright.config.ts` run each spec on Chromium on the theme
+ * and bundle legs it declares (its `THEMES_TAG`/`BUNDLES_TAG`, tests/AGENTS.md "Declaring the legs");
+ * the engines run only the `@cross-browser` ones, every one of them whatever its leg tags say, under
+ * the main theme and the plain UMD bundle, because what a tagged spec asserts is the same under every
+ * theme and either bundle, and an engine difference shows on one of each. The base config keeps its
+ * leg greps per project, so nothing of them reaches the projects defined here.
  *
  * WebKit also leaves out the tests tagged `@clipboard-shortcut` (`CLIPBOARD_SHORTCUT_TAG`): on the
  * Linux runner Playwright's WebKit turns a real Ctrl+C, X or V into no copy, cut or paste at all.

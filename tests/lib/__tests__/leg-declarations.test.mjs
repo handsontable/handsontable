@@ -808,6 +808,26 @@ test('the specs that documented a theme- or bundle-only regression keep declarin
   });
 });
 
+test('the config greps each project through legGrep, per project and never top-level, and reads the full-matrix switch', () => {
+  const { code } = scanSource(readFileSync(path.join(TESTS_ROOT, 'playwright.config.ts'), 'utf8'), 'playwright.config.ts');
+
+  assert.match(code, /import \{ FULL_MATRIX_ENV, legGrep, parseFullMatrix \} from '\.\/lib\/leg-declarations\.mjs';/,
+    'tests/playwright.config.ts must take the greps and the full-matrix switch from the lib, so the sweep and the run agree');
+  assert.match(code, /const FULL_MATRIX = parseFullMatrix\(process\.env\[FULL_MATRIX_ENV\]\);/,
+    'the config must read HOT_E2E_FULL_MATRIX through parseFullMatrix(), which throws on a value it does not know');
+
+  const greps = [...code.matchAll(/\bgrep\s*:/g)];
+
+  assert.equal(greps.length, 1, 'exactly one grep: the one inside the project map');
+  assert.match(code, /grep: legGrep\(\{ theme, bundle, fullMatrix: FULL_MATRIX \}\)/,
+    'each project greps for the tags its legs need, through legGrep()');
+  assert.ok(greps[0].index > code.indexOf('projects: ['),
+    'the grep sits inside a project, never top-level: a top-level grep would leak into tests/playwright-engines.config.ts '
+    + 'through its spread of this config, and the engine legs must run every @cross-browser spec whatever the leg tags say');
+  assert.doesNotMatch(code, /grepInvert/, 'the leg filter is a positive grep; the only grepInvert lives in the engines config');
+  assert.doesNotMatch(code, /passWithNoTests|pass-with-no-tests/, 'an empty leg must be a red job, never a green one that ran nothing');
+});
+
 test('fixtures/test.ts re-exports the two leg tags from the lib, beside the engine tags', () => {
   const fixtures = readFileSync(path.join(TESTS_ROOT, 'fixtures/test.ts'), 'utf8');
 
