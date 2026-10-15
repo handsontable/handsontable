@@ -236,6 +236,76 @@ test.describe('limitFixedToViewport', () => {
     });
   });
 
+  test.describe('ManualColumnFreeze before the grid renders again', () => {
+    test('freezes two columns in a row, because each freeze counts from the configured band', async() => {
+      await grid.goto({ start: 2 });
+
+      // both columns fit next to the two that are frozen, and nothing renders between the two calls
+      expect(await grid.freezeColumn(10)).toBe(true);
+      expect(await grid.freezeColumn(11)).toBe(true);
+
+      expect(await grid.setting('fixedColumnsStart')).toBe(4);
+      expect(await grid.visualColumnOf(10)).toBe(2);
+      expect(await grid.visualColumnOf(11)).toBe(3);
+    });
+
+    test('refuses a freeze that does not fit, even when the configured band is the most that fits', async() => {
+      await grid.goto({ start: 2 });
+
+      const { start: fit } = await grid.expectedCounts({ start: 30 });
+
+      await grid.updateSettings({ fixedColumnsStart: fit });
+      await expect.poll(() => grid.drawnCount('start')).toBe(fit);
+
+      // one more frozen column would be cut by the next render, so it must not be moved to the freeze line
+      expect(await grid.freezeColumn(25)).toBe(false);
+      expect(await grid.visualColumnOf(25)).toBe(25);
+      expect(await grid.setting('fixedColumnsStart')).toBe(fit);
+    });
+  });
+
+  test.describe('the end band as configured', () => {
+    test('ManualColumnFreeze and ManualColumnMove keep the configured end band when fewer columns are drawn', async() => {
+      // 30 columns, end 10 configured and only a few of them drawn: the band is columns 20 to 29
+      await grid.goto({ end: 10 });
+
+      expect((await grid.drawnCounts()).end).toBeLessThan(10);
+
+      expect(await grid.freezeColumn(25)).toBe(false);
+      expect(await grid.visualColumnOf(25)).toBe(25);
+
+      // a move from the scrolling columns into the configured band would shift the columns in between into it
+      expect(await grid.isColumnMovePossible([5], 22)).toBe(false);
+      expect(await grid.isColumnMovePossible([5], 15)).toBe(true);
+    });
+  });
+
+  test.describe('a hidden track at the inner edge of a band', () => {
+    test('does not lower the drawn count when the whole band fits', async() => {
+      // column 2 is hidden: columns 0 to 2 take the room of two, so all three are drawn as frozen
+      await grid.goto({ start: 3, hidden: 1 });
+
+      expect(await grid.drawnCount('start')).toBe(3);
+      expect(await grid.freezeColumn(10)).toBe(true);
+    });
+  });
+
+  test.describe('a window resize that a listener blocks', () => {
+    test('does not render the grid when the frozen counts would move', async() => {
+      await grid.goto({ top: 20, win: 1 });
+      await grid.blockRefreshDimensions();
+
+      const rendersBefore = await grid.viewRenderCount();
+      const topBefore = (await grid.drawnCounts()).top;
+
+      await grid.resizeWindow({ width: 1280, height: 360 });
+      await grid.settleFrames();
+
+      expect(await grid.viewRenderCount()).toBe(rendersBefore);
+      expect((await grid.drawnCounts()).top).toBe(topBefore);
+    });
+  });
+
   test.describe('ManualColumnFreeze next to a frozen end band', () => {
     test('does not unfreeze a column that would slide into the end band', async() => {
       // narrow columns, so every configured column is drawn: 30 columns, start 26 and end 8 leave an end band of 4

@@ -19,17 +19,6 @@ export function getEndBandCount(hot: HotInstance, fixedColumnsStart: number): nu
 }
 
 /**
- * The number of frozen end columns the grid draws. It equals `getEndBandCount()` for the drawn start band unless
- * `limitFixedToViewport` cut the end band down to what fits.
- *
- * @param {Core} hot The Handsontable instance.
- * @returns {number}
- */
-export function getDrawnEndBandCount(hot: HotInstance): number {
-  return hot.view ? hot.view.countFixedColumnsEnd() : getEndBandCount(hot, getStartBandCount(hot));
-}
-
-/**
  * The number of frozen start columns the grid draws. It is the configured count unless `limitFixedToViewport`
  * cut the band down to what fits, and then the columns past it are scrollable, so they count as not frozen.
  *
@@ -41,15 +30,28 @@ export function getStartBandCount(hot: HotInstance): number {
 }
 
 /**
- * Checks whether `limitFixedToViewport` cut the start band down, so the grid draws fewer frozen columns than are
- * configured. The drawn band is then the most that fits, so freezing one more column cannot show: it would only
- * move a column to the freeze line, where it keeps scrolling.
+ * The number of frozen start columns the configured settings describe. A freeze counts from this band, not from the
+ * drawn one: the drawn count is a memo of the last render, so a second freeze before the next render would read the
+ * count from before the first one.
  *
  * @param {Core} hot The Handsontable instance.
- * @returns {boolean}
+ * @returns {number}
  */
-export function isStartBandCut(hot: HotInstance): boolean {
-  return getStartBandCount(hot) < (Number(hot.getSettings().fixedColumnsStart) || 0);
+export function getConfiguredStartBandCount(hot: HotInstance): number {
+  return Number(hot.getSettings().fixedColumnsStart) || 0;
+}
+
+/**
+ * Checks whether the grid can draw one more frozen start column. With `limitFixedToViewport` the column that is
+ * frozen must fit next to the configured band: a band that was cut, or is the most that fits, would only move the
+ * column to the freeze line, where the next render cuts it out of the band again, and it keeps scrolling.
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @param {number} column Visual column index of the column to freeze.
+ * @returns {boolean} Always `true` without the option.
+ */
+export function canFreezeFit(hot: HotInstance, column: number): boolean {
+  return hot.view ? hot.view.canFreezeStartColumn(column) : true;
 }
 
 /**
@@ -57,12 +59,16 @@ export function isStartBandCut(hot: HotInstance): boolean {
  * and cannot also be frozen at the start: moving it to the freeze line would pull the column in front of the
  * band into it.
  *
+ * It reads the CONFIGURED band on purpose, as `getEndBandCount()` does. With `limitFixedToViewport` the drawn end
+ * band can be smaller, but the columns in front of the configured band would still be shifted into it by the move,
+ * and a different set of columns would be frozen at the end when the grid grows.
+ *
  * @param {Core} hot The Handsontable instance.
  * @param {number} column Visual column index.
  * @returns {boolean}
  */
 export function isInEndBand(hot: HotInstance, column: number): boolean {
-  const endCount = getDrawnEndBandCount(hot);
+  const endCount = getEndBandCount(hot, getConfiguredStartBandCount(hot));
 
   return endCount > 0 && column >= hot.countCols() - endCount;
 }
@@ -80,7 +86,7 @@ export function unfreezeWouldShiftEndBand(hot: HotInstance): boolean {
   // configured start can be larger than the drawn one, so the band it replaces is the one the CONFIGURED start gives,
   // not the one at the drawn start: comparing the drawn start with the drawn start minus one would miss that the
   // smaller write un-squeezes `fixedColumnsEnd`. Without the option the two starts are the same number.
-  const configuredStart = Number(hot.getSettings().fixedColumnsStart) || 0;
+  const configuredStart = getConfiguredStartBandCount(hot);
   const startAfterUnfreeze = Math.max(getStartBandCount(hot) - 1, 0);
 
   return getEndBandCount(hot, configuredStart) !== getEndBandCount(hot, startAfterUnfreeze);

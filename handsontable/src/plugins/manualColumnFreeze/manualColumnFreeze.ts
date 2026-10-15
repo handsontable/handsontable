@@ -3,7 +3,14 @@ import { Hooks } from '../../core/hooks';
 import freezeColumnItem from './contextMenuItem/freezeColumn';
 import unfreezeColumnItem from './contextMenuItem/unfreezeColumn';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
-import { getEndBandCount, getStartBandCount, isInEndBand, isStartBandCut, unfreezeWouldShiftEndBand } from './endBand';
+import {
+  canFreezeFit,
+  getConfiguredStartBandCount,
+  getEndBandCount,
+  getStartBandCount,
+  isInEndBand,
+  unfreezeWouldShiftEndBand,
+} from './endBand';
 
 Hooks.getSingleton().register('beforeColumnFreeze');
 Hooks.getSingleton().register('afterColumnFreeze');
@@ -157,14 +164,14 @@ export class ManualColumnFreeze extends BasePlugin {
     const settings = this.hot.getSettings();
     // columns are already fixed (frozen), or the column belongs to the `fixedColumnsEnd` band: moving it to
     // the freeze line would pull the column in front of the band into it
-    // The band the grid draws: with `limitFixedToViewport` it can be smaller than the configured count, and the
-    // columns past it scroll, so freezing one of them moves it to the drawn freeze line.
-    const fixedStart = getStartBandCount(this.hot);
+    // A freeze counts from the configured band, not from the memo of the drawn one, so two freezes before a render
+    // both land on the freeze line. With `limitFixedToViewport` the frozen column must fit next to that band: when
+    // the band is already the most that fits, one more frozen column would be cut by the next render.
+    const fixedStart = getConfiguredStartBandCount(this.hot);
     const freezePerformed = fixedStart < this.hot.countCols()
       && column > fixedStart - 1
       && !isInEndBand(this.hot, column)
-      // a band the grid had to cut is the most that fits, so one more frozen column would keep scrolling
-      && !isStartBandCut(this.hot);
+      && canFreezeFit(this.hot, column);
 
     const beforeColumnFreezeHook = this.hot.runHooks('beforeColumnFreeze', column, freezePerformed);
 

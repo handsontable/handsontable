@@ -388,6 +388,34 @@ export class LimitFixedToViewportPage {
   }
 
   /**
+   * Asks ManualColumnMove whether it would move the columns to the target, which is what `moveColumns()` checks.
+   *
+   * @param columns The visual columns to move.
+   * @param target The visual index the first moved column lands on.
+   */
+  async isColumnMovePossible(columns: number[], target: number): Promise<boolean> {
+    return this.page.evaluate(([cols, to]) => (
+      window.hot.getPlugin('manualColumnMove').isMovePossible(cols as number[], to as number)
+    ), [columns, target]);
+  }
+
+  /**
+   * Blocks every `refreshDimensions()` call, the way an app does from `beforeRefreshDimensions`.
+   */
+  async blockRefreshDimensions(): Promise<void> {
+    await this.page.evaluate(() => window.hot.addHook('beforeRefreshDimensions', () => false));
+  }
+
+  /**
+   * Waits two animation frames, so a resize handler that was going to render has done it.
+   */
+  async settleFrames(): Promise<void> {
+    await this.page.evaluate(() => new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    }));
+  }
+
+  /**
    * The section the open editor reports it sits in (a corner, an overlay, or the master).
    */
   async editorSection(): Promise<string> {

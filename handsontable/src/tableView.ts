@@ -38,7 +38,7 @@ import { getMouseEventTouchOrigin, TOUCH_SYNTHESIZED_MOUSE_WINDOW } from './help
 import Walkontable from './3rdparty/walkontable/src';
 import { clampFixedColumnsEnd } from './3rdparty/walkontable/src/settings/fixedColumnsEnd';
 import { measureWorkspaceHeight, measureWorkspaceWidth } from './3rdparty/walkontable/src/viewport/workspaceSize';
-import { MIN_SCROLLABLE_SIZE, resolveFittingFrozenCounts } from './utils/frozenAreaFit';
+import { MIN_SCROLLABLE_SIZE, fitsFrozenBand, resolveFittingFrozenCounts } from './utils/frozenAreaFit';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
 import { getSanitizer } from './utils/sanitizer';
@@ -1118,7 +1118,8 @@ class TableView {
    * The function returns the number of not hidden column indexes that fit between the first and
    * last fixed column in the right (or left in RTL mode) overlay.
    *
-   * The count is the requested one. Walkontable cuts it down against `fixedColumnsStart`
+   * The count is the one the grid draws: the requested one, or with `limitFixedToViewport` the count the last
+   * render resolved (`countFixedColumnsEnd()`). Walkontable cuts it down against `fixedColumnsStart`
    * (`Settings#getSetting('fixedColumnsEnd')`), so the two bands never overlap.
    *
    * @returns {number}
@@ -1178,10 +1179,6 @@ class TableView {
         this.countFixedColumnsStart(),
         this.hot.countCols()
       );
-    }
-
-    if (!this.settings.fixedColumnsEnd) {
-      return 0;
     }
 
     return clampFixedColumnsEnd(this.settings.fixedColumnsEnd, this.settings.fixedColumnsStart, this.hot.countCols());
@@ -1326,6 +1323,54 @@ class TableView {
     }
 
     return measureWorkspaceHeight(viewport) - viewport.getColumnHeaderHeight() - scrollbar;
+  }
+
+  /**
+   * Checks whether the grid can draw the column as one more frozen start column next to the CONFIGURED start band.
+   * Always `true` without `limitFixedToViewport`.
+   *
+   * It measures the tracks and never reads the memo of the last render, so a second freeze before the next render
+   * counts from the band the first one wrote. A band that was cut, or is the most that fits, answers `false`: the
+   * column would be moved to the freeze line, and the next render would cut it out of the band again.
+   *
+   * @param {number} visualColumn The visual column that would be frozen.
+   * @returns {boolean}
+   */
+  canFreezeStartColumn(visualColumn: number) {
+    if (!this.settings.limitFixedToViewport) {
+      return true;
+    }
+
+    const holder = this._wt.wtTable.holder;
+    const viewportSize = holder.clientWidth > 0 ? this.getFrozenViewportSize(true) : 0;
+
+    // A grid that is not laid out draws nothing to cut, as `#resolveAxisCounts()` treats it.
+    if (viewportSize <= 0) {
+      return true;
+    }
+
+    const configured = Math.min(
+      Math.max(Math.floor(Number(this.settings.fixedColumnsStart)) || 0, 0),
+      this.hot.countCols()
+    );
+    const trackSizes: number[] = [];
+    let sum = 0;
+
+    for (let column = 0; column < configured && sum <= viewportSize; column++) {
+      const size = this.getFrozenTrackSize(true, column);
+
+      trackSizes.push(size);
+      sum += size;
+    }
+
+    trackSizes.push(this.getFrozenTrackSize(true, visualColumn));
+
+    return fitsFrozenBand({
+      viewportSize,
+      trackSizes,
+      oppositeBandSize: 0,
+      minScrollableSize: MIN_SCROLLABLE_SIZE,
+    });
   }
 
   /**
@@ -1579,7 +1624,6 @@ class TableView {
       onWindowResize: () => {
         if (this.hot && !this.hot.isDestroyed) {
           this.hot.refreshDimensions();
-          this.#renderWhenWindowResizeMovedFixed();
         }
       },
       onContainerElementResize: () => {
@@ -2623,8 +2667,11 @@ class TableView {
    * Renders when a resize of the window changed the counts that fit. A grid that the window scrolls keeps the size of
    * its root when the window is resized (its height follows its content), so `refreshDimensions()` finds no change
    * and does not render, while the room the frozen bands share is the size of the window.
+   *
+   * `Core#refreshDimensions()` calls it after the `beforeRefreshDimensions` hook let the resize through and when it
+   * did not render itself, so a resize that a listener blocked stays blocked.
    */
-  #renderWhenWindowResizeMovedFixed() {
+  renderWhenWindowResizeMovedFixed() {
     if (!this.settings.limitFixedToViewport || !this.hot.view) {
       return;
     }
