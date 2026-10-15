@@ -1488,13 +1488,15 @@ export const REGISTERED_HOOKS = [
    * callback can still return data and the autofill goes ahead.
    *
    * When the {@link Formulas} plugin is enabled, it registers its own `beforeAutofill` callback. That callback
-   * ignores the results of earlier callbacks and returns either `false` (when the engine can't set the target
-   * cells) or the filled data with the formulas adjusted. Your callback overrides it only if it runs after it:
-   * the `beforeAutofill` option set at initialization (the plugin is enabled first), or a callback added with
-   * `addHook()` after the plugin is enabled, wins. A global hook, or a callback added with `addHook()` before the
-   * plugin is enabled, is overridden by the plugin. Disabling and re-enabling the plugin (for example, with `updateSettings({ formulas: false })`
-   * followed by `updateSettings({ formulas: ... })`) registers its callback again, after yours. This describes
-   * the current behavior and isn't a guarantee.
+   * ignores the results of earlier callbacks. It returns `false` (when the engine can't set the target cells)
+   * or the filled data with the formulas adjusted. In rare cases, such as a source or target cell that the
+   * engine doesn't know (for example, in a trimmed row), it returns `undefined` and keeps the earlier results.
+   * Your callback overrides the plugin's only if it runs after it. The `beforeAutofill` option set at
+   * initialization (the plugin is enabled first) and a callback added with `addHook()` after the plugin is
+   * enabled win. A global hook, or a callback added with `addHook()` before the plugin is enabled, is
+   * overridden by the plugin. Disabling and re-enabling the plugin (for example, with
+   * `updateSettings({ formulas: false })` followed by `updateSettings({ formulas: ... })`) registers its
+   * callback again, after yours. This describes the current behavior and isn't a guarantee.
    *
    * @event Hooks#beforeAutofill
    * @param {Array[]} selectionData Data the autofill operation will start from.

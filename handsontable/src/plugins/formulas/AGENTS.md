@@ -552,8 +552,9 @@ summary formulas stay out of the sort (#12627). User-facing copy:
 
 ## `beforeAutofill`: registration order decides who wins (DEV-3424)
 
-`#onBeforeAutofill` is added in `enablePlugin()`, which runs in `beforeInit`, before the `beforeAutofill`
-option registers. The last callback that returns a value wins, so the option and any `addHook()` made after
+`#onBeforeAutofill` is added in `enablePlugin()`. At init that call comes from `afterPluginsInitialized`
+(`BasePlugin.init()` registers it with `addHookOnce`), which the last plugin's `init()` fires inside `beforeInit`,
+before `updateSettings()` registers the `beforeAutofill` option. The last callback that returns a value wins, so the option and any `addHook()` made after
 enabling beat the plugin, while a global hook or an `addHook()` made before enabling loses. `updatePlugin()` keeps
 the hook where it is, but `disablePlugin()` plus `enablePlugin()` re-adds it at the END of the instance bucket
 and flips the winner. Pinned by `tests/e2e/formulas-before-autofill-precedence.spec.ts`. Do not reorder

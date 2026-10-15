@@ -262,7 +262,12 @@ The fill handle appears on the selected cell. Autofill copies the selected value
 
 Use the [`beforeAutofill`](@/api/hooks.md#beforeautofill) hook to change the values before they're written, and the [`afterAutofill`](@/api/hooks.md#afterautofill) hook to react once the fill completes. With the [`Formulas`](@/guides/formulas/formula-calculation/formula-calculation.md) plugin enabled, relative references in copied formulas adjust to each target cell.
 
-When you use `beforeAutofill` together with the `Formulas` plugin, the order in which the callbacks are registered decides the result. The last callback that returns a value wins, and global hooks (`Handsontable.hooks.add()`) run before the hooks of an instance. The plugin registers its own `beforeAutofill` callback when it's enabled, so a callback that runs earlier, such as a global hook or an `addHook()` call made before the plugin is enabled, is overridden by the plugin. The `beforeAutofill` option set at initialization and an `addHook()` call made after the plugin is enabled override the plugin. Disabling and re-enabling the plugin registers its callback again, after yours. This describes the current behavior and isn't a guarantee.
+When you use `beforeAutofill` together with the `Formulas` plugin, the order in which the callbacks are registered decides the result. Global hooks (`Handsontable.hooks.add()`) run before the hooks of an instance, and the last callback that returns a value wins. The plugin registers its own `beforeAutofill` callback when it's enabled.
+
+- These override the plugin: the `beforeAutofill` option set at initialization, and an `addHook()` call made after the plugin is enabled.
+- These are overridden by the plugin: a global hook, and an `addHook()` call made before the plugin is enabled.
+
+Disabling and re-enabling the plugin registers its callback again, after yours. To always override the plugin, set `beforeAutofill` in the initialization options. This describes the current behavior and isn't a guarantee.
 
 ## Related API reference
 

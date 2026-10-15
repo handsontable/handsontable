@@ -26,6 +26,7 @@ test.describe('beforeAutofill precedence with the Formulas plugin', () => {
     await grid.createGrid({ formulas: true });
     await grid.fillRowDown();
 
+    await grid.expectCalls(['afterAutofill']);
     await expect.poll(() => grid.filledRow()).toEqual(FORMULAS_WINS);
   });
 
@@ -36,6 +37,7 @@ test.describe('beforeAutofill precedence with the Formulas plugin', () => {
     await grid.createGrid({ formulas: true, beforeAutofill: USER_DATA });
     await grid.fillRowDown();
 
+    await grid.expectCalls(['option', 'afterAutofill']);
     await expect.poll(() => grid.filledRow()).toEqual(USER_WINS);
   });
 
@@ -48,8 +50,21 @@ test.describe('beforeAutofill precedence with the Formulas plugin', () => {
 
     // Formulas runs first and returns its own data, then the option returns
     // false last: false does not stop anything, it is simply the last value.
+    await grid.expectCalls(['option']);
     await expect.poll(() => grid.filledRow()).toEqual(CANCELED);
     await expect(grid.areaCorner).toBeVisible();
+  });
+
+  test('a global hook runs before the option, and the option wins', async({ page, theme, bundle }) => {
+    const grid = new BeforeAutofillPrecedencePage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.addGlobalHook([['GLOBAL']]);
+    await grid.createGrid({ formulas: true, beforeAutofill: USER_DATA });
+    await grid.fillRowDown();
+
+    await grid.expectCalls(['global', 'option', 'afterAutofill']);
+    await expect.poll(() => grid.filledRow()).toEqual(USER_WINS);
   });
 
   test('hot.addHook before Formulas is enabled loses to Formulas', async({ page, theme, bundle }) => {
@@ -61,6 +76,7 @@ test.describe('beforeAutofill precedence with the Formulas plugin', () => {
     await grid.updateFormulas();
     await grid.fillRowDown();
 
+    await grid.expectCalls(['instance', 'afterAutofill']);
     await expect.poll(() => grid.filledRow()).toEqual(FORMULAS_WINS);
   });
 
@@ -72,6 +88,7 @@ test.describe('beforeAutofill precedence with the Formulas plugin', () => {
     await grid.createGrid({ formulas: true });
     await grid.fillRowDown();
 
+    await grid.expectCalls(['global', 'afterAutofill']);
     await expect.poll(() => grid.filledRow()).toEqual(FORMULAS_WINS);
   });
 
@@ -83,6 +100,7 @@ test.describe('beforeAutofill precedence with the Formulas plugin', () => {
     await grid.createGrid({ formulas: true });
     await grid.fillRowDown();
 
+    await grid.expectCalls(['global', 'afterAutofill']);
     await expect.poll(() => grid.filledRow()).toEqual(FORMULAS_WINS);
   });
 
@@ -94,6 +112,7 @@ test.describe('beforeAutofill precedence with the Formulas plugin', () => {
     await grid.addInstanceHook(USER_DATA);
     await grid.fillRowDown();
 
+    await grid.expectCalls(['instance', 'afterAutofill']);
     await expect.poll(() => grid.filledRow()).toEqual(USER_WINS);
   });
 
@@ -105,6 +124,7 @@ test.describe('beforeAutofill precedence with the Formulas plugin', () => {
     await grid.addInstanceHook(false);
     await grid.fillRowDown();
 
+    await grid.expectCalls(['instance']);
     await expect.poll(() => grid.filledRow()).toEqual(CANCELED);
   });
 
@@ -116,6 +136,7 @@ test.describe('beforeAutofill precedence with the Formulas plugin', () => {
     await grid.updateFormulas({ sheetName: 'Sheet1' });
     await grid.fillRowDown();
 
+    await grid.expectCalls(['option', 'afterAutofill']);
     await expect.poll(() => grid.filledRow()).toEqual(USER_WINS);
   });
 
@@ -130,6 +151,7 @@ test.describe('beforeAutofill precedence with the Formulas plugin', () => {
 
     // Re-enabling registers the plugin's hook again, at the end of the
     // instance bucket and therefore after the option's callback.
+    await grid.expectCalls(['option', 'afterAutofill']);
     await expect.poll(() => grid.filledRow()).toEqual(FORMULAS_WINS);
   });
 });

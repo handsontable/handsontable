@@ -309,7 +309,7 @@ describe('Hooks', () => {
       expect(calls).toEqual(['global 1', 'global 2', 'instance 1', 'instance 2']);
     });
 
-    it('should return the value of the last callback that returned a value, instance over global', () => {
+    it('should return the instance callback value over the global one', () => {
       const hooks = new Hooks();
       const context = {};
 
@@ -317,13 +317,16 @@ describe('Hooks', () => {
       hooks.add('test', () => 'global');
 
       expect(hooks.run(context, 'test')).toBe('instance');
+    });
 
-      const otherContext = {};
+    it('should return the value of the callback registered last within one bucket', () => {
+      const hooks = new Hooks();
+      const context = {};
 
-      hooks.add('test', () => 'later instance', otherContext);
-      hooks.add('test', () => 'earlier instance', otherContext);
+      hooks.add('test', () => 'registered first', context);
+      hooks.add('test', () => 'registered last', context);
 
-      expect(hooks.run(otherContext, 'test')).toBe('earlier instance');
+      expect(hooks.run(context, 'test')).toBe('registered last');
     });
 
     it('should not stop the later callbacks when an earlier one returns false', () => {
