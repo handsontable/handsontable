@@ -222,7 +222,7 @@ class DataSource {
           const keepsSlot = !Number.isInteger(prop) ||
             (toArray && column < declaredColumns && this.hot!.toPhysicalColumn(column) !== null);
 
-          if (column >= (startColumn || rangeStart) && column <= (endColumn || rangeEnd) && keepsSlot) {
+          if (column >= (startColumn || rangeStart) && column <= (endColumn ?? rangeEnd) && keepsSlot) {
             const cellValue = this.getAtPhysicalCell(row, prop as string | number | DataAccessorFn, dataRow);
 
             if (toArray) {

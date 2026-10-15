@@ -540,6 +540,27 @@ describe('Core', () => {
       core.destroy();
     });
 
+    it('should read a single column, an end column of 0 included, instead of the whole declared row', () => {
+      const core = new Core(container, {
+        theme: 'ht-theme-main',
+        data: [{ a: 'a0', list: [1, 2, 3, 4] }, { a: 'a1', list: [5, 6, 7, 8] }],
+        columns: [
+          { data: 'a' },
+          { title: 'no data' },
+          ...[0, 1, 2, 3].map(index => ({ data: `list.${index}` })),
+          { title: 'no data either' },
+        ],
+      });
+
+      core.init();
+
+      expect(core.getSourceDataArray(0, 0, 1, 0)).toEqual([['a0'], ['a1']]);
+      expect(core.getSourceDataArray(0, 2, 1, 3)).toEqual([[1, 2], [5, 6]]);
+      expect(core.getSourceData(0, 0, 1, 0)).toEqual([{ a: 'a0' }, { a: 'a1' }]);
+
+      core.destroy();
+    });
+
     it('should not add a slot for an index that names no column', () => {
       const core = new Core(container, {
         theme: 'ht-theme-main',
