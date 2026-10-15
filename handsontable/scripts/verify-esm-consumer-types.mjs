@@ -13,7 +13,9 @@
  * Only `node:` built-ins are imported: the prebuilt CI path runs this without the root `pnpm install`.
  */
 import { spawnSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import {
+  cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -36,7 +38,12 @@ const baseArgs = tscFromEnv ? [] : [tscCli];
 function reportError(message) {
   process.stderr.write(`ERROR: ${message}\n`);
 }
-const MODES = ['node16', 'nodenext'];
+const MODES = [
+  { name: 'node16', module: 'node16', moduleResolution: 'node16' },
+  { name: 'nodenext', module: 'nodenext', moduleResolution: 'nodenext' },
+  // Bundlers read the same `import` condition, so they get the same `.d.mts` files.
+  { name: 'bundler', module: 'esnext', moduleResolution: 'bundler' },
+];
 
 if (!existsSync(path.join(packageDir, 'package.json'))) {
   reportError('The composed package is missing: run `npm run postbuild:partial` first.');
@@ -45,6 +52,30 @@ if (!existsSync(path.join(packageDir, 'package.json'))) {
 
 if (!tscFromEnv && !existsSync(tscCli)) {
   reportError(`The TypeScript compiler was not found at ${tscCli}: install dependencies or set TSC.`);
+  process.exit(1);
+}
+
+/**
+ * List the default-exporting preset declarations of the composed package (the self-contained copies), as the
+ * specifiers a consumer imports them by.
+ *
+ * @returns {string[]} The `handsontable/themes/static/variables/...` specifiers.
+ */
+function listPresetSpecifiers() {
+  const root = path.join(packageDir, 'themes', 'static', 'variables');
+
+  return readdirSync(root, { recursive: true })
+    .map(file => String(file).split(path.sep).join('/'))
+    .filter(file => file.endsWith('.d.mts') && /\bexport\s+default\b/.test(readFileSync(path.join(root, file), 'utf8')))
+    .map(file => `handsontable/themes/static/variables/${file.replace(/\.d\.mts$/, '')}`)
+    .sort();
+}
+
+const fixtureSource = readFileSync(fixture, 'utf8');
+const unimported = listPresetSpecifiers().filter(specifier => !fixtureSource.includes(`from '${specifier}'`));
+
+if (unimported.length > 0) {
+  reportError(`The fixture does not import these presets, so a regression would pass:\n${unimported.join('\n')}`);
   process.exit(1);
 }
 
@@ -65,12 +96,12 @@ try {
       return;
     }
 
-    const config = `tsconfig.${mode}.json`;
+    const config = `tsconfig.${mode.name}.json`;
 
     writeFileSync(path.join(workDir, config), JSON.stringify({
       compilerOptions: {
-        module: mode,
-        moduleResolution: mode,
+        module: mode.module,
+        moduleResolution: mode.moduleResolution,
         target: 'es2022',
         strict: true,
         noEmit: true,
@@ -87,7 +118,7 @@ try {
     });
 
     if (result.status === 0) {
-      process.stdout.write(`ESM consumer types (${mode}): ok\n`);
+      process.stdout.write(`ESM consumer types (${mode.name}): ok\n`);
     } else {
       failed = true;
 
@@ -98,7 +129,7 @@ try {
         return;
       }
 
-      reportError(`ESM consumer types (${mode}) do not compile:\n${result.stdout || ''}${result.stderr || ''}`);
+      reportError(`ESM consumer types (${mode.name}) do not compile:\n${result.stdout || ''}${result.stderr || ''}`);
     }
   });
 } finally {

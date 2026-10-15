@@ -56,8 +56,10 @@ function reportIncompleteness(message) {
  * which TypeScript maps to the .d.ts via its declaration-lookup rules. The .d.ts
  * files handle all internal resolution under their own CJS context.
  *
- * This step runs here (not only in downlevel-dts.mjs) because CI may call
- * `npm run postbuild:partial` after partial build steps without running downlevel:types.
+ * `downlevel-dts.mjs` only rewrites the `.d.ts` files in place and never writes a `.d.mts`. The self-contained
+ * copies below carry the downleveled text only because every build path runs `downlevel:types` before this step
+ * (the `build` pipeline in `tasks.json`, and the CI jobs that call `postbuild:partial`, which
+ * `.github/scripts/__tests__/partial-packaging.test.mjs` pins), so this step always reads downleveled `.d.ts` files.
  *
  * Exception: a default-exporting declaration under `SELF_CONTAINED_MTS_DIRS` (theme presets, language
  * dictionaries) is a self-contained copy, not a wrapper. The reason and the rules are in
