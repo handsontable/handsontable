@@ -2,7 +2,7 @@
 type: explanation
 title: Docs MCP Server
 metaTitle: Docs MCP Server - JavaScript Data Grid | Handsontable
-description: A public MCP server that gives any AI agent semantic search over the Handsontable and HyperFormula docs, API reference, release notes, GitHub issues, and more.
+description: A public MCP server that gives any AI agent semantic search over the Handsontable DataGrid and HyperFormula docs, API reference, release notes, GitHub issues, and more.
 permalink: /docs-mcp-server
 react:
   metaTitle: Docs MCP Server - React Data Grid | Handsontable
