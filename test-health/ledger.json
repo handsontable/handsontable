@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-15T07:58:12.009Z",
+  "updatedAt": "2026-10-15T09:24:30.197Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-horizon-min",
+      "file": "e2e/selection-viewport-scroll.spec.ts",
+      "line": 72,
+      "title": "viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: expect(received).toBe(expected) // Object.is equality",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "38709485850",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38709485850",
+      "workflow": "Tests",
+      "branch": "feature/DEV-3405_Playwright-legs-declared-per-spec",
+      "headSha": "2cf0d75865fd113e4503b5eed7ba8b3dcf3d3f5f",
+      "event": "pull_request",
+      "seenAt": "2026-10-15T09:23:48Z"
+    },
     {
       "tier": "jasmine",
       "leg": "UMD (theme: classic)",
