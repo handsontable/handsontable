@@ -2,7 +2,7 @@
 type: how-to
 title: Legacy style
 metaTitle: Legacy Style - JavaScript Data Grid | Handsontable
-description: The legacy stylesheet was removed in Handsontable 17.0.0. Learn how to migrate to the Classic theme using the Theme API or CSS imports.
+description: The legacy stylesheet was removed in Handsontable DataGrid 17.0.0. Learn how to migrate to the Classic theme using the Theme API or CSS imports.
 permalink: /legacy-style
 canonicalUrl: /legacy-style
 tags:
@@ -21,7 +21,7 @@ vue:
 searchCategory: Guides
 category: Styling
 ---
-Starting from **version 17.0.0**, the legacy stylesheet has been removed from Handsontable. If you're upgrading from an earlier version, you must migrate to the **Classic** theme.
+Starting from **version 17.0.0**, the legacy stylesheet has been removed from Handsontable DataGrid. If you're upgrading from an earlier version, you must migrate to the **Classic** theme.
 
 [[toc]]
 

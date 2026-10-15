@@ -2,7 +2,7 @@
 type: how-to
 title: Searching values
 metaTitle: Searching values - JavaScript Data Grid | Handsontable
-description: Search data across Handsontable, using built-in API methods and implementing your own search UI.
+description: Search data across Handsontable DataGrid, using built-in API methods and implementing your own search UI.
 permalink: /searching-values
 canonicalUrl: /searching-values
 tags:
@@ -26,7 +26,7 @@ Enable the [`Search`](@/api/search.md) plugin and call [`query()`](@/api/search.
 
 ::: tip
 
-To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+To use the Handsontable DataGrid API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
 For more information, see the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page.
 

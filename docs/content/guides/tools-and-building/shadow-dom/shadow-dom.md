@@ -2,7 +2,7 @@
 type: how-to
 title: Shadow DOM
 metaTitle: Shadow DOM - JavaScript Data Grid | Handsontable
-description: Run Handsontable inside a Shadow DOM tree, in web components, and on sandboxed platforms such as Salesforce Lightning Web Components.
+description: Run Handsontable DataGrid inside a Shadow DOM tree, in web components, and on sandboxed platforms such as Salesforce Lightning Web Components.
 permalink: /shadow-dom
 canonicalUrl: /shadow-dom
 tags:
@@ -24,7 +24,7 @@ menuTag: new
 addedIn: "18.1.0"
 ---
 
-Handsontable works inside a Shadow DOM tree. You can render the grid in a web component, a custom element, or a sandboxed component platform such as Salesforce Lightning Web Components.
+Handsontable DataGrid works inside a Shadow DOM tree. You can render the grid in a web component, a custom element, or a sandboxed component platform such as Salesforce Lightning Web Components.
 
 [[toc]]
 

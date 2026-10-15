@@ -25,7 +25,7 @@ vue:
 searchCategory: Guides
 category: Styling
 ---
-The Handsontable design system defines the tokens, themes, and components that control the grid visual appearance. Read this to understand how themes and CSS variables relate.
+The Handsontable DataGrid design system defines the tokens, themes, and components that control the grid visual appearance. Read this to understand how themes and CSS variables relate.
 
 [[toc]]
 

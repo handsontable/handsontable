@@ -47,7 +47,7 @@ Batch CRUD operations, to avoid unnecessary rendering cycles and boost your grid
 
 ## Overview
 
-Within Handsontable, every CRUD operation ends with a [`render()`](@/api/core.md#render). In most cases, this is considered expected behavior. The table has to reflect the requested changes at some point. However, sometimes you may find this mechanism slightly excessive.
+Within Handsontable DataGrid, every CRUD operation ends with a [`render()`](@/api/core.md#render). In most cases, this is considered expected behavior. The table has to reflect the requested changes at some point. However, sometimes you may find this mechanism slightly excessive.
 
 For example, if you wrote a custom function that uses several CRUD operations, those CRUD operations will call a [`render()`](@/api/core.md#render) for each API method. You only need one render at the end, which is sufficient to reflect all the changes. You can treat those combined operations as a single action and let the render wait for them to complete. To do this, suspend the render to batch the operations.
 

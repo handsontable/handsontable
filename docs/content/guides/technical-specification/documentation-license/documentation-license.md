@@ -2,7 +2,7 @@
 type: reference
 title: Documentation license
 metaTitle: Documentation license - JavaScript Data Grid | Handsontable
-description: Learn about the licensing terms of Handsontable's documentation.
+description: Learn about the licensing terms of Handsontable DataGrid's documentation.
 permalink: /documentation-license
 canonicalUrl: /documentation-license
 react:
@@ -14,7 +14,7 @@ vue:
 searchCategory: Guides
 category: Technical specification
 ---
-Learn about the licensing terms of Handsontable's documentation.
+Learn about the licensing terms of Handsontable DataGrid's documentation.
 
 [[toc]]
 

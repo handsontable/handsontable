@@ -22,7 +22,7 @@ Reduce the size of your JavaScript bundle, by importing only the modules that yo
 
 ## Overview
 
-Handsontable is a comprehensive tool with a broad range of features. If you don't use all of them, you can pick just the parts that you need, and get rid of the rest (e.g., unnecessary translations). This approach reduces Handsontable's impact on the overall size of your app.
+Handsontable DataGrid is a comprehensive tool with a broad range of features. If you don't use all of them, you can pick just the parts that you need, and get rid of the rest (e.g., unnecessary translations). This approach reduces Handsontable's impact on the overall size of your app.
 
 To make this possible, Handsontable is divided into modules.
 

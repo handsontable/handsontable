@@ -28,7 +28,7 @@ Convert keystrokes to characters not available on the keyboard, using the Input 
 
 An Input Method Editor (IME) is a component of the operating system (OS) that enables users to generate characters not natively available on their keyboard. It converts sequences of keystrokes or mouse interactions into characters from other alphabets or scripts. For example, when typing Chinese characters using a Latin keyboard, the IME allows users to compose the desired characters based on phonetic or symbolic input.
 
-## IME support in Handsontable
+## IME support in Handsontable DataGrid
 
 Handsontable supports IME (Input Method Editor) input through the same mechanisms provided by the operating system. When you switch your input source to a language that requires IME (such as Korean, Japanese, or Chinese), you can use it in cell editors just like in any standard text field.
 
