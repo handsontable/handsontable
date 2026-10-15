@@ -14,6 +14,10 @@ shape: a class several plugins build and own. **Do not move it back into `src/pl
 Read this before touching either resize plugin. The two plugins used to carry the whole gesture twice, with a
 note in each file to keep them in sync by hand; there is now one copy, here.
 
+## The handle on a frozen edge
+
+`#markFrozenEdge` toggles `ht-resize-handle--freeze-before` on the handle when the edge it sits on is where the first frozen rows or columns end, and `ht-resize-handle--freeze-after` when it is where the last ones start. All four counts are the DRAWN ones (`TableView#countFixedRowsTop()`, `countFixedColumnsStart()`, `countFixedRowsBottom()`, `countFixedColumnsEnd()`), never the settings: with `limitFixedToViewport` the grid can draw fewer tracks than are configured, and the freeze bar sits on the drawn line, so a mark from the configured count would offset the handle at a column with no bar and leave the one on the bar overlapped. The edge is counted in visual tracks before it: the index plus one, or the index itself for a header anchored at the inline end. The marks only describe the grid and draw nothing: the FreezeBar stylesheet uses them to keep the pills clear of its bar (`../../plugins/freezeBar/AGENTS.md`). Keep them free of any plugin check, so the gesture never has to know which plugin draws on the edge.
+
 ## What the gesture owns, and what the plugins own
 
 `ResizeGesture` owns everything about the drag: attaching and detaching the handle and guide, the press,

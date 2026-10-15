@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { FormulasNestedRowsTogglePage } from '../fixtures/pages/FormulasNestedRowsTogglePage';
 
 /**
@@ -7,7 +7,7 @@ import { FormulasNestedRowsTogglePage } from '../fixtures/pages/FormulasNestedRo
  * for it on its own - `afterLoadData` / `afterUpdateData` never fire, and `afterCellMetaReset`
  * fires before the plugins update - so the engine kept the two-row layout it was built with.
  */
-test.describe('Formulas across a nestedRows runtime toggle', () => {
+test.describe('Formulas across a nestedRows runtime toggle', { tag: BUNDLES_TAG }, () => {
   let grid: FormulasNestedRowsTogglePage;
 
   test.beforeEach(({ page, theme, bundle }) => {

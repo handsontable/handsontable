@@ -1,5 +1,5 @@
 import { devices } from '@playwright/test';
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { MobileHandlesPage } from '../fixtures/pages/MobileHandlesPage';
 
 /**
@@ -16,7 +16,7 @@ test.use({
   browserName: 'chromium',
 });
 
-test.describe('mobile selection handles', () => {
+test.describe('mobile selection handles', { tag: THEMES_TAG }, () => {
   let mobileGrid: MobileHandlesPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

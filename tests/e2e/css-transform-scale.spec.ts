@@ -1,4 +1,4 @@
-import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG, THEMES_TAG } from '../fixtures/test';
 import { SharedDemoGridPage, type LayoutMetrics } from '../fixtures/pages/SharedDemoGridPage';
 
 /**
@@ -21,7 +21,7 @@ import { SharedDemoGridPage, type LayoutMetrics } from '../fixtures/pages/Shared
  * scaling a finished layout and never ran the code either fix touched. The fixture here applies the
  * transform before it builds the grid, and every size is compared with the same grid built unscaled.
  */
-test.describe('a grid built under a CSS scale', { tag: CROSS_BROWSER_TAG }, () => {
+test.describe('a grid built under a CSS scale', { tag: [CROSS_BROWSER_TAG, THEMES_TAG] }, () => {
   const ROWS = 10;
   const TALL_ROW = 1;
 

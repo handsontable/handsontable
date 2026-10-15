@@ -36,6 +36,7 @@ export interface FixtureHotInstance {
   getDataAtRow(row: number): CellValue[];
   getSourceDataAtCell(row: number, col: number): CellValue;
   getSourceData(): unknown[];
+  getSourceDataArray(): unknown[][];
   setDataAtCell(row: number, col: number, value: CellValue): void;
   setCellMeta(row: number, col: number, key: string, value: unknown): void;
   getCellMeta(row: number, col: number): { className?: string, readOnly?: boolean, hidden?: boolean, spanned?: boolean };

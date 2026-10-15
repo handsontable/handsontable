@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { FixedColumnsEndPage, type Box } from '../fixtures/pages/FixedColumnsEndPage';
 
 /**
@@ -33,7 +33,7 @@ function expectEditorOnCell(editor: Box, cell: Box, rtl: boolean, label: string)
 for (const direction of ['ltr', 'rtl'] as const) {
   const rtl = direction === 'rtl';
 
-  test.describe(`fixedColumnsEnd editor rectangle (${direction})`, { tag: '@core' }, () => {
+  test.describe(`fixedColumnsEnd editor rectangle (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
     let grid: FixedColumnsEndPage;
 
     test.beforeEach(async ({ page, theme, bundle }) => {
@@ -100,7 +100,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
     });
   });
 
-  test.describe(`fixedColumnsEnd with minSpareCols (${direction})`, { tag: '@core' }, () => {
+  test.describe(`fixedColumnsEnd with minSpareCols (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
     let grid: FixedColumnsEndPage;
 
     test.beforeEach(async ({ page, theme, bundle }) => {
@@ -168,7 +168,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
   });
 }
 
-test.describe('fixedColumnsEnd End and Home on a partly drawn main table', { tag: '@core' }, () => {
+test.describe('fixedColumnsEnd End and Home on a partly drawn main table', { tag: ['@core', THEMES_TAG] }, () => {
   let grid: FixedColumnsEndPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

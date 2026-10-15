@@ -4622,6 +4622,8 @@ export default function Core(
     if (isSizeChanged || view._wt.wtOverlays.scrollableElement === instance.rootWindow) {
       view.setLastSize(width, height);
       instance.render();
+    } else {
+      view.renderWhenWindowResizeMovedFixed();
     }
 
     instance.runHooks(
@@ -6105,6 +6107,10 @@ export default function Core(
    * __Note__: This method does not participate in data transformation. If the visual data of the table is reordered,
    * sorted or trimmed only physical indexes are correct.
    *
+   * For an array of objects, each returned row holds a place for every column declared by the `columns` option
+   * (up to `maxCols`), in visual column order. A column declared without `data` keeps its place, and its value is
+   * `undefined`.
+   *
    * @memberof Core#
    * @function getSourceDataArray
    * @param {number} [row] From physical row index.
@@ -6217,10 +6223,14 @@ export default function Core(
       changeRow: number, changeProp: string | number | ColumnDataGetterSetterFunction, changeValue: unknown,
     ) => (isReplay ? changeValue : getValueSetterValue(changeValue, getCellProperties(changeRow, changeProp), source));
 
-    if (isThereAnySetSourceListener) {
-      arrayEach(input, ([changeRow, changeProp, changeValue]) => {
-        const newValue = toStoredValue(changeRow, changeProp, changeValue);
+    // One pass: each `valueSetter` runs once, right before its own write, so a setter can read a value
+    // written earlier in the same call, and a non-idempotent setter never applies twice. The hook's
+    // payload is built in the same pass, with the value the write stores. A listener does not change the
+    // order: AutoColumnSize registers one in almost every grid.
+    arrayEach(input, ([changeRow, changeProp, changeValue]) => {
+      const newValue = toStoredValue(changeRow, changeProp, changeValue);
 
+      if (isThereAnySetSourceListener) {
         changesForHook.push([
           changeRow,
           changeProp,
@@ -6228,11 +6238,7 @@ export default function Core(
           dataSource.getAtCellByProp(changeRow, changeProp), // The previous value.
           newValue,
         ]);
-      });
-    }
-
-    arrayEach(input, ([changeRow, changeProp, changeValue]) => {
-      const newValue = toStoredValue(changeRow, changeProp, changeValue);
+      }
 
       if (isReplay || runSourceDataValidator(newValue, getCellProperties(changeRow, changeProp),
         source ?? 'setSourceDataAtCell')) {

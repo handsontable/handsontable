@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `handsontable/themes/types` export, so a theme preset re-exported without a type annotation no longer fails declaration emit with TS2742 or TS2883.",
+  "type": "added",
+  "issueOrPR": 13866,
+  "breaking": false,
+  "framework": "none"
+}

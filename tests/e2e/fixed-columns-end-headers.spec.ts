@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { FixedColumnsEndPluginsPage, type Box } from '../fixtures/pages/FixedColumnsEndPluginsPage';
 
 /**
@@ -19,7 +19,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
   const startEdge = (box: Box) => (rtl ? box.right : box.left);
   const endEdge = (box: Box) => (rtl ? box.left : box.right);
 
-  test.describe(`fixedColumnsEnd and NestedHeaders (${direction})`, { tag: '@core' }, () => {
+  test.describe(`fixedColumnsEnd and NestedHeaders (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
     let grid: FixedColumnsEndPluginsPage;
 
     test.beforeEach(async ({ page, theme, bundle }) => {
@@ -90,7 +90,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
     });
   });
 
-  test.describe(`fixedColumnsEnd and CollapsibleColumns (${direction})`, { tag: '@core' }, () => {
+  test.describe(`fixedColumnsEnd and CollapsibleColumns (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
     let grid: FixedColumnsEndPluginsPage;
 
     test.beforeEach(async ({ page, theme, bundle }) => {
@@ -148,7 +148,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
 
   for (const virtualized of [false, true]) {
     test.describe(`fixedColumnsEnd and MergeCells, virtualized ${virtualized ? 'on' : 'off'} (${direction})`,
-      { tag: '@core' }, () => {
+      { tag: ['@core', THEMES_TAG] }, () => {
         let grid: FixedColumnsEndPluginsPage;
 
         test.beforeEach(async ({ page, theme, bundle }) => {

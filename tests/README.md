@@ -55,10 +55,16 @@ HOT_TEST_PORT=8124 npm test
 
 The functional suite is six projects — theme (`main`/`horizon`/`classic`) ×
 bundle (`umd` = `dist/handsontable.js`, `full-min` =
-`dist/handsontable.full.min.js`), 1:1 with the Puppeteer matrix. The local
-gates (pre-push, the Claude Stop hook, `test:e2e`) run `e2e-main` (plain UMD)
-only; the `-min` legs run in CI. Run a single other leg by hand with
-`npx playwright test --project=e2e-horizon-min`.
+`dist/handsontable.full.min.js`), 1:1 with the Puppeteer matrix. A spec runs on
+`e2e-main` only unless its top-level blocks declare the axes it is sensitive
+to with `THEMES_TAG` / `BUNDLES_TAG` (`AGENTS.md`, "Declaring the legs"); a
+static sweep refuses a spec that touches theme or bundle surface without the
+tag, and the E2E nightly runs every spec on all six legs. The local gates
+(pre-push, the Claude Stop hook, `test:e2e`) run `e2e-main` (plain UMD) only;
+the other legs run in CI. Run a single other leg by hand with
+`npx playwright test --project=e2e-horizon-min` (it lists "No tests found" for a
+spec that does not declare both axes), or every leg of one spec with
+`HOT_E2E_FULL_MATRIX=1 npx playwright test e2e/<spec>.spec.ts`.
 
 Tests tagged `@cross-browser` also run on Firefox and WebKit, through a separate
 config with two projects (`e2e-firefox`, `e2e-webkit`) that CI runs in its own job.

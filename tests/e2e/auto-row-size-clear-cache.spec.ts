@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { AutoRowSizeClearCachePage } from '../fixtures/pages/AutoRowSizeClearCachePage';
 
 /**
@@ -14,7 +14,7 @@ import { AutoRowSizeClearCachePage } from '../fixtures/pages/AutoRowSizeClearCac
  * All of this is content-driven geometry, which reads as zero in jsdom, so it can only be checked
  * in a real browser.
  */
-test.describe('AutoRowSize after clearCache()', () => {
+test.describe('AutoRowSize after clearCache()', { tag: THEMES_TAG }, () => {
   let grid: AutoRowSizeClearCachePage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

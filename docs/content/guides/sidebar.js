@@ -40,6 +40,7 @@ const serverSideItems = [
   { path: 'guides/getting-started/server-side-data/server-side-data-configuration' },
   { path: 'guides/getting-started/server-side-data/server-side-data-crud' },
   { path: 'guides/getting-started/server-side-data/server-side-data-fetching' },
+  { path: 'guides/getting-started/server-side-data-row-selection/server-side-data-row-selection' },
 ];
 
 const dataManagementItems = [
@@ -73,6 +74,7 @@ const rowsItems = [
   { path: 'guides/rows/row-header/row-header' },
   { path: 'guides/rows/row-parent-child/row-parent-child' },
   { path: 'guides/rows/row-hiding/row-hiding' },
+  { path: 'guides/rows/row-selection/row-selection' },
   { path: 'guides/rows/row-moving/row-moving' },
   { path: 'guides/rows/row-freezing/row-freezing' },
   { path: 'guides/rows/row-height/row-height' },

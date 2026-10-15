@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { FormulasNestedRowsRemoveParentPage } from '../fixtures/pages/FormulasNestedRowsRemoveParentPage';
 
 /**
@@ -43,7 +43,7 @@ async function expectSheet(
   await expect.poll(() => grid.dataAtCell(formulaRow, 0)).toBe('x!');
 }
 
-test.describe('Formulas across a nested parent removal', () => {
+test.describe('Formulas across a nested parent removal', { tag: BUNDLES_TAG }, () => {
   let grid: FormulasNestedRowsRemoveParentPage;
 
   test.beforeEach(({ page, theme, bundle }) => {

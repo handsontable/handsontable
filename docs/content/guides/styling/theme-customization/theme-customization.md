@@ -534,6 +534,7 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | -------- | ----------------------------------- |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-selection-border-color` </div><div class="variables-table__item"><span>JS:</span> `cellSelectionBorderColor` </div>     | Border color for selected cells     |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-selection-background-color` </div><div class="variables-table__item"><span>JS:</span> `cellSelectionBackgroundColor` </div> | Background color for selected cells |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-row-selection-background-color` </div><div class="variables-table__item"><span>JS:</span> `rowSelectionBackgroundColor` </div> | Background color of rows selected with the [`RowSelection`](@/api/rowSelection.md) plugin. Semi-transparent, so it tints the row's own background |
 
 #### Cell autofill variables
 
@@ -576,6 +577,9 @@ These variables style the handles shown at each edge midpoint of a selected rang
 | Variable | Description                          |
 | -------- | ------------------------------------ |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-resize-indicator-color` </div><div class="variables-table__item"><span>JS:</span> `resizeIndicatorColor` </div> | Color of resize indicators           |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-freeze-bar-color` </div><div class="variables-table__item"><span>JS:</span> `freezeBarColor` </div> | Color of the freeze bars |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-freeze-bar-hover-color` </div><div class="variables-table__item"><span>JS:</span> `freezeBarHoverColor` </div> | Color of a freeze bar over the headers when you hover it |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-freeze-bar-highlight-color` </div><div class="variables-table__item"><span>JS:</span> `freezeBarHighlightColor` </div> | Color of a freeze bar over the headers when you press or drag it |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-move-backlight-color` </div><div class="variables-table__item"><span>JS:</span> `moveBacklightColor` </div>   | Background color for move operations |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-move-backlight-opacity` </div><div class="variables-table__item"><span>JS:</span> `moveBacklightOpacity` </div> | Opacity of move backlight            |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-move-indicator-color` </div><div class="variables-table__item"><span>JS:</span> `moveIndicatorColor` </div>   | Color of move indicators             |

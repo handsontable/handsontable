@@ -1,7 +1,7 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { ReadOnlyStylingPage } from '../fixtures/pages/ReadOnlyStylingPage';
 
-test.describe('readOnlyStyling', () => {
+test.describe('readOnlyStyling', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   // The point of the option: a non-editable grid that does not look non-editable.
   // Compared against the fixture's editable grid rather than a fixed palette, so
   // the assertion means the same thing on every theme. Row 0, not an odd row: a theme

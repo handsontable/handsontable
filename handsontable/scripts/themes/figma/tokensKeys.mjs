@@ -51,6 +51,7 @@ const tokensKeys = [
   // Cell Selection Variables
   'cell-selection-border-color',
   'cell-selection-background-color',
+  'row-selection-background-color',
 
   // Cell State Variables
   'cell-success-background-color',
@@ -323,6 +324,13 @@ const tokensKeys = [
 
   // Resize Indicator Variables
   'resize-indicator-color',
+
+  // Freeze Bar Variables
+  // These three are not in the Figma design system yet. Regenerating the themes from a Figma export that lacks them
+  // drops them from the generated files, so add them to the Figma file first.
+  'freeze-bar-color',
+  'freeze-bar-hover-color',
+  'freeze-bar-highlight-color',
 
   // Hidden Indicator Variables
   'hidden-indicator-color',

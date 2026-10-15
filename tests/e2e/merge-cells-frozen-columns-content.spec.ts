@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { MergedCellsFrozenColumnsPage } from '../fixtures/pages/MergedCellsFrozenColumnsPage';
 
 /**
@@ -11,7 +11,7 @@ import { MergedCellsFrozenColumnsPage } from '../fixtures/pages/MergedCellsFroze
  *
  * The content is fixed-size markers (see the fixture), so positions do not depend on font metrics.
  */
-test.describe('content of a merged cell across a frozen-column line', () => {
+test.describe('content of a merged cell across a frozen-column line', { tag: THEMES_TAG }, () => {
   let grid: MergedCellsFrozenColumnsPage;
 
   // Crosses the `fixedColumnsStart: 2` line: two frozen columns and four in the master, so the whole

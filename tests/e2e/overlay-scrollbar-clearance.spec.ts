@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { GridPage } from '../fixtures/pages/GridPage';
 
 /**
@@ -24,7 +24,7 @@ import { GridPage } from '../fixtures/pages/GridPage';
  * either way - the scroll event is dispatched asynchronously, so it resolved before anything could
  * have been drawn. Hence the explicit wait for the scroll to be processed.
  */
-test.describe('overlay scrollbar clearance', () => {
+test.describe('overlay scrollbar clearance', { tag: THEMES_TAG }, () => {
   test.beforeEach(async ({ page, theme, bundle }) => {
     const grid = new GridPage(page, theme, bundle);
 

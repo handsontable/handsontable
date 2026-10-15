@@ -8,7 +8,7 @@ export const command = {
       selection,
       rowIndexMapper,
     } = hot;
-    const fixedRows = Number(hot.getSettings().fixedRowsBottom) || 0;
+    const fixedRows = hot.view.countFixedRowsBottom();
     const row = rowIndexMapper.getNearestNotHiddenIndex(hot.countRows() - fixedRows - 1, -1);
     const column = getLastScrollableColumn(hot);
 

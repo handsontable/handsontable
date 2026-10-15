@@ -1,7 +1,7 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { IconElementsPage } from '../fixtures/pages/IconElementsPage';
 
-test.describe('Icon elements', () => {
+test.describe('Icon elements', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   test('the theme stylesheet defines a --ht-icon-* variable per icon', async({ page, theme, bundle }) => {
     const grid = new IconElementsPage(page, theme, bundle);
 

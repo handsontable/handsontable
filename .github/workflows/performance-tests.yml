@@ -37,7 +37,7 @@ jobs:
     # Same budget as performance.yml, for the same reason: a backstop that
     # outlasts setup, both download attempts and every scenario at its
     # Playwright timeout, so a run whose scenarios time out still reports.
-    timeout-minutes: 105
+    timeout-minutes: 126
     env:
       PERF_MODE: ${{ github.event_name == 'push' && 'golden' || 'compare' }}
     steps:

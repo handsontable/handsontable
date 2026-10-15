@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
 
 // The fill handle's center sits on the block's corner; allow for the handle's own offset and the
@@ -56,7 +56,7 @@ async function expectOneOutlineAndHandle(
  * overlay drew its own fill handle (DEV-143). The selection must look like the one of an unmerged
  * block: one outline and one fill handle, on the block's bottom-end corner.
  */
-test.describe('selection of a merged cell across the frozen panes', () => {
+test.describe('selection of a merged cell across the frozen panes', { tag: THEMES_TAG }, () => {
   let grid: SelectionFeaturesPage;
 
   const BLOCK_ACROSS_BOTH_LINES = { row: 0, col: 0, rowspan: 3, colspan: 3 };
@@ -199,7 +199,7 @@ test.describe('selection of a merged cell across the frozen panes', () => {
  * inline-end clone from the clone's first column on. The clone resolves the block to its first
  * rendered column, so it fills and outlines its part like the master does.
  */
-test.describe('selection of a merged cell that reaches into the end frozen columns', () => {
+test.describe('selection of a merged cell that reaches into the end frozen columns', { tag: THEMES_TAG }, () => {
   let grid: SelectionFeaturesPage;
 
   const wideData = () => Array.from({ length: 6 }, (_, r) =>

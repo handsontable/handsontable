@@ -3,7 +3,8 @@
 // Z-index map.
 // 101–119 is reserved for selection affordances drawn inside an overlay: the moveCells bands (100,
 // inlined by `border.ts`), the autofill fill handle (110) and the selection resize handles (115),
-// all in `components/core/_selection.scss`.
+// all in `components/core/_selection.scss`. The freeze bar (105, `components/plugins/_freeze-bar.scss`) sits
+// between the bands and the fill handle, so a grab on the handle is an autofill and not a freeze drag.
 // The master table starts a stacking context at 0, so its descendants stay below the frozen
 // overlays even when the browser promotes its scroll holder to a composited layer. The frozen
 // overlays draw their own copy of every affordance.

@@ -180,9 +180,11 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="fixedRowsTop" data-levels="grid"></span>[`fixedRowsTop`](@/api/options.md#fixedrowstop) | Yes | No | No | No | Core |  |
 | <span data-option="formulas" data-levels="grid"></span>[`formulas`](@/api/options.md#formulas) | Yes | No | No | No | Formulas |  |
 | <span data-option="fragmentSelection" data-levels="grid"></span>[`fragmentSelection`](@/api/options.md#fragmentselection) | Yes | No | No | No | Core |  |
+| <span data-option="freezeBar" data-levels="grid"></span>[`freezeBar`](@/api/options.md#freezebar) | Yes | No | No | No | FreezeBar |  |
 | <span data-option="hashLength" data-levels="grid columns cells cell"></span>[`hashLength`](@/api/options.md#hashlength) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="hashRevealDelay" data-levels="grid columns cells cell"></span>[`hashRevealDelay`](@/api/options.md#hashrevealdelay) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="hashSymbol" data-levels="grid columns cells cell"></span>[`hashSymbol`](@/api/options.md#hashsymbol) | Yes | Yes | Yes | Yes | Core |  |
+| <span data-option="headerCheckbox" data-levels="grid columns"></span>[`headerCheckbox`](@/api/options.md#headercheckbox) | Yes | Yes | No | No | CheckboxHeader |  |
 | <span data-option="headerClassName" data-levels="grid columns"></span>[`headerClassName`](@/api/options.md#headerclassname) | Yes | Yes | No | No | Core | Applies to column headers, so it stops at the column level. |
 | <span data-option="height" data-levels="grid"></span>[`height`](@/api/options.md#height) | Yes | No | No | No | Core |  |
 | <span data-option="hiddenColumns" data-levels="grid"></span>[`hiddenColumns`](@/api/options.md#hiddencolumns) | Yes | No | No | No | HiddenColumns |  |
@@ -199,6 +201,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="layout" data-levels="grid"></span>[`layout`](@/api/options.md#layout) | Yes | No | No | No | Core |  |
 | <span data-option="layoutDirection" data-levels="grid"></span>[`layoutDirection`](@/api/options.md#layoutdirection) | Yes | No | No | No | Core |  |
 | <span data-option="licenseKey" data-levels="grid"></span>[`licenseKey`](@/api/options.md#licensekey) | Yes | No | No | No | Core |  |
+| <span data-option="limitFixedToViewport" data-levels="grid"></span>[`limitFixedToViewport`](@/api/options.md#limitfixedtoviewport) | Yes | No | No | No | Core |  |
 | <span data-option="loading" data-levels="grid"></span>[`loading`](@/api/options.md#loading) | Yes | No | No | No | Loading |  |
 | <span data-option="locale" data-levels="grid columns cells cell"></span>[`locale`](@/api/options.md#locale) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="manualColumnFreeze" data-levels="grid"></span>[`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) | Yes | No | No | No | ManualColumnFreeze |  |
@@ -243,6 +246,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="rowHeaders" data-levels="grid"></span>[`rowHeaders`](@/api/options.md#rowheaders) | Yes | No | No | No | Core |  |
 | <span data-option="rowHeaderWidth" data-levels="grid"></span>[`rowHeaderWidth`](@/api/options.md#rowheaderwidth) | Yes | No | No | No | Core |  |
 | <span data-option="rowHeights" data-levels="grid"></span>[`rowHeights`](@/api/options.md#rowheights) | Yes | No | No | No | Core |  |
+| <span data-option="rowSelection" data-levels="grid"></span>[`rowSelection`](@/api/options.md#rowselection) | Yes | No | No | No | RowSelection |  |
 | <span data-option="sanitizer" data-levels="grid"></span>[`sanitizer`](@/api/options.md#sanitizer) | Yes | No | No | No | Core |  |
 | <span data-option="search" data-levels="grid columns cells cell"></span>[`search`](@/api/options.md#search) | Yes | Yes | Yes | Yes | Search | The plugin toggle is grid level. `queryMethod` and `callback` resolve per cell. |
 | <span data-option="searchInput" data-levels="grid columns cells cell"></span>[`searchInput`](@/api/options.md#searchinput) | Yes | Yes | Yes | Yes | Core |  |

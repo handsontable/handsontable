@@ -15,8 +15,11 @@ import type { ColumnConditions, FiltersSettings } from '../plugins/filters';
 import type { LayoutConfig } from './layout';
 import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from '../plugins/contextMenu';
 import type { DropdownMenu } from '../plugins/dropdownMenu';
+import type { RowSelectionSettings, RowSelectionSource } from '../plugins/rowSelection';
+import type { HeaderCheckboxSettings } from '../plugins/checkboxHeader';
 import type { SheetsBarSettings, SheetsBarViewState } from '../plugins/sheetsBar';
 import type { ManualColumnFreezeSettings } from '../plugins/manualColumnFreeze';
+import type { FreezeBarSettings, FreezeEdge, FreezeSource } from '../plugins/freezeBar';
 import type { ImportFileSettings, ImportResult } from '../plugins/importFile';
 import type { UndoRedoSettings } from '../plugins/undoRedo';
 import type { PasteClipboardData } from '../plugins/copyPaste';
@@ -265,6 +268,7 @@ export interface GridSettings {
   fixedColumnsStart?: number;
   fixedRowsBottom?: number;
   fixedRowsTop?: number;
+  limitFixedToViewport?: boolean;
 
   // Headers
   colHeaders?: boolean | string[] | ((column: number) => string);
@@ -309,6 +313,7 @@ export interface GridSettings {
   hiddenColumns?: boolean | object;
   hiddenRows?: boolean | object;
   loading?: boolean | object;
+  freezeBar?: boolean | FreezeBarSettings;
   manualColumnFreeze?: boolean | ManualColumnFreezeSettings;
   manualColumnMove?: boolean | number[];
   manualColumnResize?: boolean | number[];
@@ -318,6 +323,7 @@ export interface GridSettings {
   nestedHeaders?: NestedHeader[][];
   nestedRows?: boolean;
   pagination?: boolean | object;
+  rowSelection?: boolean | RowSelectionSettings;
   search?: boolean | object;
   importFile?: boolean | ImportFileSettings;
   sheetsBar?: boolean | SheetsBarSettings;
@@ -326,6 +332,7 @@ export interface GridSettings {
   // Checkbox
   checkedTemplate?: unknown;
   uncheckedTemplate?: unknown;
+  headerCheckbox?: boolean | HeaderCheckboxSettings;
 
   // Date / Time
   dateFormat?: Intl.DateTimeFormatOptions;
@@ -409,6 +416,7 @@ export interface GridSettings {
   afterColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean, orderChanged: boolean) => void;
   afterColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void;
+  afterFreezeChange?: (edge: FreezeEdge, newCount: number, oldCount: number, source: FreezeSource) => void;
   afterColumnSequenceChange?: (source: ChangeSource) => void;
   afterCustomBordersUpdate?: () => void;
   afterColumnSequenceCacheUpdate?: (indexesChangesState: {
@@ -528,6 +536,7 @@ export interface GridSettings {
   afterRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean, orderChanged: boolean) => void;
   afterRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => void;
+  afterRowSelectionChange?: (selectedRows: number[], deselectedRows: number[], source: RowSelectionSource) => void;
   afterRowSequenceChange?: (source: ChangeSource) => void;
   afterRowSequenceCacheUpdate?: (indexesChangesState: {
     indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean; hiddenIndexesChanged: boolean;
@@ -616,6 +625,7 @@ export interface GridSettings {
   beforeColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean) => void | boolean;
   beforeColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void | number | false;
+  beforeFreezeChange?: (edge: FreezeEdge, newCount: number, oldCount: number, source: FreezeSource) => void | boolean;
   beforeColumnSort?: (currentSortConfig: ColumnSortingConfig[],
     destinationSortConfigs: ColumnSortingConfig[], sortPossible: boolean) => void | boolean;
   beforeColumnUnfreeze?: (columnIndex: number, isUnfreezingPerformed: boolean, finalIndex: number) => void | boolean;
@@ -714,6 +724,8 @@ export interface GridSettings {
   beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean) => void | boolean;
   beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void | false;
+  beforeRowSelectionChange?: (rowsToSelect: number[], rowsToDeselect: number[],
+    source: RowSelectionSource) => void | boolean;
   beforeRowsMutation?: (operation: string, payload: RowMutationPayload) => void | boolean;
   beforeRowWrap?: (isActionInterrupted: { value: boolean }, newCoords: WalkontableCellCoords,
     isRowFlipped: boolean) => void;

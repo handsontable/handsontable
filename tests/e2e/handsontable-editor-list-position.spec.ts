@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import {
   HandsontableEditorListPositionPage,
   placementOf,
@@ -193,7 +193,7 @@ const CASES: { title: string; variant: Omit<Variant, 'type'> }[] = [
   { title: `${LAYOUT_NAMES.sized} (an LTR grid on an RTL page)`, variant: { dir: 'ltr', layout: 'sized', doc: 'rtl' } },
 ];
 
-test.describe('handsontable editor list position', () => {
+test.describe('handsontable editor list position', { tag: THEMES_TAG }, () => {
   for (const { title, variant } of CASES) {
     test(`opens toward the room it has from every point, ${title}`, async({ page, theme, bundle }) => {
       const grid = new HandsontableEditorListPositionPage(page, theme, bundle, variant);
@@ -204,7 +204,7 @@ test.describe('handsontable editor list position', () => {
   }
 });
 
-test.describe('dropdown editor list position', () => {
+test.describe('dropdown editor list position', { tag: THEMES_TAG }, () => {
   for (const { title, variant } of CASES) {
     test(`keeps its list on the cell and opens it toward the room it has, ${title}`, async({
       page, theme, bundle,
@@ -217,7 +217,7 @@ test.describe('dropdown editor list position', () => {
   }
 });
 
-test.describe('autocomplete editor list position (not trimmed to the cell)', () => {
+test.describe('autocomplete editor list position (not trimmed to the cell)', { tag: THEMES_TAG }, () => {
   for (const { title, variant } of CASES) {
     test(`opens toward the room it has, ${title}`, async({ page, theme, bundle }) => {
       const grid = new HandsontableEditorListPositionPage(page, theme, bundle, { ...variant, type: 'autocomplete' });
@@ -228,7 +228,7 @@ test.describe('autocomplete editor list position (not trimmed to the cell)', () 
   }
 });
 
-test.describe('multiselect editor list position', () => {
+test.describe('multiselect editor list position', { tag: THEMES_TAG }, () => {
   for (const { title, variant } of CASES) {
     test(`opens toward the room it has, ${title}`, async({ page, theme, bundle }) => {
       const grid = new HandsontableEditorListPositionPage(page, theme, bundle, { ...variant, type: 'multiselect' });
@@ -244,7 +244,7 @@ test.describe('multiselect editor list position', () => {
 // left the list uncapped, hanging past the viewport's bottom, or flipped above a cell with less room above
 // than the list needs, so its top, and the search field, sat above the viewport. The cell is moved through
 // every position in a range that spans both thresholds, with the page scrolled to put it there.
-test.describe('multiselect editor list stays in the viewport at every cell position', () => {
+test.describe('multiselect editor list stays in the viewport at every cell position', { tag: THEMES_TAG }, () => {
   for (const dir of ['ltr', 'rtl'] as const) {
     test(`keeps the whole list on screen as the cell moves down the viewport (${dir.toUpperCase()})`, async({
       page, theme, bundle,
@@ -300,7 +300,7 @@ test.describe('multiselect editor list stays in the viewport at every cell posit
 // a 30-entry source and column 1 a source of `visibleRows` entries, so a cell in each of them, in one row,
 // has the same top. The page is scrolled to take that cell's top down the viewport, and the editor is opened
 // on both at every step.
-test.describe('multiselect editor list side does not depend on the source length', () => {
+test.describe('multiselect editor list side does not depend on the source length', { tag: THEMES_TAG }, () => {
   for (const dir of ['ltr', 'rtl'] as const) {
     for (const pairRows of [5, 10]) {
       test(`opens a long source where a short one opens, visibleRows ${pairRows} (${dir.toUpperCase()})`, async({
@@ -380,7 +380,7 @@ const OPENS_FROM: Record<'ltr' | 'rtl', { opening: string; flipped: string }> = 
   rtl: { opening: 'right edge', flipped: 'left edge' },
 };
 
-test.describe('editor list position while the page scrolls', () => {
+test.describe('editor list position while the page scrolls', { tag: THEMES_TAG }, () => {
   for (const type of ['handsontable', 'multiselect'] as const) {
     for (const dir of ['ltr', 'rtl'] as const) {
       test(`the ${type} editor's list moves to the side with room as the window scrolls (${dir.toUpperCase()})`, async({
@@ -422,7 +422,7 @@ const PARTWAY_POINTS: Record<EditorType, Record<'ltr' | 'rtl', Point[]>> = {
   multiselect: { ltr: BOTTOM_POINTS(MULTISELECT_POINTS.ltr), rtl: BOTTOM_POINTS(MULTISELECT_POINTS.rtl) },
 };
 
-test.describe('editor list position in a transformed container, with the page scrolled partway', () => {
+test.describe('editor list position in a transformed container, with the page scrolled partway', { tag: THEMES_TAG }, () => {
   for (const type of ['handsontable', 'dropdown', 'autocomplete', 'multiselect'] as const) {
     for (const dir of ['ltr', 'rtl'] as const) {
       test(`the ${type} editor's list opens above a cell near the viewport's bottom (${dir.toUpperCase()})`, async({
@@ -441,7 +441,7 @@ test.describe('editor list position in a transformed container, with the page sc
 
 // A left border on `<html>` shifts `documentElement.clientLeft` in Chromium (not in Firefox) without
 // moving the box a `fixed` list is laid out in, so no list may move with it.
-test.describe('editor list position with a left border on the html element', () => {
+test.describe('editor list position with a left border on the html element', { tag: THEMES_TAG }, () => {
   for (const layout of ['window', 'sized'] as const) {
     for (const dir of ['ltr', 'rtl'] as const) {
       test(`keeps the list on its cell, ${LAYOUT_NAMES[layout]} (${dir.toUpperCase()})`, async({
@@ -462,7 +462,7 @@ test.describe('editor list position with a left border on the html element', () 
 // viewport shorter than the page, scrolling the window moves the cell past the viewport's top edge with the
 // list open: the page-scroll follow writes the top again, and the clamp keeps the list's first options on
 // screen.
-test.describe('editor list position when the cell scrolls out of the viewport', () => {
+test.describe('editor list position when the cell scrolls out of the viewport', { tag: THEMES_TAG }, () => {
   test('keeps the handsontable editor list pinned to the viewport top edge', async({ page, theme, bundle }) => {
     const grid = new HandsontableEditorListPositionPage(page, theme, bundle, {
       dir: 'ltr', layout: 'sized', type: 'handsontable', wrap: 'transform',
