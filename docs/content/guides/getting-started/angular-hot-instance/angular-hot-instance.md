@@ -2,7 +2,7 @@
 type: how-to
 title: Instance access
 metaTitle: Instance access - Javascript Data Grid | Handsontable
-description: Reference a Handsontable instance from within a Angular component, to programmatically perform actions.
+description: Reference a Handsontable DataGrid instance from within a Angular component, to programmatically perform actions.
 permalink: /instance-access
 canonicalUrl: /instance-access
 tags:
@@ -15,7 +15,7 @@ searchCategory: Guides
 onlyFor: angular
 category: Getting started
 ---
-Use @ViewChild to get a reference to the Handsontable instance from your Angular component, then call API methods programmatically.
+Use @ViewChild to get a reference to the Handsontable DataGrid instance from your Angular component, then call API methods programmatically.
 
 [[toc]]
 

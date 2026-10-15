@@ -2,7 +2,7 @@
 type: how-to
 title: Instance reference
 metaTitle: Instance reference - JavaScript Data Grid | Handsontable
-description: Reference a Handsontable instance from within a Vue 3 component, to programmatically perform actions such as selecting cells.
+description: Reference a Handsontable DataGrid instance from within a Vue 3 component, to programmatically perform actions such as selecting cells.
 permalink: /vue-instance-reference
 canonicalUrl: /vue-instance-reference
 tags:
@@ -16,7 +16,7 @@ searchCategory: Guides
 onlyFor: vue
 category: Getting started
 ---
-Use `useTemplateRef` and the `hotInstance` property to get a reference to the Handsontable instance from a Vue 3 component, then call any API method on it.
+Use `useTemplateRef` and the `hotInstance` property to get a reference to the Handsontable DataGrid instance from a Vue 3 component, then call any API method on it.
 
 [[toc]]
 

@@ -2,7 +2,7 @@
 type: how-to
 title: License key
 metaTitle: License key - JavaScript Data Grid | Handsontable
-description: Activate Handsontable, passing your license key in the configuration object. Use a special key for non-commercial and evaluation purposes.
+description: Activate Handsontable DataGrid, passing your license key in the configuration object. Use a special key for non-commercial and evaluation purposes.
 permalink: /license-key
 canonicalUrl: /license-key
 react:
@@ -15,7 +15,7 @@ searchCategory: Guides
 category: Getting started
 menuTag: updated
 ---
-Activate Handsontable, passing your license key in the configuration object. Use a special key for non-commercial and evaluation purposes.
+Activate Handsontable DataGrid, passing your license key in the configuration object. Use a special key for non-commercial and evaluation purposes.
 
 [[toc]]
 

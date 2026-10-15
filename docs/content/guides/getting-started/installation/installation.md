@@ -2,7 +2,7 @@
 type: how-to
 title: Installation
 metaTitle: Installation - JavaScript Data Grid | Handsontable
-description: Install Handsontable through your preferred package manager, or import Handsontable's assets directly from a CDN.
+description: Install Handsontable DataGrid through your preferred package manager, or import Handsontable's assets directly from a CDN.
 permalink: /installation
 canonicalUrl: /installation
 tags:
@@ -18,7 +18,7 @@ category: Getting started
 ---
 ::: only-for angular
 
-Install Handsontable through your preferred package manager, and control your grid through the `HotTableComponent` props.
+Install Handsontable DataGrid through your preferred package manager, and control your grid through the `HotTableComponent` props.
 
 :::
 

@@ -2,7 +2,7 @@
 type: how-to
 title: Use Handsontable in Nuxt
 metaTitle: Use Handsontable in Nuxt - JavaScript Data Grid | Handsontable
-description: Set up Handsontable in a Nuxt 3 application using the ClientOnly component or the .client.vue suffix to avoid SSR errors.
+description: Set up Handsontable DataGrid in a Nuxt 3 application using the ClientOnly component or the .client.vue suffix to avoid SSR errors.
 permalink: /vue-nuxt
 canonicalUrl: /vue-nuxt
 tags:
@@ -16,7 +16,7 @@ onlyFor: vue
 category: Getting started
 ---
 
-Handsontable relies on browser APIs that are not available during server-side rendering. This page explains how to integrate Handsontable into a Nuxt 3 application without SSR errors.
+Handsontable DataGrid relies on browser APIs that are not available during server-side rendering. This page explains how to integrate Handsontable into a Nuxt 3 application without SSR errors.
 
 [[toc]]
 

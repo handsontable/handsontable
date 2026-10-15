@@ -15,7 +15,7 @@ onlyFor: vue
 category: Getting started
 ---
 
-In this tutorial, you will connect a Handsontable grid to a Vuex store. You will learn to commit mutations on cell changes and sync grid data with shared application state.
+In this tutorial, you will connect a Handsontable DataGrid to a Vuex store. You will learn to commit mutations on cell changes and sync grid data with shared application state.
 
 [[toc]]
 

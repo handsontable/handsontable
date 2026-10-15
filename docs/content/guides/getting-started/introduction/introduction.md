@@ -20,7 +20,7 @@ Handsontable DataGrid is a JavaScript component with a spreadsheet-like look and
 
 ## Getting started 🚀
 
-Use Handsontable with plain JavaScript, TypeScript, or your favorite framework. This guide will walk you through the basics, from installation to creating your first data grid.
+Use Handsontable DataGrid with plain JavaScript, TypeScript, or your favorite framework. This guide will walk you through the basics, from installation to creating your first data grid.
 
 <div class="boxes-list gray">
 
