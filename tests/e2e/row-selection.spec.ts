@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { RowSelectionPage } from '../fixtures/pages/RowSelectionPage';
 import { CheckboxHeaderPage } from '../fixtures/pages/CheckboxHeaderPage';
 
@@ -6,7 +6,7 @@ import { CheckboxHeaderPage } from '../fixtures/pages/CheckboxHeaderPage';
  * The RowSelection plugin (PRO-87). In the fixture, the row at index 3 is "archived" and
  * `isRowSelectable` rejects it, so 7 of the 8 rows can be selected.
  */
-test.describe('Row selection checkboxes', () => {
+test.describe('Row selection checkboxes', { tag: THEMES_TAG }, () => {
   test('selects a row on a checkbox press, marks the row, and leaves the cell selection alone',
     async({ page, theme, bundle }) => {
       const grid = new RowSelectionPage(page, theme, bundle);
@@ -231,7 +231,7 @@ test.describe('Row selection checkboxes', () => {
   });
 });
 
-test.describe('Row selection with Space on a first column checkbox', () => {
+test.describe('Row selection with Space on a first column checkbox', { tag: THEMES_TAG }, () => {
   test('toggles the row and does not open the editor of the cell that holds the checkbox',
     async({ page, theme, bundle }) => {
       const grid = new RowSelectionPage(page, theme, bundle);
@@ -252,7 +252,7 @@ test.describe('Row selection with Space on a first column checkbox', () => {
     });
 });
 
-test.describe('Row selection on a click (enableClickSelection)', () => {
+test.describe('Row selection on a click (enableClickSelection)', { tag: THEMES_TAG }, () => {
   test('`true`: a click selects only its row, Ctrl/Cmd+click toggles, and Shift+click selects a range',
     async({ page, theme, bundle }) => {
       const grid = new RowSelectionPage(page, theme, bundle);
@@ -390,7 +390,7 @@ test.describe('Row selection on a click (enableClickSelection)', () => {
   });
 });
 
-test.describe('Row selection checkboxes that are hidden', () => {
+test.describe('Row selection checkboxes that are hidden', { tag: THEMES_TAG }, () => {
   test('`hideDisabledCheckboxes` leaves a plain row header on a row that cannot be selected', async({ page, theme, bundle }) => {
     const grid = new RowSelectionPage(page, theme, bundle);
 
@@ -479,7 +479,7 @@ test.describe('Row selection checkboxes that are hidden', () => {
     });
 });
 
-test.describe('Row selection corner without a "select all" checkbox', () => {
+test.describe('Row selection corner without a "select all" checkbox', { tag: THEMES_TAG }, () => {
   for (const [label, options] of [
     ['`headerCheckbox: false`', { headerCheckbox: false }],
     ['the `\'singleRow\'` mode', { mode: 'singleRow' as const }],
@@ -512,7 +512,7 @@ test.describe('Row selection corner without a "select all" checkbox', () => {
   }
 });
 
-test.describe('Row selection vetoed by beforeRowSelectionChange', () => {
+test.describe('Row selection vetoed by beforeRowSelectionChange', { tag: THEMES_TAG }, () => {
   test('leaves the checkbox unchecked after a press and after Space', async({ page, theme, bundle }) => {
     const grid = new RowSelectionPage(page, theme, bundle);
 
@@ -539,7 +539,7 @@ test.describe('Row selection vetoed by beforeRowSelectionChange', () => {
   });
 });
 
-test.describe('Row selection in the context menu', () => {
+test.describe('Row selection in the context menu', { tag: THEMES_TAG }, () => {
   test('hides its items with nothing selected, and removes the selected rows', async({ page, theme, bundle }) => {
     const grid = new RowSelectionPage(page, theme, bundle);
 
@@ -601,7 +601,7 @@ test.describe('Row selection in the context menu', () => {
   });
 });
 
-test.describe('Row selection on a touch screen', () => {
+test.describe('Row selection on a touch screen', { tag: THEMES_TAG }, () => {
   test.use({ hasTouch: true });
 
   test('a tap on a row checkbox toggles the row, and a tap on the corner toggles every row', async({ page, theme, bundle }) => {
@@ -651,7 +651,7 @@ test.describe('Row selection on a touch screen', () => {
   });
 });
 
-test.describe('Row selection on a server-backed grid', () => {
+test.describe('Row selection on a server-backed grid', { tag: THEMES_TAG }, () => {
   test('keeps the selection across pages and selects rows the server never sent', async({ page, theme, bundle }) => {
     const grid = new RowSelectionPage(page, theme, bundle);
     const header = grid.headerCheckbox();
@@ -692,7 +692,7 @@ test.describe('Row selection on a server-backed grid', () => {
  * The RowSelection plugin over the NestedRows plugin (`groupSelects`). The fixture's tree, by visual
  * row: 0 Europe, 1 Poland, 2 Krakow, 3 Warsaw, 4 France, 5 Asia, 6 Japan.
  */
-test.describe('Row selection over nested rows', () => {
+test.describe('Row selection over nested rows', { tag: THEMES_TAG }, () => {
   test('`\'descendants\'`: a parent selects every row under it, and its ancestors show the mixed state',
     async({ page, theme, bundle }) => {
       const grid = new RowSelectionPage(page, theme, bundle);
