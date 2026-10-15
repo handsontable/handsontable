@@ -8,8 +8,9 @@
 
 /* Constrain logo height in the header */
 .site-title img {
-  max-height: 24px;
+  max-height: 20px;
   width: auto;
+  max-width: 100%;
 }
 
 /* Skip-to-content link: must sit above the header (z-index: 10100) */
