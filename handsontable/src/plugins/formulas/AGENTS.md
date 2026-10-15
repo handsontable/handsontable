@@ -461,8 +461,9 @@ Formulas, because the grid reads cells through `getDataAtCell()`:
 
 A declared column keeps its slot (`undefined` when nothing binds it), the same as a `{ data: null }`
 column. The test for "names no column" is `toPhysicalColumn()`, not the integer prop, and "declared"
-means a place in the `columns` array below `maxCols`: a column `minCols` or `minSpareCols` appends has
-no declaration and no slot. The loop's end is counted from that array, not from `countCachedColumns()`,
+means a place in the `columns` array below `maxCols`: a column `maxCols` cuts off has no slot. (`minCols`
+and `minSpareCols` build no column while `columns` is set, so they never reach this read.) The slots follow
+the VISUAL column order, so a moved column takes its moved place. The loop's end is counted from that array, not from `countCachedColumns()`,
 because the property cache only reaches the last column that has a `data` option, so a trailing
 `Total` column would fall off the sheet. A `columns` function has no length to read, so a trailing
 column without `data` still drops out there. Do not work

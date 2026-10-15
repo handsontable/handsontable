@@ -522,17 +522,20 @@ describe('Core', () => {
       core.destroy();
     });
 
-    it('should not add a slot for a column that `minCols` appends past the declared ones', () => {
+    it('should cover every declared column in a ranged read, in the array and in the object form', () => {
       const core = new Core(container, {
         theme: 'ht-theme-main',
-        data: [{ a: 'a0', b: 'b0', c: 'c0' }, { a: 'a1', b: 'b1', c: 'c1' }],
-        columns: [{ data: 'a' }],
-        minCols: 5,
+        data: [{ list: [10, 20, 30, 40, 50] }, { list: [11, 21, 31, 41, 51] }],
+        columns: [0, 1, 2, 3, 4].map(index => ({ data: `list.${index}` })),
       });
 
       core.init();
 
-      expect(core.getSourceDataArray()).toEqual([['a0'], ['a1']]);
+      expect(core.getSourceDataArray(0, 0, 1, 4)).toEqual([[10, 20, 30, 40, 50], [11, 21, 31, 41, 51]]);
+      expect(core.getSourceData(0, 0, 1, 4)).toEqual([
+        { list: { 0: 10, 1: 20, 2: 30, 3: 40, 4: 50 } },
+        { list: { 0: 11, 1: 21, 2: 31, 3: 41, 4: 51 } },
+      ]);
 
       core.destroy();
     });
