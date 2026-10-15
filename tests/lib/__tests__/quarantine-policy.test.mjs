@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
+import path from 'node:path';
 import {
   QUARANTINE_ANNOTATION,
   QUARANTINE_CAP,
@@ -199,4 +200,37 @@ test('the quarantine reporter is last in both reporter arrays, so its status ove
   const closes = [...config.matchAll(/'\.\/reporters\/quarantine\.ts'\]\s*,?\s*\]/g)];
 
   assert.equal(closes.length, 2, 'the quarantine reporter is the last entry in the CI and local arrays');
+});
+
+test('the tree holds at most QUARANTINE_CAP quarantined() call sites: a sharded leg counts the cap per shard', () => {
+  // The reporter counts the quarantined tests of the run it sees, and a leg that runs in shards
+  // (e2e.yml, `--shard`) is several runs, each seeing its own tests: three shards could each hold six
+  // and none would fail. This static count is the whole-tree half of the cap; the reporter's count is
+  // the per-run half. A call site inside a loop declares more than one test, so a loop needs its own
+  // care when it quarantines.
+  const specs = [];
+  const walk = (dir) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+
+      if (entry.isDirectory()) {
+        walk(full);
+      } else if (entry.name.endsWith('.spec.ts')) {
+        specs.push(full);
+      }
+    }
+  };
+
+  walk(path.resolve(import.meta.dirname, '../../e2e'));
+  assert.ok(specs.length > 200, 'the sweep read the spec tree');
+
+  const sites = specs.flatMap((file) => {
+    const code = readFileSync(file, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|\s)\/\/.*$/gm, '$1');
+
+    return (code.match(/\bquarantined\(/g) ?? []).map(() => path.relative(path.resolve(import.meta.dirname, '../..'), file));
+  });
+
+  assert.ok(sites.length <= QUARANTINE_CAP,
+    `${sites.length} quarantined() call sites in tests/e2e, and the cap is ${QUARANTINE_CAP}; the reporter cannot see past `
+    + `its own shard, so fix one before parking another: ${[...new Set(sites)].join(', ')}`);
 });
