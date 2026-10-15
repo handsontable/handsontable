@@ -23,6 +23,7 @@ import { fileURLToPath } from 'node:url';
 const projectRoot = fileURLToPath(new URL('..', import.meta.url));
 const packageDir = path.join(projectRoot, 'tmp');
 const fixture = path.join(projectRoot, '.config', 'emitted-types', 'theme-presets.ts');
+const reexportFixture = path.join(projectRoot, '.config', 'emitted-types', 'theme-presets-reexport.ts');
 const tscFromEnv = process.env.TSC;
 const tscCli = path.join(projectRoot, 'node_modules', 'typescript', 'bin', 'tsc');
 // A `TSC` override is an executable (a `.bin` shim); the local fallback is the JS entry, which runs
@@ -72,10 +73,43 @@ function listPresetSpecifiers() {
 }
 
 const fixtureSource = readFileSync(fixture, 'utf8');
-const unimported = listPresetSpecifiers().filter(specifier => !fixtureSource.includes(`from '${specifier}'`));
+const reexportSource = readFileSync(reexportFixture, 'utf8');
+const escapeRegExp = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-if (unimported.length > 0) {
-  reportError(`The fixture does not import these presets, so a regression would pass:\n${unimported.join('\n')}`);
+/**
+ * Whether a fixture imports the preset's default export under a name.
+ *
+ * @param {string} source The fixture source.
+ * @param {string} specifier The preset specifier.
+ * @returns {string|null} The local name the default import is bound to.
+ */
+function findImportName(source, specifier) {
+  return source.match(new RegExp(`import\\s+(\\w+)\\s+from\\s+'${escapeRegExp(specifier)}'`))?.[1] ?? null;
+}
+
+/**
+ * Whether the re-export fixture exports the imported name as an unannotated constant. An import alone writes
+ * nothing into the emitted declaration, so only this line makes declaration emit name the preset's type.
+ *
+ * @param {string} name The local name of the imported preset.
+ * @returns {boolean} `true` when `export const x = <name>;` is present.
+ */
+const isReexported = name => new RegExp(`export\\s+const\\s+\\w+\\s*=\\s*${name}\\s*;`).test(reexportSource);
+
+const problems = listPresetSpecifiers().flatMap((specifier) => {
+  const reexportName = findImportName(reexportSource, specifier);
+
+  return [
+    findImportName(fixtureSource, specifier) ? null : `theme-presets.ts does not import ${specifier}`,
+    reexportName ? null : `theme-presets-reexport.ts does not import ${specifier}`,
+    !reexportName || isReexported(reexportName)
+      ? null
+      : `theme-presets-reexport.ts imports ${specifier} but does not re-export it as an unannotated constant`,
+  ].filter(Boolean);
+});
+
+if (problems.length > 0) {
+  reportError(`The fixtures do not cover every preset, so a regression would pass:\n${problems.join('\n')}`);
   process.exit(1);
 }
 
@@ -88,15 +122,24 @@ try {
 
   writeFileSync(path.join(workDir, 'package.json'), JSON.stringify(manifest));
   cpSync(fixture, path.join(workDir, 'index.ts'));
+  cpSync(reexportFixture, path.join(workDir, 'reexport.ts'));
   mkdirSync(path.join(workDir, 'node_modules'));
   symlinkSync(packageDir, path.join(workDir, 'node_modules', 'handsontable'), 'junction');
 
-  MODES.forEach((mode) => {
+  // Each fixture is its own program. Declaration emit reuses an import that any file in the program
+  // already has, so `reexport.ts` (no type imports) must not share a program with `index.ts` (DEV-3431).
+  const PROGRAMS = [
+    { file: 'index.ts', label: '', emitDeclarations: false },
+    { file: 'reexport.ts', label: ', declaration emit', emitDeclarations: true },
+  ];
+
+  MODES.flatMap(mode => PROGRAMS.map(program => ({ mode, program }))).forEach(({ mode, program }) => {
     if (spawnFailed) {
       return;
     }
 
-    const config = `tsconfig.${mode.name}.json`;
+    const name = `${mode.name}${program.label}`;
+    const config = `tsconfig.${mode.name}.${program.file}.json`;
 
     writeFileSync(path.join(workDir, config), JSON.stringify({
       compilerOptions: {
@@ -104,11 +147,13 @@ try {
         moduleResolution: mode.moduleResolution,
         target: 'es2022',
         strict: true,
-        noEmit: true,
+        ...(program.emitDeclarations
+          ? { declaration: true, emitDeclarationOnly: true, outDir: 'out' }
+          : { noEmit: true }),
         skipLibCheck: true,
         types: [],
       },
-      files: ['index.ts'],
+      files: [program.file],
     }));
 
     const result = spawnSync(command, [...baseArgs, '-p', config], {
@@ -118,7 +163,7 @@ try {
     });
 
     if (result.status === 0) {
-      process.stdout.write(`ESM consumer types (${mode.name}): ok\n`);
+      process.stdout.write(`ESM consumer types (${name}): ok\n`);
     } else {
       failed = true;
 
@@ -129,7 +174,7 @@ try {
         return;
       }
 
-      reportError(`ESM consumer types (${mode.name}) do not compile:\n${result.stdout || ''}${result.stderr || ''}`);
+      reportError(`ESM consumer types (${name}) do not compile:\n${result.stdout || ''}${result.stderr || ''}`);
     }
   });
 } finally {
