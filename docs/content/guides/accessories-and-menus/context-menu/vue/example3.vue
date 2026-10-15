@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { HotTable } from '@handsontable/vue3';
+import type Handsontable from 'handsontable/base';
 import { ContextMenu } from 'handsontable/plugins/contextMenu';
-import type { DetailedSettings } from 'handsontable/plugins/contextMenu';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
 
@@ -40,13 +40,13 @@ const sanitizeMenuLabel = (html: string): string => {
   return template.innerHTML;
 };
 
-const contextMenuSettings: DetailedSettings = {
-  callback(key, selection, clickEvent) {
+const contextMenuSettings = {
+  callback(key: string, selection: unknown[], clickEvent?: Event) {
     console.log(key, selection, clickEvent);
   },
   items: {
     row_above: {
-      disabled() {
+      disabled(this: Handsontable.Core) {
         return this.getSelectedLast()?.[0] === 0;
       },
     },
@@ -58,7 +58,7 @@ const contextMenuSettings: DetailedSettings = {
       name() {
         return '<b>Custom option</b>';
       },
-      hidden() {
+      hidden(this: Handsontable.Core) {
         return this.getSelectedLast()?.[1] == 0;
       },
       callback() {

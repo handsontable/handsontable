@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
-import type { DetailedSettings } from 'handsontable/plugins/columnSummary';
+import type { SummaryEndpoint } from 'handsontable/plugins/columnSummary';
 
 // register Handsontable's modules
 registerAllModules();
@@ -31,7 +31,7 @@ const hotSettings = ref<GridSettings>({
   rowHeaders: true,
   colHeaders: ['sum', 'min', 'max', 'count', 'average'],
   columnSummary: function () {
-    const configArray = [];
+    const configArray: SummaryEndpoint[] = [];
     const summaryTypes = ['sum', 'min', 'max', 'count', 'average'];
 
     for (let i = 0; i < this.hot.countCols(); i++) {
@@ -49,7 +49,7 @@ const hotSettings = ref<GridSettings>({
       });
     }
 
-    return configArray as DetailedSettings[];
+    return configArray;
   },
 });
 </script>
