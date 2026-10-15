@@ -7,8 +7,6 @@
  *
  * ::: only-for react
  * This page lists all the **Handsontable hooks** – callbacks that let you react before or after an action occurs.
- *
- * Read more on the [Events and hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md) page.
  * :::
  *
  * @example
@@ -1480,13 +1478,35 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link Autofill} plugin before populating the data in the autofill feature. This hook is fired when
    * {@link Options#fillHandle} option is enabled.
    *
+   * Several callbacks can return a result for this hook, and the last callback that returns a value decides
+   * the outcome. Global hooks (added with `Handsontable.hooks.add()`) run first, then the hooks of the
+   * instance (the `beforeAutofill` option and `addHook()`). Within each group, callbacks run in ascending
+   * `orderIndex` order, and callbacks with the same `orderIndex` run in the order they were registered. Each
+   * callback receives the previous result as its first argument. A callback that returns a value replaces
+   * the earlier results. A callback that returns `undefined` keeps them. Returning `false` doesn't stop the
+   * callbacks that run later, so a later callback can still return data and the autofill goes ahead.
+   *
+   * When the {@link Formulas} plugin is enabled, it registers its own `beforeAutofill` callback with the
+   * default `orderIndex` of 0. That callback ignores the results of earlier callbacks. It returns `false` when
+   * the engine can't set the target cells, or the filled data with the formulas adjusted. Your callback
+   * overrides the plugin's only if it runs after it. The `beforeAutofill` option set at initialization and a
+   * callback added with `addHook()` after the plugin is enabled run after it. A global hook, a callback added
+   * with `addHook()` before the plugin is enabled, and the `beforeAutofill` option when you enable the plugin
+   * later with `updateSettings()` run before it and are overridden. Disabling and re-enabling the plugin
+   * registers its callback again, after your callbacks that have an `orderIndex` of 0. To always override the
+   * plugin, add your callback with `addHook('beforeAutofill', callback, 1)`: an `orderIndex` greater than 0
+   * runs after the plugin's callback, whenever you add it.
+   *
    * @event Hooks#beforeAutofill
-   * @param {Array[]} selectionData Data the autofill operation will start from.
+   * @param {Array[]|boolean} selectionData Data the autofill operation will start from. A callback that
+   *                                        runs after another callback that returned a value receives that
+   *                                        value instead (for example, `false`).
    * @param {CellRange} sourceRange The range values will be filled from.
    * @param {CellRange} targetRange The range new values will be filled into.
    * @param {string} direction Declares the direction of the autofill. Possible values: `up`, `down`, `left`, `right`.
    *
-   * @returns {boolean|Array[]} If false, the operation is canceled. If array of arrays, the returned data
+   * @returns {boolean|Array[]} If the final result is false, the operation is canceled. If the final result is
+   *                              an array of arrays, the returned data
    *                              will be passed into [`populateFromArray`](@/api/core.md#populatefromarray) instead of the default autofill
    *                              algorithm's result.
    */
@@ -3045,6 +3065,34 @@ export const REGISTERED_HOOKS = [
    * @param {boolean} orderChanged Indicates if order of rows was changed by move.
    */
   'afterRowMove',
+
+  /**
+   * Fired by {@link FreezeBar} plugin before the number of frozen rows or columns changes. Return `false` to cancel
+   * the change. This hook is fired when the {@link Options#freezeBar} option is enabled.
+   *
+   * @since 19.0.0
+   * @event Hooks#beforeFreezeChange
+   * @param {'top'|'bottom'|'start'|'end'} edge The edge of the frozen area. `start` and `end` follow the layout direction.
+   * @param {number} newCount The new number of frozen rows or columns on that edge.
+   * @param {number} oldCount The current number of frozen rows or columns on that edge.
+   * @param {'drag'|'keyboard'|'api'} source What requested the change.
+   * @returns {boolean|undefined} If `false` is returned, the change is canceled.
+   */
+  'beforeFreezeChange',
+
+  /**
+   * Fired by {@link FreezeBar} plugin after the number of frozen rows or columns changed. The plugin changes the
+   * count on the grid only, and does not write it back to the settings you passed in. Copy the new count into your
+   * own state here. This hook is fired when the {@link Options#freezeBar} option is enabled.
+   *
+   * @since 19.0.0
+   * @event Hooks#afterFreezeChange
+   * @param {'top'|'bottom'|'start'|'end'} edge The edge of the frozen area. `start` and `end` follow the layout direction.
+   * @param {number} newCount The new number of frozen rows or columns on that edge.
+   * @param {number} oldCount The previous number of frozen rows or columns on that edge.
+   * @param {'drag'|'keyboard'|'api'} source What requested the change.
+   */
+  'afterFreezeChange',
 
   /**
    * Fired by {@link ManualColumnResize} plugin before rendering the table with modified column sizes. This hook is

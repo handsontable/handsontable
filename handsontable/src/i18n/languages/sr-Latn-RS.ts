@@ -155,6 +155,10 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nije moguće ukloniti redove',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Zahtev nije uspeo',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ponovo učitaj',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Zamrznuti redovi na vrhu',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Zamrznuti redovi na dnu',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Zamrznute kolone na početku',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Zamrznute kolone na kraju',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Proširen red [label], prikazani prošireni redovi: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Skupljen red [label]',
 };

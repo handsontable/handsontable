@@ -16,6 +16,7 @@ import {
   ExportFile,
   Filters,
   Formulas,
+  FreezeBar,
   HiddenColumns,
   HiddenRows,
   ManualColumnFreeze,
@@ -60,6 +61,7 @@ registerPlugin(DropdownMenu);
 registerPlugin(ExportFile);
 registerPlugin(Filters);
 registerPlugin(Formulas);
+registerPlugin(FreezeBar);
 registerPlugin(HiddenColumns);
 registerPlugin(HiddenRows);
 registerPlugin(ManualColumnFreeze);
@@ -100,6 +102,7 @@ const dropdownMenu: typeof DropdownMenu | undefined = getPlugin('dropdownMenu');
 const exportFile: typeof ExportFile | undefined = getPlugin('exportFile');
 const filters: typeof Filters | undefined = getPlugin('filters');
 const formulas: typeof Formulas | undefined = getPlugin('formulas');
+const freezeBar: typeof FreezeBar | undefined = getPlugin('freezeBar');
 const hiddenColumns: typeof HiddenColumns | undefined = getPlugin('hiddenColumns');
 const hiddenRows: typeof HiddenRows | undefined = getPlugin('hiddenRows');
 const manualColumnFreeze: typeof ManualColumnFreeze | undefined = getPlugin('manualColumnFreeze');

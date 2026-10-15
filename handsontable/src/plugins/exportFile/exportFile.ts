@@ -278,8 +278,6 @@ function getPluginSettings(settings: unknown): ExportFileSettings | undefined {
  *   (the only engine supported today). Features the engine cannot write are reported in one
  *   console warning per export.
  *
- * See [the export file demo](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md) for examples.
- *
  * @example
  * ::: only-for javascript
  * ```js

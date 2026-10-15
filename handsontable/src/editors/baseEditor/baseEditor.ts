@@ -947,15 +947,15 @@ export class BaseEditor {
 
     const totalRows = this.hot.countRows();
     const totalColumns = this.hot.countCols();
-    const settings = this.hot.getSettings();
-    const fixedColumnsStart = settings.fixedColumnsStart ?? 0;
+    const fixedColumnsStart = this.hot.view.countFixedColumnsStart();
+    const fixedRowsBottom = this.hot.view.countFixedRowsBottom();
     // The start band has priority, so only the columns it leaves can belong to the end band.
     const firstFixedColumnEnd = totalColumns - this.hot.view.countFixedColumnsEnd();
     const isInlineStart = this.col < fixedColumnsStart;
     const isInlineEnd = !isInlineStart && this.col >= firstFixedColumnEnd;
     let section = '';
 
-    if (this.row < (settings.fixedRowsTop ?? 0)) {
+    if (this.row < this.hot.view.countFixedRowsTop()) {
       if (isInlineStart) {
         section = 'top-inline-start-corner';
       } else if (isInlineEnd) {
@@ -963,8 +963,7 @@ export class BaseEditor {
       } else {
         section = 'top';
       }
-    } else if (settings.fixedRowsBottom &&
-               this.row >= totalRows - settings.fixedRowsBottom) {
+    } else if (fixedRowsBottom && this.row >= totalRows - fixedRowsBottom) {
       if (isInlineStart) {
         section = 'bottom-inline-start-corner';
       } else if (isInlineEnd) {

@@ -4,7 +4,7 @@ export const command = {
   name: 'moveCellSelectionToMostInlineStart',
   callback(hot: HotInstance) {
     const { selection, columnIndexMapper } = hot;
-    const fixedColumns = Number(hot.getSettings().fixedColumnsStart) || 0;
+    const fixedColumns = hot.view.countFixedColumnsStart();
     const row = hot.getSelectedRangeActive()?.highlight.row ?? 0;
     const column = columnIndexMapper.getNearestNotHiddenIndex(fixedColumns, 1);
 
