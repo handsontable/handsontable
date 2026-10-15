@@ -405,6 +405,27 @@ export class AppComponent {
 }
 ```
 
+### Type-checking the examples (changed files only)
+
+CI type-checks the **JavaScript** (`javascript/*.ts`), **React** (`react/*.tsx`) and **Vue** (`vue/*.vue`) examples a pull request changes. Angular examples have their own job (`docs/angular-type-check`).
+
+- **Rule: base against head, per file.** Each changed example is compiled twice against the current core types (`handsontable/tmp`) and the wrapper sources: once as it is now, once as it was at the base revision. The base copy of the example's folder comes from the base revision too, so an edited or deleted sibling helper counts. Every example folder (one page, one framework) is its own program, so `declare global` blocks of different examples never merge. The errors are compared as a multiset of code and message shape, never by line, with the quoted names and types removed (`Parameter 'value' implicitly has an 'any' type` and the same error for `cellValue` are one error). Only errors the head has beyond the base fail. Many examples already carry errors (for example `TS2345` for `querySelector` returning `Element`, `TS2683` for `this`), and you can edit those files without fixing them, but you cannot add a second copy or a new kind. A new file has no base, so every error in it fails.
+- **Type the container.** In a `.ts` or `.tsx` example write `document.querySelector<HTMLElement>('#exampleN')!`. An untyped `querySelector` returns `Element | null`, so `new Handsontable(container, {...})` already fails on its first argument, and TypeScript then never checks the settings object. In an edited example that old error is tolerated, so **a mistake in the settings object of such an example passes the check**. Most existing JavaScript examples have the untyped container, and typing them is a separate mechanical change. In a new file the untyped container fails the check.
+- **Limits.** Fixing one error and adding another with the same code and message shape in the same file nets to zero. An unresolved import of an already-unresolved package that you newly add is flagged by count. A failing check also skips the docs preview deploy, the same as the Angular job. A core change with no example change is not checked, so a removed core export that an example imports breaks the example without failing this job. The shipped typings cannot catch a misspelled option key (the settings type has an index signature), an unknown React prop, or any prop binding on the Vue `HotTable` and `HotColumn`, so the check passes those. The check compiles against the ES version in `browser-targets.js` (`ES_TARGET`) and the Vite client types.
+- **It is not a full gate.** Many examples carry old errors, and `@handsontable/react-wrapper` resolves to the wrapper source, not to a published build. Do not turn the check into a whole-tree gate without a baseline decision.
+- **A tooling error is never a pass.** Any compiler or config error (`TS5xxx`, `TS6xxx`) exits with code 2, because `tsc` skips every semantic check after one.
+- **Run it locally.** Build the types once, then check your branch or explicit files:
+
+```bash
+npm run build:types --prefix handsontable
+npm run docs:type-check-content --prefix docs -- --base origin/develop
+npm run docs:type-check-content --prefix docs -- --files docs/content/guides/<area>/<page>/react/example1.tsx
+```
+
+  `--base <ref>` takes the files changed since the merge base, uncommitted and untracked edits included. `--files` takes explicit paths, resolved against the directory you ran `npm run` in, and compares them with `HEAD` (or with `--base`). A path that is not a checked example exits with code 2. Once an edit is committed, `--files` against `HEAD` sees no diff and prints a warning: pass `--base origin/develop` then. Add `--show-existing` to list the tolerated errors. The tools are `tsc` from `docs/` and `vue-tsc` from `wrappers/vue3`, both installed by the root `pnpm install`.
+- **A real fix, not a shim.** Type an import with no declarations with `// @ts-expect-error` above it, the same as in the Angular rule above. Never add a `declare module` shim for the check.
+- **Config gaps stay quiet.** Packages the check cannot resolve fail the same way at base and head, so they are tolerated in an edited file. In a new file they fail. Fix the import, or add the `// @ts-expect-error` line.
+
 ---
 
 ## 2.6 Frontmatter Schema

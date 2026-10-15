@@ -32,7 +32,7 @@ docs/content/guides/category/feature/
    registerAllModules();
    ```
 2. `licenseKey: 'non-commercial-and-evaluation'`
-3. Container: `const container = document.querySelector('#example');`
+3. Container, typed in the `.ts` and `.tsx` files: `const container = document.querySelector<HTMLElement>('#example1')!;`. An untyped `querySelector` returns `Element | null`, which fails with `TS2345` in a new file, and it also hides every later error in the settings object from the type check (see `docs/AGENTS.md`, "Type-checking the examples"). The generated `.js` file keeps the plain `document.querySelector('#example1')`.
 
 ## React (TSX/JSX)
 

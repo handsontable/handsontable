@@ -226,6 +226,7 @@ jobs:
     with:
       run-all: ${{ needs.checks.outputs.run-all == 'true' }}
       run-angular: ${{ needs.checks.outputs.docs-angular == 'true' }}
+      run-content-types: ${{ needs.checks.outputs.docs-content-types == 'true' }}
       is-pr: ${{ github.event_name == 'pull_request' }}
     secrets: inherit
 
