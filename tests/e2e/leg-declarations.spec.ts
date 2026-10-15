@@ -88,15 +88,22 @@ function listedTests(json: string): ListedTest[] {
 const declarationOf = (tags: string[]) => LEG_TAGS.filter(tag => tags.includes(tag)).join('+');
 
 test.describe('leg declarations', () => {
-  // Three `--list` runs of about 3 s each; the default 20 s budget is tight for that on a busy runner.
-  test.describe.configure({ timeout: 120_000 });
+  // The declared list is spawned once per file, in `beforeAll`: serial mode keeps the four tests in one
+  // worker, so the three tests that read it share one child of about 3 s instead of spawning their own.
+  // Each test then runs at most one more child, so 60 s is room enough on a busy runner.
+  test.describe.configure({ mode: 'serial', timeout: 60_000 });
 
-  test('every test runs on exactly the projects its tags declare', async() => {
+  let declaredList: ListedTest[] = [];
+
+  test.beforeAll(() => {
     const run = listRun();
 
     expect(run.status, run.stderr).toBe(0);
+    declaredList = listedTests(run.stdout);
+  });
 
-    const tests = listedTests(run.stdout);
+  test('every test runs on exactly the projects its tags declare', async() => {
+    const tests = declaredList;
 
     // Vacuity: a filter that matched nothing would make the loop below prove nothing.
     expect(tests.length).toBeGreaterThan(2000);
@@ -116,13 +123,11 @@ test.describe('leg declarations', () => {
   });
 
   test('the full matrix runs every test on all six projects and loses no test', async() => {
-    const declared = listRun();
     const full = listRun({ HOT_E2E_FULL_MATRIX: '1' });
 
-    expect(declared.status, declared.stderr).toBe(0);
     expect(full.status, full.stderr).toBe(0);
 
-    const declaredTests = listedTests(declared.stdout);
+    const declaredTests = declaredList;
     const fullTests = listedTests(full.stdout);
     const key = (entry: ListedTest) => `${entry.file}|${entry.title}`;
 
@@ -133,13 +138,9 @@ test.describe('leg declarations', () => {
   });
 
   test('the tags Playwright sees are the tags written in the source, so a misspelled constant cannot drop a spec off its legs', async() => {
-    const run = listRun();
-
-    expect(run.status, run.stderr).toBe(0);
-
     const byFile = new Map<string, Set<string>>();
 
-    listedTests(run.stdout).forEach((entry) => {
+    declaredList.forEach((entry) => {
       const tags = byFile.get(entry.file) ?? new Set<string>();
 
       entry.tags.filter(tag => LEG_TAGS.includes(tag)).forEach(tag => tags.add(tag));

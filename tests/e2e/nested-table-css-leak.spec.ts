@@ -55,6 +55,7 @@ const BUNDLE_FILES: Record<string, string> = {
  * @returns {string} The dist file name to load.
  */
 function bundleFile(bundle: string): string {
+  // leg-declarations: ignore bundle-compare -- BUNDLE_FILES[bundle] only picks the bundle file to serve, the fixture param block's job here
   const file = BUNDLE_FILES[bundle];
 
   if (!file) {

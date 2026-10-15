@@ -366,6 +366,18 @@ test('fixturesNamed resolves .html names by path and unique basename, and bare n
   ]);
   const scanned = source => scanSource(source);
 
+  // A full path resolves through its relative path once the directory prefix is dropped, so a second
+  // fixture with the same basename (which deletes the basename key) cannot make it vanish: a top-level
+  // fixture's relative path IS its basename, and a nested one's path still resolves.
+  const ambiguous = new Map([['grid.html', 'grid.html'], ['walkontable/grid.html', 'walkontable/grid.html'],
+    ['walkontable/x.html', 'walkontable/x.html'], ['other/x.html', 'other/x.html']]);
+
+  assert.deepEqual(fixturesNamed([scanned('goto(`/tests/fixtures/demo/grid.html?theme=${theme}`)')], ambiguous), ['grid.html']);
+  assert.deepEqual(fixturesNamed([scanned('goto(`/tests/fixtures/demo/walkontable/grid.html`)')], ambiguous), ['walkontable/grid.html']);
+  assert.deepEqual(fixturesNamed([scanned('const f = \'fixtures/demo/walkontable/grid.html\';')], ambiguous), ['walkontable/grid.html']);
+  assert.deepEqual(fixturesNamed([scanned('const f = \'grid.html\';')], ambiguous), ['grid.html'], 'the top-level fixture, by its relative path');
+  assert.deepEqual(fixturesNamed([scanned('const f = \'x.html\';')], ambiguous), [], 'a bare basename two nested fixtures share resolves nothing');
+
   assert.deepEqual(fixturesNamed([scanned('await page.goto(\'/tests/fixtures/demo/grid.html?theme=main\');')], index), ['grid.html']);
   assert.deepEqual(fixturesNamed([scanned('goto(`/tests/fixtures/demo/walkontable/overlays.html?x=${x}`)')], index),
     ['walkontable/overlays.html']);
@@ -380,6 +392,21 @@ test('fixturesNamed resolves .html names by path and unique basename, and bare n
   ], index), ['numeric-formulas.html', 'numeric.html'], 'beside a dynamic name, bare literals of the whole set resolve');
   assert.deepEqual(fixturesNamed([scanned('// demo/grid.html in a comment')], index), [], 'a comment names nothing');
   assert.deepEqual(fixturesNamed([scanned('goto(\'/demo/unknown.html\')')], index), [], 'an unknown file is skipped');
+
+  // Beside a dynamic name, a spec's bare literals count only inside a constructor call: a test id or a
+  // shortcut context named 'grid' must not pull `grid.html` and its markers into the spec.
+  const dynamicPage = scanned('class Grid {\n  readonly fixture: \'numeric\' | \'numeric-formulas\';\n'
+    + '  constructor(page, theme, bundle, fixture = \'numeric\') { this.fixture = fixture; }\n'
+    + '  cell() { return this.page.getByTestId(\'grid\'); }\n'
+    + '  goto() { return this.page.goto(`/tests/fixtures/demo/${this.fixture}.html`); } }');
+
+  assert.deepEqual(fixturesNamed([
+    scanned('const grid = new Grid(page, theme, bundle, \'numeric-formulas\');\nawait page.getByTestId(\'grid\').click();\n'
+      + 'expect(context).toBe(\'grid\');'),
+    dynamicPage,
+  ], index), ['numeric-formulas.html', 'numeric.html'], 'the constructor argument resolves, the test id does not');
+  assert.deepEqual(fixturesNamed([scanned('await page.getByTestId(\'grid\').click();'), dynamicPage], index),
+    ['numeric-formulas.html', 'numeric.html'], 'no constructor argument: the page object\'s own default and union, never its test id');
 });
 
 test('scanFixtureHtml blanks HTML comments and script comments, and keeps styles and markup', () => {
@@ -530,6 +557,25 @@ test('every marker in the table has a scope, an axis and a reason, and fires on 
     assert.ok(marker.why.length > 20, `${marker.id} explains itself`);
     assert.match(examples[marker.id], marker.pattern, marker.id);
   });
+
+  // A branch on the axis has four shapes; a comparison is only the first (budnix, review of the first version).
+  const themeCompare = SURFACE_MARKERS.find(marker => marker.id === 'theme-compare').pattern;
+  const bundleCompare = SURFACE_MARKERS.find(marker => marker.id === 'bundle-compare').pattern;
+
+  for (const shape of ['theme !== \'main\'', 'const w = { main: 29, horizon: 37, classic: 23 }[theme];', 'widths[ htTheme ]',
+    'switch (theme) {', 'switch(hotTheme){', '[\'horizon\', \'classic\'].includes(theme)']) {
+    assert.match(shape, themeCompare, shape);
+  }
+  for (const shape of ['bundle === \'full-min\'', 'const file = BUNDLE_FILES[bundle];', 'switch (htBundle) {', 'MIN.includes(bundle)',
+    'if (window.htBundle === \'handsontable.full.min.js\')']) {
+    assert.match(shape, bundleCompare, shape);
+  }
+  // Still not a branch: the fixture allowlist keyed by the query param, a template that prints the value.
+  for (const shape of ['({ main: \'main\', horizon: \'horizon\' })[htParams.get(\'theme\') ?? \'main\']', '`?theme=${theme}&bundle=${bundle}`',
+    'themes.forEach(theme => …)', 'const [theme] = args;']) {
+    assert.doesNotMatch(shape, themeCompare, shape);
+    assert.doesNotMatch(shape, bundleCompare, shape);
+  }
   // The plumbing every fixture and page object carries is not a marker.
   const plumbing = [
     'window.htBundle = ({ umd: \'handsontable.js\', \'full-min\': \'handsontable.full.min.js\' })[htParams.get(\'bundle\') ?? \'umd\'];',
@@ -560,6 +606,21 @@ test('an ignore comment covers a marker, and a wrong one is a violation of its o
   const module = { file: 'fixtures/pages/ProbePage.ts', source: `${ignore('computed-style', why)}export class ProbePage { c() { return getComputedStyle(this.el); } }\n` };
 
   assert.deepEqual(rulesOf(spec(describe('{ tag: THEMES_TAG }', PLAIN_TEST)), { modules: [module] }), ['ignore-misplaced']);
+});
+
+test('a file whose only top-level blocks are quarantined tests declares nothing, and says so', () => {
+  // `agree` is true for such a file (every shape is `quarantined`), which used to leave `declared` null and
+  // skip both the agree check and the marker checks: a quarantined test reading a computed style passed
+  // the sweep with no declaration (budnix, review of the first version).
+  const parked = 'test(\'parked\', quarantined(\'DEV-1\', \'2026-10-30\'), async({ page }) => {\n'
+    + '  expect(await page.evaluate(() => getComputedStyle(document.body).color)).toBe(\'rgb(0, 0, 0)\');\n});\n';
+
+  assert.deepEqual(rulesOf(spec(parked)), ['quarantined-top-level', 'undeclared-themes']);
+  assert.match(messagesOf(spec(parked)), /Put the test inside a describe that carries the file's tags/);
+  assert.deepEqual(rulesOf(spec(parked + parked.replace('parked', 'parked too'))), ['quarantined-top-level', 'undeclared-themes']);
+  assert.deepEqual(rulesOf(spec(describe('{ tag: THEMES_TAG }', parked))), [], 'inside a tagged describe it is fine');
+  assert.deepEqual(rulesOf(spec('test(\'parked\', quarantined(\'DEV-1\', \'2026-10-30\'), async() => {});\n')), ['quarantined-top-level'],
+    'no marker: still a file that cannot declare');
 });
 
 test('every top-level block declares the same legs, and a quarantined top-level test cannot', () => {

@@ -152,16 +152,23 @@ export function needsDeterminismRatchet(changed) {
 }
 
 /**
- * Does the push touch what the leg-declaration sweep reads? A spec, a page object, a fixture or the
- * sweep's own lib can each make a spec touch theme or bundle surface it does not declare, and the
- * sweep (`tests/lib/__tests__/leg-declarations.test.mjs`, in the root `test:tooling`) is otherwise
- * first run by the pull request's tooling job. Pure so it can be unit-tested.
+ * Does the push touch what the leg-declaration sweep reads? A spec, a page object, a fixture, a
+ * fixture helper (`tests/fixtures/*.ts`: `gestures.ts` and `frames.ts` are read like page objects,
+ * and `test.ts` is pinned by the sweep), the config and lint config the sweep pins, or the sweep's own
+ * lib and test can each make a spec touch theme or bundle surface it does not declare, or change what
+ * the sweep asserts; the sweep (`tests/lib/__tests__/leg-declarations.test.mjs`, in the root
+ * `test:tooling`) is otherwise first run by the pull request's tooling job. Pure so it can be
+ * unit-tested.
  *
  * @param {string[]} changed Repo-relative changed paths.
  * @returns {boolean} True when the sweep must run before the push.
  */
 export function needsLegDeclarationCheck(changed) {
-  return changed.some(f => /^tests\/(?:e2e\/.*\.spec\.ts|fixtures\/(?:pages|demo)\/|lib\/leg-declarations)/.test(f));
+  const spec = /^tests\/e2e\/.*\.spec\.ts$/;
+  const read = /^tests\/(?:fixtures\/(?:pages\/|demo\/|[^/]+\.ts$)|lib\/(?:__tests__\/)?leg-declarations)/;
+  const pinned = /^tests\/(?:playwright\.config\.ts|\.eslintrc\.cjs)$/;
+
+  return changed.some(f => spec.test(f) || read.test(f) || pinned.test(f));
 }
 
 /**

@@ -17,16 +17,20 @@
  *   node scripts/leg-replay.mjs --assume classification.json
  *
  * Options: `--ledger <path or URL>` (default: the published ledger), `--list <path>` (the `--list`
- * JSON of the declared tree; proof mode), `--assume <path>` (a classification; proof mode),
+ * JSON of the declared tree; proof mode), `--assume <path>` (a classification; proof mode – a spec of
+ * this package's `e2e/` tree the classification leaves out is the default, `e2e-main` only, never an
+ * orphan, so a red off-main on it is a miss),
  * `--since YYYY-MM-DD` (entries seen before the date are left out), `--json` (the result as JSON
  * instead of Markdown). Exit codes: 0 when nothing is missed or no declared tree was given, 1 on a
  * miss, 2 on a usage error.
  */
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
+import path from 'node:path';
 import { parseArgs } from 'node:util';
 import { projectsFromAssumption, projectsFromList, renderReplay, replay } from '../lib/leg-replay.mjs';
 
 const LEDGER_URL = 'https://handsontable.github.io/handsontable/test-health/ledger.json';
+const TESTS_ROOT = path.resolve(import.meta.dirname, '..');
 
 const { values } = parseArgs({
   options: {
@@ -52,6 +56,29 @@ if (values.list && values.assume) {
 if (values.since && !/^\d{4}-\d{2}-\d{2}$/.test(values.since)) {
   process.stderr.write(`leg-replay: --since takes YYYY-MM-DD, received ${JSON.stringify(values.since)}.\n`);
   process.exit(2);
+}
+
+/**
+ * Every spec of this package's `e2e/` tree, relative to the package, the way the ledger names files.
+ *
+ * @returns {string[]} The spec paths.
+ */
+function specFiles() {
+  const walk = (dir, out) => {
+    readdirSync(dir, { withFileTypes: true }).forEach((entry) => {
+      const full = path.join(dir, entry.name);
+
+      if (entry.isDirectory()) {
+        walk(full, out);
+      } else if (entry.name.endsWith('.spec.ts')) {
+        out.push(path.relative(TESTS_ROOT, full).split(path.sep).join('/'));
+      }
+    });
+
+    return out;
+  };
+
+  return walk(path.join(TESTS_ROOT, 'e2e'), []);
 }
 
 /**
@@ -88,7 +115,7 @@ if (values.list) {
   declared = projectsFromList(await readJson(values.list));
   heading = `Ledger replay against ${values.list}`;
 } else if (values.assume) {
-  declared = projectsFromAssumption(await readJson(values.assume));
+  declared = projectsFromAssumption(await readJson(values.assume), specFiles());
   heading = `Ledger replay against the classification ${values.assume}`;
 }
 

@@ -172,7 +172,8 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   `CROSS_BROWSER_TAG` and `CLIPBOARD_SHORTCUT_TAG` stay free-form and sit in the same array, on
   one line (the engines pin reads that line).
 - **What needs `THEMES_TAG`:** anything the theme stylesheet decides – a computed style, a design
-  token (`--ht-*`), a branch on the theme, the theme class, a hit test (`elementFromPoint`: what
+  token (`--ht-*`), a branch on the theme (a comparison, a lookup keyed by it, a `switch`, a
+  membership test), the theme class, a hit test (`elementFromPoint`: what
   sits under a point depends on paddings and sizes), a pixel assertion in the spec
   (`boundingBox()`, `getBoundingClientRect()`, `offsetWidth`, `toHaveCSS()` compared to a value),
   and every trap the matrix section above describes (band edges, which side a popup opens on, a
@@ -181,7 +182,10 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   bundle, and the load surface the minified full bundle changes (an AMD loader, Trusted Types, a
   shadow root, an iframe, DOMPurify, the license bar). Both bundles build from the same
   `src/index.ts`: `full.min` adds the HyperFormula global, minification and the vendored
-  `regexp-to-ast` wrapper, and neither ships numbro, moment, pikaday or a language pack.
+  `regexp-to-ast` wrapper, and neither ships numbro, moment, pikaday or a language pack. A page
+  object's argument check that compares to the bundle names (`bundle !== 'umd'`) reads as a branch
+  to the sweep, which cannot tell a throw-only guard from a behavior branch: such a check lives in
+  `fixtures/bundle.ts` (`assertKnownBundle()`), one of the three files the sweep does not read.
 - **The sweep enforces the explicit markers.** `lib/__tests__/leg-declarations.test.mjs` (root
   `test:tooling`; pre-push runs it when a spec, a page object, a fixture or the lib changed) reads
   every spec, the page objects it imports transitively, and the fixture HTML those name, and fails

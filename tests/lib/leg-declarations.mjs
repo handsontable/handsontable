@@ -63,8 +63,10 @@ const IGNORE_PATTERN = new RegExp(`^[ \\t]*//[ \\t]*${IGNORE_COMMENT}[ \\t]+(\\S
 const SPEC_IMPORT = /\bimport\s+(type\s+)?(?:[^'";]*?\s+from\s+)?['"](\.\.?\/[^'"]+)['"]|\bimport\(\s*['"](\.\.?\/[^'"]+)['"]\s*\)/g;
 const RUNTIME_EXPORT = /\bexport\s+(?:default|const|let|var|function|async|class|abstract|enum)\b|\bexport\s*\{/;
 const HTML_NAME = /(?<![\w.-])((?:[a-z0-9-]+\/)*[a-z0-9-]+\.html)\b/g;
+const FIXTURE_DIR_PREFIX = /^(?:tests\/)?fixtures\/demo\//;
 const BARE_FIXTURE_NAME = /^[a-z0-9-]+(?:\/[a-z0-9-]+)*$/;
-const DYNAMIC_HTML_NAME = /\}\.html/;
+const DYNAMIC_HTML_NAME = /\$\{(?:this\.)?([A-Za-z_$][\w$]*)\}\.html/g;
+const CONSTRUCTOR_CALL = /\bnew\s+[A-Z][\w$]*\s*\(/g;
 // The words after which a `/` starts a regular expression rather than a division.
 const REGEX_AFTER_WORDS = new Set([
   'return', 'typeof', 'instanceof', 'in', 'of', 'new', 'delete', 'void', 'throw', 'case', 'do', 'else',
@@ -89,7 +91,10 @@ export const SURFACE_MARKERS = Object.freeze([
   {
     id: 'theme-compare',
     axis: 'themes',
-    pattern: /\b(?:ht|hot)?[Tt]heme\s*[!=]==/,
+    // A comparison, a lookup keyed by the theme (the bracket right after an object: `widths[theme]`, never
+    // the destructuring `const [theme] = …`), a switch on it, or a membership test: every shape that picks
+    // a value per theme, so each branch runs on one theme leg only.
+    pattern: /\b(?:ht|hot)?[Tt]heme\s*[!=]==|(?<=[\w)\]}])\[\s*(?:ht|hot)?[Tt]heme\s*\]|\bswitch\s*\(\s*(?:ht|hot)?[Tt]heme\s*\)|\.includes\(\s*(?:ht|hot)?[Tt]heme\s*\)/,
     scopes: ['spec', 'module', 'fixture'],
     why: 'the code branches on the theme, so each branch runs on one theme leg only',
   },
@@ -147,7 +152,10 @@ export const SURFACE_MARKERS = Object.freeze([
   {
     id: 'bundle-compare',
     axis: 'bundles',
-    pattern: /\b(?:ht)?[Bb]undle\s*[!=]==|[!=]==\s*['"](?:umd|full-min|handsontable(?:\.full)?(?:\.min)?\.js)['"]/,
+    // The same four shapes on the bundle. A page object's argument check that only throws on an unknown
+    // bundle reads as a branch too: it belongs in `fixtures/bundle.ts` (`assertKnownBundle()`), which the
+    // sweep does not read, since a text rule cannot tell a throw-only guard from a behavior branch.
+    pattern: /\b(?:ht)?[Bb]undle\s*[!=]==|[!=]==\s*['"](?:umd|full-min|handsontable(?:\.full)?(?:\.min)?\.js)['"]|(?<=[\w)\]}])\[\s*(?:ht)?[Bb]undle\s*\]|\bswitch\s*\(\s*(?:ht)?[Bb]undle\s*\)|\.includes\(\s*(?:ht)?[Bb]undle\s*\)/,
     scopes: ['spec', 'module', 'fixture'],
     why: 'the code branches on the bundle, so each branch runs on one bundle leg only',
   },
@@ -845,34 +853,64 @@ export function relativeImports(code) {
 /**
  * The fixture files a set of texts name, resolved against an index of the demo directory.
  *
- * A name is any `<dir/>name.html` token in the comment-stripped text (resolved by its relative path
- * under `fixtures/demo/`, else by its basename when that is unique). When a text builds a name
- * dynamically (`${this.fixture}.html`), every bare string literal of the set that names an existing
- * fixture counts too: that is how `new NumericGridPage(page, theme, bundle, 'numeric-formulas')` and a
- * constructor's `fixture = 'numeric'` default reach their files.
+ * A name is any `<dir/>name.html` token in the comment-stripped text, with a `tests/fixtures/demo/`
+ * or `fixtures/demo/` prefix dropped first, resolved by its relative path under `fixtures/demo/`, else
+ * by its basename when that is unique. When a text builds a name dynamically (`${this.fixture}.html`),
+ * bare string literals count too, where the name can come from: in the text that builds the name, the
+ * literals on a line that names the interpolated property (a constructor's `fixture = 'numeric'`
+ * default, a `fixture: 'numeric' | 'numeric-formulas'` union), and in the other texts the literals
+ * passed to a constructor (`new NumericGridPage(page, theme, bundle, 'numeric-formulas')`). Any other
+ * literal (a test id, a shortcut context such as `'grid'`, in the spec or in the page object) names no
+ * fixture, or `fixtures/demo/grid.html` would be scanned for every spec that mentions the word.
  *
- * @param {Array<{code: string, literals: Array<{value: string}>}>} texts The scanned spec and modules.
+ * @param {Array<{code: string, masked: string, literals: Array<{start: number, value: string}>}>} texts
+ * The scanned spec and modules.
  * @param {Map<string, string>} index Fixture names, both as relative paths under `fixtures/demo/` and as
  * unique basenames, to their relative paths.
  * @returns {string[]} The relative paths of the fixtures named, sorted.
  */
 export function fixturesNamed(texts, index) {
   const found = new Set();
-  const dynamic = texts.some(text => DYNAMIC_HTML_NAME.test(text.code));
+  const names = new Set(texts.flatMap(text => [...text.code.matchAll(DYNAMIC_HTML_NAME)].map(match => match[1])));
+  const dynamic = names.size > 0;
+  const namesLine = (text, at) => {
+    const line = text.code.slice(text.code.lastIndexOf('\n', at) + 1, text.code.indexOf('\n', at) === -1 ? undefined : text.code.indexOf('\n', at));
+
+    return [...names].some(name => new RegExp(`\\b${name}\\b`).test(line));
+  };
 
   for (const text of texts) {
     for (const match of text.code.matchAll(HTML_NAME)) {
-      const resolved = index.get(match[1]) ?? index.get(match[1].slice(match[1].lastIndexOf('/') + 1));
+      const name = match[1].replace(FIXTURE_DIR_PREFIX, '');
+      const resolved = index.get(name) ?? index.get(name.slice(name.lastIndexOf('/') + 1));
 
       if (resolved) {
         found.add(resolved);
       }
     }
-    if (dynamic) {
-      for (const literal of text.literals) {
-        if (BARE_FIXTURE_NAME.test(literal.value) && index.has(`${literal.value}.html`)) {
-          found.add(index.get(`${literal.value}.html`));
-        }
+    if (!dynamic) {
+      continue;
+    }
+
+    const buildsTheName = [...text.code.matchAll(DYNAMIC_HTML_NAME)].length > 0;
+    const spans = buildsTheName
+      ? []
+      : [...(text.masked ?? '').matchAll(CONSTRUCTOR_CALL)].map((call) => {
+        const open = call.index + call[0].length - 1;
+
+        return { start: open, end: matchingBracket(text.masked, open, 'fixture resolution') };
+      });
+
+    for (const literal of text.literals) {
+      const counts = buildsTheName
+        ? namesLine(text, literal.start)
+        : spans.some(span => literal.start > span.start && literal.start < span.end);
+
+      if (!counts) {
+        continue;
+      }
+      if (BARE_FIXTURE_NAME.test(literal.value) && index.has(`${literal.value}.html`)) {
+        found.add(index.get(`${literal.value}.html`));
       }
     }
   }
@@ -963,7 +1001,13 @@ export function checkSpec({ file, source, modules = [], fixtures = [] }) {
     return `${legs.themes ? 'themes' : ''}|${legs.bundles ? 'bundles' : ''}`;
   });
   const agree = topLevel.length > 0 && shapes.every(shape => shape === shapes[0]);
+  const onlyQuarantined = agree && shapes[0] === 'quarantined';
 
+  if (onlyQuarantined) {
+    violate('quarantined-top-level', 'every top-level block is a quarantined() test, which cannot carry a leg tag (the '
+      + 'helper returns the details object), so the file can declare nothing. Put the test inside a describe that carries '
+      + 'the file\'s tags.');
+  }
   if (!agree) {
     const listed = topLevel.map((block, index) => `${block.callee}() at line ${block.line}: `
       + `${shapes[index] === 'quarantined' ? 'quarantined(…), which cannot carry a leg tag' : (shapes[index].replace(/\|/g, ' ').trim() || 'no leg tag')}`);
@@ -975,7 +1019,9 @@ export function checkSpec({ file, source, modules = [], fixtures = [] }) {
     }
   }
 
-  const declared = agree && shapes[0] !== 'quarantined' ? legsOf(topLevel[0].tags) : null;
+  // A file of quarantined top-level tests declares nothing, and the marker checks below still run against
+  // that, so the message names the axis the describe will need.
+  const declared = agree ? legsOf(onlyQuarantined ? [] : topLevel[0].tags) : null;
   const tags = [...new Set(topLevel.flatMap(block => block.tags))];
 
   // `test.use({ theme })` or `{ bundle }` would override the leg's option and run every leg on one

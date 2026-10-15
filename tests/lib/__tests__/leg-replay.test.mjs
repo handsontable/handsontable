@@ -1,5 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   CHROMIUM_LEGS,
   assessTest,
@@ -303,4 +308,39 @@ test('a classification that tags every need replays with zero misses', () => {
   assert.equal(result.summary.caught, 7);
   assert.equal(result.summary.orphanRuns, 0);
   assert.doesNotMatch(renderReplay(result), /Misses:/);
+});
+
+test('the command takes the package\'s own spec tree as the known files, so a spec a classification leaves out is the default, not an orphan', () => {
+  // `projectsFromAssumption()` without known files treats an unlisted spec as an orphan, and an orphan's
+  // red is never a miss: a classification that forgot a spec would then prove itself (budnix, review of
+  // the first version). The command passes every spec under e2e/, so the unlisted spec is e2e-main only
+  // and its red on another leg is a miss.
+  const testsRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+  const realSpec = `e2e/${readdirSync(path.join(testsRoot, 'e2e')).find(name => name.endsWith('.spec.ts'))}`;
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'leg-replay-cli-'));
+
+  try {
+    const ledger = path.join(dir, 'ledger.json');
+    const empty = path.join(dir, 'empty.json');
+    const tagged = path.join(dir, 'tagged.json');
+
+    writeFileSync(ledger, JSON.stringify({ entries: [entry({ leg: 'e2e-horizon', file: realSpec, title: 'x › y', runId: 99 })] }));
+    writeFileSync(empty, '{}');
+    writeFileSync(tagged, JSON.stringify({ [realSpec]: { themes: true, bundles: false } }));
+
+    const run = args => spawnSync(process.execPath, [path.join(testsRoot, 'scripts/leg-replay.mjs'), '--ledger', ledger, ...args],
+      { cwd: testsRoot, encoding: 'utf8' });
+    const missed = run(['--assume', empty]);
+
+    assert.equal(missed.status, 1, missed.stderr);
+    assert.match(missed.stdout, /1 caught, 1 missed, 0 on orphan file\(s\)|0 caught, 1 missed, 0 on orphan file\(s\)/);
+    assert.doesNotMatch(missed.stdout, /Orphans/);
+
+    const caught = run(['--assume', tagged]);
+
+    assert.equal(caught.status, 0, caught.stderr);
+    assert.match(caught.stdout, /1 caught, 0 missed/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
