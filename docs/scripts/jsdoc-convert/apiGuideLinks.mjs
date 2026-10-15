@@ -42,6 +42,7 @@ export const apiGuideLinks = {
   'exportFile.md': 'guides/accessories-and-menus/export-to-csv/export-to-csv.md',
   'filters.md': 'guides/columns/column-filter/column-filter.md',
   'formulas.md': 'guides/formulas/formula-calculation/formula-calculation.md',
+  'freezeBar.md': 'guides/columns/column-freezing/column-freezing.md',
   'hiddenColumns.md': 'guides/columns/column-hiding/column-hiding.md',
   'hiddenRows.md': 'guides/rows/row-hiding/row-hiding.md',
   'importFile.md': 'guides/accessories-and-menus/import-from-excel/import-from-excel.md',

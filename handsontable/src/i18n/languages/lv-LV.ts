@@ -155,6 +155,10 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nevarēja noņemt rindas',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Pieprasījums neizdevās',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Pārlādēt',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Nofiksētās rindas augšpusē',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Nofiksētās rindas apakšā',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Nofiksētās kolonnas sākumā',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Nofiksētās kolonnas beigās',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Izvērsta rinda [label], parādītās izvērstās rindas: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sakļauta rinda [label]',
 };

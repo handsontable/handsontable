@@ -180,6 +180,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="fixedRowsTop" data-levels="grid"></span>[`fixedRowsTop`](@/api/options.md#fixedrowstop) | Yes | No | No | No | Core |  |
 | <span data-option="formulas" data-levels="grid"></span>[`formulas`](@/api/options.md#formulas) | Yes | No | No | No | Formulas |  |
 | <span data-option="fragmentSelection" data-levels="grid"></span>[`fragmentSelection`](@/api/options.md#fragmentselection) | Yes | No | No | No | Core |  |
+| <span data-option="freezeBar" data-levels="grid"></span>[`freezeBar`](@/api/options.md#freezebar) | Yes | No | No | No | FreezeBar |  |
 | <span data-option="hashLength" data-levels="grid columns cells cell"></span>[`hashLength`](@/api/options.md#hashlength) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="hashRevealDelay" data-levels="grid columns cells cell"></span>[`hashRevealDelay`](@/api/options.md#hashrevealdelay) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="hashSymbol" data-levels="grid columns cells cell"></span>[`hashSymbol`](@/api/options.md#hashsymbol) | Yes | Yes | Yes | Yes | Core |  |
