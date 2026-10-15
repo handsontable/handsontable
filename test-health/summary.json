@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-15T09:52:03.315Z",
+  "generatedAt": "2026-10-15T10:22:10.487Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -21,13 +21,13 @@
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
       "count7": 0,
-      "count30": 23,
+      "count30": 22,
       "countAll": 28,
-      "runs30": 14,
-      "flakyRuns30": 14,
-      "branches30": 13,
+      "runs30": 13,
+      "flakyRuns30": 13,
+      "branches30": 12,
       "nightlyRuns30": 0,
-      "openBranches30": 13,
+      "openBranches30": 12,
       "legs": [
         "e2e-classic",
         "e2e-classic-min",
@@ -356,42 +356,6 @@
       "needsTicket": true
     },
     {
-      "key": "playwright|e2e/unlaid-out-init-scroll-sync.spec.ts|grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
-      "tier": "playwright",
-      "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
-      "line": 65,
-      "title": "grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
-      "count7": 0,
-      "count30": 11,
-      "countAll": 11,
-      "runs30": 9,
-      "flakyRuns30": 9,
-      "branches30": 9,
-      "nightlyRuns30": 0,
-      "openBranches30": 9,
-      "legs": [
-        "e2e-classic-min",
-        "e2e-horizon",
-        "e2e-horizon-min",
-        "e2e-main"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-05T07:11:16Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37274312041",
-        "branch": "feature/HOT-14987_fixedColumnsEnd",
-        "leg": "e2e-horizon-min",
-        "status": "flaky",
-        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
       "key": "visual|visual-tests/tests/js-only/filters/tab-navigation-through-condition-components.spec.ts|js-only/filters/tab-navigation-through-condition-components-2",
       "tier": "visual",
       "file": "visual-tests/tests/js-only/filters/tab-navigation-through-condition-components.spec.ts",
@@ -498,6 +462,42 @@
         "leg": "js/chromium-theme-horizon-dark",
         "status": "failed",
         "error": "differs from base/develop (full tier); render sha256 933745b7017c",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "playwright|e2e/unlaid-out-init-scroll-sync.spec.ts|grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
+      "tier": "playwright",
+      "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
+      "line": 65,
+      "title": "grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
+      "count7": 0,
+      "count30": 10,
+      "countAll": 11,
+      "runs30": 8,
+      "flakyRuns30": 8,
+      "branches30": 8,
+      "nightlyRuns30": 0,
+      "openBranches30": 8,
+      "legs": [
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-05T07:11:16Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37274312041",
+        "branch": "feature/HOT-14987_fixedColumnsEnd",
+        "leg": "e2e-horizon-min",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": true
