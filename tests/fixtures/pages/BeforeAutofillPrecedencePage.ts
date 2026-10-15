@@ -1,4 +1,6 @@
 import { expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
+import { dragFillHandle } from '../gestures';
 import { FormulasGridPage } from './FormulasGridPage';
 
 /**
@@ -14,6 +16,7 @@ export class BeforeAutofillPrecedencePage extends FormulasGridPage {
   /** Opens the fixture; no grid exists until `createGrid()` runs. */
   async goto(): Promise<void> {
     await this.page.goto(`/tests/fixtures/demo/formulas-before-autofill.html?theme=${this.theme}&bundle=${this.bundle}`);
+    await awaitBundle(this.page);
     await this.page.waitForFunction(() => typeof (window as any).createGrid === 'function', undefined, { polling: 100 });
   }
 
@@ -60,17 +63,49 @@ export class BeforeAutofillPrecedencePage extends FormulasGridPage {
       w.createGrid(settings);
     }, options);
     await expect(this.cell(0, 1)).toBeVisible();
+
+    if (options.formulas) {
+      await this.expectFormulasEnabled();
+    }
   }
 
-  /** Adds an instance-level hook (`hot.addHook`) returning `value`. */
-  async addInstanceHook(value: unknown): Promise<void> {
-    await this.page.evaluate((v) => {
+  /**
+   * Fails the test when the Formulas plugin is not enabled. Its own callback is not
+   * logged, so without this a "user callback wins" test would also pass if the
+   * plugin never switched on.
+   */
+  async expectFormulasEnabled(): Promise<void> {
+    await expect
+      .poll(() => this.page.evaluate(() => (window as any).hot.getPlugin('formulas').enabled), {
+        message: 'the Formulas plugin is not enabled',
+      })
+      .toBe(true);
+  }
+
+  /** Adds an instance-level hook (`hot.addHook`, optionally with an `orderIndex`) returning `value`. */
+  async addInstanceHook(value: unknown, orderIndex?: number): Promise<void> {
+    await this.page.evaluate(({ v, order }) => {
       const w = window as any;
 
       w.hot.addHook('beforeAutofill', () => {
         w.__calls.push('instance');
 
         return v;
+      }, order);
+    }, { v: value, order: orderIndex });
+  }
+
+  /** Re-passes the `beforeAutofill` option through `updateSettings()`, as a wrapper re-render does. */
+  async updateBeforeAutofillOption(value: unknown): Promise<void> {
+    await this.page.evaluate((v) => {
+      const w = window as any;
+
+      w.hot.updateSettings({
+        beforeAutofill: () => {
+          w.__calls.push('option');
+
+          return v;
+        },
       });
     }, value);
   }
@@ -82,6 +117,7 @@ export class BeforeAutofillPrecedencePage extends FormulasGridPage {
 
       w.hot.updateSettings({ formulas: { ...w.formulasSettings(), ...e } });
     }, extra);
+    await this.expectFormulasEnabled();
   }
 
   /** Runs `hot.updateSettings({ formulas: false })`, which disables the Formulas plugin. */
@@ -97,17 +133,16 @@ export class BeforeAutofillPrecedencePage extends FormulasGridPage {
   async fillRowDown(): Promise<void> {
     await this.selectRange(0, 0, 0, 1);
 
-    const corner = await this.areaCorner.boundingBox();
-    const target = await this.cell(1, 1).boundingBox();
+    await dragFillHandle(this.page, this.areaCorner, this.cell(1, 1));
+  }
 
-    if (!corner || !target) {
-      throw new Error('the fill handle or the target cell is not rendered');
-    }
+  /** The last selection as `[fromRow, fromCol, toRow, toCol]`; a real fill grows A1:B1 to A1:B2. */
+  async selection(): Promise<number[]> {
+    return this.page.evaluate(() => {
+      const range = (window as any).hot.getSelectedRangeLast();
 
-    await this.page.mouse.move(corner.x + corner.width / 2, corner.y + corner.height / 2);
-    await this.page.mouse.down();
-    await this.page.mouse.move(target.x + target.width / 2, target.y + target.height / 2, { steps: 5 });
-    await this.page.mouse.up();
+      return [range.from.row, range.from.col, range.to.row, range.to.col];
+    });
   }
 
   /**

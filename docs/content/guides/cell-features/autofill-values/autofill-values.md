@@ -262,12 +262,54 @@ The fill handle appears on the selected cell. Autofill copies the selected value
 
 Use the [`beforeAutofill`](@/api/hooks.md#beforeautofill) hook to change the values before they're written, and the [`afterAutofill`](@/api/hooks.md#afterautofill) hook to react once the fill completes. With the [`Formulas`](@/guides/formulas/formula-calculation/formula-calculation.md) plugin enabled, relative references in copied formulas adjust to each target cell.
 
-When you use `beforeAutofill` together with the `Formulas` plugin, the order in which the callbacks are registered decides the result. Global hooks (`Handsontable.hooks.add()`) run before the hooks of an instance, and the last callback that returns a value wins. The plugin registers its own `beforeAutofill` callback when it's enabled.
+When you use `beforeAutofill` together with the `Formulas` plugin, the order of the callbacks decides the result. The last callback that returns a value wins. Global hooks (`Handsontable.hooks.add()`) run before the hooks of an instance. Within the instance, callbacks run in ascending `orderIndex` order, and callbacks with the same `orderIndex` run in the order they were registered. The plugin registers its own `beforeAutofill` callback with the default `orderIndex` of 0 when it's enabled.
 
-- These override the plugin: the `beforeAutofill` option set at initialization, and an `addHook()` call made after the plugin is enabled.
-- These are overridden by the plugin: a global hook, and an `addHook()` call made before the plugin is enabled.
+- These run after the plugin and override it: the `beforeAutofill` option set at initialization, and an [`addHook()`](@/api/core.md#addhook) call made after the plugin is enabled.
+- These run before the plugin and are overridden by it: a global hook, an `addHook()` call made before the plugin is enabled, and the `beforeAutofill` option when you enable the plugin later with `updateSettings()`.
 
-Disabling and re-enabling the plugin registers its callback again, after yours. To always override the plugin, set `beforeAutofill` in the initialization options. This describes the current behavior and isn't a guarantee.
+Disabling and re-enabling the plugin registers its callback again, after your callbacks that have an `orderIndex` of 0. Passing a new `beforeAutofill` function through `updateSettings()` replaces the previous one in place, so it keeps its position. This is what happens when a wrapper re-renders with the same option.
+
+To always override the plugin, add your callback with [`addHook()`](@/api/core.md#addhook) and an `orderIndex` greater than 0. Such a callback runs after the plugin's callback, whenever you add it.
+
+::: only-for javascript
+
+```js
+hot.addHook('beforeAutofill', (selectionData, sourceRange, targetRange, direction) => {
+  return [['n/a']];
+}, 1);
+```
+
+:::
+
+::: only-for react
+
+```jsx
+hotRef.current.hotInstance.addHook('beforeAutofill', (selectionData, sourceRange, targetRange, direction) => {
+  return [['n/a']];
+}, 1);
+```
+
+:::
+
+::: only-for angular
+
+```ts
+hotTable.hotInstance.addHook('beforeAutofill', (selectionData, sourceRange, targetRange, direction) => {
+  return [['n/a']];
+}, 1);
+```
+
+:::
+
+::: only-for vue
+
+```js
+hotTableRef.value?.hotInstance.addHook('beforeAutofill', (selectionData, sourceRange, targetRange, direction) => {
+  return [['n/a']];
+}, 1);
+```
+
+:::
 
 ## Related API reference
 

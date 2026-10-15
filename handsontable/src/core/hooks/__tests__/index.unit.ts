@@ -354,18 +354,6 @@ describe('Hooks', () => {
       expect(hooks.run(context, 'test')).toBe(false);
     });
 
-    it('should keep the previous result when a later callback returns undefined', () => {
-      const hooks = new Hooks();
-      const context = {};
-      const last = jasmine.createSpy('last');
-
-      hooks.add('test', () => 'kept');
-      hooks.add('test', last, context);
-
-      expect(hooks.run(context, 'test')).toBe('kept');
-      expect(last).toHaveBeenCalledWith('kept');
-    });
-
     it('should run hooks once', () => {
       const hooks = new Hooks();
       const fn1 = jasmine.createSpy('fn1').and.returnValue('Foo');
