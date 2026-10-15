@@ -48,6 +48,18 @@ export const CROSS_BROWSER_TAG = '@cross-browser';
  */
 export const CLIPBOARD_SHORTCUT_TAG = '@clipboard-shortcut';
 
+/**
+ * The leg tags: which legs of the theme × bundle matrix a spec runs on. No tag is `e2e-main` only
+ * (plain UMD, the main theme). `THEMES_TAG` adds `e2e-horizon` and `e2e-classic`, `BUNDLES_TAG` adds
+ * `e2e-main-min`, and both together add `e2e-horizon-min` and `e2e-classic-min`. A tag goes on EVERY
+ * top-level block of the spec, in one `{ tag: … }` array with the engine tags above when a spec
+ * carries those too; a static sweep (`lib/__tests__/leg-declarations.test.mjs`) refuses a spec that
+ * touches theme or bundle surface without the tag, and the nightly runs the full matrix regardless.
+ * Defined in `lib/leg-declarations.mjs`, where the config's greps read them from. See
+ * `tests/AGENTS.md`, "Declaring the legs".
+ */
+export { THEMES_TAG, BUNDLES_TAG } from '../lib/leg-declarations.mjs';
+
 export const test = base.extend<TestOptions>({
   theme: ['main', { option: true }],
   bundle: ['umd', { option: true }],
