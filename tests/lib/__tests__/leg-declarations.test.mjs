@@ -562,12 +562,13 @@ test('every marker in the table has a scope, an axis and a reason, and fires on 
   const themeCompare = SURFACE_MARKERS.find(marker => marker.id === 'theme-compare').pattern;
   const bundleCompare = SURFACE_MARKERS.find(marker => marker.id === 'bundle-compare').pattern;
 
-  for (const shape of ['theme !== \'main\'', 'const w = { main: 29, horizon: 37, classic: 23 }[theme];', 'widths[ htTheme ]',
-    'switch (theme) {', 'switch(hotTheme){', '[\'horizon\', \'classic\'].includes(theme)']) {
+  for (const shape of ['theme !== \'main\'', '\'horizon\' === theme', 'const w = { main: 29, horizon: 37, classic: 23 }[theme];',
+    'widths[ htTheme ]', 'const width = widths[this.theme];', 'switch (theme) {', 'switch(hotTheme){', 'switch (this.theme) {',
+    '[\'horizon\', \'classic\'].includes(theme)', 'TALL.includes(this.theme)', 'if (this.theme === \'horizon\')']) {
     assert.match(shape, themeCompare, shape);
   }
-  for (const shape of ['bundle === \'full-min\'', 'const file = BUNDLE_FILES[bundle];', 'switch (htBundle) {', 'MIN.includes(bundle)',
-    'if (window.htBundle === \'handsontable.full.min.js\')']) {
+  for (const shape of ['bundle === \'full-min\'', '\'umd\' !== this.bundle', 'const file = BUNDLE_FILES[bundle];', 'FILES[this.bundle]',
+    'switch (htBundle) {', 'switch (this.bundle) {', 'MIN.includes(bundle)', 'if (window.htBundle === \'handsontable.full.min.js\')']) {
     assert.match(shape, bundleCompare, shape);
   }
   // Still not a branch: the fixture allowlist keyed by the query param, a template that prints the value.
@@ -608,19 +609,22 @@ test('an ignore comment covers a marker, and a wrong one is a violation of its o
   assert.deepEqual(rulesOf(spec(describe('{ tag: THEMES_TAG }', PLAIN_TEST)), { modules: [module] }), ['ignore-misplaced']);
 });
 
-test('a file whose only top-level blocks are quarantined tests declares nothing, and says so', () => {
-  // `agree` is true for such a file (every shape is `quarantined`), which used to leave `declared` null and
-  // skip both the agree check and the marker checks: a quarantined test reading a computed style passed
-  // the sweep with no declaration (budnix, review of the first version).
+test('a quarantined top-level test is the no-tag shape: fine in a file that declares nothing, named where a tag is needed', () => {
+  // A file of only quarantined tests used to leave `declared` null and skip the marker checks, so one reading
+  // a computed style passed with no declaration; the first fix forced a describe on every quarantined test,
+  // although `tests/AGENTS.md` (Quarantine) shows the bare form in a file with nothing to declare (budnix).
   const parked = 'test(\'parked\', quarantined(\'DEV-1\', \'2026-10-30\'), async({ page }) => {\n'
     + '  expect(await page.evaluate(() => getComputedStyle(document.body).color)).toBe(\'rgb(0, 0, 0)\');\n});\n';
+  const plainParked = 'test(\'parked\', quarantined(\'DEV-1\', \'2026-10-30\'), async() => {});\n';
 
-  assert.deepEqual(rulesOf(spec(parked)), ['quarantined-top-level', 'undeclared-themes']);
-  assert.match(messagesOf(spec(parked)), /Put the test inside a describe that carries the file's tags/);
-  assert.deepEqual(rulesOf(spec(parked + parked.replace('parked', 'parked too'))), ['quarantined-top-level', 'undeclared-themes']);
+  assert.deepEqual(rulesOf(spec(parked)), ['undeclared-themes'], 'a marker still asks for the axis');
+  assert.match(messagesOf(spec(parked)), /A quarantined top-level test cannot carry the tag: put it inside a describe that does/);
+  assert.deepEqual(rulesOf(spec(plainParked)), [], 'nothing to declare: the bare form is fine');
+  assert.deepEqual(rulesOf(spec(PLAIN_TEST + '\n' + plainParked)), [], 'beside an untagged test too');
+  assert.deepEqual(rulesOf(spec(describe(null, PLAIN_TEST) + plainParked)), [], 'beside an untagged describe too');
+  assert.deepEqual(rulesOf(spec(describe('{ tag: THEMES_TAG }', PLAIN_TEST) + plainParked)), ['top-level-legs-agree'],
+    'in a file that declares an axis, it disagrees');
   assert.deepEqual(rulesOf(spec(describe('{ tag: THEMES_TAG }', parked))), [], 'inside a tagged describe it is fine');
-  assert.deepEqual(rulesOf(spec('test(\'parked\', quarantined(\'DEV-1\', \'2026-10-30\'), async() => {});\n')), ['quarantined-top-level'],
-    'no marker: still a file that cannot declare');
 });
 
 test('every top-level block declares the same legs, and a quarantined top-level test cannot', () => {
@@ -635,6 +639,8 @@ test('every top-level block declares the same legs, and a quarantined top-level 
   assert.deepEqual(rulesOf(spec(parked)), ['top-level-legs-agree']);
   assert.match(messagesOf(spec(parked)), /quarantined\(…\), which cannot carry a leg tag/);
   assert.deepEqual(rulesOf(spec(inside)), []);
+  // In a file that declares nothing, the same test is the no-tag shape and fine.
+  assert.deepEqual(rulesOf(spec(describe(null, PLAIN_TEST) + 'test(\'parked\', quarantined(\'DEV-1\', \'2026-10-30\'), async() => {});\n')), []);
   assert.equal(checkSpec({ file: 'e2e/probe.spec.ts', source: spec(two) }).declared, null);
 });
 
@@ -653,6 +659,13 @@ test('a leg tag on a nested block, a literal leg tag and an unreadable details a
   assert.deepEqual(rulesOf(spec(variable)), ['details-unreadable']);
   assert.deepEqual(rulesOf(spec(spread)), [], 'a spread beside a readable tag is read for its tag');
   assert.deepEqual(rulesOf(spec(describe('{ tag: [\'@core\'] }', PLAIN_TEST))), [], 'a free-form tag is not a leg tag');
+
+  // Playwright reads a shorthand `{ tag }` and a quoted `'tag':` key; a reader that skipped them would check
+  // the spec against the wrong declaration (budnix). Both are reported where they are written.
+  for (const details of ['{ tag }', '{ annotation: { type: \'x\' }, tag }', '{ \'tag\': THEMES_TAG }', '{ "tag": [THEMES_TAG] }']) {
+    assert.deepEqual(rulesOf(spec(describe(details, PLAIN_TEST))), ['details-unreadable'], details);
+    assert.match(messagesOf(spec(describe(details, PLAIN_TEST))), /has a tag the sweep cannot read/, details);
+  }
 });
 
 test('a spec without a top-level block, and a test.use() that sets an axis, are violations', () => {

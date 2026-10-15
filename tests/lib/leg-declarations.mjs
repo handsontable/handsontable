@@ -91,10 +91,11 @@ export const SURFACE_MARKERS = Object.freeze([
   {
     id: 'theme-compare',
     axis: 'themes',
-    // A comparison, a lookup keyed by the theme (the bracket right after an object: `widths[theme]`, never
-    // the destructuring `const [theme] = …`), a switch on it, or a membership test: every shape that picks
-    // a value per theme, so each branch runs on one theme leg only.
-    pattern: /\b(?:ht|hot)?[Tt]heme\s*[!=]==|(?<=[\w)\]}])\[\s*(?:ht|hot)?[Tt]heme\s*\]|\bswitch\s*\(\s*(?:ht|hot)?[Tt]heme\s*\)|\.includes\(\s*(?:ht|hot)?[Tt]heme\s*\)/,
+    // A comparison (either side), a lookup keyed by the theme (the bracket right after an object:
+    // `widths[theme]`, `widths[this.theme]`, never the destructuring `const [theme] = …`), a switch on it, or
+    // a membership test: every shape that picks a value per theme, so each branch runs on one theme leg
+    // only. `this.` is optional everywhere: a page object reads the axis off itself.
+    pattern: /\b(?:this\.)?(?:ht|hot)?[Tt]heme\s*[!=]==|[!=]==\s*(?:this\.)?(?:ht|hot)?[Tt]heme\b|(?<=[\w)\]}])\[\s*(?:this\.)?(?:ht|hot)?[Tt]heme\s*\]|\bswitch\s*\(\s*(?:this\.)?(?:ht|hot)?[Tt]heme\s*\)|\.includes\(\s*(?:this\.)?(?:ht|hot)?[Tt]heme\s*\)/,
     scopes: ['spec', 'module', 'fixture'],
     why: 'the code branches on the theme, so each branch runs on one theme leg only',
   },
@@ -155,7 +156,7 @@ export const SURFACE_MARKERS = Object.freeze([
     // The same four shapes on the bundle. A page object's argument check that only throws on an unknown
     // bundle reads as a branch too: it belongs in `fixtures/bundle.ts` (`assertKnownBundle()`), which the
     // sweep does not read, since a text rule cannot tell a throw-only guard from a behavior branch.
-    pattern: /\b(?:ht)?[Bb]undle\s*[!=]==|[!=]==\s*['"](?:umd|full-min|handsontable(?:\.full)?(?:\.min)?\.js)['"]|(?<=[\w)\]}])\[\s*(?:ht)?[Bb]undle\s*\]|\bswitch\s*\(\s*(?:ht)?[Bb]undle\s*\)|\.includes\(\s*(?:ht)?[Bb]undle\s*\)/,
+    pattern: /\b(?:this\.)?(?:ht)?[Bb]undle\s*[!=]==|[!=]==\s*(?:this\.)?(?:ht)?[Bb]undle\b|[!=]==\s*['"](?:umd|full-min|handsontable(?:\.full)?(?:\.min)?\.js)['"]|(?<=[\w)\]}])\[\s*(?:this\.)?(?:ht)?[Bb]undle\s*\]|\bswitch\s*\(\s*(?:this\.)?(?:ht)?[Bb]undle\s*\)|\.includes\(\s*(?:this\.)?(?:ht)?[Bb]undle\s*\)/,
     scopes: ['spec', 'module', 'fixture'],
     why: 'the code branches on the bundle, so each branch runs on one bundle leg only',
   },
@@ -634,8 +635,17 @@ function readDetails({ code, masked }, span) {
   const items = [];
 
   for (const property of splitTopLevel(masked, span.start + 1, span.end - 1)) {
-    const key = masked.slice(property.start, property.end).match(/^([A-Za-z_$][\w$]*)\s*:/);
+    const maskedProperty = masked.slice(property.start, property.end);
+    const rawProperty = code.slice(property.start, property.end);
+    const key = maskedProperty.match(/^([A-Za-z_$][\w$]*)\s*:/);
 
+    // Playwright reads a shorthand `{ tag }` and a quoted `'tag':` key like any other; this reader does
+    // not, and a block it reads as untagged while Playwright tags it would be checked against the wrong
+    // declaration. Both are reported rather than skipped.
+    if (/^tag\s*$/.test(maskedProperty) || /^(['"])tag\1\s*:/.test(rawProperty)) {
+      items.push({ kind: 'unreadable', tag: null, text: rawProperty.trim() });
+      continue;
+    }
     if (!key || key[1] !== 'tag') {
       continue;
     }
@@ -991,26 +1001,21 @@ export function checkSpec({ file, source, modules = [], fixtures = [] }) {
     }
   });
 
+  // A top-level `test(title, quarantined(…), body)` cannot carry a leg tag (the helper returns the details
+  // object), so it is the no-tag shape: fine in a file that declares nothing (`tests/AGENTS.md`, Quarantine,
+  // shows that form), a disagreement in a file that declares an axis, and in a file that needs one the
+  // marker check below says where the tag has to go.
+  const quarantinedTopLevel = topLevel.some(block => block.details?.kind === 'quarantined');
   const shapes = topLevel.map((block) => {
-    if (block.details?.kind === 'quarantined') {
-      return 'quarantined';
-    }
-
     const legs = legsOf(block.tags);
 
     return `${legs.themes ? 'themes' : ''}|${legs.bundles ? 'bundles' : ''}`;
   });
   const agree = topLevel.length > 0 && shapes.every(shape => shape === shapes[0]);
-  const onlyQuarantined = agree && shapes[0] === 'quarantined';
 
-  if (onlyQuarantined) {
-    violate('quarantined-top-level', 'every top-level block is a quarantined() test, which cannot carry a leg tag (the '
-      + 'helper returns the details object), so the file can declare nothing. Put the test inside a describe that carries '
-      + 'the file\'s tags.');
-  }
   if (!agree) {
     const listed = topLevel.map((block, index) => `${block.callee}() at line ${block.line}: `
-      + `${shapes[index] === 'quarantined' ? 'quarantined(…), which cannot carry a leg tag' : (shapes[index].replace(/\|/g, ' ').trim() || 'no leg tag')}`);
+      + `${block.details?.kind === 'quarantined' ? 'quarantined(…), which cannot carry a leg tag' : (shapes[index].replace(/\|/g, ' ').trim() || 'no leg tag')}`);
 
     if (topLevel.length > 0) {
       violate('top-level-legs-agree', 'every top-level block must declare the same legs (the spec is declared as a '
@@ -1019,9 +1024,7 @@ export function checkSpec({ file, source, modules = [], fixtures = [] }) {
     }
   }
 
-  // A file of quarantined top-level tests declares nothing, and the marker checks below still run against
-  // that, so the message names the axis the describe will need.
-  const declared = agree ? legsOf(onlyQuarantined ? [] : topLevel[0].tags) : null;
+  const declared = agree ? legsOf(topLevel[0].tags) : null;
   const tags = [...new Set(topLevel.flatMap(block => block.tags))];
 
   // `test.use({ theme })` or `{ bundle }` would override the leg's option and run every leg on one
@@ -1107,7 +1110,8 @@ export function checkSpec({ file, source, modules = [], fixtures = [] }) {
 
       violate(`undeclared-${axis}`, `touches ${axis} surface without declaring ${tag}:\n  ${listed.join('\n  ')}\n  `
         + `Add { tag: ${tag} } to every top-level block (tests/AGENTS.md, "Declaring the legs"), or, for a marker `
-        + `that does not mean ${axis} sensitivity here, write \`// ${IGNORE_COMMENT} <marker-id> -- <why>\` in this file.`);
+        + `that does not mean ${axis} sensitivity here, write \`// ${IGNORE_COMMENT} <marker-id> -- <why>\` in this file.`
+        + (quarantinedTopLevel ? ' A quarantined top-level test cannot carry the tag: put it inside a describe that does.' : ''));
     });
   }
 

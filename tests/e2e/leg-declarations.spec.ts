@@ -53,7 +53,10 @@ function listRun(env: Record<string, string> = {}) {
     env: { ...inherited, ...env, FORCE_COLOR: '0' },
     encoding: 'utf8',
     maxBuffer: 64 * 1024 * 1024,
-    timeout: 90_000,
+    // Under the describe's 60 s budget: `spawnSync` blocks the worker's event loop, so Playwright's own
+    // timer cannot fire while the child runs, and a child that outlives the budget would end as a bare
+    // timeout instead of a failure that shows the child's stderr.
+    timeout: 50_000,
   });
 
   return { status: child.status, stdout: child.stdout ?? '', stderr: child.stderr ?? '' };

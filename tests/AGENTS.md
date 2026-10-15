@@ -164,7 +164,8 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   its page objects and fixtures are scanned as a whole, and a tag on one describe of three would
   run the other two on one leg while the file claims otherwise. A leg tag on a nested block is an
   error. A top-level `test(title, quarantined(…), body)` cannot carry a leg tag (the helper
-  returns the details object): put it inside a describe that carries the file's tags.
+  returns the details object), so it is the no-tag shape: fine in a file that declares nothing,
+  and in a file that declares an axis it goes inside a describe that carries the file's tags.
 - **Only the constants, never the strings.** `{ tag: '@themes' }` is one typo from a spec that
   silently runs on one leg: Playwright accepts any string as a tag, and `{ tag: undefined }` from
   a misspelled or missing import too. `.eslintrc.cjs` bans the bare string and its template twin,
@@ -172,8 +173,8 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   `CROSS_BROWSER_TAG` and `CLIPBOARD_SHORTCUT_TAG` stay free-form and sit in the same array, on
   one line (the engines pin reads that line).
 - **What needs `THEMES_TAG`:** anything the theme stylesheet decides – a computed style, a design
-  token (`--ht-*`), a branch on the theme (a comparison, a lookup keyed by it, a `switch`, a
-  membership test), the theme class, a hit test (`elementFromPoint`: what
+  token (`--ht-*`), a branch on the theme (a comparison on either side, a lookup keyed by it, a
+  `switch`, a membership test, on `theme` or `this.theme`), the theme class, a hit test (`elementFromPoint`: what
   sits under a point depends on paddings and sizes), a pixel assertion in the spec
   (`boundingBox()`, `getBoundingClientRect()`, `offsetWidth`, `toHaveCSS()` compared to a value),
   and every trap the matrix section above describes (band edges, which side a popup opens on, a
