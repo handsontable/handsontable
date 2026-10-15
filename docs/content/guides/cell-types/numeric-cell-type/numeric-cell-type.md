@@ -23,7 +23,7 @@ The numeric cell type formats numbers using Intl.NumberFormat, right-aligns valu
 
 ## Overview
 
-The default cell type in Handsontable is text. The data of a text cell is processed as a `string`
+The default cell type in Handsontable DataGrid is text. The data of a text cell is processed as a `string`
 type that corresponds to the value of the text editor's internal `<textarea>` element. However,
 there are many cases where you need cell values to be treated as a `number` type. The numeric cell
 type allows you to format displayed numbers nicely and sort them correctly.

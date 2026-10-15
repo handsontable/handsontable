@@ -80,7 +80,7 @@ This is the default usage scenario where column data has a `true` or `false` val
 
 ## Checkbox template
 
-If you want to use values other than `true` and `false`, you have to provide this information using [`checkedTemplate`](@/api/options.md#checkedtemplate) and [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate). Handsontable will then update your data using the appropriate template.
+If you want to use values other than `true` and `false`, you have to provide this information using [`checkedTemplate`](@/api/options.md#checkedtemplate) and [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate). Handsontable DataGrid will then update your data using the appropriate template.
 
 ::: only-for javascript
 

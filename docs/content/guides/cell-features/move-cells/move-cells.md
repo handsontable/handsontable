@@ -30,7 +30,7 @@ Move or copy a selected range of cells by dragging its border, the same way you 
 
 When you set [`moveCells`](@/api/options.md#movecells) to `true`, hovering the border of a selected cell range shows a grab cursor. Dragging that border moves the block's data -- cell values and formatting -- to the new location. Hold <kbd>**Ctrl**</kbd> (Windows) or <kbd>⌘</kbd> (Mac) during the drag to copy instead of move. Press <kbd>**Escape**</kbd> to cancel a drag before releasing.
 
-The `moveCells` option was introduced in Handsontable 18.1.0. To move whole rows or columns instead of a cell range, see the [Row moving](@/guides/rows/row-moving/row-moving.md) and [Column moving](@/guides/columns/column-moving/column-moving.md) guides.
+The `moveCells` option was introduced in Handsontable DataGrid 18.1.0. To move whole rows or columns instead of a cell range, see the [Row moving](@/guides/rows/row-moving/row-moving.md) and [Column moving](@/guides/columns/column-moving/column-moving.md) guides.
 
 ## Enable cell moving
 

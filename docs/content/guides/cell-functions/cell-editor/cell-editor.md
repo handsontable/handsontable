@@ -17,7 +17,7 @@ category: Cell functions
 
 Create custom cell editors to fully control how values are entered in your data grid.
 
-Each cell can have one editor — a class that manages the editor's DOM element, its value, and the lifecycle from opening to saving. Handsontable's [`EditorManager`](@/api/baseEditor.md) selects and drives the editor automatically. You create editors by extending [`BaseEditor`](@/api/baseEditor.md) or any of the [built-in editor classes](#built-in-editors).
+Each cell can have one editor — a class that manages the editor's DOM element, its value, and the lifecycle from opening to saving. Handsontable DataGrid's [`EditorManager`](@/api/baseEditor.md) selects and drives the editor automatically. You create editors by extending [`BaseEditor`](@/api/baseEditor.md) or any of the [built-in editor classes](#built-in-editors).
 
 [[toc]]
 

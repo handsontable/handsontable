@@ -213,7 +213,7 @@ When `hashRevealDelay` is set, the editor switches from a native `<input type="p
 
 ## Result
 
-After configuring the password cell type, cells display asterisks instead of the actual value. The editor uses an `<input type="password">` field (or `<input type="text">` when `hashRevealDelay` is set). The actual data is stored in plain text in the data source and is not encrypted by Handsontable.
+After configuring the password cell type, cells display asterisks instead of the actual value. The editor uses an `<input type="password">` field (or `<input type="text">` when `hashRevealDelay` is set). The actual data is stored in plain text in the data source and is not encrypted by Handsontable DataGrid.
 
 The Filters plugin's **Filter by value** list hashes each unique source value the same way the cell renderer does, including a custom `hashLength`. A custom `hashSymbol` is applied as a string -- the list paints labels as text nodes, so an HTML entity such as `&bull;` appears as the characters `&bull;`, not as a bullet. **Filter by condition** (for example Contains) and the search box at the top of the value list still match the source values, not the hashes.
 

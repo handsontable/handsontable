@@ -81,7 +81,7 @@ settings = {
 
 ## Declare a custom renderer as a component
 
-Handsontable's React wrapper lets you create custom cell renderers using React components.
+Handsontable DataGrid's React wrapper lets you create custom cell renderers using React components.
 
 To use your component as a Handsontable renderer, pass it in the `renderer` prop if either `HotTable` or `HotColumn` components, as you would with any other config option.
 
