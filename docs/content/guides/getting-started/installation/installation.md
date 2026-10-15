@@ -24,19 +24,19 @@ Install Handsontable DataGrid through your preferred package manager, and contro
 
 ::: only-for javascript
 
-Install Handsontable through your preferred package manager, or import Handsontable's assets directly from a CDN.
+Install Handsontable DataGrid through your preferred package manager, or import Handsontable's assets directly from a CDN.
 
 :::
 
 ::: only-for react
 
-Install Handsontable through your preferred package manager, and control your grid through the `HotTable` component's props.
+Install Handsontable DataGrid through your preferred package manager, and control your grid through the `HotTable` component's props.
 
 :::
 
 ::: only-for vue
 
-Install Handsontable through your preferred package manager, and control your grid through the `HotTable` component's props.
+Install Handsontable DataGrid through your preferred package manager, and control your grid through the `HotTable` component's props.
 
 :::
 

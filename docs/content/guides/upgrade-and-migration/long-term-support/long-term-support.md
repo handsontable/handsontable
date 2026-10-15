@@ -2,7 +2,7 @@
 type: explanation
 title: Long-term support (LTS)
 metaTitle: Long Term Support (LTS) - JavaScript Data Grid | Handsontable
-description: LTS (Long-Term Support) versions are Handsontable releases that are maintained for an extended period. 
+description: LTS (Long-Term Support) versions are Handsontable DataGrid releases that are maintained for an extended period. 
 permalink: /long-term-support
 canonicalUrl: /long-term-support
 react:
@@ -14,7 +14,7 @@ vue:
 searchCategory: Guides
 category: Upgrade and migration
 ---
-LTS (Long-Term Support) versions are Handsontable release lines that are maintained and supported for an extended period. 
+LTS (Long-Term Support) versions are Handsontable DataGrid release lines that are maintained and supported for an extended period. 
 
 [[toc]]
 

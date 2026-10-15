@@ -38,7 +38,7 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 
 ::: tip
 
-To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+To use the Handsontable DataGrid API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
 For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
 
@@ -50,7 +50,7 @@ For more information, see the [Instance access](@/guides/getting-started/angular
 
 ::: tip
 
-To use the Handsontable API, use a template ref on `HotTable` and read `hotRef.value.hotInstance`.
+To use the Handsontable DataGrid API, use a template ref on `HotTable` and read `hotRef.value.hotInstance`.
 
 For more information, see [Referencing the Handsontable instance in Vue 3](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md).
 

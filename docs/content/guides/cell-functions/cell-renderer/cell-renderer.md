@@ -81,7 +81,7 @@ settings = {
 
 ## Declare a custom renderer as a component
 
-Handsontable DataGrid's React wrapper lets you create custom cell renderers using React components.
+The React wrapper for Handsontable DataGrid lets you create custom cell renderers using React components.
 
 To use your component as a Handsontable renderer, pass it in the `renderer` prop if either `HotTable` or `HotColumn` components, as you would with any other config option.
 
@@ -132,7 +132,7 @@ The following example implements `@handsontable/react-wrapper` with a custom ren
 
 ## Declare a custom renderer as a component
 
-Handsontable's Angular wrapper lets you create custom cell renderers using Angular components. To do so, create a component that extends the base renderer class `HotCellRendererComponent`.
+The Angular wrapper for Handsontable DataGrid lets you create custom cell renderers using Angular components. To do so, create a component that extends the base renderer class `HotCellRendererComponent`.
 
 In the Angular wrapper for Handsontable, a renderer can be provided either as an Angular component or as a function. To use your component as a Handsontable renderer, pass it in the `renderer` prop to the `HotTableComponent`, as you would with any other config option.
 
@@ -190,7 +190,7 @@ The following example implements `@handsontable/angular-wrapper` with a custom r
 
 ## Declare a custom renderer as a component
 
-Handsontable's Vue wrapper lets you create custom cell renderers using Vue components.
+The Vue wrapper for Handsontable DataGrid lets you create custom cell renderers using Vue components.
 
 To use a Vue component as a renderer, define the component with `defineComponent`, then write a renderer function that mounts it into the cell `td` element with Vue's `render` and `h` helpers. Mounting with `render(h(Component, props), td)` reuses the same component instance across re-renders -- Vue patches the existing tree instead of remounting it. To pass static props alongside the cell data, merge them into the second argument of `h()`.
 
