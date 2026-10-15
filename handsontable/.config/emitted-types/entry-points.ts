@@ -25,7 +25,7 @@ export let baseCore: HandsontableBase.Core = fromBase;
 export let indexSettings: Handsontable.GridSettings = {};
 export let baseSettings: HandsontableBase.GridSettings = {};
 
-// The factory declared in the `.d.mts` copy stays compatible with the named types of the `.d.ts` graph.
+// The default import is the same declaration the named types of the `.d.ts` graph refer to.
 export const indexInstance: HotInstance = fromIndex;
 export const baseInstance: HotInstance = fromBase;
 

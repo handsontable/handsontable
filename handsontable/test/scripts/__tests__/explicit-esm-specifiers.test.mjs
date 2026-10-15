@@ -6,7 +6,9 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import {
   SELF_CONTAINED_MTS_DIRS,
-  SELF_CONTAINED_MTS_FILES,
+  ENTRY_POINT_DECLARATIONS,
+  ENTRY_SHIM_SUFFIX,
+  toEntryShim,
   toExplicitEsmSpecifiers,
   toMtsDeclaration,
 } from '../../../scripts/utils/explicit-esm-specifiers.mjs';
@@ -158,7 +160,7 @@ test('the packaging step writes a self-contained copy for a preset and a languag
   }
 });
 
-test('the packaging step writes a self-contained copy for the index and base entry points only at the package root', () => {
+test('the entry points re-export their default through an entry shim, only at the package root', () => {
   const root = mkdtempSync(path.join(tmpdir(), 'hot-mts-entry-'));
   const write = (file, content) => {
     mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
@@ -167,20 +169,24 @@ test('the packaging step writes a self-contained copy for the index and base ent
 
   try {
     write('core/index.d.ts', 'export declare const core: number;\n');
-    write('base.d.ts', 'import { core } from \'./core\';\ndeclare const Handsontable: { core: typeof core };\nexport default Handsontable;\n');
+    write('base.d.ts', 'declare const Handsontable: { a: 1 };\nexport default Handsontable;\n');
     write('index.d.ts', 'import Handsontable from \'./base\';\nexport default Handsontable;\n');
     write('themes/index.d.ts', 'declare const themes: number;\nexport default themes;\n');
 
-    assert.ok(['index.d.ts', 'base.d.ts'].every(file => SELF_CONTAINED_MTS_FILES.includes(file)));
-    // `.js` would resolve to the CommonJS `.d.ts` and type the default import as the module namespace (DEV-3430).
+    assert.ok(['index.d.ts', 'base.d.ts'].every(file => ENTRY_POINT_DECLARATIONS.includes(file)));
+    assert.equal(ENTRY_SHIM_SUFFIX, '.entry.d.ts');
+    // The default comes from a NAMED import of the shim: a default import of the CommonJS `.d.ts` is typed as the
+    // module namespace under `node16` (DEV-3430), and a copy of the declaration would split its identity.
     assert.equal(
       toMtsDeclaration(root, 'base.d.ts'),
-      'import { core } from \'./core/index.mjs\';\ndeclare const Handsontable: { core: typeof core };\nexport default Handsontable;\n'
+      'export * from \'./base.js\';\nimport { Handsontable } from \'./base.entry.js\';\nexport default Handsontable;\n'
     );
     assert.equal(
       toMtsDeclaration(root, 'index.d.ts'),
-      'import Handsontable from \'./base.mjs\';\nexport default Handsontable;\n'
+      'export * from \'./index.js\';\nimport { Handsontable } from \'./index.entry.js\';\nexport default Handsontable;\n'
     );
+    assert.equal(toEntryShim('base.d.ts'), 'import Handsontable from \'./base\';\nexport { Handsontable };\n');
+    assert.equal(toEntryShim('index.d.ts'), 'import Handsontable from \'./index\';\nexport { Handsontable };\n');
     // A same-named file in a subdirectory, with or without a default export, keeps the wrapper.
     assert.equal(toMtsDeclaration(root, 'core/index.d.ts'), 'export * from \'./index.js\';\n');
     assert.equal(

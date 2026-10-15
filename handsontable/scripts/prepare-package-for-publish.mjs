@@ -1,7 +1,12 @@
 import path from 'path';
 import fse from 'fs-extra';
 import glob from 'glob';
-import { toMtsDeclaration } from './utils/explicit-esm-specifiers.mjs';
+import {
+  ENTRY_POINT_DECLARATIONS,
+  ENTRY_SHIM_SUFFIX,
+  toEntryShim,
+  toMtsDeclaration,
+} from './utils/explicit-esm-specifiers.mjs';
 import { displayErrorMessage, displayWarningMessage } from '../../scripts/utils/console.mjs';
 
 const TARGET_PATH = './tmp/';
@@ -62,14 +67,22 @@ function reportIncompleteness(message) {
  * `.github/scripts/__tests__/partial-packaging.test.mjs` pins), so this step always reads downleveled `.d.ts` files.
  *
  * Exception: a default-exporting declaration under `SELF_CONTAINED_MTS_DIRS` (theme presets, language
- * dictionaries), or one of the `SELF_CONTAINED_MTS_FILES` (the `index` and `base` entry points) is a
- * self-contained copy, not a wrapper. The reason and the rules are in
+ * dictionaries) is a self-contained copy, not a wrapper. The `index` and `base` entry points re-export their
+ * default through an entry shim, written right after the loop. The reason and the rules are in
  * `scripts/utils/explicit-esm-specifiers.mjs`, which is unit tested.
  */
 glob.sync('./**/*.d.ts', { cwd: TARGET_PATH, nodir: true }).forEach((dtsFile) => {
+  if (dtsFile.endsWith(ENTRY_SHIM_SUFFIX)) {
+    return;
+  }
+
   const mtsPath = path.resolve(TARGET_PATH, dtsFile.replace(/\.d\.ts$/, '.d.mts'));
 
   fse.outputFileSync(mtsPath, toMtsDeclaration(TARGET_PATH, dtsFile));
+});
+
+ENTRY_POINT_DECLARATIONS.forEach((dtsFile) => {
+  fse.outputFileSync(path.resolve(TARGET_PATH, dtsFile.replace(/\.d\.ts$/, ENTRY_SHIM_SUFFIX)), toEntryShim(dtsFile));
 });
 
 /**

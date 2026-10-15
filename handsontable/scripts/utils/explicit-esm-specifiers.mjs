@@ -10,13 +10,18 @@ import path from 'node:path';
 export const SELF_CONTAINED_MTS_DIRS = ['themes/static/variables/', 'i18n/languages/'];
 
 /**
- * Entry-point declarations (relative to the package root) that get the same self-contained `.d.mts`. They are the
- * `.` and `./base` default exports, `import Handsontable from 'handsontable'`: a wrapper would type that default
- * as the CommonJS module namespace under `node16`/`nodenext` (DEV-3430). The copy declares only the factory
- * interface and the namespace; everything else it imports goes through `.mjs` wrappers that re-export named
- * symbols from the `.d.ts` graph, so those types keep a single identity.
+ * Entry-point declarations (relative to the package root) whose default export is `Handsontable`. A wrapper would
+ * type `import Handsontable from 'handsontable'` as the CommonJS module namespace under `node16`/`nodenext`
+ * (DEV-3430), and a self-contained copy would declare `Handsontable` a second time, which splits its identity from
+ * the one the `.d.ts` graph names (the Angular wrapper's declaration emit then fails with TS2883). Their `.d.mts`
+ * therefore imports a named re-export from an entry shim (`toEntryShim()`), which is the same symbol.
  */
-export const SELF_CONTAINED_MTS_FILES = ['index.d.ts', 'base.d.ts'];
+export const ENTRY_POINT_DECLARATIONS = ['index.d.ts', 'base.d.ts'];
+
+/**
+ * Suffix of the entry shim written next to each entry-point declaration.
+ */
+export const ENTRY_SHIM_SUFFIX = '.entry.d.ts';
 
 /**
  * Replace every comment with spaces of the same length (newlines are kept), so a pattern run over the result
@@ -42,8 +47,8 @@ function maskComments(source) {
  * The explicit specifier ends in `.mjs`, not `.js`. From a `.d.mts` file a `.js` specifier resolves to the
  * CommonJS-format `.d.ts`, so a default import through it would be typed as the module namespace again, while
  * `.mjs` resolves to the sibling `.d.mts` (every `.d.ts` has one). A default import of a file outside the
- * self-contained directories and files still gets the namespace, because that `.d.mts` is a thin wrapper: such an
- * import does not exist in the declarations today.
+ * self-contained directories still gets the namespace, because that `.d.mts` is a thin wrapper: such an import
+ * does not exist in the declarations today.
  *
  * A specifier with a trailing slash, and the bare `.` and `..`, are directories and go to their `index`.
  *
@@ -97,9 +102,15 @@ export function toMtsDeclaration(targetDir, dtsFile) {
   const hasDefault = /\bexport\s+default\b/.test(dtsContent);
   const normalized = path.posix.normalize(dtsFile.split(path.sep).join('/'));
 
-  if (hasDefault && (
-    SELF_CONTAINED_MTS_FILES.includes(normalized) || SELF_CONTAINED_MTS_DIRS.some(dir => normalized.startsWith(dir))
-  )) {
+  if (hasDefault && ENTRY_POINT_DECLARATIONS.includes(normalized)) {
+    const name = path.posix.basename(normalized, '.d.ts');
+
+    const shim = `./${name}${ENTRY_SHIM_SUFFIX.replace(/\.d\.ts$/, '.js')}`;
+
+    return `export * from './${name}.js';\nimport { Handsontable } from '${shim}';\nexport default Handsontable;\n`;
+  }
+
+  if (hasDefault && SELF_CONTAINED_MTS_DIRS.some(dir => normalized.startsWith(dir))) {
     return toExplicitEsmSpecifiers(dtsContent, dtsPath);
   }
 
@@ -111,4 +122,18 @@ export function toMtsDeclaration(targetDir, dtsFile) {
   }
 
   return mtsContent;
+}
+
+/**
+ * Build the entry shim that sits next to an entry-point declaration: a `.d.ts` that re-exports the default as the
+ * named export `Handsontable`. A named import from a CommonJS module keeps every meaning of the symbol (value,
+ * type, namespace) and its identity, which a default import under `node16` does not.
+ *
+ * @param {string} dtsFile The entry-point `.d.ts` path relative to the package root, e.g. `base.d.ts`.
+ * @returns {string} The shim source.
+ */
+export function toEntryShim(dtsFile) {
+  const name = path.posix.basename(dtsFile.split(path.sep).join('/'), '.d.ts');
+
+  return `import Handsontable from './${name}';\nexport { Handsontable };\n`;
 }
