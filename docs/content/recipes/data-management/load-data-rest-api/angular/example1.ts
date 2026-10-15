@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, NgZone, ViewChild, AfterViewInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, ViewChild, AfterViewInit, inject } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 
 type UserRow = {
@@ -52,7 +52,7 @@ function mapUsersToGridRows(users: Array<{
 export class AppComponent implements AfterViewInit {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
-  private readonly ngZone = inject(NgZone);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   statusMessage = STATUS_LOADING;
   hasError = false;
@@ -77,10 +77,9 @@ export class AppComponent implements AfterViewInit {
 
   private setStatus(message: string, hasError = false): void {
     setTimeout(() => {
-      this.ngZone.run(() => {
-        this.statusMessage = message;
-        this.hasError = hasError;
-      });
+      this.statusMessage = message;
+      this.hasError = hasError;
+      this.cdr.markForCheck();
     }, 0);
   }
 
@@ -111,6 +110,7 @@ export class AppComponent implements AfterViewInit {
       this.setStatus(STATUS_ERROR, true);
     } finally {
       this.loading = false;
+      this.cdr.markForCheck();
     }
   }
 

@@ -59,7 +59,8 @@ The docs site bootstraps Angular examples with JIT in the browser, which cannot 
 - Inject services with `inject()`. Constructor DI throws `NG0202`.
 - Put Handsontable hook functions inside `gridSettings`, not as template bindings (`(afterInit)="handler()"`).
 - Import only the symbols you use; unused imports (`RowObject`, `ViewChild`, `NgFor`) can cause module resolution errors.
-- Set template-bound state (such as `hotSettings` read by `@if`) in `ngOnInit`. Angular 22 runs no change detection after `ngAfterViewInit`, so a write there leaves an `@if` grid blank. If the write needs the view, call `detectChanges()` on an injected `ChangeDetectorRef` after it.
+- Set template-bound state (such as `hotSettings` read by `@if`) in `ngOnInit`. Angular 22 components are `OnPush` by default, and nothing marks the component dirty after `ngAfterViewInit`, so a write there leaves an `@if` grid blank. If the write needs the view, call `markForCheck()` on an injected `ChangeDetectorRef` after it, or `detectChanges()` when the view must render synchronously.
+- Mark the component dirty after any write to template-bound state that happens after an `await`, in a `setTimeout`, or in a Handsontable callback such as a hook or a shortcut action (status text, a disabled button). Angular 22 components are `OnPush` by default, and `NgZone.run` does not mark them dirty. Call `markForCheck()` on an injected `ChangeDetectorRef`: outside the zone it schedules its own tick, so a Handsontable callback needs nothing more. Keep `detectChanges()` for a view that must render synchronously. Verify by loading the page and waiting, with no interaction.
 
 The `.ts` file holds `app.component.ts` and `app.config.ts` as separate `/* file: ... */` sections:
 

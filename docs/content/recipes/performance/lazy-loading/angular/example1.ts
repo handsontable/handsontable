@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewChild, inject } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 
 /* start:skip-in-preview */
@@ -58,6 +58,8 @@ const TOTAL_PAGES = 10;
 })
 export class AppComponent implements OnInit {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
+
+  private readonly cdr = inject(ChangeDetectorRef);
 
   loadedData: TaskRow[] = [...INITIAL_DATA];
   // Always visible -- no blinking; text only changes at end-of-data or on error
@@ -134,12 +136,14 @@ export class AppComponent implements OnInit {
       this.statusText = 'Failed to load more tasks. Scroll down to retry.';
       this.isLoading = false;
       this.hotTable?.hotInstance?.getPlugin('loading').hide();
+      this.cdr.markForCheck();
 
       return;
     }
 
     this.isLoading = false;
     this.hotTable?.hotInstance?.getPlugin('loading').hide();
+    this.cdr.markForCheck();
   }
 }
 /* end-file */
