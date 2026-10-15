@@ -33,6 +33,14 @@ export const crossedCore: Handsontable.Core = fromBase;
 export const coordsClass: typeof CellCoords = HandsontableBase.CellCoords;
 export const rangeClass: typeof CellRange = Handsontable.CellRange;
 
+// The type exports a `node16` default import used to reach as members of the module namespace.
+export type IndexEvents = Handsontable.Events;
+export type BaseEvents = HandsontableBase.Events;
+export type IndexRange = Handsontable.RangeType;
+export type BaseThemeConfig = HandsontableBase.ThemeConfig;
+export const aliasedInstance: Handsontable.HotInstance = fromIndex;
+export const aliasedCoords: Handsontable.CellCoords = new HandsontableBase.CellCoords(0, 0);
+
 export const indexVersion: string | undefined = Handsontable.version;
 export const baseVersion: string | undefined = HandsontableBase.version;
 export const indexPlugin = Handsontable.plugins.AutoColumnSize;
