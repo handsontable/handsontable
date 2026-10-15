@@ -149,6 +149,10 @@ export class ManualColumnFreeze extends BasePlugin {
    * `freezeColumn()` doesn't re-render the table,
    * so you need to call the `render()` method afterward.
    *
+   * The method does nothing when the column is already frozen, when it belongs to the `fixedColumnsEnd` band, or,
+   * with the `limitFixedToViewport` option on, when one more frozen column would not fit the grid. The
+   * `afterColumnFreeze` hook then reports that the freeze was not performed.
+   *
    * @param {number} column Visual column index.
    */
   freezeColumn(column: number): void {
@@ -195,6 +199,11 @@ export class ManualColumnFreeze extends BasePlugin {
   /**
    * Unfreezes the given column (removes it from fixed columns). The column is placed right after the frozen
    * columns, or, with the `restoreColumnPosition` setting, back among the scrollable columns in data order.
+   *
+   * The method does nothing when the column is not frozen, or when unfreezing it would hand a column to the
+   * `fixedColumnsEnd` band. With the `limitFixedToViewport` option on, a column that the grid draws as scrolling
+   * counts as not frozen, and the new count is the drawn count minus one. The `afterColumnUnfreeze` hook then
+   * reports whether the unfreeze was performed.
    *
    * @param {number} column Visual column index.
    */

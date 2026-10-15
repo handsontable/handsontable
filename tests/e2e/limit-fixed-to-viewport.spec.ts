@@ -21,6 +21,8 @@ test.describe('limitFixedToViewport', () => {
       await grid.goto({ start: 20 });
 
       expect(await grid.drawnCounts()).toEqual(await grid.expectedCounts({ start: 20 }));
+      // what is on screen, not only what the grid reports
+      expect(await grid.renderedCount('start')).toBe((await grid.expectedCounts({ start: 20 })).start);
       expect((await grid.drawnCounts()).start).toBeGreaterThan(0);
       // the promise is about what is left to scroll, with the scrollbars of the holder taken out
       expect(await grid.scrollableStrip('start')).toBeGreaterThanOrEqual(40);
@@ -37,6 +39,7 @@ test.describe('limitFixedToViewport', () => {
       await grid.goto({ end: 20 });
 
       expect(await grid.drawnCounts()).toEqual(await grid.expectedCounts({ end: 20 }));
+      expect(await grid.renderedCount('end')).toBe((await grid.expectedCounts({ end: 20 })).end);
       expect((await grid.drawnCounts()).end).toBeGreaterThan(0);
       const { width } = await grid.gridSize();
 
@@ -51,6 +54,7 @@ test.describe('limitFixedToViewport', () => {
       await grid.goto({ top: 40 });
 
       expect(await grid.drawnCounts()).toEqual(await grid.expectedCounts({ top: 40 }));
+      expect(await grid.renderedCount('top')).toBe((await grid.expectedCounts({ top: 40 })).top);
       expect((await grid.drawnCounts()).top).toBeGreaterThan(0);
       expect(await grid.scrollableStrip('top')).toBeGreaterThanOrEqual(40);
       const { height } = await grid.gridSize();
@@ -66,6 +70,7 @@ test.describe('limitFixedToViewport', () => {
       await grid.goto({ bottom: 40 });
 
       expect(await grid.drawnCounts()).toEqual(await grid.expectedCounts({ bottom: 40 }));
+      expect(await grid.renderedCount('bottom')).toBe((await grid.expectedCounts({ bottom: 40 })).bottom);
       expect((await grid.drawnCounts()).bottom).toBeGreaterThan(0);
       const { height } = await grid.gridSize();
 
@@ -278,6 +283,23 @@ test.describe('limitFixedToViewport', () => {
       expect(await grid.isColumnMovePossible([5], 22)).toBe(false);
       expect(await grid.isColumnMovePossible([5], 15)).toBe(true);
     });
+
+    test('the guideline of a column move follows the end band the grid draws', async() => {
+      await grid.goto({ end: 10 });
+
+      const { end: drawn } = await grid.drawnCounts();
+
+      expect(drawn).toBeGreaterThan(0);
+      expect(drawn).toBeLessThan(10);
+
+      // the last drawn end column is in the end clone, so the guideline takes the shift of the clone
+      expect(await grid.isInDrawnEndBandForMove(29)).toBe(true);
+      expect(await grid.isInDrawnEndBandForMove(30 - drawn)).toBe(true);
+
+      // a column of the configured band that scrolls is in the master, and gets no shift
+      expect(await grid.isInDrawnEndBandForMove(30 - drawn - 1)).toBe(false);
+      expect(await grid.isInDrawnEndBandForMove(22)).toBe(false);
+    });
   });
 
   test.describe('a hidden track at the inner edge of a band', () => {
@@ -299,10 +321,126 @@ test.describe('limitFixedToViewport', () => {
       const topBefore = (await grid.drawnCounts()).top;
 
       await grid.resizeWindow({ width: 1280, height: 360 });
+
+      // the resize reached the grid, and the listener blocked it
+      await expect.poll(() => grid.blockedRefreshCount()).toBeGreaterThan(0);
       await grid.settleFrames();
 
       expect(await grid.viewRenderCount()).toBe(rendersBefore);
       expect((await grid.drawnCounts()).top).toBe(topBefore);
+    });
+
+  });
+
+  test.describe('the resize handle on a freeze line', () => {
+    test('is marked on the line that is drawn, not on the configured one', async() => {
+      await grid.goto({ start: 10, resize: 1 });
+
+      const { start: drawn } = await grid.drawnCounts();
+
+      expect(drawn).toBeLessThan(10);
+
+      // the header of the last drawn frozen column ends on the freeze line, which the freeze bar sits on
+      expect(await grid.resizeHandleFreezeMarks(drawn - 1)).toEqual({ before: true, after: false });
+
+      // the header of the last configured column is a scrolling one: no bar there, so no offset
+      await grid.scrollToColumn(9);
+      expect(await grid.resizeHandleFreezeMarks(9)).toEqual({ before: false, after: false });
+    });
+  });
+
+  test.describe('the frozen end overlay', () => {
+    test('is removed when no end column is drawn and comes back when the grid grows', async() => {
+      await grid.goto({ end: 3 });
+
+      expect((await grid.drawnCounts()).end).toBe(3);
+      expect(await grid.renderedCount('end')).toBe(3);
+
+      // the end band does not fit a 150 px grid: nothing is drawn as frozen, and the grid still scrolls
+      await grid.resize({ width: 150 });
+      await expect.poll(() => grid.drawnCount('end')).toBe(0);
+      expect(await grid.renderedCount('end')).toBe(0);
+
+      await grid.resize({ width: 500 });
+      await expect.poll(() => grid.drawnCount('end')).toBe(3);
+      await expect.poll(() => grid.renderedCount('end')).toBe(3);
+    });
+  });
+
+  test.describe('what the frozen band holds when the grid cuts it', () => {
+    test('the column menu offers Unfreeze for a frozen column, and no Freeze when nothing more fits', async() => {
+      await grid.goto({ start: 20, menu: 1 });
+
+      const frozenMenu = await grid.columnMenuItems(0);
+
+      expect(frozenMenu).toContain('Unfreeze column');
+      expect(frozenMenu).not.toContain('Freeze column');
+    });
+
+    test('the column menu offers neither item for a column that scrolls next to a band that is the most that fits', async() => {
+      await grid.goto({ start: 20, menu: 1 });
+
+      const { start: drawn } = await grid.drawnCounts();
+
+      // a column that scrolls is not frozen as far as the user sees, and one more frozen column would not fit
+      await grid.scrollToColumn(drawn + 1);
+
+      const scrollingMenu = await grid.columnMenuItems(drawn + 1);
+
+      expect(scrollingMenu).toContain('Insert column left');
+      expect(scrollingMenu).not.toContain('Unfreeze column');
+      expect(scrollingMenu).not.toContain('Freeze column');
+    });
+
+    test('the column menu offers Freeze for a scrolling column when one more frozen column fits', async() => {
+      await grid.goto({ start: 2, menu: 1 });
+
+      await grid.scrollToColumn(5);
+
+      expect(await grid.columnMenuItems(5)).toContain('Freeze column');
+    });
+
+    test('a collapsible group inside the configured end band gets no toggle, whatever is drawn', async() => {
+      // end 10 over 30 columns: the configured band holds columns 20 to 29, and fewer of them are drawn
+      await grid.goto({ end: 10, nest: 1 });
+
+      expect((await grid.drawnCounts()).end).toBeLessThan(5);
+
+      // control: a group outside the band has its toggle
+      await grid.scrollToColumn(10);
+      expect(await grid.hasCollapseButton(10)).toBe(true);
+
+      // the group over columns 24 and 25 lies in the configured band, but outside the drawn one
+      await grid.scrollToColumn(24);
+      expect(await grid.hasCollapseButton(24)).toBe(false);
+    });
+
+    test('PageDown into the cut bottom band keeps the selection reachable', async() => {
+      await grid.goto({ bottom: 40 });
+
+      const { bottom: drawn } = await grid.drawnCounts();
+
+      expect(drawn).toBeLessThan(40);
+
+      // row 20 is where the configured bottom band starts (60 rows, 40 configured): the rows from there on scroll
+      await grid.selectCell(18, 0);
+      await grid.page.keyboard.press('PageDown');
+      await grid.page.keyboard.press('PageDown');
+
+      const [row] = await grid.selected();
+
+      // PageDown scrolls to the bottom band only when the selection lands in the band the grid draws
+      expect(row).toBeGreaterThanOrEqual(20);
+      expect(row).toBeLessThan(60 - drawn);
+      await expect.poll(() => grid.isCellUncovered(row, 0)).toBe(true);
+    });
+
+    test('a custom border follows the drawn start band, not the configured one', async() => {
+      await grid.goto({ start: 20, borders: 1 });
+      await grid.scrollToColumn(29);
+
+      // column 10 scrolled out of the master and is not frozen as far as the user sees: its border is not kept
+      expect(await grid.customBorderSelectionCount()).toBe(0);
     });
   });
 

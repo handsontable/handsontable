@@ -4771,6 +4771,13 @@ export default (): Record<string, unknown> => {
      * When the start columns or top rows fill the grid, the end columns or bottom rows are not drawn as frozen at all.
      * - When a user changes the frozen area with the [`FreezeBar`](@/api/freezeBar.md) plugin, the new count replaces the
      * configured one, and the frozen area no longer returns when the grid grows.
+     * - When one more frozen column would not fit, [`freezeColumn()`](@/api/manualColumnFreeze.md#freezecolumn) does
+     * nothing, and its `afterColumnFreeze` hook reports that the freeze was not performed.
+     *
+     * Handsontable measures the frozen area while it renders. When the first measurement was off (a row that was never
+     * drawn, or a scrollbar that appeared), it draws once more, so [`beforeViewRender`](@/api/hooks.md#beforeviewrender) and
+     * [`afterViewRender`](@/api/hooks.md#afterviewrender) can run twice for one render. A change that makes a frozen row
+     * taller can cost that extra draw each time.
      *
      * Read more:
      * - [Column freezing](@/guides/columns/column-freezing/column-freezing.md#frozen-area-size-limit)

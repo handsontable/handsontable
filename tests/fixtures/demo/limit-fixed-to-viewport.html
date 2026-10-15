@@ -33,7 +33,9 @@
     frozen unless a query param asks for it: ?start=N, ?end=N, ?top=N and ?bottom=N freeze that many columns
     or rows. ?limit=0 turns the option off, ?rtl=1 lays the grid out right to left, ?win=1 lets the window
     scroll the rows (150 rows, automatic height), ?hidden=1 hides column 2, ?colw=N sets the width of every column,
-    ?bar=1 turns the freezeBar plugin on, ?tall=1 wraps the text of the first column of the first 40 rows into tall rows, ?hide=1 builds the grid inside a hidden box (the page shows it later).
+    ?bar=1 turns the freezeBar plugin on, ?resize=1 the manual resize plugins, ?menu=1 the context menu, ?nest=1 a
+    collapsible group over columns 10 and 11 and one over 24 and 25, ?borders=1 a custom border on a cell of
+    column 10, ?tall=1 wraps the text of the first column of the first 40 rows into tall rows, ?hide=1 builds the grid inside a hidden box (the page shows it later).
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -77,6 +79,31 @@
 
     if (flag('hidden', false)) {
       settings.hiddenColumns = { columns: [2] };
+    }
+
+    // ?resize=1 turns the manual resize plugins on, which draw the resize handle the freeze marks are set on
+    if (flag('resize', false)) {
+      settings.manualColumnResize = true;
+      settings.manualRowResize = true;
+    }
+
+    // ?menu=1 turns the context menu on (it holds the Freeze and Unfreeze items of manualColumnFreeze)
+    if (flag('menu', false)) {
+      settings.contextMenu = true;
+    }
+
+    // ?nest=1 groups columns 24 and 25 under one collapsible header
+    if (flag('nest', false)) {
+      // 28 entries cover the 30 columns: the two groups take two each (columns 10-11, and 24-25)
+      settings.nestedHeaders = [
+        Array.from({ length: 28 }, (_, index) => (index === 10 || index === 23 ? { label: 'Group', colspan: 2 } : '')),
+      ];
+      settings.collapsibleColumns = true;
+    }
+
+    // ?borders=1 puts a custom border on a cell of column 10, which the frozen start band can hold or not
+    if (flag('borders', false)) {
+      settings.customBorders = [{ row: 1, col: 10, top: { width: 2, color: 'red' } }];
     }
 
     window.freezeLog = [];

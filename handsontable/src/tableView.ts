@@ -277,6 +277,19 @@ class TableView {
    * @type {boolean}
    */
   #sizesMeasuredWithoutStylesPending = false;
+  /**
+   * Whether the last `_wt.draw()` of `render()` reached the cells. The engine reports it through `onDraw`, which a draw
+   * that a `beforeViewRender` listener cancelled (`skipRender`) never fires.
+   *
+   * @type {boolean}
+   */
+  #drawRenderedCells = false;
+  /**
+   * Whether a check of the frozen counts is queued after a column width change that did not render.
+   *
+   * @type {boolean}
+   */
+  #fixedCountsRecheckQueued = false;
 
   /**
    * Counts how many times the column widths were invalidated. Every producer of column widths (the
@@ -423,6 +436,7 @@ class TableView {
       this.#reservedSlotHeight = null;
       this.#refreshEffectiveFixed(isFullRender);
 
+      this.#drawRenderedCells = false;
       this._wt.draw(!isFullRender);
       this.#redrawOnceWhenEffectiveFixedMoved(isFullRender);
       this.#updateScrollbarClassNames();
@@ -955,6 +969,31 @@ class TableView {
   invalidateColumnWidthCache() {
     this._wt.wtViewport.invalidateColumnWidthCache();
     this.#columnWidthEpoch += 1;
+    this.#scheduleFixedCountsRecheck();
+  }
+
+  /**
+   * Checks the frozen counts once more after a column width changed without a render (`AutoColumnSize` measures the
+   * columns past `syncLimit` in idle tasks and renders nothing afterwards), and renders when they moved. One check is
+   * queued for any number of width changes. It reads engine sizes only, and `render()` resolves the counts again.
+   */
+  #scheduleFixedCountsRecheck() {
+    if (!this.settings.limitFixedToViewport || this.#fixedCountsRecheckQueued || !this.hot) {
+      return;
+    }
+
+    this.#fixedCountsRecheckQueued = true;
+    this.hot._registerTimeout(() => {
+      this.#fixedCountsRecheckQueued = false;
+
+      if (this.hot.isDestroyed || !this.hot.view || this._effectiveFixed === null) {
+        return;
+      }
+
+      if (!isSameEffectiveFixed(this._effectiveFixed, this.#resolveEffectiveFixed(false))) {
+        this.hot.render();
+      }
+    }, 0);
   }
 
   /**
@@ -2682,7 +2721,9 @@ class TableView {
       return;
     }
 
-    if (!isSameEffectiveFixed(this._effectiveFixed, this.#resolveEffectiveFixed(true))) {
+    // Outside a render the rendered height of a row must not be read from the DOM: the row filter can be stale
+    // (`hideRow()` without a render), and `render()` resolves the counts again anyway.
+    if (!isSameEffectiveFixed(this._effectiveFixed, this.#resolveEffectiveFixed(false))) {
       this.hot.render();
     }
   }
@@ -2696,7 +2737,9 @@ class TableView {
    * @param {boolean} isFullRender `true` for a full render.
    */
   #redrawOnceWhenEffectiveFixedMoved(isFullRender: boolean) {
-    if (!isFullRender || !this.settings.limitFixedToViewport) {
+    // A draw that a `beforeViewRender` listener cancelled (`skipRender`) rendered nothing, so there is nothing to
+    // measure, and drawing again would render what the listener cancelled.
+    if (!isFullRender || !this.settings.limitFixedToViewport || !this.#drawRenderedCells) {
       return;
     }
 
@@ -2760,6 +2803,7 @@ class TableView {
    */
   afterRender(force: boolean) {
     this.#sizesMeasuredWithoutStylesPending = false;
+    this.#drawRenderedCells = true;
 
     if (force) {
       // Measure the rendered grid while the DOM is final, before external `afterViewRender` listeners

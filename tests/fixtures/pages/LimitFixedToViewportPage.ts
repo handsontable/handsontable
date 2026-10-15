@@ -400,10 +400,179 @@ export class LimitFixedToViewportPage {
   }
 
   /**
-   * Blocks every `refreshDimensions()` call, the way an app does from `beforeRefreshDimensions`.
+   * Whether ManualColumnMove treats the column as part of the end band it positions the guideline for: the band the
+   * grid draws, which is what the end clone holds.
+   *
+   * @param column The visual column.
+   */
+  async isInDrawnEndBandForMove(column: number): Promise<boolean> {
+    return this.page.evaluate(c => window.hot.getPlugin('manualColumnMove').isFixedColumnsEnd(c), column);
+  }
+
+  /**
+   * Blocks every `refreshDimensions()` call, the way an app does from `beforeRefreshDimensions`, and counts the
+   * calls it blocked, so a test can tell a blocked resize from a resize that never reached the grid.
    */
   async blockRefreshDimensions(): Promise<void> {
-    await this.page.evaluate(() => window.hot.addHook('beforeRefreshDimensions', () => false));
+    await this.page.evaluate(() => {
+      (window as any).blockedRefreshes = 0;
+      window.hot.addHook('beforeRefreshDimensions', () => {
+        (window as any).blockedRefreshes += 1;
+
+        return false;
+      });
+    });
+  }
+
+  /**
+   * How many `refreshDimensions()` calls the blocking listener has stopped.
+   */
+  async blockedRefreshCount(): Promise<number> {
+    return this.page.evaluate(() => (window as any).blockedRefreshes as number);
+  }
+
+  /**
+   * The number of frozen tracks that are really on screen on an edge: the cells of the first row of a column clone,
+   * or the rows of a row clone. It counts what the DOM holds, not what the grid reports, and a hidden track draws
+   * nothing, so it is the drawn count minus the hidden ones in the band.
+   *
+   * @param edge The edge.
+   */
+  async renderedCount(edge: FrozenEdge): Promise<number> {
+    return this.page.evaluate(({ className, horizontal }) => {
+      const clone = window.hot.rootElement.querySelector(`.${className}`) as HTMLElement | null;
+
+      if (!clone) {
+        return 0;
+      }
+
+      if (horizontal) {
+        const firstRow = clone.querySelector('tbody tr');
+
+        return firstRow ? firstRow.querySelectorAll('td').length : 0;
+      }
+
+      return clone.querySelectorAll('tbody tr').length;
+    }, { className: CLONE_CLASS[edge], horizontal: edge === 'start' || edge === 'end' });
+  }
+
+  /**
+   * Moves the pointer over a column header, which makes the resize handle show on it, and reports which freeze marks
+   * the handle carries.
+   *
+   * @param column The visual column.
+   */
+  async resizeHandleFreezeMarks(column: number): Promise<{ before: boolean, after: boolean }> {
+    // The part of the header a pointer can reach: a column that scrolls is mostly under the frozen start band, so
+    // aim at the visible part, just right of the band.
+    const point = await this.page.evaluate((c) => {
+      const header = window.hot.getCell(-1, c, true) as HTMLElement;
+      const rect = header.getBoundingClientRect();
+      const startClone = window.hot.rootElement.querySelector('.ht_clone_inline_start') as HTMLElement | null;
+      const bandRight = startClone ? startClone.getBoundingClientRect().right : rect.left;
+      const y = rect.top + rect.height / 2;
+
+      // a frozen header lies inside the band: its middle is reachable
+      if (rect.right <= bandRight + 1) {
+        return { x: rect.left + rect.width / 2, y };
+      }
+
+      const left = Math.max(rect.left, bandRight);
+
+      return { x: left + Math.min(8, Math.max((rect.right - left) / 2, 1)), y };
+    }, column);
+
+    // leave the grid first, so the move onto the header is a new `mouseover` for the grid
+    await this.page.mouse.move(0, 0);
+    await this.page.mouse.move(point.x, point.y);
+
+    return this.page.evaluate(({ c, x, y }) => {
+      const underPointer = window.hot.rootDocument.elementFromPoint(x, y)?.closest('th');
+      const hoveredColumn = underPointer ? window.hot.getCoords(underPointer as HTMLTableCellElement)?.col : null;
+
+      if (hoveredColumn !== c) {
+        throw new Error(`The pointer is over the header of column ${hoveredColumn}, not ${c}`);
+      }
+
+      const handle = window.hot.rootElement.querySelector('.manualColumnResizer') as HTMLElement;
+
+      return {
+        before: handle.classList.contains('ht-resize-handle--freeze-before'),
+        after: handle.classList.contains('ht-resize-handle--freeze-after'),
+      };
+    }, { c: column, x: point.x, y: point.y });
+  }
+
+  /**
+   * The names of the items the column context menu shows for a column, read from the DOM after it opened.
+   *
+   * @param column The visual column.
+   */
+  async columnMenuItems(column: number): Promise<string[]> {
+    // opened and read in one task: the menu closes when the grid is drawn again, which a scroll can do
+    const items = await this.page.evaluate((c) => {
+      window.hot.selectColumns(c);
+
+      // open it under the header, at the part of it a pointer can reach: a column that scrolls lies mostly under the
+      // frozen start band
+      const header = window.hot.getCell(-1, c, true) as HTMLElement;
+      const rect = header.getBoundingClientRect();
+      const startClone = window.hot.rootElement.querySelector('.ht_clone_inline_start') as HTMLElement | null;
+      const left = Math.max(rect.left, startClone ? startClone.getBoundingClientRect().right : rect.left);
+
+      window.hot.getPlugin('contextMenu').open({ top: rect.bottom, left: left + 2, width: 1, height: 1 });
+
+      const names = Array.from(document.querySelectorAll('.htContextMenu .ht_master tbody td'))
+        .map(cell => (cell.textContent ?? '').trim())
+        .filter(Boolean);
+
+      window.hot.getPlugin('contextMenu').close();
+
+      return names;
+    }, column);
+
+    // an empty list is a menu that did not open, never an answer
+    expect(items.length).toBeGreaterThan(0);
+
+    return items;
+  }
+
+  /**
+   * Scrolls the grid so the column is rendered in the master table.
+   *
+   * @param column The visual column.
+   */
+  async scrollToColumn(column: number): Promise<void> {
+    await this.page.evaluate(c => window.hot.scrollViewportTo({ col: c, horizontalSnap: 'start' }), column);
+    await this.page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
+  }
+
+  /**
+   * Whether the header cell of a column carries the collapse button of a collapsible group.
+   *
+   * @param column The visual column.
+   */
+  async hasCollapseButton(column: number): Promise<boolean> {
+    return this.page.evaluate((c) => {
+      // the group sits in the first header row, whatever number the other header rows have
+      for (let row = -1; row >= -3; row--) {
+        const cell = window.hot.getCell(row, c, true);
+
+        if (cell?.querySelector('.collapsibleIndicator')) {
+          return true;
+        }
+      }
+
+      return false;
+    }, column);
+  }
+
+  /**
+   * How many custom border selections the customBorders plugin keeps alive: one per border on a cell it considers
+   * visible (in the master range, or in a frozen band).
+   */
+  async customBorderSelectionCount(): Promise<number> {
+    return this.page.evaluate(() => window.hot.selection.highlight.customSelections.length);
   }
 
   /**

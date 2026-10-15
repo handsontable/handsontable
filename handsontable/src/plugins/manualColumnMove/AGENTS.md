@@ -139,7 +139,11 @@ the drawn band, which can be smaller. A move from the scrolling columns into the
 end band of 10 over 30 columns, while only 2 are drawn) then passed the guard and shifted the columns in between
 into the band, so a different set of columns was frozen at the end once the grid grew. The start side keeps reading
 the drawn band (`isFixedColumnsStart()`), because the start band is positional and a move across its line changes no
-count. This is the same rule `ManualColumnFreeze` and `CollapsibleColumns` follow.
+count. This is the same rule `ManualColumnFreeze` and `CollapsibleColumns` follow. **The geometry is the other
+way round:** `isFixedColumnsEnd()` positions the guideline and the backlight (`#getEndBandShift()` is added for a
+column in the end clone), so it reads `hot.view.countFixedColumnsEnd()`, the band the grid draws, as `manualRowMove`
+does. A column that scrolls while its configured band is only partly drawn must not get the shift, or the guideline
+lands off by the remaining scroll distance. The guard and the geometry are two questions with two counts.
 
 The backlight and the guideline live in the master's hider and scroll with it, while the end clone stands at the
 inline-end edge. `#getEndBandShift()` is the distance between the two, never positive and zero at the inline-end

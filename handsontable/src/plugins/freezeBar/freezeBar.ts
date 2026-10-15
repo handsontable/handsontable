@@ -214,7 +214,7 @@ export class FreezeBar extends BasePlugin {
    * Gets the number of frozen rows or columns on the given edge, as configured. It is the count an app saves and the
    * count the hooks report. The start band has priority over the end band, so the end band is the part of it that
    * remains. With `limitFixedToViewport` the grid may draw fewer tracks than this: the bar and its ARIA value follow
-   * the drawn count, which `TableView#countFixedColumnsStart()` and its siblings return.
+   * the drawn count, and there is no public method that returns it.
    *
    * @param {string} edge The edge: `top`, `bottom`, `start` or `end`.
    * @returns {number}

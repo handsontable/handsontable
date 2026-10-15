@@ -487,14 +487,17 @@ export class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Checks if the provided column is in the fixedColumnsEnd section.
+   * Checks if the provided column is in the fixedColumnsEnd section the grid DRAWS. It positions the guideline and the
+   * backlight, which follow the end clone, so it reads the drawn count (`limitFixedToViewport` can draw fewer end
+   * columns than are configured, and the rest scroll). The move guard reads the configured band instead
+   * (`getFixedColumnsEndCount()`).
    *
    * @private
    * @param {number} column Visual column index to check.
    * @returns {boolean}
    */
   isFixedColumnsEnd(column: number): boolean {
-    const endCount = this.getFixedColumnsEndCount();
+    const endCount = this.hot.view ? this.hot.view.countFixedColumnsEnd() : this.getFixedColumnsEndCount();
 
     const totalColumns = this.hot.countCols();
 
