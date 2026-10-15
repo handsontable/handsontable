@@ -1,10 +1,10 @@
 /**
- * Crypto polyfill for jsdom environments that lack globalThis.crypto.
+ * Crypto polyfill for test DOM environments (warpdom, jsdom) that lack globalThis.crypto.
  */
 const { webcrypto } = require('crypto');
 
 /**
- * Sets up the Web Crypto API polyfill for jsdom test environments.
+ * Sets up the Web Crypto API polyfill for the test DOM environment.
  * Call this in test bootstrap files before Handsontable instances are created.
  */
 function initCryptoPolyfill() {

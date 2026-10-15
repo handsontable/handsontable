@@ -1,7 +1,7 @@
 /**
- * Declares the one theme CSS variable jsdom needs, for Jest only.
+ * Declares the one theme CSS variable the unit tests need, for Jest only.
  *
- * jsdom loads no theme stylesheet, so every grid built in a unit test warns
+ * The Jest suite loads no theme stylesheet, so every grid built in a unit test warns
  * `The "ht-theme-main" theme is enabled, but its stylesheets are missing` — `Core#onThemeChange`
  * probes `--ht-line-height` on the themed wrapper and warns when it resolves to nothing. That was
  * 449 `console.warn` calls per CI run.
@@ -18,7 +18,7 @@
  * Only `--ht-line-height` is declared, on purpose. `StylesHandler#calculateRowHeight()`,
  * NestedHeaders' rowspan header height, and the multi-select dropdown's entry height each need a
  * second variable as well, so with only this one defined they resolve to the same `NaN`/`undefined`
- * as before and no jsdom measurement changes.
+ * as before and no unit test measurement changes.
  */
 beforeAll(() => {
   // A `@jest-environment node` spec file has no `document`; this is a no-op there.
@@ -26,13 +26,13 @@ beforeAll(() => {
     return;
   }
 
-  if (document.getElementById('ht-jsdom-theme-vars')) {
+  if (document.getElementById('ht-jest-theme-vars')) {
     return;
   }
 
   const themeVars = document.createElement('style');
 
-  themeVars.id = 'ht-jsdom-theme-vars';
+  themeVars.id = 'ht-jest-theme-vars';
   themeVars.textContent = '[class*="ht-theme-"] { --ht-line-height: 22px; }';
   document.head.appendChild(themeVars);
 });
