@@ -60,7 +60,7 @@ The docs site bootstraps Angular examples with JIT in the browser, which cannot 
 - Put Handsontable hook functions inside `gridSettings`, not as template bindings (`(afterInit)="handler()"`).
 - Import only the symbols you use; unused imports (`RowObject`, `ViewChild`, `NgFor`) can cause module resolution errors.
 - Set template-bound state (such as `hotSettings` read by `@if`) in `ngOnInit`. Angular 22 runs no change detection after `ngAfterViewInit`, so a write there leaves an `@if` grid blank. If the write needs the view, call `detectChanges()` on an injected `ChangeDetectorRef` after it.
-- Call `detectChanges()` on an injected `ChangeDetectorRef` after any write to template-bound state that happens after an `await` or in a `setTimeout` (status text, a disabled button). The docs runner runs no change detection there (reproduced on Angular 22), and `NgZone.run` does not fix it. Verify by loading the page and waiting, with no interaction.
+- Call `detectChanges()` on an injected `ChangeDetectorRef` after any write to template-bound state that happens after an `await`, in a `setTimeout`, or in a Handsontable callback such as a hook or a shortcut action (status text, a disabled button). The docs runner runs no change detection there (reproduced on Angular 22), and `NgZone.run` does not fix it. Verify by loading the page and waiting, with no interaction.
 
 The `.ts` file holds `app.component.ts` and `app.config.ts` as separate `/* file: ... */` sections:
 

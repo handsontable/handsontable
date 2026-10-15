@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, NgZone, ViewChild, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, ViewChild, inject } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 import Papa from 'papaparse';
 import readXlsxFile from 'read-excel-file/browser';
@@ -190,7 +190,7 @@ async function parseFile(file: File): Promise<ParsedPayload> {
 export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
-  private readonly zone = inject(NgZone);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   isDragOver = false;
   errorMessage = '';
@@ -254,11 +254,11 @@ Service Pack,Services,true,0`;
     }
     try {
       const payload = await parseFile(file);
-      this.zone.run(() => this.loadIntoGrid(payload));
+      this.loadIntoGrid(payload);
     } catch (e) {
-      this.zone.run(() => {
-        this.errorMessage = e instanceof Error ? e.message : String(e);
-      });
+      this.errorMessage = e instanceof Error ? e.message : String(e);
+    } finally {
+      this.cdr.detectChanges();
     }
   }
 
