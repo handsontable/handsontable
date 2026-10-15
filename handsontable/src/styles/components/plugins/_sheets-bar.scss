@@ -1,4 +1,7 @@
+@use "sass:list";
 @use "../../utils/mixins";
+@use "../../base/z-index-map";
+@use "./comments";
 
 // Sheets bar
 
@@ -8,6 +11,22 @@ $active-marker: inset 0 calc(var(--ht-sheets-bar-tab-active-border-width) * -1) 
 
 // How many rows of the all-sheets menu stay visible before it starts to scroll.
 $all-sheets-visible-items: 8;
+$switch-unfocused-marks: ".wtBorder.area, .wtBorder.fill, .wtBorder.corner, .wtSelectionHandle, .topSelectionHandle, .bottomSelectionHandle, td.area::before, td.area-1::before, td.area-2::before, td.area-3::before, td.area-4::before, td.area-5::before, td.area-6::before, td.area-7::before";
+$switch-selection-marks: ".wtBorder.current, #{$switch-unfocused-marks}";
+$switch-highlights: ht__highlight, ht__active_highlight;
+$switch-accents: ht__highlight, ht__active_highlight, ht__active_highlight-prev, ht__active_highlight-seam, ht__active_highlight-prev-row, ht__active_highlight-row-seam-top, ht__active_highlight-row-seam-bottom;
+$switch-header-path: ":where(table.htCore) > :is(thead, tbody) > tr > ";
+$switch-active-icons: ".ht-hidden-indicator-start, .ht-hidden-indicator-end, .changeType .ht-icon, .collapsibleIndicator > .ht-icon, .ht_nestingButton > .ht-icon";
+
+@function switch-headers($prefix, $classes, $suffix: "") {
+  $selectors: ();
+
+  @each $class in $classes {
+    $selectors: list.append($selectors, "#{$prefix}th.#{$class}#{$suffix}", comma);
+  }
+
+  @return $selectors;
+}
 
 @mixin output {
   .handsontable {
@@ -100,6 +119,8 @@ $all-sheets-visible-items: 8;
     }
 
     &.ht-sheets-bar {
+      --ht-private-tab-enter-offset: -2em;
+
       width: 100%;
       color: var(--ht-bar-foreground-color);
       background: var(--ht-sheets-bar-background-color);
@@ -120,6 +141,10 @@ $all-sheets-visible-items: 8;
       // (UX review). The bar always draws its own top border instead.
       &.ht-slot-element {
         border-top-width: 1px;
+      }
+
+      &[dir="rtl"] {
+        --ht-private-tab-enter-offset: 2em;
       }
 
       .ht-sheets-bar__inner {
@@ -223,6 +248,7 @@ $all-sheets-visible-items: 8;
       }
 
       .ht-sheets-bar__tabs {
+        position: relative;
         display: flex;
         align-items: stretch;
         flex: 1 1 auto;
@@ -269,16 +295,28 @@ $all-sheets-visible-items: 8;
 
         // Carries the tabs the drag displaces back from where they were, so the strip makes room
         // in a slide rather than a jump. The controller drives it; there is nothing to animate
-        // when no drag is in progress.
-        transition: transform 150ms ease-out;
+        // when no drag is in progress. The text color follows the pointer over the theme's
+        // transition, and only the text color: a tab has no hover surface.
+        transition:
+          transform
+          var(--ht-private-tab-slide-duration, 150ms)
+          var(--ht-private-tab-slide-easing, ease-out),
+          color var(--ht-table-transition) ease-out;
 
         @media (prefers-reduced-motion: reduce) {
           transition: none;
         }
 
+        &--entering {
+          animation: ht-sheets-bar-tab-enter var(--ht-table-transition) ease-out backwards;
+
+          @media (prefers-reduced-motion: reduce) {
+            animation: none;
+          }
+        }
+
         &:hover {
           color: var(--ht-sheets-bar-tab-hover-foreground-color);
-          background: var(--ht-sheets-bar-tab-hover-background-color);
         }
 
         &--active,
@@ -297,15 +335,16 @@ $all-sheets-visible-items: 8;
           pointer-events: none;
 
           // The pointer is on the tab for the whole gesture, but `pointer-events: none` means
-          // `:hover` never matches it. Wearing the hover surface directly is what keeps the tab
-          // looking held rather than dropping to its resting state the moment it is picked up.
-          // It is opaque, so it doubles as the backdrop the passing tabs travel behind.
+          // `:hover` never matches it, so the tab wears the hover text color directly. Hover
+          // changes no background, so the dragged tab keeps its own resting surface, painted
+          // opaque: it is the backdrop the passing tabs travel behind.
           color: var(--ht-sheets-bar-tab-hover-foreground-color);
-          background-color: var(--ht-sheets-bar-tab-hover-background-color);
+          background-color: var(--ht-sheets-bar-tab-background-color);
 
           // The dragged tab is positioned from the pointer on every move, so it must land where
           // the pointer is now — not ease toward where it was.
           transition: none;
+          animation: none;
 
           @include mixins.box-shadow;
         }
@@ -319,6 +358,77 @@ $all-sheets-visible-items: 8;
           background-color: var(--ht-sheets-bar-tab-active-background-color);
           box-shadow: $active-marker, mixins.box-shadow-value();
         }
+      }
+
+      .ht-sheets-bar__tab-ghost {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: var(--ht-private-tab-ghost-x, 0);
+        display: flex;
+        align-items: center;
+        gap: var(--ht-sizing-size-1);
+        box-sizing: border-box;
+        width: var(--ht-private-tab-ghost-width, 0);
+        padding-inline: var(--ht-sheets-bar-tab-horizontal-padding);
+        padding-block: var(--ht-sheets-bar-tab-vertical-padding);
+        color: var(--ht-sheets-bar-tab-foreground-color);
+        background: var(--ht-sheets-bar-tab-background-color);
+        pointer-events: none;
+        user-select: none;
+        animation: ht-sheets-bar-tab-leave var(--ht-table-transition) ease-in both;
+
+        @media (prefers-reduced-motion: reduce) {
+          animation: none;
+        }
+      }
+
+      .ht-sheets-bar__tabs--sliding {
+        --ht-private-tab-slide-easing: ease-in-out;
+      }
+
+      .ht-sheets-bar__tab--slide-lead {
+        z-index: 1;
+      }
+
+      .ht-sheets-bar__tab-indicator {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 0;
+        width: var(--ht-private-tab-indicator-width);
+        transform: translateX(var(--ht-private-tab-indicator-x));
+        background: var(--ht-sheets-bar-tab-active-background-color);
+        box-shadow: $active-marker;
+        pointer-events: none;
+        transition-property: transform, width;
+        transition-timing-function: ease-in-out;
+
+        @media (prefers-reduced-motion: reduce) {
+          transition: none;
+        }
+      }
+
+      .ht-sheets-bar__tabs--indicator-moving::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: var(--ht-private-tab-indicator-path-width, 0);
+        transform: translateX(var(--ht-private-tab-indicator-path-x, 0));
+        background: var(--ht-sheets-bar-tab-background-color);
+        pointer-events: none;
+      }
+
+      .ht-sheets-bar__tabs--indicator-moving .ht-sheets-bar__tab--indicator-path,
+      .ht-sheets-bar__tabs--indicator-moving .ht-sheets-bar__tab--active {
+        background: transparent;
+      }
+
+      .ht-sheets-bar__tabs--indicator-moving .ht-sheets-bar__tab--active {
+        box-shadow: none;
       }
 
       .ht-sheets-bar__tab-label,
@@ -464,6 +574,299 @@ $all-sheets-visible-items: 8;
       &.ht-sheets-bar-dragging .ht-sheets-bar__tab {
         pointer-events: none;
       }
+    }
+  }
+
+  .ht-grid > .ht-sheet-switch {
+    @include z-index-map.apply-z-index("ht-sheet-switch");
+
+    position: absolute;
+    inset: 0;
+    overflow: visible;
+    pointer-events: none;
+
+    .ht-sheet-switch__pane {
+      position: absolute;
+      overflow: hidden;
+    }
+
+    .ht-sheet-switch__covers,
+    .ht-sheet-switch__out,
+    .ht-sheet-switch__in {
+      position: absolute;
+      inset: 0;
+    }
+
+    .ht-sheet-switch__group {
+      position: absolute;
+    }
+
+    .ht-sheet-switch__cover {
+      position: absolute;
+      background-color: var(--ht-background-color);
+    }
+
+    .ht-sheet-switch__cell {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      justify-content: var(--ht-private-sheet-switch-cell-justify-content, flex-start);
+      box-sizing: border-box;
+      margin: 0;
+      padding-top: var(--ht-private-sheet-switch-cell-padding-top, 0);
+      padding-right: var(--ht-private-sheet-switch-cell-padding-right, 0);
+      padding-bottom: var(--ht-private-sheet-switch-cell-padding-bottom, 0);
+      padding-left: var(--ht-private-sheet-switch-cell-padding-left, 0);
+      overflow: hidden;
+      text-decoration-line: var(--ht-private-sheet-switch-cell-text-decoration-line, none);
+      text-overflow: var(--ht-private-sheet-switch-cell-text-overflow, clip);
+    }
+
+    .ht-sheet-switch__cell--comment::after {
+      @include comments.indicator;
+    }
+
+    .ht-sheet-switch__out,
+    .ht-sheet-switch__in {
+      animation-fill-mode: both;
+
+      @media (prefers-reduced-motion: reduce) {
+        animation: none;
+      }
+    }
+
+    .ht-sheet-switch__out {
+      opacity: 0;
+      animation-name: ht-sheet-switch-out;
+      animation-duration: var(--ht-private-sheet-switch-out-duration, var(--ht-table-transition));
+      animation-delay: calc(var(--ht-private-sheet-switch-stagger) * var(--ht-private-sheet-switch-index));
+      animation-timing-function: ease-in;
+    }
+
+    .ht-sheet-switch__in {
+      animation-name: ht-sheet-switch-in;
+      animation-duration: var(--ht-private-sheet-switch-in-duration, var(--ht-table-transition));
+      animation-delay: calc(
+        var(--ht-private-sheet-switch-stagger) *
+        var(--ht-private-sheet-switch-arrival-index, var(--ht-private-sheet-switch-index)) +
+        var(--ht-private-sheet-switch-in-delay, 0ms)
+      );
+      animation-timing-function: ease-out;
+    }
+
+    &.ht-sheet-switch--fade .ht-sheet-switch__in {
+      animation-name: ht-sheet-switch-fade;
+    }
+  }
+
+  .ht-grid[data-ht-sheet-switch="pending"] > .ht-grid-content > .handsontable {
+    #{$switch-selection-marks} {
+      opacity: 0 !important;
+    }
+
+    #{$switch-header-path}th.current {
+      box-shadow: none;
+    }
+  }
+
+  .ht-grid[data-ht-sheet-switch="awaiting"] > .ht-grid-content > .handsontable {
+    #{$switch-unfocused-marks} {
+      opacity: 0 !important;
+    }
+  }
+
+  .ht-grid[data-ht-sheet-switch="pending"] > .ht-grid-content > .handsontable,
+  .ht-grid[data-ht-sheet-switch="awaiting"] > .ht-grid-content > .handsontable {
+    #{switch-headers(":where(table.htCore) > thead > tr > ", $switch-highlights)} {
+      --ht-header-highlighted-shadow-size: 0;
+
+      color: var(--ht-header-foreground-color);
+      background-color: var(--ht-header-background-color);
+      box-shadow: none;
+    }
+
+    #{switch-headers(":where(table.htCore) > thead > tr > ", $switch-highlights, ".htFiltersActive")} {
+      background-color: var(--ht-header-filter-background-color);
+    }
+
+    #{switch-headers(":where(table.htCore) > tbody > tr > ", $switch-highlights)} {
+      --ht-header-highlighted-shadow-size: 0;
+
+      color: var(--ht-header-row-foreground-color);
+      background-color: var(--ht-header-row-background-color);
+    }
+
+    #{switch-headers(":where(table.htCore) > tbody > tr.ht__row_even > ", $switch-highlights)} {
+      background-color: var(--ht-row-header-even-background-color);
+    }
+
+    #{switch-headers(":where(table.htCore) > tbody > tr.ht__row_odd > ", $switch-highlights)} {
+      background-color: var(--ht-row-header-odd-background-color);
+    }
+
+    #{switch-headers(":where(table.htCore) > :is(thead, tbody) > tr > ", $switch-accents)} {
+      border-top-color: var(--ht-cell-vertical-border-color);
+      border-bottom-color: var(--ht-cell-vertical-border-color);
+      border-inline-start-color: var(--ht-cell-horizontal-border-color);
+      border-inline-end-color: var(--ht-cell-horizontal-border-color);
+    }
+
+    #{switch-headers(":where(table.htCore) > :is(thead, tbody) > tr > ", $switch-accents, ":first-child")} {
+      border-inline-start-color: var(--ht-border-color);
+    }
+
+    #{switch-headers(":where(table.htCore) > thead > tr > ", $switch-accents, ":last-child:not(.htLastRowHeaderColumn)")} {
+      border-inline-end-color: var(--ht-border-color);
+    }
+
+    #{switch-headers(":where(table.htCore) > :is(thead, tbody) > tr:first-child > ", $switch-accents)} {
+      border-top-color: var(--ht-border-color);
+    }
+
+    #{switch-headers(":where(table.htCore) > :is(thead, tbody) > tr:last-child > ", $switch-accents)} {
+      border-bottom-color: var(--ht-border-color);
+    }
+
+    #{$switch-header-path}th.ht__active_highlight {
+      > .ht-hidden-indicator-start,
+      > .ht-hidden-indicator-end {
+        color: var(--ht-hidden-indicator-color);
+      }
+
+      .changeType .ht-icon {
+        color: var(--ht-icon-button-icon-color);
+      }
+
+      .changeType::after {
+        box-shadow: 0 0 0 1px var(--ht-icon-button-border-color);
+        background-color: var(--ht-icon-button-background-color);
+      }
+
+      .collapsibleIndicator.collapsed > .ht-icon,
+      .ht_nestingButton.ht_nestingExpand > .ht-icon {
+        color: var(--ht-collapse-button-close-icon-color);
+      }
+
+      .collapsibleIndicator.expanded > .ht-icon,
+      .ht_nestingButton.ht_nestingCollapse > .ht-icon {
+        color: var(--ht-collapse-button-open-icon-color);
+      }
+    }
+  }
+
+  .ht-grid[data-ht-sheet-switch="reveal"] > .ht-grid-content > .handsontable {
+    #{$switch-selection-marks} {
+      transition: opacity var(--ht-private-sheet-switch-mark-duration) ease-out var(--ht-private-sheet-switch-mark-delay);
+    }
+
+    #{switch-headers($switch-header-path, $switch-accents)} {
+      transition:
+        color var(--ht-table-transition) ease-out,
+        background-color var(--ht-table-transition) ease-out,
+        border-color var(--ht-table-transition) ease-out,
+        box-shadow var(--ht-table-transition) ease-out;
+    }
+
+    #{$switch-header-path}th.current {
+      transition:
+        color var(--ht-table-transition) ease-out,
+        background-color var(--ht-table-transition) ease-out,
+        border-color var(--ht-table-transition) ease-out,
+        box-shadow var(--ht-private-sheet-switch-mark-duration) ease-out var(--ht-private-sheet-switch-mark-delay);
+    }
+
+    :where(table.htCore) > thead > tr > th.ht__highlight .relative::after {
+      transition: height var(--ht-table-transition) ease-out;
+    }
+
+    :where(table.htCore) > tbody > tr > th.ht__highlight .relative::after {
+      transition: width var(--ht-table-transition) ease-out;
+    }
+
+    #{$switch-header-path}th.ht__active_highlight {
+      #{$switch-active-icons} {
+        transition: color var(--ht-table-transition) ease-out;
+      }
+
+      .changeType::after {
+        transition:
+          box-shadow var(--ht-table-transition) ease-out,
+          background-color var(--ht-table-transition) ease-out;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #{$switch-selection-marks},
+      #{switch-headers($switch-header-path, $switch-accents)},
+      #{$switch-header-path}th.current,
+      #{$switch-header-path}th.ht__highlight .relative::after {
+        transition: none;
+      }
+
+      #{$switch-header-path}th.ht__active_highlight {
+        #{$switch-active-icons},
+        .changeType::after {
+          transition: none;
+        }
+      }
+    }
+  }
+
+  @keyframes ht-sheets-bar-tab-enter {
+    from {
+      opacity: 0;
+      transform: translateX(var(--ht-private-tab-enter-offset));
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes ht-sheets-bar-tab-leave {
+    from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    to {
+      opacity: 0;
+      transform: translateX(var(--ht-private-tab-enter-offset));
+    }
+  }
+
+  @keyframes ht-sheet-switch-out {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    to {
+      opacity: 0;
+      transform: translateY(calc(var(--ht-line-height) * -0.4));
+    }
+  }
+
+  @keyframes ht-sheet-switch-fade {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes ht-sheet-switch-in {
+    from {
+      opacity: 0;
+      transform: translateY(calc(var(--ht-line-height) * 0.4));
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 }

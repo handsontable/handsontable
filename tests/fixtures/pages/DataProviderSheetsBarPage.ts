@@ -24,6 +24,7 @@ interface GotoOptions {
   userFetchListener?: boolean;
   noEmptyDataState?: boolean;
   releaseInitialFetch?: boolean;
+  windowScroll?: boolean;
 }
 
 /**
@@ -134,6 +135,7 @@ export class DataProviderSheetsBarPage {
    * (`?userErrorListeners=1`). `userFetchListener: true` adds a user `afterDataProviderFetch` listener that returns
    * an inflated `totalRows` (`?userFetchListener=1`). `noEmptyDataState: true` builds the grid without EmptyDataState
    * (`?noEmptyDataState=1`). `releaseInitialFetch: false` returns while the initial `ORD` fetch is still pending.
+   * `windowScroll: true` builds the grid with no `width` or `height`, so the window scrolls it (`?windowScroll=1`).
    */
   async goto(options: GotoOptions = {}): Promise<void> {
     const extraParams = [
@@ -149,6 +151,7 @@ export class DataProviderSheetsBarPage {
       options.userErrorListeners ? '&userErrorListeners=1' : '',
       options.userFetchListener ? '&userFetchListener=1' : '',
       options.noEmptyDataState ? '&noEmptyDataState=1' : '',
+      options.windowScroll ? '&windowScroll=1' : '',
     ].join('');
 
     await this.page.goto(
@@ -724,6 +727,34 @@ export class DataProviderSheetsBarPage {
   }
 
   /**
+   * Switch to a sheet through `setActiveSheet()` with an `afterSheetTabChange` listener that, for
+   * that switch only, switches on to a second sheet, or turns the sheets bar off when no second
+   * sheet is given.
+   *
+   * @param {number} index The tab's position the first switch goes to, 0-based.
+   * @param {number|null} nextIndex The tab's position the listener switches on to, or `null` to
+   * turn the sheets bar off.
+   */
+  async activateSheetWithChangeListener(index: number, nextIndex: number | null): Promise<void> {
+    await this.page.evaluate(([first, next]) => {
+      const hot = window.hot as unknown as FixtureHotWithSheetPlugins & {
+        addHookOnce(name: string, callback: () => void): void,
+      };
+      const sheetsBar = hot.getPlugin('sheetsBar');
+      const sheets = sheetsBar.getSheets();
+
+      hot.addHookOnce('afterSheetTabChange', () => {
+        if (next === null) {
+          hot.updateSettings({ sheetsBar: false });
+        } else {
+          sheetsBar.setActiveSheet(sheets[next].id);
+        }
+      });
+      sheetsBar.setActiveSheet(sheets[first].id);
+    }, [index, nextIndex] as const);
+  }
+
+  /**
    * Remove a sheet through the SheetsBar plugin, the way its tab menu does.
    *
    * @param {number} index The tab's position, 0-based.
@@ -753,5 +784,70 @@ export class DataProviderSheetsBarPage {
    */
   toast(): Locator {
     return this.page.locator('.ht-notification__toast');
+  }
+
+  /**
+   * The layer that draws a sheet switch's content swap, or the fade of a server sheet's rows.
+   *
+   * @returns {Locator} The layer locator.
+   */
+  switchLayer(): Locator {
+    return this.grid.locator('.ht-grid > .ht-sheet-switch');
+  }
+
+  /**
+   * The temporary marker that slides between the tabs on a sheet switch.
+   *
+   * @returns {Locator} The marker locator.
+   */
+  tabIndicator(): Locator {
+    return this.grid.locator('.ht-sheets-bar__tab-indicator');
+  }
+
+  /**
+   * The switch state the grid element carries (`pending`, `awaiting`, or `reveal`), or `null` when it
+   * carries none.
+   *
+   * @returns {Promise<string | null>}
+   */
+  async switchState(): Promise<string | null> {
+    return this.grid.locator('.ht-grid').getAttribute('data-ht-sheet-switch');
+  }
+
+  /**
+   * Reads the computed opacity of the selection borders the master pane lays out: the focused
+   * cell's border, and the borders of the selected area.
+   *
+   * @returns {Promise<{ current: string[], area: string[] }>}
+   */
+  async selectionBorderOpacities(): Promise<{ current: string[], area: string[] }> {
+    return this.page.evaluate(() => {
+      const master = window.hot.rootElement.querySelector(':scope > .ht_master') as HTMLElement;
+      const opacities = (selector: string) => Array.from(master.querySelectorAll(selector))
+        .filter(element => element.getClientRects().length > 0)
+        .map(element => getComputedStyle(element).opacity);
+
+      return { current: opacities('.wtBorder.current'), area: opacities('.wtBorder.area') };
+    });
+  }
+
+  /**
+   * Reads the running switch layer: whether it fades, how many leaving layers it holds, the text of its entering
+   * body copies, and the text of its entering column header copies (the panes along the top).
+   *
+   * @returns {Promise<{ isFade: boolean, out: number, body: string[], headers: string[] }>}
+   */
+  async switchLayerContent(): Promise<{ isFade: boolean, out: number, body: string[], headers: string[] }> {
+    return this.switchLayer().evaluate((layer) => {
+      const texts = (selector: string) => Array.from(layer.querySelectorAll(selector))
+        .flatMap(copy => (copy.textContent ?? '').split('\n'));
+
+      return {
+        isFade: layer.classList.contains('ht-sheet-switch--fade'),
+        out: layer.querySelectorAll('.ht-sheet-switch__out').length,
+        body: texts('[data-pane="ht_master"] .ht-sheet-switch__in > .ht-sheet-switch__cell'),
+        headers: texts(':is([data-pane^="ht_clone_top"]) .ht-sheet-switch__in > .ht-sheet-switch__cell'),
+      };
+    });
   }
 }

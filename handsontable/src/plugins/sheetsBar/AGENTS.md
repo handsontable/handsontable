@@ -416,6 +416,205 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `inset-inline-end`) and the wrapper's reserved end padding moved to the left, under the text. The
   span is an `inline-block` with its own ellipsis (`_dropdown-menu.scss`), so a long name still
   truncates at its own logical end. Pinned by `tests/e2e/icon-elements-misc.spec.ts`.
+- **The switch animation's state is a `data-ht-sheet-switch` attribute on `rootGridElement`, never
+  a class.** Core styles carry attribute selectors on `class` in an ancestor position
+  (`div[class^=ht_clone] …`), and Chrome invalidates those for a class change on ANY element, so a
+  class toggled on the root, the grid element, or the wrapper restyled every cell (about 0.5 ms per
+  toggle, measured). The attribute only invalidates what the switch rules match. Those rules
+  (`_sheets-bar.scss`) list the restyled header classes one by one rather than through
+  `th:is(...)`, and hide the header accent line through `--ht-header-highlighted-shadow-size`
+  instead of a `.relative::after` rule: with those two forms a state change restyled about 156
+  elements on a 14 × 12 viewport, without them about 40. The selection
+  marks are opted in by layer class (`.wtBorder.current`/`.area`/`.fill`/`.corner`, the handles,
+  `td.area*::before`), never a bare `.wtBorder`, which would hide custom borders too (same rule as
+  the print block in `_selection.scss`). A reveal transition outlives the attribute: removing it
+  leaves `transition: all 0s`, which keeps a running transition with an unchanged end value, so
+  the fade finishes on its own; a test reads the end state after finishing the grid's animations.
+  A switch waiting for a server sheet's rows uses `awaiting`, not `pending`: the wait has no upper
+  bound, so it hides every mark but `.wtBorder.current`, which keeps the focus visible. The
+  animation tracks the value it wrote (`#state`), so `finish()` removes it with no DOM read, and a
+  phase that throws while it builds (`#finishOnThrow()`) removes it before the error leaves.
+- **A switch onto a server sheet still fetching runs the marker only, and fades the rows in when
+  they land.** `setActiveSheet` reads `isFetching()` right after `#showServerSheet()`, inside the
+  commit, so a fetch a host starts from `afterSheetTabChange` does not turn a replayed sheet's
+  content swap into a wait. A landing runs `loadData()` — `afterLoadData`, `afterChange(null,
+  'loadData')`, and a render — BEFORE DataProvider calls `onShownResponse`, so while a switch waits
+  for rows those two hooks must not end it (they are the rows arriving), and the fade cannot play
+  from `onShownResponse` itself: it only marks the rows landed, and the next `afterRender` (the
+  render `#applyFetchResult()` ends with) draws the fade from the final DOM. A visible fetch that
+  fails reports nothing to the owner, so the wait is dropped from the plugin's own
+  `afterDataProviderFetchError`/`afterDataProviderFetchAbort` listeners — timing only, gated on
+  `isFetching()` being `false`, which ignores a failure of a sheet the grid does not show. Pinned
+  by `tests/e2e/sheets-bar-switch-animation-server.spec.ts`.
+- **The switch animation (`ui/switchAnimation/`, `ui/switchTiming.ts`) depends on where
+  `setActiveSheet` calls it, and on a few rules that look optional.**
+  - Nothing moves while the grid loads. `#switchTransition()` answers `0` until the motion gate
+    (`ui/motionGate.ts`) opens, so a switch, a tab entrance, or a marker slide made before then is
+    exactly the instant path, with no DOM read. The first `afterRender` after a genuine enable
+    (init, `sheetsBar` turned on later, a workbook rebuild) arms it with one
+    `rootWindow.requestAnimationFrame`, and the gate opens in that frame. A host that calls
+    `setActiveSheet()` or `addSheet()` in the constructor's task therefore animates nothing.
+    `#releaseState()` shuts the gate and cancels the frame on a genuine teardown only: a
+    workbook-preserving round trip (every wrapper re-render) must keep it open, or the wrappers
+    would never animate. Pinned by `tests/e2e/sheets-bar-switch-animation-load.spec.ts` and
+    `__tests__/motionGate.unit.js`.
+  - Snapshot points: `prepare()` runs inside the commit callback, after
+    `afterSheetTabStateCapture` and before `#switchTo()`, so the outgoing cells are read while the
+    old sheet is still on screen. `play()` (or `awaitRows()`) runs only after `#commit()` returns,
+    which is after `afterSheetTabChange`, so a host listener that changes the grid there is already
+    in the incoming DOM. A rejected or throwing switch drops the prepared snapshot in the `finally`.
+    A listener there may switch again or disable the plugin. The later switch owns the animation,
+    so the outer one starts nothing and finishes nothing once `#switchCount` moved on or the plugin
+    is off (`#ownsSwitchAnimation()`): its `awaitRows()` replaced the inner wait, whose rows then
+    never matched, and the selection stayed hidden for good.
+  - Finish before snapshot: the callback calls `finish()` first, so a rapid second switch reads
+    the outgoing cells from a settled grid. The first swap's layer, its pending timeouts, and the
+    state attribute are gone before `prepare()` runs, and no stale timeout can end the new swap.
+  - Cleanup is timer-based, through `hot._registerTimeout()` (the tab marker and tab entrances
+    included), never `animationend`/`transitionend`. The visual-test runner disables CSS
+    animations and reduced motion turns them off, so those events never fire there, and the grid's
+    destroy clears registered timeouts.
+  - `afterScroll` ends a swap only when the holder or window offset differs from the one the layer
+    was laid out for (`finishIfScrolled()`). The switch restores its own scroll before `play()`
+    records the offsets, but the `afterScroll` that restore causes arrives later, from the
+    holder's `scroll` event, so a listener that finished on any `afterScroll` would cancel every
+    swap.
+  - Never move the tab marker by transforming a tab element: the drag FLIP owns each tab's inline
+    `transform`. The marker is a separate `aria-hidden` element, and `TabStrip.render()` clears the
+    host, so while a slide runs it puts the element back and restarts the slide from the marker's
+    on-screen box to the active tab's new box, over the time left (inline `transition-duration`).
+    Removing the active tab switches before the model drops it, so the slide's first target is
+    stale until that repaint. A newly created tab does animate its own
+    `transform` (the `ht-sheets-bar-tab-enter` keyframes). Every render rebuilds it, so
+    `#applyEntrance()` re-applies the class with a negative `animation-delay` to resume at the
+    elapsed point. A drag start finishes entrances and the marker, and `TabDrag` measures the grab
+    offset from the tab's resting edge, without its in-flight translation.
+  - A sheet moved from the tab menu or the API slides the tabs (`TabStrip.slideTabs()`): the plugin
+    records each tab's `offsetLeft` before the model moves (`captureTabPositions()`, plus the
+    in-flight translation only while a slide already runs), and after the repaint each tab starts
+    at its old place through an inline `translateX` and transitions to its new one. The duration
+    is `tabSlideDurationMs()` (the marker's `2.25 × T`), written on the strip as
+    `--ht-private-tab-slide-duration`, which the tabs' one `transform` transition reads (the drag
+    keeps its `150ms` fallback). The moved active tab carries its own marker (background and
+    underline are its own styles), so no indicator element runs. A drag commit skips the slide
+    (the drag already placed the tab); a drag start, a rename, and `destroy()` finish it; a
+    repaint and a preserved rebuild continue it from the on-screen positions over the time left.
+  - A removed sheet's tab leaves through a copy (`captureLeavingTab()` before the model drops it,
+    `slideTabOut()` after the repaint): a `div.ht-sheets-bar__tab-ghost` at the tab's old layout box,
+    `inert`, `aria-hidden`, `pointer-events: none`, holding clones of the label and chevron. It must
+    never carry the `ht-sheets-bar__tab` class or `--active`: every tab query (`#tabs()`, the drag,
+    `#activeTabBox()`, the focusable list in `bar.ts`, the fixtures' test-id stamping) would count it.
+    It fades out toward the inline start over `T` (`ht-sheets-bar-tab-leave`, the entrance offset
+    reversed) and is removed by a registered timeout, while the tabs after it close the gap through
+    the move slide. `render()` clears the strip, so it re-inserts each copy first in the strip, under
+    the tabs and the marker, with a negative `animation-delay`; a drag start, a rename, and
+    `destroy()` remove it, and a preserved rebuild hands it over in `releaseMotion()`.
+  - The tab's one `transition` list carries `transform` (drag and move slides) and `color` over
+    `T`; reduced motion drops both. A hovered tab changes its text color only
+    (`--ht-sheets-bar-tab-hover-foreground-color`) and keeps its resting background: no tab paints
+    the hover background token. A dragged tab keeps its resting surface too, and it must stay
+    opaque, because the passing tabs travel behind it. Never put `background-color` in the tab's
+    transition list: the marker slide switches the tabs it uncovers from transparent back to their
+    surface the moment it ends, and a fade there flashes the bar color through an opaque custom tab
+    color.
+  - `play()` measures in the task that restored the sheet's scroll. The frozen panes follow the
+    master from its `scroll` event, at the start of the next frame, so at that point a header or
+    frozen cell is still where the old offset left it. `collectVisibleCells()` moves each box by
+    its pane's lag (`paneLag()`: clone holder offset minus master holder offset). Never call
+    `wtOverlays.syncScrollPositions()` instead: it draws, so a switch fires an extra
+    `afterDrawSelection` (and the scroll hooks) that a switch without animation does not.
+  - A header is unchanged only when its text, pane, and box all match. Column letters and row
+    numbers keep their text between sheets scrolled apart but move, and a header left out of the
+    swap there had a leaving copy drawn over it, uncovered.
+  - The rows and columns are walked in renderable space: the frozen bottom and end bands count
+    back from `view.countRenderableRows()`/`countRenderableColumns()` (capped by `maxRows` and
+    `maxCols`), and the scrollable range maps first and last to renderable indexes, so a hidden
+    index between them is never walked or counted toward the cap.
+  - `MAX_ANIMATED_CELLS` (1,500 cells, headers included) caps the swap: `collectVisibleCells()`
+    answers `null` above it and the switch skips the content swap. `prepare()` still sets the
+    pending state, and `play()` goes straight to the reveal, so the restored selection fades in
+    on a large viewport too.
+  - A settings update is not an interruption. React, Vue, and Angular re-send their settings on
+    every render, and an `activeSheet` setting switches from inside `afterUpdateSettings`. A
+    workbook-preserving `updatePlugin()` keeps the swap too: `#releaseState()` finishes it only on
+    a genuine teardown. The tab strip is rebuilt on that round trip, so `#releaseState()` takes
+    its motion first (`TabStrip.releaseMotion()`, while the old strip is still laid out) and
+    `enablePlugin()` hands it to the new strip after the first render (`resumeMotion()`). A settings change that moves the layout ends it through the resize check,
+    a data load, or the structure hooks.
+  - Only DataProvider's own load (source `dataProvider`) counts as the awaited rows arriving. Any
+    other `afterLoadData`, a host `loadData()` included, ends the wait; `afterChange(null,
+    'loadData')` is left to that listener. From the arriving load on, the wait stops watching the
+    layout, because the rows themselves resize and scroll the grid. Before it, a scroll or a resize
+    drops the wait like it ends a running swap: `awaitRows()` records the layout.
+  - Never `cloneNode()` cell content into the layer. A parser-inserted `<svg><script>` is inert in
+    the cell, but its clone runs once inserted; a cloned radio joins the real group and unchecks
+    it, a cloned input joins an enclosing `<form>`, and a cloned custom element, iframe, video, or
+    image constructs or loads again. `passiveContent.ts` builds the copy element by element from
+    an allowlist of drawing-only elements and styling attributes (an `img` becomes an empty box of
+    its size, a checkbox or radio a disabled one with no `name`, `form`, or `id`). A cell holding
+    any other element is copied as its visible text. Extend the allowlists, never bypass them.
+  - Within a column group the swap runs out, then in, never both at once: the leaving copies
+    fade out over the first 45% of `T` (`swapOutDurationMs()`) and the arriving copies wait 50%
+    of `T` (`swapInDelayMs()`) before they rise in over the rest. The swap writes the three values
+    on the layer as `--ht-private-sheet-switch-out-duration`, `-in-delay`, and `-in-duration`; the
+    fade layer of a server sheet writes none and keeps the full `T`. A column whose width changed
+    between the sheets moves the columns after it, so an arriving column can land over a LATER
+    group's leaving copies; `arrivalPositions()` (`layerBuilder.ts`) gives such a group the later
+    group's position as `--ht-private-sheet-switch-arrival-index`, and its arriving side keeps that
+    group's time. A crossfade drew the old and the new text of a cell over each other, and a rising
+    row over the row above it. Pinned by the
+    "never shows a leaving and an arriving copy at once" case in
+    `tests/e2e/sheets-bar-switch-animation.spec.ts`.
+  - The layer is `inert`. `.ht-sheet-switch__out` rests at `opacity: 0` and the keyframes'
+    `both` fill shows it, so a page that disables animations (the visual-test runner) shows only
+    the arriving copies. The non-inherited text styles (padding, `justify-content`,
+    `text-decoration-line`, `text-overflow`) never reach a copy through `inherit`, which made Blink
+    restyle every copy under an animating side each frame. The side carries its first copy's
+    values as `--ht-private-sheet-switch-cell-*` variables the copy rule reads, and only a copy whose
+    values differ writes them inline: writing them on every copy cost about 2 ms per switch on an
+    840-cell view; each column group is sized to its
+    column, not the pane, so a software compositor does not redraw pane-sized surfaces.
+  - The tab marker slides under the tabs. Only the tabs it passes over (between its start and end
+    boxes, marked `ht-sheets-bar__tab--indicator-path`) and the active tab drop their background
+    while it moves, so a theme whose inactive tab background differs from the strip keeps it on
+    every other tab. The strip's `::before` repaints the inactive tab surface under the marker
+    across the marked span (`--ht-private-tab-indicator-path-x`/`-width`), so an opaque custom tab color
+    does not flash to the bar color.
+  - `#revealActiveTab()` measures `offsetLeft`/`offsetWidth` against `scrollLeft`/`clientWidth`,
+    never `getBoundingClientRect()`: a new tab is still translated by its entrance when the strip
+    reveals it, and the rect under-scrolls it.
+  - `finish()` returns before touching the DOM when nothing runs: the interrupting listeners call
+    it on every key press, pointer press, and data change.
+  - Every internal custom property the bar and the switch write or read is `--ht-private-…`, never
+    plain `--ht-…`, which is the public theme token namespace. The timing factors live in
+    `switchTiming.ts` only: the marker's duration is its inline `transition-duration`, and the
+    selection fade's delay and duration are `--ht-private-sheet-switch-mark-delay`/`-duration`,
+    written on `rootGridElement` by `prepare()`/`awaitRows()`. A custom property there restyles the
+    whole grid, so it is written only when the transition changes (`#revealTimingMs`) and removed
+    by `release()` on a genuine teardown. A factor of one stays `var(--ht-table-transition)` in CSS.
+  - The pending and awaiting states make a selected header look plain, and that covers what
+    other plugins draw on it: the filter tint (`htFiltersActive`) keeps
+    `--ht-header-filter-background-color`, and the hidden-index carets, the menu button, and the
+    collapse buttons take their unselected colors. Each of those rules outranks the plugin's
+    `ht__active_highlight` rule, and the reveal fades each one with the header. A focused header's
+    ring (`th.current` box-shadow) hides in `pending` only and fades in with the selection marks,
+    like `.wtBorder.current`; `awaiting` keeps it. The accent line (`.relative::after`) grows back
+    through a reveal-only `height`/`width` transition, which costs one restyle of every
+    `.relative` on the two state changes around the reveal.
+  - The layer's z-index equals the topmost frozen corner's (180) and it is the grid element's last
+    child, so it paints above every clone by tree order and adds no stacking level the host page
+    did not already compete with. `isolation: isolate` on `.ht-grid` was rejected: it would trap
+    the cell editor (200) and the mobile selection handles below the bar's positioned tabs and
+    controls wherever they overflow the grid.
+  - A copy carries what a cell draws on itself only through `CELL_MARK_CLASSES`
+    (`cellStyles.ts`): a commented cell's copy gets `ht-sheet-switch__cell--comment`, drawn by the
+    shared `comments.indicator` mixin, and is never merged into a run of lines. A copied element
+    takes its computed size only when it draws no text (a header's menu button, a caret); an
+    element with text is laid out again, because the style cache is shared by every cell with the
+    same classes and size, and a text width differs per cell.
+  - The token is parsed from `getComputedStyle()` (`resolveTransition()`), never
+    `stylesHandler.getCSSVariableValue()`, which runs numeric values through `Math.ceil` and turns
+    `0.15s` into `1`.
 
 Tests: `__tests__/*.unit.js` (Jest), `tests/e2e/sheets-bar*.spec.ts` (Playwright),
 `visual-tests/tests/js-only/sheetsBar/`. The unit suite drives the strip through DOM events and

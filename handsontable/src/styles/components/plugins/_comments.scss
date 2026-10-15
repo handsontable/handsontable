@@ -2,23 +2,27 @@
 
 // Comments
 
+@mixin indicator {
+  @include mixins.pseudo;
+
+  position: absolute;
+  top: 0;
+  inset-inline-end: 0;
+  inset-inline-start: unset;
+  border-inline-start: var(--ht-comments-indicator-size, 4px) solid
+    transparent;
+  border-inline-end: none;
+  border-top: var(--ht-comments-indicator-size, 4px) solid
+    var(--ht-comments-indicator-color, #1a42e8);
+}
+
 @mixin output {
   .handsontable {
     .htCommentCell {
       position: relative;
 
       &::after {
-        @include mixins.pseudo;
-
-        position: absolute;
-        top: 0;
-        inset-inline-end: 0;
-        inset-inline-start: unset;
-        border-inline-start: var(--ht-comments-indicator-size, 4px) solid
-          transparent;
-        border-inline-end: none;
-        border-top: var(--ht-comments-indicator-size, 4px) solid
-          var(--ht-comments-indicator-color, #1a42e8);
+        @include indicator;
       }
     }
   }
