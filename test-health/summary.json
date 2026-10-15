@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-15T07:48:31.839Z",
+  "generatedAt": "2026-10-15T07:58:12.009Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 402,
+    "tests": 403,
     "needsTicket": 30,
     "quarantined": 0,
-    "entries": 2091
+    "entries": 2093
   },
   "rows": [
     {
@@ -12543,6 +12543,42 @@
         "leg": "cross-browser/chromium",
         "status": "failed",
         "error": "differs from base/develop (full tier); render sha256 e927584fef09",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/plugins/formulas/__tests__/plugins/autofill.spec.js|Formulas Integration with Autofill should cooperate properly with trimmed rows (populating not trimmed elements)",
+      "tier": "jasmine",
+      "file": "handsontable/src/plugins/formulas/__tests__/plugins/autofill.spec.js",
+      "line": null,
+      "title": "Formulas Integration with Autofill should cooperate properly with trimmed rows (populating not trimmed elements)",
+      "count7": 2,
+      "count30": 2,
+      "countAll": 2,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD.min (theme: classic)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (1 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-15T07:57:27Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38697996418",
+        "branch": "feature/DEV-140_Autofill-diagonal-drag",
+        "leg": "UMD (theme: classic)",
+        "status": "failed",
+        "error": "Expected $[3][0] = 33 to equal null.",
         "source": "ci"
       },
       "needsTicket": false
