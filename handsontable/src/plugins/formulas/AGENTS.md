@@ -443,6 +443,34 @@ load and min padding working after a switch threw mid-update" pins the `finally`
 SheetsBar switch, and SheetsBar's own `#blockAutoPadding` reset with it. "still loads the engine sheet when the host switches the Formulas sheet itself" has no
 SheetsBar, so it only pins the flag's default.
 
+## Object rows: the sheet is only as wide and as aligned as `getSourceDataArray()` makes it
+
+For array-of-objects data the sheet is built from `getSourceDataArray()`, which `DataSource#getAtRow`
+assembles one visual column at a time. Two defects of that read broke every fill, paste and formula that
+addressed a column through the engine (GitHub #13852), and both are invisible in a grid without
+Formulas, because the grid reads cells through `getDataAtCell()`:
+
+- **The loop used to stop at the number of keys in the first row.** `columns` can declare far more
+  columns than a row has keys (`data: 'list.7'` reads one key each), so the array was shorter than the
+  grid and the engine sheet ended where the keys did. Everything past it read `null` in a fill.
+- **A column declared without `data` had no slot.** `colToProp()` answers its own index for such a
+  column, and the old integer test took that for "an index that names no column". Every later column
+  then sat one place to the left of its visual index, so the engine read the neighbor's value. It stays
+  hidden while the shifted values happen to be equal, which is why the report said the fill worked
+  "before Jan 2025": every value there was 0.
+
+A declared column keeps its slot (`undefined` when nothing binds it), the same as a `{ data: null }`
+column. The test for "names no column" is `toPhysicalColumn()`, not the integer prop, and "declared"
+means a place in the `columns` array below `maxCols`: a column `maxCols` cuts off has no slot. (`minCols`
+and `minSpareCols` build no column while `columns` is set, so they never reach this read.) The slots follow
+the VISUAL column order, so a moved column takes its moved place. The loop's end is counted from that array, not from `countCachedColumns()`,
+because the property cache only reaches the last column that has a `data` option, so a trailing
+`Total` column would fall off the sheet. A `columns` function has no length to read, so a trailing
+column without `data` still drops out there. Do not work
+around either defect inside this plugin with a `getDataAtCell()` loop, because that would bypass the
+`modifySourceData` hook and the value getters the sheet relies on.
+Pinned by `src/__tests__/core/core.unit.js` and `tests/e2e/formulas-object-columns.spec.ts`.
+
 ## The engine's sheet size is not the grid's axis length, in either direction
 
 `getSheetDimensions()` answers with the extent of the sheet's **content**, and the engine accepts an order
@@ -549,6 +577,18 @@ sorts do not restore the original formulas. Product decision (2026-09-16): docum
 this as a known limitation. The supported workaround is `fixedRowsBottom` so
 summary formulas stay out of the sort (#12627). User-facing copy:
 `docs/content/guides/formulas/formula-calculation/formula-calculation.md`.
+
+## `beforeAutofill`: `orderIndex`, then registration order, decides who wins (DEV-3424)
+
+`#onBeforeAutofill` is added in `enablePlugin()` at the default `orderIndex` 0. At init that call comes from
+`afterPluginsInitialized` (`BasePlugin.init()` registers it with `addHookOnce`), which the last plugin's `init()`
+fires inside `beforeInit`, before `updateSettings()` registers the `beforeAutofill` option. The last callback that
+returns a value wins, so the option and any `addHook()` made after enabling beat the plugin, while a global hook,
+an `addHook()` made before enabling, and the option when Formulas is enabled later lose. `updatePlugin()` keeps
+the hook where it is, but `disablePlugin()` plus `enablePlugin()` re-adds it at the END of the `orderIndex` 0
+group and flips the winner. Only `addHook('beforeAutofill', cb, 1)` is independent of timing. Pinned by
+`tests/e2e/formulas-before-autofill-precedence.spec.ts`. Do not change the plugin's `orderIndex` or its
+registration point without treating it as a behavior change.
 
 ## Where to look next
 
