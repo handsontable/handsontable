@@ -162,8 +162,6 @@ function isAppliedConditionsState(value: unknown): value is AppliedConditionsSta
  * To choose the operators one column offers, set `filters: { availableConditions: [...] }` for that
  * column in the `columns` option. It replaces the grid-level `availableConditions` for that column.
  *
- * See [the filtering demo](@/guides/columns/column-filter/column-filter.md) for examples.
- *
  * @example
  * ::: only-for javascript
  * ```js
@@ -552,6 +550,22 @@ export class Filters extends BasePlugin {
     const trimmingMaps = this.hot.rowIndexMapper.trimmingMapsCollection.get() as IndexMap[];
 
     return trimmingMaps.some(map => map !== this.filtersRowsMap && map.getValueAtIndex(physicalRow) === true);
+  }
+
+  /**
+   * Tells the plugin that the rows pinned by `fixedRowsTop` and `fixedRowsBottom` changed without an
+   * `updateSettings()` call (the freeze bar writes the counts straight on the table meta), so the
+   * next full render re-checks which rows `filterFixedRows: false` exempts. Does nothing while this plugin is
+   * disabled. Internal; not public API.
+   *
+   * @private
+   */
+  _markPinnedRowsStale(): void {
+    if (!this.enabled) {
+      return;
+    }
+
+    this.#markPinnedRowsStale(false);
   }
 
   /**

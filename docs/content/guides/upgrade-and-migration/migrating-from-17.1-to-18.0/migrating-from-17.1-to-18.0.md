@@ -542,6 +542,110 @@ The UMD bundle `handsontable.full.js` (and its minified `handsontable.full.min.j
 
 For other ways to connect the engine, such as a pre-built instance shared between grids, see [Initialization methods](@/guides/formulas/formula-calculation/formula-calculation.md#initialization-methods).
 
+## 9. Replace the removed `DetailedSettings` type exports
+
+Handsontable 18.0 no longer exports the `DetailedSettings` type from the `handsontable/plugins/contextMenu`, `handsontable/plugins/columnSummary`, and `handsontable/plugins/formulas` entry points. Version 17.x exported it from all three. The 18.0 type declarations list only the plugin class, the plugin constants, and a few named types.
+
+### Who is affected
+
+You are affected if your TypeScript source files import `DetailedSettings` from any of these entry points:
+
+```ts
+import type { DetailedSettings } from 'handsontable/plugins/contextMenu';
+import type { DetailedSettings } from 'handsontable/plugins/columnSummary';
+import type { DetailedSettings } from 'handsontable/plugins/formulas';
+```
+
+After you upgrade, the TypeScript compiler reports `TS2305: Module '"handsontable/plugins/contextMenu"' has no exported member 'DetailedSettings'` (or the same error for the other two entry points). Some of your callback parameters can also lose their types and report `TS7006`.
+
+### How to migrate
+
+Remove the `DetailedSettings` import and use the replacement for each plugin.
+
+**`columnSummary`**
+
+Use `SummaryEndpoint`. It describes one column summary endpoint.
+
+```ts
+// Before (17.x)
+import type { DetailedSettings } from 'handsontable/plugins/columnSummary';
+
+const columnSummary: DetailedSettings[] = [
+  { sourceColumn: 0, type: 'sum', reversedRowCoords: true, destinationRow: 0, destinationColumn: 0 },
+];
+
+// After (18.0)
+import type { SummaryEndpoint } from 'handsontable/plugins/columnSummary';
+
+const columnSummary: SummaryEndpoint[] = [
+  { sourceColumn: 0, type: 'sum', reversedRowCoords: true, destinationRow: 0, destinationColumn: 0 },
+];
+```
+
+`SummaryEndpoint` has an index signature, so options that it doesn't list, such as `reversedRowCoords`, still compile. TypeScript doesn't check these options for typos.
+
+**`contextMenu`**
+
+The settings object of the `contextMenu` option no longer has a dedicated type. Remove the annotation and type the callback parameters yourself. To type a single menu item, use `MenuItemConfig`.
+
+```ts
+// Before (17.x)
+import type { DetailedSettings } from 'handsontable/plugins/contextMenu';
+
+const contextMenu: DetailedSettings = {
+  callback(key, selection, clickEvent) {
+    console.log(key, selection, clickEvent);
+  },
+  items: {
+    row_above: {
+      disabled() {
+        return this.getSelectedLast()?.[0] === 0;
+      },
+    },
+  },
+};
+
+// After (18.0)
+import type Handsontable from 'handsontable/base';
+
+const contextMenu = {
+  callback(key: string, selection: unknown[], clickEvent?: Event) {
+    console.log(key, selection, clickEvent);
+  },
+  items: {
+    row_above: {
+      disabled(this: Handsontable.Core) {
+        return this.getSelectedLast()?.[0] === 0;
+      },
+    },
+  },
+};
+```
+
+The `clickEvent` parameter is optional, because `executeCommand()` can run a callback without an event.
+
+**`formulas`**
+
+Remove the type and the `as DetailedSettings` cast. The `formulas` option accepts the object as it is.
+
+```ts
+// Before (17.x)
+import type { DetailedSettings } from 'handsontable/plugins/formulas';
+
+const formulas = {
+  engine: HyperFormula,
+  namedExpressions: [{ name: 'ADDITIONAL_COST', expression: 100 }],
+} as DetailedSettings;
+
+// After (18.0)
+const formulas = {
+  engine: HyperFormula,
+  namedExpressions: [{ name: 'ADDITIONAL_COST', expression: 100 }],
+};
+```
+
+To keep a type annotation, use `Handsontable.GridSettings['formulas']`.
+
 ## Summary of breaking changes
 
 | Change | Who is affected | Action required |
@@ -555,6 +659,7 @@ For other ways to connect the engine, such as a pre-built instance shared betwee
 | `--ht-wrapper-border-radius` renamed to `--ht-border-radius`; `--ht-wrapper-border-width` and `--ht-wrapper-border-color` removed | Projects overriding these theme variables or passing the matching JS tokens | Rename to `--ht-border-radius` / `borderRadius`; recreate a wrapper border with `box-shadow` if needed |
 | Wrapper DOM structure changed -- new `.ht-grid-content`, `.ht-slot-top`, `.ht-slot-bottom`, and `.ht-overlay` elements | Projects with CSS selectors or DOM queries targeting Handsontable's wrapper elements by position | Update selectors to be class-based; account for the new `.ht-grid-content` wrapper and sibling slot containers |
 | HyperFormula no longer installed with the `handsontable` npm package | Projects that use the `Formulas` plugin and install Handsontable from npm | Run `npm install hyperformula`; keep `import { HyperFormula } from 'hyperformula'` and `formulas: { engine: HyperFormula }` |
+| `DetailedSettings` type removed from `handsontable/plugins/contextMenu`, `handsontable/plugins/columnSummary`, and `handsontable/plugins/formulas` | TypeScript projects importing `DetailedSettings` from these entry points | Use `SummaryEndpoint` for `columnSummary`; type `contextMenu` callbacks directly or use `MenuItemConfig` for items; drop the type and cast for `formulas` |
 
 ## Result
 
