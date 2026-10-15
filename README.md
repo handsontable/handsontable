@@ -135,7 +135,7 @@ You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https
     <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>Handsontable - JavaScript Data Grid Example</title>
+      <title>Handsontable DataGrid - JavaScript Example</title>
     </head>
     <body>
       <div id="handsontable-grid"></div>
