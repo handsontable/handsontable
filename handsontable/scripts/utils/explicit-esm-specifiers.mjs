@@ -10,6 +10,20 @@ import path from 'node:path';
 export const SELF_CONTAINED_MTS_DIRS = ['themes/static/variables/', 'i18n/languages/'];
 
 /**
+ * Entry-point declarations (relative to the package root) whose default export is `Handsontable`. A wrapper would
+ * type `import Handsontable from 'handsontable'` as the CommonJS module namespace under `node16`/`nodenext`
+ * (DEV-3430), and a self-contained copy would declare `Handsontable` a second time, which splits its identity from
+ * the one the `.d.ts` graph names (the Angular wrapper's declaration emit then fails with TS2883). Their `.d.mts`
+ * therefore imports a named re-export from an entry shim (`toEntryShim()`), which is the same symbol.
+ */
+export const ENTRY_POINT_DECLARATIONS = ['index.d.ts', 'base.d.ts'];
+
+/**
+ * Suffix of the entry shim written next to each entry-point declaration.
+ */
+export const ENTRY_SHIM_SUFFIX = '.entry.d.ts';
+
+/**
  * Replace every comment with spaces of the same length (newlines are kept), so a pattern run over the result
  * reports offsets that are valid in the original. A `//` only starts a comment at the start of a line or after
  * whitespace, which keeps `'http://...'` strings intact.
@@ -88,6 +102,14 @@ export function toMtsDeclaration(targetDir, dtsFile) {
   const hasDefault = /\bexport\s+default\b/.test(dtsContent);
   const normalized = path.posix.normalize(dtsFile.split(path.sep).join('/'));
 
+  if (hasDefault && ENTRY_POINT_DECLARATIONS.includes(normalized)) {
+    const name = path.posix.basename(normalized, '.d.ts');
+
+    const shim = `./${name}${ENTRY_SHIM_SUFFIX.replace(/\.d\.ts$/, '.js')}`;
+
+    return `export * from './${name}.js';\nimport { Handsontable } from '${shim}';\nexport default Handsontable;\n`;
+  }
+
   if (hasDefault && SELF_CONTAINED_MTS_DIRS.some(dir => normalized.startsWith(dir))) {
     return toExplicitEsmSpecifiers(dtsContent, dtsPath);
   }
@@ -100,4 +122,34 @@ export function toMtsDeclaration(targetDir, dtsFile) {
   }
 
   return mtsContent;
+}
+
+/**
+ * List the entry-point declarations that need an entry shim: the ones the composed package holds and that
+ * default-export. A tree without them (a partial composition, a fixture) gets no shim, so the shim never
+ * stands in for a declaration the package lacks.
+ *
+ * @param {string} targetDir The composed package directory.
+ * @returns {string[]} The entry-point `.d.ts` paths relative to `targetDir`.
+ */
+export function listEntryShimTargets(targetDir) {
+  return ENTRY_POINT_DECLARATIONS.filter((dtsFile) => {
+    const dtsPath = path.resolve(targetDir, dtsFile);
+
+    return existsSync(dtsPath) && /\bexport\s+default\b/.test(readFileSync(dtsPath, 'utf8'));
+  });
+}
+
+/**
+ * Build the entry shim that sits next to an entry-point declaration: a `.d.ts` that re-exports the default as the
+ * named export `Handsontable`. A named import from a CommonJS module keeps every meaning of the symbol (value,
+ * type, namespace) and its identity, which a default import under `node16` does not.
+ *
+ * @param {string} dtsFile The entry-point `.d.ts` path relative to the package root, e.g. `base.d.ts`.
+ * @returns {string} The shim source.
+ */
+export function toEntryShim(dtsFile) {
+  const name = path.posix.basename(dtsFile.split(path.sep).join('/'), '.d.ts');
+
+  return `import Handsontable from './${name}';\nexport { Handsontable };\n`;
 }

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the type of the default import of `handsontable` and `handsontable/base` under the `node16` and `nodenext` module resolution, which was the CommonJS module namespace instead of `Handsontable`, and added the named type exports to the `Handsontable` namespace.",
+  "type": "fixed",
+  "issueOrPR": 13865,
+  "breaking": false,
+  "framework": "none"
+}
