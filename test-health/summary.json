@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-15T12:41:03.314Z",
+  "generatedAt": "2026-10-15T13:28:44.303Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 404,
     "needsTicket": 30,
     "quarantined": 0,
-    "entries": 2097
+    "entries": 2098
   },
   "rows": [
     {
@@ -684,6 +684,43 @@
       "needsTicket": true
     },
     {
+      "key": "jasmine|handsontable/src/editors/intlDateEditor/__tests__/intlDateEditor.spec.js|IntlDateEditor should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)",
+      "tier": "jasmine",
+      "file": "handsontable/src/editors/intlDateEditor/__tests__/intlDateEditor.spec.js",
+      "line": null,
+      "title": "IntlDateEditor should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)",
+      "count7": 3,
+      "count30": 4,
+      "countAll": 4,
+      "runs30": 4,
+      "flakyRuns30": 0,
+      "branches30": 4,
+      "nightlyRuns30": 0,
+      "openBranches30": 4,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD (theme: main)",
+        "UMD.min (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-15T13:27:54Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38738667338",
+        "branch": "feature/DEV-140_Autofill-diagonal-drag",
+        "leg": "UMD.min (theme: main)",
+        "status": "failed",
+        "error": "Expected <td class=\"current\" role=\"gridcell\" tabindex=\"-1\" aria-colindex=\"1\" aria-selected=\"true\">...</td> to be <input data-hot-input tabindex=\"-1\" class=\"handsontableInput\" type=\"date\" style=\"width: 96px; height: 30px; overflow-y: visible; font-size: 14px; font-family: sans-serif;\">. Tip: To ch...",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
       "key": "visual|visual-tests/tests/js-only/notification/notification-bottom-end.spec.ts|js-only/notification/notification-bottom-end-1",
       "tier": "visual",
       "file": "visual-tests/tests/js-only/notification/notification-bottom-end.spec.ts",
@@ -816,42 +853,6 @@
         "leg": "e2e-horizon-min",
         "status": "flaky",
         "error": "Error: expect(received).toBe(expected) // Object.is equality",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "jasmine|handsontable/src/editors/intlDateEditor/__tests__/intlDateEditor.spec.js|IntlDateEditor should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)",
-      "tier": "jasmine",
-      "file": "handsontable/src/editors/intlDateEditor/__tests__/intlDateEditor.spec.js",
-      "line": null,
-      "title": "IntlDateEditor should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)",
-      "count7": 2,
-      "count30": 3,
-      "countAll": 3,
-      "runs30": 3,
-      "flakyRuns30": 0,
-      "branches30": 3,
-      "nightlyRuns30": 0,
-      "openBranches30": 3,
-      "legs": [
-        "UMD (theme: classic)",
-        "UMD (theme: main)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "passes alone"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-14T10:17:38Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38545271560",
-        "branch": "develop",
-        "leg": "UMD (theme: classic)",
-        "status": "failed",
-        "error": "Expected <td class=\"current\" role=\"gridcell\" tabindex=\"-1\" aria-colindex=\"1\" aria-selected=\"true\">...</td> to be <input data-hot-input tabindex=\"-1\" class=\"handsontableInput\" type=\"date\" style=\"width: 86px; height: 27px; overflow-y: visible; font-size: 13px; font-family: sans-serif;\">. Tip: To ch...",
         "source": "ci"
       },
       "needsTicket": true
