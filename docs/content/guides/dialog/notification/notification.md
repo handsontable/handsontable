@@ -21,7 +21,7 @@ category: Dialog
 addedIn: "17.1.0"
 ---
 
-Show non-blocking toast notifications for save confirmations, errors, and other transient feedback. Toasts are anchored to the Handsontable root, support stacking per corner, and work with the design system themes.
+Show non-blocking toast notifications for save confirmations, errors, and other transient feedback. Toasts are anchored to the Handsontable DataGrid root, support stacking per corner, and work with the design system themes.
 
 [[toc]]
 

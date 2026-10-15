@@ -29,7 +29,7 @@ Use the `EmptyDataState` plugin to display a contextual overlay when the grid ha
 
 ## Overview
 
-The Empty Data State plugin provides a user-friendly overlay system for Handsontable when there's no data to display. It automatically detects when your table is empty or when all data is hidden by filters, and displays an appropriate message with optional action buttons. It automatically integrates with the [Filters](@/api/filters.md) plugin to provide context-aware messages and actions.
+The Empty Data State plugin provides a user-friendly overlay system for Handsontable DataGrid when there's no data to display. It automatically detects when your table is empty or when all data is hidden by filters, and displays an appropriate message with optional action buttons. It automatically integrates with the [Filters](@/api/filters.md) plugin to provide context-aware messages and actions.
 
 ## Basic configuration
 

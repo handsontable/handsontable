@@ -25,7 +25,7 @@ searchCategory: Guides
 category: Formulas
 menuTag: updated
 ---
-The `Formulas` plugin adds spreadsheet-style calculation to Handsontable, powered by [HyperFormula](https://hyperformula.handsontable.com/). It supports ~400 built-in functions, cross-sheet references, named expressions, and custom function implementations.
+The `Formulas` plugin adds spreadsheet-style calculation to Handsontable DataGrid, powered by [HyperFormula](https://hyperformula.handsontable.com/). It supports ~400 built-in functions, cross-sheet references, named expressions, and custom function implementations.
 
 Filling formula cells with [autofill](@/guides/cell-features/autofill-values/autofill-values.md) adjusts relative references per target cell, the same way a spreadsheet application does. See [Autofill and formulas](@/guides/cell-features/autofill-values/autofill-values.md#autofill-and-formulas).
 

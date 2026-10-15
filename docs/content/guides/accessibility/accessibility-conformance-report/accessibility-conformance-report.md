@@ -2,7 +2,7 @@
 type: reference
 title: Accessibility conformance report (VPAT)
 metaTitle: Accessibility conformance report (VPAT) - JavaScript Data Grid | Handsontable
-description: Review Handsontable's Voluntary Product Accessibility Template (VPAT) report, covering WCAG 2.2 Level A and AA conformance.
+description: Review Handsontable DataGrid's Voluntary Product Accessibility Template (VPAT) report, covering WCAG 2.2 Level A and AA conformance.
 permalink: /accessibility-conformance-report
 canonicalUrl: /accessibility-conformance-report
 tags:
@@ -23,7 +23,7 @@ searchCategory: Guides
 category: Accessibility
 ---
 
-This page is the Voluntary Product Accessibility Template (VPAT) for Handsontable, documenting conformance with WCAG 2.1 and Section 508 accessibility standards.
+This page is the Voluntary Product Accessibility Template (VPAT) for Handsontable DataGrid, documenting conformance with WCAG 2.1 and Section 508 accessibility standards.
 
 This Accessibility Conformance Report (ACR) follows the VPAT&reg; 2.5 format developed by the Information Technology Industry Council (ITI). It describes how Handsontable, a JavaScript data grid component, conforms to the Web Content Accessibility Guidelines (WCAG) 2.2 at Level A and Level AA.
 

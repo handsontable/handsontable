@@ -32,7 +32,7 @@ Setting one option does not affect the other, even though both accept items in t
 
 ## Quick setup
 
-To enable the plugin, set the [`dropdownMenu`](@/api/options.md#dropdownmenu) configuration option to `true` when initializing Handsontable.
+To enable the plugin, set the [`dropdownMenu`](@/api/options.md#dropdownmenu) configuration option to `true` when initializing Handsontable DataGrid.
 
 ::: only-for javascript
 
