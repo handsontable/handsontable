@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { FixedColumnsEndLinePage, type FreezeLineSite } from '../fixtures/pages/FixedColumnsEndLinePage';
 
 /**
@@ -17,7 +17,7 @@ const SITE_LIST: FreezeLineSite[] = ['body', 'header', 'bottom'];
 for (const rtl of [false, true]) {
   const direction = rtl ? 'RTL' : 'LTR';
 
-  test.describe(`fixedColumnsEnd freeze line in every scroll state (${direction})`, { tag: '@core' }, () => {
+  test.describe(`fixedColumnsEnd freeze line in every scroll state (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
     let grid: FixedColumnsEndLinePage;
 
     test.beforeEach(async ({ page, theme, bundle }) => {

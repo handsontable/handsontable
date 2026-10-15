@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { AsyncImageFrozenColumnsPage } from '../fixtures/pages/AsyncImageFrozenColumnsPage';
 
 /**
@@ -6,7 +6,7 @@ import { AsyncImageFrozenColumnsPage } from '../fixtures/pages/AsyncImageFrozenC
  * measured the row, so the master row grows. The frozen overlay has to follow without a manual render,
  * and a renderer that recreates its images on every render must not keep the grid redrawing.
  */
-test.describe('Async image in a scrolling column beside frozen columns', () => {
+test.describe('Async image in a scrolling column beside frozen columns', { tag: THEMES_TAG }, () => {
   const grownBy = (height: number, row: number) => height >= 60 + row * 10;
 
   test('keeps the frozen overlay rows as tall as the master rows once the images load', async({

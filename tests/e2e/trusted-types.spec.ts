@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { TrustedTypesPage } from '../fixtures/pages/TrustedTypesPage';
 
 /**
@@ -17,7 +17,7 @@ import { TrustedTypesPage } from '../fixtures/pages/TrustedTypesPage';
  * ghost table, the dialog templates, and the license branding bar. Clearing an element
  * counted too, because `innerHTML = ''` is a sink whatever the value.
  */
-test.describe('Trusted Types enforcement', () => {
+test.describe('Trusted Types enforcement', { tag: BUNDLES_TAG }, () => {
   let grid: TrustedTypesPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

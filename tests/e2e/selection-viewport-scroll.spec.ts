@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { SelectionViewportScrollPage } from '../fixtures/pages/SelectionViewportScrollPage';
 
 /**
@@ -8,7 +8,7 @@ import { SelectionViewportScrollPage } from '../fixtures/pages/SelectionViewport
  * own, it must still scroll the window but leave the grid's holders alone, or it pulls the grid back to the
  * selected cell.
  */
-test.describe('viewport scroll of a selection', () => {
+test.describe('viewport scroll of a selection', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   let grid: SelectionViewportScrollPage;
 
   // 40 columns of 60px in a 500px-wide grid: column 10 is off screen at first, so selecting it scrolls.

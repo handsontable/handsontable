@@ -43,6 +43,7 @@ export interface Block {
   depth: number;
   title: string;
   argumentCount: number;
+  argumentSpans: Array<{ start: number; end: number }>;
   details: Details | null;
   tags: string[];
 }

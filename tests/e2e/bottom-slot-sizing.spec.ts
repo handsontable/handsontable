@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { BottomSlotSizingPage, type BottomSlotPlugin } from '../fixtures/pages/BottomSlotSizingPage';
 
 /**
@@ -12,7 +12,7 @@ import { BottomSlotSizingPage, type BottomSlotPlugin } from '../fixtures/pages/B
 const PLUGINS: BottomSlotPlugin[] = ['pagination', 'sheetsBar'];
 
 for (const plugin of PLUGINS) {
-  test.describe(`${plugin} bar in a grid without a height option`, () => {
+  test.describe(`${plugin} bar in a grid without a height option`, { tag: THEMES_TAG }, () => {
     let grid: BottomSlotSizingPage;
 
     test.beforeEach(({ page, theme, bundle }) => {
@@ -138,7 +138,7 @@ for (const plugin of PLUGINS) {
   });
 }
 
-test.describe('regression guards around the wrapper and slot sizing', () => {
+test.describe('regression guards around the wrapper and slot sizing', { tag: THEMES_TAG }, () => {
   let grid: BottomSlotSizingPage;
 
   test.beforeEach(({ page, theme, bundle }) => {

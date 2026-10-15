@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { MaxLengthPage } from '../fixtures/pages/MaxLengthPage';
 
 test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
@@ -15,7 +15,7 @@ test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
  * cannot drive a real composition (`insertText` bypasses it), and a synthetic `compositionstart` event
  * would only restate the implementation, so that path has no E2E case.
  */
-test.describe('maxLength', () => {
+test.describe('maxLength', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   let grid: MaxLengthPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

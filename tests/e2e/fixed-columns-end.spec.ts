@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { FixedColumnsEndPage, type Box } from '../fixtures/pages/FixedColumnsEndPage';
 
 /**
@@ -64,7 +64,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
   const towardEnd = rtl ? 'ArrowLeft' : 'ArrowRight';
   const towardStart = rtl ? 'ArrowRight' : 'ArrowLeft';
 
-  test.describe(`fixedColumnsEnd editor position (${direction})`, { tag: '@core' }, () => {
+  test.describe(`fixedColumnsEnd editor position (${direction})`, { tag: ['@core', THEMES_TAG, BUNDLES_TAG] }, () => {
     let grid: FixedColumnsEndPage;
 
     test.beforeEach(async ({ page, theme, bundle }) => {
@@ -195,7 +195,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
     });
   });
 
-  test.describe(`fixedColumnsEnd keyboard navigation (${direction})`, { tag: '@core' }, () => {
+  test.describe(`fixedColumnsEnd keyboard navigation (${direction})`, { tag: ['@core', THEMES_TAG, BUNDLES_TAG] }, () => {
     let grid: FixedColumnsEndPage;
 
     test.beforeEach(async ({ page, theme, bundle }) => {
@@ -387,7 +387,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
     });
   });
 
-  test.describe(`fixedColumnsEnd mouse selection (${direction})`, { tag: '@core' }, () => {
+  test.describe(`fixedColumnsEnd mouse selection (${direction})`, { tag: ['@core', THEMES_TAG, BUNDLES_TAG] }, () => {
     let grid: FixedColumnsEndPage;
 
     test.beforeEach(async ({ page, theme, bundle }) => {
@@ -444,7 +444,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
   });
 }
 
-test.describe('fixedColumnsEnd settings changes', { tag: '@core' }, () => {
+test.describe('fixedColumnsEnd settings changes', { tag: ['@core', THEMES_TAG, BUNDLES_TAG] }, () => {
   let grid: FixedColumnsEndPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { ListCellArrowLayoutPage, type ListCellType } from '../fixtures/pages/ListCellArrowLayoutPage';
 
 // The three cell types that render `htAutocompleteArrow`: `dropdown` and `handsontable` both
@@ -24,7 +24,7 @@ const CELL_TYPES: ListCellType[] = ['autocomplete', 'dropdown', 'handsontable'];
  * phrase that used to wrap now stays on one line, so `wordWrap` no longer reaches these types.
  */
 CELL_TYPES.forEach((cellType) => {
-  test.describe(`${cellType} list-cell arrow layout`, () => {
+  test.describe(`${cellType} list-cell arrow layout`, { tag: THEMES_TAG }, () => {
     let grid: ListCellArrowLayoutPage;
 
     test.beforeEach(({ page, theme, bundle }) => {

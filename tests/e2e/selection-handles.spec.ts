@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
 
 /**
@@ -6,7 +6,7 @@ import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
  * suite). The handles are the desktop drag-to-resize pills shown at each edge
  * midpoint of the selection border while the pointer is inside the selection.
  */
-test.describe('selectionHandles adjust handles', () => {
+test.describe('selectionHandles adjust handles', { tag: THEMES_TAG }, () => {
   let grid: SelectionFeaturesPage;
 
   /**
@@ -932,7 +932,7 @@ test.describe('selectionHandles adjust handles', () => {
  * selection: a replay fires the public selection hooks, and core scrolls the replayed range back
  * into view, so a wheel scroll over a selection stalled and snapped back (DEV-3085).
  */
-test.describe('selectionHandles hover', () => {
+test.describe('selectionHandles hover', { tag: THEMES_TAG }, () => {
   let grid: SelectionFeaturesPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

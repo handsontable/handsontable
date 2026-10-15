@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { DropdownWidthPage } from '../fixtures/pages/DropdownWidthPage';
 
 /**
@@ -8,7 +8,7 @@ import { DropdownWidthPage } from '../fixtures/pages/DropdownWidthPage';
  * The list — including its rows, not just the outer container — must be at
  * least as wide as the edited cell, while long options must still widen it.
  */
-test.describe('dropdown list width', () => {
+test.describe('dropdown list width', { tag: THEMES_TAG }, () => {
   let grid: DropdownWidthPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { DataProviderSheetsBarPage } from '../fixtures/pages/DataProviderSheetsBarPage';
 
 /**
@@ -9,7 +9,7 @@ import { DataProviderSheetsBarPage } from '../fixtures/pages/DataProviderSheetsB
  * declare its own, with one console warning. A local sheet's ColumnSorting/Filters stay
  * client-side and are never overwritten by a server sheet's in-flight fetch.
  */
-test.describe('dataProvider with sheetsBar', () => {
+test.describe('dataProvider with sheetsBar', { tag: THEMES_TAG }, () => {
   let grid: DataProviderSheetsBarPage;
 
   test.afterEach(async() => {

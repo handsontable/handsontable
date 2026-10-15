@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { FormulasGridPage } from '../fixtures/pages/FormulasGridPage';
 
 /**
@@ -10,7 +10,7 @@ import { FormulasGridPage } from '../fixtures/pages/FormulasGridPage';
  * exercises both, including the grid's auto-scroll when the pointer passes
  * the grid's bottom edge (DEV-2183).
  */
-test.describe('fill handle over a formulas range', () => {
+test.describe('fill handle over a formulas range', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   test('populates dates and formulas from a range dragged below the viewport', async ({ page, theme, bundle }) => {
     const grid = new FormulasGridPage(page, theme, bundle);
 

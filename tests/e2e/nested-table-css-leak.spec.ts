@@ -1,5 +1,5 @@
 import { type Locator, type Page } from '@playwright/test';
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 
 /**
  * Issue #4363 — Handsontable must not leak its cell styling into content a
@@ -150,7 +150,7 @@ function fixtureHtml(theme: string, bundle: string): string {
 </html>`;
 }
 
-test.describe('nested table in a cell (#4363)', () => {
+test.describe('nested table in a cell (#4363)', { tag: THEMES_TAG }, () => {
   let page: Page;
 
   test.beforeEach(async({ page: activePage, theme, bundle }) => {
@@ -321,7 +321,7 @@ function menuFixtureHtml(theme: string, bundle: string): string {
 </html>`;
 }
 
-test.describe('filters UI inside a menu cell (#4363)', () => {
+test.describe('filters UI inside a menu cell (#4363)', { tag: THEMES_TAG }, () => {
   test('menu-cell chrome keeps the input normalize against host CSS', async({ page, theme, bundle }) => {
     await page.route(`**${MENU_FIXTURE_URL}`, route => route.fulfill({
       contentType: 'text/html',
@@ -450,7 +450,7 @@ function ghostFixtureHtml(theme: string, bundle: string): string {
 </html>`;
 }
 
-test.describe('nested headers ghost table under a host reset (#4363)', () => {
+test.describe('nested headers ghost table under a host reset (#4363)', { tag: THEMES_TAG }, () => {
   test('the ghost measuring table keeps the grid box-sizing normalize', async({ page, theme, bundle }) => {
     await page.route(`**${GHOST_FIXTURE_URL}`, route => route.fulfill({
       contentType: 'text/html',

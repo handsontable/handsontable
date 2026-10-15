@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
 
 /**
@@ -8,7 +8,7 @@ import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
  * under the wrong header (DEV-176). The clone's first row now carries the span, empty: the master draws
  * the block's content.
  */
-test.describe('merged cell across the fixedRowsBottom line', () => {
+test.describe('merged cell across the fixedRowsBottom line', { tag: THEMES_TAG }, () => {
   let grid: SelectionFeaturesPage;
 
   // The fixture has 10 rows, so `fixedRowsBottom: 2` freezes rows 8 and 9.

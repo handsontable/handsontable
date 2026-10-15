@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { UnlaidOutInitPage, type UnlaidOutMode } from '../fixtures/pages/UnlaidOutInitPage';
 
 /**
@@ -31,7 +31,7 @@ import { UnlaidOutInitPage, type UnlaidOutMode } from '../fixtures/pages/UnlaidO
  */
 const MODES: UnlaidOutMode[] = ['detached', 'unslotted', 'hidden'];
 
-test.describe('grid built into a container that has no layout yet', () => {
+test.describe('grid built into a container that has no layout yet', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   for (const mode of MODES) {
     test(`keeps the column headers and frozen columns aligned once the ${mode} container is laid out`, async ({
       page, theme, bundle,

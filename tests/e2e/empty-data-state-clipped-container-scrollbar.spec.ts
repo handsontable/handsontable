@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { EmptyDataStateClippedContainerPage } from '../fixtures/pages/EmptyDataStateClippedContainerPage';
 
 const EDGE_TOLERANCE_PX = 0.5;
@@ -18,7 +18,7 @@ test.use({
   },
 });
 
-test.describe('empty data state over a space-taking scrollbar in a container that clips its overflow', () => {
+test.describe('empty data state over a space-taking scrollbar in a container that clips its overflow', { tag: THEMES_TAG }, () => {
   test('with `height: auto` the overlay ends above the horizontal scrollbar', async({ page, theme, bundle }) => {
     const edsPage = new EmptyDataStateClippedContainerPage(page, theme, bundle);
 

@@ -655,6 +655,8 @@ function readDetails({ code, masked }, span) {
  * @property {number} depth How many `test`/`test.describe` callbacks enclose it; `0` is top level.
  * @property {string} title The title argument's source text.
  * @property {number} argumentCount How many arguments the call takes.
+ * @property {Array<{start: number, end: number}>} argumentSpans Each argument's span in the source
+ * (trimmed), for a tool that rewrites the call in place.
  * @property {{kind: string, items: object[], tags: string[], text: string}|null} details The details
  * argument, or `null` when the call has two arguments.
  * @property {string[]} tags The tags the details resolve to.
@@ -704,6 +706,7 @@ export function readBlocks(source, where = 'source') {
       depth,
       title: call.spans.length > 0 ? code.slice(call.spans[0].start, call.spans[0].end) : '',
       argumentCount: call.spans.length,
+      argumentSpans: call.spans,
       details,
       tags: details ? details.tags : [],
     };

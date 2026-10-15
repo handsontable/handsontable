@@ -91,9 +91,10 @@ export class EditorDisabledPage {
    * Assert a cell carries a class its renderer put there.
    *
    * This is how the spec proves a cell type's RENDERER ran, rather than reading
-   * the formatted value: `numericFormat` is applied through numbro, which the
-   * plain UMD bundle leaves external, so the rendered number differs across the
-   * bundle axis while the marker class does not.
+   * the formatted value: `numericFormat` is applied through numbro, which both
+   * bundles leave external (neither ships numbro, moment or pikaday), so the
+   * rendered number says nothing about the bundle while the marker class proves
+   * the renderer ran.
    */
   async expectCellClass(grid: GridName, row: number, col: number, className: string): Promise<void> {
     await expect(this.cell(grid, row, col)).toHaveClass(new RegExp(`\\b${className}\\b`));

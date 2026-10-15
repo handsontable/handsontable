@@ -1,4 +1,4 @@
-import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG, THEMES_TAG } from '../fixtures/test';
 import { SharedDemoGridPage } from '../fixtures/pages/SharedDemoGridPage';
 
 /**
@@ -9,7 +9,7 @@ import { SharedDemoGridPage } from '../fixtures/pages/SharedDemoGridPage';
  * and the three wrappers. The range's look is painted on every js variant by the selection-handles
  * capture, so DEV-3351 retired that spec and asserts the drag here.
  */
-test.describe('a selection dragged with the mouse', { tag: CROSS_BROWSER_TAG }, () => {
+test.describe('a selection dragged with the mouse', { tag: [CROSS_BROWSER_TAG, THEMES_TAG] }, () => {
   let grid: SharedDemoGridPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

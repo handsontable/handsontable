@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { RootSizeOptionsPage } from '../fixtures/pages/RootSizeOptionsPage';
 
 /**
@@ -8,7 +8,7 @@ import { RootSizeOptionsPage } from '../fixtures/pages/RootSizeOptionsPage';
  * (the page scrolls it, the rows stay virtualized) instead of clipping itself and rendering every
  * row.
  */
-test.describe('root size options', () => {
+test.describe('root size options', { tag: THEMES_TAG }, () => {
   let grid: RootSizeOptionsPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
