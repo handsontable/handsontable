@@ -119,8 +119,7 @@ const DEFAULT_PROGRESSIVE_CHUNK_SIZE = 5000;
  * [`contextMenu`](@/api/options.md#contextmenu) items enables users to apply or remove borders on selected cells
  * directly from the right-click menu.
  *
- * See [`customBorders` configuration option](@/api/options.md#customBorders) or go to
- * [Custom cell borders demo](@/guides/cell-features/formatting-cells/formatting-cells.md#custom-cell-borders) for more examples.
+ * See [`customBorders` configuration option](@/api/options.md#customBorders) for more examples.
  *
  * @example
  * ```js

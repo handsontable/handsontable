@@ -7,8 +7,6 @@
  *
  * ::: only-for react
  * This page lists all the **Handsontable hooks** – callbacks that let you react before or after an action occurs.
- *
- * Read more on the [Events and hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md) page.
  * :::
  *
  * @example
