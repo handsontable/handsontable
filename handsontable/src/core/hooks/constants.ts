@@ -1478,13 +1478,35 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link Autofill} plugin before populating the data in the autofill feature. This hook is fired when
    * {@link Options#fillHandle} option is enabled.
    *
+   * Several callbacks can return a result for this hook, and the last callback that returns a value decides
+   * the outcome. Global hooks (added with `Handsontable.hooks.add()`) run first, then the hooks of the
+   * instance (the `beforeAutofill` option and `addHook()`). Within each group, callbacks run in ascending
+   * `orderIndex` order, and callbacks with the same `orderIndex` run in the order they were registered. Each
+   * callback receives the previous result as its first argument. A callback that returns a value replaces
+   * the earlier results. A callback that returns `undefined` keeps them. Returning `false` doesn't stop the
+   * callbacks that run later, so a later callback can still return data and the autofill goes ahead.
+   *
+   * When the {@link Formulas} plugin is enabled, it registers its own `beforeAutofill` callback with the
+   * default `orderIndex` of 0. That callback ignores the results of earlier callbacks. It returns `false` when
+   * the engine can't set the target cells, or the filled data with the formulas adjusted. Your callback
+   * overrides the plugin's only if it runs after it. The `beforeAutofill` option set at initialization and a
+   * callback added with `addHook()` after the plugin is enabled run after it. A global hook, a callback added
+   * with `addHook()` before the plugin is enabled, and the `beforeAutofill` option when you enable the plugin
+   * later with `updateSettings()` run before it and are overridden. Disabling and re-enabling the plugin
+   * registers its callback again, after your callbacks that have an `orderIndex` of 0. To always override the
+   * plugin, add your callback with `addHook('beforeAutofill', callback, 1)`: an `orderIndex` greater than 0
+   * runs after the plugin's callback, whenever you add it.
+   *
    * @event Hooks#beforeAutofill
-   * @param {Array[]} selectionData Data the autofill operation will start from.
+   * @param {Array[]|boolean} selectionData Data the autofill operation will start from. A callback that
+   *                                        runs after another callback that returned a value receives that
+   *                                        value instead (for example, `false`).
    * @param {CellRange} sourceRange The range values will be filled from.
    * @param {CellRange} targetRange The range new values will be filled into.
    * @param {string} direction Declares the direction of the autofill. Possible values: `up`, `down`, `left`, `right`.
    *
-   * @returns {boolean|Array[]} If false, the operation is canceled. If array of arrays, the returned data
+   * @returns {boolean|Array[]} If the final result is false, the operation is canceled. If the final result is
+   *                              an array of arrays, the returned data
    *                              will be passed into [`populateFromArray`](@/api/core.md#populatefromarray) instead of the default autofill
    *                              algorithm's result.
    */

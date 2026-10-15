@@ -550,6 +550,18 @@ this as a known limitation. The supported workaround is `fixedRowsBottom` so
 summary formulas stay out of the sort (#12627). User-facing copy:
 `docs/content/guides/formulas/formula-calculation/formula-calculation.md`.
 
+## `beforeAutofill`: `orderIndex`, then registration order, decides who wins (DEV-3424)
+
+`#onBeforeAutofill` is added in `enablePlugin()` at the default `orderIndex` 0. At init that call comes from
+`afterPluginsInitialized` (`BasePlugin.init()` registers it with `addHookOnce`), which the last plugin's `init()`
+fires inside `beforeInit`, before `updateSettings()` registers the `beforeAutofill` option. The last callback that
+returns a value wins, so the option and any `addHook()` made after enabling beat the plugin, while a global hook,
+an `addHook()` made before enabling, and the option when Formulas is enabled later lose. `updatePlugin()` keeps
+the hook where it is, but `disablePlugin()` plus `enablePlugin()` re-adds it at the END of the `orderIndex` 0
+group and flips the winner. Only `addHook('beforeAutofill', cb, 1)` is independent of timing. Pinned by
+`tests/e2e/formulas-before-autofill-precedence.spec.ts`. Do not change the plugin's `orderIndex` or its
+registration point without treating it as a behavior change.
+
 ## Where to look next
 
 - Sort-after-`#REF!` is a known limitation (DEV-917), not a remapping feature: `../columnSorting/AGENTS.md`.
