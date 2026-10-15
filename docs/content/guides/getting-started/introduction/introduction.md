@@ -2,7 +2,7 @@
 type: explanation
 title: Introduction
 metaTitle: JavaScript Data Grid - Documentation | Handsontable
-description: An overview of Handsontable DataGrid's developer documentation. It is a client-side, spreadsheet-like data grid for editing data in web applications.
+description: Handsontable DataGrid is a client-side, spreadsheet-like data grid for editing data in web applications. This overview introduces the developer documentation.
 permalink: /
 canonicalUrl: /
 react:

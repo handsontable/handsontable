@@ -2,7 +2,7 @@
 /**
  * SiteTitle component override.
  *
- * Renders the logo as a link to handsontable.com (the marketing site)
+ * Renders the logo as a link to handsontable.com/datagrid (the product page)
  * instead of the docs root, matching the pre-Astro behavior so the docs
  * header still offers a direct path back to the main website.
  *
@@ -16,7 +16,7 @@ const { siteTitle } = Astro.locals.starlightRoute;
 const isProduction = import.meta.env.PUBLIC_BUILD_MODE === 'production';
 ---
 <div class="site-title-wrapper">
-  <a href="https://handsontable.com" class="site-title sl-flex">
+  <a href="https://handsontable.com/datagrid" class="site-title sl-flex">
     {
       config.logo && logos.dark && (
         <>
