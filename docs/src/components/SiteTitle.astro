@@ -3,8 +3,8 @@
  * SiteTitle component override.
  *
  * Renders the logo as a link to handsontable.com/datagrid (the product page)
- * instead of the docs root, matching the pre-Astro behavior so the docs
- * header still offers a direct path back to the main website.
+ * instead of the docs root, so the docs header offers a direct path to the
+ * product site.
  *
  * Adds a "dev" badge when BUILD_MODE is not 'production'. The framework
  * switcher lives in the header nav row (FrameworkSwitcher.astro).
@@ -83,7 +83,7 @@ const isProduction = import.meta.env.PUBLIC_BUILD_MODE === 'production';
     display: none;
   }
 
-  @media (max-width: 49.99rem) {
+  @media screen and (max-width: 49.99rem) {
     .logo-full {
       display: none;
     }
