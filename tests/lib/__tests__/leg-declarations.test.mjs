@@ -402,10 +402,13 @@ test('scanFixtureHtml blanks HTML comments and script comments, and keeps styles
 
   // A closing tag with whitespace before its `>` still closes the script: otherwise the body would run on
   // into the markup below and a comment there would hide the markup's markers (CodeQL, bad HTML filtering).
-  const spaced = scanFixtureHtml('<script>\n  // getComputedStyle( in a comment\n</script >\n<style>.y { --ht-x: 1px; }</style>\n');
+  for (const closer of ['</script >', '</script\t\n bar>', '</SCRIPT>']) {
+    const spaced = scanFixtureHtml(`<script>\n  // getComputedStyle( in a comment\n${closer}\n<style>.y { --ht-x: 1px; }</style>\n`);
 
-  assert.ok(!spaced.includes('in a comment'));
-  assert.ok(spaced.includes('--ht-x'), 'the style block after a `</script >` is still read');
+    assert.ok(!spaced.includes('in a comment'), closer);
+    assert.ok(spaced.includes('--ht-x'), `the style block after a ${JSON.stringify(closer)} is still read`);
+  }
+  assert.ok(scanFixtureHtml('<script>\n  // x\n</scripts>\n</script>\n').includes('</scripts>'), '`</scripts>` does not close a script');
 });
 
 test('a marker without the tag is a violation, and the tag covers it: themes', () => {
