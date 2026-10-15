@@ -74,12 +74,42 @@ function listPresetSpecifiers() {
 
 const fixtureSource = readFileSync(fixture, 'utf8');
 const reexportSource = readFileSync(reexportFixture, 'utf8');
-const unimported = listPresetSpecifiers().filter(
-  specifier => !fixtureSource.includes(`from '${specifier}'`) || !reexportSource.includes(`from '${specifier}'`)
-);
+const escapeRegExp = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-if (unimported.length > 0) {
-  reportError(`The fixtures do not import these presets, so a regression would pass:\n${unimported.join('\n')}`);
+/**
+ * Whether a fixture imports the preset's default export under a name.
+ *
+ * @param {string} source The fixture source.
+ * @param {string} specifier The preset specifier.
+ * @returns {string|null} The local name the default import is bound to.
+ */
+function findImportName(source, specifier) {
+  return source.match(new RegExp(`import\\s+(\\w+)\\s+from\\s+'${escapeRegExp(specifier)}'`))?.[1] ?? null;
+}
+
+/**
+ * Whether the re-export fixture exports the imported name as an unannotated constant. An import alone writes
+ * nothing into the emitted declaration, so only this line makes declaration emit name the preset's type.
+ *
+ * @param {string} name The local name of the imported preset.
+ * @returns {boolean} `true` when `export const x = <name>;` is present.
+ */
+const isReexported = name => new RegExp(`export\\s+const\\s+\\w+\\s*=\\s*${name}\\s*;`).test(reexportSource);
+
+const problems = listPresetSpecifiers().flatMap((specifier) => {
+  const reexportName = findImportName(reexportSource, specifier);
+
+  return [
+    findImportName(fixtureSource, specifier) ? null : `theme-presets.ts does not import ${specifier}`,
+    reexportName ? null : `theme-presets-reexport.ts does not import ${specifier}`,
+    !reexportName || isReexported(reexportName)
+      ? null
+      : `theme-presets-reexport.ts imports ${specifier} but does not re-export it as an unannotated constant`,
+  ].filter(Boolean);
+});
+
+if (problems.length > 0) {
+  reportError(`The fixtures do not cover every preset, so a regression would pass:\n${problems.join('\n')}`);
   process.exit(1);
 }
 
