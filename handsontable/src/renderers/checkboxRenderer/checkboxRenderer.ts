@@ -156,6 +156,18 @@ export function checkboxRenderer(
       [ATTR_COLUMN, col],
     ]);
 
+    // A cell with no editor cannot be toggled, so the box says so rather than silently ignoring
+    // clicks. The native attribute is what carries it: the browser blocks the click and the label
+    // click, keeps the box out of the tab order, and announces it as disabled - none of which a
+    // class alone would do. It also matches `input:disabled` for theming.
+    //
+    // `readOnlyStyling: false` withholds it, the same way it withholds the read-only look from a
+    // `readOnly` checkbox: the box then looks like an editable one, and the `click` and `change`
+    // listeners still refuse the toggle.
+    if (!isCheckboxToggleable(cellProperties) && cellProperties.readOnlyStyling !== false) {
+      input.disabled = true;
+    }
+
     if (ariaEnabled) {
       setAttribute(input, [
         A11Y_LABEL(input.checked ?
@@ -266,9 +278,12 @@ export function checkboxRenderer(
     }, {
       keys: [['delete'], ['backspace']],
       callback: () => {
-        changeSelectedCheckboxesState(true);
+        // Read once: the answer decides both what the toggle writes and whether the key is consumed.
+        const hasCheckboxCells = areSelectedCheckboxCells();
 
-        return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
+        changeSelectedCheckboxesState(true, hasCheckboxCells);
+
+        return !hasCheckboxCells; // False blocks next action associated with the keyboard shortcut.
       },
       runOnlyIf: (): boolean => canAccessCellContent(hotInstance) &&
         !!(hotInstance.getSelectedRangeActive()?.highlight.isCell()),
@@ -280,8 +295,10 @@ export function checkboxRenderer(
    *
    * @private
    * @param {boolean} [uncheckCheckbox=false] The new "checked" state for the checkbox elements.
+   * @param {boolean} [consumesKey=false] Whether the shortcut consumes the key (the selection holds a
+   * checkbox cell), so the non-checkbox cells are cleared here rather than by `emptySelectedCells()`.
    */
-  function changeSelectedCheckboxesState(uncheckCheckbox = false) {
+  function changeSelectedCheckboxesState(uncheckCheckbox = false, consumesKey = false) {
     type CellTemplates = { checkedTemplate: unknown; uncheckedTemplate: unknown };
     type ChangeEntry = [number, number, unknown, CellTemplates?];
 
@@ -342,7 +359,7 @@ export function checkboxRenderer(
           }
 
           /* eslint-disable no-continue */
-          if (cachedCellProperties.readOnly === true) {
+          if (cachedCellProperties.readOnly === true || !isCheckboxToggleable(cachedCellProperties)) {
             continue;
           }
 
@@ -383,7 +400,13 @@ export function checkboxRenderer(
       changes = changes.map(([visualRow, visualColumn, cellValue]) => [visualRow, visualColumn, cellValue]);
     }
 
-    if (changes.length > 0) {
+    // The non-checkbox cells are cleared even when no checkbox changed, but only when the shortcut
+    // consumes the key (`consumesKey`, what its callback returns). `areSelectedCheckboxCells()` counts a
+    // checkbox with no editor, so the key is consumed for a selection that holds one, and nothing else
+    // would clear the text cells next to it. When the selection holds no such checkbox, the key falls
+    // through to `emptySelectedCells()`, which clears them itself; writing them here too would fire
+    // `afterChange` twice and record two undo steps.
+    if (changes.length > 0 || (nonCheckboxChanges.size > 0 && consumesKey)) {
       // TODO: This is workaround for handsontable/dev-handsontable#1747 not being a breaking change.
       // Technically, the changes don't need to be split into chunks when sent to `setDataAtCell`.
       const changesChunks: ChangeEntry[][] = [];
@@ -451,9 +474,18 @@ export function checkboxRenderer(
         for (let visualColumn = topLeft.col; visualColumn <= bottomRight.col; visualColumn++) {
           const cellMeta = hotInstance.getCellMetaTransient(visualRow, visualColumn);
 
+          // A checkbox with no editor still counts: the shortcut must consume the key for it, or
+          // Delete and Backspace would fall through to `emptySelectedCells()` and write `null` into
+          // a cell that `changeSelectedCheckboxesState()` deliberately leaves alone.
           /* eslint-disable no-continue */
           if (cellMeta.readOnly) {
             continue;
+          }
+
+          // The meta answers for a cell that is not rendered, where `getCell()` returns `null` - a
+          // checkbox column scrolled out of view must still consume the key.
+          if (cellMeta.type === 'checkbox') {
+            return true;
           }
 
           const cell = hotInstance.getCell(visualRow, visualColumn);
@@ -498,6 +530,29 @@ function registerEvents(instance: HotInstance) {
   }
 
   return eventManager;
+}
+
+/**
+ * Checks whether a checkbox cell can be toggled by the user.
+ *
+ * A checkbox has no separate editing gesture: clicking the box, or pressing space over it, IS the
+ * edit. So a cell that names NO editor must not toggle, or `editor: false` would have no effect at
+ * all on a checkbox column. `readOnly` is answered by the caller's own checks and is deliberately
+ * left alone here.
+ *
+ * The meta is read directly rather than through `Core#getCellEditor()`, which would resolve the
+ * value against the editor registry. Two reasons, and the second is the load-bearing one: this runs
+ * for every checkbox cell on every draw, and `getEditor()` THROWS on a name it does not know - so
+ * resolving here would turn a misconfigured editor name into a render-time failure that takes the
+ * whole grid down, where today it surfaces only when the user tries to edit. The two falsy values
+ * below are exactly what `getCellEditor()` passes through unresolved; `undefined` means "not set"
+ * and keeps the default editor.
+ *
+ * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
+ * @returns {boolean}
+ */
+function isCheckboxToggleable(cellProperties: CellProperties): boolean {
+  return cellProperties.editor !== false && cellProperties.editor !== null;
 }
 
 /**
@@ -600,7 +655,7 @@ function onClick(event: Event, instance: HotInstance) {
   const col = Number.parseInt(target.getAttribute(ATTR_COLUMN)!, 10);
   const cellProperties = instance.getCellMetaTransient(row, col);
 
-  if (cellProperties.readOnly) {
+  if (cellProperties.readOnly || !isCheckboxToggleable(cellProperties)) {
     event.preventDefault();
   }
 }
@@ -626,7 +681,7 @@ function onChange(event: Event, instance: HotInstance) {
   const col = Number.parseInt(target.getAttribute(ATTR_COLUMN)!, 10);
   const cellProperties = instance.getCellMetaTransient(row, col);
 
-  if (!cellProperties.readOnly) {
+  if (!cellProperties.readOnly && isCheckboxToggleable(cellProperties)) {
     let newCheckboxValue = null;
 
     if (target.checked) {

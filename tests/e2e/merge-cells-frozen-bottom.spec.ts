@@ -27,8 +27,8 @@ test.describe('merged cell across the fixedRowsBottom line', () => {
     return mode === 'virtualized' ? { virtualized: true, cells: [block] } : [block];
   }
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new SelectionFeaturesPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new SelectionFeaturesPage(page, theme, bundle);
     await grid.goto();
   });
 
@@ -63,20 +63,21 @@ test.describe('merged cell across the fixedRowsBottom line', () => {
 
         const { row, col, rowspan } = BLOCK_ACROSS_BOTTOM_LINE;
 
-        await expect.poll(async () => (await grid.mergedBlockSelection(row, col)).fillHandles.length).toBe(1);
-
-        const { edgesInside, outline, fillHandles } = await grid.mergedBlockSelection(row, col);
-
         // No edge on the freeze line, an outline on every track of every side, and the fill handle on the
-        // block's bottom-end corner, which only the bottom clone renders.
-        expect(edgesInside).toEqual([]);
-        expect(outline).toEqual({
-          top: [true],
-          bottom: [true],
-          left: Array(rowspan).fill(true),
-          right: Array(rowspan).fill(true),
+        // block's bottom-end corner, which only the bottom clone renders. One poll over the whole read: on
+        // `horizon` the selection scrolls the master a few pixels to reveal the block (`scrollIntoView()`,
+        // a microtask after `selectCells()`), and the row headers that give the block's box follow on the
+        // next frame. A read in between measures the top side away from its edge.
+        await expect.poll(() => grid.mergedBlockSelection(row, col)).toEqual({
+          edgesInside: [],
+          outline: {
+            top: [true],
+            bottom: [true],
+            left: Array(rowspan).fill(true),
+            right: Array(rowspan).fill(true),
+          },
+          fillHandles: [expect.objectContaining({ overlay: 'ht_clone_bottom' })],
         });
-        expect(fillHandles[0].overlay).toBe('ht_clone_bottom');
       });
 
       test('hands a real cell to the mouse hooks when the outline of the clone is pressed', async () => {

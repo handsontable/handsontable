@@ -179,7 +179,7 @@ describe('FreezeBar', () => {
     expect(bar.getAttribute('aria-orientation')).toBe('vertical');
     expect(bar.getAttribute('aria-valuenow')).toBe('2');
     expect(bar.getAttribute('aria-valuemin')).toBe('0');
-    expect(bar.getAttribute('aria-label')).toBe('Frozen columns');
+    expect(bar.getAttribute('aria-label')).toBe('Frozen columns at the start');
   });
 
   it('should change the count with the arrow keys and Home', () => {
@@ -510,8 +510,10 @@ describe('FreezeBar', () => {
     expect(separators.length).toBe(4);
     separators.forEach((separator) => {
       expect(hot.rootElement.contains(separator)).toBe(false);
-      expect(separator.tabIndex).toBe(0);
     });
+    // all four take the focus, but only one is a Tab stop: F6 is the way between them
+    expect(separators.filter(separator => separator.tabIndex === 0).length).toBe(1);
+    expect(separators.filter(separator => separator.tabIndex === -1).length).toBe(3);
 
     // the bars in the grid only draw: nothing in them is focusable or announced
     [...hot.rootElement.querySelectorAll('.ht-freeze-bar')].forEach((bar) => {

@@ -154,8 +154,12 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Impossibile rimuovere le righe',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Richiesta non riuscita',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ricarica',
-  [C.FREEZE_BAR_ROWS]: 'Righe bloccate',
-  [C.FREEZE_BAR_COLUMNS]: 'Colonne bloccate',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Righe bloccate in alto',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Righe bloccate in basso',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Colonne bloccate all\'inizio',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Colonne bloccate alla fine',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Riga [label] espansa, righe espanse visualizzate: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Riga [label] compressa',
 };
 
 export default dictionary;

@@ -76,7 +76,7 @@ export class AppComponent {
     { value: 'pl-PL', label: 'Polish (Poland)' },
     { value: 'pt-BR', label: 'Portuguese (Brazil)' },
     { value: 'ru-RU', label: 'Russian (Russia)' },
-    { value: 'sr-SP', label: 'Serbian Latin (Serbia)' },
+    { value: 'sr-Latn-RS', label: 'Serbian Latin (Serbia)' },
     { value: 'zh-CN', label: 'Chinese (Simplified, China)' },
     { value: 'zh-TW', label: 'Chinese (Traditional, Taiwan)' },
   ];

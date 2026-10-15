@@ -3,7 +3,7 @@ import type { CellProperties } from '../../settings';
 import { EDITOR_STATE } from '../baseEditor';
 import { HandsontableEditor } from '../handsontableEditor';
 import { pivot } from '../../helpers/array';
-import { findChoiceByDisplayedValue, isKeyValueEntry } from '../../utils/cellSource';
+import { findChoiceByDisplayedValue, getChoiceLabel, isKeyValueEntry, isListableChoice } from '../../utils/cellSource';
 import {
   addClass,
   fastInnerHTML,
@@ -38,6 +38,7 @@ import {
   A11Y_TEXT,
 } from '../../helpers/a11y';
 import { debounce } from '../../helpers/function';
+import { isPlainObject } from '../../helpers/object';
 
 export const EDITOR_TYPE = 'autocomplete';
 
@@ -126,8 +127,10 @@ export class AutocompleteEditor extends HandsontableEditor {
       return this.TEXTAREA.value;
     }
 
+    // `rawChoices`, not the stripped list the user sees: the match hands back the source entry
+    // itself, so an object `value` is stored whole - the stripped copies carry only its label.
     const selectedValue = findChoiceByDisplayedValue(
-      this.rawChoices, this.TEXTAREA.value, this.cellProperties.allowHtml === true
+      this.rawChoices, this.TEXTAREA.value, this.cellProperties.allowHtml === true, this.cellProperties.sourceLabel
     );
 
     if (isDefined(selectedValue)) {
@@ -369,7 +372,7 @@ export class AutocompleteEditor extends HandsontableEditor {
       // `source` setting) must keep its original order. The spread also keeps iterable callers (a
       // Set, a NodeList) working, which `Array#toSorted` would not — the floor now allows it, but
       // switching would narrow what this public method accepts.
-      choices = [...choices].sort((a, b) => stringify(a).localeCompare(stringify(b)));
+      choices = [...choices].sort(this.#getChoiceComparator());
     }
 
     const filteredChoiceIndexes: number[] = [];
@@ -401,6 +404,29 @@ export class AutocompleteEditor extends HandsontableEditor {
     }
 
     return { choices, highlightIndex };
+  }
+
+  /**
+   * Returns the comparator the list is sorted with when `sortByRelevance` is `false`.
+   *
+   * When `sourceLabel` relabels an object `value` in `source`, a key/value entry is compared by
+   * the label it displays - the choices reaching here are already stripped, so its `value` half
+   * holds that label. Otherwise the comparison stays as it always was: `stringify()` of the whole
+   * choice, which for a key/value entry is `[object Object]`, so such a list keeps its source order.
+   * Comparing labels there too would reorder lists of existing configurations - and `sourceLabel`
+   * set at grid level cascades to columns whose entries hold string values - so it stays gated on
+   * the option having an object `value` to label.
+   *
+   * @returns {Function}
+   */
+  #getChoiceComparator(): (a: unknown, b: unknown) => number {
+    if (!this.#hasLabeledObjectValues()) {
+      return (a, b) => stringify(a).localeCompare(stringify(b));
+    }
+
+    const toText = (choice: unknown): string => stringify(isKeyValueEntry(choice) ? choice.value : choice);
+
+    return (a, b) => toText(a).localeCompare(toText(b));
   }
 
   /**
@@ -647,12 +673,12 @@ export class AutocompleteEditor extends HandsontableEditor {
         }
 
         this.rawChoices = choices;
-        this.updateChoicesList(this.stripValuesIfNeeded(choices));
+        this.updateChoicesList(this.stripValuesIfNeeded(this.#listableChoices(choices)));
       });
 
     } else if (Array.isArray(source)) {
       this.rawChoices = source;
-      this.updateChoicesList(this.stripValuesIfNeeded(source));
+      this.updateChoicesList(this.stripValuesIfNeeded(this.#listableChoices(source)));
 
     } else {
       this.updateChoicesList([]);
@@ -906,21 +932,76 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @returns {Array<string|{key: string, value: string}>}
    */
   stripValuesIfNeeded(values: unknown[]): unknown[] {
-    const { allowHtml } = this.cellProperties;
+    const { allowHtml, sourceLabel } = this.cellProperties;
     const processValue = (value: unknown) => stringify(allowHtml ? value : stripTags(String(value)));
 
     if (values.every(value => isKeyValueEntry(value))) {
       return values.map((value) => {
         const obj = value as Record<string, unknown>;
+        // Labeled before stringifying: an object `value` would otherwise reach the list as
+        // `[object Object]`, every option alike, and a pick would resolve to the first one.
+        const label = getChoiceLabel(obj.value, sourceLabel);
 
         return {
           key: processValue(obj.key),
-          value: processValue(obj.value),
+          // A label `sourceLabel` derived is stringified first, so a path that resolves to nothing
+          // lists as empty - the text the cell shows and the label lookup compares against - rather
+          // than as the word `undefined`, which a pick would then store as a bare string. A value
+          // that was not relabeled keeps the processing it always had.
+          value: processValue(label === obj.value ? label : stringify(label)),
         };
       });
     }
 
-    return values.map(value => processValue(value));
+    // A mixed list - plain values beside key/value entries - lists each entry as its label text.
+    // Without `sourceLabel` that stays `String()` of the whole entry, as it always was. With it, an
+    // entry lists as its label even when its `value` is a string, which `getChoiceLabel()` returns
+    // unchanged: that is the text the cell shows, and the one the label lookup and the XLSX list use.
+    return values.map((value) => {
+      if (isKeyValueEntry(value)) {
+        const label = getChoiceLabel(value.value, sourceLabel);
+
+        if (sourceLabel || label !== value.value) {
+          return processValue(stringify(label));
+        }
+      }
+
+      return processValue(value);
+    });
+  }
+
+  /**
+   * Reports whether `sourceLabel` has an object `value` in the raw choices to label. Only then do
+   * labels replace the `[object Object]` a key/value entry compares by in the alphabetical sort.
+   *
+   * @returns {boolean}
+   */
+  #hasLabeledObjectValues(): boolean {
+    return Boolean(this.cellProperties.sourceLabel) &&
+      this.rawChoices.some(choice => isKeyValueEntry(choice) && isPlainObject(choice.value));
+  }
+
+  /**
+   * Leaves out the choices the list cannot offer: a key/value entry whose `sourceLabel` resolves
+   * to nothing - a missing property, or a function returning `null`.
+   *
+   * Such an entry would list as a blank option, and picking it could never store it: the editor
+   * then holds empty text, and `getValue()` keeps an emptied editor empty before any lookup runs,
+   * so the pick would clear the cell instead (and fail validation under `allowEmpty: false`). An
+   * entry whose `value` is not an object is never relabeled, so a blank `{ key, value: null }`
+   * option stays listed as it always was.
+   *
+   * @param {Array} choices The raw choices.
+   * @returns {Array}
+   */
+  #listableChoices(choices: unknown[]): unknown[] {
+    const { sourceLabel } = this.cellProperties;
+
+    if (!sourceLabel) {
+      return choices;
+    }
+
+    return choices.filter(choice => isListableChoice(choice, sourceLabel));
   }
 
   /**

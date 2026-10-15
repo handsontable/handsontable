@@ -159,8 +159,12 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'حذف ردیف‌ها ناموفق بود',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'درخواست ناموفق بود',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'بارگذاری مجدد',
-  [C.FREEZE_BAR_ROWS]: 'ردیف‌های ثابت',
-  [C.FREEZE_BAR_COLUMNS]: 'ستون‌های ثابت',
+  [C.FREEZE_BAR_ROWS_TOP]: 'ردیف‌های ثابت در بالا',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'ردیف‌های ثابت در پایین',
+  [C.FREEZE_BAR_COLUMNS_START]: 'ستون‌های ثابت در ابتدا',
+  [C.FREEZE_BAR_COLUMNS_END]: 'ستون‌های ثابت در انتها',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'ردیف [label] باز شد، ردیف‌های بازشدهٔ نمایش داده‌شده: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'ردیف [label] بسته شد',
 };
 
 export default dictionary;

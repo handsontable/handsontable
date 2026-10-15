@@ -141,6 +141,70 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   the grid's `overflow: clip` when the list stays left-aligned with the
   last cell.
 
+## The engine legs (Firefox, WebKit)
+
+- The six projects above are Chromium. Tests tagged `@cross-browser` run on Firefox and WebKit as
+  well: `{ tag: CROSS_BROWSER_TAG }` on the `test.describe` (`fixtures/test.ts`), picked up by the two
+  projects of `playwright-engines.config.ts`, `e2e-firefox` and `e2e-webkit`, on the main theme and
+  the plain UMD bundle. CI runs that config in one job, `E2E / Playwright engines (Firefox, WebKit)`.
+  The visual suite's cross-browser leg photographs on the develop seed, master and release candidate
+  pushes, the nightly, and pull requests that change the visual tier, so on any other pull request
+  the job is the only Firefox and WebKit run of the grid. On a pull request a red engine leg also
+  holds back the whole Visual stage, which needs `e2e` and runs only when nothing failed. `e2e.yml` is
+  shared, so the job also runs on every develop push and in the release candidate test runs: a red
+  engine leg holds back that develop push's experimental publish, and blocks a release candidate.
+- Tag a test whose behavior an engine could get wrong on its own: real key presses (the Tab order,
+  undo and redo shortcuts), pointer gestures (header clicks, drags, the fill handle's double click),
+  focus, and layout read back from the DOM. The specs that replaced the cross-browser visual
+  captures' photographed states (DEV-3257) are tagged, and
+  `.github/scripts/__tests__/playwright-engines.test.mjs` keeps them tagged and keeps the config
+  filtering by the tag and inheriting the base config's CI flake settings and reporters.
+- A separate config, so that `npx playwright test` without `--project` (all six legs) never needs the
+  engines installed. To run a tagged spec on them locally, install them once for this package's
+  Playwright and name the config:
+
+  ```bash
+  cd tests
+  npx playwright install firefox webkit
+  HOT_TEST_PORT=8131 npx playwright test --config playwright-engines.config.ts e2e/<spec>.spec.ts
+  ```
+
+  The local gates (pre-push, the Stop hook) run `e2e-main` only, so an engine failure first shows in
+  CI unless you run it. Before calling a tagged test deterministic, repeat it on the engines as well
+  as on the six legs (`--config playwright-engines.config.ts --repeat-each 20`). A pass on macOS
+  does not prove a keyboard shortcut on the Linux runner: `ControlOrMeta` is Meta on macOS and
+  Control in CI, and WebKit handles the two differently (the clipboard bullet below).
+- **Firefox cannot start in the job's container without `HOME=/root`.** The container runs as root,
+  and GitHub points `HOME` at `/github/home`, which belongs to the image's `pwuser`; Firefox refuses
+  to run as root under a home it does not own, so every Firefox test fails at launch (36 of 36 on the
+  job's first run). The run step sets `HOME: /root`, and the engines test pins it.
+- **Linux WebKit copies, cuts and pastes nothing on a real shortcut.** Playwright's WebKit takes a
+  shortcut's editing command from the macOS key map alone, so on the Linux runner a real Ctrl+C, X or
+  V reaches the page as a key press and nothing more (all three clipboard tests failed there, on both
+  attempts, while they pass on macOS WebKit). A test that uses one carries `CLIPBOARD_SHORTCUT_TAG`
+  beside `CROSS_BROWSER_TAG`, and `e2e-webkit` leaves it out on every platform, so a local run and CI
+  run the same tests. Reading the clipboard back needs `clipboard-read`: Playwright grants it on
+  Chromium and WebKit and rejects it on Firefox (`Unknown permission`), and it rejects
+  `clipboard-write` on Firefox and WebKit. So `clipboard-between-grids.spec.ts` asks for
+  `clipboard-read` on Chromium alone (`test.use({ permissions: async({ browserName }, use) => … })`)
+  and reads the clipboard back there; elsewhere the paste landing the copied value shows the copy.
+- **The clipboard outlives a test.** Each test gets a fresh context, not a fresh clipboard, so a copy
+  that writes nothing still pastes whatever an earlier test, or an earlier repeat of the same test,
+  left there. Copy a value no earlier run copied: both clipboard specs write a run-unique value into
+  the source cells first (`randomUUID()`), which proves the copy on every engine, read-back or not.
+- **A native undo or redo in a text field has the clipboard's trap, and the native date input has its
+  own.** Ctrl+Z and Ctrl+Shift+Z inside the open text editor are the textarea's own undo, which Linux
+  WebKit never runs on a real shortcut, so `text-editor-native-undo.spec.ts` carries
+  `CLIPBOARD_SHORTCUT_TAG` beside `CROSS_BROWSER_TAG`: Firefox runs it and WebKit does not. The date
+  editor's picker takes the keys while it is shown, and Escape closes the picker and leaves the editor
+  open in Chromium but closes the editor in Firefox and WebKit, so `date-editor-native-input.spec.ts`
+  carries no tag and runs on the six Chromium legs only.
+- **Tab past a page's last focusable element leaves the document in Chromium and WebKit, and goes nowhere
+  in headless Firefox.** There `document.hasFocus()` turns false; headless Firefox has no browser UI to
+  move the focus to, so it stays on the cell. Assert what the grid draws after the exit (no selection, no
+  highlighted cell or header), which every engine agrees on, rather than where the focus went
+  (`shared-demo-keyboard-navigation.spec.ts`).
+
 ## Fixture contract (never get these wrong)
 
 - Fixtures are standalone HTML under `fixtures/demo/`, served statically. Every
@@ -154,7 +218,10 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   destructure. Miss one link and a leg silently tests the wrong build. The
   constructor default is what hides it: omit `bundle` in the spec's
   `test.beforeEach` and every leg loads plain UMD, so the `-min` legs go green
-  without ever touching the minified bundle.
+  without ever touching the minified bundle. The option is typed `Bundle`
+  (`fixtures/bundle.ts`); where another positional argument follows `bundle`,
+  type the parameter with it too, so a value in the wrong slot is a type error
+  rather than a bad `?bundle=` (`NumericGridPage`).
 - **A fixture's own `ready` flag does not prove the bundle loaded.** The
   `document.write`-injected bundle script and the block that installs the
   fixture helper are separate, so a page can report `ready` while
@@ -169,7 +236,10 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   test budget), with the interval in `BUNDLE_POLLING_MS` — see Determinism
   below for why the rAF default times out on a healthy page. Do not inline a
   copy: the lint catches a missing `{ polling }`, but only the helper keeps
-  the value from drifting between page objects.
+  the value from drifting between page objects. The helper also rethrows the
+  fixture's own `Unknown ?theme=`/`?bundle= value` error before it waits: that
+  throw happens in `<head>`, before the bundle script is written, so without
+  it a bad value ends as a bare 20s timeout in the wait.
 - The `umd` legs run the BASE bundle: **no HyperFormula** (a formulas fixture
   loads HF as an external script beside the bundle, or the plugin logs a
   warning and silently stays off) and **no languages pack** (an i18n fixture
@@ -221,11 +291,14 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   there (and the static server refuses it locally too, for CI parity). **Pin
   the exact version the owning package's lockfile carries** — an identical
   RANGE is not enough (both packages declared `^3.0.0` and still locked 3.3.0
-  vs 3.4.0, because pnpm resolves each importer at its own time). One
-  `hyperformula` entry in `pnpm-lock.yaml` is the invariant; two entries mean
-  the `umd` legs test a different engine than the one baked into `full.min`.
-  Moving the version into the pnpm catalog is the durable upgrade when the
-  core package can take that change.
+  vs 3.4.0, because pnpm resolves each importer at its own time). The
+  invariant is that the `handsontable` and `tests` importers in
+  `pnpm-lock.yaml` resolve the same `hyperformula`, and `tests/package.json`
+  pins it exactly; otherwise the `umd` legs test a different engine than the
+  one baked into `full.min`. Other importers do not count (`docs` resolves its
+  own). `lib/__tests__/hyperformula-pin.test.mjs` asserts it in the root
+  `test:tooling` gate on every pull request. Moving the version into the pnpm
+  catalog is the durable upgrade when the core package can take that change.
 - The green-run cache (`scripts/e2e-run-cache.mjs`) hashes BOTH bundles, the
   fixture-served HyperFormula artifact + `tests/package.json`, and every file
   under `fixtures/`; rebuilding a bundle or reinstalling the engine re-runs
@@ -262,6 +335,15 @@ A page-object helper that starts with a click therefore takes the cell as a para
 (`EmptyDataStateShortcutsPage.selectAllWithKeyboard(row, col)`), so a test that calls it twice aims at a
 different cell the second time. Selecting through `hot.selectCell()` avoids it entirely where the spec does
 not need a real press.
+
+## A header's accessible name can change under a role locator
+
+`getByRole('columnheader', { name: 'Interest', exact: true })` finds the header until a second column is
+sorted, then finds nothing: MultiColumnSorting draws each sorted header's order number as `::after`
+content, CSS-generated content is part of the accessible name, so the name stops being the label alone.
+The same holds for any badge a theme or plugin draws with `content`. Locate a header by its label's own
+text instead, `span.colHeader` matched with `getByText(label, { exact: true })`, the way
+`ComplexDemoStatesPage.columnHeader()` does.
 
 ## Touch and mobile specs
 
@@ -311,6 +393,27 @@ not need a real press.
   shrinks with every Playwright/CDP speedup. Size the poll budgets so goto + gestures + every
   poll fit the 20s test timeout, or an exhausted wait surfaces as a locationless "Test timeout"
   instead of its message.
+- A click on the grid's far corner pins the scrollbar clearance band (#10370) open. The pointer then
+  rests within 26 px of both scrollbars, which keeps their bands up by design
+  (`OVERLAY_SCROLLBAR_PROXIMITY`), so the next scroll's wait for the band to close times out. Park the
+  pointer off the grid before scrolling (`GridLayoutsPage.scrollViewportTo()`), and wait for the band to
+  close before a click near an edge, or the scrollbar takes the click.
+- A press on a sortable column header's label (`.colHeader`), or on its sort indicator, sorts as well
+  as selects; a press elsewhere on the header only selects. A click on the middle of a header usually
+  lands on the label, which is how a test that meant only to select a column also sorts it – aim at the
+  label, or away from it, on purpose. On a paginated grid the column a header click selects is the
+  current page's rows only (Pagination clamps the range in `beforeSelectColumns` and
+  `beforeSetRangeEnd`), so a Delete after it empties that page and no other.
+  `pagination-filter-sort.spec.ts` asserts both.
+
+## Reading grid UI state
+
+- A closed editor stays in the DOM (`ht_editor_hidden`), and Playwright reports its textarea as
+  visible, so `toBeHidden()` after an Enter that committed the edit fails. Read the editor's own state,
+  `getActiveEditor().isOpened()` (`GridLayoutsPage.editorOpened()`).
+- Each grid on a page keeps its own context menu container, so a locator for "the" menu matches one per
+  grid; and a toggle entry such as "Read only" has the role `menuitemcheckbox`, not `menuitem`
+  (`TwoGridsPage.makeColumnReadOnly()`).
 
 ## Rendering away from 100% (zoom / display scaling)
 
@@ -406,6 +509,48 @@ is in
 - A negative assertion ("nothing fired") uses a bounded settle ONLY beside a
   positive control in the same test.
 
+**A scroll write is answered one frame later, and a read in between sees the
+grid half-moved.** A programmatic scroll – a `scrollLeft` write, or a key press
+the grid answers by scrolling – moves the master holder at once. The browser
+dispatches the holder's `scroll` event at the start of the next frame, and the
+engine syncs the frozen clones from that event, before the frame paints. A read
+that lands in between sees the master a whole column ahead of a clone that is
+about to follow it. Whether it does depends on where the read falls against the
+frame boundary, not on the grid: `iframe-cross-realm-scroll.spec.ts` failed 6 of
+150 runs that way, 25 on each of the six legs (`Expected: <= 2, Received: 64` on
+`classic`, DEV-3115). Wait for the frame before the read.
+`IframeWidthWindowScrollPage.waitForFrames()` awaits two animation frames of the
+iframe, and the first callback runs after that frame's `scroll` event has been
+handled. A wait on `scrollLeft` cannot do it, because the press has written it
+already. When the test is about what the engine does while a key is **held**,
+wait before `keyboard.up()`: released earlier, the event reaches an engine whose
+key is already up, and the guard under test never runs. With that guard broken,
+the old read failed 116 of 120 runs and the held-key wait failed 120 of 120.
+
+**A selection can scroll the grid even when its cell is on screen.**
+When the viewport has nothing to scroll, `selectCell()` and `selectCells()` still
+run `scrollWindowToCell()`, in a microtask, so it has run by the time the
+`evaluate` returns. It calls `scrollIntoView({ block: 'nearest' })` on the cell,
+and a cell taller than the part of the holder that shows it (a merged block a
+frozen pane covers) scrolls the master holder by a few pixels. The clones follow
+one frame later, as above, so a read in between measures the master against
+stale row headers, although the test wrote no scroll. The row heights decide
+whether the holder has room to move, so it can happen on one theme only. After a
+selection, poll the whole geometry read in one `expect.poll` (`toEqual` on the
+full object). Never poll one field and then read the rest once: the field you
+polled can come from a clone that is already drawn
+(`merge-cells-frozen-bottom.spec.ts`, the outline test).
+
+**An open editor follows the master, and its cell follows a clone.** Enter
+scrolls a cell that a frozen pane mostly covers into view, as a selection can.
+The editor is placed from the master's new offset at once, and the clone that
+draws the cell catches up a frame later, so the two boxes disagree by the
+whole scroll in between (DEV-3399). Read the editor and the cell in one
+evaluation together with whether that clone has caught up, and retry the whole
+comparison until it has (`FixedColumnsEndPage.editorAndCellBoxes()`).
+Requiring the catch-up, not only a match, keeps an editor misplaced by exactly
+the scroll from passing on the stale frame.
+
 **A geometry read is two round trips, and the grid recycles its rows.**
 `locator.boundingBox()` and `locator.evaluate()` resolve the node in one round
 trip and act on it in another (`innerText()` and `getAttribute()` do both in one
@@ -420,6 +565,21 @@ recycled (the table's root, the grid), read every value a comparison needs in
 that same evaluation (`FrozenTallCellPage.rowHeights()`), and poll a pinned
 expected value rather than comparing two reads with each other — two reads
 that both landed before the draw agree with each other and prove nothing.
+
+**`keyboard.press()` cannot make several presses share one animation frame
+reliably.** Each press is its own round trip, so presses land a few milliseconds
+apart. How many of them fall between two frames depends on the machine, the
+bundle and the load. A race that needs several presses in one frame therefore
+fails now and then, and never on demand. The arrow-key test in
+`fixed-columns-end.spec.ts` failed that way on three pull requests in two days
+with `Expected: <= 2, Received: 4` (DEV-3345). A window scroll queued by each
+press ran after the grid had scrolled on, and pulled it back. Send the presses
+from one `page.evaluate` task instead, as synthetic `KeyboardEvent`s that carry
+their `keyCode`, and end on an `afterScroll` hook added after them, so it runs
+after whatever they queued (`FixedColumnsEndPage.pressInOneTask()`). Assert that
+the grid scrolled far enough for a queued scroll to have something to move, or
+the test passes on the bug when the fixture changes. Real presses still get the
+grid to its starting state.
 
 **Where a flake goes.** In CI the config adds a `json` reporter
 (`test-results/report.json`, shipped inside the `playwright-report-*` failure

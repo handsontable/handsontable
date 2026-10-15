@@ -1,4 +1,9 @@
-import { toTotalRowHeaderWidth, measureWorkspaceHeight } from 'walkontable/viewport/workspaceSize';
+import {
+  toTotalRowHeaderWidth,
+  measureWorkspaceHeight,
+  measureWorkspaceWidth,
+  workspaceSize,
+} from 'walkontable/viewport/workspaceSize';
 import type { Viewport } from 'walkontable/viewport/viewport';
 
 /**
@@ -148,5 +153,95 @@ describe('measureWorkspaceHeight', () => {
     });
 
     expect(measureWorkspaceHeight(viewport)).toBe(900);
+  });
+});
+
+/**
+ * The horizontal axis owner is the window on a grid with no width, but the window is not always what
+ * scrolls the columns: an ancestor that clips only the vertical axis leaves the holder to scroll them
+ * (the reverse split). The workspace is then the holder's own width, not the page's.
+ */
+describe('measureWorkspaceWidth', () => {
+  const DOCUMENT_CLIENT_WIDTH = 1000;
+  const HOLDER_OFFSET_WIDTH = 800;
+
+  /**
+   * Builds the viewport double for a grid with no width whose columns are wider than the holder.
+   *
+   * @param {boolean} windowScrolls Whether the window, not the holder, scrolls the columns.
+   * @returns {Viewport}
+   */
+  function createWindowOwnedViewport(windowScrolls: boolean): Viewport {
+    const holder = document.createElement('div');
+
+    return {
+      deps: {
+        rootDocument: document,
+        rootWindow: window,
+        geometryReader: {
+          offsetWidth: (element: HTMLElement) => (element === holder ? HOLDER_OFFSET_WIDTH : NaN),
+          clientWidth: (element: HTMLElement) => (element === document.documentElement ? DOCUMENT_CLIENT_WIDTH : NaN),
+        },
+        getInlineStartOverlay: () => ({
+          trimmingContainer: window,
+          isScrolledByWindow: () => windowScrolls,
+        }),
+      },
+      wtTable: { holder },
+      wtSettings: { getSetting: () => 5000 },
+      getRowHeaderWidth: () => 50,
+      sumColumnWidths: () => 5000,
+    } as unknown as Viewport;
+  }
+
+  it('should measure the page when the window scrolls the columns', () => {
+    expect(measureWorkspaceWidth(createWindowOwnedViewport(true))).toBe(DOCUMENT_CLIENT_WIDTH);
+  });
+
+  it('should measure the holder when the holder scrolls the columns', () => {
+    expect(measureWorkspaceWidth(createWindowOwnedViewport(false))).toBe(HOLDER_OFFSET_WIDTH);
+  });
+});
+
+/**
+ * `isHorizontallyScrollableByWindow()` answers "does the window scroll the columns", which is the owner of the
+ * horizontal axis being the window and the window, not the holder, doing the scrolling. In the reverse split
+ * (an ancestor that clips only the vertical axis, or `preventOverflow: 'vertical'`) the window owns the axis
+ * while the holder scrolls the columns, and the answer must be `false`.
+ */
+describe('Viewport#isHorizontallyScrollableByWindow', () => {
+  /**
+   * Runs the predicate on a viewport double carrying only the inline-start overlay it reads.
+   *
+   * @param {boolean} windowOwnsAxis Whether the window is the inline-start overlay's trimming container.
+   * @param {boolean} windowScrolls Whether the window, not the holder, scrolls the columns.
+   * @returns {boolean}
+   */
+  function ask(windowOwnsAxis: boolean, windowScrolls: boolean): boolean {
+    const rootWindow = {};
+    const viewport = {
+      deps: {
+        rootWindow,
+        getInlineStartOverlay: () => ({
+          trimmingContainer: windowOwnsAxis ? rootWindow : {},
+          isScrolledByWindow: () => windowScrolls,
+        }),
+      },
+    };
+
+    return workspaceSize.isHorizontallyScrollableByWindow.call(viewport as unknown as Viewport);
+  }
+
+  it('should be true when the window owns the axis and scrolls the columns', () => {
+    expect(ask(true, true)).toBe(true);
+  });
+
+  it('should be false when the window owns the axis but the holder scrolls the columns', () => {
+    expect(ask(true, false)).toBe(false);
+  });
+
+  it('should be false when an element owns the axis', () => {
+    expect(ask(false, false)).toBe(false);
+    expect(ask(false, true)).toBe(false);
   });
 });

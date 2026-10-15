@@ -3,10 +3,18 @@
  * Author: Ivan Zarkovic
  * Last updated: May 9, 2022
  *
- * Description: Definition file for Serbian - Republic of Serbia language-country.
+ * Description: Deprecated alias of the `sr-Latn-RS` language. It keeps the old `sr-SP` language code working.
+ * Keep the phrases identical to `sr-Latn-RS.ts`.
  */
 import * as C from '../constants';
 
+/**
+ * The Serbian dictionary registered under the deprecated `sr-SP` language code. Keep the phrases identical to
+ * `sr-Latn-RS.ts`: each language file is also built as a standalone bundle, so this file cannot import it.
+ *
+ * @deprecated Since 19.0.0. The `SP` region subtag is deprecated by IANA. This language code will be removed
+ * in 20.0.0. Use `srLatnRS` (the `sr-Latn-RS` language code) instead.
+ */
 const dictionary = {
   languageCode: 'sr-SP',
 
@@ -155,8 +163,12 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nije moguće ukloniti redove',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Zahtev nije uspeo',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ponovo učitaj',
-  [C.FREEZE_BAR_ROWS]: 'Zamrznuti redovi',
-  [C.FREEZE_BAR_COLUMNS]: 'Zamrznute kolone',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Zamrznuti redovi na vrhu',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Zamrznuti redovi na dnu',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Zamrznute kolone na početku',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Zamrznute kolone na kraju',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Proširen red [label], prikazani prošireni redovi: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Skupljen red [label]',
 };
 
 export default dictionary;

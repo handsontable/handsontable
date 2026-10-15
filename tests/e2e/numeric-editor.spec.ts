@@ -14,8 +14,8 @@ import { NumericGridPage } from '../fixtures/pages/NumericGridPage';
 test.describe('numeric cell editor precision', () => {
   let grid: NumericGridPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new NumericGridPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new NumericGridPage(page, theme, bundle);
     await grid.goto();
   });
 

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - nested rows treegrid accessibility</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    window.htDir = ({ ltr: 'ltr', rtl: 'rtl' })[htParams.get('dir') ?? 'ltr'];
+    if (!window.htDir) {
+      throw new Error('Unknown ?dir= value: ' + JSON.stringify(htParams.get('dir')));
+    }
+    window.htAriaTags = ({ on: true, off: false })[htParams.get('aria') ?? 'on'];
+    if (window.htAriaTags === undefined) {
+      throw new Error('Unknown ?aria= value: ' + JSON.stringify(htParams.get('aria')));
+    }
+    document.documentElement.dir = window.htDir;
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    Fixture for the NestedRows treegrid attributes, keyboard path and announcements.
+
+    Theme, bundle, layout direction and ariaTags come from query params, mapped through fixed
+    allowlists to literals; an unknown value throws. `ariaTags` can only be set at construction,
+    which is why it is a param. An RTL grid sits on an RTL page, as in a real RTL application.
+
+    Three levels deep, so a row can be a parent and a child at once (A-2) and the Ctrl/Cmd+arrow walk to a
+    parent has more than one step to take. Physical layout:
+      0  Root A            (parent, level 1, 1 of 2)
+      1    A-1             (leaf,   level 2, 1 of 3)
+      2    A-2             (parent, level 2, 2 of 3)
+      3      A-2-a         (leaf,   level 3, 1 of 2)
+      4      A-2-b         (leaf,   level 3, 2 of 2)
+      5    A-3             (leaf,   level 2, 3 of 3)
+      6  Root B            (parent, level 1, 2 of 2)
+      7    B-1             (leaf,   level 2, 1 of 2)
+      8    B-2             (leaf,   level 2, 2 of 2)
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    window.hot = new Handsontable(container, {
+      data: [
+        {
+          name: 'Root A',
+          __children: [
+            { name: 'A-1' },
+            {
+              name: 'A-2',
+              __children: [{ name: 'A-2-a' }, { name: 'A-2-b' }],
+            },
+            { name: 'A-3' },
+          ],
+        },
+        {
+          name: 'Root B',
+          __children: [{ name: 'B-1' }, { name: 'B-2' }],
+        },
+      ],
+      columns: [{ data: 'name' }, { data: 'name' }],
+      colHeaders: ['Name', 'Copy'],
+      rowHeaders: true,
+      nestedRows: true,
+      navigableHeaders: true,
+      layoutDirection: window.htDir,
+      ariaTags: window.htAriaTags,
+      renderer: testIdRenderer,
+      height: 'auto',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>

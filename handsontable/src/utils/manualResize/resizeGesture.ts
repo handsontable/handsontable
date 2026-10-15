@@ -48,6 +48,14 @@ export interface ResizeGestureOwner {
    * own undo step, so this must not open one.
    */
   setManualSize(index: number, size: number): number;
+  /**
+   * Returns how much wider (taller) a header renders than the size the owner stores for it, because
+   * something else adds to the stored size on every render. The drag starts from the stored size, so
+   * that what it stores is the pointer's travel on top of it. Optional: an owner whose headers render
+   * exactly their stored size leaves it out. The resize hooks and the stored size then report the size
+   * without the overhead.
+   */
+  getRenderedOverhead?(index: number): number;
 }
 
 /**
@@ -119,9 +127,19 @@ export class ResizeGesture {
    */
   #startPointer: number | null = null;
   /**
-   * The header's size when the handle was positioned.
+   * The size the owner stores for the header when the handle was positioned: the rendered size
+   * without the owner's overhead. The release stores the drag from here.
    */
   #startSize: number | null = null;
+  /**
+   * The size the header rendered at when the handle was positioned. The handle and the guide sit
+   * on the rendered edge.
+   */
+  #startRenderedSize: number | null = null;
+  /**
+   * How much wider the header renders than its stored size when the handle was positioned.
+   */
+  #startOverhead = 0;
   /**
    * The header's offset, along the resized axis, when the handle was positioned.
    */
@@ -201,7 +219,8 @@ export class ResizeGesture {
   }
 
   /**
-   * Returns the size the pointer described last, or `null` before the first drag.
+   * Returns the rendered size the pointer described last (the owner's overhead included), or `null`
+   * before the first drag.
    *
    * @returns {number|null}
    */
@@ -479,16 +498,40 @@ export class ResizeGesture {
     const acrossOffset = this.#isVertical() ? headerPosition.start : headerPosition.top;
 
     this.#anchoredAtInlineEnd = this.#axis.isAnchoredAtInlineEnd?.(this.#hot, TH) === true;
-    this.#startSize = this.#measureAlong(TH);
+    this.#startRenderedSize = this.#measureAlong(TH);
+    this.#startOverhead = this.#owner.getRenderedOverhead?.(this.#currentIndex) ?? 0;
+    this.#startSize = this.#startRenderedSize - this.#startOverhead;
     // The handle sits on the edge that moves: the inline-end one, or the inline-start one for a
     // header anchored to the inline end of the grid.
-    this.#startOffset = alongOffset - 6 - (this.#anchoredAtInlineEnd ? this.#startSize : 0);
+    this.#startOffset = alongOffset - 6 - (this.#anchoredAtInlineEnd ? this.#startRenderedSize : 0);
     this.#scaleFactor = getElementScaleFactor(TH, this.#axis.orientation);
 
-    this.#handle.style[this.#alongProp()] = `${this.#startOffset + this.#startSize}px`;
+    this.#handle.style[this.#alongProp()] = `${this.#startOffset + this.#startRenderedSize}px`;
     this.#handle.style[this.#acrossProp()] = `${acrossOffset}px`;
     this.#handle.style[this.#acrossExtentProp()] = `${headerAcrossSize}px`;
+    this.#markFrozenEdge(this.#currentIndex);
     this.#hot.rootElement.appendChild(this.#handle);
+  }
+
+  /**
+   * Marks the handle when the edge it sits on is the edge of a frozen band: `--freeze-before` when the band ends
+   * there (the first rows or columns), `--freeze-after` when it starts there (the last ones). The marks only
+   * describe the grid; a stylesheet that draws something on the frozen edge uses them to keep the handle clear
+   * of it.
+   *
+   * @param {number} visualIndex The visual index of the header the handle belongs to.
+   */
+  #markFrozenEdge(visualIndex: number) {
+    const hot = this.#hot;
+    const vertical = this.#isVertical();
+    // the number of tracks before the edge the handle sits on
+    const tracksBefore = this.#anchoredAtInlineEnd ? visualIndex : visualIndex + 1;
+    const total = vertical ? hot.countRows() : hot.countCols();
+    const before = vertical ? hot.getSettings().fixedRowsTop : hot.getSettings().fixedColumnsStart;
+    const after = vertical ? hot.getSettings().fixedRowsBottom : hot.view.countFixedColumnsEnd();
+
+    this.#handle.classList.toggle('ht-resize-handle--freeze-before', !!before && tracksBefore === before);
+    this.#handle.classList.toggle('ht-resize-handle--freeze-after', !!after && tracksBefore === total - after);
   }
 
   /**
@@ -530,7 +573,7 @@ export class ResizeGesture {
    * Moves the resize handle to the size the pointer describes.
    */
   #refreshHandlePosition() {
-    const startSize = this.#startSize ?? 0;
+    const startSize = this.#startRenderedSize ?? 0;
     const currentSize = this.#currentSize ?? 0;
     // A header anchored to the inline end grows towards the inline start, so its handle moves that way.
     const handleSize = this.#anchoredAtInlineEnd ? (2 * startSize) - currentSize : currentSize;
@@ -651,8 +694,9 @@ export class ResizeGesture {
     const visualChange = this.#isVertical() ? pointerChange : pointerChange * this.#hot.getDirectionFactor();
     const change = normalizeVisualDelta(this.#anchoredAtInlineEnd ? -visualChange : visualChange, this.#scaleFactor);
 
-    this.#currentSize = (this.#startSize ?? 0) + change;
-    this.#newSize = this.#owner.clampSize(this.#currentSize);
+    // The handle follows the rendered size, and the release stores the size without the overhead.
+    this.#currentSize = (this.#startRenderedSize ?? 0) + change;
+    this.#newSize = this.#owner.clampSize(this.#currentSize - this.#startOverhead);
 
     this.#refreshHandlePosition();
     this.#refreshGuidePosition();

@@ -250,6 +250,72 @@ A value that matches no option is stored as you wrote it. The `dropdown` cell ty
 
 The lookup compares the text the cell displays, so a numeric `value` matches its string form. It's skipped when `source` is a function, because the options aren't known until the function answers.
 
+#### Object values
+
+The `value` property can be an object, for example a record from your API. Use the [`sourceLabel`](@/api/options.md#sourcelabel) option to tell the cell which text to display for it:
+
+- A string reads a property of the object. Use dot notation for a nested property or an array item, for example `'address.city'` or `'aliases.0'`.
+- A function receives the object and returns the text.
+
+In the example below, the `name` property of each airport is displayed.
+
+```js
+columns: [{
+  type: 'dropdown',
+  source: [
+    { key: 'LHR', value: { name: 'London Heathrow Airport', city: 'London' } },
+    { key: 'CDG', value: { name: 'Charles de Gaulle Airport', city: 'Paris' } },
+  ],
+  sourceLabel: 'name',
+}],
+```
+
+The cell, the list of options, the filter of typed text, and pasted text all use that label. The cell itself stores the whole `source` entry, so [`getSourceDataAtCell()`](@/api/core.md#getsourcedataatcell) returns the object with every property.
+
+To change an entry, replace it in `source` and in the cells that hold it. Don't change the entry object in place. Depending on how the value was written, a cell holds either the `source` entry itself or a copy of it: picking an option for an empty cell and pasting store the entry, while picking an option for a cell that already holds a value, undo, and redo store a copy. A copy is a plain object, even when the entry is an instance of a class.
+
+Each entry needs a unique label. If two entries display the same label, picking or pasting that label stores the first of them. An entry whose label resolves to nothing, for example a missing property, isn't listed as an option.
+
+The `sourceLabel` option changes only how an object `value` is displayed. A string or number `value` is displayed as it is, and a `source` without the option works exactly as before.
+
+::: only-for javascript
+::: example #example6 .docs-height-small --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/javascript/example6.js)
+@[code](@/content/guides/cell-types/dropdown-cell-type/javascript/example6.ts)
+
+:::
+:::
+::: only-for react
+::: example #example6 .docs-height-small :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/react/example6.jsx)
+@[code](@/content/guides/cell-types/dropdown-cell-type/react/example6.tsx)
+
+:::
+:::
+::: only-for angular
+::: example #example6 .docs-height-small :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/angular/example6.ts)
+@[code](@/content/guides/cell-types/dropdown-cell-type/angular/example6.html)
+
+:::
+:::
+::: only-for vue
+::: example #example6 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/vue/example6.vue)
+
+:::
+:::
+
+::: tip
+
+You can also keep a string `value` and add your own properties next to `key` and `value`, for example `{ key: 'LHR', value: 'London Heathrow Airport', city: 'London' }`. The cell stores the whole entry, including those properties.
+
+:::
+
 ## Set the dropdown width
 
 By default, the dropdown list matches the width of the edited cell, so long options can be truncated. To let the list expand to fit its longest option, set [`trimDropdown`](@/api/options.md#trimdropdown) to `false`.

@@ -9,8 +9,8 @@ import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
 test.describe('moveCells edge move bands', () => {
   let grid: SelectionFeaturesPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new SelectionFeaturesPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new SelectionFeaturesPage(page, theme, bundle);
     await grid.goto();
   });
 
@@ -99,6 +99,10 @@ test.describe('moveCells edge move bands', () => {
     await expect(grid.visibleHandles()).toHaveCount(4);
     await expect(grid.visibleMoveZones()).toHaveCount(4);
 
+    const restingBorders = await grid.visibleSelectionBorders().count();
+
+    expect(restingBorders).toBeGreaterThan(0);
+
     const box = await grid.visibleMoveZones().first().boundingBox();
 
     expect(box).not.toBeNull();
@@ -109,11 +113,15 @@ test.describe('moveCells edge move bands', () => {
     await expect(grid.movingRoot()).toHaveCount(1);
     await expect(grid.visibleHandles()).toHaveCount(0);
     await expect(grid.visibleMoveZones()).toHaveCount(0);
+    // The source's border lines hide too, so the dashed ghost is the one moving outline; the source
+    // keeps only its cell fill.
+    await expect(grid.visibleSelectionBorders()).toHaveCount(0);
 
     await page.keyboard.press('Escape');
     await page.mouse.up();
 
     await expect(grid.movingRoot()).toHaveCount(0);
+    await expect(grid.visibleSelectionBorders()).toHaveCount(restingBorders);
     await grid.hoverCell(2, 2);
     await expect(grid.visibleHandles()).toHaveCount(4);
     await expect(grid.visibleMoveZones()).toHaveCount(4);

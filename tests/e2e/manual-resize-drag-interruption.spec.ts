@@ -44,7 +44,10 @@ test.describe('Manual resize drag interrupted by updateSettings', () => {
 
     const heightAfterControl = await grid.renderedRowHeight(2);
 
-    expect(heightAfterControl).toBeGreaterThan(startHeight + 20);
+    // Exact: the dragged size is the pointer's travel, a whole number of CSS pixels, and the row
+    // renders at it (see manual-resize-drag-distance.spec.ts). A looser bound let a drag that landed
+    // a pixel short pass.
+    expect(heightAfterControl).toBe(startHeight + 30);
 
     // The case under test: the update lands BETWEEN mousedown and mouseup.
     await grid.startRowDrag(2, 40);
@@ -61,9 +64,8 @@ test.describe('Manual resize drag interrupted by updateSettings', () => {
     expect(call.index).toBe(2);
     expect(call.isDoubleClick).toBe(false);
 
-    // ...and the size actually applied, not just announced.
-    await expect.poll(() => grid.renderedRowHeight(2))
-      .toBeGreaterThan(heightAfterControl + 20);
+    // ...and the size actually applied, not just announced: exactly the distance dragged.
+    await expect.poll(() => grid.renderedRowHeight(2)).toBe(heightAfterControl + 40);
   });
 
   test('completes a column drag when the plugin is re-stated mid-drag', async () => {
@@ -77,7 +79,7 @@ test.describe('Manual resize drag interrupted by updateSettings', () => {
 
     const widthAfterControl = await grid.renderedColumnWidth(2);
 
-    expect(widthAfterControl).toBeGreaterThan(startWidth + 30);
+    expect(widthAfterControl).toBe(startWidth + 40);
 
     await grid.startColumnDrag(2, 50);
     await grid.restateResizeOption('manualColumnResize', true);
@@ -91,8 +93,7 @@ test.describe('Manual resize drag interrupted by updateSettings', () => {
     expect(call.index).toBe(2);
     expect(call.isDoubleClick).toBe(false);
 
-    await expect.poll(() => grid.renderedColumnWidth(2))
-      .toBeGreaterThan(widthAfterControl + 30);
+    await expect.poll(() => grid.renderedColumnWidth(2)).toBe(widthAfterControl + 50);
   });
 
   test('completes a row drag across an update that touches neither resize plugin', async () => {
@@ -106,7 +107,7 @@ test.describe('Manual resize drag interrupted by updateSettings', () => {
     await grid.releaseDrag();
 
     await expect.poll(async () => await grid.resizeHooks()).toHaveLength(1);
-    await expect.poll(() => grid.renderedRowHeight(2)).toBeGreaterThan(startHeight + 20);
+    await expect.poll(() => grid.renderedRowHeight(2)).toBe(startHeight + 40);
   });
 
   test('re-stating the other axis does not disturb an open row drag', async () => {
@@ -124,7 +125,7 @@ test.describe('Manual resize drag interrupted by updateSettings', () => {
 
     expect(call.hook).toBe('afterRowResize');
 
-    await expect.poll(() => grid.renderedRowHeight(2)).toBeGreaterThan(startHeight + 20);
+    await expect.poll(() => grid.renderedRowHeight(2)).toBe(startHeight + 40);
   });
 });
 

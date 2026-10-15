@@ -152,8 +152,12 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Řádky se nepodařilo odstranit',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Požadavek selhal',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Znovu načíst',
-  [C.FREEZE_BAR_ROWS]: 'Ukotvené řádky',
-  [C.FREEZE_BAR_COLUMNS]: 'Ukotvené sloupce',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Ukotvené řádky nahoře',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Ukotvené řádky dole',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Ukotvené sloupce na začátku',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Ukotvené sloupce na konci',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rozbalen řádek [label], zobrazené rozbalené řádky: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sbalen řádek [label]',
 };
 
 export default dictionary;

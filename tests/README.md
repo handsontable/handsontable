@@ -60,6 +60,13 @@ gates (pre-push, the Claude Stop hook, `test:e2e`) run `e2e-main` (plain UMD)
 only; the `-min` legs run in CI. Run a single other leg by hand with
 `npx playwright test --project=e2e-horizon-min`.
 
+Tests tagged `@cross-browser` also run on Firefox and WebKit, through a separate
+config with two projects (`e2e-firefox`, `e2e-webkit`) that CI runs in its own job.
+Locally, install the two engines once and name the config:
+`npx playwright install firefox webkit`, then
+`npx playwright test --config playwright-engines.config.ts e2e/<spec>.spec.ts`.
+See `AGENTS.md`, "The engine legs".
+
 When enforcement requires a new test, you run it here to prove it works before you push — that is the point of a single, locally-runnable install.
 
 ### If the install seems missing

@@ -1,4 +1,5 @@
 import Handsontable from '../../index';
+import Core from '../../core';
 
 /**
  * The root's inline `height`, `width` and `overflow*` are written by `core/rootSize.ts` only.
@@ -393,6 +394,116 @@ describe('root size options', () => {
       expect(inlineSize(grid)).toEqual({
         height: '300px', width: '', overflowX: 'clip', overflowY: 'clip',
       });
+    });
+  });
+
+  describe('`preventOverflow: \'horizontal\'`', () => {
+    it('should clip the horizontal axis of a root that has no width', () => {
+      const grid = buildGrid({ preventOverflow: 'horizontal' });
+
+      expect(inlineSize(grid)).toEqual({
+        height: '', width: '', overflowX: 'clip', overflowY: '',
+      });
+    });
+
+    it('should clip the horizontal axis when the option is switched on later', () => {
+      const grid = buildGrid({});
+
+      expect(inlineSize(grid).overflowX).toBe('');
+
+      grid.updateSettings({ preventOverflow: 'horizontal' });
+
+      expect(inlineSize(grid).overflowX).toBe('clip');
+    });
+
+    it('should release the horizontal axis when the option is switched off', () => {
+      const grid = buildGrid({ preventOverflow: 'horizontal' });
+
+      grid.updateSettings({ preventOverflow: false });
+
+      expect(inlineSize(grid).overflowX).toBe('');
+    });
+
+    it('should keep the clip when only the height changes', () => {
+      const grid = buildGrid({ preventOverflow: 'horizontal' });
+
+      grid.updateSettings({ height: 'auto' });
+
+      expect(inlineSize(grid).overflowX).toBe('clip');
+    });
+
+    it('should not clip for `true`', () => {
+      expect(inlineSize(buildGrid({ preventOverflow: true })).overflowX).toBe('');
+    });
+
+    it('should not clip for `\'vertical\'`', () => {
+      expect(inlineSize(buildGrid({ preventOverflow: 'vertical' })).overflowX).toBe('');
+    });
+
+    it('should leave the element of a nested (non-root) instance alone', () => {
+      // A nested grid's `rootElement` is the container the host handed it, so only a root instance
+      // gets the clip. A `Core` built without the root symbol is how the editors' inner grids are made.
+      const nested = new Core(document.createElement('div'), {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [[1, 2], [3, 4]],
+        preventOverflow: 'horizontal',
+      });
+
+      nested.init();
+
+      expect(nested.rootElement.style.overflowX).toBe('');
+
+      nested.destroy();
+    });
+
+    it('should release the horizontal axis when the option is switched off with `undefined`', () => {
+      // The React wrapper sends `undefined` for a prop that went away.
+      const grid = buildGrid({ preventOverflow: 'horizontal' });
+
+      grid.updateSettings({ preventOverflow: undefined });
+
+      expect(inlineSize(grid).overflowX).toBe('');
+    });
+
+    it('should not re-clip the vertical axis that a `height: null` restored', () => {
+      const grid = buildGrid({ preventOverflow: 'horizontal', height: 300 });
+
+      grid.rootElement.dataset.initialstyle = 'height: 50px; overflow-y: scroll';
+      grid.updateSettings({ height: null });
+      grid.updateSettings({ preventOverflow: 'horizontal' });
+
+      expect(inlineSize(grid).overflowY).toBe('scroll');
+    });
+
+    it('should clip beside a definite width', () => {
+      const grid = buildGrid({ preventOverflow: 'horizontal', width: 200 });
+
+      expect(inlineSize(grid).overflowX).toBe('clip');
+    });
+
+    it('should leave a definite width clipped when the option is switched off', () => {
+      const grid = buildGrid({ preventOverflow: 'horizontal', width: 200 });
+
+      grid.updateSettings({ preventOverflow: false });
+
+      expect(inlineSize(grid).overflowX).toBe('clip');
+    });
+
+    it('should clip both axes beside a sized height, as it does without the option', () => {
+      const grid = buildGrid({ preventOverflow: 'horizontal', height: 300 });
+
+      expect(inlineSize(grid)).toEqual({
+        height: '300px', width: '', overflowX: 'clip', overflowY: 'clip',
+      });
+    });
+
+    it('should leave an overflow the user set on the root alone', () => {
+      const grid = buildGrid({});
+
+      grid.rootElement.style.overflowX = 'hidden';
+      grid.updateSettings({ preventOverflow: 'horizontal' });
+
+      expect(inlineSize(grid).overflowX).toBe('hidden');
     });
   });
 });

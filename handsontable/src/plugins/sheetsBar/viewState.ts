@@ -1039,7 +1039,23 @@ function setFrozenCount(hot: HotInstance, key: FrozenCountKey, value: number): v
   }
 
   clearFrozenCountShadow(hot, key);
-  hot.updateSettings({ [key]: value });
+
+  if ((hot.getSettings()[key] ?? 0) === value) {
+    return;
+  }
+
+  // The count is written on the table meta, the way the freeze bar writes it, and not through `updateSettings()`: a
+  // wrapper re-sends the app's own value on each render, and it would revert a count that became the grid-level one.
+  // A shadow survives such a re-send, because `updateSettings()` drops it only for a value that differs from the
+  // previous grid-level one.
+  const meta = hot.getSettings() as Record<string, unknown>;
+
+  meta[key === 'fixedColumnsStart' ? '_fixedColumnsStart' : key] = value;
+
+  if (key === 'fixedRowsTop' || key === 'fixedRowsBottom') {
+    // the rows Filters exempts from the filter may have changed, and no update tells it
+    hot.getPlugin('filters')?._markPinnedRowsStale();
+  }
 }
 
 /**

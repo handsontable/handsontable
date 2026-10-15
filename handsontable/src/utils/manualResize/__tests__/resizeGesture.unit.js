@@ -18,7 +18,7 @@ describe('ResizeGesture', () => {
     rootElement?.remove();
   });
 
-  function createGrid({ rtl = false, selectedRanges = [] } = {}) {
+  function createGrid({ rtl = false, selectedRanges = [], frozen = {} } = {}) {
     rootElement = document.createElement('div');
 
     const table = document.createElement('table');
@@ -53,6 +53,9 @@ describe('ResizeGesture', () => {
       runHooks: jest.fn(),
       render: jest.fn(),
       getSelectedRange: () => selectedRanges,
+      getSettings: () => ({ fixedRowsTop: 0, fixedRowsBottom: 0, fixedColumnsStart: 0, ...frozen }),
+      countRows: () => frozen.rows ?? 10,
+      countCols: () => frozen.cols ?? 10,
       selection: {
         isSelected: () => selectedRanges.length > 0,
         isSelectedByCorner: () => false,
@@ -61,6 +64,7 @@ describe('ResizeGesture', () => {
         _wt: { wtTable: { getCoords: () => ({ row: 2, col: 3 }) } },
         getTableWidth: () => 400,
         getTableHeight: () => 300,
+        countFixedColumnsEnd: () => frozen.fixedColumnsEnd ?? 0,
       },
     };
 
@@ -95,8 +99,8 @@ describe('ResizeGesture', () => {
     };
   }
 
-  function createGesture({ orientation = 'vertical', rtl = false, selectedRanges, axis: axisOverrides } = {}) {
-    const grid = createGrid({ rtl, selectedRanges });
+  function createGesture({ orientation = 'vertical', rtl = false, selectedRanges, frozen, axis: axisOverrides } = {}) {
+    const grid = createGrid({ rtl, selectedRanges, frozen });
     const axis = createAxis(orientation, axisOverrides);
     const owner = createOwner();
     const gesture = new ResizeGesture(grid.hot, axis, owner);
@@ -453,6 +457,178 @@ describe('ResizeGesture', () => {
       mouse('mouseup', window);
 
       expect(vertical.owner.setManualSize).toHaveBeenLastCalledWith(2, 30);
+    });
+  });
+
+  describe('the mark of a frozen edge', () => {
+    // The stand-in header sits at row 2 and column 3, so a vertical handle belongs to the edge after 3 rows, and a
+    // horizontal one to the edge after 4 columns (after 3 when the header is anchored to the inline end).
+    function hover({ orientation = 'vertical', frozen, axis } = {}) {
+      const grid = createGesture({ orientation, frozen, axis });
+
+      mouse('mouseover', grid.th);
+
+      return grid.handle().classList;
+    }
+
+    it('should mark the handle on the edge where the first frozen rows end', () => {
+      const classes = hover({ frozen: { fixedRowsTop: 3 } });
+
+      expect(classes.contains('ht-resize-handle--freeze-before')).toBe(true);
+      expect(classes.contains('ht-resize-handle--freeze-after')).toBe(false);
+    });
+
+    it('should mark the handle on the edge where the last frozen rows start', () => {
+      // 10 rows, the last 7 are frozen: the band starts after the first 3
+      const classes = hover({ frozen: { fixedRowsBottom: 7 } });
+
+      expect(classes.contains('ht-resize-handle--freeze-after')).toBe(true);
+      expect(classes.contains('ht-resize-handle--freeze-before')).toBe(false);
+    });
+
+    it('should mark the handle on the edge where the first frozen columns end', () => {
+      const classes = hover({ orientation: 'horizontal', frozen: { fixedColumnsStart: 4 } });
+
+      expect(classes.contains('ht-resize-handle--freeze-before')).toBe(true);
+    });
+
+    it('should mark the handle of a header anchored to the inline end with the edge where the end columns start',
+      () => {
+        // 10 columns, the last 7 are frozen: the band starts after the first 3, which is the edge of this header
+        const classes = hover({
+          orientation: 'horizontal',
+          frozen: { fixedColumnsEnd: 7 },
+          axis: { isAnchoredAtInlineEnd: () => true },
+        });
+
+        expect(classes.contains('ht-resize-handle--freeze-after')).toBe(true);
+        expect(classes.contains('ht-resize-handle--freeze-before')).toBe(false);
+      });
+
+    it('should not mark a handle on an edge that is not the edge of a frozen band', () => {
+      const classes = hover({ frozen: { fixedRowsTop: 5, fixedRowsBottom: 2 } });
+
+      expect(classes.contains('ht-resize-handle--freeze-before')).toBe(false);
+      expect(classes.contains('ht-resize-handle--freeze-after')).toBe(false);
+    });
+
+    it('should not read the end of the grid as a frozen edge when nothing is frozen at the bottom', () => {
+      // 3 rows, so the edge after the third row is the end of the grid, and the empty band must not claim it
+      const classes = hover({ frozen: { rows: 3 } });
+
+      expect(classes.contains('ht-resize-handle--freeze-after')).toBe(false);
+    });
+
+    it('should clear the mark when the handle moves to an edge that is not frozen', () => {
+      const grid = createGesture({ frozen: { fixedRowsTop: 3 } });
+
+      mouse('mouseover', grid.th);
+      expect(grid.handle().classList.contains('ht-resize-handle--freeze-before')).toBe(true);
+
+      grid.hot.view._wt.wtTable.getCoords = () => ({ row: 5, col: 3 });
+      mouse('mouseover', grid.th);
+
+      expect(grid.handle().classList.contains('ht-resize-handle--freeze-before')).toBe(false);
+    });
+  });
+
+  describe('a header that renders wider than the size the owner stores for it', () => {
+    // The header renders 80px wide, 15px of which the owner adds on every render, so it stores 65.
+    function createPadded(options) {
+      const grid = createGesture({ orientation: 'horizontal', ...options });
+
+      grid.owner.getRenderedOverhead = jest.fn(() => 15);
+      Object.defineProperty(grid.th, 'offsetWidth', { value: 80 });
+
+      return grid;
+    }
+
+    it('should ask the owner for the overhead of the header being resized', () => {
+      const { th, owner } = createPadded();
+
+      mouse('mouseover', th);
+
+      expect(owner.getRenderedOverhead).toHaveBeenCalledWith(3);
+    });
+
+    it('should store the pointer travel on top of the size without the overhead', () => {
+      const { th, handle, owner, hot } = createPadded();
+
+      mouse('mouseover', th);
+      mouse('mousedown', handle(), { pageX: 100 });
+      mouse('mousemove', window, { pageX: 130 });
+
+      expect(owner.clampSize).toHaveBeenLastCalledWith(95);
+
+      mouse('mouseup', window);
+
+      expect(owner.setManualSize).toHaveBeenLastCalledWith(3, 95);
+      expect(hot.runHooks).toHaveBeenCalledWith('afterTestResize', 95, 3, false);
+    });
+
+    it('should keep the handle on the rendered edge of the header', () => {
+      const { th, handle, guide, gesture } = createPadded();
+
+      mouse('mouseover', th);
+
+      // The header starts at 50 and renders 80px wide: its end is 130, the handle is 6px before it.
+      expect(handle().style.left).toBe('124px');
+
+      mouse('mousedown', handle(), { pageX: 100 });
+      mouse('mousemove', window, { pageX: 130 });
+
+      expect(handle().style.left).toBe('154px');
+      // The guide follows the handle, and the size the pointer describes is the rendered one.
+      expect(guide().style.left).toBe('154px');
+      expect(gesture.getCurrentSize()).toBe(110);
+    });
+
+    it('should store nothing when the pointer does not move', () => {
+      const { th, handle, owner } = createPadded();
+
+      mouse('mouseover', th);
+      mouse('mousedown', handle(), { pageX: 100 });
+      mouse('mouseup', window);
+
+      expect(owner.setManualSize).not.toHaveBeenCalled();
+    });
+
+    it('should store the pointer travel on top of the size without the overhead for a header anchored to the inline end', () => {
+      const { th, handle, owner } = createPadded({ axis: { isAnchoredAtInlineEnd: () => true } });
+
+      mouse('mouseover', th);
+      mouse('mousedown', handle(), { pageX: 100 });
+      mouse('mousemove', window, { pageX: 70 });
+
+      // The handle stays on the inline-start edge, which moves with the pointer.
+      expect(handle().style.left).toBe('14px');
+
+      mouse('mouseup', window);
+
+      expect(owner.setManualSize).toHaveBeenLastCalledWith(3, 95);
+    });
+
+    it('should store the pointer travel on top of the size without the overhead under RTL', () => {
+      const { th, handle, owner } = createPadded({ rtl: true });
+
+      mouse('mouseover', th);
+      mouse('mousedown', handle(), { pageX: 100 });
+      mouse('mousemove', window, { pageX: 70 });
+      mouse('mouseup', window);
+
+      expect(owner.setManualSize).toHaveBeenLastCalledWith(3, 95);
+    });
+
+    it('should restore the size without the overhead when a before-resize hook cancels the drag', () => {
+      const { th, handle, owner, hot } = createPadded();
+
+      hot.runHooks.mockImplementation(hookName => (hookName === 'beforeTestResize' ? false : undefined));
+      mouse('mouseover', th);
+      mouse('mousedown', handle(), { pageX: 100 });
+      mouse('mousemove', window, { pageX: 130 });
+      mouse('mouseup', window);
+
+      expect(owner.setManualSize).toHaveBeenLastCalledWith(3, 65);
     });
   });
 

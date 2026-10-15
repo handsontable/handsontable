@@ -191,6 +191,13 @@ export class FiltersAvailableConditionsPage {
   }
 
   /**
+   * The argument inputs of the first "Filter by condition" component, visible ones only.
+   */
+  conditionInputs(): Locator {
+    return this.menu.locator('.htFiltersMenuCondition').first().locator('.htUIInput input:visible');
+  }
+
+  /**
    * Confirm the menu with the "OK" button and wait for it to close.
    */
   async confirmMenu(): Promise<void> {

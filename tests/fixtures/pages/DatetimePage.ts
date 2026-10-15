@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /**
  * Page Object for the intl-datetime cell type fixture.
@@ -12,12 +13,14 @@ import { type Page, type Locator, expect } from '@playwright/test';
 export class DatetimePage {
   readonly page: Page;
   readonly theme: string;
+  readonly bundle: string;
   readonly grid: Locator;
   readonly editorInput: Locator;
 
-  constructor(page: Page, theme = 'main') {
+  constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
+    this.bundle = bundle;
     this.grid = page.getByTestId('grid');
     this.editorInput = page.locator('input[type="datetime-local"].handsontableInput');
   }
@@ -27,7 +30,8 @@ export class DatetimePage {
    * wait on the first cell, never a fixed timeout.
    */
   async goto(): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/datetime.html?theme=${this.theme}`);
+    await this.page.goto(`/tests/fixtures/demo/datetime.html?theme=${this.theme}&bundle=${this.bundle}`);
+    await awaitBundle(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 

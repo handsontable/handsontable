@@ -9,6 +9,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
+## [18.1.2] - 2026-10-07
+
+### Changed
+- Changed entitlement license keys to protect their human-readable text as well as their bracketed block, so the block alone, edited text, or text after the block makes a current key invalid, while a rewrapped, one-line, or `\n`-escaped key still works. [#13743](https://github.com/handsontable/handsontable/pull/13743)
+
+### Fixed
+- Fixed entitlement license keys whose bracketed block was broken across lines, for example by an email client, reading as invalid and locking the grid. [#13760](https://github.com/handsontable/handsontable/pull/13760)
+
 ## [18.1.1] - 2026-09-15
 
 ### Fixed

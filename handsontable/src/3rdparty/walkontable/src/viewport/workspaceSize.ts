@@ -197,7 +197,8 @@ export function measureWorkspaceHeight(viewport: Viewport): number {
  */
 export function measureWorkspaceWidth(viewport: Viewport): number {
   const { rootDocument, rootWindow, geometryReader } = viewport.deps;
-  const trimmingContainer = viewport.deps.getInlineStartOverlay().trimmingContainer;
+  const inlineStartOverlay = viewport.deps.getInlineStartOverlay();
+  const trimmingContainer = inlineStartOverlay.trimmingContainer;
   let width;
 
   if (trimmingContainer === rootWindow) {
@@ -205,7 +206,11 @@ export function measureWorkspaceWidth(viewport: Viewport): number {
 
     width = geometryReader.offsetWidth(viewport.wtTable.holder);
 
-    if (viewport.getRowHeaderWidth() + viewport.sumColumnWidths(0, totalColumns) > width) {
+    // The page is the workspace only while the window scrolls the columns. When the holder does (an
+    // ancestor clips the vertical axis only), the page is wider than the holder by the offset in front of it.
+    const windowScrolls = inlineStartOverlay.isScrolledByWindow();
+
+    if (windowScrolls && viewport.getRowHeaderWidth() + viewport.sumColumnWidths(0, totalColumns) > width) {
       width = geometryReader.clientWidth(rootDocument.documentElement);
     }
 
@@ -379,14 +384,20 @@ export const workspaceSize: WorkspaceSize = {
   },
 
   /**
-   * Checks if the window owns the horizontal axis: no ancestor of the table traps it horizontally,
-   * so the page scrolls the columns. The inline-start overlay carries the horizontal owner.
+   * Checks if the window scrolls the columns: no ancestor of the table traps the horizontal axis, so
+   * the page owns it, and the page, not the holder, does the scrolling. The inline-start overlay
+   * carries the horizontal owner and the element that scrolls the columns. They differ in the reverse
+   * split (an ancestor that clips only the vertical axis, or `preventOverflow: 'vertical'`): the window
+   * owns the axis while the holder scrolls the columns, and the answer is `false`, as it is for any
+   * grid whose holder scrolls them.
    *
    * @this Viewport
    * @returns {boolean}
    */
   isHorizontallyScrollableByWindow(this: Viewport): boolean {
-    return this.deps.getInlineStartOverlay().trimmingContainer === this.deps.rootWindow;
+    const inlineStartOverlay = this.deps.getInlineStartOverlay();
+
+    return inlineStartOverlay.trimmingContainer === this.deps.rootWindow && inlineStartOverlay.isScrolledByWindow();
   },
 
   /**

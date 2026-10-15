@@ -548,7 +548,7 @@ export async function rowsCount() {
  * @param {string | number} columnNameOrIndex Column name or index.
  */
 export async function clearColumn(columnNameOrIndex: string | number) {
-  openHeaderDropdownMenu(columnNameOrIndex);
+  await openHeaderDropdownMenu(columnNameOrIndex);
 
   await getPageInstance().getByText('Clear column').click();
 }
@@ -650,30 +650,6 @@ export async function filterByCondition(
 }
 
 /**
- * Clicks the "Go to first page" button in the pagination section.
- *
- * @param {string} value The value to select in the page size dropdown.
- */
-export async function forPaginationChangePageSize(value: string) {
-  const select = getPageInstance()
-    .locator('.ht-page-size-section')
-    .locator('select[name="pageSize"]');
-
-  await select.selectOption(value);
-}
-
-/**
- * Clicks the "Go to first page" button in the pagination section.
- */
-export async function forPaginationClickFirstPageButton() {
-  const button = getPageInstance()
-    .locator('.ht-page-navigation-section')
-    .locator('.ht-page-first');
-
-  await button.click();
-}
-
-/**
  * Clicks the "Go to previous page" button in the pagination section.
  */
 export async function forPaginationClickPrevPageButton() {
@@ -734,17 +710,6 @@ export async function collapseNestedColumn(columnName:string, table = getDefault
 }
 
 /**
- * @param {string} rowNumber The row number.
- * @param {Locator} table The locator of the table.
- */
-export async function collapseNestedRow(rowNumber:number, table = getDefaultTableInstance()) {
-  await table.getByRole('rowheader', { name: rowNumber.toString() }).locator('div').nth(1).click();
-  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
-  await getPageInstance().waitForTimeout(500);
-
-}
-
-/**
  * Undo the last action.
  */
 export async function undo() {
@@ -767,49 +732,6 @@ export async function redo() {
     await getPageInstance().keyboard.press('Meta+Y');
   } else {
     await getPageInstance().keyboard.press('Control+Y');
-  }
-}
-
-/**
- * @param {string} columnName Column name.
- * @param {number} resizeAmount Resize amount.
- */
-export async function resizeColumn(columnName: string, resizeAmount: number) {
-  const columnHeader = getPageInstance().getByRole('columnheader', { name: columnName });
-
-  const box = await columnHeader.boundingBox();
-
-  if (box) {
-    await getPageInstance().mouse.move(box.x + box.width - 3, box.y + (box.height / 2));
-    // eslint-disable-next-line no-restricted-syntax -- DEV-2797: the resize handle appears on hover with no class to wait for yet; replace with a hover-state probe when this helper is reworked
-    await getPageInstance().waitForTimeout(500);
-
-    // Drag the resize handle to resize the column
-    await getPageInstance().mouse.down();
-    await getPageInstance().mouse.move(box.x + box.width + resizeAmount, box.y + (box.height / 2), { steps: 10 }); // Adjust the value to resize the column
-    await getPageInstance().mouse.up();
-  }
-}
-
-/**
- * @param {number} rowIndex Row index.
- * @param {number} resizeAmount Resize amount.
- * @param {Locator} tableLocator The locator of the page.
- */
-export async function resizeRow(rowIndex: number, resizeAmount: number, tableLocator = getDefaultTableInstance()) {
-  const box = await tableLocator.getByRole('rowheader').nth(rowIndex).boundingBox();
-
-  if (box) {
-    // Move to the bottom border of the row header
-    await getPageInstance().mouse.move(box.x + (box.width / 2), box.y + box.height - 3);
-    // Add a small delay to ensure the hover action is registered
-    // eslint-disable-next-line no-restricted-syntax -- DEV-2797: the resize handle appears on hover with no class to wait for yet; replace with a hover-state probe when this helper is reworked
-    await getPageInstance().waitForTimeout(500);
-
-    // Drag the resize handle to resize the row
-    await getPageInstance().mouse.down();
-    await getPageInstance().mouse.move(box.x + (box.width / 2), box.y + box.height + resizeAmount, { steps: 10 }); // Adjust the value to resize the row
-    await getPageInstance().mouse.up();
   }
 }
 
@@ -882,6 +804,34 @@ export async function doubleClickRelativeToViewport(
   await getPageInstance().mouse.dblclick(x, y, {
     button,
   });
+}
+
+/**
+ * Waits until a wheel scroll has moved the grid and come to rest. `mouse.wheel()` returns before the
+ * browser scrolls, and an engine that animates a wheel scroll moves the holder over several frames, so
+ * the master holder's offsets are read until two animation frames in a row leave both where they were,
+ * with `offset` moved off zero (in either direction, so a right-to-left grid's negative `scrollLeft`
+ * counts). The capture's scrollbar-clearance settle cannot stand in for this: it waits for a band that
+ * only overlay scrollbars open.
+ *
+ * @param {'scrollTop' | 'scrollLeft'} offset The offset the wheel scroll must have moved.
+ * @param {Locator} table The locator of the table.
+ */
+export async function waitForWheelScrollToSettle(
+  offset: 'scrollTop' | 'scrollLeft',
+  table = getDefaultTableInstance(),
+) {
+  const holder = table.locator('.ht_master .wtHolder');
+
+  await expect.poll(async() => holder.evaluate((element, axis) => new Promise<number>((resolve) => {
+    const before = [element.scrollTop, element.scrollLeft];
+
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const settled = element.scrollTop === before[0] && element.scrollLeft === before[1];
+
+      resolve(settled ? Math.abs(element[axis]) : 0);
+    }));
+  }), offset), { message: `the wheel scroll never moved ${offset} and came to rest` }).toBeGreaterThan(0);
 }
 
 /**
@@ -984,16 +934,3 @@ export async function waitForDropdownSubmenuToAppear(submenuName: string) {
   await getPageInstance().waitForSelector(`.htDropdownMenuSub_${submenuClassSuffix(submenuName)}`);
 }
 
-/**
- * Updates Handsontable settings.
- *
- * @param {object} options Handsontable settings options.
- */
-export async function forHandsontableUpdateSettings(options) {
-  await getPageInstance().evaluate(async(hotOptions) => {
-    // eslint-disable-next-line no-restricted-globals
-    const hotInstance = document.defaultView?.hotInstance;
-
-    hotInstance.updateSettings(hotOptions);
-  }, options);
-}

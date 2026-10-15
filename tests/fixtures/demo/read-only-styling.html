@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable `readOnlyStyling` e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } h2 { font-size: .9rem; } </style>
+</head>
+<body>
+  <!--
+    `readOnlyStyling` fixture. Three grids that differ only in that option, so a
+    spec can compare the read-only ones against an editable reference rendered
+    in the same theme — which is what makes the appearance assertions
+    theme-agnostic rather than pinned to one palette.
+
+      editable  no `readOnly` at all — the reference every comparison uses
+      styled    `readOnly: true` — the default, dimmed
+      unstyled  `readOnly: true, readOnlyStyling: false` — must look like `editable`
+
+    Cells are stamped with data-testid="<grid>-<row>-<col>". The stamping
+    renderer delegates to `TextRenderer`, which reaches the base renderer, so
+    the read-only class is applied exactly as it would be without a custom
+    renderer.
+  -->
+  <h2>editable (reference)</h2>
+  <div id="editable" data-testid="editable"></div>
+
+  <h2>readOnly (default styling)</h2>
+  <div id="styled" data-testid="styled"></div>
+
+  <h2>readOnly + readOnlyStyling: false</h2>
+  <div id="unstyled" data-testid="unstyled"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const stamp = prefix => function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `${prefix}-${row}-${col}`);
+    };
+
+    const build = (id, settings) => {
+      const container = document.querySelector(`[data-testid="${id}"]`);
+
+      container.className = `ht-theme-${window.htTheme}`;
+
+      return new Handsontable(container, Object.assign({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        colHeaders: true,
+        rowHeaders: true,
+        renderer: stamp(id),
+        licenseKey: 'non-commercial-and-evaluation',
+      }, settings));
+    };
+
+    window.hotEditable = build('editable', {});
+    window.hotStyled = build('styled', { readOnly: true });
+    window.hotUnstyled = build('unstyled', { readOnly: true, readOnlyStyling: false });
+  </script>
+</body>
+</html>
