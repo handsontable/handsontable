@@ -182,7 +182,7 @@ describe('FreezeBar', () => {
     expect(bar.getAttribute('aria-orientation')).toBe('vertical');
     expect(bar.getAttribute('aria-valuenow')).toBe('2');
     expect(bar.getAttribute('aria-valuemin')).toBe('0');
-    expect(bar.getAttribute('aria-label')).toBe('Frozen columns');
+    expect(bar.getAttribute('aria-label')).toBe('Frozen columns at the start');
   });
 
   it('should change the count with the arrow keys and Home', () => {

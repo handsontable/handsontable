@@ -153,8 +153,10 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'تعذر إزالة الصفوف',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'فشل الطلب',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'إعادة التحميل',
-  [C.FREEZE_BAR_ROWS]: 'الصفوف المجمّدة',
-  [C.FREEZE_BAR_COLUMNS]: 'الأعمدة المجمّدة',
+  [C.FREEZE_BAR_ROWS_TOP]: 'الصفوف المجمّدة في الأعلى',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'الصفوف المجمّدة في الأسفل',
+  [C.FREEZE_BAR_COLUMNS_START]: 'الأعمدة المجمّدة في البداية',
+  [C.FREEZE_BAR_COLUMNS_END]: 'الأعمدة المجمّدة في النهاية',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'تم توسيع الصف [label]، الصفوف الموسّعة المعروضة: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'تم طي الصف [label]',
 };

@@ -161,8 +161,10 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nie udało się usunąć wierszy',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Żądanie nie powiodło się',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ponów pobieranie',
-  [C.FREEZE_BAR_ROWS]: 'Zablokowane wiersze',
-  [C.FREEZE_BAR_COLUMNS]: 'Zablokowane kolumny',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Zablokowane wiersze u góry',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Zablokowane wiersze na dole',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Zablokowane kolumny na początku',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Zablokowane kolumny na końcu',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rozwinięto wiersz [label], widoczne rozwinięte wiersze: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Zwinięto wiersz [label]',
 };

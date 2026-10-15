@@ -302,15 +302,18 @@ export class FreezeBar extends BasePlugin {
       } else {
         settings[{ top: 'fixedRowsTop', bottom: 'fixedRowsBottom', end: 'fixedColumnsEnd' }[edge]] = newCount;
       }
+
+      // Filters decides which rows `filterFixedRows: false` exempts. A write on the table meta is not an update, so the
+      // plugin is told directly instead of through `afterUpdateSettings`.
+      if (edge === 'top' || edge === 'bottom') {
+        this.hot.getPlugin('filters')?._markPinnedRowsStale();
+      }
+
+      // The render runs inside the operation: Filters re-applies the exemption in it, and a change of its trimming map
+      // outside the operation would be an undo step of its own.
+      this.hot.render();
     });
 
-    // Filters decides which rows `filterFixedRows: false` exempts. A write on the table meta is not an update,
-    // so the plugin is told directly instead of through `afterUpdateSettings`.
-    if (edge === 'top' || edge === 'bottom') {
-      this.hot.getPlugin('filters')?._markPinnedRowsStale();
-    }
-
-    this.hot.render();
     this.hot.runHooks('afterFreezeChange', edge, newCount, oldCount, source);
 
     return true;
@@ -486,7 +489,12 @@ export class FreezeBar extends BasePlugin {
    * @returns {string}
    */
   #getLabelKey(edge: FreezeEdge): string {
-    return isColumnEdge(edge) ? C.FREEZE_BAR_COLUMNS : C.FREEZE_BAR_ROWS;
+    return {
+      top: C.FREEZE_BAR_ROWS_TOP,
+      bottom: C.FREEZE_BAR_ROWS_BOTTOM,
+      start: C.FREEZE_BAR_COLUMNS_START,
+      end: C.FREEZE_BAR_COLUMNS_END,
+    }[edge];
   }
 
   /**

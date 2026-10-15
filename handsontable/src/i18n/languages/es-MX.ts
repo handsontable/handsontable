@@ -157,8 +157,10 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'No se pudieron eliminar las filas',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'La solicitud falló',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Volver a cargar',
-  [C.FREEZE_BAR_ROWS]: 'Filas inmovilizadas',
-  [C.FREEZE_BAR_COLUMNS]: 'Columnas inmovilizadas',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Filas inmovilizadas en la parte superior',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Filas inmovilizadas en la parte inferior',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Columnas inmovilizadas al inicio',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Columnas inmovilizadas al final',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Se expandió la fila [label], filas expandidas mostradas: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Se contrajo la fila [label]',
 };

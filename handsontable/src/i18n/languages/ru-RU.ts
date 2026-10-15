@@ -151,8 +151,10 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Не удалось удалить строки',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Запрос не выполнен',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Повторить загрузку',
-  [C.FREEZE_BAR_ROWS]: 'Закреплённые строки',
-  [C.FREEZE_BAR_COLUMNS]: 'Закреплённые столбцы',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Закреплённые строки сверху',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Закреплённые строки снизу',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Закреплённые столбцы в начале',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Закреплённые столбцы в конце',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Развёрнута строка [label], показано развёрнутых строк: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Свёрнута строка [label]',
 };

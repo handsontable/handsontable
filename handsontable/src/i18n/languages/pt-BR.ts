@@ -151,8 +151,10 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Não foi possível remover as linhas',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Falha na solicitação',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Recarregar',
-  [C.FREEZE_BAR_ROWS]: 'Linhas congeladas',
-  [C.FREEZE_BAR_COLUMNS]: 'Colunas congeladas',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Linhas congeladas na parte superior',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Linhas congeladas na parte inferior',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Colunas congeladas no início',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Colunas congeladas no fim',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Linha [label] expandida, linhas expandidas exibidas: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Linha [label] recolhida',
 };

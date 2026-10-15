@@ -1037,7 +1037,7 @@ test.describe('freezeBar', () => {
   test.describe('language', () => {
     test('the bars announce the new language after it changes', async() => {
       await grid.goto();
-      await expect(grid.separator('start')).toHaveAttribute('aria-label', 'Frozen columns');
+      await expect(grid.separator('start')).toHaveAttribute('aria-label', 'Frozen columns at the start');
       await grid.page.evaluate(() => {
         // the base bundle has no language files, so the dictionary is registered here
         const languages = (window as any).Handsontable.languages;
@@ -1045,14 +1045,16 @@ test.describe('freezeBar', () => {
         languages.registerLanguageDictionary({
           ...languages.getLanguageDictionary('en-US'),
           languageCode: 'pl-PL',
-          'FreezeBar:columns': 'Zablokowane kolumny',
-          'FreezeBar:rows': 'Zablokowane wiersze',
+          'FreezeBar:columns.start': 'Zablokowane kolumny na początku',
+          'FreezeBar:columns.end': 'Zablokowane kolumny na końcu',
+          'FreezeBar:rows.top': 'Zablokowane wiersze u góry',
+          'FreezeBar:rows.bottom': 'Zablokowane wiersze na dole',
         });
         window.hot.updateSettings({ language: 'pl-PL' });
       });
 
-      await expect(grid.separator('start')).toHaveAttribute('aria-label', 'Zablokowane kolumny');
-      await expect(grid.separator('top')).toHaveAttribute('aria-label', 'Zablokowane wiersze');
+      await expect(grid.separator('start')).toHaveAttribute('aria-label', 'Zablokowane kolumny na początku');
+      await expect(grid.separator('top')).toHaveAttribute('aria-label', 'Zablokowane wiersze u góry');
     });
   });
 
@@ -1505,6 +1507,23 @@ test.describe('freezeBar and the rest of the page', () => {
     expect(await grid.page.evaluate(() => window.hot.getSelectedLast())).toEqual([5, 6, 5, 6]);
   });
 
+  test('the four bars announce four different names', async() => {
+    await grid.goto({ bottom: 1, end: 1 });
+
+    const labels = await grid.page.evaluate(() => {
+      return ['top', 'bottom', 'start', 'end'].map((edge) => {
+        return document.querySelector(`[data-ht-freeze-separator="${edge}"]`)!.getAttribute('aria-label');
+      });
+    });
+
+    expect(labels).toEqual([
+      'Frozen rows at the top',
+      'Frozen rows at the bottom',
+      'Frozen columns at the start',
+      'Frozen columns at the end',
+    ]);
+  });
+
   test('only one bar is a Tab stop, and F6 reaches the others', async() => {
     await grid.goto({ bottom: 1, end: 1 });
 
@@ -1528,7 +1547,7 @@ test.describe('freezeBar and the rest of the page', () => {
     expect(await grid.page.evaluate(() => window.hot.rootElement.contains(document.activeElement))).toBe(true);
   });
 
-  test('an undo puts a frozen row back under the filter', async() => {
+  test('a drag under a filter is one undo step, and an undo puts the frozen rows back under the filter', async() => {
     await grid.goto({ filters: 1, rows: 1, undo: 1 });
     await grid.page.evaluate(() => {
       const filters = window.hot.getPlugin('filters');
@@ -1539,21 +1558,24 @@ test.describe('freezeBar and the rest of the page', () => {
 
     const state = () => grid.page.evaluate(() => ({
       rows: window.hot.countRows(),
+      top: window.hot.getPlugin('freezeBar').getFreezeCount('top'),
       first: [0, 1, 2, 3].map(row => window.hot.getDataAtCell(row, 0)).join(','),
     }));
 
-    await grid.page.evaluate(() => window.hot.getPlugin('freezeBar').setFreezeCount('top', 3));
+    expect(await state()).toEqual({ rows: 11, top: 1, first: 'A1,A10,A11,A12' });
 
-    expect(await state()).toEqual({ rows: 13, first: 'A1,A2,A3,A10' });
+    await grid.drag('top', 3);
 
+    expect(await state()).toEqual({ rows: 13, top: 3, first: 'A1,A2,A3,A10' });
+
+    // Filters exempts the frozen rows again in the render of the drag, and that change joins the step of the drag
     await grid.page.evaluate(() => window.hot.getPlugin('undoRedo').undo());
 
-    // the rows frozen by the undone drag are filtered again
-    expect(await state()).toEqual({ rows: 11, first: 'A1,A10,A11,A12' });
+    expect(await state()).toEqual({ rows: 11, top: 1, first: 'A1,A10,A11,A12' });
 
     await grid.page.evaluate(() => window.hot.getPlugin('undoRedo').redo());
 
-    expect(await state()).toEqual({ rows: 13, first: 'A1,A2,A3,A10' });
+    expect(await state()).toEqual({ rows: 13, top: 3, first: 'A1,A2,A3,A10' });
   });
 
   test('the hover does not stay on a bar that moved to another host', async() => {
