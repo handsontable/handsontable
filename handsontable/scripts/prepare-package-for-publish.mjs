@@ -44,6 +44,39 @@ function reportIncompleteness(message) {
 }
 
 /**
+ * The theme presets under `themes/static/variables` are consumed as default imports
+ * (`import tokens from 'handsontable/themes/static/variables/tokens/main'`), and the re-export
+ * wrapper cannot carry that. Under `node16`/`nodenext` the `.js` sibling is a CommonJS module, so
+ * `export { default } from './main.js'` resolves to the CJS `default`, the whole `exports` object,
+ * and `tokens` is typed as `{ default: ThemeTokensConfig }` instead of `ThemeTokensConfig`. These
+ * files get a self-contained ESM declaration instead – the `.d.ts` body with its relative
+ * specifiers made explicit. Do not widen the rule to other files without checking `attw` and a
+ * `node16` default import of each one.
+ */
+const SELF_CONTAINED_MTS_DIR = 'themes/static/variables/';
+
+/**
+ * Make the relative specifiers of a declaration valid under ESM resolution, where `./x` does not
+ * resolve and `./dir` does not fall back to `./dir/index`.
+ *
+ * @param {string} dtsContent The `.d.ts` source.
+ * @param {string} dtsPath The absolute path of the `.d.ts` file the content comes from.
+ * @returns {string} The source with `.js` specifiers.
+ */
+function toExplicitEsmSpecifiers(dtsContent, dtsPath) {
+  return dtsContent.replace(/(\bfrom\s+|\bimport\s*\()(['"])(\.{1,2}\/[^'"]*)\2/g, (match, lead, quote, spec) => {
+    if (/\.m?js$/.test(spec)) {
+      return match;
+    }
+
+    const target = path.resolve(path.dirname(dtsPath), spec);
+    const explicit = fse.existsSync(`${target}.d.ts`) ? `${spec}.js` : `${spec.replace(/\/$/, '')}/index.js`;
+
+    return `${lead}${quote}${explicit}${quote}`;
+  });
+}
+
+/**
  * Generate thin .d.mts wrapper files for every .d.ts so the `import` condition
  * in the exports map can reference explicitly-ESM type declarations.
  *
@@ -64,6 +97,12 @@ glob.sync('./**/*.d.ts', { cwd: TARGET_PATH, nodir: true }).forEach((dtsFile) =>
   const jsRef = `./${path.basename(dtsFile, '.d.ts')}.js`;
   const dtsContent = fse.readFileSync(dtsPath, 'utf8');
   const hasDefault = /\bexport\s+default\b/.test(dtsContent);
+
+  if (hasDefault && path.posix.normalize(dtsFile).startsWith(SELF_CONTAINED_MTS_DIR)) {
+    fse.outputFileSync(mtsPath, toExplicitEsmSpecifiers(dtsContent, dtsPath));
+
+    return;
+  }
 
   let mtsContent = `export * from '${jsRef}';\n`;
 

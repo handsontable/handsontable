@@ -110,6 +110,10 @@ jobs:
           "
           "$TOOLS_BIN/tsc" -p tsconfig.verify-types.json
           rm tsconfig.verify-types.json
+      - name: Type-check an ES module consumer under node16 and nodenext
+        # attw and the .d.ts check above pass for a .d.mts that re-exports a
+        # CommonJS-typed default; only a real default import shows it (DEV-3421).
+        run: TSC="$TOOLS_BIN/tsc" node handsontable/scripts/verify-esm-consumer-types.mjs
       - name: Check package exports and well-formedness (publint)
         run: |
           cd handsontable/tmp
