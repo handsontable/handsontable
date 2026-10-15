@@ -40,6 +40,9 @@ function createEditor({
   // The real TableView counter, so the stub cannot drift from the band size the renderer uses.
   editor.hot.view = {
     countFixedColumnsEnd: () => TableView.prototype.countFixedColumnsEnd.call({ settings, hot: editor.hot }),
+    countFixedColumnsStart: () => TableView.prototype.countFixedColumnsStart.call({ settings, hot: editor.hot }),
+    countFixedRowsTop: () => TableView.prototype.countFixedRowsTop.call({ settings, hot: editor.hot }),
+    countFixedRowsBottom: () => TableView.prototype.countFixedRowsBottom.call({ settings, hot: editor.hot }),
   };
 
   return editor;

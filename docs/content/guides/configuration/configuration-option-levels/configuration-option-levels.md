@@ -200,6 +200,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="layout" data-levels="grid"></span>[`layout`](@/api/options.md#layout) | Yes | No | No | No | Core |  |
 | <span data-option="layoutDirection" data-levels="grid"></span>[`layoutDirection`](@/api/options.md#layoutdirection) | Yes | No | No | No | Core |  |
 | <span data-option="licenseKey" data-levels="grid"></span>[`licenseKey`](@/api/options.md#licensekey) | Yes | No | No | No | Core |  |
+| <span data-option="limitFixedToViewport" data-levels="grid"></span>[`limitFixedToViewport`](@/api/options.md#limitfixedtoviewport) | Yes | No | No | No | Core |  |
 | <span data-option="loading" data-levels="grid"></span>[`loading`](@/api/options.md#loading) | Yes | No | No | No | Loading |  |
 | <span data-option="locale" data-levels="grid columns cells cell"></span>[`locale`](@/api/options.md#locale) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="manualColumnFreeze" data-levels="grid"></span>[`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) | Yes | No | No | No | ManualColumnFreeze |  |

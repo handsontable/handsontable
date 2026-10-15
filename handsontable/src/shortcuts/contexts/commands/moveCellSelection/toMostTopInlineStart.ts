@@ -8,8 +8,8 @@ export const command = {
       rowIndexMapper,
       columnIndexMapper,
     } = hot;
-    const fixedRows = Number(hot.getSettings().fixedRowsTop) || 0;
-    const fixedColumns = Number(hot.getSettings().fixedColumnsStart) || 0;
+    const fixedRows = hot.view.countFixedRowsTop();
+    const fixedColumns = hot.view.countFixedColumnsStart();
     const row = rowIndexMapper.getNearestNotHiddenIndex(fixedRows, 1);
     const column = columnIndexMapper.getNearestNotHiddenIndex(fixedColumns, 1);
 

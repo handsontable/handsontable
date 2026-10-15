@@ -459,12 +459,18 @@ export class ManualColumnMove extends BasePlugin {
    * @returns {boolean}
    */
   isFixedColumnsStart(column: number) {
-    return column < (this.hot.getSettings().fixedColumnsStart ?? 0);
+    return column < (this.hot.view?.countFixedColumnsStart() ?? this.hot.getSettings().fixedColumnsStart ?? 0);
   }
 
   /**
-   * Gets the number of columns the inline-end overlay really holds, after the `fixedColumnsStart` priority
+   * Gets the number of columns the configured `fixedColumnsEnd` holds, after the `fixedColumnsStart` priority
    * clamp. The columns are the last ones in the visual order.
+   *
+   * It is the CONFIGURED band, not the one `limitFixedToViewport` draws: a move that crosses the configured line
+   * would shift the columns in between into the band, and a different set of columns would be frozen at the end
+   * when the grid grows. The start side reads the drawn band, because the start band is positional and a move
+   * across its line changes no count. Counted over the same total the view uses (`countCols()`, capped by `maxCols`),
+   * which is also all the plugin has before the table view exists.
    *
    * @private
    * @returns {number}
@@ -472,29 +478,26 @@ export class ManualColumnMove extends BasePlugin {
   getFixedColumnsEndCount(): number {
     const { fixedColumnsEnd, fixedColumnsStart } = this.hot.getSettings();
 
-    // The initial `manualColumnMove` array moves the columns while the plugin is enabled, before the table view
-    // exists. A grid with no end columns has nothing to count, so answer without reading the view.
+    // A grid with no end columns has nothing to count, so answer without reading the column count.
     if (!fixedColumnsEnd) {
       return 0;
     }
 
-    // Without the view, count over the same total the view uses (`countCols()`, capped by `maxCols`).
-    if (!this.hot.view) {
-      return clampFixedColumnsEnd(fixedColumnsEnd, fixedColumnsStart, this.hot.countCols());
-    }
-
-    return this.hot.view.countFixedColumnsEnd();
+    return clampFixedColumnsEnd(fixedColumnsEnd, fixedColumnsStart, this.hot.countCols());
   }
 
   /**
-   * Checks if the provided column is in the fixedColumnsEnd section.
+   * Checks if the provided column is in the fixedColumnsEnd section the grid DRAWS. It positions the guideline and the
+   * backlight, which follow the end clone, so it reads the drawn count (`limitFixedToViewport` can draw fewer end
+   * columns than are configured, and the rest scroll). The move guard reads the configured band instead
+   * (`getFixedColumnsEndCount()`).
    *
    * @private
    * @param {number} column Visual column index to check.
    * @returns {boolean}
    */
   isFixedColumnsEnd(column: number): boolean {
-    const endCount = this.getFixedColumnsEndCount();
+    const endCount = this.hot.view ? this.hot.view.countFixedColumnsEnd() : this.getFixedColumnsEndCount();
 
     const totalColumns = this.hot.countCols();
 
@@ -826,7 +829,7 @@ export class ManualColumnMove extends BasePlugin {
       this.#columnsToMove = this.prepareColumnsToMoving(start, end);
       this.#hasRowHeaders = !!this.hot.getSettings().rowHeaders;
       this.#countCols = this.hot.countCols();
-      this.#fixedColumnsStart = this.hot.getSettings().fixedColumnsStart;
+      this.#fixedColumnsStart = this.hot.view.countFixedColumnsStart();
       this.#rootElementOffset = offset(this.hot.rootElement).left;
 
       const countColumnsFrom = this.#hasRowHeaders ? -1 : 0;
