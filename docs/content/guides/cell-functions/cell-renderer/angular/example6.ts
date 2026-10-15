@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import {GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable/base';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
@@ -52,14 +52,14 @@ const sanitizeHeader = (html: string): string => {
     </div>
   `,
 })
-export class AppComponent implements AfterViewInit {
+export class AppComponent implements OnInit {
   @ViewChild(HotTableComponent, {static: false}) hotTable!: HotTableComponent;
 
   isChecked = false;
 
   hotSettings!: GridSettings;
 
-  ngAfterViewInit() {
+  ngOnInit() {
     const componentThis = this;
 
     function customRenderer(_instance: Handsontable, td: HTMLTableCellElement) {

@@ -59,6 +59,7 @@ The docs site bootstraps Angular examples with JIT in the browser, which cannot 
 - Inject services with `inject()`. Constructor DI throws `NG0202`.
 - Put Handsontable hook functions inside `gridSettings`, not as template bindings (`(afterInit)="handler()"`).
 - Import only the symbols you use; unused imports (`RowObject`, `ViewChild`, `NgFor`) can cause module resolution errors.
+- Set template-bound state (such as `hotSettings` read by `@if`) in `ngOnInit`. Angular 22 runs no change detection after `ngAfterViewInit`, so a write there leaves an `@if` grid blank. If the write needs the view, call `detectChanges()` on an injected `ChangeDetectorRef` after it.
 
 The `.ts` file holds `app.component.ts` and `app.config.ts` as separate `/* file: ... */` sections:
 
