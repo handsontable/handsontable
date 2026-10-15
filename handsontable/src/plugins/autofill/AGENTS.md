@@ -47,7 +47,11 @@ also why the mouseup gate cannot simply become "the fill border extends past the
 the border too.
 
 The one replay that **does** count is the one after an auto-inserted row (see "Auto-inserting rows"). The
-drag itself grew the grid there, so the new row under the resting pointer is a real drag step.
+drag itself grew the grid there, so the new row under the resting pointer is a real drag step. That only
+holds because a scroll replay cannot **start** a row insertion: `#onMouseMove` marks the pointer as
+dragged out only for a real move, or for a replay once a real move has already counted a step
+(`handleDraggedCells > 1`). Without that gate, a page scrolled under a resting pointer inserted a row,
+and the counted replay after it committed a fill the user never dragged.
 
 ## Resolving the drag direction (DEV-140)
 
@@ -65,7 +69,15 @@ drew no preview and filled nothing at all – a regression from 18.0.0 (DEV-99, 
 the old per-sample projection with the sticky direction. Distances are counted in cells, not pixels: no
 layout read, and the same answer under RTL, at the cost of a one-row, one-column move resolving as
 vertical even when the pointer travelled further sideways. The distances are in VISUAL indexes, so hidden
-rows or columns between the selection and the pointer count toward their axis. Pinned by `__tests__/utils.unit.ts` and
+rows or columns between the selection and the pointer count toward their axis.
+
+**A pointer outside the table adds the cells it reached past the edge.** The cell under it is clamped to
+the table's last row or column, so on its own a pointer far below the last row weighs as much as one
+level with it, and a drag from the last row that drifted one column sideways resolved horizontal.
+`#followPointer()` therefore counts the rows past the bottom edge and the columns past the inline-end
+edge (the left one under RTL) with `countCellsPastEdge()`, sized by the last row and column that are not
+hidden, and `redrawBorders()` adds them to the cell distances. That is still a count of cells, so the
+tie rule and the `direction` filter apply unchanged. Pinned by `__tests__/utils.unit.ts` and
 `tests/e2e/fill-handle-diagonal-drag.spec.ts`.
 
 ## Two drag-state fields, one sentinel (GitHub #13370)
@@ -177,7 +189,7 @@ pointer is found outside, and another only after the pointer moves again: the in
 one as well (`addNewRowIfNeeded()`, from `beforeOnCellMouseOver`). `addingStarted`, `mouseDragOutside` and
 `handleDraggedCells` together are the state machine for that — clear all of them on teardown, not just one.
 
-Three rules for the insertion timer in `addRow()`, each a DEV-140 defect:
+The rules for the row insertion, each a DEV-140 defect:
 
 - **It inserts only while the gesture is live.** A flick released within the 200 ms used to insert a row
   after the release, with no fill to extend into it. The callback still clears `addingStarted` on that path, so
@@ -194,13 +206,20 @@ Three rules for the insertion timer in `addRow()`, each a DEV-140 defect:
 - **It is guarded after `alter()` too.** A hook the insertion runs can end the gesture or destroy the
   grid; `#lastMouseClientPosition` is private, so `BasePlugin#destroy()` does not clear it, and the
   replay would run against a torn-down instance without the re-check.
-- **"Outside" is decided per axis.** `getIfMouseWasDraggedOutside()` never counts a pointer as outside
-  while the drag already extends the selection sideways (the direction is sticky, so the new row would
-  stay empty). Otherwise a pointer below the table is outside when horizontal fill is not allowed, or
-  when it is further below the table than past its inline-end edge (the left one under RTL), measured in
-  pixels from the table's edges. It used to require `clientX <= tableRight`, so a vertical-only
-  drag that drifted a few pixels right of the grid inserted nothing, while under RTL the check had no
-  inline-end limit at all.
+- **"Outside" means below the table during a vertical drag.** `getIfMouseWasDraggedOutside()` returns
+  `true` exactly when the pointer is below the table and the drag direction is vertical. The direction
+  already weighs the cells past both edges (see "Resolving the drag direction"), so a drag locked
+  vertically inserts a row however far sideways the pointer drifts, and a drag going sideways never
+  does – its sticky direction would leave the new row empty. It used to require `clientX <= tableRight`,
+  so a vertical drag that drifted a few pixels right of the grid inserted nothing, while under RTL the
+  check had no inline-end limit at all.
+- **Below the whole table, the pointer targets the last row.** `#followPointer()` replaces the clamped
+  cell's row with the last row that is not hidden whenever the pointer is below the table. In a grid
+  with a fixed height, the row the drag inserts lands below the visible part, where the clamp to the
+  viewport cannot reach it, so without this the fill stopped one row short and the new row stayed empty
+  (the Formulas `cooperate properly with trimmed rows` spec, in a 130 px grid, on every theme but
+  `classic`). It only applies once the pointer is past the table's own bottom edge, which in a scrolled
+  grid means its end is in view, so a long drag below a grid's viewport still extends row by row.
 
 ## Read cell meta transiently
 

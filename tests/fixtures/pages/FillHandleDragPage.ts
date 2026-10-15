@@ -61,9 +61,14 @@ export class FillHandleDragPage {
     return this.page.locator('.ht_master').getByTestId(`cell-${row}-${col}`);
   }
 
-  /** The autofill fill handle of the focus selection, scoped to the master overlay. */
+  /**
+   * The autofill fill handle, scoped to the master overlay. A single selected cell draws it on the
+   * `current` border, a range on the `area` border; only one of them is visible at a time.
+   */
   fillHandle(): Locator {
-    return this.page.locator('.ht_master .wtBorder.current.corner:visible');
+    return this.page.locator(
+      '.ht_master .wtBorder.current.corner:visible, .ht_master .wtBorder.area.corner:visible'
+    );
   }
 
   /** Select a cell range through the instance API. */
@@ -112,6 +117,65 @@ export class FillHandleDragPage {
     await this.page.mouse.move(xByPlacement[inline], table.bottom + below);
   }
 
+  /**
+   * Move the held pointer one pixel up and toward the inline start from a point - a press jitter.
+   * The fill handle sits on the selected cell's bottom-end corner, so this keeps the pointer over
+   * the selected cell; a jitter the other way would land in the next cell and count as a drag step.
+   */
+  async jitterPointer(from: Point): Promise<void> {
+    const isRtl = await this.page.evaluate(() => window.hot.isRtl());
+
+    await this.page.mouse.move(from.x + (isRtl ? 1 : -1), from.y - 1);
+  }
+
+  /**
+   * Move the held pointer below the grid's table, horizontally centered on a column (by visual
+   * index) - within the table's width, so only the vertical axis leaves the table.
+   */
+  async movePointerBelowColumn(col: number, below: number): Promise<void> {
+    const center = await this.#center(this.cell(0, col));
+    const bottom = await this.page.evaluate(() => window.hot.table.getBoundingClientRect().bottom);
+
+    await this.page.mouse.move(center.x, bottom + below);
+  }
+
+  /**
+   * Move the held pointer below the grid's visible area (its root element), keeping the x of the
+   * point the drag started from. Unlike `movePointerBelowGrid()`, this measures the box the user
+   * sees: a grid with a fixed height clips its table, whose own box ends further down.
+   */
+  async movePointerBelowGridRoot(from: Point, below: number): Promise<void> {
+    const bottom = await this.page.evaluate(() => window.hot.rootElement.getBoundingClientRect().bottom);
+
+    await this.page.mouse.move(from.x, bottom + below);
+  }
+
+  /**
+   * Scroll a fixed-height grid to its last row and wait until that row is rendered.
+   */
+  async scrollGridToLastRow(): Promise<void> {
+    const lastRow = await this.page.evaluate(() => {
+      const row = window.hot.countRows() - 1;
+
+      window.hot.scrollViewportTo({ row, col: 0 });
+
+      return row;
+    });
+
+    await expect(this.cell(lastRow, 0)).toBeVisible();
+  }
+
+  /**
+   * Scroll the page with the mouse wheel, leaving the pointer where it is, and wait until the
+   * page has scrolled.
+   */
+  async scrollPageWithWheel(deltaY: number): Promise<void> {
+    const before = await this.page.evaluate(() => window.scrollY);
+
+    await this.page.mouse.wheel(0, deltaY);
+    await expect.poll(() => this.page.evaluate(() => window.scrollY)).toBeGreaterThan(before);
+  }
+
   /** Release the held pointer. */
   async releasePointer(): Promise<void> {
     await this.page.mouse.up();
@@ -125,6 +189,11 @@ export class FillHandleDragPage {
   /** The values of a column, by visual index. */
   async columnValues(col: number): Promise<CellValue[]> {
     return this.page.evaluate(c => window.hot.getDataAtCol(c), col);
+  }
+
+  /** The values of every cell, by visual coordinates. */
+  async gridValues(): Promise<CellValue[][]> {
+    return this.page.evaluate(() => window.hot.getData());
   }
 
   /** The values of a row, by visual index. */

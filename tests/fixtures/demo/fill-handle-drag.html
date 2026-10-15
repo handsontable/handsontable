@@ -34,6 +34,8 @@
     `data-testid="cell-<row>-<col>"`; `window.initFillGrid(overrides)` rebuilds the instance per test.
   -->
   <div id="grid" data-testid="grid"></div>
+  <!-- Room below the grid, so a spec can scroll the page while the fill handle is held. -->
+  <div style="height: 2000px"></div>
 
   <script>
     // The bundle under test, selected above from the sanitized allowlist. The

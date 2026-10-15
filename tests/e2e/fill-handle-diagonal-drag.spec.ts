@@ -25,6 +25,11 @@ import { FillHandleDragPage } from '../fixtures/pages/FillHandleDragPage';
  */
 const BELOW_INSERTED_ROW = 80;
 
+/**
+ * Where the fake clock of the auto-insert tests starts. Any fixed date works.
+ */
+const CLOCK_START = new Date('2026-01-01T00:00:00Z');
+
 test.describe('fill handle drag direction (DEV-140)', { tag: CROSS_BROWSER_TAG }, () => {
   let grid: FillHandleDragPage;
 
@@ -144,11 +149,13 @@ test.describe('fill handle drag direction (DEV-140)', { tag: CROSS_BROWSER_TAG }
     // The ticket's own configuration: two rows, vertical only, rows inserted past the last one.
     const VERTICAL_AUTO_INSERT = { fillHandle: { direction: 'vertical', autoInsertRow: true } };
 
-    // The row insertion runs on a 200 ms timer. A fake clock lets each test decide whether the timer
-    // runs before or after the release, instead of racing it.
+    // The row insertion runs on a 200 ms timer. A paused fake clock lets each test decide whether the
+    // timer runs before or after the release, instead of racing it. `install()` alone is not enough:
+    // the installed clock keeps advancing in real time until it is paused.
     test.beforeEach(async({ page }) => {
-      await page.clock.install();
+      await page.clock.install({ time: CLOCK_START });
       await grid.goto();
+      await page.clock.pauseAt(CLOCK_START.getTime() + 60_000);
     });
 
     test('fills the row inserted under a pointer that rests below the grid', async() => {
@@ -246,6 +253,97 @@ test.describe('fill handle drag direction (DEV-140)', { tag: CROSS_BROWSER_TAG }
       await grid.releasePointer();
 
       expect(await grid.createdRowCount()).toBe(1);
+    });
+
+    // The pointer rests below the grid, within its width, so it maps onto the last row - the
+    // selection's own row - in the next column. Counting only cells, the pointer is one column to the
+    // side and zero rows down; the distance below the table has to count too.
+    test('fills down into a new row when the pointer rests below the last row, one column to the side', async() => {
+      await grid.initLabelledGrid(5, 6, { fillHandle: { autoInsertRow: true } });
+      await grid.selectCells(4, 2);
+      await grid.pressFillHandle();
+      await grid.movePointerBelowColumn(3, BELOW_INSERTED_ROW);
+      await grid.runRowInsertionTimer();
+
+      expect(await grid.countRows()).toBe(6);
+      expect(await grid.fillPreviewCorners()).toEqual([4, 2, 5, 2]);
+
+      await grid.releasePointer();
+
+      expect(await grid.columnValues(2)).toEqual(['C1', 'C2', 'C3', 'C4', 'C5', 'C5']);
+      expect(await grid.rowValues(4)).toEqual(['A5', 'B5', 'C5', 'D5', 'E5', 'F5']);
+    });
+
+    test('inserts a row for a drag locked vertically, however far past the inline-end edge it goes', async() => {
+      await grid.initLabelledGrid(8, 3, { fillHandle: { autoInsertRow: true } });
+      await grid.selectCells(0, 0, 2, 0);
+
+      const start = await grid.pressFillHandle();
+
+      // Down onto row 5 first, which locks the drag to the vertical axis, then below the grid and
+      // further past its inline-end edge than below it.
+      await grid.movePointerToCell(4, 0, 5);
+      await grid.movePointerBelowGrid(start, BELOW_INSERTED_ROW, 'end', 2 * BELOW_INSERTED_ROW);
+      await grid.runRowInsertionTimer();
+
+      expect(await grid.countRows()).toBe(9);
+      expect(await grid.fillPreviewCorners()).toEqual([0, 0, 8, 0]);
+
+      await grid.releasePointer();
+
+      expect(await grid.columnValues(0)).toEqual(['A1', 'A2', 'A3', 'A1', 'A2', 'A3', 'A1', 'A2', 'A3']);
+    });
+
+    test('inserts no row, and fills nothing, when only the page scrolls under a resting pointer', async() => {
+      await grid.initLabelledGrid(3, 3, { fillHandle: { autoInsertRow: true } });
+      await grid.selectCells(2, 1);
+
+      const start = await grid.pressFillHandle();
+
+      // A jitter on the fill handle itself records a pointer position, so a scroll has one to
+      // replay. Then the page scrolls, and the grid moves up past the resting pointer. (Entering
+      // another cell would not be a jitter: every cell the pointer enters counts as a drag step.)
+      await grid.jitterPointer(start);
+      await grid.scrollPageWithWheel(150);
+      await grid.runRowInsertionTimer();
+      await grid.releasePointer();
+
+      expect(await grid.countRows()).toBe(3);
+      expect(await grid.createdRowCount()).toBe(0);
+      expect(await grid.gridValues()).toEqual([['A1', 'B1', 'C1'], ['A2', 'B2', 'C2'], ['A3', 'B3', 'C3']]);
+
+      // Positive control: a real drag below the grid from the same cell inserts, and fills, a row.
+      await grid.selectCells(2, 1);
+
+      const controlStart = await grid.pressFillHandle();
+
+      await grid.movePointerBelowGrid(controlStart, BELOW_INSERTED_ROW, 'handle');
+      await grid.runRowInsertionTimer();
+      await grid.releasePointer();
+
+      expect(await grid.createdRowCount()).toBe(1);
+      expect(await grid.columnValues(1)).toEqual(['B1', 'B2', 'B3', 'B3']);
+    });
+
+    // A fixed-height grid scrolled to its end: the row the drag inserts lands below the visible
+    // area, where no cell is under the pointer. The pointer is below the whole table, so it points
+    // past the last row, whichever row that is now.
+    test('fills the row it inserts below the visible part of a fixed-height grid', async() => {
+      await grid.initLabelledGrid(8, 3, { height: 130, dragToScroll: false, fillHandle: { autoInsertRow: true } });
+      await grid.scrollGridToLastRow();
+      await grid.selectCells(7, 0);
+
+      const start = await grid.pressFillHandle();
+
+      await grid.movePointerBelowGridRoot(start, 40);
+      await grid.runRowInsertionTimer();
+
+      expect(await grid.countRows()).toBe(9);
+      expect(await grid.fillPreviewCorners()).toEqual([7, 0, 8, 0]);
+
+      await grid.releasePointer();
+
+      expect(await grid.cellValue(8, 0)).toBe('A8');
     });
 
     // Not a regression test for the ticket: it passes before the fix too, which never inserted a row

@@ -8,7 +8,12 @@ import { isObject, isObjectEqual } from '../../helpers/object';
 import { arrayEach, arrayMap } from '../../helpers/array';
 import { isEmpty } from '../../helpers/mixed';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
-import { getDragDirectionAndRange, getDistanceOutsideRange, resolveDragDirection } from './utils';
+import {
+  countCellsPastEdge,
+  getDragDirectionAndRange,
+  getDistanceOutsideRange,
+  resolveDragDirection,
+} from './utils';
 import type { DragDirection } from './utils';
 import { DIRECTIONS } from './constants';
 
@@ -740,8 +745,13 @@ export class Autofill extends BasePlugin {
    *
    * @private
    * @param {CellCoords} cellCoords `CellCoords` coord object.
+   * @param {{rows: number, columns: number}} [cellsPastTable] How many cells the pointer reached past
+   * the table's bottom and inline-end edges, counted on top of the cell under it.
    */
-  redrawBorders(cellCoords: { row: number | null, col: number | null }) {
+  redrawBorders(
+    cellCoords: { row: number | null, col: number | null },
+    cellsPastTable: { rows: number, columns: number } = { rows: 0, columns: 0 },
+  ) {
     const allowedDirections = this.directions;
     const lastRange = this.hot.getSelectedRangeLast();
 
@@ -758,8 +768,10 @@ export class Autofill extends BasePlugin {
     // both axes at once. See this plugin's AGENTS.md ("Resolving the drag direction", DEV-140).
     this.#currentDragDirection = resolveDragDirection(
       this.#currentDragDirection,
-      getDistanceOutsideRange(coords.row ?? 0, topStartCorner.row ?? 0, bottomEndCorner.row ?? 0),
-      getDistanceOutsideRange(coords.col ?? 0, topStartCorner.col ?? 0, bottomEndCorner.col ?? 0),
+      getDistanceOutsideRange(coords.row ?? 0, topStartCorner.row ?? 0, bottomEndCorner.row ?? 0) +
+        cellsPastTable.rows,
+      getDistanceOutsideRange(coords.col ?? 0, topStartCorner.col ?? 0, bottomEndCorner.col ?? 0) +
+        cellsPastTable.columns,
       allowedDirections,
     );
 
@@ -797,23 +809,11 @@ export class Autofill extends BasePlugin {
   getIfMouseWasDraggedOutside(event: Pick<MouseEvent, 'clientX' | 'clientY'>) {
     // Viewport coordinates straight from the box: unlike the offset chain, it follows the transform
     // that places the spreader (`walkontable/src/overlay/spreaderOffset.ts`).
-    const { bottom: tableBottom, left: tableLeft, right: tableRight } = this.hot.table.getBoundingClientRect();
-    const distanceBelow = event.clientY - tableBottom;
+    const { bottom: tableBottom } = this.hot.table.getBoundingClientRect();
 
-    // A drag already extending the selection sideways has no use for a new row.
-    if (distanceBelow <= 0 || this.#currentDragDirection === DIRECTIONS.horizontal) {
-      return false;
-    }
-
-    if (!this.directions.includes(DIRECTIONS.horizontal)) {
-      return true;
-    }
-
-    // Past the inline-end edge as well, the pointer counts as dragged out downwards only when it is
-    // further below the table than beside it, in pixels from the table's edges.
-    const distancePastInlineEnd = this.hot.isRtl() ? tableLeft - event.clientX : event.clientX - tableRight;
-
-    return distanceBelow >= distancePastInlineEnd;
+    // The drag direction already weighs how far below and beside the table the pointer is (see
+    // `#followPointer()`), so a new row is due exactly when a vertical drag reaches below the table.
+    return event.clientY > tableBottom && this.#currentDragDirection === DIRECTIONS.vertical;
   }
 
   /**
@@ -974,8 +974,11 @@ export class Autofill extends BasePlugin {
     // Short-circuited on purpose: the measurement reads `this.hot.table`, which is `undefined` on
     // an instance whose init aborted before the view existed. See this plugin's AGENTS.md
     // ("The `documentElement` listeners outlive a failed init").
+    // A scroll replay (`countDragStep` off) may extend a drag into a new row, but it cannot start one:
+    // until a real move has counted a drag step, the gesture has no fill to put into the row.
     const shouldMarkDragOutside = this.addingStarted === false &&
       this.handleDraggedCells > 0 &&
+      (countDragStep || this.handleDraggedCells > 1) &&
       this.getIfMouseWasDraggedOutside(event);
 
     if (shouldMarkDragOutside) {
@@ -1000,8 +1003,16 @@ export class Autofill extends BasePlugin {
    */
   #followPointer(position: Pick<MouseEvent, 'clientX' | 'clientY'>, countDragStep: boolean) {
     const { clientX, clientY } = position;
-    const cellCoords = getCellCoordsFromMousePosition(this.hot, clientX, clientY);
+    const cellsPastTable = this.#countCellsPastTable(clientX, clientY);
+    let cellCoords = getCellCoordsFromMousePosition(this.hot, clientX, clientY);
     const selectedRange = this.hot.getSelectedRangeLast();
+
+    // Below the whole table, the pointer points past its last row. That includes a row just inserted
+    // below the visible part of a grid with a fixed height, which the clamp to the viewport above
+    // cannot reach, so the fill would stop short of it.
+    if (cellsPastTable.rows > 0 && cellsPastTable.lastRow !== null && cellCoords.col !== null) {
+      cellCoords = this.hot._createCellCoords(cellsPastTable.lastRow, cellCoords.col);
+    }
 
     this.#lastMouseClientPosition = { clientX, clientY };
 
@@ -1013,7 +1024,34 @@ export class Autofill extends BasePlugin {
       this.handleDraggedCells += 1;
     }
 
-    this.redrawBorders(cellCoords);
+    this.redrawBorders(cellCoords, cellsPastTable);
+  }
+
+  /**
+   * Counts how many cells the pointer reached past the table's bottom and inline-end edges, sized by
+   * the last row and column. The cell under such a pointer is clamped to the table's edge, so without
+   * this a pointer far below the last row would weigh as much as one level with it.
+   *
+   * @param {number} clientX The pointer's horizontal viewport position.
+   * @param {number} clientY The pointer's vertical viewport position.
+   * @returns {{rows: number, columns: number, lastRow: number|null}} The counts, and the visual index
+   * of the last row that is not hidden (`null` when there is none).
+   */
+  #countCellsPastTable(clientX: number, clientY: number) {
+    const { bottom, left, right } = this.hot.table.getBoundingClientRect();
+    const { rowIndexMapper, columnIndexMapper, stylesHandler } = this.hot;
+    const lastRow = rowIndexMapper.getNearestNotHiddenIndex(this.hot.countRows() - 1, -1);
+    const lastColumn = columnIndexMapper.getNearestNotHiddenIndex(this.hot.countCols() - 1, -1);
+    const rowHeight = lastRow === null ?
+      0 : this.hot.getRowHeight(lastRow) ?? stylesHandler.getDefaultRowHeight(lastRow);
+    const columnWidth = lastColumn === null ? 0 : this.hot.getColWidth(lastColumn);
+    const pixelsPastInlineEnd = this.hot.isRtl() ? left - clientX : clientX - right;
+
+    return {
+      rows: countCellsPastEdge(clientY - bottom, rowHeight),
+      columns: countCellsPastEdge(pixelsPastInlineEnd, columnWidth),
+      lastRow,
+    };
   }
 
   /**

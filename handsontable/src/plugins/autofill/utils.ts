@@ -137,3 +137,25 @@ export function resolveDragDirection(
 
   return null;
 }
+
+/**
+ * Counts how many cells a pointer reached past one of the table's edges, a cell it only entered
+ * included. Used to weigh a pointer outside the table, where the cell under it is clamped to the
+ * table's edge and the distance in cells would read 0.
+ *
+ * @param {number} pixelsPastEdge How far past the edge the pointer is, in pixels (not positive when
+ * the pointer is on or inside the edge).
+ * @param {number} cellSize The size of the edge's row or column, in pixels.
+ * @returns {number}
+ */
+export function countCellsPastEdge(pixelsPastEdge: number, cellSize: number): number {
+  if (pixelsPastEdge <= 0) {
+    return 0;
+  }
+
+  if (!(cellSize > 0)) {
+    return 1;
+  }
+
+  return Math.ceil(pixelsPastEdge / cellSize);
+}

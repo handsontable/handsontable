@@ -74,10 +74,7 @@ describe('Formulas', () => {
         trimRows: [0, 1],
         fillHandle: true,
         width: 400,
-        // Tall enough for the row the drag inserts to stay in view on every theme. The pointer rests
-        // below the grid, so the fill reaches the last row in view; with the old 130px the inserted
-        // row fit on `classic` only, and the expectation below depended on the theme.
-        height: 250,
+        height: 130,
         rowHeaders: true,
         colHeaders: true,
       });
@@ -94,7 +91,9 @@ describe('Formulas', () => {
       simulateFillHandleDragFinish(lastRowCell, { offsetY: 200 });
 
       // The drag past the last row inserts a row, and the fill reaches it (DEV-140) - it used to be
-      // left empty. The trimmed rows stay out of the fill.
+      // left empty. On the taller themes that row lands below the visible part of this 130px grid;
+      // the pointer is below the whole table, so it still points at the row. The trimmed rows stay
+      // out of the fill.
       expect(getData()).toEqual([
         [33, 3, 4, 5, 6, 7, 8],
         [33, 3, 4, 5, 6, 7, 8],

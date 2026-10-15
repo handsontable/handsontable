@@ -1,4 +1,4 @@
-import { getDistanceOutsideRange, resolveDragDirection } from '../utils';
+import { countCellsPastEdge, getDistanceOutsideRange, resolveDragDirection } from '../utils';
 
 const BOTH = ['vertical', 'horizontal'];
 
@@ -13,6 +13,25 @@ describe('Autofill utils', () => {
     it('should count the indexes between the range and an index past either edge', () => {
       expect(getDistanceOutsideRange(7, 2, 4)).toBe(3);
       expect(getDistanceOutsideRange(0, 2, 4)).toBe(2);
+    });
+  });
+
+  describe('countCellsPastEdge', () => {
+    it('should return 0 for a pointer on or inside the edge', () => {
+      expect(countCellsPastEdge(0, 23)).toBe(0);
+      expect(countCellsPastEdge(-40, 23)).toBe(0);
+    });
+
+    it('should count every cell the pointer reached past the edge, a started one included', () => {
+      expect(countCellsPastEdge(1, 23)).toBe(1);
+      expect(countCellsPastEdge(23, 23)).toBe(1);
+      expect(countCellsPastEdge(24, 23)).toBe(2);
+      expect(countCellsPastEdge(80, 29)).toBe(3);
+    });
+
+    it('should count one cell past the edge when the cell size is unknown', () => {
+      expect(countCellsPastEdge(80, 0)).toBe(1);
+      expect(countCellsPastEdge(80, Number.NaN)).toBe(1);
     });
   });
 
