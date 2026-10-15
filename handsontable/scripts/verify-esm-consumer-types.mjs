@@ -9,22 +9,43 @@
  *
  * Needs the composed package: run `postbuild` (or `postbuild:partial`) first.
  * Set `TSC` to pick a compiler, e.g. the TS 5.1 the Emitted Types workflow installs.
+ *
+ * Only `node:` built-ins are imported: the prebuilt CI path runs this without the root `pnpm install`.
  */
 import { spawnSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { displayErrorMessage } from '../../scripts/utils/console.mjs';
 
 const projectRoot = fileURLToPath(new URL('..', import.meta.url));
 const packageDir = path.join(projectRoot, 'tmp');
 const fixture = path.join(projectRoot, '.config', 'emitted-types', 'theme-presets.ts');
-const tsc = process.env.TSC || path.join(projectRoot, 'node_modules', '.bin', 'tsc');
+const tscFromEnv = process.env.TSC;
+const tscCli = path.join(projectRoot, 'node_modules', 'typescript', 'bin', 'tsc');
+const tsc = tscFromEnv || tscCli;
+// A `TSC` override is an executable (a `.bin` shim); the local fallback is the JS entry, which runs
+// through the current Node binary so it also works on Windows, where a shim is not directly spawnable.
+const command = tscFromEnv || process.execPath;
+const baseArgs = tscFromEnv ? [] : [tscCli];
+
+/**
+ * Write an error line to stderr.
+ *
+ * @param {string} message The message.
+ */
+function reportError(message) {
+  process.stderr.write(`ERROR: ${message}\n`);
+}
 const MODES = ['node16', 'nodenext'];
 
 if (!existsSync(path.join(packageDir, 'package.json'))) {
-  displayErrorMessage('The composed package is missing: run `npm run postbuild:partial` first.');
+  reportError('The composed package is missing: run `npm run postbuild:partial` first.');
+  process.exit(1);
+}
+
+if (!existsSync(tsc)) {
+  reportError(`The TypeScript compiler was not found at ${tsc}: install dependencies or set TSC to a tsc executable.`);
   process.exit(1);
 }
 
@@ -55,13 +76,19 @@ try {
       files: ['index.ts'],
     }));
 
-    const result = spawnSync(tsc, ['-p', config], { cwd: workDir, encoding: 'utf8' });
+    const result = spawnSync(command, [...baseArgs, '-p', config], {
+      cwd: workDir,
+      encoding: 'utf8',
+      shell: tscFromEnv !== undefined && process.platform === 'win32',
+    });
 
     if (result.status === 0) {
       process.stdout.write(`ESM consumer types (${mode}): ok\n`);
     } else {
       failed = true;
-      displayErrorMessage(`ESM consumer types (${mode}) do not compile:\n${result.stdout}${result.stderr}`);
+      const output = result.error ? result.error.message : `${result.stdout || ''}${result.stderr || ''}`;
+
+      reportError(`ESM consumer types (${mode}) do not compile:\n${output}`);
     }
   });
 } finally {

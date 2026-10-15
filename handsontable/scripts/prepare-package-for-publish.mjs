@@ -1,6 +1,7 @@
 import path from 'path';
 import fse from 'fs-extra';
 import glob from 'glob';
+import { toExplicitEsmSpecifiers } from './utils/explicit-esm-specifiers.mjs';
 import { displayErrorMessage, displayWarningMessage } from '../../scripts/utils/console.mjs';
 
 const TARGET_PATH = './tmp/';
@@ -56,27 +57,6 @@ function reportIncompleteness(message) {
 const SELF_CONTAINED_MTS_DIR = 'themes/static/variables/';
 
 /**
- * Make the relative specifiers of a declaration valid under ESM resolution, where `./x` does not
- * resolve and `./dir` does not fall back to `./dir/index`.
- *
- * @param {string} dtsContent The `.d.ts` source.
- * @param {string} dtsPath The absolute path of the `.d.ts` file the content comes from.
- * @returns {string} The source with `.js` specifiers.
- */
-function toExplicitEsmSpecifiers(dtsContent, dtsPath) {
-  return dtsContent.replace(/(\bfrom\s+|\bimport\s*\()(['"])(\.{1,2}\/[^'"]*)\2/g, (match, lead, quote, spec) => {
-    if (/\.m?js$/.test(spec)) {
-      return match;
-    }
-
-    const target = path.resolve(path.dirname(dtsPath), spec);
-    const explicit = fse.existsSync(`${target}.d.ts`) ? `${spec}.js` : `${spec.replace(/\/$/, '')}/index.js`;
-
-    return `${lead}${quote}${explicit}${quote}`;
-  });
-}
-
-/**
  * Generate thin .d.mts wrapper files for every .d.ts so the `import` condition
  * in the exports map can reference explicitly-ESM type declarations.
  *
@@ -90,6 +70,8 @@ function toExplicitEsmSpecifiers(dtsContent, dtsPath) {
  *
  * This step runs here (not only in downlevel-dts.mjs) because CI may call
  * `npm run postbuild:partial` after partial build steps without running downlevel:types.
+ *
+ * Exception: a default-exporting declaration under `SELF_CONTAINED_MTS_DIR` is not a wrapper (see above).
  */
 glob.sync('./**/*.d.ts', { cwd: TARGET_PATH, nodir: true }).forEach((dtsFile) => {
   const mtsPath = path.resolve(TARGET_PATH, dtsFile.replace(/\.d\.ts$/, '.d.mts'));
