@@ -23,7 +23,6 @@ const packageDir = path.join(projectRoot, 'tmp');
 const fixture = path.join(projectRoot, '.config', 'emitted-types', 'theme-presets.ts');
 const tscFromEnv = process.env.TSC;
 const tscCli = path.join(projectRoot, 'node_modules', 'typescript', 'bin', 'tsc');
-const tsc = tscFromEnv || tscCli;
 // A `TSC` override is an executable (a `.bin` shim); the local fallback is the JS entry, which runs
 // through the current Node binary so it also works on Windows, where a shim is not directly spawnable.
 const command = tscFromEnv || process.execPath;
@@ -44,13 +43,14 @@ if (!existsSync(path.join(packageDir, 'package.json'))) {
   process.exit(1);
 }
 
-if (!existsSync(tsc)) {
-  reportError(`The TypeScript compiler was not found at ${tsc}: install dependencies or set TSC to a tsc executable.`);
+if (!tscFromEnv && !existsSync(tscCli)) {
+  reportError(`The TypeScript compiler was not found at ${tscCli}: install dependencies or set TSC.`);
   process.exit(1);
 }
 
 const workDir = mkdtempSync(path.join(tmpdir(), 'hot-esm-consumer-'));
 let failed = false;
+let spawnFailed = false;
 
 try {
   const manifest = { name: 'esm-consumer', private: true, type: 'module' };
@@ -61,6 +61,10 @@ try {
   symlinkSync(packageDir, path.join(workDir, 'node_modules', 'handsontable'), 'junction');
 
   MODES.forEach((mode) => {
+    if (spawnFailed) {
+      return;
+    }
+
     const config = `tsconfig.${mode}.json`;
 
     writeFileSync(path.join(workDir, config), JSON.stringify({
@@ -86,9 +90,15 @@ try {
       process.stdout.write(`ESM consumer types (${mode}): ok\n`);
     } else {
       failed = true;
-      const output = result.error ? result.error.message : `${result.stdout || ''}${result.stderr || ''}`;
 
-      reportError(`ESM consumer types (${mode}) do not compile:\n${output}`);
+      if (result.error) {
+        reportError(`Could not run ${tscFromEnv ? `TSC=${tscFromEnv}` : tscCli}: ${result.error.message}`);
+        spawnFailed = true;
+
+        return;
+      }
+
+      reportError(`ESM consumer types (${mode}) do not compile:\n${result.stdout || ''}${result.stderr || ''}`);
     }
   });
 } finally {

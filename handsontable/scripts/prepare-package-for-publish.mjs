@@ -1,7 +1,7 @@
 import path from 'path';
 import fse from 'fs-extra';
 import glob from 'glob';
-import { toExplicitEsmSpecifiers } from './utils/explicit-esm-specifiers.mjs';
+import { toMtsDeclaration } from './utils/explicit-esm-specifiers.mjs';
 import { displayErrorMessage, displayWarningMessage } from '../../scripts/utils/console.mjs';
 
 const TARGET_PATH = './tmp/';
@@ -45,18 +45,6 @@ function reportIncompleteness(message) {
 }
 
 /**
- * The theme presets under `themes/static/variables` are consumed as default imports
- * (`import tokens from 'handsontable/themes/static/variables/tokens/main'`), and the re-export
- * wrapper cannot carry that. Under `node16`/`nodenext` the `.js` sibling is a CommonJS module, so
- * `export { default } from './main.js'` resolves to the CJS `default`, the whole `exports` object,
- * and `tokens` is typed as `{ default: ThemeTokensConfig }` instead of `ThemeTokensConfig`. These
- * files get a self-contained ESM declaration instead – the `.d.ts` body with its relative
- * specifiers made explicit. Do not widen the rule to other files without checking `attw` and a
- * `node16` default import of each one.
- */
-const SELF_CONTAINED_MTS_DIR = 'themes/static/variables/';
-
-/**
  * Generate thin .d.mts wrapper files for every .d.ts so the `import` condition
  * in the exports map can reference explicitly-ESM type declarations.
  *
@@ -71,28 +59,14 @@ const SELF_CONTAINED_MTS_DIR = 'themes/static/variables/';
  * This step runs here (not only in downlevel-dts.mjs) because CI may call
  * `npm run postbuild:partial` after partial build steps without running downlevel:types.
  *
- * Exception: a default-exporting declaration under `SELF_CONTAINED_MTS_DIR` is not a wrapper (see above).
+ * Exception: a default-exporting declaration under `SELF_CONTAINED_MTS_DIRS` (theme presets, language
+ * dictionaries) is a self-contained copy, not a wrapper. The reason and the rules are in
+ * `scripts/utils/explicit-esm-specifiers.mjs`, which is unit tested.
  */
 glob.sync('./**/*.d.ts', { cwd: TARGET_PATH, nodir: true }).forEach((dtsFile) => {
   const mtsPath = path.resolve(TARGET_PATH, dtsFile.replace(/\.d\.ts$/, '.d.mts'));
-  const dtsPath = path.resolve(TARGET_PATH, dtsFile);
-  const jsRef = `./${path.basename(dtsFile, '.d.ts')}.js`;
-  const dtsContent = fse.readFileSync(dtsPath, 'utf8');
-  const hasDefault = /\bexport\s+default\b/.test(dtsContent);
 
-  if (hasDefault && path.posix.normalize(dtsFile).startsWith(SELF_CONTAINED_MTS_DIR)) {
-    fse.outputFileSync(mtsPath, toExplicitEsmSpecifiers(dtsContent, dtsPath));
-
-    return;
-  }
-
-  let mtsContent = `export * from '${jsRef}';\n`;
-
-  if (hasDefault) {
-    mtsContent += `export { default } from '${jsRef}';\n`;
-  }
-
-  fse.outputFileSync(mtsPath, mtsContent);
+  fse.outputFileSync(mtsPath, toMtsDeclaration(TARGET_PATH, dtsFile));
 });
 
 /**

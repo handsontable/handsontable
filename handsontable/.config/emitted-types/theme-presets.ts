@@ -1,3 +1,4 @@
+import { registerLanguageDictionary } from 'handsontable/i18n';
 import { registerTheme } from 'handsontable/themes';
 import type { ThemeDensitySizes, ThemeSizingConfig, ThemeTokensConfig } from 'handsontable/themes';
 import tokens from 'handsontable/themes/static/variables/tokens/main';
@@ -7,6 +8,7 @@ import horizonTokens from 'handsontable/themes/static/variables/tokens/horizon';
 import classicColors from 'handsontable/themes/static/variables/colors/classic';
 import materialColors from 'handsontable/themes/static/variables/colors/material';
 import horizonIcons from 'handsontable/themes/static/variables/icons/horizon';
+import deDE from 'handsontable/i18n/languages/de-DE';
 import density from 'handsontable/themes/static/variables/density';
 import sizing from 'handsontable/themes/static/variables/sizing';
 
@@ -28,6 +30,10 @@ registerTheme('preset-fixture', {
 // One variant per preset kind, and the two files one directory higher (`../../types.js`).
 registerTheme('preset-fixture-variants', { tokens: horizonTokens, colors: classicColors, icons: horizonIcons });
 registerTheme('preset-fixture-material', { colors: materialColors });
+
+// Language dictionaries are default exports too (`./i18n/languages/*`), so typed access must work.
+registerLanguageDictionary(deDE);
+export const deLanguageCode: string = deDE.languageCode;
 
 export const typedTokens: ThemeTokensConfig = horizonTokens;
 export const typedDensity: ThemeDensitySizes = density;
@@ -53,5 +59,7 @@ export const horizonIconsAreTyped: number = horizonIcons;
 export const densityIsTyped: number = density;
 // @ts-expect-error sizing is not a number, so it must not be `any`.
 export const sizingIsTyped: number = sizing;
+// @ts-expect-error a dictionary is not a number, so `deDE` must not be `any`.
+export const dictionaryIsTyped: number = deDE;
 // @ts-expect-error a preset is the config, not a module namespace that holds a `default` member.
 export const tokensAreNotANamespace: { default: unknown } = tokens;
