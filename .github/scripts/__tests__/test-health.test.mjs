@@ -416,8 +416,10 @@ test('the ledger chains on the orchestrators and the visual nightly, takes a run
   const workflow = readFileSync(path.join(repoRoot(), '.github/workflows/test-health.yml'), 'utf8');
 
   // `Visual nightly` is the only run the weekday full render's compare record arrives on; a pull request's
-  // arrives on its `Tests` run. `Visual seed` must stay out – its differences are the merge's own.
-  assert.match(workflow, /workflows: \['Tests', 'Develop', 'Publish', 'Visual nightly'\]/);
+  // arrives on its `Tests` run. `E2E nightly` is the full Playwright matrix on develop, where a spec that
+  // runs on an axis it did not declare first turns red (e2e-legs.test.mjs pins the workflow). `Visual seed`
+  // must stay out – its differences are the merge's own.
+  assert.match(workflow, /workflows: \['Tests', 'Develop', 'Publish', 'Visual nightly', 'E2E nightly'\]/);
   // The visual ticket line counts runs of this workflow by name, so the name must be the real one.
   assert.ok(workflow.includes(`'${VISUAL_NIGHTLY_WORKFLOW}'`));
   assert.match(readFileSync(path.join(repoRoot(), '.github/workflows/visual-nightly.yml'), 'utf8'),

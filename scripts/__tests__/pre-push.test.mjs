@@ -9,6 +9,7 @@ import {
   changedUnitTests,
   unitTestPattern,
   needsDeterminismRatchet,
+  needsLegDeclarationCheck,
   isJestInfraFailure,
   isSpawnInfraFailure,
   condenseTestOutput,
@@ -101,6 +102,30 @@ test('the determinism ratchet runs when a frozen-suite spec or a unit test chang
   ]), true);
   assert.equal(needsDeterminismRatchet(['handsontable/src/helpers/__tests__/number.unit.js']), true);
   assert.equal(needsDeterminismRatchet(['handsontable/src/3rdparty/walkontable/test/spec/table.spec.js']), true);
+});
+
+test('the leg-declaration sweep runs when a Playwright spec, a page object, a fixture or the lib changed', () => {
+  // Each of these can make a spec touch theme or bundle surface it does not declare
+  // (tests/AGENTS.md, "Declaring the legs"); the sweep reads all of them.
+  assert.equal(needsLegDeclarationCheck(['tests/e2e/grid.spec.ts']), true);
+  assert.equal(needsLegDeclarationCheck(['tests/e2e/walkontable/overlays.spec.ts']), true);
+  assert.equal(needsLegDeclarationCheck(['tests/fixtures/pages/GridPage.ts']), true);
+  assert.equal(needsLegDeclarationCheck(['tests/fixtures/demo/grid.html']), true);
+  assert.equal(needsLegDeclarationCheck(['tests/lib/leg-declarations.mjs']), true);
+  assert.equal(needsLegDeclarationCheck(['tests/lib/__tests__/leg-declarations.test.mjs']), false,
+    'the sweep itself is a tooling test; the tooling job proves it');
+});
+
+test('the leg-declaration sweep is skipped (never spawned) when the push touches nothing it reads', () => {
+  assert.equal(needsLegDeclarationCheck([
+    'handsontable/src/core.ts',
+    'tests/fixtures/test.ts', // the fixture the sweep deliberately does not scan
+    'tests/fixtures/bundle.ts',
+    'tests/lib/quarantine-policy.mjs',
+    'tests/playwright.config.ts',
+    'visual-tests/tests/js-only/grid.spec.ts',
+    'docs/content/guides/foo.md',
+  ]), false);
 });
 
 test('treats a jest config/module-resolution failure as infra (non-blocking), not a test failure', () => {
