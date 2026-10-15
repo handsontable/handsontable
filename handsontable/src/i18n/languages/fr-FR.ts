@@ -159,6 +159,10 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] lignes sélectionnées sur [total]',
   [C.ROW_SELECTION_MENU_REMOVE]: 'Supprimer les lignes sélectionnées ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: 'Effacer la sélection de lignes',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Lignes figées en haut',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Lignes figées en bas',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Colonnes figées au début',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Colonnes figées à la fin',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Ligne [label] développée, lignes développées affichées : [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Ligne [label] réduite',
 };

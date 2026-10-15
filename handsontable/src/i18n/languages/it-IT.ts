@@ -162,6 +162,10 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] di [total] righe selezionate',
   [C.ROW_SELECTION_MENU_REMOVE]: 'Rimuovi righe selezionate ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: 'Cancella selezione righe',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Righe bloccate in alto',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Righe bloccate in basso',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Colonne bloccate all\'inizio',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Colonne bloccate alla fine',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Riga [label] espansa, righe espanse visualizzate: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Riga [label] compressa',
 };

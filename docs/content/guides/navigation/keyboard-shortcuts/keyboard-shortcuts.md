@@ -54,8 +54,8 @@ By default, <kbd>Tab</kbd> moves the active cell one column to the right and <kb
 | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>    | <kbd>⇧</kbd>+<kbd>**Enter**</kbd>   | Enter the editing mode of the active cell                                                       | &cross; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | <kbd>⌘</kbd>+<kbd>⇧</kbd>+<kbd>**Enter**</kbd> | Save and close editor                                         | &check; | &check; |
 | Alphanumeric keys                            | Alphanumeric keys                           | Enter the editing mode of the active cell and enter the pressed key's value into the cell      | &check; | &check; |
-| <kbd>**Tab**</kbd>                           | <kbd>**Tab**</kbd>                          | Move to the next cell to the right by default<sup>\*</sup> (if there's only one column available, move one cell down) — direction set by [`tabMoves`](@/api/options.md#tabmoves)   | &check; | &check; |
-| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>      | <kbd>⇧</kbd>+<kbd>**Tab**</kbd>     | Move to the previous cell to the left by default<sup>\*</sup> (if there's only one column available, move one cell up) — direction set by [`tabMoves`](@/api/options.md#tabmoves) | &check; | &check; |
+| <kbd>**Tab**</kbd>                           | <kbd>**Tab**</kbd>                          | Move to the next cell to the right by default<sup>\*</sup> (in RTL layout, the next cell is to the left; if there's only one column available, move one cell down) — direction set by [`tabMoves`](@/api/options.md#tabmoves)   | &check; | &check; |
+| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>      | <kbd>⇧</kbd>+<kbd>**Tab**</kbd>     | Move to the previous cell to the left by default<sup>\*</sup> (in RTL layout, the previous cell is to the right; if there's only one column available, move one cell up) — direction set by [`tabMoves`](@/api/options.md#tabmoves) | &check; | &check; |
 | <kbd>**Home**</kbd>                          | <kbd>**Home**</kbd>                         | Move to the first non-frozen cell of the current row<sup>\*</sup>                               | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Home**</kbd>      | <kbd>⌘</kbd>+<kbd>**Home**</kbd>      | Move to the first non-frozen cell of the grid<sup>\*</sup>                                      | &cross; | &check; |
 | <kbd>**End**</kbd>                           | <kbd>**End**</kbd>                          | Move to the last non-frozen cell of the current row<sup>\*</sup>                                | &cross; | &check; |
@@ -105,8 +105,8 @@ These keyboard shortcuts work when you're editing a cell's contents. They come f
 | Alphanumeric keys                                     | Alphanumeric keys                                           | Enter the pressed key's value into the cell                        | &check; | &check; |
 | <kbd>**Enter**</kbd>                                  | <kbd>**Enter**</kbd>                                        | Complete the cell entry and move to the cell below                 | &check; | &check; |
 | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>             | <kbd>⇧</kbd>+<kbd>**Enter**</kbd>                   | Complete the cell entry and move to the cell above                 | &check; | &check; |
-| <kbd>**Tab**</kbd>                                    | <kbd>**Tab**</kbd>                                          | Complete the cell entry and move to the next cell (right by default)<sup>\*</sup> — direction set by [`tabMoves`](@/api/options.md#tabmoves)     | &check; | &check; |
-| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>               | <kbd>⇧</kbd>+<kbd>**Tab**</kbd>                     | Complete the cell entry and move to the previous cell (left by default)<sup>\*</sup> — direction set by [`tabMoves`](@/api/options.md#tabmoves) | &check; | &check; |
+| <kbd>**Tab**</kbd>                                    | <kbd>**Tab**</kbd>                                          | Complete the cell entry and move to the next cell (right by default, left in RTL layout)<sup>\*</sup> — direction set by [`tabMoves`](@/api/options.md#tabmoves)     | &check; | &check; |
+| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>               | <kbd>⇧</kbd>+<kbd>**Tab**</kbd>                     | Complete the cell entry and move to the previous cell (left by default, right in RTL layout)<sup>\*</sup> — direction set by [`tabMoves`](@/api/options.md#tabmoves) | &check; | &check; |
 | <kbd>**Delete**</kbd>                                 | <kbd>**Delete**</kbd>                                       | Delete one character after the cursor<sup>\*</sup>                 | &check; | &check; |
 | <kbd>**Backspace**</kbd>                              | <kbd>**Backspace**</kbd>                                    | Delete one character before the cursor<sup>\*</sup>                | &check; | &check; |
 | <kbd>**Home**</kbd>                                   | <kbd>**Home**</kbd>                                         | Move the cursor to the beginning of the text<sup>\*</sup>          | &check; | &check; |
@@ -340,6 +340,23 @@ These keyboard shortcuts work when the [`Formulas`](@/api/formulas.md) plugin is
 | Windows                              | macOS                          | Action                                              |  Excel  | Sheets  |
 | ------------------------------------- | ------------------------------ | ---------------------------------------------------- | :-----: | :-----: |
 | <kbd>**Ctrl**</kbd>+<kbd>**`**</kbd> | <kbd>⌃</kbd>+<kbd>**`**</kbd> | Toggle between showing formulas and showing values | &check; | &check; |
+
+
+### Freeze bar keyboard shortcuts
+
+These keyboard shortcuts work when the [`FreezeBar`](@/api/freezeBar.md) plugin is enabled. The first two work in the grid. The rest work on a freeze bar that has the focus.
+
+| Windows                                                  | macOS                                                  | Action                                                                                                           |  Excel  | Sheets  |
+| -------------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- | :-----: | :-----: |
+| <kbd>**F6**</kbd>                                        | <kbd>**F6**</kbd>                                      | Move the focus to the first freeze bar. When a bar has the focus, move to the next bar.                          | &cross; | &cross; |
+| <kbd>**Shift**</kbd>+<kbd>**F6**</kbd>                   | <kbd>⇧</kbd>+<kbd>**F6**</kbd>                         | Move the focus to the last freeze bar. When a bar has the focus, move to the previous bar.                       | &cross; | &cross; |
+| <kbd>**→**</kbd> / <kbd>**↓**</kbd>                      | <kbd>**→**</kbd> / <kbd>**↓**</kbd>                    | Freeze one more column or row on the start and top edges, and one fewer on the end and bottom edges.             | &cross; | &cross; |
+| <kbd>**←**</kbd> / <kbd>**↑**</kbd>                      | <kbd>**←**</kbd> / <kbd>**↑**</kbd>                    | Freeze one fewer column or row on the start and top edges, and one more on the end and bottom edges.             | &cross; | &cross; |
+| <kbd>**Home**</kbd>                                      | <kbd>**Home**</kbd>                                    | Unfreeze all the columns or rows on the edge.                                                                    | &cross; | &cross; |
+| <kbd>**End**</kbd>                                       | <kbd>**End**</kbd>                                     | Freeze as many columns or rows as fit in the grid, and leave room to scroll.                                     | &cross; | &cross; |
+| <kbd>**Escape**</kbd>                                    | <kbd>**Escape**</kbd>                                  | Move the focus back to the selected cell.                                                                        | &cross; | &cross; |
+
+In a right-to-left layout, the horizontal arrows swap. <kbd>**Escape**</kbd> also cancels a drag of a freeze bar.
 
 
 ## API reference

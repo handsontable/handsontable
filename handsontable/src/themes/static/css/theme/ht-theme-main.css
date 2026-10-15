@@ -266,6 +266,9 @@
   --ht-move-backlight-opacity: 8%;
   --ht-move-indicator-color: var(--ht-accent-color);
   --ht-resize-indicator-color: light-dark(var(--ht-colors-palette-300), var(--ht-colors-palette-400));
+  --ht-freeze-bar-color: light-dark(var(--ht-colors-palette-200), var(--ht-colors-palette-500));
+  --ht-freeze-bar-hover-color: light-dark(var(--ht-colors-palette-300), var(--ht-colors-palette-400));
+  --ht-freeze-bar-highlight-color: var(--ht-accent-color);
   --ht-hidden-indicator-color: light-dark(var(--ht-colors-palette-300), var(--ht-colors-palette-400));
   --ht-menu-border-width: 1px;
   --ht-menu-border-radius: var(--ht-sizing-size-1);

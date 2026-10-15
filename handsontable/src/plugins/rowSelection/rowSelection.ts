@@ -56,7 +56,7 @@ Hooks.getSingleton().register('beforeRowSelectionChange');
 Hooks.getSingleton().register('afterRowSelectionChange');
 
 export const PLUGIN_KEY = 'rowSelection';
-export const PLUGIN_PRIORITY = 380;
+export const PLUGIN_PRIORITY = 385;
 
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 const CHECKBOX_CLASS = 'htRowSelectionCheckbox';

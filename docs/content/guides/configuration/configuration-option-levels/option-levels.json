@@ -6,9 +6,9 @@
     "cells",
     "cell"
   ],
-  "total": 181,
+  "total": 182,
   "counts": {
-    "grid": 109,
+    "grid": 110,
     "grid columns cells cell": 64,
     "grid columns": 7,
     "columns": 1
@@ -700,6 +700,15 @@
         "grid"
       ],
       "since": null,
+      "note": null
+    },
+    {
+      "name": "freezeBar",
+      "category": "FreezeBar",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.0.0",
       "note": null
     },
     {

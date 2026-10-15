@@ -179,6 +179,13 @@ export const ROW_SELECTION_ANNOUNCE_ROW_DESELECTED = `${ROW_SELECTION_NAMESPACE}
 export const ROW_SELECTION_ANNOUNCE_COUNT = `${ROW_SELECTION_NAMESPACE}announce.count`;
 export const ROW_SELECTION_MENU_REMOVE = `${ROW_SELECTION_NAMESPACE}menu.removeSelectedRows`;
 export const ROW_SELECTION_MENU_CLEAR = `${ROW_SELECTION_NAMESPACE}menu.clearSelection`;
+
+export const FREEZE_BAR_NAMESPACE = 'FreezeBar:';
+export const FREEZE_BAR_ROWS_TOP = `${FREEZE_BAR_NAMESPACE}rows.top`;
+export const FREEZE_BAR_ROWS_BOTTOM = `${FREEZE_BAR_NAMESPACE}rows.bottom`;
+export const FREEZE_BAR_COLUMNS_START = `${FREEZE_BAR_NAMESPACE}columns.start`;
+export const FREEZE_BAR_COLUMNS_END = `${FREEZE_BAR_NAMESPACE}columns.end`;
+
 export const NESTED_ROWS_NAMESPACE = 'NestedRows:';
 export const NESTED_ROWS_ANNOUNCEMENT_EXPANDED = `${NESTED_ROWS_NAMESPACE}announcement.expanded`;
 export const NESTED_ROWS_ANNOUNCEMENT_COLLAPSED = `${NESTED_ROWS_NAMESPACE}announcement.collapsed`;

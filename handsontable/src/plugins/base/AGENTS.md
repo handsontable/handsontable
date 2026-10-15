@@ -175,7 +175,8 @@ without a priority in registration order. Registering two plugins on the same pr
 | 150 | mergeCells | 360 | dialog |
 | 155 | stretchColumns | 370 | emptyDataState |
 | 160 | multipleSelectionHandles | 375 | notification |
-| | | 380 | rowSelection |
+| | | 380 | freezeBar |
+| | | 385 | rowSelection |
 | | | 390 | checkboxHeader |
 | | | 900 | pagination |
 | | | 910 | sheetsBar |

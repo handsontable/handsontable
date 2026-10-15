@@ -165,6 +165,10 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] van [total] rijen geselecteerd',
   [C.ROW_SELECTION_MENU_REMOVE]: 'Geselecteerde rijen verwijderen ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: 'Rijselectie wissen',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Vastgezette rijen bovenaan',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Vastgezette rijen onderaan',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Vastgezette kolommen aan het begin',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Vastgezette kolommen aan het einde',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rij [label] uitgevouwen, getoonde uitgevouwen rijen: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Rij [label] samengevouwen',
 };

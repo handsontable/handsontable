@@ -130,6 +130,9 @@ const VALID_TOKEN_KEYS = new Set([
   'cellSelectionHandleBackgroundColor',
   // Resize/Move indicators
   'resizeIndicatorColor',
+  'freezeBarColor',
+  'freezeBarHoverColor',
+  'freezeBarHighlightColor',
   'moveBacklightColor',
   'moveBacklightOpacity',
   'moveIndicatorColor',

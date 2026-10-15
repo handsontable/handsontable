@@ -167,6 +167,10 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] از [total] ردیف انتخاب شده',
   [C.ROW_SELECTION_MENU_REMOVE]: 'حذف ردیف های انتخاب شده ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: 'پاک کردن انتخاب ردیف ها',
+  [C.FREEZE_BAR_ROWS_TOP]: 'ردیف‌های ثابت در بالا',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'ردیف‌های ثابت در پایین',
+  [C.FREEZE_BAR_COLUMNS_START]: 'ستون‌های ثابت در ابتدا',
+  [C.FREEZE_BAR_COLUMNS_END]: 'ستون‌های ثابت در انتها',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'ردیف [label] باز شد، ردیف‌های بازشدهٔ نمایش داده‌شده: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'ردیف [label] بسته شد',
 };

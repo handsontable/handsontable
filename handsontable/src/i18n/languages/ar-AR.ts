@@ -161,6 +161,10 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'تم تحديد [selected] من [total] صفوف',
   [C.ROW_SELECTION_MENU_REMOVE]: 'إزالة الصفوف المحددة ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: 'مسح تحديد الصفوف',
+  [C.FREEZE_BAR_ROWS_TOP]: 'الصفوف المجمّدة في الأعلى',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'الصفوف المجمّدة في الأسفل',
+  [C.FREEZE_BAR_COLUMNS_START]: 'الأعمدة المجمّدة في البداية',
+  [C.FREEZE_BAR_COLUMNS_END]: 'الأعمدة المجمّدة في النهاية',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'تم توسيع الصف [label]، الصفوف الموسّعة المعروضة: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'تم طي الصف [label]',
 };

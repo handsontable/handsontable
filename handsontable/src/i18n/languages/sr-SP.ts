@@ -171,6 +171,10 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'Izabrano [selected] od [total] redova',
   [C.ROW_SELECTION_MENU_REMOVE]: 'Ukloni izabrane redove ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: 'Poništi izbor redova',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Zamrznuti redovi na vrhu',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Zamrznuti redovi na dnu',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Zamrznute kolone na početku',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Zamrznute kolone na kraju',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Proširen red [label], prikazani prošireni redovi: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Skupljen red [label]',
 };

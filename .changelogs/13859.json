@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where Autofill copied the wrong values, or blanks, on a wide grid with the `Formulas` plugin when the data was an array of objects read through `columns`.",
+  "type": "fixed",
+  "issueOrPR": 13859,
+  "breaking": false,
+  "framework": "none"
+}

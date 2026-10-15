@@ -25,6 +25,7 @@ import type { EmptyDataState } from './emptyDataState';
 import type { ExportFile } from './exportFile';
 import type { Filters } from './filters';
 import type { Formulas } from './formulas';
+import type { FreezeBar } from './freezeBar';
 import type { HiddenColumns } from './hiddenColumns';
 import type { HiddenRows } from './hiddenRows';
 import type { ImportFile } from './importFile';
@@ -76,6 +77,7 @@ export interface PluginTypeMap {
   exportFile: ExportFile;
   filters: Filters;
   formulas: Formulas;
+  freezeBar: FreezeBar;
   hiddenColumns: HiddenColumns;
   hiddenRows: HiddenRows;
   importFile: ImportFile;

@@ -159,6 +159,10 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] av [total] rader valgt',
   [C.ROW_SELECTION_MENU_REMOVE]: 'Fjern valgte rader ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: 'Fjern radvalg',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Frosne rader øverst',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Frosne rader nederst',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Frosne kolonner i starten',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Frosne kolonner på slutten',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Utvidet rad [label], viste utvidede rader: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Slått sammen rad [label]',
 };

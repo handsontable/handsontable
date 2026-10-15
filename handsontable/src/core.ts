@@ -6105,6 +6105,10 @@ export default function Core(
    * __Note__: This method does not participate in data transformation. If the visual data of the table is reordered,
    * sorted or trimmed only physical indexes are correct.
    *
+   * For an array of objects, each returned row holds a place for every column declared by the `columns` option
+   * (up to `maxCols`), in visual column order. A column declared without `data` keeps its place, and its value is
+   * `undefined`.
+   *
    * @memberof Core#
    * @function getSourceDataArray
    * @param {number} [row] From physical row index.

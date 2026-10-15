@@ -59,6 +59,7 @@ describe('`registerAllPlugins`', () => {
       'Dialog',
       'EmptyDataState',
       'Notification',
+      'FreezeBar',
       'RowSelection',
       'CheckboxHeader',
       'Pagination',

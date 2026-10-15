@@ -159,6 +159,10 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'Выбрано [selected] из [total] строк',
   [C.ROW_SELECTION_MENU_REMOVE]: 'Удалить выбранные строки ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: 'Снять выбор строк',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Закреплённые строки сверху',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Закреплённые строки снизу',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Закреплённые столбцы в начале',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Закреплённые столбцы в конце',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Развёрнута строка [label], показано развёрнутых строк: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Свёрнута строка [label]',
 };

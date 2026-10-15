@@ -163,6 +163,10 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'Atlasītas [selected] no [total] rindām',
   [C.ROW_SELECTION_MENU_REMOVE]: 'Noņemt atlasītās rindas ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: 'Notīrīt rindu atlasi',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Nofiksētās rindas augšpusē',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Nofiksētās rindas apakšā',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Nofiksētās kolonnas sākumā',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Nofiksētās kolonnas beigās',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Izvērsta rinda [label], parādītās izvērstās rindas: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sakļauta rinda [label]',
 };

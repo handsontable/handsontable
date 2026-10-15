@@ -160,6 +160,10 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'Vybráno [selected] z [total] řádků',
   [C.ROW_SELECTION_MENU_REMOVE]: 'Odstranit vybrané řádky ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: 'Zrušit výběr řádků',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Ukotvené řádky nahoře',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Ukotvené řádky dole',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Ukotvené sloupce na začátku',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Ukotvené sloupce na konci',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rozbalen řádek [label], zobrazené rozbalené řádky: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sbalen řádek [label]',
 };

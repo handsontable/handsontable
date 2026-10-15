@@ -162,6 +162,10 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: '已选择 [selected]/[total] 行',
   [C.ROW_SELECTION_MENU_REMOVE]: '删除所选行 ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: '清除行选择',
+  [C.FREEZE_BAR_ROWS_TOP]: '顶部冻结的行',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: '底部冻结的行',
+  [C.FREEZE_BAR_COLUMNS_START]: '起始冻结的列',
+  [C.FREEZE_BAR_COLUMNS_END]: '末尾冻结的列',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '已展开行 [label]，显示的展开行数：[count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '已折叠行 [label]',
 };

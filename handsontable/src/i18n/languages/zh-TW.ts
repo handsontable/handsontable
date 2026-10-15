@@ -159,6 +159,10 @@ const dictionary = {
   [C.ROW_SELECTION_ANNOUNCE_COUNT]: '已選取 [selected]/[total] 列',
   [C.ROW_SELECTION_MENU_REMOVE]: '刪除所選列 ([count])',
   [C.ROW_SELECTION_MENU_CLEAR]: '清除列選取',
+  [C.FREEZE_BAR_ROWS_TOP]: '頂部凍結的列',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: '底部凍結的列',
+  [C.FREEZE_BAR_COLUMNS_START]: '起始凍結的欄',
+  [C.FREEZE_BAR_COLUMNS_END]: '末尾凍結的欄',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '已展開列 [label]，顯示的展開列數：[count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '已摺疊列 [label]',
 };

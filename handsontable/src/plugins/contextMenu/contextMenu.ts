@@ -79,8 +79,6 @@ Hooks.getSingleton().register('afterContextMenuExecute');
  * * `{ uiContainer: containerDomElement }` (to declare a container for all of the Context Menu's dom elements to be placed in).
  * * An array of [the available strings](@/guides/accessories-and-menus/context-menu/context-menu.md#context-menu-with-specific-options)
  *
- * See [the context menu demo](@/guides/accessories-and-menus/context-menu/context-menu.md) for examples.
- *
  * @example
  * ```js
  * // as a boolean
