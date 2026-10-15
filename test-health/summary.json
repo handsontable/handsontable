@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-15T09:44:49.792Z",
+  "generatedAt": "2026-10-15T09:52:03.315Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -21,13 +21,13 @@
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
       "count7": 0,
-      "count30": 24,
+      "count30": 23,
       "countAll": 28,
-      "runs30": 15,
-      "flakyRuns30": 15,
-      "branches30": 14,
+      "runs30": 14,
+      "flakyRuns30": 14,
+      "branches30": 13,
       "nightlyRuns30": 0,
-      "openBranches30": 14,
+      "openBranches30": 13,
       "legs": [
         "e2e-classic",
         "e2e-classic-min",
