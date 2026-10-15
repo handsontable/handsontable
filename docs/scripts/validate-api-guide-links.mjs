@@ -78,7 +78,7 @@ function validateGuide(apiFile, guidePath, contentDir, sidebar) {
   const errors = [];
 
   if (typeof guidePath !== 'string' || !guidePath.startsWith('guides/') || !guidePath.endsWith('.md')) {
-    return [`${apiFile}: "${guidePath}" must be a path like guides/<section>/<page>/<page>.md.`];
+    return [`${apiFile}: ${JSON.stringify(guidePath)} must be a path like guides/<section>/<page>/<page>.md.`];
   }
 
   if (!existsSync(join(contentDir, guidePath))) {

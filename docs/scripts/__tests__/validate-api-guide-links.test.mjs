@@ -142,10 +142,18 @@ test('reports a key that is not a plugin API page', () => {
 });
 
 test('buildGuideLinkLine writes one sentence per guide for an array entry', () => {
-  const line = buildGuideLinkLine('exportFile.md');
+  const [first, second] = ['guides/a/b/b.md', 'guides/a/c/c.md'];
+  const baseDir = makeContentDir({ [first]: 'title: First\npermalink: /b', [second]: 'title: Second\npermalink: /c' });
 
-  assert.equal(line.match(/ guide for examples and configuration details\./g).length, 2);
-  assert.match(line, /^See the \[Export to CSV\]\(@\/guides\/accessories-and-menus\/export-to-csv\/export-to-csv\.md\) guide for examples and configuration details\. See the \[Export to Excel\]/);
+  assert.equal(
+    buildGuideLinkLine('search.md', { links: { 'search.md': [first, second] }, baseDir }),
+    'See the [First](@/guides/a/b/b.md) guide for examples and configuration details. ' +
+    'See the [Second](@/guides/a/c/c.md) guide for examples and configuration details.'
+  );
+});
+
+test('the real exportFile entry lists the CSV and the Excel guide', () => {
+  assert.equal(buildGuideLinkLine('exportFile.md').match(/ guide for examples and configuration details\./g).length, 2);
 });
 
 test('buildGuideLinkLine keeps a one-element array identical to a plain string', () => {
@@ -216,6 +224,29 @@ test('reports only the bad guide of an array', () => {
 
   assert.equal(errors.length, 1);
   assert.match(errors[0], /search\.md: the guide "guides\/a\/c\/c\.md" is not registered in the sidebar/);
+});
+
+test('reports a null entry in a guide array', () => {
+  const errors = validate({
+    links: { 'search.md': [guide, null] },
+    contentDir: makeContentDir({ [guide]: 'title: B\npermalink: /b' }),
+    pluginNames: ['search'],
+    sidebar: { all: new Set([guide]), gated: new Set() },
+    unmapped: [],
+  });
+
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /search\.md: null must be a path like guides\//);
+});
+
+test('a non-plugin page still gets its guide checked', () => {
+  const errors = validate({
+    links: { 'hooks.md': 'guides/getting-started/gone/gone.md' },
+    pluginNames: [],
+  });
+
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /hooks\.md: the guide .* does not exist/);
 });
 
 test('reports an empty guide array', () => {
@@ -353,10 +384,19 @@ test('generated API pages carry the guide line', { skip: !hasGeneratedApi && 'ru
     const file = join(generatedApiDir, key);
 
     assert.ok(existsSync(file), `${key}: page was not generated, re-run npm run docs:api`);
+    // A page with several guides keeps its sentences on one line, so a sentence starts a line or follows ". ".
+    const page = readFileSync(file, 'utf8');
+    const expected = [].concat(apiGuideLinks[key]).length;
+
     assert.match(
-      readFileSync(file, 'utf8'),
-      /^See the \[/m,
-      `${key}: no guide line, content/api may be stale, re-run npm run docs:api`
+      page,
+      /\[\[toc\]\]\n\nSee the \[/,
+      `${key}: no guide line right after [[toc]], content/api may be stale, re-run npm run docs:api`
+    );
+    assert.equal(
+      (page.match(/(?:^|\. )See the \[/gm) ?? []).length,
+      expected,
+      `${key}: expected ${expected} guide sentence(s), a hand-written duplicate or a dropped guide`
     );
   }
 });
