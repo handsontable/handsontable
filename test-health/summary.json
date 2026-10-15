@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-15T13:28:44.303Z",
+  "generatedAt": "2026-10-15T13:41:59.250Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 404,
     "needsTicket": 30,
     "quarantined": 0,
-    "entries": 2098
+    "entries": 2099
   },
   "rows": [
     {
@@ -651,6 +651,43 @@
       "needsTicket": true
     },
     {
+      "key": "jasmine|handsontable/src/editors/intlDateEditor/__tests__/intlDateEditor.spec.js|IntlDateEditor should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)",
+      "tier": "jasmine",
+      "file": "handsontable/src/editors/intlDateEditor/__tests__/intlDateEditor.spec.js",
+      "line": null,
+      "title": "IntlDateEditor should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)",
+      "count7": 4,
+      "count30": 5,
+      "countAll": 5,
+      "runs30": 4,
+      "flakyRuns30": 0,
+      "branches30": 4,
+      "nightlyRuns30": 0,
+      "openBranches30": 4,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD (theme: main)",
+        "UMD.min (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-15T13:41:12Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38738667338/attempts/2",
+        "branch": "feature/DEV-140_Autofill-diagonal-drag",
+        "leg": "UMD.min (theme: main)",
+        "status": "failed",
+        "error": "Expected <td class=\"current\" role=\"gridcell\" tabindex=\"-1\" aria-colindex=\"1\" aria-selected=\"true\">...</td> to be <input data-hot-input tabindex=\"-1\" class=\"handsontableInput\" type=\"date\" style=\"width: 96px; height: 30px; overflow-y: visible; font-size: 14px; font-family: sans-serif;\">. Tip: To ch...",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
       "key": "playwright|e2e/fixed-columns-end-core.spec.ts|fixedColumnsEnd editor rectangle (rtl) › puts the editor on the cell in the end column, the top corner and the bottom corner",
       "tier": "playwright",
       "file": "e2e/fixed-columns-end-core.spec.ts",
@@ -679,43 +716,6 @@
         "leg": "e2e-horizon",
         "status": "flaky",
         "error": "Error: inline_end 5,29: top edge",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "jasmine|handsontable/src/editors/intlDateEditor/__tests__/intlDateEditor.spec.js|IntlDateEditor should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)",
-      "tier": "jasmine",
-      "file": "handsontable/src/editors/intlDateEditor/__tests__/intlDateEditor.spec.js",
-      "line": null,
-      "title": "IntlDateEditor should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)",
-      "count7": 3,
-      "count30": 4,
-      "countAll": 4,
-      "runs30": 4,
-      "flakyRuns30": 0,
-      "branches30": 4,
-      "nightlyRuns30": 0,
-      "openBranches30": 4,
-      "legs": [
-        "UMD (theme: classic)",
-        "UMD (theme: main)",
-        "UMD.min (theme: main)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "passes alone"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-15T13:27:54Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38738667338",
-        "branch": "feature/DEV-140_Autofill-diagonal-drag",
-        "leg": "UMD.min (theme: main)",
-        "status": "failed",
-        "error": "Expected <td class=\"current\" role=\"gridcell\" tabindex=\"-1\" aria-colindex=\"1\" aria-selected=\"true\">...</td> to be <input data-hot-input tabindex=\"-1\" class=\"handsontableInput\" type=\"date\" style=\"width: 96px; height: 30px; overflow-y: visible; font-size: 14px; font-family: sans-serif;\">. Tip: To ch...",
         "source": "ci"
       },
       "needsTicket": true
