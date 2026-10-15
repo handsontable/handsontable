@@ -7,7 +7,7 @@
  *
  * Rule: each changed file is compiled twice against the SAME current build of the core types and the
  * wrapper sources: once as it is now (head), once as it was at the base revision (base). The errors
- * are compared per file as a multiset of (code, message). Only head errors with no base counterpart
+ * are compared per file as a multiset of (code, message, elaboration lines). Only head errors with no base counterpart
  * fail the run, so the many examples that already carry type errors can be edited, and a pull request
  * is only blamed for what it adds. A new file has no base, so every error in it fails.
  *
@@ -26,7 +26,7 @@ import { copyFileSync, existsSync, mkdirSync, readdirSync, rmSync, statSync, wri
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { isExampleFile, toolFor, parseDiagnostics, introducedErrors, parseNameStatus } from './lib.mjs';
+import { isExampleFile, toolFor, parseDiagnostics, introducedErrors, parseNameStatus, escapeCommand } from './lib.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, '../..');
@@ -345,7 +345,7 @@ for (const failure of failures) {
   console.log(`${failure.file}:${failure.line}  ${failure.code}  ${failure.message}`);
 
   if (inActions) {
-    console.log(`::error file=${failure.file},line=${failure.line},title=${failure.code}::${failure.message}`);
+    console.log(`::error file=${escapeCommand(failure.file, true)},line=${failure.line},title=${failure.code}::${escapeCommand(failure.message)}`);
   }
 }
 

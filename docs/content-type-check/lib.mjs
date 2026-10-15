@@ -28,24 +28,34 @@ const DIAGNOSTIC_RE = /^(.+?)\((\d+),(\d+)\): error (TS\d+): (.*)$/;
 const GLOBAL_DIAGNOSTIC_RE = /^error (TS\d+): (.*)$/;
 
 /**
- * Parses `tsc --pretty false` / `vue-tsc --pretty false` output. Continuation lines (the indented
- * elaboration of a message) are dropped; the first line carries the code and the headline message.
+ * Parses `tsc --pretty false` / `vue-tsc --pretty false` output. The indented continuation lines are
+ * folded, whitespace-normalized, into `detail`; the first line carries the code and the headline message.
  *
  * @param {string} output The raw compiler output.
- * @returns {{ diagnostics: Array<{file: string, line: number, code: string, message: string}>, global: string[] }}
+ * @returns {{ diagnostics: Array<{file: string, line: number, code: string, message: string, detail: string}>, global: string[] }}
  *   File diagnostics and global ones (no file: a broken config, a missing input).
  */
 export function parseDiagnostics(output) {
   const diagnostics = [];
   const global = [];
 
+  let last = null;
+
   for (const raw of output.split(/\r?\n/)) {
     const match = DIAGNOSTIC_RE.exec(raw);
 
     if (match) {
-      diagnostics.push({ file: match[1], line: Number(match[2]), code: match[4], message: match[5] });
+      last = { file: match[1], line: Number(match[2]), code: match[4], message: match[5], detail: '' };
+      diagnostics.push(last);
     } else if (GLOBAL_DIAGNOSTIC_RE.test(raw)) {
+      last = null;
       global.push(raw);
+    } else if (last && /^\s+\S/.test(raw)) {
+      // Elaboration of the error above (TS2769 lists every failed overload here). Positions
+      // `(line,col)` are stripped so an edit that only shifts lines keeps the same key.
+      last.detail += ` ${raw.replace(/\(\d+,\d+\)/g, '').replace(/\s+/g, ' ').trim()}`;
+    } else {
+      last = null;
     }
   }
 
@@ -53,11 +63,22 @@ export function parseDiagnostics(output) {
 }
 
 /**
- * @param {{code: string, message: string}} diagnostic A diagnostic.
- * @returns {string} The identity of the error that survives line shifts: its code and headline message.
+ * @param {{code: string, message: string, detail?: string}} diagnostic A diagnostic.
+ * @returns {string} The identity of the error that survives line shifts: its code, headline and elaboration.
  */
 export function errorKey(diagnostic) {
-  return `${diagnostic.code}: ${diagnostic.message}`;
+  return `${diagnostic.code}: ${diagnostic.message}${diagnostic.detail ?? ''}`;
+}
+
+/**
+ * @param {string} value Text for a GitHub workflow command message or property.
+ * @param {boolean} isProperty True for a property value, which also escapes `:` and `,`.
+ * @returns {string} The value with `%`, CR and LF (and for properties `:` and `,`) escaped.
+ */
+export function escapeCommand(value, isProperty = false) {
+  const escaped = String(value).replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
+
+  return isProperty ? escaped.replace(/:/g, '%3A').replace(/,/g, '%2C') : escaped;
 }
 
 /**

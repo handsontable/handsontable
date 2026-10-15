@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { isExampleFile, toolFor, parseDiagnostics, introducedErrors, parseNameStatus } from '../lib.mjs';
+import { isExampleFile, toolFor, parseDiagnostics, introducedErrors, parseNameStatus, escapeCommand } from '../lib.mjs';
 
 test('isExampleFile matches the javascript, react and vue examples only', () => {
   assert.ok(isExampleFile('docs/content/guides/a/b/javascript/example1.ts'));
@@ -29,7 +29,7 @@ test('parseDiagnostics keeps the headline of file errors and collects global one
   const { diagnostics, global } = parseDiagnostics(out);
 
   assert.equal(diagnostics.length, 2);
-  assert.deepEqual(diagnostics[0], { file: 'docs/content/a/javascript/e.ts', line: 12, code: 'TS2305', message: 'Module \'"x"\' has no exported member \'Y\'.' });
+  assert.deepEqual(diagnostics[0], { file: 'docs/content/a/javascript/e.ts', line: 12, code: 'TS2305', message: 'Module \'"x"\' has no exported member \'Y\'.', detail: ' Did you mean something else?' });
   assert.equal(global.length, 1);
 });
 
@@ -63,4 +63,34 @@ test('parseNameStatus returns added, modified and renamed examples and skips the
     { head: 'docs/content/g/javascript/new.ts', base: 'docs/content/g/javascript/old.ts' },
     { head: 'docs/content/g/javascript/from-mdx.ts', base: null },
   ]);
+});
+
+test('elaboration lines are part of the key: two different TS2769 overload failures do not cancel', () => {
+  const out = line => [
+    'a/javascript/e.ts(10,1): error TS2769: No overload matches this call.',
+    `  Overload 1 of 2, '(${line}): void', gave the following error.`,
+    "    Argument of type 'string' is not assignable to parameter of type 'number'.",
+  ].join('\n');
+  const base = parseDiagnostics(out('a: number')).diagnostics;
+  const head = parseDiagnostics(out('b: boolean')).diagnostics;
+
+  assert.equal(introducedErrors(head, base).introduced.length, 1);
+  assert.equal(introducedErrors(base, base).introduced.length, 0);
+});
+
+test('positions inside elaboration lines are stripped, so a line shift keeps the key', () => {
+  const at = n => `a/javascript/e.ts(${n},1): error TS2345: Bad.\n  e.ts(${n},9): 'x' is declared here.`;
+
+  assert.equal(introducedErrors(parseDiagnostics(at(40)).diagnostics, parseDiagnostics(at(4)).diagnostics).introduced.length, 0);
+});
+
+test('the same message under a different code is a different error', () => {
+  const e = code => ({ line: 1, code, message: 'same', detail: '' });
+
+  assert.equal(introducedErrors([e('TS2322')], [e('TS2345')]).introduced.length, 1);
+});
+
+test('escapeCommand escapes workflow-command metacharacters', () => {
+  assert.equal(escapeCommand('100%\r\nx: y,z'), '100%25%0D%0Ax: y,z');
+  assert.equal(escapeCommand('a:b,c%', true), 'a%3Ab%2Cc%25');
 });

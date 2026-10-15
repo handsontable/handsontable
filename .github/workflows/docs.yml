@@ -61,15 +61,16 @@ jobs:
     name: Examples types
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    # PR-only: it diffs the changed examples against the pull request base.
-    if: inputs.is-pr && inputs.run-content-types
+    # PR-only: it diffs the changed examples against the merge ref's first parent.
+    if: inputs.is-pr && (inputs.run-all || inputs.run-content-types)
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
-      - uses: ./.github/actions/docs-content-typecheck
         with:
-          base-sha: ${{ github.event.pull_request.base.sha }}
+          # The merge ref and its first parent (the base) are all the check reads.
+          fetch-depth: 2
+      - uses: ./.github/actions/docs-content-typecheck
 
   # Cheap, early label read (independent of the preview build) — the PR's CURRENT
   # labels, so adding `run-docs-visual` + "Re-run all jobs" activates the visual

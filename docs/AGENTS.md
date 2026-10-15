@@ -409,6 +409,7 @@ export class AppComponent {
 CI type-checks the **JavaScript** (`javascript/*.ts`), **React** (`react/*.tsx`) and **Vue** (`vue/*.vue`) examples a pull request changes. Angular examples have their own job (`docs/angular-type-check`).
 
 - **Rule: base against head, per file.** Each changed example is compiled twice against the current core types (`handsontable/tmp`) and the wrapper sources: once as it is now, once as it was at the base revision. The errors are compared as a multiset of code and message, never by line. Only errors the head has beyond the base fail. Many examples already carry errors (for example `TS2345` for `querySelector` returning `Element`, `TS2683` for `this`), and you can edit those files without fixing them, but you cannot add a second copy or a new kind. A new file has no base, so every error in it fails.
+- **Limits.** Fixing one error and adding another with the same code, message and elaboration in the same file nets to zero. An unresolved import of an already-unresolved package that you newly add is flagged by count. A failing check also skips the docs preview deploy, the same as the Angular job.
 - **It is not a full gate.** About 1,100 old errors sit in roughly 640 example files, and `@handsontable/react-wrapper` resolves to the wrapper source, not to a published build. Do not turn the check into a whole-tree gate without a baseline decision.
 - **Run it locally.** Build the types once, then check your branch or explicit files:
 
