@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-15T11:43:45.100Z",
+  "generatedAt": "2026-10-15T12:41:03.314Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 403,
+    "tests": 404,
     "needsTicket": 30,
     "quarantined": 0,
-    "entries": 2096
+    "entries": 2097
   },
   "rows": [
     {
@@ -13223,6 +13223,41 @@
         "leg": "e2e-classic",
         "status": "flaky",
         "error": "Error: expect(received).toEqual(expected) // deep equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/__tests__/core/onKeyDown.spec.js|Core_onKeyDown while editing (full edit mode) should finish editing and advance to lower cell when enter is pressed (with async validator)",
+      "tier": "jasmine",
+      "file": "handsontable/src/__tests__/core/onKeyDown.spec.js",
+      "line": null,
+      "title": "Core_onKeyDown while editing (full edit mode) should finish editing and advance to lower cell when enter is pressed (with async validator)",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD.min (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-15T12:39:53Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38733003235",
+        "branch": "develop",
+        "leg": "UMD.min (theme: main)",
+        "status": "failed",
+        "error": "Expected spy onAfterValidate to have been called.",
         "source": "ci"
       },
       "needsTicket": false
