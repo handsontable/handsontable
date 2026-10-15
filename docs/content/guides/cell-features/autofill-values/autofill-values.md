@@ -262,6 +262,8 @@ The fill handle appears on the selected cell. Autofill copies the selected value
 
 Use the [`beforeAutofill`](@/api/hooks.md#beforeautofill) hook to change the values before they're written, and the [`afterAutofill`](@/api/hooks.md#afterautofill) hook to react once the fill completes. With the [`Formulas`](@/guides/formulas/formula-calculation/formula-calculation.md) plugin enabled, relative references in copied formulas adjust to each target cell.
 
+When you use `beforeAutofill` together with the `Formulas` plugin, the order in which the callbacks are registered decides the result. The last callback that returns a value wins, and global hooks (`Handsontable.hooks.add()`) run before the hooks of an instance. The plugin registers its own `beforeAutofill` callback when it's enabled, so a callback that runs earlier, such as a global hook or an `addHook()` call made before the plugin is enabled, is overridden by the plugin. The `beforeAutofill` option set at initialization and an `addHook()` call made after the plugin is enabled override the plugin. Disabling and re-enabling the plugin registers its callback again, after yours. This describes the current behavior and isn't a guarantee.
+
 ## Related API reference
 
 **Configuration options**

@@ -1480,6 +1480,22 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link Autofill} plugin before populating the data in the autofill feature. This hook is fired when
    * {@link Options#fillHandle} option is enabled.
    *
+   * Several callbacks can return a result for this hook, and the last callback that returns a value decides
+   * the outcome. Global hooks (added with `Handsontable.hooks.add()`) run first, then the hooks of the
+   * instance (the `beforeAutofill` option and `addHook()`), each group in the order the callbacks were
+   * registered. A callback that returns a value replaces the results of the earlier callbacks. A callback that
+   * returns `undefined` keeps them. Returning `false` does not stop the callbacks that run later, so a later
+   * callback can still return data and the autofill goes ahead.
+   *
+   * When the {@link Formulas} plugin is enabled, it registers its own `beforeAutofill` callback. That callback
+   * ignores the results of earlier callbacks and returns either `false` (when the engine can't set the target
+   * cells) or the filled data with the formulas adjusted. Your callback overrides it only if it runs after it:
+   * the `beforeAutofill` option set at initialization (the plugin is enabled first), or a callback added with
+   * `addHook()` after the plugin is enabled, wins. A global hook, or a callback added with `addHook()` before the
+   * plugin is enabled, is overridden by the plugin. Disabling and re-enabling the plugin (for example, with `updateSettings({ formulas: false })`
+   * followed by `updateSettings({ formulas: ... })`) registers its callback again, after yours. This describes
+   * the current behavior and isn't a guarantee.
+   *
    * @event Hooks#beforeAutofill
    * @param {Array[]} selectionData Data the autofill operation will start from.
    * @param {CellRange} sourceRange The range values will be filled from.
