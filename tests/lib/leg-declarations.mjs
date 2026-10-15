@@ -760,18 +760,53 @@ export function findMarkerHits(code, scope, file) {
  * body read through `scanSource()` so its JavaScript comments are blanked too. Markup and `<style>`
  * blocks stay as they are.
  *
+ * Walked in one pass, so the two kinds of comment cannot eat each other: at each step the nearer of
+ * the next `<!--` and the next `<script` decides. Inside a script body an HTML comment sequence is
+ * script text (a string holding `"<!--"` and `"-->"` would otherwise blank the code between them, and
+ * the marker in that code with it); inside an HTML comment a `<script>` is commentary, never run, and
+ * stays blanked.
+ *
  * @param {string} source The fixture's text.
  * @param {string} [where] The file, for the messages.
  * @returns {string} The text to run the marker patterns over.
  */
 export function scanFixtureHtml(source, where = 'fixture') {
-  const withoutComments = source.replace(/<!--[\s\S]*?-->/g, comment => comment.replace(/[^\n]/g, ' '));
+  const SCRIPT_OPEN = /<script\b[^>]*>/gi;
+  const SCRIPT_CLOSE = /<\/script\b[^>]*>/gi;
+  const blankComment = comment => comment.replace(/[^\n]/g, ' ');
+  let out = '';
+  let at = 0;
 
-  // A closing tag may carry whitespace and attribute-like junk before its `>` (`</script\t\n bar>` closes a
-  // script too), so the closer takes the same `\b[^>]*>` shape as the opener; a body the regex failed
-  // to close would run the comment stripper over the markup after it.
-  return withoutComments.replace(/(<script\b[^>]*>)([\s\S]*?)(<\/script\b[^>]*>)/gi,
-    (whole, open, body, close) => `${open}${scanSource(body, where).code}${close}`);
+  while (at < source.length) {
+    const comment = source.indexOf('<!--', at);
+
+    SCRIPT_OPEN.lastIndex = at;
+    const open = SCRIPT_OPEN.exec(source);
+
+    if (comment === -1 && !open) {
+      out += source.slice(at);
+      break;
+    }
+    if (comment !== -1 && (!open || comment < open.index)) {
+      const closing = source.indexOf('-->', comment + 4);
+      const end = closing === -1 ? source.length : closing + 3;
+
+      out += source.slice(at, comment) + blankComment(source.slice(comment, end));
+      at = end;
+      continue;
+    }
+
+    SCRIPT_CLOSE.lastIndex = open.index + open[0].length;
+    const close = SCRIPT_CLOSE.exec(source);
+    const bodyStart = open.index + open[0].length;
+    const bodyEnd = close ? close.index : source.length;
+
+    out += source.slice(at, bodyStart) + scanSource(source.slice(bodyStart, bodyEnd), where).code
+      + (close ? close[0] : '');
+    at = close ? close.index + close[0].length : source.length;
+  }
+
+  return out;
 }
 
 /**

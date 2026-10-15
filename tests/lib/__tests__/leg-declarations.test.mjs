@@ -12,6 +12,7 @@ import {
   TAG_CONSTANTS,
   THEMES_TAG,
   checkSpec,
+  findMarkerHits,
   fixturesNamed,
   isTypeOnlyModule,
   legGrep,
@@ -409,6 +410,34 @@ test('scanFixtureHtml blanks HTML comments and script comments, and keeps styles
     assert.ok(spaced.includes('--ht-x'), `the style block after a ${JSON.stringify(closer)} is still read`);
   }
   assert.ok(scanFixtureHtml('<script>\n  // x\n</scripts>\n</script>\n').includes('</scripts>'), '`</scripts>` does not close a script');
+});
+
+test('an HTML comment sequence inside a script is script, and a script inside an HTML comment is comment', () => {
+  // Blanking HTML comments before cutting out the script bodies erased everything between a `"<!--"`
+  // and a `"-->"` string inside one script, and the marker between them with it (demtario, review of
+  // the first version). The walk decides by whichever comes first.
+  const inString = '<script>const s = "<!--"; hot.getPlugin(\'formulas\'); const t = "-->";</script>\n';
+
+  assert.ok(scanFixtureHtml(inString).includes('getPlugin(\'formulas\')'), 'the code between the two strings survives');
+  assert.deepEqual(findMarkerHits(scanFixtureHtml(inString), 'fixture', 'f.html').map(hit => hit.id), ['formulas']);
+
+  const commentedOut = '<!-- <script>hot.getPlugin(\'formulas\'); getComputedStyle(el);</script> -->\n<div id="grid"></div>\n';
+  const read = scanFixtureHtml(commentedOut);
+
+  assert.ok(!read.includes('formulas') && !read.includes('getComputedStyle'), 'a commented-out script never runs');
+  assert.ok(read.includes('<div id="grid"></div>'), 'the markup after it is read');
+  assert.equal(read.split('\n').length, commentedOut.split('\n').length);
+
+  // Both kinds, in order: a comment, then a script holding a comment sequence, then a comment again.
+  const mixed = '<!-- --ht-a -->\n<script>const x = "<!-- --ht-b -->"; // --ht-c\n</script>\n<!-- --ht-d -->\n<style>.z { --ht-e: 1px; }</style>\n';
+  const hits = scanFixtureHtml(mixed);
+
+  assert.ok(!hits.includes('--ht-a') && !hits.includes('--ht-c') && !hits.includes('--ht-d'), 'comments of both kinds are blanked');
+  assert.ok(hits.includes('--ht-b') && hits.includes('--ht-e'), 'a string in the script and the style block are read');
+
+  // An unterminated HTML comment blanks to the end of the file; an unterminated script scans to the end.
+  assert.equal(scanFixtureHtml('<!-- open\nmore').trim(), '');
+  assert.ok(scanFixtureHtml('<script>\n// gone\nkept();').includes('kept();'));
 });
 
 test('a marker without the tag is a violation, and the tag covers it: themes', () => {
