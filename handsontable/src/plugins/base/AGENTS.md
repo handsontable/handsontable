@@ -176,12 +176,14 @@ without a priority in registration order. Registering two plugins on the same pr
 | 155 | stretchColumns | 370 | emptyDataState |
 | 160 | multipleSelectionHandles | 375 | notification |
 | | | 380 | freezeBar |
+| | | 385 | rowSelection |
+| | | 390 | checkboxHeader |
 | | | 900 | pagination |
 | | | 910 | sheetsBar |
 | | | 950 | dataProvider |
 | | | 1000 | undoRedo |
 
-Free slots to pick a new number from: 180, 340, and the 385–890 range. **340 is the only gap between
+Free slots to pick a new number from: 180, 340, and the 400–890 range. **340 is the only gap between
 the trimming plugins (330) and the overlay plugins (350+)**, so it is the slot for a plugin that must enable
 after trimming and before the overlays. `900`+ is reserved for plugins that
 must see every other plugin's state already settled (Pagination, DataProvider, UndoRedo).

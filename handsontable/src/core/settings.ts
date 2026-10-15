@@ -15,6 +15,8 @@ import type { ColumnConditions, FiltersSettings } from '../plugins/filters';
 import type { LayoutConfig } from './layout';
 import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from '../plugins/contextMenu';
 import type { DropdownMenu } from '../plugins/dropdownMenu';
+import type { RowSelectionSettings, RowSelectionSource } from '../plugins/rowSelection';
+import type { HeaderCheckboxSettings } from '../plugins/checkboxHeader';
 import type { SheetsBarSettings, SheetsBarViewState } from '../plugins/sheetsBar';
 import type { ManualColumnFreezeSettings } from '../plugins/manualColumnFreeze';
 import type { FreezeBarSettings, FreezeEdge, FreezeSource } from '../plugins/freezeBar';
@@ -321,6 +323,7 @@ export interface GridSettings {
   nestedHeaders?: NestedHeader[][];
   nestedRows?: boolean;
   pagination?: boolean | object;
+  rowSelection?: boolean | RowSelectionSettings;
   search?: boolean | object;
   importFile?: boolean | ImportFileSettings;
   sheetsBar?: boolean | SheetsBarSettings;
@@ -329,6 +332,7 @@ export interface GridSettings {
   // Checkbox
   checkedTemplate?: unknown;
   uncheckedTemplate?: unknown;
+  headerCheckbox?: boolean | HeaderCheckboxSettings;
 
   // Date / Time
   dateFormat?: Intl.DateTimeFormatOptions;
@@ -532,6 +536,7 @@ export interface GridSettings {
   afterRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean, orderChanged: boolean) => void;
   afterRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => void;
+  afterRowSelectionChange?: (selectedRows: number[], deselectedRows: number[], source: RowSelectionSource) => void;
   afterRowSequenceChange?: (source: ChangeSource) => void;
   afterRowSequenceCacheUpdate?: (indexesChangesState: {
     indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean; hiddenIndexesChanged: boolean;
@@ -719,6 +724,8 @@ export interface GridSettings {
   beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean) => void | boolean;
   beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void | false;
+  beforeRowSelectionChange?: (rowsToSelect: number[], rowsToDeselect: number[],
+    source: RowSelectionSource) => void | boolean;
   beforeRowsMutation?: (operation: string, payload: RowMutationPayload) => void | boolean;
   beforeRowWrap?: (isActionInterrupted: { value: boolean }, newCoords: WalkontableCellCoords,
     isRowFlipped: boolean) => void;

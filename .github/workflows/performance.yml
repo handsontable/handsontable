@@ -19,11 +19,11 @@ jobs:
     # backstop for a hang elsewhere. It must outlast the slowest run the suite
     # itself allows, or a run whose scenarios time out is cancelled before its
     # teardown and reports nothing: setup (the slowest successful run took 19.3
-    # minutes, a 10.7-minute pnpm cache restore), both download attempts, and 13
+    # minutes, a 10.7-minute pnpm cache restore), both download attempts, and 18
     # scenarios run one at a time, each up to its 5-minute Playwright timeout.
     # perf-artifact-download.test.mjs derives that sum from the config and fails
     # when a scenario or a longer timeout outgrows this.
-    timeout-minutes: 105
+    timeout-minutes: 126
     permissions:
       contents: write
       pull-requests: write

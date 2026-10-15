@@ -40,6 +40,7 @@ const horizonTokens: ThemeTokensConfig = {
   cellVerticalBorderColor: 'tokens.borderColor',
   cellSelectionBorderColor: 'tokens.accentColor',
   cellSelectionBackgroundColor: 'tokens.accentColor',
+  rowSelectionBackgroundColor: ['#37bc6c1a', '#f1b93e33'],
   cellSuccessBackgroundColor: '#37bc6c4d',
   cellErrorBackgroundColor: '#fa4d324d',
   cellReadOnlyBackgroundColor: 'tokens.backgroundSecondaryColor',
