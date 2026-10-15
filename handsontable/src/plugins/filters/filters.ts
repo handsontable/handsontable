@@ -162,8 +162,6 @@ function isAppliedConditionsState(value: unknown): value is AppliedConditionsSta
  * To choose the operators one column offers, set `filters: { availableConditions: [...] }` for that
  * column in the `columns` option. It replaces the grid-level `availableConditions` for that column.
  *
- * See [the filtering demo](@/guides/columns/column-filter/column-filter.md) for examples.
- *
  * @example
  * ::: only-for javascript
  * ```js

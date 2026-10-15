@@ -137,7 +137,6 @@ function readPlainText(clipboardData: PasteClipboardSnapshot): unknown {
  * - The browser's menu bar.
  *
  * Read more:
- * - [Guides: Clipboard](@/guides/cell-features/clipboard/clipboard.md)
  * - [Setting options: `copyPaste`](@/api/options.md#copypaste)
  *
  * @example
