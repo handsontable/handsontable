@@ -1,6 +1,6 @@
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import { DetailedSettings } from 'handsontable/plugins/columnSummary';
+import { SummaryEndpoint } from 'handsontable/plugins/columnSummary';
 
 // register Handsontable's modules
 registerAllModules();
@@ -50,7 +50,7 @@ const ExampleComponent = () => {
           });
         }
 
-        return configArray as DetailedSettings[];
+        return configArray as SummaryEndpoint[];
       }}
     />
   );

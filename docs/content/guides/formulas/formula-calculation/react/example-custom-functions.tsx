@@ -1,7 +1,6 @@
 import { FunctionArgumentType, FunctionPlugin, HyperFormula } from 'hyperformula';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import type { DetailedSettings } from 'handsontable/plugins/formulas';
 
 // HyperFormula does not export its parser and interpreter types from the package
 // entry point, so derive them from the inherited `runFunction` signature.
@@ -55,7 +54,7 @@ const ExampleComponent = () => {
       colHeaders={true}
       rowHeaders={true}
       height="auto"
-      formulas={{ engine: HyperFormula } as DetailedSettings}
+      formulas={{ engine: HyperFormula }}
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
