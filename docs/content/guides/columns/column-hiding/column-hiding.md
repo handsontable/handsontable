@@ -204,7 +204,7 @@ If you use both the [`NestedHeaders`](@/api/nestedHeaders.md) plugin and the
 
 ### Step 3: Set up context menu items
 
-To easily hide and unhide columns, add column hiding items to Handsontable's
+To easily hide and unhide columns, add column hiding items to Handsontable DataGrid's
 [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md).
 
 Enable both the [`ContextMenu`](@/api/contextMenu.md) plugin and the

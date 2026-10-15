@@ -2,7 +2,7 @@
 type: how-to
 title: Column moving
 metaTitle: Column moving - JavaScript Data Grid | Handsontable
-description: Change the order of columns, either manually (dragging them to another location), or programmatically (using Handsontable's API methods).
+description: Change the order of columns, either manually (dragging them to another location), or programmatically (using Handsontable DataGrid's API methods).
 permalink: /column-moving
 canonicalUrl: /column-moving
 tags:
@@ -19,7 +19,7 @@ searchCategory: Guides
 category: Columns
 menuTag: updated
 ---
-Change the order of columns, either manually (dragging them to another location), or programmatically (using Handsontable's API methods).
+Change the order of columns, either manually (dragging them to another location), or programmatically (using Handsontable DataGrid's API methods).
 
 [[toc]]
 

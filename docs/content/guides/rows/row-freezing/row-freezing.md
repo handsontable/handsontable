@@ -109,7 +109,7 @@ After completing this guide, the rows you specify with `fixedRowsTop` or `fixedR
 
 When your grid has a defined [`height`](@/api/options.md#height), freeze only as many rows as fit within it.
 
-By default, Handsontable draws frozen rows in full. It never shrinks them, and it never scrolls them. If the frozen rows need more space than the grid has, they cover the whole grid. The remaining rows stay out of reach: the vertical scrollbar still moves, but the view no longer changes.
+By default, Handsontable DataGrid draws frozen rows in full. It never shrinks them, and it never scrolls them. If the frozen rows need more space than the grid has, they cover the whole grid. The remaining rows stay out of reach: the vertical scrollbar still moves, but the view no longer changes.
 
 This applies to the total height of the frozen rows, not to how many there are. Taller rows reach the limit sooner. Both `fixedRowsTop` and `fixedRowsBottom` behave this way.
 

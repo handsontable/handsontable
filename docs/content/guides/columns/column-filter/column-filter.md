@@ -28,7 +28,7 @@ searchCategory: Guides
 category: Columns
 menuTag: updated
 ---
-Filter data by values or by a set of conditions, using Handsontable's intuitive user interface or
+Filter data by values or by a set of conditions, using Handsontable DataGrid's intuitive user interface or
 flexible API.
 
 [[toc]]

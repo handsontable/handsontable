@@ -304,7 +304,7 @@ Sometimes you need to modify data only on the currently visible page. Core metho
 
 ## Use pagination hooks
 
-You can run your code before or after different stages of pagination, using the following [Handsontable hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md):
+You can run your code before or after different stages of pagination, using the following [Handsontable DataGrid hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md):
 
 - [`beforePageChange()`](@/api/hooks.md#beforepagechange)
 - [`afterPageChange()`](@/api/hooks.md#afterpagechange)
