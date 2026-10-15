@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, 
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { createRequire } from 'node:module';
-import { collectSidebarGuides, validateApiGuideLinks } from '../validate-api-guide-links.mjs';
+import { collectSidebarGuides, countGuidePointerLines, isGuidePointerLine, validateApiGuideLinks, validateNoHandWrittenGuideLinks } from '../validate-api-guide-links.mjs';
 import { apiGuideLinks, buildGuideLinkLine, unmappedPlugins } from '../jsdoc-convert/apiGuideLinks.mjs';
 import { buildRenderer } from '../jsdoc-convert/renderer/index.mjs';
 
@@ -153,7 +153,11 @@ test('buildGuideLinkLine writes one sentence per guide for an array entry', () =
 });
 
 test('the real exportFile entry lists the CSV and the Excel guide', () => {
-  assert.equal(buildGuideLinkLine('exportFile.md').match(/ guide for examples and configuration details\./g).length, 2);
+  const line = buildGuideLinkLine('exportFile.md');
+
+  assert.match(line, /\(@\/guides\/accessories-and-menus\/export-to-csv\/export-to-csv\.md\)/);
+  assert.match(line, /\(@\/guides\/accessories-and-menus\/export-to-excel\/export-to-excel\.md\)/);
+  assert.equal((line.match(/ guide for examples and configuration details\./g) ?? []).length, 2);
 });
 
 test('buildGuideLinkLine keeps a one-element array identical to a plain string', () => {
@@ -384,19 +388,109 @@ test('generated API pages carry the guide line', { skip: !hasGeneratedApi && 'ru
     const file = join(generatedApiDir, key);
 
     assert.ok(existsSync(file), `${key}: page was not generated, re-run npm run docs:api`);
-    // A page with several guides keeps its sentences on one line, so a sentence starts a line or follows ". ".
     const page = readFileSync(file, 'utf8');
-    const expected = [].concat(apiGuideLinks[key]).length;
+    // The class description ends at the first heading. Member docs below it may link a guide on purpose.
+    const description = page.split(/^## /m)[0];
 
     assert.match(
       page,
       /\[\[toc\]\]\n\nSee the \[/,
       `${key}: no guide line right after [[toc]], content/api may be stale, re-run npm run docs:api`
     );
-    assert.equal(
-      (page.match(/(?:^|\. )See the \[/gm) ?? []).length,
-      expected,
-      `${key}: expected ${expected} guide sentence(s), a hand-written duplicate or a dropped guide`
-    );
+
+    for (const guidePath of [].concat(apiGuideLinks[key])) {
+      // One pointer line per guide: the generated one. A hand-written "See ...", "Read more ..." or bullet-only
+      // link to the same guide, in any wording, adds a second.
+      assert.equal(
+        countGuidePointerLines(description, guidePath),
+        1,
+        `${key}: expected exactly one pointer to "${guidePath}" (the generated line), found a duplicate or none`
+      );
+    }
   }
+});
+
+test('isGuidePointerLine recognizes the wordings the hand-written duplicates used', () => {
+  for (const line of [
+    ' * See [the dropdown menu demo](@/guides/x/x.md) for examples.',
+    ' * Read more on the [Events and hooks](@/guides/x/x.md) page.',
+    ' * - [Guides: Clipboard](@/guides/x/x.md)',
+    'See the [X](@/guides/x/x.md) guide for examples and configuration details.',
+  ]) {
+    assert.equal(isGuidePointerLine(line), true, line);
+  }
+
+  assert.equal(isGuidePointerLine(' * The plugin lets you [hide rows](@/guides/x/x.md).'), false);
+});
+
+test('countGuidePointerLines ignores anchored links and links inside a sentence', () => {
+  const text = [
+    'See [the demo](@/guides/x/x.md#part) for an example.',
+    'The plugin lets you [hide rows](@/guides/x/x.md).',
+    'See [the demo](@/guides/x/x.md) for examples.',
+  ].join('\n');
+
+  assert.equal(countGuidePointerLines(text, 'guides/x/x.md'), 1);
+});
+
+function makeSrcDir(file, jsdoc) {
+  const dir = makeTempDir('api-guide-src-');
+
+  mkdirSync(join(dir, file, '..'), { recursive: true });
+  writeFileSync(join(dir, file), `${jsdoc}\nexport class Foo {}\n`, 'utf8');
+
+  return dir;
+}
+
+test('the real sources have no hand-written pointer to a mapped guide', () => {
+  const srcDir = resolve(import.meta.dirname, '../../../handsontable/src');
+
+  assert.deepEqual(validateNoHandWrittenGuideLinks({ links: apiGuideLinks, srcDir }), []);
+});
+
+test('reports a hand-written pointer to the mapped guide in a plugin class description', () => {
+  const srcDir = makeSrcDir('plugins/foo/foo.ts', [
+    '/**',
+    ' * Does things.',
+    ' *',
+    ' * Read more on the [Foo](@/guides/a/b/b.md) page.',
+    ' *',
+    ' * @class Foo',
+    ' */',
+  ].join('\n'));
+  const errors = validateNoHandWrittenGuideLinks({ links: { 'foo.md': guide }, srcDir });
+
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /foo\.md: the class description has a hand-written pointer to "guides\/a\/b\/b\.md"/);
+});
+
+test('allows an anchored pointer, an inline link, and a link in a member block', () => {
+  const srcDir = makeSrcDir('plugins/foo/foo.ts', [
+    '/**',
+    ' * Lets you [hide rows](@/guides/a/b/b.md) easily.',
+    ' *',
+    ' * See [the demo](@/guides/a/b/b.md#demo) for an example.',
+    ' *',
+    ' * @class Foo',
+    ' */',
+    '/**',
+    ' * See [the guide](@/guides/a/b/b.md).',
+    ' */',
+  ].join('\n'));
+
+  assert.deepEqual(validateNoHandWrittenGuideLinks({ links: { 'foo.md': guide }, srcDir }), []);
+});
+
+test('checks the Hooks and BaseEditor sources and every guide of an array', () => {
+  const other = 'guides/a/c/c.md';
+  const srcDir = makeSrcDir('core/hooks/constants.ts', [
+    '/**',
+    ' * @description',
+    ' * - [Guides: C](@/guides/a/c/c.md)',
+    ' */',
+  ].join('\n'));
+  const errors = validateNoHandWrittenGuideLinks({ links: { 'hooks.md': [guide, other] }, srcDir });
+
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /hooks\.md: .* "guides\/a\/c\/c\.md"/);
 });

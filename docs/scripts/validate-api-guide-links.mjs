@@ -1,4 +1,4 @@
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -16,6 +16,15 @@ const NON_PLUGIN_DIRS = ['base', '__tests__'];
  * text of each option, and `Core` is skipped, so neither is listed.
  */
 const NON_PLUGIN_API_PAGES = ['hooks.md', 'baseEditor.md'];
+
+/**
+ * Where the class description of each non-plugin API page lives, relative to `handsontable/src`.
+ * The Hooks description is the first JSDoc block of its file and has no `@class` tag.
+ */
+const NON_PLUGIN_SOURCES = {
+  'hooks.md': { file: 'core/hooks/constants.ts', firstBlock: true },
+  'baseEditor.md': { file: 'editors/baseEditor/baseEditor.ts' },
+};
 
 /**
  * Validates the map that adds a "See the guide" line to the generated API pages (DEV-2809).
@@ -162,6 +171,94 @@ export function validateApiGuideLinks({ links, contentDir, pluginNames, sidebar,
   return errors;
 }
 
+/**
+ * Finds the class description (the JSDoc block that carries `@class <Name>`) of an API page in its source.
+ *
+ * @param {string} sourceFile Absolute path to the source file.
+ * @param {string} pageName The API page name without `.md`, for example `contextMenu`.
+ * @param {boolean} [firstBlock] Use the first JSDoc block of the file instead of looking for `@class`.
+ * @returns {string | null} The JSDoc block, or null when the file or the block is missing.
+ */
+function readClassDescription(sourceFile, pageName, firstBlock = false) {
+  if (!existsSync(sourceFile)) {
+    return null;
+  }
+
+  const blocks = readFileSync(sourceFile, 'utf8').match(/\/\*\*[\s\S]*?\*\//g) ?? [];
+
+  if (firstBlock) {
+    return blocks[0] ?? null;
+  }
+
+  return blocks.find((block) => {
+    const tag = block.match(/@class\s+(\w+)/);
+
+    return tag !== null && tag[1].toLowerCase() === pageName.toLowerCase();
+  }) ?? null;
+}
+
+/**
+ * Tells whether a line only points the reader at a guide: a "See ..." or "Read more ..." sentence, or a
+ * bullet that holds nothing but a link. A link inside a sentence that explains something else is not a
+ * pointer.
+ *
+ * @param {string} line One line of text, with or without the JSDoc ` * ` prefix.
+ * @returns {boolean} True for a pointer line.
+ */
+export function isGuidePointerLine(line) {
+  const text = line.replace(/^\s*\*\s?/, '').trim();
+
+  return /^(?:[-*]\s+)?(?:see|read more|learn more|for more|guides?\b)/i.test(text)
+    || /^[-*]\s+\[[^\]]+\]\([^)]*\)\s*$/.test(text);
+}
+
+/**
+ * Counts the lines of a text that point at a guide with an unanchored link. A link with an anchor
+ * (`...guide.md#section`) points at a part of the guide and is not counted.
+ *
+ * @param {string} text The text to scan.
+ * @param {string} guidePath The guide path relative to `docs/content/`.
+ * @returns {number} The number of pointer lines that link to the guide.
+ */
+export function countGuidePointerLines(text, guidePath) {
+  const link = `](@/${guidePath})`;
+
+  return text.split('\n').filter(line => line.includes(link) && isGuidePointerLine(line)).length;
+}
+
+/**
+ * Fails on a hand-written pointer to a mapped guide in the class description of its API page. The
+ * renderer already writes that pointer (the "See the guide" line), so a second one in any wording
+ * ("See ...", "Read more ...", a bullet that is only a link) shows twice. A link with an anchor, and a
+ * link inside a sentence that explains something else, stay allowed.
+ *
+ * @param {object} options
+ * @param {Record<string, string | string[]>} options.links The map to check.
+ * @param {string} options.srcDir Absolute path to `handsontable/src`.
+ * @returns {string[]} One message per duplicate pointer; empty when none is found.
+ */
+export function validateNoHandWrittenGuideLinks({ links, srcDir }) {
+  const errors = [];
+
+  for (const [apiFile, value] of Object.entries(links)) {
+    const name = apiFile.replace(/\.md$/, '');
+    const source = NON_PLUGIN_SOURCES[apiFile] ?? { file: `plugins/${name}/${name}.ts` };
+    const description = readClassDescription(join(srcDir, source.file), name, source.firstBlock);
+
+    if (description === null) {
+      continue;
+    }
+
+    for (const guidePath of [].concat(value)) {
+      if (typeof guidePath === 'string' && countGuidePointerLines(description, guidePath) > 0) {
+        errors.push(`${apiFile}: the class description has a hand-written pointer to "${guidePath}". The generated "See the guide" line already does, so delete it, or point it at an anchor.`);
+      }
+    }
+  }
+
+  return errors;
+}
+
 // process.argv[1] may be relative, so compare it as a file URL the way Node resolves import.meta.url.
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   // Resolve from this file, not the working directory, so the script runs from any directory.
@@ -172,7 +269,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     .filter(entry => entry.isDirectory())
     .map(entry => entry.name);
   const sidebar = collectSidebarGuides(require(join(contentDir, 'guides/sidebar.js')));
-  const errors = validateApiGuideLinks({ links: apiGuideLinks, contentDir, pluginNames, sidebar });
+  const errors = [
+    ...validateApiGuideLinks({ links: apiGuideLinks, contentDir, pluginNames, sidebar }),
+    ...validateNoHandWrittenGuideLinks({ links: apiGuideLinks, srcDir: resolve(docsDir, '../handsontable/src') }),
+  ];
 
   if (errors.length > 0) {
     for (const error of errors) {
