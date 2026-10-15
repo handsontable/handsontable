@@ -18,6 +18,29 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
 - **Local gates run `e2e-main` (plain UMD) only** — pre-push, the Claude Stop
   hook, and `npm run test:e2e` are pinned there; the `-min` legs are CI-only.
   (`e2e-main` used to load `full.min` — never assume the hooks cover min.)
+- **In CI a long leg runs in shards, and a shard is a job, not a leg.** `e2e.yml`
+  lists every leg and shard as one explicit matrix row (`main` in 3, `horizon`
+  and `classic` in 2, the `-min` legs and the engines job whole), each shard
+  running the same project with `--shard=<i>/<n>`; `fullyParallel` is on, so
+  Playwright deals the tests out one by one, and a serial `describe` stays
+  together. The config pins the CI worker count (`workers`, 4 on the 4-vCPU
+  runner), which is what the shard counts were derived at; a local run keeps
+  Playwright's default. Four things follow. A shard's artifacts carry `-s<i>`
+  (`playwright-report-main-s2`, `playwright-durations-main-s2`), and the
+  test-health collector folds a leg's durations parts back into one leg record
+  (wall-clock = the longest shard; a push with a part missing is left out of the
+  budget), while the flake ledger's `leg` stays the project the test ran on. The
+  quarantine reporter decides each shard's exit status on the tests it saw: the
+  cap of six is counted per shard, so `lib/__tests__/quarantine-policy.test.mjs`
+  counts the tree's `quarantined()` call sites against the cap too, and the
+  `quarantined-flaky` output is the shard's. "Re-run failed jobs" re-runs the red
+  shard alone; the collector records the leg at the latest attempt from that
+  shard's new part and the others' first-attempt parts. And a shard that lands
+  on no test is a red "No tests found" — the flag that would turn it green is
+  banned, like for an empty leg. Changing a shard count or the worker count is
+  a measured change: `.github/scripts/__tests__/e2e-legs.test.mjs` pins both,
+  and `DURATIONS_LEGS` in `.github/scripts/lib/playwright-durations.mjs` must
+  follow the matrix (its test derives the table from the rows).
 - `handsontable.full.js` and `handsontable.min.js` are deliberately untested
   here — they belong to the nightly on develop (DEV-2058).
 - **A PARTIAL build leaves the `-min` legs on the PREVIOUS bundle, and they
@@ -680,7 +703,11 @@ all three places.
 `playwright-durations-<leg>`: one JSON file that
 `.github/scripts/playwright-durations.mjs` writes from the same
 `test-results/report.json` after the run step (the leg's wall-clock, workers,
-counts, and the milliseconds of every spec file and test, retries included).
+counts, and the milliseconds of every spec file and test, retries included). A
+sharded leg uploads one such part per shard (`-s<i>`, the summarizer told its
+`--shard`), and the collector folds them back into the leg: its wall-clock is
+the longest shard, the counts and rows add up, and the page lists the parts
+under each run.
 `test-health.yml` records the develop pushes' files in
 `test-health/durations.json` (a pull request's stay in its own run for 3 days),
 and the "Where the time goes" section of the same page shows each leg's
@@ -694,9 +721,10 @@ that introduced the declarations. The nightly's full-matrix files upload like
 every leg's and are never recorded: a schedule is not a develop push. The JSON reporter feeds both sections,
 so it stays in the CI reporter list with its output path; the durations file
 path and artifact name are pinned in
-`.github/scripts/__tests__/test-health.test.mjs`. A change to the leg matrix
-also changes `DURATIONS_LEGS` in `.github/scripts/lib/playwright-durations.mjs`:
-the collector records only the legs on that list, and
+`.github/scripts/__tests__/test-health.test.mjs`. A change to the leg matrix or
+to a leg's shard count also changes `DURATIONS_LEGS` in
+`.github/scripts/lib/playwright-durations.mjs`: the collector records only the
+legs on that table, folds each leg's parts against the count there, and
 `.github/scripts/__tests__/playwright-durations.test.mjs` fails until it matches
 `e2e.yml`.
 
