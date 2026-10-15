@@ -660,6 +660,17 @@ the grid scrolled far enough for a queued scroll to have something to move, or
 the test passes on the bug when the fixture changes. Real presses still get the
 grid to its starting state.
 
+**A hidden focused element blurs at the next rendering update, not when it is
+hidden.** Chromium keeps a focused element that just went `display: none` as the
+active element until the next rendering update runs the focus fixup, and only
+then dispatches its `blur`. Anything a `blur` handler does (the comments plugin
+saves the editor's text from it) therefore lands a frame after the hide, while
+`toBeHidden()` on the element resolves at once. A read of the saved comment
+right after the press that hid the editor saw it empty on the `-min` legs
+(`collapsible-indicator-dropdown-menu.spec.ts`, DEV-3444); in one task with the
+press it is empty every time. Poll the state the blur writes, never read it once
+after the hide.
+
 **Where a flake goes.** In CI the config adds a `json` reporter
 (`test-results/report.json`, shipped inside the `playwright-report-*` failure
 artifact), and `.github/workflows/test-health.yml` collects every `flaky` or
