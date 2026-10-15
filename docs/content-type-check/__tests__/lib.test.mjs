@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { isExampleFile, toolFor, parseDiagnostics, introducedErrors, parseNameStatus, escapeCommand } from '../lib.mjs';
+import { isExampleFile, toolFor, parseDiagnostics, introducedErrors, parseNameStatus, escapeCommand, stripQuoted } from '../lib.mjs';
 
 test('isExampleFile matches the javascript, react and vue examples only', () => {
   assert.ok(isExampleFile('docs/content/guides/a/b/javascript/example1.ts'));
@@ -66,16 +66,26 @@ test('parseNameStatus returns added, modified and renamed examples and skips the
 });
 
 test('elaboration lines are part of the key: two different TS2769 overload failures do not cancel', () => {
-  const out = line => [
+  const out = reason => [
     'a/javascript/e.ts(10,1): error TS2769: No overload matches this call.',
-    `  Overload 1 of 2, '(${line}): void', gave the following error.`,
-    "    Argument of type 'string' is not assignable to parameter of type 'number'.",
+    "  Overload 1 of 2, '(a: number): void', gave the following error.",
+    `    ${reason}`,
   ].join('\n');
-  const base = parseDiagnostics(out('a: number')).diagnostics;
-  const head = parseDiagnostics(out('b: boolean')).diagnostics;
+  const base = parseDiagnostics(out("Argument of type 'string' is not assignable to parameter of type 'number'.")).diagnostics;
+  const head = parseDiagnostics(out("Type 'string' is not assignable to type 'number'.")).diagnostics;
 
   assert.equal(introducedErrors(head, base).introduced.length, 1);
   assert.equal(introducedErrors(base, base).introduced.length, 0);
+});
+
+test('quoted names and types are not part of the key, so a rename or a new property keeps it', () => {
+  const error = message => ({ line: 1, code: 'TS2339', message, detail: '' });
+  const base = [error("Property 'clear' does not exist on type '{ name: string; }'.")];
+  const head = [error("Property 'clear' does not exist on type '{ name: string; disabled: boolean; }'.")];
+
+  assert.equal(introducedErrors(head, base).introduced.length, 0);
+  assert.equal(introducedErrors([...head, ...head], base).introduced.length, 1, 'a second copy still fails');
+  assert.equal(stripQuoted("Parameter 'value' implicitly has an 'any' type."), "Parameter '' implicitly has an '' type.");
 });
 
 test('positions inside elaboration lines are stripped, so a line shift keeps the key', () => {

@@ -279,6 +279,9 @@ jobs:
               - './wrappers/**'
             docs:
               - './docs/**'
+              # The examples type check lives in docs.yml, which test.yml starts only on this flag, so
+              # every `docs-content-types` glob must also match here (pinned by the wiring test).
+              - './.github/actions/docs-content-typecheck/**'
               - './handsontable/package.json'
               # docs' Playwright version comes from the workspace catalog too.
               - './pnpm-lock.yaml'

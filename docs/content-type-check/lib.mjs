@@ -63,11 +63,22 @@ export function parseDiagnostics(output) {
 }
 
 /**
+ * @param {string} text A compiler message.
+ * @returns {string} The message with every single-quoted segment collapsed to `''`. The compiler quotes
+ *   local names (`TS7006`, `TS2339`) and inferred types (`{ name: string; }`) that way, and both change
+ *   under a rename or a valid new property, which must not turn an old error into a new one.
+ */
+export function stripQuoted(text) {
+  return text.replace(/'[^']*'/g, '\'\'');
+}
+
+/**
  * @param {{code: string, message: string, detail?: string}} diagnostic A diagnostic.
- * @returns {string} The identity of the error that survives line shifts: its code, headline and elaboration.
+ * @returns {string} The identity of the error that survives line shifts, renames and type-neutral edits:
+ *   its code and the shape of its headline and elaboration, with the quoted names and types removed.
  */
 export function errorKey(diagnostic) {
-  return `${diagnostic.code}: ${diagnostic.message}${diagnostic.detail ?? ''}`;
+  return stripQuoted(`${diagnostic.code}: ${diagnostic.message}${diagnostic.detail ?? ''}`);
 }
 
 /**
@@ -83,7 +94,7 @@ export function escapeCommand(value, isProperty = false) {
 
 /**
  * Returns the errors the head version of a file has on top of its base version. Errors are compared
- * as a multiset of (code, message), never by line, so an edit that only moves an old error does not
+ * as a multiset of (code, message shape), never by line, so an edit that only moves an old error does not
  * fail the check, while a second copy of an old error does.
  *
  * @param {Array<{line: number, code: string, message: string}>} headErrors Errors of the head version.

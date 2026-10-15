@@ -3,7 +3,7 @@ description: >-
   Type-check the javascript, react and vue docs examples a pull request changed,
   against the core types built from the current checkout, and fail only on the
   errors the pull request introduced (base vs head, per file). Builds the core
-  types only (about 4 s), not the full package. Requires checkout first, with
+  types only, not the full package. Requires checkout first, with
   fetch-depth: 2 (the base is the merge ref's first parent).
 
 runs:
