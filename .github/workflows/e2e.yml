@@ -93,24 +93,18 @@ jobs:
   # shape as the Puppeteer job above (the project name selects both: the theme
   # stylesheet and the dist bundle the fixture loads).
   playwright:
-    name: "Playwright ${{ matrix.bundle.label }} (theme: ${{ matrix.theme }}${{ matrix.tag || '' }})"
+    name: "Playwright ${{ matrix.bundle.label }} (theme: ${{ matrix.theme }})"
     runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/playwright:v1.62.1-noble
     if: inputs.run-all || inputs.run-playwright
     strategy:
       fail-fast: false
-      # TEMPORARY measurement matrix (reverted before review): the six legs as they are, plus the main
-      # leg once more at --workers=4, so the 2-worker and 4-worker main legs run in the same run.
       matrix:
-        include:
-          - { theme: main, bundle: { label: 'UMD', suffix: '' } }
-          - { theme: main, bundle: { label: 'UMD', suffix: '' }, workers: 4, tag: '-w4' }
-          - { theme: horizon, bundle: { label: 'UMD', suffix: '' } }
-          - { theme: classic, bundle: { label: 'UMD', suffix: '' } }
-          - { theme: main, bundle: { label: 'UMD.min', suffix: '-min' } }
-          - { theme: horizon, bundle: { label: 'UMD.min', suffix: '-min' } }
-          - { theme: classic, bundle: { label: 'UMD.min', suffix: '-min' } }
+        theme: [main, horizon, classic]
+        bundle:
+          - { label: 'UMD', suffix: '' }
+          - { label: 'UMD.min', suffix: '-min' }
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
       - name: Download the Handsontable UMD build artifact
@@ -127,17 +121,7 @@ jobs:
         # "1" drops every leg's grep (tests/AGENTS.md, "Declaring the legs"); "" keeps the declared shape.
         env:
           HOT_E2E_FULL_MATRIX: ${{ inputs.full-matrix && '1' || '' }}
-        run: cd tests && npx playwright test --project=e2e-${{ matrix.theme }}${{ matrix.bundle.suffix }}${{ matrix.workers && format(' --workers={0}', matrix.workers) || '' }}
-      # TEMPORARY (reverted before review): what the runner is, and the container's peak memory.
-      - name: Measure the runner
-        if: ${{ !cancelled() }}
-        run: |
-          echo "nproc=$(nproc)"
-          grep -m1 'model name' /proc/cpuinfo || true
-          free -m
-          echo "memory.peak=$(cat /sys/fs/cgroup/memory.peak 2>/dev/null || echo unavailable)"
-          echo "memory.max=$(cat /sys/fs/cgroup/memory.max 2>/dev/null || echo unavailable)"
-          echo "memory.current=$(cat /sys/fs/cgroup/memory.current 2>/dev/null || echo unavailable)"
+        run: cd tests && npx playwright test --project=e2e-${{ matrix.theme }}${{ matrix.bundle.suffix }}
       # Also when the leg stayed green only because a flaky test was under
       # quarantine (the quarantine reporter sets the output): the ledger still
       # records that test.
@@ -145,7 +129,7 @@ jobs:
         if: failure() || steps.playwright.outputs.quarantined-flaky == 'true'
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
         with:
-          name: playwright-report-${{ matrix.theme }}${{ matrix.bundle.suffix }}${{ matrix.tag || '' }}
+          name: playwright-report-${{ matrix.theme }}${{ matrix.bundle.suffix }}
           path: |
             tests/playwright-report
             tests/test-results
@@ -168,13 +152,13 @@ jobs:
       - name: Summarize the Playwright durations
         if: ${{ !cancelled() }}
         continue-on-error: true
-        run: node .github/scripts/playwright-durations.mjs --leg ${{ matrix.theme }}${{ matrix.bundle.suffix }}${{ matrix.tag || '' }}
+        run: node .github/scripts/playwright-durations.mjs --leg ${{ matrix.theme }}${{ matrix.bundle.suffix }}
       - name: Upload the Playwright durations
         if: ${{ !cancelled() }}
         continue-on-error: true
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
         with:
-          name: playwright-durations-${{ matrix.theme }}${{ matrix.bundle.suffix }}${{ matrix.tag || '' }}
+          name: playwright-durations-${{ matrix.theme }}${{ matrix.bundle.suffix }}
           path: tests/test-results/playwright-durations.json
           if-no-files-found: ignore
           retention-days: 3
