@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-16T10:03:35.764Z",
+  "generatedAt": "2026-10-16T10:20:15.000Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -132,7 +132,7 @@
       "file": "e2e/iframe-cross-realm-scroll.spec.ts",
       "line": 100,
       "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
-      "count7": 1,
+      "count7": 0,
       "count30": 12,
       "countAll": 14,
       "runs30": 8,
@@ -656,7 +656,7 @@
       "file": "handsontable/src/editors/intlDateEditor/__tests__/intlDateEditor.spec.js",
       "line": null,
       "title": "IntlDateEditor should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)",
-      "count7": 4,
+      "count7": 3,
       "count30": 5,
       "countAll": 5,
       "runs30": 4,
