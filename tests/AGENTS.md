@@ -504,9 +504,13 @@ text instead, `span.colHeader` matched with `getByText(label, { exact: true })`,
   edge), and end the helper on a render-state probe (the column inside the
   rendered band, plus `getFirstFullyVisibleColumn()` for a start snap), never on
   `scrollLeft` (`TextEditorViewportSizePage.scrollViewportToColumn()`). The open
-  text editor starts 1px before its cell and ends exactly at the holder's client
-  right edge, so assert its containment with `<=` in one coordinate system,
-  never a strict `<`, from editor, cell and holder read in one evaluation.
+  text editor of a cell that draws no inline-start border of its own (a
+  borderless first column keeps the gridline inside its box, and
+  `BaseEditor#getEditedCellRect` cancels the shift there), holding text wider
+  than the room left in the viewport, starts 1px before its cell and ends
+  exactly at the holder's client right edge: assert that start and the
+  containment with `<=` in one coordinate system, never a strict `<`, from
+  editor, cell and holder read in one evaluation.
 
 ## Rendering away from 100% (zoom / display scaling)
 

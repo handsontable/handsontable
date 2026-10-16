@@ -1,5 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
-import { awaitBundle, type Bundle } from '../bundle';
+import { awaitBundle, awaitFixtureBuilt, type Bundle } from '../bundle';
 
 /**
  * What one read of the open text editor, the cell it edits and the grid's viewport reports. Every length is in
@@ -12,6 +12,8 @@ export interface EditorViewportRead {
   editorLeft: number;
   /** The editor input's right edge. */
   editorRight: number;
+  /** The edited cell's left edge. */
+  cellLeft: number;
   /** How far the edited cell's left edge is from the left edge of the holder's client box. */
   cellOffsetInHolder: number;
   /** The holder's client width: the grid's width minus the scrollbars it draws, which is the viewport the editor must fit. */
@@ -79,20 +81,13 @@ export class TextEditorViewportSizePage {
   }
 
   /**
-   * Opens the fixture, rethrows a constructor failure the fixture captured, and waits for the grid to draw.
+   * Opens the fixture, waits for the grid to be built (a constructor failure the fixture captured in
+   * `htBuildError` is rethrown with its cause by the shared helper), and waits for the grid to draw.
    */
   async goto(): Promise<void> {
     await this.page.goto(`/tests/fixtures/demo/text-editor-viewport-size.html?theme=${this.theme}&bundle=${this.bundle}`);
     await awaitBundle(this.page);
-
-    // The bundle script and the script that builds the grid are both synchronous and both run before `load`,
-    // so by now the grid is built or the fixture has recorded why it is not.
-    const buildError = await this.page.evaluate(() => window.fixtureError);
-
-    if (buildError !== null) {
-      throw new Error(`Handsontable constructor threw in the fixture:\n${buildError}`);
-    }
-
+    await awaitFixtureBuilt(this.page);
     await expect(this.cell(1, 1)).toBeVisible();
   }
 
@@ -169,12 +164,14 @@ export class TextEditorViewportSizePage {
       const holderBox = holder.getBoundingClientRect();
       const holderClientLeft = holderBox.left + holder.clientLeft;
       const editorBox = editor.getBoundingClientRect();
+      const cellBox = cell.getBoundingClientRect();
 
       return {
         editorWidth: editor.offsetWidth,
         editorLeft: editorBox.left,
         editorRight: editorBox.right,
-        cellOffsetInHolder: cell.getBoundingClientRect().left - holderClientLeft,
+        cellLeft: cellBox.left,
+        cellOffsetInHolder: cellBox.left - holderClientLeft,
         holderClientWidth: holder.clientWidth,
         holderClientRight: holderClientLeft + holder.clientWidth,
       };

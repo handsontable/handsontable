@@ -8,12 +8,17 @@ import { TextEditorViewportSizePage, type EditorViewportRead } from '../fixtures
  * @param {EditorViewportRead} read One read of the editor, its cell and the holder.
  */
 function judge(read: EditorViewportRead) {
-  // The editor starts 1px before its cell, over the grid line the cell's start edge draws, so its width is the room
+  // The editor starts 1px before its cell, over the grid line the previous cell draws on its inline-end side (this
+  // cell draws no inline-start border of its own: it is not a borderless first column), so its width is the room
   // from the cell to the end of the viewport plus that pixel.
   const room = read.holderClientWidth - read.cellOffsetInHolder + 1;
 
   return {
     cellOffsetInHolder: read.cellOffsetInHolder,
+    // The premise of the room calculation, asserted rather than assumed: an editor shifted further toward the
+    // start with the right width would still end inside the viewport.
+    startsOnePxBeforeTheCell: read.editorLeft === read.cellLeft - 1
+      || `the editor starts at ${read.editorLeft}px, the cell at ${read.cellLeft}px`,
     widthIsTheRoomToTheViewportEnd: read.editorWidth === room
       || `the editor is ${read.editorWidth}px wide, the room from its cell to the end of the viewport is ${room}px`,
     endsInsideTheViewport: read.editorRight <= read.holderClientRight
@@ -51,6 +56,7 @@ test.describe('text editor size against the viewport', { tag: THEMES_TAG }, () =
     ).toEqual({
       // The cell sits where the fixture put it, 40px from the viewport's start, so nothing has scrolled.
       cellOffsetInHolder: 40,
+      startsOnePxBeforeTheCell: true,
       widthIsTheRoomToTheViewportEnd: true,
       endsInsideTheViewport: true,
     });
@@ -62,6 +68,7 @@ test.describe('text editor size against the viewport', { tag: THEMES_TAG }, () =
       { message: 'the editor stays inside the viewport after scrollViewportTo' }
     ).toEqual({
       cellOffsetInHolder: 40,
+      startsOnePxBeforeTheCell: true,
       widthIsTheRoomToTheViewportEnd: true,
       endsInsideTheViewport: true,
     });
@@ -80,6 +87,7 @@ test.describe('text editor size against the viewport', { tag: THEMES_TAG }, () =
     ).toEqual({
       // The cell is now at the viewport's start edge.
       cellOffsetInHolder: 0,
+      startsOnePxBeforeTheCell: true,
       widthIsTheRoomToTheViewportEnd: true,
       endsInsideTheViewport: true,
     });
