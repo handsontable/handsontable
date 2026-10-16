@@ -25,6 +25,43 @@ async function load(browser, job) {
   if (job.measure) {
     await page.addInitScript(() => {
       window.__ghost = [];
+
+      window.__resize = [];
+      const describe = el => {
+        const cs = getComputedStyle(el);
+        return `${el.tagName.toLowerCase()}.${String(el.className).slice(0, 40)}#${el.id} w=${Math.round(el.getBoundingClientRect().width)} disp=${cs.display} pos=${cs.position} ov=${cs.overflowX} wid=${cs.width} min=${cs.minWidth} flex=${cs.flex}`;
+      };
+
+      window.addEventListener('DOMContentLoaded', () => {
+        const ex = document.querySelector('#example1');
+
+        if (!ex) { return; }
+        const chain = [];
+
+        for (let el = ex; el && el !== document.documentElement; el = el.parentElement) { chain.push(el); }
+
+        let last = '';
+        const ro = new ResizeObserver(() => {
+          const widths = chain.map(el => Math.round(el.getBoundingClientRect().width)).join(',');
+
+          if (widths === last) { return; }
+          last = widths;
+          const zero = chain.find(el => Math.round(el.getBoundingClientRect().width) === 0);
+
+          window.__resize.push({
+            t: Math.round(performance.now()),
+            innerW: window.innerWidth,
+            innerH: window.innerHeight,
+            clientW: document.documentElement.clientWidth,
+            widths,
+            zero: zero ? describe(zero) : null,
+            zeroParent: zero && zero.parentElement ? describe(zero.parentElement) : null,
+          });
+        });
+
+        chain.forEach(el => ro.observe(el));
+        ro.observe(document.documentElement);
+      });
       const orig = Element.prototype.getBoundingClientRect;
 
       Element.prototype.getBoundingClientRect = function() {
@@ -96,9 +133,10 @@ async function load(browser, job) {
 
   const after = await grab();
   const ghost = await page.evaluate(() => window.__ghost);
+  const resize = await page.evaluate(() => window.__resize);
 
   results.push({
-    fw: job.fw, i: job.i, ms: Date.now() - started, shotH: pngHeight(shot), before, after, ghost,
+    fw: job.fw, i: job.i, ms: Date.now() - started, shotH: pngHeight(shot), before, after, ghost, resize,
   });
   await ctx.close();
 }

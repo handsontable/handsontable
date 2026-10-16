@@ -17,8 +17,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, ubuntu-26.04]
-        mix: ['0', '1']
+        os: [ubuntu-24.04]
+        mix: ['0']
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
@@ -33,7 +33,7 @@ jobs:
       - name: Load the export-to-csv page like the visual suite does
         working-directory: .github/dev-3458-diag
         env:
-          LOADS: '40'
+          LOADS: '12'
           WORKERS: '4'
           MIX: ${{ matrix.mix }}
         run: node diag.mjs 2>&1 | tee diag-output.txt
