@@ -98,6 +98,7 @@ This is the docs-**site** voice — it overrides the monorepo-wide documentation
 - Inline code for API names: `columnSorting`, `readOnly`.
 - Oxford comma in lists of three or more items.
 - American English spelling.
+- Product name: introduce it as `Handsontable DataGrid` on the first prose mention on a page and in `description:`. After that, `Handsontable` is fine. Never write `DataGrid` alone as a first mention or in a title. Code, imports, package names, and API names stay `Handsontable`. The category is lowercase "data grid", and the noun is dropped when the sentence already names the product ("Handsontable DataGrid is a JavaScript component"). Full rule: `.ai/DOC-STANDARDS.md`, "Product naming". Renaming a heading changes its anchor, so grep for inbound links first.
 
 ---
 
@@ -561,6 +562,7 @@ Copy and complete this checklist in your PR description:
 - [ ] Heading hierarchy is correct (no skipped levels, e.g., H2 → H4)
 - [ ] Headings and the frontmatter `title:` use sentence case
 - [ ] Active voice and second person ("you") used throughout
+- [ ] First prose mention and `description:` say `Handsontable DataGrid`; code and API names unchanged
 - [ ] No banned words: simply, just, easy, straightforward, note that, please
 - [ ] Tutorials and how-tos have a Prerequisites section
 - [ ] Tutorials have "What you learned" and "Next steps" sections

@@ -34,6 +34,19 @@ Apply to all documentation text — guides, JSDoc comments, changelog entries, m
 13. **PR descriptions**: Use plain, concise language. Avoid literary wording — developers need to parse it quickly.
 14. **Sentence case headings.** Capitalize only the first word, plus proper nouns, product names, API identifiers, and acronyms. ("Definition of done (local enforcement)", not "Definition of Done (Local Enforcement)".) Applies to Markdown headings at every level and to the docs frontmatter `title:` field. Terms with fixed capitalization keep it: `Node.js`, `HyperFormula`, `HotTable`, `UndoRedo`, `Content Security Policy (CSP)`. Sentence case composes with the Diátaxis title patterns in `docs/AGENTS.md` 2.1 (verb phrase, "How to …", "Understanding …") rather than replacing them. **Not covered:** `README.md`, which is marketing-facing and uses Title Case with emoji headings by design, and agent instruction files (`AGENTS.md`, `.claude/skills/**`), whose heading style is currently mixed and out of scope for this rule.
 
+## Product naming
+
+Handsontable is the company. It makes two products: **Handsontable DataGrid** and **HyperFormula**. For years "Handsontable" meant the grid, so text has to say which one it means. The source is the company Brand Voice (Names section).
+
+- **First mention:** introduce the product as `Handsontable DataGrid` on the first prose mention on a page, and in descriptions, intros, and headings that name it. Later mentions on the same page can say `Handsontable`.
+- **Never `DataGrid` alone** as a first mention or in a title tag. It is fine alone in a toggle or tab beside HyperFormula, in a table label, or as a repeat in the same section after the full name.
+- **Stays `Handsontable`:** code and imports (`new Handsontable(...)`), package names (`handsontable`, `@handsontable/react-wrapper`), API, option, class, and hook names, console and error messages shipped in the UI, customer quotes, version history, migration guides, "Handsontable Team", and "Handsoncode".
+- **Category:** "data grid" in lowercase, two words ("a JavaScript data grid"). Not "data table", and not "spreadsheet" as the category. When the sentence already names Handsontable DataGrid, do not repeat the noun: write "Handsontable DataGrid is a JavaScript component", not "Handsontable DataGrid is a JavaScript data grid".
+- **HyperFormula** on its own is correct everywhere. Use `Handsontable HyperFormula` on first mention where the company also has to be named (pricing, licenses, legal lines).
+- **Never** "HOT", "HandsOnTable", or "Hands On Table" in prose (`HOT` is fine in code). The `.datagrid` logotype is a visual mark, never a word in a sentence or heading.
+- **Versions:** `18.1` in prose, `18.1.0` when the exact release matters, never `v18.1`.
+- **Renaming a heading moves its anchor.** Before you change a heading, grep the repository for inbound `#anchor` links and update them in the same change.
+
 ## Migration guide requirements
 
 A migration guide is required for every major release and some minor releases. Each breaking change needs a separate migration guide step that includes:

@@ -13,6 +13,7 @@ Check each item against the diff.
 2. **JSDoc:**
    - All public and private APIs have JSDoc comments.
    - New hooks and configuration options carry a `@since` tag.
+   - New prose that names the product follows `.ai/DOC-STANDARDS.md` "Product naming": `Handsontable DataGrid` on first mention, plain `Handsontable` for the company, code, and API names.
    - Use Markdown formatting; line breaks are empty lines.
    - Cross-reference with the inline `link` tag in qualified `Class#member` form (`{@link Core#getCellMeta}`), never TypeDoc's `[[Target]]`, which the docs pipeline publishes as literal text. Use inline code for targets the API reference does not document. End every sentence with a full stop.
 

@@ -91,6 +91,7 @@ Full voice and words-to-avoid list: `docs/AGENTS.md` §2.2 (overrides `.ai/DOC-S
 
 - Active voice, American English, short sentences, "you", Oxford comma, no evaluative adjectives ("easy", "simple", "obvious").
 - Separate clauses with hyphens (`-`) or double hyphens (`--`). The docs site uses these where JSDoc and changelog use en dashes.
+- Product name: first prose mention on the page and the `description:` say `Handsontable DataGrid`; later mentions can say `Handsontable`. Never `DataGrid` alone as a first mention or in a title. Code, package names, and API names stay `Handsontable`. Say "data grid" (lowercase) for the category, and drop the noun where the product is already named. Details: `.ai/DOC-STANDARDS.md`, "Product naming".
 - Bold for UI elements (**Add comment**), inline code for API names (`comments`).
 - Internal links: `[text](@/path/to/file.md#anchor)`.
 - End every sentence with a full stop, lists included.
