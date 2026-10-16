@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-16T08:33:31.535Z",
+  "generatedAt": "2026-10-16T08:55:52.157Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -958,41 +958,6 @@
       "needsTicket": true
     },
     {
-      "key": "jasmine|handsontable/src/plugins/filters/__tests__/plugins/columnSorting.spec.js|Filters UI cooperation with ColumnSorting should filter values when sorting is applied",
-      "tier": "jasmine",
-      "file": "handsontable/src/plugins/filters/__tests__/plugins/columnSorting.spec.js",
-      "line": null,
-      "title": "Filters UI cooperation with ColumnSorting should filter values when sorting is applied",
-      "count7": 0,
-      "count30": 3,
-      "countAll": 3,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "UMD (theme: main)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "passes alone"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-09-25T05:45:09Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36098247271",
-        "branch": "develop",
-        "leg": "UMD (theme: main)",
-        "status": "failed",
-        "error": "Expected 27 to equal 3.",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
       "key": "playwright|e2e/oversized-cell-mouse-scroll.spec.ts|oversized cell mouse scroll › last-partial row skip stays when only the column is oversized",
       "tier": "playwright",
       "file": "e2e/oversized-cell-mouse-scroll.spec.ts",
@@ -1089,6 +1054,41 @@
         "leg": "e2e-webkit",
         "status": "failed",
         "error": "Error: expect(locator).not.toHaveValue(expected) failed",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "jasmine|handsontable/src/plugins/filters/__tests__/plugins/columnSorting.spec.js|Filters UI cooperation with ColumnSorting should filter values when sorting is applied",
+      "tier": "jasmine",
+      "file": "handsontable/src/plugins/filters/__tests__/plugins/columnSorting.spec.js",
+      "line": null,
+      "title": "Filters UI cooperation with ColumnSorting should filter values when sorting is applied",
+      "count7": 0,
+      "count30": 2,
+      "countAll": 3,
+      "runs30": 2,
+      "flakyRuns30": 0,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "UMD (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-25T05:45:09Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36098247271",
+        "branch": "develop",
+        "leg": "UMD (theme: main)",
+        "status": "failed",
+        "error": "Expected 27 to equal 3.",
         "source": "ci"
       },
       "needsTicket": true
