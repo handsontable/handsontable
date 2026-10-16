@@ -1,7 +1,7 @@
 ---
 type: reference
 title: Server-side fetching and examples
-metaTitle: Server-side fetching and examples - JavaScript Data Grid | Handsontable
+metaTitle: Server-side fetching and examples | Handsontable DataGrid for JavaScript
 description: Handsontable DataProvider fetch hooks, loading UI with emptyDataState, plugin methods fetchData and getQueryParameters, REST and GraphQL sample servers, and CodeSandbox projects.
 permalink: /server-side-data-fetching
 canonicalUrl: /server-side-data-fetching
@@ -11,11 +11,11 @@ tags:
   - REST
   - GraphQL
 react:
-  metaTitle: Server-side fetching and examples - React Data Grid | Handsontable
+  metaTitle: Server-side fetching and examples | Handsontable DataGrid for React
 angular:
-  metaTitle: Server-side fetching and examples - Angular Data Grid | Handsontable
+  metaTitle: Server-side fetching and examples | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Server-side fetching and examples - Vue Data Grid | Handsontable
+  metaTitle: Server-side fetching and examples | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Server-side data
 addedIn: "17.1.0"
