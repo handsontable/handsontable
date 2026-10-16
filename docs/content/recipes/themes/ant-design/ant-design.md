@@ -192,7 +192,7 @@ function ActionCell({ instance, row }) {
 }
 ```
 
-## Step 4: Create the Handsontable DataGrid component
+## Step 4: Create the grid component
 
 Build the Ant-like table layout with `HotTable`, fixed column widths, and read-only cells.
 

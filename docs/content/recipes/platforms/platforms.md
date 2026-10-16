@@ -1,7 +1,7 @@
 ---
 title: Platforms and Embedding Recipes
 metaTitle: Platforms and Embedding Recipes - JavaScript Data Grid | Handsontable
-description: Practical recipes for running Handsontable DataGrid inside host platforms and encapsulated components, from Salesforce Lightning Web Components to custom elements.
+description: Practical recipes for running Handsontable DataGrid inside host platforms and encapsulated components, from Salesforce LWC to custom elements.
 permalink: /recipes/platforms
 canonicalUrl: /recipes/platforms
 searchCategory: Recipes

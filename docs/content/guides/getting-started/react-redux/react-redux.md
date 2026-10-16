@@ -18,7 +18,7 @@ searchCategory: Guides
 onlyFor: react
 category: Getting started
 ---
-In this tutorial, you will connect a Handsontable DataGrid to a Redux store. You will learn to dispatch actions on cell changes and sync grid data with global state.
+In this tutorial, you will connect Handsontable DataGrid to a Redux store. You will learn to dispatch actions on cell changes and sync grid data with global state.
 
 [[toc]]
 

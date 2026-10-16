@@ -1,6 +1,6 @@
 ---
 title: Handsontable DataGrid documentation
-description: An overview of Handsontable DataGrid's developer documentation. Handsontable DataGrid is a client-side, spreadsheet-like component for editing data in web applications.
+description: An overview of the developer documentation. Handsontable DataGrid is a client-side, spreadsheet-like data grid for editing data in web applications.
 template: splash
 hero:
   title: Handsontable DataGrid documentation

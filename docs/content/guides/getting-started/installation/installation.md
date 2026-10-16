@@ -51,7 +51,7 @@ Install Handsontable DataGrid through your preferred package manager, and contro
 - [Node.js](https://nodejs.org/) version 18 or newer
 - Angular CLI version 16 or newer: `npm install -g @angular/cli`
 
-## Install Handsontable DataGrid
+## Install Handsontable
 
 To install Handsontable locally using a package manager, run one of these commands:
 
@@ -244,7 +244,7 @@ Handsontable is installed and running in your Angular application. You can now [
 
 To start using Handsontable, follow these steps:
 
-## Install Handsontable DataGrid
+## Install Handsontable
 
 Get Handsontable's files in your preferred way.
 
@@ -295,7 +295,7 @@ To get Handsontable's files from a CDN, use the following locations:
 
 - [https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js](https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js)
 
-## Import Handsontable DataGrid's JavaScript
+## Import Handsontable's JavaScript
 
 Import Handsontable's JavaScript into your application.
 
@@ -368,7 +368,7 @@ const hot = new Handsontable(container, {
 
 ::: only-for react
 
-## Install Handsontable DataGrid
+## Install Handsontable
 
 To install Handsontable locally using a package manager, run one of these commands:
 
@@ -409,7 +409,7 @@ In Claude Code, run:
 
 For more details, see [Skills for Claude Code](@/guides/ai-tools/skills-for-claude-code/skills-for-claude-code.md).
 
-## Register Handsontable DataGrid's modules
+## Register Handsontable's modules
 
 Import and register all of Handsontable's modules with a single function call:
 
@@ -469,7 +469,7 @@ To set Handsontable's [configuration options](@/guides/configuration/configurati
 
 ::: only-for vue
 
-## Install Handsontable DataGrid
+## Install Handsontable
 
 To install Handsontable locally using a package manager, run one of these commands:
 
@@ -510,7 +510,7 @@ In Claude Code, run:
 
 For more details, see [Skills for Claude Code](@/guides/ai-tools/skills-for-claude-code/skills-for-claude-code.md).
 
-## Register Handsontable DataGrid's modules
+## Register Handsontable's modules
 
 Import and register all of Handsontable's modules with a single function call:
 

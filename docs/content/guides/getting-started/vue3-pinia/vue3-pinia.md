@@ -12,7 +12,7 @@ onlyFor: vue
 category: Getting started
 ---
 
-Use [Pinia](https://pinia.vuejs.org/) -- the officially recommended state-management library for Vue 3 -- to manage your Handsontable DataGrid data and settings.
+Use [Pinia](https://pinia.vuejs.org/) -- the officially recommended state-management library for Vue 3 -- to manage the current data and settings of Handsontable DataGrid.
 
 [[toc]]
 

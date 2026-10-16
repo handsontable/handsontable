@@ -170,7 +170,7 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 });
 ```
 
-### Pass the HyperFormula class/instance to Handsontable DataGrid
+### Pass the HyperFormula class/instance to Handsontable
 
 ::: only-for javascript
 

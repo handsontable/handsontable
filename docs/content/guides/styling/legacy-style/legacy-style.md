@@ -133,7 +133,7 @@ Or if you're using JavaScript imports:
 + import 'handsontable/styles/ht-theme-classic.min.css';
 ```
 
-#### Step 2. Set the theme in Handsontable DataGrid configuration
+#### Step 2. Set the theme in Handsontable configuration
 
 ::: only-for javascript
 

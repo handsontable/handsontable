@@ -19,7 +19,7 @@ Skills for Claude Code are bundled instructions that give Claude deep knowledge 
 
 The <a href="https://github.com/handsontable/handsontable-skills" target="_blank" rel="noopener noreferrer">repo</a> ships two skills:
 
-- **handsontable** -- the Handsontable DataGrid component. Covers React, Angular, Vue, and vanilla JS setup, configuration, theming, cell types, sorting, filtering, formulas, hooks, performance, and version migration.
+- **handsontable** -- the core Handsontable DataGrid skill. Covers React, Angular, Vue, and vanilla JS setup, configuration, theming, cell types, sorting, filtering, formulas, hooks, performance, and version migration.
 - **hyperformula** -- the headless calculation engine. Covers instance creation, CRUD, custom functions, named expressions, error handling, batch operations, and Node.js usage.
 
 Use **handsontable** when you're building a visible grid in a web app. Use **hyperformula** when you're evaluating formulas programmatically without a UI -- server-side calculations, pricing engines, what-if analysis. Claude loads whichever is relevant based on what you ask.

@@ -98,7 +98,7 @@ This has two consequences:
 
 What makes an application slow is rarely one render. It is many renders in a row, which is what [batching](@/guides/optimization/batch-operations/batch-operations.md) exists to prevent.
 
-### When Handsontable DataGrid renders on its own
+### When Handsontable renders on its own
 
 Handsontable picks the moments for you. It renders after every CRUD operation, while you scroll, when rows or columns are hidden or trimmed, and at the end of [`updateSettings()`](@/api/core.md#updatesettings). Anything that changes the grid through the Handsontable API is covered.
 
