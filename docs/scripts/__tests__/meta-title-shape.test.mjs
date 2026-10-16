@@ -104,3 +104,25 @@ test('every page metaTitle reads "<Page> | Handsontable DataGrid for <Framework>
 
   assert.deepEqual(failures, []);
 });
+
+test('every API generator metaTitle names its own page', async() => {
+  const { default: { seo } } = await import('../jsdoc-convert/configuration.mjs');
+  const mismatches = [];
+
+  for (const [file, entry] of Object.entries(seo)) {
+    const key = file.replace(/\.md$/, '');
+
+    for (const block of [entry, entry.react, entry.angular, entry.vue]) {
+      if (block?.metaTitle) {
+        const page = block.metaTitle.replace(/ \| Handsontable DataGrid for \w+$/, '').replace(/ (API reference|methods API reference)$/, '');
+        const names = [key, entry.title].filter(Boolean).map(name => name.toLowerCase());
+
+        if (!names.includes(page.toLowerCase())) {
+          mismatches.push(`${file}: "${block.metaTitle}"`);
+        }
+      }
+    }
+  }
+
+  assert.deepEqual(mismatches, []);
+});
