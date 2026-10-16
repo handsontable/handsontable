@@ -705,6 +705,29 @@ test.describe('freezeBar', { tag: THEMES_TAG }, () => {
       expect(await grid.count('top')).toBe(4);
     });
 
+    test('a scroll while the top bar is held keeps a grid of an automatic height in a scrolling div on the first rows',
+      async() => {
+        await grid.goto({ anc: 1 });
+        await grid.page.evaluate(() => {
+          (window as any).maxScrollTop = 0;
+          window.addEventListener('scroll', (event) => {
+            if (event.target === window.hot.view._wt.wtTable.holder) {
+              (window as any).maxScrollTop = Math.max((window as any).maxScrollTop,
+                (event.target as HTMLElement).scrollTop);
+            }
+          }, true);
+        });
+
+        await grid.dragTo('top', 4);
+        await grid.page.mouse.wheel(0, 150);
+
+        await expect.poll(() => grid.page.evaluate(() => (window as any).maxScrollTop)).toBeGreaterThan(0);
+        await expect.poll(async() => (await grid.scrollPosition()).top).toBe(0);
+        await grid.release();
+
+        expect(await grid.count('top')).toBe(4);
+      });
+
     test('a scroll while the end bar is held keeps the grid on the last columns', async() => {
       await grid.goto({ end: 1 });
       await grid.dragTo('end', 3);

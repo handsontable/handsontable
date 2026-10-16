@@ -558,12 +558,21 @@ export class FreezeBar extends BasePlugin {
   /**
    * Scrolls the grid back to the edge of the axis when it moves while a bar is held. The guide is placed from the
    * sizes of the first (or last) tracks, so it names the right boundary only while those tracks are the ones in view.
-   * Only an axis the grid scrolls inside its root element is pinned: the page and its ancestors keep their own scroll.
+   * Only an axis the grid's own holder scrolls is pinned: a page or an ancestor that owns the axis keeps its scroll.
+   * The holder, not the root element, is the test, because a grid of an automatic height in a scrolling `div` has an
+   * unclipped root and still scrolls inside its holder.
    */
   #pinDragToEdge() {
     const drag = this.#drag;
 
-    if (drag?.started && this.#getClipRange(isColumnEdge(drag.edge) ? 'x' : 'y') === null) {
+    if (!drag?.started) {
+      return;
+    }
+
+    const wt = this.hot.view._wt;
+    const overlay = isColumnEdge(drag.edge) ? wt.wtOverlays.inlineStartOverlay : wt.wtOverlays.topOverlay;
+
+    if (overlay.mainTableScrollableElement === wt.wtTable.holder) {
       this.#scrollToEdge(drag.edge);
     }
   }
