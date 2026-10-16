@@ -33,7 +33,8 @@ test('finds the workflow and action files to check', () => {
 
 test('no workflow or action uses the floating ubuntu-latest label', () => {
   const offenders = files
-    .filter(file => /\bubuntu-latest\b/.test(readFileSync(file, 'utf8')))
+    .filter(file => readFileSync(file, 'utf8').split('\n')
+      .some(line => !line.trimStart().startsWith('#') && /\bubuntu-latest\b/.test(line)))
     .map(file => path.relative(root, file));
 
   assert.deepEqual(offenders, [], 'pin the runner image, e.g. `ubuntu-26.04`; see .ai/CI.md');
@@ -66,6 +67,18 @@ test('every use of the runner image output has its step declared earlier in the 
 
       assert.ok(declared !== -1 && declared < used,
         `${path.relative(root, file)}: a job uses the runner-image output without declaring the step first`);
+    }
+  }
+});
+
+test('every runner-image step reads $ImageOS into its output', () => {
+  for (const file of files) {
+    const text = readFileSync(file, 'utf8');
+    const steps = text.split(/^(?=\s*- (?:name|id|uses):)/m).filter(step => step.includes('id: runner-image'));
+
+    for (const step of steps) {
+      assert.ok(step.includes('echo "name=$ImageOS" >> "$GITHUB_OUTPUT"'),
+        `${path.relative(root, file)}: the runner-image step must write $ImageOS to its output`);
     }
   }
 });
