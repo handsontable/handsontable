@@ -59,11 +59,14 @@ class EditorManager {
    */
   declare activeEditor: BaseEditor | undefined;
   /**
-   * Keeps a reference to the cell's properties object.
+   * Cell meta for the current edit cycle. Absent until `prepareEditor` assigns it.
+   * A header highlight, and a selection applied under `loadData` or `updateData`,
+   * leave it unset on purpose.
    *
-   * @type {object}
+   * @private
+   * @type {CellProperties | undefined}
    */
-  declare cellProperties: CellProperties;
+  declare cellProperties: CellProperties | undefined;
   /**
    * Whether a close of an editor stranded on a hidden cell is already pending, either scheduled on
    * the next tick or waiting on an async validator to settle. Suppresses duplicate work when one
@@ -298,7 +301,9 @@ class EditorManager {
     }
 
     // Getting values using the modified coordinates.
-    this.cellProperties = this.hot.getCellMeta(visualRowToCheck, visualColumnToCheck);
+    const cellProperties = this.hot.getCellMeta(visualRowToCheck, visualColumnToCheck);
+
+    this.cellProperties = cellProperties;
 
     if (!this.isCellEditable()) {
       this.clearActiveEditor();
@@ -311,7 +316,7 @@ class EditorManager {
     // Skip the preparation when the cell is not rendered in the DOM. The cell is scrolled out of
     // the table's viewport.
     if (td) {
-      const editorClass = this.hot.getCellEditor(this.cellProperties);
+      const editorClass = this.hot.getCellEditor(cellProperties);
       // Keeps the editor receiving the column reference it was already given before `colToProp()`
       // began answering `null`. An unbound column (`{ data: null }`) has always reached `prepare()`
       // as `null`; its signature declares `string | number`, so the cast keeps that long-standing
@@ -323,7 +328,7 @@ class EditorManager {
       this.activeEditor = getEditorInstance(editorClass, this.hot) as BaseEditor;
       // Using not modified coordinates, as we need to get the table element using selection coordinates.
       // There is an extra translation in the editor for saving value.
-      this.activeEditor.prepare(row, col, prop, td, originalValue, this.cellProperties);
+      this.activeEditor.prepare(row, col, prop, td, originalValue, cellProperties);
       // Remember which RECORD this edit belongs to. The editor keeps visual coordinates only, and a
       // trimming map rebinds those to a different record; see `#reconcileEditorWithIndexMaps()`.
       this.#editedPhysicalRow = this.hot.rowIndexMapper.getPhysicalFromVisualIndex(row);
@@ -440,6 +445,7 @@ class EditorManager {
   /**
    * Checks if the currently selected cell (pointed by selection highlight coords) is editable.
    * Editable cell is when:
+   *   - prepared cell meta exists;
    *   - the cell has defined an editor type;
    *   - the cell is not marked as read-only;
    *   - the cell is not hidden.
@@ -454,14 +460,22 @@ class EditorManager {
       return false;
     }
 
-    const editorClass = this.hot.getCellEditor(this.cellProperties);
+    // `getCellEditor` reads `editor` off this object. Header highlights and selections
+    // applied under `loadData` or `updateData` never assign it, and that absence is legitimate.
+    const cellProperties = this.cellProperties;
+
+    if (!cellProperties) {
+      return false;
+    }
+
+    const editorClass = this.hot.getCellEditor(cellProperties);
     const { row, col } = selection.highlight;
 
     if (row === null || col === null) {
       return false;
     }
 
-    if (this.cellProperties.readOnly || !editorClass || this.#isCellHidden(row, col)) {
+    if (cellProperties.readOnly || !editorClass || this.#isCellHidden(row, col)) {
       return false;
     }
 

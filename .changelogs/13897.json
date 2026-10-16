@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a crash when opening a cell editor before the cell was ready to edit.",
+  "type": "fixed",
+  "issueOrPR": 13897,
+  "breaking": false,
+  "framework": "none"
+}
