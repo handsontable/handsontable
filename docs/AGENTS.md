@@ -98,7 +98,7 @@ This is the docs-**site** voice — it overrides the monorepo-wide documentation
 - Inline code for API names: `columnSorting`, `readOnly`.
 - Oxford comma in lists of three or more items.
 - American English spelling.
-- Product name: the first prose mention on a page that names the product, and a `description:` that names it, say `Handsontable DataGrid`. Later mentions and generic references keep `Handsontable`, and so do migration guides and version references such as "Handsontable 10.0". The `metaTitle:` templates below use the shape `<Page> | Handsontable DataGrid for <Framework>`: sentence case, a pipe as the only separator, no dashes, and no `DataGrid` alone. Code, package names, and API names stay `Handsontable`. Full rule: `.ai/DOC-STANDARDS.md`, "Product naming". A renamed heading changes its anchor, so grep for inbound links first.
+- Product name: the first prose mention on a page that names the product, and a `description:` that names it, say `Handsontable DataGrid`. Later mentions and generic references keep `Handsontable`, and so do migration guides and version references such as "Handsontable 10.0". The `metaTitle:` templates below use the shape `<Page> | Handsontable DataGrid for <Framework>`: `<Page>` follows the page `title:` (sentence case applies to `title:` itself), a pipe as the only separator, no dashes, and no `DataGrid` alone. Code, package names, and API names stay `Handsontable`. Full rule: `.ai/DOC-STANDARDS.md`, "Product naming". A renamed heading changes its anchor, so grep for inbound links first.
 
 ---
 

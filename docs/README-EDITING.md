@@ -21,7 +21,7 @@ Each Markdown file can start with the following frontmatter tags:
 | `title`          | The page's header.                                   | If not set, gets generated from the page's parent's title. |
 | `permalink`      | The page's **unique** URL.                           | If not set, gets generated from the Markdown file name.    |
 | `canonicalUrl`   | A canonical URL of the page's latest version.        | None (not required)                                        |
-| `metaTitle`      | The page's SEO meta title, shaped `<Page> \| Handsontable DataGrid for <Framework>`. The site does not render it yet. The browser tab title comes from `title` plus the site title. | None (not required) |
+| `metaTitle`      | The page's SEO meta title (see the note below the table). | None (not required) |
 | `description`    | The page's SEO meta description.                     | None (not required)                                        |
 | `tags`           | Search tags used by the documentation search engine. | None (not required)                                 |
 | `react`          | Holds an alternative set of frontmatter tags (applied only to the React version of the page) | None (not required)                                             |
@@ -30,6 +30,8 @@ Each Markdown file can start with the following frontmatter tags:
 | `menuTag`        | A tag displayed next to the page title in the sidebar menu. | None (not required) |
 | `category`       | The content category for organizing pages. | None (not required) |
 | `addedIn`        | The Handsontable version that introduced the feature the page documents, as a quoted `"MAJOR.MINOR.PATCH"` string (for example `"17.0.0"`). Renders an "Added in Handsontable 17.0.0" badge next to the page title and adds the same sentence under the H1 of the page's Markdown and llms outputs. Set it only for features introduced in 14.0.0 or later; `npm run build` rejects malformed values and versions that were never released. | None (not required) |
+
+The `metaTitle` value reads `<Page> | Handsontable DataGrid for <Framework>`. The docs site does not render it yet: the browser tab title comes from `title` plus the site title.
 
 You can set different frontmatter tags for different framework versions of the page. For example, you can set `metaTitle` to say either `JavaScript` or `React`, depending on the framework:
 
