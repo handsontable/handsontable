@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Column freezing
-metaTitle: Column freezing - JavaScript Data Grid | Handsontable
+metaTitle: Column freezing | Handsontable DataGrid for JavaScript
 description: Lock (freeze) the position of specified columns at the start or end of the grid, keeping them visible while scrolling to another area of the grid.
 permalink: /column-freezing
 canonicalUrl: /column-freezing
@@ -16,11 +16,11 @@ tags:
   - freeze bar
   - draggable freeze
 react:
-  metaTitle: Column freezing - React Data Grid | Handsontable
+  metaTitle: Column freezing | Handsontable DataGrid for React
 angular:
-  metaTitle: Column freezing - Angular Data Grid | Handsontable
+  metaTitle: Column freezing | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Column freezing - Vue Data Grid | Handsontable
+  metaTitle: Column freezing | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Columns
 menuTag: updated

@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Row parent-child
-metaTitle: Row parent-child - JavaScript Data Grid | Handsontable
+metaTitle: Row parent-child | Handsontable DataGrid for JavaScript
 description:
   Reflect the parent-child relationship of your data, using Handsontable's interactive UI elements such as expand and collapse buttons or an extended context
   menu.
@@ -15,11 +15,11 @@ tags:
   - grouping rows
   - master detail
 react:
-  metaTitle: Row parent-child - React Data Grid | Handsontable
+  metaTitle: Row parent-child | Handsontable DataGrid for React
 angular:
-  metaTitle: Row parent-child - Angular Data Grid | Handsontable
+  metaTitle: Row parent-child | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Row parent-child - Vue Data Grid | Handsontable
+  metaTitle: Row parent-child | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Rows
 menuTag: updated

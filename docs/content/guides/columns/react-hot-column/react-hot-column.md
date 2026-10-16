@@ -1,7 +1,7 @@
 ---
 type: reference
 title: Column component
-metaTitle: Column component - React Data Grid | Handsontable
+metaTitle: Column component | Handsontable DataGrid for JavaScript
 description: Configure the React data grid's columns, using the props of the "HotColumn" component. Pass your component as a custom cell editor or a custom cell renderer.
 permalink: /hot-column
 canonicalUrl: /hot-column
