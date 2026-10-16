@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an error thrown by `updateSettings()` after a plugin was destroyed with `getPlugin(name).destroy()`, and hid the fill handle while the Autofill plugin is disabled or destroyed.",
+  "type": "fixed",
+  "issueOrPR": 13879,
+  "breaking": false,
+  "framework": "none"
+}
