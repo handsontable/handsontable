@@ -2560,10 +2560,10 @@ export default function Core(
           return;
         }
 
-        let width = view.isHorizontallyScrollableByWindow()
-          ? view.getTotalTableWidth() : view.getWorkspaceWidth();
+        const isWindowAxis = view.isHorizontallyScrollableByWindow();
+        let width = isWindowAxis ? view.getTotalTableWidth() : view.getWorkspaceWidth();
 
-        if ((width === 0 || instance.countRenderedCols() <= 0) && instance.rootWrapperElement) {
+        if ((width === 0 || (isWindowAxis && instance.countRenderedCols() <= 0)) && instance.rootWrapperElement) {
           width = instance.rootWrapperElement.offsetWidth;
         }
 
@@ -2580,7 +2580,7 @@ export default function Core(
         // table downwards – pinned by the `inline-block-host` case of `bottom-slot-sizing.spec.ts`.
         const wrapperWidth = instance.rootWrapperElement?.clientWidth ?? 0;
 
-        if (view.isHorizontallyScrollableByWindow() && wrapperWidth > 0) {
+        if (isWindowAxis && wrapperWidth > 0) {
           width = Math.min(width, wrapperWidth);
         }
 
