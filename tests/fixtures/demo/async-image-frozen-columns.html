@@ -45,6 +45,41 @@
     container.className = `ht-theme-${window.htTheme}`;
     window.renderCount = 0;
 
+    // An image arrives with the first `load` or `error` of its source: that is when its row can grow. A
+    // renderer that recreates its images gets them again from the cache without growing a row, so later
+    // events of a source do not count. The grid redraws at most once for all the arrivals between two
+    // draws (and only for a row whose height changed), so `contentBatches` counts the draw intervals that
+    // saw an arrival, and `drawsBeforeContent` the draws made before the first one.
+    const arrivedSources = new Set();
+    let arrivedSinceDraw = false;
+
+    window.arrivedSources = arrivedSources;
+
+    window.contentArrivals = 0;
+    window.contentBatches = 0;
+    window.drawsBeforeContent = null;
+
+    const onContentArrival = (event) => {
+      const src = event.target instanceof HTMLImageElement ? event.target.getAttribute('src') : null;
+
+      if (src === null || arrivedSources.has(src)) {
+        return;
+      }
+
+      arrivedSources.add(src);
+      window.contentArrivals = arrivedSources.size;
+      window.drawsBeforeContent ??= window.renderCount;
+
+      if (!arrivedSinceDraw) {
+        arrivedSinceDraw = true;
+        window.contentBatches += 1;
+      }
+    };
+
+    // `load` and `error` do not bubble, so they are caught on the capture phase.
+    container.addEventListener('load', onContentArrival, true);
+    container.addEventListener('error', onContentArrival, true);
+
     // ?variant flags: headers=0 (no column headers), auto=1 (autoRowSize), end=1 (the image column
     // is frozen at the end), col=N (the image column, default 3), small=1 (images that barely grow a
     // row), broken=1 (images that fail), shared=1 (one failing URL for every row), reuse=1 (the renderer
@@ -80,6 +115,7 @@
         { renderer: imageRenderer, width: failing ? 60 : undefined } : {})),
       afterRender() {
         window.renderCount += 1;
+        arrivedSinceDraw = false;
       },
       licenseKey: 'non-commercial-and-evaluation',
     });

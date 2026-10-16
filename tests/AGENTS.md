@@ -779,6 +779,25 @@ the grid scrolled far enough for a queued scroll to have something to move, or
 the test passes on the bug when the fixture changes. Real presses still get the
 grid to its starting state.
 
+**A draw count after asynchronous content depends on how many frames the
+content arrived in.** The grid redraws at most once for all the image `load`
+and `error` events between two draws, and only for a row whose height changed.
+A fixed ceiling on the draws therefore assumes how many frames the responses
+spread over. In `async-image-frozen-columns.spec.ts`, six routes released
+together can spread over one more frame under load. On a 4-worker leg the test
+failed with `Expected: <= 3, Received: 4` while every row was aligned
+(DEV-3457). Holding responses back a few frames gives the same 4 on demand,
+which is what the spec's hold-back test now does on purpose. Count batches in the
+fixture instead. A batch is an interval between two draws in which at least one
+image source arrived for the first time. Bound the draws made after the first
+arrival by the batches (`AsyncImageFrozenColumnsPage.drawStats()`). A redraw
+loop that the budget ends still fails the bound, because its redraws bring no
+new image. The bound is loose by design (at most one batch per source), so keep
+a test that holds one response back and a test where one response settles every
+row (both in that spec). It also assumes nothing but arriving content makes the
+grid draw: a fixture with a stretched or percentage-sized grid needs its draws
+to settle before the release.
+
 **A hidden focused element blurs at the next rendering update, not when it is
 hidden.** Chromium keeps a focused element that just went `display: none` as the
 active element until the next rendering update runs the focus fixup, and only
