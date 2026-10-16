@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import { command as editorOpenCommand } from '../shortcuts/contexts/commands/editor/open';
 
 describe('EditorManager', () => {
   let container;
@@ -62,6 +63,26 @@ describe('EditorManager', () => {
     expect(hot.getSelectedLast()).toEqual([1, 1, 1, 1]);
     expect(() => openFromDoubleClick()).not.toThrow();
     expect(hot.getActiveEditor()?.isOpened() ?? false).toBe(false);
+  });
+
+  it('should not throw when Enter asks to edit a cell selected while data was loading', () => {
+    hot.selection.markSource('loadData');
+    hot.selectCell(1, 1);
+    hot.selection.markEndSource();
+
+    expect(() => {
+      editorOpenCommand.callback(hot, new KeyboardEvent('keydown', { key: 'Enter' }), ['enter']);
+    }).not.toThrow();
+    expect(hot.getActiveEditor()?.isOpened() ?? false).toBe(false);
+  });
+
+  it('should open the editor when Enter is pressed on a selected cell', () => {
+    hot.selectCell(0, 0);
+    editorOpenCommand.callback(hot, new KeyboardEvent('keydown', { key: 'Enter' }), ['enter']);
+
+    expect(hot.getActiveEditor().isOpened()).toBe(true);
+    expect(hot.getActiveEditor().row).toBe(0);
+    expect(hot.getActiveEditor().col).toBe(0);
   });
 
   it('should still open the editor when that cell is double-clicked with the mouse', () => {
