@@ -108,6 +108,7 @@ export interface FixtureHotInstance {
     getCommentAtCell(row: number, column: number): string | undefined,
     showAtCell(row: number, column: number): boolean,
     focusEditor(): void,
+    destroy(): void,
   };
   getPlugin(name: 'pagination'): {
     setPage(page: number): void,
@@ -136,7 +137,14 @@ export interface FixtureHotInstance {
     clearSort(): void,
   };
   getPlugin(name: 'dragToScroll'): { isListening(): boolean };
-  getPlugin(name: 'autofill'): { mouseDownOnCellCorner: boolean };
+  getPlugin(name: 'autofill'): {
+    mouseDownOnCellCorner: boolean,
+    enabled: boolean,
+    enablePlugin(): void,
+    disablePlugin(): void,
+    updatePlugin(): void,
+    destroy(): void,
+  };
   getPlugin(name: 'multipleSelectionHandles'): {
     isDragged(): boolean;
     enabled: boolean;
@@ -315,6 +323,11 @@ declare global {
   interface Window {
     /** The fixture's live Handsontable instance. */
     hot: FixtureHotInstance;
+    /**
+     * DEV-775: a reference to the Autofill plugin kept after `destroy()`, the way an application that
+     * cached `getPlugin('autofill')` still holds it.
+     */
+    destroyedAutofill?: { updatePlugin(): void };
     /** Undo fixture: how many vetoed meta writes the listener `UndoGridPage#vetoMetaWrites()` adds saw. */
     metaWriteAttempts: number;
     /**
