@@ -2563,7 +2563,7 @@ export default function Core(
         let width = view.isHorizontallyScrollableByWindow()
           ? view.getTotalTableWidth() : view.getWorkspaceWidth();
 
-        if (width === 0 && instance.rootWrapperElement) {
+        if ((width === 0 || instance.countRenderedCols() <= 0) && instance.rootWrapperElement) {
           width = instance.rootWrapperElement.offsetWidth;
         }
 
