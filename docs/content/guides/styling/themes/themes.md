@@ -509,7 +509,7 @@ To learn more about registering and tuning a theme, see [Register a custom theme
 
 ::: only-for javascript react angular
 
-For a full integration with a design system, see the [Handsontable with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md) recipe.
+For a full integration with a design system, see the [Handsontable DataGrid with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md) recipe.
 
 :::
 

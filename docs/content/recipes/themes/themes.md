@@ -39,12 +39,12 @@ Current recipes:
 
 <div class="boxes-list">
 
-- [Handsontable with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md)
-- [Handsontable with MUI](@/recipes/themes/mui-theme/mui-theme.md)
-- [Handsontable with Base Web](@/recipes/themes/base-theme/base-theme.md)
-- [Handsontable with Ant Design](@/recipes/themes/ant-design/ant-design.md)
-- [Handsontable with Fluent UI](@/recipes/themes/fluent-ui/fluent-ui.md)
-- [Handsontable with Tabler Icons](@/recipes/themes/tabler-icons/tabler-icons.md)
+- [Handsontable DataGrid with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md)
+- [Handsontable DataGrid with MUI](@/recipes/themes/mui-theme/mui-theme.md)
+- [Handsontable DataGrid with Base Web](@/recipes/themes/base-theme/base-theme.md)
+- [Handsontable DataGrid with Ant Design](@/recipes/themes/ant-design/ant-design.md)
+- [Handsontable DataGrid with Fluent UI](@/recipes/themes/fluent-ui/fluent-ui.md)
+- [Handsontable DataGrid with Tabler Icons](@/recipes/themes/tabler-icons/tabler-icons.md)
 
 </div>
 
@@ -54,7 +54,7 @@ Current recipes:
 
 <div class="boxes-list">
 
-- [Handsontable with Tabler Icons](@/recipes/themes/tabler-icons/tabler-icons.md)
+- [Handsontable DataGrid with Tabler Icons](@/recipes/themes/tabler-icons/tabler-icons.md)
 
 </div>
 
