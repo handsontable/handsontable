@@ -185,7 +185,7 @@ describe('Focus Manager', () => {
       spyOn(textarea, 'select').and.callFake(() => calls.push(['select']));
 
       getFocusManager().refocusToEditorTextarea();
-      await waitUntil(() => calls.length === 2);
+      await waitUntil(() => calls.length >= 1);
 
       expect(calls).toEqual([['focus', { preventScroll: true }], ['select']]);
     });
@@ -198,14 +198,16 @@ describe('Focus Manager', () => {
 
       await handsontable({ imeFastEdit: true });
 
-      getFocusManager().setRefocusElementGetter(() => element);
-      getFocusManager().setRefocusDelay(10);
-      getFocusManager().refocusToEditorTextarea();
-      await waitUntil(() => document.activeElement === element);
+      try {
+        getFocusManager().setRefocusElementGetter(() => element);
+        getFocusManager().setRefocusDelay(10);
+        getFocusManager().refocusToEditorTextarea();
+        await waitUntil(() => document.activeElement === element);
 
-      expect(document.activeElement).toBe(element);
-
-      element.remove();
+        expect(document.activeElement).toBe(element);
+      } finally {
+        element.remove();
+      }
     });
   });
 

@@ -411,7 +411,7 @@ export class FocusGridManager {
             // Firefox does not move the focus on `select()` of a date input, so the focus is set explicitly.
             // A custom refocus element (`setRefocusElementGetter()`) does not have to be an input.
             if (refocusElement && this.focusElement(refocusElement, { preventScroll: true }) &&
-                'select' in refocusElement) {
+                typeof (refocusElement as HTMLTextAreaElement).select === 'function') {
               (refocusElement as HTMLTextAreaElement).select();
             }
           }
