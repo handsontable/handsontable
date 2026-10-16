@@ -1,17 +1,17 @@
 ---
 type: explanation
 title: Introduction
-metaTitle: API reference - JavaScript Data Grid | Handsontable
+metaTitle: API reference | Handsontable DataGrid for JavaScript
 description: Control the data grid programmatically, using Handsontable's API options and methods.
 permalink: /api/
 canonicalUrl: /api/
 searchCategory: API Reference
 react:
-  metaTitle: API reference - React Data Grid | Handsontable
+  metaTitle: API reference | Handsontable DataGrid for React
 angular:
-  metaTitle: API reference - Angular Data Grid | Handsontable
+  metaTitle: API reference | Handsontable DataGrid for Angular
 vue:
-  metaTitle: API reference - Vue Data Grid | Handsontable
+  metaTitle: API reference | Handsontable DataGrid for Vue
 ---
 This page describes the Handsontable API -- the methods, hooks, and plugin interfaces you use to control the grid programmatically.
 
