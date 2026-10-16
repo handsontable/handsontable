@@ -34,6 +34,10 @@ const files = [...workflowFiles, ...actionFiles];
 const rel = file => path.relative(root, file);
 const code = file => readFileSync(file, 'utf8').split('\n').filter(line => !line.trimStart().startsWith('#'));
 
+// A check name that a branch rule requires must not change with the runner label, so a matrix `name:` may
+// keep the old `ubuntu-latest` text. Only that exact shape is exempt, never a `runs-on` or an `os` value.
+const REQUIRED_CHECK_NAME = /^\s+name:\s*ubuntu-latest\s+# required check name$/;
+
 // A composite action has no jobs; its steps sit at four spaces. Each unit is a
 // block of steps that has to declare the runner image before it uses it.
 const stepUnits = file => {
@@ -80,7 +84,7 @@ test('finds the workflow and action files to check', () => {
 });
 
 test('no workflow or action uses the floating ubuntu-latest label', () => {
-  const offenders = files.filter(file => code(file).some(line => /\bubuntu-latest\b/.test(line))).map(rel);
+  const offenders = files.filter(file => code(file).some(line => /\bubuntu-latest\b/.test(line) && !REQUIRED_CHECK_NAME.test(line))).map(rel);
 
   assert.deepEqual(offenders, [], 'pin the runner image, e.g. `ubuntu-26.04`; see .ai/CI.md');
 });
