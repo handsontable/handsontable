@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Read-only cells
-metaTitle: Read-only cells - JavaScript Data Grid | Handsontable
+metaTitle: Read-only cells | Handsontable DataGrid for JavaScript
 description: Make specified cells read-only to protect them from unwanted changes but still allow navigation and copying of data.
 permalink: /read-only-cells
 canonicalUrl: /read-only-cells
@@ -12,11 +12,11 @@ tags:
   - noneditable
   - locked
 react:
-  metaTitle: Read-only cells - React Data Grid | Handsontable
+  metaTitle: Read-only cells | Handsontable DataGrid for React
 angular:
-  metaTitle: Read-only cells - Angular Data Grid | Handsontable
+  metaTitle: Read-only cells | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Read-only cells - Vue Data Grid | Handsontable
+  metaTitle: Read-only cells | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell features
 menuTag: updated
