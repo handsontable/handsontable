@@ -1483,7 +1483,7 @@ export class SheetsBar extends BasePlugin {
     // was four sweeps over the same data before a single frame reached the screen.
     const viewState = newSheet.viewState as unknown as ViewState | undefined;
     const switchSheet = () => {
-      if (!viewState?.selection && this.hot.view) {
+      if (this.hot.view) {
         this.hot.deselectCell();
       }
 
