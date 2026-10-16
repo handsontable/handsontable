@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { AutoLinkPage } from '../fixtures/pages/AutoLinkPage';
 
 /**
@@ -6,7 +6,7 @@ import { AutoLinkPage } from '../fixtures/pages/AutoLinkPage';
  * cell's own renderer ran. The value is never changed, the cell meta is never written, and the
  * anchors are rebuilt on every render pass.
  */
-test.describe('autoLink', () => {
+test.describe('autoLink', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   test('wraps a whole-cell URL in an anchor with the shared classes and safe attributes', async({ page, theme, bundle }) => {
     const grid = new AutoLinkPage(page, theme, bundle);
 
@@ -487,7 +487,7 @@ test.describe('autoLink', () => {
  * grid-level default (`strict: true`), proving the non-strict column does not change strict behavior
  * elsewhere.
  */
-test.describe('autoLink.strict', () => {
+test.describe('autoLink.strict', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   test('links a bare domain as `https`', async({ page, theme, bundle }) => {
     const grid = new AutoLinkPage(page, theme, bundle);
 

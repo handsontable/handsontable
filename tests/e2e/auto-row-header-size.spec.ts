@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { AutoRowHeaderSizePage } from '../fixtures/pages/AutoRowHeaderSizePage';
 
 /**
@@ -10,7 +10,7 @@ import { AutoRowHeaderSizePage } from '../fixtures/pages/AutoRowHeaderSizePage';
  * a padded element, but a renderer pushed through `afterGetRowHeaderRenderers` writes straight into
  * the `th` and carries no padding, so measuring the cell exactly left the text touching the border.
  */
-test.describe('AutoRowHeaderSize geometry', () => {
+test.describe('AutoRowHeaderSize geometry', { tag: THEMES_TAG }, () => {
   let grid: AutoRowHeaderSizePage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

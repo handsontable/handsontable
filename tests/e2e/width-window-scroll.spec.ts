@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { WidthWindowScrollPage } from '../fixtures/pages/WidthWindowScrollPage';
 
 /**
@@ -10,7 +10,7 @@ import { WidthWindowScrollPage } from '../fixtures/pages/WidthWindowScrollPage';
  * columns past the width were hidden with no scrollbar and the documented
  * workaround was "also set `height`".
  */
-test.describe('width-only grid: holder scrolls columns, window scrolls rows', () => {
+test.describe('width-only grid: holder scrolls columns, window scrolls rows', { tag: THEMES_TAG }, () => {
   let grid: WidthWindowScrollPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

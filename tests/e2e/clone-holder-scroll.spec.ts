@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { CloneHolderScrollPage } from '../fixtures/pages/CloneHolderScrollPage';
 
 /**
@@ -16,7 +16,7 @@ import { CloneHolderScrollPage } from '../fixtures/pages/CloneHolderScrollPage';
  * order, the mirror of the master's offset, and a scroll of the clone ITSELF - what a touch pan
  * over a frozen header does - landing on the master with the clone realigned.
  */
-test.describe('Clone holders as composited scroll containers', () => {
+test.describe('Clone holders as composited scroll containers', { tag: THEMES_TAG }, () => {
   let grid: CloneHolderScrollPage;
 
   test.describe('element-scrolled', () => {

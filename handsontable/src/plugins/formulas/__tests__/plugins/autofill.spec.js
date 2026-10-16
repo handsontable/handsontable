@@ -90,12 +90,18 @@ describe('Formulas', () => {
 
       simulateFillHandleDragFinish(lastRowCell, { offsetY: 200 });
 
+      // The drag past the last row inserts a row, and the fill reaches it (DEV-140) - it used to be
+      // left empty. On the taller themes that row lands below the visible part of this 130px grid;
+      // the pointer is below the whole table, so it still points at the row. The trimmed rows stay
+      // out of the fill.
       expect(getData()).toEqual([
         [33, 3, 4, 5, 6, 7, 8],
         [33, 3, 4, 5, 6, 7, 8],
         [33, 3, 4, 5, 6, 7, 8],
-        [null, null, null, null, null, null, null],
+        [33, 3, 4, 5, 6, 7, 8],
       ]);
+      expect(getSourceDataAtRow(0)).toEqual(['=B1+10', 1, 2, 3, 4, 5, 6]);
+      expect(getSourceDataAtRow(1)).toEqual(['=B2+20', 7, 8, 9, 0, 1, 2]);
     });
 
     it('should not overwrite extra visible columns when dragging right across hidden columns', async() => {

@@ -1,11 +1,11 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { LimitFixedToViewportPage } from '../fixtures/pages/LimitFixedToViewportPage';
 
 /**
  * The `limitFixedToViewport` option: a frozen area bigger than the grid is drawn at the size that fits and leaves a
  * scrollable strip, instead of covering the whole grid. The fixture is a 500 x 300 grid of 100px columns.
  */
-test.describe('limitFixedToViewport', () => {
+test.describe('limitFixedToViewport', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   let grid: LimitFixedToViewportPage;
 
   test.beforeEach(({ page, theme, bundle }) => {

@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { PaginationPagerPage, type PageFit } from '../fixtures/pages/PaginationPagerPage';
 
 /**
@@ -41,7 +41,7 @@ function expectPageToBeFull(fit: PageFit, nextRowHeight: number) {
     .toBeGreaterThanOrEqual(fit.available - TOLERANCE_PX);
 }
 
-test.describe('pagination pager states', () => {
+test.describe('pagination pager states', { tag: THEMES_TAG }, () => {
   test('the buttons move the page, disable at each end and hand the focus to the enabled neighbor', async({
     page, theme, bundle,
   }) => {

@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { LicenseBrandingPage, INSTANT } from '../fixtures/pages/LicenseBrandingPage';
 
 /**
@@ -12,7 +12,7 @@ import { LicenseBrandingPage, INSTANT } from '../fixtures/pages/LicenseBrandingP
  * the click-through badge, the modal focus trap) are the ones only a real
  * browser can make.
  */
-test.describe('entitlement license key branding', () => {
+test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
   let license: LicenseBrandingPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
 
 /**
@@ -12,7 +12,7 @@ import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
  * correctly, and a row move only triggers a plain recalculation - the ranges themselves are never
  * rewritten, since they were never physically wrong to begin with.
  */
-test.describe('columnSummary across manualColumnMove and manualRowMove', () => {
+test.describe('columnSummary across manualColumnMove and manualRowMove', { tag: THEMES_TAG }, () => {
   let grid: SelectionFeaturesPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

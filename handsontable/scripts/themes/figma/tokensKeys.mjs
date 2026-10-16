@@ -51,6 +51,7 @@ const tokensKeys = [
   // Cell Selection Variables
   'cell-selection-border-color',
   'cell-selection-background-color',
+  'row-selection-background-color',
 
   // Cell State Variables
   'cell-success-background-color',

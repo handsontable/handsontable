@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { DropdownHeightPage } from '../fixtures/pages/DropdownHeightPage';
 
 /**
@@ -16,7 +16,7 @@ import { DropdownHeightPage } from '../fixtures/pages/DropdownHeightPage';
  * holder, because a holder-only check (and `toBeVisible()`, which only needs a non-empty
  * bounding box) would call a clipped-away option visible if the clip ever came back.
  */
-test.describe('autocomplete dropdown height', () => {
+test.describe('autocomplete dropdown height', { tag: THEMES_TAG }, () => {
   let grid: DropdownHeightPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

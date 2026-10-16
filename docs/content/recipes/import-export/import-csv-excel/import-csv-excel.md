@@ -73,7 +73,7 @@ This recipe shows a small UI with:
 
 :::
 
-In Angular, apply the parsed rows inside `NgZone.run()`, as `handleFile` does. read-excel-file unzips the workbook in Web Workers, so its promise resolves outside Angular's zone. Without `NgZone.run()`, the grid does not update until the next DOM event.
+In Angular, call `markForCheck()` on an injected `ChangeDetectorRef` after you apply the parsed rows, as `handleFile` does. Angular 22 components are `OnPush` by default, and nothing marks the component dirty after the `await`. Without the call, the grid does not update until the next DOM event.
 
 :::
 

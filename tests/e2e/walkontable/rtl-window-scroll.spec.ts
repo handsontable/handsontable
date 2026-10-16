@@ -1,4 +1,4 @@
-import { test, expect } from '../../fixtures/test';
+import { test, expect, THEMES_TAG } from '../../fixtures/test';
 import { RtlWindowPage } from '../../fixtures/pages/RtlWindowPage';
 
 /**
@@ -10,7 +10,7 @@ import { RtlWindowPage } from '../../fixtures/pages/RtlWindowPage';
  * frozen overlay clone must pin to its viewport edge, and overlay content
  * must stay column-aligned with the master (DEV-2183).
  */
-test.describe('walkontable RTL overlays with window scroll', { tag: '@walkontable' }, () => {
+test.describe('walkontable RTL overlays with window scroll', { tag: ['@walkontable', THEMES_TAG] }, () => {
   const EDGE_TOLERANCE = 2;
   let wt: RtlWindowPage;
 

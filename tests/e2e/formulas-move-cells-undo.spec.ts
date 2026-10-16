@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { FormulasMoveCellsPage } from '../fixtures/pages/FormulasMoveCellsPage';
 
 /**
@@ -7,7 +7,7 @@ import { FormulasMoveCellsPage } from '../fixtures/pages/FormulasMoveCellsPage';
  * raw source data; redo must re-apply the move without duplicating the engine
  * operation.
  */
-test.describe('Formulas: moveCells undo/redo integration', () => {
+test.describe('Formulas: moveCells undo/redo integration', { tag: BUNDLES_TAG }, () => {
   let grid: FormulasMoveCellsPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

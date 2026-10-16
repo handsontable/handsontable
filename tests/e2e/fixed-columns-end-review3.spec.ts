@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { FixedColumnsEndReview3Page } from '../fixtures/pages/FixedColumnsEndReview3Page';
 
 /**
@@ -14,7 +14,7 @@ import { FixedColumnsEndReview3Page } from '../fixtures/pages/FixedColumnsEndRev
 for (const rtl of [false, true]) {
   const direction = rtl ? 'RTL' : 'LTR';
 
-  test.describe(`fixedColumnsEnd editor next to the end band (${direction})`, { tag: '@core' }, () => {
+  test.describe(`fixedColumnsEnd editor next to the end band (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
     let grid: FixedColumnsEndReview3Page;
 
     test.beforeEach(async ({ page, theme, bundle }) => {
@@ -56,7 +56,7 @@ for (const rtl of [false, true]) {
     });
   });
 
-  test.describe(`fixedColumnsEnd freeze line (${direction})`, { tag: '@core' }, () => {
+  test.describe(`fixedColumnsEnd freeze line (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
     let grid: FixedColumnsEndReview3Page;
 
     test.beforeEach(async ({ page, theme, bundle }) => {
@@ -82,7 +82,7 @@ for (const rtl of [false, true]) {
     });
   });
 
-  test.describe(`fixedColumnsEnd resize handle without a horizontal scroll (${direction})`, { tag: '@core' }, () => {
+  test.describe(`fixedColumnsEnd resize handle without a horizontal scroll (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
     let grid: FixedColumnsEndReview3Page;
 
     test.beforeEach(async ({ page, theme, bundle }) => {
@@ -133,7 +133,7 @@ for (const rtl of [false, true]) {
     });
   });
 
-  test.describe(`fixedColumnsEnd and a virtualized merge (${direction})`, { tag: '@core' }, () => {
+  test.describe(`fixedColumnsEnd and a virtualized merge (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
     let grid: FixedColumnsEndReview3Page;
 
     test.beforeEach(async ({ page, theme, bundle }) => {

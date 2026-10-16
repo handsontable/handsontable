@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SelectionHeaderPaddingPage } from '../fixtures/pages/SelectionHeaderPaddingPage';
 
 /**
@@ -19,7 +19,7 @@ import { SelectionHeaderPaddingPage } from '../fixtures/pages/SelectionHeaderPad
  * Same-`tr` TH-vs-TD pixel alignment is not the contract: body-cell math lands on the same
  * pixel as a same-row header, so those polls stay green without the lookup fix.
  */
-test.describe('Selection highlight with custom header padding', () => {
+test.describe('Selection highlight with custom header padding', { tag: THEMES_TAG }, () => {
   let grid: SelectionHeaderPaddingPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

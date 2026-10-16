@@ -1,5 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 import type { TestOptions } from './fixtures/test';
+import { FULL_MATRIX_ENV, legGrep, parseFullMatrix } from './lib/leg-declarations.mjs';
 
 // `reuseExistingServer` attaches to whatever already listens on this port. Two
 // checkouts (a worktree and the main clone) on the default port therefore share
@@ -15,6 +16,12 @@ import type { TestOptions } from './fixtures/test';
 // shared port — the exact collision the variable was set to escape — while the
 // developer believes it moved.
 const PORT = resolvePort();
+
+// `HOT_E2E_FULL_MATRIX=1` runs every spec on every project (the nightly, the rc/stable path, a
+// master push); unset, '' and '0' run the shape each spec declares; anything else throws, the
+// resolvePort() precedent: a typo must not quietly turn the night meant to run everything into the
+// reduced run.
+const FULL_MATRIX = parseFullMatrix(process.env[FULL_MATRIX_ENV]);
 
 /**
  * Resolves the server port from `HOT_TEST_PORT`, defaulting to 8123.
@@ -55,11 +62,20 @@ function resolvePort(): number {
  * 1:1 — theme (main/horizon/classic) × bundle (`umd` = dist/handsontable.js,
  * `full-min` = dist/handsontable.full.min.js) — one project per combination,
  * loading the exact files the Puppeteer `test:e2e` and `test:production` legs
- * load. Every spec is parametrized automatically — authors write one spec and
- * it runs under all legs. CI runs one job per leg (a `theme × bundle` matrix
- * over `--project=e2e-<theme>[-min]`); locally, `npx playwright test` runs
- * all legs and `--project=e2e-horizon` runs one. The bundles Puppeteer does
- * not test either (handsontable.full.js, handsontable.min.js) are deliberately
+ * load. Which specs a project runs is DECLARED per spec, with a tag on every
+ * top-level block (`lib/leg-declarations.mjs`; tests/AGENTS.md, "Declaring
+ * the legs"): `e2e-main` runs every spec, `e2e-horizon` and `e2e-classic` run
+ * the specs tagged THEMES_TAG, `e2e-main-min` the specs tagged BUNDLES_TAG,
+ * and `e2e-horizon-min`/`e2e-classic-min` those tagged both — each project's
+ * own `grep` below, never a top-level one, so the engines config that spreads
+ * this one keeps its own filter. `HOT_E2E_FULL_MATRIX=1` (the nightly, the
+ * rc/stable path, a master push) drops the greps and runs every spec on every
+ * project. CI runs one job per leg (a `theme × bundle` matrix over
+ * `--project=e2e-<theme>[-min]`); locally, `npx playwright test` runs the
+ * declared shape, and `--project=e2e-horizon` on an undeclared spec says "No
+ * tests found" by design (no `--pass-with-no-tests`: an empty leg is a red
+ * job, never a green one that ran nothing). The bundles Puppeteer does not
+ * test either (handsontable.full.js, handsontable.min.js) are deliberately
  * NOT here — extra coverage belongs to the nightly on develop (DEV-2058).
  *
  * Version parity rule: `@playwright/test` here and the CI container image
@@ -135,6 +151,7 @@ export default defineConfig<TestOptions>({
     ...E2E_BUNDLES.flatMap(({ bundle, suffix }) => E2E_THEMES.map(theme => ({
       name: `e2e-${theme}${suffix}`,
       testDir: 'e2e',
+      grep: legGrep({ theme, bundle, fullMatrix: FULL_MATRIX }),
       use: { ...devices['Desktop Chrome'], theme, bundle },
     }))),
     // Visual regression project — destination for the visual suite (milestone 2/3).
