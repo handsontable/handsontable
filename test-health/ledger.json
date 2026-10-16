@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-15T13:41:59.250Z",
+  "updatedAt": "2026-10-16T09:03:39.880Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-horizon",
+      "file": "e2e/selection-viewport-scroll.spec.ts",
+      "line": 72,
+      "title": "viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: expect(received).toBe(expected) // Object.is equality",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "38873309511",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38873309511",
+      "workflow": "Tests",
+      "branch": "feature/DEV-3446_Intl-date-editor-ime-fast-edit-playwright",
+      "headSha": "b6f3faffec27a38678a3275e8843438695061e9c",
+      "event": "pull_request",
+      "seenAt": "2026-10-16T09:02:53Z"
+    },
     {
       "tier": "jasmine",
       "leg": "UMD.min (theme: main)",
