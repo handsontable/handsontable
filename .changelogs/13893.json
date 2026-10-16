@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the resize handle staying in place after undoing a row or column resize, and restored Ctrl+Z after that resize.",
+  "type": "fixed",
+  "issueOrPR": 13893,
+  "breaking": false,
+  "framework": "none"
+}
