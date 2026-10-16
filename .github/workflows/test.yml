@@ -231,7 +231,7 @@ jobs:
       - performance
       - visual
       - docs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Verify every pipeline job passed or was scope-skipped
         run: |

@@ -15,7 +15,7 @@ on:
 jobs:
   lint:
     name: lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
       - uses: ./.github/actions/setup-workspace
@@ -24,7 +24,7 @@ jobs:
 
   plugins:
     name: plugins
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
       - uses: ./.github/actions/setup-workspace
@@ -33,7 +33,7 @@ jobs:
 
   angular-types:
     name: Angular types
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     # PR-only, and only when the Angular-relevant scope changed.
     if: inputs.is-pr && (inputs.run-all || inputs.run-angular)
@@ -51,7 +51,7 @@ jobs:
   # suite mid-review.
   visual-label:
     name: visual label
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: inputs.is-pr
     outputs:
       run: ${{ steps.check.outputs.run }}
@@ -101,7 +101,7 @@ jobs:
 
   visual:
     name: visual
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 90
     needs: [ visual-label, preview ]
     if: |

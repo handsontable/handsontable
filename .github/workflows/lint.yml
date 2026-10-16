@@ -14,7 +14,7 @@ on:
 jobs:
   core:
     name: core
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
       - uses: ./.github/actions/setup-workspace
@@ -25,7 +25,7 @@ jobs:
 
   visual-tests:
     name: visual tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: inputs.run-visual
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2

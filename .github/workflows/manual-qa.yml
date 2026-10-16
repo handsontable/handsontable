@@ -11,7 +11,7 @@ on:
 jobs:
   verify:
     name: verify
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Evaluate the manual-QA tickbox and sign-off
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
