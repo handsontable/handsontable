@@ -1,17 +1,24 @@
 name: E2E
 
-# End-to-end tests, build-dependent (consume the UMD artifact). Two matrices,
-# 1:1 with each other: the frozen Puppeteer suite and the new Playwright suite,
-# both over theme × bundle (UMD / UMD.min). Per-leg gating keeps the exact old
-# scope behavior (UMD legs on the e2e scope, UMD.min on the e2e-min scope).
+# End-to-end tests, build-dependent (consume the UMD artifact). Two suites over
+# one theme × bundle (UMD / UMD.min) matrix: the frozen Puppeteer suite and the
+# Playwright suite. Neither runs the whole matrix on a pull request. The
+# Playwright legs run the shape each spec declares (`full-matrix` drops the
+# declarations). The Puppeteer suite runs ONE leg, UMD × main, on a pull request
+# and a develop push — the e2e and e2e-min scopes decide whether that leg runs at
+# all — and its six legs run only where `jasmine-full-matrix` is set: the E2E
+# nightly, the rc/stable publish path and a master push, the same callers that
+# set `full-matrix`. A Jasmine spec red on another theme or on the minified
+# bundle alone therefore first shows on the nightly, with `branch: develop` in
+# the flake ledger, and the frozen suite's answer is a migration ticket.
 # The UMD.min legs load handsontable.full.min.js — the exact file Puppeteer's
 # test:production runs. The bundles Puppeteer does not test either
 # (handsontable.full.js and handsontable.min.js) are deliberately not covered
-# here — they belong to the nightly on develop (DEV-2058).
+# here, nor by the nightly.
 # Playwright runs one job per leg (not one job per theme with both projects):
-# per-leg failure isolation in the checks list and 1:1 symmetry with the
-# Puppeteer matrix outweigh the duplicated container setup while the suite is
-# small — revisit as migration grows it.
+# per-leg failure isolation in the checks list and the symmetry with the
+# Puppeteer matrix on the full-matrix runs outweigh the duplicated container
+# setup while the suite is small — revisit as migration grows it.
 on:
   workflow_call:
     inputs:
@@ -30,6 +37,10 @@ on:
         description: 'Run every Playwright spec on every leg (HOT_E2E_FULL_MATRIX=1), whatever it declares'
         type: boolean
         default: false
+      jasmine-full-matrix:
+        description: 'Run the frozen Jasmine suite on all six legs (three themes × UMD / UMD.min) instead of UMD × main alone'
+        type: boolean
+        default: false
       run-playwright:
         description: 'Playwright legs (build-umd scope — includes tests/**)'
         type: boolean
@@ -45,11 +56,20 @@ jobs:
     if: ${{ inputs.run-all || inputs.run-e2e || inputs.run-e2e-min }}
     strategy:
       fail-fast: false
+      # One leg, UMD × main, unless the caller sets jasmine-full-matrix; then the
+      # three themes × both bundles. `&&`/`||` return their operands, so the input
+      # picks one of two JSON literals per axis and fromJSON turns it into the
+      # axis (the literals are JSON, not YAML, and stay on one line: a `: ` inside
+      # a plain scalar would end it). The single leg is the plain UMD bundle on
+      # the main theme, the shape the local runner defaults to; test:production
+      # (the minified bundle) runs in the full matrix only. The job name, the
+      # HOT_E2E_LEG label and the record's artifact name below read the same
+      # matrix keys on either shape, so the ledger's `jasmine` tier sees one leg
+      # or six unchanged. e2e-legs.test.mjs pins both literals by value and holds
+      # the six-leg shape equal to the Playwright matrix.
       matrix:
-        theme: [main, horizon, classic]
-        bundle:
-          - { label: 'UMD', dump: 'test:e2e.dump' }
-          - { label: 'UMD.min', dump: 'test:production.dump' }
+        theme: ${{ fromJSON(inputs.jasmine-full-matrix && '["main", "horizon", "classic"]' || '["main"]') }}
+        bundle: ${{ fromJSON(inputs.jasmine-full-matrix && '[{"label":"UMD","dump":"test:e2e.dump"},{"label":"UMD.min","dump":"test:production.dump"}]' || '[{"label":"UMD","dump":"test:e2e.dump"}]') }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
       - uses: ./.github/actions/setup-workspace
