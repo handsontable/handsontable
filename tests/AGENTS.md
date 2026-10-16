@@ -499,11 +499,12 @@ text instead, `span.colHeader` matched with `getByText(label, { exact: true })`,
   move the viewport asserts the same state twice: in a 300px grid of 40px
   columns, `scrollViewportTo({ col: 3 })` leaves `scrollLeft` at 0, which is how
   the legacy textEditor viewport case re-measured its first state. Pass
-  `horizontalSnap: 'start'` (or `'end'`) to make the move real, pin the
+  `horizontalSnap: 'start'` to make the move real (`'end'` moves it only
+  when the column ends past the viewport's width), pin the
   precondition that proves it moved (the cell's offset from the holder's client
   edge), and end the helper on a render-state probe (the column inside the
   rendered band, plus `getFirstFullyVisibleColumn()` for a start snap), never on
-  `scrollLeft` (`TextEditorViewportSizePage.scrollViewportToColumn()`). The open
+  `scrollLeft` (`TextEditorViewportSizePage.scrollColumnToViewportStart()`). The open
   text editor of a cell that draws no inline-start border of its own (a
   borderless first column keeps the gridline inside its box, and
   `BaseEditor#getEditedCellRect` cancels the shift there), holding text wider

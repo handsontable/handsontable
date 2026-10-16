@@ -120,26 +120,26 @@ export class TextEditorViewportSizePage {
   }
 
   /**
-   * Scrolls the viewport to a column with `scrollViewportTo()`, the call an application makes, and ends on a
-   * render-state probe: the grid has drawn the column, and with `snapToStart` has made it the first fully visible
-   * one. A scroll offset cannot be the end of the wait, because it settles before the redraw. A column that is
-   * already inside the viewport makes the call a no-op, and the probe is then true at once.
+   * Scrolls the viewport so that a column is the first fully visible one (`scrollViewportTo()` with
+   * `horizontalSnap: 'start'`, the call an application makes) and ends on a render-state probe: the grid has drawn
+   * the column and reports it as the first fully visible one. A scroll offset cannot be the end of the wait,
+   * because it settles before the redraw. Without the snap, a column already inside the viewport makes the call a
+   * no-op and a test would re-measure the state it had.
    *
-   * @param {number} col Visual column to scroll to.
-   * @param {boolean} snapToStart Whether the column has to land at the viewport's start edge.
+   * @param {number} col Visual column to put at the viewport's start edge.
    */
-  async scrollViewportToColumn(col: number, snapToStart = false): Promise<void> {
-    await this.page.evaluate(([c, snap]) => {
-      (window as unknown as HotWindow).hot.scrollViewportTo(snap ? { col: c, horizontalSnap: 'start' } : { col: c });
-    }, [col, snapToStart] as const);
+  async scrollColumnToViewportStart(col: number): Promise<void> {
+    await this.page.evaluate((c) => {
+      (window as unknown as HotWindow).hot.scrollViewportTo({ col: c, horizontalSnap: 'start' });
+    }, col);
 
-    await expect.poll(() => this.page.evaluate(([c, snap]) => {
+    await expect.poll(() => this.page.evaluate((c) => {
       const { hot } = window as unknown as HotWindow;
       const { wtTable } = hot.view._wt;
       const drawn = wtTable.getFirstRenderedColumn() <= c && c <= wtTable.getLastRenderedColumn();
 
-      return drawn && (!snap || hot.getFirstFullyVisibleColumn() === c);
-    }, [col, snapToStart] as const), { message: `the grid drew column ${col}` }).toBe(true);
+      return drawn && hot.getFirstFullyVisibleColumn() === c;
+    }, col), { message: `the grid put column ${col} at the viewport's start` }).toBe(true);
   }
 
   /**

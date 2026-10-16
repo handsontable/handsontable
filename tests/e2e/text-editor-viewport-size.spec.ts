@@ -44,10 +44,9 @@ test.describe('text editor size against the viewport', { tag: THEMES_TAG }, () =
   });
 
   // The user opens the editor with Enter on a cell that holds a long text: the editor grows to the end of the grid's
-  // viewport and not past it. After the application calls scrollViewportTo() it still does not exceed the viewport.
-  // Column 3 is already inside a 300px viewport, so the call scrolls nothing here: the second read is the same state
-  // seen again, which is how the legacy case ran. The next test makes the viewport really move.
-  test('opens as wide as the room to the end of the viewport and does not exceed it after scrollViewportTo', async() => {
+  // viewport and not past it. (The legacy case then called `scrollViewportTo({ col: 3 })`, which scrolls nothing in
+  // this grid, and re-measured the same state; the next test is the one that really moves the viewport.)
+  test('opens as wide as the room to the end of the viewport', async() => {
     await grid.openEditor(1, 1);
 
     await expect.poll(
@@ -60,18 +59,6 @@ test.describe('text editor size against the viewport', { tag: THEMES_TAG }, () =
       widthIsTheRoomToTheViewportEnd: true,
       endsInsideTheViewport: true,
     });
-
-    await grid.scrollViewportToColumn(3);
-
-    await expect.poll(
-      async() => judge(await grid.readEditorViewport(1, 1)),
-      { message: 'the editor stays inside the viewport after scrollViewportTo' }
-    ).toEqual({
-      cellOffsetInHolder: 40,
-      startsOnePxBeforeTheCell: true,
-      widthIsTheRoomToTheViewportEnd: true,
-      endsInsideTheViewport: true,
-    });
   });
 
   // The application scrolls the viewport so that the edited column is the first one, with the editor open: the cell
@@ -79,7 +66,7 @@ test.describe('text editor size against the viewport', { tag: THEMES_TAG }, () =
   // viewport ends and never past it.
   test('keeps ending at the end of the viewport when the viewport scrolls under the open editor', async() => {
     await grid.openEditor(1, 1);
-    await grid.scrollViewportToColumn(1, true);
+    await grid.scrollColumnToViewportStart(1);
 
     await expect.poll(
       async() => judge(await grid.readEditorViewport(1, 1)),
