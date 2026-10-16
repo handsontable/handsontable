@@ -26,7 +26,7 @@ defaults:
 jobs:
   run-tests:
     name: Visual tests for ${{ github.event.inputs.test_env }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     env:
       PASS_COOKIE: ${{ secrets.PASS_COOKIE }}

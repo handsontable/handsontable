@@ -12,7 +12,7 @@ on:
 jobs:
   sonarcloud:
     name: SonarCloud
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
         with:
@@ -33,7 +33,7 @@ jobs:
           
   codeql:
       name: CodeQL
-      runs-on: 'ubuntu-latest'
+      runs-on: 'ubuntu-24.04'
       timeout-minutes: 60
       permissions:
         security-events: write
@@ -62,7 +62,7 @@ jobs:
   
   fossa-scan:
       name: FOSSA Scan
-      runs-on: ubuntu-latest
+      runs-on: ubuntu-24.04
       steps:
         - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # https://github.com/actions/checkout/releases/tag/v4.1.7
         - uses: fossas/fossa-action@47ef11b1e1e3812e88dae436ccbd2d0cbd1adab0 # https://github.com/fossas/fossa-action/releases/tag/v1.3.3
