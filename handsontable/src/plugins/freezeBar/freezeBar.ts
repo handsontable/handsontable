@@ -146,9 +146,10 @@ export class FreezeBar extends BasePlugin {
    */
   #hoveredEdge: FreezeEdge | null = null;
   /**
-   * The state of the drag in progress.
+   * The state of the drag in progress. `started` turns `true` once the pointer has moved past the threshold and the
+   * grid has been scrolled to the edge of the axis.
    */
-  #drag: { edge: FreezeEdge, count: number, startCount: number } | null = null;
+  #drag: { edge: FreezeEdge, count: number, startCount: number, started: boolean } | null = null;
   /**
    * Ends the drag in progress without storing anything.
    */
@@ -533,6 +534,8 @@ export class FreezeBar extends BasePlugin {
    * nothing: the overlay keeps it on the freeze line.
    */
   #onScroll = () => {
+    this.#pinDragToEdge();
+
     const empty = EDGES.filter(edge => this.#bars[edge]?.classList.contains('ht-freeze-bar--empty'));
 
     if (empty.length === 0 || !this.hot.view?._wt) {
@@ -551,6 +554,28 @@ export class FreezeBar extends BasePlugin {
     // in window scroll mode the header corner is pinned to the viewport while the root element scrolls away
     empty.forEach(edge => this.#positionEmptyHandle(this.#bars[edge]!, edge, true, frame));
   };
+
+  /**
+   * Scrolls the grid back to the edge of the axis when it moves while a bar is held. The guide is placed from the
+   * sizes of the first (or last) tracks, so it names the right boundary only while those tracks are the ones in view.
+   * Only an axis the grid's own holder scrolls is pinned: a page or an ancestor that owns the axis keeps its scroll.
+   * The holder, not the root element, is the test, because a grid of an automatic height in a scrolling `div` has an
+   * unclipped root and still scrolls inside its holder.
+   */
+  #pinDragToEdge() {
+    const drag = this.#drag;
+
+    if (!drag?.started) {
+      return;
+    }
+
+    const wt = this.hot.view._wt;
+    const overlay = isColumnEdge(drag.edge) ? wt.wtOverlays.inlineStartOverlay : wt.wtOverlays.topOverlay;
+
+    if (overlay.mainTableScrollableElement === wt.wtTable.holder) {
+      this.#scrollToEdge(drag.edge);
+    }
+  }
 
   /**
    * Creates the bar of an edge, or removes it when the edge is not available.
@@ -979,7 +1004,7 @@ export class FreezeBar extends BasePlugin {
 
     const startCount = this.#getDrawnCount(edge);
 
-    this.#drag = { edge, count: startCount, startCount };
+    this.#drag = { edge, count: startCount, startCount, started: false };
     this.#setActive(edge, true);
 
     const separator = this.#separators[edge];
@@ -1007,6 +1032,7 @@ export class FreezeBar extends BasePlugin {
       // the drag shows its own indicators, and the bar goes back to its plain color until it is released
       this.#setHover(edge, false);
       this.#scrollToEdge(edge);
+      this.#drag!.started = true;
 
       const rootRect = this.hot.rootElement.getBoundingClientRect();
       // A count above what fits keeps its room, so a wobble of the pointer cannot lower a count the user did not touch.
