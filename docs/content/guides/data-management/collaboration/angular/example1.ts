@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable/base';
 
@@ -19,6 +19,8 @@ const REMOTE_SOURCE = 'remotePeer';
 })
 export class AppComponent implements OnInit, OnDestroy {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
+
+  private readonly cdr = inject(ChangeDetectorRef);
 
   statusText = 'A remote update to the first row arrives in 3 seconds.';
 
@@ -79,6 +81,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
     hot?.setDataAtCell(row, column, value, REMOTE_SOURCE);
     this.statusText = 'A collaborator marked "Update onboarding flow" as Done.';
+    // Nothing marks the OnPush-by-default component dirty in a timer callback, so mark it.
+    this.cdr.markForCheck();
   }
 }
 /* end-file */
