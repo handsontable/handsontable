@@ -27,7 +27,7 @@ Check which configuration options take effect at the grid, column, and cell leve
 
 ## Overview
 
-You can write any option at any level. Handsontable resolves configuration through a prototype
+You can write any option at any level. Handsontable DataGrid resolves configuration through a prototype
 chain, so putting an option inside [`columns`](@/api/options.md#columns) never throws an error.
 
 Whether the option *does* anything is a different question. Each option is read at one specific

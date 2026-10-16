@@ -63,7 +63,7 @@ In this tutorial, you will add a column to an object-based dataset through a cus
 **Difficulty:** Intermediate
 **Time:** ~15 minutes
 
-When your data is an array of objects, each column maps to an object property through the `columns` setting. The built-in **Insert column left** and **Insert column right** menu items rely on `alter('insert_col_start')`, which Handsontable rejects for object data:
+When your data is an array of objects, each column maps to an object property through the `columns` setting. The built-in **Insert column left** and **Insert column right** menu items rely on `alter('insert_col_start')`, which Handsontable DataGrid rejects for object data:
 
 > Cannot create new column. When data source in an object, you can only have as much columns as defined in first data row, data schema or in the 'columns' setting.
 

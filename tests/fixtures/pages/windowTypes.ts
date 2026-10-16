@@ -136,7 +136,7 @@ export interface FixtureHotInstance {
     clearSort(): void,
   };
   getPlugin(name: 'dragToScroll'): { isListening(): boolean };
-  getPlugin(name: 'autofill'): { mouseDownOnCellCorner: boolean };
+  getPlugin(name: 'autofill'): { mouseDownOnCellCorner: boolean, addingStarted: boolean };
   getPlugin(name: 'multipleSelectionHandles'): {
     isDragged(): boolean;
     enabled: boolean;
@@ -216,6 +216,8 @@ export interface FixtureHotInstance {
     isFlippedHorizontally?: boolean,
   } | undefined;
   isRtl(): boolean;
+  /** The master overlay's `<table>` element. */
+  table: HTMLTableElement;
   render(): void;
   listen(): void;
   view: {
@@ -406,8 +408,11 @@ declare global {
     pendingValidationCount(): number;
     /** Rebuilds the `maxLength` fixture grid (`max-length.html`) with the given setting overrides. */
     initMaxLengthGrid(overrides?: Record<string, unknown>): boolean;
-    /** The constructor failure the `maxLength` fixture captured, or `null` when the grid was built. */
-    fixtureError: string | null;
+    /**
+     * The constructor failure a loud fixture captured (the shared contract `awaitFixtureBuilt()` in
+     * `fixtures/bundle.ts` rethrows), absent while the grid was built.
+     */
+    htBuildError?: string;
     /** Rebuilds the GH #5983 sorting-a-filtered-grid-with-`minSpareRows` fixture grid. */
     initSortingSpareRowsGrid(overrides?: Record<string, unknown>): boolean;
     /**
@@ -497,6 +502,14 @@ declare global {
     instrumentDragOutsideCheck(): boolean;
     /** How many drag-outside measurements the healthy grid has taken since instrumentation. */
     dragOutsideCheckCount: number;
+    /** DEV-140 fixture: rebuilds the fill handle grid with the given setting overrides. */
+    initFillGrid(overrides?: Record<string, unknown>): boolean;
+    /** DEV-140 fixture: `rows` x `cols` data labelled like spreadsheet cells (`A1`, `B1`, ...). */
+    buildCellLabels(rows: number, cols: number): string[][];
+    /** DEV-140 fixture: the visual corners of the fill preview, or `null` when none is drawn. */
+    fillPreviewCorners(): [number, number, number, number] | null;
+    /** DEV-140 fixture: every `afterCreateRow` call since the grid was built. */
+    createdRowLog: { index: number, amount: number, source: string }[];
     /** DEV-1159: `Element.prototype.scrollIntoView` calls since the oversized-cell counter reset. */
     htScrollIntoViewCount: number;
     /** DEV-1159: last `scrollIntoView` argument after the counter reset. */

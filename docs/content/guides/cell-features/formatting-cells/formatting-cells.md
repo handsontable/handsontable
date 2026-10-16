@@ -21,7 +21,7 @@ Change the appearance of cells, using custom CSS classes, inline styles, or cust
 
 ## Overview
 
-Handsontable renders an HTML `table`, so you can style existing `tr` and `td` elements or attach your own classes.
+Handsontable DataGrid renders an HTML `table`, so you can style existing `tr` and `td` elements or attach your own classes.
 
 Choose an approach based on your goal:
 

@@ -29,7 +29,7 @@ Display modal dialogs, alerts, loading indicators, and notifications to enhance 
 
 ## Overview
 
-The Dialog plugin provides a modal dialog system for Handsontable that allows you to display custom content in modal dialogs that overlay the table. This is useful for showing notifications, error messages, loading indicators, or any other interactive content that requires user attention.
+The Dialog plugin provides a modal dialog system for Handsontable DataGrid that allows you to display custom content in modal dialogs that overlay the table. This is useful for showing notifications, error messages, loading indicators, or any other interactive content that requires user attention.
 
 The dialog system is designed to be flexible and customizable, supporting various content types including plain text, HTML, and DOM elements. It also provides options for styling, animations, and user interaction controls.
 

@@ -331,7 +331,7 @@ const FROZEN_COUNT_OPTIONS = new Set([
  * @class Core
  * @description
  *
- * The `Handsontable` class (known as the `Core`) lets you modify the grid's behavior by using Handsontable's public API methods.
+ * The `Handsontable` class (known as the `Core`) lets you modify the grid's behavior by using Handsontable DataGrid's public API methods.
  *
  * ::: only-for react
  * To use these methods, associate a Handsontable instance with your instance

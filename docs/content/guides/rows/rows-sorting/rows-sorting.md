@@ -42,7 +42,7 @@ Sort rows alphabetically or numerically, in ascending, descending, or a custom o
 
 ## Overview
 
-Handsontable provides two plugins for sorting rows:
+Handsontable DataGrid provides two plugins for sorting rows:
 
 - [`ColumnSorting`](@/api/columnSorting.md) -- sorts rows by a **single column** at a time. Clicking a column header cycles through ascending, descending, and unsorted states.
 - [`MultiColumnSorting`](@/api/multiColumnSorting.md) -- sorts rows by **multiple columns** simultaneously. Hold Ctrl/Cmd and click column headers to add more sort criteria.

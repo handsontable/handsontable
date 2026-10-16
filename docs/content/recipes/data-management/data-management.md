@@ -1,7 +1,7 @@
 ---
 title: Data Management Recipes
 metaTitle: Data Management Recipes - JavaScript Data Grid | Handsontable
-description: Practical recipes for loading, syncing, and managing data in Handsontable.
+description: Practical recipes for loading, syncing, and managing data in Handsontable DataGrid.
 permalink: /recipes/data-management
 canonicalUrl: /recipes/data-management
 searchCategory: Recipes
@@ -19,7 +19,7 @@ vue:
 
 ## Overview
 
-This section provides practical recipes for loading, syncing, and managing data in Handsontable. Each recipe includes a working example you can copy into your app.
+This section provides practical recipes for loading, syncing, and managing data in Handsontable DataGrid. Each recipe includes a working example you can copy into your app.
 
 ## Available Recipes
 

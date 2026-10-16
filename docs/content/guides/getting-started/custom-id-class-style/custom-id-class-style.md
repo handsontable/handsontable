@@ -2,7 +2,7 @@
 type: how-to
 title: Custom ID, class, and style
 metaTitle: Custom ID, class, and style - JavaScript Data Grid | Handsontable
-description: Apply a custom ID, class, and inline style to the Handsontable container, to target the grid with your own CSS or JavaScript selectors.
+description: Apply a custom ID, class, and inline style to the Handsontable DataGrid container, to target the grid with your own CSS or JavaScript selectors.
 permalink: /custom-id-class-style
 canonicalUrl: /custom-id-class-style
 tags:
@@ -20,7 +20,7 @@ searchCategory: Guides
 category: Getting started
 ---
 
-Apply a custom `id`, `class`, and inline `style` to the Handsontable container, to target the grid with your own CSS or JavaScript selectors.
+Apply a custom `id`, `class`, and inline `style` to the Handsontable DataGrid container, to target the grid with your own CSS or JavaScript selectors.
 
 [[toc]]
 

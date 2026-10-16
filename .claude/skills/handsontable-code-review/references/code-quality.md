@@ -20,6 +20,7 @@ Check each item against the diff.
 
 4. **Naming:**
    - Full names: `row` and `columns`, not `cols`. Write `Handsontable` in text, not `HOT`.
+   - Prose that introduces or describes the product (guides, descriptions, READMEs, overview blocks) follows `.ai/DOC-STANDARDS.md` "Product naming". Generic references such as "the Handsontable instance" are exempt.
    - Functions `camelCase`, classes `PascalCase`, constants `UPPER_SNAKE_CASE`.
 
 5. **Cognitive complexity:** each function stays at 15 or below on the Sonar metric; extract helpers or add early-return guards when exceeded.

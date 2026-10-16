@@ -7,7 +7,7 @@ searchCategory: Recipes
 hotPlugin: false
 editLink: false
 type: how-to
-description: Practical recipes for row layout, summaries, custom renderers, and visual styling in Handsontable.
+description: Practical recipes for row layout, summaries, custom renderers, and visual styling in Handsontable DataGrid.
 react:
   metaTitle: Rendering and styling recipes - React Data Grid | Handsontable
 angular:

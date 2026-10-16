@@ -101,7 +101,7 @@
 <section class="viz" aria-labelledby="time">
   <h2 id="time">Where the time goes</h2>
   <div class="meta" id="time-meta">
-    Every Playwright E2E leg of every develop push, green or red, from the <code>playwright-durations-*</code> artifact each leg uploads (a pull request's stay in its own run for 3 days).
+    Every Playwright E2E leg of every develop push, green or red, from the <code>playwright-durations-*</code> artifact each leg uploads (a pull request's stay in its own run for 3 days). A leg that runs in shards uploads one part per shard and is folded back into one leg here: its wall-clock is its longest shard, since the shards run side by side.
   </div>
   <div class="empty" id="time-empty" hidden>No Playwright durations collected yet.</div>
   <div id="time-body">
@@ -114,11 +114,11 @@
     <div class="multiples" id="time-multiples"></div>
     <h3>Budget input: per leg over the window</h3>
     <div class="meta">
-      Nearest-rank P50 and P90 per leg over the develop pushes in the window, one vote per push (a re-run attempt replaces the leg's earlier one), left out when a test failed every attempt or no test ran (a failing test's time is its retries and timeouts; a flaky-only leg counts). The input a later e2e budget is derived from; every plotted run is in <a href="durations.json">durations.json</a>.
+      Nearest-rank P50 and P90 per leg over the develop pushes in the window, one vote per push (a re-run attempt replaces the leg's earlier one), left out when a test failed every attempt, no test ran, a shard of the leg has no part, or the leg ran in another shape than its latest push (a failing test's time is its retries and timeouts; a flaky-only leg counts). Shape is how the leg's latest push ran: whole or in how many shards, and on how many workers; a change to either starts the budget input over. The input a later e2e budget is derived from; every plotted run is in <a href="durations.json">durations.json</a>.
     </div>
     <div class="wrap">
       <table id="time-budget">
-        <thead><tr><th>Leg</th><th class="num">Runs</th><th class="num">Wall P50</th><th class="num">Wall P90</th><th class="num">Tests P50</th><th class="num">Tests P90</th><th class="num">Left out</th></tr></thead>
+        <thead><tr><th>Leg</th><th>Shape</th><th class="num">Runs</th><th class="num">Wall P50</th><th class="num">Wall P90</th><th class="num">Tests P50</th><th class="num">Tests P90</th><th class="num">Left out</th></tr></thead>
         <tbody></tbody>
       </table>
     </div>
@@ -147,7 +147,7 @@
   A <em>quarantined</em> Playwright test still runs and reports; its flaky verdict does not fail the leg until the entry's expiry (<code>tests/AGENTS.md</code>, Quarantine).
   A <em>visual</em> row is a screenshot capture: the file is its spec, the legs are the variants it differed on, and <em>failed</em> means it differed from its golden record beyond <code>regconfig.json</code>'s tolerances. It needs a ticket once it differed on <span id="visual-threshold"></span>+ <code>Visual nightly</code> runs, or on that many distinct branches (the nightly counts as develop): nothing in that tier is ever flaky, and a pull request's own intended change, recorded before approval, stays on one branch however often it is pushed. A quarantined capture is listed in <code>visual-tests/visual-quarantine.json</code> (<code>visual-tests/AGENTS.md</code>, Guardrails); an entry names the legs it covers, so a row shows its most recent entry and only the legs outside it count toward the ticket.
   Entries older than <span id="retention"></span> days drop off. Source: <code>.github/workflows/test-health.yml</code>.
-  <br>Where the time goes: a leg's wall-clock is what the leg paid, retries included. Runs stay 30 days. The per-test rows come from each leg's latest develop push and give each test its time from a run where it passed on its first attempt: a test that failed or was flaky in the latest run keeps its time from the run before, because its own time is retries and timeouts, which the table above tracks. Only develop pushes are recorded: a pull request's leg files stay in its own run's artifacts for 3 days.
+  <br>Where the time goes: a leg's wall-clock is what the leg paid, retries included; a leg that runs in shards is one record whose wall-clock is its longest shard (what the leg costs when the shards start together), whose tests add up, and whose parts are listed under each run with the span from the first shard's start to the last shard's end when they queued (a push with a shard missing is left out of the budget and keeps the rows it had). Runs stay 30 days. The per-test rows come from each leg's latest develop push and give each test its time from a run where it passed on its first attempt: a test that failed or was flaky in the latest run keeps its time from the run before, because its own time is retries and timeouts, which the table above tracks. Only develop pushes are recorded: a pull request's leg files stay in its own run's artifacts for 3 days.
 </footer>
 <script id="summary" type="application/json">__SUMMARY_JSON__</script>
 <script id="durations" type="application/json">__DURATIONS_JSON__</script>
@@ -306,7 +306,9 @@
   var NS = 'http://www.w3.org/2000/svg';
   var LEFT_OUT = {
     1: function(point) { return point[4] ? 'a test failed every attempt: left out of the budget' : 'no test ran: left out of the budget'; },
-    2: function() { return 'a later attempt re-ran this leg: left out of the budget'; }
+    2: function() { return 'a later attempt re-ran this leg: left out of the budget'; },
+    3: function() { return 'a shard of this leg has no part: left out of the budget'; },
+    4: function() { return 'another shape (shards or workers) than the leg\'s latest run: left out of the budget'; }
   };
   var tip = document.getElementById('time-tip');
 
@@ -358,7 +360,7 @@
 
   var legend = document.getElementById('time-legend');
   [[false, 'develop push (joined by a line)'],
-    [true, 'hollow: left out of the budget (a test failed every attempt, no test ran, or a later attempt re-ran the leg)']]
+    [true, 'hollow: left out of the budget (a test failed every attempt, no test ran, a later attempt re-ran the leg, a shard has no part, or the leg ran in another shape than its latest run)']]
     .forEach(function(entry) {
       var item = document.createElement('span');
       var icon = svg('svg', { width: 12, height: 12, viewBox: '0 0 12 12', 'aria-hidden': 'true' });
@@ -392,6 +394,15 @@
       'run ' + run[0] + (point[5] > 1 ? ' attempt ' + point[5] : '') + ' · ' + when(new Date(point[2]).toISOString())
     ];
     if (LEFT_OUT[point[6]]) { lines.push(LEFT_OUT[point[6]](point)); }
+    // A sharded leg: one line per part, [shard, attempt, wall-clock ms, tests], and the span from the first
+    // shard's start to the last shard's end when the shards queued.
+    (point[7] || []).forEach(function(part) {
+      lines.push('shard ' + part[0] + ': ' + minutes(part[2]) + ' min, ' + part[3] + ' tests'
+        + (part[1] > 1 ? ' (attempt ' + part[1] + ')' : ''));
+    });
+    if (point[8] != null && point[8] > point[3]) {
+      lines.push('first shard start to last shard end: ' + minutes(point[8]) + ' min (the shards queued)');
+    }
     return lines;
   }
 
@@ -425,7 +436,7 @@
       var stats = budget.legs[leg] && budget.legs[leg].runs ? budget.legs[leg] : null;
       var box = document.createElement('div');
       box.className = 'multiple';
-      box.appendChild(text('h4', leg));
+      box.appendChild(text('h4', leg + (stats && stats.shards > 1 ? ' · ' + stats.shards + ' shards' : '')));
       box.appendChild(text('div', stats
         ? (measure === 'wall'
           ? 'P50 ' + minutes(stats.wallMs.p50) + ' min · P90 ' + minutes(stats.wallMs.p90) + ' min'
@@ -488,6 +499,7 @@
     var counted = row.runs > 0;
     var tr = document.createElement('tr');
     tr.appendChild(text('td', leg));
+    tr.appendChild(text('td', (row.shards > 1 ? row.shards + ' shards' : 'whole') + (row.workers != null ? ' · ' + row.workers + ' workers' : '')));
     tr.appendChild(text('td', row.runs, 'num'));
     tr.appendChild(text('td', counted ? minutes(row.wallMs.p50) + ' min' : '–', 'num'));
     tr.appendChild(text('td', counted ? minutes(row.wallMs.p90) + ' min' : '–', 'num'));
@@ -510,7 +522,9 @@
     if (href) { link.href = href; }
     link.textContent = source.leg + ' — ' + source.branch + ' ' + source.headSha.slice(0, 10);
     sources.appendChild(link);
-    sources.appendChild(document.createTextNode(' (' + minutes(source.wallMs) + ' min, ' + source.tests + ' tests)'));
+    sources.appendChild(document.createTextNode(' (' + minutes(source.wallMs) + ' min, ' + source.tests + ' tests'
+      + (source.parts ? '; ' + source.shards + ' shards: ' + source.parts.map(function(part) { return minutes(part[2]); }).join(' / ') + ' min' : '')
+      + ')'));
   });
   if (view.sources.length) { sources.appendChild(document.createTextNode('. Minutes add up every leg a file runs on.')); }
 

@@ -64,7 +64,7 @@ In this tutorial, you will make an expensive custom renderer cheap by computing 
 **Difficulty:** Intermediate
 **Time:** ~15 minutes
 
-Handsontable calls a cell renderer for every rendered cell on every render -- after each scroll, sort, edit, or `render()` call. A renderer that computes something slow from the cell's data -- a chart, a parsed document, a formatted summary -- repeats that work for the same record again and again. A cache fixes that, but only if you pick the right key.
+Handsontable DataGrid calls a cell renderer for every rendered cell on every render -- after each scroll, sort, edit, or `render()` call. A renderer that computes something slow from the cell's data -- a chart, a parsed document, a formatted summary -- repeats that work for the same record again and again. A cache fixes that, but only if you pick the right key.
 
 [[toc]]
 

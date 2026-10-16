@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `imeFastEdit` not moving the focus into the input of the date, time, intl-date, and intl-datetime editors on Firefox.",
+  "type": "fixed",
+  "issueOrPR": 13888,
+  "breaking": false,
+  "framework": "none"
+}

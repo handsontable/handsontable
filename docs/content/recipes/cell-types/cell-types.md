@@ -7,7 +7,7 @@ searchCategory: Recipes
 hotPlugin: false
 editLink: false
 type: how-to
-description: Practical recipes for creating custom cell types in Handsontable.
+description: Practical recipes for creating custom cell types in Handsontable DataGrid.
 react:
   metaTitle: Cell Recipes - React Data Grid | Handsontable
 angular:
@@ -19,7 +19,7 @@ vue:
 
 ## Overview
 
-This section provides practical, ready-to-use recipes for creating custom cell types in Handsontable. Each recipe includes complete working examples with step-by-step instructions.
+This section provides practical, ready-to-use recipes for creating custom cell types in Handsontable DataGrid. Each recipe includes complete working examples with step-by-step instructions.
 
 ## Getting Started
 

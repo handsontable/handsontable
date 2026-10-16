@@ -16,7 +16,7 @@ category: Cell functions
 menuTag: updated
 ---
 
-A cell renderer is a function that controls how cell content is displayed in the DOM. Override a built-in renderer or write your own to customize the visual output.
+A cell renderer is a function that controls how Handsontable DataGrid displays cell content in the DOM. Override a built-in renderer or write your own to customize the visual output.
 
 [[toc]]
 

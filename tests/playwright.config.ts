@@ -70,11 +70,13 @@ function resolvePort(): number {
  * own `grep` below, never a top-level one, so the engines config that spreads
  * this one keeps its own filter. `HOT_E2E_FULL_MATRIX=1` (the nightly, the
  * rc/stable path, a master push) drops the greps and runs every spec on every
- * project. CI runs one job per leg (a `theme × bundle` matrix over
- * `--project=e2e-<theme>[-min]`); locally, `npx playwright test` runs the
+ * project. CI runs one job per leg and shard (an explicit matrix of
+ * `--project=e2e-<theme>[-min]` rows, a long leg cut with `--shard=<i>/<n>`
+ * at the `workers` count pinned below); locally, `npx playwright test` runs the
  * declared shape, and `--project=e2e-horizon` on an undeclared spec says "No
  * tests found" by design (no `--pass-with-no-tests`: an empty leg is a red
- * job, never a green one that ran nothing). The bundles Puppeteer does not
+ * job, never a green one that ran nothing; an empty shard, which Playwright
+ * lets pass, is failed by the quarantine reporter). The bundles Puppeteer does not
  * test either (handsontable.full.js, handsontable.min.js) are deliberately
  * NOT here — extra coverage belongs to the nightly on develop (DEV-2058).
  *
@@ -100,6 +102,17 @@ export default defineConfig<TestOptions>({
   timeout: 20_000,
   expect: { timeout: 10_000 },
   fullyParallel: true,
+  // CI pins the worker count; a local run keeps Playwright's default (half the
+  // cores). Playwright's default on the 4-vCPU standard runner is 2, and the
+  // suite is one Chromium per worker against a static server, so it has room:
+  // measured on the main leg in one run (38755690783, the same build, the same
+  // 3,377 tests, `nproc` 4), 2 workers took 16.9 min and 4 took 11.9 (1.42×;
+  // the summed per-test time grew 32.8 → 45.9 min, the contention), both runs
+  // clean, with a container peak of 4.8 GiB of the 16 GiB at 4 workers (3.2 at
+  // 2) and no swap. The shard counts in e2e.yml's matrix were derived at this
+  // count, and .github/scripts/__tests__/e2e-legs.test.mjs pins the line. The
+  // engines config (Firefox, WebKit) does not inherit it: it pins 2.
+  workers: process.env.CI ? 4 : undefined,
   // The next three CI values are pinned by
   // .github/scripts/__tests__/playwright-flake-settings.test.mjs — the flake
   // ledger depends on them (tests/AGENTS.md, "Where a flake goes").
@@ -111,7 +124,10 @@ export default defineConfig<TestOptions>({
   // (tests/playwright-report) — plus GitHub annotations, plus the JSON report
   // the cross-run flake ledger reads (`.github/workflows/test-health.yml`; the
   // path is pinned by `.github/scripts/lib/test-health.mjs` and asserted in its
-  // tests). Blob is only for sharded runs, which this suite does not use.
+  // tests). No `blob` reporter: a sharded leg (e2e.yml, `--shard`) keeps this
+  // list per shard, so each shard's job decides its own exit status through the
+  // quarantine reporter and uploads its own report and durations part, and the
+  // test-health collector folds the parts by artifact name.
   // The quarantine reporter (`reporters/quarantine.ts`) runs last and sets the
   // exit status: a flaky test under a live quarantine reports without failing
   // the run, an expired or over-cap quarantine fails it. See tests/AGENTS.md.

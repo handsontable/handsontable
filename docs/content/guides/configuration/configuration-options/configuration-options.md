@@ -2,7 +2,7 @@
 type: how-to
 title: Setting options
 metaTitle: Setting options - JavaScript Data Grid | Handsontable
-description: Configure the data grid down to each column, row, and cell, using various built-in options that control Handsontable's behavior and user interface.
+description: Configure the data grid down to each column, row, and cell, using various built-in options that control Handsontable DataGrid's behavior and user interface.
 permalink: /configuration-options
 canonicalUrl: /configuration-options
 tags:
@@ -19,7 +19,7 @@ searchCategory: Guides
 category: Configuration
 menuTag: updated
 ---
-Configure your grid down to each column, row, and cell, using various built-in options that control Handsontable's behavior and user interface.
+Configure your grid down to each column, row, and cell, using various built-in options that control Handsontable DataGrid's behavior and user interface.
 
 [[toc]]
 

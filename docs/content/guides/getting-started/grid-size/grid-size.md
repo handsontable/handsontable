@@ -26,7 +26,7 @@ Set the width and height of the grid, using either absolute values or values rel
 
 ## Set your grid's size
 
-You need to define the grid's container as a starting point to initialize it. Usually, the `div` element becomes this container. This container should have defined dimensions as well as the rest of your layout. Handsontable supports relative units such as `%`, `rem`, `em`, `vh`, `vw`, and `px`.
+You need to define the grid's container as a starting point to initialize it. Usually, the `div` element becomes this container. This container should have defined dimensions as well as the rest of your layout. Handsontable DataGrid supports relative units such as `%`, `rem`, `em`, `vh`, `vw`, and `px`.
 
 ### Define the size in your CSS
 

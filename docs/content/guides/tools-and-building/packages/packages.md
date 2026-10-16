@@ -2,13 +2,13 @@
 type: reference
 title: Packages
 metaTitle: Packages - JavaScript Data Grid | Handsontable
-description: Instantly add Handsontable to your web app, using pre-built UMD packages of JavaScript and CSS.
+description: Instantly add Handsontable DataGrid to your web app, using pre-built UMD packages of JavaScript and CSS.
 permalink: /packages
 canonicalUrl: /packages
 searchCategory: Guides
 category: Tools and building
 ---
-Handsontable is distributed as multiple packages targeting different use cases. This page describes each option and when to use it.
+Handsontable DataGrid is distributed as multiple packages targeting different use cases. This page describes each option and when to use it.
 
 [[toc]]
 

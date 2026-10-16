@@ -74,7 +74,7 @@ This recipe shows how to freeze and unfreeze columns at runtime using `hot.updat
 
 ## Before you begin
 
-This recipe uses only the built-in Handsontable API. No extra dependencies are required.
+This recipe uses only the built-in Handsontable DataGrid API. No extra dependencies are required.
 
 The example uses marketing analytics data with eight columns: Campaign, Channel, Impressions, Clicks, Conversions, CPC, Revenue, and ROI. With many columns the grid scrolls horizontally, making frozen columns genuinely useful -- the identifier columns stay visible while metric columns scroll.
 

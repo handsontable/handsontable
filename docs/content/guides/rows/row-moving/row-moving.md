@@ -2,7 +2,7 @@
 type: how-to
 title: Row moving
 metaTitle: Row moving - JavaScript Data Grid | Handsontable
-description: Change the order of rows, either manually (dragging them to another location), or programmatically (using Handsontable's API methods).
+description: Change the order of rows, either manually (dragging them to another location), or programmatically (using Handsontable DataGrid's API methods).
 permalink: /row-moving
 canonicalUrl: /row-moving
 react:
@@ -15,7 +15,7 @@ searchCategory: Guides
 category: Rows
 menuTag: updated
 ---
-Change the order of rows, either manually (dragging them to another location), or programmatically (using Handsontable's API methods).
+Change the order of rows, either manually (dragging them to another location), or programmatically (using Handsontable DataGrid's API methods).
 
 [[toc]]
 

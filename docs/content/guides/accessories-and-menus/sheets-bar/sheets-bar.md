@@ -191,7 +191,7 @@ Under a [right-to-left](@/guides/internationalization/layout-direction/layout-di
 
 ## Use sheets bar hooks
 
-You can run your code before or after different sheet operations, using the following [Handsontable hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md). Every `before` hook can cancel its operation by returning `false`.
+You can run your code before or after different sheet operations, using the following [Handsontable DataGrid hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md). Every `before` hook can cancel its operation by returning `false`.
 
 - [`beforeSheetTabChange()`](@/api/hooks.md#beforesheettabchange)
 - [`afterSheetTabChange()`](@/api/hooks.md#aftersheettabchange)

@@ -18,6 +18,33 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
 - **Local gates run `e2e-main` (plain UMD) only** — pre-push, the Claude Stop
   hook, and `npm run test:e2e` are pinned there; the `-min` legs are CI-only.
   (`e2e-main` used to load `full.min` — never assume the hooks cover min.)
+- **In CI a long leg runs in shards, and a shard is a job, not a leg.** `e2e.yml`
+  lists every leg and shard as one explicit matrix row (`main` in 3, `horizon`
+  and `classic` in 2, the `-min` legs and the engines job whole), each shard
+  running the same project with `--shard=<i>/<n>`; `fullyParallel` is on, so
+  Playwright deals the tests out one by one, and a serial `describe` stays
+  together. The config pins the CI worker count (`workers`, 4 on the 4-vCPU
+  runner), which is what the shard counts were derived at; a local run keeps
+  Playwright's default, and the engines config pins its own 2 (the measurement
+  was Chromium's). Four things follow. A shard's artifacts carry `-s<i>`
+  (`playwright-report-main-s2`, `playwright-durations-main-s2`), and the
+  test-health collector folds a leg's durations parts back into one leg record
+  (wall-clock = the longest shard; a push with a part missing is left out of the
+  budget), while the flake ledger's `leg` stays the project the test ran on. The
+  quarantine reporter decides each shard's exit status on the tests it saw: the
+  cap of six is counted per shard, so `lib/__tests__/quarantine-policy.test.mjs`
+  counts the tree's quarantined tests against the cap too (one test at a time,
+  never a describe), and the `quarantined-flaky` output is the shard's. "Re-run
+  failed jobs" re-runs the red shard alone; the collector records the leg at the
+  latest attempt from that shard's new part and the others' first-attempt parts.
+  And a shard that lands on no test is NOT Playwright's own red: it skips "No
+  tests found" whenever `--shard` is set, so the quarantine reporter fails a run
+  that saw no test; the flag that would turn an empty leg green stays banned.
+  Changing a shard count or the worker count is a measured change:
+  `.github/scripts/__tests__/e2e-legs.test.mjs` pins both, `DURATIONS_LEGS` in
+  `.github/scripts/lib/playwright-durations.mjs` must follow the matrix (its
+  test derives the table from the rows), and the budget on the durations page
+  starts over, since it counts only the records of a leg's latest shape.
 - `handsontable.full.js` and `handsontable.min.js` are deliberately untested
   here — they belong to the nightly on develop (DEV-2058).
 - **A PARTIAL build leaves the `-min` legs on the PREVIOUS bundle, and they
@@ -215,7 +242,8 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   `HOT_E2E_FULL_MATRIX=1 npx playwright test e2e/<spec>.spec.ts` runs one spec on all six legs;
   `--project=e2e-horizon` on an undeclared spec says "No tests found", by design – there is no
   `--pass-with-no-tests` anywhere, so an empty leg is a red job, never a green one that ran
-  nothing, and the sweep keeps every declaration shape in use so no leg is ever empty. The engine
+  nothing (an empty shard of a sharded leg, which Playwright would pass, is failed by the
+  quarantine reporter), and the sweep keeps every declaration shape in use so no leg is ever empty. The engine
   legs ignore the declarations: every `@cross-browser` spec runs on Firefox and WebKit whatever its
   leg tags say.
 
@@ -224,7 +252,9 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
 - The six projects above are Chromium. Tests tagged `@cross-browser` run on Firefox and WebKit as
   well: `{ tag: CROSS_BROWSER_TAG }` on the `test.describe` (`fixtures/test.ts`), picked up by the two
   projects of `playwright-engines.config.ts`, `e2e-firefox` and `e2e-webkit`, on the main theme and
-  the plain UMD bundle. CI runs that config in one job, `E2E / Playwright engines (Firefox, WebKit)`.
+  the plain UMD bundle. CI runs that config in one job, `E2E / Playwright engines (Firefox, WebKit)`,
+  at 2 workers (the config pins it; the Chromium legs' 4 were measured on Chromium, and a contention
+  flake here would hold back Visual and the publish paths).
   The visual suite's cross-browser leg photographs on the develop seed, master and release candidate
   pushes, the nightly, and pull requests that change the visual tier, so on any other pull request
   the job is the only Firefox and WebKit run of the grid. On a pull request a red engine leg also
@@ -485,6 +515,21 @@ text instead, `span.colHeader` matched with `getByText(label, { exact: true })`,
   `beforeSetRangeEnd`), so a Delete after it empties that page and no other.
   `pagination-filter-sort.spec.ts` asserts both.
 
+- The row resize handle is attached once and moved from header to header, so
+  "the handle is visible" proves nothing about which header it is on:
+  `ManualResizePage.hoverRowHeader()` resolves at once for a handle still left
+  on the previous header (an `opacity: 0` handle counts as visible too). A test
+  that presses or double-clicks the handle after moving to another header waits
+  on its POSITION, read in one `evaluate` with the header: its centre sits one
+  pixel above the header's bottom boundary
+  (`ManualRowResizeAutofitPage.expectRowHandleOn()`). Two more rules for the
+  double-click autofit (`e2e/manual-row-resize-autofit.spec.ts`): the fit does
+  not run on the double-click but from a 500ms timer the first press arms, so
+  poll the rendered heights and never count frames (the legacy twin counted 38
+  and failed with `Expected 100 to be around 26` under load); and a header the
+  pointer must reach right after the double-click has its box read BEFORE it,
+  because the fit shifts every row below the fitted one.
+
 ## Reading grid UI state
 
 - A closed editor stays in the DOM (`ht_editor_hidden`), and Playwright reports its textarea as
@@ -493,6 +538,25 @@ text instead, `span.colHeader` matched with `getByText(label, { exact: true })`,
 - Each grid on a page keeps its own context menu container, so a locator for "the" menu matches one per
   grid; and a toggle entry such as "Read only" has the role `menuitemcheckbox`, not `menuitem`
   (`TwoGridsPage.makeColumnReadOnly()`).
+
+- `hot.scrollViewportTo({ col })` scrolls nothing when the column is already
+  fully inside the viewport (it returns `false`), so a test that calls it to
+  move the viewport asserts the same state twice: in a 300px grid of 40px
+  columns, `scrollViewportTo({ col: 3 })` leaves `scrollLeft` at 0, which is how
+  the legacy textEditor viewport case re-measured its first state. Pass
+  `horizontalSnap: 'start'` to make the move real (`'end'` moves it only
+  when the column ends past the viewport's width), pin the
+  precondition that proves it moved (the cell's offset from the holder's client
+  edge), and end the helper on a render-state probe (the column inside the
+  rendered band, plus `getFirstFullyVisibleColumn()` for a start snap), never on
+  `scrollLeft` (`TextEditorViewportSizePage.scrollColumnToViewportStart()`). The open
+  text editor of a cell that draws no inline-start border of its own (a
+  borderless first column keeps the gridline inside its box, and
+  `BaseEditor#getEditedCellRect` cancels the shift there), holding text wider
+  than the room left in the viewport, starts 1px before its cell and ends
+  exactly at the holder's client right edge: assert that start and the
+  containment with `<=` in one coordinate system, never a strict `<`, from
+  editor, cell and holder read in one evaluation.
 
 ## Rendering away from 100% (zoom / display scaling)
 
@@ -606,6 +670,21 @@ wait before `keyboard.up()`: released earlier, the event reaches an engine whose
 key is already up, and the guard under test never runs. With that guard broken,
 the old read failed 116 of 120 runs and the held-key wait failed 120 of 120.
 
+**`imeFastEdit` moves the browser focus after the selection, not with it.** The
+grid focuses the selected cell in `afterRender`, and
+`FocusGridManager#refocusToEditorTextarea()` (`focusManager/grid.ts`) then runs
+a debounced `select()` on the active editor's input 1ms later, so the focus
+arrives on a later task than `hot.selectCell()` returns. The legacy
+`intlDateEditor` case read `document.activeElement` two frames later and failed
+4 times in 30 days with `Expected <td class="current"> to be <input
+type="date">`. Wait with a web-first `toBeFocused()` on the editor's input,
+never with a frame count, and prove the focus STAYED with a bounded settle (two
+animation frames and the `activeElement` read inside ONE `evaluate`) only beside
+that `toBeFocused()`, which is its positive control
+(`e2e/intl-date-editor-ime-fast-edit.spec.ts`). Firefox does not treat `select()`
+on a date input as a focus move, so the refocus calls `focus()` first, and the
+spec carries `CROSS_BROWSER_TAG`: the Firefox leg is the one that pins it.
+
 **A selection can scroll the grid even when its cell is on screen.**
 When the viewport has nothing to scroll, `selectCell()` and `selectCells()` still
 run `scrollWindowToCell()`, in a microtask, so it has run by the time the
@@ -620,6 +699,19 @@ full object). Never poll one field and then read the rest once: the field you
 polled can come from a clone that is already drawn
 (`merge-cells-frozen-bottom.spec.ts`, the outline test).
 
+**A selection's window scroll lands a frame later when the selection scrolled
+the viewport, and in a microtask when it did not.** `selectCells()` on a cell
+outside the viewport scrolls the holder and queues `scrollWindowToCell()` for the
+next `afterScroll`, which the holder's `scroll` event fires a frame later; on a
+cell inside it the same call runs in a microtask, before the `evaluate` returns.
+The row height decides which: in a 400px grid row 10 is inside the viewport on
+`main` and `classic` and outside it on `horizon`, so a test that selected the
+cell and then scrolled the window back to the top saw the window pulled down
+again on `horizon` only, a frame after its `scrollY === 0` poll had passed
+(`selection-viewport-scroll.spec.ts`, the Shift+PageDown test, DEV-3443). Before
+undoing a selection's window scroll, wait for it to have landed (`expect.poll`
+on `isCellInWindow()`), on every theme.
+
 **An open editor follows the master, and its cell follows a clone.** Enter
 scrolls a cell that a frozen pane mostly covers into view, as a selection can.
 The editor is placed from the master's new offset at once, and the clone that
@@ -629,6 +721,18 @@ evaluation together with whether that clone has caught up, and retry the whole
 comparison until it has (`FixedColumnsEndPage.editorAndCellBoxes()`).
 Requiring the catch-up, not only a match, keeps an editor misplaced by exactly
 the scroll from passing on the stale frame.
+
+**A grid built without a layout settles in two draws, and the provisional flag
+clears after the first.** When the container joins the layout, the first draw
+renders the band and, at its end, settles the scrolling element (so
+`readProvisionalLayout()` is already `false`), but the row heights measured
+without a layout are dropped only on the way into the NEXT draw, which takes them
+again. Between the two the band already fills the container while the holder's
+scroll range still counts the stale heights: 6050px against 5830px of rows,
+20-40ms apart (`unlaid-out-init-scroll-sync.spec.ts`, DEV-3114, the suite's most
+frequent flake). Neither the fill nor the flag can stand in for the settle: poll
+the scroll range against the rows (`UnlaidOutInitPage.expectScrollRangeOfRows()`),
+with the lower bound in the polled value.
 
 **A geometry read is two round trips, and the grid recycles its rows.**
 `locator.boundingBox()` and `locator.evaluate()` resolve the node in one round
@@ -645,6 +749,21 @@ that same evaluation (`FrozenTallCellPage.rowHeights()`), and poll a pinned
 expected value rather than comparing two reads with each other — two reads
 that both landed before the draw agree with each other and prove nothing.
 
+**An autocomplete list is drawn by a query the editor defers, and its last rows
+sit on the edge of the drawn band.** `open()` queues the first query on a 0ms
+timer and every key press queues another 10ms behind it
+(`AutocompleteEditor#deferQuery`), so a read a fixed number of frames after the
+key can see the list before the query ran: the legacy `sortByRelevance` cases
+read an empty row text that way on the `-min` legs (`Expected '' to equal
+'cyan'`). `editor.query` holds the text the list was last queried with, so read
+it in the SAME evaluation as the rows and poll until it equals what was typed
+(`AutocompleteChoicesListPage.listState()`); that read is also the positive
+control for a negative assertion such as "the phrase is not highlighted". The
+inner grid draws `visibleRows` rows, a sliver of the next one and one buffer
+row, so a 12-entry list draws all 12 only through that sliver: compare the
+drawn rows the user sees and read the whole list from `htEditor.getData()`
+instead of pinning the last drawn row (`e2e/autocomplete-choices-list.spec.ts`).
+
 **`keyboard.press()` cannot make several presses share one animation frame
 reliably.** Each press is its own round trip, so presses land a few milliseconds
 apart. How many of them fall between two frames depends on the machine, the
@@ -659,6 +778,17 @@ after whatever they queued (`FixedColumnsEndPage.pressInOneTask()`). Assert that
 the grid scrolled far enough for a queued scroll to have something to move, or
 the test passes on the bug when the fixture changes. Real presses still get the
 grid to its starting state.
+
+**A hidden focused element blurs at the next rendering update, not when it is
+hidden.** Chromium keeps a focused element that just went `display: none` as the
+active element until the next rendering update runs the focus fixup, and only
+then dispatches its `blur`. Anything a `blur` handler does (the comments plugin
+saves the editor's text from it) therefore lands a frame after the hide, while
+`toBeHidden()` on the element resolves at once. A read of the saved comment
+right after the press that hid the editor saw it empty on the `-min` legs
+(`collapsible-indicator-dropdown-menu.spec.ts`, DEV-3444); in one task with the
+press it is empty every time. Poll the state the blur writes, never read it once
+after the hide.
 
 **Where a flake goes.** In CI the config adds a `json` reporter
 (`test-results/report.json`, shipped inside the `playwright-report-*` failure
@@ -680,7 +810,12 @@ all three places.
 `playwright-durations-<leg>`: one JSON file that
 `.github/scripts/playwright-durations.mjs` writes from the same
 `test-results/report.json` after the run step (the leg's wall-clock, workers,
-counts, and the milliseconds of every spec file and test, retries included).
+counts, and the milliseconds of every spec file and test, retries included). A
+sharded leg uploads one such part per shard (`-s<i>`, the summarizer told its
+`--shard`), and the collector folds them back into the leg: its wall-clock is
+the longest shard (what the leg costs when its shards start together; the span
+from the first start to the last end is kept beside it for the queueing), the
+counts and rows add up, and the page lists the parts under each run.
 `test-health.yml` records the develop pushes' files in
 `test-health/durations.json` (a pull request's stay in its own run for 3 days),
 and the "Where the time goes" section of the same page shows each leg's
@@ -694,9 +829,10 @@ that introduced the declarations. The nightly's full-matrix files upload like
 every leg's and are never recorded: a schedule is not a develop push. The JSON reporter feeds both sections,
 so it stays in the CI reporter list with its output path; the durations file
 path and artifact name are pinned in
-`.github/scripts/__tests__/test-health.test.mjs`. A change to the leg matrix
-also changes `DURATIONS_LEGS` in `.github/scripts/lib/playwright-durations.mjs`:
-the collector records only the legs on that list, and
+`.github/scripts/__tests__/test-health.test.mjs`. A change to the leg matrix or
+to a leg's shard count also changes `DURATIONS_LEGS` in
+`.github/scripts/lib/playwright-durations.mjs`: the collector records only the
+legs on that table, folds each leg's parts against the count there, and
 `.github/scripts/__tests__/playwright-durations.test.mjs` fails until it matches
 `e2e.yml`.
 
@@ -735,8 +871,13 @@ here instead.
   the flaky verdict fails the leg again, and the tag on a passing test raises a
   warning asking to be removed.
 - **Cap: 6 quarantined tests at once**, counted as distinct tests (one test
-  across every project it runs on is one). The entry after the cap fails the run even when
-  every test passes; fix one before parking another.
+  across every project it runs on is one) by the run that sees them. A leg that
+  runs in shards is several runs, each counting its own shard, so
+  `lib/__tests__/quarantine-policy.test.mjs` counts the whole tree's quarantined
+  tests against the same cap, lists the specs that carry one, and refuses a
+  describe-level `quarantined()` (it would park every test inside while a count
+  sees one): quarantine one test at a time. The entry after the cap fails the
+  run even when every test passes; fix one before parking another.
 - **Visible.** The ledger at <https://handsontable.github.io/handsontable/test-health/>
   shows quarantined tests with their entry, so nothing is parked silently.
 
