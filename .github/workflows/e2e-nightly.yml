@@ -16,8 +16,10 @@ name: E2E nightly
 # Triage. A Playwright test red here and green on pull requests runs on an axis its spec did not
 # declare: declare the axis (THEMES_TAG / BUNDLES_TAG on every top-level block of the spec), never
 # quarantine it. A Jasmine spec red here and green on pull requests fails on another theme or on the
-# minified bundle: the frozen suite's answer is a migration ticket (handsontable/.ai/TESTING.md, "The
-# Jasmine suite is frozen"), never a leg added back to pull requests. The flake ledger
+# minified bundle, and its record's isolation verdict says which answer: `passes alone` (order-dependent)
+# is a migration ticket, `fails alone` is fixed or migrated before the next RC cut, because the rc/stable
+# path runs the six legs and its publish needs them green (handsontable/.ai/TESTING.md, "The Jasmine
+# suite is frozen"); neither is a leg added back to pull requests. The flake ledger
 # (https://handsontable.github.io/handsontable/test-health/) records every flaky or failed test of this
 # run with `branch: develop` – the Playwright reports and the `puppeteer-failed-specs-*` records alike –
 # and `tests/scripts/leg-replay.mjs` replays the ledger against the declared Playwright tree and names
@@ -98,5 +100,5 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": ":red_circle: E2E nightly on ${{ github.ref_name }} failed: the full matrix (every Playwright spec on six legs, the frozen Jasmine suite on six) found what the pull-request legs did not.\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\nA Playwright spec green on pull requests: it runs on an axis it did not declare (tests/AGENTS.md, Declaring the legs): declare the axis, never quarantine it. A Jasmine spec green on pull requests (which run UMD × main alone): red on another theme or the minified bundle, a migration ticket."
+              "text": ":red_circle: E2E nightly on ${{ github.ref_name }} failed: the full matrix (every Playwright spec on six legs, the frozen Jasmine suite on six) found what the pull-request legs did not.\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\nA Playwright spec green on pull requests: it runs on an axis it did not declare (tests/AGENTS.md, Declaring the legs): declare the axis, never quarantine it. A Jasmine spec green on pull requests (which run UMD × main alone) is red on another theme or the minified bundle: fails alone in its record = fix or migrate before the next RC cut (the rc path runs the six legs); passes alone = a migration ticket."
             }

@@ -259,7 +259,10 @@ test('the E2E nightly runs the full matrix on develop every weeknight, validates
   assert.ok(slackAction, `${VISUAL_NIGHTLY} pins slackapi/slack-github-action by SHA`);
   assert.ok(notify.includes(`uses: ${slackAction}`), `${NIGHTLY} uses the same pinned Slack action as ${VISUAL_NIGHTLY}`);
   assert.match(notify, /it runs on an axis it did not declare/, 'the message says what a nightly-only red means');
-  assert.match(notify, /Jasmine/, `the message also says what a nightly-only Jasmine red means: a migration ticket, since pull requests run ${MAIN_LEG} alone. ${JASMINE_DOC}`);
+  assert.match(notify, /Jasmine/, `the message also says what a nightly-only Jasmine red means, since pull requests run ${MAIN_LEG} alone. ${JASMINE_DOC}`);
+  assert.match(notify, /fails alone/,
+    `the message splits the Jasmine answer by the record's isolation verdict: a "fails alone" red is fixed or migrated before the next RC cut `
+    + `(the rc/stable path runs the six legs and its publish needs them green), a "passes alone" red is a migration ticket. ${JASMINE_DOC}`);
 });
 
 test('test-health.yml chains on the E2E nightly, by the name the workflow carries', () => {

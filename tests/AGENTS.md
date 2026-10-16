@@ -87,10 +87,13 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   it fits below the cell or has to flip above it: the same grid flips on
   `horizon` and does not on `main`. Because every local gate is pinned to
   `e2e-main` (and the legacy Jasmine runner defaults to `main`), a spec that
-  pins the side goes green locally and reds exactly one CI leg, with a message
-  full of coordinates that says nothing about the cause — that is how
-  `E2E / UMD (theme: horizon)` went red on #13417 while the other two themes
-  passed. Assert **adjacency** instead: the popup touches the cell on one side
+  pins the side goes green locally and reds one CI leg, with a message full of
+  coordinates that says nothing about the cause — a Playwright spec on the leg
+  its `THEMES_TAG` declares, on the pull request; a legacy spec on the E2E
+  nightly or the rc path, since pull requests run that suite on `main` alone.
+  That is how `E2E / UMD (theme: horizon)` went red on #13417 while the other
+  two themes passed, when the six legs still ran on every pull request. Assert
+  **adjacency** instead: the popup touches the cell on one side
   or the other. Leave "which side, and does it leave the grid" to a spec whose
   grid is deliberately shaped to force that outcome on all three themes, and
   run it on all three (`--theme=horizon`, `--project=e2e-horizon`).
@@ -210,8 +213,10 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   there and green on pull requests runs on a leg its spec did not declare: declare the axis, never
   quarantine it. (The same run expands the frozen Jasmine suite to its six legs, through e2e.yml's
   `jasmine-full-matrix`; a pull request runs that suite on `UMD (theme: main)` alone, so its
-  nightly-only red is a theme- or bundle-only failure and a migration ticket, never an axis to
-  declare.) The flake ledger records the nightly's tests with `branch: develop`, and
+  nightly-only red is a theme- or bundle-only failure, never an axis to declare: `fails alone` in
+  its record is fixed or migrated before the next RC cut, `passes alone` is a migration ticket –
+  handsontable/.ai/TESTING.md, "The Jasmine suite is frozen".) The flake ledger records the
+  nightly's tests with `branch: develop`, and
   `node scripts/leg-replay.mjs --list test-results/list.json` (after
   `npx playwright test --list --reporter=json > test-results/list.json`) replays the ledger against
   the declared tree, names the declaration every off-main red asks for, and exits 1 on a miss.

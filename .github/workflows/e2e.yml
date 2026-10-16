@@ -9,8 +9,10 @@ name: E2E
 # all — and its six legs run only where `jasmine-full-matrix` is set: the E2E
 # nightly, the rc/stable publish path and a master push, the same callers that
 # set `full-matrix`. A Jasmine spec red on another theme or on the minified
-# bundle alone therefore first shows on the nightly, with `branch: develop` in
-# the flake ledger, and the frozen suite's answer is a migration ticket.
+# bundle alone therefore first shows on the nightly, with `branch: develop` and
+# the runner's isolation verdict in the flake ledger: `passes alone` is a
+# migration ticket, `fails alone` is fixed or migrated before the next RC cut,
+# because the rc/stable path runs the six legs and its publish needs them green.
 # The UMD.min legs load handsontable.full.min.js — the exact file Puppeteer's
 # test:production runs. The bundles Puppeteer does not test either
 # (handsontable.full.js and handsontable.min.js) are deliberately not covered
@@ -26,11 +28,11 @@ on:
         type: boolean
         default: false
       run-e2e:
-        description: 'UMD (non-min) Puppeteer legs'
+        description: 'The e2e scope: whether the Puppeteer job runs at all (jasmine-full-matrix picks its legs)'
         type: boolean
         default: false
       run-e2e-min:
-        description: 'UMD.min Puppeteer legs'
+        description: 'The e2e-min scope, the same gate (the two router filters are identical); it picks no leg'
         type: boolean
         default: false
       full-matrix:
