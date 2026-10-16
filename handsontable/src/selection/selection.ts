@@ -1884,7 +1884,8 @@ class Selection {
    * @returns {boolean} `true` if the corner element has to be visible, `false` otherwise.
    */
   isCellCornerVisible() {
-    return this.settings.fillHandle && !this.tableProps.isEditorOpened() && !this.isMultiple();
+    return this.settings.fillHandle && !this.tableProps.isEditorOpened() && !this.#isNonContiguous() &&
+      !this.isMultiple();
   }
 
   /**
@@ -1911,7 +1912,20 @@ class Selection {
       return false;
     }
 
-    return this.settings.fillHandle && !this.tableProps.isEditorOpened() && this.isMultiple();
+    return this.settings.fillHandle && !this.tableProps.isEditorOpened() && !this.#isNonContiguous() &&
+      this.isMultiple();
+  }
+
+  /**
+   * Tells whether the selection consists of more than one range (Ctrl/Cmd+click, or `selectCells()`
+   * with several ranges). The fill handle is hidden then (DEV-540), as in spreadsheet applications:
+   * Autofill fills from the last range only, so a handle there would silently ignore every other one.
+   * `isMultiple()` cannot answer this – it asks whether the ACTIVE range spans more than one cell.
+   *
+   * @returns {boolean}
+   */
+  #isNonContiguous() {
+    return this.selectedRange.size() > 1;
   }
 
   /**

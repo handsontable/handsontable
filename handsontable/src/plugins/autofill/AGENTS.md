@@ -18,6 +18,17 @@ So `updateSettings({ autofill: … })` does **nothing** — the user-facing opti
 `SETTINGS_VALIDATORS`. `direction` accepts only the values in `DIRECTIONS` (or `undefined`, meaning both
 axes are allowed).
 
+## No handle for a non-contiguous selection (DEV-540)
+
+Selection draws the handle, not this plugin: `Selection#isCellCornerVisible()` for a one-cell active
+range, `isAreaCornerVisible()` for a multi-cell one. Both used to look at the ACTIVE range only
+(`isMultiple()`), so a selection of two or more ranges (Ctrl/Cmd+click, or `selectCells()` with several
+ranges) still showed one handle, and `getSelectionData()` reads `getSelectedRangeLast()` – a drag filled
+from the last range and ignored the others. Both predicates now return `false` while
+`selectedRange.size() > 1`, as in spreadsheet applications. Do not "fix" this by teaching the fill to read
+every range: there is no defined way to extend several disjoint ranges at once. Pinned by
+`tests/e2e/fill-handle-non-contiguous.spec.ts` and `selection/__tests__/selection.unit.ts`.
+
 ## Three hooks it registers on the singleton
 
 `modifyAutofillRange`, `beforeAutofill`, `afterAutofill`. `beforeAutofill` is the veto point and
