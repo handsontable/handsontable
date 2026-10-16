@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-16T11:48:47.581Z",
+  "updatedAt": "2026-10-16T12:30:58.358Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-classic",
+      "file": "e2e/async-image-frozen-columns.spec.ts",
+      "line": 138,
+      "title": "Async image in a scrolling column beside frozen columns › aligns the overlays when the renderer keeps a failing image",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "38894594575",
+      "runAttempt": 2,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38894594575/attempts/2",
+      "workflow": "Tests",
+      "branch": "feature/DEV-2058_Jasmine-one-leg-on-pull-requests",
+      "headSha": "e2958cd9079bdc4f5318636e334985e0c47236fb",
+      "event": "pull_request",
+      "seenAt": "2026-10-16T12:30:09Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-classic",

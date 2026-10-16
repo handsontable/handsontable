@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-16T11:48:47.581Z",
+  "generatedAt": "2026-10-16T12:30:58.358Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 405,
     "needsTicket": 29,
     "quarantined": 0,
-    "entries": 2101
+    "entries": 2102
   },
   "rows": [
     {
@@ -12514,6 +12514,39 @@
       "needsTicket": false
     },
     {
+      "key": "playwright|e2e/async-image-frozen-columns.spec.ts|Async image in a scrolling column beside frozen columns › aligns the overlays when the renderer keeps a failing image",
+      "tier": "playwright",
+      "file": "e2e/async-image-frozen-columns.spec.ts",
+      "line": 138,
+      "title": "Async image in a scrolling column beside frozen columns › aligns the overlays when the renderer keeps a failing image",
+      "count7": 2,
+      "count30": 2,
+      "countAll": 2,
+      "runs30": 1,
+      "flakyRuns30": 1,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-16T12:30:09Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38894594575/attempts/2",
+        "branch": "feature/DEV-2058_Jasmine-one-leg-on-pull-requests",
+        "leg": "e2e-classic",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
       "key": "jasmine|handsontable/src/plugins/formulas/__tests__/plugins/autofill.spec.js|Formulas Integration with Autofill should cooperate properly with trimmed rows (populating not trimmed elements)",
       "tier": "jasmine",
       "file": "handsontable/src/plugins/formulas/__tests__/plugins/autofill.spec.js",
@@ -13189,39 +13222,6 @@
         "leg": "e2e-classic",
         "status": "flaky",
         "error": "Error: expect(received).toEqual(expected) // deep equality",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "playwright|e2e/async-image-frozen-columns.spec.ts|Async image in a scrolling column beside frozen columns › aligns the overlays when the renderer keeps a failing image",
-      "tier": "playwright",
-      "file": "e2e/async-image-frozen-columns.spec.ts",
-      "line": 138,
-      "title": "Async image in a scrolling column beside frozen columns › aligns the overlays when the renderer keeps a failing image",
-      "count7": 1,
-      "count30": 1,
-      "countAll": 1,
-      "runs30": 1,
-      "flakyRuns30": 1,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "e2e-classic"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-16T11:48:01Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38894594575",
-        "branch": "feature/DEV-2058_Jasmine-one-leg-on-pull-requests",
-        "leg": "e2e-classic",
-        "status": "flaky",
-        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": false
