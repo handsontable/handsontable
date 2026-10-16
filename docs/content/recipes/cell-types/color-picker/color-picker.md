@@ -2,7 +2,7 @@
 type: how-to
 title: Color picker
 metaTitle: Color Picker Cell Type - JavaScript Data Grid | Handsontable
-description: Learn how to create a Handsontable custom color picker cell using the Pickr library, with a button to open the picker, live preview, hex validation, and nano theme.
+description: Learn how to create a Handsontable DataGrid custom color picker cell using the Pickr library, with a button to open the picker, live preview, hex validation, and nano theme.
 permalink: /recipes/cell-types/color-picker
 canonicalUrl: /recipes/cell-types/color-picker
 tags:
@@ -19,7 +19,7 @@ searchCategory: Recipes
 category: Cell Types
 ---
 
-This tutorial shows you how to integrate the Pickr color picker library as a custom Handsontable cell editor, with a swatch renderer and hex validation.
+This tutorial shows you how to integrate the Pickr color picker library as a custom Handsontable DataGrid cell editor, with a swatch renderer and hex validation.
 
 ::: only-for javascript vue
 

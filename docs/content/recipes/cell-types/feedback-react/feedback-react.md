@@ -19,7 +19,7 @@ searchCategory: Recipes
 category: Cell Types
 ---
 
-This tutorial shows you how to build an emoji feedback cell in React using Handsontable's `EditorComponent`, with per-column configuration and keyboard navigation.
+This tutorial shows you how to build an emoji feedback cell in React using Handsontable DataGrid's `EditorComponent`, with per-column configuration and keyboard navigation.
 
 ::: only-for react
 

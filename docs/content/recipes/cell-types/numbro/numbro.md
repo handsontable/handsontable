@@ -2,7 +2,7 @@
 type: how-to
 title: Numbro
 metaTitle: Numbro Cell Type - JavaScript Data Grid | Handsontable
-description: Learn how to create a Handsontable custom numbro cell type using the Numbro library
+description: Learn how to create a Handsontable DataGrid custom numbro cell type using the Numbro library
 permalink: /recipes/cell-types/numbro
 canonicalUrl: /recipes/cell-types/numbro
 tags:
@@ -67,7 +67,7 @@ This guide shows how to create a custom numbro cell type using the [Numbro](http
 A cell that:
 - Displays numbers with locale-aware formatting via Numbro (e.g., `$350,000.00`)
 - Accepts `numericFormat` options for per-column formatting customization
-- Validates input using Handsontable's built-in numeric validator
+- Validates input using Handsontable DataGrid's built-in numeric validator
 - Automatically right-aligns numeric values
 
 ## Prerequisites

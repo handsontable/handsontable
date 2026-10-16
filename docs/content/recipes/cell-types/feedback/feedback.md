@@ -2,7 +2,7 @@
 type: how-to
 title: Feedback
 metaTitle:  Feedback Cell Type - JavaScript Data Grid | Handsontable
-description: Learn how to create a custom Handsontable cell type using emoji buttons for quick feedback selection directly in your data grid.
+description: Learn how to create a custom Handsontable DataGrid cell type using emoji buttons for quick feedback selection directly in your data grid.
 permalink: /recipes/cell-types/feedback
 canonicalUrl: /recipes/cell-types/feedback
 tags:
@@ -19,7 +19,7 @@ searchCategory: Recipes
 category: Cell Types
 ---
 
-This tutorial shows you how to build an emoji feedback cell using Handsontable's `editorFactory` helper, with Handsontable CSS tokens for theme-aware styling and keyboard navigation.
+This tutorial shows you how to build an emoji feedback cell using Handsontable DataGrid's `editorFactory` helper, with Handsontable CSS tokens for theme-aware styling and keyboard navigation.
 
 ::: only-for javascript vue
 

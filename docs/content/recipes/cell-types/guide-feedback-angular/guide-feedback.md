@@ -2,7 +2,7 @@
 type: how-to
 title: "Feedback Editor"
 metaTitle: "Feedback Editor - JavaScript Data Grid | Handsontable"
-description: Learn how to create a custom Handsontable cell type using emoji buttons for quick feedback selection directly in your data grid.
+description: Learn how to create a custom Handsontable DataGrid cell type using emoji buttons for quick feedback selection directly in your data grid.
 permalink: /recipes/cell-types/feedback-angular
 canonicalUrl: /recipes/cell-types/feedback-angular
 framework: angular
@@ -20,7 +20,7 @@ searchCategory: Recipes
 category: Cells
 ---
 
-This tutorial shows you how to build an emoji feedback cell in Angular using `HotCellEditorAdvancedComponent`, with Handsontable CSS tokens for theme-aware styling and keyboard navigation.
+This tutorial shows you how to build an emoji feedback cell in Angular using `HotCellEditorAdvancedComponent`, with Handsontable DataGrid CSS tokens for theme-aware styling and keyboard navigation.
 
 ::: only-for angular
 

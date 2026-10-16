@@ -7,7 +7,7 @@ searchCategory: Recipes
 hotPlugin: false
 editLink: false
 type: how-to
-description: Recipes for dependent editors, validation patterns, submit-time checks, and dynamic cell configuration in Handsontable.
+description: Recipes for dependent editors, validation patterns, submit-time checks, and dynamic cell configuration in Handsontable DataGrid.
 react:
   metaTitle: Editing and Validation Recipes - React Data Grid | Handsontable
 angular:

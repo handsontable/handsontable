@@ -2,7 +2,7 @@
 type: how-to
 title: "Date picker"
 metaTitle: "Date picker - JavaScript Data Grid | Handsontable"
-description: Learn how to create a custom Handsontable cell type using Flatpickr for a powerful, customizable date picker experience directly inside your data grid.
+description: Learn how to create a custom Handsontable DataGrid cell type using Flatpickr for a powerful, customizable date picker experience directly inside your data grid.
 permalink: /recipes/cell-types/datepicker
 canonicalUrl: /recipes/cell-types/datepicker
 framework: angular
@@ -35,7 +35,7 @@ This tutorial shows you how to build a date picker cell in Angular using custom 
 
 ## Overview
 
-This guide shows how to create a custom date picker cell using Angular components with the native HTML5 date input. You'll learn how to build custom editor and renderer components that extend Handsontable's Angular wrapper classes, providing a clean, type-safe implementation.
+This guide shows how to create a custom date picker cell using Angular components with the native HTML5 date input. You'll learn how to build custom editor and renderer components that extend Handsontable DataGrid's Angular wrapper classes, providing a clean, type-safe implementation.
 
 **Difficulty:** Intermediate
 **Time:** ~15 minutes

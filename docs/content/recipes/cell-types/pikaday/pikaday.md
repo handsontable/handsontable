@@ -2,7 +2,7 @@
 type: tutorial
 title: Pikaday
 metaTitle: Pikaday Cell Type - JavaScript Data Grid | Handsontable
-description: Learn how to create a custom Handsontable cell type using Pikaday for a date picker with per-column configuration directly inside your data grid. This guide serves as a migration path for users moving away from the built-in date cell type.
+description: Learn how to create a custom Handsontable DataGrid cell type using Pikaday for a date picker with per-column configuration directly inside your data grid. This guide serves as a migration path for users moving away from the built-in date cell type.
 permalink: /recipes/cell-types/pikaday
 canonicalUrl: /recipes/cell-types/pikaday
 tags:
@@ -20,7 +20,7 @@ category: Cell Types
 menuTag: updated
 ---
 
-This tutorial shows you how to integrate the Pikaday date picker as a custom Handsontable cell editor, with portal positioning and Moment.js formatting. This recipe also serves as a migration guide for users moving away from the built-in `date` cell type.
+This tutorial shows you how to integrate the Pikaday date picker as a custom Handsontable DataGrid cell editor, with portal positioning and Moment.js formatting. This recipe also serves as a migration guide for users moving away from the built-in `date` cell type.
 
 ::: only-for javascript vue
 

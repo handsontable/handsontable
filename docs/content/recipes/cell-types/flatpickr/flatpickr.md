@@ -2,7 +2,7 @@
 type: how-to
 title: Flatpickr
 metaTitle: Flatpickr Cell Type - JavaScript Data Grid | Handsontable
-description: Learn how to create a custom Handsontable cell type using Flatpickr for a date picker with cross-browser consistency and per-column configuration directly inside your data grid.
+description: Learn how to create a custom Handsontable DataGrid cell type using Flatpickr for a date picker with cross-browser consistency and per-column configuration directly inside your data grid.
 permalink: /recipes/cell-types/flatpickr
 canonicalUrl: /recipes/cell-types/flatpickr
 tags:
@@ -19,7 +19,7 @@ searchCategory: Recipes
 category: Cell Types
 ---
 
-This tutorial shows you how to integrate the Flatpickr date picker as a custom Handsontable cell editor, with per-column locale and format configuration.
+This tutorial shows you how to integrate the Flatpickr date picker as a custom Handsontable DataGrid cell editor, with per-column locale and format configuration.
 
 ::: only-for javascript vue
 
