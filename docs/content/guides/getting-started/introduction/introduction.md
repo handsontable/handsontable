@@ -66,7 +66,7 @@ Think of Handsontable as an extensible framework that empowers you to quickly bu
 Examples include:
 
 - In an internal financial application, an editable Handsontable-based grid simplifies importing hand-picked data from Excel and Google Sheets.
-- In a construction company's software, an interactive data table built with Handsontable helps users modify codes and standards tables.
+- In a construction company's software, an interactive data grid built with Handsontable helps users modify codes and standards tables.
 - At a hospital, Handsontable helps track and manage supplies.
 - A mobile game company uses Handsontable to streamline certain aspects of development.
 - In project management software, Handsontable allows for managers to collect weekly feedback from the team and customers.
