@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-16T11:18:00.658Z",
+  "generatedAt": "2026-10-16T11:48:47.581Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 404,
+    "tests": 405,
     "needsTicket": 29,
     "quarantined": 0,
-    "entries": 2100
+    "entries": 2101
   },
   "rows": [
     {
@@ -13189,6 +13189,39 @@
         "leg": "e2e-classic",
         "status": "flaky",
         "error": "Error: expect(received).toEqual(expected) // deep equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/async-image-frozen-columns.spec.ts|Async image in a scrolling column beside frozen columns › aligns the overlays when the renderer keeps a failing image",
+      "tier": "playwright",
+      "file": "e2e/async-image-frozen-columns.spec.ts",
+      "line": 138,
+      "title": "Async image in a scrolling column beside frozen columns › aligns the overlays when the renderer keeps a failing image",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 1,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-16T11:48:01Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38894594575",
+        "branch": "feature/DEV-2058_Jasmine-one-leg-on-pull-requests",
+        "leg": "e2e-classic",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": false
