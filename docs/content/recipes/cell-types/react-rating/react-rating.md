@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Star Rating
-metaTitle: Star rating cell type | Handsontable DataGrid for JavaScript
+metaTitle: Star Rating | Handsontable DataGrid for JavaScript
 description: Learn how to create a custom Handsontable DataGrid cell type using a star rating component for selecting numeric ratings directly in your data grid.
 permalink: /recipes/cell-types/react-rating
 canonicalUrl: /recipes/cell-types/react-rating
@@ -11,9 +11,9 @@ tags:
   - tutorial
   - recipes
 react:
-  metaTitle: Star rating cell type | Handsontable DataGrid for React
+  metaTitle: Star Rating | Handsontable DataGrid for React
 angular:
-  metaTitle: Star rating cell type | Handsontable DataGrid for Angular
+  metaTitle: Star Rating | Handsontable DataGrid for Angular
 vue:
 searchCategory: Recipes
 category: Cell Types
