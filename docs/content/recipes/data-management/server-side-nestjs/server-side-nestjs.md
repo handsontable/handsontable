@@ -12,7 +12,7 @@ tags:
   - typescript
   - recipes
 react:
-  metaTitle: Server-side data with NestJS | Handsontable DataGrid for React
+  metaTitle: Server-side Data with NestJS | Handsontable DataGrid for React
 angular:
   metaTitle: Server-side Data with NestJS | Handsontable DataGrid for Angular
 vue:

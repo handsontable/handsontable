@@ -1,7 +1,7 @@
 ---
 type: explanation
 title: Design system
-metaTitle: Design system / UI kit | Handsontable DataGrid for JavaScript
+metaTitle: Design system | Handsontable DataGrid for JavaScript
 description: Design, prototype, and customize spreadsheet-like components with the Design System for Figma.
 permalink: /handsontable-design-system
 canonicalUrl: /handsontable-design-system
@@ -17,11 +17,11 @@ tags:
   - local variables
   - tokens
 react:
-  metaTitle: Design system / UI kit | Handsontable DataGrid for React
+  metaTitle: Design system | Handsontable DataGrid for React
 angular:
-  metaTitle: Design system / UI kit | Handsontable DataGrid for Angular
+  metaTitle: Design system | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Design system / UI kit | Handsontable DataGrid for Vue
+  metaTitle: Design system | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Styling
 ---

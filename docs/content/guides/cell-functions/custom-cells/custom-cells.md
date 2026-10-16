@@ -1,7 +1,7 @@
 ---
 type: explanation
 title: Custom cells
-metaTitle: Simplified custom cell definitions | Handsontable DataGrid for JavaScript
+metaTitle: Custom cell definitions | Handsontable DataGrid for JavaScript
 description: Validate data added or changed by the user, with predefined or custom rules. Validation helps you make sure that the data matches the expected format.
 permalink: /custom-cells
 canonicalUrl: /custom-cells

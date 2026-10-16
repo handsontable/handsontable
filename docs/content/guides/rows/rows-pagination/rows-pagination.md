@@ -19,11 +19,11 @@ tags:
   - range of pages
   - chunks
 react:
-  metaTitle: Row pagination | Handsontable DataGrid for React
+  metaTitle: Rows pagination | Handsontable DataGrid for React
 angular:
-  metaTitle: Row pagination | Handsontable DataGrid for Angular
+  metaTitle: Rows pagination | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Row pagination | Handsontable DataGrid for Vue
+  metaTitle: Rows pagination | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Rows
 menuTag: updated

@@ -1,16 +1,16 @@
 ---
 title: Plugins
-metaTitle: 'API reference: plugins | Handsontable DataGrid for JavaScript'
+metaTitle: Plugins API reference | Handsontable DataGrid for JavaScript
 description: A complete list of Handsontable's plugins that can extend your data grid's capabilities.
 permalink: /api/plugins
 canonicalUrl: /api/plugins
 searchCategory: API Reference
 react:
-  metaTitle: 'API reference: plugins | Handsontable DataGrid for React'
+  metaTitle: Plugins API reference | Handsontable DataGrid for React
 angular:
-  metaTitle: 'API reference: plugins | Handsontable DataGrid for Angular'
+  metaTitle: Plugins API reference | Handsontable DataGrid for Angular
 vue:
-  metaTitle: 'API reference: plugins | Handsontable DataGrid for Vue'
+  metaTitle: Plugins API reference | Handsontable DataGrid for Vue
 ---
 |Plugin Name  | Description |
 |--|--|

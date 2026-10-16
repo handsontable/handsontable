@@ -10,7 +10,7 @@ tags:
   - toggle columns
   - column management
 react:
-  metaTitle: Dynamic column visibility | Handsontable DataGrid for React
+  metaTitle: Dynamic column visibility toggle | Handsontable DataGrid for React
 angular:
   metaTitle: Dynamic column visibility toggle | Handsontable DataGrid for Angular
 vue:

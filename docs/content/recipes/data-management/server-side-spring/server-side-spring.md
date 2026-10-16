@@ -12,7 +12,7 @@ tags:
   - java
   - recipes
 react:
-  metaTitle: Server-side data with Spring Boot | Handsontable DataGrid for React
+  metaTitle: Server-side Data with Spring Boot | Handsontable DataGrid for React
 angular:
   metaTitle: Server-side Data with Spring Boot | Handsontable DataGrid for Angular
 vue:
