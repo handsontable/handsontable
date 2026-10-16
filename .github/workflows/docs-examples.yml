@@ -13,7 +13,7 @@ concurrency:
 jobs:
   docs_examples:
     name: Docs Examples
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout the pull request merge commit
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
