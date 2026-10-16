@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-16T12:30:58.358Z",
+  "generatedAt": "2026-10-16T13:07:49.664Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -1104,7 +1104,7 @@
       "file": "handsontable/src/plugins/filters/__tests__/component/conditional.spec.js",
       "line": null,
       "title": "Filters UI Conditional component should save state of applied filter for specified column",
-      "count7": 6,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 1,
