@@ -1,5 +1,5 @@
 import { type Locator, expect } from '@playwright/test';
-import { awaitBundle } from '../bundle';
+import { awaitBundle, awaitFixtureBuilt } from '../bundle';
 import { ManualResizePage } from './ManualResizePage';
 
 /**
@@ -226,9 +226,10 @@ export class ManualRowResizeAutofitPage extends ManualResizePage {
   }
 
   /**
-   * Navigate and wait for the grid to have rendered its row headers and its first cell - a real DOM
-   * condition, never a sleep. A constructor that threw is rethrown here rather than surfacing as a
-   * visibility timeout.
+   * Navigate, wait for the grid to be built (the shared `awaitFixtureBuilt()` rethrows a constructor
+   * failure the fixture captured in `htBuildError`, with its cause, rather than letting it surface as a
+   * visibility timeout), and wait for the row headers and the first cell to render - a real DOM
+   * condition, never a sleep.
    */
   async goto(): Promise<void> {
     await this.page.goto(
@@ -236,14 +237,7 @@ export class ManualRowResizeAutofitPage extends ManualResizePage {
     );
 
     await awaitBundle(this.page);
-
-    const fixtureError = await this.page.evaluate(
-      () => (window as unknown as { fixtureError: string | null }).fixtureError
-    );
-
-    if (fixtureError !== null) {
-      throw new Error(`The grid failed to build:\n${fixtureError}`);
-    }
+    await awaitFixtureBuilt(this.page);
 
     await expect(this.cell(0, 0)).toBeVisible();
     await expect(this.rowHeader(8)).toBeVisible();
