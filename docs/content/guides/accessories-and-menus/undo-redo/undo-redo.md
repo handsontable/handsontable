@@ -125,7 +125,7 @@ hot.getPlugin('undoRedo').undo();
 
 To make several API calls revert with one undo, group them with [`batch()`](@/api/core.md#batch). See [One action, one undo step](#one-action-one-undo-step).
 
-For a change that UndoRedo doesn't record, see [Known limitations](#known-limitations). To cover state that lives outside the grid, register your own step with [`done()`](#registering-a-custom-undoable-action).
+For a change that UndoRedo doesn't record, see [Known limitations](#known-limitations). To see what clears the history, for example [`loadData()`](@/api/core.md#loaddata), see [Hooks and stack lifecycle](#hooks-and-stack-lifecycle). To cover state that lives outside the grid, register your own step with [`done()`](#registering-a-custom-undoable-action).
 
 ## One action, one undo step
 
