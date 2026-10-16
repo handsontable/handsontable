@@ -341,6 +341,18 @@ describe('ResizeGesture', () => {
 
       expect(hot.runHooks).not.toHaveBeenCalled();
     });
+
+    it('should listen when the handle is pressed', () => {
+      const { hot, th, handle } = createGesture();
+
+      mouse('mouseover', th);
+
+      expect(hot.listen).not.toHaveBeenCalled();
+
+      mouse('mousedown', handle(), { pageY: 10 });
+
+      expect(hot.listen).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('geometry', () => {
@@ -400,6 +412,41 @@ describe('ResizeGesture', () => {
       hot.fireHook('afterUndo');
 
       expect(handle()).toBeNull();
+    });
+
+    it('should detach the handle when an undo removes the header it sits on', () => {
+      const { hot, th, handle } = createGesture();
+
+      mouse('mouseover', th);
+      expect(handle()).not.toBeNull();
+
+      th.remove();
+      hot.fireHook('afterUndo');
+
+      expect(handle()).toBeNull();
+    });
+
+    it('should ignore undo and redo after destroy', () => {
+      let top = 100;
+      const { hot, th, gesture, handle } = createGesture({
+        axis: { getHeaderPosition: () => ({ top, start: 50 }) },
+      });
+
+      mouse('mouseover', th);
+
+      const element = handle();
+
+      expect(element.style.top).toBe('94px');
+
+      gesture.destroy();
+      rootElement.appendChild(element);
+
+      top = 60;
+      hot.fireHook('afterUndo');
+      hot.fireHook('afterRedo');
+
+      expect(element.isConnected).toBe(true);
+      expect(element.style.top).toBe('94px');
     });
 
     it('should move the top of the handle for a vertical axis', () => {

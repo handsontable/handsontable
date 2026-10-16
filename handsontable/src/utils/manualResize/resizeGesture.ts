@@ -635,7 +635,15 @@ export class ResizeGesture {
   #onHistoryRestored = () => {
     // The press holds an empty undo step, so undo stays available. Rebuilding the snapshot
     // here would make the next mousemove apply the original pointer delta to the new size.
-    if (this.#pressed || !this.#handle.isConnected || this.#currentTH === null) {
+    if (this.#pressed || !this.#handle.isConnected) {
+      return;
+    }
+
+    // Undo can remove the hovered header. Positioning then returns early and the handle
+    // stays over the empty space where that header was.
+    if (this.#currentTH === null || !this.#currentTH.isConnected) {
+      this.detach();
+
       return;
     }
 
@@ -700,7 +708,7 @@ export class ResizeGesture {
       this.#dblclick += 1;
       this.#startPointer = this.#readPointer(event);
       this.#newSize = this.#startSize;
-      // A header press never reaches the cell mousedown that calls `listen()`.
+      // A handle press never reaches `onCellMouseDown`, which is what listens for a header TH.
       this.#hot.listen();
     }
   };

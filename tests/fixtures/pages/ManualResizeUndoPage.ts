@@ -1,4 +1,4 @@
-import { expect } from '@playwright/test';
+import { expect, type Locator } from '@playwright/test';
 import { awaitBundle } from '../bundle';
 import { ManualResizePage } from './ManualResizePage';
 
@@ -23,26 +23,6 @@ export interface HandleEdgeMeasurement {
  * Reveal and drag come from `ManualResizePage`.
  */
 export class ManualResizeUndoPage extends ManualResizePage {
-  /**
-   * Moves visual row 2 so that it starts at index 5.
-   */
-  async moveThirdRowBelowFifth(): Promise<void> {
-    await this.page.evaluate(() => (window as unknown as {
-      moveThirdRowBelowFifth: () => void
-    }).moveThirdRowBelowFifth());
-    await expect(this.rowHeader(3)).toBeVisible();
-  }
-
-  /**
-   * Moves visual column 2 so that it starts at index 5.
-   */
-  async moveThirdColumnBelowFifth(): Promise<void> {
-    await this.page.evaluate(() => (window as unknown as {
-      moveThirdColumnBelowFifth: () => void
-    }).moveThirdColumnBelowFifth());
-    await expect(this.columnHeader(3)).toBeVisible();
-  }
-
   /**
    * Reads the header's rendered size and the signed distance from the resize handle's center to
    * the header's far edge. A handle centered on that edge reports about -1.
@@ -89,10 +69,79 @@ export class ManualResizeUndoPage extends ManualResizePage {
   }
 
   /**
+   * Drags a row handle, then releases to the left of the grid so the mouseup is outside it.
+   * The release keeps the dragged Y, so the row stays at the dragged height.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} deltaY How far to drag, in CSS pixels.
+   */
+  async dragRowHandleReleaseOutside(row: number, deltaY: number): Promise<void> {
+    await this.hoverRowHeader(row);
+    await this.#dragHandleReleaseOutside(this.rowHandle, 0, deltaY, 'beside');
+  }
+
+  /**
+   * Drags a column handle, then releases above the grid so the mouseup is outside it.
+   * The release keeps the dragged X, so the column stays at the dragged width.
+   *
+   * @param {number} column The visual column index.
+   * @param {number} deltaX How far to drag, in CSS pixels.
+   */
+  async dragColumnHandleReleaseOutside(column: number, deltaX: number): Promise<void> {
+    await this.hoverColumnHeader(column);
+    await this.#dragHandleReleaseOutside(this.columnHandle, deltaX, 0, 'above');
+  }
+
+  /**
    * Undoes the last recorded action through the keyboard shortcut.
    */
   async undoWithKeyboard(): Promise<void> {
     await this.page.keyboard.press('ControlOrMeta+z');
+  }
+
+  async redoWithKeyboard(): Promise<void> {
+    await this.page.keyboard.press('ControlOrMeta+Shift+z');
+  }
+
+  /**
+   * Drags a revealed handle, then releases outside the grid on the axis that does not change
+   * the dragged size.
+   *
+   * @param {Locator} handle The resize handle to drag.
+   * @param {number} deltaX How far to drag horizontally.
+   * @param {number} deltaY How far to drag vertically.
+   * @param {'above' | 'beside'} side Where to release, outside the grid.
+   */
+  async #dragHandleReleaseOutside(
+    handle: Locator, deltaX: number, deltaY: number, side: 'above' | 'beside'
+  ): Promise<void> {
+    const box = await handle.boundingBox();
+
+    if (!box) {
+      throw new Error('The resize handle has no layout box.');
+    }
+
+    const startX = box.x + (box.width / 2);
+    const startY = box.y + (box.height / 2);
+    const endX = startX + deltaX;
+    const endY = startY + deltaY;
+
+    await this.page.mouse.move(startX, startY);
+    await this.page.mouse.down();
+    await this.page.mouse.move(startX + (deltaX / 2), startY + (deltaY / 2));
+    await this.page.mouse.move(endX, endY);
+
+    const gridBox = await this.grid.boundingBox();
+
+    if (!gridBox) {
+      throw new Error('The grid has no layout box.');
+    }
+
+    const releaseX = side === 'beside' ? Math.max(0, gridBox.x - 8) : endX;
+    const releaseY = side === 'above' ? Math.max(0, gridBox.y - 8) : endY;
+
+    await this.page.mouse.move(releaseX, releaseY);
+    await this.page.mouse.up();
   }
 
   /**

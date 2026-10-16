@@ -29,24 +29,33 @@ test.describe('resize handle after undo', { tag: [CROSS_BROWSER_TAG, THEMES_TAG]
   test('a column handle follows the header when Ctrl+Z undoes a resize after a cell click', async () => {
     await undoDrag(grid, 'column', true);
   });
+
+  test('Ctrl+Z undoes a column resize released outside the grid', async () => {
+    await undoDrag(grid, 'column', false, true);
+  });
+
+  test('Ctrl+Z undoes a row resize released outside the grid', async () => {
+    await undoDrag(grid, 'row', false, true);
+  });
 });
 
 async function undoDrag(
-  grid: ManualResizeUndoPage, axis: ResizeAxisName, clickCellFirst: boolean
+  grid: ManualResizeUndoPage,
+  axis: ResizeAxisName,
+  clickCellFirst: boolean,
+  releaseOutside = false,
 ): Promise<void> {
-  if (axis === 'row') {
-    await grid.moveThirdRowBelowFifth();
-  } else {
-    await grid.moveThirdColumnBelowFifth();
-  }
-
   if (clickCellFirst) {
     await grid.clickFirstCell();
   }
 
   const before = await grid.measureHandleEdge(axis, 3);
 
-  if (axis === 'row') {
+  if (releaseOutside && axis === 'row') {
+    await grid.dragRowHandleReleaseOutside(3, 40);
+  } else if (releaseOutside) {
+    await grid.dragColumnHandleReleaseOutside(3, 40);
+  } else if (axis === 'row') {
     await grid.dragRowHandle(3, 40);
   } else {
     await grid.dragColumnHandle(3, 40);
@@ -65,4 +74,13 @@ async function undoDrag(
   expect(Math.abs(after.size - before.size), measured).toBeLessThanOrEqual(1);
   expect(after.gap, measured).not.toBeNull();
   expect(Math.abs(after.gap ?? 0), measured).toBeLessThanOrEqual(2);
+
+  await grid.redoWithKeyboard();
+
+  const redone = await grid.measureHandleEdge(axis, 3);
+  const redoneMeasured = JSON.stringify({ dragged, redone });
+
+  expect(Math.abs(redone.size - dragged.size), redoneMeasured).toBeLessThanOrEqual(1);
+  expect(redone.gap, redoneMeasured).not.toBeNull();
+  expect(Math.abs(redone.gap ?? 0), redoneMeasured).toBeLessThanOrEqual(2);
 }

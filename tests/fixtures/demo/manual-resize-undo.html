@@ -45,8 +45,6 @@
         rowHeaders: true,
         manualRowResize: true,
         manualColumnResize: true,
-        manualRowMove: true,
-        manualColumnMove: true,
         width: 600,
         height: 400,
         licenseKey: 'non-commercial-and-evaluation',
@@ -55,15 +53,6 @@
       container.setAttribute('data-init-error', String(error && error.message));
     }
 
-    window.moveThirdRowBelowFifth = function() {
-      window.grid.getPlugin('manualRowMove').moveRows([2], 5);
-      window.grid.render();
-    };
-
-    window.moveThirdColumnBelowFifth = function() {
-      window.grid.getPlugin('manualColumnMove').moveColumns([2], 5);
-      window.grid.render();
-    };
   </script>
 </body>
 </html>
