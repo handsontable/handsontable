@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
+import { readBlocks } from '../leg-declarations.mjs';
 import {
   QUARANTINE_ANNOTATION,
   QUARANTINE_CAP,
@@ -173,7 +174,9 @@ test('a run that Playwright ended with an error, a timeout or an interruption is
   assert.equal(evaluateRun({ tests: flaky, now: NOW, runStatus: 'failed', hadErrors: true }).status, 'failed');
   assert.equal(evaluateRun({ tests: flaky, now: NOW, runStatus: 'timedout' }).status, 'timedout');
   assert.equal(evaluateRun({ tests: flaky, now: NOW, runStatus: 'interrupted' }).status, 'interrupted');
-  assert.equal(evaluateRun({ tests: [], now: NOW, runStatus: 'passed' }).status, 'passed');
+  // An interrupted run that saw no test stays interrupted: the zero-test rule below fails a run Playwright
+  // called passed or failed, never one it ended another way.
+  assert.equal(evaluateRun({ tests: [], now: NOW, runStatus: 'interrupted' }).status, 'interrupted');
 });
 
 test('a flaky test whose quarantine expiry is beyond the horizon fails the run (no downgrade)', () => {
@@ -202,12 +205,37 @@ test('the quarantine reporter is last in both reporter arrays, so its status ove
   assert.equal(closes.length, 2, 'the quarantine reporter is the last entry in the CI and local arrays');
 });
 
-test('the tree holds at most QUARANTINE_CAP quarantined() call sites: a sharded leg counts the cap per shard', () => {
+test('a run that saw no test fails, shard or not: Playwright would pass an empty shard', () => {
+  // Playwright 1.62 skips its "No tests found" error whenever `--shard` is set, so a shard whose part of
+  // the project is empty ends green on its own; the reporter owns the exit status and says no.
+  const empty = evaluateRun({ tests: [], now: NOW, runStatus: 'passed', shard: '2/3' });
+
+  assert.equal(empty.status, 'failed');
+  assert.equal(empty.downgraded, true);
+  assert.deepEqual(empty.problems.map(problem => problem.slice(0, 60)),
+    ['no test ran in shard 2/3: Playwright ends a sharded run with']);
+
+  const whole = evaluateRun({ tests: [], now: NOW, runStatus: 'passed' });
+
+  assert.equal(whole.status, 'failed');
+  assert.match(whole.problems[0], /^no test ran: /);
+
+  // A run with a test is judged on its tests alone.
+  assert.equal(evaluateRun({ tests: [runTest('a', 'expected')], now: NOW, runStatus: 'passed', shard: '1/3' }).status, 'passed');
+});
+
+// The specs that quarantine a test today, by file. A new quarantine adds its file here, so the whole-tree
+// count is reviewed with the quarantine itself; the ledger shows the entries.
+const QUARANTINED_SPECS = [];
+
+test('the tree quarantines at most QUARANTINE_CAP tests, one test at a time: a sharded leg counts the cap per shard', () => {
   // The reporter counts the quarantined tests of the run it sees, and a leg that runs in shards
   // (e2e.yml, `--shard`) is several runs, each seeing its own tests: three shards could each hold six
   // and none would fail. This static count is the whole-tree half of the cap; the reporter's count is
-  // the per-run half. A call site inside a loop declares more than one test, so a loop needs its own
-  // care when it quarantines.
+  // the per-run half. It reads the calls with the leg-declarations block reader, so a `quarantined(`
+  // written inside a string (e2e/quarantine-policy.spec.ts builds its synthetic specs that way) is
+  // not a site, and a `test.describe(…, quarantined(…), …)` is refused: it parks every test inside the
+  // describe while a call-site count sees one.
   const specs = [];
   const walk = (dir) => {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -220,17 +248,31 @@ test('the tree holds at most QUARANTINE_CAP quarantined() call sites: a sharded 
       }
     }
   };
+  const testsRoot = path.resolve(import.meta.dirname, '../..');
 
-  walk(path.resolve(import.meta.dirname, '../../e2e'));
+  walk(path.join(testsRoot, 'e2e'));
   assert.ok(specs.length > 200, 'the sweep read the spec tree');
 
-  const sites = specs.flatMap((file) => {
-    const code = readFileSync(file, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|\s)\/\/.*$/gm, '$1');
+  const sites = [];
+  const describes = [];
 
-    return (code.match(/\bquarantined\(/g) ?? []).map(() => path.relative(path.resolve(import.meta.dirname, '../..'), file));
-  });
+  for (const full of specs) {
+    const file = path.relative(testsRoot, full).split(path.sep).join('/');
 
+    for (const block of readBlocks(readFileSync(full, 'utf8'), file)) {
+      if (block.details?.kind === 'quarantined') {
+        (block.kind === 'describe' ? describes : sites).push(`${file}:${block.line}`);
+      }
+    }
+  }
+
+  assert.deepEqual(describes, [],
+    'quarantine one test at a time, never a describe: a describe-level quarantined() parks every test inside it '
+    + 'while this count sees one site, and the reporter cannot see past its own shard (tests/AGENTS.md, Quarantine)');
   assert.ok(sites.length <= QUARANTINE_CAP,
-    `${sites.length} quarantined() call sites in tests/e2e, and the cap is ${QUARANTINE_CAP}; the reporter cannot see past `
-    + `its own shard, so fix one before parking another: ${[...new Set(sites)].join(', ')}`);
+    `${sites.length} quarantined tests in tests/e2e, and the cap is ${QUARANTINE_CAP}; the reporter cannot see past `
+    + `its own shard, so fix one before parking another: ${sites.join(', ')}`);
+  assert.deepEqual([...new Set(sites.map(site => site.split(':')[0]))].sort(), QUARANTINED_SPECS,
+    `the specs with a quarantine are listed in QUARANTINED_SPECS, so the whole-tree count is reviewed with the `
+    + `quarantine itself; found ${sites.join(', ') || 'none'}`);
 });

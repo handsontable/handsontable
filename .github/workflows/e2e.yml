@@ -1,17 +1,17 @@
 name: E2E
 
-# End-to-end tests, build-dependent (consume the UMD artifact). Two matrices,
-# 1:1 with each other: the frozen Puppeteer suite and the new Playwright suite,
-# both over theme × bundle (UMD / UMD.min). Per-leg gating keeps the exact old
-# scope behavior (UMD legs on the e2e scope, UMD.min on the e2e-min scope).
-# The UMD.min legs load handsontable.full.min.js — the exact file Puppeteer's
-# test:production runs. The bundles Puppeteer does not test either
-# (handsontable.full.js and handsontable.min.js) are deliberately not covered
-# here — they belong to the nightly on develop (DEV-2058).
-# Playwright runs one job per leg (not one job per theme with both projects):
-# per-leg failure isolation in the checks list and 1:1 symmetry with the
-# Puppeteer matrix outweigh the duplicated container setup while the suite is
-# small — revisit as migration grows it.
+# End-to-end tests, build-dependent (consume the UMD artifact). Two suites over
+# the same theme × bundle legs (UMD / UMD.min): the frozen Puppeteer suite, one
+# job per leg, and the Playwright suite, one job per leg and shard (a leg over
+# the wall-clock target runs in shards; the `playwright` job's matrix lists
+# every row). Per-leg gating keeps the exact old scope behavior (UMD legs on
+# the e2e scope, UMD.min on the e2e-min scope). The UMD.min legs load
+# handsontable.full.min.js — the exact file Puppeteer's test:production runs.
+# The bundles Puppeteer does not test either (handsontable.full.js and
+# handsontable.min.js) are deliberately not covered here — they belong to the
+# nightly on develop (DEV-2058). Playwright runs a job per leg rather than one
+# per theme with both projects: per-leg failure isolation in the checks list
+# outweighs the duplicated container setup.
 on:
   workflow_call:
     inputs:
@@ -109,20 +109,28 @@ jobs:
       # leg would overwrite the first row's shard instead of adding a job), so the
       # table lists every leg and every shard. `shard`/`shards` are absent on an
       # unsharded row, which makes `matrix.shard` null there and every shard
-      # expression below empty. How many shards: the leg's wall-clock at the
-      # pinned worker count (tests/playwright.config.ts), divided by the
-      # five-minute target, rounded up — main ran 16.9 min on 2 workers and 11.9
-      # on 4 in one run (run 38755690783; 20.7 on 2 the run before), so 3;
-      # horizon and classic ran 11.9 and 14.4 on 2 workers, about 8 to 10 on 4,
-      # so 2; the `-min` legs and the engines job are under 4 minutes whole. The
-      # e2e budget phase pins the counts from the measured P50s; until then a
-      # change here is deliberate only with a measurement, and
-      # `DURATIONS_LEGS` in .github/scripts/lib/playwright-durations.mjs
-      # follows it (its test derives the table from these rows). The full matrix
-      # (`full-matrix: true`: the nightly, the rc/stable path, a master push) runs
-      # every spec on every leg through the same shards, so a horizon or classic
-      # shard holds about half the suite there, a few minutes more than on a pull
-      # request; the nightly can afford it.
+      # expression below empty. How many shards: the agreed starting point, from
+      # each leg's 2-worker wall-clock before this change (main 20.7, horizon
+      # 11.9, classic 14.4 min, run 38716353843) scaled by the 4-worker gain
+      # measured on main (1.42×, run 38755690783: 16.9 → 11.9 min) and divided
+      # by the five-minute target, rounded up: main 14.6 → 3, horizon 8.4 → 2,
+      # classic 10.1 → 3 by that arithmetic, kept at 2 (its two shards ran 4.8
+      # and 4.5 min on the first run). The `-min` legs and the engines job run
+      # whole: under 4 minutes on the pull-request shape; the full matrix
+      # (`full-matrix: true`: the nightly, the rc/stable path, a master push)
+      # runs every spec on every leg through the same rows, so a horizon or
+      # classic shard holds half the suite there and the `-min` legs run whole
+      # at 11 to 14 minutes, the nightly's longest jobs, which it can afford.
+      # The e2e budget phase pins the counts from the P50s the durations page
+      # collects at this shape; until then a change here is deliberate only with
+      # a measurement, and `DURATIONS_LEGS` in
+      # .github/scripts/lib/playwright-durations.mjs follows it (its test
+      # derives the table from these rows). Eleven Playwright jobs per run,
+      # seven before: the organization is on GitHub's Team plan (60 concurrent
+      # standard-runner jobs), and three overlapping runs of this workflow (38
+      # E2E jobs at once) each started every job within a second of the first,
+      # so the cap was checked and is not near; the engines job stays one job
+      # for the same reason.
       matrix:
         include:
           - { theme: main, bundle: { label: 'UMD', suffix: '' }, shard: 1, shards: 3 }
@@ -149,8 +157,10 @@ jobs:
       - name: Run Playwright E2E
         id: playwright
         # "1" drops every leg's grep (tests/AGENTS.md, "Declaring the legs"); "" keeps the declared shape.
-        # A shard that lands on no test is a red "No tests found", by design (the flag that would
-        # make it a green job is banned by .github/scripts/__tests__/e2e-legs.test.mjs).
+        # An empty leg is Playwright's own red "No tests found"; an empty shard is not, since
+        # Playwright skips that error whenever --shard is set, so the quarantine reporter
+        # (tests/reporters/quarantine.ts) fails a shard that ran no test. The flag that would turn
+        # either green is banned by .github/scripts/__tests__/e2e-legs.test.mjs.
         env:
           HOT_E2E_FULL_MATRIX: ${{ inputs.full-matrix && '1' || '' }}
         run: cd tests && npx playwright test --project=e2e-${{ matrix.theme }}${{ matrix.bundle.suffix }}${{ matrix.shard && format(' --shard={0}/{1}', matrix.shard, matrix.shards) || '' }}

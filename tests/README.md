@@ -64,7 +64,8 @@ tag, and the E2E nightly runs every spec on all six legs. The local gates
 the other legs run in CI, where a long leg runs as several jobs
 (`--shard=<i>/<n>` on the same project: `main` in 3, `horizon` and `classic` in
 2, the `-min` legs whole) at a pinned worker count (`workers` in
-`playwright.config.ts`, CI only; a local run keeps Playwright's default). To
+`playwright.config.ts`, CI only; the engines config pins its own; a local run
+keeps Playwright's default). To
 run one shard the way a CI job does: `npx playwright test --project=e2e-main
 --shard=1/3`. Run a single other leg by hand with
 `npx playwright test --project=e2e-horizon-min` (it lists "No tests found" for a

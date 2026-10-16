@@ -385,8 +385,10 @@ test('mergeDurations records a run per leg and freezes updatedAt on a true no-op
     skipped: 5,
     flaky: 0,
     unexpected: 2,
-    // classic runs in two shards: the record keeps a row per part, [shard, attempt, wall-clock, tests].
+    // classic runs in two shards: the record keeps a row per part, [shard, attempt, wall-clock, tests], and the
+    // span from the first part's start to the last part's end (equal to the wall-clock when they start together).
     shards: 2,
+    spanMs: 1089639,
     parts: [[1, 1, 1089639, 21], [2, 1, 1089639, 24]],
   });
 
@@ -678,9 +680,11 @@ test('the budget input is P50 and P90 per leg, one vote per push, without failed
   // classic: the ten pushes and attempt 2 of run 602, nearest rank over 11 values. `shards` is the count
   // the leg's latest record carries (DURATIONS_LEGS: classic 2, main 3).
   assert.deepEqual(classic, {
-    runs: 11, wallMs: { p50: 600, p90: 1000 }, tests: { p50: 45, p90: 45 }, excluded: 1, shards: 2,
+    runs: 11, wallMs: { p50: 600, p90: 1000 }, tests: { p50: 45, p90: 45 }, excluded: 1, shards: 2, workers: 2,
   });
-  assert.deepEqual(main, { runs: 1, wallMs: { p50: 700, p90: 700 }, tests: { p50: 45, p90: 45 }, excluded: 0, shards: 3 });
+  assert.deepEqual(main, {
+    runs: 1, wallMs: { p50: 700, p90: 700 }, tests: { p50: 45, p90: 45 }, excluded: 0, shards: 3, workers: 2,
+  });
   assert.equal(doc.budget.windowDays, DURATIONS_RETENTION_DAYS);
   assert.ok(doc.budget.from < doc.budget.to);
 
@@ -919,6 +923,8 @@ test('foldShardParts puts a leg back together: the longest part is the wall-cloc
   assert.deepEqual(summary.files.map(file => file.file), whole.files.map(file => file.file), 'heaviest first, as a whole leg');
   assert.deepEqual(summary.shards, {
     total: 2,
+    // First start to last end: the second part started 2,733 ms later and ran 30 s longer.
+    spanMs: whole.wallMs + 30000 + 2733,
     parts: [first, second].map(part => ({
       index: part.shard.index,
       runAttempt: 1,
@@ -1042,8 +1048,10 @@ test('mergeDurations records a sharded leg as one record with a row per part, an
     /^leg main: no part for shard 2 of 3; recorded as partial, left out of the budget, and its per-test rows are the run before's$/m);
   assert.equal(partial.doc.latest.sources[0].runId, '38380730524', 'the rows stay the whole push\'s');
   assert.deepEqual(partial.doc.budget.legs.main, {
-    runs: 1, wallMs: { p50: 1089639, p90: 1089639 }, tests: { p50: 45, p90: 45 }, excluded: 1, shards: 3,
+    runs: 1, wallMs: { p50: 1089639, p90: 1089639 }, tests: { p50: 45, p90: 45 }, excluded: 1, shards: 3, workers: 2,
   });
+  assert.equal(record.spanMs, record.wallMs, 'parts that start together span their longest part');
+  assert.equal(full.doc.latest.sources[0].spanMs, record.wallMs);
   assert.match(renderDurationsLine(partial.recorded), /^Playwright wall-clock: main 18\.2 min \(2 of 3 shards\) \(2 workers\)/);
 
   const view = durationsView(partial.doc);
@@ -1074,4 +1082,97 @@ test('"Re-run failed jobs" re-runs one shard: the record takes the latest attemp
   const view = durationsView(second.doc);
 
   assert.deepEqual(view.points.map(point => [point[5], point[6]]).sort(), [[1, 2], [2, 0]], 'attempt 1 superseded');
+});
+
+test('the span is first start to last end: shards that queue fold to a short wall-clock and a long span', () => {
+  const [s1, s2, s3] = shardsOf(legSummary({ leg: 'main', unexpected: 0, wallMs: 300000 }), 3);
+  const at = minutes => new Date(Date.parse('2026-10-13T10:00:00.000Z') + (minutes * 60000)).toISOString();
+  const staggered = [
+    { ...s1, startTime: at(0) },
+    { ...s2, startTime: at(10) },
+    { ...s3, startTime: at(20) },
+  ];
+  const { summary } = foldShardParts('main', staggered, 3);
+
+  assert.equal(summary.wallMs, 300000, 'what the leg costs when its shards start together');
+  assert.equal(summary.shards.spanMs, 1500000, 'what the pull request waited: 20 min of queueing plus the last 5-min shard');
+  assert.equal(summary.startTime, at(0));
+
+  const { doc } = mergeDurations(null, staggered, developRun(), { now: NOW });
+  const [record] = doc.runs[0].legs;
+
+  assert.deepEqual([record.wallMs, record.spanMs], [300000, 1500000]);
+  assert.deepEqual(doc.latest.sources[0].spanMs, 1500000);
+
+  const [point] = durationsView(doc).points;
+
+  assert.equal(point[8], 1500000, 'the page shows the span under the point');
+  assert.equal(durationsView(mergeDurations(null, [legSummary({ leg: 'main-min' })], developRun(), { now: NOW }).doc).points[0][8],
+    null, 'a whole leg has no span of its own');
+});
+
+test('a part without a shard for a sharded leg is an older whole leg: recorded as one alone, skipped beside shard parts', () => {
+  // A "Re-run failed jobs" of a push from before the shards uploads `playwright-durations-main`, no `-s<i>`.
+  const whole = legSummary({ leg: 'main', unexpected: 0 });
+  const alone = foldShardParts('main', [whole], 3);
+
+  assert.deepEqual(alone.missing, [], 'not partial: it is the whole leg');
+  assert.equal(alone.summary.shards.total, 1);
+  assert.equal(alone.summary.counts.tests, 45);
+  assert.deepEqual(alone.notes, [
+    'leg main: an unsharded part for a leg e2e.yml runs in 3 shards (a run from before the shards); recorded as a whole leg',
+  ]);
+
+  const recorded = mergeDurations(null, [whole], developRun(), { now: NOW });
+  const [record] = recorded.doc.runs[0].legs;
+
+  assert.equal(record.shards, undefined, 'recorded in the shape from before shards existed');
+  assert.equal(record.parts, undefined);
+  assert.equal(record.missing, undefined);
+  assert.match(recorded.notes.join('\n'), /recorded as a whole leg/);
+  assert.equal(recorded.doc.budget.legs.main.shards, 1, 'the budget sees a whole leg');
+
+  const [s1, , s3] = shardsOf(whole, 3);
+  const mixed = foldShardParts('main', [s1, whole, s3], 3);
+
+  assert.deepEqual(mixed.missing, [2]);
+  assert.deepEqual(mixed.summary.shards.parts.map(part => part.index), [1, 3]);
+  assert.equal(mixed.summary.counts.tests, s1.counts.tests + s3.counts.tests, 'the whole part was not read as shard 1');
+  assert.deepEqual(mixed.notes, ['leg main: an unsharded part beside 2 shard part(s); the unsharded one is skipped']);
+});
+
+test('the budget counts only the records of a leg\'s latest shape: a change of shards or workers starts it over', () => {
+  let doc = null;
+  const at = index => new Date(NOW.getTime() - ((10 - index) * 3600000)).toISOString();
+
+  // Five unsharded pushes on 2 workers at about 17 minutes (the shape before this change).
+  for (let index = 0; index < 5; index += 1) {
+    const old = legSummary({ leg: 'main', startTime: at(index), wallMs: 1000000, unexpected: 0 });
+
+    doc = mergeDurations(doc, [old], runOf({ id: 100 + index }), { now: NOW }).doc;
+  }
+  // Two sharded pushes on 4 workers at five minutes.
+  for (let index = 5; index < 7; index += 1) {
+    const parts = shardsOf(legSummary({ leg: 'main', startTime: at(index), wallMs: 300000, unexpected: 0 }), 3)
+      .map(part => ({ ...part, workers: 4 }));
+
+    doc = mergeDurations(doc, parts, runOf({ id: 100 + index }), { now: NOW }).doc;
+  }
+
+  assert.deepEqual(doc.budget.legs.main, {
+    runs: 2, wallMs: { p50: 300000, p90: 300000 }, tests: { p50: 45, p90: 45 }, excluded: 5, shards: 3, workers: 4,
+  }, 'the five 17-minute records are left out, not mixed into a "3 shards" P50');
+
+  const view = durationsView(doc);
+  const flags = Object.fromEntries(view.points.map(point => [view.runs[point[0]][0], point[6]]));
+
+  assert.deepEqual(flags, { 100: 4, 101: 4, 102: 4, 103: 4, 104: 4, 105: 0, 106: 0 },
+    'the page marks the other shape as left out (4), the current shape as counted');
+
+  // A push on the same 3 shards but back on 2 workers is another shape too.
+  const twoWorkers = shardsOf(legSummary({ leg: 'main', startTime: at(7), wallMs: 500000, unexpected: 0 }), 3);
+  const back = mergeDurations(doc, twoWorkers, runOf({ id: 107 }), { now: NOW }).doc;
+
+  assert.deepEqual([back.budget.legs.main.runs, back.budget.legs.main.excluded, back.budget.legs.main.workers], [1, 7, 2],
+    'the latest push sets the shape, so the two 4-worker pushes are now the ones left out');
 });

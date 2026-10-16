@@ -74,8 +74,9 @@ function resolvePort(): number {
  * `--project=e2e-<theme>[-min]` rows, a long leg cut with `--shard=<i>/<n>`
  * at the `workers` count pinned below); locally, `npx playwright test` runs the
  * declared shape, and `--project=e2e-horizon` on an undeclared spec says "No
- * tests found" by design (no `--pass-with-no-tests`: an empty leg or shard is a
- * red job, never a green one that ran nothing). The bundles Puppeteer does not
+ * tests found" by design (no `--pass-with-no-tests`: an empty leg is a red
+ * job, never a green one that ran nothing; an empty shard, which Playwright
+ * lets pass, is failed by the quarantine reporter). The bundles Puppeteer does not
  * test either (handsontable.full.js, handsontable.min.js) are deliberately
  * NOT here — extra coverage belongs to the nightly on develop (DEV-2058).
  *
@@ -109,7 +110,8 @@ export default defineConfig<TestOptions>({
   // the summed per-test time grew 32.8 → 45.9 min, the contention), both runs
   // clean, with a container peak of 4.8 GiB of the 16 GiB at 4 workers (3.2 at
   // 2) and no swap. The shard counts in e2e.yml's matrix were derived at this
-  // count, and .github/scripts/__tests__/e2e-legs.test.mjs pins the line.
+  // count, and .github/scripts/__tests__/e2e-legs.test.mjs pins the line. The
+  // engines config (Firefox, WebKit) does not inherit it: it pins 2.
   workers: process.env.CI ? 4 : undefined,
   // The next three CI values are pinned by
   // .github/scripts/__tests__/playwright-flake-settings.test.mjs — the flake
