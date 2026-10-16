@@ -539,6 +539,25 @@ text instead, `span.colHeader` matched with `getByText(label, { exact: true })`,
   grid; and a toggle entry such as "Read only" has the role `menuitemcheckbox`, not `menuitem`
   (`TwoGridsPage.makeColumnReadOnly()`).
 
+- `hot.scrollViewportTo({ col })` scrolls nothing when the column is already
+  fully inside the viewport (it returns `false`), so a test that calls it to
+  move the viewport asserts the same state twice: in a 300px grid of 40px
+  columns, `scrollViewportTo({ col: 3 })` leaves `scrollLeft` at 0, which is how
+  the legacy textEditor viewport case re-measured its first state. Pass
+  `horizontalSnap: 'start'` to make the move real (`'end'` moves it only
+  when the column ends past the viewport's width), pin the
+  precondition that proves it moved (the cell's offset from the holder's client
+  edge), and end the helper on a render-state probe (the column inside the
+  rendered band, plus `getFirstFullyVisibleColumn()` for a start snap), never on
+  `scrollLeft` (`TextEditorViewportSizePage.scrollColumnToViewportStart()`). The open
+  text editor of a cell that draws no inline-start border of its own (a
+  borderless first column keeps the gridline inside its box, and
+  `BaseEditor#getEditedCellRect` cancels the shift there), holding text wider
+  than the room left in the viewport, starts 1px before its cell and ends
+  exactly at the holder's client right edge: assert that start and the
+  containment with `<=` in one coordinate system, never a strict `<`, from
+  editor, cell and holder read in one evaluation.
+
 ## Rendering away from 100% (zoom / display scaling)
 
 Reach for **CSS `zoom` on the root element**, applied by the fixture before the grid is
