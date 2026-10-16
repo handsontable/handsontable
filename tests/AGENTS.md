@@ -785,9 +785,9 @@ and `error` events between two draws, and only for a row whose height changed.
 A fixed ceiling on the draws therefore assumes how many frames the responses
 spread over. In `async-image-frozen-columns.spec.ts`, six routes released
 together can spread over one more frame under load. On a 4-worker leg the test
-failed with
-`Expected: <= 3, Received: 4` while every row was aligned (DEV-3457). Holding
-one response back 150 ms gives the same 4 on demand. Count batches in the
+failed with `Expected: <= 3, Received: 4` while every row was aligned
+(DEV-3457). Holding responses back a few frames gives the same 4 on demand,
+which is what the spec's hold-back test now does on purpose. Count batches in the
 fixture instead. A batch is an interval between two draws in which at least one
 image source arrived for the first time. Bound the draws made after the first
 arrival by the batches (`AsyncImageFrozenColumnsPage.drawStats()`). A redraw
