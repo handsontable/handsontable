@@ -30,7 +30,8 @@ export const EDITOR_STATE = Object.freeze({
  *
  * Extend it to create an editor that controls how a cell enters edit mode, reads and writes values,
  * and returns focus to the grid. Concrete editors implement `init()`, `getValue()`, `setValue()`,
- * `open()`, `close()`, and `focus()`.
+ * `open()`, `close()`, and `focus()`. `beginEditing()` passes the cell value to `setValue()`. An
+ * editor that needs a string stringifies that value itself.
  *
  * @class BaseEditor
  * @see https://handsontable.com/docs/javascript-data-grid/cell-editor/
@@ -222,6 +223,11 @@ export class BaseEditor {
 
   /**
    * Required method to set new value into editable element.
+   *
+   * `beginEditing()` passes the cell value after the value getter, or the string it was given.
+   * Call `Handsontable.helper.stringify()` when the editor needs a string.
+   *
+   * @param {*} _value The editor value.
    */
   setValue(_value?: unknown): void {
     throwWithCause('Editor setValue() method unimplemented');
@@ -358,6 +364,9 @@ export class BaseEditor {
   /**
    * Begins editing on a highlighted cell and hides fillHandle corner if was present.
    *
+   * In full edit mode, a string `newInitialValue` is passed to `setValue()` unchanged. Any other
+   * value, including `undefined`, passes the cell value after the value getter.
+   *
    * @param {*} newInitialValue The initial editor value.
    * @param {Event} event The keyboard event object.
    */
@@ -394,25 +403,21 @@ export class BaseEditor {
 
     if (this.isInFullEditMode()) {
       const originalValue = getValueGetterValue(this.originalValue, this.hot.getCellMeta(this.row, this.col));
-      const stringifiedInitialValue = typeof newInitialValue === 'string' ?
-        newInitialValue : stringify(originalValue);
+      const openedFromCell = typeof newInitialValue !== 'string';
 
-      seededFromCell = typeof newInitialValue !== 'string';
-      seededValue = stringifiedInitialValue;
+      seededFromCell = openedFromCell;
+      seededValue = openedFromCell ? stringify(originalValue) : newInitialValue;
 
-      this.setValue(stringifiedInitialValue);
+      this.setValue(openedFromCell ? originalValue : newInitialValue);
     }
 
     this.open(event);
     this._opened = true;
     this.focus();
 
-    // The baseline is the string the CELL's value produced, not what the editor ended up showing.
-    // The two differ whenever an editor substitutes something of its own - `DateEditor` swaps in
-    // `defaultDate` for an empty cell - and in that case the editor is genuinely offering a value the
-    // cell does not hold, so confirming has to save it. Reading `getValue()` back here instead made
-    // every confirm on such a cell compare equal, and a `date` column could no longer store its
-    // `defaultDate` from the editor at all.
+    // setValue() receives the cell value. The baseline stays the string that value produces.
+    // Reading getValue() here misses DateEditor's defaultDate swap, and an untouched text confirm
+    // has to match the textarea string (#3927).
     this.#hasValueBeforeEdit = seededFromCell;
     this.#valueBeforeEdit = seededFromCell ? seededValue : null;
 
