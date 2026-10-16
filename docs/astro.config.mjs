@@ -731,7 +731,7 @@ export default defineConfig({
         replacesTitle: true,
       },
 
-      favicon: '/img/favicon.png',
+      favicon: '/favicon/favicon.ico',
 
       social: [
         { icon: 'github', label: 'GitHub', href: 'https://github.com/handsontable/handsontable' },
