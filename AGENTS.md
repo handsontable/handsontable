@@ -134,7 +134,7 @@ These standards apply to **all** documentation across the monorepo — guides, t
 
 - **When docs are required:** any public-API change updates JSDoc/Typedoc + guides; any user-facing behavior change is documented; any breaking change adds a migration guide step.
 - **Writing style (most-violated):** short sentences, active voice, American English (`behavior` not `behaviour`), "you" not "we", Oxford comma, no evaluative adjectives ("easy"/"simple"/"obvious"), en dashes (–) in non-site text, sentence case headings (`Definition of done`, not `Definition of Done`; `README.md` and `AGENTS.md`/skill files are out of scope). Full list in `.ai/DOC-STANDARDS.md`.
-- **Product naming:** introduce the product as `Handsontable DataGrid` on the first prose mention (descriptions, intros, headings). `Handsontable` alone means the company and stays in code, package names, and API names. The category is lowercase "data grid", dropped when the product is already named. Full rule: `.ai/DOC-STANDARDS.md`.
+- **Product naming:** introduce the product as `Handsontable DataGrid` on the first prose mention (descriptions, intros, headings). `Handsontable` alone means the company and stays in code, package names, and API names. Never `DataGrid` alone as a first mention or in a title. The category is lowercase "data grid", dropped when the product is already named. Versions read `18.1`, not `v18.1`. Full rule: `.ai/DOC-STANDARDS.md`.
 - **Trademarks:** pages mentioning "Excel" (and "Google Sheets") need the trademark disclaimer — see `.ai/DOC-STANDARDS.md`.
 - **JSDoc format:** always use the multiline block style — never the single-line form. Every JSDoc comment must be written as:
   ```js
