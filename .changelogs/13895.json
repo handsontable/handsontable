@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the editor onOpen hook so it receives the event that opened the editor.",
+  "type": "fixed",
+  "issueOrPR": 13895,
+  "breaking": false,
+  "framework": "react"
+}
