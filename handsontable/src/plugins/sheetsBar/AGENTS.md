@@ -274,7 +274,10 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   arriving sheet, and a cell that falls inside the arriving sheet's frozen columns was then looked
   up in the inline-start overlay before that overlay had drawn the new sheet. The switch threw
   `TD or TH was expected to be rendered but is not` and the stored selection was never restored
-  (pinned by `tests/e2e/sheets-bar-frozen-columns.spec.ts`). When a stored selection no longer
+  (pinned by `tests/e2e/sheets-bar-frozen-columns.spec.ts`). The cost is one `afterDeselect`
+  on every switch, followed by the selection hooks when a stored selection
+  comes back. The sheets bar guide documents it for host listeners, and the spec pins the order.
+  When a stored selection no longer
   fits (the host shrank the sheet's data while it was away, so `restoreViewport()` reports
   `false`), the viewport batch deselects again. Nothing from the previous sheet reaches it any
   more; the call clears only a selection a plugin or a listener made during the switch, and stays

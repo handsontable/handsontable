@@ -44,6 +44,20 @@ test.describe('SheetsBar switching onto a sheet with frozen columns', () => {
     await expect(grid.cell(4, 4)).toHaveClass(/\bcurrent\b/);
   });
 
+  test('a switch onto a stored selection deselects once, then restores the selection', async () => {
+    expect(await grid.setActiveSheet('Frozen')).toBeNull();
+    await grid.cell(4, 4).click();
+    expect(await grid.setActiveSheet('Plain')).toBeNull();
+    await grid.cell(2, 1).click();
+
+    const fired = await grid.selectionHooksOfSwitch('Frozen');
+
+    expect(fired.filter(hookName => hookName === 'afterDeselect')).toHaveLength(1);
+    expect(fired[0]).toBe('afterDeselect');
+    expect(fired.lastIndexOf('afterSelection')).toBeGreaterThan(0);
+    await expect.poll(() => grid.selected()).toEqual([[4, 4, 4, 4]]);
+  });
+
   test('restores the departing sheet selection on the way back', async () => {
     await grid.switchToSheet(1);
     await grid.cell(4, 4).click();

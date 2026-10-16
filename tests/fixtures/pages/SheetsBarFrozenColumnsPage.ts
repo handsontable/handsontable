@@ -54,6 +54,33 @@ export class SheetsBarFrozenColumnsPage {
   }
 
   /**
+   * Switches sheets through the API and returns the selection hooks the switch fired, in order.
+   */
+  selectionHooksOfSwitch(name: string): Promise<string[]> {
+    return this.page.evaluate((sheetName) => {
+      const fired: string[] = [];
+      const hookNames = ['afterDeselect', 'afterSelection', 'afterSelectionEnd'] as const;
+      const listeners = hookNames.map((hookName) => {
+        const listener = () => {
+          fired.push(hookName);
+        };
+
+        window.hot.addHook(hookName, listener);
+
+        return [hookName, listener] as const;
+      });
+
+      try {
+        window.hot.getPlugin('sheetsBar').setActiveSheet(sheetName);
+      } finally {
+        listeners.forEach(([hookName, listener]) => window.hot.removeHook(hookName, listener));
+      }
+
+      return fired;
+    }, name);
+  }
+
+  /**
    * Switches sheets through the API, returning the message of an error the call threw, or `null`.
    */
   setActiveSheet(name: string): Promise<string | null> {
