@@ -75,7 +75,7 @@ function getSchemaDefault(
  *
  * - Enable and disable built-in features
  * - Enable and configure additional [plugins](@/api/plugins.md)
- * - Personalize Handsontable's look
+ * - Personalize Handsontable DataGrid's look
  * - Adjust Handsontable's behavior
  * - Implement your own custom features
  *

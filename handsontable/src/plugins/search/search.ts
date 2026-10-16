@@ -73,7 +73,7 @@ interface CellSearchMeta {
  * @class Search
  *
  * @description
- * The search plugin provides an easy interface to search data across Handsontable.
+ * The search plugin provides an easy interface to search data across Handsontable DataGrid.
  *
  * In order to enable search mechanism, {@link Options#search} option must be set to `true`.
  *

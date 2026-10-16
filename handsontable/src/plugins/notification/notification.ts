@@ -86,7 +86,7 @@ const TICK_MS = 200;
  * @class Notification
  *
  * @description
- * The Notification plugin shows non-blocking toast messages anchored to the Handsontable root.
+ * The Notification plugin shows non-blocking toast messages anchored to the Handsontable DataGrid root.
  * Enable it with the {@link Options#notification} option. Toasts are exposed to assistive technologies with
  * `aria-live` and do not take keyboard focus when they appear; use **F6** to move focus into the notification region
  * for the grid that currently contains keyboard focus (with several instances on one page, each grid only handles **F6**
