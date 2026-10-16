@@ -38,7 +38,7 @@ For static styling that does not depend on cell values, see [Formatting cells](@
 
 ## Prerequisites
 
-- A Handsontable DataGrid instance with data loaded.
+- A Handsontable instance with data loaded.
 - A stylesheet, if you format cells through custom CSS classes.
 - Familiarity with the cascading configuration model, where cell settings override column settings, which override global settings. See [Setting options](@/guides/configuration/configuration-options/configuration-options.md).
 

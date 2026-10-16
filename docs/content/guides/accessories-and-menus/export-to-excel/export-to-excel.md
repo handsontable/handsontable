@@ -33,7 +33,7 @@ The `ExportFile` plugin supports XLSX export via [ExcelJS](https://github.com/ex
 - Cell styling is read from the rendered DOM - font properties, background colors, alignment, and borders are all transferred to the workbook.
 - Column headers and nested headers, merged cells, and frozen panes are preserved.
 - [HyperFormula](@/guides/formulas/formula-calculation/formula-calculation.md) and [ColumnSummary](@/guides/columns/column-summary/column-summary.md) destination cells can be exported as live Excel formulas.
-- Multiple Handsontable DataGrid instances can be exported into separate sheets of one workbook.
+- Multiple Handsontable instances can be exported into separate sheets of one workbook.
 
 ## Prerequisites
 

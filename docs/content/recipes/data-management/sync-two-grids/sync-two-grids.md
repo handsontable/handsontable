@@ -20,7 +20,7 @@ category: Data Management
 type: how-to
 ---
 
-In this tutorial, you will sync edits from a master grid to a detail grid in real time. You will learn how to use `afterChange`, `setDataAtCell()`, and source guards to keep two Handsontable DataGrid instances consistent without triggering infinite update loops.
+In this tutorial, you will sync edits from a master grid to a detail grid in real time. You will learn how to use `afterChange`, `setDataAtCell()`, and source guards to keep two Handsontable instances consistent without triggering infinite update loops.
 
 ::: only-for javascript
 

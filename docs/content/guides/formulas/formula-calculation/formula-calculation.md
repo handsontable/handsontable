@@ -294,7 +294,7 @@ const hotSettings = ref({
 
 :::
 
-### Single Handsontable DataGrid instance with an external HyperFormula instance
+### Single Handsontable instance with an external HyperFormula instance
 
 ::: only-for javascript
 
@@ -381,7 +381,7 @@ const hotSettings = ref({
 
 :::
 
-### Multiple independent Handsontable DataGrid instances
+### Multiple independent Handsontable instances
 
 ::: only-for javascript
 
@@ -481,7 +481,7 @@ const hotSettings2 = ref({
 
 ::: only-for javascript
 
-### Multiple Handsontable DataGrid instances with a shared HyperFormula instance
+### Multiple Handsontable instances with a shared HyperFormula instance
 
 ```js
 // Instance 1
@@ -505,7 +505,7 @@ const hotSettings2 = ref({
 
 :::
 
-### Multiple Handsontable DataGrid instances with an external shared HyperFormula instance
+### Multiple Handsontable instances with an external shared HyperFormula instance
 
 ::: only-for javascript
 

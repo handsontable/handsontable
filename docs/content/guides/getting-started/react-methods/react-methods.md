@@ -2,7 +2,7 @@
 type: how-to
 title: Instance methods
 metaTitle: Instance methods - JavaScript Data Grid | Handsontable
-description: Reference a Handsontable DataGrid instance from within a React component, to programmatically perform actions such as selecting cells.
+description: Reference a Handsontable instance from within a React component, to programmatically perform actions such as selecting cells.
 permalink: /instance-methods
 canonicalUrl: /instance-methods
 tags:
@@ -21,7 +21,7 @@ searchCategory: Guides
 onlyFor: react
 category: Getting started
 ---
-Use useRef and HotTableRef to get a reference to the Handsontable DataGrid instance from a React component, then call any API method on it.
+Use useRef and HotTableRef to get a reference to the Handsontable instance from a React component, then call any API method on it.
 
 [[toc]]
 
