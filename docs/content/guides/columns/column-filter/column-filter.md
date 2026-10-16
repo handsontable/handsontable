@@ -552,9 +552,10 @@ filters with the API, see [Clear a column filter](#clear-a-column-filter).
 
 For the **Before**, **After**, **Before or equal to**, **After or equal to**, and **Is between**
 operators on `date`, `intl-date`, and `intl-time` columns, the filter menu shows a native date or
-time input. Pick the value from the browser's picker or type it in your locale's format. When you
-set the condition through the API instead, pass the value as an ISO 8601 string
-(`YYYY-MM-DD` for dates, `HH:mm` for times).
+time input. On `date` and `intl-date` columns, the **Is equal to** and **Is not equal to**
+operators show a native date input as well. Pick the value from the browser's picker or type it in
+your locale's format. When you set the condition through the API instead, pass the value as an
+ISO 8601 string (`YYYY-MM-DD` for dates, `HH:mm` for times).
 
 ## Filtering with nested headers
 

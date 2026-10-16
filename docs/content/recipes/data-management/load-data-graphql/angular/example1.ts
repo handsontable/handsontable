@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 
 type ApiUser = {
@@ -56,6 +56,8 @@ const USERS_QUERY = `
   `,
 })
 export class AppComponent implements OnInit {
+  private readonly cdr = inject(ChangeDetectorRef);
+
   status = 'Loading users...';
   hasError = false;
   rows: UserRow[] = [];
@@ -94,6 +96,9 @@ export class AppComponent implements OnInit {
       this.rows = [];
       this.hasError = true;
       this.status = 'Failed to load users. Try again.';
+    } finally {
+      // Nothing marks the OnPush-by-default component dirty after an `await`, so mark it.
+      this.cdr.markForCheck();
     }
   }
 

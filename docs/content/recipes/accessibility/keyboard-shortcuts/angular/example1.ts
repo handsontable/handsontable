@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, ViewChild, AfterViewInit, OnDestroy, NgZone, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, ViewChild, AfterViewInit, OnDestroy, inject } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 
 /* start:skip-in-preview */
@@ -43,7 +43,7 @@ const employees = [
 export class AppComponent implements AfterViewInit, OnDestroy {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
-  private readonly ngZone = inject(NgZone);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   data = employees;
   lastShortcut = '—';
@@ -102,7 +102,8 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         hot.alter('insert_row_below', row);
         hot.populateFromArray(row + 1, 0, [Object.values(rowData)]);
 
-        this.ngZone.run(() => { this.lastShortcut = 'Ctrl+D -- row duplicated'; });
+        this.lastShortcut = 'Ctrl+D -- row duplicated';
+        this.cdr.markForCheck();
       },
     });
 
@@ -119,10 +120,9 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         const rowCount = data.length;
         const timestamp = new Date().toLocaleTimeString();
 
-        this.ngZone.run(() => {
-          this.lastShortcut = 'Ctrl+Enter -- data submitted';
-          this.lastSubmission = `[${timestamp}] Submitted ${rowCount} rows -- columns: ${headers.join(', ')}`;
-        });
+        this.lastShortcut = 'Ctrl+Enter -- data submitted';
+        this.lastSubmission = `[${timestamp}] Submitted ${rowCount} rows -- columns: ${headers.join(', ')}`;
+        this.cdr.markForCheck();
       },
     });
   }

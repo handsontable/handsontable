@@ -8,7 +8,7 @@
 
 /* Constrain logo height in the header */
 .site-title img {
-  max-height: 24px;
+  max-height: 20px;
   width: auto;
 }
 
