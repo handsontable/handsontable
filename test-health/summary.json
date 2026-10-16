@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-16T09:03:39.880Z",
+  "generatedAt": "2026-10-16T09:43:42.111Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -9,7 +9,7 @@
   "retentionDays": 90,
   "totals": {
     "tests": 404,
-    "needsTicket": 30,
+    "needsTicket": 29,
     "quarantined": 0,
     "entries": 2100
   },
@@ -132,7 +132,7 @@
       "file": "e2e/iframe-cross-realm-scroll.spec.ts",
       "line": 100,
       "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
-      "count7": 2,
+      "count7": 1,
       "count30": 12,
       "countAll": 14,
       "runs30": 8,
@@ -1054,41 +1054,6 @@
         "leg": "e2e-webkit",
         "status": "failed",
         "error": "Error: expect(locator).not.toHaveValue(expected) failed",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "jasmine|handsontable/src/plugins/filters/__tests__/plugins/columnSorting.spec.js|Filters UI cooperation with ColumnSorting should filter values when sorting is applied",
-      "tier": "jasmine",
-      "file": "handsontable/src/plugins/filters/__tests__/plugins/columnSorting.spec.js",
-      "line": null,
-      "title": "Filters UI cooperation with ColumnSorting should filter values when sorting is applied",
-      "count7": 0,
-      "count30": 2,
-      "countAll": 3,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "UMD (theme: main)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "passes alone"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-09-25T05:45:09Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36098247271",
-        "branch": "develop",
-        "leg": "UMD (theme: main)",
-        "status": "failed",
-        "error": "Expected 27 to equal 3.",
         "source": "ci"
       },
       "needsTicket": true
@@ -14546,6 +14511,41 @@
         "leg": "cross-browser/webkit",
         "status": "failed",
         "error": "differs from base/develop (full tier); render sha256 4fc6d0de5bac",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/plugins/filters/__tests__/plugins/columnSorting.spec.js|Filters UI cooperation with ColumnSorting should filter values when sorting is applied",
+      "tier": "jasmine",
+      "file": "handsontable/src/plugins/filters/__tests__/plugins/columnSorting.spec.js",
+      "line": null,
+      "title": "Filters UI cooperation with ColumnSorting should filter values when sorting is applied",
+      "count7": 0,
+      "count30": 1,
+      "countAll": 3,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-25T05:45:09Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36098247271",
+        "branch": "develop",
+        "leg": "UMD (theme: main)",
+        "status": "failed",
+        "error": "Expected 27 to equal 3.",
         "source": "ci"
       },
       "needsTicket": false
