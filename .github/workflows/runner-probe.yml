@@ -1,0 +1,60 @@
+name: Runner probe
+
+# TEMPORARY: proves the release-only and browser-library steps work on the
+# pinned runner image. Deleted before merge.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/runner-probe.yml'
+
+jobs:
+  probe:
+    name: probe
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: ./.github/actions/setup-workspace
+        with:
+          puppeteer-chrome: 'true'
+      - name: Image
+        run: |
+          echo "ImageOS=$ImageOS"
+          lsb_release -a
+      - name: Install nuget (same steps as publish.yml)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mono-complete
+          curl -o /tmp/nuget.exe https://dist.nuget.org/win-x86-commandline/v7.3.0/nuget.exe
+          sudo bash -c 'echo "#!/bin/bash" > /usr/local/bin/nuget && echo "exec mono /tmp/nuget.exe \"\$@\"" >> /usr/local/bin/nuget && chmod +x /usr/local/bin/nuget'
+      - name: Pack a dummy NuGet package
+        run: |
+          mkdir -p /tmp/nupkg && cd /tmp/nupkg
+          echo hi > file.txt
+          cat > Dummy.nuspec <<'EOF'
+          <?xml version="1.0"?>
+          <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+            <metadata>
+              <id>Dummy</id>
+              <version>1.0.0</version>
+              <authors>probe</authors>
+              <description>probe</description>
+            </metadata>
+            <files><file src="file.txt" target="content" /></files>
+          </package>
+          EOF
+          nuget pack Dummy.nuspec
+          ls -l *.nupkg
+      - name: Launch Chrome through Puppeteer
+        working-directory: handsontable
+        run: |
+          cat > /tmp/probe.mjs <<'EOF'
+          import puppeteer from 'puppeteer';
+          const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
+          console.log(await browser.version());
+          const page = await browser.newPage();
+          await page.setContent('<p>probe</p>');
+          console.log(await page.evaluate(() => document.body.textContent));
+          await browser.close();
+          EOF
+          cp /tmp/probe.mjs ./probe.mjs && node probe.mjs; rm -f probe.mjs
