@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-16T13:07:49.664Z",
+  "generatedAt": "2026-10-16T13:14:03.501Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -13366,7 +13366,7 @@
       "file": "e2e/merge-cells-drag-outside.spec.ts",
       "line": 35,
       "title": "drag-selecting out of the grid over a merge › a vertical merge › ends the selection on the row beside the pointer, inside the merged band",
-      "count7": 1,
+      "count7": 0,
       "count30": 1,
       "countAll": 1,
       "runs30": 1,
