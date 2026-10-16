@@ -620,6 +620,19 @@ full object). Never poll one field and then read the rest once: the field you
 polled can come from a clone that is already drawn
 (`merge-cells-frozen-bottom.spec.ts`, the outline test).
 
+**A selection's window scroll lands a frame later when the selection scrolled
+the viewport, and in a microtask when it did not.** `selectCells()` on a cell
+outside the viewport scrolls the holder and queues `scrollWindowToCell()` for the
+next `afterScroll`, which the holder's `scroll` event fires a frame later; on a
+cell inside it the same call runs in a microtask, before the `evaluate` returns.
+The row height decides which: in a 400px grid row 10 is inside the viewport on
+`main` and `classic` and outside it on `horizon`, so a test that selected the
+cell and then scrolled the window back to the top saw the window pulled down
+again on `horizon` only, a frame after its `scrollY === 0` poll had passed
+(`selection-viewport-scroll.spec.ts`, the Shift+PageDown test, DEV-3443). Before
+undoing a selection's window scroll, wait for it to have landed (`expect.poll`
+on `isCellInWindow()`), on every theme.
+
 **An open editor follows the master, and its cell follows a clone.** Enter
 scrolls a cell that a frozen pane mostly covers into view, as a selection can.
 The editor is placed from the master's new offset at once, and the clone that
