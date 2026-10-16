@@ -980,12 +980,14 @@ concluding anything from a golden you read back.
   flipped between seeds). The hold is a `min-width` on `html`: at the suite's 1280px viewport it changes
   nothing, in the collapse it keeps the layout wide enough for the grids to measure. Three things follow.
   **Removing a collapse artifact moves goldens that were captured after one**: a baseline is only as true as
-  the capture, and `column-width` and `merge-cells` were among the pages that differed in the trial, so the
-  first compare after this lands reports them as changed and a seed settles it. **The hold hides the defect
-  from this suite, it does not fix it**: a grid in any container that collapses to 0px and returns, in a real
-  page, ends up with the same wrapped widths. And **`captureLayoutStability.spec.ts` can only fail on a Linux
-  runner**; a green local run proves nothing, so prove a change to the hold with a CI run, not a laptop.
-  Whether the hold also lets `column-filter` and `rows-sorting` leave `slugsToFix` was not tried.
+  the capture. The first run with the hold reported ten changed captures, all of them goldens with a collapse
+  in them (wrapped columns in `export-to-csv`, `row-parent-child` and `angular-basic-clipboard`, a grid's last
+  row cut off in `react-use-icons-in-cells`), and only the ones past the 1% tolerance show, so a seed settles
+  them. **The hold hides the defect from this suite, it does not fix it**: a grid in any container that
+  collapses to 0px and returns, in a real page, ends up with the same wrapped widths. And
+  **`captureLayoutStability.spec.ts` can only fail on a Linux runner**, and not on every run of one, so a green
+  local run proves nothing: prove a change to the hold with a CI run. Whether the hold also lets
+  `column-filter` and `rows-sorting` leave `slugsToFix` was not tried.
 - **A failed seed posts to Slack once per streak.** `docs-visual-seed.yml`'s `notify` job posts a failed
   automatic seed through the core seed's `SLACK_VISUAL_WEBHOOK_URL` (an absent secret skips it; a hand
   dispatch posts nothing). While a render stays broken every docs deploy fails its seed, so it posts only
