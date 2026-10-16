@@ -1,5 +1,5 @@
 import { type Locator, type Page, expect } from '@playwright/test';
-import { awaitBundle, BUNDLE_POLLING_MS } from '../bundle';
+import { awaitBundle, awaitFixtureBuilt } from '../bundle';
 
 /**
  * The slice of the open autocomplete editor the probes below read. `htEditor` is the editor's inner
@@ -27,7 +27,7 @@ interface FixtureWindow {
   };
   initGrid(overrides?: Record<string, unknown>): boolean;
   useFilteringSource(list: string[]): boolean;
-  fixtureError: string | null;
+  htBuildError?: string;
   __xssTestInjection?: boolean;
 }
 
@@ -98,19 +98,15 @@ export class AutocompleteChoicesListPage {
   }
 
   /**
-   * Navigates to the fixture and waits for its default grid to render. A constructor failure in the
-   * fixture's own script is a terminal state here and is rethrown, so a bad build is a red test with
-   * the cause instead of a mute timeout on a missing cell.
+   * Navigates to the fixture and waits for its default grid to render. The shared `awaitFixtureBuilt()`
+   * waits for the grid or for the constructor failure the fixture captured in `htBuildError`, and rethrows
+   * the failure with its cause, so a bad build is a red test with the cause instead of a mute timeout on a
+   * missing cell.
    */
   async goto(): Promise<void> {
     await this.page.goto(`/tests/fixtures/demo/autocomplete-choices-list.html?theme=${this.theme}&bundle=${this.bundle}`);
     await awaitBundle(this.page);
-    await this.page.waitForFunction(
-      () => Boolean((window as unknown as FixtureWindow).fixtureError) ||
-        document.querySelector('[data-testid="cell-0-0"]') !== null,
-      undefined,
-      { polling: BUNDLE_POLLING_MS }
-    );
+    await awaitFixtureBuilt(this.page);
     await this.expectBuilt();
   }
 
@@ -266,10 +262,11 @@ export class AutocompleteChoicesListPage {
   }
 
   /**
-   * Rethrows a constructor failure the fixture captured, then waits for the grid to render.
+   * Rethrows a constructor failure the fixture captured in `htBuildError` (a rebuild through `initGrid()` runs
+   * after `goto()`, so the shared wait does not cover it), then waits for the grid to render.
    */
   private async expectBuilt(): Promise<void> {
-    const buildError = await this.page.evaluate(() => (window as unknown as FixtureWindow).fixtureError);
+    const buildError = await this.page.evaluate(() => (window as unknown as FixtureWindow).htBuildError ?? null);
 
     if (buildError !== null) {
       throw new Error(`Handsontable constructor threw in the fixture:\n${buildError}`);

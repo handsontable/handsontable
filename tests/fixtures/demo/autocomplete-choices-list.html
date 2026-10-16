@@ -51,11 +51,10 @@
 
     container.className = 'ht-theme-' + window.htTheme;
 
-    // Captures a constructor failure so `goto()` can rethrow it instead of timing out on a missing cell.
-    window.fixtureError = null;
-
     window.initGrid = function(overrides) {
-      window.fixtureError = null;
+      // The shared fixture contract: a constructor throw lands in `window.htBuildError`, which
+      // `awaitFixtureBuilt()` and the page object rethrow with its stack. Cleared before each rebuild.
+      delete window.htBuildError;
 
       try {
         if (window.hot) {
@@ -71,7 +70,7 @@
           licenseKey: 'non-commercial-and-evaluation',
         }, overrides || {}));
       } catch (error) {
-        window.fixtureError = String(error && error.stack || error);
+        window.htBuildError = String((error && error.stack) || error);
         throw error;
       }
 
