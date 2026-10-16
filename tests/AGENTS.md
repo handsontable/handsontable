@@ -18,6 +18,33 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
 - **Local gates run `e2e-main` (plain UMD) only** — pre-push, the Claude Stop
   hook, and `npm run test:e2e` are pinned there; the `-min` legs are CI-only.
   (`e2e-main` used to load `full.min` — never assume the hooks cover min.)
+- **In CI a long leg runs in shards, and a shard is a job, not a leg.** `e2e.yml`
+  lists every leg and shard as one explicit matrix row (`main` in 3, `horizon`
+  and `classic` in 2, the `-min` legs and the engines job whole), each shard
+  running the same project with `--shard=<i>/<n>`; `fullyParallel` is on, so
+  Playwright deals the tests out one by one, and a serial `describe` stays
+  together. The config pins the CI worker count (`workers`, 4 on the 4-vCPU
+  runner), which is what the shard counts were derived at; a local run keeps
+  Playwright's default, and the engines config pins its own 2 (the measurement
+  was Chromium's). Four things follow. A shard's artifacts carry `-s<i>`
+  (`playwright-report-main-s2`, `playwright-durations-main-s2`), and the
+  test-health collector folds a leg's durations parts back into one leg record
+  (wall-clock = the longest shard; a push with a part missing is left out of the
+  budget), while the flake ledger's `leg` stays the project the test ran on. The
+  quarantine reporter decides each shard's exit status on the tests it saw: the
+  cap of six is counted per shard, so `lib/__tests__/quarantine-policy.test.mjs`
+  counts the tree's quarantined tests against the cap too (one test at a time,
+  never a describe), and the `quarantined-flaky` output is the shard's. "Re-run
+  failed jobs" re-runs the red shard alone; the collector records the leg at the
+  latest attempt from that shard's new part and the others' first-attempt parts.
+  And a shard that lands on no test is NOT Playwright's own red: it skips "No
+  tests found" whenever `--shard` is set, so the quarantine reporter fails a run
+  that saw no test; the flag that would turn an empty leg green stays banned.
+  Changing a shard count or the worker count is a measured change:
+  `.github/scripts/__tests__/e2e-legs.test.mjs` pins both, `DURATIONS_LEGS` in
+  `.github/scripts/lib/playwright-durations.mjs` must follow the matrix (its
+  test derives the table from the rows), and the budget on the durations page
+  starts over, since it counts only the records of a leg's latest shape.
 - `handsontable.full.js` and `handsontable.min.js` are deliberately untested
   here — they belong to the nightly on develop (DEV-2058).
 - **A PARTIAL build leaves the `-min` legs on the PREVIOUS bundle, and they
@@ -215,7 +242,8 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   `HOT_E2E_FULL_MATRIX=1 npx playwright test e2e/<spec>.spec.ts` runs one spec on all six legs;
   `--project=e2e-horizon` on an undeclared spec says "No tests found", by design – there is no
   `--pass-with-no-tests` anywhere, so an empty leg is a red job, never a green one that ran
-  nothing, and the sweep keeps every declaration shape in use so no leg is ever empty. The engine
+  nothing (an empty shard of a sharded leg, which Playwright would pass, is failed by the
+  quarantine reporter), and the sweep keeps every declaration shape in use so no leg is ever empty. The engine
   legs ignore the declarations: every `@cross-browser` spec runs on Firefox and WebKit whatever its
   leg tags say.
 
@@ -224,7 +252,9 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
 - The six projects above are Chromium. Tests tagged `@cross-browser` run on Firefox and WebKit as
   well: `{ tag: CROSS_BROWSER_TAG }` on the `test.describe` (`fixtures/test.ts`), picked up by the two
   projects of `playwright-engines.config.ts`, `e2e-firefox` and `e2e-webkit`, on the main theme and
-  the plain UMD bundle. CI runs that config in one job, `E2E / Playwright engines (Firefox, WebKit)`.
+  the plain UMD bundle. CI runs that config in one job, `E2E / Playwright engines (Firefox, WebKit)`,
+  at 2 workers (the config pins it; the Chromium legs' 4 were measured on Chromium, and a contention
+  flake here would hold back Visual and the publish paths).
   The visual suite's cross-browser leg photographs on the develop seed, master and release candidate
   pushes, the nightly, and pull requests that change the visual tier, so on any other pull request
   the job is the only Firefox and WebKit run of the grid. On a pull request a red engine leg also
@@ -761,7 +791,12 @@ all three places.
 `playwright-durations-<leg>`: one JSON file that
 `.github/scripts/playwright-durations.mjs` writes from the same
 `test-results/report.json` after the run step (the leg's wall-clock, workers,
-counts, and the milliseconds of every spec file and test, retries included).
+counts, and the milliseconds of every spec file and test, retries included). A
+sharded leg uploads one such part per shard (`-s<i>`, the summarizer told its
+`--shard`), and the collector folds them back into the leg: its wall-clock is
+the longest shard (what the leg costs when its shards start together; the span
+from the first start to the last end is kept beside it for the queueing), the
+counts and rows add up, and the page lists the parts under each run.
 `test-health.yml` records the develop pushes' files in
 `test-health/durations.json` (a pull request's stay in its own run for 3 days),
 and the "Where the time goes" section of the same page shows each leg's
@@ -775,9 +810,10 @@ that introduced the declarations. The nightly's full-matrix files upload like
 every leg's and are never recorded: a schedule is not a develop push. The JSON reporter feeds both sections,
 so it stays in the CI reporter list with its output path; the durations file
 path and artifact name are pinned in
-`.github/scripts/__tests__/test-health.test.mjs`. A change to the leg matrix
-also changes `DURATIONS_LEGS` in `.github/scripts/lib/playwright-durations.mjs`:
-the collector records only the legs on that list, and
+`.github/scripts/__tests__/test-health.test.mjs`. A change to the leg matrix or
+to a leg's shard count also changes `DURATIONS_LEGS` in
+`.github/scripts/lib/playwright-durations.mjs`: the collector records only the
+legs on that table, folds each leg's parts against the count there, and
 `.github/scripts/__tests__/playwright-durations.test.mjs` fails until it matches
 `e2e.yml`.
 
@@ -816,8 +852,13 @@ here instead.
   the flaky verdict fails the leg again, and the tag on a passing test raises a
   warning asking to be removed.
 - **Cap: 6 quarantined tests at once**, counted as distinct tests (one test
-  across every project it runs on is one). The entry after the cap fails the run even when
-  every test passes; fix one before parking another.
+  across every project it runs on is one) by the run that sees them. A leg that
+  runs in shards is several runs, each counting its own shard, so
+  `lib/__tests__/quarantine-policy.test.mjs` counts the whole tree's quarantined
+  tests against the same cap, lists the specs that carry one, and refuses a
+  describe-level `quarantined()` (it would park every test inside while a count
+  sees one): quarantine one test at a time. The entry after the cap fails the
+  run even when every test passes; fix one before parking another.
 - **Visible.** The ledger at <https://handsontable.github.io/handsontable/test-health/>
   shows quarantined tests with their entry, so nothing is parked silently.
 

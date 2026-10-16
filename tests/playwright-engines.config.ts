@@ -33,6 +33,12 @@ const engine = (name: string, device: string) => ({
 
 export default defineConfig<TestOptions>({
   ...base,
+  // The base config pins 4 CI workers for the Chromium legs, measured there. Firefox and WebKit are
+  // heavier per worker, this job runs in minutes and off the critical path, and a contention flake here
+  // would hold back the Visual stage and the publish paths under `failOnFlakyTests`, so the engines keep
+  // the runner's default of 2 until that is measured; two clean 4-worker runs are not that measurement.
+  // Pinned by .github/scripts/__tests__/playwright-engines.test.mjs; a local run keeps Playwright's default.
+  workers: process.env.CI ? 2 : undefined,
   projects: [
     engine('e2e-firefox', 'Desktop Firefox'),
     { ...engine('e2e-webkit', 'Desktop Safari'), grepInvert: new RegExp(CLIPBOARD_SHORTCUT_TAG) },

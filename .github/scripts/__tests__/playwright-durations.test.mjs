@@ -13,9 +13,12 @@ import {
   SLOW_TEST_MS,
   durationsView,
   emptyDurations,
+  foldShardParts,
   isDevelopPush,
   mergeDurations,
   parseDurationSummary,
+  parseLegArtifact,
+  parseShardFlag,
   percentile,
   renderDurationsLine,
   serializeDurations,
@@ -100,6 +103,71 @@ function legSummary({
   }
 
   return summary;
+}
+
+/**
+ * A whole leg's summary cut into the parts its shards would upload: the spec files dealt round-robin,
+ * heaviest first, each part with its own counts and summed time, and the leg's wall-clock, start, run
+ * and attempt on every part (the shards run side by side). What `foldShardParts` must put back together.
+ *
+ * @param {object} summary A whole leg's summary.
+ * @param {number} total The shards.
+ * @returns {object[]} The parts, shard 1 first.
+ */
+function shardsOf(summary, total) {
+  const parts = Array.from({ length: total }, (_, offset) => {
+    const files = summary.files.filter((file, index) => index % total === offset);
+    const counts = { tests: 0, skipped: 0, flaky: 0, unexpected: 0 };
+
+    files.forEach(file => file.cases.forEach((entry) => {
+      if (entry.status === 'skipped') {
+        counts.skipped += 1;
+      } else {
+        counts.tests += 1;
+      }
+      if (entry.status === 'flaky' || entry.status === 'unexpected') {
+        counts[entry.status] += 1;
+      }
+    }));
+
+    return {
+      ...summary,
+      shard: { index: offset + 1, total },
+      summedMs: files.reduce((sum, file) => sum + file.ms, 0),
+      counts,
+      files,
+    };
+  });
+
+  // The parts add up to the whole's counts, forced ones included (`legSummary({ unexpected: 0 })` keeps the
+  // fixture's two red cases): the part holding most of a count takes the difference.
+  Object.keys(parts[0].counts).forEach((key) => {
+    const delta = summary.counts[key] - parts.reduce((sum, part) => sum + part.counts[key], 0);
+    const [heaviest] = [...parts].sort((a, b) => b.counts[key] - a.counts[key]);
+
+    heaviest.counts[key] += delta;
+  });
+
+  return parts;
+}
+
+/**
+ * `mergeDurations`, with every whole summary of a sharded leg first cut into its parts, the shape the
+ * collector hands the reducer (one artifact per shard). A summary that already names its shard is passed
+ * as it is, so the tests that build parts by hand keep them.
+ *
+ * @param {object|null} previous The stored document.
+ * @param {object[]} summaries Whole summaries or parts.
+ * @param {object} run The run.
+ * @param {object} options The options.
+ * @returns {object} What `mergeDurations` returns.
+ */
+function merge(previous, summaries, run, options) {
+  const parts = summaries.flatMap(summary => (summary.shard === null && DURATIONS_LEGS[summary.leg] > 1
+    ? shardsOf(summary, DURATIONS_LEGS[summary.leg])
+    : [summary]));
+
+  return mergeDurations(previous, parts, run, options);
 }
 
 const RUNS_URL = 'https://github.com/handsontable/handsontable/actions/runs';
@@ -283,7 +351,7 @@ test('percentile is nearest-rank and never interpolates', () => {
 test('mergeDurations records a run per leg and freezes updatedAt on a true no-op', () => {
   const run = runOf();
   const legs = [legSummary({ leg: 'classic' }), legSummary({ leg: 'main', startTime: '2026-10-13T10:21:00.000Z' })];
-  const first = mergeDurations(null, legs, run, { now: NOW });
+  const first = merge(null, legs, run, { now: NOW });
 
   assert.equal(first.changed, true);
   assert.equal(first.added, 2);
@@ -317,10 +385,15 @@ test('mergeDurations records a run per leg and freezes updatedAt on a true no-op
     skipped: 5,
     flaky: 0,
     unexpected: 2,
+    // classic runs in two shards: the record keeps a row per part, [shard, attempt, wall-clock, tests], and the
+    // span from the first part's start to the last part's end (equal to the wall-clock when they start together).
+    shards: 2,
+    spanMs: 1089639,
+    parts: [[1, 1, 1089639, 21], [2, 1, 1089639, 24]],
   });
 
   const later = new Date(NOW.getTime() + 3600000);
-  const again = mergeDurations(first.doc, legs, run, { now: later });
+  const again = merge(first.doc, legs, run, { now: later });
 
   assert.equal(again.changed, false, 're-collecting the same legs changes nothing');
   assert.equal(again.added, 0);
@@ -331,12 +404,12 @@ test('mergeDurations records a run per leg and freezes updatedAt on a true no-op
 test('mergeDurations keys a leg by the attempt that ran it, so a re-run does not duplicate the others', () => {
   // "Re-run failed jobs" re-runs one leg; the other legs' artifacts from attempt 1 stay on the run, and
   // the collection of attempt 2 downloads them again. The summary names its own attempt.
-  const first = mergeDurations(null, [
+  const first = merge(null, [
     legSummary({ leg: 'classic', runId: '38380730524', runAttempt: 1 }),
     legSummary({ leg: 'main', runId: '38380730524', runAttempt: 1 }),
   ], runOf(), { now: NOW });
   const secondAttempt = runOf({ run_attempt: 2 });
-  const rerun = mergeDurations(first.doc, [
+  const rerun = merge(first.doc, [
     legSummary({ leg: 'classic', runId: '38380730524', runAttempt: 1 }),
     legSummary({ leg: 'main', runId: '38380730524', runAttempt: 2, startTime: '2026-10-13T11:00:00.000Z' }),
   ], secondAttempt, { now: NOW });
@@ -352,19 +425,19 @@ test('mergeDurations keys a leg by the attempt that ran it, so a re-run does not
 });
 
 test('mergeDurations prunes past the retention window, oldest first, and the latest rows too', () => {
-  const old = mergeDurations(null, [legSummary({ leg: 'classic', startTime: '2026-09-10T10:00:00.000Z' })],
+  const old = merge(null, [legSummary({ leg: 'classic', startTime: '2026-09-10T10:00:00.000Z' })],
     runOf({ id: 1 }), { now: new Date('2026-09-10T12:00:00Z') });
 
   assert.equal(old.doc.runs.length, 1, 'inside the window when it was collected');
 
-  const both = mergeDurations(old.doc, [legSummary({ leg: 'main' })], runOf({ id: 2 }), { now: NOW });
+  const both = merge(old.doc, [legSummary({ leg: 'main' })], runOf({ id: 2 }), { now: NOW });
 
   assert.equal(both.pruned, 1, 'the September run is past 30 days');
   assert.deepEqual(both.doc.runs.map(run => run.runId), ['2']);
   assert.deepEqual(both.doc.latest.sources.map(source => source.leg), ['main'],
     'a leg whose latest rows are past the window drops off');
 
-  const future = mergeDurations(both.doc, [], runOf({ id: 2 }), { now: new Date(NOW.getTime() + (40 * DAY)) });
+  const future = merge(both.doc, [], runOf({ id: 2 }), { now: new Date(NOW.getTime() + (40 * DAY)) });
 
   assert.equal(future.changed, true);
   assert.equal(future.pruned, 1);
@@ -381,13 +454,13 @@ test('mergeDurations holds the file under its cap by dropping the oldest runs, n
   for (let index = 0; index < 40; index += 1) {
     const startTime = new Date(NOW.getTime() - ((40 - index) * 3600000)).toISOString();
 
-    doc = mergeDurations(doc, [legSummary({ leg: 'classic', startTime })], runOf({ id: 1000 + index }),
+    doc = merge(doc, [legSummary({ leg: 'classic', startTime })], runOf({ id: 1000 + index }),
       { now: NOW }).doc;
   }
 
   const unbounded = Buffer.byteLength(serializeDurations(doc));
   const capBytes = unbounded - 600;
-  const capped = mergeDurations(doc, [legSummary({ leg: 'classic', startTime: NOW.toISOString() })],
+  const capped = merge(doc, [legSummary({ leg: 'classic', startTime: NOW.toISOString() })],
     runOf({ id: 2000 }), { now: NOW, capBytes });
   const size = Buffer.byteLength(serializeDurations(capped.doc));
 
@@ -399,7 +472,7 @@ test('mergeDurations holds the file under its cap by dropping the oldest runs, n
     [...capped.doc.runs.map(run => run.runId)].sort().reverse(), 'still newest first');
   assert.equal(capped.doc.latest.sources.length, 1, 'rows inside their half of the cap stay');
 
-  const again = mergeDurations(capped.doc, [legSummary({ leg: 'classic', startTime: NOW.toISOString() })],
+  const again = merge(capped.doc, [legSummary({ leg: 'classic', startTime: NOW.toISOString() })],
     runOf({ id: 2000 }), { now: NOW, capBytes });
 
   assert.equal(again.changed, false, 'a capped file re-collected is still a no-op');
@@ -409,13 +482,13 @@ test('mergeDurations holds the file under its cap by dropping the oldest runs, n
 test('the per-test rows get at most half the cap, the oldest legs\' rows first, so the history keeps the rest', () => {
   const older = legSummary({ leg: 'classic', startTime: '2026-10-13T10:00:00.000Z' });
   const newer = legSummary({ leg: 'main', startTime: '2026-10-13T11:00:00.000Z' });
-  const both = mergeDurations(mergeDurations(null, [older], runOf({ id: 1 }), { now: NOW }).doc, [newer],
+  const both = merge(merge(null, [older], runOf({ id: 1 }), { now: NOW }).doc, [newer],
     runOf({ id: 2 }), { now: NOW }).doc;
-  const oneLegRows = Buffer.byteLength(JSON.stringify(mergeDurations(null, [newer], runOf({ id: 2 }),
+  const oneLegRows = Buffer.byteLength(JSON.stringify(merge(null, [newer], runOf({ id: 2 }),
     { now: NOW }).doc.latest));
   // Room for one leg's rows in half the cap, not for two.
   const capBytes = (oneLegRows * 2) + 200;
-  const shed = mergeDurations(both, [], runOf({ id: 2 }), { now: NOW, capBytes });
+  const shed = merge(both, [], runOf({ id: 2 }), { now: NOW, capBytes });
 
   assert.deepEqual(shed.doc.latest.sources.map(source => source.leg), ['main'], 'the older push\'s rows went');
   assert.match(shed.notes.join('\n'), /dropped the rows of classic/);
@@ -424,9 +497,9 @@ test('the per-test rows get at most half the cap, the oldest legs\' rows first, 
 });
 
 test('the per-test rows follow each leg\'s latest push, and nothing but a develop push is recorded', () => {
-  const first = mergeDurations(null, [legSummary({ leg: 'classic', startTime: '2026-10-12T10:00:00.000Z', scale: 2 })],
+  const first = merge(null, [legSummary({ leg: 'classic', startTime: '2026-10-12T10:00:00.000Z', scale: 2 })],
     runOf({ id: 2 }), { now: NOW });
-  const later = mergeDurations(first.doc, [legSummary({ leg: 'classic', startTime: '2026-10-13T10:00:00.000Z' })],
+  const later = merge(first.doc, [legSummary({ leg: 'classic', startTime: '2026-10-13T10:00:00.000Z' })],
     runOf({ id: 4 }), { now: NOW });
   const { latest } = later.doc;
 
@@ -450,7 +523,7 @@ test('the per-test rows follow each leg\'s latest push, and nothing but a develo
   ];
 
   for (const [label, overrides] of others) {
-    assert.throws(() => mergeDurations(later.doc, [legSummary()], runOf({ id: 5, ...overrides }), { now: NOW }),
+    assert.throws(() => merge(later.doc, [legSummary()], runOf({ id: 5, ...overrides }), { now: NOW }),
       /only develop pushes are recorded/, label);
     assert.equal(isDevelopPush(runOf(overrides)), false, label);
   }
@@ -458,7 +531,7 @@ test('the per-test rows follow each leg\'s latest push, and nothing but a develo
 });
 
 test('a re-run of an older develop push, days later, never replaces a newer commit\'s rows', () => {
-  const newer = mergeDurations(null, [legSummary({ leg: 'classic', startTime: '2026-10-12T10:00:00.000Z' })],
+  const newer = merge(null, [legSummary({ leg: 'classic', startTime: '2026-10-12T10:00:00.000Z' })],
     developRun({ id: 2000 }), { now: NOW }).doc;
   // "Re-run failed jobs" on develop run 1000, a day later: its legs start after run 2000's did.
   const rerun = legSummary({
@@ -468,7 +541,7 @@ test('a re-run of an older develop push, days later, never replaces a newer comm
     runId: '1000',
     runAttempt: 2,
   });
-  const after = mergeDurations(newer, [rerun], developRun({ id: 1000, run_attempt: 2 }), { now: NOW }).doc;
+  const after = merge(newer, [rerun], developRun({ id: 1000, run_attempt: 2 }), { now: NOW }).doc;
 
   assert.deepEqual(after.latest.sources.map(source => [source.runId, source.runAttempt]), [['2000', 1]],
     'run ids follow commit order; start times do not');
@@ -481,7 +554,7 @@ test('a flaky test has no cell either, and a leg that ran no test keeps the rows
 
   amd.cases[0] = { ...amd.cases[0], status: 'flaky', retries: 1 };
 
-  const { doc } = mergeDurations(null, [flaky], developRun({ id: 1 }), { now: NOW });
+  const { doc } = merge(null, [flaky], developRun({ id: 1 }), { now: NOW });
 
   assert.equal(doc.latest.files['e2e/amd-loader.spec.ts'], undefined, 'its only test was flaky');
 
@@ -492,7 +565,7 @@ test('a flaky test has no cell either, and a leg that ran no test keeps the rows
     stats: { startTime: '2026-10-13T11:00:00.000Z', duration: 63 },
     config: { workers: 2 },
   }, { leg: 'classic' });
-  const after = mergeDurations(doc, [dead], developRun({ id: 2 }), { now: NOW });
+  const after = merge(doc, [dead], developRun({ id: 2 }), { now: NOW });
 
   assert.equal(after.doc.latest.sources[0].runId, '1', 'the newer, empty develop leg did not take over');
   assert.equal(Object.keys(after.doc.latest.files).length, 4);
@@ -511,29 +584,35 @@ test('mergeDurations records only the legs e2e.yml runs, and none that starts af
     legSummary({ leg: 'classic', startTime: '2999-01-01T00:00:00.000Z' }),
     legSummary({ leg: 'main' }),
   ];
-  const result = mergeDurations(null, forged, ended, { now: NOW });
+  const result = merge(null, forged, ended, { now: NOW });
   const notes = result.notes.join('\n');
 
   assert.match(notes, /leg "\.\.\/\.\.\/escape": not a leg e2e\.yml runs, skipped/);
   assert.match(notes, /leg "zzz": not a leg e2e\.yml runs, skipped/);
-  assert.match(notes, /leg classic: starts at 2999-01-01T00:00:00\.000Z, after run 3 ended, skipped/);
+  assert.match(notes, /leg classic shard 1: starts at 2999-01-01T00:00:00\.000Z, after run 3 ended, skipped/);
+  assert.match(notes, /leg classic shard 2: starts at 2999-01-01T00:00:00\.000Z, after run 3 ended, skipped/);
   assert.deepEqual(result.doc.runs[0].legs.map(leg => leg.leg), ['main']);
   assert.deepEqual(result.doc.latest.sources.map(source => source.leg), ['main']);
   assert.deepEqual(result.recorded.map(summary => summary.leg), ['main'], 'only what was stored is reported');
   assert.ok(result.doc.budget.to <= '2026-10-13T12:00:00.000Z', 'nothing is pinned past the window');
 });
 
-test('the leg allowlist is exactly the legs e2e.yml runs', () => {
-  // The matrix-collapse work will change the legs; this fails until DURATIONS_LEGS follows the workflow.
+test('the leg table is exactly the legs e2e.yml runs, with the shards each one runs in', () => {
+  // A change to the matrix (a leg, a shard count) fails here until DURATIONS_LEGS follows the workflow: the
+  // reducer records only the legs on the table, and folds a leg's parts against the count there.
   const e2e = readFileSync(path.join(repoRoot(), '.github/workflows/e2e.yml'), 'utf8');
-  const matrix = job(e2e, 'playwright');
-  const themes = matrix.match(/^ {8}theme: \[([^\]]+)\]$/m)[1].split(',').map(theme => theme.trim());
-  const suffixes = [...matrix.matchAll(/suffix: '([^']*)'/g)].map(([, suffix]) => suffix);
+  const rows = [...job(e2e, 'playwright').matchAll(
+    /^ {10}- \{ theme: (\w+), bundle: \{ label: '[^']+', suffix: '([^']*)' \}(?:, shard: (\d+), shards: (\d+))? \}$/gm
+  )];
   const engines = job(e2e, 'playwright-engines').match(/playwright-durations\.mjs --leg (\S+)$/m)[1];
+  const legs = { [engines]: 1 };
 
-  assert.ok(themes.length > 0 && suffixes.length > 0, 'read the theme and bundle axes of the matrix');
-  assert.deepEqual([...DURATIONS_LEGS].sort(),
-    [...themes.flatMap(theme => suffixes.map(suffix => `${theme}${suffix}`)), engines].sort());
+  assert.ok(rows.length > 0, 'read the explicit matrix rows of the playwright job');
+  rows.forEach(([, theme, suffix, , shards]) => {
+    legs[`${theme}${suffix}`] = Number(shards ?? 1);
+  });
+  assert.deepEqual(DURATIONS_LEGS, legs);
+  assert.ok(Object.values(DURATIONS_LEGS).some(count => count > 1), 'at least one leg runs in shards');
 });
 
 test('the per-test rows hold one column per leg and project, null where a test did not run', () => {
@@ -541,7 +620,7 @@ test('the per-test rows hold one column per leg and project, null where a test d
     legSummary({ leg: 'classic' }),
     legSummary({ leg: 'main', scale: 2 }),
   ];
-  const { doc } = mergeDurations(null, legs, developRun(), { now: NOW });
+  const { doc } = merge(null, legs, developRun(), { now: NOW });
 
   assert.deepEqual(doc.latest.columns,
     [{ leg: 'classic', project: 'e2e-classic' }, { leg: 'main', project: 'e2e-classic' }]);
@@ -552,7 +631,7 @@ test('the per-test rows hold one column per leg and project, null where a test d
 
   const withoutSubmenu = { ...legs[0], files: legs[0].files.filter(file => !file.file.includes('submenu')) };
   // A later develop push: its run id is higher than the first one's.
-  const onlyMain = mergeDurations(doc, [withoutSubmenu], developRun({ id: 38380730600 }), { now: NOW }).doc;
+  const onlyMain = merge(doc, [withoutSubmenu], developRun({ id: 38380730600 }), { now: NOW }).doc;
 
   assert.deepEqual(onlyMain.latest.files['e2e/submenu-hover-delay.spec.ts'].find(entry => entry[0] === SLOW_TITLE),
     [SLOW_TITLE, null, 19714], 'a test the newer classic run no longer has keeps only its main cell');
@@ -565,20 +644,20 @@ test('the budget input is P50 and P90 per leg, one vote per push, without failed
   walls.forEach((wallMs, index) => {
     const startTime = new Date(NOW.getTime() - ((index + 1) * 3600000)).toISOString();
 
-    doc = mergeDurations(doc, [legSummary({ leg: 'classic', startTime, wallMs, unexpected: 0 })],
+    doc = merge(doc, [legSummary({ leg: 'classic', startTime, wallMs, unexpected: 0 })],
       runOf({ id: 500 + index }), { now: NOW }).doc;
   });
 
   // A red leg's time includes retries of failing tests; it is not what the budget should learn from.
   const red = legSummary({ leg: 'classic', startTime: NOW.toISOString(), wallMs: 99999, unexpected: 3 });
 
-  doc = mergeDurations(doc, [red], runOf({ id: 600 }), { now: NOW }).doc;
+  doc = merge(doc, [red], runOf({ id: 600 }), { now: NOW }).doc;
 
   // A leg with only a flaky test counts: one retry is noise next to the run-to-run spread.
   const flaky = legSummary({ leg: 'main', startTime: NOW.toISOString(), wallMs: 700, unexpected: 0 });
 
   flaky.counts.flaky = 1;
-  doc = mergeDurations(doc, [flaky], runOf({ id: 601 }), { now: NOW }).doc;
+  doc = merge(doc, [flaky], runOf({ id: 601 }), { now: NOW }).doc;
 
   // "Re-run failed jobs": run 602's classic leg went red on a flake, and attempt 2 passed. One push, one vote.
   const attemptOf = (runAttempt, startTime, wallMs) => legSummary({
@@ -593,14 +672,19 @@ test('the budget input is P50 and P90 per leg, one vote per push, without failed
   const secondTry = attemptOf(2, '2026-10-13T11:50:00.000Z', 1100);
 
   firstTry.counts.flaky = 1;
-  doc = mergeDurations(doc, [firstTry], runOf({ id: 602 }), { now: NOW }).doc;
-  doc = mergeDurations(doc, [secondTry], runOf({ id: 602, run_attempt: 2 }), { now: NOW }).doc;
+  doc = merge(doc, [firstTry], runOf({ id: 602 }), { now: NOW }).doc;
+  doc = merge(doc, [secondTry], runOf({ id: 602, run_attempt: 2 }), { now: NOW }).doc;
 
   const { classic, main } = doc.budget.legs;
 
-  // classic: the ten pushes and attempt 2 of run 602, nearest rank over 11 values.
-  assert.deepEqual(classic, { runs: 11, wallMs: { p50: 600, p90: 1000 }, tests: { p50: 45, p90: 45 }, excluded: 1 });
-  assert.deepEqual(main, { runs: 1, wallMs: { p50: 700, p90: 700 }, tests: { p50: 45, p90: 45 }, excluded: 0 });
+  // classic: the ten pushes and attempt 2 of run 602, nearest rank over 11 values. `shards` is the count
+  // the leg's latest record carries (DURATIONS_LEGS: classic 2, main 3).
+  assert.deepEqual(classic, {
+    runs: 11, wallMs: { p50: 600, p90: 1000 }, tests: { p50: 45, p90: 45 }, excluded: 1, shards: 2, workers: 2,
+  });
+  assert.deepEqual(main, {
+    runs: 1, wallMs: { p50: 700, p90: 700 }, tests: { p50: 45, p90: 45 }, excluded: 0, shards: 3, workers: 2,
+  });
   assert.equal(doc.budget.windowDays, DURATIONS_RETENTION_DAYS);
   assert.ok(doc.budget.from < doc.budget.to);
 
@@ -617,15 +701,15 @@ test('the budget input is P50 and P90 per leg, one vote per push, without failed
 test('mergeDurations refuses a stored file of another version instead of rebuilding it from one run', () => {
   // The collector has no try/catch around it, like a durations.json it cannot parse: the job fails and the
   // month of history stays on gh-pages until a migration ships with the version bump.
-  assert.throws(() => mergeDurations({ version: 0, runs: 'whatever' }, [legSummary()], runOf(), { now: NOW }),
+  assert.throws(() => merge({ version: 0, runs: 'whatever' }, [legSummary()], runOf(), { now: NOW }),
     /durations\.json has version 0, and this collector reads and writes version 1/);
-  assert.throws(() => mergeDurations({ version: 2 }, [], runOf(), { now: NOW }), /has version 2/);
-  assert.deepEqual(mergeDurations(emptyDurations(), [], runOf(), { now: NOW }).notes, []);
+  assert.throws(() => merge({ version: 2 }, [], runOf(), { now: NOW }), /has version 2/);
+  assert.deepEqual(merge(emptyDurations(), [], runOf(), { now: NOW }).notes, []);
 });
 
 test('a test that fails or flakes in a newer run keeps its last good time; a removed test loses its row', () => {
   const amdTitle = 'bundle on a page with an AMD loader › loads and renders while a global define.amd is present';
-  const first = mergeDurations(null, [legSummary({ leg: 'classic' })], developRun({ id: 1 }), { now: NOW }).doc;
+  const first = merge(null, [legSummary({ leg: 'classic' })], developRun({ id: 1 }), { now: NOW }).doc;
   const later = legSummary({ leg: 'classic', startTime: '2026-10-13T11:00:00.000Z', scale: 2 });
   const submenu = later.files.find(file => file.file === 'e2e/submenu-hover-delay.spec.ts');
   const amd = later.files.find(file => file.file === 'e2e/amd-loader.spec.ts');
@@ -637,7 +721,7 @@ test('a test that fails or flakes in a newer run keeps its last good time; a rem
   amd.cases = amd.cases.map(entry => ({ ...entry, ms: 5000, status: 'flaky', retries: 1 }));
   notifications.cases = notifications.cases.filter(entry => entry.title !== removed);
 
-  const { latest } = mergeDurations(first, [later], developRun({ id: 2 }), { now: NOW }).doc;
+  const { latest } = merge(first, [later], developRun({ id: 2 }), { now: NOW }).doc;
   const cell = (file, title) => latest.files[file]?.find(row => row[0] === title)?.[1];
 
   assert.equal(latest.sources[0].runId, '2', 'the red develop push is the newer source');
@@ -651,7 +735,7 @@ test('a test that fails or flakes in a newer run keeps its last good time; a rem
 });
 
 test('serializeDurations writes one run and one spec file per line, and round-trips', () => {
-  const { doc } = mergeDurations(null, [legSummary({ leg: 'classic' })], developRun(), { now: NOW });
+  const { doc } = merge(null, [legSummary({ leg: 'classic' })], developRun(), { now: NOW });
   const text = serializeDurations(doc);
 
   assert.deepEqual(JSON.parse(text), doc);
@@ -666,7 +750,7 @@ test('a spec file named __proto__ is a row like any other', () => {
 
   odd.files[0] = { ...odd.files[0], file: '__proto__' };
 
-  const { doc } = mergeDurations(null, [odd], developRun(), { now: NOW });
+  const { doc } = merge(null, [odd], developRun(), { now: NOW });
 
   const own = files => Object.getOwnPropertyDescriptor(files, '__proto__')?.value;
 
@@ -682,18 +766,18 @@ test('a two-project leg labels its slow tests by engine in parentheses', () => {
   engines.files = engines.files
     .flatMap(file => [{ ...file, project: 'e2e-firefox' }, { ...file, project: 'e2e-webkit' }]);
 
-  const view = durationsView(mergeDurations(null, [engines], developRun(), { now: NOW }).doc);
+  const view = durationsView(merge(null, [engines], developRun(), { now: NOW }).doc);
 
   assert.deepEqual(view.slowTests[0].legs.map(([label]) => label), ['engines (firefox)', 'engines (webkit)']);
 });
 
 test('durationsView ranks the heaviest spec files, lists the slow tests, and names each push by run and commit', () => {
-  let doc = mergeDurations(null, [legSummary({ leg: 'classic' }), legSummary({ leg: 'main', scale: 2 })],
+  let doc = merge(null, [legSummary({ leg: 'classic' }), legSummary({ leg: 'main', scale: 2 })],
     developRun({ id: 7 }), { now: NOW }).doc;
 
-  doc = mergeDurations(doc, [legSummary({ leg: 'classic', startTime: '2026-10-13T11:00:00.000Z' })],
+  doc = merge(doc, [legSummary({ leg: 'classic', startTime: '2026-10-13T11:00:00.000Z' })],
     runOf({ id: 8 }), { now: NOW }).doc;
-  doc = mergeDurations(doc, [legSummary({ leg: 'classic', startTime: '2026-10-13T11:30:00.000Z' })],
+  doc = merge(doc, [legSummary({ leg: 'classic', startTime: '2026-10-13T11:30:00.000Z' })],
     runOf({ id: 9 }), { now: NOW }).doc;
 
   const view = durationsView(doc);
@@ -734,7 +818,7 @@ test('the page lists at most SLOW_TESTS_SHOWN slow tests, slowest first, and cou
       (_, index) => ({ title: `slow ${String(index).padStart(3, '0')}`, ms: 3100 + index })),
   });
 
-  const view = durationsView(mergeDurations(null, [many], developRun(), { now: NOW }).doc);
+  const view = durationsView(merge(null, [many], developRun(), { now: NOW }).doc);
 
   assert.equal(view.slowTests.length, SLOW_TESTS_SHOWN);
   assert.equal(view.slowTestCount, 251, 'the 250 above and the fixture\'s own slow test');
@@ -766,4 +850,329 @@ test('the summary file sits beside the JSON report it is made from', () => {
   // of a run (so a stale summary never survives a crashed leg), and the failure upload ships all of it.
   assert.equal(path.posix.dirname(PLAYWRIGHT_DURATIONS_FILE), path.posix.dirname(PLAYWRIGHT_JSON_REPORT));
   assert.notEqual(PLAYWRIGHT_DURATIONS_FILE, PLAYWRIGHT_JSON_REPORT);
+});
+
+// Shards: a leg over the wall-clock target runs as several jobs (`--shard=<i>/<n>`), each uploading its own
+// part; the collector folds the parts back into the leg (`foldShardParts`, DURATIONS_LEGS for the count).
+
+test('parseShardFlag reads <index>/<total> as Playwright\'s --shard takes it, and nothing else', () => {
+  assert.deepEqual(parseShardFlag('2/3'), { index: 2, total: 3 });
+  assert.deepEqual(parseShardFlag('1/1'), { index: 1, total: 1 });
+
+  for (const bad of ['3/2', '0/3', '1/0', '1', '1/3/5', ' 1/3', '1/3\n', 'a/b', '', undefined, '01/3']) {
+    assert.throws(() => parseShardFlag(bad), /<index>\/<total> with 1 <= index <= total/, JSON.stringify(bad));
+  }
+});
+
+test('parseLegArtifact names the leg and the shard from an artifact\'s suffix', () => {
+  assert.deepEqual(parseLegArtifact('main-s2'), { leg: 'main', shard: 2 });
+  assert.deepEqual(parseLegArtifact('main-min-s10'), { leg: 'main-min', shard: 10 });
+  assert.deepEqual(parseLegArtifact('classic-min'), { leg: 'classic-min', shard: null });
+  assert.deepEqual(parseLegArtifact('engines'), { leg: 'engines', shard: null });
+  assert.deepEqual(parseLegArtifact('main-s0'), { leg: 'main-s0', shard: null }, 'shards count from 1');
+  assert.deepEqual(parseLegArtifact('-s1'), { leg: '-s1', shard: null }, 'a shard needs a leg before it');
+});
+
+test('summarizePlaywrightReport records the shard it was told, and the summary check reads old and new parts', () => {
+  const summary = summarizePlaywrightReport(readFixture(), { leg: 'classic', shard: { index: 2, total: 2 } });
+
+  assert.deepEqual(summary.shard, { index: 2, total: 2 });
+  assert.equal(summarizePlaywrightReport(readFixture(), { leg: 'classic' }).shard, null, 'a whole leg');
+  assert.throws(() => summarizePlaywrightReport(readFixture(), { leg: 'classic', shard: { index: 3, total: 2 } }), /shard/);
+  assert.throws(() => summarizePlaywrightReport(readFixture(), { leg: 'classic', shard: '1/2' }), /shard/);
+
+  const written = JSON.parse(JSON.stringify(summary));
+
+  assert.deepEqual(parseDurationSummary(written), written);
+  assert.throws(() => parseDurationSummary({ ...written, shard: { index: 0, total: 2 } }), /shard/);
+  assert.throws(() => parseDurationSummary({ ...written, shard: [1, 2] }), /shard/);
+  assert.throws(() => parseDurationSummary({ ...written, shard: { index: 1 } }), /shard/);
+
+  const { shard, ...older } = written;
+
+  assert.deepEqual(parseDurationSummary(older), older, 'a part written before shards existed still reads (as a whole leg)');
+});
+
+test('foldShardParts puts a leg back together: the longest part is the wall-clock, everything else adds up', () => {
+  const whole = legSummary({ leg: 'classic', runId: '7', runAttempt: 1 });
+  const [first, second] = shardsOf(whole, 2);
+
+  // The second shard ran 30 s longer and started 3 s later.
+  second.wallMs = whole.wallMs + 30000;
+  second.startTime = '2026-10-13T10:20:50.000Z';
+
+  const { summary, missing, notes } = foldShardParts('classic', [second, first], 2);
+
+  assert.deepEqual(missing, []);
+  assert.deepEqual(notes, []);
+  assert.equal(summary.leg, 'classic');
+  assert.equal(summary.wallMs, whole.wallMs + 30000, 'the shards run side by side: the leg takes as long as its longest');
+  assert.equal(summary.startTime, whole.startTime, 'the earliest part');
+  assert.equal(summary.summedMs, whole.summedMs);
+  assert.deepEqual(summary.counts, whole.counts);
+  assert.deepEqual(summary.projects, whole.projects);
+  assert.equal(summary.runId, '7');
+  assert.equal(summary.runAttempt, 1);
+  assert.equal(summary.workers, 2);
+  assert.equal(summary.shard, null, 'the fold is the whole leg');
+  assert.equal(summary.version, DURATIONS_VERSION);
+
+  const byFile = files => Object.fromEntries(files.map(file => [file.file, [file.project, file.tests, file.ms, file.cases.length]]));
+
+  assert.deepEqual(byFile(summary.files), byFile(whole.files), 'every file with the totals the whole leg had');
+  assert.deepEqual(summary.files.map(file => file.file), whole.files.map(file => file.file), 'heaviest first, as a whole leg');
+  assert.deepEqual(summary.shards, {
+    total: 2,
+    // First start to last end: the second part started 2,733 ms later and ran 30 s longer.
+    spanMs: whole.wallMs + 30000 + 2733,
+    parts: [first, second].map(part => ({
+      index: part.shard.index,
+      runAttempt: 1,
+      startTime: part.startTime,
+      workers: 2,
+      wallMs: part.wallMs,
+      summedMs: part.summedMs,
+      ...part.counts,
+    })),
+    missing: [],
+  });
+});
+
+test('foldShardParts merges a spec file Playwright dealt across two shards', () => {
+  // `fullyParallel` deals at test granularity, so one file's tests can land in two shards.
+  const whole = legSummary({ leg: 'horizon' });
+  const [submenu, ...rest] = whole.files;
+  const countsOf = files => files.flatMap(file => file.cases).reduce((counts, entry) => {
+    counts[entry.status === 'skipped' ? 'skipped' : 'tests'] += 1;
+
+    if (entry.status === 'flaky' || entry.status === 'unexpected') {
+      counts[entry.status] += 1;
+    }
+
+    return counts;
+  }, { tests: 0, skipped: 0, flaky: 0, unexpected: 0 });
+  const slice = cases => ({
+    ...submenu,
+    tests: cases.filter(entry => entry.status !== 'skipped').length,
+    ms: cases.reduce((sum, entry) => sum + entry.ms, 0),
+    cases,
+  });
+  const part = (index, files) => ({
+    ...whole,
+    shard: { index, total: 2 },
+    files,
+    counts: countsOf(files),
+    summedMs: files.reduce((sum, file) => sum + file.ms, 0),
+  });
+  const first = part(1, [slice(submenu.cases.slice(0, 4)), ...rest.slice(0, 2)]);
+  const second = part(2, [slice(submenu.cases.slice(4)), ...rest.slice(2)]);
+  const { summary } = foldShardParts('horizon', [first, second], 2);
+  const merged = summary.files.find(file => file.file === submenu.file);
+
+  assert.equal(summary.files.length, whole.files.length, 'one entry per file and project, not per part');
+  assert.deepEqual([merged.tests, merged.ms], [submenu.tests, submenu.ms]);
+  assert.deepEqual(merged.cases, submenu.cases, 'the cases in shard order');
+  assert.deepEqual(summary.counts, whole.counts);
+  assert.equal(summary.summedMs, whole.summedMs);
+});
+
+test('foldShardParts names the shards without a part, skips a part for a shard the leg does not have, and notes a total that disagrees', () => {
+  const whole = legSummary({ leg: 'main' });
+  const [s1, s2, s3] = shardsOf(whole, 3);
+  const partial = foldShardParts('main', [s3, s1], 3);
+
+  assert.deepEqual(partial.missing, [2]);
+  assert.deepEqual(partial.notes, []);
+  assert.equal(partial.summary.counts.tests, s1.counts.tests + s3.counts.tests);
+  assert.deepEqual(partial.summary.shards.parts.map(part => part.index), [1, 3]);
+  assert.deepEqual(partial.summary.shards.missing, [2]);
+
+  const stray = foldShardParts('main', [s1, { ...s2, shard: { index: 4, total: 4 } }], 3);
+
+  assert.match(stray.notes.join('\n'), /^leg main: a part for shard 4, and e2e\.yml runs the leg in 3; skipped$/m);
+  assert.deepEqual(stray.missing, [2, 3]);
+
+  const disagree = foldShardParts('main', [{ ...s1, shard: { index: 1, total: 2 } }, s2, s3], 3);
+
+  assert.match(disagree.notes.join('\n'), /^leg main: the part for shard 1 says 2 shards; e2e\.yml runs 3$/m);
+  assert.deepEqual(disagree.missing, [], 'the table decides the count, so the leg is whole');
+  assert.deepEqual(foldShardParts('main', [], 3), { summary: null, missing: [1, 2, 3], notes: [] });
+
+  // An unsharded leg is one part without a shard, read as shard 1 of 1.
+  const one = foldShardParts('main-min', [legSummary({ leg: 'main-min' })], 1);
+
+  assert.deepEqual(one.missing, []);
+  assert.equal(one.summary.shards.total, 1);
+  assert.deepEqual(one.summary.shards.parts.map(part => part.index), [1]);
+  assert.equal(one.summary.wallMs, whole.wallMs);
+});
+
+test('mergeDurations records a sharded leg as one record with a row per part, and a partial leg as left out', () => {
+  // `unexpected: 0`: the fixture's two red tests would leave every push out of the budget.
+  const parts = shardsOf(legSummary({ leg: 'main', runId: '38380730524', runAttempt: 1, unexpected: 0 }), 3);
+  const full = mergeDurations(null, parts, runOf(), { now: NOW });
+  const [record] = full.doc.runs[0].legs;
+
+  assert.equal(full.added, 1, 'one record for the leg, not three');
+  assert.deepEqual(full.notes, []);
+  assert.equal(record.leg, 'main');
+  assert.equal(record.shards, 3);
+  assert.deepEqual(record.parts, parts.map((part, index) => [index + 1, 1, part.wallMs, part.counts.tests]),
+    'a row per part: [shard, attempt, wall-clock ms, tests]');
+  assert.equal(record.missing, undefined, 'whole');
+  assert.equal(record.tests, 45);
+  assert.equal(record.wallMs, parts[0].wallMs);
+  assert.equal(full.doc.latest.sources[0].shards, 3);
+  assert.deepEqual(full.doc.latest.sources[0].parts, record.parts);
+  assert.equal(Object.keys(full.doc.latest.files).length, 5, 'the rows come from every part');
+  assert.match(renderDurationsLine(full.recorded), /^Playwright wall-clock: main 18\.2 min \(3 shards\) \(2 workers\)/);
+
+  // The same parts an hour later, in another order: nothing changes.
+  const again = mergeDurations(full.doc, [parts[2], parts[0], parts[1]], runOf(), { now: new Date(NOW.getTime() + 3600000) });
+
+  assert.equal(again.changed, false);
+  assert.equal(again.added, 0);
+
+  // A later push with a shard missing: a partial record, left out of the budget, the rows still the whole push's.
+  const later = shardsOf(legSummary({
+    leg: 'main', startTime: '2026-10-13T11:00:00.000Z', scale: 2, runId: '38380730600', runAttempt: 1, unexpected: 0,
+  }), 3);
+  const partial = mergeDurations(full.doc, [later[0], later[2]], runOf({ id: 38380730600 }), { now: NOW });
+  const [newer] = partial.doc.runs[0].legs;
+
+  assert.equal(partial.doc.runs[0].runId, '38380730600');
+  assert.deepEqual(newer.missing, [2]);
+  assert.equal(newer.shards, 3);
+  assert.deepEqual(newer.parts.map(part => part[0]), [1, 3]);
+  assert.match(partial.notes.join('\n'),
+    /^leg main: no part for shard 2 of 3; recorded as partial, left out of the budget, and its per-test rows are the run before's$/m);
+  assert.equal(partial.doc.latest.sources[0].runId, '38380730524', 'the rows stay the whole push\'s');
+  assert.deepEqual(partial.doc.budget.legs.main, {
+    runs: 1, wallMs: { p50: 1089639, p90: 1089639 }, tests: { p50: 45, p90: 45 }, excluded: 1, shards: 3, workers: 2,
+  });
+  assert.equal(record.spanMs, record.wallMs, 'parts that start together span their longest part');
+  assert.equal(full.doc.latest.sources[0].spanMs, record.wallMs);
+  assert.match(renderDurationsLine(partial.recorded), /^Playwright wall-clock: main 18\.2 min \(2 of 3 shards\) \(2 workers\)/);
+
+  const view = durationsView(partial.doc);
+  const pointOf = runId => view.points.find(point => view.runs[point[0]][0] === runId);
+
+  assert.equal(pointOf('38380730600')[6], 3, 'drawn as left out: a shard has no part');
+  assert.deepEqual(pointOf('38380730600')[7], newer.parts, 'the page lists the parts under the point');
+  assert.equal(pointOf('38380730524')[6], 0);
+  assert.equal(pointOf('38380730524')[7].length, 3);
+  assert.equal(durationsView(mergeDurations(null, [legSummary({ leg: 'main-min' })], runOf(), { now: NOW }).doc).points[0][7],
+    null, 'a whole leg has no parts to list');
+});
+
+test('"Re-run failed jobs" re-runs one shard: the record takes the latest attempt, and the parts keep their own', () => {
+  const [s1, s2, s3] = shardsOf(legSummary({ leg: 'main', runId: '602', runAttempt: 1, unexpected: 0 }), 3);
+  const first = mergeDurations(null, [s1, s2, s3], runOf({ id: 602 }), { now: NOW });
+  // Shard 2 went red on a flake; its re-run passed, and the collection of attempt 2 downloads the other two
+  // shards' attempt-1 parts again.
+  const rerun = { ...s2, runAttempt: 2, startTime: '2026-10-13T11:00:00.000Z', wallMs: 5000 };
+  const second = mergeDurations(first.doc, [s1, rerun, s3], runOf({ id: 602, run_attempt: 2 }), { now: NOW });
+
+  assert.equal(second.added, 1);
+  assert.deepEqual(second.doc.runs[0].legs.map(leg => [leg.runAttempt, leg.parts.map(part => part[1]), leg.wallMs]),
+    [[1, [1, 1, 1], s1.wallMs], [2, [1, 2, 1], s1.wallMs]], 'attempt 2 is the leg\'s final state: two old parts and the new one');
+  assert.equal(second.doc.latest.sources[0].runAttempt, 2);
+  assert.equal(second.doc.budget.legs.main.runs, 1, 'one vote per push: attempt 2');
+
+  const view = durationsView(second.doc);
+
+  assert.deepEqual(view.points.map(point => [point[5], point[6]]).sort(), [[1, 2], [2, 0]], 'attempt 1 superseded');
+});
+
+test('the span is first start to last end: shards that queue fold to a short wall-clock and a long span', () => {
+  const [s1, s2, s3] = shardsOf(legSummary({ leg: 'main', unexpected: 0, wallMs: 300000 }), 3);
+  const at = minutes => new Date(Date.parse('2026-10-13T10:00:00.000Z') + (minutes * 60000)).toISOString();
+  const staggered = [
+    { ...s1, startTime: at(0) },
+    { ...s2, startTime: at(10) },
+    { ...s3, startTime: at(20) },
+  ];
+  const { summary } = foldShardParts('main', staggered, 3);
+
+  assert.equal(summary.wallMs, 300000, 'what the leg costs when its shards start together');
+  assert.equal(summary.shards.spanMs, 1500000, 'what the pull request waited: 20 min of queueing plus the last 5-min shard');
+  assert.equal(summary.startTime, at(0));
+
+  const { doc } = mergeDurations(null, staggered, developRun(), { now: NOW });
+  const [record] = doc.runs[0].legs;
+
+  assert.deepEqual([record.wallMs, record.spanMs], [300000, 1500000]);
+  assert.deepEqual(doc.latest.sources[0].spanMs, 1500000);
+
+  const [point] = durationsView(doc).points;
+
+  assert.equal(point[8], 1500000, 'the page shows the span under the point');
+  assert.equal(durationsView(mergeDurations(null, [legSummary({ leg: 'main-min' })], developRun(), { now: NOW }).doc).points[0][8],
+    null, 'a whole leg has no span of its own');
+});
+
+test('a part without a shard for a sharded leg is an older whole leg: recorded as one alone, skipped beside shard parts', () => {
+  // A "Re-run failed jobs" of a push from before the shards uploads `playwright-durations-main`, no `-s<i>`.
+  const whole = legSummary({ leg: 'main', unexpected: 0 });
+  const alone = foldShardParts('main', [whole], 3);
+
+  assert.deepEqual(alone.missing, [], 'not partial: it is the whole leg');
+  assert.equal(alone.summary.shards.total, 1);
+  assert.equal(alone.summary.counts.tests, 45);
+  assert.deepEqual(alone.notes, [
+    'leg main: an unsharded part for a leg e2e.yml runs in 3 shards (a run from before the shards); recorded as a whole leg',
+  ]);
+
+  const recorded = mergeDurations(null, [whole], developRun(), { now: NOW });
+  const [record] = recorded.doc.runs[0].legs;
+
+  assert.equal(record.shards, undefined, 'recorded in the shape from before shards existed');
+  assert.equal(record.parts, undefined);
+  assert.equal(record.missing, undefined);
+  assert.match(recorded.notes.join('\n'), /recorded as a whole leg/);
+  assert.equal(recorded.doc.budget.legs.main.shards, 1, 'the budget sees a whole leg');
+
+  const [s1, , s3] = shardsOf(whole, 3);
+  const mixed = foldShardParts('main', [s1, whole, s3], 3);
+
+  assert.deepEqual(mixed.missing, [2]);
+  assert.deepEqual(mixed.summary.shards.parts.map(part => part.index), [1, 3]);
+  assert.equal(mixed.summary.counts.tests, s1.counts.tests + s3.counts.tests, 'the whole part was not read as shard 1');
+  assert.deepEqual(mixed.notes, ['leg main: an unsharded part beside 2 shard part(s); the unsharded one is skipped']);
+});
+
+test('the budget counts only the records of a leg\'s latest shape: a change of shards or workers starts it over', () => {
+  let doc = null;
+  const at = index => new Date(NOW.getTime() - ((10 - index) * 3600000)).toISOString();
+
+  // Five unsharded pushes on 2 workers at about 17 minutes (the shape before this change).
+  for (let index = 0; index < 5; index += 1) {
+    const old = legSummary({ leg: 'main', startTime: at(index), wallMs: 1000000, unexpected: 0 });
+
+    doc = mergeDurations(doc, [old], runOf({ id: 100 + index }), { now: NOW }).doc;
+  }
+  // Two sharded pushes on 4 workers at five minutes.
+  for (let index = 5; index < 7; index += 1) {
+    const parts = shardsOf(legSummary({ leg: 'main', startTime: at(index), wallMs: 300000, unexpected: 0 }), 3)
+      .map(part => ({ ...part, workers: 4 }));
+
+    doc = mergeDurations(doc, parts, runOf({ id: 100 + index }), { now: NOW }).doc;
+  }
+
+  assert.deepEqual(doc.budget.legs.main, {
+    runs: 2, wallMs: { p50: 300000, p90: 300000 }, tests: { p50: 45, p90: 45 }, excluded: 5, shards: 3, workers: 4,
+  }, 'the five 17-minute records are left out, not mixed into a "3 shards" P50');
+
+  const view = durationsView(doc);
+  const flags = Object.fromEntries(view.points.map(point => [view.runs[point[0]][0], point[6]]));
+
+  assert.deepEqual(flags, { 100: 4, 101: 4, 102: 4, 103: 4, 104: 4, 105: 0, 106: 0 },
+    'the page marks the other shape as left out (4), the current shape as counted');
+
+  // A push on the same 3 shards but back on 2 workers is another shape too.
+  const twoWorkers = shardsOf(legSummary({ leg: 'main', startTime: at(7), wallMs: 500000, unexpected: 0 }), 3);
+  const back = mergeDurations(doc, twoWorkers, runOf({ id: 107 }), { now: NOW }).doc;
+
+  assert.deepEqual([back.budget.legs.main.runs, back.budget.legs.main.excluded, back.budget.legs.main.workers], [1, 7, 2],
+    'the latest push sets the shape, so the two 4-worker pushes are now the ones left out');
 });
