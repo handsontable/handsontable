@@ -643,6 +643,18 @@ comparison until it has (`FixedColumnsEndPage.editorAndCellBoxes()`).
 Requiring the catch-up, not only a match, keeps an editor misplaced by exactly
 the scroll from passing on the stale frame.
 
+**A grid built without a layout settles in two draws, and the provisional flag
+clears after the first.** When the container joins the layout, the first draw
+renders the band and, at its end, settles the scrolling element (so
+`readProvisionalLayout()` is already `false`), but the row heights measured
+without a layout are dropped only on the way into the NEXT draw, which takes them
+again. Between the two the band already fills the container while the holder's
+scroll range still counts the stale heights: 6050px against 5830px of rows,
+20-40ms apart (`unlaid-out-init-scroll-sync.spec.ts`, DEV-3114, the suite's most
+frequent flake). Neither the fill nor the flag can stand in for the settle: poll
+the scroll range against the rows (`UnlaidOutInitPage.expectScrollRangeOfRows()`),
+with the lower bound in the polled value.
+
 **A geometry read is two round trips, and the grid recycles its rows.**
 `locator.boundingBox()` and `locator.evaluate()` resolve the node in one round
 trip and act on it in another (`innerText()` and `getAttribute()` do both in one
