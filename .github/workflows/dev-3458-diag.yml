@@ -33,7 +33,8 @@ jobs:
       - name: Compare capture variants on the export-to-csv page and other pages
         working-directory: .github/dev-3458-diag
         env:
-          LOADS: '10'
+          LOADS: '0'
+          SAVE: 'cell-renderer,merge-cells,column-width,column-header'
           PAGES: 'binding-to-data,column-header,cell-renderer,column-groups,nested-headers,hidden-columns,merge-cells,column-summary,row-header,column-width,row-height,formula-calculation,export-to-excel,undo-redo,context-menu,cell-validator,numeric-cell-type,date-cell-type,select-cell-type,autocomplete-cell-type,row-moving,column-moving,read-only,comments'
           WORKERS: '4'
           MIX: ${{ matrix.mix }}
@@ -42,4 +43,6 @@ jobs:
         if: always()
         with:
           name: diag-${{ matrix.os }}-mix${{ matrix.mix }}
-          path: .github/dev-3458-diag/diag-output.txt
+          path: |
+            .github/dev-3458-diag/diag-output.txt
+            .github/dev-3458-diag/shots

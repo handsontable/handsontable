@@ -1,5 +1,6 @@
 import { chromium } from 'playwright';
 import { createHash } from 'node:crypto';
+import { mkdirSync, writeFileSync } from 'node:fs';
 
 const base = process.env.BASE || 'https://handsontable-docs-staging.pages.dev/docs';
 const perFw = Number(process.env.LOADS || 10);
@@ -19,7 +20,7 @@ for (let i = 0; i < perFw; i++) {
   }
 }
 for (const slug of pages) {
-  for (const v of ['base', 'base', 'htmlMin']) jobs.push({ fw: fws[0], slug, v, i: 0, kind: 'page' });
+  for (const v of ['base', 'base', 'previewMin', 'htmlMin']) jobs.push({ fw: fws[0], slug, v, i: 0, kind: 'page' });
 }
 
 const results = [];
@@ -46,6 +47,10 @@ async function load(browser, job) {
   for (let k = 0; k < 3; k++) {
     shot = await page.screenshot({ fullPage: true, animations: 'disabled' });
     await page.waitForTimeout(k === 0 ? 100 : 250);
+  }
+  if (job.kind === 'page' && (process.env.SAVE || '').split(',').includes(job.slug)) {
+    mkdirSync('shots', { recursive: true });
+    writeFileSync(`shots/${job.slug}-${job.v}-${results.length}.png`, shot);
   }
   results.push({
     ...job,
@@ -93,6 +98,7 @@ for (const [slug, v] of Object.entries(byPage)) {
   const b = v.base || [];
   const same = b.length === 2 && b[0] === b[1];
   const eq = same && v.htmlMin && v.htmlMin[0] === b[0];
+  const eqP = same && v.previewMin && v.previewMin[0] === b[0];
 
-  console.log(`${slug.padEnd(28)} baseStable=${same} htmlMinSameAsBase=${eq} base=${b.join(',')} htmlMin=${(v.htmlMin || []).join(',')}`);
+  console.log(`${slug.padEnd(24)} baseStable=${same} htmlMinSame=${eq} previewMinSame=${eqP} base=${b.join(',')} htmlMin=${(v.htmlMin || []).join(',')} previewMin=${(v.previewMin || []).join(',')}`);
 }
