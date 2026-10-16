@@ -98,6 +98,46 @@ describe('BaseEditor', () => {
     expect(getActiveEditor().open).toHaveBeenCalled();
   });
 
+  it('should pass the original array, object, and number to a custom BaseEditor setValue', async() => {
+    class RawValueEditor extends Handsontable.editors.BaseEditor {
+      init() {}
+      getValue() {
+        return this.received;
+      }
+      setValue(value) {
+        this.received = value;
+      }
+      open() {}
+      close() {}
+      focus() {}
+    }
+
+    const arrayValue = [[1, 2], [3, 4]];
+    const objectValue = { a: 1 };
+
+    handsontable({
+      data: [[arrayValue], [objectValue], [5]],
+      editor: RawValueEditor,
+    });
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+
+    expect(getActiveEditor().received).toEqual(arrayValue);
+
+    await keyDownUp('escape');
+    await selectCell(1, 0);
+    await keyDownUp('enter');
+
+    expect(getActiveEditor().received).toEqual(objectValue);
+
+    await keyDownUp('escape');
+    await selectCell(2, 0);
+    await keyDownUp('enter');
+
+    expect(getActiveEditor().received).toBe(5);
+  });
+
   describe('should populate value from the currently active cell to every cell in the selected range', () => {
     it('Ctrl/Meta + Enter when editor is active', async() => {
       handsontable({

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed a custom editor that extends BaseEditor so setValue receives the cell value. Call Handsontable.helper.stringify when the editor needs a string.",
+  "type": "changed",
+  "issueOrPR": 13896,
+  "breaking": true,
+  "framework": "none"
+}
