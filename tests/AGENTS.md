@@ -485,6 +485,21 @@ text instead, `span.colHeader` matched with `getByText(label, { exact: true })`,
   `beforeSetRangeEnd`), so a Delete after it empties that page and no other.
   `pagination-filter-sort.spec.ts` asserts both.
 
+- The row resize handle is attached once and moved from header to header, so
+  "the handle is visible" proves nothing about which header it is on:
+  `ManualResizePage.hoverRowHeader()` resolves at once for a handle still left
+  on the previous header (an `opacity: 0` handle counts as visible too). A test
+  that presses or double-clicks the handle after moving to another header waits
+  on its POSITION, read in one `evaluate` with the header: its centre sits one
+  pixel above the header's bottom boundary
+  (`ManualRowResizeAutofitPage.expectRowHandleOn()`). Two more rules for the
+  double-click autofit (`e2e/manual-row-resize-autofit.spec.ts`): the fit does
+  not run on the double-click but from a 500ms timer the first press arms, so
+  poll the rendered heights and never count frames (the legacy twin counted 38
+  and failed with `Expected 100 to be around 26` under load); and a header the
+  pointer must reach right after the double-click has its box read BEFORE it,
+  because the fit shifts every row below the fitted one.
+
 ## Reading grid UI state
 
 - A closed editor stays in the DOM (`ht_editor_hidden`), and Playwright reports its textarea as
