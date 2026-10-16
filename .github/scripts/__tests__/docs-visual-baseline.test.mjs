@@ -328,6 +328,24 @@ test('the render that writes golden records checks every page it photographs, on
   'the per-page check must require an empty list of problems');
 });
 
+test('every full-page capture holds the layout width first, and the regression spec uses the same helper', () => {
+  // On Linux CI `page.screenshot({ fullPage: true })` collapses the viewport to 1x1px. A grid measured in the
+  // collapsed page keeps wrapped column widths, so a capture is taller than the page that was laid out and the
+  // golden record flips between two heights (DEV-3458). The hold must come before the capture it protects.
+  const visual = read('docs/tests/visualDocs.spec.ts');
+  const hold = read('docs/tests/lib/hold-layout-width.ts');
+  const regression = read('docs/tests/captureLayoutStability.spec.ts');
+  const call = visual.indexOf('await holdLayoutWidth(page);');
+
+  assert.match(visual, /import \{ holdLayoutWidth \} from '\.\/lib\/hold-layout-width';/);
+  assert.notEqual(call, -1, 'visualDocs.spec.ts no longer holds the layout width before it photographs a page');
+  assert.ok(call < visual.indexOf('await expect(page).toHaveScreenshot('), 'the hold must come before the screenshot');
+  assert.match(hold, /html \{ min-width: \$\{CAPTURE_MIN_LAYOUT_WIDTH\}px; \}/, 'the hold is a min-width on the root element');
+  assert.match(hold, /export const CAPTURE_MIN_LAYOUT_WIDTH = 1000;/);
+  assert.match(regression, /import \{ holdLayoutWidth \} from '\.\/lib\/hold-layout-width';/);
+  assert.match(regression, /fullPage: true/, 'the regression spec must take a full-page capture, the thing that collapses the viewport');
+});
+
 test('a bootstrap that seeded nothing says so, instead of the core gate\'s "baseline created"', () => {
   // The core gate reads a trusted bootstrap as "this build became the baseline", assuming that the
   // render and the seed ran. After a refused layout check or a failed render, they did not.
