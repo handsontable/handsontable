@@ -51,7 +51,7 @@ on:
 jobs:
   puppeteer:
     name: "${{ matrix.bundle.label }} (theme: ${{ matrix.theme }})"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # matrix context is unavailable in a job-level if (evaluated before matrix
     # expansion). The e2e and e2e-min scope filters are identical, so a single
     # job-level gate is exactly equivalent to the old per-bundle gating.
@@ -120,7 +120,7 @@ jobs:
   # leg run side by side, so the leg's wall-clock is its longest shard.
   playwright:
     name: "Playwright ${{ matrix.bundle.label }} (theme: ${{ matrix.theme }}${{ matrix.shard && format(', shard {0}/{1}', matrix.shard, matrix.shards) || '' }})"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     container:
       image: mcr.microsoft.com/playwright:v1.62.1-noble
     if: inputs.run-all || inputs.run-playwright
@@ -254,7 +254,7 @@ jobs:
   # release candidate publish).
   playwright-engines:
     name: "Playwright engines (Firefox, WebKit)"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     container:
       image: mcr.microsoft.com/playwright:v1.62.1-noble
     if: inputs.run-all || inputs.run-playwright
