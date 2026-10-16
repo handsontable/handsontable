@@ -34,9 +34,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   one `setPage()` to the estimated page (the number page size as the page length, the shown
   span for `'auto'`), so a gap of many pages fires the page hooks once, then a one-page walk.
   Never re-estimate from each page reached: a short last page or `'auto'` pages of other
-  lengths make repeated estimates bounce past the row; a selection carried over from
-  the previous sheet, or one the follow could not reach, is deselected rather than left on a
-  hidden row.
+  lengths make repeated estimates bounce past the row; a selection that was not restored (one
+  a plugin or a listener made during the switch), or one the follow could not reach, is
+  deselected rather than left on a hidden row.
   The selection itself is kept twice: `selection` (`getSelected()`) and `selectionState`, a copy
   of `Selection#exportSelection()` (the active range is cloned — the export hands it out live —
   and so are the ranges handed to the import, or the stored state would become the live
@@ -265,13 +265,23 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `orderIndex` -1. It sets only the `isImmediatePropagationEnabled` mark, never `cancelBubble`:
   the grid's key listener sits on the `documentElement`, and stopping the bubble there hides every
   bar keystroke from the host page. (2) `setActiveSheet` closes an open editor before it captures
-  the outgoing sheet, so an API switch mid-edit saves into the sheet being left. (3) A switch onto
-  a sheet with no stored selection deselects at the start of the switch batch, before
-  `loadData`: `loadData` only clamps the selection, so the previous sheet's cells used to carry
-  over, and deselecting after the load would let a still-open editor save into the arriving
-  sheet. A stored selection that no longer fits (the host shrank the sheet's data while it was
-  away, so `restoreViewport()` reports `false`) is deselected inside the viewport batch for the
-  same reason. The grid focus scope drops its remembered Tab re-entry cell on `afterLoadData` on
+  the outgoing sheet, so an API switch mid-edit saves into the sheet being left. (3) Every switch
+  deselects at the start of the switch batch, before `loadData`, whether or not the arriving
+  sheet has a stored selection: `loadData` only clamps the selection, so the previous sheet's
+  cells used to carry over, and deselecting after the load would let a still-open editor save
+  into the arriving sheet. Do not skip it when a stored selection is about to be restored:
+  `loadData()` ends in `selection.refresh()`, which replays the departing selection against the
+  arriving sheet, and a cell that falls inside the arriving sheet's frozen columns was then looked
+  up in the inline-start overlay before that overlay had drawn the new sheet. The switch threw
+  `TD or TH was expected to be rendered but is not` and the stored selection was never restored
+  (pinned by `tests/e2e/sheets-bar-frozen-columns.spec.ts`). The cost is one `afterDeselect`
+  on every switch, followed by the selection hooks when a stored selection
+  comes back. The sheets bar guide documents it for host listeners, and the spec pins the order.
+  When a stored selection no longer
+  fits (the host shrank the sheet's data while it was away, so `restoreViewport()` reports
+  `false`), the viewport batch deselects again. Nothing from the previous sheet reaches it any
+  more; the call clears only a selection a plugin or a listener made during the switch, and stays
+  as a guard. The grid focus scope drops its remembered Tab re-entry cell on `afterLoadData` on
   every grid, not only on a switch: a cell remembered from the previous data does not name a
   record of the new data.
 - **`render()` cancels an in-flight rename silently.** The cancel-hook handler repaints the
