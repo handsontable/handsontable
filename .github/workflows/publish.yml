@@ -29,7 +29,7 @@ jobs:
   # ============================================================
   pre-release:
     name: Build and publish a pre-release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: |
       (github.event_name == 'workflow_dispatch' &&
         !startsWith(github.ref_name, 'release/') &&
@@ -72,7 +72,7 @@ jobs:
   # ============================================================
   first-rc-build:
     name: Build first RC
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: |
       github.event_name == 'release' &&
       github.event.release.prerelease == true
@@ -289,7 +289,7 @@ jobs:
 
   first-rc-publish:
     name: Publish first RC
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: ${{ !cancelled() && needs.first-rc-build.result == 'success' && needs.first-rc-test.result == 'success' }}
     needs: [first-rc-build, first-rc-test]
     environment: approvers
@@ -394,7 +394,7 @@ jobs:
   # ============================================================
   rc-build:
     name: Build RC
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: github.event_name == 'push'
     outputs:
       rc-version: ${{ steps.rc-version.outputs.rc-version }}
@@ -606,7 +606,7 @@ jobs:
 
   rc-publish:
     name: Publish RC
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: ${{ !cancelled() && needs.rc-build.result == 'success' && needs.rc-test.result == 'success' }}
     needs: [rc-build, rc-test]
     environment: approvers
@@ -746,7 +746,7 @@ jobs:
   # ============================================================
   stable-build:
     name: Build stable release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: |
       github.event_name == 'release' &&
       github.event.release.prerelease == false
@@ -978,7 +978,7 @@ jobs:
 
   stable-publish:
     name: Publish stable release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [stable-build]
     environment: approvers
     steps:
