@@ -98,7 +98,7 @@ This is the docs-**site** voice — it overrides the monorepo-wide documentation
 - Inline code for API names: `columnSorting`, `readOnly`.
 - Oxford comma in lists of three or more items.
 - American English spelling.
-- Product name: the first prose mention on a page and `description:` say `Handsontable DataGrid`, and later mentions can say `Handsontable`. The `metaTitle:` suffix stays `| Handsontable` for now, so the templates below stay valid. Code, package names, and API names stay `Handsontable`. Full rule: `.ai/DOC-STANDARDS.md`, "Product naming". A renamed heading changes its anchor, so grep for inbound links first.
+- Product name: the first prose mention on a page that names the product, and a `description:` that names it, say `Handsontable DataGrid`. Later mentions and generic references keep `Handsontable`, and so do migration guides and version references such as "Handsontable 10.0". The `metaTitle:` templates below stay as they are for now. Code, package names, and API names stay `Handsontable`. Full rule: `.ai/DOC-STANDARDS.md`, "Product naming". A renamed heading changes its anchor, so grep for inbound links first.
 
 ---
 
@@ -584,7 +584,7 @@ Copy and complete this checklist in your PR description:
 - [ ] Heading hierarchy is correct (no skipped levels, e.g., H2 → H4)
 - [ ] Headings and the frontmatter `title:` use sentence case
 - [ ] Active voice and second person ("you") used throughout
-- [ ] First prose mention and `description:` say `Handsontable DataGrid`; code and API names unchanged
+- [ ] Where the page names the product, the first prose mention and `description:` say `Handsontable DataGrid`; later mentions, generic references, code, and API names keep `Handsontable`
 - [ ] No banned words: simply, just, easy, straightforward, note that, please
 - [ ] Tutorials and how-tos have a Prerequisites section
 - [ ] Tutorials have "What you learned" and "Next steps" sections
