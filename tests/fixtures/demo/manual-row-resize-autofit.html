@@ -64,9 +64,6 @@
 
     container.className = 'ht-theme-' + window.htTheme;
 
-    // Captures a constructor failure so `goto()` can rethrow it instead of timing out on a missing cell.
-    window.fixtureError = null;
-
     try {
       window.hot = new Handsontable(container, {
         data: Handsontable.helper.createSpreadsheetData(9, 9),
@@ -78,7 +75,8 @@
         licenseKey: 'non-commercial-and-evaluation',
       });
     } catch (error) {
-      window.fixtureError = String(error && error.stack || error);
+      // The shared fixture contract: `awaitFixtureBuilt()` rethrows this with the constructor's stack.
+      window.htBuildError = String((error && error.stack) || error);
       throw error;
     }
   </script>
