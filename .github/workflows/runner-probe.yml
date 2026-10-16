@@ -58,3 +58,6 @@ jobs:
           await browser.close();
           EOF
           cp /tmp/probe.mjs ./probe.mjs && node probe.mjs; rm -f probe.mjs
+      - name: Install Playwright browsers with system dependencies (docs jobs)
+        working-directory: docs
+        run: pnpm exec playwright install --with-deps chromium
