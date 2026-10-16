@@ -1,6 +1,6 @@
 ---
 title: Theme Recipes
-metaTitle: Theme Recipes - JavaScript Data Grid | Handsontable
+metaTitle: Theme Recipes | Handsontable DataGrid for JavaScript
 permalink: /recipes/themes
 canonicalUrl: /recipes/themes
 searchCategory: Recipes
@@ -9,11 +9,11 @@ editLink: false
 type: how-to
 description: Practical recipes for integrating Handsontable DataGrid with design systems and UI libraries.
 react:
-  metaTitle: Theme Recipes - React Data Grid | Handsontable
+  metaTitle: Theme Recipes | Handsontable DataGrid for React
 angular:
-  metaTitle: Theme Recipes - Angular Data Grid | Handsontable
+  metaTitle: Theme Recipes | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Theme Recipes - Vue Data Grid | Handsontable
+  metaTitle: Theme Recipes | Handsontable DataGrid for Vue
 ---
 [[toc]]
 

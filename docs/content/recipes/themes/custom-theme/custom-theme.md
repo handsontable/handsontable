@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Handsontable with shadcn/ui
-metaTitle: Handsontable with shadcn/ui - React Data Grid | Handsontable
+metaTitle: Handsontable with shadcn/ui | Handsontable DataGrid for JavaScript
 description: Integrate Handsontable DataGrid into a React app using shadcn/ui so the grid matches your design system colors, typography, and dark mode via the Theme API.
 permalink: /recipes/themes/custom-theme
 canonicalUrl: /recipes/themes/custom-theme
@@ -17,9 +17,9 @@ tags:
   - Theme API
   - custom theme
 react:
-  metaTitle: Handsontable with shadcn/ui - React Data Grid | Handsontable
+  metaTitle: Handsontable with shadcn/ui | Handsontable DataGrid for React
 angular:
-  metaTitle: Handsontable with shadcn/ui - Angular Data Grid | Handsontable
+  metaTitle: Handsontable with shadcn/ui | Handsontable DataGrid for Angular
 vue:
 searchCategory: Recipes
 category: Themes

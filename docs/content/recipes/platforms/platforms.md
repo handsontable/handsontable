@@ -1,6 +1,6 @@
 ---
 title: Platforms and Embedding Recipes
-metaTitle: Platforms and Embedding Recipes - JavaScript Data Grid | Handsontable
+metaTitle: Platforms and Embedding Recipes | Handsontable DataGrid for JavaScript
 description: Practical recipes for running Handsontable DataGrid inside host platforms and encapsulated components, from Salesforce LWC to custom elements.
 permalink: /recipes/platforms
 canonicalUrl: /recipes/platforms
@@ -9,11 +9,11 @@ hotPlugin: false
 editLink: false
 type: how-to
 react:
-  metaTitle: Platforms and Embedding Recipes - React Data Grid | Handsontable
+  metaTitle: Platforms and Embedding Recipes | Handsontable DataGrid for React
 angular:
-  metaTitle: Platforms and Embedding Recipes - Angular Data Grid | Handsontable
+  metaTitle: Platforms and Embedding Recipes | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Platforms and Embedding Recipes - Vue Data Grid | Handsontable
+  metaTitle: Platforms and Embedding Recipes | Handsontable DataGrid for Vue
 ---
 [[toc]]
 

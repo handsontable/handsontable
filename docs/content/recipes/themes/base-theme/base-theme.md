@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Handsontable with Base Web
-metaTitle: Handsontable with Base Web - React Data Grid | Handsontable
+metaTitle: Handsontable with Base Web | Handsontable DataGrid for JavaScript
 description: Integrate Handsontable DataGrid into a React app using Base Web and style a custom theme with your design tokens so the grid matches your design system.
 permalink: /recipes/themes/base-theme
 canonicalUrl: /recipes/themes/base-theme
@@ -16,9 +16,9 @@ tags:
   - Theme API
   - custom theme
 react:
-  metaTitle: Handsontable with Base Web - React Data Grid | Handsontable
+  metaTitle: Handsontable with Base Web | Handsontable DataGrid for React
 angular:
-  metaTitle: Handsontable with Base Web - Angular Data Grid | Handsontable
+  metaTitle: Handsontable with Base Web | Handsontable DataGrid for Angular
 vue:
 searchCategory: Recipes
 category: Themes

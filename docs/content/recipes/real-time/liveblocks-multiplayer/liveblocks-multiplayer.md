@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Multiplayer editing with Liveblocks
-metaTitle: Multiplayer editing with Liveblocks - React Data Grid | Handsontable
+metaTitle: Multiplayer editing with Liveblocks | Handsontable DataGrid for JavaScript
 description: Turn Handsontable DataGrid into a multiplayer grid with Liveblocks. Sync cell values through Storage, share each user's selection through Presence, and draw live selection borders with a custom renderer.
 permalink: /recipes/real-time/liveblocks-multiplayer
 canonicalUrl: /recipes/real-time/liveblocks-multiplayer
@@ -15,7 +15,7 @@ tags:
   - tutorial
   - recipes
 react:
-  metaTitle: Multiplayer editing with Liveblocks - React Data Grid | Handsontable
+  metaTitle: Multiplayer editing with Liveblocks | Handsontable DataGrid for React
 searchCategory: Recipes
 category: Real-time & Integrations
 menuTag: new

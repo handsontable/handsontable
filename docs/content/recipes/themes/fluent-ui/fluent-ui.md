@@ -1,6 +1,6 @@
 ---
 title: Handsontable with Fluent UI
-metaTitle: Handsontable with Fluent UI - React Data Grid | Handsontable
+metaTitle: Handsontable with Fluent UI | Handsontable DataGrid for JavaScript
 description: Integrate Handsontable DataGrid into a React app with Fluent UI so your grid follows Fluent colors, typography, and spacing.
 permalink: /recipes/themes/fluent-ui
 canonicalUrl: /recipes/themes/fluent-ui
@@ -14,7 +14,7 @@ tags:
   - themes
   - Theme API
 react:
-  metaTitle: Handsontable with Fluent UI - React Data Grid | Handsontable
+  metaTitle: Handsontable with Fluent UI | Handsontable DataGrid for React
 searchCategory: Recipes
 category: Themes
 type: how-to

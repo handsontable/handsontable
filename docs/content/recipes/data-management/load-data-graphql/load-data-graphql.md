@@ -1,6 +1,6 @@
 ---
 title: Load data from a GraphQL API
-metaTitle: Load Data from a GraphQL API - JavaScript Data Grid | Handsontable
+metaTitle: Load data from a GraphQL API | Handsontable DataGrid for JavaScript
 description: Learn how to fetch data from a GraphQL API and load it into Handsontable DataGrid with loading and error states.
 permalink: /recipes/data-management/load-data-graphql
 canonicalUrl: /recipes/data-management/load-data-graphql
@@ -12,11 +12,11 @@ tags:
   - loading state
   - error handling
 react:
-  metaTitle: Load Data from a GraphQL API - React Data Grid | Handsontable
+  metaTitle: Load data from a GraphQL API | Handsontable DataGrid for React
 angular:
-  metaTitle: Load Data from a GraphQL API - Angular Data Grid | Handsontable
+  metaTitle: Load data from a GraphQL API | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Load Data from a GraphQL API - Vue Data Grid | Handsontable
+  metaTitle: Load data from a GraphQL API | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Data Management
 type: how-to

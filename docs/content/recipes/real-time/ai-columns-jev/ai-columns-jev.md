@@ -1,7 +1,7 @@
 ---
 type: tutorial
 title: Add AI-classified columns with Jev
-metaTitle: Add AI-classified columns with Jev - JavaScript Data Grid | Handsontable
+metaTitle: Add AI-classified columns with Jev | Handsontable DataGrid for JavaScript
 description: Send each row to Jev, TypeSafe AI's decision model, and fill new columns with typed answers and calibrated confidence as the results arrive.
 permalink: /recipes/real-time/ai-columns-jev
 canonicalUrl: /recipes/real-time/ai-columns-jev

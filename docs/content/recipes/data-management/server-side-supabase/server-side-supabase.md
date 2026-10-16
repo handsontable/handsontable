@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Server-side data with Supabase
-metaTitle: Server-side Data with Supabase - JavaScript Data Grid | Handsontable
+metaTitle: Server-side data with Supabase | Handsontable DataGrid for JavaScript
 description: Wire Handsontable DataGrid's dataProvider plugin to a Supabase Postgres table with server-side pagination, sorting, filtering, and full CRUD, secured with Row Level Security.
 permalink: /recipes/data-management/server-side-supabase
 canonicalUrl: /recipes/data-management/server-side-supabase
@@ -14,7 +14,7 @@ tags:
   - row-level-security
   - recipes
 react:
-  metaTitle: Server-side Data with Supabase - React Data Grid | Handsontable
+  metaTitle: Server-side data with Supabase | Handsontable DataGrid for React
 searchCategory: Recipes
 category: Data Management
 ---

@@ -1,6 +1,6 @@
 ---
 title: Handsontable with Ant Design
-metaTitle: Handsontable with Ant Design - React Data Grid | Handsontable
+metaTitle: Handsontable with Ant Design | Handsontable DataGrid for JavaScript
 description: Integrate Handsontable DataGrid into a React app that uses Ant Design, and align the grid with your design system tokens through the Theme API.
 permalink: /recipes/themes/ant-design
 canonicalUrl: /recipes/themes/ant-design
@@ -14,9 +14,9 @@ tags:
   - themes
   - Theme API
 react:
-  metaTitle: Handsontable with Ant Design - React Data Grid | Handsontable
+  metaTitle: Handsontable with Ant Design | Handsontable DataGrid for React
 angular:
-  metaTitle: Handsontable with Ant Design - Angular Data Grid | Handsontable
+  metaTitle: Handsontable with Ant Design | Handsontable DataGrid for Angular
 vue:
 searchCategory: Recipes
 category: Themes
