@@ -2,7 +2,7 @@
 type: reference
 title: TypeScript types
 metaTitle: TypeScript types - JavaScript Data Grid | Handsontable
-description: A complete reference of the TypeScript types and interfaces that Handsontable exports, with usage examples for settings, hook callbacks, custom renderers, and editors.
+description: A complete reference of the TypeScript types and interfaces that Handsontable DataGrid exports, with usage examples for settings, hook callbacks, custom renderers, and editors.
 permalink: /typescript-types
 canonicalUrl: /typescript-types
 tags:
@@ -20,7 +20,7 @@ searchCategory: Guides
 category: Tools and building
 ---
 
-Handsontable ships TypeScript declarations for its entire public API. This page lists every type you can import and shows how to use them in common scenarios.
+Handsontable DataGrid ships TypeScript declarations for its entire public API. This page lists every type you can import and shows how to use them in common scenarios.
 
 [[toc]]
 

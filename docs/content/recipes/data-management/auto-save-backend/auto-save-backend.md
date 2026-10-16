@@ -1,7 +1,7 @@
 ---
 title: Auto-save changes to a backend
 metaTitle: Auto-save changes to a backend - JavaScript Data Grid | Handsontable
-description: Learn how to auto-save Handsontable edits with a debounced afterChange hook, dirty row tracking, and save status feedback.
+description: Learn how to auto-save Handsontable DataGrid edits with a debounced afterChange hook, dirty row tracking, and save status feedback.
 permalink: /recipes/data-management/auto-save-backend
 canonicalUrl: /recipes/data-management/auto-save-backend
 tags:

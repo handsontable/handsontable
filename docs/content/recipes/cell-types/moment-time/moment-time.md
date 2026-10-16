@@ -2,7 +2,7 @@
 type: how-to
 title: Moment.js-based time
 metaTitle: Moment.js Cell Type - JavaScript Data Grid | Handsontable
-description: Learn how to create a Handsontable custom time cell type using the Moment.js library
+description: Learn how to create a Handsontable DataGrid custom time cell type using the Moment.js library
 permalink: /recipes/cell-types/moment-time
 canonicalUrl: /recipes/cell-types/moment-time
 tags:
@@ -92,7 +92,7 @@ registerAllModules();
 
 **Why this matters:**
 - `moment` handles time parsing, validation, and formatting
-- `getRenderer('text')` and `getEditor('text')` reuse Handsontable's built-in text renderer and editor
+- `getRenderer('text')` and `getEditor('text')` reuse Handsontable DataGrid's built-in text renderer and editor
 - `registerCellType` registers the custom cell type for use in column config
 
 ## Step 2: Create the Renderer
@@ -196,7 +196,7 @@ registerCellType('moment-time', cellTimeTypeDefinition);
 - **editor**: Uses the built-in `text` editor for text input
 - **registerCellType**: Registers the `moment-time` cell type for use in column config
 
-## Step 6: Use in Handsontable
+## Step 6: Use in Handsontable DataGrid
 
 ```typescript
 registerCellType('moment-time', cellTimeTypeDefinition);

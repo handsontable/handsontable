@@ -70,7 +70,7 @@ This recipe shows how to build a checkbox list outside the grid that toggles col
 
 ## Before you begin
 
-This recipe uses only the built-in Handsontable API. No extra dependencies are required.
+This recipe uses only the built-in Handsontable DataGrid API. No extra dependencies are required.
 
 The example uses HR/workforce data with seven columns: Name, Department, Role, Salary, Start Date, Location, and Status. The Salary column uses the `numeric` type with formatting. The Status column uses the `dropdown` type. This variety demonstrates that `hot.updateSettings()` restores each column's full configuration -- not just its header text.
 
@@ -127,7 +127,7 @@ function getVisibleHeaders() {
 
 These two helpers produce the arguments that `hot.updateSettings()` needs on every toggle. They are pure functions with no side effects.
 
-## Step 3: Initialize Handsontable
+## Step 3: Initialize Handsontable DataGrid
 
 ```javascript
 const hot = new Handsontable(container, {

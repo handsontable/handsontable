@@ -2,7 +2,7 @@
 type: how-to
 title: Server-side data with Supabase
 metaTitle: Server-side Data with Supabase - JavaScript Data Grid | Handsontable
-description: Wire Handsontable's dataProvider plugin to a Supabase Postgres table with server-side pagination, sorting, filtering, and full CRUD, secured with Row Level Security.
+description: Wire Handsontable DataGrid's dataProvider plugin to a Supabase Postgres table with server-side pagination, sorting, filtering, and full CRUD, secured with Row Level Security.
 permalink: /recipes/data-management/server-side-supabase
 canonicalUrl: /recipes/data-management/server-side-supabase
 framework: react
@@ -19,7 +19,7 @@ searchCategory: Recipes
 category: Data Management
 ---
 
-This tutorial shows how to wire Handsontable's `dataProvider` plugin to a live [Supabase](https://supabase.com) Postgres table. Every page load, sort, filter, and cell edit goes through the database, so the browser never holds the full dataset.
+This tutorial shows how to wire Handsontable DataGrid's `dataProvider` plugin to a live [Supabase](https://supabase.com) Postgres table. Every page load, sort, filter, and cell edit goes through the database, so the browser never holds the full dataset.
 
 ## Overview
 

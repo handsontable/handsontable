@@ -408,8 +408,11 @@ declare global {
     pendingValidationCount(): number;
     /** Rebuilds the `maxLength` fixture grid (`max-length.html`) with the given setting overrides. */
     initMaxLengthGrid(overrides?: Record<string, unknown>): boolean;
-    /** The constructor failure the `maxLength` fixture captured, or `null` when the grid was built. */
-    fixtureError: string | null;
+    /**
+     * The constructor failure a loud fixture captured (the shared contract `awaitFixtureBuilt()` in
+     * `fixtures/bundle.ts` rethrows), absent while the grid was built.
+     */
+    htBuildError?: string;
     /** Rebuilds the GH #5983 sorting-a-filtered-grid-with-`minSpareRows` fixture grid. */
     initSortingSpareRowsGrid(overrides?: Record<string, unknown>): boolean;
     /**

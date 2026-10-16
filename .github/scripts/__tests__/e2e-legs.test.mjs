@@ -48,7 +48,26 @@ const MAIN_LEG = 'UMD (theme: main)';
 const FORWARDED = /^ {6}jasmine-full-matrix: \$\{\{ inputs\.test-all \|\| github\.ref_name == 'master' \}\}$/m;
 const JASMINE_DOC = 'See .ai/CI.md (the Jasmine single-leg entry) and handsontable/.ai/TESTING.md, "The Jasmine suite is frozen".';
 const FULL_MATRIX_ENV_LINE = /^ {10}HOT_E2E_FULL_MATRIX: \$\{\{ inputs\.full-matrix && '1' \|\| '' \}\}$/m;
-const RUN_LINE = /^ {8}run: cd tests && npx playwright test --project=e2e-\$\{\{ matrix\.theme \}\}\$\{\{ matrix\.bundle\.suffix \}\}$/m;
+const escape = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// The GitHub expressions a sharded row adds, as text: `matrix.shard` is null on an unsharded row, so each
+// one is empty there. The project comes from the theme and the bundle alone, so every shard of a leg runs
+// the same project; the shard only cuts it.
+/* eslint-disable no-template-curly-in-string */
+const LEG = '${{ matrix.theme }}${{ matrix.bundle.suffix }}';
+const SHARD_FLAG = "${{ matrix.shard && format(' --shard={0}/{1}', matrix.shard, matrix.shards) || '' }}";
+const SHARD_OPTION = "${{ matrix.shard && format(' --shard {0}/{1}', matrix.shard, matrix.shards) || '' }}";
+const PART_SUFFIX = "${{ matrix.shard && format('-s{0}', matrix.shard) || '' }}";
+const JOB_NAME = '"Playwright ${{ matrix.bundle.label }} (theme: ${{ matrix.theme }}'
+  + "${{ matrix.shard && format(', shard {0}/{1}', matrix.shard, matrix.shards) || '' }})\"";
+/* eslint-enable no-template-curly-in-string */
+const RUN_LINE = new RegExp(`^ {8}run: cd tests && npx playwright test --project=e2e-${escape(LEG)}${escape(SHARD_FLAG)}$`, 'm');
+// One explicit row per job: an include entry keyed on a base `theme × bundle` combination would merge into
+// that combination (a second row for the same leg overwrites the first's shard instead of adding a job), so
+// the matrix has no base axes and lists every leg and shard. The counts are the ones DURATIONS_LEGS carries
+// (playwright-durations.test.mjs derives that table from here); the e2e budget phase pins them from the P50s.
+const ROW = /^ {10}- \{ theme: (\w+), bundle: \{ label: '([^']+)', suffix: '([^']*)' \}(?:, shard: (\d+), shards: (\d+))? \}$/;
+const SHARD_TABLE = { main: 3, horizon: 2, classic: 2, 'main-min': 1, 'horizon-min': 1, 'classic-min': 1 };
+const CI_WORKERS = 4;
 
 test('e2e.yml takes a full-matrix input, off by default, declared before run-playwright', () => {
   const workflow = stripYamlComments(read(E2E));
@@ -131,18 +150,25 @@ test(`e2e.yml's puppeteer job runs one Jasmine leg, ${MAIN_LEG}, unless ${JASMIN
     'the Playwright full-matrix switch never reaches the puppeteer job; the Jasmine suite has its own input');
 });
 
-test('on the full-matrix runs the Jasmine matrix keeps the Playwright matrix\'s shape (parity, re-scoped from every run to the nightly)', () => {
+test('on the full-matrix runs the Jasmine matrix runs the legs the Playwright matrix runs (parity, re-scoped from every run to the nightly)', () => {
   const workflow = stripYamlComments(read(E2E));
   const puppeteer = job(workflow, 'puppeteer');
   const playwright = job(workflow, 'playwright');
-  const playwrightThemes = playwright.match(/^ {8}theme: \[([^\]]+)\]$/m)?.[1].split(',').map(theme => theme.trim());
-  const playwrightLabels = [...playwright.matchAll(/^ {10}- \{ label: '([^']+)', suffix: '[^']*' \}$/gm)].map(([, label]) => label);
+  // The Playwright matrix is one explicit include row per leg and shard (the shard test above pins the
+  // shape); a sharded leg repeats its theme and bundle, so the legs are the distinct pairs the rows name.
+  const playwrightLegs = new Set(playwright.split('\n').map(line => ROW.exec(line)).filter(Boolean)
+    .map(([, theme, label]) => `${label} (theme: ${theme})`));
+  const theme = jasmineAxis(puppeteer, 'theme');
+  const bundle = jasmineAxis(puppeteer, 'bundle');
+  const jasmineLegs = theme.six.flatMap(name => bundle.six.map(entry => `${entry.label} (theme: ${name})`));
 
-  assert.ok(playwrightThemes?.length && playwrightLabels.length, `${E2E}'s playwright job must keep its theme and bundle axes readable (playwright-durations.test.mjs reads them the same way)`);
-  assert.deepEqual(jasmineAxis(puppeteer, 'theme').six, playwrightThemes,
-    `the six Jasmine legs run the themes the Playwright legs run: the two tiers used to share one matrix on every run, and they still do on the E2E nightly, the rc/stable path and a master push. ${JASMINE_DOC}`);
-  assert.deepEqual(jasmineAxis(puppeteer, 'bundle').six.map(entry => entry.label), playwrightLabels,
-    `the six Jasmine legs run the bundles the Playwright legs run, under the same labels (the job names and the ledger's legs line up). ${JASMINE_DOC}`);
+  assert.ok(playwrightLegs.size > 0, `${E2E}'s playwright job must keep its include rows readable (the ROW pattern above)`);
+  assert.equal(new Set(jasmineLegs).size, jasmineLegs.length, 'the six-leg Jasmine literals name each leg once');
+  assert.deepEqual([...jasmineLegs].sort(), [...playwrightLegs].sort(),
+    `the six Jasmine legs are the legs the Playwright rows run, under the same labels: the two tiers used to share one matrix `
+    + `on every run, and they still do on the E2E nightly, the rc/stable path and a master push (the job names and the `
+    + `ledger's legs line up). A theme or bundle added to one matrix goes into the other. ${JASMINE_DOC}`);
+  assert.ok(jasmineLegs.includes(MAIN_LEG), `the single pull-request leg, ${MAIN_LEG}, is one of the six`);
 });
 
 test('e2e.yml sets HOT_E2E_FULL_MATRIX from the input on the six-leg run step only, above an unchanged run line', () => {
@@ -160,12 +186,78 @@ test('e2e.yml sets HOT_E2E_FULL_MATRIX from the input on the six-leg run step on
   assert.match(runStep, FULL_MATRIX_ENV_LINE,
     `HOT_E2E_FULL_MATRIX must be exactly \${{ inputs.full-matrix && '1' || '' }}: the config accepts "1" and "" `
     + `and throws on anything else, so a "true" here would red every leg. ${DOC}`);
-  assert.match(runStep, RUN_LINE, `the run line of "Run Playwright E2E" must stay as it was: one project per leg. ${DOC}`);
+  assert.match(runStep, RUN_LINE, `the run line of "Run Playwright E2E" must stay as it is: one project per leg, cut by `
+    + `the row's shard. ${DOC}`);
   assert.ok(runStep.indexOf('HOT_E2E_FULL_MATRIX') < runStep.search(RUN_LINE), 'the env: block sits above the run line');
 
   assert.doesNotMatch(engines, /HOT_E2E_FULL_MATRIX|full-matrix/,
     `the engines job runs every @cross-browser spec on main/umd whatever the leg declarations say; it takes no full-matrix. ${DOC}`);
   assert.equal((workflow.match(/HOT_E2E_FULL_MATRIX:/g) ?? []).length, 1, `${E2E} sets HOT_E2E_FULL_MATRIX in one place`);
+});
+
+test('the Playwright matrix lists every leg and shard explicitly, and every shard of a leg runs the same project', () => {
+  const workflow = stripYamlComments(read(E2E));
+  const playwright = job(workflow, 'playwright');
+  const matrix = playwright.match(/^ {6}matrix:\n((?: {8,}\S.*\n)+)/m)?.[1] ?? '';
+  const rows = matrix.split('\n').filter(line => /^ {10}- /.test(line));
+
+  assert.match(matrix, /^ {8}include:$/m, `${E2E}'s playwright matrix is an explicit include table. ${DOC}`);
+  assert.doesNotMatch(matrix, /^ {8}(?:theme|bundle|shard|shards|exclude):/m,
+    `${E2E}'s playwright matrix has no base axis: a row keyed on a base combination would merge into it instead of adding `
+    + `a job. ${DOC}`);
+  assert.ok(rows.length >= 6, `${E2E} lists at least the six legs (${rows.length} rows)`);
+
+  const legs = new Map();
+
+  rows.forEach((line) => {
+    const row = ROW.exec(line);
+
+    assert.ok(row, `${E2E}: every matrix row has the pinned shape; this one does not: ${line.trim()}`);
+
+    const [, theme, label, suffix, shard, shards] = row;
+    const leg = `${theme}${suffix}`;
+
+    assert.equal(label, suffix === '-min' ? 'UMD.min' : 'UMD', `${E2E}: row ${line.trim()} pairs the label with its suffix`);
+    if (!legs.has(leg)) {
+      legs.set(leg, { shards: Number(shards ?? 1), indexes: [] });
+    }
+    assert.equal(legs.get(leg).shards, Number(shards ?? 1), `${E2E}: every row of ${leg} names the same shard count`);
+    legs.get(leg).indexes.push(Number(shard ?? 1));
+  });
+  legs.forEach(({ shards, indexes }, leg) => {
+    assert.deepEqual([...indexes].sort((a, b) => a - b), Array.from({ length: shards }, (_, offset) => offset + 1),
+      `${E2E}: ${leg} runs shards 1..${shards}, each once; a missing or doubled shard is a leg that tested less or `
+      + `twice. ${DOC}`);
+  });
+  assert.deepEqual(Object.fromEntries([...legs].map(([leg, { shards }]) => [leg, shards])), SHARD_TABLE,
+    `${E2E}: the shard table changed; that is deliberate only with a measurement (the e2e budget phase pins the counts `
+    + `from the P50s), and DURATIONS_LEGS in .github/scripts/lib/playwright-durations.mjs follows it. ${DOC}`);
+
+  const stepsOf = steps(playwright);
+  const step = name => stepsOf.find(entry => new RegExp(`^- name: ${escape(name)}$`, 'm').test(entry)) ?? '';
+
+  assert.match(playwright, new RegExp(`^ {4}name: ${escape(JOB_NAME)}$`, 'm'),
+    `${E2E}: the job name carries the shard, so a red shard is told apart in the checks list. ${DOC}`);
+  assert.match(step('Run Playwright E2E'), RUN_LINE,
+    `${E2E}: the run line takes the project from the theme and the bundle, and the shard from the row. ${DOC}`);
+  assert.match(step('Upload the Playwright report on failure'), new RegExp(`^ {10}name: playwright-report-${escape(LEG)}${escape(PART_SUFFIX)}$`, 'm'),
+    `${E2E}: a shard's report is its own artifact, playwright-report-<leg>-s<i>. ${DOC}`);
+  assert.match(step('Summarize the Playwright durations'), new RegExp(`--leg ${escape(LEG)}${escape(SHARD_OPTION)}$`, 'm'),
+    `${E2E}: the summarizer records the shard it ran, so the collector can fold the parts. ${DOC}`);
+  assert.match(step('Upload the Playwright durations'), new RegExp(`^ {10}name: playwright-durations-${escape(LEG)}${escape(PART_SUFFIX)}$`, 'm'),
+    `${E2E}: a shard's durations are its own artifact, playwright-durations-<leg>-s<i>. ${DOC}`);
+  assert.doesNotMatch(job(workflow, 'playwright-engines'), /shard/,
+    `${E2E}: the engines job runs whole; it is minutes long. ${DOC}`);
+});
+
+test('tests/playwright.config.ts pins the CI worker count the shard table was measured at', () => {
+  const config = stripTsComments(read('tests/playwright.config.ts'));
+  const found = [...config.matchAll(/\bworkers\s*:\s*([^,\n}]+)/g)].map(([, value]) => value.trim());
+
+  assert.deepEqual(found, [`process.env.CI ? ${CI_WORKERS} : undefined`],
+    `tests/playwright.config.ts sets \`workers: process.env.CI ? ${CI_WORKERS} : undefined\` exactly once: the shard `
+    + 'counts in e2e.yml put each leg under its target at that worker count, and a local run keeps Playwright\'s '
+    + `default. ${DOC}`);
 });
 
 test('no workflow and no test script passes --pass-with-no-tests: an empty leg must be red', () => {

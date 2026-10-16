@@ -13,7 +13,7 @@ vue:
 searchCategory: Guides
 category: AI Tools
 ---
-The AI Docs Assistant is the **Ask AI** button in the docs header. It answers questions about Handsontable and HyperFormula, writes code examples, and links you to the relevant guide or API reference page.
+The AI Docs Assistant is the **Ask AI** button in the docs header. It answers questions about Handsontable DataGrid and HyperFormula, writes code examples, and links you to the relevant guide or API reference page.
 
 ::: tip
 

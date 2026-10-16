@@ -1,7 +1,7 @@
 ---
 title: Load data from a REST API
 metaTitle: Load Data from a REST API - JavaScript Data Grid | Handsontable
-description: Fetch JSON data from a REST API and load it into Handsontable with loading and error states.
+description: Fetch JSON data from a REST API and load it into Handsontable DataGrid with loading and error states.
 permalink: /recipes/data-management/load-data-rest-api
 canonicalUrl: /recipes/data-management/load-data-rest-api
 tags:
@@ -25,7 +25,7 @@ category: Data Management
 type: how-to
 ---
 
-This tutorial shows how to fetch JSON from a REST API and populate Handsontable after initialization. It starts the grid with `data: []`, shows a loading message, then displays success or error feedback in the UI.
+This tutorial shows how to fetch JSON from a REST API and populate Handsontable DataGrid after initialization. It starts the grid with `data: []`, shows a loading message, then displays success or error feedback in the UI.
 
 ::: only-for react
 

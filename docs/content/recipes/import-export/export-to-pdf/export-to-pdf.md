@@ -58,7 +58,7 @@ In this tutorial, you will export grid data to a downloadable PDF using jsPDF an
 
 ## Overview
 
-This recipe shows how to export the current Handsontable data to a PDF file when the user clicks **Export to PDF**. The recommended approach is [jsPDF](https://github.com/parallax/jsPDF) with [jspdf-autotable](https://github.com/simonbengtsson/jsPDF-AutoTable), which builds a real PDF table from your data so text stays selectable and accessible.
+This recipe shows how to export the current data of Handsontable DataGrid to a PDF file when the user clicks **Export to PDF**. The recommended approach is [jsPDF](https://github.com/parallax/jsPDF) with [jspdf-autotable](https://github.com/simonbengtsson/jsPDF-AutoTable), which builds a real PDF table from your data so text stays selectable and accessible.
 
 **Difficulty:** Beginner
 **Time:** ~20 minutes
@@ -106,7 +106,7 @@ registerAllModules();
 - `jsPDF` is the PDF document constructor
 - `autoTable` is the plugin function that draws a formatted table into the document
 
-## Step 2: Set up Handsontable
+## Step 2: Set up Handsontable DataGrid
 
 ```javascript
 const container = document.querySelector('#example1');

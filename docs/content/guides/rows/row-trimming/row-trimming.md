@@ -73,7 +73,7 @@ trimRows: true,
 
 :::
 
-To both enable row trimming and trim selected rows at Handsontable's initialization, set the [`trimRows`](@/api/options.md#trimrows) option to an array of physical row indexes.
+To both enable row trimming and trim selected rows at Handsontable DataGrid's initialization, set the [`trimRows`](@/api/options.md#trimrows) option to an array of physical row indexes.
 
 ::: only-for javascript
 

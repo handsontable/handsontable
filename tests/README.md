@@ -62,7 +62,13 @@ static sweep refuses a spec that touches theme or bundle surface without the
 tag, and the E2E nightly runs every spec on all six legs (and the frozen Jasmine
 suite on its six; a pull request runs that suite on UMD × main alone). The local gates
 (pre-push, the Claude Stop hook, `test:e2e`) run `e2e-main` (plain UMD) only;
-the other legs run in CI. Run a single other leg by hand with
+the other legs run in CI, where a long leg runs as several jobs
+(`--shard=<i>/<n>` on the same project: `main` in 3, `horizon` and `classic` in
+2, the `-min` legs whole) at a pinned worker count (`workers` in
+`playwright.config.ts`, CI only; the engines config pins its own; a local run
+keeps Playwright's default). To
+run one shard the way a CI job does: `npx playwright test --project=e2e-main
+--shard=1/3`. Run a single other leg by hand with
 `npx playwright test --project=e2e-horizon-min` (it lists "No tests found" for a
 spec that does not declare both axes), or every leg of one spec with
 `HOT_E2E_FULL_MATRIX=1 npx playwright test e2e/<spec>.spec.ts`.

@@ -2,7 +2,7 @@
 type: how-to
 title: Color picker
 metaTitle: Color Picker Cell - JavaScript Data Grid | Handsontable
-description: Learn how to create a Handsontable custom color picker cell in Angular using the native HTML5 color input, with live preview and hex validation.
+description: Learn how to create a Handsontable DataGrid custom color picker cell in Angular using the native HTML5 color input, with live preview and hex validation.
 permalink: /recipes/cell-types/color-picker-angular
 canonicalUrl: /recipes/cell-types/color-picker-angular
 framework: angular
@@ -68,7 +68,7 @@ import {
 } from '@handsontable/angular-wrapper';
 ```
 
-- Handsontable's modules are registered in `app.config.ts` (see Step 5) via `registerAllModules()`.
+- Handsontable DataGrid's modules are registered in `app.config.ts` (see Step 5) via `registerAllModules()`.
 
 ## Step 2: Create the Renderer Component
 
@@ -231,7 +231,7 @@ export const appConfig: ApplicationConfig = {
 - `HotTableModule` is imported directly in the component that uses `<hot-table>`
 - Global config applies to all Handsontable instances in the app
 
-## Step 6: Configure Handsontable
+## Step 6: Configure Handsontable DataGrid
 
 Use the custom components in your Handsontable column configuration. The example adds a `color` property to each row (e.g. from `inputData`) and passes it to the grid.
 

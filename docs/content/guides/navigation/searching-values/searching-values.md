@@ -2,7 +2,7 @@
 type: how-to
 title: Searching values
 metaTitle: Searching values - JavaScript Data Grid | Handsontable
-description: Search data across Handsontable, using built-in API methods and implementing your own search UI.
+description: Search data across Handsontable DataGrid, using built-in API methods and implementing your own search UI.
 permalink: /searching-values
 canonicalUrl: /searching-values
 tags:
@@ -18,7 +18,7 @@ vue:
 searchCategory: Guides
 category: Navigation
 ---
-Enable the [`Search`](@/api/search.md) plugin and call [`query()`](@/api/search.md#query) on each keystroke to highlight matching cells across the grid.
+Enable the [`Search`](@/api/search.md) plugin in Handsontable DataGrid and call [`query()`](@/api/search.md#query) on each keystroke to highlight matching cells across the grid.
 
 [[toc]]
 

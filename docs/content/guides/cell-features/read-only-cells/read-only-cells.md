@@ -397,7 +397,7 @@ The [`readOnly`](@/api/options.md#readonly) and [`editor`](@/api/options.md#edit
 
 ## Accessibility
 
-When [`ariaTags`](@/api/options.md#ariatags) is enabled (the default), Handsontable adds `aria-readonly="true"` to the DOM element of every read-only cell, so screen readers announce that the cell can't be edited. Non-editable cells (`editor: false`) don't get this attribute, because Handsontable doesn't treat them as read-only in the data model -- only their editor is disabled.
+When [`ariaTags`](@/api/options.md#ariatags) is enabled (the default), Handsontable DataGrid adds `aria-readonly="true"` to the DOM element of every read-only cell, so screen readers announce that the cell can't be edited. Non-editable cells (`editor: false`) don't get this attribute, because Handsontable doesn't treat them as read-only in the data model -- only their editor is disabled.
 
 For more accessibility features and testing guidance, see [Accessibility](@/guides/accessibility/accessibility/accessibility.md).
 

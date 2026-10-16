@@ -2,7 +2,7 @@
 type: explanation
 title: Cell type
 metaTitle: Cell type - JavaScript Data Grid | Handsontable
-description: Use Handsontable's built-in cell types such as autocomplete, date, time, and more, for consistent UI across cell renderer, editor, and validator.
+description: Use Handsontable DataGrid's built-in cell types such as autocomplete, date, time, and more, for consistent UI across cell renderer, editor, and validator.
 permalink: /cell-type
 canonicalUrl: /cell-type
 react:
@@ -15,7 +15,7 @@ searchCategory: Guides
 category: Cell types
 menuTag: updated
 ---
-Use Handsontable's built-in cell types such as autocomplete, date, time, and more, for consistent UI across cell renderer, editor, and validator.
+Use Handsontable DataGrid's built-in cell types such as autocomplete, date, time, and more, for consistent UI across cell renderer, editor, and validator.
 
 [[toc]]
 

@@ -14,7 +14,7 @@ category: Accessories and menus
 addedIn: "18.0.0"
 ---
 
-Place custom UI in the slots that Handsontable renders around the grid, and control the order of the elements within each slot.
+Place custom UI in the slots that Handsontable DataGrid renders around the grid, and control the order of the elements within each slot.
 
 ## Overview
 

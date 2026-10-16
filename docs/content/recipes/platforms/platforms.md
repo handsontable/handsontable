@@ -1,7 +1,7 @@
 ---
 title: Platforms and Embedding Recipes
 metaTitle: Platforms and Embedding Recipes - JavaScript Data Grid | Handsontable
-description: Practical recipes for running Handsontable inside host platforms and encapsulated components, from Salesforce Lightning Web Components to custom elements.
+description: Practical recipes for running Handsontable DataGrid inside host platforms and encapsulated components, from Salesforce LWC to custom elements.
 permalink: /recipes/platforms
 canonicalUrl: /recipes/platforms
 searchCategory: Recipes
@@ -19,7 +19,7 @@ vue:
 
 ## Overview
 
-This section provides recipes for embedding Handsontable in a host platform or an encapsulated component, where the grid does not own the page it runs on. Each recipe covers how the grid reaches its host, how its styles get inside the boundary, and how its edits travel back to the host's data layer.
+This section provides recipes for embedding Handsontable DataGrid in a host platform or an encapsulated component, where the grid does not own the page it runs on. Each recipe covers how the grid reaches its host, how its styles get inside the boundary, and how its edits travel back to the host's data layer.
 
 ## Available recipes
 

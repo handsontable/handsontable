@@ -1,7 +1,7 @@
 ---
 title: Performance Recipes
 metaTitle: Performance Recipes - JavaScript Data Grid | Handsontable
-description: Practical recipes for optimizing Handsontable performance -- lazy loading large datasets, persisting user layout preferences, and more.
+description: Practical recipes for optimizing Handsontable DataGrid performance -- lazy loading large datasets, persisting user layout preferences, and more.
 permalink: /recipes/performance
 canonicalUrl: /recipes/performance
 searchCategory: Recipes
@@ -19,7 +19,7 @@ vue:
 
 ## Overview
 
-This section provides practical recipes for keeping Handsontable fast and responsive, even with large datasets or complex user interactions. Each recipe includes a working example you can copy into your app.
+This section provides practical recipes for keeping Handsontable DataGrid fast and responsive, even with large datasets or complex user interactions. Each recipe includes a working example you can copy into your app.
 
 ## Available Recipes
 

@@ -2,7 +2,7 @@
 type: reference
 title: Supported browsers
 metaTitle: Supported browsers - JavaScript Data Grid | Handsontable
-description: Handsontable supports the most popular desktop and mobile browsers, such as Chrome, Safari, Firefox, Edge, Opera, Samsung Internet, and others.
+description: Handsontable DataGrid supports the most popular desktop and mobile browsers, such as Chrome, Safari, Firefox, Edge, Opera, Samsung Internet, and others.
 permalink: /supported-browsers
 canonicalUrl: /supported-browsers
 tags:
@@ -16,7 +16,7 @@ vue:
 searchCategory: Guides
 category: Technical specification
 ---
-Handsontable supports all the most popular desktop and mobile browsers.
+Handsontable DataGrid supports all the most popular desktop and mobile browsers.
 
 [[toc]]
 

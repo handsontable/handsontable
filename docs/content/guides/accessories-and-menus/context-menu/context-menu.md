@@ -126,7 +126,7 @@ The `filter_by_condition`, `filter_by_condition2`, `filter_operators`, `filter_b
 menu, not in the context menu. See [Filter menu items](@/guides/accessories-and-menus/column-menu/column-menu.md#filter-menu-items).
 
 The table above lists every key you can use in the array form of `contextMenu`. An array key that
-matches no available item is skipped, and Handsontable logs a console warning naming it and the
+matches no available item is skipped, and Handsontable DataGrid logs a console warning naming it and the
 menu it came from. That covers a key with a typo in it, and a key whose plugin is not enabled --
 so check the required plugin named beside the key when an item does not appear.
 

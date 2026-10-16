@@ -1,7 +1,7 @@
 ---
 title: Column Management Recipes
 metaTitle: Column Management Recipes - JavaScript Data Grid | Handsontable
-description: Practical recipes for controlling column visibility and freezing columns at runtime in Handsontable grids.
+description: Practical recipes for controlling column visibility and freezing columns at runtime in Handsontable DataGrid.
 permalink: /recipes/column-management
 canonicalUrl: /recipes/column-management
 searchCategory: Recipes
@@ -19,7 +19,7 @@ vue:
 
 ## Overview
 
-This section provides practical recipes for managing column visibility and layout in Handsontable. Each recipe includes a working example you can copy into your app.
+This section provides practical recipes for managing column visibility and layout in Handsontable DataGrid. Each recipe includes a working example you can copy into your app.
 
 ## Available Recipes
 

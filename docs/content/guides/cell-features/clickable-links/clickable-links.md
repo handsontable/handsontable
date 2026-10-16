@@ -29,7 +29,7 @@ Render the URLs, email addresses, and phone numbers in your cell values as click
 
 ## Overview
 
-By default, a cell value such as `https://handsontable.com` renders as plain text. With the [`autoLink`](@/api/options.md#autolink) option, Handsontable finds the URLs in the text a cell renders and wraps each one in a link element. The cell keeps its own renderer, and the value stays unchanged, so copying, autofill, sorting, filtering, and export work as before.
+By default, a cell value such as `https://handsontable.com` renders as plain text. With the [`autoLink`](@/api/options.md#autolink) option, Handsontable DataGrid finds the URLs in the text a cell renders and wraps each one in a link element. The cell keeps its own renderer, and the value stays unchanged, so copying, autofill, sorting, filtering, and export work as before.
 
 Handsontable links the `http`, `https`, `mailto`, and `tel` schemes only. Any other scheme, `javascript:` included, stays plain text.
 
