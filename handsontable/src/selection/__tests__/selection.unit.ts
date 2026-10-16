@@ -61,6 +61,47 @@ function createSettings(overrides: Partial<SelectionSettings> = {}): SelectionSe
 }
 
 describe('Selection', () => {
+  describe('fill handle with a non-contiguous selection (DEV-540)', () => {
+    // `multiple` is the grid's default selection mode; the shared `createSettings()` uses `range`,
+    // which keeps one range only.
+    const createFillHandleSelection = () => new Selection(
+      createSettings({ fillHandle: true, selectionMode: 'multiple' }),
+      createTableProps(),
+    );
+    const select = (selection: Selection, ranges: number[][]) => {
+      selection.selectCells(ranges);
+    };
+
+    it('should draw the cell corner for one cell and the area corner for one multi-cell range', () => {
+      const selection = createFillHandleSelection();
+
+      select(selection, [[1, 1, 1, 1]]);
+
+      expect(selection.isCellCornerVisible()).toBe(true);
+
+      select(selection, [[1, 1, 2, 2]]);
+
+      expect(selection.isAreaCornerVisible(selection.getLayerLevel())).toBe(true);
+    });
+
+    it('should draw neither corner when the selection has more than one range', () => {
+      const selection = createFillHandleSelection();
+
+      // The last range is a single cell: the cell corner is the one that used to be drawn.
+      select(selection, [[1, 1, 2, 2], [4, 3, 4, 3]]);
+
+      expect(selection.getSelectedRange().size()).toBe(2);
+      expect(selection.isCellCornerVisible()).toBe(false);
+      expect(selection.isAreaCornerVisible(selection.getLayerLevel())).toBe(false);
+
+      // The last range spans several cells: the area corner is the one that used to be drawn.
+      select(selection, [[1, 1, 1, 1], [4, 3, 5, 4]]);
+
+      expect(selection.isCellCornerVisible()).toBe(false);
+      expect(selection.isAreaCornerVisible(selection.getLayerLevel())).toBe(false);
+    });
+  });
+
   describe('#createHeaderExtentCoords (via applyAndCommit)', () => {
     it('pins the row/column highlight to the leaf header level when the grid has a single header level', () => {
       const tableProps = createTableProps({ countRowHeaders: () => 1, countColHeaders: () => 1 });

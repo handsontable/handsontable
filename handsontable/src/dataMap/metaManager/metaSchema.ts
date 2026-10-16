@@ -3335,6 +3335,9 @@ export default (): Record<string, unknown> => {
      *
      * Rows appended this way bypass [`allowInsertRow`](#allowInsertRow): only `autoInsertRow` governs them.
      *
+     * The fill handle is shown only when the selection is a single range. A selection of several separate ranges
+     * (for example, made with <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+click) has no fill handle.
+     *
      * Read more:
      * - [AutoFill values](@/guides/cell-features/autofill-values/autofill-values.md)
      *
