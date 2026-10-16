@@ -57,16 +57,16 @@ Frontmatter example:
 ```yaml
 ---
 title: Introduction
-metaTitle: Installation | Handsontable DataGrid for JavaScript
+metaTitle: Introduction | Handsontable DataGrid for JavaScript
 description: Easily install the data grid using your preferred package manager or import Handsontable assets directly from the CDN.
 permalink: /api/
 canonicalUrl: /api/
 react:
-  metaTitle: Installation | Handsontable DataGrid for React
+  metaTitle: Introduction | Handsontable DataGrid for React
   description: Install the wrapper for React via npm, import stylesheets, and use it to get up and running your application.
   customValue: Custom # Custom value that can be used within template and will be available only for React framework
 angular:
-  metaTitle: Installation | Handsontable DataGrid for Angular
+  metaTitle: Introduction | Handsontable DataGrid for Angular
   description: Install the wrapper for Angular via npm, import stylesheets, and use it to get up and running your application.
 tags:
   - api
