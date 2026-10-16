@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Themes
-metaTitle: Themes - JavaScript Data Grid | Handsontable
+metaTitle: Themes | Handsontable DataGrid for JavaScript
 description: Apply themes using the Theme API or CSS files. Built-in themes include main, horizon, and classic with automatic light and dark modes.
 permalink: /themes
 canonicalUrl: /themes
@@ -22,11 +22,11 @@ tags:
   - visual tokens
   - design system
 react:
-  metaTitle: Themes - React Data Grid | Handsontable
+  metaTitle: Themes | Handsontable DataGrid for React
 angular:
-  metaTitle: Themes - Angular Data Grid | Handsontable
+  metaTitle: Themes | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Themes - Vue Data Grid | Handsontable
+  metaTitle: Themes | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Styling
 menuTag: updated

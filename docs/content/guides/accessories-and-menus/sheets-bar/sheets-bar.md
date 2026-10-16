@@ -1,7 +1,7 @@
 ---
 type: reference
 title: Sheets bar
-metaTitle: Sheets bar - JavaScript Data Grid | Handsontable
+metaTitle: Sheets bar | Handsontable DataGrid for JavaScript
 description: Render a tab bar above or below the grid and let users switch between the sheets of a multi-sheet workbook.
 permalink: /sheets-bar
 canonicalUrl: /sheets-bar
@@ -11,11 +11,11 @@ tags:
   - multi-sheet
   - sheet switching
 react:
-  metaTitle: Sheets bar - React Data Grid | Handsontable
+  metaTitle: Sheets bar | Handsontable DataGrid for React
 angular:
-  metaTitle: Sheets bar - Angular Data Grid | Handsontable
+  metaTitle: Sheets bar | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Sheets bar - Vue Data Grid | Handsontable
+  metaTitle: Sheets bar | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Accessories and menus
 menuTag: new

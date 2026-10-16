@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Batch operations
-metaTitle: Batch operations - JavaScript Data Grid | Handsontable
+metaTitle: Batch operations | Handsontable DataGrid for JavaScript
 description: Batch CRUD operations, to avoid unnecessary rendering cycles and boost your grid's performance.
 permalink: /batch-operations
 canonicalUrl: /batch-operations
@@ -10,11 +10,11 @@ tags:
   - batching
   - performance
 react:
-  metaTitle: Batch operations - React Data Grid | Handsontable
+  metaTitle: Batch operations | Handsontable DataGrid for React
 angular:
-  metaTitle: Batch operations - Angular Data Grid | Handsontable
+  metaTitle: Batch operations | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Batch operations - Vue Data Grid | Handsontable
+  metaTitle: Batch operations | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Optimization
 ---

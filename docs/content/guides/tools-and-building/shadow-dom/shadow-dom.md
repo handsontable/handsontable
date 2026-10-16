@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Shadow DOM
-metaTitle: Shadow DOM - JavaScript Data Grid | Handsontable
+metaTitle: Shadow DOM | Handsontable DataGrid for JavaScript
 description: Run Handsontable DataGrid inside a Shadow DOM tree, in web components, and on sandboxed platforms such as Salesforce Lightning Web Components.
 permalink: /shadow-dom
 canonicalUrl: /shadow-dom
@@ -13,11 +13,11 @@ tags:
   - lightning web components
   - lwc
 react:
-  metaTitle: Shadow DOM - React Data Grid | Handsontable
+  metaTitle: Shadow DOM | Handsontable DataGrid for React
 angular:
-  metaTitle: Shadow DOM - Angular Data Grid | Handsontable
+  metaTitle: Shadow DOM | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Shadow DOM - Vue Data Grid | Handsontable
+  metaTitle: Shadow DOM | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Tools and building
 menuTag: new
