@@ -30,10 +30,11 @@ jobs:
           npm init -y >/dev/null
           npm install playwright@1.62.1
           npx playwright install --with-deps chromium
-      - name: Load the export-to-csv page like the visual suite does
+      - name: Compare capture variants on the export-to-csv page and other pages
         working-directory: .github/dev-3458-diag
         env:
-          LOADS: '12'
+          LOADS: '10'
+          PAGES: 'binding-to-data,column-header,cell-renderer,column-groups,nested-headers,hidden-columns,merge-cells,column-summary,row-header,column-width,row-height,formula-calculation,export-to-excel,undo-redo,context-menu,cell-validator,numeric-cell-type,date-cell-type,select-cell-type,autocomplete-cell-type,row-moving,column-moving,read-only,comments'
           WORKERS: '4'
           MIX: ${{ matrix.mix }}
         run: node diag.mjs 2>&1 | tee diag-output.txt
