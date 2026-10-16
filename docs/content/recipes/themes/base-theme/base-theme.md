@@ -2,7 +2,7 @@
 type: how-to
 title: Handsontable with Base Web
 metaTitle: Handsontable with Base Web - React Data Grid | Handsontable
-description: Integrate Handsontable into a React app using Base Web and style a custom theme with your design tokens so the grid matches your design system.
+description: Integrate Handsontable DataGrid into a React app using Base Web and style a custom theme with your design tokens so the grid matches your design system.
 permalink: /recipes/themes/base-theme
 canonicalUrl: /recipes/themes/base-theme
 tags:
@@ -24,7 +24,7 @@ searchCategory: Recipes
 category: Themes
 ---
 
-This tutorial shows you how to integrate Handsontable into a React app that uses Base Web, mapping Base design tokens to Handsontable colors and tokens so the grid follows your design system.
+This tutorial shows you how to integrate Handsontable DataGrid into a React app that uses Base Web, mapping Base design tokens to Handsontable colors and tokens so the grid follows your design system.
 
 <iframe src="https://demos.handsontable.com/embed/1pi3y3p3h2"
   style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"

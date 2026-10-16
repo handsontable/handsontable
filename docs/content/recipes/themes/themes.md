@@ -7,7 +7,7 @@ searchCategory: Recipes
 hotPlugin: false
 editLink: false
 type: how-to
-description: Practical recipes for integrating Handsontable with design systems and UI libraries.
+description: Practical recipes for integrating Handsontable DataGrid with design systems and UI libraries.
 react:
   metaTitle: Theme Recipes - React Data Grid | Handsontable
 angular:
@@ -19,7 +19,7 @@ vue:
 
 ## Overview
 
-This section provides practical, ready-to-use recipes for matching Handsontable to your app's design system. Each recipe includes complete working examples with step-by-step instructions.
+This section provides practical, ready-to-use recipes for matching Handsontable DataGrid to your app's design system. Each recipe includes complete working examples with step-by-step instructions.
 
 ## Getting Started
 

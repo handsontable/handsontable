@@ -78,7 +78,7 @@ A product-inventory grid with six columns (SKU, Name, Category, Price, Stock, St
 
 ## Before you begin
 
-This recipe uses only built-in Handsontable features. No extra dependencies are required.
+This recipe uses only built-in Handsontable DataGrid features. No extra dependencies are required.
 
 You should be familiar with:
 

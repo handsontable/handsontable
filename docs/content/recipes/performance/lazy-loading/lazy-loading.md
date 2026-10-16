@@ -62,7 +62,7 @@ In this tutorial, you will load grid data page by page as the user scrolls to th
 **Difficulty:** Intermediate
 **Time:** ~25 minutes
 
-This tutorial shows how to load data in pages as the user scrolls toward the bottom of a Handsontable grid. The grid starts with an initial data set and silently fetches the next page when the user approaches the last visible row -- without resetting the scroll position, selection, or column configuration.
+This tutorial shows how to load data in pages as the user scrolls toward the bottom of a Handsontable DataGrid. The grid starts with an initial data set and silently fetches the next page when the user approaches the last visible row -- without resetting the scroll position, selection, or column configuration.
 
 This pattern is useful when working with large remote data sets where loading everything upfront would be too slow or memory-intensive.
 
