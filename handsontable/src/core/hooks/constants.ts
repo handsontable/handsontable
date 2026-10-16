@@ -2,11 +2,11 @@
  * @description
  *
  * ::: only-for javascript
- * Handsontable events are the common interface that function in 2 ways: as __callbacks__ and as __hooks__.
+ * Handsontable DataGrid events are the common interface that function in 2 ways: as __callbacks__ and as __hooks__.
  * :::
  *
  * ::: only-for react
- * This page lists all the **Handsontable hooks** – callbacks that let you react before or after an action occurs.
+ * This page lists all the **Handsontable DataGrid hooks** – callbacks that let you react before or after an action occurs.
  * :::
  *
  * @example

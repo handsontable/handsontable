@@ -50,7 +50,7 @@ export { LOADING_CLASS_NAME };
  * @class Loading
  *
  * @description
- * The loading plugin provides a loading overlay system for Handsontable using the Dialog plugin.
+ * The loading plugin provides a loading overlay system for Handsontable DataGrid using the Dialog plugin.
  * It displays a loading indicator with customizable title, icon, and description.
  *
  * In order to enable the loading mechanism, {@link Options#loading} option must be set to `true`.
