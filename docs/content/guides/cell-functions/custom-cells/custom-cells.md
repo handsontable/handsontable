@@ -97,8 +97,8 @@ const App = () => {
   onPrepare={(row, column, prop, TD, originalValue, cellProperties) => {
     // Called before editor opens - use for positioning or setup
   }}
-  onOpen={() => {
-    // Called when editor becomes visible
+  onOpen={(event) => {
+    // Called when the editor becomes visible. `event` is the DOM event that opened it, or undefined.
   }}
   onClose={() => {
     // Called when editor closes
@@ -142,7 +142,7 @@ The render prop function receives the following props:
    - Use for per-cell setup, reading custom properties, or positioning
    - The container is automatically positioned, but you can override if needed
 
-2. **`onOpen()`** - Called after the editor is positioned and visible
+2. **`onOpen(event?)`** - Called when the editor becomes visible, before it is positioned. `event` is the DOM event that opened the editor. It is undefined when editing starts from the API.
    - Use to open dropdowns, trigger animations, or focus elements
 
 3. **`onClose()`** - Called when the editor closes
