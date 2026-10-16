@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { IntlDateEditorImeFastEditPage } from '../fixtures/pages/IntlDateEditorImeFastEditPage';
 
 /**
@@ -9,11 +9,12 @@ import { IntlDateEditorImeFastEditPage } from '../fixtures/pages/IntlDateEditorI
  * The focus does not move at the selection itself. The focus manager moves it with a debounced `select()` once
  * the selection ends, so the specs wait for it with a web-first `toBeFocused()` instead of reading the active
  * element right after selecting. Focus and DOM identity do not depend on the theme or the bundle, so the spec
- * declares no leg tags and runs on `e2e-main`.
+ * declares no leg tags and runs on `e2e-main`. It carries `CROSS_BROWSER_TAG` because Firefox does not treat
+ * `select()` on a date input as a focus move, so only an engine leg pins that the refocus calls `focus()`.
  *
  * Fixture: `intl-date` in column 0, a plain text column beside it, `imeFastEdit: true`.
  */
-test.describe('imeFastEdit with the intl-date editor', () => {
+test.describe('imeFastEdit with the intl-date editor', { tag: CROSS_BROWSER_TAG }, () => {
   let grid: IntlDateEditorImeFastEditPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {
