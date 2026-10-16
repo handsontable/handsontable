@@ -22,8 +22,7 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup-workspace
       # Coverage is PR-only: it feeds only the changed-line floor below. Skipping it
-      # on push runs saves the instrumentation work, which is small next to jsdom's
-      # style resolution (the speedup lives in test/jsdomComputedStyleSpeed.js).
+      # on push runs saves the instrumentation work.
       - name: Test
         if: ${{ !inputs.is-pr }}
         run: |

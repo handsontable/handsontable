@@ -1,5 +1,5 @@
 import '@angular/compiler';
-import globalJsdom from 'global-jsdom';
+import { createWindow } from 'warpdom';
 import chalk from 'chalk';
 import glob from 'glob';
 import { existsSync, readFileSync } from 'node:fs';
@@ -119,7 +119,24 @@ function verifyTypePointers(subdir, sourcePackageJson) {
   });
 }
 
-globalJsdom();
+/**
+ * Exposes a DOM window's members as globals, so the built packages load the way they do in a browser.
+ */
+function installGlobalDom() {
+  const window = createWindow({ url: 'http://localhost:3000' });
+
+  Object.getOwnPropertyNames(window)
+    .filter(key => !key.startsWith('_') && !(key in global))
+    .forEach((key) => {
+      global[key] = window[key];
+    });
+
+  global.window = window;
+  global.document = window.document;
+  window.console = global.console;
+}
+
+installGlobalDom();
 
 console.log(`\nHOT config version:\n${chalk.green(hotConfig.HOT_VERSION)}\n`);
 
