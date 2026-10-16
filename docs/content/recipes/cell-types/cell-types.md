@@ -1,6 +1,6 @@
 ---
 title: Cell Type Recipes
-metaTitle: Cell Recipes | Handsontable DataGrid for JavaScript
+metaTitle: Cell recipes | Handsontable DataGrid for JavaScript
 permalink: /recipes/cell-types
 canonicalUrl: /recipes/cell-types
 searchCategory: Recipes
@@ -9,11 +9,11 @@ editLink: false
 type: how-to
 description: Practical recipes for creating custom cell types in Handsontable DataGrid.
 react:
-  metaTitle: Cell Recipes | Handsontable DataGrid for React
+  metaTitle: Cell recipes | Handsontable DataGrid for React
 angular:
-  metaTitle: Cell Recipes | Handsontable DataGrid for Angular
+  metaTitle: Cell recipes | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Cell Recipes | Handsontable DataGrid for Vue
+  metaTitle: Cell recipes | Handsontable DataGrid for Vue
 ---
 [[toc]]
 

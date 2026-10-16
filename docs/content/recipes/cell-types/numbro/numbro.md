@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Numbro
-metaTitle: Numbro Cell Type | Handsontable DataGrid for JavaScript
+metaTitle: Numbro cell type | Handsontable DataGrid for JavaScript
 description: Learn how to create a Handsontable DataGrid custom numbro cell type using the Numbro library
 permalink: /recipes/cell-types/numbro
 canonicalUrl: /recipes/cell-types/numbro
@@ -11,11 +11,11 @@ tags:
   - recipes
   - numbro
 react:
-  metaTitle: Numbro Cell Type | Handsontable DataGrid for React
+  metaTitle: Numbro cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Numbro Cell Type | Handsontable DataGrid for Angular
+  metaTitle: Numbro cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Numbro Cell Type | Handsontable DataGrid for Vue
+  metaTitle: Numbro cell type | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Cell Types
 ---

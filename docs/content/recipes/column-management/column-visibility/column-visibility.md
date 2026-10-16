@@ -1,6 +1,6 @@
 ---
 title: Build a dynamic column visibility toggle
-metaTitle: Dynamic Column Visibility Toggle | Handsontable DataGrid for JavaScript
+metaTitle: Dynamic column visibility toggle | Handsontable DataGrid for JavaScript
 description: Build a checkbox list outside the grid that shows or hides columns on demand, while preserving each column's type, renderer, and validator.
 permalink: /recipes/column-management/column-visibility
 canonicalUrl: /recipes/column-management/column-visibility
@@ -12,9 +12,9 @@ tags:
 react:
   metaTitle: Dynamic column visibility | Handsontable DataGrid for React
 angular:
-  metaTitle: Dynamic Column Visibility Toggle | Handsontable DataGrid for Angular
+  metaTitle: Dynamic column visibility toggle | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Dynamic Column Visibility Toggle | Handsontable DataGrid for Vue
+  metaTitle: Dynamic column visibility toggle | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Column Management
 type: how-to

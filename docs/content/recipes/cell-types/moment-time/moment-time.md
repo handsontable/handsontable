@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Moment.js-based time
-metaTitle: Moment.js Cell Type | Handsontable DataGrid for JavaScript
+metaTitle: Moment.js cell type | Handsontable DataGrid for JavaScript
 description: Learn how to create a Handsontable DataGrid custom time cell type using the Moment.js library
 permalink: /recipes/cell-types/moment-time
 canonicalUrl: /recipes/cell-types/moment-time
@@ -12,11 +12,11 @@ tags:
   - moment.js
   - time
 react:
-  metaTitle: Moment.js time Cell Type | Handsontable DataGrid for React
+  metaTitle: Moment.js time cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Moment.js time Cell Type | Handsontable DataGrid for Angular
+  metaTitle: Moment.js time cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Moment.js time Cell Type | Handsontable DataGrid for Vue
+  metaTitle: Moment.js time cell type | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Cell Types
 ---
