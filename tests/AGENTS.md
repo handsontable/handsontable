@@ -645,6 +645,21 @@ that same evaluation (`FrozenTallCellPage.rowHeights()`), and poll a pinned
 expected value rather than comparing two reads with each other — two reads
 that both landed before the draw agree with each other and prove nothing.
 
+**An autocomplete list is drawn by a query the editor defers, and its last rows
+sit on the edge of the drawn band.** `open()` queues the first query on a 0ms
+timer and every key press queues another 10ms behind it
+(`AutocompleteEditor#deferQuery`), so a read a fixed number of frames after the
+key can see the list before the query ran: the legacy `sortByRelevance` cases
+read an empty row text that way on the `-min` legs (`Expected '' to equal
+'cyan'`). `editor.query` holds the text the list was last queried with, so read
+it in the SAME evaluation as the rows and poll until it equals what was typed
+(`AutocompleteChoicesListPage.listState()`); that read is also the positive
+control for a negative assertion such as "the phrase is not highlighted". The
+inner grid draws `visibleRows` rows, a sliver of the next one and one buffer
+row, so a 12-entry list draws all 12 only through that sliver: compare the
+drawn rows the user sees and read the whole list from `htEditor.getData()`
+instead of pinning the last drawn row (`e2e/autocomplete-choices-list.spec.ts`).
+
 **`keyboard.press()` cannot make several presses share one animation frame
 reliably.** Each press is its own round trip, so presses land a few milliseconds
 apart. How many of them fall between two frames depends on the machine, the
