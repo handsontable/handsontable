@@ -1,5 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
-import { awaitBundle } from '../bundle';
+import { awaitBundle, awaitFixtureBuilt } from '../bundle';
 
 // Deliberately not `extends Window`: `windowTypes.ts` already declares `hot` globally with the full
 // instance type, which has no `TEXTAREA`, and narrowing it here would be a TS2430 conflict. Every
@@ -9,7 +9,6 @@ interface FixtureWindow {
     selectCell(row: number, col: number): boolean;
     getActiveEditor(): { TEXTAREA?: HTMLElement; isOpened(): boolean } | undefined;
   };
-  fixtureError: string | null;
 }
 
 /**
@@ -45,21 +44,16 @@ export class IntlDateEditorImeFastEditPage {
   }
 
   /**
-   * Navigates to the fixture, rethrows a constructor failure the fixture captured, and waits for the
-   * first cell to render.
+   * Navigates to the fixture, waits for the grid to be built (the shared `awaitFixtureBuilt()` rethrows a
+   * constructor failure the fixture captured in `htBuildError`, with its cause), and waits for the first
+   * cell to render.
    */
   async goto(): Promise<void> {
     await this.page.goto(
       `/tests/fixtures/demo/intl-date-editor-ime-fast-edit.html?theme=${this.theme}&bundle=${this.bundle}`
     );
     await awaitBundle(this.page);
-
-    const buildError = await this.page.evaluate(() => (window as unknown as FixtureWindow).fixtureError);
-
-    if (buildError !== null) {
-      throw new Error(`Handsontable constructor threw in the fixture:\n${buildError}`);
-    }
-
+    await awaitFixtureBuilt(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
