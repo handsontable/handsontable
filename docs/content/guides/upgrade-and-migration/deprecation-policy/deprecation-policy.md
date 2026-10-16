@@ -2,7 +2,7 @@
 type: explanation
 title: Deprecation policy
 metaTitle: Deprecation policy - JavaScript Data Grid | Handsontable
-description: Handsontable ensures that if API is marked deprecated, we commit to a grace period (at least 3 months) during which the deprecated feature still works.
+description: Handsontable DataGrid ensures that if API is marked deprecated, we commit to a grace period (at least 3 months) during which the deprecated feature still works.
 permalink: /deprecation-policy
 canonicalUrl: /deprecation-policy
 react:
@@ -14,7 +14,7 @@ vue:
 searchCategory: Guides
 category: Upgrade and migration
 ---
-This page explains how Handsontable handles deprecated APIs -- including the grace period before removal and how you will be notified.
+This page explains how Handsontable DataGrid handles deprecated APIs -- including the grace period before removal and how you will be notified.
 
 Deprecation occurs when better alternatives emerge that offer improved performance, security, or usability compared to existing implementations. It also helps maintain API consistency by removing redundant or inconsistent functions, creating a cleaner overall design. As web standards and the JavaScript ecosystem evolve, certain approaches become obsolete or suboptimal, requiring updates to stay current. Additionally, deprecation reduces maintenance complexity by phasing out rarely-used or problematic features, while addressing potential security vulnerabilities in older implementations. Rather than introducing breaking changes, deprecation provides a gradual migration path that gives developers time to adapt while clearly signaling the library's future direction.
 

@@ -21,7 +21,7 @@ vue:
 searchCategory: Guides
 category: Styling
 ---
-Starting from **version 17.0.0**, the legacy stylesheet has been removed from Handsontable. If you're upgrading from an earlier version, you must migrate to the **Classic** theme.
+Starting from **version 17.0.0**, the legacy stylesheet has been removed from Handsontable DataGrid. If you're upgrading from an earlier version, you must migrate to the **Classic** theme.
 
 [[toc]]
 

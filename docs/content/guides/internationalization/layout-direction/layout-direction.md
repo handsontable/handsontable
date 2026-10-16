@@ -32,7 +32,7 @@ Set the layout direction for right-to-left languages. Automatically inherit your
 
 ## Overview
 
-To properly display Handsontable's UI and data in LTR languages (such as English, Chinese, or Russian) and RTL languages (such as Arabic, Persian, or Hebrew), configure your grid's layout direction.
+To properly display Handsontable DataGrid's UI and data in LTR languages (such as English, Chinese, or Russian) and RTL languages (such as Arabic, Persian, or Hebrew), configure your grid's layout direction.
 
 By default, Handsontable's layout direction is set automatically, based on on the value of your HTML document's `dir` attribute.
 

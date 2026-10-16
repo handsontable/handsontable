@@ -2,7 +2,7 @@
 type: how-to
 title: Column widths
 metaTitle: Column widths - JavaScript Data Grid | Handsontable
-description: Configure column widths, using an array or a function. Let your users manually change column widths using Handsontable's interface.
+description: Configure column widths, using an array or a function. Let your users manually change column widths using Handsontable DataGrid's interface.
 permalink: /column-width
 canonicalUrl: /column-width
 tags:
@@ -24,7 +24,7 @@ searchCategory: Guides
 category: Columns
 menuTag: updated
 ---
-Configure column widths, using an array or a function. Let your users manually change column widths using Handsontable's interface.
+Configure column widths, using an array or a function. Let your users manually change column widths using Handsontable DataGrid's interface.
 
 [[toc]]
 

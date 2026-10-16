@@ -128,7 +128,7 @@ The [`rowHeaders`](@/api/options.md#rowheaders) can also be populated using a fu
 Row headers have a fixed width. When you use custom row labels, a label longer than that width is
 clipped, and the header does not grow to fit it the way a column does.
 
-You have two ways to deal with this: set the width yourself, or let Handsontable measure it.
+You have two ways to deal with this: set the width yourself, or let Handsontable DataGrid measure it.
 
 ### Set the width yourself
 

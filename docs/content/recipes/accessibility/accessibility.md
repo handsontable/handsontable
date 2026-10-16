@@ -1,7 +1,7 @@
 ---
 title: Accessibility and UX Recipes
 metaTitle: Accessibility and UX Recipes - JavaScript Data Grid | Handsontable
-description: Practical recipes for improving accessibility and keyboard usability in Handsontable grids.
+description: Practical recipes for improving accessibility and keyboard usability in Handsontable DataGrid.
 permalink: /recipes/accessibility
 canonicalUrl: /recipes/accessibility
 searchCategory: Recipes
@@ -19,7 +19,7 @@ vue:
 
 ## Overview
 
-This section provides practical recipes for making Handsontable grids more accessible and keyboard-friendly. Each recipe includes a working example you can copy into your app.
+This section provides practical recipes for making Handsontable DataGrid more accessible and keyboard-friendly. Each recipe includes a working example you can copy into your app.
 
 ## Available Recipes
 

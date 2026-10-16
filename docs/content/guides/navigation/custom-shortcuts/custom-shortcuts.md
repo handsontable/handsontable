@@ -2,7 +2,7 @@
 type: how-to
 title: Custom shortcuts
 metaTitle: Custom shortcuts - JavaScript Data Grid | Handsontable
-description: Customize Handsontable's keyboard shortcuts.
+description: Customize Handsontable DataGrid's keyboard shortcuts.
 permalink: /custom-shortcuts
 canonicalUrl: /custom-shortcuts
 tags:
@@ -26,7 +26,7 @@ searchCategory: Guides
 category: Navigation
 menuTag: updated
 ---
-Use the [`ShortcutManager`](@/api/shortcutManager.md) API to add, remove, replace, or block keyboard shortcuts in Handsontable.
+Use the [`ShortcutManager`](@/api/shortcutManager.md) API to add, remove, replace, or block keyboard shortcuts in Handsontable DataGrid.
 
 [[toc]]
 

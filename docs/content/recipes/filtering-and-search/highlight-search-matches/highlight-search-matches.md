@@ -62,7 +62,7 @@ This recipe shows how to highlight matched text fragments with a custom renderer
 
 **Difficulty:** Beginner
 **Time:** ~15 minutes
-**Libraries:** None (pure Handsontable + browser APIs)
+**Libraries:** None (pure Handsontable DataGrid + browser APIs)
 
 ## What You'll Build
 

@@ -2,7 +2,7 @@
 type: how-to
 title: Radio buttons
 metaTitle: Radio Button Cell Type - JavaScript Data Grid | Handsontable
-description: Learn how to create a custom Handsontable cell type that renders radio button options directly in cells, with keyboard navigation and roving tabindex accessibility.
+description: Learn how to create a custom Handsontable DataGrid cell type that renders radio button options directly in cells, with keyboard navigation and roving tabindex accessibility.
 permalink: /recipes/cell-types/radio
 canonicalUrl: /recipes/cell-types/radio
 tags:
@@ -97,7 +97,7 @@ A cell type that:
 
 ## Prerequisites
 
-None. This uses only native HTML, CSS, and the Handsontable API.
+None. This uses only native HTML, CSS, and the Handsontable DataGrid API.
 
 ## Step 1: Import Dependencies
 
@@ -438,7 +438,7 @@ readonly gridSettings: GridSettings = {
 
 :::
 
-## Step 9: Register and Use in Handsontable
+## Step 9: Register and Use in Handsontable DataGrid
 
 ::: only-for javascript
 

@@ -2,7 +2,7 @@
 type: tutorial
 title: Demo
 metaTitle: Demo - JavaScript Data Grid | Handsontable
-description: Play around with a demo of Handsontable, in your favorite framework.
+description: Play around with a demo of Handsontable DataGrid, in your favorite framework.
 permalink: /demo
 canonicalUrl: /demo
 tags:
@@ -19,7 +19,7 @@ vue:
 searchCategory: Guides
 category: Getting started
 ---
-Explore Handsontable core features in this interactive demo. Click cells, sort columns, and use the context menu to see what the grid can do.
+Explore Handsontable DataGrid core features in this interactive demo. Click cells, sort columns, and use the context menu to see what the grid can do.
 
 [[toc]]
 

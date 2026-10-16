@@ -24,7 +24,7 @@ Render thousands of rows without freezing the browser, using row virtualization.
 
 ## Overview
 
-Virtualization allows Handsontable to process hundreds of thousands of records without causing the browser to hang. This feature draws only the visible part of the grid, displaying the minimum items physically rendered in the DOM. The elements outside the viewport are rendered when you scroll across the grid. Depending on your configuration, there might be a small offset of columns or rows rendered outside the viewport to make the scrolling performance smoother.
+Virtualization allows Handsontable DataGrid to process hundreds of thousands of records without causing the browser to hang. This feature draws only the visible part of the grid, displaying the minimum items physically rendered in the DOM. The elements outside the viewport are rendered when you scroll across the grid. Depending on your configuration, there might be a small offset of columns or rows rendered outside the viewport to make the scrolling performance smoother.
 
 This feature is enabled by default and can be turned off by setting the [`renderAllRows`](@/api/options.md#renderallrows) option to `true`.
 

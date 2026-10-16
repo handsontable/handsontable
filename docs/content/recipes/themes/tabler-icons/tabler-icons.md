@@ -2,7 +2,7 @@
 type: how-to
 title: Handsontable with Tabler Icons
 metaTitle: Handsontable with Tabler Icons - JavaScript Data Grid | Handsontable
-description: Replace every built-in Handsontable icon with a Tabler Icons glyph by mapping the icon slots to class lists through the Theme API.
+description: Replace every built-in Handsontable DataGrid icon with a Tabler Icons glyph by mapping the icon slots to class lists through the Theme API.
 permalink: /recipes/themes/tabler-icons
 canonicalUrl: /recipes/themes/tabler-icons
 tags:
@@ -25,7 +25,7 @@ category: Themes
 menuTag: new
 ---
 
-This tutorial shows you how to swap all of Handsontable's built-in icons for the [Tabler Icons](https://tabler.io/icons) webfont. You register a theme, map each icon slot to a Tabler class list, and pass the theme to the grid as an object.
+This tutorial shows you how to swap all of Handsontable DataGrid's built-in icons for the [Tabler Icons](https://tabler.io/icons) webfont. You register a theme, map each icon slot to a Tabler class list, and pass the theme to the grid as an object.
 
 ::: only-for javascript
 

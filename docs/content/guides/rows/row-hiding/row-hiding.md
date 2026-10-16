@@ -186,7 +186,7 @@ To enable the UI indicators, in the `hiddenRows` object, set the `indicators` pr
 
 ### Step 3: Set up context menu items
 
-To easily hide and unhide rows, add row hiding items to Handsontable's [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md).
+To easily hide and unhide rows, add row hiding items to Handsontable DataGrid's [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md).
 
 Enable both the [`ContextMenu`](@/api/contextMenu.md) plugin and the [`HiddenRows`](@/api/hiddenRows.md) plugin. Now, the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) automatically displays additional items for hiding and unhiding rows.
 

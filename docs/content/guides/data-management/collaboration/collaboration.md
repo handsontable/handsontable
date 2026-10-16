@@ -24,7 +24,7 @@ Coordinate edits between multiple users by detecting active edit state, intercep
 
 [[toc]]
 
-Handsontable doesn't ship a transport layer or a conflict-resolution algorithm. To build collaborative editing, you send local changes to your own backend (for example, a WebSocket server) and apply changes from other collaborators back into the grid. This guide covers the hooks and methods you use on both sides of that flow.
+Handsontable DataGrid doesn't ship a transport layer or a conflict-resolution algorithm. To build collaborative editing, you send local changes to your own backend (for example, a WebSocket server) and apply changes from other collaborators back into the grid. This guide covers the hooks and methods you use on both sides of that flow.
 
 The examples on this page simulate a remote collaborator locally, so they run without a real backend. In your app, replace the simulated call with the message you receive from your collaboration server.
 

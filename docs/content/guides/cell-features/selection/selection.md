@@ -26,7 +26,7 @@ Use the selection API to control how users select cells -- single cells, ranges,
 
 ## Overview
 
-Selection enables you to select a single cell or ranges of cells within Handsontable. Once selected, you can retrieve data from the cell, edit the cell's contents, or change the style of the cell.
+Selection enables you to select a single cell or ranges of cells within Handsontable DataGrid. Once selected, you can retrieve data from the cell, edit the cell's contents, or change the style of the cell.
 
 ## Basic configuration
 

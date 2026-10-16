@@ -2,7 +2,7 @@
 type: explanation
 title: Understanding data and indexes
 metaTitle: Understanding data and indexes - JavaScript Data Grid | Handsontable
-description: Learn how Handsontable separates your source data from the visual dataset, and how physical and visual indexes address each one.
+description: Learn how Handsontable DataGrid separates your source data from the visual dataset, and how physical and visual indexes address each one.
 permalink: /understanding-data-and-indexes
 canonicalUrl: /understanding-data-and-indexes
 tags:
@@ -21,7 +21,7 @@ searchCategory: Guides
 category: Data management
 menuTag: new
 ---
-Handsontable keeps two views of your data -- the source data you provided and the visual dataset the user currently sees -- and addresses each one with its own kind of index. Read this to understand which API methods operate on which view, and how features such as sorting, moving, hiding, and trimming affect them.
+Handsontable DataGrid keeps two views of your data -- the source data you provided and the visual dataset the user currently sees -- and addresses each one with its own kind of index. Read this to understand which API methods operate on which view, and how features such as sorting, moving, hiding, and trimming affect them.
 
 [[toc]]
 

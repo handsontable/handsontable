@@ -61,7 +61,7 @@ In this tutorial, you will color entire rows based on a status column value. You
 
 ## Overview
 
-This recipe shows how to tint every cell in a row based on a **Status** value (`active`, `pending`, or `inactive`). You map each status to a CSS class, attach that class to cells through Handsontable metadata, and keep colors correct on first load and after the user edits **Status**.
+This recipe shows how to tint every cell in a row based on a **Status** value (`active`, `pending`, or `inactive`). You map each status to a CSS class, attach that class to cells through Handsontable DataGrid metadata, and keep colors correct on first load and after the user edits **Status**.
 
 **Difficulty:** Beginner  
 **Time:** ~10 minutes  

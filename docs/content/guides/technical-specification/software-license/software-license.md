@@ -2,7 +2,7 @@
 type: reference
 title: Software license
 metaTitle: Software license - JavaScript Data Grid | Handsontable
-description: Learn about the licensing terms of the Handsontable data grid.
+description: Learn about the licensing terms of Handsontable DataGrid.
 permalink: /software-license
 canonicalUrl: /software-license
 react:
@@ -14,7 +14,7 @@ vue:
 searchCategory: Guides
 category: Technical specification
 ---
-Learn about the licensing terms of the Handsontable data grid.
+Learn about the licensing terms of Handsontable DataGrid.
 
 [[toc]]
 

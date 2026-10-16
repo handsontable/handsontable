@@ -2,7 +2,7 @@
 type: how-to
 title: Language
 metaTitle: Language - JavaScript Data Grid | Handsontable
-description: Set Handsontable's UI language to one of the built-in translations, or create your own language set using our templates.
+description: Set Handsontable DataGrid's UI language to one of the built-in translations, or create your own language set using our templates.
 permalink: /language
 canonicalUrl: /language
 tags:
@@ -21,7 +21,7 @@ searchCategory: Guides
 category: Internationalization
 menuTag: updated
 ---
-Set Handsontable's UI language to one of the built-in translations, or create your own language set using our templates.
+Set Handsontable DataGrid's UI language to one of the built-in translations, or create your own language set using our templates.
 
 [[toc]]
 

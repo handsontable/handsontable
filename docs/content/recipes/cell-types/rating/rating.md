@@ -2,7 +2,7 @@
 type: how-to
 title: Star Rating
 metaTitle:  Star Rating Cell Type - JavaScript Data Grid | Handsontable"
-description: Learn how to create a custom Handsontable cell type using SVG stars for intuitive 1-5 star ratings directly in your data grid.
+description: Learn how to create a custom Handsontable DataGrid cell type using SVG stars for intuitive 1-5 star ratings directly in your data grid.
 permalink: /recipes/cell-types/rating
 canonicalUrl: /recipes/cell-types/rating
 tags:
@@ -69,7 +69,7 @@ This guide shows how to create an interactive star rating cell using inline SVG 
 A cell that:
 - Displays 5 SVG stars both when editing and viewing
 - Shows filled stars (gold) and unfilled stars (gray)
-- Uses Handsontable CSS tokens for theme-aware editor styling
+- Uses Handsontable DataGrid CSS tokens for theme-aware editor styling
 - Supports mouse hover for preview
 - Allows keyboard input (1-5 keys, arrow keys)
 - Provides immediate visual feedback
@@ -462,7 +462,7 @@ const cellDefinition = {
   - Mouse events using `closest()` for reliable SVG hover detection
   - Render function with `current` class to highlight the selected star using accent color
 
-## Step 11: Use in Handsontable
+## Step 11: Use in Handsontable DataGrid
 
 ```typescript
 const container = document.querySelector('#example1')!;

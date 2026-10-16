@@ -65,7 +65,7 @@ This recipe pins a single **summary** row to the bottom of the grid so it stays 
 
 **Difficulty:** Intermediate
 **Time:** ~20 minutes
-**Libraries:** None (core Handsontable only)
+**Libraries:** None (core Handsontable DataGrid only)
 
 ## What you will build
 

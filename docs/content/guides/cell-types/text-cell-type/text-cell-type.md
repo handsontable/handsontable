@@ -2,7 +2,7 @@
 type: how-to
 title: Text cell type
 metaTitle: Text cell type - JavaScript Data Grid | Handsontable
-description: Use the text cell type, the default cell type in Handsontable, to display and edit plain text values.
+description: Use the text cell type, the default cell type in Handsontable DataGrid, to display and edit plain text values.
 permalink: /text-cell-type
 canonicalUrl: /text-cell-type
 react:
@@ -15,7 +15,7 @@ searchCategory: Guides
 category: Cell types
 menuTag: new
 ---
-Use the text cell type, the default cell type in Handsontable, to display and edit plain text values.
+Use the text cell type, the default cell type in Handsontable DataGrid, to display and edit plain text values.
 
 [[toc]]
 

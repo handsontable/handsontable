@@ -135,7 +135,7 @@ You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https
     <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>Handsontable - JavaScript Data Grid Example</title>
+      <title>Handsontable DataGrid - JavaScript Example</title>
     </head>
     <body>
       <div id="handsontable-grid"></div>
@@ -174,7 +174,7 @@ You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https
 
 ## 🎨 Themes
 
-Handsontable themes control how your data table looks: colors, spacing, typography, borders, and overall visual style.
+Handsontable themes control how your data grid looks: colors, spacing, typography, borders, and overall visual style.
 
 You get three built-in themes out of the box:
 - main – modern, clean, default choice

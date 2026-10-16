@@ -2,7 +2,7 @@
 type: how-to
 title: Autofill values
 metaTitle: Autofill values - JavaScript Data Grid | Handsontable
-description: Copy a cell's value into multiple other cells, using the "fill handle" UI element. Configure the direction of copying, and more, through Handsontable's API.
+description: Copy a cell's value into other cells using the "fill handle" UI element. Configure the direction of copying, and more, through Handsontable DataGrid's API.
 permalink: /autofill-values
 canonicalUrl: /autofill-values
 tags:
@@ -23,7 +23,7 @@ searchCategory: Guides
 category: Cell features
 menuTag: updated
 ---
-Copy a cell's value into multiple other cells, using the "fill handle" UI element. Configure the direction of copying, and more, through Handsontable's API.
+Copy a cell's value into multiple other cells, using the "fill handle" UI element. Configure the direction of copying, and more, through Handsontable DataGrid's API.
 
 [[toc]]
 

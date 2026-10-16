@@ -7,7 +7,7 @@ searchCategory: Recipes
 hotPlugin: false
 editLink: false
 type: how-to
-description: Practical recipes for building external and in-grid search workflows with Handsontable.
+description: Practical recipes for building external and in-grid search workflows with Handsontable DataGrid.
 react:
   metaTitle: Filtering and Search Recipes - React Data Grid | Handsontable
 angular:
@@ -19,7 +19,7 @@ vue:
 
 ## Overview
 
-This section provides practical recipes for adding search and filtering workflows around Handsontable. Each recipe includes a working example and implementation notes.
+This section provides practical recipes for adding search and filtering workflows around Handsontable DataGrid. Each recipe includes a working example and implementation notes.
 
 ## Getting Started
 

@@ -38,7 +38,7 @@ In this tutorial, you will add three AI-generated columns to a grid of product r
 
 **Difficulty:** Intermediate
 **Time:** ~20 minutes
-**Stack:** Handsontable, [Jev](https://docs.typesafe.ai) by TypeSafe AI through a small proxy you host
+**Stack:** Handsontable DataGrid, [Jev](https://docs.typesafe.ai) by TypeSafe AI through a small proxy you host
 
 Jev is a decision model, not a chat model. It answers typed questions. A **Noul** is yes or no, a **Score** is a position on ordered levels, and a **Choice** is one option from a list. Score and Choice answers carry a confidence, a probability you can sort, filter, and set thresholds on. There is no free text to parse, so an answer can go straight into a cell.
 

@@ -2,7 +2,7 @@
 type: how-to
 title: Testing
 metaTitle: Testing - JavaScript Data Grid | Handsontable
-description: Run one or multiple tests, using Handsontable's ready-made commands for Jasmine and Puppeteer.
+description: Run one or multiple tests, using Handsontable DataGrid's ready-made commands for Jasmine and Puppeteer.
 permalink: /testing
 canonicalUrl: /testing
 tags:
@@ -21,7 +21,7 @@ vue:
 searchCategory: Guides
 category: Tools and building
 ---
-Handsontable has three test pipelines: unit tests (Jest), E2E tests (Puppeteer/Jasmine), and Walkontable tests. Run them when contributing to the core library or verifying a fix.
+Handsontable DataGrid has three test pipelines: unit tests (Jest), E2E tests (Puppeteer/Jasmine), and Walkontable tests. Run them when contributing to the core library or verifying a fix.
 
 [[toc]]
 
