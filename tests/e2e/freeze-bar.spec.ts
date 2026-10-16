@@ -643,6 +643,93 @@ test.describe('freezeBar', { tag: THEMES_TAG }, () => {
       expect(await grid.count('end')).toBe(3);
     });
 
+    test('a scroll while the start bar is held keeps the grid on the first columns and the guide on a column edge',
+      async() => {
+        await grid.goto({ cols: 4, rows: 0 });
+        await grid.page.evaluate(() => {
+          window.hot.updateSettings({
+            width: 700,
+            height: 400,
+            colWidths: 100,
+            data: window.Handsontable.helper.createSpreadsheetData(50, 40),
+          });
+          // the largest scroll position the grid reached, to tell a wheel that never scrolled from one that was undone
+          (window as any).maxScrollLeft = 0;
+          // a capturing listener runs before the plugin's own handling of the same event
+          window.addEventListener('scroll', (event) => {
+            if (event.target === window.hot.view._wt.wtTable.holder) {
+              (window as any).maxScrollLeft = Math.max((window as any).maxScrollLeft, (event.target as HTMLElement).scrollLeft);
+            }
+          }, true);
+        });
+
+        await grid.dragTo('start', 5);
+        await grid.page.mouse.wheel(150, 0);
+
+        await expect.poll(() => grid.page.evaluate(() => (window as any).maxScrollLeft)).toBeGreaterThan(0);
+
+        // the guide marks the boundary after the first 5 columns, so those columns must still be the ones in view
+        await expect.poll(() => grid.page.evaluate(() => {
+          const guide = document.querySelector('.ht-freeze-bar-guide')!.getBoundingClientRect();
+          const header = document.querySelector('.ht_clone_top [data-testid="colheader-4"]')!.getBoundingClientRect();
+
+          return {
+            left: window.hot.view._wt.wtTable.holder.scrollLeft,
+            guideOnEdge: Math.abs(guide.left + guide.width / 2 - header.right) < 2,
+          };
+        })).toEqual({ left: 0, guideOnEdge: true });
+
+        await grid.release();
+
+        expect(await grid.count('start')).toBe(5);
+      });
+
+    test('a scroll while the top bar is held keeps the grid on the first rows', async() => {
+      await grid.goto();
+      await grid.page.evaluate(() => {
+        (window as any).maxScrollTop = 0;
+        window.addEventListener('scroll', (event) => {
+          if (event.target === window.hot.view._wt.wtTable.holder) {
+            (window as any).maxScrollTop = Math.max((window as any).maxScrollTop, (event.target as HTMLElement).scrollTop);
+          }
+        }, true);
+      });
+
+      await grid.dragTo('top', 4);
+      await grid.page.mouse.wheel(0, 150);
+
+      await expect.poll(() => grid.page.evaluate(() => (window as any).maxScrollTop)).toBeGreaterThan(0);
+      await expect.poll(async() => (await grid.scrollPosition()).top).toBe(0);
+      await grid.release();
+
+      expect(await grid.count('top')).toBe(4);
+    });
+
+    test('a scroll while the end bar is held keeps the grid on the last columns', async() => {
+      await grid.goto({ end: 1 });
+      await grid.dragTo('end', 3);
+
+      const edge = (await grid.scrollPosition()).left;
+
+      expect(edge).toBeGreaterThan(0);
+      await grid.page.evaluate(() => {
+        (window as any).minScrollLeft = Infinity;
+        window.addEventListener('scroll', (event) => {
+          if (event.target === window.hot.view._wt.wtTable.holder) {
+            (window as any).minScrollLeft = Math.min((window as any).minScrollLeft,
+              Math.abs((event.target as HTMLElement).scrollLeft));
+          }
+        }, true);
+      });
+      await grid.page.mouse.wheel(-150, 0);
+
+      await expect.poll(() => grid.page.evaluate(() => (window as any).minScrollLeft)).toBeLessThan(edge);
+      await expect.poll(async() => (await grid.scrollPosition()).left).toBe(edge);
+      await grid.release();
+
+      expect(await grid.count('end')).toBe(3);
+    });
+
     test('a drag cancelled with Escape still leaves the count alone', async() => {
       await grid.goto();
       await grid.scrollTo({ row: 40 });
