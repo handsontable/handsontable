@@ -374,7 +374,7 @@ export default {
     'ManualRowResize.md': {
       id: 'la7wo1xh',
       metaTitle: 'ManualRowResize - JavaScript Data Grid | Handsontable',
-      description: 'Use the ManualColumnResize plugin with its API options and methods to let your users manually change row heights using Handsontable DataGrid\'s interface.',
+      description: 'Use the ManualRowResize plugin with its API options and methods to let your users manually change row heights using Handsontable DataGrid\'s interface.',
       react: {
         id: '7chricz2',
         metaTitle: 'ManualRowResize - React Data Grid | Handsontable',
@@ -608,7 +608,7 @@ export default {
     'FocusScopeManager.md': {
       id: 'yqlpna1z',
       metaTitle: 'FocusScopeManager - JavaScript Data Grid | Handsontable',
-      description: 'Options, members, and methods of Handsontable DataGrid\'s ShortcutManager API.',
+      description: 'Options, members, and methods of Handsontable DataGrid\'s FocusScopeManager API.',
       react: {
         id: '1jvf0v47',
         metaTitle: 'FocusScopeManager - React Data Grid | Handsontable',

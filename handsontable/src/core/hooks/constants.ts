@@ -6,7 +6,7 @@
  * :::
  *
  * ::: only-for react
- * This page lists all the **Handsontable hooks** – callbacks that let you react before or after an action occurs.
+ * This page lists all the **Handsontable DataGrid hooks** – callbacks that let you react before or after an action occurs.
  * :::
  *
  * @example
