@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, NgZone, ViewChild, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, ViewChild, inject } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable/base';
 
@@ -36,9 +36,15 @@ const STATUS_LABELS: Record<SaveStatus, string> = {
 export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
-  private readonly ngZone = inject(NgZone);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   saveStatus: SaveStatus = 'idle';
+
+  /** Nothing marks the OnPush-by-default component dirty here, so mark it. */
+  private setSaveStatus(status: SaveStatus): void {
+    this.saveStatus = status;
+    this.cdr.markForCheck();
+  }
 
   get statusLabel(): string {
     return STATUS_LABELS[this.saveStatus];
@@ -116,9 +122,7 @@ export class AppComponent {
         hot.validateRows(visualRows, (valid) => {
           if (!valid) {
             if (requestId === this.saveRequestCounter) {
-              this.ngZone.run(() => {
-                this.saveStatus = 'error';
-              });
+              this.setSaveStatus('error');
             }
 
             return;
@@ -129,25 +133,19 @@ export class AppComponent {
             .filter((row): row is RowData => row !== undefined && row !== null);
 
           this.dirtyRows.clear();
-          this.ngZone.run(() => {
-            this.saveStatus = 'saving';
-          });
+          this.setSaveStatus('saving');
 
           void this.saveRowsToBackend(rowsToSave)
             .then(() => {
               if (requestId === this.saveRequestCounter) {
-                this.ngZone.run(() => {
-                  this.saveStatus = 'saved';
-                });
+                this.setSaveStatus('saved');
               }
             })
             .catch(() => {
               physicalRows.forEach((physicalRow) => this.dirtyRows.add(physicalRow));
 
               if (requestId === this.saveRequestCounter) {
-                this.ngZone.run(() => {
-                  this.saveStatus = 'error';
-                });
+                this.setSaveStatus('error');
               }
             });
         });

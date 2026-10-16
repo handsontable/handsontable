@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { CustomBordersLabPage } from '../fixtures/pages/CustomBordersLabPage';
 import { CustomBordersDemoPage } from '../fixtures/pages/CustomBordersDemoPage';
 
@@ -34,7 +34,7 @@ async function gotoDemo(page: Page, theme: string, bundle: string): Promise<Cust
   return demo;
 }
 
-test.describe('CustomBorders with frozen rows and columns', () => {
+test.describe('CustomBorders with frozen rows and columns', { tag: THEMES_TAG }, () => {
   test('renders borders located in the frozen areas', async ({ page, theme, bundle }) => {
     const demo = await gotoDemo(page, theme, bundle);
 
@@ -82,7 +82,7 @@ test.describe('CustomBorders with frozen rows and columns', () => {
   });
 });
 
-test.describe('CustomBorders explicit zero width (DEV-1137)', () => {
+test.describe('CustomBorders explicit zero width (DEV-1137)', { tag: THEMES_TAG }, () => {
   test('does not paint a 1px edge when a side is configured with width 0', async ({ page, theme, bundle }) => {
     const lab = await gotoLab(page, theme, bundle);
 
@@ -116,7 +116,7 @@ test.describe('CustomBorders explicit zero width (DEV-1137)', () => {
   });
 });
 
-test.describe('CustomBorders and UndoRedo', () => {
+test.describe('CustomBorders and UndoRedo', { tag: THEMES_TAG }, () => {
   test('restores a border removed together with its row when the removal is undone', async ({ page, theme, bundle }) => {
     const demo = await gotoDemo(page, theme, bundle);
 
@@ -133,7 +133,7 @@ test.describe('CustomBorders and UndoRedo', () => {
   });
 });
 
-test.describe('CustomBorders selection ownership', () => {
+test.describe('CustomBorders selection ownership', { tag: THEMES_TAG }, () => {
   test('clearBorders() keeps custom selections the plugin does not own', async ({ page, theme, bundle }) => {
     const demo = await gotoDemo(page, theme, bundle);
 
@@ -150,7 +150,7 @@ test.describe('CustomBorders selection ownership', () => {
   });
 });
 
-test.describe('CustomBorders structural changes (issues #11031, #6063, #3296)', () => {
+test.describe('CustomBorders structural changes (issues #11031, #6063, #3296)', { tag: THEMES_TAG }, () => {
   test('moves a border down when a row is inserted above it', async ({ page, theme, bundle }) => {
     const lab = await gotoLab(page, theme, bundle);
 
@@ -559,7 +559,7 @@ test.describe('CustomBorders structural changes (issues #11031, #6063, #3296)', 
   });
 });
 
-test.describe('CustomBorders range with a `border` object (issue #6679)', () => {
+test.describe('CustomBorders range with a `border` object (issue #6679)', { tag: THEMES_TAG }, () => {
   test('applies the range-level `border` style to empty sides instead of the default', async ({ page, theme, bundle }) => {
     const lab = await gotoLab(page, theme, bundle);
 
@@ -701,7 +701,7 @@ test.describe('CustomBorders range with a `border` object (issue #6679)', () => 
   });
 });
 
-test.describe('CustomBorders range borders in RTL (issue #6679)', () => {
+test.describe('CustomBorders range borders in RTL (issue #6679)', { tag: THEMES_TAG }, () => {
   test('aligns edges and stacks deterministically where ranges of different widths overlap', async ({ page, theme, bundle }) => {
     const lab = await gotoLab(page, theme, bundle);
 
@@ -775,7 +775,7 @@ test.describe('CustomBorders range borders in RTL (issue #6679)', () => {
   });
 });
 
-test.describe('CustomBorders external cell-meta writes', () => {
+test.describe('CustomBorders external cell-meta writes', { tag: THEMES_TAG }, () => {
   test('syncs a user-authored partial borders meta write into the model and renders it', async ({ page, theme, bundle }) => {
     const lab = await gotoLab(page, theme, bundle);
 
@@ -850,7 +850,7 @@ test.describe('CustomBorders external cell-meta writes', () => {
   });
 });
 
-test.describe('CustomBorders border DOM working set', () => {
+test.describe('CustomBorders border DOM working set', { tag: THEMES_TAG }, () => {
   test('does not materialize custom border DOM in header-only overlays', async ({ page, theme, bundle }) => {
     const lab = await gotoLab(page, theme, bundle);
 
@@ -895,7 +895,7 @@ test.describe('CustomBorders border DOM working set', () => {
   });
 });
 
-test.describe('CustomBorders progressive application (customBordersProgressive)', () => {
+test.describe('CustomBorders progressive application (customBordersProgressive)', { tag: THEMES_TAG }, () => {
   /**
    * Border config entries for rows 0..rows-1, col 0.
    */
@@ -1221,7 +1221,7 @@ test.describe('CustomBorders progressive application (customBordersProgressive)'
   });
 });
 
-test.describe('CustomBorders initialization render timing', () => {
+test.describe('CustomBorders initialization render timing', { tag: THEMES_TAG }, () => {
   test('does not leak dropdown-menu buttons into upper nested-header rows on init', async ({ page, theme, bundle }) => {
     const lab = await gotoLab(page, theme, bundle);
 
@@ -1249,7 +1249,7 @@ test.describe('CustomBorders initialization render timing', () => {
   });
 });
 
-test.describe('CustomBorders viewport sync timing', () => {
+test.describe('CustomBorders viewport sync timing', { tag: THEMES_TAG }, () => {
   test('redraws a frozen-column border that scrolls back into the rendered range', async ({ page, theme, bundle }) => {
     const lab = new CustomBordersLabPage(page, theme, bundle);
 
@@ -1336,7 +1336,7 @@ test.describe('CustomBorders viewport sync timing', () => {
   });
 });
 
-test.describe('CustomBorders and vetoed cell-meta writes', () => {
+test.describe('CustomBorders and vetoed cell-meta writes', { tag: THEMES_TAG }, () => {
   test('keeps the border out of the model when the meta write is blocked', async ({ page, theme, bundle }) => {
     const lab = await gotoLab(page, theme, bundle);
 
@@ -1451,7 +1451,7 @@ test.describe('CustomBorders and vetoed cell-meta writes', () => {
   });
 });
 
-test.describe('CustomBorders cascaded and partial borders meta', () => {
+test.describe('CustomBorders cascaded and partial borders meta', { tag: THEMES_TAG }, () => {
   test('keeps a column-cascaded side when setBorders merges another side onto the same cell', async ({ page, theme, bundle }) => {
     const lab = await gotoLab(page, theme, bundle);
 
@@ -1491,7 +1491,7 @@ test.describe('CustomBorders cascaded and partial borders meta', () => {
   });
 });
 
-test.describe('CustomBorders row index maintenance', () => {
+test.describe('CustomBorders row index maintenance', { tag: THEMES_TAG }, () => {
   test('keeps the rendered set correct across repeated add, restyle and remove', async ({ page, theme, bundle }) => {
     const lab = await gotoLab(page, theme, bundle);
 

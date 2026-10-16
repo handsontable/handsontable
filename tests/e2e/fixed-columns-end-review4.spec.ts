@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { FixedColumnsEndReview4Page } from '../fixtures/pages/FixedColumnsEndReview4Page';
 
 /**
@@ -14,7 +14,7 @@ import { FixedColumnsEndReview4Page } from '../fixtures/pages/FixedColumnsEndRev
 for (const rtl of [false, true]) {
   const direction = rtl ? 'RTL' : 'LTR';
 
-  test.describe(`fixedColumnsEnd collapsible group toggle (${direction})`, { tag: '@core' }, () => {
+  test.describe(`fixedColumnsEnd collapsible group toggle (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
     let grid: FixedColumnsEndReview4Page;
 
     test.beforeEach(async ({ page, theme, bundle }) => {
@@ -49,7 +49,7 @@ for (const rtl of [false, true]) {
     });
   });
 
-  test.describe(`fixedColumnsEnd overlay clones in the DOM (${direction})`, { tag: '@core' }, () => {
+  test.describe(`fixedColumnsEnd overlay clones in the DOM (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
     let grid: FixedColumnsEndReview4Page;
 
     test.beforeEach(async ({ page, theme, bundle }) => {
@@ -87,7 +87,7 @@ for (const rtl of [false, true]) {
     });
   });
 
-  test.describe(`fixedColumnsEnd header cell lookup (${direction})`, { tag: '@core' }, () => {
+  test.describe(`fixedColumnsEnd header cell lookup (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
     let grid: FixedColumnsEndReview4Page;
 
     test.beforeEach(async ({ page, theme, bundle }) => {

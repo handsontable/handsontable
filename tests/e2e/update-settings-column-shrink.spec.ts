@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { UpdateSettingsColumnShrinkPage } from '../fixtures/pages/UpdateSettingsColumnShrinkPage';
 
 /**
@@ -10,7 +10,7 @@ import { UpdateSettingsColumnShrinkPage } from '../fixtures/pages/UpdateSettings
  * the recorded renderer calls rather than cell text - an assertion on the settled
  * grid passes on the broken build too.
  */
-test.describe('updateSettings with a shortened columns array', () => {
+test.describe('updateSettings with a shortened columns array', { tag: THEMES_TAG }, () => {
   test('keeps every renderer on its own column when `data` travels along', async({ page, theme, bundle }) => {
     const grid = new UpdateSettingsColumnShrinkPage(page, theme, bundle);
 

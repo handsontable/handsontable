@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { FragmentSelectionPage } from '../fixtures/pages/FragmentSelectionPage';
 
 /**
@@ -10,7 +10,7 @@ import { FragmentSelectionPage } from '../fixtures/pages/FragmentSelectionPage';
  * so the flag stayed set. The next hover over a header then looked like a drag and wiped the text
  * the user had just selected – with no button held at all.
  */
-test.describe('fragmentSelection after a drag released off the grid', () => {
+test.describe('fragmentSelection after a drag released off the grid', { tag: THEMES_TAG }, () => {
   let grid: FragmentSelectionPage;
 
   const HOVERS: { label: string, hover: () => Promise<number> }[] = [

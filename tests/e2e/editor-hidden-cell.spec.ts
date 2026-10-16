@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { EditorHiddenCellPage } from '../fixtures/pages/EditorHiddenCellPage';
 
 /**
@@ -7,7 +7,7 @@ import { EditorHiddenCellPage } from '../fixtures/pages/EditorHiddenCellPage';
  *
  * The fixture pages 4 rows two at a time, so page 2 leaves row 0 unrendered.
  */
-test.describe('editor whose cell is hidden by a hiding index map', () => {
+test.describe('editor whose cell is hidden by a hiding index map', { tag: THEMES_TAG }, () => {
   let grid: EditorHiddenCellPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {
@@ -75,7 +75,7 @@ test.describe('editor whose cell is hidden by a hiding index map', () => {
  * cases every other case in this file passes over that, because visual equals physical whenever no
  * sorting, move or trimming map is active.
  */
-test.describe('editor with a hiding map and a sorted index mapping', () => {
+test.describe('editor with a hiding map and a sorted index mapping', { tag: THEMES_TAG }, () => {
   let grid: EditorHiddenCellPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {
@@ -117,7 +117,7 @@ test.describe('editor with a hiding map and a sorted index mapping', () => {
  * `TextEditor` never reached them. These are the cases that require the guard to live in the
  * manager rather than in an editor.
  */
-test.describe('non-text editors whose cell is hidden', () => {
+test.describe('non-text editors whose cell is hidden', { tag: THEMES_TAG }, () => {
   test('finishes the select edit when a page change hides the edited cell', async({ page, theme, bundle }) => {
     const grid = new EditorHiddenCellPage(page, theme, bundle, { editor: 'select' });
 
@@ -181,7 +181,7 @@ test.describe('non-text editors whose cell is hidden', () => {
  * manager's `activeEditor` reference on the way. Both cases pin that the editor still ends up
  * closed, which is why the guard holds its own reference rather than reading the manager's.
  */
-test.describe('editor whose commit is rejected while its cell is hidden', () => {
+test.describe('editor whose commit is rejected while its cell is hidden', { tag: THEMES_TAG }, () => {
   test('closes when a synchronous validator rejects the value', async({ page, theme, bundle }) => {
     const grid = new EditorHiddenCellPage(page, theme, bundle, { validator: 'reject' });
 
@@ -218,7 +218,7 @@ test.describe('editor whose commit is rejected while its cell is hidden', () => 
  * Virtualization is not hiding. This keeps the guard from being rewritten against DOM presence,
  * which would silently commit an in-progress edit on every scroll away.
  */
-test.describe('editor whose cell is only scrolled out of view', () => {
+test.describe('editor whose cell is only scrolled out of view', { tag: THEMES_TAG }, () => {
   test('leaves the edit pending', async({ page, theme, bundle }) => {
     const grid = new EditorHiddenCellPage(page, theme, bundle, { scenario: 'scroll' });
 

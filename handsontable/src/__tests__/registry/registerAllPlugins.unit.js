@@ -60,6 +60,8 @@ describe('`registerAllPlugins`', () => {
       'EmptyDataState',
       'Notification',
       'FreezeBar',
+      'RowSelection',
+      'CheckboxHeader',
       'Pagination',
       'SheetsBar',
       'DataProvider',

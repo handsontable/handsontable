@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { ComplexDemoStatesPage } from '../fixtures/pages/ComplexDemoStatesPage';
 
 /**
@@ -10,7 +10,7 @@ import { ComplexDemoStatesPage } from '../fixtures/pages/ComplexDemoStatesPage';
 
 const EDGE_TOLERANCE_PX = 1;
 
-test.describe('complex demo states', () => {
+test.describe('complex demo states', { tag: THEMES_TAG }, () => {
   test('the dropdown menu opens under Age with its filters components, and the context menu opens on a cell', async({
     page, theme, bundle,
   }) => {

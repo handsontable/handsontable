@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { NestedHeadersLongLabelPage, type LabelGeometry } from '../fixtures/pages/NestedHeadersLongLabelPage';
 
 /**
@@ -21,7 +21,7 @@ function expectLabelClearOfTheIcon(geometry: LabelGeometry) {
   expect(geometry.iconRight).toBeLessThanOrEqual(geometry.headerRight);
 }
 
-test.describe('nested headers with a long collapsible label', () => {
+test.describe('nested headers with a long collapsible label', { tag: THEMES_TAG }, () => {
   test('the expanded group shows its whole label, clear of the collapse icon', async({ page, theme, bundle }) => {
     const grid = new NestedHeadersLongLabelPage(page, theme, bundle);
 

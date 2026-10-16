@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { PageOffsetReverseSplitPage, type PageOffsetLayout } from '../fixtures/pages/PageOffsetReverseSplitPage';
 
 // Classic scrollbars (they take layout space), so a clone that forgets the holder's horizontal scrollbar
@@ -25,7 +25,7 @@ const reverseSplits: { name: string, layout: PageOffsetLayout }[] = [
   { name: '`preventOverflow: vertical`', layout: { overflowY: 'visible', preventOverflow: 'vertical' } },
 ];
 
-test.describe('clones, page scroll range and pointer bounds in the reverse split', () => {
+test.describe('clones, page scroll range and pointer bounds in the reverse split', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   let grid: PageOffsetReverseSplitPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

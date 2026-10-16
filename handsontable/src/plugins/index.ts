@@ -34,6 +34,8 @@ import { MultipleSelectionHandles } from './multipleSelectionHandles';
 import { NestedHeaders } from './nestedHeaders';
 import { NestedRows } from './nestedRows';
 import { Pagination } from './pagination';
+import { CheckboxHeader } from './checkboxHeader';
+import { RowSelection } from './rowSelection';
 import { Search } from './search';
 import { SelectionHandles } from './selectionHandles';
 import { SheetsBar } from './sheetsBar';
@@ -91,6 +93,8 @@ declare module './registry' {
     nestedHeaders: typeof NestedHeaders;
     nestedRows: typeof NestedRows;
     pagination: typeof Pagination;
+    rowSelection: typeof RowSelection;
+    checkboxHeader: typeof CheckboxHeader;
     search: typeof Search;
     selectionHandles: typeof SelectionHandles;
     sheetsBar: typeof SheetsBar;
@@ -144,6 +148,8 @@ export function registerAllPlugins() {
   registerPlugin(NestedHeaders);
   registerPlugin(NestedRows);
   registerPlugin(Pagination);
+  registerPlugin(RowSelection);
+  registerPlugin(CheckboxHeader);
   registerPlugin(Search);
   registerPlugin(SelectionHandles);
   registerPlugin(SheetsBar);
@@ -193,6 +199,8 @@ export {
   NestedHeaders,
   NestedRows,
   Pagination,
+  RowSelection,
+  CheckboxHeader,
   Search,
   SelectionHandles,
   SheetsBar,

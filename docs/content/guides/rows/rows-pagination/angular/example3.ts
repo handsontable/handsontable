@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, ViewChild, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { Component, ViewChild, AfterViewInit, ChangeDetectorRef, inject } from '@angular/core';
 import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 import { HotTableComponent } from '@handsontable/angular-wrapper';
 
@@ -30,6 +30,8 @@ export class AppComponent implements AfterViewInit {
   @ViewChild('hotTable') hotTable!: HotTableComponent;
 
   private paginationPlugin: any;
+
+  private readonly cdr = inject(ChangeDetectorRef);
 
   currentPage = 1;
   totalPages = 1;
@@ -235,7 +237,6 @@ export class AppComponent implements AfterViewInit {
       totalPages,
       firstVisibleRowIndex,
       lastVisibleRowIndex,
-      totalRenderedRows,
     } = this.paginationPlugin.getPaginationData();
 
     this.currentPage = currentPage;
@@ -244,7 +245,9 @@ export class AppComponent implements AfterViewInit {
     this.isLastPage = currentPage === totalPages;
     this.firstVisibleRow = firstVisibleRowIndex + 1;
     this.lastVisibleRow = lastVisibleRowIndex + 1;
-    this.totalRows = totalRenderedRows;
+    this.totalRows = this.hotTable.hotInstance?.countRows() ?? 0;
+    // Nothing marks the OnPush-by-default component dirty here, so mark it.
+    this.cdr.markForCheck();
   }
 
   goToFirstPage() {

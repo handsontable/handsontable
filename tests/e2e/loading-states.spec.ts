@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { LoadingStatesPage, type LoadingGeometry } from '../fixtures/pages/LoadingStatesPage';
 
 /**
@@ -24,7 +24,7 @@ function expectCoveringTheRoot({ overlay, root }: LoadingGeometry) {
   });
 }
 
-test.describe('loading overlay states', () => {
+test.describe('loading overlay states', { tag: THEMES_TAG }, () => {
   test('the default overlay covers the grid with the spinner before the translated title, and no description', async({
     page, theme, bundle,
   }) => {

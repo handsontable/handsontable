@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { LicenseBarPage } from '../fixtures/pages/LicenseBarPage';
 
 const LICENSE_BAR_MIN_WIDTH = 300;
@@ -9,7 +9,7 @@ const LICENSE_BAR_MIN_WIDTH = 300;
  * support e-mail address — used to overflow the bar. The bar now enforces a
  * minimum width and the bottom slot scrolls the excess horizontally.
  */
-test.describe('license notification bar on a narrow grid', () => {
+test.describe('license notification bar on a narrow grid', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   let licenseBar: LicenseBarPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

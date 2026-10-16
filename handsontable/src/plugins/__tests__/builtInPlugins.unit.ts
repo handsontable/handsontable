@@ -46,6 +46,8 @@ describe('built-in plugins', () => {
       'EmptyDataState',
       'Notification',
       'FreezeBar',
+      'RowSelection',
+      'CheckboxHeader',
       'Pagination',
       'SheetsBar',
       'DataProvider',

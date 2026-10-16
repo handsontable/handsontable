@@ -1,4 +1,4 @@
-import { test, expect } from '../../fixtures/test';
+import { test, expect, THEMES_TAG } from '../../fixtures/test';
 import { InlineEndReview2Page } from '../../fixtures/pages/walkontable/InlineEndReview2Page';
 
 /**
@@ -12,7 +12,7 @@ const TOLERANCE = 1;
 for (const direction of ['ltr', 'rtl'] as const) {
   const rtl = direction === 'rtl';
 
-  test.describe(`walkontable inline-end overlay, review round 2 (${direction})`, { tag: '@walkontable' }, () => {
+  test.describe(`walkontable inline-end overlay, review round 2 (${direction})`, { tag: ['@walkontable', THEMES_TAG] }, () => {
     let wt: InlineEndReview2Page;
 
     test.beforeEach(async ({ page, theme, bundle }) => {

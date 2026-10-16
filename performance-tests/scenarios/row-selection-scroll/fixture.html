@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Row Selection Scroll</title>
+  <link rel="stylesheet" href="../../fixtures/handsontable.css">
+  <script src="../../fixtures/handsontable.full.js"></script>
+</head>
+<body>
+  <div id="hot"></div>
+  <script>
+    const hot = new Handsontable(document.getElementById('hot'), {
+      data: Handsontable.helper.createSpreadsheetData(100000, 50),
+      rowHeaders: true,
+      colHeaders: true,
+      width: 1280,
+      height: 600,
+      autoRowSize: false,
+      autoColumnSize: false,
+      // Defaults: checkboxes in a row header column. Every painted cell runs the plugin's
+      // afterRenderer, and every row header the plugin's row header renderer.
+      rowSelection: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    // Every other row selected: half the rows, and every viewport mixes selected and unselected
+    // rows, so both branches of the per-cell renderer run on every frame. Done before the first
+    // measured window, outside any trace.
+    const evenRows = [];
+
+    for (let row = 0; row < hot.countRows(); row += 2) {
+      evenRows.push(row);
+    }
+
+    hot.getPlugin('rowSelection').selectRows(evenRows);
+    window.__hot = hot;
+  </script>
+</body>
+</html>

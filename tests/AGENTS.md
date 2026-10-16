@@ -9,9 +9,12 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
 - `theme` (main / horizon / classic) × `bundle` (`umd` = `dist/handsontable.js`,
   `full-min` = `dist/handsontable.full.min.js`) → projects `e2e-<theme>` and
   `e2e-<theme>-min`, 1:1 with the Puppeteer legs (`test:e2e` / `test:production`).
-- Every spec runs on all six legs automatically. Author against
-  `fixtures/test.ts` (`import { test, expect } from '../fixtures/test'`),
-  destructure `{ page, theme, bundle }`, and pass both to the page object.
+- A spec runs on `e2e-main` only unless its top-level blocks declare the
+  axes it is sensitive to (`THEMES_TAG`, `BUNDLES_TAG`; "Declaring the legs"
+  below). Author against `fixtures/test.ts` (`import { test, expect } from
+  '../fixtures/test'`), destructure `{ page, theme, bundle }`, and pass both
+  to the page object: a spec is parametrized by the project that runs it,
+  and the tags say which projects do.
 - **Local gates run `e2e-main` (plain UMD) only** — pre-push, the Claude Stop
   hook, and `npm run test:e2e` are pinned there; the `-min` legs are CI-only.
   (`e2e-main` used to load `full.min` — never assume the hooks cover min.)
@@ -141,6 +144,81 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   the grid's `overflow: clip` when the list stays left-aligned with the
   last cell.
 
+## Declaring the legs
+
+A spec runs on `e2e-main` (the main theme, plain UMD) only, unless its top-level blocks say
+otherwise. Most specs assert DOM or API facts that cannot differ by theme or bundle, so the six
+legs used to run the same tests six times for one answer. A spec declares the axes it is
+sensitive to with a tag on EVERY top-level `test.describe()` and every bare top-level `test()`:
+
+```ts
+import { test, expect, THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG } from '../fixtures/test';
+
+test.describe('the editor follows its cell', { tag: THEMES_TAG }, () => { … }); // + e2e-horizon, e2e-classic
+test.describe('formulas move with cells', { tag: BUNDLES_TAG }, () => { … }); // + e2e-main-min
+test.describe(`drag (${direction})`, { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => { … }); // all six
+test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) => { … });
+```
+
+- **Every top-level block of a file carries the same leg tags.** A spec is declared as a whole:
+  its page objects and fixtures are scanned as a whole, and a tag on one describe of three would
+  run the other two on one leg while the file claims otherwise. A leg tag on a nested block is an
+  error. A top-level `test(title, quarantined(…), body)` cannot carry a leg tag (the helper
+  returns the details object), so it is the no-tag shape: fine in a file that declares nothing,
+  and in a file that declares an axis it goes inside a describe that carries the file's tags.
+- **Only the constants, never the strings.** `{ tag: '@themes' }` is one typo from a spec that
+  silently runs on one leg: Playwright accepts any string as a tag, and `{ tag: undefined }` from
+  a misspelled or missing import too. `.eslintrc.cjs` bans the bare string and its template twin,
+  and the sweep below refuses an identifier it cannot resolve. `@core`, `@walkontable`,
+  `CROSS_BROWSER_TAG` and `CLIPBOARD_SHORTCUT_TAG` stay free-form and sit in the same array, on
+  one line (the engines pin reads that line).
+- **What needs `THEMES_TAG`:** anything the theme stylesheet decides – a computed style, a design
+  token (`--ht-*`), a branch on the theme (a comparison on either side, a lookup keyed by it, a
+  `switch`, a membership test, on `theme` or `this.theme`), the theme class, a hit test (`elementFromPoint`: what
+  sits under a point depends on paddings and sizes), a pixel assertion in the spec
+  (`boundingBox()`, `getBoundingClientRect()`, `offsetWidth`, `toHaveCSS()` compared to a value),
+  and every trap the matrix section above describes (band edges, which side a popup opens on, a
+  short fixed-height fixture). **What needs `BUNDLES_TAG`:** HyperFormula and the Formulas plugin
+  (the plain UMD loads the engine as an external script, `full.min` bakes it in), a branch on the
+  bundle, and the load surface the minified full bundle changes (an AMD loader, Trusted Types, a
+  shadow root, an iframe, DOMPurify, the license bar). Both bundles build from the same
+  `src/index.ts`: `full.min` adds the HyperFormula global, minification and the vendored
+  `regexp-to-ast` wrapper, and neither ships numbro, moment, pikaday or a language pack. A page
+  object's argument check that compares to the bundle names (`bundle !== 'umd'`) reads as a branch
+  to the sweep, which cannot tell a throw-only guard from a behavior branch: such a check lives in
+  `fixtures/bundle.ts` (`assertKnownBundle()`), one of the three files the sweep does not read.
+- **The sweep enforces the explicit markers.** `lib/__tests__/leg-declarations.test.mjs` (root
+  `test:tooling`; pre-push runs it when a spec, a page object, a fixture or the lib changed) reads
+  every spec, the page objects it imports transitively, and the fixture HTML those name, and fails
+  a spec that hits a marker without the tag: `theme-compare`, `computed-style`, `css-token`,
+  `theme-class` (spec and page objects only; a fixture's own param block builds the class),
+  `hit-test`, `geometry` (spec text only, or one base page object's `boundingBox()` helper would
+  force the axis on everything that imports it), `formulas`, `hyperformula`, `bundle-compare`. A
+  marker that does not mean sensitivity here is opted out in the SPEC file, never in a shared page
+  object: `// leg-declarations: ignore <marker-id> -- <why>`, with ten or more characters of why; a
+  stale, redundant or misnamed ignore fails the sweep. `e2e/color-scheme-density.spec.ts` is the
+  example: its fixture pins `ht-theme-main` on every leg and the engine builds its CSS at runtime,
+  so `BUNDLES_TAG` alone and `ignore computed-style`. Declaring an axis anyway is always legal, and
+  a spec the markers miss but the matrix traps describe declares it all the same.
+  `e2e/leg-declarations.spec.ts` (no browser) proves on every pull request that the projects
+  Playwright lists for each test are the ones its tags say, and that the tags Playwright sees are
+  the ones written in the source.
+- **The nightly is the safety net, and a nightly-only red means an undeclared axis.** `E2E nightly`
+  (`.github/workflows/e2e-nightly.yml`, weeknights on develop; the rc/stable publish path and a
+  master push do the same) runs every spec on all six legs with `HOT_E2E_FULL_MATRIX=1`. A test red
+  there and green on pull requests runs on a leg its spec did not declare: declare the axis, never
+  quarantine it. The flake ledger records the nightly's tests with `branch: develop`, and
+  `node scripts/leg-replay.mjs --list test-results/list.json` (after
+  `npx playwright test --list --reporter=json > test-results/list.json`) replays the ledger against
+  the declared tree, names the declaration every off-main red asks for, and exits 1 on a miss.
+- **Locally:** `npx playwright test` runs the declared shape;
+  `HOT_E2E_FULL_MATRIX=1 npx playwright test e2e/<spec>.spec.ts` runs one spec on all six legs;
+  `--project=e2e-horizon` on an undeclared spec says "No tests found", by design – there is no
+  `--pass-with-no-tests` anywhere, so an empty leg is a red job, never a green one that ran
+  nothing, and the sweep keeps every declaration shape in use so no leg is ever empty. The engine
+  legs ignore the declarations: every `@cross-browser` spec runs on Firefox and WebKit whatever its
+  leg tags say.
+
 ## The engine legs (Firefox, WebKit)
 
 - The six projects above are Chromium. Tests tagged `@cross-browser` run on Firefox and WebKit as
@@ -159,8 +237,8 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   captures' photographed states (DEV-3257) are tagged, and
   `.github/scripts/__tests__/playwright-engines.test.mjs` keeps them tagged and keeps the config
   filtering by the tag and inheriting the base config's CI flake settings and reporters.
-- A separate config, so that `npx playwright test` without `--project` (all six legs) never needs the
-  engines installed. To run a tagged spec on them locally, install them once for this package's
+- A separate config, so that `npx playwright test` without `--project` (the six legs, as declared)
+  never needs the engines installed. To run a tagged spec on them locally, install them once for this package's
   Playwright and name the config:
 
   ```bash
@@ -171,7 +249,8 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
 
   The local gates (pre-push, the Stop hook) run `e2e-main` only, so an engine failure first shows in
   CI unless you run it. Before calling a tagged test deterministic, repeat it on the engines as well
-  as on the six legs (`--config playwright-engines.config.ts --repeat-each 20`). A pass on macOS
+  as on the six legs (`--config playwright-engines.config.ts --repeat-each 20`, and
+  `HOT_E2E_FULL_MATRIX=1` for the six, since a spec runs only the legs it declares otherwise). A pass on macOS
   does not prove a keyboard shortcut on the Linux runner: `ControlOrMeta` is Meta on macOS and
   Control in CI, and WebKit handles the two differently (the clipboard bullet below).
 - **Firefox cannot start in the job's container without `HOME=/root`.** The container runs as root,
@@ -198,7 +277,7 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   `CLIPBOARD_SHORTCUT_TAG` beside `CROSS_BROWSER_TAG`: Firefox runs it and WebKit does not. The date
   editor's picker takes the keys while it is shown, and Escape closes the picker and leaves the editor
   open in Chromium but closes the editor in Firefox and WebKit, so `date-editor-native-input.spec.ts`
-  carries no tag and runs on the six Chromium legs only.
+  carries no engine tag and runs on the Chromium legs its leg tags declare only.
 - **Tab past a page's last focusable element leaves the document in Chromium and WebKit, and goes nowhere
   in headless Firefox.** There `document.hasFocus()` turns false; headless Firefox has no browser UI to
   move the focus to, so it stays on the cell. Assert what the grid draws after the exit (no selection, no
@@ -406,6 +485,21 @@ text instead, `span.colHeader` matched with `getByText(label, { exact: true })`,
   `beforeSetRangeEnd`), so a Delete after it empties that page and no other.
   `pagination-filter-sort.spec.ts` asserts both.
 
+- The row resize handle is attached once and moved from header to header, so
+  "the handle is visible" proves nothing about which header it is on:
+  `ManualResizePage.hoverRowHeader()` resolves at once for a handle still left
+  on the previous header (an `opacity: 0` handle counts as visible too). A test
+  that presses or double-clicks the handle after moving to another header waits
+  on its POSITION, read in one `evaluate` with the header: its centre sits one
+  pixel above the header's bottom boundary
+  (`ManualRowResizeAutofitPage.expectRowHandleOn()`). Two more rules for the
+  double-click autofit (`e2e/manual-row-resize-autofit.spec.ts`): the fit does
+  not run on the double-click but from a 500ms timer the first press arms, so
+  poll the rendered heights and never count frames (the legacy twin counted 38
+  and failed with `Expected 100 to be around 26` under load); and a header the
+  pointer must reach right after the double-click has its box read BEFORE it,
+  because the fit shifts every row below the fitted one.
+
 ## Reading grid UI state
 
 - A closed editor stays in the DOM (`ht_editor_hidden`), and Playwright reports its textarea as
@@ -527,6 +621,21 @@ wait before `keyboard.up()`: released earlier, the event reaches an engine whose
 key is already up, and the guard under test never runs. With that guard broken,
 the old read failed 116 of 120 runs and the held-key wait failed 120 of 120.
 
+**`imeFastEdit` moves the browser focus after the selection, not with it.** The
+grid focuses the selected cell in `afterRender`, and
+`FocusGridManager#refocusToEditorTextarea()` (`focusManager/grid.ts`) then runs
+a debounced `select()` on the active editor's input 1ms later, so the focus
+arrives on a later task than `hot.selectCell()` returns. The legacy
+`intlDateEditor` case read `document.activeElement` two frames later and failed
+4 times in 30 days with `Expected <td class="current"> to be <input
+type="date">`. Wait with a web-first `toBeFocused()` on the editor's input,
+never with a frame count, and prove the focus STAYED with a bounded settle (two
+animation frames and the `activeElement` read inside ONE `evaluate`) only beside
+that `toBeFocused()`, which is its positive control
+(`e2e/intl-date-editor-ime-fast-edit.spec.ts`). That refocus is a bare
+`select()`, which Firefox does not treat as a focus move on a date input, so the
+spec carries no `CROSS_BROWSER_TAG`.
+
 **A selection can scroll the grid even when its cell is on screen.**
 When the viewport has nothing to scroll, `selectCell()` and `selectCells()` still
 run `scrollWindowToCell()`, in a microtask, so it has run by the time the
@@ -541,6 +650,19 @@ full object). Never poll one field and then read the rest once: the field you
 polled can come from a clone that is already drawn
 (`merge-cells-frozen-bottom.spec.ts`, the outline test).
 
+**A selection's window scroll lands a frame later when the selection scrolled
+the viewport, and in a microtask when it did not.** `selectCells()` on a cell
+outside the viewport scrolls the holder and queues `scrollWindowToCell()` for the
+next `afterScroll`, which the holder's `scroll` event fires a frame later; on a
+cell inside it the same call runs in a microtask, before the `evaluate` returns.
+The row height decides which: in a 400px grid row 10 is inside the viewport on
+`main` and `classic` and outside it on `horizon`, so a test that selected the
+cell and then scrolled the window back to the top saw the window pulled down
+again on `horizon` only, a frame after its `scrollY === 0` poll had passed
+(`selection-viewport-scroll.spec.ts`, the Shift+PageDown test, DEV-3443). Before
+undoing a selection's window scroll, wait for it to have landed (`expect.poll`
+on `isCellInWindow()`), on every theme.
+
 **An open editor follows the master, and its cell follows a clone.** Enter
 scrolls a cell that a frozen pane mostly covers into view, as a selection can.
 The editor is placed from the master's new offset at once, and the clone that
@@ -550,6 +672,18 @@ evaluation together with whether that clone has caught up, and retry the whole
 comparison until it has (`FixedColumnsEndPage.editorAndCellBoxes()`).
 Requiring the catch-up, not only a match, keeps an editor misplaced by exactly
 the scroll from passing on the stale frame.
+
+**A grid built without a layout settles in two draws, and the provisional flag
+clears after the first.** When the container joins the layout, the first draw
+renders the band and, at its end, settles the scrolling element (so
+`readProvisionalLayout()` is already `false`), but the row heights measured
+without a layout are dropped only on the way into the NEXT draw, which takes them
+again. Between the two the band already fills the container while the holder's
+scroll range still counts the stale heights: 6050px against 5830px of rows,
+20-40ms apart (`unlaid-out-init-scroll-sync.spec.ts`, DEV-3114, the suite's most
+frequent flake). Neither the fill nor the flag can stand in for the settle: poll
+the scroll range against the rows (`UnlaidOutInitPage.expectScrollRangeOfRows()`),
+with the lower bound in the polled value.
 
 **A geometry read is two round trips, and the grid recycles its rows.**
 `locator.boundingBox()` and `locator.evaluate()` resolve the node in one round
@@ -566,6 +700,21 @@ that same evaluation (`FrozenTallCellPage.rowHeights()`), and poll a pinned
 expected value rather than comparing two reads with each other — two reads
 that both landed before the draw agree with each other and prove nothing.
 
+**An autocomplete list is drawn by a query the editor defers, and its last rows
+sit on the edge of the drawn band.** `open()` queues the first query on a 0ms
+timer and every key press queues another 10ms behind it
+(`AutocompleteEditor#deferQuery`), so a read a fixed number of frames after the
+key can see the list before the query ran: the legacy `sortByRelevance` cases
+read an empty row text that way on the `-min` legs (`Expected '' to equal
+'cyan'`). `editor.query` holds the text the list was last queried with, so read
+it in the SAME evaluation as the rows and poll until it equals what was typed
+(`AutocompleteChoicesListPage.listState()`); that read is also the positive
+control for a negative assertion such as "the phrase is not highlighted". The
+inner grid draws `visibleRows` rows, a sliver of the next one and one buffer
+row, so a 12-entry list draws all 12 only through that sliver: compare the
+drawn rows the user sees and read the whole list from `htEditor.getData()`
+instead of pinning the last drawn row (`e2e/autocomplete-choices-list.spec.ts`).
+
 **`keyboard.press()` cannot make several presses share one animation frame
 reliably.** Each press is its own round trip, so presses land a few milliseconds
 apart. How many of them fall between two frames depends on the machine, the
@@ -580,6 +729,17 @@ after whatever they queued (`FixedColumnsEndPage.pressInOneTask()`). Assert that
 the grid scrolled far enough for a queued scroll to have something to move, or
 the test passes on the bug when the fixture changes. Real presses still get the
 grid to its starting state.
+
+**A hidden focused element blurs at the next rendering update, not when it is
+hidden.** Chromium keeps a focused element that just went `display: none` as the
+active element until the next rendering update runs the focus fixup, and only
+then dispatches its `blur`. Anything a `blur` handler does (the comments plugin
+saves the editor's text from it) therefore lands a frame after the hide, while
+`toBeHidden()` on the element resolves at once. A read of the saved comment
+right after the press that hid the editor saw it empty on the `-min` legs
+(`collapsible-indicator-dropdown-menu.spec.ts`, DEV-3444); in one task with the
+press it is empty every time. Poll the state the blur writes, never read it once
+after the hide.
 
 **Where a flake goes.** In CI the config adds a `json` reporter
 (`test-results/report.json`, shipped inside the `playwright-report-*` failure
@@ -608,7 +768,11 @@ and the "Where the time goes" section of the same page shows each leg's
 wall-clock and test count over 30 days, the 30 heaviest spec files, and every
 test over 3 s. Read it before a change to workers, shards or the leg matrix, and
 measure the change against its per-leg P50 and P90, the input a later e2e budget
-is derived from (no gate reads it yet). The JSON reporter feeds both sections,
+is derived from (no gate reads it yet). The legs no longer run the same tests
+("Declaring the legs" above), so each leg's count and wall-clock compare with
+that leg's own history only, never with another leg's, and not across the merge
+that introduced the declarations. The nightly's full-matrix files upload like
+every leg's and are never recorded: a schedule is not a develop push. The JSON reporter feeds both sections,
 so it stays in the CI reporter list with its output path; the durations file
 path and artifact name are pinned in
 `.github/scripts/__tests__/test-health.test.mjs`. A change to the leg matrix
@@ -652,7 +816,7 @@ here instead.
   the flaky verdict fails the leg again, and the tag on a passing test raises a
   warning asking to be removed.
 - **Cap: 6 quarantined tests at once**, counted as distinct tests (one test
-  across six projects is one). The entry after the cap fails the run even when
+  across every project it runs on is one). The entry after the cap fails the run even when
   every test passes; fix one before parking another.
 - **Visible.** The ledger at <https://handsontable.github.io/handsontable/test-health/>
   shows quarantined tests with their entry, so nothing is parked silently.
