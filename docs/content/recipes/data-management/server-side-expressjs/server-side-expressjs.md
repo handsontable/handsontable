@@ -2,7 +2,7 @@
 type: how-to
 title: Server-side Data with Express.js
 metaTitle: Server-side Data with Express.js - JavaScript Data Grid | Handsontable
-description: Wire Handsontable's dataProvider plugin to an Express.js 4 backend with paginated, sorted, and filtered server-side data and full CRUD operations backed by PostgreSQL via TypeORM and Zod.
+description: Wire Handsontable DataGrid's dataProvider plugin to an Express.js 4 backend with paginated, sorted, and filtered server-side data and full CRUD operations backed by PostgreSQL via TypeORM and Zod.
 permalink: /recipes/data-management/server-side-expressjs
 canonicalUrl: /recipes/data-management/server-side-expressjs
 tags:
@@ -21,7 +21,7 @@ searchCategory: Recipes
 category: Data Management
 ---
 
-This tutorial shows how to wire Handsontable's `dataProvider` plugin to an Express.js 4 backend. The backend provides paginated, sorted, and filtered server-side data with full CRUD operations using PostgreSQL via TypeORM and Zod for request validation.
+This tutorial shows how to wire Handsontable DataGrid's `dataProvider` plugin to an Express.js 4 backend. The backend provides paginated, sorted, and filtered server-side data with full CRUD operations using PostgreSQL via TypeORM and Zod for request validation.
 
 ## Overview
 

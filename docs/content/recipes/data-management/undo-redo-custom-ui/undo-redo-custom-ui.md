@@ -1,7 +1,7 @@
 ---
 title: Undo / redo with a custom UI
 metaTitle: Undo / redo with a custom UI - JavaScript Data Grid | Handsontable
-description: Build external Undo and Redo buttons that stay in sync with Handsontable undo/redo stack availability.
+description: Build external Undo and Redo buttons that stay in sync with Handsontable DataGrid undo/redo stack availability.
 permalink: /recipes/data-management/undo-redo-custom-ui
 canonicalUrl: /recipes/data-management/undo-redo-custom-ui
 tags:
@@ -22,7 +22,7 @@ category: Data Management
 type: how-to
 ---
 
-In this tutorial, you will build external Undo and Redo buttons that stay in sync with the Handsontable undo/redo stack. You will learn how to use `afterChange`, `afterUndo`, and `afterRedo` to keep button states accurate at all times.
+In this tutorial, you will build external Undo and Redo buttons that stay in sync with the Handsontable DataGrid undo/redo stack. You will learn how to use `afterChange`, `afterUndo`, and `afterRedo` to keep button states accurate at all times.
 
 ::: only-for javascript vue
 

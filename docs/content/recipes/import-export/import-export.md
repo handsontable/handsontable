@@ -7,7 +7,7 @@ searchCategory: Recipes
 hotPlugin: false
 editLink: false
 type: how-to
-description: Practical recipes for moving data in and out of Handsontable.
+description: Practical recipes for moving data in and out of Handsontable DataGrid.
 react:
   metaTitle: Import and Export Recipes - React Data Grid | Handsontable
 angular:

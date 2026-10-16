@@ -1,7 +1,7 @@
 ---
 title: Server-side data with ASP.NET Core
 metaTitle: Server-side Data with ASP.NET Core - JavaScript Data Grid | Handsontable
-description: Connect Handsontable's dataProvider plugin to an ASP.NET Core Web API backend with paginated fetching, server-side sorting and filtering, and full CRUD using EF Core and SQLite.
+description: Connect Handsontable DataGrid's dataProvider plugin to an ASP.NET Core Web API backend with paginated fetching, server-side sorting and filtering, and full CRUD using EF Core and SQLite.
 permalink: /recipes/data-management/server-side-aspnet
 canonicalUrl: /recipes/data-management/server-side-aspnet
 tags:
@@ -24,7 +24,7 @@ type: how-to
 menuTag: new
 ---
 
-This tutorial shows how to wire Handsontable's `dataProvider` plugin to an [ASP.NET Core](https://dotnet.microsoft.com/apps/aspnet) Web API backend. The backend handles pagination, sorting, and filtering on the server. The frontend displays results and sends every edit back to the API.
+This tutorial shows how to wire Handsontable DataGrid's `dataProvider` plugin to an [ASP.NET Core](https://dotnet.microsoft.com/apps/aspnet) Web API backend. The backend handles pagination, sorting, and filtering on the server. The frontend displays results and sends every edit back to the API.
 
 ## Overview
 
