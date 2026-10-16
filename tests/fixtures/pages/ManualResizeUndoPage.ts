@@ -96,7 +96,7 @@ export class ManualResizeUndoPage extends ManualResizePage {
   }
 
   /**
-   * Navigate and wait for the grid to have rendered.
+   * Navigate and wait for the grid to have rendered. A constructor throw is rethrown here.
    */
   async goto(): Promise<void> {
     await this.page.goto(
@@ -104,6 +104,12 @@ export class ManualResizeUndoPage extends ManualResizePage {
     );
 
     await awaitBundle(this.page);
+
+    const initError = await this.grid.getAttribute('data-init-error');
+
+    if (initError !== null) {
+      throw new Error(`The grid failed to build: ${initError}`);
+    }
 
     await expect(this.grid.locator('.ht_clone_top')).toBeVisible();
     await expect(this.grid.locator('.ht_clone_inline_start')).toBeVisible();

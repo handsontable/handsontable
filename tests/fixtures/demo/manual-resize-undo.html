@@ -38,18 +38,22 @@
 
     container.className = `ht-theme-${window.htTheme}`;
 
-    window.grid = new Handsontable(container, {
-      data: Handsontable.helper.createSpreadsheetData(8, 7),
-      colHeaders: true,
-      rowHeaders: true,
-      manualRowResize: true,
-      manualColumnResize: true,
-      manualRowMove: true,
-      manualColumnMove: true,
-      width: 600,
-      height: 400,
-      licenseKey: 'non-commercial-and-evaluation',
-    });
+    try {
+      window.grid = new Handsontable(container, {
+        data: Handsontable.helper.createSpreadsheetData(8, 7),
+        colHeaders: true,
+        rowHeaders: true,
+        manualRowResize: true,
+        manualColumnResize: true,
+        manualRowMove: true,
+        manualColumnMove: true,
+        width: 600,
+        height: 400,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      container.setAttribute('data-init-error', String(error && error.message));
+    }
 
     window.moveThirdRowBelowFifth = function() {
       window.grid.getPlugin('manualRowMove').moveRows([2], 5);
