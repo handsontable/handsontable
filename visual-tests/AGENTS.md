@@ -474,6 +474,11 @@ stays legal in `src/`, because that is the form `visualTest()` emits from a
 [variant declaration](#variant-declaration) — plus a ban on element screenshots and the settle the fixture
 does for you):
 
+The goldens also depend on the machine that renders them: fonts and anti-aliasing come from the CI runner's
+own Ubuntu image, which is pinned in every workflow (`.ai/CI.md`). A PR that bumps the image has to touch
+`visual-tests/**`, so the full tier renders against `base/develop` and the new render is approved before the
+develop seed makes it the baseline.
+
 - **Assert the state the capture is meant to show before capturing — a lint error when you do not.**
   After any action that changes focus, opens or closes an element, or scrolls, wait for that state with a
   web-first assertion — `await expect(locator).toBeFocused()` / `.toBeVisible()` / `.toBeHidden()` /
