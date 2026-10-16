@@ -29,7 +29,7 @@ jobs:
   # ============================================================
   pre-release:
     name: Build and publish a pre-release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: |
       (github.event_name == 'workflow_dispatch' &&
         !startsWith(github.ref_name, 'release/') &&
@@ -72,7 +72,7 @@ jobs:
   # ============================================================
   first-rc-build:
     name: Build first RC
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: |
       github.event_name == 'release' &&
       github.event.release.prerelease == true
@@ -289,7 +289,7 @@ jobs:
 
   first-rc-publish:
     name: Publish first RC
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: ${{ !cancelled() && needs.first-rc-build.result == 'success' && needs.first-rc-test.result == 'success' }}
     needs: [first-rc-build, first-rc-test]
     environment: approvers
@@ -328,7 +328,7 @@ jobs:
   # ============================================================
   first-rc-build-nuget:
     name: Build NuGet package (first RC)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [first-rc-build]
     if: ${{ !cancelled() && needs.first-rc-build.result == 'success' }}
     outputs:
@@ -383,7 +383,7 @@ jobs:
 
   first-rc-publish-nuget:
     name: Publish NuGet package (first RC)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: ${{ !cancelled() && needs.first-rc-build.result == 'success' && needs.first-rc-test.result == 'success' && needs.first-rc-build-nuget.result == 'success' }}
     needs: [first-rc-build, first-rc-test, first-rc-build-nuget]
     environment: approvers
@@ -409,7 +409,7 @@ jobs:
 
   first-rc-notify:
     name: Notify Slack (first RC)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: ${{ !cancelled() && needs.first-rc-publish.result != 'skipped' }}
     needs: [first-rc-build, first-rc-publish, first-rc-publish-nuget]
     steps:
@@ -502,7 +502,7 @@ jobs:
   # ============================================================
   rc-check:
     name: Guard RC build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/release/')
     outputs:
       allowed: ${{ steps.check.outputs.allowed }}
@@ -531,7 +531,7 @@ jobs:
 
   rc-build:
     name: Build RC
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [rc-check]
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/release/') && needs.rc-check.outputs.allowed == 'true'
     outputs:
@@ -744,7 +744,7 @@ jobs:
 
   rc-publish:
     name: Publish RC
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: ${{ !cancelled() && needs.rc-build.result == 'success' && needs.rc-test.result == 'success' }}
     needs: [rc-build, rc-test]
     environment: approvers
@@ -783,7 +783,7 @@ jobs:
   # ============================================================
   rc-build-nuget:
     name: Build NuGet package (RC)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [rc-build]
     if: ${{ !cancelled() && needs.rc-build.result == 'success' }}
     outputs:
@@ -838,7 +838,7 @@ jobs:
 
   rc-publish-nuget:
     name: Publish NuGet package (RC)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: ${{ !cancelled() && needs.rc-build.result == 'success' && needs.rc-test.result == 'success' && needs.rc-build-nuget.result == 'success' }}
     needs: [rc-build, rc-test, rc-build-nuget]
     environment: approvers
@@ -864,7 +864,7 @@ jobs:
 
   rc-notify:
     name: Notify Slack (RC)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: ${{ !cancelled() && needs.rc-publish.result != 'skipped' }}
     needs: [rc-build, rc-publish, rc-publish-nuget]
     steps:
@@ -1002,7 +1002,7 @@ jobs:
   # ============================================================
   stable-prepare:
     name: Prepare stable release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: |
       github.event_name == 'release' &&
       github.event.release.prerelease == false
@@ -1137,7 +1137,7 @@ jobs:
 
   stable-merge:
     name: Merge release to develop and master
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [stable-prepare]
     outputs:
       version: ${{ needs.stable-prepare.outputs.version }}
@@ -1348,7 +1348,7 @@ jobs:
 
   stable-build:
     name: Build stable release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [stable-merge]
     outputs:
       version: ${{ needs.stable-merge.outputs.version }}
@@ -1430,7 +1430,7 @@ jobs:
   # ============================================================
   stable-build-nuget:
     name: Build NuGet package
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [stable-build]
     outputs:
       version: ${{ needs.stable-build.outputs.version }}
@@ -1484,7 +1484,7 @@ jobs:
 
   stable-publish:
     name: Publish stable release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [stable-build]
     environment: approvers
     outputs:
@@ -1660,7 +1660,7 @@ jobs:
   # ============================================================
   stable-publish-nuget:
     name: Publish NuGet package
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [stable-build-nuget]
     environment: approvers
     steps:
@@ -1688,7 +1688,7 @@ jobs:
   # ============================================================
   stable-cleanup:
     name: Delete release branch
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [stable-build, stable-publish, stable-publish-nuget]
     if: always() && needs.stable-build.result == 'success' && needs.stable-publish.result == 'success' && needs.stable-publish-nuget.result == 'success' && needs.stable-publish.outputs.docs-result == 'success'
     steps:
@@ -1709,7 +1709,7 @@ jobs:
   # ============================================================
   stable-notify:
     name: Notify Slack — stable release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [stable-build, stable-publish, stable-publish-nuget]
     if: ${{ !cancelled() && needs.stable-build.result == 'success' && (needs.stable-publish.result == 'success' || needs.stable-publish.result == 'failure') }}
     steps:
