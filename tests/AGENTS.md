@@ -485,6 +485,21 @@ text instead, `span.colHeader` matched with `getByText(label, { exact: true })`,
   `beforeSetRangeEnd`), so a Delete after it empties that page and no other.
   `pagination-filter-sort.spec.ts` asserts both.
 
+- The row resize handle is attached once and moved from header to header, so
+  "the handle is visible" proves nothing about which header it is on:
+  `ManualResizePage.hoverRowHeader()` resolves at once for a handle still left
+  on the previous header (an `opacity: 0` handle counts as visible too). A test
+  that presses or double-clicks the handle after moving to another header waits
+  on its POSITION, read in one `evaluate` with the header: its centre sits one
+  pixel above the header's bottom boundary
+  (`ManualRowResizeAutofitPage.expectRowHandleOn()`). Two more rules for the
+  double-click autofit (`e2e/manual-row-resize-autofit.spec.ts`): the fit does
+  not run on the double-click but from a 500ms timer the first press arms, so
+  poll the rendered heights and never count frames (the legacy twin counted 38
+  and failed with `Expected 100 to be around 26` under load); and a header the
+  pointer must reach right after the double-click has its box read BEFORE it,
+  because the fit shifts every row below the fitted one.
+
 ## Reading grid UI state
 
 - A closed editor stays in the DOM (`ht_editor_hidden`), and Playwright reports its textarea as
@@ -606,6 +621,21 @@ wait before `keyboard.up()`: released earlier, the event reaches an engine whose
 key is already up, and the guard under test never runs. With that guard broken,
 the old read failed 116 of 120 runs and the held-key wait failed 120 of 120.
 
+**`imeFastEdit` moves the browser focus after the selection, not with it.** The
+grid focuses the selected cell in `afterRender`, and
+`FocusGridManager#refocusToEditorTextarea()` (`focusManager/grid.ts`) then runs
+a debounced `select()` on the active editor's input 1ms later, so the focus
+arrives on a later task than `hot.selectCell()` returns. The legacy
+`intlDateEditor` case read `document.activeElement` two frames later and failed
+4 times in 30 days with `Expected <td class="current"> to be <input
+type="date">`. Wait with a web-first `toBeFocused()` on the editor's input,
+never with a frame count, and prove the focus STAYED with a bounded settle (two
+animation frames and the `activeElement` read inside ONE `evaluate`) only beside
+that `toBeFocused()`, which is its positive control
+(`e2e/intl-date-editor-ime-fast-edit.spec.ts`). That refocus is a bare
+`select()`, which Firefox does not treat as a focus move on a date input, so the
+spec carries no `CROSS_BROWSER_TAG`.
+
 **A selection can scroll the grid even when its cell is on screen.**
 When the viewport has nothing to scroll, `selectCell()` and `selectCells()` still
 run `scrollWindowToCell()`, in a microtask, so it has run by the time the
@@ -669,6 +699,21 @@ recycled (the table's root, the grid), read every value a comparison needs in
 that same evaluation (`FrozenTallCellPage.rowHeights()`), and poll a pinned
 expected value rather than comparing two reads with each other — two reads
 that both landed before the draw agree with each other and prove nothing.
+
+**An autocomplete list is drawn by a query the editor defers, and its last rows
+sit on the edge of the drawn band.** `open()` queues the first query on a 0ms
+timer and every key press queues another 10ms behind it
+(`AutocompleteEditor#deferQuery`), so a read a fixed number of frames after the
+key can see the list before the query ran: the legacy `sortByRelevance` cases
+read an empty row text that way on the `-min` legs (`Expected '' to equal
+'cyan'`). `editor.query` holds the text the list was last queried with, so read
+it in the SAME evaluation as the rows and poll until it equals what was typed
+(`AutocompleteChoicesListPage.listState()`); that read is also the positive
+control for a negative assertion such as "the phrase is not highlighted". The
+inner grid draws `visibleRows` rows, a sliver of the next one and one buffer
+row, so a 12-entry list draws all 12 only through that sliver: compare the
+drawn rows the user sees and read the whole list from `htEditor.getData()`
+instead of pinning the last drawn row (`e2e/autocomplete-choices-list.spec.ts`).
 
 **`keyboard.press()` cannot make several presses share one animation frame
 reliably.** Each press is its own round trip, so presses land a few milliseconds
