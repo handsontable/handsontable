@@ -8,7 +8,8 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
 
 - `theme` (main / horizon / classic) × `bundle` (`umd` = `dist/handsontable.js`,
   `full-min` = `dist/handsontable.full.min.js`) → projects `e2e-<theme>` and
-  `e2e-<theme>-min`, 1:1 with the Puppeteer legs (`test:e2e` / `test:production`).
+  `e2e-<theme>-min` — the shape the Puppeteer legs have on the full-matrix runs
+  (`test:e2e` / `test:production`; a pull request runs that suite on UMD × main alone).
 - A spec runs on `e2e-main` only unless its top-level blocks declare the
   axes it is sensitive to (`THEMES_TAG`, `BUNDLES_TAG`; "Declaring the legs"
   below). Author against `fixtures/test.ts` (`import { test, expect } from
@@ -46,7 +47,7 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   test derives the table from the rows), and the budget on the durations page
   starts over, since it counts only the records of a leg's latest shape.
 - `handsontable.full.js` and `handsontable.min.js` are deliberately untested
-  here — they belong to the nightly on develop (DEV-2058).
+  here, and on the E2E nightly.
 - **A PARTIAL build leaves the `-min` legs on the PREVIOUS bundle, and they
   fail without saying so.** `npm run build:umd` writes `dist/handsontable.js`
   only; `dist/handsontable.full.min.js` comes from the separate
@@ -113,10 +114,13 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   it fits below the cell or has to flip above it: the same grid flips on
   `horizon` and does not on `main`. Because every local gate is pinned to
   `e2e-main` (and the legacy Jasmine runner defaults to `main`), a spec that
-  pins the side goes green locally and reds exactly one CI leg, with a message
-  full of coordinates that says nothing about the cause — that is how
-  `E2E / UMD (theme: horizon)` went red on #13417 while the other two themes
-  passed. Assert **adjacency** instead: the popup touches the cell on one side
+  pins the side goes green locally and reds one CI leg, with a message full of
+  coordinates that says nothing about the cause — a Playwright spec on the leg
+  its `THEMES_TAG` declares, on the pull request; a legacy spec on the E2E
+  nightly or the rc path, since pull requests run that suite on `main` alone.
+  That is how `E2E / UMD (theme: horizon)` went red on #13417 while the other
+  two themes passed, when the six legs still ran on every pull request. Assert
+  **adjacency** instead: the popup touches the cell on one side
   or the other. Leave "which side, and does it leave the grid" to a spec whose
   grid is deliberately shaped to force that outcome on all three themes, and
   run it on all three (`--theme=horizon`, `--project=e2e-horizon`).
@@ -234,7 +238,12 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   (`.github/workflows/e2e-nightly.yml`, weeknights on develop; the rc/stable publish path and a
   master push do the same) runs every spec on all six legs with `HOT_E2E_FULL_MATRIX=1`. A test red
   there and green on pull requests runs on a leg its spec did not declare: declare the axis, never
-  quarantine it. The flake ledger records the nightly's tests with `branch: develop`, and
+  quarantine it. (The same run expands the frozen Jasmine suite to its six legs, through e2e.yml's
+  `jasmine-full-matrix`; a pull request runs that suite on `UMD (theme: main)` alone, so its
+  nightly-only red is a theme- or bundle-only failure, never an axis to declare: `fails alone` in
+  its record is fixed or migrated before the next RC cut, `passes alone` is a migration ticket –
+  handsontable/.ai/TESTING.md, "The Jasmine suite is frozen".) The flake ledger records the
+  nightly's tests with `branch: develop`, and
   `node scripts/leg-replay.mjs --list test-results/list.json` (after
   `npx playwright test --list --reporter=json > test-results/list.json`) replays the ledger against
   the declared tree, names the declaration every off-main red asks for, and exits 1 on a miss.
@@ -804,7 +813,8 @@ settings (`failOnFlakyTests`, `retries`, and `forbidOnly`) as text in the root
 `test:tooling` gate, and fails with this reason if one moves. The report path
 is pinned by `.github/scripts/lib/test-health.mjs` and asserted in
 `.github/scripts/__tests__/test-health.test.mjs`, so moving it means changing
-all three places.
+all three places. The frozen Jasmine suite's reds reach the same ledger from the
+`puppeteer-failed-specs-*` records: one leg on a pull request, six on the nightly.
 
 **Where the time goes.** Every leg, red or green, also uploads
 `playwright-durations-<leg>`: one JSON file that
