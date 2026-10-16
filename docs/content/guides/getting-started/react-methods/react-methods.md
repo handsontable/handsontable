@@ -25,7 +25,7 @@ Use useRef and HotTableRef to get a reference to the Handsontable DataGrid insta
 
 [[toc]]
 
-## Use Handsontable's API
+## Use Handsontable DataGrid's API
 
 You can programmatically change the internal state of Handsontable beyond what's possible with props. To do that, call API methods of the relevant Handsontable instance associated with your instance of the [`HotTable`](@/guides/getting-started/installation/installation.md#_4-use-the-hottable-component) component.
 

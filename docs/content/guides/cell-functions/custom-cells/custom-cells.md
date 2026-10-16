@@ -1395,7 +1395,7 @@ editor: editorFactory<{input: HTMLInputElement}>({
 ```
 
 
-## Usage in Handsontable
+## Usage in Handsontable DataGrid
 
 Apply your cell definition to columns:
 

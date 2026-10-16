@@ -196,7 +196,7 @@ registerCellType('moment-time', cellTimeTypeDefinition);
 - **editor**: Uses the built-in `text` editor for text input
 - **registerCellType**: Registers the `moment-time` cell type for use in column config
 
-## Step 6: Use in Handsontable
+## Step 6: Use in Handsontable DataGrid
 
 ```typescript
 registerCellType('moment-time', cellTimeTypeDefinition);

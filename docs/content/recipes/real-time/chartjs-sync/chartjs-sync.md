@@ -194,7 +194,7 @@ The function uses a `Set` to collect unique row indices. This prevents duplicate
 
 Assigning new arrays to `chart.data.labels` and `chart.data.datasets[i].data` then calling `chart.update()` is the recommended Chart.js pattern for in-place updates. It avoids the cost of destroying and recreating the chart instance.
 
-## Step 5: Initialize Handsontable with `selectionMode: 'range'`
+## Step 5: Initialize Handsontable DataGrid with `selectionMode: 'range'`
 
 ```javascript
 const hot = new Handsontable(container, {

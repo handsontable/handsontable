@@ -65,7 +65,7 @@ In your project root:
 npm install handsontable @handsontable/react-wrapper @mui/material @emotion/react @emotion/styled
 ```
 
-## Step 2: Register Handsontable modules
+## Step 2: Register Handsontable DataGrid modules
 
 Register Handsontable modules once in your grid module:
 
@@ -114,7 +114,7 @@ export function createHandsontableMuiColors(theme: Theme) {
 }
 ```
 
-## Step 4: Register your MUI Handsontable theme
+## Step 4: Register your MUI Handsontable DataGrid theme
 
 Register a custom Handsontable theme that uses your mapped colors and Horizon tokens.
 

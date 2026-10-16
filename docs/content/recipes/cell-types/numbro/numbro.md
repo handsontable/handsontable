@@ -181,7 +181,7 @@ registerCellType('numbro', cellTypeDefinition);
 - **editor**: Uses the built-in numeric editor for input
 - **registerCellType**: Registers the `numbro` cell type for use in column config
 
-## Step 5: Use in Handsontable
+## Step 5: Use in Handsontable DataGrid
 
 ```typescript
 registerCellType('numbro', cellTypeDefinition);

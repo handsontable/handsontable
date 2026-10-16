@@ -152,7 +152,7 @@ ASP.NET Core Web API projects serialize JSON with `JsonSerializerDefaults.Web` b
 
 **Why this matters for the whitelist dictionaries in Step 8:** the sort and filter column whitelists must be keyed by the wire-format name (`orderNumber`), not the C# property name (`OrderNumber`), because that's the string Handsontable actually sends in the query string.
 
-## Step 7: Bind Handsontable's query parameters
+## Step 7: Bind Handsontable DataGrid's query parameters
 
 Create `OrdersQuery.cs`:
 
@@ -234,7 +234,7 @@ This thin controller has no business logic of its own -- every method delegates 
 
 **Antiforgery in API projects:** `dotnet new webapi --use-controllers` scaffolds a project with no antiforgery validation enabled by default -- `AddAntiforgery` and `[ValidateAntiForgeryToken]` are opt-in, and only matter when the app uses cookie-based authentication. A `fetch()` call from the browser using an `Authorization` header (or no authentication at all, as in this recipe) never needs an antiforgery token, because the browser doesn't attach that header automatically the way it attaches cookies.
 
-## Step 10: Build the request URL and initialize Handsontable
+## Step 10: Build the request URL and initialize Handsontable DataGrid
 
 Run the backend:
 

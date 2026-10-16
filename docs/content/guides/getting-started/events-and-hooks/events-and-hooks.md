@@ -149,7 +149,7 @@ Note that the first argument is the current width that we're going to modify. La
 
 For content-aware maximum width capping, see the [Column widths](@/guides/columns/column-width/column-width.md#set-a-dynamic-maximum-column-width) guide.
 
-## Handsontable hooks
+## Handsontable DataGrid hooks
 
 We refer to all callbacks as "Handsontable hooks" because, although they share some characteristics with events and middleware, they combine them both in a unique structure. You may already be familiar with the concept as we're not the only ones that use the hooks convention.
 
@@ -360,7 +360,7 @@ To act on a committed, validated value, use the [`afterChange`](@/api/hooks.md#a
 
 :::
 
-## All available Handsontable hooks example
+## All available Handsontable DataGrid hooks example
 
 Note that some callbacks are checked on this page by default.
 

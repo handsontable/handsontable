@@ -129,7 +129,7 @@ The array you bind to [`data`](@/api/options.md#data) does not change when a use
 
 Writing [`getData()`](@/api/core.md#getdata) back into the bound `data` mixes the two models. The grid still holds the order map for a move it has already made, so it applies that order on top of your already-reordered array. Your data and the grid end up out of sync, and the row can jump a second time.
 
-#### Let Handsontable own the order
+#### Let Handsontable DataGrid own the order
 
 This is the default. Bind `data` once and leave it alone. Read the current order with [`getData()`](@/api/core.md#getdata) whenever you need to persist it.
 

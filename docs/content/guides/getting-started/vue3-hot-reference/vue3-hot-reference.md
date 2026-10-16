@@ -20,7 +20,7 @@ Use `useTemplateRef` and the `hotInstance` property to get a reference to the Ha
 
 [[toc]]
 
-## Use Handsontable's API
+## Use Handsontable DataGrid's API
 
 You can programmatically change the internal state of Handsontable beyond what's possible with props. To do that, call API methods of the relevant Handsontable instance associated with your instance of the [`HotTable`](@/guides/getting-started/installation/installation.md#use-the-hottable-component) component.
 

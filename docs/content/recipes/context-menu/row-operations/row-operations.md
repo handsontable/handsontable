@@ -86,7 +86,7 @@ Make sure you have a container element with four buttons in your HTML:
 <div id="example1"></div>
 ```
 
-## Step 1: Enable ManualRowMove and initialize Handsontable
+## Step 1: Enable ManualRowMove and initialize Handsontable DataGrid
 
 ```javascript
 import Handsontable from 'handsontable/base';

@@ -127,7 +127,7 @@ function getVisibleHeaders() {
 
 These two helpers produce the arguments that `hot.updateSettings()` needs on every toggle. They are pure functions with no side effects.
 
-## Step 3: Initialize Handsontable
+## Step 3: Initialize Handsontable DataGrid
 
 ```javascript
 const hot = new Handsontable(container, {

@@ -382,7 +382,7 @@ export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<stri
 - **Change detection**: Manual trigger with `ChangeDetectorRef`
 - **Styling**: External CSS with theme-aware tokens (same look as the [Feedback recipe](@/javascript/recipes/cell-types/feedback/feedback.md))
 
-## Step 7: Use in Handsontable
+## Step 7: Use in Handsontable DataGrid
 
 Use the editor component in your Angular component (same table structure as the [Feedback recipe](@/javascript/recipes/cell-types/feedback/feedback.md)):
 

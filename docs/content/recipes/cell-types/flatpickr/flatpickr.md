@@ -477,7 +477,7 @@ const cellDefinition = {
 
 **Note:** The `editorFactory` helper handles container creation, positioning, and lifecycle management automatically.
 
-## Step 13: Use in Handsontable with Different Formats
+## Step 13: Use in Handsontable DataGrid with Different Formats
 
 ```javascript
 const container = document.querySelector('#example1');

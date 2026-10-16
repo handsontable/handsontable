@@ -20,7 +20,7 @@ Handsontable DataGrid relies on browser APIs that are not available during serve
 
 [[toc]]
 
-## Why Handsontable needs client-side rendering
+## Why Handsontable DataGrid needs client-side rendering
 
 Nuxt 3 renders Vue components on the server before sending HTML to the browser. That server environment has no DOM -- no `window`, no `document`, no `HTMLElement`. Handsontable's initialization code and the underlying Walkontable rendering engine access these browser globals.
 

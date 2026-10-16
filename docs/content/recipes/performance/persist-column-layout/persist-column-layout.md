@@ -137,7 +137,7 @@ function saveLayout(widths, order) {
 
 **What's happening:** `saveLayout` serializes both arrays into a single JSON object and writes it under the storage key. Grouping them in one object means a single `setItem` call -- `localStorage` operations are synchronous and blocking, so minimizing calls reduces the chance of a partial write.
 
-## Step 4 -- Initialize Handsontable with the saved or default layout
+## Step 4 -- Initialize Handsontable DataGrid with the saved or default layout
 
 ```javascript
 const saved = loadLayout();

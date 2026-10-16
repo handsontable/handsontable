@@ -462,7 +462,7 @@ const cellDefinition = {
   - Mouse events using `closest()` for reliable SVG hover detection
   - Render function with `current` class to highlight the selected star using accent color
 
-## Step 11: Use in Handsontable
+## Step 11: Use in Handsontable DataGrid
 
 ```typescript
 const container = document.querySelector('#example1')!;

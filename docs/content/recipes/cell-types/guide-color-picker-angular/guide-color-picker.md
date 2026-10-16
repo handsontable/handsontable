@@ -231,7 +231,7 @@ export const appConfig: ApplicationConfig = {
 - `HotTableModule` is imported directly in the component that uses `<hot-table>`
 - Global config applies to all Handsontable instances in the app
 
-## Step 6: Configure Handsontable
+## Step 6: Configure Handsontable DataGrid
 
 Use the custom components in your Handsontable column configuration. The example adds a `color` property to each row (e.g. from `inputData`) and passes it to the grid.
 

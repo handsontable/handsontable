@@ -170,7 +170,7 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 });
 ```
 
-### Pass the HyperFormula class/instance to Handsontable
+### Pass the HyperFormula class/instance to Handsontable DataGrid
 
 ::: only-for javascript
 
@@ -294,7 +294,7 @@ const hotSettings = ref({
 
 :::
 
-### Single Handsontable instance with an external HyperFormula instance
+### Single Handsontable DataGrid instance with an external HyperFormula instance
 
 ::: only-for javascript
 
@@ -381,7 +381,7 @@ const hotSettings = ref({
 
 :::
 
-### Multiple independent Handsontable instances
+### Multiple independent Handsontable DataGrid instances
 
 ::: only-for javascript
 
@@ -481,7 +481,7 @@ const hotSettings2 = ref({
 
 ::: only-for javascript
 
-### Multiple Handsontable instances with a shared HyperFormula instance
+### Multiple Handsontable DataGrid instances with a shared HyperFormula instance
 
 ```js
 // Instance 1
@@ -505,7 +505,7 @@ const hotSettings2 = ref({
 
 :::
 
-### Multiple Handsontable instances with an external shared HyperFormula instance
+### Multiple Handsontable DataGrid instances with an external shared HyperFormula instance
 
 ::: only-for javascript
 

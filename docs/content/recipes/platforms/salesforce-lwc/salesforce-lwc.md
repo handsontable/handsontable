@@ -70,7 +70,7 @@ sf project generate --name handsontable-lwc
 cd handsontable-lwc
 ```
 
-## Step 1: Add Handsontable as a static resource
+## Step 1: Add Handsontable DataGrid as a static resource
 
 Vendor three files from the package into a static resource and commit them:
 

@@ -56,7 +56,7 @@ This recipe shows how to integrate Handsontable into a Next.js that uses [shadcn
 - shadcn's CSS variables defined (e.g. `--primary`, `--background`, `--foreground`, `--muted`, `--border`, `--radius`).
 - This recipe uses `lib/` for theme and helpers and `components/` for the grid, adjust paths if your structure differs.
 
-## Step 1: Install Handsontable
+## Step 1: Install Handsontable DataGrid
 
 In your project root:
 

@@ -70,7 +70,7 @@ If you are creating a new Base setup, install Base Web and Styletron as well:
 pnpm add baseui styletron-engine-atomic styletron-react
 ```
 
-## Step 2: Register Handsontable modules
+## Step 2: Register Handsontable DataGrid modules
 
 Register Handsontable modules once before rendering the grid.
 
@@ -81,7 +81,7 @@ import { registerTheme } from 'handsontable/themes';
 registerAllModules();
 ```
 
-## Step 3: Map Base design tokens to Handsontable colors
+## Step 3: Map Base design tokens to Handsontable DataGrid colors
 
 Create a colors object that maps Handsontable color keys to your Base CSS variables.
 

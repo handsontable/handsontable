@@ -429,7 +429,7 @@ const FeedbackEditor = () => {
 - **Render prop**: Renders buttons based on config
 - **Styling**: CSS-in-JS for editor appearance
 
-## Step 7: Use in Handsontable
+## Step 7: Use in Handsontable DataGrid
 
 Use the editor component in your `HotTable`:
 

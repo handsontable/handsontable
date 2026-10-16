@@ -258,7 +258,7 @@ Handsontable's `dataProvider` calls `fetchRows` with a `{ page, pageSize, sort, 
 - `filters` is serialised with `JSON.stringify`. `dataProvider` passes the full `DataProviderFilterColumn` array — including `operation` and nested `conditions` — which Django decodes with `json.loads()`.
 - `API_BASE` uses a relative path (`/api/employees/`). In development, Vite proxies `/api/*` to `http://localhost:8000`, so the browser and Django share one origin, which keeps CSRF cookies accessible without extra CORS configuration.
 
-## Step 11 -- Initialize Handsontable
+## Step 11 -- Initialize Handsontable DataGrid
 
 With the backend and Vite dev server running (`bash setup.sh`), open `http://localhost:5173` to see the grid. The Django API runs on `http://localhost:8000` inside Docker; Vite proxies all `/api/*` requests to it. The complete frontend code is in the files below.
 

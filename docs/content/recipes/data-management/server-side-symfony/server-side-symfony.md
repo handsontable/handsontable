@@ -253,7 +253,7 @@ export default defineConfig({
 - In production, deploy the frontend and backend behind the same reverse proxy (nginx or Apache), or configure CORS headers on the Symfony server for your production origin.
 - No CSRF token is needed for this stateless JSON API. Symfony's CSRF protection applies to form-based flows, not `Content-Type: application/json` requests from a browser frontend.
 
-## Step 8: Wire up Handsontable
+## Step 8: Wire up Handsontable DataGrid
 
 With the Symfony server running (`symfony server:start` or `php -S localhost:8000 -t public/`) and the Vite dev server running (`npm run dev`), open `http://localhost:5173` to see the grid. The complete frontend code is in the files below.
 

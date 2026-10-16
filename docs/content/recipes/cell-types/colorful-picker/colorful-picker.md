@@ -195,7 +195,7 @@ export const data = inputData.map((el) => ({
 - Each row is an object with columns such as `id`, `itemName`, `itemNo`, `cost`, `valueStock`
 - A `color` property is added with a random hex value in `#RRGGBB` format
 
-## Step 5: Use in Handsontable
+## Step 5: Use in Handsontable DataGrid
 
 Use the editor, custom renderer, and validator on the color column. The example table has multiple columns; the color column uses `hotRenderer` and `validator`.
 

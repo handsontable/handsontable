@@ -269,7 +269,7 @@ export const data = [
 - Each row has `product`, `category`, `rating`, `reviews`, and `price`
 - The `rating` column uses the star editor and renderer; other columns can be text or numeric
 
-## Step 8: Use in Handsontable
+## Step 8: Use in Handsontable DataGrid
 
 Wire the editor, renderer, and validator to the rating column:
 

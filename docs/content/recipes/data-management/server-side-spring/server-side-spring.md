@@ -259,7 +259,7 @@ The class-level `@Transactional` annotation wraps every public method in a singl
 - `allowedOrigins("*")` is safe for a local development recipe. In production, replace `"*"` with the exact frontend origin (e.g. `"https://your-app.com"`) to prevent cross-site request abuse.
 - Explicitly listing `allowedMethods` keeps the CORS headers narrow -- only the four HTTP methods the Handsontable callbacks use are allowed.
 
-## Step 9: Wire up Handsontable
+## Step 9: Wire up Handsontable DataGrid
 
 Start the backend and the Vite dev server with `bash setup.sh` (or `make setup`), then open `http://localhost:5173`. The backend runs on `http://localhost:8080` inside Docker; Vite proxies all `/api/*` requests to it so no CORS configuration is needed in the browser. The complete frontend code is in the files below.
 

@@ -111,7 +111,7 @@ const colorsFluent = {
 export default colorsFluent;
 ```
 
-## Step 4: Register your Fluent Handsontable theme
+## Step 4: Register your Fluent Handsontable DataGrid theme
 
 Import `icons` together with `colors` and `tokens`. `registerTheme()` requires `icons` - if omitted, ThemeBuilder throws an error.
 

@@ -288,7 +288,7 @@ There are two ways to register a plugin:
   registerPlugin('CustomAlias', CustomPlugin);
   ```
 
-### 4. Use your plugin in Handsontable
+### 4. Use your plugin in Handsontable DataGrid
 
 To control the plugin's options, pass a boolean or an object at the plugin's initialization:
 

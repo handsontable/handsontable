@@ -272,7 +272,7 @@ Handsontable's `dataProvider` calls `fetchRows` with `{ page, pageSize, sort, fi
 - `sort` is split into two flat params, `sort_prop` and `sort_order`. The controller's `apply_sort` reads them directly.
 - Filters are flattened from `DataProviderFilterColumn[]` (each with `prop` and `conditions: [{name, args}]`) into one bracket-notation entry per condition. Rails converts the bracket notation to a nested hash automatically.
 
-## Step 10 -- Initialize Handsontable
+## Step 10 -- Initialize Handsontable DataGrid
 
 Start the backend and the Vite dev server with `bash setup.sh` (or `make setup`), then open `http://localhost:5173`. The Rails API runs on `http://localhost:3000` inside Docker; Vite proxies all `/api/*` requests to it. The complete frontend code is in the files below.
 

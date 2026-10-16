@@ -59,7 +59,7 @@ Examples with SSR (Server Side Rendering):
 
 </div>
 
-## What can I use Handsontable for?
+## What can I use Handsontable DataGrid for?
 
 Think of Handsontable as an extensible framework that empowers you to quickly build tabular, data-oriented user interfaces tailored to your specific needs. With Handsontable, developers can efficiently tackle real-life problems by leveraging its flexibility and customization options.
 

@@ -106,7 +106,7 @@ registerAllModules();
 - `jsPDF` is the PDF document constructor
 - `autoTable` is the plugin function that draws a formatted table into the document
 
-## Step 2: Set up Handsontable
+## Step 2: Set up Handsontable DataGrid
 
 ```javascript
 const container = document.querySelector('#example1');

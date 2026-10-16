@@ -232,7 +232,7 @@ export default defineConfig({
 - The Vite dev server forwards every `/api/*` request to the Laravel server running on port 8000. Because both the HTML page and the API requests share the same origin (`localhost:5173`), the browser never sees a cross-origin request — no CORS headers are needed on the backend.
 - In production, deploy the frontend and backend behind the same reverse proxy (nginx or Apache), or configure CORS headers in `config/cors.php` for your production origin.
 
-## Step 8: Wire up Handsontable
+## Step 8: Wire up Handsontable DataGrid
 
 Start the backend and the Vite dev server with `bash setup.sh` (or `make setup`), then open `http://localhost:5173`. The Laravel API runs on `http://localhost:8000` inside Docker; Vite proxies all `/api/*` requests to it. The complete frontend code is in the files below.
 

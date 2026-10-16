@@ -438,7 +438,7 @@ readonly gridSettings: GridSettings = {
 
 :::
 
-## Step 9: Register and Use in Handsontable
+## Step 9: Register and Use in Handsontable DataGrid
 
 ::: only-for javascript
 

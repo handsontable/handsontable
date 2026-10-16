@@ -234,7 +234,7 @@ Copy `tickets.controller.ts` into `src/tickets/`:
 | `PATCH` | `/tickets` | `onRowsUpdate` |
 | `DELETE` | `/tickets` | `onRowsRemove` |
 
-## Step 7: Wire up Handsontable
+## Step 7: Wire up Handsontable DataGrid
 
 Start the backend and the Vite dev server with `bash setup.sh` (or `make setup`), then open `http://localhost:5173`. The NestJS API runs on `http://localhost:3000`; Vite proxies all `/tickets` requests to it. The complete frontend code is below.
 

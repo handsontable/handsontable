@@ -706,7 +706,7 @@ const cellDefinition: Pick<
 };
 ```
 
-## Step 17: Use in Handsontable
+## Step 17: Use in Handsontable DataGrid
 
 ```typescript
 const container = document.querySelector('#example1')!;

@@ -383,7 +383,7 @@ textRenderer.apply(this, arguments);
 textRenderer(instance, td, row, column, prop, value, cellProperties);
 ```
 
-### Handsontable runs `baseRenderer` for you
+### Handsontable DataGrid runs `baseRenderer` for you
 
 `baseRenderer` is a separate renderer, and it isn't one of the renderers described above. It adds the cell's class names and ARIA attributes, including [`className`](@/api/options.md#classname), [`readOnly`](@/api/options.md#readonly), and the invalid-cell class.
 

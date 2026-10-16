@@ -360,7 +360,7 @@ const cellDefinition = {
 
 **Note:** No custom renderer needed! Handsontable's default renderer will display the emoji value in the cell. All visual styling is handled by the CSS file using Handsontable tokens.
 
-## Step 9: Register and Use in Handsontable
+## Step 9: Register and Use in Handsontable DataGrid
 
 Register the cell definition as a reusable cell type, then use it in the column configuration.
 

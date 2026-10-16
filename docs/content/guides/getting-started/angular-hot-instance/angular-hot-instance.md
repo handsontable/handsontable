@@ -19,7 +19,7 @@ Use @ViewChild to get a reference to the Handsontable DataGrid instance from you
 
 [[toc]]
 
-## Use Handsontable's API
+## Use Handsontable DataGrid's API
 
 You can programmatically change the internal state of Handsontable beyond what's possible with props. To do this, call the API methods of the relevant Handsontable instance associated with your instance of the [`HotTableComponent`](@/guides/getting-started/installation/installation.md#use-the-hottable-component). Access to the Handsontable instance can be obtained as early as in the `ngAfterViewInit()` lifecycle hook by using the `@ViewChild` decorator, which holds a reference to the wrapper component.
 
