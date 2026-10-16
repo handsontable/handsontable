@@ -30,7 +30,7 @@ concurrency:
 jobs:
   check-scope:
     name: Check the scope
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       run-all: ${{
           endsWith(github.ref, '/master') ||
@@ -117,7 +117,7 @@ jobs:
 
   build-handsontable-umd:
     name: "[BUILD] Handsontable: UMD"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ check-scope ]
     if: |
       needs.check-scope.outputs.run-all == 'true' ||
@@ -154,7 +154,7 @@ jobs:
 
   build-handsontable-es-cjs:
     name: "[BUILD] Handsontable: ES + CJS"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ check-scope ]
     if: |
       needs.check-scope.outputs.run-all == 'true' ||
@@ -193,7 +193,7 @@ jobs:
 
   test-handsontable-unit:
     name: "[TEST] Handsontable: Unit"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ check-scope ]
     if: |
       needs.check-scope.outputs.run-all == 'true' ||
@@ -220,7 +220,7 @@ jobs:
 
   test-handsontable-types:
     name: "[TEST] Handsontable: Types"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ check-scope ]
     if: |
       needs.check-scope.outputs.run-all == 'true' ||
@@ -247,7 +247,7 @@ jobs:
 
   test-handsontable-walkontable:
     name: "[TEST] Walkontable"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ check-scope ]
     if: |
       needs.check-scope.outputs.run-all == 'true' ||
@@ -272,7 +272,7 @@ jobs:
 
   test-handsontable-e2e-main:
     name: "[TEST] Handsontable: UMD (theme: main)"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ build-handsontable-umd ]
     if: |
       needs.check-scope.outputs.run-all == 'true' ||
@@ -304,7 +304,7 @@ jobs:
 
   test-handsontable-e2e-horizon:
     name: "[TEST] Handsontable: UMD (theme: horizon)"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ build-handsontable-umd ]
     if: |
       needs.check-scope.outputs.run-all == 'true' ||
@@ -336,7 +336,7 @@ jobs:
 
   test-handsontable-e2e-min-main:
     name: "[TEST] Handsontable: UMD.min (theme: main)"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ build-handsontable-umd ]
     if: |
       needs.check-scope.outputs.run-all == 'true' ||
@@ -368,7 +368,7 @@ jobs:
 
   test-handsontable-e2e-min-horizon:
     name: "[TEST] Handsontable: UMD.min (theme: horizon)"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ build-handsontable-umd ]
     if: |
       needs.check-scope.outputs.run-all == 'true' ||
@@ -400,7 +400,7 @@ jobs:
 
   test-handsontable-e2e-classic:
     name: "[TEST] Handsontable: UMD (theme: classic)"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ build-handsontable-umd ]
     if: |
       needs.check-scope.outputs.run-all == 'true' ||
@@ -432,7 +432,7 @@ jobs:
 
   test-handsontable-e2e-min-classic:
     name: "[TEST] Handsontable: UMD.min (theme: classic)"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ build-handsontable-umd ]
     if: |
       needs.check-scope.outputs.run-all == 'true' ||
@@ -464,7 +464,7 @@ jobs:
 
   test-handsontable-esm-e2e:
     name: "[TEST] Handsontable: ESM"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ build-handsontable-es-cjs, build-handsontable-umd ]
     if: needs.check-scope.outputs.run-all == 'true'
     steps:
@@ -505,7 +505,7 @@ jobs:
 
   test-handsontable-cjs-e2e:
     name: "[TEST] Handsontable: CJS"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ build-handsontable-es-cjs, build-handsontable-umd ]
     if: needs.check-scope.outputs.run-all == 'true'
     steps:
@@ -547,7 +547,7 @@ jobs:
 
   test-angular-wrapper:
     name: "[TEST] Wrapper: Angular (modern)"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ check-scope, build-handsontable-es-cjs ]
     if: |
       needs.check-scope.outputs.run-all == 'true' ||
@@ -585,7 +585,7 @@ jobs:
 
   test-react-wrapper:
     name: "[TEST] Wrapper: React (functional)"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ check-scope, build-handsontable-es-cjs ]
     if: |
       needs.check-scope.outputs.run-all == 'true' ||
@@ -622,7 +622,7 @@ jobs:
 
   test-vue3:
     name: "[TEST] Wrapper: Vue3"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ check-scope, build-handsontable-es-cjs ]
     if: |
       needs.check-scope.outputs.run-all == 'true' ||
@@ -659,7 +659,7 @@ jobs:
 
   visual-tests-multi-framework:
     name: "[TEST] Visual tests: Multi-framework"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs:
       - check-scope
       - build-handsontable-es-cjs
@@ -799,7 +799,7 @@ jobs:
 
   visual-tests-cross-browser:
     name: "[TEST] Visual tests: Cross-browser"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs:
       - check-scope
       - build-handsontable-es-cjs
@@ -939,7 +939,7 @@ jobs:
 
   visual-tests-argos-upload:
     name: "[TEST] Visual tests: Argos upload"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs:
       - visual-tests-multi-framework
       - visual-tests-cross-browser
