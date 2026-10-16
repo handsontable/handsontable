@@ -61,6 +61,15 @@ Details that bite:
 - **`destroy()` nulls every own property except `hot`, and `hot` is `delete`d** (it is non-writable, so
   `Reflect.set` silently fails on it). That is deliberate: an async guard written `if (!this.hot) { return; }`
   then reads `undefined` and returns. Write teardown guards that way, not `if (this.hot.isDestroyed)`.
+- **The three constructor listeners live on the grid, so `destroy()` removes them itself.**
+  `afterPluginsInitialized`, `afterUpdateSettings` and `beforeInit` are bound with `this.hot.addHook`
+  (kept in `#lifecycleHooks`), not the tracked `addHook()`, because they must survive `disablePlugin()`.
+  `clearHooks()` therefore never sees them. Before DEV-775 they also survived `destroy()`, so a plugin
+  destroyed ahead of the grid (`getPlugin(name).destroy()`) made **every** later `updateSettings()` throw
+  from `isEnabled()` reading the deleted `hot`, whatever the payload. The grid's own `destroy()` calls each
+  plugin's `destroy()` again after that, with `hot` already gone, so the removal is guarded on `this.hot`.
+  `getPlugin(name)` still returns the destroyed object; a plugin whose public lifecycle methods can be
+  called on it afterwards guards them with `if (!this.hot) { return; }` (Autofill does).
 - **Default to `addHook()` on the plugin, not `this.hot.addHook()`.** The plugin's own `addHook` records the
   callback in `#hooks` so `disablePlugin()` can remove it; a hook registered straight on the instance
   survives `disablePlugin()` and can fire against a disabled plugin. **The exception is deliberate and

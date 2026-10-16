@@ -874,6 +874,7 @@ export default function Core(
       return editor ? (editor.isOpened() as boolean) : false;
     },
     isPluginEnabled: (pluginName: string) => instance.getPlugin(pluginName)?.enabled === true,
+    isPluginRegistered: (pluginName: string) => instance.getPlugin(pluginName) !== undefined,
     countRenderableColumns: () => instance.view.countRenderableColumns() as number,
     countRenderableRows: () => instance.view.countRenderableRows() as number,
     countRowHeaders: () => instance.countRowHeaders() as number,

@@ -18,6 +18,21 @@ So `updateSettings({ autofill: … })` does **nothing** — the user-facing opti
 `SETTINGS_VALIDATORS`. `direction` accepts only the values in `DIRECTIONS` (or `undefined`, meaning both
 axes are allowed).
 
+## The handle follows the plugin, not only the setting (DEV-775)
+
+Selection draws the handle (`Selection#isCellCornerVisible()` / `isAreaCornerVisible()`), not this
+plugin, and it used to read only the `fillHandle` setting. `disablePlugin()` and `destroy()` leave that
+setting `true`, so the handle stayed on screen and a drag on it did nothing. Selection now also asks the
+grid whether this plugin is enabled (`tableProps.isPluginEnabled('autofill')`), the way it already does for
+`selectionHandles` and `moveCells`. One exception, on purpose: a grid that never **registered** the plugin
+(a tree-shaken build without `AutofillPlugin`, which four visual-test demos are) keeps drawing the handle
+from the setting (`tableProps.isPluginRegistered('autofill')`). Hiding it there is a separate change that
+would alter every such grid's look and its visual goldens.
+
+`enablePlugin()`, `updatePlugin()` and `disablePlugin()` return early on a destroyed instance
+(`!this.hot`), because an application may keep the `getPlugin('autofill')` reference and call it later.
+Pinned by `tests/e2e/plugin-destroy-update-settings.spec.ts` and `selection/__tests__/selection.unit.ts`.
+
 ## Three hooks it registers on the singleton
 
 `modifyAutofillRange`, `beforeAutofill`, `afterAutofill`. `beforeAutofill` is the veto point and

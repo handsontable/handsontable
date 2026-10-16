@@ -1288,6 +1288,71 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * Destroy one plugin instance on its own, ahead of the grid, with `getPlugin(name).destroy()`. A
+   * reference to a destroyed Autofill plugin is kept, so `updateDestroyedAutofill()` can call it.
+   */
+  async destroyPlugin(pluginName: 'autofill' | 'comments'): Promise<void> {
+    await this.page.evaluate((name) => {
+      if (name === 'autofill') {
+        const plugin = window.hot.getPlugin('autofill');
+
+        window.destroyedAutofill = plugin;
+        plugin.destroy();
+      } else {
+        window.hot.getPlugin('comments').destroy();
+      }
+    }, pluginName);
+  }
+
+  /**
+   * Call `updateSettings()` and report the message it threw, or `null` when it did not throw.
+   */
+  async tryUpdateSettings(settings: Record<string, unknown>): Promise<string | null> {
+    return this.page.evaluate((nextSettings) => {
+      try {
+        window.hot.updateSettings(nextSettings);
+
+        return null;
+      } catch (error) {
+        return (error as Error).message;
+      }
+    }, settings);
+  }
+
+  /**
+   * Call `updatePlugin()` on the Autofill plugin reference `destroyPlugin('autofill')` kept, and
+   * report the message it threw, or `null` when it did not throw.
+   */
+  async tryUpdateDestroyedAutofill(): Promise<string | null> {
+    return this.page.evaluate(() => {
+      try {
+        window.destroyedAutofill?.updatePlugin();
+
+        return null;
+      } catch (error) {
+        return (error as Error).message;
+      }
+    });
+  }
+
+  /**
+   * Disable or re-enable the Autofill plugin directly, leaving the `fillHandle` setting as it is.
+   */
+  async setAutofillPluginEnabled(enabled: boolean): Promise<void> {
+    await this.page.evaluate((isEnabled) => {
+      const plugin = window.hot.getPlugin('autofill');
+
+      if (isEnabled) {
+        plugin.enablePlugin();
+      } else {
+        plugin.disablePlugin();
+      }
+
+      window.hot.render();
+    }, enabled);
+  }
+
+  /**
    * Narrow the fill handle to one axis through `updateSettings` — a reconfiguration that changes
    * what a fill is allowed to do, as opposed to a re-send of the same value.
    */

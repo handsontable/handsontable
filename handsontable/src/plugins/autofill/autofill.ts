@@ -174,7 +174,8 @@ export class Autofill extends BasePlugin {
    * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin(): void {
-    if (this.enabled) {
+    // `destroy()` deletes `hot`, so a reference kept to a destroyed plugin must not run (DEV-775).
+    if (!this.hot || this.enabled) {
       return;
     }
 
@@ -220,6 +221,10 @@ export class Autofill extends BasePlugin {
    *  - [`fillHandle`](@/api/options.md#fillhandle)
    */
   updatePlugin(): void {
+    if (!this.hot) {
+      return;
+    }
+
     const previousDirections = this.directions;
     const previousAutoInsertRow = this.autoInsertRow;
 
@@ -251,6 +256,10 @@ export class Autofill extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin(): void {
+    if (!this.hot) {
+      return;
+    }
+
     // The base class drops the `documentElement` `mouseup` listener that owns the drag teardown,
     // so a gesture that is in progress when the plugin is disabled would otherwise stay armed
     // until the next `enablePlugin()` picks it up (DEV-2782, the lifecycle twin of GitHub #13370).
