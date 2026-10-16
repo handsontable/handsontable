@@ -9,6 +9,29 @@ import { AsyncImageFrozenColumnsPage } from '../fixtures/pages/AsyncImageFrozenC
 test.describe('Async image in a scrolling column beside frozen columns', { tag: THEMES_TAG }, () => {
   const grownBy = (height: number, row: number) => height >= 60 + row * 10;
 
+  /**
+   * Asserts that the image of every rendered row has arrived, that the grid has stopped drawing, and that it drew at
+   * most once per batch of arriving images. A redraw loop fails one of the two checks: either it is still
+   * counting through the 60 frames, or the redraw budget ended it (up to 31 draws) with redraws that
+   * brought no new image, so they outnumber the batches. The batches are counted rather than assumed,
+   * because on a busy machine the image responses spread over more frames.
+   */
+  const expectSettledInOneDrawPerBatch = async(grid: AsyncImageFrozenColumnsPage) => {
+    // A redraw can detach an image before its `load` is dispatched, and its source then arrives with the
+    // cached copy a task later, after the rows have already grown. A row that grew out of the rendered band
+    // takes its image with it, and an image that is not in the grid cannot make it redraw.
+    await expect.poll(() => grid.imagesYetToArrive()).toBe(0);
+
+    const stats = await grid.drawStats();
+
+    await grid.waitForFrames(60);
+
+    expect(await grid.renderCount()).toBe(stats.draws);
+    expect(stats.drawsBeforeContent).not.toBeNull();
+    expect(stats.draws - (stats.drawsBeforeContent ?? 0), JSON.stringify(stats))
+      .toBeLessThanOrEqual(stats.contentBatches);
+  };
+
   test('keeps the frozen overlay rows as tall as the master rows once the images load', async({
     page, theme, bundle,
   }) => {
@@ -36,14 +59,7 @@ test.describe('Async image in a scrolling column beside frozen columns', { tag: 
     await expect.poll(async() => (await grid.rowHeights()).master.every(grownBy)
       && await grid.overlaysMatchMaster()).toBe(true);
 
-    const settled = await grid.renderCount();
-
-    // A looping redraw keeps counting through these frames; a settled grid stays put. The draw plus one
-    // redraw is the whole cost: the redraw budget alone would let a loop reach 31 draws.
-    await grid.waitForFrames(60);
-
-    expect(await grid.renderCount()).toBe(settled);
-    expect(settled).toBeLessThanOrEqual(3);
+    await expectSettledInOneDrawPerBatch(grid);
   });
 
   test('settles without column headers when a short image makes the first row 1px taller', async({
@@ -54,6 +70,8 @@ test.describe('Async image in a scrolling column beside frozen columns', { tag: 
     await grid.goto('&headers=0&small=1');
     grid.releaseImages();
 
+    // Only the first row grows, so one redraw is the whole cost however the images spread over frames.
+    await expect.poll(() => grid.contentArrivals()).toBe(6);
     await grid.waitForFrames(30);
 
     const settled = await grid.renderCount();
@@ -74,6 +92,8 @@ test.describe('Async image in a scrolling column beside frozen columns', { tag: 
     await grid.goto('&headers=0&small=1&col=0');
     grid.releaseImages();
 
+    // Only the first row grows, so one redraw is the whole cost however the images spread over frames.
+    await expect.poll(() => grid.contentArrivals()).toBe(6);
     await grid.waitForFrames(30);
 
     const settled = await grid.renderCount();
@@ -94,12 +114,7 @@ test.describe('Async image in a scrolling column beside frozen columns', { tag: 
     await expect.poll(async() => (await grid.rowHeights()).master.every(grownBy)
       && await grid.overlaysMatchMaster()).toBe(true);
 
-    const settled = await grid.renderCount();
-
-    await grid.waitForFrames(60);
-
-    expect(await grid.renderCount()).toBe(settled);
-    expect(settled).toBeLessThanOrEqual(3);
+    await expectSettledInOneDrawPerBatch(grid);
   });
 
   test('aligns the frozen end overlay when the image sits in a column frozen at the end', async({
@@ -145,12 +160,26 @@ test.describe('Async image in a scrolling column beside frozen columns', { tag: 
     await expect.poll(async() => (await grid.rowHeights()).master.every(height => height > 60)
       && await grid.overlaysMatchMaster()).toBe(true);
 
-    const settled = await grid.renderCount();
+    await expectSettledInOneDrawPerBatch(grid);
+  });
 
-    await grid.waitForFrames(60);
+  test('draws once per batch when one failing image arrives after the others', async({ page, theme, bundle }) => {
+    const grid = new AsyncImageFrozenColumnsPage(page, theme, bundle);
 
-    expect(await grid.renderCount()).toBe(settled);
-    expect(settled).toBeLessThanOrEqual(3);
+    await grid.goto('&broken=1&reuse=1');
+    grid.releaseImages({ holdBack: 'missing-5.svg' });
+
+    // The redraw for the first five images runs before the last one is let through, so the images arrive in
+    // at least two batches however fast the machine is.
+    await expect.poll(() => grid.contentArrivals()).toBe(5);
+    await grid.waitForFrames(2);
+    grid.releaseHeldImage();
+
+    await expect.poll(async() => (await grid.rowHeights()).master.every(height => height > 60)
+      && await grid.overlaysMatchMaster()).toBe(true);
+
+    expect((await grid.drawStats()).contentBatches).toBeGreaterThanOrEqual(2);
+    await expectSettledInOneDrawPerBatch(grid);
   });
 
   test('aligns rows scrolled in later when every row shares one failing URL', async({ page, theme, bundle }) => {
@@ -161,6 +190,9 @@ test.describe('Async image in a scrolling column beside frozen columns', { tag: 
 
     await expect.poll(async() => (await grid.rowHeights()).master.every(height => height > 60)
       && await grid.overlaysMatchMaster()).toBe(true);
+
+    // One response fails the image of every rendered row at once, so all their rows share one redraw.
+    await expectSettledInOneDrawPerBatch(grid);
 
     await grid.scrollToRow(40);
 
