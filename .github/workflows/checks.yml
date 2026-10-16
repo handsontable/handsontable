@@ -60,7 +60,7 @@ on:
 jobs:
   scope:
     name: scope
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     outputs:
       run-all: ${{ endsWith(github.ref, '/master') || endsWith(github.ref, '/develop') || contains(github.ref, '/release/') || inputs.test-all == true }}
       build-handsontable-es-cjs: ${{ steps.path-filter.outputs.build-handsontable-es-cjs }}
@@ -378,7 +378,7 @@ jobs:
 
   presence:
     name: test presence
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # Pillar 1: source changed ⇒ a matching test changed. BLOCKS (DEV-3066):
     # a red verdict fails this job, which stops the pipeline the way the
     # changelog gate does. PR-only; needs git history, no build.
@@ -440,7 +440,7 @@ jobs:
 
   changelog:
     name: changelog
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # PR-only, and path-aware: an entry is required only when shippable source
     # changed (handsontable/src/** or wrappers/**, tests + markdown excluded) —
     # docs/test/CI-only PRs pass automatically, and `[skip changelog]` (outside
@@ -470,7 +470,7 @@ jobs:
 
   tooling-tests:
     name: tooling tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # Runs the enforcement machinery's OWN unit tests (node --test) so a regression
     # in the presence-gate classifier, diff-coverage parser, weakening detector, eval
     # scorer, or the hooks is caught in CI — otherwise those tests exist but nothing

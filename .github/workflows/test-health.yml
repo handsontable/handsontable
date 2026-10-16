@@ -72,7 +72,7 @@ env:
 jobs:
   collect:
     name: Collect
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # A canceled run's artifacts are incomplete by definition. Every other run
     # is worth a look: a red one for its failures, a green one for a flaky test
     # under quarantine, which keeps its leg green but still uploads its report,

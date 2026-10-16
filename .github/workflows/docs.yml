@@ -23,7 +23,7 @@ on:
 jobs:
   lint:
     name: lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
       - uses: ./.github/actions/setup-workspace
@@ -32,7 +32,7 @@ jobs:
 
   plugins:
     name: plugins
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
       - uses: ./.github/actions/setup-workspace
@@ -44,7 +44,7 @@ jobs:
 
   angular-types:
     name: Angular types
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     # PR-only, and only when the Angular-relevant scope changed.
     if: inputs.is-pr && (inputs.run-all || inputs.run-angular)
@@ -59,7 +59,7 @@ jobs:
 
   content-types:
     name: Examples types
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     # PR-only: it diffs the changed examples against the merge ref's first parent.
     if: inputs.is-pr && (inputs.run-all || inputs.run-content-types)
@@ -77,7 +77,7 @@ jobs:
   # suite mid-review.
   visual-label:
     name: visual label
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     if: inputs.is-pr
     outputs:
       run: ${{ steps.check.outputs.run }}
@@ -135,7 +135,7 @@ jobs:
   # the outcome line in the job summary is what to read until then.
   functional:
     name: functional
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 30
     needs: [ preview ]
     if: ${{ !failure() && !cancelled() && inputs.is-pr && needs.preview.result == 'success' }}
@@ -176,7 +176,7 @@ jobs:
   # need no change for that, only this job's `needs`/`if`.
   visual:
     name: visual
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 90
     needs: [ visual-label, preview ]
     if: |
@@ -247,7 +247,7 @@ jobs:
   # trusting its configuration, and fails closed when none is.
   approve:
     name: visual approve
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: [ visual ]
     # `!failure()` as well as `!cancelled()`, matching visual.yml's `approve`. An
     # `if:` that contains a status-check function replaces the implicit `success()`

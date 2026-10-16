@@ -74,7 +74,7 @@ concurrency:
 jobs:
   seed:
     name: seed
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 90
     # A failed or canceled deploy has nothing to seed from, and a deploy that a
     # pull request or a dispatch triggered is not a base branch's.
@@ -181,7 +181,7 @@ jobs:
     name: Notify Slack
     needs: [ seed ]
     if: ${{ !cancelled() && needs.seed.result == 'failure' && github.event_name == 'workflow_run' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       actions: read
     env:
