@@ -21,7 +21,7 @@ Each Markdown file can start with the following frontmatter tags:
 | `title`          | The page's header.                                   | If not set, gets generated from the page's parent's title. |
 | `permalink`      | The page's **unique** URL.                           | If not set, gets generated from the Markdown file name.    |
 | `canonicalUrl`   | A canonical URL of the page's latest version.        | None (not required)                                        |
-| `metaTitle`      | The page's SEO meta title.                           | None (not required)                                        |
+| `metaTitle`      | The page's SEO meta title (see the note below the table). | None (not required) |
 | `description`    | The page's SEO meta description.                     | None (not required)                                        |
 | `tags`           | Search tags used by the documentation search engine. | None (not required)                                 |
 | `react`          | Holds an alternative set of frontmatter tags (applied only to the React version of the page) | None (not required)                                             |
@@ -31,19 +31,21 @@ Each Markdown file can start with the following frontmatter tags:
 | `category`       | The content category for organizing pages. | None (not required) |
 | `addedIn`        | The Handsontable version that introduced the feature the page documents, as a quoted `"MAJOR.MINOR.PATCH"` string (for example `"17.0.0"`). Renders an "Added in Handsontable 17.0.0" badge next to the page title and adds the same sentence under the H1 of the page's Markdown and llms outputs. Set it only for features introduced in 14.0.0 or later; `npm run build` rejects malformed values and versions that were never released. | None (not required) |
 
-You can set different frontmatter tags for different framework versions of the page. For example, you can set `metaTitle` to say either `JS data grid` or `React data table`, depending on the framework:
+The `metaTitle` value reads `<Page> | Handsontable DataGrid for <Framework>`. The docs site does not render it yet: the browser tab title comes from `title` plus the site title.
+
+You can set different frontmatter tags for different framework versions of the page. For example, you can set `metaTitle` to say either `JavaScript` or `React`, depending on the framework:
 
 \```yaml
 // applies to the JS version of the page
-metaTitle: JS data grid
+metaTitle: Installation | Handsontable DataGrid for JavaScript
 
 // applies to the React version of the page
 react:
-  metaTitle: React data table
+  metaTitle: Installation | Handsontable DataGrid for React
 
 // applies to the Angular version of the page
 angular:
-  metaTitle: Angular data table
+  metaTitle: Installation | Handsontable DataGrid for Angular
 \```
 
 You can use the following framework keys:
@@ -55,16 +57,16 @@ Frontmatter example:
 ```yaml
 ---
 title: Introduction
-metaTitle: Installation - Guide - Handsontable Documentation for Javascript
+metaTitle: Introduction | Handsontable DataGrid for JavaScript
 description: Easily install the data grid using your preferred package manager or import Handsontable assets directly from the CDN.
 permalink: /api/
 canonicalUrl: /api/
 react:
-  metaTitle: Installation - Guide - Handsontable Documentation for React
+  metaTitle: Introduction | Handsontable DataGrid for React
   description: Install the wrapper for React via npm, import stylesheets, and use it to get up and running your application.
   customValue: Custom # Custom value that can be used within template and will be available only for React framework
 angular:
-  metaTitle: Installation - Guide - Handsontable Documentation for Angular
+  metaTitle: Introduction | Handsontable DataGrid for Angular
   description: Install the wrapper for Angular via npm, import stylesheets, and use it to get up and running your application.
 tags:
   - api

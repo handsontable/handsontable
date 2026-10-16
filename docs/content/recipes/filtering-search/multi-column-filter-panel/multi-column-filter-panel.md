@@ -1,6 +1,6 @@
 ---
 title: Multi-column filter panel
-metaTitle: Multi-column Filter Panel - JavaScript Data Grid | Handsontable
+metaTitle: Multi-column filter panel | Handsontable DataGrid for JavaScript
 description: Build an external filter panel with a category dropdown and a price range that controls Handsontable DataGrid filtering through the Filters plugin API.
 permalink: /recipes/filtering-search/multi-column-filter-panel
 canonicalUrl: /recipes/filtering-search/multi-column-filter-panel
@@ -12,11 +12,11 @@ tags:
   - search
   - filters plugin
 react:
-  metaTitle: Multi-column Filter Panel - React Data Grid | Handsontable
+  metaTitle: Multi-column filter panel | Handsontable DataGrid for React
 angular:
-  metaTitle: Multi-column Filter Panel - Angular Data Grid | Handsontable
+  metaTitle: Multi-column filter panel | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Multi-column Filter Panel - Vue Data Grid | Handsontable
+  metaTitle: Multi-column filter panel | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Filtering and Search
 type: how-to

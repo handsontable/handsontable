@@ -1,6 +1,6 @@
 ---
 title: Sparkline cell renderer
-metaTitle: Sparkline cell renderer - JavaScript Data Grid | Handsontable
+metaTitle: Sparkline cell renderer | Handsontable DataGrid for JavaScript
 description: Build a custom Handsontable DataGrid cell renderer that draws an inline SVG bar chart from an array of numbers in each cell.
 permalink: /recipes/rendering-styling/sparkline-cell-renderer
 canonicalUrl: /recipes/rendering-styling/sparkline-cell-renderer
@@ -10,11 +10,11 @@ tags:
   - recipes
   - renderer
 react:
-  metaTitle: Sparkline cell renderer - React Data Grid | Handsontable
+  metaTitle: Sparkline cell renderer | Handsontable DataGrid for React
 angular:
-  metaTitle: Sparkline cell renderer - Angular Data Grid | Handsontable
+  metaTitle: Sparkline cell renderer | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Sparkline cell renderer - Vue Data Grid | Handsontable
+  metaTitle: Sparkline cell renderer | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Rendering and styling
 type: how-to

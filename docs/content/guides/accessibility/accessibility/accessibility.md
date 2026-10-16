@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Accessibility
-metaTitle: Accessibility - JavaScript Data Grid | Handsontable
+metaTitle: Accessibility | Handsontable DataGrid for JavaScript
 description: Learn about Handsontable DataGrid's accessibility features.
 permalink: /accessibility
 canonicalUrl: /accessibility
@@ -18,11 +18,11 @@ tags:
   - compliance
   - vpat
 react:
-  metaTitle: Accessibility - React Data Grid | Handsontable
+  metaTitle: Accessibility | Handsontable DataGrid for React
 angular:
-  metaTitle: Accessibility - Angular Data Grid | Handsontable
+  metaTitle: Accessibility | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Accessibility - Vue Data Grid | Handsontable
+  metaTitle: Accessibility | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Accessibility
 addedIn: "14.0.0"

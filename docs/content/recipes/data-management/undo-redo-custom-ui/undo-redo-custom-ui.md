@@ -1,6 +1,6 @@
 ---
 title: Undo / redo with a custom UI
-metaTitle: Undo / redo with a custom UI - JavaScript Data Grid | Handsontable
+metaTitle: Undo / redo with a custom UI | Handsontable DataGrid for JavaScript
 description: Build external Undo and Redo buttons that stay in sync with Handsontable DataGrid undo/redo stack availability.
 permalink: /recipes/data-management/undo-redo-custom-ui
 canonicalUrl: /recipes/data-management/undo-redo-custom-ui
@@ -12,11 +12,11 @@ tags:
   - redo
   - custom ui
 react:
-  metaTitle: Undo / redo with a custom UI - React Data Grid | Handsontable
+  metaTitle: Undo / redo with a custom UI | Handsontable DataGrid for React
 angular:
-  metaTitle: Undo / redo with a custom UI - Angular Data Grid | Handsontable
+  metaTitle: Undo / redo with a custom UI | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Undo / redo with a custom UI - Vue Data Grid | Handsontable
+  metaTitle: Undo / redo with a custom UI | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Data Management
 type: how-to

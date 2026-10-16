@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Layout direction
-metaTitle: Layout direction - JavaScript Data Grid | Handsontable
+metaTitle: Layout direction | Handsontable DataGrid for JavaScript
 description: Set the layout direction for right-to-left languages. Automatically inherit your HTML file's "dir" property, or set the layout direction manually.
 permalink: /layout-direction
 canonicalUrl: /layout-direction
@@ -17,11 +17,11 @@ tags:
   - L10n
   - i18n
 react:
-  metaTitle: Layout direction - React Data Grid | Handsontable
+  metaTitle: Layout direction | Handsontable DataGrid for React
 angular:
-  metaTitle: Layout direction - Angular Data Grid | Handsontable
+  metaTitle: Layout direction | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Layout direction - Vue Data Grid | Handsontable
+  metaTitle: Layout direction | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Internationalization
 menuTag: updated

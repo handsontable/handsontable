@@ -1,16 +1,16 @@
 ---
 type: how-to
 title: Numeric cell type
-metaTitle: Numeric cell type - JavaScript Data Grid | Handsontable
+metaTitle: Numeric cell type | Handsontable DataGrid for JavaScript
 description: Display, format, sort, and filter numbers correctly by using the numeric cell type.
 permalink: /numeric-cell-type
 canonicalUrl: /numeric-cell-type
 react:
-  metaTitle: Numeric cell type - React Data Grid | Handsontable
+  metaTitle: Numeric cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Numeric cell type - Angular Data Grid | Handsontable
+  metaTitle: Numeric cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Numeric cell type - Vue Data Grid | Handsontable
+  metaTitle: Numeric cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
 menuTag: updated

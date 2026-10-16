@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Empty data state
-metaTitle: Empty Data State - JavaScript Data Grid | Handsontable
+metaTitle: Empty data state | Handsontable DataGrid for JavaScript
 description: Display empty data state overlays and provide user feedback when your data grid has no data to display using the Empty Data State plugin.
 permalink: /empty-data-state
 canonicalUrl: /empty-data-state
@@ -13,11 +13,11 @@ tags:
   - user feedback
   - overlay
 react:
-  metaTitle: Empty Data State - React Data Grid | Handsontable
+  metaTitle: Empty data state | Handsontable DataGrid for React
 angular:
-  metaTitle: Empty Data State - Angular Data Grid | Handsontable
+  metaTitle: Empty data state | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Empty Data State - Vue Data Grid | Handsontable
+  metaTitle: Empty data state | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Accessories and Menus
 addedIn: "16.2.0"

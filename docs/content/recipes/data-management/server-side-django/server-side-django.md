@@ -1,6 +1,6 @@
 ---
 title: Server-side data with Django
-metaTitle: Server-side Data with Django - JavaScript Data Grid | Handsontable
+metaTitle: Server-side data with Django | Handsontable DataGrid for JavaScript
 description: Connect Handsontable DataGrid to a Django REST Framework backend with paginated fetching, server-side sorting and filtering, and full CRUD support.
 permalink: /recipes/data-management/server-side-django
 canonicalUrl: /recipes/data-management/server-side-django
@@ -11,11 +11,11 @@ tags:
   - data-provider
   - recipe
 react:
-  metaTitle: Server-side data with Django - React Data Grid | Handsontable
+  metaTitle: Server-side data with Django | Handsontable DataGrid for React
 angular:
-  metaTitle: Server-side Data with Django - Angular Data Grid | Handsontable
+  metaTitle: Server-side data with Django | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Server-side Data with Django - Vue Data Grid | Handsontable
+  metaTitle: Server-side data with Django | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Data Management
 type: how-to

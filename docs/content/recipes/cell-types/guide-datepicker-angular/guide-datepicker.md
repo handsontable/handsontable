@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: "Date picker"
-metaTitle: "Date picker - JavaScript Data Grid | Handsontable"
+metaTitle: "Date picker | Handsontable DataGrid for JavaScript"
 description: Learn how to create a custom Handsontable DataGrid cell type using Flatpickr for a powerful, customizable date picker experience directly inside your data grid.
 permalink: /recipes/cell-types/datepicker
 canonicalUrl: /recipes/cell-types/datepicker
@@ -11,11 +11,11 @@ tags:
   - tutorial
   - recipes
 react:
-  metaTitle: Date picker - React Data Grid | Handsontable
+  metaTitle: Date picker | Handsontable DataGrid for React
 angular:
-  metaTitle: Date picker - Angular Data Grid | Handsontable
+  metaTitle: Date picker | Handsontable DataGrid for Angular
 vue:
-  metaTitle: "Date picker - Vue Data Grid | Handsontable"
+  metaTitle: "Date picker | Handsontable DataGrid for Vue"
 searchCategory: Recipes
 category: Cells
 ---

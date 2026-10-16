@@ -1,6 +1,6 @@
 ---
 title: Accessibility and UX Recipes
-metaTitle: Accessibility and UX Recipes - JavaScript Data Grid | Handsontable
+metaTitle: Accessibility and UX Recipes | Handsontable DataGrid for JavaScript
 description: Practical recipes for improving accessibility and keyboard usability in Handsontable DataGrid.
 permalink: /recipes/accessibility
 canonicalUrl: /recipes/accessibility
@@ -9,11 +9,11 @@ hotPlugin: false
 editLink: false
 type: how-to
 react:
-  metaTitle: Accessibility and UX Recipes - React Data Grid | Handsontable
+  metaTitle: Accessibility and UX Recipes | Handsontable DataGrid for React
 angular:
-  metaTitle: Accessibility and UX Recipes - Angular Data Grid | Handsontable
+  metaTitle: Accessibility and UX Recipes | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Accessibility and UX Recipes - Vue Data Grid | Handsontable
+  metaTitle: Accessibility and UX Recipes | Handsontable DataGrid for Vue
 ---
 [[toc]]
 

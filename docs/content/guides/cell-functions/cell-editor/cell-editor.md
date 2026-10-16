@@ -1,16 +1,16 @@
 ---
 type: how-to
 title: Cell editor
-metaTitle: Cell editor - JavaScript Data Grid | Handsontable
+metaTitle: Cell editor | Handsontable DataGrid for JavaScript
 description: Create a custom cell editor function, to have full control over how editing works in the cells of your data grid.
 permalink: /cell-editor
 canonicalUrl: /cell-editor
 react:
-  metaTitle: Cell editor - React Data Grid | Handsontable
+  metaTitle: Cell editor | Handsontable DataGrid for React
 angular:
-  metaTitle: Cell editor - Angular Data Grid | Handsontable
+  metaTitle: Cell editor | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Cell editor - Vue Data Grid | Handsontable
+  metaTitle: Cell editor | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell functions
 ---

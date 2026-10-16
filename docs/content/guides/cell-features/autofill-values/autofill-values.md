@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Autofill values
-metaTitle: Autofill values - JavaScript Data Grid | Handsontable
+metaTitle: Autofill values | Handsontable DataGrid for JavaScript
 description: Copy a cell's value into other cells using the "fill handle" UI element. Configure the direction of copying, and more, through Handsontable DataGrid's API.
 permalink: /autofill-values
 canonicalUrl: /autofill-values
@@ -14,11 +14,11 @@ tags:
   - auto-fill
   - auto fill
 react:
-  metaTitle: Autofill values - React Data Grid | Handsontable
+  metaTitle: Autofill values | Handsontable DataGrid for React
 angular:
-  metaTitle: Autofill values - Angular Data Grid | Handsontable
+  metaTitle: Autofill values | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Autofill values - Vue Data Grid | Handsontable
+  metaTitle: Autofill values | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell features
 menuTag: updated

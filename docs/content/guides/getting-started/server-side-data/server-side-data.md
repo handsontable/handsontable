@@ -1,7 +1,7 @@
 ---
 type: tutorial
 title: Server-side data
-metaTitle: Server-side data - JavaScript Data Grid | Handsontable
+metaTitle: Server-side data | Handsontable DataGrid for JavaScript
 description: Load paged data with Handsontable DataProvider -- fetchRows, CRUD callbacks, migration from client-side arrays, pagination, sorting, filters, REST and GraphQL examples, and a JavaScript monorepo project with two Node servers.
 permalink: /server-side-data
 canonicalUrl: /server-side-data
@@ -11,11 +11,11 @@ tags:
   - pagination
   - REST
 react:
-  metaTitle: Server-side data - React Data Grid | Handsontable
+  metaTitle: Server-side data | Handsontable DataGrid for React
 angular:
-  metaTitle: Server-side data - Angular Data Grid | Handsontable
+  metaTitle: Server-side data | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Server-side data - Vue Data Grid | Handsontable
+  metaTitle: Server-side data | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Getting started
 addedIn: "17.1.0"

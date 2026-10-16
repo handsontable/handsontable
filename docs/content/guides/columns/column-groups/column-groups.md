@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Column groups
-metaTitle: Column groups - JavaScript Data Grid | Handsontable
+metaTitle: Column groups | Handsontable DataGrid for JavaScript
 description: Group your columns, using multiple levels of nested column headers, to better reflect the structure of your data.
 permalink: /column-groups
 canonicalUrl: /column-groups
@@ -12,11 +12,11 @@ tags:
   - colspan
   - rowspan
 react:
-  metaTitle: Column groups - React Data Grid | Handsontable
+  metaTitle: Column groups | Handsontable DataGrid for React
 angular:
-  metaTitle: Column groups - Angular Data Grid | Handsontable
+  metaTitle: Column groups | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Column groups - Vue Data Grid | Handsontable
+  metaTitle: Column groups | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Columns
 menuTag: updated

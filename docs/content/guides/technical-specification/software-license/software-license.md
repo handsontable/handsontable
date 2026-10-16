@@ -1,16 +1,16 @@
 ---
 type: reference
 title: Software license
-metaTitle: Software license - JavaScript Data Grid | Handsontable
+metaTitle: Software license | Handsontable DataGrid for JavaScript
 description: Learn about the licensing terms of Handsontable DataGrid.
 permalink: /software-license
 canonicalUrl: /software-license
 react:
-  metaTitle: Software license - React Data Grid | Handsontable
+  metaTitle: Software license | Handsontable DataGrid for React
 angular:
-  metaTitle: Software license - Angular Data Grid | Handsontable
+  metaTitle: Software license | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Software license - Vue Data Grid | Handsontable
+  metaTitle: Software license | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Technical specification
 ---

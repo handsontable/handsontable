@@ -1,16 +1,16 @@
 ---
 type: explanation
 title: Custom cells
-metaTitle: Simplified Custom Cell Definitions - JavaScript Data Grid | Handsontable
+metaTitle: Custom cell definitions | Handsontable DataGrid for JavaScript
 description: Validate data added or changed by the user, with predefined or custom rules. Validation helps you make sure that the data matches the expected format.
 permalink: /custom-cells
 canonicalUrl: /custom-cells
 react:
-  metaTitle: Custom Cell Definitions - React Data Grid | Handsontable
+  metaTitle: Custom cell definitions | Handsontable DataGrid for React
 angular:
-  metaTitle: Custom Cell Definitions - Angular Data Grid | Handsontable
+  metaTitle: Custom cell definitions | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Custom Cell Definitions - Vue Data Grid | Handsontable
+  metaTitle: Custom cell definitions | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell functions
 addedIn: "17.0.0"

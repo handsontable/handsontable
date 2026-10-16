@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Import from Excel
-metaTitle: Import from Excel - JavaScript Data Grid | Handsontable
+metaTitle: Import from Excel | Handsontable DataGrid for JavaScript
 description: Load an Excel (.xlsx) workbook into your grid, with cell types, dropdown sources, formulas, merged cells, hidden rows and columns, and frozen panes derived from the file.
 permalink: /import-from-excel
 canonicalUrl: /import-from-excel
@@ -11,11 +11,11 @@ tags:
   - xlsx
   - excel
 react:
-  metaTitle: Import from Excel - React Data Grid | Handsontable
+  metaTitle: Import from Excel | Handsontable DataGrid for React
 angular:
-  metaTitle: Import from Excel - Angular Data Grid | Handsontable
+  metaTitle: Import from Excel | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Import from Excel - Vue Data Grid | Handsontable
+  metaTitle: Import from Excel | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Accessories and menus
 menuTag: new
