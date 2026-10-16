@@ -621,6 +621,21 @@ wait before `keyboard.up()`: released earlier, the event reaches an engine whose
 key is already up, and the guard under test never runs. With that guard broken,
 the old read failed 116 of 120 runs and the held-key wait failed 120 of 120.
 
+**`imeFastEdit` moves the browser focus after the selection, not with it.** The
+grid focuses the selected cell in `afterRender`, and
+`FocusGridManager#refocusToEditorTextarea()` (`focusManager/grid.ts`) then runs
+a debounced `select()` on the active editor's input 1ms later, so the focus
+arrives on a later task than `hot.selectCell()` returns. The legacy
+`intlDateEditor` case read `document.activeElement` two frames later and failed
+4 times in 30 days with `Expected <td class="current"> to be <input
+type="date">`. Wait with a web-first `toBeFocused()` on the editor's input,
+never with a frame count, and prove the focus STAYED with a bounded settle (two
+animation frames and the `activeElement` read inside ONE `evaluate`) only beside
+that `toBeFocused()`, which is its positive control
+(`e2e/intl-date-editor-ime-fast-edit.spec.ts`). That refocus is a bare
+`select()`, which Firefox does not treat as a focus move on a date input, so the
+spec carries no `CROSS_BROWSER_TAG`.
+
 **A selection can scroll the grid even when its cell is on screen.**
 When the viewport has nothing to scroll, `selectCell()` and `selectCells()` still
 run `scrollWindowToCell()`, in a microtask, so it has run by the time the
