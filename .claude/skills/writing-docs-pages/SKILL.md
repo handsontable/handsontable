@@ -11,14 +11,14 @@ description: Use when creating or editing documentation pages in docs/content/gu
 ```yaml
 ---
 title: Feature Name
-metaTitle: Feature Name - JavaScript Data Grid | Handsontable
+metaTitle: Feature Name | Handsontable DataGrid for JavaScript
 description: Short SEO description under 160 characters.
 permalink: /feature-name
 canonicalUrl: /feature-name
 tags:
   - keyword1
 react:
-  metaTitle: Feature Name - React Data Grid | Handsontable
+  metaTitle: Feature Name | Handsontable DataGrid for React
 searchCategory: Guides
 category: Cell features    # Must match a sidebar category exactly
 menuTag: new | updated     # Optional; sidebar badge
@@ -91,7 +91,7 @@ Full voice and words-to-avoid list: `docs/AGENTS.md` §2.2 (overrides `.ai/DOC-S
 
 - Active voice, American English, short sentences, "you", Oxford comma, no evaluative adjectives ("easy", "simple", "obvious").
 - Separate clauses with hyphens (`-`) or double hyphens (`--`). The docs site uses these where JSDoc and changelog use en dashes.
-- Product name: where the page names the product, the first prose mention and the `description:` say `Handsontable DataGrid`. Later mentions and generic references keep `Handsontable`, as do code, package names, API names, migration guides, and version references. Never `DataGrid` alone as a first mention or in `title:`, `metaTitle:`, or a heading (a toggle or tab beside HyperFormula and table labels are the exceptions). Say "data grid" (lowercase) for the category, and drop the noun where the product is already named. Details: `.ai/DOC-STANDARDS.md`, "Product naming".
+- Product name: where the page names the product, the first prose mention and the `description:` say `Handsontable DataGrid`. Later mentions and generic references keep `Handsontable`, as do code, package names, API names, migration guides, and version references. The `metaTitle:` shape is `<Page> | Handsontable DataGrid for <Framework>` in sentence case, with no dashes. Never `DataGrid` alone as a first mention or in `title:`, `metaTitle:`, or a heading (a toggle or tab beside HyperFormula and table labels are the exceptions). Say "data grid" (lowercase) for the category, and drop the noun where the product is already named. Details: `.ai/DOC-STANDARDS.md`, "Product naming".
 - Bold for UI elements (**Add comment**), inline code for API names (`comments`).
 - Internal links: `[text](@/path/to/file.md#anchor)`.
 - End every sentence with a full stop, lists included.

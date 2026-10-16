@@ -98,7 +98,7 @@ This is the docs-**site** voice — it overrides the monorepo-wide documentation
 - Inline code for API names: `columnSorting`, `readOnly`.
 - Oxford comma in lists of three or more items.
 - American English spelling.
-- Product name: the first prose mention on a page that names the product, and a `description:` that names it, say `Handsontable DataGrid`. Later mentions and generic references keep `Handsontable`, and so do migration guides and version references such as "Handsontable 10.0". The `metaTitle:` templates below stay as they are for now. Code, package names, and API names stay `Handsontable`. Full rule: `.ai/DOC-STANDARDS.md`, "Product naming". A renamed heading changes its anchor, so grep for inbound links first.
+- Product name: the first prose mention on a page that names the product, and a `description:` that names it, say `Handsontable DataGrid`. Later mentions and generic references keep `Handsontable`, and so do migration guides and version references such as "Handsontable 10.0". The `metaTitle:` templates below use the shape `<Page> | Handsontable DataGrid for <Framework>`: sentence case, a pipe as the only separator, no dashes, and no `DataGrid` alone. Code, package names, and API names stay `Handsontable`. Full rule: `.ai/DOC-STANDARDS.md`, "Product naming". A renamed heading changes its anchor, so grep for inbound links first.
 
 ---
 
@@ -112,7 +112,7 @@ Use the appropriate template for each Diátaxis type. Do not omit required secti
 ---
 type: tutorial
 title: <Verb phrase — Build/Create/Set up X>
-metaTitle: <title> - JavaScript Data Grid | Handsontable
+metaTitle: <title> | Handsontable DataGrid for JavaScript
 description: <1-2 sentences summarizing outcome and who benefits>
 permalink: /<slug>
 tags: [keyword1, keyword2]
@@ -152,7 +152,7 @@ In this tutorial, you will [concrete outcome]. You will learn [skill or concept]
 ---
 type: how-to
 title: How to [specific goal]
-metaTitle: How to [specific goal] - JavaScript Data Grid | Handsontable
+metaTitle: How to [specific goal] | Handsontable DataGrid for JavaScript
 description: <1-2 sentences: what this achieves and when to use it>
 permalink: /<slug>
 tags: [keyword1, keyword2]
@@ -194,7 +194,7 @@ The ordered list under `## Steps` is rendered as a Starlight step list -- number
 ---
 type: reference
 title: [Component/API/option name]
-metaTitle: [Component/API name] - JavaScript Data Grid | Handsontable
+metaTitle: [Component/API name] | Handsontable DataGrid for JavaScript
 description: <1-2 sentences describing what this is>
 permalink: /<slug>
 tags: [keyword1, keyword2]
@@ -236,7 +236,7 @@ category: <nav category>
 ---
 type: explanation
 title: Understanding [concept]
-metaTitle: Understanding [concept] - JavaScript Data Grid | Handsontable
+metaTitle: Understanding [concept] | Handsontable DataGrid for JavaScript
 description: <1-2 sentences: why this concept matters and who should read this>
 permalink: /<slug>
 tags: [keyword1, keyword2]
@@ -438,12 +438,12 @@ Required fields for all pages:
 ---
 type: tutorial | how-to | reference | explanation   # Diátaxis type (required)
 title: Feature Name       # Matches H1; do NOT add H1 in body (Starlight renders title once)
-metaTitle: Feature Name - JavaScript Data Grid | Handsontable
+metaTitle: Feature Name | Handsontable DataGrid for JavaScript
 description: Short SEO description (1-2 sentences)
 permalink: /feature-name
 tags: [keyword1, keyword2]  # Optional; kebab-case
 react:
-  metaTitle: Feature Name - React Data Grid | Handsontable
+  metaTitle: Feature Name | Handsontable DataGrid for React
 searchCategory: Guides
 category: Cell features
 menuTag: new | updated    # Optional; sidebar badge -- see rule below
