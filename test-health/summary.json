@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-18T15:48:44.898Z",
+  "generatedAt": "2026-10-18T15:56:08.497Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 405,
     "needsTicket": 25,
     "quarantined": 0,
-    "entries": 2102
+    "entries": 2110
   },
   "rows": [
     {
@@ -50,6 +50,80 @@
         "leg": "angular-wrapper/chromium",
         "status": "failed",
         "error": "differs from base/develop (full tier); render sha256 08634afd334d",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "visual|visual-tests/tests/js-only/sheetsBar/tabs.spec.ts|js-only/sheetsBar/tabs-1",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
+      "line": null,
+      "title": "js-only/sheetsBar/tabs-1",
+      "count7": 4,
+      "count30": 16,
+      "countAll": 16,
+      "runs30": 4,
+      "flakyRuns30": 0,
+      "branches30": 3,
+      "nightlyRuns30": 0,
+      "openBranches30": 3,
+      "legs": [
+        "js/chromium",
+        "js/chromium-theme-horizon",
+        "js/chromium-theme-horizon-dark",
+        "js/chromium-theme-main",
+        "js/chromium-theme-main-dark"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-18T15:55:22Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/39138197899",
+        "branch": "feature/PRO-1340_Animate-sheet-switching",
+        "leg": "js/chromium-theme-horizon-dark",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 668823c772c8",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "visual|visual-tests/tests/js-only/sheetsBar/tabs.spec.ts|js-only/sheetsBar/tabs-2",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
+      "line": null,
+      "title": "js-only/sheetsBar/tabs-2",
+      "count7": 4,
+      "count30": 16,
+      "countAll": 16,
+      "runs30": 4,
+      "flakyRuns30": 0,
+      "branches30": 3,
+      "nightlyRuns30": 0,
+      "openBranches30": 3,
+      "legs": [
+        "js/chromium",
+        "js/chromium-theme-horizon",
+        "js/chromium-theme-horizon-dark",
+        "js/chromium-theme-main",
+        "js/chromium-theme-main-dark"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-18T15:55:22Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/39138197899",
+        "branch": "feature/PRO-1340_Animate-sheet-switching",
+        "leg": "js/chromium-theme-horizon-dark",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 82e0c1bcd57d",
         "source": "ci"
       },
       "needsTicket": true
@@ -122,80 +196,6 @@
         "leg": "e2e-main-min",
         "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "visual|visual-tests/tests/js-only/sheetsBar/tabs.spec.ts|js-only/sheetsBar/tabs-1",
-      "tier": "visual",
-      "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
-      "line": null,
-      "title": "js-only/sheetsBar/tabs-1",
-      "count7": 0,
-      "count30": 12,
-      "countAll": 12,
-      "runs30": 3,
-      "flakyRuns30": 0,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "js/chromium",
-        "js/chromium-theme-horizon",
-        "js/chromium-theme-horizon-dark",
-        "js/chromium-theme-main",
-        "js/chromium-theme-main-dark"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-07T10:08:15Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37592742912/attempts/2",
-        "branch": "feature/PRO-1337_Treegrid-a11y-nested-rows",
-        "leg": "js/chromium-theme-main-dark",
-        "status": "failed",
-        "error": "differs from base/develop (pr tier); render sha256 e1442b25ad47",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "visual|visual-tests/tests/js-only/sheetsBar/tabs.spec.ts|js-only/sheetsBar/tabs-2",
-      "tier": "visual",
-      "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
-      "line": null,
-      "title": "js-only/sheetsBar/tabs-2",
-      "count7": 0,
-      "count30": 12,
-      "countAll": 12,
-      "runs30": 3,
-      "flakyRuns30": 0,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "js/chromium",
-        "js/chromium-theme-horizon",
-        "js/chromium-theme-horizon-dark",
-        "js/chromium-theme-main",
-        "js/chromium-theme-main-dark"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-07T10:08:15Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37592742912/attempts/2",
-        "branch": "feature/PRO-1337_Treegrid-a11y-nested-rows",
-        "leg": "js/chromium-theme-main-dark",
-        "status": "failed",
-        "error": "differs from base/develop (pr tier); render sha256 d4125343ca79",
         "source": "ci"
       },
       "needsTicket": true
