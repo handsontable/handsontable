@@ -124,6 +124,15 @@ function applyEngineRewritesToSheetData(data: unknown[], serialized: unknown[][]
 const UNTRACKED_META_KEYS = new Set(['valid', 'hidden', 'spanned']);
 
 /**
+ * Settings whose plugins read the grid's data when they are applied. A switch applies the
+ * arriving sheet's settings while the grid still holds the departing sheet's data, so a truthy
+ * value of one of these keys is applied after the arriving sheet's `loadData()` instead. NestedRows
+ * validates the dataset shape and turns itself off on a flat one, and ColumnSummary checks its
+ * endpoints against the table size and writes its results into the data.
+ */
+const DATA_BOUND_SETTING_KEYS = ['nestedRows', 'columnSummary'] as const;
+
+/**
  * Compares two values structurally, with two deliberate reference-equality floors: arrays are
  * compared element by element, plain objects key by key, and everything else — a class
  * instance such as a HyperFormula engine, a function, a DOM element — by reference, since a
@@ -1597,7 +1606,9 @@ export class SheetsBar extends BasePlugin {
    * is already constructed; during initial plugin setup the view does not exist yet and
    * the grid's own startup render covers it. The settings update runs with core's `min*` padding
    * vetoed, because the grid still holds the departing sheet's data then; the `loadData()` pads
-   * the arriving sheet's data before its `afterLoadData`.
+   * the arriving sheet's data before its `afterLoadData`. On a live grid the settings of plugins
+   * that read the data when they are applied (NestedRows, ColumnSummary) are applied after the
+   * load instead, through a second `updateSettings()` (`#splitDataBoundSettings`).
    *
    * The merges the settings declare are built after the load, against the arriving sheet's data.
    * With `restoresMerges` set they are not built at all: a sheet that returns with a stored view
@@ -1607,16 +1618,20 @@ export class SheetsBar extends BasePlugin {
    */
   #applySheet(sheet: Sheet, source: string, { restoresMerges = false }: { restoresMerges?: boolean } = {}) {
     const apply = () => {
-      const settings = this.#withBaselineFor(sheet.settings);
+      const { beforeLoad, afterLoad } = this.#splitDataBoundSettings(this.#withBaselineFor(sheet.settings));
 
-      if (settings) {
+      if (beforeLoad) {
         this.#withoutAutoPadding(() => {
           this.#withoutMergeCellsSettingsPass(() => {
-            this.#withoutFormulasSwitchLoad(() => this.hot.updateSettings(settings));
+            this.#withoutFormulasSwitchLoad(() => this.hot.updateSettings(beforeLoad));
           });
         });
       }
       this.hot.loadData(sheet.data as never, `${source}.switch`);
+
+      if (afterLoad) {
+        this.hot.updateSettings(afterLoad);
+      }
 
       if (this.hot.view) {
         this.#runMergeCellsSettingsPass(!restoresMerges);
@@ -1628,6 +1643,51 @@ export class SheetsBar extends BasePlugin {
     } else {
       apply();
     }
+  }
+
+  /**
+   * Splits a switch's settings into the part applied before the arriving sheet's `loadData()` and
+   * the part applied after it. A truthy value of a `DATA_BOUND_SETTING_KEYS` key goes after the
+   * load, so its plugin is configured against the arriving sheet's data. A plugin the departing
+   * sheet left enabled is turned off before the load, or it would run its departing configuration
+   * against the arriving data during the load (ColumnSummary writing its results into it). A falsy
+   * value turns the plugin off, which reads no data, so it stays before the load.
+   *
+   * Without a view the grid is still being built: the plugins configure themselves against the
+   * loaded sheet from their own `beforeLoadData` and `afterInit` listeners, and nothing is split.
+   *
+   * @param {object|null} settings The settings `#withBaselineFor` built for the arriving sheet.
+   * @returns {object} The settings to apply before and after the load, each `null` when empty.
+   */
+  #splitDataBoundSettings(settings: Record<string, unknown> | null): {
+    beforeLoad: Record<string, unknown> | null,
+    afterLoad: Record<string, unknown> | null,
+  } {
+    if (!settings || !this.hot.view) {
+      return { beforeLoad: settings, afterLoad: null };
+    }
+
+    const beforeLoad = { ...settings };
+    const afterLoad: Record<string, unknown> = {};
+
+    DATA_BOUND_SETTING_KEYS.forEach((key) => {
+      if (!beforeLoad[key]) {
+        return;
+      }
+
+      afterLoad[key] = beforeLoad[key];
+
+      if (this.hot.getPlugin(key)?.enabled) {
+        beforeLoad[key] = false;
+      } else {
+        delete beforeLoad[key];
+      }
+    });
+
+    return {
+      beforeLoad: Object.keys(beforeLoad).length > 0 ? beforeLoad : null,
+      afterLoad: Object.keys(afterLoad).length > 0 ? afterLoad : null,
+    };
   }
 
   /**

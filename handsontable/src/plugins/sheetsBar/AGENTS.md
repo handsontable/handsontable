@@ -323,8 +323,13 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   shorter sheet was loaded, it addressed rows that no longer existed and the switch threw
   `Expecting an unsigned number`. `#switchTo` therefore calls `clearMergedCells()` before
   `#applySheet`, while the departing merges still match the grid (the neutral reset does it
-  otherwise). **The merges a sheet declares in its `settings` are built after the load, never
-  during the settings update.** `mergeCells` rides on every switch's `updateSettings()` payload
+  otherwise, and does it FIRST, before it untrims and unhides rows: `clearCollections()` takes the
+  span attributes off the cells `getCell()` finds at the merges' visual coordinates, which name
+  other rows once the trimmed and hidden rows are back while the DOM still shows the old layout.
+  Cleared last, the merged `td` kept its `rowspan` and shifted the rows below it on the arriving
+  sheet, which no render repaired once MergeCells was disabled there; pinned by
+  `tests/e2e/sheets-bar-data-bound-settings.spec.ts`). **The merges a sheet declares in its
+  `settings` are built after the load, never during the settings update.** `mergeCells` rides on every switch's `updateSettings()` payload
   once any sheet declares it (the baseline carries it too), and that update runs while the grid
   still holds the departing sheet's data. Built there, `MergeCells#generateFromSettings()`
   validated the arriving sheet's areas against the departing sheet's size (dropping one that did
@@ -361,6 +366,26 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   the type check. Under a cast, a rename in MergeCells still compiles here and the first switch
   throws `… is not a function`. Do not reach into `mergedCellsCollection` or call `mergeRange()`
   from here again.
+- **Settings whose plugin reads the data are applied after the load** (`DATA_BOUND_SETTING_KEYS`,
+  `#splitDataBoundSettings`). The settings update runs while the grid still holds the departing
+  sheet's data, so a plugin that reads the data in `updatePlugin()` judged the wrong sheet:
+  NestedRows validated the departing flat array, logged its "requires an Array of Objects" error and
+  turned itself off for good, and ColumnSummary checked its endpoints against the departing size
+  (a false out-of-bounds warning) and, when the destination fitted, wrote its result into the
+  departing sheet's data, which the host holds by reference. On a live grid a truthy value of
+  `nestedRows` or `columnSummary` is therefore taken out of the pre-load payload and applied by a
+  second `updateSettings()` after `loadData()`, before the MergeCells pass (a nested sheet's row
+  count changes when NestedRows comes on). A plugin the departing sheet left enabled gets `false`
+  in the pre-load payload, or it would run its departing configuration against the arriving data
+  during the load; a falsy value reads no data and stays before the load. The cost is a second
+  settings update (a second `afterUpdateSettings`, a cell meta reset) on a switch onto a sheet
+  that declares one of the keys, and only there. The init build is not split: without a view, both
+  plugins configure themselves from their own `beforeLoadData`/`afterInit` against the loaded
+  sheet. A new plugin with the same shape (it reads the grid's data or size when its settings are
+  applied) belongs on that list. Do not reorder the whole switch to load first instead: the
+  departing sheet's settings would then be in force during the load (NestedRows rejecting a flat
+  sheet, a departing `columns` building the DataMap, Formulas bound to the wrong sheet). Pinned by
+  `tests/e2e/sheets-bar-data-bound-settings.spec.ts`.
 - Switching calls `loadData()`, which clears the UndoRedo stacks; the state-restore hook and
   the announced switch fire after the batch, and switch announcements are made for the bar's
   own gestures only (`SOURCE_UI`).
