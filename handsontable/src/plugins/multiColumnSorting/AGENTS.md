@@ -11,7 +11,16 @@ This file covers only what is different: three small files, `multiColumnSorting.
 
 `ColumnSorting#enablePlugin` keeps a module-level `WeakMap` keyed on the instance (`pluginConflictsState`).
 Whichever of the two enables first wins; the second one calls `warnAboutPluginsConflict()` and returns
-without enabling. Registration is cleared on disable.
+without enabling. Registration is cleared on disable, and only by the plugin that holds it.
+
+**A swap in one `updateSettings()` call is not a conflict.** `{ columnSorting: true, multiColumnSorting: false }`
+on a grid running MultiColumnSorting reaches `ColumnSorting#enablePlugin()` first (priority 50 against 170),
+while MultiColumnSorting still holds the registration. The check therefore asks the merged settings whether
+the holder is still on: when its key is already falsy, the new plugin takes over the registration, and the
+holder's own disable later in the same call leaves it alone (the `=== this.pluginKey` guard in
+`disablePlugin()`). Without both halves the swap disabled both plugins, and the warning named an empty plugin,
+because the nested `updateSettings()` had cleared the registration before the message read it.
+`columnSorting/__tests__/pluginSwap.unit.js` pins both directions.
 
 The consequence when debugging: **`columnSorting: true` and `multiColumnSorting: true` on one grid is not a
 supported combination, and the loser is decided by `PLUGIN_PRIORITY`** — ColumnSorting is 50, this plugin is
