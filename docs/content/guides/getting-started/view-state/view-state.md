@@ -104,6 +104,7 @@ localStorage.setItem('gridView', JSON.stringify(hot.getViewState()));
 // Restore, for example right after you create the grid
 const stored = localStorage.getItem('gridView');
 
+// Nothing is stored on a first visit, and `setViewState()` applies nothing for a value that is not an object
 if (stored !== null) {
   hot.setViewState(JSON.parse(stored));
 }
@@ -179,35 +180,104 @@ hot.setViewState(layout);
 
 The restore changes the view, not the data. It does not overwrite cell values.
 
-## Handle skipped parts
+## Check a state before you apply it
 
-`setViewState()` never throws on a part it cannot apply. It skips that part, applies the rest, and returns an object that lists what it skipped:
+[`validateViewState()`](@/api/core.md#validateviewstate) runs the same checks as `setViewState()` and changes nothing. Use it on a state you did not build yourself, such as one a user pasted or a model generated:
 
 ```js
-const { skipped } = hot.setViewState(savedView);
+const { valid, applicable, skipped } = hot.validateViewState(generatedState);
 
-if (skipped.length > 0) {
+if (!valid) {
+  // `skipped` says what to correct. Send it back to the author of the state and ask again.
   console.log(skipped);
-  // [{ part: 'hiddenColumns', reason: 'pluginDisabled' }]
 }
 ```
 
-Each entry names the `part` and gives a `reason`:
+`valid` is `true` when `setViewState()` with `atomic: true` would apply the whole state. `applicable` lists the parts it would apply, and `skipped` lists the ones it would not.
+
+## Handle skipped parts
+
+`setViewState()` checks every part against the grid before it changes anything. A part it cannot apply is skipped, never thrown on, and the rest is applied. The returned object has these properties:
+
+| Property | Meaning |
+|---|---|
+| `applied` | The parts that were restored. |
+| `skipped` | The parts that were not, each as `{ part, reason, path, message }`. |
+| `previous` | The view the restored parts had before, in the same shape as the state. Left out when nothing was applied. |
+| `error` | Set when the whole state was rejected. See the table below. |
+
+```js
+const { applied, skipped, previous } = hot.setViewState(savedView);
+
+console.log(skipped);
+// [{
+//   part: 'filters',
+//   reason: 'invalid',
+//   path: 'filters[2].conditions[0].args',
+//   message: 'filters[2].conditions[0].args by_value cannot take these arguments, check their number and type'
+// }]
+```
+
+`path` points into the state, and `message` says what to change, so you can correct the state and try again. Each entry has one of these reasons:
 
 | Reason | Meaning |
 |---|---|
 | `pluginDisabled` | The part needs a plugin that is not enabled on this grid. |
+| `pluginConflict` | The part would break a plugin that is on. Frozen rows would run next to [`Pagination`](@/api/pagination.md), which cannot work with them. |
 | `externalDataSource` | The grid uses a `dataProvider`, which owns `sort`, `filters`, and `pagination`. |
 | `sizeMismatch` | The stored row or column order has a different length than the grid has rows or columns now. |
 | `outOfRange` | The stored selection does not fit the grid. |
-| `invalid` | The part does not have the expected shape, or names something this grid does not have: a row order that does not list every row exactly once, a sort column past the last column, or a filter condition that is not registered on the page. |
-| `unsupportedVersion` | The object has a `version` this build does not read. Handsontable applies nothing, and logs a console warning. |
+| `invalid` | The part does not have the expected shape, or names something this grid does not have: a row order that does not list every row exactly once, a sort column past the last column, or a filter condition that is not registered on the page or cannot take its arguments. |
+| `unsupportedVersion` | The object has a `version` this build does not read. |
 
-Use the list to tell the user, to fall back to a default view, or to drop a stored view that no longer fits.
+The filter conditions are checked before the Filters plugin sees them. The plugin clears its current conditions before it imports new ones and throws on one it cannot take, so a bad condition would otherwise leave the grid with no filters. A bad condition is skipped instead, and the current filters stay.
+
+Sometimes the whole state is rejected, and the result has an `error`:
+
+| `error.reason` | Meaning |
+|---|---|
+| `notAnObject` | The value is not an object, such as the `null` that `JSON.parse()` gives for a missing `localStorage` item. |
+| `unsupportedVersion` | The object has another `version`. |
+| `atomicRejected` | The `atomic` option is on, and a part was rejected. |
+
+Handsontable applies nothing in these cases, `applied` is empty, and a console warning explains why (except for `atomicRejected`, where `skipped` lists the parts).
+
+### Apply everything or nothing
+
+By default a rejected part does not stop the others. To apply nothing when any part is rejected, pass `atomic: true`:
+
+```js
+const result = hot.setViewState(generatedState, { atomic: true });
+
+if (result.error?.reason === 'atomicRejected') {
+  console.log(result.skipped);
+}
+```
+
+## Undo a restore
+
+By default `setViewState()` is not recorded by [`UndoRedo`](@/api/undoRedo.md). The undo steps from before the restore stay available, so an undo after a restore reverts an earlier action on top of the restored view.
+
+To make the restore one undo step, pass `undo: 'record'`. One undo then reverts every restored part, and one redo applies them again:
+
+```js
+hot.setViewState(generatedState, { undo: 'record' });
+
+hot.getPlugin('undoRedo').undo(); // the view before the restore
+```
+
+Without UndoRedo, use `previous`. It holds the view the restored parts had, in the same shape as the state, so passing it back reverts them:
+
+```js
+const { previous } = hot.setViewState(generatedState);
+
+// Later, to go back
+hot.setViewState(previous);
+```
 
 ## Limitations
 
-- **The restore is not an undo step.** [`UndoRedo`](@/api/undoRedo.md) does not record `setViewState()`, so one undo does not roll back a restore. The undo steps from before the restore stay available, and an undo after a restore reverts an earlier action on top of the restored view.
+- **The restore is not an undo step by default.** See [Undo a restore](#undo-a-restore) for `undo: 'record'` and `previous`.
 - **Filters and the page can move the selection.** Restoring the filters moves a selected cell to the first row of its column, as any filtering does. Restoring the page clears a selection the new page does not show. To control the selection, include `selection` in the state.
 - **Content is not part of the view.** The view state excludes your data, [merged cells](@/guides/cell-features/merge-cells/merge-cells.md), custom borders, and cell meta. To persist them, save them with their own APIs. For data, see [Saving data](@/guides/getting-started/saving-data/saving-data.md).
 - **Server-side data.** With a `dataProvider`, the view state leaves out sorting, filters, and pagination.
@@ -223,6 +293,7 @@ To store a separate view per sheet, the [sheets bar](@/guides/accessories-and-me
 
 - [`getViewState()`](@/api/core.md#getviewstate)
 - [`setViewState()`](@/api/core.md#setviewstate)
+- [`validateViewState()`](@/api/core.md#validateviewstate)
 
 </div>
 
