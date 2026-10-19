@@ -7,6 +7,11 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
 
 - Owns: option defaults (`mapper.ts#resolveImportOptions`), the snapshot → `ImportResult` mapping,
   type inference from number formats, and applying a result to the grid.
+- Exposes, but does not own, type inference from RAW values: `inferColumnTypes` and
+  `convertToInferredTypes` live in `../../utils/columnTypeInference/`, so a later paste or CSV path can
+  use them without importing from this plugin. The plugin methods of the same names only default
+  `locale` to the grid's, and the barrel re-exports the functions for grid-less use. There is no CSV
+  importer and no paste integration yet; both are follow-ups.
 - Does not own: parsing. Every engine call lives in `src/utils/xlsxEngine/adapters/<engine>.ts`, shared
   with `exportFile`. Never import from `../exportFile`; the unit constants both directions share
   (`PIXELS_PER_EXCEL_COLUMN_WIDTH_UNIT`, `POINTS_PER_PIXEL`) live in `src/utils/xlsxEngine/units.ts` and are
@@ -319,6 +324,33 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `../../utils/xlsxEngine/cellRef.ts#parseMultiRangeRef`, beside the single-range parser both directions
   already share; do not grow a second A1 parser in the plugin.
 
+## Raw-value inference (`../../utils/columnTypeInference/`)
+
+- **The result must be deterministic, so nothing reads the host.** No `new Date(string)` (engines parse
+  it differently), and never the browser's default locale: `locale` is explicit, falls back to `en-US`
+  (also for a tag `Intl.getCanonicalLocales` rejects), and separators and the day/month order come from
+  `Intl.NumberFormat(locale).formatToParts` / `Intl.DateTimeFormat(locale).formatToParts`. Sampling is
+  the first `sampleSize` rows, dropdown sources are in first-appearance order, and `DETECTORS` order is
+  the tie-break (checkbox, numeric, date, time, dropdown, then text).
+- **The column decides before the locale.** A value only one separator can read (`0,5`, `1,234.56`)
+  votes, and only a tie falls back to the locale; same for a year-last date with a part above 12. A
+  date column settled by the locale scores `0.95` of its share, so `confidence` shows the guess.
+- **Inference without conversion is a trap.** The `date` and `time` cell types validate source data as
+  ISO only, so `12/03/2026` loaded raw is flagged on every cell. `convertToInferredTypes` rewrites
+  values to the stored shape (number, `YYYY-MM-DD`, `HH:mm:ss`, boolean) and reads them with the same
+  functions the detectors count with (`values.ts`), so a value the detector accepted always converts.
+  Keep it that way: a converter with its own parsing drifts from what `confidence` promised.
+- **`getParsedNumber` (`helpers/number.ts`) is deliberately NOT used.** It falls back to
+  `parseFloat`, so `12 apples` reads as `12`, and it cannot read a comma-grouped float (`1,234.56`
+  becomes `1.234`). The value grammar is strict regexes in `values.ts` instead.
+- **A leading-zero integer is never numeric** (`00123`): ZIP codes and IDs would lose their zeros.
+  `1`/`0` stay numeric, not checkbox. Date-time values stay `text`, because the `date` validator
+  accepts date-only values; mapping them to `intl-datetime` is a follow-up.
+- **A percent column divides by moving the exponent** (`'7.25' + 'e-2'`), not by `/ 100`, which keeps
+  `7.25%` exactly `0.0725`.
+- **The currency table is shared** with `inference.ts` through `../../utils/currencySymbols.ts`; keep
+  the `'z\u0142'` escape there (see the ASCII rule in `handsontable/AGENTS.md`).
+
 ## Deferred, with the reasoning
 
 - **Lazy per-sheet snapshots (review round 4, R16).** `excelJsAdapter.read` snapshots every worksheet while
@@ -346,7 +378,9 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
 
 ## Testing
 
-- `npm run test:unit -- --testPathPattern='importFile|xlsxEngine'`
+- `npm run test:unit -- --testPathPattern='importFile|xlsxEngine|columnTypeInference'`
+- `columnTypeInference.unit.js` runs every corpus column's converted values through the real cell
+  type validators; a new detector needs a corpus row there.
 - Adapter tests parse real `.xlsx` fixtures under `src/utils/xlsxEngine/__tests__/fixtures/`; regenerate
   them with `node src/utils/xlsxEngine/__tests__/fixtures/generate.mjs` after changing a case, and commit.
   They run with `@jest-environment node` because ExcelJS parses through Node streams. Three things make

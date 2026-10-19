@@ -116,6 +116,33 @@ describe('ImportFile statics', () => {
   });
 });
 
+describe('ImportFile#inferColumnTypes', () => {
+  const localeCtx = locale => ({ hot: { getSettings: () => ({ importFile: true, locale }) } });
+  const rows = [['1.234', '12/03/2026'], ['5.678', '01/02/2026']];
+
+  it('should read the grid locale and need no engine', () => {
+    const columns = ImportFile.prototype.inferColumnTypes.call(localeCtx('de-DE'), rows);
+
+    expect(columns.map(column => column.inputFormat)).toEqual([
+      { decimalSeparator: ',' },
+      { dateOrder: 'DMY' },
+    ]);
+    expect(ImportFile.prototype.convertToInferredTypes.call(localeCtx('de-DE'), rows, columns)).toEqual([
+      [1234, '2026-03-12'],
+      [5678, '2026-02-01'],
+    ]);
+  });
+
+  it('should let an explicit locale option override the grid locale', () => {
+    const columns = ImportFile.prototype.inferColumnTypes.call(localeCtx('de-DE'), rows, { locale: 'en-US' });
+
+    expect(columns.map(column => column.inputFormat)).toEqual([
+      { decimalSeparator: '.' },
+      { dateOrder: 'MDY' },
+    ]);
+  });
+});
+
 describe('ImportFile#supportsImportFormat', () => {
   const supports = (settings, format) => ImportFile.prototype.supportsImportFormat.call(fakeCtx(settings), format);
 

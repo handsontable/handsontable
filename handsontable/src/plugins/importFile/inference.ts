@@ -1,5 +1,6 @@
 import { parseRangeRef, type RangeRef } from '../../utils/xlsxEngine/cellRef';
 import { PIXELS_PER_EXCEL_COLUMN_WIDTH_UNIT, POINTS_PER_PIXEL } from '../../utils/xlsxEngine/units';
+import { CURRENCY_SYMBOL_TO_CODE, CURRENCY_SYMBOLS } from '../../utils/currencySymbols';
 import type {
   CellSnapshot,
   CellValidationSnapshot,
@@ -19,32 +20,6 @@ export type InferredType =
   | { type: 'time'; timeFormat: Intl.DateTimeFormatOptions }
   | { type: 'checkbox' }
   | { type: 'text' };
-
-/**
- * Currency symbols the export can write, mapped back to their ISO 4217 codes. Longer symbols are
- * matched first, so `R$` never reads as `$`.
- */
-const CURRENCY_SYMBOL_TO_CODE: Record<string, string> = {
-  $: 'USD',
-  '€': 'EUR',
-  '£': 'GBP',
-  '¥': 'JPY',
-  // An escape, not a bare `z\u0142` key: a raw non-ASCII identifier stops the non-minified bundles from
-  // parsing on a page that is not served as UTF-8 (see the Build section of AGENTS.md).
-  // eslint-disable-next-line quote-props
-  'z\u0142': 'PLN',
-  '₹': 'INR',
-  '₩': 'KRW',
-  CHF: 'CHF',
-  kr: 'SEK',
-  R$: 'BRL',
-};
-
-/**
- * `CURRENCY_SYMBOL_TO_CODE`'s symbols, longest first, so a multi-character symbol wins over a
- * single-character one that is its suffix.
- */
-const CURRENCY_SYMBOLS = Object.keys(CURRENCY_SYMBOL_TO_CODE).sort((a, b) => b.length - a.length);
 
 /**
  * Matches Excel's locale-tagged currency token, `[$<symbol>-<LCID>]` or `[$<symbol>]`.

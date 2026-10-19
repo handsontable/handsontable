@@ -12,3 +12,11 @@ export type {
   ImportResult,
 } from './importFile';
 export type { ImportedBorder } from './styles';
+export { inferColumnTypes, convertToInferredTypes } from '../../utils/columnTypeInference';
+export type {
+  InferColumnTypesOptions,
+  InferenceData,
+  InferredCellType,
+  InferredColumn,
+  InferredInputFormat,
+} from '../../utils/columnTypeInference';

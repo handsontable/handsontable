@@ -1,8 +1,9 @@
 import Handsontable from 'handsontable';
 import type {
   ImportedBorder, ImportedConditionalFormatting, ImportedNestedHeader, ImportFileSettings, ImportOptions,
-  ImportResult,
+  ImportResult, InferColumnTypesOptions, InferredCellType, InferredColumn, InferredInputFormat,
 } from 'handsontable/plugins/importFile';
+import { convertToInferredTypes, inferColumnTypes } from 'handsontable/plugins/importFile';
 
 new Handsontable(document.createElement('div'), {
   importFile: { engines: { xlsx: {} } },
@@ -58,3 +59,24 @@ hot.updateSettings({
   beforeImport: result => result.data.length > 0,
   afterImport: () => {},
 });
+
+const inferOptions: InferColumnTypesOptions = {
+  sampleSize: 100,
+  locale: 'de-DE',
+  minConfidence: 0.8,
+  dropdown: { maxOptions: 5 },
+};
+const rawRows: string[][] = [['1,5', '12.03.2026']];
+const objectRows: Array<Record<string, unknown>> = [{ amount: '1,5' }];
+const inferred: InferredColumn[] = plugin.inferColumnTypes(rawRows, inferOptions);
+const inferredObjects: InferredColumn[] = inferColumnTypes(objectRows, { dropdown: false });
+const convertedRows: string[][] = plugin.convertToInferredTypes(rawRows, inferred);
+const convertedObjects: Array<Record<string, unknown>> = convertToInferredTypes(objectRows, inferredObjects);
+const inferredType: InferredCellType = inferred[0].type;
+const inputFormat: InferredInputFormat | undefined = inferred[0].inputFormat;
+const confidence: number = inferred[0].confidence;
+
+hot.updateSettings({ columns: inferred, data: convertedRows });
+
+// @ts-expect-error - the dropdown option takes a boolean or an object only.
+inferColumnTypes(rawRows, { dropdown: 5 });

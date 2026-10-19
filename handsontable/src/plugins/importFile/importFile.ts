@@ -5,6 +5,13 @@ import { detectXlsxEngine, type DetectedXlsxEngine } from '../../utils/xlsxEngin
 import { DroppedFeatures, type XlsxEngineKind } from '../../utils/xlsxEngine/capabilities';
 import { mapWorkbook, resolveImportOptions, type MappedResult } from './mapper';
 import { applyImportResult, removeImportedStyles } from './applier';
+import {
+  convertToInferredTypes,
+  inferColumnTypes,
+  type InferColumnTypesOptions,
+  type InferenceData,
+  type InferredColumn,
+} from '../../utils/columnTypeInference';
 import type { ImportedBorder } from './styles';
 import type { HotInstance } from '../../core/types';
 
@@ -423,6 +430,44 @@ export class ImportFile extends BasePlugin {
     const detected = tryDetectEngine(this.hot, undefined, format);
 
     return detected !== null && detected.capabilities.readFormats.includes(format);
+  }
+
+  /**
+   * Infers a cell type and format for every column of raw, untyped data: rows parsed from a CSV
+   * file, pasted text split into cells, or values from an API. Works without an engine.
+   *
+   * Each returned entry carries `type` (`'numeric'`, `'date'`, `'time'`, `'checkbox'`,
+   * `'dropdown'`, or `'text'`), the format option of that type (`numericFormat`, `dateFormat`,
+   * `timeFormat`, or `source`), `data` for object rows, a `confidence` from `0` to `1`, and the
+   * `inputFormat` {@link ImportFile#convertToInferredTypes} reads the values with. A column that no
+   * type reads with at least `minConfidence` falls back to `'text'`.
+   *
+   * The result is deterministic: it reads the first `sampleSize` rows and settles an ambiguous
+   * column (`1.234`, `12/03/2026`) with `options.locale`, which defaults to the grid's `locale`.
+   *
+   * @example
+   * ```js
+   * const importFile = hot.getPlugin('importFile');
+   * const columns = importFile.inferColumnTypes(rows, { locale: 'de-DE' });
+   *
+   * hot.updateSettings({
+   *   columns,
+   *   data: importFile.convertToInferredTypes(rows, columns),
+   * });
+   * ```
+   */
+  inferColumnTypes(data: InferenceData, options: InferColumnTypesOptions = {}): InferredColumn[] {
+    return inferColumnTypes(data, { locale: this.hot.getSettings().locale, ...options });
+  }
+
+  /**
+   * Returns a copy of `data` with every value converted to what its column's inferred cell type
+   * stores: a number for `numeric`, `YYYY-MM-DD` for `date`, `HH:mm:ss` for `time`, and a boolean
+   * for `checkbox`. A value the column cannot read, such as a `Total` row, is kept as it is, so the
+   * cell type's validator marks it. `data` itself is not changed.
+   */
+  convertToInferredTypes<T extends InferenceData>(data: T, columns: InferredColumn[]): T {
+    return convertToInferredTypes(data, columns);
   }
 
   /**

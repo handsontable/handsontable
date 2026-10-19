@@ -1,0 +1,354 @@
+import { inferColumnTypes, convertToInferredTypes } from '../index';
+import { sourceDataValidator as dateSourceDataValidator } from '../../../validators/dateValidator/dateValidator';
+import { sourceDataValidator as timeSourceDataValidator } from '../../../validators/timeValidator/timeValidator';
+import { numericValidator } from '../../../validators/numericValidator/numericValidator';
+
+/**
+ * Builds array-of-arrays data from one value list per column.
+ * @param {...any} columns
+ */
+function columnsToRows(...columns) {
+  const height = Math.max(...columns.map(column => column.length));
+
+  return Array.from({ length: height }, (_, row) => columns.map(column => column[row]));
+}
+
+/**
+ * Infers a single column.
+ * @param values
+ * @param options
+ */
+function inferOne(values, options) {
+  return inferColumnTypes(columnsToRows(values), options)[0];
+}
+
+/**
+ * Infers and converts a single column, returning the converted values.
+ * @param values
+ * @param options
+ */
+function convertOne(values, options) {
+  const rows = columnsToRows(values);
+  const columns = inferColumnTypes(rows, options);
+
+  return convertToInferredTypes(rows, columns).map(row => row[0]);
+}
+
+/**
+ * Asks the inferred type's own validator whether it accepts a converted value - the check the grid
+ * itself runs on load and on edit.
+ * @param type
+ * @param value
+ */
+function isAcceptedByCellType(type, value) {
+  switch (type) {
+    case 'numeric': {
+      let result;
+
+      numericValidator.call({ allowEmpty: true }, value, (valid) => {
+        result = valid;
+      });
+
+      return result;
+    }
+    case 'date':
+      return dateSourceDataValidator(value, { allowEmpty: true });
+    case 'time':
+      return timeSourceDataValidator(value, { allowEmpty: true });
+    case 'checkbox':
+      return value === true || value === false || value === null || value === undefined || value === '';
+    default:
+      return true;
+  }
+}
+
+describe('inferColumnTypes', () => {
+  describe('numeric', () => {
+    it('reads a comma decimal column under a dot-grouping locale', () => {
+      const column = inferOne(['1.234,56', '12,5', '7'], { locale: 'de-DE' });
+
+      expect(column.type).toBe('numeric');
+      expect(column.numericFormat).toEqual({
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+        useGrouping: true,
+      });
+      expect(convertOne(['1.234,56', '12,5', '7'], { locale: 'de-DE' })).toEqual([1234.56, 12.5, 7]);
+    });
+
+    it('reads a comma-grouped dot decimal column', () => {
+      expect(convertOne(['1,234.56', '0.5'], { locale: 'en-US' })).toEqual([1234.56, 0.5]);
+    });
+
+    it('lets the column evidence win over the locale', () => {
+      // `0,5` only reads as a comma decimal, so `1.234` in the same column is 1234.
+      expect(convertOne(['1.234', '0,5'], { locale: 'en-US' })).toEqual([1234, 0.5]);
+      expect(convertOne(['1,234', '0.5'], { locale: 'de-DE' })).toEqual([1234, 0.5]);
+    });
+
+    it('resolves an ambiguous column with the locale', () => {
+      expect(convertOne(['1.234', '5.678'], { locale: 'en-US' })).toEqual([1.234, 5.678]);
+      expect(convertOne(['1.234', '5.678'], { locale: 'de-DE' })).toEqual([1234, 5678]);
+    });
+
+    it('reads currency symbols on either side and takes the code from the symbol', () => {
+      const dollars = inferOne(['$1,234.50', '$12.00', '-$3.25']);
+      const zloty = inferOne(['12 zł', '1234,5 zł', '7 zł'], { locale: 'pl-PL' });
+
+      expect(dollars.type).toBe('numeric');
+      expect(dollars.numericFormat).toEqual({
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+        useGrouping: true,
+      });
+      expect(convertOne(['$1,234.50', '$12.00', '-$3.25'])).toEqual([1234.5, 12, -3.25]);
+      expect(zloty.type).toBe('numeric');
+      expect(zloty.numericFormat.currency).toBe('PLN');
+    });
+
+    it('reads percentages as fractions with a percent style', () => {
+      const column = inferOne(['12.5%', '50%', '7.25%']);
+
+      expect(column.numericFormat).toEqual({
+        style: 'percent',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+        useGrouping: false,
+      });
+      expect(convertOne(['12.5%', '50%', '7.25%'])).toEqual([0.125, 0.5, 0.0725]);
+    });
+
+    it('keeps leading-zero codes as text', () => {
+      expect(inferOne(['00123', '04567', '00012']).type).toBe('text');
+    });
+
+    it('reads 1 and 0 as numbers, not checkboxes', () => {
+      expect(inferOne(['1', '0', '1', '0']).type).toBe('numeric');
+    });
+
+    it('accepts real numbers', () => {
+      expect(inferOne([1, 2.5, -3]).type).toBe('numeric');
+      expect(convertOne([1, 2.5, -3])).toEqual([1, 2.5, -3]);
+    });
+
+    it('rejects numbers followed by text', () => {
+      expect(inferOne(['12 apples', '3 pears', '4 plums']).type).toBe('text');
+    });
+  });
+
+  describe('date', () => {
+    it('reads ISO dates', () => {
+      const column = inferOne(['2026-03-12', '2026-12-01']);
+
+      expect(column.type).toBe('date');
+      expect(column.confidence).toBe(1);
+      expect(convertOne(['2026-03-12', '2026-12-01'])).toEqual(['2026-03-12', '2026-12-01']);
+    });
+
+    it('takes the day-month order from the locale when the column cannot decide', () => {
+      expect(convertOne(['12/03/2026', '01/02/2026'], { locale: 'en-GB' })).toEqual(['2026-03-12', '2026-02-01']);
+      expect(convertOne(['12/03/2026', '01/02/2026'], { locale: 'en-US' })).toEqual(['2026-12-03', '2026-01-02']);
+      expect(inferOne(['12/03/2026', '01/02/2026'], { locale: 'en-GB' }).confidence).toBeLessThan(1);
+    });
+
+    it('takes the day-month order from the column evidence', () => {
+      expect(convertOne(['12/03/2026', '25/03/2026'], { locale: 'en-US' })).toEqual(['2026-03-12', '2026-03-25']);
+      expect(convertOne(['12/03/2026', '03/25/2026'], { locale: 'en-GB' })).toEqual(['2026-12-03', '2026-03-25']);
+      expect(inferOne(['12/03/2026', '25/03/2026'], { locale: 'en-US' }).confidence).toBe(1);
+    });
+
+    it('reads dotted and dashed day-month-year dates', () => {
+      expect(convertOne(['12.03.2026', '1.4.2026'], { locale: 'de-DE' })).toEqual(['2026-03-12', '2026-04-01']);
+    });
+
+    it('mirrors the zero padding of the input in the date format', () => {
+      expect(inferOne(['12.03.2026', '01.04.2026'], { locale: 'de-DE' }).dateFormat)
+        .toEqual({ year: 'numeric', month: '2-digit', day: '2-digit' });
+      expect(inferOne(['1/4/2026', '12/3/2026'], { locale: 'en-US' }).dateFormat)
+        .toEqual({ year: 'numeric', month: 'numeric', day: 'numeric' });
+    });
+
+    it('rejects a date the calendar does not have', () => {
+      expect(inferOne(['31/02/2026', '30/02/2026', '29/02/2026']).type).toBe('text');
+      expect(inferOne(['2026-02-30']).type).toBe('text');
+    });
+
+    it('leaves date-time values as text', () => {
+      expect(inferOne(['2026-03-12 14:30', '2026-03-13 09:00']).type).toBe('text');
+    });
+  });
+
+  describe('time', () => {
+    it('reads 24-hour times', () => {
+      const column = inferOne(['14:30:00', '09:05:10']);
+
+      expect(column.type).toBe('time');
+      expect(column.timeFormat).toEqual({ hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+      expect(convertOne(['14:30:00', '9:05'])).toEqual(['14:30:00', '09:05:00']);
+    });
+
+    it('reads 12-hour times', () => {
+      const column = inferOne(['9:05 PM', '12:00 am', '11:59 AM']);
+
+      expect(column.type).toBe('time');
+      expect(column.timeFormat).toEqual({ hour: 'numeric', minute: '2-digit', hour12: true });
+      expect(convertOne(['9:05 PM', '12:00 am', '11:59 AM'])).toEqual(['21:05:00', '00:00:00', '11:59:00']);
+    });
+
+    it('rejects out-of-range times', () => {
+      expect(inferOne(['24:00', '13:00 PM', '10:61']).type).toBe('text');
+    });
+  });
+
+  describe('checkbox', () => {
+    it('reads true and false in any case, and booleans', () => {
+      expect(inferOne(['TRUE', 'false', true, 'True']).type).toBe('checkbox');
+      expect(convertOne(['TRUE', 'false', true, 'True'])).toEqual([true, false, true, true]);
+    });
+  });
+
+  describe('dropdown', () => {
+    it('reads a low-cardinality column, with options in order of first appearance', () => {
+      const values = ['Open', 'Closed', 'Open', 'Pending', 'Closed', 'Open'];
+      const column = inferOne(values);
+
+      expect(column.type).toBe('dropdown');
+      expect(column.source).toEqual(['Open', 'Closed', 'Pending']);
+      expect(convertOne(values)).toEqual(values);
+    });
+
+    it('never reads free text as a dropdown', () => {
+      expect(inferOne(['Alice', 'Bob', 'Carol', 'Dave', 'Eve', 'Frank']).type).toBe('text');
+    });
+
+    it('respects the maxOptions limit and the dropdown switch', () => {
+      const values = ['a', 'b', 'c', 'a', 'b', 'c'];
+
+      expect(inferOne(values, { dropdown: { maxOptions: 2 } }).type).toBe('text');
+      expect(inferOne(values, { dropdown: false }).type).toBe('text');
+    });
+  });
+
+  describe('blanks, dirty values and confidence', () => {
+    it('ignores blank values', () => {
+      expect(inferOne(['12', null, '', '   ', undefined, '3']).type).toBe('numeric');
+      expect(convertOne(['12', null, '', '3'])).toEqual([12, null, '', 3]);
+    });
+
+    it('returns text with confidence 0 for an all-blank column', () => {
+      expect(inferOne([null, '', '  '])).toEqual({ type: 'text', confidence: 0 });
+    });
+
+    it('tolerates a stray value at the default confidence floor and leaves it unconverted', () => {
+      const values = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'n/a'];
+      const column = inferOne(values);
+
+      expect(column.type).toBe('numeric');
+      expect(column.confidence).toBe(0.9);
+      expect(convertOne(values)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 'n/a']);
+    });
+
+    it('falls back to text below the confidence floor', () => {
+      expect(inferOne(['1', '2', 'three', 'four'])).toEqual({ type: 'text', confidence: 1 });
+      expect(inferOne(['1', '2', '3', 'four'], { minConfidence: 0.7 }).type).toBe('numeric');
+    });
+
+    it('leaves a trailing total row unconverted', () => {
+      const values = ['10', '20', '30', '40', '50', '60', '70', '80', '90', '100', 'Total'];
+
+      expect(convertOne(values).at(-1)).toBe('Total');
+    });
+  });
+
+  describe('data shapes and options', () => {
+    it('infers every column of mixed data', () => {
+      const rows = [
+        ['Alice', '1.234,56', '12.03.2026', 'TRUE'],
+        ['Bob', '12,5', '13.03.2026', 'false'],
+        ['Carol', '7', '14.03.2026', 'true'],
+      ];
+
+      expect(inferColumnTypes(rows, { locale: 'de-DE' }).map(column => column.type))
+        .toEqual(['text', 'numeric', 'date', 'checkbox']);
+    });
+
+    it('infers objects by the keys of the first row and names the property', () => {
+      const rows = [
+        { name: 'Alice', amount: '10.5', joined: '2026-01-02' },
+        { name: 'Bob', amount: '7', joined: '2026-02-03' },
+      ];
+      const columns = inferColumnTypes(rows);
+
+      expect(columns.map(column => [column.data, column.type]))
+        .toEqual([['name', 'text'], ['amount', 'numeric'], ['joined', 'date']]);
+      expect(convertToInferredTypes(rows, columns)).toEqual([
+        { name: 'Alice', amount: 10.5, joined: '2026-01-02' },
+        { name: 'Bob', amount: 7, joined: '2026-02-03' },
+      ]);
+    });
+
+    it('samples only the first sampleSize rows', () => {
+      const values = ['1', '2', 'x', 'y', 'z'];
+
+      expect(inferOne(values, { sampleSize: 2 }).type).toBe('numeric');
+      expect(inferOne(values).type).toBe('text');
+    });
+
+    it('does not mutate the input', () => {
+      const rows = [['1,5', 'TRUE'], ['2', 'false']];
+      const copy = JSON.parse(JSON.stringify(rows));
+
+      convertToInferredTypes(rows, inferColumnTypes(rows, { locale: 'de-DE' }));
+
+      expect(rows).toEqual(copy);
+    });
+
+    it('returns plain, JSON-serializable column settings', () => {
+      const columns = inferColumnTypes([['1,5', '2026-01-02', 'a'], ['2', '2026-01-03', 'a']], { locale: 'de-DE' });
+
+      expect(JSON.parse(JSON.stringify(columns))).toEqual(columns);
+    });
+
+    it('is deterministic', () => {
+      const rows = [['12/03/2026', '1.234', 'Open'], ['01/04/2026', '5,5', 'Open']];
+
+      expect(inferColumnTypes(rows, { locale: 'en-GB' })).toEqual(inferColumnTypes(rows, { locale: 'en-GB' }));
+    });
+
+    it('defaults to the en-US locale, not the host one, and falls back to it for an invalid locale', () => {
+      expect(convertOne(['1.234', '5.678'])).toEqual([1.234, 5.678]);
+      expect(convertOne(['1.234', '5.678'], { locale: 'not a locale!' })).toEqual([1.234, 5.678]);
+    });
+
+    it('returns an empty list for empty data', () => {
+      expect(inferColumnTypes([])).toEqual([]);
+    });
+  });
+
+  describe('converted values', () => {
+    const corpus = [
+      { values: ['1.234,56', '12,5', '7', null], locale: 'de-DE' },
+      { values: ['$1,234.50', '$12.00', '-$3.25'] },
+      { values: ['12.5%', '50%', '7.25%'] },
+      { values: ['12/03/2026', '01/02/2026', ''], locale: 'en-GB' },
+      { values: ['12/03/2026', '01/02/2026'], locale: 'en-US' },
+      { values: ['2026-03-12', '2026-12-01'] },
+      { values: ['9:05 PM', '12:00 am', '14:30'] },
+      { values: ['TRUE', 'false', true, null] },
+      { values: [1, '2', 3.5] },
+    ];
+
+    corpus.forEach(({ values, locale }) => {
+      it(`are accepted by the inferred cell type: ${JSON.stringify(values)} (${locale ?? 'default'})`, () => {
+        const column = inferOne(values, { locale });
+        const converted = convertOne(values, { locale });
+        const rejected = converted.filter(value => !isAcceptedByCellType(column.type, value));
+
+        expect(column.type).not.toBe('text');
+        expect(rejected).toEqual([]);
+      });
+    });
+  });
+});

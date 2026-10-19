@@ -246,6 +246,49 @@ The plugin installs `result.styles` for you: it writes one `<style>` element, ow
 
 Font size and font name aren't imported: the model doesn't carry them today. Conditional formatting is read into `result.conditionalFormatting` and never applied.
 
+## Infer column types from raw values
+
+Data that doesn't come from a workbook carries no number formats: rows you parsed from a CSV file, text pasted into cells, or values from an API. To type that data, use the plugin's `inferColumnTypes()` method. It reads the values and returns one column setting per column. The method needs no engine.
+
+```javascript
+const rows = [
+  ['Alice', '1.234,56', '12.03.2026', 'TRUE', 'Open'],
+  ['Bob', '12,5', '13.03.2026', 'false', 'Closed'],
+  ['Carol', '7', '14.03.2026', 'true', 'Open'],
+  ['Dave', '99', '15.03.2026', 'false', 'Open'],
+];
+
+const importFile = hot.getPlugin('importFile');
+const columns = importFile.inferColumnTypes(rows, { locale: 'de-DE' });
+
+console.log(columns.map(column => column.type));
+// ['text', 'numeric', 'date', 'checkbox', 'dropdown']
+
+hot.updateSettings({
+  columns,
+  data: importFile.convertToInferredTypes(rows, columns),
+});
+```
+
+Each entry uses the names of the column options, so you can pass the array to [`columns`](@/api/options.md#columns) as it is. Before you load the data, convert it with `convertToInferredTypes()`. Each cell type stores its values in a fixed form: a number for `numeric`, `YYYY-MM-DD` for `date`, `HH:mm:ss` for `time`, and a boolean for `checkbox`. If you skip the conversion, the cells keep the raw strings, and `date` and `time` cells reject them. The conversion returns a copy and leaves your rows unchanged.
+
+Inference works this way:
+
+- **Types.** The method infers `numeric` (including currency amounts such as `$1,234.50` and percentages such as `12.5%`), `date`, `time`, `checkbox` (`true` and `false`, in any case), `dropdown` (a column of a few repeated strings), and `text`. Date-time values such as `2026-03-12 14:30` stay `text`.
+- **Confidence.** `confidence` is the share of non-blank values the type reads. A column below `minConfidence` falls back to `text`. Blank values don't count. A value the type can't read, such as a `Total` row, keeps its raw form after the conversion, so the cell's validator marks it.
+- **Ambiguous values.** The column decides first: `0,5` in a column makes `1.234` mean 1234, and `25/03/2026` makes `12/03/2026` mean 12 March. When nothing in the column decides, the `locale` option does. It defaults to the grid's [`locale`](@/api/options.md#locale). A date column whose order came from the locale gets a confidence of `0.95`.
+- **Codes stay text.** A number with a leading zero, such as `00123`, is read as text, so ZIP codes and IDs keep their zeros.
+- **Deterministic results.** The same rows and options always give the same result. The method reads only the first `sampleSize` rows and never the browser's locale.
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `sampleSize` | `number` | `1000` | How many rows, from the top, to read. |
+| `locale` | `string` | the grid's `locale` | Settles a column whose values don't decide the decimal separator or the day and month order. |
+| `minConfidence` | `number` | `0.9` | The share of non-blank values a type has to read, from `0` to `1`. |
+| `dropdown` | `boolean \| { maxOptions?: number }` | `true` | Whether a column of repeated strings becomes a `dropdown`, and how many distinct values it may have (`10` by default). |
+
+To infer types without a grid, import the same functions from the plugin module: `import { inferColumnTypes, convertToInferredTypes } from 'handsontable/plugins/importFile';`. Without a grid, `locale` defaults to `'en-US'`.
+
 ## Security
 
 The workbook is untrusted input, and the plugin treats it that way:
