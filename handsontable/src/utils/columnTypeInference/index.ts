@@ -532,9 +532,9 @@ function convertRow(row: unknown, columns: InferredColumn[], readers: Array<Valu
 
 /**
  * Returns a copy of the data with every value converted to what the column's inferred cell type
- * stores: a number for `numeric`, `YYYY-MM-DD` for `date`, `YYYY-MM-DDTHH:mm:ss` for `intl-datetime`,
- * `HH:mm:ss` for `time`, and a boolean for `checkbox`. A `Date` converts to its local date and time,
- * which is how the grid reads an `intl-datetime` value. Every row is converted, not only the sampled ones. A value the column cannot read is
+ * stores: a number for `numeric`, `YYYY-MM-DD` for `date`, `YYYY-MM-DDTHH:mm:ss` for
+ * `intl-datetime`, `HH:mm:ss` for `time`, and a boolean for `checkbox`. A `Date` converts to its
+ * local date and time, which is how the grid reads an `intl-datetime` value. Every row is converted, not only the sampled ones. A value the column cannot read is
  * kept as it is, so the cell type's validator marks it. The input is never changed. The cells of the
  * result are no longer the input's type, which is why it is typed `unknown`.
  *

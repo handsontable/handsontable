@@ -480,6 +480,28 @@ describe('inferColumnTypes', () => {
       expect(convertOne(['2026-03-01', '2026-03-10 14:30'])).toEqual(['2026-03-01T00:00:00', '2026-03-10T14:30:00']);
     });
 
+    it('names date as the runner-up of a date column with one date-time', () => {
+      expect(inferOne(['2026-03-01', '2026-03-02', '2026-03-03 10:00'], { stats: true }).stats.runnerUpType)
+        .toBe('date');
+    });
+
+    it('takes seconds and the 12-hour clock from any value that writes them', () => {
+      expect(inferOne(['2026-03-12 14:30', '2026-03-13 14:30:05']).dateTimeFormat)
+        .toEqual(expect.objectContaining({ second: '2-digit' }));
+      expect(inferOne(['2026-03-12 2:30 PM', '2026-03-13 14:30']).dateTimeFormat)
+        .toEqual(expect.objectContaining({ hour: 'numeric', hour12: true }));
+    });
+
+    it('casts no vote from a value whose time does not read', () => {
+      const column = inferOne(['31/12/2026 xx', '01/02/2026 10:00', '02/03/2026 11:00'], {
+        locale: 'en-US',
+        minConfidence: 0.5,
+      });
+
+      expect(column.inputFormat).toEqual({ dateOrder: 'MDY' });
+      expect(column.confidence).toBeCloseTo((2 / 3) * 0.95, 10);
+    });
+
     it('leaves a column of dates only to the date type', () => {
       const column = inferOne(['2026-03-12', '2026-12-01'], { stats: true });
 
@@ -491,6 +513,8 @@ describe('inferColumnTypes', () => {
       ['2026-03-12T14:30:00Z', '2026-03-12T14:30:00+02:00', '2026-03-12T14:30:00.123', '2026-03-12 24:00',
         '2026-02-30 10:00', '2026-03-12T', '2026-03-12 14:30 x'].forEach((value) => {
         expect(inferOne([value, value]).type).toBe('text');
+        // Next to a value that reads, it must stay as it is, not lose its time to midnight.
+        expect(convertOne(['2026-03-12 14:30', value], { minConfidence: 0.5 })).toEqual(['2026-03-12T14:30:00', value]);
       });
     });
 
@@ -503,11 +527,58 @@ describe('inferColumnTypes', () => {
       expect(convertOne(values)).toEqual(['2026-03-12T14:30:15', '2026-01-02T00:00:00']);
     });
 
-    it('does not read an invalid Date', () => {
-      const values = [new Date(Number.NaN), new Date(Number.NaN)];
+    it('reads Date objects through their local getters, whatever the host time zone', () => {
+      // CI runs in UTC, where the local and the UTC getters agree, so the local ones are pinned here.
+      class LocalClock extends Date {
+        getFullYear() { return 2026; }
+        getMonth() { return 6; }
+        getDate() { return 4; }
+        getHours() { return 7; }
+        getMinutes() { return 8; }
+        getSeconds() { return 9; }
+      }
+      const values = [new LocalClock(Date.UTC(2026, 0, 1)), new LocalClock(Date.UTC(2026, 0, 1))];
 
-      expect(inferOne(values).type).toBe('text');
-      expect(convertOne([new Date(2026, 0, 2, 3, 4, 5), 'n/a'], { minConfidence: 0.5 })[1]).toBe('n/a');
+      expect(convertOne(values)).toEqual(['2026-07-04T07:08:09', '2026-07-04T07:08:09']);
+    });
+
+    it('reads Date objects at midnight as date-times, and lets only written values set the format', () => {
+      expect(inferOne([new Date(2026, 0, 1), new Date(2026, 0, 2)])).toEqual(expect.objectContaining({
+        type: 'intl-datetime',
+        dateTimeFormat: {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        },
+      }));
+      expect(inferOne(['3/2/2026, 2:30 PM', new Date(2026, 0, 2, 13, 5, 7)], { locale: 'en-US' }).dateTimeFormat)
+        .toEqual({
+          year: 'numeric',
+          month: 'numeric',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+        });
+    });
+
+    it('shows seconds for a column of Date objects that has them', () => {
+      expect(inferOne([new Date(Date.UTC(2026, 2, 12, 14, 30, 15)), new Date(2026, 2, 13)]).dateTimeFormat)
+        .toEqual(expect.objectContaining({ second: '2-digit' }));
+    });
+
+    it('does not read an invalid Date, or one whose year has no four digits', () => {
+      const invalid = new Date(Number.NaN);
+      const early = new Date(Date.UTC(999, 11, 31, 12));
+      const late = new Date(Date.UTC(10000, 0, 1));
+
+      expect(inferOne([invalid, invalid]).type).toBe('text');
+      expect(inferOne([early, late]).type).toBe('text');
+      expect(convertOne([new Date(2026, 0, 2, 3, 4, 5), invalid], { minConfidence: 0.5 })[1]).toBe(invalid);
+      expect(convertOne([new Date(2026, 0, 2, 3, 4, 5), early], { minConfidence: 0.5 })[1]).toBe(early);
     });
 
     it('finds a header over a date-time column', () => {
@@ -523,6 +594,8 @@ describe('inferColumnTypes', () => {
       expect(stats(['2026-03-12 14:30', '2026-01-02T09:00:00', '2026-03-12']))
         .toEqual(expect.objectContaining({ min: '2026-01-02T09:00:00', max: '2026-03-12T14:30:00' }));
       expect(stats([new Date(2026, 0, 2, 3, 4, 5)])).not.toHaveProperty('min');
+      expect(stats([new Date(2020, 0, 1, 1, 1, 1), '2026-03-12 14:30']))
+        .toEqual(expect.objectContaining({ min: '2026-03-12T14:30:00', max: '2026-03-12T14:30:00' }));
     });
   });
 
@@ -1225,11 +1298,12 @@ describe('inferColumnTypes', () => {
       { values: ['Open', 'Closed', 'Open', 'Open', 'Closed', 'Open', null] },
       { values: ['1 234,56 zł', '12,5 zł', '7 zł'], locale: 'pl-PL' },
       { values: ['2026-03-12 14:30', '12/03/2026, 2:30 PM', '2026-03-13', ''], locale: 'en-GB' },
-      { values: [new Date(2026, 2, 12, 14, 30), new Date(2026, 0, 2), null] },
+      // A Date's JSON text follows the host time zone, so the row is named by hand.
+      { values: [new Date(2026, 2, 12, 14, 30), new Date(2026, 0, 2), null], label: 'Date objects' },
     ];
 
-    corpus.forEach(({ values, locale }) => {
-      it(`are accepted by the inferred cell type: ${JSON.stringify(values)} (${locale ?? 'default'})`, () => {
+    corpus.forEach(({ values, locale, label }) => {
+      it(`are accepted by the inferred cell type: ${label ?? JSON.stringify(values)} (${locale ?? 'default'})`, () => {
         const column = inferOne(values, { locale });
         const converted = convertOne(values, { locale });
         const rejected = converted.filter(value => !isAcceptedByCellType(column, value));

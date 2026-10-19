@@ -96,23 +96,31 @@ data) and converts the values to what each type stores. Read this before touchin
   date-only values. `readDateTime` (`values.ts`) reads a date as `readDate` does, then a `T`,
   whitespace, or `, ` + whitespace (what `Intl` writes under `en-US`), then a time as `readTime` does,
   so the grammar is the date and time grammars, not a third copy. It converts to `YYYY-MM-DDTHH:mm:ss`,
-  the shape the editor writes back. A `Z`, an offset, and milliseconds are unread: the validator rejects
-  the first two, the grid reads local time, and the stored shape has no milliseconds. Three rules.
+  the shape the editor writes back. A `Z` and an offset are unread, because the validator rejects them
+  and the grid reads local time. Milliseconds are unread too, although the validator accepts them: the
+  converted shape has none, and a written value keeps its text rather than lose a part. A `Date` is the
+  exception and drops its milliseconds, or a column of `Date.now()` values would never read. Three rules.
   (1) **The reader also reads a date without a time, as midnight**, because `isValidISODateTime` accepts
   one, so a column of dates with a few date-times settles by share (19 dates and 1 date-time is
   `intl-datetime` at 1.0, ahead of `date` at 0.95). (2) **`detectDateTime` returns `null` when no value
-  carries a time**, so a column of dates never meets it, and `runnerUpType` of a date column stays `text`.
+  carries a time**, checked on the split parts before anything is read, so a column of dates never meets
+  it, and `runnerUpType` of a date column stays `text`.
   The `DETECTORS` order (after `date`) would keep `date` on a tie anyway, but the `null` is what keeps the
   stats clean. (3) **The day/month vote runs on the DATE PART** (`splitDateTime`), because
-  `splitYearLastDate('12/03/2026 14:30')` is `null`. The `dateTimeFormat` options follow the shape the
-  XLSX import uses (Intl keys, with `hour12` stated whenever `hour` is set).
+  `splitYearLastDate('12/03/2026 14:30')` is `null`, and only for a value whose time part reads: a junk
+  `31/12/2026 xx` must not settle the order of the values that do read. Each value is split once
+  (`readSplitDateTime`), as for numbers. The `dateTimeFormat` options use the Intl keys the XLSX import
+  derives for `intl-datetime` (with `hour12` stated whenever `hour` is set), but on develop the XLSX import
+  still types a date-time cell as `date`, so the same data can come back as two types until #13634 lands.
 - **A `Date` is always `intl-datetime`, and it converts to its LOCAL wall clock.** It is the one output
   that reads the host: the grid parses an `intl-datetime` value as local time, so the local getters are
   the only reading that shows the same instant. The TYPE never depends on the time zone: a `Date` at
-  local midnight is not a `date`, or the inferred type would change with the host. A `Date` casts no
-  vote on the format (its text says nothing about how the column is written), drops its milliseconds,
-  and is left out of `stats.min`/`max`. The tests build `Date`s with the local constructor, so they pass
-  in any time zone; run them under another `TZ` after a change here.
+  local midnight is not a `date`, or the inferred type would change with the host. For the same reason
+  the four-digit-year bound is checked on the instant (one day inside years 1000 to 9999 in UTC), never
+  on `getFullYear()`. A `Date` casts no vote on the format (its text says nothing about how the column
+  is written); a column of `Date`s only gets seconds when one has any, read with `getUTCSeconds()`. It
+  drops its milliseconds and is left out of `stats.min`/`max`. CI runs in UTC, where local and UTC
+  getters agree, so a `Date` subclass with its own local getters pins them (`LocalClock` in the tests).
 - **A percent column divides by moving the exponent** (`'7.25' + 'e-2'`), not by `/ 100`, which keeps
   `7.25%` exactly `0.0725`.
 - **The currency table is shared** with `../../plugins/importFile/inference.ts` through

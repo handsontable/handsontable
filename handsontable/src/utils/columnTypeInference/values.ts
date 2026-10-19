@@ -174,6 +174,11 @@ export interface DateTimeReading {
    */
   hasTime: boolean;
   /**
+   * Whether a `Date` has a nonzero second, read in UTC so it does not depend on the host's time zone.
+   * Always `false` for a string, whose seconds are in `written`.
+   */
+  hasDateSeconds: boolean;
+  /**
    * The written form of a string value, which the column's format follows, or `null` for a `Date`,
    * whose text says nothing about how the column is written.
    */
@@ -520,10 +525,35 @@ export function readDate(value: unknown, order: 'DMY' | 'MDY'): DateReading | nu
 }
 
 /**
+ * A string value split into its date part and its time part.
+ */
+export interface DateTimeParts {
+  /**
+   * The date part, or the whole trimmed value when it has no time part.
+   */
+  date: string;
+  /**
+   * The time part, or `null` when there is none.
+   */
+  time: string | null;
+}
+
+/**
+ * The first instant a `Date` may hold to be read: one day past the start of year 1000 in UTC, so its
+ * local year is at least 1000 in every time zone, as `isValidISODateTime` requires four digits.
+ */
+const MIN_DATE_TIME = Date.UTC(1000, 0, 2);
+
+/**
+ * The last instant a `Date` may hold to be read, one day before the end of year 9999 in UTC.
+ */
+const MAX_DATE_TIME = Date.UTC(9999, 11, 30);
+
+/**
  * Splits a date-time string into its date part and its time part. A value with no time part comes
  * back whole as the date part, with a `null` time.
  */
-export function splitDateTime(value: unknown): { date: string; time: string | null } | null {
+export function splitDateTime(value: unknown): DateTimeParts | null {
   if (typeof value !== 'string') {
     return null;
   }
@@ -543,40 +573,61 @@ function padTwo(part: number): string {
 
 /**
  * Reads a `Date` by its local wall clock, which is how the grid reads an `intl-datetime` value. The
- * milliseconds are dropped, since the stored shape has none. Returns `null` for an invalid `Date`.
+ * milliseconds are dropped, since the stored shape has none. Returns `null` for an invalid `Date`, and
+ * for one whose year cannot be written with four digits. That bound is checked on the instant, not on
+ * the local year, so whether a `Date` is read never depends on the host's time zone.
  */
 function readDateObject(value: Date): DateTimeReading | null {
-  if (Number.isNaN(value.getTime())) {
+  const time = value.getTime();
+
+  if (Number.isNaN(time) || time < MIN_DATE_TIME || time > MAX_DATE_TIME) {
     return null;
   }
 
   const date = `${value.getFullYear()}-${padTwo(value.getMonth() + 1)}-${padTwo(value.getDate())}`;
-  const time = `${padTwo(value.getHours())}:${padTwo(value.getMinutes())}:${padTwo(value.getSeconds())}`;
+  const clock = `${padTwo(value.getHours())}:${padTwo(value.getMinutes())}:${padTwo(value.getSeconds())}`;
 
-  return { iso: `${date}T${time}`, hasTime: true, written: null };
+  return { iso: `${date}T${clock}`, hasTime: true, hasDateSeconds: value.getUTCSeconds() !== 0, written: null };
 }
 
 /**
  * Reads a value as a date-time: a date as `readDate()` reads it, optionally followed by a time as
- * `readTime()` reads it, or a valid `Date`. Returns `null` for anything else, including a time zone or
- * an offset (`Z`, `+02:00`) and milliseconds, which the stored shape cannot hold.
+ * `readTime()` reads it, or a valid `Date`. Returns `null` for anything else. A time zone or an offset
+ * (`Z`, `+02:00`) is unread, because the grid reads local time. Milliseconds are unread too: the value
+ * is converted to `YYYY-MM-DDTHH:mm:ss`, and a written value keeps its text rather than lose a part.
  */
 export function readDateTime(value: unknown, order: 'DMY' | 'MDY'): DateTimeReading | null {
+  return readSplitDateTime(value, splitDateTime(value), order);
+}
+
+/**
+ * `readDateTime()` for a value whose string form was already split, so a detector that reads every
+ * value splits each one once.
+ */
+export function readSplitDateTime(
+  value: unknown,
+  parts: DateTimeParts | null,
+  order: 'DMY' | 'MDY'
+): DateTimeReading | null {
   if (value instanceof Date) {
     return readDateObject(value);
   }
 
-  const parts = splitDateTime(value);
-  const date = parts ? readDate(parts.date, order) : null;
-  const time = parts?.time ? readTime(parts.time) : null;
+  if (parts === null) {
+    return null;
+  }
 
-  if (!date || (parts?.time && !time)) {
+  const date = readDate(parts.date, order);
+  const time = parts.time === null ? null : readTime(parts.time);
+
+  if (date === null || (parts.time !== null && time === null)) {
     return null;
   }
 
   return {
     iso: `${date.iso}T${time?.value ?? '00:00:00'}`,
     hasTime: time !== null,
+    hasDateSeconds: false,
     written: {
       paddedMonth: date.paddedMonth,
       paddedDay: date.paddedDay,
