@@ -9,6 +9,8 @@ import { HiddenColumns } from '../../../plugins/hiddenColumns';
 import { TrimRows } from '../../../plugins/trimRows';
 import { Pagination } from '../../../plugins/pagination';
 import { UndoRedo } from '../../../plugins/undoRedo';
+import { NestedRows } from '../../../plugins/nestedRows';
+import { MultiColumnSorting } from '../../../plugins/multiColumnSorting';
 import { DropdownMenu } from '../../../plugins/dropdownMenu';
 import { AutoColumnSize } from '../../../plugins/autoColumnSize';
 import { registerCellType, CheckboxCellType } from '../../../cellTypes';
@@ -43,6 +45,8 @@ describe('Core#getViewState and Core#setViewState', () => {
     registerPlugin(TrimRows);
     registerPlugin(Pagination);
     registerPlugin(UndoRedo);
+    registerPlugin(NestedRows);
+    registerPlugin(MultiColumnSorting);
     registerPlugin(AutoColumnSize);
     registerPlugin(DropdownMenu);
     registerCellType(CheckboxCellType);
@@ -212,13 +216,15 @@ describe('Core#getViewState and Core#setViewState', () => {
     });
 
     it('restores the frozen rows and columns', () => {
-      const source = createGrid({ fixedRowsTop: 1, fixedColumnsStart: 2 });
+      const source = createGrid({ fixedRowsTop: 1, fixedRowsBottom: 2, fixedColumnsStart: 2, fixedColumnsEnd: 1 });
       const target = createGrid();
 
       target.setViewState(throughJson(source.getViewState()));
 
       expect(target.getSettings().fixedRowsTop).toBe(1);
+      expect(target.getSettings().fixedRowsBottom).toBe(2);
       expect(target.getSettings().fixedColumnsStart).toBe(2);
+      expect(target.getSettings().fixedColumnsEnd).toBe(1);
       expect(target.view.countFixedColumnsStart()).toBe(2);
     });
 
@@ -409,6 +415,218 @@ describe('Core#getViewState and Core#setViewState', () => {
 
       expect(hot.getSourceDataAtCell(0, 0)).toBe('0-0');
       expect(hot.getPlugin('hiddenColumns').getHiddenColumns()).toEqual([3]);
+    });
+  });
+
+  describe('physical indexes', () => {
+    it('keeps the hidden indexes and sizes on their records when the grids order them differently', () => {
+      const source = createGrid(ALL_PLUGINS);
+      const target = createGrid(ALL_PLUGINS);
+
+      source.rowIndexMapper.setIndexesSequence([5, 4, 3, 2, 1, 0]);
+      source.columnIndexMapper.setIndexesSequence([3, 2, 1, 0]);
+      source.getPlugin('hiddenRows').hideRow(0); // physical row 5
+      source.getPlugin('hiddenColumns').hideColumn(0); // physical column 3
+      source.getPlugin('manualColumnResize').setManualSize(1, 175); // physical column 2
+
+      const state = throughJson(source.getViewState());
+
+      expect(state.hiddenRows).toEqual([5]);
+      expect(state.hiddenColumns).toEqual([3]);
+      expect(state.columnWidths).toEqual([[2, 175]]);
+
+      // The target keeps its own order: the parts must land on the same records, not positions.
+      const { columnOrder, rowOrder, ...rest } = state;
+
+      target.setViewState(rest);
+
+      expect(target.getPlugin('hiddenRows').getHiddenRows()).toEqual([5]);
+      expect(target.getPlugin('hiddenColumns').getHiddenColumns()).toEqual([3]);
+      expect(target.getColWidth(2)).toBe(175);
+    });
+  });
+
+  describe('hidden rows on a trimmed grid', () => {
+    it('shows a hidden row again even while a filter trims another hidden row', () => {
+      const hot = createGrid(ALL_PLUGINS);
+      const filters = hot.getPlugin('filters');
+
+      hot.getPlugin('hiddenRows').hideRows([1, 4]);
+      filters.addCondition(0, 'neq', ['4-0']);
+      filters.filter();
+
+      const { skipped } = hot.setViewState({ version: 1, hiddenRows: [] });
+
+      expect(skipped).toEqual([]);
+      expect(hot.getPlugin('hiddenRows').getHiddenRows()).toEqual([]);
+
+      filters.clearConditions();
+      filters.filter();
+
+      expect(hot.getPlugin('hiddenRows').getHiddenRows()).toEqual([]);
+    });
+
+    it('hides a row a filter trims now, so it stays hidden once the filter lifts', () => {
+      const hot = createGrid(ALL_PLUGINS);
+      const filters = hot.getPlugin('filters');
+
+      filters.addCondition(0, 'neq', ['4-0']);
+      filters.filter();
+      hot.setViewState({ version: 1, hiddenRows: [2, 4] });
+      filters.clearConditions();
+      filters.filter();
+
+      expect(hot.getPlugin('hiddenRows').getHiddenRows()).toEqual([2, 4]);
+    });
+  });
+
+  describe('collapsed nested rows', () => {
+    /**
+     * Builds a two-branch tree: parents at physical 0 and 3, two children each.
+     */
+    function createTree() {
+      return [
+        { name: 'A', __children: [{ name: 'A1' }, { name: 'A2' }] },
+        { name: 'B', __children: [{ name: 'B1' }, { name: 'B2' }] },
+      ];
+    }
+
+    it('round-trips the collapsed parents', () => {
+      const source = createGrid({ data: createTree(), nestedRows: true, rowHeaders: true });
+      const target = createGrid({ data: createTree(), nestedRows: true, rowHeaders: true });
+
+      source.getPlugin('nestedRows').collapsingUI.collapseChildren(3);
+
+      const state = throughJson(source.getViewState());
+
+      expect(state.collapsedRows).toEqual([[1]]);
+      expect(target.setViewState(state).skipped).toEqual([]);
+      expect(target.getPlugin('nestedRows').getCollapsedParents()).toEqual([3]);
+      expect(target.countRows()).toBe(4);
+    });
+
+    it('replaces the collapsed parents rather than adding to them', () => {
+      const hot = createGrid({ data: createTree(), nestedRows: true, rowHeaders: true });
+
+      hot.getPlugin('nestedRows').collapsingUI.collapseChildren(0);
+      hot.setViewState({ version: 1, collapsedRows: [[1]] });
+
+      expect(hot.getPlugin('nestedRows').getCollapsedParents()).toEqual([3]);
+    });
+  });
+
+  describe('a grid with an external data source', () => {
+    it('leaves out and skips the sort, the filters, and the page', () => {
+      const hot = createGrid({ ...ALL_PLUGINS, pagination: true });
+
+      hot.addHook('hasExternalDataSource', () => true);
+
+      const state = hot.getViewState();
+
+      expect(Object.keys(state)).not.toContain('sort');
+      expect(Object.keys(state)).not.toContain('filters');
+      expect(Object.keys(state)).not.toContain('pagination');
+
+      const { skipped } = hot.setViewState({
+        version: 1,
+        sort: { columns: [{ column: 0, sortOrder: 'desc' }] },
+        filters: [],
+        pagination: { page: 1, pageSize: 2 },
+        hiddenColumns: [1],
+      });
+
+      expect(skipped).toEqual([
+        { part: 'sort', reason: 'externalDataSource' },
+        { part: 'filters', reason: 'externalDataSource' },
+        { part: 'pagination', reason: 'externalDataSource' },
+      ]);
+      expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([]);
+      expect(hot.getPlugin('hiddenColumns').getHiddenColumns()).toEqual([1]);
+    });
+  });
+
+  describe('setViewState() validation', () => {
+    const selectionOf = overrides => ({
+      ranges: [{ from: [0, 0], to: [0, 0], highlight: [0, 0] }],
+      activeLayer: 0,
+      selectedByRowHeader: [],
+      selectedByColumnHeader: [],
+      rowExtentSpansGrid: [],
+      columnExtentSpansGrid: [],
+      disableHeadersHighlight: false,
+      ...overrides,
+    });
+
+    it.each([
+      ['rowOrder', [0, 0, 1, 2, 3, 4]],
+      ['rowOrder', [0, 1, 2, 3, 4, 99]],
+      ['rowOrder', [-1, 1, 2, 3, 4, 5]],
+      ['columnOrder', [0, 1, 1, 2]],
+      ['hiddenRows', [-1]],
+      ['hiddenColumns', [1.5]],
+      ['trimmedRows', [-1]],
+      ['columnWidths', [[0, 0]]],
+      ['columnWidths', [[-1, 50]]],
+      ['rowHeights', [[0]]],
+      ['frozen', { rowsTop: -1, rowsBottom: 0, columnsStart: 0, columnsEnd: 0 }],
+      ['frozen', { rowsTop: 1, rowsBottom: 0, columnsStart: 0 }],
+      ['pagination', { page: 0, pageSize: 10 }],
+      ['pagination', { page: 1, pageSize: 'all' }],
+      ['scroll', { row: -1, col: 0 }],
+      ['selection', selectionOf({ activeLayer: 1 })],
+      ['selection', selectionOf({ ranges: [{ from: [0, 0], to: [0, 0] }] })],
+      ['selection', selectionOf({ selectedByRowHeader: [-1] })],
+      ['selection', selectionOf({ disableHeadersHighlight: 'no' })],
+      ['sort', { columns: [{ column: 9, sortOrder: 'asc' }] }],
+      ['sort', { columns: [{ column: -1, sortOrder: 'asc' }] }],
+      ['sort', { columns: [{ column: 0, sortOrder: 'none' }] }],
+      ['sort', { columns: [{ column: 0, sortOrder: 'asc' }, { column: 1, sortOrder: 'desc' }] }],
+      ['filters', [{ column: 0, operation: 'and', conditions: [{ name: 'eq', args: ['0-0'] }] }]],
+      ['filters', [{ column: 0, operation: 'conjunction', conditions: [{ name: 'nope', args: [] }] }]],
+      ['filters', [{ column: 9, operation: 'conjunction', conditions: [{ name: 'eq', args: ['x'] }] }]],
+      ['filters', [
+        { column: 0, operation: 'conjunction', conditions: [{ name: 'eq', args: ['0-0'] }] },
+        { column: 0, operation: 'disjunction', conditions: [{ name: 'eq', args: ['1-0'] }] },
+      ]],
+      ['filters', [{ column: 0, operation: 'conjunction', conditions: [{ name: 'eq', args: 'x' }] }]],
+      ['collapsedRows', [[-1]]],
+    ])('reports a malformed %s as invalid, applies nothing for it, and does not throw', (part, value) => {
+      const hot = createGrid({ ...ALL_PLUGINS, pagination: true, nestedRows: false });
+
+      hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+
+      const before = hot.getViewState();
+      const { skipped } = hot.setViewState({ version: 1, [part]: value });
+
+      expect(skipped).toEqual([{ part, reason: part === 'collapsedRows' ? 'pluginDisabled' : 'invalid' }]);
+      expect(hot.getViewState()).toEqual(before);
+    });
+
+    it('accepts several sort columns when MultiColumnSorting is on', () => {
+      const hot = createGrid({ multiColumnSorting: true });
+      const columns = [{ column: 1, sortOrder: 'desc' }, { column: 0, sortOrder: 'asc' }];
+
+      expect(hot.setViewState({ version: 1, sort: { columns } }).skipped).toEqual([]);
+      expect(hot.getPlugin('multiColumnSorting').getSortConfig()).toEqual(columns);
+    });
+
+    it('keeps the current filter when the stored one cannot be imported', () => {
+      const hot = createGrid(ALL_PLUGINS);
+      const filters = hot.getPlugin('filters');
+
+      filters.addCondition(0, 'eq', ['2-0']);
+      filters.filter();
+
+      const { skipped } = hot.setViewState({
+        version: 1,
+        filters: [{ column: 0, operation: 'conjunction', conditions: [{ name: 'custom-gone', args: [] }] }],
+      });
+
+      expect(skipped).toEqual([{ part: 'filters', reason: 'invalid' }]);
+      expect(filters.exportConditions()).toEqual([
+        { column: 0, operation: 'conjunction', conditions: [{ name: 'eq', args: ['2-0'] }] },
+      ]);
+      expect(hot.getData()).toEqual([['2-0', '2-1', '2-2', '2-3']]);
     });
   });
 });

@@ -1,10 +1,11 @@
 import type { HotInstance } from '../types';
-import type { ColumnSortingConfig } from '../../plugins/columnSorting';
 import type { ColumnConditions } from '../../plugins/filters/filters';
 import type { SelectionState } from '../../selection/types';
 import type CellCoords from '../../3rdparty/walkontable/src/cell/coords';
 import type CellRange from '../../3rdparty/walkontable/src/cell/range';
 import { isPlainObject } from '../../helpers/object';
+import { conditions as registeredConditions } from '../../plugins/filters/conditionRegisterer';
+import { operations as registeredOperations } from '../../plugins/filters/logicalOperationRegisterer';
 import { warn } from '../../helpers/console';
 import {
   captureViewState,
@@ -50,6 +51,14 @@ export interface GridViewStateSelection {
 }
 
 /**
+ * One sorted column of a {@link GridViewState}: its visual index and its order.
+ */
+export interface GridViewStateSortColumn {
+  column: number;
+  sortOrder: 'asc' | 'desc';
+}
+
+/**
  * A JSON-serializable snapshot of the grid's view. Every part is optional: a part left out is
  * left as it is on restore. Unless noted, indexes are physical, so a part keeps addressing the
  * same records whatever the row and column order.
@@ -68,11 +77,10 @@ export interface GridViewState {
   rowOrder?: number[];
 
   /**
-   * The sort configuration (visual columns), and the row order the rows had before the sort.
+   * The sort configuration. Each entry names a visual column and its order.
    */
   sort?: {
-    columns: ColumnSortingConfig[],
-    unsortedRowOrder?: number[],
+    columns: GridViewStateSortColumn[],
   };
 
   /**
@@ -218,11 +226,26 @@ function isIntegerArray(value: unknown): value is number[] {
 }
 
 /**
- * Whether a value is an array of `[index, size]` pairs.
+ * Whether a value is an array of indexes: integers that are not negative.
+ */
+function isIndexList(value: unknown): value is number[] {
+  return isIntegerArray(value) && value.every(index => index >= 0);
+}
+
+/**
+ * Whether a list of indexes names each of `0` to `length - 1` exactly once.
+ */
+function isPermutation(indexes: number[], length: number): boolean {
+  return new Set(indexes).size === length && indexes.every(index => index < length);
+}
+
+/**
+ * Whether a value is an array of `[index, size]` pairs with a positive size.
  */
 function isSizePairs(value: unknown): value is Array<[number, number]> {
   return Array.isArray(value) &&
-    value.every(pair => Array.isArray(pair) && pair.length === 2 && isInteger(pair[0]) && Number.isFinite(pair[1]));
+    value.every(pair => Array.isArray(pair) && pair.length === 2 && isInteger(pair[0]) && pair[0] >= 0 &&
+      Number.isFinite(pair[1]) && pair[1] > 0);
 }
 
 /**
@@ -277,10 +300,10 @@ function isSelection(value: unknown): value is GridViewStateSelection {
     ranges.every(range => isPlainObject(range) &&
       isCoords(range.from) && isCoords(range.to) && isCoords(range.highlight)) &&
     isInteger(selection.activeLayer) && selection.activeLayer >= 0 && selection.activeLayer < ranges.length &&
-    isIntegerArray(selection.selectedByRowHeader) &&
-    isIntegerArray(selection.selectedByColumnHeader) &&
-    isIntegerArray(selection.rowExtentSpansGrid) &&
-    isIntegerArray(selection.columnExtentSpansGrid) &&
+    isIndexList(selection.selectedByRowHeader) &&
+    isIndexList(selection.selectedByColumnHeader) &&
+    isIndexList(selection.rowExtentSpansGrid) &&
+    isIndexList(selection.columnExtentSpansGrid) &&
     typeof selection.disableHeadersHighlight === 'boolean';
 }
 
@@ -320,8 +343,7 @@ function readPart(hot: HotInstance, state: ViewState, part: GridViewStatePart): 
     case 'columnOrder': return state.columnSequence;
     case 'rowOrder': return state.rowSequence;
     case 'sort': return {
-      columns: (state.sortConfig as ColumnSortingConfig[] | undefined) ?? [],
-      unsortedRowOrder: state.unsortedRowSequence,
+      columns: (state.sortConfig as GridViewStateSortColumn[] | undefined) ?? [],
     };
     case 'filters': return state.filterConditions ?? [];
     case 'hiddenRows': return state.hiddenRows;
@@ -364,79 +386,145 @@ const SIZE_FIELDS = {
 } as const;
 
 /**
- * Whether a value has the shape of one entry of `Filters#exportConditions()`.
+ * Whether a value is one entry of `Filters#exportConditions()` the Filters plugin can import: a
+ * physical column of this grid, and an operation and conditions registered on this page. A
+ * condition registered on the page the state was saved on may be missing here, and the import
+ * throws on an unknown name.
  */
-function isColumnConditions(value: unknown): value is ColumnConditions {
+function isColumnConditions(value: unknown, columnCount: number): value is ColumnConditions {
   if (!isPlainObject(value)) {
     return false;
   }
 
   const entry = value as Record<string, unknown>;
 
-  return isInteger(entry.column) && typeof entry.operation === 'string' &&
+  return isInteger(entry.column) && entry.column >= 0 && entry.column < columnCount &&
+    typeof entry.operation === 'string' && Object.hasOwn(registeredOperations, entry.operation) &&
     Array.isArray(entry.conditions) &&
     entry.conditions.every(condition => isPlainObject(condition) &&
-      typeof condition.name === 'string' && Array.isArray(condition.args));
+      typeof condition.name === 'string' && Object.hasOwn(registeredConditions, condition.name) &&
+      Array.isArray(condition.args));
 }
 
 /**
- * Whether a value has the shape of one sort configuration entry.
+ * Whether a value is a list of filter entries the Filters plugin can import. Two entries for one
+ * column are rejected: the plugin throws when they name different operations.
  */
-function isSortEntry(value: unknown): value is ColumnSortingConfig {
-  return isPlainObject(value) && isInteger((value as Record<string, unknown>).column) &&
-    ['asc', 'desc'].includes((value as Record<string, unknown>).sortOrder as string);
+function isFilterList(hot: HotInstance, value: unknown): value is ColumnConditions[] {
+  const columnCount = hot.columnIndexMapper.getNumberOfIndexes();
+
+  return Array.isArray(value) &&
+    value.every(entry => isColumnConditions(entry, columnCount)) &&
+    new Set(value.map(entry => (entry as ColumnConditions).column)).size === value.length;
 }
 
 /**
- * Writes one part of a public state into a captured view state. Returns `false` when the value
- * does not have the part's shape.
+ * Whether a value is a sort configuration the enabled sorting plugin accepts: visual columns of
+ * this grid, each once, and at most one of them unless `MultiColumnSorting` is on. The restore
+ * clears the current sort before the plugin checks the configuration, so a rejected one would
+ * leave the grid unsorted.
  */
-function writePart(hot: HotInstance, state: ViewState, part: GridViewStatePart, value: unknown): boolean {
+function isSortConfig(hot: HotInstance, value: unknown): value is GridViewStateSortColumn[] {
+  const columnCount = hot.countCols();
+  const maxColumns = getEnabledPlugin(hot, 'multiColumnSorting') ? columnCount : 1;
+
+  return Array.isArray(value) && value.length <= maxColumns &&
+    value.every(entry => isPlainObject(entry) &&
+      isInteger(entry.column) && entry.column >= 0 && entry.column < columnCount &&
+      (entry.sortOrder === 'asc' || entry.sortOrder === 'desc')) &&
+    new Set(value.map(entry => (entry as GridViewStateSortColumn).column)).size === value.length;
+}
+
+/**
+ * Writes one part of a public state into a captured view state. Returns why the part cannot be
+ * applied, or `null` when it was written.
+ */
+function writePart(
+  hot: HotInstance,
+  state: ViewState,
+  part: GridViewStatePart,
+  value: unknown,
+): GridViewStateSkipReason | null {
+  if (part === 'columnOrder' || part === 'rowOrder') {
+    return writeOrder(hot, state, part, value);
+  }
+
   if (part in INDEX_LIST_FIELDS) {
-    if (!isIntegerArray(value)) {
-      return false;
+    if (!isIndexList(value)) {
+      return 'invalid';
     }
 
     state[INDEX_LIST_FIELDS[part as keyof typeof INDEX_LIST_FIELDS]] = value.slice();
 
-    return true;
+    return null;
   }
 
   if (part in SIZE_FIELDS) {
     if (!isSizePairs(value)) {
-      return false;
+      return 'invalid';
     }
 
     state[SIZE_FIELDS[part as keyof typeof SIZE_FIELDS]] = value.map(([index, size]) => [index, size]);
 
-    return true;
+    return null;
   }
 
   if (part === 'collapsedRows') {
-    if (!Array.isArray(value) || !value.every(isIntegerArray)) {
-      return false;
+    if (!Array.isArray(value) || !value.every(isIndexList)) {
+      return 'invalid';
     }
 
     state.collapsedParents = value.map(path => path.slice());
 
-    return true;
+    return null;
   }
 
   if (part === 'filters') {
-    if (!Array.isArray(value) || !value.every(isColumnConditions)) {
-      return false;
+    if (!isFilterList(hot, value)) {
+      return 'invalid';
     }
 
     state.filterConditions = toPlainData(value);
 
-    return true;
+    return null;
   }
 
-  return writeObjectPart(hot, state, part, value);
+  return writeObjectPart(hot, state, part, value) ? null : 'invalid';
 }
 
 /**
- * Writes the parts whose value is an object, see {@link writePart}.
+ * Writes a row or column order. It must name every physical index of the axis exactly once: an
+ * index named twice would show one record in two places, and an index past the end would show
+ * nothing. An order of another length was captured on other data.
+ */
+function writeOrder(
+  hot: HotInstance,
+  state: ViewState,
+  part: 'columnOrder' | 'rowOrder',
+  value: unknown,
+): GridViewStateSkipReason | null {
+  const mapper = part === 'columnOrder' ? hot.columnIndexMapper : hot.rowIndexMapper;
+
+  if (!isIndexList(value)) {
+    return 'invalid';
+  }
+
+  if (value.length !== mapper.getNumberOfIndexes()) {
+    return 'sizeMismatch';
+  }
+
+  if (!isPermutation(value, value.length)) {
+    return 'invalid';
+  }
+
+  state[INDEX_LIST_FIELDS[part]] = value.slice();
+
+  return null;
+}
+
+/**
+ * Writes the parts whose value is an object, see {@link writePart}. Returns `false` when the value
+ * does not have the part's shape.
  */
 function writeObjectPart(hot: HotInstance, state: ViewState, part: GridViewStatePart, value: unknown): boolean {
   if (part === 'selection' && value === null) {
@@ -454,15 +542,14 @@ function writeObjectPart(hot: HotInstance, state: ViewState, part: GridViewState
 
   switch (part) {
     case 'sort':
-      if (!Array.isArray(record.columns) || !record.columns.every(isSortEntry) ||
-          (record.unsortedRowOrder !== undefined && !isIntegerArray(record.unsortedRowOrder))) {
+      if (!isSortConfig(hot, record.columns)) {
         return false;
       }
 
       state.sortConfig = toPlainData(record.columns);
-      // Without the pre-sort order the rows are sorted from the order they have now.
-      state.unsortedRowSequence = (record.unsortedRowOrder as number[] | undefined)?.slice() ??
-        hot.rowIndexMapper.getIndexesSequence().slice();
+      // The sorting plugin sorts from the pre-sort order it caches on its first sort, built from the
+      // rows' order at that moment, so a grid that has not sorted yet starts from the order shown now.
+      state.unsortedRowSequence = hot.rowIndexMapper.getIndexesSequence().slice();
 
       return true;
     case 'frozen':
@@ -568,10 +655,14 @@ export function setGridViewState(hot: HotInstance, state: GridViewState): GridVi
 
     if (unavailability !== null) {
       skipped.push({ part, reason: unavailability });
-    } else if (!writePart(hot, internal, part, state[part])) {
-      skipped.push({ part, reason: 'invalid' });
     } else {
-      parts.add(part);
+      const writeFailure = writePart(hot, internal, part, state[part]);
+
+      if (writeFailure === null) {
+        parts.add(part);
+      } else {
+        skipped.push({ part, reason: writeFailure });
+      }
     }
   });
 

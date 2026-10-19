@@ -37,10 +37,31 @@ and scroll. Two callers share it:
   `skipped`. Another `version` applies nothing and warns. A new part needs a validator in
   `writePart()`: a state may come from an LLM or a URL, and a malformed value must not reach a
   plugin API that throws.
+- **Validate against the grid, not only the shape.** A value that passes a type check can still
+  break a plugin: the Filters import throws on an operation or condition name that is not registered
+  on the page (`registeredOperations`/`registeredConditions`) and on two entries for one column with
+  different operations, after it has already emptied the live conditions; a sort the plugin rejects
+  (a column past `countCols()`, a duplicate, more than one column without MultiColumnSorting) leaves
+  the grid unsorted, because the restore clears the sort first; and `setIndexesSequence()` stores any
+  array, so a row order that is not a permutation of `0..n-1` shows one record twice and hides
+  another. `writePart()` rejects all of those as `invalid` before anything is applied, and
+  `writeOrder()` reports another length as `sizeMismatch`. The `it.each` table in
+  `gridViewState.unit.js` holds one case per rule.
+- **The public sort carries no pre-sort order.** The sorting plugin builds its pre-sort cache on its
+  first sort and keeps it until it is disabled, so an order handed to it later is overwritten on a
+  grid that has sorted before. The restore hands it the current order, and `rowOrder` restores the
+  exact sequence when the state carries it.
 - **The restore records no undo step, and keeps the earlier ones.** Unlike a sheet switch there is
   no `loadData()` to empty the stacks, so a later undo of an older sort or filter step acts on the
-  restored view. That is documented on the method; recording the restore as one step is a possible
+  restored view. `Core#setViewState`'s JSDoc says so; recording the restore as one step is a possible
   follow-up.
+- **A hidden row without a visual index is written to the hiding map directly.** `HiddenRows`
+  rejects a whole `showRows()`/`hideRows()` list when one row in it has no visual index, which is the
+  case for every row a filter, TrimRows, or a collapsed NestedRows parent trims. `restoreHiddenRows()`
+  therefore sends the rows that have one through the plugin (so the hiding hooks fire) and sets the
+  others in the plugin's hiding map. Before, a live-grid restore could not show a trimmed hidden
+  row, and a row the state hid while it was trimmed came back visible once the trim lifted (the same
+  held for a sheet switch whose arriving sheet filters a hidden row out).
 - **The NestedRows collapse is replaced, not merged.** `restoreCollapsedParents()` expands every
   parent collapsed now before it collapses the stored ones. On a sheet switch nothing is collapsed
   by then (`loadData()` drops it), so that step is a no-op there.

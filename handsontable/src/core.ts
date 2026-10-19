@@ -8117,10 +8117,22 @@ export default function Core(
    * disabled (`pluginDisabled`), when the grid loads its rows through `dataProvider`
    * (`externalDataSource`), when a stored row or column order no longer matches the number of rows
    * or columns (`sizeMismatch`), when the selection does not fit the grid (`outOfRange`), or when
-   * the value has the wrong shape (`invalid`). An object with another `version` is not applied
-   * at all (`unsupportedVersion`).
+   * the value has the wrong shape (`invalid`): for example a row order that does not name every
+   * row exactly once, a sort column past the last column, more than one sort column without
+   * `MultiColumnSorting`, or a filter condition that is not registered on the page. An object with
+   * another `version` is not applied at all (`unsupportedVersion`).
    *
-   * The restore is not recorded by the [`UndoRedo`](@/api/undoRedo.md) plugin.
+   * The selection, the scroll position, the frozen counts, and the sort columns are visual: they
+   * are read against the row and column order in force after the restore. Every other index is
+   * physical.
+   *
+   * Restoring the filters moves a selected cell to the first row of its column, as any filtering
+   * does, and restoring the page drops a selection the new page does not show. Include `selection`
+   * in the state to control the selection either way.
+   *
+   * The restore is not recorded by the [`UndoRedo`](@/api/undoRedo.md) plugin. The undo steps
+   * recorded before it stay available, so an undo after a restore reverts an earlier action,
+   * which may then apply to the restored view.
    *
    * ```js
    * const { skipped } = hot.setViewState(JSON.parse(localStorage.getItem('my-view')));

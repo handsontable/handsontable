@@ -591,20 +591,61 @@ function restoreTrimmedState(hot: HotInstance, state: ViewState) {
 }
 
 /**
+ * Replaces the hidden rows with a set of physical rows. The rows that have a visual index go
+ * through the plugin's `showRows()`/`hideRows()`, which run the hiding hooks. A row a filter,
+ * TrimRows, or a collapsed NestedRows parent trims has none: the plugin rejects the whole list
+ * when it holds one, so such a row is written straight into the plugin's hiding map instead.
+ * Without that, a trimmed hidden row could never be shown again, and a row the state hides while
+ * it is trimmed would come back visible once the trim lifts.
+ */
+function restoreHiddenRows(
+  hot: HotInstance,
+  plugin: { pluginName: string, showRows: (rows: number[]) => void, hideRows: (rows: number[]) => void },
+  physicalRows: number[],
+) {
+  const hidingMap = hot.rowIndexMapper.hidingMapsCollection.get(plugin.pluginName) as {
+    getHiddenIndexes: () => number[],
+    setValueAtIndex: (index: number, value: boolean) => boolean,
+  } | undefined;
+  const rowCount = hot.rowIndexMapper.getNumberOfIndexes();
+  const apply = (rows: number[], isHidden: boolean) => {
+    const visualRows: number[] = [];
+
+    rows.forEach((physicalRow) => {
+      const visualRow = hot.toVisualRow(physicalRow);
+
+      if (visualRow !== null) {
+        visualRows.push(visualRow);
+      } else if (physicalRow < rowCount) {
+        hidingMap?.setValueAtIndex(physicalRow, isHidden);
+      }
+    });
+
+    if (isHidden) {
+      plugin.hideRows(visualRows);
+    } else {
+      plugin.showRows(visualRows);
+    }
+  };
+
+  apply(hidingMap?.getHiddenIndexes() ?? [], false);
+  apply(physicalRows, true);
+}
+
+/**
  * Restores the hidden index sets, clearing whatever the previously active sheet left behind
  * first. Runs after trimming and filters, since it addresses rows by their visual index.
  */
 function restoreHiddenState(hot: HotInstance, state: ViewState, covers: PartFilter = () => true) {
   const hiddenRowsPlugin = covers('hiddenRows') ? getEnabledPlugin(hot, 'hiddenRows') as
-    { getHiddenRows: () => number[], showRows: (rows: number[]) => void, hideRows: (rows: number[]) => void }
+    { pluginName: string, showRows: (rows: number[]) => void, hideRows: (rows: number[]) => void }
     | undefined : undefined;
   const hiddenColumnsPlugin = covers('hiddenColumns') ? getEnabledPlugin(hot, 'hiddenColumns') as unknown as
     { getHiddenColumns: () => number[], showColumns: (cols: number[]) => void, hideColumns: (cols: number[]) => void }
     | undefined : undefined;
 
   if (hiddenRowsPlugin) {
-    hiddenRowsPlugin.showRows(hiddenRowsPlugin.getHiddenRows());
-    hiddenRowsPlugin.hideRows(toVisualIndexes(state.hiddenRows, row => hot.toVisualRow(row)));
+    restoreHiddenRows(hot, hiddenRowsPlugin, state.hiddenRows);
   }
 
   if (hiddenColumnsPlugin) {

@@ -28,6 +28,7 @@ import type {
   GridViewStateRestoreResult,
   GridViewStateSelection,
   GridViewStateSkipReason,
+  GridViewStateSortColumn,
   RendererType,
   SelectOptionsObject,
   SourceRowData,
@@ -303,6 +304,7 @@ const _sameGridViewStateRange: Same<Handsontable.GridViewStateRange, GridViewSta
 const _sameGridViewStateRestoreResult: Same<Handsontable.GridViewStateRestoreResult, GridViewStateRestoreResult> = true;
 const _sameGridViewStateSelection: Same<Handsontable.GridViewStateSelection, GridViewStateSelection> = true;
 const _sameGridViewStateSkipReason: Same<Handsontable.GridViewStateSkipReason, GridViewStateSkipReason> = true;
+const _sameGridViewStateSortColumn: Same<Handsontable.GridViewStateSortColumn, GridViewStateSortColumn> = true;
 const _sameOverlayType: Same<Handsontable.OverlayType, OverlayType> = true;
 const _sameBaseEditorInstance: Same<Handsontable.BaseEditorInstance, BaseEditorInstance> = true;
 const _sameHooksRegistry: Same<Handsontable.HooksRegistry, HooksRegistry> = true;

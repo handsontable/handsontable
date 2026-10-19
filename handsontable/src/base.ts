@@ -339,6 +339,7 @@ declare namespace Handsontable {
   export type GridViewStateSelection = import('./core/viewState/gridViewState').GridViewStateSelection;
   export type GridViewStateRange = import('./core/viewState/gridViewState').GridViewStateRange;
   export type GridViewStateCoords = import('./core/viewState/gridViewState').GridViewStateCoords;
+  export type GridViewStateSortColumn = import('./core/viewState/gridViewState').GridViewStateSortColumn;
   export type OverlayType = import('./3rdparty/walkontable/src/types').OverlayType;
   export type BaseEditorInstance = import('./editors/baseEditor/baseEditor').BaseEditor;
   export type HooksRegistry = import('./base').HooksRegistry;
@@ -525,7 +526,7 @@ export type {
 export type { RangeType, HotInstance } from './core/types';
 export type {
   GridViewState, GridViewStatePart, GridViewStateSkipReason, GridViewStateRestoreResult,
-  GridViewStateSelection, GridViewStateRange, GridViewStateCoords,
+  GridViewStateSelection, GridViewStateRange, GridViewStateCoords, GridViewStateSortColumn,
 } from './core/viewState/gridViewState';
 export type { OverlayType } from './3rdparty/walkontable/src/types';
 export type { BaseEditor as BaseEditorInstance } from './editors/baseEditor/baseEditor';
