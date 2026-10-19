@@ -6,9 +6,9 @@
     "cells",
     "cell"
   ],
-  "total": 183,
+  "total": 184,
   "counts": {
-    "grid": 111,
+    "grid": 112,
     "grid columns cells cell": 64,
     "grid columns": 7,
     "columns": 1
@@ -1357,6 +1357,15 @@
         "grid"
       ],
       "since": null,
+      "note": null
+    },
+    {
+      "name": "rowId",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.0.0",
       "note": null
     },
     {
