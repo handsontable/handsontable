@@ -1407,4 +1407,155 @@ describe('ViewState plugin', () => {
       expect(Object.keys(previous).sort()).toEqual(['rowOrder', 'sort', 'version']);
     });
   });
+
+  describe('the second review round', () => {
+    it('does not clear a sort that is not on, so a later sort and clear return to the restored order', () => {
+      const hot = createGrid(ALL_PLUGINS);
+      const sorting = hot.getPlugin('columnSorting');
+      const sort = jest.spyOn(sorting, 'sort');
+
+      vs(hot).setViewState({ version: 1, rowOrder: [5, 4, 3, 2, 1, 0] });
+
+      expect(sort).not.toHaveBeenCalled();
+
+      sorting.sort({ column: 0, sortOrder: 'asc' });
+      sorting.clearSort();
+
+      expect(hot.rowIndexMapper.getIndexesSequence()).toEqual([5, 4, 3, 2, 1, 0]);
+    });
+
+    it('still clears a sort that is on, and leaves previous without a sort when none was', () => {
+      const sorted = createGrid(ALL_PLUGINS);
+      const plain = createGrid(ALL_PLUGINS);
+
+      sorted.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+      expect(vs(sorted).setViewState({ version: 1, rowOrder: [0, 1, 2, 3, 4, 5] }).previous.sort).toBeDefined();
+      expect(sorted.getPlugin('columnSorting').getSortConfig()).toEqual([]);
+      expect(vs(plain).setViewState({ version: 1, rowOrder: [1, 0, 2, 3, 4, 5] }).previous.sort).toBeUndefined();
+    });
+
+    it('measures a selection and a scroll against the rows the same state leaves', () => {
+      const hot = createGrid(ALL_PLUGINS);
+      const filters = hot.getPlugin('filters');
+      const selection = {
+        ranges: [{ from: [5, 0], to: [5, 0], highlight: [5, 0] }],
+        activeLayer: 0,
+        selectedByRowHeader: [],
+        selectedByColumnHeader: [],
+        rowExtentSpansGrid: [],
+        columnExtentSpansGrid: [],
+        disableHeadersHighlight: false,
+      };
+
+      filters.addCondition(0, 'eq', ['2-0']);
+      filters.filter();
+
+      expect(hot.countRows()).toBe(1);
+      expect(vs(hot).validateViewState({ version: 1, selection }).skipped[0].reason).toBe('outOfRange');
+
+      const state = { version: 1, filters: [], selection, scroll: { row: 5, col: 0 } };
+
+      expect(vs(hot).validateViewState(state).valid).toBe(true);
+
+      const result = vs(hot).setViewState(state, { atomic: true });
+
+      expect(result.error).toBeUndefined();
+      expect(result.applied).toEqual(['filters', 'selection', 'scroll']);
+      expect(hot.getSelected()).toEqual([[5, 0, 5, 0]]);
+    });
+
+    it('reports a selection and a scroll that still miss the rows the state leaves', () => {
+      const hot = createGrid(ALL_PLUGINS);
+      const selection = {
+        ranges: [{ from: [10, 0], to: [10, 0], highlight: [10, 0] }],
+        activeLayer: 0,
+        selectedByRowHeader: [],
+        selectedByColumnHeader: [],
+        rowExtentSpansGrid: [],
+        columnExtentSpansGrid: [],
+        disableHeadersHighlight: false,
+      };
+      const result = vs(hot).setViewState({ version: 1, trimmedRows: [0], selection, scroll: { row: 10, col: 0 } });
+
+      expect(result.applied).toEqual(['trimmedRows']);
+      expect(result.skipped.map(issue => [issue.part, issue.reason]).sort())
+        .toEqual([['scroll', 'outOfRange'], ['selection', 'outOfRange']]);
+    });
+
+    it('tells the hiding listeners a row changed when one hidden row replaces another', () => {
+      const hot = createGrid(ALL_PLUGINS);
+      const flags = [];
+
+      hot.addHook('afterHideRows', (...args) => flags.push(['hide', args[2], args[3]]));
+      hot.addHook('afterUnhideRows', (...args) => flags.push(['unhide', args[2], args[3]]));
+      vs(hot).setViewState({ version: 1, hiddenRows: [1] });
+      flags.length = 0;
+      vs(hot).setViewState({ version: 1, hiddenRows: [2] });
+
+      expect(flags).toEqual([['unhide', true, true], ['hide', true, true]]);
+    });
+
+    it('tells them a row changed when it unhides a row a filter trims', () => {
+      const hot = createGrid(ALL_PLUGINS);
+      const filters = hot.getPlugin('filters');
+      const stateChanged = [];
+
+      hot.getPlugin('hiddenRows').hideRows([1]);
+      filters.addCondition(0, 'neq', ['1-0']);
+      filters.filter();
+      hot.addHook('afterUnhideRows', (...args) => stateChanged.push(args[3]));
+      vs(hot).setViewState({ version: 1, hiddenRows: [] });
+
+      expect(stateChanged).toEqual([true]);
+    });
+
+    it.each(['rowOrder', 'hiddenRows', 'trimmedRows', 'rowHeights', 'selection'])(
+      'skips %s on a grid that loads its rows through a server, and leaves it out of the view',
+      (part) => {
+        const hot = createGrid(ALL_PLUGINS);
+
+        hot.addHook('hasExternalDataSource', () => true);
+
+        const values = {
+          rowOrder: [5, 4, 3, 2, 1, 0],
+          hiddenRows: [1],
+          trimmedRows: [1],
+          rowHeights: [[1, 60]],
+          selection: null,
+        };
+        const result = vs(hot).setViewState({ version: 1, [part]: values[part], hiddenColumns: [1] });
+
+        expect(result.skipped.map(issue => [issue.part, issue.reason])).toEqual([[part, 'externalDataSource']]);
+        expect(result.applied).toEqual(['hiddenColumns']);
+        expect(Object.keys(vs(hot).getViewState())).not.toContain(part);
+      },
+    );
+
+    it('keeps the parts that do not depend on the loaded page on a server grid', () => {
+      const hot = createGrid(ALL_PLUGINS);
+
+      hot.addHook('hasExternalDataSource', () => true);
+
+      expect(Object.keys(vs(hot).getViewState())).toEqual(
+        expect.arrayContaining(['columnOrder', 'hiddenColumns', 'columnWidths', 'frozen']),
+      );
+    });
+
+    it('does not copy a row or column sequence for a request that asks for neither', () => {
+      const hot = createGrid(ALL_PLUGINS);
+      const rows = jest.spyOn(hot.rowIndexMapper, 'getIndexesSequence');
+      const columns = jest.spyOn(hot.columnIndexMapper, 'getIndexesSequence');
+
+      vs(hot).setViewState({ version: 1, scroll: { row: 0, col: 0 } });
+
+      expect(rows).not.toHaveBeenCalled();
+      expect(columns).not.toHaveBeenCalled();
+
+      vs(hot).setViewState({ version: 1, hiddenColumns: [1] });
+
+      // Hiding a column reads the column order to translate its index, and never the row order.
+      expect(rows).not.toHaveBeenCalled();
+    });
+  });
 });

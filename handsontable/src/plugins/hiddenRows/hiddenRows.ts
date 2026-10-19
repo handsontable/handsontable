@@ -476,14 +476,14 @@ export class HiddenRows extends BasePlugin {
       });
     }, true);
 
+    // `isUnhiding` and `isHiding` already prove that a row changed. The visual lists cannot say so: a swap
+    // keeps their length, and a row a filter trims is in neither.
     if (isUnhiding) {
-      this.hot.runHooks('afterUnhideRows', currentHideConfig, destinationHideConfig, true,
-        destinationHideConfig.length < currentHideConfig.length);
+      this.hot.runHooks('afterUnhideRows', currentHideConfig, destinationHideConfig, true, true);
     }
 
     if (isHiding) {
-      this.hot.runHooks('afterHideRows', currentHideConfig, destinationHideConfig, true,
-        destinationHideConfig.length > currentHideConfig.length);
+      this.hot.runHooks('afterHideRows', currentHideConfig, destinationHideConfig, true, true);
     }
   }
 

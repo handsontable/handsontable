@@ -293,10 +293,28 @@ const REQUIRED_PLUGINS: Partial<Record<GridViewStatePart, string[]>> = {
 };
 
 /**
- * The parts a grid with an external data source (DataProvider) cannot take: each answers with a
- * server fetch.
+ * The parts a grid with an external data source (DataProvider) cannot take. The sort, the filters and the
+ * page each answer with a server fetch. The rest address rows by their position in the page the grid has
+ * loaded, and the page itself is the server's, so a state saved on page 3 would land on other records on
+ * page 1: the row order, the hidden, trimmed and collapsed rows, the row heights, and the selection.
  */
-const SERVER_DRIVEN_PARTS: ReadonlySet<GridViewStatePart> = new Set(['sort', 'filters', 'pagination']);
+const SERVER_DRIVEN_PARTS: ReadonlySet<GridViewStatePart> = new Set([
+  'sort',
+  'filters',
+  'pagination',
+  'rowOrder',
+  'hiddenRows',
+  'trimmedRows',
+  'collapsedRows',
+  'rowHeights',
+  'selection',
+]);
+
+/**
+ * The parts that change how many rows the grid shows. A selection or a scroll position in the same state
+ * is read against the row count they leave, which is not known before they are applied.
+ */
+const ROW_COUNT_PARTS: readonly GridViewStatePart[] = ['filters', 'trimmedRows', 'collapsedRows'];
 
 /**
  * Returns why a part cannot be captured or restored on this grid, or `null` when it can.
@@ -639,7 +657,13 @@ function describeSort(hot: HotInstance, value: unknown): Failure | null {
  * Writes one part of a public state into a captured view state. Returns what is wrong with the part,
  * or `null` when it was written.
  */
-function writePart(hot: HotInstance, state: ViewState, part: GridViewStatePart, value: unknown): Failure | null {
+function writePart(
+  hot: HotInstance,
+  state: ViewState,
+  part: GridViewStatePart,
+  value: unknown,
+  deferRows = false,
+): Failure | null {
   if (part === 'columnOrder' || part === 'rowOrder') {
     return writeOrder(hot, state, part, value);
   }
@@ -688,7 +712,7 @@ function writePart(hot: HotInstance, state: ViewState, part: GridViewStatePart, 
     return failure;
   }
 
-  return writeObjectPart(hot, state, part, value);
+  return writeObjectPart(hot, state, part, value, deferRows);
 }
 
 /**
@@ -752,7 +776,13 @@ function writeOrder(
  * Writes the parts whose value is an object, see {@link writePart}. Returns what is wrong with the part,
  * or `null` when it was written.
  */
-function writeObjectPart(hot: HotInstance, state: ViewState, part: GridViewStatePart, value: unknown): Failure | null {
+function writeObjectPart(
+  hot: HotInstance,
+  state: ViewState,
+  part: GridViewStatePart,
+  value: unknown,
+  deferRows: boolean,
+): Failure | null {
   if (part === 'selection' && value === null) {
     state.selection = undefined;
     state.selectionState = null;
@@ -785,9 +815,9 @@ function writeObjectPart(hot: HotInstance, state: ViewState, part: GridViewState
     case 'pagination':
       return writePagination(state, record);
     case 'selection':
-      return writeSelection(hot, state, value);
+      return writeSelection(hot, state, value, deferRows);
     case 'scroll':
-      return writeScroll(hot, state, record);
+      return writeScroll(hot, state, record, deferRows);
     default:
       return fail('invalid', part, `${part} is not a part of the view state`);
   }
@@ -838,8 +868,13 @@ function writePagination(state: ViewState, record: Record<string, unknown>): Fai
 /**
  * Writes the scroll position. It must lie inside the grid, or the restore would scroll nowhere.
  */
-function writeScroll(hot: HotInstance, state: ViewState, record: Record<string, unknown>): Failure | null {
-  const axes = [['row', hot.countRows()], ['col', hot.countCols()]] as const;
+function writeScroll(
+  hot: HotInstance,
+  state: ViewState,
+  record: Record<string, unknown>,
+  deferRows: boolean,
+): Failure | null {
+  const axes = [['row', deferRows ? Infinity : hot.countRows()], ['col', hot.countCols()]] as const;
 
   for (const [key, count] of axes) {
     const index = record[key];
@@ -861,9 +896,11 @@ function writeScroll(hot: HotInstance, state: ViewState, record: Record<string, 
 
 /**
  * Writes the selection. The ranges are measured against the grid here, so a selection that does not
- * fit is reported with the other problems, before anything is applied.
+ * fit is reported with the other problems, before anything is applied. When the same state changes the
+ * row count (filters, trimmed or collapsed rows), the fit is left to the apply, which measures the
+ * selection against the rows the state leaves.
  */
-function writeSelection(hot: HotInstance, state: ViewState, value: unknown): Failure | null {
+function writeSelection(hot: HotInstance, state: ViewState, value: unknown, deferRows: boolean): Failure | null {
   if (!isSelection(value)) {
     return fail('invalid', 'selection', 'selection must have ranges (each with from, to and highlight as ' +
       '[row, column]), an activeLayer inside them, and the header and span lists of indexes');
@@ -871,7 +908,7 @@ function writeSelection(hot: HotInstance, state: ViewState, value: unknown): Fai
 
   const restored = deserializeSelection(hot, value);
 
-  if (restored.selectionState && !fitsGrid(hot, restored.selectionState)) {
+  if (!deferRows && restored.selectionState && !fitsGrid(hot, restored.selectionState)) {
     return fail('outOfRange', 'selection',
       `the selection lies outside the grid (${hot.countRows()} rows, ${hot.countCols()} columns)`);
   }
@@ -982,8 +1019,11 @@ function planRestore(hot: HotInstance, state: unknown): RestorePlan {
     });
   });
 
+  const deferRows = ROW_COUNT_PARTS.some(part => record[part] !== undefined);
+
   plan.presentParts.forEach((part) => {
-    const failure = describeUnavailability(hot, part) ?? writePart(hot, plan.internal, part, record[part]);
+    const failure = describeUnavailability(hot, part) ??
+      writePart(hot, plan.internal, part, record[part], deferRows);
 
     if (failure) {
       plan.skipped.push({ part, ...failure });
@@ -1082,6 +1122,16 @@ export function setGridViewState(
 }
 
 /**
+ * Whether the grid is sorted, and sorts its own rows. Only then does a restore have a sort to put back.
+ */
+function isSortOn(hot: HotInstance): boolean {
+  const config = describeUnavailability(hot, 'sort') === null ?
+    captureViewState(hot, [], new Set<ViewStatePart>(['sort'])).sortConfig : null;
+
+  return Array.isArray(config) && config.length > 0;
+}
+
+/**
  * Reads the view the given parts have now, in the public shape, so that passing it back reverts them.
  * A row order restored without a sort clears the sort, so the sort is part of what a revert has to put
  * back, and it is read as well.
@@ -1089,7 +1139,7 @@ export function setGridViewState(
 function readPreviousState(hot: HotInstance, restored: Set<ViewStatePart>): GridViewState {
   const parts = new Set(restored);
 
-  if (parts.has('rowOrder') && !parts.has('sort') && describeUnavailability(hot, 'sort') === null) {
+  if (parts.has('rowOrder') && !parts.has('sort') && isSortOn(hot)) {
     parts.add('sort');
   }
 
@@ -1120,9 +1170,10 @@ const VIEWPORT_PARTS: ReadonlySet<ViewStatePart> = new Set(['pagination', 'selec
 function applyParts(
   hot: HotInstance,
   state: ViewState,
-  parts: Set<ViewStatePart>,
+  partsToApply: Set<ViewStatePart>,
   skipped: GridViewStateIssue[],
 ) {
+  let parts = partsToApply;
   const requested = Array.from(parts);
 
   if (requested.some(part => !VIEWPORT_PARTS.has(part))) {
@@ -1142,6 +1193,18 @@ function applyParts(
 
   const coversSelection = parts.has('selection');
   let selectionRestored = false;
+
+  // A state that changes the row count could not be measured for its scroll row before it was applied.
+  if (parts.has('scroll') && state.scroll.row >= hot.countRows()) {
+    skipped.push({
+      part: 'scroll',
+      reason: 'outOfRange',
+      path: 'scroll.row',
+      message: `scroll.row is ${state.scroll.row}, and the grid has ${hot.countRows()} rows once the state is applied`,
+    });
+    parts = new Set(parts);
+    parts.delete('scroll');
+  }
 
   // The page, the selection, and the scroll need the grid painted with the restored sizes, so
   // they run after the batch above. Only the rendering is held here, never the index cache:

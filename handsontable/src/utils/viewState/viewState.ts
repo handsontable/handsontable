@@ -157,7 +157,7 @@ interface SortingPlugin {
  * plugin's hiding map: a hidden row that a collapsed NestedRows parent trims has no visual
  * index, so reading it through `getHiddenRows()` would drop it from the capture.
  */
-function captureAxisState(hot: HotInstance) {
+function captureAxisState(hot: HotInstance, covers: PartFilter = () => true) {
   const hiddenRowsPlugin = getEnabledPlugin(hot, 'hiddenRows') as { pluginName: string } | undefined;
   const hiddenRowsMap = hiddenRowsPlugin
     ? hot.rowIndexMapper.hidingMapsCollection.get(hiddenRowsPlugin.pluginName) as
@@ -167,13 +167,16 @@ function captureAxisState(hot: HotInstance) {
     getEnabledPlugin(hot, 'hiddenColumns') as { getHiddenColumns: () => number[] } | undefined;
   const trimRowsPlugin = getEnabledPlugin(hot, 'trimRows') as { getTrimmedRows: () => number[] } | undefined;
 
+  // Each read is gated on the part that needs it: the sequences copy one entry per row or column, which a
+  // request for a scroll position on a million-row grid must not pay for.
   return {
-    rowSequence: hot.rowIndexMapper.getIndexesSequence().slice(),
-    unsortedRowSequence: captureUnsortedRowSequence(hot),
-    columnSequence: hot.columnIndexMapper.getIndexesSequence().slice(),
-    hiddenRows: hiddenRowsMap?.getHiddenIndexes() ?? [],
-    hiddenColumns: (hiddenColumnsPlugin?.getHiddenColumns() ?? []).map(col => hot.toPhysicalColumn(col)),
-    trimmedRows: trimRowsPlugin?.getTrimmedRows() ?? [],
+    rowSequence: covers('rowOrder') ? hot.rowIndexMapper.getIndexesSequence().slice() : [],
+    unsortedRowSequence: covers('sort') ? captureUnsortedRowSequence(hot) : [],
+    columnSequence: covers('columnOrder') ? hot.columnIndexMapper.getIndexesSequence().slice() : [],
+    hiddenRows: covers('hiddenRows') ? hiddenRowsMap?.getHiddenIndexes() ?? [] : [],
+    hiddenColumns: covers('hiddenColumns') ?
+      (hiddenColumnsPlugin?.getHiddenColumns() ?? []).map(col => hot.toPhysicalColumn(col)) : [],
+    trimmedRows: covers('trimmedRows') ? trimRowsPlugin?.getTrimmedRows() ?? [] : [],
   };
 }
 
@@ -552,7 +555,7 @@ export function captureViewState(
   // taken. A part left out of `parts` keeps its neutral value, so a caller that asks for a few parts
   // does not pay for the scan of the filters, the merges, the borders and the selection.
   return {
-    ...captureAxisState(hot),
+    ...captureAxisState(hot, covers),
     collapsedParents: covers('collapsedRows') ? captureCollapsedParents(hot) : neutral.collapsedParents,
     colWidths,
     rowHeights,
@@ -631,6 +634,18 @@ function restoreHiddenState(hot: HotInstance, state: ViewState, covers: PartFilt
 }
 
 /**
+ * Clears the sort when one is on and the grid sorts its own rows.
+ */
+function clearActiveSort(hot: HotInstance) {
+  const sorting = getSortingPlugin(hot);
+  const config = sorting?.getSortConfig();
+
+  if (sorting && Array.isArray(config) && config.length > 0 && hot.runHooks('hasExternalDataSource') !== true) {
+    sorting.sort([]);
+  }
+}
+
+/**
  * Writes a stored index order into a mapper, unless the data changed size while the sheet was
  * away. A sheet's data array is the caller's own, and rows added or removed while another
  * sheet was in front would leave the stored order describing a grid that no longer exists.
@@ -690,9 +705,12 @@ function restoreAxisState(hot: HotInstance, state: ViewState, covers: PartFilter
   }
 
   // A row order written under a sort the state does not mention would leave the header indicator and
-  // `getSortConfig()` describing an order the rows no longer have, so that sort is cleared first.
+  // `getSortConfig()` describing an order the rows no longer have, so that sort is cleared first. Only a
+  // sort that is on is cleared: `sort([])` on a grid that never sorted makes the sorting plugin cache the
+  // order from before the restore, which a later sort and clear would bring back over the restored one, and
+  // on a grid with an external data source it sends a fetch with an empty sort.
   if (!covers('sort')) {
-    getSortingPlugin(hot)?.sort([]);
+    clearActiveSort(hot);
   }
 
   const isRowOrderRestored = restoreSequence(hot.rowIndexMapper, state.rowSequence);

@@ -42,7 +42,9 @@ any of them.
   page 1. SheetsBar's `#batchRender` holds the rendering only for the same reason. Pinned by the
   pagination case of `tests/e2e/view-state-api.spec.ts`; the jsdom unit case cannot see it.
 - **A part is skipped, never thrown on.** A disabled plugin (`pluginDisabled`), a `dataProvider`
-  grid for sort, filters and pagination (`externalDataSource`, those would fetch), a stored order
+  grid for the sort, filters and pagination, which would fetch, and for the row order, the hidden, trimmed and
+  collapsed rows, the row heights and the selection, which are positions in the page the grid has loaded and
+  would land on other records on another page (`externalDataSource`), a stored order
   whose length no longer matches (`sizeMismatch`, found by `writeOrder()` in `planRestore()`; the engine's own
   length check, which `applyParts()` still reports, is only a net for a hook that changes the count mid-restore),
   a hidden or trimmed index, a size or a scroll position past the end of its axis, or a selection that
@@ -117,6 +119,15 @@ any of them.
   (`beforeFilter`, `beforeHideRows`, `beforeColumnSort`) and a selection `restoreViewport()` cannot land are
   found while applying, so `applied` can name a part a listener stopped, and the selection skip is reported
   after the rest was written. Moving such a check into `planRestore()` is the only way to make it atomic.
+- **A selection and a scroll row are measured after the row count changes.** `filters`, `trimmedRows` and
+  `collapsedRows` change `countRows()`, so a view saved on the full grid has its selection at row 50 while a
+  filter leaves 10 rows. With one of them in the state `planRestore()` skips the fit check
+  (`deferRows`), and `applyParts()` measures the scroll row, and `restoreViewport()` the selection, once
+  the rows are applied. The cost: those two are reported after the apply, so `atomic` does not cover them.
+- **The sort is cleared only when one is on.** `sort([])` on a never-sorted grid makes the sorting plugin cache
+  the order from before the restore, which a later sort and clear would bring back over the restored
+  `rowOrder`; on a server grid it sends a fetch with an empty sort. `clearActiveSort()` checks both, and
+  `previous` carries the sort only when there was one.
 - **`getViewState()` reads only the parts the grid can give.** Passing the available parts to
   `captureViewState()` keeps a grid with merges and borders from paying for scans whose result is dropped.
 - **The NestedRows collapse is replaced, not merged.** `restoreCollapsedParents()` expands every

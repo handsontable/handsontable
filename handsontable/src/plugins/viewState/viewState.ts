@@ -101,7 +101,9 @@ export class ViewState extends BasePlugin {
    *
    * A part that needs a plugin is included only while that plugin is enabled. On a grid that
    * loads its rows through [`dataProvider`](@/api/options.md#dataprovider), the sort, the filters,
-   * and the page are left out, because the server owns them.
+   * and the page are left out, because the server owns them, and so are the row order, the hidden,
+   * trimmed and collapsed rows, the row heights, and the selection: they address rows by their position in
+   * the page the grid has loaded, and a state saved on one page would land on other records on another.
    *
    * Pass the object to {@link ViewState#setViewState} to restore the view, on this grid or another one.
    *
@@ -161,7 +163,10 @@ export class ViewState extends BasePlugin {
    *
    * Pass `{ atomic: true }` to apply nothing when any part is rejected by the checks made before the
    * restore starts. A step a listener vetoes (a `beforeFilter` that returns `false`, say) and a selection
-   * the grid cannot show are only found while applying, and are reported after the rest was applied. To
+   * the grid cannot show are only found while applying, and are reported after the rest was applied. So is
+   * a selection or scroll position in a state that also changes the number of rows (`filters`, `trimmedRows`,
+   * `collapsedRows`): it is measured against the rows that state leaves, so a view saved on the full grid
+   * restores over a filtered one. To
    * check a state without applying it, use {@link ViewState#validateViewState}.
    *
    * ```js

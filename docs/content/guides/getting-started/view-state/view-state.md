@@ -161,7 +161,7 @@ Keep these rules in mind:
 - **Physical indexes keep addressing the same records.** A hidden row, a filter, or a manual width stays attached to the same data, however the user sorts or moves things afterward. Visual coordinates, such as the selection and the scroll position, describe what the user sees.
 - **A part that needs a plugin is only included while that plugin is enabled.** If you do not enable `HiddenColumns`, the result has no `hiddenColumns` property.
 - **Sizes are sparse.** `columnWidths` and `rowHeights` list only the sizes a user set by hand. Sizes that come from the `colWidths` and `rowHeights` options, or from auto-sizing, are not included.
-- **With a [`dataProvider`](@/api/options.md#dataprovider), the server owns `sort`, `filters`, and `pagination`.** The result leaves them out, and `setViewState()` skips them. For details, see [Server-side data](@/guides/getting-started/server-side-data/server-side-data.md).
+- **With a [`dataProvider`](@/api/options.md#dataprovider), the server owns the page.** The result leaves out `sort`, `filters`, and `pagination`, which would fetch from the server. It also leaves out `rowOrder`, `hiddenRows`, `trimmedRows`, `collapsedRows`, `rowHeights`, and `selection`, because they address rows by their position in the loaded page, and a state saved on page 3 would land on other records on page 1. `setViewState()` skips all of them. For details, see [Server-side data](@/guides/getting-started/server-side-data/server-side-data.md).
 
 ## Restore part of a view
 
@@ -233,7 +233,7 @@ console.log(skipped);
 |---|---|
 | `pluginDisabled` | The part needs a plugin that is not enabled on this grid. |
 | `pluginConflict` | The part would break a plugin that is on. Frozen rows would run next to [`Pagination`](@/api/pagination.md), which cannot work with them. |
-| `externalDataSource` | The grid uses a `dataProvider`, which owns `sort`, `filters`, and `pagination`. |
+| `externalDataSource` | The grid uses a `dataProvider`, which owns the page and what depends on it: the sort, the filters, the pagination, the row order, the hidden, trimmed, and collapsed rows, the row heights, and the selection. |
 | `sizeMismatch` | The stored row or column order has a different length than the grid has rows or columns now. |
 | `outOfRange` | The stored selection does not fit the grid, or a hidden or trimmed index, a size, or the scroll position lies past the end of its axis. |
 | `invalid` | The part does not have the expected shape, or names something this grid does not have: a row order that does not list every row exactly once, a sort column past the last column, a filter condition that is not registered on the page or cannot take its arguments, or a key that is not a part of the view state at all (a misspelled `hiddenColumn`, say). |
@@ -263,7 +263,7 @@ if (result.error?.reason === 'atomicRejected') {
 }
 ```
 
-Two things are only found while the restore runs: a listener that vetoes a step (a [`beforeFilter`](@/api/hooks.md#beforefilter) that returns `false`, say), and a selection the grid cannot show. Those are reported after the other parts were applied.
+Three things are only found while the restore runs: a listener that vetoes a step (a [`beforeFilter`](@/api/hooks.md#beforefilter) that returns `false`, say), a selection the grid cannot show, and a selection or scroll position in a state that also changes the number of rows (`filters`, `trimmedRows`, or `collapsedRows`). The last one is measured against the rows the state leaves, so a view saved on the full grid restores over a filtered one. Those are reported after the other parts were applied.
 
 ## Undo a restore
 
@@ -291,7 +291,7 @@ hot.getPlugin('viewState').setViewState(previous);
 - **The restore is not an undo step by default.** See [Undo a restore](#undo-a-restore) for `undo: 'record'` and `previous`.
 - **Filters and the page can move the selection.** Restoring the filters moves a selected cell to the first row of its column, as any filtering does. Restoring the page clears a selection the new page does not show. To control the selection, include `selection` in the state.
 - **Content is not part of the view.** The view state excludes your data, [merged cells](@/guides/cell-features/merge-cells/merge-cells.md), custom borders, and cell meta. To persist them, save them with their own APIs. For data, see [Saving data](@/guides/getting-started/saving-data/saving-data.md).
-- **Server-side data.** With a `dataProvider`, the view state leaves out sorting, filters, and pagination.
+- **Server-side data.** With a `dataProvider`, the view state leaves out the sort, the filters, the pagination, and every part that addresses rows by their position in the loaded page.
 - **Version.** The object carries `version: 1`. A stored object from a future version is skipped as a whole.
 
 To store a separate view per sheet, the [sheets bar](@/guides/accessories-and-menus/sheets-bar/sheets-bar.md#per-sheet-view-state) does it for you.
