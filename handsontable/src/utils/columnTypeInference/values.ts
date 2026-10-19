@@ -25,9 +25,10 @@ const COMMA_PLAIN_REGEX = /^(?:\d+(?:,\d+)?|,\d+)$/;
 const COMMA_GROUPED_REGEX = /^[1-9]\d{0,2}([.\u0020\u00a0\u202f])\d{3}(?:\1\d{3})*(?:,\d+)?$/;
 
 /**
- * A body grouped by spaces of any width (`601 234 567`).
+ * An integer grouped by plain spaces (`601 234 567`). The spaces locales write in a number are
+ * U+00A0 and U+202F, so plain ones are how a phone number is typed.
  */
-const SPACE_GROUPING_REGEX = /[\u0020\u00a0\u202f]/;
+const PLAIN_SPACE_GROUPED_REGEX = /^\d{1,3}(?: \d{3}){2,}$/;
 
 /**
  * The characters a number body may hold: digits, the two decimal separators, and the grouping
@@ -167,11 +168,12 @@ function takeCurrencyCode(text: string): { currencySymbol: string; rest: string 
   const head = text.slice(0, 3);
   const tail = text.slice(-3);
 
-  if (text.length > 3 && isCurrencyCode(head)) {
+  // A space between the code and the digits: `PLN1` and `TOP10` are not amounts.
+  if (text.length > 4 && /\s/.test(text[3]) && isCurrencyCode(head)) {
     return { currencySymbol: head, rest: text.slice(3).trim() };
   }
 
-  if (text.length > 3 && isCurrencyCode(tail)) {
+  if (text.length > 4 && /\s/.test(text[text.length - 4]) && isCurrencyCode(tail)) {
     return { currencySymbol: tail, rest: text.slice(0, -3).trim() };
   }
 
@@ -258,6 +260,15 @@ export function splitNumberParts(text: string): NumberParts | null {
     return null;
   }
 
+  // Nine digits or more grouped by plain spaces, with no currency and no percent sign, read as a phone
+  // number (`601 234 567`). A currency (`1 234 567 890 \u20ac`) or a no-break space (what `Intl` writes
+  // for fr-FR and pl-PL) says it is a quantity.
+  const phoneLike = PLAIN_SPACE_GROUPED_REGEX.test(body) && body.replaceAll(' ', '').length >= 9;
+
+  if (currencySymbol === null && !percent && phoneLike) {
+    return null;
+  }
+
   return NUMBER_BODY_CHARS_REGEX.test(body) ? { body, negative, exponent, currencySymbol, percent } : null;
 }
 
@@ -297,12 +308,6 @@ export function hasLeadingZero(body: string): boolean {
  */
 export function isNumberBody(body: string, decimalSeparator: '.' | ','): boolean {
   if (hasLeadingZero(body) || countSignificantDigits(body, decimalSeparator) > MAX_SIGNIFICANT_DIGITS) {
-    return false;
-  }
-
-  // Digits grouped by spaces with no decimal part, nine or more of them, read as a phone number
-  // (`601 234 567`) and not as a quantity.
-  if (!body.includes(decimalSeparator) && SPACE_GROUPING_REGEX.test(body) && body.replace(/\D/g, '').length >= 9) {
     return false;
   }
 
@@ -394,7 +399,10 @@ export function readSplitNumber(value: unknown, parts: NumberParts | null, mode:
   const exponent = parts.exponent - (mode.percent ? 2 : 0);
   const number = Number(`${parts.negative ? '-' : ''}${plain}${exponent === 0 ? '' : `e${exponent}`}`);
 
-  return Number.isFinite(number) ? number : null;
+  // `1.5E-400` underflows to zero. A nonzero value that reads as zero is data loss, so it is unread.
+  const underflowed = number === 0 && /[1-9]/.test(plain);
+
+  return Number.isFinite(number) && !underflowed ? number : null;
 }
 
 /**

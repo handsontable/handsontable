@@ -41,8 +41,11 @@ data) and converts the values to what each type stores. Read this before touchin
   (`resolveNumberMode`), and a currency mode also reads bare numbers. A majority vote broke on order
   (`['$5','5','5','$5']` was a dropdown or USD depending on which value reached the top count first) and
   rejected `['$1,000','250','300']`. A tie goes to the first symbol in the column, and to plain over
-  percent. An ISO code in the value (`12.00 USD`) is its own symbol; `isCurrencyCode` reads
-  `Intl.supportedValuesOf('currency')` once.
+  percent. An ISO code in the value (`12.00 USD`) is its own symbol, but only from the fixed list in
+  `isCurrencyCode` and only with a space before the digits: every code `Intl` knows includes English words
+  (`TOP`, `ALL`, `MAD`, `TRY`, `PEN`), so `TOP 10` read as ten of a currency, and `PLN1` is no amount.
+- **A value that underflows to zero is unread** (`1.5E-400`): `Number` returns `0`, which passes
+  `isFinite`, and a nonzero value silently became zero. Overflow (`1E999`) is caught by `isFinite`.
 - **Accounting parentheses make a value negative, and an exponent moves the point** (`1.23E+15`, and the
   fraction digits are counted after the shift). Real numbers set only the MAXIMUM fraction digits; text
   values set the minimum too, so one computed float (`1 / 3`) cannot pad `1` to `1.000000000000000`.
@@ -96,9 +99,11 @@ data) and converts the values to what each type stores. Read this before touchin
   `handsontable/AGENTS.md`): a raw `z\u0142` key breaks the non-minified bundle on a non-UTF-8 page,
   and a raw `\u20ac` string decodes wrongly there, so a euro column would infer as text.
 - **A `+` in front of space-grouped integers is a phone number** (`+48 601 234 567`), so
-  `splitNumberParts` rejects it, and so does `isNumberBody` for a space-grouped integer of nine digits or
-  more (`601 234 567`). A decimal part (`+1 234,5`) says it is a quantity, and a `+` with comma grouping
-  (`+1,234`) is still a number. Without the rules a phone column converted to `601234567`.
+  `splitNumberParts` rejects it, and so does it for an integer of nine digits or more grouped by PLAIN
+  spaces (`601 234 567`) with no currency and no percent sign. The rule lives in `splitNumberParts`, not
+  `isNumberBody`, because only there is the currency known: `Intl` writes fr-FR and pl-PL amounts with
+  U+202F and U+00A0 (`1 234 567 890 €`), and a value from 100 million up must stay a number. A decimal part
+  (`+1 234,5`) says it is a quantity, and a `+` with comma grouping (`+1,234`) is still a number.
 - **`Intl` writes U+2212 for a minus under some locales** (`sv-SE`, `fi-FI`); `splitNumberParts`
   normalizes it to `-`.
 - **The locale's day/month order is read WITHOUT the year.** With the year, `sv-SE` prints the ISO

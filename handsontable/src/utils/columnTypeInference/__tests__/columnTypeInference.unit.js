@@ -294,6 +294,39 @@ describe('inferColumnTypes', () => {
       expect(convertOne(['601 234 567,5', '1,5'], { locale: 'pl-PL' })).toEqual([601234567.5, 1.5]);
     });
 
+    it('reads large amounts grouped by the spaces Intl writes, and keeps a typed phone number as text', () => {
+      const nnbsp = '\u202f';
+      const nbsp = '\u00a0';
+
+      expect(convertOne([`1${nnbsp}234${nnbsp}567${nnbsp}890`, '5'], { locale: 'fr-FR' })).toEqual([1234567890, 5]);
+      expect(convertOne([`1${nbsp}234${nbsp}567${nbsp}890`, '5'], { locale: 'pl-PL' })).toEqual([1234567890, 5]);
+      expect(convertOne(['1 234 567 890 \u20ac', '5 \u20ac'], { locale: 'fr-FR' })).toEqual([1234567890, 5]);
+      expect(inferOne(['1 234 567 890 \u20ac', '5 \u20ac'], { locale: 'fr-FR' }).numericFormat.currency).toBe('EUR');
+      expect(convertOne(['12 345 678%', '5%'])).toEqual([123456.78, 0.05]);
+      expect(inferOne(['601 234 567', '502 111 222']).type).toBe('text');
+      expect(convertOne(['12 345 678', '5'], { locale: 'pl-PL' })).toEqual([12345678, 5]);
+    });
+
+    it('reads an ISO currency code only from a short list, with a space before the digits', () => {
+      ['TOP 10', 'ALL 5', 'MAD 3', 'TRY 7', 'PEN 9'].forEach((word) => {
+        expect(inferOne([word, word, word]).type).not.toBe('numeric');
+      });
+      expect(inferOne(['PLN1', 'PLN2', 'PLN3']).type).not.toBe('numeric');
+      expect(inferOne(['USD12', 'USD5']).type).not.toBe('numeric');
+      expect(convertOne(['CAD 1', 'CAD 2.50'])).toEqual([1, 2.5]);
+      expect(inferOne(['CAD 1', 'CAD 2.50']).numericFormat.currency).toBe('CAD');
+      expect(convertOne(['12.00 SEK', 'SEK 7.50'])).toEqual([12, 7.5]);
+    });
+
+    it('does not turn a value that underflows into zero', () => {
+      const values = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '1.5E-400'];
+
+      expect(inferOne(values).type).toBe('numeric');
+      expect(convertOne(values)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, '1.5E-400']);
+      expect(convertOne(['0E-400', '0.0', '1', '2', '3', '4', '5', '6', '7', '8'])[0]).toBe(0);
+      expect(convertOne(['1E999', '1', '2', '3', '4', '5', '6', '7', '8', '9'])[0]).toBe('1E999');
+    });
+
     it('reads 1 and 0 as numbers, not checkboxes', () => {
       expect(inferOne(['1', '0', '1', '0']).type).toBe('numeric');
     });

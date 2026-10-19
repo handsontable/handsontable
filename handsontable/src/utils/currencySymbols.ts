@@ -21,25 +21,21 @@ export const CURRENCY_SYMBOL_TO_CODE: Record<string, string> = {
 };
 
 /**
- * The ISO 4217 codes the browser knows, read once. `Intl.supportedValuesOf` is not in every engine
- * the library may meet in a test runner, so a missing one means no code is recognized.
+ * The ISO 4217 codes read from a value (`12.00 USD`). A fixed list of the widely traded currencies,
+ * and not every code `Intl` knows: that includes English words (`ALL`, `TOP`, `MAD`, `TRY`, `PEN`),
+ * so `TOP 10` would read as ten of a currency, and the list would change with the browser.
  */
-let knownCurrencyCodes: Set<string> | undefined;
+const CURRENCY_CODES = new Set([
+  'USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'NZD', 'PLN', 'SEK', 'NOK', 'DKK', 'CZK', 'HUF', 'RON',
+  'BGN', 'CNY', 'HKD', 'SGD', 'KRW', 'INR', 'BRL', 'MXN', 'ZAR', 'ILS', 'AED', 'SAR', 'THB', 'IDR', 'MYR',
+  'PHP', 'TWD', 'CLP', 'COP', 'ARS', 'UAH', 'ISK',
+]);
 
 /**
- * Whether the text is an ISO 4217 currency code (`USD`, `PLN`), in upper case.
+ * Whether the text is a currency code from `CURRENCY_CODES`, in upper case.
  */
 export function isCurrencyCode(text: string): boolean {
-  if (knownCurrencyCodes === undefined) {
-    try {
-      knownCurrencyCodes = new Set(Intl.supportedValuesOf('currency'));
-
-    } catch {
-      knownCurrencyCodes = new Set();
-    }
-  }
-
-  return knownCurrencyCodes.has(text);
+  return CURRENCY_CODES.has(text);
 }
 
 /**
