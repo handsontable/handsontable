@@ -745,6 +745,16 @@
       visibility: hidden;
     }
 
+    // The ghost container copies the root's class names, `ht-wrapper` included, but must not take
+    // its `width: 100%`: the measured width of a column would then follow the width of the root,
+    // and a root that is narrow for a moment caches wrapped columns. The compound selector keeps
+    // this rule above `&.ht-wrapper` by specificity, not by source order. `width: auto` is enough
+    // only because `.htAutoSize` sits at `left: -99000px`: without that offset the box can grow
+    // no wider than the root, and the columns measure wrapped again.
+    &.htGhostTable.htAutoSize {
+      width: auto;
+    }
+
     .htTextEllipsis {
       text-overflow: ellipsis;
       overflow: hidden;

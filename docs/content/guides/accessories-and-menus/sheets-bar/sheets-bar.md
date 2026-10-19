@@ -174,6 +174,8 @@ Right-click a tab, or click the chevron on the active tab, to open its menu. On 
 
 Each sheet keeps its own view state: scroll position, selection, sort, filters, row and column order, hidden rows and columns, trimmed rows, frozen rows and columns, merged cells, custom borders, manual column widths and row heights, cell meta (except the `valid` flag, which the next validation sets again), and the [`Pagination`](@/api/pagination.md) page and page size. A sheet you haven't opened yet doesn't inherit the previous sheet's sort, filters, sizes, or selection. It opens with only what its own `settings` declare, on the configured [`initialPage`](@/api/options.md#pagination) and page size.
 
+To capture and restore a view without the sheets bar, see [Save and restore the view state](@/guides/getting-started/view-state/view-state.md).
+
 A switch away from a sheet with a selection clears it before the next sheet loads, so [`afterDeselect`](@/api/hooks.md#afterdeselect) fires. Selection hooks such as [`afterSelection`](@/api/hooks.md#afterselection) fire when a saved selection comes back, and the page hooks fire when the switch changes the page.
 
 To run your code when a sheet's state is saved or restored, use the [`afterSheetTabStateCapture`](@/api/hooks.md#aftersheettabstatecapture) and [`afterSheetTabStateRestore`](@/api/hooks.md#aftersheettabstaterestore) hooks.

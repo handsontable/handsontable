@@ -2059,6 +2059,10 @@ export default (): Record<string, unknown> => {
      * are populated incrementally, so they may be incomplete until the
      * [`afterCustomBordersUpdate`](@/api/hooks.md#aftercustombordersupdate) hook fires.
      *
+     * When you replace [`customBorders`](#customborders) with `updateSettings()`, the borders that are
+     * already drawn stay visible until the new ones are applied. A border missing from the new
+     * configuration disappears when the load ends.
+     *
      * @since 18.1.0
      * @memberof Options#
      * @type {boolean|object}
@@ -2297,6 +2301,58 @@ export default (): Record<string, unknown> => {
      * ```
      */
     dataSchema: undefined,
+
+    /**
+     * The `rowId` option gives each row an id that stays with the row's record when you sort, filter, move,
+     * trim, insert, or remove rows, and when you undo or redo any of those actions.
+     *
+     * Read a row's id with [`getRowId()`](@/api/core.md#getrowid), and find a row by its id with
+     * [`getVisualRowById()`](@/api/core.md#getvisualrowbyid) or [`getPhysicalRowById()`](@/api/core.md#getphysicalrowbyid).
+     *
+     * You can set the `rowId` option to one of the following:
+     *
+     * | Setting    | Description                                                                              |
+     * | ---------- | ---------------------------------------------------------------------------------------- |
+     * | A string   | The property that holds the id in each row object (for example, `'id'` or `'meta.id'`), or the index of that value in each row array |
+     * | A function | A function that receives the source row and returns its id                               |
+     * | `true`     | Handsontable generates the ids: a number for each row, never reused within the instance   |
+     * | `false`    | No row ids                                                                               |
+     *
+     * Keep the ids unique. If two rows share an id, the lookups return the row with the lower physical index.
+     *
+     * Generated ids follow the physical rows. [`loadData()`](@/api/core.md#loaddata) gives every row a new id,
+     * and [`updateData()`](@/api/core.md#updatedata) keeps the ids of the rows that stay, by position. To keep
+     * ids across data loads, store them in the data and use a string or a function.
+     *
+     * When the [`dataProvider`](#dataprovider) option sets its own `rowId`, Handsontable reads row ids with
+     * `dataProvider.rowId`, and ignores the `rowId` option.
+     *
+     * Read more:
+     * - [Row identity](@/guides/rows/row-identity/row-identity.md)
+     *
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @since 19.0.0
+     * @memberof Options#
+     * @type {string|Function|boolean}
+     * @default undefined
+     * @category Core
+     * @configScope grid
+     *
+     * @example
+     * ```js
+     * // read the id from the `id` property of each row object
+     * rowId: 'id',
+     *
+     * // read the id with a function (return `null` while a row lacks the values, as an empty row does)
+     * rowId: (row) => (row.country == null || row.code == null ? null : `${row.country}-${row.code}`),
+     *
+     * // let Handsontable generate the ids
+     * rowId: true,
+     * ```
+     */
+    rowId: undefined,
 
     /**
      * Configures the date format for date cells using an
@@ -3334,6 +3390,9 @@ export default (): Record<string, unknown> => {
      * row. Setting `direction` to `'horizontal'` also turns `autoInsertRow` off.
      *
      * Rows appended this way bypass [`allowInsertRow`](#allowInsertRow): only `autoInsertRow` governs them.
+     *
+     * The fill handle is shown only when the selection is a single range. A selection of several separate ranges
+     * (for example, made with <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+click) has no fill handle.
      *
      * Read more:
      * - [AutoFill values](@/guides/cell-features/autofill-values/autofill-values.md)

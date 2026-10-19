@@ -113,6 +113,7 @@ import {
   type ReversedCellRun,
 } from './dataMap/dataJournal';
 import DataMap from './dataMap/dataMap';
+import { RowIdentity } from './core/rowIdentity/rowIdentity';
 import { TYPE_EDITOR_REQUESTED_KEY } from './dataMap/metaManager/utils';
 import { colToPropOrIndex } from './helpers/columnProp';
 
@@ -874,6 +875,7 @@ export default function Core(
       return editor ? (editor.isOpened() as boolean) : false;
     },
     isPluginEnabled: (pluginName: string) => instance.getPlugin(pluginName)?.enabled === true,
+    isPluginRegistered: (pluginName: string) => instance.getPlugin(pluginName) !== undefined,
     countRenderableColumns: () => instance.view.countRenderableColumns() as number,
     countRenderableRows: () => instance.view.countRenderableRows() as number,
     countRowHeaders: () => instance.countRowHeaders() as number,
@@ -2560,10 +2562,10 @@ export default function Core(
           return;
         }
 
-        let width = view.isHorizontallyScrollableByWindow()
-          ? view.getTotalTableWidth() : view.getWorkspaceWidth();
+        const isWindowAxis = view.isHorizontallyScrollableByWindow();
+        let width = isWindowAxis ? view.getTotalTableWidth() : view.getWorkspaceWidth();
 
-        if (width === 0 && instance.rootWrapperElement) {
+        if ((width === 0 || (isWindowAxis && instance.countRenderedCols() <= 0)) && instance.rootWrapperElement) {
           width = instance.rootWrapperElement.offsetWidth;
         }
 
@@ -2580,7 +2582,7 @@ export default function Core(
         // table downwards – pinned by the `inline-block-host` case of `bottom-slot-sizing.spec.ts`.
         const wrapperWidth = instance.rootWrapperElement?.clientWidth ?? 0;
 
-        if (view.isHorizontallyScrollableByWindow() && wrapperWidth > 0) {
+        if (isWindowAxis && wrapperWidth > 0) {
           width = Math.min(width, wrapperWidth);
         }
 
@@ -5943,6 +5945,170 @@ export default function Core(
     instance.columnIndexMapper.getPhysicalFromVisualIndex(column) as number;
 
   /**
+   * Returns the id of a row, as the [`rowId`](@/api/options.md#rowid) option (or `dataProvider.rowId`) defines it.
+   *
+   * A row's id stays with the row's record when you sort, filter, move, trim, insert, or remove rows, and when
+   * you undo or redo any of those actions.
+   *
+   * @memberof Core#
+   * @function getRowId
+   * @since 19.0.0
+   * @param {number} row Visual row index.
+   * @returns {*} The row's id, or `null` when the row does not exist, has no id, or no row ids are configured.
+   */
+  this.getRowId = function(row: number): unknown {
+    const physicalRow = Number.isInteger(row) && row >= 0 && row < instance.countRows() ?
+      instance.toPhysicalRow(row) : null;
+
+    return physicalRow === null ? null : rowIdentity.getRowIdAtPhysicalRow(physicalRow);
+  };
+
+  /**
+   * Returns the visual index of the row that has the given id.
+   *
+   * The id is defined by the [`rowId`](@/api/options.md#rowid) option (or `dataProvider.rowId`).
+   *
+   * @memberof Core#
+   * @function getVisualRowById
+   * @since 19.0.0
+   * @param {*} id The row's id.
+   * @returns {number|null} The visual row index, or `null` when no row has the id (for example, the row was
+   * removed), or the row is trimmed, filtered out, or past [`maxRows`](@/api/options.md#maxrows). A hidden row
+   * keeps its visual index.
+   */
+  this.getVisualRowById = function(id: unknown): number | null {
+    const physicalRow = rowIdentity.getPhysicalRowById(id);
+    const visualRow = physicalRow === null ? null : instance.toVisualRow(physicalRow);
+
+    // A row past `maxRows` keeps a visual index, but the grid does not show it.
+    return visualRow !== null && visualRow < instance.countRows() ? visualRow : null;
+  };
+
+  /**
+   * Returns the physical index of the row that has the given id.
+   *
+   * The id is defined by the [`rowId`](@/api/options.md#rowid) option (or `dataProvider.rowId`). Unlike
+   * [`getVisualRowById()`](@/api/core.md#getvisualrowbyid), it also finds a row that is trimmed or filtered out.
+   *
+   * @memberof Core#
+   * @function getPhysicalRowById
+   * @since 19.0.0
+   * @param {*} id The row's id.
+   * @returns {number|null} The physical row index, or `null` when no row has the id (for example, the row was
+   * removed).
+   */
+  this.getPhysicalRowById = function(id: unknown): number | null {
+    return rowIdentity.getPhysicalRowById(id);
+  };
+
+  /**
+   * Returns the id of a row, addressed by its physical index.
+   *
+   * Unlike [`getRowId()`](@/api/core.md#getrowid), it also reads the id of a row that is trimmed or filtered
+   * out, which has no visual index. Use it with the physical row indexes that hooks such as
+   * [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow) pass.
+   *
+   * @memberof Core#
+   * @function getRowIdAtPhysicalRow
+   * @since 19.0.0
+   * @param {number} physicalRow Physical row index.
+   * @returns {*} The row's id, or `null` when the row does not exist, has no id, or no row ids are configured.
+   */
+  this.getRowIdAtPhysicalRow = function(physicalRow: number): unknown {
+    if (!Number.isInteger(physicalRow) || physicalRow < 0 ||
+        physicalRow >= instance.rowIndexMapper.getNumberOfIndexes()) {
+      return null;
+    }
+
+    return rowIdentity.getRowIdAtPhysicalRow(physicalRow);
+  };
+
+  /**
+   * Returns the ids of several rows at once.
+   *
+   * @memberof Core#
+   * @function getRowIds
+   * @since 19.0.0
+   * @param {number[]} [rows] Visual row indexes. Without it, the method returns the ids of every row, in visual
+   * order.
+   * @returns {Array} The ids, in the order of `rows`, with `null` for a row that does not exist or has no id.
+   */
+  this.getRowIds = function(rows?: number[]): unknown[] {
+    const rowsCount = instance.countRows();
+    const visualRows = Array.isArray(rows) ? rows : Array.from({ length: rowsCount }, (_, row) => row);
+    const physicalRows = visualRows.map(row => (Number.isInteger(row) && row >= 0 && row < rowsCount ?
+      instance.toPhysicalRow(row) : null));
+
+    return rowIdentity.getRowIdsAtPhysicalRows(physicalRows);
+  };
+
+  /**
+   * Returns the visual indexes of the rows that have the given ids.
+   *
+   * @memberof Core#
+   * @function getVisualRowsByIds
+   * @since 19.0.0
+   * @param {Array} ids The row ids.
+   * @returns {Array<number|null>} The visual row indexes, in the order of `ids`, with `null` wherever
+   * [`getVisualRowById()`](@/api/core.md#getvisualrowbyid) returns `null`.
+   */
+  this.getVisualRowsByIds = function(ids: unknown[]): Array<number | null> {
+    return Array.isArray(ids) ? ids.map(id => instance.getVisualRowById(id)) : [];
+  };
+
+  /**
+   * Returns the physical indexes of the rows that have the given ids.
+   *
+   * @memberof Core#
+   * @function getPhysicalRowsByIds
+   * @since 19.0.0
+   * @param {Array} ids The row ids.
+   * @returns {Array<number|null>} The physical row indexes, in the order of `ids`, with `null` for an id that no
+   * row has.
+   */
+  this.getPhysicalRowsByIds = function(ids: unknown[]): Array<number | null> {
+    return Array.isArray(ids) ? ids.map(id => rowIdentity.getPhysicalRowById(id)) : [];
+  };
+
+  /**
+   * Sets a value in the row that has the given id, wherever the row is now. If no row has the id (for example,
+   * the row was removed), it does nothing.
+   *
+   * For a visible row (one with a visual index, hidden rows included), it works like
+   * [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop). For a row that is trimmed or filtered out, it writes
+   * to the source data with [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell), so the value is not
+   * validated and [`afterChange`](@/api/hooks.md#afterchange) does not fire for it.
+   *
+   * @memberof Core#
+   * @function setDataAtRowIdProp
+   * @since 19.0.0
+   * @param {*} id The row's id.
+   * @param {string|number} prop The property name, or the physical column index of a row array.
+   * @param {*} value The new value.
+   * @param {string} [source] The source of the change, passed on to the hooks.
+   * @returns {boolean} `true` when a row has the id and the value was set, `false` otherwise.
+   */
+  this.setDataAtRowIdProp = function(id: unknown, prop: string | number, value: unknown, source?: string): boolean {
+    const visualRow = instance.getVisualRowById(id);
+
+    if (visualRow !== null) {
+      instance.setDataAtRowProp(visualRow, prop, value, source);
+
+      return true;
+    }
+
+    const physicalRow = rowIdentity.getPhysicalRowById(id);
+
+    if (physicalRow === null) {
+      return false;
+    }
+
+    instance.setSourceDataAtCell(physicalRow, prop, value, source);
+
+    return true;
+  };
+
+  /**
    * @description
    * Returns the cell value at `row`, `column`.
    *
@@ -8081,6 +8247,10 @@ export default function Core(
    * @fires Hooks#afterDestroy
    */
   this.destroy = function() {
+    // Never resumed: nothing may render a grid that is being torn down. A plugin whose `destroy()`
+    // re-renders to reflect its own removal at runtime (Autofill hides the fill handle) would
+    // otherwise render the view destroyed below (DEV-775).
+    instance.suspendRender();
     instance._clearTimeouts();
     instance._clearMicrotasks();
     // A transaction held by a pending validator must not settle on a destroyed instance.
@@ -8142,7 +8312,12 @@ export default function Core(
       pluginsRegistry
         .getItems()
         .forEach(([, plugin]) => {
-          (plugin as BasePlugin).destroy();
+          // A plugin destroyed on its own, ahead of the grid, has no `hot` left. Its `destroy()`
+          // override may read `hot` or its own nulled fields again before reaching the base class,
+          // and a throw here would skip every later plugin and the `afterDestroy` hook (DEV-775).
+          if ((plugin as BasePlugin).hot) {
+            (plugin as BasePlugin).destroy();
+          }
         });
       pluginsRegistry.clear();
       instance.runHooks('afterDestroy');
@@ -8695,9 +8870,19 @@ export default function Core(
 
     this.microtasks.push(entry);
     this.rootWindow.queueMicrotask(() => {
-      if (!entry.cancelled) {
-        callback();
+      // A cancelled entry was dropped by `_clearMicrotasks()`, which `destroy()` calls before it clears the instance.
+      if (entry.cancelled) {
+        return;
       }
+
+      const index = this.microtasks.indexOf(entry);
+
+      // Drop the entry once it ran, or every validated edit and every data load keeps one until `destroy()`.
+      if (index !== -1) {
+        this.microtasks.splice(index, 1);
+      }
+
+      callback();
     });
   };
 
@@ -8764,6 +8949,8 @@ export default function Core(
 
     ownerWindow: this.rootWindow,
   });
+
+  const rowIdentity = new RowIdentity(instance, physicalRow => dataSource.modifyRowData(physicalRow));
 
   this.addHook('beforeOnCellMouseDown', (event: MouseEvent) => {
     // Releasing keys as some browser/system shortcuts break events sequence (thus the `keyup` event isn't triggered).

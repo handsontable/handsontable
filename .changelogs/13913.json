@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a flicker of the custom borders on `updateSettings()` with `customBordersProgressive` enabled. The previous borders now stay visible until the new ones are applied.",
+  "type": "fixed",
+  "issueOrPR": 13913,
+  "breaking": false,
+  "framework": "none"
+}

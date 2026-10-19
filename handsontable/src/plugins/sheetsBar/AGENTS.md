@@ -12,62 +12,12 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   Handsontable access. Names are compared NFC-normalized; length is counted in grapheme
   clusters (`Intl.Segmenter`), not UTF-16 units — the rename input enforces the same limit in
   its `input` handler, never through `maxlength`.
-- `viewState.ts` — capture/restore of one sheet's runtime view state. **Order is load-bearing**:
-  the column order goes before the sort re-apply (the sort config addresses its column
-  visually), sort is cleared and re-applied around the row order (the sorting plugin resets
-  rows to its own pre-sort cache on every `sort()`), filters and trimming re-apply before the
-  hidden sets (hidden indexes are stored as physical, and so are the tracked cell-meta
-  entries), and the selection and scroll run through `restoreViewport()` **after** the render
-  batch, once the arriving sheet is painted at its own sizes. `restoreViewport()` puts the
-  Pagination page and page size back first (`setPageSize()` then `setPage()`, each skipped when
-  unchanged, the page clamped to the arriving count first): Pagination holds one page for the
-  whole grid and clamps it on every load, so a switch through a shorter sheet moves it, and a
-  selection or scroll aimed at a row on another page lands on a hidden row and does nothing. A
-  never-visited sheet gets `resetViewport()` instead — the configured `initialPage` and
-  `pageSize`. Both go through the public API, so the page hooks fire on a switch that changes
-  the page. With an external data source (`hasExternalDataSource`) the page is neither captured
-  nor restored: DataProvider answers a page change with a fetch, and the result would load into
-  whichever sheet is active when it resolves. After that batch `keepSelectionOnPage()` checks the
-  focus against the shown page — a `'auto'` page size decides its boundaries from the row heights
-  of that paint, a `beforePageSizeChange` veto leaves the page counted in the old size, and a
-  `beforePageChange` veto keeps the clamped page. A restored selection is followed to its page —
-  one `setPage()` to the estimated page (the number page size as the page length, the shown
-  span for `'auto'`), so a gap of many pages fires the page hooks once, then a one-page walk.
-  Never re-estimate from each page reached: a short last page or `'auto'` pages of other
-  lengths make repeated estimates bounce past the row; a selection that was not restored (one
-  a plugin or a listener made during the switch), or one the follow could not reach, is
-  deselected rather than left on a hidden row.
-  The selection itself is kept twice: `selection` (`getSelected()`) and `selectionState`, a copy
-  of `Selection#exportSelection()` (the active range is cloned — the export hands it out live —
-  and so are the ranges handed to the import, or the stored state would become the live
-  selection). A selection made from a header or spanning a whole axis (any header or
-  extent-spans flag in `selectionState`) cannot be judged from its coordinates: `selectCells()`
-  rejects a range that contains headers (beyond a single header, even with `navigableHeaders`),
-  while a whole column on page 2 or later has none — Pagination moves its start to the page's
-  first row — so `selectCells()` would accept it and drop the header and span flags. Such a
-  selection is replayed instead: one layer through `selectRows()`/`selectColumns()`/`selectAll()`,
-  which run the selection hooks and set the `ht__selection--rows`/`--columns` classes; several
-  layers through `importSelection()`, followed by one `setRangeEnd()` + `finish()` on the last
-  layer, the step core answers with those classes and hooks — and since that step makes the last
-  layer active, a `setRangeFocus()` after it puts the captured focus and active layer back. A
-  plain cell selection goes through
-  `selectCells()` and gets its focus and active layer back with `setRangeFocus()`. A stored
-  order whose length no longer matches the data is skipped. Stored trimmed rows at or past `countSourceRows()` —
-  read after the arriving sheet's `loadData()`, so rows padded by `minRows`/`minSpareRows`
-  count — are dropped one by one before `trimRows()`, which rejects the whole list when any
-  index is out of range. Like the hidden sets and manual sizes, the kept ones follow physical
-  position, not the record, after the host changed the sheet's data while it was away.
-  Manual sizes are stored as sparse `[physicalIndex, size]` pairs read and written through the
-  resize plugins' `getManualSizes()`/`setManualSizes()` (physical, so a trimmed row keeps its
-  height) and cleared through their bulk `clearManualSizes()`. NestedRows drops its collapsed parents on
-  every `loadData()`, so the view state carries them as tree paths (`collapsedParents`, via the
-  data manager's `getRowTreePath()`/`getRowIndexByTreePath()` — a physical index shifts when the
-  sheet's data gains a row while it is away) and replays them after the hidden sets, with hooks
-  off (DEV-3042). Before the hidden sets, the collapse would trim a hidden child out of the
-  visual space its stored index is mapped through. For the same reason the hidden rows are
-  captured physically off the plugin's hiding map (`hidingMapsCollection.get(pluginName)` –
-  the map is registered under the upper-cased `HiddenRows`, not `hiddenRows`), not through
-  `getHiddenRows()`: a hidden child of a collapsed parent has no visual index at capture time.
+- The view-state capture and restore live in `src/utils/viewState/viewState.ts`, shared with the
+  public `ViewState` plugin. The bar calls `captureViewState()`, `restoreViewState()`,
+  `restoreViewport()`, `resetViewState()`, `resetViewport()` and `keepSelectionOnPage()` with no part
+  filter, so every step runs. The load-bearing order and the per-part traps are in
+  `src/utils/viewState/AGENTS.md`. Only the tracked cell meta (`cellMeta`, served lazily, see below), the
+  merges and the custom borders are SheetsBar's alone: the public API never restores them.
 - `ui/` — `bar.ts` (DOM via `buildTemplate`, labels re-applied by `refreshLabels()` on language
   change), `tabStrip.ts` (tabs, inline rename, focus capture/restore across repaints),
   `tabDrag.ts` (pointer drag + FLIP), `menus.ts` (two `Menu` instances built once and refilled
@@ -216,7 +166,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   entry shorter.
 - **Never wrap host-reachable code in `Core#batch`/`batchRender`** — neither resumes in a
   `finally`, and a listener throwing mid-switch would leave the grid render-suspended for
-  life. The plugin's `#batchRender` and `viewState.ts`'s `safeBatch` are the guarded forms
+  life. The plugin's `#batchRender` and core `viewState.ts`'s `safeBatch` are the guarded forms
   (same reasoning as MergeCells).
 - **`ariaTags: false` keeps every ARIA state attribute off the bar.** The paging arrows' real
   disabled state is the `ht-sheets-bar__button--disabled` class (`DISABLED_CLASS` in
@@ -361,6 +311,12 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   the type check. Under a cast, a rename in MergeCells still compiles here and the first switch
   throws `… is not a function`. Do not reach into `mergedCellsCollection` or call `mergeRange()`
   from here again.
+- **Custom borders are restored with the logical sides only.** `getBorders()` records carry both
+  `start`/`end` and their legacy `left`/`right` copies (`denormalizeBorder()`), and `setBorders()`
+  throws when it gets both pairs, and on `left`/`right` alone in RTL. `restoreCustomBorders()`
+  therefore passes `top`, `bottom`, `start` and `end` only. Passing every side made the switch back
+  to any bordered sheet throw, which dropped its borders and its stored selection. Pinned by the
+  `custom borders` block in `__tests__/viewState.unit.js`.
 - Switching calls `loadData()`, which clears the UndoRedo stacks; the state-restore hook and
   the announced switch fire after the batch, and switch announcements are made for the bar's
   own gestures only (`SOURCE_UI`).
@@ -442,7 +398,7 @@ never visited. The rows were not tracked at first, so a frozen row carried over 
 **A count can be a shadow on the table meta, and `updateSettings()` leaves a shadow alone.** The freeze bar,
 `ManualColumnFreeze`, `alter()` and undo write a frozen count as an own property of `getSettings()`, and
 `updateSettings()` drops it only when the new value differs from the previous GRID-level one. A sheet's count must win,
-so every write of a count goes through `setFrozenCount()` / `clearFrozenCountShadow()` in `viewState.ts`, which
+so every write of a count goes through `setFrozenCount()` / `clearFrozenCountShadow()` in `src/utils/viewState/viewState.ts`, which
 removes the shadow (and `_fixedColumnsStart`, the backing field of the start freeze) first, and then writes the count
 as a shadow of its own when it differs from the grid-level value. It does not call `updateSettings()`: that would make
 the sheet's count the grid-level one, and a wrapper re-sends the app's own value on each render, which differs from it
