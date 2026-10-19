@@ -389,8 +389,15 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     left enabled gets `false` in the pre-load payload, or its `afterLoadData` refresh writes the
     departing summary into the arriving sheet's data; a falsy value reads no data and stays before
     the load. Applied after the load it also sees a nested sheet's flattened rows. The cost is a
-    second settings update (a second `afterUpdateSettings`, a cell meta reset) on a switch onto a
-    sheet that declares it, and only there. The init build is not split: applied after the load
+    second settings update on a switch onto a sheet that declares it, and only there: a second
+    `afterUpdateSettings` and, with Formulas on, a full rescan of the arriving sheet and a second
+    `setSheetContent()`, because the update fires `afterCellMetaReset` (core clears no meta for a
+    `{ columnSummary }` payload, only the hook fires), which marks a Formulas resync. That resync
+    runs from ColumnSummary's first cell read, inside its own endpoint calculation, and its values
+    update refreshes the endpoints again: `Endpoints#refreshEndpoint()` therefore restores the
+    endpoint it replaced rather than clearing it, or the outer calculation read `null` and the
+    switch threw (pinned by `columnSummary/__tests__/formulasSettingsUpdate.unit.js` and the Formulas
+    case of the spec). The init build is not split: applied after the load
     there, its `setDataAtCell()` runs before the editor manager exists and throws; ColumnSummary's
     `updatePlugin()` instead leaves the endpoints to its `afterInit` while the grid has no view.
   - Do not reorder the whole switch to load first instead: the departing sheet's settings would then

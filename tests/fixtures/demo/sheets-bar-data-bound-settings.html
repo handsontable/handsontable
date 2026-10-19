@@ -32,6 +32,7 @@
       nestedRowsPadded: 'nestedRowsPadded',
       nestedSummary: 'nestedSummary',
       columnSummary: 'columnSummary',
+      formulasSummary: 'formulasSummary',
       mergeCells: 'mergeCells',
     })[htParams.get('workbook') ?? 'nestedRows'];
     if (!window.htWorkbook) {
@@ -59,11 +60,19 @@
     - columnSummary: 10 rows of numbers (cell = row * 10 + column) on every sheet. 'Small' is 3
       columns wide, 'Big' writes the sum of C1:C9 into E10, 'Wide' has no summary, and 'Big2'
       writes the sum of B1:B9 into F10.
+    - formulasSummary: a grid-level `formulas`, 'P' and 'S', both 20x6 numbers, 'S' writing the sum
+      of C1:C9 into E20. The `umd` legs load HyperFormula as an external script; the `full-min` legs
+      use the engine baked into the bundle.
     - mergeCells: 'A' 25x3, 'B' 34x9 with a merge, two hidden rows above it and three trimmed rows,
       'C' 33x15 with no settings. 'B' opens first.
   -->
   <div id="grid" data-testid="grid"></div>
 
+  <script>
+    if (window.htBundle === 'handsontable.js') {
+      document.write('<scr' + 'ipt src="/tests/node_modules/hyperformula/dist/hyperformula.full.min.js"></scr' + 'ipt>');
+    }
+  </script>
   <script>
     // The bundle under test, selected above from the sanitized allowlist. The closing tag is
     // split so the HTML parser does not end THIS script block.
@@ -168,6 +177,21 @@
               data: numbers(10, 6),
               settings: {
                 columnSummary: [{ sourceColumn: 1, destinationRow: 9, destinationColumn: 5, type: 'sum', ranges: [[0, 8]] }],
+              },
+            },
+          ],
+        },
+      },
+      formulasSummary: {
+        grid: { formulas: { engine: HyperFormula } },
+        sheetsBar: {
+          sheets: [
+            { name: 'P', data: numbers(20, 6) },
+            {
+              name: 'S',
+              data: numbers(20, 6),
+              settings: {
+                columnSummary: [{ sourceColumn: 2, destinationRow: 19, destinationColumn: 4, type: 'sum', ranges: [[0, 8]] }],
               },
             },
           ],

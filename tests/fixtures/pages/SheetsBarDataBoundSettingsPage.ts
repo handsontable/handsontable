@@ -1,7 +1,7 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 import { awaitBundle } from '../bundle';
 
-export type DataBoundWorkbook = 'nestedRows' | 'nestedRowsPadded' | 'nestedSummary' | 'columnSummary' | 'mergeCells';
+export type DataBoundWorkbook = 'nestedRows' | 'nestedRowsPadded' | 'nestedSummary' | 'columnSummary' | 'formulasSummary' | 'mergeCells';
 
 /**
  * Page object for the sheets-bar-data-bound-settings fixture

@@ -721,13 +721,19 @@ class Endpoints {
   /**
    * Calculate and refresh a single endpoint.
    *
+   * The refresh can run inside another endpoint's calculation: a cell read there can run a pending
+   * Formulas resync, whose values update refreshes the endpoints again. The endpoint it replaced is
+   * therefore put back on exit, not cleared, or the outer calculation reads a `null` endpoint.
+   *
    * @param {object} endpoint Contains the endpoint information.
    */
   refreshEndpoint(endpoint: EndpointConfig) {
+    const previousEndpoint = this.currentEndpoint;
+
     this.currentEndpoint = endpoint;
     this.plugin.calculate(endpoint as unknown as Parameters<typeof this.plugin.calculate>[0]);
     this.setEndpointValue(endpoint, undefined);
-    this.currentEndpoint = null;
+    this.currentEndpoint = previousEndpoint;
   }
 
   /**

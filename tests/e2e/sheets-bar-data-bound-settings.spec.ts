@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { SheetsBarDataBoundSettingsPage } from '../fixtures/pages/SheetsBarDataBoundSettingsPage';
 
 /**
@@ -9,7 +9,7 @@ import { SheetsBarDataBoundSettingsPage } from '../fixtures/pages/SheetsBarDataB
  * results into that sheet's data. Separately, the reset of a never-visited sheet cleared the
  * merges after it brought hidden and trimmed rows back, so the merged cell kept its `rowspan`.
  */
-test.describe('SheetsBar settings that read the data', () => {
+test.describe('SheetsBar settings that read the data', { tag: BUNDLES_TAG }, () => {
   let grid: SheetsBarDataBoundSettingsPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {
@@ -107,6 +107,16 @@ test.describe('SheetsBar settings that read the data', () => {
       expect(await grid.consoleMessages()).toEqual([]);
       expect(await grid.declaredSheetCell(3, 9, 4)).toBe(94);
       expect(await grid.dataAtCell(9, 5)).toBe(369);
+    });
+
+    test('is computed on a switch when Formulas is on', async() => {
+      await grid.goto('formulasSummary');
+
+      expect(await grid.switchTo('S', 'P', 'S')).toEqual([true, true, true]);
+
+      expect(await grid.consoleMessages()).toEqual([]);
+      expect(grid.pageErrors).toEqual([]);
+      expect(await grid.dataAtCell(19, 4)).toBe(378);
     });
 
     test('is computed when the workbook opens on a summary sheet', async() => {
