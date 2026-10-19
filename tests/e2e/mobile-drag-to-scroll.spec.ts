@@ -1,5 +1,5 @@
 import { devices } from '@playwright/test';
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { DragToScrollPage } from '../fixtures/pages/mobile/DragToScrollPage';
 
 /**
@@ -23,7 +23,7 @@ test.use({
   browserName: 'chromium',
 });
 
-test.describe('mobile drag to scroll', { tag: THEMES_TAG }, () => {
+test.describe('mobile drag to scroll', () => {
   let mobileGrid: DragToScrollPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

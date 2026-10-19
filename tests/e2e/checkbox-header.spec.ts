@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { CheckboxHeaderPage } from '../fixtures/pages/CheckboxHeaderPage';
 
 /**
@@ -6,7 +6,7 @@ import { CheckboxHeaderPage } from '../fixtures/pages/CheckboxHeaderPage';
  * column used as the row selection (`rowSelection.checkboxLocation: { column }`). In the fixture, row 1
  * starts checked and row 2's cell is read-only, so 5 of the 6 cells can be written.
  */
-test.describe('Checkbox column header', { tag: THEMES_TAG }, () => {
+test.describe('Checkbox column header', () => {
   test('checks every editable cell from the mixed state, and unchecks them from checked', async({ page, theme, bundle }) => {
     const grid = new CheckboxHeaderPage(page, theme, bundle);
     const header = grid.headerCheckbox();
