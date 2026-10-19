@@ -15,7 +15,7 @@ angular:
 vue:
   metaTitle: Export to CSV - Vue Data Grid | Handsontable
 searchCategory: Guides
-category: Data management
+category: Import and export
 menuTag: updated
 ---
 
@@ -248,7 +248,7 @@ Get the plugin from the `hotInstance` of your `HotTable` template ref: `hotRef.v
 
 - [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md)
 - [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md)
-- [XLSX engine](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md)
+- [XLSX engines](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md)
 
 </div>
 

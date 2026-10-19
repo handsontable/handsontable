@@ -17,22 +17,67 @@ angular:
 vue:
   metaTitle: Import from Excel - Vue Data Grid | Handsontable
 searchCategory: Guides
-category: Data management
+category: Import and export
 menuTag: new
 addedIn: "19.0.0"
 ---
 
-Load an Excel (`.xlsx`) workbook into your grid. The `ImportFile` plugin reads the file with its built-in engine, derives cell types from number formats, and applies the layout the workbook carries.
+Load an Excel (`.xlsx`) workbook into your grid. The `ImportFile` plugin derives cell types from number formats and applies the layout the workbook carries. It uses the built-in XLSX engine unless you configure ExcelJS - see [XLSX engines](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md).
 
 [[toc]]
+
+## Demo
+
+The grid shows the workbook's data with headers, cell types, dropdown lists, merged cells, hidden columns, a formula, and a comment. The demo passes [`importStyles: true`](#styles), so it also applies the workbook's alignment, fills, and borders. Without it, styling is reported as `cellStyles`. A workbook with hidden rows or frozen panes gets those applied the same way.
+
+Click **Load sample** to import a workbook the export plugin wrote, or **Import XLSX** to pick your own.
+
+::: only-for javascript
+::: example #example1 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/accessories-and-menus/import-from-excel/javascript/example1.html)
+@[code](@/content/guides/accessories-and-menus/import-from-excel/javascript/example1.js)
+@[code](@/content/guides/accessories-and-menus/import-from-excel/javascript/example1.ts)
+
+:::
+:::
+
+::: only-for react
+::: example #example1 --js 1 --ts 2
+
+@[code](@/content/guides/accessories-and-menus/import-from-excel/react/example1.jsx)
+@[code](@/content/guides/accessories-and-menus/import-from-excel/react/example1.tsx)
+
+:::
+:::
+
+::: only-for angular
+::: example #example1 --ts 1 --html 2
+
+@[code](@/content/guides/accessories-and-menus/import-from-excel/angular/example1.ts)
+@[code](@/content/guides/accessories-and-menus/import-from-excel/angular/example1.html)
+
+:::
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/accessories-and-menus/import-from-excel/vue/example1.vue)
+
+:::
+
+:::
 
 ## Prerequisites
 
 - The `ImportFile` plugin is part of `registerAllModules()` and is on unless you set `importFile: false`. No other library is needed.
 - When you register modules one by one, register the `ImportFile` plugin itself (`registerPlugin(ImportFile)`), the plugins listed below, and the cell types the import derives: `numeric`, `date`, `intl-datetime`, `time`, `checkbox`, and `dropdown`. An unregistered type is applied as `text` and reported as `cellType:<name>`. A preview with `apply: false` returns the type the file asked for.
 - Enable the plugins for what you want applied: [`CustomBorders`](@/api/customBorders.md), [`Comments`](@/api/comments.md), and [`Formulas`](@/api/formulas.md). [`MergeCells`](@/api/mergeCells.md), [`HiddenRows`](@/api/hiddenRows.md), and [`HiddenColumns`](@/api/hiddenColumns.md) only need to be registered, because the import turns them on. A missing `Comments` plugin is reported as `comments`, a missing `CustomBorders` plugin as `cellStyles:borders` (with `importStyles: true`), and an unregistered `MergeCells`, `HiddenRows`, or `HiddenColumns` plugin under its own name. Without `Formulas`, formulas import as their cached values and are listed in `result.formulas`, not in `result.dropped`. A formula with no cached value imports empty and is reported as `formula:noCachedValue`.
+- To run the import in Jest or Vitest, set up the test environment as [Testing](@/guides/tools-and-building/testing/testing.md#test-import-and-export-in-jest-or-vitest) describes.
 
-## Steps
+## Example
 
 ### 1. Turn the plugin on
 
@@ -102,7 +147,7 @@ fileInput.addEventListener('change', async () => {
 
 ### 3. Read what was dropped
 
-`result.dropped` lists what the file carried and the grid did not take, and the plugin prints the same list in one console warning per import. The [reference](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#dropped-features-on-import) explains every key.
+`result.dropped` lists what the file carried and the grid did not take, and the plugin prints the same list in one console warning per import. The [Dropped features reference](@/guides/import-and-export/dropped-features/dropped-features.md#dropped-on-import) explains every key.
 
 ### 4. Preview before you apply
 
@@ -115,50 +160,6 @@ if (preview.data.length <= 10000) {
   await hot.getPlugin('importFile').importFromArrayBuffer('xlsx', buffer);
 }
 ```
-
-## Result
-
-The grid shows the workbook's data with headers, cell types, dropdown lists, merged cells, hidden columns, a formula, and a comment. The demo passes [`importStyles: true`](#styles), so it also applies the workbook's alignment, fills, and borders. Without it, styling is reported as `cellStyles`. A workbook with hidden rows or frozen panes gets those applied the same way.
-
-Click **Load sample** to import a workbook the export plugin wrote, or **Import XLSX** to pick your own.
-
-::: only-for javascript
-::: example #example1 --html 1 --js 2 --ts 3
-
-@[code](@/content/guides/accessories-and-menus/import-from-excel/javascript/example1.html)
-@[code](@/content/guides/accessories-and-menus/import-from-excel/javascript/example1.js)
-@[code](@/content/guides/accessories-and-menus/import-from-excel/javascript/example1.ts)
-
-:::
-:::
-
-::: only-for react
-::: example #example1 --js 1 --ts 2
-
-@[code](@/content/guides/accessories-and-menus/import-from-excel/react/example1.jsx)
-@[code](@/content/guides/accessories-and-menus/import-from-excel/react/example1.tsx)
-
-:::
-:::
-
-::: only-for angular
-::: example #example1 --ts 1 --html 2
-
-@[code](@/content/guides/accessories-and-menus/import-from-excel/angular/example1.ts)
-@[code](@/content/guides/accessories-and-menus/import-from-excel/angular/example1.html)
-
-:::
-:::
-
-::: only-for vue
-
-::: example #example1 :vue3
-
-@[code](@/content/guides/accessories-and-menus/import-from-excel/vue/example1.vue)
-
-:::
-
-:::
 
 ## Options
 
@@ -176,7 +177,7 @@ Pass these options as the third argument of `importFromArrayBuffer(format, buffe
 | `importLayout` | `boolean` | `true` | Apply merges, hidden rows and columns, frozen panes, column widths, and row heights. An import describes the whole sheet: each of these, and `customBorders`, that the grid has and the result does not carry is reset, including one you set yourself. Borders themselves come from `importStyles`, so with `importStyles` off an import clears the grid's custom borders. The lists merge into an existing `hiddenRows`, `hiddenColumns`, or `mergeCells` options object, so options such as `indicators` survive. Independently of `importLayout`, a grid that already has a `columns` setting gets one empty column setting per imported column when the result carries no `columns`, so the previous file's column types do not survive. |
 | `importStyles` | `boolean` | `false` | Apply alignment, font, fill, and borders from the workbook. See [Styles](#styles). |
 | `apply` | `boolean` | `true` | Apply the result to the grid. With `false`, the result comes back and nothing changes, neither hook fires, and the dropped-features warning still prints. Its `dropped` leaves out the names that come from applying (`cellType:<name>`, `mergeCells`, `hiddenRows`, `hiddenColumns`, and `layoutDirection`), so a preview's list can be shorter than the real import's. |
-| `engine` | `object \| null` | - | Engine for this call only. `null`, or no key, means the engine from the `engines` setting, or the built-in one. See the [reference](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#engines). |
+| `engine` | `object \| null` | - | Engine for this call only. `null`, or no key, means the engine from the `engines` setting, or the built-in one. See [Choose the engine](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#choose-the-engine). |
 
 ## Styles
 
@@ -202,7 +203,7 @@ With `importStyles: true`, borders pass to the `CustomBorders` plugin through `u
 
 ## Re-importing an export
 
-A workbook you exported from Handsontable carries its nested headers and row headers as sheet content. Import it with `headerRows` set to the header depth and `rowHeaders: true`, or the second header row lands in the data and the row numbers become a column.
+A workbook you exported from Handsontable DataGrid carries its nested headers and row headers as sheet content. Import it with `headerRows` set to the header depth and `rowHeaders: true`, or the second header row lands in the data and the row numbers become a column.
 
 ```javascript
 await hot.getPlugin('importFile').importFromBlob('xlsx', file, {
@@ -273,6 +274,22 @@ The `HotTable` component watches the settings you pass to it. A later change sen
 
 :::
 
+## Security
+
+The plugin treats every workbook as untrusted input:
+
+- Promoted column headers are HTML-escaped, and cell values render as text.
+- A text value that starts with `=` stays text. Only a cell the file declares as a formula imports as one.
+- Files above the size, cell, and sheet limits are refused before they reach the grid. Macros are never run.
+
+For a file from an untrusted source, use the built-in engine, and import it with `apply: false` first or with the Formulas plugin off: a few bytes of formula can reference every cell of a sheet and crash the tab. The full rules and limits are in [XLSX engines](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#security).
+
+## Methods
+
+- [`importFromBlob(format, blob, options)`](@/api/importFile.md#importfromblob) - imports a `Blob` or a `File`, such as one from an `<input type="file">`. Returns a `Promise` of the result.
+- [`importFromArrayBuffer(format, buffer, options)`](@/api/importFile.md#importfromarraybuffer) - imports an `ArrayBuffer`, or a view over one such as a `Uint8Array`. Returns a `Promise` of the result.
+- [`supportsImportFormat(format)`](@/api/importFile.md#supportsimportformat) - `true` when the format can be read.
+
 ## Hooks
 
 - [`beforeImport(result, format)`](@/api/hooks.md#beforeimport) runs after mapping and before applying. Return `false` to leave the grid untouched; the promise still resolves with the result. Mutate `result` to change what is applied. The dropped-features warning is already printed by then.
@@ -287,7 +304,8 @@ The `HotTable` component watches the settings you pass to it. A later change sen
 
 - [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md)
 - [Export to CSV](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md)
-- [XLSX engine](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md)
+- [XLSX engines](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md)
+- [Dropped features reference](@/guides/import-and-export/dropped-features/dropped-features.md)
 - [Import from CSV or Excel](@/recipes/import-export/import-csv-excel/import-csv-excel.md)
 
 </div>

@@ -1997,8 +1997,8 @@ To detect a failed export, match on the current message or read `error.cause`. D
 
 The built-in engine needs the [Compression Streams API](https://developer.mozilla.org/en-US/docs/Web/API/Compression_Streams_API),
 which every browser Handsontable supports provides. See
-[XLSX engine: Engines](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#engines) for what
-each engine writes.
+[XLSX engines: Compare the engines](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#compare-the-engines)
+for what each engine writes.
 
 ## 34. `removeCellMeta()` accepts an index past the grid's range
 
