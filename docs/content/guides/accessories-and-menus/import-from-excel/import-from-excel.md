@@ -285,7 +285,7 @@ The method returns `{ columns, headerRow }`. Each entry of `columns` keeps the g
 |---|---|
 | `settings` | The column options: `type`, the format of that type (`numericFormat`, `dateFormat`, `timeFormat`, or `source`), and `data` for rows of objects. Pass it to [`columns`](@/api/options.md#columns) as it is. |
 | `confidence` | The share of non-blank values the type reads, from `0` to `1`. |
-| `inputFormat` | How the raw values were written (the decimal separator, a percent sign, the currency symbol, the day and month order). `convertToInferredTypes()` reads it. |
+| `inputFormat` | How the raw values were written (the decimal separator, a percent sign, the currency symbol, the day and month order, the listed date format, the listed boolean words). `convertToInferredTypes()` reads it. |
 | `title` | The column's header. Set with a header row, and for rows of objects, where it is the property name. |
 | `stats` | A description of the sampled values. Set with the [`stats`](#column-statistics) option. |
 
@@ -378,9 +378,9 @@ A date format uses these tokens. Every other character is matched as it is:
 | `MM`, `DD` | A two-digit month or day (`03`). |
 | `M`, `D` | A month or day of one or two digits (`3`, `03`). |
 
-For example, `DD/MM/YYYY`, `D.M.YYYY`, and `YYYYMMDD` are all valid. A format needs exactly one year, one month, and one day token. A format with any other letter, such as `MMM` or `YY`, is ignored. The listed formats replace the built-in reading of year-last dates, so the column doesn't depend on the `locale`. ISO dates (`2026-03-12`) are always read. A column takes the format that reads the most of its values, and the earlier format in the list wins a tie. The format a date column uses is in its `inputFormat`, so `convertToInferredTypes()` reads the rows past the sample the same way. A column of digits that a listed format reads, such as `20260312` with `YYYYMMDD`, becomes a `date`, not a `numeric` column.
+For example, `DD/MM/YYYY`, `D.M.YYYY`, `YYYY/DD/MM`, and `YYYYMMDD` are all valid. A format needs exactly one year, one month, and one day token. A format is ignored when it has any other letter, such as `MMM` or `YY`, or an `M` or `D` token right next to another token, such as `YYYYMD`, which can't tell `2026111` as 1 November from 11 January. The listed formats replace the built-in reading of year-last dates, so the column doesn't depend on the `locale`. A value that no listed format matches is still read as an ISO date (`2026-03-12`). A column takes the format that reads the most of its values, and the earlier format in the list wins a tie. The format a date column uses is in its `inputFormat`, so `convertToInferredTypes()` reads the rows past the sample the same way. A column of digits that a listed format reads, such as `20260312` with `YYYYMMDD`, becomes a `date`, not a `numeric` column, whether the values are strings or numbers.
 
-The words in `booleanValues` are read in addition to `true` and `false`. They are compared trimmed and in any case. A word listed on both sides reads as neither. If you list `1` and `0`, a column of them becomes a `checkbox` instead of a `numeric` column.
+The words in `booleanValues` are read in addition to `true` and `false`. They are compared trimmed and in any case. A word listed on both sides reads as neither. If you list `1` and `0`, a column of them becomes a `checkbox` instead of a `numeric` column, whether the values are strings or numbers.
 
 ### Options
 

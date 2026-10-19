@@ -100,6 +100,11 @@ function toMaxDropdownOptions(dropdown: InferColumnTypesOptions['dropdown']): nu
 }
 
 /**
+ * The format a converter falls back to when a result records a date format that does not compile.
+ */
+const ISO_DATE_FORMAT = compileDateFormat('YYYY-MM-DD');
+
+/**
  * Reads the `dateFormats` option into the formats that compile, in the order given.
  */
 function toDateFormats(dateFormats: unknown): CompiledDateFormat[] {
@@ -282,7 +287,7 @@ function inferColumn(
   }
 
   const { winner, rivals } = runDetectors(nonBlank, context, minConfidence, wantRunnerUp);
-  // `toSorted` is stable, so equal shares keep the order of `DETECTORS`.
+  // `toSorted` is stable, so equal shares keep the order of `getDetectors()`.
   const [rival] = rivals.toSorted((a, b) => b.share - a.share);
   const runnerUpType = rival?.type ?? (winner ? 'text' : undefined);
 
@@ -315,7 +320,11 @@ function createReader(column: InferredColumn): ValueReader | null {
     }
     case 'date': {
       const order = inputFormat.dateOrder ?? 'MDY';
-      const format = inputFormat.dateFormat === undefined ? null : compileDateFormat(inputFormat.dateFormat);
+      // A recorded format that does not compile (a hand-edited result) reads ISO dates only, never the
+      // built-in year-last order, which would guess month first for day-first data.
+      const format = inputFormat.dateFormat === undefined
+        ? null
+        : compileDateFormat(inputFormat.dateFormat) ?? ISO_DATE_FORMAT;
 
       return value => readDate(value, order, format)?.iso ?? null;
     }

@@ -133,7 +133,7 @@ data) and converts the values to what each type stores. Read this before touchin
   as data.
 - **`stats` costs a full detector pass, so it is opt-in.** Without it `inferColumn` stops at the first
   detector that reaches the floor; with it, every detector runs so `runnerUpType` can name the next
-  best type (ties keep `DETECTORS` order). `min`/`max` exist only for numeric, date and time:
+  best type (ties keep the `getDetectors()` order). `min`/`max` exist only for numeric, date and time:
   a checkbox's booleans compare, and a text column has no order worth reporting. `examples: 0` is a
   valid limit, so "stats off" is `null` in `toExampleLimit`, never `0`.
 - **A `Date` is described by its ISO string** (`toText`), because its own text follows the host time
@@ -152,17 +152,26 @@ data) and converts the values to what each type stores. Read this before touchin
   JSON-serializable. A checkbox column without the option has no `inputFormat`, as before.
 - **Listed date formats REPLACE the built-in year-last reading; they do not add to it.** Added, the
   built-in reading would keep winning ties under the locale, and `dateFormats: ['DD/MM/YYYY']` under
-  `en-US` would still read `12/03/2026` as 3 December. ISO year-first dates are always read. The
+  `en-US` would still read `12/03/2026` as 3 December. **The format is tried BEFORE the year-first
+  regex**, which also takes `/` and `.` (`YEAR_FIRST_DATE_REGEX`): the other way round, `YYYY/DD/MM`
+  read `2026/12/03` as 3 December while `inputFormat` said the listed format was used. A value the
+  format does not match is still read as year-first. A result whose `dateFormat` no longer compiles
+  converts ISO dates only (`ISO_DATE_FORMAT`), never the built-in MDY guess. The
   column takes the format that reads the most values (the earlier one on a tie, like
   `resolveNumberMode`), and that format is recorded even when no sampled value needed it. With a format
   listed the confidence is never discounted: the user settled the order, not the locale.
 - **A listed format moves the date detector ahead of numeric** (`getDetectors`). `YYYYMMDD` values read
   as numbers too, and the default order gives numeric the tie and stops there, since it reads every
-  value. Only digit-only formats can tie, so nothing else changes. Checkbox is already first, which is
-  why listed `1`/`0` words win over numeric without a rule of their own.
+  value. Only a format whose values also parse as numbers (digits only, or digits with one `.` or `,`,
+  such as `YYYY.MMDD`) can tie. Checkbox is already first, which is why listed `1`/`0` words win over
+  numeric without a rule of their own. Both readers take NUMBER cells too, through their text (a whole
+  number for a format, any finite number for a word), because API data carries `20260312` and `1` as
+  numbers; the default readers still read strings only, so defaults are unchanged.
 - **The format grammar is numeric on purpose**: `YYYY`, `MM`/`DD` (two digits), `M`/`D` (one or two),
   every non-letter matched literally. A run of any other letter (`MMM`, `YY`, `dd`) drops the whole
-  format, because month names depend on the locale and a two-digit year needs a century pivot. Never
+  format, because month names depend on the locale and a two-digit year needs a century pivot. So does
+  an `M` or `D` right next to another token (`YYYYMD`): `2026111` is 1 November or 11 January. The
+  format is trimmed, like the values. Never
   read a format with `new Date()` or a date library: the module must stay deterministic and small.
 - **A boolean word listed on both sides reads as neither**, `true` and `false` included
   (`createBooleanReader`). Words compare as `.trim().toLowerCase()`, never `toLocaleLowerCase`.

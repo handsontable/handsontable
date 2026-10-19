@@ -106,7 +106,10 @@ function detectCheckbox(values: unknown[], context: DetectionContext): Detection
   const column: DetectedColumn = { settings: { type: 'checkbox' } };
 
   if (context.booleanValues) {
-    column.inputFormat = { booleanValues: context.booleanValues };
+    // A copy per column, so changing one column's words leaves the others alone.
+    const { true: trueWords, false: falseWords } = context.booleanValues;
+
+    column.inputFormat = { booleanValues: { true: [...trueWords], false: [...falseWords] } };
   }
 
   return { column, matched: countMatches(values, context.readBoolean), certainty: 1 };

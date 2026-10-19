@@ -1184,6 +1184,50 @@ describe('inferColumnTypes', () => {
       expect(inferOne(['30/02/2026', '31/04/2026'], { dateFormats: ['DD/MM/YYYY'] }).type).toBe('text');
     });
 
+    it('reads a year-first format with the day first by the format, not as an ISO-like date', () => {
+      ['/', '.', '-'].forEach((separator) => {
+        const format = ['YYYY', 'DD', 'MM'].join(separator);
+        const values = ['2026', '12', '03'].join(separator);
+        const late = ['2026', '25', '03'].join(separator);
+
+        expect(convertOne([values, late], { dateFormats: [format] })).toEqual(['2026-03-12', '2026-03-25']);
+      });
+      expect(convertOne(['2026/12/03', '2026-01-05'], { dateFormats: ['YYYY/DD/MM'] }))
+        .toEqual(['2026-03-12', '2026-01-05']);
+    });
+
+    it('matches the literals of a format exactly, and trims the format', () => {
+      expect(convertOne(['13x03x2026', '14x03x2026'], { dateFormats: ['DD.MM.YYYY'] }))
+        .toEqual(['13x03x2026', '14x03x2026']);
+      expect(convertOne(['13.03.2026', '14.03.2026'], { dateFormats: [' DD.MM.YYYY '] }))
+        .toEqual(['2026-03-13', '2026-03-14']);
+    });
+
+    it('converts ISO dates only when a recorded format no longer compiles', () => {
+      const rows = [['13|03|2026'], ['2026-03-14'], ['03/04/2026']];
+      const result = inferColumnTypes(rows, { sampleSize: 2, dateFormats: ['DD|MM|YYYY'] });
+
+      result.columns[0].inputFormat.dateFormat = 'DD|MMM|YYYY';
+
+      expect(convertToInferredTypes(rows, result)).toEqual([['13|03|2026'], ['2026-03-14'], ['03/04/2026']]);
+    });
+
+    it('reads whole numbers with a format, and only with one', () => {
+      expect(inferOne([20260312, 20261201], { dateFormats: ['YYYYMMDD'] }).type).toBe('date');
+      expect(convertOne([20260312, 20261201], { dateFormats: ['YYYYMMDD'] })).toEqual(['2026-03-12', '2026-12-01']);
+      expect(inferOne([20260312, 20261201]).type).toBe('numeric');
+    });
+
+    it('ignores a format where a one-or-two-digit token touches another token', () => {
+      const builtIn = inferColumnTypes([['2026111']]);
+
+      ['YYYYMD', 'YYYYMMD', 'DMYYYY', 'DDMYYYY'].forEach((format) => {
+        expect(inferColumnTypes([['2026111']], { dateFormats: [format] })).toEqual(builtIn);
+      });
+      expect(convertOne(['2026-1-1', '2026-11-11'], { dateFormats: ['YYYY-M-D'] }))
+        .toEqual(['2026-01-01', '2026-11-11']);
+    });
+
     it('ignores a format without exactly one year, month and day, or with an unknown token', () => {
       const values = ['12/03/2026', '01/02/2026'];
       const builtIn = inferColumnTypes(columnsToRows(values), { locale: 'en-US' });
@@ -1275,6 +1319,21 @@ describe('inferColumnTypes', () => {
       expect(inferOne(['1', '0', '1'], options).type).toBe('checkbox');
       expect(convertOne(['1', '0', '1'], options)).toEqual([true, false, true]);
       expect(inferOne(['1', '0', '1']).type).toBe('numeric');
+    });
+
+    it('reads number cells by the listed words', () => {
+      const options = { booleanValues: { true: ['1'], false: ['0'] } };
+
+      expect(inferOne([1, 0, 1, '0'], options).type).toBe('checkbox');
+      expect(convertOne([1, 0, 1, '0'], options)).toEqual([true, false, true, false]);
+      expect(inferOne([1, 0, 1, 0]).type).toBe('numeric');
+    });
+
+    it('gives each checkbox column its own copy of the words', () => {
+      const { columns } = inferColumnTypes([['yes', 'no'], ['no', 'yes']], { booleanValues });
+
+      expect(columns[0].inputFormat.booleanValues).toEqual(columns[1].inputFormat.booleanValues);
+      expect(columns[0].inputFormat.booleanValues).not.toBe(columns[1].inputFormat.booleanValues);
     });
 
     it('reads only arrays of strings', () => {

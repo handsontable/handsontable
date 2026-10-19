@@ -44,9 +44,11 @@ export interface InferColumnTypesOptions {
    * tokens are `YYYY` (a four-digit year), `MM` and `DD` (two digits), and `M` and `D` (one or two
    * digits); every other character is matched as it is, for example `DD/MM/YYYY`, `YYYYMMDD`, or
    * `D. M. YYYY`. A format needs exactly one year, one month, and one day token, and a format with
-   * any other letter is ignored. A column takes the format that reads the most of its values, and
-   * the earlier one in the list on a tie. ISO dates (`2026-03-12`) are always read. When a format
-   * is listed, a column of digits that reads both as a date and as a number becomes a date.
+   * any other letter, or with an `M` or `D` token right next to another token (`YYYYMD`), is
+   * ignored. A column takes the format that reads the most of its values, and the earlier one in
+   * the list on a tie. A value the format does not match is still read as an ISO date
+   * (`2026-03-12`). Whole numbers are read too (`20260312` with `YYYYMMDD`), and a column that reads
+   * both as a date and as a number becomes a date.
    * Defaults to none, which reads the built-in year-last dates in the order the data or the
    * `locale` settles.
    */
@@ -54,7 +56,8 @@ export interface InferColumnTypesOptions {
   /**
    * Words a `checkbox` column reads as `true` and as `false`, besides `true` and `false`
    * themselves, for example `{ true: ['yes', 'tak'], false: ['no', 'nie'] }`. Words are compared
-   * trimmed and in any case. A word listed on both sides reads as neither. Defaults to none.
+   * trimmed and in any case, and a number cell is compared as its text, so listed `1` and `0` read
+   * the numbers `1` and `0`. A word listed on both sides reads as neither. Defaults to none.
    */
   booleanValues?: { true?: ReadonlyArray<string>; false?: ReadonlyArray<string> };
   /**
@@ -88,7 +91,8 @@ export interface InferredInputFormat {
   currencySymbol?: string;
   /**
    * The day and month order of a `date` column's year-last values: the one the sampled values
-   * show, or the locale's when they show none. Not set when the `dateFormats` option is.
+   * show, or the locale's when they show none. Not set when a format of the `dateFormats` option
+   * compiles.
    */
   dateOrder?: 'DMY' | 'MDY';
   /**

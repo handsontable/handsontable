@@ -483,7 +483,10 @@ export function createBooleanReader(words: BooleanValues): (value: unknown) => b
       return value;
     }
 
-    return typeof value === 'string' ? lookup.get(value.trim().toLowerCase()) ?? null : null;
+    // A listed `1` or `0` reads a number cell too: API data often carries them as numbers.
+    const text = typeof value === 'number' && Number.isFinite(value) ? String(value) : value;
+
+    return typeof text === 'string' ? lookup.get(text.trim().toLowerCase()) ?? null : null;
   };
 }
 
@@ -536,14 +539,22 @@ export function compileDateFormat(pattern: unknown): CompiledDateFormat | null {
   const groups: Partial<CompiledDateFormat['groups']> = {};
   let source = '';
   let group = 0;
+  let previous = '';
 
-  for (const [part] of pattern.matchAll(DATE_FORMAT_PART_REGEX)) {
+  // Values are read trimmed, so a format is too: `'DD/MM/YYYY '` would otherwise never match.
+  for (const [part] of pattern.trim().matchAll(DATE_FORMAT_PART_REGEX)) {
     const isLetters = /^[A-Za-z]/.test(part);
     const token = isLetters ? DATE_FORMAT_TOKENS[part] : undefined;
+    // `YYYYMD` cannot tell `2026111` as 1 November from 11 January, so a one-or-two-digit token
+    // needs a literal on the side where it meets another token.
+    const ambiguous = token !== undefined && previous in DATE_FORMAT_TOKENS
+      && (part.length === 1 || previous.length === 1);
 
-    if (isLetters && (token === undefined || groups[token.field] !== undefined)) {
+    if (isLetters && (token === undefined || groups[token.field] !== undefined || ambiguous)) {
       return null;
     }
+
+    previous = part;
 
     if (token) {
       group += 1;
@@ -563,23 +574,28 @@ export function compileDateFormat(pattern: unknown): CompiledDateFormat | null {
 }
 
 /**
- * Reads the year-last or the listed-format part of a trimmed value: the listed format when there
- * is one, the built-in year-last reading in `order` otherwise.
+ * Splits a trimmed value into its date parts: with the listed format when there is one and it
+ * matches, as a year-first date, or as a year-last one in `order` when no format is listed. The
+ * format comes first, so `YYYY/DD/MM` is not read as the year-first `YYYY/MM/DD`.
  */
-function splitOtherDate(
+function splitDate(
   text: string,
   order: 'DMY' | 'MDY',
   format: CompiledDateFormat | null
 ): { year: string; month: string; day: string } | null {
-  if (format) {
-    const match = format.regex.exec(text);
+  const match = format ? format.regex.exec(text) : null;
 
-    return match
-      ? { year: match[format.groups.year], month: match[format.groups.month], day: match[format.groups.day] }
-      : null;
+  if (format && match) {
+    return { year: match[format.groups.year], month: match[format.groups.month], day: match[format.groups.day] };
   }
 
-  const yearLast = YEAR_LAST_DATE_REGEX.exec(text);
+  const yearFirst = YEAR_FIRST_DATE_REGEX.exec(text);
+
+  if (yearFirst) {
+    return { year: yearFirst[1], month: yearFirst[3], day: yearFirst[4] };
+  }
+
+  const yearLast = format ? null : YEAR_LAST_DATE_REGEX.exec(text);
 
   if (!yearLast) {
     return null;
@@ -593,24 +609,23 @@ function splitOtherDate(
 }
 
 /**
- * Reads a value as a date. A year-first date is read as year, month, day. Any other value is read
- * with `format` when one is given, and as a year-last date in `order` when not. Returns `null` for
- * anything else, including a day the month does not have.
+ * Reads a value as a date. With `format`, a value the format matches is read with it, and any other
+ * value only as a year-first date. Without one, a year-first date is read as year, month, day, and a
+ * year-last one follows `order`. A whole number is read only with a format (`20260312` with
+ * `YYYYMMDD`). Returns `null` for anything else, including a day the month does not have.
  */
 export function readDate(
   value: unknown,
   order: 'DMY' | 'MDY',
   format: CompiledDateFormat | null = null
 ): DateReading | null {
-  if (typeof value !== 'string') {
+  const text = format && Number.isInteger(value) ? String(value) : value;
+
+  if (typeof text !== 'string') {
     return null;
   }
 
-  const text = value.trim();
-  const yearFirst = YEAR_FIRST_DATE_REGEX.exec(text);
-  const parts = yearFirst
-    ? { year: yearFirst[1], month: yearFirst[3], day: yearFirst[4] }
-    : splitOtherDate(text, order, format);
+  const parts = splitDate(text.trim(), order, format);
   const iso = parts ? toIsoDate(parts.year, parts.month, parts.day) : null;
 
   return parts && iso
