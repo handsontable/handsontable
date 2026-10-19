@@ -141,6 +141,11 @@ export interface HotInstance {
   getRowId(row: number): unknown;
   getVisualRowById(id: unknown): number | null;
   getPhysicalRowById(id: unknown): number | null;
+  getRowIdAtPhysicalRow(physicalRow: number): unknown;
+  getRowIds(rows?: number[]): unknown[];
+  getVisualRowsByIds(ids: unknown[]): Array<number | null>;
+  getPhysicalRowsByIds(ids: unknown[]): Array<number | null>;
+  setDataAtRowIdProp(id: unknown, prop: string | number, value: unknown, source?: string): boolean;
 
   // Data access
   getSchema(): unknown[] | Record<string, unknown>;

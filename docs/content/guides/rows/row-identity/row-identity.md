@@ -126,19 +126,38 @@ When your data has no id field, let Handsontable generate the ids:
 rowId: true,
 ```
 
-Keep the ids unique. If two rows share an id, the lookups return the row with the lower physical index.
+Keep the ids unique. If two rows share an id, the lookups return the row with the lower physical index, and Handsontable logs a console warning.
 
 The lookups compare ids by identity (`===`), so use strings or numbers. An object id matches only the same object.
 
+## Choose between generated and keyed ids
+
+| Your case                                                             | Use                               |
+| --------------------------------------------------------------------- | --------------------------------- |
+| The ids only need to last while the grid is open                      | `rowId: true`                     |
+| You replace or reorder the data (`loadData()`, `updateData()`)        | A row key (a property or a function) |
+| You send changes to a server, or store the ids anywhere               | A row key                         |
+| You use [nested rows](@/guides/rows/row-parent-child/row-parent-child.md) | A row key                     |
+
+Generated ids belong to the grid, not to the data:
+
+- [`loadData()`](@/api/core.md#loaddata) gives every row a new id.
+- [`updateData()`](@/api/core.md#updatedata) keeps the ids by position. If the new data lists the records in another order, the ids move to other records.
+- A settings update keeps the ids, including one that changes [`columns`](@/api/options.md#columns).
+
+A row key reads the id from each record, so it survives any data change.
+
 ## Read and look up row ids
 
-Three methods work with row ids:
-
-| Method                                                       | Returns                                                  |
-| ------------------------------------------------------------ | -------------------------------------------------------- |
-| [`getRowId(row)`](@/api/core.md#getrowid)                    | The id of the row at a visual index.                      |
-| [`getVisualRowById(id)`](@/api/core.md#getvisualrowbyid)     | The visual index of the row that has the id.              |
-| [`getPhysicalRowById(id)`](@/api/core.md#getphysicalrowbyid) | The physical index of the row that has the id.            |
+| Method                                                                  | Returns                                                         |
+| ----------------------------------------------------------------------- | --------------------------------------------------------------- |
+| [`getRowId(row)`](@/api/core.md#getrowid)                               | The id of the row at a visual index.                             |
+| [`getRowIdAtPhysicalRow(physicalRow)`](@/api/core.md#getrowidatphysicalrow) | The id of the row at a physical index.                       |
+| [`getRowIds(rows)`](@/api/core.md#getrowids)                            | The ids of several visual rows, or of every row.                 |
+| [`getVisualRowById(id)`](@/api/core.md#getvisualrowbyid)                | The visual index of the row that has the id.                     |
+| [`getVisualRowsByIds(ids)`](@/api/core.md#getvisualrowsbyids)           | The visual indexes of the rows that have the ids.                |
+| [`getPhysicalRowById(id)`](@/api/core.md#getphysicalrowbyid)            | The physical index of the row that has the id.                   |
+| [`getPhysicalRowsByIds(ids)`](@/api/core.md#getphysicalrowsbyids)       | The physical indexes of the rows that have the ids.              |
 
 ```js
 const id = hot.getRowId(0); // 'SKU-4821'
@@ -149,39 +168,58 @@ hot.getVisualRowById(id); // 1 - the Wireless Mouse row moved down
 hot.getRowId(1); // 'SKU-4821'
 ```
 
-Each method returns `null` when it finds nothing:
+The methods return `null` when they find nothing:
 
-- `getRowId()` returns `null` for a row index out of range, for a row without an id, and when no row ids are configured.
-- Both lookups return `null` for an id that no row has, for example the id of a removed row.
+- `getRowId()` and `getRowIdAtPhysicalRow()` return `null` for a row index out of range, for a row without an id, and when no row ids are configured.
+- The lookups return `null` for an id that no row has, for example the id of a removed row.
 - `getVisualRowById()` returns `null` for a row that is trimmed or filtered out, because such a row has no visual index, and for a row past [`maxRows`](@/api/options.md#maxrows). `getPhysicalRowById()` still finds it.
 - A hidden row keeps its visual index, so `getVisualRowById()` finds it.
+
+Hooks such as [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow) pass physical row indexes. Read their ids with `getRowIdAtPhysicalRow()`, which also works for trimmed and filtered-out rows.
+
+## Write to a row by its id
+
+[`setDataAtRowIdProp()`](@/api/core.md#setdataatrowidprop) writes a value to the row that has an id, wherever the row is now. It returns `false` and does nothing when no row has the id.
 
 For example, to apply the result of an asynchronous request to the record it was made for:
 
 ```js
 const id = hot.getRowId(selectedRow);
 const price = await fetchPrice(id);
-const row = hot.getVisualRowById(id);
 
 // The user may have sorted the rows or removed the record in the meantime.
-if (row !== null) {
-  hot.setDataAtRowProp(row, 'price', price);
-}
+hot.setDataAtRowIdProp(id, 'price', price, 'priceService');
 ```
 
-## Generated ids and data loads
+For a visible row (hidden rows included), the method works like [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop). For a row that is trimmed or filtered out, it writes to the source data, so the value is not validated and [`afterChange`](@/api/hooks.md#afterchange) does not fire for it.
 
-Generated ids follow the physical rows:
+## Cancel pending work when a row is removed
 
-- [`loadData()`](@/api/core.md#loaddata) gives every row a new id.
-- [`updateData()`](@/api/core.md#updatedata) keeps the ids of the rows that stay, by position.
-- A settings update keeps the ids, including one that changes [`columns`](@/api/options.md#columns).
+The [`afterRowIdsRemoved`](@/api/hooks.md#afterrowidsremoved) hook passes the ids of rows that stopped existing. It fires after a row removal (an undo or a redo included), and after `loadData()` or `updateData()` replaced the data with data that no longer holds those ids. A trimmed or filtered-out row still exists, so the hook does not report it.
 
-To keep ids across data loads, store the ids in your data and set `rowId` to a property or a function.
+The [`afterRowIdsReset`](@/api/hooks.md#afterrowidsreset) hook fires when a settings update changes how rows get their ids. Every id read before it may now name another row, so cancel everything.
+
+```js
+const pendingRequests = new Map(); // row id -> AbortController
+
+hot.addHook('afterRowIdsRemoved', (rowIds) => {
+  rowIds.forEach((id) => {
+    pendingRequests.get(id)?.abort();
+    pendingRequests.delete(id);
+  });
+});
+
+hot.addHook('afterRowIdsReset', () => {
+  pendingRequests.forEach(controller => controller.abort());
+  pendingRequests.clear();
+});
+```
+
+When you pass a function as `rowId`, pass the same function on every settings update. A new function counts as a change, and `afterRowIdsReset` fires each time.
 
 ## Row ids with a data provider
 
-When the [`dataProvider`](@/api/options.md#dataprovider) option sets its own `rowId`, Handsontable reads row ids with `dataProvider.rowId`, and the three methods use it too. A `rowId` option with a different value is ignored, with a console warning.
+When the [`dataProvider`](@/api/options.md#dataprovider) option sets its own `rowId`, Handsontable reads row ids with `dataProvider.rowId`, and the row id methods use it too. A `rowId` option with a different value is ignored, with a console warning.
 
 ## Known limitations
 
@@ -198,7 +236,15 @@ When the [`dataProvider`](@/api/options.md#dataprovider) option sets its own `ro
   - [`dataProvider`](@/api/options.md#dataprovider)
 - Core methods:
   - [`getRowId()`](@/api/core.md#getrowid)
+  - [`getRowIdAtPhysicalRow()`](@/api/core.md#getrowidatphysicalrow)
+  - [`getRowIds()`](@/api/core.md#getrowids)
   - [`getVisualRowById()`](@/api/core.md#getvisualrowbyid)
+  - [`getVisualRowsByIds()`](@/api/core.md#getvisualrowsbyids)
   - [`getPhysicalRowById()`](@/api/core.md#getphysicalrowbyid)
+  - [`getPhysicalRowsByIds()`](@/api/core.md#getphysicalrowsbyids)
+  - [`setDataAtRowIdProp()`](@/api/core.md#setdataatrowidprop)
   - [`toPhysicalRow()`](@/api/core.md#tophysicalrow)
   - [`toVisualRow()`](@/api/core.md#tovisualrow)
+- Hooks:
+  - [`afterRowIdsRemoved`](@/api/hooks.md#afterrowidsremoved)
+  - [`afterRowIdsReset`](@/api/hooks.md#afterrowidsreset)

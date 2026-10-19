@@ -541,6 +541,8 @@ export interface GridSettings {
     expandPossible: boolean, successfullyExpanded: boolean) => void;
   afterRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean, orderChanged: boolean) => void;
+  afterRowIdsRemoved?: (rowIds: unknown[], source?: ChangeSource) => void;
+  afterRowIdsReset?: () => void;
   afterRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => void;
   afterRowSelectionChange?: (selectedRows: number[], deselectedRows: number[], source: RowSelectionSource) => void;
   afterRowSequenceChange?: (source: ChangeSource) => void;

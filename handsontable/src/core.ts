@@ -6001,6 +6001,110 @@ export default function Core(
   };
 
   /**
+   * Returns the id of a row, addressed by its physical index.
+   *
+   * Unlike [`getRowId()`](@/api/core.md#getrowid), it also reads the id of a row that is trimmed or filtered
+   * out, which has no visual index. Use it with the physical row indexes that hooks such as
+   * [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow) pass.
+   *
+   * @memberof Core#
+   * @function getRowIdAtPhysicalRow
+   * @since 19.0.0
+   * @param {number} physicalRow Physical row index.
+   * @returns {*} The row's id, or `null` when the row does not exist, has no id, or no row ids are configured.
+   */
+  this.getRowIdAtPhysicalRow = function(physicalRow: number): unknown {
+    if (!Number.isInteger(physicalRow) || physicalRow < 0 ||
+        physicalRow >= instance.rowIndexMapper.getNumberOfIndexes()) {
+      return null;
+    }
+
+    return rowIdentity.getRowIdAtPhysicalRow(physicalRow);
+  };
+
+  /**
+   * Returns the ids of several rows at once.
+   *
+   * @memberof Core#
+   * @function getRowIds
+   * @since 19.0.0
+   * @param {number[]} [rows] Visual row indexes. Without it, the method returns the ids of every row, in visual
+   * order.
+   * @returns {Array} The ids, in the order of `rows`, with `null` for a row that does not exist or has no id.
+   */
+  this.getRowIds = function(rows?: number[]): unknown[] {
+    const visualRows = Array.isArray(rows) ? rows : Array.from({ length: instance.countRows() }, (_, row) => row);
+
+    return visualRows.map(row => instance.getRowId(row));
+  };
+
+  /**
+   * Returns the visual indexes of the rows that have the given ids.
+   *
+   * @memberof Core#
+   * @function getVisualRowsByIds
+   * @since 19.0.0
+   * @param {Array} ids The row ids.
+   * @returns {Array<number|null>} The visual row indexes, in the order of `ids`, with `null` wherever
+   * [`getVisualRowById()`](@/api/core.md#getvisualrowbyid) returns `null`.
+   */
+  this.getVisualRowsByIds = function(ids: unknown[]): Array<number | null> {
+    return Array.isArray(ids) ? ids.map(id => instance.getVisualRowById(id)) : [];
+  };
+
+  /**
+   * Returns the physical indexes of the rows that have the given ids.
+   *
+   * @memberof Core#
+   * @function getPhysicalRowsByIds
+   * @since 19.0.0
+   * @param {Array} ids The row ids.
+   * @returns {Array<number|null>} The physical row indexes, in the order of `ids`, with `null` for an id that no
+   * row has.
+   */
+  this.getPhysicalRowsByIds = function(ids: unknown[]): Array<number | null> {
+    return Array.isArray(ids) ? ids.map(id => rowIdentity.getPhysicalRowById(id)) : [];
+  };
+
+  /**
+   * Sets a value in the row that has the given id, wherever the row is now. If no row has the id (for example,
+   * the row was removed), it does nothing.
+   *
+   * For a visible row (one with a visual index, hidden rows included), it works like
+   * [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop). For a row that is trimmed or filtered out, it writes
+   * to the source data with [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell), so the value is not
+   * validated and [`afterChange`](@/api/hooks.md#afterchange) does not fire for it.
+   *
+   * @memberof Core#
+   * @function setDataAtRowIdProp
+   * @since 19.0.0
+   * @param {*} id The row's id.
+   * @param {string|number} prop The property name, or the physical column index of a row array.
+   * @param {*} value The new value.
+   * @param {string} [source] The source of the change, passed on to the hooks.
+   * @returns {boolean} `true` when a row has the id and the value was set, `false` otherwise.
+   */
+  this.setDataAtRowIdProp = function(id: unknown, prop: string | number, value: unknown, source?: string): boolean {
+    const visualRow = instance.getVisualRowById(id);
+
+    if (visualRow !== null) {
+      instance.setDataAtRowProp(visualRow, prop, value, source);
+
+      return true;
+    }
+
+    const physicalRow = rowIdentity.getPhysicalRowById(id);
+
+    if (physicalRow === null) {
+      return false;
+    }
+
+    instance.setSourceDataAtCell(physicalRow, prop, value, source);
+
+    return true;
+  };
+
+  /**
    * @description
    * Returns the cell value at `row`, `column`.
    *

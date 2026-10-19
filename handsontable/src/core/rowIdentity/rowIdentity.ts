@@ -27,6 +27,56 @@ const DATA_HOOKS = [
 ] as const;
 
 /**
+ * The ids a removal is about to remove, with the physical rows they were read from.
+ */
+interface PendingRemoval {
+  physicalRows: number[];
+  ids: unknown[];
+}
+
+/**
+ * Tells whether a row ids setting gives the rows ids.
+ *
+ * @param {*} key The row key or mode.
+ * @returns {boolean}
+ */
+function isActiveKey(key: RowIdSetting): boolean {
+  return key === true || isRowIdKey(key);
+}
+
+/**
+ * Reads the ids of physical rows, leaving out the rows without one.
+ *
+ * @param {number[]} physicalRows The physical row indexes.
+ * @param {Function} readId Reads the id of a physical row.
+ * @returns {Array}
+ */
+function readIds(physicalRows: number[], readId: (physicalRow: number) => unknown): unknown[] {
+  const ids: unknown[] = [];
+
+  physicalRows.forEach((physicalRow) => {
+    const id = readId(physicalRow);
+
+    if (id !== null) {
+      ids.push(id);
+    }
+  });
+
+  return ids;
+}
+
+/**
+ * Tells whether two lists hold the same physical rows in the same order.
+ *
+ * @param {number[]} left The first list.
+ * @param {number[]} right The second list.
+ * @returns {boolean}
+ */
+function isSameRowList(left: number[], right: number[]): boolean {
+  return Array.isArray(right) && left.length === right.length && left.every((row, at) => row === right[at]);
+}
+
+/**
  * Tells whether a value is a row key: a property path or a function.
  *
  * @param {*} value The value to check.
@@ -37,8 +87,8 @@ function isRowIdKey(value: unknown): value is RowIdKey {
 }
 
 /**
- * The generated ids by physical row. `updateSettings()` re-initializes every row index map when `columns`
- * change (and the framework wrappers re-send `columns` on every render), while the rows stay the same records,
+ * The generated ids by physical row. `updateSettings()` re-initializes every row index map on a `columns` payload
+ * without `data` (which the Vue wrapper sends whenever the columns change), while the rows stay the same records,
  * so a re-initialization keeps the ids, unless it comes from a data replacement or changes the row count.
  */
 class GeneratedRowIdsMap extends PhysicalIndexToValueMap {
@@ -125,6 +175,22 @@ export class RowIdentity {
   #listensToData = false;
 
   /**
+   * The row key or mode the ids were last read with, to tell when a settings update changes what an id means.
+   */
+  #appliedKey: RowIdSetting = undefined;
+
+  /**
+   * The ids of the rows a removal is about to remove, read in `beforeRemoveRow` (while the rows still exist) and
+   * reported in `afterRemoveRow`. A stack, because a hook of one removal can start another.
+   */
+  #pendingRemovals: PendingRemoval[] = [];
+
+  /**
+   * The ids of every row before a data replacement, read only while something listens to `afterRowIdsRemoved`.
+   */
+  #idsBeforeDataReplacement: unknown[] | null = null;
+
+  /**
    * Follows the settings, which decide how rows get their ids.
    */
   constructor(hot: HotInstance, readSourceRow: (physicalRow: number) => unknown) {
@@ -135,6 +201,12 @@ export class RowIdentity {
     hot.addHook('afterUpdateSettings', this.#onSettingsChange);
     hot.addHook('beforeLoadData', this.#onBeforeLoadData);
     hot.addHook('afterLoadData', this.#onAfterLoadData);
+    hot.addHook('beforeUpdateData', this.#onBeforeDataReplacement);
+    hot.addHook('afterUpdateData', this.#onAfterDataReplacement);
+    // Last, so it reads the final list of rows (NestedRows adds a parent's descendants to it) and sees a veto as
+    // the `false` the earlier listeners hand on.
+    hot.addHook('beforeRemoveRow', this.#onBeforeRemoveRow, Number.MAX_SAFE_INTEGER);
+    hot.addHook('afterRemoveRow', this.#onAfterRemoveRow);
   }
 
   /**
@@ -258,7 +330,14 @@ export class RowIdentity {
     for (let physicalRow = 0; physicalRow < rowsCount; physicalRow += 1) {
       const id = readId(physicalRow);
 
-      if (id !== null && !index.has(id)) {
+      if (id === null) {
+        continue;
+      }
+
+      if (index.has(id)) {
+        warnOnce(this, 'rowId.duplicate', `Two rows have the same id (${String(id)}). Row ids must be unique: ` +
+          'the lookups return the row with the lower physical index.');
+      } else {
         index.set(id, physicalRow);
       }
     }
@@ -276,6 +355,9 @@ export class RowIdentity {
     const key = this.#readKey();
     const generates = key === true;
     const rowIndexMapper = this.#hot.rowIndexMapper;
+    const previousKey = this.#appliedKey;
+
+    this.#appliedKey = key;
 
     this.#toggleDataHooks(isRowIdKey(key));
 
@@ -299,7 +381,112 @@ export class RowIdentity {
     }
 
     this.#invalidate();
+
+    if (key !== previousKey && isActiveKey(previousKey)) {
+      this.#hot.runHooks('afterRowIdsReset');
+    }
   };
+
+  /**
+   * Reads the ids of the rows a removal is about to remove.
+   *
+   * @param {number|boolean} index The visual index of the first removed row, or `false` when an earlier listener
+   * canceled the removal.
+   * @param {number} amount The number of removed rows.
+   * @param {number[]} physicalRows The physical indexes of the removed rows.
+   */
+  #onBeforeRemoveRow = (index: number | boolean, amount: number, physicalRows: number[]): void => {
+    if (index === false || !Array.isArray(physicalRows) || !this.#hot.hasHook('afterRowIdsRemoved')) {
+      return;
+    }
+
+    const readId = this.#createIdReader();
+
+    if (readId) {
+      this.#pendingRemovals.push({ physicalRows: physicalRows.slice(), ids: readIds(physicalRows, readId) });
+    }
+  };
+
+  /**
+   * Reports the ids of the rows a removal removed.
+   *
+   * @param {number} index The visual index of the first removed row.
+   * @param {number} amount The number of removed rows.
+   * @param {number[]} physicalRows The physical indexes of the removed rows.
+   * @param {string} [source] The source of the removal.
+   */
+  #onAfterRemoveRow = (index: number, amount: number, physicalRows: number[], source?: string): void => {
+    let at = this.#pendingRemovals.length - 1;
+
+    while (at >= 0 && !isSameRowList(this.#pendingRemovals[at].physicalRows, physicalRows)) {
+      at -= 1;
+    }
+
+    if (at < 0) {
+      return;
+    }
+
+    // The entries above it belong to removals a later listener canceled.
+    const [{ ids }] = this.#pendingRemovals.splice(at);
+
+    if (ids.length > 0) {
+      this.#hot.runHooks('afterRowIdsRemoved', ids, source);
+    }
+  };
+
+  /**
+   * Reads the ids of every row before `updateData()` (or `loadData()`) replaces the data.
+   *
+   * @param {Array} data The new data.
+   * @param {boolean} firstRun Whether it is the first data load of the grid.
+   */
+  #onBeforeDataReplacement = (data: unknown, firstRun: boolean): void => {
+    this.#idsBeforeDataReplacement = null;
+
+    if (firstRun || !this.#hot.hasHook('afterRowIdsRemoved')) {
+      return;
+    }
+
+    const readId = this.#createIdReader();
+
+    if (readId) {
+      this.#idsBeforeDataReplacement = readIds(this.#allPhysicalRows(), readId);
+    }
+  };
+
+  /**
+   * Reports the ids that no row holds after a data replacement.
+   *
+   * @param {Array} data The new data.
+   * @param {boolean} firstRun Whether it is the first data load of the grid.
+   * @param {string} [source] The source of the replacement.
+   */
+  #onAfterDataReplacement = (data: unknown, firstRun: boolean, source?: string): void => {
+    const previousIds = this.#idsBeforeDataReplacement;
+
+    this.#idsBeforeDataReplacement = null;
+
+    if (!previousIds) {
+      return;
+    }
+
+    const readId = this.#createIdReader();
+    const currentIds = new Set(readId ? readIds(this.#allPhysicalRows(), readId) : []);
+    const removedIds = previousIds.filter(id => !currentIds.has(id));
+
+    if (removedIds.length > 0) {
+      this.#hot.runHooks('afterRowIdsRemoved', removedIds, source);
+    }
+  };
+
+  /**
+   * Returns every physical row index.
+   *
+   * @returns {number[]}
+   */
+  #allPhysicalRows(): number[] {
+    return Array.from({ length: this.#hot.rowIndexMapper.getNumberOfIndexes() }, (_, physicalRow) => physicalRow);
+  }
 
   /**
    * Registers or removes the hooks that drop the lookup cache when the data may hold other ids. Only a row key
@@ -341,17 +528,30 @@ export class RowIdentity {
   /**
    * Marks the start of a data replacement, after which the generated ids start over.
    */
-  #onBeforeLoadData = (): void => {
+  #onBeforeLoadData = (data: unknown, firstRun: boolean): void => {
+    this.#onBeforeDataReplacement(data, firstRun);
     this.#isReplacingData = true;
     // `loadData()` runs synchronously, so a load that throws before `afterLoadData` cannot leave the flag on for
     // a later settings update.
-    this.#hot._registerMicrotask(this.#onAfterLoadData);
+    this.#hot._registerMicrotask(this.#endDataReplacement);
   };
 
   /**
-   * Marks the end of a data replacement.
+   * Ends a data replacement, and reports the ids it removed.
+   *
+   * @param {Array} data The new data.
+   * @param {boolean} firstRun Whether it is the first data load of the grid.
+   * @param {string} [source] The source of the replacement.
    */
-  #onAfterLoadData = (): void => {
+  #onAfterLoadData = (data: unknown, firstRun: boolean, source?: string): void => {
+    this.#endDataReplacement();
+    this.#onAfterDataReplacement(data, firstRun, source);
+  };
+
+  /**
+   * Marks the end of a data replacement, so the next re-initialization of the index maps keeps the ids.
+   */
+  #endDataReplacement = (): void => {
     this.#isReplacingData = false;
   };
 

@@ -600,6 +600,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
                    successfullyExpanded) => {},
   afterRowMove: (movedRows, finalIndex, dropIndex, movePossible,
                  orderChanged) => movedRows.forEach(row => row.toFixed(1) === finalIndex.toFixed(1)),
+  afterRowIdsRemoved: (rowIds, source) => rowIds.forEach(id => id === source),
+  afterRowIdsReset: () => {},
   afterRowResize: (newSize, row, isDoubleClick) => {},
   afterRowSelectionChange: (selectedRows, deselectedRows, source) => {},
   afterRowSequenceChange: (source) => {},

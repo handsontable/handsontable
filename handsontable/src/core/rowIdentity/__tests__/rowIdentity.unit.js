@@ -439,10 +439,23 @@ describe('Row identity', () => {
       expect(hot.getVisualRowById('a')).toBe(0);
     });
 
-    it('should return the row with the lower physical index when two rows share an id', () => {
-      createGrid({ rowId: 'id', data: [{ id: 1, name: 'A' }, { id: 1, name: 'B' }, { id: 2, name: 'C' }] });
+    it('should return the row with the lower physical index when two rows share an id, and warn once', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      createGrid({
+        rowId: 'id',
+        data: [{ id: 1, name: 'A' }, { id: 1, name: 'B' }, { id: 2, name: 'C' }, { id: 2, name: 'D' }],
+      });
 
       expect(hot.getPhysicalRowById(1)).toBe(0);
+      expect(hot.getPhysicalRowById(2)).toBe(2);
+
+      hot.setDataAtCell(0, 0, 'A2');
+      hot.getPhysicalRowById('missing');
+
+      expect(warnSpy.mock.calls.filter(([message]) => String(message).includes('same id')).length).toBe(1);
+
+      warnSpy.mockRestore();
     });
 
     it('should find the ids of new data after a lookup was made on the old data', () => {
@@ -623,7 +636,7 @@ describe('Row identity', () => {
       expect(hot.getVisualRowById(oldId)).toBeNull();
     });
 
-    // `updateSettings()` re-initializes every row index map when `columns` change, and the wrappers re-send them.
+    // `updateSettings()` re-initializes every row index map on a `columns` payload without `data` (Vue sends one).
     it('should keep the ids when a `columns` update re-initializes the index maps', () => {
       createGrid({ rowId: true, columnSorting: true });
 
@@ -734,6 +747,210 @@ describe('Row identity', () => {
       expect(warnings.length).toBe(1);
 
       warnSpy.mockRestore();
+    });
+  });
+  describe('reading and writing many rows', () => {
+    it('should read the id of a physical row, trimmed and filtered-out rows included', () => {
+      createGrid({ rowId: 'id', trimRows: true, filters: true });
+
+      hot.getPlugin('trimRows').trimRow(1);
+      hot.getPlugin('filters').addCondition(1, 'gt', [25]);
+      hot.getPlugin('filters').filter();
+
+      expect(hot.getRowIdAtPhysicalRow(1)).toBe('id-1');
+      expect(hot.getRowIdAtPhysicalRow(0)).toBe('id-0');
+      expect(hot.getRowIdAtPhysicalRow(5)).toBe('id-5');
+      expect(hot.getRowIdAtPhysicalRow(6)).toBeNull();
+      expect(hot.getRowIdAtPhysicalRow(-1)).toBeNull();
+    });
+
+    it('should read the ids of several rows, and of every row by default', () => {
+      createGrid({ rowId: 'id', columnSorting: true });
+
+      hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+
+      expect(hot.getRowIds([0, 2, 9])).toEqual(['id-5', 'id-3', null]);
+      expect(hot.getRowIds()).toEqual(['id-5', 'id-4', 'id-3', 'id-2', 'id-1', 'id-0']);
+    });
+
+    it('should find several rows by their ids, with `null` for the ids it cannot find', () => {
+      createGrid({ rowId: 'id', trimRows: true, columnSorting: true });
+
+      hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+      hot.getPlugin('trimRows').trimRow(4);
+      hot.render();
+
+      expect(hot.getVisualRowsByIds(['id-5', 'id-4', 'missing', 'id-0'])).toEqual([0, null, null, 4]);
+      expect(hot.getPhysicalRowsByIds(['id-5', 'id-4', 'missing', 'id-0'])).toEqual([5, 4, null, 0]);
+      expect(hot.getVisualRowsByIds([])).toEqual([]);
+    });
+
+    it('should write to the row that has an id, through the grid when the row is visible', () => {
+      createGrid({ rowId: 'id', columnSorting: true });
+
+      const afterChange = jest.fn();
+
+      hot.addHook('afterChange', afterChange);
+      hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+
+      expect(hot.setDataAtRowIdProp('id-1', 'name', 'Updated', 'asyncResult')).toBe(true);
+      expect(hot.getSourceDataAtRow(1).name).toBe('Updated');
+      expect(hot.getDataAtCell(4, 0)).toBe('Updated');
+      expect(afterChange).toHaveBeenCalledWith([[4, 'name', 'R1', 'Updated']], 'asyncResult');
+    });
+
+    it('should write to the source data of a filtered-out row, and do nothing for a removed one', () => {
+      createGrid({ rowId: 'id', filters: true });
+
+      hot.getPlugin('filters').addCondition(1, 'gt', [25]);
+      hot.getPlugin('filters').filter();
+      hot.alter('remove_row', 0, 1);
+
+      expect(hot.setDataAtRowIdProp('id-1', 'name', 'Hidden result')).toBe(true);
+      expect(hot.getSourceDataAtRow(1).name).toBe('Hidden result');
+      expect(hot.setDataAtRowIdProp('id-3', 'name', 'Removed result')).toBe(false);
+      expect(hot.getSourceData().map(row => row.name)).not.toContain('Removed result');
+    });
+  });
+
+  describe('row lifecycle hooks', () => {
+    MODES.forEach(({ title, rowId }) => {
+      it(`should report the ids of removed rows, with ${title}`, () => {
+        createGrid({ rowId });
+
+        const removed = jest.fn();
+        const ids = readIdsByName();
+
+        hot.addHook('afterRowIdsRemoved', removed);
+        hot.alter('remove_row', 1, 2, 'cleanup');
+
+        expect(removed).toHaveBeenCalledTimes(1);
+        expect(removed).toHaveBeenCalledWith([ids.get('R1'), ids.get('R2')], 'cleanup');
+
+        hot.getPlugin('undoRedo').undo();
+
+        expect(removed).toHaveBeenCalledTimes(1);
+
+        hot.getPlugin('undoRedo').redo();
+
+        expect(removed).toHaveBeenCalledTimes(2);
+        expect(removed.mock.calls[1][0]).toEqual([ids.get('R1'), ids.get('R2')]);
+      });
+    });
+
+    it('should report the id of a row an undo of its insertion removes', () => {
+      createGrid({ rowId: true });
+
+      const removed = jest.fn();
+
+      hot.addHook('afterRowIdsRemoved', removed);
+      hot.alter('insert_row_above', 0, 1);
+
+      const insertedId = hot.getRowId(0);
+
+      hot.getPlugin('undoRedo').undo();
+
+      expect(removed).toHaveBeenCalledWith([insertedId], 'UndoRedo.undo');
+    });
+
+    it('should not report a removal that a listener canceled, or a trimmed row', () => {
+      createGrid({ rowId: 'id', trimRows: true });
+
+      const removed = jest.fn();
+
+      hot.addHook('afterRowIdsRemoved', removed);
+      hot.addHook('beforeRemoveRow', () => false);
+      hot.alter('remove_row', 0, 1);
+      hot.getPlugin('trimRows').trimRow(2);
+      hot.render();
+
+      expect(hot.countRows()).toBe(5);
+      expect(removed).not.toHaveBeenCalled();
+    });
+
+    it('should report the ids of a removed parent and all its descendants', () => {
+      createGrid({
+        rowId: 'id',
+        columns: [{ data: 'name' }],
+        nestedRows: true,
+        rowHeaders: true,
+        data: [
+          { id: 'P1', name: 'P1', __children: [{ id: 'C11', name: 'C11', __children: [{ id: 'G1', name: 'G1' }] }] },
+          { id: 'P2', name: 'P2' },
+        ],
+      });
+
+      const removed = jest.fn();
+
+      hot.addHook('afterRowIdsRemoved', removed);
+      hot.alter('remove_row', 0, 1);
+
+      expect(removed).toHaveBeenCalledTimes(1);
+      expect(removed.mock.calls[0][0].slice().sort()).toEqual(['C11', 'G1', 'P1']);
+    });
+
+    it('should report the ids that a data replacement leaves out', () => {
+      createGrid({ rowId: 'id' });
+
+      const removed = jest.fn();
+
+      hot.addHook('afterRowIdsRemoved', removed);
+      hot.updateData(createRecords(6).reverse());
+
+      expect(removed).not.toHaveBeenCalled();
+
+      hot.updateData(createRecords(4), 'serverSync');
+
+      expect(removed).toHaveBeenCalledTimes(1);
+      expect(removed.mock.calls[0][0].slice().sort()).toEqual(['id-4', 'id-5']);
+      expect(removed.mock.calls[0][1]).toBe('serverSync');
+
+      hot.loadData([{ id: 'id-0', name: 'R0', value: 0 }, { id: 'new', name: 'N', value: 1 }], 'reload');
+
+      expect(removed).toHaveBeenLastCalledWith(['id-1', 'id-2', 'id-3'], 'reload');
+    });
+
+    it('should report every generated id when `loadData()` gives the rows new ones', () => {
+      createGrid({ rowId: true });
+
+      const removed = jest.fn();
+      const ids = [...readIdsByName().values()];
+
+      hot.addHook('afterRowIdsRemoved', removed);
+      hot.loadData(createRecords(6), 'reload');
+
+      expect(removed).toHaveBeenCalledWith(ids, 'reload');
+    });
+
+    it('should not report anything when the grid loads its first data', () => {
+      const removed = jest.fn();
+
+      createGrid({ rowId: 'id', afterRowIdsRemoved: removed });
+
+      expect(removed).not.toHaveBeenCalled();
+    });
+
+    it('should report a reset when a settings update changes how rows get their ids', () => {
+      const reset = jest.fn();
+      const readId = row => row.id;
+
+      createGrid({ afterRowIdsReset: reset });
+      hot.updateSettings({ rowId: readId });
+
+      expect(reset).not.toHaveBeenCalled();
+
+      hot.updateSettings({ rowId: readId, colHeaders: true });
+
+      expect(reset).not.toHaveBeenCalled();
+
+      hot.updateSettings({ rowId: 'name' });
+
+      expect(reset).toHaveBeenCalledTimes(1);
+
+      hot.updateSettings({ rowId: true });
+      hot.updateSettings({ rowId: false });
+
+      expect(reset).toHaveBeenCalledTimes(3);
     });
   });
 });

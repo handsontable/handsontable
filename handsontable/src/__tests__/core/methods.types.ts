@@ -250,6 +250,12 @@ hot.toVisualRow(123) === 123;
 const rowId: unknown = hot.getRowId(123);
 const visualRowById: number | null = hot.getVisualRowById(rowId);
 const physicalRowById: number | null = hot.getPhysicalRowById('id');
+const physicalRowId: unknown = hot.getRowIdAtPhysicalRow(3);
+const rowIds: unknown[] = hot.getRowIds([0, 1]);
+const allRowIds: unknown[] = hot.getRowIds();
+const visualRowsByIds: Array<number | null> = hot.getVisualRowsByIds(['a', 1]);
+const physicalRowsByIds: Array<number | null> = hot.getPhysicalRowsByIds(['a', 1]);
+const rowIdWritten: boolean = hot.setDataAtRowIdProp('a', 'name', 'value', 'asyncResult');
 
 hot.unlisten();
 (hot as any).updateData([[1, 2, 3], [1, 2, 3]]);
