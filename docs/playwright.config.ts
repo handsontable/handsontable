@@ -66,9 +66,14 @@ export default defineConfig({
   /*
    * Two projects over one testDir, so CI can run them apart: `visual` is the full-page screenshot
    * suite, which needs the R2 baseline and the approval gate and stays behind the `run-docs-visual`
-   * label; `functional` is everything else in ./tests — assertions about the built pages that need no
-   * golden and, until this split, only ever ran when someone applied that label. A bare
+   * label; `functional` is every other `*.spec.ts` in ./tests — assertions about the built pages that
+   * need no golden and, until this split, only ever ran when someone applied that label. A bare
    * `npx playwright test` still runs both, which is what a local run wants.
+   *
+   * `functional` names `*.spec.ts` on purpose. Playwright's default `testMatch` also takes `*.test.*`,
+   * so it imported the `node:test` files in ./tests/lib/__tests__ (they belong to the root
+   * `npm run test:tooling`). One of them failed to load, the load aborted before any spec was listed,
+   * and every run of this project collected 0 tests.
    */
   projects: [
     {
@@ -78,6 +83,7 @@ export default defineConfig({
     },
     {
       name: 'functional',
+      testMatch: /\.spec\.ts$/,
       testIgnore: /visualDocs\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },

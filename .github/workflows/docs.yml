@@ -158,9 +158,15 @@ jobs:
         if: ${{ !cancelled() }}
         env:
           OUTCOME: ${{ steps.functional.outcome }}
+          REPORT: ./docs/tests/test-artifacts/report.json
         run: |
           if [ "$OUTCOME" = "success" ]; then result=passed; else result=failed; fi
-          echo "Docs functional specs: $result — report-only for one sprint; see docs/AGENTS.md" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f "$REPORT" ]; then
+            counts=$(jq -r '.stats | "\(.expected) passed, \(.unexpected) failed, \(.flaky) flaky, \(.skipped) skipped"' "$REPORT")
+          else
+            counts="no report"
+          fi
+          echo "Docs functional specs: $result ($counts) — report-only for one sprint; see docs/AGENTS.md" >> "$GITHUB_STEP_SUMMARY"
       - name: Upload the functional report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
@@ -169,6 +175,20 @@ jobs:
           path: ./docs/tests/test-artifacts/results
           retention-days: 7
           overwrite: true
+      # Report-only covers a spec that fails, not a run that never started. A spec
+      # file that throws on import aborts the whole collection, Playwright then
+      # reports 0 tests, and the step above reads "failed" like any red spec - which
+      # is how every run of this job collected nothing for weeks (the `node:test`
+      # files under docs/tests/lib/__tests__ were imported as specs). So the job
+      # itself fails when the run listed no test or hit an error outside one. Last,
+      # so the report is uploaded either way.
+      - name: Check that the functional specs ran
+        if: ${{ !cancelled() }}
+        working-directory: ./docs
+        run: |
+          jq -e '(.stats.expected + .stats.unexpected + .stats.flaky) > 0 and (.errors | length) == 0' \
+            ./tests/test-artifacts/report.json > /dev/null \
+            || { echo "::error::The functional docs specs did not run: the report holds no test that ran, or an error outside a test (a spec that fails to load aborts the whole run). Read the docs-functional-report artifact."; exit 1; }
 
   # Opt-in through the `run-docs-visual` label in this PR: 441 full-page
   # captures per run. Drop the label gate once the R2 baseline has proven
