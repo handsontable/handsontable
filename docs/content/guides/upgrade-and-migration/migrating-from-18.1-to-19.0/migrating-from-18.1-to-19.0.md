@@ -1889,12 +1889,15 @@ In 19.0, a string `rowId` follows the rule the cells use:
 
 The new [`rowId`](@/api/options.md#rowid) option reads ids the same way.
 
+Handsontable now reads the id from the source row itself, not from a copy of it. A function `rowId` receives that row, and a [`modifySourceData`](@/api/hooks.md#modifysourcedata) hook no longer changes the id.
+
 ### Who is affected
 
 You are affected only if `dataProvider.rowId` is a string with a dot, and one of these is true:
 
 - You set `dataDotNotation: false`, and your rows keep the id in a nested object. The rows then have no id, and updating or removing a row fails with the missing row id error.
 - Your rows have a key with a dot in its name that matches `dataProvider.rowId`, next to a nested object at the same path. The id is now the value under the dotted key.
+- A `modifySourceData` hook of yours changes the value `dataProvider.rowId` reads. The id is now the stored value.
 
 ### How to migrate
 

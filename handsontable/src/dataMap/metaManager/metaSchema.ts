@@ -2322,9 +2322,9 @@ export default (): Record<string, unknown> => {
      * | `true`     | Handsontable generates the ids: a number for each row, never reused within the instance   |
      * | `false`    | No row ids                                                                               |
      *
-     * A string is read the way a column's `data` property is read: a property named exactly as the string wins, even
-     * when the name contains dots (`{ 'meta.id': 'SKU-4821' }`). Otherwise, while [`dataDotNotation`](#datadotnotation)
-     * is `true`, the dots read a nested property (`{ meta: { id: 'SKU-4821' } }`).
+     * A string with a dot is read the way a column's `data` property is read. A property named exactly as the string
+     * wins (`{ 'meta.id': 'SKU-4821' }`). Otherwise, while [`dataDotNotation`](#datadotnotation) is `true`, the dots
+     * read a nested property (`{ meta: { id: 'SKU-4821' } }`).
      *
      * Keep the ids unique. If two rows share an id, the lookups return the row with the lower physical index.
      *

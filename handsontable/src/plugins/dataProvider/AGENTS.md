@@ -67,6 +67,12 @@ A mutation captures `#currentBinding()` when it is queued (`createRows`, `remove
 
 **The skip has one exception: an in-flight `fetchRows` forces the refetch anyway.** The old post-create `fetchData()` also aborted whatever fetch was running (a sort or filter fetch started just before the insert) through `#createFetchAbortController()`. With the refetch skipped nothing aborts it, the mutation queue does not wait on fetches, and the integrator has no public cancel, so the late response would `loadData()` the applied row out of the grid. `createRows()` checks `#inFlight.has(context)` for its binding's context and refetches when it is true; `afterDataProviderFetchAbort` fires for the superseded request. `refetchAfterCreate: undefined` is valid (the base plugin validates every key that is `in` the object, and wrapper props send explicit `undefined`), and reads as the default.
 
+## Row ids come from Core, row data from the copy
+
+- **Read a row's id with `getRowIdByVisualRow()` (`query/crud.ts`), which asks Core's `getRowIdAtPhysicalRow()`, never with `getRowIdFromRowData(hot.getSourceDataAtRow(...))`.** Core applies `dataProvider.rowId` to the source row itself, with the rule cells use: an own property named exactly as a string key wins, a literal dotted one included, and the dots walk nested objects only while `dataDotNotation` is on. `getSourceDataAtRow()` returns a copy that `DataSource#getAtRow` rebuilds through `getProperty()`/`setProperty()` under `dataDotNotation`, which turns a literal `'sku.code'` key into a nested `sku.code` and lets a nested object at the same path overwrite it, so an id read from the copy disagrees with `getRowId()` and with the cell. The `rowIdOption` argument of the crud helpers is only a presence check now: the key itself is read from the settings.
+- **Known limitation: `rowData` in the update payloads is still built from that copy** (`buildChangesAndRowData()`, `buildManualUpdateRowPayloads()`). For a row with a literal dotted key, `onRowsUpdate` gets the correct `id` but a `rowData` where that key is rebuilt as a nested object (or overwritten by one). The copy's rebuild is a `getSourceDataAtRow()` behavior that every consumer sees, so it is fixed there or not at all.
+- The id read does not run `modifySourceData`, and a function key receives the source row itself, not a copy.
+
 ## Where to look next
 
 - Plugin source: `dataProvider.ts`.

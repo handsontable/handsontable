@@ -45,7 +45,7 @@ Set the [`rowId`](@/api/options.md#rowid) option at the grid level. It accepts o
 
 | Setting    | Description                                                                                      |
 | ---------- | ------------------------------------------------------------------------------------------------ |
-| A string   | The property that holds the id in each row object, read the way a column's `data` property is read: a property named exactly as the string wins, and otherwise, while [`dataDotNotation`](@/api/options.md#datadotnotation) is `true`, dot notation reads a nested property (`'meta.id'`). For arrays of arrays, the index of the value as a string (`'0'`). |
+| A string   | The property that holds the id in each row object. A property named exactly as the string wins, even when the name contains a dot. Otherwise, while [`dataDotNotation`](@/api/options.md#datadotnotation) is `true`, dot notation reads a nested property (`'meta.id'`). For arrays of arrays, the index of the value as a string (`'0'`). |
 | A function | A function that receives the source row and returns its id.                                       |
 | `true`     | Handsontable generates the ids: a number for each row, never reused within the instance.          |
 | `false`    | No row ids. This is the default behavior.                                                         |
@@ -201,7 +201,7 @@ The [`afterRowIdsRemoved`](@/api/hooks.md#afterrowidsremoved) hook passes the id
 - A trimmed or filtered-out row still exists, so the hook does not report it.
 - With a [data provider](@/api/options.md#dataprovider), loading a page, a sort, or a filter does not count as a removal, because the rows still exist on the server. A removal the server confirms is reported, with the `'dataProvider'` source.
 
-The [`afterRowIdsReset`](@/api/hooks.md#afterrowidsreset) hook fires when a settings update changes how rows get their ids. Every id read before it may now name another row, so cancel everything.
+The [`afterRowIdsReset`](@/api/hooks.md#afterrowidsreset) hook fires when a settings update changes how rows get their ids. That includes a change of [`dataDotNotation`](@/api/options.md#datadotnotation) while the row key is a string with a dot. Every id read before it may now name another row, so cancel everything.
 
 ```js
 const pendingRequests = new Map(); // row id -> AbortController

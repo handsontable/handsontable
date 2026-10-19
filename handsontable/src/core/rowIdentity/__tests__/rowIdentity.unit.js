@@ -544,35 +544,63 @@ describe('Row identity', () => {
 
   describe('with a dotted string key', () => {
     const ROWS = [
-      { title: 'a literal dotted key', row: { 'meta.id': 'flat-1' }, ids: { on: 'flat-1', off: 'flat-1' } },
+      {
+        title: 'a literal dotted key',
+        row: { 'meta.id': 'flat-1' },
+        dataDotNotation: true,
+        expectedId: 'flat-1',
+        rowsById: { 'flat-1': 0, 'nested-1': null },
+      },
+      {
+        title: 'a literal dotted key',
+        row: { 'meta.id': 'flat-1' },
+        dataDotNotation: false,
+        expectedId: 'flat-1',
+        rowsById: { 'flat-1': 0, 'nested-1': null },
+      },
       {
         title: 'a literal dotted key next to the nested path',
         row: { 'meta.id': 'flat-1', meta: { id: 'nested-1' } },
-        ids: { on: 'flat-1', off: 'flat-1' },
+        dataDotNotation: true,
+        expectedId: 'flat-1',
+        rowsById: { 'flat-1': 0, 'nested-1': null },
       },
-      { title: 'only the nested path', row: { meta: { id: 'nested-1' } }, ids: { on: 'nested-1', off: null } },
+      {
+        title: 'a literal dotted key next to the nested path',
+        row: { 'meta.id': 'flat-1', meta: { id: 'nested-1' } },
+        dataDotNotation: false,
+        expectedId: 'flat-1',
+        rowsById: { 'flat-1': 0, 'nested-1': null },
+      },
+      {
+        title: 'only the nested path',
+        row: { meta: { id: 'nested-1' } },
+        dataDotNotation: true,
+        expectedId: 'nested-1',
+        rowsById: { 'flat-1': null, 'nested-1': 0 },
+      },
+      {
+        title: 'only the nested path',
+        row: { meta: { id: 'nested-1' } },
+        dataDotNotation: false,
+        expectedId: null,
+        rowsById: { 'flat-1': null, 'nested-1': null },
+      },
     ];
 
-    ROWS.forEach(({ title, row, ids }) => {
-      [true, false].forEach((dataDotNotation) => {
-        it(`should read the id the cell shows for ${title} with \`dataDotNotation: ${dataDotNotation}\``, () => {
-          const expectedId = dataDotNotation ? ids.on : ids.off;
-
-          createGrid({
-            data: [JSON.parse(JSON.stringify(row)), { 'meta.id': 'other' }],
-            columns: [{ data: 'meta.id' }],
-            rowId: 'meta.id',
-            dataDotNotation,
-          });
-
-          expect(hot.getDataAtCell(0, 0)).toBe(expectedId);
-          expect(hot.getRowId(0)).toBe(expectedId);
-          expect(hot.getVisualRowById('nested-1')).toBe(expectedId === 'nested-1' ? 0 : null);
-
-          if (expectedId !== null) {
-            expect(hot.getVisualRowById(expectedId)).toBe(0);
-          }
+    ROWS.forEach(({ title, row, dataDotNotation, expectedId, rowsById }) => {
+      it(`should read the id the cell shows for ${title} with \`dataDotNotation: ${dataDotNotation}\``, () => {
+        createGrid({
+          data: [JSON.parse(JSON.stringify(row)), { 'meta.id': 'other' }],
+          columns: [{ data: 'meta.id' }],
+          rowId: 'meta.id',
+          dataDotNotation,
         });
+
+        expect(hot.getDataAtCell(0, 0)).toBe(expectedId);
+        expect(hot.getRowId(0)).toBe(expectedId);
+        expect(hot.getVisualRowById('flat-1')).toBe(rowsById['flat-1']);
+        expect(hot.getVisualRowById('nested-1')).toBe(rowsById['nested-1']);
       });
     });
 
@@ -610,6 +638,16 @@ describe('Row identity', () => {
       createGrid({ rowId: row => row.id, afterRowIdsReset: reset });
       hot.updateSettings({ dataDotNotation: false });
 
+      expect(reset).not.toHaveBeenCalled();
+    });
+
+    it('should not report a reset for a `dataDotNotation` change while the string key has no dot', () => {
+      const reset = jest.fn();
+
+      createGrid({ rowId: 'id', afterRowIdsReset: reset });
+      hot.updateSettings({ dataDotNotation: false });
+
+      expect(hot.getRowId(2)).toBe('id-2');
       expect(reset).not.toHaveBeenCalled();
     });
   });

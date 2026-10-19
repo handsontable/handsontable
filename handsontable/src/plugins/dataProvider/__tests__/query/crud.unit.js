@@ -5,7 +5,8 @@ import {
   commitRowsUpdate as commitRowsUpdateImpl,
   enqueueMutation,
   filterChangesForBatchedServerUpdate,
-  getRowIdFromRowData,
+  findVisualRowById,
+  getRowIdByVisualRow,
   handleBeforeAlterForCrud,
   isMissingRowId,
   queueCrud,
@@ -17,18 +18,58 @@ import {
 } from '../../query/crud';
 
 describe('dataProvider crud', () => {
-  describe('getRowIdFromRowData', () => {
-    it('should read property path when rowId is a string', () => {
-      expect(getRowIdFromRowData({ a: { b: 7 } }, 'a.b')).toBe(7);
+  describe('getRowIdByVisualRow', () => {
+    it('should read the id of the physical row through Core', () => {
+      const hot = {
+        toPhysicalRow: visualRow => visualRow + 10,
+        getRowIdAtPhysicalRow: physicalRow => `ORD-${physicalRow}`,
+      };
+
+      expect(getRowIdByVisualRow(hot, 'id', 2)).toBe('ORD-12');
     });
 
-    it('should call rowId function with row data', () => {
-      expect(getRowIdFromRowData({ x: 1 }, r => r.x)).toBe(1);
+    it('should return undefined for a row without an id', () => {
+      const hot = {
+        toPhysicalRow: visualRow => visualRow,
+        getRowIdAtPhysicalRow: () => null,
+      };
+
+      expect(getRowIdByVisualRow(hot, 'id', 0)).toBeUndefined();
     });
 
-    it('should return undefined when rowId option is null or undefined', () => {
-      expect(getRowIdFromRowData({ id: 1 }, null)).toBeUndefined();
-      expect(getRowIdFromRowData({ id: 1 }, undefined)).toBeUndefined();
+    it('should return undefined without reading a row when the rowId option is null or undefined', () => {
+      const hot = {
+        toPhysicalRow: jest.fn(visualRow => visualRow),
+        getRowIdAtPhysicalRow: jest.fn(() => 'ORD-1'),
+      };
+
+      expect(getRowIdByVisualRow(hot, null, 0)).toBeUndefined();
+      expect(getRowIdByVisualRow(hot, undefined, 0)).toBeUndefined();
+      expect(hot.toPhysicalRow).not.toHaveBeenCalled();
+      expect(hot.getRowIdAtPhysicalRow).not.toHaveBeenCalled();
+    });
+
+    it('should return undefined without reading a row for a visual row with no physical row', () => {
+      const hot = {
+        toPhysicalRow: () => null,
+        getRowIdAtPhysicalRow: jest.fn(() => 'ORD-1'),
+      };
+
+      expect(getRowIdByVisualRow(hot, 'id', 5)).toBeUndefined();
+      expect(hot.getRowIdAtPhysicalRow).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('findVisualRowById', () => {
+    it('should return the visual row that holds the id, or -1', () => {
+      const hot = {
+        countRows: () => 3,
+        toPhysicalRow: visualRow => visualRow,
+        getRowIdAtPhysicalRow: physicalRow => `ORD-${physicalRow}`,
+      };
+
+      expect(findVisualRowById(hot, 'id', 'ORD-2')).toBe(2);
+      expect(findVisualRowById(hot, 'id', 'ORD-9')).toBe(-1);
     });
   });
 
@@ -271,7 +312,7 @@ describe('dataProvider crud', () => {
         getRowIdAtPhysicalRow: () => null,
       };
 
-      expect(() => rowIdsFromAlterRemove(hot, 'id', 0, 1)).toThrow();
+      expect(() => rowIdsFromAlterRemove(hot, 'id', 0, 1)).toThrow(/visual index 0/);
     });
   });
 

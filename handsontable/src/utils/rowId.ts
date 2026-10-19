@@ -44,9 +44,10 @@ function readPath(rowData: SourceRowData, path: string): unknown {
 }
 
 /**
- * Reads a string row key the way `DataMap#get` reads a cell: the row's own property named exactly the key wins,
- * a literal dotted key included, and a dotted key walks nested objects only while dot notation is on. A key
- * without a dot is read through the prototype chain, so a getter on a class instance row still gives the id.
+ * Reads a string row key the way `DataMap#get` reads a cell, with one exception: the row's own property named
+ * exactly the key wins, a literal dotted key included, and a dotted key walks nested objects only while dot notation
+ * is on. Unlike a cell, a key without a dot is also read through the prototype chain, so a getter on a class
+ * instance row still gives the id.
  *
  * @param {object|Array} rowData The source row.
  * @param {string} key The row key.
@@ -63,8 +64,8 @@ function readKey(rowData: SourceRowData, key: string, dataDotNotation: boolean):
 
 /**
  * Reads the id of a source row with a row key. A string key is a property of the row: its own property named
- * exactly the key first, then a dot-separated path into nested objects while `dataDotNotation` is on, the same
- * way the grid reads a cell. A function key is called with the source row.
+ * exactly the key first, then a dot-separated path into nested objects while `dataDotNotation` is on, the way the
+ * grid reads a cell. A function key is called with the source row.
  *
  * @param {object|Array} rowData The source row.
  * @param {string|Function|undefined|null} rowIdOption The row key.

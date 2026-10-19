@@ -108,9 +108,47 @@ describe('Row identity with a server-backed grid', () => {
     expect(hot.getRowIds()).toEqual(['SKU-4821', 'SKU-0093']);
     expect(plugin.getRowId(1)).toBe('SKU-0093');
 
+    hot.setDataAtCell(1, 1, 'Insulated Water Bottle');
+    await settle();
+
+    expect(server.onRowsUpdate).toHaveBeenCalledWith([
+      expect.objectContaining({ id: 'SKU-0093', changes: { name: 'Insulated Water Bottle' } }),
+    ]);
+
+    await plugin.updateRows([{ id: 'SKU-0093', changes: { name: 'Steel Water Bottle' } }]);
+    await settle();
+
+    expect(server.onRowsUpdate).toHaveBeenLastCalledWith([
+      expect.objectContaining({ id: 'SKU-0093', changes: { name: 'Steel Water Bottle' } }),
+    ]);
+
     hot.alter('remove_row', 0, 1);
     await settle();
 
     expect(server.onRowsRemove).toHaveBeenCalledWith(['SKU-4821']);
+  });
+
+  it('should not walk a dotted `dataProvider.rowId` key while `dataDotNotation` is off', async() => {
+    const server = {
+      ...createServer(),
+      rowId: 'sku.code',
+      fetchRows: jest.fn(async() => ({
+        rows: [{ sku: { code: 'SKU-4821' }, name: 'Wireless Mouse' }],
+        totalRows: 1,
+      })),
+    };
+
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      dataProvider: server,
+      dataDotNotation: false,
+      columns: [{ data: 'name' }],
+    });
+    await settle();
+
+    expect(hot.getRowIds()).toEqual([null]);
+    expect(hot.getPlugin('dataProvider').getRowId(0)).toBeUndefined();
+    expect(() => hot.alter('remove_row', 0, 1)).toThrow(/cannot remove row at visual index 0/);
+    expect(server.onRowsRemove).not.toHaveBeenCalled();
   });
 });

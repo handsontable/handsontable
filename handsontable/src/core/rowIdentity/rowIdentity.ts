@@ -161,7 +161,8 @@ export class RowIdentity {
   #appliedKey: RowIdSetting = undefined;
 
   /**
-   * The `dataDotNotation` value the ids were last read with. It changes what a dotted string key reads.
+   * The `dataDotNotation` value the ids were last read with. It changes what a dotted string key reads, so a change
+   * under such a key fires `afterRowIdsReset`.
    */
   #appliedDataDotNotation = true;
 
@@ -372,7 +373,8 @@ export class RowIdentity {
     const rowIndexMapper = this.#hot.rowIndexMapper;
     const previousKey = this.#appliedKey;
     const dataDotNotation = this.#readDataDotNotation();
-    const readsOtherPath = typeof key === 'string' && dataDotNotation !== this.#appliedDataDotNotation;
+    const readsOtherPath = typeof key === 'string' && key.includes('.') &&
+      dataDotNotation !== this.#appliedDataDotNotation;
 
     this.#appliedKey = key;
     this.#appliedDataDotNotation = dataDotNotation;

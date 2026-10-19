@@ -2,7 +2,6 @@ import { isFunction } from '../../../helpers/function';
 import { error as logError } from '../../../helpers/console';
 import { throwWithCause } from '../../../helpers/errors';
 import type { HotInstance } from '../../../core/types';
-import { getRowIdFromRowData } from '../../../utils/rowId';
 import type { RowIdOption } from '../../../utils/rowId';
 import {
   DATA_PROVIDER_BATCH_UPDATE_SOURCES,
@@ -77,15 +76,15 @@ export function enqueueMutation(state: { tail: Promise<void> }, fn: () => Promis
   return mutationPromise;
 }
 
-export { getRowIdFromRowData };
-
 /**
  * Row id for a visual row index. The id comes from Core's row identity, which reads `dataProvider.rowId` from the
- * source row itself. `getSourceDataAtRow()` would hand over a copy that `dataDotNotation` rebuilds, turning a
- * literal dotted key into a nested object, so a string key would read another value than the cell shows.
+ * settings and applies it to the source row itself. `getSourceDataAtRow()` would hand over a copy that
+ * `dataDotNotation` rebuilds, turning a literal dotted key into a nested object, so a string key would read a
+ * different value from the one the cell shows.
  *
  * @param {Core} hot Handsontable instance.
- * @param {string|Function|undefined|null} rowIdOption `rowId` from config.
+ * @param {string|Function|undefined|null} rowIdOption `rowId` from config. Only its presence is checked: without a
+ * key there is no id.
  * @param {number} visualRow Visual row index.
  * @returns {*|undefined}
  */
