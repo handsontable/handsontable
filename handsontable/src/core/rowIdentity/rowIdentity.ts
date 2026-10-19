@@ -279,6 +279,13 @@ export class RowIdentity {
 
     this.#toggleDataHooks(isRowIdKey(key));
 
+    // NestedRows moves and detaches rows by rewriting the source tree, not by moving indexes, so an id kept in
+    // a row index map stays at the position while the record moves away.
+    if (generates && this.#hot.getSettings().nestedRows) {
+      warnOnce(this, 'rowId.nestedRows', 'Generated row ids (`rowId: true`) do not follow the rows that the ' +
+        '`nestedRows` plugin moves or detaches. Store the ids in the data and set `rowId` to their property.');
+    }
+
     if (generates && !this.#generatedIds) {
       this.#generatedIds = rowIndexMapper.registerMap(
         GENERATED_ROW_IDS_MAP_NAME,

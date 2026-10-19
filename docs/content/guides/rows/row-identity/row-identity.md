@@ -187,6 +187,8 @@ When the [`dataProvider`](@/api/options.md#dataprovider) option sets its own `ro
 
 - A row key is read from the data every time. Change ids through the API (for example, [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop)), so the lookups find a new id right away. A new id written directly into the source data may not be found until Handsontable tracks another change to the data.
 
+- With [nested rows](@/guides/rows/row-parent-child/row-parent-child.md), use a row key. Generated ids stay with row positions when a row is moved or detached between parents, so they no longer match the moved records. Handsontable logs a console warning for this combination.
+
 - A string key walks dot notation (`'meta.id'`) even when [`dataDotNotation`](@/api/options.md#datadotnotation) is `false`, the same way `dataProvider.rowId` does.
 
 ## Related API reference

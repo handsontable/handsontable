@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import {
-  AutoColumnSize, ColumnSorting, DropdownMenu, Filters, HiddenRows, ManualRowMove, registerPlugin, TrimRows, UndoRedo,
+  AutoColumnSize, ColumnSorting, DropdownMenu, Filters, HiddenRows, ManualRowMove, NestedRows, registerPlugin, TrimRows,
+  UndoRedo,
 } from 'handsontable/plugins';
 import { registerCellType, CheckboxCellType } from 'handsontable/cellTypes';
 
@@ -8,6 +9,7 @@ registerPlugin(UndoRedo);
 registerPlugin(ColumnSorting);
 registerPlugin(ManualRowMove);
 registerPlugin(TrimRows);
+registerPlugin(NestedRows);
 // Filters requires these.
 registerCellType(CheckboxCellType);
 registerPlugin(AutoColumnSize);
@@ -308,6 +310,62 @@ describe('Row identity', () => {
         expect(hot.getVisualRowById(ids.get('R2'))).toBe(3);
       });
 
+      it('should keep the ids with their records through inserts and removals inside `batch()`', () => {
+        createGrid({ rowId, dataSchema: () => ({ id: 'from-schema', name: null, value: null }) });
+
+        const ids = readIdsByName();
+
+        hot.batch(() => {
+          hot.alter('insert_row_above', 0, 1);
+          hot.setDataAtCell(0, 0, 'NEW');
+          hot.alter('remove_row', 3, 1);
+
+          expect(hot.getVisualRowById(ids.get('R3'))).toBe(3);
+        });
+
+        ids.set('NEW', hot.getRowId(0));
+
+        expect(hot.getRowId(0)).not.toBeNull();
+        expect(hot.getVisualRowById(ids.get('R2'))).toBeNull();
+        expectIdsToFollowRecords(ids);
+
+        hot.getPlugin('undoRedo').undo();
+
+        ids.delete('NEW');
+
+        expect(hot.countRows()).toBe(6);
+        expectIdsToFollowRecords(ids);
+      });
+
+      it('should give the rows `minSpareRows` adds an id, and keep the ids of the other rows', () => {
+        let created = 0;
+
+        createGrid({
+          rowId,
+          minSpareRows: 1,
+          dataSchema: () => {
+            created += 1;
+
+            return { id: `spare-${created}`, name: null, value: null };
+          },
+        });
+
+        const ids = [0, 1, 2, 3, 4, 5].map(row => hot.getRowId(row));
+
+        hot.setDataAtCell(6, 0, 'TYPED');
+
+        expect(hot.countRows()).toBe(8);
+        expect([0, 1, 2, 3, 4, 5].map(row => hot.getRowId(row))).toEqual(ids);
+
+        [6, 7].forEach((row) => {
+          const id = hot.getRowId(row);
+
+          expect(id).not.toBeNull();
+          expect(ids).not.toContain(id);
+          expect(hot.getVisualRowById(id)).toBe(row);
+        });
+      });
+
       it('should answer `null` for an unknown id and for a row index out of range', () => {
         createGrid({ rowId });
 
@@ -468,6 +526,69 @@ describe('Row identity', () => {
 
       expect(hot.getVisualRowById('id-0')).toBe(2);
       expect(hot.getVisualRowById('id-5')).toBeNull();
+    });
+  });
+
+  describe('with nested rows', () => {
+    /**
+     * Builds two parents with two children each.
+     *
+     * @returns {object[]}
+     */
+    function createTree() {
+      return [
+        { id: 'P1', name: 'P1', __children: [{ id: 'C11', name: 'C11' }, { id: 'C12', name: 'C12' }] },
+        { id: 'P2', name: 'P2', __children: [{ id: 'C21', name: 'C21' }, { id: 'C22', name: 'C22' }] },
+      ];
+    }
+
+    it('should keep the key ids with their records through a collapse, a move, a removal, and undo', () => {
+      createGrid({ rowId: 'id',
+        data: createTree(),
+        columns: [{ data: 'name' }],
+        nestedRows: true,
+        manualRowMove: true,
+        rowHeaders: true });
+
+      const ids = readIdsByName();
+
+      hot.getPlugin('nestedRows').collapseParent(0);
+
+      expect(hot.getVisualRowById('C11')).toBeNull();
+      expect(hot.getPhysicalRowById('C11')).toBe(1);
+
+      hot.getPlugin('nestedRows').expandParent(0);
+      hot.getPlugin('manualRowMove').dragRows([1], 5);
+      hot.render();
+
+      expect(hot.getDataAtCell(4, 0)).toBe('C11');
+      expectIdsToFollowRecords(ids);
+
+      hot.getPlugin('undoRedo').undo();
+
+      expect(hot.getDataAtCell(1, 0)).toBe('C11');
+      expectIdsToFollowRecords(ids);
+
+      hot.alter('remove_row', 0, 1);
+
+      expect(hot.getPhysicalRowById('P1')).toBeNull();
+      expect(hot.getPhysicalRowById('C11')).toBeNull();
+      expect(hot.getVisualRowById('C21')).toBe(1);
+
+      hot.getPlugin('undoRedo').undo();
+
+      expectIdsToFollowRecords(ids);
+    });
+
+    it('should warn once that generated ids do not follow nested rows', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      createGrid({ rowId: true, data: createTree(), columns: [{ data: 'name' }], nestedRows: true });
+      hot.updateSettings({ colHeaders: true });
+
+      expect(warnSpy.mock.calls.filter(([message]) => String(message).includes('`nestedRows`')).length).toBe(1);
+
+      warnSpy.mockRestore();
     });
   });
 
