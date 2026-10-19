@@ -89,14 +89,14 @@ export class AsyncValuesPage {
   }
 
   /**
-   * A cell's background color, and the `--ht-cell-error-background-color` token resolved to a color on
+   * A cell's background color, and the `--ht-async-error-background-color` token resolved to a color on
    * a probe inside the grid, for a theme-independent comparison.
    */
   async errorColors(row: number, column: number): Promise<{ cell: string; token: string }> {
     return this.cell(row, column).evaluate((td) => {
       const probe = td.ownerDocument.createElement('div');
 
-      probe.style.backgroundColor = 'var(--ht-cell-error-background-color)';
+      probe.style.backgroundColor = 'var(--ht-async-error-background-color)';
       td.closest('.handsontable')!.appendChild(probe);
 
       const token = getComputedStyle(probe).backgroundColor;

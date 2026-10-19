@@ -133,6 +133,8 @@ const VALID_TOKEN_KEYS = new Set([
   'freezeBarColor',
   'freezeBarHoverColor',
   'freezeBarHighlightColor',
+  'asyncIndicatorColor',
+  'asyncErrorBackgroundColor',
   'moveBacklightColor',
   'moveBacklightOpacity',
   'moveIndicatorColor',

@@ -181,6 +181,8 @@ export type TokenKey =
   | 'freezeBarColor'
   | 'freezeBarHoverColor'
   | 'freezeBarHighlightColor'
+  | 'asyncIndicatorColor'
+  | 'asyncErrorBackgroundColor'
   | 'moveBacklightColor'
   | 'moveBacklightOpacity'
   | 'moveIndicatorColor'
