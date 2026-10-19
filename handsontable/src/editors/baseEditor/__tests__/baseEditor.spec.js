@@ -179,20 +179,7 @@ describe('BaseEditor', () => {
     expect(getDataAtCell(1, 0)).toBe(null);
   });
 
-  it('should save an edit to the stored value after the baseline reloads while a valueGetter editor is open', async() => {
-    class EchoEditor extends Handsontable.editors.BaseEditor {
-      init() {}
-      getValue() {
-        return this.received;
-      }
-      setValue(value) {
-        this.received = value;
-      }
-      open() {}
-      close() {}
-      focus() {}
-    }
-
+  it('should apply the parser when a reloaded editor is confirmed without typing', async() => {
     const edits = [];
 
     handsontable({
@@ -200,7 +187,9 @@ describe('BaseEditor', () => {
       valueGetter(value) {
         return value * 100;
       },
-      editor: EchoEditor,
+      valueParser(value) {
+        return Number(value);
+      },
       afterChange(changes, source) {
         if (source === 'edit') {
           edits.push(changes);
@@ -211,14 +200,32 @@ describe('BaseEditor', () => {
     await selectCell(0, 0);
     await keyDownUp('enter');
 
-    expect(getActiveEditor().received).toBe(50);
+    expect(keyProxy().val()).toBe('50');
 
-    getActiveEditor().resetValueBeforeEdit();
-    getActiveEditor().setValue(0.5);
-    getActiveEditor().finishEditing();
+    await setSourceDataAtCell(0, 0, 0.25);
+
+    expect(getActiveEditor().isOpened()).toBe(true);
+    expect(keyProxy().val()).toBe('0.25');
+
+    await keyDownUp('enter');
 
     expect(edits.length).toBe(1);
-    expect(getSourceDataAtCell(0, 0)).toBe(0.5);
+    expect(getSourceDataAtCell(0, 0)).toBe(0.25);
+  });
+
+  it('should store the parsed number when a string cell is confirmed without typing', async() => {
+    handsontable({
+      data: [['5']],
+      valueParser(value) {
+        return Number(value);
+      },
+    });
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+    await keyDownUp('enter');
+
+    expect(getSourceDataAtCell(0, 0)).toBe(5);
   });
 
   it('should save a typed value that the parser turns into the valueGetter result', async() => {

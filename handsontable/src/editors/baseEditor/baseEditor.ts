@@ -167,17 +167,14 @@ export class BaseEditor {
    * opened. Does nothing while the guard is disarmed.
    */
   protected resetValueBeforeEdit(): void {
-    if (!this.#hasValueBeforeEdit || this.row === null || this.col === null) {
+    if (!this.#hasValueBeforeEdit) {
       return;
     }
 
     this.#seededString = this.getValue();
     // The same post-getter value `beginEditing()` stores. `originalValue` is the stored cell,
     // and seeding that here treats a later edit of the stored value as untouched.
-    this.#seededCellValue = getValueGetterValue(
-      this.originalValue,
-      this.hot.getCellMeta(this.row, this.col),
-    );
+    this.#seededCellValue = getValueGetterValue(this.originalValue, this.cellProperties);
   }
   /**
    * Object containing the cell's properties.
@@ -486,10 +483,9 @@ export class BaseEditor {
 
       let value = this.getValue();
 
-      // `held` is what the editor shows, after trim and before `valueParser`. The unchanged question
-      // is whether that is still the value the editor was opened with. A parser result that equals
-      // the getter's display is a new edit, because the cell may store something else. Trim stays in
-      // front of the compare, so an untouched `"  hi  "` still saves the trimmed `"hi"`.
+      // Compared after trim and `valueParser`, so an untouched `"5"` still becomes the number 5.
+      // `held` has to match as well: a parser result equal to the getter display is a new edit when
+      // that text changed. Trim stays in front, so an untouched `"  hi  "` still saves `"hi"`.
       if (this.cellProperties.trimWhitespace) {
         value = typeof value === 'string' ? String.prototype.trim.call(value || '') : value;
       }
@@ -515,8 +511,9 @@ export class BaseEditor {
       const fillsOtherCells = ctrlDown === true &&
         selectionFillsOtherCells(this.hot, value, this.row, this.col);
 
-      const isUnchanged = !fillsOtherCells && this.#hasValueBeforeEdit
-        && (held === this.#seededString || held === this.#seededCellValue);
+      const heldIsSeed = held === this.#seededString || held === this.#seededCellValue;
+      const valueIsSeed = value === this.#seededString || value === this.#seededCellValue;
+      const isUnchanged = !fillsOtherCells && this.#hasValueBeforeEdit && heldIsSeed && valueIsSeed;
 
       if (isUnchanged) {
         this.#finishUnchangedEdit();
