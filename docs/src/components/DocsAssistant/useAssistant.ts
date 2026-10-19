@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react';
 import { CHAT_ENDPOINT, FEEDBACK_ENDPOINT, STORAGE_KEYS } from './constants';
-import { buildContextualMessage } from './pageContext';
 
 export interface ChatMessage {
   id: string;
@@ -197,22 +196,17 @@ export function useAssistant() {
 
   const sendInternal = useCallback(
     async (userMessageText: string, historyForApi: ChatMessage[]) => {
-      // Register the controller before any await so clearAndSend can abort
-      // even while buildContextualMessage is still fetching page context.
       const controller = new AbortController();
       abortRef.current = controller;
 
-      const contextualised = await buildContextualMessage(userMessageText);
-
-      // Bail out if aborted during page-context fetch (no UI state committed yet).
-      if (controller.signal.aborted) {
-        if (abortRef.current === controller) abortRef.current = null;
-        return;
-      }
-
+      // The question goes as typed. The backend reads the page the reader is
+      // on from pageTitle/pageUrl below and fetches its Markdown itself, so
+      // the request stays small: inlining the page's Markdown made turns on
+      // the largest API pages (Options, Core) exceed the same-origin proxy's
+      // body-size cap and fail with a 413.
       const apiMessages = [
         ...historyForApi.map(({ role, content }) => ({ role, content })),
-        { role: 'user' as const, content: contextualised },
+        { role: 'user' as const, content: userMessageText },
       ];
 
       const assistantId = uid();
