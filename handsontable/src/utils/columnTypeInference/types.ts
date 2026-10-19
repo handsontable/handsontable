@@ -41,7 +41,13 @@ export interface InferredInputFormat {
    */
   percent?: boolean;
   /**
-   * The day and month order of a `date` column's year-last values.
+   * The currency symbol of a `numeric` column's values. A value with another symbol is not
+   * converted.
+   */
+  currencySymbol?: string;
+  /**
+   * The day and month order of a `date` column's year-last values: the one the sampled values
+   * show, or the locale's when they show none.
    */
   dateOrder?: 'DMY' | 'MDY';
 }
@@ -52,7 +58,8 @@ export interface InferredInputFormat {
  */
 export interface InferredColumn {
   /**
-   * The property the column reads, set when the data is an array of objects.
+   * The property the column reads, set when the data is an array of objects. The grid reads a key
+   * with a dot (`price.usd`) as a nested path.
    */
   data?: string;
   /**
@@ -73,13 +80,15 @@ export interface InferredColumn {
    */
   timeFormat?: Intl.DateTimeFormatOptions;
   /**
-   * The options of a `dropdown` column, in the order they first appear.
+   * The options of a `dropdown` column, in the order they first appear in the sampled rows. A value
+   * that appears only past `sampleSize` is not listed, so the dropdown validator rejects it.
    */
   source?: string[];
   /**
    * The share of the column's non-blank sampled values the type reads, from `0` to `1`. A date
    * column whose day and month order came from the locale rather than the data scores `0.95` of
-   * that share. A `text` column scores `1`, or `0` when every sampled value is blank.
+   * that share (the `minConfidence` floor is checked against the share itself). A `text` column
+   * scores `1`, or `0` when every sampled value is blank.
    */
   confidence: number;
   /**

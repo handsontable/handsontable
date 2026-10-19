@@ -1,3 +1,5 @@
+import { CURRENCY_SYMBOL_TO_CODE } from '../currencySymbols';
+
 /**
  * The locale the inference falls back to. It is fixed rather than read from the host, so the same
  * data infers the same way in every browser.
@@ -5,15 +7,19 @@
 export const DEFAULT_LOCALE = 'en-US';
 
 /**
- * The order a day-month-year date is written in. `YMD` covers the ISO form and its `/` and `.`
- * variants, which are never ambiguous.
+ * Currency symbols that several currencies share, mapped by region to the code the region uses.
+ * A region missing here takes the symbol's entry in `CURRENCY_SYMBOL_TO_CODE`.
  */
-export type DateOrder = 'DMY' | 'MDY' | 'YMD';
+const REGIONAL_CURRENCY_CODES: Record<string, Record<string, string>> = {
+  $: { AU: 'AUD', CA: 'CAD', HK: 'HKD', MX: 'MXN', NZ: 'NZD', SG: 'SGD', TW: 'TWD' },
+  kr: { DK: 'DKK', IS: 'ISK', NO: 'NOK' },
+  '¥': { CN: 'CNY' },
+};
 
 /**
- * Returns `locale` when `Intl` accepts it, and `DEFAULT_LOCALE` otherwise. `Intl` throws a
- * `RangeError` on a malformed tag, and an unknown but well-formed tag resolves to a fallback
- * the engine picks, so only the malformed case is replaced here.
+ * Returns `locale` when both `Intl.NumberFormat` and `Intl.DateTimeFormat` support it, and
+ * `DEFAULT_LOCALE` otherwise. A malformed tag throws a `RangeError`, and an unknown but well-formed
+ * one (`zz`) makes `Intl` fall back to the host's own locale, so both are replaced here.
  */
 export function resolveLocale(locale: unknown): string {
   if (typeof locale !== 'string' || locale === '') {
@@ -21,7 +27,11 @@ export function resolveLocale(locale: unknown): string {
   }
 
   try {
-    return Intl.getCanonicalLocales(locale)[0] ?? DEFAULT_LOCALE;
+    const [supported] = Intl.NumberFormat.supportedLocalesOf(locale);
+
+    return supported !== undefined && Intl.DateTimeFormat.supportedLocalesOf(supported).length > 0
+      ? supported
+      : DEFAULT_LOCALE;
 
   } catch {
     return DEFAULT_LOCALE;
@@ -49,4 +59,20 @@ export function getLocaleDateOrder(locale: string): 'DMY' | 'MDY' {
     .map(part => part.type);
 
   return parts.indexOf('day') < parts.indexOf('month') ? 'DMY' : 'MDY';
+}
+
+/**
+ * The region of the locale (`CA` for `en-CA`, `US` for a bare `en`), or an empty string when it has
+ * none.
+ */
+export function getLocaleRegion(locale: string): string {
+  return new Intl.Locale(locale).maximize().region ?? '';
+}
+
+/**
+ * The ISO 4217 code a currency symbol stands for in a region: `$` is CAD in Canada and `kr` is NOK
+ * in Norway, while a symbol only one currency uses maps to that currency anywhere.
+ */
+export function resolveCurrencyCode(symbol: string, region: string): string {
+  return REGIONAL_CURRENCY_CODES[symbol]?.[region] ?? CURRENCY_SYMBOL_TO_CODE[symbol];
 }

@@ -70,7 +70,9 @@ const rawRows: string[][] = [['1,5', '12.03.2026']];
 const objectRows: Array<Record<string, unknown>> = [{ amount: '1,5' }];
 const inferred: InferredColumn[] = plugin.inferColumnTypes(rawRows, inferOptions);
 const inferredObjects: InferredColumn[] = inferColumnTypes(objectRows, { dropdown: false });
-const convertedRows: string[][] = plugin.convertToInferredTypes(rawRows, inferred);
+const convertedRows: unknown[][] = plugin.convertToInferredTypes(rawRows, inferred);
+// @ts-expect-error - a converted cell is no longer the input's type.
+const stillStrings: string[][] = plugin.convertToInferredTypes(rawRows, inferred);
 const convertedObjects: Array<Record<string, unknown>> = convertToInferredTypes(objectRows, inferredObjects);
 const inferredType: InferredCellType = inferred[0].type;
 const inputFormat: InferredInputFormat | undefined = inferred[0].inputFormat;

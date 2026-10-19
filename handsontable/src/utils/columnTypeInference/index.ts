@@ -1,6 +1,6 @@
 import { isObject } from '../../helpers/object';
 import { DETECTORS, type DetectionContext } from './detectors';
-import { getLocaleDateOrder, getLocaleDecimalSeparator, resolveLocale } from './locale';
+import { getLocaleDateOrder, getLocaleDecimalSeparator, getLocaleRegion, resolveLocale } from './locale';
 import { isBlank, readBoolean, readDate, readNumber, readTime } from './values';
 import type { InferColumnTypesOptions, InferredColumn } from './types';
 
@@ -28,10 +28,16 @@ const DEFAULT_MAX_DROPDOWN_OPTIONS = 10;
 export type InferenceData = unknown[][] | Record<string, unknown>[];
 
 /**
- * Reads a positive integer option, or returns the fallback for anything else.
+ * What `convertToInferredTypes()` returns for the data it takes: the same row shape, with cells typed
+ * `unknown`, since a converted cell is a number, a boolean, or a string whatever the input held.
+ */
+export type ConvertedData<T extends InferenceData> = T extends unknown[][] ? unknown[][] : Record<string, unknown>[];
+
+/**
+ * Reads a positive integer option, `Infinity` included, or returns the fallback for anything else.
  */
 function toPositiveInteger(value: unknown, fallback: number): number {
-  return typeof value === 'number' && Number.isFinite(value) && value >= 1 ? Math.floor(value) : fallback;
+  return typeof value === 'number' && value >= 1 ? Math.floor(value) : fallback;
 }
 
 /**
@@ -44,21 +50,23 @@ function toConfidence(value: unknown): number {
 }
 
 /**
- * Reads the most distinct values a dropdown column may have; `0` turns dropdowns off.
+ * Reads the most distinct values a dropdown column may have. `dropdown: false` and
+ * `maxOptions: 0` turn dropdowns off.
  */
 function toMaxDropdownOptions(dropdown: InferColumnTypesOptions['dropdown']): number {
-  if (dropdown === false) {
+  const maxOptions = typeof dropdown === 'object' && dropdown !== null ? dropdown.maxOptions : undefined;
+
+  if (dropdown === false || maxOptions === 0) {
     return 0;
   }
-
-  const maxOptions = typeof dropdown === 'object' ? dropdown.maxOptions : undefined;
 
   return toPositiveInteger(maxOptions, DEFAULT_MAX_DROPDOWN_OPTIONS);
 }
 
 /**
  * Lists the columns of the data: one index per position for arrays, sized by the widest sampled
- * row, or the keys of the first object row.
+ * row, or for objects every key the sampled rows carry, in the order the keys first appear. A row
+ * from an API often omits a property that is empty, so the first row alone can miss a column.
  */
 function listColumnKeys(rows: unknown[]): Array<number | string> {
   const firstRow = rows.find(row => row !== null && row !== undefined);
@@ -69,7 +77,15 @@ function listColumnKeys(rows: unknown[]): Array<number | string> {
     return Array.from({ length: width }, (_, index) => index);
   }
 
-  return isObject(firstRow) ? Object.keys(firstRow as object) : [];
+  const keys = new Set<string>();
+
+  rows.forEach((row) => {
+    if (isObject(row)) {
+      Object.keys(row as object).forEach(key => keys.add(key));
+    }
+  });
+
+  return Array.from(keys);
 }
 
 /**
@@ -84,7 +100,9 @@ function readCell(row: unknown, key: number | string): unknown {
 }
 
 /**
- * Picks a column's type: the first detector whose confidence reaches the floor, or `text`.
+ * Picks a column's type: the first detector whose share of read values reaches the floor, or
+ * `text`. The floor is checked against the share alone; the detector's certainty only scales the
+ * reported confidence, so a fully read date column whose order came from the locale still wins.
  */
 function inferColumn(values: unknown[], context: DetectionContext, minConfidence: number): InferredColumn {
   const nonBlank = values.filter(value => !isBlank(value));
@@ -95,10 +113,10 @@ function inferColumn(values: unknown[], context: DetectionContext, minConfidence
 
   for (const detect of DETECTORS) {
     const detection = detect(nonBlank, context);
-    const confidence = detection ? (detection.matched / nonBlank.length) * detection.certainty : 0;
+    const share = detection ? detection.matched / nonBlank.length : 0;
 
-    if (detection && detection.matched > 0 && confidence >= minConfidence) {
-      return { ...detection.column, confidence };
+    if (detection && detection.matched > 0 && share >= minConfidence) {
+      return { ...detection.column, confidence: share * detection.certainty };
     }
   }
 
@@ -116,18 +134,23 @@ function inferColumn(values: unknown[], context: DetectionContext, minConfidence
  * `inputFormat`. Pass the data through `convertToInferredTypes()` before loading it, so the values
  * match what each cell type stores.
  */
-export function inferColumnTypes(data: InferenceData, options: InferColumnTypesOptions = {}): InferredColumn[] {
+export function inferColumnTypes(
+  data: InferenceData,
+  options: InferColumnTypesOptions | null = {},
+): InferredColumn[] {
   if (!Array.isArray(data)) {
     return [];
   }
 
-  const locale = resolveLocale(options.locale);
-  const rows = data.slice(0, toPositiveInteger(options.sampleSize, DEFAULT_SAMPLE_SIZE)) as unknown[];
-  const minConfidence = toConfidence(options.minConfidence);
+  const { locale: localeOption, sampleSize, minConfidence: minConfidenceOption, dropdown } = options ?? {};
+  const locale = resolveLocale(localeOption);
+  const rows = data.slice(0, toPositiveInteger(sampleSize, DEFAULT_SAMPLE_SIZE)) as unknown[];
+  const minConfidence = toConfidence(minConfidenceOption);
   const context: DetectionContext = {
     localeDecimalSeparator: getLocaleDecimalSeparator(locale),
     localeDateOrder: getLocaleDateOrder(locale),
-    maxDropdownOptions: toMaxDropdownOptions(options.dropdown),
+    region: getLocaleRegion(locale),
+    maxDropdownOptions: toMaxDropdownOptions(dropdown),
   };
 
   return listColumnKeys(rows).map((key) => {
@@ -147,18 +170,18 @@ function convertValue(value: unknown, column: InferredColumn): unknown {
   }
 
   let converted: unknown = null;
-  const { inputFormat = {}, numericFormat = {} } = column;
+  const { inputFormat = {} } = column;
 
   switch (column.type) {
     case 'numeric':
       converted = readNumber(value, {
         decimalSeparator: inputFormat.decimalSeparator ?? '.',
-        currency: numericFormat.currency ?? null,
+        currencySymbol: inputFormat.currencySymbol ?? null,
         percent: inputFormat.percent === true,
       });
       break;
     case 'date':
-      converted = readDate(value, inputFormat.dateOrder ?? 'DMY')?.iso ?? null;
+      converted = readDate(value, inputFormat.dateOrder ?? 'MDY')?.iso ?? null;
       break;
     case 'time':
       converted = readTime(value)?.value ?? null;
@@ -201,12 +224,13 @@ function convertRow(row: unknown, columns: InferredColumn[]): unknown {
  * Returns a copy of the data with every value converted to what the column's inferred cell type
  * stores: a number for `numeric`, `YYYY-MM-DD` for `date`, `HH:mm:ss` for `time`, and a boolean for
  * `checkbox`. Every row is converted, not only the sampled ones. A value the column cannot read is
- * kept as it is, so the cell type's validator marks it. The input is never changed.
+ * kept as it is, so the cell type's validator marks it. The input is never changed. The cells of the
+ * result are no longer the input's type, which is why it is typed `unknown`.
  */
-export function convertToInferredTypes<T extends InferenceData>(data: T, columns: InferredColumn[]): T {
+export function convertToInferredTypes<T extends InferenceData>(data: T, columns: InferredColumn[]): ConvertedData<T> {
   if (!Array.isArray(data)) {
-    return data;
+    return data as ConvertedData<T>;
   }
 
-  return (data as unknown[]).map(row => convertRow(row, columns)) as T;
+  return (data as unknown[]).map(row => convertRow(row, columns)) as ConvertedData<T>;
 }

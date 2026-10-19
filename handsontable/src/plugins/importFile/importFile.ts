@@ -8,6 +8,7 @@ import { applyImportResult, removeImportedStyles } from './applier';
 import {
   convertToInferredTypes,
   inferColumnTypes,
+  type ConvertedData,
   type InferColumnTypesOptions,
   type InferenceData,
   type InferredColumn,
@@ -456,8 +457,8 @@ export class ImportFile extends BasePlugin {
    * });
    * ```
    */
-  inferColumnTypes(data: InferenceData, options: InferColumnTypesOptions = {}): InferredColumn[] {
-    return inferColumnTypes(data, { locale: this.hot.getSettings().locale, ...options });
+  inferColumnTypes(data: InferenceData, options: InferColumnTypesOptions | null = {}): InferredColumn[] {
+    return inferColumnTypes(data, { ...options, locale: options?.locale ?? this.hot.getSettings().locale });
   }
 
   /**
@@ -466,7 +467,7 @@ export class ImportFile extends BasePlugin {
    * for `checkbox`. A value the column cannot read, such as a `Total` row, is kept as it is, so the
    * cell type's validator marks it. `data` itself is not changed.
    */
-  convertToInferredTypes<T extends InferenceData>(data: T, columns: InferredColumn[]): T {
+  convertToInferredTypes<T extends InferenceData>(data: T, columns: InferredColumn[]): ConvertedData<T> {
     return convertToInferredTypes(data, columns);
   }
 

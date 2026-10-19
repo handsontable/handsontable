@@ -1,16 +1,37 @@
 import { isValidISODate } from '../../helpers/dateTime';
-import { CURRENCY_SYMBOL_TO_CODE, CURRENCY_SYMBOLS } from '../currencySymbols';
-import type { DateOrder } from './locale';
+import { CURRENCY_SYMBOLS } from '../currencySymbols';
 
 /**
- * A number body with a dot decimal and optional comma grouping (`1,234.56`, `0.5`, `.5`, `1234`).
+ * A number body with a dot decimal and optional grouping (`1,234.56`, `1 234.56`, `1'234.56`,
+ * `0.5`, `.5`, `1234`). One grouping character is used throughout a value (the backreference), and a
+ * grouped value never starts with `0`, so `0.123` reads as a dot decimal only.
  */
-const DOT_DECIMAL_REGEX = /^(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?$|^\.\d+$/;
+const DOT_DECIMAL_REGEX = /^(?:[1-9]\d{0,2}([,\u0020\u00a0\u202f'\u2019])\d{3}(?:\1\d{3})*|\d+)(?:\.\d+)?$|^\.\d+$/;
 
 /**
- * A number body with a comma decimal and optional dot grouping (`1.234,56`, `0,5`, `,5`, `1234`).
+ * A number body with a comma decimal and optional grouping (`1.234,56`, `1 234,56`, `0,5`, `,5`,
+ * `1234`), under the same rules as `DOT_DECIMAL_REGEX`.
  */
-const COMMA_DECIMAL_REGEX = /^(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d+)?$|^,\d+$/;
+const COMMA_DECIMAL_REGEX = /^(?:[1-9]\d{0,2}([.\u0020\u00a0\u202f])\d{3}(?:\1\d{3})*|\d+)(?:,\d+)?$|^,\d+$/;
+
+/**
+ * The characters a number body may hold: digits, the two decimal separators, and the grouping
+ * characters locales write (a space, a no-break space, a narrow no-break space, and an apostrophe).
+ */
+const NUMBER_BODY_CHARS_REGEX = /^[\d.,\u0020\u00a0\u202f'\u2019]+$/;
+
+/**
+ * The most significant digits a value may carry and still be stored as a number without change.
+ * A double holds 15 of them exactly, which is also the limit Excel applies; a longer value (a card
+ * number, a long order ID) stays text instead of being rounded.
+ */
+const MAX_SIGNIFICANT_DIGITS = 15;
+
+/**
+ * The most fraction digits a numeric format asks for. `Intl.NumberFormat` throws above 100, and a
+ * column of measured values never needs more than this.
+ */
+export const MAX_FRACTION_DIGITS = 20;
 
 /**
  * A zero followed by another digit: a ZIP code or an ID such as `00123`, whose zeros a number
@@ -48,9 +69,9 @@ export interface NumberParts {
    */
   negative: boolean;
   /**
-   * The ISO 4217 code of the currency symbol the value carried, or `null`.
+   * The currency symbol the value carried, or `null`.
    */
-  currency: string | null;
+  currencySymbol: string | null;
   /**
    * Whether the value ended with a percent sign.
    */
@@ -67,9 +88,9 @@ export interface NumberMode {
    */
   decimalSeparator: '.' | ',';
   /**
-   * The column's currency. A value with another currency does not belong to the column.
+   * The column's currency symbol. A value with another symbol does not belong to the column.
    */
-  currency: string | null;
+  currencySymbol: string | null;
   /**
    * Whether the column holds percentages. A value without a percent sign does not belong to it.
    */
@@ -120,60 +141,80 @@ export function isBlank(value: unknown): boolean {
 }
 
 /**
- * Removes a currency symbol from either end of a value. Returns the ISO code it maps to, or `null`.
+ * Removes a currency symbol from either end of a value and returns it, or `null` when there is none.
  */
-function takeCurrency(text: string): { currency: string | null; rest: string } {
+function takeCurrency(text: string): { currencySymbol: string | null; rest: string } {
   for (const symbol of CURRENCY_SYMBOLS) {
     if (text.startsWith(symbol)) {
-      return { currency: CURRENCY_SYMBOL_TO_CODE[symbol], rest: text.slice(symbol.length).trim() };
+      return { currencySymbol: symbol, rest: text.slice(symbol.length).trim() };
     }
 
     if (text.endsWith(symbol)) {
-      return { currency: CURRENCY_SYMBOL_TO_CODE[symbol], rest: text.slice(0, -symbol.length).trim() };
+      return { currencySymbol: symbol, rest: text.slice(0, -symbol.length).trim() };
     }
   }
 
-  return { currency: null, rest: text };
+  return { currencySymbol: null, rest: text };
 }
 
 /**
- * Splits a number-shaped string into its sign, currency, percent sign, and body. Returns `null` for
- * anything that is not one. The body is checked against a separator grammar later, per column.
+ * Splits a number-shaped string into its sign, currency symbol, percent sign, and body. Returns
+ * `null` for anything that is not one. The body is checked against a separator grammar later, per
+ * column.
  */
 export function splitNumberParts(text: string): NumberParts | null {
   let rest = text.trim();
-  let negative = false;
   const percent = rest.endsWith('%');
 
   if (percent) {
     rest = rest.slice(0, -1).trim();
   }
 
-  if (/^[+-]/.test(rest)) {
-    negative = rest[0] === '-';
+  const signed = /^[+-]/.test(rest);
+  let negative = signed && rest[0] === '-';
+
+  if (signed) {
     rest = rest.slice(1).trim();
   }
 
-  const { currency, rest: body } = takeCurrency(rest);
+  const { currencySymbol, rest: afterCurrency } = takeCurrency(rest);
+  let body = afterCurrency;
 
-  // `$-3.25` carries its sign after the symbol.
-  if (!negative && body.startsWith('-')) {
-    return /^[\d.,]+$/.test(body.slice(1)) ? { body: body.slice(1), negative: true, currency, percent } : null;
+  // `$-3.25` carries its sign after the symbol; a value that already had a sign cannot have two.
+  if (!signed && currencySymbol !== null && body.startsWith('-')) {
+    negative = true;
+    body = body.slice(1).trim();
   }
 
-  return /^[\d.,]+$/.test(body) ? { body, negative, currency, percent } : null;
+  return NUMBER_BODY_CHARS_REGEX.test(body) ? { body, negative, currencySymbol, percent } : null;
+}
+
+/**
+ * Counts the significant digits of a number body: every digit after the leading zeros.
+ */
+function countSignificantDigits(body: string): number {
+  return body.replace(/\D/g, '').replace(/^0+/, '').length;
 }
 
 /**
  * Whether a number body is valid under the given decimal separator. A leading zero followed by a
- * digit is rejected under both, since it marks a code rather than a quantity.
+ * digit is rejected under both, since it marks a code rather than a quantity, and so is a value
+ * with more significant digits than a number holds.
  */
 export function isNumberBody(body: string, decimalSeparator: '.' | ','): boolean {
-  if (LEADING_ZERO_REGEX.test(body)) {
+  if (LEADING_ZERO_REGEX.test(body) || countSignificantDigits(body) > MAX_SIGNIFICANT_DIGITS) {
     return false;
   }
 
   return decimalSeparator === '.' ? DOT_DECIMAL_REGEX.test(body) : COMMA_DECIMAL_REGEX.test(body);
+}
+
+/**
+ * Whether a number body is grouped: it holds a character other than a digit and the decimal
+ * separator.
+ */
+export function isGroupedBody(body: string, decimalSeparator: '.' | ','): boolean {
+  return [...body].some(char => (char < '0' || char > '9') && char !== decimalSeparator);
 }
 
 /**
@@ -186,10 +227,12 @@ export function countFractionDigits(body: string, decimalSeparator: '.' | ','): 
 }
 
 /**
- * Counts the fraction digits of a number as it prints, or `0` for one printed in exponent form.
+ * Counts the fraction digits of a number as it prints at 15 significant digits, which drops the
+ * noise of binary arithmetic (`0.30000000000000004` counts 1), or `0` for one printed in exponent
+ * form.
  */
 export function countNumberFractionDigits(value: number): number {
-  const [, fraction = ''] = String(value).split('.');
+  const [, fraction = ''] = String(Number(value.toPrecision(MAX_SIGNIFICANT_DIGITS))).split('.');
 
   return /e/i.test(fraction) ? 0 : fraction.length;
 }
@@ -209,14 +252,16 @@ export function readNumber(value: unknown, mode: NumberMode): number | null {
   if (
     parts === null ||
     parts.percent !== mode.percent ||
-    (parts.currency !== null && parts.currency !== mode.currency) ||
+    (parts.currencySymbol !== null && parts.currencySymbol !== mode.currencySymbol) ||
     !isNumberBody(parts.body, mode.decimalSeparator)
   ) {
     return null;
   }
 
-  const groupSeparator = mode.decimalSeparator === '.' ? ',' : '.';
-  const plain = parts.body.replaceAll(groupSeparator, '').replace(mode.decimalSeparator, '.');
+  const plain = [...parts.body]
+    .filter(char => (char >= '0' && char <= '9') || char === mode.decimalSeparator)
+    .join('')
+    .replace(mode.decimalSeparator, '.');
   const number = Number(`${parts.negative ? '-' : ''}${plain}${mode.percent ? 'e-2' : ''}`);
 
   return Number.isFinite(number) ? number : null;
@@ -263,7 +308,7 @@ export function splitYearLastDate(value: unknown): [number, number] | null {
  * Reads a value as a date. A year-first date is read as year, month, day; a year-last one follows
  * `order`. Returns `null` for anything else, including a day the month does not have.
  */
-export function readDate(value: unknown, order: DateOrder): DateReading | null {
+export function readDate(value: unknown, order: 'DMY' | 'MDY'): DateReading | null {
   if (typeof value !== 'string') {
     return null;
   }

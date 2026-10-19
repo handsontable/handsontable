@@ -14,6 +14,7 @@ export type {
 export type { ImportedBorder } from './styles';
 export { inferColumnTypes, convertToInferredTypes } from '../../utils/columnTypeInference';
 export type {
+  ConvertedData,
   InferColumnTypesOptions,
   InferenceData,
   InferredCellType,

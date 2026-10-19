@@ -328,13 +328,25 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
 
 - **The result must be deterministic, so nothing reads the host.** No `new Date(string)` (engines parse
   it differently), and never the browser's default locale: `locale` is explicit, falls back to `en-US`
-  (also for a tag `Intl.getCanonicalLocales` rejects), and separators and the day/month order come from
+  (also for a well-formed tag `Intl` does not support, such as `zz`: `Intl.NumberFormat('zz')` silently
+  falls back to the HOST locale, so `resolveLocale` checks `supportedLocalesOf`), and separators and the day/month order come from
   `Intl.NumberFormat(locale).formatToParts` / `Intl.DateTimeFormat(locale).formatToParts`. Sampling is
   the first `sampleSize` rows, dropdown sources are in first-appearance order, and `DETECTORS` order is
   the tie-break (checkbox, numeric, date, time, dropdown, then text).
 - **The column decides before the locale.** A value only one separator can read (`0,5`, `1,234.56`)
   votes, and only a tie falls back to the locale; same for a year-last date with a part above 12. A
-  date column settled by the locale scores `0.95` of its share, so `confidence` shows the guess.
+  date column settled by the locale scores `0.95` of its share, so `confidence` shows the guess; the
+  `minConfidence` floor is checked against the share BEFORE that discount, or a 9-in-10 ambiguous
+  column (and any column under `minConfidence: 1`) fell to text. `dateOrder` is recorded on every date
+  column, even one whose sample is all ISO, because rows past `sampleSize` may be year-last and the
+  converter has no locale to ask. Percent and currency are settled by MAJORITY (first appearance breaks
+  a tie), never by the first value, or one stray leading `0` turned a percent column to text.
+- **A grouped value never starts with `0`** (`[1-9]` in the first group of both body regexes). With
+  `\d{1,3}` there, `0.123` read under both separators, cast no vote, and a `de-DE` locale turned it
+  into 123. One grouping character per value (a backreference), so `1,234 567` is not a number.
+- **Shared symbols resolve by region** (`resolveCurrencyCode` in `locale.ts`): `$` is CAD under
+  `en-CA`, `kr` is NOK under `nb-NO`. `inputFormat.currencySymbol` carries the SYMBOL to the converter,
+  because the converter has no locale to turn a code back into a symbol.
 - **Inference without conversion is a trap.** The `date` and `time` cell types validate source data as
   ISO only, so `12/03/2026` loaded raw is flagged on every cell. `convertToInferredTypes` rewrites
   values to the stored shape (number, `YYYY-MM-DD`, `HH:mm:ss`, boolean) and reads them with the same
@@ -344,6 +356,9 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `parseFloat`, so `12 apples` reads as `12`, and it cannot read a comma-grouped float (`1,234.56`
   becomes `1.234`). The value grammar is strict regexes in `values.ts` instead.
 - **A leading-zero integer is never numeric** (`00123`): ZIP codes and IDs would lose their zeros.
+  Neither is a value with more than 15 significant digits (a card number), which a double rounds.
+  Fraction digits are capped at 20 (`Intl.NumberFormat` throws above 100, inside the renderer) and a
+  JS number is counted at 15 significant digits, so `0.1 + 0.2` does not ask for 17 decimals.
   `1`/`0` stay numeric, not checkbox. Date-time values stay `text`, because the `date` validator
   accepts date-only values; mapping them to `intl-datetime` is a follow-up.
 - **A percent column divides by moving the exponent** (`'7.25' + 'e-2'`), not by `/ 100`, which keeps

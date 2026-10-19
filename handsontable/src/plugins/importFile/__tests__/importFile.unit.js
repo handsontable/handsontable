@@ -141,6 +141,12 @@ describe('ImportFile#inferColumnTypes', () => {
       { dateOrder: 'MDY' },
     ]);
   });
+
+  it('should keep the grid locale when the locale option is undefined', () => {
+    const columns = ImportFile.prototype.inferColumnTypes.call(localeCtx('de-DE'), rows, { locale: undefined });
+
+    expect(columns[0].inputFormat).toEqual({ decimalSeparator: ',' });
+  });
 });
 
 describe('ImportFile#supportsImportFormat', () => {

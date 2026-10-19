@@ -1,6 +1,9 @@
+import { resolveCurrencyCode } from './locale';
 import {
+  MAX_FRACTION_DIGITS,
   countFractionDigits,
   countNumberFractionDigits,
+  isGroupedBody,
   isNumberBody,
   readBoolean,
   readDate,
@@ -24,6 +27,10 @@ export interface DetectionContext {
    * The day and month order of the locale, used when the column does not settle it.
    */
   localeDateOrder: 'DMY' | 'MDY';
+  /**
+   * The region of the locale, which picks the currency a shared symbol (`$`, `kr`) stands for.
+   */
+  region: string;
   /**
    * The most distinct values a dropdown column may have, or `0` when dropdowns are off.
    */
@@ -103,28 +110,52 @@ function voteDecimalSeparator(values: unknown[], context: DetectionContext): '.'
 }
 
 /**
- * Settles how a numeric column reads its values. The first string value with a currency sets the
- * currency, and the first number-shaped string decides whether the column holds percentages.
+ * Returns the value most entries carry, the one that appears first on a tie. Order-independent
+ * except for that tie-break, so moving one stray value never flips a column.
+ */
+function majority<T>(entries: T[], fallback: T): T {
+  const counts = new Map<T, number>();
+  let winner = fallback;
+  let best = 0;
+
+  entries.forEach((entry) => {
+    const count = (counts.get(entry) ?? 0) + 1;
+
+    counts.set(entry, count);
+
+    if (count > best) {
+      best = count;
+      winner = entry;
+    }
+  });
+
+  return winner;
+}
+
+/**
+ * Settles how a numeric column reads its values: the decimal separator by vote, whether the column
+ * holds percentages by majority, and the currency symbol by majority among the values that carry one.
  */
 function resolveNumberMode(values: unknown[], context: DetectionContext): NumberMode {
   const parts = values
     .map(value => (typeof value === 'string' ? splitNumberParts(value) : null))
     .filter(part => part !== null);
+  const symbols = parts.map(part => part.currencySymbol).filter(symbol => symbol !== null);
 
   return {
     decimalSeparator: voteDecimalSeparator(values, context),
-    currency: parts.find(part => part.currency !== null)?.currency ?? null,
-    percent: parts[0]?.percent ?? false,
+    currencySymbol: majority<string | null>(symbols, null),
+    percent: majority(parts.map(part => part.percent), false),
   };
 }
 
 /**
- * Builds the `Intl.NumberFormat` options that print a numeric column the way it was written.
+ * Builds the `Intl.NumberFormat` options that print a numeric column the way it was written. The
+ * fraction digits are capped at `MAX_FRACTION_DIGITS`, since `Intl.NumberFormat` throws above 100.
  */
-function toNumericFormat(values: unknown[], mode: NumberMode): Intl.NumberFormatOptions {
+function toNumericFormat(values: unknown[], mode: NumberMode, context: DetectionContext): Intl.NumberFormatOptions {
   let fractionDigits = 0;
   let useGrouping = false;
-  const groupSeparator = mode.decimalSeparator === '.' ? ',' : '.';
 
   values.forEach((value) => {
     if (readNumber(value, mode) === null) {
@@ -140,18 +171,20 @@ function toNumericFormat(values: unknown[], mode: NumberMode): Intl.NumberFormat
     const { body } = splitNumberParts(value as string) as { body: string };
 
     fractionDigits = Math.max(fractionDigits, countFractionDigits(body, mode.decimalSeparator));
-    useGrouping = useGrouping || body.includes(groupSeparator);
+    useGrouping = useGrouping || isGroupedBody(body, mode.decimalSeparator);
   });
 
   const style: Intl.NumberFormatOptions = {};
 
-  if (mode.currency !== null) {
+  if (mode.currencySymbol !== null) {
     style.style = 'currency';
-    style.currency = mode.currency;
+    style.currency = resolveCurrencyCode(mode.currencySymbol, context.region);
 
   } else if (mode.percent) {
     style.style = 'percent';
   }
+
+  fractionDigits = Math.min(fractionDigits, MAX_FRACTION_DIGITS);
 
   return { ...style, minimumFractionDigits: fractionDigits, maximumFractionDigits: fractionDigits, useGrouping };
 }
@@ -161,12 +194,14 @@ function toNumericFormat(values: unknown[], mode: NumberMode): Intl.NumberFormat
  */
 function detectNumeric(values: unknown[], context: DetectionContext): Detection | null {
   const mode = resolveNumberMode(values, context);
-  const inputFormat = mode.percent
-    ? { decimalSeparator: mode.decimalSeparator, percent: true }
-    : { decimalSeparator: mode.decimalSeparator };
+  const inputFormat = {
+    decimalSeparator: mode.decimalSeparator,
+    ...(mode.percent ? { percent: true } : {}),
+    ...(mode.currencySymbol !== null ? { currencySymbol: mode.currencySymbol } : {}),
+  };
 
   return {
-    column: { type: 'numeric', numericFormat: toNumericFormat(values, mode), inputFormat },
+    column: { type: 'numeric', numericFormat: toNumericFormat(values, mode, context), inputFormat },
     matched: countMatches(values, value => readNumber(value, mode)),
     certainty: 1,
   };
@@ -214,7 +249,9 @@ function detectDate(values: unknown[], context: DetectionContext): Detection | n
         month: readings.every(reading => reading.paddedMonth) ? '2-digit' : 'numeric',
         day: readings.every(reading => reading.paddedDay) ? '2-digit' : 'numeric',
       },
-      ...(hasYearLast ? { inputFormat: { dateOrder } } : {}),
+      // Recorded even when no sampled value is year-last, so rows past the sample convert in the
+      // same order the locale settles.
+      inputFormat: { dateOrder },
     },
     matched: readings.length,
     certainty: hasYearLast && voted === null ? LOCALE_ORDER_CERTAINTY : 1,

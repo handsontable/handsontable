@@ -274,18 +274,20 @@ Each entry uses the names of the column options, so you can pass the array to [`
 
 Inference works this way:
 
-- **Types.** The method infers `numeric` (including currency amounts such as `$1,234.50` and percentages such as `12.5%`), `date`, `time`, `checkbox` (`true` and `false`, in any case), `dropdown` (a column of a few repeated strings), and `text`. Date-time values such as `2026-03-12 14:30` stay `text`.
-- **Confidence.** `confidence` is the share of non-blank values the type reads. A column below `minConfidence` falls back to `text`. Blank values don't count. A value the type can't read, such as a `Total` row, keeps its raw form after the conversion, so the cell's validator marks it.
-- **Ambiguous values.** The column decides first: `0,5` in a column makes `1.234` mean 1234, and `25/03/2026` makes `12/03/2026` mean 12 March. When nothing in the column decides, the `locale` option does. It defaults to the grid's [`locale`](@/api/options.md#locale). A date column whose order came from the locale gets a confidence of `0.95`.
-- **Codes stay text.** A number with a leading zero, such as `00123`, is read as text, so ZIP codes and IDs keep their zeros.
-- **Deterministic results.** The same rows and options always give the same result. The method reads only the first `sampleSize` rows and never the browser's locale.
+- **Types.** The method infers `numeric`, `date`, `time`, `checkbox` (`true` and `false`, in any case), `dropdown` (a column of a few repeated strings), and `text`. Date-time values such as `2026-03-12 14:30` and JavaScript `Date` objects stay `text`.
+- **Numbers.** A numeric value may carry a sign, a currency symbol on either side (`$1,234.50`, `12,5 zł`), or a trailing percent sign (`12.5%`, converted to `0.125`). Digits may be grouped with a comma, a dot, a space, a no-break space, or an apostrophe (`1'234.50`). A symbol that several currencies share takes the currency of the locale's region: `$` is `CAD` under `en-CA`, and `kr` is `NOK` under `nb-NO`.
+- **Confidence.** `confidence` is the share of non-blank values the type reads. A column whose share is below `minConfidence` falls back to `text`. Blank values don't count. A value the type can't read, such as a `Total` row, keeps its raw form after the conversion, so the cell's validator marks it.
+- **Ambiguous values.** The column decides first: `0,5` in a column makes `1.234` mean 1234, and `25/03/2026` makes `12/03/2026` mean 12 March. When nothing in the column decides, the `locale` option does. It defaults to the grid's [`locale`](@/api/options.md#locale). A date column whose order came from the locale reports `0.95` times its share as its confidence.
+- **Codes stay text.** A number with a leading zero, such as `00123`, or with more than 15 significant digits, such as a card number, is read as text. Converting it to a number would lose digits.
+- **Sampling.** The method reads only the first `sampleSize` rows. A `dropdown` column lists only the options found there, so a later row with another option is marked invalid. Raise `sampleSize` if your data needs it. For rows of objects, every key the sampled rows carry becomes a column.
+- **Deterministic results.** The same rows and options always give the same result. The method never reads the browser's locale. An unknown locale falls back to `'en-US'`.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `sampleSize` | `number` | `1000` | How many rows, from the top, to read. |
+| `sampleSize` | `number` | `1000` | How many rows, from the top, to read. `Infinity` reads every row. |
 | `locale` | `string` | the grid's `locale` | Settles a column whose values don't decide the decimal separator or the day and month order. |
 | `minConfidence` | `number` | `0.9` | The share of non-blank values a type has to read, from `0` to `1`. |
-| `dropdown` | `boolean \| { maxOptions?: number }` | `true` | Whether a column of repeated strings becomes a `dropdown`, and how many distinct values it may have (`10` by default). |
+| `dropdown` | `boolean \| { maxOptions?: number }` | `true` | Whether a column of repeated strings becomes a `dropdown`, and how many distinct values it may have (`10` by default, `0` turns it off). |
 
 To infer types without a grid, import the same functions from the plugin module: `import { inferColumnTypes, convertToInferredTypes } from 'handsontable/plugins/importFile';`. Without a grid, `locale` defaults to `'en-US'`.
 
