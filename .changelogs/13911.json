@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `inferColumnTypes()` and `convertToInferredTypes()` methods to the `ImportFile` plugin, which infer column types and formats from raw, untyped values and convert the values to match.",
+  "type": "added",
+  "issueOrPR": 13911,
+  "breaking": false,
+  "framework": "none"
+}
