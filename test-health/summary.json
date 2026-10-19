@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-19T11:12:46.948Z",
+  "generatedAt": "2026-10-19T13:18:50.347Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -2701,7 +2701,7 @@
       "file": "e2e/merge-cells-frozen-bottom.spec.ts",
       "line": 60,
       "title": "merged cell across the fixedRowsBottom line › default › draws one outline and one fill handle for the selected block",
-      "count7": 2,
+      "count7": 1,
       "count30": 2,
       "countAll": 2,
       "runs30": 1,
