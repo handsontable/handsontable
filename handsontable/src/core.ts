@@ -8835,15 +8835,26 @@ export default function Core(
    * @private
    */
   this._registerTimeout = function(this: HotInstance & CoreInternals, handle: Function | number, delay = 0) {
-    let handleFunc = handle;
+    if (typeof handle !== 'function') {
+      this.timeouts.push(handle);
 
-    if (typeof handleFunc === 'function') {
-      handleFunc = setTimeout(handleFunc, delay);
+      return handle;
     }
 
-    this.timeouts.push(handleFunc);
+    const timeoutId = setTimeout(() => {
+      const index = this.timeouts.indexOf(timeoutId);
 
-    return handleFunc;
+      // Drop the handle once it fired, or every call keeps one until `destroy()`.
+      if (index !== -1) {
+        this.timeouts.splice(index, 1);
+      }
+
+      handle();
+    }, delay);
+
+    this.timeouts.push(timeoutId);
+
+    return timeoutId;
   };
 
   /**
