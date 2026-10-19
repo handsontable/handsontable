@@ -73,7 +73,6 @@ interface BorderMeasurement {
   fromColumn: number;
   toRow: number;
   toColumn: number;
-  fromTDEl: HTMLElement;
   toTDEl: HTMLElement;
   toOffset: { top: number, left: number };
   isMultiple: boolean;
@@ -87,6 +86,7 @@ interface BorderMeasurement {
   lastRenderedRow: number;
   firstRenderedColumn: number;
   lastRenderedColumn: number;
+  tableSize: { width: number, height: number } | null;
 }
 
 /**
@@ -708,6 +708,8 @@ class Border {
    *   corner. `false` for an overlay that renders only part of a merged block, whose own box ends on a
    *   freeze line inside the block (DEV-143); the bottom handle belongs to the overlay that renders
    *   the block's real corner.
+   * @param {{width: number, height: number}|null} [tableSize] The table size `measure()` read, so the
+   *   handles are positioned without a geometry read between style writes.
    */
   updateMultipleSelectionHandlesPosition(
     fromRow: number,
@@ -719,6 +721,7 @@ class Border {
     width: number,
     height: number,
     rendersBottomEnd = true,
+    tableSize: { width: number, height: number } | null = null,
   ) {
     const handles = this.selectionHandles;
 
@@ -738,8 +741,8 @@ class Border {
     const handleBorderSize = parseInt(topStyles.borderWidth, 10);
     const handleSize = parseInt(topStyles.width, 10);
     const hitAreaSize = parseInt(topHitAreaStyles.width, 10);
-    const totalTableWidth = this.wot.wtTable.getWidth();
-    const totalTableHeight = this.wot.wtTable.getHeight();
+    const totalTableWidth = tableSize?.width ?? this.wot.wtTable.getWidth();
+    const totalTableHeight = tableSize?.height ?? this.wot.wtTable.getHeight();
     // The trigger is the clone, not the freeze count: a rendered `top`/`inline_start` clone owns the
     // band the handle would hang into, whether it holds a frozen pane or only the headers.
     const isTopHandleUnderTopClone = this.isTopHandleOccludedByClone('row', fromRow);
@@ -1858,7 +1861,6 @@ class Border {
       fromColumn,
       toRow,
       toColumn,
-      fromTDEl,
       toTDEl,
       toOffset,
       isMultiple,
@@ -1872,6 +1874,9 @@ class Border {
       lastRenderedRow,
       firstRenderedColumn,
       lastRenderedColumn,
+      // The mobile handles are clamped to the table size, which paint() must not read between writes.
+      tableSize: this.selectionHandles ?
+        { width: wtTable.getWidth(), height: wtTable.getHeight() } : null,
     };
   }
 
@@ -1910,9 +1915,9 @@ class Border {
 
     const { rootDocument, rootWindow, wtTable } = this.wot;
     const {
-      fromRow, fromColumn, toRow, toColumn, fromTDEl, toTDEl, toOffset, isMultiple, isRtl,
+      fromRow, fromColumn, toRow, toColumn, toTDEl, toOffset, isMultiple, isRtl,
       top, inlineStartPos, width, height, adjustHandlesPlan,
-      firstRenderedRow, lastRenderedRow, firstRenderedColumn, lastRenderedColumn,
+      firstRenderedRow, lastRenderedRow, firstRenderedColumn, lastRenderedColumn, tableSize,
     } = measurement;
     const [originalFromRow, originalFromColumn, originalToRow, originalToColumn] = corners;
     const inlinePosProperty = isRtl ? 'right' : 'left';
@@ -2111,6 +2116,7 @@ class Border {
         width,
         height,
         rendersFillCorner,
+        tableSize,
       );
     }
 

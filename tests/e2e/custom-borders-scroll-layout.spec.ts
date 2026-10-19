@@ -45,4 +45,25 @@ test.describe('CustomBorders scrolling cost', () => {
     // The borders must still be drawn.
     expect(await lab.countVisibleCustomBorders()).toBeGreaterThan(0);
   });
+
+  test('measuring the borders writes nothing to the DOM', async({ page, theme, bundle }) => {
+    const lab = new CustomBordersLabPage(page, theme, bundle);
+
+    await lab.goto();
+    // Frozen panes put the cell (0, 0) in the clones, which `createGrid` does not wait for.
+    await page.evaluate(settings => (window as any).createHot(settings), {
+      dataRows: ROWS,
+      dataCols: COLS,
+      fixedRowsTop: 2,
+      fixedColumnsStart: 2,
+      customBorders: everyCellBorders().slice(0, 300),
+    });
+    await page.evaluate(() => (window as any).hot.selectCells([[3, 3, 6, 6]]));
+
+    const layers = await lab.measureBordersAndCountWrites();
+
+    // The focus layer, the area layer and the custom borders in the viewport all measure something.
+    expect(layers.filter(layer => layer.measured).length).toBeGreaterThan(2);
+    expect(layers.map(layer => layer.mutations)).toEqual(layers.map(() => 0));
+  });
 });

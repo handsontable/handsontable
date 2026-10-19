@@ -228,6 +228,39 @@ export class CustomBordersLabPage {
     }
   }
 
+  /**
+   * Run `Border#measure()` on every selection layer the grid draws (focus, area, custom borders)
+   * and report, per layer, whether it measured something and how many DOM mutations it caused.
+   * Walkontable's measure pass must write nothing: one write between two geometry reads brings
+   * back a forced layout per border.
+   */
+  async measureBordersAndCountWrites(): Promise<Array<{ measured: boolean, mutations: number }>> {
+    return this.page.evaluate(() => {
+      const hot = (window as any).hot;
+      const manager = hot.view._wt.selectionManager;
+      const { highlight } = hot.selection;
+      const selections = [highlight.getFocus(), ...highlight.areas.values(), ...highlight.customSelections];
+      const observer = new MutationObserver(() => {});
+
+      observer.observe(document.body, { attributes: true, childList: true, subtree: true, characterData: true });
+      observer.takeRecords();
+
+      const results = [];
+
+      for (const selection of selections) {
+        for (const border of manager.getBorderInstances(selection)) {
+          const measurement = border.measure(selection.getCorners());
+
+          results.push({ measured: measurement !== null, mutations: observer.takeRecords().length });
+        }
+      }
+
+      observer.disconnect();
+
+      return results;
+    });
+  }
+
   /** The bounding box of a master-overlay cell. */
   async cellRect(row: number, col: number): Promise<{ top: number, right: number, bottom: number, left: number }> {
     return this.page.evaluate(([r, c]) => {
