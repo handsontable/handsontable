@@ -1,4 +1,4 @@
-import { countCellsPastEdge, getDistanceOutsideRange, resolveDragDirection } from '../utils';
+import { countCellsPastEdge, getCopyDownEndRow, getDistanceOutsideRange, resolveDragDirection } from '../utils';
 
 const BOTH = ['vertical', 'horizontal'];
 
@@ -82,6 +82,54 @@ describe('Autofill utils', () => {
     it('should not switch to an axis the allowed directions leave out', () => {
       expect(resolveDragDirection('vertical', 0, 2, ['vertical'])).toBe('vertical');
       expect(resolveDragDirection('horizontal', 2, 0, ['horizontal'])).toBe('horizontal');
+    });
+  });
+
+  describe('getCopyDownEndRow (DEV-859)', () => {
+    const N = null;
+    // A grid as rows of values; any column outside a row reads as empty.
+    const emptyIn = (grid: unknown[][]) => (row: number, column: number) => {
+      const value = grid[row]?.[column];
+
+      return value === null || value === undefined || value === '';
+    };
+    const endRow = (grid: unknown[][], startColumn = 0, endColumn = startColumn, lastSelectedRow = 0) =>
+      getCopyDownEndRow(emptyIn(grid), { endRow: lastSelectedRow, startColumn, endColumn }, grid.length);
+
+    it('should fill down as far as the neighboring column has values', () => {
+      expect(endRow([[1, 1], [N, 2], [N, 3], [N, 4], [N, N]])).toBe(3);
+    });
+
+    it('should stop above the first row that already has a value in the filled column (ticket case 1)', () => {
+      expect(endRow([[0, 0], [N, 0], [N, 1], [N, 2], [N, 3], [0, 0], [0, 0], [0, 0]])).toBe(4);
+    });
+
+    it('should stop at the first gap in the neighboring column (ticket case 2)', () => {
+      expect(endRow([[1, 1], [N, 0], [N, 0], [N, 0], [N, 1], [N, 0], [N, 0], [N, N], [N, N], [N, N], [N, 1]])).toBe(6);
+    });
+
+    it('should fill nothing when the row right below the selection has a value or a neighbor gap', () => {
+      expect(endRow([[1, 1], [9, 2], [N, 3]])).toBeNull();
+      expect(endRow([[1, 1], [N, N], [N, 3], [N, 4]])).toBeNull();
+      expect(endRow([[1, N], [N, N]])).toBeNull();
+    });
+
+    it('should use either neighbor, so a row continues while the left or the right one has a value', () => {
+      expect(endRow([[1, 5, N], [2, N, N], [3, N, N], [N, N, N]], 1)).toBe(2);
+      expect(endRow([[N, 5, 1], [2, N, N], [N, N, 3], [N, N, N]], 1)).toBe(2);
+    });
+
+    it('should treat every selected column as the filled column', () => {
+      expect(endRow([['a', 'b', 1], [N, N, 2], [N, N, 3], [N, N, N]], 0, 1)).toBe(2);
+      expect(endRow([['a', 'b', 1], [N, N, 2], [N, 'x', 3]], 0, 1)).toBe(1);
+    });
+
+    it('should start below a selection that spans several rows', () => {
+      expect(endRow([[1, 1], [2, 2], [N, 3], [N, 4], [N, N]], 0, 0, 1)).toBe(3);
+    });
+
+    it('should stop at the last row of the grid', () => {
+      expect(endRow([[1, 1], [N, 2], [N, 3]])).toBe(2);
     });
   });
 });

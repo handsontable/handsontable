@@ -10,6 +10,7 @@ import { isEmpty } from '../../helpers/mixed';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
 import {
   countCellsPastEdge,
+  getCopyDownEndRow,
   getDragDirectionAndRange,
   getDistanceOutsideRange,
   resolveDragDirection,
@@ -52,7 +53,9 @@ type HotInstanceInternal = HotInstance & {
  * "Drag-down" expands the value of the selected cells to the neighbouring cells when you drag the small
  * square in the corner.
  *
- * "Copy-down" copies the value of the selection to all empty cells below when you double click the small square.
+ * "Copy-down" copies the value of the selection into the empty cells below when you double-click the small square.
+ * It fills down as long as the column next to the selection has values. It stops at the first gap in that column,
+ * and above the first cell that already has a value, so it never overwrites data.
  *
  * @class Autofill
  * @plugin Autofill
@@ -599,7 +602,9 @@ export class Autofill extends BasePlugin {
   }
 
   /**
-   * Get index of last adjacent filled in row.
+   * Get index of last adjacent filled in row – the last row a double-click on the fill handle fills.
+   * The walk itself is `getCopyDownEndRow()` in `utils.ts`: it stops above the first row that already
+   * holds a value in a selected column, and at the first row where both neighboring columns are empty.
    *
    * @private
    * @param {Array} cornersOfSelectedCells Indexes of selection corners.
@@ -608,27 +613,14 @@ export class Autofill extends BasePlugin {
    */
   getIndexOfLastAdjacentFilledInRow(cornersOfSelectedCells: number[]) {
     const data = this.hot.getData();
-    const nrOfTableRows = this.hot.countRows();
-    let lastFilledInRowIndex;
+    const [, startColumn, endRow, endColumn] = cornersOfSelectedCells;
+    const lastRow = getCopyDownEndRow(
+      (row, column) => isEmpty(data[row]?.[column]),
+      { endRow, startColumn, endColumn },
+      this.hot.countRows(),
+    );
 
-    for (let rowIndex = cornersOfSelectedCells[2] + 1; rowIndex < nrOfTableRows; rowIndex++) {
-      for (let columnIndex = cornersOfSelectedCells[1]; columnIndex <= cornersOfSelectedCells[3]; columnIndex++) {
-        const dataInCell = data[rowIndex][columnIndex];
-
-        if (!isEmpty(dataInCell)) {
-          return -1;
-        }
-      }
-
-      const dataInNextLeftCell = data[rowIndex][cornersOfSelectedCells[1] - 1];
-      const dataInNextRightCell = data[rowIndex][cornersOfSelectedCells[3] + 1];
-
-      if (!isEmpty(dataInNextLeftCell) || !isEmpty(dataInNextRightCell)) {
-        lastFilledInRowIndex = rowIndex;
-      }
-    }
-
-    return lastFilledInRowIndex;
+    return lastRow ?? -1;
   }
 
   /**

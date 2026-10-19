@@ -159,3 +159,41 @@ export function countCellsPastEdge(pixelsPastEdge: number, cellSize: number): nu
 
   return Math.ceil(pixelsPastEdge / cellSize);
 }
+
+/**
+ * Finds the last row a copy-down (a double-click on the fill handle) fills below a selection, the
+ * way spreadsheet applications do (DEV-859). Walking down from the row below the selection, the fill
+ * stops above the first row where any selected column already holds a value, so nothing is
+ * overwritten, and at the first row where both neighboring columns are empty, so a gap in the
+ * neighboring data ends the fill.
+ *
+ * @param {Function} isCellEmpty Tells whether a cell, by visual row and column, is empty. It must
+ * answer `true` for a column outside the grid (the neighbor of the first or last column).
+ * @param {object} selection The selection's last row and its first and last column, as visual indexes.
+ * @param {number} rowCount The number of rows in the grid.
+ * @returns {number|null} The visual index of the last row to fill, or `null` when there is nothing to fill.
+ */
+export function getCopyDownEndRow(
+  isCellEmpty: (row: number, column: number) => boolean,
+  selection: { endRow: number; startColumn: number; endColumn: number },
+  rowCount: number,
+): number | null {
+  const { endRow, startColumn, endColumn } = selection;
+  let lastRow: number | null = null;
+
+  for (let row = endRow + 1; row < rowCount; row++) {
+    for (let column = startColumn; column <= endColumn; column++) {
+      if (!isCellEmpty(row, column)) {
+        return lastRow;
+      }
+    }
+
+    if (isCellEmpty(row, startColumn - 1) && isCellEmpty(row, endColumn + 1)) {
+      return lastRow;
+    }
+
+    lastRow = row;
+  }
+
+  return lastRow;
+}

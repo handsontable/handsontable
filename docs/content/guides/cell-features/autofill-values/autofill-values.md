@@ -39,12 +39,14 @@ You can also **double-click the fill handle** to autofill downward without dragg
 
 ### How double-click autofill determines the range
 
-Handsontable scans the rows below your selection and fills down to the last row where the column immediately to the left or right of your selection contains a value. In the example below, the Name column acts as the guide -- the rows with row headers 4 and 5 have values there, so the fill copies the selected values through both rows.
+Handsontable scans the rows below your selection, one row at a time, and fills down as long as the column immediately to the left or right of your selection contains a value. In the example below, the Name column acts as the guide -- the rows with row headers 4 and 5 have values there, so the fill copies the selected values through both rows.
 
-Two conditions must be met for the fill to happen:
+The fill stops at the first row where either of these is true:
 
-- **All cells below the selection in the filled column(s) must be empty.** If any cell below the selection in those columns contains data, double-clicking does nothing.
-- At least one column adjacent to your selection must have data in the rows below.
+- **A cell in the filled column(s) already contains data.** The fill stops above that row, so double-clicking never overwrites existing values.
+- **Both adjacent columns are empty.** A gap in the adjacent data ends the fill, even if more values follow further down.
+
+If the first row below your selection meets one of these conditions, double-clicking does nothing.
 
 **Visual difference from drag-fill:** When you drag the fill handle, a preview border shows the target range as you drag. When you double-click, no drag-preview appears -- the cells populate immediately based on the adjacent column data.
 

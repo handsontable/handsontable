@@ -6,7 +6,8 @@ Read this before touching `autofill.ts` or `utils.ts`.
 Two behaviors, one handle:
 
 - **drag-down** — drag the square to expand the selected values into neighboring cells.
-- **copy-down** — double-click the square to copy the selection into all empty cells below.
+- **copy-down** — double-click the square to copy the selection into the empty cells below, as far as the
+  neighboring column has values (see "Copy-down extent").
 
 ## The setting is `fillHandle`, not `autofill`
 
@@ -28,6 +29,22 @@ from the last range and ignored the others. Both predicates now return `false` w
 `selectedRange.size() > 1`, as in spreadsheet applications. Do not "fix" this by teaching the fill to read
 every range: there is no defined way to extend several disjoint ranges at once. Pinned by
 `tests/e2e/fill-handle-non-contiguous.spec.ts` and `selection/__tests__/selection.unit.ts`.
+
+## Copy-down extent (DEV-859)
+
+How far a double-click fills is `getCopyDownEndRow()` in `utils.ts`, a pure helper that
+`getIndexOfLastAdjacentFilledInRow()` feeds with `hot.getData()` (visual, trimmed rows excluded). Walking
+down from the row below the selection, it stops ABOVE the first row where any selected column already
+holds a value, and AT the first row where both neighbor columns (left of the first, right of the last
+selected column) are empty. Spreadsheet applications behave the same way.
+
+Before DEV-859 the walk gave up entirely (`-1`) when a value appeared anywhere below in the filled column,
+and it remembered the LAST row with a neighbor value, so it filled straight across gaps. The guide
+documented that old rule, and the guide was changed with the code. "Either neighbor" is deliberate: a row
+continues while the left OR the right neighbor has a value, which keeps a selection in the middle of a
+table working from whichever side has data. The method keeps its `-1` contract for "nothing to fill",
+because `selectAdjacent()` tests for it. Pinned by `__tests__/utils.unit.ts` and
+`tests/e2e/fill-handle-double-click.spec.ts`.
 
 ## Three hooks it registers on the singleton
 

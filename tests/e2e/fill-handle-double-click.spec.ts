@@ -58,4 +58,55 @@ test.describe('fill handle double-click', { tag: THEMES_TAG }, () => {
     await expect(grid.visibleFillBorders()).toHaveCount(0);
     expect(await grid.isFillHandlePressed()).toBe(false);
   });
+
+  // DEV-859: how far the copy-down fills. It stops above the first value already in the filled
+  // column (never overwriting it) and at the first gap in the neighboring column, as spreadsheet
+  // applications do. Before the fix a value anywhere below blocked the whole fill, and a gap in the
+  // neighboring column was filled across.
+  test('fills down to the row above the first value already in the column (DEV-859, case 1)', async () => {
+    const N = null;
+
+    await grid.initGrid({
+      data: [[0, 0], [N, 0], [N, 1], [N, 2], [N, 3], [0, 0], [0, 0], [0, 0]],
+    });
+    await grid.selectCells(0, 0, 0, 0);
+    await grid.doubleClickFillHandle();
+
+    expect(await grid.columnValues(0)).toEqual([0, 0, 0, 0, 0, 0, 0, 0]);
+    expect(await grid.columnValues(1)).toEqual([0, 0, 1, 2, 3, 0, 0, 0]);
+  });
+
+  test('stops at the first gap in the neighboring column (DEV-859, case 2)', async () => {
+    const N = null;
+
+    await grid.initGrid({
+      data: [[1, 1], [N, 0], [N, 0], [N, 0], [N, 1], [N, 0], [N, 0], [N, N], [N, N], [N, N], [N, 1]],
+    });
+    await grid.selectCells(0, 0, 0, 0);
+    await grid.doubleClickFillHandle();
+
+    expect(await grid.columnValues(0)).toEqual([1, 1, 1, 1, 1, 1, 1, N, N, N, N]);
+  });
+
+  test('fills nothing when the neighboring cell right below the selection is empty', async () => {
+    const N = null;
+
+    await grid.initGrid({ data: [[5, 1], [N, N], [N, 3], [N, 4], [N, N]] });
+    await grid.selectCells(0, 0, 0, 0);
+    await grid.doubleClickFillHandle();
+
+    expect(await grid.columnValues(0)).toEqual([5, N, N, N, N]);
+  });
+
+  // Not a regression test: the old rule gave up here too. It pins the "never overwrite" half for
+  // a value in the very next row.
+  test('fills nothing when the cell right below the selection already has a value', async () => {
+    const N = null;
+
+    await grid.initGrid({ data: [[5, 1], [9, 2], [N, 3], [N, N]] });
+    await grid.selectCells(0, 0, 0, 0);
+    await grid.doubleClickFillHandle();
+
+    expect(await grid.columnValues(0)).toEqual([5, 9, N, N]);
+  });
 });
