@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Installation
-metaTitle: Install HyperFormula - JavaScript Data Grid | Handsontable
+metaTitle: Install HyperFormula | Handsontable DataGrid for JavaScript
 description: Install HyperFormula as a separate dependency, license it, and import it to power the Formulas plugin in Handsontable 18.0 and later.
 permalink: /formulas-installation
 canonicalUrl: /formulas-installation
@@ -11,11 +11,11 @@ tags:
   - installation
   - license
 react:
-  metaTitle: Install HyperFormula - React Data Grid | Handsontable
+  metaTitle: Install HyperFormula | Handsontable DataGrid for React
 angular:
-  metaTitle: Install HyperFormula - Angular Data Grid | Handsontable
+  metaTitle: Install HyperFormula | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Install HyperFormula - Vue Data Grid | Handsontable
+  metaTitle: Install HyperFormula | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Formulas
 ---

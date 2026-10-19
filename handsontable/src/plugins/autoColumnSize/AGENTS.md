@@ -40,6 +40,18 @@ Rules that hold this together:
   strip the arrow from the sample — that reopens the wrap onto a second line.
 - **The ghost table must be restored even when a custom renderer throws.** A throwing renderer that leaves
   headers disabled, or the probe's columns still attached, corrupts every later full-scan measurement.
+- **The ghost container's width must never follow the root's.** `GhostTable#createContainer()` copies the
+  root's class names onto the container, `ht-wrapper` included, and `.handsontable.ht-wrapper` is
+  `width: 100%`. The container is absolutely positioned, so that resolved against a collapsed or narrow root:
+  every column measured at its wrapped min-content width (51px for a 75px column in a 0px root), and the
+  render that follows the root's return measures cache misses only, so columns past the ones rendered while
+  it was narrow kept the wrapped width for good. `_base.scss` therefore sets `width: auto` on
+  `.handsontable.htGhostTable.htAutoSize`, a compound selector so it wins on specificity (0,3,0 against the 0,2,0 of
+  `.handsontable.ht-wrapper`, so source order does not decide). A column wider than its root now measures
+  at its content width, as it did before 16.2.0, where #11919's `ht-wrapper` stretch had capped it at the root
+  width as a side effect. A test of this must restore the root through the grid's own ResizeObserver render:
+  `render()` and `refreshDimensions()` both re-measure every column and hide the defect
+  (`tests/e2e/auto-column-size-collapsed-root.spec.ts`).
 
 ## `syncLimit`, and what "sync" guarantees
 

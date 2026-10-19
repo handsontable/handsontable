@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Server-side data with Symfony
-metaTitle: Server-side data with Symfony - JavaScript Data Grid | Handsontable
+metaTitle: Server-side data with Symfony | Handsontable DataGrid for JavaScript
 description: Connect Handsontable DataGrid's dataProvider plugin to a Symfony backend -- paginated fetchRows, server-side sorting and filtering, and full CRUD via REST API or GraphQL.
 permalink: /recipes/data-management/server-side-symfony
 canonicalUrl: /recipes/data-management/server-side-symfony
@@ -12,11 +12,11 @@ tags:
   - recipes
   - dataprovider
 react:
-  metaTitle: Server-side data with Symfony - React Data Grid | Handsontable
+  metaTitle: Server-side data with Symfony | Handsontable DataGrid for React
 angular:
-  metaTitle: Server-side data with Symfony - Angular Data Grid | Handsontable
+  metaTitle: Server-side data with Symfony | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Server-side data with Symfony - Vue Data Grid | Handsontable
+  metaTitle: Server-side data with Symfony | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Data Management
 ---

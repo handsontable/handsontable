@@ -131,7 +131,7 @@ jobs:
   guard:
     name: guard
     if: github.event_name == 'workflow_dispatch' && github.ref_name != 'develop'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Refuse to seed a branch this workflow does not own
         env:
@@ -187,7 +187,7 @@ jobs:
     name: Notify Slack
     needs: [ visual ]
     if: ${{ !cancelled() && needs.visual.result == 'failure' && github.event_name != 'pull_request' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     env:
       # An absent secret is an empty string, not an error, so the step below skips
       # itself and the seed's own result is unaffected. That keeps this optional:

@@ -1,7 +1,7 @@
 ---
 type: tutorial
 title: Vuex state management
-metaTitle: Vuex state management - Vue Data Grid | Handsontable
+metaTitle: Vuex state management | Handsontable DataGrid for JavaScript
 description: Use the Vuex state management pattern to maintain the data and configuration options of your Vue 3 data grid.
 permalink: /vue-vuex
 canonicalUrl: /vue-vuex
@@ -9,7 +9,7 @@ tags:
   - vuex
   - state management
 vue:
-  metaTitle: Vuex state management - Vue Data Grid | Handsontable
+  metaTitle: Vuex state management | Handsontable DataGrid for Vue
 searchCategory: Guides
 onlyFor: vue
 category: Getting started

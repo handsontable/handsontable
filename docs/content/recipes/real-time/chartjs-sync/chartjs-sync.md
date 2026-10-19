@@ -1,6 +1,6 @@
 ---
 title: Sync rows to a Chart.js chart
-metaTitle: Sync selected rows to a Chart.js chart - JavaScript Data Grid | Handsontable
+metaTitle: Sync selected rows to a Chart.js chart | Handsontable DataGrid for JavaScript
 description: Learn how to sync selected rows from Handsontable DataGrid to a Chart.js bar chart in real time using the afterSelectionEnd hook.
 permalink: /recipes/real-time/chartjs-sync
 canonicalUrl: /recipes/real-time/chartjs-sync
@@ -11,11 +11,11 @@ tags:
   - selection
   - real-time
 react:
-  metaTitle: Sync selected rows to a Chart.js chart - React Data Grid | Handsontable
+  metaTitle: Sync selected rows to a Chart.js chart | Handsontable DataGrid for React
 angular:
-  metaTitle: Sync selected rows to a Chart.js chart - Angular Data Grid | Handsontable
+  metaTitle: Sync selected rows to a Chart.js chart | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Sync selected rows to a Chart.js chart - Vue Data Grid | Handsontable
+  metaTitle: Sync selected rows to a Chart.js chart | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Real-time and Integrations
 type: how-to

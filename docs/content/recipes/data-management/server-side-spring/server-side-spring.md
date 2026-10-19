@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Server-side Data with Spring Boot
-metaTitle: Server-side Data with Spring Boot - JavaScript Data Grid | Handsontable
+metaTitle: Server-side Data with Spring Boot | Handsontable DataGrid for JavaScript
 description: Wire Handsontable DataGrid's dataProvider plugin to a Spring Boot 3 backend with JPA-backed pagination, server-side sorting and filtering, and full CRUD operations using H2.
 permalink: /recipes/data-management/server-side-spring
 canonicalUrl: /recipes/data-management/server-side-spring
@@ -12,11 +12,11 @@ tags:
   - java
   - recipes
 react:
-  metaTitle: Server-side data with Spring Boot - React Data Grid | Handsontable
+  metaTitle: Server-side Data with Spring Boot | Handsontable DataGrid for React
 angular:
-  metaTitle: Server-side Data with Spring Boot - Angular Data Grid | Handsontable
+  metaTitle: Server-side Data with Spring Boot | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Server-side Data with Spring Boot - Vue Data Grid | Handsontable
+  metaTitle: Server-side Data with Spring Boot | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Data Management
 ---

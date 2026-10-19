@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Handling collaboration and simultaneous editing
-metaTitle: Handling collaboration and simultaneous editing - JavaScript Data Grid | Handsontable
+metaTitle: Handling collaboration and simultaneous editing | Handsontable DataGrid for JavaScript
 description: Coordinate edits between multiple users by detecting active edit state, intercepting local changes, and syncing structural and non-data changes across clients.
 permalink: /collaboration
 canonicalUrl: /collaboration
@@ -10,11 +10,11 @@ tags:
   - real-time
   - hooks
 react:
-  metaTitle: Handling collaboration and simultaneous editing - React Data Grid | Handsontable
+  metaTitle: Handling collaboration and simultaneous editing | Handsontable DataGrid for React
 angular:
-  metaTitle: Handling collaboration and simultaneous editing - Angular Data Grid | Handsontable
+  metaTitle: Handling collaboration and simultaneous editing | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Handling collaboration and simultaneous editing - Vue Data Grid | Handsontable
+  metaTitle: Handling collaboration and simultaneous editing | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Data management
 menuTag: new

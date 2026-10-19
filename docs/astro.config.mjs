@@ -721,7 +721,7 @@ export default defineConfig({
   integrations: [
     replaceHasSelectors(),
     starlight({
-      title: 'Handsontable',
+      title: 'Handsontable DataGrid',
       description:
         'Handsontable DataGrid is a JavaScript/TypeScript component for building data grids in React, Angular, and Vue 3.',
 

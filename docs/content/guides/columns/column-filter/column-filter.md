@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Column filter
-metaTitle: Column filter - JavaScript Data Grid | Handsontable
+metaTitle: Column filter | Handsontable DataGrid for JavaScript
 description: Filter your data by values or by a set of conditions.
 permalink: /column-filter
 canonicalUrl: /column-filter
@@ -19,11 +19,11 @@ tags:
   - advanced filter
   - dropdown
 react:
-  metaTitle: Column filter - React Data Grid | Handsontable
+  metaTitle: Column filter | Handsontable DataGrid for React
 angular:
-  metaTitle: Column filter - Angular Data Grid | Handsontable
+  metaTitle: Column filter | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Column filter - Vue Data Grid | Handsontable
+  metaTitle: Column filter | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Columns
 menuTag: updated

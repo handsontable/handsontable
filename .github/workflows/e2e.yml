@@ -1,16 +1,25 @@
 name: E2E
 
 # End-to-end tests, build-dependent (consume the UMD artifact). Two suites over
-# the same theme × bundle legs (UMD / UMD.min): the frozen Puppeteer suite, one
+# one theme × bundle (UMD / UMD.min) matrix: the frozen Puppeteer suite, one
 # job per leg, and the Playwright suite, one job per leg and shard (a leg over
 # the wall-clock target runs in shards; the `playwright` job's matrix lists
-# every row). Per-leg gating keeps the exact old scope behavior (UMD legs on
-# the e2e scope, UMD.min on the e2e-min scope). The UMD.min legs load
-# handsontable.full.min.js — the exact file Puppeteer's test:production runs.
-# The bundles Puppeteer does not test either (handsontable.full.js and
-# handsontable.min.js) are deliberately not covered here — they belong to the
-# nightly on develop (DEV-2058). Playwright runs a job per leg rather than one
-# per theme with both projects: per-leg failure isolation in the checks list
+# every row). Neither runs the whole matrix on a pull request. The Playwright
+# legs run the shape each spec declares (`full-matrix` drops the declarations).
+# The Puppeteer suite runs ONE leg, UMD × main, on a pull request and a develop
+# push — the e2e and e2e-min scopes decide whether that leg runs at all — and
+# its six legs run only where `jasmine-full-matrix` is set: the E2E nightly, the
+# rc/stable publish path and a master push, the same callers that set
+# `full-matrix`. A Jasmine spec red on another theme or on the minified bundle
+# alone therefore first shows on the nightly, with `branch: develop` and the
+# runner's isolation verdict in the flake ledger: `passes alone` is a migration
+# ticket, `fails alone` is fixed or migrated before the next RC cut, because
+# the rc/stable path runs the six legs and its publish needs them green.
+# The UMD.min legs load handsontable.full.min.js — the exact file Puppeteer's
+# test:production runs. The bundles Puppeteer does not test either
+# (handsontable.full.js and handsontable.min.js) are deliberately not covered
+# here, nor by the nightly. Playwright runs a job per leg rather than one per
+# theme with both projects: per-leg failure isolation in the checks list
 # outweighs the duplicated container setup.
 on:
   workflow_call:
@@ -19,15 +28,19 @@ on:
         type: boolean
         default: false
       run-e2e:
-        description: 'UMD (non-min) Puppeteer legs'
+        description: 'The e2e scope: whether the Puppeteer job runs at all (jasmine-full-matrix picks its legs)'
         type: boolean
         default: false
       run-e2e-min:
-        description: 'UMD.min Puppeteer legs'
+        description: 'The e2e-min scope, the same gate (the two router filters are identical); it picks no leg'
         type: boolean
         default: false
       full-matrix:
         description: 'Run every Playwright spec on every leg (HOT_E2E_FULL_MATRIX=1), whatever it declares'
+        type: boolean
+        default: false
+      jasmine-full-matrix:
+        description: 'Run the frozen Jasmine suite on all six legs (three themes × UMD / UMD.min) instead of UMD × main alone'
         type: boolean
         default: false
       run-playwright:
@@ -38,18 +51,27 @@ on:
 jobs:
   puppeteer:
     name: "${{ matrix.bundle.label }} (theme: ${{ matrix.theme }})"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # matrix context is unavailable in a job-level if (evaluated before matrix
     # expansion). The e2e and e2e-min scope filters are identical, so a single
     # job-level gate is exactly equivalent to the old per-bundle gating.
     if: ${{ inputs.run-all || inputs.run-e2e || inputs.run-e2e-min }}
     strategy:
       fail-fast: false
+      # One leg, UMD × main, unless the caller sets jasmine-full-matrix; then the
+      # three themes × both bundles. `&&`/`||` return their operands, so the input
+      # picks one of two JSON literals per axis and fromJSON turns it into the
+      # axis (the literals are JSON, not YAML, and stay on one line: a `: ` inside
+      # a plain scalar would end it). The single leg is the plain UMD bundle on
+      # the main theme, the shape the local runner defaults to; test:production
+      # (the minified bundle) runs in the full matrix only. The job name, the
+      # HOT_E2E_LEG label and the record's artifact name below read the same
+      # matrix keys on either shape, so the ledger's `jasmine` tier sees one leg
+      # or six unchanged. e2e-legs.test.mjs pins both literals by value and holds
+      # the six-leg shape equal to the Playwright matrix.
       matrix:
-        theme: [main, horizon, classic]
-        bundle:
-          - { label: 'UMD', dump: 'test:e2e.dump' }
-          - { label: 'UMD.min', dump: 'test:production.dump' }
+        theme: ${{ fromJSON(inputs.jasmine-full-matrix && '["main", "horizon", "classic"]' || '["main"]') }}
+        bundle: ${{ fromJSON(inputs.jasmine-full-matrix && '[{"label":"UMD","dump":"test:e2e.dump"},{"label":"UMD.min","dump":"test:production.dump"}]' || '[{"label":"UMD","dump":"test:e2e.dump"}]') }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
       - uses: ./.github/actions/setup-workspace
@@ -89,16 +111,16 @@ jobs:
           overwrite: true
 
   # Runs inside the pinned Playwright container so the engine + browsers match
-  # local and baseline generation. One leg per theme × bundle — the same legs
-  # as the Puppeteer job above (the project name selects both: the theme
-  # stylesheet and the dist bundle the fixture loads) — and a leg over the
+  # local and baseline generation. One leg per theme × bundle — the legs the
+  # Puppeteer job above runs on its full matrix (the project name selects both:
+  # the theme stylesheet and the dist bundle the fixture loads) — and a leg over the
   # wall-clock target runs in shards: one job per shard, `--shard=<i>/<n>` on
   # the same project, Playwright dealing the tests out (`fullyParallel`, so at
   # test granularity; a serial describe stays in one shard). The shards of a
   # leg run side by side, so the leg's wall-clock is its longest shard.
   playwright:
     name: "Playwright ${{ matrix.bundle.label }} (theme: ${{ matrix.theme }}${{ matrix.shard && format(', shard {0}/{1}', matrix.shard, matrix.shards) || '' }})"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     container:
       image: mcr.microsoft.com/playwright:v1.62.1-noble
     if: inputs.run-all || inputs.run-playwright
@@ -232,7 +254,7 @@ jobs:
   # release candidate publish).
   playwright-engines:
     name: "Playwright engines (Firefox, WebKit)"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     container:
       image: mcr.microsoft.com/playwright:v1.62.1-noble
     if: inputs.run-all || inputs.run-playwright

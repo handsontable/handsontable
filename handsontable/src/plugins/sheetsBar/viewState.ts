@@ -944,8 +944,9 @@ function followRow(hot: HotInstance, pagination: PaginationPlugin, row: number):
  * Keeps the focused cell on the page Pagination shows, once the arriving sheet is painted. With a
  * `'auto'` page size the page boundaries depend on row heights measured in that paint, so the
  * restored page can end a row short of the selection; a host can also veto the page change. A
- * restored selection is followed to its page (`follow`); one carried over from the previous sheet
- * is not, and a selection still off the page is dropped rather than left on a hidden row.
+ * restored selection is followed to its page (`follow`); one that was not restored (made by a
+ * plugin or a listener during the switch) is not, and a selection still off the page is dropped
+ * rather than left on a hidden row.
  */
 export function keepSelectionOnPage(hot: HotInstance, follow: boolean): void {
   const pagination = getLocalPagination(hot);

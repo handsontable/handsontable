@@ -1,18 +1,18 @@
 ---
 type: how-to
 title: Performance
-metaTitle: Performance - JavaScript Data Grid | Handsontable
+metaTitle: Performance | Handsontable DataGrid for JavaScript
 description: Boost your grid's performance by setting a constant column size, suspending rendering, deciding how many rows and columns are pre-rendered, and more.
 permalink: /performance
 canonicalUrl: /performance
 tags:
   - speed
 react:
-  metaTitle: Performance - React Data Grid | Handsontable
+  metaTitle: Performance | Handsontable DataGrid for React
 angular:
-  metaTitle: Performance - Angular Data Grid | Handsontable
+  metaTitle: Performance | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Performance - Vue Data Grid | Handsontable
+  metaTitle: Performance | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Optimization
 menuTag: updated

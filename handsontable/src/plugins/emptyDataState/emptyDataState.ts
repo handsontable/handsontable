@@ -44,8 +44,8 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  * @class EmptyDataState
  *
  * @description
- * The empty data state plugin provides a empty data state overlay system for Handsontable.
- * It displays a empty data state overlay with customizable message.
+ * The empty data state plugin provides an empty data state overlay system for Handsontable DataGrid.
+ * It displays an empty data state overlay with customizable message.
  *
  * In order to enable the empty data state mechanism, {@link Options#emptyDataState} option must be set to `true`.
  *

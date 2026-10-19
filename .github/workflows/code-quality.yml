@@ -10,7 +10,7 @@ on:
 jobs:
   sonarcloud:
     name: SonarCloud
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # Secret-dependent: fork PRs and Dependabot PRs get no Actions secrets (a
     # Dependabot run reads a separate store), so this cannot run
     # at all there. Skip rather than fail: CI Gate accepts `skipped`, and a red
@@ -35,7 +35,7 @@ jobs:
 
   codeql:
     name: CodeQL
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 60
     permissions:
       security-events: write
@@ -57,7 +57,7 @@ jobs:
 
   fossa:
     name: FOSSA
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # Secret-dependent: fork PRs and Dependabot PRs get no Actions secrets (a
     # Dependabot run reads a separate store), so this cannot run
     # at all there. Skip rather than fail: CI Gate accepts `skipped`, and a red
@@ -76,7 +76,7 @@ jobs:
 
   audit:
     name: audit (warn)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # Non-blocking by design (~380 known vulns to burn down before this can gate).
     continue-on-error: true
     steps:

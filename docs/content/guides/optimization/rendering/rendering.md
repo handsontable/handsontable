@@ -1,7 +1,7 @@
 ---
 type: explanation
 title: Understanding rendering
-metaTitle: Understanding rendering - JavaScript Data Grid | Handsontable
+metaTitle: Understanding rendering | Handsontable DataGrid for JavaScript
 description: Learn what a render does, which cells it covers, what it costs, and when you need to call render() yourself.
 permalink: /rendering
 canonicalUrl: /rendering
@@ -12,11 +12,11 @@ tags:
   - rendering-cycle
   - performance
 react:
-  metaTitle: Understanding rendering - React Data Grid | Handsontable
+  metaTitle: Understanding rendering | Handsontable DataGrid for React
 angular:
-  metaTitle: Understanding rendering - Angular Data Grid | Handsontable
+  metaTitle: Understanding rendering | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Understanding rendering - Vue Data Grid | Handsontable
+  metaTitle: Understanding rendering | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Optimization
 menuTag: new

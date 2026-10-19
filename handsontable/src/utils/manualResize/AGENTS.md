@@ -71,6 +71,26 @@ width. `tests/e2e/undo-plugin-state.spec.ts` pins it ("an edit made while a colu
 - **A drag the context menu aborts stores nothing**, so it keeps the size it started from. Before, the
   mousemove writes left the half-dragged size in the map with no resize hook.
 
+## The handle is a snapshot, and a handle press starts listening
+
+`#setupHandlePosition` writes the handle's CSS when the pointer reaches a header. `#refreshHandlePosition`
+writes it on every `mousemove` during a drag. `afterUndo` and `afterRedo` call `#setupHandlePosition`
+again while the handle is connected, no drag is pressed, and the header it sits on is still in the
+document. When that header is gone, the hook detaches the handle. The press holds an empty undo step, so
+undo stays available, and rebuilding the snapshot mid-drag makes the next `mousemove` apply the original
+pointer delta to the new size. Do not remove the hooks inside `detach()`. The context menu calls
+`detach()` to abort a drag. `destroy()` removes the history hooks.
+
+`#onMouseDown` calls `listen()`. A handle press never reaches `onCellMouseDown`. A header `TH` press does,
+and that path listens. The document `mouseup` in `tableView.ts` also treats `#selectionMouseDown` as a
+grid click, because the handle never sets `#mouseDown`. A release outside the grid would otherwise
+unlisten, and Ctrl+Z would do nothing. Pinned by `tests/e2e/manual-resize-undo-handle.spec.ts` (Ctrl+Z
+restores the header size and the handle sits on its far edge, including a release outside the grid, and
+Ctrl+Shift+Z puts the handle back on the dragged edge) and by `__tests__/resizeGesture.unit.js` (the
+handle's CSS follows an undo and a redo, `listen()` runs on the handle press, `destroy()` drops the
+history hooks, a removed header detaches the handle, the handle stays where the drag put it when an undo
+runs during the press, and it stays detached after `detach()`).
+
 ## One gesture for both axes: along and across
 
 The two plugins were never a vocabulary swap of each other. Their CSS geometry is a complete swap:
@@ -274,7 +294,7 @@ measurement, which is what a grid built inside a `display: none` container measu
 
 - `npm run test:unit --prefix handsontable -- --testPathPattern='manualResize'`
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='manualRowResize|manualColumnResize|autoRowSize'`
-- `cd tests && npx playwright test --project=e2e-main e2e/manual-resize-teardown.spec.ts e2e/manual-resize-drag-interruption.spec.ts e2e/manual-resize-dblclick-hold-guide.spec.ts e2e/manual-resize-guide-geometry.spec.ts`
+- `cd tests && npx playwright test --project=e2e-main e2e/manual-resize-teardown.spec.ts e2e/manual-resize-drag-interruption.spec.ts e2e/manual-resize-dblclick-hold-guide.spec.ts e2e/manual-resize-guide-geometry.spec.ts e2e/manual-resize-undo-handle.spec.ts`
 
 `__tests__/resizeGesture.unit.js` drives the gesture through its constructor, with a small grid, axis and owner
 passed in - no module is mocked. Each of its tests was checked against a deliberate regression of the

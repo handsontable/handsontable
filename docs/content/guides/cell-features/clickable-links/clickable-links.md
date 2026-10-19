@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Clickable links
-metaTitle: Clickable links - JavaScript Data Grid | Handsontable
+metaTitle: Clickable links | Handsontable DataGrid for JavaScript
 description: Render the URLs, email addresses, and phone numbers in your cell values as clickable links, without changing the data.
 permalink: /clickable-links
 canonicalUrl: /clickable-links
@@ -12,11 +12,11 @@ tags:
   - anchors
   - autolink
 react:
-  metaTitle: Clickable links - React Data Grid | Handsontable
+  metaTitle: Clickable links | Handsontable DataGrid for React
 angular:
-  metaTitle: Clickable links - Angular Data Grid | Handsontable
+  metaTitle: Clickable links | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Clickable links - Vue Data Grid | Handsontable
+  metaTitle: Clickable links | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell features
 menuTag: new

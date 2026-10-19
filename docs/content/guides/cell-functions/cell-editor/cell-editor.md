@@ -1,16 +1,16 @@
 ---
 type: how-to
 title: Cell editor
-metaTitle: Cell editor - JavaScript Data Grid | Handsontable
+metaTitle: Cell editor | Handsontable DataGrid for JavaScript
 description: Create a custom cell editor function, to have full control over how editing works in the cells of your data grid.
 permalink: /cell-editor
 canonicalUrl: /cell-editor
 react:
-  metaTitle: Cell editor - React Data Grid | Handsontable
+  metaTitle: Cell editor | Handsontable DataGrid for React
 angular:
-  metaTitle: Cell editor - Angular Data Grid | Handsontable
+  metaTitle: Cell editor | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Cell editor - Vue Data Grid | Handsontable
+  metaTitle: Cell editor | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell functions
 ---
@@ -25,7 +25,7 @@ Each cell can have one editor — a class that manages the editor's DOM element,
 
 ## Component-based editors
 
-Use React components as editors with the `useHotEditor` hook. The hook returns `value`, `setValue`, and `finishEditing`, plus callbacks for the editor lifecycle (`onOpen`, `onClose`, `onPrepare`, `onFocus`).
+Use React components as editors with the `useHotEditor` hook. The hook returns `value`, `setValue`, and `finishEditing`. It accepts callbacks for the editor lifecycle (`onOpen`, `onClose`, `onPrepare`, `onFocus`). `onOpen` receives the DOM event that opened the editor. It is `undefined` when you call `beginEditing()`.
 
 The wrapper mounts the editor in the grid portal, so a click on the editor does not deselect the cell. Form controls in the editor inherit the grid theme `color-scheme`. The `value` from `useHotEditor` updates in the same render as `setValue`. Still call `event.stopPropagation()` on the `mousedown` event of the editor's root element as a backup.
 

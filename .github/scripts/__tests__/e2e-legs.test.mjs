@@ -15,6 +15,15 @@ import { job, jobIds, steps } from '../lib/workflow-text.mjs';
 // green one that tested nothing; a nightly the ledger does not chain on records none of its flakes.
 // This pins the chain.
 //
+// The frozen Jasmine suite has the same shape with one switch fewer: a pull request and a develop
+// push run it on ONE leg, `UMD (theme: main)`, and the six legs (three themes × UMD / UMD.min) run
+// only where `e2e.yml`'s `jasmine-full-matrix` input is set – the same three paths as the Playwright
+// full matrix, through the same forwarding. The matrix axes are `fromJSON` ternaries over two JSON
+// literals each, so the single-leg literal and the six-leg literal are pinned by value below, and
+// the six-leg shape is held equal to the Playwright matrix (the parity the two jobs used to have on
+// every run now holds on the full-matrix runs). The record the ledger's `jasmine` tier reads keeps
+// its artifact name on either shape.
+//
 // Text-based, like playwright-engines.test.mjs: no YAML parser is a dependency of the repo root.
 
 const ROOT = repoRoot();
@@ -34,6 +43,10 @@ const NIGHTLY = '.github/workflows/e2e-nightly.yml';
 const VISUAL_NIGHTLY = '.github/workflows/visual-nightly.yml';
 const TEST_HEALTH = '.github/workflows/test-health.yml';
 const NIGHTLY_NAME = 'E2E nightly';
+const JASMINE_INPUT = 'jasmine-full-matrix';
+const MAIN_LEG = 'UMD (theme: main)';
+const FORWARDED = /^ {6}jasmine-full-matrix: \$\{\{ inputs\.test-all \|\| github\.ref_name == 'master' \}\}$/m;
+const JASMINE_DOC = 'See .ai/CI.md (the Jasmine single-leg entry) and handsontable/.ai/TESTING.md, "The Jasmine suite is frozen".';
 const FULL_MATRIX_ENV_LINE = /^ {10}HOT_E2E_FULL_MATRIX: \$\{\{ inputs\.full-matrix && '1' \|\| '' \}\}$/m;
 const escape = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 // The GitHub expressions a sharded row adds, as text: `matrix.shard` is null on an unsharded row, so each
@@ -65,6 +78,97 @@ test('e2e.yml takes a full-matrix input, off by default, declared before run-pla
     `${E2E} must take a boolean full-matrix input defaulting to false: a pull request runs the declared shape. ${DOC}`);
   assert.ok(inputs.indexOf('full-matrix:') < inputs.indexOf('run-playwright:'),
     `${E2E} declares full-matrix before run-playwright, so a later input appended after run-playwright does not collide. ${DOC}`);
+});
+
+/**
+ * The two JSON literals of one `fromJSON(inputs.jasmine-full-matrix && '<six>' || '<one>')` matrix axis.
+ *
+ * @param {string} puppeteer The puppeteer job's text.
+ * @param {string} axis The axis key (`theme` or `bundle`).
+ * @returns {{six: unknown[], one: unknown[]}} Both literals, parsed.
+ */
+function jasmineAxis(puppeteer, axis) {
+  const line = puppeteer.match(new RegExp(`^ {8}${axis}: (.*)$`, 'm'))?.[1];
+
+  assert.ok(line, `${E2E}'s puppeteer matrix must declare a ${axis} axis. ${JASMINE_DOC}`);
+
+  const parts = line.match(/^\$\{\{ fromJSON\(inputs\.jasmine-full-matrix && '([^']+)' \|\| '([^']+)'\) \}\}$/);
+
+  assert.ok(parts, `the ${axis} axis must be exactly \${{ fromJSON(inputs.${JASMINE_INPUT} && '<six-leg JSON>' || '<one-leg JSON>') }}: `
+    + `\`&&\`/\`||\` return their operands, so the input picks the literal and fromJSON turns it into the axis. ${JASMINE_DOC}`);
+
+  return { six: JSON.parse(parts[1]), one: JSON.parse(parts[2]) };
+}
+
+test(`e2e.yml takes a ${JASMINE_INPUT} input, off by default, declared right after full-matrix`, () => {
+  const workflow = stripYamlComments(read(E2E));
+  const inputs = workflow.match(/^on:\n {2}workflow_call:\n {4}inputs:\n([\s\S]*?)\n\njobs:/m)?.[1];
+
+  assert.ok(inputs, `${E2E} must declare its workflow_call inputs. ${JASMINE_DOC}`);
+  assert.match(inputs, /^ {6}jasmine-full-matrix:\n(?: {8}description: .*\n)? {8}type: boolean\n {8}default: false$/m,
+    `${E2E} must take a boolean ${JASMINE_INPUT} input defaulting to false: a pull request and a develop push run one Jasmine leg. ${JASMINE_DOC}`);
+
+  const order = ['full-matrix:', 'jasmine-full-matrix:', 'run-playwright:'].map(key => inputs.search(new RegExp(`^ {6}${key}$`, 'm')));
+
+  assert.ok(order.every(index => index >= 0) && order[0] < order[1] && order[1] < order[2],
+    `${E2E} declares ${JASMINE_INPUT} between full-matrix and run-playwright: the two matrix switches sit together, and nothing appended after run-playwright collides. ${JASMINE_DOC}`);
+});
+
+test(`e2e.yml's puppeteer job runs one Jasmine leg, ${MAIN_LEG}, unless ${JASMINE_INPUT} asks for the six`, () => {
+  const workflow = stripYamlComments(read(E2E));
+  const puppeteer = job(workflow, 'puppeteer');
+
+  assert.ok(puppeteer, `${E2E} must keep the puppeteer job. ${JASMINE_DOC}`);
+  assert.match(puppeteer, /^ {4}if: \$\{\{ inputs\.run-all \|\| inputs\.run-e2e \|\| inputs\.run-e2e-min \}\}$/m,
+    `the puppeteer job keeps its scope gate: the e2e and e2e-min scopes decide whether the single leg runs at all. ${JASMINE_DOC}`);
+  assert.match(puppeteer, /^ {6}fail-fast: false$/m, 'a red leg of the six never cancels the others');
+
+  const theme = jasmineAxis(puppeteer, 'theme');
+  const bundle = jasmineAxis(puppeteer, 'bundle');
+
+  assert.deepEqual(theme.one, ['main'], `the pull-request shape is the main theme alone. ${JASMINE_DOC}`);
+  assert.deepEqual(bundle.one, [{ label: 'UMD', dump: 'test:e2e.dump' }],
+    `the pull-request shape is the plain UMD bundle alone, through test:e2e.dump; test:production (the minified bundle) runs in the full matrix only. ${JASMINE_DOC}`);
+  assert.deepEqual(theme.six, ['main', 'horizon', 'classic'], `the full matrix runs the three themes. ${JASMINE_DOC}`);
+  assert.deepEqual(bundle.six, [{ label: 'UMD', dump: 'test:e2e.dump' }, { label: 'UMD.min', dump: 'test:production.dump' }],
+    `the full matrix runs both bundles, the minified one through test:production.dump. ${JASMINE_DOC}`);
+  assert.equal(`${bundle.one[0].label} (theme: ${theme.one[0]})`, MAIN_LEG,
+    `the single leg is the one the ledger names ${MAIN_LEG} (HOT_E2E_LEG + the runner's theme)`);
+
+  const test = steps(puppeteer).find(step => /^- name: Test$/m.test(step));
+  const upload = steps(puppeteer).find(step => /^- name: Upload the failed-specs record$/m.test(step));
+
+  assert.ok(test && upload, 'the puppeteer job keeps its Test and Upload the failed-specs record steps');
+  assert.match(test, /^ {10}HOT_E2E_LEG: \$\{\{ matrix\.bundle\.label \}\}$/m,
+    `HOT_E2E_LEG stays the bundle label: the runner appends the theme, and the ledger's leg field reads "${MAIN_LEG}" on either shape. ${JASMINE_DOC}`);
+  assert.match(test, /npm run \$\{\{ matrix\.bundle\.dump \}\} --theme=\$\{\{ matrix\.theme \}\} && npm run test:e2e\.puppeteer --theme=\$\{\{ matrix\.theme \}\}/,
+    'the Test step reads the dump script and the theme from the matrix, on either shape');
+  assert.match(upload, /^ {8}if: failure\(\)$/m, 'the record uploads on failure() only: a green leg has no record');
+  assert.match(upload, /^ {10}name: puppeteer-failed-specs-\$\{\{ matrix\.bundle\.label \}\}-\$\{\{ matrix\.theme \}\}$/m,
+    `the record's artifact name is unchanged, so the ledger's jasmine tier sees the one leg and the six alike (test-health.test.mjs pins the prefix). ${JASMINE_DOC}`);
+  assert.doesNotMatch(puppeteer, /full-matrix: |HOT_E2E_FULL_MATRIX/,
+    'the Playwright full-matrix switch never reaches the puppeteer job; the Jasmine suite has its own input');
+});
+
+test('on the full-matrix runs the Jasmine matrix runs the legs the Playwright matrix runs (parity, re-scoped from every run to the nightly)', () => {
+  const workflow = stripYamlComments(read(E2E));
+  const puppeteer = job(workflow, 'puppeteer');
+  const playwright = job(workflow, 'playwright');
+  // The Playwright matrix is one explicit include row per leg and shard (the shard test above pins the
+  // shape); a sharded leg repeats its theme and bundle, so the legs are the distinct pairs the rows name.
+  const playwrightLegs = new Set(playwright.split('\n').map(line => ROW.exec(line)).filter(Boolean)
+    .map(([, theme, label]) => `${label} (theme: ${theme})`));
+  const theme = jasmineAxis(puppeteer, 'theme');
+  const bundle = jasmineAxis(puppeteer, 'bundle');
+  const jasmineLegs = theme.six.flatMap(name => bundle.six.map(entry => `${entry.label} (theme: ${name})`));
+
+  assert.ok(playwrightLegs.size > 0, `${E2E}'s playwright job must keep its include rows readable (the ROW pattern above)`);
+  assert.equal(new Set(jasmineLegs).size, jasmineLegs.length, 'the six-leg Jasmine literals name each leg once');
+  assert.deepEqual([...jasmineLegs].sort(), [...playwrightLegs].sort(),
+    `the six Jasmine legs are the legs the Playwright rows run, under the same labels: the two tiers used to share one matrix `
+    + `on every run, and they still do on the E2E nightly, the rc/stable path and a master push (the job names and the `
+    + `ledger's legs line up). A theme or bundle added to one matrix goes into the other. ${JASMINE_DOC}`);
+  assert.ok(jasmineLegs.includes(MAIN_LEG), `the single pull-request leg, ${MAIN_LEG}, is one of the six`);
 });
 
 test('e2e.yml sets HOT_E2E_FULL_MATRIX from the input on the six-leg run step only, above an unchanged run line', () => {
@@ -177,12 +281,15 @@ test('test.yml forwards the full matrix on the rc/stable path and a master push,
   assert.match(e2e, /^ {6}full-matrix: \$\{\{ inputs\.test-all \|\| github\.ref_name == 'master' \}\}$/m,
     `${TESTS}'s e2e job must forward full-matrix as \${{ inputs.test-all || github.ref_name == 'master' }}: publish.yml `
     + `calls this workflow with test-all: true on the rc/stable path, and the master push has no nightly of its own. ${DOC}`);
+  assert.match(e2e, FORWARDED,
+    `${TESTS}'s e2e job must forward ${JASMINE_INPUT} the same way: the six Jasmine legs run where the Playwright full matrix `
+    + `runs, and a pull request runs ${MAIN_LEG} alone. ${JASMINE_DOC}`);
 
   const develop = stripYamlComments(read(DEVELOP));
 
   assert.doesNotMatch(job(develop, 'e2e'), /full-matrix/,
     `${DEVELOP} keeps the pull-request shape on the develop push: the durations and the budget measure it, and the `
-    + `nightly covers the matrix. ${DOC}`);
+    + `nightly covers the matrix – for the Jasmine suite too (no ${JASMINE_INPUT} here: the develop push runs ${MAIN_LEG} alone). ${DOC}`);
 
   const publish = stripYamlComments(read(PUBLISH));
   const calls = [...publish.matchAll(/uses: \.\/\.github\/workflows\/test\.yml\n {4}with:\n((?: {6}.*\n)+)/g)];
@@ -225,7 +332,11 @@ test('the E2E nightly runs the full matrix on develop every weeknight, validates
   assert.match(e2e, /uses: \.\/\.github\/workflows\/e2e\.yml/);
   assert.match(e2e, /^ {6}run-playwright: true$/m);
   assert.match(e2e, /^ {6}full-matrix: true$/m, `the nightly's e2e job turns the full matrix on. ${DOC}`);
-  assert.doesNotMatch(e2e, /run-all/, 'no run-all: the Puppeteer legs stay off here (the frozen suite has its own plan)');
+  for (const input of ['run-e2e', 'run-e2e-min', JASMINE_INPUT]) {
+    assert.match(e2e, new RegExp(`^ {6}${input}: true$`, 'm'),
+      `the nightly's e2e job sets ${input}: true – the six Jasmine legs (both scopes, the full matrix) run here and on no pull request. ${JASMINE_DOC}`);
+  }
+  assert.doesNotMatch(e2e, /run-all/, 'no run-all: the inputs name every leg the nightly runs, so a new input defaulting off stays off here until it is listed');
   assert.match(e2e, /^ {4}needs: \[ build \]$/m);
 
   assert.match(notify, /^ {4}if: \$\{\{ failure\(\) && github\.event_name != 'pull_request' && github\.ref_name == 'develop' \}\}$/m,
@@ -240,6 +351,10 @@ test('the E2E nightly runs the full matrix on develop every weeknight, validates
   assert.ok(slackAction, `${VISUAL_NIGHTLY} pins slackapi/slack-github-action by SHA`);
   assert.ok(notify.includes(`uses: ${slackAction}`), `${NIGHTLY} uses the same pinned Slack action as ${VISUAL_NIGHTLY}`);
   assert.match(notify, /it runs on an axis it did not declare/, 'the message says what a nightly-only red means');
+  assert.match(notify, /Jasmine/, `the message also says what a nightly-only Jasmine red means, since pull requests run ${MAIN_LEG} alone. ${JASMINE_DOC}`);
+  assert.match(notify, /fails alone/,
+    `the message splits the Jasmine answer by the record's isolation verdict: a "fails alone" red is fixed or migrated before the next RC cut `
+    + `(the rc/stable path runs the six legs and its publish needs them green), a "passes alone" red is a migration ticket. ${JASMINE_DOC}`);
 });
 
 test('test-health.yml chains on the E2E nightly, by the name the workflow carries', () => {

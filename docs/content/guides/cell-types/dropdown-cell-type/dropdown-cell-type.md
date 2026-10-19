@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Dropdown cell type
-metaTitle: Dropdown cell type - JavaScript Data Grid | Handsontable
+metaTitle: Dropdown cell type | Handsontable DataGrid for JavaScript
 description: Collect user input with a searchable list of choices, by using the dropdown cell type.
 permalink: /dropdown-cell-type
 canonicalUrl: /dropdown-cell-type
@@ -11,11 +11,11 @@ tags:
   - autocomplete
   - key value
 react:
-  metaTitle: Dropdown cell type - React Data Grid | Handsontable
+  metaTitle: Dropdown cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Dropdown cell type - Angular Data Grid | Handsontable
+  metaTitle: Dropdown cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Dropdown cell type - Vue Data Grid | Handsontable
+  metaTitle: Dropdown cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
 menuTag: updated

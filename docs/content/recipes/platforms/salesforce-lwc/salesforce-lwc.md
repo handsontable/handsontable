@@ -1,7 +1,7 @@
 ---
 type: tutorial
 title: Run Handsontable in a Salesforce Lightning Web Component
-metaTitle: Salesforce LWC Tutorial - JavaScript Data Grid | Handsontable
+metaTitle: Salesforce LWC tutorial | Handsontable DataGrid for JavaScript
 description: Run Handsontable DataGrid inside a Salesforce Lightning Web Component. Load the grid from a static resource, map Salesforce field metadata to columns, and write cell edits back through Lightning Data Service.
 permalink: /recipes/platforms/salesforce-lwc
 canonicalUrl: /recipes/platforms/salesforce-lwc

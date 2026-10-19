@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Radio buttons
-metaTitle: Radio Button Cell Type - JavaScript Data Grid | Handsontable
+metaTitle: Radio button cell type | Handsontable DataGrid for JavaScript
 description: Learn how to create a custom Handsontable DataGrid cell type that renders radio button options directly in cells, with keyboard navigation and roving tabindex accessibility.
 permalink: /recipes/cell-types/radio
 canonicalUrl: /recipes/cell-types/radio
@@ -10,11 +10,11 @@ tags:
   - tutorial
   - recipes
 react:
-  metaTitle: Radio Button Cell Type - React Data Grid | Handsontable
+  metaTitle: Radio button cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Radio Button Cell Type - Angular Data Grid | Handsontable
+  metaTitle: Radio button cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Radio Button Cell Type - Vue Data Grid | Handsontable
+  metaTitle: Radio button cell type | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Cell Types
 ---

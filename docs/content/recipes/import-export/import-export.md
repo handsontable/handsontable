@@ -1,6 +1,6 @@
 ---
 title: Import and Export Recipes
-metaTitle: Import and Export Recipes - JavaScript Data Grid | Handsontable
+metaTitle: Import and Export Recipes | Handsontable DataGrid for JavaScript
 permalink: /recipes/import-export
 canonicalUrl: /recipes/import-export
 searchCategory: Recipes
@@ -9,11 +9,11 @@ editLink: false
 type: how-to
 description: Practical recipes for moving data in and out of Handsontable DataGrid.
 react:
-  metaTitle: Import and Export Recipes - React Data Grid | Handsontable
+  metaTitle: Import and Export Recipes | Handsontable DataGrid for React
 angular:
-  metaTitle: Import and Export Recipes - Angular Data Grid | Handsontable
+  metaTitle: Import and Export Recipes | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Import and Export Recipes - Vue Data Grid | Handsontable
+  metaTitle: Import and Export Recipes | Handsontable DataGrid for Vue
 ---
 [[toc]]
 

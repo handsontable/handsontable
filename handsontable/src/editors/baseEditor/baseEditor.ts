@@ -26,7 +26,7 @@ export const EDITOR_STATE = Object.freeze({
 });
 
 /**
- * The abstract base class for Handsontable cell editors.
+ * The abstract base class for Handsontable DataGrid cell editors.
  *
  * Extend it to create an editor that controls how a cell enters edit mode, reads and writes values,
  * and returns focus to the grid. Concrete editors implement `init()`, `getValue()`, `setValue()`,

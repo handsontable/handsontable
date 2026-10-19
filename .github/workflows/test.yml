@@ -143,6 +143,9 @@ jobs:
       # its own. A pull request runs the shape each spec declares (tests/AGENTS.md, "Declaring the
       # legs"); develop's push keeps that shape too, and the E2E nightly runs the matrix there.
       full-matrix: ${{ inputs.test-all || github.ref_name == 'master' }}
+      # The six frozen Jasmine legs (three themes × UMD / UMD.min) on the same two paths. A pull
+      # request and develop's push run the one leg, UMD × main; the E2E nightly runs the six on develop.
+      jasmine-full-matrix: ${{ inputs.test-all || github.ref_name == 'master' }}
     secrets: inherit
 
   integration:
@@ -260,7 +263,7 @@ jobs:
       - performance
       - visual
       - docs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Verify every pipeline job passed or was scope-skipped
         run: |
