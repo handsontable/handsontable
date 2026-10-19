@@ -195,7 +195,11 @@ For a visible row (hidden rows included), the method works like [`setDataAtRowPr
 
 ## Cancel pending work when a row is removed
 
-The [`afterRowIdsRemoved`](@/api/hooks.md#afterrowidsremoved) hook passes the ids of rows that stopped existing. It fires after a row removal (an undo or a redo included), and after `loadData()` or `updateData()` replaced the data with data that no longer holds those ids. A trimmed or filtered-out row still exists, so the hook does not report it.
+The [`afterRowIdsRemoved`](@/api/hooks.md#afterrowidsremoved) hook passes the ids of rows that stopped existing. It fires after a row removal (an undo or a redo included), and after `loadData()` or `updateData()` replaced the data with data that no longer holds those ids.
+
+- The hook fires in a microtask, once the call that removed the rows has finished, with every id that call removed. Rows a call takes away and puts back, such as a nested rows detach or move, are not reported.
+- A trimmed or filtered-out row still exists, so the hook does not report it.
+- With a [data provider](@/api/options.md#dataprovider), loading a page, a sort, or a filter does not count as a removal, because the rows still exist on the server.
 
 The [`afterRowIdsReset`](@/api/hooks.md#afterrowidsreset) hook fires when a settings update changes how rows get their ids. Every id read before it may now name another row, so cancel everything.
 

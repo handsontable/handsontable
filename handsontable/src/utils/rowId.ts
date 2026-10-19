@@ -1,4 +1,3 @@
-import { getProperty } from '../helpers/object';
 import type { SourceRowData } from '../settings';
 
 /**
@@ -22,6 +21,28 @@ export function isSourceRowData(value: unknown): value is SourceRowData {
 }
 
 /**
+ * Reads a dot-separated property path. A step that is not an object (`null` included) ends the walk with
+ * `undefined`, so a row like `{ meta: null }` has no `'meta.id'` instead of throwing. An array is read by index.
+ *
+ * @param {object|Array} rowData The source row.
+ * @param {string} path The property path.
+ * @returns {*}
+ */
+function readPath(rowData: SourceRowData, path: string): unknown {
+  let value: unknown = rowData;
+
+  for (const name of path.split('.')) {
+    if (typeof value !== 'object' || value === null) {
+      return undefined;
+    }
+
+    value = Reflect.get(value, name);
+  }
+
+  return value;
+}
+
+/**
  * Reads the id of a source row with a row key. A string key is a property path (dot notation walks nested
  * objects), and a function key is called with the source row.
  *
@@ -39,8 +60,7 @@ export function getRowIdFromRowData(rowData: unknown, rowIdOption: RowIdOption):
   }
 
   if (typeof rowIdOption === 'string') {
-    // `getProperty` walks any object by key; an array row is read by index the same way.
-    return getProperty(rowData as Record<string, unknown>, rowIdOption);
+    return readPath(rowData, rowIdOption);
   }
 
   return undefined;

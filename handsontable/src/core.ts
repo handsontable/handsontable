@@ -6033,9 +6033,12 @@ export default function Core(
    * @returns {Array} The ids, in the order of `rows`, with `null` for a row that does not exist or has no id.
    */
   this.getRowIds = function(rows?: number[]): unknown[] {
-    const visualRows = Array.isArray(rows) ? rows : Array.from({ length: instance.countRows() }, (_, row) => row);
+    const rowsCount = instance.countRows();
+    const visualRows = Array.isArray(rows) ? rows : Array.from({ length: rowsCount }, (_, row) => row);
+    const physicalRows = visualRows.map(row => (Number.isInteger(row) && row >= 0 && row < rowsCount ?
+      instance.toPhysicalRow(row) : null));
 
-    return visualRows.map(row => instance.getRowId(row));
+    return rowIdentity.getRowIdsAtPhysicalRows(physicalRows);
   };
 
   /**
