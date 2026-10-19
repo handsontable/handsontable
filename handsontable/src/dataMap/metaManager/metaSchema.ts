@@ -2061,7 +2061,7 @@ export default (): Record<string, unknown> => {
      *
      * When you replace [`customBorders`](#customborders) with `updateSettings()`, the borders that are
      * already drawn stay visible until the new ones are applied. A border missing from the new
-     * configuration disappears when the load ends, just before the hook fires.
+     * configuration disappears when the load ends.
      *
      * @since 18.1.0
      * @memberof Options#

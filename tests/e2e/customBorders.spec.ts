@@ -1322,6 +1322,111 @@ test.describe('CustomBorders progressive application (customBordersProgressive)'
     expect(await lab.countVisibleCustomBorders()).toBe(result.before);
   });
 
+  test('keeps the outgoing borders drawn when the viewport is scrolled past the first batch', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({
+      dataRows: 200, dataCols: 4,
+      customBorders: bordersForRows(200),
+      customBordersProgressive: { chunkSize: 5 },
+    });
+    await expect.poll(() => lab.bordersUpdateCount()).toBe(1);
+
+    // Rows far below the first batch (rows 0-4) are the ones on screen.
+    await page.evaluate(() => (window as any).hot.scrollViewportTo({ row: 150, verticalSnap: 'top' }));
+    await expect.poll(() => page.evaluate(() => (window as any).hot.getFirstRenderedVisibleRow())).toBeGreaterThan(100);
+
+    const result = await page.evaluate(() => {
+      const win = window as any;
+      const count = () => win.borderUtils.countVisibleCustomBorders();
+
+      win.hot.updateSettings({
+        customBorders: Array.from({ length: 200 }, (_, row) => ({ row, col: 0, top: { color: 'red', width: 2 } })),
+      });
+
+      // The first render after a scroll can trim the drawn band, so compare with the rows it draws now.
+      return {
+        afterCall: count(),
+        renderedRows: win.hot.getLastRenderedVisibleRow() - win.hot.getFirstRenderedVisibleRow() + 1,
+      };
+    });
+
+    // Every rendered row still shows its border, though the first batch only holds rows 0-4.
+    expect(result.renderedRows).toBeGreaterThan(5);
+    expect(result.afterCall).toBe(result.renderedRows);
+
+    await expect.poll(() => lab.bordersUpdateCount()).toBe(2);
+    expect(new Set(await lab.visibleBorderColors())).toEqual(new Set(['red']));
+    expect(await lab.countVisibleCustomBorders()).toBe(result.renderedRows);
+  });
+
+  test('draws a border once when its meta removal is vetoed during a progressive replace', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({
+      dataRows: 20, dataCols: 4,
+      customBorders: bordersForRows(20),
+      customBordersProgressive: { chunkSize: 5 },
+    });
+    await expect.poll(() => lab.bordersUpdateCount()).toBe(1);
+
+    const result = await page.evaluate(() => {
+      const win = window as any;
+      const count = () => win.borderUtils.countVisibleCustomBorders();
+      const before = count();
+
+      // Row 3 keeps its `borders` meta, so its border stays in the model under the same id.
+      win.hot.addHook('beforeRemoveCellMeta', (row: number, _col: number, key: string) => (
+        row === 3 && key === 'borders' ? false : undefined
+      ));
+      win.hot.updateSettings({
+        customBorders: Array.from({ length: 20 }, (_, row) => ({ row, col: 0, top: { color: 'red', width: 2 } })),
+      });
+
+      return { before, afterCall: count(), modelRows: win.hot.getPlugin('customBorders').getBorders().map((b: any) => b.row) };
+    });
+
+    // The vetoed border is in the model and drawn once, the rest is still the outgoing drawing.
+    expect(result.modelRows).toEqual([3]);
+    expect(result.afterCall).toBe(result.before);
+
+    await expect.poll(() => lab.bordersUpdateCount()).toBe(2);
+    expect(await lab.countVisibleCustomBorders()).toBe(result.before);
+    expect(new Set(await lab.visibleBorderColors())).toEqual(new Set(['red']));
+  });
+
+  test('does not keep a border that a clearBorders() call from a meta listener removed during the replace', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({
+      dataRows: 20, dataCols: 4,
+      customBorders: bordersForRows(20),
+      customBordersProgressive: { chunkSize: 5 },
+    });
+    await expect.poll(() => lab.bordersUpdateCount()).toBe(1);
+
+    const afterCall = await page.evaluate(() => {
+      const win = window as any;
+      const plugin = win.hot.getPlugin('customBorders');
+      let cleared = false;
+
+      win.hot.addHook('afterRemoveCellMeta', (_row: number, _col: number, key: string) => {
+        if (key === 'borders' && !cleared) {
+          cleared = true;
+          plugin.clearBorders();
+        }
+      });
+      win.hot.updateSettings({
+        customBorders: [{ row: 2, col: 1, top: { color: 'red', width: 2 } }],
+      });
+
+      return win.borderUtils.countVisibleCustomBorders();
+    });
+
+    // The listener asked for every border to go: no outgoing border is drawn for the whole load.
+    expect(afterCall).toBe(0);
+  });
+
   test('cancels an in-flight progressive load without firing the hook when the plugin is disabled', async ({ page, theme, bundle }) => {
     const lab = await gotoLab(page, theme, bundle);
 

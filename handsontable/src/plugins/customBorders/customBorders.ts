@@ -233,12 +233,6 @@ export class CustomBorders extends BasePlugin {
   #carriedBorders: BorderObject[] | null = null;
 
   /**
-   * `true` while `updatePlugin()` swaps the border model for a progressive replace: the rendered
-   * selections are not destroyed then, so the previous borders stay drawn.
-   */
-  #retainRenderedSelections: boolean = false;
-
-  /**
    * During a `createCustomBorders` pass, holds the `row,col` keys already written in this pass, so a
    * cell touched for the first time can skip the existing-meta merge read (there is nothing to merge
    * on a fresh cell - the pass starts after the previous borders' meta is cleared). Only cells hit by
@@ -375,19 +369,19 @@ export class CustomBorders extends BasePlugin {
    *  - [`customBorders`](@/api/options.md#customborders)
    */
   updatePlugin() {
-    // Disabling the plugin destroys every rendered border, so a progressive replace has to take the
-    // borders on screen before that happens and keep them drawn until the new ones land.
     this.#carriedBorders = this.#collectBordersForProgressiveReplace();
-    this.#retainRenderedSelections = this.#carriedBorders !== null;
 
     try {
-      this.disablePlugin();
-      this.enablePlugin();
+      // Disabling the plugin destroys every rendered border. A progressive replace keeps them drawn
+      // until the new ones land, so it swaps the model in place and leaves the hooks registered.
+      if (this.#carriedBorders === null) {
+        this.disablePlugin();
+        this.enablePlugin();
+      }
 
       this.changeBorderSettings();
     } finally {
       this.#carriedBorders = null;
-      this.#retainRenderedSelections = false;
     }
 
     super.updatePlugin();
@@ -1102,10 +1096,6 @@ export class CustomBorders extends BasePlugin {
    * the entries tracked in its working-set cache. Does not touch the `savedBorders` model.
    */
   #destroyAllSelections() {
-    if (this.#retainRenderedSelections) {
-      return;
-    }
-
     const { customSelections } = this.hot.selection.highlight;
     const owned = new Set(this.#customSelectionsCache.values());
 
@@ -1125,9 +1115,16 @@ export class CustomBorders extends BasePlugin {
    * load, removes the `borders` meta from every previously bordered cell, empties `savedBorders` and
    * its indexes, and destroys the rendered selections. Shared by `clearBorders()` (clear all) and
    * `changeBorderSettings()` (a fresh array config / `updateSettings` replace). Does not render.
+   *
+   * @param {boolean} [keepRendered=false] Leaves the rendered selections in place, for a progressive
+   * replace that keeps drawing them. Any other reset also drops the borders such a replace carries.
    */
-  #resetBorderModel() {
+  #resetBorderModel(keepRendered = false) {
     this.#cancelProgressiveApply();
+
+    if (!keepRendered) {
+      this.#carriedBorders = null;
+    }
 
     // A `beforeRemoveCellMeta` listener can veto the removal. Those cells keep their `borders` meta,
     // so they keep their model entry too - clearing the model around them would leave `getBorders()`
@@ -1144,7 +1141,10 @@ export class CustomBorders extends BasePlugin {
     this.#rebuildSavedBordersIndex();
     this.#bordersByRow.clear();
     this.#bordersByRowDirty = true;
-    this.#destroyAllSelections();
+
+    if (!keepRendered) {
+      this.#destroyAllSelections();
+    }
   }
 
   /**
@@ -1476,9 +1476,7 @@ export class CustomBorders extends BasePlugin {
       // A fresh array config replaces the previous borders (this is also the `updateSettings` path).
       // Reset the model and clear the previous cells' meta first so `prepareBorderFromCustomAdded`
       // starts from a clean slate instead of merging the new config onto stale meta.
-      this.#resetBorderModel();
-      // The reset was the last place that must leave the rendered selections alone.
-      this.#retainRenderedSelections = false;
+      this.#resetBorderModel(this.#carriedBorders !== null);
 
       const progressive = this.#resolveProgressiveSetting();
 
@@ -1499,8 +1497,6 @@ export class CustomBorders extends BasePlugin {
         return;
       }
 
-      // Nothing takes over from the rendered borders here, so none of them may outlive the reset.
-      this.#destroyAllSelections();
       this.createCustomBorders(bordersClone);
 
     } else if (customBorders !== undefined) {
