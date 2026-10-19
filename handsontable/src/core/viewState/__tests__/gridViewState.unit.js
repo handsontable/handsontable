@@ -405,6 +405,37 @@ describe('Core#getViewState and Core#setViewState', () => {
       expect(undoRedo.ignoreNewActions).toBe(false);
     });
 
+    it('records no undo step for a restore of every part, including rows written to the hiding map', () => {
+      const hot = createGrid({ ...ALL_PLUGINS, undoRedo: true, pagination: true });
+      const undoRedo = hot.getPlugin('undoRedo');
+      const filters = hot.getPlugin('filters');
+
+      filters.addCondition(0, 'neq', ['4-0']);
+      filters.filter();
+      undoRedo.clear();
+
+      const { skipped } = hot.setViewState({
+        version: 1,
+        columnOrder: [3, 2, 1, 0],
+        rowOrder: [5, 4, 3, 2, 1, 0],
+        sort: { columns: [{ column: 1, sortOrder: 'asc' }] },
+        filters: [{ column: 0, operation: 'conjunction', conditions: [{ name: 'neq', args: ['4-0'] }] }],
+        trimmedRows: [5],
+        hiddenRows: [1, 4],
+        hiddenColumns: [2],
+        columnWidths: [[0, 90]],
+        rowHeights: [[1, 40]],
+        frozen: { rowsTop: 1, rowsBottom: 0, columnsStart: 1, columnsEnd: 0 },
+        pagination: { page: 1, pageSize: 3 },
+        selection: null,
+        scroll: { row: 0, col: 0 },
+      });
+
+      expect(skipped).toEqual([]);
+      expect(hot.getViewState().hiddenRows).toEqual([1, 4]);
+      expect(undoRedo.isUndoAvailable()).toBe(false);
+    });
+
     it('keeps the undo steps recorded before the restore', () => {
       const hot = createGrid({ ...ALL_PLUGINS, undoRedo: true });
       const undoRedo = hot.getPlugin('undoRedo');
