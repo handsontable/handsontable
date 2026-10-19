@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-19T07:51:44.804Z",
+  "generatedAt": "2026-10-19T08:44:33.816Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -20,7 +20,7 @@
       "file": "visual-tests/tests/multi-frameworks/mergeCells/column-selection.spec.ts",
       "line": null,
       "title": "multi-frameworks/mergeCells/column-selection-1",
-      "count7": 10,
+      "count7": 8,
       "count30": 18,
       "countAll": 18,
       "runs30": 3,
