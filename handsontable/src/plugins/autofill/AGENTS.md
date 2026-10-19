@@ -29,9 +29,20 @@ grid whether this plugin is enabled (`tableProps.isPluginEnabled('autofill')`), 
 from the setting (`tableProps.isPluginRegistered('autofill')`). Hiding it there is a separate change that
 would alter every such grid's look and its visual goldens.
 
+Selection only reads that state when the grid renders, so a runtime `enablePlugin()`, `disablePlugin()`
+or `destroy()` called on its own re-renders the grid (`#renderAfterRuntimeToggle()`), or the handle
+would change only on the next unrelated render. The render is skipped in the three cases that render
+anyway: before `isPluginsReady` (grid init), inside `onUpdateSettings()` (`#isApplyingSettings`; the
+grid renders right after `afterUpdateSettings`), and inside `updatePlugin()` (`#isReconfiguring`).
+`destroy()` renders after `super.destroy()`, because the handle checks `enabled`, which the base class
+nulls. During the grid's own `destroy()` that render is a no-op: core suspends rendering for the whole
+teardown, because the view is already destroyed when the plugins are.
+
 `enablePlugin()`, `updatePlugin()` and `disablePlugin()` return early on a destroyed instance
 (`!this.hot`), because an application may keep the `getPlugin('autofill')` reference and call it later.
-Pinned by `tests/e2e/plugin-destroy-update-settings.spec.ts` and `selection/__tests__/selection.unit.ts`.
+Each guard has its own case in `tests/e2e/plugin-destroy-update-settings.spec.ts`, and the handle cases
+there assert without any render forced from the test. Also pinned by
+`selection/__tests__/selection.unit.ts`.
 
 ## Three hooks it registers on the singleton
 

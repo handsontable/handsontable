@@ -45,6 +45,51 @@ describe('BasePlugin', () => {
       // The grid destroys every plugin again on its own `destroy()`, after `hot` is already gone.
       expect(() => hot.destroy()).not.toThrow();
     });
+
+    it('should not destroy a plugin destroyed ahead of the grid again when the grid is destroyed (DEV-775)', () => {
+      const ownTeardownSpy = jest.fn();
+      const laterPluginDestroySpy = jest.fn();
+      const afterDestroySpy = jest.fn();
+
+      // Mirrors AutoColumnSize and NestedHeaders: the override reads `hot` before reaching the base class.
+      class OwnTeardownPlugin extends BasePlugin {
+        static get PLUGIN_KEY() {
+          return 'ownTeardownPlugin';
+        }
+
+        destroy() {
+          ownTeardownSpy(this.hot.rootElement);
+          super.destroy();
+        }
+      }
+
+      class LaterPlugin extends BasePlugin {
+        static get PLUGIN_KEY() {
+          return 'laterPlugin';
+        }
+
+        destroy() {
+          laterPluginDestroySpy();
+          super.destroy();
+        }
+      }
+
+      registerPlugin('OwnTeardownPlugin', OwnTeardownPlugin);
+      registerPlugin('LaterPlugin', LaterPlugin);
+
+      const hot = new Handsontable(document.createElement('div'), {
+        afterDestroy: afterDestroySpy,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.getPlugin('OwnTeardownPlugin').destroy();
+
+      expect(ownTeardownSpy).toHaveBeenCalledTimes(1);
+      expect(() => hot.destroy()).not.toThrow();
+      expect(ownTeardownSpy).toHaveBeenCalledTimes(1);
+      expect(laterPluginDestroySpy).toHaveBeenCalledTimes(1);
+      expect(afterDestroySpy).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('`getSetting()` method', () => {

@@ -125,7 +125,9 @@ export interface FixtureHotInstance {
     clearConditions(column?: number): void,
     filter(): void,
     exportConditions(): unknown[],
+    destroy(): void,
   };
+  getPlugin(name: 'autoColumnSize' | 'nestedHeaders'): { destroy(): void };
   /**
    * Both sorting plugins expose the same `sort()` signature - `MultiColumnSorting` extends
    * `ColumnSorting` and only widens what an array of configs means - so one overload covers
@@ -225,6 +227,7 @@ export interface FixtureHotInstance {
   } | undefined;
   isRtl(): boolean;
   render(): void;
+  destroy(): void;
   listen(): void;
   view: {
     isVerticallyScrollableByWindow(): boolean,
@@ -327,7 +330,7 @@ declare global {
      * DEV-775: a reference to the Autofill plugin kept after `destroy()`, the way an application that
      * cached `getPlugin('autofill')` still holds it.
      */
-    destroyedAutofill?: { updatePlugin(): void };
+    destroyedAutofill?: { enablePlugin(): void, disablePlugin(): void, updatePlugin(): void };
     /** Undo fixture: how many vetoed meta writes the listener `UndoGridPage#vetoMetaWrites()` adds saw. */
     metaWriteAttempts: number;
     /**
