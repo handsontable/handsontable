@@ -48,15 +48,16 @@ const DEFAULT_MAX_DROPDOWN_OPTIONS = 10;
 
 /**
  * The rows `inferColumnTypes()` and `convertToInferredTypes()` take: arrays of values, or objects
- * keyed by column property.
+ * keyed by column property. Read-only arrays, and rows typed with an interface, are accepted.
  */
-export type InferenceData = unknown[][] | Record<string, unknown>[];
+export type InferenceData = ReadonlyArray<ReadonlyArray<unknown>> | ReadonlyArray<object>;
 
 /**
  * What `convertToInferredTypes()` returns for the data it takes: the same row shape, with cells typed
  * `unknown`, since a converted cell is a number, a boolean, or a string whatever the input held.
  */
-export type ConvertedData<T extends InferenceData> = T extends unknown[][] ? unknown[][] : Record<string, unknown>[];
+export type ConvertedData<T extends InferenceData> =
+  T extends ReadonlyArray<ReadonlyArray<unknown>> ? unknown[][] : Record<string, unknown>[];
 
 /**
  * Reads a positive integer option, `Infinity` included, or returns the fallback for anything else.
@@ -154,11 +155,16 @@ interface Winner {
    * The share of values it read, scaled by the detector's certainty.
    */
   confidence: number;
+  /**
+   * The share of values it read, which decides between detectors.
+   */
+  share: number;
 }
 
 /**
- * Runs the detectors in order. The first whose share reaches the floor wins, and with
- * `collectRivals` the rest still run so the other types that read some values are known.
+ * Runs the detectors in order. The one that reads the largest share wins once that share reaches the
+ * floor, and an earlier detector keeps a tie. With `collectRivals`, or when the winner reads less than
+ * every value, the rest still run: a later one may read more.
  */
 function runDetectors(
   nonBlank: unknown[],
@@ -177,10 +183,15 @@ function runDetectors(
       continue;
     }
 
-    if (winner === null && share >= minConfidence) {
-      winner = { column: detection.column, confidence: share * detection.certainty };
+    if (share >= minConfidence && (winner === null || share > winner.share)) {
+      if (winner !== null) {
+        rivals.push({ type: winner.column.settings.type, share: winner.share });
+      }
 
-      if (!collectRivals) {
+      winner = { column: detection.column, confidence: share * detection.certainty, share };
+
+      // Nothing after a detector that reads every value can read more.
+      if (share === 1 && !collectRivals) {
         break;
       }
 
@@ -214,7 +225,7 @@ function inferColumn(
   const runnerUpType = rival?.type ?? (winner ? 'text' : undefined);
 
   return winner
-    ? { ...winner, runnerUpType }
+    ? { column: winner.column, confidence: winner.confidence, runnerUpType }
     : { column: { settings: { type: 'text' } }, confidence: 1, runnerUpType };
 }
 
@@ -496,7 +507,7 @@ export function convertToInferredTypes<T extends InferenceData>(
   result: InferColumnTypesResult
 ): ConvertedData<T> {
   if (!Array.isArray(data)) {
-    return data as ConvertedData<T>;
+    return data as unknown as ConvertedData<T>;
   }
 
   const { columns, headerRow } = result;

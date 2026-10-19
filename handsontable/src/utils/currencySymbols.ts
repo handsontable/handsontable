@@ -21,6 +21,28 @@ export const CURRENCY_SYMBOL_TO_CODE: Record<string, string> = {
 };
 
 /**
+ * The ISO 4217 codes the browser knows, read once. `Intl.supportedValuesOf` is not in every engine
+ * the library may meet in a test runner, so a missing one means no code is recognized.
+ */
+let knownCurrencyCodes: Set<string> | undefined;
+
+/**
+ * Whether the text is an ISO 4217 currency code (`USD`, `PLN`), in upper case.
+ */
+export function isCurrencyCode(text: string): boolean {
+  if (knownCurrencyCodes === undefined) {
+    try {
+      knownCurrencyCodes = new Set(Intl.supportedValuesOf('currency'));
+
+    } catch {
+      knownCurrencyCodes = new Set();
+    }
+  }
+
+  return knownCurrencyCodes.has(text);
+}
+
+/**
  * `CURRENCY_SYMBOL_TO_CODE`'s symbols, longest first, so a multi-character symbol wins over a
  * single-character one that is its suffix.
  */

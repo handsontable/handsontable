@@ -104,3 +104,26 @@ inferColumnTypes(rawRows, { headerRow: 'yes' });
 convertToInferredTypes(rawRows, inferred.columns);
 // @ts-expect-error - confidence is not a column option.
 const notAColumnOption: InferredColumnSettings = { type: 'text', confidence: 1 };
+
+// Rows typed with an interface, read-only arrays, and tuples are accepted.
+interface Order {
+  id: string;
+  amount: string;
+}
+
+const orders: Order[] = [{ id: '1', amount: '2' }];
+const readonlyRows: ReadonlyArray<ReadonlyArray<string>> = [['1', '2']];
+const tupleRows: Array<[string, string]> = [['1', '2']];
+const readonlyOrders: readonly Order[] = orders;
+const fromInterface: InferColumnTypesResult = inferColumnTypes(orders);
+const fromReadonly: InferColumnTypesResult = inferColumnTypes(readonlyRows);
+const fromTuples: InferColumnTypesResult = inferColumnTypes(tupleRows);
+const convertedOrders: Array<Record<string, unknown>> = convertToInferredTypes(orders, fromInterface);
+const convertedReadonly: unknown[][] = convertToInferredTypes(readonlyRows, fromReadonly);
+const convertedTuples: unknown[][] = convertToInferredTypes(tupleRows, fromTuples);
+const convertedReadonlyOrders: Array<Record<string, unknown>> = convertToInferredTypes(
+  readonlyOrders,
+  inferColumnTypes(readonlyOrders)
+);
+// @ts-expect-error - an array of rows is not an array of objects.
+const wrongRows: Array<Record<string, unknown>> = convertToInferredTypes(readonlyRows, fromReadonly);

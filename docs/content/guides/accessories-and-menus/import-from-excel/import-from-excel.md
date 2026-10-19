@@ -6,6 +6,9 @@ description: Load an Excel (.xlsx) workbook into your grid, with cell types, dro
 permalink: /import-from-excel
 canonicalUrl: /import-from-excel
 tags:
+  - infer column types
+  - csv
+  - paste
   - import from file
   - load file
   - xlsx
@@ -257,6 +260,8 @@ const rows = [
   ['Bob', '12,5', '13.03.2026', 'false', 'Closed'],
   ['Carol', '7', '14.03.2026', 'true', 'Open'],
   ['Dave', '99', '15.03.2026', 'false', 'Open'],
+  ['Eve', '3,5', '16.03.2026', 'true', 'Closed'],
+  ['Frank', '40', '17.03.2026', 'false', 'Open'],
 ];
 
 const importFile = hot.getPlugin('importFile');
@@ -288,11 +293,12 @@ Before you load the data, convert it with `convertToInferredTypes(rows, result)`
 
 Inference works this way:
 
-- **Types.** The method infers `numeric`, `date`, `time`, `checkbox` (`true` and `false`, in any case), `dropdown` (a column of a few repeated strings), and `text`. Date-time values such as `2026-03-12 14:30` and JavaScript `Date` objects stay `text`.
-- **Numbers.** A numeric value may carry a sign, a currency symbol on either side (`$1,234.50`, `12,5 zł`), or a trailing percent sign (`12.5%`, converted to `0.125`). Digits may be grouped with a comma, a dot, or a space of any width. With a dot decimal, an apostrophe works too (`1'234.50`). A symbol that several currencies share takes the currency of the locale's region for the common cases: `$` is `CAD` under `en-CA` and `ARS` under `es-AR`, and `kr` is `NOK` under `nb-NO`. Any other region gets the symbol's default currency: `USD` for `$`, `SEK` for `kr`.
+- **Types.** The method infers `numeric`, `date`, `time`, `checkbox` (`true` and `false`, in any case), `dropdown`, and `text`. When two types read values, the one that reads more of them wins, and the earlier one in that list wins a tie. Date-time values such as `2026-03-12 14:30` and JavaScript `Date` objects stay `text`.
+- **Dropdowns.** A column becomes a `dropdown` when it has at least six values, between two and ten distinct ones (see `dropdown`), and each value repeats at least twice on average. A short list of names that repeat can pass that test. Set `dropdown: false` when it is wrong for your data.
+- **Numbers.** A numeric value may carry a sign, accounting parentheses (`(1,234.00)`), a currency symbol or ISO code on either side (`$1,234.50`, `12,5 zł`, `12.00 USD`), an exponent (`1.23E+15`), or a trailing percent sign (`12.5%`, converted to `0.125`). A column with a currency reads its bare numbers as that currency. Text values set the fraction digits of the format, so `1.50` and `2.00` print with two. Real numbers don't pad the column: one computed float only raises the maximum. Digits may be grouped with a comma, a dot, or a space of any width. With a dot decimal, an apostrophe works too (`1'234.50`). A symbol that several currencies share takes the currency of the locale's region for the common cases: `$` is `CAD` under `en-CA` and `ARS` under `es-AR`, and `kr` is `NOK` under `nb-NO`. Any other region gets the symbol's default currency: `USD` for `$`, `SEK` for `kr`.
 - **Confidence.** A column whose share of readable values is below `minConfidence` falls back to `text`. Blank values don't count. A value the type can't read, such as a `Total` row, keeps its raw form after the conversion, so the cell's validator marks it.
-- **Ambiguous values.** The column decides first: `0,5` in a column makes `1.234` mean 1234, and `25/03/2026` makes `12/03/2026` mean 12 March. When nothing in the column decides, the `locale` option does. It defaults to the grid's [`locale`](@/api/options.md#locale). A date column whose order came from the locale reports `0.95` times its share as its confidence.
-- **Codes stay text.** Some values look like numbers but are codes: a number with a leading zero (`00123`), one with more than 15 significant digits (a card number), and a phone number such as `+48 601 234 567`. These are read as text, because converting them to numbers would lose digits.
+- **Ambiguous values.** The column decides first: `0,5` in a column makes `1.234` mean 1234, and `25/03/2026` makes `12/03/2026` mean 12 March. A date written with dots (`12.03.2026`) reads as day first. When nothing in the column decides, the `locale` option does. It defaults to the grid's [`locale`](@/api/options.md#locale). A date column whose order came from the locale reports `0.95` times its share as its confidence.
+- **Codes stay text.** Some values look like numbers but are codes. One value with a leading zero (`02134`) keeps the whole column text, so a ZIP column doesn't lose its zeros. A number with more than 15 significant digits (a card number), and a phone number such as `+48 601 234 567` or `601 234 567`, also stay text. Converting them to numbers would lose digits.
 - **Sampling.** The method reads only the first `sampleSize` data rows. A `dropdown` column lists only the options found there, so a later row with another option is marked invalid. Raise `sampleSize` if your data needs it. For rows of objects, every key the sampled rows carry becomes a column.
 - **Deterministic results.** In a given browser, the same rows and options always give the same result. The method never reads the browser's locale, and an unsupported locale falls back to `'en-US'`. Separators and date order come from the browser's locale data, so two browsers can disagree on a rare locale.
 
@@ -317,11 +323,11 @@ const { columns } = importFile.inferColumnTypes(rows, { headerRow: true, stats: 
 
 console.log(columns[1].stats);
 // {
-//   count: 4,
+//   count: 6,
 //   emptyCount: 0,
-//   distinctCount: 4,
-//   examples: ['1.234,56', '12,5', '7', '99'],
-//   min: 7,
+//   distinctCount: 6,
+//   examples: ['1.234,56', '12,5', '7', '99', '3,5'],
+//   min: 3.5,
 //   max: 1234.56,
 //   runnerUpType: 'text',
 // }

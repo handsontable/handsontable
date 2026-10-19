@@ -460,7 +460,7 @@ export class ImportFile extends BasePlugin {
    * ```
    */
   inferColumnTypes(data: InferenceData, options: InferColumnTypesOptions | null = {}): InferColumnTypesResult {
-    return inferColumnTypes(data, { ...options, locale: options?.locale ?? this.hot.getSettings().locale });
+    return inferColumnTypes(data, { ...options, locale: options?.locale || this.hot.getSettings().locale });
   }
 
   /**

@@ -3,6 +3,7 @@ import {
   MAX_FRACTION_DIGITS,
   countFractionDigits,
   countNumberFractionDigits,
+  hasLeadingZero,
   isGroupedBody,
   isNumberBody,
   readBoolean,
@@ -123,41 +124,31 @@ function voteDecimalSeparator(values: SplitValue[], context: DetectionContext): 
 }
 
 /**
- * Returns the value most entries carry, the one that appears first on a tie. Order-independent
- * except for that tie-break, so moving one stray value never flips a column.
- */
-function majority<T>(entries: T[], fallback: T): T {
-  const counts = new Map<T, number>();
-  let winner = fallback;
-  let best = 0;
-
-  entries.forEach((entry) => {
-    const count = (counts.get(entry) ?? 0) + 1;
-
-    counts.set(entry, count);
-
-    if (count > best) {
-      best = count;
-      winner = entry;
-    }
-  });
-
-  return winner;
-}
-
-/**
- * Settles how a numeric column reads its values: the decimal separator by vote, and the currency
- * symbol and whether the column holds percentages by majority. A number-shaped value without a
- * symbol or a percent sign, and a real number, vote for none.
+ * Settles how a numeric column reads its values. The decimal separator is a vote. The currency
+ * symbol and the percent reading are the combination that reads the most values: a currency column
+ * also reads its bare numbers, so `$5, 5, 5, $5` is a USD column whichever order it comes in. A tie
+ * goes to the symbol that appears first in the column, and to a plain reading over a percent one.
  */
 function resolveNumberMode(values: SplitValue[], context: DetectionContext): NumberMode {
-  const voters = values.filter(({ value, parts }) => parts !== null || typeof value === 'number');
+  const decimalSeparator = voteDecimalSeparator(values, context);
+  const symbols = Array.from(new Set(values.map(({ parts }) => parts?.currencySymbol ?? null)))
+    .filter(symbol => symbol !== null);
+  let best: NumberMode = { decimalSeparator, currencySymbol: null, percent: false };
+  let bestCount = -1;
 
-  return {
-    decimalSeparator: voteDecimalSeparator(values, context),
-    currencySymbol: majority(voters.map(({ parts }) => parts?.currencySymbol ?? null), null),
-    percent: majority(voters.map(({ parts }) => parts?.percent ?? false), false),
-  };
+  [...symbols, null].forEach((currencySymbol) => {
+    [false, true].forEach((percent) => {
+      const mode: NumberMode = { decimalSeparator, currencySymbol, percent };
+      const count = values.filter(({ value, parts }) => readSplitNumber(value, parts, mode) !== null).length;
+
+      if (count > bestCount) {
+        best = mode;
+        bestCount = count;
+      }
+    });
+  });
+
+  return best;
 }
 
 /**
@@ -166,17 +157,23 @@ function resolveNumberMode(values: SplitValue[], context: DetectionContext): Num
  * `Intl.NumberFormat` throws above 100.
  */
 function toNumericFormat(read: SplitValue[], mode: NumberMode, context: DetectionContext): Intl.NumberFormatOptions {
-  let fractionDigits = 0;
+  // Text values pin the digits: `1.50` and `2.00` are written with two. A real number does not, so
+  // one computed float (`1 / 3`) widens the maximum and leaves the others unpadded.
+  let writtenDigits = 0;
+  let numberDigits = 0;
   let useGrouping = false;
 
   read.forEach(({ value, parts }) => {
     if (parts === null) {
-      fractionDigits = Math.max(fractionDigits, countNumberFractionDigits(value as number));
+      numberDigits = Math.max(numberDigits, countNumberFractionDigits(value as number));
 
       return;
     }
 
-    fractionDigits = Math.max(fractionDigits, countFractionDigits(parts.body, mode.decimalSeparator));
+    // An exponent moves the point: `1.23E+15` has no fraction, `1.5E-7` has eight digits.
+    const digits = countFractionDigits(parts.body, mode.decimalSeparator) - parts.exponent;
+
+    writtenDigits = Math.max(writtenDigits, digits);
     useGrouping = useGrouping || isGroupedBody(parts.body, mode.decimalSeparator);
   });
 
@@ -190,9 +187,10 @@ function toNumericFormat(read: SplitValue[], mode: NumberMode, context: Detectio
     style.style = 'percent';
   }
 
-  fractionDigits = Math.min(fractionDigits, MAX_FRACTION_DIGITS);
+  const minimumFractionDigits = Math.min(Math.max(writtenDigits, 0), MAX_FRACTION_DIGITS);
+  const maximumFractionDigits = Math.min(Math.max(writtenDigits, numberDigits, 0), MAX_FRACTION_DIGITS);
 
-  return { ...style, minimumFractionDigits: fractionDigits, maximumFractionDigits: fractionDigits, useGrouping };
+  return { ...style, minimumFractionDigits, maximumFractionDigits, useGrouping };
 }
 
 /**
@@ -204,6 +202,13 @@ function detectNumeric(values: unknown[], context: DetectionContext): Detection 
     value,
     parts: typeof value === 'string' ? splitNumberParts(value) : null,
   }));
+
+  // One zero-led integer rules the column out: `02134` would render as `2134`, so a ZIP column with a
+  // few such codes among plain ones must not become numeric.
+  if (split.some(({ parts }) => parts !== null && hasLeadingZero(parts.body))) {
+    return null;
+  }
+
   const mode = resolveNumberMode(split, context);
   const read = split.filter(({ value, parts }) => readSplitNumber(value, parts, mode) !== null);
   const inputFormat = {
@@ -221,15 +226,20 @@ function detectNumeric(values: unknown[], context: DetectionContext): Detection 
 
 /**
  * Settles a date column's day and month order by vote: a first part above 12 can only be a day,
- * and a second part above 12 can only be a day too. Returns `null` when no value decides it.
+ * a second part above 12 can only be a day too, and a dot separator reads as day first. Returns
+ * `null` when no value decides it.
  */
-function voteDateOrder(yearLastParts: Array<[number, number]>): 'DMY' | 'MDY' | null {
+function voteDateOrder(yearLastParts: Array<[number, number, string]>): 'DMY' | 'MDY' | null {
   let dayFirst = 0;
   let monthFirst = 0;
 
-  yearLastParts.forEach(([first, second]) => {
-    dayFirst += first > 12 && second <= 12 ? 1 : 0;
-    monthFirst += second > 12 && first <= 12 ? 1 : 0;
+  yearLastParts.forEach(([first, second, separator]) => {
+    const dayShows = first > 12 && second <= 12;
+    const monthShows = second > 12 && first <= 12;
+
+    // A dot is how day-first locales write a date (`12.03.2026`), unless a part says otherwise.
+    dayFirst += dayShows || (separator === '.' && !monthShows) ? 1 : 0;
+    monthFirst += monthShows ? 1 : 0;
   });
 
   if (dayFirst === monthFirst) {
@@ -286,15 +296,29 @@ function detectTime(values: unknown[]): Detection | null {
 }
 
 /**
- * Detects columns of a few repeated strings. A column qualifies when it has at most
- * `maxDropdownOptions` distinct values and every value repeats at least once on average, which
- * keeps a column of names or free text from becoming a dropdown.
+ * The fewest distinct values a dropdown has: a single repeated value is no choice.
+ */
+const MIN_DROPDOWN_OPTIONS = 2;
+
+/**
+ * The fewest values a dropdown is inferred from. A handful of rows repeat by chance, and a column
+ * that becomes a strict dropdown rejects every value it has not seen.
+ */
+const MIN_DROPDOWN_VALUES = 6;
+
+/**
+ * Detects columns of a few repeated strings. A column qualifies when it has at least
+ * `MIN_DROPDOWN_VALUES` values, between `MIN_DROPDOWN_OPTIONS` and `maxDropdownOptions` distinct
+ * ones, and every value repeats at least once on average, which keeps a column of names or free text
+ * from becoming a dropdown. A short list of names that repeat can still qualify: turn dropdowns off
+ * with `dropdown: false` when that is wrong for the data.
  */
 function detectDropdown(values: unknown[], context: DetectionContext): Detection | null {
   const strings = values.filter(value => typeof value === 'string');
   const source = Array.from(new Set(strings));
+  const tooFew = source.length < MIN_DROPDOWN_OPTIONS || strings.length < MIN_DROPDOWN_VALUES;
 
-  if (source.length > context.maxDropdownOptions || strings.length < source.length * 2) {
+  if (tooFew || source.length > context.maxDropdownOptions || strings.length < source.length * 2) {
     return null;
   }
 
@@ -302,8 +326,9 @@ function detectDropdown(values: unknown[], context: DetectionContext): Detection
 }
 
 /**
- * The detectors in the order they are tried. The first one whose confidence reaches the floor
- * wins, so the order is the tie-break rule.
+ * The detectors in the order they are tried. The one that reads the largest share of the values wins
+ * once it reaches the floor, and on equal shares the earlier one does, so the order is the
+ * tie-break rule.
  */
 export const DETECTORS: Detector[] = [
   detectCheckbox,

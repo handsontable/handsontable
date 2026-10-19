@@ -37,6 +37,26 @@ data) and converts the values to what each type stores. Read this before touchin
 - **A grouped value never starts with `0`** (`[1-9]` in the first group of both body regexes). With
   `\d{1,3}` there, `0.123` read under both separators, cast no vote, and a `de-DE` locale turned it
   into 123. One grouping character per value (a backreference), so `1,234 567` is not a number.
+- **The currency and percent reading is the combination that reads the MOST values**
+  (`resolveNumberMode`), and a currency mode also reads bare numbers. A majority vote broke on order
+  (`['$5','5','5','$5']` was a dropdown or USD depending on which value reached the top count first) and
+  rejected `['$1,000','250','300']`. A tie goes to the first symbol in the column, and to plain over
+  percent. An ISO code in the value (`12.00 USD`) is its own symbol; `isCurrencyCode` reads
+  `Intl.supportedValuesOf('currency')` once.
+- **Accounting parentheses make a value negative, and an exponent moves the point** (`1.23E+15`, and the
+  fraction digits are counted after the shift). Real numbers set only the MAXIMUM fraction digits; text
+  values set the minimum too, so one computed float (`1 / 3`) cannot pad `1` to `1.000000000000000`.
+- **A dot separator is a day-first vote** for a year-last date (`12.03.2026`), unless a part says month
+  first. It is the one separator that carries evidence without a part above 12.
+- **The detector that reads the largest share wins**, an earlier one keeps a tie (`runDetectors`). First
+  over the floor was wrong: with `minConfidence: 0.4`, four `true` and six numbers became a checkbox and
+  left the numbers as strings. It still stops at a detector that reads every value.
+- **A dropdown needs two options and six values.** A single repeated value is no choice, and four rows
+  repeat by chance; a strict dropdown then rejects everything it has not seen.
+- **The input types accept read-only arrays and interface-typed rows**
+  (`ReadonlyArray<ReadonlyArray<unknown>> | ReadonlyArray<object>`). `Record<string, unknown>[]`
+  rejected an `Order[]`, which is the usual shape of typed API data. A flat key with a dot is fine:
+  `DataMap#get` reads an own key before it walks a path, pinned by the `in a grid` test.
 - **Shared symbols resolve by region** (`resolveCurrencyCode` in `locale.ts`): `$` is CAD under
   `en-CA`, `kr` is NOK under `nb-NO`, but only for the regions `REGIONAL_CURRENCY_CODES` lists; any
   other region takes the symbol's default code (`$` is USD). Add a region there, never a second table.
@@ -50,7 +70,9 @@ data) and converts the values to what each type stores. Read this before touchin
 - **`getParsedNumber` (`helpers/number.ts`) is deliberately NOT used.** It falls back to
   `parseFloat`, so `12 apples` reads as `12`, and it cannot read a comma-grouped float (`1,234.56`
   becomes `1.234`). The value grammar is strict regexes in `values.ts` instead.
-- **A leading-zero integer is never numeric** (`00123`): ZIP codes and IDs would lose their zeros.
+- **A leading-zero integer rules the whole COLUMN out of numeric** (`00123`, `02134`): ZIP codes and IDs
+  would lose their zeros. Per value alone, 95 plain ZIPs and 3 zero-led ones read 97% numeric, passed the
+  floor, and rendered `02134` as `2134`. `detectNumeric` returns `null` when any value is zero-led.
   Neither is a value with more than 15 significant digits (a card number), which a double rounds.
   Fraction digits are capped at 20 (`Intl.NumberFormat` throws above 100, inside the renderer) and a
   JS number is counted at 15 significant digits, so `0.1 + 0.2` does not ask for 17 decimals.
@@ -62,9 +84,10 @@ data) and converts the values to what each type stores. Read this before touchin
   `../currencySymbols.ts`. Every symbol there is a `\u` escape (see the ASCII rule in
   `handsontable/AGENTS.md`): a raw `z\u0142` key breaks the non-minified bundle on a non-UTF-8 page,
   and a raw `\u20ac` string decodes wrongly there, so a euro column would infer as text.
-- **A `+` in front of space-grouped digits is a phone number** (`+48 601 234 567`), so
-  `splitNumberParts` rejects it. Without the rule it converted to `48601234567` and rendered grouped.
-  A `+` with comma grouping (`+1,234`) is still a number.
+- **A `+` in front of space-grouped integers is a phone number** (`+48 601 234 567`), so
+  `splitNumberParts` rejects it, and so does `isNumberBody` for a space-grouped integer of nine digits or
+  more (`601 234 567`). A decimal part (`+1 234,5`) says it is a quantity, and a `+` with comma grouping
+  (`+1,234`) is still a number. Without the rules a phone column converted to `601234567`.
 - **`Intl` writes U+2212 for a minus under some locales** (`sv-SE`, `fi-FI`); `splitNumberParts`
   normalizes it to `-`.
 - **The locale's day/month order is read WITHOUT the year.** With the year, `sv-SE` prints the ISO

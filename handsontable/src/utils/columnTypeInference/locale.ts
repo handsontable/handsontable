@@ -85,8 +85,9 @@ export function getLocaleRegion(locale: string): string {
 
 /**
  * The ISO 4217 code a currency symbol stands for in a region: `$` is CAD in Canada and `kr` is NOK
- * in Norway, while a symbol only one currency uses maps to that currency anywhere.
+ * in Norway, while a symbol only one currency uses maps to that currency anywhere. An ISO code
+ * written in the value (`12.00 USD`) is its own code.
  */
 export function resolveCurrencyCode(symbol: string, region: string): string {
-  return REGIONAL_CURRENCY_CODES[symbol]?.[region] ?? CURRENCY_SYMBOL_TO_CODE[symbol];
+  return REGIONAL_CURRENCY_CODES[symbol]?.[region] ?? CURRENCY_SYMBOL_TO_CODE[symbol] ?? symbol;
 }

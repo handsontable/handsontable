@@ -148,6 +148,10 @@ describe('ImportFile#inferColumnTypes', () => {
     expect(inputFormats(infer('de-DE', { locale: undefined }))[0]).toEqual({ decimalSeparator: ',' });
   });
 
+  it('should fall back to the grid locale for an empty locale option', () => {
+    expect(inputFormats(infer('de-DE', { locale: '' }))[0]).toEqual({ decimalSeparator: ',' });
+  });
+
   it('should pass the headerRow and stats options through', () => {
     const table = [['Price', 'Joined'], ...rows];
     const result = ImportFile.prototype.inferColumnTypes.call(localeCtx('de-DE'), table, {

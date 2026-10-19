@@ -1,3 +1,4 @@
+import Handsontable from '../../../index';
 import { inferColumnTypes, convertToInferredTypes } from '../index';
 import { sourceDataValidator as dateSourceDataValidator } from '../../../validators/dateValidator/dateValidator';
 import { sourceDataValidator as timeSourceDataValidator } from '../../../validators/timeValidator/timeValidator';
@@ -220,12 +221,25 @@ describe('inferColumnTypes', () => {
       expect(inferOne([1.5e-7, 2.5e-7, 3e-7]).numericFormat.maximumFractionDigits).toBe(8);
     });
 
-    it('lets values without a symbol outvote a currency', () => {
-      const values = ['$5', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-      const column = inferOne(values);
+    it('reads the bare numbers of a currency column as that currency, whatever the order', () => {
+      ['$5', '5', '5', '$5'].forEach((_, offset, values) => {
+        const rotated = [...values.slice(offset), ...values.slice(0, offset)];
 
-      expect(column.numericFormat.style).toBeUndefined();
-      expect(convertOne(values)[0]).toBe('$5');
+        expect(inferOne(rotated).numericFormat.currency).toBe('USD');
+        expect(convertOne(rotated)).toEqual(rotated.map(value => Number(value.replace('$', ''))));
+      });
+      expect(inferOne(['$1,000', '250', '300']).type).toBe('numeric');
+      expect(convertOne(['$1,000', '250', '300'])).toEqual([1000, 250, 300]);
+    });
+
+    it('settles a column with two currencies on the one that reads more values', () => {
+      const dollars = Array.from({ length: 9 }, (_, index) => `$${index + 1}`);
+      const euros = Array.from({ length: 9 }, (_, index) => `\u20ac${index + 1}`);
+
+      expect(inferOne([...dollars, '\u20ac6']).numericFormat.currency).toBe('USD');
+      expect(inferOne(['\u20ac6', ...dollars]).numericFormat.currency).toBe('USD');
+      expect(inferOne([...euros, '$6']).numericFormat.currency).toBe('EUR');
+      expect(inferOne(['$5', '\u20ac6']).type).toBe('text');
     });
 
     it('matches the longest currency symbol first', () => {
@@ -234,6 +248,50 @@ describe('inferColumnTypes', () => {
 
     it('reads the typographic apostrophe as grouping', () => {
       expect(convertOne(['1\u2019234.50', '12.5'], { locale: 'de-CH' })).toEqual([1234.5, 12.5]);
+    });
+
+    it('rules a column out of numeric when any value is a zero-led code', () => {
+      const zips = [...Array.from({ length: 95 }, (_, index) => String(10000 + index)), '02134', '02135', '02136'];
+
+      expect(inferOne(zips).type).toBe('text');
+      expect(convertOne(zips)[0]).toBe('10000');
+      expect(inferOne(['0.5', '0', '10']).type).toBe('numeric');
+    });
+
+    it('pads the fraction digits of text values only, so a computed float does not pad the column', () => {
+      const column = inferOne([1, 2.5, 1 / 3, 10]);
+
+      expect(column.numericFormat.minimumFractionDigits).toBe(0);
+      expect(column.numericFormat.maximumFractionDigits).toBe(15);
+      expect(inferOne(['1.50', '2.00', 0.125]).numericFormat).toEqual(expect.objectContaining({
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 3,
+      }));
+    });
+
+    it('reads accounting negatives, exponents, and ISO currency codes', () => {
+      expect(convertOne(['(1,234.00)', '5.5'])).toEqual([-1234, 5.5]);
+      expect(convertOne(['($5)', '$7'])).toEqual([-5, 7]);
+      expect(convertOne(['1.23E+15', '4e2', '1.5E-7'])).toEqual([1.23e15, 400, 1.5e-7]);
+      expect(inferOne(['1.23E+15', '4e2']).numericFormat.maximumFractionDigits).toBe(0);
+      expect(inferOne(['1.5E-3', '2E-3']).numericFormat.maximumFractionDigits).toBe(4);
+      expect(inferOne(['12.00 USD', 'USD 7.50']).numericFormat).toEqual(expect.objectContaining({
+        style: 'currency',
+        currency: 'USD',
+      }));
+      expect(convertOne(['12.00 USD', 'USD 7.50'])).toEqual([12, 7.5]);
+      expect(inferOne(['12.00 PLN', '7 PLN'], { locale: 'en-US' }).numericFormat.currency).toBe('PLN');
+    });
+
+    it('reads signed space-grouped quantities, and still keeps a phone number as text', () => {
+      expect(convertOne(['+1 234,5', '-1 234,5', '2,5'], { locale: 'fr-FR' })).toEqual([1234.5, -1234.5, 2.5]);
+      expect(inferOne(['+48 601 234 567', '+48 502 111 222']).type).toBe('text');
+    });
+
+    it('keeps a space-grouped integer of nine digits or more as text', () => {
+      expect(inferOne(['601 234 567', '502 111 222', '600 000 001']).type).toBe('text');
+      expect(convertOne(['1 234 567', '12 345'], { locale: 'pl-PL' })).toEqual([1234567, 12345]);
+      expect(convertOne(['601 234 567,5', '1,5'], { locale: 'pl-PL' })).toEqual([601234567.5, 1.5]);
     });
 
     it('reads 1 and 0 as numbers, not checkboxes', () => {
@@ -298,6 +356,12 @@ describe('inferColumnTypes', () => {
     it('reads the day-month order of a year-first locale without its year', () => {
       expect(convertOne(['12/03/2026', '01/02/2026'], { locale: 'sv-SE' })).toEqual(['2026-03-12', '2026-02-01']);
       expect(convertOne(['12/03/2026', '01/02/2026'], { locale: 'ja-JP' })).toEqual(['2026-12-03', '2026-01-02']);
+    });
+
+    it('reads a dot as a day-first date whatever the locale', () => {
+      expect(convertOne(['12.03.2026', '01.04.2026'], { locale: 'en-US' })).toEqual(['2026-03-12', '2026-04-01']);
+      expect(inferOne(['12.03.2026', '01.04.2026'], { locale: 'en-US' }).confidence).toBe(1);
+      expect(convertOne(['03.25.2026', '01.04.2026'], { locale: 'en-US' })).toEqual(['2026-03-25', '2026-01-04']);
     });
 
     it('reads dotted and dashed day-month-year dates', () => {
@@ -365,6 +429,12 @@ describe('inferColumnTypes', () => {
       expect(inferOne(['Alice', 'Bob', 'Carol', 'Dave', 'Eve', 'Frank']).type).toBe('text');
     });
 
+    it('needs two options and six values', () => {
+      expect(inferOne(['yes', 'yes', 'yes', 'yes', 'yes', 'yes']).type).toBe('text');
+      expect(inferOne(['yes', 'no', 'yes', 'no']).type).toBe('text');
+      expect(inferOne(['yes', 'no', 'yes', 'no', 'yes', 'no']).type).toBe('dropdown');
+    });
+
     it('allows up to 10 options by default, and more with maxOptions', () => {
       const options = Array.from({ length: 11 }, (_, index) => `Option ${index}`);
       const values = [...options, ...options];
@@ -401,6 +471,14 @@ describe('inferColumnTypes', () => {
       expect(convertOne(values)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 'n/a']);
     });
 
+    it('gives the type that reads the most values, and the earlier detector a tie', () => {
+      const values = ['true', 'true', 'true', 'true', '1', '2', '3', '4', '5', '6'];
+
+      expect(inferOne(values, { minConfidence: 0.4 }).type).toBe('numeric');
+      expect(convertOne(values, { minConfidence: 0.4 }).slice(4)).toEqual([1, 2, 3, 4, 5, 6]);
+      expect(inferOne(['1', '2', '1', '2', '1', '2'], { minConfidence: 0.4 }).type).toBe('numeric');
+    });
+
     it('falls back to text below the confidence floor', () => {
       expect(inferOne(['1', '2', 'three', 'four'])).toEqual({ type: 'text', confidence: 1 });
       expect(inferOne(['1', '2', '3', 'four'], { minConfidence: 0.7 }).type).toBe('numeric');
@@ -423,6 +501,8 @@ describe('inferColumnTypes', () => {
         ['Bob', '12,5', '13.03.2026', 'false', 'Closed'],
         ['Carol', '7', '14.03.2026', 'true', 'Open'],
         ['Dave', '99', '15.03.2026', 'false', 'Open'],
+        ['Eve', '3,5', '16.03.2026', 'true', 'Closed'],
+        ['Frank', '40', '17.03.2026', 'false', 'Open'],
       ];
       const result = inferColumnTypes(rows, { locale: 'de-DE' });
 
@@ -433,6 +513,8 @@ describe('inferColumnTypes', () => {
         ['Bob', 12.5, '2026-03-13', false, 'Closed'],
         ['Carol', 7, '2026-03-14', true, 'Open'],
         ['Dave', 99, '2026-03-15', false, 'Open'],
+        ['Eve', 3.5, '2026-03-16', true, 'Closed'],
+        ['Frank', 40, '2026-03-17', false, 'Open'],
       ]);
     });
 
@@ -480,8 +562,8 @@ describe('inferColumnTypes', () => {
 
     it('reads null options leniently', () => {
       expect(() => inferColumnTypes([['1']], null)).not.toThrow();
-      expect(inferOne(['a', 'b', 'a', 'b'], { dropdown: null }).type).toBe('dropdown');
-      expect(inferOne(['a', 'b', 'a', 'b'], { dropdown: { maxOptions: 0 } }).type).toBe('text');
+      expect(inferOne(['a', 'b', 'a', 'b', 'a', 'b'], { dropdown: null }).type).toBe('dropdown');
+      expect(inferOne(['a', 'b', 'a', 'b', 'a', 'b'], { dropdown: { maxOptions: 0 } }).type).toBe('text');
     });
 
     it('samples only the first sampleSize rows', () => {
@@ -774,7 +856,7 @@ describe('inferColumnTypes', () => {
         const values = {
           text: ['Alice', 'Bob', 'Carol', 'Dave', 'Eve', 'Frank'],
           checkbox: ['TRUE', 'false'],
-          dropdown: ['Open', 'Closed', 'Open', 'Closed'],
+          dropdown: ['Open', 'Closed', 'Open', 'Closed', 'Open', 'Closed'],
         }[type];
         const result = stats(values);
 
@@ -792,8 +874,8 @@ describe('inferColumnTypes', () => {
     });
 
     it('names a rival type that reads the same values, in detector order for a tie', () => {
-      expect(stats(['1', '2', '1', '2']).runnerUpType).toBe('dropdown');
-      expect(stats(['TRUE', 'false', 'TRUE', 'false']).runnerUpType).toBe('dropdown');
+      expect(stats(['1', '2', '1', '2', '1', '2']).runnerUpType).toBe('dropdown');
+      expect(stats(['TRUE', 'false', 'TRUE', 'false', 'TRUE', 'false']).runnerUpType).toBe('dropdown');
     });
 
     it('names text as the runner-up of a type with no rival', () => {
@@ -828,6 +910,30 @@ describe('inferColumnTypes', () => {
     });
   });
 
+  describe('in a grid', () => {
+    it('renders a column whose property name has a dot', () => {
+      const rows = [{ 'unit.price': '10' }, { 'unit.price': '12.5' }];
+      const result = inferColumnTypes(rows);
+      const container = document.createElement('div');
+
+      document.body.appendChild(container);
+
+      const hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: convertToInferredTypes(rows, result),
+        columns: result.columns.map(column => column.settings),
+      });
+
+      expect(result.columns[0].settings.data).toBe('unit.price');
+      expect(hot.getDataAtCell(0, 0)).toBe(10);
+      expect(hot.getDataAtCell(1, 0)).toBe(12.5);
+      expect(hot.getCell(0, 0).textContent).toBe('10.0');
+
+      hot.destroy();
+      container.remove();
+    });
+  });
+
   describe('converted values', () => {
     const corpus = [
       { values: ['1.234,56', '12,5', '7', null], locale: 'de-DE' },
@@ -839,7 +945,7 @@ describe('inferColumnTypes', () => {
       { values: ['9:05 PM', '12:00 am', '14:30'] },
       { values: ['TRUE', 'false', true, null] },
       { values: [1, '2', 3.5] },
-      { values: ['Open', 'Closed', 'Open', 'Open', null] },
+      { values: ['Open', 'Closed', 'Open', 'Open', 'Closed', 'Open', null] },
       { values: ['1 234,56 zł', '12,5 zł', '7 zł'], locale: 'pl-PL' },
     ];
 

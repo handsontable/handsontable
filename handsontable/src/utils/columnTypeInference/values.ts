@@ -1,5 +1,5 @@
 import { isValidISODate } from '../../helpers/dateTime';
-import { CURRENCY_SYMBOLS } from '../currencySymbols';
+import { CURRENCY_SYMBOLS, isCurrencyCode } from '../currencySymbols';
 
 /**
  * An ungrouped number body with a dot decimal (`1234`, `0.5`, `.5`).
@@ -23,6 +23,11 @@ const COMMA_PLAIN_REGEX = /^(?:\d+(?:,\d+)?|,\d+)$/;
  * `DOT_GROUPED_REGEX`.
  */
 const COMMA_GROUPED_REGEX = /^[1-9]\d{0,2}([.\u0020\u00a0\u202f])\d{3}(?:\1\d{3})*(?:,\d+)?$/;
+
+/**
+ * A body grouped by spaces of any width (`601 234 567`).
+ */
+const SPACE_GROUPING_REGEX = /[\u0020\u00a0\u202f]/;
 
 /**
  * The characters a number body may hold: digits, the two decimal separators, and the grouping
@@ -75,9 +80,13 @@ export interface NumberParts {
    */
   body: string;
   /**
-   * Whether the value carried a minus sign.
+   * Whether the value was negative: a minus sign, or accounting parentheses.
    */
   negative: boolean;
+  /**
+   * The power of ten the value carried in exponent notation (`1.23E+15` is `15`), or `0`.
+   */
+  exponent: number;
   /**
    * The currency symbol the value carried, or `null`.
    */
@@ -151,9 +160,45 @@ export function isBlank(value: unknown): boolean {
 }
 
 /**
+ * Removes an ISO 4217 code (`USD 12`, `12.00 USD`) from either end of a value. The code is its own
+ * symbol, so `$` and `USD` are different symbols to the column even though they are one currency.
+ */
+function takeCurrencyCode(text: string): { currencySymbol: string; rest: string } | null {
+  const head = text.slice(0, 3);
+  const tail = text.slice(-3);
+
+  if (text.length > 3 && isCurrencyCode(head)) {
+    return { currencySymbol: head, rest: text.slice(3).trim() };
+  }
+
+  if (text.length > 3 && isCurrencyCode(tail)) {
+    return { currencySymbol: tail, rest: text.slice(0, -3).trim() };
+  }
+
+  return null;
+}
+
+/**
+ * Splits an exponent off a number body (`1.23E+15` gives `1.23` and `15`). A body without a
+ * well-formed exponent comes back whole, with `0`.
+ */
+function takeExponent(body: string): { body: string; exponent: number } {
+  const index = body.search(/e/i);
+  const tail = index > 0 ? body.slice(index + 1) : '';
+
+  return /^[+-]?\d{1,3}$/.test(tail) ? { body: body.slice(0, index), exponent: Number(tail) } : { body, exponent: 0 };
+}
+
+/**
  * Removes a currency symbol from either end of a value and returns it, or `null` when there is none.
  */
 function takeCurrency(text: string): { currencySymbol: string | null; rest: string } {
+  const code = takeCurrencyCode(text);
+
+  if (code) {
+    return code;
+  }
+
   for (const symbol of CURRENCY_SYMBOLS) {
     if (text.startsWith(symbol)) {
       return { currencySymbol: symbol, rest: text.slice(symbol.length).trim() };
@@ -181,8 +226,15 @@ export function splitNumberParts(text: string): NumberParts | null {
     rest = rest.slice(0, -1).trim();
   }
 
+  // Accounting writes a negative amount in parentheses: `(1,234.00)`.
+  const accounting = rest.startsWith('(') && rest.endsWith(')');
+
+  if (accounting) {
+    rest = rest.slice(1, -1).trim();
+  }
+
   const signed = rest.startsWith('+') || rest.startsWith('-');
-  let negative = signed && rest[0] === '-';
+  let negative = accounting || (signed && rest[0] === '-');
 
   if (signed) {
     rest = rest.slice(1).trim();
@@ -190,6 +242,7 @@ export function splitNumberParts(text: string): NumberParts | null {
 
   const { currencySymbol, rest: afterCurrency } = takeCurrency(rest);
   let body = afterCurrency;
+  let exponent = 0;
 
   // `$-3.25` carries its sign after the symbol; a value that already had a sign cannot have two.
   if (!signed && currencySymbol !== null && body.startsWith('-')) {
@@ -197,12 +250,15 @@ export function splitNumberParts(text: string): NumberParts | null {
     body = body.slice(1).trim();
   }
 
+  ({ body, exponent } = takeExponent(body));
+
   // A `+` in front of digits grouped by spaces is a phone number (`+48 601 234 567`), not a quantity.
-  if (signed && !negative && /\s/.test(body)) {
+  // A decimal part (`+1 234,5`) says it is a quantity.
+  if (signed && !negative && /\s/.test(body) && !/[.,]/.test(body)) {
     return null;
   }
 
-  return NUMBER_BODY_CHARS_REGEX.test(body) ? { body, negative, currencySymbol, percent } : null;
+  return NUMBER_BODY_CHARS_REGEX.test(body) ? { body, negative, exponent, currencySymbol, percent } : null;
 }
 
 /**
@@ -227,12 +283,26 @@ function countSignificantDigits(body: string, decimalSeparator: '.' | ','): numb
 }
 
 /**
+ * Whether a number body is an integer part that starts with a zero followed by another digit
+ * (`00123`, `02134`), which marks a code such as a ZIP or an ID rather than a quantity.
+ */
+export function hasLeadingZero(body: string): boolean {
+  return LEADING_ZERO_REGEX.test(body);
+}
+
+/**
  * Whether a number body is valid under the given decimal separator. A leading zero followed by a
  * digit is rejected under both, since it marks a code rather than a quantity, and so is a value
  * with more significant digits than a number holds.
  */
 export function isNumberBody(body: string, decimalSeparator: '.' | ','): boolean {
-  if (LEADING_ZERO_REGEX.test(body) || countSignificantDigits(body, decimalSeparator) > MAX_SIGNIFICANT_DIGITS) {
+  if (hasLeadingZero(body) || countSignificantDigits(body, decimalSeparator) > MAX_SIGNIFICANT_DIGITS) {
+    return false;
+  }
+
+  // Digits grouped by spaces with no decimal part, nine or more of them, read as a phone number
+  // (`601 234 567`) and not as a quantity.
+  if (!body.includes(decimalSeparator) && SPACE_GROUPING_REGEX.test(body) && body.replace(/\D/g, '').length >= 9) {
     return false;
   }
 
@@ -246,7 +316,15 @@ export function isNumberBody(body: string, decimalSeparator: '.' | ','): boolean
  * separator.
  */
 export function isGroupedBody(body: string, decimalSeparator: '.' | ','): boolean {
-  return [...body].some(char => (char < '0' || char > '9') && char !== decimalSeparator);
+  for (let index = 0; index < body.length; index++) {
+    const code = body.charCodeAt(index);
+
+    if ((code < 48 || code > 57) && body[index] !== decimalSeparator) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -298,11 +376,23 @@ export function readSplitNumber(value: unknown, parts: NumberParts | null, mode:
     return null;
   }
 
-  const plain = [...parts.body]
-    .filter(char => (char >= '0' && char <= '9') || char === mode.decimalSeparator)
-    .join('')
-    .replace(mode.decimalSeparator, '.');
-  const number = Number(`${parts.negative ? '-' : ''}${plain}${mode.percent ? 'e-2' : ''}`);
+  // A loop and not a spread: this runs per cell, and an array per cell shows in a profile.
+  let plain = '';
+
+  for (let index = 0; index < parts.body.length; index++) {
+    const char = parts.body[index];
+    const code = parts.body.charCodeAt(index);
+
+    if (code >= 48 && code <= 57) {
+      plain += char;
+
+    } else if (char === mode.decimalSeparator) {
+      plain += '.';
+    }
+  }
+
+  const exponent = parts.exponent - (mode.percent ? 2 : 0);
+  const number = Number(`${parts.negative ? '-' : ''}${plain}${exponent === 0 ? '' : `e${exponent}`}`);
 
   return Number.isFinite(number) ? number : null;
 }
@@ -336,12 +426,13 @@ function toIsoDate(year: string, month: string, day: string): string | null {
 }
 
 /**
- * Splits a year-last date into its first and second parts, or returns `null` for another shape.
+ * Splits a year-last date into its first part, its second part, and its separator, or returns `null`
+ * for another shape.
  */
-export function splitYearLastDate(value: unknown): [number, number] | null {
+export function splitYearLastDate(value: unknown): [number, number, string] | null {
   const match = typeof value === 'string' ? YEAR_LAST_DATE_REGEX.exec(value.trim()) : null;
 
-  return match ? [Number(match[1]), Number(match[3])] : null;
+  return match ? [Number(match[1]), Number(match[3]), match[2]] : null;
 }
 
 /**
